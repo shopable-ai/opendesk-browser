@@ -7,6 +7,7 @@ const CSS=[
 'font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#20222b;font-size:13px;line-height:1.45}',
 '*{box-sizing:border-box}button,select{font:inherit}button{cursor:pointer}button:focus-visible,select:focus-visible{outline:2px solid #426cff;outline-offset:2px}',
 '.panel{background:#fff;border:1px solid #e9e9ef;border-radius:12px;padding:12px;box-shadow:0 3px 13px #10182716}',
+':host([hidden]){display:none!important}',
 '.head{display:flex;justify-content:space-between;align-items:center;gap:2px;margin-bottom:8px}',
 '.grab{display:flex;align-items:center;gap:4px;min-width:0;padding:3px 1px;border:0;border-radius:6px;',
 'background:transparent;color:inherit;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none}',
@@ -90,7 +91,9 @@ export function createReadingTocView({doc,win=doc.defaultView,initialPlacement=n
   let composerObserved=null;
   function place(){
     if(disposed)return;
+    host.hidden=false;
     host.style.removeProperty('--toc-bottom');host.style.removeProperty('--toc-scroll-limit');
+    if(!placement)host.style.removeProperty('top');
     const input=doc.querySelector?.('#prompt-textarea');
     if(!input?.getClientRects().length){
       if(observer&&composerObserved)observer.unobserve(composerObserved);
@@ -98,23 +101,23 @@ export function createReadingTocView({doc,win=doc.defaultView,initialPlacement=n
     }
     const form=input.closest('form'),inputRect=input.getBoundingClientRect();
     const formRect=form?.getBoundingClientRect();
-    const rect=formRect&&formRect.height<=win.innerHeight/2?formRect:inputRect;
+    const rect=formRect&&formRect.height>0?formRect:inputRect;
     const target=form||input;
     if(observer&&composerObserved!==target){
       if(composerObserved)observer.unobserve(composerObserved);
       observer.observe(target);composerObserved=target;
     }
-    if(rect.top<win.innerHeight/2||rect.top>=win.innerHeight)return;
+    if(rect.bottom<=0||rect.top>=win.innerHeight)return;
     const card=host.getBoundingClientRect();
     if(card.right<=rect.left||card.left>=rect.right)return;
     if(win.innerWidth<=720&&!placement){
       host.style.setProperty('--toc-bottom',Math.max(8,win.innerHeight-rect.top+8)+'px');
+      if(host.getBoundingClientRect().top<8)host.hidden=true;
     }else{
       host.style.setProperty('--toc-scroll-limit',Math.max(0,rect.top-scroll.getBoundingClientRect().top-20)+'px');
-      if(placement){
-        const adjusted=host.getBoundingClientRect();
-        if(adjusted.bottom>rect.top-8)host.style.top=Math.max(8,rect.top-adjusted.height-8)+'px';
-      }
+      const adjusted=host.getBoundingClientRect();
+      if(adjusted.height>rect.top-16)host.hidden=true;
+      else if(adjusted.bottom>rect.top-8)host.style.top=Math.max(8,rect.top-adjusted.height-8)+'px';
     }
   }
   let placement=readTocPlacement(initialPlacement),drag=null,disposed=false;

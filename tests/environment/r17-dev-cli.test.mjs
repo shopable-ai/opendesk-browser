@@ -194,7 +194,7 @@ test('R17 recognized directory exports validated runtimeKind into its modern Nat
   assert.equal(registration.kind,'provider.register');
   assert.equal(registration.catalogVersion,2);
   assert.equal(registration.leaseId,'owned-lease');
-  assert.deepEqual(registration.projects,[{bindingId:attached.bindingId,name:path.basename(directory),runtimeKind:'controller'}]);
+  assert.deepEqual(registration.projects,[{bindingId:attached.bindingId,name:path.basename(directory),runtimeKind:'controller',preparation:{state:'unprepared'}}]);
   // A file-only workspace has no program binding. No guessed JS entrance.
   const documentDir=path.join(scratch,'纯文本');
   fs.mkdirSync(documentDir);

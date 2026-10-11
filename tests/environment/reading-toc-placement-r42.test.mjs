@@ -99,6 +99,43 @@ function viewFixture(){
   return {doc,win,host,handle,reset,pointer};
 }
 
+test('expanded composer above the viewport midpoint keeps the compact card outside the whole form',()=>{
+  const oldSheet=globalThis.CSSStyleSheet,oldRect=MockElement.prototype.getBoundingClientRect;
+  globalThis.CSSStyleSheet=class {replaceSync(){}};
+  try{
+    for(const [formTop,inputTop,width] of [[170,180,900],[90,320,900],[40,320,900],[40,320,600]]){
+      const f=viewFixture();f.win.innerWidth=width;f.win.innerHeight=400;
+      const form={getBoundingClientRect:()=>({top:formTop,bottom:400,left:0,right:900,height:400-formTop})};
+      const input={getClientRects:()=>[1],closest:()=>form,
+        getBoundingClientRect:()=>({top:inputTop,bottom:inputTop+50,left:0,right:810,height:50})};
+      f.doc.querySelector=selector=>selector==='#prompt-textarea'?input:null;
+      MockElement.prototype.getBoundingClientRect=function(){
+        const base=oldRect.call(this);
+        if(this.win!==f.win)return base;
+        if(this.attributes.has('data-opendesk-toc-root')){
+          const limit=parseFloat(this.style['--toc-scroll-limit']);
+          const height=60+Math.min(120,Number.isFinite(limit)?limit:120);
+          const bottom=parseFloat(this.style['--toc-bottom']);
+          const top=Number.isFinite(bottom)?f.win.innerHeight-bottom-height:base.top;
+          return {...base,height,top,bottom:top+height};
+        }
+        if(this.className==='scroll')return {...base,top:f.host().getBoundingClientRect().top+60};
+        return base;
+      };
+      const view=createReadingTocView({doc:f.doc,win:f.win,onNavigate:()=>{}});
+      if(formTop===40)assert.equal(f.host().hidden,true,'float is temporarily hidden when even its header cannot fit');
+      else{assert.equal(f.host().hidden,false);assert(f.host().getBoundingClientRect().bottom<=formTop-8,
+        'the whole expanded form is avoided even when its height exceeds half the viewport');}
+      if(width>720)assert(Number.isFinite(parseFloat(f.host().style['--toc-scroll-limit'])));
+      f.doc.querySelector=()=>null;f.win.fire('resize');
+      assert.equal(f.host().style['--toc-scroll-limit'],undefined,'normal layout is restored when the composer disappears');
+      assert.equal(f.host().style.top,undefined);
+      assert.equal(f.host().hidden,false,'float returns when composer no longer consumes the viewport');
+      view.dispose();
+    }
+  }finally{globalThis.CSSStyleSheet=oldSheet;MockElement.prototype.getBoundingClientRect=oldRect;}
+});
+
 test('R4.2 real view controls drag only from handle, persist at release, reset and dispose',()=>{
   const oldSheet=globalThis.CSSStyleSheet;
   globalThis.CSSStyleSheet=class {replaceSync(){}};

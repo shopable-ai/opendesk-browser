@@ -223,6 +223,31 @@ test('a remembered project is never silently replaced by a different sole author
   assert.equal(Object.hasOwn(saved.at(-1),'local'),false,'do not persist active mode');
 });
 
+test('preparation-only same-epoch updates preserve pending resolve; catalog changes still invalidate it',async t=>{
+  for(const changed of ['preparation','preparation-repeat','removed','identity','epoch','disconnected','source-error','query-error']){
+    const f=await fixture();t.after(()=>f.dispose());f.find('local-project-params').value='{}';const gate=deferred(),metadataGate=deferred();let notify,preparing='updating',catalog=true,sourceId='source-a',holdMetadata=false;
+    const sourceUtf8='async function main(){return {local:3};}',sourceHash=createHash('sha256').update(sourceUtf8).digest('hex');
+    f.client.registration={registrationId:'local-host'};f.client.subscribeNativeAgent=()=>()=>{};f.client.replyNativeAgent=()=>{};
+    f.client.subscribeLocalProjects=fn=>{notify=fn;return()=>{};};
+    f.client.requestLocalProject=async(method,params)=>{
+      if(method==='status')return {connected:true,providerEpoch:'epoch-a'};
+      if(method==='projects.list'){if(holdMetadata){await metadataGate.promise;if(changed==='query-error')throw Object.assign(new Error('status query failed'),{code:'E_DEV_TIMEOUT'});}return {providerEpoch:'epoch-a',projects:catalog?[{name:'A',bindingId:'local-a',sourceId,preparation:{state:preparing}}]:[]};}
+      await gate.promise;return {providerEpoch:'epoch-a',bindingId:params.bindingId,sourceUtf8,sourceHash,sourceBytes:Buffer.byteLength(sourceUtf8),runtimeKind:'controller',siteOrigins:['https://a.example']};
+    };
+    const adapter=createNativeAgentHostAdapter({client:f.client,host:f.editor.host,currentPageTarget:f.target,api:f.api});t.after(()=>adapter.dispose());
+    f.editor.connectLocalProjects(adapter);await tick();f.find('local-project-mode').checked=true;f.find('local-project-mode').fire('change');await tick();await tick();
+    f.find('local-project-select').value='local-a';f.find('local-project-select').fire('change');
+    f.click('script-run');await tick();
+    preparing=changed==='source-error'?'source-error':'ready';if(changed==='removed')catalog=false;if(changed==='identity')sourceId='source-b';
+    holdMetadata=true;notify({connected:changed!=='disconnected',providerEpoch:changed==='epoch'?'epoch-b':'epoch-a'});await tick();gate.resolve();await new Promise(resolve=>setTimeout(resolve,50));
+    if(changed==='preparation-repeat')notify({connected:true,providerEpoch:'epoch-a'});
+    assert.equal(f.starts.length,0,'pending catalog check must precede dispatch');metadataGate.resolve();
+    if(changed.startsWith('preparation'))await f.finish(3);
+    for(let i=0;i<100&&!['completed','results','error'].includes(f.find('script-status').dataset.state);i++)await new Promise(resolve=>setTimeout(resolve,5));
+    if(changed.startsWith('preparation')){assert.equal(f.starts.length,1,f.find('script-status').textContent);assert.equal(f.persisted.results.at(-1)?.state,'completed');assert.equal(f.find('local-project-select').value,'local-a');}
+    else{assert.equal(f.starts.length,0,changed+' must not dispatch stale resolve');assert.match(f.find('script-status').textContent,/E_DEV_CONFLICT/);}
+  }
+});
 test('local project mode preserves manual draft and params while running fresh bytes through the same Host',async t=>{
   const f=await fixture();t.after(()=>f.dispose());
   const manual=f.find('script-source').value;f.find('script-params').value='invalid manual parameter JSON';f.find('local-project-params').value='{}';

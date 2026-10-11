@@ -744,7 +744,7 @@ try {
         await click(notes, q("#refresh-page"));
         await until((() => inspect(notes, 'document.querySelector("#page-summary").textContent.includes("暂不支持")')), "restricted page");
         await shot(side, "notes-restricted-page");
-        await type(notes,"访问受限时仍能保存中文");
+        await type(notes,"#note-text","访问受限时仍能保存中文");
         await send(notes,"Input.dispatchKeyEvent",{type:"keyDown",key:"s",code:"KeyS",modifiers:4,windowsVirtualKeyCode:83});
         await send(notes,"Input.dispatchKeyEvent",{type:"keyUp",key:"s",code:"KeyS",modifiers:4,windowsVirtualKeyCode:83});
         await until(async()=>((await storage(side))["opendesk.sidebar-tools.data.v1:quick-notes"]?.notes?.value?.notes||[]).some(n=>n.text==="访问受限时仍能保存中文"),"offline save on restricted page");

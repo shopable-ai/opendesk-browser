@@ -8,7 +8,7 @@ export function createLocalProjectView({client,api,document:doc,onChange=()=>{}}
   const find=id=>doc.getElementById(id),mode=find('local-project-mode'),select=find('local-project-select'),status=find('local-project-status');
   let disposed=false,generation=0,selectionGeneration=0,connected=false,epoch=null,projects=[],selection='',savedName='',savedSourceId='',last=null,checking=false,diagnostic='';
   const listeners=[];
-  let pollTimer=null,pollBusy=false;
+  let pollTimer=null,pollBusy=false,preparationCheck=null,preparationAgain=false,preparationError=null;
   const preparationLabels={ready:'已就绪',updating:'正在更新',merging:'正在合并修改','source-error':'源码有错误'};
   const active=()=>mode.checked;
   const selected=()=>projects.find(row=>row.bindingId===selection);
@@ -61,7 +61,7 @@ export function createLocalProjectView({client,api,document:doc,onChange=()=>{}}
       if(disposed||version!==generation)return;
       if(value.providerEpoch!==state.providerEpoch||!Array.isArray(value.projects)||value.projects.length>32||
         value.projects.some(row=>typeof row.bindingId!=='string'||typeof row.name!=='string'))throw failure('E_DEV_DISCONNECTED','项目连接身份已变化，请刷新');
-      connected=true;epoch=value.providerEpoch;projects=value.projects;
+      connected=true;epoch=value.providerEpoch;projects=value.projects;preparationError=null;
       const unavailable=Array.isArray(value.unavailableSources)?value.unavailableSources:[];
       diagnostic=unavailable.filter(row=>row?.source==='legacy-mcp'&&/^E_[A-Z0-9_]+$/.test(row.code||''))
         .map(row=>'旧 MCP 来源暂不可用（'+row.code+'）；其它已登记来源保持可用').join('；');
@@ -77,8 +77,9 @@ export function createLocalProjectView({client,api,document:doc,onChange=()=>{}}
     }}
     finally{if(version===generation){checking=false;render(errorMessage);}}
   }
-  function capture(){if(!active()||checking||!connected||!selected())throw failure('E_DEV_DISCONNECTED','请选择已连接的本地项目');return {generation,bindingId:selection,providerEpoch:epoch};}
-  function assertCaptured(captured){if(disposed||!active()||checking||!connected||captured.generation!==generation||captured.bindingId!==selection||captured.providerEpoch!==epoch)throw failure('E_DEV_CONFLICT','本地项目或连接已变化，本次未运行');}
+  function capture(){if(!active()||checking||!connected||!selected())throw failure('E_DEV_DISCONNECTED','请选择已连接的本地项目');if(preparationError||selected().preparation?.state==='source-error')throw failure('E_DEV_SOURCE','本地项目状态尚未通过核对，请修复后刷新');return {generation,bindingId:selection,providerEpoch:epoch};}
+  function assertCaptured(captured){if(disposed||!active()||checking||!connected||preparationError||selected()?.preparation?.state==='source-error'||captured.generation!==generation||captured.bindingId!==selection||captured.providerEpoch!==epoch)throw failure('E_DEV_CONFLICT','本地项目或连接已变化，本次未运行');}
+  async function assertReady(captured){while(preparationCheck)await preparationCheck;assertCaptured(captured);}
   async function resolve(captured){
     assertCaptured(captured);
     render('正在更新');
@@ -86,7 +87,7 @@ export function createLocalProjectView({client,api,document:doc,onChange=()=>{}}
     assertCaptured(captured);
     if(value.providerEpoch!==captured.providerEpoch||value.bindingId!==captured.bindingId||!['controller','page-userscript'].includes(value.runtimeKind)||
       typeof value.sourceUtf8!=='string'||value.sourceBytes!==new TextEncoder().encode(value.sourceUtf8).length||value.sourceHash!==await sha256Utf8(value.sourceUtf8))throw failure('E_DEV_HASH','本地源码字节或执行身份不一致');
-    assertCaptured(captured);last=value;render();return value;
+    await assertReady(captured);last=value;render();return value;
   }
   listen(mode,'change',()=>{generation++;selectionGeneration++;checking=false;connected=false;epoch=null;last=null;diagnostic='';persist();render();if(active())void refresh();});
   listen(select,'change',()=>{generation++;selectionGeneration++;checking=false;selection=select.value;last=null;persist();render();});
@@ -110,6 +111,7 @@ export function createLocalProjectView({client,api,document:doc,onChange=()=>{}}
   });
   listen(find('local-project-params'),'input',persist);
   const unsubscribe=client.subscribeLocalProjects?.(state=>{
+    if(state.connected&&connected&&state.providerEpoch===epoch){void refreshPreparation();return;}
     generation++;checking=false;connected=false;epoch=null;projects=[];
     if(!disposed){choices();render();if(active()&&state.connected)void refresh();}
   });
@@ -122,17 +124,27 @@ export function createLocalProjectView({client,api,document:doc,onChange=()=>{}}
   }).catch(()=>{});
   render();
   // Metadata only; polling does not resolve/compile source or dispatch a run.
-  pollTimer=setInterval(async()=>{
-    if(disposed||!active()||checking||!connected||pollBusy)return;
+  const catalogIdentity=rows=>JSON.stringify(rows.map(row=>[row.bindingId,row.name,row.runtimeKind,row.source,row.sourceId,row.workspaceId]).sort((a,b)=>a[0].localeCompare(b[0])));
+  function refreshPreparation(){
+    if(disposed||!active()||checking||!connected)return;
+    if(pollBusy){preparationAgain=true;return preparationCheck;}
     const version=generation;pollBusy=true;
-    try{const value=await client.requestLocalProject('projects.list',{});if(disposed||version!==generation)return;if(value.providerEpoch!==epoch){void refresh();return;}if(Array.isArray(value.projects)){projects=value.projects;render();}}
+    preparationCheck=Promise.resolve().then(async()=>{try{do{preparationAgain=false;
+      const value=await client.requestLocalProject('projects.list',{});if(disposed||version!==generation)return;if(value.providerEpoch!==epoch){void refresh();return;}
+      if(!Array.isArray(value.projects)||value.projects.length>32||value.projects.some(row=>typeof row?.bindingId!=='string'||typeof row?.name!=='string'))throw failure('E_DEV_DISCONNECTED','项目状态身份无效');
+      if(catalogIdentity(value.projects)!==catalogIdentity(projects)){void refresh();return;}
+      projects=value.projects;preparationError=null;render();
+    }while(preparationAgain&&!disposed&&active()&&connected&&version===generation);}
     catch(error){if(!disposed&&version===generation){
-      if(['E_DEV_DISCONNECTED','E_NATIVE_DISCONNECTED','E_PROVIDER_DISCONNECTED'].includes(error?.code)){connected=false;generation++;render('本地来源离线');}
+      preparationError=error;generation++;
+      if(['E_DEV_DISCONNECTED','E_NATIVE_DISCONNECTED','E_PROVIDER_DISCONNECTED'].includes(error?.code)){connected=false;render('本地来源离线');}
       else{diagnostic=`${error?.code||'E_DEV_STATUS'}：状态暂时不可用，稍后重试`;render();}
-    }}finally{pollBusy=false;}
-  },2000);
+    }}finally{pollBusy=false;preparationCheck=null;}});
+    return preparationCheck;
+  }
+  pollTimer=setInterval(refreshPreparation,2000);
   if(!api.storage?.local&&active())void refresh();
-  return {active,connected:()=>connected&&!checking&&!!selected(),selectedBindingId:()=>selection,capture,resolve,assertCaptured,
+  return {active,connected:()=>connected&&!checking&&!!selected(),selectedBindingId:()=>selection,capture,resolve,assertCaptured,assertReady,
     dispose(){disposed=true;generation++;clearInterval(pollTimer);unsubscribe?.();unsubscribeConnection?.();for(const [node,event,callback] of listeners)node.removeEventListener(event,callback);},
     resourceSnapshot:()=>({subscriptions:listeners.length+Number(!!unsubscribe)+Number(!!unsubscribeConnection)})};
 }

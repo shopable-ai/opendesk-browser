@@ -45,11 +45,34 @@ export function publicLocalProjectError(error){
 
 // A read-only role on the EXISTING private Native socket. This process owns the
 // same Resolver as MCP; it never dispatches browser code or accepts disk paths.
+export function publicLocalProjectPreparation(value){
+  const states=['unprepared','merging','updating','ready','source-error'];
+  const out={state:states.includes(value?.state)?value.state:'unprepared'};
+  for(const key of ['sourceRevision','sourceHash','artifactId'])
+    if(/^[a-f0-9]{64}$/.test(value?.[key]||''))out[key]=value[key];
+  for(const key of ['buildCount','cacheHits','preparations','superseded','watchErrors'])
+    if(Number.isSafeInteger(value?.[key])&&value[key]>=0&&value[key]<=1000000000)out[key]=value[key];
+  for(const key of ['debounceMs','notificationToStartMs'])
+    if(Number.isFinite(value?.[key])&&value[key]>=0&&value[key]<=604800000)out[key]=value[key];
+  if(value?.timings){
+    const timings={};
+    for(const key of ['validationMs','dependencyMs','webpackMs','checkMs','totalMs'])
+      if(Number.isFinite(value.timings[key])&&value.timings[key]>=0&&value.timings[key]<=604800000)timings[key]=value.timings[key];
+    for(const key of ['buildCount','moduleCount'])
+      if(Number.isSafeInteger(value.timings[key])&&value.timings[key]>=0&&value.timings[key]<=1000000000)timings[key]=value.timings[key];
+    out.timings=timings;
+  }
+  if(value?.error)out.error=publicLocalProjectError(value.error);
+  return out;
+}
+
 export function createLocalProjectProvider({session,installation=loadInstall,connect=options=>net.createConnection(options),retryMs=1500,leaseId=null}={}) {
   const providerId=crypto.randomUUID();
   const modern=typeof leaseId==='string'&&leaseId.length>0;
-  const catalog=()=>session.resolver.list().map(row=>({bindingId:row.bindingId,name:row.name,runtimeKind:session.resolver.get(row.bindingId).runtimeKind}));
-  let socket,epoch,closed=false,timer,authenticated=false,lastError=null;
+  const publicProjects=()=>session.resolver.list().map(row=>({...row,preparation:publicLocalProjectPreparation(row.preparation)}));
+  const catalog=()=>publicProjects().map(row=>({bindingId:row.bindingId,name:row.name,
+    runtimeKind:session.resolver.get(row.bindingId).runtimeKind,preparation:row.preparation}));
+  let socket,epoch,closed=false,timer,authenticated=false,lastError=null,preparationUpdates=false,unsubscribePreparation;
   const state=()=>({connected:!!epoch,providerId,lastError});
   function write(value){writeLine(socket,value);}
   function changed(){if(epoch)try{write({v:1,kind:'provider.changed',providerEpoch:epoch,...(modern?{projects:catalog()}:{})});}catch{socket.destroy();}}
@@ -67,13 +90,15 @@ export function createLocalProjectProvider({session,installation=loadInstall,con
         if(!authenticated){
           if(message?.v!==1||message.kind!=='authenticated'||!message.browserReady)throw Error('E_NATIVE_NOT_READY');
           if(message.localDevVersion!==1||modern&&message.localDevMultiVersion!==1){lastError='E_NATIVE_UPDATE_REQUIRED';throw Error(lastError);}
-          authenticated=true;write({v:1,kind:'provider.register',providerId,
+            preparationUpdates=modern&&message.localDevPreparationVersion===1;
+            authenticated=true;write({v:1,kind:'provider.register',providerId,
             ...(modern?{catalogVersion:2,leaseId,projects:catalog()}:{})});continue;
         }
         if(!epoch){
           if(message?.v===1&&message.kind==='provider.rejected'){lastError=message.error?.code||'E_DEV_PROVIDER';throw Error(lastError);}
           if(message?.v!==1||message.kind!=='provider.registered'||message.providerId!==providerId||typeof message.providerEpoch!=='string')throw Error('E_PROVIDER');
-          epoch=message.providerEpoch;lastError=null;
+            epoch=message.providerEpoch;lastError=null;
+            if(preparationUpdates)unsubscribePreparation=session.resolver?.preparation?.subscribe(changed);
           if(session.resolver?.preparation)for(const row of session.resolver.list())session.resolver.preparation.start(row.bindingId);
           continue;
         }
@@ -109,7 +134,7 @@ export function createLocalProjectProvider({session,installation=loadInstall,con
         if(active>=4){seen.delete(message.requestId);reply({error:{code:'E_LIMIT',message:'Too many local source requests'}});continue;}
         active++;
         Promise.resolve().then(async()=>{
-          if(message.method==='projects.list')return {projects:session.resolver.list()};
+          if(message.method==='projects.list')return {projects:publicProjects()};
           const value=await session.resolve(message.params.bindingId);
           // Only execution inputs cross into the extension. Paths, file graph,
           // source maps and the rest of the workspace remain in the Node process.
@@ -119,8 +144,8 @@ export function createLocalProjectProvider({session,installation=loadInstall,con
       }}catch{current.destroy();}
     });
     current.on('error',()=>current.destroy());
-    current.on('close',()=>{if(current!==socket)return;epoch=null;session.resolver?.preparation?.stopAll();if(!closed){timer=setTimeout(attempt,lastError==='E_DEV_PROVIDER_CONFLICT'?Math.max(retryMs,15000):retryMs);timer.unref?.();}});
+    current.on('close',()=>{if(current!==socket)return;epoch=null;preparationUpdates=false;unsubscribePreparation?.();unsubscribePreparation=null;session.resolver?.preparation?.stopAll();if(!closed){timer=setTimeout(attempt,lastError==='E_DEV_PROVIDER_CONFLICT'?Math.max(retryMs,15000):retryMs);timer.unref?.();}});
   }
   attempt();
-  return {changed,state,close(){closed=true;epoch=null;clearTimeout(timer);session.resolver?.preparation?.stopAll();socket?.destroy();}};
+  return {changed,state,close(){closed=true;epoch=null;preparationUpdates=false;unsubscribePreparation?.();unsubscribePreparation=null;clearTimeout(timer);session.resolver?.preparation?.stopAll();socket?.destroy();}};
 }
