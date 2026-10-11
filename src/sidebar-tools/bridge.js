@@ -1,5 +1,6 @@
 // Runs only as an opaque-origin Chrome MV3 sandbox document, never in the privileged Side Panel.
 import {SIDEBAR_TOOL_PROTOCOL} from '../ui/sidebar-tools/package.js';
+import {createBrowserSdk} from '../framework/sdk/browser.js';
 export function initSidebarToolSandbox() {
   const root=document.getElementById('tool-root');
   const status=document.getElementById('tool-status');
@@ -98,6 +99,7 @@ export function initSidebarToolSandbox() {
       parent.postMessage({protocol:SIDEBAR_TOOL_PROTOCOL,kind:'edit-state',instance,toolId,dirty,busy},'*');
     };
     Object.defineProperty(window,'OpenDeskTool',{value:Object.freeze({root,request,setState}),configurable:false});
+    Object.defineProperty(window,'OpenDeskSDK',{value:Object.freeze({browser:createBrowserSdk({request,context:'sidebar-tool'})}),configurable:false});
     scriptUrl=URL.createObjectURL(new Blob([tool.js],{type:'text/javascript'}));
     const script=document.createElement('script');
     script.src=scriptUrl;

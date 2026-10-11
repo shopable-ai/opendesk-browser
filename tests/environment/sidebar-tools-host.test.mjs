@@ -6,6 +6,7 @@ import {runInNewContext} from 'node:vm';
 import {createSidebarTools} from '../../src/ui/sidebar-tools.js';
 import {createCurrentPageTarget} from '../../src/ui/current-page-target.js';
 import {initSidebarToolSandbox} from '../../src/sidebar-tools/bridge.js';
+import {createBrowserSdk} from '../../src/framework/sdk/browser.js';
 import {SIDEBAR_TOOL_FORMAT,SIDEBAR_TOOL_STORE,sidebarToolStorageKey} from '../../src/ui/sidebar-tools/package.js';
 import {officialToolFixture,officialFixtureFetch,officialFixtures} from '../helpers/official-tools.mjs';
 import {MARKET_PROVENANCE_STORE,MARKET_OPERATIONS_STORE,reconcileMarketOperation,recoverMarketOperation,
@@ -286,12 +287,13 @@ test('actual sandbox state object clears host dirty state only after busy work e
   const parent={postMessage(data){sent.push(data);f.win.emit('message',{
     origin:'null',source:f.frame.contentWindow,data});}};
   runInNewContext(`(${initSidebarToolSandbox.toString()})()`,{
-    SIDEBAR_TOOL_PROTOCOL:f.loaded.protocol,window:sandboxWindow,parent,
+    SIDEBAR_TOOL_PROTOCOL:f.loaded.protocol,createBrowserSdk,window:sandboxWindow,parent,
     document:{getElementById:id=>id==='tool-root'?root:status,head:new Node(),body:new Node(),createElement:tag=>new Node(tag)},
     Blob,URL:{createObjectURL:()=> 'blob:component-contract',revokeObjectURL(){}},
     setTimeout,clearTimeout,requestAnimationFrame:()=>0
   });
   sandboxWindow.emit('message',{source:parent,data:f.loaded});
+  assert.equal(typeof sandboxWindow.OpenDeskSDK.browser.capabilities.getStatus,'function');
   const state=sandboxWindow.OpenDeskTool.setState;
   let confirmations=0;globalThis.confirm=()=>{confirmations++;return false;};
   root.emit('input',{isTrusted:true});

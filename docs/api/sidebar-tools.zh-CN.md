@@ -167,3 +167,12 @@ status.textContent = '已保存';
 「工具」Tab 默认打开「我的工具」，仅按权威安装记录渲染；「发现工具」默认展示未安装官方候选，支持搜索、可安装/全部切换；“全部”中的已安装版本使用打开/管理入口，更新需再次审阅。完整应用市场（`ui/marketplace.html`）仍承担套装、版本、来源、批量和存储管理。安装≠启用网站权限≠执行：安装不注入网页、不创建 iframe、不自动获取网页数据。
 
 R4.8 暂不提供新的全局工具启停按钮；原有“当前网站目录显示/授权”是网站级规则，不是整个工具的停用开关。只有在所有启动入口统一拦截后才可发布全局启停。
+
+
+## Browser SDK v2 菜单贡献（R1.3）
+
+旧 `opendesk.sidebar-tool.v1` 保持严格兼容；`opendesk.sidebar-tool.v2` 支持 `requires.browserSdk: "1.0.0"`、`browser.contextMenu` 能力声明及至多三项 `contributes.contextMenus`。仅允许 `page/selection/link` 和明确 HTTP(S) 网站范围；`handler` 只接受 `open-self`，不得执行任意后台第三方代码。
+
+复用已有安装器、工具身份、Web Locks、版本管理和卸载。可选 Chrome `contextMenus` 权限仅由可信工具详情中的真实点击申请；网站批准绑定工具包完整摘要和撤销代际。沙箱调用 `OpenDeskSDK.browser.contextMenu.*` 与 `launch.consume()`，现有 `OpenDeskTool.request()` 不变。普通网页不取得菜单注册能力。
+
+详情见 [Browser SDK](browser-sdk.zh-CN.md) 和 [可导入示例](../../examples/sidebar-tools/browser-sdk-r13/README.zh-CN.md)。真实 Chrome 状态须以当前候选验收为准。

@@ -10,7 +10,8 @@ import {createContextMenuHost} from '../../src/platform/chrome/context-menus.js'
 
 const readSample=async(name)=>JSON.parse(await readFile(new URL('../../examples/sidebar-tools/browser-sdk-r13/'+name,import.meta.url),'utf8'));
 const uid='01234567-89ab-4def-8123-456789abcdef';
-const sender={id:'ext-r13',url:'chrome-extension://ext-r13/ui/tool.html?hostInstanceId='+uid};
+const sender={id:'ext-r13',url:'chrome-extension://ext-r13/ui/tool.html?hostInstanceId='+uid,
+  documentId:'host-document-A',documentLifecycle:'active',frameId:0};
 function makeChrome(){
   const menus=new Map(),events=[],changes=[],values=new Map(),sessionValues=new Map();
   const row=(map,key)=>key===null?Object.fromEntries(map):Array.isArray(key)?
