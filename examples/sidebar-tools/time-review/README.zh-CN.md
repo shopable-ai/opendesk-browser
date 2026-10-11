@@ -1,30 +1,53 @@
-# Time Review · 时间回顾 R1.2
+# Time Review · 时间回顾 R1.3 (Canvas V3)
 
-本机网站时长回顾。只保存域名、本地日期和毫秒汇总，不保存标题、路径、查询参数、搜索词或 Token，不登录、不上传。旧版时间清单网站是详情操作区的独立外部入口，不同步本机记录。
+正式界面基准：prototypes/time-review-r12/time-review-r12-canvas-v3-single-track.html。正式 Side Panel 工具只采用单条 24h Canvas、紧凑四象限/生活/未分类和卡片视觉，不采用原型的浏览器外壳、样例时间、模拟同步或账号设置。
 
-## 安装和使用
+## 安装、更新与使用
 
-首次使用需加载包含 Time Review 后台服务的 OpenDesk 扩展（`dist/production`）；只有旧扩展时，单独导入工具 UI 无法添加后台服务或 Chrome 权限。
+Time Review 仍是 opendesk.sidebar-tool.v1，ID 始终是 time-review，能力为 time.review + user.export。R1.3 新增了可信后台接口，所以**需要含 R1.3 后台的 OpenDesk Browser 扩展**；只把新 UI 导入旧扩展无法正常读取分钟详情。
 
-1. 打开 OpenDesk Side Panel →「工具」→「发现」，找到「Time Review · 时间回顾」，点击安装，审阅 `time.review` 和 `user.export` 后确认。也可从应用市场详情页审阅安装。
-2. 在「我的工具」打开详情，进入齿轮「设置」，点击「授权空闲检测」，批准 Chrome 权限提示。授权本身不开始计时。
-3. 主动打开工具，点击「开始记录」。浏览普通 HTTP(S) 网页；回到工具点击刷新可看今日、七天和网站排行。关闭工具后已开启的后台继续记录。
-4. 「暂停」保留统计；「恢复记录」重新开始。「停止并撤销时间授权」清除本工具授权；详情设置还可撤销 Chrome 空闲检测权限。
-5. 「设置与数据」可设空闲阈值、保留天数、排除域名（包括其子域），导出 JSON/CSV 或二次确认清空。下载请求后以 Chrome 下载记录和实际文件为准。
-6. 卸载工具会停止计时并清理本机统计，请先导出。重新安装默认暂停，旧实例和授权不会恢复。停用保留统计，恢复启用后需重新开始记录。
+1. Side Panel → 工具 → 发现工具（或应用市场）→ Time Review → 安装/更新，审阅权限。不能新建相同 ID 的平行工具。
+2. 在工具详情设置中，由用户本人授权 Chrome 空闲检测；单独授权不会开始计时。
+3. 打开 Time Review，主动点击「开始记录」。只有聚焦、非空闲、非隐身的普通 HTTP(S) 已授权网站才计时；关闭侧栏不停止已开启的可信后台。
+4. 可在「设置、分钟明细与数据管理」阅读收集范围后主动点击「开启」分钟明细。**只保存以后真正结算的分钟**，不会根据旧日汇总反推历史。关闭即删除已有分钟明细，不影响毫秒日汇总。
+5. 在当前网站卡片或所选日期的网站列表修改分类；会重新计算保留期内的分类时长、重要时间、生产率和已存在的分钟色带，绝不重新计时。
+6. 日期箭头查看历史日，「所选日期/近七天」切换排行；设置可调整空闲阈值、排除域名、汇总保留期，导出 JSON/CSV，暂停、撤权或清空。卸载会清理本工具本机数据，请先备份。
 
-## 计时语义
+## 六分类与真实口径
 
-只有浏览器普通窗口聚焦、系统状态 active、当前标签为可访问 HTTP(S) 网页时计时；隐身、锁屏、失焦、受限页面和排除域名不计。达到空闲阈值后停止；阈值前静止阅读仍计入。
+| 类别 | 名称 | 颜色 | 象限 |
+| --- | --- | --- | --- |
+| 0 | 未分类 | #788494 | 独立 |
+| 1 | 工作/生产 | #1976d2 | 重要且紧急 |
+| 2 | 阅读学习 | #3b8ad9 | 重要不紧急 |
+| 3 | 聊天/新闻 | #b64f4f | 紧急不重要 |
+| 4 | 娱乐 | #ec5d5d | 不重要不紧急 |
+| 5 | 生活 | #c8992d | 独立 |
 
-Chrome alarms 每 30 秒持久化检查点，标签/URL/窗口/空闲/授权变化也触发结算。保存单位始终是毫秒，本地午夜拆分。SW 恢复仅接续同浏览器 session、同活动目标且不超过 45 秒的间隔；浏览器重启、休眠、长延迟、时间回拨或时区变化无法确认活动时保守排除，界面展示排除时长。跨日期与故障注入以组件证据单独标明，不由 Mock 推断真实 Chrome PASS。
+默认未分类，分类仅由用户主动设置域名，不猜测网站用途。重要时间 = 1 + 2；生产率 = 重要毫秒数 / 当日全部记录毫秒数，**只在全部时长均已分类时显示百分比**；否则显示「—」并标明已分类覆盖率。分类是保留期内同一域名的当前属性；旧记录日毫秒不改变。七天分类与导出共用同一映射。
 
-## 独立工具 UI 更新
+## 单行时间线与数据真实性
 
-```sh
-npm run build:sidebar-tool -- examples/sidebar-tools/time-review
-```
+- Canvas 色带铺满内容宽度：00:00–24:00，1440 个本地分钟位置。鼠标、触摸、方向键、Home/End 可查看分钟；设备像素比和 ResizeObserver 重绘不改变坐标，狭窄布局减少中间刻度。
+- 源数据仅来自原 trusted time.review 结算：30 秒 checkpoint，最长 45 秒确认间隔；失焦、空闲、长睡眠、跨浏览器 Session、撤权均保守排除，毫秒统计独立保留。
+- 同一分钟多站点时以**实际毫秒时长最多的分类**表示主色，详情提示多个网站并显示实际毫秒合计。灰色未分类是已经发生的活动，浅底/无数据不是未分类。
+- 没有历史分钟数据时，只能显示诚实的空状态；同一天已有汇总但部分才开启分钟采样时显示「部分明细」，其他空白不代表未访问。
+- 23/25 小时夏令时日期、历史时区偏移不匹配或同日本地时区发生变化时，无法用普通 1440 槽展示准确分钟，保留日汇总并显示原因。
+- 明细只存本机日期、域名、分钟序号、毫秒、时区偏移及授权标志。最多保存 90 天、每天 2000 条域名分钟条目；超限保留日汇总并标记部分。**不保存**标题、URL 路径/查询参数、Cookie、搜索词、正文或 Token，不上传。
 
-生成 `artifacts/sidebar-tools/time-review/1.2.0/time-review.opendesk-tool.json`；通过现有「＋ 导入」审阅更新，升级时使用新三段版本。纯 UI 可独立更新；后台服务/Chrome 权限/可信宿主变化才需要重编扩展。官方内置资源由 `scripts/build-official-tools.mjs` 生成。包更新保留统计，撤销旧包计时授权，新包需明确重新开始。
+## 存储、兼容与导出
 
-开发与测试见 `src/time-review/`、`tests/environment/time-review-r12.test.mjs` 和 `docs/framework/workstreams/time-review-r12-01a12b0d.md`。
+沿用 opendesk.time-review.v1 的版本 1 日汇总，添加可选 categories / minuteConsent / minuteDays 字段；旧记录无明细、默认不开启新增采样。固定服务新操作 time.classify、time.day、time.minuteConsent 都经过原工具安装身份/包哈希、sender/documentId、Authority 与撤权代际校验。不新增安装器、RPC、时间采集器或动态 JS。
+
+JSON 导出继续包含原汇总与设置，另包含分类和已保存的分钟数据。CSV 在原有日期/域名/毫秒/秒数据基础上增加 category 列。下载请求成功不等于实际文件落盘，请检查 Chrome 下载记录。清空操作删除汇总、域名分类、分钟数据，保留偏好设置。更新包会使旧包的计时授权失效，新包需重新明确开始。
+
+## 构建与验收（必须在实际仓库执行）
+
+- node --test tests/environment/time-review-r12.test.mjs tests/environment/time-review-r13.test.mjs
+- npm run build:sidebar-tool -- examples/sidebar-tools/time-review
+- npm run check
+- npm run build
+- npm run build:dev
+- npm run verify
+
+包输出目标：artifacts/sidebar-tools/time-review/1.3.0/time-review.opendesk-tool.json。必须额外在真实 Mac Chrome 和 320/360/400/600px、200% 缩放完成同包 UI、权限、分类、下载落盘、恢复、撤权、卸载验收。旧候选/原型图不能替代。具体证据与状态见 docs/framework/workstreams/time-review-r13.md。

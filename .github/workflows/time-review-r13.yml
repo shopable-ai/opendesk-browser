@@ -1,0 +1,49 @@
+name: Time Review R1.3 - real model, tool package and MV3 build
+on:
+  pull_request:
+    paths:
+      - 'src/time-review/**'
+      - 'examples/sidebar-tools/time-review/**'
+      - 'tests/environment/time-review-r12.test.mjs'
+      - 'tests/environment/time-review-r13*.test.mjs'
+      - '.github/workflows/time-review-r13.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  time-review-r13:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install pinned dependencies
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: R1.2 compatibility and R1.3 real data security tests
+        run: node --test tests/environment/time-review-r12.test.mjs tests/environment/time-review-r13.test.mjs tests/environment/time-review-r13-service.test.mjs
+      - name: Security source contract
+        run: npm run check
+      - name: Build versioned Time Review package without bypassing budget
+        run: |
+          npm run build:sidebar-tool -- examples/sidebar-tools/time-review
+          node --input-type=module -e "import {readFileSync} from 'node:fs';import {validateSidebarToolPackage} from './src/ui/sidebar-tools/package.js';import {createHash} from 'node:crypto';const file='artifacts/sidebar-tools/time-review/1.3.0/time-review.opendesk-tool.json';const b=readFileSync(file);const p=validateSidebarToolPackage(JSON.parse(b));if(p.id!=='time-review'||p.version!=='1.3.0'||p.capabilities.join(',')!=='time.review,user.export')throw Error('Time Review package identity drift');console.log('TIME_REVIEW_PACKAGE',b.length,createHash('sha256').update(b).digest('hex'))"
+      - name: Both MV3 builds and verified packages
+        run: |
+          npm run build
+          npm run build:dev
+          npm run verify
+      - name: Preserve built candidates (not native Chrome evidence)
+        uses: actions/upload-artifact@v4
+        with:
+          name: time-review-r13-built-packages
+          retention-days: 7
+          if-no-files-found: error
+          path: |
+            artifacts/sidebar-tools/time-review/1.3.0/time-review.opendesk-tool.json
+            dist/production/official-tools/time-review/time-review.opendesk-tool.json
+            dist/development/official-tools/time-review/time-review.opendesk-tool.json
+            docs/framework/evidence/wxt/builds/build-production.json
+            docs/framework/evidence/wxt/builds/build-development.json
