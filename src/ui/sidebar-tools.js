@@ -36,6 +36,9 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   const updateCapabilities=get('sidebar-tool-update-capabilities');
   const updateWarning=get('sidebar-tool-update-warning');
   const title=get('sidebar-tool-title'),openTabButton=get('sidebar-tool-open-tab');
+  const actionReview=get('sidebar-tool-action-review'),actionSummary=get('sidebar-tool-action-summary');
+  const actionContinue=get('sidebar-tool-action-continue'),actionCancel=get('sidebar-tool-action-cancel');
+  let pendingAction=null;
   const settingsButton=get('sidebar-tool-settings-open'),settingsView=get('sidebar-tool-settings-view');
   const settingsScopeButton=get('sidebar-tool-settings-scope');
   const settingsScopeLabel=get('sidebar-tool-settings-scope-label'),settingsTarget=get('sidebar-tool-settings-target');
@@ -105,6 +108,26 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   }
   const sameInstance=(source,token)=>!disposed&&active&&frame&&frame.contentWindow===source&&instance===token;
   const toolById=id=>installed.find(row=>row.id===id);
+  // In-page decisions replace synchronous browser dialogs. Every destructive
+  // confirmation is bound to a reviewed action and rechecks identity on commit.
+  function cancelActionReview(){
+    pendingAction=null;
+    actionReview.hidden=true;
+  }
+  function requestActionReview({message,button='继续',run,toolId=null}){
+    if(disposed||busy)return;
+    pendingAction={run,toolId};
+    actionSummary.textContent=message;
+    actionContinue.textContent=button;
+    actionReview.hidden=false;
+    actionReview.scrollIntoView?.({block:'nearest'});
+  }
+  async function applyActionReview(){
+    const choice=pendingAction;
+    if(!choice||busy||disposed)return;
+    cancelActionReview();
+    await choice.run();
+  }
   // chrome.storage may reorder object properties; compare the validated schema values.
   const samePackage=sameSidebarToolPackage;
   function canCommitReview(){
@@ -432,16 +455,26 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   }
   // Revoking a hidden iframe also revokes its session token and pending responses.
   const isDirty=()=>!readOnlyPreview&&active?.id===KNOWLEDGE_TOOL_ID&&knowledgeDirty;
-  const canLeaveTool=()=>!isDirty()||globalThis.confirm('知识收件箱有未保存的修改。确定放弃修改并离开吗？');
-  function suspendTool() {tocSettingsOpen=false;tocScope='site';destroyFrame();active=null;readOnlyPreview=false;previewDirty=false;knowledgeDirty=false;render();}
+  function suspendTool() {cancelActionReview();tocSettingsOpen=false;tocScope='site';destroyFrame();active=null;readOnlyPreview=false;previewDirty=false;knowledgeDirty=false;render();}
   function closeTool() {
-    if(busy||!canLeave())return false;
+    if(busy)return false;
+    const previousId=active?.id;
+    if(!canLeave(()=>{setImportOpen(false);suspendTool();focusToolInList(previousId);}))return false;
     setImportOpen(false);suspendTool();
     return true;
   }
-  function canLeave() {
-    if(toolSaving){notice('笔记正在保存或删除，请等待结果后再离开。',true);return false;}
-    return toolDirty?globalThis.confirm('当前工具有未保存的修改，确定放弃并离开吗？'):canLeaveTool();
+  function canLeave(onApproved) {
+    if(toolSaving){notice('当前工具正在保存，请完成后再切换。',true);return false;}
+    if(toolDirty||isDirty()){
+      const session=instance,toolId=active?.id;
+      requestActionReview({
+        message:'「'+(active?.title||'当前工具')+'」有未保存内容。继续会丢弃本次未保存的编辑；也可以取消并先保存。',
+        button:'放弃未保存内容并继续',toolId,
+        run:()=>{if(active?.id===toolId&&instance===session&&!toolSaving)return onApproved?.();}
+      });
+      return false;
+    }
+    return true;
   }
   function mountTool(tool,{readOnly=false}={}) {
     tocSettingsOpen=false;tocScope='site';destroyFrame();active=tool;readOnlyPreview=readOnly;previewDirty=false;knowledgeDirty=false;
@@ -469,15 +502,18 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   }
   function openTool(id) {
     if(disposed||busy||!visible)return;
-    if(active&&!canLeave())return;
+    if(active&&!canLeave(()=>{
+      const target=toolById(id);
+      if(target&&visible&&!busy)mountTool(target);
+    }))return;
     const tool=toolById(id);
     if(!tool){notice('找不到已安装的工具',true);return;}
     mountTool(tool);
   }
   function openReadOnlyPreview(value){
     if(disposed||busy||!visible)throw new Error('预览页面已经关闭或不可用');
-    if(active&&!canLeave())return false;
     const tool=validateSidebarToolPackage(value);
+    if(active&&!canLeave(()=>{if(visible&&!busy)mountTool(tool,{readOnly:true});}))return false;
     // Installed-tool ID collisions NEVER inherit installed rights in a preview.
     mountTool(tool,{readOnly:true});
   }
@@ -488,9 +524,12 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     if(typeof api.tabs?.create!=='function')throw new Error('此环境不支持打开扩展标签页');
     await api.tabs.create({url:toolPageHref(api.runtime,tool.id)});
   }
-  function setVisible(next) {
+  function setVisible(next,destination=null) {
     if(disposed)return;
-    if(!next&&visible&&!canLeave())return false;
+    if(!next&&visible&&!canLeave(()=>{
+      suspendTool();
+      if(destination&&destination!=='tools')taskWorkbench.navigate?.(destination);
+    }))return false;
     visible=Boolean(next);
     if(!visible){suspendTool();return;}
     // Entering the Tools tab only shows the list: an iframe requires an explicit Open.
@@ -804,6 +843,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     const invalidated=active&&!readOnlyPreview&&(!selected||!samePackage(selected,active));
     if(invalidated)suspendTool();
     installed=fresh;
+    if(pendingAction?.toolId&&!fresh.some(row=>row.id===pendingAction.toolId))cancelActionReview();
     if(!busy && pending) {
       const current=toolById(pending.id);
       const stillReviewed=(!current&&!pendingBaseline) ||
@@ -1129,11 +1169,20 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     setImportOpen(false);showToolPane('my');render();focusToolInList(accepted.id);
     notice('已安装「'+accepted.title+'」。点击“打开”启动工具。');
   }
-  async function remove(id=active?.id) {
+  async function remove(id=active?.id,reviewed=null) {
     const item=toolById(id);
     if(!item||busy)return;
+    if(!reviewed){
+      if(active?.id===id&&toolSaving){notice('当前工具正在保存，请完成保存后再卸载。',true);return;}
+      const snapshot=structuredClone(item);
+      requestActionReview({toolId:id,
+        message:'卸载「'+item.title+'」将删除该工具的本机数据和网站授权，不能撤销。请先备份重要内容。',
+        button:'确认卸载并删除数据',
+        run:()=>remove(id,snapshot)});
+      return;
+    }
+    if(!samePackage(item,reviewed))throw new Error('工具已在其他窗口更新，请重新选择卸载');
     const itemIndex=installed.findIndex(row=>row.id===item.id);
-    if(!globalThis.confirm('卸载「'+item.title+'」并删除此工具保存的数据？'))return;
     busy=true;
     let removed=false;
     try{
@@ -1164,10 +1213,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   }
   const action=(fn)=>()=>Promise.resolve().then(fn).catch(error=>notice(
     (error?.code||'E_TOOL')+'：'+String(error?.message||error).slice(0,240),true));
-  listen(globalThis.window,'beforeunload',event=>{
-    if(!toolDirty&&!toolSaving)return;
-    event.preventDefault();event.returnValue='';
-  });
+  // No beforeunload confirmation: all in-app exits use the nonmodal review above.
   setImportOpen(false);
   notice('');
   showToolPane('my');
@@ -1219,9 +1265,10 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   listen(settingsSiteVisibility,'click',action(()=>toggleTocDisplay(READING_TOC_TOOL_ID,'site')));
   listen(settingsPageVisibility,'click',action(()=>toggleTocDisplay(READING_TOC_TOOL_ID,'page')));
   listen(removeButton,'click',action(remove));
+  listen(actionCancel,'click',cancelActionReview);
+  listen(actionContinue,'click',action(applyActionReview));
   if(openTabButton)listen(openTabButton,'click',action(()=>openInTab()));
   listen(window,'message',onMessage);
-  listen(window,'beforeunload',event=>{if(isDirty()){event.preventDefault();event.returnValue='';}});
   const installedReady=loadInstalled().catch(error=>notice('工具列表读取失败：'+error.message,true));
   const sitesReady=loadSites().catch(error=>notice('网站授权读取失败：'+error.message,true));
   const tocVisibilityReady=loadTocVisibility().catch(error=>notice('目录显示偏好读取失败：'+error.message,true));
@@ -1254,7 +1301,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   render();
   return Object.freeze({ready,openTool,openReadOnlyPreview,isDirty,isPreviewActive:()=>readOnlyPreview&&!!frame&&!!active,isPreviewDirty:()=>readOnlyPreview&&previewDirty,openInTab,closeTool,setVisible,dispose(){
     if(disposed)return;
-    destroyFrame();fileSelection++;disposed=true;visible=false;
+    cancelActionReview();destroyFrame();fileSelection++;disposed=true;visible=false;
     for(const release of listeners.splice(0))release();
     queued.clear();
   }});

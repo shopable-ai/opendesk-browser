@@ -109,7 +109,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       return;
     }
     // Ask the live tool before changing panes or destroying its editor.
-    if(toolsViewListener?.(name==='tools' && !catalogSurface)===false)return false;
+    if(toolsViewListener?.(name==='tools' && !catalogSurface,name)===false)return false;
     for(const [element,view] of [
       ['tasks','tasks'],['local-discover','discover'],['workflow','workflow'],['develop','develop'],['tools','tools'],['discover','catalog']
     ])get('workbench-'+element).hidden=view!==name;

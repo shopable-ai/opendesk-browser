@@ -51,9 +51,10 @@ const workflowView=createWorkflowView({api:chrome,client:foundationClient,host:s
   openCatalog:()=>taskWorkbench.navigate('catalog')});
 const sidebarTools=createSidebarTools({api:chrome,currentPageTarget,taskWorkbench});
 const installedPageTools=createInstalledPageTools({client:foundationClient,api:chrome,doc:document});
-taskWorkbench.connectToolsView(visible=>{
-  sidebarTools.setVisible(visible);
+taskWorkbench.connectToolsView((visible,destination)=>{
+  const accepted=sidebarTools.setVisible(visible,destination);
   if(visible)void installedPageTools.refresh();
+  return accepted;
 });
 const pageRefresh=document.getElementById('installed-page-tools-refresh');
 pageRefresh?.addEventListener('click',()=>void installedPageTools.refresh());

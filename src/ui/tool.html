@@ -47,6 +47,13 @@
   </div>
   <div id="workbench-tools" role="tabpanel" aria-labelledby="tab-tools" class="od-page" data-workbench-page="tools" hidden>
     <section id="sidebar-tools" class="sidebar-tools" aria-label="自定义工具">
+      <section id="sidebar-tool-action-review" class="sidebar-tool-action-review od-surface" role="group" aria-label="确认当前工具操作" hidden>
+        <p id="sidebar-tool-action-summary" role="status"></p>
+        <div class="sidebar-tool-action-buttons">
+          <button type="button" id="sidebar-tool-action-continue" class="od-button">继续</button>
+          <button type="button" id="sidebar-tool-action-cancel" class="od-button od-button--secondary">取消</button>
+        </div>
+      </section>
       <div id="sidebar-tool-list-view">
         <div class="sidebar-tools-head od-toolbar">
           <strong>工具</strong>
