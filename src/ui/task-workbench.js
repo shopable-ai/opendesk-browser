@@ -108,6 +108,8 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       Promise.resolve().then(()=>api.tabs.create({url:api.runtime.getURL('ui/tool.html')})).catch(fail);
       return;
     }
+    // Give a live editor the chance to retain its frame before changing tabs.
+    if(toolsViewListener?.(name==='tools' && !catalogSurface)===false)return false;
     for(const [element,view] of [
       ['tasks','tasks'],['local-discover','discover'],['workflow','workflow'],['develop','develop'],['tools','tools'],['discover','catalog']
     ])get('workbench-'+element).hidden=view!==name;
@@ -118,7 +120,6 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     }
     syncRunDock(name);
     if(doc.documentElement?.dataset)doc.documentElement.dataset.opendeskTab=name;
-    toolsViewListener?.(name==='tools' && !catalogSurface);
     if(name==='discover')renderLocalDiscovery();
   }
   // Keep the owning Stop control visible across Sidebar tab changes;
@@ -765,7 +766,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
   const tabOrder=[['tasks','tab-my-tasks'],['discover','tab-discover'],['workflow','tab-workflow'],['develop','tab-develop'],['tools','tab-tools']];
   for(const [index,[tab,id]] of tabOrder.entries()){
     listen(get(id),'click',()=>{
-      navigate(tab);
+      if(navigate(tab)===false)return;
       if(tab==='tasks'||tab==='discover')refresh(undefined,{skipUnchanged:true}).catch(fail);
     });
     listen(get(id),'keydown',event=>{
@@ -776,7 +777,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       else if(event.key==='End')next=tabOrder.length-1;
       else return; // Enter/Space retain native button activation.
       event.preventDefault();
-      navigate(tabOrder[next][0]);
+      if(navigate(tabOrder[next][0])===false)return;
       get(tabOrder[next][1]).focus?.({preventScroll:true});
       if(tabOrder[next][0]==='tasks'||tabOrder[next][0]==='discover')
         refresh(undefined,{skipUnchanged:true}).catch(fail);

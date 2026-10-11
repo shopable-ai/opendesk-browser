@@ -1,0 +1,27 @@
+<section class="ki" aria-label="知识收件箱">
+  <header class="ki-header"><div><span class="ki-eyebrow">OPENDESK / KNOWLEDGE</span><h1>知识收件箱</h1><p>留住有用的回答，把灵感整理成自己的成果。</p></div></header>
+  <p id="ki-status" role="status" aria-live="polite" hidden></p>
+  <section id="ki-confirm" class="ki-confirm" role="alertdialog" aria-modal="true" aria-labelledby="ki-confirm-message" hidden><p id="ki-confirm-message"></p><div><button id="ki-confirm-no" type="button">取消</button><button id="ki-confirm-yes" class="ki-danger" type="button">确认</button></div></section>
+  <section id="ki-list-view">
+    <div class="ki-search"><input id="ki-search" type="search" maxlength="100" placeholder="搜索正文、提问、标签或备注" aria-label="搜索知识收件箱"><button id="ki-refresh" type="button" title="刷新收件箱" aria-label="刷新收件箱">刷新</button></div>
+    <nav class="ki-filters" aria-label="按分类筛选"><button type="button" data-kind="all" aria-pressed="true">全部</button><button type="button" data-kind="inbox" aria-pressed="false">待整理</button><button type="button" data-kind="idea" aria-pressed="false">灵感</button><button type="button" data-kind="draft" aria-pressed="false">草稿</button><button type="button" data-kind="archived" aria-pressed="false">归档</button></nav>
+    <div class="ki-summary"><span id="ki-count">正在读取…</span><button type="button" id="ki-backup">备份全部</button></div>
+    <div id="ki-records" class="ki-records"></div>
+    <div id="ki-empty" class="ki-empty" hidden><strong>让好内容留下来</strong><p>在工具列表授权 ChatGPT 网站，然后点击回答下方的「保存」。也可以在「更多」中存为灵感或草稿。</p></div>
+    <p class="ki-footnote">内容保存在此浏览器的扩展中。备份后可自行迁移；卸载工具会删除本机收件箱。</p>
+  </section>
+  <section id="ki-detail" hidden>
+    <div class="ki-detail-heading"><button id="ki-back" type="button">← 收件箱</button><span id="ki-date"></span></div>
+    <label for="ki-title">标题</label><input id="ki-title" maxlength="160" autocomplete="off">
+    <div class="ki-meta-grid"><div><label for="ki-kind">分类</label><select id="ki-kind"><option value="inbox">待整理</option><option value="idea">灵感</option><option value="draft">草稿</option><option value="archived">归档</option></select></div><div><label for="ki-tags">标签</label><input id="ki-tags" maxlength="380" placeholder="用逗号分隔" autocomplete="off"></div></div>
+    <label for="ki-note">我的备注</label><textarea id="ki-note" rows="3" maxlength="4000" placeholder="为什么保存？下一步准备怎么用？"></textarea>
+    <div class="ki-toolbar"><button id="ki-save" class="ki-primary" type="button">保存修改</button><button id="ki-copy" type="button">复制 MD</button><button id="ki-download" type="button">下载 MD</button><button id="ki-workspace" type="button">本地工作区</button></div>
+    <div class="ki-content-heading"><label class="ki-check"><input id="ki-edit" type="checkbox">编辑草稿</label><button id="ki-outline-toggle" type="button" aria-expanded="false">结构导图</button></div>
+    <textarea id="ki-content" class="ki-content" rows="16" readonly aria-label="回答正文或编辑后的草稿" spellcheck="false"></textarea>
+    <textarea id="ki-copy-fallback" rows="8" readonly aria-label="用于手动复制的完整 Markdown" hidden></textarea>
+    <div id="ki-outline" class="ki-outline" hidden></div>
+    <p id="ki-image-note" class="ki-footnote" hidden></p>
+    <details><summary>原始回答与提问</summary><pre id="ki-original"></pre></details>
+    <div class="ki-bottom"><button type="button" id="ki-source">打开来源对话</button><button type="button" id="ki-delete" class="ki-danger">删除记录</button></div>
+  </section>
+</section>

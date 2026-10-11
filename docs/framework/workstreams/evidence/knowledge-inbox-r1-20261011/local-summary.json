@@ -1,0 +1,48 @@
+{
+  "scope": "component/build evidence only; controlled Chrome CI pending; live ChatGPT and macOS NOT_TESTED",
+  "baseline": "8f30854f0f2aa4a2b479fc179f8911cc01decdc1",
+  "builds": {
+    "production": {
+      "status": "passed",
+      "packageHash": "16f82503a8b03581888b3e137840230ceb8fcfbf47c60d76fa42563ca0f8dc02",
+      "rawReportSha256": "dc3f8c8e71ef7eefc7ebca2bdd01a1e204945b49500e898c5506c3b55ffb7235",
+      "sourceDriftDuringBuild": [],
+      "sourceInputsKeys": null
+    },
+    "development": {
+      "status": "passed",
+      "packageHash": "129f476b26f8aa0de16a5896de99d497c779513499eea3d15f0a3727cf686737",
+      "rawReportSha256": "8da531d9279c114929077b23bb337167d84842d47137318fc7fc13894362be14",
+      "sourceDriftDuringBuild": [],
+      "sourceInputsKeys": null
+    }
+  },
+  "logs": {
+    "components-final.tap": {
+      "sha256": "d0ff264b604a7ab13d4b36bcdc82c730182dc2db1584fa96215d975f3584b2af",
+      "bytes": 8568
+    },
+    "source-check-final.log": {
+      "sha256": "0a5cf2384b9286147c57f0657589c1af5f541d2ee07c1b4319c630467749daf6",
+      "bytes": 307
+    },
+    "verify-final.log": {
+      "sha256": "c04063d965d07efde27ae14853812877d267a231e5e7e0cbadd73617f2d0163c",
+      "bytes": 20702
+    },
+    "environment-final.tap.gz": {
+      "sha256": "ae23acd4c8cc93710979da3c2c07aa0d46315c4ef01dfcafa54107e63b174eee",
+      "bytes": 36644,
+      "rawSha256": "fca1ad92fa89e0aab0894820dfc22c464c79fa1320e9c2b23d503ccc5bc87b5d",
+      "rawBytes": 109661
+    }
+  },
+  "environment": {
+    "tests": 972,
+    "pass": 957,
+    "fail": 8,
+    "skip": 7,
+    "result": "BLOCKED_BY_LOCAL_UNIX_SOCKET_RESTRICTION",
+    "details": "7 native-agent-native-host listen EPERM; 1 dependent native-agent-instance lifecycle failure. No native implementation files changed."
+  }
+}

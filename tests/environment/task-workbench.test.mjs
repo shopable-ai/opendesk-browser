@@ -716,3 +716,18 @@ test('R14.1 pending task RunHost admission cannot borrow the Developer Stop dock
   f.host.complete({ok:true});await tick();await tick();
   assert.equal(f.get('workspace-dock').hidden,true,'the cross-view Stop retires at completion');
 });
+
+test('tool editor navigation veto retains visible panel, selected tab and keyboard focus',async t=>{
+  const f=make();t.after(()=>f.ui.dispose());await tick();
+  f.ui.navigate('tools');f.get('tab-tools').focus();
+  let dirty=true;f.ui.connectToolsView(next=>next||!dirty);
+  assert.equal(f.ui.navigate('tasks'),false);
+  assert.equal(f.doc.documentElement.dataset.opendeskTab,'tools');
+  assert.equal(f.get('workbench-tools').hidden,false);
+  await f.get('tab-tools').fire('keydown',{key:'Home',preventDefault(){}});
+  assert.equal(f.doc.activeElement,f.get('tab-tools'));
+  assert.equal(f.get('tab-tools').attributes['aria-selected'],'true');
+  dirty=false;f.ui.navigate('tasks');
+  assert.equal(f.get('workbench-tools').hidden,true);
+  assert.equal(f.doc.documentElement.dataset.opendeskTab,'tasks');
+});
