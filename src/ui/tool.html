@@ -115,6 +115,13 @@
           <button type="button" id="sidebar-tool-remove" class="sidebar-tool-icon-action od-icon-button" title="卸载工具及本地数据" aria-label="卸载当前工具及本地数据" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M10 4h4m-8 3 1 13h10l1-13M10 11v5m4-5v5"></path></svg></button>
         </div>
         <p id="sidebar-tool-readonly-banner" class="sidebar-tool-status" data-state="readonly" role="note" hidden>开发只读预览 · 未安装。模拟读取仅返回空值；禁止写入、发送消息、控制网页或运行任务。需要正式使用时，请另行审阅并安装工具包。</p>
+        <section id="sidebar-tool-inline-leave" class="sidebar-tool-inline-leave od-surface" aria-label="未保存修改" hidden>
+          <p>当前工具有未保存的修改。可继续编辑，或明确放弃修改后返回工具列表。</p>
+          <div class="sidebar-tool-inline-leave-actions">
+            <button type="button" id="sidebar-tool-inline-leave-cancel" class="od-button od-button--secondary">继续编辑</button>
+            <button type="button" id="sidebar-tool-inline-leave-confirm" class="od-button">放弃修改并返回</button>
+          </div>
+        </section>
         <div id="sidebar-tool-frame" class="sidebar-tool-frame"></div>
         <button type="button" id="sidebar-tool-launch" class="od-button" hidden>打开工具</button>
         <section id="sidebar-tool-retired-draft" class="sidebar-tool-settings-view od-surface" aria-label="停用前的草稿" hidden>

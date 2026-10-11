@@ -36,6 +36,8 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   const removeReviewText=get('sidebar-tool-inline-remove-text');
   const removeReviewConfirm=get('sidebar-tool-inline-remove-confirm');
   const removeReviewCancel=get('sidebar-tool-inline-remove-cancel');
+  const leaveReview=get('sidebar-tool-inline-leave');
+  const leaveConfirm=get('sidebar-tool-inline-leave-confirm'),leaveCancel=get('sidebar-tool-inline-leave-cancel');
   const fileError=get('sidebar-tool-file-error'), updatePanel=get('sidebar-tool-update');
   const updateVersions=get('sidebar-tool-update-versions');
   const updateCapabilities=get('sidebar-tool-update-capabilities');
@@ -77,6 +79,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   let requestCount=0,requestWindow=Date.now(), busy=false, fileSelection=0, catalogEpoch=0;
   let visible=false,toolDirty=false,toolSaving=false,installedReadError=false,preinstallBusy=false,preinstallQueued=false;
   let pendingUninstallId=null,pendingUninstallBaseline=null;
+  let leaveReviewOpen=false;
   const listeners=[];
   const listen=(node,type,fn)=>{
     node.addEventListener(type,fn);
@@ -137,6 +140,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     if(!sameInstance(source,token))throw new Error('工具界面已经切换');
   };
   function destroyFrame() {
+    hideLeaveReview();
     toolDirty=false;toolSaving=false;
     frameDraft='';
     if(frame){frame.onload=null;frame.remove();frame=null;}
@@ -371,9 +375,18 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     pendingUninstallId=null;pendingUninstallBaseline=null;
     removeReview.hidden=true;
   }
-  // Revoking a hidden iframe also revokes its session token and pending responses.
-  const isDirty=()=>!readOnlyPreview&&active?.id===KNOWLEDGE_TOOL_ID&&knowledgeDirty;
-  const canLeaveTool=()=>!isDirty()||(notice('有未保存的收件箱修改，请先保存再切换；未保存内容不会被自动丢弃。',true),false);
+  // This is an in-page choice, not a JavaScript modal and not an implied discard.
+  function hideLeaveReview(){
+    leaveReviewOpen=false;
+    leaveReview.hidden=true;
+  }
+  function showLeaveReview(){
+    leaveReviewOpen=true;
+    leaveReview.hidden=false;
+    notice('未保存的修改仍在当前工具中。请选择继续编辑，或明确放弃后返回工具列表。',true);
+    leaveReview.scrollIntoView?.({block:'nearest'});
+    leaveCancel.focus?.({preventScroll:true});
+  }
   function suspendTool() {cancelRemovalReview();tocSettingsOpen=false;tocScope='site';destroyFrame();active=null;readOnlyPreview=false;previewDirty=false;knowledgeDirty=false;render();}
   function closeTool() {
     if(busy||!canLeave())return false;
@@ -382,8 +395,10 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   }
   function canLeave() {
     if(readOnlyPreview)return true; // Preview has no durable changes to discard.
-    if(toolSaving){notice('笔记正在保存或删除，请等待结果后再离开。',true);return false;}
-    return toolDirty?(notice('当前工具有未保存的修改，请先保存再离开。',true),false):canLeaveTool();
+    if(toolSaving){hideLeaveReview();notice('正在保存或删除，请等待确认完成后再离开。',true);return false;}
+    if(!toolDirty&&!knowledgeDirty){hideLeaveReview();return true;}
+    showLeaveReview();
+    return false;
   }
   function mountTool(tool,{readOnly=false}={}) {
     tocSettingsOpen=false;tocScope='site';destroyFrame();active=tool;readOnlyPreview=readOnly;previewDirty=false;knowledgeDirty=false;
@@ -481,6 +496,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     if(operation==='knowledge.editorState'){
       if(tool.id!==KNOWLEDGE_TOOL_ID||typeof payload?.dirty!=='boolean')throw new Error('编辑状态无效');
       knowledgeDirty=payload.dirty;
+      if(!toolDirty&&!knowledgeDirty)hideLeaveReview();
       return {dirty:knowledgeDirty};
     }
     // The SW owns the same per-tool lock as install/remove. Forward BEFORE
@@ -665,6 +681,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     if(message.kind==='edit-state'){
       if(typeof message.dirty==='boolean'&&typeof message.busy==='boolean'){
         toolDirty=message.dirty;toolSaving=message.busy;
+        if(!toolDirty&&!knowledgeDirty)hideLeaveReview();
       }
       return;
     }
@@ -1258,6 +1275,18 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   listen(removeReviewCancel,'click',()=>{
     cancelRemovalReview();notice('已取消卸载。');
     (active?removeButton:importTrigger).focus?.({preventScroll:true});
+  });
+  listen(leaveCancel,'click',()=>{
+    hideLeaveReview();notice('');
+    backButton.focus?.({preventScroll:true});
+  });
+  listen(leaveConfirm,'click',()=>{
+    if(!leaveReviewOpen||!active||busy||toolSaving)return;
+    const oldId=active.id;
+    setImportOpen(false);
+    suspendTool();
+    notice('已按你的明确选择放弃未保存的修改，工具已返回列表。');
+    if(visible)focusToolInList(oldId);
   });
   if(openTabButton)listen(openTabButton,'click',action(()=>openInTab()));
   listen(window,'message',onMessage);

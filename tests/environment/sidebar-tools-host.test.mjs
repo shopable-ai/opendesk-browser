@@ -145,6 +145,7 @@ test('trusted tool host installs only by explicit click, scopes messages and rem
   const ids=['sidebar-tool-list','sidebar-tool-list-view','sidebar-tool-empty','sidebar-tool-back','sidebar-tool-display','sidebar-tool-frame','sidebar-tool-status',
     'sidebar-tool-file','sidebar-tool-install','sidebar-tool-remove','sidebar-tool-title',
     'sidebar-tool-inline-remove','sidebar-tool-inline-remove-text','sidebar-tool-inline-remove-confirm','sidebar-tool-inline-remove-cancel',
+    'sidebar-tool-inline-leave','sidebar-tool-inline-leave-confirm','sidebar-tool-inline-leave-cancel',
     'sidebar-tool-retired-draft','sidebar-tool-retired-draft-text','sidebar-tool-retired-draft-dismiss','sidebar-tool-enable','sidebar-tool-enable-hint','sidebar-tool-launch','sidebar-tool-visibility',
     'sidebar-tool-open-tab','sidebar-tool-visibility-settings',
     'sidebar-tool-settings-open','sidebar-tool-settings-view','sidebar-tool-settings-scope',
@@ -334,6 +335,7 @@ async function hostFixture(t,{store=new Map([[SIDEBAR_TOOL_STORE,[sample]]]),loc
   const ids=['sidebar-tool-list','sidebar-tool-list-view','sidebar-tool-empty','sidebar-tool-back','sidebar-tool-display','sidebar-tool-frame','sidebar-tool-status',
     'sidebar-tool-file','sidebar-tool-install','sidebar-tool-remove','sidebar-tool-title',
     'sidebar-tool-inline-remove','sidebar-tool-inline-remove-text','sidebar-tool-inline-remove-confirm','sidebar-tool-inline-remove-cancel',
+    'sidebar-tool-inline-leave','sidebar-tool-inline-leave-confirm','sidebar-tool-inline-leave-cancel',
     'sidebar-tool-retired-draft','sidebar-tool-retired-draft-text','sidebar-tool-retired-draft-dismiss','sidebar-tool-enable','sidebar-tool-enable-hint','sidebar-tool-launch','sidebar-tool-visibility',
     'sidebar-tool-open-tab','sidebar-tool-visibility-settings',
     'sidebar-tool-settings-open','sidebar-tool-settings-view','sidebar-tool-settings-scope',
@@ -1311,4 +1313,33 @@ test('R5.1 inline uninstall supports Cancel, stale identity protection and no ac
   f.elements['sidebar-tool-inline-remove-confirm'].emit('click');await pause();
   assert.deepEqual(f.store.get(SIDEBAR_TOOL_STORE),[changed]);
   assert.deepEqual(f.store.get(key),data);
+});
+
+test('R5.2 unsaved tool changes use an in-page discard choice, never JS dialogs',async t=>{
+  const f=await hostFixture(t),panel=f.elements['sidebar-tool-inline-leave'];
+  const edit=(dirty,busy=false)=>f.win.emit('message',{origin:'null',source:f.frame.contentWindow,
+    data:{protocol:f.loaded.protocol,toolId:sample.id,instance:f.loaded.instance,kind:'edit-state',dirty,busy}});
+  let modals=0;globalThis.confirm=()=>{modals++;throw Error('must never show modal');};
+  edit(true);
+  assert.equal(f.host.closeTool(),false);
+  assert.equal(panel.hidden,false);
+  assert.equal(f.elements['sidebar-tool-frame'].children[0],f.frame,'editing view is preserved');
+  f.elements['sidebar-tool-inline-leave-cancel'].emit('click');
+  assert.equal(panel.hidden,true,'Continue editing dismisses the inline choice');
+  assert.equal(f.elements['sidebar-tool-frame'].children[0],f.frame);
+  assert.equal(f.host.closeTool(),false);
+  assert.equal(panel.hidden,false);
+  f.elements['sidebar-tool-inline-leave-confirm'].emit('click');
+  assert.equal(f.elements['sidebar-tool-frame'].children.length,0);
+  assert.equal(panel.hidden,true);
+  assert.equal(modals,0);
+});
+
+test('R5.2 saving dismisses inline discard and an in-flight save cannot be discarded',async t=>{
+  const f=await hostFixture(t),panel=f.elements['sidebar-tool-inline-leave'];
+  const edit=(dirty,busy=false)=>f.win.emit('message',{origin:'null',source:f.frame.contentWindow,
+    data:{protocol:f.loaded.protocol,toolId:sample.id,instance:f.loaded.instance,kind:'edit-state',dirty,busy}});
+  edit(true);assert.equal(f.host.closeTool(),false);assert.equal(panel.hidden,false);
+  edit(false);assert.equal(panel.hidden,true,'completed save clears the inline prompt');
+  assert.equal(f.host.closeTool(),true);
 });

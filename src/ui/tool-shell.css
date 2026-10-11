@@ -323,6 +323,12 @@
 .sidebar-tool-empty{margin:0;padding:16px 12px;border:1px dashed #cfdaea;background:#fff;border-radius:var(--radius-surface);color:#5e7088;font-size:12px}
 .sidebar-tool-status{font-size:11px;line-height:1.5;color:#49677c;overflow-wrap:anywhere;margin:8px 0 0;padding:8px 9px;background:#eef7f4;border-radius:var(--radius-control)}
 .sidebar-tool-status[data-state=error]{color:#a53b45;background:#fff1f2}
+.sidebar-tool-inline-leave{margin:0 0 8px;padding:10px 12px;border:1px solid var(--od-line);background:var(--od-paper);border-radius:var(--radius-control)}
+.sidebar-tool-inline-leave[hidden]{display:none!important}
+.sidebar-tool-inline-leave p{margin:0 0 8px;font-size:12px;line-height:1.55;color:var(--od-ink)}
+.sidebar-tool-inline-leave-actions{display:flex;flex-wrap:wrap;gap:8px}
+.sidebar-tool-inline-leave-actions button{min-height:34px;padding:6px 10px;font-size:12px}
+#sidebar-tool-inline-leave-confirm{background:var(--od-negative);color:var(--od-paper)}
 .sidebar-tool-inline-remove{margin-top:8px;padding:10px 12px;border:1px solid #ead8dd;background:#fffafb;border-radius:var(--radius-control);min-width:0}
 .sidebar-tool-inline-remove[hidden]{display:none!important}
 .sidebar-tool-inline-remove p{font-size:12px;line-height:1.55;color:#78444e;margin:0 0 9px;overflow-wrap:anywhere}
