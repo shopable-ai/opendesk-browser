@@ -125,6 +125,10 @@ export function createLocalInstallUI({client,api,doc,currentPageTarget,getProjec
         :'本次安装只核对原 Controller 持久结果与原生页面操作回执，不再运行脚本。';
       status.textContent='尚未安装。请先核对网站、版本和可能的再次执行。';
       panel.hidden=false;
+      // The Save action lives in the sticky bottom dock while this review is
+      // in the source area. Move keyboard focus to the actual visible review
+      // so narrow Side Panels and screen readers do not miss confirmation.
+      panel.focus?.();
     }finally{preparing=false;update();onState();}
   }
   function confirm(event){
