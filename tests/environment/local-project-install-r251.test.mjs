@@ -104,3 +104,39 @@ test('Task identities retain monotonic version under existing installed baseline
   assert.equal(updated.id,first.id);assert.equal(updated.version,'1.0.3');
   assert.equal(updated.installedVersion,'1.0.1');
 });
+
+test('read-only Save recognizes an exact installed Page and Task without allocating another version',async()=>{
+  const page=await makeSource('page-userscript');
+  const firstPage=await prepareLocalProjectInstallation({client:{request:async()=>({catalog:[]})},
+    source:page,binding,project,target});
+  const pageRules={matches:['https://sample.example/*'],excludeMatches:[],
+    runAt:'document_idle',allFrames:false,world:'USER_SCRIPT'};
+  const installedPage={revision:1,manifestHash:'a'.repeat(64),sourceHash:page.sourceHash,
+    pageRules,enabled:false,nativeState:'disabled'};
+  const pageClient={request:async()=>({catalog:[{programId:firstPage.id,revision:1,
+    manifestHash:installedPage.manifestHash,pageRules,installed:installedPage}]})};
+  const samePage=await prepareLocalProjectInstallation({client:pageClient,source:page,binding,project,target});
+  assert.equal(samePage.alreadyInstalled,true);
+  assert.equal(samePage.installedVersion,1);
+  assert.equal(samePage.version,'2');
+  const changedScope=await prepareLocalProjectInstallation({client:pageClient,
+    source:{...page,pageRules:{...pageRules,matches:['https://other.example/*']}},binding,
+    project,target});
+  assert.equal(changedScope.alreadyInstalled,false,'scope changes cannot be treated as installed');
+
+  const controller=await makeSource('controller');
+  const firstTask=await prepareLocalProjectInstallation({client:{request:async()=>({catalog:[],installed:[]})},
+    source:controller,binding,project,target,runId:'real-run-z'});
+  const schema={type:'object',properties:{},required:[],additionalProperties:false};
+  const taskClient={request:async()=>({catalog:[{taskId:firstTask.id,version:'1.0.0',
+    manifest:{program:{sourceHash:controller.sourceHash},siteOrigins:['https://sample.example'],
+      paramsSchema:schema}}],
+    installed:[{taskId:firstTask.id,version:'1.0.0',manifestHash:'b'.repeat(64),enabled:false}]})};
+  const sameTask=await prepareLocalProjectInstallation({client:taskClient,source:controller,
+    binding,project,target,runId:'real-run-z'});
+  assert.equal(sameTask.alreadyInstalled,true);
+  const changedSchema=await prepareLocalProjectInstallation({client:taskClient,
+    source:{...controller,paramsSchema:{...schema,properties:{label:{type:'string',title:'Label'}}}},
+    binding,project,target,runId:'real-run-z'});
+  assert.equal(changedSchema.alreadyInstalled,false,'parameter contract changes require a new version');
+});
