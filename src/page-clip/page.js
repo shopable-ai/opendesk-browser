@@ -1,7 +1,7 @@
 import {SIDEBAR_TOOL_STORE} from '../ui/sidebar-tools/package.js';
 import {isReadingTocToolSender} from '../reading-toc/page.js';
 import {CLIP_SITE_STORE,CLIP_PROTOCOL,CLIP_OPERATIONS,clipGrantAllowed} from './policy.js';
-import {chooseArticle,domToMarkdown,safeMarkdownUrl} from './convert.js';
+import {chooseArticle,domToMarkdown,safeClipSource} from './convert.js';
 
 export function initPageClip({api=globalThis.chrome,doc=globalThis.document,win=globalThis.window}={}){
   if(!api?.runtime?.onMessage||!api?.storage?.local||!doc||!win||win.top!==win)return null;
@@ -18,7 +18,7 @@ export function initPageClip({api=globalThis.chrome,doc=globalThis.document,win=
       return {ok:false,error:'剪藏工具或网站未授权'};
     const title=String(doc.title||win.location.hostname).slice(0,500);
     const site=String(win.location.hostname).slice(0,250);
-    const canonical=safeMarkdownUrl(currentUrl,currentUrl);
+    const canonical=safeClipSource(currentUrl);
     if(!canonical)return {ok:false,error:'当前网页地址不支持剪藏'};
     let markdown;
     try{

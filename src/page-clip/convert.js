@@ -16,6 +16,20 @@ export function safeMarkdownUrl(value,base,{image=false}={}){
     return url.href.replace(/[\u0000-\u001f\u007f]/g,'').replace(/[()]/g,ch=>ch==='('?'%28':'%29');
   }catch{return null;}
 }
+// Source URLs may carry OAuth/state fragments or credentials in query params.
+// Keep the article path while refusing to export well-known secret fields.
+export function safeClipSource(value){
+  try{
+    const u=new URL(value);
+    if(!['http:','https:'].includes(u.protocol)||u.username||u.password)return null;
+    u.hash='';
+    for(const key of [...u.searchParams.keys()]){
+      if(/^(?:access[_-]?token|id[_-]?token|token|auth(?:orization)?|jwt|api[_-]?key|session(?:[_-]?id)?|secret|password|credential|oauth[_-]?code)$/i.test(key))
+        u.searchParams.delete(key);
+    }
+    return safeMarkdownUrl(u.href,u.href);
+  }catch{return null;}
+}
 function excluded(el){
   if(el.nodeType!==1)return false;
   if(SKIP.has(el.tagName)||el.hidden||el.getAttribute('aria-hidden')==='true'||

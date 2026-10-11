@@ -6,7 +6,7 @@ import {tmpdir} from 'node:os';
 import {validateSidebarToolPackage} from '../../src/ui/sidebar-tools/package.js';
 import {buildSidebarTool} from '../../scripts/build-sidebar-tool.mjs';
 import {CLIP_CAPABILITY,CLIP_SITE_STORE,clipGrantAllowed,changeClipGrant} from '../../src/page-clip/policy.js';
-import {domToMarkdown,chooseArticle,safeMarkdownUrl,CLIP_MAX_BYTES} from '../../src/page-clip/convert.js';
+import {domToMarkdown,chooseArticle,safeMarkdownUrl,safeClipSource,CLIP_MAX_BYTES} from '../../src/page-clip/convert.js';
 
 const tools=['web-markdown-clipper','markdown-workbench'];
 const readPkg=async id=>JSON.parse(await readFile('examples/sidebar-tools/'+id+'/'+id+'.opendesk-tool.json','utf8'));
@@ -62,6 +62,7 @@ test('R22 URLs normalize relative assets but refuse dangerous or credentialed li
  assert.equal(safeMarkdownUrl('https://user:pass@a.example/','https://a.example/'),null);
  assert.equal(safeMarkdownUrl('mailto:test@example.com','https://a.example/'),'mailto:test@example.com');
  assert.equal(safeMarkdownUrl('mailto:test@example.com','https://a.example/',{image:true}),null);
+ assert.equal(safeClipSource('https://a.example/post?id=123&access_token=SECRET#jwt=XYZ'), 'https://a.example/post?id=123');
 });
 const T=value=>({nodeType:3,nodeValue:value,textContent:value});
 function E(tag,children=[],attrs={}){
