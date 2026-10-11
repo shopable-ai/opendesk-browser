@@ -1003,3 +1003,25 @@ test('reinstalling identical bytes never restores an old iframe right to write',
   assert.equal(f.elements['sidebar-tool-frame'].children.length,1,
     'rejected stale save leaves the old iframe and unsaved edits available for copying');
 });
+
+test('corrupt installed registry stays protected in Side Panel and never masquerades as empty',async t=>{
+  const damaged=[sample,{...sample,id:'invalid id'}];
+  const store=new Map([[SIDEBAR_TOOL_STORE,damaged]]);
+  const f=await hostFixture(t,{store,startTool:false});
+  assert.equal(f.elements['sidebar-tool-empty'].hidden,true);
+  assert.equal(f.elements['sidebar-tool-list'].children.length,0);
+  assert.match(f.elements['sidebar-tool-status'].textContent,/工具列表读取失败/);
+  assert.deepEqual(store.get(SIDEBAR_TOOL_STORE),damaged);
+});
+
+test('uninstall refuses a newly corrupted registry rather than dropping unrelated rows',async t=>{
+  const f=await hostFixture(t,{startTool:false}),damaged=[sample,{...sample,id:'invalid id'}];
+  f.store.set(SIDEBAR_TOOL_STORE,damaged); // another context writes unexpected bytes
+  const row=f.elements['sidebar-tool-list'].children[0];
+  const remove=row.children.find(node=>node.dataset?.sidebarToolAction==='remove');
+  assert(remove);
+  remove.emit('click');
+  await settle(()=>/E_STORAGE_CORRUPT/.test(f.elements['sidebar-tool-status'].textContent||''));
+  assert.deepEqual(f.store.get(SIDEBAR_TOOL_STORE),damaged);
+  assert.equal(f.store.has(sidebarToolStorageKey(sample.id)),false);
+});
