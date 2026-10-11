@@ -1,10 +1,16 @@
-# Page React/Vue 导入草稿 · R24.2 现有文件与 R24.3 迁移
+# Page React/Vue 导入草稿 · R24.3 当前组件与 R24.2 历史兼容
 
-**2026-10-11 本次仅更新文档，下面两个 JSON 的源码、字节和历史哈希没有改变。**
+**R24.3 当前可用：**预构建 React JSX 和 Vue SFC 的 Page 草稿已从实际项目构建器生成，分别保留官方 `src/App.jsx`、`src/App.vue` 的只读源码快照。导入不需要 Native 或项目 `node_modules`，但导入时执行的是已经生成、SHA-256 固定的 `program.js`，**浏览器直接编辑 JSX/SFC 并即时转换仍待完成**。来源：GitHub Actions [R24.3 reproducible import-ready drafts](https://github.com/shopable-ai/opendesk-browser/actions/runs/38153296137)。
 
-[R24.3 设计](../../docs/architecture/browser-framework/page-framework-authoring-r243.zh-CN.md)和[执行 GOAL](../../docs/framework/prompts/goal-r243-page-framework-authoring.zh-CN.md)已保存。新的 JSX/SFC 源码导入、浏览器自动转换及标准组件入口仍待实施；不能把旧普通 JS JSON 导入成功当作新能力验收。
+| R24.3 当前 JSON | 固定 Page `sourceHash` | 文件 SHA-256 |
+| --- | --- | --- |
+| `page-ui-react.opendesk-draft.json` | `97ff050d29977932156b130a01f2149799a2c821a65a25778c2f269591e3c557` | `5bbe94e8623770b68e25d223bf7e40da1066654502f6eda2428eb5cb0487b656` |
+| `page-ui-vue.opendesk-draft.json` | `747838ef6225583e6128f906ec2491f0ce141b7f8f50f3d01e2bcf7877f8f0c0` | `fea91e9418d7d503c6b070e404c82c18f87bb209f88382d9fe55ed7deef23240` |
 
-## 现有固定草稿
+从「发现 → 导入」选择上述 JSON，检查只读源码与实际构建产物，满足网站范围和 Chrome 用户脚本许可后，在「开发 → 直接编辑」明确点击试运行。此流程与旧普通 JS 草稿共用原导入、执行器、受管容器、停止与权限机制。**导入、预览与固定程序安装不是同一个动作。**
+
+## R24.2 已发布历史快照（保留不改）
+### 旧版 direct 草稿
 
 两个 .opendesk-draft.json 由原 scripts/build-program-project.mjs 在 [R24.2 GitHub Actions](https://github.com/shopable-ai/opendesk-browser/actions/runs/38132269374) 生成，包含普通 JavaScript 和只读多文件源码快照，不是已安装工具或独立应用。React/Vue 框架由扩展提供，没有重复放入每个草稿。
 
