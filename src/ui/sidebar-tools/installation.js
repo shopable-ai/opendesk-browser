@@ -61,7 +61,7 @@ function pendingCleanups(value){
   if(!value||typeof value!=='object'||Array.isArray(value))return {};
   return Object.fromEntries(Object.entries(value).filter(([id,row])=>
     toolIdPattern.test(id)&&row&&typeof row==='object'&&
-    typeof row.version==='string'&&/^\\d+\\.\\d+\\.\\d+$/.test(row.version)));
+    typeof row.version==='string'&&/^\d+\.\d+\.\d+$/.test(row.version)));
 }
 export async function getPendingToolCleanups(api){
   return pendingCleanups((await api.storage.local.get(TOOL_CLEANUP_STORE))[TOOL_CLEANUP_STORE]);

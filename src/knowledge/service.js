@@ -1,4 +1,5 @@
 import {SIDEBAR_TOOL_STORE} from '../ui/sidebar-tools/package.js';
+import {writeVerifiedLocalValue} from '../ui/sidebar-tools/storage-state.js';
 import {isReadingTocToolSender} from '../reading-toc/page.js';
 import {KNOWLEDGE_TOOL_ID,KNOWLEDGE_PROTOCOL,KNOWLEDGE_DATA_KEY,CAPTURE_SITE_STORE,
   captureAllowed,installedKnowledgeTool,knowledgePackageHash,chatCaptureOrigin,KNOWLEDGE_WORKSPACE_PREFIX,knowledgeDigest} from './policy.js';
@@ -98,7 +99,7 @@ export function createKnowledgeService({api=globalThis.chrome,lockManager=global
         const store=readKnowledgeStore((await api.storage.local.get(KNOWLEDGE_DATA_KEY))[KNOWLEDGE_DATA_KEY]);
         const result=addKnowledgeRecord(store,record);
         await authorize();
-        if(!result.duplicate)await api.storage.local.set({[KNOWLEDGE_DATA_KEY]:result.store});
+        if(!result.duplicate)await writeVerifiedLocalValue(api,KNOWLEDGE_DATA_KEY,result.store,store,'知识收件箱');
         return {saved:true,id:result.record.id,duplicate:result.duplicate};
       }
       const store=readKnowledgeStore((await api.storage.local.get(KNOWLEDGE_DATA_KEY))[KNOWLEDGE_DATA_KEY]);
@@ -146,7 +147,7 @@ export function createKnowledgeService({api=globalThis.chrome,lockManager=global
       const result=message.operation==='knowledge.update'?updateKnowledgeRecord(store,payload):
         {store:{version:1,records:store.records.filter(record=>record.id!==row.id)}};
       await authorize();
-      await api.storage.local.set({[KNOWLEDGE_DATA_KEY]:result.store});
+      await writeVerifiedLocalValue(api,KNOWLEDGE_DATA_KEY,result.store,store,'知识收件箱');
       return {saved:true,...(result.record?{record:result.record}:{removed:true})};
     });}finally{pending--;}
   }
@@ -156,7 +157,12 @@ export function installKnowledgeService({api=globalThis.chrome,...options}={}){
   const service=createKnowledgeService({api,...options});
   const listener=(message,sender,reply)=>{
     if(message?.protocol!==KNOWLEDGE_PROTOCOL)return false;
-    void service.dispatch(message,sender).then(data=>reply({ok:true,data}),error=>reply({ok:false,error:{code:'E_KNOWLEDGE',message:String(error?.message||error).slice(0,240)}}));
+    void service.dispatch(message,sender).then(data=>reply({ok:true,data}),error=>{
+      const message=String(error?.message||error);
+      const code=error?.code||(/已满|超过|最多.*条|草稿为空/.test(message)?'E_TOOL_DATA_LIMIT':
+        /其他窗口修改|其他窗口/.test(message)?'E_STORAGE_CONFLICT':'E_KNOWLEDGE');
+      reply({ok:false,error:{code,message:message.slice(0,240)}});
+    });
     return true;
   };
   api.runtime.onMessage.addListener(listener);
