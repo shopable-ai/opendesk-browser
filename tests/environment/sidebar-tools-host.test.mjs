@@ -181,6 +181,7 @@ test('trusted tool host installs only by explicit click, scopes messages and rem
     assert.equal(store.get(sidebarToolStorageKey(sample.id)).note,'hello');
     host.openTool(sample.id);
     elements['sidebar-tool-remove'].emit('click');
+    elements['sidebar-tool-remove'].emit('click');
     await pause();await pause();
     assert.equal(store.has(sidebarToolStorageKey(sample.id)),false);
     assert.equal(store.get(SIDEBAR_TOOL_STORE).length,0);
@@ -223,11 +224,11 @@ test('actual sandbox state object clears host dirty state only after busy work e
   root.emit('input',{isTrusted:true});
   state(false,false); // The former knowledge call sends no valid state object.
   assert.equal(sent.filter(row=>row.kind==='edit-state').length,0);
-  assert.equal(f.host.closeTool(),false);assert.equal(confirmations,1);
+  assert.equal(f.host.closeTool(),false);assert.equal(confirmations,0);
   state({dirty:false,busy:true});
-  assert.equal(f.host.closeTool(),false);assert.equal(confirmations,1,'busy cannot offer a discard override');
+  assert.equal(f.host.closeTool(),false);assert.equal(confirmations,0,'busy does not dismiss unsaved work');
   state({dirty:false,busy:false});
-  assert.equal(f.host.closeTool(),true);assert.equal(confirmations,1,'saved state must not ask to discard again');
+  assert.equal(f.host.closeTool(),true);assert.equal(confirmations,0,'saved state never opens a dialog');
   assert.equal(f.elements['sidebar-tool-frame'].children.length,0);
   assert.equal(sent.at(-1).kind,'edit-state');assert.equal(sent.at(-1).dirty,false);assert.equal(sent.at(-1).busy,false);
 });
@@ -418,9 +419,7 @@ test('R14 preview compares permissions and downgrade, confirmation protects upda
   assert.match(f.elements['sidebar-tool-update-warning'].textContent,/版本回退/);
   let prompted=0;globalThis.confirm=()=>{prompted++;return false;};
   f.elements['sidebar-tool-install'].emit('click');await pause();await pause();await pause();
-  assert.equal(prompted,1);assert.equal(store.get(SIDEBAR_TOOL_STORE)[0].version,'3.0.0');
-  globalThis.confirm=()=>true;
-  f.elements['sidebar-tool-install'].emit('click');await pause();await pause();await pause();
+  assert.equal(prompted,0,'the already reviewed update never opens a modal');
   assert.equal(store.get(SIDEBAR_TOOL_STORE)[0].version,'2.0.0');
   assert.deepEqual(store.get(sidebarToolStorageKey(sample.id)),{memo:'kept'});
   assert.equal(f.elements['sidebar-tool-frame'].children.length,0,'update cannot auto execute');
@@ -440,10 +439,9 @@ test('R14 list uninstall requires consent but never mounts or runs untrusted too
   let confirmations=0;
   globalThis.confirm=()=>{confirmations++;return false;};
   deleteButton.emit('click');await pause();await pause();
-  assert.equal(confirmations,1);
-  assert.equal(store.get(SIDEBAR_TOOL_STORE).length,1,'canceled action must not uninstall');
-  assert.deepEqual(store.get(key),{note:'private'},'canceled action must not delete data');
-  globalThis.confirm=()=>true;
+  assert.equal(confirmations,0,'no modal confirmation is shown');
+  assert.equal(store.get(SIDEBAR_TOOL_STORE).length,1,'first click only shows inline warning');
+  assert.deepEqual(store.get(key),{note:'private'},'first click does not delete data');
   deleteButton.emit('click');await pause();await pause();await pause();
   assert.equal(store.get(SIDEBAR_TOOL_STORE).length,0,'explicit list uninstall removes the package');
   assert.equal(store.has(key),false,'list uninstall removes its namespaced data');
@@ -562,10 +560,12 @@ test('R14.1 list renders and Back/uninstall preserve useful keyboard focus',asyn
   assert.equal(f.elements['sidebar-tool-list'].children[0].children[0].focused,true,
     'Back should return to the tool that was opened');
   f.elements['sidebar-tool-list'].children[0].children[1].emit('click');
+  f.elements['sidebar-tool-list'].children[0].children[1].emit('click');
   await pause();await pause();await pause();
   assert.equal(f.elements['sidebar-tool-list'].children[0].dataset.sidebarToolId,second.id);
   assert.equal(f.elements['sidebar-tool-list'].children[0].children[0].focused,true,
     'list uninstall should move focus to the next installed tool');
+  f.elements['sidebar-tool-list'].children[0].children[1].emit('click');
   f.elements['sidebar-tool-list'].children[0].children[1].emit('click');
   await pause();await pause();await pause();
   assert.equal(f.elements['sidebar-tool-list'].children.length,0);
@@ -892,6 +892,7 @@ test('knowledge editor protects user navigation, clears after save, and never ve
   const pending={'opendesk.knowledge.workspace.v1:123':{private:true},unrelated:{keep:true}};
   f.api.storage.session={get:async()=>pending,remove:async keys=>{for(const key of keys)delete pending[key];}};
   globalThis.confirm=()=>true;
+  f.elements['sidebar-tool-remove'].emit('click');
   f.elements['sidebar-tool-remove'].emit('click');await pause();await pause();
   assert.deepEqual(pending,{unrelated:{keep:true}});
   assert.equal(f.elements['sidebar-tool-frame'].children.length,0);
