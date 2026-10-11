@@ -6,6 +6,10 @@ on:
     paths:
       - '.github/workflows/r15-4-wxt-production-native.yml'
       - 'src/libs/**'
+      - 'scripts/libs-history-audit.mjs'
+      - 'scripts/libs-doctor.mjs'
+      - 'tests/environment/libs-history-r156.test.mjs'
+      - 'docs/architecture/browser-framework/historical-library-decisions-r156.json'
       - 'src/runtime/builtin-libraries/**'
       - 'src/scripting/sandbox/**'
       - 'src/scripting/user-scripts/**'
@@ -49,6 +53,8 @@ jobs:
           cache: npm
       - run: npm ci --ignore-scripts --no-audit --no-fund
       - run: npm run libs:check
+      - name: R15.6 historical library inventory and negative fixture verification
+        run: node --test tests/environment/libs-history-r156.test.mjs
       - run: npm run check
       - name: Build exactly one audited production package
         run: npm run build
@@ -56,6 +62,10 @@ jobs:
           OPENDESK_BUILD_EVIDENCE_DIR: docs/framework/evidence/r154-production-native
       - name: Verify physical production files and deterministic ZIP
         run: node scripts/verify-package.mjs dist/production && npm run pack
+      - name: Preserve R15.6 doctor package diagnosis on exact production candidate
+        run: |
+          mkdir -p docs/framework/evidence/r154-production-native
+          npm run libs:doctor > docs/framework/evidence/r154-production-native/libs-doctor-r156.json
       - uses: browser-actions/setup-chrome@v2
         id: chrome
         with:

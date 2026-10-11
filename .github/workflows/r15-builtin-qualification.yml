@@ -67,10 +67,10 @@ jobs:
       - name: R15.5 doctor on physical production and development WXT outputs
         run: npm run libs:doctor -- --strict
       - run: npm run verify
-      - name: Complete Node regression suite
-        run: npm test
       - name: Exact production and development archives
         run: npm run pack && npm run pack:dev
+      - name: Complete Node regression suite
+        run: npm test
       - name: Preserve source and npm-installed inputs for offline diagnosis
         if: always()
         run: |
