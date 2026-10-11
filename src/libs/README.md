@@ -15,6 +15,7 @@ src/libs/
     lodash.js                  已实现，受控 8 个方法
     dayjs.js                   已实现，核心 + duration/utc/timezone/customParseFormat
     js-cookie.js               已实现，Page USER_SCRIPT 显式 opt-in
+    crypto-js.js               R15.8 新接线，真实 CryptoJS 子集（待构建/Chrome 验收）
   adapters/
     axios-transport.js         已实现纯协议组件；还没有真实 Axios 上游入口
   page-frameworks/
@@ -30,7 +31,7 @@ src/libs/
 
 现有 npm 构建输入在根 `node_modules`，不是所有上游源码都必须复制到 packages。正式生成产物在 `dist/{production,development}/libs/**`；固定资源、版本、MIT 文件和 SHA 必须经本轮构建/ZIP 对账。
 
-`npm run libs:list` 当前登记 Lodash、Day.js、my-utils、jQuery、js-cookie，React/Vue 通过已有独立 `page-frameworks/contract.js` 而非另一个 WXT/npm wrapper 注册。不要重复新增 `packages/react.js`、`packages/react-dom.js`、`packages/vue.js`，造成双份运行时。
+`npm run libs:list` 当前登记 Lodash、Day.js、my-utils、jQuery、js-cookie、CryptoJS，React/Vue 通过已有独立 `page-frameworks/contract.js` 而非另一个 WXT/npm wrapper 注册。不要重复新增 `packages/react.js`、`packages/react-dom.js`、`packages/vue.js`，造成双份运行时。
 
 ## 2. 目前用户代码怎么用
 
@@ -48,7 +49,18 @@ async function main() {
 
 `Cookies` 来自真实上游 `js-cookie@3.0.8`，用于当前页面可访问的 `document.cookie`；不提供 HttpOnly、浏览器扩展 Cookie API、Controller DOM 或越过用户的页面权限。只在目标网页的独立 USER_SCRIPT world 注册 `Cookies`，不会默认写目标网站 MAIN global。
 
-`// @opendesk-lib react` 使用 `OpenDeskPageReact`；`// @opendesk-lib vue` 使用 `OpenDeskPageVue`。现有 parser **每个程序最多允许一个可选 ID**；尚未实现多个可选库同时声明和自动依赖闭包，不能声称全部组合已经可用。
+`// @opendesk-lib react` 使用 `OpenDeskPageReact`；`// @opendesk-lib vue` 使用 `OpenDeskPageVue`。
+
+CryptoJS 必须显式声明（只在当前 Page 的 USER_SCRIPT world 中安装）：
+
+```js
+// @opendesk-lib crypto-js
+async function main() {
+  return CryptoJS.SHA256('abc').toString(CryptoJS.enc.Hex);
+}
+```
+
+这是真实上游包的受控兼容子集，不是将 WebCrypto 冒充 CryptoJS。上游已停止维护；新加密设计优先 WebCrypto，不默认加载或提供网站 MAIN 特权。现有 parser **每个程序最多允许一个可选 ID**；尚未实现多个可选库同时声明和自动依赖闭包，不能声称全部组合已经可用。
 
 ```js
 async function main() {
@@ -66,7 +78,7 @@ async function main() {
 | 目标上游库 | 源码拟落点 | 当前缺口 |
 | --- | --- | --- |
 | **Axios** | packages/axios.js | **不存在**。现有 adapters/axios-transport.js 仅是可验证的受限 HTTP 协议组件，没有真实 Axios npm/Runner/全量取消 |
-| CryptoJS | packages/crypto-js.js | **不存在**；不得把 WebCrypto 命名为 CryptoJS |
+| CryptoJS | packages/crypto-js.js | R15.8 已接入真实 crypto-js@4.2.0，Page 显式声明、限制 SHA256/HmacSHA256/AES/enc；工程及 Chrome 同候选证据待确认；上游停止维护，默认不注入 |
 | query-string | packages/query-string.js | **不存在**；URLSearchParams 不等价于全部 query-string 选项 |
 | store.js | packages/store.js | **不存在**；同步 API/持久化、作用域和安全边界需明确 |
 | FileSaver | packages/file-saver.js | **不存在**；需真实 `saveAs` 与页面下载回执 |

@@ -2,7 +2,7 @@ import {canonical,digest,digestUtf8,invariant,FoundationError} from '../../platf
 import {BUILTIN_ABI,BUILTIN_RUNTIME_CATALOG} from '../../libs/runtime-contract.js';
 import {preparePageProgramRegistration} from './page-program-package.js';
 import {httpUrl} from '../../environment.js';
-import {PAGE_WORLD_CSP,pageWantsJquery,pageSelectedPackagedLibrary} from './execution-source.js';
+import {PAGE_WORLD_CSP,pageWantsJquery,pageSelectedPackagedLibrary,pageOptionalLibraryId} from './execution-source.js';
 import {loadPackagedPageFramework} from '../../libs/page-frameworks/loader.js';
 import {PAGE_FRAMEWORK_RUNTIMES} from '../../libs/page-frameworks/contract.js';
 import {JQUERY_371,loadPackagedJquery} from './packaged-dependencies.js';
@@ -51,7 +51,8 @@ async function verifiedEnvironment(candidate,receipt){
   invariant(!pageWantsJquery(candidate.sourceUtf8)||receipt.packagedJquerySha256===JQUERY_371.sha256,
     'E_PAGE_ENVIRONMENT','库环境已变化，请重新验证安装');
   const selected=pageSelectedPackagedLibrary(candidate.sourceUtf8);
-  if(selected==='js-cookie')invariant(receipt.packagedOptionalId==='jsCookie'&&
+  const optionalId=pageOptionalLibraryId(selected);
+  if(optionalId)invariant(receipt.packagedOptionalId===optionalId&&
     /^[a-f0-9]{64}$/.test(receipt.packagedOptionalSha256),'E_PAGE_ENVIRONMENT');
   else if(selected&&selected!=='jquery')invariant(receipt.packagedFrameworkId===selected&&
     receipt.packagedFrameworkSha256===PAGE_FRAMEWORK_RUNTIMES[selected].sha256,
@@ -119,10 +120,11 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
     const jqueryCode=pageWantsJquery(candidate.sourceUtf8)
       ? (await loadPackagedJquery({runtime:api.runtime})).code : undefined;
     const selected=pageSelectedPackagedLibrary(candidate.sourceUtf8);
-    const frameworkSource=selected&&selected!=='jquery'&&selected!=='js-cookie'
+    const optionalId=pageOptionalLibraryId(selected);
+    const frameworkSource=selected&&!optionalId&&selected!=='jquery'
       ?await loadPackagedPageFramework(selected,{runtime:api.runtime}):undefined;
-    const optionalSource=selected==='js-cookie'
-      ?await loadPackagedOptionalPageLibrary('jsCookie',{runtime:api.runtime}):undefined;
+    const optionalSource=optionalId
+      ?await loadPackagedOptionalPageLibrary(optionalId,{runtime:api.runtime}):undefined;
     // A verified native receipt must name the exact currently packaged byte hash.
     if(optionalSource)invariant(proof.receipt.packagedOptionalSha256===optionalSource.sha256,'E_PAGE_ENVIRONMENT');
     const compiled=await preparePageProgramRegistration({candidate,sourceUtf8:candidate.sourceUtf8,

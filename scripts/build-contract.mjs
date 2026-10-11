@@ -19,7 +19,8 @@ export const PACKAGE_ENTRIES = Object.freeze({
   'libs/runtime/page-core': './src/entrypoints/page-core.js',
   'libs/packages/lodash': './src/entrypoints/lodash.js',
   'libs/packages/dayjs': './src/entrypoints/dayjs.js',
-  'libs/packages/js-cookie': './src/entrypoints/js-cookie.js'
+  'libs/packages/js-cookie': './src/entrypoints/js-cookie.js',
+  'libs/packages/crypto-js': './src/entrypoints/crypto-js.js'
 });
 
 // These are project-owned engineering budgets, not Chrome MV3 size limits.

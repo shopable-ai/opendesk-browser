@@ -122,15 +122,16 @@ export async function inspectLibraries({cwd=process.cwd()}={}) {
   if(history.issues.length)errors.push(...history.issues);
   const invalidWorlds=Object.values(BUILTIN_CATALOG.libraries).filter(row=>
     row.worlds.some(world=>!['CONTROLLER','USER_SCRIPT'].includes(world))||
-    (['jquery','jsCookie'].includes(row.id)&&(row.default||row.worlds.join(',')!=='USER_SCRIPT'))||
-    (!['jquery','jsCookie'].includes(row.id)&&!row.default));
+    (['jquery','jsCookie','cryptoJs'].includes(row.id)&&(row.default||row.worlds.join(',')!=='USER_SCRIPT'))||
+    (!['jquery','jsCookie','cryptoJs'].includes(row.id)&&!row.default));
   report.sources.worlds=result(invalidWorlds.length?'SOURCE_FAIL':'SOURCE_PASS',
     invalidWorlds.length?{location:'src/libs/runtime-contract.js:1',ids:invalidWorlds.map(row=>row.id)}:undefined);
   if(invalidWorlds.length)errors.push('src/libs/runtime-contract.js:1 built-in library world/default drift');
   const apiValid=BUILTIN_CATALOG.libraries.lodash.methods.join(',')===
     'get,has,words,trim,uniq,chunk,escape,truncate'&&
     BUILTIN_CATALOG.libraries.dayjs.methods.join(',')==='isDayjs,duration,isDuration,utc,tz'&&
-    BUILTIN_CATALOG.libraries.jsCookie.methods.join(',')==='get,set,remove,withAttributes,withConverter';
+    BUILTIN_CATALOG.libraries.jsCookie.methods.join(',')==='get,set,remove,withAttributes,withConverter'&&
+    BUILTIN_CATALOG.libraries.cryptoJs.methods.join(',')==='SHA256,HmacSHA256,AES,enc';
   report.sources.api=result(apiValid?'SOURCE_PASS':'SOURCE_FAIL',
     apiValid?undefined:{location:'src/libs/catalog.js:1',reason:'built-in API contract drift'});
   if(!apiValid)errors.push('src/libs/catalog.js:1 built-in API contract drift');

@@ -7,7 +7,7 @@ import {loadBuiltinPageSource,loadPackagedOptionalPageLibrary} from '../../libs/
 import {BUILTIN_ABI} from '../../libs/runtime-contract.js';
 import {builtinIdentity,assertBuiltinIdentity} from '../../libs/identity.js';
 import {createDependencyManager} from './dependency-manager.js';
-import {compileLockedPageSource, builtinReadinessSource, pageWantsJquery, pageSelectedPackagedLibrary, pageConsumerSource, PAGE_PREVIEW_RECEIPT_FORMAT, PAGE_ENTRY_FORMATS, PAGE_SOURCE_LIMIT} from './execution-source.js';
+import {compileLockedPageSource, builtinReadinessSource, pageWantsJquery, pageSelectedPackagedLibrary, pageOptionalLibraryId, pageConsumerSource, PAGE_PREVIEW_RECEIPT_FORMAT, PAGE_ENTRY_FORMATS, PAGE_SOURCE_LIMIT} from './execution-source.js';
 import {createPreviewWorlds} from './preview-worlds.js';
 import {parseUserScriptDependencies, assertUserScriptExecutable} from './dependency-metadata.js';
 
@@ -141,8 +141,8 @@ export function createPageScriptPreview({api, storage, assertHost, dependencies,
     if(!frozen.legacy&&pageWantsJquery(frozen.sourceUtf8))
       jqueryCode=(await loadPackagedJquery({runtime:api.runtime,fetchImpl})).code;
     const selected=!frozen.legacy&&pageSelectedPackagedLibrary(frozen.sourceUtf8);
-    if(selected==='js-cookie')
-      optionalSource=await loadPackagedOptionalPageLibrary('jsCookie',{runtime:api.runtime,fetchImpl});
+    if(pageOptionalLibraryId(selected))
+      optionalSource=await loadPackagedOptionalPageLibrary(pageOptionalLibraryId(selected),{runtime:api.runtime,fetchImpl});
     else if(selected&&selected!=='jquery')
       frameworkSource=await loadPackagedPageFramework(selected,{runtime:api.runtime,fetchImpl});
     if (frozen.legacy) script = await compilePageScriptPreview({...frozen,jqueryCode,receiptNonce,builtinSource});
@@ -236,10 +236,11 @@ export function createPageScriptPreview({api, storage, assertHost, dependencies,
       const jqueryCode=pageWantsJquery(candidate.sourceUtf8)
         ? (await loadPackagedJquery({runtime:api.runtime,fetchImpl})).code : undefined;
       const selected=pageSelectedPackagedLibrary(candidate.sourceUtf8);
-      const frameworkSource=selected&&selected!=='jquery'&&selected!=='js-cookie'
+      const optionalId=pageOptionalLibraryId(selected);
+      const frameworkSource=selected&&!optionalId&&selected!=='jquery'
         ? await loadPackagedPageFramework(selected,{runtime:api.runtime,fetchImpl}):undefined;
-      const optionalSource=selected==='js-cookie'
-        ? await loadPackagedOptionalPageLibrary('jsCookie',{runtime:api.runtime,fetchImpl}):undefined;
+      const optionalSource=optionalId
+        ? await loadPackagedOptionalPageLibrary(optionalId,{runtime:api.runtime,fetchImpl}):undefined;
       const script=await compileLockedPageSource({sourceUtf8:candidate.sourceUtf8,
         entryFormat:candidate.manifest.entryFormat,entries:resolution.entries,
         importSourceUrl:candidate.manifest.sourceProfile.importSourceUrl,receiptNonce,builtinSource,jqueryCode,frameworkSource,optionalSource});
