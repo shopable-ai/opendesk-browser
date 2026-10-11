@@ -19,8 +19,9 @@ export const WORKSPACE_STYLE_DEST='native-agent/workspace.css';
 
 export function inspectWorkspaceStyle(css) {
   if(typeof css!=='string'||Buffer.byteLength(css)<5000)throw Error('R22 Workspace CSS is missing/too small');
-  if(/@(?:import|source|apply|tailwind|config|plugin)\b|\burl\s*\(|\bexpression\s*\(|\bbehavior\s*:/i.test(css))
-    throw Error('R22 Workspace CSS contains uncompiled directives or remote/unsafe CSS resources');
+  const forbidden=/@(?:import|source|apply|tailwind|config|plugin)\b|\burl\s*\(|\bexpression\s*\(|\bbehavior\s*:/i.exec(css);
+  if(forbidden)
+    throw Error('R22 Workspace CSS contains uncompiled directives or remote/unsafe CSS resources: '+JSON.stringify({token:forbidden[0],at:forbidden.index,near:css.slice(Math.max(0,forbidden.index-90),forbidden.index+140)}));
   for(const marker of ['--od-brand','--od-ink','.workspace-layout','.file-surface','.chat-edit-panel',
     '.file-entry','.workspace-tool-preview','data-view'])
     if(!css.includes(marker))throw Error('R22 Workspace CSS missing expected contract: '+marker);
