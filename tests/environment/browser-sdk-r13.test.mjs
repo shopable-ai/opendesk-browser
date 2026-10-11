@@ -49,7 +49,7 @@ function makeChrome(){
 const lockManager={request(_key,work){return work();}};
 const hostContext={toolId:'selection-notes',toolVersion:'1.0.0',installEpoch:null,
   toolInstance:uid,hostInstanceId:uid};
-const frame={tabId:9,windowId:2,url:'https://example.com/post',incognito:false};
+const frame={id:9,tabId:9,windowId:2,url:'https://example.com/post',incognito:false};
 const hostLaunch={...hostContext,launchId:null};
 async function cycle(host){await host.synchronize();}
 
