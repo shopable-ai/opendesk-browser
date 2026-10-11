@@ -1,6 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {readFile} from 'node:fs/promises';
+import {readFile,readdir} from 'node:fs/promises';
+import {join,relative} from 'node:path';
+import {parse} from 'acorn';
 
 // Side Panel and official tools must use inline choices instead of blocking JS
 // dialogs. PermissionConsent.confirm() is a trusted API method (not window.confirm)
@@ -56,4 +58,82 @@ test('R5.4 no-modal interaction still keeps explicit undo/cancel and Chrome auth
   assert.match(manifest.content_security_policy.sandbox,/sandbox allow-scripts/);
   assert.doesNotMatch(manifest.content_security_policy.sandbox,/allow-modals/,
     'untrusted sandbox tools may not open browser modal dialogs');
+});
+
+
+// Future tool modules must obey the same no-modal contract without having to
+// edit a hard-coded allowlist. Analyze actual JS syntax, not strings/comments.
+const OWNED_UI_ROOTS=[
+  'src/ui','src/native-agent','src/marketplace','src/sidebar-tools',
+  'src/entrypoints','src/development','src/features','src/agents',
+  'src/knowledge','src/reading-toc','src/page-clip','examples/sidebar-tools'
+];
+async function ownedScripts(directory){
+  const entries=await readdir(directory,{withFileTypes:true});
+  const paths=[];
+  for(const entry of entries){
+    const path=join(directory,entry.name);
+    if(entry.isDirectory())paths.push(...await ownedScripts(path));
+    else if(entry.isFile()&&/\.(?:m?js)$/.test(entry.name))paths.push(path);
+  }
+  return paths;
+}
+const browserModalMethods=new Set(['confirm','alert','prompt']);
+const browserGlobalNames=new Set(['window','globalThis','self','top','parent']);
+function propertyName(node){
+  if(node?.type!=='MemberExpression')return null;
+  if(!node.computed&&node.property.type==='Identifier')return node.property.name;
+  if(node.computed&&node.property.type==='Literal'&&typeof node.property.value==='string')return node.property.value;
+  return null;
+}
+function browserGlobal(node){
+  if(node?.type==='Identifier')return browserGlobalNames.has(node.name);
+  if(node?.type!=='MemberExpression')return false;
+  const member=propertyName(node);
+  return (browserGlobal(node.object)&&['window','self','top','parent','frames'].includes(member))||
+    (node.object?.type==='Identifier'&&node.object.name==='document'&&member==='defaultView');
+}
+function visitSyntax(node,callback){
+  if(!node||typeof node!=='object')return;
+  if(Array.isArray(node)){for(const entry of node)visitSyntax(entry,callback);return;}
+  if(typeof node.type==='string')callback(node);
+  for(const [key,value] of Object.entries(node)){
+    if(key==='start'||key==='end'||key==='loc'||key==='range')continue;
+    if(value&&typeof value==='object')visitSyntax(value,callback);
+  }
+}
+test('R5.5 all first-party UI and official tool JS refuse browser modal APIs',async()=>{
+  const paths=(await Promise.all(OWNED_UI_ROOTS.map(ownedScripts))).flat().sort();
+  assert.ok(paths.length>=75,'no-modal audit must still scan the actual authored UI tree');
+  const violations=[];
+  for(const path of paths){
+    const name=relative('.',path).replaceAll('\\','/');
+    const syntax=parse(await readFile(path,'utf8'),{ecmaVersion:'latest',sourceType:'module',allowHashBang:true});
+    const localConfirm=name==='src/ui/local-project-install-ui.js'&&
+      syntax.body.some(node=>node.type==='FunctionDeclaration'&&node.id?.name==='confirm');
+    visitSyntax(syntax,node=>{
+      const where=name+':'+(node.start??'unknown');
+      if(node.type==='CallExpression'){
+        if(node.callee?.type==='Identifier'&&browserModalMethods.has(node.callee.name)&&
+          !(localConfirm&&node.callee.name==='confirm'))
+          violations.push(where+': unqualified '+node.callee.name+'()');
+        if(propertyName(node.callee)==='addEventListener'&&
+          node.arguments[0]?.type==='Literal'&&node.arguments[0].value==='beforeunload'&&
+          (browserGlobal(node.callee.object)||node.callee.object?.name==='document'))
+          violations.push(where+': browser beforeunload event');
+      }
+      if(node.type==='MemberExpression'){
+        const member=propertyName(node);
+        if(browserGlobal(node.object)&&browserModalMethods.has(member))
+          violations.push(where+': browser.'+member);
+        if(browserGlobal(node.object)&&member==='onbeforeunload')
+          violations.push(where+': browser.onbeforeunload');
+      }
+      if(node.type==='VariableDeclarator'&&browserGlobal(node.init)&&
+        node.id?.type==='ObjectPattern'&&node.id.properties.some(p=>
+          browserModalMethods.has(p.key?.name||p.key?.value)))
+        violations.push(where+': destructured browser modal function');
+    });
+  }
+  assert.deepEqual(violations,[],'first-party tools must use inline UI; Chrome-native permission prompts remain browser-owned');
 });
