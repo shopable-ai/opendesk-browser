@@ -24,8 +24,9 @@ test('all approved fixed entries use actual minified byte counts and retain a no
   const {receipt,measured} = fixture();
   const summary = summarizeFixedEntries(receipt,measured);
   assert.equal(summary.fixedEntryCount,FIXED_ENTRY_PATHS.length);
-  assert.equal(summary.productionBudgetBytes,320 * 1024);
-  assert.deepEqual(summary.critical,['ui/tool-shell.js']);
+  assert.equal(summary.productionBudgetBytes,512 * 1024);
+  assert.equal(summary.fixedEntryReviewBytes,320 * 1024);
+  assert.deepEqual(summary.critical,[]);
   assert.deepEqual(summary.reviewRequired,[]);
   assert.equal(summary.serviceWorkerProductionBudgetBytes,512*1024);
   assert.equal(summary.serviceWorkerReviewBytes,320*1024);
@@ -78,6 +79,24 @@ test('old 320 KiB line is advisory; 512 KiB remains a strict SW production budge
   setBytes(BUILD_POLICY.serviceWorkerProductionBytes+1);
   assert.throws(()=>summarizeFixedEntries(f.receipt,f.measured),/exceeds configured/);
 });
+test('Sidebar and other generated scripts may cross 320 KiB, but 512 KiB remains a strict limit',()=>{
+  const f=fixture(),path='ui/tool-shell.js',row=f.receipt.bundleModules.find(item=>item.target===path);
+  const setBytes=bytes=>{
+    row.bytes=bytes;f.measured[path].bytes=bytes;
+    f.receipt.report.files.find(item=>item.path===path).bytes=bytes;
+  };
+  setBytes(BUILD_POLICY.fixedEntryReviewBytes-1);
+  assert.deepEqual(summarizeFixedEntries(f.receipt,f.measured).reviewRequired,[]);
+  setBytes(BUILD_POLICY.fixedEntryReviewBytes+1);
+  let report=summarizeFixedEntries(f.receipt,f.measured);
+  assert.deepEqual(report.reviewRequired,[path]);
+  assert.equal(report.entries.find(item=>item.path===path).risk,'normal');
+  setBytes(BUILD_POLICY.productionBytes);
+  report=summarizeFixedEntries(f.receipt,f.measured);
+  assert.equal(report.entries.find(item=>item.path===path).remainingBytes,0);
+  setBytes(BUILD_POLICY.productionBytes+1);
+  assert.throws(()=>summarizeFixedEntries(f.receipt,f.measured),/exceeds configured/);
+});
 test('development distinguishes SW budget and source maps from executable code',()=>{
   const f=packageFixture();f.receipt.mode='development';
   f.measured['sw.js'].bytes=400000;
@@ -87,7 +106,7 @@ test('development distinguishes SW budget and source maps from executable code',
   f.receipt.report.files.push({path:'sw.js.map',...f.measured['sw.js.map']});
   const report=summarizePackageResources(f.receipt,f.measured);
   assert.equal(report.entries.find(row=>row.path==='sw.js').budgetBytes,768*1024);
-  assert.equal(report.entries.find(row=>row.path==='ui/tool-shell.js').budgetBytes,320*1024);
+  assert.equal(report.entries.find(row=>row.path==='ui/tool-shell.js').budgetBytes,512*1024);
   assert.equal(report.sourceMapBytes,500000);
 });
 test('fails closed on missing, duplicated, unmeasured or mismatched fixed entries',()=>{

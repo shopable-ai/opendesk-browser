@@ -14,7 +14,8 @@ test('Native remains optional after merging the current permission catalog',asyn
 });
 
 test('independent SW budget and fixed packaged Native transport entry',()=>{
-  assert.equal(BUILD_POLICY.productionBytes,320*1024);
+  assert.equal(BUILD_POLICY.productionBytes,512*1024);
+  assert.equal(BUILD_POLICY.fixedEntryReviewBytes,320*1024);
   assert.equal(BUILD_POLICY.serviceWorkerReviewBytes,320*1024);
   assert.equal(BUILD_POLICY.serviceWorkerProductionBytes,512*1024);
   assert.equal(BUILD_POLICY.developmentBytes,768*1024);
