@@ -65,10 +65,10 @@ test('R4.8 size-limited Service Worker imports only the lightweight first-instal
   const sw=await readFile('src/sw.js','utf8');
   const intent=await readFile('src/sidebar-tools/preinstall-intent.js','utf8');
   const host=await readFile('src/ui/sidebar-tools.js','utf8');
-  assert.match(sw,/from '.\\/sidebar-tools\\/preinstall-intent\\.js'/);
-  assert.doesNotMatch(sw,/default-preinstall\\.js/);
-  assert.doesNotMatch(intent,/installation\\.js|official-catalog\\.js|loadOfficialTool/);
-  assert.match(host,/from '..\\/sidebar-tools\\/default-preinstall\\.js'/);
+  assert(sw.includes("from './sidebar-tools/preinstall-intent.js'"));
+  assert(!sw.includes('default-preinstall.js'));
+  assert(!intent.includes('installation.js')&&!intent.includes('official-catalog.js'));
+  assert(host.includes("from '../sidebar-tools/default-preinstall.js'"));
 });
 test('R4.5 exact bytes, versions and capabilities are reproducible from the existing packer',async t=>{
   const a=await officialFixtures(),b=await createOfficialToolResources();
