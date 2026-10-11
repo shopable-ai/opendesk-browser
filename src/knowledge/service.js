@@ -3,12 +3,12 @@ import {TOOL_REVOCATION_EPOCHS_STORE} from '../ui/sidebar-tools/installation.js'
 import {writeVerifiedLocalValue} from '../ui/sidebar-tools/storage-state.js';
 import {isReadingTocToolSender} from '../reading-toc/page.js';
 import {KNOWLEDGE_TOOL_ID,KNOWLEDGE_PROTOCOL,KNOWLEDGE_DATA_KEY,CAPTURE_SITE_STORE,
-  captureAllowed,installedKnowledgeTool,knowledgePackageHash,chatCaptureOrigin,KNOWLEDGE_WORKSPACE_PREFIX,knowledgeDigest} from './policy.js';
-import {readKnowledgeStore,normalizeCapture,addKnowledgeRecord,updateKnowledgeRecord,listKnowledge,
+  captureAllowed,installedKnowledgeTool,knowledgePackageHash,chatCaptureOrigin,KNOWLEDGE_WORKSPACE_PREFIX,knowledgeDigest,KNOWLEDGE_OPERATIONS} from './policy.js';
+import {readKnowledgeStore,normalizeCapture,normalizeManualRecord,addKnowledgeRecord,updateKnowledgeRecord,listKnowledge,
   knowledgeMarkdown,knowledgeFilename} from './model.js';
 
 const PAGE_OPERATIONS=new Set(['capture.save','capture.download','capture.image']);
-const HOST_OPERATIONS=new Set(['knowledge.list','knowledge.get','knowledge.update','knowledge.remove','knowledge.backup','knowledge.download','knowledge.openSource','knowledge.workspace']);
+const HOST_OPERATIONS=new Set(KNOWLEDGE_OPERATIONS);
 function isTopHost(api,sender){
   return isReadingTocToolSender(api,sender,KNOWLEDGE_TOOL_ID)&&!sender.tab?.incognito&&
     (sender.tab?sender.frameId===0:sender.frameId===undefined||sender.frameId===0)&&
@@ -110,6 +110,14 @@ export function createKnowledgeService({api=globalThis.chrome,lockManager=global
       }
       const store=readKnowledgeStore((await api.storage.local.get(KNOWLEDGE_DATA_KEY))[KNOWLEDGE_DATA_KEY]);
       if(message.operation==='knowledge.list')return listKnowledge(store,payload);
+      if(message.operation==='knowledge.create'){
+        const record=await normalizeManualRecord(payload);
+        const result=addKnowledgeRecord(store,record);
+        if(result.duplicate)throw new Error('新建记录身份重复，请重试');
+        await authorize();
+        await writeVerifiedLocalValue(api,KNOWLEDGE_DATA_KEY,result.store,store,'知识收件箱');
+        return {saved:true,record:result.record};
+      }
       if(message.operation==='knowledge.backup'){
         if(!tool.capabilities.includes('user.export'))throw new Error('未授权导出');
         const downloadId=await api.downloads.download({url:'data:application/json;charset=utf-8,'+encodeURIComponent(JSON.stringify({format:'opendesk.knowledge-backup.v1',...store},null,2)),
@@ -121,6 +129,7 @@ export function createKnowledgeService({api=globalThis.chrome,lockManager=global
       if(!row)throw new Error('记录已不存在，请刷新');
       if(message.operation==='knowledge.get')return {record:row,markdown:knowledgeMarkdown(row),filename:knowledgeFilename(row.title)};
       if(message.operation==='knowledge.openSource'){
+        if(!row.source)throw new Error('手动创建的记录没有来源对话');
         await authorize();
         const tab=await api.tabs.create({url:row.source});return {opened:true,tabId:tab.id};
       }

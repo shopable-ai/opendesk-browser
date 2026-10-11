@@ -6,9 +6,12 @@
   <section id="ki-list-view" aria-label="已保存内容">
     <header class="ki-list-head">
       <div><h1>已保存内容 <span id="ki-total-count" class="ki-count-pill"></span></h1></div>
-      <details id="ki-manage" class="ki-menu"><summary aria-label="管理收件箱">管理</summary>
-        <div class="ki-menu-panel"><button id="ki-refresh" type="button" title="刷新收件箱">刷新收件箱</button><button id="ki-backup" type="button">下载 JSON 备份</button></div>
-      </details>
+      <div class="ki-head-actions">
+        <button id="ki-new" class="ki-primary" type="button">＋ 新建</button>
+        <details id="ki-manage" class="ki-menu"><summary aria-label="管理收件箱">管理</summary>
+          <div class="ki-menu-panel"><button id="ki-refresh" type="button" title="刷新收件箱">刷新收件箱</button><button id="ki-backup" type="button">下载 JSON 备份</button></div>
+        </details>
+      </div>
     </header>
     <div class="ki-search">
       <input id="ki-search" type="search" maxlength="100" autocomplete="off" placeholder="搜索标题、正文、提问或标签" aria-label="搜索知识收件箱">
@@ -29,8 +32,25 @@
     <p id="ki-list-loading" class="ki-loading" role="status">正在读取收件箱…</p>
     <div id="ki-records" class="ki-records" aria-describedby="ki-keyboard-help"></div>
     <p id="ki-keyboard-help" class="ki-sr-only">聚焦记录后，按上下方向键切换，Home 和 End 跳至首尾，Enter 打开记录。</p>
-    <div id="ki-empty" class="ki-empty" hidden><strong id="ki-empty-title">收件箱还是空的</strong><p id="ki-empty-description">在 ChatGPT 回答下点击「保存」，之后就能在这里找到它。</p><button id="ki-reset" type="button" hidden>清除筛选</button></div>
+    <div id="ki-empty" class="ki-empty" hidden><strong id="ki-empty-title">收件箱还是空的</strong><p id="ki-empty-description">你可以直接写一条笔记，也可以在 ChatGPT 回答下点击「保存」。</p><button id="ki-empty-new" class="ki-primary" type="button">新建第一条知识</button><button id="ki-reset" type="button" hidden>清除筛选</button></div>
     <p class="ki-footnote">内容仅保存在此浏览器中，卸载前请先备份。</p>
+  </section>
+  <section id="ki-create-view" class="ki-create-view" aria-label="新建知识" hidden>
+    <div class="ki-detail-heading"><button id="ki-create-cancel" type="button">← 返回收件箱</button></div>
+    <h2 class="ki-view-title">新建知识</h2>
+    <p class="ki-editor-intro">不需要打开 ChatGPT，也不需要网站授权。内容将保存在本浏览器中。</p>
+    <label for="ki-create-title">标题</label>
+    <input id="ki-create-title" maxlength="160" placeholder="例如：产品灵感、工作笔记" autocomplete="off" required>
+    <label for="ki-create-body">正文（支持 Markdown）</label>
+    <textarea id="ki-create-body" class="ki-content" rows="12" placeholder="在这里写下内容或粘贴 Markdown…" spellcheck="false" required></textarea>
+    <p id="ki-create-size" class="ki-footnote" role="status" aria-live="polite">0 / 150 KB</p>
+    <div class="ki-meta-grid">
+      <div><label for="ki-create-kind">分类</label><select id="ki-create-kind"><option value="inbox">待整理</option><option value="idea">灵感</option><option value="draft">草稿</option><option value="archived">归档</option></select></div>
+      <div><label for="ki-create-tags">标签</label><input id="ki-create-tags" maxlength="380" placeholder="用逗号分隔，最多 12 个" autocomplete="off"></div>
+    </div>
+    <label for="ki-create-note">备注（可选）</label>
+    <textarea id="ki-create-note" rows="2" maxlength="4000" placeholder="下一步要做什么？"></textarea>
+    <div class="ki-editor-actions"><span id="ki-create-state" role="status" aria-live="polite">填写标题和正文</span><button id="ki-create-save" class="ki-primary" type="button" disabled>保存知识</button></div>
   </section>
   <section id="ki-detail" aria-label="记录详情" hidden>
     <div class="ki-detail-heading"><button id="ki-back" type="button">← 返回</button><span id="ki-date"></span></div>
@@ -39,13 +59,13 @@
     <div class="ki-toolbar">
       <button id="ki-copy" class="ki-primary" type="button">复制 Markdown</button>
       <button id="ki-edit" type="button" aria-expanded="false" aria-controls="ki-editor">编辑</button>
+      <button id="ki-delete" class="ki-danger" type="button" aria-label="删除当前知识记录">删除</button>
       <button id="ki-outline-toggle" type="button" aria-expanded="false" aria-controls="ki-outline">结构导图</button>
       <details id="ki-more" class="ki-menu"><summary aria-label="更多记录操作">更多</summary>
         <div class="ki-menu-panel">
           <button id="ki-download" type="button">下载 Markdown</button>
           <button id="ki-workspace" type="button">发送到本地工作区</button>
           <button id="ki-source" type="button">打开来源对话</button>
-          <button id="ki-delete" class="ki-danger" type="button">删除记录</button>
         </div>
       </details>
     </div>

@@ -282,13 +282,32 @@ test('Knowledge R1 Chrome: reviewed install, capture, persistent editor and inli
  await click(clip,'.ki-record');
  await until(()=>evalIn(clip,'!document.querySelector("#ki-detail").hidden'),'detail reopened for delete');
  await writeFile(join(screenshots,'visual-metrics.json'),JSON.stringify(visualMetrics,null,2)+'\n');
- await click(clip,'#ki-more>summary');
- await click(clip,'#ki-delete');await until(()=>evalIn(clip,'!document.querySelector("#ki-confirm").hidden'),'inline delete');
+ await click(clip,'#ki-delete');await until(()=>evalIn(clip,'!document.querySelector("#ki-confirm").hidden'),'visible detail delete');
  await click(clip,'#ki-confirm-yes');
  await until(async()=>!(await evalIn(side,readStore)).records.length,'record removed');
  await until(()=>evalIn(clip,'!document.querySelector("#ki-list-view").hidden && !document.querySelector("#ki-empty").hidden'),'empty inbox after removal');
  assert.equal(await evalIn(clip,'document.querySelector("#ki-empty-title").textContent'),'收件箱还是空的','real empty state after delete');
  await captureState('empty',[360,400]);
+ // A true sandbox-side manual creation, not storage injection or a test-only API.
+ await click(clip,'#ki-empty-new');
+ await until(()=>evalIn(clip,'!document.querySelector("#ki-create-view").hidden'),'manual create form');
+ await captureState('manual-create',[360]);
+ await nativeText(clip,'#ki-create-title','用户手动新增');
+ await nativeText(clip,'#ki-create-body','## 用户手动新增\n\n离线记录正文');
+ await click(clip,'#ki-create-save');
+ const manual=await until(async()=>{
+   const saved=await evalIn(side,readStore);
+   return saved?.records?.length===1&&saved.records[0].mode==='manual'?saved.records[0]:null;
+ },'manual note saved through trusted worker');
+ assert.equal(manual.source,'','manual note does not counterfeit ChatGPT provenance');
+ await until(()=>evalIn(clip,'!document.querySelector("#ki-detail").hidden'),'manual reader');
+ assert.equal(await evalIn(clip,'document.querySelector("#ki-source").hidden'),true,'manual entry hides source navigation');
+ await captureState('manual-detail',[360]);
+ await click(clip,'#ki-delete');
+ await until(()=>evalIn(clip,'!document.querySelector("#ki-confirm").hidden'),'manual delete confirmation');
+ await click(clip,'#ki-confirm-yes');
+ await until(async()=>!(await evalIn(side,readStore)).records.length,'manual deletion persisted');
+ await until(()=>evalIn(clip,'!document.querySelector("#ki-list-view").hidden'),'manual deletion returns to list');
  // Populate two records through actual ChatGPT Save controls, not injected storage.
  await browser.send('Target.activateTarget',{targetId:page.targetId});
  await article.send('Page.bringToFront');
@@ -349,7 +368,7 @@ test('Knowledge R1 Chrome: reviewed install, capture, persistent editor and inli
  assert.equal((await evalIn(side,readStore)).records.length,2,'Revocation cannot delete already saved records');
  const result={result:'NATIVE_CHROME_CONTROLLED_FIXTURE_PASS',sourceCommit:process.env.GITHUB_SHA||null,
   reviewedInstall:true,independentConsent:true,persistentCapture:true,fullReply:true,dedup:true,streamGuard:true,
-  draftOriginalSeparation:true,dirtyCloseProtection:true,inlineConfirmation:true,structureOutline:true,spa:true,revocation:true,keyboardRecordNavigation:true,revocationPreservesRecords:true,
+  draftOriginalSeparation:true,dirtyCloseProtection:true,inlineConfirmation:true,manualCreate:true,manualDelete:true,structureOutline:true,spa:true,revocation:true,keyboardRecordNavigation:true,revocationPreservesRecords:true,
   publicChatGPT:'NOT_TESTED',macOSNativeDisk:'NOT_TESTED',imagesDownload:'NOT_TESTED',systemClipboard:'NOT_TESTED'};
  await writeFile(join(screenshots,'result.json'),JSON.stringify(result,null,2)+'\n');console.log(JSON.stringify(result));
 });

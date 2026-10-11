@@ -8,7 +8,7 @@ export const CAPTURE_CAPABILITY='page.capture';
 export const CAPTURE_SITE_STORE='opendesk.sidebar-tools.capture-sites.v1';
 export const KNOWLEDGE_DATA_KEY=sidebarToolStorageKey(KNOWLEDGE_TOOL_ID);
 export const KNOWLEDGE_WORKSPACE_PREFIX='opendesk.knowledge.workspace.v1:';
-export const KNOWLEDGE_OPERATIONS=Object.freeze(['knowledge.list','knowledge.get','knowledge.update','knowledge.remove','knowledge.backup','knowledge.download','knowledge.openSource','knowledge.workspace']);
+export const KNOWLEDGE_OPERATIONS=Object.freeze(['knowledge.list','knowledge.get','knowledge.create','knowledge.update','knowledge.remove','knowledge.backup','knowledge.download','knowledge.openSource','knowledge.workspace']);
 export const KNOWLEDGE_LIMITS=Object.freeze({records:200,recordBytes:150000,totalBytes:4*1024*1024});
 export function chatCaptureOrigin(value){
   try{

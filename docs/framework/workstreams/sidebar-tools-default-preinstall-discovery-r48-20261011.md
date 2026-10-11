@@ -27,3 +27,11 @@
 ## 与历史证据隔离
 
 基于 2026-10-11 的 `main` 工作快照并持续复核并行提交。历史 R4.5/CFT 以及 R4.1 记录不被本轮修改为新版结果；真正的 SHA、测试计数、截图和失败诊断以新工作流 CI 原始记录为准。
+
+
+## R4.8 构建架构修复（2026-10-11）
+
+- 之前 SW 直接导入安装器：生产 SW 348997 / 327680 字节，CI 拒绝发布；分离基本意图代码后仍超限（330248 / 327680），均保留原 CI 失败。
+- 修订为既有 **固定 WXT classic script** 路径：`src/entrypoints/preinstall-intent.js` 按现有 `scripts/build-contract.mjs` 注册，输出 `sidebar-tools/preinstall-intent.js`。SW 只以 `importScripts()` 装载经本扩展打包的静态资源，不下载执行远程代码；只有 `onInstalled(reason='install')` 登记意图。
+- `src/sidebar-tools/preinstall-intent.js` 不依赖安装器，`src/sidebar-tools/default-preinstall.js` 只被受信 Side Panel 宿主加载。正式包必须按原固定资源合同、哈希和大小审核，不能提高 320 KiB SW 门槛规避问题。
+- CI 新候选需要重新验证 Node、production+development build、verify、pack、市场路由和真实 Chrome。原 603+19/F3 不因本阶段通过而提升验收等级。

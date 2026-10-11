@@ -80,3 +80,23 @@ test('R24 CSS is sandbox-scoped, responsive and usable in light and dark themes'
   assert.match(css,/\.ki-confirm-layer/);
   assert.doesNotMatch(css,/@import\b|url\(\s*['"]?\s*https?:/);
 });
+
+test('manual knowledge entry is a first-class list and empty-state action, not a buried settings item',()=>{
+  for(const id of ['ki-new','ki-empty-new','ki-create-view','ki-create-title','ki-create-body',
+    'ki-create-kind','ki-create-tags','ki-create-note','ki-create-size','ki-create-state',
+    'ki-create-save','ki-create-cancel'])
+    assert.match(html,new RegExp('id="'+id+'"'));
+  assert.match(html,/<section id="ki-create-view"[^>]*hidden>/);
+  assert.match(html,/<button id="ki-create-save"[^>]*disabled>/);
+  assert.match(html,/不需要打开 ChatGPT，也不需要网站授权/);
+  const toolbar=html.slice(html.indexOf('class="ki-toolbar"'),html.indexOf('</div>',html.indexOf('class="ki-toolbar"')));
+  assert.match(toolbar,/id="ki-delete"/,'Delete is directly visible on a record detail toolbar');
+  assert.doesNotMatch(html.slice(html.indexOf('id="ki-more"'),html.indexOf('</details>',html.indexOf('id="ki-more"'))),/id="ki-delete"/);
+  assert.match(js,/request\('knowledge\.create',createPayload\(\)\)/);
+  assert.match(js,/q\('create-view'\)\.hidden=true/);
+  assert.match(js,/setDirty\(false\);creating=false/);
+  assert.match(js,/if\(creating\)\{event\.preventDefault\(\);void cancelCreate\(\);return;\}/);
+  assert.match(js,/q\('source'\)\.hidden=!record\.source/);
+  assert.match(css,/\.ki-head-actions/);
+  assert.match(css,/\.ki-create-view/);
+});
