@@ -116,6 +116,7 @@ function renderList(node,state,depth){
 function renderBlock(node,state,depth=0){
   budget(state,node);
   if(node.nodeType===3)return squeeze(inline(node,state))?inline(node,state)+'\n\n':'';
+  if(node.nodeType===11)return renderChildren(node,state,depth);
   if(node.nodeType!==1||excluded(node))return '';
   const tag=node.tagName;
   if(/^H[1-6]$/.test(tag))return '#'.repeat(Number(tag[1]))+' '+squeeze(inlineChildren(node,state))+'\n\n';
