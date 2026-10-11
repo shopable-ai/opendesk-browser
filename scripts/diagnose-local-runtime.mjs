@@ -48,8 +48,8 @@ async function main(){
     sourceHtml:source?{path:join(real,'examples/tasks/demo-form.html'),bytes:source.length,sha256:hash(source)}:null,
     dev:{},services:[]};
   for(const path of ['manifest.json','framework/sdk-main.js','agents/page-relay.js',
-    'scripting/sandbox/worker-runtime.js','runtime/builtin-libraries/page-core.js',
-    'runtime/builtin-libraries/manifest.json']){
+    'scripting/sandbox/worker-runtime.js','libs/runtime/page-core.js',
+    'libs/manifest.json']){
     const bytes=await read('dist/development/'+path);
     record.dev[path]=bytes?{bytes:bytes.length,sha256:hash(bytes)}:{status:'MISSING'};
   }

@@ -1,5 +1,5 @@
 import {loadFakeBuiltin,fakeBuiltinSource} from './builtin-support.mjs';
-import {builtinIdentity} from '../../src/runtime/builtin-libraries/identity.js';
+import {builtinIdentity} from '../../src/libs/identity.js';
 const environment=builtinIdentity(fakeBuiltinSource);
 import test from 'node:test';
 import assert from 'node:assert/strict';

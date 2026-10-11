@@ -1,8 +1,8 @@
 const DEPENDENCY_STORE="frameworkKV";
 import {parseUserScriptDependencies, assessUserScriptExecution, assertUserScriptExecutable} from './dependency-metadata.js';
 import {loadPackagedJquery,JQUERY_371} from './packaged-dependencies.js';
-import {loadBuiltinPageSource} from '../../runtime/builtin-libraries/loader.js';
-import {builtinIdentity,assertBuiltinIdentity} from '../../runtime/builtin-libraries/identity.js';
+import {loadBuiltinPageSource} from '../../libs/loader.js';
+import {builtinIdentity,assertBuiltinIdentity} from '../../libs/identity.js';
 import {resolvePageProgramRules} from './page-program-rules.js';
 
 // Assets contain bytes only. Source identity and approval belong to namespace

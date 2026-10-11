@@ -3,7 +3,7 @@ import {relayContextRequest} from '../../framework/context.js';
 import {createResultAssembler} from '../../framework/control/result-transfer.js';
 import {BUILTIN_RUNTIME_CATALOG as BUILTIN_CATALOG} from '../../libs/runtime-contract.js';
 import {loadBuiltinWorkerSource} from '../../libs/loader.js';
-import {builtinIdentity,assertBuiltinIdentity} from '../../runtime/builtin-libraries/identity.js';
+import {builtinIdentity,assertBuiltinIdentity} from '../../libs/identity.js';
 
 function safeErrorCause(error) {
  const cause = error && Object.getOwnPropertyDescriptor(error, 'cause')?.value;

@@ -12,8 +12,7 @@ export function assertLibraryModuleBoundary(target,path,npmName) {
   const wrongOwner=embeddedPackage&&embeddedPackage[1]!==target ||
     packageSource&&path.slice(4)!==target;
   const raw=path.startsWith('src/libs/vendor/')||path==='src/libs/runtime/bootstrap.js';
-  const backgroundMetadata=target==='sw.js'&&['src/libs/core.js','src/libs/catalog.js',
-    'src/runtime/builtin-libraries/core.js'].includes(path);
+  const backgroundMetadata=target==='sw.js'&&['src/libs/core.js','src/libs/catalog.js'].includes(path);
   if(wrongOwner||raw||backgroundMetadata)
     throw Error('Preinstalled library implementation unexpectedly bundled into '+target+': '+path);
 }

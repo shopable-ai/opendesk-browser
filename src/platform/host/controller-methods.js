@@ -9,8 +9,8 @@ import {assertInstalledTask,assertRunTaskAuthorization} from '../tasks/service.j
 import {BUILTIN_ABI} from '../../libs/runtime-contract.js';
 import {normalizeControllerNetworkOrigins,assertControllerNetworkTarget} from './controller-network-scope.js';
 import {permissionPattern} from '../../environment.js';
-import {loadBuiltinWorkerSource} from '../../runtime/builtin-libraries/loader.js';
-import {builtinIdentity,assertBuiltinIdentity} from '../../runtime/builtin-libraries/identity.js';
+import {loadBuiltinWorkerSource} from '../../libs/loader.js';
+import {builtinIdentity,assertBuiltinIdentity} from '../../libs/identity.js';
 // Reuse exact literals within the fixed privileged bundle budget.
 const RUN_STORE="runs",
   RUN_WRITE="readwrite",
