@@ -81,3 +81,12 @@ npm test
 - `707dec36898be38118d348f0939d1389fc2ecfaf`：[市场 CI #38132999590](https://github.com/shopable-ai/opendesk-browser/actions/runs/38132999590) 先通过 **111/111 定向组件测试、双构建及包校验**。原生 CFT 在 `market-fixed-unavailable-version-and-current-batch` 阶段的循环卸载遇到 `Chrome timeout: expected native confirmation`；不是容量上限断言失败，该轮尚未到达 >10 MiB 阶段。
 - 已下载并逐项核对原始 CI artifact `11699643590`：`native-result.json` 的 `failedStage` 与真实 Side Panel 快照一致；前两次卸载确认框（网页剪藏、知识收件箱）来自真实点击且 `matched=true`，批量重装后列表显示五个实际安装版本，随后市场标签页关闭，下一次卸载未收到原生确认。失败没有清空用户实际安装数据或放宽原权限校验。
 - `9b0f1a9af9fb2f2fc57f04023e3f99aed2f14cc4` 只修改 `tests/framework/app-market-r3-native.test.mjs` 的 `uninstall()`，在原有可信 CDP 鼠标输入之前显式前台激活实际 Side Panel target；确认框仍必须由真实 Chrome 发出、实际用户批准步骤仍必需，未使用 DOM 合成事件、未改源代码/权限逻辑，也未降低原生断言。**此修复的最终 CFT 结果仅以重新运行的同一候选 CI 为准**，不能拿旧包 PASS 冒充新包通过。
+
+ 
+## 2026-10-11 最终受控 Chrome CI 核对（Mac 待验）
+
+最新已确认功能候选为 `a1f75e918ba5c4f3747408802d5ee280f29f988a`，对应 [市场与真实 Chrome CI #38134215155](https://github.com/shopable-ai/opendesk-browser/actions/runs/38134215155) 全部步骤 **SUCCESS**：112/112 定向 Node 通过；`npm run check`、生产与开发 WXT 构建、`verify`、`pack`、市场静态路由均通过；Linux Chrome for Testing 的 12 个完整阶段 `REAL_CHROME_FIXTURE_PASS`，2 次正常整浏览器重启、24 个真实确认框。真实 Chrome 运行中 `unlimitedStorage` 为已授予，`getBytesInUse(null)` 超过 10 MiB；使用专用容量测试键，没有改变 12 工具/320000 单包/普通数据 8192 与 32768/知识 4 MiB 的产品限制，结束后只清理专用键。
+
+上述 CFT 的 `packageHash=83d5702533f1be2e0a5a3b5275c62bc4bb66000a9ea1be7e8d925781e370f6c4`，对应 CI 记录的 `a1f75e91`；同次完整 `npm test` 为 **1142 PASS / 0 FAIL / 7 SKIP**，受控 Linux Chrome 真流程为 1/1 PASS。CI artifact `market-r3-production-native` ID `11700247503`，ZIP 摘要 `sha256:0b804fc2ec0cec3a93c2bd642d9cd98f395e362e624c0d161033e8f3a8c16eaf`。
+
+核对该 CI 源提交到 `895f19d3cf64ddbdacc55f98054e7a54ec09ab10`，期间只有 `docs/framework/workstreams/knowledge-inbox-r24-20261011.md` 和 `docs/framework/workstreams/reading-toc-r46-20261011.md` 两份文档变化，无存储/权限/构建/原生验收输入变化。该范围的源码证据可复用，但不替代 Mac 本地 Chrome、真实旧 Profile 升级、物理磁盘空间写满、独立 F3/ZIP 完整验收。下一步是使用本机 Codex + 独立 Chrome for Testing Profile 验证本次存储专项，复用同包通过记录，不重跑无关大型工作流。

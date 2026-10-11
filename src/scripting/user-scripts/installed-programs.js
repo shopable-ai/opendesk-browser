@@ -6,7 +6,7 @@ import {PAGE_WORLD_CSP,pageWantsJquery,pageSelectedPackagedLibrary} from './exec
 import {loadPackagedPageFramework} from '../../libs/page-frameworks/loader.js';
 import {PAGE_FRAMEWORK_RUNTIMES} from '../../libs/page-frameworks/contract.js';
 import {JQUERY_371,loadPackagedJquery} from './packaged-dependencies.js';
-import {loadBuiltinPageSource} from '../../libs/loader.js';
+import {loadBuiltinPageSource,loadPackagedOptionalPageLibrary} from '../../libs/loader.js';
 import {builtinIdentity,assertBuiltinIdentity} from '../../libs/identity.js';
 import {pageInstallScope,pageInstallScopeDelta,assertPageInstallAuthorization,pageInstallAffectedByRemoval} from './page-install-authorization.js';
 import {pageProgramUrlMatches} from './page-program-rules.js';
@@ -44,16 +44,18 @@ async function verifiedEnvironment(candidate,receipt){
   invariant(receipt?.builtinAbi===BUILTIN_ABI &&
     receipt.builtinCatalogSha256===await digestUtf8(JSON.stringify(BUILTIN_RUNTIME_CATALOG)) &&
     /^[a-f0-9]{64}$/.test(receipt.builtinBundleSha256),
-    'E_PAGE_ENVIRONMENT','内置库 ABI 或固定资源目录已更新；请创建新版本并重新验证');
+    'E_PAGE_ENVIRONMENT','内置库已更新，请保存新版本并重新验证');
   assertBuiltinIdentity(candidate.builtinIdentity,builtinIdentity(receipt));
   // Older versions treated this opt-in as a comment. Their immutable receipt
   // cannot approve a newly loaded library, even when user source is unchanged.
   invariant(!pageWantsJquery(candidate.sourceUtf8)||receipt.packagedJquerySha256===JQUERY_371.sha256,
-    'E_PAGE_ENVIRONMENT','内置库环境已变化；请载入并保存新版本后验证安装');
+    'E_PAGE_ENVIRONMENT','库环境已变化，请重新验证安装');
   const selected=pageSelectedPackagedLibrary(candidate.sourceUtf8);
-  if(selected&&selected!=='jquery')invariant(receipt.packagedFrameworkId===selected&&
+  if(selected==='js-cookie')invariant(receipt.packagedOptionalId==='jsCookie'&&
+    /^[a-f0-9]{64}$/.test(receipt.packagedOptionalSha256),'E_PAGE_ENVIRONMENT');
+  else if(selected&&selected!=='jquery')invariant(receipt.packagedFrameworkId===selected&&
     receipt.packagedFrameworkSha256===PAGE_FRAMEWORK_RUNTIMES[selected].sha256,
-    'E_PAGE_ENVIRONMENT','固定框架代码已经变化，旧回执不可用于新版本');
+    'E_PAGE_ENVIRONMENT','框架已更新，请重新验证');
 }
 const publicInstall=row=>row?{programId:row.programId,revision:row.revision,manifestHash:row.manifestHash,
   sourceHash:row.sourceHash,pageRules:row.pageRules,enabled:row.enabled,nativeId:row.nativeId,nativeState:row.nativeState,
@@ -117,10 +119,14 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
     const jqueryCode=pageWantsJquery(candidate.sourceUtf8)
       ? (await loadPackagedJquery({runtime:api.runtime})).code : undefined;
     const selected=pageSelectedPackagedLibrary(candidate.sourceUtf8);
-    const frameworkSource=selected&&selected!=='jquery'
+    const frameworkSource=selected&&selected!=='jquery'&&selected!=='js-cookie'
       ?await loadPackagedPageFramework(selected,{runtime:api.runtime}):undefined;
+    const optionalSource=selected==='js-cookie'
+      ?await loadPackagedOptionalPageLibrary('jsCookie',{runtime:api.runtime}):undefined;
+    // A verified native receipt must name the exact currently packaged byte hash.
+    if(optionalSource)invariant(proof.receipt.packagedOptionalSha256===optionalSource.sha256,'E_PAGE_ENVIRONMENT');
     const compiled=await preparePageProgramRegistration({candidate,sourceUtf8:candidate.sourceUtf8,
-      dependencyResolution:resolution,jqueryCode,frameworkSource,authority:{assertAvailable:async()=>({...proof,installationEnabled:true})}});
+      dependencyResolution:resolution,jqueryCode,frameworkSource,optionalSource,authority:{assertAvailable:async()=>({...proof,installationEnabled:true})}});
     invariant(compiled.allFrames===false,'E_PAGE_FRAME_SCOPE','本轮正式安装只支持顶层文档；请添加 @noframes');
     invariant(compiled.runAt==='document_idle','E_PAGE_RUN_AT','正式安装仅支持 @run-at document-idle；早期时序尚未验收');
     const nativeId=PREFIX+(await digest([namespace,row.programId])).slice(0,48);

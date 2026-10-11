@@ -11,8 +11,9 @@ import {BUILD_POLICY} from '../../scripts/build-contract.mjs';
 test('R15.5 doctor differentiates source, package and actual Chrome acceptance',async()=>{
   const report=await inspectLibraries();
   assert.equal(report.format,'opendesk.libs-doctor.v1');
-  assert.equal(report.libraries.length,4);
-  assert.deepEqual(report.libraries.map(row=>row.id).sort(),['dayjs','jquery','lodash','myUtils']);
+  assert.equal(report.libraries.length,Object.keys(BUILTIN_CATALOG.libraries).length);
+  assert.deepEqual(report.libraries.map(row=>row.id).sort(),
+    Object.keys(BUILTIN_CATALOG.libraries).sort());
   const jq=report.libraries.find(row=>row.id==='jquery');
   assert.equal(jq.loading,'opt-in');
   assert.deepEqual(jq.worlds,['USER_SCRIPT']);

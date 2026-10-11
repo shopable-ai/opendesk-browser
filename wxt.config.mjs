@@ -52,7 +52,7 @@ export default defineConfig({
           entry.outputDir = resolve(wxt.config.outDir, dirname(target));
         }
       }
-      if (names.size !== 19 || !names.has('background') || Object.keys(FIXED_OUTPUTS).some(name => !names.has(name)))
+      if (names.size !== 20 || !names.has('background') || Object.keys(FIXED_OUTPUTS).some(name => !names.has(name)))
         throw new Error('WXT must resolve exactly the 19 approved entries');
     },
     'prepare:publicPaths'(_wxt, paths) {
@@ -90,6 +90,7 @@ export default defineConfig({
       // by src/libs/core.js after every registered library is ready.
       if (target === 'libs/packages/dayjs.js') config.build.lib.name = 'OpenDeskDayjsBundle';
       if (target === 'libs/packages/lodash.js') config.build.lib.name = 'OpenDeskLodashBundle';
+      if (target === 'libs/packages/js-cookie.js') config.build.lib.name = 'OpenDeskCookiesBundle';
       config.build.lib.formats = ['iife'];
       config.build.rollupOptions.external = [];
       config.build.rollupOptions.output = {entryFileNames: target, format: 'iife', inlineDynamicImports: true};
