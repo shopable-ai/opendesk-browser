@@ -1,0 +1,7 @@
+
+> opendesk-browser@0.1.0 cloud:fault
+> node scripts/cloud-control/cli.mjs fault --path /v1/receipt --count 1
+
+{
+  "set": true
+}

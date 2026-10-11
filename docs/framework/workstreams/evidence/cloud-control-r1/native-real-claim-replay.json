@@ -1,0 +1,38 @@
+{
+  "claimId": "790bb44d-9950-4fba-9ad7-dfb5ddf76b97",
+  "same": {
+    "status": 200,
+    "body": {
+      "assignment": {
+        "assignmentId": "b53ca56b-ce35-48ba-a425-09ba109e67f9",
+        "executorId": "cae55e61-ff22-411d-8684-cfd97e3a93d3",
+        "claimId": "790bb44d-9950-4fba-9ad7-dfb5ddf76b97",
+        "leaseUntil": 1791732178819,
+        "jobId": "c26f0334-2c0b-4a7a-85bd-a6150a2fa185",
+        "task": {
+          "taskId": "sample.form-fill",
+          "version": "1.0.0",
+          "manifestHash": "57598844f11f75d7566c5adeab283a3aaed0614d151590a6f34124e7abf3632a",
+          "sourceHash": "1f72cf17aa04e8a8597ef43e554ae5507f9da58b73e46d731373cd318f6dcf63"
+        },
+        "params": {
+          "name": "Alice"
+        },
+        "target": {
+          "mode": "owned",
+          "url": "http://127.0.0.1:43111/demo-form.html"
+        }
+      }
+    }
+  },
+  "conflict": {
+    "status": 409,
+    "body": {
+      "error": {
+        "code": "E_REQUEST_CONFLICT",
+        "message": "E_REQUEST_CONFLICT"
+      }
+    }
+  },
+  "originalAssignmentId": "b53ca56b-ce35-48ba-a425-09ba109e67f9"
+}

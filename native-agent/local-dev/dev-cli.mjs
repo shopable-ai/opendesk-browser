@@ -9,6 +9,8 @@ import crypto from 'node:crypto';
 import {spawn} from 'node:child_process';
 import {pathToFileURL} from 'node:url';
 import {installationRoot} from '../installation-root.mjs';
+import {readCliIdentity,formatCliVersion} from './cli-identity.mjs';
+import {diagnoseInstallation,formatDiagnostic} from './installation-diagnostics.mjs';
 
 const APP='OpenDesk Browser 本地目录直连 R17.1';
 const MAX_WIRE=60*1024;
@@ -21,7 +23,9 @@ export const HELP=`${APP}
   opendesk-dev --read-only [目录]  明确申请只读；权限不匹配时拒绝
   opendesk-dev -- <特殊目录>   明确将 - 开头的名称当作目录
   opendesk-dev --register-go  注册已安装的 npm CLI，供 opendesk browser 使用
-  opendesk-dev --help | --version
+  opendesk-dev --version [--json]  实际包版本、内容指纹和安装路径
+  opendesk-dev --doctor [--json] [--expect-package /候选包目录]  只读安装诊断
+  opendesk-dev --help
 
 新目录默认本次 CLI 会话期间读写；已有长期只读授权保持只读。
 实际权限由 Go 返回，同目录重复启动不改变原会话权限。只有合法
@@ -39,7 +43,18 @@ export function parseArgs(argv){
   let args=[...argv];if(args[0]==='dev')args=args.slice(1);
   if(args.length===1&&['help','-h','--help'].includes(args[0]))return {action:'help'};
   if(args.length===1&&['--version','-V','version'].includes(args[0]))return {action:'version'};
+  if(args.length===2&&args[0]==='--version'&&args[1]==='--json')return {action:'version',json:true};
   if(args.length===1&&args[0]==='--register-go')return {action:'register'};
+  if(['--doctor','doctor'].includes(args[0])){
+    const parsed={action:'doctor'};
+    for(let index=1;index<args.length;index++){
+      if(args[index]==='--json'&&!parsed.json)parsed.json=true;
+      else if(args[index]==='--expect-package'&&!parsed.expectedRoot&&args[index+1]&&!args[index+1].startsWith('-')&&!args[index+1].includes('\u0000'))
+        parsed.expectedRoot=path.resolve(args[++index]);
+      else throw problem('E_SCHEMA','诊断只接受 --json 和 --expect-package 候选包目录');
+    }
+    return parsed;
+  }
   let access='read-write';
   if(args[0]==='--read-only'){access='read-only';args=args.slice(1);}
   if(args[0]==='--'){
@@ -201,6 +216,8 @@ function safeRegister(bin=process.argv[1]){
     throw problem('E_DEV_INSTALL','Go 入口只接受 npm 全局安装的 @shopable/opendesk-dev；请使用 npm install -g 后重新登记');
   const home=path.join(os.homedir(),'.opendesk-browser'),dir=path.join(home,'dev-tool-r17');
   const hash=crypto.createHash('sha256').update(fs.readFileSync(absolute)).digest('hex');
+  const identity=readCliIdentity(path.dirname(path.dirname(absolute)));
+  if(identity.status!=='verified')throw problem('E_DEV_PACKAGE_CHANGED','安装包缺少构建身份或内容不一致；请重新打包并安装后登记');
   fs.mkdirSync(home,{recursive:true,mode:0o700});fs.mkdirSync(dir,{recursive:true,mode:0o700});
   for(const d of [home,dir]){
     const info=fs.lstatSync(d);
@@ -208,7 +225,8 @@ function safeRegister(bin=process.argv[1]){
       process.getuid&&info.uid!==process.getuid())throw problem('E_INSTALL_PERMISSIONS','拒绝在不安全的目录注册');
   }
   const location=path.join(dir,'entry.json'),temporary=path.join(dir,'.entry-'+process.pid+'.new');
-  fs.writeFileSync(temporary,JSON.stringify({format:'opendesk.dev-cli.r17',localDevAccessVersion:1,entry:absolute,sha256:hash})+'\n',{flag:'wx',mode:0o600});
+  fs.writeFileSync(temporary,JSON.stringify({format:'opendesk.dev-cli.r17',localDevAccessVersion:1,entry:absolute,sha256:hash,
+    packageVersion:identity.version,contentFingerprint:identity.contentFingerprint})+'\n',{flag:'wx',mode:0o600});
   try{fs.renameSync(temporary,location);}catch(e){try{fs.unlinkSync(temporary);}catch{}throw e;}
 }
 const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));
@@ -239,11 +257,19 @@ export function createOwnerLifecycle(socket,{signals=process,onClose=()=>{}}={})
       finish('cleanup');
     }};
 }
-export async function runDevCli(argv=process.argv.slice(2),{stdout=process.stdout,stderr=process.stderr}={}){
+export async function runDevCli(argv=process.argv.slice(2),{stdout=process.stdout,stderr=process.stderr,identityRoot,diagnosticOptions={}}={}){
   try{
     const parsed=parseArgs(argv);
     if(parsed.action==='help'){stdout.write(HELP);return 0;}
-    if(parsed.action==='version'){stdout.write(APP+'\n');return 0;}
+    if(parsed.action==='version'){
+      const identity=readCliIdentity(identityRoot);
+      stdout.write(parsed.json?JSON.stringify(identity,null,2)+'\n':formatCliVersion(identity));return 0;
+    }
+    if(parsed.action==='doctor'){
+      const report=await diagnoseInstallation({...diagnosticOptions,loadInstall:loadGoInstall,
+        assertNode:assertSupportedNodeVersion,cliRoot:identityRoot,expectedRoot:parsed.expectedRoot});
+      stdout.write(parsed.json?JSON.stringify(report,null,2)+'\n':formatDiagnostic(report));return report.ok?0:1;
+    }
     assertSupportedNodeVersion();
     if(parsed.action==='register'){safeRegister();stdout.write('已登记受信 npm CLI 入口。可使用 opendesk browser。\n');return 0;}
     const cfg=loadGoInstall(),{absolute,stat}=canonicalDirectory(parsed.dir);
