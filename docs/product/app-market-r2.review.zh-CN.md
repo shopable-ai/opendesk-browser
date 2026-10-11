@@ -1,5 +1,8 @@
 # OpenDesk 应用市场 R2：设计评分、原型覆盖与验收边界
 
+> R4.5 现行实现见 [官方 Catalog](../api/official-tools-catalog.zh-CN.md) 与 [市场 R3 API](../api/app-market-r3.zh-CN.md)。本文原型数据和验收记录按当时候选保留，不是生产发行目录；旧候选结果不代表当前提交或扩展包已通过。
+
+
 日期：2026-10-11（Asia/Shanghai）。范围：[R2 方案](app-market-r2.zh-CN.md)、[数据合同示例](app-market-r2.contracts-example.json)、[交互原型](../../prototypes/marketplace/app-market-r2.html)。
 
 ## 评分方法

@@ -16,9 +16,11 @@ async function stop() {
   stopping=(async()=>{
     try {
       await Promise.allSettled([bootstrapping,restarts?.drain()]);
-      if(server){await drainDevelopment(server);await server.stop();}
-      if(release)await rm(resolve('dist/development/development-update.json'),{force:true});
-    }finally{await release?.();}
+      if(server){try{await drainDevelopment(server);}finally{await server.stop();}}
+    }finally{
+      try{if(release)await rm(resolve('dist/development/development-update.json'),{force:true});}
+      finally{await release?.();}
+    }
   })();
   await stopping;
   console.log('[OpenDesk dev] Stopped; output kept at '+resolve('dist/development'));

@@ -10,16 +10,15 @@ examples/sidebar-tools/knowledge-inbox/
   src/index.html                  收件箱 HTML
   src/style.css                   收件箱 CSS
   src/main.js                     隔离 iframe 中的经典 JavaScript
-  knowledge-inbox.opendesk-tool.json  生成的可导入工具包
   README.zh-CN.md                 用户指南
   DEVELOPMENT.zh-CN.md            本文：开发者指南
   AGENTS.md                       AI 在本目录的约束
 
-src/sidebar-tools/knowledge-inbox.opendesk-tool.json
-                                   随扩展构建发布的正式内置包
-dist/production/sidebar-tools/knowledge-inbox.opendesk-tool.json
+official-tools/catalog.json         官方可信源码项目登记
+.wxt/public/official-tools/          构建暂存目录，自动生成
+dist/production/official-tools/knowledge-inbox/knowledge-inbox.opendesk-tool.json
                                    npm run build 后产生的扩展资源
-artifacts/sidebar-tools/knowledge-inbox/1.1.0/
+artifacts/sidebar-tools/knowledge-inbox/1.1.1/
                                    默认打包命令的本地产物目录
 ```
 
@@ -37,7 +36,7 @@ artifacts/sidebar-tools/knowledge-inbox/1.1.0/
 | 操作分派、下载、存储、写入并发锁 | `src/knowledge/service.js` | 可信扩展服务 |
 | Native 工作区草稿交接 | `src/knowledge/workspace-handoff.js`、`src/native-agent/workspace*` | 只复用既有已授权目录流程 |
 | 固定宿主构建入口 | `src/entrypoints/knowledge-host.js`、`scripts/build-contract.mjs` | WXT 生成资源 |
-| 官方内置工具内容 | `src/sidebar-tools/knowledge-inbox.opendesk-tool.json` | 跟踪的发行输入；须重新构建 |
+| 官方可选发行 | `official-tools/catalog.json`、`scripts/build-official-tools.mjs` | 从本项目源码生成固定资源和 SHA-256；默认未安装 |
 
 沙箱入口 `globalThis.OpenDeskTool` 提供 `root` 和 `request(operation,payload)`；不能直接访问 Chrome API、任意网页 DOM、Node 或 Native Host。`page.capture`、`knowledge.store` 和 `knowledge.*` 是**知识收件箱官方内置可信服务的能力/操作**，不是给第三方工具开放的通用页面读取 API。普通小工具只能使用公共文档列出的已授权操作。
 
@@ -46,7 +45,7 @@ artifacts/sidebar-tools/knowledge-inbox/1.1.0/
 ```json
 {
   "id": "knowledge-inbox",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "title": "知识收件箱",
   "description": "保存 ChatGPT 回答和灵感，整理草稿、标签与备注，导出自己的 Markdown。",
   "capabilities": ["page.capture", "knowledge.store", "user.export"],
@@ -67,20 +66,14 @@ artifacts/sidebar-tools/knowledge-inbox/1.1.0/
 ```sh
 npm ci --ignore-scripts --no-audit --no-fund
 
-# 修改 src/*.html/css/js 后生成示例包
-node scripts/build-sidebar-tool.mjs \
-  examples/sidebar-tools/knowledge-inbox \
-  --out examples/sidebar-tools/knowledge-inbox/knowledge-inbox.opendesk-tool.json
+# 修改工具源码后，按需生成本地导入包
+npm run build:sidebar-tool -- examples/sidebar-tools/knowledge-inbox
 
-# 审核实际打包差异，随后同步发行输入
-git diff -- examples/sidebar-tools/knowledge-inbox/
-cp examples/sidebar-tools/knowledge-inbox/knowledge-inbox.opendesk-tool.json \
-   src/sidebar-tools/knowledge-inbox.opendesk-tool.json
-cmp examples/sidebar-tools/knowledge-inbox/knowledge-inbox.opendesk-tool.json \
-    src/sidebar-tools/knowledge-inbox.opendesk-tool.json
+# 可选：校验整套官方资源，输出为生成目录
+node scripts/build-official-tools.mjs --out artifacts/official-tools-release
 ```
 
-也可直接 `npm run build:sidebar-tool -- examples/sidebar-tools/knowledge-inbox`；此命令的**默认输出**是 `artifacts/sidebar-tools/knowledge-inbox/1.1.0/knowledge-inbox.opendesk-tool.json`，不会自动同步两个被 Git 跟踪的工具包。打包通过 ≠ 已安装工具。
+单工具默认输出为 `artifacts/sidebar-tools/knowledge-inbox/<version>/knowledge-inbox.opendesk-tool.json`。正式扩展构建直接使用项目配置和源码，生成固定资源与清单，源码目录不保留需要同步的 JSON 副本。打包通过不等于安装；必须通过工具列表或离线市场审阅并确认，再单独批准网站。
 
 修改 `src/knowledge/` 可信实现后，同样必须重新构建扩展；仅重新打包界面 JSON 不会更新 ChatGPT 网页捕获代码。
 

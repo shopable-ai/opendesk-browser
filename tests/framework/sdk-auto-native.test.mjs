@@ -59,13 +59,22 @@ test('actual Chrome auto-installs page SDK without approval and sends HTTP throu
     '--remote-allow-origins=*','--remote-debugging-address=127.0.0.1','--remote-debugging-port=0',
     '--user-data-dir='+profile,'--disable-extensions-except='+dist,'--load-extension='+dist,'about:blank'];
   const chrome=spawn(binary,args,{stdio:['ignore','ignore','pipe']});let chromeErrors='';
+  let chromeClosed=false;
+  const chromeExit=new Promise(resolve=>chrome.once('close',()=>{chromeClosed=true;resolve();}));
   chrome.stderr.on('data',chunk=>{chromeErrors=(chromeErrors+chunk).slice(-5000);});
   let browser,page;
   t.after(async()=>{
-    page?.close();browser?.close();
-    chrome.kill('SIGTERM');
-    server.close();
-    await rm(profile,{recursive:true,force:true});
+    page?.close();
+    if(!chromeClosed&&browser)await browser.send('Browser.close',{},2000).catch(()=>{});
+    browser?.close();
+    if(!chromeClosed){
+      chrome.kill('SIGTERM');
+      const force=setTimeout(()=>chrome.kill('SIGKILL'),3000);let timeout;
+      try{await Promise.race([chromeExit,new Promise((_,reject)=>{timeout=setTimeout(()=>reject(Error('Owned Chrome did not exit; profile retained')),8000);})]);}
+      finally{clearTimeout(force);clearTimeout(timeout);}
+    }
+    server.closeAllConnections();await new Promise(resolve=>server.close(resolve));
+    await rm(profile,{recursive:true,force:true,maxRetries:8,retryDelay:150});
   });
   let port;
   for(let i=0;i<100;i++){

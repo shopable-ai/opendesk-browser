@@ -1,4 +1,5 @@
 import {preparePageUIMount,activatePageUIMount} from './page-ui-mount.js';
+import {createPageProgramURLMatcher} from './page-program-rules.js';
 // Opt-in USER_SCRIPT helper, bundled only for projects importing @opendesk/ui.
 // Not a privileged extension API, DOM security sandbox or Task stop mechanism.
 export const PAGE_UI_VERSION='1';
@@ -26,12 +27,15 @@ const BASE=[
 ].join('');
 const err=(code,message)=>Object.assign(new Error(message),{code});
 function check(ok,code,message){if(!ok)throw err(code,message);}
-export function createPageUI({id,baseStyles=true,css='',assets={},mount}={}){
+export function createPageUI({id,baseStyles=true,css='',assets={},mount,pageRules}={}){
   check(typeof id==='string'&&/^[A-Za-z0-9][\w.-]{0,79}$/.test(id),'E_UI_ID','Invalid UI id');
   check(typeof baseStyles==='boolean'&&typeof css==='string'&&css.length<=49152,'E_UI_STYLE','Invalid CSS');
   check(assets&&typeof assets==='object'&&!Array.isArray(assets),'E_UI_RESOURCE','Invalid assets');
   const doc=globalThis.document,win=doc?.defaultView;
   check(doc?.createElement&&doc.documentElement?.isConnected&&win,'E_UI_DOCUMENT','Live Page document required');
+  // UI-local SPA fence only: Chrome site permission and Host approval remain separate.
+  const siteMatches=pageRules===undefined?null:createPageProgramURLMatcher(pageRules);
+  check(!siteMatches||siteMatches(win.location?.href),'E_UI_SITE_SCOPE','UI URL is outside the declared website range');
   const lifecycle=typeof __opendeskManagedUIRegistryV1==='undefined'?null:__opendeskManagedUIRegistryV1;
   const managed=lifecycle?.format==='opendesk.managed-ui.v1';
   if(managed)lifecycle.assertMount(id);
@@ -53,7 +57,8 @@ export function createPageUI({id,baseStyles=true,css='',assets={},mount}={}){
   const content=doc.createElement('div'),overlay=doc.createElement('div');
   overlay.className='od-overlay';const cleanups=new Set();let alive=true;
   const pending=new Set(),cleanupErrors=[];
-  const active=()=>alive&&(!managed||!lifecycle.isRetiring())&&host.isConnected&&doc.documentElement.isConnected&&doc.defaultView===win;
+  const active=()=>alive&&(!managed||!lifecycle.isRetiring())&&host.isConnected&&doc.documentElement.isConnected&&doc.defaultView===win&&
+    (!siteMatches||siteMatches(win.location?.href));
   function track(value,cleanup=false){
     if(managed)lifecycle.assertRuntime();
     if(!managed||!value||typeof value.then!=='function')return;
@@ -129,6 +134,20 @@ export function createPageUI({id,baseStyles=true,css='',assets={},mount}={}){
   shadowRoot.append(content,overlay);
   host.addEventListener(CLOSE,destroy);onDispose(()=>host.removeEventListener(CLOSE,destroy));
   win.addEventListener('pagehide',destroy);onDispose(()=>win.removeEventListener('pagehide',destroy));
+  if(siteMatches){
+    const checkRoute=()=>{if(alive&&!siteMatches(win.location?.href))destroy();};
+    for(const [source,type] of [[win.navigation,'currententrychange'],[win,'popstate'],
+      [win,'hashchange'],[win,'pageshow']]){
+      if(typeof source?.addEventListener!=='function')continue;
+      source.addEventListener(type,checkRoute);
+      onDispose(()=>source.removeEventListener(type,checkRoute));
+    }
+    // Navigation API unavailable: bounded URL polling covers pushState/replaceState.
+    if(typeof win.navigation?.addEventListener!=='function'&&typeof win.setInterval==='function'){
+      const timer=win.setInterval(checkRoute,1000);
+      onDispose(()=>win.clearInterval(timer));
+    }
+  }
   if(baseStyles)addStyle(BASE);if(css)addStyle(css);
   let placement;
   try{

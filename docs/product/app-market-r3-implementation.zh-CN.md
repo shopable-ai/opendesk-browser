@@ -4,9 +4,9 @@
 
 扩展内入口：Side Panel「工具」→「应用市场」，独立页面 ui/marketplace.html。详情支持固定版本、发布者、主要功能、权限、适用网站与运行位置。媒体现为明确标注的界面结构示意，不是正式截图或视频。
 
-官方发行数据为 src/marketplace/catalog.js。真实包位于 src/sidebar-tools，版本分别为 reading-toc 1.0.2、web-markdown-clipper 1.0.0、quick-notes 1.1.1、markdown-workbench 1.0.0、knowledge-inbox 1.0.0。网页笔记和 Markdown 工作台包从已经存在的 examples/sidebar-tools 的同版本编译产物纳入发布；它们的真实 Chrome 验收必须另做。
+R4.5 的官方源码登记位于 `official-tools/catalog.json`，包含 reading-toc、web-markdown-clipper、quick-notes、markdown-workbench、knowledge-inbox 五个可选候选。版本、能力与代码来自 `examples/sidebar-tools/<id>/` 的经过校验配置及源码；`src/marketplace/catalog.js` 仅保留展示文案与不可变套装定义，不再重复维护发行版本或包路径。
 
-scripts/prepare-public.mjs 计算所有官方 JSON 的 SHA-256，输出 market/catalog.json；构建验证器再校验包身份、标题、版本、能力和 SHA-256。页面安装前也检查固定哈希及 validateSidebarToolPackage。绝不从公网目录下载和执行脚本。
+`scripts/prepare-public.mjs` 调用统一官方构建器，复用现有打包器确定性生成 `dist/{production,development}/official-tools/catalog.json` 和 `official-tools/<id>/<id>.opendesk-tool.json`。构建验证器重新生成并逐字节核对；运行时使用同一可信 Catalog 校验包身份、标题、版本、能力、字节数和 SHA-256，提交审核时再次验证固定资源。详细合同见 [官方 Catalog 与发行资源](../api/official-tools-catalog.zh-CN.md)。不从公网目录下载或执行脚本。
 
 Side Panel 既有导入和市场使用同一个 src/ui/sidebar-tools/installation.js 安装路径：原来的工具存储、同一 Web Lock、原能力与网站授权隔离、已有工具运行宿主。必须显式安装审阅，安装后不自动运行、无自动网页授权。市场额外存储最小来源记录和事务结果以核对来源冲突与断线未知，不能充当新的安装数据库或权限授予。
 

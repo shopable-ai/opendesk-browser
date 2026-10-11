@@ -1,0 +1,232 @@
+{
+  "status": "LOCAL_PARTIAL_PASS_CI_REQUIRED",
+  "baseGitSha": "3ad42a5559189d2749bd4546e7ddc2c509c675b1",
+  "node": "24.19.0",
+  "npm": "11.9.0",
+  "targeted": {
+    "tests": 98,
+    "pass": 98,
+    "fail": 0,
+    "skipped": 0
+  },
+  "finalCatalogUi": {
+    "tests": 26,
+    "pass": 26,
+    "fail": 0,
+    "skipped": 0
+  },
+  "environment": {
+    "tests": 1082,
+    "pass": 1067,
+    "fail": 8,
+    "skipped": 7,
+    "cancelled": 0,
+    "failureCause": "Unix domain socket listen denied (EPERM) by local executor",
+    "passed": false
+  },
+  "sourceCheck": {
+    "status": "passed",
+    "files": 371
+  },
+  "verify": {
+    "production": "passed",
+    "development": "passed"
+  },
+  "marketSite": {
+    "status": "passed",
+    "apps": 5,
+    "publicOrigin": null
+  },
+  "production": {
+    "packageHash": "efea0db9f0b44c1245b7d62a0e4f35142fc8d9fecc16c28dcf7352be2ff5fd20",
+    "files": 50,
+    "swBytes": 320970,
+    "serviceWorkerBudget": 327680
+  },
+  "development": {
+    "packageHash": "8db846ff3c6185badb3947108267527b90eda8c3d003cdab3b17a50b1312ceda",
+    "files": 69
+  },
+  "officialCatalog": {
+    "schema": "opendesk.official-tools.releases.v1",
+    "sourceRepository": "https://github.com/shopable-ai/opendesk-browser",
+    "apps": [
+      {
+        "id": "opendesk/reading-toc",
+        "toolId": "reading-toc",
+        "kind": "sidebar-tool",
+        "installationPolicy": "optional",
+        "version": "1.0.2",
+        "packageTitle": "阅读目录",
+        "description": "在侧边栏或授权网页中查看章节并精准跳转。",
+        "capabilities": [
+          "page.toc"
+        ],
+        "packagePath": "official-tools/reading-toc/reading-toc.opendesk-tool.json",
+        "bytes": 9374,
+        "sha256": "ba7329fb33ea8da2d125e9152998730eaab6f8e9261b2597fa5191e9c2996dd9"
+      },
+      {
+        "id": "opendesk/web-markdown-clipper",
+        "toolId": "web-markdown-clipper",
+        "kind": "sidebar-tool",
+        "installationPolicy": "optional",
+        "version": "1.0.0",
+        "packageTitle": "网页剪藏",
+        "description": "在授权的网站上主动剪藏文章、选区、引用和链接为 Markdown。",
+        "capabilities": [
+          "page.clip",
+          "user.export"
+        ],
+        "packagePath": "official-tools/web-markdown-clipper/web-markdown-clipper.opendesk-tool.json",
+        "bytes": 10209,
+        "sha256": "c4d1dc7b605e1d981840f3064a116a157d2ed6a01f720ec585278129d4c111a8"
+      },
+      {
+        "id": "opendesk/quick-notes",
+        "toolId": "quick-notes",
+        "kind": "sidebar-tool",
+        "installationPolicy": "optional",
+        "version": "1.1.5",
+        "packageTitle": "网页笔记",
+        "description": "在侧栏离线管理多条本地笔记，可选择关联当前网页，不自动操作网站。",
+        "capabilities": [
+          "storage.local",
+          "currentPage.read",
+          "tasks.open"
+        ],
+        "packagePath": "official-tools/quick-notes/quick-notes.opendesk-tool.json",
+        "bytes": 21798,
+        "sha256": "1de25dfcf8f129f7a9fe97bf2d7b3a499240248d134bbfd01961515886bf40de"
+      },
+      {
+        "id": "opendesk/markdown-workbench",
+        "toolId": "markdown-workbench",
+        "kind": "sidebar-tool",
+        "installationPolicy": "optional",
+        "version": "1.0.0",
+        "packageTitle": "Markdown 工作台",
+        "description": "离线编辑、预览、导入和导出 Markdown；无需网页权限。",
+        "capabilities": [
+          "user.export"
+        ],
+        "packagePath": "official-tools/markdown-workbench/markdown-workbench.opendesk-tool.json",
+        "bytes": 13016,
+        "sha256": "6479beaf3d38ad6ef14d9d0b8bd6164cc52876c0d8f15d0330a1dc07dac64606"
+      },
+      {
+        "id": "opendesk/knowledge-inbox",
+        "toolId": "knowledge-inbox",
+        "kind": "sidebar-tool",
+        "installationPolicy": "optional",
+        "version": "1.1.0",
+        "packageTitle": "知识收件箱",
+        "description": "保存 ChatGPT 回答和灵感，整理草稿、标签与备注，导出自己的 Markdown。",
+        "capabilities": [
+          "page.capture",
+          "knowledge.store",
+          "user.export"
+        ],
+        "packagePath": "official-tools/knowledge-inbox/knowledge-inbox.opendesk-tool.json",
+        "bytes": 42219,
+        "sha256": "3d3ff1e913e884e31ef6fbec37dde3185cc788ee352808a747b7fd58a87f965e"
+      }
+    ]
+  },
+  "logs": [
+    {
+      "path": "artifacts/official-tools-r45/components-e837.tap",
+      "bytes": 10134,
+      "sha256": "eb5ad8767a9d873837358ad0fd107b04705e54c297916a034f34c96c8f153ac6"
+    },
+    {
+      "path": "artifacts/official-tools-r45/final-catalog-and-ui-2.tap",
+      "bytes": 2865,
+      "sha256": "004657773f30215f45d373d0eb054f8e51436cba834c69bfb6d2c1054f36e966"
+    },
+    {
+      "path": "artifacts/official-tools-r45/environment-e837.tap",
+      "bytes": 121508,
+      "sha256": "087d3cb50b68cbcb3dcdb73c2759f107d537430f55773fa3b57dc4cea9e3165d"
+    },
+    {
+      "path": "artifacts/official-tools-r45/check-e837.log",
+      "bytes": 307,
+      "sha256": "114f34c2158bed6ec6e9050858bcecbc0b6acb510eed0368078532b8c9592be3"
+    },
+    {
+      "path": "artifacts/official-tools-r45/verify-e837.log",
+      "bytes": 23141,
+      "sha256": "1d59834dd704f2f3a67fc36faa34a7b04c0a7db5c65936070e83b6c20eec5518"
+    },
+    {
+      "path": "artifacts/official-tools-r45/market-site-e837.log",
+      "bytes": 324,
+      "sha256": "18d59555a3d9f4d4982ad2224c5e2e5775bce763ab87d895f84e856f41db7b9f"
+    },
+    {
+      "path": "artifacts/official-tools-r45/build-production-e837.log",
+      "bytes": 11135,
+      "sha256": "449d1237438970084ac82bbe55913494e9b861e7d0c1cb1c0cc8ea6114f3a5c2"
+    },
+    {
+      "path": "artifacts/official-tools-r45/build-development-e837.log",
+      "bytes": 13909,
+      "sha256": "db4c736d9a25f915cd97c1d0007ae5a8a81dc61b4ffadb236d352b6962eebc56"
+    }
+  ],
+  "browser": "NOT_TESTED",
+  "actualMac": "NOT_TESTED",
+  "liveWebsites": "NOT_TESTED",
+  "fullFrameworkF3": "NOT_TESTED",
+  "zipInstall": "NOT_TESTED",
+  "preCommitIntegration": {
+    "sourceCommit": "a033d3b740ed39c27f1fb4fed9910d4968418d04",
+    "checkpoint": "8eb38f088e07a6c877c839edd2b92c060844fbba",
+    "release": {
+      "id": "opendesk/knowledge-inbox",
+      "toolId": "knowledge-inbox",
+      "kind": "sidebar-tool",
+      "installationPolicy": "optional",
+      "version": "1.1.0",
+      "packageTitle": "知识收件箱",
+      "description": "保存 ChatGPT 回答和灵感，整理草稿、标签与备注，导出自己的 Markdown。",
+      "capabilities": [
+        "page.capture",
+        "knowledge.store",
+        "user.export"
+      ],
+      "packagePath": "official-tools/knowledge-inbox/knowledge-inbox.opendesk-tool.json",
+      "bytes": 42521,
+      "sha256": "a3a791304203c3b3c0bf0ca3596e50353b0e779fea05243e0fa98712f97a3250"
+    },
+    "comparison": [
+      {
+        "path": "src/sidebar-tools/knowledge-inbox.opendesk-tool.json",
+        "equal": true
+      },
+      {
+        "path": "examples/sidebar-tools/knowledge-inbox/knowledge-inbox.opendesk-tool.json",
+        "equal": true
+      }
+    ],
+    "targetedTests": {
+      "tests": 24,
+      "pass": 24,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "log": "artifacts/official-tools-r45/final-catalog-and-ui-a033.tap"
+    },
+    "localDevPreparationGate": {
+      "tests": 10,
+      "pass": 10,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "node": "24.19.0",
+      "node22CI": "PENDING",
+      "log": "artifacts/official-tools-r45/local-dev-preparation-gate.tap"
+    }
+  }
+}

@@ -171,6 +171,8 @@ test('entry modes remain explicit and native match/frame/timing mappings are ins
   assert.equal(defaults.nativeOptions.runAt,'document_idle');
   assert.ok(hasCode(defaults.warnings,'W_RUN_AT_DEFAULT'));
   assert.ok(hasCode(defaults.warnings,'W_PREVIEW_TIMING'));
+  // Chrome URLPattern accepts exact/wildcard ports for scheduling. The
+  // extension must still separately obtain site and installation grants.
   for (const pattern of ['https://example.com:8080/*','http://localhost:*/*','http://[::1]:43111/*'])
     assert.equal(assess(parse(userscript(['@match ' + pattern]))).status,'executable');
   rejected(source,'E_ENTRY_FORMAT',{entryFormat:'esm'});

@@ -245,6 +245,7 @@ test('connected inline ancestor migration refreshes the watched placement chain'
 test('standard demo releases earlier UI when its inline mount fails',async t=>{
   const {doc,anchor}=fixture(t);
   doc.querySelector=selector=>doc.querySelectorAll(selector)[0]||null;
+  doc.defaultView.location={href:'http://127.0.0.1:43111/demo-form.html'};
   anchor.setAttribute('id','page-ui-demo-target');
   const duplicate=doc.createElement('span');duplicate.setAttribute('id','page-ui-demo-target');doc.body.append(duplicate);
   const {readFile}=await import('node:fs/promises');
@@ -252,7 +253,8 @@ test('standard demo releases earlier UI when its inline mount fails',async t=>{
   const source=(await readFile(new URL('main.js',demoRoot),'utf8'))
     .replace("'@opendesk/ui'",JSON.stringify(new URL('../../src/scripting/user-scripts/page-ui.js',import.meta.url).href))
     .replace("'./title.js'",JSON.stringify(new URL('title.js',demoRoot).href))
-    .replace("'./view.js'",JSON.stringify(new URL('view.js',demoRoot).href));
+    .replace("'./view.js'",JSON.stringify(new URL('view.js',demoRoot).href))
+    .replace("'./enhancement.js'",JSON.stringify(new URL('enhancement.js',demoRoot).href));
   const {default:main}=await import('data:text/javascript,'+encodeURIComponent(source));
   await assert.rejects(main({assets:{'assets/config.json':{kind:'json',text:'{}'}}}),{code:'E_UI_TARGET_AMBIGUOUS'});
   assert.equal(doc.querySelectorAll('[data-opendesk-ui-owner]').length,0);

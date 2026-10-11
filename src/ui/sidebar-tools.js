@@ -1,10 +1,10 @@
 import {SIDEBAR_TOOL_PROTOCOL,SIDEBAR_TOOL_STORE,MAX_INSTALLED_TOOLS,
   sidebarToolStorageKey,validateSidebarToolPackage} from './sidebar-tools/package.js';
 import {toolPageHref} from './sidebar-tools/navigation.js';
+import {loadOfficialCatalog,loadOfficialTool,verifyReviewedOfficialTool,officialToolStatus,matchesOfficialRelease} from '../sidebar-tools/official-catalog.js';
 import {installReviewedSidebarTool,admittedSidebarToolPackages,sameSidebarToolPackage,compareToolVersions,MARKET_PROVENANCE_STORE} from './sidebar-tools/installation.js';
 import {READING_TOC_SITE_STORE,READING_TOC_TOOL_ID,READING_TOC_PROTOCOL,TOC_CAPABILITY,
-  websiteOrigin,grantedOrigins,changeTocGrant,READING_TOC_PLACEMENT_PREFIX,
-  READING_TOC_OFFICIAL_VERSION} from '../reading-toc/policy.js';
+  websiteOrigin,grantedOrigins,changeTocGrant,READING_TOC_PLACEMENT_PREFIX} from '../reading-toc/policy.js';
 import {CLIP_SITE_STORE,CLIP_CAPABILITY,CLIP_PROTOCOL,CLIP_OPERATIONS,changeClipGrant} from '../page-clip/policy.js';
 import {CAPTURE_SITE_STORE,CAPTURE_CAPABILITY,KNOWLEDGE_TOOL_ID,KNOWLEDGE_CAPABILITY,KNOWLEDGE_PROTOCOL,
   KNOWLEDGE_OPERATIONS,KNOWLEDGE_WORKSPACE_PREFIX,changeCaptureGrant,chatCaptureOrigin,knowledgePackageHash} from '../knowledge/policy.js';
@@ -12,7 +12,7 @@ import {CAPTURE_SITE_STORE,CAPTURE_CAPABILITY,KNOWLEDGE_TOOL_ID,KNOWLEDGE_CAPABI
 // Trusted Side Panel shell for untrusted, opaque-origin UI documents.
 // No user code, markup, or CSS is ever inserted into this extension document.
 export function createSidebarTools({api=globalThis.chrome,doc=globalThis.document,
-  currentPageTarget,taskWorkbench,lockManager=globalThis.navigator?.locks}) {
+  currentPageTarget,taskWorkbench,lockManager=globalThis.navigator?.locks,fetcher=globalThis.fetch}) {
   const get=id=>doc.getElementById(id);
   const list=get('sidebar-tool-list'), listView=get('sidebar-tool-list-view');
   const empty=get('sidebar-tool-empty'), backButton=get('sidebar-tool-back');
@@ -30,16 +30,16 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   const updateWarning=get('sidebar-tool-update-warning');
   const title=get('sidebar-tool-title'),openTabButton=get('sidebar-tool-open-tab');
   const readOnlyBanner=get('sidebar-tool-readonly-banner');
-  const officialRow=get('sidebar-tool-official'),officialButton=get('sidebar-tool-official-install');
-  const officialClipRow=get('sidebar-tool-official-clip'),officialClipButton=get('sidebar-tool-official-clip-install');
+  const officialRoot=get('sidebar-tool-official-catalog');
+  let officialReleases=[],officialError='',officialLoaded=false;
+  let officialMatches=new Set(),checkedInstalled=null,checkedReleases=null,matchEpoch=0,lastOfficialView='';
   let siteGrants={},siteEpoch=0,lastTocRead=0,expandedSiteTool='';
-  const officialKnowledgeRow=get('sidebar-tool-official-knowledge'),officialKnowledgeButton=get('sidebar-tool-official-knowledge-install');
   let captureGrants={};
   let knowledgeWindowStart=0,knowledgeRequestCount=0;
   let knowledgeDirty=false;
   const knowledgeOperation=operation=>KNOWLEDGE_OPERATIONS.includes(operation)||operation==='knowledge.editorState';
   let clipGrants={},clipSiteEpoch=0;
-  let installed=[], pending=null, pendingBaseline=null, active=null, frame=null, instance=null, disposed=false, readOnlyPreview=false, previewDirty=false;
+  let installed=[], pending=null, pendingBaseline=null, pendingRelease=null,pendingOperationId=null, active=null, frame=null, instance=null, disposed=false, readOnlyPreview=false, previewDirty=false;
   let requestCount=0,requestWindow=Date.now(), busy=false, fileSelection=0, catalogEpoch=0;
   let visible=false,toolDirty=false,toolSaving=false;
   const listeners=[];
@@ -66,7 +66,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   const readableCapability=id=>capabilities[id]||id;
   const addedCapabilities=(next,prior)=>next.capabilities.filter(id=>!prior.capabilities.includes(id));
   function resetReview() {
-    pending=null;pendingBaseline=null;
+    pending=null;pendingBaseline=null;pendingRelease=null;pendingOperationId=null;
     preview.hidden=true;updatePanel.hidden=true;installButton.disabled=true;
   }
   function setFileError(message='') {
@@ -86,6 +86,14 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   const toolById=id=>installed.find(row=>row.id===id);
   // chrome.storage may reorder object properties; compare the validated schema values.
   const samePackage=sameSidebarToolPackage;
+  function canCommitReview(){
+    if(!pending||busy||disposed)return false;
+    const previous=toolById(pending.id);
+    if(Boolean(previous)!==Boolean(pendingBaseline)||
+      (previous&&!samePackage(previous,pendingBaseline)))return false;
+    if(previous&&samePackage(previous,pending))return false;
+    return !pendingRelease||!previous||versionOrder(pending.version,previous.version)>0;
+  }
   const locked=(name,work)=>{
     if(!lockManager?.request)throw new Error('当前浏览器无法安全协调工具存储');
     return lockManager.request('opendesk.sidebar-tools:'+name,work);
@@ -98,6 +106,78 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     if(frame){frame.onload=null;frame.remove();frame=null;}
     instance=null;requestCount=0;requestWindow=Date.now();lastTocRead=0;
     frameRoot.replaceChildren();
+  }
+  function renderOfficialTools(){
+    if(!officialRoot)return;
+    if(checkedInstalled!==installed||checkedReleases!==officialReleases){
+      checkedInstalled=installed;checkedReleases=officialReleases;officialMatches=new Set();
+      const epoch=++matchEpoch;
+      Promise.all(officialReleases.map(async release=>[
+        release.id,await matchesOfficialRelease(release,toolById(release.toolId))
+      ])).then(rows=>{
+        if(disposed||epoch!==matchEpoch)return;
+        officialMatches=new Set(rows.filter(([,matches])=>matches).map(([id])=>id));render();
+      }).catch(()=>{/* A failed digest never grants official attribution. */});
+    }
+    // Page-target observations also render the host. Keep unchanged controls
+    // mounted so an observation between native pointer down/up cannot eat a click.
+    const view=JSON.stringify([officialLoaded,officialError,busy,officialReleases,
+      officialReleases.map(release=>[officialToolStatus(release,installed),officialMatches.has(release.id)])]);
+    if(view===lastOfficialView)return;
+    lastOfficialView=view;
+    const focusId=doc.activeElement?.dataset?.officialInstall;
+    officialRoot.replaceChildren();
+    if(!officialLoaded){
+      const message=doc.createElement('p');message.className='sidebar-tool-official';
+      message.textContent=officialError||'正在读取官方可选工具…';officialRoot.append(message);
+      if(officialError){
+        const retry=doc.createElement('button');retry.type='button';retry.className='od-button';retry.textContent='重试读取';
+        retry.addEventListener('click',action(loadOfficial));officialRoot.append(retry);
+      }
+      return;
+    }
+    for(const release of officialReleases){
+      const state=officialToolStatus(release,installed),row=doc.createElement('div');
+      row.className='sidebar-tool-official od-surface';row.dataset.officialToolId=release.toolId;
+      row.dataset.installationState=state;
+      const label=doc.createElement('strong');label.textContent=release.packageTitle;
+      const version=doc.createElement('span');version.textContent='v'+release.version;
+      const button=doc.createElement('button');button.type='button';button.className='od-button';
+      button.id='sidebar-tool-official-'+release.toolId+'-install';button.dataset.officialInstall=release.toolId;
+      const matched=officialMatches.has(release.id);
+      button.textContent=state==='installed'&&!matched?'核对发行':
+        {available:'安装',update:'更新',installed:'已安装',newer:'已安装较新版本'}[state];
+      button.disabled=busy||(state==='installed'&&matched)||state==='newer';
+      button.setAttribute('aria-label',button.textContent+'官方'+release.packageTitle);
+      button.addEventListener('click',action(()=>reviewOfficial(release)));
+      row.append(label,version,button);officialRoot.append(row);
+      if(focusId===release.toolId)button.focus?.({preventScroll:true});
+    }
+  }
+  async function loadOfficial(){
+    if(!officialRoot)return;
+    try{
+      const result=await loadOfficialCatalog({api,fetcher});
+      if(disposed)return;
+      officialReleases=result.apps;officialLoaded=true;officialError='';
+    }catch(error){
+      if(disposed)return;
+      officialLoaded=false;officialError='官方工具目录读取失败：'+String(error.message||error);
+    }
+    render();
+  }
+  async function reviewOfficial(release){
+    if(busy||disposed)return;
+    setImportOpen(true);clearImport();notice('');
+    const selection=++fileSelection;
+    try{
+      const {tool}=await loadOfficialTool(release,{api,fetcher});
+      if(disposed||selection!==fileSelection)return;
+      reviewCandidate(tool,'来源：OpenDesk 官方发行 · SHA-256 '+release.sha256,release);
+    }catch(error){
+      if(disposed||selection!==fileSelection)return;
+      setFileError((error.code||'E_PACKAGE')+'：'+String(error.message||error));
+    }
   }
   function render() {
     if(disposed)return;
@@ -196,16 +276,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       list.append(item);
     }
     empty.hidden=installed.length!==0;
-    const officialInstalled=installed.find(row=>row.id===READING_TOC_TOOL_ID);
-    const officialUpgrade=Boolean(officialInstalled &&
-      versionOrder(READING_TOC_OFFICIAL_VERSION,officialInstalled.version)>0);
-    if(officialRow)officialRow.hidden=Boolean(officialInstalled&&!officialUpgrade);
-    if(officialButton){
-      officialButton.textContent=officialUpgrade?'更新':'安装';
-      officialButton.setAttribute('aria-label',officialUpgrade?'更新官方阅读目录':'安装官方阅读目录');
-    }
-    if(officialClipRow)officialClipRow.hidden=installed.some(row=>row.id==='web-markdown-clipper');
-    if(officialKnowledgeRow)officialKnowledgeRow.hidden=installed.some(row=>row.id===KNOWLEDGE_TOOL_ID);
+    renderOfficialTools();
     listView.hidden=Boolean(active);
     display.hidden=!active;
     title.textContent=active ? active.title+(readOnlyPreview?' · 只读预览':'') : '';
@@ -690,9 +761,10 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     }));
     render();notice('已撤销 '+origin+' 的目录授权');
   }
-  function reviewCandidate(candidate,sourceLabel){
+  function reviewCandidate(candidate,sourceLabel,release=null){
     const previous=toolById(candidate.id);
     pending=candidate;pendingBaseline=previous?structuredClone(previous):null;
+    pendingRelease=release;pendingOperationId=release?crypto.randomUUID():null;
     previewTitle.textContent=candidate.title;
     previewVersion.textContent='v'+candidate.version;
     previewDescription.textContent=candidate.description;
@@ -715,6 +787,11 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       const identical=samePackage(candidate,previous);
       installButton.textContent=identical?'已安装相同工具':'确认更新';
       installButton.disabled=identical;
+      if(release&&!identical&&change<=0){
+        installButton.disabled=true;
+        updateWarning.hidden=false;
+        updateWarning.textContent='当前同 ID 安装内容与官方发行不同；官方入口禁止同版本替换或降级。原安装和数据保留。';
+      }
     }else{installButton.textContent='确认安装';installButton.disabled=false;}
     preview.hidden=false;
   }
@@ -734,13 +811,22 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     }
   }
   async function install() {
-    if(!pending||busy||disposed||installButton.disabled)return;
+    if(!canCommitReview()||installButton.disabled)return;
     busy=true;installButton.disabled=true;fileInput.disabled=true;importClose.disabled=true;
     let accepted=null;
     try{
-      const candidate=validateSidebarToolPackage(pending);
+      const candidate=validateSidebarToolPackage(pending),baseline=pendingBaseline;
+      const release=pendingRelease,operationId=pendingOperationId;
+      // Bind confirmation to the exact reviewed local resource even if the
+      // extension updated while this review was open. No stale-byte fallback.
+      if(release){
+        await verifyReviewedOfficialTool(release,candidate,{api,fetcher});
+      }
       const result=await installReviewedSidebarTool({api,lockManager,candidate,
-        baseline:pendingBaseline,reviewApproved:true,approveUpdate:(previous,next)=>{
+        baseline,reviewApproved:true,
+        market:release?{marketId:release.id,sha256:release.sha256,operationId}:null,
+        approveSourceChange:()=>globalThis.confirm('现有工具的来源尚未核对。确认用已验证的官方发行包替换，并保留其本机数据？'),
+        approveUpdate:(previous,next)=>{
           const added=addedCapabilities(next,previous);
           const change=versionOrder(next.version,previous.version);
           const warnings=[...(change<0?['版本回退']:[]),
@@ -755,13 +841,15 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       const capture=(await api.storage.local.get(CAPTURE_SITE_STORE))[CAPTURE_SITE_STORE];
       captureGrants=capture||{};
     }catch(error){
-      if(error?.code==='E_TOOL_CHANGED'){
-        clearImport();setFileError(error.message);return;
+      if(['E_TOOL_CHANGED','E_OUTCOME_UNKNOWN'].includes(error?.code)){
+        clearImport();setFileError(error.message+(error.code==='E_OUTCOME_UNKNOWN'?'；请核对已安装列表与本机事务记录。本次批准已撤销，不会自动重试。':''));
+        await loadInstalled();return;
       }
+      if(accepted)clearImport(); // A consumed approval cannot survive a failed list refresh.
       throw error;
     }finally{
       busy=false;fileInput.disabled=false;importClose.disabled=false;
-      installButton.disabled=!pending;render();
+      installButton.disabled=!canCommitReview();render();
     }
     if(!accepted||disposed)return;
     setImportOpen(false);render();focusToolInList(accepted.id);
@@ -846,40 +934,6 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     setImportOpen(false);notice('');importTrigger.focus?.();
   });
   listen(fileInput,'change',()=>chooseFile().catch(error=>setFileError(String(error?.message||error))));
-  if(officialButton)listen(officialButton,'click',action(async()=>{
-    if(busy)return;
-    setImportOpen(true);clearImport();notice('');
-    const selection=++fileSelection;
-    const url=api.runtime.getURL('sidebar-tools/reading-toc.opendesk-tool.json');
-    const response=await fetch(url);
-    if(!response.ok)throw new Error('无法读取内置 TOC 工具包');
-    const candidate=validateSidebarToolPackage(await response.json());
-    if(candidate.id!==READING_TOC_TOOL_ID)throw new Error('内置工具身份错误');
-    if(disposed||selection!==fileSelection)return;
-    reviewCandidate(candidate,'来源：OpenDesk 内置工具');
-  }));
-  if(officialClipButton)listen(officialClipButton,'click',action(async()=>{
-    if(busy)return;
-    setImportOpen(true);clearImport();notice('');
-    const selection=++fileSelection;
-    const response=await fetch(api.runtime.getURL('sidebar-tools/web-markdown-clipper.opendesk-tool.json'));
-    if(!response.ok)throw new Error('无法读取内置剪藏工具包');
-    const candidate=validateSidebarToolPackage(await response.json());
-    if(candidate.id!=='web-markdown-clipper')throw new Error('内置剪藏工具身份错误');
-    if(disposed||selection!==fileSelection)return;
-    reviewCandidate(candidate,'来源：OpenDesk 内置工具');
-  }));
-  if(officialKnowledgeButton)listen(officialKnowledgeButton,'click',action(async()=>{
-    if(busy)return;
-    setImportOpen(true);clearImport();notice('');
-    const selection=++fileSelection;
-    const response=await fetch(api.runtime.getURL('sidebar-tools/knowledge-inbox.opendesk-tool.json'));
-    if(!response.ok)throw new Error('无法读取内置知识收件箱');
-    const candidate=validateSidebarToolPackage(await response.json());
-    if(candidate.id!==KNOWLEDGE_TOOL_ID)throw new Error('内置知识工具身份错误');
-    if(disposed||selection!==fileSelection)return;
-    reviewCandidate(candidate,'来源：OpenDesk 内置工具');
-  }));
   listen(installButton,'click',action(install));
   listen(backButton,'click',()=>{
     if(busy)return;
@@ -896,10 +950,20 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   const captureSitesReady=api.storage.local.get(CAPTURE_SITE_STORE).then(saved=>{
     if(disposed)return;captureGrants=saved[CAPTURE_SITE_STORE]||{};render();
   }).catch(error=>notice('知识保存授权读取失败：'+error.message,true));
-  const ready=Promise.all([installedReady,sitesReady,clipSitesReady,captureSitesReady]);
+  const officialReady=loadOfficial();
+  const ready=Promise.all([installedReady,sitesReady,clipSitesReady,captureSitesReady,officialReady]);
   if(currentPageTarget?.subscribe){
+    // revalidate() intentionally observes the same document before and after a
+    // privileged read. Only an actual target transition invalidates tool output;
+    // resolving/unavailable and same-URL reloads must still revoke pending work.
+    const pageKey=()=>JSON.stringify(['status','windowId','tabId','frameId','documentId','url','origin','title','reason']
+      .map(key=>currentPageTarget.snapshot?.[key]??null));
+    let previousPage=pageKey();
     const unsubscribe=currentPageTarget.subscribe(()=>{
       render();
+      const nextPage=pageKey();
+      if(nextPage===previousPage)return;
+      previousPage=nextPage;
       if(frame&&active&&instance)frame.contentWindow?.postMessage({
         protocol:SIDEBAR_TOOL_PROTOCOL,kind:'page-changed',instance,toolId:active.id
       },'*');

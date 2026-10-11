@@ -1,0 +1,143 @@
+# 官方工具 Catalog R4.5
+
+日期：2026-10-11。状态：`IN_PROGRESS`。本任务仅在 `main` 工作；本工作区由主 Agent 串行写入，三个子 Agent 仅只读审计。
+
+## 开工身份与资源
+
+- 初始远端/检出：`7d5e4b94df7f229b6eecb2db86c325066c2a039f`；工作树干净。
+- 首次 fetch 后安全快进到：`2265df8586e1a81946512434ace46885b3090960`（新增市场 R3 原生驱动与 CI）。未覆盖其他会话修改。
+- 本任务工作目录：`/workspace/scratch/1a7d964a05cb/opendesk-browser`。构建只使用本目录 `.wxt/`、`dist/`，原始证据写本工作流独立目录。
+- 不占用其他会话的 Chrome Profile、端口、dist 或已有验收证据。本地浏览器资源尚未确认；真实 Chrome 证据计划优先复用现有隔离 CFT / CI 驱动。用户 Mac、已登录网站、整体 F3/ZIP 当前 `NOT_TESTED`。
+
+## 最新源码审计
+
+实际官方发行包含阅读目录、网页剪藏、网页笔记、Markdown 工作台、知识收件箱，共五个工具；侧栏快捷入口原有三个，市场 R3 已有五个入口。不能按早期只含三个工具的方案覆盖最新市场代码。
+
+复用现有 `buildSidebarTool`、`validateSidebarToolPackage`、`installReviewedSidebarTool`、`SIDEBAR_TOOL_STORE`、独立网站授权与 sandbox 会话合同。迁移旧 `src/sidebar-tools/*.opendesk-tool.json` 及示例中的正式生成副本；版本/能力继续来自各项目 `tool.config.json`。
+
+## 验证范围与复用判断
+
+- `AFFECTED_INPUTS`：官方包构建、固定资源校验、源输入指纹、开发 watcher、侧栏官方安装/更新、已实现市场的发行来源和公开站点构建。
+- R4.4 历史 Chrome PASS 保留绑定 `07b39e043f13208e743eec67a523f1ccf28f60a1` / Actions `38116275393`；本轮不冒充新候选通过。
+- 先执行定向 Catalog、打包、安装与 TOC/剪藏/知识组件，再执行双构建、verify 和受影响原生驱动。仅针对具体剩余风险扩大验证。
+
+最终变更、精确源码 SHA、测试日志、CI/Chrome 身份、未测试项及资源释放状态将在执行后追加。
+
+## 并行集成与源码保留
+
+- 第二次快进：`2265df8586e1a81946512434ace46885b3090960` → `96812e6ed942fd256eb9f44d071093dc204ff554`。保留旧编辑状态、条件写入、开发复制失败以及 Native 焦点等修改。应用前的本地 checkpoint 为 `c4d55282103c497b235e6c45021f131ba6ceee0b`。
+- 第三次快进：`96812e6ed942fd256eb9f44d071093dc204ff554` → `e83738816d108506e13f28bd3d4e3be48ac30e4e`，18 个并行提交，包含知识收件箱 R24 v1.1.0、恢复原文后继续编辑修复、R3.1 批次独占锁/持久 journal/中断恢复和 Native 授权失效修复。应用前 checkpoint 为 `007fc1efdeea40581e5e0aa6a5f00ff1396d577c`。两个 checkpoint 均保留；没有 reset、clean、强推或覆盖原始证据。
+- `fab7631131d9c23e1f665e83bfbe7dc5ee22e876` 新增批量市场消费者也迁移到可信 Catalog；保留 `ifAvailable` 批次锁、未决事务防覆盖、派发前 journal 和 queued→interrupted，只读恢复不重放。历史身份校验不构成安装权。
+- R24 的源码、配置和两份旧生成包逐字节一致（v1.1.0，42,219 字节，SHA-256 `3d3ff1e913e884e31ef6fbec37dde3185cc788ee352808a747b7fd58a87f965e`），再移除旧生成文件。其 UI、测试及修复均保留，不把 R24 回退到 v1.0.0。
+
+## 目录与模块变更
+
+| 范围 | 变更及实际职责 |
+| --- | --- |
+| `official-tools/catalog.json` | 五个 optional 官方源码项目，登记稳定 ID、可信仓库、固定项目和类型；不登记版本、能力或用户状态 |
+| `src/sidebar-tools/official-catalog.js` | 可信框架模块，校验源码/发行 schema、固定扩展资源、字节长度、SHA-256 和安装状态；不含工具 payload、不初始化安装记录 |
+| `scripts/build-sidebar-tool.mjs` / `src/ui/sidebar-tools/package.js` | 提取现有包生成和规范序列化，保留同一 validator 与原包格式 |
+| `scripts/build-official-tools.mjs` | 按可信源码生成资源；固定身份、路径/符号链接、源码漂移、经典 JS、内嵌静态资产和字节上限校验；确定性包、清单与摘要 |
+| `prepare-public` / `build` / `verify-package` | 自动生成暂存资源、跟踪真实源码输入、重新生成逐字节验证；禁止旧目录副本、额外资源和预算漂移 |
+| `wxt-development` / `dev` | 官方源码与 Catalog 进入现有 watcher；失败保持失败状态，恢复后发布；目录新增/删除经现有 WXT restart；共享安全写入器不跟随输出符号链接 |
+| `sidebar-tools.js` / `tool.html` / CSS | 五个统一动态官方入口，状态取自 Catalog 与原安装记录；读取失败不伪装成功；审核及提交分离 |
+| `installation.js` | 保留原 registry/锁/数据；来源接管确认，能力与网站授权交集，未知 ACK 绑定原操作/版本/字节，不重试批准 |
+| `marketplace/{catalog,page,batch}.js` | 展示文案与版本来源分开；统一 release 解析；固定套装历史版本不替换；新批次只接收当前可信发行 |
+| `build-market-site.mjs` | 静态详情/固定版本页面复用相同真实发行；缺失历史版本显示不可用，不输出失效安装承诺 |
+| 环境测试 / 既有 framework 驱动 / 五个 workflow | 从真实源码或实际 dist 读取包；新增 Catalog、版本/字节、按需安装、并发/取消/未知结果和 dev 恢复回归，扩展现有 Chrome 驱动 |
+| 现行 API、产品入口、各工具 README、开发 Skill | 统一路径和安装教程；未来系统默认初始化仅写合同，不实现第二套安装器 |
+
+最终资源路径为 `dist/{production,development}/official-tools/catalog.json` 及 `official-tools/<id>/<id>.opendesk-tool.json`。`.wxt/public/official-tools/` 是自动生成暂存资源；单工具默认输出 `artifacts/sidebar-tools/<id>/<version>/<id>.opendesk-tool.json`，整套独立生成默认输出 `artifacts/official-tools-release/`。
+
+已移除 `src/sidebar-tools/` 五份官方生成 JSON，以及 examples 中 clipper、notes、workbench、inbox 四份生成副本。运行框架 `bridge.js`、`sandbox.html` 保留。源码中不再维护第二套正式 JSON；固定 Git 历史版本回归引用保留，不属于当前发行副本。
+
+## 安装、数据与权限语义
+
+Official Bundled、Installed、Site Authorized、Active 是独立事实。五个工具均按需安装，启动扩展/打开侧栏/加载 Catalog 不写 `SIDEBAR_TOOL_STORE`、不授权网站、不执行工具代码。审核不是安装；提交再次检查固定包字节和原审核基线，共用原安装器、Web Lock、持久存储和运行实例。
+
+旧安装包和私有数据不因资源目录迁移删除。网页笔记源码当前 v1.1.5，旧 `src/sidebar-tools` 副本实际还在 v1.1.1；新目录消除这类漂移，用户仍须审核更新。`reading-kit` revision 1 保留 notes v1.1.1，不静默换为当前版本；不可用成员保持 blocked，其他成员按预检处理。官方更新、旧本地来源接管与新增能力仍需确认；安装不等于网站访问。卸载清理既有工具数据、来源及授权；后续启动不重新安装。
+
+未来默认系统能力遵守独立核心功能合同：可信持久迁移标记、只初始化一次、幂等恢复，用户卸载/停用优先，浏览器网站权限仍独立。本轮没有默认安装 TOC 或新增双安装器。
+
+## 已取得的本地证据（中间候选）
+
+以下本地结果不等于最终 CI 或 Chrome 验收，早期结果仍绑定其源输入：
+
+- `npm ci --ignore-scripts --no-audit --no-fund` 成功；Node 24.19.0 / npm 11.9.0。依赖锁未因本轮改变。
+- `npm run check`：367 个源码/测试/构建文件、入口、CSP/MIT 检查通过。
+- 整合 96812e6 后 Catalog/host/market/dev 定向 68/68 通过；确认后 ACK 丢失、提交后刷新失败及审核后包缺失用例通过。
+- 整合 e837388 后 Catalog、market、batch、knowledge R1/R24、host、dev 定向 **98/98 通过**，零 skipped/cancelled。
+- 早期 production 构建包哈希 `bcd9b5772338827637f51b998dffe983bb6f586808a7e121ab01bd04b86debc0`；development `9d26c0ae9af1f5ddf129b385a6392dfbbf25167cf7bcc65f10e137177936594b`。迁移 CSS 后 production `5c170d3660bfcbcc7072fd6ec4610eaa9c2595e30b5951767bda4f64410dab4b`。这些都早于 e837388 新包，不复用为其原生证据。
+- 五个修改后的 workflow YAML 解析、全部变更 Markdown 相对文件链接检查、开发 Skill `quick_validate.py`、原生驱动语法检查通过。语法/静态检查不代表 Chrome 通过。
+- 失败记录保留：早期定向测试出现等待 ready 的测试 fixture 及固定事件循环次数问题，已改为明确状态等待；早期知识 fixture 缺少 session storage 已补齐。初次 dev build 遇到本执行器已退出 PID 被下一命令复用的旧本地 fence，先核对自己已退出的 build session、成功 receipt、独占端口空闲及精确 token，记录后仅清理自己的 fence。没有清理其他 Profile/证据/构建锁。
+- 本地 HTTPS Git 推送 dry-run 因未提供终端凭据失败；后续通过已连接 GitHub 的 Git 数据/受限 ref 更新接口提交，不建立新分支或 PR。
+
+## 最终验收待记录
+
+最终候选提交、双构建/全量回归/verify、GitHub Actions run/job、实际 Chrome 身份、包哈希、两次正常重启、网站授权/撤销、卸载与截图将在实际运行后填写。不能以驱动存在、静态 DOM 或历史 CI 代替。
+
+- 实际用户 Mac Chrome：`NOT_TESTED`。
+- 公网业务网站及登录状态：`NOT_TESTED`；Chrome 专项使用隔离本地 fixture。
+- 整体框架 F3 与 ZIP 安装验收：`NOT_TESTED`。生成并校验 ZIP 不等于加载 ZIP 安装通过。
+- 公网市场部署、外部安装意图桥：未实施，本轮不发布。
+
+
+### e837 构建、验证及本地全量限制
+
+- Production：`efea0db9f0b44c1245b7d62a0e4f35142fc8d9fecc16c28dcf7352be2ff5fd20`，50 个文件。
+- Development：`8db846ff3c6185badb3947108267527b90eda8c3d003cdab3b17a50b1312ceda`，69 个文件。
+- `npm run verify` 两个实际产物通过；`npm run build:market-site` 五个当前版本路由生成通过；`npm run check` 371 个文件通过。
+- Production `sw.js` 320,970 / 327,680 字节（剩余 6,710）；`ui/tool-shell.js` 328,512 字节，超过 327,680 的软审阅线但低于 524,288 硬预算。官方包未进入 Service Worker，软预算警告保留，不放宽预算。
+- 本地全量 `npm test`：1,082 项，1,067 PASS、8 FAIL、7 SKIP、0 cancelled。8 个失败均因当前执行器拒绝 Unix domain socket `listen`（EPERM），不能据此宣布全量通过，也没有把 socket 合同改为模拟。应由支持真实本地 socket 的 GitHub Linux runner 取得该门禁结果；7 个既有 skip 的原因保留于原始 TAP。
+- 再安全快进到 `3ad42a5559189d2749bd4546e7ddc2c509c675b1`，保留 `89897f0efc2905866dfd1d2f1f779a2143cbe0ce` 的 R24 恶意 Markdown 断言顺序修复及知识 CI 先原生后全量的步骤顺序。两提交仅修改测试/workflow，相关构建输入不变；保留上述实际 dist 与 receipt，不为无关提交重复构建。同步 checkpoint：`21b37585d14bc77e0d1cf3815bcc6a6f1f4db851`。
+
+
+### 既有 Node 22 CI 门禁修复
+
+只读复查历史 Actions `38124322724` / job `114425395612` 的真实日志（Node v22.23.3），首个取消是 `local-dev-preparation.test.mjs` 的后台构建加入测试：只等待纯 Promise，而后台 timer/watch 本来就是 unref，事件循环可在回调进入前结束；之后七项被连锁取消。保留生产后台退出语义，测试改用自身有界、保持事件循环的既有 `until` 等待进入 gate。没有放宽 Task/Page/Native 合同或跳过失败门禁。R4.5 市场 workflow 同样先采集真实 Chrome 专项，再执行仍严格失败的完整环境门禁，使无关门禁失败不吞掉原生诊断。
+
+### 提交前再次集成知识生命周期修复
+
+- 安全快进到 `a033d3b740ed39c27f1fb4fed9910d4968418d04`，保留 `5ea14829cb017b6e58fdcc65ffb125c5daf2f30d` / `fd967ba2000ac0eff1f0522e1b36e0ab9f4af379` 的真实 Chrome 关闭/授权断言，以及保存、删除后清除通用 sandbox dirty/busy 状态的源码修复。同步 checkpoint `8eb38f088e07a6c877c839edd2b92c060844fbba` 保留。
+- 更新后的知识包仍为 v1.1.0，42,521 字节，SHA-256 `a3a791304203c3b3c0bf0ca3596e50353b0e779fea05243e0fa98712f97a3250`。删除两份上游生成副本前，确认它们与新生成器结果逐字节一致；源码修复没有被目录迁移覆盖。
+- 该输入上的 Catalog、现行 UI 和 R24 定向测试 24/24 PASS；Node 22 门禁等待方式的本地测试 10/10 PASS（本地仍为 Node 24，Node 22 实际结果待 CI）。旧 e837 双构建指纹不代表本次知识源码输入，最终双构建与 Chrome 绑定后续候选 SHA。
+
+## 首个正式候选与真实 CI 发现
+
+候选 `733dba27c0a3861f13c6c89a29585c8e3d36529b` 通过已连接 GitHub 的 Git tree/commit 与 `expected_sha`、`force:false` 安全快进 main；GitHub tree `868f4ce17d79e39808c94a894e7ff2f7116f099e` 与本地已审阅 index 完全相等。本地随后核对祖先关系及完整 tree 后移动 main 到同一提交，没有改变工作区文件。
+
+- Sidebar package/build Actions `38125458326` 与 budgets `38125458333` 成功；独立 runner 得到一致 production `ef9451ec7fa4b83d9a6766c4b7ccb623958320d634846f50f39dffa4b99dc134`、development `4b60eafcd17cac401a8e26b6fd15f8cc7652ef22c1fd31606740da1ced8e9985`。旧路径资源为空，SW 320,970 B。
+- TOC `38125458357` / job `114428778048` 与 Markdown `38125458300` / job `114428777811` 中实际 Node 22.23.3 全环境测试均为 1,082 项：1,075 PASS、0 FAIL、0 cancelled、7 SKIP。本地 Unix socket 限制和原 preparation 连锁取消不再阻塞 CI。
+- R4.5 `38125458376` / job `114428778086`：78 项定向通过，双构建、verify/pack 和静态市场路由通过。真实 CFT 155.0.8059.39、扩展 `jhajepcnohiplmafaiokjlcagcfjgaap` 已完成首次未安装、五工具市场安装/实际沙箱、固定旧版本不可替换和当前批次持久恢复；随后第二窗口审阅失败。旧驱动误把无 toolId 的普通任务 Catalog 标签页当作第二个 Side Panel。修复为同一 helper 通过真实点击打开两个不同 windowId 的实际 SIDE_PANEL，记录 context/target 身份；不修改产品 Catalog 合同。后续升级、网站撤权和重启阶段在这个失败候选中尚未执行。
+- TOC 原生失败为驱动遗漏 `execFileSync` 导入，已补齐，未声称原生通过。
+- Knowledge `38125458301` / job `114428777905` 的真实保存/删除后出现第三次未保存提示。定位上游 `setState(dirty,busy)` 不符合实际 `setState({dirty,busy})` 接口，修正两处应用调用与错误静态断言；新增运行真实 bridge 消息生成和真实宿主消费的保护测试，本地相关 40/40 PASS。保持原生“不得出现第三次提示”断言。
+- Markdown 原生提取等待超时，没有足够状态日志判断提取器错误。旧包与新生成包全部字段相同，生产提取及授权代码未改；补上 Blob JavaScript ready 等待和失败现场记录。修正 iframe 附加 session 没有 close 方法的清理调用；保留正文、代码、表格断言，等待新候选真实 Chrome。
+- R19 静态 workflow 缺少新生成器所需 npm 依赖，补锁定依赖安装。实际首次 R4.5 截图中文为方框，给 R19、R45、TOC、Markdown CI 补既有 Noto CJK 字体安装，不能将不可读截图视作视觉通过。
+- 其他 CI 暴露原有测试门禁：P0/Controller 的闭端口重探期望落后于现行驱动，再次只读 ping 后只执行一次 url，修正测试并本地 60/60 PASS，不改 Task/Page 正式合同。R16.1 SDK 在业务 PASS 后立即删仍运行的自有 Profile 导致 ENOTEMPTY；改为等待自有 Chrome 完整 close 后清理。
+
+以上失败及原始 Actions/artifact 保留。首个候选原生总状态为 FAILURE；后续修复须由下一精确提交的 CI/Chrome 重新确认。本地完成的开发构建锁仅在核对自有 token、已退出 session 65029、成功 receipt 和独占端口空闲后释放，记录于 `artifacts/official-tools-r45/stale-owned-development-final.json`。
+
+
+## 第二候选的真实结果与第三候选修复
+
+第二候选 `079daf744a54cb70d9a8df0b1324c520145845a1`，tree `6044bdd1f436a7da1db819e2a53fd8dca289bc2d`，由上一候选安全快进。其状态仍为部分通过，不能认定 R4.5 完成。
+
+- Knowledge `38126123463` / job `114430743199` 真实 CFT 155.0.8059.39 闭环成功：审核安装、独立网站授权、实际采集、去重、流式保护、恢复后编辑保存、取消脏关闭、保存/删除后关闭、撤销授权；没有第三个错误提示。完整 Node 22 源测试 1,083 项，1,076 PASS、0 FAIL、0 cancelled、7 SKIP。artifact `11697541681`，ZIP SHA-256 `036b362f1a30985269c5620d65650adddec4fa230c2cad3a5ca30d6f35ab6c74`。
+- Sidebar tools `38126123412`、R19 `38126123350`、P0 `38126123452`、Controller `38126123427`、R16.1 `38126123338`、SDK `38126123426`、Site access `38126123383`、Page userscript `38126123380` 和 R7 `38126123349` 成功。保留各工作流范围，不把通用 macOS Controller 通过写成本轮官方工具 Mac 验收。
+- 两个独立 runner 的 production `c93cb1250828b0e24e94a9e6f9f73b37d4f3f620d2d1ce7361063dc5660dd683`、development `652970fc86bc7e452aff9563ed14edc08885831c2d7023d8b7dcfaf83c0f5385`、Catalog `e2c1a7d3849729b83a75cbfb8fc2d32bb25c6a603488dd92f249eb2171e99df5` 一致。本地第二候选 production 也得到相同指纹；ZIP 打包 `d275202b9e95628ba2c06f8288fe082772a12f56ab4776f9400791fa15f4230e`。
+- R4.5 `38126123393` / job `114430743098` 在首次 `actual SIDE_PANEL context` 识别超时。已有第二个扩展页面目标，但没有记录 raw getContexts，因此不能猜测原始 windowId 值。改为点击前保存 context ID，点击后选唯一新增的正式 SIDE_PANEL，按 exact document URL attach，再以 panel 的 `windows.getCurrent()` 验证所属窗口。记录请求窗口、原始上下文、实际窗口、trusted input 与 open Promise 完成结果。没有创建假工具标签页替代 Side Panel。
+- TOC `38126123346` / job `114430742806` 已打开实际 Side Panel 并进入工具页，官方按钮审阅未出现。源码发现每次 current-page 通知都替换官方按钮，存在按下/抬起之间丢失点击的窗口；该现场没有截图，不能把推断写成已实证根因。宿主现在仅在官方展示内容改变时重建按钮，并新增保留真实按钮引用且仍只进入审核的行为测试。驱动点击前等待准确文章 URL，结束前保存 DOM 状态与截图；workflow 上传整份证据目录。
+- Markdown `38126123500` / job `114430743552` 在 Blob 脚本 ready 后仍没有剪藏正文。进一步定位确定的通知反馈：安全 `revalidate()` 对同一网页也发观察，宿主无条件转发 page-changed，clipper 因 reset 递增 token 而丢弃合法回复。仅宿主按状态、窗口、标签、frame、documentId、URL、origin、标题、原因变化通知；保留原 revalidate 的所有序列与身份校验、读取前后复核和最终授权检查。实际 clipper JS + 实际 current-page 对象的回归测试先失败后通过，覆盖双复核仍显示正文、未收到导航事件时识别同 URL 新文档、resolving 即刻失效和旧回复不能回填。Markdown 原生是否恢复仍由下一提交实际 CI 确认；增加日志/截图并上传原来遗漏的 JSON。
+- 知识收件箱应用修复推进至 **v1.1.1**，版本唯一权威仍是 `tool.config.json`；安装了已发行 1.1.0 的用户可以明确审核补丁。保留同版本不同内容拒绝和数据保护，不通过降低校验允许静默覆盖。新增历史 1.1.0 → 当前发行 update 回归，移除 UI 测试中的第二份版本常量。
+- 上述两项新增宿主行为测试在修复前 0/2、修复后通过；第三候选本地指定 Sidebar/TOC/Catalog/current-page/知识测试 **93/93 PASS**，0 skip/cancel；`npm run check` **373 个文件通过**。
+
+### 并行来源及仍未通过的其他工作流
+
+在第三候选前安全快进至 `d8424fee378070336696139b2feee5440929587d`，32 个 Page UI R24.1 文件与本地修改不重叠，保留其代码、测试、文档和来源输入。没有覆盖 Page/Task 正式合同。
+
+Local directory MCP `38126123354` / job `114430743185` 在 18 项实际检查后，运行项目被既有 `E_DEV_SOURCE：本地项目状态尚未通过核对，请修复后刷新` 拒绝，随后等待 runId 超时。实际 artifact `11697546579` 截图确认运行已触发，不能归为按钮未命中。R4.5 前 `96812e6ed942fd256eb9f44d071093dc204ff554` 的 `38122560932` / artifact `11695594683`、以及 `ee34888cb69d4f755851168c035ef9e010eed7bd` 的 `38121935384` 已有相同失败。驱动、script-editor、local-project、workflow、native-agent/local-dev 无差异，9 个 verificationInputs 一致，主驱动 SHA-256 `063e530d9afe626063935a9da037adffebcd6ad8d8793a98700b0d4cf96d103e`。缺少点击瞬间 preparationError，仍记为既有 FAIL，不绕过运行准备守卫。
+
+Native Agent `38126123322` 的 Intel macOS job `114430742923` 在原生 Swift 授权输入 `inspect-and-press` 阶段 35,052 ms 超时（SIGTERM）；实际 Chrome Options 和可信指针步骤已完成，ARM 和 bridge job 成功。不能把它写成该权限验收通过，也不修改授权流程以消除失败。本轮用户 Mac、线上业务网站、完整 F3 与 ZIP 安装继续为 `NOT_TESTED`。
+
+
+第三候选提交前继续快进集成 `e2bb22a9` 与 `ab7f6fe1be8613c4d71f171dc21206aa348303fa` 的 Page URL 端口匹配修复，13 个相关文件与本地修复不重叠。`d8424fee` 加本地第三候选的实际 production 已通过（50 文件，SHA-256 `b9c875ad45f01bc03ae854c1629cd660dd2ee430c5639f6997e8363bf8108432`；SW 321,651 / 327,680 B，tool-shell 328,715 B）。该指纹早于这两个新 Page 提交；后续 CI 必须重新构建精确第三候选，不能直接沿用旧指纹。

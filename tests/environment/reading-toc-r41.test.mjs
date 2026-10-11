@@ -1,3 +1,4 @@
+import {officialToolFixture} from '../helpers/official-tools.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile,mkdtemp,rm} from 'node:fs/promises';
@@ -111,7 +112,7 @@ test('R4.1 official JSON is reproducible through existing packer and exact v1 va
     const path=join(dir,'reading-toc.opendesk-tool.json');
     await buildSidebarTool('examples/sidebar-tools/reading-toc',{out:path});
     const actual=JSON.parse(await readFile(path,'utf8'));
-    const bundled=JSON.parse(await readFile('src/sidebar-tools/reading-toc.opendesk-tool.json','utf8'));
+    const bundled=await officialToolFixture('reading-toc');
     assert.deepEqual(actual,bundled);
     assert.equal(validateSidebarToolPackage(actual).id,'reading-toc');
     assert.equal(actual.capabilities.includes('page.toc'),true);
@@ -131,9 +132,9 @@ test('R4.1 installer entry, constrained content script, and distributable resour
   assert.match(host,/currentPageTarget\.revalidate\(target\)/);
   assert.match(host,/documentId:target\.documentId/);
   assert.match(host,/READING_TOC_SITE_STORE/);
-  assert.match(html,/id="sidebar-tool-official-install"/);
-  assert.match(resources,/reading-toc\.opendesk-tool\.json/);
-  assert.match(verify,/reading-toc\.opendesk-tool\.json/);
+  assert.match(html,/id="sidebar-tool-official-catalog"/);
+  assert.match(resources,/buildOfficialTools/);
+  assert.match(verify,/createOfficialToolResources/);
 });
 
 test('R4.1 selectively excludes a semantic article title but preserves section header H2',()=>{

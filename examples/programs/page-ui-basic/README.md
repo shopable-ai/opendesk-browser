@@ -54,3 +54,7 @@ python3 -m http.server 43111 --bind 127.0.0.1 --directory examples/tasks
 - 对 320/400/600 CSS px、200% 缩放、网页全局 button/input 样式、重复打开关闭 20 次、导航/BFCache/离线加载逐项留实际 Chrome 证据。未经执行不得填 PASS。
 
 公共接口与资源限制详见 [Page UI API](../../../docs/framework/ui-api.zh-CN.md)。其他真实测试继续使用单一 `examples/tasks/demo-form.html`，本示例不新增替代性手工测试页面。
+
+## R24.1 · 可撤销网页增强
+
+保留原先的“AI · 读取标题”，另外增加“AI · 高亮段落”。仅修改标准测试页面 `#lab-text #sample-text` 的 outline，添加自有标记；再次点击或受管 Stop / 完全退出时撤销。目标不存在或出现多个时拒绝修改；在已知测试区域内使用受管 MutationObserver，重绘后重新定位，不修改表单。这个示例仍然是 **Page 手动预览**，不会自动安装。`createPageUI({pageRules})` 提供额外的 URL 离开清理，而不构成网站授权。详见 [网站匹配及 React/Vue 教程](../../../docs/api/page-ui-frameworks.zh-CN.md)。

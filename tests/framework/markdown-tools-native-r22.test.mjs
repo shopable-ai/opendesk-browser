@@ -72,7 +72,18 @@ test('R22 Chrome: official clipper consent, real content read and local workbenc
  let browser=null,host=null,article=null,side=null,clip=null,workbench=null,logs='';
  chrome.stderr.on('data',b=>{logs=(logs+b).slice(-3000);});
  t.after(async()=>{
-  for(const c of [workbench,clip,host,article,browser])c?.close();
+  const observations=resolve('artifacts/markdown-tools-r22');await mkdir(observations,{recursive:true});
+  const clipObservation=clip&&await evalIn(clip,'({scriptState:document.querySelector("#tool-status")?.dataset.state,status:document.querySelector("#clip-status")?.textContent,error:document.querySelector("#clip-status")?.dataset.error,markdown:document.querySelector("#clip-source")?.value})').catch(error=>({unavailable:error.message}));
+  const hostObservation=side&&await evalIn(side,'({url:location.href,page:document.querySelector("#script-current-page-url")?.textContent,status:document.querySelector("#sidebar-tool-status")?.textContent})').catch(error=>({unavailable:error.message}));
+  await writeFile(join(observations,'native-observation.json'),JSON.stringify({sourceCommit:process.env.GITHUB_SHA||null,clip:clipObservation,host:hostObservation},null,2)+'\n');
+  console.log('R22_NATIVE_OBSERVATION '+JSON.stringify({host:hostObservation,clip:clipObservation&&{
+   ...clipObservation,markdown:clipObservation.markdown?.slice(0,600)}}));
+  if(side)try{
+   const {data}=await side.send('Page.captureScreenshot',{format:'png',captureBeyondViewport:false});
+   await writeFile(join(observations,'native-final-host.png'),Buffer.from(data,'base64'));
+  }catch{}
+  // Attached iframe sessions share the browser socket and have no close method.
+  for(const c of [workbench,clip,host,article,browser])c?.close?.();
   if(chrome.exitCode===null&&chrome.signalCode===null){
    await new Promise(done=>{const timer=setTimeout(()=>chrome.kill('SIGKILL'),2500);
     chrome.once('close',()=>{clearTimeout(timer);done();});chrome.kill('SIGTERM');});
@@ -107,6 +118,7 @@ test('R22 Chrome: official clipper consent, real content read and local workbenc
   const attached=await browser.send('Target.attachToTarget',{targetId:target.targetId,flatten:true});
   const frame={send:(method,params={},timeout=15000)=>browser.send(method,params,timeout,attached.sessionId)};
   await frame.send('Runtime.enable');await frame.send('Page.enable');
+  await until(()=>evalIn(frame,'document.querySelector("#tool-status")?.dataset.state === "ready"'),'sandbox JavaScript ready');
   await until(()=>evalIn(frame,'!!document.querySelector('+JSON.stringify(selector)+')'),'tool UI '+selector);
   return frame;
  }
@@ -120,7 +132,7 @@ test('R22 Chrome: official clipper consent, real content read and local workbenc
  const ui=await openTab('chrome-extension://'+extensionId+'/ui/tool.html?hostInstanceId='+randomUUID());
  host=ui.cdp;
  console.log('R22_NATIVE_STAGE: extension host tab opened');
- await until(()=>evalIn(host,'!!document.querySelector("#sidebar-tool-official-clip-install")'),'tool host loaded');
+ await until(()=>evalIn(host,'!!document.querySelector("#sidebar-tool-official-web-markdown-clipper-install")'),'tool host loaded');
  const windowId=await evalIn(host,'chrome.windows.getCurrent().then(w=>w.id)');
  await evalIn(host,"(()=>{const b=document.createElement('button');b.id='r22-open-side';b.textContent='Open Side Panel';b.style.cssText='position:fixed;top:70px;left:20px;min-width:200px;min-height:45px;z-index:999999;background:white;color:black';b.addEventListener('click',()=>chrome.sidePanel.open({windowId:"+windowId+"}));document.body.append(b);return true;})()");
  await click(host,'#r22-open-side');
@@ -141,7 +153,7 @@ test('R22 Chrome: official clipper consent, real content read and local workbenc
  console.log('R22_NATIVE_STAGE: Side Panel tools tab clicked');
  await until(()=>evalIn(side,'!document.querySelector("#workbench-tools").hidden'),'tools section');
  // Official candidate must stay review-only: no iframe and no content reads.
- await click(side,'#sidebar-tool-official-clip-install');
+ await click(side,'#sidebar-tool-official-web-markdown-clipper-install');
  await until(()=>evalIn(side,'!document.querySelector("#sidebar-tool-preview").hidden'),'clipper preview');
  assert.equal(await evalIn(side,'document.querySelectorAll("#sidebar-tool-frame iframe").length'),0);
  assert.equal(await evalIn(side,'document.querySelector("#sidebar-tool-preview-title").textContent'),'网页剪藏');
@@ -185,7 +197,7 @@ test('R22 Chrome: official clipper consent, real content read and local workbenc
  const inputNode=await side.send('DOM.querySelector',{nodeId:doc.root.nodeId,selector:'#sidebar-tool-file'});
  assert(inputNode.nodeId,'Local package file input missing');
  await side.send('DOM.setFileInputFiles',{nodeId:inputNode.nodeId,
-  files:[resolve('examples/sidebar-tools/markdown-workbench/markdown-workbench.opendesk-tool.json')]});
+  files:[resolve('dist/production/official-tools/markdown-workbench/markdown-workbench.opendesk-tool.json')]});
  await until(()=>evalIn(side,'document.querySelector("#sidebar-tool-preview-title").textContent==="Markdown 工作台"'),'local Markdown package preview');
  await click(side,'#sidebar-tool-install');
  await until(()=>evalIn(side,'!!document.querySelector("[data-sidebar-tool-action=open][data-sidebar-tool-id=markdown-workbench]")'),'workbench installed');

@@ -1,3 +1,5 @@
+import {officialToolFixture,officialFixtures} from '../helpers/official-tools.mjs';
+import {officialPackagePath} from '../../src/sidebar-tools/official-catalog.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile, mkdtemp, rm} from 'node:fs/promises';
@@ -9,7 +11,7 @@ import {CLIP_CAPABILITY,CLIP_SITE_STORE,clipGrantAllowed,changeClipGrant} from '
 import {domToMarkdown,chooseArticle,safeMarkdownUrl,safeClipSource,CLIP_MAX_BYTES} from '../../src/page-clip/convert.js';
 
 const tools=['web-markdown-clipper','markdown-workbench'];
-const readPkg=async id=>JSON.parse(await readFile('examples/sidebar-tools/'+id+'/'+id+'.opendesk-tool.json','utf8'));
+const readPkg=officialToolFixture;
 test('R22 both tools are distinct, bounded v1 installable packages with no remote script',async()=>{
  const [clip,work]=await Promise.all(tools.map(readPkg));
  assert.equal(validateSidebarToolPackage(clip).id,'web-markdown-clipper');
@@ -23,17 +25,17 @@ test('R22 both tools are distinct, bounded v1 installable packages with no remot
   assert.ok(Buffer.byteLength(JSON.stringify(pkg))<320000);
   assert.throws(()=>validateSidebarToolPackage({...pkg,capabilities:['page.unknown']}),/能力/);
  }
- const official=JSON.parse(await readFile('src/sidebar-tools/web-markdown-clipper.opendesk-tool.json','utf8'));
+ const official=await officialToolFixture('web-markdown-clipper');
  assert.deepEqual(official,clip);
 });
-test('R22 packer is reproducible and outputs exactly the committed reviewed package',async()=>{
+test('R22 packer is reproducible and matches the official build output',async()=>{
  const out=await mkdtemp(join(tmpdir(),'opendesk-r22-md-'));
  try{
   for(const id of tools){
    const target=join(out,id+'.json');
    const report=await buildSidebarTool('examples/sidebar-tools/'+id,{out:target});
    assert.equal(report.validated,true);
-   const expected=await readFile('examples/sidebar-tools/'+id+'/'+id+'.opendesk-tool.json','utf8');
+   const expected=(await officialFixtures()).resources.get(officialPackagePath(id)).toString('utf8');
    const actual=await readFile(target,'utf8');
    assert.equal(actual,expected,'same validated source/version must have byte-identical JSON');
   }
@@ -116,12 +118,12 @@ test('R22 fixed release inclusion and trusted-site wiring are explicit',async()=
   readFile('scripts/prepare-public.mjs','utf8'),readFile('scripts/verify-package.mjs','utf8'),
   readFile('src/entrypoints/page-relay.js','utf8'),readFile('src/ui/sidebar-tools.js','utf8'),
   readFile('src/ui/tool.html','utf8'),readFile('src/sidebar-tools/sandbox.html','utf8')]);
- assert.match(publicScript,/web-markdown-clipper\.opendesk-tool\.json/);
- assert.match(verify,/web-markdown-clipper\.opendesk-tool\.json/);
+ assert.match(publicScript,/buildOfficialTools/);
+ assert.match(verify,/createOfficialToolResources/);
  assert.match(entry,/initPageClip/);
  assert.match(host,/CLIP_SITE_STORE/);
  assert.match(host,/currentPageTarget\.revalidate\(target\)/);
  assert.match(host,/documentId:target\.documentId/);
- assert.match(html,/sidebar-tool-official-clip-install/);
+ assert.match(html,/sidebar-tool-official-catalog/);
  assert.match(sandbox,/connect-src 'none'/);
 });

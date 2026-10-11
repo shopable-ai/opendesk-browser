@@ -9,7 +9,6 @@ on:
       - 'src/ui/sidebar-tools.js'
       - 'src/ui/sidebar-tools/package.js'
       - 'src/ui/tool.html'
-      - 'src/sidebar-tools/web-markdown-clipper.opendesk-tool.json'
       - 'scripts/prepare-public.mjs'
       - 'scripts/verify-package.mjs'
       - 'examples/sidebar-tools/web-markdown-clipper/**'
@@ -17,6 +16,15 @@ on:
       - 'tests/environment/markdown-tools-r22.test.mjs'
       - 'tests/framework/markdown-tools-native-r22.test.mjs'
       - '.github/workflows/markdown-tools-r22.yml'
+      - 'official-tools/**'
+      - 'src/sidebar-tools/**'
+      - 'src/ui/sidebar-tools/**'
+      - 'scripts/build-official-tools.mjs'
+      - 'scripts/build-sidebar-tool.mjs'
+      - 'scripts/build.mjs'
+      - 'scripts/wxt-development.mjs'
+      - 'tests/helpers/official-tools.mjs'
+      - 'tests/environment/official-tools-catalog-r45.test.mjs'
   workflow_dispatch:
 permissions:
   contents: read
@@ -38,17 +46,20 @@ jobs:
           npm run check
       - name: Build exact independently installable tool JSON
         run: |
-          npm run build:sidebar-tool -- examples/sidebar-tools/web-markdown-clipper
-          npm run build:sidebar-tool -- examples/sidebar-tools/markdown-workbench
-          cmp artifacts/sidebar-tools/web-markdown-clipper/1.0.0/web-markdown-clipper.opendesk-tool.json examples/sidebar-tools/web-markdown-clipper/web-markdown-clipper.opendesk-tool.json
-          cmp artifacts/sidebar-tools/markdown-workbench/1.0.0/markdown-workbench.opendesk-tool.json examples/sidebar-tools/markdown-workbench/markdown-workbench.opendesk-tool.json
-          cmp artifacts/sidebar-tools/web-markdown-clipper/1.0.0/web-markdown-clipper.opendesk-tool.json src/sidebar-tools/web-markdown-clipper.opendesk-tool.json
+          npm run build:sidebar-tool -- examples/sidebar-tools/web-markdown-clipper --out artifacts/sidebar-tools/web-markdown-clipper/web-markdown-clipper.opendesk-tool.json
+          npm run build:sidebar-tool -- examples/sidebar-tools/markdown-workbench --out artifacts/sidebar-tools/markdown-workbench/markdown-workbench.opendesk-tool.json
       - name: WXT strict production and development build and distributable pack
         run: |
           npm run build
+          cmp artifacts/sidebar-tools/web-markdown-clipper/web-markdown-clipper.opendesk-tool.json dist/production/official-tools/web-markdown-clipper/web-markdown-clipper.opendesk-tool.json
+          cmp artifacts/sidebar-tools/markdown-workbench/markdown-workbench.opendesk-tool.json dist/production/official-tools/markdown-workbench/markdown-workbench.opendesk-tool.json
           npm run build:dev
           npm run verify
           npm run pack
+      - name: Install Chinese fonts for readable UI screenshots
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y fonts-noto-cjk
       - name: Set up Chrome for Testing
         id: cft
         uses: browser-actions/setup-chrome@v2
@@ -70,8 +81,9 @@ jobs:
           retention-days: 7
           if-no-files-found: warn
           path: |
-            artifacts/sidebar-tools/web-markdown-clipper/1.0.0/*.json
-            artifacts/sidebar-tools/markdown-workbench/1.0.0/*.json
-            artifacts/markdown-tools-r22/*.png
+            artifacts/sidebar-tools/web-markdown-clipper/*.json
+            artifacts/sidebar-tools/markdown-workbench/*.json
+            artifacts/markdown-tools-r22/
+            dist/production/official-tools/
             docs/framework/evidence/wxt/builds/build-production.json
             docs/framework/evidence/wxt/builds/build-development.json

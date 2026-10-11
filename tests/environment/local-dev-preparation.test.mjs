@@ -46,10 +46,12 @@ test('30 saves coalesce, atomic save/delete/rename/recovery and latest syntax er
   p.put('src/value.js','export const v=32;');await until(()=>p.state().state==='ready');
 });
 test('explicit request joins preparing version; superseded build cannot publish and detach releases watchers',async t=>{
-  const p=fixture(t),original=p.resolver._resolve.bind(p.resolver);let release,entered;
-  const gate=new Promise(resolve=>release=resolve),started=new Promise(resolve=>entered=resolve);
-  let first=true;p.resolver._resolve=(id,options)=>original(id,{...options,beforeVerify:async()=>{if(first){first=false;entered();await gate;}}});
-  p.resolver.preparation.start(p.id);await started;
+  const p=fixture(t),original=p.resolver._resolve.bind(p.resolver);let release,entered=false;
+  const gate=new Promise(resolve=>release=resolve);
+  let first=true;p.resolver._resolve=(id,options)=>original(id,{...options,beforeVerify:async()=>{if(first){first=false;entered=true;await gate;}}});
+  // Production background timers/watchers deliberately do not keep Node alive.
+  // The test owns a bounded ref'ed wait while that background work starts.
+  p.resolver.preparation.start(p.id);await until(()=>entered);
   const run=p.resolver.resolve(p.id);
   p.put('src/value.js','export const v=42;');await pause(30);release();assert.equal(await evaluate((await run).sourceUtf8),42);
   await until(()=>p.state().state==='ready');assert.equal(await evaluate(p.resolver.cache.get(p.id).sourceUtf8),42);

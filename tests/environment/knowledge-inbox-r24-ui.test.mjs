@@ -1,26 +1,28 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
-import {OFFICIAL_APPS} from '../../src/marketplace/catalog.js';
+import {officialMarketApps} from '../../src/marketplace/catalog.js';
+import {officialFixtures} from '../helpers/official-tools.mjs';
+import {createSidebarToolPackage,encodeSidebarToolPackage} from '../../scripts/build-sidebar-tool.mjs';
+const official=await officialFixtures();
+const generated=encodeSidebarToolPackage(await createSidebarToolPackage('examples/sidebar-tools/knowledge-inbox')).toString('utf8');
+const builtin=official.resources.get('official-tools/knowledge-inbox/knowledge-inbox.opendesk-tool.json').toString('utf8');
 
 // Static contract tests complement, but never replace, the real CFT iframe test.
 const path='examples/sidebar-tools/knowledge-inbox/';
-const [html,css,js,config,generated,builtin]=await Promise.all([
+const [html,css,js,config]=await Promise.all([
   readFile(path+'src/index.html','utf8'),
   readFile(path+'src/style.css','utf8'),
   readFile(path+'src/main.js','utf8'),
-  readFile(path+'tool.config.json','utf8'),
-  readFile(path+'knowledge-inbox.opendesk-tool.json','utf8'),
-  readFile('src/sidebar-tools/knowledge-inbox.opendesk-tool.json','utf8')
+  readFile(path+'tool.config.json','utf8')
 ]);
 test('R24 ships the same readable package as the official built-in tool',()=>{
   const meta=JSON.parse(config),pkg=JSON.parse(generated);
-  assert.equal(meta.version,'1.1.0');
   assert.equal(pkg.version,meta.version);
   assert.equal(pkg.html,html);assert.equal(pkg.css,css);assert.equal(pkg.js,js);
   assert.equal(generated,builtin);
   assert.deepEqual(pkg.capabilities,['page.capture','knowledge.store','user.export']);
-  const listing=OFFICIAL_APPS.find(app=>app.toolId===pkg.id);
+  const listing=officialMarketApps(official.catalog).find(app=>app.toolId===pkg.id);
   assert.ok(listing,'Official marketplace listing must exist');
   assert.equal(listing.version,pkg.version,'Market version must track the package');
   assert.equal(listing.title,pkg.title,'Market title must track the package');
@@ -50,6 +52,8 @@ test('R24 Markdown presentation is DOM-only, URL restricted, without auto image 
 });
 test('R24 avoids a permanent status banner and provides selection/focus safeguards',()=>{
   assert.match(js,/editorStateQueue/);
+  assert.match(js,/OpenDeskTool\.setState\?\.\(\{dirty,busy\}\)/,'R24 must use the sandbox state object contract');
+  assert.doesNotMatch(js,/OpenDeskTool\.setState\?\.\(dirty,busy\)/,'Positional booleans cannot clear sandbox state');
   assert.match(js,/ifRevision:selected\.revision/);
   assert.match(js,/setDirty\(false\)/);
   assert.match(js,/restoring&&text===selected\.markdown\?null/,'Restore must not discard later edits');

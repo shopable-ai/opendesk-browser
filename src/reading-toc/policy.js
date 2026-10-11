@@ -5,8 +5,6 @@ export const READING_TOC_SITE_STORE='opendesk.sidebar-tools.toc-sites.v1';
 // overwriting one another's position when separate tabs save concurrently.
 export const READING_TOC_PLACEMENT_PREFIX='opendesk.sidebar-tools.toc-placement.v1:';
 export const READING_TOC_TOOL_ID='reading-toc';
-// Keep in sync with the official built-in package; checked by R4.3 tests.
-export const READING_TOC_OFFICIAL_VERSION='1.0.2';
 export const READING_TOC_PROTOCOL='opendesk.reading-toc.v1';
 export const TOC_CAPABILITY='page.toc';
 

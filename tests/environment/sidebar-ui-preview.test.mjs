@@ -119,8 +119,10 @@ test('R20/R23 five-tab design system has one token source and a strict trusted a
     assert.ok(html.includes('class="od-page" data-workbench-page="'+view+'"'),'shared page layout '+view);
   for(const toolbar of ['task-section-head','local-discovery-search-row','workflow-head','developer-source-switch','sidebar-tools-head'])
     assert.ok(html.includes('class="'+toolbar+' od-toolbar"'),'shared toolbar '+toolbar);
-  for(const card of ['sidebar-tool-official','local-discovery-list','catalog-reader'])
+  for(const card of ['local-discovery-list','catalog-reader'])
     assert.ok(html.includes('class="'+card+' od-surface"'),'shared surface '+card);
+  assert.ok(html.includes('id="sidebar-tool-official-catalog"'),'official rows render from trusted Catalog');
+  assert.match(await read('src/ui/sidebar-tools.js'),/row\.className='sidebar-tool-official od-surface'/,'dynamic official rows retain the shared surface');
   assert.ok(html.includes('class="local-discovery-filters od-segmented"'));
   assert.ok(html.includes('class="task-card-list od-stack"'));
   assert.ok(html.includes('class="sidebar-tool-list od-stack"'));

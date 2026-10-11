@@ -3,7 +3,7 @@
 import {readFile,writeFile,mkdir,realpath,stat} from 'node:fs/promises';
 import {resolve,dirname,join,extname,basename} from 'node:path';
 import {pathToFileURL} from 'node:url';
-import {validateSidebarToolPackage,SIDEBAR_TOOL_FORMAT} from '../src/ui/sidebar-tools/package.js';
+import {validateSidebarToolPackage,SIDEBAR_TOOL_FORMAT,serializeSidebarToolPackage} from '../src/ui/sidebar-tools/package.js';
 const fail=(message)=>{throw new Error('E_TOOL_BUILD: '+message);};
 function rel(value) {
   if(typeof value!=='string'||value.length>180||!value||
@@ -22,7 +22,7 @@ async function source(root,name,limit=220000,asBytes=false) {
   const bytes=await readFile(actual);
   return asBytes?bytes:new TextDecoder('utf-8',{fatal:true}).decode(bytes);
 }
-export async function buildSidebarTool(projectPath,{out}={}) {
+export async function createSidebarToolPackage(projectPath) {
   const root=await realpath(projectPath);
   const meta=JSON.parse(await source(root,'tool.config.json',16384));
   if(!meta||typeof meta!=='object'||Array.isArray(meta)||
@@ -50,10 +50,21 @@ export async function buildSidebarTool(projectPath,{out}={}) {
   if(/\{\{asset:/.test(embeddedHtml+css))fail('unresolved local asset reference');
   const pkg=validateSidebarToolPackage({format:SIDEBAR_TOOL_FORMAT,id:meta.id,version:meta.version,
     title:meta.title,description:meta.description,capabilities:meta.capabilities||[],html:embeddedHtml,css,js});
+  return pkg;
+}
+// The digest/size must describe the actual portable UTF-8 file, including its
+// canonical indentation and final newline, not a different compact encoding.
+export function encodeSidebarToolPackage(pkg) {
+  const bytes=Buffer.from(serializeSidebarToolPackage(pkg));
+  if(bytes.length>320000)fail('encoded tool package exceeds 320 KB');
+  return bytes;
+}
+export async function buildSidebarTool(projectPath,{out}={}) {
+  const pkg=await createSidebarToolPackage(projectPath),bytes=encodeSidebarToolPackage(pkg);
   const target=resolve(out||join('artifacts','sidebar-tools',pkg.id,pkg.version,pkg.id+'.opendesk-tool.json'));
   await mkdir(dirname(target),{recursive:true});
-  await writeFile(target,JSON.stringify(pkg,null,2)+'\n',{flag:'w'});
-  return {output:target,bytes:Buffer.byteLength(JSON.stringify(pkg)),id:pkg.id,version:pkg.version,
+  await writeFile(target,bytes,{flag:'w'});
+  return {output:target,bytes:bytes.length,id:pkg.id,version:pkg.version,
     capabilities:pkg.capabilities,validated:true,installed:false};
 }
 if(process.argv[1]&&import.meta.url===pathToFileURL(resolve(process.argv[1])).href){

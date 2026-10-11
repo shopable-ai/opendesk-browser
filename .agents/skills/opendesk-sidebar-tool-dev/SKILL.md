@@ -24,7 +24,7 @@ description: Develop, preview, package, review, install and verify any OpenDesk 
 - **普通工具 / UI**：编辑 `examples/sidebar-tools/<id>/tool.config.json` 及 `src/index.html/style.css/main.js`。依赖少则经典 JS，不为简单表单新建 React 应用。
 - **复杂组件**：复用 `react-starter` 或 `vue-starter`，编译成一个本地 IIFE + 静态 CSS；Tailwind 仅作为构建期可选工具。先成功本地构建再调用统一打包器。
 - **网站按钮、DOM 内容捕获、Native/受信任数据**：只有确切必要才审计 `src/` 的既有 Content Script、宿主路由、权限与测试；不能借工具 JSON 的 `page.toc/page.clip/page.capture/knowledge.store` 越权或自行重造框架。
-- **普通工具导入**：给用户生成 JSON 即可；**官方内置工具**才需要在审阅后更新 `src/sidebar-tools/<id>.opendesk-tool.json` 并重新构建整个扩展。
+- **普通工具导入**：给用户生成 JSON 即可；**官方可选工具**须维护可信源码与 `official-tools/catalog.json` 的项目登记，再构建整个扩展自动生成发行资源；不要手工维护生成 JSON 副本。
 
 ## 最短闭环：编辑 → 快照/打包 → 明确使用
 
@@ -44,17 +44,19 @@ node scripts/stage-sidebar-tool.mjs examples/sidebar-tools/<id>
 
 在对应 starter 的项目目录显式 `npm install` 建锁、审查并保留 lockfile，正式后续使用 `npm ci` → `npm run build` → `node ../../../scripts/stage-sidebar-tool.mjs "$PWD"`。持续构建时一个终端 `npm run build:watch`，另一个 `node ../../../scripts/watch-sidebar-tool.mjs "$PWD"`；只接受最后完成并带 `dist/build-ready.json`/hash 的构建。watcher 不替用户执行 npm、安装工具或授予权限。
 
-### 官方内置工具
+### 官方可选发行工具
+
+读取 [官方 Catalog 合同](../../../docs/api/official-tools-catalog.zh-CN.md)，维护 `examples/sidebar-tools/<id>/` 的配置、源码与资产；版本和能力不在 Catalog 重复登记。
 
 ```sh
-node scripts/build-sidebar-tool.mjs examples/sidebar-tools/<id> \
-  --out examples/sidebar-tools/<id>/<id>.opendesk-tool.json
-# 审阅差异后按项目要求把包同步到 src/sidebar-tools/<id>.opendesk-tool.json
+node scripts/build-official-tools.mjs --out artifacts/official-tools-release
 npm run check
 npm run build
 npm run build:dev
 npm run verify
 ```
+
+确认最终固定资源为 `dist/{production,development}/official-tools/<id>/<id>.opendesk-tool.json`，发行目录包含实际包版本、能力、大小和摘要。五个当前官方候选均为 optional；资源存在不等于已安装，不启动代码，不给网站授权。新增候选无需新增硬编码安装按钮或构建复制映射。
 
 仅 UI 工具热迭代**不必**重编整个扩展；修改 `src/` 可信宿主或更新内置发行资源才走完整扩展链路。别把 `dist/production/` Chrome 加载目录与单个 `.opendesk-tool.json` 导入包混为一谈；生成/观看快照也不是自动热安装。
 

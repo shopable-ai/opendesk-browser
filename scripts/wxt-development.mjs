@@ -3,6 +3,8 @@ import {resolve,dirname,relative} from 'node:path';
 import {createHash} from 'node:crypto';
 import {watch} from 'node:fs';
 import {STATIC_RESOURCES} from './prepare-public.mjs';
+import {buildOfficialTools,officialToolInputs,writeOfficialToolResources} from './build-official-tools.mjs';
+import {OFFICIAL_CATALOG_PATH,validateOfficialReleaseCatalog} from '../src/sidebar-tools/official-catalog.js';
 import {WORKSPACE_STYLE_INPUTS,WORKSPACE_STYLE_DEST,compileWorkspaceStyle} from './build-workspace-style.mjs';
 import {createSdkResourceManifest,SDK_RESOURCE_MANIFEST,createBuiltinResourceManifest,BUILTIN_RESOURCE_MANIFEST,verifyManifest} from './verify-package.mjs';
 
@@ -19,7 +21,8 @@ export function configureDevelopmentRestarts(server,{root=process.cwd(),isClosin
   const recover=(event,file)=>{
     if(isClosing()||!['add','change','unlink'].includes(event))return;
     const path=relative(root,resolve(file));
-    if(!path.startsWith('src/')&&!path.startsWith('scripts/')&&
+    if(!path.startsWith('src/')&&!path.startsWith('scripts/')&&!path.startsWith('official-tools/')&&
+      !path.startsWith('examples/sidebar-tools/')&&
       !['wxt.config.mjs','manifest.json','package.json','package-lock.json'].includes(path))return;
     clearRecovery();void server.restart();
   };
@@ -74,7 +77,13 @@ export async function publishDevelopment(wxt,output) {
   manifest.content_security_policy=source.content_security_policy;
   verifyManifest(manifest);
   await writeFile(manifestPath,JSON.stringify(manifest,null,2)+'\n');
-  const paths=[...new Set(['manifest.json',...output.publicAssets.map(asset=>asset.fileName),
+  const official=validateOfficialReleaseCatalog(JSON.parse(await readFile(resolve(wxt.config.outDir,OFFICIAL_CATALOG_PATH),'utf8')));
+  for(const row of official.apps){
+    const bytes=await readFile(resolve(wxt.config.outDir,row.packagePath));
+    if(bytes.length!==row.bytes||createHash('sha256').update(bytes).digest('hex')!==row.sha256)
+      throw new Error('Official development release is incomplete: '+row.toolId);
+  }
+  const paths=[...new Set(['manifest.json',OFFICIAL_CATALOG_PATH,...official.apps.map(row=>row.packagePath),...output.publicAssets.map(asset=>asset.fileName),
     ...output.steps.flatMap(step=>step.chunks.map(chunk=>chunk.fileName))])].sort();
   await writeFile(resolve(wxt.config.outDir,SDK_RESOURCE_MANIFEST),JSON.stringify(await createSdkResourceManifest(wxt.config.outDir),null,2)+'\n');
   // WXT serve has a different output lifecycle from scripts/build.mjs. Page
@@ -112,22 +121,50 @@ export function configureDevelopment(wxt,server) {
   builder.importEntrypoints=guardedImport;
   const sources=new Map(Object.entries(STATIC_RESOURCES).map(([src,dest])=>[resolve(wxt.config.root,src),dest]));
   const styleSources=new Set(WORKSPACE_STYLE_INPUTS.map(path=>resolve(wxt.config.root,path)));
-  let copying=Promise.resolve(),accepting=true,changeId=0;
-  const copyErrors=new Map(),sourceVersions=new Map();
+  // The authored catalog and declared tool sources replace checked-in JSON.
+  const officialRoot=resolve(wxt.config.root,'official-tools');
+  const toolRoot=resolve(wxt.config.root,'examples/sidebar-tools');
+  let officialGeneration=0,catalogDirty=false,changeId=0;
+  const officialChanges=new Set(),copyErrors=new Map(),sourceVersions=new Map();
+  let copying=Promise.resolve(),accepting=true;
   const sync=(event,file)=>{
-    if(!accepting)return;
+    if(!accepting||!['add','change','unlink'].includes(event))return;
     const input=resolve(file),dest=sources.get(input),style=styleSources.has(input);
-    if(!dest&&!style)return;
+    const official=input===resolve(wxt.config.root,OFFICIAL_CATALOG_PATH)||input.startsWith(toolRoot+'/');
+    if(!dest&&!style&&!official)return;
     const version=++changeId;sourceVersions.set(input,version);
-    if(event==='unlink'){
+    const errorKey=official?'official':input;
+    if(event==='unlink'&&!official){
       const error=new Error('Required Workspace/static source removed: '+relative(wxt.config.root,file));
       copyErrors.set(input,error);wxt.logger.error('[OpenDesk dev] '+error.message);
       return;
     }
     // Failed compile must not publish a revision, but correcting the source
     // allows the next change to recover without restarting dev.
-    let failureKey=input;
+    let failureKey=errorKey;
+    if(official)officialChanges.add(relative(wxt.config.root,input));
+    if(input===resolve(wxt.config.root,OFFICIAL_CATALOG_PATH))catalogDirty=true;
+    const generation=official?++officialGeneration:0;
     copying=copying.catch(()=>{}).then(async()=>{
+      if(official){
+        if(generation!==officialGeneration)return;
+        const changes=[...officialChanges];officialChanges.clear();
+        const inputs=await officialToolInputs(wxt.config.root);
+        if(!catalogDirty&&!changes.some(path=>inputs.includes(path)))return;
+        const generated=await buildOfficialTools(wxt.config.publicDir,{root:wxt.config.root});
+        copyErrors.delete(errorKey);
+        if(catalogDirty){
+          // WXT restart does not rerun scripts/dev.mjs's initial preparePublic.
+          // Regenerate first, then refresh its asset inventory through the
+          // existing restart queue. Do not await stop/drain inside this queue.
+          catalogDirty=false;void server.restart();return;
+        }
+        // Copy complete packages first and catalog last, using the same queue
+        // that gates revision publication. Never expose a failed half-build.
+        await writeOfficialToolResources(generated,wxt.config.outDir);
+        void publish();
+        return;
+      }
       if(style){
         failureKey=WORKSPACE_STYLE_DEST;
         const result=await compileWorkspaceStyle(wxt.config.publicDir);
@@ -150,20 +187,24 @@ export function configureDevelopment(wxt,server) {
     });
   };
   const watcher=server.watcher;
-  publicationGuard=async()=>{await copying;if(copyErrors.size)throw copyErrors.values().next().value;};
-  watcher.add([...new Set([...sources.keys(),...styleSources])]);watcher.on('all',sync);
+  const checkCopyErrors=()=>{if(copyErrors.size)throw copyErrors.values().next().value;};
+  publicationGuard=async()=>{await copying;checkCopyErrors();};
+  watcher.add([...new Set([...sources.keys(),...styleSources,officialRoot,toolRoot])]);watcher.on('all',sync);
   // WXT's asynchronous file reloader is installed after server:started.
   // Keep its rejected metadata/build queue from escaping EventEmitter.
   server[restartKey]?.protectWatcher();
-  const session={publication:()=>publishing,stopCopies:()=>{accepting=false;watcher.off('all',sync);},drain:async()=>{await copying;if(copyErrors.size)throw copyErrors.values().next().value;await publishing;},restore:()=>{if(builder.build===guardedBuild)builder.build=build;if(builder.importEntrypoints===guardedImport)builder.importEntrypoints=importEntries;}};
+  const session={publication:()=>publishing,stopCopies:()=>{accepting=false;watcher.off('all',sync);},drain:async()=>{await copying;checkCopyErrors();await publishing;},restore:()=>{if(builder.build===guardedBuild)builder.build=build;if(builder.importEntrypoints===guardedImport)builder.importEntrypoints=importEntries;}};
   sessions.set(server,session);server[sessionKey]=session;
 }
-export async function closeDevelopment(_wxt,server) {
+export async function closeDevelopment(wxt,server) {
   const session=server[sessionKey];session?.stopCopies();
-  await session?.drain();
-  session?.restore();delete server[sessionKey];
-  server[restartKey]?.unprotectWatcher(server.watcher);
-  sessions.delete(server);
+  try{await session?.drain();}
+  catch(error){wxt.logger?.error('[OpenDesk dev] Closing after a failed build: '+error.message);}
+  finally{
+    session?.restore();delete server[sessionKey];
+    server[restartKey]?.unprotectWatcher(server.watcher);
+    sessions.delete(server);
+  }
 }
 export function waitDevelopmentPublication(wxt){return wxt.server?.[sessionKey]?.publication();}
 export async function drainDevelopment(server) {

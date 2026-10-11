@@ -1,6 +1,6 @@
 // One installation transaction path for Side Panel and Marketplace.
 // This is the EXISTING v1 tool registry and authority, not a second runner.
-import {SIDEBAR_TOOL_STORE, MAX_INSTALLED_TOOLS, validateSidebarToolPackage, sidebarToolStorageKey} from './package.js';
+import {SIDEBAR_TOOL_STORE, MAX_INSTALLED_TOOLS, validateSidebarToolPackage, sidebarToolStorageKey,serializeSidebarToolPackage} from './package.js';
 import {READING_TOC_SITE_STORE, READING_TOC_PLACEMENT_PREFIX, READING_TOC_TOOL_ID} from '../../reading-toc/policy.js';
 import {CLIP_SITE_STORE} from '../../page-clip/policy.js';
 import {CAPTURE_SITE_STORE, KNOWLEDGE_TOOL_ID, KNOWLEDGE_WORKSPACE_PREFIX} from '../../knowledge/policy.js';
@@ -61,12 +61,19 @@ export async function reconcileMarketOperation(api,operationId,expectedPackage=n
   const row=recoverableOperations(stored[MARKET_OPERATIONS_STORE])[operationId];
   if(!row)return {state:'missing',operationId};
   const current=installed.find(tool=>tool.id===row.toolId);
-  const matched=expectedPackage&&current&&sameSidebarToolPackage(current,expectedPackage);
+  let matched=expectedPackage&&current&&expectedPackage.id===row.toolId&&expectedPackage.version===row.version&&
+    row.marketId==='opendesk/'+expectedPackage.id&&sameSidebarToolPackage(current,expectedPackage);
+  if(matched){
+    const bytes=new TextEncoder().encode(serializeSidebarToolPackage(expectedPackage));
+    const hash=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes)),
+      value=>value.toString(16).padStart(2,'0')).join('');
+    matched=hash===row.sha256;
+  }
   return {state:matched?'succeeded':row.state==='succeeded'?'outcome-unknown':row.state,
     operationId,toolId:row.toolId,marketId:row.marketId,installedVersion:current?.version||null};
 }
 export async function installReviewedSidebarTool({api,lockManager,candidate,baseline=null,
-  market=null,reviewApproved=false,approveUpdate=()=>true}){
+  market=null,reviewApproved=false,approveUpdate=()=>true,approveSourceChange=null}){
   if(reviewApproved!==true)throw error('必须先经过用户明确安装审阅','E_REVIEW_REQUIRED');
   const tool=validateSidebarToolPackage(candidate);
   const identity=marketIdentity(market,tool);
@@ -81,8 +88,14 @@ export async function installReviewedSidebarTool({api,lockManager,candidate,base
     const provenance=(await api.storage.local.get(MARKET_PROVENANCE_STORE))[MARKET_PROVENANCE_STORE]||{};
     if(identity&&existing&&!sameSidebarToolPackage(existing,tool)) {
       const record=provenance[tool.id];
-      if(record?.marketId!==identity.marketId||!shaPattern.test(record?.sha256))
-        throw error('此工具 ID 已被其他来源使用，禁止覆盖','E_PUBLISHER_CONFLICT');
+      if(record?.marketId!==identity.marketId||!shaPattern.test(record?.sha256)){
+        // Existing pre-market/local packages keep their data and identity. Only
+        // an explicit source replacement review may adopt an unverified one.
+        // A conflicting/corrupted recorded publisher still fails closed.
+        if(record||typeof approveSourceChange!=='function')
+          throw error('此工具 ID 已被其他来源使用，必须明确审核来源替换','E_PUBLISHER_CONFLICT');
+        if(await approveSourceChange(existing,tool)!==true)return {state:'cancelled',tool};
+      }
     }
     if(existing&&sameSidebarToolPackage(existing,tool)){
       if(identity)await api.storage.local.set({[MARKET_PROVENANCE_STORE]:{
@@ -114,7 +127,7 @@ export async function installReviewedSidebarTool({api,lockManager,candidate,base
       // No fresh installation may inherit orphan tool data or site authorizations.
       if(!existing)await api.storage.local.remove(sidebarToolStorageKey(tool.id));
       for(const [store,capability] of [[READING_TOC_SITE_STORE,'page.toc'],[CLIP_SITE_STORE,'page.clip'],[CAPTURE_SITE_STORE,'page.capture']]){
-        if(existing&&tool.capabilities.includes(capability))continue;
+        if(existing?.capabilities.includes(capability)&&tool.capabilities.includes(capability))continue;
         const value=(await api.storage.local.get(store))[store]||{};
         if(Object.hasOwn(value,tool.id)){
           const next={...value};delete next[tool.id];

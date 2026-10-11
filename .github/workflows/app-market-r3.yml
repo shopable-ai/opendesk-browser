@@ -1,4 +1,4 @@
-name: OpenDesk app market R3 package and native Chrome
+name: OpenDesk official catalog R4.5 and market R3 native Chrome
 on:
   push:
     branches: [main]
@@ -8,6 +8,7 @@ on:
       - 'src/ui/sidebar-tools/**'
       - 'src/ui/sidebar-tools.js'
       - 'src/ui/tool.html'
+      - 'src/ui/tool-shell.css'
       - 'src/sidebar-tools/**'
       - 'scripts/prepare-public.mjs'
       - 'scripts/verify-package.mjs'
@@ -17,8 +18,21 @@ on:
       - 'package.json'
       - 'tests/environment/app-market-r3.test.mjs'
       - 'tests/environment/app-market-batch-r3.test.mjs'
+
+      - 'tests/environment/sidebar-tools-host.test.mjs'
+      - 'tests/environment/dev-service.test.mjs'
+      - 'tests/environment/local-dev-preparation.test.mjs'
       - 'tests/framework/app-market-r3-native.test.mjs'
       - '.github/workflows/app-market-r3.yml'
+      - 'examples/sidebar-tools/**'
+      - 'official-tools/**'
+      - 'scripts/build-official-tools.mjs'
+      - 'scripts/build-sidebar-tool.mjs'
+      - 'scripts/build.mjs'
+      - 'scripts/wxt-development.mjs'
+      - 'scripts/dev.mjs'
+      - 'tests/helpers/official-tools.mjs'
+      - 'tests/environment/official-tools-catalog-r45.test.mjs'
   workflow_dispatch:
 permissions:
   contents: read
@@ -36,7 +50,7 @@ jobs:
         run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Validate fixed releases, provenance isolation and migrations
         run: |
-          node --test tests/environment/app-market-r3.test.mjs tests/environment/app-market-batch-r3.test.mjs
+          node --test tests/environment/app-market-r3.test.mjs tests/environment/app-market-batch-r3.test.mjs tests/environment/official-tools-catalog-r45.test.mjs tests/environment/sidebar-tools-host.test.mjs tests/environment/dev-service.test.mjs
           npm run check
       - name: Build and validate genuine production and development extensions
         run: |
@@ -47,20 +61,25 @@ jobs:
       - name: Generate deployable public static routes
         run: |
           npm run build:market-site
-          test -f dist/app-market-public/apps/opendesk/reading-toc/versions/1.0.2/index.html
-          test -f dist/app-market-public/install/opendesk/reading-toc/versions/1.0.2/index.html
+          node --input-type=module -e "import {readFile,access} from 'node:fs/promises';const catalog=JSON.parse(await readFile('dist/production/official-tools/catalog.json'));for(const app of catalog.apps)for(const route of ['apps','install'])await access('dist/app-market-public/'+route+'/'+app.id+'/versions/'+app.version+'/index.html')"
           test -f dist/app-market-public/collections/reading-kit/revisions/1/index.html
           test -f dist/app-market-public/catalog.json
+      - name: Install Chinese fonts for readable UI screenshots
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y fonts-noto-cjk
       - name: Set up Chrome for Testing
         id: cft
         uses: browser-actions/setup-chrome@v2
         with:
           chrome-version: stable
-      - name: Real MV3 Chrome Side Panel → Marketplace → installed tool
+      - name: Real MV3 Chrome official lifecycle and persistent restarts
         env:
           CHROME_BIN: ${{ steps.cft.outputs.chrome-path }}
           OPENDESK_NATIVE_HEADED: '1'
-        run: timeout --signal=TERM --kill-after=8s 220s xvfb-run -a node --test tests/framework/app-market-r3-native.test.mjs
+        run: timeout --signal=TERM --kill-after=8s 480s xvfb-run -a node --test --test-concurrency=1 tests/framework/app-market-r3-native.test.mjs
+      - name: Full environment regressions against both actual builds
+        run: npm test
       - name: Preserve reviewable receipts and genuine browser screenshots
         if: always()
         uses: actions/upload-artifact@v4
@@ -69,7 +88,7 @@ jobs:
           retention-days: 10
           if-no-files-found: warn
           path: |
-            artifacts/app-market-r3/*.png
-            artifacts/app-market-r3/*.json
+            artifacts/app-market-r3/
+            dist/production/official-tools/
             docs/framework/evidence/wxt/builds/build-production.json
             docs/framework/evidence/wxt/builds/build-development.json

@@ -14,8 +14,11 @@ export function isPageMatchPattern(value) {
   if (typeof value !== 'string' || /[\s\\\u0000-\u001f\u007f]/.test(value)) return false;
   const match = /^(https?|\*):\/\/([^/]+)(\/.*)$/.exec(value);
   if (!match) return false;
+  // Chromium URLPattern supports an optional exact or wildcard port.
+  // Matching a port does not grant site or installation authorization.
   const authority = /^(\[[^\]]+\]|[^:]+)(?::(\*|[0-9]+))?$/.exec(match[2]);
-  if (!authority || (authority[2] !== undefined && authority[2] !== '*' && Number(authority[2]) > 65535)) return false;
+  if (!authority || (authority[2] !== undefined && authority[2] !== '*' &&
+      Number(authority[2]) > 65535) || match[3].includes('#')) return false;
   const host = authority[1];
   if (host === '*') return true;
   const actual = host.startsWith('*.') ? host.slice(2) : host;
@@ -60,3 +63,39 @@ export function resolvePageProgramRules(parsed, admission, explicitRules) {
   }
   return rules;
 }
+
+ // A same-document SPA guard, based only on the already validated Chrome
+ // HTTP(S) match-pattern subset. Not a Chrome website or installation grant.
+export function createPageProgramURLMatcher(value) {
+  const rules=validatePageProgramRules(value);
+  const glob=pattern=>{
+    const [,scheme,authority,path]=/^(https?|\*):\/\/([^/]+)(\/.*)$/.exec(pattern);
+    const [,host,port]=/^(\[[^\]]+\]|[^:]+)(?::(\*|[0-9]+))?$/.exec(authority);
+    const name=host.toLowerCase(),wildcard=name.startsWith('*.'),suffix=wildcard?name.slice(2):name;
+    const pathMatches=input=>{
+      let i=0,j=0,star=-1,retry=0;
+      while(i<input.length){
+        if(path[j]===input[i]){i++;j++;}
+        else if(path[j]==='*'){star=j++;retry=i;}
+        else if(star>=0){j=star+1;i=++retry;}
+        else return false;
+      }
+      while(path[j]==='*')j++;
+      return j===path.length;
+    };
+    return url=>{
+      const effectivePort=url.port||(url.protocol==='https:'?'443':'80');
+      return (scheme==='*'||url.protocol===scheme+':')&&
+        (name==='*'||(wildcard?url.hostname===suffix||url.hostname.endsWith('.'+suffix):url.hostname===suffix))&&
+        (port===undefined||port==='*'||Number(port)===Number(effectivePort))&&
+        pathMatches(url.pathname+url.search);
+    };
+  };
+  const included=rules.matches.map(glob),excluded=rules.excludeMatches.map(glob);
+  return href=>{
+    let url;try{url=new URL(href);}catch{return false;}
+    return ['https:','http:'].includes(url.protocol)&&!url.username&&!url.password&&
+      included.some(match=>match(url))&&!excluded.some(match=>match(url));
+  };
+}
+export function pageProgramUrlMatches(rules,href){return createPageProgramURLMatcher(rules)(href);}

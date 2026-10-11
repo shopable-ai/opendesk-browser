@@ -141,7 +141,7 @@ test('Knowledge R1 Chrome: reviewed install, capture, persistent editor and inli
   return items.find(x=>x.type==='service_worker'&&/^chrome-extension:\/\/[^/]+\/sw\.js/.test(x.url||''))?.url?.split('/')[2];
  },'MV3 worker');
  const ui=await openTab('chrome-extension://'+extensionId+'/ui/tool.html?hostInstanceId='+randomUUID());host=ui.cdp;
- await until(()=>evalIn(host,'!!document.querySelector("#sidebar-tool-official-knowledge-install")'),'tool host');
+ await until(()=>evalIn(host,'!!document.querySelector("#sidebar-tool-official-knowledge-inbox-install")'),'tool host');
  // Test harness control opens a real SIDE_PANEL with a real Chrome gesture.
  // It supplies no content, grants, package data or fake native acknowledgement.
  const windowId=await evalIn(host,'chrome.windows.getCurrent().then(w=>w.id)');
@@ -154,7 +154,7 @@ test('Knowledge R1 Chrome: reviewed install, capture, persistent editor and inli
  await side.send('Runtime.enable');await side.send('Page.enable');
  await until(()=>evalIn(side,'!!document.querySelector("#tab-tools")'),'Tools tab');await click(side,'#tab-tools');
  assert.equal(await evalIn(article,'document.querySelectorAll("[data-opendesk-capture-root]").length'),0,'No controls before installation and consent');
- await click(side,'#sidebar-tool-official-knowledge-install');
+ await click(side,'#sidebar-tool-official-knowledge-inbox-install');
  await until(()=>evalIn(side,'!document.querySelector("#sidebar-tool-preview").hidden'),'review');
  assert.equal(await evalIn(side,'document.querySelectorAll("#sidebar-tool-frame iframe").length'),0,'Review does not execute the package');
  await click(side,'#sidebar-tool-install');
@@ -229,6 +229,9 @@ test('Knowledge R1 Chrome: reviewed install, capture, persistent editor and inli
  await click(clip,'#ki-save');
  await until(async()=>{const data=await evalIn(side,readStore);return data.records[0].draft?.includes('已整理内容');},'draft saved');
  assert.match((await evalIn(side,readStore)).records[0].markdown,/第二块 Markdown/,'Original remains intact');
+  assert.equal(await evalIn(clip,'document.querySelector("#ki-editor").hidden'),true,'save returns to reader');
+  assert.equal(await evalIn(clip,'document.querySelector("#ki-markdown").querySelector("script,img,iframe")===null'),true,'Markdown does not mount scripts or images');
+  assert.equal(await evalIn(clip,'document.querySelector("#ki-markdown").textContent.includes("<script>alert(1)</script>")'),true,'HTML is displayed as literal text');
  // A restored original followed by new typing is still a draft, never silently erased.
  await click(clip,'#ki-edit');
  await click(clip,'#ki-restore');
@@ -241,9 +244,6 @@ test('Knowledge R1 Chrome: reviewed install, capture, persistent editor and inli
    return data.records[0].draft?.includes('恢复原文后继续编辑');
  },'post-restore re-edit preserved');
  assert.match((await evalIn(side,readStore)).records[0].markdown,/第二块 Markdown/,'Captured original remains immutable');
-  assert.equal(await evalIn(clip,'document.querySelector("#ki-editor").hidden'),true,'save returns to reader');
-  assert.equal(await evalIn(clip,'document.querySelector("#ki-markdown").querySelector("script,img,iframe")===null'),true,'Markdown does not mount scripts or images');
-  assert.equal(await evalIn(clip,'document.querySelector("#ki-markdown").textContent.includes("<script>alert(1)</script>")'),true,'HTML is displayed as literal text');
  await click(clip,'#ki-outline-toggle');
  await until(()=>evalIn(clip,'document.querySelector("#ki-outline").textContent.includes("重新编辑的草稿")'),'structure outline');
  await captureState('saved-outline',[360,400,600]);
@@ -252,13 +252,21 @@ test('Knowledge R1 Chrome: reviewed install, capture, persistent editor and inli
  await click(clip,'#ki-delete');await until(()=>evalIn(clip,'!document.querySelector("#ki-confirm").hidden'),'inline delete');
  await click(clip,'#ki-confirm-yes');
  await until(async()=>!(await evalIn(side,readStore)).records.length,'record removed');
+ acceptDialog=true;
  await click(side,'#sidebar-tool-back');
+ const postClose=await evalIn(side,'({listHidden:document.querySelector("#sidebar-tool-list-view").hidden,displayHidden:document.querySelector("#sidebar-tool-display").hidden,toolsSelected:document.querySelector("#tab-tools")?.getAttribute("aria-selected")})');
+ console.log('KNOWLEDGE_STAGE: tool closed',JSON.stringify(postClose));
+ await until(()=>evalIn(side,'!document.querySelector("#sidebar-tool-list-view").hidden'),'tool list visible after closing knowledge');
+ assert.equal(dialogs,2,'Saved and deleted record must not produce a third unsaved-changes prompt');
+ await click(side,'#tab-tools');
  await click(article,'#fixture-spa');
  await until(()=>evalIn(article,'document.querySelectorAll("[data-opendesk-capture-root]").length===1'),'SPA does not leak old controls');
  // Site consent is scoped to the currently active top-level page, not a background tab.
  await browser.send('Target.activateTarget',{targetId:page.targetId});
  await article.send('Page.bringToFront');
  await until(()=>evalIn(side,'!document.querySelector('+JSON.stringify(grant)+').disabled'),'ChatGPT grant controls ready after returning to page');
+ const grantVisibility=await evalIn(side,'(()=>{const el=document.querySelector('+JSON.stringify(grant)+');const list=document.querySelector("#sidebar-tool-list-view");return {exists:!!el,disabled:el?.disabled,rects:el?.getClientRects().length,listHidden:list?.hidden,activeTab:document.querySelector("#tab-tools")?.getAttribute("aria-selected")};})()');
+ console.log('KNOWLEDGE_STAGE: revocation control',JSON.stringify(grantVisibility));
  acceptDialog=true;await click(side,grant);
  await until(()=>evalIn(article,'document.querySelectorAll("[data-opendesk-capture-root]").length===0'),'Revocation removes buttons');
  const result={result:'NATIVE_CHROME_CONTROLLED_FIXTURE_PASS',sourceCommit:process.env.GITHUB_SHA||null,

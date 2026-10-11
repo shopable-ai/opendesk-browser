@@ -1,11 +1,14 @@
 import {createPageUI} from '@opendesk/ui';
 import {getPageTitle} from './title.js';
 import {renderPanel} from './view.js';
+import {createDemoEnhancer} from './enhancement.js';
 
+const pageRules={matches:['http://127.0.0.1/*'],excludeMatches:[],
+  runAt:'document_idle',allFrames:false,world:'USER_SCRIPT'};
 // After main() returns, owned callbacks live until cleanup. Closing the panel
 // does not invoke main() again; the independent launcher can reopen its UI.
 export default async function main({assets}) {
-  const launcher=createPageUI({id:'sample.page-ui-basic.launcher',assets});
+  const launcher=createPageUI({id:'sample.page-ui-basic.launcher',assets,pageRules});
   let panel=null,inline=null;
   launcher.onDispose(()=>{inline?.destroy();panel?.destroy();});
   try {
@@ -17,7 +20,7 @@ export default async function main({assets}) {
     const config=launcher.getAsset('assets/config.json');
     function openPanel(){
       if(panel?.active())return;
-      panel=createPageUI({id:'sample.page-ui-basic.panel',assets,baseStyles:true});
+      panel=createPageUI({id:'sample.page-ui-basic.panel',assets,baseStyles:true,pageRules});
       panel.addStyle(panel.getAsset('assets/panel.css'));
       panel.onDispose(()=>{panel=null;reopen.hidden=false;});
       renderPanel(panel,{config,pageTitle:getPageTitle(document),
@@ -29,7 +32,7 @@ export default async function main({assets}) {
     // Opt-in local test target: A inline -> B independently anchored -> C floating.
     // Other sites retain the original launcher/panel without adding another entry.
     if(document.querySelector('#page-ui-demo-target')){
-      inline=createPageUI({id:'sample.page-ui-basic.inline',assets,
+      inline=createPageUI({id:'sample.page-ui-basic.inline',assets,pageRules,
         mount:{selector:'#page-ui-demo-target',position:'after'}});
       const action=document.createElement('button');
       action.type='button';action.className='od-button od-button--primary';
@@ -37,8 +40,16 @@ export default async function main({assets}) {
       const feedback=document.createElement('span');
       feedback.className='od-status';feedback.setAttribute('role','status');
       feedback.style.marginInlineStart='8px';
-      inline.content.append(action,feedback);
+      const change=document.createElement('button');change.type='button';
+      change.className='od-button';change.textContent='AI · 高亮段落';
+      inline.content.append(action,change,feedback);
       inline.on(action,'click',()=>{feedback.textContent=getPageTitle(document);});
+      const enhancer=createDemoEnhancer(inline);
+      inline.on(change,'click',()=>{
+        const result=enhancer.toggle();
+        change.textContent=result.active?'AI · 撤销标记':'AI · 高亮段落';
+        feedback.textContent=result.message;
+      });
     }
     openPanel();
     return {status:'UI_OPEN',title:getPageTitle(document),mode:'manual-page-preview',

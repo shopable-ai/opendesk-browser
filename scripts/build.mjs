@@ -1,4 +1,5 @@
 import {preparePublic} from './prepare-public.mjs';
+import {officialToolInputs} from './build-official-tools.mjs';
 import {acquireDevelopmentLock} from './development-lock.mjs';
 import {prepare,build} from 'wxt';
 import {mkdir, readFile, writeFile, rm, mkdtemp} from 'node:fs/promises';
@@ -12,7 +13,7 @@ import {verifyPackage, filesAt, createSdkResourceManifest, SDK_RESOURCE_MANIFEST
 const mode = process.argv[2] || 'production';
 if (!['production', 'development'].includes(mode)) throw new Error('Invalid build mode');
 async function sourceInputs() {
-  const paths = [...(await filesAt('src')).map(path => `src/${path}`), ...(await filesAt('scripts')).map(path => `scripts/${path}`), 'manifest.json', 'wxt.config.mjs', 'package.json', 'package-lock.json', 'docs/contracts/licenses/todo-user-vue-MIT.txt'].sort();
+  const paths = [...await officialToolInputs(), ...(await filesAt('src')).map(path => `src/${path}`), ...(await filesAt('scripts')).map(path => `scripts/${path}`), 'manifest.json', 'wxt.config.mjs', 'package.json', 'package-lock.json', 'docs/contracts/licenses/todo-user-vue-MIT.txt'].sort();
   return Promise.all(paths.map(async path => { const bytes = await readFile(path); return {path, bytes: bytes.length, sha256: createHash('sha256').update(bytes).digest('hex')}; }));
 }
 const releaseOutput=await acquireDevelopmentLock('build');

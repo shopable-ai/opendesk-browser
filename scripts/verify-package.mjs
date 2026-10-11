@@ -8,8 +8,8 @@ import {REQUIRED_BROWSER_API_PERMISSIONS, OPTIONAL_PLUGIN_API_PERMISSIONS, REQUI
 import {SDK_RESOURCE_PATHS, SDK_RESOURCE_MANIFEST} from '../src/framework/sdk/resource-contract.js';
 import {BUILTIN_CATALOG,BUILTIN_RESOURCE_PATHS,BUILTIN_RUNTIME_CATALOG} from '../src/libs/catalog.js';
 import {inspectWorkspaceStyle} from './build-workspace-style.mjs';
-import {OFFICIAL_APPS,MARKET_SCHEMA,officialPackagePath} from '../src/marketplace/catalog.js';
-import {validateSidebarToolPackage} from '../src/ui/sidebar-tools/package.js';
+import {readOfficialSources,createOfficialToolResources} from './build-official-tools.mjs';
+import {OFFICIAL_CATALOG_PATH,officialPackagePath} from '../src/sidebar-tools/official-catalog.js';
 const require = createRequire(import.meta.url);
 const {parse} = require('acorn');
 export {PACKAGE_ENTRIES, FIXED_OUTPUTS, BUILD_POLICY, SDK_RESOURCE_MANIFEST};
@@ -46,9 +46,11 @@ const HTML_REFERENCES = Object.freeze({
 const generatedJS = ['sw.js', ...Object.values(FIXED_OUTPUTS)].sort();
 const vendorJS = [BUILTIN_CATALOG.bootstrap,...Object.values(PINNED_USER_SCRIPT_LIBRARIES).map(row => row.output)];
 const expectedJS = [...generatedJS, ...vendorJS].sort();
+const officialSource=await readOfficialSources();
+const officialPaths=[OFFICIAL_CATALOG_PATH,...officialSource.tools.map(row=>officialPackagePath(row.id))];
 const required = ['manifest.json', SDK_RESOURCE_MANIFEST, BUILTIN_RESOURCE_MANIFEST,
   ...BUILTIN_RESOURCE_PATHS,
-  ...Object.keys(HTML_REFERENCES), 'ui/design-tokens.css', 'ui/design-system.css', 'ui/tool-shell.css', 'native-agent/settings.css', 'native-agent/workspace.css', 'ui/marketplace.css', 'market/catalog.json', 'sidebar-tools/quick-notes.opendesk-tool.json', 'sidebar-tools/markdown-workbench.opendesk-tool.json', 'sidebar-tools/reading-toc.opendesk-tool.json', 'sidebar-tools/web-markdown-clipper.opendesk-tool.json', 'sidebar-tools/knowledge-inbox.opendesk-tool.json', ...expectedJS, ...Object.keys(FIXED_ASSETS)].sort();
+  ...Object.keys(HTML_REFERENCES), 'ui/design-tokens.css', 'ui/design-system.css', 'ui/tool-shell.css', 'native-agent/settings.css', 'native-agent/workspace.css', 'ui/marketplace.css', ...officialPaths, ...expectedJS, ...Object.keys(FIXED_ASSETS)].sort();
 const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 const digest = bytes => createHash('sha256').update(bytes).digest('hex');
 // The shipping SW has a separate 327,680-byte hard limit; other production
@@ -359,21 +361,12 @@ export async function verifyPackage(directory, {mode: requestedMode} = {}) {
     if(cssPath==='native-agent/workspace.css')inspectWorkspaceStyle(css);
     if(cssPath==='ui/design-tokens.css' && (!css.includes('--od-brand:#365eda') || /\b(?:html|body)\s*\{|\*\s*\{/.test(css))) throw new Error('R23 tokens must remain page-agnostic');
   }
-  // The shipped catalog is trusted only if its immutable package hashes,
-  // package identity and declared capabilities match every shipped payload.
-  const catalog=JSON.parse(await readFile(join(root,'market/catalog.json'),'utf8'));
-  if(catalog?.schema!==MARKET_SCHEMA||!Array.isArray(catalog.apps)||
-    catalog.apps.length!==OFFICIAL_APPS.length)throw new Error('Unexpected market release catalog');
-  for(const app of OFFICIAL_APPS){
-    const records=catalog.apps.filter(row=>row.id===app.id&&row.version===app.version&&row.toolId===app.toolId);
-    if(records.length!==1)throw new Error('Missing or duplicate market version: '+app.id);
-    const release=records[0],path=officialPackagePath(app),bytes=await readFile(join(root,path));
-    const tool=validateSidebarToolPackage(JSON.parse(bytes.toString('utf8')));
-    if(release.packagePath!==path||release.sha256!==digest(bytes)||
-       release.packageTitle!==tool.title||tool.title!==app.title||
-       tool.id!==app.toolId||tool.version!==app.version||
-       !same(release.capabilities,tool.capabilities))
-      throw new Error('Market release not bound to shipped package: '+app.id);
+  // Compare against the trusted projects, not merely a mutually consistent
+  // but tampered pair of release catalog + payload.
+  const official=await createOfficialToolResources();
+  for(const [path,expected] of official.resources){
+    const actual=await readFile(join(root,path));
+    if(!actual.equals(expected))throw new Error('Official release differs from trusted source: '+path);
   }
   for(const cssPath of ['ui/marketplace.css']) {
     const css=await readFile(join(root,cssPath),'utf8');

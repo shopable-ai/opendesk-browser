@@ -2,7 +2,7 @@ import {packageFingerprint} from '../../scripts/verify-package.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createServer} from 'node:http';
-import {spawn,spawnSync} from 'node:child_process';
+import {spawn,spawnSync,execFileSync} from 'node:child_process';
 import {mkdtemp,readFile,rm,mkdir,writeFile} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join,resolve} from 'node:path';
@@ -75,7 +75,7 @@ test('R4.1 real Chrome installs bundled TOC, follows multiple H1, restores and r
   const origin='http://127.0.0.1:'+server.address().port;
   const extension=resolve('dist/production');
   assert.equal(JSON.parse(await readFile(join(extension,'manifest.json'),'utf8')).name,'OpenDesk Browser');
-  const pkg=JSON.parse(await readFile('src/sidebar-tools/reading-toc.opendesk-tool.json','utf8'));
+  const pkg=JSON.parse(await readFile('dist/production/official-tools/reading-toc/reading-toc.opendesk-tool.json','utf8'));
   const args=[...(process.env.OPENDESK_NATIVE_HEADED==='1'?[]:['--headless=new']),
     ...(process.platform==='darwin'?['--use-mock-keychain']:[]),
     '--no-sandbox','--disable-gpu','--disable-dev-shm-usage','--no-first-run',
@@ -86,6 +86,11 @@ test('R4.1 real Chrome installs bundled TOC, follows multiple H1, restores and r
   chrome.stderr.on('data',bytes=>{stderr=(stderr+bytes).slice(-4000);});
   let browser,articlePage,chatPage,host,launcherHost;
   t.after(async()=>{
+    const folder=resolve('artifacts/reading-toc-r41');await mkdir(folder,{recursive:true});
+    const observation=host&&await evaluate(host,'({url:location.href,page:document.querySelector("#script-current-page-url")?.textContent,status:document.querySelector("#sidebar-tool-status")?.textContent,error:document.querySelector("#sidebar-tool-file-error")?.textContent,importHidden:document.querySelector("#sidebar-tool-import")?.hidden,previewHidden:document.querySelector("#sidebar-tool-preview")?.hidden,official:document.querySelector("[data-official-tool-id=reading-toc]")?.outerHTML})').catch(error=>({unavailable:error.message}));
+    await writeFile(join(folder,'native-observation.json'),JSON.stringify({sourceCommit:process.env.GITHUB_SHA||null,host:observation},null,2)+'\n');
+    console.log('TOC_NATIVE_OBSERVATION '+JSON.stringify(observation));
+    if(host)await capture(host,'toc-final-host.png').catch(()=>{});
     for(const client of [articlePage,chatPage,host,launcherHost,browser])client?.close();
     // Do not delete an active Chrome for Testing profile: its helper processes
     // may recreate files while rm() is traversing the directory.
@@ -161,10 +166,10 @@ test('R4.1 real Chrome installs bundled TOC, follows multiple H1, restores and r
   const ownUrl='chrome-extension://'+extensionId+'/ui/tool.html?hostInstanceId='+randomUUID();
   const panel=await openTab(ownUrl);host=panel.cdp;
   try {
-    await eventually(()=>evaluate(host,'document.readyState==="complete" && !!document.querySelector("#sidebar-tool-official-install")'),
+    await eventually(()=>evaluate(host,'document.readyState==="complete" && !!document.querySelector("#sidebar-tool-official-reading-toc-install")'),
       'Real tool shell did not mount',{attempts:50,delay:120});
   } catch (error) {
-    const diagnostic=await evaluate(host,'({url:location.href,ready:document.readyState,title:document.title,text:document.body?.innerText?.slice(0,250),html:document.documentElement?.outerHTML?.slice(0,500),present:!!document.querySelector("#sidebar-tool-official-install")})').catch(e=>({error:String(e)}));
+    const diagnostic=await evaluate(host,'({url:location.href,ready:document.readyState,title:document.title,text:document.body?.innerText?.slice(0,250),html:document.documentElement?.outerHTML?.slice(0,500),present:!!document.querySelector("#sidebar-tool-official-reading-toc-install")})').catch(e=>({error:String(e)}));
     throw Error(error.message+'; navigation diagnostic='+JSON.stringify(diagnostic)+'; chrome='+stderr.slice(-500));
   }
   assert.equal(await evaluate(articlePage,'document.querySelectorAll("[data-opendesk-toc-root]").length'),0,
@@ -219,11 +224,14 @@ test('R4.1 real Chrome installs bundled TOC, follows multiple H1, restores and r
   launcherHost=host;host=side;
   await browser.send('Target.activateTarget',{targetId:first.targetId});
   await articlePage.send('Page.bringToFront');
+  await eventually(()=>evaluate(host,'document.querySelector("#script-current-page-url")?.textContent==='+JSON.stringify(origin+'/article.html')),
+    'Side Panel must bind the intended article before official installation');
   host.onEvent(event=>{
     if(event.method==='Page.javascriptDialogOpening')
       host.send('Page.handleJavaScriptDialog',{accept:true}).catch(()=>{});
   });
-  await trustedClick(host,'#sidebar-tool-official-install');
+  await trustedClick(host,'#sidebar-tool-official-reading-toc-install');
+
   await eventually(()=>evaluate(host,'!document.querySelector("#sidebar-tool-preview").hidden'),
     'Official TOC package was not staged for review');
   assert.equal(await evaluate(host,'document.querySelector("#sidebar-tool-preview-title").textContent'),pkg.title);
@@ -429,7 +437,8 @@ test('R4.1 real Chrome installs bundled TOC, follows multiple H1, restores and r
     nodeId:documentTree.root.nodeId,selector:'#sidebar-tool-file'});
   assert(fileNode.nodeId,'Side Panel import input not present');
   await side.send('DOM.setFileInputFiles',{
-    files:[resolve('artifacts/sidebar-tools/reading-toc/'+pkg.version+'/reading-toc.opendesk-tool.json')],
+    files:[resolve('dist/production/official-tools/reading-toc/reading-toc.opendesk-tool.json')],
+
     nodeId:fileNode.nodeId});
   await eventually(()=>evaluate(side,'!document.querySelector("#sidebar-tool-preview").hidden'),
     'Native file import did not create a validated tool preview');

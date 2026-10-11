@@ -7,6 +7,7 @@ export const MAX_INSTALLED_TOOLS = 12;
 const MAX_PACKAGE_BYTES = 320000;
 const LIMITS = Object.freeze({title:80,description:300,html:64000,css:120000,js:220000});
 const CAPABILITIES = Object.freeze(['storage.local','currentPage.read','tasks.open','page.toc','page.clip','user.export','page.capture','knowledge.store']);
+const PACKAGE_FIELDS=Object.freeze(['format','id','version','title','description','capabilities','html','css','js']);
 const fail = (message,code='E_TOOL_SCHEMA') => { const error=new Error(message);error.code=code;throw error; };
 const plain = value => value!==null && typeof value==='object' && !Array.isArray(value) &&
   (Object.getPrototypeOf(value)===Object.prototype || Object.getPrototypeOf(value)===null);
@@ -14,7 +15,7 @@ const fields=(obj,keys) => Object.keys(obj).every(key=>keys.includes(key));
 const validText=(text,max,optional=false) => typeof text==='string' && text.length<=max && (optional || text.trim().length>0);
 
 export function validateSidebarToolPackage(value) {
-  if (!plain(value) || !fields(value,['format','id','version','title','description','capabilities','html','css','js']))
+  if (!plain(value) || !fields(value,PACKAGE_FIELDS))
     fail('工具包包含不支持的字段');
   if (value.format!==SIDEBAR_TOOL_FORMAT || typeof value.id!=='string' ||
       !/^[a-z][a-z0-9-]{1,39}$/.test(value.id) ||
@@ -38,6 +39,13 @@ export function validateSidebarToolPackage(value) {
   const utf8 = new TextEncoder().encode(JSON.stringify(value));
   if (utf8.byteLength>MAX_PACKAGE_BYTES) fail('工具包超过 320 KB','E_TOOL_LIMIT');
   return structuredClone(value);
+}
+
+// Stable schema order also allows an installed package whose object keys were
+// reordered by Chrome Storage to be compared with a canonical official digest.
+export function serializeSidebarToolPackage(value){
+  const tool=validateSidebarToolPackage(value);
+  return JSON.stringify(Object.fromEntries(PACKAGE_FIELDS.map(key=>[key,tool[key]])),null,2)+'\n';
 }
 
 export function sidebarToolStorageKey(id) {

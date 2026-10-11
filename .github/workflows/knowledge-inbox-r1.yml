@@ -10,12 +10,23 @@ on:
       - 'src/ui/task-workbench.js'
       - 'src/ui/tool-shell.js'
       - 'src/native-agent/workspace*'
-      - 'src/sidebar-tools/knowledge-inbox.opendesk-tool.json'
       - 'examples/sidebar-tools/knowledge-inbox/**'
       - 'tests/environment/knowledge-inbox-r1.test.mjs'
       - 'tests/environment/knowledge-inbox-r24-ui.test.mjs'
       - 'tests/framework/knowledge-inbox-native-r1.test.mjs'
       - '.github/workflows/knowledge-inbox-r1.yml'
+      - 'official-tools/**'
+      - 'src/sidebar-tools/**'
+      - 'src/ui/sidebar-tools/**'
+      - 'src/ui/tool.html'
+      - 'scripts/build-official-tools.mjs'
+      - 'scripts/build-sidebar-tool.mjs'
+      - 'scripts/prepare-public.mjs'
+      - 'scripts/build.mjs'
+      - 'scripts/wxt-development.mjs'
+      - 'scripts/verify-package.mjs'
+      - 'tests/helpers/official-tools.mjs'
+      - 'tests/environment/official-tools-catalog-r45.test.mjs'
   workflow_dispatch:
 permissions:
   contents: read
@@ -41,8 +52,6 @@ jobs:
           npm run build
           npm run build:dev
           npm run verify
-      - name: Environment regression on Linux (including real local sockets)
-        run: npm test
       - name: Install Chinese fonts for readable UI screenshots
         run: |
           sudo apt-get update -qq
@@ -57,6 +66,8 @@ jobs:
           CHROME_BIN: ${{ steps.cft.outputs.chrome-path }}
           OPENDESK_NATIVE_HEADED: '1'
         run: timeout --signal=TERM --kill-after=8s 240s xvfb-run -a node --test tests/framework/knowledge-inbox-native-r1.test.mjs
+      - name: Environment regression on Linux (including real local sockets)
+        run: npm test
       - name: Upload fixture evidence (does not certify live ChatGPT or macOS)
         if: always()
         uses: actions/upload-artifact@v4
@@ -66,5 +77,6 @@ jobs:
           if-no-files-found: warn
           path: |
             artifacts/knowledge-inbox-r1/
+            dist/production/official-tools/
             docs/framework/evidence/wxt/builds/build-production.json
             docs/framework/evidence/wxt/builds/build-development.json
