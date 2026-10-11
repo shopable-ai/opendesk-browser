@@ -153,11 +153,16 @@ test('Knowledge R1 Chrome: reviewed install, capture, persistent editor and inli
  side={send:(method,params={},timeout=15000)=>browser.send(method,params,timeout,attached.sessionId)};
  await side.send('Runtime.enable');await side.send('Page.enable');
  await until(()=>evalIn(side,'!!document.querySelector("#tab-tools")'),'Tools tab');await click(side,'#tab-tools');
+ // R4.8 separates installed tools from discovery. The official install
+ // button exists in the DOM but is not actionable until this tab is opened.
+ await until(()=>evalIn(side,'!document.querySelector("#sidebar-tool-discover-tab")?.disabled'),'Discovery tab ready');
+ await click(side,'#sidebar-tool-discover-tab');
+ await until(()=>evalIn(side,'document.querySelector("#sidebar-tool-discover-tab")?.getAttribute("aria-selected")==="true" && !document.querySelector("#sidebar-tool-discover-panel").hidden'),'visible official discovery');
  assert.equal(await evalIn(article,'document.querySelectorAll("[data-opendesk-capture-root]").length'),0,'No controls before installation and consent');
  try{
    await until(()=>evalIn(side,'(()=>{const b=document.querySelector("#sidebar-tool-official-knowledge-inbox-install");return !!b&&!b.disabled&&!!b.getClientRects().length;})()'),'official knowledge install button ready');
  }catch(error){
-   const detail=await evalIn(side,'(()=>{const root=document.querySelector("#sidebar-tool-official-catalog"),button=document.querySelector("#sidebar-tool-official-knowledge-inbox-install");return {rootPresent:!!root,rootText:root?.textContent?.slice(0,650),buttonPresent:!!button,disabled:button?.disabled,buttonLabel:button?.textContent,rootHidden:root?.hidden,toolsSelected:document.querySelector("#tab-tools")?.getAttribute("aria-selected"),toolStatus:document.querySelector("#sidebar-tool-status")?.textContent?.slice(0,300)};})()');
+   const detail=await evalIn(side,'(()=>{const root=document.querySelector("#sidebar-tool-official-catalog"),button=document.querySelector("#sidebar-tool-official-knowledge-inbox-install");return {rootPresent:!!root,rootText:root?.textContent?.slice(0,650),buttonPresent:!!button,disabled:button?.disabled,buttonLabel:button?.textContent,rootHidden:root?.hidden,discoverySelected:document.querySelector("#sidebar-tool-discover-tab")?.getAttribute("aria-selected"),discoveryHidden:document.querySelector("#sidebar-tool-discover-panel")?.hidden,toolsSelected:document.querySelector("#tab-tools")?.getAttribute("aria-selected"),toolStatus:document.querySelector("#sidebar-tool-status")?.textContent?.slice(0,300)};})()');
    console.log('KNOWLEDGE_STAGE: official catalog diagnostic',JSON.stringify(detail));
    throw error;
  }
