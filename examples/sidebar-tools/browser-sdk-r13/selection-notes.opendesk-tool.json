@@ -1,0 +1,33 @@
+{
+  "format": "opendesk.sidebar-tool.v2",
+  "id": "selection-notes",
+  "version": "1.0.0",
+  "title": "选区笔记（Browser SDK R1.3）",
+  "description": "从真实 Chrome 右键菜单安全领取一次性选区，用户确认后保存在本机工具数据中。",
+  "capabilities": [
+    "storage.local",
+    "browser.contextMenu"
+  ],
+  "html": "<section><h2>选区笔记</h2><p>请在已授权的网站选中文字，右键选择 OpenDesk Browser → 保存到选区笔记。</p><p id=\"selection-status\" role=\"status\">没有可领取的选区</p><pre id=\"selection-preview\"></pre><button id=\"selection-save\" type=\"button\" disabled>确认保存</button><h3>已保存记录</h3><ol id=\"selection-list\"></ol></section>",
+  "css": "section{padding:12px;font:14px/1.55 system-ui}pre{white-space:pre-wrap;overflow-wrap:anywhere;max-height:250px;overflow:auto}button{padding:8px 12px}ol{padding-left:20px}",
+  "js": "(() => {\n  'use strict';\n  const note = OpenDeskTool.root.querySelector('#selection-preview');\n  const status = OpenDeskTool.root.querySelector('#selection-status');\n  const save = OpenDeskTool.root.querySelector('#selection-save');\n  const items = OpenDeskTool.root.querySelector('#selection-list');\n  let launch = null;\n  const message = (s) => { status.textContent = String(s); };\n  const showNotes = (data) => {\n    items.replaceChildren();\n    for (const entry of data.slice().reverse()) {\n      const li = document.createElement('li');\n      li.textContent = entry.text;\n      items.append(li);\n    }\n  };\n  async function refresh() {\n    const response = await OpenDeskTool.request('storage.get',{key:'notes'});\n    const notes = Array.isArray(response.value) ? response.value : [];\n    showNotes(notes);\n    return notes;\n  }\n  OpenDeskSDK.browser.launch.consume().then(result => {\n    if (typeof result.selection !== 'string' || !result.selection.trim()) {\n      message('本次菜单动作没有安全可用的选区，不能保存。');\n      return;\n    }\n    launch = result;\n    note.textContent = result.selection;\n    save.disabled = false;\n    message('选区已领取，请点击“确认保存”；不会后台静默保存。');\n  }).catch(error => {\n    message('没有可领取的右键启动上下文：' + (error.code || error.message));\n  });\n  refresh().catch(error => message('读取记录失败：' + (error.code || error.message)));\n  save.addEventListener('click', async event => {\n    if (!event.isTrusted || !launch || save.disabled) return;\n    const text = launch.selection.trim();\n    if (!text) return;\n    save.disabled = true;\n    OpenDeskTool.setState({dirty:false,busy:true});\n    try {\n      const notes = await refresh();\n      const next = [...notes,{text:text.slice(0,4000),source:launch.source.url}].slice(-12);\n      await OpenDeskTool.request('storage.set',{key:'notes',value:next});\n      await refresh();\n      launch = null;\n      message('已保存至此工具自己的本机存储。');\n    } catch (error) {\n      message('保存未确认，请检查记录后重试，不要假设写入失败：' + (error.code || error.message));\n    } finally {\n      OpenDeskTool.setState({dirty:false,busy:false});\n    }\n  });\n})();",
+  "requires": {
+    "browserSdk": "1.0.0"
+  },
+  "contributes": {
+    "contextMenus": [
+      {
+        "actionId": "capture-selection",
+        "title": "保存到选区笔记",
+        "contexts": [
+          "selection"
+        ],
+        "documentUrlPatterns": [
+          "http://127.0.0.1/*",
+          "https://example.com/*"
+        ],
+        "handler": "open-self"
+      }
+    ]
+  }
+}

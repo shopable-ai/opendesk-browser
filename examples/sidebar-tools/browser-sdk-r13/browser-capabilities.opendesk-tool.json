@@ -1,0 +1,11 @@
+{
+  "format": "opendesk.sidebar-tool.v1",
+  "id": "browser-capabilities-demo",
+  "version": "1.0.0",
+  "title": "Browser SDK 能力查询",
+  "description": "只读查看 Browser SDK 实际操作状态；不会请求权限或执行特权操作。",
+  "capabilities": [],
+  "html": "<section><h2>Browser SDK 状态</h2><button id=\"refresh\" type=\"button\">读取能力清单</button><pre id=\"output\" role=\"status\">点击读取</pre></section>",
+  "css": "section{font:14px/1.5 system-ui;padding:12px}button{padding:8px}pre{white-space:pre-wrap;overflow-wrap:anywhere;max-height:400px;overflow:auto}",
+  "js": "(() => {\nconst root=OpenDeskTool.root, output=root.querySelector('#output');\nroot.querySelector('#refresh').addEventListener('click', async event=>{\n if(!event.isTrusted)return;\n try{\n  const status=await OpenDeskSDK.browser.capabilities.getStatus({operation:'browser.contextMenu.register'});\n  const all=await OpenDeskSDK.browser.capabilities.list();\n  output.textContent=JSON.stringify({status,operationCount:all.length,operations:all.map(o=>({operation:o.operation,implementation:o.implementation,callableNow:o.status?.callableNow,reasonCode:o.status?.reasonCode}))},null,2);\n }catch(error){output.textContent=(error.code||'E_BROWSER')+': '+error.message;}\n});\n})();"
+}
