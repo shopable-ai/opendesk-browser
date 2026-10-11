@@ -267,6 +267,11 @@ test('R4.8 production Chrome: two preinstalled tools, three reviewed tools, perm
   }
   async function openTool(id){await visible(side,action(id,'open'));await click(side,action(id,'open'));return iframeWith(id);}
   async function back(){
+    // R4.7 keeps TOC's site controls inside the tool settings detail.
+    if(await evaluate(side,'!document.querySelector("#sidebar-tool-settings-view").hidden')){
+      await click(side,'#sidebar-tool-back');
+      await until(()=>evaluate(side,'document.querySelector("#sidebar-tool-settings-view").hidden'),'TOC settings closed');
+    }
     await click(side,'#sidebar-tool-back');await until(()=>evaluate(side,'!document.querySelector("#sidebar-tool-list-view").hidden'),'return to installed tools');
     await until(async()=>(await browser.send('Target.getTargets')).targetInfos.every(row=>row.type!=='iframe'||!row.url?.includes('/sidebar-tools/sandbox.html')),'old sandbox target destroyed');
     await assertNoFrames();
@@ -275,12 +280,25 @@ test('R4.8 production Chrome: two preinstalled tools, three reviewed tools, perm
     assert(['reading-toc','web-markdown-clipper'].includes(id));
     const toc=id==='reading-toc',key=toc?READING_TOC_SITE_STORE:CLIP_SITE_STORE;
     const origin=servers[0].origin,selector=action(id,'site');
-    await visible(side,selector);
-    await nativeDialogClick(side,selector,[{parts:[origin,toc?'章节标题':'文章正文']}]);
-    await until(async()=>(await readStore(key))?.[id]?.includes(origin),'persisted website approval '+id);
+    if(toc){
+      await openTool(id);
+      await visible(side,'#sidebar-tool-settings-open');await click(side,'#sidebar-tool-settings-open');
+      await visible(side,'#sidebar-tool-settings-allow');
+      await nativeDialogClick(side,'#sidebar-tool-settings-allow',[{parts:[origin,'章节标题']}]);
+      await until(async()=>(await readStore(key))?.[id]?.includes(origin),'persisted TOC website approval');
+      await until(()=>evaluate(side,'document.querySelector("#sidebar-tool-settings-allow").getAttribute("aria-pressed")==="true"'),
+        'TOC settings show the allowed website');
+      await back();
+    }else{
+      await visible(side,selector);
+      await nativeDialogClick(side,selector,[{parts:[origin,'文章正文']}]);
+      await until(async()=>(await readStore(key))?.[id]?.includes(origin),'persisted website approval '+id);
+      await until(()=>evaluate(side,'document.querySelector('+JSON.stringify(selector)+')?.dataset.enabled==="true"'),
+        'completed website approval UI '+id);
+    }
     const message=toc?'已为当前网站启用目录':'已授权当前网站剪藏';
-    await until(()=>evaluate(side,'document.querySelector('+JSON.stringify(selector)+')?.dataset.enabled==="true"&&document.querySelector("#sidebar-tool-status").textContent==='+JSON.stringify(message)),
-      'completed website approval UI '+id);
+    await until(()=>evaluate(side,'document.querySelector("#sidebar-tool-status").textContent==='+JSON.stringify(message)),
+      'completed website approval status '+id);
   }
   async function uninstall(id){
     // Foreground the actual Side Panel before native CDP mouse input. After
@@ -490,14 +508,24 @@ test('R4.8 production Chrome: two preinstalled tools, three reviewed tools, perm
   await activate(pageB);
   await until(()=>evaluate(side,'document.querySelector("#script-current-page-url")?.textContent.includes('+JSON.stringify(servers[1].origin)+')'),'Side Panel current page B');
   for(const [id,key,label] of [['reading-toc',READING_TOC_SITE_STORE,'目录'],['web-markdown-clipper',CLIP_SITE_STORE,'剪藏']]){
-    await visible(side,action(id,'sites'));
-    await click(side,action(id,'sites'));await visible(side,'#sidebar-tool-sites-'+id+' .sidebar-tool-site-revoke');
-    await click(side,'#sidebar-tool-sites-'+id+' .sidebar-tool-site-revoke');
+    if(id==='reading-toc'){
+      await openTool(id);
+      await click(side,'#sidebar-tool-settings-open');
+      await visible(side,'#sidebar-tool-settings-sites .sidebar-tool-site-revoke');
+      await click(side,'#sidebar-tool-settings-sites .sidebar-tool-site-revoke');
+    }else{
+      await visible(side,action(id,'sites'));
+      await click(side,action(id,'sites'));await visible(side,'#sidebar-tool-sites-'+id+' .sidebar-tool-site-revoke');
+      await click(side,'#sidebar-tool-sites-'+id+' .sidebar-tool-site-revoke');
+    }
     // Native mouseReleased does not await the async storage/lock handler. Wait
     // for this revocation and its final UI before the next gesture can be made.
     await until(async()=>!(await readStore(key))?.[id]?.includes(servers[0].origin),'persisted revocation '+id);
-    await until(()=>evaluate(side,'!document.querySelector('+JSON.stringify('#sidebar-tool-sites-'+id+' .sidebar-tool-site-revoke')+')&&document.querySelector("#sidebar-tool-status").textContent==='+
+    const revokeSelector=id==='reading-toc'?'#sidebar-tool-settings-sites .sidebar-tool-site-revoke':
+      '#sidebar-tool-sites-'+id+' .sidebar-tool-site-revoke';
+    await until(()=>evaluate(side,'!document.querySelector('+JSON.stringify(revokeSelector)+')&&document.querySelector("#sidebar-tool-status").textContent==='+
       JSON.stringify('已撤销 '+servers[0].origin+' 的'+label+'授权')),'completed revocation UI '+id);
+    if(id==='reading-toc')await back();
   }
   await until(()=>evaluate(pageA,'document.querySelectorAll("[data-opendesk-toc-root]").length===0'),'revocation immediately removes A TOC');
   await assertNoGrants();await screenshot(side,'r45-revoked-from-other-origin.png');
