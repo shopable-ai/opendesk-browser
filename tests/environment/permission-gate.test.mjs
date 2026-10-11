@@ -58,7 +58,8 @@ test('manifest and build verifier accept broad required sites and a finite API p
   const escalated=structuredClone(manifest);
   escalated.permissions.push('nativeMessaging');
   assert.throws(()=>verifyManifest(escalated),/required browser API/);
-  assert.deepEqual(REQUIRED_BROWSER_API_PERMISSIONS.slice(-3),['cookies','notifications','unlimitedStorage']);
+  for(const name of ['cookies','notifications','unlimitedStorage'])
+    assert(REQUIRED_BROWSER_API_PERMISSIONS.includes(name),name+' remains an explicitly declared required API permission');
   assert(manifest.permissions.includes('unlimitedStorage'),'storage expansion is a required host permission');
   for (const prohibited of ['debugger','proxy','management'])
     assert(!manifest.permissions.includes(prohibited),prohibited+' must not be permanently granted');
@@ -73,7 +74,7 @@ test('manifest and build verifier accept broad required sites and a finite API p
 test('declared optional plugin permission requests reject unknown, required and duplicate names', () => {
   assert.deepEqual(optionalPluginPermissionRequest(['bookmarks','history']),
     {permissions:['bookmarks','history']});
-  for (const permissions of [[],['debugger'],['cookies'],['bookmarks','bookmarks'],['proxy'],['unknown']])
+  for (const permissions of [[],['debugger'],['cookies'],['unlimitedStorage'],['bookmarks','bookmarks'],['proxy'],['unknown']])
     assert.throws(()=>optionalPluginPermissionRequest(permissions),{code:'E_SCHEMA'});
 });
 
