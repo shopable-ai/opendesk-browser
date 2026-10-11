@@ -79,3 +79,7 @@
 - 原 `src/main.js` 字节分别冻结为 `src/legacy-main.js`，保留 `enhancement.js` 高亮/撤销进阶业务、旧 `async-main` 语义与真实 Chrome 回归。原 R24.2 import-ready JSON 完整复制到 `examples/import-ready/history/`，保留历史 hashes/receipts；不会把它们冒充当前组件。
 - 真实 Mac CFT 的既有 R24.2 两例使用隔离测试项目显式切至 `legacy-main.js`；新增 R24.3 direct 组件真实点击/Stop，用独立 previewId/sourceHash/documentId 和停止回执记录。新增 `tests/environment/page-direct-component-r243.test.mjs`；所有结果仍以实际 CI 新候选为准。
 - 对应的 **当前** 两份 direct JSON 需要从本次源码重新构建并替换，不能只修改哈希或沿用历史 PASS。浏览器内无 Native 即时 JSX/SFC 编译、20 次独立 Run/Stop、F3、ZIP 仍待完成。
+
+## R24.3 当前 direct 导入产物已重建
+
+来源：[R24.3 四目录构建](https://github.com/shopable-ai/opendesk-browser/actions/runs/38154353845)。React direct `sourceHash=29186e6f09cc72a2e2671e1dfbc777dbf62c24b0b5c90dd3d013029b383118ba`，JSON 20,575 bytes；Vue direct `sourceHash=f83a08b3e2d9952cf5729276b01388b1fca8a5334ea683b5df00ad4e372618f5`，JSON 20,267 bytes。当前 `examples/import-ready/page-ui-*-direct.opendesk-draft.json` 已替换为真实组件产物；R24.2 原始 JSON 单独保留在 `history/r242-...`，其历史 PASS 不继承给本候选。新 `tests/environment/page-direct-import-ready-r243.test.mjs` 每次 CI 按当前源码重新构建比较，禁止只改期望 hash。Chrome Native/F3/20×Run-Stop 证据仍逐项核验，不能由此作为总体验收。
