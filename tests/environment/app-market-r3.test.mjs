@@ -386,3 +386,20 @@ test('orphaned notes are retained when new same-ID installation cannot safely co
   assert.deepEqual(values[key],{draft:'旧笔记尚未备份'});
   assert.equal(values[SIDEBAR_TOOL_STORE],undefined);
 });
+
+test('installer fails closed on malformed, duplicated or overflowed local registries without erasing any rows',async()=>{
+  const good=tool('reading-toc'),privateKey=sidebarToolStorageKey(good.id);
+  const invalid=[good,{...good,id:'invalid id'}];
+  const duplicate=[good,structuredClone(good)];
+  const overflow=Array.from({length:MAX_INSTALLED_TOOLS+1},(_,index)=>tool('entry'+index));
+  for(const rows of [invalid,duplicate,overflow,{broken:true}]){
+    const {api,locks,values,operations}=browser();
+    values[SIDEBAR_TOOL_STORE]=structuredClone(rows);
+    values[privateKey]={draft:'永远不能意外丢失'};
+    await assert.rejects(installReviewedSidebarTool({api,lockManager:locks,
+      candidate:tool('new-tool'),baseline:null,reviewApproved:true}),{code:'E_STORAGE_CORRUPT'});
+    assert.deepEqual(values[SIDEBAR_TOOL_STORE],rows);
+    assert.deepEqual(values[privateKey],{draft:'永远不能意外丢失'});
+    assert.equal(operations.some(row=>row.keys?.includes(SIDEBAR_TOOL_STORE)),false);
+  }
+});
