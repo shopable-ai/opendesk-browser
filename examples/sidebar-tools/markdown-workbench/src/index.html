@@ -1,0 +1,26 @@
+<main class="mdw" aria-label="Markdown 工作台">
+  <header class="mdw-bar"><strong>Markdown 工作台</strong><span id="mdw-state" aria-live="polite">本地 · 未保存</span></header>
+  <div class="mdw-actions" role="toolbar" aria-label="文件操作">
+    <button type="button" id="mdw-import" title="从本地导入 .md" aria-label="导入 Markdown">导入</button>
+    <input id="mdw-file" type="file" accept=".md,.markdown,text/markdown,text/plain" hidden aria-label="选择 Markdown 文件">
+    <button type="button" id="mdw-copy" title="复制 Markdown 原文" aria-label="复制 Markdown 原文">复制</button>
+    <button type="button" id="mdw-download" class="primary" title="下载 Markdown 文件" aria-label="下载 Markdown 文件">下载 .md</button>
+    <button type="button" id="mdw-clear" title="清空全部内容" aria-label="清空 Markdown">清空</button>
+  </div>
+  <div class="mdw-modes" role="group" aria-label="编辑视图">
+    <button type="button" data-mode="edit" aria-pressed="true">源码</button>
+    <button type="button" data-mode="preview" aria-pressed="false">预览</button>
+    <button type="button" data-mode="split" aria-pressed="false">分栏</button>
+  </div>
+  <div class="mdw-panes" id="mdw-panes" data-mode="edit">
+    <section class="mdw-pane mdw-edit" aria-label="Markdown 源码">
+      <label class="mdw-pane-title" for="mdw-source">Markdown</label>
+      <textarea id="mdw-source" spellcheck="false" placeholder="# 写下标题&#10;&#10;粘贴或导入 Markdown，预览会自动更新。" aria-label="Markdown 编辑器"></textarea>
+    </section>
+    <section class="mdw-pane mdw-result" aria-label="安全预览">
+      <div class="mdw-pane-title">安全预览 · 不加载外部图片</div>
+      <div class="mdw-preview" id="mdw-preview" role="document" aria-live="off"></div>
+    </section>
+  </div>
+  <p class="mdw-status" id="mdw-status" role="status" aria-live="polite">内容只在当前编辑会话中；离开前请下载。</p>
+</main>
