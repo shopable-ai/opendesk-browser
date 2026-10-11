@@ -236,13 +236,14 @@ function assertClassicIIFE(text, file) {
   if (['_', 'dayjs', 'OpenDeskLibs'].includes(bundleGlobal))
     throw new Error(`WXT bundle preclaims built-in API global: ${file} (${bundleGlobal})`);
 }
-// Narrow exception: only these four reviewed, packaged classic resources may
+// Narrow exception: only these five reviewed, packaged classic resources may
 // load synchronously at SW boot. Exact output filenames are checked against
 // FIXED_OUTPUTS and covered by the release hash. Computed paths, remote code,
 // additional arguments and non-SW importScripts remain forbidden.
 const REVIEWED_SW_IMPORTS=Object.freeze([
   'sidebar-tools/preinstall-intent.js','agents/health-host.js',
-  'native-agent/transport.js','knowledge/knowledge-host.js'
+  'native-agent/transport.js','knowledge/knowledge-host.js',
+  'platform/context-menus.js'
 ]);
 if(REVIEWED_SW_IMPORTS.some(file=>!Object.values(FIXED_OUTPUTS).includes(file)))
   throw Error('Unregistered classic SW sidecar');
