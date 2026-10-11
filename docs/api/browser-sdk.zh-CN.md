@@ -119,17 +119,26 @@ await OpenDeskTool.request('storage.get',{key:'notes'});
 
 状态反映**当前可信调用身份**；`launch.consume` 没有待领票据时返回 `E_LAUNCH_UNAVAILABLE`，普通网页返回 `E_CONTEXT`。剪贴板属于前台浏览器 API，即便源代码有包装，也不在 SW 单独判定为 `callableNow=true`。权限可能在状态查询和调用之间变化，因此真正执行仍重复复核。
 
-主要拒绝代码：`E_SERVICE_UNSUPPORTED`、`E_SCHEMA`、`E_CONTEXT`、`E_TOOL_CAPABILITY_REQUIRED`、`E_CHROME_PERMISSION_REQUIRED`、`E_SITE_GRANT_REQUIRED`、`E_CHROME_UNSUPPORTED`、`E_LAUNCH_UNAVAILABLE`、`E_LAUNCH_EXPIRED`、`E_DOCUMENT_CHANGED`、`E_TOOL_CHANGED`、`E_OWNER`、`E_OUTCOME_UNKNOWN`、`E_LIMIT`。底层旧操作的原错误语义保持不变。
+主要拒绝代码：`E_TOOL_DISABLED`、`E_SERVICE_UNSUPPORTED`、`E_SCHEMA`、`E_CONTEXT`、`E_TOOL_CAPABILITY_REQUIRED`、`E_CHROME_PERMISSION_REQUIRED`、`E_SITE_GRANT_REQUIRED`、`E_CHROME_UNSUPPORTED`、`E_LAUNCH_UNAVAILABLE`、`E_LAUNCH_EXPIRED`、`E_DOCUMENT_CHANGED`、`E_TOOL_CHANGED`、`E_OWNER`、`E_OUTCOME_UNKNOWN`、`E_LIMIT`。底层旧操作的原错误语义保持不变。
 
 ## 四、v2 菜单格式
 
 v1 `opendesk.sidebar-tool.v1` 继续使用原严格字段；不会暗中开放新字段。`opendesk.sidebar-tool.v2` 新增 `requires.browserSdk` 和 `contributes.contextMenus`。菜单动作最多三项，contexts 仅 `page/selection/link`，handler 仅 `open-self`；当前实现接受明确 HTTP(S) host 的 `/*` 网站规则，不能包含通配 host、任意 JS 回调或后台代码。工具仍须包含原 id/version/title/description/capabilities/html/css/js。
 
-真实配置与可导入 JSON：`examples/sidebar-tools/browser-sdk-r13/selection-notes.opendesk-tool.json`。工具详情页在真实用户点击时请求可选 `contextMenus` 权限，批准**当前网站**后写入独立菜单偏好（非授权事实来源）；SW 依据已安装工具的实际完整包摘要、撤销状态、Chrome 可选权限及网站批准同步菜单。Chrome onClicked 不含 `documentId`；服务通过 `webNavigation.getFrame` 前后核对并监听导航代际，在无法确认时拒绝选区。此机制仍需真实导航竞争验收，不得当作原生通过证据。
+真实配置与可导入 JSON：`examples/sidebar-tools/browser-sdk-r13/selection-notes.opendesk-tool.json`。工具详情页在真实用户点击时请求可选 `contextMenus` 权限，批准**当前网站**后写入独立菜单偏好（非授权事实来源）；SW 依据已安装工具的实际完整包摘要、撤销状态、Chrome 可选权限及网站批准同步菜单。Chrome `contextMenus.onClicked` 不含 `documentId`。现在复用已存在的 `agents/page-relay.js` 可信 Content Script，只在浏览器产生的真实 `contextmenu` 事件里向可信 SW 发送**无正文、无选区、无 URL 参数的身份通知**；SW 读取 Chrome 提供的 `sender.tab.id/frameId/documentId/url`，在用户真正选择 OpenDesk 菜单后才核对这份提前观测的文档身份，并再次与 `webNavigation.getFrame` 的真实文档比较。Worker 恢复、来源信息缺失、同 URL 换文档、权限或启停撤销时一律不交付选区；启动工具 JavaScript 也会等待 `launch.bind` 回执后才执行。此机制仍需完整 Mac 原生菜单及竞争验收，不能把组件测试当作产品级 PASS。
 
 ## 五、待验收与源码合同的差异
 
 - `node --test tests/environment/browser-sdk-r13.test.mjs` 提供合成 Chrome API 定向回归，**不能**证明 Chrome 真正渲染菜单、Service Worker 恢复或用户批准。
-- `npm run check`、`npm run build`、`npm run build:dev`、`npm run verify` 必须在同一最终源码候选上运行；最新历史记录还存在 320 KiB SW 预算阻塞。
+- `npm run check`、`npm run build`、`npm run build:dev`、`npm run verify` 必须在同一最终源码候选上运行；项目主分支已批准 1 MiB 生产 SW 上限，安全扫描、固定入口/CSP/包完整性检查仍然必须通过。旧 320 KiB 构建失败属于历史 SHA，不再描述现行预算。
 - 真实 Mac Chrome 的右键选区→Side Panel→自动打开工具→`launch.consume()`→用户保存、权限撤销、导航竞态、重启恢复均为验收门槛；未执行时标记 **NOT_TESTED**。
 - R2 网络监听合同见 [后续网络观察方案](../framework/workstreams/browser-sdk-r13-20261011.md#r2-网络观察冻结合同)，全功能领域见 [Browser Capability Universe](browser-capability-universe.zh-CN.md)。
+
+
+## 六、MV3 真实凭据与后续实际验收
+
+菜单来源识别顺序：可信 ISOLATED Content Script 的真实 DOM `contextmenu`（**只发空内容身份事件**）→ Chrome `MessageSender.documentId` → SW 内存中不超过 60 秒的临时凭据 → 用户实际 Chrome `contextMenus.onClicked` → 首尾原生 `webNavigation.getFrame` 文档校验 → `chrome.storage.session` 单次票据 → Side Panel 可信绑定 → iframe 执行 → 用户自行点击保存。
+
+这条预观察事件不保存正文、Cookie、请求、URL 查询参数或选区。新的页面访问不自动获得工具网站权限；仅 Chrome 菜单真实点击可以领取 16 KiB 内的选区。单工具最多一个待领上下文、有效期 60 秒；首次绑定之前不执行不可信工具 JS。主菜单开放但来源证据缺失时，仅能打开 OpenDesk 外壳，不能交付敏感文本。
+
+开发者手动启动 [可导入的选区笔记示例](../../examples/sidebar-tools/browser-sdk-r13/README.zh-CN.md)，必须使用 HTTP(S) 测试页。真实 Mac Chrome GUI 菜单点击及权限弹窗仍需独立原始截图/日志；当前自动化真实 Chrome 证据仅覆盖 MV3 启动、事件注册和 Worker 停止/恢复，不得宣传为 native context-menu PASS。

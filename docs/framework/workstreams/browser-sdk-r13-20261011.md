@@ -1,6 +1,6 @@
 # OpenDesk Browser Browser SDK R1.3 实施工作流与 R2 网络观察冻结合同
 
-日期：2026-10-11。仓库 `shopable-ai/opendesk-browser`。原执行环境不能访问用户 Mac 本地工作目录，GitHub 远端仅在隔离分支 `agent/browser-sdk-r13-20261011` 安全提交；**不得将该分支提交冒充 main 或本机验收**。
+日期：2026-10-11。仓库 `shopable-ai/opendesk-browser`。当前执行环境不能访问用户 Mac 本地工作目录，GitHub 远端仅在隔离分支 `agent/browser-sdk-r13-20261011` 安全提交；**不得将该分支提交冒充 main 或本机验收**。下方初始验收表是开始开发时的历史快照，以文末**最新验收记录**为准。
 
 ## 这轮真实写入的增量（源码，不等于验收通过）
 
@@ -67,3 +67,24 @@ chrome.webRequest.onBeforeRequest/onCompleted/onErrorOccurred
 5. 真实手点工具详情右键菜单开关，观察 Chrome 原生权限；选中文字，Chrome 右键菜单选择「OpenDesk Browser → 保存到选区笔记」，确认自动打开工具、选择可见、再次领取被拒绝、点击“确认保存”后重开能读本机记录。
 6. 验证升级同版本不同内容、卸载、跨工具冒用、不同网站、Chrome 权限撤销、Worker 冷启动与整个 Chrome 重启的菜单状态；对导航/重复消息/未知回执保留原始结果。
 7. 记录 `HEAD`、包哈希、Chrome 版本、真实 profile/PID、权限快照、截图或录像、console 错误与每个测试的 PASS/FAIL/BLOCKED/NOT_TESTED；不把模拟/静态核查冒充真实 Chrome 结果。
+
+
+## R1.3 后续安全收敛与最新验收记录（覆盖上方初始快照）
+
+### 实施变更
+
+- Browser Host 在 `src/entrypoints/context-menus.js` 中作为固定、审计允许的 MV3 SW sidecar 同步注册事件，主 `src/sw.js` 不再包含重复菜单执行代码；正式固定入口由 `scripts/build-contract.mjs` 注册，校验仍由 `scripts/verify-package.mjs` 执行。
+- `src/ui/sidebar-tools/lifecycle.js` 是既有工具启停状态与撤权代际的事实来源。菜单同步、执行、消费和绑定全部复用其状态；停用、版本切换、卸载、Chrome 权限撤销必须清除旧菜单和待领敏感上下文。
+- `src/agents/page-relay.js` 在真实 `contextmenu` 手势时**仅发送不含页面正文或选区的来源通知**，由 Chrome `MessageSender` 校验 `documentId`，菜单点击再匹配并消费。没有凭据不回退到“点击后才查询当前文档”的弱关联。
+- `src/ui/tool-shell.js` 在真正 `browser.launch.bind` 收到可信回执之前持有 iframe 载入门闩；绑定失败不得执行工具 JS。普通手动打开工具不受影响。
+- `tests/environment/browser-sdk-r13.test.mjs`、`sidebar-tools-host.test.mjs` 针对工具启停/撤权、同 URL 新文档、沙箱启动票据竞态、unregister 幂等及 Page SDK 不越权有合成回归。
+
+### 与实际 CI 结果绑定的证据
+
+- **历史已通过候选**：`a9a1723848fd67e6152211a07dc225801e550e91`，GitHub Actions [38148742793](https://github.com/shopable-ai/opendesk-browser/actions/runs/38148742793)，Browser SDK 定向组件 / `npm run check` / 生产和开发双构建及 `verify` / macOS Chrome for Testing MV3 Listener 与 Worker 停止恢复均 PASS。**不能继承为新增来源文档证明和工具启停变更的结果**。
+- **最近构建候选**：`b95c7f13f4262ce7f6504497a16ca8864ed44c86`，GitHub Actions [38152980111](https://github.com/shopable-ai/opendesk-browser/actions/runs/38152980111)，核对时 `browser-contracts` 和 `browser-bundles` 两个 job PASS，`browser-native-restart` 尚待最终结果；更晚变更应以最新精确 SHA 重新核对。
+- 生产 SW 预算已由主分支其他授权工作流调整为 **1 MiB**，开发为 **1.5 MiB**；固定入口、动态执行扫描、供应链校验和 CSP 继续强制。历史 320 KiB 超限是旧候选真实 FAIL，不能混作最终结果。
+- **真实 Chrome GUI 原生右键菜单点击、用户权限接受、Side Panel → 一次性选区 → 用户保存**：**NOT_TESTED**。组件模拟及 Worker 原生启动/重启不能替代本项。
+- **R2 被动网络监听 / HAR / 录音录屏/语音产品**：`PLANNED` 或 `HOST_ONLY`，未作为 R1.3 已实现功能计算。
+
+**合入门槛**：先核对最新 main 和本分支并行差异，定向复测所有受影响项目及生产/开发构建，再由真实 Mac Chrome 保存原始 GUI 证据。未验收前仅能称“隔离分支候选”，不得向 main 自动推送或者给出 95/100 最终通过评分。
