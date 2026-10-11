@@ -294,6 +294,9 @@ test('native menu ignores missing proof and same-URL replaced source documents',
   click();await cycle(host);
   assert.equal((await api.storage.session.get(BROWSER_MENU_LAUNCH_STORE))[BROWSER_MENU_LAUNCH_STORE],undefined,
     'native click without earlier document proof must not create a sensitive ticket');
+  assert.equal(host.noteSourceContext({protocol:BROWSER_MENU_SOURCE_PROTOCOL,kind:'contextmenu'},
+    {...authenticSender(api),url:'https://unapproved.example/post'}),false,
+    'pre-click observation is limited to actively authorized menu origins');
   markTrustedRightClick(host,api);
   api.frame={...api.frame,documentId:'document-B'};
   click();await cycle(host);
