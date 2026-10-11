@@ -30,7 +30,8 @@ export function createLocalInstallUI({client,api,doc,currentPageTarget,getProjec
       verified.preparationIdentity===local.preparationIdentity();
   }
   const canSave=()=>current()&&!preparing&&!installing&&!unknown;
-  const sameInstalled=()=>installed&&verified&&installed.sourceHash===verified.source.sourceHash;
+  const sameInstalled=()=>installed&&verified&&installed.sourceHash===verified.source.sourceHash&&
+    installed.inputHash===verified.source.inputHash;
   function hide(){review=null;panel.hidden=true;confirmButton.disabled=true;}
   function reset(){
     verified=null;installed=null;unknown=false;hide();onState();
@@ -46,6 +47,17 @@ export function createLocalInstallUI({client,api,doc,currentPageTarget,getProjec
     verified={source:structuredClone(source),binding:structuredClone(binding),
       target:structuredClone(target),runId,preparationIdentity:project()?.preparationIdentity()};
     installed=null;unknown=false;hide();onState();
+    // Read the ORIGINAL authoritative Page/Task catalog to recover the exact
+    // installed version across Sidebar restarts; no parallel installation DB.
+    const snapshot=verified;
+    void prepareLocalProjectInstallation({client,source,binding,
+      project:project()?.selectedProject(),target,runId})
+      .then(row=>{
+        if(disposed||verified!==snapshot||!current())return;
+        if(row.alreadyInstalled)installed={kind:row.kind,id:row.id,
+          sourceHash:source.sourceHash,inputHash:source.inputHash};
+        onState();
+      }).catch(()=>{ /* Read failure is not evidence of an installation. */ });
   }
   async function prepare(){
     if(!canSave())throw issue('E_VERIFICATION','请先在当前网页成功运行本地确定版本并核对结果');
@@ -61,6 +73,12 @@ export function createLocalInstallUI({client,api,doc,currentPageTarget,getProjec
       await currentPageTarget.revalidate(before.target);local.assertCaptured(binding);
       const planned=await prepareLocalProjectInstallation({client,source,binding,
         project:local.selectedProject(),target:before.target,runId:before.runId});
+      if(planned.alreadyInstalled){
+        if(disposed||before!==verified||!current())throw issue('E_DEV_CONFLICT','已安装状态核对期间项目或网页改变');
+        installed={kind:planned.kind,id:planned.id,sourceHash:source.sourceHash,inputHash:source.inputHash};
+        onInstalled({kind:planned.kind,id:planned.id,focus:true});
+        return;
+      }
       const access=await consent.prepare({origins:planned.siteOrigins});
       if(!access||before!==verified||!current())throw issue('E_DEV_CONFLICT','项目、页面或权限状态在审阅期间改变，请重新运行');
       review={planned,source:structuredClone(source),binding:structuredClone(binding),target:structuredClone(before.target)};
@@ -94,7 +112,7 @@ export function createLocalInstallUI({client,api,doc,currentPageTarget,getProjec
       const result=await commitLocalProjectInstallation({client,review:selected.planned,source,
         target:selected.target,title:title.value.trim(),version:version.value.trim()});
       if(disposed)return;
-      installed={...result,sourceHash:source.sourceHash};
+      installed={...result,sourceHash:source.sourceHash,inputHash:source.inputHash};
       hide();status.textContent='已安装固定版本；修改本地源码不会自动更新已安装内容。';
       onInstalled({kind:result.kind,id:result.id,version:result.version});
     })().catch(error=>{
