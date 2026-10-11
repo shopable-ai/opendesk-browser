@@ -1,6 +1,6 @@
 // Trusted extension-host loader; never evaluates source or uses runtime CDN.
 import {digestUtf8} from '../platform/protocol.js';
-import {BUILTIN_ABI,BUILTIN_RUNTIME_CATALOG as catalog,BUILTIN_RESOURCE_PATHS as paths} from './runtime-contract.js';
+import {BUILTIN_ABI,BUILTIN_PACKAGE_RESOURCE_LIMIT,BUILTIN_RUNTIME_CATALOG as catalog,BUILTIN_RESOURCE_PATHS as paths} from './runtime-contract.js';
 const fail=code=>Object.assign(new Error(code),{code});
 const hex=/^[a-f0-9]{64}$/;
 const libs=Object.values(catalog.libraries);
@@ -34,7 +34,7 @@ async function manifestFor(ctx){
   if(manifest?.format!=='opendesk.builtin-resources.v2'||manifest.abi!==BUILTIN_ABI||
     manifest.catalogSha256!==catalogSha256||!Array.isArray(rows)||rows.length!==paths.length||
     rows.some((item,i)=>item?.path!==paths[i]||!Number.isSafeInteger(item.bytes)||
-      item.bytes<1||item.bytes>524288||!hex.test(item.sha256))||
+      item.bytes<1||item.bytes>BUILTIN_PACKAGE_RESOURCE_LIMIT||!hex.test(item.sha256))||
     !libs.every(lib=>!lib.sha256||rows.some(item=>item.path===lib.output&&
       item.sha256===lib.sha256&&item.bytes===lib.bytes)))
     throw fail('E_BUILTIN_VERSION_UNAVAILABLE');
@@ -43,7 +43,7 @@ async function manifestFor(ctx){
 async function checked(path,ctx,rows){
   const row=rows[paths.indexOf(path)];
   if(!row)throw fail('E_BUILTIN_VERSION_UNAVAILABLE');
-  const {text,bytes}=await read(path,ctx,524288);
+  const {text,bytes}=await read(path,ctx,BUILTIN_PACKAGE_RESOURCE_LIMIT);
   if(bytes!==row.bytes||await digestUtf8(text)!==row.sha256)
     throw fail('E_BUILTIN_HASH');
   const pinned=libs.find(x=>x.output===path&&x.sha256);

@@ -1,6 +1,10 @@
 // Minimal immutable runtime contract. This is the only source for published
 // ids, versions, paths, worlds and pinned raw-code SHA values. Author metadata
 // in catalog.js extends these rows, but is NOT imported into privileged SW.
+// Browser Page/Controller fixed library assets must have the same upper byte
+// bound as build-contract's productionBytes. This is a runtime read limit,
+// independent of the 1 MiB Service Worker budget or React/Vue's 256 KiB cap.
+export const BUILTIN_PACKAGE_RESOURCE_LIMIT=512*1024;
 export const BUILTIN_ABI='opendesk-builtins.v9';
 export const BUILTIN_RUNTIME_CATALOG=Object.freeze({
   abi:BUILTIN_ABI,

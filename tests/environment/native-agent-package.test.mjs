@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {inspectScript,verifyManifest} from '../../scripts/verify-package.mjs';
 import {BUILD_POLICY,FIXED_OUTPUTS,PACKAGE_ENTRIES} from '../../scripts/build-contract.mjs';
+import {BUILTIN_CATALOG} from '../../src/libs/catalog.js';
 import {installNativeTransport,NATIVE_TRANSPORT_KEY} from '../../src/native-agent/transport.js';
 
 test('Native remains optional after merging the current permission catalog',async()=>{
@@ -27,14 +28,21 @@ test('independent SW budget and fixed packaged Native transport entry',()=>{
   assert.equal(FIXED_OUTPUTS.bridge,'sidebar-tools/bridge.js');
   assert.equal(PACKAGE_ENTRIES['libs/runtime/page-core'],'./src/entrypoints/page-core.js');
   assert.equal(FIXED_OUTPUTS['page-core'],'libs/runtime/page-core.js');
-  assert.equal(Object.keys(PACKAGE_ENTRIES).length,30);
-  assert.deepEqual(Object.keys(PACKAGE_ENTRIES),[
-    'sw','ui/tool-shell','ui/marketplace','native-agent/settings','native-agent/transport','knowledge/knowledge-host','cloud-control/cloud-host','time-review/time-review-host',
-    'sidebar-tools/preinstall-intent','agents/health','agents/health-host','agents/selection-entry','agents/bootstrap','agents/page-agent','agents/page-relay',
-    'framework/sdk-main','scripting/packaged/page-session','scripting/sandbox/sandbox',
-    'sidebar-tools/bridge','scripting/sandbox/worker-runtime','libs/runtime/page-core',
-    'libs/packages/lodash','libs/packages/dayjs','libs/packages/js-cookie','libs/packages/crypto-js','libs/packages/file-saver','libs/packages/query-string','libs/packages/axios','libs/packages/store','libs/packages/cheerio'
-  ]);
+  // No second copy of the WXT entry registry: additions such as native
+  // context menus must not require changing an arbitrary hardcoded count.
+  const entries=Object.keys(PACKAGE_ENTRIES),unlisted=entries.filter(name=>name!=='sw');
+  assert.equal(entries.filter(name=>name==='sw').length,1);
+  assert.equal(new Set(unlisted.map(name=>name.split('/').at(-1))).size,unlisted.length);
+  assert.equal(Object.keys(FIXED_OUTPUTS).length,unlisted.length);
+  for(const name of unlisted)
+    assert.equal(FIXED_OUTPUTS[name.split('/').at(-1)],name+'.js');
+  const npmBundles=Object.values(BUILTIN_CATALOG.libraries)
+    .filter(row=>row.origin==='npm').map(row=>row.output.slice(0,-3)).sort();
+  assert.deepEqual(unlisted.filter(name=>name.startsWith('libs/packages/')).sort(),npmBundles,
+    'every npm public library is an independent WXT output, not a shared SW entry');
+  for(const entry of ['platform/context-menus','cloud-control/cloud-host',
+    'time-review/time-review-host','sidebar-tools/bridge','libs/runtime/page-core'])
+    assert.equal(typeof PACKAGE_ENTRIES[entry],'string','missing independently packaged feature: '+entry);
 });
 
 test('single exact same-extension static import allowed in SW only',()=>{
