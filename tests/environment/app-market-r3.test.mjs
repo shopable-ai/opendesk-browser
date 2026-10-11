@@ -3,7 +3,9 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
 import {SIDEBAR_TOOL_FORMAT,SIDEBAR_TOOL_STORE,sidebarToolStorageKey,MAX_INSTALLED_TOOLS,serializeSidebarToolPackage} from '../../src/ui/sidebar-tools/package.js';
-import {installReviewedSidebarTool,reconcileMarketOperation,recoverMarketOperation,MARKET_OPERATIONS_STORE,
+import {installReviewedSidebarTool,reconcileMarketOperation,recoverMarketOperation,
+  recordToolUninstall,cleanupUninstalledToolLocked,retryUninstalledToolCleanup,TOOL_CLEANUP_STORE,MARKET_OPERATIONS_STORE,
+
   MARKET_PROVENANCE_STORE,sameSidebarToolPackage} from '../../src/ui/sidebar-tools/installation.js';
 import {strictTransfer} from '../../src/marketplace/page.js';
 import {OFFICIAL_COLLECTIONS,getOfficialCollection,officialMarketApps} from '../../src/marketplace/catalog.js';
@@ -130,6 +132,7 @@ test('lost successful write acknowledgement becomes unknown; reconciliation neve
   assert.equal(values[MARKET_PROVENANCE_STORE][candidate.id].sha256,identity().sha256);
   assert.equal(operations.filter(row=>row.method==='set'&&row.keys.includes(SIDEBAR_TOOL_STORE)).length,registryWrites);
   assert.deepEqual(values[SIDEBAR_TOOL_STORE],[candidate]);
+
 });
 test('data-only transfer rejects script, site grants, tokens, duplicates and unknown versions',()=>{
   const safe={format:'opendesk.market.transfer.v1',apps:[{marketId:'opendesk/reading-toc',version:'1.0.2'}]};
@@ -190,4 +193,48 @@ test('R4.5 old unknown operations cannot be reconciled using a newer release or 
   assert.equal((await reconcileMarketOperation(api,record.operationId,original)).state,'needs-finalization');
   assert.equal(values[MARKET_OPERATIONS_STORE][record.operationId].state,'outcome-unknown');
   assert.equal(values[MARKET_PROVENANCE_STORE]?.[original.id],undefined);
+  assert.equal((await recoverMarketOperation({api,lockManager:{request:async(_name,fn)=>fn()},
+    operationId:record.operationId})).state,'succeeded');
+});
+
+test('host quota refusal before registry commit retains the previous package and its private data',async()=>{
+  const {api,locks,values}=browser(),original=tool(),next=tool('reading-toc','1.0.3'),key=sidebarToolStorageKey(original.id);
+  values[SIDEBAR_TOOL_STORE]=[original];values[key]={draft:'must survive'};
+  const set=api.storage.local.set;
+  api.storage.local.set=async rows=>{
+    if(Object.hasOwn(rows,SIDEBAR_TOOL_STORE))throw Error('QUOTA_BYTES quota exceeded');
+    return set(rows);
+  };
+  await assert.rejects(installReviewedSidebarTool({api,lockManager:locks,candidate:next,
+    baseline:original,reviewApproved:true}),e=>e.code==='E_HOST_STORAGE_QUOTA');
+  assert.deepEqual(values[SIDEBAR_TOOL_STORE],[original]);assert.deepEqual(values[key],{draft:'must survive'});
+});
+test('offline recovery uses only local package digest and durable operation journal',async()=>{
+  const {api,locks,values}=browser(),candidate=tool(),record={...identity(),toolId:candidate.id,
+    version:candidate.version,state:'outcome-unknown'};
+  values[SIDEBAR_TOOL_STORE]=[candidate];values[MARKET_OPERATIONS_STORE]={[record.operationId]:record};
+  assert.equal((await reconcileMarketOperation(api,record.operationId)).state,'needs-finalization');
+  assert.equal((await recoverMarketOperation({api,lockManager:locks,operationId:record.operationId})).state,'succeeded');
+  assert.deepEqual(values[MARKET_PROVENANCE_STORE][candidate.id],
+    {marketId:record.marketId,version:record.version,sha256:record.sha256});
+});
+test('partially failed uninstall keeps recovery journal and never deletes reinstalled same-ID data',async()=>{
+  const {api,locks,values}=browser(),old=tool(),key=sidebarToolStorageKey(old.id);
+  values[SIDEBAR_TOOL_STORE]=[old];values[key]={secret:'old'};
+  await recordToolUninstall(api,old);
+  values[SIDEBAR_TOOL_STORE]=[];
+  const remove=api.storage.local.remove;
+  api.storage.local.remove=async item=>{if(item===key)throw Error('disk failed');return remove(item);};
+  await assert.rejects(cleanupUninstalledToolLocked(api,old.id),e=>e.code==='E_TOOL_UNINSTALL_CLEANUP');
+  assert.ok(values[TOOL_CLEANUP_STORE][old.id]);
+  api.storage.local.remove=remove;
+  const replacement={...old,version:'8.0.0'};
+  values[SIDEBAR_TOOL_STORE]=[replacement];values[key]={secret:'new'};
+  assert.equal((await retryUninstalledToolCleanup({api,lockManager:locks,id:old.id})).state,'still-installed');
+  assert.deepEqual(values[key],{secret:'new'});
+  values[SIDEBAR_TOOL_STORE]=[];
+  assert.equal((await retryUninstalledToolCleanup({api,lockManager:locks,id:old.id})).state,'cleaned');
+  assert.equal(values[key],undefined);
+  assert.equal(values[TOOL_CLEANUP_STORE][old.id],undefined);
+
 });

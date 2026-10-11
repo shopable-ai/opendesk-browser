@@ -7,7 +7,7 @@ import {createCurrentPageTarget} from '../../src/ui/current-page-target.js';
 import {initSidebarToolSandbox} from '../../src/sidebar-tools/bridge.js';
 import {SIDEBAR_TOOL_FORMAT,SIDEBAR_TOOL_STORE,sidebarToolStorageKey} from '../../src/ui/sidebar-tools/package.js';
 import {officialToolFixture,officialFixtureFetch,officialFixtures} from '../helpers/official-tools.mjs';
-import {MARKET_PROVENANCE_STORE,MARKET_OPERATIONS_STORE,reconcileMarketOperation} from '../../src/ui/sidebar-tools/installation.js';
+import {MARKET_PROVENANCE_STORE,MARKET_OPERATIONS_STORE,reconcileMarketOperation,recoverMarketOperation} from '../../src/ui/sidebar-tools/installation.js';
 import {CLIP_SITE_STORE} from '../../src/page-clip/policy.js';
 import {CAPTURE_SITE_STORE} from '../../src/knowledge/policy.js';
 import {READING_TOC_SITE_STORE} from '../../src/reading-toc/policy.js';
@@ -888,6 +888,9 @@ test('R4.5 an acknowledgement lost after installation revokes approval and recon
   assert.equal(f.store.get(MARKET_OPERATIONS_STORE)[operationId].state,'outcome-unknown');
   assert.equal(f.store.get(MARKET_PROVENANCE_STORE)?.[release.toolId],undefined);
   assert.equal(registryWrites,1);
+  assert.equal((await recoverMarketOperation({api:f.api,lockManager:sharedLocks(),operationId})).state,'succeeded');
+  assert.equal(registryWrites,1,'explicit recovery never replays the registry write');
+
   for(const key of [READING_TOC_SITE_STORE,CLIP_SITE_STORE,CAPTURE_SITE_STORE])assert.equal(f.store.has(key),false);
 });
 

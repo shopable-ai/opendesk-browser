@@ -535,6 +535,23 @@ test('R4.5 production Chrome: optional releases, both official entries, permissi
   await until(()=>evaluate(pageA,'document.querySelectorAll("[data-opendesk-toc-root]").length===0'),'revocation immediately removes A TOC');
   await assertNoGrants();await screenshot(side,'r45-revoked-from-other-origin.png');
 
+  // Capacity-only fixture: special keys in an owned, disposable Chrome profile.
+  // Tool packages, tool data and install operations are still populated solely
+  // through native trusted clicks, never by writing the protected registry.
+  await phase('host-local-storage-exceeds-10MiB');
+  const capacityPrefix='opendesk.storage-capacity-test.v1:'+randomUUID()+':';
+  const capacityCount=12,capacityChunkBytes=920000;
+  const unlimited=await evaluate(side,"chrome.permissions.contains({permissions:['unlimitedStorage']})");
+  assert.equal(unlimited,true,'the loaded production extension must actually hold unlimitedStorage');
+  const originalTotal=await evaluate(side,'chrome.storage.local.getBytesInUse(null)');
+  const highUsage=await evaluate(side,"(async()=>{for(let i=0;i<"+capacityCount+";i++)"+
+    "await chrome.storage.local.set({["+JSON.stringify(capacityPrefix)+"+i]:'x'.repeat("+capacityChunkBytes+")});"+
+    "return chrome.storage.local.getBytesInUse(null)})()");
+  assert(highUsage>10*1024*1024,'real chrome.storage.local must hold more than 10 MiB');
+  evidence.storageWritesFromDriver=capacityCount;evidence.protectedInstallationStorageWritesFromDriver=0;
+  evidence.storageCapacity={unlimited,originalBytes:originalTotal,above10MiBBytes:highUsage,
+    fixtureKeyCount:capacityCount,fixtureKeyPrefix:capacityPrefix,
+    fixtureValueBytes:capacityChunkBytes,installedVia:'native UI',dataOrigin:'capacity-only fixture'};
   await phase('other-local-json-import');
   await importPackage({...packages.get('markdown-workbench'),id:'r45-local-tool',title:'R45 本地导入工具'},'other-local-tool');
   await openTool('r45-local-tool');await back();
@@ -542,6 +559,16 @@ test('R4.5 production Chrome: optional releases, both official entries, permissi
   await phase('first-complete-chrome-restart');await closeChrome();host=null;side=null;await launch();side=await openPanel();
   assert.deepEqual(await installed(),beforeRestart);await assertNoGrants();await assertNoFrames();
   assert.deepEqual(await readStore(sidebarToolStorageKey('quick-notes')),noteData);
+  evidence.storageCapacity.afterRestartBytes=await evaluate(side,'chrome.storage.local.getBytesInUse(null)');
+  assert(evidence.storageCapacity.afterRestartBytes>10*1024*1024,
+    'Chrome restart must retain the >10 MiB capacity fixture and locally installed tools');
+  const capacityCleanup=await evaluate(side,"(async()=>{const keys=Array.from({length:"+capacityCount+
+    "},(_,i)=>"+JSON.stringify(capacityPrefix)+"+i);"+
+    "await chrome.storage.local.remove(keys);const left=await chrome.storage.local.get(keys);"+
+    "return {remaining:Object.values(left).filter(v=>v!==undefined).length,used:await chrome.storage.local.getBytesInUse(null)}})()");
+  assert.equal(capacityCleanup.remaining,0,'cleanup must remove only dedicated capacity fixture keys');
+  evidence.storageFixtureRemovalsFromDriver=capacityCount;
+  evidence.storageCapacity.afterFixtureCleanupBytes=capacityCleanup.used;
   pageA=await openTab(servers[0].origin+'/article');pageB=await openTab(servers[1].origin+'/article');
   for(const page of [pageA,pageB])assert.equal(await evaluate(page,'document.querySelectorAll("[data-opendesk-toc-root]").length'),0);
   frame=await openTool('quick-notes');await until(()=>evaluate(frame,'document.querySelector("#note-text").value==='+JSON.stringify(note)),'native note survives full Chrome restart');await back();

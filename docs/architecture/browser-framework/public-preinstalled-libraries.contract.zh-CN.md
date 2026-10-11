@@ -1,154 +1,202 @@
-# 公共预装类库：用户脚本能力合同
+# 公共预装类库：用户脚本能力合同 R1.1
 
-日期：2026-10-11。性质：用户需求纠偏、目标目录与实施合同；不是新增库已实现的证明。
-源码核查基线：`72bcc0451294c1f709eaf667626e10d45a8eb50e`。本次不修改运行时代码、依赖锁、权限、构建产物或其他任务的工作记录。
+日期：2026-10-11。源码核查基线：`53b09e45036c39a3dda8f638a992677cddae0135`。
+性质：本轮修订需求、目录和实施验收合同；没有新增运行库、修改 npm 锁、CSP 或构建产物。完整公共预装能力仍未完成。
 
-## 1. 不再改变的需求边界
+## 1. 本次收敛结论与范围
 
-OpenDesk Browser 是供用户编写脚本和工具的框架。框架维护者负责预装真实第三方库；普通用户不需要安装 npm、复制第三方文件或填写 CDN 地址，就能在获准的执行环境调用这些库。
+用户本次明确允许以轻便的 Day.js 满足日期需求，不必与 Moment 并存。因此，**公共日期库统一为 Day.js，本轮不预装 Moment，不新增 packages/moment.js，不提供 moment=dayjs 假别名**。这取代 R1 的强制双库安排；不是声称 Day.js 全量兼容 Moment。旧快照、历史回执和用户自有项目不删除、不批量改写。
 
-**内部有 axiosx/fetch、Web Crypto、Cookie/Storage/Downloads 服务，不等于用户脚本已有 axios、moment、CryptoJS、Cookies、queryString、store、saveAs。** 不允许用内部服务存在或 API 名称相似，将这些公共库标记为已替代、已迁移或无需实现。
+这个日期特例不授权把其他已明确的真实公共库再次改成内部相似服务。框架仍需为普通用户程序预装真实 Axios、CryptoJS、js-cookie、query-string、store.js、FileSaver、Cheerio、FingerprintJS、Socket.IO Client、React、ReactDOM、Vue；保留 Lodash、Day.js、jQuery 和既存 my-utils ABI；提供 Tailwind 公共样式。
 
-用户已要求纳入公共预装目标：Axios、Moment、CryptoJS、js-cookie、query-string、store.js/store.legacy 的相应兼容能力、FileSaver、Cheerio、FingerprintJS、Socket.IO Client、React、ReactDOM、Vue；保留已有 Lodash、Day.js、jQuery。Tailwind CSS 属于框架供给的公共 UI 样式能力，不是向 SW 注入的 JS 库。
+普通用户无需安装 npm、下载 JS 或填写 CDN 地址。用户程序就是公共 API 消费者，不以“框架内部没有 import”为由移除需求。axiosx/fetch、Web Crypto、Chrome Storage 等内部服务不等于真实 axios/CryptoJS/store 已对用户开放。
 
-用户程序就是公共 API 的消费者，不以“框架内部尚无 import”为理由删除该需求。每个库仍须有真实用户代码、功能测试、合法固定版本/许可证及对应执行世界的证据。
+本轮不迁移 TimeReview、旧采集产品、旧指纹上报、旧远程命令业务；不添加 Monaco Editor、ECharts、Docsify。保留通用库能力不等于启动原业务。PSL、CSS Selector Generator、PrismJS、Marked、QRCode 是下一批候选；Quasar、Hammer.js、JSZip、XLSX、XMind 不为凑数量加入首批；Babel 不作为浏览器运行时编译器。
 
-TimeReview 是业务模块，不是第三方库；不迁移 TimeReview、旧采集产品、旧远程命令处理器。Monaco Editor、ECharts、Docsify 等不属于本次预装范围。**不恢复指纹追踪/远控业务，不等于禁止提供用户明确选择的 FingerprintJS/Socket.IO 通用库。**
+## 2. 当前事实与公共加载策略
 
-本合同替代历史讨论中“只有四个登记库即可宣布公共库完成”“React/Vue 只能由每个工具自行 npm 安装”“Cheerio/FingerprintJS/Socket.IO 因旧业务排除而一概退役”等范围结论。旧快照/回执不改写；安全与真实验收规则保留。
+核查的 `src/libs/packages/dayjs.js` 仅暴露核心及 isDayjs，尚未接入下面的日期插件。现有 runtime-contract/catalog 登记 lodash、dayjs、myUtils、jquery；core/loader 不是已经完成的任意可选库系统。**目标文件、实际源码、构建产物、Chrome 运行分别记账，不创建空文件冒充完成。**
 
-## 2. 当前状态和目标分开
+预装表示固定代码随扩展本地发布；默认加载表示运行程序前自动准备，并非每次打开网站执行全部库。可选加载仍从本地预装资源取得，不要求用户安装。
 
-核查时 `runtime-contract.js` 只有 lodash/dayjs/myUtils/jquery；`core.js` 只暴露三个默认对象；`loader.js` 只组合适用世界的默认库，jQuery 是独立明确选择路径。**基础机制已有，完整公共预装目标未完成。**
+目标常用组为 Lodash、Day.js、Axios、CryptoJS、query-string；有 DOM 的网页程序再提供 js-cookie。目标可选组为 jQuery、store、FileSaver、Cheerio、FingerprintJS、Socket.IO、React UI 组、Vue、Tailwind。保留一行 `// @opendesk-lib jquery`，在既有元数据上扩展其他 ID；不建另一套安装器，不用变量名猜测依赖。
 
-下面标记新增的文件均未实现，不得创建空包装文件后宣称 ACTIVE_BUILTIN。新版本、许可证、SHA、体积必须在实际锁定/构建后记录，本合同不臆造版本。
+每个世界只提供实际可运行的 API。加载资源本身不能连接服务器、调用指纹 load/get、读取站点 Cookie、写存储或挂载 UI。需要环境检测的库不得通过有副作用的持久化探测掩饰为“只是加载”；初始化时机也必须测试。常用组合的冷/热加载、总字节和资源数须测量；不把性能优化变成删除预装需求。
 
-## 3. 预装不等于全部默认执行
+## 3. Day.js：单库、固定插件、明确兼容边界
 
-预装表示代码随扩展本地发布；可选库也预装，用户无需下载或 npm。默认组仅在程序真正运行时加载，不是打开每个网站就全部运行。
+目标公共 API 保持 `dayjs` / `OpenDeskLibs.dayjs`。集中在已有 `packages/dayjs.js` 接入 duration、utc、timezone、customParseFormat 四个经过审核的官方插件，不创建第二日期门面或插件管理器，不引入整个插件/locale 集合。
 
-目标常用组：Lodash、Day.js、Axios、Moment、CryptoJS、query-string；DOM Page 再提供 js-cookie。Moment 与 Day.js 保留各自真实 API。新增默认成本必须测冷/热加载和总组合体积；超预算要报告阻断并优化，不悄悄删除需求。
+| 需求 | 目标 API | 验证条件 |
+| --- | --- | --- |
+| 格式化、加减、日边界 | format、add、subtract、startOf、endOf、diff | 单位、跨月、闰年、秒/毫秒语义 |
+| 时间长度 | dayjs.duration、dayjs.isDuration | 90 seconds -> 1.5 minutes；不是用固定时长代替日历月份 |
+| UTC/命名时区 | dayjs.utc、dayjs.tz、实例 tz | utc 先于 timezone；显式 IANA 时区；夏令时和无效时区 |
+| 严格字符串解析 | dayjs(text, format, true).isValid() | customParseFormat 已启用；2026-02-30 必须无效 |
 
-目标可选组：jQuery、store、FileSaver、Cheerio、FingerprintJS、Socket.IO、React+ReactDOM、Vue、Tailwind 样式。只加载代码不连接服务器、不调用指纹 load/get、不读 Cookie、不写存储、不挂载 UI。
+插件由框架在用户代码之前固定初始化。沿用不公开任意 extend/全局 locale 修改的原则；tz.setDefault 等可变全局不直接开放给跨程序共享实例。需要本地化时登记具体 locale，不自动打包所有语言。Intl/时区能力不可用时明确报错，不下载远程 polyfill。
 
-复用现有 `@opendesk-lib`，扩展为一行一个 ID 的声明；React 自动解析 ReactDOM 依赖。多库支持是待实现内容，当前只有 jQuery 路径不能冒充通用能力。不通过不可靠的变量名扫描猜测依赖，不另造库安装器。
+修改包装器时同步 catalog 的公开方法、core 的 API 校验、runtime/identity 的接口指纹、构建溯源和回归。不能只 extend 插件却仍冻结旧 isDayjs 门面，造成底层支持而用户看不到。不得把 Day.js 对象不变性改回 Moment 可变语义；旧 moment 脚本应明确迁移并测试，不静默更名或执行源码替换。遇到确切无法迁移的旧项目，另行评审项目级兼容依赖，不因此恢复框架默认双库。
 
-## 4. 最终文件落点和公开 API
-
-`packages` 是本项目的上游库适配器；npm 原码由根 package.json/package-lock.json 锁定，位于 node_modules，不复制整个 node_modules。目标产物为 `dist/<mode>/libs/packages/<文件名>`。
-
-| 库 | src/libs 内的文件 | 用户目标 API | 环境/边界 |
-| --- | --- | --- | --- |
-| Lodash | packages/lodash.js（已有） | `_`、OpenDeskLibs.lodash | Controller/USER_SCRIPT；当前八方法，危险导出不自动开放 |
-| Day.js | packages/dayjs.js（已有） | dayjs | Controller/USER_SCRIPT；不是 Moment 兼容层 |
-| Axios | packages/axios.js（新增） | axios.get/post/create/defaults/interceptors | 上游 Axios + 合适 transport；不是 axiosx 改名 |
-| Moment | packages/moment.js（新增） | moment().format/endOf、moment.duration | Controller/USER_SCRIPT；locale/时区另行声明 |
-| CryptoJS | packages/crypto-js.js（新增） | CryptoJS.SHA256、经审核的算法/编码 | Controller/USER_SCRIPT；不是 WebCrypto 更名 |
-| js-cookie | packages/js-cookie.js（新增） | Cookies.get/set/remove | DOM Page 当前站点；不等于扩展 Cookie 权限 |
-| query-string | packages/query-string.js（新增） | queryString.parse/stringify | Controller/USER_SCRIPT；重复键/数组/空值另测 |
-| store.js | packages/store.js（新增） | store.get/set/remove、OpenDeskLibs.store | DOM/明确后端；不与异步 storage/AppStorage 混名 |
-| FileSaver | packages/file-saver.js（新增） | saveAs、OpenDeskLibs.fileSaver.saveAs | 允许下载的 DOM Page；工具 sandbox 需显式适配 |
-| Cheerio | packages/cheerio.js（新增） | cheerio.load(html) 及结果查询 API | 浏览器解析构建；不承诺 Node stream/fromURL |
-| FingerprintJS | packages/fingerprintjs.js（新增） | FingerprintJS.load()、agent.get() | DOM Page 明确选择/告知；不自动采集或上报 |
-| Socket.IO Client | packages/socket-io.js（新增） | io()、socket.on/emit/disconnect | 允许 transport 的 Page/工具；Worker 接线前不承诺 |
-| React | packages/react.js（新增） | React.createElement/useState 等 | DOM Page/工具 sandbox；同一实例 |
-| ReactDOM | packages/react-dom.js（新增） | ReactDOM.createRoot、root.render/unmount | 与 React 匹配，不能再捆绑第二份 React |
-| Vue | packages/vue.js（新增） | Vue.createApp/h/ref、app.unmount | DOM Page/工具 sandbox；runtime-only |
-| jQuery | vendor/jquery/3.7.1/（已有） | $、jQuery | USER_SCRIPT 明确选择；不污染网站 MAIN |
-| my-utils | vendor/my-utils/1.0.0/（已有） | OpenDeskLibs.myUtils.upper | 演示及既存 ABI 兼容，不代表目标完成 |
-| Tailwind | styles/tailwind.input.css、styles/tailwind-classes.json（新增） | 已预编译集合内的 class | 输出 libs/styles/tailwind.css，作用于受管 UI |
-
-旧 store.legacy 整包的过时浏览器回退不自动照搬。使用真实上游 engine + 经审查后端，保留可证明的同步 API；不能偷偷换成 Promise，不能以内存回退冒充持久化，不能让 clearAll 删除框架/其他工具数据。站点存储与工具私有存储明确命名和授权；不支持的环境报错而不是假成功。
-
-PSL、CSS Selector Generator、PrismJS、Marked、QRCode 保留为下一批公共可选候选，不再因暂无内部消费者而永久剔除；Quasar/Hammer.js/JSZip/XLSX/XMind 不为凑数量加入首批。Babel 仅在确需源码转换时作为开发编译工具。
-
-```text
-src/libs/
-  README.md / AGENTS.md             需求与使用入口
-  runtime-contract.js / catalog.js  保留唯一合同；扩展库组/依赖/世界
-  core.js / loader.js / identity.js 保留机制，扩展 API/选择集合身份
-  runtime/bootstrap.js             复用注册，支持依赖顺序/实例工厂
-  packages/                        上表列出的真实库适配器
-  vendor/                          原字节经典 JS + 许可证 + 哈希
-  adapters/                        薄适配，不另建 Broker
-    axios-transport.js             新增：上游 Axios 接受权 HTTP
-    store-backend.js               新增：明确后端和命名空间
-    file-save.js                   新增：saveAs/受控下载的边界
-    socket-lifecycle.js            新增：连接登记、停止/退权清理
-  styles/
-    tailwind.input.css             新增，复用现有设计 Tokens
-    tailwind-classes.json           新增，零构建脚本的 class 合同
-```
-
-adapters 仅在已有模块不能直接复用时新增。目标输出为 `dist/{production,development}/libs/{packages,runtime,vendor,styles}/`、`libs/manifest.json` 和 `licenses/`；这是目标位置，不是现有产物存在性声明。
-
-## 5. 不是只添加文件：现有执行链必须接通
-
-1. 扩展现有 catalog/bootstrap/core/loader，以“常用组 + 明确选择 + 依赖闭包”生成确定顺序。identity 绑定确切库集合/版本/hash，不能仍只绑定旧四库。未知 ID、环依赖、世界不符、缺资源、SHA/版本错误失败关闭，无 CDN 回退。
-2. `OpenDeskLibs` 与别名绑定只读，但不要将上游对象全部深冻结，破坏 Axios defaults/interceptors、Moment locale 或 UI 框架状态。每程序隔离可变配置/实例，并测试泄漏、重复运行和旧 realm 恢复。
-3. 复用 `src/scripting/user-scripts/{dependency-metadata,execution-source,preview,dependency-manager}.js` 和已安装程序链路，先载库后运行正文；不写网站 MAIN 同名全局。
-4. Controller 复用 `src/scripting/sandbox/worker-runtime.js`、page-proxy 和 RunHost，只给该 Worker 能运行的 API，不给 DOM/UI/Cookie/FileSaver/Fingerprint 假环境。
-5. 工具复用 `src/sidebar-tools/bridge.js`、`src/ui/sidebar-tools.js`、`src/ui/sidebar-tools/package.js` 及构建器。宿主校验库字节，在隔离 iframe 先装库再执行工具，不在可信 Side Panel DOM 执行用户代码。schema/版本必须正式演进，现有严格包结构不支持的新字段不能直接塞进去。
-6. 根 package/lock、`src/entrypoints/`、wxt.config、build-contract、prepare-public、verify-package、现有 libs 命令同步登记固定资源。React/ReactDOM 必须共享匹配实例，不能分别捆绑不同 React。所有库不默认打进 SW；受信 Background/Content 仅按真实内部需要静态 import。
-
-### Axios 与权限
-
-真实上游 Axios 负责 create/defaults/interceptors、转换、错误；Controller 使用自定义 adapter 接现有 Broker。Page 普通网络与扩展特权跨站 transport 分开说明；后者必须绑定程序自身授权，不能继承 MAIN SDK 权限。signal/timeout、重定向、凭据、响应类型、状态码逐项测试。禁止把 adapter 任意改写变成特权逃逸，不支持的 Node adapter/任意 transport 失败关闭。Page Broker 没接通就是未完成，不得由安装 Axios 代替。
-
-### Cheerio / FingerprintJS / Socket.IO
-
-Cheerio 提供真正浏览器解析 API，load 处理文本；Node 的 loadBuffer/stream/fromURL 不承诺。解析不等于 HTML 消毒，不将未经处理结果插进特权 DOM。
-
-FingerprintJS 用最终版本审查过的本地包，核对许可及所有网络行为。声明不触发 load/get；明确告知用途，不自动上报或恢复旧服务。需验证 DOM/iframe/CSP/禁用 API 条件；不能保证任何浏览器下都得到稳定唯一身份。
-
-Socket.IO 预装 socket.io-client，不是服务器或旧远控模块。无默认服务器、无导入即连接；用户代码明确创建后，按实际网络约束运行。登记 socket，停止/卸载/撤权/导航后断开并终止重连；远端消息不得当代码执行。Worker transport 不支持时标明未实现，不放宽 CSP。
-
-### React / Vue / Tailwind
-
-普通 JS 使用 React.createElement 或 Vue.h 即可构建 UI，不强迫用户创建 npm 项目。复用 page-ui.js 及受管生命周期，关闭/重跑/导航卸载 React/Vue；库不注入网站 MAIN。
-
-React runtime 不是 JSX 编译器；Vue runtime-only 不接受未编译的任意模板/SFC。JSX/.vue 继续用现有本地编译流程，不增加运行时 Babel/eval。
-
-Tailwind 编译器保留在框架开发/本地构建端；框架额外发布真实 Tailwind 编译出的常用 class CSS，挂入用户 ShadowRoot/工具 iframe。复用 src/ui/design-tokens.css，处理主题变量/:host/Preflight 作用域，不在网站全局 reset。
-
-零构建脚本只承诺已列入集合的 class；任意动态拼接/任意值需要开发端生成 CSS，不声称一份静态 CSS 覆盖全部语法。不用 Play CDN/网页实时编译器。根项目有 tailwindcss devDependency 不等于用户 UI 已有 Tailwind。
-
-## 6. 用户代码与验收
-
-以下是待实现后的普通代码验收输入，当前不能保证运行：
+以下是未来回归输入，不代表当前包装器已经支持：
 
 ```js
 async function main() {
   return {
-    digest: CryptoJS.SHA256('hello').toString(),
-    minutes: moment.duration(90, 'seconds').asMinutes(),
-    query: queryString.parse('tag=a&tag=b')
+    minutes: dayjs.duration(90, 'seconds').asMinutes(),
+    valid: dayjs('2026-02-30', 'YYYY-MM-DD', true).isValid(),
+    tokyo: dayjs.utc('2026-10-11T00:00:00Z').tz('Asia/Tokyo').format('HH:mm')
   };
 }
+// 目标：{ minutes: 1.5, valid: false, tokyo: '09:00' }
 ```
 
-可选库仍零 npm，仅声明要使用哪个本地预装库；泛化声明待实现：
+目标插件组合优先复用现有单一 Day.js 产物；实际 gzip/原始字节、初始化耗时和 ABI 必须按同候选构建验证，本轮不宣称节省了某个未经测量的字节数。
 
-```js
-// @opendesk-lib cheerio
-async function main() {
-  const $ = cheerio.load('<h1>OpenDesk</h1>');
-  return $('h1').text();
-}
+## 4. packages、adapters、vendor 三者各做什么
+
+| 目录 | 保存什么 | 不做什么 |
+| --- | --- | --- |
+| packages/ | 引用真实上游 npm 包、注册公共名称、必要实例工厂 | 不复制整个 node_modules，不手写同名假库，不处理特权授权 |
+| adapters/ | 某库确实无法直接使用现有执行环境时的薄协议转换 | 不为每个库预建一个文件，不建第二 HTTP/权限/存储框架 |
+| vendor/ | 必须保持原字节且经登记的经典 JS 和许可证 | 不是全部第三方源码的总目录，不接收随手下载的旧 min.js |
+
+**保留 adapters/axios-transport.js 作为明确的最小接入计划。** Controller 需要把真正的 Axios 接到既有消息代理，故这个边界合理。store-backend.js、file-save.js、socket-lifecycle.js 不再作为必须创建的占位文件；优先复用现有后端和受管生命周期，只有出现真实复用不足及定向失败测试时再拆分。
+
+### Axios 适配器的职责和依赖方向
+
+```text
+用户 axios.get / axios.create / interceptors
+  -> 真实上游 Axios（用户执行环境中的独立实例）
+  -> src/libs/adapters/axios-transport.js（仅需受权传输的配置）
+  -> 既有程序客户端 / page-proxy / 消息通道
+  -> 现有 Broker / Authority（根据可信 sender 与运行记录核权）
+  -> src/platform/chrome/network.js
+  -> 原网络回执，经消息通道返回 Axios response/error
 ```
 
-实施顺序：常用真实 API 与加载器 → store/FileSaver/Cheerio 的环境语义 → React/Vue/Tailwind 两种 UI 世界 → FingerprintJS/Socket.IO 的明确选择、许可和生命周期。分批不改变完整预装范围。
+`packages/axios.js` 提供真实 Axios，不将 axiosx 改名。适配器通过参数接收运行器注入的窄请求/取消接口；**不能直接 import 受信 network.js、Broker 或 chrome.*，不能向用户暴露任意 privileged fetch 函数、宿主凭据或把 runId 当授权**。不创建新 Worker/SW/RPC 路由系统、不默认重试、不缓存凭据。
 
-每库完成必须有：固定上游版本/许可证、入口、固定产物/hash、公开名称、普通用户真实调用、对应世界的正向/失败测试。至少验证 Axios 拦截器/配置隔离/取消/退权，Moment duration/endOf，CryptoJS 编码，query-string 数组空值，Cookie 路径与拒绝，store 真实持久化或明确不支持，saveAs 实际回执，Cheerio Node API 边界，React/Vue 挂载交互卸载，Tailwind 已登记 class，指纹无静默运行/上报，Socket 双向消息和停止后不重连。
+运行器根据已批准的执行配置固定选择传输，普通用户不必编写 adapter。Page 的普通网络优先使用上游浏览器适配器，仍受实际 CORS/CSP 约束；Controller 的受控网络通过现有 Broker。Page 特权跨站模式必须先接通该程序自己的授权客户端，不借网站 MAIN SDK 或别的工具权限。禁止请求失败后自动从普通网络切换成特权通道。
 
-Node、构建、Chrome、最终包证据分开。生产 SW 327680 bytes 硬限不提高；不加任意 CDN/CSP 权限。大库作为独立预装资源管理，若触及现有工具包/入口/manifest 限制，记录真实失败并优化，不能盲升预算。
+用户可以修改自己环境中可变的 Axios 配置，这不能成为提升宿主权限的手段。特权边界在 Broker：最终 URL、方法、header、body、发送前/完成后授权均校验；baseURL、冻结 JS 属性、限制 adapter 名称本身都不能代替权限校验。
 
-**本次是需求和文档提交。新增库实现 NOT_IMPLEMENTED；本次工程构建 NOT_TESTED；新增库 Chrome NATIVE_UNVERIFIED。** 后续不能用本合同或旧四库 PASS 宣称全部完成。
+### 已核查的协议差异：必须先解决而不是假接线
 
-## 7. 官方技术依据（2026-10-11 核实）
+基线 `src/platform/chrome/network.js` 只接受 GET/POST/PUT/DELETE，只读有上限的 UTF-8 text/JSON，credentials 固定 omit、redirect 固定 manual；非 2xx 抛 E_HTTP，错误携带 response。`src/framework/sdk/registry.js` 的 normalizeConfig 只允许 params/headers/timeout/responseType/withCredentials，禁止 Authorization/Cookie/Origin 等 header，timeout 必须正整数，withCredentials 仅接受 false。这不是上游 Axios 完整配置协议。
 
-- [Chrome 执行世界](https://developer.chrome.com/docs/extensions/develop/concepts/content-scripts)、[网络权限](https://developer.chrome.com/docs/extensions/develop/concepts/network-requests)。
-- [Axios adapter](https://axios-http.com/docs/req_config)、[Cheerio 浏览器边界](https://cheerio.js.org/docs/basics/loading/)。
-- [React createElement](https://react.dev/reference/react/createElement)、[createRoot](https://react.dev/reference/react-dom/client/createRoot)、[Vue h](https://vuejs.org/guide/extras/render-function.html)、[Vue runtime-only](https://vuejs.org/guide/scaling-up/tooling.html)。
-- [store.js](https://github.com/marcuswestin/store.js)、[FileSaver](https://github.com/eligrey/FileSaver.js)、[FingerprintJS](https://github.com/fingerprintjs/fingerprintjs)、[Socket.IO Client](https://socket.io/docs/v4/client-options/)。
-- [Tailwind Play CDN 仅开发使用](https://tailwindcss.com/docs/installation/play-cdn)、[class 生成限制](https://tailwindcss.com/docs/detecting-classes-in-source-files)。
+因此适配器需要以下明确合同：
+
+- Axios 在用户环境完成 interceptors/transform；paramsSerializer、URL 拼接和规范化只执行一次，再将最终绝对 HTTP(S) URL 送 Broker，不能重复编码 query 或重复 stringify body。鉴权针对最终 URL，不信任 baseURL 前缀；url 内用户名密码继续拒绝。
+- 返回 Axios response 的 data/status/statusText/headers/config。需要保留 transformResponse 语义时请求原始 text，再由 Axios 处理；不能重复解析 JSON。二进制、流、multipart、上传进度、PATCH/HEAD/OPTIONS 等只有真实通道支持后才开放，否则明确 E_CONFIG_UNSUPPORTED/E_SERVICE_UNSUPPORTED；不默默忽略配置。
+- 只有经宿主 post 授权且真实回执完整的 E_HTTP.response 才能还原成 Axios HTTP response，随后按照该请求 validateStatus 决定成功/失败。须核对该字段能否跨消息序列化，缺字段就是待修缺口。权限、撤销、导航、超时、未知效果等错误永不因 validateStatus 变成成功。
+- AbortSignal 和回调函数不能跨 JSON 边界传递；在用户环境保持监听，将取消关联到现有可信运行/请求，宿主必须真正中止请求并清理订阅。已有通道不支持单请求取消时，应明确未完成而不是只在客户端丢弃响应。
+- Axios timeout=0 表示没有用户设定超时，不能原样传给当前正整数校验器；映射时省略该值并保留宿主最大预算，明确宿主上限仍然有效。认证、Cookie、重定向限制继续沿用既有政策，不为模拟完整 Axios 静默放宽。
+- 同一个程序的 axios.create 保留该世界批准的 transport 和隔离配置；不同程序不共享 defaults/interceptors。异常转成 AxiosError/CanceledError 时保留可诊断的框架错误码，不记录 token/敏感 header，不伪造本地 XHR request 对象。
+
+上述是接入和测试要求，未验证前不得宣传“Controller/Page 全量 Axios 兼容”。
+
+### vendor 的保留、来源与完整性
+
+保留已有 `vendor/jquery/3.7.1/jquery.min.js` + LICENSE.txt，继续当前 USER_SCRIPT 按需原字节路径，不再另装一份 jQuery npm runtime。my-utils 是项目自有演示而非上游第三方；为既存 ABI 暂保其原路径，不混入第三方迁移计数，不在本轮删除。
+
+新增库默认选 npm -> packages -> WXT 路线。仅在确有原字节要求或无法合理构建的独立经典资源时选择 vendor。每个 vendor 在现有 catalog/runtime-contract 中登记唯一源路径、版本、来源 URL/原始分发文件、SPDX/实际许可证文件、字节数、代码及许可证 SHA-256、运行世界、加载策略；项目自有资源记真实自有来源，不伪造 npm/下载出处。
+
+npm tarball integrity 与最终 JS SHA 不是一回事。npm 路线核对精确声明、lock、安装版本、许可证、模块溯源及最终产物 SHA；vendor 路线核对原字节与发布字节完全一致，含换行/BOM；来源与 SHA 同时由可信发布流程固定，不能从任意文件算出一个 hash 就把它视为安全。扫描许可证缺失、重复来源/版本、符号链接/路径逃逸、未登记文件和意外 MAIN 暴露。原样源不手工改补丁；确需修补另记转换与源/产物身份。
+
+复用 scripts/libs.mjs、libs-doctor.mjs、prepare-public.mjs、verify-package.mjs 和现有 catalog；不新建第二 vendor manifest/锁文件/管理器。升级必须重新审计许可/安全及下游行为，并重新验收实际固定包；保留历史快照，不把旧漏洞版本设成默认。
+
+## 5. 目标目录及公共 API
+
+以下新增路径是计划，不是已经存在；adapters 只有 Axios 明确列入首批。
+
+```text
+src/libs/
+  README.md / AGENTS.md
+  catalog.js / runtime-contract.js
+  core.js / loader.js / identity.js
+  runtime/bootstrap.js
+  packages/
+    lodash.js                       已有，安全八方法边界不擅自扩大
+    dayjs.js                        已有，扩展上述固定日期插件
+    axios.js                        新增
+    crypto-js.js                    新增
+    js-cookie.js                    新增
+    query-string.js                 新增
+    store.js                        新增
+    file-saver.js                   新增
+    cheerio.js                      新增
+    fingerprintjs.js                新增
+    socket-io.js                    新增
+    react.js                        新增
+    react-dom.js                    新增
+    vue.js                          新增
+  adapters/
+    axios-transport.js              计划新增，仅受权请求协议转换
+  styles/
+    tailwind.input.css              新增，复用既有 Tokens
+    tailwind-classes.json           新增，固定预编译 class 范围
+  vendor/
+    jquery/3.7.1/{jquery.min.js,LICENSE.txt}  已有，按原字节发布
+    my-utils/1.0.0/{index.js,LICENSE.txt}     已有，保留兼容
+```
+
+| 库/组 | 用户目标名称 | 环境与接入要点 |
+| --- | --- | --- |
+| Lodash / Day.js | _ / dayjs / OpenDeskLibs 对应名称 | Controller/USER_SCRIPT；Day.js 不是 moment 别名 |
+| Axios | axios.get/post/create/defaults/interceptors | 真实上游与按环境选择的 transport，见第4节 |
+| CryptoJS | CryptoJS.SHA256 及登记的算法/编码 | 使用真实上游；弱算法不因兼容而被推荐为新安全设计 |
+| js-cookie | Cookies.get/set/remove | 有 DOM 的当前站点 Cookie；无 HttpOnly/扩展 Cookie 权限特权 |
+| query-string | queryString.parse/stringify | Controller/USER_SCRIPT；重复键、数组、空值逐例测 |
+| store.js | store.get/set/remove / OpenDeskLibs.store | 真实上游 engine；网站存储与工具私有存储区分；不用 Promise 偷换同步 API |
+| FileSaver | saveAs / OpenDeskLibs.fileSaver.saveAs | 可下载的 DOM 环境；声明初始化不等于真实文件落盘 |
+| Cheerio | cheerio.load(html) 及查询 API | 真实浏览器文本解析，不承诺 Node 的 stream/fromURL 等 API |
+| FingerprintJS | FingerprintJS.load、agent.get | 明确选择/告知；具体版本许可与所有网络行为核实后才可发布；不得静默采集上报 |
+| Socket.IO Client | io、on/emit/disconnect | 无默认服务器；声明不自动连接；原生 transport 可用且通过策略后才连接 |
+| React UI 组 | React、ReactDOM.createRoot | 两个源码适配器由同一 WXT 入口构建成一个 react-ui.js 资源，共享 React 实例 |
+| Vue | Vue.createApp/h/ref | runtime-only；真实挂载、交互和卸载 |
+| Tailwind | 已登记 class | 本地预编译 CSS，仅受管 ShadowRoot/工具 iframe |
+| jQuery / my-utils | $/jQuery、OpenDeskLibs.myUtils.upper | 保留已存在的世界、opt-in 和 ABI 边界 |
+
+同一库不同时复制 npm 和 vendor 两套正式来源。React/ReactDOM 共享一份物理 `libs/packages/react-ui.js`：在唯一 catalog 记录逻辑库组与版本，加载、哈希、许可和输出检查按物理资源去重；不得直接放开所有重复 output。新增 entrypoints、资源路径/组和产物验证必须显式登记，不能改变输出数量而不更新合同。其余 npm 库输出 `dist/<mode>/libs/packages/<id>.js`；Tailwind 输出 `libs/styles/tailwind.css`；原样 vendor 输出保持 vendor 路径，许可证位于正式 licenses 目录。
+
+## 6. 其余已确认需求不缩减，运行边界不伪装
+
+store 后端优先复用既有实现，不能把内存回退宣称为持久化，也不能允许 clearAll 删除框架或其他工具数据。在工具 opaque sandbox 或 Worker 中没有同步持久后端时标明不支持，另用已命名的异步 storage 服务，不将其冒充 store。FileSaver 需要受控下载适配时明确差异；没有真实保存回执不能宣称文件已写入。
+
+Cheerio 解析不是 HTML 消毒；不能将结果未经处理插入特权 DOM。FingerprintJS 及 Socket.IO 继续是公共可选目标，但许可、隐私或 transport 审查未完成就是发布阻断，不等于已通过，也不能悄悄从需求中删除。Socket 在停止、卸载、撤权和导航时断开并取消重连；普通网页自带网络不属于扩展权限沙箱，不能凭 USER_SCRIPT 隔离承诺拦截该世界所有原生网络。
+
+React/ReactDOM 使用同实例运行库，Vue 使用 runtime-only；无编译用户代码可用 createElement/h。JSX/SFC 仍走现有本地编译，不加浏览器 Babel/eval。网页 UI 复用 page-ui.js 和受管生命周期；侧栏工具复用现有 bridge/包结构的版本化演进，在隔离 iframe 内运行，不能在可信 Side Panel DOM 执行工具代码。两条入口都需实测，不用独立 npm 示例冒充公共预装。
+
+Tailwind 编译发生在框架开发端，复用 src/ui/design-tokens.css，输出 class 集合覆盖的静态样式，处理 :host/主题变量/Preflight 作用域。无 Play CDN、网页实时编译器或网站全局 reset。任意动态类名/任意值不在预编译集合内时需要本地重新生成，不宣称静态 CSS 支持全部语法。
+
+## 7. 实施顺序与不能省略的验收
+
+先扩展现有 catalog/bootstrap/core/loader/identity 的世界、依赖闭包与选择集合身份，再接常用库和单一 Day.js 插件组合；Axios 按第4节完成真正 transport；随后 store/FileSaver/Cheerio、React UI/Vue/Tailwind、FingerprintJS/Socket.IO 分组验收。阶段安排不是删除剩余目标。
+
+未知 ID、环依赖、版本/SHA不符、文件丢失、世界不符均失败关闭。用户公开别名绑定可只读，上游 defaults/interceptors 等可变对象要按程序隔离而非全部深冻结；同 realm 重跑、导航和旧 ABI 升级重新核验，旧候选不能沿用过时库环境授权。
+
+每库必须具备真实固定上游版本与许可、src/libs 入口、登记的固定资源/最终 SHA、可调用 API、普通用户脚本示例、对应世界正向/负向测试。工程组件、构建、Chrome 和最终安装包证据不得互相提升。新增库许可未核实、没有浏览器调用或缺同候选字节证据时保持未验收。
+
+本轮细化的必测项：
+- Day.js：duration、utc/tz、严格无效日期、闰年、DST、不可变性、未暴露任意 extend；调用矩阵与 catalog/core 一致，不提供伪 moment。
+- Axios：真实拦截器/create、序列化一次、非 2xx + validateStatus、跨 IPC 的错误回执、timeout=0/宿主上限、取消到达真实请求、退权/导航、禁止 header/凭据/协议、不同实例不泄漏。
+- vendor：来源与许可证齐全、源/产物原字节和 hash、锁/版本漂移、重复资源组验证、缺失或错 SHA 失败关闭；npm 构建源和 vendor 分别记账。
+- 公共 UI/可选库：React/Vue 两环境挂载与卸载、Tailwind 已登记 class、存储重启语义、真实下载、Cheerio 解析、Fingerprint 无静默采集/上报、Socket 消息与停止后无重连。
+
+按实际变更运行 libs:list/libs:check/check、production+development build、libs:doctor --strict、verify、test、build:size、pack/pack:dev，核对最终 ZIP。遵守 testing-guide 的证据复用与资源占用规则。生产 SW 327680 bytes 硬限不提高；固定资源、工具 schema、manifest 和组合总量的现有预算不盲升。
+
+**本次仅修订文档。新增库/日期插件/适配器 NOT_IMPLEMENTED，工程运行测试 NOT_TESTED，Chrome NATIVE_UNVERIFIED。设计审查分数不是这些门槛已通过的证明。**
+
+## 8. 依据及修订追溯
+
+2026-10-11 R1.1：按用户最新决定撤销强制预装 Moment；其余真实公共库要求保留。将四个预设 adapter 文件收敛为明确需要的 Axios 转换点；补充真实 network/normalizeConfig 差异、vendor 单一来源、React 单实例物理资源和验收门槛。原 R1 由 Git 历史保留，不另建竞争性方案。
+
+本轮核实的官方资料：
+- [Day.js Duration](https://day.js.org/docs/en/plugin/duration)、[Timezone 依赖 UTC 及行为差异](https://day.js.org/docs/en/plugin/timezone)、[严格日期解析](https://day.js.org/docs/en/parse/is-valid)。
+- [Moment 项目维护状态](https://momentjs.com/docs/)。
+- [Axios 请求配置/adapter/validateStatus](https://axios-http.com/docs/req_config)、[Axios adapters](https://axios.rest/pages/advanced/adapters)。
+- [Chrome 跨站请求与权限](https://developer.chrome.com/docs/extensions/develop/concepts/network-requests)。
+- [npm package-lock 与 integrity](https://docs.npmjs.com/cli/v11/configuring-npm/package-lock-json/)。
+
+原 R1 的 React/Vue/Cheerio/store/FileSaver/FingerprintJS/Socket.IO/Tailwind 上游资料仍可作实施入口，具体发布版本、许可证和代码行为须在实际引入时再次核实，不能把本次日期/网络资料审查当成所有库已审计。
