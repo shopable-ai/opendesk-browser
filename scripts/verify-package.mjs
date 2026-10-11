@@ -236,14 +236,20 @@ function assertClassicIIFE(text, file) {
   if (['_', 'dayjs', 'OpenDeskLibs'].includes(bundleGlobal))
     throw new Error(`WXT bundle preclaims built-in API global: ${file} (${bundleGlobal})`);
 }
-// Narrow exception: the classic MV3 worker may import these TWO fixed,
-// same-extension Native/knowledge assets synchronously at boot. The package
-// verifier separately requires the asset and includes its bytes in the hash.
-// All computed, remote, arbitrary and non-worker importScripts remain forbidden.
+// Narrow exception: only these four reviewed, packaged classic resources may
+// load synchronously at SW boot. Exact output filenames are checked against
+// FIXED_OUTPUTS and covered by the release hash. Computed paths, remote code,
+// additional arguments and non-SW importScripts remain forbidden.
+const REVIEWED_SW_IMPORTS=Object.freeze([
+  'sidebar-tools/preinstall-intent.js','agents/health-host.js',
+  'native-agent/transport.js','knowledge/knowledge-host.js'
+]);
+if(REVIEWED_SW_IMPORTS.some(file=>!Object.values(FIXED_OUTPUTS).includes(file)))
+  throw Error('Unregistered classic SW sidecar');
 function approvedNativeImport(callee,call,file) {
   return file==='sw.js' && callee?.type==='Identifier' && callee.name==='importScripts' &&
     call?.type==='CallExpression' && call.callee===callee && call.arguments?.length===1 &&
-    call.arguments[0]?.type==='Literal' && ['native-agent/transport.js','knowledge/knowledge-host.js'].includes(call.arguments[0].value);
+    call.arguments[0]?.type==='Literal' && REVIEWED_SW_IMPORTS.includes(call.arguments[0].value);
 }
 export function inspectScript(text, file, options = {}) {
   const ast = parseScript(text, file, options.sourceType || 'script');
