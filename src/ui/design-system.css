@@ -41,7 +41,7 @@ details>section{margin-top:10px}
 
 /* Keep the trusted tool host aligned with tools that follow the OS theme. */
 @media(prefers-color-scheme:dark){
-  :root{color-scheme:dark;--od-ink:#e9eef7;--od-sub:#b3c1d3;--od-line:#374457;--od-brand:#3566ba;--od-paper:#151c28;--od-bg:#101722;--od-input-border:#52627a;--od-muted:#222d3e;--od-positive:#a1f3cc;--od-negative:#ff9ea6}
+  :root{color-scheme:dark;--od-ink:#e9eef7;--od-sub:#b3c1d3;--od-line:#374457;--od-paper:#151c28;--od-bg:#101722;--od-input-border:#52627a;--od-muted:#222d3e;--od-positive:#a1f3cc;--od-negative:#ff9ea6}
   :root .workbench-nav{background:var(--od-paper)}
   :root .workbench-nav button{color:var(--od-sub)}
   :root .workbench-nav button[aria-selected=true]{color:#9dc1ff;border-bottom-color:#9dc1ff}
