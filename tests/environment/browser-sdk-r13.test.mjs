@@ -75,7 +75,7 @@ test('Browser SDK tool wrapper preserves request channel; page SDK denies privil
   await sdk.launch.consume();
   assert.deepEqual(calls.map(row=>row.operation),['browser.contextMenu.register','browser.launch.consume']);
   assert.deepEqual(calls[0].args,{actionIds:['capture-selection']});
-  assert.rejects(sdk.contextMenu.register({actionIds:['invalid id']}),{code:'E_SCHEMA'});
+  assert.throws(()=>sdk.contextMenu.register({actionIds:['invalid id']}),{code:'E_SCHEMA'});
   assert.equal(sdk.apiVersion,'1.0.0');
   const page=createBrowserSdk({context:'page-sdk'});
   assert.equal((await page.capabilities.getStatus({operation:'browser.contextMenu.register'})).callableNow,false);
