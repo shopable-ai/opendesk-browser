@@ -511,6 +511,10 @@ test('R4.8 production Chrome: two preinstalled tools, three reviewed tools, perm
     if(id==='reading-toc'){
       await openTool(id);
       await click(side,'#sidebar-tool-settings-open');
+      await visible(side,'#sidebar-tool-settings-view .sidebar-toc-advanced > summary');
+      await click(side,'#sidebar-tool-settings-view .sidebar-toc-advanced > summary');
+      await until(()=>evaluate(side,'document.querySelector("#sidebar-tool-settings-view .sidebar-toc-advanced").open'),
+        'advanced TOC rules expanded by genuine input');
       await visible(side,'#sidebar-tool-settings-sites .sidebar-tool-site-revoke');
       await click(side,'#sidebar-tool-settings-sites .sidebar-tool-site-revoke');
     }else{
