@@ -49,8 +49,6 @@ jobs:
           npm run build:dev
           npm run verify
           npm run pack
-      - name: Full regression suite on built production and development outputs
-        run: npm test
       - name: Set up Chrome for Testing
         id: cft
         uses: browser-actions/setup-chrome@v2
@@ -61,6 +59,9 @@ jobs:
           CHROME_BIN: ${{ steps.cft.outputs.chrome-path }}
           OPENDESK_NATIVE_HEADED: '1'
         run: timeout --signal=TERM --kill-after=8s 240s xvfb-run -a node --test tests/framework/markdown-tools-native-r22.test.mjs
+      - name: Full regression suite on built production and development outputs
+        if: always()
+        run: npm test
       - name: Upload reproducible packages, bundle evidence and native screenshots
         if: always()
         uses: actions/upload-artifact@v4
