@@ -1,3 +1,4 @@
+import {TOOL_REVOCATION_EPOCHS_STORE} from '../../src/ui/sidebar-tools/installation.js';
 import {officialToolFixture,officialFixtures} from '../helpers/official-tools.mjs';
 import {officialPackagePath} from '../../src/sidebar-tools/official-catalog.js';
 import test from 'node:test';
@@ -243,4 +244,13 @@ test('knowledge quota rejection retains local records and returns host quota cla
     {code:'E_HOST_STORAGE_QUOTA'});
   assert.deepEqual(f.store[KNOWLEDGE_DATA_KEY],before);
   assert.equal(f.store[KNOWLEDGE_DATA_KEY].records[0].id,saved.id);
+});
+
+test('knowledge worker rejects stale host generation across identical package reinstallation',async()=>{
+  const f=fixture(),revoked='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+  f.store[TOOL_REVOCATION_EPOCHS_STORE]={[pkg.id]:revoked};
+  await assert.rejects(()=>f.send('knowledge.list',{}),{code:'E_TOOL_CHANGED'});
+  const valid=await f.service.dispatch({...f.message('knowledge.list',{}),installEpoch:revoked},f.host);
+  assert.deepEqual(valid.records,[]);
+  assert.equal(f.store[KNOWLEDGE_DATA_KEY],undefined);
 });

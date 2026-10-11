@@ -7,7 +7,8 @@ import {createCurrentPageTarget} from '../../src/ui/current-page-target.js';
 import {initSidebarToolSandbox} from '../../src/sidebar-tools/bridge.js';
 import {SIDEBAR_TOOL_FORMAT,SIDEBAR_TOOL_STORE,sidebarToolStorageKey} from '../../src/ui/sidebar-tools/package.js';
 import {officialToolFixture,officialFixtureFetch,officialFixtures} from '../helpers/official-tools.mjs';
-import {MARKET_PROVENANCE_STORE,MARKET_OPERATIONS_STORE,reconcileMarketOperation,recoverMarketOperation} from '../../src/ui/sidebar-tools/installation.js';
+import {MARKET_PROVENANCE_STORE,MARKET_OPERATIONS_STORE,reconcileMarketOperation,recoverMarketOperation,
+  recordToolUninstall,TOOL_REVOCATION_EPOCHS_STORE} from '../../src/ui/sidebar-tools/installation.js';
 import {CLIP_SITE_STORE} from '../../src/page-clip/policy.js';
 import {CAPTURE_SITE_STORE} from '../../src/knowledge/policy.js';
 import {READING_TOC_SITE_STORE} from '../../src/reading-toc/policy.js';
@@ -935,4 +936,20 @@ test('quota failure is returned with a stable bridge code and preserves the curr
   assert.deepEqual(store.get(key),previous);
   assert.equal(f.elements['sidebar-tool-frame'].children.length,1,
     'the failed save must not close a live editor and discard its unsaved input');
+});
+
+test('reinstalling identical bytes never restores an old iframe right to write',async t=>{
+  const f=await hostFixture(t);
+  await recordToolUninstall(f.api,sample);
+  const epoch=f.store.get(TOOL_REVOCATION_EPOCHS_STORE)?.[sample.id];
+  assert.match(epoch,/^[a-f0-9-]{36}$/);
+  f.store.set(SIDEBAR_TOOL_STORE,[]);
+  f.store.set(SIDEBAR_TOOL_STORE,[sample]); // exact same bytes, missed onChanged
+  f.ask('storage.set',{key:'notes',value:'stale old window'},'stale-reinstall');
+  await settle(()=>f.frame.contentWindow.sent.some(row=>row.kind==='response'&&row.requestId==='stale-reinstall'));
+  const response=f.frame.contentWindow.sent.find(row=>row.requestId==='stale-reinstall');
+  assert.equal(response.ok,false);assert.equal(response.error.code,'E_TOOL_CHANGED');
+  assert.equal(f.store.has(sidebarToolStorageKey(sample.id)),false);
+  assert.equal(f.elements['sidebar-tool-frame'].children.length,1,
+    'rejected stale save leaves the old iframe and unsaved edits available for copying');
 });
