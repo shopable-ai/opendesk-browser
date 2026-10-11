@@ -57,7 +57,10 @@ test('fresh native Hello updates expanded/shrunken grant subset and refuses fail
   await assert.rejects(sdk.AppStorage.clear(), code('E_GRANT_REVOKED'));
   revoked = false; methods = ['APPLOCAL_GETITEM']; fresh.installPageSdk({global: page});
   assert.deepEqual((await sdk.ready()).methods, methods);
-  assert.equal(messages.filter(m => m.type === 'SDK_HELLO').length, 4);
+  // The explicit call after a rejected Hello retries the handshake once,
+  // then the fresh reinjection performs its own native Hello. Neither grants
+  // a method or replays a request with side effects.
+  assert.equal(messages.filter(m => m.type === 'SDK_HELLO').length, 5);
   assert.equal(messages.filter(m => m.type === 'SDK_REQUEST').length, 1);
   sdk.dispose(); relay.removeEventListeners(); assert.equal(window.count(), 0);
 });
