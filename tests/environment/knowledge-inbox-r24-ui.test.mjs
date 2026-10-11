@@ -125,7 +125,7 @@ test('R24.5 detail editing starts with title and body, collapses secondary metad
   assert.match(js,/q\('edit-cancel'\)\.addEventListener\('click',action\(toggleEdit\)\)/);
   assert.match(js,/q\('create-discard'\)\.addEventListener\('click',cancelCreate\)/);
   assert.match(js,/q\('title'\)\.value=selected\.title/,'reopening editor restores persisted title');
-  assert.match(css,/\.ki \.ki-writing-view \.ki-content\{[^}]*min-height:clamp\(340px,54vh,680px\)/);
+  assert.match(css,/\.ki \.ki-writing-view \.ki-content\{[^}]*min-height:clamp\(310px,44vh,600px\)/);
   assert.match(css,/\.ki \.ki-extra-details>summary/);
   assert.match(css,/@media\(max-width:399px\)/,'narrow screens keep an independent layout');
 });
@@ -154,4 +154,13 @@ test('R24.6 inline validation prevents invalid writes and keeps the reading tool
   assert.match(css,/\.ki \.ki-field-error/);
   assert.match(css,/\.ki \.ki-extra-details\[data-invalid=true\]/);
   assert.doesNotMatch(js,/\.innerHTML\s*=/,'validation errors must never be interpreted as HTML');
+});
+
+test('R24.7 keeps first screen save controls reachable with compact resizable writing fields',()=>{
+  assert.match(html,/id="ki-content"[^>]*rows="16"/);
+  assert.match(html,/id="ki-create-body"[^>]*rows="16"/);
+  assert.match(html,/id="ki-back"[^>]*>← 返回列表<\/button>/);
+  assert.match(html,/id="ki-create-cancel"[^>]*>← 返回列表<\/button>/);
+  assert.match(css,/\.ki \.ki-writing-view \.ki-content\{[^}]*min-height:clamp\(310px,44vh,600px\)/);
+  assert.match(css,/@media\(max-width:399px\)\{[^}]*min-height:clamp\(300px,44vh,500px\)/);
 });

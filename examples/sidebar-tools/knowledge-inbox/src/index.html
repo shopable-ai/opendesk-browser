@@ -37,7 +37,7 @@
   </section>
   <section id="ki-create-view" class="ki-create-view ki-writing-view" aria-label="新建知识" hidden>
     <div class="ki-detail-heading ki-writing-heading">
-      <button id="ki-create-cancel" type="button">← 返回</button>
+      <button id="ki-create-cancel" type="button">← 返回列表</button>
       <h2 class="ki-writing-title">新建知识</h2>
     </div>
     <label class="ki-field-label" for="ki-create-title">标题</label>
@@ -46,7 +46,7 @@
       <label for="ki-create-body">正文</label>
       <span class="ki-format-hint">Markdown</span>
     </div>
-    <textarea id="ki-create-body" class="ki-content" rows="20" placeholder="在这里写下内容或粘贴 Markdown…" spellcheck="false" aria-describedby="ki-create-size ki-create-validation" required></textarea>
+    <textarea id="ki-create-body" class="ki-content" rows="16" placeholder="在这里写下内容或粘贴 Markdown…" spellcheck="false" aria-describedby="ki-create-size ki-create-validation" required></textarea>
     <p id="ki-create-size" class="ki-footnote ki-size-hint" role="status" aria-live="polite">0 / 150,000 字节</p>
     <p id="ki-create-validation" class="ki-field-error" role="status" aria-live="polite" hidden></p>
     <details id="ki-create-extra" class="ki-extra-details">
@@ -67,7 +67,7 @@
     </div>
   </section>
   <section id="ki-detail" aria-label="记录详情" hidden>
-    <div class="ki-detail-heading"><button id="ki-back" type="button">← 返回</button><span id="ki-date"></span><span id="ki-writing-label" class="ki-writing-title" hidden>编辑知识</span></div>
+    <div class="ki-detail-heading"><button id="ki-back" type="button">← 返回列表</button><span id="ki-date"></span><span id="ki-writing-label" class="ki-writing-title" hidden>编辑知识</span></div>
     <h2 id="ki-view-title" class="ki-view-title" tabindex="-1"></h2>
     <div id="ki-view-meta" class="ki-detail-meta"><span id="ki-view-kind" class="ki-badge"></span><span id="ki-view-tags"></span></div>
     <div id="ki-toolbar" class="ki-toolbar">
@@ -95,7 +95,7 @@
         <span class="ki-format-hint">Markdown</span>
         <button id="ki-restore" type="button">恢复原文</button>
       </div>
-      <textarea id="ki-content" class="ki-content" rows="24" aria-label="Markdown 草稿正文" aria-describedby="ki-edit-size ki-edit-validation" spellcheck="false"></textarea>
+      <textarea id="ki-content" class="ki-content" rows="16" aria-label="Markdown 草稿正文" aria-describedby="ki-edit-size ki-edit-validation" spellcheck="false"></textarea>
       <p id="ki-edit-size" class="ki-footnote ki-size-hint" role="status" aria-live="polite" hidden></p>
       <p id="ki-edit-validation" class="ki-field-error" role="status" aria-live="polite" hidden></p>
       <details id="ki-editor-extra" class="ki-extra-details">

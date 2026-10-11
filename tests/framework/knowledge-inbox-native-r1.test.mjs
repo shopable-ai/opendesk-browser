@@ -280,6 +280,14 @@ test('Knowledge R1 Chrome: reviewed install, capture, persistent editor and inli
   const firstBodyTop=await evalIn(clip,'document.querySelector("#ki-content").getBoundingClientRect().top');
   assert.ok(firstBodyTop<230,'Markdown body must start within compact edit header: '+firstBodyTop);
   await captureState('edit-compact',[360,400]);
+  // Ensure Save is visible within the actual outer Side Panel viewport,
+  // not merely within an oversized sandbox iframe.
+  await side.send('Emulation.setDeviceMetricsOverride',{width:360,height:869,deviceScaleFactor:1,mobile:false});
+  await pause(120);
+  const frameArea=await evalIn(side,'(()=>{const r=document.querySelector("#sidebar-tool-frame iframe").getBoundingClientRect();return {top:r.top,viewport:window.innerHeight};})()');
+  const saveBottom=await evalIn(clip,'document.querySelector("#ki-save").getBoundingClientRect().bottom');
+  assert.ok(frameArea.top+saveBottom<frameArea.viewport-10,'Save must be visible without scrolling outer panel: '+JSON.stringify({frameArea,saveBottom}));
+  await side.send('Emulation.clearDeviceMetricsOverride');
   const edited='# 我的编辑稿\n\n已整理内容\n\n<script>alert(1)</script>\n\n![远程图片](https://evil.example/track.png)';
   await nativeText(clip,'#ki-content',edited);
  await click(clip,'#ki-editor-extra>summary');
