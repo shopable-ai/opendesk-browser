@@ -20,6 +20,10 @@ test('R22 production and development publish the same generated Tailwind CSS',as
   }
   for(const marker of ['.file-entry.selected','.connection.ready','data-view','.workspace-status.error'])
     assert.ok(css.includes(marker),'Missing state selector '+marker);
+  assert.match(css,/\.file-entry span:first-child\{[^}]*white-space:nowrap/,
+    'DIR/TXT file badges must remain on one line');
+  assert.match(css,/\.file-rail:not\(\[open\]\)>\.rail-toggle\{[^}]*display:block/,
+    'A directory collapsed on a narrow viewport must remain reopenable on desktop');
 });
 
 test('R22 workspace HTML retains critical controls and collapses secondary panels',async()=>{
