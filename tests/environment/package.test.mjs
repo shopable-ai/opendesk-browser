@@ -88,9 +88,10 @@ test('final production verification blocks a physically oversized SW before pack
   const {root}=await packageCopy(t,'production');
   const path=`${root}/sw.js`,originalBytes=(await readFile(path)).length;
   assert(originalBytes<BUILD_POLICY.serviceWorkerProductionBytes-10);
-  // The production SW review threshold is separate from its 384 KiB hard budget.
-  // Stay below the gate first, then verify 1-byte overflow is rejected.
-  await padScript(path,Math.max(originalBytes+5,BUILD_POLICY.serviceWorkerProductionBytes-6));
+  // Cross the advisory 512 KiB line without failing, then test the 1 MiB gate.
+  await padScript(path,Math.max(originalBytes+5,BUILD_POLICY.serviceWorkerReviewBytes+1));
+  assert.equal((await verifyPackage(root,{mode:'production'})).mode,'production');
+  await padScript(path,BUILD_POLICY.serviceWorkerProductionBytes-6);
   assert.equal((await verifyPackage(root,{mode:'production'})).mode,'production');
   await padScript(path,BUILD_POLICY.serviceWorkerProductionBytes+1);
   await assert.rejects(verifyPackage(root,{mode:'production'}),/Packaged JS exceeds byte budget: sw.js/);

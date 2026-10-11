@@ -40,3 +40,11 @@ Side Panel真实sender可缺documentId：旧候选拒绝真实宿主，已修复
 恢复前需修正驱动：缓存并在停SW前detach实际worker sessions；frame输入使用宿主根viewport坐标和原生滚动；等待按钮真正可操作后输入；原生确认用AX真实唯一按钮，禁止DOM赋值或synthetic事件。新确认超时需组件回归，最终双构建/verify与新的独立原生候选需同身份完成。磁盘Data当前接近满载，存储/下载失败不能虚报成功。
 
 本轮未创建本地提交、ZIP或远端推送。暂停时main HEAD b30b2192640fd7a77ece31bb0a9d5610fb45487e为其他任务提交，不作本轮交付SHA。剩余：确认超时与驱动修复验证、最新源码构建、完整原生验收、清点共享差异归属、安全独立本地Lore提交。
+
+## 本轮具体文件（共享文件只归属Time Review差异）
+
+- 后台新增：src/time-review/model.js、policy.js、service.js、host-controls.js；src/entrypoints/time-review-host.js。
+- 工具新增：examples/sidebar-tools/time-review/tool.config.json、src/index.html、src/style.css、src/main.js、README.zh-CN.md。
+- 集成共享：manifest.json、src/platform/chrome/permission-gate.js、src/sw.js、scripts/build-contract.mjs、scripts/verify-package.mjs、scripts/audit-fixed-entries.mjs、src/ui/sidebar-tools/package.js、src/ui/sidebar-tools/installation.js、src/ui/sidebar-tools.js、src/sidebar-tools/bridge.js、official-tools/catalog.json、src/marketplace/catalog.js、src/marketplace/page.js。
+- 测试：tests/environment/time-review-r12.test.mjs、tests/environment/official-tools-catalog-r45.test.mjs、tests/environment/app-market-r3.test.mjs；tests/framework/time-review-native.mjs、time-review-native-input.swift。其他并行任务更新的入口预算测试不宣称本轮独占归属。
+- 文档：docs/product/time-review-r12.zh-CN.md、docs/api/sidebar-tools.zh-CN.md、docs/api/official-tools-catalog.zh-CN.md、examples/sidebar-tools/README.zh-CN.md、本专属workstream及evidence/time-review-r12-01a12b0d原始记录。

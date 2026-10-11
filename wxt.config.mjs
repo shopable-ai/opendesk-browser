@@ -73,10 +73,10 @@ export default defineConfig({
           return {code:code.replace(listener,''),map:null};
         }
       });
-      // Other generated JS entries retain 512 KiB production capacity;
-      // production SW has its strict 384 KiB gate (development 768 KiB).
-      // 320 KiB remains the review threshold for SW and other fixed entries.
-      // Build/package integrity, remote-code checks and CSP are unchanged.
+      // Other generated JS retains its 512 KiB production cap; production SW
+      // has a 1 MiB hard gate (512 KiB advisory), development SW 1.5 MiB.
+      // 320 KiB remains advisory for other generated entries. Neither the
+      // fixed IIFE allowlist nor CSP/package/security checks are weakened.
       if (entry.type === 'background') {
         const options = config.build.terserOptions;
         config.build.terserOptions = {...options, format:{...options.format,semicolons:false}, compress:{...options.compress, passes:6, toplevel:true, top_retain:['sw','background'], unsafe:true}};

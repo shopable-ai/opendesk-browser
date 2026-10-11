@@ -101,9 +101,9 @@ export async function inspectLibraries({cwd=process.cwd()}={}) {
         row.id==='jquery'?'jQuery 3.7.1 Page only':'declared methods'
     })),
     sources:{},packages:{},legacy:{},policy:{
-      expectedSwHardBytes:384*1024,
+      expectedSwHardBytes:1024*1024,
       configuredSwHardBytes:BUILD_POLICY.serviceWorkerProductionBytes,
-      status:BUILD_POLICY.serviceWorkerProductionBytes===384*1024?'PASS':'POLICY_DRIFT'
+      status:BUILD_POLICY.serviceWorkerProductionBytes===1024*1024?'PASS':'POLICY_DRIFT'
     },
     runtime:'RUNTIME_UNVERIFIED',native:'NATIVE_UNVERIFIED'
   };
@@ -233,7 +233,7 @@ export async function inspectLibraries({cwd=process.cwd()}={}) {
     }
   }
   report.issues=[...errors,...(report.policy.status==='POLICY_DRIFT'?
-    ['configured SW hard cap differs from requested 393216 bytes']:[]),
+    ['configured SW hard cap differs from requested 1048576 bytes']:[]),
     ...(report.legacy.jquery.status==='DUPLICATE_SOURCE'?
       ['old src/vendor jQuery duplicates the canonical src/libs source']:[])];
   return report;

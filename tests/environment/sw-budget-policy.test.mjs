@@ -2,11 +2,13 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {BUILD_POLICY,entryByteBudget} from '../../scripts/build-contract.mjs';
 
-test('SW production hard cap is 384 KiB with a separate 320 KiB review threshold',()=>{
-  assert.equal(BUILD_POLICY.serviceWorkerReviewBytes,320*1024);
-  assert.equal(entryByteBudget('sw.js','production'),384*1024);
-  assert(BUILD_POLICY.serviceWorkerReviewBytes<entryByteBudget('sw.js','production'));
-  assert.equal(entryByteBudget('sw.js','development'),768*1024);
+test('SW production has a 1 MiB cap with a non-blocking 512 KiB review line',()=>{
+  assert.equal(BUILD_POLICY.serviceWorkerReviewBytes,512*1024);
+  assert.equal(entryByteBudget('sw.js','production'),1024*1024);
+  assert(BUILD_POLICY.serviceWorkerReviewBytes < entryByteBudget('sw.js','production'));
+  assert(entryByteBudget('sw.js','production') > 320*1024,'old 320 KiB hard cap must not return');
+  assert.equal(entryByteBudget('sw.js','development'),1536*1024);
+  assert(entryByteBudget('sw.js','development') > entryByteBudget('sw.js','production'));
 });
 test('other fixed entries can grow from 320 KiB to 512 KiB without weakening packaging',()=>{
   assert.equal(BUILD_POLICY.productionBytes,512*1024);

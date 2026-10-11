@@ -18,8 +18,8 @@ if command == "key" || command == "type" {
  guard NSWorkspace.shared.frontmostApplication?.processIdentifier == pid else{exit(4)}
  if command == "key" {
    let code=CGKeyCode(CommandLine.arguments[3])!
-   for down in [true,false] {let e=CGEvent(keyboardEventSource:nil,virtualKey:code,keyDown:down)!;if CommandLine.arguments.count>4&&CommandLine.arguments[4]=="cmdshift"{e.flags=[.maskCommand,.maskShift]};e.postToPid(pid)}
- }else{let units=Array(CommandLine.arguments[3].utf16);for down in [true,false]{let e=CGEvent(keyboardEventSource:nil,virtualKey:0,keyDown:down)!;units.withUnsafeBufferPointer{p in e.keyboardSetUnicodeString(stringLength:units.count,unicodeString:p.baseAddress!)};e.postToPid(pid)}}
+   for down in [true,false] {let e=CGEvent(keyboardEventSource:nil,virtualKey:code,keyDown:down)!;if CommandLine.arguments.count>4&&CommandLine.arguments[4]=="cmdshift"{e.flags=[.maskCommand,.maskShift]};e.post(tap:.cghidEventTap)}
+ }else{let units=Array(CommandLine.arguments[3].utf16);for down in [true,false]{let e=CGEvent(keyboardEventSource:nil,virtualKey:0,keyDown:down)!;units.withUnsafeBufferPointer{p in e.keyboardSetUnicodeString(stringLength:units.count,unicodeString:p.baseAddress!)};e.post(tap:.cghidEventTap)}}
  print("OWNED_NATIVE_KEY_INPUT");exit(0)
 }
 visit(app,0)

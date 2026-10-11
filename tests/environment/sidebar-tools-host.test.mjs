@@ -924,6 +924,57 @@ test('R4.7 the independent settings page can revoke a previously granted website
   assert.deepEqual(store.get(SIDEBAR_TOOL_STORE),[toc],'revoke does not replace the tool package');
 });
 
+
+for(const [toolId,key,url,origin] of [
+  ['reading-toc',READING_TOC_SITE_STORE,'http://127.0.0.1:43111/demo-form.html','http://127.0.0.1:43111'],
+  ['web-markdown-clipper',CLIP_SITE_STORE,'https://article.example/story','https://article.example'],
+  ['knowledge-inbox',CAPTURE_SITE_STORE,'https://chatgpt.com/c/fixture','https://chatgpt.com']
+])test('site permission settings apply one click without a second dialog: '+toolId,async t=>{
+  const tool=await officialToolFixture(toolId),store=new Map([[SIDEBAR_TOOL_STORE,[tool]]]);
+  let invalidated=false,validated=0,dialogCount=0;
+  const target={snapshot:{status:'available',url},
+    capture(){return {url,origin,windowId:1,tabId:7,frameId:0,documentId:'doc-a'};},
+    async revalidate(){validated++;
+      if(invalidated)throw Object.assign(new Error('当前网页已变化'),{code:'E_DOCUMENT_STALE'});}
+  };
+  const f=await hostFixture(t,{store,tool,target});
+  f.elements['sidebar-tool-settings-open'].emit('click');
+  const allow=f.elements['sidebar-tool-settings-allow'];
+  const deny=f.elements['sidebar-tool-settings-deny'];
+  assert.equal(allow.disabled,false);
+  assert.equal(allow.attributes.get('aria-pressed'),'false');
+  assert.match(f.elements['sidebar-tool-settings-hint'].textContent,/点击授权后直接生效/);
+  globalThis.confirm=()=>{dialogCount++;return false;};
+  allow.focus();
+  allow.emit('click');
+  allow.emit('click'); // repeated clicks before the first commit must not flip consent
+  await settle(()=>store.get(key)?.[toolId]?.includes(origin)===true&&!allow.disabled);
+  assert.deepEqual(store.get(key),{[toolId]:[origin]},'only the chosen exact Origin is granted');
+  assert.equal(allow.attributes.get('aria-pressed'),'true');
+  assert.equal(f.elements['sidebar-tool-settings-view'].hidden,false);
+  assert.equal(dialogCount,0,'site grant is a direct action, not window.confirm');
+  if(toolId==='reading-toc'){
+    const eye=f.elements['sidebar-tool-visibility'];
+    assert.equal(eye.disabled,false);
+    eye.emit('click');eye.emit('click');
+    await settle(()=>Boolean(store.get(READING_TOC_VISIBILITY_STORE)?.[toolId]?.hiddenSites?.includes(origin))&&!eye.disabled);
+    assert.deepEqual(store.get(key),{[toolId]:[origin]},'hide is independent of website grant');
+    eye.emit('click');
+    await settle(()=>!store.get(READING_TOC_VISIBILITY_STORE)?.[toolId]&&!eye.disabled);
+    assert.equal(dialogCount,0,'show/hide must never prompt');
+  }
+  deny.emit('click');
+  await settle(()=>!store.get(key)?.[toolId]&&!deny.disabled);
+  assert.equal(deny.attributes.get('aria-pressed'),'true');
+  assert.equal(dialogCount,0,'site revocation needs no dialog');
+  invalidated=true;
+  allow.emit('click');
+  await settle(()=>/E_DOCUMENT_STALE/.test(f.elements['sidebar-tool-status'].textContent||''));
+  assert.equal(store.get(key)?.[toolId],undefined,'stale document must not gain a permission');
+  assert.equal(dialogCount,0);
+  assert.ok(validated>=3,'native target binding is checked before persistent write');
+});
+
 test('R4.3 existing 1.0.0 TOC exposes update, reviews patch, preserves site grants',async t=>{
   const bundled=await officialToolFixture('reading-toc');
   const old={...bundled,version:'1.0.0',js:'void 0;'};

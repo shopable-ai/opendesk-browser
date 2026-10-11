@@ -514,8 +514,8 @@ test('R4.1 real Chrome installs bundled TOC, follows multiple H1, restores and r
     const stored=await evaluate(side,'chrome.storage.local.get("opendesk.sidebar-tools.installed.v1")');
     return stored?.['opendesk.sidebar-tools.installed.v1']?.some(item=>item.id==='reading-toc');
   },'Real Side Panel local import did not install the package');
-  // The website permission must be approved through the visible Side Panel
-  // control and the real native Chrome confirmation, not by writing storage.
+  // Exact-site permission is enabled by the user's real Side Panel click.
+  // The extension must not open a second blocking JavaScript confirmation.
   await browser.send('Target.activateTarget',{targetId:second.targetId});
   await chatPage.send('Page.bringToFront');
   const openSelector='#sidebar-tool-list button[data-sidebar-tool-action="open"][data-sidebar-tool-id="reading-toc"]';
@@ -534,7 +534,7 @@ test('R4.1 real Chrome installs bundled TOC, follows multiple H1, restores and r
   await eventually(()=>evaluate(side,`chrome.storage.local.get('opendesk.sidebar-tools.toc-sites.v1').then(
     value=>value['opendesk.sidebar-tools.toc-sites.v1']?.['reading-toc']?.includes(${JSON.stringify(origin)})===true)`),
     'Real Side Panel website toggle did not authorize the exact origin');
-  assert.equal(confirmedDialogs,1,'Site authorization must show one actual Chrome confirmation dialog');
+  assert.equal(confirmedDialogs,0,'A site grant is one click with zero JavaScript dialogs');
   assert.deepEqual(dialogErrors,[]);
   await eventually(()=>evaluate(chatPage,'document.querySelectorAll("[data-opendesk-toc-root]").length===1'),
     'Accepted website grant did not restore the real TOC overlay');
@@ -600,7 +600,7 @@ test('R4.1 real Chrome installs bundled TOC, follows multiple H1, restores and r
   await trustedClick(side,'#sidebar-tool-settings-allow');
   await eventually(()=>evaluate(chatPage,'document.querySelectorAll("[data-opendesk-toc-root]").length===1'),
     'Site manager did not allow re-enabling a previously revoked origin');
-  assert.equal(confirmedDialogs,2);
+  assert.equal(confirmedDialogs,0,'Re-authorizing an origin must also remain dialog-free');
   assert.deepEqual(dialogErrors,[]);
   const closed=await browser.send('Target.closeTarget',{targetId:sideTarget.targetId});
   assert.equal(closed.success,true,'Actual Chrome Side Panel target could not close');
