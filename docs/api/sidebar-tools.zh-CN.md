@@ -167,3 +167,12 @@ status.textContent = '已保存';
 「工具」Tab 默认打开「我的工具」，仅按权威安装记录渲染；「发现工具」默认展示未安装官方候选，支持搜索、可安装/全部切换；“全部”中的已安装版本使用打开/管理入口，更新需再次审阅。完整应用市场（`ui/marketplace.html`）仍承担套装、版本、来源、批量和存储管理。安装≠启用网站权限≠执行：安装不注入网页、不创建 iframe、不自动获取网页数据。
 
 R4.8 暂不提供新的全局工具启停按钮；原有“当前网站目录显示/授权”是网站级规则，不是整个工具的停用开关。只有在所有启动入口统一拦截后才可发布全局启停。
+
+
+## Browser SDK v2 菜单贡献（R1.3）
+
+v1 格式仍严格接受原字段，不自动识别新能力。新增 `opendesk.sidebar-tool.v2` 支持 `requires.browserSdk: "1.0.0"`、`capabilities: ["browser.contextMenu", ...]` 和最多三条 `contributes.contextMenus`。每项只能提供 `actionId/title/contexts/documentUrlPatterns/handler`；handler 当前仅 `open-self`，站点规则当前限制到 HTTP(S) 明确主机的 `/*` 路径。
+
+安装仍使用既有同一工具 Registry、Web Locks、版本与市场来源校验。工具详情中的右键菜单图标启用当前网站，Chrome 可选 `contextMenus` 权限只由可信 Side Panel 的**真实点击**请求，菜单同步器复核当前工具完整包摘要。Opaque 工具使用 `OpenDeskSDK.browser.contextMenu.*`、`launch.consume()`；原 `OpenDeskTool.request()` 不变。普通网页 Page SDK 不能调用菜单注册。
+
+完整 API、错误、可导入例子和未验收状态见 [Browser SDK](browser-sdk.zh-CN.md) 及 [R1.3 示例](../../examples/sidebar-tools/browser-sdk-r13/README.zh-CN.md)。

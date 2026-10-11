@@ -1,120 +1,135 @@
-# OpenDesk Browser SDK R1.3：公开接口与真实边界
+# OpenDeskSDK.browser API · R1.3 源码接口索引
 
-> 2026-10-11；实现位置 `src/framework/sdk/browser.js`、`browser-contract.js`、`src/platform/chrome/context-menus.js`。**本页区分代码已接线与实机已验证：R1.3 Mac Chrome 当前为 NOT_TESTED。**
+> 日期 2026-10-11；开发隔离分支 `agent/browser-sdk-r13-20261011`。本页按实际新增源文件和现存服务区分 **IMPLEMENTED（已有源码）/ HOST_ONLY / NOT_EXPOSED / PLANNED / UNSUPPORTED**。**IMPLEMENTED 不表示真实 Chrome 已验收**，当前原生完整菜单路径尚为 NOT_TESTED。运行环境最低按现有 `manifest.json` 的 Chrome 138 记录。
 
-## 入口与四种运行环境
+## 一、公开入口与运行环境
 
 ```text
 OpenDeskSDK
-├── ready / axiosx / AppStorage / AppLocal（原 Page SDK，保持兼容）
-└── browser
+├── ready() / axiosx / AppStorage / AppLocal / 旧 service（保持现有行为）
+└── browser (apiVersion 1.0.0)
     ├── capabilities.list / getStatus
     ├── contextMenu.getStatus / register / unregister
     ├── launch.consume
     ├── page.getContext / getSelection
     ├── clipboard.writeText / downloads.text
-    └── tabs / sidePanel / network / screenshot / media / speech / events / operations（部分规划，禁止假调用）
+    ├── tabs.* / sidePanel.* (规划)
+    ├── network.request / observe.* (原 Host 能力/规划)
+    ├── screenshot.captureVisible (原 Controller Host 复用点)
+    ├── media.recording.* / speech.* (规划)
+    └── events.* / operations.* / notifications.* (规划或未向工具公开)
 ```
 
-- **Side Panel 的安装工具沙箱**：`OpenDeskTool.request(operation,args)` 为既有底层通道。新 `OpenDeskSDK.browser` 只做请求便捷封装，权限最终在可信 Side Panel 与 MV3 后台复核。
-- **可信扩展模块**：使用既有安装器、Chrome Host 与原生 API；菜单用户开关通过固定 `BROWSER_HOST_PROTOCOL` 传递，并且核验实际 `ui/tool.html` 发送者。
-- **普通 HTTP(S) 网页的 Page SDK**：可调用 `browser.capabilities.list/getStatus` 获取描述性的能力目录；菜单注册会以 `E_CONTEXT` 拒绝。不把菜单、网络观察或 Native 特权加入原 `ADMITTED_METHODS`。
-- **Controller / RunHost**：继续使用既有 `page`、Locator、截图、网络、Cookie、HTTP 能力；**不是** Side Panel 工具的授权身份。
+| 环境 | 可执行 Browser SDK | 身份/能力边界 |
+| --- | --- | --- |
+| 扩展可信背景与 Side Panel Host | 操作落在 `src/platform/chrome/context-menus.js`，并由 SW 提供消息入口 | 可信 `sender.id`、`tool.html`、`hostInstanceId`；再次核对工具、撤销代际和包摘要 |
+| 已安装的 Side Panel 工具沙箱 | `OpenDeskSDK.browser` 便捷层 + 原 `OpenDeskTool.request()` | opaque iframe `postMessage` 实际实例 token/来源检查；无 `chrome.*` |
+| 普通 HTTP(S) Page SDK / USER_SCRIPT | 仅本地只读 `browser.capabilities.*`；菜单注册被明确拒绝 | **不增加** Page RPC `ADMITTED_METHODS`；不能获得跨标签、Native/右键授权 |
+| Controller / RunHost | 原 `page` / Locator / 下载与截图方法保持不变 | 不通过 Browser SDK 假借已存在的 Controller 操作身份 |
 
-旧 `SDK_VERSION='1.0.0'`、生命周期 Symbol、`OpenDeskTool.root/request/setState`、`axiosx`、`AppStorage`、`AppLocal` 均未重命名。Browser API 的独立版本为 `1.0.0`。
+**核心源码**：`src/framework/sdk/browser.js`、`browser-contract.js`；旧全局 SDK 创建见 `src/framework/sdk/entry.js`；工具注入见 `src/sidebar-tools/bridge.js`；实例与能力复核见 `src/ui/sidebar-tools.js`；原生菜单服务见 `src/platform/chrome/context-menus.js`；同步事件注册见 `src/sw.js`。合同是声明与参数边界，**不是另一份授权数据库**。
 
-## R1.3 公开接口合同（实际状态）
+## 二、已经编写的 SDK 包装方法
 
-| 方法 | 参数 → 实际返回 | 权限与来源 | 状态/源码 |
+| `OpenDeskSDK.browser.` 方法 | 参数 | 返回数据 | 底层服务及条件 |
 | --- | --- | --- | --- |
-| `browser.capabilities.list()` | 无 → 能力合同数组、每项可信状态（工具）/静态不可调用状态（网页） | 安装工具或 Page SDK 只读 | IMPLEMENTED；`browser.js` / Chrome Host |
-| `browser.capabilities.getStatus({operation})` | 合法 `browser.*` 操作名 → `callableNow`、`authorization`、`nextAction`、`reasonCode` | 只读；**不触发** Chrome 权限申请 | IMPLEMENTED；同上 |
-| `browser.contextMenu.getStatus()` | 无 → 已启用网站、动作、Chrome 授权状态 | 已安装 v2、`browser.contextMenu` | IMPLEMENTED；菜单 Host |
-| `browser.contextMenu.register({actionIds})` | 1–3 个包内声明动作 → `registered,actionIds` | v2 菜单声明、当前网站已在工具详情明确批准、Chrome `contextMenus` 可选权限 | IMPLEMENTED；菜单 Host |
-| `browser.contextMenu.unregister()` | 无 → `registered:false` | 已安装 v2 菜单工具 | IMPLEMENTED；菜单 Host |
-| `browser.launch.consume()` | 无 → 一次性 `ticketId,toolId,actionId,source,selection,linkUrl,expiresAt` | 本次菜单指定工具实例、包摘要、撤销代际、有效期、原文档仍有效 | IMPLEMENTED；一次领取 |
-| `browser.page.getSelection()` | 无 → 领取同一个一次性菜单上下文；**不能**读取任意页面选区 | 与 `launch.consume` 相同 | IMPLEMENTED（受限语义） |
-| `browser.page.getContext()` | 无 → `{status,title,url}` 或不可用原因 | `currentPage.read`，原 `currentPage.info` | IMPLEMENTED；复用 Side Panel |
-| `browser.clipboard.writeText(text)` | 文本 → `{copied:true}` | `user.export` + 原可信宿主 `clipboard.writeText` | IMPLEMENTED 便捷封装 |
-| `browser.downloads.text({text,filename})` | Markdown 文本及安全文件名 → `{downloadId}` | `user.export` + 原 `file.download` | IMPLEMENTED 便捷封装 |
+| `capabilities.list` | `{}` | `Array<BrowserCapabilityStatus>` | 普通网页只读本地目录；工具由可信宿主返回状态 |
+| `capabilities.getStatus` | `{operation:string}` | `BrowserCapabilityStatus` | 不请求权限，声明不等于授权 |
+| `contextMenu.getStatus` | `{}` | `{enabled,approvedOrigins,activeActions,browserPermission}` | v2 菜单工具 |
+| `contextMenu.register` | `{actionIds:string[]}` | `{registered,actionIds}` | 只激活已声明的 actionIds，先在详情批准当前网站 |
+| `contextMenu.unregister` | `{}` | `{registered:false,actionIds:[]}` | 只停用该工具菜单 |
+| `launch.consume` | `{}` | `{ticketId,toolId,actionId,source,selection,linkUrl,expiresAt}` | 60 秒、单次、安装包/实例/文档校验 |
+| `page.getContext` | `{}` | `currentPage.info 同形结果` | 复用现有 currentPage.read |
+| `page.getSelection` | `{}` | `同 launch.consume` | 从一次性右键上下文读取；消耗同一 ticket |
+| `clipboard.writeText` | `text:string` | `{copied:true}` | 映射旧 clipboard.writeText；需要前台 Clipboard API |
+| `downloads.text` | `{text:string,filename:string}` | `{downloadId:number}` | 映射旧 file.download；Markdown 文件名必须 .md |
 
-**以下不作为可调用接口交付**：`browser.tabs.open/focus`、`browser.sidePanel.openSelf`、`browser.notifications.create/clear`、`browser.downloads.getStatus`、`browser.operations.*`、`browser.network.observe.*`、`browser.events.*`、`browser.media.*`、`browser.speech.*`。它们只是能力宇宙/后续合同；Controller 已有能力不等于普通工具已开放。完整目录见 [能力矩阵](browser-capability-universe.zh-CN.md)。
+上述方法的 R1.3 实现阶段标记为 **IMPLEMENTED（源码层）**。身份复核失败必须拒绝，不得返回伪成功。每个操作均在 `browser-contract.js` 声明 apiVersion、支持上下文、工具能力、Chrome 权限、网站范围、风险、效果类型、超时和限额。当前某些数据格式仍由既有服务定义（例如复制与 Markdown 下载），不能把工具包装层理解成完整 Chrome downloads/clipboard API。
 
-## 状态及错误语义
+### 工具调用示例
 
-```javascript
-const status = await OpenDeskSDK.browser.capabilities.getStatus({
+```js
+// 在已安装的 v2 Side Panel 工具内使用；不需要另一套扩展。
+const menu = await OpenDeskSDK.browser.capabilities.getStatus({
   operation: 'browser.contextMenu.register'
 });
-// status = {
-//   operation, apiVersion, implementation, exposure, platform,
-//   authorization:{tool,browser,site}, callableNow, reasonCode, nextAction
-// }
-if (!status.callableNow) console.log(status.reasonCode, status.nextAction);
+if (!menu.callableNow) {
+  // 在工具详情页由用户亲自开启菜单及网站范围
+  OpenDeskTool.root.querySelector('#status').textContent = menu.reasonCode;
+} else {
+  await OpenDeskSDK.browser.contextMenu.register({actionIds:['capture-selection']});
+}
+const clicked = await OpenDeskSDK.browser.launch.consume(); // 只有当次菜单打开的工具可领取
+// 此处展示 clicked.selection；是否持久保存仍由用户点击确认
 ```
 
-不应自行拼写 `chrome.*` 或向浏览器后台发送伪造消息。常见拒绝：
+```js
+// 兼容旧层：不改变底层请求协议
+await OpenDeskTool.request('browser.contextMenu.register',{actionIds:['capture-selection']});
+await OpenDeskTool.request('storage.get',{key:'notes'});
+// 旧 axiosx / AppStorage / AppLocal API 不应改变签名或错误合同。
+```
 
-| 错误码 | 解释 | 恢复 |
-| --- | --- | --- |
-| `E_CONTEXT` | 网页/当前环境不是安装工具的安全调用者 | 使用工具沙箱，不在网页权限范围内重试 |
-| `E_SERVICE_UNSUPPORTED` | 未执行合同的方法、未知操作 | 检查能力状态；等待后续实现 |
-| `E_SCHEMA` / `E_TOOL_SCHEMA` | 动作、参数、工具声明不合法 | 检查已安装包格式 |
-| `E_TOOL_CAPABILITY_REQUIRED` | 未声明所需能力 | 更新工具包并重新批准 |
-| `E_CHROME_PERMISSION_REQUIRED` | Chrome 可选菜单权限未批准或撤销 | 在工具详情由真实用户点击开启 |
-| `E_SITE_GRANT_REQUIRED` | 尚未批准当前网站 | 在工具详情为当前网站启用 |
-| `E_OWNER` | 非可信宿主、别的工具、错误窗口/实例 | 重新打开已安装工具 |
-| `E_TOOL_CHANGED` | 版本/安装摘要/撤销代际不一致 | 重新审阅安装并主动开启 |
-| `E_LAUNCH_EXPIRED` / `E_DOCUMENT_CHANGED` | 菜单上下文已领取、超时或文档更换 | 回目标网页重新右键 |
-| `E_OUTCOME_UNKNOWN` | 持久化写入结果不能确认 | 只读检查原状态，不盲目重试有副作用操作 |
+### 已编写但不可执行的后续方法
 
-## v1 / v2 菜单声明
+| 拟议名称 | 参数/输入形态 | 当前阶段 | 原因 |
+| --- | --- | --- | --- |
+| `browser.tabs.open` | {url} | **PLANNED** | 禁止任意 tabId, 计划受控 tabRef |
+| `browser.tabs.focus` | {tabRef} | **PLANNED** | 需要不可伪造引用 |
+| `browser.sidePanel.openSelf` | {} | **PLANNED** | 真实用户手势可信前台 |
+| `browser.network.request` | HTTP 请求合同 | **HOST_ONLY** | 已有 axiosx/Controller 主动请求，未对工具重映射 |
+| `browser.network.observe.start` | {tabRef,origins,durationMs,...} | **PLANNED** | R2 被动 HTTP(S) 元数据 |
+| `browser.network.observe.getStatus` | {observationId} | **PLANNED** | R2 |
+| `browser.network.observe.stop` | {observationId} | **PLANNED** | R2 |
+| `browser.network.observe.export` | {observationId,format} | **PLANNED** | R2 |
+| `browser.events.read` | {sessionRef,cursor,limit} | **PLANNED** | R2 |
+| `browser.events.close` | {sessionRef} | **PLANNED** | R2 |
+| `browser.screenshot.captureVisible` | {tabRef} | **HOST_ONLY** | 现有 Controller 截图，未公开给工具 |
+| `browser.media.recording.prepare` | 录屏显式选择 | **PLANNED** | R3 |
+| `browser.media.recording.getStatus` | {recordingId} | **PLANNED** | R3 |
+| `browser.media.recording.stop` | {recordingId} | **PLANNED** | R3 |
+| `browser.media.recording.discard` | {recordingId} | **PLANNED** | R3 |
+| `browser.speech.transcribe` | 音频资源引用 | **PLANNED** | R3 以上 |
+| `browser.speech.speak` | {text,voiceRef} | **PLANNED** | R3 以上 |
+| `browser.speech.stop` | {sessionRef} | **PLANNED** | R3 以上 |
+| `browser.notifications.create` | 旧通知合同 | **NOT_EXPOSED** | 原 Page SDK createNotify，未对通用工具授权 |
+| `browser.notifications.clear` | {notificationRef} | **NOT_EXPOSED** | 无通用工具实现 |
+| `browser.operations.getStatus` | {operationId} | **PLANNED** | 仅有持久真实记录才开放 |
+| `browser.operations.cancel` | {operationId} | **PLANNED** | 不得伪造取消成功 |
 
-v1 工具包字段及严格校验不变。v2 新增 `requires.browserSdk='1.0.0'` 与 `contributes.contextMenus`。使用 `browser.contextMenu` 能力时必须声明 1–3 项，每项只允许 `actionId/title/contexts/documentUrlPatterns/handler`，上下文仅 `page/selection/link`，模式仅明确 HTTP(S) 主机根路径匹配（例如 `https://example.com/*`），handler 固定 `open-self`。禁止任意 JS 后台执行、宽泛 URL wildcard、跨工具动作和替换 Chrome 菜单。
+未实现项目只在目录中出现，不会作为可运行方法注册；未知执行请求必须返回 `E_SERVICE_UNSUPPORTED`。
+
+## 三、能力状态合同
+
+`getStatus({operation})` 为**只读**操作，不弹授权窗，也不在后台静默请求 Chrome 权限。典型字段：
 
 ```json
 {
-  "format": "opendesk.sidebar-tool.v2",
-  "id": "selection-notes",
-  "version": "1.0.0",
-  "title": "选区笔记（Browser SDK R1.3）",
-  "description": "用户确认后保存选区",
-  "capabilities": ["storage.local","browser.contextMenu"],
-  "html": "<main>...</main>",
-  "css": "",
-  "js": "/* classic JS ... */",
-  "requires": {"browserSdk": "1.0.0"},
-  "contributes": {"contextMenus": [{
-    "actionId":"capture-selection",
-    "title":"保存到选区笔记",
-    "contexts":["selection"],
-    "documentUrlPatterns":["https://example.com/*"],
-    "handler":"open-self"
-  }]}
+  "operation": "browser.contextMenu.register",
+  "apiVersion": "1.0.0",
+  "implementation": "implemented",
+  "exposure": "allowed",
+  "platform": "supported",
+  "authorization": {"tool":"granted","browser":"missing","site":"granted"},
+  "callableNow": false,
+  "nextAction": "enable-in-tool-details",
+  "reasonCode": "E_CHROME_PERMISSION_REQUIRED"
 }
 ```
 
-此代码段中 `html/js` 为占位内容，**请直接导入真实完整文件** [selection-notes.opendesk-tool.json](../../examples/sidebar-tools/browser-sdk-r13/selection-notes.opendesk-tool.json)。已有统一构建器 `scripts/build-sidebar-tool.mjs` 识别 v2 的 `tool.config.json` 及两个新增字段，官方 Catalog 继续验证真实发行包哈希与实际菜单声明；不可假定 v1 可以使用新增能力。
+状态反映**当前可信调用身份**；`launch.consume` 没有待领票据时返回 `E_LAUNCH_UNAVAILABLE`，普通网页返回 `E_CONTEXT`。剪贴板属于前台浏览器 API，即便源代码有包装，也不在 SW 单独判定为 `callableNow=true`。权限可能在状态查询和调用之间变化，因此真正执行仍重复复核。
 
-## 菜单生命周期及限制
+主要拒绝代码：`E_SERVICE_UNSUPPORTED`、`E_SCHEMA`、`E_CONTEXT`、`E_TOOL_CAPABILITY_REQUIRED`、`E_CHROME_PERMISSION_REQUIRED`、`E_SITE_GRANT_REQUIRED`、`E_CHROME_UNSUPPORTED`、`E_LAUNCH_UNAVAILABLE`、`E_LAUNCH_EXPIRED`、`E_DOCUMENT_CHANGED`、`E_TOOL_CHANGED`、`E_OWNER`、`E_OUTCOME_UNKNOWN`、`E_LIMIT`。底层旧操作的原错误语义保持不变。
 
-- 仅在批准 Chrome `contextMenus` 后创建根 `opendesk.browser.root`、`opendesk.browser.open`，及满足每工具获准网站/动作的 `opendesk.tool.<toolId>.<actionId>`。
-- 同一可信同步器重放期望菜单。不存在 Chrome 官方通用查询菜单 API；同步采用确定 ID、create 重复时报错再 update、移除旧的已知 ID；**禁止 Worker 每次启动 `removeAll()`**。
-- 菜单点击的 `sidePanel.open()` 在真实用户手势回调内同步启动。后台再核验工具、菜单声明、站点、安装包摘要、撤销代际和 Chrome 实际帧文档。
-- 启动上下文暂存于 `chrome.storage.session`，60 秒 TTL，最多 16 KiB 选区/64 KiB 完整记录，工具实例先绑定再消费；返回前先记录 `consumed`、清除选区，不默默保存任何数据。
-- 工具卸载、升级、移除能力，清理该工具本机菜单授权；Chrome 撤权、标签导航、标签关闭使菜单失效或关闭正在等待的敏感上下文。**重复领取不等于重复执行。**
-- **重要待关闭缺口**：Chrome `contextMenus.onClicked` 不附带点击瞬间的可信 `documentId`。目前二次帧核验 + 导航代际阻断常见竞争，但尚不能形式化证明同 URL、Worker 重启等极端竞争中必然绑定点击时文档。因此不可给 R1.3 安全和 Native 体验打“已验收 95 分”，应以真实 Chrome 和专门竞争测试核对。
+## 四、v2 菜单格式
 
-## 开发者快速测试
+v1 `opendesk.sidebar-tool.v1` 继续使用原严格字段；不会暗中开放新字段。`opendesk.sidebar-tool.v2` 新增 `requires.browserSdk` 和 `contributes.contextMenus`。菜单动作最多三项，contexts 仅 `page/selection/link`，handler 仅 `open-self`；当前实现接受明确 HTTP(S) host 的 `/*` 网站规则，不能包含通配 host、任意 JS 回调或后台代码。工具仍须包含原 id/version/title/description/capabilities/html/css/js。
 
-```javascript
-const menus = await OpenDeskSDK.browser.contextMenu.getStatus();
-const launch = await OpenDeskSDK.browser.launch.consume();
-if (launch.selection) {
-  // 展示选区，并在用户主动点保存时调用原 OpenDeskTool.request('storage.set',...)
-}
-```
+真实配置与可导入 JSON：`examples/sidebar-tools/browser-sdk-r13/selection-notes.opendesk-tool.json`。工具详情页在真实用户点击时请求可选 `contextMenus` 权限，批准**当前网站**后写入独立菜单偏好（非授权事实来源）；SW 依据已安装工具的实际完整包摘要、撤销状态、Chrome 可选权限及网站批准同步菜单。Chrome onClicked 不含 `documentId`；服务通过 `webNavigation.getFrame` 前后核对并监听导航代际，在无法确认时拒绝选区。此机制仍需真实导航竞争验收，不得当作原生通过证据。
 
-演示、Page SDK 拒绝示例及最短安装步骤见 [Browser SDK R1.3 完整样例](../../examples/sidebar-tools/browser-sdk-r13/README.zh-CN.md)。
+## 五、待验收与源码合同的差异
 
-本工作流的源代码与组件测试尚未在真实 Mac 本地构建/安装；对应结果为 **NOT_TESTED**，不是 PASS。
+- `node --test tests/environment/browser-sdk-r13.test.mjs` 提供合成 Chrome API 定向回归，**不能**证明 Chrome 真正渲染菜单、Service Worker 恢复或用户批准。
+- `npm run check`、`npm run build`、`npm run build:dev`、`npm run verify` 必须在同一最终源码候选上运行；最新历史记录还存在 320 KiB SW 预算阻塞。
+- 真实 Mac Chrome 的右键选区→Side Panel→自动打开工具→`launch.consume()`→用户保存、权限撤销、导航竞态、重启恢复均为验收门槛；未执行时标记 **NOT_TESTED**。
+- R2 网络监听合同见 [后续网络观察方案](../framework/workstreams/browser-sdk-r13-20261011.md#r2-网络观察冻结合同)，全功能领域见 [Browser Capability Universe](browser-capability-universe.zh-CN.md)。
