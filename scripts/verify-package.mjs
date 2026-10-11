@@ -345,7 +345,18 @@ export async function verifyPackage(directory, {mode: requestedMode} = {}) {
           files.includes(file+'.map'))throw new Error('Pinned raw JS asset mismatch: '+file);
       // jQuery retains its audited legacy UMD format. New classic JS must
       // satisfy the fixed AST policy, despite bypassing Vite conversion.
-      if(file!==BUILTIN_CATALOG.libraries.jquery.output) {
+      if(framework){
+        // The SHA-256/size check above pins the entire reviewable React/Vue
+        // vendor IIFE. ReactDOM legitimately reads/writes .constructor for
+        // component prototypes and native event recreation; keep the stricter
+        // generic user-code analyzer intact rather than allow this globally.
+        // This exceptional path is ONLY for exact bytes listed in the fixed
+        // framework contract, never user source, generated chunks or CDN code.
+        const reviewed=bytes.toString('utf8');
+        if(/\b(?:eval|Function|AsyncFunction|importScripts)\s*\(|\bimport\s*\(/.test(reviewed))
+          throw Error('Dynamic execution forbidden in pinned Page framework: '+file);
+        assertClassicIIFE(reviewed,file);
+      }else if(file!==BUILTIN_CATALOG.libraries.jquery.output) {
         inspectScript(bytes.toString('utf8'),file);
         assertClassicIIFE(bytes.toString('utf8'),file);
       }
