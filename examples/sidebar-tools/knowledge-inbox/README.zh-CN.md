@@ -1,5 +1,7 @@
 # ChatGPT 知识收件箱
 
+> **普通用户说明**。工具开发和源码目录请读 [开发者指南](DEVELOPMENT.zh-CN.md)；AI/Codex 请读 [AGENTS.md](AGENTS.md) 和 [工具开发 Skill](../../../.agents/skills/opendesk-sidebar-tool-dev/SKILL.md)。需求排序与尚未实现的能力见 [产品文档](../../../docs/product/chatgpt-knowledge-inbox-r1.zh-CN.md)。
+
 复用 OpenDesk Browser 的 `.opendesk-tool.json` 工具机制。在 ChatGPT 回答的官方操作区下面增加保存、Markdown 和更多操作，留下来源清楚、后续可以整理的知识记录。
 
 ## 使用
