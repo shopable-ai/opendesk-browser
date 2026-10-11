@@ -10,7 +10,7 @@ const fail=(code,message)=>Object.assign(new Error(message),{code});
 const emptyParams=()=>({type:'object',properties:{},required:[],additionalProperties:false});
 const identity=row=>row?.programId||row?.taskId;
 const taskVersion=versions=>{
-  const parsed=versions.map(value=>/^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)$/.exec(value)).filter(Boolean)
+  const parsed=versions.map(value=>/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/.exec(value)).filter(Boolean)
     .map(match=>match.slice(1).map(Number)).sort((a,b)=>b[0]-a[0]||b[1]-a[1]||b[2]-a[2]);
   const last=parsed[0];return last?`${last[0]}.${last[1]}.${last[2]+1}`:'1.0.0';
 };
@@ -36,7 +36,7 @@ function pageCandidate(source,target,id,revision){
 export async function prepareLocalProjectInstallation({client,source,binding,project,target,runId}){
   assertSource(source,binding,target);
   if(source.runtimeKind==='controller'&&(!runId||
-    !/\\basync\\s+function\\s+main\\s*\\(/.test(source.sourceUtf8)))
+    !/\basync\s+function\s+main\s*\(/.test(source.sourceUtf8)))
     throw fail('E_PROGRAM_KIND','Controller 保存任务需要已完成的持久运行及支持的 async function main() 入口');
   const id='local-'+(await sha256Utf8(JSON.stringify([
     binding.bindingId,project?.sourceId||'',source.projectId||'',source.runtimeKind]))).slice(0,24);
