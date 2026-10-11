@@ -23,3 +23,7 @@ Side Panel 既有导入和市场使用同一个 src/ui/sidebar-tools/installatio
 批量确认后使用同源 Web Lock `opendesk.market:batch`，同时只允许一个市场窗口提交或恢复。已有 queued / committing / outcome-unknown 批次必须先恢复，不能直接被新安装计划覆盖。断线后 queued 被标记 interrupted（从未派发，不自动安装），committing 与未知状态只通过原市场 operation journal + 实际安装 registry 核对；不能以没有回执推断失败，也不能自动重复执行。部分成功不会卸载已成功的工具，取消只处理剩余待派发成员。
 
 新增 Node 边界测试和同一实际 Chrome Side Panel 场景中的固定 reading-kit（TOC 已装跳过、剪藏和笔记安装、重载后查询真实存储）。这些新增场景须以新 CI 候选日志为准，不能借用之前五款单独安装的 Chrome 回执。
+
+## R25.1：本地安装与在线发布边界
+
+开发选项卡保存固定版本时，Page 进入现有 Page Installed/Authority，Controller 进入既有 Task v1 Installed；`opendesk.sidebar-tool.v1` 保留原 Side Panel registry。市场页仍使用随扩展打包的官方发行 Catalog 及共享安装服务，**当前没有可确认的在线作者身份、上传 API、包版本托管、发布回执或订阅/计费发行接口**。因此「本地可用」和从本机导出的发行文件不能标记成在线发布成功。未来远端发布入口应位于工具详情或发行管理，并以确定版本 manifest、源身份与明确授权为前置条件；不得从开发预览结果直接宣称已上架。
