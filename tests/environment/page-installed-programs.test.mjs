@@ -269,6 +269,31 @@ test('same-scope upgrade reuses Chrome grant and installation identity; stale up
   await fails(()=>f.service.handleBoot(current,f.sender),'E_PERMISSION');assert.equal(f.executeCalls,0);
 });
 
+test('upgrading a disabled Page script keeps it disabled and unregisters native bootstrap after restart',async()=>{
+  const f=fixture(),installed=await f.install();
+  const disabled=await f.service.setInstalledPageEnabled({programId:'script',
+    manifestHash:installed.manifestHash,expectedGeneration:installed.authorization.generation,
+    enabled:false},{});
+  assert.equal(disabled.enabled,false);
+  assert.equal(disabled.authorization.status,'disabled');
+  const next=await f.prepare('document-idle',{revision:2});
+  const upgraded=await f.service.installPageProgram({programId:'script',revision:2,
+    manifestHash:next.manifestHash,expectedInstalledManifestHash:disabled.manifestHash,
+    expectedGeneration:disabled.authorization.generation},{});
+  assert.equal(upgraded.enabled,false);
+  assert.equal(upgraded.nativeState,'disabled');
+  assert.equal(upgraded.authorization.status,'disabled');
+  assert.equal(upgraded.error,null);
+  assert.equal(f.native.size,0);
+  f.restart();await f.service.reconcile();
+  const after=f.installation();
+  assert.equal(after.manifestHash,next.manifestHash);
+  assert.equal(after.enabled,false);
+  assert.equal(after.nativeState,'disabled');
+  assert.equal(after.authorization.status,'disabled');
+  assert.equal(f.native.size,0);
+});
+
 test('two installed programs keep independent authorization and cannot combine native id with another program token',async()=>{
   const f=fixture(),a=await f.install(),candidate=await f.prepare('document-idle',{programId:'second'});
   const b=await f.service.installPageProgram({programId:'second',revision:1,manifestHash:candidate.manifestHash,expectedInstalledManifestHash:null},{});
