@@ -153,28 +153,49 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
     return {enabled:true,count:desired.size};
   }
   const sync=()=>serial(synchronize);
-  async function status(operation,tool){
+  async function status(operation,tool,owned=null,identity=null){
     const op=browserOperation(operation);
     if(!op)return deniedBrowserStatus(operation);
-    const {grants}=await readSources(api), menu=(await approvedOrigins(grants,tool)).length>0;
+    const sources=owned??await readSources(api);
+    const menu=(await approvedOrigins(sources.grants,tool)).length>0;
     const isMenu=operation.startsWith('browser.contextMenu')||operation.startsWith('browser.launch')||
       operation==='browser.page.getSelection';
+    const menuApiAvailable=Boolean(api.contextMenus?.create&&api.contextMenus?.onClicked);
+    const platformSupported=!isMenu||menuApiAvailable;
     const hasToolCap=op.requiredCapabilities.every(cap=>tool.capabilities.includes(cap));
-    const chromium=await permissionGranted(api);
+    const chromium=menuApiAvailable&&await permissionGranted(api);
     const requiredBrowser=op.requiredChromePermissions.length?op.requiredChromePermissions.every(id=>
       id!=='contextMenus'||chromium):true;
     const exposure=op.supportedContexts.includes('sidebar-tool')&&hasToolCap?'allowed':'not-exposed';
-    const runnable=op.implementation==='IMPLEMENTED'&&exposure==='allowed'&&requiredBrowser&&
-      (!isMenu||menu);
+    const consuming=operation==='browser.launch.consume'||operation==='browser.page.getSelection';
+    let hasLaunch=true;
+    if(consuming&&exposure==='allowed'){
+      const rows=(await api.storage.session.get(BROWSER_MENU_LAUNCH_STORE))[BROWSER_MENU_LAUNCH_STORE]||{};
+      const row=rows[tool.id];
+      hasLaunch=Boolean(validLaunch(row)&&row.boundTo?.hostInstanceId===identity?.hostInstanceId&&
+        row.boundTo?.toolInstance===identity?.toolInstance&&row.packageHash===await digestTool(tool)&&
+        row.installEpoch===(sources.epochs[tool.id]??null));
+    }
+    // Clipboard availability belongs to the actual trusted front-end document;
+    // the background must never claim it is callable solely from a permission.
+    const frontendOnly=operation==='browser.clipboard.writeText';
+    const runnable=op.implementation==='IMPLEMENTED'&&exposure==='allowed'&&platformSupported&&
+      requiredBrowser&&(!isMenu||menu)&&hasLaunch&&!frontendOnly;
+    const reasonCode=runnable?null:
+      op.implementation!=='IMPLEMENTED'?'E_NOT_IMPLEMENTED':
+      !hasToolCap?'E_TOOL_CAPABILITY_REQUIRED':
+      !platformSupported?'E_CHROME_UNSUPPORTED':
+      !requiredBrowser?'E_CHROME_PERMISSION_REQUIRED':
+      isMenu&&!menu?'E_SITE_GRANT_REQUIRED':
+      !hasLaunch?'E_LAUNCH_UNAVAILABLE':
+      frontendOnly?'E_FRONTEND_CONTEXT_REQUIRED':'E_CONTEXT';
     return {operation,apiVersion:BROWSER_API_VERSION,implementation:op.implementation.toLowerCase().replaceAll('_','-'),
-      exposure,platform:api.runtime?'supported':'unsupported',
+      exposure,platform:platformSupported?'supported':'unsupported',
       authorization:{tool:hasToolCap?'granted':'missing',browser:requiredBrowser?'granted':'missing',
         site:isMenu?(menu?'granted':'missing'):'not-required'},
-      callableNow:runnable,reasonCode:runnable?null:op.implementation!=='IMPLEMENTED'?'E_NOT_IMPLEMENTED':
-        !hasToolCap?'E_TOOL_CAPABILITY_REQUIRED':!requiredBrowser?'E_CHROME_PERMISSION_REQUIRED':
-        isMenu&&!menu?'E_SITE_GRANT_REQUIRED':'E_CONTEXT',
-      nextAction:runnable?null:!hasToolCap?'update-tool-package':!requiredBrowser?'enable-in-tool-details':
-        isMenu&&!menu?'enable-in-tool-details':null};
+      callableNow:runnable,reasonCode,
+      nextAction:runnable?null:!hasToolCap?'update-tool-package':!platformSupported?null:
+        !requiredBrowser?'enable-in-tool-details':isMenu&&!menu?'enable-in-tool-details':null};
   }
   function ensureToolActions(tool,args){
     const actions=menuActions(tool);
@@ -193,9 +214,9 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
       if(tool.version!==toolVersion||(owned.epochs[toolId]??null)!==(installEpoch??null))
         throw failure('E_TOOL_CHANGED','Old tool version or revoked instance');
       if(operation==='browser.capabilities.list')return Promise.all(
-        browserCapabilityList().map(async row=>({...row,status:await status(row.operation,tool)})));
+        browserCapabilityList().map(async row=>({...row,status:await status(row.operation,tool,owned,{hostInstanceId,toolInstance})})));
       if(operation==='browser.capabilities.getStatus'){
-        normalizeBrowserOperation(operation,args);return status(args.operation,tool);
+        normalizeBrowserOperation(operation,args);return status(args.operation,tool,owned,{hostInstanceId,toolInstance});
       }
       if(operation==='browser.contextMenu.getStatus'){
         normalizeBrowserOperation(operation,args);
