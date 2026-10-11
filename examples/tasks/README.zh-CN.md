@@ -4,6 +4,18 @@
 
 这个目录提供 **真实源码、清单 SHA-256 和 HTML 演示页**。JSON 导入后的初始状态必须是 **待验证**，不是自动审核通过或直接安装。
 
+## 阅读目录（TOC）专项手工入口
+
+目录小工具的开发与安装不是本页 Task v1 的验证流程；详细说明见 [Side Panel 小工具 API](../../docs/api/sidebar-tools.zh-CN.md) 和 [官方阅读目录示例](../sidebar-tools/reading-toc/README.md)。
+
+复用本目录的 HTTP 服务：在确认 `43111` 端口空闲后执行 `python3 -m http.server 43111 --bind 127.0.0.1 --directory examples/tasks`。浏览器访问：
+
+- `http://127.0.0.1:43111/reading-toc-article.html`：真实可滚动的静态文章 DOM，1 个 H1 / 20 个 H2，检查概览上限、末尾章节高亮、拖动与位置记忆。
+- `http://127.0.0.1:43111/reading-toc-conversation.html`：多回答模拟 DOM，检查每回答标题边界、同名标题、自动来源跟随/手动固定。
+- `http://127.0.0.1:43111/demo-form.html`：原有标准任务/Page/Locator 手动入口，不被新 fixture 取代。
+
+必须先在 `chrome://extensions` 加载本仓库构建的 `dist/production` 或 `dist/development`，在 Side Panel **工具**中明确安装阅读目录并给该 `127.0.0.1:43111` Origin 授权，网页才会出现目录。这两张静态测试页**不是**真实 ChatGPT/知乎的原生兼容性证据。
+
 ## 在本地 Chrome 验证
 
 1. 在本仓库执行 `npm ci` 和 `npm run build:dev`，在 `chrome://extensions` 打开开发者模式，并加载 `dist/development`（解压扩展）。建议使用独立测试浏览器配置。

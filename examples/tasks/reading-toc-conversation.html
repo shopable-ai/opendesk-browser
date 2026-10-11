@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>OpenDesk TOC · 多回答目录测试</title>
+<style>
+:root{font:15px/1.7 -apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;color:#25334d;background:#f5f8fc}
+*{box-sizing:border-box}body{margin:0}a{color:#2860b6}
+header{padding:16px 22px;background:#fff;border-bottom:1px solid #e1e8f1}
+header>div,main{max-width:850px;margin:auto}header>div{display:flex;justify-content:space-between;align-items:center;gap:15px}
+main{padding:26px 18px}.note{padding:14px;border:1px solid #cbdcf5;border-radius:9px;background:#eaf3ff;font-size:13px}
+.turn{border:1px solid #e1e8f1;border-radius:12px;background:#fff;margin:24px 0;padding:25px}
+.ask{font-size:13px;padding:8px 12px;background:#eef1f6;border-radius:9px}
+section[data-part]{min-height:350px;border-top:1px solid #e7ecf3;padding:28px 0}
+h1,h2,h3{scroll-margin-top:90px;line-height:1.3}
+h1{font-size:24px}h2{font-size:19px}h3{font-size:16px}
+pre{background:#eef2f7;border-radius:8px;padding:12px;overflow:auto}
+@media(max-width:650px){main{padding:14px 10px}.turn{padding:16px}}
+@media(prefers-color-scheme:dark){:root{color:#e5ebf8;background:#131c29}header,.turn{background:#202b3c;border-color:#38485b}.note{background:#293b55;border-color:#4c6785}.ask,pre{background:#303f55}section[data-part]{border-color:#38485b}a{color:#a6c9ff}}
+</style></head>
+<body>
+<header><div><b>OpenDesk · 多回答手工验收</b><a href="./reading-toc-article.html">长文章测试页 →</a></div></header>
+<main>
+<div class="note">先授权阅读目录。依次滚到回答 A、B、C；来源默认应自动跟随。手动选择回答 A 再向下滚动应保持固定；切回「自动跟随」应恢复。回答 C 只有 H2；回答 A 跨三个片段且有两个 H1。这里是静态模拟页，不代表真实 ChatGPT/知乎。</div>
+<article class="turn"><p class="ask">问题 A：一个回答能否有多个 H1？</p><div data-message-author-role="assistant"><section data-part="A-1"><h1>回答 A：背景与目标</h1><h2>为什么要提供目录</h2><p>这是 A 回答的第 1 个片段，用来手工检查标题归属、目录高亮和滚动定位。</p></section><section data-part="A-2"><h1>回答 A：实施方案</h1><h2>步骤</h2><p>这是 A 回答的第 2 个片段，用来手工检查标题归属、目录高亮和滚动定位。</p></section><section data-part="A-3"><h2 id="toc-duplicate">总结</h2><h3>注意事项</h3><pre><code># 代码块中的 Markdown 不是真正的 HTML 标题</code></pre><p>这是 A 回答的第 3 个片段，用来手工检查标题归属、目录高亮和滚动定位。</p></section></div></article>
+<article class="turn"><p class="ask">问题 B：有没有其他实现？</p><div data-message-author-role="assistant"><section data-part="B-1"><h1>回答 B：替代方案</h1><h2 id="toc-duplicate">总结</h2><p>这是 B 回答的第 1 个片段，用来手工检查标题归属、目录高亮和滚动定位。</p></section><section data-part="B-2"><h2>迁移方案</h2><p>这是 B 回答的第 2 个片段，用来手工检查标题归属、目录高亮和滚动定位。</p></section></div></article>
+<article class="turn"><p class="ask">问题 C：回答没有 H1 怎么办？</p><div data-message-author-role="assistant"><section data-part="C-1"><h2>回答 C：以 H2 开始</h2><h3>没有虚构 H1</h3><p>这是 C 回答的第 1 个片段，用来手工检查标题归属、目录高亮和滚动定位。</p></section></div></article>
+</main></body></html>
