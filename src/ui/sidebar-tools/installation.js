@@ -34,8 +34,18 @@ export function compareToolVersions(a,b) {
   }
   return 0;
 }
+// Every mutation and recovery must reject malformed, duplicate and overflowed
+// rows. Silently filtering them would erase the original registry on next set.
+export function requireCompleteInstalledSidebarTools(rows){
+  if(rows===undefined)return [];
+  const admitted=admittedSidebarToolPackages(rows);
+  if(!Array.isArray(rows)||admitted.length!==rows.length)
+    throw error('本机工具安装记录损坏、重复或超过产品限制；已停止修改以保护原始数据','E_STORAGE_CORRUPT');
+  return admitted;
+}
 export async function getInstalledSidebarTools(api) {
-  return admittedSidebarToolPackages((await api.storage.local.get(SIDEBAR_TOOL_STORE))[SIDEBAR_TOOL_STORE]);
+  return requireCompleteInstalledSidebarTools(
+    (await api.storage.local.get(SIDEBAR_TOOL_STORE))[SIDEBAR_TOOL_STORE]);
 }
 function marketIdentity(value,candidate) {
   if(value==null)return null;

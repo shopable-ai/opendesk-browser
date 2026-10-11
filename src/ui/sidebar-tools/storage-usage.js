@@ -2,10 +2,17 @@
 import {SIDEBAR_TOOL_STORE,sidebarToolStorageKey} from './package.js';
 import {KNOWLEDGE_DATA_KEY} from '../../knowledge/policy.js';
 
-export async function readSidebarStorageUsage(api,installed=[]){
+export async function readSidebarStorageUsage(api,installed=[],pendingCleanupIds=[]){
   if(typeof api?.storage?.local?.getBytesInUse!=='function')
     throw new Error('当前扩展环境无法读取本地存储容量');
-  const dataKeys=[...new Set([...(installed||[]).map(tool=>sidebarToolStorageKey(tool.id)),KNOWLEDGE_DATA_KEY])];
+  // Pending cleanup IDs are bounded host metadata: include leftover data
+  // without retrieving note bodies or scanning unrelated storage keys.
+  const pending=Array.isArray(pendingCleanupIds)?pendingCleanupIds.filter(
+    id=>typeof id==='string'&&/^[a-z][a-z0-9-]{1,39}$/.test(id)):[];
+  const dataKeys=[...new Set([
+    ...(installed||[]).map(tool=>sidebarToolStorageKey(tool.id)),
+    ...pending.map(sidebarToolStorageKey),KNOWLEDGE_DATA_KEY
+  ])];
   const [totalBytes,packageBytes,toolDataBytes,unlimited]=await Promise.all([
     api.storage.local.getBytesInUse(null),
     api.storage.local.getBytesInUse(SIDEBAR_TOOL_STORE),
