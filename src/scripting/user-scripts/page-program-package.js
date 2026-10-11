@@ -115,7 +115,8 @@ export async function preparePageProgramRegistration({candidate,sourceUtf8,autho
   const approvedRules = validatePageProgramRules(proof.approvedPageRules);
   ensure(canonical(approvedRules) === canonical(manifest.pageRules),'E_NOT_AVAILABLE');
   const compiled = await compileLockedPageSource({sourceUtf8,entryFormat:manifest.entryFormat,
-    entries:resolution.entries,importSourceUrl:manifest.sourceProfile.importSourceUrl,jqueryCode,frameworkSource,optionalSource});
+    entries:resolution.entries,importSourceUrl:manifest.sourceProfile.importSourceUrl,jqueryCode,frameworkSource,optionalSource,
+    storeOwnerId:namespace+':'+manifest.programId});
   ensure(compiled.sourceHash === manifest.sourceHash && compiled.world === manifest.pageRules.world,'E_SOURCE_HASH');
   const identityHash = await digest({namespace,candidateId,manifestHash});
   const id = 'opendesk-page-d1-' + identityHash.slice(0,48), rules = manifest.pageRules;

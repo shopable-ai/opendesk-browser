@@ -9,7 +9,7 @@ export const PAGE_SOURCE_LIMIT = 128 * 1024;
 export const PAGE_WORLD_CSP = "script-src 'self'; object-src 'none'";
 export const PAGE_PREVIEW_RECEIPT_FORMAT = 'opendesk.page-preview-receipt.v1';
 // Declaration aliases only; versions, worlds and resources remain in runtime-contract.js.
-const OPTIONAL_PAGE_LIBRARY_IDS=Object.freeze({'js-cookie':'jsCookie','crypto-js':'cryptoJs','file-saver':'fileSaver','query-string':'queryString','axios':'axios'});
+const OPTIONAL_PAGE_LIBRARY_IDS=Object.freeze({'js-cookie':'jsCookie','crypto-js':'cryptoJs','file-saver':'fileSaver','query-string':'queryString','axios':'axios','store':'store'});
 export const pageOptionalLibraryId=name=>Object.hasOwn(OPTIONAL_PAGE_LIBRARY_IDS,name)?OPTIONAL_PAGE_LIBRARY_IDS[name]:null;
 /** One opt-in Page-only library declaration; never scanned after source code. */
 export function pageSelectedPackagedLibrary(sourceUtf8,parsed=parseUserScriptDependencies(sourceUtf8)) {
@@ -61,7 +61,7 @@ export function builtinReadinessSource(source,builtinSource,receiptNonce) {
   return 'if('+ready+'){\n'+source+'\n}else{'+failed+'}';
 }
 
-export async function compileLockedPageSource({sourceUtf8, entryFormat, entries = [], importSourceUrl,receiptNonce,builtinSource,jqueryCode,frameworkSource,optionalSource} = {}) {
+export async function compileLockedPageSource({sourceUtf8, entryFormat, entries = [], importSourceUrl,receiptNonce,builtinSource,jqueryCode,frameworkSource,optionalSource,storeOwnerId} = {}) {
   invariant(typeof sourceUtf8 === 'string' && sourceUtf8.trim().length > 0 &&
     new TextEncoder().encode(sourceUtf8).byteLength <= PAGE_SOURCE_LIMIT,
     'E_SOURCE', '页面脚本源码须为非空文本，且不超过 128 KiB');
@@ -70,6 +70,7 @@ export async function compileLockedPageSource({sourceUtf8, entryFormat, entries 
   const admission = assertUserScriptExecutable(parsed, {entryFormat, phase:'preview', dependenciesLocked:true});
   invariant(Array.isArray(entries) && entries.length === parsed.requires.length,
     'E_DEPENDENCY_LOCK', '源码依赖声明与已经批准的锁不同');
+  const sourceHash=await sha256Utf8(sourceUtf8);
   const selected=pageSelectedPackagedLibrary(sourceUtf8,parsed),jquery=selected==='jquery';
   invariant(jquery||jqueryCode===undefined,'E_BUILTIN_CONFLICT','未声明内置 jQuery 却提供了依赖字节');
   const framework=selected&&Object.hasOwn(PAGE_FRAMEWORK_RUNTIMES,selected)?PAGE_FRAMEWORK_RUNTIMES[selected]:null;
@@ -113,8 +114,17 @@ export async function compileLockedPageSource({sourceUtf8, entryFormat, entries 
   }
   if(optional){
     // Same admitted USER_SCRIPT world; never overwrite preexisting globals.
-    const globalName=optional.id==='jsCookie'?'Cookies':optional.id==='cryptoJs'?'CryptoJS':optional.id==='fileSaver'?'FileSaver':optional.id==='queryString'?'queryString':'axios';
+    const globalName=optional.id==='jsCookie'?'Cookies':optional.id==='cryptoJs'?'CryptoJS':optional.id==='fileSaver'?'FileSaver':optional.id==='queryString'?'queryString':optional.id==='store'?'store':'axios';
     sources.push('if(Object.hasOwn(globalThis,'+JSON.stringify(globalName)+'))throw Error("E_BUILTIN_COLLISION")');
+    if(optional.id==='store'){
+      invariant(storeOwnerId===undefined||typeof storeOwnerId==='string'&&storeOwnerId.length>0&&storeOwnerId.length<=512,
+        'E_BUILTIN_DECLARATION','Invalid fixed store owner identity');
+      const ownerHash=await sha256Utf8('opendesk.store.v1:'+(storeOwnerId??'preview:'+sourceHash));
+      // Trusted compilation identity only. The stored bundle bytes remain
+      // immutable; this scope is not a browser permission boundary.
+      sources.push("if(Object.hasOwn(globalThis,'__opendeskStoreOwnerV1'))throw Error('E_BUILTIN_COLLISION')");
+      sources.push("Object.defineProperty(globalThis,'__opendeskStoreOwnerV1',{value:"+JSON.stringify(ownerHash)+",configurable:true,writable:false})");
+    }
     sources.push(optionalSource.code);
     sources.push(optional.id==='jsCookie'
       ?"if(typeof globalThis.Cookies?.get!=='function'||typeof globalThis.Cookies?.set!=='function')throw Error('E_DEPENDENCY_NOT_READY')"
@@ -124,7 +134,9 @@ export async function compileLockedPageSource({sourceUtf8, entryFormat, entries 
           ?"if(typeof globalThis.FileSaver?.saveAs!=='function')throw Error('E_DEPENDENCY_NOT_READY')"
           :optional.id==='queryString'
             ?"if(typeof globalThis.queryString?.parse!=='function'||typeof globalThis.queryString?.stringify!=='function')throw Error('E_DEPENDENCY_NOT_READY')"
-            :"if(typeof globalThis.axios!=='function'||typeof globalThis.axios?.create!=='function'||typeof globalThis.axios?.interceptors?.request?.use!=='function')throw Error('E_DEPENDENCY_NOT_READY')");
+            :optional.id==='store'
+              ?"if(typeof globalThis.store?.get!=='function'||typeof globalThis.store?.set!=='function')throw Error('E_DEPENDENCY_NOT_READY')"
+              :"if(typeof globalThis.axios!=='function'||typeof globalThis.axios?.create!=='function'||typeof globalThis.axios?.interceptors?.request?.use!=='function')throw Error('E_DEPENDENCY_NOT_READY')");
   }
   if(framework){
     sources.push(frameworkSource.code);
@@ -149,7 +161,7 @@ export async function compileLockedPageSource({sourceUtf8, entryFormat, entries 
   // in one lexical block; prior runtime approvals require revalidation.
   const code = (builtinSource?sources.shift()+'\n;\n':'')+
     builtinReadinessSource(sources.join('\n;\n'),builtinSource,receiptNonce);
-  return Object.freeze({sourceHash:await sha256Utf8(sourceUtf8), entryFormat,
+  return Object.freeze({sourceHash, entryFormat,
     world:'USER_SCRIPT', js:Object.freeze([{code}]), warnings:admission.warnings,receiptNonce,
     ...(jquery?{packagedJquerySha256:JQUERY_371.sha256}:{}),
     ...(framework?{packagedFrameworkId:framework.id,packagedFrameworkSha256:framework.sha256}:{}),
