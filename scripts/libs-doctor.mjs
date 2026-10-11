@@ -5,6 +5,7 @@ import {execFileSync} from 'node:child_process';
 import {resolve,join} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {BUILTIN_CATALOG,BUILTIN_RUNTIME_CATALOG,BUILTIN_RESOURCE_PATHS} from '../src/libs/catalog.js';
+import {PAGE_FRAMEWORK_RUNTIMES} from '../src/libs/page-frameworks/contract.js';
 import {BUILD_POLICY} from './build-contract.mjs';
 import {inspectHistoricalLibraryUsage} from './libs-history-audit.mjs';
 
@@ -22,6 +23,7 @@ export async function inspectLibraryOutputInventory(root,mode){
   if(!['production','development'].includes(mode))throw Error('Invalid library build mode: '+mode);
   const approved=new Set([
     ...BUILTIN_RESOURCE_PATHS.filter(path=>path.startsWith('libs/')),
+    ...Object.values(PAGE_FRAMEWORK_RUNTIMES).map(row=>row.output),
     BUILTIN_CATALOG.resourceManifest
   ]);
   if(mode==='development'){
