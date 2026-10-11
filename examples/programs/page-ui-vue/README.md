@@ -1,4 +1,15 @@
-# Vue SFC 网页组件 · R24.3 默认入口迁移
+# Vue SFC 网页组件 · R24.3 本地自动准备
+
+**当前状态：本目录 `src/App.vue` 已声明为默认 Vue `component` 入口，采用扩展固定版本的 Vue runtime 与同一仓库固定的 SFC 数据编译器自动准备。** 用户代码保留官方 `<script setup>`、`<template>`、`<style scoped>`；不写 `createPageUI`、`createApp`、`main()` 或手动构建命令。
+
+从本项目目录运行已安装配对的 `opendesk browser dev .`。保存只准备，用户明确 Run 才进入获准网页；Stop 经原受管生命周期调用 `app.unmount()` 并清理组件及 scoped CSS。Vue 框架仍从扩展固定资源加载，不向用户运行包重复加入 Vue。
+
+浏览器无 Native 的源码编辑→编译 Worker→运行尚未完成。JSX/SFC 其他语言、外部 src 和预处理器不在本地已验证范围，必须明确报错。当前 Node CI / Chrome 证据仍需以实际新提交为准。
+
+保留旧 `src/Widget.vue`、`src/main.js`、`src/framework.js`、`src/runtime-entry.js`、`src/enhancement.js` 及其 R24.1 旧测试，不覆盖历史失败或回执。
+
+## 历史 R24.1 资料（不代表当前入口）
+
 
 **状态：R24.3 设计已确认，源码迁移待实施。本次只更新 README。** 当前目录仍是原 Vue SFC + Vite 示例，不代表浏览器内 SFC 自动转换已经完成。
 

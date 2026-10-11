@@ -5,6 +5,7 @@ import {createRequire} from 'node:module';
 import webpack from 'webpack';
 import {parse} from 'acorn';
 import {transformSync} from 'esbuild';
+import {transformVueSFC} from '../../src/libs/page-frameworks/vue-sfc-transform.js';
 import {validateProgramProject} from '../../scripts/validate-program-project.mjs';
 import {buildProgramProjectInMemory} from '../../scripts/build-program-project.mjs';
 import {REMOTE_LOCK_FILE,REMOTE_CACHE_DIR} from '../../scripts/remote-esm-modules.mjs';
@@ -14,7 +15,7 @@ import {LocalProjectPreparation,preparationSlot,promotePreparation,cancelPrepara
 
 const VERSION='opendesk.local-dev-resolver.v3';
 const FRAMEWORK=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..');
-const BUILD_INPUTS=['scripts/build-program-project.mjs','scripts/validate-program-project.mjs','scripts/program-assets.mjs','scripts/program-entry.mjs','scripts/page-component-entry.mjs','scripts/page-jsx-loader.cjs','src/libs/page-frameworks/contract.js','scripts/remote-esm-modules.mjs','native-agent/local-dev/resolver.mjs','native-agent/local-dev/snapshot.mjs','src/scripting/user-scripts/page-program-contract.js','src/scripting/user-scripts/page-program-rules.js','src/scripting/user-scripts/dependency-metadata.js','src/scripting/user-scripts/execution-source.js','src/platform/tasks/contract.js'];
+const BUILD_INPUTS=['scripts/build-program-project.mjs','scripts/validate-program-project.mjs','scripts/program-assets.mjs','scripts/program-entry.mjs','scripts/page-component-entry.mjs','scripts/page-jsx-loader.cjs','scripts/page-vue-sfc-loader.cjs','src/libs/page-frameworks/contract.js','src/libs/page-frameworks/vue-compiler-contract.js','src/libs/page-frameworks/vue-sfc-transform.js','src/libs/page-frameworks/vue-sfc-compiler-3.5.22.mjs','scripts/remote-esm-modules.mjs','native-agent/local-dev/resolver.mjs','native-agent/local-dev/snapshot.mjs','src/scripting/user-scripts/page-program-contract.js','src/scripting/user-scripts/page-program-rules.js','src/scripting/user-scripts/dependency-metadata.js','src/scripting/user-scripts/execution-source.js','src/platform/tasks/contract.js'];
 const require=createRequire(import.meta.url);
 const toolFiles=['webpack','acorn','terser','terser-webpack-plugin','esbuild'].map(name=>require.resolve(name+'/package.json'));
 const buildIdentity=()=>sha256(JSON.stringify([...BUILD_INPUTS.map(file=>{const actual=path.join(FRAMEWORK,file);return [file,sha256(safeRead(FRAMEWORK,actual,Math.min(fs.lstatSync(actual).size,4*1024*1024)).bytes)];}),...toolFiles.map(file=>[path.basename(path.dirname(file)),sha256(fs.readFileSync(file))])]));
@@ -162,11 +163,14 @@ export class LocalDevResolver{
     }else{
       const validated=await validateProgramProject(binding.root,{readProjectFile});
       pkg=JSON.parse(utf8(snapshot.read('package.json',65536),'package.json'));project=pkg.opendesk;
-      const syntax=validated.sourceFiles.map(row=>staticOnly(row.path.endsWith('.jsx')?
-        transformSync(row.sourceUtf8,{loader:'jsx',format:'esm',target:'es2022',
-          jsx:'transform',jsxFactory:'globalThis.OpenDeskPageReact.createElement',
-          jsxFragment:'globalThis.OpenDeskPageReact.Fragment',sourcefile:row.path}).code:
-        row.sourceUtf8,row.path));
+      const syntax=await Promise.all(validated.sourceFiles.map(async row=>{
+        const text=row.path.endsWith('.vue')
+          ?(await transformVueSFC({sourceUtf8:row.sourceUtf8,file:row.path,projectId:project.id})).code
+          :row.path.endsWith('.jsx')?transformSync(row.sourceUtf8,{loader:'jsx',format:'esm',target:'es2022',
+            jsx:'transform',jsxFactory:'globalThis.OpenDeskPageReact.createElement',
+            jsxFragment:'globalThis.OpenDeskPageReact.Fragment',sourcefile:row.path}).code:row.sourceUtf8;
+        return staticOnly(text,row.path);
+      }));
       if(project.runtimeKind==='controller'&&validated.assets.length)throw devError('E_PROJECT_ASSET_ENV','Controller resources are unsupported');
       if(project.entryMode==='component'||syntax.some(ast=>ast.body.some(node=>node.source?.value==='@opendesk/ui'))){
         for(const file of HELPERS)helpers.set(file,safeRead(path.dirname(UI),file,256*1024).bytes);
