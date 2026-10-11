@@ -467,20 +467,21 @@ test('R14.1 delayed initial catalog read never overwrites a newer storage notifi
     'an older async read must not roll the visible catalog back');
 });
 
-test('R14.1 fresh reinstall deletes orphaned private data without running the tool',async t=>{
+test('R4.5 fresh reinstall preserves orphaned private data and requires explicit cleanup',async t=>{
   const key=sidebarToolStorageKey(sample.id);
   const store=new Map([[SIDEBAR_TOOL_STORE,[]],[key,{privateNote:'left by interrupted uninstall'}]]);
   const f=await hostFixture(t,{store,startTool:false});
   f.elements['sidebar-tool-import-trigger'].emit('click');
   const text=JSON.stringify(sample);
   f.elements['sidebar-tool-file'].files=[{name:'quick-notes.json',size:text.length,text:async()=>text}];
-  f.elements['sidebar-tool-file'].emit('change');await pause();await pause();
-  f.elements['sidebar-tool-install'].emit('click');await pause();await pause();await pause();
-  assert.equal(store.has(key),false,'a new installation must never inherit deleted user data');
-  assert.equal(store.get(SIDEBAR_TOOL_STORE)[0].id,sample.id);
+  f.elements['sidebar-tool-file'].emit('change');
+  await settle(()=>!f.elements['sidebar-tool-preview'].hidden&&!f.elements['sidebar-tool-install'].disabled);
+  f.elements['sidebar-tool-install'].emit('click');
+  await settle(()=>/恢复清理/.test(f.elements['sidebar-tool-status'].textContent||''));
+  assert.deepEqual(store.get(key),{privateNote:'left by interrupted uninstall'},'a blocked installation must preserve existing notes');
+  assert.deepEqual(store.get(SIDEBAR_TOOL_STORE),[],'orphan data requires explicit cleanup before admission');
   assert.equal(f.elements['sidebar-tool-frame'].children.length,0,'install must not start code');
-  assert.equal(f.elements['sidebar-tool-list'].children[0].children[0].focused,true,
-    'focus returns to installed tool after successful import');
+  assert.equal(f.elements['sidebar-tool-status'].dataset.state,'error');
 });
 
 test('R14.1 list renders and Back/uninstall preserve useful keyboard focus',async t=>{
