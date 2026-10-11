@@ -10,7 +10,7 @@ export async function readSidebarStorageUsage(api,installed=[]){
     api.storage.local.getBytesInUse(null),
     api.storage.local.getBytesInUse(SIDEBAR_TOOL_STORE),
     api.storage.local.getBytesInUse(dataKeys),
-    api.permissions?.contains?.({permissions:['unlimitedStorage']}).catch?.(()=>null)??Promise.resolve(null)
+    api.permissions?.contains ? Promise.resolve().then(()=>api.permissions.contains({permissions:['unlimitedStorage']})).catch(()=>null) : Promise.resolve(null)
   ]);
   for(const value of [totalBytes,packageBytes,toolDataBytes])
     if(!Number.isSafeInteger(value)||value<0)throw new Error('浏览器返回了无效的存储计数');
