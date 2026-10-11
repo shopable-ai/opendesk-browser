@@ -1,7 +1,7 @@
 import {SIDEBAR_TOOL_STORE} from '../ui/sidebar-tools/package.js';
 import {READING_TOC_SITE_STORE,READING_TOC_TOOL_ID,READING_TOC_PROTOCOL,
   websiteOrigin,tocGrantAllowed,readingTocPlacementKey,READING_TOC_VISIBILITY_STORE,
-  readingTocDisplayState} from './policy.js';
+  readingTocDisplayState,READING_TOC_PAGE_RULES_STORE,readingTocPageAllowed} from './policy.js';
 import {createReadingTocIndex} from './model.js';
 import {createReadingTocView} from './view.js';
 
@@ -145,14 +145,18 @@ export function initReadingToc({api=globalThis.chrome,doc=globalThis.document,wi
     const token=++refreshEpoch;
     try{
       const currentUrl=win.location.href,key=readingTocPlacementKey(currentUrl);
-      const keys=[SIDEBAR_TOOL_STORE,READING_TOC_SITE_STORE,READING_TOC_VISIBILITY_STORE,...(key?[key]:[])];
+      const keys=[SIDEBAR_TOOL_STORE,READING_TOC_SITE_STORE,READING_TOC_VISIBILITY_STORE,
+        READING_TOC_PAGE_RULES_STORE,...(key?[key]:[])];
       const stored=await api.storage.local.get(keys);
       if(disposed||suspended||token!==refreshEpoch)return;
       if(win.location.href!==currentUrl){void refreshPolicy();return;}
       const installed=stored[SIDEBAR_TOOL_STORE],sites=stored[READING_TOC_SITE_STORE];
       const ids=Array.isArray(installed)?installed.filter(row=>row?.capabilities?.includes('page.toc')).map(row=>row.id):[];
-      const any=ids.some(id=>tocGrantAllowed(installed,sites,id,currentUrl));
+      const pageRules=stored[READING_TOC_PAGE_RULES_STORE];
+      const any=ids.some(id=>tocGrantAllowed(installed,sites,id,currentUrl)&&
+        readingTocPageAllowed(pageRules,id,currentUrl));
       const official=tocGrantAllowed(installed,sites,READING_TOC_TOOL_ID,currentUrl)&&
+        readingTocPageAllowed(pageRules,READING_TOC_TOOL_ID,currentUrl)&&
         readingTocDisplayState(stored[READING_TOC_VISIBILITY_STORE],READING_TOC_TOOL_ID,currentUrl).show;
       if(!any){if(enabled)stop();return;}
       start(official,key,key?stored[key]:null);
@@ -160,9 +164,10 @@ export function initReadingToc({api=globalThis.chrome,doc=globalThis.document,wi
   }
   async function navigate(id,sourceId,toolId=READING_TOC_TOOL_ID) {
     const permissionEpoch=navEpoch,expectedUrl=win.location.href;
-    const grants=await api.storage.local.get([SIDEBAR_TOOL_STORE,READING_TOC_SITE_STORE]);
+    const grants=await api.storage.local.get([SIDEBAR_TOOL_STORE,READING_TOC_SITE_STORE,READING_TOC_PAGE_RULES_STORE]);
     if(disposed||suspended||permissionEpoch!==navEpoch||expectedUrl!==win.location.href||
-       !tocGrantAllowed(grants[SIDEBAR_TOOL_STORE],grants[READING_TOC_SITE_STORE],toolId,expectedUrl))
+       !tocGrantAllowed(grants[SIDEBAR_TOOL_STORE],grants[READING_TOC_SITE_STORE],toolId,expectedUrl)||
+       !readingTocPageAllowed(grants[READING_TOC_PAGE_RULES_STORE],toolId,expectedUrl))
       return {ok:false,error:'工具或网站授权已变化'};
     if(!enabled||disposed||typeof id!=='string'||typeof sourceId!=='string')return {ok:false,error:'目录不可用'};
     const item=index.resolve(id,sourceId);
@@ -248,9 +253,11 @@ export function initReadingToc({api=globalThis.chrome,doc=globalThis.document,wi
        message?.protocol!==READING_TOC_PROTOCOL||message?.expectedUrl!==win.location.href ||
        typeof message?.toolId!=='string')return {ok:false,error:'来源或文档已变化'};
     const before=win.location.href,permissionEpoch=navEpoch;
-    const stored=await api.storage.local.get([SIDEBAR_TOOL_STORE,READING_TOC_SITE_STORE]);
+    const stored=await api.storage.local.get([SIDEBAR_TOOL_STORE,READING_TOC_SITE_STORE,READING_TOC_PAGE_RULES_STORE]);
     if(disposed||suspended||permissionEpoch!==navEpoch||before!==win.location.href||!tocGrantAllowed(stored[SIDEBAR_TOOL_STORE],
-      stored[READING_TOC_SITE_STORE],message.toolId,before))return {ok:false,error:'工具或网站未授权'};
+      stored[READING_TOC_SITE_STORE],message.toolId,before)||
+      !readingTocPageAllowed(stored[READING_TOC_PAGE_RULES_STORE],message.toolId,before))
+      return {ok:false,error:'工具、网站或当前页面未授权'};
     if(!enabled)await refreshPolicy();
     if(!enabled)return {ok:false,error:'目录未启用'};
     if(message.operation==='toc.snapshot'){
@@ -274,6 +281,7 @@ export function initReadingToc({api=globalThis.chrome,doc=globalThis.document,wi
   const storageListener=(changes,area)=>{
     if(area!=='local')return;
     if(Object.hasOwn(changes,READING_TOC_SITE_STORE)||
+       Object.hasOwn(changes,READING_TOC_PAGE_RULES_STORE)||
        Object.hasOwn(changes,SIDEBAR_TOOL_STORE)){navEpoch++;settled=null;void refreshPolicy();return;}
     if(Object.hasOwn(changes,READING_TOC_VISIBILITY_STORE)){
       // Appearance changes never revoke page.toc authority or cancel navigation.

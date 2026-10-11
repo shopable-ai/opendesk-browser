@@ -51,6 +51,34 @@ export function changeTocGrant(settings,id,url,allow) {
   return next;
 }
 
+// Per-page "unavailable" is a runtime denial, not an overlay preference.
+// It prevents the trusted observer and the Side Panel from reading this page.
+export const READING_TOC_PAGE_RULES_STORE='opendesk.sidebar-tools.toc-disabled-pages.v1';
+const MAX_TOC_DISABLED_PAGES=64;
+export function disabledTocPages(settings,id){
+  const raw=settings?.[id];
+  if(!Array.isArray(raw))return [];
+  return [...new Set(raw.filter(value=>
+    typeof value==='string'&&readingTocPageScope(value)===value))].slice(0,MAX_TOC_DISABLED_PAGES);
+}
+export function readingTocPageAllowed(settings,id,url){
+  const scope=readingTocPageScope(url);
+  return Boolean(scope&&!disabledTocPages(settings,id).includes(scope));
+}
+export function changeTocPageAllowed(settings,id,url,allowed){
+  if(typeof id!=='string'||!/^[a-z][a-z0-9-]{1,39}$/.test(id)||typeof allowed!=='boolean')
+    throw Error('无效的阅读目录页面设置');
+  const scope=readingTocPageScope(url);
+  if(!scope)throw Error('当前页面无法保存目录运行范围');
+  const original=settings&&typeof settings==='object'&&!Array.isArray(settings)?settings:{};
+  const previous=disabledTocPages(original,id);
+  const pages=allowed?previous.filter(item=>item!==scope):[...new Set([...previous,scope])];
+  if(pages.length>MAX_TOC_DISABLED_PAGES)throw Error('单个工具最多排除 64 个页面');
+  const next={...original};
+  if(pages.length)next[id]=pages;else delete next[id];
+  return next;
+}
+
 // Appearance preferences are not authorization: a hidden overlay still leaves
 // the separately granted Side Panel TOC service available. Scoped by tool ID.
 export const READING_TOC_VISIBILITY_STORE='opendesk.sidebar-tools.toc-visibility.v1';

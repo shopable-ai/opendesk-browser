@@ -1,13 +1,35 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {initReadingToc} from '../../src/reading-toc/page.js';
-import {READING_TOC_SITE_STORE,READING_TOC_PROTOCOL} from '../../src/reading-toc/policy.js';
+import {READING_TOC_SITE_STORE,READING_TOC_PROTOCOL,READING_TOC_PAGE_RULES_STORE,
+  changeTocPageAllowed} from '../../src/reading-toc/policy.js';
 import {SIDEBAR_TOOL_STORE} from '../../src/ui/sidebar-tools/package.js';
 
 const tick=()=>new Promise(resolve=>setImmediate(resolve));
 const tool={format:'opendesk.sidebar-tool.v1',id:'test-toc',version:'1.0.0',
   title:'目录测试',description:'Trusted controller test',capabilities:['page.toc'],
   html:'<main>目录</main>',css:'',js:'void 0;'};
+
+test('R4.7 excluding the current page disconnects the DOM observer and refuses further TOC reads',async()=>{
+  const f=pageFixture(),prior=globalThis.MutationObserver;
+  globalThis.MutationObserver=f.Observer;
+  const controller=initReadingToc({api:f.api,doc:f.doc,win:f.win});
+  try{
+    await tick();await tick();
+    assert.equal(f.Observer.active,1);
+    const denied=changeTocPageAllowed({},tool.id,f.win.location.href,false);
+    f.state.set(READING_TOC_PAGE_RULES_STORE,denied);
+    f.changes.send({[READING_TOC_PAGE_RULES_STORE]:{newValue:denied}},'local');
+    await tick();await tick();
+    assert.equal(f.Observer.active,0,'denied page has no observer');
+    assert.equal((await f.send({operation:'toc.snapshot'})).ok,false,'denied page cannot read stale headings');
+    f.state.set(READING_TOC_PAGE_RULES_STORE,{});
+    f.changes.send({[READING_TOC_PAGE_RULES_STORE]:{newValue:{}}},'local');
+    await tick();await tick();
+    assert.equal(f.Observer.active,1,'restoring a page reactivates a single observer');
+    assert.equal((await f.send({operation:'toc.snapshot'})).ok,true);
+  }finally{controller.dispose();globalThis.MutationObserver=prior;}
+});
 
 test('revoking one tool cancels its in-flight jump while another tool remains authorized',async()=>{
   const f=pageFixture(),old=globalThis.MutationObserver;

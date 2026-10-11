@@ -5,7 +5,8 @@ import {readFile,mkdtemp,rm} from 'node:fs/promises';
 import {join} from 'node:path';
 import {tmpdir} from 'node:os';
 import {createReadingTocIndex} from '../../src/reading-toc/model.js';
-import {websiteOrigin,changeTocGrant,tocGrantAllowed,READING_TOC_SITE_STORE} from '../../src/reading-toc/policy.js';
+import {websiteOrigin,changeTocGrant,tocGrantAllowed,READING_TOC_SITE_STORE,
+  READING_TOC_PAGE_RULES_STORE,changeTocPageAllowed,readingTocPageAllowed,disabledTocPages} from '../../src/reading-toc/policy.js';
 import {validateSidebarToolPackage} from '../../src/ui/sidebar-tools/package.js';
 import {buildSidebarTool} from '../../scripts/build-sidebar-tool.mjs';
 
@@ -32,6 +33,21 @@ test('R4.1 per-site TOC authority is explicit and v1 legacy packages remain comp
   assert.deepEqual(changeTocGrant(granted,pack.id,'https://example.com/b',false),{});
   assert.ok(READING_TOC_SITE_STORE.includes('toc-sites'));
   assert.throws(()=>validateSidebarToolPackage({...pack,capabilities:['page.toc','chrome.tabs']}),/能力/);
+});
+
+test('R4.7 current-page exclusions do not grant origin authority or capture URL queries',()=>{
+  const id='reading-toc',url='https://example.com/guide?private=token#answer';
+  assert.equal(readingTocPageAllowed({},id,url),true);
+  const denied=changeTocPageAllowed({},id,url,false);
+  assert.deepEqual(denied,{[id]:['https://example.com/guide']});
+  assert.equal(readingTocPageAllowed(denied,id,url),false);
+  assert.equal(readingTocPageAllowed(denied,id,'https://example.com/another'),true);
+  assert.equal(readingTocPageAllowed(denied,'other-tool',url),true);
+  assert.equal(readingTocPageAllowed(denied,id,'javascript:alert(1)'),false);
+  assert.deepEqual(disabledTocPages(denied,id),['https://example.com/guide']);
+  assert.deepEqual(changeTocPageAllowed(denied,id,url,true),{});
+  assert.match(READING_TOC_PAGE_RULES_STORE,/disabled-pages/);
+  assert.throws(()=>changeTocPageAllowed({},id,'chrome://extensions',false),/页面/);
 });
 
 class Element {
@@ -84,6 +100,43 @@ test('R4.1 ordinary articles preserve multiple H1 and H2-only documents',()=>{
   const isolated=createReadingTocIndex(docFor([h2]));
   assert.equal(isolated.rebuild().items[0].depth,0);
 });
+test('R4.7 ordinary pages expose one core source even with multiple article cards',()=>{
+  const page=new Element('body','BODY'),main=new Element('main','MAIN',page);
+  const teaser=new Element('article','ARTICLE',main),chapter=new Element('article','ARTICLE',main);
+  const outside=new Element('heading','H2',page,'页外模块标题');
+  const headings=[
+    new Element('heading','H2',teaser,'前言'),
+    new Element('heading','H2',chapter,'第一章'),
+    new Element('heading','H3',chapter,'详细步骤')
+  ];
+  const doc=docFor([outside,...headings]);doc.body=page;
+  const index=createReadingTocIndex(doc),result=index.rebuild();
+  assert.deepEqual(result.items.map(x=>x.label),['前言','第一章','详细步骤']);
+  assert.equal(result.sources.length,1,'articles inside one main are not independent sources');
+  assert.equal(result.sources[0].label,'当前网页');
+  assert.equal(new Set(result.items.map(x=>x.sourceId)).size,1);
+  assert.deepEqual(index.rebuild().items.map(x=>x.id),result.items.map(x=>x.id));
+});
+
+test('R4.7 without main use the strongest article, or one body fallback',()=>{
+  const page=new Element('body','BODY');
+  const teaser=new Element('article','ARTICLE',page),article=new Element('article','ARTICLE',page);
+  const headings=[
+    new Element('heading','H2',teaser,'相关文章推荐'),
+    new Element('heading','H1',article,'文章正文'),
+    new Element('heading','H2',article,'方案'),
+    new Element('heading','H3',article,'细节')
+  ];
+  const doc=docFor(headings);doc.body=page;
+  const result=createReadingTocIndex(doc).rebuild();
+  assert.deepEqual(result.items.map(x=>x.label),['文章正文','方案','细节']);
+  assert.equal(result.sources.length,1,'multiple articles never create a source chooser');
+  const simple=createReadingTocIndex(docFor([new Element('heading','H2',page,'摘要'),
+    new Element('heading','H2',page,'结论')])).rebuild();
+  assert.equal(simple.sources.length,1,'pages without landmarks still have one source');
+  assert.equal(simple.items.length,2);
+});
+
 test('R4.1 assistant answer fragment grouping is wrapper-based, never adjacent-text guessing',()=>{
   const assistantA=new Element('assistant'),assistantB=new Element('assistant');
   const fragmentsA=[new Element('fragment','DIV',assistantA),new Element('fragment','DIV',assistantA),new Element('fragment','DIV',assistantA)];
