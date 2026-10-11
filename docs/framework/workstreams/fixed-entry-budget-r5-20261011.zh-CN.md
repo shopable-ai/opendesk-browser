@@ -48,3 +48,11 @@ node --test tests/environment/package.test.mjs
 ```
 
 必须以本次提交绑定的实际 CI、build receipt、实物 sha256 和包哈希为准，不以旧候选成果冒充最新原生 PASS；构建通过并不等于已经完成真实 Mac Chrome 全场景验收。超 512 KiB 是项目内部新硬规则，届时应复核依赖关系、运行耗时及 Chrome 实际状态后再决定架构调整，不建议无限提高上限。
+
+## CI 验证记录（e5908c5）
+
+- 代码提交：[e5908c5](https://github.com/shopable-ai/opendesk-browser/commit/e5908c55f4a1cae4fb5d4542da7e596765af7027)。
+- [构建预算专项 Actions 38105025012](https://github.com/shopable-ai/opendesk-browser/actions/runs/38105025012)：**PASS**。合同/边界 25/25，Controller/下载/SDK 144/144、真实包模式/超限 8/8；生产与开发构建、verify、全资源容量报告全部通过。
+- 本次同一候选生产包：`sw.js=319827 B / 524288 B`，`ui/tool-shell.js=304053 B / 524288 B`，`background-startup=356227 B`；均是本次物理文件统计（包 SHA `9a0128c09efc978ba9324b838e3c61e36b95a01e8a13b58d1c26e38489a13add`）。开发包 SW 319993 B / 786432 B。修改只影响构建策略，实际 JS 字节保持不变。
+- [R15 完整回归 Actions 38105024992](https://github.com/shopable-ai/opendesk-browser/actions/runs/38105024992)：**PASS**。全量 Node **907 总数，900 PASS / 0 FAIL / 7 SKIP**；生产 ZIP `3d5e78cab81ea347b4efc18efd620377d61cde120786aa967df6bbe4d475f457`，开发 ZIP `d3ab716345b645d25b657fcbf5c28f2f3c63029df9f88ded8ddefd628365f277`。
+- [固定入口前后比较 Actions 38105025025](https://github.com/shopable-ai/opendesk-browser/actions/runs/38105025025) 的原生 macOS smoke 为独立工序；不把其未完成/有限范围解释成完整 Side Panel、用户 Mac、F3 或 ZIP 安装验收。
