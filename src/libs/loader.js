@@ -67,3 +67,33 @@ async function load(world,{runtime=globalThis.chrome?.runtime,fetchImpl=globalTh
 }
 export const loadBuiltinPageSource=options=>load('USER_SCRIPT',options);
 export const loadBuiltinWorkerSource=options=>load('CONTROLLER',options);
+
+// Optional libraries are already shipped in the extension; no install, remote
+// download or MAIN-world execution is performed. This function is trusted
+// host-only and returns *verified source bytes*, never evaluates them.
+export async function loadPackagedOptionalPageLibrary(id,{runtime=globalThis.chrome?.runtime,
+  fetchImpl=globalThis.fetch}={}){
+  const library=Object.hasOwn(catalog.libraries,id)?catalog.libraries[id]:null;
+  if(!library||library.default||!library.worlds.includes('USER_SCRIPT'))
+    throw fail('E_BUILTIN_DECLARATION');
+  const ctx={runtime,fetchImpl};
+  const {text:json}=await read(catalog.resourceManifest,ctx,16384);
+  let manifest;
+  try{manifest=JSON.parse(json);}catch{throw fail('E_BUILTIN_MANIFEST');}
+  const catalogSha256=await digestUtf8(JSON.stringify(catalog)),rows=manifest?.resources;
+  const libs=Object.values(catalog.libraries);
+  if(manifest?.format!=='opendesk.builtin-resources.v2'||manifest.abi!==BUILTIN_ABI||
+    manifest.catalogSha256!==catalogSha256||!Array.isArray(rows)||rows.length!==paths.length||
+    rows.some((item,i)=>item?.path!==paths[i]||!Number.isSafeInteger(item.bytes)||
+      item.bytes<1||item.bytes>524288||!hex.test(item.sha256))||
+    !libs.every(lib=>!lib.sha256||rows.some(item=>item.path===lib.output&&
+      item.sha256===lib.sha256&&item.bytes===lib.bytes)))
+    throw fail('E_BUILTIN_VERSION_UNAVAILABLE');
+  const descriptor=rows[paths.indexOf(library.output)];
+  if(!descriptor)throw fail('E_BUILTIN_VERSION_UNAVAILABLE');
+  const {text,bytes}=await read(library.output,ctx,524288);
+  if(bytes!==descriptor.bytes||await digestUtf8(text)!==descriptor.sha256)
+    throw fail('E_BUILTIN_HASH');
+  return Object.freeze({id:library.id,version:library.version,code:text,
+    bytes,sha256:descriptor.sha256,catalogSha256,abi:BUILTIN_ABI});
+}
