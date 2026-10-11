@@ -202,10 +202,11 @@ export function initFileWorkspace({api=globalThis.chrome,doc=globalThis.document
   function leaveImportedDraft(){
     if(!current?.importedDraft)return true;
     if(creationPending){
-      if(!globalThis.confirm('新文件创建结果仍需核对。确定放弃当前草稿和待核对状态并离开吗？已发生的磁盘写入不会撤销。'))return false;
-      creationPending=null;return true;
+      status('新文件创建结果尚待核对。请先核对结果再切换，避免丢失草稿或误判磁盘写入。');
+      return false;
     }
-    return globalThis.confirm('知识草稿尚未创建为文件，离开会放弃本窗口的编辑。确定离开吗？');
+    status('知识草稿尚未创建为文件。请先创建或复制文本后再切换。');
+    return false;
   }
   async function listDirectory(path=''){
     const ws=workspaceId,authority=authorityFor(ws),data=await client.request('files.list',fileParams({workspaceId:ws,path},authority),expected(authority));
@@ -526,20 +527,21 @@ export function initFileWorkspace({api=globalThis.chrome,doc=globalThis.document
       let imported=false;
       await operation(async()=>{
         if(!leaveImportedDraft())return;
-        if(dirty(current)&&!current?.importedDraft&&!globalThis.confirm('当前文件有未保存修改，是否切换到知识草稿？原文件草稿保留在本窗口。'))return;
+        if(dirty(current)&&!current?.importedDraft){
+          status('当前文件有未保存的修改，请先保存再导入知识草稿。');return;
+        }
         const authority=authorityFor();await assertAuthority(authority);
         showRecord({workspaceId,path:draft.filename,content:draft.markdown,baseContent:'',sha256:null,
           authority,importedDraft:true});
         byId('save-as-path').value=draft.filename;chooseView('split');controls();
-        status('知识草稿已载入，尚未写入磁盘。核对目录与文件名，再点击「创建新文件」。');
+        status('知识草稿尚未写入磁盘；关闭页面不再弹窗提醒。请先创建新文件或复制内容。');
         imported=true;
       });
       return imported;
     }});
-  const protectKnowledgeDraft=event=>{if(current?.importedDraft){event.preventDefault();event.returnValue='';}};
-  globalThis.addEventListener('beforeunload',protectKnowledgeDraft);
+  // No beforeunload handler: avoid Chrome's native exit confirmation.
+  // The editor keeps an inline save/copy reminder instead.
   const unload=()=>{closed=true;knowledgeHandoff?.dispose?.();chatEdit?.invalidate('工作区页面已关闭。');clearTimeout(previewTimer);
-    globalThis.removeEventListener?.('beforeunload',protectKnowledgeDraft);
     if(native){api.runtime.onMessage?.removeListener?.(onNativeChange);
       api.webNavigation.onHistoryStateUpdated?.removeListener?.(onNavigation);
       api.webNavigation.onCommitted?.removeListener?.(onNavigation);

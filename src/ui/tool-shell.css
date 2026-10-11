@@ -346,6 +346,12 @@
 .sidebar-tool-empty{margin:0;padding:16px 12px;border:1px dashed #cfdaea;background:#fff;border-radius:var(--radius-surface);color:#5e7088;font-size:12px}
 .sidebar-tool-status{font-size:11px;line-height:1.5;color:#49677c;overflow-wrap:anywhere;margin:8px 0 0;padding:8px 9px;background:#eef7f4;border-radius:var(--radius-control)}
 .sidebar-tool-status[data-state=error]{color:#a53b45;background:#fff1f2}
+.sidebar-tool-inline-remove{margin-top:8px;padding:10px 12px;min-width:0;border:1px solid #ead8dd;background:#fffafb;border-radius:var(--radius-control)}
+.sidebar-tool-inline-remove[hidden]{display:none!important}
+.sidebar-tool-inline-remove p{margin:0 0 8px;font-size:12px;line-height:1.5;color:#78444e;overflow-wrap:anywhere}
+.sidebar-tool-inline-remove-actions{display:flex;gap:8px;flex-wrap:wrap}
+.sidebar-tool-inline-remove-actions button{min-height:34px;padding:6px 10px;font-size:12px;font-weight:650}
+#sidebar-tool-inline-remove-confirm{background:#a4414d;color:#fff}
 .sidebar-tool-display{min-width:0;margin:0;padding:0;background:transparent}
 .sidebar-tool-view-head{display:flex;align-items:center;gap:4px;min-height:34px;margin-bottom:8px;font-size:11px;min-width:0}
 .sidebar-tool-view-head strong{min-width:0;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px}
