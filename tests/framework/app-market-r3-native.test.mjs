@@ -161,6 +161,47 @@ test('R3 production Chrome: Side Panel → official market → review → instal
     return targetInfos.find(row=>row.type==='page'&&row.url?.includes('/ui/tool.html')&&row.url?.includes('toolId=reading-toc'));
   },'use tool explicit open in independent page');
   assert.ok(openedInfo.url.includes('toolId=reading-toc'));
+  const remaining=[
+    {id:'web-markdown-clipper',version:'1.0.0'},
+    {id:'quick-notes',version:'1.1.1'},
+    {id:'markdown-workbench',version:'1.0.0'},
+    {id:'knowledge-inbox',version:'1.0.0'}
+  ];
+  // Exercise all released packages through real mouse events in the same
+  // extension/profile, not mock writes or a copied HTML prototype.
+  for(const app of remaining){
+    await click(market,'#market-home');
+    await until(()=>evaluate(market,'document.querySelectorAll(".app-card").length===5'),'market catalog');
+    await click(market,'a[href="#/apps/opendesk/'+app.id+'/versions/'+app.version+'"]');
+    await until(()=>evaluate(market,
+      'document.querySelector(".detail-layout") && document.querySelector("#market-root h1")?.textContent==='+JSON.stringify(
+       app.id==='web-markdown-clipper'?'网页剪藏':app.id==='quick-notes'?'网页笔记':
+       app.id==='markdown-workbench'?'Markdown 工作台':'ChatGPT 知识收件箱')),'market pinned detail '+app.id);
+    await click(market,'#market-root .detail-layout aside .actions button');
+    await until(()=>evaluate(market,'!!document.querySelector(".review .actions .primary")'),'review '+app.id);
+    await click(market,'.review .actions .primary');
+    await until(async()=>{
+      const installed=await evaluate(market,
+        "chrome.storage.local.get("+JSON.stringify(storageKey)+").then(x=>x["+JSON.stringify(storageKey)+"]||[])");
+      return installed.some(row=>row.id===app.id&&row.version===app.version);
+    },'actual persisted install '+app.id);
+    assert.equal(await evaluate(market,'document.querySelectorAll("iframe").length'),0,
+      'installing '+app.id+' must not automatically execute its UI');
+  }
+  const allRows=await evaluate(market,
+    "chrome.storage.local.get("+JSON.stringify(storageKey)+").then(x=>x["+JSON.stringify(storageKey)+"]||[])");
+  assert.deepEqual(allRows.map(row=>row.id),['reading-toc',...remaining.map(row=>row.id)]);
+  await click(market,'#market-my');
+  await until(()=>evaluate(market,
+    'document.querySelectorAll("#market-root .action-row button").length>=5'),'five My Apps rows');
+  for(let i=1;i<5;i++){
+    await click(market,'#market-root .surface .action-row:nth-child('+(i+1)+') button');
+    await until(async()=>{
+      const {targetInfos}=await browser.send('Target.getTargets');
+      return targetInfos.some(row=>row.type==='page'&&row.url?.includes('/ui/tool.html')&&
+        row.url?.includes('toolId='+remaining[i-1].id));
+    },'explicitly open '+remaining[i-1].id);
+  }
   const receipt=JSON.parse(await readFile(resolve('docs/framework/evidence/wxt/builds/build-production.json'),'utf8'));
   const artifactDir=resolve('artifacts/app-market-r3');
   await mkdir(artifactDir,{recursive:true});
@@ -168,7 +209,7 @@ test('R3 production Chrome: Side Panel → official market → review → instal
   await writeFile(join(artifactDir,'market-my-apps.png'),Buffer.from(image.data,'base64'));
   const evidence={result:'REAL_CHROME_FIXTURE_PASS',commit:process.env.GITHUB_SHA||'LOCAL_UNPINNED',
     extensionId:id,chromeVersion:version.Browser,packageHash:receipt.report?.packageHash||null,
-    installed:[{id:'reading-toc',version:'1.0.2'}],sidePanel:true,reviewed:true,autoRun:false,
+    installed:[{id:'reading-toc',version:'1.0.2'},...remaining],sidePanel:true,reviewed:true,autoRun:false,
     siteGrant:false,openedToolUrl:openedInfo.url,marketScreenshot:'artifacts/app-market-r3/market-my-apps.png',
     publicOrigin:'NOT_CONFIGURED',macManual:'NOT_TESTED'};
   await writeFile(join(artifactDir,'native-result.json'),JSON.stringify(evidence,null,2)+'\n');
