@@ -944,6 +944,57 @@ test('controller services share run authority and storage adapter without SDK ad
   await assert.rejects(f.authority.controllerOperation({envelope:write},f.sender),code('E_PERMISSION'));
 });
 
+
+test('Dev draft axiosx discovers cross-origin grant automatically, pins it to the run, and fences revocation',async t=>{
+  const f=await fixture(),origin='https://other.example',grants=[];
+  f.api.permissions.contains=async request=>{grants.push(...(request.origins||[]));return true;};
+  f.api.permissions.request=()=>{assert.fail('a running script must not request Chrome permissions');};
+  let sent=0;
+  t.mock.method(globalThis,'fetch',async(url,init)=>{
+    sent++;assert.equal(url,origin+'/api');assert.equal(init.credentials,'omit');
+    assert.equal(init.redirect,'manual');
+    return new Response('{"ok":true}',{status:200,headers:{'content-type':'application/json'}});
+  });
+  const run=await f.authority.startControllerRun({requestId:crypto.randomUUID(),
+    source:{kind:'draft',sourceUtf8:'return await axiosx.get("https://other.example/api");'},
+    paramsWire:encodeValue({}),target:{mode:'borrowed',tabId:2,frameId:0,documentId:'doc-top'},
+    deadlineAt:Date.now()+30000},f.sender);
+  assert.deepEqual(run.networkOrigins,[],'no manual origin configuration at admission');
+  const envelope={requestId:'auto-http',identity:run.identity,revision:run.revision,target:run.target,
+    operation:{kind:'service',method:'AXIOS_GET',args:controlEncode([{url:origin+'/api'}])}};
+  const first=await f.authority.controllerOperation({envelope},f.sender);
+  assert.equal(first.error,undefined);
+  assert.deepEqual(await f.authority.controllerOperation({envelope},f.sender),first);
+  assert.equal(sent,1,'a saved reply must never resend HTTP');
+  assert.ok(grants.includes(origin+'/*'),'the native Chrome target grant is required');
+  const pinned=(await f.rows('runs')).find(row=>row.runId===run.runId);
+  assert.deepEqual(pinned.networkOrigins,[origin]);
+  assert.equal(pinned.nativeNetworkFences.length,1);
+  const revoked=await f.authority.invalidateControllerTarget({permissionRemoved:true,origins:[origin+'/*']});
+  assert.equal(revoked.length,1);
+  assert.equal((await f.rows('runs')).find(row=>row.runId===run.runId).resultDeliveryRevoked,true);
+  await assert.rejects(f.authority.controllerOperation({envelope},f.sender),
+    error=>['E_PERMISSION','E_CANCELLED'].includes(error.code));
+  assert.equal(sent,1);
+});
+
+test('Dev draft axiosx denied by Chrome never dispatches or silently asks for an Origin grant',async t=>{
+  const f=await fixture(),denied='https://not-approved.example';
+  f.api.permissions.contains=async({origins})=>!origins.includes(denied+'/*');
+  f.api.permissions.request=()=>{assert.fail('a running script must not request Chrome permissions');};
+  let sent=0;t.mock.method(globalThis,'fetch',async()=>{sent++;throw Error('must not send');});
+  const run=await f.authority.startControllerRun({requestId:crypto.randomUUID(),
+    source:{kind:'draft',sourceUtf8:'return await axiosx.get("https://not-approved.example/api");'},
+    paramsWire:encodeValue({}),target:{mode:'borrowed',tabId:2,frameId:0,documentId:'doc-top'},
+    deadlineAt:Date.now()+30000},f.sender);
+  const envelope={requestId:'denied-http',identity:run.identity,revision:run.revision,target:run.target,
+    operation:{kind:'service',method:'AXIOS_GET',args:controlEncode([{url:denied+'/api'}])}};
+  await assert.rejects(f.authority.controllerOperation({envelope},f.sender),code('E_PERMISSION'));
+  assert.equal(sent,0);
+  assert.deepEqual((await f.rows('runs')).find(row=>row.runId===run.runId).networkOrigins,[]);
+  assert.equal((await f.rows('commandJournal')).filter(row=>row.envelope?.requestId==='denied-http').length,0);
+});
+
 test('controller network grant pins a real broker GET to exact run Origin and fences revocation',async()=>{
   const f=await fixture(),revision=await f.commit();
   const run=await f.start(revision,undefined,{networkOrigins:['https://httpbingo.org']});
