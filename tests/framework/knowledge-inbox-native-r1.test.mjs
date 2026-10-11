@@ -256,7 +256,7 @@ test('Knowledge R1 Chrome: reviewed install, capture, persistent editor and inli
  await captureState('saved-outline',[360,400,600]);
  await click(clip,'#ki-back');
  await until(()=>evalIn(clip,'!document.querySelector("#ki-list-view").hidden && document.querySelectorAll(".ki-record").length===1'),'list restored after detail');
- assert.equal(await evalIn(clip,'[...document.querySelector("#ki-tag-filter").options].some(o=>o.value==="可复用")'),true,'Saved tags populate filter');
+ await until(()=>evalIn(clip,'[...document.querySelector("#ki-tag-filter").options].some(o=>o.value==="可复用")'),'saved tags populate filter after fresh asynchronous list');
  // Select a tag by actual CDP keyboard events; no DOM mutation or synthetic event.
  await click(clip,'#ki-tag-filter');
  for(const type of ['keyDown','keyUp'])await clip.send('Input.dispatchKeyEvent',{type,key:'ArrowDown',code:'ArrowDown',windowsVirtualKeyCode:40});
@@ -266,8 +266,10 @@ test('Knowledge R1 Chrome: reviewed install, capture, persistent editor and inli
  await click(clip,'.ki-filters button[data-kind="archived"]');
  await until(()=>evalIn(clip,'!document.querySelector("#ki-empty").hidden && document.querySelector("#ki-empty-title").textContent==="没有符合条件的记录"'),'category plus tag empty state');
  await captureState('category-empty',[360]);
+ await until(()=>evalIn(clip,'!document.querySelector("#ki-reset").disabled'),'reset filter ready');
  await click(clip,'#ki-reset');
  await until(()=>evalIn(clip,'document.querySelectorAll(".ki-record").length===1 && document.querySelector("#ki-tag-filter").value===""'),'reset shows result');
+ await until(()=>evalIn(clip,'!document.querySelector(".ki-record").disabled'),'record ready after filter reset');
  await click(clip,'.ki-record');
  await until(()=>evalIn(clip,'!document.querySelector("#ki-detail").hidden'),'detail reopened for delete');
  await writeFile(join(screenshots,'visual-metrics.json'),JSON.stringify(visualMetrics,null,2)+'\n');
