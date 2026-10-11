@@ -64,8 +64,8 @@ shasum -a 256 dist/production/native-agent/workspace.css dist/development/native
 | 项目 | 状态 | 证据与缺口 |
 |---|---|---|
 | 源码与静态 DOM 合同核查 | STATIC_PASS | HTML 保留原 71 ID、四个 data-view；没有新增运行时 JS |
-| Tailwind 锁文件及构建源变更 | IMPLEMENTED_UNVERIFIED | 待 `npm ci`、`npm run check` 与双构建 |
-| 生成 CSS 安全校验、固定入口、SW 预算 | NOT_TESTED | 待 `npm test`、`npm run verify`、输出核对 |
+| Tailwind 锁文件及构建源变更 | CI_PASS | Actions 38106614811：npm ci、check、生产及开发构建成功 |
+| 生成 CSS 安全校验、固定入口、SW 预算 | CI_PASS | Actions 38106614811：verify、包变异测试通过；38106735520 完整 Node 回归通过 |
 | 真实 Mac Chrome 七视口与 200% 缩放 | NOT_TESTED | 需绑定候选 Git SHA 的截图和 Console |
 | Native 真实磁盘读改写读回 | NOT_TESTED | 需实际授权目录与真实 Native ack |
 | AI/只读/冲突/断联回归 | NOT_TESTED | 需独立 Chrome 测试证据 |
@@ -80,3 +80,13 @@ shasum -a 256 dist/production/native-agent/workspace.css dist/development/native
 - Tailwind v4 CSS 本地编译链与 npm 锁文件本轮尚未在 Mac 执行，`npm ci` 和真实 WXT/Chrome 是 P0 门槛。
 - 独立 HTML 预览、内存演示、GitHub 提交或 CI Node 通过，均不等于 Mac Native 全链路验收。
 - 并行工作树若有待提交更改，应逐文件核对再 fast-forward；不要 reset/clean，不占用其他 Agent 的 Chrome Profile/端口/构建记录。
+
+## R22 CI 结果补记（2026-10-11）
+
+- 实际源码候选：`d2b30e14c3b16983541bdf8564c2269218fb8e57`；随后 `3e2ad96e1a06b64c32ed5239774999d078d075f6` 仅修正已有 Sidebar 测试对精确 CSS 检查清单的断言。
+- [构建预算和资源安全 CI](https://github.com/shopable-ai/opendesk-browser/actions/runs/38106614811)：**success**；npm ci、npm run check、build、build:dev、verify、资源预算、Package 变异测试已通过。
+- 生产包 packageHash：`6adabe824649d6ef5baea9236509ba78a03a35e0e8226ae0ddfa7e876db87dc0`。开发包 packageHash：`0019d35ad8030984c13141daa650420abba9c465ea2d525acbf5f5dd97afc093`。
+- 生产生成 `native-agent/workspace.css`：28625 字节，SHA-256 `5eb22c5da6a5adbf5565c4327712368ce479c2edbefb64986eed8141f9366c33`。
+- [Sidebar R1 P0 CI](https://github.com/shopable-ai/opendesk-browser/actions/runs/38106735502)：**success**；保留原 Sidebar 双 CSS 检查并增加 Native Workspace CSS 检查。
+- [Native Agent R1 CI](https://github.com/shopable-ai/opendesk-browser/actions/runs/38106735520)：`bridge-components` 完整 Node 环境测试 **success**。CI 中的原有 macOS Native Agent 握手测试不等同于 R22 Workspace 七视口视觉验收和真实文件写回。
+- **仍未验收**：用户 Mac Chrome 独立 Profile 中 Workspace 360–1920px + 200% 缩放、真实 Native 写入读回、只读/磁盘冲突/AI 审阅 E2E、95 分独立视觉评分。必须继续标记 NOT_TESTED / NOT_SCORED。
