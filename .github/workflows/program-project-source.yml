@@ -27,6 +27,11 @@ on:
       - 'native-agent/local-dev/provider.mjs'
       - 'schemas/opendesk-program-project.v1.schema.json'
       - 'examples/programs/**'
+      - 'native-agent/wire.mjs'
+      - 'native-agent/local-dev/resolver.mjs'
+      - 'tests/environment/esm-r21-wire-boundary.test.mjs'
+      - 'tests/integration/esm-examples-acceptance.test.mjs'
+      - 'tests/framework/esm-r22-examples.mjs'
       - '.github/workflows/program-project-source.yml'
   pull_request:
     branches: [main]
@@ -46,8 +51,23 @@ on:
       - 'tests/integration/npm-project-closure.test.mjs'
       - 'examples/programs/page-npm-lodash/**'
       - 'scripts/bundle-provenance.mjs'
+      - 'native-agent/wire.mjs'
+      - 'native-agent/local-dev/resolver.mjs'
+      - 'tests/environment/esm-r21-wire-boundary.test.mjs'
+      - 'tests/integration/esm-examples-acceptance.test.mjs'
+      - 'tests/framework/esm-r22-examples.mjs'
+      - 'examples/programs/**'
       - '.github/workflows/program-project-source.yml'
   workflow_dispatch:
+    inputs:
+      live_https_smoke:
+        description: Approve jsdelivr lodash-es add.js root download for compile-only smoke
+        type: boolean
+        default: false
+      approved_transitive_urls:
+        description: JSON array of separately approved exact transitive HTTPS URLs
+        type: string
+        default: '[]'
 permissions:
   contents: read
 jobs:
@@ -75,15 +95,20 @@ jobs:
           node scripts/build-program-project.mjs examples/programs/sidebar-page-demo
           node scripts/build-program-project.mjs examples/programs/sidebar-controller-demo
       - run: npm run check
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '26.3.1'
+      - name: Node L2 Examples and OS-denied offline Mock rebuild
+        run: node --test tests/integration/esm-examples-acceptance.test.mjs tests/environment/esm-r21-wire-boundary.test.mjs
 
       - name: Install and exercise real locked npm Page example
         run: |
           npm ci --prefix examples/programs/page-npm-lodash --ignore-scripts --no-audit --no-fund
           node --test tests/integration/npm-project-closure.test.mjs
   live-https-esm-smoke:
-    # External CDN access is opt-in for this R10 review or manual dispatch only.
+    # External CDN access needs the separate explicit manual approval input.
     # The downloaded third-party code is compiled, but NEVER executed in CI.
-    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && github.head_ref == 'agent/r10-https-esm-security-20261009')
+    if: github.event_name == 'workflow_dispatch' && inputs.live_https_smoke
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -93,11 +118,23 @@ jobs:
           node-version: '22'
           cache: npm
       - run: npm ci --ignore-scripts --no-audit --no-fund
-      - name: Explicit HTTPS pin then verified offline repeat (never execute CDN code)
+      - name: Explicit HTTPS pin then verified cached repeat (never execute CDN code)
+        env:
+          APPROVED_TRANSITIVE_URLS: ${{ inputs.approved_transitive_urls }}
         run: |
           set -euo pipefail
           OUT="${RUNNER_TEMP}/r10-remote"
-          node scripts/build-program-project.mjs examples/programs/remote-esm-page --lock-remote --out "${OUT}" > "${RUNNER_TEMP}/r10-first.json"
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import {lockProgramRemote} from './scripts/lock-program-remote.mjs';
+          const approved=JSON.parse(process.env.APPROVED_TRANSITIVE_URLS);
+          assert.ok(Array.isArray(approved)&&approved.every(url=>typeof url==='string'&&url.startsWith('https://')));
+          const project='examples/programs/remote-esm-page';
+          const review=await lockProgramRemote(project);
+          console.log(JSON.stringify(review));
+          await lockProgramRemote(project,{approve:review.reviewToken,allowURL:async url=>approved.includes(url)});
+          NODE
+          node scripts/build-program-project.mjs examples/programs/remote-esm-page --out "${OUT}" > "${RUNNER_TEMP}/r10-first.json"
           node scripts/build-program-project.mjs examples/programs/remote-esm-page --out "${OUT}" > "${RUNNER_TEMP}/r10-second.json"
           node --input-type=module <<'NODE'
           import assert from 'node:assert/strict';
@@ -111,5 +148,5 @@ jobs:
           assert.ok(first.remoteModules.length>0);
           const code=await readFile(join(env.RUNNER_TEMP,'r10-remote','program.js'),'utf8');
           assert.doesNotMatch(code,/import\s*\(\s*['"]https?:\/\//);
-          console.log(JSON.stringify({sourceHash:first.sourceHash,remoteModuleCount:first.remoteModules.length,offlineRebuild:'PASS'}));
+          console.log(JSON.stringify({sourceHash:first.sourceHash,remoteModuleCount:first.remoteModules.length,cachedRebuild:'PASS'}));
           NODE

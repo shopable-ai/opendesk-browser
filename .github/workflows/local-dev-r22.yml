@@ -25,6 +25,15 @@ on:
       - 'examples/programs/page-heading/**'
       - 'examples/programs/sidebar-controller-demo/**'
       - 'examples/programs/remote-esm-page/**'
+      - 'native-agent/wire.mjs'
+      - 'tests/framework/esm-r22-examples.mjs'
+      - 'tests/framework/r101-controller-lifecycle.mjs'
+      - 'tests/integration/esm-examples-acceptance.test.mjs'
+      - 'tests/environment/esm-r21-wire-boundary.test.mjs'
+      - 'examples/programs/sidebar-page-demo/**'
+      - 'examples/programs/local-controller/**'
+      - 'examples/programs/controller-title/**'
+      - 'examples/programs/page-npm-lodash/**'
       - '.github/workflows/local-dev-r22.yml'
   pull_request:
     branches: [main]
@@ -42,6 +51,16 @@ on:
       - 'tests/framework/native-chrome-consent.mjs'
       - 'examples/programs/local-controller/**'
       - 'examples/programs/local-page-ui/**'
+      - 'native-agent/wire.mjs'
+      - 'tests/framework/esm-r22-examples.mjs'
+      - 'tests/framework/r101-controller-lifecycle.mjs'
+      - 'tests/integration/esm-examples-acceptance.test.mjs'
+      - 'tests/environment/esm-r21-wire-boundary.test.mjs'
+      - 'examples/programs/sidebar-page-demo/**'
+      - 'examples/programs/sidebar-controller-demo/**'
+      - 'examples/programs/controller-title/**'
+      - 'examples/programs/page-npm-lodash/**'
+      - 'examples/programs/remote-esm-page/**'
       - '.github/workflows/local-dev-r22.yml'
   workflow_dispatch:
 permissions:
@@ -67,11 +86,27 @@ jobs:
       - name: Actual Native Messaging and MCP source-edit-run loop
         env:
           CHROME_FOR_TESTING_BIN: ${{ steps.chrome.outputs.chrome-path }}
-          OPENDESK_DEV_EVIDENCE: docs/framework/evidence/local-dev-r22-native
+          OPENDESK_DEV_EVIDENCE: .runtime/tests/local-dev-r22-native
+          OPENDESK_NATIVE_INSTANCE: r22-ci-baseline
+          OPENDESK_DEV_CFT_LAUNCHER: ${{ github.workspace }}/tests/framework/cft-isolated-launcher.py
+        run: node tests/framework/local-dev-native-acceptance.mjs
+      - run: npm run build:dev
+      - run: npm ci --prefix examples/programs/page-npm-lodash --ignore-scripts --no-audit --no-fund
+      - name: Chrome L4 existing ESM Examples and explicit source-edit-run
+        env:
+          CHROME_FOR_TESTING_BIN: ${{ steps.chrome.outputs.chrome-path }}
+          OPENDESK_NATIVE_INSTANCE: r22-ci-examples
+          OPENDESK_DEV_SLICE: esm-examples
+          OPENDESK_DEV_PACKAGE_DIR: dist/development
+          OPENDESK_DEV_BUILD_RECEIPT: docs/framework/evidence/wxt/builds/build-development.json
+          OPENDESK_DEV_EVIDENCE: .runtime/tests/esm-r22-examples
+          OPENDESK_DEV_LIFECYCLE_CASES: permission,port,external,late
           OPENDESK_DEV_CFT_LAUNCHER: ${{ github.workspace }}/tests/framework/cft-isolated-launcher.py
         run: node tests/framework/local-dev-native-acceptance.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: local-dev-r22-native-${{ github.sha }}
-          path: docs/framework/evidence/local-dev-r22-native
+          path: |
+            .runtime/tests/local-dev-r22-native
+            .runtime/tests/esm-r22-examples

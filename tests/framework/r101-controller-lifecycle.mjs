@@ -136,18 +136,29 @@ export async function runNativeLifecycle({project,bindingId,mcpClient,until,repo
         assert.ok(b.locations.length,'breakpoint resolves to the installed script');
         record('r101.late.breakpoint',{file,sourceSuffix,line,column,generated,locations:b.locations});return b.breakpointId;
       }
+      // Resolve breakpoint anchors from the exact package Source Map. Fixed
+      // source line numbers become stale when an earlier admission fence changes.
+      function originalAnchor(file,suffix,needle){
+        const map=JSON.parse(fs.readFileSync(path.join(report.packageDirectory,file+'.map'),'utf8'));
+        const index=map.sources.findIndex(source=>source.endsWith(suffix));assert.ok(index>=0);
+        const content=map.sourcesContent[index],offset=content.indexOf(needle);assert.ok(offset>=0);
+        const prefix=content.slice(0,offset),line=prefix.split('\n').length,column=offset-prefix.lastIndexOf('\n')-1;
+        return {line,column};
+      }
+      const hostAnchor=originalAnchor('ui/tool-shell.js','host-adapter.js','client.replyNativeAgent({requestId:');
+      const workerAnchor=originalAnchor('native-agent/transport.js','service-worker.js','if(!item||item.host!==from');
       let hostPause,workerPause;
       const offHost=tool.on('Debugger.paused',e=>{hostPause=e;}),offWorker=observedWorker.on('Debugger.paused',e=>{workerPause=e;});
       await tool.call('Debugger.enable');await observedWorker.call('Debugger.enable');
       try{
-        const hostBreakpoint=await breakpoint(tool,'ui/tool-shell.js','host-adapter.js',139,10,adapterVariable+'.requestId==='+JSON.stringify(requestId));
+        const hostBreakpoint=await breakpoint(tool,'ui/tool-shell.js','host-adapter.js',hostAnchor.line,hostAnchor.column,adapterVariable+'.requestId==='+JSON.stringify(requestId));
         const original=requestAgent('run.get',{registrationId,runId:started.runId},requestId,15000).then(reply=>({reply}),e=>({error:{code:e.code,outcome:e.outcome}}));
         const paused=await until(()=>hostPause,'actual original Host reply paused',10000);
         const actual=(await tool.call('Debugger.evaluateOnCallFrame',{callFrameId:paused.callFrames[0].callFrameId,expression:adapterVariable,returnByValue:true})).result.value;
         assert.equal(actual.requestId,requestId);assert.equal(actual.method,'run.get');assert.ok(actual.dispatchId);
         record('r101.late.original-dispatch',{requestId,dispatchId:actual.dispatchId,runId:started.runId,registrationId});
         await tool.call('Debugger.removeBreakpoint',{breakpointId:hostBreakpoint});
-        const workerBreakpoint=await breakpoint(observedWorker,'native-agent/transport.js','service-worker.js',107,4,msg+'.requestId==='+JSON.stringify(actual.dispatchId));
+        const workerBreakpoint=await breakpoint(observedWorker,'native-agent/transport.js','service-worker.js',workerAnchor.line,workerAnchor.column,msg+'.requestId==='+JSON.stringify(actual.dispatchId));
         // Extension pages share a renderer: a paused Host also pauses Settings.
         // Fault the exact owned Native process instead of invoking a paused UI.
         const installation=loadInstall();

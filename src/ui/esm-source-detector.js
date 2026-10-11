@@ -35,13 +35,30 @@ export function hasUnbuiltESM(sourceUtf8) {
   };
   const regexAfter=new Set(['','=',':','(', '[','{',',',';','!','?','??','&&','||',
     'return','throw','case','yield','await','=>','else','do','delete','void',
-    'typeof','instanceof','in','of','control-close']);
-  const moduleKeyword=(name,from,previous)=>{
+    'typeof','instanceof','in','of','control-close','control-block-close','...']);
+  const operatorAt=from=>s.slice(from,from+3)==='...'?'...':
+    ['?.','=>','??','&&','||'].includes(s.slice(from,from+2))?s.slice(from,from+2):null;
+  const methodBody=from=>{
+    let i=from,depth=0,previous='';
+    while(i<n){
+      i=skipTrivia(i);const ch=s[i];
+      if(ch==="'"||ch==='"'||ch==='`'){i=quoted(i,ch);previous='literal';continue;}
+      if(ch==='/'&&s[i+1]!=='='&&regexAfter.has(previous)){i=regex(i);previous='literal';continue;}
+      if(idStart(ch)){const start=i++;while(i<n&&idRest(s[i]))i++;previous=s.slice(start,i);continue;}
+      const operator=operatorAt(i);
+      if(operator){previous=operator;i+=operator.length;continue;}
+      if(ch==='(')depth++;
+      else if(ch===')'&&--depth===0)return s[skipTrivia(i+1)]==='{';
+      previous=ch;i++;
+    }
+    return false;
+  };
+  const moduleKeyword=(name,from,previous,objectMethod=false)=>{
     if(previous==='.'||previous==='?.')return false;
     const i=skipTrivia(from),ch=s[i];
     if(name==='import'){
       // import() is not a safe way to bypass local dependency review either.
-      if(ch==='(')return true;
+      if(ch==='(')return !(objectMethod&&methodBody(i));
       if(ch==='.'){
         const j=skipTrivia(i+1);
         return s.slice(j,j+4)==='meta'&&!idRest(s[j+4]);
@@ -64,7 +81,7 @@ export function hasUnbuiltESM(sourceUtf8) {
   }
   function scanCode(from,interpolation=false){
     let i=from,depth=0,previous='';
-    const parens=[];
+    const parens=[],braces=[];
     while(i<n&&!found){
       i=skipTrivia(i);if(i>=n)break;
       const ch=s[i];
@@ -76,7 +93,8 @@ export function hasUnbuiltESM(sourceUtf8) {
       if(idStart(ch)){
         const start=i++;while(i<n&&idRest(s[i]))i++;
         const token=s.slice(start,i);
-        if((token==='import'||token==='export')&&moduleKeyword(token,i,previous)){
+        const objectMethod=braces.at(-1)==='object'&&['{',',','async','get','set'].includes(previous);
+        if((token==='import'||token==='export')&&moduleKeyword(token,i,previous,objectMethod)){
           found=true;break;
         }
         previous=token;continue;
@@ -86,13 +104,17 @@ export function hasUnbuiltESM(sourceUtf8) {
         previous='(';i++;continue;
       }
       if(ch===')'){previous=parens.pop()?'control-close':')';i++;continue;}
-      if(ch==='{'){depth++;previous='{';i++;continue;}
+      if(ch==='{'){
+        braces.push(['control-close','else','do','try','finally'].includes(previous)?'control':
+          ['=','(', '[',',','return','yield','??','||','&&'].includes(previous)?'object':'block');
+        depth++;previous='{';i++;continue;
+      }
       if(ch==='}'){
         if(interpolation&&depth===0)return i+1;
-        depth=Math.max(0,depth-1);previous='}';i++;continue;
+        depth=Math.max(0,depth-1);previous=braces.pop()==='control'?'control-block-close':'}';i++;continue;
       }
-      if(ch==='?'&&s[i+1]==='.'){previous='?.';i+=2;continue;}
-      if(ch==='='&&s[i+1]==='>'){previous='=>';i+=2;continue;}
+      const operator=operatorAt(i);
+      if(operator){previous=operator;i+=operator.length;continue;}
       previous=ch;i++;
     }
     return i;

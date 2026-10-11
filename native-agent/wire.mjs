@@ -9,7 +9,8 @@ export class WireError extends Error {
 export const object = x => x !== null && typeof x === 'object' && !Array.isArray(x);
 export function encode(value) {
   const buffer = Buffer.from(JSON.stringify(value),'utf8');
-  if (buffer.length > MAX_BYTES) throw new WireError('E_LIMIT','Native IPC message exceeds 60 KiB');
+  if (buffer.length > MAX_BYTES) throw new WireError('E_LIMIT',
+    'Native IPC message exceeds 60 KiB: jsonBytes='+buffer.length+', limitBytes='+MAX_BYTES);
   return buffer;
 }
 export function frame(value) {

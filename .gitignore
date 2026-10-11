@@ -39,3 +39,6 @@ raw-cdp*.jsonl
 *.pem
 *.key
 *.p12
+
+# Local execution evidence and disposable source copies
+/.runtime/

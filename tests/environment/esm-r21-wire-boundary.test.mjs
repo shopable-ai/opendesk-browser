@@ -55,3 +55,35 @@ test('ordinary smaller source still encodes and an oversized Provider reply can 
     error:{code:'E_LIMIT',message:'Local execution payload exceeds the Native message limit'}};
   assert.doesNotThrow(()=>encode(bounded));
 });
+
+test('full dev.response and run.start accept 61439/61440 and diagnose exactly 61441 bytes',()=>{
+  for(const make of [projectResponse,runStart]){
+    for(const size of [MAX_BYTES-1,MAX_BYTES,MAX_BYTES+1]){
+      const base='/*'+'x'.repeat(59000)+'*/';
+      const overhead=Buffer.byteLength(JSON.stringify(make(base)))-Buffer.byteLength(base);
+      const source='/*'+'x'.repeat(size-overhead-4)+'*/',message=make(source);
+      assert.equal(Buffer.byteLength(JSON.stringify(message)),size);
+      const check=()=>make===runStart?requestShape(message):encode(message);
+      if(size<=MAX_BYTES){assert.doesNotThrow(check);assert.equal(encode(message).length,size);}
+      else assert.throws(check,error=>{
+        assert.equal(error.code,'E_LIMIT');
+        assert.match(error.message,/jsonBytes=61441, limitBytes=61440/);return true;
+      });
+    }
+  }
+});
+
+test('each escaping class and UTF-8 is measured on full JSON without truncating execution source',()=>{
+  for(const text of ['\n','"','\\','中文😀','\u0000\u001f']){
+    const source='/*'+text.repeat(40000)+'*/';
+    for(const message of [runStart(source),projectResponse(source)]){
+      const bytes=Buffer.byteLength(JSON.stringify(message),'utf8');
+      assert.ok(bytes>MAX_BYTES);
+      assert.throws(()=>encode(message),error=>{
+        assert.equal(error.code,'E_LIMIT');assert.ok(error.message.includes('jsonBytes='+bytes));return true;
+      });
+      assert.equal(message.params?.source.sourceUtf8||message.result.sourceUtf8,source);
+      assert.doesNotThrow(()=>encode(projectResponse('async function main(){return 7;}')));
+    }
+  }
+});

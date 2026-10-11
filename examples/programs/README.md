@@ -1,5 +1,20 @@
 # OpenDesk Browser 多文件 Demo 总览
 
+## ESM R2.2 当前验收与开发入口
+
+命令均从 opendesk-browser 仓库根目录执行。已有 Native/扩展配对时，用 `opendesk browser dev "$PWD/examples/programs/项目目录"` 接入现有 Sidebar；修改模块后再次明确运行，不需要导出/上传编译结果。MCP 仍使用现有七个 `opendesk.dev.*` 工具，身份取实际回执。保存只触发本地准备，不自动操作网页。
+
+本机 Chrome for Testing 155 的现有 Native/MCP 驱动已实际执行全部七个 ESM 示例；原始回执、DOM、截图、输入与包 SHA、失效阻断和证据边界见 [ESM R2.2 专属记录](../../docs/framework/workstreams/esm-r22-examples-01a1296d.zh-CN.md)。Page/Controller 两个 sidebar-demo 与 local-controller 有源码修改再运行证据；page-heading/controller-title 使用显式 localhost 测试授权副本，原 example.com 网站未测；remote-esm-page 使用受控 Mock 依赖与 localhost 副本，真实 CDN 未访问。
+
+```sh
+npm ci --ignore-scripts --no-audit --no-fund
+node --test tests/environment/sidebar-project-demo.test.mjs tests/environment/program-entry.test.mjs tests/environment/page-dependencies-ui.test.mjs tests/environment/esm-r21-wire-boundary.test.mjs tests/environment/remote-esm-review.test.mjs tests/environment/local-project-connection.test.mjs tests/environment/local-dev.test.mjs
+node --test tests/integration/esm-examples-acceptance.test.mjs
+```
+
+第二条集成命令使用 Node 26.3.1，在现有 Webpack/Resolver 上验证真实文件图、哈希、源码修改、缓存、错误诊断与 OS 拒绝联网的锁定 HTTPS Mock；只算 L2。CI 的 macOS `esm-examples` 切片单独保存 L3/L4 身份，不把 Node/vm 当 Chrome。锁定 npm 示例另执行 `npm ci --prefix examples/programs/page-npm-lodash --ignore-scripts --no-audit --no-fund`。所有运行产物写 `.runtime/`，不提交。
+
+
 > R10.1 当前中文使用入口：[快速入门](../../docs/api/quickstart.zh-CN.md)，[七个 MCP 工具](../../docs/api/mcp-local-development.zh-CN.md)。复用原候选证据，按相关输入判断是否需要重测；不以示例运行代替安装/F3。
 
 ## 默认本地开发

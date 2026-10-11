@@ -116,7 +116,12 @@ test('same-line ESM and module import expressions are blocked at real Sidebar ca
     'export function run() {}',
     "export {default} from './task.js'",
     template,
-    "import('./unreviewed.js')"
+    "import('./unreviewed.js')",
+    "const obj={import(value=import('./unreviewed.js')){return value;}};",
+    "import('./unreviewed.js')\n{}",
+    "{import(value)\n{}}",
+    "if(ready){import(value)\n{}}",
+    'const x={import(arg={...import("https://unapproved.example/module.mjs")}){return arg;}}; x.import();'
   ];
   for(const source of cases){
     const f=fixture(source);t.after(()=>f.resolver.dispose());
@@ -135,6 +140,12 @@ test('classic source ignores comments, regex, strings and template text',()=>{
     'const re=/import\\.meta|export const/;',
     'if (ready) /export {value}/.test(input);',
     'const obj={export:42,import:17}; obj.export++;',
+    'const obj={import(value){return value;}}; obj.import(42);',
+    'if(ready){} /export const/.test(input);',
+    'const x={import(arg=/[)]/.test("x")){return arg;}}; x.import();',
+    'const x={import(arg=false&&/[)]/.test("x")){return arg;}}; x.import();',
+    'const x={import(arg=false||/[)]/.test("x")){return arg;}}; x.import();',
+    'const x={import(arg=()=>/[)]/.test("x")){return arg;}}; x.import();',
     raw,
     '// ==UserScript==\n// @name Local\n// ==/UserScript==\nfunction main(){return document.title;}'
   ];
