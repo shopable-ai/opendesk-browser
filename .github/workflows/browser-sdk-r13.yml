@@ -1,0 +1,62 @@
+name: Browser SDK R1.3 isolated candidate verification
+on:
+  push:
+    branches: [agent/browser-sdk-r13-20261011]
+    paths:
+      - '.github/workflows/browser-sdk-r13.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  browser-contracts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+          clean: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '22'
+      - name: Candidate identity
+        run: |
+          git status --short --branch
+          git rev-parse HEAD
+          node --version
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Browser SDK R1.3 and existing tool install regressions
+        run: |
+          node --test --test-reporter=spec tests/environment/browser-sdk-r13.test.mjs tests/environment/sidebar-tools.test.mjs tests/environment/sidebar-tools-host.test.mjs tests/environment/official-tools-catalog-r45.test.mjs tests/framework/k4-sdk-reinjection.test.mjs
+      - name: Source and fixed entry guard
+        run: npm run check
+  browser-bundles:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+          clean: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '22'
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Production WXT build (strict SW gate)
+        run: npm run build
+      - name: Development WXT build
+        if: ${{ !cancelled() }}
+        run: npm run build:dev
+      - name: Verify both builds (cannot pass without valid production)
+        if: ${{ !cancelled() }}
+        run: npm run verify
+      - name: Retain candidate build receipt only
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: browser-sdk-r13-build-${{ github.sha }}
+          retention-days: 7
+          if-no-files-found: ignore
+          path: |
+            docs/framework/evidence/wxt/builds/build-production.json
+            docs/framework/evidence/wxt/builds/build-development.json
