@@ -94,10 +94,34 @@
           <button type="button" id="sidebar-tool-back" class="sidebar-tool-icon-action od-icon-button" title="返回工具列表" aria-label="返回自定义工具列表"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14 5-7 7 7 7M7 12h14"></path></svg></button>
           <strong id="sidebar-tool-title"></strong>
           <button type="button" id="sidebar-tool-open-tab" class="sidebar-tool-icon-action od-icon-button" title="在新标签页打开" aria-label="在新标签页打开当前工具" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 5h6v6m0-6-9 9M19 13v6H5V5h6"></path></svg></button>
+          <button type="button" id="sidebar-tool-settings-open" class="sidebar-tool-icon-action od-icon-button" title="阅读目录设置" aria-label="阅读目录设置" hidden><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M10 2h4l.5 2.5 2 1 2.4-1 2.3 3-1.7 2v3l1.7 2-2.3 3-2.4-1-2 1L14 21h-4l-.5-2.5-2-1-2.4 1-2.3-3 1.7-2v-3l-1.7-2 2.3-3 2.4 1 2-1Z"/></svg></button>
           <button type="button" id="sidebar-tool-remove" class="sidebar-tool-icon-action od-icon-button" title="卸载工具及本地数据" aria-label="卸载当前工具及本地数据" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M10 4h4m-8 3 1 13h10l1-13M10 11v5m4-5v5"></path></svg></button>
         </div>
         <p id="sidebar-tool-readonly-banner" class="sidebar-tool-status" data-state="readonly" role="note" hidden>开发只读预览 · 未安装。模拟读取仅返回空值；禁止写入、发送消息、控制网页或运行任务。需要正式使用时，请另行审阅并安装工具包。</p>
         <div id="sidebar-tool-frame" class="sidebar-tool-frame"></div>
+        <section id="sidebar-tool-settings-view" class="sidebar-tool-settings-view od-surface" aria-label="阅读目录设置" hidden>
+          <p class="sidebar-toc-settings-intro">直接选择可用或不可用，不需要填写网址规则。</p>
+          <div class="sidebar-toc-settings-scope">
+            <div><span class="sidebar-toc-settings-caption" id="sidebar-tool-settings-scope-label">当前网站</span><strong id="sidebar-tool-settings-target">请选择普通网页</strong></div>
+            <button type="button" id="sidebar-tool-settings-scope" class="od-button od-button--secondary">只设置本页</button>
+          </div>
+          <div class="sidebar-toc-settings-binary" role="group" aria-label="阅读目录运行状态">
+            <button type="button" id="sidebar-tool-settings-allow" aria-pressed="false">✓ 可用</button>
+            <button type="button" id="sidebar-tool-settings-deny" aria-pressed="false">⊘ 不可用</button>
+          </div>
+          <p id="sidebar-tool-settings-hint" class="sidebar-toc-settings-hint" role="status"></p>
+          <details class="sidebar-toc-advanced">
+            <summary>显示偏好与已有规则</summary>
+            <div class="sidebar-toc-settings-row"><span>此网站的网页悬浮目录</span><button type="button" id="sidebar-tool-settings-site-visibility" class="sidebar-toc-visibility-toggle">显示</button></div>
+            <div class="sidebar-toc-settings-row"><span>此页面的网页悬浮目录</span><button type="button" id="sidebar-tool-settings-page-visibility" class="sidebar-toc-visibility-toggle">显示</button></div>
+            <p class="sidebar-toc-settings-hint">仅隐藏网页悬浮目录时，Side Panel 目录仍然可用；设置“不可用”则停止目录读取。</p>
+            <strong class="sidebar-toc-settings-title">已排除的页面</strong>
+            <div id="sidebar-tool-settings-pages" class="sidebar-toc-settings-entries"></div>
+            <strong class="sidebar-toc-settings-title">已授权的网站</strong>
+            <div id="sidebar-tool-settings-sites" class="sidebar-toc-settings-entries"></div>
+          </details>
+          <div class="sidebar-toc-pro-note"><strong>AI 智能设置</strong><span>Pro · 计划中</span><p>手动网站启停和页面排除免费开放。</p></div>
+        </section>
       </section>
       <p id="sidebar-tool-status" class="sidebar-tool-status" role="status" aria-live="polite" hidden></p>
     </section>
