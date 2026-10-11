@@ -38,7 +38,7 @@ function identity(candidate){
     sourceHash:m.sourceHash,dependencyLockId:m.dependencyLockId,dependencyManifestDigest:m.dependencyManifestDigest,
     approvedPageRules:m.pageRules};
 }
-async function verifiedEnvironment(candidate,receipt,runtime){
+async function verifiedEnvironment(candidate,receipt){
   // Old Page verification receipts are bound to the original library ABI and
   // catalog bytes. Never upgrade existing user code under an old receipt.
   invariant(receipt?.builtinAbi===BUILTIN_ABI &&
@@ -51,11 +51,9 @@ async function verifiedEnvironment(candidate,receipt,runtime){
   invariant(!pageWantsJquery(candidate.sourceUtf8)||receipt.packagedJquerySha256===JQUERY_371.sha256,
     'E_PAGE_ENVIRONMENT','内置库环境已变化；请载入并保存新版本后验证安装');
   const selected=pageSelectedPackagedLibrary(candidate.sourceUtf8);
-  if(selected==='js-cookie'){
-    const current=await loadPackagedOptionalPageLibrary('jsCookie',{runtime});
-    invariant(receipt.packagedOptionalSha256===current.sha256,
-      'E_PAGE_ENVIRONMENT','js-cookie hash drift');
-  }else if(selected&&selected!=='jquery')invariant(receipt.packagedFrameworkId===selected&&
+  if(selected==='js-cookie')invariant(receipt.packagedOptionalId==='jsCookie'&&
+    /^[a-f0-9]{64}$/.test(receipt.packagedOptionalSha256),'E_PAGE_ENVIRONMENT');
+  else if(selected&&selected!=='jquery')invariant(receipt.packagedFrameworkId===selected&&
     receipt.packagedFrameworkSha256===PAGE_FRAMEWORK_RUNTIMES[selected].sha256,
     'E_PAGE_ENVIRONMENT','固定框架代码已经变化，旧回执不可用于新版本');
 }
@@ -107,7 +105,7 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
       proof.receipt?.state==='preview-evaluated'&&proof.receipt.world==='USER_SCRIPT'&&
       proof.receipt.sourceHash===candidate.manifest.sourceHash&&typeof proof.receipt.documentId==='string'&&
       proof.receiptHash===await digest(proof.receipt),'E_PAGE_VERIFICATION','缺少此固定 Page 版本的真实验证回执');
-    await verifiedEnvironment(candidate,proof.receipt,api.runtime);
+    await verifiedEnvironment(candidate,proof.receipt);
     invariant(!available||proof.status==='Available','E_NOT_AVAILABLE','请先将验证版本设为本机可安装');
     return proof;
   }
@@ -125,6 +123,8 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
       ?await loadPackagedPageFramework(selected,{runtime:api.runtime}):undefined;
     const optionalSource=selected==='js-cookie'
       ?await loadPackagedOptionalPageLibrary('jsCookie',{runtime:api.runtime}):undefined;
+    // A verified native receipt must name the exact currently packaged byte hash.
+    if(optionalSource)invariant(proof.receipt.packagedOptionalSha256===optionalSource.sha256,'E_PAGE_ENVIRONMENT');
     const compiled=await preparePageProgramRegistration({candidate,sourceUtf8:candidate.sourceUtf8,
       dependencyResolution:resolution,jqueryCode,frameworkSource,optionalSource,authority:{assertAvailable:async()=>({...proof,installationEnabled:true})}});
     invariant(compiled.allFrames===false,'E_PAGE_FRAME_SCOPE','本轮正式安装只支持顶层文档；请添加 @noframes');
@@ -151,7 +151,7 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
       importSourceUrl:m.sourceProfile.importSourceUrl,lockId:m.dependencyLockId,target:request.target},sender);
     invariant(receipt.state==='preview-evaluated'&&receipt.sourceHash===m.sourceHash&&receipt.world==='USER_SCRIPT',
       'E_PAGE_VERIFICATION','Page 类型验证身份不一致');
-    await verifiedEnvironment(candidate,receipt,api.runtime);
+    await verifiedEnvironment(candidate,receipt);
     const proof={tag:'page-verification-v1',...identity(candidate),status:'Verified',
       receipt,receiptHash:await digest(receipt),verifiedAt:clock.now()};
     return scoped(sender,PAGE_WRITE,async tx=>{
