@@ -357,7 +357,8 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       const enabled=Boolean(active&&origin&&menuGrants[active.id]?.version===active.version&&
         menuGrants[active.id]?.origins?.includes(origin)&&menuGrants[active.id]?.activeActions?.length);
       menuButton.hidden=!hasActions;
-      menuButton.disabled=busy||!origin||!hasActions;
+      menuButton.disabled=busy||!origin||!hasActions||enableReadError||
+        !sidebarToolEnabled(enableRecords,active?.id);
       menuButton.dataset.enabled=String(enabled);
       menuButton.setAttribute('aria-pressed',String(enabled));
       menuButton.title=enabled?'停用此网站的右键菜单':'为当前网站启用右键菜单';
@@ -1256,6 +1257,9 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   });
   const toggleContextMenu=async event=>{
     if(!event.isTrusted||!active||readOnlyPreview||busy)return;
+    // Native permission prompts must never be opened for a disabled tool.
+    if(enableReadError||!sidebarToolEnabled(enableRecords,active.id))
+      throw Object.assign(new Error('请先启用当前工具'),{code:'E_TOOL_DISABLED'});
     const tool=active,document=currentPageTarget?.capture?.();
     if(!document?.tabId||!document?.documentId||!websiteOrigin(document.url))
       throw new Error('请先打开普通 HTTP(S) 网页再启用右键菜单');
