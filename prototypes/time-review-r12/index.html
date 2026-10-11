@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>OpenDesk Browser · Time Review R1.2 原型预览索引</title>
+<style>
+:root{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC",system-ui,sans-serif;color:#1b2c49;background:#f5f7fb;font-size:14px}
+*{box-sizing:border-box}
+body{margin:0}
+button,a{font:inherit}
+button{cursor:pointer}
+button:focus-visible,a:focus-visible{outline:2px solid #365eda;outline-offset:3px}
+.page{max-width:1260px;margin:0 auto;padding:24px 20px 36px}
+.top{display:flex;justify-content:space-between;align-items:start;gap:18px;flex-wrap:wrap;margin-bottom:20px}
+.eyebrow{font-size:11px;letter-spacing:.11em;color:#4668b2;font-weight:800}
+h1{margin:6px 0 8px;font-size:24px;letter-spacing:-.03em}
+.subtitle{margin:0;font-size:13px;color:#53647e;max-width:720px;line-height:1.7}
+.status{font-size:12px;border:1px solid #e0e8f3;border-radius:9px;padding:8px 10px;background:#fff;color:#53647e}
+.grid{display:grid;grid-template-columns:minmax(225px,250px) minmax(0,1fr);gap:16px;align-items:start}
+.versions{border:1px solid #e1e8f1;border-radius:13px;background:#fff;padding:12px}
+.versions h2{margin:4px 5px 12px;font-size:12px;color:#64748d}
+.version{display:block;text-align:left;width:100%;padding:12px 11px;border:1px solid transparent;background:#fff;border-radius:9px;margin:3px 0;color:#1b2c49}
+.version strong,.version small{display:block}
+.version strong{font-size:13px}
+.version small{font-size:11px;color:#63748c;line-height:1.5;margin-top:4px}
+.version:hover{background:#f5f7fc}
+.version[aria-pressed=true]{background:#edf2ff;border-color:#afc5ff}
+.version[aria-pressed=true] strong{color:#2d53bd}
+.versions p{padding:0 5px;font-size:11px;line-height:1.6;color:#71809a}
+.preview{background:#fff;border:1px solid #e1e8f1;border-radius:13px;overflow:hidden;min-width:0}
+.toolbar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;padding:12px 16px;border-bottom:1px solid #e1e8f1}
+.toolbar .name{font-size:13px;font-weight:750}
+.toolbar .hint{color:#7b889e;font-size:11px;margin-top:3px}
+.open{display:inline-flex;align-items:center;gap:5px;text-decoration:none;color:#365eda;font-size:12px;font-weight:700;border:1px solid #d5e1fc;background:#f5f8ff;padding:7px 11px;border-radius:8px}
+iframe{display:block;width:100%;height:920px;border:0;background:#f5f7fb}
+.foot{display:flex;flex-wrap:wrap;align-items:center;gap:15px;border-top:1px solid #e1e8f1;padding:12px 16px;font-size:11px;color:#53647e}
+.foot a{color:#365eda;text-decoration:none}
+@media(max-width:760px){.page{padding:15px 10px}.grid{grid-template-columns:minmax(0,1fr)}.versions{display:flex;gap:7px;overflow-x:auto;padding:7px}.versions h2,.versions p{display:none}.version{flex:0 0 170px;margin:0}iframe{height:760px}}
+</style>
+</head>
+<body>
+<main class="page">
+  <header class="top">
+    <div>
+      <div class="eyebrow">OPENDESK BROWSER / UI PROTOTYPES</div>
+      <h1>Time Review R1.2 · 原型预览</h1>
+      <p class="subtitle">统一查看已保存的四个 HTML 版本。优先参考 Canvas V2 的六分类复盘与 24 小时分钟时间线。所有数据为演示，不是已安装工具或真实浏览活动。</p>
+    </div>
+    <span class="status">纯静态原型 · 无网络请求</span>
+  </header>
+  <div class="grid">
+    <nav class="versions" aria-label="选择原型版本">
+      <h2>历史版本</h2>
+      <button class="version" data-file="time-review-r12-canvas-v2.html" aria-pressed="true" type="button"><strong>Canvas V2 · 推荐</strong><small>六分类、生产率、24 小时分钟时间线</small></button>
+      <button class="version" data-file="time-review-r12-six-category-review.html" aria-pressed="false" type="button"><strong>六分类 V1</strong><small>四象限、生活、未分类与明细</small></button>
+      <button class="version" data-file="time-review-r12-source-aligned.html" aria-pressed="false" type="button"><strong>数据字段对齐版</strong><small>记录、同步、专注三种状态拆分</small></button>
+      <button class="version" data-file="time-review-r12-preview.html" aria-pressed="false" type="button"><strong>最初 R1.2 版本</strong><small>首次侧栏界面与工具状态预览</small></button>
+      <p>版本均原样保留，切换不会改动源码。若预览受本地浏览器限制，请使用右侧“单独打开”。</p>
+    </nav>
+    <section class="preview" aria-label="所选原型预览">
+      <div class="toolbar">
+        <div><div class="name" id="selected-title">Canvas V2 · 推荐</div><div class="hint">交互只在原型内部运行，修改分类不会保存到服务器。</div></div>
+        <a class="open" id="open" href="time-review-r12-canvas-v2.html" target="_blank" rel="noopener noreferrer">单独打开 <span aria-hidden="true">↗</span></a>
+      </div>
+      <iframe id="frame" title="Time Review R1.2 Canvas V2 原型" src="time-review-r12-canvas-v2.html" sandbox="allow-scripts" loading="eager"></iframe>
+      <div class="foot">
+        <a href="README.md">设计版本说明</a>
+        <a href="legacy-six-category-data-map.md">旧版六分类源码映射</a>
+        <a href="canvas-v2-design-notes.md">Canvas V2 技术说明</a>
+        <span>静态演示不代表浏览器扩展验收</span>
+      </div>
+    </section>
+  </div>
+</main>
+<script>
+(() => {
+  'use strict';
+  const versions = Object.freeze({
+    'time-review-r12-canvas-v2.html':'Canvas V2 · 推荐',
+    'time-review-r12-six-category-review.html':'六分类 V1',
+    'time-review-r12-source-aligned.html':'数据字段对齐版',
+    'time-review-r12-preview.html':'最初 R1.2 版本'
+  });
+  const buttons = [...document.querySelectorAll('.version')];
+  const frame = document.getElementById('frame');
+  const open = document.getElementById('open');
+  const title = document.getElementById('selected-title');
+  buttons.forEach(button => button.addEventListener('click', () => {
+    const file = button.dataset.file;
+    if (!Object.prototype.hasOwnProperty.call(versions, file)) return;
+    buttons.forEach(item => item.setAttribute('aria-pressed', String(item === button)));
+    title.textContent = versions[file];
+    open.setAttribute('href',file);
+    frame.setAttribute('src',file);
+    frame.setAttribute('title','Time Review R1.2 · '+versions[file]);
+  }));
+})();
+</script>
+</body>
+</html>
