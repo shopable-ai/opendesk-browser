@@ -498,7 +498,14 @@ try{
        (row.type==='Script'||/javascript|ecmascript/.test(row.response?.mimeType||''));
    });
    fs.writeFileSync(out+'/runtime-network-coverage.json',JSON.stringify({coverage:networkObservation.coverage,errors:networkObservation.errors,remoteJS},null,2)+'\n');
-   assert.ok(networkObservation.coverage.some(row=>row.type==='worker'),'Controller worker Network observation is required');assert.ok(networkObservation.coverage.some(row=>row.type==='service_worker'),'live extension Service Worker Network observation is required');
+   // The Page-only R24.2 slice deliberately runs no Controller task. Requiring
+   // a Controller worker would misclassify a successful USER_SCRIPT acceptance
+   // as a failure. Keep observing the extension SW and any remote JS in every
+   // slice; retain the strict Controller-worker requirement where applicable.
+   if(!pageFrameworksOnly)assert.ok(networkObservation.coverage.some(row=>row.type==='worker'),
+     'Controller worker Network observation is required');
+   assert.ok(networkObservation.coverage.some(row=>row.type==='service_worker'),
+     'live extension Service Worker Network observation is required');
    assert.deepEqual(networkObservation.errors,[],'Network observer must attach successfully');
    assert.equal(remoteJS.length,0,'no third-party JavaScript downloaded at runtime');
    report.tests.push({name:'r101-runtime-no-remote-JavaScript',status:'PASS',remoteRequests:remoteJS.length,observedTargets:networkObservation.coverage.length,scope:'CDP Network across Page, extension, iframe and Worker targets'});

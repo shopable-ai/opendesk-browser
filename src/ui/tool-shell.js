@@ -8,6 +8,7 @@ import {createCurrentPageTarget} from './current-page-target.js';
 import {createTaskWorkbench} from './task-workbench.js';
 import {createWorkflowView} from './workflow/workflow-view.js';
 import {createSidebarTools} from './sidebar-tools.js';
+import {createInstalledPageTools} from './installed-page-tools.js';
 import {requestedToolId,requestedPreviewId,canonicalToolHostUrl} from './sidebar-tools/navigation.js';
 import {previewStorageKey} from '../native-agent/tool-snapshot.js';
 import {validatePreviewSession} from './sidebar-tools/preview-session.js';
@@ -49,9 +50,22 @@ const workflowView=createWorkflowView({api:chrome,client:foundationClient,host:s
   openDeveloper:sourceUtf8=>taskWorkbench.receiveDraft(sourceUtf8),
   openCatalog:()=>taskWorkbench.navigate('catalog')});
 const sidebarTools=createSidebarTools({api:chrome,currentPageTarget,taskWorkbench});
- taskWorkbench.connectToolsView(visible=>sidebarTools.setVisible(visible));
+const installedPageTools=createInstalledPageTools({client:foundationClient,api:chrome,doc:document});
+taskWorkbench.connectToolsView(visible=>{
+  sidebarTools.setVisible(visible);
+  if(visible)void installedPageTools.refresh();
+});
+const pageRefresh=document.getElementById('installed-page-tools-refresh');
+pageRefresh?.addEventListener('click',()=>void installedPageTools.refresh());
 const nativeAgentHost=createNativeAgentHostAdapter({client:foundationClient,host:scriptEditor.host,currentPageTarget});
-scriptEditor.connectLocalProjects(nativeAgentHost);
+scriptEditor.connectLocalProjects(nativeAgentHost,{onInstalled:({kind,id})=>{
+  if(kind==='controller'){
+    void taskWorkbench.refresh().then(()=>taskWorkbench.focusInstalledTask(id)).catch(console.warn);
+  }else{
+    taskWorkbench.navigate('tools');
+    void installedPageTools.refresh();
+  }
+}});
 const disposeDevelopment=installDevelopment?.({api:chrome,prepareReload:async()=>
   !sidebarTools.isDirty()&&nativeAgentHost.developmentIdle()&&await scriptEditor.prepareDevelopmentReload()&&nativeAgentHost.developmentIdle()});
 let sidebarSurface=false, draftImportAttached=false;
@@ -318,7 +332,7 @@ listen(window, 'pagehide', () => {
   browserListenersAttached = false;
   for (const {element, event, listener, options} of listeners) element.removeEventListener(event, listener, options);
   listeners.length = 0;
-  workflowView.dispose(); sidebarTools.dispose(); nativeAgentHost.dispose(); siteAccess.dispose(); taskWorkbench.dispose(); scriptEditor.dispose(); currentPageTarget.dispose(); foundationClient.dispose();
+  workflowView.dispose(); installedPageTools.dispose(); sidebarTools.dispose(); nativeAgentHost.dispose(); siteAccess.dispose(); taskWorkbench.dispose(); scriptEditor.dispose(); currentPageTarget.dispose(); foundationClient.dispose();
 }, {once: true});
 
 }

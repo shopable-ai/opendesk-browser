@@ -11,7 +11,7 @@ import {MARKET_PROVENANCE_STORE,MARKET_OPERATIONS_STORE,reconcileMarketOperation
   TOOL_CLEANUP_STORE,retryUninstalledToolCleanup,TOOL_REVOCATION_EPOCHS_STORE,recordToolUninstall} from '../../src/ui/sidebar-tools/installation.js';
 import {CLIP_SITE_STORE} from '../../src/page-clip/policy.js';
 import {CAPTURE_SITE_STORE} from '../../src/knowledge/policy.js';
-import {READING_TOC_SITE_STORE} from '../../src/reading-toc/policy.js';
+import {READING_TOC_SITE_STORE,READING_TOC_VISIBILITY_STORE,changeReadingTocVisibility} from '../../src/reading-toc/policy.js';
 
 test('Chrome storage object-key normalization does not invalidate a successful conditional write',async t=>{
   const key=sidebarToolStorageKey(sample.id),f=await hostFixture(t);
@@ -765,6 +765,49 @@ test('R4.5 repeated observations retain installed controls and changed site auth
   assert.equal(toggle().disabled,true);assert.equal(toggle().dataset.enabled,'false');
 });
 
+
+test('R4.6 changing TOC visibility with focused controls restores the row and keyboard focus',async t=>{
+  const toc=await officialToolFixture('reading-toc');
+  const url='https://article.example/long-answer?q=private';
+  const store=new Map([[SIDEBAR_TOOL_STORE,[toc]],
+    [READING_TOC_SITE_STORE,{'reading-toc':['https://article.example']}]]);
+  const target={snapshot:{status:'available',url,title:'Long answer'}};
+  const f=await hostFixture(t,{target,store,startTool:false});await pause();
+  const list=f.elements['sidebar-tool-list'];
+  const findAction=(action)=>{
+    const walk=node=>{
+      if(node.dataset?.sidebarToolAction===action)return node;
+      for(const child of node.children||[]){const found=walk(child);if(found)return found;}
+      return null;
+    };
+    return walk(list);
+  };
+  assert.equal(list.children.length,1);
+  const gear=findAction('sites');
+  assert.ok(gear,'the TOC has a settings icon in its Side Panel tool row');
+  const remove=findAction('remove');
+  assert.equal(list.children[0].children.indexOf(remove),
+    list.children[0].children.indexOf(gear)+1,'settings gear is directly before uninstall');
+  gear.emit('click');
+  const page=findAction('toc-page-visibility');
+  assert.ok(page,'page visibility action is inside the trusted settings panel');
+  page.focus();
+  const pagePrefs=changeReadingTocVisibility({},toc.id,url,'page',true);
+  f.changeStorage({[READING_TOC_VISIBILITY_STORE]:{newValue:pagePrefs}});
+  assert.equal(list.children.length,1,'a focused visibility toggle cannot crash and empty the tool row');
+  assert.equal(findAction('toc-page-visibility')?.focused,true,'page toggle focus is restored');
+  assert.equal(findAction('toc-page-visibility')?.textContent,'隐藏');
+  const site=findAction('toc-site-visibility');
+  site.focus();
+  const sitePrefs=changeReadingTocVisibility(pagePrefs,toc.id,url,'site',true);
+  f.changeStorage({[READING_TOC_VISIBILITY_STORE]:{newValue:sitePrefs}});
+  assert.equal(list.children.length,1,'site toggle focus never destroys installed tool controls');
+  assert.equal(findAction('toc-site-visibility')?.focused,true,'site toggle focus is restored');
+  assert.equal(findAction('toc-site-visibility')?.textContent,'隐藏');
+  assert.deepEqual(store.get(READING_TOC_SITE_STORE),
+    {'reading-toc':['https://article.example']},'appearance did not revoke website authority');
+});
+
 test('R4.1 website grant manager revokes a past origin without requiring the page to be active',async t=>{
   const toc={...sample,id:'reading-toc',capabilities:['page.toc']};
   const store=new Map([[SIDEBAR_TOOL_STORE,[toc]],
@@ -778,7 +821,7 @@ test('R4.1 website grant manager revokes a past origin without requiring the pag
   assert.equal(siteAction.attributes.get('aria-expanded'),'false');
   siteAction.emit('click');
   const row=list.children[0];
-  const panel=[...row.children].find(x=>x.className==='sidebar-tool-site-panel');
+  const panel=[...row.children].find(x=>x.className?.split(' ').includes('sidebar-tool-site-panel'));
   assert.equal(panel.hidden,false);
   const past=[...panel.children].find(x=>x.children[0]?.textContent==='https://old.example');
   assert.ok(past,'previously approved websites are visible even when not active');
@@ -1024,4 +1067,26 @@ test('reinstalling identical bytes never restores an old iframe right to write',
   assert.equal(f.store.has(sidebarToolStorageKey(sample.id)),false);
   assert.equal(f.elements['sidebar-tool-frame'].children.length,1,
     'rejected stale save leaves the old iframe and unsaved edits available for copying');
+});
+
+test('corrupt installed registry stays protected in Side Panel and never masquerades as empty',async t=>{
+  const damaged=[sample,{...sample,id:'invalid id'}];
+  const store=new Map([[SIDEBAR_TOOL_STORE,damaged]]);
+  const f=await hostFixture(t,{store,startTool:false});
+  assert.equal(f.elements['sidebar-tool-empty'].hidden,true);
+  assert.equal(f.elements['sidebar-tool-list'].children.length,0);
+  assert.match(f.elements['sidebar-tool-status'].textContent,/工具列表读取失败/);
+  assert.deepEqual(store.get(SIDEBAR_TOOL_STORE),damaged);
+});
+
+test('uninstall refuses a newly corrupted registry rather than dropping unrelated rows',async t=>{
+  const f=await hostFixture(t,{startTool:false}),damaged=[sample,{...sample,id:'invalid id'}];
+  f.store.set(SIDEBAR_TOOL_STORE,damaged); // another context writes unexpected bytes
+  const row=f.elements['sidebar-tool-list'].children[0];
+  const remove=row.children.find(node=>node.dataset?.sidebarToolAction==='remove');
+  assert(remove);
+  remove.emit('click');
+  await settle(()=>/E_STORAGE_CORRUPT/.test(f.elements['sidebar-tool-status'].textContent||''));
+  assert.deepEqual(f.store.get(SIDEBAR_TOOL_STORE),damaged);
+  assert.equal(f.store.has(sidebarToolStorageKey(sample.id)),false);
 });

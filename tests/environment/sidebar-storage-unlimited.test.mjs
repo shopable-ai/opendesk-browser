@@ -6,6 +6,7 @@ import {getInstalledSidebarTools} from '../../src/ui/sidebar-tools/installation.
 import {readSidebarStorageUsage} from '../../src/ui/sidebar-tools/storage-usage.js';
 import {writeVerifiedLocalValue} from '../../src/ui/sidebar-tools/storage-state.js';
 import {initMarketplace} from '../../src/marketplace/page.js';
+import {officialFixtures} from '../helpers/official-tools.mjs';
 
 const tool={format:SIDEBAR_TOOL_FORMAT,id:'quick-notes',version:'1.0.0',title:'离线笔记',
   description:'保存本机的草稿',capabilities:['storage.local'],html:'<main>note</main>',css:'',js:'void 0;'};
@@ -126,4 +127,103 @@ test('a corrupt local install registry reports a storage failure, not an empty M
   assert.match(rendered,/E_STORAGE_CORRUPT/);
   assert.doesNotMatch(rendered,/尚无已安装应用/);
   assert.deepEqual(f.values[SIDEBAR_TOOL_STORE],{broken:true});
+});
+
+test('capacity usage includes unfinished uninstall namespaces without loading their private note content',async()=>{
+  const orphanId='older-notes',orphanKey=sidebarToolStorageKey(orphanId),oldData={notes:'旧记录仍在等待清理'};
+  const f=fixture({[SIDEBAR_TOOL_STORE]:[tool],[orphanKey]:oldData});
+  const baseline=await readSidebarStorageUsage(f.api,[tool]);
+  const used=await readSidebarStorageUsage(f.api,[tool],[orphanId,'invalid/id']);
+  const expected=Buffer.byteLength(orphanKey,'utf8')+Buffer.byteLength(JSON.stringify(oldData),'utf8');
+  assert.equal(used.toolDataBytes-baseline.toolDataBytes,expected);
+  assert.equal(used.totalBytes,baseline.totalBytes,'cleanup markers do not change real total bytes');
+});
+
+test('stalled official package lookup never blocks local My Apps or Open after catalog loads',async t=>{
+  const catalog=(await officialFixtures()).catalog;
+  const official=catalog.apps.find(row=>row.toolId===tool.id);
+  assert(official);
+  const installed={...tool,version:official.version};
+  const f=fixture({[SIDEBAR_TOOL_STORE]:[installed],
+    [sidebarToolStorageKey(tool.id)]:{notes:'离线内容仍然可用'}});
+  const previous={document:globalThis.document,window:globalThis.window,
+    location:globalThis.location,fetch:globalThis.fetch};
+  let loadedPackages=0,opened='';
+  const bytes=new TextEncoder().encode(JSON.stringify(catalog));
+  globalThis.fetch=async url=>{
+    if(String(url).endsWith('official-tools/catalog.json'))
+      return {ok:true,arrayBuffer:async()=>bytes.buffer};
+    loadedPackages++;
+    return new Promise(()=>{}); // packaged release read stalls forever
+  };
+  f.api.tabs.create=async({url})=>{opened=url;return {id:7};};
+  const root=new Element('root');
+  globalThis.document={createElement:tag=>new Element(tag),getElementById:()=>null};
+  globalThis.window={addEventListener(){},removeEventListener(){}};
+  globalThis.location={hash:'#/my'};
+  const market=initMarketplace({api:f.api,root,lockManager:{request:(_name,fn)=>fn()}});
+  t.after(()=>{market.dispose();Object.assign(globalThis,previous);});
+  await settle(()=>loadedPackages>0);
+  await settle(()=>walk(root).some(node=>node.textContent.includes('离线笔记')));
+  const open=walk(root).find(node=>node.textContent==='打开'&&node.listeners.has('click'));
+  assert(open,'the local tool opens without waiting for a publisher package');
+  await open.listeners.get('click')();
+  assert.match(opened,/chrome-extension:\/\/abcdefghijklmnop\/ui\/tool\.html/);
+  assert.deepEqual(f.values[sidebarToolStorageKey(tool.id)],{notes:'离线内容仍然可用'});
+});
+
+test('late local registry reads cannot replace a newer installed-app snapshot',async t=>{
+  const older={...tool,title:'过期本机工具'},newer={...tool,title:'当前本机工具'};
+  const f=fixture({[SIDEBAR_TOOL_STORE]:[older]});
+  const originalRead=f.api.storage.local.get;
+  let releaseOld,changeListener,first=true;
+  f.api.storage.local.get=async keys=>{
+    if(first&&Array.isArray(keys)&&keys.includes(SIDEBAR_TOOL_STORE)){
+      first=false;
+      const snapshot=await originalRead(keys);
+      await new Promise(resolve=>{releaseOld=resolve;});
+      return snapshot;
+    }
+    return originalRead(keys);
+  };
+  f.api.storage.onChanged.addListener=fn=>{changeListener=fn;};
+  const previous={document:globalThis.document,window:globalThis.window,
+    location:globalThis.location,fetch:globalThis.fetch};
+  const root=new Element('root');
+  globalThis.document={createElement:tag=>new Element(tag),getElementById:()=>null};
+  globalThis.window={addEventListener(){},removeEventListener(){}};
+  globalThis.location={hash:'#/my'};
+  globalThis.fetch=async()=>{throw Error('catalog offline');};
+  const market=initMarketplace({api:f.api,root,lockManager:{request:(_name,fn)=>fn()}});
+  t.after(()=>{releaseOld?.();market.dispose();Object.assign(globalThis,previous);});
+  await settle(()=>typeof releaseOld==='function'&&typeof changeListener==='function');
+  f.values[SIDEBAR_TOOL_STORE]=[newer];
+  changeListener({[SIDEBAR_TOOL_STORE]:{oldValue:[older],newValue:[newer]}},'local');
+  await settle(()=>walk(root).some(node=>node.textContent.includes('当前本机工具')));
+  releaseOld();
+  for(let i=0;i<10;i++)await new Promise(resolve=>setImmediate(resolve));
+  const labels=walk(root).map(node=>node.textContent).join(' ');
+  assert.match(labels,/当前本机工具/);
+  assert.doesNotMatch(labels,/过期本机工具/);
+  assert.deepEqual(f.values[SIDEBAR_TOOL_STORE],[newer]);
+});
+
+test('My Apps shows unavailable rather than zero when actual Chrome byte counters fail',async t=>{
+  const f=fixture({[SIDEBAR_TOOL_STORE]:[tool],[sidebarToolStorageKey(tool.id)]:{notes:'private'}});
+  f.api.storage.local.getBytesInUse=async()=>{throw Error('counter temporarily unavailable');};
+  const previous={document:globalThis.document,window:globalThis.window,
+    location:globalThis.location,fetch:globalThis.fetch};
+  const root=new Element('root');
+  globalThis.document={createElement:tag=>new Element(tag),getElementById:()=>null};
+  globalThis.window={addEventListener(){},removeEventListener(){}};
+  globalThis.location={hash:'#/my'};
+  globalThis.fetch=async()=>{throw Error('offline');};
+  const market=initMarketplace({api:f.api,root,lockManager:{request:(_name,fn)=>fn()}});
+  t.after(()=>{market.dispose();Object.assign(globalThis,previous);});
+  await settle(()=>walk(root).some(node=>node.textContent.includes('暂时无法读取')));
+  const rendered=walk(root).map(node=>node.textContent).join(' ');
+  assert.match(rendered,/暂时无法读取/);
+  assert.match(rendered,/counter temporarily unavailable/);
+  assert.doesNotMatch(rendered,/扩展 local 总占用：0 B/);
+  assert.deepEqual(f.values[sidebarToolStorageKey(tool.id)],{notes:'private'});
 });

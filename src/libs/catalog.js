@@ -8,7 +8,7 @@ const author=Object.freeze({
     licensePath:'licenses/lodash-es-MIT.txt',
     methods:Object.freeze(['get','has','words','trim','uniq','chunk','escape','truncate'])}),
   dayjs:Object.freeze({origin:'npm',npm:'dayjs',license:'MIT',
-    licensePath:'licenses/dayjs-MIT.txt',methods:Object.freeze(['isDayjs'])}),
+    licensePath:'licenses/dayjs-MIT.txt',methods:Object.freeze(['isDayjs','duration','isDuration','utc','tz'])}),
   myUtils:Object.freeze({origin:'vendor',license:'MIT',
     source:'src/libs/vendor/my-utils/1.0.0/index.js',
     licenseSource:'src/libs/vendor/my-utils/1.0.0/LICENSE.txt',

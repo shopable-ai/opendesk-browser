@@ -34,6 +34,8 @@ test('R24 defaults to reading and separates editing, status, confirmation, expor
     assert.match(html,new RegExp('id="'+id+'"'));
   assert.match(html,/<section id="ki-editor"[^>]*hidden>/);
   assert.match(html,/<section id="ki-reader"[^>]*>/);
+  assert.match(html,/id="ki-records"[^>]*aria-describedby="ki-keyboard-help"/);
+  assert.match(html,/id="ki-keyboard-help"/);
   const menu=html.indexOf('id="ki-manage"'),refresh=html.indexOf('id="ki-refresh"');
   assert.ok(menu>=0&&refresh>menu&&refresh<html.indexOf('</details>',menu),'refresh is grouped under low-frequency management');
   assert.match(html,/<button id="ki-save"[^>]*disabled>/);
@@ -62,6 +64,9 @@ test('R24 avoids a permanent status banner and provides selection/focus safeguar
   assert.match(js,/restoring&&text===selected\.markdown\?null/,'Restore must not discard later edits');
   assert.match(js,/document|doc\.activeElement/);
   assert.match(js,/generation\+\+/);
+  assert.match(js,/querySelectorAll\('button\.ki-record:not\(:disabled\)'\)/,'Arrow/Home/End traverse visible record buttons');
+  assert.match(js,/event\.key==='Escape'/,'Keyboard Escape uses dirty-safe navigation');
+  assert.match(css,/\.ki \.ki-view-title:focus-visible/,'Programmatic heading focus remains visible to keyboard users');
   assert.match(js,/q\('copy-fallback'\)\.select\(\)/);
   assert.match(js,/q\('status'\)\.hidden/);
 });

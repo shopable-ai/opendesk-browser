@@ -256,7 +256,7 @@ export function taskMethods({storage,api,assertHost,currentHost,clock={now:()=>D
           contentHash:pkg.manifest.program.sourceHash,tombstoned:false},headKey);
       }
       const row={tag:'task-installed-v1',namespace:ns,taskId:request.taskId,version:request.version,
-        scriptId:id,manifestHash:pkg.manifestHash,builtinIdentity:current,enabled:true,installedAt:old?.installedAt??clock.now(),
+        scriptId:id,manifestHash:pkg.manifestHash,builtinIdentity:current,enabled:old?.enabled??true,installedAt:old?.installedAt??clock.now(),
         authorization:installAuthorization(pkg.manifest,old?.authorization)};
       await fenceInstalledRuns(tx,ns,old);
       await tx.put(TASK_STORE,row,installKey);

@@ -376,13 +376,26 @@
   q('reset').addEventListener('click',action(async()=>{
     kind='all';tag='';q('search').value='';q('sort').value='updated';await list();laterFocus(q('search'));
   }));
-  q('back').addEventListener('click',action(async()=>{
+  const goBack=action(async()=>{
     if(!await discard())return;
     selected=null;exportReady=false;setDirty(false);
     q('detail').hidden=true;q('list-view').hidden=false;
     await list();const previous=root.querySelector('.ki-record[data-record-id="'+openedFrom+'"]');
     laterFocus(previous||q('search'));say('');
-  }));
+  });
+  q('back').addEventListener('click',goBack);
+  // Native button focus, not a custom selection state or mutation of saved data.
+  q('records').addEventListener('keydown',event=>{
+    if(busy||q('list-view').hidden||event.altKey||event.ctrlKey||event.metaKey||
+        !['ArrowDown','ArrowUp','Home','End'].includes(event.key))return;
+    const items=[...q('records').querySelectorAll('button.ki-record:not(:disabled)')];
+    const current=items.indexOf(event.target);
+    if(current<0)return;
+    event.preventDefault();
+    const index=event.key==='Home'?0:event.key==='End'?items.length-1:
+      Math.max(0,Math.min(items.length-1,current+(event.key==='ArrowDown'?1:-1)));
+    items[index]?.focus();
+  });
   for(const id of ['title','kind','tags','note','content'])q(id).addEventListener('input',refreshDirty);
   q('kind').addEventListener('change',refreshDirty);
   q('edit').addEventListener('click',action(toggleEdit));
@@ -399,8 +412,17 @@
     }else if(event.key==='/'&&!event.ctrlKey&&!event.metaKey&&!event.altKey&&!q('list-view').hidden&&
       !['INPUT','TEXTAREA','SELECT'].includes(doc.activeElement?.tagName)){
       event.preventDefault();q('search').focus();
-    }else if(event.key==='Escape'&&editing&&!busy){
-      event.preventDefault();void action(toggleEdit)();
+    }else if(event.key==='Escape'&&!busy){
+      if(editing){event.preventDefault();void action(toggleEdit)();return;}
+      if(!q('detail').hidden){
+        event.preventDefault();
+        if(q('more').open){q('more').open=false;q('more').querySelector('summary')?.focus();}
+        else if(!q('outline').hidden){q('outline-toggle').click();q('outline-toggle').focus();}
+        else if(q('original-details').open){q('original-details').open=false;q('original-details').querySelector('summary')?.focus();}
+        else void goBack();
+      }else if(q('manage').open){
+        event.preventDefault();q('manage').open=false;q('manage').querySelector('summary')?.focus();
+      }
     }
   });
   q('copy').addEventListener('click',action(async()=>{

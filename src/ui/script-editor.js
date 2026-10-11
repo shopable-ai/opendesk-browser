@@ -8,6 +8,7 @@ import {preparePageCandidateDraft} from './page-candidate-source.js';
 import {parseUserScriptDependencies} from '../scripting/user-scripts/dependency-metadata.js';
 import {createProgramSourceView} from './program-source.js';
 import {createLocalProjectView} from './local-project.js';
+import {createLocalInstallUI} from './local-project-install-ui.js';
 import {validateTaskParams} from '../platform/tasks/contract.js';
 import {formatControllerRunResult, runValueKind} from './run-result-presentation.js';
 import {formatTaskError} from './task-run-diagnostics.js';
@@ -68,7 +69,8 @@ export function createScriptEditor({client, currentPageTarget, development=false
   const listeners = [];
   let browserListenersAttached = false;
   let dependencyResolver;
-  let localProject,localAdapter,localPollTimer,finishLocalPoll;
+  let localProject,localAdapter,localPollTimer,finishLocalPoll,localPageResult=null;
+  const localInstaller=createLocalInstallUI({client,api,doc,currentPageTarget,getProject:()=>localProject,onState:()=>update()});
   const listen = (element, event, listener) => {
     element.addEventListener(event, listener); listeners.push({element, event, listener});
   };
@@ -134,8 +136,24 @@ export function createScriptEditor({client, currentPageTarget, development=false
     if(!ownedManagedPreview||!localProject?.active()||running||previewBusy||host.currentRun||!projection?.slotAvailable)return false;
     return localProject.selectedBindingId()===ownedManagedPreview.bindingId&&currentPageState?.status==='available'&&currentPageState.documentId===ownedManagedPreview.target.documentId&&currentPageState.tabId===ownedManagedPreview.target.tabId;
   }
+  function localPageResultIsCurrent() {
+    return !!localPageResult&&!!localProject?.active()&&!!localProject.connected()&&
+      localPageResult.bindingId===localProject.selectedBindingId()&&
+      localPageResult.providerEpoch===localProject.providerEpoch()&&
+      currentPageState?.status==='available'&&
+      localPageResult.tabId===currentPageState.tabId&&
+      localPageResult.documentId===currentPageState.documentId&&
+      localPageResult.url===currentPageState.url;
+  }
   function update() {
     if (disposed) return;
+    localInstaller.update();
+    if(localPageResult&&!localPageResultIsCurrent()){
+      localPageResult=null;
+      output.textContent='上次本地 Page 结果对应的项目、连接或网页已变化；请重新运行。';
+      resultKind.textContent='上次结果已失效';copyResult.disabled=true;
+      display('unknown','上次本地 Page 结果已失效，不能用于验证或安装当前源码');
+    }
     persistDraft();
     renderRevisionState();
     find('script-save').disabled = editingBusy; find('script-load').disabled = editingBusy;
@@ -156,11 +174,13 @@ export function createScriptEditor({client, currentPageTarget, development=false
     tab.disabled = mode.value !== 'borrowed'; frame.disabled = mode.value !== 'borrowed' || !documents.size;
     find('script-download').disabled = downloading || !downloadable.has(resultSelect.value);
     if(localProject?.active()){
-      for(const id of ['script-save','script-load','script-list-load','script-delete','page-preview-run','task-create-candidate'])if(find(id))find(id).disabled=true;
+      for(const id of ['script-load','script-list-load','script-delete','page-preview-run','task-create-candidate'])if(find(id))find(id).disabled=true;
+      find('script-save').disabled=editingBusy||running||stopping||previewBusy||!localInstaller.canSave();
+      find('script-save').textContent=localInstaller.saveLabel();
       find('script-run').textContent='运行本地项目';
       find('script-run').disabled=stopping||editingBusy||previewBusy||running||!projection?.slotAvailable||!!host.currentRun||!localProject.connected()||currentPageState?.status!=='available';
       find('script-version').textContent='本地项目模式 · 手工草稿已保留；正式任务请使用打包安装流程';
-    }else find('script-run').textContent='运行草稿';
+    }else {find('script-run').textContent='运行草稿';find('script-save').textContent='保存版本';}
     find('script-library-tools').hidden=!!localProject?.active();
     find('page-preview-tools').hidden=!!localProject?.active();
   }
@@ -330,6 +350,8 @@ export function createScriptEditor({client, currentPageTarget, development=false
   function showSnapshot(snapshot) {
     if (disposed) return;
     projection = snapshot;
+    // Controller history must not overwrite the current local Page result.
+    if(localPageResultIsCurrent()){update();return;}
     const previous = resultSelect.value;
     downloadable.clear(); resultSelect.replaceChildren(new Option('请选择要下载的结果', ''));
     // Defense in depth: even a malformed/stale host projection cannot put a
@@ -515,7 +537,8 @@ export function createScriptEditor({client, currentPageTarget, development=false
     }catch(error){fail(error);return;}
     hideUserScriptsRecovery();
     let admittedRunId,page=false,startError;
-    ownedDraftRunId=null;running=true;renderTask(null);update();beginResult();display('resolving','正在读取本地项目的当前源码…');
+    ownedDraftRunId=null;localPageResult=null;localInstaller.reset();running=true;renderTask(null);update();beginResult();
+    find('developer-results-panel').open=true;display('resolving','正在读取本地项目的当前源码…');
     (async()=>{
       await permission;
       if(disposed)throw {code:'E_HOST_CLOSED',message:'Sidebar 已关闭，本次未运行'};
@@ -541,14 +564,19 @@ export function createScriptEditor({client, currentPageTarget, development=false
         if(source.managedUI&&(!result.error||result.error.code==='E_PAGE_SCRIPT_EXECUTION'&&result.error.outcome==='FAILED_CONFIRMED'))ownedManagedPreview={previewId:claim.previewId,bindingId:source.bindingId,target,sourceHash:source.sourceHash};
         else if(!source.managedUI||result.error?.outcome==='OUTCOME_UNKNOWN')ownedManagedPreview=null;
         if(result.error)throw result.error;
+        if(result.state!=='preview-evaluated'||result.sourceHash!==source.sourceHash||
+          result.target?.documentId!==captured.documentId||result.target?.tabId!==captured.tabId||
+          result.target?.url!==captured.url)
+          throw {code:'E_DEV_HASH',message:'Page 预览回执与冻结源码或目标网页身份不符'};
+        await currentPageTarget.revalidate(captured);localProject.assertCaptured(binding);
+        localPageResult={bindingId:binding.bindingId,providerEpoch:binding.providerEpoch,
+          tabId:captured.tabId,documentId:captured.documentId,url:captured.url,sourceHash:source.sourceHash};
+        localInstaller.succeeded({source,binding,target:captured});
         display('completed',source.managedUI?'本地 Page 预览已完成；再次运行会先清理旧受管 UI。':'本地 Page 预览已完成；网页 UI 由项目管理。');
-        find('page-preview-result').textContent=result.result?.resultText ?? 'undefined';
-        // Local Page has its own result surface; do not leave a Controller
-        // "正在运行…" placeholder visible after the Page preview completed.
-        output.textContent='本次为网页 JavaScript 试运行；返回值显示在下方的网页脚本结果区';
-        resultKind.textContent='网页脚本预览';
-        copyResult.disabled=true;
-        find('developer-results-panel').open=false;
+        const valueText=result.result?.resultText ?? 'undefined';
+        find('page-preview-result').textContent=valueText;
+        output.textContent=valueText;resultKind.textContent='本地 Page · 本次结果';
+        copyResult.disabled=false;find('developer-results-panel').open=true;
         pageTechnicalPanel.hidden=false;pageTechnicalPanel.open=false;
         pageTechnical.textContent='源码 SHA-256：'+source.sourceHash;
       }else{
@@ -556,9 +584,27 @@ export function createScriptEditor({client, currentPageTarget, development=false
         if(disposed)return;
         find('script-run-id').value=claim.runId;renderTask(claim);
         display('running','已运行本地源码快照；修改文件只影响下一次运行',{...claim,inputHash:source.inputHash});update();
-        const result=await host.completion;if(result.error)throw result.error;
+        const result=await host.completion;
+        if(result.error)throw result.error;
+        if(result.pendingSettlement||result.state==='paused_unknown')throw {code:'E_EFFECT_UNKNOWN',message:'任务完成状态仍不明确'};
+        // Only the original durable run/result projection can justify Task publication.
+        const observed=await host.controller.snapshotControllerRun({runId:claim.runId});
+        const durable=(observed.runs||[]).find(row=>row.runId===claim.runId)||observed.run;
+        const returned=(observed.results||[]).find(row=>row.runId===claim.runId&&
+          row.resultId===durable?.resultId&&row.revision?.sourceHash===source.sourceHash&&
+          row.state==='completed'&&row.outcome?.ok===true);
+        if(durable?.state==='completed'&&durable.retirementState==='released'&&
+           durable.revision?.sourceHash===source.sourceHash&&returned)
+          localInstaller.succeeded({source,binding,target:captured,runId:claim.runId});
       }
-    })().catch(error=>{startError=error;admittedRunId||=error.runId;fail(error);}).finally(async()=>{
+    })().catch(error=>{
+      startError=error;admittedRunId||=error.runId;localPageResult=null;localInstaller.reset();fail(error);
+      if(page||!admittedRunId){
+        output.textContent=formatTaskError(error);
+        resultKind.textContent=page?'本地 Page · 执行失败':'本地项目 · 未启动';
+        copyResult.disabled=true;find('developer-results-panel').open=true;
+      }
+    }).finally(async()=>{
       running=false;if(disposed)return;
       if(admittedRunId)find('script-run-id').value=admittedRunId;
       try{if(page)projection=await host.controller.snapshotControllerRun({});else await read('');}catch{projection=undefined;}
@@ -656,7 +702,10 @@ export function createScriptEditor({client, currentPageTarget, development=false
     editingBusy = true; update();
     try {await operation();} finally {editingBusy = false; update();}
   };
-  on('script-save','click',edit(save)); on('script-load','click',edit(load)); on('script-list-load','click',edit(loadLatestFromList));
+  listen(find('script-save'),'click',event=>{
+    if(!event.isTrusted)return;
+    Promise.resolve().then(()=>localProject?.active()?localInstaller.prepare():edit(save)()).catch(fail);
+  }); on('script-load','click',edit(load)); on('script-list-load','click',edit(loadLatestFromList));
   on('script-read','click',()=>read('')); on('script-delete','click',edit(remove)); on('script-list-refresh','click',()=>refreshScripts().catch(fail));
   on('script-read-run','click',()=>read());
   on('script-history-open','click',()=>read(find('script-history-run').value));
@@ -785,9 +834,10 @@ export function createScriptEditor({client, currentPageTarget, development=false
     // backup is restored only into an unchanged editor, never over fresh edits.
     await api.storage.local.set({['opendesk.development.backup:'+draftKey]:value});
     return idle()&&JSON.stringify(captureDraft())===serial;
-  },connectLocalProjects(adapter){
+  },connectLocalProjects(adapter,{onInstalled}={}){
     if(localProject||!find('local-project-mode'))return;
-    localAdapter=adapter;localProject=createLocalProjectView({client,api,document:doc,onChange:update});update();
+    localAdapter=adapter;localInstaller.setOnInstalled(onInstalled);
+    localProject=createLocalProjectView({client,api,document:doc,onChange:update});update();
   },executionSource:()=>{
     if(localProject?.active())throw {code:'E_DEV_MODE',message:'本地开发项目请通过正式打包流程创建已安装任务'};
     return programSource.source();
@@ -807,7 +857,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
   }, resourceSnapshot: () => ({...host.resourceSnapshot(), editor:{
     timers:[...downloads.values(),...preparations.values()].filter(entry=>entry.timer != null).length+Number(localPollTimer!=null),
     pending:Number(downloading)+preparations.size, subscriptions:listeners.length+2*Number(browserListenersAttached)+Number(Boolean(unsubscribeCurrentPage))+(localProject?.resourceSnapshot().subscriptions||0)}}), dispose() {
-    if (disposed) return; disposed = true; scriptsCheckSequence++; localProject?.dispose();pageLibrary.dispose();clearTimeout(localPollTimer);finishLocalPoll?.();dependencyResolver.dispose(); unsubscribeConnection?.(); unsubscribeCurrentPage?.(); unsubscribeRun();
+    if (disposed) return; disposed = true; scriptsCheckSequence++; localInstaller.dispose();localProject?.dispose();pageLibrary.dispose();clearTimeout(localPollTimer);finishLocalPoll?.();dependencyResolver.dispose(); unsubscribeConnection?.(); unsubscribeCurrentPage?.(); unsubscribeRun();
     api.webNavigation.onCommitted.removeListener(onNavigation); api.tabs.onRemoved.removeListener(onRemoved); host.dispose();
     browserListenersAttached = false;
     for (const {element, event, listener} of listeners) element.removeEventListener(event, listener);

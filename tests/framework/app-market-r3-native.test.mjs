@@ -312,6 +312,10 @@ test('R4.5 production Chrome: optional releases, both official entries, permissi
       'completed website approval UI '+id);
   }
   async function uninstall(id){
+    // Foreground the actual Side Panel before native CDP mouse input. After
+    // closing the Market tab, Chromium can leave this target deactivated;
+    // a background click then never opens the real confirmation dialog.
+    await activate(side);
     await visible(side,action(id,'remove'));
     await nativeDialogClick(side,action(id,'remove'),[{parts:['卸载','删除']}]);
     await until(async()=>!(await installed()).some(row=>row.id===id),'uninstall '+id);

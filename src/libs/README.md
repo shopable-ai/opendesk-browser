@@ -15,7 +15,7 @@ packages 是上游库入口，adapters 是确有需要的环境转换，vendor �
 | 当前库 | 源码位置 | 当前 API/边界 |
 | --- | --- | --- |
 | Lodash | packages/lodash.js；node_modules/lodash-es/ | get/has/words/trim/uniq/chunk/escape/truncate 八方法 |
-| Day.js | packages/dayjs.js；node_modules/dayjs/ | 核心日期 + isDayjs；上述四插件尚未接入 |
+| Day.js | packages/dayjs.js；node_modules/dayjs/ | 已在源码接入 duration/utc/timezone/customParseFormat；需以当前候选构建/Chrome 验证 |
 | jQuery | vendor/jquery/3.7.1/jquery.min.js + LICENSE.txt | USER_SCRIPT 明确选择；原字节资源 |
 | my-utils | vendor/my-utils/1.0.0/index.js + LICENSE.txt | upper 演示及已有 ABI 兼容；不是第三方库 |
 
@@ -43,11 +43,12 @@ src/libs/
     cheerio.js               新增
     fingerprintjs.js         新增，明确选择/隐私/许可门槛
     socket-io.js             新增，客户端及真实连接清理
-    react.js                 新增
-    react-dom.js             新增，与 react 同一物理构建组
-    vue.js                   新增
+  page-frameworks/             已有的 USER_SCRIPT 可选资源，复用而非重复安装
+    contract.js / loader.js
+    react-19.2.0.js           已有，含 React + ReactDOM createRoot
+    vue-3.5.22.js            已有，公开 OpenDeskPageVue
   adapters/
-    axios-transport.js       计划新增，仅受权请求协议转换
+    axios-transport.js       已新增纯协议适配；真实 Axios npm/Runner 接线仍未完成
   styles/
     tailwind.input.css       新增
     tailwind-classes.json    新增
@@ -87,4 +88,4 @@ npm run libs:doctor -- --strict
 
 运行代码修改后，按 testing-guide 核对复用证据，再执行 check、build、build:dev、verify、test、build:size、pack、pack:dev 及同候选原生验证。重点包含 Day.js 用户可见插件、Axios 状态码/错误/取消/序列化与权限、vendor 原字节和许可证、真实工具 UI 生命周期。
 
-**本次仅更新设计文档。新运行库、日期插件与 adapter NOT_IMPLEMENTED；工程测试 NOT_TESTED；Chrome NATIVE_UNVERIFIED。**
+**R15.7 进度（2026-10-11）：Day.js 固定官方插件源码、公开 Catalog/ABI、源码及产物测试已提交，最新同候选 CI 需核对；Axios 薄适配源码与 5 个 Node 定向测试已提交，但真实上游 Axios 未安装/未接入 Runner。React/Vue Page 预装资源已由并行工作流实现，当前不重复开发。其余公共库、工具 iframe 接线、Tailwind 公共样式仍未完成，Chrome NATIVE_UNVERIFIED。**

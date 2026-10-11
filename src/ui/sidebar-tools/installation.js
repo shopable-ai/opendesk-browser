@@ -1,7 +1,7 @@
 // One installation transaction path for Side Panel and Marketplace.
 // This is the EXISTING v1 tool registry and authority, not a second runner.
 import {SIDEBAR_TOOL_STORE, MAX_INSTALLED_TOOLS, validateSidebarToolPackage, sidebarToolStorageKey,serializeSidebarToolPackage} from './package.js';
-import {READING_TOC_SITE_STORE, READING_TOC_PLACEMENT_PREFIX, READING_TOC_TOOL_ID} from '../../reading-toc/policy.js';
+import {READING_TOC_SITE_STORE, READING_TOC_VISIBILITY_STORE, READING_TOC_PLACEMENT_PREFIX, READING_TOC_TOOL_ID} from '../../reading-toc/policy.js';
 import {CLIP_SITE_STORE} from '../../page-clip/policy.js';
 import {CAPTURE_SITE_STORE, KNOWLEDGE_TOOL_ID, KNOWLEDGE_WORKSPACE_PREFIX} from '../../knowledge/policy.js';
 import {writeVerifiedLocalValue,classifyStorageWriteError,unknownStorageOutcome,sameStorageValue} from './storage-state.js';
@@ -34,8 +34,18 @@ export function compareToolVersions(a,b) {
   }
   return 0;
 }
+// Every mutation and recovery must reject malformed, duplicate and overflowed
+// rows. Silently filtering them would erase the original registry on next set.
+export function requireCompleteInstalledSidebarTools(rows){
+  if(rows===undefined)return [];
+  const admitted=admittedSidebarToolPackages(rows);
+  if(!Array.isArray(rows)||admitted.length!==rows.length)
+    throw error('本机工具安装记录损坏、重复或超过产品限制；已停止修改以保护原始数据','E_STORAGE_CORRUPT');
+  return admitted;
+}
 export async function getInstalledSidebarTools(api) {
-  return admittedSidebarToolPackages((await api.storage.local.get(SIDEBAR_TOOL_STORE))[SIDEBAR_TOOL_STORE]);
+  return requireCompleteInstalledSidebarTools(
+    (await api.storage.local.get(SIDEBAR_TOOL_STORE))[SIDEBAR_TOOL_STORE]);
 }
 function marketIdentity(value,candidate) {
   if(value==null)return null;
@@ -97,7 +107,7 @@ export async function cleanupUninstalledToolLocked(api,id){
     return {state:'still-installed',toolId:id};
   try{
     await removeVerifiedKey(api,sidebarToolStorageKey(id));
-    for(const store of [READING_TOC_SITE_STORE,CLIP_SITE_STORE,CAPTURE_SITE_STORE,MARKET_PROVENANCE_STORE]){
+    for(const store of [READING_TOC_SITE_STORE,READING_TOC_VISIBILITY_STORE,CLIP_SITE_STORE,CAPTURE_SITE_STORE,MARKET_PROVENANCE_STORE]){
       const original=(await api.storage.local.get(store))[store]||{};
       if(!Object.hasOwn(original,id))continue;
       const updated={...original};delete updated[id];

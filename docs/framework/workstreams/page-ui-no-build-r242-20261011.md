@@ -26,3 +26,15 @@
 - 不增加全站自动触发，不移除用户确认，不经 MAIN/页面传入框架代码。不把 Node mock 或扩展安装即成功当作真实网页 UI 验收。
 
 评分在候选经过真实 Chrome 验收前分别标记 NOT_TESTED。本轮如果 CI 失败，必须保留原始失败原因并修复；不通过放宽源码/Native 预算来让 React DOM 进入用户业务源码。
+
+## R24.2 完成实测与导入草稿证据（2026-10-11）
+
+- 专项 GitHub Actions：[R24.2 Page React/Vue no-manual-build real Chrome](https://github.com/shopable-ai/opendesk-browser/actions/runs/38132174469)，提交 `5dbd89db3e32d78f700e7d3a0979acc875d18a0f`，**success**。真实 Mac Chrome for Testing、已构建 MV3 扩展、Native/MCP/USER_SCRIPT：
+  - React 19：源码 `sourceHash=34b22968dacd96ad4f706be99e44aee5f46479f0cd82fb5e07cec5eea7ea4d52`，固定框架 SHA 为 `4922d051...`，`sourceBytes=21125`，21 次真实指针点击，目标 DOM 改动/撤销，受管 Stop 回执 `receipt.ok=true, scope=managed-ui-only`。
+  - Vue 3：源码 `sourceHash=ca7c8e01193dfe1868244809bcbf440e15d073b9b109fafde49e02a842694885`，固定框架 SHA 为 `3c22d394...`，`sourceBytes=21109`，21 次真实指针点击及完整 Stop，原网站表单未被更改。
+  - 专项 CI 在早期候选 `1ceeba5` 曾因复用全局 Controller Worker 网络观察器断言误报 FAIL；`5dbd89d` 将该断言限定在运行 Controller 的 slice，同时保留 Service Worker 和远端 JS 观察，不弱化 Page 工具执行合同。
+- 直接导入文件：[R24.2 No-build Page import-ready drafts](https://github.com/shopable-ai/opendesk-browser/actions/runs/38132269374)，已用原有项目构建器产生 `BUILT_UNVERIFIED` 原生 Page 源码，非已安装工具。React JSON SHA-256 `617697c46b2d20d88c987750dbd87d6161f307a3120ecd83157974ce6d45cedd`（27597 bytes）；Vue JSON SHA-256 `7d2b097638627c136fdae0d56de9a7d6314988cb61fdef532c240cdd8707364f`（27540 bytes）。正式可选择路径：
+  - `examples/import-ready/page-ui-react-direct.opendesk-draft.json`
+  - `examples/import-ready/page-ui-vue-direct.opendesk-draft.json`
+- 以上两份文件只作为 **Page 手动试运行草稿**；真正固定版本 Installed 还需独立的 Verified/Available/安装授权步骤，不能用 CFT 预览通过替代。
+- 本轮仍未正式验证：20 次**独立** Run/Stop 重建、SPA 深链返回、BFCache、撤销权限主动清理、强 CSP、暗色/200% 缩放/窄屏逐项截图，以及发布 F3/ZIP；这些维度保持 `NOT_TESTED`，不能给 ≥95 的已验证评分。

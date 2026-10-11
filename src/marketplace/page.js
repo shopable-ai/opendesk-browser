@@ -4,6 +4,7 @@ import {validateSidebarToolPackage, SIDEBAR_TOOL_STORE,SIDEBAR_TOOL_DATA_PREFIX,
 import {readSidebarStorageUsage} from '../ui/sidebar-tools/storage-usage.js';
 import {admittedSidebarToolPackages,sameSidebarToolPackage,compareToolVersions,
   installReviewedSidebarTool,recoverMarketOperation,retryUninstalledToolCleanup,
+  requireCompleteInstalledSidebarTools,
   TOOL_CLEANUP_STORE,MARKET_OPERATIONS_STORE,MARKET_PROVENANCE_STORE} from '../ui/sidebar-tools/installation.js';
 import {toolPageHref} from '../ui/sidebar-tools/navigation.js';
 import {MARKET_BATCH_STORE,readMarketBatch,createMarketBatch,marketBatchUnresolved,
@@ -69,6 +70,7 @@ export function strictTransfer(value,releases=[]) {
 export function initMarketplace({api=globalThis.chrome,root=globalThis.document?.getElementById('market-root'),
   lockManager=globalThis.navigator?.locks}={}){
   if(!api?.runtime?.getURL||!root)throw fail('请在已安装的 OpenDesk 扩展内使用应用市场');
+  let matchGeneration=0,localReadGeneration=0,disposed=false;
   const state={installed:[],catalog:null,apps:[],notice:'',error:false,review:null,busy:false,batchPlan:null,batch:null,
     batchRunning:false,batchRecovering:false,cancel:false,selected:new Set(),matched:new Set(),personalCollections:{},transfer:'',
     localStatus:'loading',localError:'',catalogStatus:'loading',catalogError:'',
@@ -88,45 +90,65 @@ export function initMarketplace({api=globalThis.chrome,root=globalThis.document?
     return loadOfficialTool(row,{api});
   }
   async function reloadInstalled(){
+    const generation=++localReadGeneration;
     const stored=await api.storage.local.get([SIDEBAR_TOOL_STORE,MARKET_BATCH_STORE,MY_COLLECTIONS_STORE,
       TOOL_CLEANUP_STORE,MARKET_OPERATIONS_STORE]);
+    if(disposed||generation!==localReadGeneration)return false;
     const raw=stored[SIDEBAR_TOOL_STORE];
-    const admitted=admittedSidebarToolPackages(raw);
-    if(raw!==undefined&&(!Array.isArray(raw)||admitted.length!==raw.length))
-      throw fail('本机安装清单格式或条目无效，已停止自动加载以保护现有数据；请核对或备份原始记录','E_STORAGE_CORRUPT');
+    const admitted=requireCompleteInstalledSidebarTools(raw);
     state.installed=admitted;
     state.cleanups=stored[TOOL_CLEANUP_STORE]||{};
     state.operations=stored[MARKET_OPERATIONS_STORE]||{};
-    state.matched=new Set();
-    if(state.catalog)for(const app of state.apps){
-      const current=state.installed.find(row=>row.id===app.toolId&&row.version===app.version);
-      if(!current)continue;
-      try{if(sameSidebarToolPackage(current,(await packageFor(app)).tool))state.matched.add(app.id);}
-      catch{/* Mismatched or missing release must not be represented as official. */}
-    }
+    // Official publisher matching is optional metadata: a slow or missing
+    // package resource must never delay the locally installed tool list.
+    scheduleOfficialMatches();
     if(!state.batchRunning&&!state.batchRecovering)
       state.batch=readMarketBatch(stored[MARKET_BATCH_STORE]);
     const personal=stored[MY_COLLECTIONS_STORE];
     state.personalCollections=personal&&typeof personal==='object'&&!Array.isArray(personal)?personal:{};
+    return true;
   }
   async function loadCatalog(){
     state.catalog=await loadOfficialCatalog({api});
     state.apps=officialMarketApps(state.catalog);
+  }
+  function scheduleOfficialMatches(){
+    const generation=++matchGeneration;
+    const catalog=state.catalog,apps=state.apps,installed=state.installed;
+    state.matched=new Set();
+    if(!catalog||state.catalogStatus!=='ready')return;
+    const targets=apps.flatMap(app=>{
+      const tool=installed.find(row=>row.id===app.toolId&&row.version===app.version);
+      const release=catalog.apps.find(row=>row.id===app.id&&row.version===app.version);
+      return tool&&release?[{app,tool,release}]:[];
+    });
+    // Detached from the local registry read; stale responses have no effect.
+    void Promise.all(targets.map(async({app,tool,release})=>{
+      try{return sameSidebarToolPackage(tool,(await loadOfficialTool(release,{api})).tool)?app.id:null;}
+      catch{return null;}
+    })).then(ids=>{
+      if(disposed||generation!==matchGeneration)return;
+      state.matched=new Set(ids.filter(Boolean));
+      render();
+    }).catch(()=>{/* Optional display verification never blocks installed tools. */});
   }
   const formatBytes=value=>value>=1024*1024?(value/1024/1024).toFixed(2)+' MiB':
     value>=1024?(value/1024).toFixed(1)+' KiB':value+' B';
   async function refreshUsage(){
     if(state.localStatus!=='ready')return;
     state.usageStatus='loading';state.usageError='';
-    try{state.usage=await readSidebarStorageUsage(api,state.installed);state.usageStatus='ready';}
+    try{state.usage=await readSidebarStorageUsage(api,state.installed,Object.keys(state.cleanups||{}));state.usageStatus='ready';}
     catch(e){state.usage=null;state.usageStatus='error';state.usageError=String(e?.message||e);}
     render();
   }
   async function refreshLocal(){
+    const request=reloadInstalled(),generation=localReadGeneration;
     try{
-      await reloadInstalled();state.localStatus='ready';state.localError='';
+      if(!await request||disposed||generation!==localReadGeneration)return;
+      state.localStatus='ready';state.localError='';
       render();void refreshUsage();
     }catch(e){
+      if(disposed||generation!==localReadGeneration)return;
       state.localStatus='error';state.localError=(e.code||'E_STORAGE_READ')+'：'+String(e?.message||e);
       state.usageStatus='error';state.usage=null;render();
     }
@@ -135,11 +157,10 @@ export function initMarketplace({api=globalThis.chrome,root=globalThis.document?
     state.catalogStatus='loading';state.catalogError='';render();
     try{
       await loadCatalog();state.catalogStatus='ready';
-      if(state.localStatus==='ready')try{await reloadInstalled();}catch{
-        /* Keep locally installed packages available even if matching fails. */
-      }
+      scheduleOfficialMatches();
     }catch(e){
-      state.catalog=null;state.apps=[];state.matched.clear();state.catalogStatus='error';
+      state.catalog=null;state.apps=[];state.catalogStatus='error';
+      scheduleOfficialMatches();
       state.catalogError=(e.code||'E_CATALOG')+'：'+String(e?.message||e);
     }
     render();
@@ -151,7 +172,7 @@ export function initMarketplace({api=globalThis.chrome,root=globalThis.document?
       const u=state.usage;
       box.append(para('扩展 local 总占用：'+formatBytes(u.totalBytes)),
         para('已安装工具包：'+formatBytes(u.packageBytes)),
-        para('工具数据：'+formatBytes(u.toolDataBytes)+'（包含知识收件箱专用数据）'),
+        para('工具数据：'+formatBytes(u.toolDataBytes)+'（含待清理工具及知识收件箱）'),
         para('大容量存储权限：'+(u.unlimited===true?'已启用':u.unlimited===false?'未启用':'暂时无法读取')));
     }else box.append(para(state.usageStatus==='loading'?'正在读取容量…':
       '暂时无法读取'+(state.usageError?'：'+state.usageError:''),'minor'));
@@ -636,6 +657,7 @@ export function initMarketplace({api=globalThis.chrome,root=globalThis.document?
   void refreshLocal();void refreshCatalog();
   render();
   return {dispose(){
+    disposed=true;matchGeneration++;localReadGeneration++;
     window.removeEventListener('hashchange',onHash);
     api.storage.onChanged.removeListener(onStorage);
   }};

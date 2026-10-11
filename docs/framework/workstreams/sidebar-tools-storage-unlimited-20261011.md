@@ -61,3 +61,23 @@ npm test
 - 候选 `5c390e5ab5812c30508384755ef6bc0846a7039d`：发现旧逻辑可能在正式安装包尚未写入时先清理同 ID 孤立工具数据，遇到浏览器写入拒绝则无恢复能力。现改为检测孤立数据并拒绝安装 `E_TOOL_ORPHAN_DATA`，不静默删除原笔记。更新相关 Node 断言。
 - 候选 `08e8260f5bf025aeacd0045e05efcebb82314d1e`：新增独立宿主元数据 `opendesk.sidebar-tools.revocation-epochs.v1`。卸载确认阶段持锁持久化该 ID 的随机代际，所有写入前在受信任宿主 / 知识服务的原有锁内核对当前代际；即便再装完全相同 id/version/bytes、旧窗口错过 onChanged，旧工具上下文也不能向新实例写回。未把代际写进严格的工具包 v1；预览和第三方工具也无法直接获得宿主 storage 权限。
 - 最新两项定向场景：`tests/environment/sidebar-tools-host.test.mjs` 模拟旧窗口错过卸载和同包重装通知，`tests/environment/knowledge-inbox-r1.test.mjs` 验证后台消息持锁防止旧代际访问。在其最终 CI 结果核对前标记 `NOT_TESTED_ON_LATEST_CANDIDATE`；保留旧候选 5547 的真实 Chrome 通过证据但不冒充本次补丁通过。
+
+
+## 2026-10-11 续接：已安装工具可靠性增量及证据
+
+本次续接仍只操作真实 GitHub `main`，没有访问用户的 Mac 本地工作区、用户 Chrome Profile、Native Host 或构建资源。所有源码提交均基于写入前核对的最新远端 main，采用非强推的 expected HEAD 快进；没有改其他任务的证据或清空任何历史数据。
+
+- `6f41e414`：统一 `requireCompleteInstalledSidebarTools()`，安装/恢复/卸载遇损坏、重复或超数的工具数组时抛 `E_STORAGE_CORRUPT`，防止过滤异常行后覆盖其他工具；市场本机列表不再等待官方发行资源逐个读取，发行包校验只是可失效的 UI 来源核对；容量统计增加已知待清理工具命名空间，仍完全使用 `getBytesInUse`，不读取笔记正文。
+- `1c371012`：补充损坏安装数组不丢原包、目录资源永远不返回时本地应用仍可打开、待清理容量字节数真实计数测试。市场 [CI #38132340605](https://github.com/shopable-ai/opendesk-browser/actions/runs/38132340605) SUCCESS（受固定候选约束）。
+- `6e1ea729`、`d6964638`：Side Panel 本机安装记录读失败不显示假空态，卸载锁内遇损坏数组不得覆盖任何行；新增两项测试。市场 [CI #38132582573](https://github.com/shopable-ai/opendesk-browser/actions/runs/38132582573) 中 **109/109 定向 PASS、双构建 PASS、Linux 受控 Chrome 12 阶段/两次浏览器重启 PASS**。该候选完整环境回归 1 项 Page R12 历史站点匹配断言失败；Page 负责人随后以 `9129a9f4` 修正。不能把该失败指认为存储缺陷，也不能把固定包的原生结果提升到新版本。
+- `4e5f309d`、`9c85ffba`：增加本机请求代际，较早读回不能覆盖新列表，新增乱序返回测试。[市场 CI #38132839380](https://github.com/shopable-ai/opendesk-browser/actions/runs/38132839380) **110/110 定向 PASS**；之后被并行 Developer 文件 `src/ui/local-project-install.js` 的错误正则阻断 `npm run check`。其修复已独立提交为 `8c31df13`，旧失败记录保留。
+- `707dec368`：增加“容量计数失败只显示暂时无法读取，不显示 0”真实 UI 组件测试。当前候选完整市场 CI 的最终结果待对应运行结果绑定，不能凭先前通过推断新结果。
+
+验证入口沿用 `tests/environment/app-market-r3.test.mjs`、`sidebar-storage-unlimited.test.mjs`、`sidebar-tools-host.test.mjs`、现有双构建校验与 `tests/framework/app-market-r3-native.test.mjs`。严格区分既有 `5547ef39` 的 >10 MiB 原生验证、`c8b5b2ef` 的 [市场 CI #38131130907](https://github.com/shopable-ai/opendesk-browser/actions/runs/38131130907) 和 [知识 CI #38131130903](https://github.com/shopable-ai/opendesk-browser/actions/runs/38131130903) SUCCESS，以及最新合并候选；未通过完整最新包 CI、Mac Native/F3/ZIP 的项目一律保持未验收。新的本地 UI 保护不改变 12 包、320000 字节、普通工具 8192/32768 字节或知识专用 4 MiB 上限。
+
+
+### 最新受控 Chrome 失败证据与原生点击修复（续接）
+
+- `707dec36898be38118d348f0939d1389fc2ecfaf`：[市场 CI #38132999590](https://github.com/shopable-ai/opendesk-browser/actions/runs/38132999590) 先通过 **111/111 定向组件测试、双构建及包校验**。原生 CFT 在 `market-fixed-unavailable-version-and-current-batch` 阶段的循环卸载遇到 `Chrome timeout: expected native confirmation`；不是容量上限断言失败，该轮尚未到达 >10 MiB 阶段。
+- 已下载并逐项核对原始 CI artifact `11699643590`：`native-result.json` 的 `failedStage` 与真实 Side Panel 快照一致；前两次卸载确认框（网页剪藏、知识收件箱）来自真实点击且 `matched=true`，批量重装后列表显示五个实际安装版本，随后市场标签页关闭，下一次卸载未收到原生确认。失败没有清空用户实际安装数据或放宽原权限校验。
+- `9b0f1a9af9fb2f2fc57f04023e3f99aed2f14cc4` 只修改 `tests/framework/app-market-r3-native.test.mjs` 的 `uninstall()`，在原有可信 CDP 鼠标输入之前显式前台激活实际 Side Panel target；确认框仍必须由真实 Chrome 发出、实际用户批准步骤仍必需，未使用 DOM 合成事件、未改源代码/权限逻辑，也未降低原生断言。**此修复的最终 CFT 结果仅以重新运行的同一候选 CI 为准**，不能拿旧包 PASS 冒充新包通过。

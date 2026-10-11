@@ -144,7 +144,10 @@ export function createLocalProjectView({client,api,document:doc,onChange=()=>{}}
   }
   pollTimer=setInterval(refreshPreparation,2000);
   if(!api.storage?.local&&active())void refresh();
-  return {active,connected:()=>connected&&!checking&&!!selected(),selectedBindingId:()=>selection,capture,resolve,assertCaptured,assertReady,
+  return {active,connected:()=>connected&&!checking&&!!selected(),selectedBindingId:()=>selection,providerEpoch:()=>epoch,
+    preparationIdentity:()=>{const p=selected()?.preparation;return JSON.stringify([p?.state??null,p?.inputHash??null,p?.sourceHash??null,p?.buildHash??null]);},
+    selectedProject:()=>{const row=selected();return row?{name:sourceName(row.name),sourceId:row.sourceId||''}:null;},
+    capture,resolve,assertCaptured,assertReady,
     dispose(){disposed=true;generation++;clearInterval(pollTimer);unsubscribe?.();unsubscribeConnection?.();for(const [node,event,callback] of listeners)node.removeEventListener(event,callback);},
     resourceSnapshot:()=>({subscriptions:listeners.length+Number(!!unsubscribe)+Number(!!unsubscribeConnection)})};
 }

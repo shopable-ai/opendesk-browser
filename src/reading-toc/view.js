@@ -23,7 +23,9 @@ const CSS=[
 '.mode{display:grid;place-items:center;width:27px;height:27px;border:0;border-radius:5px;background:transparent;color:#858996;padding:0}',
 '.mode svg{width:14px;height:14px}.mode[aria-pressed=true]{background:#fff;box-shadow:0 1px 3px #171d2a15;color:#303342}',
 '.sources{width:100%;margin:0 0 7px;padding:5px;border:1px solid #e9e9ef;border-radius:6px;background:transparent;color:inherit;font-size:12px}',
-'.scroll{max-height:min(68dvh,calc(100dvh - 180px),var(--toc-scroll-limit,10000px));overflow:auto;overscroll-behavior:contain;scrollbar-width:thin}',
+// Available height follows the viewport rather than the narrowed layout width
+// (opening Chrome Side Panel can shrink an otherwise tall desktop to <1100px).
+'.scroll{max-height:min(68dvh,calc(100dvh - 150px),var(--toc-scroll-limit,10000px));overflow:auto;overscroll-behavior:contain;scrollbar-width:thin}',
 '.list{list-style:none;margin:0;padding:0;display:grid;gap:1px}',
 '.list li{margin:0;padding-left:calc(var(--depth,0)*12px)}',
 '.link{display:block;width:100%;text-align:left;border:0;border-left:2px solid transparent;background:transparent;color:#6b7280;',
@@ -41,8 +43,8 @@ const CSS=[
 '.sources{border-color:#383a48;color:inherit}.link{color:#a0a5b4}.link:hover,.link[aria-current=location]{color:#f4f5f7}',
 '.reset:hover{background:#2a2d3a;color:#e3e7f4}',
 '.more{background:#272936;color:#acbfff;border-color:#383a48}.more:hover{background:#303850;color:#d4dfff}}',
-'@media(max-width:1100px){:host{right:8px;top:8px;width:220px;opacity:.95}.heading{font-size:11px}.scroll{max-height:min(160px,var(--toc-scroll-limit,160px))}}',
-'@media(max-width:720px){:host{top:auto;bottom:var(--toc-bottom,8px);right:8px;width:min(254px,calc(100vw - 16px));opacity:.94}.scroll{max-height:min(125px,var(--toc-scroll-limit,125px))}}',
+'@media(max-width:1100px){:host{right:8px;top:8px;width:220px;opacity:.95}.heading{font-size:11px}}',
+'@media(max-width:720px){:host{top:auto;bottom:var(--toc-bottom,8px);right:8px;width:min(254px,calc(100vw - 16px));opacity:.94}}',
 '@media(prefers-reduced-motion:reduce){:host{transition:none!important}*{scroll-behavior:auto!important;transition:none!important}}'
 ].join('');
 const ICONS=[

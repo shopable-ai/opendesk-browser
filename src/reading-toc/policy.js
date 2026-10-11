@@ -50,3 +50,52 @@ export function changeTocGrant(settings,id,url,allow) {
   if(sites.length)next[id]=sites;else delete next[id];
   return next;
 }
+
+// Appearance preferences are not authorization: a hidden overlay still leaves
+// the separately granted Side Panel TOC service available. Scoped by tool ID.
+export const READING_TOC_VISIBILITY_STORE='opendesk.sidebar-tools.toc-visibility.v1';
+const MAX_TOC_HIDDEN_SCOPES=64;
+
+// Deliberately omit search parameters and fragments to avoid retaining private
+// queries and answer fragments. SPA path changes re-evaluate this exact key.
+export function readingTocPageScope(value) {
+  const origin=websiteOrigin(value);
+  if(!origin)return null;
+  try {
+    const key=origin+new URL(value).pathname;
+    return key.length<=768?key:null;
+  }catch{return null;}
+}
+function tocHiddenScopes(preferences,id,field){
+  const values=preferences?.[id]?.[field];
+  if(!Array.isArray(values))return [];
+  const valid=field==='hiddenSites'
+    ? value=>typeof value==='string'&&websiteOrigin(value)===value
+    : value=>typeof value==='string'&&readingTocPageScope(value)===value;
+  return [...new Set(values.filter(valid))].slice(0,MAX_TOC_HIDDEN_SCOPES);
+}
+export function readingTocDisplayState(preferences,id,url){
+  const origin=websiteOrigin(url),page=readingTocPageScope(url);
+  const hiddenOnSite=Boolean(origin&&tocHiddenScopes(preferences,id,'hiddenSites').includes(origin));
+  const hiddenOnPage=Boolean(page&&tocHiddenScopes(preferences,id,'hiddenPages').includes(page));
+  return {hiddenOnSite,hiddenOnPage,show:!hiddenOnSite&&!hiddenOnPage};
+}
+export function changeReadingTocVisibility(preferences,id,url,scope,hidden){
+  if(typeof id!=='string'||!/^[a-z][a-z0-9-]{1,39}$/.test(id)||
+     !['site','page'].includes(scope)||typeof hidden!=='boolean')
+    throw Error('无效的阅读目录显示设置');
+  const target=scope==='site'?websiteOrigin(url):readingTocPageScope(url);
+  if(!target)throw Error('当前网页无法保存显示偏好');
+  const original=preferences&&typeof preferences==='object'&&!Array.isArray(preferences)?preferences:{};
+  const previousSites=tocHiddenScopes(original,id,'hiddenSites');
+  const previousPages=tocHiddenScopes(original,id,'hiddenPages');
+  const update=values=>hidden?[...new Set([...values,target])]:values.filter(value=>value!==target);
+  const hiddenSites=scope==='site'?update(previousSites):previousSites;
+  const hiddenPages=scope==='page'?update(previousPages):previousPages;
+  if(hiddenSites.length>MAX_TOC_HIDDEN_SCOPES||hiddenPages.length>MAX_TOC_HIDDEN_SCOPES)
+    throw Error('单个工具最多隐藏 64 个网站或页面');
+  const next={...original};
+  if(hiddenSites.length||hiddenPages.length)next[id]={hiddenSites,hiddenPages};
+  else delete next[id];
+  return next;
+}

@@ -289,6 +289,45 @@ test('Knowledge R1 Chrome: reviewed install, capture, persistent editor and inli
  await until(()=>evalIn(clip,'!document.querySelector("#ki-list-view").hidden && !document.querySelector("#ki-empty").hidden'),'empty inbox after removal');
  assert.equal(await evalIn(clip,'document.querySelector("#ki-empty-title").textContent'),'收件箱还是空的','real empty state after delete');
  await captureState('empty',[360,400]);
+ // Populate two records through actual ChatGPT Save controls, not injected storage.
+ await browser.send('Target.activateTarget',{targetId:page.targetId});
+ await article.send('Page.bringToFront');
+ await pageButton(article,'fixture-answer-2','保存');
+ await until(async()=>(await evalIn(side,readStore))?.records?.length===1,'one resaved answer');
+ await pageButton(article,'fixture-answer-1','保存');
+ await until(async()=>(await evalIn(side,readStore))?.records?.length===2,'two persisted answers');
+ await click(clip,'#ki-manage>summary');
+ await click(clip,'#ki-refresh');
+ await until(()=>evalIn(clip,'document.querySelectorAll(".ki-record").length===2'),'two-record list refreshed');
+ await captureState('list-two-records',[360,400]);
+ await evalIn(clip,'document.querySelector(".ki-record").focus()');
+ const firstId=await evalIn(clip,'document.activeElement.dataset.recordId');
+ async function pressKey(key,code){
+   // CDP keyDown/keyUp alone does not synthesize a native Enter click on a
+   // focused button; real Chromium requires the character event as well.
+   if(key==='Enter'){
+     await clip.send('Input.dispatchKeyEvent',{type:'rawKeyDown',key,code:key,windowsVirtualKeyCode:code,nativeVirtualKeyCode:code});
+     await clip.send('Input.dispatchKeyEvent',{type:'char',key,code:key,text:'\r',unmodifiedText:'\r',windowsVirtualKeyCode:code,nativeVirtualKeyCode:code});
+   }else{
+     await clip.send('Input.dispatchKeyEvent',{type:'keyDown',key,code:key,windowsVirtualKeyCode:code});
+   }
+   await clip.send('Input.dispatchKeyEvent',{type:'keyUp',key,code:key,windowsVirtualKeyCode:code});
+ }
+ await pressKey('ArrowDown',40);
+ const secondId=await evalIn(clip,'document.activeElement.dataset.recordId');
+ assert.notEqual(secondId,firstId,'ArrowDown focuses another record');
+ await captureState('list-keyboard',[360]);
+ await pressKey('ArrowUp',38);
+ assert.equal(await evalIn(clip,'document.activeElement.dataset.recordId'),firstId,'ArrowUp returns focus');
+ await pressKey('End',35);
+ assert.equal(await evalIn(clip,'document.activeElement.dataset.recordId'),secondId,'End focuses last record');
+ await pressKey('Home',36);
+ assert.equal(await evalIn(clip,'document.activeElement.dataset.recordId'),firstId,'Home focuses first record');
+ await pressKey('Enter',13);
+ await until(()=>evalIn(clip,'!document.querySelector("#ki-detail").hidden'),'Enter opens focused record');
+ await pressKey('Escape',27);
+ await until(()=>evalIn(clip,'!document.querySelector("#ki-list-view").hidden'),'Escape returns to list');
+ await until(()=>evalIn(clip,'document.activeElement?.dataset?.recordId==='+JSON.stringify(firstId)),'keyboard return focus');
  await writeFile(join(screenshots,'visual-metrics.json'),JSON.stringify(visualMetrics,null,2)+'\n');
  acceptDialog=true;
  await click(side,'#sidebar-tool-back');
@@ -307,9 +346,10 @@ test('Knowledge R1 Chrome: reviewed install, capture, persistent editor and inli
  console.log('KNOWLEDGE_STAGE: revocation control',JSON.stringify(grantVisibility));
  acceptDialog=true;await click(side,grant);
  await until(()=>evalIn(article,'document.querySelectorAll("[data-opendesk-capture-root]").length===0'),'Revocation removes buttons');
+ assert.equal((await evalIn(side,readStore)).records.length,2,'Revocation cannot delete already saved records');
  const result={result:'NATIVE_CHROME_CONTROLLED_FIXTURE_PASS',sourceCommit:process.env.GITHUB_SHA||null,
   reviewedInstall:true,independentConsent:true,persistentCapture:true,fullReply:true,dedup:true,streamGuard:true,
-  draftOriginalSeparation:true,dirtyCloseProtection:true,inlineConfirmation:true,structureOutline:true,spa:true,revocation:true,
+  draftOriginalSeparation:true,dirtyCloseProtection:true,inlineConfirmation:true,structureOutline:true,spa:true,revocation:true,keyboardRecordNavigation:true,revocationPreservesRecords:true,
   publicChatGPT:'NOT_TESTED',macOSNativeDisk:'NOT_TESTED',imagesDownload:'NOT_TESTED',systemClipboard:'NOT_TESTED'};
  await writeFile(join(screenshots,'result.json'),JSON.stringify(result,null,2)+'\n');console.log(JSON.stringify(result));
 });

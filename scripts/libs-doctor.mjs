@@ -97,7 +97,7 @@ export async function inspectLibraries({cwd=process.cwd()}={}) {
       id:row.id,version:row.version,origin:row.origin,worlds:row.worlds,
       loading:row.default?'default':'opt-in',output:row.output,
       methods:row.methods,apiCoverage:row.id==='lodash'?'8-method subset':
-        row.id==='dayjs'?'core without extend/locale mutation':
+        row.id==='dayjs'?'core + duration/UTC/timezone/strict parse without public mutators':
         row.id==='jquery'?'jQuery 3.7.1 Page only':'declared methods'
     })),
     sources:{},packages:{},legacy:{},policy:{
@@ -129,7 +129,7 @@ export async function inspectLibraries({cwd=process.cwd()}={}) {
   if(invalidWorlds.length)errors.push('src/libs/runtime-contract.js:1 built-in library world/default drift');
   const apiValid=BUILTIN_CATALOG.libraries.lodash.methods.join(',')===
     'get,has,words,trim,uniq,chunk,escape,truncate'&&
-    BUILTIN_CATALOG.libraries.dayjs.methods.join(',')==='isDayjs';
+    BUILTIN_CATALOG.libraries.dayjs.methods.join(',')==='isDayjs,duration,isDuration,utc,tz';
   report.sources.api=result(apiValid?'SOURCE_PASS':'SOURCE_FAIL',
     apiValid?undefined:{location:'src/libs/catalog.js:1',reason:'built-in API contract drift'});
   if(!apiValid)errors.push('src/libs/catalog.js:1 built-in API contract drift');

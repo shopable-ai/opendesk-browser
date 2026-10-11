@@ -11,7 +11,7 @@ const basic={sourceUtf8:src,entryFormat:'async-main',lockId:null,programId:'my-p
 test('native Page JavaScript keeps original bytes and freezes scheduling outside source',()=>{
   const value=preparePageCandidateDraft(basic);
   assert.equal(value.generatedMatch,true);
-  assert.equal(value.match,'*://*/*');
+  assert.equal(value.match,'https://example.com/*');
   assert.equal(value.sourceChanged,false);
   assert.equal(value.request.sourceUtf8,src);
   assert.equal(parseUserScriptDependencies(value.request.sourceUtf8).hasHeader,false);
@@ -20,7 +20,7 @@ test('native Page JavaScript keeps original bytes and freezes scheduling outside
   assert.equal(value.request.lockId,null);
   assert.equal(Object.hasOwn(value.request,'installationEnabled'),false);
   assert.equal(Object.hasOwn(value.request,'verification'),false);
-  assert.deepEqual(value.request.pageRules,{matches:['*://*/*'],excludeMatches:[],
+  assert.deepEqual(value.request.pageRules,{matches:['https://example.com/*'],excludeMatches:[],
     allFrames:false,runAt:'document_idle',world:'USER_SCRIPT'});
   assert.ok(Object.isFrozen(value.request.pageRules));
   assert.throws(()=>value.request.pageRules.matches.push('https://evil.example/*'),TypeError);
@@ -40,13 +40,13 @@ test('explicit legacy metadata is preserved byte-for-byte, not silently broadene
     {entryFormat:'async-main',phase:'registration',dependenciesLocked:true});
 });
 
-test('HTTP demo and HTTPS use the same all-site default, not a current-host grant',()=>{
+test('HTTP localhost defaults to the preview scheme and host, never all sites',()=>{
   const result=preparePageCandidateDraft({...basic,previewUrl:'http://127.0.0.1:43111/demo-form.html'});
-  assert.equal(result.match,'*://*/*');
-  assert.deepEqual(validatePageProgramRules(result.request.pageRules).matches,['*://*/*']);
+  assert.equal(result.match,'http://127.0.0.1/*');
+  assert.deepEqual(validatePageProgramRules(result.request.pageRules).matches,['http://127.0.0.1/*']);
   assert.equal(result.request.sourceUtf8,src);
   assert.match(result.summary,/不同端口/);
-  assert.deepEqual(result.request.pageRules.matches,preparePageCandidateDraft(basic).request.pageRules.matches);
+  assert.notDeepEqual(result.request.pageRules.matches,preparePageCandidateDraft(basic).request.pageRules.matches);
 });
 
 test('invalid inputs cannot manufacture Candidate authority or unsafe match scope',()=>{
@@ -56,6 +56,7 @@ test('invalid inputs cannot manufacture Candidate authority or unsafe match scop
     [{...basic,revision:1.1},'E_REVISION'],
     [{...basic,entryFormat:'controller'},'E_ENTRY_FORMAT'],
     [{...basic,previewUrl:'file:///private/tmp/demo.html'},'E_PAGE_MATCH'],
+    [{...basic,previewUrl:'https://user:secret@example.com/'},'E_PAGE_MATCH'],
     [{...basic,previewUrl:'https://[::1]/'},'E_PAGE_MATCH'],
     [{...basic,sourceUtf8:' '},'E_SOURCE'],
     [{...basic,sourceUtf8:'a'.repeat(131073)},'E_SOURCE']

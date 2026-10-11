@@ -52,3 +52,17 @@ Controller 的「停止」走原 RunHost；确认终态及 `retirementState:"rel
 连接后编辑并保存JS、CSS或声明资源即可后台准备，默认约400ms合并修改。点击现有运行按钮复用已准备版本；最新源码有错误时报告错误，不回退上次成功版本。保存不执行网页业务。
 
 Node Provider提供已就绪、更新、合并与错误状态；现有Go列表转发尚不携带这些细状态，因此Go目录CLI路径的实时显示未闭环。展开连接诊断可查看上次读取的输入版本、sourceHash、命中/构建次数与耗时，它不保证磁盘始终未变。详细实现、实测与未通过项见[R23说明](../framework/local-development-prebuild-r23.zh-CN.md)。
+
+## R25.1：本地项目运行验证后保存固定版本
+
+开发选项卡仍使用原有 `#develop-dock`：直接编辑模式的「保存版本」保存手工 Controller 草稿；开启本地项目后底部按钮先显示「待运行验证」，**不会读取旧运行结果直接安装**。运行成功且来源返回可核对的 `inputHash`、`sourceHash`、`sourceBytes` 后，Page 显示「保存到我的工具」，Controller 显示「保存为任务」。点击后在原页面内审阅名称、版本、当前来源和允许网站，再按「确认安装固定版本」。
+
+确认前再次由已授权 Provider 解析项目，核对 `bindingId`、`providerEpoch`、输入版本、完整源码哈希、字节数和当前网页文档；源文件一旦变化，就要主动重新运行，不能用上次预览为新版本安装背书。文件保存仅触发准备，不自动运行、安装或发布。重复提交、回执不明和版本 CAS 冲突不自动重试。
+
+- **Page USER_SCRIPT**：使用既有 `importPageCandidate → verifyPageCandidate → makePageAvailable → installPageProgram`。正式 Verify **会再次执行同一冻结源码**，确认区会明确提示网页副作用；未通过正式验证不安装。普通 JavaScript 生成的默认匹配只覆盖本次预览的协议和主机，仍需授权审核；有特殊项目规则须单独审阅。安装事实归原 Page Authority，而不是 Side Panel JSON registry。在「工具 → 已安装网页工具」读取、停用或启用；浏览器原生用户脚本开关和站点权限仍适用。
+- **Controller**：从同一持久 `runId` 和结果自身 `sourceHash` 建立 `opendesk.task.v1` 候选，使用原 `verifyTaskCandidate → makeTaskAvailable → installTask`，无需重复运行。Task v1 必须有原生页面操作成功回执且仅允许一个确切 HTTP(S) origin；只有返回值而无页面操作回执的运行可能不能正式验证。成功后在「我的」任务列表重复使用。
+- **Side Panel JSON 工具**：没有项目格式转换合同就不冒充 `opendesk.sidebar-tool.v1`；继续使用现有包构建、共享安装服务及「工具」导入。
+- **升级**：已安装版本与当前项目源码分离。相同稳定身份采用新版本，安装前核对原安装基线，升级保持原停用状态；已经安装的工具无需持续连接开发 Provider 才能执行已冻结源码。
+- **市场**：本地保存、运行、安装、升级与远端发布是独立操作。现有市场只有随扩展分发的官方固定 Catalog 和本机安装功能，尚无可确认的在线作者发布 API，不能把「设为本地可用」当作网上发布。
+
+实际 Mac Chrome、真实 Native Provider、浏览器重启及安装失败恢复仍需按 `docs/framework/prompts/goal-r251-mac-final-acceptance.md` 验收；源码提交与组件测试不代表这些已通过。
