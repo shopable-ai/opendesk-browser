@@ -353,7 +353,7 @@ export async function verifyPackage(directory, {mode: requestedMode} = {}) {
     if (maps.length !== (mapFiles.length ? 1 : 0) || maps.some(m => m[1].trim() !== file.split('/').at(-1) + '.map' || !files.includes(file + '.map'))) throw new Error(`Unsafe/missing source map in ${file}`);
   }
   for (const file of Object.keys(HTML_REFERENCES)) await inspectHTML(root, file);
-  for(const cssPath of ['ui/design-tokens.css','ui/design-system.css','ui/tool-shell.css','native-agent/settings.css','native-agent/workspace.css','ui/marketplace.css']) {
+  for(const cssPath of ['ui/design-tokens.css','ui/design-system.css','ui/tool-shell.css','native-agent/settings.css','native-agent/workspace.css']) {
     const css = await readFile(join(root,cssPath),'utf8');
     if(/@(?:import|source|apply|tailwind|config|plugin)\b|url\s*\(|expression\s*\(/i.test(css)) throw new Error('Unsafe CSS resources in '+cssPath);
     if(cssPath==='native-agent/workspace.css')inspectWorkspaceStyle(css);
@@ -374,6 +374,11 @@ export async function verifyPackage(directory, {mode: requestedMode} = {}) {
        tool.id!==app.toolId||tool.version!==app.version||
        !same(release.capabilities,tool.capabilities))
       throw new Error('Market release not bound to shipped package: '+app.id);
+  }
+  for(const cssPath of ['ui/marketplace.css']) {
+    const css=await readFile(join(root,cssPath),'utf8');
+    if(/@(?:import|source|apply|tailwind|config|plugin)\b|url\s*\(|expression\s*\(/i.test(css))
+      throw new Error('Unsafe CSS resources in '+cssPath);
   }
   for (const [file, expected] of Object.entries(FIXED_ASSETS)) {
     const bytes = await readFile(join(root, file));
