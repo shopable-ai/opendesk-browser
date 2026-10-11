@@ -696,9 +696,9 @@ test('R12: real Page preview gates explicit immutable Candidate import, never au
   assert.equal(frozen.entryFormat,'async-main');assert.equal(frozen.lockId,null);
   assert.equal(frozen.importSourceUrl,null);
   assert.equal(frozen.sourceUtf8,source,'native source is preserved without adding compatibility metadata');
-  // Source-only candidates follow the all-HTTP(S) scheduling default. This
-  // remains a Candidate; explicit install authorization is checked below.
-  assert.deepEqual(frozen.pageRules,{matches:['*://*/*'],excludeMatches:[],
+  // Source-only candidates default only to the preview's scheme and host.
+  // This remains a Candidate; explicit install authorization is still required.
+  assert.deepEqual(frozen.pageRules,{matches:['https://a.example/*'],excludeMatches:[],
     runAt:'document_idle',allFrames:false,world:'USER_SCRIPT'});
   assert.equal(Object.hasOwn(frozen,'capabilities'),false,'scheduling settings do not grant privileged services');
   assert.match(fx.find('page-candidate-status').textContent,/源码保持原样/);
