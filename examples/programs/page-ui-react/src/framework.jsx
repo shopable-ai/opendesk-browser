@@ -1,5 +1,9 @@
-import {useEffect,useState} from 'react';
-import {createRoot} from 'react-dom/client';
+// JSX is transformed into createElement calls. The browser's pinned React
+// runtime is loaded before this Page USER_SCRIPT executes; do not bundle
+// a second React/ReactDOM instance (Hooks would become incompatible).
+const React=globalThis.OpenDeskPageReact;
+if(React?.version!=='19.2.0')throw Error('E_PAGE_FRAMEWORK_NOT_READY');
+const {useEffect,useState}=React;
 
 function Widget({onToggle}){
   const [message,setMessage]=useState('加载中…'),[active,setActive]=useState(false);
@@ -16,5 +20,5 @@ function Widget({onToggle}){
   </section>;
 }
 export function mountReact(container,props){
-  const root=createRoot(container);root.render(<Widget {...props}/>);return root;
+  const root=React.createRoot(container);root.render(<Widget {...props}/>);return root;
 }
