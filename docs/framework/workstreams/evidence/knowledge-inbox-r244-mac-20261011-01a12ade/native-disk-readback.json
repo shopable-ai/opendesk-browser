@@ -1,0 +1,19 @@
+{
+  "status": "PASS",
+  "operation": "UI_CREATE_ONCE",
+  "userConfirmed": true,
+  "filename": "知识资产.md",
+  "expectedBytes": 530,
+  "expectedSHA256": "4d3e28b51c9a1f0fb8a30c7df212287277d8792989c80bd6912c658de6a4841b",
+  "ui": {
+    "status": "新文件已创建并读回核对。",
+    "meta": "opendesk-r244-workspace-woOwHs / 知识资产.md · 530 bytes · 4d3e28b51c · 已核验目录",
+    "checkHidden": true
+  },
+  "disk": {
+    "exists": true,
+    "bytes": 530,
+    "sha256": "4d3e28b51c9a1f0fb8a30c7df212287277d8792989c80bd6912c658de6a4841b",
+    "matches": true
+  }
+}

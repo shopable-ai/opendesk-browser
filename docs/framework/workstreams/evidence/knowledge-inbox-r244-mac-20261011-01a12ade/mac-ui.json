@@ -1,0 +1,36 @@
+{
+  "scope": "Real Chrome 155 MV3 standalone tool tab; controlled data",
+  "views": [
+    {
+      "color": "rgb(27, 39, 56)",
+      "background": "rgb(255, 255, 255)",
+      "width": 763,
+      "scroll": 763,
+      "dark": false
+    },
+    {
+      "color": "rgb(233, 238, 247)",
+      "background": "rgb(21, 28, 40)",
+      "width": 763,
+      "scroll": 763,
+      "dark": true
+    }
+  ],
+  "copy": {
+    "bytes": 541,
+    "sha256": "e69d3a681691af7d9750b640ecef6e00ada565c0695ad975e6816b06874e0cc4",
+    "controlledSource": true
+  },
+  "download": {
+    "bytes": 541,
+    "sha256": "e69d3a681691af7d9750b640ecef6e00ada565c0695ad975e6816b06874e0cc4",
+    "matchesClipboard": true,
+    "complete": true
+  },
+  "zoom": {
+    "factor": 2,
+    "width": 407,
+    "devicePixelRatio": 4,
+    "scroll": 407
+  }
+}

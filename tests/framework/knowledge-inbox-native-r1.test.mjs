@@ -7,8 +7,6 @@ import {join,resolve} from 'node:path';
 import {randomUUID} from 'node:crypto';
 import {setTimeout as pause} from 'node:timers/promises';
 import {KNOWLEDGE_DATA_KEY} from '../../src/knowledge/policy.js';
-import {createRequire} from 'node:module';
-import {homedir} from 'node:os';
 
 // Browser-backed smoke: a real unpacked production MV3 extension and real
 // user-input CDP clicks, using a local fixture. Public-site acceptance remains
@@ -45,7 +43,6 @@ async function until(fn,what){
  throw Error('Native Chrome timeout: '+what);
 }
 async function click(target,selector){
- if(target.click)return target.click(selector);
  await evalIn(target,'(()=>{const e=document.querySelector('+JSON.stringify(selector)+');if(!e||e.disabled||!e.getClientRects().length)throw Error("CONTROL_UNAVAILABLE");e.scrollIntoView({block:"center"});return true;})()');
  // Sandbox resize messages are asynchronous. Settle layout before mouse down
  // so the release cannot hit a different position after the iframe grows.
@@ -119,7 +116,7 @@ test('Knowledge R1 Chrome: reviewed install, capture, persistent editor and inli
   '--remote-debugging-port=0','--user-data-dir='+profile,'--disable-extensions-except='+extension,
   '--load-extension='+extension,'about:blank'];
  const chrome=spawn(chromeBinary,args,{stdio:['ignore','ignore','pipe']});
- let browser=null,host=null,article=null,side=null,clip=null,workbench=null,macBrowser=null,macConnect=null,logs='',passed=false;
+ let browser=null,host=null,article=null,side=null,clip=null,workbench=null,logs='',passed=false;
  chrome.stderr.on('data',b=>{logs=(logs+b).slice(-3000);});
  t.after(async()=>{
   await writeFile(join(screenshots,'chrome-stderr.log'),logs.replaceAll(profile,'<isolated-profile>'));
@@ -133,7 +130,6 @@ test('Knowledge R1 Chrome: reviewed install, capture, persistent editor and inli
    await writeFile(join(screenshots,'failure.json'),JSON.stringify(diagnostics,null,2)+'\n');
   }
   for(const c of [workbench,clip,host,article,browser])c?.close?.();
-  await macBrowser?.close();
   if(chrome.exitCode===null&&chrome.signalCode===null){
    await new Promise(done=>{const timer=setTimeout(()=>chrome.kill('SIGKILL'),2500);
     chrome.once('close',()=>{clearTimeout(timer);done();});chrome.kill('SIGTERM');});
@@ -148,16 +144,6 @@ test('Knowledge R1 Chrome: reviewed install, capture, persistent editor and inli
  }
  assert(port,'Chrome DevToolsActivePort not available: '+logs);
  const base='http://127.0.0.1:'+port;
- if(process.platform==='darwin'){
-   const path=process.env.OPENDESK_NATIVE_PLAYWRIGHT||join(homedir(),'.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');
-   try{
-     const {chromium}=createRequire(import.meta.url)(path);
-     macConnect=()=>chromium.connectOverCDP(base);
-   }catch(error){
-     if(error.code!=='MODULE_NOT_FOUND')throw error;
-     console.log('KNOWLEDGE_STAGE: bundled Playwright unavailable; using existing CDP input');
-   }
- }
  const version=await(await fetch(base+'/json/version')).json();
  browser=socket(version.webSocketDebuggerUrl);await browser.ready;
  async function openTab(address){
@@ -176,21 +162,6 @@ test('Knowledge R1 Chrome: reviewed install, capture, persistent editor and inli
   },'sandbox CDP target');
   const attached=await browser.send('Target.attachToTarget',{targetId:target.targetId,flatten:true});
   const frame={send:(method,params={},timeout=15000)=>browser.send(method,params,timeout,attached.sessionId)};
-  if(macConnect){
-       macBrowser||=await macConnect();
-       for(const page of macBrowser.contexts()[0].pages())page.on('dialog',()=>{});
-       const findPanel=async()=>{
-         for(const page of macBrowser.contexts()[0].pages()){
-           const session=await macBrowser.contexts()[0].newCDPSession(page);
-           try{if((await session.send('Target.getTargetInfo')).targetInfo.targetId===sideTarget.targetId)return page;}
-           finally{await session.detach();}
-         }
-       };
-       let panel=await findPanel();
-       if(!panel){await macBrowser.close();macBrowser=await macConnect();panel=await findPanel();}
-       assert.ok(panel,'Real Side Panel must be observed by the Mac driver');
-       frame.click=selector=>panel.frameLocator('#sidebar-tool-frame iframe').locator(selector).click();
-  }
   await frame.send('Runtime.enable');await frame.send('Page.enable');
   await until(()=>evalIn(frame,'!!document.querySelector('+JSON.stringify(selector)+')'),'tool UI '+selector);
   return frame;
@@ -336,7 +307,6 @@ test('Knowledge R1 Chrome: reviewed install, capture, persistent editor and inli
  assert.equal(await evalIn(clip,'document.querySelector("#ki-content").value'),edited,'Discarded text must not reappear when editing again');
  await click(clip,'#ki-editor-extra > summary');
  await nativeText(clip,'#ki-note','仅更新备注');
- console.log('KNOWLEDGE_STAGE: metadata save geometry',JSON.stringify(await evalIn(clip,'(()=>{const e=document.querySelector("#ki-save"),r=e.getBoundingClientRect();return {disabled:e.disabled,rect:{x:r.x,y:r.y,width:r.width,height:r.height},viewport:{width:innerWidth,height:innerHeight}};})()')));
  await click(clip,'#ki-save');
  await until(async()=>{const data=await evalIn(side,readStore);return data.records[0].note==='仅更新备注';},'metadata-only save');
  assert.equal((await evalIn(side,readStore)).records[0].draft,edited,'Metadata-only save cannot persist discarded text');

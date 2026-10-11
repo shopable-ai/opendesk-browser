@@ -115,3 +115,13 @@ npm run verify
 | 验收人员 | [workstream](../../../docs/framework/workstreams/knowledge-inbox-r1-20261011.md) 及 `evidence/` | 按候选 SHA、包哈希记录原始测试 |
 
 受控 Chrome fixture ≠ 线上 ChatGPT；macOS SW 冒烟 ≠ 用户 Mac 的 Native 磁盘写入；构建/提交 ≠ 完整 ZIP/F3 产品验收。
+
+### Mac R24.4 驱动与证据
+
+`tests/framework/knowledge-inbox-native-r1.test.mjs` 支持 `OPENDESK_KNOWLEDGE_EXTENSION_DIR` 指向独立已验证扩展、`OPENDESK_KNOWLEDGE_EVIDENCE_DIR` 指向唯一证据目录；`CHROME_BIN` 固定本机 CFT，`OPENDESK_NATIVE_HEADED=1` 在 Mac 不使用 xvfb。驱动自行创建并删除临时 Profile，失败保留阶段截图、状态及脱敏 stderr。Mac 全选使用 Meta 与 Chromium `selectAll` 命令，并核对真实选区；输入后核对完整字段值。
+
+正式受控驱动保留既有 CDP 路径，不引入 Playwright 模块或 macOS AX helper 依赖。本轮独立标签页的辅助验收复用了 Codex 已有 Playwright 运行时。原生下拉菜单未真正提交选项时，保留失败断言，不能通过 DOM 赋值、synthetic events 或删除测试绕过。
+
+真实 Chrome 200% 缩放需使用 `chrome.tabs.setZoom(tabId,2)`、核对 `getZoom`、等待布局稳定，再用不带裁切范围的 `Page.captureScreenshot`。本轮 Playwright 截图在该缩放下裁掉一半画面，原生截图和实际元素边界已确认区别；保留失败观察，不能据此误修产品。360/400 的 renderer 宽度采样须注明 Emulation，不能称为物理 Side Panel 拖拽宽度；600/1000 也只代表响应式采样。
+
+Native 创建文件只按明确确认点击一次；以实际文件字节数和 SHA-256 读回作为写盘 PASS。错误状态已有旧内容时，必须等待本次操作完成及具体错误码，不能把旧错误当作新操作回执。目录撤销再授权产生新 workspace/lease 身份，旧草稿应保持禁写。具体本轮缺口和原始证据见 [R24 workstream](../../../docs/framework/workstreams/knowledge-inbox-r24-20261011.md)。
