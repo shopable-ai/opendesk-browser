@@ -27,7 +27,7 @@ export function initPageClip({api=globalThis.chrome,doc=globalThis.document,win=
       else if(message.operation==='clip.selection'){
         const selection=win.getSelection();
         if(!selection||selection.isCollapsed||!selection.rangeCount||
-           selection.getRangeAt(0).commonAncestorContainer.ownerDocument!==doc)
+           (selection.getRangeAt(0).commonAncestorContainer.ownerDocument||selection.getRangeAt(0).commonAncestorContainer)!==doc)
           throw new Error('没有选中网页文字，请在网页选中内容后重试');
         markdown=domToMarkdown(selection.getRangeAt(0).cloneContents(),canonical);
       }else markdown=domToMarkdown(chooseArticle(doc),canonical);

@@ -7,13 +7,13 @@ const BLOCK=new Set(['ARTICLE','MAIN','SECTION','DIV','HEADER','FIGURE','FIGCAPT
   'P','H1','H2','H3','H4','H5','H6','PRE','BLOCKQUOTE','UL','OL','TABLE','HR','DL']);
 const escapeText=value=>String(value||'').replace(/\\/g,'\\\\').replace(/([*_[\]\x60<>])/g,'\\$1');
 const clean=value=>String(value||'').replace(/\u0000/g,'').replace(/\r\n?/g,'\n');
-const squeeze=value=>value.replace(/[ \t]+/g,' ').replace(/ *\n */g,' ').trim();
+const squeeze=value=>value.split('  \n').map(segment=>segment.replace(/[ \t]+/g,' ').replace(/ *\n */g,' ').trim()).filter(Boolean).join('  \n');
 export function safeMarkdownUrl(value,base,{image=false}={}){
   try{
     const url=new URL(String(value||''),base);
     if(url.username||url.password)return null;
     if(!['https:','http:'].includes(url.protocol)&&!(!image&&['mailto:','tel:'].includes(url.protocol)))return null;
-    return url.href.replace(/[\u0000-\u001f\u007f]/g,'');
+    return url.href.replace(/[\u0000-\u001f\u007f]/g,'').replace(/[()]/g,ch=>ch==='('?'%28':'%29');
   }catch{return null;}
 }
 function excluded(el){
