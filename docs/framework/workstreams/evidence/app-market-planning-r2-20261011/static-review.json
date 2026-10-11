@@ -1,0 +1,415 @@
+{
+  "schemaVersion": 1,
+  "kind": "opendesk-app-market-r2-static-review",
+  "status": "PASS_WITH_EXPLICIT_SCOPE",
+  "createdAtUTC": "2026-10-11T06:01:36.487757+00:00",
+  "repository": "shopable-ai/opendesk-browser",
+  "sourceBaseline": "8f30854f0f2aa4a2b479fc179f8911cc01decdc1",
+  "integrationParent": "d014bd071bcc2fdb674a06e1347f6ddd1a3e8915",
+  "integrationTree": "802650c4473dfce8d8c3d1f1ba377460781ef6a1",
+  "preservedParallelCommits": 11,
+  "scope": "Add six R2 design/prototype/evidence files only; preserve all R1 files, production code and other workstreams.",
+  "filesReviewed": [
+    {
+      "path": "docs/product/app-market-r2.zh-CN.md",
+      "bytes": 46352,
+      "sha256": "0878734a9eca39b05ebe36a6001e95f60e9f9e06d535ffc4a2a93b53e2cdca33",
+      "gitBlobSha1": "567d8a5548f00f4937168299fef41623e23ac9fb"
+    },
+    {
+      "path": "docs/product/app-market-r2.contracts-example.json",
+      "bytes": 20076,
+      "sha256": "8304c2978595227aae6d31d0df51680231495521539bd576065d3240db23668e",
+      "gitBlobSha1": "e2dfb2ad50a662285b69f2fabd1613f3e909497e"
+    },
+    {
+      "path": "prototypes/marketplace/app-market-r2.html",
+      "bytes": 151489,
+      "sha256": "0b1493b84437c73e2ae54664dd477f7de4a415ea671a36c6e18ee3f877cb31dd",
+      "gitBlobSha1": "80c4f051b79cf202e7674936141ad265329211b3"
+    },
+    {
+      "path": "docs/product/app-market-r2.review.zh-CN.md",
+      "bytes": 8762,
+      "sha256": "4c82853a5eef7355d19449e851a5fd8ae162233942fbae2ef2445b03c3e90ae8",
+      "gitBlobSha1": "0938031a5373d4e030295b62779c7dd53c996107"
+    },
+    {
+      "path": "docs/framework/workstreams/app-market-planning-r2-20261011.md",
+      "bytes": 6398,
+      "sha256": "a2f2980d49facce8cf5c473b645856c15ecbc50f920e2e1859b3269f4dd26a7e",
+      "gitBlobSha1": "e3a255c77c01d2baa16f6bce14d06adbe87c3200"
+    }
+  ],
+  "scoreScope": "Subjective independent AI static design review, not external human certification, rendered UI rating or production quality score. Separate scores must not be averaged.",
+  "r1DesignScore": 74,
+  "r2DesignSpecScore": 96,
+  "r2PrototypeStructureAndCoverageScore": 91,
+  "finalArtifactValidation": {
+    "scope": "Final artifact syntax, source/contract consistency and extracted pure design-model checks only; no DOM, browser, native installer, cryptographic verification or deployment",
+    "artifactChecks": [
+      {
+        "name": "Standalone contains the exact final inline fragment",
+        "status": "PASS"
+      },
+      {
+        "name": "One fragment root and one inline script",
+        "status": "PASS"
+      },
+      {
+        "name": "Fragment excludes document wrappers",
+        "status": "PASS"
+      },
+      {
+        "name": "Final embedded pure model matches the reviewed source",
+        "status": "PASS"
+      },
+      {
+        "name": "No network, real extension or persistent storage APIs in script",
+        "status": "PASS"
+      },
+      {
+        "name": "No simulated current-website selector in primary prototype",
+        "status": "PASS"
+      },
+      {
+        "name": "Unknown release has explicit unavailable view without version substitution",
+        "status": "PASS"
+      },
+      {
+        "name": "Snapshot member navigation preserves exact member version",
+        "status": "PASS"
+      },
+      {
+        "name": "Revision names, descriptions and items are stored as frozen snapshots",
+        "status": "PASS"
+      },
+      {
+        "name": "Example origin and artifact hashes are not production claims",
+        "status": "PASS"
+      },
+      {
+        "name": "GET and link visits cannot approve installation",
+        "status": "PASS"
+      },
+      {
+        "name": "Transfer example uses the same strict minimal root schema",
+        "status": "PASS"
+      },
+      {
+        "name": "Production acceptance remains explicitly untested",
+        "status": "PASS"
+      },
+      {
+        "name": "Full final script passes Node syntax validation",
+        "status": "PASS"
+      },
+      {
+        "name": "Exactly four audited applications in prototype and contracts",
+        "status": "PASS"
+      },
+      {
+        "name": "All candidate versions and capabilities match contract",
+        "status": "PASS"
+      },
+      {
+        "name": "Same collection revision has identical title and description across artifacts",
+        "status": "PASS"
+      },
+      {
+        "name": "Same collection revision has identical ordered members and optional flags",
+        "status": "PASS"
+      },
+      {
+        "name": "Documented transfer payload round-trips through delivered strict parser",
+        "status": "PASS"
+      }
+    ],
+    "pureModelChecks": {
+      "passed": 17,
+      "scope": "Pure Node design-model checks; no browser, native installer or cryptographic verification",
+      "tests": [
+        "Fixed-version routes remain pinned; unsupported versions remain resolvable",
+        "Unknown and submitted operations override host-loss and inventory guesses",
+        "Mock identities require explicit mode; null digests never verify production",
+        "Same-version skip binds publisher and bytes; null or conflicting identities block",
+        "Real digests still require trusted source/artifact and installed identity facts",
+        "Only published/unlisted releases enter review, including explicit prototype artifacts",
+        "Native tool slots cannot be taken over by a different market ID or publisher",
+        "Version consent is bound to target identity and installed baseline; compatibility is separate",
+        "Batch exact duplicates merge; conflicting fixed releases and local tool IDs block",
+        "Capacity counts selected net-new items and requires explicit inventory",
+        "A tick cannot fake success; receipts are bound to batch, item, attempt and release",
+        "Cancellation stops only pre-submit items and waits for the in-flight receipt",
+        "Unknown survives cancellation/retry and reconciles the same operation",
+        "Only proven pre-submit failures retry after current identity recheck",
+        "Changes after confirmation block pre-submit and remain unknown after submission",
+        "Migration schema rejects grants, tokens, body, malformed IDs, versions and preferences",
+        "Migration limit counts UTF-8 bytes and allows only a bounded list"
+      ]
+    },
+    "fixtureIntegrationChecks": {
+      "nodeIntegrationAssertions": 20,
+      "staticStructureAssertions": 9,
+      "browserVisualTesting": "NOT_TESTED",
+      "browserRuntimeTesting": "NOT_TESTED",
+      "fragmentBytes": 151063
+    },
+    "inputs": [
+      {
+        "path": "/workspace/opendesk-app-market-r2.html",
+        "bytes": 151063,
+        "sha256": "f76d64eab6cab4e8706dd4cc9fe9205a7822b5c2baf5264fefc93f7816e5def9"
+      },
+      {
+        "path": "/workspace/scratch/c9f4bbc7adb7/deliverables/prototypes/marketplace/app-market-r2.html",
+        "bytes": 151489,
+        "sha256": "0b1493b84437c73e2ae54664dd477f7de4a415ea671a36c6e18ee3f877cb31dd"
+      },
+      {
+        "path": "/workspace/scratch/c9f4bbc7adb7/deliverables/docs/product/app-market-r2.contracts-example.json",
+        "bytes": 20076,
+        "sha256": "8304c2978595227aae6d31d0df51680231495521539bd576065d3240db23668e"
+      }
+    ],
+    "browserVisualTesting": "NOT_TESTED",
+    "browserRuntimeTesting": "NOT_TESTED",
+    "productionInstallationTesting": "NOT_TESTED",
+    "publicDeployment": "NOT_DEPLOYED"
+  },
+  "independentReview": {
+    "reviewer": "distribution_review (independent of pure-function and prototype authors)",
+    "reviewed_at_utc": "2026-10-11T05:57:04.268459+00:00",
+    "scope": "Read-only design and JavaScript review; independent pure Node assertions. No DOM, browser, external bridge, package execution, native installation, or visual validation.",
+    "files": {
+      "design": {
+        "path": "/workspace/scratch/c9f4bbc7adb7/deliverables/docs/product/app-market-r2.zh-CN.md",
+        "sha256": "0878734a9eca39b05ebe36a6001e95f60e9f9e06d535ffc4a2a93b53e2cdca33"
+      },
+      "contracts": {
+        "path": "/workspace/scratch/c9f4bbc7adb7/deliverables/docs/product/app-market-r2.contracts-example.json",
+        "sha256": "8304c2978595227aae6d31d0df51680231495521539bd576065d3240db23668e"
+      },
+      "prototype": {
+        "path": "/workspace/scratch/c9f4bbc7adb7/deliverables/prototypes/marketplace/app-market-r2.html",
+        "sha256": "0b1493b84437c73e2ae54664dd477f7de4a415ea671a36c6e18ee3f877cb31dd"
+      },
+      "pure": {
+        "path": "/workspace/scratch/c9f4bbc7adb7/review/r2-pure-functions.js",
+        "sha256": "9700433415a946a81ed251d8ed1d800af55f9a441db4355f05ee4c4949cee5a9"
+      }
+    },
+    "independent_checks": {
+      "base_assertions": 44,
+      "base_result": "PASS",
+      "final_targeted_assertions": 4,
+      "final_targeted_result": "PASS",
+      "final_targeted_scope": "queued and awaiting-confirmation retain priority in resolveInstallState and prevent fresh itemDisposition candidates",
+      "embedded_pure_exact_match": "PASS",
+      "scenarios": [
+        "Default mock rejection; explicit prototype opt-in",
+        "Positive published/unlisted admission and draft/in-review rejection",
+        "Explicit null digest rejection for real pinned releases",
+        "Unknown operation precedence over missing catalog/host",
+        "Existing native tool slot ownership collision",
+        "Verified exact-release skip; same-version unequal digest blocked",
+        "Version approval bound to installation generation and data compatibility",
+        "No success from tick or mismatched receipt; changed in-flight plan stays unknown",
+        "In-flight cancellation preserves completion; partial results remain independent",
+        "Retry only known uncommitted failure; unknown requires reconciliation",
+        "Strict import rejection and normalized export/import roundtrip",
+        "Pinned route preservation; malformed query/revision rejection"
+      ],
+      "static_renderer_checks": [
+        "Unavailable fixed version rejected before detail/handoff rendering",
+        "Share/detail/install paths retain selected fixed version",
+        "Collection member details use frozen item.version",
+        "Custom revision freezes members and revisionMetadata, retaining earlier revision",
+        "beginRestore now returns to matching running/unknown transfer batch without replacing it"
+      ]
+    },
+    "verdict": {
+      "product_design": "Core requirements closed; ready for implementation. No remaining blocking issue found in the reviewed pure functions or fixed-release/revision paths.",
+      "prototype": "Reviewable interactive design model; partial product-flow coverage, not a production implementation."
+    },
+    "scores": {
+      "scale": "Subjective static review, 0-100; no visual/native evidence included. Separate scopes; do not average or label as production quality.",
+      "dimensions": [
+        {
+          "name": "发现与信息架构",
+          "weight": 20,
+          "design_spec": 19,
+          "prototype_structure": 19
+        },
+        {
+          "name": "状态与管理",
+          "weight": 15,
+          "design_spec": 15,
+          "prototype_structure": 14
+        },
+        {
+          "name": "独立详情、媒体与分享",
+          "weight": 15,
+          "design_spec": 14,
+          "prototype_structure": 13
+        },
+        {
+          "name": "安装与信任",
+          "weight": 20,
+          "design_spec": 19,
+          "prototype_structure": 18
+        },
+        {
+          "name": "套装与迁移",
+          "weight": 10,
+          "design_spec": 10,
+          "prototype_structure": 9
+        },
+        {
+          "name": "可评审性与工程复用",
+          "weight": 20,
+          "design_spec": 19,
+          "prototype_structure": 18
+        }
+      ],
+      "design_spec_total": 96,
+      "prototype_structure_total": 91,
+      "design_deductions": [
+        {
+          "points": 1,
+          "dimension": "发现与信息架构",
+          "reason": "Developer/support entry is described but its secondary-page routing is not yet specified to the same detail as consumer routes."
+        },
+        {
+          "points": 1,
+          "dimension": "独立详情、媒体与分享",
+          "reason": "Media acceptance names type/size/dimension controls but leaves the final quantitative publication limits open."
+        },
+        {
+          "points": 1,
+          "dimension": "安装与信任",
+          "reason": "Bridge responsibilities and rejection conditions are clear, while version negotiation and wire error/response shapes remain proposal-level rather than a frozen protocol."
+        },
+        {
+          "points": 1,
+          "dimension": "可评审性与工程复用",
+          "reason": "Production schema examples and immutable normalized-byte requirement are not yet a normative executable schema/canonicalization contract."
+        }
+      ],
+      "prototype_remaining_gaps": [
+        "Developer publishing/support and catalog loading/offline routes are described rather than fully demonstrated",
+        "Version comparison shows installed/target versions and target capabilities, without a full previous/new permission delta",
+        "Detail page does not yet carry real version changelog and dedicated author support presentation",
+        "Collection version-review and nonempty preference-conflict paths are covered by requirements/model but not a full reusable UI loop",
+        "Renderer and explicit prototype state remain coupled; pure block is separable but not the production contract implementation"
+      ]
+    },
+    "not_tested": [
+      "Rendered appearance",
+      "Keyboard and focus behavior",
+      "Narrow viewport and zoom",
+      "Real screenshots/recordings",
+      "HTTPS external handoff",
+      "Browser service-worker/restart recovery",
+      "Native installation and device migration"
+    ],
+    "notes": [
+      "No backend implementation was counted as a missing product contract.",
+      "All findings sent to authors were rechecked after fixes.",
+      "44 initial independent assertions plus 4 final targeted assertions are not the author's own 17-group test count.",
+      "Final scores judge known scope and are not a certification or a promise of usability outcomes."
+    ],
+    "final_document_amendment_review": {
+      "reviewed_at_utc": "2026-10-11T05:58:23.049012+00:00",
+      "sections": [
+        "1: separate 96/100 design-spec and 91/100 prototype-structure scopes",
+        "8.1: exact current transfer schema and explicit future schema expansion"
+      ],
+      "result": "PASS; scores unchanged. No additional model tests performed.",
+      "reason": "The scoring statement preserves scope boundaries; transfer wording now matches the existing strict parser/export shape and separates future fields from current schemaVersion 1."
+    },
+    "final_source_annotation_review": {
+      "reviewed_at_utc": "2026-10-11T06:00:45.045207+00:00",
+      "scope": "Read only design section 13 and contracts finalIntegrationObservation; external source comparison was performed by root, not independently repeated here.",
+      "main_at_preparation": "d014bd071bcc2fdb674a06e1347f6ddd1a3e8915",
+      "source_toc_version": "1.0.2",
+      "prototype_pinned_toc_version": "1.0.1",
+      "result": "PASS; documentation consistently records a newer source without replacing the fixed prototype or immutable collection revision. Design 96/100 and prototype-structure 91/100 remain unchanged.",
+      "additional_model_tests": "Not run; code unchanged according to root and this review is limited to the two annotations."
+    }
+  },
+  "sourceIntegrationObservations": {
+    "knowledgeInbox": {
+      "version": "1.0.0",
+      "capabilities": [
+        "page.capture",
+        "knowledge.store",
+        "user.export"
+      ],
+      "includedInR2Prototype": false
+    },
+    "readingToc": {
+      "latestSourceVersionAtIntegration": "1.0.2",
+      "pinnedPrototypeVersion": "1.0.1",
+      "capabilities": [
+        "page.toc"
+      ],
+      "fixedSnapshotNotSilentlyUpdated": true
+    },
+    "sidebarLimits": {
+      "maxInstalledTools": 12,
+      "maxPackageBytes": 320000,
+      "strictV1FieldsUnchanged": true
+    }
+  },
+  "notTested": [
+    "Browser rendered appearance",
+    "Real DOM and keyboard/focus behavior",
+    "Responsive viewport and zoom",
+    "Real product screenshots or recordings",
+    "Public HTTPS direct-load routes and social sharing previews",
+    "Real extension handoff and origin/document binding",
+    "Persistent native installation operations and browser restart recovery",
+    "Actual cross-device migration",
+    "Nonempty application preferences and content migration",
+    "General app pause/author publication/revocation production contracts"
+  ],
+  "notDeployed": [
+    "Public market",
+    "External install bridge",
+    "Collection revision service",
+    "Transfer service"
+  ],
+  "browserPolicy": {
+    "previousFileNavigation": "BLOCKED_BY_BROWSER_URL_POLICY",
+    "thisTurnBrowserAttempt": false,
+    "workaroundAttempt": false
+  },
+  "honestyBoundaries": {
+    "realArtifactDigestsVerified": false,
+    "realNativeReceiptsGenerated": false,
+    "prototypeReceiptsAreArtificial": true,
+    "prototypeInstallStateIsMemoryOnly": true,
+    "exampleOriginsAreNotLive": true,
+    "allChecksAreWithinDeclaredScope": true,
+    "overlappingCheckCountsNotSummed": true
+  },
+  "integrationMethod": {
+    "branch": "main",
+    "newBranchCreated": false,
+    "baseTreePreservesUnrelatedFiles": true,
+    "force": false,
+    "expectedShaRequired": true,
+    "noLocalCheckoutReset": true
+  },
+  "references": [
+    "https://developer.chrome.com/docs/extensions/reference/manifest/externally-connectable",
+    "https://developer.chrome.com/docs/extensions/develop/concepts/messaging",
+    "https://developer.chrome.com/docs/extensions/reference/api/sidePanel",
+    "https://developer.chrome.com/docs/extensions/reference/api/runtime",
+    "https://developer.chrome.com/docs/webstore/program-policies/mv3-requirements",
+    "https://developer.chrome.com/docs/extensions/reference/api/userScripts",
+    "https://github.com/shopable-ai/opendesk-browser/blob/d014bd071bcc2fdb674a06e1347f6ddd1a3e8915/examples/sidebar-tools/reading-toc/tool.config.json",
+    "https://github.com/shopable-ai/opendesk-browser/blob/dece01194df2cb5a5a6779d95697c9f3a80f53f8/examples/sidebar-tools/knowledge-inbox/tool.config.json"
+  ]
+}
