@@ -230,3 +230,17 @@ test('Workspace import rereads durable session under the uninstall lock, and ret
     assert.ok(taken.every(name=>name==='opendesk.sidebar-tools:tool:knowledge-inbox'));
   }finally{helper.dispose();}
 });
+
+test('knowledge quota rejection retains local records and returns host quota classification',async()=>{
+  const f=fixture(),saved=await f.send('capture.save',input());
+  const before=structuredClone(f.store[KNOWLEDGE_DATA_KEY]);
+  const set=f.api.storage.local.set;
+  f.api.storage.local.set=async values=>{
+    if(Object.hasOwn(values,KNOWLEDGE_DATA_KEY))throw Error('QUOTA_BYTES quota exceeded');
+    return set(values);
+  };
+  await assert.rejects(()=>f.send('capture.save',input('another answer',{messageId:'quota-case'})),
+    {code:'E_HOST_STORAGE_QUOTA'});
+  assert.deepEqual(f.store[KNOWLEDGE_DATA_KEY],before);
+  assert.equal(f.store[KNOWLEDGE_DATA_KEY].records[0].id,saved.id);
+});

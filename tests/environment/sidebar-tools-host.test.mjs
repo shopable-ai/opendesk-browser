@@ -914,3 +914,18 @@ test('R4.5 an official package removed after review is rejected before any insta
   await settle(()=>/E_PACKAGE_MISSING/.test(f.elements['sidebar-tool-status'].textContent||''));
   assert.equal(f.store.has(SIDEBAR_TOOL_STORE),false);assert.equal(f.store.has(MARKET_OPERATIONS_STORE),false);
 });
+
+test('quota failure is returned with a stable bridge code and preserves the current tool draft',async t=>{
+  const key=sidebarToolStorageKey(sample.id),previous={notes:'do not overwrite'};
+  const store=new Map([[SIDEBAR_TOOL_STORE,[sample]],[key,previous]]);
+  const f=await hostFixture(t,{store,setHook:async rows=>{
+    if(Object.hasOwn(rows,key))throw Error('QUOTA_BYTES quota exceeded');
+  }});
+  f.ask('storage.set',{key:'notes',value:'unsaved edit'},'quota-failure');
+  await settle(()=>f.frame.contentWindow.sent.some(row=>row.kind==='response'&&row.requestId==='quota-failure'));
+  const reply=f.frame.contentWindow.sent.find(row=>row.requestId==='quota-failure');
+  assert.equal(reply.ok,false);assert.equal(reply.error.code,'E_HOST_STORAGE_QUOTA');
+  assert.deepEqual(store.get(key),previous);
+  assert.equal(f.elements['sidebar-tool-frame'].children.length,1,
+    'the failed save must not close a live editor and discard its unsaved input');
+});
