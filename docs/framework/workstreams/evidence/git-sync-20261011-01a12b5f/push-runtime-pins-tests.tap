@@ -1,0 +1,76 @@
+TAP version 13
+# Subtest: R15.5 doctor differentiates source, package and actual Chrome acceptance
+ok 1 - R15.5 doctor differentiates source, package and actual Chrome acceptance
+  ---
+  duration_ms: 242.625917
+  type: 'test'
+  ...
+# Subtest: R15.5 doctor rejects unregistered output and missing library files, without needing a build
+ok 2 - R15.5 doctor rejects unregistered output and missing library files, without needing a build
+  ---
+  duration_ms: 6.628375
+  type: 'test'
+  ...
+# Subtest: R15.5 doctor accepts only approved development maps and rejects symlink resources
+ok 3 - R15.5 doctor accepts only approved development maps and rejects symlink resources
+  ---
+  duration_ms: 7.107958
+  type: 'test'
+  ...
+# Subtest: R15.5 diagnostic PACKAGE_PASS cannot accept an oversized shipped SW
+ok 4 - R15.5 diagnostic PACKAGE_PASS cannot accept an oversized shipped SW
+  ---
+  duration_ms: 0.168458
+  type: 'test'
+  ...
+# Subtest: R24.3 standard React/Vue JS imports link to fixed runtime and generated UI wrapper
+ok 5 - R24.3 standard React/Vue JS imports link to fixed runtime and generated UI wrapper
+  ---
+  duration_ms: 499.8205
+  type: 'test'
+  ...
+# Subtest: R24.3 Native resolver snapshots implicit UI helpers and invalidates component edits
+ok 6 - R24.3 Native resolver snapshots implicit UI helpers and invalidates component edits
+  ---
+  duration_ms: 178.644666
+  type: 'test'
+  ...
+# Subtest: R24.3 wrong-framework imports, unavailable fixed APIs and missing framework are diagnosed
+ok 7 - R24.3 wrong-framework imports, unavailable fixed APIs and missing framework are diagnosed
+  ---
+  duration_ms: 7.328041
+  type: 'test'
+  ...
+# Subtest: R24.3 old async-main remains default and Controller cannot opt into component
+ok 8 - R24.3 old async-main remains default and Controller cannot opt into component
+  ---
+  duration_ms: 2.059875
+  type: 'test'
+  ...
+# Subtest: R24.1 framework examples use explicit Page rules, managed UI and unmount
+ok 9 - R24.1 framework examples use explicit Page rules, managed UI and unmount
+  ---
+  duration_ms: 4.228334
+  type: 'test'
+  ...
+# Subtest: R24.1 JSX and SFC contain genuine framework source
+ok 10 - R24.1 JSX and SFC contain genuine framework source
+  ---
+  duration_ms: 2.096958
+  type: 'test'
+  ...
+# Subtest: R24.1 all three examples share a bounded and reversible DOM modification
+ok 11 - R24.1 all three examples share a bounded and reversible DOM modification
+  ---
+  duration_ms: 0.803375
+  type: 'test'
+  ...
+1..11
+# tests 11
+# suites 0
+# pass 11
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 762.413

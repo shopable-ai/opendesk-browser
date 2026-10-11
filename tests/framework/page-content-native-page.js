@@ -193,13 +193,33 @@ async function check(name,fn){try{cases.push({name,ok:true,value:await fn()});}
     if(pageProof){
       // Exercise ACTUAL optional USER_SCRIPT code in the same native CFT run.
       // Only the catalog-approved, hash-verified packaged resource is loaded.
+      // Chrome UserScript previews are intentionally limited per document.
+      // Get genuine new document IDs for persistence checks; never increase
+      // the product's budget or synthesize a browser receipt.
+      let optionalTarget=target;
+      const refreshOptionalDocument=async()=>{
+        const previousDocumentId=optionalTarget.documentId;
+        await chrome.tabs.reload(tab.id);
+        let frame=null;
+        for(let attempt=0;attempt<160;attempt++){
+          const frames=await chrome.webNavigation.getAllFrames({tabId:tab.id});
+          const current=await chrome.tabs.get(tab.id);
+          frame=frames?.find(item=>item.frameId===0&&item.url===base+'/large'&&
+            typeof item.documentId==='string'&&item.documentId!==previousDocumentId);
+          if(frame&&current.status==='complete')break;
+          frame=null;
+          await new Promise(resolve=>setTimeout(resolve,50));
+        }
+        assert(frame?.documentId,'Real Chrome refresh did not provide a new top-frame documentId');
+        optionalTarget={...optionalTarget,documentId:frame.documentId};
+      };
       const previewOptional=async sourceUtf8=>{
         const current=await chrome.tabs.get(tab.id);
         const result=await client.request('previewPageScript',{sourceUtf8,entryFormat:'async-main',
-          target:{tabId:tab.id,frameId:0,documentId:target.documentId,
+          target:{tabId:tab.id,frameId:0,documentId:optionalTarget.documentId,
             expectedUrl:base+'/large',expectedWindowId:current.windowId}});
         assert(result?.state==='preview-evaluated'&&result.world==='USER_SCRIPT'&&
-          result.documentId===target.documentId,'Optional Page receipt mismatch '+JSON.stringify(result));
+          result.documentId===optionalTarget.documentId,'Optional Page receipt mismatch '+JSON.stringify(result));
         return {value:JSON.parse(result.resultText),world:result.world,
           optionalSha256:result.packagedOptionalSha256??null};
       };
@@ -229,8 +249,12 @@ async function check(name,fn){try{cases.push({name,ok:true,value:await fn()});}
         return result;
       });
       await check('page-user-script-real-store-persistence-and-owner-prefix',async()=>{
+        await refreshOptionalDocument();
         const script='// @opendesk-lib store\nasync function main(){const previous=store.get("counter",0);store.set("counter",previous+1);return {previous,current:store.get("counter"),enabled:store.enabled}}';
-        const first=await previewOptional(script),second=await previewOptional(script);
+        const first=await previewOptional(script);
+        // Two distinct Chrome documents must observe the same tool value.
+        await refreshOptionalDocument();
+        const second=await previewOptional(script);
         assert(first.value?.previous===0&&first.value?.current===1&&first.value.enabled===true&&
           second.value?.previous===1&&second.value?.current===2,
           'Real Page store did not persist across USER_SCRIPT executions: '+JSON.stringify({first,second}));
@@ -241,7 +265,7 @@ async function check(name,fn){try{cases.push({name,ok:true,value:await fn()});}
         assert(result.value?.saveAs==='function'&&result.value?.code==='E_CONFIG_UNSUPPORTED',
           'FileSaver failed to reject remote URL in actual Chrome: '+JSON.stringify(result));
         const [main]=await chrome.scripting.executeScript({
-          target:{tabId:tab.id,documentIds:[target.documentId]},world:'MAIN',
+          target:{tabId:tab.id,documentIds:[optionalTarget.documentId]},world:'MAIN',
           func:()=>({cryptoJs:typeof window.CryptoJS,fileSaver:typeof window.FileSaver,cookies:typeof window.Cookies,queryString:typeof window.queryString,axios:typeof window.axios,store:typeof window.store})});
         assert(Object.values(main.result).every(value=>value==='undefined'),
           'Optional USER_SCRIPT packages contaminated website MAIN '+JSON.stringify(main));

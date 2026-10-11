@@ -1,0 +1,56 @@
+[
+  {
+    "targetId": "3EE682973810B94018F9423E364B1DDE",
+    "type": "service_worker",
+    "title": "Service Worker chrome-extension://bldkfieeffncnmjgnmlkmdmimicflfen/sw.js",
+    "url": "chrome-extension://bldkfieeffncnmjgnmlkmdmimicflfen/sw.js",
+    "attached": true,
+    "canAccessOpener": false,
+    "browserContextId": "74DB0A1B30D82448FA674B87CAFC412B"
+  },
+  {
+    "targetId": "9E0D41D4B546997587AC9791B2E271F1",
+    "type": "browser_ui",
+    "title": "Omnibox Popup",
+    "url": "chrome://omnibox-popup.top-chrome/omnibox_popup_aim.html",
+    "attached": false,
+    "canAccessOpener": false,
+    "browserContextId": "74DB0A1B30D82448FA674B87CAFC412B"
+  },
+  {
+    "targetId": "B7DD211EB0DEA336295A446F44D516D2",
+    "type": "page",
+    "title": "OpenDesk Browser · Browser Test Lab",
+    "url": "http://127.0.0.1:43111/demo-form.html",
+    "attached": false,
+    "canAccessOpener": false,
+    "browserContextId": "74DB0A1B30D82448FA674B87CAFC412B"
+  },
+  {
+    "targetId": "90D8C5B4865AE865E4291B00DF5F046C",
+    "type": "page",
+    "title": "about:blank",
+    "url": "about:blank",
+    "attached": false,
+    "canAccessOpener": false,
+    "browserContextId": "74DB0A1B30D82448FA674B87CAFC412B"
+  },
+  {
+    "targetId": "834B80CE35CF20176C0C60072993B507",
+    "type": "browser_ui",
+    "title": "Omnibox Popup",
+    "url": "chrome://omnibox-popup.top-chrome/",
+    "attached": false,
+    "canAccessOpener": false,
+    "browserContextId": "74DB0A1B30D82448FA674B87CAFC412B"
+  },
+  {
+    "targetId": "639F5AA5C3E7A1994D2B744E8E044C3E",
+    "type": "page",
+    "title": "OpenDesk Browser",
+    "url": "chrome-extension://bldkfieeffncnmjgnmlkmdmimicflfen/ui/tool.html?hostInstanceId=23977ca5-6160-4b1d-a42f-4ec88731e2d7",
+    "attached": true,
+    "canAccessOpener": false,
+    "browserContextId": "74DB0A1B30D82448FA674B87CAFC412B"
+  }
+]
