@@ -5,7 +5,8 @@ import {readFile,mkdtemp,rm} from 'node:fs/promises';
 import {join} from 'node:path';
 import {tmpdir} from 'node:os';
 import {createReadingTocIndex} from '../../src/reading-toc/model.js';
-import {websiteOrigin,changeTocGrant,tocGrantAllowed,READING_TOC_SITE_STORE} from '../../src/reading-toc/policy.js';
+import {websiteOrigin,changeTocGrant,tocGrantAllowed,READING_TOC_SITE_STORE,
+  READING_TOC_PAGE_RULES_STORE,changeTocPageAllowed,readingTocPageAllowed,disabledTocPages} from '../../src/reading-toc/policy.js';
 import {validateSidebarToolPackage} from '../../src/ui/sidebar-tools/package.js';
 import {buildSidebarTool} from '../../scripts/build-sidebar-tool.mjs';
 
@@ -32,6 +33,21 @@ test('R4.1 per-site TOC authority is explicit and v1 legacy packages remain comp
   assert.deepEqual(changeTocGrant(granted,pack.id,'https://example.com/b',false),{});
   assert.ok(READING_TOC_SITE_STORE.includes('toc-sites'));
   assert.throws(()=>validateSidebarToolPackage({...pack,capabilities:['page.toc','chrome.tabs']}),/能力/);
+});
+
+test('R4.7 current-page exclusions do not grant origin authority or capture URL queries',()=>{
+  const id='reading-toc',url='https://example.com/guide?private=token#answer';
+  assert.equal(readingTocPageAllowed({},id,url),true);
+  const denied=changeTocPageAllowed({},id,url,false);
+  assert.deepEqual(denied,{[id]:['https://example.com/guide']});
+  assert.equal(readingTocPageAllowed(denied,id,url),false);
+  assert.equal(readingTocPageAllowed(denied,id,'https://example.com/another'),true);
+  assert.equal(readingTocPageAllowed(denied,'other-tool',url),true);
+  assert.equal(readingTocPageAllowed(denied,id,'javascript:alert(1)'),false);
+  assert.deepEqual(disabledTocPages(denied,id),['https://example.com/guide']);
+  assert.deepEqual(changeTocPageAllowed(denied,id,url,true),{});
+  assert.match(READING_TOC_PAGE_RULES_STORE,/disabled-pages/);
+  assert.throws(()=>changeTocPageAllowed({},id,'chrome://extensions',false),/页面/);
 });
 
 class Element {
