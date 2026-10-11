@@ -1,6 +1,6 @@
 # 主分支集成与分支清理（2026-10-12）
 
-状态：VALIDATED_READY_TO_PUSH。用户授权合并所有分支、推送 main、删除已合并分支，并设置完成目标。
+状态：COMPLETE。用户授权合并所有分支、推送 main、删除已合并分支，并设置完成目标。
 
 隔离目录：`/Users/shopme/Documents/workspace/opendesk-main-only-20261012-01a12bbc`；独占资源：本目录 Git 集成、独立测试日志/构建产物；不使用 Chrome/profile/固定端口/主工作区 dist。
 
@@ -20,4 +20,4 @@
 
 用户要求避免过度测试：只收尾生产构建，不追加全仓回归、开发包、原生、F3 或 ZIP 安装验收。上述结果不提升为正式 F3/ZIP。
 
-待执行：原子普通推送 main 和按精确 SHA 守卫删除其余远端分支；主目录 fast-forward，保留其全部未提交文件；其他 dirty worktree 仅 detach HEAD，不删除文件，然后安全删除已可达本地 branch refs。最终记录实际 refs。
+已完成：原子普通推送 main，并以精确 SHA 守卫删除 11 个已合并远端分支；主目录 fast-forward 后 58 个当时未提交文件内容哈希全部保持一致。consent 和本集成 worktree 仅 detach HEAD，保留文件；3 个本地非主 branch refs 经祖先核对后安全删除。远端及本地 branch refs 均只剩 main。独立工作区产物保留，资源 released。

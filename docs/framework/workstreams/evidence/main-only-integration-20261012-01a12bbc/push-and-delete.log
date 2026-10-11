@@ -1,0 +1,13 @@
+To github.com:shopable-ai/opendesk-browser.git
+ - [deleted]           agent/browser-sdk-r13-20261011
+ - [deleted]           agent/no-js-modal-tools-r50-20261011
+ - [deleted]           agent/no-js-modals-r51-20261011
+ - [deleted]           agent/nonmodal-consolidation-r52-20261011
+ - [deleted]           agent/nonmodal-tool-actions-r50-20261011
+ - [deleted]           agent/page-ui-jsx-sfc-guide-20261011
+ - [deleted]           agent/page-ui-jsx-sfc-shared-runtime-r243
+ - [deleted]           agent/sidebar-market-layout-r49-20261011
+ - [deleted]           agent/site-grant-inline-ux-r49-20261011
+ - [deleted]           agent/time-review-inline-consent-r51-20261011
+ - [deleted]           agent/time-review-r13-canvas-v3-20261012
+   61715bd8..ad7683a6  HEAD -> main

@@ -1,5 +1,5 @@
 {
-  "status": "VALIDATED_READY_TO_PUSH",
+  "status": "COMPLETE",
   "sourceCommit": "8ebd5e237c1c345c261bc1d147a85a88cdfb4b2b",
   "targeted": {
     "tests": 332,
@@ -94,5 +94,20 @@
       "sha": "61715bd8fc6cf56542af90fc2a135d69ac2c7bcf",
       "ancestorOfCandidate": true
     }
-  ]
+  ],
+  "cleanup": {
+    "remoteBranchesRemaining": [
+      "main"
+    ],
+    "remoteBranchesDeleted": 11,
+    "localBranchesRemaining": [
+      "main"
+    ],
+    "localBranchesDeleted": 3,
+    "remoteMainObserved": "ad7683a65c415b691a019f56b1733bc248548eaa",
+    "dirtyPrimaryFilesPreserved": 58,
+    "dirtyConsentWorktree": "HEAD detached; files preserved",
+    "integrationWorktree": "HEAD detached; independent artifacts preserved",
+    "resources": "released"
+  }
 }
