@@ -5,6 +5,7 @@ import {resolve,dirname,basename,relative,sep,extname} from 'node:path';
 import {createHash} from 'node:crypto';
 import {pathToFileURL} from 'node:url';
 import {parse} from 'acorn';
+import {transformSync} from 'esbuild';
 import {validatePageProgramRules} from '../src/scripting/user-scripts/page-program-contract.js';
 import {parseUserScriptDependencies} from '../src/scripting/user-scripts/dependency-metadata.js';
 import {checkParamsSchema} from '../src/platform/tasks/contract.js';
@@ -90,8 +91,10 @@ function metadata(pkg,projectLabel){
     'E_PROJECT_SCHEMA','Project fields do not match the declared runtime kind',details);
 
   declaredPath(p.entry,{...details,location:'package.json#opendesk.entry'});
-  ensure(['.js','.mjs'].includes(extname(p.entry)),'E_PROJECT_ENTRY',
-    'Entry must be an explicit .js or .mjs module',{...details,location:p.entry});
+  ensure(['.js','.mjs'].includes(extname(p.entry))||
+    p.runtimeKind==='page-userscript'&&p.entryMode==='component'&&
+    p.framework==='react'&&extname(p.entry)==='.jsx','E_PROJECT_ENTRY',
+    'Entry must be an explicit JavaScript module or React component .jsx',{...details,location:p.entry});
 
   if(p.runtimeKind==='page-userscript'){
     validatePageProgramRules(p.pageRules);
@@ -150,7 +153,14 @@ function dependencyName(spec,details){
 
 function parseImports(text,file,projectLabel){
   let ast;
-  try{ast=parse(text,{ecmaVersion:'latest',sourceType:'module',locations:true});}
+  try{
+    const parserSource=file.endsWith('.jsx')?transformSync(text,{
+      loader:'jsx',format:'esm',target:'es2022',jsx:'transform',
+      jsxFactory:'globalThis.OpenDeskPageReact.createElement',
+      jsxFragment:'globalThis.OpenDeskPageReact.Fragment',sourcefile:file
+    }).code:text;
+    ast=parse(parserSource,{ecmaVersion:'latest',sourceType:'module',locations:true});
+  }
   catch(error){
     fail('E_PROJECT_SYNTAX',file+': '+error.message,
       context(projectLabel,'validate',{file,line:error.loc?.line,column:error.loc?.column}));
@@ -220,6 +230,10 @@ export async function validateProgramProject(input,{readProjectFile}={}){
     ensure(!parseUserScriptDependencies(text).hasHeader,'E_PROJECT_SOURCE_MODE',
       'ESM package projects must not include a UserScript metadata header',
       context(projectLabel,'validate',file));
+    ensure(!file.endsWith('.jsx')||p.runtimeKind==='page-userscript'&&
+      p.entryMode==='component'&&p.framework==='react','E_PROJECT_FRAMEWORK_IMPORT',
+      'React .jsx requires a Page React component project',
+      context(projectLabel,'validate',file));
     const {ast,imports}=parseImports(text,file,projectLabel);
     modules.set(file,ast);
     graph.set(file,{path:file,sourceUtf8:text,bytes:bytes.length,sha256:sha(bytes)});
@@ -239,8 +253,10 @@ export async function validateProgramProject(input,{readProjectFile}={}){
         const target=resolve(projectRoot,dirname(file),spec);
         ensure(inside(projectRoot,target),'E_PROJECT_PATH','Local import cannot escape project root',
           context(projectLabel,'validate',location));
-        ensure(['.js','.mjs'].includes(extname(target)),'E_PROJECT_IMPORT',
-          'Local imports must include an explicit .js/.mjs extension',
+        ensure(['.js','.mjs'].includes(extname(target))||
+          extname(target)==='.jsx'&&p.runtimeKind==='page-userscript'&&
+          p.framework==='react'&&p.entryMode==='component','E_PROJECT_IMPORT',
+          'Local imports must include an explicit supported .js/.mjs/.jsx extension',
           context(projectLabel,'validate',location));
         await scan(relative(projectRoot,target));
       }else{

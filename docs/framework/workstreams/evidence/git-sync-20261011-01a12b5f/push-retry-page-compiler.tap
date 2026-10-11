@@ -1,0 +1,106 @@
+TAP version 13
+# Subtest: R24.3 standard React/Vue JS imports link to fixed runtime and generated UI wrapper
+ok 1 - R24.3 standard React/Vue JS imports link to fixed runtime and generated UI wrapper
+  ---
+  duration_ms: 507.819125
+  type: 'test'
+  ...
+# Subtest: R24.3 Native resolver snapshots implicit UI helpers and invalidates component edits
+ok 2 - R24.3 Native resolver snapshots implicit UI helpers and invalidates component edits
+  ---
+  duration_ms: 179.280916
+  type: 'test'
+  ...
+# Subtest: R24.3 wrong-framework imports, unavailable fixed APIs and missing framework are diagnosed
+ok 3 - R24.3 wrong-framework imports, unavailable fixed APIs and missing framework are diagnosed
+  ---
+  duration_ms: 3.773917
+  type: 'test'
+  ...
+# Subtest: R24.3 old async-main remains default and Controller cannot opt into component
+ok 4 - R24.3 old async-main remains default and Controller cannot opt into component
+  ---
+  duration_ms: 3.10025
+  type: 'test'
+  ...
+# Subtest: R24.3 official App.jsx validates as a component with zero user npm runtime dependencies
+ok 5 - R24.3 official App.jsx validates as a component with zero user npm runtime dependencies
+  ---
+  duration_ms: 34.622292
+  type: 'test'
+  ...
+# Subtest: R24.3 real JSX esbuild/Webpack pipeline links pinned runtime and emits a managed Page preview
+ok 6 - R24.3 real JSX esbuild/Webpack pipeline links pinned runtime and emits a managed Page preview
+  ---
+  duration_ms: 279.524542
+  type: 'test'
+  ...
+# Subtest: equivalent static function defaults include declarations, local aliases and local re-exports
+ok 7 - equivalent static function defaults include declarations, local aliases and local re-exports
+  ---
+  duration_ms: 369.067208
+  type: 'test'
+  ...
+# Subtest: entry inspection never executes authoring code and rejects unknown or mutable defaults
+ok 8 - entry inspection never executes authoring code and rejects unknown or mutable defaults
+  ---
+  duration_ms: 5.38525
+  type: 'test'
+  ...
+# Subtest: cyclic and ambiguous re-exports give distinct entry diagnostics with relative dependency chain
+ok 9 - cyclic and ambiguous re-exports give distinct entry diagnostics with relative dependency chain
+  ---
+  duration_ms: 2.986458
+  type: 'test'
+  ...
+# Subtest: multi-file ESM authoring project is a source contract, not an installed program
+ok 10 - multi-file ESM authoring project is a source contract, not an installed program
+  ---
+  duration_ms: 15.565333
+  type: 'test'
+  ...
+# Subtest: HTTPS ESM may be declared for build-time pinning, but HTTP and escaping local imports are rejected
+ok 11 - HTTPS ESM may be declared for build-time pinning, but HTTP and escaping local imports are rejected
+  ---
+  duration_ms: 7.4985
+  type: 'test'
+  ...
+# Subtest: entry diagnostics distinguish missing and non-function defaults with source location
+ok 12 - entry diagnostics distinguish missing and non-function defaults with source location
+  ---
+  duration_ms: 3.091708
+  type: 'test'
+  ...
+# Subtest: dynamic import is not quietly kept as an unlocked runtime dependency
+ok 13 - dynamic import is not quietly kept as an unlocked runtime dependency
+  ---
+  duration_ms: 2.259959
+  type: 'test'
+  ...
+# Subtest: npm imports require declared dependencies and a committed matching npm lock
+ok 14 - npm imports require declared dependencies and a committed matching npm lock
+  ---
+  duration_ms: 6.83825
+  type: 'test'
+  ...
+# Subtest: Page/Controller source contracts remain discriminated without changing Task v1
+ok 15 - Page/Controller source contracts remain discriminated without changing Task v1
+  ---
+  duration_ms: 2.851958
+  type: 'test'
+  ...
+# Subtest: assets can be listed and hashed but never silently injected
+ok 16 - assets can be listed and hashed but never silently injected
+  ---
+  duration_ms: 3.910291
+  type: 'test'
+  ...
+1..16
+# tests 16
+# suites 0
+# pass 16
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 772.187959

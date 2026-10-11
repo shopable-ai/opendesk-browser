@@ -1,0 +1,16 @@
+{
+  "originalErrors": [],
+  "errors": [],
+  "residual": [],
+  "states": [
+    {
+      "pid": 68885,
+      "state": "exited"
+    },
+    {
+      "pid": 73443,
+      "state": "exited"
+    }
+  ],
+  "profileState": "path-absent"
+}

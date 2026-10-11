@@ -82,7 +82,7 @@ async function compileWebpack(root,entry,temp,mode,{remoteAliases=new Map(),virt
     externalsType:'var',
     ...(framework?{externals:Object.fromEntries(Object.keys(PAGE_FRAMEWORK_IMPORTS[framework]).map(spec=>
       [spec,'globalThis.'+PAGE_FRAMEWORK_RUNTIMES[framework].global]))}:{}),
-    resolve:{modules:['node_modules'],extensions:['.js','.mjs'],symlinks:!createInputFileSystem,
+    resolve:{modules:['node_modules'],extensions:['.js','.mjs','.jsx'],symlinks:!createInputFileSystem,
       fallback:{},restrictions:[permittedRoots],alias:{'@opendesk/ui$':PAGE_UI_MODULE}},
     optimization:{
       runtimeChunk:false,
@@ -96,7 +96,7 @@ async function compileWebpack(root,entry,temp,mode,{remoteAliases=new Map(),virt
     // Resolve locked HTTPS imports before Webpack's external-module hook.
     // Never enable webpack experiments.buildHttp or a runtime remote external.
     experiments:{outputModule:false},
-    module:{rules:[]},
+    module:{rules:[{test:/\.jsx$/,use:[{loader:fileURLToPath(new URL('./page-jsx-loader.cjs',import.meta.url))}]}]},
     resolveLoader:{modules:[]},
     plugins:[{apply(compiler){compiler.hooks.normalModuleFactory.tap('OpenDeskLockedImports',factory=>{factory.hooks.beforeResolve.tap('OpenDeskLockedImports',resource=>{
       if(!resource)return;

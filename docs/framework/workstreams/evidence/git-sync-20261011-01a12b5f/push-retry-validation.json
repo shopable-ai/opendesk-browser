@@ -1,0 +1,25 @@
+{
+  "upstream": "638afa1a9266ac695a6f3cb4895f04af57f70d96",
+  "sourceCheckFiles": 435,
+  "nodeAuthoringTests": {
+    "pass": 16,
+    "fail": 0
+  },
+  "changedPaths": [
+    ".github/workflows/program-project-source.yml",
+    "examples/programs/page-ui-react/README.md",
+    "examples/programs/page-ui-react/package.json",
+    "examples/programs/page-ui-react/src/App.jsx",
+    "native-agent/local-dev/resolver.mjs",
+    "prototypes/time-review-r12/README.md",
+    "prototypes/time-review-r12/index.html",
+    "scripts/build-program-project.mjs",
+    "scripts/page-jsx-loader.cjs",
+    "scripts/validate-program-project.mjs",
+    "tests/environment/page-jsx-component-r243.test.mjs"
+  ],
+  "affectedWxtModulePaths": [],
+  "packageEvidenceValidatedCommit": "3be78d01",
+  "packageEvidenceScope": "Original exact package hashes remain valid; Node authoring changes are outside WXT graphs; not a new final F3 fingerprint",
+  "nativeAcceptance": "NOT_TESTED"
+}
