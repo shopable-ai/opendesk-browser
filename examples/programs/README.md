@@ -71,3 +71,8 @@ npm run build:program -- examples/programs/sidebar-controller-demo
 - [sidebar-controller-demo](sidebar-controller-demo/README.md)：现有 3 模块 Controller + Locator，复用唯一标准 `examples/tasks/demo-form.html`。
 - [remote-esm-page](remote-esm-page/README.md)：本地模块封装 HTTPS `lodash-es/add.js`，首次单独审阅/逐 URL 批准；固定缓存后离线重复编译。
 - 自动化负向 fixture 留在 `tests/environment/page-dependencies-ui.test.mjs`、`local-project-connection.test.mjs`、`remote-esm-review.test.mjs`，不和用户示例混放。Node/Go/Native/Chrome 不得混用成功等级。
+
+
+## R24.3 高级源码构建候选
+
+`page-ui-react`（原生 JSX）和 `page-ui-vue`（Vue SFC）增加了**避免重复打包 React/Vue 的代码候选**，详见各自 README。它们仍需要用户主动启动 Vite watch（`npm run build:framework -- --watch`），**并非只执行 `opendesk browser dev .` 就自动完成转换**。不要把旧 R24.1 的 BUILD_LIMIT_BLOCKED 当作新候选 CI 通过，也不要把代码写入仓库当作真实 Chrome PASS。完整命令、错误说明和限制见 [R24.3 工作记录](../../docs/framework/workstreams/page-ui-shared-runtime-r243-20261011.md)。日常无需手工编译的选择仍是 `page-ui-react-direct`、`page-ui-vue-direct`。
