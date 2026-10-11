@@ -61,14 +61,20 @@ test('R4.8 only trusted source and exact release policy can authorize preinstall
   assert.throws(()=>validateOfficialReleaseCatalog({...releases,apps:releases.apps.map((row,index)=>
     index===0?{...row,installationPolicy:'automatic'}:row)}));
 });
-test('R4.8 size-limited Service Worker imports only the lightweight first-install intent',async()=>{
+test('R4.8 first-install intent uses fixed classic WXT resource without bundling the installer into SW',async()=>{
   const sw=await readFile('src/sw.js','utf8');
   const intent=await readFile('src/sidebar-tools/preinstall-intent.js','utf8');
+  const entry=await readFile('src/entrypoints/preinstall-intent.js','utf8');
   const host=await readFile('src/ui/sidebar-tools.js','utf8');
-  assert(sw.includes("from './sidebar-tools/preinstall-intent.js'"));
+  const contract=await import('../../scripts/build-contract.mjs');
+  assert(sw.includes("importScripts('sidebar-tools/preinstall-intent.js')"));
+  assert(!sw.includes("from './sidebar-tools/preinstall-intent.js'"));
   assert(!sw.includes('default-preinstall.js'));
   assert(!intent.includes('installation.js')&&!intent.includes('official-catalog.js'));
+  assert(entry.includes("registerDefaultPreinstall({api:chrome"));
   assert(host.includes("from '../sidebar-tools/default-preinstall.js'"));
+  assert.equal(contract.PACKAGE_ENTRIES['sidebar-tools/preinstall-intent'],'./src/entrypoints/preinstall-intent.js');
+  assert.equal(contract.FIXED_OUTPUTS['preinstall-intent'],'sidebar-tools/preinstall-intent.js');
 });
 test('R4.5 exact bytes, versions and capabilities are reproducible from the existing packer',async t=>{
   const a=await officialFixtures(),b=await createOfficialToolResources();
