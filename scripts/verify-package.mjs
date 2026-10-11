@@ -8,6 +8,8 @@ import {REQUIRED_BROWSER_API_PERMISSIONS, OPTIONAL_PLUGIN_API_PERMISSIONS, REQUI
 import {SDK_RESOURCE_PATHS, SDK_RESOURCE_MANIFEST} from '../src/framework/sdk/resource-contract.js';
 import {BUILTIN_CATALOG,BUILTIN_RESOURCE_PATHS,BUILTIN_RUNTIME_CATALOG} from '../src/libs/catalog.js';
 import {inspectWorkspaceStyle} from './build-workspace-style.mjs';
+import {OFFICIAL_APPS,MARKET_SCHEMA,officialPackagePath} from '../src/marketplace/catalog.js';
+import {validateSidebarToolPackage} from '../src/ui/sidebar-tools/package.js';
 const require = createRequire(import.meta.url);
 const {parse} = require('acorn');
 export {PACKAGE_ENTRIES, FIXED_OUTPUTS, BUILD_POLICY, SDK_RESOURCE_MANIFEST};
@@ -34,6 +36,7 @@ export const FIXED_ASSETS = Object.freeze({
 });
 const HTML_REFERENCES = Object.freeze({
   'ui/tool.html': ['design-tokens.css', 'design-system.css', 'tool-shell.css', 'tool-shell.js'],
+  'ui/marketplace.html': ['design-tokens.css', 'design-system.css', 'marketplace.css', 'marketplace.js'],
   'native-agent/settings.html': ['../ui/design-tokens.css', 'settings.css', 'settings.js'],
   'native-agent/workspace.html': ['workspace.css','settings.js'],
   'ui/target-bootstrap.html': ['../agents/bootstrap.js'],
@@ -45,7 +48,7 @@ const vendorJS = [BUILTIN_CATALOG.bootstrap,...Object.values(PINNED_USER_SCRIPT_
 const expectedJS = [...generatedJS, ...vendorJS].sort();
 const required = ['manifest.json', SDK_RESOURCE_MANIFEST, BUILTIN_RESOURCE_MANIFEST,
   ...BUILTIN_RESOURCE_PATHS,
-  ...Object.keys(HTML_REFERENCES), 'ui/design-tokens.css', 'ui/design-system.css', 'ui/tool-shell.css', 'native-agent/settings.css', 'native-agent/workspace.css', 'sidebar-tools/reading-toc.opendesk-tool.json', 'sidebar-tools/web-markdown-clipper.opendesk-tool.json', 'sidebar-tools/knowledge-inbox.opendesk-tool.json', ...expectedJS, ...Object.keys(FIXED_ASSETS)].sort();
+  ...Object.keys(HTML_REFERENCES), 'ui/design-tokens.css', 'ui/design-system.css', 'ui/tool-shell.css', 'native-agent/settings.css', 'native-agent/workspace.css', 'ui/marketplace.css', 'market/catalog.json', 'sidebar-tools/quick-notes.opendesk-tool.json', 'sidebar-tools/markdown-workbench.opendesk-tool.json', 'sidebar-tools/reading-toc.opendesk-tool.json', 'sidebar-tools/web-markdown-clipper.opendesk-tool.json', 'sidebar-tools/knowledge-inbox.opendesk-tool.json', ...expectedJS, ...Object.keys(FIXED_ASSETS)].sort();
 const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 const digest = bytes => createHash('sha256').update(bytes).digest('hex');
 // The shipping SW has a separate 327,680-byte hard limit; other production
@@ -350,11 +353,27 @@ export async function verifyPackage(directory, {mode: requestedMode} = {}) {
     if (maps.length !== (mapFiles.length ? 1 : 0) || maps.some(m => m[1].trim() !== file.split('/').at(-1) + '.map' || !files.includes(file + '.map'))) throw new Error(`Unsafe/missing source map in ${file}`);
   }
   for (const file of Object.keys(HTML_REFERENCES)) await inspectHTML(root, file);
-  for(const cssPath of ['ui/design-tokens.css','ui/design-system.css','ui/tool-shell.css','native-agent/settings.css','native-agent/workspace.css']) {
+  for(const cssPath of ['ui/design-tokens.css','ui/design-system.css','ui/tool-shell.css','native-agent/settings.css','native-agent/workspace.css','ui/marketplace.css']) {
     const css = await readFile(join(root,cssPath),'utf8');
     if(/@(?:import|source|apply|tailwind|config|plugin)\b|url\s*\(|expression\s*\(/i.test(css)) throw new Error('Unsafe CSS resources in '+cssPath);
     if(cssPath==='native-agent/workspace.css')inspectWorkspaceStyle(css);
     if(cssPath==='ui/design-tokens.css' && (!css.includes('--od-brand:#365eda') || /\b(?:html|body)\s*\{|\*\s*\{/.test(css))) throw new Error('R23 tokens must remain page-agnostic');
+  }
+  // The shipped catalog is trusted only if its immutable package hashes,
+  // package identity and declared capabilities match every shipped payload.
+  const catalog=JSON.parse(await readFile(join(root,'market/catalog.json'),'utf8'));
+  if(catalog?.schema!==MARKET_SCHEMA||!Array.isArray(catalog.apps)||
+    catalog.apps.length!==OFFICIAL_APPS.length)throw new Error('Unexpected market release catalog');
+  for(const app of OFFICIAL_APPS){
+    const records=catalog.apps.filter(row=>row.id===app.id&&row.version===app.version&&row.toolId===app.toolId);
+    if(records.length!==1)throw new Error('Missing or duplicate market version: '+app.id);
+    const release=records[0],path=officialPackagePath(app),bytes=await readFile(join(root,path));
+    const tool=validateSidebarToolPackage(JSON.parse(bytes.toString('utf8')));
+    if(release.packagePath!==path||release.sha256!==digest(bytes)||
+       release.packageTitle!==tool.title||tool.title!==app.title||
+       tool.id!==app.toolId||tool.version!==app.version||
+       !same(release.capabilities,tool.capabilities))
+      throw new Error('Market release not bound to shipped package: '+app.id);
   }
   for (const [file, expected] of Object.entries(FIXED_ASSETS)) {
     const bytes = await readFile(join(root, file));

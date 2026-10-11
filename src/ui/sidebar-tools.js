@@ -1,6 +1,7 @@
 import {SIDEBAR_TOOL_PROTOCOL,SIDEBAR_TOOL_STORE,MAX_INSTALLED_TOOLS,
   sidebarToolStorageKey,validateSidebarToolPackage} from './sidebar-tools/package.js';
 import {toolPageHref} from './sidebar-tools/navigation.js';
+import {installReviewedSidebarTool,admittedSidebarToolPackages,sameSidebarToolPackage,compareToolVersions} from './sidebar-tools/installation.js';
 import {READING_TOC_SITE_STORE,READING_TOC_TOOL_ID,READING_TOC_PROTOCOL,TOC_CAPABILITY,
   websiteOrigin,grantedOrigins,changeTocGrant,READING_TOC_PLACEMENT_PREFIX,
   READING_TOC_OFFICIAL_VERSION} from '../reading-toc/policy.js';
@@ -61,15 +62,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     'page.capture':'在单独授权的 ChatGPT 网站显示保存按钮，按点击保存回答、选区或下载图片',
     'knowledge.store':'管理此工具的本机知识收件箱（200 条 / 4 MiB）'
   });
-  // Numeric version comparison without precision loss on large valid semver components.
-  function versionOrder(a,b) {
-    const left=a.split('.'),right=b.split('.');
-    for(let i=0;i<3;i++){
-      if(left[i].length!==right[i].length)return left[i].length>right[i].length?1:-1;
-      if(left[i]!==right[i])return left[i]>right[i]?1:-1;
-    }
-    return 0;
-  }
+  const versionOrder=compareToolVersions;
   const readableCapability=id=>capabilities[id]||id;
   const addedCapabilities=(next,prior)=>next.capabilities.filter(id=>!prior.capabilities.includes(id));
   function resetReview() {
@@ -92,8 +85,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   const sameInstance=(source,token)=>!disposed&&active&&frame&&frame.contentWindow===source&&instance===token;
   const toolById=id=>installed.find(row=>row.id===id);
   // chrome.storage may reorder object properties; compare the validated schema values.
-  const samePackage=(a,b)=>['format','id','version','title','description','html','css','js']
-    .every(name=>a[name]===b[name])&&JSON.stringify(a.capabilities)===JSON.stringify(b.capabilities);
+  const samePackage=sameSidebarToolPackage;
   const locked=(name,work)=>{
     if(!lockManager?.request)throw new Error('当前浏览器无法安全协调工具存储');
     return lockManager.request('opendesk.sidebar-tools:'+name,work);
@@ -514,17 +506,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     work.then(result=>reply(true,result),error=>reply(false,null,error));
     work.finally(()=>{if(queued.get(tool.id)===work)queued.delete(tool.id);}).catch(()=>{});
   }
-  function admittedList(rows) {
-    if(!Array.isArray(rows))return [];
-    const seen=new Set();
-    return rows.slice(0,MAX_INSTALLED_TOOLS).flatMap(row=>{
-      try{
-        const accepted=validateSidebarToolPackage(row);
-        if(seen.has(accepted.id))return [];
-        seen.add(accepted.id);return [accepted];
-      }catch{return [];}
-    });
-  }
+  const admittedList=admittedSidebarToolPackages;
   // Other Side Panels may update/uninstall a tool. Revoke the old iframe immediately.
   const onToolStorageChanged=(changes,area)=>{
     if(disposed||area!=='local')return;
@@ -737,56 +719,23 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     let accepted=null;
     try{
       const candidate=validateSidebarToolPackage(pending);
-      await locked('tool:'+candidate.id,()=>locked('catalog',async()=>{
-        if(disposed)return;
-        installed=admittedList((await api.storage.local.get(SIDEBAR_TOOL_STORE))[SIDEBAR_TOOL_STORE]);
-        const exists=toolById(candidate.id);
-        // Approval applies to the reviewed package, not a stale installed version.
-        const sameBaseline=(!exists&&!pendingBaseline) ||
-          (exists&&pendingBaseline&&samePackage(exists,pendingBaseline));
-        if(!sameBaseline)throw new Error('工具安装状态已变化，请重新选择文件核对权限');
-        if(!exists&&installed.length>=MAX_INSTALLED_TOOLS)
-          throw new Error('最多安装 '+MAX_INSTALLED_TOOLS+' 个工具');
-        if(exists) {
-          const added=addedCapabilities(candidate,exists);
-          const change=versionOrder(candidate.version,exists.version);
+      const result=await installReviewedSidebarTool({api,lockManager,candidate,
+        baseline:pendingBaseline,reviewApproved:true,approveUpdate:(previous,next)=>{
+          const added=addedCapabilities(next,previous);
+          const change=versionOrder(next.version,previous.version);
           const warnings=[...(change<0?['版本回退']:[]),
             ...(added.length?['新增能力：'+added.map(readableCapability).join('、')]:[]),
-            ...(change===0&&!samePackage(candidate,exists)?['同版本内容变化']:[])];
-          if(warnings.length && !globalThis.confirm('更新「'+candidate.title+'」包含'+warnings.join('；')+
-            '。原工具数据会保留。确认更新吗？'))return;
-          if(samePackage(candidate,exists))return;
-        }
-        // An interrupted uninstall may have left orphan data. A fresh install
-        // must not inherit a previous installation's private namespace.
-        if(!exists)await api.storage.local.remove(sidebarToolStorageKey(candidate.id));
-        if(!exists||!candidate.capabilities.includes(TOC_CAPABILITY)){
-          const sites=(await api.storage.local.get(READING_TOC_SITE_STORE))[READING_TOC_SITE_STORE]||{};
-          if(Object.hasOwn(sites,candidate.id)){
-            const next={...sites};delete next[candidate.id];
-            await api.storage.local.set({[READING_TOC_SITE_STORE]:next});siteGrants=next;
-          }
-        }
-        if(!exists||!candidate.capabilities.includes(CLIP_CAPABILITY)){
-          const clip=(await api.storage.local.get(CLIP_SITE_STORE))[CLIP_SITE_STORE]||{};
-          if(Object.hasOwn(clip,candidate.id)){
-            const nextClip={...clip};delete nextClip[candidate.id];
-            await api.storage.local.set({[CLIP_SITE_STORE]:nextClip});clipGrants=nextClip;
-          }
-        }
-        if(!exists||!candidate.capabilities.includes(CAPTURE_CAPABILITY)){
-          const captures=(await api.storage.local.get(CAPTURE_SITE_STORE))[CAPTURE_SITE_STORE]||{};
-          if(Object.hasOwn(captures,candidate.id)){
-            const nextCapture={...captures};delete nextCapture[candidate.id];
-            await api.storage.local.set({[CAPTURE_SITE_STORE]:nextCapture});captureGrants=nextCapture;
-          }
-        }
-        const next=exists?installed.map(row=>row.id===candidate.id?candidate:row):[...installed,candidate];
-        await api.storage.local.set({[SIDEBAR_TOOL_STORE]:next});
-        installed=next;accepted=candidate;
-      }));
+            ...(change===0&&!samePackage(next,previous)?['同版本内容变化']:[])];
+          return !warnings.length||globalThis.confirm('更新「'+next.title+'」包含'+warnings.join('；')+
+            '。原工具数据会保留。确认更新吗？');
+        }});
+      if(result.state==='installed')accepted=result.tool;
+      installed=admittedList((await api.storage.local.get(SIDEBAR_TOOL_STORE))[SIDEBAR_TOOL_STORE]);
+      await Promise.all([loadSites(),loadClipSites()]);
+      const capture=(await api.storage.local.get(CAPTURE_SITE_STORE))[CAPTURE_SITE_STORE];
+      captureGrants=capture||{};
     }catch(error){
-      if(error?.message==='工具安装状态已变化，请重新选择文件核对权限'){
+      if(error?.code==='E_TOOL_CHANGED'){
         clearImport();setFileError(error.message);return;
       }
       throw error;
@@ -857,6 +806,8 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     (error?.code||'E_TOOL')+'：'+String(error?.message||error).slice(0,240),true));
   setImportOpen(false);
   notice('');
+  const marketButton=get('sidebar-tool-market');
+  if(marketButton)listen(marketButton,'click',action(()=>api.tabs.create({url:api.runtime.getURL('ui/marketplace.html')})));
   listen(importTrigger,'click',()=>{
     if(busy)return;
     setImportOpen(importPanel.hidden);notice('');
