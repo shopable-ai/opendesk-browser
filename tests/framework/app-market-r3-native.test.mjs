@@ -116,7 +116,26 @@ test('R3 production Chrome: Side Panel → official market → review → instal
   await side.send('Runtime.enable');await side.send('Page.enable');
   await until(()=>evaluate(side,'!!document.querySelector("#tab-tools")'),'tool tab visible');
   await click(side,'#tab-tools');
-  await until(()=>evaluate(side,'!document.querySelector("#workbench-tools").hidden'),'tool tab open');
+  try{
+    await until(()=>evaluate(side,'!document.querySelector("#workbench-tools").hidden'),'tool tab open');
+  }catch(error){
+    // Preserve a real Side Panel observation instead of retrying an unchanged
+    // failure or treating a missed CDP click as a product success.
+    const diagnostic=await evaluate(side,`(()=>({href:location.href,focused:document.activeElement?.id,
+      tabs:[...document.querySelectorAll('[role=tab]')].map(x=>({id:x.id,
+        selected:x.getAttribute('aria-selected'),disabled:x.disabled,visible:x.getClientRects().length})),
+      toolsHidden:document.querySelector('#workbench-tools')?.hidden,
+      toolsComputed:document.querySelector('#workbench-tools')?getComputedStyle(document.querySelector('#workbench-tools')).display:null
+    }))()`);
+    const directory=resolve('artifacts/app-market-r3');await mkdir(directory,{recursive:true});
+    await writeFile(join(directory,'failed-side-panel-navigation.json'),JSON.stringify({
+      error:error.message,diagnostic,chrome:version.Browser,extensionId:id},null,2)+'\n');
+    try{
+      const shot=await side.send('Page.captureScreenshot',{format:'png',captureBeyondViewport:false});
+      await writeFile(join(directory,'failed-side-panel-navigation.png'),Buffer.from(shot.data,'base64'));
+    }catch{/* Keep the actual state JSON even when Chrome denies a screenshot. */}
+    throw Error(error.message+' / '+JSON.stringify(diagnostic));
+  }
   await click(side,'#sidebar-tool-market');
   const marketInfo=await until(async()=>{
     const {targetInfos}=await browser.send('Target.getTargets');
