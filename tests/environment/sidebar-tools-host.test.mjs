@@ -652,7 +652,10 @@ test('uninstalled read-only preview cannot write, run Task or invoke page operat
     else assert.equal(result.ok,false);
   }
   assert.equal(f.store.has(sidebarToolStorageKey(sample.id)),false);
-  f.host.closeTool();
+  assert.equal(f.host.closeTool(),false,'dirty preview requires nonmodal in-page confirmation');
+  assert.equal(f.elements['sidebar-tool-action-review'].hidden,false);
+  f.elements['sidebar-tool-action-continue'].emit('click');
+  await pause();
   assert.equal(f.elements['sidebar-tool-frame'].children.length,0);
   await ask('storage.set',{key:'note',value:'replay'},'later');
   assert.equal(f.store.has(sidebarToolStorageKey(sample.id)),false);
@@ -1144,5 +1147,6 @@ test('R50 inline dirty navigation has no native modal and requires explicit cont
   assert.equal(f.elements['sidebar-tool-frame'].children[0],frame);
   assert.equal(f.host.closeTool(),false);
   f.elements['sidebar-tool-action-continue'].emit('click');
+  await pause();
   assert.equal(f.elements['sidebar-tool-frame'].children.length,0);
 });
