@@ -1,0 +1,43 @@
+{
+  "evidenceLevel": "STATIC_ONLY",
+  "checks": {
+    "fragment_has_no_document_wrapper": true,
+    "unique_static_ids": true,
+    "inline_product_matches_standalone": true,
+    "javascript_syntax": true,
+    "single_script": true,
+    "no_remote_resources": true,
+    "no_network_or_persistent_storage_calls": true,
+    "catalogue_unique_ids": true,
+    "planned_no_artifact": true,
+    "prototype_catalogue_ids_match": true,
+    "prototype_catalogue_categories_match": true,
+    "candidate_versions_match": true,
+    "no_removed_grant_or_data_claims": true,
+    "planning_is_explicit": true
+  },
+  "javascriptError": "",
+  "browserInteraction": "NOT_TESTED_POLICY_BLOCKED_LOCAL_FILE_URL",
+  "productionInstall": "NOT_IMPLEMENTED",
+  "files": [
+    {
+      "path": "docs/product/app-market-r1.catalog-example.json",
+      "bytes": 5399,
+      "sha256": "178dee290b38ffabc1c31cbaba66b83e322a250e3100c208588b20d9862c5afc",
+      "gitBlobSha1": "4db99e9c08f8a7f7fcf17b2b47d464dbe124c944"
+    },
+    {
+      "path": "docs/product/app-market-r1.zh-CN.md",
+      "bytes": 31574,
+      "sha256": "36c175be70d25e7dda1b83eb97aeee769cc775f8b74850fb4ff997341fdb4ee4",
+      "gitBlobSha1": "f95087bf1f63718a39096167487703514402536a"
+    },
+    {
+      "path": "prototypes/marketplace/app-market-r1.html",
+      "bytes": 54734,
+      "sha256": "f846760871eaa2c46214f120f1a3dad4792a2d804ece8d6530d7b222780d1bcd",
+      "gitBlobSha1": "c54d858f5b6f2cde0c950350eed2e2894fe32265"
+    }
+  ],
+  "note": "Source document and prototype fingerprints; workflow narrative is excluded so recording the verification does not change its own input identity."
+}

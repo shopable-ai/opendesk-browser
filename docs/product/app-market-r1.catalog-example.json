@@ -1,0 +1,142 @@
+{
+  "schemaVersion": 1,
+  "catalogId": "opendesk.official",
+  "purpose": "design-example-only",
+  "sourceBaseline": "f5550d608d3cc512d5620c0d1d32f03ec9d63c61",
+  "description": "应用目录元数据提案；不是可导入工具包，当前安装器不读取本文件。candidate 表示已有工具源码、待市场准入；planned 不允许安装。",
+  "apps": [
+    {
+      "id": "opendesk/reading-toc",
+      "title": "阅读目录",
+      "summary": "在侧边栏或网页中查看章节，快速回到需要的位置。",
+      "category": "reading",
+      "publication": "candidate",
+      "websiteSupport": {
+        "scope": "generic-http-https",
+        "notes": "需要页面具有可识别的标题和单独的目录能力授权；不表示所有网站均已验证。",
+        "verifiedLiveSites": []
+      },
+      "surfaces": ["sidebar", "page-overlay"],
+      "artifactRef": {
+        "delivery": "bundled",
+        "format": "opendesk.sidebar-tool.v1",
+        "id": "reading-toc",
+        "version": "1.0.1"
+      }
+    },
+    {
+      "id": "opendesk/quick-notes",
+      "title": "网页笔记",
+      "summary": "记录想法，按需关联当前网页，离线也可查看。",
+      "category": "notes",
+      "publication": "candidate",
+      "websiteSupport": {
+        "scope": "site-independent",
+        "notes": "可选关联当前普通网页的标题和 URL；不读取正文。",
+        "verifiedLiveSites": []
+      },
+      "surfaces": ["sidebar", "tool-tab"],
+      "artifactRef": {
+        "delivery": "bundled",
+        "format": "opendesk.sidebar-tool.v1",
+        "id": "quick-notes",
+        "version": "1.1.1"
+      },
+      "readinessNote": "已有本地工具包；作为内置商品交付还需接入发行资源表。"
+    },
+    {
+      "id": "opendesk/web-markdown-clipper",
+      "title": "网页剪藏",
+      "summary": "把文章、选中内容和链接整理为 Markdown。",
+      "category": "reading",
+      "publication": "candidate",
+      "websiteSupport": {
+        "scope": "generic-http-https",
+        "notes": "需要独立正文能力授权；当前不能从独立工具 Tab 继承来源网页。",
+        "verifiedLiveSites": []
+      },
+      "surfaces": ["sidebar"],
+      "artifactRef": {
+        "delivery": "bundled",
+        "format": "opendesk.sidebar-tool.v1",
+        "id": "web-markdown-clipper",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "id": "opendesk/markdown-workbench",
+      "title": "Markdown 工作台",
+      "summary": "导入、编辑、预览和导出 Markdown，无需网页权限。",
+      "category": "markdown",
+      "publication": "candidate",
+      "websiteSupport": {
+        "scope": "site-independent",
+        "notes": "常用 GFM 子集；当前未导出编辑内容可能随 iframe 关闭而丢失。",
+        "verifiedLiveSites": []
+      },
+      "surfaces": ["sidebar", "tool-tab"],
+      "artifactRef": {
+        "delivery": "bundled",
+        "format": "opendesk.sidebar-tool.v1",
+        "id": "markdown-workbench",
+        "version": "1.0.0"
+      },
+      "readinessNote": "已有本地工具包；作为内置商品交付还需接入发行资源表。"
+    },
+    {
+      "id": "opendesk/chatgpt-collection",
+      "title": "ChatGPT 精选收藏",
+      "summary": "保存主动选定的一条回答及其来源，后续整理复用。",
+      "category": "ai-conversation",
+      "publication": "planned",
+      "websiteSupport": {
+        "scope": "specific-sites",
+        "origins": ["https://chatgpt.com"],
+        "notes": "需要专用适配器；当前普通正文剪藏不等于对话语义导出。",
+        "verifiedLiveSites": []
+      },
+      "surfaces": ["page-action", "sidebar"]
+    },
+    {
+      "id": "opendesk/prompt-snippets",
+      "title": "提示词片段",
+      "summary": "搜索和复制常用输入，减少重复整理。",
+      "category": "ai-conversation",
+      "publication": "planned",
+      "websiteSupport": {
+        "scope": "site-independent",
+        "notes": "先设计搜索/复制；网页自动填入需专项适配，默认不发送。",
+        "verifiedLiveSites": []
+      },
+      "surfaces": ["sidebar"]
+    },
+    {
+      "id": "opendesk/local-knowledge-archive",
+      "title": "本地知识归档",
+      "summary": "将选定内容保存到已经授权的本地工作区。",
+      "category": "export-connectors",
+      "publication": "planned",
+      "websiteSupport": {
+        "scope": "site-independent",
+        "notes": "目标为已授权工作区；不会因安装应用而自动获得系统目录权限。",
+        "verifiedLiveSites": []
+      },
+      "surfaces": ["sidebar"],
+      "prerequisites": ["native-host-connected", "workspace-selected", "scoped-export-contract"]
+    },
+    {
+      "id": "opendesk/web-task-assistant",
+      "title": "网页任务助手",
+      "summary": "从既有任务入口运行已经验证的网页步骤，查看结果并随时停止。",
+      "category": "automation",
+      "publication": "planned",
+      "websiteSupport": {
+        "scope": "configured-origin",
+        "notes": "Task v1 当前只接受一个精确 HTTP(S) Origin；安装前必须本机验证。",
+        "verifiedLiveSites": []
+      },
+      "surfaces": ["existing-task-ui"],
+      "prerequisites": ["existing-task-package", "local-native-verification", "available-candidate"]
+    }
+  ]
+}

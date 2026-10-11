@@ -1,0 +1,375 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OpenDesk 应用市场 · 交互原型</title>
+<style>body{margin:0;color-scheme:light dark;background:light-dark(#f5f7fb,#111926)}#opendesk-market-r1 .cursor-interaction{cursor:pointer}#opendesk-market-r1 .om-shell{border:0;border-radius:0}</style>
+</head>
+<body>
+<div id="opendesk-market-r1" lang="zh-CN">
+  <style>
+    #opendesk-market-r1{--om-ink:light-dark(#1b2c49,#e7ecf5);--om-sub:light-dark(#53647e,#a7b5cc);--om-line:light-dark(#e1e8f1,#344154);--om-brand:light-dark(#365eda,#8ba4ff);--om-soft:light-dark(#eef2ff,#273553);--om-paper:light-dark(#fff,#1a2434);--om-bg:light-dark(#f5f7fb,#111926);--om-positive:light-dark(#138263,#78d0ad);--om-positive-bg:light-dark(#edf8f3,#143b30);--om-negative:light-dark(#ae3d4b,#ff9fab);--om-shadow:0 18px 60px light-dark(#1b2c4926,#0007);color-scheme:light dark;background:transparent;color:var(--om-ink);font:400 13px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;width:100%;isolation:isolate}
+    #opendesk-market-r1 *{box-sizing:border-box}
+    #opendesk-market-r1 [hidden]{display:none!important}
+    #opendesk-market-r1 button,#opendesk-market-r1 input,#opendesk-market-r1 select,#opendesk-market-r1 textarea{font:inherit;color:inherit}
+    #opendesk-market-r1 button{touch-action:manipulation}
+    #opendesk-market-r1 button:disabled{opacity:.55;cursor:not-allowed}
+    #opendesk-market-r1 h1,#opendesk-market-r1 h2,#opendesk-market-r1 h3,#opendesk-market-r1 h4,#opendesk-market-r1 p{margin:0}
+    #opendesk-market-r1 h1{font-size:25px;line-height:1.3;font-weight:500;letter-spacing:-.7px}
+    #opendesk-market-r1 h2{font-size:16px;font-weight:500;line-height:1.4}
+    #opendesk-market-r1 h3{font-size:15px;font-weight:500;line-height:1.4}
+    #opendesk-market-r1 h4{font-size:13px;font-weight:500}
+    #opendesk-market-r1 .om-shell{background:var(--om-bg);min-width:0;min-height:700px;border:1px solid var(--om-line);border-radius:12px;overflow:clip}
+    #opendesk-market-r1 .om-header{background:var(--om-paper);border-bottom:1px solid var(--om-line);padding:16px 24px;display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+    #opendesk-market-r1 .om-brand{display:flex;align-items:center;gap:12px;min-width:0}
+    #opendesk-market-r1 .om-mark{width:28px;height:28px;border-radius:8px;background:var(--om-brand);color:var(--om-paper);display:grid;place-items:center;font-size:16px;font-weight:500;flex:none}
+    #opendesk-market-r1 .om-brand-name{font-size:15px;font-weight:500;letter-spacing:-.2px}
+    #opendesk-market-r1 .om-brand-separator{height:16px;width:1px;background:var(--om-line)}
+    #opendesk-market-r1 .om-preview-label{font-size:12px;color:var(--om-sub);padding:4px 8px;background:var(--om-bg);border-radius:6px;white-space:nowrap}
+    #opendesk-market-r1 .om-nav{display:flex;align-items:center;gap:4px;padding:8px 24px;background:var(--om-paper);border-bottom:1px solid var(--om-line);flex-wrap:wrap}
+    #opendesk-market-r1 .om-nav-button{border:0;background:transparent;padding:9px 14px;border-radius:8px;display:flex;gap:6px;align-items:center;min-height:36px;color:var(--om-sub)}
+    #opendesk-market-r1 .om-nav-button[aria-pressed="true"]{background:var(--om-soft);color:var(--om-brand);font-weight:500}
+    #opendesk-market-r1 .om-count{display:inline-flex;align-items:center;justify-content:center;min-width:19px;height:19px;border-radius:5px;background:var(--om-bg);font-size:11px;color:var(--om-sub);font-variant-numeric:tabular-nums}
+    #opendesk-market-r1 .om-main{padding:28px 24px 24px;max-width:1440px;margin:0 auto}
+    #opendesk-market-r1 .om-intro{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:24px}
+    #opendesk-market-r1 .om-intro-copy{margin-top:8px;color:var(--om-sub)}
+    #opendesk-market-r1 .om-context{flex:none;display:flex;align-items:center;gap:8px;border:1px solid var(--om-line);background:var(--om-paper);border-radius:8px;padding:6px 8px;min-height:36px;font-size:12px}
+    #opendesk-market-r1 .om-context label{color:var(--om-sub);white-space:nowrap}
+    #opendesk-market-r1 .om-context select{border:0;background:var(--om-paper);max-width:140px;padding:2px 20px 2px 0}
+    #opendesk-market-r1 .om-filters{background:var(--om-paper);border:1px solid var(--om-line);border-radius:12px;padding:16px;margin-bottom:24px}
+    #opendesk-market-r1 .om-filter-row{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap}
+    #opendesk-market-r1 .om-field{display:flex;flex-direction:column;gap:6px;min-width:0}
+    #opendesk-market-r1 .om-field label{font-size:12px;color:var(--om-sub)}
+    #opendesk-market-r1 .om-search-field{flex:1 1 280px}
+    #opendesk-market-r1 .om-site-field{flex:0 1 170px}
+    #opendesk-market-r1 .om-search-box{display:flex;gap:4px;align-items:center;border:1px solid var(--om-line);background:var(--om-paper);border-radius:8px;min-height:38px;padding-right:4px}
+    #opendesk-market-r1 .om-search-box input{border:0;background:transparent;min-width:0;width:100%;padding:9px 12px;border-radius:8px}
+    #opendesk-market-r1 input::placeholder,#opendesk-market-r1 textarea::placeholder{color:var(--om-sub);opacity:.8}
+    #opendesk-market-r1 .om-clear{border:0;background:transparent;padding:4px 8px;color:var(--om-sub);font-size:12px;border-radius:6px;min-height:28px}
+    #opendesk-market-r1 .om-select{border:1px solid var(--om-line);background:var(--om-paper);padding:8px 10px;border-radius:8px;min-height:38px;max-width:100%}
+    #opendesk-market-r1 .om-current-filter{display:flex;gap:7px;align-items:center;min-height:38px;white-space:nowrap;font-size:12px}
+    #opendesk-market-r1 input[type="checkbox"]{accent-color:var(--om-brand);width:16px;height:16px;flex:none;margin:0}
+    #opendesk-market-r1 .om-categories{display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin-top:16px}
+    #opendesk-market-r1 .om-category{border:0;border-radius:8px;background:transparent;padding:7px 10px;min-height:32px;color:var(--om-sub);font-size:12px}
+    #opendesk-market-r1 .om-category[aria-pressed="true"]{color:var(--om-brand);background:var(--om-soft);font-weight:500}
+    #opendesk-market-r1 .om-section-bar{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px;flex-wrap:wrap}
+    #opendesk-market-r1 .om-section-bar .om-subtext{font-size:12px;color:var(--om-sub)}
+    #opendesk-market-r1 .om-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+    #opendesk-market-r1 .om-app{background:var(--om-paper);border:1px solid var(--om-line);border-radius:12px;padding:16px;min-width:0;display:flex;flex-direction:column;gap:12px}
+    #opendesk-market-r1 .om-app-heading{display:flex;align-items:center;gap:10px;min-width:0}
+    #opendesk-market-r1 .om-app-monogram{display:grid;place-items:center;width:38px;height:38px;flex:none;border:1px solid var(--om-line);border-radius:10px;background:var(--om-bg);font-size:13px;font-weight:500;color:var(--om-ink)}
+    #opendesk-market-r1 .om-app-monogram.om-featured{background:var(--om-soft);color:var(--om-brand);border-color:var(--om-soft)}
+    #opendesk-market-r1 .om-app-title{min-width:0;flex:1}
+    #opendesk-market-r1 .om-app-type{font-size:11px;color:var(--om-sub);margin-top:3px}
+    #opendesk-market-r1 .om-app-description{color:var(--om-sub);min-height:38px}
+    #opendesk-market-r1 .om-app-meta{display:flex;align-items:flex-start;gap:6px;flex-wrap:wrap;margin-top:auto;font-size:11px;color:var(--om-sub)}
+    #opendesk-market-r1 .om-site-badge{background:var(--om-bg);border-radius:5px;padding:3px 6px}
+    #opendesk-market-r1 .om-app-bottom{padding-top:12px;border-top:1px solid var(--om-line);display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+    #opendesk-market-r1 .om-state{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--om-sub);min-width:0}
+    #opendesk-market-r1 .om-dot{width:5px;height:5px;border-radius:50%;background:var(--om-sub);flex:none}
+    #opendesk-market-r1 .om-state.om-ready{color:var(--om-positive)}
+    #opendesk-market-r1 .om-state.om-ready .om-dot{background:var(--om-positive)}
+    #opendesk-market-r1 .om-app-actions{display:flex;gap:6px;align-items:center;margin-left:auto;flex-wrap:wrap}
+    #opendesk-market-r1 .om-action{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:1px solid var(--om-line);background:var(--om-paper);padding:7px 12px;border-radius:8px;min-height:32px;font-weight:400;white-space:nowrap}
+    #opendesk-market-r1 .om-action.om-primary{color:var(--om-paper);background:var(--om-brand);border-color:var(--om-brand)}
+    #opendesk-market-r1 .om-action.om-soft-action{color:var(--om-brand);background:var(--om-soft);border-color:var(--om-soft)}
+    #opendesk-market-r1 .om-action.om-quiet{border-color:transparent;background:transparent;color:var(--om-sub);padding:6px 8px}
+    #opendesk-market-r1 .om-action.om-danger{color:var(--om-negative);background:var(--om-paper)}
+    #opendesk-market-r1 .om-action.om-small{font-size:12px;padding:6px 10px;min-height:30px}
+    #opendesk-market-r1 .om-management{display:flex;gap:8px;justify-content:flex-end;margin-top:-4px}
+    #opendesk-market-r1 .om-management .om-action{font-size:11px;padding:4px 6px;min-height:28px}
+    #opendesk-market-r1 .om-notice{display:flex;gap:12px;align-items:center;justify-content:space-between;margin-bottom:16px;padding:12px 16px;border:1px solid var(--om-line);border-radius:8px;background:var(--om-paper);color:var(--om-sub);min-width:0}
+    #opendesk-market-r1 .om-notice p{min-width:0}
+    #opendesk-market-r1 .om-notice button{flex:none}
+    #opendesk-market-r1 .om-empty{grid-column:1/-1;background:var(--om-paper);border:1px solid var(--om-line);border-radius:12px;padding:40px 20px;text-align:center}
+    #opendesk-market-r1 .om-empty p{margin:8px 0 16px;color:var(--om-sub)}
+    #opendesk-market-r1 .om-bottom-note{display:flex;align-items:flex-start;gap:6px;margin-top:20px;color:var(--om-sub);font-size:12px;flex-wrap:wrap}
+    #opendesk-market-r1 .om-bottom-note strong{color:var(--om-ink);font-weight:500}
+    #opendesk-market-r1 .om-websites{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:20px}
+    #opendesk-market-r1 .om-website{background:var(--om-paper);border:1px solid var(--om-line);border-radius:8px;padding:12px;display:flex;align-items:center;justify-content:space-between;gap:8px;text-align:left;min-width:0}
+    #opendesk-market-r1 .om-website[aria-pressed="true"]{background:var(--om-soft);border-color:var(--om-brand);color:var(--om-brand)}
+    #opendesk-market-r1 .om-website small{display:block;font-size:11px;color:var(--om-sub);margin-top:3px;word-break:break-word}
+    #opendesk-market-r1 .om-website-count{font-size:11px;white-space:nowrap}
+    #opendesk-market-r1 .om-footer{display:flex;gap:12px;justify-content:space-between;align-items:center;flex-wrap:wrap;margin-top:24px;padding-top:16px;border-top:1px solid var(--om-line);font-size:11px;color:var(--om-sub)}
+    #opendesk-market-r1 .om-footer-links{display:flex;gap:12px;flex-wrap:wrap}
+    #opendesk-market-r1 .om-footer button{border:0;background:transparent;padding:0;color:var(--om-sub);font-size:11px;min-height:28px;text-decoration:underline;text-underline-offset:3px}
+    #opendesk-market-r1 .om-dialog{position:absolute;inset:18px 0 auto;width:calc(100% - 32px);max-width:560px;max-height:none;margin:0 auto;padding:0;border:1px solid var(--om-line);border-radius:12px;background:var(--om-paper);color:var(--om-ink);box-shadow:var(--om-shadow);font:inherit;overflow:visible}
+    #opendesk-market-r1 .om-dialog::backdrop{background:light-dark(#13213766,#02050dbb)}
+    #opendesk-market-r1 .om-dialog-header{padding:20px 20px 16px;display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+    #opendesk-market-r1 .om-dialog-title-wrap{min-width:0;display:flex;align-items:center;gap:10px}
+    #opendesk-market-r1 .om-dialog-title-wrap h2{font-size:17px;word-break:break-word}
+    #opendesk-market-r1 .om-dialog-subtitle{font-size:12px;color:var(--om-sub);margin-top:4px}
+    #opendesk-market-r1 .om-close{flex:none;border:0;border-radius:8px;background:var(--om-bg);padding:7px 10px;min-height:32px;font-size:12px;color:var(--om-sub)}
+    #opendesk-market-r1 .om-dialog-body{padding:0 20px 20px;display:flex;flex-direction:column;gap:16px;min-width:0}
+    #opendesk-market-r1 .om-dialog-intro{color:var(--om-sub)}
+    #opendesk-market-r1 .om-detail-list{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:0}
+    #opendesk-market-r1 .om-detail-list div{min-width:0}
+    #opendesk-market-r1 .om-detail-list dt{font-size:11px;color:var(--om-sub);margin-bottom:4px}
+    #opendesk-market-r1 .om-detail-list dd{margin:0;font-size:12px;word-break:break-word}
+    #opendesk-market-r1 .om-permissions{padding:12px;border:1px solid var(--om-line);border-radius:8px;background:var(--om-bg)}
+    #opendesk-market-r1 .om-permissions h3{font-size:12px;margin-bottom:8px}
+    #opendesk-market-r1 .om-permission-list{padding:0;margin:0;list-style:none;display:flex;flex-direction:column;gap:7px}
+    #opendesk-market-r1 .om-permission-list li{display:flex;gap:8px;align-items:flex-start;font-size:12px}
+    #opendesk-market-r1 .om-permission-bullet{color:var(--om-brand);flex:none}
+    #opendesk-market-r1 .om-permission-note{margin-top:10px!important;color:var(--om-sub);font-size:11px}
+    #opendesk-market-r1 .om-callout{border-left:2px solid var(--om-brand);padding:4px 0 4px 12px;color:var(--om-sub);font-size:12px}
+    #opendesk-market-r1 .om-dialog-footer{padding:16px 20px;border-top:1px solid var(--om-line);display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap;background:var(--om-paper);border-radius:0 0 12px 12px}
+    #opendesk-market-r1 .om-dialog-footer .om-footer-spacer{margin-right:auto}
+    #opendesk-market-r1 .om-check-row{display:flex;align-items:flex-start;gap:8px;font-size:12px;padding:8px 0}
+    #opendesk-market-r1 .om-check-row input{margin-top:1px}
+    #opendesk-market-r1 .om-check-row span span{display:block;margin-top:4px;color:var(--om-sub);font-size:11px}
+    #opendesk-market-r1 .om-preview{border:1px solid var(--om-line);border-radius:8px;background:var(--om-bg);overflow:clip;min-width:0}
+    #opendesk-market-r1 .om-preview-bar{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 12px;border-bottom:1px solid var(--om-line);background:var(--om-paper);color:var(--om-sub);font-size:11px}
+    #opendesk-market-r1 .om-preview-body{padding:12px;min-width:0}
+    #opendesk-market-r1 .om-toc-preview{display:grid;grid-template-columns:132px 1fr;gap:12px;min-height:130px}
+    #opendesk-market-r1 .om-toc-list{display:flex;flex-direction:column;gap:4px;background:var(--om-paper);border:1px solid var(--om-line);border-radius:8px;padding:8px;align-self:start}
+    #opendesk-market-r1 .om-toc-list h4{padding:4px 6px;font-size:11px;color:var(--om-sub)}
+    #opendesk-market-r1 .om-toc-list button{padding:5px 6px;border:0;border-radius:5px;background:transparent;text-align:left;font-size:11px;min-height:27px}
+    #opendesk-market-r1 .om-toc-list button[aria-pressed="true"]{background:var(--om-soft);color:var(--om-brand)}
+    #opendesk-market-r1 .om-article-preview{background:var(--om-paper);border:1px solid var(--om-line);border-radius:8px;padding:12px}
+    #opendesk-market-r1 .om-article-preview h4{margin-bottom:8px}
+    #opendesk-market-r1 .om-article-preview p{font-size:11px;color:var(--om-sub)}
+    #opendesk-market-r1 .om-text-line{height:5px;background:var(--om-line);margin-top:8px;border-radius:2px}
+    #opendesk-market-r1 .om-text-line.om-short{width:70%}
+    #opendesk-market-r1 .om-note-preview{background:var(--om-paper);border:1px solid var(--om-line);border-radius:8px;padding:12px}
+    #opendesk-market-r1 .om-note-preview p{font-size:12px;margin-top:6px}
+    #opendesk-market-r1 .om-note-source{font-size:11px!important;color:var(--om-sub)}
+    #opendesk-market-r1 .om-markdown-preview{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    #opendesk-market-r1 .om-code-preview{padding:12px;border:1px solid var(--om-line);border-radius:8px;background:var(--om-paper);font:12px/1.6 ui-monospace,SFMono-Regular,Consolas,monospace;white-space:pre-wrap;overflow-wrap:anywhere;margin:0;color:var(--om-sub)}
+    #opendesk-market-r1 .om-mini-label{font-size:11px;color:var(--om-sub);margin-bottom:6px!important}
+    #opendesk-market-r1 .om-task-preview{display:flex;flex-direction:column;gap:8px}
+    #opendesk-market-r1 .om-task-row{display:flex;align-items:center;gap:8px;padding:9px 12px;border:1px solid var(--om-line);background:var(--om-paper);border-radius:8px;font-size:12px}
+    #opendesk-market-r1 .om-step-number{display:grid;place-items:center;flex:none;width:20px;height:20px;background:var(--om-soft);border-radius:5px;font-size:11px;color:var(--om-brand)}
+    #opendesk-market-r1 .om-note-edit{width:100%;min-height:90px;resize:vertical;padding:10px;border:1px solid var(--om-line);border-radius:8px;background:var(--om-paper);margin-top:8px}
+    #opendesk-market-r1 .om-use-actions{margin-top:8px;display:flex;justify-content:flex-end}
+    #opendesk-market-r1 .om-sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+    @media(min-width:1220px){#opendesk-market-r1 .om-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+    @media(max-width:820px){#opendesk-market-r1 .om-grid{grid-template-columns:repeat(2,minmax(0,1fr))}#opendesk-market-r1 .om-intro{flex-direction:column;gap:12px}#opendesk-market-r1 .om-context{align-self:flex-start}#opendesk-market-r1 .om-search-field{flex-basis:calc(100% - 196px)}#opendesk-market-r1 .om-current-filter{min-height:28px}#opendesk-market-r1 .om-websites{grid-template-columns:repeat(2,minmax(0,1fr))}}
+    @media(max-width:520px){#opendesk-market-r1 .om-header{padding:12px 16px;gap:8px}#opendesk-market-r1 .om-brand{gap:8px}#opendesk-market-r1 .om-preview-label{font-size:11px;padding:3px 6px}#opendesk-market-r1 .om-nav{padding:8px 12px;gap:2px}#opendesk-market-r1 .om-nav-button{padding:8px 12px}#opendesk-market-r1 .om-main{padding:20px 16px 16px}#opendesk-market-r1 h1{font-size:22px}#opendesk-market-r1 .om-intro{margin-bottom:20px}#opendesk-market-r1 .om-filters{padding:12px;margin-bottom:20px}#opendesk-market-r1 .om-grid{grid-template-columns:minmax(0,1fr);gap:12px}#opendesk-market-r1 .om-search-field{flex-basis:100%}#opendesk-market-r1 .om-site-field{flex:1 1 100%}#opendesk-market-r1 .om-current-filter{font-size:12px;white-space:normal}#opendesk-market-r1 .om-categories{margin-top:12px;gap:4px}#opendesk-market-r1 .om-category{padding:6px 8px}#opendesk-market-r1 .om-app-description{min-height:0}#opendesk-market-r1 .om-dialog{width:calc(100% - 16px);inset:8px 0 auto}#opendesk-market-r1 .om-dialog-header{padding:16px 16px 12px}#opendesk-market-r1 .om-dialog-body{padding:0 16px 16px;gap:12px}#opendesk-market-r1 .om-dialog-footer{padding:12px 16px;gap:6px}#opendesk-market-r1 .om-dialog-footer .om-action{padding:7px 10px}#opendesk-market-r1 .om-toc-preview{grid-template-columns:102px 1fr;gap:8px}#opendesk-market-r1 .om-toc-list{padding:4px}#opendesk-market-r1 .om-article-preview{padding:8px}#opendesk-market-r1 .om-markdown-preview{grid-template-columns:1fr}#opendesk-market-r1 .om-notice{padding:10px 12px}#opendesk-market-r1 .om-detail-list{gap:10px}#opendesk-market-r1 .om-footer{gap:8px}}
+    @media(pointer:coarse){#opendesk-market-r1 button,#opendesk-market-r1 .om-select,#opendesk-market-r1 .om-current-filter,#opendesk-market-r1 .om-check-row{min-height:44px}#opendesk-market-r1 input:not([type="checkbox"]),#opendesk-market-r1 select,#opendesk-market-r1 textarea{font-size:16px}#opendesk-market-r1 .om-app-actions{gap:8px}#opendesk-market-r1 .om-app-bottom{gap:12px}#opendesk-market-r1 .om-context{flex-wrap:wrap}#opendesk-market-r1 .om-context select{max-width:180px}}
+  </style>
+  <div class="om-shell">
+    <header class="om-header">
+      <div class="om-brand"><span class="om-mark" aria-hidden="true">O</span><span class="om-brand-name">OpenDesk</span><span class="om-brand-separator" aria-hidden="true"></span><span>应用市场</span></div>
+      <span class="om-preview-label">方案预览 · 安装为演示</span>
+    </header>
+    <nav class="om-nav" aria-label="应用市场">
+      <button class="om-nav-button cursor-interaction" type="button" data-view="recommended" aria-pressed="true">推荐</button>
+      <button class="om-nav-button cursor-interaction" type="button" data-view="websites" aria-pressed="false">按网站</button>
+      <button class="om-nav-button cursor-interaction" type="button" data-view="installed" aria-pressed="false">我的应用 <span class="om-count" id="om-installed-count">0</span></button>
+    </nav>
+    <main class="om-main">
+      <div class="om-intro">
+        <div><h1 id="om-page-title">让常用网站，更顺手。</h1><p class="om-intro-copy" id="om-page-description">阅读、记录与内容整理，从一件小工具开始。</p></div>
+        <div class="om-context"><label for="om-context-site">演示当前网站</label><select id="om-context-site"><option value="chatgpt">ChatGPT</option><option value="github">GitHub</option><option value="wikipedia">维基百科</option><option value="article">普通文章页</option><option value="restricted">浏览器系统页</option></select></div>
+      </div>
+      <section class="om-filters" aria-label="搜索和筛选应用">
+        <div class="om-filter-row">
+          <div class="om-field om-search-field"><label for="om-search">搜索应用</label><div class="om-search-box"><input id="om-search" type="search" placeholder="搜索名称、功能或网站" autocomplete="off"><button type="button" class="om-clear cursor-interaction" id="om-search-clear" aria-label="清除搜索" hidden>清除</button></div></div>
+          <div class="om-field om-site-field"><label for="om-site">适用网站</label><select id="om-site" class="om-select"><option value="all">全部网站</option><option value="chatgpt">ChatGPT</option><option value="github">GitHub</option><option value="wikipedia">维基百科</option><option value="article">普通文章页</option><option value="independent">无需网站 · 独立使用</option></select></div>
+          <label class="om-current-filter cursor-interaction"><input type="checkbox" id="om-current-only"><span>适用当前网站</span></label>
+        </div>
+        <div class="om-categories" aria-label="功能分类">
+          <button type="button" class="om-category cursor-interaction" data-category="all" aria-pressed="true">全部</button>
+          <button type="button" class="om-category cursor-interaction" data-category="reading" aria-pressed="false">阅读与摘录</button>
+          <button type="button" class="om-category cursor-interaction" data-category="notes" aria-pressed="false">笔记与知识</button>
+          <button type="button" class="om-category cursor-interaction" data-category="markdown" aria-pressed="false">Markdown</button>
+          <button type="button" class="om-category cursor-interaction" data-category="ai-conversation" aria-pressed="false">AI 对话</button>
+          <button type="button" class="om-category cursor-interaction" data-category="automation" aria-pressed="false">效率与自动化</button>
+          <button type="button" class="om-category cursor-interaction" data-category="export-connectors" aria-pressed="false">导出与连接</button>
+        </div>
+      </section>
+      <div id="om-website-grid" class="om-websites" aria-label="按网站浏览" hidden></div>
+      <div class="om-notice" id="om-notice" hidden><p id="om-notice-text" role="status" aria-live="polite"></p><button type="button" class="om-action om-quiet om-small cursor-interaction" id="om-notice-close" aria-label="关闭提示">关闭</button></div>
+      <section aria-labelledby="om-results-title">
+        <div class="om-section-bar"><h2 id="om-results-title">为你推荐</h2><span class="om-subtext" id="om-results-count" aria-live="polite"></span></div>
+        <div class="om-grid" id="om-app-grid"></div>
+      </section>
+      <p class="om-bottom-note" id="om-bottom-note"><strong>先安装，再按需使用。</strong>生成目录或剪藏内容时，确认具体网站授权。</p>
+      <footer class="om-footer"><span>OpenDesk 应用市场</span><div class="om-footer-links"><button type="button" class="cursor-interaction" data-action="help">安装与权限</button><button type="button" class="cursor-interaction" data-action="feedback">提交应用</button></div></footer>
+    </main>
+  </div>
+  <dialog class="om-dialog" id="om-dialog" aria-labelledby="om-dialog-title" aria-describedby="om-dialog-subtitle">
+    <div class="om-dialog-header"><div class="om-dialog-title-wrap"><span class="om-app-monogram om-featured" id="om-dialog-monogram" aria-hidden="true"></span><div><h2 id="om-dialog-title"></h2><p class="om-dialog-subtitle" id="om-dialog-subtitle"></p></div></div><button type="button" class="om-close cursor-interaction" id="om-dialog-close" aria-label="关闭弹窗" autofocus>关闭</button></div>
+    <div class="om-dialog-body" id="om-dialog-body"></div>
+    <div class="om-dialog-footer" id="om-dialog-footer"></div>
+  </dialog>
+  <script>
+    (() => {
+      const root = document.getElementById('opendesk-market-r1');
+      if (!root || root.dataset.initialized) return;
+      root.dataset.initialized = 'true';
+      const q = selector => root.querySelector(selector);
+      const qa = selector => Array.from(root.querySelectorAll(selector));
+      const esc = value => String(value).replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
+      const sites = {chatgpt:{name:'ChatGPT',host:'chatgpt.com'},github:{name:'GitHub',host:'github.com'},wikipedia:{name:'维基百科',host:'zh.wikipedia.org'},article:{name:'普通文章页',host:'example.org'},restricted:{name:'浏览器系统页',host:'chrome://extensions',available:false}};
+      const apps = [
+        {id:'reading-toc',name:'网页目录 TOC',version:'1.0.1',mono:'TOC',category:'reading',categoryName:'阅读与摘录',description:'长文章与 AI 对话，快速跳到要读的段落。',sites:['any'],siteLabel:'通用网页',surface:'网页浮动目录 · 侧边栏',ready:true,pageAccess:true,dependency:'OpenDesk 浏览器扩展',permissions:['在授权网页读取标题结构、显示目录并滚动定位章节'],dataNote:'授权站点可按现有生命周期自动显示目录，关闭侧边栏不会自动停用。',keywords:'toc 目录 大纲 阅读 ChatGPT 文章 导航',preview:'toc'},
+        {id:'quick-notes',name:'网页笔记',version:'1.1.1',mono:'记',category:'notes',categoryName:'笔记与知识',description:'随手记下想法，下次带着来源接着写。',sites:['any','independent'],siteLabel:'独立使用 · 可关联网页',surface:'侧边栏 · 独立工具页',ready:true,pageAccess:false,metadataOnly:true,dependency:'OpenDesk 浏览器扩展',permissions:['读取当前网页的标题与链接','在浏览器本地保存和读取笔记','在 OpenDesk 中打开关联任务'],dataNote:'笔记保存在浏览器本地；可选关联页面标题与链接，不读取正文。',keywords:'笔记 备忘 想法 草稿 note 保存',preview:'notes'},
+        {id:'web-markdown-clipper',name:'网页剪藏 Markdown',version:'1.0.0',mono:'剪',category:'reading',categoryName:'阅读与摘录',description:'把文章正文或选中内容整理成 Markdown。',sites:['any'],siteLabel:'通用网页',surface:'侧边栏 · 导出文件',ready:true,pageAccess:true,dependency:'OpenDesk 浏览器扩展',permissions:['剪藏你选择的网页内容','在你操作后复制文本或导出 Markdown 文件'],dataNote:'复制与导出由你发起；通用剪藏不等于完整 AI 对话导出。',keywords:'网页转 markdown 文章 剪藏 导出 md 选区 clip',preview:'clipper'},
+        {id:'markdown-workbench',name:'Markdown 工作台',version:'1.0.0',mono:'MD',category:'markdown',categoryName:'Markdown',description:'编辑、预览和导出 Markdown，一处完成。',sites:['independent'],siteLabel:'独立使用',surface:'独立工具页',ready:true,pageAccess:false,dependency:'OpenDesk 浏览器扩展',permissions:['在你操作后复制文本或导出 Markdown 文件'],dataNote:'无需读取网站内容。支持常用 GFM 子集；关闭前请复制或导出，未导出内容可能丢失。',keywords:'Markdown 预览 编辑 md 工作台 文档',preview:'markdown'},
+        {id:'chatgpt-collection',name:'ChatGPT 精选收藏',mono:'AI',category:'ai-conversation',categoryName:'AI 对话',description:'把有价值的回答与灵感，收进待整理的草稿库。',sites:['chatgpt'],siteLabel:'ChatGPT',surface:'回答下方 · 侧边栏',ready:false,pageAccess:true,dependency:'计划支持 ChatGPT 网页',permissions:['拟读取用户选定的回答及来源','拟在本地保存收藏；具体权限待实现确认'],dataNote:'规划中，尚未具备安装包。完整对话导出另行验证。',keywords:'chatgpt 收藏 回答 灵感 草稿 对话',preview:'collection'},
+        {id:'prompt-snippets',name:'提示词片段',mono:'片',category:'ai-conversation',categoryName:'AI 对话',description:'常用提示词保存一次，用时快速复制。',sites:['any','independent'],siteLabel:'独立使用',surface:'侧边栏 · 快捷复制',ready:false,pageAccess:false,dependency:'计划复用本地存储与复制能力',permissions:['拟在本地保存提示词片段','拟在用户操作后复制内容；具体权限待确认'],dataNote:'规划中，首版以保存和复制为主。',keywords:'prompt 提示词 模板 片段 复制',preview:'prompts'},
+        {id:'local-knowledge-archive',name:'本地知识归档',mono:'本地',category:'export-connectors',categoryName:'导出与连接',description:'把选好的内容，归档到自己指定的电脑目录。',sites:['any','independent'],siteLabel:'独立使用 · 可归档网页',surface:'侧边栏 · 本地工作区',ready:false,pageAccess:true,dependency:'需连接 OpenDesk 本地程序',permissions:['拟读取用户选定的内容','拟写入用户明确授权的目录；具体权限待确认'],dataNote:'规划中，连接与目录授权完成后才能写入本地。',keywords:'知识 归档 本地 文件 文件夹 电脑 markdown',preview:'archive'},
+        {id:'web-task-assistant',name:'网页任务助手',mono:'流程',category:'automation',categoryName:'效率与自动化',description:'把固定步骤做成任务，在授权网站手动运行。',sites:['any'],siteLabel:'已配置的网站',surface:'侧边栏 · 网页操作',ready:false,pageAccess:true,dependency:'需配置任务，并授权目标网站',permissions:['权限取决于具体任务，运行前逐项展示','涉及提交或外发的动作须单独确认'],dataNote:'规划中，不能安装后默认操控所有网站。',keywords:'自动化 任务 工作流 脚本 网页 操作',preview:'automation'}
+      ];
+      const state = {view:'recommended',query:'',category:'all',site:'all',currentOnly:false,currentSite:'chatgpt',installed:{},modalApp:null,modalKind:null,lastTrigger:null,noteText:'',isComposing:false};
+      const dialog = q('#om-dialog');
+      const supports = (app, site) => site === 'independent' ? app.sites.includes('independent') : sites[site]?.available === false ? app.sites.includes('independent') || !app.pageAccess : app.sites.includes('any') || app.sites.includes('independent') || app.sites.includes(site);
+      const appById = id => apps.find(app => app.id === id);
+      const action = (label, kind, id='', css='') => `<button type="button" class="om-action cursor-interaction ${css}" data-action="${esc(kind)}"${id ? ` data-id="${esc(id)}"` : ''}>${esc(label)}</button>`;
+      function announce(message){q('#om-notice-text').textContent=message;q('#om-notice').hidden=false;}
+      function resultApps(){return apps.filter(app => {
+        if(state.view==='installed'&&!state.installed[app.id])return false;
+        if(state.category!=='all'&&state.category!==app.category)return false;
+        if(state.site!=='all'&&!supports(app,state.site))return false;
+        if(state.currentOnly&&!supports(app,state.currentSite))return false;
+        if(state.query.trim()){const haystack=[app.name,app.description,app.categoryName,app.siteLabel,app.keywords,app.sites.includes('any')?'ChatGPT GitHub 维基百科 普通文章页':''].join(' ').toLowerCase();if(!state.query.trim().toLowerCase().split(/\s+/).every(word=>haystack.includes(word)))return false;}
+        return true;
+      });}
+      function renderApp(app){
+        const installed=state.installed[app.id];
+        const active=installed&&!installed.disabled&&installed.activeSites.includes(state.currentSite);
+        const status= !app.ready?'规划中':installed?(installed.disabled?'已暂停':active?(app.id==='reading-toc'?'当前网站已启用':'网站已授权'):'已安装'):'可体验';
+        const isPositive=app.ready&&!(installed&&installed.disabled);
+        let buttons=app.ready?(installed?action(installed.disabled?'恢复':'使用','use',app.id,'om-soft-action om-small'):action('安装','install',app.id,'om-soft-action om-small')):'';
+        buttons=action('详情','details',app.id,'om-quiet om-small')+buttons;
+        const manage=installed&&state.view==='installed'?`<div class="om-management">${!installed.disabled?action('暂停','disable',app.id,'om-quiet'):''}${action('卸载','uninstall',app.id,'om-quiet')}</div>`:'';
+        return `<article class="om-app" data-app-id="${esc(app.id)}" aria-label="${esc(app.name)}"><div class="om-app-heading"><span class="om-app-monogram ${app.ready?'om-featured':''}" aria-hidden="true">${esc(app.mono)}</span><div class="om-app-title"><h3>${esc(app.name)}</h3><p class="om-app-type">${esc(app.categoryName)}</p></div></div><p class="om-app-description">${esc(app.description)}</p><div class="om-app-meta"><span class="om-site-badge">${esc(app.siteLabel)}</span>${app.id==='local-knowledge-archive'?'<span class="om-site-badge">需连接 OpenDesk</span>':''}${app.id==='web-task-assistant'?'<span class="om-site-badge">需配置</span>':''}</div><div class="om-app-bottom"><span class="om-state ${isPositive?'om-ready':''}"><span class="om-dot" aria-hidden="true"></span>${esc(status)}</span><div class="om-app-actions">${buttons}</div></div>${manage}</article>`;
+      }
+      function render(){
+        qa('[data-view]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.view===state.view)));
+        qa('[data-category]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.category===state.category)));
+        q('#om-installed-count').textContent=Object.keys(state.installed).length;
+        q('#om-page-title').textContent=state.view==='installed'?'我的应用':state.view==='websites'?'为常用网站，找到合适的工具。':'让常用网站，更顺手。';
+        q('#om-page-description').textContent=state.view==='installed'?'打开、暂停或卸载，管理已经安装的应用。':state.view==='websites'?'先选网站，再看可以解决什么问题。':'阅读、记录与内容整理，从一件小工具开始。';
+        q('#om-results-title').textContent=state.view==='installed'?'已安装应用':state.view==='websites'?'适用应用':'为你推荐';
+        q('#om-site').value=state.site;
+        q('#om-current-only').checked=state.currentOnly;
+        if(document.activeElement!==q('#om-search')&&!state.isComposing)q('#om-search').value=state.query;
+        q('#om-search-clear').hidden=!state.query;
+        q('#om-website-grid').hidden=state.view!=='websites';
+        if(state.view==='websites')q('#om-website-grid').innerHTML=Object.entries(sites).filter(([,site])=>site.available!==false).map(([key,site])=>`<button type="button" class="om-website cursor-interaction" data-website="${key}" aria-pressed="${state.site===key}"><span>${esc(site.name)}<small>${esc(site.host)}</small></span><span class="om-website-count">${apps.filter(app=>supports(app,key)&&app.ready).length} 款可体验</span></button>`).join('');
+        const found=resultApps();
+        const ready=found.filter(app=>app.ready).length;
+        q('#om-results-count').textContent=state.view==='installed'?`${found.length} 款应用`:`${found.length} 款应用 · ${ready} 款可体验`;
+        if(found.length)q('#om-app-grid').innerHTML=found.map(renderApp).join('');
+        else if(state.view==='installed'&&!Object.keys(state.installed).length)q('#om-app-grid').innerHTML=`<div class="om-empty"><h3>还没有安装应用</h3><p>从网页目录或笔记开始，安装后在这里管理。</p>${action('浏览推荐应用','browse','','om-primary')}</div>`;
+        else q('#om-app-grid').innerHTML=`<div class="om-empty"><h3>没有找到匹配的应用</h3><p>换个关键词，或清除筛选再看看。</p>${action('清除筛选','clear-filters','','om-primary')}</div>`;
+      }
+      function permissionHTML(app,install=false){return `<section class="om-permissions"><h3>${app.ready?(install?'此应用声明的能力':'权限与数据'):'规划中的权限范围'}</h3><ul class="om-permission-list">${app.permissions.map(item=>`<li><span class="om-permission-bullet" aria-hidden="true">·</span><span>${esc(item)}</span></li>`).join('')}</ul><p class="om-permission-note">${esc(app.dataNote)}</p></section>`;}
+      function previewHTML(app,interactive=false){
+        let content='';
+        if(app.preview==='toc')content=`<div class="om-toc-preview"><div class="om-toc-list"><h4>页面目录</h4><button class="cursor-interaction" type="button" data-heading="项目概览" aria-pressed="true">项目概览</button><button class="cursor-interaction" type="button" data-heading="关键结论" aria-pressed="false">关键结论</button><button class="cursor-interaction" type="button" data-heading="下一步计划" aria-pressed="false">下一步计划</button></div><div class="om-article-preview"><h4 id="om-preview-heading">项目概览</h4><p id="om-preview-paragraph">为正在阅读的内容建立目录，快速定位重点。</p><div class="om-text-line"></div><div class="om-text-line"></div><div class="om-text-line om-short"></div></div></div>`;
+        if(app.preview==='notes')content=`<div class="om-note-preview"><h4>${sites[state.currentSite].available===false?'普通笔记':'本页笔记'}</h4><p class="om-note-source">${sites[state.currentSite].available===false?'当前页面信息不可用，仍可记录普通笔记':`${esc(sites[state.currentSite].name)} · 可选关联页面来源`}</p>${interactive?`<label class="om-sr" for="om-note-edit">笔记内容</label><textarea id="om-note-edit" class="om-note-edit" placeholder="记下一个想法…">${esc(state.noteText||'把这段思路补充到产品草稿中。')}</textarea><div class="om-use-actions">${action('保存笔记','save-note',app.id,'om-soft-action om-small')}</div>`:'<p>把这段思路补充到产品草稿中。</p><p class="om-note-source">本地保存 · 随时继续整理</p>'}</div>`;
+        if(app.preview==='markdown')content='<div class="om-markdown-preview"><div><p class="om-mini-label">Markdown</p><pre class="om-code-preview"># 阅读笔记\n\n- 保留关键结论\n- 补上来源链接</pre></div><div><p class="om-mini-label">预览</p><div class="om-article-preview"><h4>阅读笔记</h4><p>• 保留关键结论<br>• 补上来源链接</p></div></div></div>';
+        if(app.preview==='clipper')content='<div class="om-markdown-preview"><div class="om-article-preview"><p class="om-mini-label">网页正文 / 选区</p><h4>如何整理阅读笔记</h4><p>把重点和来源一起留下，方便继续使用。</p></div><pre class="om-code-preview"># 如何整理阅读笔记\n\n把重点和来源一起留下，方便继续使用。\n\n来源：example.org</pre></div>';
+        if(app.preview==='collection')content='<div class="om-note-preview"><p class="om-mini-label">精选回答 → 草稿库</p><h4>一个值得继续完善的产品想法</h4><p>保存选定的回答，保留回到原对话的入口。</p><p class="om-note-source">来源：ChatGPT · 待整理</p></div>';
+        if(app.preview==='prompts')content='<div class="om-note-preview"><p class="om-mini-label">常用片段</p><h4>整理会议记录</h4><p>请整理关键结论、待办事项与负责人。</p><p class="om-note-source">选择片段 → 手动复制</p></div>';
+        if(app.preview==='archive')content='<div class="om-task-preview"><div class="om-task-row"><span class="om-step-number">1</span><span>选择要归档的内容</span></div><div class="om-task-row"><span class="om-step-number">2</span><span>连接 OpenDesk，授权目标目录</span></div><div class="om-task-row"><span class="om-step-number">3</span><span>确认后写入文件</span></div></div>';
+        if(app.preview==='automation')content='<div class="om-task-preview"><div class="om-task-row"><span class="om-step-number">1</span><span>配置一项网页任务</span></div><div class="om-task-row"><span class="om-step-number">2</span><span>查看操作步骤与所需权限</span></div><div class="om-task-row"><span class="om-step-number">3</span><span>在授权网站手动运行</span></div></div>';
+        return `<section class="om-preview" aria-label="${esc(app.name)}界面示意"><div class="om-preview-bar"><span>${interactive?'使用体验':'界面示意'}</span><span>${app.ready?'演示':'规划'}</span></div><div class="om-preview-body">${content}</div></section>`;
+      }
+      function openModal(title,subtitle,mono,body,footer,kind,appId=null){
+        if(!dialog.open&&root.contains(document.activeElement))state.lastTrigger=document.activeElement;
+        state.modalKind=kind;state.modalApp=appId;
+        q('#om-dialog-title').textContent=title;q('#om-dialog-subtitle').textContent=subtitle;q('#om-dialog-monogram').textContent=mono;
+        q('#om-dialog-body').innerHTML=body;q('#om-dialog-footer').innerHTML=footer;
+        if(!dialog.open)dialog.showModal();
+        q('#om-dialog-close').focus();
+      }
+      function closeModal(){if(dialog.open)dialog.close();}
+      function details(app){
+        const installed=state.installed[app.id];
+        const grants=installed&&app.pageAccess?`<section class="om-permissions"><h3>已授权网站</h3>${installed.rememberedSites.length?`<ul class="om-permission-list">${installed.rememberedSites.map(site=>`<li><span style="flex:1;overflow-wrap:anywhere">https://${esc(sites[site].host)}</span><button class="om-action om-quiet om-small cursor-interaction" type="button" data-action="revoke-site" data-id="${esc(app.id)}" data-site="${esc(site)}">撤销</button></li>`).join('')}</ul>`:'<p class="om-permission-note">尚未授权网站。</p>'}</section>`:'';
+        const body=`<p class="om-dialog-intro">${esc(app.description)}</p><dl class="om-detail-list"><div><dt>适用网站</dt><dd>${esc(app.siteLabel)}</dd></div><div><dt>使用位置</dt><dd>${esc(app.surface)}</dd></div><div><dt>依赖</dt><dd>${esc(app.dependency)}</dd></div><div><dt>应用状态</dt><dd>${app.ready?`已有工具 · 待市场接入<br>版本 ${esc(app.version)}`:'规划中 · 尚不可安装'}</dd></div></dl>${previewHTML(app)}${permissionHTML(app)}${grants}`;
+        let footer=action('关闭','close');
+        if(app.ready){if(installed){footer=action('卸载','uninstall',app.id,'om-danger om-footer-spacer')+(!installed.disabled?action('暂停应用','disable',app.id):'')+action(installed.disabled?'恢复应用':'使用应用','use',app.id,'om-primary');}else footer+=action('安装应用','install',app.id,'om-primary');}
+        openModal(app.name,app.ready?'已有工具 · 待市场接入':'规划中 · 尚不可安装',app.mono,body,footer,'details',app.id);
+      }
+      function install(app){
+        if(!app.ready||state.installed[app.id])return;
+        const body=`<p class="om-dialog-intro">${esc(app.description)}</p>${permissionHTML(app,true)}<p class="om-callout">${app.pageAccess?'安装后不会自动运行。首次读取网页时，再确认使用的网站。':app.metadataOnly?'安装后手动打开笔记。可选关联网页标题与链接，不读取正文，无需逐网站追加授权。':'安装后手动打开工作台，无需授予网站读取权限。'}</p>`;
+        openModal(`安装${app.name}`,'已有工具 · 安装流程演示',app.mono,body,action('取消','close')+action('确认安装','confirm-install',app.id,'om-primary'),'install',app.id);
+      }
+      function confirmInstall(app){
+        if(!app.ready||state.installed[app.id])return;
+        state.installed[app.id]={disabled:false,activeSites:[],rememberedSites:[]};
+        closeModal();render();announce(`${app.name}已安装，尚未运行。点击「使用」开始。`);
+      }
+      function use(app){
+        const installed=state.installed[app.id];if(!installed)return;
+        if(!app.pageAccess){installed.disabled=false;runDemo(app);return;}
+        if(!supports(app,state.currentSite)){closeModal();announce(sites[state.currentSite].available===false?'当前页面没有可读取的主文档，请切换到普通网页后使用。':`${app.name}不适用于当前网站。`);return;}
+        if(installed.rememberedSites.includes(state.currentSite)){installed.disabled=false;runDemo(app);return;}
+        const site=sites[state.currentSite];
+        const body=`<p class="om-dialog-intro">允许${esc(app.name)}在当前网站使用网页能力。</p><dl class="om-detail-list"><div><dt>当前网站</dt><dd>${esc(site.name)}</dd></div><div><dt>授权范围</dt><dd>仅 https://${esc(site.host)}</dd></div></dl>${permissionHTML(app)}<p class="om-callout">此网站的授权会保留，可在应用详情中撤销。${app.id==='reading-toc'?'授权后可在本站自动显示目录，关闭侧边栏不等于暂停应用。':'只有你打开工具并执行剪藏时才会读取内容。'}其他网站仍需另行授权。</p>`;
+        openModal('确认使用的网站','安装与网站启用分开确认',app.mono,body,action('暂不使用','close')+action(`在${site.name}使用`,'confirm-use',app.id,'om-primary'),'permission',app.id);
+      }
+      function confirmUse(app){
+        const installed=state.installed[app.id];if(!installed)return;
+        if(!installed.rememberedSites.includes(state.currentSite))installed.rememberedSites.push(state.currentSite);
+        installed.disabled=false;runDemo(app);
+      }
+      function runDemo(app){
+        const installed=state.installed[app.id];if(!installed)return;
+        if(app.pageAccess&&!installed.activeSites.includes(state.currentSite))installed.activeSites.push(state.currentSite);
+        render();
+        const subtitle=app.pageAccess?`当前网站：${sites[state.currentSite].name} · ${sites[state.currentSite].host}`:app.metadataOnly?'侧边栏使用 · 可选关联当前网页标题与链接':'独立使用 · 无需网站读取权限';
+        const body=`<p class="om-dialog-intro">${esc(app.surface)}</p>${previewHTML(app,true)}<p class="om-callout">${app.pageAccess?'此处演示授权后的使用状态，不会修改外部网页。':app.metadataOnly?'此处演示打开笔记，仅使用演示页面的标题与链接。':'此处演示打开工作台，不会读取外部网页。'}</p>`;
+        openModal(`${app.name} · 使用预览`,subtitle,app.mono,body,action('关闭预览','close')+(app.pageAccess?action('暂停应用','disable',app.id,'om-soft-action'):''),'use',app.id);
+      }
+      function disable(app){
+        const installed=state.installed[app.id];if(!installed)return;
+        installed.disabled=true;installed.activeSites=[];closeModal();render();announce(`${app.name}已暂停，数据与网站授权保留。你可以随时恢复。`);
+      }
+      function uninstall(app){
+        if(!state.installed[app.id])return;
+        const body=`<p class="om-dialog-intro">从「我的应用」移除${esc(app.name)}，删除该工具的数据与许可。</p><p class="om-callout">${app.id==='quick-notes'?'卸载会删除此工具保存的笔记，请先保存需要保留的内容。':'卸载会删除该工具的本地数据。'}已导出的文件不会删除。本预览只操作本次演示的数据。</p>`;
+        openModal(`卸载${app.name}`,'应用移除后，可重新安装',app.mono,body,action('取消','close')+action('确认卸载','confirm-uninstall',app.id,'om-danger'),'uninstall',app.id);
+      }
+      function resetFilters(){state.query='';state.category='all';state.site='all';state.currentOnly=false;q('#om-search').value='';render();}
+      root.addEventListener('click',event=>{
+        const button=event.target.closest('button');if(!button||!root.contains(button))return;
+        if(button.dataset.view){state.view=button.dataset.view;resetFilters();return;}
+        if(button.dataset.category){state.category=button.dataset.category;render();return;}
+        if(button.dataset.website){state.site=button.dataset.website;state.currentOnly=false;render();return;}
+        if(button.dataset.heading){qa('[data-heading]').forEach(item=>item.setAttribute('aria-pressed',String(item===button)));q('#om-preview-heading').textContent=button.dataset.heading;q('#om-preview-paragraph').textContent=({'项目概览':'为正在阅读的内容建立目录，快速定位重点。','关键结论':'目录层级跟随内容组织，让有价值的段落更容易找到。','下一步计划':'把阅读、笔记和整理接起来，继续完善自己的工作。'})[button.dataset.heading];return;}
+        const kind=button.dataset.action;if(!kind)return;
+        const app=button.dataset.id?appById(button.dataset.id):null;
+        if(kind==='close'){closeModal();return;}
+        if(kind==='details'&&app)details(app);
+        if(kind==='install'&&app)install(app);
+        if(kind==='confirm-install'&&app)confirmInstall(app);
+        if(kind==='use'&&app)use(app);
+        if(kind==='confirm-use'&&app)confirmUse(app);
+        if(kind==='disable'&&app)disable(app);
+        if(kind==='uninstall'&&app)uninstall(app);
+        if(kind==='confirm-uninstall'&&app){delete state.installed[app.id];if(app.id==='quick-notes')state.noteText='';closeModal();render();announce(`${app.name}已卸载，演示数据与许可已清除。已导出的文件不受影响。`);}
+        if(kind==='revoke-site'&&app&&state.installed[app.id]){const installed=state.installed[app.id];installed.rememberedSites=installed.rememberedSites.filter(site=>site!==button.dataset.site);installed.activeSites=installed.activeSites.filter(site=>site!==button.dataset.site);render();details(app);}
+        if(kind==='browse'){state.view='recommended';resetFilters();}
+        if(kind==='clear-filters')resetFilters();
+        if(kind==='save-note'){state.noteText=q('#om-note-edit').value;const save=q('[data-action="save-note"]');save.textContent='已保存到本次演示';save.disabled=true;}
+        if(kind==='help')openModal('安装与权限','先安装，再按需使用','O','<p class="om-dialog-intro">选择应用并查看能力摘要，确认后安装。网页目录和剪藏在首次使用时确认具体网站；笔记可独立记录，工作台无需读取网站。安装本身不会使应用自动运行。</p><div class="om-task-preview"><div class="om-task-row"><span class="om-step-number">1</span><span>查看详情与权限摘要</span></div><div class="om-task-row"><span class="om-step-number">2</span><span>安装到「我的应用」</span></div><div class="om-task-row"><span class="om-step-number">3</span><span>按应用需要确认网站授权</span></div></div><p class="om-callout">网站授权会保留，可随时撤销。目录在已授权网站可自动显示，剪藏仍由用户打开操作。本页的安装、暂停和授权状态仅在当前页面中演示。</p>',action('知道了','close','','om-primary'),'help');
+        if(kind==='feedback')openModal('提交应用','发布能力规划中','O','<p class="om-dialog-intro">首期由官方维护应用目录，先把已有工具接入安装链路。</p><div class="om-task-preview"><div class="om-task-row"><span class="om-step-number">1</span><span>提供应用说明、适用网站与权限</span></div><div class="om-task-row"><span class="om-step-number">2</span><span>核验安装包、来源与更新记录</span></div><div class="om-task-row"><span class="om-step-number">3</span><span>审核通过后进入市场目录</span></div></div><p class="om-callout">开发者自助提交尚未开放，此处不会发送内容。</p>',action('关闭','close','','om-primary'),'submit');
+      });
+      q('#om-search').addEventListener('compositionstart',()=>{state.isComposing=true;});
+      q('#om-search').addEventListener('compositionend',event=>{state.isComposing=false;state.query=event.target.value;render();});
+      q('#om-search').addEventListener('input',event=>{state.query=event.target.value;if(!state.isComposing&&!event.isComposing)render();});
+      q('#om-search-clear').addEventListener('click',()=>{state.query='';q('#om-search').value='';render();q('#om-search').focus();});
+      q('#om-site').addEventListener('change',event=>{state.site=event.target.value;state.currentOnly=false;render();});
+      q('#om-current-only').addEventListener('change',event=>{state.currentOnly=event.target.checked;if(state.currentOnly)state.site='all';render();});
+      q('#om-context-site').addEventListener('change',event=>{state.currentSite=event.target.value;render();});
+      q('#om-notice-close').addEventListener('click',()=>{q('#om-notice').hidden=true;});
+      q('#om-dialog-close').addEventListener('click',closeModal);
+      dialog.addEventListener('close',()=>{state.modalApp=null;state.modalKind=null;const trigger=state.lastTrigger;if(trigger&&trigger.isConnected&&root.contains(trigger)&&typeof trigger.focus==='function')trigger.focus();else q('#om-search').focus();});
+      dialog.addEventListener('click',event=>{if(event.target===dialog){const bounds=dialog.getBoundingClientRect();if(event.clientX<bounds.left||event.clientX>bounds.right||event.clientY<bounds.top||event.clientY>bounds.bottom)closeModal();}});
+      root.addEventListener('input',event=>{if(event.target.id==='om-note-edit'){const save=q('[data-action="save-note"]');if(save){save.disabled=false;save.textContent='保存笔记';}}});
+      render();
+    })();
+  </script>
+</div>
+
+</body>
+</html>

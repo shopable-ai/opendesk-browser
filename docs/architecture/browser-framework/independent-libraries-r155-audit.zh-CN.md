@@ -19,10 +19,10 @@
 
 | Library | Legacy Version | Current Version | Source | Consumer | World | Build Mode | Actual Output | Runtime Loading | API Coverage | Status |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| Lodash | 4.17.21（旧 bundle 内置版本） | lodash-es 4.18.1 | npm | 用户程序中的 `_` / 测试 | C、U | WXT 独立 IIFE | `libs/packages/lodash.js` | 默认 | **仅 get/has/words/trim/uniq/chunk/escape/truncate** | SOURCE_PASS（登记）；最新 PACKAGE/RUNTIME 待复验 |
-| Day.js | 旧无；Moment 为 2.18.1 | 1.11.23 | npm | 用户程序中的 `dayjs` / 测试 | C、U | WXT 独立 IIFE | `libs/packages/dayjs.js` | 默认 | 核心函数及 isDayjs；无 extend/locale mutators | SOURCE_PASS（登记）；最新 PACKAGE/RUNTIME 待复验 |
-| my-utils | 无 | 1.0.0 | vendor | OpenDeskLibs.myUtils / 测试 | C、U | 原字节复制 | `libs/vendor/my-utils/1.0.0/index.js` | 默认 | upper | SOURCE_PASS（登记）；最新 PACKAGE/RUNTIME 待复验 |
-| jQuery | 3.2.1（历史快照）；3.7.1（原 `src/vendor`） | 3.7.1 | vendor | `preview.js`、`dependency-manager.js`、用户 Page DOM | U，不在 C/M | 原字节复制 | `libs/vendor/jquery/3.7.1/jquery.min.js` | 显式 opt-in 或已授权依赖锁 | $ / jQuery 3.7.1；隔离世界 | SOURCE_PASS；production WXT USER_SCRIPT opt-in DOM / MAIN 隔离已通过（9f594e）；其余负向场景待验收 |
+| Lodash | 4.17.21（旧 bundle 内置版本） | lodash-es 4.18.1 | npm | 用户程序中的 `_` / 测试 | C、U | WXT 独立 IIFE | `libs/packages/lodash.js` | 默认 | **仅 get/has/words/trim/uniq/chunk/escape/truncate** | SOURCE_PASS；生产/开发独立产物与 Node 调用 PASS（31fe）；原生 Page 既有候选 PASS（56b），本机最终包待复验 |
+| Day.js | 旧无；Moment 为 2.18.1 | 1.11.23 | npm | 用户程序中的 `dayjs` / 测试 | C、U | WXT 独立 IIFE | `libs/packages/dayjs.js` | 默认 | 核心函数及 isDayjs；无 extend/locale mutators | SOURCE_PASS；生产/开发独立产物与 Node 调用 PASS（31fe）；原生 Page 既有候选 PASS（56b），本机最终包待复验 |
+| my-utils | 无 | 1.0.0 | vendor | OpenDeskLibs.myUtils / 测试 | C、U | 原字节复制 | `libs/vendor/my-utils/1.0.0/index.js` | 默认 | upper | SOURCE_PASS；原样 vendor 与双模式产物 PASS（31fe）；原生 Page 既有候选 PASS（56b），本机最终包待复验 |
+| jQuery | 3.2.1（历史快照）；3.7.1（原 `src/vendor`） | 3.7.1 | vendor | `preview.js`、`dependency-manager.js`、用户 Page DOM | U，不在 C/M | 原字节复制 | `libs/vendor/jquery/3.7.1/jquery.min.js` | 显式 opt-in 或已授权依赖锁 | $ / jQuery 3.7.1；隔离世界 | SOURCE_PASS；production WXT USER_SCRIPT opt-in DOM / MAIN 隔离已通过（56b）；本机撤权/离线等负向场景待验收 |
 | Moment.js | 2.18.1（源码头注释） | 未预装 | 历史快照 | 旧日期代码；当前保留消费者未确认 | 旧 B/I/M 待分辨 | 不适用 | 无 | 无 | **Day.js 不是无差异兼容实现** | UNVERIFIED |
 | Axios | 0.21.1（源码头注释） | 未预装 Axios | 历史快照 | 旧网络代码；现有 axiosx 为独立的授权代理 API | 旧 B/I/M 待分辨 | 不适用 | 无 | 无 | 不承诺 Axios 同 API | UNVERIFIED |
 | Cheerio | 1.0.0（旧文件名） | 未预装 | 历史快照 | 当前消费者未确认 | 旧环境待确认 | 不适用 | 无 | 无 | 未迁移 | UNVERIFIED |
@@ -50,7 +50,7 @@
 
 ## 4. 未关闭的 P0 问题，不能误报通过
 
-1. **SW 预算恢复：** 曾核查到 `serviceWorkerProductionBytes: 512*1024`（320 KiB 仅警告），与本轮明确的 **327,680 B** 要求不一致。R15.5 在 `scripts/build-contract.mjs`、`scripts/verify-package.mjs` 与定向测试恢复了 SW **320 KiB 硬限制**，其他生产入口 512 KiB 和开发 SW 768 KiB 不变。新的源码合同已提交；实际生产 WXT 构建是否低于硬上限仍待同候选 CI 确认，不能提前标 PACKAGE_PASS。
+1. **SW 预算恢复：** 曾核查到 `serviceWorkerProductionBytes: 512*1024`（320 KiB 仅警告），与本轮明确的 **327,680 B** 要求不一致。R15.5 在 `scripts/build-contract.mjs`、`scripts/verify-package.mjs` 与定向测试恢复了 SW **320 KiB 硬限制**，其他生产入口 512 KiB 和开发 SW 768 KiB 不变。恢复后的合同已在 R15.5 同候选 CI #38113765061 实际构建中通过（生产 SW 320180 B）；新源码变更仍须逐候选复验。
 2. **jQuery manifest 行的静态 ABI/字节/SHA 校验已补足**：`src/libs/loader.js` 在执行用户代码前检查全部固定 vendor 的 manifest 行（包含按需 jQuery），并新增「只修改 jQuery 清单 SHA 或 bytes」的负向测试；jQuery JS 本体仍只在显式声明后读取，且独立 SHA pin。更深的资源被物理损坏、升级/离线失败原生场景仍须专项验收。
 3. 初审时未有本轮同包 Chrome 回执；后续已对特定 R15.5 候选获得生产 CI 和原生回执，详见第 9 节。后续主干提交必须重新复验，不能将历史验收直接迁移。jQuery opt-in DOM、用户 Mac 撤权/离线/冷-热性能仍未完整验收。
 4. 旧 jQuery 两个文件的在用消费者扫描和路径修复已实施，源码重复副本已删除；历史 15 库的跨工程全量消费者反向扫描及替代策略仍未完成。**不得**把未迁移直接当成功能缺陷，也不得把「没看到调用」当成已扫描通过。
@@ -173,3 +173,21 @@ R15.5 提交 `cb59a8ca0a53d20bc03a49773eab399d0abc1154` 重新保证 `entryByteB
 **这个包的 SHA 和上一节 9f594e 候选不同，是一次新的完整验收。**
 
 **明确不在此证据的范围：** 用户个人 Mac Chrome/Profile 上对最终 ZIP 的实际安装、正式全场景 F3、站点权限撤销恢复、离线破损重新加载、旧数据跨 ABI 升级、可复核的 P50/P95 冷热启动性能、历史所有未迁移第三方库的真实消费者溯源。它们继续为 `NOT_TESTED` / `UNVERIFIED`，不可将 R15.5 全部项目宣布 ≥95/100。
+
+## 13. R15.5 库诊断的 dist 未登记文件与 SW 超限防线（2026-10-11）
+
+- `scripts/libs-doctor.mjs` 的 **PACKAGE_PASS 是静态资源级**验收：除资源清单逐项 bytes/SHA 外，现按构建模式扫描 `dist/{production,development}/libs/` 的真实文件名，拒绝未登记的资源、缺失资源、符号链接以及错误模式的 `.map` 文件。development 只允许 Lodash、Day.js 和 Page CORE 这三个 WXT 生成入口的 `.map`，production 不允许库目录中的源码映射。该范围**不替代** `npm run verify` 的整个 ZIP 闭合性校验。
+- 诊断器现在先验证本次读取的 `sw.js` 真实字节符合生产 **327,680 B**、开发 **768 KiB** 的不同硬限制，超限标 **PACKAGE_FAIL**，不再先输出误导性的 PACKAGE_PASS。
+- 对上述负向场景增加 `tests/environment/libs-doctor-r155.test.mjs`，并把诊断文件及专项测试列入 R15 qualification 的 push 触发条件和前置定向测试。先检查本提交的 CI 结果；未经同 SHA 成功回执不得写成 PASS。
+
+## 14. R15.5 strict doctor 与实际双模式包验收（`31fe532156a94ea197508aa1eaad6ce47df87c56`）
+
+本节只声明 **2026-10-11 同一源码候选**的已观察结果，不把 Node VM 提升为原生 Chrome：
+
+- [GitHub Actions R15 libraries qualification #38113765061](https://github.com/shopable-ai/opendesk-browser/actions/runs/38113765061)：**PASS**。按顺序通过 `npm ci`、`libs:check`、R15.5 诊断/按需依赖负向定向测试、builtin 资格测试、`npm run check`、production/development WXT 构建、`npm run libs:doctor -- --strict`、`npm run verify`、完整 `npm test`、双 ZIP `pack`。其中专项定向 **8/8 PASS**、builtin 定向 **69/69 PASS**；完整环境回归 **955 total / 948 pass / 0 fail / 7 skip**，skip 没有被计入 PASS。
+- `libs:doctor --strict` 核查 **production PACKAGE_PASS**、**development PACKAGE_PASS**，固定 npm 库的声明/锁文件/安装版本匹配。扫描到的旧 `src/vendor/jquery-3.7.1.*` 文件状态 **ABSENT**、引用者 `[]`；`policy.status=PASS`，没有发现 `issues`。`runtime=RUNTIME_UNVERIFIED`、`native=NATIVE_UNVERIFIED` 是诊断命令本身的证据等级标识，必须继续保持，不能因同一流水线的独立测试通过而自动改名。
+- **生产包（字节数来自当次 CI 实际读取）：** `sw.js=320180 B`（327680 B 硬上限余 **7500 B**），Controller Worker `37121 B`，Page CORE `5165 B`，bootstrap `876 B`，Lodash `12832 B`，Day.js `7546 B`，my-utils `291 B`，jQuery `87533 B`。**默认库自身累计 `21545 B`**（不计 Page CORE/Controller 运行引擎），按需库 `87533 B`；没有把按需 jQuery 强制塞入 SW。
+- **开发包：** SW `320346 B`，默认库累计 `21998 B`，jQuery 仍为 `87533 B`；仅 WXT 的 Lodash/Day.js/Page CORE 生成入口额外保留 `.map`，未发现未登记库资源。
+- **包身份：** production `packageHash=568da9551a429c71b0ce8e380e982486754f1e8c59cf5ad1f50f17cdd6b65bde`；ZIP **419813 B**，SHA-256 `86148a5f304d0ad629a4b30e89a2464294865146027e0bd893e3520b56420245`。development `packageHash=b2006cee76b0559ad54cfbf1a4fd61cbd3a3e19c77b608a505c0d275ce88fa1c`；ZIP **1370450 B**，SHA-256 `144415c3f0979b95e696e6a78e79bdead7c5ee773783bbeb438d7b3c3fccf7b5`。
+
+**仍待真实 Mac Chrome 同包独立验收：** 完整 production Controller Worker 由 Side Panel 实际启动并调用默认库、损坏资源 fail-closed 的实际浏览器回执、权限撤销与恢复、离线执行、页面导航与 reload/Worker restart 后身份一致性、冷/热性能 P50/P95 以及用户最终 ZIP 手工安装。现有 R15.4/R15.5 的老候选 macOS Chrome PASS 可按影响分析引用，但不能当成此候选的重新验收；不声称达到专家 95/100。新的文档提交未修改本节已测源码与包。
