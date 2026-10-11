@@ -152,29 +152,38 @@ test('R22 Chrome: official clipper consent, real content read and local workbenc
  await click(side,'#tab-tools');
  console.log('R22_NATIVE_STAGE: Side Panel tools tab clicked');
  await until(()=>evalIn(side,'!document.querySelector("#workbench-tools").hidden'),'tools section');
+ // Official tools are discovered separately from My Tools in the current UI.
+ await until(()=>evalIn(side,'!document.querySelector("#sidebar-tool-discover-tab").disabled'),'Discover tools available');
+ await click(side,'#sidebar-tool-discover-tab');
+ await until(()=>evalIn(side,'!document.querySelector("#sidebar-tool-discover-panel").hidden'),'official discovery visible');
+ const officialButton='#sidebar-tool-official-web-markdown-clipper-install';
+ await until(()=>evalIn(side,'(()=>{const n=document.querySelector('+JSON.stringify(officialButton)+');return !!n&&!n.disabled&&!!n.getClientRects().length;})()'),'official clipper install ready');
  // Official candidate must stay review-only: no iframe and no content reads.
- await click(side,'#sidebar-tool-official-web-markdown-clipper-install');
+ await click(side,officialButton);
  await until(()=>evalIn(side,'!document.querySelector("#sidebar-tool-preview").hidden'),'clipper preview');
  assert.equal(await evalIn(side,'document.querySelectorAll("#sidebar-tool-frame iframe").length'),0);
  assert.equal(await evalIn(side,'document.querySelector("#sidebar-tool-preview-title").textContent'),'网页剪藏');
  await click(side,'#sidebar-tool-install');
  console.log('R22_NATIVE_STAGE: clipper official install clicked');
- await until(()=>evalIn(side,'!!document.querySelector("[data-sidebar-tool-action=site][data-sidebar-tool-id=web-markdown-clipper]")'),'clipper installed');
+ const openClipper='[data-sidebar-tool-action=open][data-sidebar-tool-id=web-markdown-clipper]';
+ await until(()=>evalIn(side,'!!document.querySelector('+JSON.stringify(openClipper)+')'),'clipper installed in My Tools');
  await browser.send('Target.activateTarget',{targetId:page.targetId});
  await article.send('Page.bringToFront');
- const grantSelector='[data-sidebar-tool-action=site][data-sidebar-tool-id=web-markdown-clipper]';
- await until(()=>evalIn(side,"(()=>{const n=document.querySelector("+JSON.stringify(grantSelector)+");return !!n&&!n.disabled;})()"),'clipper site grant available');
- // Dialog acceptance is explicit, matched to the native Side Panel frame.
+ await click(side,openClipper);
+ await until(()=>evalIn(side,'!document.querySelector("#sidebar-tool-settings-open").hidden'),'clipper settings button visible');
+ await click(side,'#sidebar-tool-settings-open');
+ await until(()=>evalIn(side,'!document.querySelector("#sidebar-tool-settings-view").hidden'),'clipper Settings opened');
+ await until(()=>evalIn(side,'!document.querySelector("#sidebar-tool-settings-allow").disabled'),'clipper exact-site grant ready');
  let dialogs=0;
  browser.onEvent(evt=>{
   if(evt.method!=='Page.javascriptDialogOpening'||evt.sessionId!==attached.sessionId)return;
   dialogs++;void browser.send('Page.handleJavaScriptDialog',{accept:true},15000,attached.sessionId).catch(()=>{});
  });
- await click(side,grantSelector);
- console.log('R22_NATIVE_STAGE: clip site native consent accepted');
- await until(()=>evalIn(side,"chrome.storage.local.get('opendesk.sidebar-tools.clip-sites.v1').then(x=>x['opendesk.sidebar-tools.clip-sites.v1']?.['web-markdown-clipper']?.includes("+JSON.stringify(new URL(url).origin)+"))"),'explicit site consent persisted');
- assert.equal(dialogs,1,'Site content read must present exactly one native confirmation');
- await click(side,'[data-sidebar-tool-action=open][data-sidebar-tool-id=web-markdown-clipper]');
+ await click(side,'#sidebar-tool-settings-allow');
+ console.log('R22_NATIVE_STAGE: clip site grant clicked in Settings without a dialog');
+ await until(()=>evalIn(side,"chrome.storage.local.get('opendesk.sidebar-tools.clip-sites.v1').then(x=>x['opendesk.sidebar-tools.clip-sites.v1']?.['web-markdown-clipper']?.includes("+JSON.stringify(new URL(url).origin)+"))"),'explicit exact-origin site grant persisted');
+ assert.equal(dialogs,0,'A one-click site grant must have zero JavaScript dialogs');
+ await click(side,'#sidebar-tool-back'); // Settings → detail
  clip=await iframeWith('#clip-fetch');
  console.log('R22_NATIVE_STAGE: clip sandbox mounted');
  await click(clip,'#clip-fetch');
@@ -186,10 +195,16 @@ test('R22 Chrome: official clipper consent, real content read and local workbenc
  assert.match(extracted,/重复章节/);
  assert.match(extracted,/\| 列一 \| 列二 \|/);
  assert.doesNotMatch(extracted,/导航和广告不应剪藏/);
- await click(side,'#sidebar-tool-back');
- await click(side,grantSelector);
- console.log('R22_NATIVE_STAGE: site revoke clicked');
- await until(()=>evalIn(side,"chrome.storage.local.get('opendesk.sidebar-tools.clip-sites.v1').then(x=>!x['opendesk.sidebar-tools.clip-sites.v1']?.['web-markdown-clipper']?.length)"),'clipper site revoked');
+ await click(side,'#sidebar-tool-back'); // detail → My Tools
+ await click(side,openClipper);
+ await click(side,'#sidebar-tool-settings-open');
+ await until(()=>evalIn(side,'!document.querySelector("#sidebar-tool-settings-deny").disabled'),'clipper site revoke ready');
+ await click(side,'#sidebar-tool-settings-deny');
+ console.log('R22_NATIVE_STAGE: site revoked in Settings without dialog');
+ await until(()=>evalIn(side,"chrome.storage.local.get('opendesk.sidebar-tools.clip-sites.v1').then(x=>!x['opendesk.sidebar-tools.clip-sites.v1']?.['web-markdown-clipper']?.length)"),'clipper exact-site grant revoked');
+ assert.equal(dialogs,0,'Site revocation must not open a JavaScript dialog');
+ await click(side,'#sidebar-tool-back'); // Settings → detail
+ await click(side,'#sidebar-tool-back'); // detail → My Tools
  // Install local workbench with the same audited package intake as all R1 tools.
  await click(side,'#sidebar-tool-import-trigger');
  await side.send('DOM.enable');
