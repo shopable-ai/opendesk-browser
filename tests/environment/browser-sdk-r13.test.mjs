@@ -203,3 +203,52 @@ test('Chrome permission revocation and install epoch invalidate old menu grants'
   assert.equal(menus.has('opendesk.tool.selection-notes.capture-selection'),false,
     'Chrome permission reapproval must not resurrect former site grants');
 });
+
+test('disabled tool removes menu and pending selection, and rejects later tool/host requests',async()=>{
+  const pkg=await readSample('selection-notes.opendesk-tool.json'),fake=makeChrome();
+  const {api,menus}=fake,host=createContextMenuHost({api,lockManager,logger:{warn(){}}});
+  await api.storage.local.set({'opendesk.sidebar-tools.installed.v1':[pkg]});
+  fake.setPermission(true);
+  await host.handleHost({operation:'browser.contextMenu.userToggle',toolId:pkg.id,
+    enabled:true,origin:'https://example.com',
+    document:{tabId:9,documentId:'document-A',url:'https://example.com/post'},hostInstanceId:uid},sender);
+  const menuId='opendesk.tool.selection-notes.capture-selection';
+  assert(menus.has(menuId));
+  host.onClicked({menuItemId:menuId,pageUrl:'https://example.com/post',
+    frameId:0,selectionText:'private disabled tool selection'},frame);
+  await cycle(host);
+  let stored=(await api.storage.session.get(BROWSER_MENU_LAUNCH_STORE))[BROWSER_MENU_LAUNCH_STORE];
+  assert.equal(stored[pkg.id].state,'pending');
+  // Use the existing Sidebar lifecycle store, not a Browser SDK-only disable flag.
+  await api.storage.local.set({'opendesk.sidebar-tools.enabled.v1':{[pkg.id]:false}});
+  await cycle(host);
+  assert(!menus.has(menuId),'disabled tool menu must be unregistered');
+  stored=(await api.storage.session.get(BROWSER_MENU_LAUNCH_STORE))[BROWSER_MENU_LAUNCH_STORE];
+  assert(!Object.keys(stored||{}).length,'disabled tool must discard pending sensitive menu selection');
+  await assert.rejects(host.handleTool({operation:'browser.launch.consume',args:{},...hostContext},sender),
+    {code:'E_TOOL_DISABLED'});
+  await assert.rejects(host.handleHost({operation:'browser.contextMenu.userToggle',toolId:pkg.id,
+    enabled:true,origin:'https://example.com',hostInstanceId:uid,
+    document:{tabId:9,documentId:'document-A',url:'https://example.com/post'}},sender),
+    {code:'E_TOOL_DISABLED'});
+  // Re-enabling changes the same durable tool revocation epoch as the original installer.
+  await api.storage.local.set({'opendesk.sidebar-tools.revocation-epochs.v1':{[pkg.id]:'new-instance-after-resume'},
+    'opendesk.sidebar-tools.enabled.v1':{[pkg.id]:true}});
+  await cycle(host);
+  assert(!menus.has(menuId),'old site grant must not revive when disabled tool is re-enabled');
+  await assert.rejects(host.handleTool({operation:'browser.contextMenu.register',
+    args:{actionIds:['capture-selection']},...hostContext},sender),{code:'E_TOOL_CHANGED'});
+  await host.handleHost({operation:'browser.contextMenu.userToggle',toolId:pkg.id,
+    enabled:true,origin:'https://example.com',hostInstanceId:uid,
+    document:{tabId:9,documentId:'document-A',url:'https://example.com/post'}},sender);
+  assert(menus.has(menuId),'fresh trusted site approval can activate the resumed package');
+});
+test('corrupt tool-enable records fail closed without permitting menu reconciliation',async()=>{
+  const pkg=await readSample('selection-notes.opendesk-tool.json'),fake=makeChrome();
+  await fake.api.storage.local.set({'opendesk.sidebar-tools.installed.v1':[pkg],
+    'opendesk.sidebar-tools.enabled.v1':{[pkg.id]:'yes'}});
+  fake.setPermission(true);
+  const host=createContextMenuHost({api:fake.api,lockManager,logger:{warn(){}}});
+  await assert.rejects(host.synchronize(),{code:'E_STORAGE_CORRUPT'});
+  assert.equal(fake.menus.size,0);
+});
