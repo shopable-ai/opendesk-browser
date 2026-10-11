@@ -51,6 +51,17 @@ jobs:
             tests/environment/task-package-flow.test.mjs
       - name: Source and syntax boundaries
         run: npm run check
+  production-package:
+    needs: local-install-contracts
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Production WXT build and manifest verification
         run: npm run build
       - name: Development WXT build and manifest verification
