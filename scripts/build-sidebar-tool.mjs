@@ -3,7 +3,7 @@
 import {readFile,writeFile,mkdir,realpath,stat} from 'node:fs/promises';
 import {resolve,dirname,join,extname,basename} from 'node:path';
 import {pathToFileURL} from 'node:url';
-import {validateSidebarToolPackage,SIDEBAR_TOOL_FORMAT,serializeSidebarToolPackage} from '../src/ui/sidebar-tools/package.js';
+import {validateSidebarToolPackage,SIDEBAR_TOOL_FORMAT,SIDEBAR_TOOL_FORMAT_V2,serializeSidebarToolPackage} from '../src/ui/sidebar-tools/package.js';
 const fail=(message)=>{throw new Error('E_TOOL_BUILD: '+message);};
 function rel(value) {
   if(typeof value!=='string'||value.length>180||!value||
@@ -25,8 +25,12 @@ async function source(root,name,limit=220000,asBytes=false) {
 export async function createSidebarToolPackage(projectPath) {
   const root=await realpath(projectPath);
   const meta=JSON.parse(await source(root,'tool.config.json',16384));
+  const v2=meta?.format===SIDEBAR_TOOL_FORMAT_V2;
   if(!meta||typeof meta!=='object'||Array.isArray(meta)||
-     Object.keys(meta).some(key=>!['id','version','title','description','capabilities','files','assets'].includes(key))||
+     Object.keys(meta).some(key=>(v2
+       ?!['format','id','version','title','description','capabilities','files','assets','requires','contributes']
+       :!['id','version','title','description','capabilities','files','assets']).includes(key))||
+     (!v2&&Object.hasOwn(meta,'format'))||
      !meta.files||typeof meta.files!=='object'||Array.isArray(meta.files)||
      Object.keys(meta.files).sort().join(',')!=='css,html,js')
     fail('tool.config.json needs exactly HTML, CSS and JS file paths');
@@ -48,8 +52,9 @@ export async function createSidebarToolPackage(projectPath) {
     css=css.replaceAll(placeholder,uri);
   }
   if(/\{\{asset:/.test(embeddedHtml+css))fail('unresolved local asset reference');
-  const pkg=validateSidebarToolPackage({format:SIDEBAR_TOOL_FORMAT,id:meta.id,version:meta.version,
-    title:meta.title,description:meta.description,capabilities:meta.capabilities||[],html:embeddedHtml,css,js});
+  const pkg=validateSidebarToolPackage({format:v2?SIDEBAR_TOOL_FORMAT_V2:SIDEBAR_TOOL_FORMAT,id:meta.id,version:meta.version,
+    title:meta.title,description:meta.description,capabilities:meta.capabilities||[],html:embeddedHtml,css,js,
+    ...(v2?{requires:meta.requires,contributes:meta.contributes}:{})});
   return pkg;
 }
 // The digest/size must describe the actual portable UTF-8 file, including its
