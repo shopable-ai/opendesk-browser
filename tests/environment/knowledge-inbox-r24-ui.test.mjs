@@ -129,3 +129,29 @@ test('R24.5 detail editing starts with title and body, collapses secondary metad
   assert.match(css,/\.ki \.ki-extra-details>summary/);
   assert.match(css,/@media\(max-width:399px\)/,'narrow screens keep an independent layout');
 });
+
+test('R24.6 inline validation prevents invalid writes and keeps the reading toolbar compact',()=>{
+  for(const id of ['ki-create-validation','ki-edit-validation','ki-edit-size']) {
+    assert.match(html,new RegExp('id="'+id+'"'));
+    assert.match(html,new RegExp('id="'+id+'"[^>]*hidden'));
+  }
+  const toolbar=html.slice(html.indexOf('id="ki-toolbar"'),html.indexOf('</div>',html.indexOf('id="ki-toolbar"')));
+  assert.ok(toolbar.indexOf('id="ki-delete"')<toolbar.indexOf('id="ki-more"'),'delete remains an obvious single-record action');
+  assert.ok(toolbar.indexOf('id="ki-more"')<toolbar.indexOf('id="ki-outline-toggle"'),'structure view is inside secondary actions');
+  assert.match(js,/const validateKnowledgeInput=/);
+  assert.match(js,/!title\.trim\(\)/);
+  assert.match(js,/!markdown\.trim\(\)/);
+  assert.match(js,/textBytes\(markdown\)>150000/);
+  assert.match(js,/tags\.length>12/);
+  assert.match(js,/value\.length>30/);
+  assert.match(js,/function reflectValidation\(stage\)/);
+  assert.match(js,/setAttribute\('aria-invalid'/);
+  assert.match(js,/if\(control\.id==='ki-save'\)[^\n]*formProblem\('edit'\)/);
+  assert.match(js,/if\(control\.id==='ki-create-save'\)[^\n]*formProblem\('create'\)/);
+  assert.match(js,/if\(issue\)throw new Error\(issue\)/);
+  assert.match(js,/q\('edit-size'\)\.hidden=!large/);
+  assert.match(js,/q\('more'\)\.open=false;\s*const show=q\('outline'\)\.hidden/);
+  assert.match(css,/\.ki \.ki-field-error/);
+  assert.match(css,/\.ki \.ki-extra-details\[data-invalid=true\]/);
+  assert.doesNotMatch(js,/\.innerHTML\s*=/,'validation errors must never be interpreted as HTML');
+});

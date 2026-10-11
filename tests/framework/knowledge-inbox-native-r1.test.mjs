@@ -241,7 +241,12 @@ test('Knowledge R1 Chrome: reviewed install, capture, persistent editor and inli
   const edited='# 我的编辑稿\n\n已整理内容\n\n<script>alert(1)</script>\n\n![远程图片](https://evil.example/track.png)';
   await nativeText(clip,'#ki-content',edited);
  await click(clip,'#ki-editor-extra>summary');
+ await nativeText(clip,'#ki-tags',Array.from({length:13},(_,i)=>'标签'+i).join(', '));
+ await until(()=>evalIn(clip,'document.querySelector("#ki-save").disabled'),'invalid tag count blocks saving');
+ assert.equal(await evalIn(clip,'document.querySelector("#ki-edit-validation").textContent.includes("12 个标签")'),true,'limit error is visible without hiding the writing area');
+ assert.equal(await evalIn(clip,'document.querySelector("#ki-editor-extra").dataset.invalid'),'true','metadata affordance indicates invalid values');
  await nativeText(clip,'#ki-tags','可复用, 项目知识');
+ await until(()=>evalIn(clip,'!document.querySelector("#ki-save").disabled'),'valid tags recover Save without retrying');
  assert.equal(await evalIn(clip,'document.querySelector("#ki-editor-extra-summary").textContent.includes("2 标签")'),true,'metadata summary describes saved edits');
  await captureState('edit-dirty',[360,400]);
  acceptDialog=false;await click(side,'#sidebar-tool-back');
@@ -279,6 +284,7 @@ test('Knowledge R1 Chrome: reviewed install, capture, persistent editor and inli
    return data.records[0].draft?.includes('恢复原文后继续编辑');
  },'post-restore re-edit preserved');
  assert.match((await evalIn(side,readStore)).records[0].markdown,/第二块 Markdown/,'Captured original remains immutable');
+ await click(clip,'#ki-more>summary');
  await click(clip,'#ki-outline-toggle');
  await until(()=>evalIn(clip,'document.querySelector("#ki-outline").textContent.includes("重新编辑的草稿")'),'structure outline');
  await captureState('saved-outline',[360,400,600]);

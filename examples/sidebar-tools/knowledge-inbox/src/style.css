@@ -50,3 +50,11 @@
   .ki .ki-extra-content .ki-meta-grid{grid-template-columns:1fr}
   .ki .ki-extra-summary{max-width:44%}
 }
+
+/* R24.6: show validation only when action is needed, without pushing
+   secondary metadata back above the writing area. */
+.ki .ki-field-error{margin:5px 0 0;font-size:12px;line-height:1.45;color:var(--ki-danger);font-weight:600}
+.ki .ki-writing-view [aria-invalid=true]{border-color:var(--ki-danger);outline-offset:2px}
+.ki .ki-extra-details[data-invalid=true]{border-color:var(--ki-danger)}
+.ki .ki-extra-details[data-invalid=true]>summary{color:var(--ki-danger)}
+.ki #ki-edit-size[data-over=true]{color:var(--ki-danger);font-weight:700}

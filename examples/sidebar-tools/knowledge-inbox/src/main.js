@@ -3,6 +3,49 @@
   const {root,request}=globalThis.OpenDeskTool;
   const doc=root.ownerDocument,q=id=>root.querySelector('#ki-'+id);
   const labels={inbox:'待整理',idea:'灵感',draft:'草稿',archived:'归档'};
+  const textBytes=value=>new TextEncoder().encode(value).length;
+  const splitTags=value=>[...new Set(value.split(/[,，]/).map(tag=>tag.trim()).filter(Boolean))];
+  const validateKnowledgeInput=({title,markdown,tags,note})=>{
+    if(!title.trim())return '请填写标题';
+    if(!markdown.trim())return '请填写正文';
+    if(textBytes(markdown)>150000)return '正文超过 150,000 字节限制';
+    if(tags.length>12)return '最多允许 12 个标签';
+    if(tags.some(value=>value.length>30))return '每个标签最多 30 字';
+    if(note.length>4000)return '备注最多 4,000 字';
+    return '';
+  };
+  let createTouched={title:false,body:false};
+  function editorInput(){
+    return {title:q('title').value,markdown:q('content').value,
+      tags:splitTags(q('tags').value),note:q('note').value};
+  }
+  function createInput(){
+    return {title:q('create-title').value,markdown:q('create-body').value,
+      tags:splitTags(q('create-tags').value),note:q('create-note').value};
+  }
+  function formProblem(stage){
+    return validateKnowledgeInput(stage==='create'?createInput():editorInput());
+  }
+  function reflectValidation(stage){
+    const create=stage==='create',prefix=create?'create-':'';
+    const issue=formProblem(stage),output=q(prefix+(create?'validation':'edit-validation'));
+    const show=Boolean(issue&&(!create||!issue.startsWith('请填写')||
+      issue==='请填写标题'&&(createTouched.title||q('create-body').value.trim())||
+      issue==='请填写正文'&&createTouched.body));
+    output.hidden=!show;output.textContent=show?issue:'';
+    const title=q(create?'create-title':'title'),body=q(create?'create-body':'content'),tags=q(create?'create-tags':'tags');
+    title.setAttribute('aria-invalid',String(show&&issue==='请填写标题'));
+    body.setAttribute('aria-invalid',String(show&&(issue==='请填写正文'||issue.startsWith('正文超过'))));
+    tags.setAttribute('aria-invalid',String(show&&issue.includes('标签')));
+    q(create?'create-extra':'editor-extra').dataset.invalid=String(show&&/标签|备注/.test(issue));
+    if(!create){
+      const size=textBytes(body.value),large=size>127500;
+      q('edit-size').hidden=!large;
+      q('edit-size').textContent=large?size.toLocaleString('zh-CN')+' / 150,000 字节':'';
+      q('edit-size').dataset.over=String(size>150000);
+    }
+    return issue;
+  }
   let selected=null,exportText='',exportReady=false,kind='all',tag='',records=[],total=0,bytes=0;
   let dirty=false,busy=false,editing=false,creating=false,restoring=false,generation=0,openedFrom=null,searchTimer=0,statusTimer=0;
   let editorStateQueue=Promise.resolve();
@@ -23,10 +66,8 @@
     root.querySelectorAll('button,input,select,textarea').forEach(control=>{
       if(q('confirm').contains(control))return;
       let disabled=busy;
-      if(control.id==='ki-save')disabled=disabled||!editing||!dirty;
-      if(control.id==='ki-create-save')disabled=disabled||!creating||
-        !q('create-title').value.trim()||!q('create-body').value.trim()||
-        new TextEncoder().encode(q('create-body').value).length>150000;
+      if(control.id==='ki-save')disabled=disabled||!editing||!dirty||Boolean(formProblem('edit'));
+      if(control.id==='ki-create-save')disabled=disabled||!creating||Boolean(formProblem('create'));
       if(control.id==='ki-clear')disabled=disabled||!q('search').value;
       if(control.id==='ki-copy')disabled=disabled||!exportReady;
       control.disabled=disabled;
@@ -359,6 +400,8 @@
       now.draft!==selected.draft;
     updateEditMeta();
     setDirty(next);
+    if(next)q('edit-state').textContent='有未保存修改';
+    reflectValidation('edit');
   }
   async function toggleEdit(){
     if(!selected)return;
@@ -376,10 +419,13 @@
     q('more').open=false;q('original-details').open=false;
     updateEditMeta();detailLayout(true);setDirty(false);
     q('edit-state').textContent='尚未修改';q('edit-state').dataset.dirty='false';
+    reflectValidation('edit');
     q('title').focus();syncControls();
   }
   async function save(){
     if(!selected||!editing||!dirty)return;
+    const issue=reflectValidation('edit');
+    if(issue)throw new Error(issue);
     const payload=currentPayload();
     q('edit-state').textContent='正在保存…';
     let result;
@@ -395,7 +441,7 @@
       say('已保存，但重新读取导出文本失败。请返回列表后重新打开记录。',true);
     }
   }
-  const createTags=value=>[...new Set(value.split(/[,，]/).map(tag=>tag.trim()).filter(Boolean))];
+  const createTags=splitTags;
   function createPayload(){
     return {title:q('create-title').value.trim(),markdown:q('create-body').value,
       kind:q('create-kind').value,tags:createTags(q('create-tags').value),note:q('create-note').value};
@@ -403,21 +449,23 @@
   function refreshCreate(){
     if(!creating)return;
     const payload=createPayload();
-    const size=new TextEncoder().encode(payload.markdown).length;
+    const size=textBytes(payload.markdown);
     q('create-size').textContent=size.toLocaleString('zh-CN')+' / 150,000 字节'+(size>150000?'（超出限制）':'');
     q('create-size').dataset.over=String(size>150000);
     updateCreateMeta();
     setDirty(Boolean(payload.title||payload.markdown||payload.tags.length||payload.note||payload.kind!=='inbox'));
+    reflectValidation('create');
   }
   async function startCreate(){
     clearTimeout(searchTimer);generation++;
     creating=true;selected=null;exportReady=false;editing=false;
+    createTouched={title:false,body:false};
     for(const id of ['create-title','create-body','create-tags','create-note'])q(id).value='';
     q('create-kind').value='inbox';q('create-size').textContent='0 / 150,000 字节';
     q('create-size').dataset.over='false';q('create-extra').open=false;updateCreateMeta();
     q('manage').open=false;
     q('list-view').hidden=true;q('detail').hidden=true;q('create-view').hidden=false;
-    setDirty(false);syncControls();q('create-title').focus();say('');
+    setDirty(false);reflectValidation('create');syncControls();q('create-title').focus();say('');
   }
   const cancelCreate=action(async()=>{
     if(!await discard())return;
@@ -426,7 +474,9 @@
     await list();laterFocus(q('new'));say('');
   });
   async function saveCreate(){
-    if(!creating||!q('create-title').value.trim()||!q('create-body').value.trim())return;
+    if(!creating)return;
+    const issue=reflectValidation('create');
+    if(issue)throw new Error(issue);
     const result=await request('knowledge.create',createPayload());
     // The write is confirmed; never resubmit on a later read failure.
     setDirty(false);creating=false;openedFrom=result.record.id;
@@ -447,6 +497,8 @@
   q('create-save').addEventListener('click',action(saveCreate));
   for(const id of ['create-title','create-body','create-kind','create-tags','create-note'])
     q(id).addEventListener('input',refreshCreate);
+  q('create-title').addEventListener('blur',()=>{createTouched.title=true;reflectValidation('create');});
+  q('create-body').addEventListener('blur',()=>{createTouched.body=true;reflectValidation('create');});
   q('create-kind').addEventListener('change',refreshCreate);
   const requireSaved=()=>{if(!selected)throw Error('请先选择记录');if(dirty)throw Error('请先保存修改，再执行导出操作');};
   q('refresh').addEventListener('click',action(async()=>{q('manage').open=false;await list();say('已刷新收件箱。');}));
@@ -517,7 +569,7 @@
       if(!q('detail').hidden){
         event.preventDefault();
         if(q('more').open){q('more').open=false;q('more').querySelector('summary')?.focus();}
-        else if(!q('outline').hidden){q('outline-toggle').click();q('outline-toggle').focus();}
+        else if(!q('outline').hidden){q('outline-toggle').click();q('more').querySelector('summary')?.focus();}
         else if(q('original-details').open){q('original-details').open=false;q('original-details').querySelector('summary')?.focus();}
         else void goBack();
       }else if(q('manage').open){
@@ -560,6 +612,7 @@
   }));
   q('outline-toggle').addEventListener('click',()=>{
     if(editing)return;
+    q('more').open=false;
     const show=q('outline').hidden;
     q('outline').hidden=!show;q('markdown').hidden=show;
     q('outline-toggle').setAttribute('aria-expanded',String(show));
