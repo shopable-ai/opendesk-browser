@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
+import {OFFICIAL_APPS} from '../../src/marketplace/catalog.js';
 
 // Static contract tests complement, but never replace, the real CFT iframe test.
 const path='examples/sidebar-tools/knowledge-inbox/';
@@ -19,6 +20,10 @@ test('R24 ships the same readable package as the official built-in tool',()=>{
   assert.equal(pkg.html,html);assert.equal(pkg.css,css);assert.equal(pkg.js,js);
   assert.equal(generated,builtin);
   assert.deepEqual(pkg.capabilities,['page.capture','knowledge.store','user.export']);
+  const listing=OFFICIAL_APPS.find(app=>app.toolId===pkg.id);
+  assert.ok(listing,'Official marketplace listing must exist');
+  assert.equal(listing.version,pkg.version,'Market version must track the package');
+  assert.equal(listing.title,pkg.title,'Market title must track the package');
 });
 test('R24 defaults to reading and separates editing, status, confirmation, export',()=>{
   for(const id of ['ki-list-view','ki-detail','ki-reader','ki-markdown','ki-editor','ki-edit',
