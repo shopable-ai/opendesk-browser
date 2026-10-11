@@ -207,3 +207,23 @@ test('late local registry reads cannot replace a newer installed-app snapshot',a
   assert.doesNotMatch(labels,/过期本机工具/);
   assert.deepEqual(f.values[SIDEBAR_TOOL_STORE],[newer]);
 });
+
+test('My Apps shows unavailable rather than zero when actual Chrome byte counters fail',async t=>{
+  const f=fixture({[SIDEBAR_TOOL_STORE]:[tool],[sidebarToolStorageKey(tool.id)]:{notes:'private'}});
+  f.api.storage.local.getBytesInUse=async()=>{throw Error('counter temporarily unavailable');};
+  const previous={document:globalThis.document,window:globalThis.window,
+    location:globalThis.location,fetch:globalThis.fetch};
+  const root=new Element('root');
+  globalThis.document={createElement:tag=>new Element(tag),getElementById:()=>null};
+  globalThis.window={addEventListener(){},removeEventListener(){}};
+  globalThis.location={hash:'#/my'};
+  globalThis.fetch=async()=>{throw Error('offline');};
+  const market=initMarketplace({api:f.api,root,lockManager:{request:(_name,fn)=>fn()}});
+  t.after(()=>{market.dispose();Object.assign(globalThis,previous);});
+  await settle(()=>walk(root).some(node=>node.textContent.includes('暂时无法读取')));
+  const rendered=walk(root).map(node=>node.textContent).join(' ');
+  assert.match(rendered,/暂时无法读取/);
+  assert.match(rendered,/counter temporarily unavailable/);
+  assert.doesNotMatch(rendered,/扩展 local 总占用：0 B/);
+  assert.deepEqual(f.values[sidebarToolStorageKey(tool.id)],{notes:'private'});
+});
