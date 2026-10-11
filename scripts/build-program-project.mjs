@@ -16,6 +16,8 @@ import {snapshotFileSystem,safeRead} from '../native-agent/local-dev/snapshot.mj
 import {parseUserScriptDependencies,assertUserScriptExecutable} from '../src/scripting/user-scripts/dependency-metadata.js';
 import {compileLockedPageSource,pageSelectedPackagedLibrary} from '../src/scripting/user-scripts/execution-source.js';
 import {createTaskPackage} from '../src/platform/tasks/contract.js';
+import {PAGE_FRAMEWORK_IMPORTS,PAGE_FRAMEWORK_RUNTIMES} from '../src/libs/page-frameworks/contract.js';
+import {createPageComponentEntry,COMPONENT_ENTRY_FILE} from './page-component-entry.mjs';
 
 const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
 const runtimeName='__opendeskProjectModule';
@@ -63,7 +65,7 @@ function webpackError(root,projectLabel,stats,error){
   });
 }
 
-async function compileWebpack(root,entry,temp,mode,{remoteAliases=new Map(),virtualModules=new Map(),createInputFileSystem,onCompile}={}){
+async function compileWebpack(root,entry,temp,mode,{remoteAliases=new Map(),virtualModules=new Map(),createInputFileSystem,onCompile,framework}={}){
   const started=performance.now();
   const projectLabel=basename(root);
   const remoteURLs=new Map([...remoteAliases].map(([url,file])=>[file,url]));
@@ -76,6 +78,10 @@ async function compileWebpack(root,entry,temp,mode,{remoteAliases=new Map(),virt
     cache:false,
     devtool:'source-map',
     output:{path:temp,filename:'bundle.js',library:{name:runtimeName,type:'var'},publicPath:''},
+    // Framework source remains in the verified extension package, not this program.
+    externalsType:'var',
+    ...(framework?{externals:Object.fromEntries(Object.keys(PAGE_FRAMEWORK_IMPORTS[framework]).map(spec=>
+      [spec,'globalThis.'+PAGE_FRAMEWORK_RUNTIMES[framework].global]))}:{}),
     resolve:{modules:['node_modules'],extensions:['.js','.mjs'],symlinks:!createInputFileSystem,
       fallback:{},restrictions:[permittedRoots],alias:{'@opendesk/ui$':PAGE_UI_MODULE}},
     optimization:{
@@ -274,7 +280,8 @@ function draftEnvelope({pkg,project,before,sourceUtf8,sourceHash,mode}){
     {project:project.id,phase:'draft'});
   const draft={
     format:DRAFT_VERSION,
-    project:{id:project.id,version:pkg.version,entry:project.entry},
+    project:{id:project.id,version:pkg.version,entry:project.entry,
+      ...(project.entryMode?{entryMode:project.entryMode}:{})},
     runtimeKind:project.runtimeKind,
     build:{mode,sourceHash,byteLength},
     sourceUtf8,
@@ -369,8 +376,10 @@ export async function buildProgramProject(input,{outputDirectory,mode='productio
       const virtual=join(root,'.opendesk','remote-build',sha(row.url)+'.mjs');
       remoteAliases.set(row.url,virtual);virtualModules.set(virtual,bytes);
     }
-    const compiled=await compileWebpack(root,project.entry,temp,mode,
-      {remoteAliases,virtualModules,createInputFileSystem,onCompile});
+    const generated=createPageComponentEntry(project);
+    if(generated)virtualModules.set(join(root,COMPONENT_ENTRY_FILE),Buffer.from(generated));
+    const compiled=await compileWebpack(root,generated?COMPONENT_ENTRY_FILE:project.entry,temp,mode,
+      {remoteAliases,virtualModules,createInputFileSystem,onCompile,framework:project.framework});
     const sourceMapFile=mode==='development'?'program.js.map':undefined;
     const embeddedAssets=await collectAssets(root,before.assets,readProjectFile);
     const sourceUtf8=programSource(pkg,project,compiled.bundle,{sourceMapFile,assets:embeddedAssets,entryAsync:compiled.entryAsync});
@@ -423,6 +432,7 @@ export async function buildProgramProject(input,{outputDirectory,mode='productio
       sourceFormat:'esm',
       entryFormat:'async-main',
       entry:project.entry,
+      ...(project.entryMode?{entryMode:project.entryMode}:{}),
       buildMode:mode,
       buildHash:hash,
       sourceModules:before.sources,

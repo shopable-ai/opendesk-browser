@@ -13,7 +13,7 @@ import {LocalProjectPreparation,preparationSlot,promotePreparation,cancelPrepara
 
 const VERSION='opendesk.local-dev-resolver.v3';
 const FRAMEWORK=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..');
-const BUILD_INPUTS=['scripts/build-program-project.mjs','scripts/validate-program-project.mjs','scripts/program-assets.mjs','scripts/program-entry.mjs','scripts/remote-esm-modules.mjs','native-agent/local-dev/resolver.mjs','native-agent/local-dev/snapshot.mjs','src/scripting/user-scripts/page-program-contract.js','src/scripting/user-scripts/page-program-rules.js','src/scripting/user-scripts/dependency-metadata.js','src/scripting/user-scripts/execution-source.js','src/platform/tasks/contract.js'];
+const BUILD_INPUTS=['scripts/build-program-project.mjs','scripts/validate-program-project.mjs','scripts/program-assets.mjs','scripts/program-entry.mjs','scripts/page-component-entry.mjs','src/libs/page-frameworks/contract.js','scripts/remote-esm-modules.mjs','native-agent/local-dev/resolver.mjs','native-agent/local-dev/snapshot.mjs','src/scripting/user-scripts/page-program-contract.js','src/scripting/user-scripts/page-program-rules.js','src/scripting/user-scripts/dependency-metadata.js','src/scripting/user-scripts/execution-source.js','src/platform/tasks/contract.js'];
 const require=createRequire(import.meta.url);
 const toolFiles=['webpack','acorn','terser','terser-webpack-plugin'].map(name=>require.resolve(name+'/package.json'));
 const buildIdentity=()=>sha256(JSON.stringify([...BUILD_INPUTS.map(file=>{const actual=path.join(FRAMEWORK,file);return [file,sha256(safeRead(FRAMEWORK,actual,Math.min(fs.lstatSync(actual).size,4*1024*1024)).bytes)];}),...toolFiles.map(file=>[path.basename(path.dirname(file)),sha256(fs.readFileSync(file))])]));
@@ -163,7 +163,7 @@ export class LocalDevResolver{
       pkg=JSON.parse(utf8(snapshot.read('package.json',65536),'package.json'));project=pkg.opendesk;
       const syntax=validated.sourceFiles.map(row=>staticOnly(row.sourceUtf8,row.path));
       if(project.runtimeKind==='controller'&&validated.assets.length)throw devError('E_PROJECT_ASSET_ENV','Controller resources are unsupported');
-      if(syntax.some(ast=>ast.body.some(node=>node.source?.value==='@opendesk/ui'))){
+      if(project.entryMode==='component'||syntax.some(ast=>ast.body.some(node=>node.source?.value==='@opendesk/ui'))){
         for(const file of HELPERS)helpers.set(file,safeRead(path.dirname(UI),file,256*1024).bytes);
       }
       if(validated.remoteImports.length){

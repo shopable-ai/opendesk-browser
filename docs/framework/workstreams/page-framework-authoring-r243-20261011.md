@@ -54,3 +54,15 @@
 按 [GOAL](../prompts/goal-r243-page-framework-authoring.zh-CN.md)读取最新 main 后直接实施：共享标准导入和转换、受管挂载、默认两例、direct 两例兼容、真实产品入口、导入产物与测试、真实 Chrome 和文档状态更新。
 
 功能开发、组件/构建测试、无 Native 浏览器路径、真实 Mac Chrome、20 次独立 Run/Stop、撤权/SPA/BFCache、CSP/体积/性能/可访问性均不是本次文档任务已完成项。各验收维度分别 >=95，且关键 P0/P1 与必达未测项全部关闭后才可放行，不以平均分补偿失败。
+
+## R24.3 增量源代码实施记录 · 2026-10-11
+
+当前新增的是**本地目录普通 JS 组件链路**，不是 R24.3 完整验收。保留 R24.2 所有原生回执，不把旧候选 PASS 计入此候选。
+
+- Page 可显式声明 `opendesk.entryMode: "component"` + `framework: "react"|"vue"`。缺省仍为原 async-main，Controller 不受影响。
+- Webpack 将标准 `react`、`react-dom/client`、`vue` 静态导入链接到原扩展固定字节，不重复打包 ReactDOM/Vue。运行时现有导出覆盖有限，未支持的 `useCallback/useReducer` 等在准备期给出位置；不能视为完整官方 API。
+- 内部生成入口使用原 `@opendesk/ui`、受管 mount 与 React/Vue 官方 unmount；LocalDevResolver 将隐式 UI helper 冻结纳入输入 hash，生成器和固定导入合同纳入 BUILD_INPUTS。
+- 新增 Node 组件测试文件。测试结果在可核实 CI/终端日志到达前均为 NOT_TESTED。
+- 不修改原四目录源码和 R24.2 导入 JSON，避免没有 JSX/SFC 编译链时把现有示例变成无法运行的入口。JSX/SFC、浏览器无 Native Worker、四目录迁移、导入重新生成、真实 Mac Chrome（含 20 次 Run/Stop）、暗色/缩放、性能/体积仍待完成。不能以此记录称 R24.3 已完成。
+
+新增回归入口：`node --test tests/environment/page-component-entry-r243.test.mjs tests/environment/page-ui-no-build-r242.test.mjs tests/environment/page-ui-import-drafts-r242.test.mjs`。
