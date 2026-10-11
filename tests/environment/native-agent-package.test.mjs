@@ -27,13 +27,13 @@ test('independent SW budget and fixed packaged Native transport entry',()=>{
   assert.equal(FIXED_OUTPUTS.bridge,'sidebar-tools/bridge.js');
   assert.equal(PACKAGE_ENTRIES['libs/runtime/page-core'],'./src/entrypoints/page-core.js');
   assert.equal(FIXED_OUTPUTS['page-core'],'libs/runtime/page-core.js');
-  assert.equal(Object.keys(PACKAGE_ENTRIES).length,21);
+  assert.equal(Object.keys(PACKAGE_ENTRIES).length,22);
   assert.deepEqual(Object.keys(PACKAGE_ENTRIES),[
     'sw','ui/tool-shell','ui/marketplace','native-agent/settings','native-agent/transport','knowledge/knowledge-host',
     'agents/health','agents/selection-entry','agents/bootstrap','agents/page-agent','agents/page-relay',
     'framework/sdk-main','scripting/packaged/page-session','scripting/sandbox/sandbox',
     'sidebar-tools/bridge','scripting/sandbox/worker-runtime','libs/runtime/page-core',
-    'libs/packages/lodash','libs/packages/dayjs','libs/packages/js-cookie','libs/packages/crypto-js'
+    'libs/packages/lodash','libs/packages/dayjs','libs/packages/js-cookie','libs/packages/crypto-js','libs/packages/file-saver'
   ]);
 });
 

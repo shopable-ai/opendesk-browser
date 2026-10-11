@@ -21,6 +21,8 @@ const author=Object.freeze({
   cryptoJs:Object.freeze({origin:'npm',npm:'crypto-js',license:'MIT',
     licensePath:'licenses/crypto-js-MIT.txt',
     methods:Object.freeze(['SHA256','HmacSHA256','AES','enc'])}),
+  fileSaver:Object.freeze({origin:'npm',npm:'file-saver',license:'MIT',
+    licensePath:'licenses/file-saver-MIT.txt',methods:Object.freeze(['saveAs'])}),
   jquery:Object.freeze({origin:'vendor',
     source:'src/libs/vendor/jquery/3.7.1/jquery.min.js',
     licenseSource:'src/libs/vendor/jquery/3.7.1/LICENSE.txt',
