@@ -59,11 +59,18 @@ async function until(fn,why){
   throw Error('Chrome timeout: '+why+(lastError?'; '+lastError.message:''));
 }
 async function click(session,selector){
-  const point=await evaluate(session,
-    "(()=>{const el=document.querySelector("+JSON.stringify(selector)+");"+
-    "if(!el||el.disabled||!el.getClientRects().length)throw Error('CONTROL_NOT_VISIBLE '+"+JSON.stringify(selector)+");"+
-    "el.scrollIntoView({block:'center'});const b=el.getBoundingClientRect();"+
-    "return {x:b.x+b.width/2,y:b.y+b.height/2};})()");
+  if(session.type!=='iframe')await session.send('Page.bringToFront');
+  const point=await until(()=>evaluate(session,
+    "(async()=>{const selector="+JSON.stringify(selector)+",el=document.querySelector(selector);"+
+    "if(!el||el.disabled||!el.getClientRects().length)return false;"+
+    "el.scrollIntoView({block:'center',behavior:'instant'});"+
+    "await new Promise(requestAnimationFrame);const a=el.getBoundingClientRect();"+
+    "await new Promise(requestAnimationFrame);const b=el.getBoundingClientRect();"+
+    "if(document.querySelector(selector)!==el||el.disabled||!el.getClientRects().length||"+
+    "a.x!==b.x||a.y!==b.y||a.width!==b.width||a.height!==b.height)return false;"+
+    "const x=b.x+b.width/2,y=b.y+b.height/2,hit=document.elementFromPoint(x,y);"+
+    "return x>=0&&y>=0&&x<innerWidth&&y<innerHeight&&hit&&el.contains(hit)?{x,y}:false;})()"),
+    'stable unobscured native control '+selector);
   for(const type of ['mousePressed','mouseReleased'])
     await session.send('Input.dispatchMouseEvent',{type,...point,button:'left',clickCount:1});
 }
@@ -87,7 +94,7 @@ async function fixtureServer(label){
 test('R4.5 production Chrome: optional releases, both official entries, permissions, update, restart and uninstall',{timeout:420000},async t=>{
   assert.ok(chromeBinary,'A real Chrome for Testing binary is required');
   const extension=await realpath(resolve('dist/production'));
-  const artifactDir=resolve('artifacts/app-market-r3');await mkdir(artifactDir,{recursive:true});
+  const artifactDir=resolve(process.env.OPENDESK_NATIVE_ARTIFACT_DIR||'artifacts/app-market-r3');await mkdir(artifactDir,{recursive:true});
   const catalogBytes=await readFile(join(extension,OFFICIAL_CATALOG_PATH));
   const catalog=validateOfficialReleaseCatalog(JSON.parse(catalogBytes));
   const packages=new Map();
@@ -104,12 +111,13 @@ test('R4.5 production Chrome: optional releases, both official entries, permissi
   const servers=await Promise.all([fixtureServer('A'),fixtureServer('B')]);
   const evidence={result:'IN_PROGRESS',commit:process.env.GITHUB_SHA||spawnSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).stdout.trim(),
     extensionPath:extension,packageHash:fingerprint.packageHash,catalogSha256:hash(catalogBytes),releases:catalog.apps,
+    platform:process.platform,nodeVersion:process.version,consoleErrors:[],runtimeExceptions:[],
     phases:[],dialogs:[],dialogErrors:[],chromeLifecycles:[],sites:servers.map(x=>x.origin),
     privateDataVia:'native input and save',storageWritesFromDriver:0,publicWebsite:'NOT_TESTED',
     actualMacChrome:'NOT_TESTED',fullFrameworkF3:'NOT_TESTED',zipInstallation:'NOT_TESTED',publicMarket:'NOT_CONFIGURED',
     sidePanelCloseControl:'CDP closes actual SIDE_PANEL target; native toolbar close button NOT_TESTED'};
   let browser,child,local,extensionId,host,side,pageA,pageB,stage='launch',currentLifecycle;
-  const ownedChildren=[],dialogPlans=new Map();
+  const ownedChildren=[],dialogPlans=new Map(),attachedTargets=[];
   const save=()=>writeFile(join(artifactDir,'native-result.json'),JSON.stringify(evidence,null,2)+'\n');
   const phase=async(name,detail={})=>{stage=name;evidence.phases.push({name,...detail});console.log('R45_NATIVE_STAGE '+name);await save();};
   const profileUnchanged=async()=>{const stat=await lstat(profile);assert(stat.isDirectory()&&!stat.isSymbolicLink());assert.equal(stat.dev,profileStat.dev);assert.equal(stat.ino,profileStat.ino);};
@@ -118,9 +126,22 @@ test('R4.5 production Chrome: optional releases, both official entries, permissi
       evidence.result='FAILED';evidence.failedStage=stage;
       if(side){
         evidence.failedSidePanel=await evaluate(side,'({url:location.href,title:document.title,ready:document.readyState,status:document.querySelector("#sidebar-tool-status")?.textContent,importError:document.querySelector("#sidebar-tool-file-error")?.textContent,body:document.body.innerText.slice(0,2500)})').catch(error=>({error:error.message}));
-        await screenshot(side,'r45-failure-side-panel.png').catch(()=>{});
+      await screenshot(side,'r45-failure-side-panel.png').catch(()=>{});
+      evidence.failedDOM=await evaluate(side,'document.documentElement.outerHTML').catch(error=>({error:error.message}));
+      evidence.failedRegistry=await installed().catch(error=>({error:error.message}));
+      evidence.failedGrants=Object.fromEntries(await Promise.all(grantKeys.map(async key=>
+        [key,await readStore(key).catch(error=>({error:error.message}))])));
       }
       evidence.failedTargets=await browser?.send('Target.getTargets').catch(error=>({error:error.message}));
+      evidence.failureSurfaces=[];
+      const liveTargets=new Set(evidence.failedTargets?.targetInfos?.map(row=>row.targetId)||[]);
+      for(const target of attachedTargets){
+        if(!liveTargets.has(target.targetId))continue;
+        const observed=await target.send('Runtime.evaluate',{expression:'({url:location.href,dom:document.documentElement.outerHTML})',returnByValue:true},2000)
+          .then(row=>row.result.value).catch(error=>({error:error.message}));
+        evidence.failureSurfaces.push({targetId:target.targetId,...observed});
+        if(!observed.error)await screenshot(target,'failure-'+target.targetId+'.png').catch(()=>{});
+      }
     }
     await save();browser?.close();
     for(const owned of ownedChildren){
@@ -135,6 +156,7 @@ test('R4.5 production Chrome: optional releases, both official entries, permissi
     assert(ownedChildren.every(row=>row.closed),'previous owned Chrome must fully exit before relaunch');
     await profileUnchanged();await rm(join(profile,'DevToolsActivePort'),{force:true});
     const argv=[...(process.env.OPENDESK_NATIVE_HEADED==='1'?[]:['--headless=new']),
+      ...(process.platform==='darwin'?['--use-mock-keychain']:[]),
       '--no-sandbox','--disable-gpu','--disable-dev-shm-usage','--no-first-run','--no-default-browser-check',
       '--disable-background-networking','--window-size=1280,960','--remote-allow-origins=*','--remote-debugging-address=127.0.0.1',
       '--remote-debugging-port=0','--user-data-dir='+profile,'--disable-extensions-except='+extension,'--load-extension='+extension,'about:blank'];
@@ -152,6 +174,8 @@ test('R4.5 production Chrome: optional releases, both official entries, permissi
     const version=await(await fetch(local+'/json/version')).json();record.version=version.Browser;
     browser=cdpSocket(version.webSocketDebuggerUrl);await browser.ready;
     browser.onEvent(event=>{
+      if(event.method==='Runtime.exceptionThrown')evidence.runtimeExceptions.push({stage,sessionId:event.sessionId,...event.params});
+      if(event.method==='Runtime.consoleAPICalled'&&event.params.type==='error')evidence.consoleErrors.push({stage,sessionId:event.sessionId,...event.params});
       if(event.method!=='Page.javascriptDialogOpening')return;
       const expected=dialogPlans.get(event.sessionId)?.shift(),message=event.params.message;
       const matches=expected&&event.params.type==='confirm'&&expected.parts.every(part=>message.includes(part));
@@ -178,8 +202,9 @@ test('R4.5 production Chrome: optional releases, both official entries, permissi
   }
   async function attach(targetId){
     const connection=browser,{sessionId}=await connection.send('Target.attachToTarget',{targetId,flatten:true});
-    const target={targetId,sessionId,send:(method,params={},timeout=20000)=>connection.send(method,params,timeout,sessionId)};
-    await target.send('Runtime.enable');await target.send('Page.enable');return target;
+    const {targetInfo}=await connection.send('Target.getTargetInfo',{targetId});
+    const target={targetId,type:targetInfo.type,sessionId,send:(method,params={},timeout=20000)=>connection.send(method,params,timeout,sessionId)};
+    await target.send('Runtime.enable');await target.send('Page.enable');attachedTargets.push(target);return target;
   }
   async function openTab(url,newWindow=false){
     return attach((await browser.send('Target.createTarget',{url,newWindow})).targetId);
@@ -311,6 +336,19 @@ test('R4.5 production Chrome: optional releases, both official entries, permissi
   async function screenshot(target,name){
     const shot=await target.send('Page.captureScreenshot',{format:'png',captureBeyondViewport:false});
     await writeFile(join(artifactDir,name),Buffer.from(shot.data,'base64'));
+  }
+  async function responsiveCheck(target,name){
+    evidence.responsive??=[];
+    try{
+      for(const width of [320,360,400]){
+        await target.send('Emulation.setDeviceMetricsOverride',{width,height:900,deviceScaleFactor:1,mobile:false});
+        await until(()=>evaluate(target,'innerWidth==='+width),'CSS viewport '+name+' '+width);
+        const observation=await evaluate(target,'({width:innerWidth,height:innerHeight,scrollWidth:document.documentElement.scrollWidth})');
+        assert(observation.scrollWidth<=width,name+' must not overflow horizontally');
+        evidence.responsive.push({surface:name,method:'CDP CSS viewport in actual extension',...observation});
+        await screenshot(target,name+'-'+width+'.png');
+      }
+    }finally{await target.send('Emulation.clearDeviceMetricsOverride');}
   }
 
   await launch();side=await openPanel();await phase('fresh-optional-state');
@@ -464,7 +502,18 @@ test('R4.5 production Chrome: optional releases, both official entries, permissi
   await until(()=>evaluate(side,'document.querySelector("#script-current-page-url")?.textContent.includes('+JSON.stringify(servers[1].origin)+')'),'Side Panel current page B');
   for(const id of ['reading-toc','web-markdown-clipper']){
     await click(side,action(id,'sites'));await visible(side,'#sidebar-tool-sites-'+id+' .sidebar-tool-site-revoke');
+    const key=id==='reading-toc'?READING_TOC_SITE_STORE:CLIP_SITE_STORE;
+    const before=await readStore(key);
     await click(side,'#sidebar-tool-sites-'+id+' .sidebar-tool-site-revoke');
+    // Input dispatch does not await the installation lock, durable write or
+    // final render. A following tool can move during that pending render.
+    await until(async()=>{
+      const grants=await readStore(key);
+      return !grants?.[id]?.includes(servers[0].origin)&&await evaluate(side,
+        '!document.querySelector("#sidebar-tool-sites-'+id+' .sidebar-tool-site-revoke")&&'+
+        'document.querySelector("#sidebar-tool-status").textContent.includes('+JSON.stringify('已撤销 '+servers[0].origin)+')');
+    },'durable revocation and completed UI '+id);
+    (evidence.revocations??=[]).push({id,key,before,after:await readStore(key)});
   }
   await until(()=>evaluate(pageA,'document.querySelectorAll("[data-opendesk-toc-root]").length===0'),'revocation immediately removes A TOC');
   await assertNoGrants();await screenshot(side,'r45-revoked-from-other-origin.png');
@@ -489,6 +538,9 @@ test('R4.5 production Chrome: optional releases, both official entries, permissi
   await nativeDialogClick(side,action('reading-toc','site'),[{parts:[servers[0].origin,'章节标题']}]);
   await nativeDialogClick(side,action('web-markdown-clipper','site'),[{parts:[servers[0].origin,'文章正文']}]);
   await until(()=>evaluate(pageA,'document.querySelectorAll("[data-opendesk-toc-root]").length===1'),'TOC re-granted before uninstall');
+  await until(async()=>JSON.stringify(await readStore(CLIP_SITE_STORE))===JSON.stringify(grantedBefore.clip)&&
+    await evaluate(side,'document.querySelector("#sidebar-tool-status").textContent==="已授权当前网站剪藏"'),
+    'durable clip grant and completed UI before uninstall');
   assert.deepEqual(await readStore(READING_TOC_SITE_STORE),grantedBefore.toc);
   assert.deepEqual(await readStore(CLIP_SITE_STORE),grantedBefore.clip);
   for(const row of await installed())await uninstall(row.id);
@@ -506,7 +558,37 @@ test('R4.5 production Chrome: optional releases, both official entries, permissi
   assert.equal((await packageFingerprint(extension)).packageHash,fingerprint.packageHash,'actual loaded production bytes stayed unchanged');
   assert.equal(evidence.chromeLifecycles.filter(row=>row.normalExit).length,2);assert.deepEqual(evidence.dialogErrors,[]);
   await screenshot(side,'r45-uninstalled-after-restart.png');
-  evidence.result='REAL_CHROME_FIXTURE_PASS';evidence.controlledOldVersions=['quick-notes@0.0.1','reading-toc@0.0.1'];
+  await phase('responsive-keyboard-and-real-browser-zoom');
+  await responsiveCheck(side,'side-panel-tools');
+  await click(side,'#tab-tools');evidence.keyboardFocus=[];
+  const keyboardControls=['sidebar-tool-market','sidebar-tool-import-trigger',
+    ...catalog.apps.map(row=>'sidebar-tool-official-'+row.toolId+'-install')];
+  for(const expectedId of keyboardControls){
+    for(const type of ['keyDown','keyUp'])await side.send('Input.dispatchKeyEvent',{type,key:'Tab',code:'Tab',windowsVirtualKeyCode:9});
+    const focus=await evaluate(side,'(()=>{const e=document.activeElement;return {tag:e.tagName,id:e.id,label:e.getAttribute("aria-label")||e.textContent.slice(0,80),visible:!!e.getClientRects().length,focusVisible:e.matches(":focus-visible")}})()');
+    evidence.keyboardFocus.push(focus);assert.equal(focus.id,expectedId,'native Tab follows official UI order');
+    assert(focus.visible&&focus.focusVisible,'keyboard control focus must remain visible');
+  }
+  for(const type of ['keyDown','keyUp'])await side.send('Input.dispatchKeyEvent',{type,key:'Tab',code:'Tab',windowsVirtualKeyCode:9,modifiers:8});
+  assert.equal(await evaluate(side,'document.activeElement.id'),keyboardControls.at(-2),'native Shift+Tab returns to previous official app');
+  await screenshot(side,'side-panel-keyboard-focus.png');
+
+  await click(side,'#sidebar-tool-market');
+  const finalMarketInfo=await until(async()=>(await browser.send('Target.getTargets')).targetInfos.find(row=>row.type==='page'&&row.url?.includes('/ui/marketplace.html')),'final official market entry');
+  const finalMarket=await attach(finalMarketInfo.targetId);
+  await visible(finalMarket,'#market-home');await click(finalMarket,'#market-home');
+  await until(()=>evaluate(finalMarket,'document.querySelectorAll(".app-card").length==='+catalog.apps.length),'final market catalog');
+  await responsiveCheck(finalMarket,'market-catalog');
+  const marketTabId=await evaluate(finalMarket,'chrome.tabs.getCurrent().then(tab=>tab.id)');
+  try{
+    await evaluate(finalMarket,'chrome.tabs.setZoom('+marketTabId+',2)');
+    assert.equal(await evaluate(finalMarket,'chrome.tabs.getZoom('+marketTabId+')'),2,'real Chrome tab zoom');
+    evidence.marketZoom={factor:2,method:'Chrome tabs.setZoom/getZoom',tabId:marketTabId};
+    await screenshot(finalMarket,'market-catalog-200-percent.png');
+  }finally{await evaluate(finalMarket,'chrome.tabs.setZoom('+marketTabId+',1)');}
+  await browser.send('Target.closeTarget',{targetId:finalMarket.targetId});
+  evidence.result='REAL_CHROME_FIXTURE_PASS';evidence.actualMacChrome=process.platform==='darwin'?'PASS':'NOT_TESTED';
+  evidence.finalRegistry=await installed();evidence.controlledOldVersions=['quick-notes@0.0.1','reading-toc@0.0.1'];
   evidence.controlledOldVersionsAreHistoricalReleases=false;evidence.confirmedOptionalTools=catalog.apps.map(row=>row.toolId);
   await save();console.log('R45_NATIVE_RESULT '+JSON.stringify({result:evidence.result,commit:evidence.commit,extensionId,packageHash:evidence.packageHash,
     phases:evidence.phases.length,normalChromeRestarts:2,dialogCount:evidence.dialogs.length}));
