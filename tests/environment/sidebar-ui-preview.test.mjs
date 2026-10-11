@@ -72,7 +72,7 @@ test('Developer source selector and new-script action use one narrow Sidebar too
 });
 
 test('R19 Sidebar spacing and corner system is consistent across all five tabs',async()=>{
-  const [html,css,design]=await Promise.all([read('src/ui/tool.html'),read('src/ui/tool-shell.css'),read('src/ui/design-system.css')]);
+  const [html,css,design,tokens]=await Promise.all([read('src/ui/tool.html'),read('src/ui/tool-shell.css'),read('src/ui/design-system.css'),read('src/ui/design-tokens.css')]);
   const body=(selector,source=css)=>{
     const at=source.indexOf(selector+'{');
     assert.ok(at>=0,'missing CSS rule '+selector);
@@ -80,8 +80,8 @@ test('R19 Sidebar spacing and corner system is consistent across all five tabs',
   };
   for(const tab of ['tasks','local-discover','workflow','develop','tools'])
     assert.match(html,new RegExp('data-workbench-page="'+tab+'"'),'preserved view '+tab);
-  assert.match(body(':root',design),/--space-2:8px;--space-3:12px/);
-  assert.match(body(':root',design),/--radius-control:8px;--radius-surface:12px;--radius-pill:999px/);
+  assert.match(body(':root',tokens),/--space-2:8px;\s*--space-3:12px/);
+  assert.match(body(':root',tokens),/--radius-control:8px;\s*--radius-surface:12px;\s*--radius-pill:999px/);
   assert.match(body('button',design),/border-radius:var\(--radius-control\)/);
   assert.match(body('.dock-buttons button'),/border-radius:var\(--radius-control\)/);
   assert.match(body('#workspace-content #workbench-develop'),/display:grid;gap:var\(--space-2\)/);
