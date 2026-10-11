@@ -82,10 +82,10 @@ function metadata(pkg,projectLabel){
 
   const shared=['format','id','runtimeKind','sourceFormat','entry','assets'];
   const allowed=p.runtimeKind==='page-userscript'
-    ?[...shared,'pageRules']
+    ?[...shared,'pageRules','framework']
     :[...shared,'siteOrigins','permissions','paramsSchema'];
   ensure(Object.keys(p).every(k=>allowed.includes(k))&&
-    allowed.filter(k=>k!=='assets').every(k=>Object.hasOwn(p,k)),
+    allowed.filter(k=>k!=='assets'&&k!=='framework').every(k=>Object.hasOwn(p,k)),
     'E_PROJECT_SCHEMA','Project fields do not match the declared runtime kind',details);
 
   declaredPath(p.entry,{...details,location:'package.json#opendesk.entry'});
@@ -94,6 +94,9 @@ function metadata(pkg,projectLabel){
 
   if(p.runtimeKind==='page-userscript'){
     validatePageProgramRules(p.pageRules);
+    ensure(p.framework===undefined||['react','vue'].includes(p.framework),
+      'E_PROJECT_FRAMEWORK','Only optional preinstalled React or Vue Page frameworks are supported',
+      {...details,location:'package.json#opendesk.framework'});
   }else{
     ensure(Array.isArray(p.siteOrigins)&&p.siteOrigins.length===1&&
       Array.isArray(p.permissions)&&p.permissions.length===1&&p.permissions[0]==='page.automation',

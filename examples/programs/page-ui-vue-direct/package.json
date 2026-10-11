@@ -1,0 +1,26 @@
+{
+  "name": "@opendesk-examples/page-ui-vue-direct",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "No user build step: plain JavaScript vue website UI using preinstalled OpenDesk Page framework",
+  "opendesk": {
+    "format": "opendesk.project.v1",
+    "id": "sample.page-ui-vue-direct",
+    "runtimeKind": "page-userscript",
+    "sourceFormat": "esm",
+    "entry": "src/main.js",
+    "framework": "vue",
+    "pageRules": {
+      "matches": [
+        "http://127.0.0.1:43111/*"
+      ],
+      "excludeMatches": [
+        "http://127.0.0.1:43111/private/*"
+      ],
+      "runAt": "document_idle",
+      "allFrames": false,
+      "world": "USER_SCRIPT"
+    }
+  }
+}

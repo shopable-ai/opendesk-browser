@@ -3,11 +3,13 @@ import {resolve,dirname} from 'node:path';
 import {createHash} from 'node:crypto';
 import {SANDBOX_HTML} from './verify-package.mjs';
 import {BUILTIN_CATALOG} from '../src/libs/catalog.js';
+import {PAGE_FRAMEWORK_RUNTIMES,PAGE_FRAMEWORK_RESOURCE_LIMIT} from '../src/libs/page-frameworks/contract.js';
 import {RESOURCE_LIMITS} from './build-contract.mjs';
 import {compileWorkspaceStyle} from './build-workspace-style.mjs';
 import {buildOfficialTools} from './build-official-tools.mjs';
 
 const vendors=Object.values(BUILTIN_CATALOG.libraries).filter(row=>row.origin==='vendor');
+const pageFrameworks=Object.values(PAGE_FRAMEWORK_RUNTIMES);
 export const STATIC_RESOURCES=Object.freeze({
   'src/ui/tool.html':'ui/tool.html',
   'src/marketplace/marketplace.html':'ui/marketplace.html',
@@ -23,7 +25,8 @@ export const STATIC_RESOURCES=Object.freeze({
   'src/sidebar-tools/sandbox.html':'sidebar-tools/sandbox.html',
   'docs/contracts/licenses/todo-user-vue-MIT.txt':'licenses/todo-user-vue-MIT.txt',
   'src/libs/runtime/bootstrap.js':BUILTIN_CATALOG.bootstrap,
-  ...Object.fromEntries(vendors.flatMap(row=>[[row.source,row.output],[row.licenseSource,row.licensePath]]))
+  ...Object.fromEntries(vendors.flatMap(row=>[[row.source,row.output],[row.licenseSource,row.licensePath]])),
+  ...Object.fromEntries(pageFrameworks.flatMap(row=>[[row.source,row.output],[row.licenseSource,row.licensePath]]))
 });
 
 function digest(bytes){return createHash('sha256').update(bytes).digest('hex');}
@@ -41,6 +44,12 @@ export async function preparePublic() {
       throw new Error('Fixed vendor exceeds byte budget: '+row.source);
     await assertBytes(row.source,row.bytes,row.sha256);
     await assertBytes(row.licenseSource,undefined,row.licenseSha256);
+  }
+  for(const row of pageFrameworks){
+    if(row.bytes>PAGE_FRAMEWORK_RESOURCE_LIMIT)throw new Error('Oversized opt-in Page framework: '+row.id);
+    await assertBytes(row.source,row.bytes,row.sha256);
+    const license=await readFile(row.licenseSource);
+    if(license.length<100||license.length>8192)throw Error('Missing Page framework license: '+row.id);
   }
   const publicRoot=resolve('.wxt/public');
   await rm(publicRoot,{recursive:true,force:true});

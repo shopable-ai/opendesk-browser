@@ -863,16 +863,20 @@ test('R4.5 missing official resources and a cancelled in-flight preview never in
   assert.equal(f.elements['sidebar-tool-frame'].children.length,0);
 });
 
-test('R4.5 an acknowledgement lost after installation revokes approval and reconciles without replay',async t=>{
+for(const failReadback of [false,true])test('R4.5 lost registry acknowledgement revokes approval without replay; readback failure='+failReadback,async t=>{
   const f=await hostFixture(t,{store:new Map(),startTool:false});
   const release=(await officialFixtures()).catalog.apps[0];
   f.elements['sidebar-tool-official-catalog'].children.find(row=>row.dataset.officialToolId===release.toolId)
     .children.at(-1).emit('click');
   await settle(()=>!f.elements['sidebar-tool-preview'].hidden);
-  const set=f.api.storage.local.set;let registryWrites=0;
+  const set=f.api.storage.local.set,get=f.api.storage.local.get;let registryWrites=0,unreadable=false;
   f.api.storage.local.set=async value=>{
     await set(value);
-    if(Object.hasOwn(value,SIDEBAR_TOOL_STORE)&&++registryWrites===1)throw Error('ack lost after persistent write');
+    if(Object.hasOwn(value,SIDEBAR_TOOL_STORE)&&++registryWrites===1){unreadable=failReadback;throw Error('ack lost after persistent write');}
+  };
+  f.api.storage.local.get=key=>{
+    if(key===SIDEBAR_TOOL_STORE&&unreadable){unreadable=false;return Promise.reject(Error('registry readback unavailable'));}
+    return get(key);
   };
   f.elements['sidebar-tool-install'].emit('click');
   await settle(()=>/本次批准已撤销/.test(f.elements['sidebar-tool-file-error'].textContent||''));
@@ -891,6 +895,7 @@ test('R4.5 an acknowledgement lost after installation revokes approval and recon
   assert.equal((await recoverMarketOperation({api:f.api,lockManager:sharedLocks(),operationId})).state,'succeeded');
   assert.equal(registryWrites,1,'explicit recovery never replays the registry write');
 
+
   for(const key of [READING_TOC_SITE_STORE,CLIP_SITE_STORE,CAPTURE_SITE_STORE])assert.equal(f.store.has(key),false);
 });
 
@@ -898,9 +903,11 @@ test('R4.5 failure to refresh after a confirmed commit cannot reuse the consumed
   const f=await hostFixture(t,{store:new Map(),startTool:false}),release=(await officialFixtures()).catalog.apps[0];
   f.elements['sidebar-tool-official-catalog'].children.find(row=>row.dataset.officialToolId===release.toolId)
     .children.at(-1).emit('click');await settle(()=>!f.elements['sidebar-tool-preview'].hidden);
-  const get=f.api.storage.local.get;let registryReads=0;
+  const get=f.api.storage.local.get;let failed=false;
   f.api.storage.local.get=async key=>{
-    if(key===SIDEBAR_TOOL_STORE&&++registryReads===3)throw Error('post-commit list read failed');
+    if(key===SIDEBAR_TOOL_STORE&&!failed&&Object.values(f.store.get(MARKET_OPERATIONS_STORE)||{}).some(row=>row.state==='succeeded')){
+      failed=true;throw Error('post-commit list read failed');
+    }
     return get(key);
   };
   f.elements['sidebar-tool-install'].emit('click');
@@ -918,4 +925,19 @@ test('R4.5 an official package removed after review is rejected before any insta
   f.elements['sidebar-tool-install'].emit('click');
   await settle(()=>/E_PACKAGE_MISSING/.test(f.elements['sidebar-tool-status'].textContent||''));
   assert.equal(f.store.has(SIDEBAR_TOOL_STORE),false);assert.equal(f.store.has(MARKET_OPERATIONS_STORE),false);
+});
+
+test('quota failure is returned with a stable bridge code and preserves the current tool draft',async t=>{
+  const key=sidebarToolStorageKey(sample.id),previous={notes:'do not overwrite'};
+  const store=new Map([[SIDEBAR_TOOL_STORE,[sample]],[key,previous]]);
+  const f=await hostFixture(t,{store,setHook:async rows=>{
+    if(Object.hasOwn(rows,key))throw Error('QUOTA_BYTES quota exceeded');
+  }});
+  f.ask('storage.set',{key:'notes',value:'unsaved edit'},'quota-failure');
+  await settle(()=>f.frame.contentWindow.sent.some(row=>row.kind==='response'&&row.requestId==='quota-failure'));
+  const reply=f.frame.contentWindow.sent.find(row=>row.requestId==='quota-failure');
+  assert.equal(reply.ok,false);assert.equal(reply.error.code,'E_HOST_STORAGE_QUOTA');
+  assert.deepEqual(store.get(key),previous);
+  assert.equal(f.elements['sidebar-tool-frame'].children.length,1,
+    'the failed save must not close a live editor and discard its unsaved input');
 });

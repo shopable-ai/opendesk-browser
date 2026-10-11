@@ -14,7 +14,7 @@ import {buildAssetRecords} from './program-assets.mjs';
 import {prepareRemoteModules,remoteURL,REMOTE_LOCK_FILE,REMOTE_CACHE_DIR} from './remote-esm-modules.mjs';
 import {snapshotFileSystem,safeRead} from '../native-agent/local-dev/snapshot.mjs';
 import {parseUserScriptDependencies,assertUserScriptExecutable} from '../src/scripting/user-scripts/dependency-metadata.js';
-import {compileLockedPageSource} from '../src/scripting/user-scripts/execution-source.js';
+import {compileLockedPageSource,pageSelectedPackagedLibrary} from '../src/scripting/user-scripts/execution-source.js';
 import {createTaskPackage} from '../src/platform/tasks/contract.js';
 
 const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
@@ -212,6 +212,7 @@ export function pageHeader(pkg,project){
     ...rules.excludeMatches.map(value=>'// @exclude-match '+value),
     '// @run-at '+runAt[rules.runAt],
     ...(!rules.allFrames?['// @noframes']:[]),
+    ...(project.framework?['// @opendesk-lib '+project.framework]:[]),
     '// ==/UserScript==',''].join('\n');
 }
 
@@ -390,7 +391,14 @@ export async function buildProgramProject(input,{outputDirectory,mode='productio
       ensure(parsed.requires.length===0&&JSON.stringify(admission.nativeOptions)===JSON.stringify(project.pageRules),
         'E_PROJECT_RULES','Compiled page rules differ from the source project declaration',
         {project:projectLabel,phase:'build',location:'program.js'});
-      await compileLockedPageSource({sourceUtf8,entryFormat:'async-main',entries:[]});
+      // Source-only authoring can validate the directive without loading the
+      // privileged extension's pinned React/Vue bytes in the Node bundler.
+      // The real Page evaluator must separately fetch and hash those bytes.
+      const selected=pageSelectedPackagedLibrary(sourceUtf8);
+      ensure(selected===(project.framework||null),'E_PROJECT_FRAMEWORK',
+        'Compiled framework metadata does not match the approved Page project',
+        {project:projectLabel,phase:'build',location:'package.json#opendesk.framework'});
+      if(!selected)await compileLockedPageSource({sourceUtf8,entryFormat:'async-main',entries:[]});
     }
     const after=await validateProgramProject(root,{readProjectFile});
     ensure(JSON.stringify(before)===JSON.stringify(after),'E_PROJECT_CHANGED',

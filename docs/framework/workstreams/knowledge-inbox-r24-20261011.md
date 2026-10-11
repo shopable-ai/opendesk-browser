@@ -111,3 +111,47 @@ R24 最初建立的 1.1.0 双份包同步方式，已由并行集成的 R4.5 官
 - **原生可访问性**：360/400px、真实 200% 缩放、全部 Tab/Shift+Tab/Escape、Focus Return、明暗对比度逐元素与低权限状态；不要用 CSS 模拟缩放代替真实 Chrome 缩放。
 - **真实用户环境**：在线 ChatGPT 结构变化，用户 Mac Native 选择目录/显式创建/读回、系统剪贴板、下载落盘、独立 Tab、站点撤权、卸载后数据边界，分别报告 TESTED/NOT_TESTED。
 - **P2 隔离需求**：备份恢复、多记录合并、图片离线附件、Markdown 追加、博客/Notion/企业系统真实交付，另立数据迁移与权限合同，不混入 R24 UI 主流程。
+
+## R24 v1.1.2 正式 UI 精简与独立通过记录（2026-10-11）
+
+### 对上一节的当前值修正
+
+本轮知识收件箱的真实 tool.config.json 已从 v1.1.1 升至 **v1.1.2**；当前仍由官方 Catalog 将源码打包为固定工具资源，用户审核安装、独立网站授权和沙箱/Native 边界均保持不变。上一节的 v1.1.1 是历史通过候选，不是当前工具版本。
+
+变更提交：[fd00db355b2560ab519113d5bc2fae225b55167b](https://github.com/shopable-ai/opendesk-browser/commit/fd00db355b2560ab519113d5bc2fae225b55167b)。本次真实文件变更：
+
+- 主体阅读时，如果第一条 Markdown 标题与记录标题文本严格相同，只在阅读 DOM 中显示一次。原始 Markdown、独立草稿、复制和下载导出都完整保留；不同文本的标题继续展示。
+- 将刷新收件箱从与标签、排序同排的高密度工具条移入「管理」次级菜单，缩小 360px 布局竞争；标签/排序控件字号调整为 13px，结果计数、卡片元信息和脚注增至 12px。
+- 同步升级真实 Chrome 标题负例、官方包一致性合同测试、用户使用说明和开发目录说明。没有引入新依赖、新 schema、新权限或第三套设计系统。
+
+### 失败原始记录与修复边界
+
+- [Actions 38128315221](https://github.com/shopable-ai/opendesk-browser/actions/runs/38128315221) 首次 v1.1.2 构建和组件 PASS，但 Chrome 在官方安装按钮前失败。官方工具入口已变成从可信 Catalog 异步创建，不能直接把按钮不存在视为业务未实现。
+- [Actions 38128470443](https://github.com/shopable-ai/opendesk-browser/actions/runs/38128470443) 等待真实入口后仍超时，因此 [98e561627fcfbd2c196f0d21c20174cfa7da88a9](https://github.com/shopable-ai/opendesk-browser/commit/98e561627fcfbd2c196f0d21c20174cfa7da88a9) 加入只读现场诊断（目录文字、按钮存在/disabled、可见性、宿主状态），没有自动安装、模拟授权或放宽匹配。
+- [Actions 38129128485](https://github.com/shopable-ai/opendesk-browser/actions/runs/38129128485) 候选 98e5616：受控 Chrome 实际安装/采集/筛选/编辑/删除/撤权 **1/1 PASS**；组件与双构建 PASS。完整 Node22 环境仍有 1 项权限清单测试断言失败：permission-gate.test.mjs 固定的旧 cookies/notifications 顺序，未覆盖新增 unlimitedStorage。失败不是知识阅读/草稿回归；不篡改失败历史。
+- 并行主干随后按新的受控权限目录修复该断言，知识生产源码/Chrome 驱动及包资源未变化；本轮在下一候选重新运行**完整**知识 CI，而非将旧失败手工改成通过。
+
+### 当前独立 SUCCESS 候选、原始证据
+
+**候选 SHA：858fd2f858f1579bce646759c512a0221d44bd22**。完整 [Knowledge CI Run 38129262403](https://github.com/shopable-ai/opendesk-browser/actions/runs/38129262403) **SUCCESS**，job 114439991471：
+
+| 项目 | 精确结果 |
+|---|---|
+| R24 受影响组件 | 113 tests / 113 pass / 0 fail / 0 skip |
+| Source check、production、development、verify | 全部通过；SW 321,939 / 327,680 bytes，余量 5,741（持续 CRITICAL 预算提示） |
+| 真正加载 MV3 扩展的受控 ChatGPT DOM Chrome | 1 / 1 PASS，逐步审核/安装、单独网站授权、保存/去重、搜索/标签/空态、阅读/编辑/恢复、禁脚本 Markdown、删除、工具关闭、SPA、撤权 |
+| 全仓 Node22 环境 | 1,099 项：1,092 pass、7 skip、0 fail、0 cancelled |
+| 视觉截图 | 38 张 PNG，360/400/600/1000 CSS 视口、明暗模式；38 组 iframe documentElement.scrollWidth 与 clientWidth 差为 0 |
+
+CI 原始 [Artifact 11699121258](https://github.com/shopable-ai/opendesk-browser/actions/runs/38129262403/artifacts/11699121258)：ZIP 共 1,761,720 bytes、SHA-256 **a4102184bbaf80279a4b1f06d511249744a3101ecd61af99421b75623cfe55e3**。内含 result.json（SHA-256 547ff04df0cbf7f644679193c1e7129799fe46bb5c42c9ef3d6582b4cc714170）、visual-metrics.json（SHA-256 cf96e91f78f88ca95c27766d6d65d4ec6fcbd7362cf8fafc7f3857a34c706676）和可审阅的官方包。内置 knowledge-inbox v1.1.2 JSON 42,854 bytes，SHA-256 **6c465b74f626c63ba25f816c68f20984b8d1db5bea7b23e000687c41aa7cd3c2**。这些是本候选专属哈希，不复用到后续未知构建。
+
+截图逐态检查：list 明/暗、reader 明/暗、search-empty、category-empty、empty、edit-dirty、confirm、saved-outline 均可辨识。阅读页可见标题一次、正文/代码优先、原文折叠；列表筛选和副作用按钮重组后层级更清楚；没有页面级横溢。仍有宿主浅背景与工具暗色内容区域的整体主题差异，以及窄屏工具栏小按钮密度，不能凭截图夸称 95 分以上。
+
+本轮**不改变**前述八个独立暂定评分，也不把上述结构/测试成功称为八项均已达 95/100。真实用户 Mac Chrome、原生文件保存与读回、系统剪贴板落盘、线上 ChatGPT 实际页面、200% 真实缩放、全面 WCAG 2.2 AA/读屏键盘覆盖、已验收 ZIP/F3 仍 **NOT_TESTED**。不能将受控 CFT 实测升级为以上范围。
+
+### 代码提交、后续并行影响核对
+
+1. 组件/UI 主提交 fd00db355b2560ab519113d5bc2fae225b55167b；测试诊断提交 98e561627fcfbd2c196f0d21c20174cfa7da88a9；正式可追溯成功候选 858fd2f858f1579bce646759c512a0221d44bd22。
+2. 该候选之后并行主干还修改了工具安装器/配额与资料文档。**后续 main HEAD 不自动成为同一个 Chrome 已验收包**；如发现实际受影响输入有变化，按 testing-guide 的 AFFECTED_INPUTS 进行最小补测。
+3. 本次代码部署位于仓库 main 的上述提交；用户本地拉取最新 main、npm ci 后执行 npm run check、npm run build、npm run build:dev、npm run verify，再于专用 Chrome Profile 中审阅安装。源代码只维护 examples/sidebar-tools/knowledge-inbox/src/；官方包由构建自动产出，不能直接编辑 dist。
+4. 下一轮优先：200%/高对比度/全键盘实测、Mac Native 真实保存、最近编辑/快捷复制减少点击的可用性实证。批量管理、备份导入、图片离线包、外部连接器按单独合同实施，不阻塞本次已验证的 R24 主流程。

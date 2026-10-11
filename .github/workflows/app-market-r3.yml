@@ -17,6 +17,7 @@ on:
       - 'wxt.config.mjs'
       - 'package.json'
       - 'tests/environment/app-market-r3.test.mjs'
+      - 'tests/environment/sidebar-storage-unlimited.test.mjs'
       - 'tests/environment/app-market-batch-r3.test.mjs'
 
       - 'tests/environment/sidebar-tools-host.test.mjs'
@@ -50,7 +51,7 @@ jobs:
         run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Validate fixed releases, provenance isolation and migrations
         run: |
-          node --test tests/environment/app-market-r3.test.mjs tests/environment/app-market-batch-r3.test.mjs tests/environment/official-tools-catalog-r45.test.mjs tests/environment/sidebar-tools-host.test.mjs tests/environment/dev-service.test.mjs
+          node --test tests/environment/sidebar-storage-unlimited.test.mjs tests/environment/app-market-r3.test.mjs tests/environment/app-market-batch-r3.test.mjs tests/environment/official-tools-catalog-r45.test.mjs tests/environment/sidebar-tools-host.test.mjs tests/environment/dev-service.test.mjs
           npm run check
       - name: Build and validate genuine production and development extensions
         run: |

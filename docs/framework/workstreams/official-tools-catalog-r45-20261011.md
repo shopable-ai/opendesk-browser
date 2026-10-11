@@ -185,3 +185,46 @@ TOC artifact `11698070187`（ZIP SHA-256 `3268c76e5d5c8837ed82d869456a53f4b30787
 ### 第五候选本地资源记录
 
 状态 `IN_PROGRESS`；本工作区主 Agent 独占串行构建 `.wxt/public` 与 `dist/{production,development}`，证据目录 `artifacts/official-tools-r45/builds-fifth-candidate/`。启动前核对没有 build/dev/Chrome 进程、没有 development.lock，TCP 43120 独占绑定可用。仅使用本会话输出，不占用其他 Chrome Profile 或原始证据；完成后补记 released 和精确构建指纹。
+
+## 第五候选完整成功证据（严格绑定原 SHA）
+
+`84b4a4f062796589d8335688253b963a9c566277`，tree `678d639570288601efed21dc882bb23681ed9ab6`，parent `fd00db355b2560ab519113d5bc2fae225b55167b`。实际触发 13 项工作流全部成功：12 项测试工作流及 1 项维护工作流。[结构化 CI 索引](evidence/official-tools-r45-20261011/ci-84b4a4f0.json) 与[原始原生结果](evidence/official-tools-r45-20261011/native-result-84b4a4f0.json) 已保存，不能将它们套用到随后更改安装器的 main。
+
+| 范围 | Run / Job | 实际结果 |
+| --- | --- | --- |
+| R4.5 主闭环 | `38128395146` / `114437452567` | 83/83 定向、真实 Chrome 11 阶段成功；同一 Profile 的 PID 5579 → 5989 → 6161，前两次退出 code 0 / signal null，24 个原生对话框全部匹配，0 次 driver Storage 写入 |
+| TOC | `38128395232` / `114437452768` | 30/30 专项、1/1 真实 Chrome、43/43 Sidebar 回归，单 H1、R4.4、拖拽、网页/Side Panel、授权/撤权/卸载均通过 |
+| Knowledge | `38128395218` / `114437453232` | 113/113 专项、1/1 真实 Chrome，实际包 v1.1.2 / 42,854 B，38 个视觉测量及 8 类状态 |
+| Markdown | `38128395250` / `114437453022` | 7/7 专项、1/1 真实 Chrome，802 B 实际正文、独立授权、撤权、本地导入及安全预览 |
+| 包生成 / 预算 | `38128395306` / `114437452931`；`38128395215` / `114437452658` | 144/144；25/25 + 146/146 + 10/10，通过原预算 |
+| 完整环境 | 上述四个工具工作流及 Native `38128395152` / `114437452634` | Node 22.23.3：1,096 项、1,089 PASS、0 FAIL、0 cancelled、7 SKIP；独立 Intel/ARM Native Job 同样成功 |
+
+原生主闭环通过首次未安装、五工具两种官方入口、真实双窗口并发、A/B 网站隔离、明确剪藏、受控旧版升级与新增能力拒绝、私有数据保持、Side Panel 关闭重开、在 B 撤销 A、额外本地 JSON 导入、两次完整 Chrome 重启，以及卸载后资源可读但安装/授权/实例为空。受控旧版为 notes/toc 0.0.1，明确不是历史正式发行二进制；历史扩展二进制升级本身未测。
+
+四条独立 CI 构建和本地 `builds-84b4a4f0/` 得到相同 production `afad45ad751ca69e7436da9ea9947f093004e15b7cdfcace061900c5485ad15c`、development `795c37c77efcd0e6eb4ea29627d25bf9f24cd114d13748bdf6f3eba1e03653fd`。本地 build/build:dev/verify exit 0，资源已 `released`；自身 fence 的精确核对记录为 `84b4-owned-{production,development}-release.json`。官方 Catalog 3,159 B，SHA-256 `8a99acc40950f00b396a41a22392b4133111e4d67dfa8808d364dc398f7cf24b`；Knowledge v1.1.2 包 SHA-256 `6c465b74f626c63ba25f816c68f20984b8d1db5bea7b23e000687c41aa7cd3c2`。SW 321,939 / 327,680 B，tool-shell 329,013 B（超过软预算，未超硬预算）。
+
+主 Agent 按 GitHub digest 下载并实际查看本次首次空态、五工具已安装、卸载重启后空态、TOC Side Panel 和 Knowledge 360px 明暗截图。原始主闭环 artifact `11697951367`，ZIP SHA-256 `7f0920488cb184e15e16fcb0fc4801ea5ba1665a6c2c0128cfc77e063a9035f6`。最终空态五项均显示“安装”，Knowledge v1.1.2 可读。实际用户 Mac、公开网站、完整 F3、ZIP 安装、原生工具栏关闭按钮继续 `NOT_TESTED`。
+
+## 收尾期间的并行存储整合与安全回归
+
+收尾 fetch 发现 `4c9ff033`、`a8323800`、`672b23e2`、`b0a6d433`、`8a2c9bff`、`53b09e45036c39a3dda8f638a992677cddae0135` 继续修改了 Manifest、存储写后核对、卸载日志、知识持久化、bridge、市场恢复界面及独立 Page runtime 验收。均已保留。相同文件并行变化使用 checkpoint `bc7238d2d3d941dcd4e4c027b56e86cbb3b4484c` 保存本地五文件，再快进并按精确差异恢复；没有覆盖新存储/市场实现。
+
+`a832` 的 R45 `38128626318`、Knowledge `38128626333` 被前置旧 ACK 断言阻断；其 TOC/Markdown 原生成功但完整环境失败。`672` Native `38128648728` 全量为 1,096 / 1,085 PASS / 4 FAIL / 7 SKIP，另外一个失败是 required permission 的旧数组尾项断言。只有仓库旧 receipt 的失败 artifact 不作为本次构建证明。
+
+本轮新增的发布瞬间观察与清理失败注入实际复现了孤儿网站授权问题：原顺序先发布具有新增能力的包，再清理旧 grant。现在先清理并验证旧工具本来就不具有能力的残留授权，失败不发布；删除旧能力对应的合法授权在注册提交后清理，失败升级仍保留旧包、有效授权和私有数据。三项相关新增用例在修复前失败，修复后通过；版本正则同时采用并行 `b0a6` 的正确实现，不保留双重转义。
+
+保留 `53b09e45` 的明确合同：注册写入 ACK 丢失仍进入显式恢复，即使读回包相同；成功包读取但来源/事务缺项显示 needs-finalization，不能假装全部完成。测试分别注入 ACK 丢失后的可读/不可读结果，验证一次注册写入、审核失效、无自动实例和无网站授权；显式恢复只补来源与事务，不重装。锁内任何写入前重读并比较 toolId/marketId/version/SHA-256；UI/批次还绑定各自预期固定身份，不能借另一操作 ID 核对成功。沿用并行新增的「我的应用」离线恢复和卸载清理入口，补齐批量历史版本的本机核对，不再依赖当前 Catalog 重新提供旧包。
+
+此整合本地定向 **87/87 PASS**，`npm run check` **376 文件通过**；后续精确提交必须重新取得生产/开发构建、完整环境和四条真实 Chrome 证据。本工作流仍 `IN_PROGRESS`，第五候选成功不是这些新输入的替代。
+
+### 整合候选：完整恢复证据与并行变更并集
+
+继续安全快进至 `98e561627fcfbd2c196f0d21c20174cfa7da88a9`，保留 `884e7108` 的配额/离线恢复/卸载残留测试与 Knowledge 原生诊断。两个重叠测试以 checkpoint `4fedfc769da731b425e0c72274b09f73f359b772` 和三方文件保存，按用例并集整合；未删除他人的断言。其后快进至 `9eb3e4439963f1d62dd3c503195a4a0d43fcc055`，保留 Page React/Vue 交付、官方包规范化摘要复核、存储用量、真实 Chrome >10 MiB 容量试验及其他工作流文档。安装器/权限测试另存 checkpoint `05c4956c4a2083310b012bea8024b1021800dbf1` 后合并；本轮在同一孤儿授权防线中同时覆盖新安装和升级新增能力，未另建安装流程。
+
+只读复核发现并故障注入确认：已有官方 v1 升级 v2，registry 已落盘但 ACK 丢失时，旧 v1 来源记录会令恢复永久停在 unknown。现在事务仅保存经锁内实际 baseline 版本与 canonical SHA 核对的三字段旧来源快照；新版包哈希通过且来源仍精确匹配快照时，显式恢复才补齐来源和终态。未知来源、旧日志无快照、畸形快照及等待锁期间变化继续拒绝，不重写安装包。新增测试包含正常恢复、来源冲突、无快照、畸形版本及锁中变更五条路径，并核对唯一 registry 写入、私有数据及原网站授权保持。修复前 `upgrade-recovery-before-fix.tap` 为 0 PASS / 1 FAIL，修复后该用例通过。
+
+`post-98-targeted.tap` 在 98 基线上 **91 PASS / 0 FAIL / 0 SKIP / 0 cancelled**，`post-98-check.log` 为 376 文件通过。随后的 9eb3 整合源码有变化，必须使用新候选的构建与实际 CI；上述数字只证明对应阶段。真实 Chrome 中并行新增的容量试验只写专用随机前缀的可丢弃键，安装记录、网站授权和工具数据仍由真实 UI 产生；后续证据须区分这 12 个容量键和受保护安装状态，不能继续笼统写为“driver 零 Storage 写入”。
+
+随后并行 main 的 Page 构建测试曾在 9eb3 暴露两项失败（框架选择与运行资源身份、前导重复声明）；已保留原始 `post-9eb3-targeted.tap` 的 97 PASS / 2 FAIL，不将其改写为通过。完整保留 Page owner 的 `b5e2beec116b4f242af29a96e79dfa44c222182c` 修复及 `09e520d5` 的损坏安装清单保护后，`post-b5e2-targeted.tap` **101 PASS / 0 FAIL / 0 cancelled / 0 SKIP**。整合 checkpoint `08d2e90545a79b9da703c9da2569c34f84225486`。继续保留 `f848433c2df7d364893b38d5d5a89566feefecd5` 的两项真实持久写入失败桥接测试，host 用例 checkpoint `3e70ef47c73372aef581cddb6d2d970954bf1e72`。所有 checkpoint 和旧测试证据保留；没有强推、清空工作区、另建分支或覆盖并行产物。
+
+本次提交仍为 `IN_PROGRESS` 验收候选；后续实际 CI 需重新确认 production/development、包验证、完整环境及四条官方工具 Chrome 工作流。新 Page 固定 React 资源的包验证结果以实际 CI 为准，不能用本轮安装组件通过替代整个扩展构建通过。

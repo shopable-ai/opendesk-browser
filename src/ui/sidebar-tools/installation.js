@@ -4,7 +4,7 @@ import {SIDEBAR_TOOL_STORE, MAX_INSTALLED_TOOLS, validateSidebarToolPackage, sid
 import {READING_TOC_SITE_STORE, READING_TOC_PLACEMENT_PREFIX, READING_TOC_TOOL_ID} from '../../reading-toc/policy.js';
 import {CLIP_SITE_STORE} from '../../page-clip/policy.js';
 import {CAPTURE_SITE_STORE, KNOWLEDGE_TOOL_ID, KNOWLEDGE_WORKSPACE_PREFIX} from '../../knowledge/policy.js';
-import {writeVerifiedLocalValue,classifyStorageWriteError,unknownStorageOutcome} from './storage-state.js';
+import {writeVerifiedLocalValue,classifyStorageWriteError,unknownStorageOutcome,sameStorageValue} from './storage-state.js';
 
 export const MARKET_PROVENANCE_STORE='opendesk.market.provenance.v1';
 export const MARKET_OPERATIONS_STORE='opendesk.market.operations.v1';
@@ -128,6 +128,13 @@ async function canonicalSha256(tool){
   return Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes)),
     value=>value.toString(16).padStart(2,'0')).join('');
 }
+function matchesPreviousProvenance(row,source){
+  const previous=row.previousProvenance;
+  return Boolean(previous&&typeof previous==='object'&&!Array.isArray(previous)&&
+    Object.keys(previous).length===3&&previous.marketId===row.marketId&&
+    typeof previous.version==='string'&&/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/.test(previous.version)&&
+    shaPattern.test(previous.sha256)&&sameStorageValue(previous,source));
+}
 // Never replay an unknown operation. The installed package and local provenance,
 // not the market directory, are the only inputs for recovery.
 export async function reconcileMarketOperation(api,operationId,expectedPackage=null){
@@ -144,33 +151,43 @@ export async function reconcileMarketOperation(api,operationId,expectedPackage=n
   if(matched)matched=await canonicalSha256(current)===row.sha256;
   const source=(provenance[MARKET_PROVENANCE_STORE]||{})[row.toolId];
   const sourceMatched=source?.marketId===row.marketId&&source.sha256===row.sha256&&source.version===row.version;
-  const sourceConflicts=Boolean(source&&!sourceMatched);
+  const sourceConflicts=Boolean(source&&!sourceMatched&&!matchesPreviousProvenance(row,source));
   let state;
   if(!matched||sourceConflicts)state=row.state==='failed'?'failed':'outcome-unknown';
   else state=sourceMatched&&row.state==='succeeded'?'succeeded':'needs-finalization';
   return {state,operationId,toolId:row.toolId,marketId:row.marketId,
     installedVersion:current?.version||null,packageVerified:matched,provenanceVerified:sourceMatched};
 }
-export async function recoverMarketOperation({api,lockManager,operationId}){
+export async function recoverMarketOperation({api,lockManager,operationId,expectedIdentity=null}){
   if(!opPattern.test(operationId))throw error('事务 ID 无效','E_MARKET_IDENTITY');
   const stored=await api.storage.local.get(MARKET_OPERATIONS_STORE);
   const row=recoverableOperations(stored[MARKET_OPERATIONS_STORE])[operationId];
   if(!row)return {state:'missing',operationId};
+  if(expectedIdentity&&['toolId','marketId','version','sha256'].some(key=>
+    Object.hasOwn(expectedIdentity,key)&&expectedIdentity[key]!==row[key]))
+    throw error('安装事务与所选固定版本不一致','E_MARKET_IDENTITY');
   if(!lockManager?.request)throw error('浏览器缺少安全存储锁','E_TOOL_LOCK');
   return lockManager.request('opendesk.sidebar-tools:tool:'+row.toolId,()=>
     lockManager.request('opendesk.sidebar-tools:catalog',async()=>{
+      const matchesIdentity=active=>active&&['toolId','marketId','version','sha256'].every(key=>active[key]===row[key])&&
+        Object.hasOwn(active,'previousProvenance')===Object.hasOwn(row,'previousProvenance')&&
+        sameStorageValue(active.previousProvenance,row.previousProvenance);
+      const locked=(await api.storage.local.get(MARKET_OPERATIONS_STORE))[MARKET_OPERATIONS_STORE];
+      if(!matchesIdentity(recoverableOperations(locked)[operationId]))
+        throw unknownStorageOutcome(null,'市场事务身份已变化');
       const checked=await reconcileMarketOperation(api,operationId);
       if(checked.state!=='needs-finalization')return checked;
       const saved=(await api.storage.local.get(MARKET_PROVENANCE_STORE))[MARKET_PROVENANCE_STORE]||{};
-      // A conflicting publisher cannot be silently replaced during recovery.
-      if(saved[row.toolId]&&(!checked.provenanceVerified))
+      // Only the exact baseline accepted under the original install lock may
+      // advance to this already committed release. Older journals fail closed.
+      if(saved[row.toolId]&&!checked.provenanceVerified&&!matchesPreviousProvenance(row,saved[row.toolId]))
         return {...checked,state:'outcome-unknown'};
       const identity={marketId:row.marketId,sha256:row.sha256,version:row.version};
       if(!checked.provenanceVerified)await writeVerifiedLocalValue(api,MARKET_PROVENANCE_STORE,
         {...saved,[row.toolId]:identity},saved,'市场来源恢复');
       const original=(await api.storage.local.get(MARKET_OPERATIONS_STORE))[MARKET_OPERATIONS_STORE]||{};
       const active=recoverableOperations(original)[operationId];
-      if(!active||active.toolId!==row.toolId||active.sha256!==row.sha256)
+      if(!matchesIdentity(active))
         throw unknownStorageOutcome(null,'市场事务恢复');
       await writeVerifiedLocalValue(api,MARKET_OPERATIONS_STORE,trimmedOperations({
         ...original,[operationId]:{...active,state:'succeeded',reason:'reconciled-local',
@@ -218,31 +235,44 @@ export async function installReviewedSidebarTool({api,lockManager,candidate,base
     const ops=identity?recoverableOperations((await api.storage.local.get(MARKET_OPERATIONS_STORE))[MARKET_OPERATIONS_STORE]):null;
     if(identity&&ops[identity.operationId])
       throw error('事务已存在，请先恢复核对，不能再次提交','E_OUTCOME_UNKNOWN');
+    const prior=provenance[tool.id];
+    const previousProvenance=identity&&existing&&prior?.marketId===identity.marketId&&
+      prior.version===existing.version&&shaPattern.test(prior.sha256)&&Object.keys(prior).length===3&&
+      await canonicalSha256(existing)===prior.sha256
+      ?{marketId:prior.marketId,version:prior.version,sha256:prior.sha256}:null;
     const writeOp=async(state,reason='')=>{
       if(!identity)return;
       const original=(await api.storage.local.get(MARKET_OPERATIONS_STORE))[MARKET_OPERATIONS_STORE]||{};
       const updated={...original,[identity.operationId]:{marketId:identity.marketId,sha256:identity.sha256,
-        toolId:tool.id,version:tool.version,state,reason:reason.slice(0,140),updatedAt:Date.now()}};
+        toolId:tool.id,version:tool.version,...(previousProvenance?{previousProvenance}:{}),
+        state,reason:reason.slice(0,140),updatedAt:Date.now()}};
       await writeVerifiedLocalValue(api,MARKET_OPERATIONS_STORE,trimmedOperations(updated),original,'市场事务记录');
     };
     let registryAttempted=false,registryCommitted=false;
     try{
-      // The registry write is the commit boundary. Do not modify existing tool
-      // data or revoke its grants before that boundary.
+      // The registry write is the commit boundary. Preserve the installed
+      // tool's data and valid grants if that write fails. Orphan grants for
+      // capabilities it never held must disappear before a new package is visible.
       await writeOp('reviewed');
       await writeOp('committing');
-      // Before admitting a previously uninstalled ID, remove stale grants
-      // under the same locks. Otherwise the registry change could briefly
-      // expose old site consent to a fresh package with matching capabilities.
       if(!existing){
-        await removeVerifiedKey(api,sidebarToolStorageKey(tool.id));
-        for(const store of [READING_TOC_SITE_STORE,CLIP_SITE_STORE,CAPTURE_SITE_STORE]){
-          const previous=(await api.storage.local.get(store))[store]||{};
-          if(!Object.hasOwn(previous,tool.id))continue;
-          const updated={...previous};delete updated[tool.id];
-          await writeVerifiedLocalValue(api,store,updated,previous,'旧工具授权清理');
-        }
+        // Never delete a previous owner's private data before the registry
+        // commit boundary. Explicit cleanup is required for orphaned IDs.
+        const dataKey=sidebarToolStorageKey(tool.id);
+        if((await api.storage.local.get(dataKey))[dataKey]!==undefined)
+          throw error('此 ID 仍有上次卸载的本地数据；先在「我的应用」恢复清理后重新审阅安装',
+            'E_TOOL_ORPHAN_DATA');
       }
+      const siteStores=[[READING_TOC_SITE_STORE,'page.toc'],[CLIP_SITE_STORE,'page.clip'],[CAPTURE_SITE_STORE,'page.capture']];
+      const clearGrant=async store=>{
+        const value=(await api.storage.local.get(store))[store]||{};
+        if(Object.hasOwn(value,tool.id)){
+          const updated={...value};delete updated[tool.id];
+          await writeVerifiedLocalValue(api,store,updated,value,'工具网站授权清理');
+        }
+      };
+      for(const [store,capability] of siteStores)
+        if(!existing?.capabilities.includes(capability))await clearGrant(store);
       const next=existing?installed.map(row=>row.id===tool.id?tool:row):[...installed,tool];
       registryAttempted=true;
       const registry=await writeVerifiedLocalValue(api,SIDEBAR_TOOL_STORE,next,installed,'工具安装记录');
@@ -250,16 +280,10 @@ export async function installReviewedSidebarTool({api,lockManager,candidate,base
       // Even if the local readback is durable, an unacknowledged package commit
       // must require explicit recovery of provenance and operation state.
       if(registry.acknowledgementLost)throw unknownStorageOutcome(null,'工具包写入回执');
-      // Runtime still gates every capability independently. Cleanup can only
-      // remove old site grants, never grant a new origin or browser permission.
-      for(const [store,capability] of [[READING_TOC_SITE_STORE,'page.toc'],[CLIP_SITE_STORE,'page.clip'],[CAPTURE_SITE_STORE,'page.capture']]){
-        if(existing?.capabilities.includes(capability)&&tool.capabilities.includes(capability))continue;
-        const value=(await api.storage.local.get(store))[store]||{};
-        if(Object.hasOwn(value,tool.id)){
-          const updated={...value};delete updated[tool.id];
-          await writeVerifiedLocalValue(api,store,updated,value,'工具网站授权清理');
-        }
-      }
+      // Removing a capability makes its prior grant unusable immediately;
+      // now clear that record after the successful registry boundary.
+      for(const [store,capability] of siteStores)
+        if(existing?.capabilities.includes(capability)&&!tool.capabilities.includes(capability))await clearGrant(store);
       if(identity){
         await writeVerifiedLocalValue(api,MARKET_PROVENANCE_STORE,{...provenance,[tool.id]:{
           marketId:identity.marketId,sha256:identity.sha256,version:tool.version}},provenance,'市场来源');

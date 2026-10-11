@@ -2,11 +2,12 @@ import {httpUrl, permissionPattern} from '../../environment.js';
 import {FoundationError, invariant} from '../../platform/protocol.js';
 import {JQUERY_371, sha256Utf8} from './page-program-package.js';
 import {loadPackagedJquery} from './packaged-dependencies.js';
+import {loadPackagedPageFramework} from '../../libs/page-frameworks/loader.js';
 import {loadBuiltinPageSource} from '../../libs/loader.js';
 import {BUILTIN_ABI} from '../../libs/runtime-contract.js';
 import {builtinIdentity,assertBuiltinIdentity} from '../../libs/identity.js';
 import {createDependencyManager} from './dependency-manager.js';
-import {compileLockedPageSource, builtinReadinessSource, pageWantsJquery, pageConsumerSource, PAGE_PREVIEW_RECEIPT_FORMAT, PAGE_ENTRY_FORMATS, PAGE_SOURCE_LIMIT} from './execution-source.js';
+import {compileLockedPageSource, builtinReadinessSource, pageWantsJquery, pageSelectedPackagedLibrary, pageConsumerSource, PAGE_PREVIEW_RECEIPT_FORMAT, PAGE_ENTRY_FORMATS, PAGE_SOURCE_LIMIT} from './execution-source.js';
 import {createPreviewWorlds} from './preview-worlds.js';
 import {parseUserScriptDependencies, assertUserScriptExecutable} from './dependency-metadata.js';
 
@@ -130,7 +131,7 @@ export function createPageScriptPreview({api, storage, assertHost, dependencies,
     const owner=await assertHost(sender); // Existing authenticated packaged tool document.
     const frozen = frozenSource(request);
     await verifyTarget(frozen.target);
-    let jqueryCode, locked, script;
+    let jqueryCode, locked, script,frameworkSource;
     const receiptNonce=crypto.randomUUID();
     const builtinSource=await loadBuiltin({runtime:api.runtime,fetchImpl});
     if (frozen.legacy && frozen.withJquery) {
@@ -139,12 +140,15 @@ export function createPageScriptPreview({api, storage, assertHost, dependencies,
     }
     if(!frozen.legacy&&pageWantsJquery(frozen.sourceUtf8))
       jqueryCode=(await loadPackagedJquery({runtime:api.runtime,fetchImpl})).code;
+    const selected=!frozen.legacy&&pageSelectedPackagedLibrary(frozen.sourceUtf8);
+    if(selected&&selected!=='jquery')
+      frameworkSource=await loadPackagedPageFramework(selected,{runtime:api.runtime,fetchImpl});
     if (frozen.legacy) script = await compilePageScriptPreview({...frozen,jqueryCode,receiptNonce,builtinSource});
     else {
       locked = await dependencyManager.loadForExecution({sourceUtf8:frozen.sourceUtf8,
         entryFormat:frozen.entryFormat,lockId:frozen.lockId,
         ...(frozen.importSourceUrl ? {importSourceUrl:frozen.importSourceUrl} : {})},sender);
-      script = await compileLockedPageSource({...frozen,entries:locked.entries,receiptNonce,builtinSource,jqueryCode});
+      script = await compileLockedPageSource({...frozen,entries:locked.entries,receiptNonce,builtinSource,jqueryCode,frameworkSource});
     }
     const native=await nativeAPI();
     invariant(!frozen.managedUI||managed,'E_UI_LIFECYCLE','受管预览未加载');
@@ -179,7 +183,9 @@ export function createPageScriptPreview({api, storage, assertHost, dependencies,
       const identity={tabId,documentId,sourceHash:script.sourceHash,world:script.world,worldId,receiptNonce,
         builtinAbi:script.builtinAbi,builtinCatalogSha256:script.builtinCatalogSha256,
         builtinBundleSha256:script.builtinBundleSha256,
-        ...(script.packagedJquerySha256?{packagedJquerySha256:script.packagedJquerySha256}:{})};
+        ...(script.packagedJquerySha256?{packagedJquerySha256:script.packagedJquerySha256}:{}),
+        ...(script.packagedFrameworkId?{packagedFrameworkId:script.packagedFrameworkId,
+          packagedFrameworkSha256:script.packagedFrameworkSha256}:{})};
       if(!completion.ok)throw Object.assign(new FoundationError('E_PAGE_SCRIPT_EXECUTION',completion.error || '页面脚本执行失败'),
         {response:{...identity,state:'preview-failed',completion:{format:completion.format,nonce:completion.nonce,
           ok:false,error:String(completion.error||'').slice(0,2048)}}});
@@ -225,9 +231,12 @@ export function createPageScriptPreview({api, storage, assertHost, dependencies,
       assertBuiltinIdentity(candidate.builtinIdentity,builtinIdentity(builtinSource));
       const jqueryCode=pageWantsJquery(candidate.sourceUtf8)
         ? (await loadPackagedJquery({runtime:api.runtime,fetchImpl})).code : undefined;
+      const selected=pageSelectedPackagedLibrary(candidate.sourceUtf8);
+      const frameworkSource=selected&&selected!=='jquery'
+        ? await loadPackagedPageFramework(selected,{runtime:api.runtime,fetchImpl}):undefined;
       const script=await compileLockedPageSource({sourceUtf8:candidate.sourceUtf8,
         entryFormat:candidate.manifest.entryFormat,entries:resolution.entries,
-        importSourceUrl:candidate.manifest.sourceProfile.importSourceUrl,receiptNonce,builtinSource,jqueryCode});
+        importSourceUrl:candidate.manifest.sourceProfile.importSourceUrl,receiptNonce,builtinSource,jqueryCode,frameworkSource});
       const native=await nativeAPI(),worldId=await worlds.allocate(native,t);
       await admission.reserveInstalled({nonce:receiptNonce,tabId:t.tabId,documentId:t.documentId,
         sourceHash:script.sourceHash},installation);reserved=true;
@@ -258,7 +267,9 @@ export function createPageScriptPreview({api, storage, assertHost, dependencies,
         resultText:String(resultText).slice(0,2048),entryFormat:candidate.manifest.entryFormat,
         builtinAbi:script.builtinAbi,builtinCatalogSha256:script.builtinCatalogSha256,
         builtinBundleSha256:script.builtinBundleSha256,
-        ...(script.packagedJquerySha256?{packagedJquerySha256:script.packagedJquerySha256}:{})};
+        ...(script.packagedJquerySha256?{packagedJquerySha256:script.packagedJquerySha256}:{}),
+        ...(script.packagedFrameworkId?{packagedFrameworkId:script.packagedFrameworkId,
+          packagedFrameworkSha256:script.packagedFrameworkSha256}:{})};
     }catch(error){
       if(dispatched&&!confirmed)throw new FoundationError('E_EFFECT_UNKNOWN',error.message+'；本次效果未知，不自动重放');
       if(dispatched&&confirmed)error.effectConfirmed=true;

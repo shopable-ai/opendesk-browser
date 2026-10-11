@@ -1,0 +1,176 @@
+{
+  "status": "PASS_AT_EXACT_SOURCE",
+  "sourceCommit": "84b4a4f062796589d8335688253b963a9c566277",
+  "sourceTree": "678d639570288601efed21dc882bb23681ed9ab6",
+  "currentMainStatus": "SUBSEQUENT_INSTALLATION_CHANGES_REQUIRE_NEW_ACCEPTANCE",
+  "workflowRuns": [
+    {
+      "id": 38128395155,
+      "name": "R7 axiosx HTTP page + fixture contracts",
+      "path": ".github/workflows/r7-axiosx-http-lab.yml",
+      "head_sha": "84b4a4f062796589d8335688253b963a9c566277",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38128395155"
+    },
+    {
+      "id": 38128395149,
+      "name": "Cleanup merged short-lived OpenDesk branches",
+      "path": ".github/workflows/cleanup-merged-agent-branches.yml",
+      "head_sha": "84b4a4f062796589d8335688253b963a9c566277",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38128395149"
+    },
+    {
+      "id": 38128395101,
+      "name": "Sidebar R1 P0 targeted checks",
+      "path": ".github/workflows/sidebar-r1-p0.yml",
+      "head_sha": "84b4a4f062796589d8335688253b963a9c566277",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38128395101"
+    },
+    {
+      "id": 38128395190,
+      "name": "Site access targeted checks",
+      "path": ".github/workflows/site-access-once.yml",
+      "head_sha": "84b4a4f062796589d8335688253b963a9c566277",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38128395190"
+    },
+    {
+      "id": 38128395207,
+      "name": "Sidebar R21 integrated UI quality",
+      "path": ".github/workflows/sidebar-r21-ui-quality.yml",
+      "head_sha": "84b4a4f062796589d8335688253b963a9c566277",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38128395207"
+    },
+    {
+      "id": 38128395181,
+      "name": "Page userscript dependencies and package",
+      "path": ".github/workflows/r3-source-package.yml",
+      "head_sha": "84b4a4f062796589d8335688253b963a9c566277",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38128395181"
+    },
+    {
+      "id": 38128395250,
+      "name": "Markdown tools R22 - packages and native Chrome",
+      "path": ".github/workflows/markdown-tools-r22.yml",
+      "head_sha": "84b4a4f062796589d8335688253b963a9c566277",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38128395250"
+    },
+    {
+      "id": 38128395218,
+      "name": "Knowledge inbox R1 - components and Chrome fixture",
+      "path": ".github/workflows/knowledge-inbox-r1.yml",
+      "head_sha": "84b4a4f062796589d8335688253b963a9c566277",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38128395218"
+    },
+    {
+      "id": 38128395215,
+      "name": "Extension package budgets and library boundaries",
+      "path": ".github/workflows/fixed-entry-budget.yml",
+      "head_sha": "84b4a4f062796589d8335688253b963a9c566277",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38128395215"
+    },
+    {
+      "id": 38128395306,
+      "name": "Sidebar user tools R1 - package and build",
+      "path": ".github/workflows/sidebar-tools-r1.yml",
+      "head_sha": "84b4a4f062796589d8335688253b963a9c566277",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38128395306"
+    },
+    {
+      "id": 38128395146,
+      "name": "OpenDesk official catalog R4.5 and market R3 native Chrome",
+      "path": ".github/workflows/app-market-r3.yml",
+      "head_sha": "84b4a4f062796589d8335688253b963a9c566277",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38128395146"
+    },
+    {
+      "id": 38128395232,
+      "name": "Reading TOC R4.1-R4.4 - active context, adaptive overview, native and build",
+      "path": ".github/workflows/reading-toc-r41.yml",
+      "head_sha": "84b4a4f062796589d8335688253b963a9c566277",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38128395232"
+    },
+    {
+      "id": 38128395152,
+      "name": "Native Agent R1 components and package",
+      "path": ".github/workflows/native-agent-r1.yml",
+      "head_sha": "84b4a4f062796589d8335688253b963a9c566277",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38128395152"
+    }
+  ],
+  "environment": {
+    "node": "22.23.3",
+    "chrome": "155.0.8059.39",
+    "os": "Ubuntu 24.04.5",
+    "headed": true,
+    "tests": 1096,
+    "pass": 1089,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 7
+  },
+  "productionPackageHash": "afad45ad751ca69e7436da9ea9947f093004e15b7cdfcace061900c5485ad15c",
+  "developmentPackageHash": "795c37c77efcd0e6eb4ea29627d25bf9f24cd114d13748bdf6f3eba1e03653fd",
+  "catalogSha256": "8a99acc40950f00b396a41a22392b4133111e4d67dfa8808d364dc398f7cf24b",
+  "native": {
+    "result": "REAL_CHROME_FIXTURE_PASS",
+    "phases": 11,
+    "normalRestarts": 2,
+    "dialogCount": 24,
+    "driverStorageWrites": 0,
+    "artifactId": 11697951367,
+    "artifactSha256": "7f0920488cb184e15e16fcb0fc4801ea5ba1665a6c2c0128cfc77e063a9035f6"
+  },
+  "toolArtifacts": [
+    {
+      "tool": "reading-toc",
+      "runId": 38128395232,
+      "artifactId": 11698640672,
+      "sha256": "9851dcefaef4ea00f7e0522689971bdecd48296a9513726e5be1eedc0c206292"
+    },
+    {
+      "tool": "knowledge-inbox",
+      "runId": 38128395218,
+      "artifactId": 11698850311,
+      "sha256": "989855433f5aa120b090b07ecf5632a60371c1a7da784889494c0e0294a5e2b2"
+    },
+    {
+      "tool": "web-markdown-clipper",
+      "runId": 38128395250,
+      "artifactId": 11697929531,
+      "sha256": "17edec42ae8da0568b8ab31b2d0ca8c53d7a3881e2f367cbba14e19074777bc8"
+    }
+  ],
+  "notTested": [
+    "actual user Mac Chrome",
+    "public business websites",
+    "complete framework F3",
+    "ZIP installation",
+    "native toolbar Side Panel close",
+    "binary extension upgrade from a historical release"
+  ]
+}

@@ -120,3 +120,38 @@ status.textContent = '已保存';
 - **源码合同**：`src/ui/sidebar-tools/package.js`、`src/ui/sidebar-tools.js`、`src/sidebar-tools/bridge.js`、`src/sidebar-tools/official-catalog.js`、`scripts/build-sidebar-tool.mjs`、`scripts/build-official-tools.mjs`。
 
 本页记录现有 `v1` 能力，不表示正在设计中的应用市场远端安装、个人内容批量迁移、自动发布、完整 React 热同步或通用 Native API 已落地。
+
+
+## 5. 安装后的本地保存位置、扩容和数据恢复（2026-10-11）
+
+以下均为扩展宿主自己的 **`chrome.storage.local`** 持久化键，不是用户可任意访问的文件夹；浏览器的当前 Profile 和此扩展 ID 决定实际存储归属。安装包是完整的 `opendesk.sidebar-tool.v1` 扁平包，不附加来源、作者或支付信息：
+
+| 内容 | 存储键/前缀 | 说明 |
+| --- | --- | --- |
+| 已安装工具代码及清单 | `opendesk.sidebar-tools.installed.v1` | 最多 12 项，完整 `html/css/js` 均在数组中；更新时不迁移为 IndexedDB |
+| 普通工具数据 | `opendesk.sidebar-tools.data.v1:<toolId>` | 工具只能通过批准的 `storage.get/set` 访问自己的命名空间 |
+| 知识收件箱数据 | `opendesk.sidebar-tools.data.v1:knowledge-inbox` | 与普通工具共用持久键形式，但专用服务提供 **200 条 / 4 MiB** 的独立上限 |
+| 市场来源 | `opendesk.market.provenance.v1` | 安装来源、实际发行版本、规范化 SHA-256；**不放入严格 v1 包** |
+| 市场安装事务 | `opendesk.market.operations.v1` | 恢复核对的操作 ID、版本、摘要、状态；未知结果不得直接重放 |
+| 部分卸载清理 | `opendesk.sidebar-tools.uninstall-cleanup.v1` | 已确认卸载但清理仍未完成时保留；后续需手动恢复 |
+
+**宿主必须声明 `unlimitedStorage`**，在 `manifest.json` 和 `src/platform/chrome/permission-gate.js` 中同步维护。运行时用 `chrome.permissions.contains({permissions:['unlimitedStorage']})` 检查是否真正生效；若未生效，可读取既有本地工具，但写入仍受浏览器默认配额限制。该权限不是工具包的 capability，不授予工具直接操作 `chrome.storage` 的能力，不自动授权访问网站，也不取消设备物理空间限制。
+
+市场「我的应用」使用 `getBytesInUse()` 显示：扩展 local 总占用、已安装工具包占用、工具数据占用（包含知识收件箱）、大容量权限状态。显示**实际使用字节数**而非假的总容量/剩余空间；无法读取时显示「暂时无法读取」。完整单个工具包实际分摊存储于共享数组，若进行每工具估计，应注明其不等于独立键的实际占用。页面打开、手动刷新或相关存储变化时更新，不持续扫全库、不读取或记录笔记正文。浏览器清除 Profile、移除扩展等操作仍可能丢失本机数据；关键笔记应先使用知识收件箱备份功能。
+
+扩容仅解除 Chrome 对宿主存储的常规小容量上限，**不放宽产品自身限制**：
+
+- 最多安装 **12** 个工具；单工具包最大 **320,000 UTF-8 字节**。
+- 普通工具的单项数据最多 **8,192 字节**、全工具最多 **32,768 字节**，每个工具最多 **32** 个字段。
+- 知识收件箱独立保留 **200 条 / 总数据 4 MiB**；不得用普通工具 32 KiB 限制替代。
+- `E_TOOL_CAPACITY` / `E_TOOL_LIMIT` / `E_TOOL_DATA_LIMIT` 属于产品限额；`E_HOST_STORAGE_QUOTA` / `E_HOST_STORAGE_WRITE` 属于宿主写入/设备环境问题；`E_STORAGE_CONFLICT` 是版本核对失败；`E_OUTCOME_UNKNOWN` 是读回不足以判断已发生的效果。
+
+**安装与更新**：经审阅确认后，复用 `tool:<id> → catalog` 的既有锁。预提交失败不覆盖已安装旧包和其业务数据。注册表存储写入后**读回比对**，明确失败且读回仍为旧包时报告未成功；写入回执丢失或后续来源/事务记录失败时保留未知状态、要求核对，不声称回滚、不恢复整个旧工具列表。恢复操作从本机安装包计算规范化 SHA-256，核对持久事务的 ID/版本/摘要与来源；经锁与当前安装再次校验后，才允许补完缺失的来源/终态。**不依赖官方目录在线或重新下载包**；不能确认时保持未知，不重复消费旧安装批准。网站授权不会因恢复而自动重新授予。
+
+**工具数据保存**：宿主在相同工具锁下校验版本/会话、字段个数、大小和可选 etag，然后尝试写入并读回确认。仅在持久化确认后返回 `saved:true`；失败返回明确 `error.code` 与受控消息，工具界面应保留用户草稿和未保存提示。知识收件箱消息经后台已有锁处理，Side Panel 转发时**不再重复套锁**。未知写入结果必须先重新加载校验，不能直接把草稿丢弃或静默覆盖。
+
+**卸载**：用户明确确认后，先写卸载恢复意图，再从安装数组中移除指定工具。随后才尝试清理该工具命名空间、网站授权及专用会话；部分清理失败时，安装列表和真实存储状态分别展示，在「我的应用」可点击「恢复清理」。恢复动作持锁重查同 ID 是否重新安装；若已安装，不会删除新实例的数据。不会清空整个 `storage.local`，不会自动删除其他工具、用户笔记或授予新权限。
+
+**离线打开**：市场目录是发现与校验新发行的来源，**不是本地工具运行依赖**。市场读取错误或条目下架后，「我的应用」仍从本机安装记录展示和打开本地代码；条目不再提供新安装。本地安装列表读失败必须提供重试，不能被解释为「尚未安装」。这不表示第三方作者发布、下架后台或计费已实施。
+
+相关实现：`src/ui/sidebar-tools/installation.js`、`src/ui/sidebar-tools/storage-state.js`、`src/ui/sidebar-tools/storage-usage.js`、`src/ui/sidebar-tools.js`、`src/sidebar-tools/bridge.js`、`src/knowledge/service.js`、`src/marketplace/page.js`。定向测试：`tests/environment/sidebar-storage-unlimited.test.mjs`、`tests/environment/app-market-r3.test.mjs`、`tests/environment/sidebar-tools-host.test.mjs`；受控浏览器容量验证见 `tests/framework/app-market-r3-native.test.mjs`。

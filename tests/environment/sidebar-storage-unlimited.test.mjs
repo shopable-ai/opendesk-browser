@@ -110,3 +110,20 @@ test('My Apps opens local installed package while official catalog is missing or
   assert.equal(f.values[sidebarToolStorageKey(tool.id)].notes,'private draft');
   assert.equal(active,0);
 });
+
+test('a corrupt local install registry reports a storage failure, not an empty My Apps view',async t=>{
+  const f=fixture({[SIDEBAR_TOOL_STORE]:{broken:true}});
+  const previous={document:globalThis.document,window:globalThis.window,location:globalThis.location,fetch:globalThis.fetch};
+  const root=new Element('root');
+  globalThis.document={createElement:tag=>new Element(tag),getElementById:()=>null};
+  globalThis.window={addEventListener(){},removeEventListener(){}};
+  globalThis.location={hash:'#/my'};
+  globalThis.fetch=async()=>{throw Error('offline');};
+  const market=initMarketplace({api:f.api,root,lockManager:{request:(_key,callback)=>callback()}});
+  t.after(()=>{market.dispose();Object.assign(globalThis,previous);});
+  await settle(()=>walk(root).some(n=>n.textContent.includes('本机安装记录读取失败')));
+  const rendered=walk(root).map(n=>n.textContent).join(' ');
+  assert.match(rendered,/E_STORAGE_CORRUPT/);
+  assert.doesNotMatch(rendered,/尚无已安装应用/);
+  assert.deepEqual(f.values[SIDEBAR_TOOL_STORE],{broken:true});
+});

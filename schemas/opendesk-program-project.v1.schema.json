@@ -109,6 +109,7 @@
             "runtimeKind": {
               "const": "page-userscript"
             },
+            "framework": {"enum": ["react", "vue"]},
             "pageRules": {
               "type": "object",
               "required": [

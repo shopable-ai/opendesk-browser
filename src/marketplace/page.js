@@ -3,7 +3,7 @@ import {loadOfficialCatalog,loadOfficialTool,verifyReviewedOfficialTool} from '.
 import {validateSidebarToolPackage, SIDEBAR_TOOL_STORE,SIDEBAR_TOOL_DATA_PREFIX,MAX_INSTALLED_TOOLS} from '../ui/sidebar-tools/package.js';
 import {readSidebarStorageUsage} from '../ui/sidebar-tools/storage-usage.js';
 import {admittedSidebarToolPackages,sameSidebarToolPackage,compareToolVersions,
-  installReviewedSidebarTool,reconcileMarketOperation,recoverMarketOperation,retryUninstalledToolCleanup,
+  installReviewedSidebarTool,recoverMarketOperation,retryUninstalledToolCleanup,
   TOOL_CLEANUP_STORE,MARKET_OPERATIONS_STORE,MARKET_PROVENANCE_STORE} from '../ui/sidebar-tools/installation.js';
 import {toolPageHref} from '../ui/sidebar-tools/navigation.js';
 import {MARKET_BATCH_STORE,readMarketBatch,createMarketBatch,marketBatchUnresolved,
@@ -90,7 +90,11 @@ export function initMarketplace({api=globalThis.chrome,root=globalThis.document?
   async function reloadInstalled(){
     const stored=await api.storage.local.get([SIDEBAR_TOOL_STORE,MARKET_BATCH_STORE,MY_COLLECTIONS_STORE,
       TOOL_CLEANUP_STORE,MARKET_OPERATIONS_STORE]);
-    state.installed=admittedSidebarToolPackages(stored[SIDEBAR_TOOL_STORE]);
+    const raw=stored[SIDEBAR_TOOL_STORE];
+    const admitted=admittedSidebarToolPackages(raw);
+    if(raw!==undefined&&(!Array.isArray(raw)||admitted.length!==raw.length))
+      throw fail('本机安装清单格式或条目无效，已停止自动加载以保护现有数据；请核对或备份原始记录','E_STORAGE_CORRUPT');
+    state.installed=admitted;
     state.cleanups=stored[TOOL_CLEANUP_STORE]||{};
     state.operations=stored[MARKET_OPERATIONS_STORE]||{};
     state.matched=new Set();
@@ -304,13 +308,17 @@ export function initMarketplace({api=globalThis.chrome,root=globalThis.document?
     parent.append(controls);return parent;
   }
   async function recover(review){
+    if(state.busy||state.review!==review)return;
+    state.busy=true;render();
     try{
-      const result=await recoverMarketOperation({api,lockManager,operationId:review.operationId});
+      const result=await recoverMarketOperation({api,lockManager,operationId:review.operationId,
+        expectedIdentity:{toolId:review.tool.id,marketId:review.app.id,version:review.tool.version,sha256:review.release.sha256}});
       await reloadInstalled();
       if(result.state==='succeeded'){
         state.review=null;say('经实际安装记录核对：已安装 v'+review.tool.version+'；尚未运行。');
       }else say('事务状态：'+result.state+'。不自动重试；请核对我的应用与本机日志。',true);
     }catch(e){say(e.message,true);}
+    finally{state.busy=false;render();}
   }
   async function commitApp(review){
     if(state.busy||state.review!==review)return;
@@ -543,11 +551,9 @@ export function initMarketplace({api=globalThis.chrome,root=globalThis.document?
         const batch=reconcileQueuedAfterInterruption(original);
         for(const item of batch.items){
           if(!['committing','outcome-unknown'].includes(item.status))continue;
-          const app=getOfficialApp(item.id);
           try{
-            if(!app||app.version!==item.version)throw fail('固定发行版本已不存在，不能核对执行结果','E_RELEASE_CHANGED');
-            const {tool}=await packageFor(app);
-            const result=await reconcileMarketOperation(api,item.operationId,tool);
+            const result=await recoverMarketOperation({api,lockManager,operationId:item.operationId,
+              expectedIdentity:{marketId:item.id,version:item.version}});
             item.status=result.state==='succeeded'?'succeeded':'outcome-unknown';
             item.reason=('恢复核对：'+result.state+'。未自动重试。').slice(0,300);
           }catch(e){
