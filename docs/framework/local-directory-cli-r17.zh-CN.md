@@ -78,7 +78,9 @@ R17.1 需要 **Go Host 和 Browser 扩展协商 `localDevMultiVersion:1`、`loca
 | `providerEpoch` | 当前来源集合和回包防串号 | 来源变更、撤销或重连后旧 epoch 失效 |
 | `leaseEpoch` | 公开的 CLI 文件会话代次 | 绑定读取/保存，重接后不能复用；不同于私有 owner `leaseId` |
 
-R17 使用已有 Go 文件服务、Workspace、Node `LocalDevResolver`、原 Browser RunHost/Controller/Page 链，没有增加第二套编译器或网页执行器。一个目录可以只显示文件，或携带符合 `opendesk.project.v1` 的已声明程序。旧 Go 单文件 `opendesk browser project ...`、Codex stdio MCP 和 `workspace add/list/revoke` 仍有各自用途，不用 R17 命令替代其显式授权与业务归属。
+R17 使用已有 Go 文件服务、Workspace、Node `LocalDevResolver`、原 Browser RunHost/Controller/Page 链，没有增加第二套编译器或网页执行器。
+
+**HTTPS ESM 首次锁定（ESM R2）**：R17 的目录临时读写授权不等于网络下载第三方代码授权。目前 Native Provider 仅提供只读的 `projects.list/project.resolve`，并无 Browser 端写锁 RPC/UI。用户在受信本地终端运行 `node scripts/lock-program-remote.mjs <项目目录>` 离线审阅 URL/域名与 `reviewToken`，再单独执行带 `--approve <reviewToken>` 的命令，并逐个批准新传递 URL，最后回到现有 Sidebar/MCP 已授权项目明确运行。此终端命令沿用本机 OS 对该可信目录的权限，**不会**通过 Go 目录 lease 提权写只读目录；锁成功不会获得网站执行权限或自动安装。一个目录可以只显示文件，或携带符合 `opendesk.project.v1` 的已声明程序。旧 Go 单文件 `opendesk browser project ...`、Codex stdio MCP 和 `workspace add/list/revoke` 仍有各自用途，不用 R17 命令替代其显式授权与业务归属。
 
 用户在终端执行命令，为**参数指定的根目录**建立本次 CLI 生命周期的临时读写接入；省略路径时只使用当前工作目录，不扩大到 Git 根、父目录或用户主目录。新目录不需要先 `workspace add`。Go 对实际权限作最终裁决：
 
