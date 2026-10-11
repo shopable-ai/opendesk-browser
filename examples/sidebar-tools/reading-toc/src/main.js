@@ -5,16 +5,21 @@ const source=root.querySelector('#toc-source'),list=root.querySelector('#toc-lis
 const empty=root.querySelector('#toc-empty'),error=root.querySelector('#toc-error');
 const more=root.querySelector('#toc-overview-more');
 const controls=[...root.querySelectorAll('button[data-toc-mode]')];
-let mode='top',selected='',data={items:[],sources:[],activeId:''},lastKey='',reading=false,closed=false;
+let mode='top',selected='',sourceChoice='',data={items:[],sources:[],activeId:''},lastKey='',reading=false,closed=false;
 const showError=message=>{error.textContent=message||'';error.hidden=!message;};
 function render(){
  const {items,sources,activeId}=data;
- if(!sources.some(item=>item.id===selected))selected=sources.find(item=>item.id===items.find(i=>i.id===activeId)?.sourceId)?.id||sources[0]?.id||'';
+ if(sourceChoice&&!sources.some(item=>item.id===sourceChoice))sourceChoice='';
+ const activeSource=items.find(item=>item.id===activeId)?.sourceId;
+ selected=sourceChoice||sources.find(item=>item.id===activeSource)?.id||sources[0]?.id||'';
  source.hidden=sources.length<2;
- if(source.options.length!==sources.length||[...source.options].some((node,i)=>node.value!==sources[i].id)){
-  source.replaceChildren();sources.forEach(item=>{const node=document.createElement('option');node.value=item.id;node.textContent=item.label;source.append(node);});
+ const followed=sources.find(item=>item.id===selected)?.label||'当前内容';
+ const options=[{id:'',label:'自动跟随 · '+followed},...sources];
+ if(source.options.length!==options.length||[...source.options].some((node,i)=>
+  node.value!==options[i].id||node.textContent!==options[i].label)){
+  source.replaceChildren();options.forEach(item=>{const node=document.createElement('option');node.value=item.id;node.textContent=item.label;source.append(node);});
  }
- source.value=selected;const scoped=items.filter(item=>item.sourceId===selected);
+ source.value=sourceChoice;const scoped=items.filter(item=>item.sourceId===selected);
  const current=scoped.find(item=>item.id===activeId)||scoped[0];
  const overview=data.overview?.[selected];
  const overviewIds=new Set(overview?.ids||scoped.filter(item=>item.depth===0).map(item=>item.id));
@@ -63,7 +68,7 @@ async function refresh(){
 }
 controls.forEach(button=>button.addEventListener('click',()=>{mode=button.dataset.tocMode;render();}));
 more.addEventListener('click',()=>{mode='full';render();});
-source.addEventListener('change',()=>{selected=source.value;render();});
+source.addEventListener('change',()=>{sourceChoice=source.value;render();});
 window.addEventListener('focus',refresh);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)void refresh();});
 const timer=setInterval(refresh,4000);

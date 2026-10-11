@@ -19,8 +19,28 @@ export function selectReadingTocOverview(items,activeId='') {
   let shown=candidates;
   if(roots.length<TOC_OVERVIEW_TARGET && candidates.length>TOC_OVERVIEW_LIMIT){
     const chosen=new Set(roots.map(item=>item.id));
-    // Allocate siblings across top-level sections fairly. Every displayed
-    // descendant must have its real parent in the displayed set.
+    const sourceItems=new Map(items.map(item=>[item.id,item]));
+    // Preserve the current reading position even when it lies beyond the
+    // first 12 headings. Pin its closest eligible ancestor chain, then its
+    // adjacent siblings, before distributing the remaining overview slots.
+    let anchor=sourceItems.get(activeId);
+    while(anchor&&anchor.depth>depth)anchor=sourceItems.get(anchor.parentId);
+    if(anchor?.depth>0){
+      const ancestors=[],seen=new Set();
+      for(let item=anchor;item?.depth>0&&!seen.has(item.id);item=sourceItems.get(item.parentId)){
+        ancestors.unshift(item);seen.add(item.id);
+      }
+      for(const item of ancestors){
+        if(chosen.has(item.parentId)&&chosen.size<TOC_OVERVIEW_LIMIT)chosen.add(item.id);
+      }
+      const siblings=candidates.filter(item=>item.depth===anchor.depth&&item.parentId===anchor.parentId);
+      const index=siblings.findIndex(item=>item.id===anchor.id);
+      for(const sibling of [siblings[index-1],siblings[index+1]]){
+        if(sibling&&chosen.has(sibling.parentId)&&chosen.size<TOC_OVERVIEW_LIMIT)chosen.add(sibling.id);
+      }
+    }
+    // Allocate remaining siblings across top-level sections fairly.
+    // No displayed descendant may lose its visible real parent.
     for(let level=1;level<=depth && chosen.size<TOC_OVERVIEW_LIMIT;level++){
       const queues=roots.map(root=>candidates.filter(item=>
         item.depth===level&&item.topId===root.id));

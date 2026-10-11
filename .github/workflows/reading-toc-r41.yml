@@ -1,4 +1,4 @@
-name: Reading TOC R4.1-R4.3 - adaptive overview, drag, native and build
+name: Reading TOC R4.1-R4.4 - active context, adaptive overview, native and build
 on:
   push:
     branches: [main]
@@ -50,7 +50,7 @@ jobs:
         uses: browser-actions/setup-chrome@v2
         with:
           chrome-version: stable
-      - name: Real Chrome R4.3 adaptive overview, bundled Side Panel, drag and screenshot evidence
+      - name: Real Chrome R4.4 active-context overview, Side Panel, drag and screenshot evidence
         env:
           CHROME_BIN: ${{ steps.cft.outputs.chrome-path }}
           OPENDESK_NATIVE_HEADED: '1'
@@ -69,6 +69,6 @@ jobs:
           retention-days: 7
           if-no-files-found: warn
           path: |
-            artifacts/sidebar-tools/reading-toc/1.0.1/reading-toc.opendesk-tool.json
+            artifacts/sidebar-tools/reading-toc/1.0.2/reading-toc.opendesk-tool.json
             docs/framework/evidence/wxt/builds/build-production.json
             artifacts/reading-toc-r41/*.png

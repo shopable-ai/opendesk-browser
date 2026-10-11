@@ -164,3 +164,40 @@ test('R4.3 webpage view shows adaptive summary and opens full outline only on re
     view.dispose();
   }finally{globalThis.CSSStyleSheet=oldSheet;}
 });
+
+test('R4.4 webpage TOC follows the active answer unless the user pins a source',()=>{
+  const original=globalThis.CSSStyleSheet;
+  globalThis.CSSStyleSheet=class {replaceSync(){}};
+  try{
+    const f=viewFixture(),view=createReadingTocView({doc:f.doc,win:f.win,onNavigate:()=>{}});
+    const sources=[{id:'s-a',label:'回答 1'},{id:'s-b',label:'回答 2'}];
+    const items=[
+      {id:'h-a',sourceId:'s-a',depth:0,topId:'h-a',label:'第一条回答'},
+      {id:'h-b',sourceId:'s-b',depth:0,topId:'h-b',label:'第二条回答'}
+    ];
+    const overview={
+      's-a':{ids:['h-a'],representedId:'h-a',hiddenCount:0,depth:0},
+      's-b':{ids:['h-b'],representedId:'h-b',hiddenCount:0,depth:0}
+    };
+    const panel=f.host().shadow.children[0];
+    const choose=panel.children[1],list=panel.children[2].children[0];
+    const show=activeId=>view.render({items,sources,activeId,overview});
+    const shown=()=>list.children[0]?.children[0]?.dataset?.id;
+    show('h-a');
+    assert.equal(choose.hidden,false);
+    assert.equal(choose.value,'');
+    assert.match(choose.options[0].textContent,/自动跟随 · 回答 1/);
+    assert.equal(shown(),'h-a');
+    show('h-b');
+    assert.equal(choose.value,'','automatic mode remains selected');
+    assert.match(choose.options[0].textContent,/回答 2/);
+    assert.equal(shown(),'h-b','TOC follows the second answer without a manual switch');
+    choose.value='s-a';choose.fire('change');
+    assert.equal(shown(),'h-a','manual selection pins the earlier answer');
+    show('h-b');
+    assert.equal(shown(),'h-a','scrolling does not override a manual source selection');
+    choose.value='';choose.fire('change');
+    assert.equal(shown(),'h-b','returning to Auto resumes reading-position tracking');
+    view.dispose();
+  }finally{globalThis.CSSStyleSheet=original;}
+});

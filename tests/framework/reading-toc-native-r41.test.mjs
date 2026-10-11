@@ -54,7 +54,7 @@ const article=`<!doctype html><html><meta charset="utf-8"><style>body{margin:0;p
 <div style="height:1200px">阅读正文</div><h1 id="same">正文内 H1 一</h1><h2 id="same">子章节</h2>
 <div style="height:500px">内容</div><h1>正文内 H1 二</h1><h3>跳级 H3</h3></article></main></html>`;
 const single=`<!doctype html><html><meta charset="utf-8"><style>body{padding:30px 100px;font-family:sans-serif}h2{margin:45px 0}</style>
-<main><article><h1>一篇只有一个一级标题的文章</h1>${Array.from({length:20},(_,i)=>'<h2>步骤 '+(i+1)+'</h2>').join('')}</article></main></html>`;
+<main><article><h1>一篇只有一个一级标题的文章</h1>${Array.from({length:20},(_,i)=>'<h2>步骤 '+(i+1)+'</h2>').join('')}<div style="height:700px"></div></article></main></html>`;
 const chat=`<!doctype html><html><meta charset="utf-8"><style>body{padding:24px 90px;font-family:sans-serif;}section[data-part]{margin:30px 0}h1,h2{margin:15px 0}</style>
 <main><article data-testid="conversation-turn-1"><div data-message-author-role="assistant">
 <section data-part="a"><h1 id="dup">回答一 H1</h1><h2>重复标题</h2></section>
@@ -240,8 +240,27 @@ test('R4.1 real Chrome installs bundled TOC, follows multiple H1, restores and r
   assert.equal(adaptiveOverview.hiddenCount,9,'remaining H2 are available in full mode');
   assert.equal(adaptive.data.items.find(item=>item.id===adaptiveOverview.ids[1]).rank,2);
   await browser.send('Target.activateTarget',{targetId:oneH1.targetId});
+  await singlePage.send('Page.bringToFront');
   await capture(singlePage,'toc-r43-single-h1.png');
   console.log('TOC_NATIVE_STAGE: adaptive single-H1 overview includes H2 with bounded overflow');
+  // R4.4 regression: reading a late chapter must not leave the first
+  // H1 highlighted simply because the overview only showed early H2s.
+  const lastHeading=adaptive.data.items.at(-1);
+  const lateJump=await panelSend(origin+'/single.html','toc.navigate',{
+    id:lastHeading.id,sourceId:lastHeading.sourceId
+  });
+  assert.equal(lateJump.ok,true,'must navigate to the final H2 in actual Chrome: '+JSON.stringify(lateJump));
+  const atEnd=await panelSend(origin+'/single.html','toc.snapshot');
+  assert.equal(atEnd.ok,true);
+  const lateOverview=atEnd.data.overview[lastHeading.sourceId];
+  assert.equal(lateOverview.ids.length,12,'late chapter keeps the overview bounded');
+  assert(lateOverview.ids.includes(lastHeading.id),'late active H2 is included in the compact overview');
+  assert.equal(lateOverview.representedId,lastHeading.id,
+    'overview directly highlights the current H2, not the root H1');
+  assert(lateOverview.ids.includes(atEnd.data.items.at(-2).id),
+    'nearby H2 remains visible to provide local reading context');
+  await capture(singlePage,'toc-r44-late-heading.png');
+  console.log('TOC_NATIVE_STAGE: R4.4 late H2 is visible and highlighted in real Chrome');
   // R4.2: The shadow root is closed by design. Use only genuine CDP mouse
   // input at the visible drag handle/reset control and observe host geometry
   // plus the trusted extension storage key (not synthetic pointer events).
@@ -385,7 +404,7 @@ test('R4.1 real Chrome installs bundled TOC, follows multiple H1, restores and r
     nodeId:documentTree.root.nodeId,selector:'#sidebar-tool-file'});
   assert(fileNode.nodeId,'Side Panel import input not present');
   await side.send('DOM.setFileInputFiles',{
-    files:[resolve('artifacts/sidebar-tools/reading-toc/1.0.1/reading-toc.opendesk-tool.json')],
+    files:[resolve('artifacts/sidebar-tools/reading-toc/1.0.2/reading-toc.opendesk-tool.json')],
     nodeId:fileNode.nodeId});
   await eventually(()=>evaluate(side,'!document.querySelector("#sidebar-tool-preview").hidden'),
     'Native file import did not create a validated tool preview');
@@ -440,6 +459,28 @@ test('R4.1 real Chrome installs bundled TOC, follows multiple H1, restores and r
     'Side Panel must render two H1 headings from the same answer');
   assert.equal(labels.filter(label=>label==='重复标题').length,2,
     'R4.3 Side Panel default overview must include the H2 titles when only two H1 exist');
+  // R4.4: a long AI conversation has many independent answers. The default
+  // source picker must follow the current answer, but still allow manual pins.
+  assert.equal(await evaluate(sandbox,'document.querySelector("#toc-source").value'),'',
+    'Side Panel starts in Auto-follow mode');
+  await browser.send('Target.activateTarget',{targetId:second.targetId});
+  await chatPage.send('Page.bringToFront');
+  await eventually(()=>evaluate(chatPage,'document.visibilityState==="visible"'),
+    'Chat tab is not active for heading navigation');
+  const answerB=conversation.data.items.find(item=>item.label==='回答二 H1');
+  assert.ok(answerB,'second answer fixture must exist');
+  const jumpB=await panelSend(origin+'/chat.html','toc.navigate',{id:answerB.id,sourceId:answerB.sourceId});
+  assert.equal(jumpB.ok,true,'trusted navigation must activate the second answer');
+  await eventually(async()=>{
+    const snapshot=await evaluate(sandbox,`({
+      selected:document.querySelector('#toc-source').value,
+      autoLabel:document.querySelector('#toc-source option')?.textContent,
+      labels:[...document.querySelectorAll('#toc-list button')].map(node=>node.textContent.trim())
+    })`);
+    return snapshot.selected===''&&snapshot.autoLabel?.includes('回答 2')&&
+      snapshot.labels.includes('回答二 H1')&&!snapshot.labels.includes('回答一 H1');
+  },'R4.4 Side Panel did not automatically follow the active second answer');
+  console.log('TOC_NATIVE_STAGE: R4.4 Side Panel followed the active answer automatically');
   await capture(side,'real-sidepanel-toc.png');
   console.log('TOC_NATIVE_STAGE: real Side Panel local import, website consent and two-H1 outline succeeded');
   await trustedClick(side,'#sidebar-tool-back');

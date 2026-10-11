@@ -62,7 +62,7 @@ export function createReadingTocView({doc,win=doc.defaultView,initialPlacement=n
   caption.textContent='CONTENTS';
   const modes=make('div','modes');modes.setAttribute('role','group');modes.setAttribute('aria-label','目录视图');
   const names=['章节概览（自动补充子章节）','当前章节','完整目录'],types=['top','focus','full'],buttons=[];
-  let mode='top',selected='',snapshot={items:[],sources:[],activeId:''},lastKey='';
+  let mode='top',selected='',sourceChoice='',snapshot={items:[],sources:[],activeId:''},lastKey='';
   types.forEach((name,index)=>{
     const button=make('button','mode');button.type='button';button.title=names[index];
     button.setAttribute('aria-label',names[index]);button.dataset.mode=name;
@@ -81,7 +81,7 @@ export function createReadingTocView({doc,win=doc.defaultView,initialPlacement=n
   reset.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11a9 9 0 1 1 3 7"/><path d="M3 4v7h7"/><path d="M12 7v5l3 2"/></svg>';
   head.append(grab,modes,reset);
   const choose=make('select','sources');choose.setAttribute('aria-label','目录来源');
-  choose.addEventListener('change',()=>{selected=choose.value;render();});
+  choose.addEventListener('change',()=>{sourceChoice=choose.value;render();});
   const scroll=make('nav','scroll'),list=make('ul','list'),empty=make('p','empty');
   const more=make('button','more');more.type='button';more.hidden=true;
   more.addEventListener('click',()=>{mode='full';render();});
@@ -160,13 +160,20 @@ export function createReadingTocView({doc,win=doc.defaultView,initialPlacement=n
   function render(next) {
     if(next)snapshot=next;
     const {items,sources,activeId}=snapshot;
-    if(!sources.some(s=>s.id===selected))selected=sources.find(s=>s.id===items.find(i=>i.id===activeId)?.sourceId)?.id||sources[0]?.id||'';
+    // Auto-follow the actively read answer by default. A deliberate source
+    // selection pins that answer until the user returns to Auto, or it vanishes.
+    if(sourceChoice&&!sources.some(s=>s.id===sourceChoice))sourceChoice='';
+    const activeSource=items.find(i=>i.id===activeId)?.sourceId;
+    selected=sourceChoice||sources.find(s=>s.id===activeSource)?.id||sources[0]?.id||'';
     choose.hidden=sources.length<2;
-    if(choose.options.length!==sources.length || [...choose.options].some((o,i)=>o.value!==sources[i].id||o.textContent!==sources[i].label)){
+    const followed=sources.find(s=>s.id===selected)?.label||'当前内容';
+    const choices=[{id:'',label:'自动跟随 · '+followed},...sources];
+    if(choose.options.length!==choices.length || [...choose.options].some((o,i)=>
+      o.value!==choices[i].id||o.textContent!==choices[i].label)){
       choose.replaceChildren();
-      sources.forEach(s=>{const opt=make('option');opt.value=s.id;opt.textContent=s.label;choose.append(opt);});
+      choices.forEach(choice=>{const opt=make('option');opt.value=choice.id;opt.textContent=choice.label;choose.append(opt);});
     }
-    choose.value=selected;
+    choose.value=sourceChoice;
     const scoped=items.filter(item=>item.sourceId===selected);
     const active=scoped.find(item=>item.id===activeId)||scoped[0];
     const overview=snapshot.overview?.[selected];
