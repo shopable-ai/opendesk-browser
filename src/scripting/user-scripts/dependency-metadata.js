@@ -244,8 +244,9 @@ function validMatchPattern(value) {
   if (typeof value !== 'string' || /[\s\\\u0000-\u001f\u007f]/.test(value)) return false;
   const match = /^(https?|\*):\/\/([^/]+)(\/.*)$/.exec(value);
   if (!match) return false;
-  const authority = /^(\[[^\]]+\]|[^:]+)(?::(\*|[0-9]+))?$/.exec(match[2]);
-  if (!authority || (authority[2] !== undefined && authority[2] !== '*' && Number(authority[2]) > 65535)) return false;
+  // No port expressions in Chrome userScripts match patterns.
+  const authority = /^(\[[^\]]+\]|[^:]+)$/.exec(match[2]);
+  if (!authority || match[3].includes('#')) return false;
   const host = authority[1];
   if (host === '*') return true;
   const actual = host.startsWith('*.') ? host.slice(2) : host;

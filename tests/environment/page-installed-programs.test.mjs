@@ -105,6 +105,21 @@ function fixture(){
 }
 const fails=(work,code)=>assert.rejects(work,error=>error.code===code);
 
+test('R24.1 installed boot refuses an excluded SPA URL even with the old document bootstrap marker',async()=>{
+  const f=fixture();
+  const sourceUtf8=['// ==UserScript==','// @match https://example.com/*',
+    '// @exclude-match https://example.com/private/*','// @noframes',
+    '// @run-at document-idle','// ==/UserScript==',
+    'async function main(){return 42;}'].join('\n');
+  const candidate=await f.prepare('document-idle',{sourceUtf8});
+  await f.service.installPageProgram({programId:'script',revision:1,
+    manifestHash:candidate.manifestHash,expectedInstalledManifestHash:null},{});
+  f.target.expectedUrl='https://example.com/private/secret';
+  f.sender.url=f.target.expectedUrl;
+  await fails(()=>f.service.handleBoot(f.message(),f.sender),'E_PERMISSION');
+  assert.equal(f.executeCalls,0);
+});
+
 test('twenty installed automatic documents reuse one durable program authorization without any permission request',async()=>{
   const f=fixture(),installed=await f.install(),grant=structuredClone(installed.authorization);
   for(let n=1;n<=20;n++){

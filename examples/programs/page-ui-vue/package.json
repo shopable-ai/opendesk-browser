@@ -1,0 +1,36 @@
+{
+  "name": "@opendesk-examples/page-ui-vue",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Vue 3 SFC enhancement in the existing OpenDesk Page USER_SCRIPT",
+  "scripts": {
+    "build:framework": "vite build",
+    "build:program": "npm run build:framework && node ../../../scripts/build-program-project.mjs ."
+  },
+  "dependencies": {
+    "vue": "3.5.22"
+  },
+  "devDependencies": {
+    "vite": "7.3.6",
+    "@vitejs/plugin-vue": "6.0.2"
+  },
+  "opendesk": {
+    "format": "opendesk.project.v1",
+    "id": "sample.page-ui-vue",
+    "runtimeKind": "page-userscript",
+    "sourceFormat": "esm",
+    "entry": "src/main.js",
+    "pageRules": {
+      "matches": [
+        "http://127.0.0.1/*"
+      ],
+      "excludeMatches": [
+        "http://127.0.0.1/private/*"
+      ],
+      "runAt": "document_idle",
+      "allFrames": false,
+      "world": "USER_SCRIPT"
+    }
+  }
+}

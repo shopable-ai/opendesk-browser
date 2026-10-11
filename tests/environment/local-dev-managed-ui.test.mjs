@@ -33,7 +33,8 @@ class Doc {
   querySelectorAll(){const rows=[];const walk=e=>{if(e.getAttribute('data-opendesk-ui-owner'))rows.push(e);for(const c of e.children)walk(c);};walk(this.documentElement);return rows;}
 }
 const helpers=readFileSync('src/scripting/user-scripts/page-ui-mount.js','utf8').replaceAll('export ','')+'\n'+
-  readFileSync('src/scripting/user-scripts/page-ui.js','utf8').replace(/^import .+\n/,'').replaceAll('export ','');
+  readFileSync('src/scripting/user-scripts/page-program-rules.js','utf8').replaceAll('export ','')+'\n'+
+  readFileSync('src/scripting/user-scripts/page-ui.js','utf8').replace(/^import .+\n/gm,'').replaceAll('export ','');
 function world(doc=new Doc(),timer=setTimeout){
   const context=vm.createContext({document:doc,Event,setTimeout:timer,clearTimeout,console:{error(){}}});
   return {doc,context,run:code=>vm.runInContext(code,context)};

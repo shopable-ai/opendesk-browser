@@ -7,6 +7,7 @@ import {JQUERY_371,loadPackagedJquery} from './packaged-dependencies.js';
 import {loadBuiltinPageSource} from '../../libs/loader.js';
 import {builtinIdentity,assertBuiltinIdentity} from '../../libs/identity.js';
 import {pageInstallScope,pageInstallScopeDelta,assertPageInstallAuthorization,pageInstallAffectedByRemoval} from './page-install-authorization.js';
+import {pageProgramUrlMatches} from './page-program-rules.js';
 // Reuse exact literals within the fixed privileged bundle budget.
 const PAGE_STORE="frameworkKV",
   PAGE_INSTALL_TAG="page-installed-v1",
@@ -362,6 +363,9 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
     invariant(frame&&!frame.errorOccurred&&(!frame.documentLifecycle||frame.documentLifecycle==='active')&&
       tab.url===frame.url&&sender.url===frame.url&&!tab.pendingUrl&&!tab.incognito,'E_DOCUMENT_STALE','自动执行文档已经改变');
     httpUrl(frame.url);
+    // A pushState URL can change while the native document bootstrap marker survives.
+    invariant(pageProgramUrlMatches(row.pageRules,frame.url),PAGE_PERMISSION_ERROR,
+      '当前网页 URL 已离开安装范围或进入排除路径');
     const registered=await native.getScripts({ids:[row.nativeId]});
     invariant(registered.length===1&&nativeEqual(registered[0],desired.script),PAGE_PERMISSION_ERROR,'此安装的原生引导已经改变');
     // The random global lexical marker proves Chrome injected THIS bootstrap

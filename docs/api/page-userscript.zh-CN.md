@@ -84,3 +84,7 @@ export default async function main({assets}) {
 预览回执只属于此次网页文档。保存固定 Candidate、验证、Available、Installed 是另外的正式生命周期，预览成功或构建 BUILT_UNVERIFIED 不能替代这些状态，也不能宣称下次打开网页自动生效。参见[现有 Candidate 说明](../product/program-development-dual-format-and-sidebar.zh-CN.md#page-试运行后保存固定版本r12-候选入口)。
 
 依据：[受管 UI](../../src/scripting/user-scripts/page-ui.js)、[预览](../../src/scripting/user-scripts/preview.js)、[生命周期](../../src/scripting/user-scripts/managed-ui-lifecycle.js)、[原预览归属](../../src/native-agent/managed-preview.js)。
+
+## R24.1 · 网站范围、原生 DOM、React/Vue
+
+参阅 [完整教程](page-ui-frameworks.zh-CN.md)。`createPageUI({pageRules})` 是可选的同文档 SPA 路由清理保护，不是 Chrome 网站权限或安装授权。固定 Page 版本的已安装自动触发仍通过既有独立安装链；手动试运行不会自动安装。React/Vue JSX/SFC 必须先离线预编译为 `.js` ESM；源码模板未通过真实 Chrome 验收不得宣布交付完成。

@@ -33,6 +33,7 @@ Codex 调 MCP；Sidebar 本地项目读取同一 provider 后使用原执行入�
 | 让 Codex 调用工具 | [七个 MCP 工具](mcp-local-development.zh-CN.md) | attach → status → run → result |
 | 用 Page / Locator 自动化网页 | [Controller](controller.zh-CN.md) | [完整现代 Page API](../framework/modern-page-api.zh-CN.md) |
 | 在网页显示自己的 UI | [Page USER_SCRIPT](page-userscript.zh-CN.md) | [按钮 / CSS / PNG](../../examples/programs/local-page-ui/README.md) |
+| 指定网站中插入按钮或 React/Vue | [Page UI 网站范围与前端框架](page-ui-frameworks.zh-CN.md) | [原生](../../examples/programs/page-ui-basic/README.md) · [React](../../examples/programs/page-ui-react/README.md) · [Vue](../../examples/programs/page-ui-vue/README.md) |
 | 在浏览器选择项目、保存草稿 | [Sidebar 操作](sidebar-local-projects.zh-CN.md) | 模式开关、项目、参数、Run / Stop |
 | **开发任何可安装 Side Panel 小工具** | **[统一开发规范与流程](sidebar-tool-development.zh-CN.md)** · [API 与权限参考](sidebar-tools.zh-CN.md) · [AI/Codex Skill](../../.agents/skills/opendesk-sidebar-tool-dev/SKILL.md) | [全部工具示例与 React/Vue 模板](../../examples/sidebar-tools/README.zh-CN.md) |
 | 维护官方可选工具及发行资源 | [官方 Catalog 与发行资源（R4.5）](official-tools-catalog.zh-CN.md) | 源码登记、确定性构建、按需安装、更新和市场身份 |
