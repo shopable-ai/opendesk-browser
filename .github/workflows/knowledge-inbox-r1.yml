@@ -13,6 +13,7 @@ on:
       - 'src/sidebar-tools/knowledge-inbox.opendesk-tool.json'
       - 'examples/sidebar-tools/knowledge-inbox/**'
       - 'tests/environment/knowledge-inbox-r1.test.mjs'
+      - 'tests/environment/knowledge-inbox-r24-ui.test.mjs'
       - 'tests/framework/knowledge-inbox-native-r1.test.mjs'
       - '.github/workflows/knowledge-inbox-r1.yml'
   workflow_dispatch:
@@ -33,7 +34,8 @@ jobs:
       - name: Source and affected components
         run: |
           npm run check
-          node --test tests/environment/knowledge-inbox-r1.test.mjs tests/environment/sidebar-tools-host.test.mjs tests/environment/task-workbench.test.mjs tests/environment/workspace-integration.test.mjs tests/environment/markdown-tools-r22.test.mjs
+          node --check examples/sidebar-tools/knowledge-inbox/src/main.js
+          node --test tests/environment/knowledge-inbox-r24-ui.test.mjs tests/environment/knowledge-inbox-r1.test.mjs tests/environment/sidebar-tools-host.test.mjs tests/environment/task-workbench.test.mjs tests/environment/workspace-integration.test.mjs tests/environment/markdown-tools-r22.test.mjs
       - name: Build current production and development extension
         run: |
           npm run build

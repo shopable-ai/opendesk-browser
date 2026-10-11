@@ -1,8 +1,16 @@
 {
   "id": "knowledge-inbox",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "title": "知识收件箱",
   "description": "保存 ChatGPT 回答和灵感，整理草稿、标签与备注，导出自己的 Markdown。",
-  "capabilities": ["page.capture", "knowledge.store", "user.export"],
-  "files": {"html": "src/index.html", "css": "src/style.css", "js": "src/main.js"}
+  "capabilities": [
+    "page.capture",
+    "knowledge.store",
+    "user.export"
+  ],
+  "files": {
+    "html": "src/index.html",
+    "css": "src/style.css",
+    "js": "src/main.js"
+  }
 }
