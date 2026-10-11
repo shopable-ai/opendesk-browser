@@ -303,7 +303,14 @@ test('Knowledge R1 Chrome: reviewed install, capture, persistent editor and inli
  await evalIn(clip,'document.querySelector(".ki-record").focus()');
  const firstId=await evalIn(clip,'document.activeElement.dataset.recordId');
  async function pressKey(key,code){
-   await clip.send('Input.dispatchKeyEvent',{type:'keyDown',key,code:key,windowsVirtualKeyCode:code});
+   // CDP keyDown/keyUp alone does not synthesize a native Enter click on a
+   // focused button; real Chromium requires the character event as well.
+   if(key==='Enter'){
+     await clip.send('Input.dispatchKeyEvent',{type:'rawKeyDown',key,code:key,windowsVirtualKeyCode:code,nativeVirtualKeyCode:code});
+     await clip.send('Input.dispatchKeyEvent',{type:'char',key,code:key,text:'\r',unmodifiedText:'\r',windowsVirtualKeyCode:code,nativeVirtualKeyCode:code});
+   }else{
+     await clip.send('Input.dispatchKeyEvent',{type:'keyDown',key,code:key,windowsVirtualKeyCode:code});
+   }
    await clip.send('Input.dispatchKeyEvent',{type:'keyUp',key,code:key,windowsVirtualKeyCode:code});
  }
  await pressKey('ArrowDown',40);
