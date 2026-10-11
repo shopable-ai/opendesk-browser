@@ -224,6 +224,67 @@ test('R4.1 real Chrome installs bundled TOC, follows multiple H1, restores and r
   await eventually(()=>evaluate(articlePage,'document.readyState==="complete" && document.querySelectorAll("[data-opendesk-toc-root]").length===1'),
     'Refresh did not restore independently of side panel');
   console.log('TOC_NATIVE_STAGE: article navigation and reload succeeded');
+  // R4.2: The shadow root is closed by design. Use only genuine CDP mouse
+  // input at the visible drag handle/reset control and observe host geometry
+  // plus the trusted extension storage key (not synthetic pointer events).
+  await browser.send('Target.activateTarget',{targetId:first.targetId});
+  await articlePage.send('Page.bringToFront');
+  const placementKey='opendesk.sidebar-tools.toc-placement.v1:'+encodeURIComponent(origin);
+  const tocRect=()=>evaluate(articlePage,`(()=>{
+    const node=document.querySelector('[data-opendesk-toc-root]');
+    if(!node)throw Error('TOC host is not mounted');
+    const rect=node.getBoundingClientRect();
+    return {left:rect.left,top:rect.top,right:rect.right,bottom:rect.bottom,
+      width:rect.width,height:rect.height,x:rect.left+26,y:rect.top+26,
+      viewportWidth:innerWidth,viewportHeight:innerHeight};
+  })()`);
+  async function clickAt(x,y){
+    await articlePage.send('Input.dispatchMouseEvent',{type:'mouseMoved',x,y,button:'none'});
+    await articlePage.send('Input.dispatchMouseEvent',{type:'mousePressed',x,y,button:'left',buttons:1,clickCount:1});
+    await articlePage.send('Input.dispatchMouseEvent',{type:'mouseReleased',x,y,button:'left',buttons:0,clickCount:1});
+  }
+  async function dragFromHandle(rect,wantedLeft,wantedTop){
+    const finalX=rect.x+wantedLeft-rect.left,finalY=rect.y+wantedTop-rect.top;
+    await articlePage.send('Input.dispatchMouseEvent',{type:'mouseMoved',x:rect.x,y:rect.y,button:'none'});
+    await articlePage.send('Input.dispatchMouseEvent',{type:'mousePressed',x:rect.x,y:rect.y,button:'left',buttons:1,clickCount:1});
+    await articlePage.send('Input.dispatchMouseEvent',{type:'mouseMoved',x:finalX,y:finalY,button:'left',buttons:1});
+    await articlePage.send('Input.dispatchMouseEvent',{type:'mouseReleased',x:finalX,y:finalY,button:'left',buttons:0,clickCount:1});
+  }
+  const beforeDrag=await tocRect();
+  await dragFromHandle(beforeDrag,8,beforeDrag.top+60);
+  const snappedLeft=await eventually(async()=>{
+    const pos=await evaluate(host,`chrome.storage.local.get(${JSON.stringify(placementKey)}).then(x=>x[${JSON.stringify(placementKey)}])`);
+    return pos?.dock==='left'?pos:null;
+  },'R4.2 real pointer drag did not save a left-edge snap');
+  assert.equal(snappedLeft.v,1);
+  assert((await tocRect()).left<=9,'R4.2 host must snap visibly to the left edge');
+  await articlePage.send('Page.reload',{ignoreCache:true});
+  await eventually(async()=>((await tocRect()).left<=9),
+    'R4.2 site-specific placement was not restored on real Chrome reload');
+  const current=await tocRect();
+  const freeLeft=Math.round((current.viewportWidth-current.width)/2);
+  await dragFromHandle(current,freeLeft,current.top+45);
+  await eventually(async()=>{
+    const pos=await evaluate(host,`chrome.storage.local.get(${JSON.stringify(placementKey)}).then(x=>x[${JSON.stringify(placementKey)}])`);
+    return pos?.dock==='free';
+  },'R4.2 drag to the center should remain free, not force an edge snap');
+  await articlePage.send('Emulation.setDeviceMetricsOverride',{
+    width:420,height:400,deviceScaleFactor:1,mobile:false});
+  await eventually(async()=>{
+    const rect=await tocRect();
+    return rect.left>=0&&rect.right<=rect.viewportWidth+1&&
+      rect.top>=0&&rect.bottom<=rect.viewportHeight+1;
+  },'R4.2 TOC placement escaped the smaller viewport');
+  await articlePage.send('Emulation.clearDeviceMetricsOverride');
+  const toReset=await tocRect();
+  await clickAt(toReset.right-25,toReset.top+26);
+  await eventually(()=>evaluate(host,`chrome.storage.local.get(${JSON.stringify(placementKey)}).then(
+    values=>!Object.hasOwn(values,${JSON.stringify(placementKey)}))`),
+  'R4.2 reset did not remove the saved site-specific placement');
+  assert((await tocRect()).left>=(await tocRect()).viewportWidth/3,
+    'R4.2 reset must restore a right-side responsive default');
+  await capture(articlePage,'toc-r42-reset.png');
+  console.log('TOC_NATIVE_STAGE: real pointer drag, snap, free position, reload, resize and reset succeeded');
   const second=await openTab(origin+'/chat.html');chatPage=second.cdp;
   await eventually(()=>evaluate(chatPage,'document.querySelectorAll("[data-opendesk-toc-root]").length===1'),
     'AI conversation page did not receive the TOC');

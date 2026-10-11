@@ -1,6 +1,6 @@
 import {SIDEBAR_TOOL_STORE} from '../ui/sidebar-tools/package.js';
 import {READING_TOC_SITE_STORE,READING_TOC_TOOL_ID,READING_TOC_PROTOCOL,
-  websiteOrigin,tocGrantAllowed} from './policy.js';
+  websiteOrigin,tocGrantAllowed,readingTocPlacementKey} from './policy.js';
 import {createReadingTocIndex} from './model.js';
 import {createReadingTocView} from './view.js';
 
@@ -77,7 +77,7 @@ export function initReadingToc({api=globalThis.chrome,doc=globalThis.document,wi
     for(const remove of removers.splice(0))remove();
     activeId='';
   }
-  function start(showWidget) {
+  function start(showWidget,placementKey=null,initialPlacement=null) {
     if(!enabled){
       enabled=true;href=win.location.href;
       observer=new MutationObserver(scheduleRebuild);
@@ -97,21 +97,37 @@ export function initReadingToc({api=globalThis.chrome,doc=globalThis.document,wi
       href=win.location.href;activeId='';settled=null;navEpoch++;
       index.rebuild();redraw();scheduleSpy();
     }
-    if(showWidget&&!view)view=createReadingTocView({doc,onNavigate:(id,sourceId)=>void navigate(id,sourceId)});
+    if(showWidget&&!view){
+      const key=placementKey||readingTocPlacementKey(win.location.href);
+      view=createReadingTocView({doc,win,initialPlacement,
+        onNavigate:(id,sourceId)=>void navigate(id,sourceId),
+        onPlacementChange:next=>{
+          if(disposed||!enabled||!key||readingTocPlacementKey(win.location.href)!==key)return;
+          // Persist only at drag end, keyboard step or explicit reset, never
+          // for each pointer move. Position is private to the exact origin.
+          try{
+            const operation=next?api.storage.local.set({[key]:next}):api.storage.local.remove(key);
+            void Promise.resolve(operation).catch(()=>{});
+          }catch{/* The TOC remains movable even if preference storage fails. */}
+        }});
+    }
     if(!showWidget&&view){view.dispose();view=null;}
     redraw();
   }
   async function refreshPolicy() {
     const token=++refreshEpoch;
     try{
-      const stored=await api.storage.local.get([SIDEBAR_TOOL_STORE,READING_TOC_SITE_STORE]);
+      const currentUrl=win.location.href,key=readingTocPlacementKey(currentUrl);
+      const keys=[SIDEBAR_TOOL_STORE,READING_TOC_SITE_STORE,...(key?[key]:[])];
+      const stored=await api.storage.local.get(keys);
       if(disposed||token!==refreshEpoch)return;
+      if(win.location.href!==currentUrl){void refreshPolicy();return;}
       const installed=stored[SIDEBAR_TOOL_STORE],sites=stored[READING_TOC_SITE_STORE];
       const ids=Array.isArray(installed)?installed.filter(row=>row?.capabilities?.includes('page.toc')).map(row=>row.id):[];
-      const any=ids.some(id=>tocGrantAllowed(installed,sites,id,win.location.href));
-      const official=tocGrantAllowed(installed,sites,READING_TOC_TOOL_ID,win.location.href);
+      const any=ids.some(id=>tocGrantAllowed(installed,sites,id,currentUrl));
+      const official=tocGrantAllowed(installed,sites,READING_TOC_TOOL_ID,currentUrl);
       if(!any){if(enabled)stop();return;}
-      start(official);
+      start(official,key,key?stored[key]:null);
     }catch{if(enabled)stop();}
   }
   async function navigate(id,sourceId) {
@@ -185,8 +201,8 @@ export function initReadingToc({api=globalThis.chrome,doc=globalThis.document,wi
     const stored=await api.storage.local.get([SIDEBAR_TOOL_STORE,READING_TOC_SITE_STORE]);
     if(disposed||before!==win.location.href||!tocGrantAllowed(stored[SIDEBAR_TOOL_STORE],
       stored[READING_TOC_SITE_STORE],message.toolId,before))return {ok:false,error:'工具或网站未授权'};
-    if(!enabled)start(tocGrantAllowed(stored[SIDEBAR_TOOL_STORE],
-      stored[READING_TOC_SITE_STORE],READING_TOC_TOOL_ID,before));
+    if(!enabled)await refreshPolicy();
+    if(!enabled)return {ok:false,error:'目录未启用'};
     if(message.operation==='toc.snapshot'){
       if(!index.items.length)index.rebuild();
       return {ok:true,data:{...index.snapshot(activeId),url:win.location.href}};
@@ -206,8 +222,11 @@ export function initReadingToc({api=globalThis.chrome,doc=globalThis.document,wi
   };
   api.runtime.onMessage.addListener(messageListener);
   const storageListener=(changes,area)=>{
-    if(area==='local'&&(Object.hasOwn(changes,READING_TOC_SITE_STORE)||
-       Object.hasOwn(changes,SIDEBAR_TOOL_STORE)))void refreshPolicy();
+    if(area!=='local')return;
+    if(Object.hasOwn(changes,READING_TOC_SITE_STORE)||
+       Object.hasOwn(changes,SIDEBAR_TOOL_STORE)){void refreshPolicy();return;}
+    const key=readingTocPlacementKey(win.location.href);
+    if(key&&Object.hasOwn(changes,key))view?.setPlacement(changes[key].newValue);
   };
   api.storage.onChanged.addListener(storageListener);
   const close=()=>{

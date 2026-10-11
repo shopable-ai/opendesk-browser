@@ -1,4 +1,4 @@
-name: Reading TOC R4.1 - package, contracts and build
+name: Reading TOC R4.1/R4.2 - package, drag, native and build
 on:
   push:
     branches: [main]
@@ -16,6 +16,7 @@ on:
       - 'scripts/verify-package.mjs'
       - 'tests/environment/reading-toc-r41.test.mjs'
       - 'tests/environment/reading-toc-lifecycle-r41.test.mjs'
+      - 'tests/environment/reading-toc-placement-r42.test.mjs'
       - 'tests/environment/sidebar-tools-host.test.mjs'
       - 'tests/framework/reading-toc-native-r41.test.mjs'
       - '.github/workflows/reading-toc-r41.yml'
@@ -35,7 +36,7 @@ jobs:
       - run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Reproducible TOC tool and trusted bridge regression
         run: |
-          node --test tests/environment/reading-toc-r41.test.mjs tests/environment/reading-toc-lifecycle-r41.test.mjs
+          node --test tests/environment/reading-toc-r41.test.mjs tests/environment/reading-toc-lifecycle-r41.test.mjs tests/environment/reading-toc-placement-r42.test.mjs
           npm run build:sidebar-tool -- examples/sidebar-tools/reading-toc
           npm run check
       - name: Production and development bundles with unchanged strict packaging
@@ -48,7 +49,7 @@ jobs:
         uses: browser-actions/setup-chrome@v2
         with:
           chrome-version: stable
-      - name: Real Chrome R4.1 TOC lifecycle, official installer and screenshot evidence
+      - name: Real Chrome R4.1/R4.2 TOC lifecycle, drag, reset and screenshot evidence
         env:
           CHROME_BIN: ${{ steps.cft.outputs.chrome-path }}
           OPENDESK_NATIVE_HEADED: '1'
