@@ -281,15 +281,16 @@ test('inline JavaScript parses without a third-party runtime or external resourc
   assert.doesNotMatch(html,/<link[^>]+href=/);
 });
 
-test('manual browser testing has exactly one canonical HTML and no obsolete advertised URL',async()=>{
+test('manual browser entry is unique; explicit TOC fixtures do not replace the advertised URL',async()=>{
   const [files, guide, root, agents] = await Promise.all([
     readdir('examples/tasks'),
     readFile('examples/tasks/README.zh-CN.md','utf8'),
     readFile('README.md','utf8'),
     readFile('AGENTS.md','utf8')
   ]);
-  assert.deepEqual(files.filter(file=>file.endsWith('.html')).sort(),['demo-form.html'],
-    'examples/tasks must not accumulate duplicate manual browser pages');
+  assert.deepEqual(files.filter(file=>file.endsWith('.html')).sort(),
+    ['demo-form.html','reading-toc-article.html','reading-toc-conversation.html'],
+    'only the canonical demo and two explicit TOC acceptance fixtures are permitted');
   for(const [name,content] of [['guide',guide],['root',root],['agents',agents]]) {
     assert.match(content,/http:\/\/127\.0\.0\.1:43111\/demo-form\.html/,name+' must publish one stable demo URL');
     assert.doesNotMatch(content,/http:\/\/127\.0\.0\.1:\d+\/(?:fixture|next)\b/,name+' must not advertise legacy temporary fixture/next URLs');

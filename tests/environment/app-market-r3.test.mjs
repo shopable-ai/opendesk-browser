@@ -1,10 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
 import {SIDEBAR_TOOL_FORMAT,SIDEBAR_TOOL_STORE,sidebarToolStorageKey,MAX_INSTALLED_TOOLS} from '../../src/ui/sidebar-tools/package.js';
 import {installReviewedSidebarTool,reconcileMarketOperation,MARKET_OPERATIONS_STORE,
   MARKET_PROVENANCE_STORE,sameSidebarToolPackage} from '../../src/ui/sidebar-tools/installation.js';
 import {strictTransfer} from '../../src/marketplace/page.js';
-import {OFFICIAL_APPS,OFFICIAL_COLLECTIONS,getOfficialCollection} from '../../src/marketplace/catalog.js';
+import {OFFICIAL_APPS,OFFICIAL_COLLECTIONS,getOfficialCollection,officialPackagePath} from '../../src/marketplace/catalog.js';
 
 const tool=(id='reading-toc',version='1.0.2')=>({format:SIDEBAR_TOOL_FORMAT,id,version,title:'Example '+id,
   description:'A tool for exercising official market v1 installs',capabilities:[],html:'<main>Ready</main>',
@@ -41,6 +42,27 @@ test('market catalog uses pinned immutable member identity and all five tool ver
     assert.ok(app);assert.equal(app.version,member.version);
   }
   assert.equal(getOfficialCollection('reading-kit',2),null);
+});
+test('every official release is the exact packaged tool ID, version and title',async()=>{
+  for(const app of OFFICIAL_APPS){
+    const bytes=await readFile('src/'+officialPackagePath(app));
+    const pkg=JSON.parse(bytes.toString('utf8'));
+    assert.equal(pkg.id,app.toolId);assert.equal(pkg.version,app.version);
+    assert.equal(pkg.title,app.title);
+    assert.ok(Array.isArray(pkg.capabilities));
+  }
+});
+test('manual tool replacement clears stale official publisher identity',async()=>{
+  const {api,locks,values}=browser(),candidate=tool();
+  await installReviewedSidebarTool({api,lockManager:locks,candidate,baseline:null,reviewApproved:true,market:identity()});
+  const edited=tool('reading-toc','1.0.3');
+  const changed=await installReviewedSidebarTool({api,lockManager:locks,candidate:edited,baseline:candidate,reviewApproved:true});
+  assert.equal(changed.state,'installed');
+  assert.equal(values[MARKET_PROVENANCE_STORE]['reading-toc'],undefined);
+  await assert.rejects(installReviewedSidebarTool({api,lockManager:locks,candidate:tool('reading-toc','1.0.4'),
+    baseline:edited,reviewApproved:true,
+    market:{...identity(),operationId:'dddddddd-bbbb-4ccc-8ddd-eeeeeeeeeeee'}}),
+    e=>e.code==='E_PUBLISHER_CONFLICT');
 });
 test('never installs without explicit review or runs tool code',async()=>{
   const {api,locks,values,operations}=browser();
