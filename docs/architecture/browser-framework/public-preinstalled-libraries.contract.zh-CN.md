@@ -1,7 +1,7 @@
 # 公共预装类库：用户脚本能力合同 R1.1
 
 日期：2026-10-11。源码核查基线：`53b09e45036c39a3dda8f638a992677cddae0135`。
-性质：本轮修订需求、目录和实施验收合同；没有新增运行库、修改 npm 锁、CSP 或构建产物。完整公共预装能力仍未完成。
+性质：R1.1 设计合同与 R15.7 滚动实施状态；完整公共预装能力仍未完成。R15.7 已提交 Day.js 插件源码、ABI/Catalog/测试和独立 Axios 薄适配及测试（Axios 上游包与完整 Runner 接线未实现），但尚无同候选 Chrome 全验收。
 
 ## 1. 本次收敛结论与范围
 
@@ -15,7 +15,7 @@
 
 ## 2. 当前事实与公共加载策略
 
-核查的 `src/libs/packages/dayjs.js` 仅暴露核心及 isDayjs，尚未接入下面的日期插件。现有 runtime-contract/catalog 登记 lodash、dayjs、myUtils、jquery；core/loader 不是已经完成的任意可选库系统。**目标文件、实际源码、构建产物、Chrome 运行分别记账，不创建空文件冒充完成。**
+R15.7 已在 `src/libs/packages/dayjs.js` 通过锁定的 Day.js 引入固定插件，并同步 Catalog/ABI；但构建和 Chrome 结果仍需验收。现有 runtime-contract/catalog 登记 lodash、dayjs、myUtils、jquery；core/loader 不是已经完成的任意可选库系统。**目标文件、实际源码、构建产物、Chrome 运行分别记账，不创建空文件冒充完成。**
 
 预装表示固定代码随扩展本地发布；默认加载表示运行程序前自动准备，并非每次打开网站执行全部库。可选加载仍从本地预装资源取得，不要求用户安装。
 
@@ -38,7 +38,7 @@
 
 修改包装器时同步 catalog 的公开方法、core 的 API 校验、runtime/identity 的接口指纹、构建溯源和回归。不能只 extend 插件却仍冻结旧 isDayjs 门面，造成底层支持而用户看不到。不得把 Day.js 对象不变性改回 Moment 可变语义；旧 moment 脚本应明确迁移并测试，不静默更名或执行源码替换。遇到确切无法迁移的旧项目，另行评审项目级兼容依赖，不因此恢复框架默认双库。
 
-以下是未来回归输入，不代表当前包装器已经支持：
+以下示例现已纳入 R15.7 正式测试输入，但只有同候选构建/Chrome 通过后才能宣称浏览器完成验收：
 
 ```js
 async function main() {
@@ -61,7 +61,7 @@ async function main() {
 | adapters/ | 某库确实无法直接使用现有执行环境时的薄协议转换 | 不为每个库预建一个文件，不建第二 HTTP/权限/存储框架 |
 | vendor/ | 必须保持原字节且经登记的经典 JS 和许可证 | 不是全部第三方源码的总目录，不接收随手下载的旧 min.js |
 
-**保留 adapters/axios-transport.js 作为明确的最小接入计划。** Controller 需要把真正的 Axios 接到既有消息代理，故这个边界合理。store-backend.js、file-save.js、socket-lifecycle.js 不再作为必须创建的占位文件；优先复用现有后端和受管生命周期，只有出现真实复用不足及定向失败测试时再拆分。
+**`adapters/axios-transport.js` 已新增为无特权纯协议转换模块，并通过隔离 Node 5 个定向测试；真实 Axios 上游包、Controller 绑定和真正取消尚未完成。** Controller 需要把真正的 Axios 接到既有消息代理，故这个边界合理。store-backend.js、file-save.js、socket-lifecycle.js 不再作为必须创建的占位文件；优先复用现有后端和受管生命周期，只有出现真实复用不足及定向失败测试时再拆分。
 
 ### Axios 适配器的职责和依赖方向
 
@@ -118,7 +118,7 @@ src/libs/
   runtime/bootstrap.js
   packages/
     lodash.js                       已有，安全八方法边界不擅自扩大
-    dayjs.js                        已有，扩展上述固定日期插件
+    dayjs.js                        已实现源码扩展，待同候选实测
     axios.js                        新增
     crypto-js.js                    新增
     js-cookie.js                    新增
@@ -128,11 +128,12 @@ src/libs/
     cheerio.js                      新增
     fingerprintjs.js                新增
     socket-io.js                    新增
-    react.js                        新增
-    react-dom.js                    新增
-    vue.js                          新增
+  page-frameworks/                已有并行实现，优先复用，不再创建重复包
+    contract.js / loader.js
+    react-19.2.0.js                已有 React + createRoot 集成的 Page 固定资源
+    vue-3.5.22.js                 已有 Vue Page 固定资源
   adapters/
-    axios-transport.js              计划新增，仅受权请求协议转换
+    axios-transport.js              已有无特权薄适配，尚未与上游 Axios 接线
   styles/
     tailwind.input.css              新增，复用既有 Tokens
     tailwind-classes.json           新增，固定预编译 class 范围
@@ -153,12 +154,12 @@ src/libs/
 | Cheerio | cheerio.load(html) 及查询 API | 真实浏览器文本解析，不承诺 Node 的 stream/fromURL 等 API |
 | FingerprintJS | FingerprintJS.load、agent.get | 明确选择/告知；具体版本许可与所有网络行为核实后才可发布；不得静默采集上报 |
 | Socket.IO Client | io、on/emit/disconnect | 无默认服务器；声明不自动连接；原生 transport 可用且通过策略后才连接 |
-| React UI 组 | React、ReactDOM.createRoot | 两个源码适配器由同一 WXT 入口构建成一个 react-ui.js 资源，共享 React 实例 |
-| Vue | Vue.createApp/h/ref | runtime-only；真实挂载、交互和卸载 |
+| React UI 组 | OpenDeskPageReact.createRoot 等 | Page 已有一份固定 `page-frameworks/react-19.2.0.js`（包含 React 和 DOM 创建根）；不要重复构建 |
+| Vue | OpenDeskPageVue.createApp/h/ref | Page 已有 `page-frameworks/vue-3.5.22.js`；工具 iframe 复用仍需验证 |
 | Tailwind | 已登记 class | 本地预编译 CSS，仅受管 ShadowRoot/工具 iframe |
 | jQuery / my-utils | $/jQuery、OpenDeskLibs.myUtils.upper | 保留已存在的世界、opt-in 和 ABI 边界 |
 
-同一库不同时复制 npm 和 vendor 两套正式来源。React/ReactDOM 共享一份物理 `libs/packages/react-ui.js`：在唯一 catalog 记录逻辑库组与版本，加载、哈希、许可和输出检查按物理资源去重；不得直接放开所有重复 output。新增 entrypoints、资源路径/组和产物验证必须显式登记，不能改变输出数量而不更新合同。其余 npm 库输出 `dist/<mode>/libs/packages/<id>.js`；Tailwind 输出 `libs/styles/tailwind.css`；原样 vendor 输出保持 vendor 路径，许可证位于正式 licenses 目录。
+同一库不同时复制 npm 和 vendor 两套正式来源。React/ReactDOM 已由 `libs/page-frameworks/react-19.2.0.js` 提供一个固定 Page 资源，Vue 已由 `libs/page-frameworks/vue-3.5.22.js` 提供；应复用当前独立固定合同和已批准加载器，避免再新增竞争性的 react-ui 包/第二 Catalog。新增 entrypoints、资源路径/组和产物验证必须显式登记，不能改变输出数量而不更新合同。其余 npm 库输出 `dist/<mode>/libs/packages/<id>.js`；Tailwind 输出 `libs/styles/tailwind.css`；原样 vendor 输出保持 vendor 路径，许可证位于正式 licenses 目录。
 
 ## 6. 其余已确认需求不缩减，运行边界不伪装
 
