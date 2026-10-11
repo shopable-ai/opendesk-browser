@@ -9,7 +9,8 @@ import {installReviewedSidebarTool,admittedSidebarToolPackages,sameSidebarToolPa
 import {READING_TOC_SITE_STORE,READING_TOC_TOOL_ID,READING_TOC_PROTOCOL,TOC_CAPABILITY,
   websiteOrigin,grantedOrigins,changeTocGrant,READING_TOC_PLACEMENT_PREFIX,
   READING_TOC_VISIBILITY_STORE,readingTocPageScope,readingTocDisplayState,
-  changeReadingTocVisibility} from '../reading-toc/policy.js';
+  changeReadingTocVisibility,READING_TOC_PAGE_RULES_STORE,readingTocPageAllowed,
+  disabledTocPages,changeTocPageAllowed} from '../reading-toc/policy.js';
 import {CLIP_SITE_STORE,CLIP_CAPABILITY,CLIP_PROTOCOL,CLIP_OPERATIONS,changeClipGrant} from '../page-clip/policy.js';
 import {CAPTURE_SITE_STORE,CAPTURE_CAPABILITY,KNOWLEDGE_TOOL_ID,KNOWLEDGE_CAPABILITY,KNOWLEDGE_PROTOCOL,
   KNOWLEDGE_OPERATIONS,KNOWLEDGE_WORKSPACE_PREFIX,changeCaptureGrant,chatCaptureOrigin,knowledgePackageHash} from '../knowledge/policy.js';
@@ -34,11 +35,20 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   const updateCapabilities=get('sidebar-tool-update-capabilities');
   const updateWarning=get('sidebar-tool-update-warning');
   const title=get('sidebar-tool-title'),openTabButton=get('sidebar-tool-open-tab');
+  const settingsButton=get('sidebar-tool-settings-open'),settingsView=get('sidebar-tool-settings-view');
+  const settingsScopeButton=get('sidebar-tool-settings-scope');
+  const settingsScopeLabel=get('sidebar-tool-settings-scope-label'),settingsTarget=get('sidebar-tool-settings-target');
+  const settingsAllow=get('sidebar-tool-settings-allow'),settingsDeny=get('sidebar-tool-settings-deny');
+  const settingsHint=get('sidebar-tool-settings-hint');
+  const settingsSiteVisibility=get('sidebar-tool-settings-site-visibility');
+  const settingsPageVisibility=get('sidebar-tool-settings-page-visibility');
+  const settingsSites=get('sidebar-tool-settings-sites'),settingsPages=get('sidebar-tool-settings-pages');
   const readOnlyBanner=get('sidebar-tool-readonly-banner');
   const officialRoot=get('sidebar-tool-official-catalog');
   let officialReleases=[],officialError='',officialLoaded=false;
   let officialMatches=new Set(),checkedInstalled=null,checkedReleases=null,matchEpoch=0,lastOfficialView='';
   let siteGrants={},siteEpoch=0,tocVisibility={},tocVisibilityEpoch=0,lastTocRead=0,expandedSiteTool='';
+  let tocPageRules={},tocPageRulesEpoch=0,tocSettingsOpen=false,tocScope='site',lastTocSettingsRows='';
   let captureGrants={};
   let knowledgeWindowStart=0,knowledgeRequestCount=0;
   let knowledgeDirty=false;
@@ -218,7 +228,6 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       // Focus restoration below runs after capability-specific controls have been built.
       // Keep these bindings in the row scope: storage updates may render while
       // either toggle retains keyboard/pointer focus.
-      let tocSiteControl=null,tocPageControl=null;
       const uninstall=doc.createElement('button');
       uninstall.type='button';uninstall.className='sidebar-tool-list-remove od-icon-button';
       uninstall.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M10 4h4m-8 3 1 13h10l1-13M10 11v5m4-5v5"/></svg>';uninstall.title='卸载「'+row.title+'」';
@@ -226,10 +235,11 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       uninstall.setAttribute('aria-label','卸载「'+row.title+'」并删除其数据');
       uninstall.disabled=busy;
       uninstall.addEventListener('click',action(()=>remove(row.id)));
-      if(row.capabilities.includes(TOC_CAPABILITY)||row.capabilities.includes(CLIP_CAPABILITY)||row.capabilities.includes(CAPTURE_CAPABILITY)) {
+      // The official TOC's website/settings controls live in its own detail view.
+      if(row.id!==READING_TOC_TOOL_ID&&
+         (row.capabilities.includes(TOC_CAPABILITY)||row.capabilities.includes(CLIP_CAPABILITY)||row.capabilities.includes(CAPTURE_CAPABILITY))) {
         const isCapture=row.capabilities.includes(CAPTURE_CAPABILITY);
         const isClip=!isCapture&&row.capabilities.includes(CLIP_CAPABILITY);
-        const isOfficialToc=row.id===READING_TOC_TOOL_ID&&row.capabilities.includes(TOC_CAPABILITY);
         const grants=isCapture?captureGrants:isClip?clipGrants:siteGrants;
         const origin=isCapture?chatCaptureOrigin(currentPageTarget?.snapshot?.url):websiteOrigin(currentPageTarget?.snapshot?.url);
         const enabled=origin&&grantedOrigins(grants,row.id).includes(origin);
@@ -244,66 +254,27 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
         toggle.addEventListener('click',action(()=>isCapture?toggleCaptureSite(row.id):isClip?toggleClipSite(row.id):toggleTocSite(row.id)));
         const origins=grantedOrigins(grants,row.id);
         const manage=doc.createElement('button');manage.type='button';
-        manage.className=(isOfficialToc?'sidebar-tool-settings':'sidebar-tool-site-manage')+' od-icon-button';
+        manage.className='sidebar-tool-site-manage od-icon-button';
         manage.dataset.sidebarToolId=row.id;manage.dataset.sidebarToolAction='sites';
-        if(isOfficialToc)manage.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l-1.9 1.9a1.7 1.7 0 0 0-1.88-.34l-.38.15a1.7 1.7 0 0 0-1.03 1.56V21h-2.7v-.85a1.7 1.7 0 0 0-1.03-1.56l-.38-.15a1.7 1.7 0 0 0-1.88.34l-1.9-1.9A1.7 1.7 0 0 0 7 15l-.15-.38a1.7 1.7 0 0 0-1.56-1.03H4.5v-2.7h.79a1.7 1.7 0 0 0 1.56-1.03L7 9.48a1.7 1.7 0 0 0-.34-1.88l1.9-1.9a1.7 1.7 0 0 0 1.88.34l.38-.15a1.7 1.7 0 0 0 1.03-1.56V3.5h2.7v.83a1.7 1.7 0 0 0 1.03 1.56l.38.15a1.7 1.7 0 0 0 1.88-.34l1.9 1.9A1.7 1.7 0 0 0 19.4 9.48l.15.38a1.7 1.7 0 0 0 1.56 1.03h.79v2.7h-.79a1.7 1.7 0 0 0-1.56 1.03Z"/></svg>';
-        else manage.textContent='⋯';
-        manage.title=isOfficialToc?'阅读目录设置：网页显示与网站管理':'管理已授权网站（'+origins.length+'）';
+        manage.textContent='⋯';manage.title='管理已授权网站（'+origins.length+'）';
         manage.setAttribute('aria-label',manage.title);
         manage.setAttribute('aria-expanded',String(expandedSiteTool===row.id));
         manage.setAttribute('aria-controls','sidebar-tool-sites-'+row.id);
-        manage.addEventListener('click',()=>{
-          expandedSiteTool=expandedSiteTool===row.id?'':row.id;
-          render();
-        });
+        manage.addEventListener('click',()=>{expandedSiteTool=expandedSiteTool===row.id?'':row.id;render();});
         item.append(button,toggle,manage,uninstall);
         const panel=doc.createElement('div');
         panel.id='sidebar-tool-sites-'+row.id;
-        panel.className='sidebar-tool-site-panel'+(isOfficialToc?' sidebar-toc-settings-panel':'');
+        panel.className='sidebar-tool-site-panel';
         panel.hidden=expandedSiteTool!==row.id;
-        if(isOfficialToc){
-          const header=doc.createElement('strong');header.className='sidebar-toc-settings-title';
-          header.textContent='阅读目录设置';panel.append(header);
-          const subtitle=doc.createElement('p');subtitle.className='sidebar-toc-settings-hint';
-          subtitle.textContent=origin?'当前网站：'+origin:'请打开普通 HTTP(S) 网页后调整显示';
-          panel.append(subtitle);
-          const visibility=readingTocDisplayState(tocVisibility,row.id,url);
-          const visibilityRow=(label,actionId,hidden,scope)=>{
-            const line=doc.createElement('div');line.className='sidebar-toc-settings-row';
-            const caption=doc.createElement('span');caption.textContent=label;
-            const control=doc.createElement('button');control.type='button';
-            control.className='sidebar-toc-visibility-toggle';
-            control.dataset.sidebarToolId=row.id;control.dataset.sidebarToolAction=actionId;
-            control.textContent=hidden?'隐藏':'显示';
-            control.setAttribute('aria-label',label+'，当前'+(hidden?'隐藏':'显示')+'；点击切换');
-            control.setAttribute('aria-pressed',String(!hidden));
-            control.disabled=busy||!enabled;
-            control.addEventListener('click',action(()=>toggleTocDisplay(row.id,scope)));
-            line.append(caption,control);panel.append(line);
-            return control;
-          };
-          tocSiteControl=visibilityRow('此网站的网页目录','toc-site-visibility',visibility.hiddenOnSite,'site');
-          tocPageControl=visibilityRow('仅当前页面','toc-page-visibility',visibility.hiddenOnPage,'page');
-          const hint=doc.createElement('p');hint.className='sidebar-toc-settings-hint';
-          hint.textContent='隐藏只关闭网页悬浮目录，不影响已授权的侧边栏章节导航；“不可用”请使用工具行的 ◎ 网站开关。';
-          panel.append(hint);
-          const grantedTitle=doc.createElement('strong');grantedTitle.className='sidebar-toc-settings-title';
-          grantedTitle.textContent='已授权网站';panel.append(grantedTitle);
-        }
         if(origins.length===0){
-          const emptySites=doc.createElement('span');
-          emptySites.textContent='没有已授权的网站';
-          panel.append(emptySites);
+          const emptySites=doc.createElement('span');emptySites.textContent='没有已授权的网站';panel.append(emptySites);
         }
         for(const site of origins){
           const entry=doc.createElement('div');entry.className='sidebar-tool-site-entry';
-          const label=doc.createElement('span');
-          label.textContent=site;label.title=site;
-          const revoke=doc.createElement('button');
-          revoke.type='button';revoke.className='sidebar-tool-site-revoke';
-          revoke.textContent='撤销';
-          revoke.setAttribute('aria-label','撤销 '+site+' 的'+(isCapture?'知识保存':isClip?'剪藏':'目录')+'访问权限');
-          revoke.title=revoke.getAttribute?.('aria-label')||'撤销网站权限';
+          const label=doc.createElement('span');label.textContent=site;label.title=site;
+          const revoke=doc.createElement('button');revoke.type='button';
+          revoke.className='sidebar-tool-site-revoke';revoke.textContent='撤销';
+          revoke.setAttribute('aria-label','撤销 '+site+' 的'+(isCapture?'知识保存':isClip?'剪藏':'目录')+'权限');
           revoke.disabled=busy;
           revoke.addEventListener('click',action(()=>isCapture?changeCaptureSite(row.id,site,false):isClip?revokeClipOrigin(row.id,site):revokeTocOrigin(row.id,site)));
           entry.append(label,revoke);panel.append(entry);
@@ -320,12 +291,69 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       item.append(inTab);
       if(row.id===focusedId)restoreFocus=focusedAction==='tab'?inTab:
         focusedAction==='remove'?uninstall:
-        focusedAction==='toc-site-visibility'?tocSiteControl||button:
-        focusedAction==='toc-page-visibility'?tocPageControl||button:
         focusedAction==='sites'?[...item.children].find(node=>node.dataset?.sidebarToolAction==='sites')||button:button;
       list.append(item);
     }
     if(restoreFocus && visible && !active)restoreFocus.focus?.({preventScroll:true});
+  }
+  function renderTocSettings(){
+    const isToc=active?.id===READING_TOC_TOOL_ID&&!readOnlyPreview&&
+      active.capabilities.includes(TOC_CAPABILITY);
+    if(!isToc)tocSettingsOpen=false;
+    const show=Boolean(isToc&&tocSettingsOpen);
+    settingsButton.hidden=!isToc||show;
+    settingsView.hidden=!show;
+    frameRoot.hidden=show; // Same iframe, unchanged instance and selected chapter.
+    removeButton.hidden=show;
+    if(openTabButton)openTabButton.hidden=show;
+    if(!show)return;
+    const url=currentPageTarget?.snapshot?.url,origin=websiteOrigin(url);
+    const page=readingTocPageScope(url);
+    const grant=Boolean(origin&&grantedOrigins(siteGrants,READING_TOC_TOOL_ID).includes(origin));
+    const pageAllowed=readingTocPageAllowed(tocPageRules,READING_TOC_TOOL_ID,url);
+    const selected=tocScope==='site'?grant:grant&&pageAllowed;
+    settingsScopeLabel.textContent=tocScope==='site'?'当前网站':'仅当前页面';
+    settingsTarget.textContent=tocScope==='site'?(origin||'请选择普通网页'):(page||'请选择普通网页');
+    settingsScopeButton.textContent=tocScope==='site'?'只设置本页 →':'← 返回网站';
+    settingsScopeButton.disabled=!origin;
+    for(const [button,chosen] of [[settingsAllow,selected],[settingsDeny,!selected]]){
+      button.setAttribute('aria-pressed',String(Boolean(origin)&&chosen));
+      button.disabled=busy||!origin||(tocScope==='page'&&!grant);
+    }
+    settingsHint.textContent=!origin?'请切换到普通 HTTP(S) 网页。':
+      tocScope==='page'&&!grant?'请先允许当前网站，再调整单独页面。':
+      tocScope==='page'?(pageAllowed?'此页可用，其他页面不受影响。':'此页不运行目录，也不监听正文变化。'):
+      grant?'当前网站可用；页面例外仍优先生效。':'当前网站不可用，目录服务不会启动。';
+    const display=readingTocDisplayState(tocVisibility,READING_TOC_TOOL_ID,url);
+    for(const [button,hidden] of [[settingsSiteVisibility,display.hiddenOnSite],[settingsPageVisibility,display.hiddenOnPage]]){
+      button.textContent=hidden?'隐藏':'显示';
+      button.setAttribute('aria-pressed',String(!hidden));
+      button.disabled=busy||!grant||!origin;
+    }
+    const origins=grantedOrigins(siteGrants,READING_TOC_TOOL_ID);
+    const denied=disabledTocPages(tocPageRules,READING_TOC_TOOL_ID);
+    const identity=JSON.stringify([origins,denied,busy]);
+    if(identity===lastTocSettingsRows)return;
+    lastTocSettingsRows=identity;
+    const section=(container,items,handler,emptyLabel)=>{
+      container.replaceChildren();
+      if(!items.length){
+        const label=doc.createElement('p');label.className='sidebar-toc-settings-hint';
+        label.textContent=emptyLabel;container.append(label);
+      }
+      for(const entry of items){
+        const row=doc.createElement('div');row.className='sidebar-tool-site-entry';
+        const label=doc.createElement('span');label.textContent=entry;label.title=entry;
+        const button=doc.createElement('button');button.type='button';button.className='sidebar-tool-site-revoke';
+        button.textContent=container===settingsSites?'撤销':'恢复';
+        button.setAttribute('aria-label',button.textContent+' '+entry);
+        button.disabled=busy;
+        button.addEventListener('click',action(()=>handler(entry)));
+        row.append(label,button);container.append(row);
+      }
+    };
+    section(settingsPages,denied,url=>setTocPageAvailability(true,url),'没有排除的页面');
+    section(settingsSites,origins,url=>revokeTocOrigin(READING_TOC_TOOL_ID,url),'尚未授权任何网站');
   }
   function render() {
     if(disposed)return;
@@ -334,13 +362,14 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     renderOfficialTools();
     listView.hidden=Boolean(active);
     display.hidden=!active;
-    title.textContent=active ? active.title+(readOnlyPreview?' · 只读预览':'') : '';
+    title.textContent=active ? (tocSettingsOpen&&active.id===READING_TOC_TOOL_ID?'阅读目录设置':active.title+(readOnlyPreview?' · 只读预览':'')) : '';
     title.title=active?'v'+active.version:'';
     removeButton.title=readOnlyPreview?'只读预览尚未安装，不能卸载':active?'卸载「'+active.title+'」及其本地数据':'卸载工具';
     removeButton.setAttribute('aria-label',removeButton.title);
     removeButton.disabled=!active || busy || readOnlyPreview;
     if(openTabButton)openTabButton.disabled=!active||busy||readOnlyPreview;
     if(readOnlyBanner)readOnlyBanner.hidden=!readOnlyPreview;
+    renderTocSettings();
     taskWorkbench.setToolActive?.(Boolean(visible && active));
     if(doc.documentElement?.dataset)doc.documentElement.dataset.opendeskTool=visible && active?'active':'list';
   }
@@ -351,7 +380,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   // Revoking a hidden iframe also revokes its session token and pending responses.
   const isDirty=()=>!readOnlyPreview&&active?.id===KNOWLEDGE_TOOL_ID&&knowledgeDirty;
   const canLeaveTool=()=>!isDirty()||globalThis.confirm('知识收件箱有未保存的修改。确定放弃修改并离开吗？');
-  function suspendTool() {destroyFrame();active=null;readOnlyPreview=false;previewDirty=false;knowledgeDirty=false;render();}
+  function suspendTool() {tocSettingsOpen=false;tocScope='site';destroyFrame();active=null;readOnlyPreview=false;previewDirty=false;knowledgeDirty=false;render();}
   function closeTool() {
     if(busy||!canLeave())return false;
     setImportOpen(false);suspendTool();
@@ -362,7 +391,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     return toolDirty?globalThis.confirm('当前工具有未保存的修改，确定放弃并离开吗？'):canLeaveTool();
   }
   function mountTool(tool,{readOnly=false}={}) {
-    destroyFrame();active=tool;readOnlyPreview=readOnly;previewDirty=false;knowledgeDirty=false;
+    tocSettingsOpen=false;tocScope='site';destroyFrame();active=tool;readOnlyPreview=readOnly;previewDirty=false;knowledgeDirty=false;
     frameRevocationEpoch=readOnly?null:(revocationEpochs[tool.id]??null);
     instance=crypto.randomUUID();
     const token=instance;
@@ -476,6 +505,8 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
           throw new Error('当前网页的目录服务不可用');
         const target=currentPageTarget.capture();
         const sites=(await api.storage.local.get(READING_TOC_SITE_STORE))[READING_TOC_SITE_STORE];
+        const pages=(await api.storage.local.get(READING_TOC_PAGE_RULES_STORE))[READING_TOC_PAGE_RULES_STORE];
+        if(!readingTocPageAllowed(pages,tool.id,target.url))throw new Error('当前页面已设置为不可用');
         if(!target.origin||!grantedOrigins(sites,tool.id).includes(target.origin))
           throw new Error('请在工具列表授权当前网站');
         let id,sourceId;
@@ -676,6 +707,9 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     if(Object.hasOwn(changes||{},READING_TOC_VISIBILITY_STORE)){
       tocVisibilityEpoch++;tocVisibility=changes[READING_TOC_VISIBILITY_STORE]?.newValue||{};render();
     }
+    if(Object.hasOwn(changes||{},READING_TOC_PAGE_RULES_STORE)){
+      tocPageRulesEpoch++;tocPageRules=changes[READING_TOC_PAGE_RULES_STORE]?.newValue||{};render();
+    }
     if(Object.hasOwn(changes||{},CLIP_SITE_STORE)){
       const change=changes[CLIP_SITE_STORE];
       clipSiteEpoch++;clipGrants=change?.newValue||{};
@@ -763,6 +797,12 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     if(disposed||epoch!==tocVisibilityEpoch)return;
     tocVisibility=stored[READING_TOC_VISIBILITY_STORE]||{};render();
   }
+  async function loadTocPageRules(){
+    const epoch=tocPageRulesEpoch;
+    const saved=await api.storage.local.get(READING_TOC_PAGE_RULES_STORE);
+    if(disposed||epoch!==tocPageRulesEpoch)return;
+    tocPageRules=saved[READING_TOC_PAGE_RULES_STORE]||{};render();
+  }
   async function loadClipSites(){
     const epoch=clipSiteEpoch;
     const stored=await api.storage.local.get(CLIP_SITE_STORE);
@@ -849,6 +889,42 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     notice(wasHidden?'已恢复网页悬浮目录（其他隐藏规则仍适用）':
       (scope==='site'?'已在此网站隐藏网页悬浮目录':'已在此页面隐藏网页悬浮目录')+
       '；Side Panel 目录仍可使用。');
+  }
+  async function setTocPageAvailability(allowed,requestedUrl=null){
+    if(disposed||busy)return;
+    const id=READING_TOC_TOOL_ID,tool=toolById(id);
+    if(!tool?.capabilities.includes(TOC_CAPABILITY))throw new Error('阅读目录未安装');
+    const target=requestedUrl?null:currentPageTarget?.capture?.();
+    const url=requestedUrl||target?.url;
+    if(!readingTocPageScope(url))throw new Error('请选择普通网页');
+    if(!allowed&&(!target||!grantedOrigins(siteGrants,id).includes(websiteOrigin(url))))
+      throw new Error('请先允许当前网站');
+    await locked('tool:'+id,()=>locked('catalog',async()=>{
+      const current=admittedList((await api.storage.local.get(SIDEBAR_TOOL_STORE))[SIDEBAR_TOOL_STORE]);
+      if(!current.some(row=>samePackage(row,tool)))throw new Error('工具安装状态已变化');
+      if(target)await currentPageTarget.revalidate(target);
+      const saved=(await api.storage.local.get(READING_TOC_PAGE_RULES_STORE))[READING_TOC_PAGE_RULES_STORE]||{};
+      const before=readingTocPageAllowed(saved,id,url);
+      if(before===allowed)return;
+      const next=changeTocPageAllowed(saved,id,url,allowed);
+      await writeVerifiedLocalValue(api,READING_TOC_PAGE_RULES_STORE,next,saved,'阅读目录页面规则');
+      tocPageRules=next;
+    }));
+    render();notice(allowed?'已恢复当前页面的目录运行':'当前页面不可用，目录监听将停止');
+  }
+  async function setTocAvailability(allowed){
+    if(disposed||busy)return;
+    const url=currentPageTarget?.snapshot?.url,id=READING_TOC_TOOL_ID;
+    const origin=websiteOrigin(url);
+    if(!origin)throw new Error('请先打开普通 HTTP(S) 网页');
+    const siteEnabled=grantedOrigins(siteGrants,id).includes(origin);
+    if(tocScope==='page'){
+      if(!siteEnabled)throw new Error('请先启用当前网站');
+      if(readingTocPageAllowed(tocPageRules,id,url)===allowed)return;
+      return setTocPageAvailability(allowed);
+    }
+    if(siteEnabled===allowed)return;
+    return toggleTocSite(id);
   }
   async function toggleTocSite(id){
     if(disposed||busy) return;
@@ -1039,9 +1115,19 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   listen(installButton,'click',action(install));
   listen(backButton,'click',()=>{
     if(busy)return;
+    if(tocSettingsOpen){tocSettingsOpen=false;render();settingsButton.focus?.({preventScroll:true});return;}
     const id=active?.id;
     if(closeTool())focusToolInList(id);
   });
+  listen(settingsButton,'click',()=>{
+    if(!active||readOnlyPreview||busy||active.id!==READING_TOC_TOOL_ID)return;
+    tocSettingsOpen=true;tocScope='site';render();backButton.focus?.({preventScroll:true});
+  });
+  listen(settingsScopeButton,'click',()=>{tocScope=tocScope==='site'?'page':'site';render();});
+  listen(settingsAllow,'click',action(()=>setTocAvailability(true)));
+  listen(settingsDeny,'click',action(()=>setTocAvailability(false)));
+  listen(settingsSiteVisibility,'click',action(()=>toggleTocDisplay(READING_TOC_TOOL_ID,'site')));
+  listen(settingsPageVisibility,'click',action(()=>toggleTocDisplay(READING_TOC_TOOL_ID,'page')));
   listen(removeButton,'click',action(remove));
   if(openTabButton)listen(openTabButton,'click',action(()=>openInTab()));
   listen(window,'message',onMessage);
@@ -1049,12 +1135,13 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   const installedReady=loadInstalled().catch(error=>notice('工具列表读取失败：'+error.message,true));
   const sitesReady=loadSites().catch(error=>notice('网站授权读取失败：'+error.message,true));
   const tocVisibilityReady=loadTocVisibility().catch(error=>notice('目录显示偏好读取失败：'+error.message,true));
+  const tocPagesReady=loadTocPageRules().catch(error=>notice('页面例外读取失败：'+error.message,true));
   const clipSitesReady=loadClipSites().catch(error=>notice('剪藏授权读取失败：'+error.message,true));
   const captureSitesReady=api.storage.local.get(CAPTURE_SITE_STORE).then(saved=>{
     if(disposed)return;captureGrants=saved[CAPTURE_SITE_STORE]||{};render();
   }).catch(error=>notice('知识保存授权读取失败：'+error.message,true));
   const officialReady=loadOfficial();
-  const ready=Promise.all([installedReady,sitesReady,tocVisibilityReady,clipSitesReady,captureSitesReady,officialReady]);
+  const ready=Promise.all([installedReady,sitesReady,tocVisibilityReady,tocPagesReady,clipSitesReady,captureSitesReady,officialReady]);
   if(currentPageTarget?.subscribe){
     // revalidate() intentionally observes the same document before and after a
     // privileged read. Only an actual target transition invalidates tool output;
