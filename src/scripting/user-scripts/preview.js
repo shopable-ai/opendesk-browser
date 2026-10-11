@@ -187,7 +187,9 @@ export function createPageScriptPreview({api, storage, assertHost, dependencies,
         builtinBundleSha256:script.builtinBundleSha256,
         ...(script.packagedJquerySha256?{packagedJquerySha256:script.packagedJquerySha256}:{}),
         ...(script.packagedFrameworkId?{packagedFrameworkId:script.packagedFrameworkId,
-          packagedFrameworkSha256:script.packagedFrameworkSha256}:{})};
+          packagedFrameworkSha256:script.packagedFrameworkSha256}:{}),
+        ...(script.packagedOptionalId?{packagedOptionalId:script.packagedOptionalId,
+          packagedOptionalSha256:script.packagedOptionalSha256}:{})};
       if(!completion.ok)throw Object.assign(new FoundationError('E_PAGE_SCRIPT_EXECUTION',completion.error || '页面脚本执行失败'),
         {response:{...identity,state:'preview-failed',completion:{format:completion.format,nonce:completion.nonce,
           ok:false,error:String(completion.error||'').slice(0,2048)}}});
@@ -273,7 +275,9 @@ export function createPageScriptPreview({api, storage, assertHost, dependencies,
         builtinBundleSha256:script.builtinBundleSha256,
         ...(script.packagedJquerySha256?{packagedJquerySha256:script.packagedJquerySha256}:{}),
         ...(script.packagedFrameworkId?{packagedFrameworkId:script.packagedFrameworkId,
-          packagedFrameworkSha256:script.packagedFrameworkSha256}:{})};
+          packagedFrameworkSha256:script.packagedFrameworkSha256}:{}),
+        ...(script.packagedOptionalId?{packagedOptionalId:script.packagedOptionalId,
+          packagedOptionalSha256:script.packagedOptionalSha256}:{})};
     }catch(error){
       if(dispatched&&!confirmed)throw new FoundationError('E_EFFECT_UNKNOWN',error.message+'；本次效果未知，不自动重放');
       if(dispatched&&confirmed)error.effectConfirmed=true;
