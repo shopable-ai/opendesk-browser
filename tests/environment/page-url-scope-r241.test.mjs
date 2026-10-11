@@ -38,13 +38,17 @@ test('R24.1 match paths include query, ignore fragment, exclude wins',()=>{
   assert.equal(pageProgramUrlMatches(m,'https://docs.example/item#view=public'),false);
 });
 
-test('R24.1 pattern matching is not localhost exact-port authorization',()=>{
-  const m=createPageProgramURLMatcher(rules(['http://127.0.0.1/*']));
-  assert.equal(m('http://127.0.0.1:43111/demo-form.html'),true);
-  assert.equal(m('http://127.0.0.1:43112/demo-form.html'),true);
-  for(const pattern of ['http://localhost:43111/*','https://example.com:*/*',
-    'https://example.com:99999/*','<all_urls>','file:///*',
-    'https://example.com/#fragment','https://example.com/\\foo']){
+test('R24.1 port-specific scheduling does not imply independent site authorization',()=>{
+  const broad=createPageProgramURLMatcher(rules(['http://127.0.0.1/*']));
+  assert.equal(broad('http://127.0.0.1:43111/demo-form.html'),true);
+  assert.equal(broad('http://127.0.0.1:43112/demo-form.html'),true);
+  const exact=createPageProgramURLMatcher(rules(['http://127.0.0.1:43111/*']));
+  assert.equal(exact('http://127.0.0.1:43111/demo-form.html'),true);
+  assert.equal(exact('http://127.0.0.1:43112/demo-form.html'),false);
+  assert.equal(createPageProgramURLMatcher(rules(['https://example.com:443/*']))('https://example.com/'),true);
+  assert.equal(createPageProgramURLMatcher(rules(['https://example.com:*/*']))('https://example.com:8443/'),true);
+  for(const pattern of ['https://example.com:99999/*','http://localhost:port/*',
+    '<all_urls>','file:///*','https://example.com/#fragment','https://example.com/\\foo']){
     assert.equal(isPageMatchPattern(pattern),false,pattern);checkBad(pattern);
   }
 });

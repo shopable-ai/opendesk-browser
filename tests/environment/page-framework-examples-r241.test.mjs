@@ -12,7 +12,7 @@ test('R24.1 framework examples use explicit Page rules, managed UI and unmount',
     assert.equal(pkg.private,true);
     assert.equal(pkg.opendesk.runtimeKind,'page-userscript');
     const rules=validatePageProgramRules(pkg.opendesk.pageRules);
-    assert.deepEqual(rules.matches,['http://127.0.0.1/*']);
+    assert.deepEqual(rules.matches,['http://127.0.0.1:43111/*']);
     assert.deepEqual(rules.excludeMatches,['http://127.0.0.1/private/*']);
     const entry=await source(name+'/src/main.js');
     assert.match(entry,/createPageUI\(/);

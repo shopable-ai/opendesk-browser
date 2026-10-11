@@ -23,7 +23,7 @@
     "entry": "src/main.js",
     "pageRules": {
       "matches": [
-        "http://127.0.0.1/*"
+        "http://127.0.0.1:43111/*"
       ],
       "excludeMatches": [
         "http://127.0.0.1/private/*"

@@ -14,10 +14,11 @@ export function isPageMatchPattern(value) {
   if (typeof value !== 'string' || /[\s\\\u0000-\u001f\u007f]/.test(value)) return false;
   const match = /^(https?|\*):\/\/([^/]+)(\/.*)$/.exec(value);
   if (!match) return false;
-  // Chrome match patterns select hosts and paths, never exact ports.
-  // Port-specific authorization must use a separate exact-Origin check.
-  const authority = /^(\[[^\]]+\]|[^:]+)$/.exec(match[2]);
-  if (!authority || match[3].includes('#')) return false;
+  // Chromium URLPattern supports an optional exact or wildcard port.
+  // Matching a port does not grant site or installation authorization.
+  const authority = /^(\[[^\]]+\]|[^:]+)(?::(\*|[0-9]+))?$/.exec(match[2]);
+  if (!authority || (authority[2] !== undefined && authority[2] !== '*' &&
+      Number(authority[2]) > 65535) || match[3].includes('#')) return false;
   const host = authority[1];
   if (host === '*') return true;
   const actual = host.startsWith('*.') ? host.slice(2) : host;
@@ -68,7 +69,8 @@ export function resolvePageProgramRules(parsed, admission, explicitRules) {
 export function createPageProgramURLMatcher(value) {
   const rules=validatePageProgramRules(value);
   const glob=pattern=>{
-    const [,scheme,host,path]=/^(https?|\*):\/\/([^/]+)(\/.*)$/.exec(pattern);
+    const [,scheme,authority,path]=/^(https?|\*):\/\/([^/]+)(\/.*)$/.exec(pattern);
+    const [,host,port]=/^(\[[^\]]+\]|[^:]+)(?::(\*|[0-9]+))?$/.exec(authority);
     const name=host.toLowerCase(),wildcard=name.startsWith('*.'),suffix=wildcard?name.slice(2):name;
     const pathMatches=input=>{
       let i=0,j=0,star=-1,retry=0;
@@ -81,9 +83,13 @@ export function createPageProgramURLMatcher(value) {
       while(path[j]==='*')j++;
       return j===path.length;
     };
-    return url=>(scheme==='*'||url.protocol===scheme+':')&&
-      (name==='*'||(wildcard?url.hostname===suffix||url.hostname.endsWith('.'+suffix):url.hostname===suffix))&&
-      pathMatches(url.pathname+url.search);
+    return url=>{
+      const effectivePort=url.port||(url.protocol==='https:'?'443':'80');
+      return (scheme==='*'||url.protocol===scheme+':')&&
+        (name==='*'||(wildcard?url.hostname===suffix||url.hostname.endsWith('.'+suffix):url.hostname===suffix))&&
+        (port===undefined||port==='*'||Number(port)===Number(effectivePort))&&
+        pathMatches(url.pathname+url.search);
+    };
   };
   const included=rules.matches.map(glob),excluded=rules.excludeMatches.map(glob);
   return href=>{

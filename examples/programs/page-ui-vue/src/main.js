@@ -1,7 +1,7 @@
 import {createPageUI} from '@opendesk/ui';
 import {mountVue} from './compiled/framework.js';
 import {createDemoEnhancer} from './enhancement.js';
-const pageRules={matches:['http://127.0.0.1/*'],excludeMatches:['http://127.0.0.1/private/*'],
+const pageRules={matches:['http://127.0.0.1:43111/*'],excludeMatches:['http://127.0.0.1/private/*'],
   runAt:'document_idle',allFrames:false,world:'USER_SCRIPT'};
 export default async function main(){
   const ui=createPageUI({id:'sample.page-ui-vue',pageRules,

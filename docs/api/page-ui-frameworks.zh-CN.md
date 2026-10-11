@@ -30,7 +30,7 @@
 - `https://chatgpt.com/*` 仅 HTTPS；`http://` 需要另行声明。
 - `https://*.example.org/articles/*` 覆盖根域和真实子域，不匹配相似恶意域。
 - 多条包含规则是 OR；排除规则优先。路径匹配包含查询参数，但忽略 `#fragment`。
-- Chrome Match Pattern **不支持端口约束**：`http://127.0.0.1/*` 同时涵盖 43111、43112 等端口。精确 Origin 授权必须由可信 Host 独立处理；不要声称仅凭 `pageRules` 已实现端口隔离。显式 `http://localhost:43111/*` 被拒绝。
+- Chromium URLPattern 支持 `http://127.0.0.1:43111/*` 等带端口的脚本**匹配范围**；它会拒绝 43112。原有 `http://127.0.0.1/*` 仍覆盖所有端口。**URL 匹配不是 Chrome 网站权限或安装批准**；两者由可信 Host 独立验证，不得仅凭页面字符串授予权限。
 - 禁用 file://、chrome://、`<all_urls>`、任意自定义正则。旧系统可能含 `*://*/*`，新项目默认必须缩小范围。
 
 ## 3. 三个真实代码示例
@@ -43,7 +43,7 @@
 
 都对准 `examples/tasks/demo-form.html` 的 `#lab-text #sample-text`；元素不存在、多个目标、区域重绘都按可恢复原则处理。不修改原表单数据，不复制官方 TOC 扫描器。
 
-React/Vue 为**预编译源码模板，尚非验收完成的成品**：`npm install --package-lock-only` 生成锁后审阅、提交，再使用 `npm ci`，先 `npm run build:framework` 产生 `src/compiled/framework.js`，再走既有 `npm run build:program -- examples/programs/page-ui-react` 或 vue。不要误把 JSX、TSX、.vue 交给只接受 .js/.mjs 的现有项目构建器。
+React/Vue 示例默认限定在标准测试页的 `127.0.0.1:43111`（协议为 HTTP），且仍为**预编译源码模板，尚非验收完成的成品**：`npm install --package-lock-only` 生成锁后审阅、提交，再使用 `npm ci`，先 `npm run build:framework` 产生 `src/compiled/framework.js`，再走既有 `npm run build:program -- examples/programs/page-ui-react` 或 vue。不要误把 JSX、TSX、.vue 交给只接受 .js/.mjs 的现有项目构建器。
 
 `@opendesk/ui` 是原有 OpenDesk webpack 别名，**不是 npm 包**。ReactDOM 可能超出现有 100000 字节 Page 编译输出/Native 60 KiB 请求等限制。真实构建若失败，应记录 `E_PROJECT_OUTPUT_LIMIT` 等错误，不得通过 CDN、eval、动态执行、放宽预算或特权 MAIN world 绕过。
 

@@ -3,7 +3,7 @@ import {mountReact} from './compiled/framework.js';
 import {createDemoEnhancer} from './enhancement.js';
 
 // Mirror the manifest only for same-document cleanup; this does not grant access.
-const pageRules={matches:['http://127.0.0.1/*'],
+const pageRules={matches:['http://127.0.0.1:43111/*'],
   excludeMatches:['http://127.0.0.1/private/*'],
   runAt:'document_idle',allFrames:false,world:'USER_SCRIPT'};
 export default async function main(){
