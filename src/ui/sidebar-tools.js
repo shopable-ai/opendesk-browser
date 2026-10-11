@@ -1076,7 +1076,8 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       const risks=[...(change<0?['版本回退']:[]),
         ...(added.length?['申请新增能力']:[]),
         ...(change===0&&!samePackage(candidate,previous)?['相同版本的内容发生变化']:[])];
-      updateWarning.textContent=risks.length?'注意：'+risks.join('、')+'；更新时将再次确认。':'';
+      if(release&&!samePackage(candidate,previous))risks.push('已确认后将以官方固定发行包替换当前同 ID 工具，请先备份重要数据');
+      updateWarning.textContent=risks.length?'注意：'+risks.join('、')+'。':'';
       updateWarning.hidden=!risks.length;
       const identical=samePackage(candidate,previous);
       installButton.textContent=identical?'已安装相同工具':'确认更新';

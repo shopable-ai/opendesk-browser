@@ -313,6 +313,7 @@ export function initMarketplace({api=globalThis.chrome,root=globalThis.document?
     if(current){
       const added=tool.capabilities.filter(v=>!current.capabilities.includes(v));
       parent.append(para('新增能力：'+(added.join('、')||'无')+'；原工具数据保留。','minor'));
+      parent.append(para('如现有工具来自本地导入，本次确认将用校验过的官方固定发行包替换同 ID 代码。请先核对来源并备份重要数据。','minor'));
       if(compareToolVersions(tool.version,current.version)<=0){
         parent.append(para('市场不允许用同版本不同内容或旧版本覆盖现有工具。','minor'));
       }
