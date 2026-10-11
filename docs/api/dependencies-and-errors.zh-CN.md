@@ -39,7 +39,8 @@ export default async function main() {
 # 第一步：离线输出项目、根 URL、域名和 reviewToken（不下载）
 node scripts/lock-program-remote.mjs examples/programs/remote-esm-page
 # 第二步：阅读后单独批准，新增传递 URL 在可信终端逐个询问
-node scripts/lock-program-remote.mjs examples/programs/remote-esm-page --approve <reviewToken>
+# 将 REVIEW_TOKEN 替换为上一条输出的20位 reviewToken
+node scripts/lock-program-remote.mjs examples/programs/remote-esm-page --approve REVIEW_TOKEN
 # 需要交付固定程序时才离线构建
 npm run build:program -- examples/programs/remote-esm-page
 ```
