@@ -1,6 +1,7 @@
 import {createHostClient} from '../../src/platform/host/client.js';
 import {createRunHost} from '../../src/run-host.js';
 import {decodeValue} from '../../src/platform/page-port/codec.js';
+import {BUILTIN_ABI} from '../../src/libs/runtime-contract.js';
 
 // Runs in a real MV3 extension page, not a mock DOM or remote Node.js process.
 const base=globalThis.__pageContentFixtureBase,expectedChars=globalThis.__pageContentExpectedChars;
@@ -122,7 +123,7 @@ async function check(name,fn){try{cases.push({name,ok:true,value:await fn()});}
       assert(result.outcome?.ok===true,'Controller builtin run failed '+JSON.stringify(result.outcome?.error));
       const value=decodeValue(result.outcome.valueWire);
       assert(value.words?.join(' ')==='Open Desk Browser'&&value.today==='2026-10-10'&&
-        value.catalog==='object'&&value.upper==='HELLO'&&value.abi?.startsWith('opendesk-builtins.v2'),
+        value.catalog==='object'&&value.upper==='HELLO'&&value.abi===BUILTIN_ABI,
         'Controller builtin globals absent in real opaque Worker '+JSON.stringify(value));
       return {...value,runId:result.runId,resultId:result.resultId};
     });
@@ -178,7 +179,7 @@ async function check(name,fn){try{cases.push({name,ok:true,value:await fn()});}
         result.documentId===target.documentId,'Native Page broker receipt mismatch '+JSON.stringify(result));
       const value=JSON.parse(result.resultText);
       assert(value.title==='Native HTML content'&&value.words?.join(' ')==='hello world'&&
-        value.date==='2026-10-10'&&value.upper==='HELLO'&&value.catalog?.startsWith('opendesk-builtins.v2'),
+        value.date==='2026-10-10'&&value.upper==='HELLO'&&value.catalog===BUILTIN_ABI,
         'Page default libraries did not execute in USER_SCRIPT '+JSON.stringify(value));
       const [main]=await chrome.scripting.executeScript({
         target:{tabId:tab.id,documentIds:[target.documentId]},world:'MAIN',

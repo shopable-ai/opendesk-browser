@@ -8,6 +8,7 @@ import path from 'node:path';
 import os from 'node:os';
 import webpack from 'webpack';
 import {createBuiltinResourceManifest,verifyBuiltinResourceManifest} from '../../scripts/verify-package.mjs';
+import {BUILTIN_CATALOG} from '../../src/libs/catalog.js';
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..');
 const binary=process.env.CHROME_FOR_TESTING_BIN;
@@ -130,6 +131,14 @@ try{
   config.entry['libs/runtime/page-core']='./tests/framework/page-content-native-builtin-page.js';
   config.entry['libs/packages/lodash']='./tests/framework/page-content-native-lodash.js';
   config.entry['libs/packages/dayjs']='./tests/framework/page-content-native-dayjs.js';
+  // Keep the native Webpack fixture's optional assets in sync with the one
+  // approved Catalog: missing entries must fail the real resource manifest.
+  for(const id of ['jsCookie','cryptoJs']){
+    const row=BUILTIN_CATALOG.libraries[id];
+    if(!row||row.origin!=='npm'||row.default||row.worlds.join(',')!=='USER_SCRIPT')
+      throw Error('Native optional library contract changed: '+id);
+    config.entry[row.output.slice(0,-3)]='./tests/framework/page-content-native-'+id+'.js';
+  }
   config.output={...config.output,path:extension,clean:false};config.devtool=false;config.performance=false;
   await new Promise((resolve,reject)=>webpack(config,(error,stats)=>
     error||stats.hasErrors()?reject(error||new Error(stats.toString({all:false,errors:true}))):resolve()));
@@ -138,7 +147,9 @@ try{
   // strict loader/ABI/hash check used by normal runs remains unchanged.
   for(const [source,destination] of [
     ['node_modules/lodash-es/LICENSE','licenses/lodash-es-MIT.txt'],
-    ['node_modules/dayjs/LICENSE','licenses/dayjs-MIT.txt']
+    ['node_modules/dayjs/LICENSE','licenses/dayjs-MIT.txt'],
+    ['node_modules/js-cookie/LICENSE','licenses/js-cookie-MIT.txt'],
+    ['node_modules/crypto-js/LICENSE','licenses/crypto-js-MIT.txt']
   ])await copyFile(path.join(root,source),path.join(extension,destination));
   for(const [source,destination] of [
     ['src/libs/runtime/bootstrap.js','libs/runtime/bootstrap.js'],
