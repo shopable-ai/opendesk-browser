@@ -107,7 +107,7 @@ test('late inspection and disposal cannot apply stale dependency locks to newer 
 });
 
 test('same-line ESM and module import expressions are blocked at real Sidebar capture admission',async t=>{
-  const template='const meta = '+String.fromCharCode(96)+'origin String.fromCharCode(96)+';';
+  const template='const meta = '+String.fromCharCode(96)+'origin '+String.fromCharCode(36,123)+'import.meta.url'+String.fromCharCode(125,96)+';';
   const cases=[
     'const ref=import.meta.url; export {ref};',
     "import{value}from './value.js'",
