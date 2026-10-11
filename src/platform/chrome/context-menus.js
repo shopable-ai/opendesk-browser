@@ -98,6 +98,13 @@ function scopedMenuPatterns(origins,action){
 }
 export function createContextMenuHost({api=globalThis.chrome,logger=console,lockManager=globalThis.navigator?.locks}={}){
   let chain=Promise.resolve();
+  const documentEpochs=new Map();
+  const epochKey=(tabId,frameId)=>String(tabId)+':'+String(frameId);
+  function noteNavigation(tabId,frameId=0){
+    const key=epochKey(tabId,frameId);
+    documentEpochs.set(key,(documentEpochs.get(key)||0)+1);
+  }
+  const captureEpoch=(tabId,frameId)=>documentEpochs.get(epochKey(tabId,frameId))||0;
   const serial=work=>{const result=chain.catch(()=>{}).then(work);chain=result.catch(()=>{});return result;};
   const runLocked=(id,work)=>{
     const locks=lockManager;
@@ -274,7 +281,7 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
       throw failure('E_SERVICE_UNSUPPORTED','Unknown trusted host operation');
     }));
   }
-  async function clicked(info,tab){
+  async function clicked(info,tab,clickEpoch){
     const id=String(info.menuItemId||'');
     if(id===ROOT_OPEN)return;
     const match=/^opendesk\.tool\.([a-z][a-z0-9-]{1,39})\.([a-z][a-z0-9-]{0,39})$/.exec(id);
@@ -284,6 +291,7 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
     const action=menuActions(tool).find(row=>row.actionId===actionId);
     if(!action||!source.grants[toolId]?.activeActions?.includes(actionId))return;
     const frameId=Number.isInteger(info.frameId)?info.frameId:0;
+    if(captureEpoch(tab.id,frameId)!==clickEpoch)return;
     const url=String(frameId===0?info.pageUrl||tab.url:info.frameUrl||'');
     const parsed=parsedHttp(url);
     if(!parsed||!(await approvedOrigins(source.grants,tool)).includes(parsed.origin)||
@@ -294,7 +302,7 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
       info.selectionText:null;
     // A missing / replaced document cannot be treated as the clicked selection.
     const after=await api.webNavigation.getFrame({tabId:tab.id,frameId});
-    if(after?.documentId!==before.documentId||after?.url!==before.url)return;
+    if(after?.documentId!==before.documentId||after?.url!==before.url||captureEpoch(tab.id,frameId)!==clickEpoch)return;
     const row={ticketId:crypto.randomUUID(),toolId,actionId,issuedAt:start,expiresAt:start+LIFETIME,
       windowId:tab.windowId,tabId:tab.id,tabRef:'clicked:'+crypto.randomUUID(),frameId,
       documentId:before.documentId,url,origin:parsed.origin,selection,
@@ -304,12 +312,13 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
     if(jsonBytes(row)>MAX_CONTEXT)return;
     // Recheck after digest work: navigation and package updates fail closed.
     const last=await api.webNavigation.getFrame({tabId:tab.id,frameId});
-    if(last?.documentId!==before.documentId||last?.url!==url||Date.now()>=row.expiresAt)return;
+    if(last?.documentId!==before.documentId||last?.url!==url||Date.now()>=row.expiresAt||captureEpoch(tab.id,frameId)!==clickEpoch)return;
     const latest=await readSources(api),installed=latest.tools.find(value=>value.id===toolId);
     if(!installed||await digestTool(installed)!==row.packageHash||
       !(await approvedOrigins(latest.grants,installed)).includes(row.origin)||
       (latest.epochs[toolId]??null)!==row.installEpoch)return;
     const current=(await api.storage.session.get(BROWSER_MENU_LAUNCH_STORE))[BROWSER_MENU_LAUNCH_STORE]||{};
+    if(captureEpoch(tab.id,frameId)!==clickEpoch)return;
     await confirmedWrite(api.storage.session,BROWSER_MENU_LAUNCH_STORE,{...current,[toolId]:row});
   }
   function onClicked(info,tab){
@@ -319,7 +328,11 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
     try{const result=api.sidePanel.open(tab?.id?{tabId:tab.id}:{windowId:tab?.windowId});
       Promise.resolve(result).catch(e=>logger.warn('OpenDesk menu open',e));}
     catch(error){logger.warn('OpenDesk menu open',error);return;}
-    if(id!==ROOT_OPEN)void serial(()=>clicked(info,tab)).catch(e=>logger.warn('OpenDesk menu launch',e));
+    if(id!==ROOT_OPEN){
+      const frameId=Number.isInteger(info.frameId)?info.frameId:0;
+      const clickEpoch=captureEpoch(tab?.id,frameId);
+      void serial(()=>clicked(info,tab,clickEpoch)).catch(e=>logger.warn('OpenDesk menu launch',e));
+    }
   }
   let registered=false;
   function ensureListener(){
@@ -348,5 +361,5 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
     const rows=(await api.storage.session.get(BROWSER_MENU_LAUNCH_STORE))[BROWSER_MENU_LAUNCH_STORE]||{};
     if(Object.keys(rows).length)await confirmedWrite(api.storage.session,BROWSER_MENU_LAUNCH_STORE,{});
   });
-  return Object.freeze({synchronize:sync,handleTool,handleHost,onClicked,ensureListener,invalidateTab,revokeLaunches});
+  return Object.freeze({synchronize:sync,handleTool,handleHost,onClicked,ensureListener,invalidateTab,revokeLaunches,noteNavigation});
 }

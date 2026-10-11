@@ -56,6 +56,7 @@ function invalidateSdk(reason, selector) {
     .catch(error => console.error('SDK lifecycle',error));
 }
 chrome.webNavigation.onCommitted.addListener(details => {
+  browserMenuHost.noteNavigation(details.tabId,details.frameId);
   void browserMenuHost.invalidateTab(details.tabId,details.frameId).catch(error=>console.error('Menu document invalidation',error));
   // A top-frame navigation also disposes every child document grant.
   // SDK grants are document-bound; controller navigation additionally retains
