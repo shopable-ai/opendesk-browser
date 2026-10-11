@@ -293,6 +293,15 @@
         <button id="local-project-refresh" type="button">刷新</button>
       </div>
       <p id="local-project-status" role="status" aria-live="polite"></p>
+      <section id="local-install-review" class="local-install-review od-surface" aria-label="固定版本安装确认" hidden>
+        <strong>确认保存到浏览器</strong>
+        <p id="local-install-summary" class="hint" role="status"></p>
+        <label for="local-install-title">名称</label><input id="local-install-title" type="text" maxlength="100" autocomplete="off">
+        <label for="local-install-version">版本</label><input id="local-install-version" type="text" maxlength="24" autocomplete="off">
+        <p id="local-install-warning" class="hint"></p>
+        <div class="row"><button id="local-install-confirm" type="button" disabled>确认安装固定版本</button><button id="local-install-cancel" type="button">取消</button></div>
+        <p id="local-install-status" role="status" aria-live="polite"></p>
+      </section>
       <details><summary>高级诊断</summary><p id="local-project-diagnostics">运行后显示版本与准备耗时。</p></details>
       <button id="local-project-connect" class="local-project-connect" type="button">连接本机 OpenDesk ↗</button>
       <details id="local-project-guide" class="local-project-guide">
@@ -361,7 +370,7 @@
       <pre id="page-preview-result" aria-label="网页 JavaScript 试运行结果">尚未运行</pre>
       <details id="page-preview-technical-panel" hidden><summary>技术信息</summary><pre id="page-preview-technical"></pre></details>
       <div class="row"><button id="page-candidate-save" type="button" disabled>保存网页脚本版本</button></div>
-      <p class="hint">试运行后可保存固定 Page 版本；普通 JS 默认匹配所有 HTTP/HTTPS 网站（*://*/*）；兼容导入的显式 @match 保持原范围。保存后核对冻结版本和全站范围，再明确安装授权。脚本 ID 和版本在下方「版本管理」中设置。</p>
+      <p class="hint">试运行后可保存固定 Page 版本；普通 JS 默认仅匹配本次预览的协议与主机，同主机其他端口可能匹配；显式 @match 保留原范围。保存的冻结版本仍须单独验证、审阅并安装。脚本 ID 和版本在下方「版本管理」中设置。</p>
       <p id="page-candidate-status" role="status" aria-live="polite">尚未保存网页脚本候选。</p>
       <label for="page-program-list">已保存网页脚本</label>
       <select id="page-program-list"><option value="">正在读取…</option></select>
