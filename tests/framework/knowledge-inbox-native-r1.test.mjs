@@ -252,10 +252,12 @@ test('Knowledge R1 Chrome: reviewed install, capture, persistent editor and inli
  await click(clip,'#ki-delete');await until(()=>evalIn(clip,'!document.querySelector("#ki-confirm").hidden'),'inline delete');
  await click(clip,'#ki-confirm-yes');
  await until(async()=>!(await evalIn(side,readStore)).records.length,'record removed');
+ acceptDialog=true;
  await click(side,'#sidebar-tool-back');
  const postClose=await evalIn(side,'({listHidden:document.querySelector("#sidebar-tool-list-view").hidden,displayHidden:document.querySelector("#sidebar-tool-display").hidden,toolsSelected:document.querySelector("#tab-tools")?.getAttribute("aria-selected")})');
  console.log('KNOWLEDGE_STAGE: tool closed',JSON.stringify(postClose));
  await until(()=>evalIn(side,'!document.querySelector("#sidebar-tool-list-view").hidden'),'tool list visible after closing knowledge');
+ assert.equal(dialogs,2,'Saved and deleted record must not produce a third unsaved-changes prompt');
  await click(side,'#tab-tools');
  await click(article,'#fixture-spa');
  await until(()=>evalIn(article,'document.querySelectorAll("[data-opendesk-capture-root]").length===1'),'SPA does not leak old controls');
