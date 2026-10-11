@@ -17,22 +17,47 @@ class Node{
 const ids=['local-install-review','local-install-summary','local-install-title',
   'local-install-version','local-install-warning','local-install-status',
   'local-install-confirm','local-install-cancel'];
-async function fixture({permission=true}={}){
+async function fixture({permission=true,kind='controller'}={}){
   const nodes=new Map(ids.map(id=>[id,new Node()]));
   const doc={getElementById:id=>nodes.get(id)};
   const binding={bindingId:'local-'+'a'.repeat(20),providerEpoch:'provider-A',generation:1};
   const target={status:'available',url:'https://example.com/form',origin:'https://example.com',
     tabId:11,windowId:3,frameId:0,documentId:'doc-one'};
   let page=target,epoch=binding.providerEpoch,preparation='ready-A';
-  const sourceUtf8='async function main(){return await page.title();}';
-  const source={bindingId:binding.bindingId,projectId:'local-project',runtimeKind:'controller',
+  const sourceUtf8=kind==='controller'?'async function main(){return await page.title();}':
+    'async function main(){document.title="Page";return 42;}';
+  const source={bindingId:binding.bindingId,projectId:'local-project',runtimeKind:kind,
     entryFormat:'async-main',sourceUtf8,sourceHash:await sha256Utf8(sourceUtf8),
     inputHash:'b'.repeat(64),sourceBytes:new TextEncoder().encode(sourceUtf8).length,
     siteOrigins:['https://example.com']};
-  let liveSource=source,approvals=0,installs=0,requests=[],candidateHash,installed=null;
+  let liveSource=source,approvals=0,installs=0,requests=[],candidateHash,installed=null,pageCatalog=[];
   const client={request:async(name,args)=>{
     requests.push(name);
     if(name==='listTaskCatalog')return {catalog:[],installed:installed?[installed]:[]};
+    if(name==='listPagePrograms')return {catalog:structuredClone(pageCatalog)};
+    if(name==='importPageCandidate'){
+      const row={programId:args.programId,revision:args.revision,
+        manifestHash:'d'.repeat(64),sourceHash:source.sourceHash,
+        pageRules:structuredClone(args.pageRules),stage:'Candidate',installed:null};
+      pageCatalog.push(row);return {stage:'Candidate',candidateId:'candidate-A',
+        manifestHash:row.manifestHash};
+    }
+    if(name==='verifyPageCandidate'){
+      pageCatalog.at(-1).stage='Verified';
+      return {stage:'Verified',manifestHash:pageCatalog.at(-1).manifestHash};
+    }
+    if(name==='makePageAvailable'){
+      pageCatalog.at(-1).stage='Available';
+      return {stage:'Available',manifestHash:pageCatalog.at(-1).manifestHash};
+    }
+    if(name==='installPageProgram'){
+      installs++;
+      const result={programId:args.programId,revision:args.revision,sourceHash:source.sourceHash,
+        manifestHash:args.manifestHash,pageRules:pageCatalog.at(-1).pageRules,
+        nativeState:'registered',enabled:true};
+      pageCatalog.at(-1).installed=result;
+      return structuredClone(result);
+    }
     if(name==='importTaskPackage'){candidateHash=args.package.manifestHash;
       return {stage:'candidate',manifestHash:candidateHash};}
     if(name==='verifyTaskCandidate'){
@@ -141,4 +166,25 @@ test('R25.1 source metadata cannot change between a successful Run and review',a
   f.setSource({...f.source,siteOrigins:['https://changed.example']});
   await assert.rejects(()=>f.ui.prepare(),{code:'E_DEV_CONFLICT'});
   assert.equal(f.installs,0);
+});
+test('R25.1 Page Save warns before explicit second execution and installs only after trusted click',async t=>{
+  const f=await fixture({kind:'page-userscript'});t.after(()=>f.dispose());
+  f.ui.setOnInstalled(result=>f.installedNotices.push(result));
+  f.ui.succeeded({source:f.source,binding:f.binding,target:f.target});
+  assert.equal(f.ui.saveLabel(),'保存到我的工具');
+  await f.ui.prepare();
+  assert.equal(f.get('local-install-confirm').disabled,false);
+  assert.match(f.get('local-install-warning').textContent,/再次执行.*Page/);
+  assert.match(f.get('local-install-summary').textContent,/https:\/\/example.com\/\*/);
+  assert.equal(f.requests.filter(name=>name==='verifyPageCandidate').length,0,
+    'review must never reexecute Page business code');
+  assert.equal(f.requests.filter(name=>name==='installPageProgram').length,0);
+  f.ui.confirm({isTrusted:false});
+  assert.equal(f.installs,0);
+  f.ui.confirm({isTrusted:true});
+  await settle(()=>f.installedNotices.length===1);
+  assert.equal(f.installs,1);
+  assert.equal(f.requests.filter(name=>name==='verifyPageCandidate').length,1);
+  assert.equal(f.requests.filter(name=>name==='installPageProgram').length,1);
+  assert.equal(f.ui.saveLabel(),'管理已安装版本');
 });
