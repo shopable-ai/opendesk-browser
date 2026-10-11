@@ -38,11 +38,18 @@ if command == "activity" {
   let move=CGEvent(mouseEventSource:nil,mouseType:.mouseMoved,mouseCursorPosition:point,mouseButton:.left)
   move?.post(tap:.cghidEventTap);print("OWNED_NATIVE_MOUSE_MOVED \(point.x),\(point.y)");exit(0)
 }
-if command == "press" || command == "focus" {
+if command == "press" || command == "focus" || command == "arm" {
   guard CommandLine.arguments.count == 5 else{exit(5)}
   let label=CommandLine.arguments[3]
   let matches=nodes.filter{[text($0,kAXTitleAttribute),text($0,kAXDescriptionAttribute)].contains(label)&&text($0,kAXRoleAttribute)==CommandLine.arguments[4]}
   guard matches.count == 1 else{print("Expected one owned AX control: \(label); matches=\(matches.count)");exit(5)}
+  if command == "arm" {
+    print("OWNED_AX_ARMED");fflush(stdout)
+    guard readLine()=="press",NSWorkspace.shared.frontmostApplication?.processIdentifier==pid else{exit(4)}
+    let result=AXUIElementPerformAction(matches[0],kAXPressAction as CFString)
+    guard result == .success else{print("AX press failed: \(result.rawValue)");exit(6)}
+    print("OWNED_AX_PRESS \(label)");exit(0)
+  }
   let result=command == "focus" ? AXUIElementSetAttributeValue(matches[0],kAXFocusedAttribute as CFString,kCFBooleanTrue) : AXUIElementPerformAction(matches[0],kAXPressAction as CFString)
   guard result == .success else{print("AX press failed: \(result.rawValue)");exit(6)}
   print("OWNED_AX_PRESS \(label)");exit(0)

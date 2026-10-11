@@ -1,0 +1,62 @@
+[
+  {
+    "file": "src/cloud-control/service.js",
+    "same": true,
+    "rootSha256": "040753fed6cd7deab3e29e263ddef5ccce26604f79b857ae90561dc966e84e10",
+    "nativeInputSha256": "040753fed6cd7deab3e29e263ddef5ccce26604f79b857ae90561dc966e84e10"
+  },
+  {
+    "file": "src/cloud-control/connection.js",
+    "same": true,
+    "rootSha256": "e0cd0a3fe8ecbff5ff945dfa44db15bb734a99aa8877a7d5a40811695fb371ae",
+    "nativeInputSha256": "e0cd0a3fe8ecbff5ff945dfa44db15bb734a99aa8877a7d5a40811695fb371ae"
+  },
+  {
+    "file": "src/entrypoints/cloud-host.js",
+    "same": true,
+    "rootSha256": "1de53a31392375028ae1eb0a04c496fc511d987ff387c436f679175d3e08b01e",
+    "nativeInputSha256": "1de53a31392375028ae1eb0a04c496fc511d987ff387c436f679175d3e08b01e"
+  },
+  {
+    "file": "src/platform/host/controller-methods.js",
+    "same": true,
+    "rootSha256": "6430389ee6fa2cd542af3aa5b8fee32aace4f1d6063229c266da147716a9244d",
+    "nativeInputSha256": "6430389ee6fa2cd542af3aa5b8fee32aace4f1d6063229c266da147716a9244d"
+  },
+  {
+    "file": "src/platform/host/authority.js",
+    "same": true,
+    "rootSha256": "67bbc9e3fc59282e3b61e8b5a480a47fbde1bd454bc791664bc850753e865136",
+    "nativeInputSha256": "67bbc9e3fc59282e3b61e8b5a480a47fbde1bd454bc791664bc850753e865136"
+  },
+  {
+    "file": "src/platform/host/broker.js",
+    "same": true,
+    "rootSha256": "f0dea02de1191574534da7afaa6228b2d5743ceca1a4aaa908976b43a648fa85",
+    "nativeInputSha256": "f0dea02de1191574534da7afaa6228b2d5743ceca1a4aaa908976b43a648fa85"
+  },
+  {
+    "file": "src/platform/host/client.js",
+    "same": true,
+    "rootSha256": "70a45f8827a6bb4f1e1e79f0efd673de7f01bd73b29fedc28283075e06dac2c0",
+    "nativeInputSha256": "70a45f8827a6bb4f1e1e79f0efd673de7f01bd73b29fedc28283075e06dac2c0"
+  },
+  {
+    "file": "src/run-host.js",
+    "same": true,
+    "rootSha256": "7e291c525a089836f4615903eb8143acae7bba6cbce702a8792c4b71c1fac34e",
+    "nativeInputSha256": "7e291c525a089836f4615903eb8143acae7bba6cbce702a8792c4b71c1fac34e"
+  },
+  {
+    "file": "src/ui/cloud-hosting.js",
+    "same": true,
+    "rootSha256": "0f17e6ec2bff8b02ce0ec957365b25d50221d3b96cad86db0d9e43cdfb25ea08",
+    "nativeInputSha256": "0f17e6ec2bff8b02ce0ec957365b25d50221d3b96cad86db0d9e43cdfb25ea08"
+  },
+  {
+    "file": "src/sw.js",
+    "same": true,
+    "rootSha256": "af01ec0eb7d3a191f80cc264f9b6c662c7dd24af5e85b5f9b78de8c1d6db513c",
+    "nativeInputSha256": "af01ec0eb7d3a191f80cc264f9b6c662c7dd24af5e85b5f9b78de8c1d6db513c"
+  }
+]

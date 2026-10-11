@@ -1,0 +1,7 @@
+
+> opendesk-browser@0.1.0 cloud:cancel
+> node scripts/cloud-control/cli.mjs cancel --job ***
+
+{
+  "cancelled": true
+}

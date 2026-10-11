@@ -1,0 +1,8 @@
+file:///Users/shopme/Documents/workspace/opendesk-browser/tests/cloud-control/native-interrupt.mjs:23
+   if(['completed','stopped','failed'].includes(snapshot.run?.state))throw Error('Completed before interruption');
+                                                                           ^
+
+Error: Completed before interruption
+    at file:///Users/shopme/Documents/workspace/opendesk-browser/tests/cloud-control/native-interrupt.mjs:23:76
+
+Node.js v24.16.0
