@@ -58,3 +58,53 @@ jobs:
           path: |
             docs/framework/evidence/wxt/builds/build-production.json
             docs/framework/evidence/wxt/builds/build-development.json
+
+  browser-native-restart:
+    # Real, isolated macOS Chrome/CFT service-worker registration and
+    # stop/start evidence. This is NOT a native right-click menu UI PASS.
+    needs: [browser-contracts, browser-bundles]
+    runs-on: macos-15
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+          clean: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '22'
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Rebuild exact candidate and retain strict package verification
+        run: npm run build
+      - uses: browser-actions/setup-chrome@v2
+        id: chrome
+        with:
+          chrome-version: '155.0.8059.39'
+      - name: Preserve full macOS Chrome for Testing application Frameworks
+        id: chrome-app
+        env:
+          SOURCE_BINARY: ${{ steps.chrome.outputs.chrome-path }}
+        run: |
+          case "$SOURCE_BINARY" in
+            */Contents/MacOS/"Google Chrome for Testing") original="${SOURCE_BINARY%/Contents/MacOS/*}" ;;
+            *) echo "Unexpected Chrome for Testing executable: $SOURCE_BINARY" >&2; exit 1 ;;
+          esac
+          test -d "$original/Contents/Frameworks"
+          destination="$RUNNER_TEMP/browser-sdk-r13/Google Chrome for Testing.app"
+          mkdir -p "${destination%/*}"
+          /usr/bin/ditto "$original" "$destination"
+          printf 'binary=%s\n' "$destination/Contents/MacOS/Google Chrome for Testing" >> "$GITHUB_OUTPUT"
+      - name: Actual MV3 listener registration and Service Worker stop/restart
+        env:
+          CHROME_FOR_TESTING_BIN: ${{ steps.chrome-app.outputs.binary }}
+        run: node tests/framework/r12-sw-native-smoke.mjs
+      - name: Preserve raw current-candidate Chrome result
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: browser-sdk-r13-macos-worker-${{ github.sha }}
+          retention-days: 7
+          if-no-files-found: warn
+          path: |
+            artifacts/r12-sw-native-smoke.json
+            docs/framework/evidence/wxt/builds/build-production.json
