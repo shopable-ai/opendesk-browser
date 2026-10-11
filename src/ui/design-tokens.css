@@ -27,3 +27,19 @@
   --blue:var(--od-brand);
   --paper:var(--od-paper);
 }
+
+/* Dark palette stays with the canonical tokens; design-system.css owns layout only. */
+@media(prefers-color-scheme:dark){
+  :root{
+    --od-ink:#e9eef7;
+    --od-sub:#b3c1d3;
+    --od-line:#374457;
+    --od-brand:#3566ba;
+    --od-paper:#151c28;
+    --od-bg:#101722;
+    --od-input-border:#52627a;
+    --od-muted:#222d3e;
+    --od-positive:#a1f3cc;
+    --od-negative:#ff9ea6;
+  }
+}

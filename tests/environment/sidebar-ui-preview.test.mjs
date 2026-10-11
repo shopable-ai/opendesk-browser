@@ -126,8 +126,12 @@ test('R20/R23 five-tab design system has one token source and a strict trusted a
   assert.ok(html.includes('class="local-discovery-filters od-segmented"'));
   assert.ok(html.includes('class="task-card-list od-stack"'));
   assert.ok(html.includes('class="sidebar-tool-list od-stack"'));
-  for(const token of ['--od-ink:','--od-sub:','--od-bg:','--od-line:','--od-brand:','--space-2:8px','--radius-control:8px','--radius-surface:12px'])
-    assert.equal((tokens.match(new RegExp(token,'g'))||[]).length,1,'one authoritative '+token);
+  for(const token of ['--od-ink:','--od-sub:','--od-bg:','--od-line:','--od-brand:','--space-2:8px','--radius-control:8px','--radius-surface:12px']){
+    const isThemeColor=token.startsWith('--od-');
+    assert.equal((tokens.match(new RegExp(token,'g'))||[]).length,isThemeColor?2:1,
+      (isThemeColor?'one value per color scheme: ':'one shared layout value: ')+token);
+  }
+  assert.match(tokens,/@media\(prefers-color-scheme:dark\)/,'dark semantic colors belong to tokens');
   assert.doesNotMatch(css,/:root\s*\{/,'no competing base tokens in per-view CSS');
   assert.doesNotMatch(design,/--od-brand:\s*#/,'R23 palette values stay in tokens');
   assert.doesNotMatch(tokens,/html,body|overflow:\s*hidden/,'R23 tokens cannot set page layout');

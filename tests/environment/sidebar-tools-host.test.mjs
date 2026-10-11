@@ -256,6 +256,7 @@ test('trusted tool host installs only by explicit click, scopes messages and rem
     assert.equal(store.get(sidebarToolStorageKey(sample.id)).note,'hello');
     host.openTool(sample.id);
     elements['sidebar-tool-remove'].emit('click');
+    await pause(); // The trusted host schedules the inline review in a microtask.
     assert.equal(elements['sidebar-tool-inline-remove'].hidden,false);
     elements['sidebar-tool-inline-remove-confirm'].emit('click');
     await pause();await pause();
@@ -1295,6 +1296,7 @@ test('R5.1 inline uninstall supports Cancel, stale identity protection and no ac
   const remove=()=>f.elements['sidebar-tool-remove'];
   const prompt=f.elements['sidebar-tool-inline-remove'];
   remove().emit('click');
+  await pause(); // Observe the async click handler before checking UI state.
   assert.equal(prompt.hidden,false);
   assert.match(f.elements['sidebar-tool-inline-remove-text'].textContent,/删除.*本地数据/);
   f.elements['sidebar-tool-inline-remove-cancel'].emit('click');
