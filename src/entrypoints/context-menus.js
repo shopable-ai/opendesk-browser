@@ -32,7 +32,7 @@ export default defineUnlistedScript(() => {
   api.runtime.onInstalled?.addListener(()=>observe(host.synchronize(),'extension installed/updated'));
   api.runtime.onMessage.addListener((message,sender,sendResponse)=>{
     if(message?.protocol===BROWSER_MENU_SOURCE_PROTOCOL){
-      host.noteSourceContext(message,sender); // no site text or permission action
+      host.receiveSourceContext(message,sender); // no site text or permission action
       return false;
     }
     if(message?.protocol!==BROWSER_HOST_PROTOCOL)return false;
