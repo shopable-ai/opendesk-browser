@@ -33,7 +33,7 @@ test('independent SW budget and fixed packaged Native transport entry',()=>{
     'agents/health','agents/selection-entry','agents/bootstrap','agents/page-agent','agents/page-relay',
     'framework/sdk-main','scripting/packaged/page-session','scripting/sandbox/sandbox',
     'sidebar-tools/bridge','scripting/sandbox/worker-runtime','libs/runtime/page-core',
-    'libs/packages/lodash','libs/packages/dayjs'
+    'libs/packages/lodash','libs/packages/dayjs','libs/packages/js-cookie'
   ]);
 });
 
