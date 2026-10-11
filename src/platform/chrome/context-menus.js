@@ -127,7 +127,7 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
     if(!url)return false;
     const key=epochKey(sender.tab.id,sender.frameId);
     recentSourceContexts.set(key,{tabId:sender.tab.id,frameId:sender.frameId,
-      documentId:sender.documentId,url:url.href,at:Date.now()});
+      documentId:sender.documentId,origin:url.origin,at:Date.now()});
     if(recentSourceContexts.size>128)
       recentSourceContexts.delete(recentSourceContexts.keys().next().value);
     return true;
@@ -388,7 +388,7 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
       !matchesMenuDocument(action,url))return;
     const before=await api.webNavigation.getFrame({tabId:tab.id,frameId});
     if(!before?.documentId||before.documentId!==sourceDocument.documentId||
-       before.url!==url||sourceDocument.url!==url||
+       before.url!==url||sourceDocument.origin!==parsed.origin||
        (before.documentLifecycle&&before.documentLifecycle!=='active'))return;
     const selection=typeof info.selectionText==='string'&&jsonBytes(info.selectionText)<=MAX_SELECTION?
       info.selectionText:null;
