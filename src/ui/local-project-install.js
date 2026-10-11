@@ -9,6 +9,18 @@ const SHA=/^[a-f0-9]{64}$/;
 const fail=(code,message)=>Object.assign(new Error(message),{code});
 const emptyParams=()=>({type:'object',properties:{},required:[],additionalProperties:false});
 const identity=row=>row?.programId||row?.taskId;
+// Freeze the execution-relevant metadata as well as compiled bytes. A provider
+// must not change site scope, parameter schema, runtime or project identity
+// while reusing an old inputHash and a successful Run receipt.
+const sourceContract=source=>JSON.stringify([
+  source?.projectId??null,source?.runtimeKind??null,source?.entryFormat??null,
+  source?.siteOrigins??null,source?.pageRules??null,source?.paramsSchema??null,
+  source?.managedUI??null,source?.artifactId??null
+]);
+const targetContract=target=>JSON.stringify([
+  target?.windowId??null,target?.tabId??null,target?.frameId??0,
+  target?.documentId??null,target?.url??null
+]);
 const taskVersion=versions=>{
   const parsed=versions.map(value=>/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/.exec(value)).filter(Boolean)
     .map(match=>match.slice(1).map(Number)).sort((a,b)=>b[0]-a[0]||b[1]-a[1]||b[2]-a[2]);
@@ -35,6 +47,9 @@ function pageCandidate(source,target,id,revision){
 }
 export async function prepareLocalProjectInstallation({client,source,binding,project,target,runId}){
   assertSource(source,binding,target);
+  if(source.sourceHash!==await sha256Utf8(source.sourceUtf8)||
+    source.sourceBytes!==new TextEncoder().encode(source.sourceUtf8).length)
+    throw fail('E_DEV_HASH','源码字节与本地提供者哈希不一致');
   if(source.runtimeKind==='controller'&&(!runId||
     !/\basync\s+function\s+main\s*\(/.test(source.sourceUtf8)))
     throw fail('E_PROGRAM_KIND','Controller 保存任务需要已完成的持久运行及支持的 async function main() 入口');
@@ -63,6 +78,7 @@ export async function prepareLocalProjectInstallation({client,source,binding,pro
   return Object.freeze({id,version,kind:source.runtimeKind,
     sourceHash:source.sourceHash,inputHash:source.inputHash,sourceBytes:source.sourceBytes,
     bindingId:binding.bindingId,providerEpoch:binding.providerEpoch,projectSourceId:project?.sourceId||'',
+    sourceContract:sourceContract(source),targetContract:targetContract(target),
     siteOrigins:Object.freeze(sites),pageRules:rules,runId:runId||null,
     defaultTitle:(project?.name||source.projectId||'我的本地工具').slice(0,100),
     installedVersion:previous?.revision??previous?.version??null,
@@ -73,7 +89,7 @@ export function assertLocalInstallVersion(review,source,binding){
   if(!review||!source||!binding||review.bindingId!==binding.bindingId||
     review.providerEpoch!==binding.providerEpoch||review.sourceHash!==source.sourceHash||
     review.inputHash!==source.inputHash||review.sourceBytes!==source.sourceBytes||
-    review.kind!==source.runtimeKind)
+    review.kind!==source.runtimeKind||review.sourceContract!==sourceContract(source))
     throw fail('E_DEV_CONFLICT','本地项目、输入版本或源码已变化，请重新运行验证；原安装未修改');
 }
 export async function getInstalledLocalProject({client,review}){
@@ -86,8 +102,13 @@ export async function getInstalledLocalProject({client,review}){
 }
 export async function commitLocalProjectInstallation({client,review,source,target,title,version}){
   if(!review||!source||!target||!SHA.test(review.sourceHash)||
-    review.sourceHash!==source.sourceHash||review.inputHash!==source.inputHash)
-    throw fail('E_DEV_CONFLICT','安装源与已验证的确定版本不一致');
+    review.sourceHash!==source.sourceHash||review.inputHash!==source.inputHash||
+    review.sourceBytes!==source.sourceBytes||review.bindingId!==source.bindingId||
+    review.kind!==source.runtimeKind||review.sourceContract!==sourceContract(source)||
+    review.targetContract!==targetContract(target)||
+    review.sourceBytes!==new TextEncoder().encode(source.sourceUtf8||'').length||
+    review.sourceHash!==await sha256Utf8(source.sourceUtf8||''))
+    throw fail('E_DEV_CONFLICT','安装源、目标网页或执行合同与已验证确定版本不一致');
   const current=await getInstalledLocalProject({client,review});
   if((current?.manifestHash??null)!==review.installedHash)
     throw fail('E_REVISION','已安装版本在审阅期间发生变化，请重新核对');
