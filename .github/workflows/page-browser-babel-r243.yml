@@ -25,6 +25,8 @@ jobs:
         run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Build the original trusted managed UI helper from its exact source graph
         run: node scripts/build-page-ui-helper-r243.mjs
+      - name: Validate audited offline browser compiler resource identity
+        run: node --test tests/environment/page-browser-resource-r243.test.mjs
       - name: Verify browser component linker stays pure and rejects unsafe sources
         run: node --test tests/environment/page-component-browser-linker-r243.test.mjs
       - uses: actions/upload-artifact@v4

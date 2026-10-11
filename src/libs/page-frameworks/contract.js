@@ -27,3 +27,28 @@ export const PAGE_FRAMEWORK_IMPORTS=Object.freeze({
     vue:Object.freeze(["BaseTransition","BaseTransitionPropsValidators","Comment","DeprecationTypes","EffectScope","ErrorCodes","ErrorTypeStrings","Fragment","KeepAlive","ReactiveEffect","Static","Suspense","Teleport","Text","TrackOpTypes","Transition","TransitionGroup","TriggerOpTypes","VueElement","assertNumber","callWithAsyncErrorHandling","callWithErrorHandling","camelize","capitalize","cloneVNode","compatUtils","compile","computed","createApp","createBlock","createCommentVNode","createElementBlock","createElementVNode","createHydrationRenderer","createPropsRestProxy","createRenderer","createSSRApp","createSlots","createStaticVNode","createTextVNode","createVNode","customRef","defineAsyncComponent","defineComponent","defineCustomElement","defineEmits","defineExpose","defineModel","defineOptions","defineProps","defineSSRCustomElement","defineSlots","devtools","effect","effectScope","getCurrentInstance","getCurrentScope","getCurrentWatcher","getTransitionRawChildren","guardReactiveProps","h","handleError","hasInjectionContext","hydrate","hydrateOnIdle","hydrateOnInteraction","hydrateOnMediaQuery","hydrateOnVisible","initCustomFormatter","initDirectivesForSSR","inject","isMemoSame","isProxy","isReactive","isReadonly","isRef","isRuntimeOnly","isShallow","isVNode","markRaw","mergeDefaults","mergeModels","mergeProps","nextTick","normalizeClass","normalizeProps","normalizeStyle","onActivated","onBeforeMount","onBeforeUnmount","onBeforeUpdate","onDeactivated","onErrorCaptured","onMounted","onRenderTracked","onRenderTriggered","onScopeDispose","onServerPrefetch","onUnmounted","onUpdated","onWatcherCleanup","openBlock","popScopeId","provide","proxyRefs","pushScopeId","queuePostFlushCb","reactive","readonly","ref","registerRuntimeCompiler","render","renderList","renderSlot","resolveComponent","resolveDirective","resolveDynamicComponent","resolveFilter","resolveTransitionHooks","setBlockTracking","setDevtoolsHook","setTransitionHooks","shallowReactive","shallowReadonly","shallowRef","ssrContextKey","ssrUtils","stop","toDisplayString","toHandlerKey","toHandlers","toRaw","toRef","toRefs","toValue","transformVNodeArgs","triggerRef","unref","useAttrs","useCssModule","useCssVars","useHost","useId","useModel","useSSRContext","useShadowRoot","useSlots","useTemplateRef","useTransitionState","vModelCheckbox","vModelDynamic","vModelRadio","vModelSelect","vModelText","vShow","version","warn","watch","watchEffect","watchPostEffect","watchSyncEffect","withAsyncContext","withCtx","withDefaults","withDirectives","withKeys","withMemo","withModifiers","withScopeId"])
   })
 });
+
+/** R24.3 opt-in, offline compiler assets. Fixed bytes are DATA-only inputs
+ * for a dedicated browser preparation Worker; never include in permanent SW. */
+export const PAGE_BROWSER_COMPILER=Object.freeze({
+  id:'babel-standalone',version:'7.29.9',
+  source:'src/libs/page-frameworks/babel-7.29.9.min.js',
+  output:'libs/page-frameworks/babel-7.29.9.min.js',
+  bytes:3141115,
+  sha256:'5f8ffa174aa2465f074c85b92421662168cd356eedebaedc3d16fd9d61fadb7c',
+  licenseSource:'src/libs/page-frameworks/babel-LICENSE.txt',
+  licensePath:'licenses/page-browser-babel-MIT.txt',
+  licenseSha256:'117da2af0d4ce0fe1c8e19b5cff9dcd806adf973d328d27b11d4448c4ff24f76',
+  supplyLock:'scripts/page-browser-babel/package-lock.json'
+});
+export const PAGE_BROWSER_UI_HELPER=Object.freeze({
+  id:'page-ui-helper',version:'opendesk.page-ui-helper.r243',
+  source:'src/libs/page-frameworks/page-ui-helper-r243.js',
+  output:'libs/page-frameworks/page-ui-helper-r243.js',
+  bytes:17898,
+  sha256:'4b93bc414b7f2b4d42dd2d7ac0c68d6d5a2174377358d3a819e04513df2e1a28',
+  sourceGraph:Object.freeze(['src/scripting/user-scripts/page-ui.js',
+    'src/scripting/user-scripts/page-ui-mount.js',
+    'src/scripting/user-scripts/page-program-rules.js'])
+});
+export const PAGE_BROWSER_COMPILER_RESOURCE_LIMIT=4*1024*1024;
