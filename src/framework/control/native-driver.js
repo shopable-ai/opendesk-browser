@@ -130,7 +130,12 @@ export function createControllerDriver({api = globalThis.chrome, authorize, cloc
       let reply;
       try { reply = await native(state, api.tabs, 'sendMessage', [target.tabId, {type: MESSAGE, action: 'ping'}, messageTarget(target)]); }
       catch (cause) {
-        if (cause.code !== 'E_CHROME' || !/Receiving end does not exist|Could not establish connection/i.test(cause.message)) throw cause;
+        // Chrome 155 may deliver this read-only ping to another extension
+        // listener that ignores it. The port then closes with no response.
+        // Only reattempt fixed session injection, NOT the user operation.
+        if (cause.code !== 'E_CHROME' ||
+          !/Receiving end does not exist|Could not establish connection|The message port closed before a response was received/i.test(cause.message))
+          throw cause;
       }
       if (reply !== undefined) requireValue(reply?.type === MESSAGE && reply.ready === true, RESULT_FORMAT_CODE);
       else {

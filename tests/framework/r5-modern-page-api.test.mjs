@@ -120,14 +120,22 @@ function eventBus() {
       });
     }};
 }
-function fixture({afterPrepare,dropCommit=false,stallPrepare=false,duplicateCommit=false,deadlineMs=2000}={}) {
+function fixture({afterPrepare,dropCommit=false,stallPrepare=false,duplicateCommit=false,pingPortClosed=false,deadlineMs=2000}={}) {
   const dom=pageDOM(), bus=eventBus(), calls=[], phases=[];
-  let granted=true, changed=false, commits=0, writes=0;
+  let granted=true, changed=false, commits=0, writes=0, injections=0, closedPing=false;
   const receipts=[];
   const api={runtime:{id:'ext',onMessage:bus,getURL:path=>'chrome-extension://ext/'+path},
     tabs:{sendMessage(_tab,message,exact,callback){
       assert.deepEqual(exact,{documentId:target.documentId,frameId:0});
       calls.push(message.action==='execute'?message.envelope.operation.method:message.action);
+      // Another onMessage listener ignores our read-only ping (Chrome 155).
+      if(message.action==='ping'&&pingPortClosed&&!closedPing){
+        closedPing=true;
+        api.runtime.lastError={message:'The message port closed before a response was received.'};
+        callback(undefined);
+        delete api.runtime.lastError;
+        return;
+      }
       if(message.action==='execute' && message.envelope.operation.method==='locatorCommit') commits++;
       bus.deliver(message).then(reply=>{
         if(message.action==='execute' && message.envelope.operation.method==='locatorPrepare') {
@@ -141,7 +149,7 @@ function fixture({afterPrepare,dropCommit=false,stallPrepare=false,duplicateComm
     }},
     webNavigation:{getAllFrames(_opts,callback){callback([{frameId:0,documentId:changed?'doc-B':'doc-A',
       documentLifecycle:'active',url:target.url}]);}},
-    scripting:{executeScript(_opts,callback){callback([{frameId:0,documentId:'doc-A'}]);}}};
+    scripting:{executeScript(_opts,callback){injections++;callback([{frameId:0,documentId:'doc-A'}]);}}};
   const installation=installPackagedPageSession({api,document:dom.doc,window:dom.win,packageURLs:[]});
   const driver=createControllerDriver({api,authorize:async (_env,{phase})=>{
     phases.push(phase);if(!granted)throw new PageError('E_PERMISSION');return true;
@@ -150,10 +158,21 @@ function fixture({afterPrepare,dropCommit=false,stallPrepare=false,duplicateComm
     recordReceipt:receipt=>{receipts.push(receipt);}})};
   const context=createRunContext({identity,revision,target,transport,dom:null});
   return {dom,bus,calls,phases,receipts,context,installation,
-    get commits(){return commits;},get writes(){return writes;},
+    get commits(){return commits;},get writes(){return writes;},get injections(){return injections;},
     setDocument(value){changed=value;},revoke(){granted=false;},
     dispose(){context.dispose();installation.dispose();}};
 }
+
+
+test('closed-port read-only ping injects exact Page Session but never replays packaged operation',async()=>{
+  const f=fixture({pingPortClosed:true});
+  try{
+    assert.equal(await f.context.page.url(),target.url);
+    assert.equal(f.injections,1);
+    assert.deepEqual(f.calls,['ping','url']);
+    assert.equal(f.commits,0);
+  }finally{f.dispose();}
+});
 
 test('modern Locator construction is immutable, scoped, and does not issue RPC',async()=>{
   const f=fixture();
