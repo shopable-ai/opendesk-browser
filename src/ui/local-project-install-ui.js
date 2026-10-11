@@ -26,7 +26,8 @@ export function createLocalInstallUI({client,api,doc,currentPageTarget,getProjec
       verified.binding.bindingId===local.selectedBindingId()&&
       verified.binding.providerEpoch===local.providerEpoch()&&
       target?.status==='available'&&target.tabId===verified.target.tabId&&
-      target.documentId===verified.target.documentId&&target.url===verified.target.url;
+      target.documentId===verified.target.documentId&&target.url===verified.target.url&&
+      verified.preparationIdentity===local.preparationIdentity();
   }
   const canSave=()=>current()&&!preparing&&!installing&&!unknown;
   const sameInstalled=()=>installed&&verified&&installed.sourceHash===verified.source.sourceHash;
@@ -43,7 +44,7 @@ export function createLocalInstallUI({client,api,doc,currentPageTarget,getProjec
       !Number.isSafeInteger(source?.sourceBytes)||source?.bindingId!==binding?.bindingId)
       return reset(); // Provider must identify exact build inputs before Save becomes available.
     verified={source:structuredClone(source),binding:structuredClone(binding),
-      target:structuredClone(target),runId};
+      target:structuredClone(target),runId,preparationIdentity:project()?.preparationIdentity()};
     installed=null;unknown=false;hide();onState();
   }
   async function prepare(){
