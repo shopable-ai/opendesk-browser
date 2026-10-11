@@ -14,6 +14,8 @@ on:
       - 'src/ui/tool-shell.css'
       - 'src/ui/page-candidate-source.js'
       - 'src/platform/tasks/**'
+      - 'src/ui/task-workbench.js'
+      - 'tests/environment/task-workbench.test.mjs'
       - 'src/scripting/user-scripts/installed-programs.js'
       - 'tests/environment/local-project-install-r251.test.mjs'
       - 'tests/environment/script-editor.test.mjs'
@@ -48,7 +50,8 @@ jobs:
             tests/environment/page-program-library.test.mjs \
             tests/environment/page-installed-programs.test.mjs \
             tests/environment/local-project-connection.test.mjs \
-            tests/environment/task-package-flow.test.mjs
+            tests/environment/task-package-flow.test.mjs \
+            tests/environment/task-workbench.test.mjs
       - name: Source and syntax boundaries
         run: npm run check
   production-package:
