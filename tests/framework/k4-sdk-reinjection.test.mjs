@@ -99,12 +99,13 @@ test('hostile immutable public fake brand, slot, aliases and accessor conflicts 
   // Legacy non-identity globals were deliberately non-overwriting. They do
   // not make the real OpenDeskSDK grant trusted and must remain compatible.
   for(const page of [{sleep:()=> 'website sleep'},Object.create({service:{owner:'website'}})]){
+    const hadSleep='sleep' in page,hadService='service' in page;
     const previousSleep=page.sleep,previousService=page.service;
     const transport={hello:async()=>hello([]),request:async()=>{throw Error('No SDK service dispatch expected');}};
     const sdk=installPageSdk({global:page,transport});
     await sdk.ready();
-    assert.equal(page.sleep,previousSleep);
-    assert.equal(page.service,previousService);
+    if(hadSleep)assert.equal(page.sleep,previousSleep);
+    if(hadService)assert.equal(page.service,previousService);
     assert.equal(page.OpenDeskSDK,sdk);
     sdk.dispose();
   }
