@@ -1,5 +1,5 @@
 // Read-only source/package diagnosis. Static checks are never native Chrome proof.
-import {readFile} from 'node:fs/promises';
+import {readFile,readdir} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
 import {execFileSync} from 'node:child_process';
 import {resolve,join} from 'node:path';
@@ -13,6 +13,35 @@ async function maybe(path) {
   catch(error){if(error?.code==='ENOENT')return null;throw error;}
 }
 const result=(status,detail)=>({status,...(detail?{detail}: {})});
+
+const OLD_JQUERY_REFERENCE=/vendor\/jquery-3\.7\.1(?:\.min\.js|\.LICENSE\.txt)/;
+async function scanLegacyConsumers(cwd) {
+  // Scan the actual extension, build code and live tests, never historical
+  // snapshots/docs nor the old vendor file itself. No automated deletion.
+  const matches=[];
+  async function scan(dir,relativePath) {
+    let entries;
+    try{entries=await readdir(dir,{withFileTypes:true});}
+    catch(error){if(error?.code==='ENOENT')return;throw error;}
+    for(const entry of entries) {
+      const rel=relativePath?relativePath+'/'+entry.name:entry.name;
+      if(entry.isSymbolicLink())throw Error('Symlink in source scan: '+rel);
+      if(entry.isDirectory()){await scan(join(dir,entry.name),rel);continue;}
+      if(!entry.isFile()||!/\.(?:js|mjs|ts|json|html)$/.test(entry.name)||
+         rel==='scripts/libs-doctor.mjs' || rel.startsWith('src/vendor/'))continue;
+      const bytes=await readFile(join(dir,entry.name));
+      if(OLD_JQUERY_REFERENCE.test(bytes.toString('utf8')))matches.push(rel);
+    }
+  }
+  for(const root of ['src','scripts','tests/environment','tests/framework'])
+    await scan(join(cwd,root),root);
+  for(const name of ['wxt.config.mjs','package.json','manifest.json']){
+    const file=await maybe(join(cwd,name));
+    if(file&&OLD_JQUERY_REFERENCE.test(file.toString('utf8')))matches.push(name);
+  }
+  return matches.sort();
+}
+
 
 export async function inspectLibraries({cwd=process.cwd()}={}) {
   const at=path=>join(cwd,path);
@@ -61,11 +90,14 @@ export async function inspectLibraries({cwd=process.cwd()}={}) {
       if(status==='SOURCE_FAIL')errors.push('npm '+row.id);
     }
   }
+  const references=await scanLegacyConsumers(cwd);
   const legacy=await maybe(at('src/vendor/jquery-3.7.1.min.js'));
   const current=await maybe(at(BUILTIN_CATALOG.libraries.jquery.source));
   report.legacy.jquery=result(!legacy?'ABSENT':current&&sha(legacy)===sha(current)?
     'DUPLICATE_SOURCE':'LEGACY_DISTINCT',legacy?
     {bytes:legacy.length,sha256:sha(legacy)}:undefined);
+  report.legacy.jquery.references=references;
+  if(references.length)errors.push('legacy jquery path still referenced: '+references.join(', '));
   for(const mode of ['production','development']){
     const root=at('dist/'+mode);
     const raw=await maybe(join(root,BUILTIN_CATALOG.resourceManifest));

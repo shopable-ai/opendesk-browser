@@ -16,6 +16,8 @@ test('R15.5 doctor differentiates source, package and actual Chrome acceptance',
   assert.equal(report.policy.configuredSwHardBytes,BUILD_POLICY.serviceWorkerProductionBytes);
   assert.equal(report.runtime,'RUNTIME_UNVERIFIED');
   assert.equal(report.native,'NATIVE_UNVERIFIED');
+  assert.deepEqual(report.legacy.jquery.references,[],
+    'A src/vendor jQuery consumer must be migrated before the duplicate file is removed');
   for(const mode of ['production','development'])
     assert(['PACKAGE_PASS','PACKAGE_FAIL','PACKAGE_UNVERIFIED'].includes(report.packages[mode].status));
 });
