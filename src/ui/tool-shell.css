@@ -341,8 +341,9 @@
 .sidebar-toc-settings-scope strong{display:block;font-size:12px;margin-top:3px;font-weight:650}
 .sidebar-toc-settings-scope button{flex:none;font-size:11px;min-height:30px}
 .sidebar-toc-settings-caption{color:var(--text-secondary,#70819a);font-size:11px}
-.sidebar-toc-settings-binary{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
-.sidebar-toc-settings-binary button{min-height:45px;border:1px solid var(--line,#dce4f1);border-radius:var(--radius-control);background:var(--surface,#fff);color:var(--text-secondary,#63768b);font-size:13px;font-weight:700}
+/* Compact, content-width state buttons share ordinary Sidebar control scale. */
+.sidebar-toc-settings-binary{display:flex;align-items:center;flex-wrap:wrap;gap:8px}
+.sidebar-toc-settings-binary button{flex:0 0 auto;width:auto;min-height:34px;padding:6px 11px;border:1px solid var(--line,#dce4f1);border-radius:var(--radius-control);background:var(--surface,#fff);color:var(--text-secondary,#63768b);font-size:12px;font-weight:650;line-height:1.35}
 .sidebar-toc-settings-binary button[aria-pressed=true]{border-color:#5e80e5;color:#3157ba;background:#ecf2ff}
 .sidebar-toc-settings-binary button:last-child[aria-pressed=true]{border-color:#a7b5c8;color:#40536c;background:#f0f2f6}
 .sidebar-toc-settings-binary button:disabled{opacity:.45;cursor:not-allowed}
