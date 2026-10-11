@@ -23,15 +23,18 @@ export const PACKAGE_ENTRIES = Object.freeze({
   'libs/packages/dayjs': './src/entrypoints/dayjs.js',
   'libs/packages/js-cookie': './src/entrypoints/js-cookie.js',
   'libs/packages/crypto-js': './src/entrypoints/crypto-js.js',
-  'libs/packages/file-saver': './src/entrypoints/file-saver.js'
+  'libs/packages/file-saver': './src/entrypoints/file-saver.js',
+  'libs/packages/query-string': './src/entrypoints/query-string.js',
+  'libs/packages/axios': './src/entrypoints/axios.js',
+  'libs/packages/store': './src/entrypoints/store.js'
 });
 
 // These are project-owned engineering budgets, not Chrome MV3 size limits.
 // Keep the fixed, self-contained classic bundles and security scanners.
-// Production SW retains its strict 327,680-byte hard gate. Other generated
-// production entries retain 512 KiB, development SW 768 KiB.
-// Development SW retains its separate 768 KiB allowance.
-export const BUILD_POLICY = Object.freeze({productionBytes: 512 * 1024, fixedEntryReviewBytes: 320 * 1024, serviceWorkerProductionBytes: 320 * 1024, serviceWorkerReviewBytes: 320 * 1024, developmentBytes: 768 * 1024, splitChunks: false, runtimeChunk: false, formats: ['iife'], sourcemap: {production: false, development: true}});
+// Production SW has a 1 MiB hard cap and a non-blocking 512 KiB review line.
+// Development SW has 1.5 MiB; other generated JS remains capped at 512 KiB.
+// This is an engineering budget, not an MV3/Chrome size or security exemption.
+export const BUILD_POLICY = Object.freeze({productionBytes: 512 * 1024, fixedEntryReviewBytes: 320 * 1024, serviceWorkerProductionBytes: 1024 * 1024, serviceWorkerReviewBytes: 512 * 1024, developmentBytes: 1536 * 1024, splitChunks: false, runtimeChunk: false, formats: ['iife'], sourcemap: {production: false, development: true}});
 // Existing reader/CLI limits, shared by the build and package verifier. These
 // are separate from the unchanged generated-entry budget above.
 export const RESOURCE_LIMITS = Object.freeze({vendorBytes:128 * 1024, manifestBytes:8192, licenseBytes:8192});

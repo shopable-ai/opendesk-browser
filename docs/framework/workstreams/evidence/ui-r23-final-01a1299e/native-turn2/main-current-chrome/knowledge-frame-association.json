@@ -1,0 +1,27 @@
+{
+  "page": "D189F683CB6F80C43EE9D79EF51ABE45",
+  "url": "chrome-extension://fahogihogbphclgicdghfelfikllgapk/ui/tool.html?hostInstanceId=66250419-04f9-4f22-9f44-48430d413536&toolId=knowledge-inbox",
+  "iframeNode": {
+    "nodeId": 26,
+    "backendNodeId": 5177,
+    "nodeType": 1,
+    "nodeName": "IFRAME",
+    "localName": "iframe",
+    "nodeValue": "",
+    "childNodeCount": 0,
+    "attributes": [
+      "title",
+      "知识收件箱（独立受限界面）",
+      "class",
+      "sidebar-tool-iframe",
+      "referrerpolicy",
+      "no-referrer",
+      "src",
+      "chrome-extension://fahogihogbphclgicdghfelfikllgapk/sidebar-tools/sandbox.html",
+      "style",
+      "height: 432px;"
+    ],
+    "frameId": "37A8BF1EC85A8B7D1BAC7EF8B63F535F"
+  },
+  "sandbox": "37A8BF1EC85A8B7D1BAC7EF8B63F535F"
+}

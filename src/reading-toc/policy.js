@@ -1,3 +1,4 @@
+import {sidebarToolEnabled} from '../ui/sidebar-tools/lifecycle.js';
 import {SIDEBAR_TOOL_STORE,validateSidebarToolPackage} from '../ui/sidebar-tools/package.js';
 
 export const READING_TOC_SITE_STORE='opendesk.sidebar-tools.toc-sites.v1';
@@ -35,9 +36,9 @@ export function grantedOrigins(settings,id) {
   return [...new Set(settings[id].filter(value=>
     typeof value==='string'&&value.length<300&&websiteOrigin(value)===value))].slice(0,64);
 }
-export function tocGrantAllowed(installed,settings,id,url) {
+export function tocGrantAllowed(installed,settings,id,url,enableRecords) {
   const origin=websiteOrigin(url);
-  return Boolean(origin&&admittedTocTool(installed,id)&&grantedOrigins(settings,id).includes(origin));
+  return Boolean(sidebarToolEnabled(enableRecords,id)&&origin&&admittedTocTool(installed,id)&&grantedOrigins(settings,id).includes(origin));
 }
 export function changeTocGrant(settings,id,url,allow) {
   const origin=websiteOrigin(url);

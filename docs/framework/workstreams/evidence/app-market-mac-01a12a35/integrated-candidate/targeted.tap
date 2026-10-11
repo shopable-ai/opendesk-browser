@@ -1,0 +1,150 @@
+✔ batch record uses one immutable revision, bounded official members and real transaction identifiers (0.991541ms)
+✔ already installed, denied permissions, missing release are represented without launching (0.137208ms)
+✔ recovery never replays queued members and preserves committed and unknown results (0.166958ms)
+✔ malformed or contaminated durable records fail closed rather than being overwritten (0.308416ms)
+✔ stale review order and unapproved members cannot create a batch (0.133666ms)
+✔ non-blocking Web Lock refuses overlapping browser market windows (0.186333ms)
+✔ fixed unavailable members retain their historical version and never enter the queue (0.156917ms)
+✔ market catalog uses pinned immutable member identity and all five tool versions (0.754041ms)
+✔ every official release is the exact packaged tool ID, version and title (0.279333ms)
+✔ manual tool replacement clears stale official publisher identity (1.779417ms)
+✔ never installs without explicit review or runs tool code (0.378125ms)
+✔ same release is idempotent; stale baseline and author conflicts fail closed (0.508666ms)
+✔ 12-tool capacity rejects excess without deleting existing installations (0.192834ms)
+✖ lost successful write acknowledgement becomes unknown; reconciliation never retries (3.426709ms)
+✔ data-only transfer rejects script, site grants, tokens, duplicates and unknown versions (0.449666ms)
+✔ R4.5 legacy source adoption requires explicit confirmation and preserves the original private data (0.504041ms)
+✔ R4.5 capability additions cannot activate orphan site grants and retained capabilities preserve existing sites (0.642167ms)
+✖ R4.5 old unknown operations cannot be reconciled using a newer release or different bytes (1.273625ms)
+✔ R4.5 dev coalesces official edits without losing them to README or starter events (108.374417ms)
+✔ R4.5 failed official edits block unrelated publication and recover after source restoration (96.358708ms)
+✔ R4.5 catalog structure stays dirty through failure until successful generation and restart (68.255875ms)
+✔ R4.5 failed dev closes cleanly and a new session can regenerate output without following file symlinks (78.523208ms)
+✔ failed config parsing recovers through a source watcher after Vite closes its watcher (7.988833ms)
+✔ Babel entrypoint errors use cancellable development recovery instead of WXT syntax waiting (0.3455ms)
+✔ failed configuration rebuild stays handled and retries only after a relevant source change (0.429583ms)
+✔ configuration restarts are serialized and shutdown skips queued restarts (0.2205ms)
+✔ entrypoint watcher rejection is handled and a corrected source starts a fresh build queue (0.339ms)
+✔ Vite base configuration disables HTML discovery even before development hooks register (0.118ms)
+✔ development manifest policy survives WXT mutations of its configuration object (0.404458ms)
+✔ live publication restores manifest policy, publishes builtin hashes, and retains the marker after an incomplete build (26.944458ms)
+✔ required Workspace source failures survive unrelated successful static copies (21.992208ms)
+✔ R4.5 authored catalog has five actual optional projects and no duplicate version or capabilities (3.841666ms)
+✔ R4.5 exact bytes, versions and capabilities are reproducible from the existing packer (84.667041ms)
+✔ R4.5 adding a source catalog entry supplies release and marketplace without new UI mappings (8.632542ms)
+✔ R4.5 source change updates only its release bytes and catalog, with declared input identity (15.5365ms)
+✔ R4.5 catalog rejects automatic install, duplicate identity, arbitrary paths and foreign sources (0.606375ms)
+✔ R4.5 package config identity mismatch, missing source and invalid JavaScript fail before publication (16.358125ms)
+✔ R4.5 official source and output symlinks cannot escape or write outside the selected root (13.422708ms)
+✔ R4.5 source project and catalog symlinks, oversized catalog and unresolved assets are rejected (12.740916ms)
+✔ R4.5 removing an optional candidate removes only previously generated resource files (17.54325ms)
+✔ R4.5 runtime fetches only extension-owned bytes; catalog alone has no install or execution effects (17.756583ms)
+✔ R4.5 corrupt, missing, redirected and over-limit resources cannot be reviewed as official (2.312667ms)
+✔ R4.5 generated catalog rejects forged paths, duplicate releases, persisted user state and policies (0.198333ms)
+✔ R4.5 all official tools derive availability, update and installed states from the same versions (0.319792ms)
+✔ R4.5 knowledge lifecycle correction is an upgrade from the shipped 1.1.0 (0.124708ms)
+✔ Chrome storage object-key normalization does not invalidate a successful conditional write (123.396375ms)
+✔ Final R2 request throttling returns an error and recovers after its time window (8.479583ms)
+✔ trusted tool host installs only by explicit click, scopes messages and removes storage (4.628792ms)
+✔ Final R2 cancellation preserves a dirty iframe and pending saves block navigation (0.729792ms)
+✔ actual sandbox state object clears host dirty state only after busy work ends (1.133875ms)
+✔ Final R2 revocation during ETag digest prevents a write that has not started (1.184167ms)
+✔ queued task navigation loses authority when its tool is closed (1.011125ms)
+✔ uninstall waits for a committed write before deleting the namespace (1.5795ms)
+✔ two Side Panels preserve distinct fields through the same storage lock (1.596083ms)
+✔ a second iframe load revokes the old document instead of resending its token (0.745375ms)
+✔ cross-window uninstall rejects storage from a still open stale document (1.116167ms)
+✔ cross-window revocation also blocks stale page reads and task navigation (0.6405ms)
+✔ Chrome storage property ordering does not revoke the same installed package (8.204084ms)
+✔ tools switch as one mini-app, return to list, and revoke hidden frames (0.758417ms)
+✔ R14 import refuses oversized packages, ignores stale asynchronous reads and preserves filename (0.857ms)
+✔ R14 preview compares permissions and downgrade, confirmation protects update and retains data (1.406541ms)
+✔ R14 list uninstall requires consent but never mounts or runs untrusted tool code (0.947209ms)
+✔ R14 cross-window tool update invalidates review and clears the stale file selection (1.337166ms)
+✔ R14.1 delayed initial catalog read never overwrites a newer storage notification (0.700042ms)
+✔ R14.1 fresh reinstall deletes orphaned private data without running the tool (0.878416ms)
+✔ R14.1 list renders and Back/uninstall preserve useful keyboard focus (1.402959ms)
+✔ installed tool opens a fixed full-page route without starting sidebar code (0.677292ms)
+✔ R18 resize and status messages accept only the live opaque frame and bounded sizes (0.576625ms)
+✔ uninstalled read-only preview cannot write, run Task or invoke page operations (1.008708ms)
+✔ R18.1 conditional writes atomically reject a stale full-array replacement (34.256916ms)
+✔ R18.1 page metadata notification only targets a live tool iframe (0.658083ms)
+✔ R4.5 identical page revalidation preserves actual clipper results, while same-URL navigation invalidates them (18.349917ms)
+✔ R4.5 unrelated page notifications preserve the official install button through a pointer gesture (6.6485ms)
+✔ R4.5 repeated observations retain installed controls and changed site authority still updates them (0.989ms)
+✔ R4.1 website grant manager revokes a past origin without requiring the page to be active (1.047291ms)
+✔ R4.3 existing 1.0.0 TOC exposes update, reviews patch, preserves site grants (11.389625ms)
+✔ knowledge editor protects user navigation, clears after save, and never vetoes uninstall (53.41425ms)
+✔ R4.5 five official tools remain optional and share reviewed install, attribution and uninstall (107.802208ms)
+✔ R4.5 two official review windows share the original installation lock and reject stale approvals (18.305167ms)
+✔ R4.5 missing official resources and a cancelled in-flight preview never install or overwrite local review (6.64375ms)
+✖ R4.5 an acknowledgement lost after installation revokes approval and reconciles without replay (10.763625ms)
+✔ R4.5 failure to refresh after a confirmed commit cannot reuse the consumed approval (10.095375ms)
+✔ R4.5 an official package removed after review is rejected before any installation write (10.641625ms)
+ℹ tests 83
+ℹ suites 0
+ℹ pass 80
+ℹ fail 3
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 614.017375
+
+✖ failing tests:
+
+test at tests/environment/app-market-r3.test.mjs:107:1
+✖ lost successful write acknowledgement becomes unknown; reconciliation never retries (3.426709ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'needs-finalization'
+  - 'succeeded'
+  
+      at TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/environment/app-market-r3.test.mjs:122:10)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'needs-finalization',
+    expected: 'succeeded',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/environment/app-market-r3.test.mjs:173:1
+✖ R4.5 old unknown operations cannot be reconciled using a newer release or different bytes (1.273625ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'needs-finalization'
+  - 'succeeded'
+  
+      at TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/environment/app-market-r3.test.mjs:182:10)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'needs-finalization',
+    expected: 'succeeded',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/environment/sidebar-tools-host.test.mjs:866:1
+✖ R4.5 an acknowledgement lost after installation revokes approval and reconciles without replay (10.763625ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'needs-finalization'
+  - 'succeeded'
+  
+      at TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/environment/sidebar-tools-host.test.mjs:887:10)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'needs-finalization',
+    expected: 'succeeded',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

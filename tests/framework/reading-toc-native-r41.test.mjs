@@ -166,10 +166,10 @@ test('R4.1 real Chrome installs bundled TOC, follows multiple H1, restores and r
   const ownUrl='chrome-extension://'+extensionId+'/ui/tool.html?hostInstanceId='+randomUUID();
   const panel=await openTab(ownUrl);host=panel.cdp;
   try {
-    await eventually(()=>evaluate(host,'document.readyState==="complete" && !!document.querySelector("#sidebar-tool-official-reading-toc-install")'),
+    await eventually(()=>evaluate(host,'document.readyState==="complete" && !!document.querySelector("#tab-tools")'),
       'Real tool shell did not mount',{attempts:50,delay:120});
   } catch (error) {
-    const diagnostic=await evaluate(host,'({url:location.href,ready:document.readyState,title:document.title,text:document.body?.innerText?.slice(0,250),html:document.documentElement?.outerHTML?.slice(0,500),present:!!document.querySelector("#sidebar-tool-official-reading-toc-install")})').catch(e=>({error:String(e)}));
+    const diagnostic=await evaluate(host,'({url:location.href,ready:document.readyState,title:document.title,text:document.body?.innerText?.slice(0,250),html:document.documentElement?.outerHTML?.slice(0,500),present:!!document.querySelector("#tab-tools")})').catch(e=>({error:String(e)}));
     throw Error(error.message+'; navigation diagnostic='+JSON.stringify(diagnostic)+'; chrome='+stderr.slice(-500));
   }
   assert.equal(await evaluate(articlePage,'document.querySelectorAll("[data-opendesk-toc-root]").length'),0,
@@ -230,6 +230,12 @@ test('R4.1 real Chrome installs bundled TOC, follows multiple H1, restores and r
     if(event.method==='Page.javascriptDialogOpening')
       host.send('Page.handleJavaScriptDialog',{accept:true}).catch(()=>{});
   });
+  // Official installation moved to the explicit Discover Tools panel.
+  await trustedClick(host,'#sidebar-tool-discover-tab');
+  await eventually(()=>evaluate(host,'!document.querySelector("#sidebar-tool-discover-panel").hidden'),
+    'Official discovery is not visible');
+  await eventually(()=>evaluate(host,'(()=>{const b=document.querySelector("#sidebar-tool-official-reading-toc-install");return !!b&&!b.disabled&&!!b.getClientRects().length;})()'),
+    'TOC official install must be a visible, enabled native control');
   await trustedClick(host,'#sidebar-tool-official-reading-toc-install');
 
   await eventually(()=>evaluate(host,'!document.querySelector("#sidebar-tool-preview").hidden'),
@@ -349,10 +355,11 @@ test('R4.1 real Chrome installs bundled TOC, follows multiple H1, restores and r
     'nearby H2 remains visible to provide local reading context');
   await capture(singlePage,'toc-r44-late-heading.png');
   console.log('TOC_NATIVE_STAGE: R4.4 late H2 is visible and highlighted in real Chrome');
-  // R4.7: gear appears in the detail toolbar directly before Uninstall.
+  // R4.7: the detail toolbar retains both settings and the independent
+  // eye icon; the eye sits between Settings and Uninstall.
   await eventually(()=>evaluate(host,'document.querySelector("#script-current-page-url")?.textContent==='+JSON.stringify(origin+'/single.html')),
     'Side Panel did not target the tall article');
-  assert.equal(await evaluate(host,'(()=>{const gear=document.querySelector("#sidebar-tool-settings-open");return gear?.nextElementSibling?.id==="sidebar-tool-remove"})()'),true);
+  assert.equal(await evaluate(host,'(()=>{const gear=document.querySelector("#sidebar-tool-settings-open");return !!gear&&!gear.hidden&&gear.nextElementSibling?.id==="sidebar-tool-visibility"&&!!document.querySelector("#sidebar-tool-remove")})()'),true);
   if(await evaluate(host,'document.querySelector("#sidebar-tool-settings-view").hidden'))
     await trustedClick(host,'#sidebar-tool-settings-open');
   if(!await evaluate(host,'document.querySelector(".sidebar-toc-advanced").open'))
@@ -468,15 +475,14 @@ test('R4.1 real Chrome installs bundled TOC, follows multiple H1, restores and r
   await chatPage.send('Page.bringToFront');
   await trustedClick(host,'#sidebar-tool-settings-allow');
   await eventually(()=>evaluate(chatPage,'document.querySelectorAll("[data-opendesk-toc-root]").length===1'),'Regrant did not complete before uninstall');
-  // Save both an appearance preference and a true per-page runtime denial,
-  // then check that verified uninstall removes the corresponding stores.
+  // Save the supported, user-visible page display preference and verify
+  // uninstall clears it. The obsolete site/page authorization dropdown is
+  // intentionally absent in R4.7; never click its hidden legacy control.
   await trustedClick(host,'#sidebar-tool-settings-page-visibility');
   const retained=await evaluate(host,'chrome.storage.local.get("opendesk.sidebar-tools.toc-visibility.v1")');
   assert(retained['opendesk.sidebar-tools.toc-visibility.v1']?.['reading-toc']?.hiddenPages?.length);
-  await trustedClick(host,'#sidebar-tool-settings-scope');
-  await trustedClick(host,'#sidebar-tool-settings-deny');
-  await eventually(()=>evaluate(host,'chrome.storage.local.get("opendesk.sidebar-tools.toc-disabled-pages.v1").then(value=>!!value["opendesk.sidebar-tools.toc-disabled-pages.v1"]?.["reading-toc"]?.length)'),
-    'Current page denial was not persisted');
+  assert.equal(await evaluate(host,'document.querySelector("#sidebar-tool-settings-scope").hidden'),true,
+    'The old page-scope authorization dropdown remains retired');
   await trustedClick(host,'#sidebar-tool-back'); // Settings -> retained directory.
   await trustedClick(host,'#sidebar-tool-remove');
   await eventually(()=>evaluate(host,'chrome.storage.local.get("opendesk.sidebar-tools.installed.v1").then(value=>!value["opendesk.sidebar-tools.installed.v1"]?.some(row=>row.id==="reading-toc"))'),
@@ -514,8 +520,8 @@ test('R4.1 real Chrome installs bundled TOC, follows multiple H1, restores and r
     const stored=await evaluate(side,'chrome.storage.local.get("opendesk.sidebar-tools.installed.v1")');
     return stored?.['opendesk.sidebar-tools.installed.v1']?.some(item=>item.id==='reading-toc');
   },'Real Side Panel local import did not install the package');
-  // The website permission must be approved through the visible Side Panel
-  // control and the real native Chrome confirmation, not by writing storage.
+  // Exact-site permission is enabled by the user's real Side Panel click.
+  // The extension must not open a second blocking JavaScript confirmation.
   await browser.send('Target.activateTarget',{targetId:second.targetId});
   await chatPage.send('Page.bringToFront');
   const openSelector='#sidebar-tool-list button[data-sidebar-tool-action="open"][data-sidebar-tool-id="reading-toc"]';
@@ -534,7 +540,7 @@ test('R4.1 real Chrome installs bundled TOC, follows multiple H1, restores and r
   await eventually(()=>evaluate(side,`chrome.storage.local.get('opendesk.sidebar-tools.toc-sites.v1').then(
     value=>value['opendesk.sidebar-tools.toc-sites.v1']?.['reading-toc']?.includes(${JSON.stringify(origin)})===true)`),
     'Real Side Panel website toggle did not authorize the exact origin');
-  assert.equal(confirmedDialogs,1,'Site authorization must show one actual Chrome confirmation dialog');
+  assert.equal(confirmedDialogs,0,'A site grant is one click with zero JavaScript dialogs');
   assert.deepEqual(dialogErrors,[]);
   await eventually(()=>evaluate(chatPage,'document.querySelectorAll("[data-opendesk-toc-root]").length===1'),
     'Accepted website grant did not restore the real TOC overlay');
@@ -600,7 +606,7 @@ test('R4.1 real Chrome installs bundled TOC, follows multiple H1, restores and r
   await trustedClick(side,'#sidebar-tool-settings-allow');
   await eventually(()=>evaluate(chatPage,'document.querySelectorAll("[data-opendesk-toc-root]").length===1'),
     'Site manager did not allow re-enabling a previously revoked origin');
-  assert.equal(confirmedDialogs,2);
+  assert.equal(confirmedDialogs,0,'Re-authorizing an origin must also remain dialog-free');
   assert.deepEqual(dialogErrors,[]);
   const closed=await browser.send('Target.closeTarget',{targetId:sideTarget.targetId});
   assert.equal(closed.success,true,'Actual Chrome Side Panel target could not close');

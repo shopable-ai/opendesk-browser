@@ -6,6 +6,7 @@ import {SIDEBAR_TOOL_FORMAT,SIDEBAR_TOOL_STORE,sidebarToolStorageKey,MAX_INSTALL
 import {installReviewedSidebarTool,reconcileMarketOperation,recoverMarketOperation,MARKET_OPERATIONS_STORE,
   MARKET_PROVENANCE_STORE,sameSidebarToolPackage,recordToolUninstall,getPendingToolCleanups,
   cleanupUninstalledToolLocked,retryUninstalledToolCleanup,TOOL_CLEANUP_STORE} from '../../src/ui/sidebar-tools/installation.js';
+
 import {strictTransfer} from '../../src/marketplace/page.js';
 import {OFFICIAL_COLLECTIONS,getOfficialCollection,officialMarketApps} from '../../src/marketplace/catalog.js';
 import {officialFixtures} from '../helpers/official-tools.mjs';
@@ -107,7 +108,8 @@ test('12-tool capacity rejects excess without deleting existing installations',a
   assert.equal(values[SIDEBAR_TOOL_STORE].length,MAX_INSTALLED_TOOLS);
 });
 test('a lost registry acknowledgement requires explicit finalization even after exact readback',async()=>{
-  const {api,locks,values}=browser(),candidate=tool();
+  const {api,locks,values,operations}=browser(),candidate=tool();
+
   const original=api.storage.local.set;
   let interrupted=false;
   api.storage.local.set=async rows=>{
@@ -122,10 +124,18 @@ test('a lost registry acknowledgement requires explicit finalization even after 
   assert.ok(sameSidebarToolPackage(values[SIDEBAR_TOOL_STORE][0],candidate));
   const recovered=await reconcileMarketOperation(api,identity().operationId,candidate);
   assert.equal(recovered.state,'needs-finalization');
-  assert.equal(values[MARKET_PROVENANCE_STORE],undefined);
-  assert.equal((await recoverMarketOperation({api,lockManager:locks,operationId:identity().operationId})).state,'succeeded');
   assert.equal(values[SIDEBAR_TOOL_STORE].length,1);
+  assert.equal(values[MARKET_OPERATIONS_STORE][identity().operationId].state,'outcome-unknown');
+  assert.equal(values[MARKET_PROVENANCE_STORE]?.[candidate.id],undefined);
+  const registryWrites=operations.filter(row=>row.method==='set'&&row.keys.includes(SIDEBAR_TOOL_STORE)).length;
+  const finalized=await recoverMarketOperation({api,lockManager:locks,operationId:identity().operationId});
+  assert.equal(finalized.state,'succeeded');
+
   assert.equal(values[MARKET_OPERATIONS_STORE][identity().operationId].state,'succeeded');
+  assert.equal(values[MARKET_PROVENANCE_STORE][candidate.id].sha256,identity().sha256);
+  assert.equal(operations.filter(row=>row.method==='set'&&row.keys.includes(SIDEBAR_TOOL_STORE)).length,registryWrites);
+  assert.deepEqual(values[SIDEBAR_TOOL_STORE],[candidate]);
+
 });
 test('an unreadable registry after a lost acknowledgement requires local finalization without another install write',async()=>{
   const {api,locks,values}=browser(),candidate=tool(),set=api.storage.local.set,get=api.storage.local.get;
@@ -168,7 +178,7 @@ test('recovery rejects a changed transaction identity before writing any provena
   assert.deepEqual(values[SIDEBAR_TOOL_STORE],[replacement]);
 });
 test('data-only transfer rejects script, site grants, tokens, duplicates and unknown versions',()=>{
-  const safe={format:'opendesk.market.transfer.v1',apps:[{marketId:'opendesk/reading-toc',version:'1.0.2'}]};
+  const safe={format:'opendesk.market.transfer.v1',apps:[{marketId:'opendesk/reading-toc',version:OFFICIAL_APPS.find(app=>app.toolId==='reading-toc').version}]};
   assert.deepEqual(strictTransfer(safe,OFFICIAL_APPS),safe);
   for(const altered of [
     {...safe,cookie:'secret'}, {...safe,apps:[{...safe.apps[0],siteGrants:['https://example.com']}]},
@@ -224,7 +234,9 @@ test('R4.5 old unknown operations cannot be reconciled using a newer release or 
   }
   values[SIDEBAR_TOOL_STORE]=[original];
   assert.equal((await reconcileMarketOperation(api,record.operationId,original)).state,'needs-finalization');
-  assert.equal(values[MARKET_PROVENANCE_STORE],undefined,'matching bytes alone do not finalize a publisher record');
+  assert.equal(values[MARKET_OPERATIONS_STORE][record.operationId].state,'outcome-unknown');
+  assert.equal(values[MARKET_PROVENANCE_STORE]?.[original.id],undefined);
+
   assert.equal((await recoverMarketOperation({api,lockManager:{request:async(_name,fn)=>fn()},
     operationId:record.operationId})).state,'succeeded');
 });
@@ -318,6 +330,7 @@ test('partially failed uninstall keeps recovery journal and never deletes reinst
   assert.equal((await retryUninstalledToolCleanup({api,lockManager:locks,id:old.id})).state,'cleaned');
   assert.equal(values[key],undefined);
   assert.equal(values[TOOL_CLEANUP_STORE][old.id],undefined);
+
 });
 
 test('an acknowledged official baseline can finalize an upgrade with a lost registry acknowledgement without replay',async()=>{

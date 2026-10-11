@@ -55,3 +55,6 @@ raw-cdp*.jsonl
 
 # Local execution evidence and disposable source copies
 /.runtime/
+
+# Cloud provider credentials and durable local state
+.local/cloud-control/

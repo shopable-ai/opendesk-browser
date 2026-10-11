@@ -1,0 +1,16 @@
+{
+  "scope": "Real Chrome 155 MV3 standalone tool tab; two captured controlled records",
+  "status": "PASS",
+  "keys": [
+    "Tab",
+    "Shift+Tab",
+    "ArrowDown",
+    "ArrowUp",
+    "Home",
+    "End",
+    "Enter",
+    "Escape",
+    "/"
+  ],
+  "focusReturn": true
+}

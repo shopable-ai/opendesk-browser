@@ -1,3 +1,4 @@
+import {SIDEBAR_TOOL_ENABLE_STORE} from '../../src/ui/sidebar-tools/lifecycle.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
@@ -12,6 +13,77 @@ import {MARKET_PROVENANCE_STORE,MARKET_OPERATIONS_STORE,reconcileMarketOperation
 import {CLIP_SITE_STORE} from '../../src/page-clip/policy.js';
 import {CAPTURE_SITE_STORE} from '../../src/knowledge/policy.js';
 import {READING_TOC_SITE_STORE,READING_TOC_VISIBILITY_STORE,READING_TOC_PAGE_RULES_STORE,changeReadingTocVisibility} from '../../src/reading-toc/policy.js';
+
+test('R26 stopped details remain manageable and enabling waits for an explicit Open',async t=>{
+  const key=sidebarToolStorageKey(sample.id),grants={[sample.id]:['https://example.com']};
+  const store=new Map([[SIDEBAR_TOOL_STORE,[sample]],[SIDEBAR_TOOL_ENABLE_STORE,{[sample.id]:false}],
+    [key,{note:'keep'}],[READING_TOC_SITE_STORE,grants]]);
+  const f=await hostFixture(t,{store,startTool:false});
+  const row=f.elements['sidebar-tool-list'].children[0];assert.equal(row.children.length,1);
+  row.children[0].emit('click');
+  assert.equal(f.elements['sidebar-tool-display'].hidden,false);assert.equal(f.elements['sidebar-tool-frame'].children.length,0);
+  assert.equal(f.elements['sidebar-tool-settings-open'].hidden,false);assert.equal(f.elements['sidebar-tool-visibility'].hidden,true);
+  f.elements['sidebar-tool-enable'].emit('click');
+  await settle(()=>store.get(SIDEBAR_TOOL_ENABLE_STORE)?.[sample.id]===true&&!f.elements['sidebar-tool-enable'].disabled);
+  assert.equal(f.elements['sidebar-tool-frame'].children.length,0,'enable cannot execute code');
+  assert.deepEqual(store.get(key),{note:'keep'});assert.deepEqual(store.get(READING_TOC_SITE_STORE),grants);
+  f.elements['sidebar-tool-launch'].emit('click');await settle(()=>f.elements['sidebar-tool-frame'].children.length===1);
+});
+
+test('R26 cross-panel disable destroys old frames and resume does not revive them',async t=>{
+  const f=await hostFixture(t),old=f.frame;
+  f.store.set(SIDEBAR_TOOL_ENABLE_STORE,{[sample.id]:false});
+  f.changeStorage({[SIDEBAR_TOOL_ENABLE_STORE]:{newValue:{[sample.id]:false}}});
+  assert.equal(f.elements['sidebar-tool-frame'].children.length,0);assert.equal(f.elements['sidebar-tool-display'].hidden,false);
+  assert.equal(f.elements['sidebar-tool-settings-view'].hidden,false);
+  f.ask('storage.set',{key:'note',value:'stale'});await pause();
+  assert.equal(f.store.has(sidebarToolStorageKey(sample.id)),false);
+  f.store.set(SIDEBAR_TOOL_ENABLE_STORE,{[sample.id]:true});
+  f.changeStorage({[SIDEBAR_TOOL_ENABLE_STORE]:{newValue:{[sample.id]:true}}});
+  assert.equal(f.elements['sidebar-tool-frame'].children.length,0);assert.equal(old.contentWindow.sent.filter(m=>m.kind==='response').length,0);
+});
+
+test('R26 remote disable retains a bounded inert draft while destroying the sandbox',async t=>{
+  const f=await hostFixture(t);
+  const send=(kind,extra={})=>f.win.emit('message',{origin:'null',source:f.frame.contentWindow,
+    data:{protocol:f.loaded.protocol,toolId:sample.id,instance:f.loaded.instance,kind,...extra}});
+  send('draft',{text:'标题\n尚未保存的正文'});send('dirty');
+  f.store.set(SIDEBAR_TOOL_ENABLE_STORE,{[sample.id]:false});
+  f.changeStorage({[SIDEBAR_TOOL_ENABLE_STORE]:{newValue:{[sample.id]:false}}});
+  assert.equal(f.elements['sidebar-tool-frame'].children.length,0);
+  assert.equal(f.elements['sidebar-tool-retired-draft'].hidden,false);
+  assert.equal(f.elements['sidebar-tool-retired-draft-text'].value,'标题\n尚未保存的正文');
+  f.elements['sidebar-tool-retired-draft-dismiss'].emit('click');
+  assert.equal(f.elements['sidebar-tool-retired-draft'].hidden,true);
+});
+
+test('R26 eye restores intersecting site/page appearance without mutating grants',async t=>{
+  const toc=await officialToolFixture('reading-toc'),url='https://article.example/answer';
+  const prefs=changeReadingTocVisibility(changeReadingTocVisibility({},toc.id,url,'site',true),toc.id,url,'page',true);
+  const grants={[toc.id]:['https://article.example']},store=new Map([[SIDEBAR_TOOL_STORE,[toc]],
+    [READING_TOC_SITE_STORE,grants],[READING_TOC_VISIBILITY_STORE,prefs]]);
+  const target={snapshot:{status:'available',url},capture(){return {url,origin:'https://article.example',tabId:5,documentId:'doc'};},async revalidate(){return true;}};
+  const f=await hostFixture(t,{target,store,tool:toc}),eye=f.elements['sidebar-tool-visibility'];
+  assert.equal(eye.hidden,false);assert.equal(eye.disabled,false);eye.emit('click');
+  await settle(()=>!store.get(READING_TOC_VISIBILITY_STORE)?.[toc.id]);
+  assert.deepEqual(store.get(READING_TOC_SITE_STORE),grants);assert.equal(store.has(SIDEBAR_TOOL_ENABLE_STORE),false);
+  eye.emit('click');await settle(()=>Boolean(store.get(READING_TOC_VISIBILITY_STORE)?.[toc.id]?.hiddenSites.length));
+  assert.deepEqual(store.get(READING_TOC_SITE_STORE),grants);
+});
+
+test('R26 missing site permission disables eye with a reason while settings remain available',async t=>{
+  const toc=await officialToolFixture('reading-toc'),target={snapshot:{status:'available',url:'https://example.com/a'}};
+  const f=await hostFixture(t,{tool:toc,target,store:new Map([[SIDEBAR_TOOL_STORE,[toc]]])});
+  assert.equal(f.elements['sidebar-tool-visibility'].disabled,true);assert.match(f.elements['sidebar-tool-visibility'].title,/授权/);
+  f.elements['sidebar-tool-settings-open'].emit('click');assert.equal(f.elements['sidebar-tool-settings-view'].hidden,false);
+});
+
+test('R26 corrupted enable records preserve bytes and refuse execution or changes',async t=>{
+  const corrupt={[sample.id]:'false'},store=new Map([[SIDEBAR_TOOL_STORE,[sample]],[SIDEBAR_TOOL_ENABLE_STORE,corrupt]]);
+  const f=await hostFixture(t,{store,startTool:false});f.host.openTool(sample.id);
+  assert.equal(f.elements['sidebar-tool-frame'].children.length,0);assert.equal(f.elements['sidebar-tool-enable'].disabled,true);
+  assert.deepEqual(store.get(SIDEBAR_TOOL_ENABLE_STORE),corrupt);
+});
 
 test('Chrome storage object-key normalization does not invalidate a successful conditional write',async t=>{
   const key=sidebarToolStorageKey(sample.id),f=await hostFixture(t);
@@ -73,6 +145,8 @@ test('trusted tool host installs only by explicit click, scopes messages and rem
   const ids=['sidebar-tool-list','sidebar-tool-list-view','sidebar-tool-empty','sidebar-tool-back','sidebar-tool-display','sidebar-tool-frame','sidebar-tool-status',
     'sidebar-tool-file','sidebar-tool-install','sidebar-tool-remove','sidebar-tool-title',
     'sidebar-tool-inline-remove','sidebar-tool-inline-remove-text','sidebar-tool-inline-remove-confirm','sidebar-tool-inline-remove-cancel',
+    'sidebar-tool-retired-draft','sidebar-tool-retired-draft-text','sidebar-tool-retired-draft-dismiss','sidebar-tool-enable','sidebar-tool-enable-hint','sidebar-tool-launch','sidebar-tool-visibility',
+    'sidebar-tool-open-tab','sidebar-tool-visibility-settings',
     'sidebar-tool-settings-open','sidebar-tool-settings-view','sidebar-tool-settings-scope',
     'sidebar-tool-settings-scope-label','sidebar-tool-settings-target',
     'sidebar-tool-settings-allow','sidebar-tool-settings-deny','sidebar-tool-settings-hint',
@@ -150,7 +224,7 @@ test('trusted tool host installs only by explicit click, scopes messages and rem
     assert.equal(frame.tag,'iframe');
     assert.equal(toolVisible,true,'opening custom tools hides unrelated task Run action');
     assert.equal(frame.src,'chrome-extension://test/sidebar-tools/sandbox.html');
-    frame.onload();
+    await frame.onload();
     const loaded=frame.contentWindow.sent[0];
     assert.equal(loaded.kind,'load');
     assert.equal(loaded.tool.id,sample.id);
@@ -259,6 +333,8 @@ async function hostFixture(t,{store=new Map([[SIDEBAR_TOOL_STORE,[sample]]]),loc
   const ids=['sidebar-tool-list','sidebar-tool-list-view','sidebar-tool-empty','sidebar-tool-back','sidebar-tool-display','sidebar-tool-frame','sidebar-tool-status',
     'sidebar-tool-file','sidebar-tool-install','sidebar-tool-remove','sidebar-tool-title',
     'sidebar-tool-inline-remove','sidebar-tool-inline-remove-text','sidebar-tool-inline-remove-confirm','sidebar-tool-inline-remove-cancel',
+    'sidebar-tool-retired-draft','sidebar-tool-retired-draft-text','sidebar-tool-retired-draft-dismiss','sidebar-tool-enable','sidebar-tool-enable-hint','sidebar-tool-launch','sidebar-tool-visibility',
+    'sidebar-tool-open-tab','sidebar-tool-visibility-settings',
     'sidebar-tool-settings-open','sidebar-tool-settings-view','sidebar-tool-settings-scope',
     'sidebar-tool-settings-scope-label','sidebar-tool-settings-target',
     'sidebar-tool-settings-allow','sidebar-tool-settings-deny','sidebar-tool-settings-hint',
@@ -291,7 +367,7 @@ async function hostFixture(t,{store=new Map([[SIDEBAR_TOOL_STORE,[sample]]]),loc
   assert.equal(elements['sidebar-tool-frame'].children.length,0,'opening Tools never starts saved packages');
   if(startTool)host.openTool(tool.id);
   const frame=elements['sidebar-tool-frame'].children[0];
-  frame?.onload();
+  await frame?.onload();
   const loaded=frame?.contentWindow.sent[0];
   const ask=(operation,payload={},id='1')=>{
     assert.ok(frame,'message actions require an explicitly opened tool');
@@ -430,15 +506,17 @@ test('R14 preview compares permissions and downgrade, confirmation protects upda
   assert.equal(f.elements['sidebar-tool-frame'].children.length,0,'update cannot auto execute');
 });
 
-test('R14 list uninstall requires consent but never mounts or runs untrusted tool code',async t=>{
+test('R26 stopped detail uninstall requires consent without running tool code',async t=>{
   const key=sidebarToolStorageKey(sample.id);
-  const store=new Map([[SIDEBAR_TOOL_STORE,[sample]],[key,{note:'private'}]]);
+  const store=new Map([[SIDEBAR_TOOL_STORE,[sample]],[SIDEBAR_TOOL_ENABLE_STORE,{[sample.id]:false}],[key,{note:'private'}]]);
   const f=await hostFixture(t,{store,startTool:false});
   assert.equal(f.elements['sidebar-tool-list'].children.length,1);
   const item=f.elements['sidebar-tool-list'].children[0];
   assert.equal(item.className,'sidebar-tool-row');
   assert.equal(item.children[0].tag,'button');
-  const deleteButton=item.children[1];
+  assert.equal(item.children.length,1,'list only enters a tool');
+  f.host.openTool(sample.id);
+  const deleteButton=f.elements['sidebar-tool-remove'];
   assert.match(deleteButton.attributes.get('aria-label'),/卸载.*网页笔记/);
   assert.equal(f.elements['sidebar-tool-frame'].children.length,0);
   let confirmations=0;
@@ -490,6 +568,23 @@ test('R14.1 delayed initial catalog read never overwrites a newer storage notifi
     'an older async read must not roll the visible catalog back');
 });
 
+test('R4.5 fresh reinstall preserves orphaned private data and requires explicit cleanup',async t=>{
+  const key=sidebarToolStorageKey(sample.id);
+  const store=new Map([[SIDEBAR_TOOL_STORE,[]],[key,{privateNote:'left by interrupted uninstall'}]]);
+  const f=await hostFixture(t,{store,startTool:false});
+  f.elements['sidebar-tool-import-trigger'].emit('click');
+  const text=JSON.stringify(sample);
+  f.elements['sidebar-tool-file'].files=[{name:'quick-notes.json',size:text.length,text:async()=>text}];
+  f.elements['sidebar-tool-file'].emit('change');
+  await settle(()=>!f.elements['sidebar-tool-preview'].hidden&&!f.elements['sidebar-tool-install'].disabled);
+  f.elements['sidebar-tool-install'].emit('click');
+  await settle(()=>/未关联卸载确认/.test(f.elements['sidebar-tool-status'].textContent||''));
+  assert.deepEqual(store.get(key),{privateNote:'left by interrupted uninstall'},'a blocked installation must preserve existing notes');
+  assert.deepEqual(store.get(SIDEBAR_TOOL_STORE),[],'orphan data requires explicit cleanup before admission');
+  assert.equal(f.elements['sidebar-tool-frame'].children.length,0,'install must not start code');
+  assert.equal(f.elements['sidebar-tool-status'].dataset.state,'error');
+});
+
 test('R4.5 delayed initial revocation read preserves a newer epoch without losing the installed list',async t=>{
   const gate=deferred(),entered=deferred(),store=new Map([[SIDEBAR_TOOL_STORE,[sample]]]);
   let delayed=true;
@@ -502,7 +597,7 @@ test('R4.5 delayed initial revocation read preserves a newer epoch without losin
   gate.resolve();await f.host.ready;
   assert.equal(f.elements['sidebar-tool-list'].children.length,1,'an epoch-only notification must not discard the initial installed list');
   f.host.openTool(sample.id);
-  const frame=f.elements['sidebar-tool-frame'].children[0];frame.onload();
+  const frame=f.elements['sidebar-tool-frame'].children[0];await frame.onload();
   const loaded=frame.contentWindow.sent[0];
   f.win.emit('message',{origin:'null',source:frame.contentWindow,data:{protocol:loaded.protocol,
     toolId:sample.id,instance:loaded.instance,kind:'request',requestId:'fresh-epoch',operation:'storage.set',
@@ -567,13 +662,15 @@ test('R14.1 list renders and Back/uninstall preserve useful keyboard focus',asyn
   f.elements['sidebar-tool-back'].emit('click');
   assert.equal(f.elements['sidebar-tool-list'].children[0].children[0].focused,true,
     'Back should return to the tool that was opened');
-  f.elements['sidebar-tool-list'].children[0].children[1].emit('click');
+  f.host.openTool(f.elements['sidebar-tool-list'].children[0].dataset.sidebarToolId);
+  f.elements['sidebar-tool-remove'].emit('click');
   f.elements['sidebar-tool-inline-remove-confirm'].emit('click');
   await pause();await pause();await pause();
   assert.equal(f.elements['sidebar-tool-list'].children[0].dataset.sidebarToolId,second.id);
   assert.equal(f.elements['sidebar-tool-list'].children[0].children[0].focused,true,
     'list uninstall should move focus to the next installed tool');
-  f.elements['sidebar-tool-list'].children[0].children[1].emit('click');
+  f.host.openTool(f.elements['sidebar-tool-list'].children[0].dataset.sidebarToolId);
+  f.elements['sidebar-tool-remove'].emit('click');
   f.elements['sidebar-tool-inline-remove-confirm'].emit('click');
   await pause();await pause();await pause();
   assert.equal(f.elements['sidebar-tool-list'].children.length,0);
@@ -581,14 +678,12 @@ test('R14.1 list renders and Back/uninstall preserve useful keyboard focus',asyn
     'last-tool uninstall should return focus to Import');
 });
 
-test('installed tool opens a fixed full-page route without starting sidebar code',async t=>{
-  const f=await hostFixture(t,{startTool:false});
+test('stopped tool detail opens a fixed full-page route without running sidebar code',async t=>{
+  const f=await hostFixture(t,{startTool:false,store:new Map([[SIDEBAR_TOOL_STORE,[sample]],[SIDEBAR_TOOL_ENABLE_STORE,{[sample.id]:false}]])});
   const opened=[];f.api.tabs={create:async options=>{opened.push(options.url);}};
-  const row=f.elements['sidebar-tool-list'].children[0];
-  assert.equal(row.children[2].attributes.get('aria-label'),'在新标签页打开「网页笔记」');
+  f.host.openTool(sample.id);
   assert.equal(f.elements['sidebar-tool-frame'].children.length,0);
-  row.children[2].emit('click');
-  await pause();await pause();
+  f.elements['sidebar-tool-open-tab'].emit('click');await pause();await pause();
   assert.deepEqual(opened,['chrome-extension://test/ui/tool.html?toolId=quick-notes']);
   assert.equal(f.elements['sidebar-tool-frame'].children.length,0);
 });
@@ -626,7 +721,7 @@ test('uninstalled read-only preview cannot write, run Task or invoke page operat
   f.host.openReadOnlyPreview(sample);
   const frame=f.elements['sidebar-tool-frame'].children[0];
   assert.ok(frame,'preview displays the same opaque sandbox');
-  frame.onload();const loaded=frame.contentWindow.sent[0];
+  await frame.onload();const loaded=frame.contentWindow.sent[0];
   assert.equal(f.elements['sidebar-tool-remove'].disabled,true);
   assert.equal(f.host.isPreviewDirty(),false);
   globalThis.window.emit('message',{source:frame.contentWindow,origin:'null',
@@ -792,10 +887,10 @@ test('R4.7 settings live next to retained TOC iframe; appearance remains separat
   assert.equal(f.elements['sidebar-tool-settings-view'].hidden,false);
   assert.equal(f.elements['sidebar-tool-frame'].hidden,true);
   assert.equal(f.elements['sidebar-tool-frame'].children[0],iframe,'the sandbox is retained, not reloaded');
-  assert.equal(f.elements['sidebar-tool-title'].textContent,'阅读目录设置');
+  assert.equal(f.elements['sidebar-tool-title'].textContent,toc.title);
   const pagePrefs=changeReadingTocVisibility({},toc.id,url,'page',true);
   f.changeStorage({[READING_TOC_VISIBILITY_STORE]:{newValue:pagePrefs}});
-  assert.equal(f.elements['sidebar-tool-settings-page-visibility'].textContent,'隐藏');
+  assert.equal(f.elements['sidebar-tool-settings-page-visibility'].textContent,'恢复显示');
   assert.deepEqual(store.get(READING_TOC_SITE_STORE),{'reading-toc':['https://article.example']});
   back.emit('click');
   assert.equal(f.elements['sidebar-tool-frame'].hidden,false);
@@ -805,24 +900,19 @@ test('R4.7 settings live next to retained TOC iframe; appearance remains separat
   assert.equal(f.elements['sidebar-tool-frame'].children.length,0,'leaving the tool really tears down the sandbox');
 });
 
-test('R4.7 single-page unavailable writes an independent rule and can be restored',async t=>{
-  const toc=await officialToolFixture('reading-toc');
-  const url='https://article.example/long-answer?private=1';
+test('R26 page appearance is independent of site authorization and global availability',async t=>{
+  const toc=await officialToolFixture('reading-toc'),url='https://article.example/long-answer?private=1';
   const store=new Map([[SIDEBAR_TOOL_STORE,[toc]],
-    [READING_TOC_SITE_STORE,{'reading-toc':['https://article.example']}]]); 
-  const target={snapshot:{status:'available',url,title:'Long answer'},
-    capture(){return {url,origin:'https://article.example',tabId:5,documentId:'doc'};},
-    async revalidate(){return true;}};
+    [READING_TOC_SITE_STORE,{'reading-toc':['https://article.example']}]]);
+  const target={snapshot:{status:'available',url},capture(){return {url,origin:'https://article.example',tabId:5,documentId:'doc'};},async revalidate(){return true;}};
   const f=await hostFixture(t,{target,store,tool:toc});
   f.elements['sidebar-tool-settings-open'].emit('click');
-  f.elements['sidebar-tool-settings-scope'].emit('click');
-  f.elements['sidebar-tool-settings-deny'].emit('click');
-  await settle(()=>Boolean(store.get(READING_TOC_PAGE_RULES_STORE)?.[toc.id]?.length));
-  assert.deepEqual(store.get(READING_TOC_PAGE_RULES_STORE),{[toc.id]:['https://article.example/long-answer']});
-  assert.deepEqual(store.get(READING_TOC_SITE_STORE),{'reading-toc':['https://article.example']});
-  f.elements['sidebar-tool-settings-allow'].emit('click');
-  await settle(()=>!store.get(READING_TOC_PAGE_RULES_STORE)?.[toc.id]);
-  assert.deepEqual(store.get(READING_TOC_PAGE_RULES_STORE),{});
+  f.elements['sidebar-tool-settings-page-visibility'].emit('click');
+  await settle(()=>Boolean(store.get(READING_TOC_VISIBILITY_STORE)?.[toc.id]?.hiddenPages?.length));
+  assert.deepEqual(store.get(READING_TOC_SITE_STORE),{[toc.id]:['https://article.example']});
+  assert.equal(store.has(READING_TOC_PAGE_RULES_STORE),false);
+  f.elements['sidebar-tool-settings-page-visibility'].emit('click');
+  await settle(()=>!store.get(READING_TOC_VISIBILITY_STORE)?.[toc.id]);
 });
 
 test('R4.7 the independent settings page can revoke a previously granted website',async t=>{
@@ -842,6 +932,57 @@ test('R4.7 the independent settings page can revoke a previously granted website
   assert.deepEqual(store.get(SIDEBAR_TOOL_STORE),[toc],'revoke does not replace the tool package');
 });
 
+
+for(const [toolId,key,url,origin] of [
+  ['reading-toc',READING_TOC_SITE_STORE,'http://127.0.0.1:43111/demo-form.html','http://127.0.0.1:43111'],
+  ['web-markdown-clipper',CLIP_SITE_STORE,'https://article.example/story','https://article.example'],
+  ['knowledge-inbox',CAPTURE_SITE_STORE,'https://chatgpt.com/c/fixture','https://chatgpt.com']
+])test('site permission settings apply one click without a second dialog: '+toolId,async t=>{
+  const tool=await officialToolFixture(toolId),store=new Map([[SIDEBAR_TOOL_STORE,[tool]]]);
+  let invalidated=false,validated=0,dialogCount=0;
+  const target={snapshot:{status:'available',url},
+    capture(){return {url,origin,windowId:1,tabId:7,frameId:0,documentId:'doc-a'};},
+    async revalidate(){validated++;
+      if(invalidated)throw Object.assign(new Error('当前网页已变化'),{code:'E_DOCUMENT_STALE'});}
+  };
+  const f=await hostFixture(t,{store,tool,target});
+  f.elements['sidebar-tool-settings-open'].emit('click');
+  const allow=f.elements['sidebar-tool-settings-allow'];
+  const deny=f.elements['sidebar-tool-settings-deny'];
+  assert.equal(allow.disabled,false);
+  assert.equal(allow.attributes.get('aria-pressed'),'false');
+  assert.match(f.elements['sidebar-tool-settings-hint'].textContent,/点击授权后直接生效/);
+  globalThis.confirm=()=>{dialogCount++;return false;};
+  allow.focus();
+  allow.emit('click');
+  allow.emit('click'); // repeated clicks before the first commit must not flip consent
+  await settle(()=>store.get(key)?.[toolId]?.includes(origin)===true&&!allow.disabled);
+  assert.deepEqual(store.get(key),{[toolId]:[origin]},'only the chosen exact Origin is granted');
+  assert.equal(allow.attributes.get('aria-pressed'),'true');
+  assert.equal(f.elements['sidebar-tool-settings-view'].hidden,false);
+  assert.equal(dialogCount,0,'site grant is a direct action, not window.confirm');
+  if(toolId==='reading-toc'){
+    const eye=f.elements['sidebar-tool-visibility'];
+    assert.equal(eye.disabled,false);
+    eye.emit('click');eye.emit('click');
+    await settle(()=>Boolean(store.get(READING_TOC_VISIBILITY_STORE)?.[toolId]?.hiddenSites?.includes(origin))&&!eye.disabled);
+    assert.deepEqual(store.get(key),{[toolId]:[origin]},'hide is independent of website grant');
+    eye.emit('click');
+    await settle(()=>!store.get(READING_TOC_VISIBILITY_STORE)?.[toolId]&&!eye.disabled);
+    assert.equal(dialogCount,0,'show/hide must never prompt');
+  }
+  deny.emit('click');
+  await settle(()=>!store.get(key)?.[toolId]&&!deny.disabled);
+  assert.equal(deny.attributes.get('aria-pressed'),'true');
+  assert.equal(dialogCount,0,'site revocation needs no dialog');
+  invalidated=true;
+  allow.emit('click');
+  await settle(()=>/E_DOCUMENT_STALE/.test(f.elements['sidebar-tool-status'].textContent||''));
+  assert.equal(store.get(key)?.[toolId],undefined,'stale document must not gain a permission');
+  assert.equal(dialogCount,0);
+  assert.ok(validated>=3,'native target binding is checked before persistent write');
+});
+
 test('R4.3 existing 1.0.0 TOC exposes update, reviews patch, preserves site grants',async t=>{
   const bundled=await officialToolFixture('reading-toc');
   const old={...bundled,version:'1.0.0',js:'void 0;'};
@@ -850,7 +991,7 @@ test('R4.3 existing 1.0.0 TOC exposes update, reviews patch, preserves site gran
     [SIDEBAR_TOOL_STORE,[old]],[READING_TOC_SITE_STORE,granted]
   ]),startTool:false,target:{snapshot:{status:'available',url:'https://article.example/demo'}}});
   const list=f.elements['sidebar-tool-list'];
-  assert.ok(list.children[0].children[0].children[0].children[0].children.some(node=>node.textContent==='可更新'),
+  assert.ok(list.children[0].children[0].children[1].children[0].children.some(node=>node.textContent==='可更新'),
     'update appears beside the installed tool, not as a top recommendation');
   assert.equal(f.elements['sidebar-tool-official-catalog'].children.some(row=>row.dataset.officialToolId==='reading-toc'),false,
     'default discover does not repeat installed versions');
@@ -880,7 +1021,7 @@ test('knowledge editor protects user navigation, clears after save, and never ve
   const store=new Map([[SIDEBAR_TOOL_STORE,[knowledge,sample]]]);
   const f=await hostFixture(t,{store,startTool:false});
   f.host.openTool(knowledge.id);
-  const frame=f.elements['sidebar-tool-frame'].children[0];frame.onload();
+  const frame=f.elements['sidebar-tool-frame'].children[0];await frame.onload();
   const loaded=frame.contentWindow.sent[0];let requestId=0;
   const dirty=async value=>{
     globalThis.window.emit('message',{origin:'null',source:frame.contentWindow,
@@ -941,9 +1082,9 @@ test('R4.8 manual reviewed installation remains available for every offline offi
   }
   assert.equal(store.get(SIDEBAR_TOOL_STORE).length,catalog.apps.length);
   for(const release of catalog.apps){
-    const remove=f.elements['sidebar-tool-list'].children.find(row=>row.dataset.sidebarToolId===release.toolId)
-      .children.find(node=>node.dataset.sidebarToolAction==='remove');
-    remove.emit('click');f.elements['sidebar-tool-inline-remove-confirm'].emit('click');
+    f.host.openTool(release.toolId);
+    f.elements['sidebar-tool-remove'].emit('click');
+    f.elements['sidebar-tool-inline-remove-confirm'].emit('click');
     await settle(()=>!store.get(SIDEBAR_TOOL_STORE).some(row=>row.id===release.toolId));
     await settle(()=>official(release.toolId).children.at(-1).disabled===false);
     assert.equal(official(release.toolId).dataset.installationState,'available');
@@ -1042,8 +1183,13 @@ for(const failReadback of [false,true])test('R4.5 lost registry acknowledgement 
   f.elements['sidebar-tool-install'].emit('click');f.elements['sidebar-tool-install'].emit('click');
   await pause();await pause();assert.equal(registryWrites,1);
   assert.equal((await reconcileMarketOperation(f.api,operationId,f.store.get(SIDEBAR_TOOL_STORE)[0])).state,'needs-finalization');
+  assert.equal(f.store.get(MARKET_OPERATIONS_STORE)[operationId].state,'outcome-unknown');
+  assert.equal(f.store.get(MARKET_PROVENANCE_STORE)?.[release.toolId],undefined);
+  assert.equal(registryWrites,1);
   assert.equal((await recoverMarketOperation({api:f.api,lockManager:sharedLocks(),operationId})).state,'succeeded');
-  assert.equal(registryWrites,1,'local finalization never replays the package installation');
+  assert.equal(registryWrites,1,'explicit recovery never replays the registry write');
+
+
   for(const key of [READING_TOC_SITE_STORE,CLIP_SITE_STORE,CAPTURE_SITE_STORE])assert.equal(f.store.has(key),false);
 });
 
@@ -1120,14 +1266,14 @@ test('uninstall refuses a newly corrupted registry rather than dropping unrelate
   const f=await hostFixture(t,{startTool:false}),damaged=[sample,{...sample,id:'invalid id'}];
   f.store.set(SIDEBAR_TOOL_STORE,damaged); // another context writes unexpected bytes
   const row=f.elements['sidebar-tool-list'].children[0];
-  const remove=row.children.find(node=>node.dataset?.sidebarToolAction==='remove');
+  f.host.openTool(sample.id);
+  const remove=f.elements['sidebar-tool-remove'];
   assert(remove);
   remove.emit('click');f.elements['sidebar-tool-inline-remove-confirm'].emit('click');
   await settle(()=>/E_STORAGE_CORRUPT/.test(f.elements['sidebar-tool-status'].textContent||''));
   assert.deepEqual(f.store.get(SIDEBAR_TOOL_STORE),damaged);
   assert.equal(f.store.has(sidebarToolStorageKey(sample.id)),false);
 });
-
 
 test('R5.0 trusted tool UX contains no JavaScript confirm dialogs',async()=>{
   const source=await readFile('src/ui/sidebar-tools.js','utf8');
@@ -1145,7 +1291,8 @@ test('R5.0 TOC choice buttons are compact, content-sized controls',async()=>{
 test('R5.1 inline uninstall supports Cancel, stale identity protection and no accidental double deletion',async t=>{
   const key=sidebarToolStorageKey(sample.id),data={note:'keep'};
   const f=await hostFixture(t,{startTool:false,store:new Map([[SIDEBAR_TOOL_STORE,[sample]],[key,data]])});
-  const remove=()=>f.elements['sidebar-tool-list'].children[0].children.find(node=>node.dataset?.sidebarToolAction==='remove');
+  f.host.openTool(sample.id);
+  const remove=()=>f.elements['sidebar-tool-remove'];
   const prompt=f.elements['sidebar-tool-inline-remove'];
   remove().emit('click');
   assert.equal(prompt.hidden,false);

@@ -125,7 +125,43 @@ test('R24.5 detail editing starts with title and body, collapses secondary metad
   assert.match(js,/q\('edit-cancel'\)\.addEventListener\('click',action\(toggleEdit\)\)/);
   assert.match(js,/q\('create-discard'\)\.addEventListener\('click',cancelCreate\)/);
   assert.match(js,/q\('title'\)\.value=selected\.title/,'reopening editor restores persisted title');
-  assert.match(css,/\.ki \.ki-writing-view \.ki-content\{[^}]*min-height:clamp\(340px,54vh,680px\)/);
+  assert.match(css,/\.ki \.ki-writing-view \.ki-content\{[^}]*height:344px;min-height:300px/);
   assert.match(css,/\.ki \.ki-extra-details>summary/);
   assert.match(css,/@media\(max-width:399px\)/,'narrow screens keep an independent layout');
+});
+
+test('R24.6 inline validation prevents invalid writes and keeps the reading toolbar compact',()=>{
+  for(const id of ['ki-create-validation','ki-edit-validation','ki-edit-size']) {
+    assert.match(html,new RegExp('id="'+id+'"'));
+    assert.match(html,new RegExp('id="'+id+'"[^>]*hidden'));
+  }
+  const toolbar=html.slice(html.indexOf('id="ki-toolbar"'),html.indexOf('</div>',html.indexOf('id="ki-toolbar"')));
+  assert.ok(toolbar.indexOf('id="ki-delete"')<toolbar.indexOf('id="ki-more"'),'delete remains an obvious single-record action');
+  assert.ok(toolbar.indexOf('id="ki-more"')<toolbar.indexOf('id="ki-outline-toggle"'),'structure view is inside secondary actions');
+  assert.match(js,/const validateKnowledgeInput=/);
+  assert.match(js,/!title\.trim\(\)/);
+  assert.match(js,/!markdown\.trim\(\)/);
+  assert.match(js,/textBytes\(markdown\)>150000/);
+  assert.match(js,/tags\.length>12/);
+  assert.match(js,/value\.length>30/);
+  assert.match(js,/function reflectValidation\(stage\)/);
+  assert.match(js,/setAttribute\('aria-invalid'/);
+  assert.match(js,/if\(control\.id==='ki-save'\)[^\n]*formProblem\('edit'\)/);
+  assert.match(js,/if\(control\.id==='ki-create-save'\)[^\n]*formProblem\('create'\)/);
+  assert.match(js,/if\(issue\)throw new Error\(issue\)/);
+  assert.match(js,/q\('edit-size'\)\.hidden=!large/);
+  assert.match(js,/q\('more'\)\.open=false;\s*const show=q\('outline'\)\.hidden/);
+  assert.match(css,/\.ki \.ki-field-error/);
+  assert.match(css,/\.ki \.ki-extra-details\[data-invalid=true\]/);
+  assert.doesNotMatch(js,/\.innerHTML\s*=/,'validation errors must never be interpreted as HTML');
+});
+
+test('R24.7 keeps first screen save controls reachable with compact resizable writing fields',()=>{
+  assert.match(html,/id="ki-content"[^>]*rows="12"/);
+  assert.match(html,/id="ki-create-body"[^>]*rows="12"/);
+  assert.match(html,/id="ki-back"[^>]*>← 返回列表<\/button>/);
+  assert.match(html,/id="ki-create-cancel"[^>]*>← 返回列表<\/button>/);
+  assert.match(css,/\.ki \.ki-writing-view \.ki-content\{[^}]*height:344px;min-height:300px/);
+  assert.match(css,/@media\(max-width:399px\)\{[^}]*height:328px;min-height:300px/);
+  assert.match(css,/@media\(min-width:700px\)\{\.ki \.ki-writing-view \.ki-content\{height:460px;min-height:340px\}\}/);
 });

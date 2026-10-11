@@ -1,0 +1,17 @@
+{"time":"2026-10-11T08:07:46.178Z","argv":["init"],"pid":74794}
+{"time":"2026-10-11T08:08:16.945Z","argv":["open","native-agent/settings.html"],"pid":74794}
+{"time":"2026-10-11T08:09:03.569Z","argv":["click","881DD61EF7FF93888FF47C3FDAF7E189","#bridge-enable"],"pid":74794}
+{"time":"2026-10-11T08:09:20.135Z","argv":["extensions-details","1393A677108E126C58D1EAD3079D546A"],"pid":74794}
+{"time":"2026-10-11T08:09:20.192Z","argv":["extension-reload","1393A677108E126C58D1EAD3079D546A"],"pid":74794}
+{"time":"2026-10-11T08:09:21.033Z","argv":["open","native-agent/settings.html"],"pid":74794}
+{"time":"2026-10-11T08:09:36.567Z","argv":["open","native-agent/workspace.html?workspaceId=workspace-9996df7d-66ba-4786-85ca-0364f1a9a6f3"],"pid":74794}
+{"time":"2026-10-11T08:10:00.420Z","argv":["click","31F3B9D02446FCAACEFD967A3058A5BD","[data-view=\"source\"]"],"pid":74794}
+{"time":"2026-10-11T08:10:00.638Z","argv":["type","31F3B9D02446FCAACEFD967A3058A5BD","#file-editor","R23_CACHE_INVALIDATION_01a1299e 撤权不写盘且立即禁用保存"],"pid":74794}
+{"time":"2026-10-11T08:10:00.862Z","argv":["native-state","31F3B9D02446FCAACEFD967A3058A5BD","revoke-before"],"pid":74794}
+{"time":"2026-10-11T08:10:01.574Z","argv":["tab-to","31F3B9D02446FCAACEFD967A3058A5BD","save-file","8"],"pid":74794}
+{"time":"2026-10-11T08:10:01.649Z","argv":["key","31F3B9D02446FCAACEFD967A3058A5BD","Enter"],"pid":74794}
+{"time":"2026-10-11T08:10:01.857Z","argv":["native-state","31F3B9D02446FCAACEFD967A3058A5BD","revoke-after"],"pid":74794}
+{"time":"2026-10-11T08:10:01.913Z","argv":["observe","31F3B9D02446FCAACEFD967A3058A5BD","revoke-fixed-360","360"],"pid":74794}
+{"time":"2026-10-11T08:11:16.404Z","argv":["observe","1393A677108E126C58D1EAD3079D546A","final-extensions-identity"],"pid":74794}
+{"time":"2026-10-11T08:16:28.802Z","argv":["click","A91FFB54593280C653DAF6A5647EA9DD","#bridge-disable"],"pid":74794}
+{"time":"2026-10-11T08:16:29.039Z","argv":["extension-disable","1393A677108E126C58D1EAD3079D546A"],"pid":74794}

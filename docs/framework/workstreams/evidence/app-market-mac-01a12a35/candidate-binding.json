@@ -1,0 +1,5 @@
+{
+  "supersededBy": "final-candidate/candidate-binding.json",
+  "historicalAcceptedBinding": "accepted-before-remote-advance-binding.json",
+  "note": "Early binding was captured before the driver settled; do not use it to promote that raw receipt to the final candidate."
+}

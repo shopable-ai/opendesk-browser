@@ -1,0 +1,5 @@
+
+> opendesk-browser@0.1.0 build:market-site
+> node scripts/build-market-site.mjs
+
+{"output":"/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/evidence/app-market-mac-01a12a35/final-candidate/market-site","apps":5,"origin":null,"externalInstall":"NOT_CONFIGURED"}

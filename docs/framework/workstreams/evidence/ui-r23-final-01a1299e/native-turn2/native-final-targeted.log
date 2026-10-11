@@ -1,0 +1,41 @@
+✔ knowledge tool is a distinct, bounded, reproducible v1 package with explicit new capabilities (6.98925ms)
+✔ capture requires separate origin consent and both declared capabilities (0.831416ms)
+✔ capture source strips secrets; repeated captures preserve personally edited metadata and draft (1.707875ms)
+✔ selection identity differs; search includes edited draft, labels and notes (0.705208ms)
+✔ UTF-8 content, record count, total quota and malformed durable data fail without mutation (109.31975ms)
+✔ two page captures are serialized, duplicates stay singular, stale editors cannot overwrite (5.549167ms)
+✔ page cannot read the inbox; invalid iframe, host document, tool hash and source are rejected (0.692375ms)
+✔ independent extension TAB verifies its live context when webNavigation has no frame (0.84025ms)
+✔ same-URL reload, navigation and browser permission removal fence page writes (1.998125ms)
+✔ capture and uninstall use one lock; queued stale captures never recreate removed data (1.144709ms)
+✔ full Markdown export exceeds old clip budget without truncating; direct download survives broken inbox (5.3595ms)
+✔ image download rejects arbitrary origins and data/blob resources; acknowledges only Chrome request (1.409791ms)
+✔ Workspace handoff is tab-bound, expires, preserves exact text and never dispatches Native writes (5.425792ms)
+✔ v1 capture migration fills only an absent draft and does not mutate the stored input (32.83825ms)
+✔ Workspace import rereads durable session under the uninstall lock, and retains failed handoffs (3.400167ms)
+✔ Native remains optional after merging the current permission catalog (2.06375ms)
+✔ independent SW budget and fixed packaged Native transport entry (0.576875ms)
+✔ single exact same-extension static import allowed in SW only (3.615125ms)
+✔ fixed transport registers listeners on the original SW APIs; default-off does not connect (0.522042ms)
+✔ R23 semantic tokens are sole source of shared values and carry no page reset (4.300042ms)
+✔ R23 trusted page styles respect explicit load order and sandbox boundary (1.745292ms)
+✔ Workspace restores focus lost to busy controls and respects focus moved during the operation (31.077583ms)
+✔ Workspace invalidates visible write controls when a previously writable grant is revoked or downgraded (17.145333ms)
+✔ Workspace selection A is carried to the file sidebar by verified ID, and saving A cannot affect same-name B (13.381958ms)
+✔ A to no online directories to B preserves A identity, label and draft until explicit selection (11.70025ms)
+✔ same directory with a new lease cannot save a record read in the old lease, including explicit empty epoch (7.713125ms)
+✔ a Native state/catalog session mismatch clears operation authority without mixing identities (5.26575ms)
+✔ SPA round trips and tab removal retire request bindings; disconnect clears authority immediately (21.695959ms)
+✔ knowledge handoff enters actual Workspace controller, guards unsaved switching and creates only by explicit action (18.738708ms)
+✔ R22 production and development publish the same generated Tailwind CSS (120.229291ms)
+✔ R22 workspace HTML retains critical controls and collapses secondary panels (0.701292ms)
+✔ R22 CSS scanner rejects uncompiled directives and missing design contract (0.408042ms)
+✔ Workspace memory demo builds with the same compiled stylesheet after removal of source workspace.css (274.409792ms)
+ℹ tests 33
+ℹ suites 0
+ℹ pass 33
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 518.11325

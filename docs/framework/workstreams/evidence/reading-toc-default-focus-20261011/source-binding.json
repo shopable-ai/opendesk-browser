@@ -1,0 +1,14 @@
+{
+  "baseHead": "c83c065dd9bc3b1f8fe4e9c9687e2d6243ce7818",
+  "workingTree": true,
+  "isolatedBuildRoot": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-toc-default-focus-20261011-pnavg7eo",
+  "inputs": {
+    "src/reading-toc/view.js": "58005da47f7a2a6328039e32096f9d03ee0b0b6cf88c9132868ddaa46b008b7c",
+    "examples/sidebar-tools/reading-toc/src/main.js": "1aac895f0b81c261de358a6dc8890bc0de065fcca7f6edeb1189cf804c209cc6",
+    "examples/sidebar-tools/reading-toc/src/index.html": "f7ff307dfac1e568327ef6846e03b7612231a25072dcf7cc2f97e9e66b4605e8",
+    "examples/sidebar-tools/reading-toc/tool.config.json": "371b2430f5b9de19b8b0b4ed113b0185109204908f19e0378aac4ae314893686",
+    "tests/environment/reading-toc-placement-r42.test.mjs": "a3da5dd50a93f1465415f3ce4568e194287693abb445fc34979ec79a1d943996",
+    "tests/environment/reading-toc-overview-r43.test.mjs": "bb7cba76c955375832e330b8ee5789a2bf312917c47d4e36b612b59b350791d1",
+    "examples/sidebar-tools/reading-toc/README.md": "9b2ea7cad1832e8860a4ef08bc5614ec9425f070d2e52b92f08560a2da0341b5"
+  }
+}

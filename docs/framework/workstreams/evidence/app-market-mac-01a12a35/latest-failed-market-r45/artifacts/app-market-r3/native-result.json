@@ -1,0 +1,535 @@
+{
+  "result": "FAILED",
+  "commit": "6e5f1dc7bc72a64c20a3aeda7c8e1d7ebfe83437",
+  "extensionPath": "/home/runner/work/opendesk-browser/opendesk-browser/dist/production",
+  "packageHash": "e981b9aa432b7899ea2b5bf365c97597f4a52ec8d45a1970d3b89de41e157e91",
+  "catalogSha256": "91d980524ba8962d3dfcb02ff3db28dee7605de353726b2162c709d8eaf0291d",
+  "releases": [
+    {
+      "id": "opendesk/reading-toc",
+      "toolId": "reading-toc",
+      "kind": "sidebar-tool",
+      "installationPolicy": "optional",
+      "version": "1.0.2",
+      "packageTitle": "阅读目录",
+      "description": "在侧边栏或授权网页中查看章节并精准跳转。",
+      "capabilities": [
+        "page.toc"
+      ],
+      "packagePath": "official-tools/reading-toc/reading-toc.opendesk-tool.json",
+      "bytes": 9374,
+      "sha256": "ba7329fb33ea8da2d125e9152998730eaab6f8e9261b2597fa5191e9c2996dd9"
+    },
+    {
+      "id": "opendesk/web-markdown-clipper",
+      "toolId": "web-markdown-clipper",
+      "kind": "sidebar-tool",
+      "installationPolicy": "optional",
+      "version": "1.0.0",
+      "packageTitle": "网页剪藏",
+      "description": "在授权的网站上主动剪藏文章、选区、引用和链接为 Markdown。",
+      "capabilities": [
+        "page.clip",
+        "user.export"
+      ],
+      "packagePath": "official-tools/web-markdown-clipper/web-markdown-clipper.opendesk-tool.json",
+      "bytes": 10209,
+      "sha256": "c4d1dc7b605e1d981840f3064a116a157d2ed6a01f720ec585278129d4c111a8"
+    },
+    {
+      "id": "opendesk/quick-notes",
+      "toolId": "quick-notes",
+      "kind": "sidebar-tool",
+      "installationPolicy": "optional",
+      "version": "1.1.5",
+      "packageTitle": "网页笔记",
+      "description": "在侧栏离线管理多条本地笔记，可选择关联当前网页，不自动操作网站。",
+      "capabilities": [
+        "storage.local",
+        "currentPage.read",
+        "tasks.open"
+      ],
+      "packagePath": "official-tools/quick-notes/quick-notes.opendesk-tool.json",
+      "bytes": 21798,
+      "sha256": "1de25dfcf8f129f7a9fe97bf2d7b3a499240248d134bbfd01961515886bf40de"
+    },
+    {
+      "id": "opendesk/markdown-workbench",
+      "toolId": "markdown-workbench",
+      "kind": "sidebar-tool",
+      "installationPolicy": "optional",
+      "version": "1.0.0",
+      "packageTitle": "Markdown 工作台",
+      "description": "离线编辑、预览、导入和导出 Markdown；无需网页权限。",
+      "capabilities": [
+        "user.export"
+      ],
+      "packagePath": "official-tools/markdown-workbench/markdown-workbench.opendesk-tool.json",
+      "bytes": 13016,
+      "sha256": "6479beaf3d38ad6ef14d9d0b8bd6164cc52876c0d8f15d0330a1dc07dac64606"
+    },
+    {
+      "id": "opendesk/knowledge-inbox",
+      "toolId": "knowledge-inbox",
+      "kind": "sidebar-tool",
+      "installationPolicy": "optional",
+      "version": "1.1.1",
+      "packageTitle": "知识收件箱",
+      "description": "保存 ChatGPT 回答和灵感，整理草稿、标签与备注，导出自己的 Markdown。",
+      "capabilities": [
+        "page.capture",
+        "knowledge.store",
+        "user.export"
+      ],
+      "packagePath": "official-tools/knowledge-inbox/knowledge-inbox.opendesk-tool.json",
+      "bytes": 42525,
+      "sha256": "9331acb4e4368b40ec39413e93af0c467b920a818c6f8a76ba87b052bf6e5f5b"
+    }
+  ],
+  "phases": [
+    {
+      "name": "fresh-optional-state"
+    },
+    {
+      "name": "market-five-reviewed-installs-and-real-sandboxes"
+    },
+    {
+      "name": "market-fixed-unavailable-version-and-current-batch"
+    },
+    {
+      "name": "side-panel-official-installs-and-cross-window-confirmation"
+    },
+    {
+      "name": "independent-origin-grants-and-explicit-page-clip"
+    },
+    {
+      "name": "controlled-local-old-version-and-reviewed-official-upgrade"
+    },
+    {
+      "name": "panel-close-reopen-preserves-grants-and-no-automatic-tool-instance"
+    }
+  ],
+  "dialogs": [
+    {
+      "stage": "market-fixed-unavailable-version-and-current-batch",
+      "sessionId": "F3C4D8EEBD6473E4D339EED7F79DC780",
+      "type": "confirm",
+      "message": "卸载「网页剪藏」并删除此工具保存的数据？",
+      "accept": true,
+      "matched": true
+    },
+    {
+      "stage": "market-fixed-unavailable-version-and-current-batch",
+      "sessionId": "F3C4D8EEBD6473E4D339EED7F79DC780",
+      "type": "confirm",
+      "message": "卸载「知识收件箱」并删除此工具保存的数据？",
+      "accept": true,
+      "matched": true
+    },
+    {
+      "stage": "market-fixed-unavailable-version-and-current-batch",
+      "sessionId": "F3C4D8EEBD6473E4D339EED7F79DC780",
+      "type": "confirm",
+      "message": "卸载「阅读目录」并删除此工具保存的数据？",
+      "accept": true,
+      "matched": true
+    },
+    {
+      "stage": "market-fixed-unavailable-version-and-current-batch",
+      "sessionId": "F3C4D8EEBD6473E4D339EED7F79DC780",
+      "type": "confirm",
+      "message": "卸载「网页剪藏」并删除此工具保存的数据？",
+      "accept": true,
+      "matched": true
+    },
+    {
+      "stage": "market-fixed-unavailable-version-and-current-batch",
+      "sessionId": "F3C4D8EEBD6473E4D339EED7F79DC780",
+      "type": "confirm",
+      "message": "卸载「网页笔记」并删除此工具保存的数据？",
+      "accept": true,
+      "matched": true
+    },
+    {
+      "stage": "market-fixed-unavailable-version-and-current-batch",
+      "sessionId": "F3C4D8EEBD6473E4D339EED7F79DC780",
+      "type": "confirm",
+      "message": "卸载「Markdown 工作台」并删除此工具保存的数据？",
+      "accept": true,
+      "matched": true
+    },
+    {
+      "stage": "market-fixed-unavailable-version-and-current-batch",
+      "sessionId": "F3C4D8EEBD6473E4D339EED7F79DC780",
+      "type": "confirm",
+      "message": "卸载「知识收件箱」并删除此工具保存的数据？",
+      "accept": true,
+      "matched": true
+    },
+    {
+      "stage": "independent-origin-grants-and-explicit-page-clip",
+      "sessionId": "F3C4D8EEBD6473E4D339EED7F79DC780",
+      "type": "confirm",
+      "message": "允许「阅读目录」读取 http://127.0.0.1:37149 的章节标题并显示网页目录？",
+      "accept": true,
+      "matched": true
+    },
+    {
+      "stage": "independent-origin-grants-and-explicit-page-clip",
+      "sessionId": "F3C4D8EEBD6473E4D339EED7F79DC780",
+      "type": "confirm",
+      "message": "允许「网页剪藏」按你的操作读取 http://127.0.0.1:37149 的文章正文或选区？",
+      "accept": true,
+      "matched": true
+    },
+    {
+      "stage": "controlled-local-old-version-and-reviewed-official-upgrade",
+      "sessionId": "F3C4D8EEBD6473E4D339EED7F79DC780",
+      "type": "confirm",
+      "message": "更新「网页笔记」包含版本回退。原工具数据会保留。确认更新吗？",
+      "accept": true,
+      "matched": true
+    },
+    {
+      "stage": "controlled-local-old-version-and-reviewed-official-upgrade",
+      "sessionId": "F3C4D8EEBD6473E4D339EED7F79DC780",
+      "type": "confirm",
+      "message": "现有工具的来源尚未核对。确认用已验证的官方发行包替换，并保留其本机数据？",
+      "accept": true,
+      "matched": true
+    },
+    {
+      "stage": "controlled-local-old-version-and-reviewed-official-upgrade",
+      "sessionId": "F3C4D8EEBD6473E4D339EED7F79DC780",
+      "type": "confirm",
+      "message": "更新「网页笔记」包含新增能力：读取当前网页标题和地址、打开已安装任务。原工具数据会保留。确认更新吗？",
+      "accept": false,
+      "matched": true
+    },
+    {
+      "stage": "controlled-local-old-version-and-reviewed-official-upgrade",
+      "sessionId": "F3C4D8EEBD6473E4D339EED7F79DC780",
+      "type": "confirm",
+      "message": "现有工具的来源尚未核对。确认用已验证的官方发行包替换，并保留其本机数据？",
+      "accept": true,
+      "matched": true
+    },
+    {
+      "stage": "controlled-local-old-version-and-reviewed-official-upgrade",
+      "sessionId": "F3C4D8EEBD6473E4D339EED7F79DC780",
+      "type": "confirm",
+      "message": "更新「网页笔记」包含新增能力：读取当前网页标题和地址、打开已安装任务。原工具数据会保留。确认更新吗？",
+      "accept": true,
+      "matched": true
+    },
+    {
+      "stage": "controlled-local-old-version-and-reviewed-official-upgrade",
+      "sessionId": "F3C4D8EEBD6473E4D339EED7F79DC780",
+      "type": "confirm",
+      "message": "更新「阅读目录」包含版本回退。原工具数据会保留。确认更新吗？",
+      "accept": true,
+      "matched": true
+    },
+    {
+      "stage": "controlled-local-old-version-and-reviewed-official-upgrade",
+      "sessionId": "F3C4D8EEBD6473E4D339EED7F79DC780",
+      "type": "confirm",
+      "message": "现有工具的来源尚未核对。确认用已验证的官方发行包替换，并保留其本机数据？",
+      "accept": true,
+      "matched": true
+    }
+  ],
+  "dialogErrors": [],
+  "chromeLifecycles": [
+    {
+      "generation": 1,
+      "pid": 5729,
+      "profile": "/tmp/opendesk-market-r45-HiQZOz",
+      "argv": [
+        "--no-sandbox",
+        "--disable-gpu",
+        "--disable-dev-shm-usage",
+        "--no-first-run",
+        "--no-default-browser-check",
+        "--disable-background-networking",
+        "--window-size=1280,960",
+        "--remote-allow-origins=*",
+        "--remote-debugging-address=127.0.0.1",
+        "--remote-debugging-port=0",
+        "--user-data-dir=/tmp/opendesk-market-r45-HiQZOz",
+        "--disable-extensions-except=/home/runner/work/opendesk-browser/opendesk-browser/dist/production",
+        "--load-extension=/home/runner/work/opendesk-browser/opendesk-browser/dist/production",
+        "about:blank"
+      ],
+      "stderr": "mory representation from a non-existent mailbox.\n[5757:5768:1011/090640.231158:ERROR:gpu/command_buffer/service/shared_image/shared_image_manager.cc:401] SharedImageManager::ProduceMemory: Trying to Produce a Memory representation from a non-existent mailbox.\n[5757:5768:1011/090640.231497:ERROR:gpu/command_buffer/service/shared_image/shared_image_manager.cc:401] SharedImageManager::ProduceMemory: Trying to Produce a Memory representation from a non-existent mailbox.\n[5757:5768:1011/090640.231689:ERROR:gpu/command_buffer/service/shared_image/shared_image_manager.cc:401] SharedImageManager::ProduceMemory: Trying to Produce a Memory representation from a non-existent mailbox.\n[5757:5768:1011/090640.231773:ERROR:gpu/command_buffer/service/shared_image/shared_image_manager.cc:401] SharedImageManager::ProduceMemory: Trying to Produce a Memory representation from a non-existent mailbox.\n[5757:5768:1011/090640.231844:ERROR:gpu/command_buffer/service/shared_image/shared_image_manager.cc:401] SharedImageManager::ProduceMemory: Trying to Produce a Memory representation from a non-existent mailbox.\n[5757:5768:1011/090641.717991:ERROR:gpu/command_buffer/service/shared_image/shared_image_manager.cc:401] SharedImageManager::ProduceMemory: Trying to Produce a Memory representation from a non-existent mailbox.\n[5757:5768:1011/090641.718313:ERROR:gpu/command_buffer/service/shared_image/shared_image_manager.cc:401] SharedImageManager::ProduceMemory: Trying to Produce a Memory representation from a non-existent mailbox.\n[5757:5768:1011/090641.718415:ERROR:gpu/command_buffer/service/shared_image/shared_image_manager.cc:401] SharedImageManager::ProduceMemory: Trying to Produce a Memory representation from a non-existent mailbox.\n[5757:5768:1011/090641.718710:ERROR:gpu/command_buffer/service/shared_image/shared_image_manager.cc:401] SharedImageManager::ProduceMemory: Trying to Produce a Memory representation from a non-existent mailbox.\n[5757:5768:1011/090641.732266:ERROR:gpu/command_buffer/service/shared_image/shared_image_manager.cc:401] SharedImageManager::ProduceMemory: Trying to Produce a Memory representation from a non-existent mailbox.\n[5757:5768:1011/090641.732358:ERROR:gpu/command_buffer/service/shared_image/shared_image_manager.cc:401] SharedImageManager::ProduceMemory: Trying to Produce a Memory representation from a non-existent mailbox.\n[5757:5768:1011/090641.732451:ERROR:gpu/command_buffer/service/shared_image/shared_image_manager.cc:401] SharedImageManager::ProduceMemory: Trying to Produce a Memory representation from a non-existent mailbox.\n[5757:5768:1011/090641.732679:ERROR:gpu/command_buffer/service/shared_image/shared_image_manager.cc:401] SharedImageManager::ProduceMemory: Trying to Produce a Memory representation from a non-existent mailbox.\n[5729:5744:1011/090642.954107:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are \"tcp\" and on UNIX \"unix\")\n[5729:5729:1011/090642.954144:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: \n[5729:5744:1011/090642.954190:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are \"tcp\" and on UNIX \"unix\")\n[5729:5729:1011/090642.954596:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: \n[5729:5744:1011/090647.177744:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are \"tcp\" and on UNIX \"unix\")\n[5729:5729:1011/090647.177856:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: \n[5729:5744:1011/090647.177905:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are \"tcp\" and on UNIX \"unix\")\n[5729:5729:1011/090647.177947:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: \n[5729:5744:1011/090650.503084:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are \"tcp\" and on UNIX \"unix\")\n[5729:5729:1011/090650.503127:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: \n[5729:5744:1011/090650.503178:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are \"tcp\" and on UNIX \"unix\")\n[5729:5729:1011/090650.503203:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: \n",
+      "normalExit": false,
+      "version": "Chrome/155.0.8059.39",
+      "extensionId": "jhajepcnohiplmafaiokjlcagcfjgaap"
+    }
+  ],
+  "sites": [
+    "http://127.0.0.1:37149",
+    "http://127.0.0.1:33043"
+  ],
+  "privateDataVia": "native input and save",
+  "storageWritesFromDriver": 0,
+  "publicWebsite": "NOT_TESTED",
+  "actualMacChrome": "NOT_TESTED",
+  "fullFrameworkF3": "NOT_TESTED",
+  "zipInstallation": "NOT_TESTED",
+  "publicMarket": "NOT_CONFIGURED",
+  "sidePanelCloseControl": "CDP closes actual SIDE_PANEL target; native toolbar close button NOT_TESTED",
+  "extensionId": "jhajepcnohiplmafaiokjlcagcfjgaap",
+  "panelOpenAttempts": [
+    {
+      "stage": "launch",
+      "launcherTargetId": "017CB3D97024D977085860902620F5E1",
+      "requestedWindowId": 1254361826,
+      "before": [],
+      "openResult": {
+        "trusted": true,
+        "status": "opened"
+      },
+      "after": [
+        {
+          "contextId": "9b08e340-ca7e-49b5-b1bf-8913b306d0f9",
+          "contextType": "SIDE_PANEL",
+          "documentId": "233054EE0CFB395A5B87AB4B668216C1",
+          "documentOrigin": "chrome-extension://jhajepcnohiplmafaiokjlcagcfjgaap",
+          "documentUrl": "chrome-extension://jhajepcnohiplmafaiokjlcagcfjgaap/ui/tool.html?hostInstanceId=b4fb0ac7-ff39-4590-a8f6-71c4901899c0",
+          "frameId": 0,
+          "incognito": false,
+          "tabId": -1,
+          "windowId": -1
+        }
+      ],
+      "panel": {
+        "contextId": "9b08e340-ca7e-49b5-b1bf-8913b306d0f9",
+        "contextWindowId": -1,
+        "targetId": "E795D6176CB9405CB084CF38FAA1A2B5",
+        "documentUrl": "chrome-extension://jhajepcnohiplmafaiokjlcagcfjgaap/ui/tool.html?hostInstanceId=b4fb0ac7-ff39-4590-a8f6-71c4901899c0",
+        "observedWindowId": 1254361826
+      }
+    },
+    {
+      "stage": "side-panel-official-installs-and-cross-window-confirmation",
+      "launcherTargetId": "B757FCF0B6182241C9EAB3ECC35C0601",
+      "requestedWindowId": 1254361843,
+      "before": [
+        {
+          "contextId": "9b08e340-ca7e-49b5-b1bf-8913b306d0f9",
+          "contextType": "SIDE_PANEL",
+          "documentId": "233054EE0CFB395A5B87AB4B668216C1",
+          "documentOrigin": "chrome-extension://jhajepcnohiplmafaiokjlcagcfjgaap",
+          "documentUrl": "chrome-extension://jhajepcnohiplmafaiokjlcagcfjgaap/ui/tool.html?hostInstanceId=b4fb0ac7-ff39-4590-a8f6-71c4901899c0",
+          "frameId": 0,
+          "incognito": false,
+          "tabId": -1,
+          "windowId": -1
+        }
+      ],
+      "openResult": {
+        "trusted": true,
+        "status": "opened"
+      },
+      "after": [
+        {
+          "contextId": "9b08e340-ca7e-49b5-b1bf-8913b306d0f9",
+          "contextType": "SIDE_PANEL",
+          "documentId": "233054EE0CFB395A5B87AB4B668216C1",
+          "documentOrigin": "chrome-extension://jhajepcnohiplmafaiokjlcagcfjgaap",
+          "documentUrl": "chrome-extension://jhajepcnohiplmafaiokjlcagcfjgaap/ui/tool.html?hostInstanceId=b4fb0ac7-ff39-4590-a8f6-71c4901899c0",
+          "frameId": 0,
+          "incognito": false,
+          "tabId": -1,
+          "windowId": -1
+        },
+        {
+          "contextId": "823d4288-d700-4c5d-9061-b6d8f07ff86c",
+          "contextType": "SIDE_PANEL",
+          "documentId": "08E4386840375EA0FAFC89FCAD4FA36F",
+          "documentOrigin": "chrome-extension://jhajepcnohiplmafaiokjlcagcfjgaap",
+          "documentUrl": "chrome-extension://jhajepcnohiplmafaiokjlcagcfjgaap/ui/tool.html?hostInstanceId=501980b3-ffb1-4e1e-b5fe-682547b10cae",
+          "frameId": 0,
+          "incognito": false,
+          "tabId": -1,
+          "windowId": -1
+        }
+      ],
+      "panel": {
+        "contextId": "823d4288-d700-4c5d-9061-b6d8f07ff86c",
+        "contextWindowId": -1,
+        "targetId": "630C0D6E50CE865DA5678561B2840CA2",
+        "documentUrl": "chrome-extension://jhajepcnohiplmafaiokjlcagcfjgaap/ui/tool.html?hostInstanceId=501980b3-ffb1-4e1e-b5fe-682547b10cae",
+        "observedWindowId": 1254361843
+      }
+    },
+    {
+      "stage": "panel-close-reopen-preserves-grants-and-no-automatic-tool-instance",
+      "launcherTargetId": "017CB3D97024D977085860902620F5E1",
+      "requestedWindowId": 1254361826,
+      "before": [],
+      "openResult": {
+        "trusted": true,
+        "status": "opened"
+      },
+      "after": [
+        {
+          "contextId": "09f04b31-4ef1-4b49-8c4f-e5d43ac89558",
+          "contextType": "SIDE_PANEL",
+          "documentId": "AFD36E6B43A278D80784D4714FE4B545",
+          "documentOrigin": "chrome-extension://jhajepcnohiplmafaiokjlcagcfjgaap",
+          "documentUrl": "chrome-extension://jhajepcnohiplmafaiokjlcagcfjgaap/ui/tool.html?hostInstanceId=e2b02678-a054-4f40-bd29-3e34c678a51f",
+          "frameId": 0,
+          "incognito": false,
+          "tabId": -1,
+          "windowId": -1
+        }
+      ],
+      "panel": {
+        "contextId": "09f04b31-4ef1-4b49-8c4f-e5d43ac89558",
+        "contextWindowId": -1,
+        "targetId": "08D2EFC2249B5D2CA98BACE758F22A72",
+        "documentUrl": "chrome-extension://jhajepcnohiplmafaiokjlcagcfjgaap/ui/tool.html?hostInstanceId=e2b02678-a054-4f40-bd29-3e34c678a51f",
+        "observedWindowId": 1254361826
+      }
+    }
+  ],
+  "batch": {
+    "collectionId": "my-selection",
+    "revision": 1791709601939,
+    "statuses": [
+      "skip",
+      "succeeded",
+      "skip",
+      "skip",
+      "succeeded"
+    ],
+    "operationIds": [
+      "4fa4b762-4ed2-4dbc-8dba-9ca7917105a8",
+      "47224393-2ece-4300-b57b-b692ffb10afd",
+      "44d56d3b-a5a0-4f6c-8dcd-d5de1c4ec050",
+      "339bd890-cbfd-413e-a5bd-053a3585df46",
+      "3f755b1e-72b0-4c37-9a47-c38e5a37e22c"
+    ],
+    "reloadVerified": true,
+    "unavailableOldRevisionNotSubstituted": true
+  },
+  "concurrentPanels": [
+    {
+      "windowId": 1254361826,
+      "contextId": "9b08e340-ca7e-49b5-b1bf-8913b306d0f9",
+      "targetId": "E795D6176CB9405CB084CF38FAA1A2B5",
+      "documentUrl": "chrome-extension://jhajepcnohiplmafaiokjlcagcfjgaap/ui/tool.html?hostInstanceId=b4fb0ac7-ff39-4590-a8f6-71c4901899c0"
+    },
+    {
+      "windowId": 1254361843,
+      "contextId": "823d4288-d700-4c5d-9061-b6d8f07ff86c",
+      "targetId": "630C0D6E50CE865DA5678561B2840CA2",
+      "documentUrl": "chrome-extension://jhajepcnohiplmafaiokjlcagcfjgaap/ui/tool.html?hostInstanceId=501980b3-ffb1-4e1e-b5fe-682547b10cae"
+    }
+  ],
+  "failedStage": "panel-close-reopen-preserves-grants-and-no-automatic-tool-instance",
+  "failedSidePanel": {
+    "url": "chrome-extension://jhajepcnohiplmafaiokjlcagcfjgaap/ui/tool.html?hostInstanceId=e2b02678-a054-4f40-bd29-3e34c678a51f",
+    "title": "OpenDesk Browser",
+    "ready": "complete",
+    "status": "已撤销 http://127.0.0.1:37149 的目录授权",
+    "importError": "",
+    "body": "我的\n发现\n工作流\n开发\n工具\n自定义工具\n应用市场\n＋ 导入\n阅读目录\nv1.0.2\n已安装\n网页剪藏\nv1.0.0\n已安装\n网页笔记\nv1.1.5\n已安装\nMarkdown 工作台\nv1.0.0\n已安装\n知识收件箱\nv1.1.1\n已安装\n阅读目录\n在侧边栏或授权网页中查看章节并精准跳转。\nv1.0.2\n◎\n⋯\n↗\n网页剪藏\n在授权的网站上主动剪藏文章、选区、引用和链接为 Markdown。\nv1.0.0\n◎\n⋯\nhttp://127.0.0.1:37149\n撤销\n↗\n网页笔记\n在侧栏离线管理多条本地笔记，可选择关联当前网页，不自动操作网站。\nv1.1.5\n↗\n知识收件箱\n保存 ChatGPT 回答和灵感，整理草稿、标签与备注，导出自己的 Markdown。\nv1.1.1\n◎\n⋯\n↗\nMarkdown 工作台\n离线编辑、预览、导入和导出 Markdown；无需网页权限。\nv1.0.0\n↗\n\n已撤销 http://127.0.0.1:37149 的目录授权"
+  },
+  "failedTargets": {
+    "targetInfos": [
+      {
+        "targetId": "8C01546167AF7388ED531B6E5484B17B",
+        "type": "service_worker",
+        "title": "Service Worker chrome-extension://jhajepcnohiplmafaiokjlcagcfjgaap/sw.js",
+        "url": "chrome-extension://jhajepcnohiplmafaiokjlcagcfjgaap/sw.js",
+        "attached": false,
+        "canAccessOpener": false,
+        "browserContextId": "0A842D3C7E01A1CB960E3C63CECC4FD1"
+      },
+      {
+        "targetId": "9BB38071D578969B08EDA9734EFC70A6",
+        "type": "service_worker",
+        "title": "Service Worker chrome-extension://nkeimhogjdpnpccoofpliimaahmaaome/thunk.js",
+        "url": "chrome-extension://nkeimhogjdpnpccoofpliimaahmaaome/thunk.js",
+        "attached": false,
+        "canAccessOpener": false,
+        "browserContextId": "0A842D3C7E01A1CB960E3C63CECC4FD1"
+      },
+      {
+        "targetId": "EDEFA896AC3C85F9205BFE4EBC94BA51",
+        "type": "service_worker",
+        "title": "Service Worker chrome-extension://glbjnfimcajjenihimblfaponejbkoph/background.js",
+        "url": "chrome-extension://glbjnfimcajjenihimblfaponejbkoph/background.js",
+        "attached": false,
+        "canAccessOpener": false,
+        "browserContextId": "0A842D3C7E01A1CB960E3C63CECC4FD1"
+      },
+      {
+        "targetId": "EE9E36A490254E6C279DADD051F3FB98",
+        "type": "browser_ui",
+        "title": "Omnibox Popup",
+        "url": "chrome://omnibox-popup.top-chrome/omnibox_popup_aim.html",
+        "attached": false,
+        "canAccessOpener": false,
+        "browserContextId": "0A842D3C7E01A1CB960E3C63CECC4FD1"
+      },
+      {
+        "targetId": "4DA9337D4B450515216287A1798446FA",
+        "type": "browser_ui",
+        "title": "Omnibox Popup",
+        "url": "chrome://omnibox-popup.top-chrome/",
+        "attached": false,
+        "canAccessOpener": false,
+        "browserContextId": "0A842D3C7E01A1CB960E3C63CECC4FD1"
+      },
+      {
+        "targetId": "FC48782804902664886DCFA755275E7A",
+        "type": "page",
+        "title": "R45 A",
+        "url": "http://127.0.0.1:37149/article",
+        "attached": true,
+        "canAccessOpener": false,
+        "browserContextId": "0A842D3C7E01A1CB960E3C63CECC4FD1"
+      },
+      {
+        "targetId": "017CB3D97024D977085860902620F5E1",
+        "type": "page",
+        "title": "OpenDesk Browser",
+        "url": "chrome-extension://jhajepcnohiplmafaiokjlcagcfjgaap/ui/tool.html?hostInstanceId=62d1e122-9d36-498a-874a-3a0240bfc967",
+        "attached": true,
+        "canAccessOpener": false,
+        "browserContextId": "0A842D3C7E01A1CB960E3C63CECC4FD1"
+      },
+      {
+        "targetId": "4A762FC82CB8AA7D9D2ED10845BA564A",
+        "type": "page",
+        "title": "about:blank",
+        "url": "about:blank",
+        "attached": false,
+        "canAccessOpener": false,
+        "browserContextId": "0A842D3C7E01A1CB960E3C63CECC4FD1"
+      },
+      {
+        "targetId": "08D2EFC2249B5D2CA98BACE758F22A72",
+        "type": "page",
+        "title": "OpenDesk Browser",
+        "url": "chrome-extension://jhajepcnohiplmafaiokjlcagcfjgaap/ui/tool.html?hostInstanceId=e2b02678-a054-4f40-bd29-3e34c678a51f",
+        "attached": true,
+        "canAccessOpener": false,
+        "browserContextId": "0A842D3C7E01A1CB960E3C63CECC4FD1"
+      },
+      {
+        "targetId": "8AAD17AC01DF5416E9B1749118455531",
+        "type": "page",
+        "title": "R45 B",
+        "url": "http://127.0.0.1:33043/article",
+        "attached": true,
+        "canAccessOpener": false,
+        "browserContextId": "0A842D3C7E01A1CB960E3C63CECC4FD1"
+      }
+    ]
+  }
+}

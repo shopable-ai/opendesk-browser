@@ -77,7 +77,9 @@ async function fixture(t,{noLease=false,knowledgeDraft=false}={}){
     session[KNOWLEDGE_WORKSPACE_PREFIX+777]={version:1,title:'本地知识草稿',filename:'knowledge.md',markdown,
       sha256:hash(markdown),packageHash:await knowledgePackageHash(pkg),expiresAt:Date.now()+600000};
     api.tabs.getCurrent=async()=>({id:777});
-    api.storage.local.get=async key=>({[key]:key===SIDEBAR_TOOL_STORE?[pkg]:undefined});
+  api.storage.local.get=async keys=>Object.fromEntries(
+   (Array.isArray(keys)?keys:[keys]).filter(key=>key===SIDEBAR_TOOL_STORE).map(key=>[key,[pkg]])
+  );
     api.storage.session={get:async key=>({[key]:session[key]}),remove:async key=>{delete session[key];}};
     const previous=Object.getOwnPropertyDescriptor(globalThis.navigator,'locks');
     Object.defineProperty(globalThis.navigator,'locks',{configurable:true,value:{request:async(_name,work)=>work()}});
@@ -226,6 +228,7 @@ test('knowledge handoff enters actual Workspace controller, guards unsaved switc
   assert.equal(h.get('save-file').disabled,true,'newly created file is clean');
   await h.select(B);assert.equal(h.get('workspace-picker').value,B);
 });
+
 
 test('R5.1 Native Workspace does not request a Chrome beforeunload dialog for knowledge drafts',()=>{
   const source=readFileSync('src/native-agent/workspace.js','utf8');

@@ -1,0 +1,20 @@
+{
+  "candidateSHA": "e83738816d108506e13f28bd3d4e3be48ac30e4e",
+  "recordedAt": "2026-10-11T08:35:13.770851+00:00",
+  "foreignFileSHA256": {
+    "docs/framework/workstreams/unified-mac-01a1297c.zh-CN.md": "186e2f5f65067871e18cccc66caeaa8f9254bd0b8af958f9f3d1ff4a285efa81",
+    "docs/framework/prompts/goal-unified-mac-01a1297c-handoff.zh-CN.md": "384a1dfd06a2f58390220d1e6dce633fd735119f2f9d8b4e2c546f148382b8d2"
+  },
+  "indexInitiallyEmpty": true,
+  "protectedRootDist": {
+    "rootProductionFilesUnchanged": 40,
+    "rootDevelopmentFilesUnchanged": 57,
+    "oldR22GrantStoreSHA256": "aa64a652505f308862c19a64c7cc5599476e92c6b99c6dc3b49944394c45c4e5",
+    "oldR22GrantStoreUnchanged": true
+  },
+  "scope": [
+    "docs/framework/workstreams/ui-r23-final-01a1299e.md",
+    "docs/framework/workstreams/ui-r23.md",
+    "docs/framework/workstreams/evidence/ui-r23-final-01a1299e/native-turn2"
+  ]
+}

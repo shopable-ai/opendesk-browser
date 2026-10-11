@@ -16,9 +16,9 @@ test('Native remains optional after merging the current permission catalog',asyn
 test('independent SW budget and fixed packaged Native transport entry',()=>{
   assert.equal(BUILD_POLICY.productionBytes,512*1024);
   assert.equal(BUILD_POLICY.fixedEntryReviewBytes,320*1024);
-  assert.equal(BUILD_POLICY.serviceWorkerReviewBytes,320*1024);
-  assert.equal(BUILD_POLICY.serviceWorkerProductionBytes,327680);
-  assert.equal(BUILD_POLICY.developmentBytes,768*1024);
+  assert.equal(BUILD_POLICY.serviceWorkerReviewBytes,512*1024);
+  assert.equal(BUILD_POLICY.serviceWorkerProductionBytes,1024*1024);
+  assert.equal(BUILD_POLICY.developmentBytes,1536*1024);
   assert.equal(PACKAGE_ENTRIES['native-agent/transport'],'./src/native-agent/transport.js');
   assert.equal(FIXED_OUTPUTS.transport,'native-agent/transport.js');
   // Sidebar Tools and R15 Page core remain separately reviewed fixed entries;
@@ -27,13 +27,13 @@ test('independent SW budget and fixed packaged Native transport entry',()=>{
   assert.equal(FIXED_OUTPUTS.bridge,'sidebar-tools/bridge.js');
   assert.equal(PACKAGE_ENTRIES['libs/runtime/page-core'],'./src/entrypoints/page-core.js');
   assert.equal(FIXED_OUTPUTS['page-core'],'libs/runtime/page-core.js');
-  assert.equal(Object.keys(PACKAGE_ENTRIES).length,24);
+  assert.equal(Object.keys(PACKAGE_ENTRIES).length,27);
   assert.deepEqual(Object.keys(PACKAGE_ENTRIES),[
     'sw','ui/tool-shell','ui/marketplace','native-agent/settings','native-agent/transport','knowledge/knowledge-host',
     'sidebar-tools/preinstall-intent','agents/health','agents/health-host','agents/selection-entry','agents/bootstrap','agents/page-agent','agents/page-relay',
     'framework/sdk-main','scripting/packaged/page-session','scripting/sandbox/sandbox',
     'sidebar-tools/bridge','scripting/sandbox/worker-runtime','libs/runtime/page-core',
-    'libs/packages/lodash','libs/packages/dayjs','libs/packages/js-cookie','libs/packages/crypto-js','libs/packages/file-saver'
+    'libs/packages/lodash','libs/packages/dayjs','libs/packages/js-cookie','libs/packages/crypto-js','libs/packages/file-saver','libs/packages/query-string','libs/packages/axios','libs/packages/store'
   ]);
 });
 

@@ -1,0 +1,925 @@
+{
+  "result": "FAILED",
+  "commit": "4f3a035b8b783a8f007cb03b9501fc1fefa107f4",
+  "extensionPath": "/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+  "packageHash": "e981b9aa432b7899ea2b5bf365c97597f4a52ec8d45a1970d3b89de41e157e91",
+  "catalogSha256": "91d980524ba8962d3dfcb02ff3db28dee7605de353726b2162c709d8eaf0291d",
+  "releases": [
+    {
+      "id": "opendesk/reading-toc",
+      "toolId": "reading-toc",
+      "kind": "sidebar-tool",
+      "installationPolicy": "optional",
+      "version": "1.0.2",
+      "packageTitle": "阅读目录",
+      "description": "在侧边栏或授权网页中查看章节并精准跳转。",
+      "capabilities": [
+        "page.toc"
+      ],
+      "packagePath": "official-tools/reading-toc/reading-toc.opendesk-tool.json",
+      "bytes": 9374,
+      "sha256": "ba7329fb33ea8da2d125e9152998730eaab6f8e9261b2597fa5191e9c2996dd9"
+    },
+    {
+      "id": "opendesk/web-markdown-clipper",
+      "toolId": "web-markdown-clipper",
+      "kind": "sidebar-tool",
+      "installationPolicy": "optional",
+      "version": "1.0.0",
+      "packageTitle": "网页剪藏",
+      "description": "在授权的网站上主动剪藏文章、选区、引用和链接为 Markdown。",
+      "capabilities": [
+        "page.clip",
+        "user.export"
+      ],
+      "packagePath": "official-tools/web-markdown-clipper/web-markdown-clipper.opendesk-tool.json",
+      "bytes": 10209,
+      "sha256": "c4d1dc7b605e1d981840f3064a116a157d2ed6a01f720ec585278129d4c111a8"
+    },
+    {
+      "id": "opendesk/quick-notes",
+      "toolId": "quick-notes",
+      "kind": "sidebar-tool",
+      "installationPolicy": "optional",
+      "version": "1.1.5",
+      "packageTitle": "网页笔记",
+      "description": "在侧栏离线管理多条本地笔记，可选择关联当前网页，不自动操作网站。",
+      "capabilities": [
+        "storage.local",
+        "currentPage.read",
+        "tasks.open"
+      ],
+      "packagePath": "official-tools/quick-notes/quick-notes.opendesk-tool.json",
+      "bytes": 21798,
+      "sha256": "1de25dfcf8f129f7a9fe97bf2d7b3a499240248d134bbfd01961515886bf40de"
+    },
+    {
+      "id": "opendesk/markdown-workbench",
+      "toolId": "markdown-workbench",
+      "kind": "sidebar-tool",
+      "installationPolicy": "optional",
+      "version": "1.0.0",
+      "packageTitle": "Markdown 工作台",
+      "description": "离线编辑、预览、导入和导出 Markdown；无需网页权限。",
+      "capabilities": [
+        "user.export"
+      ],
+      "packagePath": "official-tools/markdown-workbench/markdown-workbench.opendesk-tool.json",
+      "bytes": 13016,
+      "sha256": "6479beaf3d38ad6ef14d9d0b8bd6164cc52876c0d8f15d0330a1dc07dac64606"
+    },
+    {
+      "id": "opendesk/knowledge-inbox",
+      "toolId": "knowledge-inbox",
+      "kind": "sidebar-tool",
+      "installationPolicy": "optional",
+      "version": "1.1.1",
+      "packageTitle": "知识收件箱",
+      "description": "保存 ChatGPT 回答和灵感，整理草稿、标签与备注，导出自己的 Markdown。",
+      "capabilities": [
+        "page.capture",
+        "knowledge.store",
+        "user.export"
+      ],
+      "packagePath": "official-tools/knowledge-inbox/knowledge-inbox.opendesk-tool.json",
+      "bytes": 42525,
+      "sha256": "9331acb4e4368b40ec39413e93af0c467b920a818c6f8a76ba87b052bf6e5f5b"
+    }
+  ],
+  "platform": "darwin",
+  "nodeVersion": "v24.16.0",
+  "consoleErrors": [],
+  "runtimeExceptions": [],
+  "phases": [
+    {
+      "name": "fresh-optional-state"
+    },
+    {
+      "name": "market-five-reviewed-installs-and-real-sandboxes"
+    },
+    {
+      "name": "market-fixed-unavailable-version-and-current-batch"
+    },
+    {
+      "name": "side-panel-official-installs-and-cross-window-confirmation"
+    },
+    {
+      "name": "independent-origin-grants-and-explicit-page-clip"
+    },
+    {
+      "name": "controlled-local-old-version-and-reviewed-official-upgrade"
+    },
+    {
+      "name": "panel-close-reopen-preserves-grants-and-no-automatic-tool-instance"
+    },
+    {
+      "name": "other-local-json-import"
+    },
+    {
+      "name": "first-complete-chrome-restart"
+    },
+    {
+      "name": "uninstall-removes-data-grants-and-provenance"
+    },
+    {
+      "name": "second-complete-chrome-restart-after-uninstall"
+    },
+    {
+      "name": "responsive-keyboard-and-real-browser-zoom"
+    }
+  ],
+  "dialogs": [
+    {
+      "stage": "market-fixed-unavailable-version-and-current-batch",
+      "sessionId": "20158929A75E4D822815183834D51275",
+      "type": "confirm",
+      "message": "卸载「网页剪藏」并删除此工具保存的数据？",
+      "accept": true,
+      "matched": true
+    },
+    {
+      "stage": "market-fixed-unavailable-version-and-current-batch",
+      "sessionId": "20158929A75E4D822815183834D51275",
+      "type": "confirm",
+      "message": "卸载「知识收件箱」并删除此工具保存的数据？",
+      "accept": true,
+      "matched": true
+    },
+    {
+      "stage": "market-fixed-unavailable-version-and-current-batch",
+      "sessionId": "20158929A75E4D822815183834D51275",
+      "type": "confirm",
+      "message": "卸载「阅读目录」并删除此工具保存的数据？",
+      "accept": true,
+      "matched": true
+    },
+    {
+      "stage": "market-fixed-unavailable-version-and-current-batch",
+      "sessionId": "20158929A75E4D822815183834D51275",
+      "type": "confirm",
+      "message": "卸载「网页剪藏」并删除此工具保存的数据？",
+      "accept": true,
+      "matched": true
+    },
+    {
+      "stage": "market-fixed-unavailable-version-and-current-batch",
+      "sessionId": "20158929A75E4D822815183834D51275",
+      "type": "confirm",
+      "message": "卸载「网页笔记」并删除此工具保存的数据？",
+      "accept": true,
+      "matched": true
+    },
+    {
+      "stage": "market-fixed-unavailable-version-and-current-batch",
+      "sessionId": "20158929A75E4D822815183834D51275",
+      "type": "confirm",
+      "message": "卸载「Markdown 工作台」并删除此工具保存的数据？",
+      "accept": true,
+      "matched": true
+    },
+    {
+      "stage": "market-fixed-unavailable-version-and-current-batch",
+      "sessionId": "20158929A75E4D822815183834D51275",
+      "type": "confirm",
+      "message": "卸载「知识收件箱」并删除此工具保存的数据？",
+      "accept": true,
+      "matched": true
+    },
+    {
+      "stage": "independent-origin-grants-and-explicit-page-clip",
+      "sessionId": "20158929A75E4D822815183834D51275",
+      "type": "confirm",
+      "message": "允许「阅读目录」读取 http://127.0.0.1:62172 的章节标题并显示网页目录？",
+      "accept": true,
+      "matched": true
+    },
+    {
+      "stage": "independent-origin-grants-and-explicit-page-clip",
+      "sessionId": "20158929A75E4D822815183834D51275",
+      "type": "confirm",
+      "message": "允许「网页剪藏」按你的操作读取 http://127.0.0.1:62172 的文章正文或选区？",
+      "accept": true,
+      "matched": true
+    },
+    {
+      "stage": "controlled-local-old-version-and-reviewed-official-upgrade",
+      "sessionId": "20158929A75E4D822815183834D51275",
+      "type": "confirm",
+      "message": "更新「网页笔记」包含版本回退。原工具数据会保留。确认更新吗？",
+      "accept": true,
+      "matched": true
+    },
+    {
+      "stage": "controlled-local-old-version-and-reviewed-official-upgrade",
+      "sessionId": "20158929A75E4D822815183834D51275",
+      "type": "confirm",
+      "message": "现有工具的来源尚未核对。确认用已验证的官方发行包替换，并保留其本机数据？",
+      "accept": true,
+      "matched": true
+    },
+    {
+      "stage": "controlled-local-old-version-and-reviewed-official-upgrade",
+      "sessionId": "20158929A75E4D822815183834D51275",
+      "type": "confirm",
+      "message": "更新「网页笔记」包含新增能力：读取当前网页标题和地址、打开已安装任务。原工具数据会保留。确认更新吗？",
+      "accept": false,
+      "matched": true
+    },
+    {
+      "stage": "controlled-local-old-version-and-reviewed-official-upgrade",
+      "sessionId": "20158929A75E4D822815183834D51275",
+      "type": "confirm",
+      "message": "现有工具的来源尚未核对。确认用已验证的官方发行包替换，并保留其本机数据？",
+      "accept": true,
+      "matched": true
+    },
+    {
+      "stage": "controlled-local-old-version-and-reviewed-official-upgrade",
+      "sessionId": "20158929A75E4D822815183834D51275",
+      "type": "confirm",
+      "message": "更新「网页笔记」包含新增能力：读取当前网页标题和地址、打开已安装任务。原工具数据会保留。确认更新吗？",
+      "accept": true,
+      "matched": true
+    },
+    {
+      "stage": "controlled-local-old-version-and-reviewed-official-upgrade",
+      "sessionId": "20158929A75E4D822815183834D51275",
+      "type": "confirm",
+      "message": "更新「阅读目录」包含版本回退。原工具数据会保留。确认更新吗？",
+      "accept": true,
+      "matched": true
+    },
+    {
+      "stage": "controlled-local-old-version-and-reviewed-official-upgrade",
+      "sessionId": "20158929A75E4D822815183834D51275",
+      "type": "confirm",
+      "message": "现有工具的来源尚未核对。确认用已验证的官方发行包替换，并保留其本机数据？",
+      "accept": true,
+      "matched": true
+    },
+    {
+      "stage": "uninstall-removes-data-grants-and-provenance",
+      "sessionId": "7205C5EC429D5FE48699563C12C4F0A6",
+      "type": "confirm",
+      "message": "允许「阅读目录」读取 http://127.0.0.1:62172 的章节标题并显示网页目录？",
+      "accept": true,
+      "matched": true
+    },
+    {
+      "stage": "uninstall-removes-data-grants-and-provenance",
+      "sessionId": "7205C5EC429D5FE48699563C12C4F0A6",
+      "type": "confirm",
+      "message": "允许「网页剪藏」按你的操作读取 http://127.0.0.1:62172 的文章正文或选区？",
+      "accept": true,
+      "matched": true
+    },
+    {
+      "stage": "uninstall-removes-data-grants-and-provenance",
+      "sessionId": "7205C5EC429D5FE48699563C12C4F0A6",
+      "type": "confirm",
+      "message": "卸载「阅读目录」并删除此工具保存的数据？",
+      "accept": true,
+      "matched": true
+    },
+    {
+      "stage": "uninstall-removes-data-grants-and-provenance",
+      "sessionId": "7205C5EC429D5FE48699563C12C4F0A6",
+      "type": "confirm",
+      "message": "卸载「网页剪藏」并删除此工具保存的数据？",
+      "accept": true,
+      "matched": true
+    },
+    {
+      "stage": "uninstall-removes-data-grants-and-provenance",
+      "sessionId": "7205C5EC429D5FE48699563C12C4F0A6",
+      "type": "confirm",
+      "message": "卸载「网页笔记」并删除此工具保存的数据？",
+      "accept": true,
+      "matched": true
+    },
+    {
+      "stage": "uninstall-removes-data-grants-and-provenance",
+      "sessionId": "7205C5EC429D5FE48699563C12C4F0A6",
+      "type": "confirm",
+      "message": "卸载「知识收件箱」并删除此工具保存的数据？",
+      "accept": true,
+      "matched": true
+    },
+    {
+      "stage": "uninstall-removes-data-grants-and-provenance",
+      "sessionId": "7205C5EC429D5FE48699563C12C4F0A6",
+      "type": "confirm",
+      "message": "卸载「Markdown 工作台」并删除此工具保存的数据？",
+      "accept": true,
+      "matched": true
+    },
+    {
+      "stage": "uninstall-removes-data-grants-and-provenance",
+      "sessionId": "7205C5EC429D5FE48699563C12C4F0A6",
+      "type": "confirm",
+      "message": "卸载「R45 本地导入工具」并删除此工具保存的数据？",
+      "accept": true,
+      "matched": true
+    }
+  ],
+  "dialogErrors": [],
+  "chromeLifecycles": [
+    {
+      "generation": 1,
+      "pid": 16452,
+      "profile": "/private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-market-r45-4fdjo2",
+      "argv": [
+        "--use-mock-keychain",
+        "--no-sandbox",
+        "--disable-gpu",
+        "--disable-dev-shm-usage",
+        "--no-first-run",
+        "--no-default-browser-check",
+        "--disable-background-networking",
+        "--window-size=1280,960",
+        "--remote-allow-origins=*",
+        "--remote-debugging-address=127.0.0.1",
+        "--remote-debugging-port=0",
+        "--user-data-dir=/private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-market-r45-4fdjo2",
+        "--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+        "--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+        "about:blank"
+      ],
+      "stderr": "ageManager::ProduceMemory: Trying to Produce a Memory representation from a non-existent mailbox.\n[16460:63300974:1011/172748.075557:ERROR:gpu/command_buffer/service/shared_image/shared_image_manager.cc:401] SharedImageManager::ProduceMemory: Trying to Produce a Memory representation from a non-existent mailbox.\n[16460:63300974:1011/172748.075561:ERROR:gpu/command_buffer/service/shared_image/shared_image_manager.cc:401] SharedImageManager::ProduceMemory: Trying to Produce a Memory representation from a non-existent mailbox.\n[16460:63300974:1011/172748.075568:ERROR:gpu/command_buffer/service/shared_image/shared_image_manager.cc:401] SharedImageManager::ProduceMemory: Trying to Produce a Memory representation from a non-existent mailbox.\n[16460:63300974:1011/172748.075572:ERROR:gpu/command_buffer/service/shared_image/shared_image_manager.cc:401] SharedImageManager::ProduceMemory: Trying to Produce a Memory representation from a non-existent mailbox.\n[16460:63300974:1011/172748.075576:ERROR:gpu/command_buffer/service/shared_image/shared_image_manager.cc:401] SharedImageManager::ProduceMemory: Trying to Produce a Memory representation from a non-existent mailbox.\n[16460:63300974:1011/172748.075580:ERROR:gpu/command_buffer/service/shared_image/shared_image_manager.cc:401] SharedImageManager::ProduceMemory: Trying to Produce a Memory representation from a non-existent mailbox.\n[16460:63300974:1011/172748.075584:ERROR:gpu/command_buffer/service/shared_image/shared_image_manager.cc:401] SharedImageManager::ProduceMemory: Trying to Produce a Memory representation from a non-existent mailbox.\n[16460:63300974:1011/172748.075588:ERROR:gpu/command_buffer/service/shared_image/shared_image_manager.cc:401] SharedImageManager::ProduceMemory: Trying to Produce a Memory representation from a non-existent mailbox.\n[16452:63300921:1011/172748.704754:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT\n[16460:63300974:1011/172748.935694:ERROR:gpu/command_buffer/service/shared_image/shared_image_manager.cc:401] SharedImageManager::ProduceMemory: Trying to Produce a Memory representation from a non-existent mailbox.\n[16460:63300974:1011/172748.935727:ERROR:gpu/command_buffer/service/shared_image/shared_image_manager.cc:401] SharedImageManager::ProduceMemory: Trying to Produce a Memory representation from a non-existent mailbox.\n[16460:63300974:1011/172748.935732:ERROR:gpu/command_buffer/service/shared_image/shared_image_manager.cc:401] SharedImageManager::ProduceMemory: Trying to Produce a Memory representation from a non-existent mailbox.\n[16460:63300974:1011/172748.935735:ERROR:gpu/command_buffer/service/shared_image/shared_image_manager.cc:401] SharedImageManager::ProduceMemory: Trying to Produce a Memory representation from a non-existent mailbox.\n[16460:63300974:1011/172748.935739:ERROR:gpu/command_buffer/service/shared_image/shared_image_manager.cc:401] SharedImageManager::ProduceMemory: Trying to Produce a Memory representation from a non-existent mailbox.\n[16460:63300974:1011/172748.935745:ERROR:gpu/command_buffer/service/shared_image/shared_image_manager.cc:401] SharedImageManager::ProduceMemory: Trying to Produce a Memory representation from a non-existent mailbox.\n[16460:63300974:1011/172748.935750:ERROR:gpu/command_buffer/service/shared_image/shared_image_manager.cc:401] SharedImageManager::ProduceMemory: Trying to Produce a Memory representation from a non-existent mailbox.\n[16460:63300974:1011/172748.935754:ERROR:gpu/command_buffer/service/shared_image/shared_image_manager.cc:401] SharedImageManager::ProduceMemory: Trying to Produce a Memory representation from a non-existent mailbox.\n[16460:63300974:1011/172748.935757:ERROR:gpu/command_buffer/service/shared_image/shared_image_manager.cc:401] SharedImageManager::ProduceMemory: Trying to Produce a Memory representation from a non-existent mailbox.\n[16460:63300974:1011/172748.935760:ERROR:gpu/command_buffer/service/shared_image/shared_image_manager.cc:401] SharedImageManager::ProduceMemory: Trying to Produce a Memory representation from a non-existent mailbox.\n[16460:63300974:1011/172748.935763:ERROR:gpu/command_buffer/service/shared_image/shared_image_manager.cc:401] SharedImageManager::ProduceMemory: Trying to Produce a Memory representation from a non-existent mailbox.\n[16460:63300974:1011/172748.935766:ERROR:gpu/command_buffer/service/shared_image/shared_image_manager.cc:401] SharedImageManager::ProduceMemory: Trying to Produce a Memory representation from a non-existent mailbox.\n[16460:63300974:1011/172749.798350:ERROR:gpu/command_buffer/service/shared_image/shared_image_manager.cc:401] SharedImageManager::ProduceMemory: Trying to Produce a Memory representation from a non-existent mailbox.\n[16460:63300974:1011/172749.798371:ERROR:gpu/command_buffer/service/shared_image/shared_image_manager.cc:401] SharedImageManager::ProduceMemory: Trying to Produce a Memory representation from a non-existent mailbox.\n",
+      "normalExit": true,
+      "version": "Chrome/155.0.8059.39",
+      "extensionId": "efhcmggbgamacpfhhmooelgdkepdcghh",
+      "exit": {
+        "code": 0,
+        "signal": null
+      }
+    },
+    {
+      "generation": 2,
+      "pid": 16567,
+      "profile": "/private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-market-r45-4fdjo2",
+      "argv": [
+        "--use-mock-keychain",
+        "--no-sandbox",
+        "--disable-gpu",
+        "--disable-dev-shm-usage",
+        "--no-first-run",
+        "--no-default-browser-check",
+        "--disable-background-networking",
+        "--window-size=1280,960",
+        "--remote-allow-origins=*",
+        "--remote-debugging-address=127.0.0.1",
+        "--remote-debugging-port=0",
+        "--user-data-dir=/private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-market-r45-4fdjo2",
+        "--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+        "--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+        "about:blank"
+      ],
+      "stderr": "\nDevTools listening on ws://127.0.0.1:62315/devtools/browser/b9a31c8f-1e53-4fa3-9224-9fe90c667508\n",
+      "normalExit": true,
+      "version": "Chrome/155.0.8059.39",
+      "extensionId": "efhcmggbgamacpfhhmooelgdkepdcghh",
+      "exit": {
+        "code": 0,
+        "signal": null
+      }
+    },
+    {
+      "generation": 3,
+      "pid": 16604,
+      "profile": "/private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-market-r45-4fdjo2",
+      "argv": [
+        "--use-mock-keychain",
+        "--no-sandbox",
+        "--disable-gpu",
+        "--disable-dev-shm-usage",
+        "--no-first-run",
+        "--no-default-browser-check",
+        "--disable-background-networking",
+        "--window-size=1280,960",
+        "--remote-allow-origins=*",
+        "--remote-debugging-address=127.0.0.1",
+        "--remote-debugging-port=0",
+        "--user-data-dir=/private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-market-r45-4fdjo2",
+        "--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+        "--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+        "about:blank"
+      ],
+      "stderr": "\nDevTools listening on ws://127.0.0.1:62344/devtools/browser/86ef48b7-772d-4e2e-9955-3c3e73309438\n[16604:63303251:1011/172807.136724:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT\n[16604:63303251:1011/172829.773420:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT\n",
+      "normalExit": false,
+      "version": "Chrome/155.0.8059.39",
+      "extensionId": "efhcmggbgamacpfhhmooelgdkepdcghh"
+    }
+  ],
+  "sites": [
+    "http://127.0.0.1:62172",
+    "http://127.0.0.1:62173"
+  ],
+  "privateDataVia": "native input and save",
+  "storageWritesFromDriver": 0,
+  "publicWebsite": "NOT_TESTED",
+  "actualMacChrome": "NOT_TESTED",
+  "fullFrameworkF3": "NOT_TESTED",
+  "zipInstallation": "NOT_TESTED",
+  "publicMarket": "NOT_CONFIGURED",
+  "sidePanelCloseControl": "CDP closes actual SIDE_PANEL target; native toolbar close button NOT_TESTED",
+  "extensionId": "efhcmggbgamacpfhhmooelgdkepdcghh",
+  "panelOpenAttempts": [
+    {
+      "stage": "launch",
+      "launcherTargetId": "9242B7D9B4677897E49EC0F85D4FD20F",
+      "requestedWindowId": 2023300514,
+      "before": [],
+      "openResult": {
+        "trusted": true,
+        "status": "opened"
+      },
+      "after": [
+        {
+          "contextId": "c5825187-de62-4d97-aa52-c5ce54d718fa",
+          "contextType": "SIDE_PANEL",
+          "documentId": "AE13048FB19E3DD18593BC171E648116",
+          "documentOrigin": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh",
+          "documentUrl": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/ui/tool.html?hostInstanceId=0ab82e48-f349-4159-9fb8-3cfb51c5db20",
+          "frameId": 0,
+          "incognito": false,
+          "tabId": -1,
+          "windowId": -1
+        }
+      ],
+      "panel": {
+        "contextId": "c5825187-de62-4d97-aa52-c5ce54d718fa",
+        "contextWindowId": -1,
+        "targetId": "BACC7735ACFA943BE34B5896014CD503",
+        "documentUrl": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/ui/tool.html?hostInstanceId=0ab82e48-f349-4159-9fb8-3cfb51c5db20",
+        "observedWindowId": 2023300514
+      }
+    },
+    {
+      "stage": "side-panel-official-installs-and-cross-window-confirmation",
+      "launcherTargetId": "539661F4286CBC352BAE7D455FEE2BC4",
+      "requestedWindowId": 2023300531,
+      "before": [
+        {
+          "contextId": "c5825187-de62-4d97-aa52-c5ce54d718fa",
+          "contextType": "SIDE_PANEL",
+          "documentId": "AE13048FB19E3DD18593BC171E648116",
+          "documentOrigin": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh",
+          "documentUrl": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/ui/tool.html?hostInstanceId=0ab82e48-f349-4159-9fb8-3cfb51c5db20",
+          "frameId": 0,
+          "incognito": false,
+          "tabId": -1,
+          "windowId": -1
+        }
+      ],
+      "openResult": {
+        "trusted": true,
+        "status": "opened"
+      },
+      "after": [
+        {
+          "contextId": "c5825187-de62-4d97-aa52-c5ce54d718fa",
+          "contextType": "SIDE_PANEL",
+          "documentId": "AE13048FB19E3DD18593BC171E648116",
+          "documentOrigin": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh",
+          "documentUrl": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/ui/tool.html?hostInstanceId=0ab82e48-f349-4159-9fb8-3cfb51c5db20",
+          "frameId": 0,
+          "incognito": false,
+          "tabId": -1,
+          "windowId": -1
+        },
+        {
+          "contextId": "949b890a-9f86-44e5-b947-b04c35ec4f8e",
+          "contextType": "SIDE_PANEL",
+          "documentId": "B9C5C4590C9B17E46F02B644F82525B6",
+          "documentOrigin": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh",
+          "documentUrl": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/ui/tool.html?hostInstanceId=3c4dcf42-8479-4fe8-82b4-c4e3cb882578",
+          "frameId": 0,
+          "incognito": false,
+          "tabId": -1,
+          "windowId": -1
+        }
+      ],
+      "panel": {
+        "contextId": "949b890a-9f86-44e5-b947-b04c35ec4f8e",
+        "contextWindowId": -1,
+        "targetId": "5601F917787B925CB1DFE902B34CDEC4",
+        "documentUrl": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/ui/tool.html?hostInstanceId=3c4dcf42-8479-4fe8-82b4-c4e3cb882578",
+        "observedWindowId": 2023300531
+      }
+    },
+    {
+      "stage": "panel-close-reopen-preserves-grants-and-no-automatic-tool-instance",
+      "launcherTargetId": "9242B7D9B4677897E49EC0F85D4FD20F",
+      "requestedWindowId": 2023300514,
+      "before": [],
+      "openResult": {
+        "trusted": true,
+        "status": "opened"
+      },
+      "after": [
+        {
+          "contextId": "c28d7004-135a-4c85-a6ff-ba7342b613fa",
+          "contextType": "SIDE_PANEL",
+          "documentId": "BF98CF929F3DC33E4B625DC66FCD06F3",
+          "documentOrigin": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh",
+          "documentUrl": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/ui/tool.html?hostInstanceId=05283ec9-c249-49e7-8390-7a5b45e99f39",
+          "frameId": 0,
+          "incognito": false,
+          "tabId": -1,
+          "windowId": -1
+        }
+      ],
+      "panel": {
+        "contextId": "c28d7004-135a-4c85-a6ff-ba7342b613fa",
+        "contextWindowId": -1,
+        "targetId": "81D38D52077E284D2F132DCBBB350E6C",
+        "documentUrl": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/ui/tool.html?hostInstanceId=05283ec9-c249-49e7-8390-7a5b45e99f39",
+        "observedWindowId": 2023300514
+      }
+    },
+    {
+      "stage": "first-complete-chrome-restart",
+      "launcherTargetId": "52B4D11A62FF6DBD478529867B5E2B71",
+      "requestedWindowId": 2023300589,
+      "before": [],
+      "openResult": {
+        "trusted": true,
+        "status": "opened"
+      },
+      "after": [
+        {
+          "contextId": "ddd62ea5-984f-4c12-a324-8d9e6ac10ac1",
+          "contextType": "SIDE_PANEL",
+          "documentId": "CBD724B9AD4AF30761432E8DB11CB1C4",
+          "documentOrigin": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh",
+          "documentUrl": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/ui/tool.html?hostInstanceId=c58cf5f5-f256-4bd6-8ebd-7dcaa8e08bc8",
+          "frameId": 0,
+          "incognito": false,
+          "tabId": -1,
+          "windowId": -1
+        }
+      ],
+      "panel": {
+        "contextId": "ddd62ea5-984f-4c12-a324-8d9e6ac10ac1",
+        "contextWindowId": -1,
+        "targetId": "906B83BDC9E97968FE38040AD7B526A6",
+        "documentUrl": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/ui/tool.html?hostInstanceId=c58cf5f5-f256-4bd6-8ebd-7dcaa8e08bc8",
+        "observedWindowId": 2023300589
+      }
+    },
+    {
+      "stage": "second-complete-chrome-restart-after-uninstall",
+      "launcherTargetId": "B4769DA029B772DDDD92B8B1125162E6",
+      "requestedWindowId": 2023300661,
+      "before": [],
+      "openResult": {
+        "trusted": true,
+        "status": "opened"
+      },
+      "after": [
+        {
+          "contextId": "864865b2-f61f-4cc6-b52b-b42f9b2d21a9",
+          "contextType": "SIDE_PANEL",
+          "documentId": "34F3263CBE84D67C7231F032B2DC1DFE",
+          "documentOrigin": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh",
+          "documentUrl": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/ui/tool.html?hostInstanceId=2b1299cd-098e-4459-bb5a-889ac25739d5",
+          "frameId": 0,
+          "incognito": false,
+          "tabId": -1,
+          "windowId": -1
+        }
+      ],
+      "panel": {
+        "contextId": "864865b2-f61f-4cc6-b52b-b42f9b2d21a9",
+        "contextWindowId": -1,
+        "targetId": "00C8256955345E4A313404F5D68B7FF5",
+        "documentUrl": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/ui/tool.html?hostInstanceId=2b1299cd-098e-4459-bb5a-889ac25739d5",
+        "observedWindowId": 2023300661
+      }
+    }
+  ],
+  "batch": {
+    "collectionId": "my-selection",
+    "revision": 1791710870319,
+    "statuses": [
+      "skip",
+      "succeeded",
+      "skip",
+      "skip",
+      "succeeded"
+    ],
+    "operationIds": [
+      "8dc64dbb-7e3f-4cc4-8580-58065c8cc152",
+      "273643cf-07ad-4c44-8215-4a5331cabdbc",
+      "de89024c-da04-48d6-a37b-c7bf59aea6e4",
+      "d5e3cc25-8130-40fd-a13a-f428bb755b1a",
+      "006a996e-5c54-4a60-96a0-6aa8c25f81a9"
+    ],
+    "reloadVerified": true,
+    "unavailableOldRevisionNotSubstituted": true
+  },
+  "concurrentPanels": [
+    {
+      "windowId": 2023300514,
+      "contextId": "c5825187-de62-4d97-aa52-c5ce54d718fa",
+      "targetId": "BACC7735ACFA943BE34B5896014CD503",
+      "documentUrl": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/ui/tool.html?hostInstanceId=0ab82e48-f349-4159-9fb8-3cfb51c5db20"
+    },
+    {
+      "windowId": 2023300531,
+      "contextId": "949b890a-9f86-44e5-b947-b04c35ec4f8e",
+      "targetId": "5601F917787B925CB1DFE902B34CDEC4",
+      "documentUrl": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/ui/tool.html?hostInstanceId=3c4dcf42-8479-4fe8-82b4-c4e3cb882578"
+    }
+  ],
+  "revocations": [
+    {
+      "id": "reading-toc",
+      "key": "opendesk.sidebar-tools.toc-sites.v1",
+      "before": {
+        "reading-toc": [
+          "http://127.0.0.1:62172"
+        ]
+      },
+      "after": {}
+    },
+    {
+      "id": "web-markdown-clipper",
+      "key": "opendesk.sidebar-tools.clip-sites.v1",
+      "before": {
+        "web-markdown-clipper": [
+          "http://127.0.0.1:62172"
+        ]
+      },
+      "after": {}
+    }
+  ],
+  "responsive": [
+    {
+      "surface": "side-panel-tools",
+      "method": "CDP CSS viewport in actual extension",
+      "width": 320,
+      "height": 900,
+      "scrollWidth": 320
+    },
+    {
+      "surface": "side-panel-tools",
+      "method": "CDP CSS viewport in actual extension",
+      "width": 360,
+      "height": 900,
+      "scrollWidth": 360
+    },
+    {
+      "surface": "side-panel-tools",
+      "method": "CDP CSS viewport in actual extension",
+      "width": 400,
+      "height": 900,
+      "scrollWidth": 400
+    }
+  ],
+  "keyboardFocus": [
+    {
+      "tag": "BUTTON",
+      "id": "sidebar-tool-market",
+      "label": "应用市场",
+      "visible": true,
+      "focusVisible": true
+    },
+    {
+      "tag": "BUTTON",
+      "id": "sidebar-tool-import-trigger",
+      "label": "＋ 导入",
+      "visible": true,
+      "focusVisible": true
+    },
+    {
+      "tag": "BUTTON",
+      "id": "sidebar-tool-official-reading-toc-install",
+      "label": "安装官方阅读目录",
+      "visible": true,
+      "focusVisible": true
+    },
+    {
+      "tag": "BUTTON",
+      "id": "sidebar-tool-official-web-markdown-clipper-install",
+      "label": "安装官方网页剪藏",
+      "visible": true,
+      "focusVisible": true
+    },
+    {
+      "tag": "BUTTON",
+      "id": "sidebar-tool-official-quick-notes-install",
+      "label": "安装官方网页笔记",
+      "visible": true,
+      "focusVisible": true
+    },
+    {
+      "tag": "BUTTON",
+      "id": "sidebar-tool-official-markdown-workbench-install",
+      "label": "安装官方Markdown 工作台",
+      "visible": true,
+      "focusVisible": true
+    },
+    {
+      "tag": "BUTTON",
+      "id": "sidebar-tool-official-knowledge-inbox-install",
+      "label": "安装官方知识收件箱",
+      "visible": true,
+      "focusVisible": true
+    }
+  ],
+  "failedStage": "responsive-keyboard-and-real-browser-zoom",
+  "failedSidePanel": {
+    "url": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/ui/tool.html?hostInstanceId=2b1299cd-098e-4459-bb5a-889ac25739d5",
+    "title": "OpenDesk Browser",
+    "ready": "complete",
+    "status": "",
+    "importError": "",
+    "body": "我的\n发现\n工作流\n开发\n工具\n自定义工具\n应用市场\n＋ 导入\n阅读目录\nv1.0.2\n安装\n网页剪藏\nv1.0.0\n安装\n网页笔记\nv1.1.5\n安装\nMarkdown 工作台\nv1.0.0\n安装\n知识收件箱\nv1.1.1\n安装\n\n还没有自定义工具。点击“导入”添加第一个工具。"
+  },
+  "failedDOM": "<html lang=\"zh-CN\" data-opendesk-tab=\"tools\" data-opendesk-tool=\"list\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><meta http-equiv=\"Content-Security-Policy\" content=\"frame-src 'self'\"><title>OpenDesk Browser</title><link rel=\"stylesheet\" href=\"design-tokens.css\"><link rel=\"stylesheet\" href=\"design-system.css\"><link rel=\"stylesheet\" href=\"tool-shell.css\"></head>\n<body>\n<nav class=\"workbench-nav\" role=\"tablist\" aria-label=\"工作台\">\n  <button type=\"button\" id=\"tab-my-tasks\" role=\"tab\" tabindex=\"-1\" data-workbench-tab=\"tasks\" aria-selected=\"false\" aria-controls=\"workbench-tasks\">我的</button>\n  <button type=\"button\" id=\"tab-discover\" role=\"tab\" tabindex=\"-1\" data-workbench-tab=\"discover\" aria-selected=\"false\" aria-controls=\"workbench-local-discover\">发现</button>\n  <button type=\"button\" id=\"tab-workflow\" role=\"tab\" tabindex=\"-1\" data-workbench-tab=\"workflow\" aria-selected=\"false\" aria-controls=\"workbench-workflow\">工作流</button>\n  <button type=\"button\" id=\"tab-develop\" role=\"tab\" tabindex=\"-1\" data-workbench-tab=\"develop\" aria-selected=\"false\" aria-controls=\"workbench-develop\">开发</button>\n  <button type=\"button\" id=\"tab-tools\" role=\"tab\" tabindex=\"0\" data-workbench-tab=\"tools\" aria-selected=\"true\" aria-controls=\"workbench-tools\">工具</button>\n</nav>\n<main id=\"workspace-content\">\n  <div id=\"site-access-recovery\" class=\"row\" role=\"status\" hidden=\"\">\n    <span id=\"site-access-recovery-message\">访问受限：Chrome 已限制网站访问。</span>\n    <button id=\"site-access-restore\" type=\"button\" aria-describedby=\"site-access-recovery-message\" disabled=\"\">恢复全部网站访问</button>\n  </div>\n  <div id=\"workbench-tasks\" role=\"tabpanel\" aria-labelledby=\"tab-my-tasks\" class=\"od-page\" data-workbench-page=\"tasks\" hidden=\"\">\n    <section class=\"tasks-surface\" aria-label=\"已安装任务\">\n      <div class=\"task-section-head od-toolbar\">\n        <strong>自动化任务</strong>\n        <div class=\"task-section-actions\"><span id=\"task-installed-count\" aria-live=\"polite\">0 个</span><button type=\"button\" id=\"task-open-catalog\" class=\"od-button\" aria-label=\"打开任务目录添加任务\">＋ 添加</button></div>\n      </div>\n      <label for=\"task-installed-list\" class=\"visually-hidden\">已安装任务</label><select id=\"task-installed-list\" hidden=\"\"><option value=\"\">暂无已安装任务</option></select>\n      <div id=\"task-installed-cards\" class=\"task-card-list od-stack\" aria-label=\"已安装任务列表\"><p class=\"hint\">暂无任务。点击上方「添加」导入本地任务。</p><div id=\"task-selected-workspace\" class=\"task-selected-workspace\" hidden=\"\">\n      <p id=\"task-current-site\" class=\"identity\" data-state=\"unavailable\" title=\"\">当前网页不可运行</p>\n      <form id=\"task-params-form\" autocomplete=\"off\" aria-label=\"任务参数\"></form>\n      <p id=\"task-status\" role=\"status\" aria-live=\"polite\"></p>\n      <div id=\"task-result-panel\" class=\"task-result-panel\" hidden=\"\">\n        <div class=\"task-result-controls\">\n          <h3 class=\"task-result-heading\">最近结果</h3>\n          <button type=\"button\" id=\"task-result-reveal\" title=\"完整返回值可能包含敏感信息\" hidden=\"\">查看完整原值</button>\n        </div>\n        <pre id=\"task-result\" aria-label=\"当前任务结果\"></pre>\n      </div>\n      <details id=\"task-history-panel\" class=\"task-history-panel\" hidden=\"\"><summary>运行记录</summary><div id=\"task-history\" aria-live=\"polite\"></div></details>\n      <details class=\"task-scope-panel\"><summary>网站与权限</summary><div id=\"task-installed-detail\" class=\"task-detail\" aria-live=\"polite\"></div></details>\n      <details class=\"task-tools\"><summary>更多操作</summary>\n        <div class=\"row\"><button type=\"button\" id=\"task-refresh\">刷新任务</button><button type=\"button\" id=\"task-fork-draft\" disabled=\"\">复制草稿</button></div>\n        <details><summary>任务管理</summary>\n          <div class=\"row\"><button type=\"button\" id=\"task-toggle\" disabled=\"\">启用任务</button><button type=\"button\" id=\"task-uninstall\" disabled=\"\">卸载当前版本</button><button type=\"button\" id=\"open-catalog\" class=\"catalog-open\" aria-label=\"打开完整任务目录以导入或管理任务\">导入/管理任务 ↗</button></div>\n          <p class=\"hint\">卸载不删除已有结果；停用将阻止后续启动。</p>\n        </details>\n      </details>\n      </div></div>\n      \n    </section>\n  </div>\n  <div id=\"workbench-tools\" role=\"tabpanel\" aria-labelledby=\"tab-tools\" class=\"od-page\" data-workbench-page=\"tools\">\n    <section id=\"sidebar-tools\" class=\"sidebar-tools\" aria-label=\"自定义工具\">\n      <div id=\"sidebar-tool-list-view\">\n        <div class=\"sidebar-tools-head od-toolbar\">\n          <strong>自定义工具</strong>\n          <button type=\"button\" id=\"sidebar-tool-market\" class=\"od-button\" title=\"在新标签页打开官方应用市场\">应用市场</button>\n          <button type=\"button\" id=\"sidebar-tool-import-trigger\" class=\"od-button\" aria-expanded=\"false\" aria-controls=\"sidebar-tool-import\">＋ 导入</button>\n        </div>\n        <div id=\"sidebar-tool-import\" class=\"sidebar-tool-import od-surface\" hidden=\"\">\n          <div class=\"sidebar-tool-import-head od-toolbar\">\n            <strong>导入工具</strong>\n            <button type=\"button\" id=\"sidebar-tool-import-close\" class=\"sidebar-tool-icon-action od-icon-button\" title=\"取消导入\" aria-label=\"取消导入\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M5 5l14 14M19 5 5 19\"></path></svg></button>\n          </div>\n          <label for=\"sidebar-tool-file\">选择 .opendesk-tool.json 文件</label>\n          <input id=\"sidebar-tool-file\" type=\"file\" accept=\".json,application/json\" aria-describedby=\"sidebar-tool-file-error\" aria-invalid=\"false\">\n          <p id=\"sidebar-tool-file-error\" class=\"sidebar-tool-file-error\" role=\"alert\" hidden=\"\"></p>\n          <p class=\"sidebar-tool-import-hint\">选择文件和安装都不会运行代码；安装后由你点击“打开”启动工具。</p>\n          <div id=\"sidebar-tool-preview\" class=\"sidebar-tool-preview\" hidden=\"\">\n            <div class=\"sidebar-tool-preview-heading\">\n              <strong id=\"sidebar-tool-preview-title\"></strong>\n              <span id=\"sidebar-tool-preview-version\"></span>\n            </div>\n            <p id=\"sidebar-tool-preview-description\"></p>\n            <div class=\"sidebar-tool-capabilities od-surface\"><span>申请能力</span><p id=\"sidebar-tool-preview-capabilities\"></p></div>\n            <p id=\"sidebar-tool-preview-file\" class=\"sidebar-tool-preview-file\"></p>\n            <div id=\"sidebar-tool-update\" class=\"sidebar-tool-update od-surface\" hidden=\"\">\n              <strong>更新前请核对</strong>\n              <p id=\"sidebar-tool-update-versions\"></p>\n              <p id=\"sidebar-tool-update-capabilities\"></p>\n              <p>工具数据：同一工具 ID 的已保存数据将保留；卸载时才删除。</p>\n              <p id=\"sidebar-tool-update-warning\" class=\"sidebar-tool-update-warning\" hidden=\"\"></p>\n            </div>\n            <button type=\"button\" id=\"sidebar-tool-install\" class=\"od-button\" disabled=\"\">确认安装</button>\n          </div>\n        </div>\n        <div id=\"sidebar-tool-official-catalog\" aria-label=\"官方可选工具\"><div class=\"sidebar-tool-official od-surface\" data-official-tool-id=\"reading-toc\" data-installation-state=\"available\"><strong>阅读目录</strong><span>v1.0.2</span><button type=\"button\" class=\"od-button\" id=\"sidebar-tool-official-reading-toc-install\" data-official-install=\"reading-toc\" aria-label=\"安装官方阅读目录\">安装</button></div><div class=\"sidebar-tool-official od-surface\" data-official-tool-id=\"web-markdown-clipper\" data-installation-state=\"available\"><strong>网页剪藏</strong><span>v1.0.0</span><button type=\"button\" class=\"od-button\" id=\"sidebar-tool-official-web-markdown-clipper-install\" data-official-install=\"web-markdown-clipper\" aria-label=\"安装官方网页剪藏\">安装</button></div><div class=\"sidebar-tool-official od-surface\" data-official-tool-id=\"quick-notes\" data-installation-state=\"available\"><strong>网页笔记</strong><span>v1.1.5</span><button type=\"button\" class=\"od-button\" id=\"sidebar-tool-official-quick-notes-install\" data-official-install=\"quick-notes\" aria-label=\"安装官方网页笔记\">安装</button></div><div class=\"sidebar-tool-official od-surface\" data-official-tool-id=\"markdown-workbench\" data-installation-state=\"available\"><strong>Markdown 工作台</strong><span>v1.0.0</span><button type=\"button\" class=\"od-button\" id=\"sidebar-tool-official-markdown-workbench-install\" data-official-install=\"markdown-workbench\" aria-label=\"安装官方Markdown 工作台\">安装</button></div><div class=\"sidebar-tool-official od-surface\" data-official-tool-id=\"knowledge-inbox\" data-installation-state=\"available\"><strong>知识收件箱</strong><span>v1.1.1</span><button type=\"button\" class=\"od-button\" id=\"sidebar-tool-official-knowledge-inbox-install\" data-official-install=\"knowledge-inbox\" aria-label=\"安装官方知识收件箱\">安装</button></div></div>\n        <div id=\"sidebar-tool-list\" class=\"sidebar-tool-list od-stack\" aria-label=\"已安装自定义工具\"></div>\n        <p id=\"sidebar-tool-empty\" class=\"sidebar-tool-empty\">还没有自定义工具。点击“导入”添加第一个工具。</p>\n      </div>\n      <section id=\"sidebar-tool-display\" class=\"sidebar-tool-display\" aria-label=\"当前工具界面\" hidden=\"\">\n        <div class=\"sidebar-tool-view-head od-toolbar\">\n          <button type=\"button\" id=\"sidebar-tool-back\" class=\"sidebar-tool-icon-action od-icon-button\" title=\"返回工具列表\" aria-label=\"返回自定义工具列表\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"m14 5-7 7 7 7M7 12h14\"></path></svg></button>\n          <strong id=\"sidebar-tool-title\" title=\"\"></strong>\n          <button type=\"button\" id=\"sidebar-tool-open-tab\" class=\"sidebar-tool-icon-action od-icon-button\" title=\"在新标签页打开\" aria-label=\"在新标签页打开当前工具\" disabled=\"\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M13 5h6v6m0-6-9 9M19 13v6H5V5h6\"></path></svg></button>\n          <button type=\"button\" id=\"sidebar-tool-remove\" class=\"sidebar-tool-icon-action od-icon-button\" title=\"卸载工具\" aria-label=\"卸载工具\" disabled=\"\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M4 7h16M10 4h4m-8 3 1 13h10l1-13M10 11v5m4-5v5\"></path></svg></button>\n        </div>\n        <p id=\"sidebar-tool-readonly-banner\" class=\"sidebar-tool-status\" data-state=\"readonly\" role=\"note\" hidden=\"\">开发只读预览 · 未安装。模拟读取仅返回空值；禁止写入、发送消息、控制网页或运行任务。需要正式使用时，请另行审阅并安装工具包。</p>\n        <div id=\"sidebar-tool-frame\" class=\"sidebar-tool-frame\"></div>\n      </section>\n      <p id=\"sidebar-tool-status\" class=\"sidebar-tool-status\" role=\"status\" aria-live=\"polite\" hidden=\"\" data-state=\"info\"></p>\n    </section>\n  </div>\n  <div id=\"workbench-local-discover\" role=\"tabpanel\" aria-labelledby=\"tab-discover\" class=\"od-page\" data-workbench-page=\"local-discover\" hidden=\"\">\n    <section class=\"local-discovery-section\" aria-label=\"发现已安装任务\">\n      <div class=\"local-discovery-search-row od-toolbar\">\n        <label for=\"local-discover-search\" class=\"visually-hidden\">搜索已安装任务</label>\n        <input type=\"search\" id=\"local-discover-search\" class=\"od-field\" placeholder=\"搜索已安装任务…\" autocomplete=\"off\">\n        <button type=\"button\" id=\"local-discover-open-catalog\" class=\"local-discovery-import od-button od-button--secondary\" aria-label=\"打开完整任务目录，导入或管理任务\">导入</button>\n      </div>\n      <div id=\"local-discover-filters\" class=\"local-discovery-filters od-segmented\" role=\"group\" aria-label=\"本地任务筛选\">\n        <button type=\"button\" id=\"local-filter-current\" data-local-filter=\"current\" aria-pressed=\"true\">当前网页</button>\n        <button type=\"button\" id=\"local-filter-all\" data-local-filter=\"all\" aria-pressed=\"false\">全部</button>\n        <button type=\"button\" id=\"local-filter-disabled\" data-local-filter=\"disabled\" aria-pressed=\"false\">停用</button>\n      </div>\n      <p id=\"local-discover-count\" class=\"visually-hidden\" aria-live=\"polite\">找到 0 个已安装任务 · 本机共 0 个</p>\n      <div id=\"local-discover-cards\" class=\"local-discovery-list od-surface\" aria-label=\"发现的本机任务\"><p class=\"local-discovery-empty\">还没有任务，点击「导入」添加。</p></div>\n      <p id=\"local-discover-status\" class=\"hint\" role=\"status\"></p>\n    </section>\n  </div>\n  <!-- 完整任务目录仅在扩展独立标签页中显示，不占用 Side Panel。 -->\n  <div id=\"workbench-discover\" class=\"od-page\" data-workbench-page=\"catalog\" hidden=\"\">\n    <section aria-labelledby=\"discover-heading\" class=\"catalog-section\">\n      <div class=\"catalog-intro\"><p class=\"eyebrow\">LOCAL TASK CATALOG</p><h2 id=\"discover-heading\">发现本地任务</h2>\n      <p class=\"hint\">在完整页面搜索、筛选、查看说明并明确安装；不是云端 Marketplace。</p></div>\n      <label for=\"task-search\" class=\"visually-hidden\">搜索任务</label><input type=\"search\" id=\"task-search\" placeholder=\"搜索任务名称、用途、作者或网站…\" autocomplete=\"off\">\n      <div class=\"category-chips\" id=\"task-categories\" aria-label=\"任务分类\">\n        <button type=\"button\" class=\"category-chip selected\" data-catalog-filter=\"all\">全部</button>\n        <button type=\"button\" class=\"category-chip\" data-catalog-filter=\"installed\">已安装</button>\n        <button type=\"button\" class=\"category-chip\" data-catalog-filter=\"available\">可安装</button>\n        <button type=\"button\" class=\"category-chip\" data-catalog-filter=\"candidate\">待验证</button>\n      </div>\n      <p id=\"task-catalog-count\" class=\"hint\">共 0 个本地任务版本</p>\n      <div class=\"catalog-layout\">\n        <div id=\"task-catalog-cards\" class=\"catalog-card-grid\" aria-label=\"本地任务列表\"><p class=\"hint\">没有匹配的任务，请尝试其他关键词或分类。</p></div>\n        <aside class=\"catalog-reader od-surface\" aria-label=\"选中任务详情与安装\">\n          <label for=\"task-catalog-list\" class=\"visually-hidden\">候选版本</label><select id=\"task-catalog-list\" hidden=\"\"><option value=\"\">目录中没有任务</option></select>\n          <div id=\"task-catalog-detail\" class=\"task-detail\" aria-live=\"polite\">请选择任务卡片，查看完整用途、来源和所需权限。</div>\n      <div class=\"catalog-install\"><button type=\"button\" id=\"task-install\" disabled=\"\">安装确定版本</button></div><p id=\"task-install-feedback\" class=\"install-feedback\" role=\"status\" aria-live=\"polite\"></p>\n      <details id=\"catalog-verification\"><summary>开发者：核对证据与设为本地可用</summary>\n        <label for=\"task-verify-run\">已完成的真实运行 ID</label>\n        <input id=\"task-verify-run\" placeholder=\"与相同源码、网站和实际运行结果对应\" autocomplete=\"off\">\n        <div class=\"row\"><button type=\"button\" id=\"task-verify\" disabled=\"\">核对运行证据</button>\n          <button type=\"button\" id=\"task-publish\" disabled=\"\">设为本地可用</button></div>\n      </details>\n        </aside>\n      </div>\n      <label for=\"task-package-file\">导入任务包 JSON 或 JavaScript 草稿</label>\n      <input type=\"file\" id=\"task-package-file\" accept=\".json,.js,application/json,text/javascript\">\n      <p id=\"task-catalog-status\" role=\"status\">仅本机验证，不代表第三方审核或签名认证</p>\n      <div class=\"row\"><button type=\"button\" id=\"task-catalog-refresh\">刷新目录</button></div>\n    </section>\n  </div>\n  <div id=\"workbench-workflow\" role=\"tabpanel\" aria-labelledby=\"tab-workflow\" class=\"od-page\" data-workbench-page=\"workflow\" hidden=\"\">\n    <section id=\"workflow-editor\" class=\"workflow-editor\" aria-label=\"AI 语义工作流\" data-view-state=\"ai-unconfigured\">\n      <header class=\"workflow-head od-toolbar\">\n        <div class=\"workflow-head-copy\">\n          <h2 id=\"workflow-display-title\">新工作流</h2>\n        </div>\n        <div class=\"workflow-head-actions\" role=\"group\" aria-label=\"工作流快捷操作\">\n          <span id=\"workflow-saved-state\" class=\"workflow-pill\" hidden=\"\"></span>\n          <button type=\"button\" id=\"workflow-history-toggle\" class=\"workflow-icon-button od-icon-button\" aria-label=\"查看历史版本和设置\" aria-expanded=\"false\" aria-controls=\"workflow-manage-panel\" title=\"历史版本和设置\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\"><circle cx=\"12\" cy=\"12\" r=\"9\"></circle><path d=\"M12 7v5l3 2\"></path></svg></button>\n          <button type=\"button\" id=\"workflow-new\" class=\"workflow-icon-button od-icon-button\" aria-label=\"新建工作流\" title=\"新建工作流\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\"><path d=\"M12 5v14M5 12h14\"></path></svg></button>\n        </div>\n      </header>\n      <div class=\"workflow-scroll\">\n        <section class=\"workflow-card workflow-chat od-surface\" aria-labelledby=\"workflow-ai-title\">\n          <div id=\"workflow-chat-intro\" class=\"workflow-chat-intro\">\n            <div class=\"workflow-chat-mark\" aria-hidden=\"true\">✦</div>\n            <h3 id=\"workflow-ai-title\">想自动完成什么操作？</h3>\n            <p>描述需求，整理成可复用的操作步骤。</p>\n            <button type=\"button\" id=\"workflow-manual-start\" class=\"workflow-text-action\">手动创建步骤</button>\n          </div>\n          <div id=\"workflow-ai-transcript\" class=\"workflow-chat-transcript\" role=\"log\" aria-label=\"AI 规划对话记录\" aria-live=\"polite\" hidden=\"\"></div>\n          <p id=\"workflow-planning-indicator\" class=\"workflow-planning-indicator\" role=\"status\" hidden=\"\">✦ 正在整理可检查的语义步骤…</p>\n          <ol id=\"workflow-ai-progress\" class=\"workflow-ai-progress\" aria-label=\"Codex 实时规划进度\" hidden=\"\"></ol>\n          <section id=\"workflow-ai-approval\" class=\"workflow-ai-approval\" aria-labelledby=\"workflow-ai-approval-title\" hidden=\"\">\n            <h3 id=\"workflow-ai-approval-title\">允许读取当前网页摘要？</h3>\n            <p id=\"workflow-ai-approval-scope\"></p>\n            <div class=\"workflow-actions\"><button type=\"button\" id=\"workflow-ai-approve\">允许读取并发送</button><button type=\"button\" id=\"workflow-ai-deny\">拒绝</button></div>\n          </section>\n          <div id=\"workflow-ai-proposal\" class=\"workflow-proposal\" hidden=\"\">\n            <div class=\"workflow-section-header od-toolbar\"><h3>建议的执行步骤</h3><span>尚未验证网页元素</span></div>\n            <ol id=\"workflow-ai-preview\" class=\"workflow-ai-step-preview\"></ol>\n            <button type=\"button\" id=\"workflow-ai-apply\" class=\"workflow-primary od-button\" disabled=\"\">采用这份计划</button>\n          </div>\n        </section>\n        <section id=\"workflow-plan-panel\" class=\"workflow-card workflow-plan od-surface\" aria-label=\"可编辑语义步骤\" hidden=\"\">\n          <div class=\"workflow-section-header od-toolbar\"><h3>执行步骤</h3><span id=\"workflow-step-count\">0 步</span></div>\n          <div id=\"workflow-steps\" class=\"workflow-steps\" aria-label=\"工作流步骤列表\"><p class=\"hint\">暂无步骤。添加“观察页面”或“填写内容”开始创建。</p></div>\n          <button type=\"button\" id=\"workflow-add-step\" class=\"workflow-add\">＋ 添加步骤</button>\n          <p id=\"workflow-target-warning\" class=\"workflow-target-warning\" role=\"status\" hidden=\"\"></p>\n        </section>\n        <section id=\"workflow-params-panel\" class=\"workflow-card workflow-run-settings od-surface\" aria-label=\"工作流运行参数\" hidden=\"\">\n          <div class=\"workflow-section-header od-toolbar\"><h3>运行前确认</h3><span>只影响本次运行</span></div>\n          <div id=\"workflow-params\"></div>\n          <p class=\"hint\" id=\"workflow-params-empty\" hidden=\"\"></p>\n          <label class=\"workflow-consent\" id=\"workflow-run-consent\" hidden=\"\"><input type=\"checkbox\" id=\"workflow-confirm-run\">我已检查本次填写和点击操作，允许运行</label>\n        </section>\n        <section id=\"workflow-result-panel\" class=\"workflow-card workflow-result od-surface\" aria-label=\"工作流运行结果\" hidden=\"\">\n          <div class=\"workflow-section-header od-toolbar\"><h3>运行结果</h3></div>\n          <pre id=\"workflow-output\" aria-label=\"本次持久运行结果\">尚未运行</pre>\n          <details id=\"workflow-result-raw\" hidden=\"\"><summary>查看完整原值（可能包含敏感信息）</summary><pre id=\"workflow-raw\"></pre></details>\n          <details class=\"workflow-advanced\"><summary>Run / Result / Revision 技术身份</summary><pre id=\"workflow-technical\"></pre></details>\n        </section>\n        <section id=\"workflow-manage-panel\" class=\"workflow-management od-surface\" aria-label=\"历史版本和高级设置\" hidden=\"\">\n          <div class=\"workflow-section-header od-toolbar\"><h3>版本与设置</h3><button type=\"button\" id=\"workflow-manage-close\" class=\"workflow-icon-button od-icon-button\" aria-label=\"收起版本与设置\" title=\"收起\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\"><path d=\"M18 6 6 18M6 6l12 12\"></path></svg></button></div>\n          <div class=\"workflow-card workflow-library od-surface\">\n            <label for=\"workflow-saved-list\">选择版本</label>\n            <select id=\"workflow-saved-list\"><option value=\"\">选择已保存版本…</option></select>\n            <div class=\"workflow-actions\"><button type=\"button\" id=\"workflow-load\">打开版本</button><button type=\"button\" id=\"workflow-refresh\" class=\"workflow-icon-button od-icon-button\" aria-label=\"刷新已保存版本\" title=\"刷新列表\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\"><path d=\"M20 11a8 8 0 0 0-14.5-4.5L3 9\"></path><path d=\"M3 4v5h5\"></path><path d=\"M4 13a8 8 0 0 0 14.5 4.5L21 15\"></path><path d=\"M21 20v-5h-5\"></path></svg></button></div>\n          </div>\n          <details class=\"workflow-card workflow-manage-details od-surface\">\n            <summary>名称、用途和当前网站</summary>\n            <label for=\"workflow-title\">名称</label><input id=\"workflow-title\" maxlength=\"100\" autocomplete=\"off\" placeholder=\"例如：填写表单并读取结果\">\n            <label for=\"workflow-description\">用途（可选）</label><textarea id=\"workflow-description\" rows=\"2\" maxlength=\"800\" placeholder=\"这个工作流要完成什么？\"></textarea>\n            <label for=\"workflow-site\">执行网站（精确 origin）</label><input id=\"workflow-site\" readonly=\"\" aria-describedby=\"workflow-site-note\">\n            <p id=\"workflow-site-note\" class=\"hint\">当前页面不是可运行的 HTTP(S) 页面</p>\n          </details>\n          <details class=\"workflow-card workflow-manage-details od-surface\">\n            <summary>参数定义和高级编辑</summary>\n            <div class=\"workflow-param-create\"><input id=\"workflow-new-param-name\" type=\"text\" maxlength=\"40\" placeholder=\"参数名称，例如 keyword\" aria-label=\"新参数英文名称\"><button type=\"button\" id=\"workflow-add-param\">＋ 添加文本参数</button></div>\n            <details><summary>参数 JSON Schema</summary>\n              <label for=\"workflow-schema\">参数 Schema（string / number / integer / boolean）</label>\n              <textarea id=\"workflow-schema\" rows=\"6\" spellcheck=\"false\"></textarea>\n            </details>\n          </details>\n          <details class=\"workflow-card workflow-manage-details od-surface\">\n            <summary>生成源码、校验与发布</summary>\n            <details class=\"workflow-advanced\"><summary>JavaScript 与源码哈希</summary>\n              <p id=\"workflow-code-hash\" class=\"hint\"></p><pre id=\"workflow-code\" aria-label=\"工作流生成的 JavaScript\">尚不可编译：E_WORKFLOW_ORIGIN：网站必须是精确 HTTP(S) origin</pre>\n              <button type=\"button\" id=\"workflow-open-code\" disabled=\"\">复制到「开发」独立编辑</button>\n            </details>\n            <button type=\"button\" id=\"workflow-candidate\" class=\"workflow-secondary\" disabled=\"\">提交为待验证 Task 候选</button>\n            <p class=\"workflow-minor-note\">保存版本不等于安装。只有通过真实验证、设为 Available 并明确安装的版本才会出现在「我的」。</p>\n          </details>\n        </section>\n      </div>\n      <div class=\"workflow-composer\">\n        <label class=\"visually-hidden\" for=\"workflow-ai-request\">描述任务，或告诉 AI 怎样修改步骤</label>\n        <textarea id=\"workflow-ai-request\" rows=\"2\" maxlength=\"4000\" placeholder=\"描述要自动完成的任务…\"></textarea>\n        <div class=\"workflow-composer-actions\">\n          <button type=\"button\" id=\"workflow-provider-toggle\" class=\"workflow-icon-button workflow-settings-button od-icon-button\" aria-label=\"配置 AI 模型与数据授权\" aria-expanded=\"false\" aria-controls=\"workflow-provider-settings\" title=\"AI 设置\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\"><path d=\"M4 7h9m6 0h1M4 17h1m6 0h9\"></path><circle cx=\"16\" cy=\"7\" r=\"3\"></circle><circle cx=\"8\" cy=\"17\" r=\"3\"></circle></svg></button>\n          <button id=\"workflow-ai-plan\" type=\"button\" class=\"workflow-primary workflow-send-button\" aria-label=\"生成工作流步骤\" title=\"生成步骤\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\"><path d=\"M12 19V5m-7 7 7-7 7 7\"></path></svg></button>\n          <button id=\"workflow-ai-cancel\" type=\"button\" class=\"workflow-send-button workflow-ai-cancel\" aria-label=\"停止 AI 规划\" title=\"停止 AI 规划\" hidden=\"\"><svg viewBox=\"0 0 24 24\" fill=\"currentColor\" aria-hidden=\"true\" focusable=\"false\"><rect x=\"6\" y=\"6\" width=\"12\" height=\"12\" rx=\"2\"></rect></svg></button>\n        </div>\n        <details id=\"workflow-provider-settings\" class=\"workflow-provider\">\n          <summary>模型连接与数据发送授权</summary>\n          <label for=\"workflow-ai-provider\">AI 来源</label>\n          <select id=\"workflow-ai-provider\"><option value=\"local_codex\">本机 Codex</option><option value=\"custom_https\">自定义 HTTPS 模型接口</option><option value=\"opendesk_cloud\" disabled=\"\">OpenDesk 官方 AI（尚未开放）</option><option value=\"manual\">手动创建，不使用 AI</option></select>\n          <p id=\"workflow-provider-scope\" class=\"workflow-minor-note\">本机 OpenDesk 管理 Codex Agent，模型推理可能联网，已同意的内容可能保存在 Codex 本机对话中。复用官方 CLI 登录，请勿填写 Codex 登录凭据。</p>\n          <div id=\"workflow-local-settings\">\n            <p id=\"workflow-local-status\" class=\"workflow-local-status\" role=\"status\" aria-live=\"polite\" data-state=\"DISCONNECTED\">本机连接已断开。本次请求不会自动重发，请重新检查连接。</p>\n            <div class=\"workflow-actions\"><button type=\"button\" id=\"workflow-local-connect\">连接 OpenDesk</button><button type=\"button\" id=\"workflow-local-refresh\">重新检查</button><button type=\"button\" id=\"workflow-local-help\">本机连接设置 ↗</button></div>\n            <label class=\"workflow-consent\"><input id=\"workflow-ai-observe-consent\" type=\"checkbox\">本次允许 AI 请求网页结构、元素名称与文字摘要，每次读取仍需确认</label>\n            <div class=\"workflow-actions workflow-session-actions\"><button type=\"button\" id=\"workflow-ai-new-session\" title=\"结束当前 AI 会话，下次发送开始新对话\" hidden=\"\">新对话</button><button type=\"button\" id=\"workflow-ai-resume\" hidden=\"\">恢复上次对话</button></div>\n          </div>\n          <div id=\"workflow-custom-settings\" hidden=\"\">\n            <label for=\"workflow-ai-endpoint\">OpenAI 兼容 HTTPS Chat Completions API</label><input id=\"workflow-ai-endpoint\" type=\"url\" spellcheck=\"false\" value=\"https://api.openai.com/v1/chat/completions\">\n            <label for=\"workflow-ai-model\">模型</label><input id=\"workflow-ai-model\" spellcheck=\"false\" value=\"gpt-4o-mini\">\n            <label for=\"workflow-ai-key\">API Key（不保存）</label><input id=\"workflow-ai-key\" type=\"password\" autocomplete=\"off\" spellcheck=\"false\" placeholder=\"仅本次会话使用\">\n            <p class=\"workflow-minor-note\">此来源生成一次步骤提议，不使用本机工具；密钥只在本窗口内使用。</p>\n          </div>\n          <label id=\"workflow-ai-send-consent\" class=\"workflow-consent\"><input id=\"workflow-ai-consent\" type=\"checkbox\">同意本次向选定模型发送需求、网站 origin、步骤和参数定义</label>\n          <p id=\"workflow-ai-consent-note\" class=\"workflow-minor-note\">每次发送后清除本次同意。网页读取与网页操作分别确认。官方 AI 服务接口已预留，当前尚未开放。</p>\n        </details>\n      </div>\n      <p id=\"workflow-status\" class=\"workflow-status\" role=\"status\" aria-live=\"polite\" hidden=\"\" data-state=\"info\"></p>\n    </section>\n  </div>\n  <div id=\"workbench-develop\" role=\"tabpanel\" aria-labelledby=\"tab-develop\" class=\"od-page\" data-workbench-page=\"develop\" hidden=\"\">\n  <section aria-label=\"当前网页\" class=\"developer-target\">\n    <details id=\"developer-target-detail\">\n      <summary class=\"developer-page-summary\">\n        <span class=\"developer-page-label\">当前网页</span>\n        <span id=\"script-current-page-host\" title=\"\">未识别</span>\n        <span id=\"script-current-page-status\" role=\"status\" aria-live=\"polite\" data-state=\"unavailable\" title=\"当前页面不是可运行的 HTTP(S) 页面\">不可运行</span>\n      </summary>\n      <div class=\"developer-page-detail\">\n        <p id=\"script-current-page-title\" class=\"page-title\">当前页面不是可运行的 HTTP(S) 页面</p>\n        <p id=\"script-current-page-url\" class=\"identity\"></p>\n      </div>\n    </details>\n  </section>\n  <section class=\"developer-editor\" aria-label=\"JavaScript 开发\">\n    <div id=\"developer-source-switch\" class=\"developer-source-switch od-toolbar\" role=\"group\" aria-label=\"代码来源\" data-mode=\"manual\">\n      <span>直接编辑</span>\n      <label for=\"local-project-mode\">\n        <input id=\"local-project-mode\" type=\"checkbox\" role=\"switch\" aria-label=\"使用本地项目\" aria-description=\"关闭时在编辑器直接编写，开启时选择已授权的本地项目。切换不会自动运行。\" aria-controls=\"local-project-tools manual-source-editor\">\n        <span class=\"local-project-switch-track\" aria-hidden=\"true\"></span><span>本地项目</span>\n      </label>\n    </div>\n    <section id=\"local-project-tools\" class=\"local-project-tools\" aria-label=\"本地项目连接\" hidden=\"\">\n      <p class=\"local-project-intro\">在编辑器或 Codex 中保存，系统自动准备；点击「运行本地项目」执行最新代码。保存文件不会自动运行。</p>\n      <div class=\"local-project-controls od-toolbar\">\n        <label for=\"local-project-select\" class=\"visually-hidden\">已授权本地项目</label><select id=\"local-project-select\" disabled=\"\"><option value=\"\">选择已授权项目</option></select>\n        <button id=\"local-project-refresh\" type=\"button\">刷新</button>\n      </div>\n      <p id=\"local-project-status\" role=\"status\" aria-live=\"polite\" data-state=\"manual\"></p>\n      <details><summary>高级诊断</summary><p id=\"local-project-diagnostics\">运行后显示版本与准备耗时。</p></details>\n      <button id=\"local-project-connect\" class=\"local-project-connect\" type=\"button\">连接本机 OpenDesk ↗</button>\n      <details id=\"local-project-guide\" class=\"local-project-guide\">\n        <summary>首次使用：连接方法</summary>\n        <ol>\n          <li>先安装 OpenDesk 原生程序；点击上方「连接本机 OpenDesk」，在扩展选项中确认首次 Native 权限。</li>\n          <li>当前开发版的本地项目源码仍由 Codex <code>opendesk-dev</code> MCP 提供；首次配置及目录授权请参阅高级开发指南。</li>\n          <li>回到此处刷新已授权项目列表，选中项目，再明确点击「运行本地项目」。</li>\n        </ol>\n        <p>本机 Native 已连接与本地项目 Provider 已就绪是两种状态。普通脚本无需它们。当前开发版的首次配对仍可能需要高级配置；<code>npm run dev</code> 只负责扩展源码热更新。</p>\n        <button id=\"local-project-guide-open\" type=\"button\">查看首次配置命令和示例 ↗</button>\n        <p>也可在仓库内查阅 <code>docs/api/quickstart.zh-CN.md</code> 的「首次配置」章节。</p>\n      </details>\n      <details id=\"local-project-params-tools\" hidden=\"\"><summary>项目参数 JSON（Controller 可选）</summary><label for=\"local-project-params\" class=\"visually-hidden\">本地项目参数</label><textarea id=\"local-project-params\" rows=\"3\" spellcheck=\"false\">{}</textarea></details>\n    </section>\n    <div id=\"manual-source-editor\">\n    <p id=\"program-source-info\" class=\"identity\" role=\"status\" hidden=\"\"></p>\n    <div id=\"program-source-toolbar\" class=\"program-source-toolbar od-toolbar\" role=\"group\" aria-label=\"源码视图操作\" hidden=\"\">\n      <label for=\"program-source-files\" class=\"visually-hidden\">实际执行代码或项目源码快照</label>\n      <select id=\"program-source-files\" hidden=\"\"></select>\n      <button type=\"button\" id=\"program-new-script\" title=\"创建可编辑的 JavaScript 草稿（退出当前只读源码视图）\" aria-label=\"新建 JavaScript 草稿\" hidden=\"\">新建</button>\n    </div>\n    <label for=\"script-source\" class=\"visually-hidden\">JavaScript 编辑器，草稿可直接运行</label><textarea id=\"script-source\" rows=\"9\" spellcheck=\"false\">async function main() {\n  return {title: await page.title(), url: await page.url(), value: params.value};\n}</textarea>\n    <details id=\"program-generated\" hidden=\"\"><summary>高级诊断：查看编译产物</summary><pre id=\"program-generated-source\"></pre></details>\n    </div>\n    <details id=\"manual-project-params-tools\" class=\"developer-params\"><summary>参数 JSON（可选）</summary><label for=\"script-params\">参数 JSON</label><textarea id=\"script-params\" rows=\"3\" spellcheck=\"false\">{\"value\":0}</textarea></details>\n\n    <p id=\"script-status\" role=\"status\" data-state=\"results\">已读取持久结果</p>\n    <div id=\"script-user-scripts-recovery\" class=\"developer-execution-help\" data-state=\"blocked\" hidden=\"\">\n      <p id=\"script-user-scripts-recovery-status\" role=\"status\" aria-live=\"polite\"></p>\n      <div class=\"developer-execution-help-actions\">\n        <button id=\"script-user-scripts-settings\" type=\"button\">打开扩展设置</button>\n        <button id=\"script-user-scripts-check\" type=\"button\">重新检测</button>\n      </div>\n    </div>\n  <p id=\"script-task-status\" class=\"developer-task-status\" role=\"status\"></p>\n  <details id=\"developer-run-technical\" class=\"developer-run-technical\"><summary>运行目标与版本</summary>\n    <p id=\"script-task-id\" class=\"identity\">尚未运行</p>\n    <p id=\"script-running-target\" class=\"identity\" data-state=\"idle\">运行目标：尚未建立</p>\n    <p id=\"script-task-version\" class=\"identity\"></p>\n  </details>\n  <details id=\"developer-results-panel\" class=\"developer-results\"><summary>运行结果</summary><div class=\"developer-results-body\">\n    <div class=\"result-toolbar\"><span id=\"script-result-kind\" class=\"hint\">暂无返回值</span>\n      <button type=\"button\" id=\"script-copy-result\" disabled=\"\">复制结果</button></div>\n    <pre id=\"script-result\" aria-label=\"脚本返回值\">尚未选择运行记录</pre>\n    <details id=\"script-history-panel\" class=\"result-history\"><summary>运行记录与技术信息</summary>\n      <div class=\"row\"><button id=\"script-read\">刷新历史</button></div>\n      <label for=\"script-history-run\">历史运行</label><select id=\"script-history-run\"><option value=\"\">选择历史任务</option></select>\n      <div class=\"row\"><button id=\"script-history-open\">查看选中任务</button></div>\n      <details><summary>完整历史与版本身份</summary><pre id=\"script-history\" aria-label=\"持久结果历史\">{\n  \"runs\": [],\n  \"results\": [],\n  \"downloads\": [],\n  \"resultDeliveryDenied\": []\n}</pre></details>\n      <details><summary>结果下载与任务查询</summary>\n        <label for=\"script-run-id\">查询 runId（留空读取全部历史）</label><input id=\"script-run-id\" placeholder=\"runId\">\n        <div class=\"row\"><button id=\"script-read-run\">查询任务</button></div>\n        <div class=\"row\"><label for=\"script-download-result\">已完成的持久结果</label><select id=\"script-download-result\"><option value=\"\">请选择要下载的结果</option></select><button id=\"script-download\" disabled=\"\">下载结果 JSON</button></div>\n        <p id=\"script-download-status\" role=\"status\">结果下载保留类型信息，包括 undefined。</p>\n      </details>\n    </details>\n  </div></details>\n\n    <details id=\"page-preview-tools\"><summary>网页 JavaScript 试运行</summary>\n      <p class=\"hint\">直接使用上方 JavaScript 源码操作当前网页 DOM；可写 async function main() 返回结果，也可直接编写顶层语句。不要求特殊脚本声明；运行前仍需网站授权。</p>\n      <button id=\"page-preview-run\" type=\"button\" disabled=\"\">在当前网页试运行</button>\n      <p id=\"page-preview-status\" role=\"status\">请先确认当前网页可用；试运行不会保存版本或安装任务。</p>\n      <pre id=\"page-preview-result\" aria-label=\"网页 JavaScript 试运行结果\">尚未运行</pre>\n      <details id=\"page-preview-technical-panel\" hidden=\"\"><summary>技术信息</summary><pre id=\"page-preview-technical\"></pre></details>\n      <div class=\"row\"><button id=\"page-candidate-save\" type=\"button\" disabled=\"\">保存网页脚本版本</button></div>\n      <p class=\"hint\">试运行后可保存固定 Page 版本；普通 JS 默认匹配所有 HTTP/HTTPS 网站（*://*/*）；兼容导入的显式 @match 保持原范围。保存后核对冻结版本和全站范围，再明确安装授权。脚本 ID 和版本在下方「版本管理」中设置。</p>\n      <p id=\"page-candidate-status\" role=\"status\" aria-live=\"polite\">尚未保存网页脚本候选。</p>\n      <label for=\"page-program-list\">已保存网页脚本</label>\n      <select id=\"page-program-list\"><option value=\"\">尚未保存网页脚本</option></select>\n      <pre id=\"page-program-detail\">保存网页脚本版本后，在这里核对、安装与停用。</pre>\n      <div class=\"row\"><button id=\"page-program-load\" type=\"button\" disabled=\"\">加载源码</button><button id=\"page-program-verify\" type=\"button\" disabled=\"\">验证冻结版本</button></div>\n      <div class=\"row\"><button id=\"page-program-install\" type=\"button\" disabled=\"\">安装自动运行</button><button id=\"page-program-toggle\" type=\"button\" disabled=\"\">启用自动运行</button><button id=\"page-program-restore\" type=\"button\" hidden=\"\" disabled=\"\">恢复访问</button><button id=\"page-program-refresh\" type=\"button\">刷新状态</button></div>\n      <p id=\"page-program-status\" role=\"status\" aria-live=\"polite\">正式安装支持顶层网页与 document-idle；停用不会撤销已有网页效果。效果未知时不自动重放。</p>\n    </details>\n    <details id=\"script-library-tools\"><summary>版本管理与任务制作</summary>\n    <label for=\"script-list\">已保存脚本</label>\n    <div class=\"row\"><select id=\"script-list\"><option value=\"\">没有已保存脚本</option></select><button id=\"script-list-refresh\">刷新</button><button id=\"script-list-load\" disabled=\"\">加载最新</button></div>\n    <label for=\"script-id\">脚本名称 / ID</label><input id=\"script-id\" value=\"my-script\" autocomplete=\"off\">\n    <div class=\"row\"><label for=\"script-revision\">revision</label><input id=\"script-revision\" type=\"number\" min=\"1\" placeholder=\"留空加载最新版本\"><button id=\"script-load\">加载版本</button></div>\n    <p id=\"script-version\" role=\"status\" data-dirty=\"false\">未保存草稿可直接运行；只有点击保存才创建正式版本</p>\n    <details id=\"task-package-dev\"><summary>从已保存版本创建任务候选</summary>\n      <p class=\"hint\">先保存程序版本，再定义任务信息。创建候选不会自动验证、发布或安装。</p>\n      <label for=\"task-dev-id\">稳定任务标识</label><input id=\"task-dev-id\" value=\"my-first-task\" autocomplete=\"off\">\n      <label for=\"task-dev-version\">任务版本</label><input id=\"task-dev-version\" value=\"1.0.0\" autocomplete=\"off\">\n      <label for=\"task-dev-title\">名称</label><input id=\"task-dev-title\" value=\"我的第一个任务\">\n      <label for=\"task-dev-description\">用途</label><input id=\"task-dev-description\" value=\"运行当前网页的自动化脚本\">\n      <label for=\"task-dev-author\">作者</label><input id=\"task-dev-author\" value=\"local-developer\">\n      <label for=\"task-dev-schema\">参数 Schema（JSON）</label>\n      <textarea id=\"task-dev-schema\" rows=\"4\" spellcheck=\"false\">{\"type\":\"object\",\"properties\":{},\"required\":[],\"additionalProperties\":false}</textarea>\n      <button type=\"button\" id=\"task-create-candidate\">保存为待验证任务候选</button>\n      <p id=\"task-dev-status\" role=\"status\">候选需要真实运行验证后才能安装</p>\n    </details>\n    </details>\n    <details id=\"script-advanced\"><summary>高级脚本与目标设置</summary>\n      <details id=\"site-access\" class=\"site-access-panel\">\n        <summary>网站权限 · 默认全部网站</summary>\n        <p id=\"site-access-status\" role=\"status\" data-state=\"granted\">Chrome 已授予默认全网站和核心 API 权限（Cookie：已授权；通知：已授权）</p>\n        <p class=\"hint\">安装或更新时由 Chrome 请求全部网站及核心浏览器 API（含 Cookie、通知）。后续插件的额外 API 仍需明确授权；浏览器网站权限不会自动授予脚本或 SDK 的应用级权限。</p>\n        <div class=\"row\"><button id=\"site-access-grant\" type=\"button\" disabled=\"\">全部网站已授权</button><button id=\"site-access-refresh\" type=\"button\">刷新授权状态</button></div>\n        <p class=\"hint\">如 Chrome 限制了网站权限，可点击恢复或前往扩展详情将“网站访问”改为“所有网站”。浏览器内部页、file://、隐身与用户脚本开关仍有独立限制。</p>\n      </details>\n      <p class=\"hint\">默认使用当前网页；手动目标仅用于高级操作。</p>\n      <div class=\"row\"><label for=\"script-target-mode\">目标方式</label><select id=\"script-target-mode\"><option value=\"current\">当前网页（默认）</option><option value=\"owned\">创建隔离网页（高级）</option><option value=\"borrowed\">手动选择精确文档（高级）</option></select></div>\n      <label for=\"script-owned-url\">隔离网页地址</label><input id=\"script-owned-url\" type=\"url\" placeholder=\"https://example.com/\" disabled=\"\">\n      <div class=\"row\"><label for=\"script-tab\">现有网页</label><select id=\"script-tab\" disabled=\"\"><option value=\"\">请选择具体网页</option></select><button id=\"script-refresh\">刷新网页列表</button></div>\n      <label for=\"script-document\">精确文档</label><select id=\"script-document\" disabled=\"\"><option value=\"\">请选择当前精确文档</option></select>\n      <p><label><input id=\"script-allow-cookies\" type=\"checkbox\">允许脚本访问目标网站的 Cookie</label></p>\n      <button id=\"script-delete\" disabled=\"\">删除脚本</button>\n      <details><summary>当前网页精确身份</summary><pre id=\"script-current-page-debug\" aria-label=\"当前网页精确目标\">{\n  \"windowId\": 2023300661,\n  \"reason\": \"E_UNSUPPORTED_SCHEME\"\n}</pre></details>\n    </details>\n  </section>\n  <details id=\"tool-diagnostics\"><summary>Advanced / Diagnostics</summary>\n  <section id=\"scraping-panel\" aria-label=\"采集模块\" data-module-status=\"MODULE_NOT_INSTALLED\">采集模块未注册；普通 JavaScript 与网页 SDK 可独立使用。</section>\n  <section aria-labelledby=\"sdk-title\"><h2 id=\"sdk-title\">独立网页 SDK</h2>\n    <p>SDK 与 axiosx 会自动加载到允许访问的 HTTP(S) 网页。默认同源 HTTP 与固定本地实验测试 Origin 无需逐页审批；本区域只用于<strong>额外跨站 Origin 或高级能力</strong>的显式授权、检查和撤销。后台仍按真实网页身份核查每次请求。</p>\n    <div class=\"row\"><label for=\"sdk-tab\">网页</label><select id=\"sdk-tab\"><option value=\"\">请选择具体网页</option></select><button id=\"sdk-refresh\">刷新网页列表</button></div>\n    <div class=\"row\"><label for=\"sdk-document\">精确文档</label><select id=\"sdk-document\" disabled=\"\"><option value=\"\">请选择当前精确文档</option></select></div>\n    <fieldset id=\"sdk-capabilities\"><legend>允许的服务（仅授予勾选项）</legend><label><input type=\"checkbox\" value=\"network\" name=\"sdk-capability\"> HTTP 网络请求（仅本次精确批准的来源与目标） </label><label><input type=\"checkbox\" value=\"storage.persistent\" name=\"sdk-capability\"> 持久存储 </label><label><input type=\"checkbox\" value=\"storage.session\" name=\"sdk-capability\"> 浏览器会话存储 </label><label><input type=\"checkbox\" value=\"notifications\" name=\"sdk-capability\"> 通知 </label><label><input type=\"checkbox\" value=\"device.id\" name=\"sdk-capability\"> 稳定应用 ID </label><label><input type=\"checkbox\" value=\"network.info\" name=\"sdk-capability\" disabled=\"\"> 外部网络信息（当前未启用） </label><label><input type=\"checkbox\" value=\"service.log\" name=\"sdk-capability\"> service.log </label><label><input type=\"checkbox\" value=\"service.time\" name=\"sdk-capability\"> service.time </label><label><input type=\"checkbox\" value=\"resources.packaged\" name=\"sdk-capability\"> resources.packaged </label></fieldset>\n    <label for=\"sdk-target-origins\">额外批准的目标 origin（每行一个，最多 8 条）</label>\n    <textarea id=\"sdk-target-origins\" rows=\"3\" maxlength=\"18000\" spellcheck=\"false\" placeholder=\"https://api.example.com\nhttp://127.0.0.1:43111\" aria-describedby=\"sdk-target-help\"></textarea>\n    <p id=\"sdk-target-help\">留空仅允许来源同源；这里是完整的新范围，不与旧授权自动合并。协议、主机和有效端口精确匹配；不能填写账户、路径、查询或通配符。回环与局域网也须明确列出。原生权限可能覆盖更多端口，但不会扩大应用授权；此检查不是 DNS 重绑定防护。</p>\n    <details open=\"\"><summary>本次批准快照（来源、精确 document、服务与目标）</summary><pre id=\"sdk-approval-preview\" aria-live=\"polite\">E_DOCUMENT_STALE：请选择一个精确的当前文档</pre></details>\n    <div class=\"row\"><button id=\"sdk-install\" disabled=\"\">明确批准此快照并安装 SDK</button></div>\n    <div class=\"row\"><button id=\"sdk-inspect\" type=\"button\" disabled=\"\">只读查询当前授权</button><button id=\"sdk-revoke\" type=\"button\" disabled=\"\">撤销已确认授权</button></div>\n    <p class=\"hint\">这是<strong>网页文档级</strong>授权：同页第一方与第三方 JavaScript 都可能调用 SDK，<strong>并非只授权某个用户脚本</strong>。用户脚本的 @grant / GM_* 不会在这里自动授权。查询不会申请新权限；撤销阻止后续 SDK 服务，但不能回滚已发生操作，也无法强制卸载已执行 JS；结果未知时须重新查询。</p>\n    <p id=\"sdk-status\" role=\"status\" data-state=\"idle\">请选择网页、当前文档和服务</p><pre id=\"sdk-result\" aria-label=\"SDK 安装结果\"></pre>\n  </section>\n  <section aria-labelledby=\"health-title\"><h2 id=\"health-title\">目标健康检查</h2>\n    <p>检查只确认包内脚本与目标文档通信。不会采集数据或翻动原页面。</p>\n    <div class=\"row\"><label for=\"target-url\">测试页面地址</label><input id=\"target-url\" type=\"url\" placeholder=\"https://example.com/\"><button id=\"create-target\">授权并创建检查页</button></div>\n    <div class=\"row\"><button id=\"check-source\">检查原页面</button><button id=\"check-target\" disabled=\"\">检查已绑定文档</button></div>\n    <p id=\"status\" role=\"status\">环境入口已加载</p><pre id=\"health-result\" aria-label=\"目标检查结果\"></pre>\n  </section>\n    <aside>SDK 授权与自动化任务独立；健康检查只确认环境通信。</aside>\n  </details>\n  </div>\n</main>\n<footer id=\"workspace-dock\" class=\"workspace-dock\" data-stop-only=\"false\" hidden=\"\">\n  <div id=\"task-dock\" class=\"dock-actions\" hidden=\"\">\n    <div class=\"dock-buttons od-toolbar\"><button type=\"button\" id=\"task-run\" disabled=\"\">运行任务</button><button type=\"button\" id=\"task-stop\" disabled=\"\" aria-label=\"停止当前任务\">停止</button></div>\n  </div>\n  <div id=\"workflow-dock\" class=\"dock-actions\" hidden=\"\" data-empty=\"true\"><div class=\"dock-buttons od-toolbar\"><button type=\"button\" id=\"workflow-run\" disabled=\"\">运行工作流</button><button type=\"button\" id=\"workflow-save\" disabled=\"\">保存版本</button><button type=\"button\" id=\"workflow-stop\" disabled=\"\">停止</button></div></div>\n  <div id=\"develop-dock\" class=\"dock-actions\" hidden=\"\">\n    <div class=\"dock-buttons od-toolbar\"><button class=\"od-button\" id=\"script-run\" disabled=\"\">运行草稿</button><button class=\"od-button\" id=\"script-save\">保存版本</button><button id=\"script-stop\" disabled=\"\">停止</button></div>\n  </div>\n</footer>\n<script src=\"tool-shell.js\"></script>\n\n</body></html>",
+  "failedRegistry": [],
+  "failedGrants": {
+    "opendesk.sidebar-tools.toc-sites.v1": {},
+    "opendesk.sidebar-tools.clip-sites.v1": {}
+  },
+  "failedTargets": {
+    "targetInfos": [
+      {
+        "targetId": "3D2ADF2E06B34B10C2EACC3908EB18EA",
+        "type": "service_worker",
+        "title": "Service Worker chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/sw.js",
+        "url": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/sw.js",
+        "attached": false,
+        "canAccessOpener": false,
+        "browserContextId": "B46249E3C0DBC0B95F6555F3F5BE19CE"
+      },
+      {
+        "targetId": "00C8256955345E4A313404F5D68B7FF5",
+        "type": "page",
+        "title": "OpenDesk Browser",
+        "url": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/ui/tool.html?hostInstanceId=2b1299cd-098e-4459-bb5a-889ac25739d5",
+        "attached": true,
+        "canAccessOpener": false,
+        "browserContextId": "B46249E3C0DBC0B95F6555F3F5BE19CE"
+      },
+      {
+        "targetId": "3EB134F5FC581F1723C8605EB3FE406E",
+        "type": "browser_ui",
+        "title": "Omnibox Popup",
+        "url": "chrome://omnibox-popup.top-chrome/omnibox_popup_aim.html",
+        "attached": false,
+        "canAccessOpener": false,
+        "browserContextId": "B46249E3C0DBC0B95F6555F3F5BE19CE"
+      },
+      {
+        "targetId": "942E5FD44774C771860D181033AF8786",
+        "type": "page",
+        "title": "about:blank",
+        "url": "about:blank",
+        "attached": false,
+        "canAccessOpener": false,
+        "browserContextId": "B46249E3C0DBC0B95F6555F3F5BE19CE"
+      },
+      {
+        "targetId": "CE47FB70A13B54E9BDCD9DB58CF0E7F4",
+        "type": "browser_ui",
+        "title": "Omnibox Popup",
+        "url": "chrome://omnibox-popup.top-chrome/",
+        "attached": false,
+        "canAccessOpener": false,
+        "browserContextId": "B46249E3C0DBC0B95F6555F3F5BE19CE"
+      },
+      {
+        "targetId": "B4769DA029B772DDDD92B8B1125162E6",
+        "type": "page",
+        "title": "OpenDesk Browser",
+        "url": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/ui/tool.html?hostInstanceId=445385f0-7baf-40d4-bd10-0b11e14b95a2",
+        "attached": true,
+        "canAccessOpener": false,
+        "browserContextId": "B46249E3C0DBC0B95F6555F3F5BE19CE"
+      }
+    ]
+  },
+  "failureSurfaces": [
+    {
+      "targetId": "9242B7D9B4677897E49EC0F85D4FD20F",
+      "error": "CDP_TIMEOUT Runtime.evaluate"
+    },
+    {
+      "targetId": "BACC7735ACFA943BE34B5896014CD503",
+      "error": "CDP_TIMEOUT Runtime.evaluate"
+    },
+    {
+      "targetId": "3C1462ED4D72BFAA9904C4E1F636F33C",
+      "error": "CDP_TIMEOUT Runtime.evaluate"
+    },
+    {
+      "targetId": "4E689EFD53087AA84A49FE1DA0FAFE9C",
+      "error": "CDP_TIMEOUT Runtime.evaluate"
+    },
+    {
+      "targetId": "9E8D415987F2974C41C55596CB3BFB77",
+      "error": "CDP_TIMEOUT Runtime.evaluate"
+    },
+    {
+      "targetId": "19163536D9C22DF38458C590DD020D9D",
+      "error": "CDP_TIMEOUT Runtime.evaluate"
+    },
+    {
+      "targetId": "6CB9D18CCCC081BD3704A9EE25724B91",
+      "error": "CDP_TIMEOUT Runtime.evaluate"
+    },
+    {
+      "targetId": "530E077AB858B4D684404F17D59F7448",
+      "error": "CDP_TIMEOUT Runtime.evaluate"
+    },
+    {
+      "targetId": "D790A8B5C0F97826561BF5F56BAF1EB3",
+      "error": "CDP_TIMEOUT Runtime.evaluate"
+    },
+    {
+      "targetId": "419BF26F6257AA3921A301DF28EFC2F6",
+      "error": "CDP_TIMEOUT Runtime.evaluate"
+    },
+    {
+      "targetId": "3EDCC2D7C04067D22FCEABAC391300D0",
+      "error": "CDP_TIMEOUT Runtime.evaluate"
+    },
+    {
+      "targetId": "571DFC4B145B3D55208D84AA99D13EF9",
+      "error": "CDP_TIMEOUT Runtime.evaluate"
+    },
+    {
+      "targetId": "B05DAC124DBD53AF6AF9E856551AC399",
+      "error": "CDP_TIMEOUT Runtime.evaluate"
+    },
+    {
+      "targetId": "4E71402B62738FB4A2CA2F95724B221F",
+      "error": "CDP_TIMEOUT Runtime.evaluate"
+    },
+    {
+      "targetId": "539661F4286CBC352BAE7D455FEE2BC4",
+      "error": "CDP_TIMEOUT Runtime.evaluate"
+    },
+    {
+      "targetId": "5601F917787B925CB1DFE902B34CDEC4",
+      "error": "CDP_TIMEOUT Runtime.evaluate"
+    },
+    {
+      "targetId": "309ADB0F171CF1D586FB82D01F32B53C",
+      "error": "CDP_TIMEOUT Runtime.evaluate"
+    },
+    {
+      "targetId": "7C507CAE6FAF2739BD173D8A2BBF32D3",
+      "error": "CDP_TIMEOUT Runtime.evaluate"
+    },
+    {
+      "targetId": "20FBF68CF12081DA503637B27FA76AB2",
+      "error": "CDP_TIMEOUT Runtime.evaluate"
+    },
+    {
+      "targetId": "5F5C131CD79F9E96188B003CC5FA09F5",
+      "error": "CDP_TIMEOUT Runtime.evaluate"
+    },
+    {
+      "targetId": "81D38D52077E284D2F132DCBBB350E6C",
+      "error": "CDP_TIMEOUT Runtime.evaluate"
+    },
+    {
+      "targetId": "4960D16BF052CD5E2516F9794FFCDFFE",
+      "error": "CDP_TIMEOUT Runtime.evaluate"
+    },
+    {
+      "targetId": "52B4D11A62FF6DBD478529867B5E2B71",
+      "error": "CDP_TIMEOUT Runtime.evaluate"
+    },
+    {
+      "targetId": "906B83BDC9E97968FE38040AD7B526A6",
+      "error": "CDP_TIMEOUT Runtime.evaluate"
+    },
+    {
+      "targetId": "7F5FA5FBB5D1C6053FF7DC62BF66FA39",
+      "error": "CDP_TIMEOUT Runtime.evaluate"
+    },
+    {
+      "targetId": "ADEDD0481E90A9B2C4EE3FD65D31E9D0",
+      "error": "CDP_TIMEOUT Runtime.evaluate"
+    },
+    {
+      "targetId": "D2FCC50313CFB4D96FA4CD69C23FBC6F",
+      "error": "CDP_TIMEOUT Runtime.evaluate"
+    },
+    {
+      "targetId": "B4769DA029B772DDDD92B8B1125162E6",
+      "url": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/ui/tool.html?hostInstanceId=445385f0-7baf-40d4-bd10-0b11e14b95a2",
+      "dom": "<html lang=\"zh-CN\" data-opendesk-tab=\"catalog\" data-opendesk-tool=\"list\" data-opendesk-surface=\"catalog\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><meta http-equiv=\"Content-Security-Policy\" content=\"frame-src 'self'\"><title>OpenDesk Browser</title><link rel=\"stylesheet\" href=\"design-tokens.css\"><link rel=\"stylesheet\" href=\"design-system.css\"><link rel=\"stylesheet\" href=\"tool-shell.css\"></head>\n<body>\n<nav class=\"workbench-nav\" role=\"tablist\" aria-label=\"工作台\">\n  <button type=\"button\" id=\"tab-my-tasks\" role=\"tab\" tabindex=\"-1\" data-workbench-tab=\"tasks\" aria-selected=\"false\" aria-controls=\"workbench-tasks\">我的</button>\n  <button type=\"button\" id=\"tab-discover\" role=\"tab\" tabindex=\"-1\" data-workbench-tab=\"discover\" aria-selected=\"false\" aria-controls=\"workbench-local-discover\">发现</button>\n  <button type=\"button\" id=\"tab-workflow\" role=\"tab\" tabindex=\"-1\" data-workbench-tab=\"workflow\" aria-selected=\"false\" aria-controls=\"workbench-workflow\">工作流</button>\n  <button type=\"button\" id=\"tab-develop\" role=\"tab\" tabindex=\"-1\" data-workbench-tab=\"develop\" aria-selected=\"false\" aria-controls=\"workbench-develop\">开发</button>\n  <button type=\"button\" id=\"tab-tools\" role=\"tab\" tabindex=\"-1\" data-workbench-tab=\"tools\" aria-selected=\"false\" aria-controls=\"workbench-tools\">工具</button>\n</nav>\n<main id=\"workspace-content\">\n  <div id=\"site-access-recovery\" class=\"row\" role=\"status\" hidden=\"\">\n    <span id=\"site-access-recovery-message\">访问受限：Chrome 已限制网站访问。</span>\n    <button id=\"site-access-restore\" type=\"button\" aria-describedby=\"site-access-recovery-message\" disabled=\"\">恢复全部网站访问</button>\n  </div>\n  <div id=\"workbench-tasks\" role=\"tabpanel\" aria-labelledby=\"tab-my-tasks\" class=\"od-page\" data-workbench-page=\"tasks\" hidden=\"\">\n    <section class=\"tasks-surface\" aria-label=\"已安装任务\">\n      <div class=\"task-section-head od-toolbar\">\n        <strong>自动化任务</strong>\n        <div class=\"task-section-actions\"><span id=\"task-installed-count\" aria-live=\"polite\">0 个</span><button type=\"button\" id=\"task-open-catalog\" class=\"od-button\" aria-label=\"打开任务目录添加任务\">＋ 添加</button></div>\n      </div>\n      <label for=\"task-installed-list\" class=\"visually-hidden\">已安装任务</label><select id=\"task-installed-list\" hidden=\"\"><option value=\"\">暂无已安装任务</option></select>\n      <div id=\"task-installed-cards\" class=\"task-card-list od-stack\" aria-label=\"已安装任务列表\"><p class=\"hint\">暂无任务。点击上方「添加」导入本地任务。</p><div id=\"task-selected-workspace\" class=\"task-selected-workspace\" hidden=\"\">\n      <p id=\"task-current-site\" class=\"identity\" data-state=\"unavailable\" title=\"\">当前网页不可运行</p>\n      <form id=\"task-params-form\" autocomplete=\"off\" aria-label=\"任务参数\"></form>\n      <p id=\"task-status\" role=\"status\" aria-live=\"polite\"></p>\n      <div id=\"task-result-panel\" class=\"task-result-panel\" hidden=\"\">\n        <div class=\"task-result-controls\">\n          <h3 class=\"task-result-heading\">最近结果</h3>\n          <button type=\"button\" id=\"task-result-reveal\" title=\"完整返回值可能包含敏感信息\" hidden=\"\">查看完整原值</button>\n        </div>\n        <pre id=\"task-result\" aria-label=\"当前任务结果\"></pre>\n      </div>\n      <details id=\"task-history-panel\" class=\"task-history-panel\" hidden=\"\"><summary>运行记录</summary><div id=\"task-history\" aria-live=\"polite\"></div></details>\n      <details class=\"task-scope-panel\"><summary>网站与权限</summary><div id=\"task-installed-detail\" class=\"task-detail\" aria-live=\"polite\"></div></details>\n      <details class=\"task-tools\"><summary>更多操作</summary>\n        <div class=\"row\"><button type=\"button\" id=\"task-refresh\">刷新任务</button><button type=\"button\" id=\"task-fork-draft\" disabled=\"\">复制草稿</button></div>\n        <details><summary>任务管理</summary>\n          <div class=\"row\"><button type=\"button\" id=\"task-toggle\" disabled=\"\">启用任务</button><button type=\"button\" id=\"task-uninstall\" disabled=\"\">卸载当前版本</button><button type=\"button\" id=\"open-catalog\" class=\"catalog-open\" aria-label=\"打开完整任务目录以导入或管理任务\">导入/管理任务 ↗</button></div>\n          <p class=\"hint\">卸载不删除已有结果；停用将阻止后续启动。</p>\n        </details>\n      </details>\n      </div></div>\n      \n    </section>\n  </div>\n  <div id=\"workbench-tools\" role=\"tabpanel\" aria-labelledby=\"tab-tools\" class=\"od-page\" data-workbench-page=\"tools\" hidden=\"\">\n    <section id=\"sidebar-tools\" class=\"sidebar-tools\" aria-label=\"自定义工具\">\n      <div id=\"sidebar-tool-list-view\">\n        <div class=\"sidebar-tools-head od-toolbar\">\n          <strong>自定义工具</strong>\n          <button type=\"button\" id=\"sidebar-tool-market\" class=\"od-button\" title=\"在新标签页打开官方应用市场\">应用市场</button>\n          <button type=\"button\" id=\"sidebar-tool-import-trigger\" class=\"od-button\" aria-expanded=\"false\" aria-controls=\"sidebar-tool-import\">＋ 导入</button>\n        </div>\n        <div id=\"sidebar-tool-import\" class=\"sidebar-tool-import od-surface\" hidden=\"\">\n          <div class=\"sidebar-tool-import-head od-toolbar\">\n            <strong>导入工具</strong>\n            <button type=\"button\" id=\"sidebar-tool-import-close\" class=\"sidebar-tool-icon-action od-icon-button\" title=\"取消导入\" aria-label=\"取消导入\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M5 5l14 14M19 5 5 19\"></path></svg></button>\n          </div>\n          <label for=\"sidebar-tool-file\">选择 .opendesk-tool.json 文件</label>\n          <input id=\"sidebar-tool-file\" type=\"file\" accept=\".json,application/json\" aria-describedby=\"sidebar-tool-file-error\" aria-invalid=\"false\">\n          <p id=\"sidebar-tool-file-error\" class=\"sidebar-tool-file-error\" role=\"alert\" hidden=\"\"></p>\n          <p class=\"sidebar-tool-import-hint\">选择文件和安装都不会运行代码；安装后由你点击“打开”启动工具。</p>\n          <div id=\"sidebar-tool-preview\" class=\"sidebar-tool-preview\" hidden=\"\">\n            <div class=\"sidebar-tool-preview-heading\">\n              <strong id=\"sidebar-tool-preview-title\"></strong>\n              <span id=\"sidebar-tool-preview-version\"></span>\n            </div>\n            <p id=\"sidebar-tool-preview-description\"></p>\n            <div class=\"sidebar-tool-capabilities od-surface\"><span>申请能力</span><p id=\"sidebar-tool-preview-capabilities\"></p></div>\n            <p id=\"sidebar-tool-preview-file\" class=\"sidebar-tool-preview-file\"></p>\n            <div id=\"sidebar-tool-update\" class=\"sidebar-tool-update od-surface\" hidden=\"\">\n              <strong>更新前请核对</strong>\n              <p id=\"sidebar-tool-update-versions\"></p>\n              <p id=\"sidebar-tool-update-capabilities\"></p>\n              <p>工具数据：同一工具 ID 的已保存数据将保留；卸载时才删除。</p>\n              <p id=\"sidebar-tool-update-warning\" class=\"sidebar-tool-update-warning\" hidden=\"\"></p>\n            </div>\n            <button type=\"button\" id=\"sidebar-tool-install\" class=\"od-button\" disabled=\"\">确认安装</button>\n          </div>\n        </div>\n        <div id=\"sidebar-tool-official-catalog\" aria-label=\"官方可选工具\"><div class=\"sidebar-tool-official od-surface\" data-official-tool-id=\"reading-toc\" data-installation-state=\"available\"><strong>阅读目录</strong><span>v1.0.2</span><button type=\"button\" class=\"od-button\" id=\"sidebar-tool-official-reading-toc-install\" data-official-install=\"reading-toc\" aria-label=\"安装官方阅读目录\">安装</button></div><div class=\"sidebar-tool-official od-surface\" data-official-tool-id=\"web-markdown-clipper\" data-installation-state=\"available\"><strong>网页剪藏</strong><span>v1.0.0</span><button type=\"button\" class=\"od-button\" id=\"sidebar-tool-official-web-markdown-clipper-install\" data-official-install=\"web-markdown-clipper\" aria-label=\"安装官方网页剪藏\">安装</button></div><div class=\"sidebar-tool-official od-surface\" data-official-tool-id=\"quick-notes\" data-installation-state=\"available\"><strong>网页笔记</strong><span>v1.1.5</span><button type=\"button\" class=\"od-button\" id=\"sidebar-tool-official-quick-notes-install\" data-official-install=\"quick-notes\" aria-label=\"安装官方网页笔记\">安装</button></div><div class=\"sidebar-tool-official od-surface\" data-official-tool-id=\"markdown-workbench\" data-installation-state=\"available\"><strong>Markdown 工作台</strong><span>v1.0.0</span><button type=\"button\" class=\"od-button\" id=\"sidebar-tool-official-markdown-workbench-install\" data-official-install=\"markdown-workbench\" aria-label=\"安装官方Markdown 工作台\">安装</button></div><div class=\"sidebar-tool-official od-surface\" data-official-tool-id=\"knowledge-inbox\" data-installation-state=\"available\"><strong>知识收件箱</strong><span>v1.1.1</span><button type=\"button\" class=\"od-button\" id=\"sidebar-tool-official-knowledge-inbox-install\" data-official-install=\"knowledge-inbox\" aria-label=\"安装官方知识收件箱\">安装</button></div></div>\n        <div id=\"sidebar-tool-list\" class=\"sidebar-tool-list od-stack\" aria-label=\"已安装自定义工具\"></div>\n        <p id=\"sidebar-tool-empty\" class=\"sidebar-tool-empty\">还没有自定义工具。点击“导入”添加第一个工具。</p>\n      </div>\n      <section id=\"sidebar-tool-display\" class=\"sidebar-tool-display\" aria-label=\"当前工具界面\" hidden=\"\">\n        <div class=\"sidebar-tool-view-head od-toolbar\">\n          <button type=\"button\" id=\"sidebar-tool-back\" class=\"sidebar-tool-icon-action od-icon-button\" title=\"返回工具列表\" aria-label=\"返回自定义工具列表\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"m14 5-7 7 7 7M7 12h14\"></path></svg></button>\n          <strong id=\"sidebar-tool-title\" title=\"\"></strong>\n          <button type=\"button\" id=\"sidebar-tool-open-tab\" class=\"sidebar-tool-icon-action od-icon-button\" title=\"在新标签页打开\" aria-label=\"在新标签页打开当前工具\" disabled=\"\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M13 5h6v6m0-6-9 9M19 13v6H5V5h6\"></path></svg></button>\n          <button type=\"button\" id=\"sidebar-tool-remove\" class=\"sidebar-tool-icon-action od-icon-button\" title=\"卸载工具\" aria-label=\"卸载工具\" disabled=\"\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M4 7h16M10 4h4m-8 3 1 13h10l1-13M10 11v5m4-5v5\"></path></svg></button>\n        </div>\n        <p id=\"sidebar-tool-readonly-banner\" class=\"sidebar-tool-status\" data-state=\"readonly\" role=\"note\" hidden=\"\">开发只读预览 · 未安装。模拟读取仅返回空值；禁止写入、发送消息、控制网页或运行任务。需要正式使用时，请另行审阅并安装工具包。</p>\n        <div id=\"sidebar-tool-frame\" class=\"sidebar-tool-frame\"></div>\n      </section>\n      <p id=\"sidebar-tool-status\" class=\"sidebar-tool-status\" role=\"status\" aria-live=\"polite\" hidden=\"\" data-state=\"info\"></p>\n    </section>\n  </div>\n  <div id=\"workbench-local-discover\" role=\"tabpanel\" aria-labelledby=\"tab-discover\" class=\"od-page\" data-workbench-page=\"local-discover\" hidden=\"\">\n    <section class=\"local-discovery-section\" aria-label=\"发现已安装任务\">\n      <div class=\"local-discovery-search-row od-toolbar\">\n        <label for=\"local-discover-search\" class=\"visually-hidden\">搜索已安装任务</label>\n        <input type=\"search\" id=\"local-discover-search\" class=\"od-field\" placeholder=\"搜索已安装任务…\" autocomplete=\"off\">\n        <button type=\"button\" id=\"local-discover-open-catalog\" class=\"local-discovery-import od-button od-button--secondary\" aria-label=\"打开完整任务目录，导入或管理任务\">导入</button>\n      </div>\n      <div id=\"local-discover-filters\" class=\"local-discovery-filters od-segmented\" role=\"group\" aria-label=\"本地任务筛选\">\n        <button type=\"button\" id=\"local-filter-current\" data-local-filter=\"current\" aria-pressed=\"true\">当前网页</button>\n        <button type=\"button\" id=\"local-filter-all\" data-local-filter=\"all\" aria-pressed=\"false\">全部</button>\n        <button type=\"button\" id=\"local-filter-disabled\" data-local-filter=\"disabled\" aria-pressed=\"false\">停用</button>\n      </div>\n      <p id=\"local-discover-count\" class=\"visually-hidden\" aria-live=\"polite\">找到 0 个已安装任务 · 本机共 0 个</p>\n      <div id=\"local-discover-cards\" class=\"local-discovery-list od-surface\" aria-label=\"发现的本机任务\"><p class=\"local-discovery-empty\">还没有任务，点击「导入」添加。</p></div>\n      <p id=\"local-discover-status\" class=\"hint\" role=\"status\"></p>\n    </section>\n  </div>\n  <!-- 完整任务目录仅在扩展独立标签页中显示，不占用 Side Panel。 -->\n  <div id=\"workbench-discover\" class=\"od-page\" data-workbench-page=\"catalog\">\n    <section aria-labelledby=\"discover-heading\" class=\"catalog-section\">\n      <div class=\"catalog-intro\"><p class=\"eyebrow\">LOCAL TASK CATALOG</p><h2 id=\"discover-heading\">发现本地任务</h2>\n      <p class=\"hint\">在完整页面搜索、筛选、查看说明并明确安装；不是云端 Marketplace。</p></div>\n      <label for=\"task-search\" class=\"visually-hidden\">搜索任务</label><input type=\"search\" id=\"task-search\" placeholder=\"搜索任务名称、用途、作者或网站…\" autocomplete=\"off\">\n      <div class=\"category-chips\" id=\"task-categories\" aria-label=\"任务分类\">\n        <button type=\"button\" class=\"category-chip selected\" data-catalog-filter=\"all\">全部</button>\n        <button type=\"button\" class=\"category-chip\" data-catalog-filter=\"installed\">已安装</button>\n        <button type=\"button\" class=\"category-chip\" data-catalog-filter=\"available\">可安装</button>\n        <button type=\"button\" class=\"category-chip\" data-catalog-filter=\"candidate\">待验证</button>\n      </div>\n      <p id=\"task-catalog-count\" class=\"hint\">共 0 个本地任务版本</p>\n      <div class=\"catalog-layout\">\n        <div id=\"task-catalog-cards\" class=\"catalog-card-grid\" aria-label=\"本地任务列表\"><p class=\"hint\">没有匹配的任务，请尝试其他关键词或分类。</p></div>\n        <aside class=\"catalog-reader od-surface\" aria-label=\"选中任务详情与安装\">\n          <label for=\"task-catalog-list\" class=\"visually-hidden\">候选版本</label><select id=\"task-catalog-list\" hidden=\"\"><option value=\"\">目录中没有任务</option></select>\n          <div id=\"task-catalog-detail\" class=\"task-detail\" aria-live=\"polite\">请选择任务卡片，查看完整用途、来源和所需权限。</div>\n      <div class=\"catalog-install\"><button type=\"button\" id=\"task-install\" disabled=\"\">安装确定版本</button></div><p id=\"task-install-feedback\" class=\"install-feedback\" role=\"status\" aria-live=\"polite\"></p>\n      <details id=\"catalog-verification\"><summary>开发者：核对证据与设为本地可用</summary>\n        <label for=\"task-verify-run\">已完成的真实运行 ID</label>\n        <input id=\"task-verify-run\" placeholder=\"与相同源码、网站和实际运行结果对应\" autocomplete=\"off\">\n        <div class=\"row\"><button type=\"button\" id=\"task-verify\" disabled=\"\">核对运行证据</button>\n          <button type=\"button\" id=\"task-publish\" disabled=\"\">设为本地可用</button></div>\n      </details>\n        </aside>\n      </div>\n      <label for=\"task-package-file\">导入任务包 JSON 或 JavaScript 草稿</label>\n      <input type=\"file\" id=\"task-package-file\" accept=\".json,.js,application/json,text/javascript\">\n      <p id=\"task-catalog-status\" role=\"status\">仅本机验证，不代表第三方审核或签名认证</p>\n      <div class=\"row\"><button type=\"button\" id=\"task-catalog-refresh\">刷新目录</button></div>\n    </section>\n  </div>\n  <div id=\"workbench-workflow\" role=\"tabpanel\" aria-labelledby=\"tab-workflow\" class=\"od-page\" data-workbench-page=\"workflow\" hidden=\"\">\n    <section id=\"workflow-editor\" class=\"workflow-editor\" aria-label=\"AI 语义工作流\" data-view-state=\"ai-unconfigured\">\n      <header class=\"workflow-head od-toolbar\">\n        <div class=\"workflow-head-copy\">\n          <h2 id=\"workflow-display-title\">新工作流</h2>\n        </div>\n        <div class=\"workflow-head-actions\" role=\"group\" aria-label=\"工作流快捷操作\">\n          <span id=\"workflow-saved-state\" class=\"workflow-pill\" hidden=\"\"></span>\n          <button type=\"button\" id=\"workflow-history-toggle\" class=\"workflow-icon-button od-icon-button\" aria-label=\"查看历史版本和设置\" aria-expanded=\"false\" aria-controls=\"workflow-manage-panel\" title=\"历史版本和设置\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\"><circle cx=\"12\" cy=\"12\" r=\"9\"></circle><path d=\"M12 7v5l3 2\"></path></svg></button>\n          <button type=\"button\" id=\"workflow-new\" class=\"workflow-icon-button od-icon-button\" aria-label=\"新建工作流\" title=\"新建工作流\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\"><path d=\"M12 5v14M5 12h14\"></path></svg></button>\n        </div>\n      </header>\n      <div class=\"workflow-scroll\">\n        <section class=\"workflow-card workflow-chat od-surface\" aria-labelledby=\"workflow-ai-title\">\n          <div id=\"workflow-chat-intro\" class=\"workflow-chat-intro\">\n            <div class=\"workflow-chat-mark\" aria-hidden=\"true\">✦</div>\n            <h3 id=\"workflow-ai-title\">想自动完成什么操作？</h3>\n            <p>描述需求，整理成可复用的操作步骤。</p>\n            <button type=\"button\" id=\"workflow-manual-start\" class=\"workflow-text-action\">手动创建步骤</button>\n          </div>\n          <div id=\"workflow-ai-transcript\" class=\"workflow-chat-transcript\" role=\"log\" aria-label=\"AI 规划对话记录\" aria-live=\"polite\" hidden=\"\"></div>\n          <p id=\"workflow-planning-indicator\" class=\"workflow-planning-indicator\" role=\"status\" hidden=\"\">✦ 正在整理可检查的语义步骤…</p>\n          <ol id=\"workflow-ai-progress\" class=\"workflow-ai-progress\" aria-label=\"Codex 实时规划进度\" hidden=\"\"></ol>\n          <section id=\"workflow-ai-approval\" class=\"workflow-ai-approval\" aria-labelledby=\"workflow-ai-approval-title\" hidden=\"\">\n            <h3 id=\"workflow-ai-approval-title\">允许读取当前网页摘要？</h3>\n            <p id=\"workflow-ai-approval-scope\"></p>\n            <div class=\"workflow-actions\"><button type=\"button\" id=\"workflow-ai-approve\">允许读取并发送</button><button type=\"button\" id=\"workflow-ai-deny\">拒绝</button></div>\n          </section>\n          <div id=\"workflow-ai-proposal\" class=\"workflow-proposal\" hidden=\"\">\n            <div class=\"workflow-section-header od-toolbar\"><h3>建议的执行步骤</h3><span>尚未验证网页元素</span></div>\n            <ol id=\"workflow-ai-preview\" class=\"workflow-ai-step-preview\"></ol>\n            <button type=\"button\" id=\"workflow-ai-apply\" class=\"workflow-primary od-button\" disabled=\"\">采用这份计划</button>\n          </div>\n        </section>\n        <section id=\"workflow-plan-panel\" class=\"workflow-card workflow-plan od-surface\" aria-label=\"可编辑语义步骤\" hidden=\"\">\n          <div class=\"workflow-section-header od-toolbar\"><h3>执行步骤</h3><span id=\"workflow-step-count\">0 步</span></div>\n          <div id=\"workflow-steps\" class=\"workflow-steps\" aria-label=\"工作流步骤列表\"><p class=\"hint\">暂无步骤。添加“观察页面”或“填写内容”开始创建。</p></div>\n          <button type=\"button\" id=\"workflow-add-step\" class=\"workflow-add\">＋ 添加步骤</button>\n          <p id=\"workflow-target-warning\" class=\"workflow-target-warning\" role=\"status\" hidden=\"\"></p>\n        </section>\n        <section id=\"workflow-params-panel\" class=\"workflow-card workflow-run-settings od-surface\" aria-label=\"工作流运行参数\" hidden=\"\">\n          <div class=\"workflow-section-header od-toolbar\"><h3>运行前确认</h3><span>只影响本次运行</span></div>\n          <div id=\"workflow-params\"></div>\n          <p class=\"hint\" id=\"workflow-params-empty\" hidden=\"\"></p>\n          <label class=\"workflow-consent\" id=\"workflow-run-consent\" hidden=\"\"><input type=\"checkbox\" id=\"workflow-confirm-run\">我已检查本次填写和点击操作，允许运行</label>\n        </section>\n        <section id=\"workflow-result-panel\" class=\"workflow-card workflow-result od-surface\" aria-label=\"工作流运行结果\" hidden=\"\">\n          <div class=\"workflow-section-header od-toolbar\"><h3>运行结果</h3></div>\n          <pre id=\"workflow-output\" aria-label=\"本次持久运行结果\">尚未运行</pre>\n          <details id=\"workflow-result-raw\" hidden=\"\"><summary>查看完整原值（可能包含敏感信息）</summary><pre id=\"workflow-raw\"></pre></details>\n          <details class=\"workflow-advanced\"><summary>Run / Result / Revision 技术身份</summary><pre id=\"workflow-technical\"></pre></details>\n        </section>\n        <section id=\"workflow-manage-panel\" class=\"workflow-management od-surface\" aria-label=\"历史版本和高级设置\" hidden=\"\">\n          <div class=\"workflow-section-header od-toolbar\"><h3>版本与设置</h3><button type=\"button\" id=\"workflow-manage-close\" class=\"workflow-icon-button od-icon-button\" aria-label=\"收起版本与设置\" title=\"收起\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\"><path d=\"M18 6 6 18M6 6l12 12\"></path></svg></button></div>\n          <div class=\"workflow-card workflow-library od-surface\">\n            <label for=\"workflow-saved-list\">选择版本</label>\n            <select id=\"workflow-saved-list\"><option value=\"\">选择已保存版本…</option></select>\n            <div class=\"workflow-actions\"><button type=\"button\" id=\"workflow-load\">打开版本</button><button type=\"button\" id=\"workflow-refresh\" class=\"workflow-icon-button od-icon-button\" aria-label=\"刷新已保存版本\" title=\"刷新列表\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\"><path d=\"M20 11a8 8 0 0 0-14.5-4.5L3 9\"></path><path d=\"M3 4v5h5\"></path><path d=\"M4 13a8 8 0 0 0 14.5 4.5L21 15\"></path><path d=\"M21 20v-5h-5\"></path></svg></button></div>\n          </div>\n          <details class=\"workflow-card workflow-manage-details od-surface\">\n            <summary>名称、用途和当前网站</summary>\n            <label for=\"workflow-title\">名称</label><input id=\"workflow-title\" maxlength=\"100\" autocomplete=\"off\" placeholder=\"例如：填写表单并读取结果\">\n            <label for=\"workflow-description\">用途（可选）</label><textarea id=\"workflow-description\" rows=\"2\" maxlength=\"800\" placeholder=\"这个工作流要完成什么？\"></textarea>\n            <label for=\"workflow-site\">执行网站（精确 origin）</label><input id=\"workflow-site\" readonly=\"\" aria-describedby=\"workflow-site-note\">\n            <p id=\"workflow-site-note\" class=\"hint\">当前页面不是可运行的 HTTP(S) 页面</p>\n          </details>\n          <details class=\"workflow-card workflow-manage-details od-surface\">\n            <summary>参数定义和高级编辑</summary>\n            <div class=\"workflow-param-create\"><input id=\"workflow-new-param-name\" type=\"text\" maxlength=\"40\" placeholder=\"参数名称，例如 keyword\" aria-label=\"新参数英文名称\"><button type=\"button\" id=\"workflow-add-param\">＋ 添加文本参数</button></div>\n            <details><summary>参数 JSON Schema</summary>\n              <label for=\"workflow-schema\">参数 Schema（string / number / integer / boolean）</label>\n              <textarea id=\"workflow-schema\" rows=\"6\" spellcheck=\"false\"></textarea>\n            </details>\n          </details>\n          <details class=\"workflow-card workflow-manage-details od-surface\">\n            <summary>生成源码、校验与发布</summary>\n            <details class=\"workflow-advanced\"><summary>JavaScript 与源码哈希</summary>\n              <p id=\"workflow-code-hash\" class=\"hint\"></p><pre id=\"workflow-code\" aria-label=\"工作流生成的 JavaScript\">尚不可编译：E_WORKFLOW_ORIGIN：网站必须是精确 HTTP(S) origin</pre>\n              <button type=\"button\" id=\"workflow-open-code\" disabled=\"\">复制到「开发」独立编辑</button>\n            </details>\n            <button type=\"button\" id=\"workflow-candidate\" class=\"workflow-secondary\" disabled=\"\">提交为待验证 Task 候选</button>\n            <p class=\"workflow-minor-note\">保存版本不等于安装。只有通过真实验证、设为 Available 并明确安装的版本才会出现在「我的」。</p>\n          </details>\n        </section>\n      </div>\n      <div class=\"workflow-composer\">\n        <label class=\"visually-hidden\" for=\"workflow-ai-request\">描述任务，或告诉 AI 怎样修改步骤</label>\n        <textarea id=\"workflow-ai-request\" rows=\"2\" maxlength=\"4000\" placeholder=\"描述要自动完成的任务…\"></textarea>\n        <div class=\"workflow-composer-actions\">\n          <button type=\"button\" id=\"workflow-provider-toggle\" class=\"workflow-icon-button workflow-settings-button od-icon-button\" aria-label=\"配置 AI 模型与数据授权\" aria-expanded=\"false\" aria-controls=\"workflow-provider-settings\" title=\"AI 设置\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\"><path d=\"M4 7h9m6 0h1M4 17h1m6 0h9\"></path><circle cx=\"16\" cy=\"7\" r=\"3\"></circle><circle cx=\"8\" cy=\"17\" r=\"3\"></circle></svg></button>\n          <button id=\"workflow-ai-plan\" type=\"button\" class=\"workflow-primary workflow-send-button\" aria-label=\"生成工作流步骤\" title=\"生成步骤\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\"><path d=\"M12 19V5m-7 7 7-7 7 7\"></path></svg></button>\n          <button id=\"workflow-ai-cancel\" type=\"button\" class=\"workflow-send-button workflow-ai-cancel\" aria-label=\"停止 AI 规划\" title=\"停止 AI 规划\" hidden=\"\"><svg viewBox=\"0 0 24 24\" fill=\"currentColor\" aria-hidden=\"true\" focusable=\"false\"><rect x=\"6\" y=\"6\" width=\"12\" height=\"12\" rx=\"2\"></rect></svg></button>\n        </div>\n        <details id=\"workflow-provider-settings\" class=\"workflow-provider\">\n          <summary>模型连接与数据发送授权</summary>\n          <label for=\"workflow-ai-provider\">AI 来源</label>\n          <select id=\"workflow-ai-provider\"><option value=\"local_codex\">本机 Codex</option><option value=\"custom_https\">自定义 HTTPS 模型接口</option><option value=\"opendesk_cloud\" disabled=\"\">OpenDesk 官方 AI（尚未开放）</option><option value=\"manual\">手动创建，不使用 AI</option></select>\n          <p id=\"workflow-provider-scope\" class=\"workflow-minor-note\">本机 OpenDesk 管理 Codex Agent，模型推理可能联网，已同意的内容可能保存在 Codex 本机对话中。复用官方 CLI 登录，请勿填写 Codex 登录凭据。</p>\n          <div id=\"workflow-local-settings\">\n            <p id=\"workflow-local-status\" class=\"workflow-local-status\" role=\"status\" aria-live=\"polite\" data-state=\"DISCONNECTED\">本机连接已断开。本次请求不会自动重发，请重新检查连接。</p>\n            <div class=\"workflow-actions\"><button type=\"button\" id=\"workflow-local-connect\">连接 OpenDesk</button><button type=\"button\" id=\"workflow-local-refresh\">重新检查</button><button type=\"button\" id=\"workflow-local-help\">本机连接设置 ↗</button></div>\n            <label class=\"workflow-consent\"><input id=\"workflow-ai-observe-consent\" type=\"checkbox\">本次允许 AI 请求网页结构、元素名称与文字摘要，每次读取仍需确认</label>\n            <div class=\"workflow-actions workflow-session-actions\"><button type=\"button\" id=\"workflow-ai-new-session\" title=\"结束当前 AI 会话，下次发送开始新对话\" hidden=\"\">新对话</button><button type=\"button\" id=\"workflow-ai-resume\" hidden=\"\">恢复上次对话</button></div>\n          </div>\n          <div id=\"workflow-custom-settings\" hidden=\"\">\n            <label for=\"workflow-ai-endpoint\">OpenAI 兼容 HTTPS Chat Completions API</label><input id=\"workflow-ai-endpoint\" type=\"url\" spellcheck=\"false\" value=\"https://api.openai.com/v1/chat/completions\">\n            <label for=\"workflow-ai-model\">模型</label><input id=\"workflow-ai-model\" spellcheck=\"false\" value=\"gpt-4o-mini\">\n            <label for=\"workflow-ai-key\">API Key（不保存）</label><input id=\"workflow-ai-key\" type=\"password\" autocomplete=\"off\" spellcheck=\"false\" placeholder=\"仅本次会话使用\">\n            <p class=\"workflow-minor-note\">此来源生成一次步骤提议，不使用本机工具；密钥只在本窗口内使用。</p>\n          </div>\n          <label id=\"workflow-ai-send-consent\" class=\"workflow-consent\"><input id=\"workflow-ai-consent\" type=\"checkbox\">同意本次向选定模型发送需求、网站 origin、步骤和参数定义</label>\n          <p id=\"workflow-ai-consent-note\" class=\"workflow-minor-note\">每次发送后清除本次同意。网页读取与网页操作分别确认。官方 AI 服务接口已预留，当前尚未开放。</p>\n        </details>\n      </div>\n      <p id=\"workflow-status\" class=\"workflow-status\" role=\"status\" aria-live=\"polite\" hidden=\"\" data-state=\"info\"></p>\n    </section>\n  </div>\n  <div id=\"workbench-develop\" role=\"tabpanel\" aria-labelledby=\"tab-develop\" class=\"od-page\" data-workbench-page=\"develop\" hidden=\"\">\n  <section aria-label=\"当前网页\" class=\"developer-target\">\n    <details id=\"developer-target-detail\">\n      <summary class=\"developer-page-summary\">\n        <span class=\"developer-page-label\">当前网页</span>\n        <span id=\"script-current-page-host\" title=\"\">未识别</span>\n        <span id=\"script-current-page-status\" role=\"status\" aria-live=\"polite\" data-state=\"unavailable\" title=\"当前页面不是可运行的 HTTP(S) 页面\">不可运行</span>\n      </summary>\n      <div class=\"developer-page-detail\">\n        <p id=\"script-current-page-title\" class=\"page-title\">当前页面不是可运行的 HTTP(S) 页面</p>\n        <p id=\"script-current-page-url\" class=\"identity\"></p>\n      </div>\n    </details>\n  </section>\n  <section class=\"developer-editor\" aria-label=\"JavaScript 开发\">\n    <div id=\"developer-source-switch\" class=\"developer-source-switch od-toolbar\" role=\"group\" aria-label=\"代码来源\" data-mode=\"manual\">\n      <span>直接编辑</span>\n      <label for=\"local-project-mode\">\n        <input id=\"local-project-mode\" type=\"checkbox\" role=\"switch\" aria-label=\"使用本地项目\" aria-description=\"关闭时在编辑器直接编写，开启时选择已授权的本地项目。切换不会自动运行。\" aria-controls=\"local-project-tools manual-source-editor\">\n        <span class=\"local-project-switch-track\" aria-hidden=\"true\"></span><span>本地项目</span>\n      </label>\n    </div>\n    <section id=\"local-project-tools\" class=\"local-project-tools\" aria-label=\"本地项目连接\" hidden=\"\">\n      <p class=\"local-project-intro\">在编辑器或 Codex 中保存，系统自动准备；点击「运行本地项目」执行最新代码。保存文件不会自动运行。</p>\n      <div class=\"local-project-controls od-toolbar\">\n        <label for=\"local-project-select\" class=\"visually-hidden\">已授权本地项目</label><select id=\"local-project-select\" disabled=\"\"><option value=\"\">选择已授权项目</option></select>\n        <button id=\"local-project-refresh\" type=\"button\">刷新</button>\n      </div>\n      <p id=\"local-project-status\" role=\"status\" aria-live=\"polite\" data-state=\"manual\"></p>\n      <details><summary>高级诊断</summary><p id=\"local-project-diagnostics\">运行后显示版本与准备耗时。</p></details>\n      <button id=\"local-project-connect\" class=\"local-project-connect\" type=\"button\">连接本机 OpenDesk ↗</button>\n      <details id=\"local-project-guide\" class=\"local-project-guide\">\n        <summary>首次使用：连接方法</summary>\n        <ol>\n          <li>先安装 OpenDesk 原生程序；点击上方「连接本机 OpenDesk」，在扩展选项中确认首次 Native 权限。</li>\n          <li>当前开发版的本地项目源码仍由 Codex <code>opendesk-dev</code> MCP 提供；首次配置及目录授权请参阅高级开发指南。</li>\n          <li>回到此处刷新已授权项目列表，选中项目，再明确点击「运行本地项目」。</li>\n        </ol>\n        <p>本机 Native 已连接与本地项目 Provider 已就绪是两种状态。普通脚本无需它们。当前开发版的首次配对仍可能需要高级配置；<code>npm run dev</code> 只负责扩展源码热更新。</p>\n        <button id=\"local-project-guide-open\" type=\"button\">查看首次配置命令和示例 ↗</button>\n        <p>也可在仓库内查阅 <code>docs/api/quickstart.zh-CN.md</code> 的「首次配置」章节。</p>\n      </details>\n      <details id=\"local-project-params-tools\" hidden=\"\"><summary>项目参数 JSON（Controller 可选）</summary><label for=\"local-project-params\" class=\"visually-hidden\">本地项目参数</label><textarea id=\"local-project-params\" rows=\"3\" spellcheck=\"false\">{}</textarea></details>\n    </section>\n    <div id=\"manual-source-editor\">\n    <p id=\"program-source-info\" class=\"identity\" role=\"status\" hidden=\"\"></p>\n    <div id=\"program-source-toolbar\" class=\"program-source-toolbar od-toolbar\" role=\"group\" aria-label=\"源码视图操作\" hidden=\"\">\n      <label for=\"program-source-files\" class=\"visually-hidden\">实际执行代码或项目源码快照</label>\n      <select id=\"program-source-files\" hidden=\"\"></select>\n      <button type=\"button\" id=\"program-new-script\" title=\"创建可编辑的 JavaScript 草稿（退出当前只读源码视图）\" aria-label=\"新建 JavaScript 草稿\" hidden=\"\">新建</button>\n    </div>\n    <label for=\"script-source\" class=\"visually-hidden\">JavaScript 编辑器，草稿可直接运行</label><textarea id=\"script-source\" rows=\"9\" spellcheck=\"false\">async function main() {\n  return {title: await page.title(), url: await page.url(), value: params.value};\n}</textarea>\n    <details id=\"program-generated\" hidden=\"\"><summary>高级诊断：查看编译产物</summary><pre id=\"program-generated-source\"></pre></details>\n    </div>\n    <details id=\"manual-project-params-tools\" class=\"developer-params\"><summary>参数 JSON（可选）</summary><label for=\"script-params\">参数 JSON</label><textarea id=\"script-params\" rows=\"3\" spellcheck=\"false\">{\"value\":0}</textarea></details>\n\n    <p id=\"script-status\" role=\"status\" data-state=\"results\">已读取持久结果</p>\n    <div id=\"script-user-scripts-recovery\" class=\"developer-execution-help\" data-state=\"blocked\" hidden=\"\">\n      <p id=\"script-user-scripts-recovery-status\" role=\"status\" aria-live=\"polite\"></p>\n      <div class=\"developer-execution-help-actions\">\n        <button id=\"script-user-scripts-settings\" type=\"button\">打开扩展设置</button>\n        <button id=\"script-user-scripts-check\" type=\"button\">重新检测</button>\n      </div>\n    </div>\n  <p id=\"script-task-status\" class=\"developer-task-status\" role=\"status\"></p>\n  <details id=\"developer-run-technical\" class=\"developer-run-technical\"><summary>运行目标与版本</summary>\n    <p id=\"script-task-id\" class=\"identity\">尚未运行</p>\n    <p id=\"script-running-target\" class=\"identity\" data-state=\"idle\">运行目标：尚未建立</p>\n    <p id=\"script-task-version\" class=\"identity\"></p>\n  </details>\n  <details id=\"developer-results-panel\" class=\"developer-results\"><summary>运行结果</summary><div class=\"developer-results-body\">\n    <div class=\"result-toolbar\"><span id=\"script-result-kind\" class=\"hint\">暂无返回值</span>\n      <button type=\"button\" id=\"script-copy-result\" disabled=\"\">复制结果</button></div>\n    <pre id=\"script-result\" aria-label=\"脚本返回值\">尚未选择运行记录</pre>\n    <details id=\"script-history-panel\" class=\"result-history\"><summary>运行记录与技术信息</summary>\n      <div class=\"row\"><button id=\"script-read\">刷新历史</button></div>\n      <label for=\"script-history-run\">历史运行</label><select id=\"script-history-run\"><option value=\"\">选择历史任务</option></select>\n      <div class=\"row\"><button id=\"script-history-open\">查看选中任务</button></div>\n      <details><summary>完整历史与版本身份</summary><pre id=\"script-history\" aria-label=\"持久结果历史\">{\n  \"runs\": [],\n  \"results\": [],\n  \"downloads\": [],\n  \"resultDeliveryDenied\": []\n}</pre></details>\n      <details><summary>结果下载与任务查询</summary>\n        <label for=\"script-run-id\">查询 runId（留空读取全部历史）</label><input id=\"script-run-id\" placeholder=\"runId\">\n        <div class=\"row\"><button id=\"script-read-run\">查询任务</button></div>\n        <div class=\"row\"><label for=\"script-download-result\">已完成的持久结果</label><select id=\"script-download-result\"><option value=\"\">请选择要下载的结果</option></select><button id=\"script-download\" disabled=\"\">下载结果 JSON</button></div>\n        <p id=\"script-download-status\" role=\"status\">结果下载保留类型信息，包括 undefined。</p>\n      </details>\n    </details>\n  </div></details>\n\n    <details id=\"page-preview-tools\"><summary>网页 JavaScript 试运行</summary>\n      <p class=\"hint\">直接使用上方 JavaScript 源码操作当前网页 DOM；可写 async function main() 返回结果，也可直接编写顶层语句。不要求特殊脚本声明；运行前仍需网站授权。</p>\n      <button id=\"page-preview-run\" type=\"button\" disabled=\"\">在当前网页试运行</button>\n      <p id=\"page-preview-status\" role=\"status\">请先确认当前网页可用；试运行不会保存版本或安装任务。</p>\n      <pre id=\"page-preview-result\" aria-label=\"网页 JavaScript 试运行结果\">尚未运行</pre>\n      <details id=\"page-preview-technical-panel\" hidden=\"\"><summary>技术信息</summary><pre id=\"page-preview-technical\"></pre></details>\n      <div class=\"row\"><button id=\"page-candidate-save\" type=\"button\" disabled=\"\">保存网页脚本版本</button></div>\n      <p class=\"hint\">试运行后可保存固定 Page 版本；普通 JS 默认匹配所有 HTTP/HTTPS 网站（*://*/*）；兼容导入的显式 @match 保持原范围。保存后核对冻结版本和全站范围，再明确安装授权。脚本 ID 和版本在下方「版本管理」中设置。</p>\n      <p id=\"page-candidate-status\" role=\"status\" aria-live=\"polite\">尚未保存网页脚本候选。</p>\n      <label for=\"page-program-list\">已保存网页脚本</label>\n      <select id=\"page-program-list\"><option value=\"\">尚未保存网页脚本</option></select>\n      <pre id=\"page-program-detail\">保存网页脚本版本后，在这里核对、安装与停用。</pre>\n      <div class=\"row\"><button id=\"page-program-load\" type=\"button\" disabled=\"\">加载源码</button><button id=\"page-program-verify\" type=\"button\" disabled=\"\">验证冻结版本</button></div>\n      <div class=\"row\"><button id=\"page-program-install\" type=\"button\" disabled=\"\">安装自动运行</button><button id=\"page-program-toggle\" type=\"button\" disabled=\"\">启用自动运行</button><button id=\"page-program-restore\" type=\"button\" hidden=\"\" disabled=\"\">恢复访问</button><button id=\"page-program-refresh\" type=\"button\">刷新状态</button></div>\n      <p id=\"page-program-status\" role=\"status\" aria-live=\"polite\">正式安装支持顶层网页与 document-idle；停用不会撤销已有网页效果。效果未知时不自动重放。</p>\n    </details>\n    <details id=\"script-library-tools\"><summary>版本管理与任务制作</summary>\n    <label for=\"script-list\">已保存脚本</label>\n    <div class=\"row\"><select id=\"script-list\"><option value=\"\">没有已保存脚本</option></select><button id=\"script-list-refresh\">刷新</button><button id=\"script-list-load\" disabled=\"\">加载最新</button></div>\n    <label for=\"script-id\">脚本名称 / ID</label><input id=\"script-id\" value=\"my-script\" autocomplete=\"off\">\n    <div class=\"row\"><label for=\"script-revision\">revision</label><input id=\"script-revision\" type=\"number\" min=\"1\" placeholder=\"留空加载最新版本\"><button id=\"script-load\">加载版本</button></div>\n    <p id=\"script-version\" role=\"status\" data-dirty=\"false\">未保存草稿可直接运行；只有点击保存才创建正式版本</p>\n    <details id=\"task-package-dev\"><summary>从已保存版本创建任务候选</summary>\n      <p class=\"hint\">先保存程序版本，再定义任务信息。创建候选不会自动验证、发布或安装。</p>\n      <label for=\"task-dev-id\">稳定任务标识</label><input id=\"task-dev-id\" value=\"my-first-task\" autocomplete=\"off\">\n      <label for=\"task-dev-version\">任务版本</label><input id=\"task-dev-version\" value=\"1.0.0\" autocomplete=\"off\">\n      <label for=\"task-dev-title\">名称</label><input id=\"task-dev-title\" value=\"我的第一个任务\">\n      <label for=\"task-dev-description\">用途</label><input id=\"task-dev-description\" value=\"运行当前网页的自动化脚本\">\n      <label for=\"task-dev-author\">作者</label><input id=\"task-dev-author\" value=\"local-developer\">\n      <label for=\"task-dev-schema\">参数 Schema（JSON）</label>\n      <textarea id=\"task-dev-schema\" rows=\"4\" spellcheck=\"false\">{\"type\":\"object\",\"properties\":{},\"required\":[],\"additionalProperties\":false}</textarea>\n      <button type=\"button\" id=\"task-create-candidate\">保存为待验证任务候选</button>\n      <p id=\"task-dev-status\" role=\"status\">候选需要真实运行验证后才能安装</p>\n    </details>\n    </details>\n    <details id=\"script-advanced\"><summary>高级脚本与目标设置</summary>\n      <details id=\"site-access\" class=\"site-access-panel\">\n        <summary>网站权限 · 默认全部网站</summary>\n        <p id=\"site-access-status\" role=\"status\" data-state=\"granted\">Chrome 已授予默认全网站和核心 API 权限（Cookie：已授权；通知：已授权）</p>\n        <p class=\"hint\">安装或更新时由 Chrome 请求全部网站及核心浏览器 API（含 Cookie、通知）。后续插件的额外 API 仍需明确授权；浏览器网站权限不会自动授予脚本或 SDK 的应用级权限。</p>\n        <div class=\"row\"><button id=\"site-access-grant\" type=\"button\" disabled=\"\">全部网站已授权</button><button id=\"site-access-refresh\" type=\"button\">刷新授权状态</button></div>\n        <p class=\"hint\">如 Chrome 限制了网站权限，可点击恢复或前往扩展详情将“网站访问”改为“所有网站”。浏览器内部页、file://、隐身与用户脚本开关仍有独立限制。</p>\n      </details>\n      <p class=\"hint\">默认使用当前网页；手动目标仅用于高级操作。</p>\n      <div class=\"row\"><label for=\"script-target-mode\">目标方式</label><select id=\"script-target-mode\"><option value=\"current\">当前网页（默认）</option><option value=\"owned\">创建隔离网页（高级）</option><option value=\"borrowed\">手动选择精确文档（高级）</option></select></div>\n      <label for=\"script-owned-url\">隔离网页地址</label><input id=\"script-owned-url\" type=\"url\" placeholder=\"https://example.com/\" disabled=\"\">\n      <div class=\"row\"><label for=\"script-tab\">现有网页</label><select id=\"script-tab\" disabled=\"\"><option value=\"\">请选择具体网页</option></select><button id=\"script-refresh\">刷新网页列表</button></div>\n      <label for=\"script-document\">精确文档</label><select id=\"script-document\" disabled=\"\"><option value=\"\">请选择当前精确文档</option></select>\n      <p><label><input id=\"script-allow-cookies\" type=\"checkbox\">允许脚本访问目标网站的 Cookie</label></p>\n      <button id=\"script-delete\" disabled=\"\">删除脚本</button>\n      <details><summary>当前网页精确身份</summary><pre id=\"script-current-page-debug\" aria-label=\"当前网页精确目标\">{\n  \"windowId\": 2023300661,\n  \"reason\": \"E_UNSUPPORTED_SCHEME\"\n}</pre></details>\n    </details>\n  </section>\n  <details id=\"tool-diagnostics\"><summary>Advanced / Diagnostics</summary>\n  <section id=\"scraping-panel\" aria-label=\"采集模块\" data-module-status=\"MODULE_NOT_INSTALLED\">采集模块未注册；普通 JavaScript 与网页 SDK 可独立使用。</section>\n  <section aria-labelledby=\"sdk-title\"><h2 id=\"sdk-title\">独立网页 SDK</h2>\n    <p>SDK 与 axiosx 会自动加载到允许访问的 HTTP(S) 网页。默认同源 HTTP 与固定本地实验测试 Origin 无需逐页审批；本区域只用于<strong>额外跨站 Origin 或高级能力</strong>的显式授权、检查和撤销。后台仍按真实网页身份核查每次请求。</p>\n    <div class=\"row\"><label for=\"sdk-tab\">网页</label><select id=\"sdk-tab\"><option value=\"\">请选择具体网页</option></select><button id=\"sdk-refresh\">刷新网页列表</button></div>\n    <div class=\"row\"><label for=\"sdk-document\">精确文档</label><select id=\"sdk-document\" disabled=\"\"><option value=\"\">请选择当前精确文档</option></select></div>\n    <fieldset id=\"sdk-capabilities\"><legend>允许的服务（仅授予勾选项）</legend><label><input type=\"checkbox\" value=\"network\" name=\"sdk-capability\"> HTTP 网络请求（仅本次精确批准的来源与目标） </label><label><input type=\"checkbox\" value=\"storage.persistent\" name=\"sdk-capability\"> 持久存储 </label><label><input type=\"checkbox\" value=\"storage.session\" name=\"sdk-capability\"> 浏览器会话存储 </label><label><input type=\"checkbox\" value=\"notifications\" name=\"sdk-capability\"> 通知 </label><label><input type=\"checkbox\" value=\"device.id\" name=\"sdk-capability\"> 稳定应用 ID </label><label><input type=\"checkbox\" value=\"network.info\" name=\"sdk-capability\" disabled=\"\"> 外部网络信息（当前未启用） </label><label><input type=\"checkbox\" value=\"service.log\" name=\"sdk-capability\"> service.log </label><label><input type=\"checkbox\" value=\"service.time\" name=\"sdk-capability\"> service.time </label><label><input type=\"checkbox\" value=\"resources.packaged\" name=\"sdk-capability\"> resources.packaged </label></fieldset>\n    <label for=\"sdk-target-origins\">额外批准的目标 origin（每行一个，最多 8 条）</label>\n    <textarea id=\"sdk-target-origins\" rows=\"3\" maxlength=\"18000\" spellcheck=\"false\" placeholder=\"https://api.example.com\nhttp://127.0.0.1:43111\" aria-describedby=\"sdk-target-help\"></textarea>\n    <p id=\"sdk-target-help\">留空仅允许来源同源；这里是完整的新范围，不与旧授权自动合并。协议、主机和有效端口精确匹配；不能填写账户、路径、查询或通配符。回环与局域网也须明确列出。原生权限可能覆盖更多端口，但不会扩大应用授权；此检查不是 DNS 重绑定防护。</p>\n    <details open=\"\"><summary>本次批准快照（来源、精确 document、服务与目标）</summary><pre id=\"sdk-approval-preview\" aria-live=\"polite\">E_DOCUMENT_STALE：请选择一个精确的当前文档</pre></details>\n    <div class=\"row\"><button id=\"sdk-install\" disabled=\"\">明确批准此快照并安装 SDK</button></div>\n    <div class=\"row\"><button id=\"sdk-inspect\" type=\"button\" disabled=\"\">只读查询当前授权</button><button id=\"sdk-revoke\" type=\"button\" disabled=\"\">撤销已确认授权</button></div>\n    <p class=\"hint\">这是<strong>网页文档级</strong>授权：同页第一方与第三方 JavaScript 都可能调用 SDK，<strong>并非只授权某个用户脚本</strong>。用户脚本的 @grant / GM_* 不会在这里自动授权。查询不会申请新权限；撤销阻止后续 SDK 服务，但不能回滚已发生操作，也无法强制卸载已执行 JS；结果未知时须重新查询。</p>\n    <p id=\"sdk-status\" role=\"status\" data-state=\"idle\">请选择网页、当前文档和服务</p><pre id=\"sdk-result\" aria-label=\"SDK 安装结果\"></pre>\n  </section>\n  <section aria-labelledby=\"health-title\"><h2 id=\"health-title\">目标健康检查</h2>\n    <p>检查只确认包内脚本与目标文档通信。不会采集数据或翻动原页面。</p>\n    <div class=\"row\"><label for=\"target-url\">测试页面地址</label><input id=\"target-url\" type=\"url\" placeholder=\"https://example.com/\"><button id=\"create-target\">授权并创建检查页</button></div>\n    <div class=\"row\"><button id=\"check-source\">检查原页面</button><button id=\"check-target\" disabled=\"\">检查已绑定文档</button></div>\n    <p id=\"status\" role=\"status\">环境入口已加载</p><pre id=\"health-result\" aria-label=\"目标检查结果\"></pre>\n  </section>\n    <aside>SDK 授权与自动化任务独立；健康检查只确认环境通信。</aside>\n  </details>\n  </div>\n</main>\n<footer id=\"workspace-dock\" class=\"workspace-dock\" data-stop-only=\"false\" hidden=\"\">\n  <div id=\"task-dock\" class=\"dock-actions\" hidden=\"\">\n    <div class=\"dock-buttons od-toolbar\"><button type=\"button\" id=\"task-run\" disabled=\"\">运行任务</button><button type=\"button\" id=\"task-stop\" disabled=\"\" aria-label=\"停止当前任务\">停止</button></div>\n  </div>\n  <div id=\"workflow-dock\" class=\"dock-actions\" hidden=\"\" data-empty=\"true\"><div class=\"dock-buttons od-toolbar\"><button type=\"button\" id=\"workflow-run\" disabled=\"\">运行工作流</button><button type=\"button\" id=\"workflow-save\" disabled=\"\">保存版本</button><button type=\"button\" id=\"workflow-stop\" disabled=\"\">停止</button></div></div>\n  <div id=\"develop-dock\" class=\"dock-actions\" hidden=\"\">\n    <div class=\"dock-buttons od-toolbar\"><button class=\"od-button\" id=\"script-run\" disabled=\"\">运行草稿</button><button class=\"od-button\" id=\"script-save\">保存版本</button><button id=\"script-stop\" disabled=\"\">停止</button></div>\n  </div>\n</footer>\n<script src=\"tool-shell.js\"></script>\n\n<button id=\"r45-open-panel\" style=\"position: fixed; z-index: 2147483646; top: 70px; left: 20px; min-width: 220px; min-height: 48px;\">Open test Side Panel</button></body></html>"
+    },
+    {
+      "targetId": "00C8256955345E4A313404F5D68B7FF5",
+      "url": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/ui/tool.html?hostInstanceId=2b1299cd-098e-4459-bb5a-889ac25739d5",
+      "dom": "<html lang=\"zh-CN\" data-opendesk-tab=\"tools\" data-opendesk-tool=\"list\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><meta http-equiv=\"Content-Security-Policy\" content=\"frame-src 'self'\"><title>OpenDesk Browser</title><link rel=\"stylesheet\" href=\"design-tokens.css\"><link rel=\"stylesheet\" href=\"design-system.css\"><link rel=\"stylesheet\" href=\"tool-shell.css\"></head>\n<body>\n<nav class=\"workbench-nav\" role=\"tablist\" aria-label=\"工作台\">\n  <button type=\"button\" id=\"tab-my-tasks\" role=\"tab\" tabindex=\"-1\" data-workbench-tab=\"tasks\" aria-selected=\"false\" aria-controls=\"workbench-tasks\">我的</button>\n  <button type=\"button\" id=\"tab-discover\" role=\"tab\" tabindex=\"-1\" data-workbench-tab=\"discover\" aria-selected=\"false\" aria-controls=\"workbench-local-discover\">发现</button>\n  <button type=\"button\" id=\"tab-workflow\" role=\"tab\" tabindex=\"-1\" data-workbench-tab=\"workflow\" aria-selected=\"false\" aria-controls=\"workbench-workflow\">工作流</button>\n  <button type=\"button\" id=\"tab-develop\" role=\"tab\" tabindex=\"-1\" data-workbench-tab=\"develop\" aria-selected=\"false\" aria-controls=\"workbench-develop\">开发</button>\n  <button type=\"button\" id=\"tab-tools\" role=\"tab\" tabindex=\"0\" data-workbench-tab=\"tools\" aria-selected=\"true\" aria-controls=\"workbench-tools\">工具</button>\n</nav>\n<main id=\"workspace-content\">\n  <div id=\"site-access-recovery\" class=\"row\" role=\"status\" hidden=\"\">\n    <span id=\"site-access-recovery-message\">访问受限：Chrome 已限制网站访问。</span>\n    <button id=\"site-access-restore\" type=\"button\" aria-describedby=\"site-access-recovery-message\" disabled=\"\">恢复全部网站访问</button>\n  </div>\n  <div id=\"workbench-tasks\" role=\"tabpanel\" aria-labelledby=\"tab-my-tasks\" class=\"od-page\" data-workbench-page=\"tasks\" hidden=\"\">\n    <section class=\"tasks-surface\" aria-label=\"已安装任务\">\n      <div class=\"task-section-head od-toolbar\">\n        <strong>自动化任务</strong>\n        <div class=\"task-section-actions\"><span id=\"task-installed-count\" aria-live=\"polite\">0 个</span><button type=\"button\" id=\"task-open-catalog\" class=\"od-button\" aria-label=\"打开任务目录添加任务\">＋ 添加</button></div>\n      </div>\n      <label for=\"task-installed-list\" class=\"visually-hidden\">已安装任务</label><select id=\"task-installed-list\" hidden=\"\"><option value=\"\">暂无已安装任务</option></select>\n      <div id=\"task-installed-cards\" class=\"task-card-list od-stack\" aria-label=\"已安装任务列表\"><p class=\"hint\">暂无任务。点击上方「添加」导入本地任务。</p><div id=\"task-selected-workspace\" class=\"task-selected-workspace\" hidden=\"\">\n      <p id=\"task-current-site\" class=\"identity\" data-state=\"unavailable\" title=\"\">当前网页不可运行</p>\n      <form id=\"task-params-form\" autocomplete=\"off\" aria-label=\"任务参数\"></form>\n      <p id=\"task-status\" role=\"status\" aria-live=\"polite\"></p>\n      <div id=\"task-result-panel\" class=\"task-result-panel\" hidden=\"\">\n        <div class=\"task-result-controls\">\n          <h3 class=\"task-result-heading\">最近结果</h3>\n          <button type=\"button\" id=\"task-result-reveal\" title=\"完整返回值可能包含敏感信息\" hidden=\"\">查看完整原值</button>\n        </div>\n        <pre id=\"task-result\" aria-label=\"当前任务结果\"></pre>\n      </div>\n      <details id=\"task-history-panel\" class=\"task-history-panel\" hidden=\"\"><summary>运行记录</summary><div id=\"task-history\" aria-live=\"polite\"></div></details>\n      <details class=\"task-scope-panel\"><summary>网站与权限</summary><div id=\"task-installed-detail\" class=\"task-detail\" aria-live=\"polite\"></div></details>\n      <details class=\"task-tools\"><summary>更多操作</summary>\n        <div class=\"row\"><button type=\"button\" id=\"task-refresh\">刷新任务</button><button type=\"button\" id=\"task-fork-draft\" disabled=\"\">复制草稿</button></div>\n        <details><summary>任务管理</summary>\n          <div class=\"row\"><button type=\"button\" id=\"task-toggle\" disabled=\"\">启用任务</button><button type=\"button\" id=\"task-uninstall\" disabled=\"\">卸载当前版本</button><button type=\"button\" id=\"open-catalog\" class=\"catalog-open\" aria-label=\"打开完整任务目录以导入或管理任务\">导入/管理任务 ↗</button></div>\n          <p class=\"hint\">卸载不删除已有结果；停用将阻止后续启动。</p>\n        </details>\n      </details>\n      </div></div>\n      \n    </section>\n  </div>\n  <div id=\"workbench-tools\" role=\"tabpanel\" aria-labelledby=\"tab-tools\" class=\"od-page\" data-workbench-page=\"tools\">\n    <section id=\"sidebar-tools\" class=\"sidebar-tools\" aria-label=\"自定义工具\">\n      <div id=\"sidebar-tool-list-view\">\n        <div class=\"sidebar-tools-head od-toolbar\">\n          <strong>自定义工具</strong>\n          <button type=\"button\" id=\"sidebar-tool-market\" class=\"od-button\" title=\"在新标签页打开官方应用市场\">应用市场</button>\n          <button type=\"button\" id=\"sidebar-tool-import-trigger\" class=\"od-button\" aria-expanded=\"false\" aria-controls=\"sidebar-tool-import\">＋ 导入</button>\n        </div>\n        <div id=\"sidebar-tool-import\" class=\"sidebar-tool-import od-surface\" hidden=\"\">\n          <div class=\"sidebar-tool-import-head od-toolbar\">\n            <strong>导入工具</strong>\n            <button type=\"button\" id=\"sidebar-tool-import-close\" class=\"sidebar-tool-icon-action od-icon-button\" title=\"取消导入\" aria-label=\"取消导入\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M5 5l14 14M19 5 5 19\"></path></svg></button>\n          </div>\n          <label for=\"sidebar-tool-file\">选择 .opendesk-tool.json 文件</label>\n          <input id=\"sidebar-tool-file\" type=\"file\" accept=\".json,application/json\" aria-describedby=\"sidebar-tool-file-error\" aria-invalid=\"false\">\n          <p id=\"sidebar-tool-file-error\" class=\"sidebar-tool-file-error\" role=\"alert\" hidden=\"\"></p>\n          <p class=\"sidebar-tool-import-hint\">选择文件和安装都不会运行代码；安装后由你点击“打开”启动工具。</p>\n          <div id=\"sidebar-tool-preview\" class=\"sidebar-tool-preview\" hidden=\"\">\n            <div class=\"sidebar-tool-preview-heading\">\n              <strong id=\"sidebar-tool-preview-title\"></strong>\n              <span id=\"sidebar-tool-preview-version\"></span>\n            </div>\n            <p id=\"sidebar-tool-preview-description\"></p>\n            <div class=\"sidebar-tool-capabilities od-surface\"><span>申请能力</span><p id=\"sidebar-tool-preview-capabilities\"></p></div>\n            <p id=\"sidebar-tool-preview-file\" class=\"sidebar-tool-preview-file\"></p>\n            <div id=\"sidebar-tool-update\" class=\"sidebar-tool-update od-surface\" hidden=\"\">\n              <strong>更新前请核对</strong>\n              <p id=\"sidebar-tool-update-versions\"></p>\n              <p id=\"sidebar-tool-update-capabilities\"></p>\n              <p>工具数据：同一工具 ID 的已保存数据将保留；卸载时才删除。</p>\n              <p id=\"sidebar-tool-update-warning\" class=\"sidebar-tool-update-warning\" hidden=\"\"></p>\n            </div>\n            <button type=\"button\" id=\"sidebar-tool-install\" class=\"od-button\" disabled=\"\">确认安装</button>\n          </div>\n        </div>\n        <div id=\"sidebar-tool-official-catalog\" aria-label=\"官方可选工具\"><div class=\"sidebar-tool-official od-surface\" data-official-tool-id=\"reading-toc\" data-installation-state=\"available\"><strong>阅读目录</strong><span>v1.0.2</span><button type=\"button\" class=\"od-button\" id=\"sidebar-tool-official-reading-toc-install\" data-official-install=\"reading-toc\" aria-label=\"安装官方阅读目录\">安装</button></div><div class=\"sidebar-tool-official od-surface\" data-official-tool-id=\"web-markdown-clipper\" data-installation-state=\"available\"><strong>网页剪藏</strong><span>v1.0.0</span><button type=\"button\" class=\"od-button\" id=\"sidebar-tool-official-web-markdown-clipper-install\" data-official-install=\"web-markdown-clipper\" aria-label=\"安装官方网页剪藏\">安装</button></div><div class=\"sidebar-tool-official od-surface\" data-official-tool-id=\"quick-notes\" data-installation-state=\"available\"><strong>网页笔记</strong><span>v1.1.5</span><button type=\"button\" class=\"od-button\" id=\"sidebar-tool-official-quick-notes-install\" data-official-install=\"quick-notes\" aria-label=\"安装官方网页笔记\">安装</button></div><div class=\"sidebar-tool-official od-surface\" data-official-tool-id=\"markdown-workbench\" data-installation-state=\"available\"><strong>Markdown 工作台</strong><span>v1.0.0</span><button type=\"button\" class=\"od-button\" id=\"sidebar-tool-official-markdown-workbench-install\" data-official-install=\"markdown-workbench\" aria-label=\"安装官方Markdown 工作台\">安装</button></div><div class=\"sidebar-tool-official od-surface\" data-official-tool-id=\"knowledge-inbox\" data-installation-state=\"available\"><strong>知识收件箱</strong><span>v1.1.1</span><button type=\"button\" class=\"od-button\" id=\"sidebar-tool-official-knowledge-inbox-install\" data-official-install=\"knowledge-inbox\" aria-label=\"安装官方知识收件箱\">安装</button></div></div>\n        <div id=\"sidebar-tool-list\" class=\"sidebar-tool-list od-stack\" aria-label=\"已安装自定义工具\"></div>\n        <p id=\"sidebar-tool-empty\" class=\"sidebar-tool-empty\">还没有自定义工具。点击“导入”添加第一个工具。</p>\n      </div>\n      <section id=\"sidebar-tool-display\" class=\"sidebar-tool-display\" aria-label=\"当前工具界面\" hidden=\"\">\n        <div class=\"sidebar-tool-view-head od-toolbar\">\n          <button type=\"button\" id=\"sidebar-tool-back\" class=\"sidebar-tool-icon-action od-icon-button\" title=\"返回工具列表\" aria-label=\"返回自定义工具列表\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"m14 5-7 7 7 7M7 12h14\"></path></svg></button>\n          <strong id=\"sidebar-tool-title\" title=\"\"></strong>\n          <button type=\"button\" id=\"sidebar-tool-open-tab\" class=\"sidebar-tool-icon-action od-icon-button\" title=\"在新标签页打开\" aria-label=\"在新标签页打开当前工具\" disabled=\"\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M13 5h6v6m0-6-9 9M19 13v6H5V5h6\"></path></svg></button>\n          <button type=\"button\" id=\"sidebar-tool-remove\" class=\"sidebar-tool-icon-action od-icon-button\" title=\"卸载工具\" aria-label=\"卸载工具\" disabled=\"\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M4 7h16M10 4h4m-8 3 1 13h10l1-13M10 11v5m4-5v5\"></path></svg></button>\n        </div>\n        <p id=\"sidebar-tool-readonly-banner\" class=\"sidebar-tool-status\" data-state=\"readonly\" role=\"note\" hidden=\"\">开发只读预览 · 未安装。模拟读取仅返回空值；禁止写入、发送消息、控制网页或运行任务。需要正式使用时，请另行审阅并安装工具包。</p>\n        <div id=\"sidebar-tool-frame\" class=\"sidebar-tool-frame\"></div>\n      </section>\n      <p id=\"sidebar-tool-status\" class=\"sidebar-tool-status\" role=\"status\" aria-live=\"polite\" hidden=\"\" data-state=\"info\"></p>\n    </section>\n  </div>\n  <div id=\"workbench-local-discover\" role=\"tabpanel\" aria-labelledby=\"tab-discover\" class=\"od-page\" data-workbench-page=\"local-discover\" hidden=\"\">\n    <section class=\"local-discovery-section\" aria-label=\"发现已安装任务\">\n      <div class=\"local-discovery-search-row od-toolbar\">\n        <label for=\"local-discover-search\" class=\"visually-hidden\">搜索已安装任务</label>\n        <input type=\"search\" id=\"local-discover-search\" class=\"od-field\" placeholder=\"搜索已安装任务…\" autocomplete=\"off\">\n        <button type=\"button\" id=\"local-discover-open-catalog\" class=\"local-discovery-import od-button od-button--secondary\" aria-label=\"打开完整任务目录，导入或管理任务\">导入</button>\n      </div>\n      <div id=\"local-discover-filters\" class=\"local-discovery-filters od-segmented\" role=\"group\" aria-label=\"本地任务筛选\">\n        <button type=\"button\" id=\"local-filter-current\" data-local-filter=\"current\" aria-pressed=\"true\">当前网页</button>\n        <button type=\"button\" id=\"local-filter-all\" data-local-filter=\"all\" aria-pressed=\"false\">全部</button>\n        <button type=\"button\" id=\"local-filter-disabled\" data-local-filter=\"disabled\" aria-pressed=\"false\">停用</button>\n      </div>\n      <p id=\"local-discover-count\" class=\"visually-hidden\" aria-live=\"polite\">找到 0 个已安装任务 · 本机共 0 个</p>\n      <div id=\"local-discover-cards\" class=\"local-discovery-list od-surface\" aria-label=\"发现的本机任务\"><p class=\"local-discovery-empty\">还没有任务，点击「导入」添加。</p></div>\n      <p id=\"local-discover-status\" class=\"hint\" role=\"status\"></p>\n    </section>\n  </div>\n  <!-- 完整任务目录仅在扩展独立标签页中显示，不占用 Side Panel。 -->\n  <div id=\"workbench-discover\" class=\"od-page\" data-workbench-page=\"catalog\" hidden=\"\">\n    <section aria-labelledby=\"discover-heading\" class=\"catalog-section\">\n      <div class=\"catalog-intro\"><p class=\"eyebrow\">LOCAL TASK CATALOG</p><h2 id=\"discover-heading\">发现本地任务</h2>\n      <p class=\"hint\">在完整页面搜索、筛选、查看说明并明确安装；不是云端 Marketplace。</p></div>\n      <label for=\"task-search\" class=\"visually-hidden\">搜索任务</label><input type=\"search\" id=\"task-search\" placeholder=\"搜索任务名称、用途、作者或网站…\" autocomplete=\"off\">\n      <div class=\"category-chips\" id=\"task-categories\" aria-label=\"任务分类\">\n        <button type=\"button\" class=\"category-chip selected\" data-catalog-filter=\"all\">全部</button>\n        <button type=\"button\" class=\"category-chip\" data-catalog-filter=\"installed\">已安装</button>\n        <button type=\"button\" class=\"category-chip\" data-catalog-filter=\"available\">可安装</button>\n        <button type=\"button\" class=\"category-chip\" data-catalog-filter=\"candidate\">待验证</button>\n      </div>\n      <p id=\"task-catalog-count\" class=\"hint\">共 0 个本地任务版本</p>\n      <div class=\"catalog-layout\">\n        <div id=\"task-catalog-cards\" class=\"catalog-card-grid\" aria-label=\"本地任务列表\"><p class=\"hint\">没有匹配的任务，请尝试其他关键词或分类。</p></div>\n        <aside class=\"catalog-reader od-surface\" aria-label=\"选中任务详情与安装\">\n          <label for=\"task-catalog-list\" class=\"visually-hidden\">候选版本</label><select id=\"task-catalog-list\" hidden=\"\"><option value=\"\">目录中没有任务</option></select>\n          <div id=\"task-catalog-detail\" class=\"task-detail\" aria-live=\"polite\">请选择任务卡片，查看完整用途、来源和所需权限。</div>\n      <div class=\"catalog-install\"><button type=\"button\" id=\"task-install\" disabled=\"\">安装确定版本</button></div><p id=\"task-install-feedback\" class=\"install-feedback\" role=\"status\" aria-live=\"polite\"></p>\n      <details id=\"catalog-verification\"><summary>开发者：核对证据与设为本地可用</summary>\n        <label for=\"task-verify-run\">已完成的真实运行 ID</label>\n        <input id=\"task-verify-run\" placeholder=\"与相同源码、网站和实际运行结果对应\" autocomplete=\"off\">\n        <div class=\"row\"><button type=\"button\" id=\"task-verify\" disabled=\"\">核对运行证据</button>\n          <button type=\"button\" id=\"task-publish\" disabled=\"\">设为本地可用</button></div>\n      </details>\n        </aside>\n      </div>\n      <label for=\"task-package-file\">导入任务包 JSON 或 JavaScript 草稿</label>\n      <input type=\"file\" id=\"task-package-file\" accept=\".json,.js,application/json,text/javascript\">\n      <p id=\"task-catalog-status\" role=\"status\">仅本机验证，不代表第三方审核或签名认证</p>\n      <div class=\"row\"><button type=\"button\" id=\"task-catalog-refresh\">刷新目录</button></div>\n    </section>\n  </div>\n  <div id=\"workbench-workflow\" role=\"tabpanel\" aria-labelledby=\"tab-workflow\" class=\"od-page\" data-workbench-page=\"workflow\" hidden=\"\">\n    <section id=\"workflow-editor\" class=\"workflow-editor\" aria-label=\"AI 语义工作流\" data-view-state=\"ai-unconfigured\">\n      <header class=\"workflow-head od-toolbar\">\n        <div class=\"workflow-head-copy\">\n          <h2 id=\"workflow-display-title\">新工作流</h2>\n        </div>\n        <div class=\"workflow-head-actions\" role=\"group\" aria-label=\"工作流快捷操作\">\n          <span id=\"workflow-saved-state\" class=\"workflow-pill\" hidden=\"\"></span>\n          <button type=\"button\" id=\"workflow-history-toggle\" class=\"workflow-icon-button od-icon-button\" aria-label=\"查看历史版本和设置\" aria-expanded=\"false\" aria-controls=\"workflow-manage-panel\" title=\"历史版本和设置\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\"><circle cx=\"12\" cy=\"12\" r=\"9\"></circle><path d=\"M12 7v5l3 2\"></path></svg></button>\n          <button type=\"button\" id=\"workflow-new\" class=\"workflow-icon-button od-icon-button\" aria-label=\"新建工作流\" title=\"新建工作流\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\"><path d=\"M12 5v14M5 12h14\"></path></svg></button>\n        </div>\n      </header>\n      <div class=\"workflow-scroll\">\n        <section class=\"workflow-card workflow-chat od-surface\" aria-labelledby=\"workflow-ai-title\">\n          <div id=\"workflow-chat-intro\" class=\"workflow-chat-intro\">\n            <div class=\"workflow-chat-mark\" aria-hidden=\"true\">✦</div>\n            <h3 id=\"workflow-ai-title\">想自动完成什么操作？</h3>\n            <p>描述需求，整理成可复用的操作步骤。</p>\n            <button type=\"button\" id=\"workflow-manual-start\" class=\"workflow-text-action\">手动创建步骤</button>\n          </div>\n          <div id=\"workflow-ai-transcript\" class=\"workflow-chat-transcript\" role=\"log\" aria-label=\"AI 规划对话记录\" aria-live=\"polite\" hidden=\"\"></div>\n          <p id=\"workflow-planning-indicator\" class=\"workflow-planning-indicator\" role=\"status\" hidden=\"\">✦ 正在整理可检查的语义步骤…</p>\n          <ol id=\"workflow-ai-progress\" class=\"workflow-ai-progress\" aria-label=\"Codex 实时规划进度\" hidden=\"\"></ol>\n          <section id=\"workflow-ai-approval\" class=\"workflow-ai-approval\" aria-labelledby=\"workflow-ai-approval-title\" hidden=\"\">\n            <h3 id=\"workflow-ai-approval-title\">允许读取当前网页摘要？</h3>\n            <p id=\"workflow-ai-approval-scope\"></p>\n            <div class=\"workflow-actions\"><button type=\"button\" id=\"workflow-ai-approve\">允许读取并发送</button><button type=\"button\" id=\"workflow-ai-deny\">拒绝</button></div>\n          </section>\n          <div id=\"workflow-ai-proposal\" class=\"workflow-proposal\" hidden=\"\">\n            <div class=\"workflow-section-header od-toolbar\"><h3>建议的执行步骤</h3><span>尚未验证网页元素</span></div>\n            <ol id=\"workflow-ai-preview\" class=\"workflow-ai-step-preview\"></ol>\n            <button type=\"button\" id=\"workflow-ai-apply\" class=\"workflow-primary od-button\" disabled=\"\">采用这份计划</button>\n          </div>\n        </section>\n        <section id=\"workflow-plan-panel\" class=\"workflow-card workflow-plan od-surface\" aria-label=\"可编辑语义步骤\" hidden=\"\">\n          <div class=\"workflow-section-header od-toolbar\"><h3>执行步骤</h3><span id=\"workflow-step-count\">0 步</span></div>\n          <div id=\"workflow-steps\" class=\"workflow-steps\" aria-label=\"工作流步骤列表\"><p class=\"hint\">暂无步骤。添加“观察页面”或“填写内容”开始创建。</p></div>\n          <button type=\"button\" id=\"workflow-add-step\" class=\"workflow-add\">＋ 添加步骤</button>\n          <p id=\"workflow-target-warning\" class=\"workflow-target-warning\" role=\"status\" hidden=\"\"></p>\n        </section>\n        <section id=\"workflow-params-panel\" class=\"workflow-card workflow-run-settings od-surface\" aria-label=\"工作流运行参数\" hidden=\"\">\n          <div class=\"workflow-section-header od-toolbar\"><h3>运行前确认</h3><span>只影响本次运行</span></div>\n          <div id=\"workflow-params\"></div>\n          <p class=\"hint\" id=\"workflow-params-empty\" hidden=\"\"></p>\n          <label class=\"workflow-consent\" id=\"workflow-run-consent\" hidden=\"\"><input type=\"checkbox\" id=\"workflow-confirm-run\">我已检查本次填写和点击操作，允许运行</label>\n        </section>\n        <section id=\"workflow-result-panel\" class=\"workflow-card workflow-result od-surface\" aria-label=\"工作流运行结果\" hidden=\"\">\n          <div class=\"workflow-section-header od-toolbar\"><h3>运行结果</h3></div>\n          <pre id=\"workflow-output\" aria-label=\"本次持久运行结果\">尚未运行</pre>\n          <details id=\"workflow-result-raw\" hidden=\"\"><summary>查看完整原值（可能包含敏感信息）</summary><pre id=\"workflow-raw\"></pre></details>\n          <details class=\"workflow-advanced\"><summary>Run / Result / Revision 技术身份</summary><pre id=\"workflow-technical\"></pre></details>\n        </section>\n        <section id=\"workflow-manage-panel\" class=\"workflow-management od-surface\" aria-label=\"历史版本和高级设置\" hidden=\"\">\n          <div class=\"workflow-section-header od-toolbar\"><h3>版本与设置</h3><button type=\"button\" id=\"workflow-manage-close\" class=\"workflow-icon-button od-icon-button\" aria-label=\"收起版本与设置\" title=\"收起\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\"><path d=\"M18 6 6 18M6 6l12 12\"></path></svg></button></div>\n          <div class=\"workflow-card workflow-library od-surface\">\n            <label for=\"workflow-saved-list\">选择版本</label>\n            <select id=\"workflow-saved-list\"><option value=\"\">选择已保存版本…</option></select>\n            <div class=\"workflow-actions\"><button type=\"button\" id=\"workflow-load\">打开版本</button><button type=\"button\" id=\"workflow-refresh\" class=\"workflow-icon-button od-icon-button\" aria-label=\"刷新已保存版本\" title=\"刷新列表\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\"><path d=\"M20 11a8 8 0 0 0-14.5-4.5L3 9\"></path><path d=\"M3 4v5h5\"></path><path d=\"M4 13a8 8 0 0 0 14.5 4.5L21 15\"></path><path d=\"M21 20v-5h-5\"></path></svg></button></div>\n          </div>\n          <details class=\"workflow-card workflow-manage-details od-surface\">\n            <summary>名称、用途和当前网站</summary>\n            <label for=\"workflow-title\">名称</label><input id=\"workflow-title\" maxlength=\"100\" autocomplete=\"off\" placeholder=\"例如：填写表单并读取结果\">\n            <label for=\"workflow-description\">用途（可选）</label><textarea id=\"workflow-description\" rows=\"2\" maxlength=\"800\" placeholder=\"这个工作流要完成什么？\"></textarea>\n            <label for=\"workflow-site\">执行网站（精确 origin）</label><input id=\"workflow-site\" readonly=\"\" aria-describedby=\"workflow-site-note\">\n            <p id=\"workflow-site-note\" class=\"hint\">当前页面不是可运行的 HTTP(S) 页面</p>\n          </details>\n          <details class=\"workflow-card workflow-manage-details od-surface\">\n            <summary>参数定义和高级编辑</summary>\n            <div class=\"workflow-param-create\"><input id=\"workflow-new-param-name\" type=\"text\" maxlength=\"40\" placeholder=\"参数名称，例如 keyword\" aria-label=\"新参数英文名称\"><button type=\"button\" id=\"workflow-add-param\">＋ 添加文本参数</button></div>\n            <details><summary>参数 JSON Schema</summary>\n              <label for=\"workflow-schema\">参数 Schema（string / number / integer / boolean）</label>\n              <textarea id=\"workflow-schema\" rows=\"6\" spellcheck=\"false\"></textarea>\n            </details>\n          </details>\n          <details class=\"workflow-card workflow-manage-details od-surface\">\n            <summary>生成源码、校验与发布</summary>\n            <details class=\"workflow-advanced\"><summary>JavaScript 与源码哈希</summary>\n              <p id=\"workflow-code-hash\" class=\"hint\"></p><pre id=\"workflow-code\" aria-label=\"工作流生成的 JavaScript\">尚不可编译：E_WORKFLOW_ORIGIN：网站必须是精确 HTTP(S) origin</pre>\n              <button type=\"button\" id=\"workflow-open-code\" disabled=\"\">复制到「开发」独立编辑</button>\n            </details>\n            <button type=\"button\" id=\"workflow-candidate\" class=\"workflow-secondary\" disabled=\"\">提交为待验证 Task 候选</button>\n            <p class=\"workflow-minor-note\">保存版本不等于安装。只有通过真实验证、设为 Available 并明确安装的版本才会出现在「我的」。</p>\n          </details>\n        </section>\n      </div>\n      <div class=\"workflow-composer\">\n        <label class=\"visually-hidden\" for=\"workflow-ai-request\">描述任务，或告诉 AI 怎样修改步骤</label>\n        <textarea id=\"workflow-ai-request\" rows=\"2\" maxlength=\"4000\" placeholder=\"描述要自动完成的任务…\"></textarea>\n        <div class=\"workflow-composer-actions\">\n          <button type=\"button\" id=\"workflow-provider-toggle\" class=\"workflow-icon-button workflow-settings-button od-icon-button\" aria-label=\"配置 AI 模型与数据授权\" aria-expanded=\"false\" aria-controls=\"workflow-provider-settings\" title=\"AI 设置\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\"><path d=\"M4 7h9m6 0h1M4 17h1m6 0h9\"></path><circle cx=\"16\" cy=\"7\" r=\"3\"></circle><circle cx=\"8\" cy=\"17\" r=\"3\"></circle></svg></button>\n          <button id=\"workflow-ai-plan\" type=\"button\" class=\"workflow-primary workflow-send-button\" aria-label=\"生成工作流步骤\" title=\"生成步骤\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\"><path d=\"M12 19V5m-7 7 7-7 7 7\"></path></svg></button>\n          <button id=\"workflow-ai-cancel\" type=\"button\" class=\"workflow-send-button workflow-ai-cancel\" aria-label=\"停止 AI 规划\" title=\"停止 AI 规划\" hidden=\"\"><svg viewBox=\"0 0 24 24\" fill=\"currentColor\" aria-hidden=\"true\" focusable=\"false\"><rect x=\"6\" y=\"6\" width=\"12\" height=\"12\" rx=\"2\"></rect></svg></button>\n        </div>\n        <details id=\"workflow-provider-settings\" class=\"workflow-provider\">\n          <summary>模型连接与数据发送授权</summary>\n          <label for=\"workflow-ai-provider\">AI 来源</label>\n          <select id=\"workflow-ai-provider\"><option value=\"local_codex\">本机 Codex</option><option value=\"custom_https\">自定义 HTTPS 模型接口</option><option value=\"opendesk_cloud\" disabled=\"\">OpenDesk 官方 AI（尚未开放）</option><option value=\"manual\">手动创建，不使用 AI</option></select>\n          <p id=\"workflow-provider-scope\" class=\"workflow-minor-note\">本机 OpenDesk 管理 Codex Agent，模型推理可能联网，已同意的内容可能保存在 Codex 本机对话中。复用官方 CLI 登录，请勿填写 Codex 登录凭据。</p>\n          <div id=\"workflow-local-settings\">\n            <p id=\"workflow-local-status\" class=\"workflow-local-status\" role=\"status\" aria-live=\"polite\" data-state=\"DISCONNECTED\">本机连接已断开。本次请求不会自动重发，请重新检查连接。</p>\n            <div class=\"workflow-actions\"><button type=\"button\" id=\"workflow-local-connect\">连接 OpenDesk</button><button type=\"button\" id=\"workflow-local-refresh\">重新检查</button><button type=\"button\" id=\"workflow-local-help\">本机连接设置 ↗</button></div>\n            <label class=\"workflow-consent\"><input id=\"workflow-ai-observe-consent\" type=\"checkbox\">本次允许 AI 请求网页结构、元素名称与文字摘要，每次读取仍需确认</label>\n            <div class=\"workflow-actions workflow-session-actions\"><button type=\"button\" id=\"workflow-ai-new-session\" title=\"结束当前 AI 会话，下次发送开始新对话\" hidden=\"\">新对话</button><button type=\"button\" id=\"workflow-ai-resume\" hidden=\"\">恢复上次对话</button></div>\n          </div>\n          <div id=\"workflow-custom-settings\" hidden=\"\">\n            <label for=\"workflow-ai-endpoint\">OpenAI 兼容 HTTPS Chat Completions API</label><input id=\"workflow-ai-endpoint\" type=\"url\" spellcheck=\"false\" value=\"https://api.openai.com/v1/chat/completions\">\n            <label for=\"workflow-ai-model\">模型</label><input id=\"workflow-ai-model\" spellcheck=\"false\" value=\"gpt-4o-mini\">\n            <label for=\"workflow-ai-key\">API Key（不保存）</label><input id=\"workflow-ai-key\" type=\"password\" autocomplete=\"off\" spellcheck=\"false\" placeholder=\"仅本次会话使用\">\n            <p class=\"workflow-minor-note\">此来源生成一次步骤提议，不使用本机工具；密钥只在本窗口内使用。</p>\n          </div>\n          <label id=\"workflow-ai-send-consent\" class=\"workflow-consent\"><input id=\"workflow-ai-consent\" type=\"checkbox\">同意本次向选定模型发送需求、网站 origin、步骤和参数定义</label>\n          <p id=\"workflow-ai-consent-note\" class=\"workflow-minor-note\">每次发送后清除本次同意。网页读取与网页操作分别确认。官方 AI 服务接口已预留，当前尚未开放。</p>\n        </details>\n      </div>\n      <p id=\"workflow-status\" class=\"workflow-status\" role=\"status\" aria-live=\"polite\" hidden=\"\" data-state=\"info\"></p>\n    </section>\n  </div>\n  <div id=\"workbench-develop\" role=\"tabpanel\" aria-labelledby=\"tab-develop\" class=\"od-page\" data-workbench-page=\"develop\" hidden=\"\">\n  <section aria-label=\"当前网页\" class=\"developer-target\">\n    <details id=\"developer-target-detail\">\n      <summary class=\"developer-page-summary\">\n        <span class=\"developer-page-label\">当前网页</span>\n        <span id=\"script-current-page-host\" title=\"\">未识别</span>\n        <span id=\"script-current-page-status\" role=\"status\" aria-live=\"polite\" data-state=\"unavailable\" title=\"当前页面不是可运行的 HTTP(S) 页面\">不可运行</span>\n      </summary>\n      <div class=\"developer-page-detail\">\n        <p id=\"script-current-page-title\" class=\"page-title\">当前页面不是可运行的 HTTP(S) 页面</p>\n        <p id=\"script-current-page-url\" class=\"identity\"></p>\n      </div>\n    </details>\n  </section>\n  <section class=\"developer-editor\" aria-label=\"JavaScript 开发\">\n    <div id=\"developer-source-switch\" class=\"developer-source-switch od-toolbar\" role=\"group\" aria-label=\"代码来源\" data-mode=\"manual\">\n      <span>直接编辑</span>\n      <label for=\"local-project-mode\">\n        <input id=\"local-project-mode\" type=\"checkbox\" role=\"switch\" aria-label=\"使用本地项目\" aria-description=\"关闭时在编辑器直接编写，开启时选择已授权的本地项目。切换不会自动运行。\" aria-controls=\"local-project-tools manual-source-editor\">\n        <span class=\"local-project-switch-track\" aria-hidden=\"true\"></span><span>本地项目</span>\n      </label>\n    </div>\n    <section id=\"local-project-tools\" class=\"local-project-tools\" aria-label=\"本地项目连接\" hidden=\"\">\n      <p class=\"local-project-intro\">在编辑器或 Codex 中保存，系统自动准备；点击「运行本地项目」执行最新代码。保存文件不会自动运行。</p>\n      <div class=\"local-project-controls od-toolbar\">\n        <label for=\"local-project-select\" class=\"visually-hidden\">已授权本地项目</label><select id=\"local-project-select\" disabled=\"\"><option value=\"\">选择已授权项目</option></select>\n        <button id=\"local-project-refresh\" type=\"button\">刷新</button>\n      </div>\n      <p id=\"local-project-status\" role=\"status\" aria-live=\"polite\" data-state=\"manual\"></p>\n      <details><summary>高级诊断</summary><p id=\"local-project-diagnostics\">运行后显示版本与准备耗时。</p></details>\n      <button id=\"local-project-connect\" class=\"local-project-connect\" type=\"button\">连接本机 OpenDesk ↗</button>\n      <details id=\"local-project-guide\" class=\"local-project-guide\">\n        <summary>首次使用：连接方法</summary>\n        <ol>\n          <li>先安装 OpenDesk 原生程序；点击上方「连接本机 OpenDesk」，在扩展选项中确认首次 Native 权限。</li>\n          <li>当前开发版的本地项目源码仍由 Codex <code>opendesk-dev</code> MCP 提供；首次配置及目录授权请参阅高级开发指南。</li>\n          <li>回到此处刷新已授权项目列表，选中项目，再明确点击「运行本地项目」。</li>\n        </ol>\n        <p>本机 Native 已连接与本地项目 Provider 已就绪是两种状态。普通脚本无需它们。当前开发版的首次配对仍可能需要高级配置；<code>npm run dev</code> 只负责扩展源码热更新。</p>\n        <button id=\"local-project-guide-open\" type=\"button\">查看首次配置命令和示例 ↗</button>\n        <p>也可在仓库内查阅 <code>docs/api/quickstart.zh-CN.md</code> 的「首次配置」章节。</p>\n      </details>\n      <details id=\"local-project-params-tools\" hidden=\"\"><summary>项目参数 JSON（Controller 可选）</summary><label for=\"local-project-params\" class=\"visually-hidden\">本地项目参数</label><textarea id=\"local-project-params\" rows=\"3\" spellcheck=\"false\">{}</textarea></details>\n    </section>\n    <div id=\"manual-source-editor\">\n    <p id=\"program-source-info\" class=\"identity\" role=\"status\" hidden=\"\"></p>\n    <div id=\"program-source-toolbar\" class=\"program-source-toolbar od-toolbar\" role=\"group\" aria-label=\"源码视图操作\" hidden=\"\">\n      <label for=\"program-source-files\" class=\"visually-hidden\">实际执行代码或项目源码快照</label>\n      <select id=\"program-source-files\" hidden=\"\"></select>\n      <button type=\"button\" id=\"program-new-script\" title=\"创建可编辑的 JavaScript 草稿（退出当前只读源码视图）\" aria-label=\"新建 JavaScript 草稿\" hidden=\"\">新建</button>\n    </div>\n    <label for=\"script-source\" class=\"visually-hidden\">JavaScript 编辑器，草稿可直接运行</label><textarea id=\"script-source\" rows=\"9\" spellcheck=\"false\">async function main() {\n  return {title: await page.title(), url: await page.url(), value: params.value};\n}</textarea>\n    <details id=\"program-generated\" hidden=\"\"><summary>高级诊断：查看编译产物</summary><pre id=\"program-generated-source\"></pre></details>\n    </div>\n    <details id=\"manual-project-params-tools\" class=\"developer-params\"><summary>参数 JSON（可选）</summary><label for=\"script-params\">参数 JSON</label><textarea id=\"script-params\" rows=\"3\" spellcheck=\"false\">{\"value\":0}</textarea></details>\n\n    <p id=\"script-status\" role=\"status\" data-state=\"results\">已读取持久结果</p>\n    <div id=\"script-user-scripts-recovery\" class=\"developer-execution-help\" data-state=\"blocked\" hidden=\"\">\n      <p id=\"script-user-scripts-recovery-status\" role=\"status\" aria-live=\"polite\"></p>\n      <div class=\"developer-execution-help-actions\">\n        <button id=\"script-user-scripts-settings\" type=\"button\">打开扩展设置</button>\n        <button id=\"script-user-scripts-check\" type=\"button\">重新检测</button>\n      </div>\n    </div>\n  <p id=\"script-task-status\" class=\"developer-task-status\" role=\"status\"></p>\n  <details id=\"developer-run-technical\" class=\"developer-run-technical\"><summary>运行目标与版本</summary>\n    <p id=\"script-task-id\" class=\"identity\">尚未运行</p>\n    <p id=\"script-running-target\" class=\"identity\" data-state=\"idle\">运行目标：尚未建立</p>\n    <p id=\"script-task-version\" class=\"identity\"></p>\n  </details>\n  <details id=\"developer-results-panel\" class=\"developer-results\"><summary>运行结果</summary><div class=\"developer-results-body\">\n    <div class=\"result-toolbar\"><span id=\"script-result-kind\" class=\"hint\">暂无返回值</span>\n      <button type=\"button\" id=\"script-copy-result\" disabled=\"\">复制结果</button></div>\n    <pre id=\"script-result\" aria-label=\"脚本返回值\">尚未选择运行记录</pre>\n    <details id=\"script-history-panel\" class=\"result-history\"><summary>运行记录与技术信息</summary>\n      <div class=\"row\"><button id=\"script-read\">刷新历史</button></div>\n      <label for=\"script-history-run\">历史运行</label><select id=\"script-history-run\"><option value=\"\">选择历史任务</option></select>\n      <div class=\"row\"><button id=\"script-history-open\">查看选中任务</button></div>\n      <details><summary>完整历史与版本身份</summary><pre id=\"script-history\" aria-label=\"持久结果历史\">{\n  \"runs\": [],\n  \"results\": [],\n  \"downloads\": [],\n  \"resultDeliveryDenied\": []\n}</pre></details>\n      <details><summary>结果下载与任务查询</summary>\n        <label for=\"script-run-id\">查询 runId（留空读取全部历史）</label><input id=\"script-run-id\" placeholder=\"runId\">\n        <div class=\"row\"><button id=\"script-read-run\">查询任务</button></div>\n        <div class=\"row\"><label for=\"script-download-result\">已完成的持久结果</label><select id=\"script-download-result\"><option value=\"\">请选择要下载的结果</option></select><button id=\"script-download\" disabled=\"\">下载结果 JSON</button></div>\n        <p id=\"script-download-status\" role=\"status\">结果下载保留类型信息，包括 undefined。</p>\n      </details>\n    </details>\n  </div></details>\n\n    <details id=\"page-preview-tools\"><summary>网页 JavaScript 试运行</summary>\n      <p class=\"hint\">直接使用上方 JavaScript 源码操作当前网页 DOM；可写 async function main() 返回结果，也可直接编写顶层语句。不要求特殊脚本声明；运行前仍需网站授权。</p>\n      <button id=\"page-preview-run\" type=\"button\" disabled=\"\">在当前网页试运行</button>\n      <p id=\"page-preview-status\" role=\"status\">请先确认当前网页可用；试运行不会保存版本或安装任务。</p>\n      <pre id=\"page-preview-result\" aria-label=\"网页 JavaScript 试运行结果\">尚未运行</pre>\n      <details id=\"page-preview-technical-panel\" hidden=\"\"><summary>技术信息</summary><pre id=\"page-preview-technical\"></pre></details>\n      <div class=\"row\"><button id=\"page-candidate-save\" type=\"button\" disabled=\"\">保存网页脚本版本</button></div>\n      <p class=\"hint\">试运行后可保存固定 Page 版本；普通 JS 默认匹配所有 HTTP/HTTPS 网站（*://*/*）；兼容导入的显式 @match 保持原范围。保存后核对冻结版本和全站范围，再明确安装授权。脚本 ID 和版本在下方「版本管理」中设置。</p>\n      <p id=\"page-candidate-status\" role=\"status\" aria-live=\"polite\">尚未保存网页脚本候选。</p>\n      <label for=\"page-program-list\">已保存网页脚本</label>\n      <select id=\"page-program-list\"><option value=\"\">尚未保存网页脚本</option></select>\n      <pre id=\"page-program-detail\">保存网页脚本版本后，在这里核对、安装与停用。</pre>\n      <div class=\"row\"><button id=\"page-program-load\" type=\"button\" disabled=\"\">加载源码</button><button id=\"page-program-verify\" type=\"button\" disabled=\"\">验证冻结版本</button></div>\n      <div class=\"row\"><button id=\"page-program-install\" type=\"button\" disabled=\"\">安装自动运行</button><button id=\"page-program-toggle\" type=\"button\" disabled=\"\">启用自动运行</button><button id=\"page-program-restore\" type=\"button\" hidden=\"\" disabled=\"\">恢复访问</button><button id=\"page-program-refresh\" type=\"button\">刷新状态</button></div>\n      <p id=\"page-program-status\" role=\"status\" aria-live=\"polite\">正式安装支持顶层网页与 document-idle；停用不会撤销已有网页效果。效果未知时不自动重放。</p>\n    </details>\n    <details id=\"script-library-tools\"><summary>版本管理与任务制作</summary>\n    <label for=\"script-list\">已保存脚本</label>\n    <div class=\"row\"><select id=\"script-list\"><option value=\"\">没有已保存脚本</option></select><button id=\"script-list-refresh\">刷新</button><button id=\"script-list-load\" disabled=\"\">加载最新</button></div>\n    <label for=\"script-id\">脚本名称 / ID</label><input id=\"script-id\" value=\"my-script\" autocomplete=\"off\">\n    <div class=\"row\"><label for=\"script-revision\">revision</label><input id=\"script-revision\" type=\"number\" min=\"1\" placeholder=\"留空加载最新版本\"><button id=\"script-load\">加载版本</button></div>\n    <p id=\"script-version\" role=\"status\" data-dirty=\"false\">未保存草稿可直接运行；只有点击保存才创建正式版本</p>\n    <details id=\"task-package-dev\"><summary>从已保存版本创建任务候选</summary>\n      <p class=\"hint\">先保存程序版本，再定义任务信息。创建候选不会自动验证、发布或安装。</p>\n      <label for=\"task-dev-id\">稳定任务标识</label><input id=\"task-dev-id\" value=\"my-first-task\" autocomplete=\"off\">\n      <label for=\"task-dev-version\">任务版本</label><input id=\"task-dev-version\" value=\"1.0.0\" autocomplete=\"off\">\n      <label for=\"task-dev-title\">名称</label><input id=\"task-dev-title\" value=\"我的第一个任务\">\n      <label for=\"task-dev-description\">用途</label><input id=\"task-dev-description\" value=\"运行当前网页的自动化脚本\">\n      <label for=\"task-dev-author\">作者</label><input id=\"task-dev-author\" value=\"local-developer\">\n      <label for=\"task-dev-schema\">参数 Schema（JSON）</label>\n      <textarea id=\"task-dev-schema\" rows=\"4\" spellcheck=\"false\">{\"type\":\"object\",\"properties\":{},\"required\":[],\"additionalProperties\":false}</textarea>\n      <button type=\"button\" id=\"task-create-candidate\">保存为待验证任务候选</button>\n      <p id=\"task-dev-status\" role=\"status\">候选需要真实运行验证后才能安装</p>\n    </details>\n    </details>\n    <details id=\"script-advanced\"><summary>高级脚本与目标设置</summary>\n      <details id=\"site-access\" class=\"site-access-panel\">\n        <summary>网站权限 · 默认全部网站</summary>\n        <p id=\"site-access-status\" role=\"status\" data-state=\"granted\">Chrome 已授予默认全网站和核心 API 权限（Cookie：已授权；通知：已授权）</p>\n        <p class=\"hint\">安装或更新时由 Chrome 请求全部网站及核心浏览器 API（含 Cookie、通知）。后续插件的额外 API 仍需明确授权；浏览器网站权限不会自动授予脚本或 SDK 的应用级权限。</p>\n        <div class=\"row\"><button id=\"site-access-grant\" type=\"button\" disabled=\"\">全部网站已授权</button><button id=\"site-access-refresh\" type=\"button\">刷新授权状态</button></div>\n        <p class=\"hint\">如 Chrome 限制了网站权限，可点击恢复或前往扩展详情将“网站访问”改为“所有网站”。浏览器内部页、file://、隐身与用户脚本开关仍有独立限制。</p>\n      </details>\n      <p class=\"hint\">默认使用当前网页；手动目标仅用于高级操作。</p>\n      <div class=\"row\"><label for=\"script-target-mode\">目标方式</label><select id=\"script-target-mode\"><option value=\"current\">当前网页（默认）</option><option value=\"owned\">创建隔离网页（高级）</option><option value=\"borrowed\">手动选择精确文档（高级）</option></select></div>\n      <label for=\"script-owned-url\">隔离网页地址</label><input id=\"script-owned-url\" type=\"url\" placeholder=\"https://example.com/\" disabled=\"\">\n      <div class=\"row\"><label for=\"script-tab\">现有网页</label><select id=\"script-tab\" disabled=\"\"><option value=\"\">请选择具体网页</option></select><button id=\"script-refresh\">刷新网页列表</button></div>\n      <label for=\"script-document\">精确文档</label><select id=\"script-document\" disabled=\"\"><option value=\"\">请选择当前精确文档</option></select>\n      <p><label><input id=\"script-allow-cookies\" type=\"checkbox\">允许脚本访问目标网站的 Cookie</label></p>\n      <button id=\"script-delete\" disabled=\"\">删除脚本</button>\n      <details><summary>当前网页精确身份</summary><pre id=\"script-current-page-debug\" aria-label=\"当前网页精确目标\">{\n  \"windowId\": 2023300661,\n  \"reason\": \"E_UNSUPPORTED_SCHEME\"\n}</pre></details>\n    </details>\n  </section>\n  <details id=\"tool-diagnostics\"><summary>Advanced / Diagnostics</summary>\n  <section id=\"scraping-panel\" aria-label=\"采集模块\" data-module-status=\"MODULE_NOT_INSTALLED\">采集模块未注册；普通 JavaScript 与网页 SDK 可独立使用。</section>\n  <section aria-labelledby=\"sdk-title\"><h2 id=\"sdk-title\">独立网页 SDK</h2>\n    <p>SDK 与 axiosx 会自动加载到允许访问的 HTTP(S) 网页。默认同源 HTTP 与固定本地实验测试 Origin 无需逐页审批；本区域只用于<strong>额外跨站 Origin 或高级能力</strong>的显式授权、检查和撤销。后台仍按真实网页身份核查每次请求。</p>\n    <div class=\"row\"><label for=\"sdk-tab\">网页</label><select id=\"sdk-tab\"><option value=\"\">请选择具体网页</option></select><button id=\"sdk-refresh\">刷新网页列表</button></div>\n    <div class=\"row\"><label for=\"sdk-document\">精确文档</label><select id=\"sdk-document\" disabled=\"\"><option value=\"\">请选择当前精确文档</option></select></div>\n    <fieldset id=\"sdk-capabilities\"><legend>允许的服务（仅授予勾选项）</legend><label><input type=\"checkbox\" value=\"network\" name=\"sdk-capability\"> HTTP 网络请求（仅本次精确批准的来源与目标） </label><label><input type=\"checkbox\" value=\"storage.persistent\" name=\"sdk-capability\"> 持久存储 </label><label><input type=\"checkbox\" value=\"storage.session\" name=\"sdk-capability\"> 浏览器会话存储 </label><label><input type=\"checkbox\" value=\"notifications\" name=\"sdk-capability\"> 通知 </label><label><input type=\"checkbox\" value=\"device.id\" name=\"sdk-capability\"> 稳定应用 ID </label><label><input type=\"checkbox\" value=\"network.info\" name=\"sdk-capability\" disabled=\"\"> 外部网络信息（当前未启用） </label><label><input type=\"checkbox\" value=\"service.log\" name=\"sdk-capability\"> service.log </label><label><input type=\"checkbox\" value=\"service.time\" name=\"sdk-capability\"> service.time </label><label><input type=\"checkbox\" value=\"resources.packaged\" name=\"sdk-capability\"> resources.packaged </label></fieldset>\n    <label for=\"sdk-target-origins\">额外批准的目标 origin（每行一个，最多 8 条）</label>\n    <textarea id=\"sdk-target-origins\" rows=\"3\" maxlength=\"18000\" spellcheck=\"false\" placeholder=\"https://api.example.com\nhttp://127.0.0.1:43111\" aria-describedby=\"sdk-target-help\"></textarea>\n    <p id=\"sdk-target-help\">留空仅允许来源同源；这里是完整的新范围，不与旧授权自动合并。协议、主机和有效端口精确匹配；不能填写账户、路径、查询或通配符。回环与局域网也须明确列出。原生权限可能覆盖更多端口，但不会扩大应用授权；此检查不是 DNS 重绑定防护。</p>\n    <details open=\"\"><summary>本次批准快照（来源、精确 document、服务与目标）</summary><pre id=\"sdk-approval-preview\" aria-live=\"polite\">E_DOCUMENT_STALE：请选择一个精确的当前文档</pre></details>\n    <div class=\"row\"><button id=\"sdk-install\" disabled=\"\">明确批准此快照并安装 SDK</button></div>\n    <div class=\"row\"><button id=\"sdk-inspect\" type=\"button\" disabled=\"\">只读查询当前授权</button><button id=\"sdk-revoke\" type=\"button\" disabled=\"\">撤销已确认授权</button></div>\n    <p class=\"hint\">这是<strong>网页文档级</strong>授权：同页第一方与第三方 JavaScript 都可能调用 SDK，<strong>并非只授权某个用户脚本</strong>。用户脚本的 @grant / GM_* 不会在这里自动授权。查询不会申请新权限；撤销阻止后续 SDK 服务，但不能回滚已发生操作，也无法强制卸载已执行 JS；结果未知时须重新查询。</p>\n    <p id=\"sdk-status\" role=\"status\" data-state=\"idle\">请选择网页、当前文档和服务</p><pre id=\"sdk-result\" aria-label=\"SDK 安装结果\"></pre>\n  </section>\n  <section aria-labelledby=\"health-title\"><h2 id=\"health-title\">目标健康检查</h2>\n    <p>检查只确认包内脚本与目标文档通信。不会采集数据或翻动原页面。</p>\n    <div class=\"row\"><label for=\"target-url\">测试页面地址</label><input id=\"target-url\" type=\"url\" placeholder=\"https://example.com/\"><button id=\"create-target\">授权并创建检查页</button></div>\n    <div class=\"row\"><button id=\"check-source\">检查原页面</button><button id=\"check-target\" disabled=\"\">检查已绑定文档</button></div>\n    <p id=\"status\" role=\"status\">环境入口已加载</p><pre id=\"health-result\" aria-label=\"目标检查结果\"></pre>\n  </section>\n    <aside>SDK 授权与自动化任务独立；健康检查只确认环境通信。</aside>\n  </details>\n  </div>\n</main>\n<footer id=\"workspace-dock\" class=\"workspace-dock\" data-stop-only=\"false\" hidden=\"\">\n  <div id=\"task-dock\" class=\"dock-actions\" hidden=\"\">\n    <div class=\"dock-buttons od-toolbar\"><button type=\"button\" id=\"task-run\" disabled=\"\">运行任务</button><button type=\"button\" id=\"task-stop\" disabled=\"\" aria-label=\"停止当前任务\">停止</button></div>\n  </div>\n  <div id=\"workflow-dock\" class=\"dock-actions\" hidden=\"\" data-empty=\"true\"><div class=\"dock-buttons od-toolbar\"><button type=\"button\" id=\"workflow-run\" disabled=\"\">运行工作流</button><button type=\"button\" id=\"workflow-save\" disabled=\"\">保存版本</button><button type=\"button\" id=\"workflow-stop\" disabled=\"\">停止</button></div></div>\n  <div id=\"develop-dock\" class=\"dock-actions\" hidden=\"\">\n    <div class=\"dock-buttons od-toolbar\"><button class=\"od-button\" id=\"script-run\" disabled=\"\">运行草稿</button><button class=\"od-button\" id=\"script-save\">保存版本</button><button id=\"script-stop\" disabled=\"\">停止</button></div>\n  </div>\n</footer>\n<script src=\"tool-shell.js\"></script>\n\n</body></html>"
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "foregroundReleased": true,
+  "ownedBrowsers": [
+    {
+      "launch": "online-launch.json",
+      "pid": 91115,
+      "close": "Browser.close sent",
+      "port": 54047,
+      "profileRemoved": true,
+      "processExited": true
+    },
+    {
+      "launch": "candidate-chrome-launch.json",
+      "pid": 36248,
+      "close": "Browser.close sent",
+      "port": 58598,
+      "profileRemoved": true,
+      "processExited": true
+    }
+  ],
+  "testFileRetained": true,
+  "temporaryWorkspaceGrantRevoked": false,
+  "retainedFile": {
+    "exists": true,
+    "bytes": 530,
+    "sha256": "4d3e28b51c9a1f0fb8a30c7df212287277d8792989c80bd6912c658de6a4841b"
+  },
+  "grantCleanupStatus": "CLI revoke could not load the deleted profile; removed only the run-owned scoped instance, including its temporary grants and wrapper",
+  "ownedNativeInstanceRemoved": true
+}

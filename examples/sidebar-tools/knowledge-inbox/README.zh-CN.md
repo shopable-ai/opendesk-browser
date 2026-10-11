@@ -44,3 +44,7 @@ npm run build:sidebar-tool -- examples/sidebar-tools/knowledge-inbox
 更新源码后，正式扩展构建自动生成 `dist/production/official-tools/knowledge-inbox/knowledge-inbox.opendesk-tool.json` 与 Catalog 摘要，不维护第二份 JSON。该资源默认未安装：官方入口和本地导入都须明确审核，ChatGPT 网站权限另行批准；卸载后重启不复装。旧版 OpenDesk 不认识新增能力，必须先更新扩展框架，不能只把新工具 JSON 导入旧版本。
 
 产品排序与分期见 `docs/product/chatgpt-knowledge-inbox-r1.zh-CN.md`；实际验证等级见 `docs/framework/workstreams/knowledge-inbox-r1-20261011.md`。本工具尚未接入博客、Notion、飞书、企业云盘 API，也不会自动发布文章。
+
+确认放弃编辑后，再次进入编辑会显示已保存的正文、标签与备注；随后只修改备注，也不会把已经放弃的正文存成草稿。进入编辑时焦点移到已启用的正文框，取消放弃确认后焦点返回触发按钮。刷新读取失败时会保留错误提示。
+
+Mac R24.4 的真实 Chrome、剪贴板、下载及 Native 文件读回证据见 [本轮验收记录](../../../docs/framework/workstreams/knowledge-inbox-r24-20261011.md)。线上 ChatGPT 因本轮未提供登录条件记录为 BLOCKED；受控页面结果不能替代线上验收。

@@ -1,0 +1,23 @@
+R45_NATIVE_STAGE fresh-optional-state
+R45_NATIVE_STAGE market-five-reviewed-installs-and-real-sandboxes
+R45_NATIVE_STAGE market-fixed-unavailable-version-and-current-batch
+R45_NATIVE_STAGE side-panel-official-installs-and-cross-window-confirmation
+R45_NATIVE_STAGE independent-origin-grants-and-explicit-page-clip
+R45_NATIVE_STAGE controlled-local-old-version-and-reviewed-official-upgrade
+R45_NATIVE_STAGE panel-close-reopen-preserves-grants-and-no-automatic-tool-instance
+R45_NATIVE_STAGE host-local-storage-exceeds-10MiB
+R45_NATIVE_STAGE other-local-json-import
+R45_NATIVE_STAGE first-complete-chrome-restart
+R45_NATIVE_STAGE uninstall-removes-data-grants-and-provenance
+R45_NATIVE_STAGE second-complete-chrome-restart-after-uninstall
+R45_NATIVE_STAGE responsive-keyboard-and-real-browser-zoom
+R45_NATIVE_RESULT {"result":"REAL_CHROME_FIXTURE_PASS","commit":"e5238175210500491047d51d428a1b2bc786cc7c","extensionId":"efhcmggbgamacpfhhmooelgdkepdcghh","packageHash":"e9b507662fed529f745197c9f2b65a18af75fcda01e5af350082999bae0f8a34","phases":13,"normalChromeRestarts":2,"dialogCount":26}
+✔ R4.5 production Chrome: optional releases, both official entries, permissions, update, restart and uninstall (19600.176459ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 19693.636333

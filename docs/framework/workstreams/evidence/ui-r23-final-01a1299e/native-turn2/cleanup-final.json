@@ -1,0 +1,16 @@
+{
+  "ownChromePID": 74794,
+  "ownChromeExited": true,
+  "ownProfileRemoved": true,
+  "rootDistUnchanged": {
+    "production": true,
+    "development": true
+  },
+  "nativeInstancesOfficiallyCleaned": [
+    "r23-final-01a1299e-n3",
+    "r23-final-01a1299e-n4",
+    "r23-final-01a1299e-n5",
+    "r23-final-01a1299e-n6"
+  ],
+  "n2RetiredIntoPrivateQuarantine": true
+}

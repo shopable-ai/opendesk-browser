@@ -74,7 +74,11 @@ class MockElement {
     }
     return {width:220,height:160,left:0,top:0,right:220,bottom:160};
   }
-  querySelectorAll(){return [];}
+  querySelectorAll(selector){
+    if(selector!=='button')return [];
+    return this.children.flatMap(child=>[child,...child.querySelectorAll(selector)])
+      .filter(child=>child.tagName==='BUTTON');
+  }
   querySelector(){return null;}
   remove(){this.removed=true;}
 }
@@ -192,6 +196,14 @@ test('R4.3 webpage view shows adaptive summary and opens full outline only on re
     const list=scroll.children[0],more=scroll.children[1];
     assert.equal(f.host().shadow.children[0].children[0].children[1].hidden,false,
       'long outlines retain the existing view modes');
+    const modes=f.host().shadow.children[0].children[0].children[1].children;
+    assert.equal(modes[1].attributes.get('aria-pressed'),'true','current chapter is selected by default');
+    assert.equal(modes[0].attributes.get('aria-pressed'),'false');
+    assert.equal(list.children.length,25,'current chapter expands its children by default');
+    assert.equal(list.children.at(-1).children[0].attributes.get('aria-current'),'location',
+      'default view highlights the active chapter rather than the overview root');
+    assert.equal(more.hidden,true,'overview overflow is hidden in current chapter mode');
+    modes[0].fire('click');
     assert.equal(list.children.length,12,'adaptive overview is not the full 25 headings');
     assert.equal(more.hidden,false);
     assert.match(more.textContent,/还有 13 个章节/);

@@ -58,3 +58,10 @@
 R4.8 现已通过固定 classic 资源 `src/entrypoints/preinstall-intent.js` 完成可信新安装意图登记后，立即复用 `resumeDefaultPreinstall` 安装两项官方默认工具。MV3 Worker 重启仅尝试恢复已有的同版本可信意图；Side Panel 保留同一 Web Locks 下的幂等恢复入口。此流程不执行工具 JS，不自动授予网站权限，也不修改原安装清单 Schema。
 
 之前 `123/123` 定向通过属于 `4670bdf1`；这一后台即时安装调整必须重新绑定新提交的 CI 结果。当前生产包仍受 R15.8 第三方 `crypto-js` 输出的严格动态构造安全扫描失败所阻塞，禁止放松 CSP 或冒充 CFT PASS。
+
+
+## 2026-10-11 补充回归：历史套装与独立第三方库阻塞
+
+- 本轮修正 `tests/environment/app-market-batch-r3.test.mjs`：历史固定套装成员的预期状态由“前两项必定可安装”改为**逐项核对当前发行 Catalog 的精确版本**。保留历史版本，不降低不可用版本的 `blocked` 安全限制。提交 `37986aa4d0766e906c31bca8904ddee2b7c9b2db`，未触及其他 Agent 的第三方库文件。
+- 同 SHA 的 [市场 CI #38146080805](https://github.com/shopable-ai/opendesk-browser/actions/runs/38146080805) 定向测试和 `npm run check` 均通过，随后生产构建进入包安全扫描，因 **`libs/packages/axios.js` 动态构造器引用**被原 `verify-package.mjs` 拒绝；开发构建、verify、pack、真实 Chrome 及本机 Mac Chrome 尚无本 SHA 的通过证据。
+- 先前 `crypto-js` 阻塞与本次 `axios` 阻塞分属第三方依赖输出；不要擅自放宽 `Function`/constructor 安全规则或提高构建字节预算。本轮状态仍为“源码已提交、目标回归通过、产品级验收未关闭”，不得宣布综合 95/100。

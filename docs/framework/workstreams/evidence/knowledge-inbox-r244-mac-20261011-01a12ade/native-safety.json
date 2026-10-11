@@ -1,0 +1,15 @@
+{
+  "duplicate": {
+    "status": "PASS",
+    "message": "E_FILES_EXISTS · E_FILES_EXISTS",
+    "before": "4d3e28b51c9a1f0fb8a30c7df212287277d8792989c80bd6912c658de6a4841b",
+    "after": "4d3e28b51c9a1f0fb8a30c7df212287277d8792989c80bd6912c658de6a4841b"
+  },
+  "limit": {
+    "bytes": 32769,
+    "createDisabled": false,
+    "saveDisabled": true,
+    "meta": "opendesk-r244-workspace-woOwHs / 知识资产.md · 32,769 bytes ·  · 已核验目录"
+  },
+  "unknownOutcome": "NOT_TESTED"
+}

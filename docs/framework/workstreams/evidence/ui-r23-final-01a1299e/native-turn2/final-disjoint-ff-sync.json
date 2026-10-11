@@ -1,0 +1,20 @@
+{
+  "incoming": [
+    "examples/sidebar-tools/knowledge-inbox/knowledge-inbox.opendesk-tool.json",
+    "examples/sidebar-tools/knowledge-inbox/src/main.js",
+    "src/marketplace/catalog.js",
+    "src/sidebar-tools/knowledge-inbox.opendesk-tool.json",
+    "tests/environment/knowledge-inbox-r24-ui.test.mjs",
+    "tests/framework/knowledge-inbox-native-r1.test.mjs"
+  ],
+  "otherDirtyFilesPreserved": {
+    "docs/framework/workstreams/unified-mac-01a1297c.zh-CN.md": "186e2f5f65067871e18cccc66caeaa8f9254bd0b8af958f9f3d1ff4a285efa81"
+  },
+  "collision": [],
+  "pull": {
+    "exitCode": 0,
+    "stdout": "Updating e9108b96..e8373881\nFast-forward\n .../knowledge-inbox/knowledge-inbox.opendesk-tool.json |  2 +-\n examples/sidebar-tools/knowledge-inbox/src/main.js     |  2 +-\n src/marketplace/catalog.js                             |  2 +-\n src/sidebar-tools/knowledge-inbox.opendesk-tool.json   |  2 +-\n tests/environment/knowledge-inbox-r24-ui.test.mjs      |  6 ++++++\n tests/framework/knowledge-inbox-native-r1.test.mjs     | 18 +++++++++++++++++-\n 6 files changed, 27 insertions(+), 5 deletions(-)\n",
+    "stderr": "From github.com:shopable-ai/opendesk-browser\n * branch              main       -> FETCH_HEAD\n   2e6e3ee8..e8373881  main       -> origin/main\n"
+  },
+  "HEAD": "e83738816d108506e13f28bd3d4e3be48ac30e4e"
+}

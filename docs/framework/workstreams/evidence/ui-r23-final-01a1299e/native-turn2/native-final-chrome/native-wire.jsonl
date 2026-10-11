@@ -1,0 +1,2 @@
+{"time":"2026-10-11T08:10:01.660Z","direction":"out","wire":{"v":1,"kind":"files.request","protocol":"opendesk.local-files.v1","requestId":"66e2cd02-038d-4298-9cac-c223b44cc525","sessionId":"86a3a1a5-225b-487e-ae58-843ee176d9e8","method":"workspaces.list","params":{}}}
+{"time":"2026-10-11T08:10:01.679Z","direction":"in","wire":{"v":1,"kind":"files.response","protocol":"opendesk.local-files.v1","requestId":"66e2cd02-038d-4298-9cac-c223b44cc525","sessionId":"86a3a1a5-225b-487e-ae58-843ee176d9e8","result":{"workspaces":[]}}}

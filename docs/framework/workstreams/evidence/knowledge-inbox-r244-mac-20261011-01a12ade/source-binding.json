@@ -1,0 +1,34 @@
+{
+  "head": "e268eb6c4e267c1d71125f91a7e14cb46acb44a9",
+  "scope": "Tracked HEAD including R24.4 fixes; reuse literal fixed SW sidecar verification from the integration owner; exclude other unfinished features",
+  "archivePaths": [
+    "src",
+    "scripts",
+    "contracts",
+    "schemas",
+    "packages",
+    "types",
+    "native-agent",
+    "official-tools",
+    "examples/sidebar-tools",
+    "manifest.json",
+    "package.json",
+    "package-lock.json",
+    "wxt.config.mjs",
+    "webpack.config.cjs",
+    "README.md",
+    "docs/contracts/licenses/todo-user-vue-MIT.txt"
+  ],
+  "workingInputs": [
+    {
+      "path": "scripts/verify-package.mjs",
+      "sha256": "ef56829ca5ec7bff562a3a865ae1ea4f643d22813151a6f8596f5d7a9f064b49",
+      "owner": "integration owner read-only reused input"
+    },
+    {
+      "path": "scripts/audit-fixed-entries.mjs",
+      "sha256": "5aecadb52f6d1280cccdf76cf2fb647134bba3c57de8a7e4fb2f04cf8e64bfaf",
+      "owner": "integration owner read-only reused input"
+    }
+  ]
+}

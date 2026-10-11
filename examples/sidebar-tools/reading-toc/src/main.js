@@ -5,7 +5,7 @@ const source=root.querySelector('#toc-source'),list=root.querySelector('#toc-lis
 const empty=root.querySelector('#toc-empty'),error=root.querySelector('#toc-error');
 const more=root.querySelector('#toc-overview-more');
 const controls=[...root.querySelectorAll('button[data-toc-mode]')];
-let mode='top',selected='',sourceChoice='',data={items:[],sources:[],activeId:''},lastKey='',reading=false,closed=false;
+let mode='focus',selected='',sourceChoice='',data={items:[],sources:[],activeId:''},lastKey='',reading=false,closed=false;
 const showError=message=>{error.textContent=message||'';error.hidden=!message;};
 function render(){
  const {items,sources,activeId}=data;
@@ -63,7 +63,7 @@ async function refresh(){
   if(!snapshot||!Array.isArray(snapshot.items)||!Array.isArray(snapshot.sources))throw Error('目录数据无效');
   data=snapshot;showError('');render();
  }catch(e){if(!closed){data={items:[],sources:[],activeId:''};lastKey='';render();
-  showError('此网站尚未授权或无法读取目录；可在工具列表启用此网站。');}}
+  showError('此网站尚未授权或无法读取目录；可在工具详情的设置中授权当前网站。');}}
  finally{reading=false;}
 }
 controls.forEach(button=>button.addEventListener('click',()=>{mode=button.dataset.tocMode;render();}));

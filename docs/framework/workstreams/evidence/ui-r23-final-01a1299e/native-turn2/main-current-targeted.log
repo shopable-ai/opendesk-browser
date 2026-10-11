@@ -1,0 +1,46 @@
+✔ knowledge tool is a distinct, bounded, reproducible v1 package with explicit new capabilities (8.265084ms)
+✔ capture requires separate origin consent and both declared capabilities (1.29475ms)
+✔ capture source strips secrets; repeated captures preserve personally edited metadata and draft (2.028625ms)
+✔ selection identity differs; search includes edited draft, labels and notes (0.722334ms)
+✔ UTF-8 content, record count, total quota and malformed durable data fail without mutation (101.879166ms)
+✔ two page captures are serialized, duplicates stay singular, stale editors cannot overwrite (8.313375ms)
+✔ page cannot read the inbox; invalid iframe, host document, tool hash and source are rejected (1.273125ms)
+✔ independent extension TAB verifies its live context when webNavigation has no frame (1.032875ms)
+✔ same-URL reload, navigation and browser permission removal fence page writes (3.232083ms)
+✔ capture and uninstall use one lock; queued stale captures never recreate removed data (2.02725ms)
+✔ full Markdown export exceeds old clip budget without truncating; direct download survives broken inbox (7.02125ms)
+✔ image download rejects arbitrary origins and data/blob resources; acknowledges only Chrome request (1.425959ms)
+✔ Workspace handoff is tab-bound, expires, preserves exact text and never dispatches Native writes (5.856791ms)
+✔ v1 capture migration fills only an absent draft and does not mutate the stored input (29.949ms)
+✔ Workspace import rereads durable session under the uninstall lock, and retains failed handoffs (50.367792ms)
+✔ R24 ships the same readable package as the official built-in tool (0.976542ms)
+✔ R24 defaults to reading and separates editing, status, confirmation, export (0.298417ms)
+✔ R24 Markdown presentation is DOM-only, URL restricted, without auto image requests (0.2185ms)
+✔ R24 avoids a permanent status banner and provides selection/focus safeguards (0.120542ms)
+✔ R24 CSS is sandbox-scoped, responsive and usable in light and dark themes (1.013083ms)
+✔ Native remains optional after merging the current permission catalog (1.965875ms)
+✔ independent SW budget and fixed packaged Native transport entry (0.395916ms)
+✔ single exact same-extension static import allowed in SW only (3.421042ms)
+✔ fixed transport registers listeners on the original SW APIs; default-off does not connect (0.507125ms)
+✔ R23 semantic tokens are sole source of shared values and carry no page reset (2.610417ms)
+✔ R23 trusted page styles respect explicit load order and sandbox boundary (3.069167ms)
+✔ Workspace restores focus lost to busy controls and respects focus moved during the operation (28.054ms)
+✔ Workspace invalidates visible write controls when a previously writable grant is revoked or downgraded (18.197125ms)
+✔ Workspace selection A is carried to the file sidebar by verified ID, and saving A cannot affect same-name B (19.104167ms)
+✔ A to no online directories to B preserves A identity, label and draft until explicit selection (13.427208ms)
+✔ same directory with a new lease cannot save a record read in the old lease, including explicit empty epoch (8.144625ms)
+✔ a Native state/catalog session mismatch clears operation authority without mixing identities (5.509792ms)
+✔ SPA round trips and tab removal retire request bindings; disconnect clears authority immediately (11.13275ms)
+✔ knowledge handoff enters actual Workspace controller, guards unsaved switching and creates only by explicit action (17.500417ms)
+✔ R22 production and development publish the same generated Tailwind CSS (137.133084ms)
+✔ R22 workspace HTML retains critical controls and collapses secondary panels (0.628792ms)
+✔ R22 CSS scanner rejects uncompiled directives and missing design contract (0.385583ms)
+✔ Workspace memory demo builds with the same compiled stylesheet after removal of source workspace.css (269.739542ms)
+ℹ tests 38
+ℹ suites 0
+ℹ pass 38
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 534.671333
