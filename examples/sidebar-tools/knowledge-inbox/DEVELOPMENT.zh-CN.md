@@ -19,7 +19,7 @@ src/sidebar-tools/knowledge-inbox.opendesk-tool.json
                                    随扩展构建发布的正式内置包
 dist/production/sidebar-tools/knowledge-inbox.opendesk-tool.json
                                    npm run build 后产生的扩展资源
-artifacts/sidebar-tools/knowledge-inbox/1.0.0/
+artifacts/sidebar-tools/knowledge-inbox/1.1.0/
                                    默认打包命令的本地产物目录
 ```
 
@@ -46,7 +46,7 @@ artifacts/sidebar-tools/knowledge-inbox/1.0.0/
 ```json
 {
   "id": "knowledge-inbox",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "title": "知识收件箱",
   "description": "保存 ChatGPT 回答和灵感，整理草稿、标签与备注，导出自己的 Markdown。",
   "capabilities": ["page.capture", "knowledge.store", "user.export"],
@@ -80,7 +80,7 @@ cmp examples/sidebar-tools/knowledge-inbox/knowledge-inbox.opendesk-tool.json \
     src/sidebar-tools/knowledge-inbox.opendesk-tool.json
 ```
 
-也可直接 `npm run build:sidebar-tool -- examples/sidebar-tools/knowledge-inbox`；此命令的**默认输出**是 `artifacts/sidebar-tools/knowledge-inbox/1.0.0/knowledge-inbox.opendesk-tool.json`，不会自动同步两个被 Git 跟踪的工具包。打包通过 ≠ 已安装工具。
+也可直接 `npm run build:sidebar-tool -- examples/sidebar-tools/knowledge-inbox`；此命令的**默认输出**是 `artifacts/sidebar-tools/knowledge-inbox/1.1.0/knowledge-inbox.opendesk-tool.json`，不会自动同步两个被 Git 跟踪的工具包。打包通过 ≠ 已安装工具。
 
 修改 `src/knowledge/` 可信实现后，同样必须重新构建扩展；仅重新打包界面 JSON 不会更新 ChatGPT 网页捕获代码。
 

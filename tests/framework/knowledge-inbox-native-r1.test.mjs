@@ -187,26 +187,55 @@ test('Knowledge R1 Chrome: reviewed install, capture, persistent editor and inli
  await click(article,'#fixture-stream');
  await click(side,'[data-sidebar-tool-action=open][data-sidebar-tool-id=knowledge-inbox]');
  clip=await iframeWith('#ki-records');
+ const screenshots=resolve('artifacts/knowledge-inbox-r1');await mkdir(screenshots,{recursive:true});
+ const visualMetrics=[];
+ async function captureState(state,widths=[360,400,600,1000]){
+   for(const width of widths){
+     await side.send('Emulation.setDeviceMetricsOverride',{width,height:869,deviceScaleFactor:1,mobile:false});
+     for(const mode of ['light','dark']){
+       const media={features:[{name:'prefers-color-scheme',value:mode}]};
+       await side.send('Emulation.setEmulatedMedia',media);
+       await clip.send('Emulation.setEmulatedMedia',media);
+       await pause(80);
+       const metrics=await evalIn(clip,'({client:document.documentElement.clientWidth,scroll:document.documentElement.scrollWidth,reader:!document.querySelector("#ki-reader").hidden,editor:!document.querySelector("#ki-editor").hidden})');
+       visualMetrics.push({state,width,theme:mode,...metrics});
+       assert.ok(metrics.scroll<=metrics.client+2,'Knowledge iframe horizontal overflow '+JSON.stringify(visualMetrics.at(-1)));
+       const shot=await side.send('Page.captureScreenshot',{format:'png',captureBeyondViewport:false});
+       await writeFile(join(screenshots,state+'-'+width+'-'+mode+'.png'),Buffer.from(shot.data,'base64'));
+     }
+   }
+   await side.send('Emulation.clearDeviceMetricsOverride');
+ }
+
  await until(()=>evalIn(clip,'document.querySelectorAll(".ki-record").length===1'),'saved inbox');
- await click(clip,'.ki-record');await until(()=>evalIn(clip,'!document.querySelector("#ki-detail").hidden'),'record editor');
- await click(clip,'#ki-edit');await nativeText(clip,'#ki-content','# 我的编辑稿\n\n已整理内容');
+ await captureState('list');
+ await click(clip,'.ki-record');await until(()=>evalIn(clip,'!document.querySelector("#ki-detail").hidden'),'record reader');
+  assert.equal(await evalIn(clip,'document.querySelector("#ki-editor").hidden'),true,'opens in reading mode');
+  assert.equal(await evalIn(clip,'document.querySelector("#ki-markdown h2")?.textContent'),'知识资产');
+  assert.equal(await evalIn(clip,'document.querySelector("#ki-markdown pre code")?.textContent.includes("const first = 1")'),true);
+ await captureState('reader');
+ await click(clip,'#ki-edit');
+  assert.equal(await evalIn(clip,'document.querySelector("#ki-save").disabled'),true,'save stays disabled before edits');
+  const edited='# 我的编辑稿\n\n已整理内容\n\n<script>alert(1)</script>\n\n![远程图片](https://evil.example/track.png)';
+  await nativeText(clip,'#ki-content',edited);
+ await captureState('edit-dirty',[360,400]);
  acceptDialog=false;await click(side,'#sidebar-tool-back');
  await until(()=>dialogs===2,'dirty host confirmation presented');
  await until(()=>evalIn(side,'document.querySelectorAll("#sidebar-tool-frame iframe").length===1'),'cancelled close retains frame');
- assert.equal(await evalIn(clip,'document.querySelector("#ki-content").value'),'# 我的编辑稿\n\n已整理内容');
+ assert.equal(await evalIn(clip,'document.querySelector("#ki-content").value'),edited);
  await click(clip,'#ki-edit');await until(()=>evalIn(clip,'!document.querySelector("#ki-confirm").hidden'),'inline discard confirmation');
- await click(clip,'#ki-confirm-no');assert.equal(await evalIn(clip,'document.querySelector("#ki-edit").checked'),true);
+ await captureState('confirm',[360]);
+ await click(clip,'#ki-confirm-no');assert.equal(await evalIn(clip,'document.querySelector("#ki-editor").hidden'),false);
  await click(clip,'#ki-save');
  await until(async()=>{const data=await evalIn(side,readStore);return data.records[0].draft?.includes('已整理内容');},'draft saved');
  assert.match((await evalIn(side,readStore)).records[0].markdown,/第二块 Markdown/,'Original remains intact');
+  assert.equal(await evalIn(clip,'document.querySelector("#ki-editor").hidden'),true,'save returns to reader');
+  assert.equal(await evalIn(clip,'document.querySelector("#ki-markdown").querySelector("script,img,iframe")===null'),true,'Markdown does not mount scripts or images');
+  assert.equal(await evalIn(clip,'document.querySelector("#ki-markdown").textContent.includes("<script>alert(1)</script>")'),true,'HTML is displayed as literal text');
  await click(clip,'#ki-outline-toggle');
  await until(()=>evalIn(clip,'document.querySelector("#ki-outline").textContent.includes("我的编辑稿")'),'structure outline');
- const screenshots=resolve('artifacts/knowledge-inbox-r1');await mkdir(screenshots,{recursive:true});
- for(const mode of ['light','dark']){
-  await clip.send('Emulation.setEmulatedMedia',{features:[{name:'prefers-color-scheme',value:mode}]});
-  await pause(100);const shot=await side.send('Page.captureScreenshot',{format:'png',captureBeyondViewport:false});
-  await writeFile(join(screenshots,'inbox-'+mode+'.png'),Buffer.from(shot.data,'base64'));
- }
+ await captureState('saved-outline',[360,400,600]);
+ await writeFile(join(screenshots,'visual-metrics.json'),JSON.stringify(visualMetrics,null,2)+'\n');
  await click(clip,'#ki-delete');await until(()=>evalIn(clip,'!document.querySelector("#ki-confirm").hidden'),'inline delete');
  await click(clip,'#ki-confirm-yes');
  await until(async()=>!(await evalIn(side,readStore)).records.length,'record removed');
