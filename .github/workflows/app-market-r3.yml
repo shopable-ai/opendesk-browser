@@ -1,0 +1,74 @@
+name: OpenDesk app market R3 package and native Chrome
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/marketplace/**'
+      - 'src/entrypoints/marketplace.js'
+      - 'src/ui/sidebar-tools/**'
+      - 'src/ui/sidebar-tools.js'
+      - 'src/ui/tool.html'
+      - 'src/sidebar-tools/**'
+      - 'scripts/prepare-public.mjs'
+      - 'scripts/verify-package.mjs'
+      - 'scripts/build-contract.mjs'
+      - 'scripts/build-market-site.mjs'
+      - 'wxt.config.mjs'
+      - 'package.json'
+      - 'tests/environment/app-market-r3.test.mjs'
+      - 'tests/framework/app-market-r3-native.test.mjs'
+      - '.github/workflows/app-market-r3.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  market-production-native:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install pinned dependencies
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Validate fixed releases, provenance isolation and migrations
+        run: |
+          node --test tests/environment/app-market-r3.test.mjs
+          npm run check
+      - name: Build and validate genuine production and development extensions
+        run: |
+          npm run build
+          npm run build:dev
+          npm run verify
+          npm run pack
+      - name: Generate deployable public static routes
+        run: |
+          npm run build:market-site
+          test -f dist/app-market-public/apps/opendesk/reading-toc/versions/1.0.2/index.html
+          test -f dist/app-market-public/install/opendesk/reading-toc/versions/1.0.2/index.html
+          test -f dist/app-market-public/collections/reading-kit/revisions/1/index.html
+          test -f dist/app-market-public/catalog.json
+      - name: Set up Chrome for Testing
+        id: cft
+        uses: browser-actions/setup-chrome@v2
+        with:
+          chrome-version: stable
+      - name: Real MV3 Chrome Side Panel → Marketplace → installed tool
+        env:
+          CHROME_BIN: ${{ steps.cft.outputs.chrome-path }}
+          OPENDESK_NATIVE_HEADED: '1'
+        run: timeout --signal=TERM --kill-after=8s 220s xvfb-run -a node --test tests/framework/app-market-r3-native.test.mjs
+      - name: Preserve reviewable receipts and genuine browser screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: market-r3-production-native
+          retention-days: 10
+          if-no-files-found: warn
+          path: |
+            artifacts/app-market-r3/*.png
+            artifacts/app-market-r3/*.json
+            docs/framework/evidence/wxt/builds/build-production.json
+            docs/framework/evidence/wxt/builds/build-development.json
