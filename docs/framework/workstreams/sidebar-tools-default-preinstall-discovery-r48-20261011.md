@@ -5,7 +5,7 @@
 ## 本轮实际实现范围
 
 - `official-tools/catalog.json` 是唯一可信预装策略的源码声明。首次安装预装 `reading-toc`（阅读目录）和 `quick-notes`（网页笔记）；`web-markdown-clipper`、`markdown-workbench`、`knowledge-inbox` 保持 `optional`。发行 Catalog 通过现有构建生成，不维护第二份 ID 名单。
-- `src/sidebar-tools/preinstall-intent.js` 只在 Service Worker 登记首次安装意图；`src/sidebar-tools/default-preinstall.js` 在首次 Side Panel 的可信工具宿主执行实际安装和恢复。仅由 `runtime.onInstalled(reason='install')` 写入 `opendesk.sidebar-tools.bootstrap.v1` 意图，启动恢复只继续已有同版本固定计划。不把“扩展本身有文件”解释成已安装；实际状态仍在 `opendesk.sidebar-tools.installed.v1`。旧 Profile（包括已存在的空安装记录）、update、restart、Side Panel 打开均不凭空补装。
+- `src/sidebar-tools/preinstall-intent.js` 只在 Service Worker 登记首次安装意图；`src/sidebar-tools/default-preinstall.js` 由后台固定 classic 资源直接执行预装，Side Panel 同时提供恢复入口。仅由 `runtime.onInstalled(reason='install')` 写入 `opendesk.sidebar-tools.bootstrap.v1` 意图，启动恢复只继续已有同版本固定计划。不把“扩展本身有文件”解释成已安装；实际状态仍在 `opendesk.sidebar-tools.installed.v1`。旧 Profile（包括已存在的空安装记录）、update、restart、Side Panel 打开均不凭空补装。
 - 使用 `loadOfficialCatalog/loadOfficialTool` 验证扩展本地 HTTPS 以外不可替代的固定资源身份、版本、能力、字节和 SHA-256；可信宿主调用已有 `installReviewedSidebarTool`，复用 Web Locks、容量、卸载撤销代际、来源和事务日志。不会授权任何网站，不会运行代码或打开 iframe。失败后的固定计划可恢复；未知写入结果保留 `attention`，停止自动重放。
 - 「工具」Tab 内为「我的工具」与「发现工具」；已安装列表优先渲染，未安装官方工具在轻量发现里支持搜索和可安装/全部，已安装版本不会重复推荐，更新提示就地出现，复杂详情/版本/套装/存储仍由原市场 `ui/marketplace.html` 完成。全局启停需跨全部运行入口落实可信拦截，不发布不生效的开关。
 - 本轮未改动 Chrome 主权限或独立安装数据库，不重写旧 R4.5 的测试记录或截图。
@@ -51,3 +51,10 @@
 - 此 `crypto-js` 固定库由独立 R15.8 依赖工作流在 [a42819c](https://github.com/shopable-ai/opendesk-browser/commit/a42819caf9dc936796989dd4d5e70ae8ab2390cb) 引入；不是 R4.8 官方内置工具依赖。按照多 Agent 所有权及禁止放松 CSP/校验器规则，R4.8 **未对其修改，也未放宽验证器**，应由负责固定第三方库的工作流修复并产出同版本验收。
 - 因上述真实 FAIL，`npm run build:dev`、`npm run verify`、`npm run pack`、`npm test` 全套环境回归以及真实 Linux CFT/真实 Mac Chrome 均 **NOT_TESTED**（当前候选）。原历史 PASS 不能转移到 R4.8 新候选；专家评分不得标为 95+，产品交付应保持 **部分实施 / 原生未验收**。
 - 阻塞消除后应重新确认同一 SHA 的两种 WXT 包、固定资源哈希、真实 fresh Profile 首次安装的两个工具、网站授权保持为空、手动安装/去重、卸载后重启、用户权限和数据安全，以及 CI 归档的截图。Mac 需要独立本地实际 Chrome 验收。
+
+
+## 后台即时预装的新实现（当前待验收）
+
+R4.8 现已通过固定 classic 资源 `src/entrypoints/preinstall-intent.js` 完成可信新安装意图登记后，立即复用 `resumeDefaultPreinstall` 安装两项官方默认工具。MV3 Worker 重启仅尝试恢复已有的同版本可信意图；Side Panel 保留同一 Web Locks 下的幂等恢复入口。此流程不执行工具 JS，不自动授予网站权限，也不修改原安装清单 Schema。
+
+之前 `123/123` 定向通过属于 `4670bdf1`；这一后台即时安装调整必须重新绑定新提交的 CI 结果。当前生产包仍受 R15.8 第三方 `crypto-js` 输出的严格动态构造安全扫描失败所阻塞，禁止放松 CSP 或冒充 CFT PASS。

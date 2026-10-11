@@ -71,7 +71,11 @@ test('R4.8 first-install intent uses fixed classic WXT resource without bundling
   assert(!sw.includes("from './sidebar-tools/preinstall-intent.js'"));
   assert(!sw.includes('default-preinstall.js'));
   assert(!intent.includes('installation.js')&&!intent.includes('official-catalog.js'));
-  assert(entry.includes("registerDefaultPreinstall({api:chrome"));
+  assert(entry.includes("registerDefaultPreinstall({...options,reason:details.reason})"));
+  assert(entry.includes('resumeDefaultPreinstall(options)'),
+    'fixed first-party worker script installs immediately and can recover on restart');
+  assert(!entry.includes('chrome.runtime.onMessage'),
+    'no page/tool request can trigger default package installation');
   assert(host.includes("from '../sidebar-tools/default-preinstall.js'"));
   assert.equal(contract.PACKAGE_ENTRIES['sidebar-tools/preinstall-intent'],'./src/entrypoints/preinstall-intent.js');
   assert.equal(contract.FIXED_OUTPUTS['preinstall-intent'],'sidebar-tools/preinstall-intent.js');
