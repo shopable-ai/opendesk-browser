@@ -19,6 +19,8 @@ Page USER_SCRIPT 用 `document` + 默认 `_` / `dayjs`，没有 Controller `page
 
 具体的世界矩阵、正确 API、零参数 Controller/Page 双 Demo 和下一阶段验收入口，见 **[零参数 main 与预装库使用合同](../../docs/api/runtime-globals-and-preinstalled-libraries.zh-CN.md)**。请优先引用该规范，避免继续从历史样例误推导 `main({page,params})` 是强制签名。
 
+**四类用法的可复制演示（R16.5）**：普通用户 [Controller 零参数 ESM](../../examples/programs/controller-globals-zero-arg/README.md)、[Page 零参数 ESM](../../examples/programs/page-globals-zero-arg/README.md)、[单文件 Page](../../examples/programs/single-file/page-globals-zero-arg.js) 使用已提供的变量；扩展维护者的 [Background/可信 Side Panel/自定义页静态 import](../../examples/libs/trusted-imports/README.zh-CN.md) 与用户的 [可打包 Side Panel 工具 OpenDeskTool](../../examples/sidebar-tools/runtime-globals-demo/README.md) 则走各自独立构建/沙箱规则。每类都有 Node/打包校验，原生 Chrome 结果仍单独记账。不要把这五类源码格式混作一份 `main({page})` 模板。
+
 ## 1. 当前真实目录及库状态
 
 ```text

@@ -36,7 +36,7 @@ Codex 调 MCP；Sidebar 本地项目读取同一 provider 后使用原执行入�
 | 创建或修改 JS / 多文件项目 | [项目格式与授权](local-projects.zh-CN.md) | [相对 ESM Controller](../../examples/programs/local-controller/README.md) |
 | 让 Codex 调用工具 | [七个 MCP 工具](mcp-local-development.zh-CN.md) | attach → status → run → result |
 | 用 Page / Locator 自动化网页 | [Controller](controller.zh-CN.md) | [完整现代 Page API](../framework/modern-page-api.zh-CN.md) |
-| **直接使用预装第三方库、零参数 main、确认各世界支持什么** | **[预置运行变量与 src/libs 世界矩阵](runtime-globals-and-preinstalled-libraries.zh-CN.md)** | [Controller 零参数](../../examples/programs/controller-globals-zero-arg/README.md) · [Page 零参数](../../examples/programs/page-globals-zero-arg/README.md) |
+| **直接使用预装第三方库、零参数 main、确认各世界支持什么** | **[预置运行变量与 src/libs 世界矩阵](runtime-globals-and-preinstalled-libraries.zh-CN.md)** | [Controller 零参数](../../examples/programs/controller-globals-zero-arg/README.md) · [Page 零参数](../../examples/programs/page-globals-zero-arg/README.md) · [可信扩展静态导入](../../examples/libs/trusted-imports/README.zh-CN.md) · [工具桥 Demo](../../examples/sidebar-tools/runtime-globals-demo/README.md) |
 | 在网页显示自己的 UI | [Page USER_SCRIPT](page-userscript.zh-CN.md) | [按钮 / CSS / PNG](../../examples/programs/local-page-ui/README.md) |
 | 指定网站中插入按钮或 React/Vue | [Page UI 网站范围与前端框架](page-ui-frameworks.zh-CN.md) | [原生](../../examples/programs/page-ui-basic/README.md) · [React](../../examples/programs/page-ui-react/README.md) · [Vue](../../examples/programs/page-ui-vue/README.md) |
 | 在浏览器选择项目、保存草稿 | [Sidebar 操作](sidebar-local-projects.zh-CN.md) | 模式开关、项目、参数、Run / Stop |

@@ -86,6 +86,27 @@ if (label) label.textContent = '工具已初始化';
 
 可信 Background / Side Panel 宿主 / 扩展自定义页面的源码可以在其各自 WXT 固定入口中静态导入实际需要的包，例如 `import dayjs from 'dayjs'`，**不是**把 `OpenDeskLibs` 全局注入所有扩展页面；这属于框架开发者构建行为，而不是普通用户脚本需要写的 import。
 
+
+### 实际可运行示例：四种扩展世界不要混用
+
+- [Background 的 ESM 模块示例](../../examples/libs/trusted-imports/background.mjs)：从固定 npm 锁静态 `import dayjs from 'dayjs'`、`import {words} from 'lodash-es'`；只把所需模块编入该受信 WXT entry，**不能**假设有 Controller `page`。
+- [可信 Side Panel 宿主模块](../../examples/libs/trusted-imports/sidebar-host.mjs)：显式导入 `query-string`、`dayjs`，是扩展维护者的受信代码，绝不导入到用户工具的 opaque iframe。
+- [可信扩展自定义 HTML 页模块](../../examples/libs/trusted-imports/extension-page.mjs)：按需 import `lodash-es`，安全用 `textContent` 更新自己的 DOM；非用户 Page 脚本。
+- [可打包的 Side Panel 用户工具](../../examples/sidebar-tools/runtime-globals-demo/README.md)：`tool.config.json` + HTML/CSS/经典 JS，真实通过 `globalThis.OpenDeskTool.root/request` 使用已授权桥；有明确导入与手工验收流程。
+- [单文件 Page 的零参数示例](../../examples/programs/single-file/page-globals-zero-arg.js)：`async function main()` + `document` + 默认 `_`、`dayjs`；单文件编辑器不要粘贴 ESM 的 `export default`。
+
+三个可信入口示例是**可在 Node 执行的受审静态 import 模块**，供维护者把实际需要的函数放进已有 `src/**` WXT 入口，不是已在产品注册的三个新入口，更不能直接把 examples 目录当成生产 SW 依赖；否则会被构建来源审查拒绝。它们的独立 `npm ci` + Node 方法测试不构成真实扩展页面安装回执。
+
+已安装小工具是第四种独立世界：没有 `page` / `_` / `dayjs` 自动注入，不需要 `main({page})`，也不能把可信宿主中的原始 import 放进经典工具 JS。真要使用第三方库，应在该工具本地先打包为审核过的自包含经典 JS；用户依然不用重新编译整个 Chrome 扩展。
+
+```sh
+npm ci --ignore-scripts --no-audit --no-fund
+node --test tests/environment/runtime-globals-zero-arg.test.mjs tests/environment/runtime-libs-trusted-worlds.test.mjs
+node scripts/build-sidebar-tool.mjs examples/sidebar-tools/runtime-globals-demo
+```
+
+构建后的工具 JSON 还须用户在「工具」中审阅、确认安装与主动打开；真实 Chrome 验收用原始版本/权限/文档/构建哈希判断，L2 与实测不能混作一个 PASS。
+
 ## 3. 可选 Page 库如何直接使用
 
 **示例一：真实 Axios（普通网页网络，遵从 CORS/CSP）**：
@@ -123,6 +144,6 @@ async function main() {
 
 - [Controller 零参数多文件](../../examples/programs/controller-globals-zero-arg/README.md)：运行 `page.title()` + `_.words()` + `dayjs()`。
 - [Page USER_SCRIPT 零参数多文件](../../examples/programs/page-globals-zero-arg/README.md)：运行 `document.title` + `_.words()` + `dayjs()`。
-- [Controller 单文件](../../examples/programs/single-file/title.js)、[React Direct](../../examples/programs/page-ui-react-direct/README.md)、[Vue Direct](../../examples/programs/page-ui-vue-direct/README.md)、[Side Panel 工具开发](sidebar-tool-development.zh-CN.md)。
+- [Controller 单文件](../../examples/programs/single-file/title.js)、[Page 单文件零参数](../../examples/programs/single-file/page-globals-zero-arg.js)、[可信扩展静态 ESM 模块](../../examples/libs/trusted-imports/README.zh-CN.md)、[可打包 Side Panel 工具](../../examples/sidebar-tools/runtime-globals-demo/README.md)、[React Direct](../../examples/programs/page-ui-react-direct/README.md)、[Vue Direct](../../examples/programs/page-ui-vue-direct/README.md)、[Side Panel 工具开发](sidebar-tool-development.zh-CN.md)。
 
 相关来源合同：[Controller](controller.zh-CN.md)、[Page](page-userscript.zh-CN.md)、[项目格式](local-projects.zh-CN.md)、[公共库实现](../architecture/browser-framework/public-preinstalled-libraries.contract.zh-CN.md)。**使用体验必须以同一候选实际运行代码来证明，文档和组件测试不等于整体 95 分产品验收。**

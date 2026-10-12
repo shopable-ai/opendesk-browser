@@ -31,7 +31,8 @@ export default async function main() {
 - `src/scripting/sandbox/worker-runtime.js`、`scripts/build-program-project.mjs`、`src/scripting/user-scripts/{execution-source,preview,installed-programs}.js`
 - `docs/api/{controller,page-userscript,local-projects,sidebar-tool-development}.zh-CN.md`、`examples/programs/README.md`
 - `examples/programs/controller-globals-zero-arg/` 与 `examples/programs/page-globals-zero-arg/`（新规范 Demo）
-- `tests/environment/runtime-globals-zero-arg.test.mjs`、`tests/environment/{builtin-libraries,controller-main-entry,program-build}.test.mjs`
+- `examples/programs/single-file/page-globals-zero-arg.js`、`examples/libs/trusted-imports/` 和 `examples/sidebar-tools/runtime-globals-demo/`（R16.5 跨世界实际 Demo）
+- `tests/environment/runtime-globals-zero-arg.test.mjs`、`tests/environment/runtime-libs-trusted-worlds.test.mjs`、`tests/environment/{builtin-libraries,controller-main-entry,program-build}.test.mjs`
 - `docs/architecture/browser-framework/public-preinstalled-libraries.contract.zh-CN.md` 和相关 R15/R16 工作流记录。
 
 **旧 R15.7 提示词/320 KiB/目录计划可能过时**。重新读取当前 `scripts/build-contract.mjs` 实际版本、权限合同、资源读取限制与最新 CI，同一配置只能有一个真值；不能为了通过构建擅自放宽体积/CSP、也不能机械恢复旧预算。
@@ -65,7 +66,8 @@ git log -8 --oneline
 
 ```sh
 npm ci --ignore-scripts --no-audit --no-fund
-node --test tests/environment/runtime-globals-zero-arg.test.mjs
+node --test tests/environment/runtime-globals-zero-arg.test.mjs tests/environment/runtime-libs-trusted-worlds.test.mjs
+node scripts/build-sidebar-tool.mjs examples/sidebar-tools/runtime-globals-demo
 node --test tests/environment/controller-main-entry.test.mjs tests/environment/builtin-libraries.test.mjs tests/environment/program-build.test.mjs
 npm run libs:list
 npm run libs:check

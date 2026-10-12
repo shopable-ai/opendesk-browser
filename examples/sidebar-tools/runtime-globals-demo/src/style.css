@@ -1,0 +1,12 @@
+/* Opaque Sidebar tool: independent CSS, no host preload or Tailwind Preflight. */
+:root{--space-1:4px;--space-2:8px;--space-3:12px;--radius-control:8px}
+body{margin:0;font:13px/1.5 system-ui,sans-serif;color:#263952;background:#fff}
+.runtime-demo{padding:var(--space-3);min-width:0}
+h2{font-size:16px;margin:0 0 var(--space-2)}
+p{margin:0 0 var(--space-2);overflow-wrap:anywhere}
+button{padding:8px 12px;min-height:36px;border:1px solid #cbd6e6;
+  border-radius:var(--radius-control);background:#365eda;color:#fff;
+  font:inherit;cursor:pointer}
+button:disabled{opacity:.55;cursor:not-allowed}
+button:focus-visible{outline:2px solid #243c87;outline-offset:2px}
+.runtime-title{margin-top:var(--space-3);font-weight:600}

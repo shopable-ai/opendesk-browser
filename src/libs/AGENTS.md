@@ -10,6 +10,10 @@ Controller Worker 受控词法 `page` **不是 `globalThis.page`**；Page USER_S
 
 **权威产品使用合同**：[零参数预置变量与世界矩阵](../../docs/api/runtime-globals-and-preinstalled-libraries.zh-CN.md)；运行证据为 `src/scripting/sandbox/worker-runtime.js`、`scripts/build-program-project.mjs`、`src/libs/core.js` 和独立 Page 编译器。必须保留 L2 编译/实际调用回归以及独立的同包 Mac Chrome 回执，不能用文档或设计自评分代替验收。
 
+## 持续防回退：示例必须可执行并覆盖世界差异
+
+新增 Controller/Page/Trusted Host/Sidebar Tool 使用说明时，优先链接现有示例而不是复制旧 `main({page})` 为推荐 API。可信扩展入口必须通过**该入口自己**的 WXT 构建图静态导入需要的 npm 依赖；`src/libs/packages/*.js` 是受控运行包装器，不能作为“全扩展通用全局”。已安装工具只有 `OpenDeskTool` 限权桥。目录与已锁定依赖的实测演示见 `examples/libs/trusted-imports/`、`examples/sidebar-tools/runtime-globals-demo/` 和 `tests/environment/runtime-libs-trusted-worlds.test.mjs`；Node PASS 不能当 Mac Chrome PASS。
+
 ## 2026-10-11 最新日期决策
 
 **公共日期库统一为 Day.js，不预装 Moment，不新增 packages/moment.js，不提供 moment=dayjs 假别名。** 在已有 packages/dayjs.js 接入经审核的 duration/utc/timezone/customParseFormat，同步用户可见 API/版本/构建/测试。旧 moment 脚本明确迁移，不批量改历史快照；原合同强制双库要求已被取代。此日期特例不得扩展成删除其他真实公共库需求。
