@@ -1,7 +1,7 @@
 {
   "format": "opendesk.sidebar-tool.v2",
   "id": "browser-sdk-probe",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "title": "浏览器 SDK 验证工具",
   "description": "直接验证 Tabs、Side Panel、HTTP、网络观察、截图、操作管理的真实 SDK 调用与拒绝边界。",
   "capabilities": [
