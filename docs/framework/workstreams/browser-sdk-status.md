@@ -1,3 +1,12 @@
+## R5 已取得同候选 Node/Build 证据（2026-10-12）
+
+- **本次真实源码候选 Git SHA：** `90239cd4d2145f8055aa847854d252f3c93dae4a`。定向 CI：https://github.com/shopable-ai/opendesk-browser/actions/runs/38269129236（**SUCCESS**；Node Browser SDK 测试、真实 Host 模拟、来源校验、生产构建、开发构建、尺寸门槛及 Verify 均 PASS）。
+- **可调用源码合同**：35 项 = 原 32 项（23 IMPLEMENTED / 7 PLANNED / 2 NOT_EXPOSED）+ R5 三项正式新增 `browser.tabs.getOwned`、`listOwned`、`closeOwned`，共 26 SOURCE_WIRED、7 PLANNED、2 NOT_EXPOSED。R5+ 初始 114 候选剩 111 未批准。
+- **有组件级正向/拒绝证据**：本轮三项 Tabs 新接口的 Host、Schema、归属、导航和未知结果测试均获 Node CI PASS；证据文件：`docs/framework/evidence/browser-sdk-r5/r5-ci-90239cd4.json`（SHA-256 `191ba9eed5696ec6a44e61bdb0641dfeb5bf1182967527ce9252786188927b16`）。其余 23 个旧接口的逐项最新验收，不因一个集中 CI 自动提升。
+- **完整 Mac Chrome GUI 原生验收：0/35，全部原生状态仍 NOT_TESTED。** Worker 重启、真实用户点击、PNG/JSON 最终落盘未获同候选 Mac 证据，不能算 PASS。两项 Notifications 继续 NOT_EXPOSED，三项 Speech 和四项 Recording 仍 PLANNED。
+- **独立遗留阻塞**：旧 [Browser SDK R1.3 CI](https://github.com/shopable-ai/opendesk-browser/actions/runs/38269129168) 含共享 `fixed-entries-audit.test.mjs` 的页面编译器资源清单断言异常，不能将其失败误称为本次 Tabs Host 组件失败，也不能删除断言来变绿。
+- **后续需要修改的源码**：自有 Tab 的 Reload/Navigate → `src/platform/chrome/browser-tabs.js`、`context-menus.js`、SDK Schema；Downloads 状态/实际落盘 → `src/platform/downloads/index.js` 及 Browser 下载收据；Cookie Editor → `src/platform/chrome/cookies.js` 与可信 Editor UI；持久任务/授权 → 复用 Controller Task / RunHost / Authority / Chrome Alarms；最后进入录制与 Mac Chrome 正式验收。
+
 ## R5 CI 兼容修复：标准/开发双版本资源清单（2026-10-12）
 
 - **阻塞证据**：R5 Tabs commit `4c7d8fb5bf1aaa5a113bda1b63c627b07e2f7d8d` 的 Browser SDK CI [38268105391](https://github.com/shopable-ai/opendesk-browser/actions/runs/38268105391) 中 `browser-bundles` PASS；`browser-contracts` 在 R1.3 组合测试 183 项中的 `fixed-entries-audit.test.mjs:97` FAILED（182 PASS / 1 FAIL）。
@@ -134,9 +143,9 @@
 | `browser.downloads.text` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
 | `browser.tabs.open` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
 | `browser.tabs.focus` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
-| `browser.tabs.getOwned` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
-| `browser.tabs.listOwned` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
-| `browser.tabs.closeOwned` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
+| `browser.tabs.getOwned` | IMPLEMENTED | APPROVED_TOOL | PASS | PASS | NOT_TESTED |
+| `browser.tabs.listOwned` | IMPLEMENTED | APPROVED_TOOL | PASS | PASS | NOT_TESTED |
+| `browser.tabs.closeOwned` | IMPLEMENTED | APPROVED_TOOL | PASS | PASS | NOT_TESTED |
 | `browser.sidePanel.openSelf` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
 | `browser.network.request` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
 | `browser.network.observe.start` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |

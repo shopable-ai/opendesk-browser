@@ -3,7 +3,7 @@
   "sourceOfTruth": "src/framework/sdk/browser-contract.js",
   "repository": "shopable-ai/opendesk-browser",
   "branch": "main",
-  "auditedMainSha": "e3d5721acfe41e7c2ffbc2dfe61c9be616120237",
+  "auditedMainSha": "90239cd4d2145f8055aa847854d252f3c93dae4a",
   "auditedDate": "2026-10-12",
   "apiVersion": "1.0.0",
   "capacityUniverse": {
@@ -23,28 +23,82 @@
   },
   "candidateChecks": {
     "nodeTests": {
-      "status": "NOT_TESTED",
-      "evidence": []
+      "status": "PASS",
+      "evidence": [
+        {
+          "path": "docs/framework/evidence/browser-sdk-r5/r5-ci-90239cd4.json",
+          "sha256": "191ba9eed5696ec6a44e61bdb0641dfeb5bf1182967527ce9252786188927b16",
+          "candidateSha": "90239cd4d2145f8055aa847854d252f3c93dae4a",
+          "caseId": "R5-nodeTests-ci",
+          "command": "node --test --test-reporter=spec (10 Browser SDK test files listed in .github/workflows/browser-sdk-r5.yml)",
+          "environment": "GitHub Actions ubuntu-latest, Node.js 22"
+        }
+      ]
     },
     "check": {
-      "status": "NOT_TESTED",
-      "evidence": []
+      "status": "PASS",
+      "evidence": [
+        {
+          "path": "docs/framework/evidence/browser-sdk-r5/r5-ci-90239cd4.json",
+          "sha256": "191ba9eed5696ec6a44e61bdb0641dfeb5bf1182967527ce9252786188927b16",
+          "candidateSha": "90239cd4d2145f8055aa847854d252f3c93dae4a",
+          "caseId": "R5-check-ci",
+          "command": "npm run check",
+          "environment": "GitHub Actions ubuntu-latest, Node.js 22"
+        }
+      ]
     },
     "buildProduction": {
-      "status": "NOT_TESTED",
-      "evidence": []
+      "status": "PASS",
+      "evidence": [
+        {
+          "path": "docs/framework/evidence/browser-sdk-r5/r5-ci-90239cd4.json",
+          "sha256": "191ba9eed5696ec6a44e61bdb0641dfeb5bf1182967527ce9252786188927b16",
+          "candidateSha": "90239cd4d2145f8055aa847854d252f3c93dae4a",
+          "caseId": "R5-buildProduction-ci",
+          "command": "npm run build",
+          "environment": "GitHub Actions ubuntu-latest, Node.js 22"
+        }
+      ]
     },
     "buildDevelopment": {
-      "status": "NOT_TESTED",
-      "evidence": []
+      "status": "PASS",
+      "evidence": [
+        {
+          "path": "docs/framework/evidence/browser-sdk-r5/r5-ci-90239cd4.json",
+          "sha256": "191ba9eed5696ec6a44e61bdb0641dfeb5bf1182967527ce9252786188927b16",
+          "candidateSha": "90239cd4d2145f8055aa847854d252f3c93dae4a",
+          "caseId": "R5-buildDevelopment-ci",
+          "command": "npm run build:dev",
+          "environment": "GitHub Actions ubuntu-latest, Node.js 22"
+        }
+      ]
     },
     "buildSize": {
-      "status": "NOT_TESTED",
-      "evidence": []
+      "status": "PASS",
+      "evidence": [
+        {
+          "path": "docs/framework/evidence/browser-sdk-r5/r5-ci-90239cd4.json",
+          "sha256": "191ba9eed5696ec6a44e61bdb0641dfeb5bf1182967527ce9252786188927b16",
+          "candidateSha": "90239cd4d2145f8055aa847854d252f3c93dae4a",
+          "caseId": "R5-buildSize-ci",
+          "command": "npm run build (strict WXT SW hard gate)",
+          "environment": "GitHub Actions ubuntu-latest, Node.js 22"
+        }
+      ]
     },
     "verify": {
-      "status": "NOT_TESTED",
-      "evidence": []
+      "status": "PASS",
+      "evidence": [
+        {
+          "path": "docs/framework/evidence/browser-sdk-r5/r5-ci-90239cd4.json",
+          "sha256": "191ba9eed5696ec6a44e61bdb0641dfeb5bf1182967527ce9252786188927b16",
+          "candidateSha": "90239cd4d2145f8055aa847854d252f3c93dae4a",
+          "caseId": "R5-verify-ci",
+          "command": "npm run verify",
+          "environment": "GitHub Actions ubuntu-latest, Node.js 22"
+        }
+      ]
     },
     "nativeChromeGui": {
       "status": "NOT_TESTED",
@@ -611,12 +665,30 @@
       "hostImplementation": "src/platform/chrome/context-menus.js",
       "sdkEntry": "src/framework/sdk/browser.js",
       "positiveTest": {
-        "status": "NOT_TESTED",
-        "evidence": []
+        "status": "PASS",
+        "evidence": [
+          {
+            "path": "docs/framework/evidence/browser-sdk-r5/r5-ci-90239cd4.json",
+            "sha256": "191ba9eed5696ec6a44e61bdb0641dfeb5bf1182967527ce9252786188927b16",
+            "candidateSha": "90239cd4d2145f8055aa847854d252f3c93dae4a",
+            "caseId": "browser.tabs.getOwned-positive",
+            "command": "node --test --test-reporter=spec tests/environment/browser-sdk-r2-host.test.mjs tests/environment/browser-tabs-host.test.mjs",
+            "environment": "GitHub Actions ubuntu-latest, Node.js 22"
+          }
+        ]
       },
       "denialTest": {
-        "status": "NOT_TESTED",
-        "evidence": []
+        "status": "PASS",
+        "evidence": [
+          {
+            "path": "docs/framework/evidence/browser-sdk-r5/r5-ci-90239cd4.json",
+            "sha256": "191ba9eed5696ec6a44e61bdb0641dfeb5bf1182967527ce9252786188927b16",
+            "candidateSha": "90239cd4d2145f8055aa847854d252f3c93dae4a",
+            "caseId": "browser.tabs.getOwned-denial",
+            "command": "node --test --test-reporter=spec tests/environment/browser-sdk-r2-host.test.mjs tests/environment/browser-tabs-host.test.mjs",
+            "environment": "GitHub Actions ubuntu-latest, Node.js 22"
+          }
+        ]
       },
       "nativeChrome": {
         "status": "NOT_TESTED",
@@ -624,10 +696,13 @@
       },
       "callableNowVerification": "NOT_TESTED",
       "blockers": [
-        "R5 source-wired; native installed Mac Chrome acceptance still NOT_TESTED"
+        "Node Host positive/denial PASS in CI 90239cd4d2145f8055aa847854d252f3c93dae4a",
+        "Mac Chrome installed tool click, navigation and Worker restart NOT_TESTED"
       ],
       "nextTask": "Test one-use close, foreign/stale tabs, permission revocation and Worker restart in real Chrome",
-      "commits": [],
+      "commits": [
+        "90239cd4d2145f8055aa847854d252f3c93dae4a"
+      ],
       "evidence": []
     },
     {
@@ -655,12 +730,30 @@
       "hostImplementation": "src/platform/chrome/context-menus.js",
       "sdkEntry": "src/framework/sdk/browser.js",
       "positiveTest": {
-        "status": "NOT_TESTED",
-        "evidence": []
+        "status": "PASS",
+        "evidence": [
+          {
+            "path": "docs/framework/evidence/browser-sdk-r5/r5-ci-90239cd4.json",
+            "sha256": "191ba9eed5696ec6a44e61bdb0641dfeb5bf1182967527ce9252786188927b16",
+            "candidateSha": "90239cd4d2145f8055aa847854d252f3c93dae4a",
+            "caseId": "browser.tabs.listOwned-positive",
+            "command": "node --test --test-reporter=spec tests/environment/browser-sdk-r2-host.test.mjs tests/environment/browser-tabs-host.test.mjs",
+            "environment": "GitHub Actions ubuntu-latest, Node.js 22"
+          }
+        ]
       },
       "denialTest": {
-        "status": "NOT_TESTED",
-        "evidence": []
+        "status": "PASS",
+        "evidence": [
+          {
+            "path": "docs/framework/evidence/browser-sdk-r5/r5-ci-90239cd4.json",
+            "sha256": "191ba9eed5696ec6a44e61bdb0641dfeb5bf1182967527ce9252786188927b16",
+            "candidateSha": "90239cd4d2145f8055aa847854d252f3c93dae4a",
+            "caseId": "browser.tabs.listOwned-denial",
+            "command": "node --test --test-reporter=spec tests/environment/browser-sdk-r2-host.test.mjs tests/environment/browser-tabs-host.test.mjs",
+            "environment": "GitHub Actions ubuntu-latest, Node.js 22"
+          }
+        ]
       },
       "nativeChrome": {
         "status": "NOT_TESTED",
@@ -668,10 +761,13 @@
       },
       "callableNowVerification": "NOT_TESTED",
       "blockers": [
-        "R5 source-wired; native installed Mac Chrome acceptance still NOT_TESTED"
+        "Node Host positive/denial PASS in CI 90239cd4d2145f8055aa847854d252f3c93dae4a",
+        "Mac Chrome installed tool click, navigation and Worker restart NOT_TESTED"
       ],
       "nextTask": "Test one-use close, foreign/stale tabs, permission revocation and Worker restart in real Chrome",
-      "commits": [],
+      "commits": [
+        "90239cd4d2145f8055aa847854d252f3c93dae4a"
+      ],
       "evidence": []
     },
     {
@@ -699,12 +795,30 @@
       "hostImplementation": "src/platform/chrome/context-menus.js",
       "sdkEntry": "src/framework/sdk/browser.js",
       "positiveTest": {
-        "status": "NOT_TESTED",
-        "evidence": []
+        "status": "PASS",
+        "evidence": [
+          {
+            "path": "docs/framework/evidence/browser-sdk-r5/r5-ci-90239cd4.json",
+            "sha256": "191ba9eed5696ec6a44e61bdb0641dfeb5bf1182967527ce9252786188927b16",
+            "candidateSha": "90239cd4d2145f8055aa847854d252f3c93dae4a",
+            "caseId": "browser.tabs.closeOwned-positive",
+            "command": "node --test --test-reporter=spec tests/environment/browser-sdk-r2-host.test.mjs tests/environment/browser-tabs-host.test.mjs",
+            "environment": "GitHub Actions ubuntu-latest, Node.js 22"
+          }
+        ]
       },
       "denialTest": {
-        "status": "NOT_TESTED",
-        "evidence": []
+        "status": "PASS",
+        "evidence": [
+          {
+            "path": "docs/framework/evidence/browser-sdk-r5/r5-ci-90239cd4.json",
+            "sha256": "191ba9eed5696ec6a44e61bdb0641dfeb5bf1182967527ce9252786188927b16",
+            "candidateSha": "90239cd4d2145f8055aa847854d252f3c93dae4a",
+            "caseId": "browser.tabs.closeOwned-denial",
+            "command": "node --test --test-reporter=spec tests/environment/browser-sdk-r2-host.test.mjs tests/environment/browser-tabs-host.test.mjs",
+            "environment": "GitHub Actions ubuntu-latest, Node.js 22"
+          }
+        ]
       },
       "nativeChrome": {
         "status": "NOT_TESTED",
@@ -712,10 +826,13 @@
       },
       "callableNowVerification": "NOT_TESTED",
       "blockers": [
-        "R5 source-wired; native installed Mac Chrome acceptance still NOT_TESTED"
+        "Node Host positive/denial PASS in CI 90239cd4d2145f8055aa847854d252f3c93dae4a",
+        "Mac Chrome installed tool click, navigation and Worker restart NOT_TESTED"
       ],
       "nextTask": "Test one-use close, foreign/stale tabs, permission revocation and Worker restart in real Chrome",
-      "commits": [],
+      "commits": [
+        "90239cd4d2145f8055aa847854d252f3c93dae4a"
+      ],
       "evidence": []
     },
     {
@@ -1567,6 +1684,16 @@
     ],
     "initialCandidateCount": 114,
     "remainingCandidateCount": 111,
-    "nativeChromePassed": 0
+    "nativeChromePassed": 0,
+    "ci": {
+      "status": "PASS",
+      "candidateSha": "90239cd4d2145f8055aa847854d252f3c93dae4a",
+      "runUrl": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38269129236",
+      "evidencePath": "docs/framework/evidence/browser-sdk-r5/r5-ci-90239cd4.json",
+      "sha256": "191ba9eed5696ec6a44e61bdb0641dfeb5bf1182967527ce9252786188927b16",
+      "nodeHost": "PASS",
+      "build": "PASS",
+      "nativeMacChrome": "NOT_TESTED"
+    }
   }
 }
