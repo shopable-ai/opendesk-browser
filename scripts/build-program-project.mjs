@@ -14,7 +14,7 @@ import {buildAssetRecords} from './program-assets.mjs';
 import {prepareRemoteModules,remoteURL,REMOTE_LOCK_FILE,REMOTE_CACHE_DIR} from './remote-esm-modules.mjs';
 import {snapshotFileSystem,safeRead} from '../native-agent/local-dev/snapshot.mjs';
 import {parseUserScriptDependencies,assertUserScriptExecutable} from '../src/scripting/user-scripts/dependency-metadata.js';
-import {compileLockedPageSource,pageSelectedPackagedLibrary} from '../src/scripting/user-scripts/execution-source.js';
+import {compileLockedPageSource,pageSelectedPackagedLibraries} from '../src/scripting/user-scripts/execution-source.js';
 import {createTaskPackage} from '../src/platform/tasks/contract.js';
 import {PAGE_FRAMEWORK_IMPORTS,PAGE_FRAMEWORK_RUNTIMES} from '../src/libs/page-frameworks/contract.js';
 import {createPageComponentEntry,COMPONENT_ENTRY_FILE} from './page-component-entry.mjs';
@@ -224,6 +224,7 @@ export function pageHeader(pkg,project){
     '// @run-at '+runAt[rules.runAt],
     ...(!rules.allFrames?['// @noframes']:[]),
     ...(project.framework?['// @opendesk-lib '+project.framework]:[]),
+    ...(project.libraries||[]).map(id=>'// @opendesk-lib '+id),
     '// ==/UserScript==',''].join('\n');
 }
 
@@ -416,11 +417,13 @@ export async function buildProgramProject(input,{outputDirectory,mode='productio
       // Source-only authoring can validate the directive without loading the
       // privileged extension's pinned React/Vue bytes in the Node bundler.
       // The real Page evaluator must separately fetch and hash those bytes.
-      const selected=pageSelectedPackagedLibrary(sourceUtf8);
-      ensure(selected===(project.framework||null),'E_PROJECT_FRAMEWORK',
-        'Compiled framework metadata does not match the approved Page project',
-        {project:projectLabel,phase:'build',location:'package.json#opendesk.framework'});
-      if(!selected)await compileLockedPageSource({sourceUtf8,entryFormat:'async-main',entries:[]});
+      const selected=pageSelectedPackagedLibraries(sourceUtf8);
+      const declared=[...(project.framework?[project.framework]:[]),...(project.libraries||[])];
+      const unique=[...new Set(declared)];
+      ensure(JSON.stringify(selected)===JSON.stringify(unique),'E_PROJECT_LIBRARIES',
+        'Compiled preinstalled library metadata does not match the approved Page project',
+        {project:projectLabel,phase:'build',location:'package.json#opendesk.libraries'});
+      if(!selected.length)await compileLockedPageSource({sourceUtf8,entryFormat:'async-main',entries:[]});
     }
     const after=await validateProgramProject(root,{readProjectFile});
     ensure(JSON.stringify(before)===JSON.stringify(after),'E_PROJECT_CHANGED',

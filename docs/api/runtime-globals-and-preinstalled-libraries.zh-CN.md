@@ -111,7 +111,7 @@ node scripts/build-sidebar-tool.mjs examples/sidebar-tools/runtime-globals-demo
 
 用户在 Page USER_SCRIPT 源码的前导注释或正式元数据头中，可以最多写六行 `// @opendesk-lib <id>`。例如 React、Axios、query-string 可组合使用，重复的相同 ID 不会重复读入；React 和 Vue 同时声明、未知 ID、与 `@require` 混用均拒绝。声明顺序决定独立固定资源的执行顺序，默认 `_` / `dayjs` 不受影响，`main()` 仍是零参数。
 
-按需载入不修改网站 MAIN、SW 或任何 Chrome 权限。组合后的 Chrome USER_SCRIPT 编译文本上限 512 KiB，新回执逐库保存 ID/SHA 供安装和升级核对。完整双库源码和手工路径见 [Page Axios + query-string](../../examples/programs/single-file/page-axios-query-string.README.md)；可见 React UI 需要既有受管 ShadowRoot 生命周期，不能仅靠声明就声称 React UI 已安装并可卸载。
+按需载入不修改网站 MAIN、SW 或任何 Chrome 权限。组合后的 Chrome USER_SCRIPT 编译文本上限 512 KiB，新回执逐库保存 ID/SHA 供安装和升级核对。完整双库源码见 [Page Axios + query-string](../../examples/programs/single-file/page-axios-query-string.README.md)，可见三库组件示例见 [React + Axios + query-string](../../examples/programs/page-ui-react-axios-query/README.md)（项目 JSON 可用 `opendesk.libraries` 声明真实固定依赖）；可见 React UI 需要既有受管 ShadowRoot 生命周期，不能仅靠声明就声称 React UI 已安装并可卸载。
 
 ## 3. 可选 Page 库如何直接使用
 

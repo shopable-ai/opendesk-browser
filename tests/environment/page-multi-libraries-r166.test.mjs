@@ -9,6 +9,8 @@ import {PAGE_FRAMEWORK_RUNTIMES} from '../../src/libs/page-frameworks/contract.j
 import {pageSelectedPackagedLibraries,compileLockedPageSource,PAGE_COMPILED_SOURCE_LIMIT}
   from '../../src/scripting/user-scripts/execution-source.js';
 import {fakeBuiltinSource} from './builtin-support.mjs';
+import {validateProgramProject} from '../../scripts/validate-program-project.mjs';
+import {buildProgramProjectInMemory} from '../../scripts/build-program-project.mjs';
 globalThis.crypto ||= webcrypto;
 const sha=s=>createHash('sha256').update(s).digest('hex');
 const source='// @opendesk-lib axios\n// @opendesk-lib query-string\nasync function main(){return axios(queryString.parse("id=42").id)}';
@@ -57,4 +59,19 @@ test('React+Axios+query-string link real pinned React/ReactDOM exactly once',asy
   assert.equal(compiled.js[0].code.split(code).length,2,'React/ReactDOM must occur only once');
   assert(compiled.js[0].code.indexOf(code)<compiled.js[0].code.indexOf(axCode));
   assert(Buffer.byteLength(compiled.js[0].code)<=PAGE_COMPILED_SOURCE_LIMIT);
+});
+
+// Project JSON is the author's long-lived declaration; the Webpack output
+// must preserve it as executable Page metadata without user-added @require.
+test('multi-file managed React demo emits framework plus optional library IDs',async()=>{
+  const root='examples/programs/page-ui-react-axios-query';
+  const checked=await validateProgramProject(root);
+  assert.equal(checked.framework,'react');
+  assert.deepEqual(checked.libraries,['axios','query-string']);
+  const built=await buildProgramProjectInMemory(root,{mode:'production'});
+  assert.deepEqual([...pageSelectedPackagedLibraries(built.sourceUtf8)],['react','axios','query-string']);
+  assert(built.sourceUtf8.includes('createRoot'));
+  assert(built.sourceUtf8.includes('queryString.parse'));
+  assert(built.sourceUtf8.includes('axios.get'));
+  assert(built.sourceBytes<128*1024);
 });

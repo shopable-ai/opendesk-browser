@@ -27,7 +27,7 @@ Page USER_SCRIPT 用 `document` + 默认 `_` / `dayjs`，没有 Controller `page
 
 读取器为组合共享一次本地 manifest，并对每个选中的本地资源校验固定 SHA/ABI。编译结果整体不能超过 512 KiB；超限直接 `E_PAGE_SOURCE_LIMIT`，不能通过增加浏览器权限或加载运行时 CDN 解决。新安装验收回执绑定每项 ID/SHA，历史单库回执不会自动批准多库更新。
 
-真实双库演示：[Axios + query-string](../../examples/programs/single-file/page-axios-query-string.README.md)。React 的固定资源包含 ReactDOM，只加载一份；**可见 React UI 仍须使用已有受管挂载/Stop 系统**。本次新增源码和 Node 回归并不能替代新候选的 Chrome 原生结果。
+双库单文件：[Axios + query-string](../../examples/programs/single-file/page-axios-query-string.README.md)；受管三库 React UI：[React + Axios + query-string](../../examples/programs/page-ui-react-axios-query/README.md)。React 的固定资源包含 ReactDOM，只加载一份；**可见 React UI 仍须使用已有受管挂载/Stop 系统**。本次新增源码和 Node 回归并不能替代新候选的 Chrome 原生结果。
 
 ## 1. 当前真实目录及库状态
 
