@@ -1472,6 +1472,48 @@ test('cloud stop fences its current grant without rewriting prior or foreign ass
   assert.deepEqual(repeated.find(row=>row.requestId===prior.requestId),prior);
   assert.deepEqual(repeated.find(row=>row.requestId===foreign.requestId),foreign);
 });
+test('expired unstarted cloud assignment is retired once before a fresh provider claim',async t=>{
+  const f=await cloudTaskFixture();let claims=0;
+  await f.storage.transaction(['frameworkKV'],'readwrite',async tx=>{
+    const row=await tx.get('frameworkKV','cloud:request:'+f.requestId);
+    row.assignment.leaseUntil=Date.now()-1000;
+    await tx.put('frameworkKV',row,'cloud:request:'+f.requestId);
+  });
+  f.cloud.connection('authenticated');f.cloud.setReconciled(true);
+  t.mock.method(globalThis,'fetch',async url=>{
+    assert.match(url,/\/v1\/claim$/);claims++;
+    return new Response(JSON.stringify({assignment:null}));
+  });
+  assert.equal(await f.cloud.cloudNext({},f.sender),null);
+  assert.equal(claims,1,'expired waiting request must not block the next claim');
+  const original=(await f.rows('frameworkKV')).find(r=>r.requestId===f.requestId);
+  assert.equal(original.state,'cancelled');assert.equal(original.reason,'E_LEASE');
+  assert.equal(original.runId,undefined);
+  assert.equal(f.calls.filter(x=>x.method==='create').length,0);
+  assert.equal(await f.cloud.cloudNext({},f.sender),null);
+  assert.equal(claims,2,'the old assignment cannot be returned as a new execution');
+  assert.equal((await f.rows('frameworkKV')).find(r=>r.requestId===f.requestId).reason,'E_LEASE');
+});
+
+test('stopping and reapproving a Cloud grant invalidates its old claim ID',async()=>{
+  const f=await cloudTaskFixture();
+  await f.storage.transaction(['frameworkKV'],'readwrite',async tx=>{
+    const config=await tx.get('frameworkKV','cloud:config');
+    config.claimId='claim-from-old-grant';
+    await tx.put('frameworkKV',config,'cloud:config');
+  });
+  await f.cloud.cloudStop({},f.sender);
+  const stopped=(await f.rows('frameworkKV')).find(r=>r.grantId==='grant'&&r.providerId==='provider'&&Array.isArray(r.tasks));
+  assert.equal(stopped.enabled,false);assert.equal(stopped.claimId,null);
+  await f.cloud.cloudApprove({tasks:[{taskId:f.resolved.taskId,resultAllowed:true}]},f.sender);
+  const nextConfig=(await f.rows('frameworkKV')).find(r=>r?.providerId==='provider'&&Array.isArray(r.tasks));
+  assert.equal(nextConfig.claimId,null);
+  assert.notEqual(nextConfig.grantId,'grant');
+  assert.equal(nextConfig.enabled,true);
+  const oldRow=(await f.rows('frameworkKV')).find(r=>r.requestId===f.requestId);
+  assert.equal(oldRow.state,'cancelled');
+  assert.equal(oldRow.grantId,'grant');
+});
 test('cloud revocation, unknown recovery and install generation cannot restore execution',async t=>{
   const f=await cloudTaskFixture();t.mock.method(globalThis,'fetch',async(url,options)=>{const b=JSON.parse(options.body);return new Response(JSON.stringify({permitId:'permit',providerId:'provider',assignmentId:'assignment',runRef:b.runRef,leaseUntil:Date.now()+90000}));});
   const run=await f.authority.startControllerRun(f.request,f.sender);await f.cloud.cloudStop({},f.sender);
