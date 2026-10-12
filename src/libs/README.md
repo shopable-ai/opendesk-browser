@@ -50,7 +50,7 @@ src/libs/
     cheerio.js                 R16.1 已接线，真实 Cheerio 1.2.0 的 browser slim（待验收）
     fingerprintjs.js           R16.3 已接线，真实 FP v5.3.0，强制关闭 npm monitoring（待验收）
   adapters/
-    axios-transport.js         已实现纯协议组件；还没有与 Controller 的真实 Axios/取消传播接通
+    axios-transport.js         已连接 Controller 的真实 Axios 与 Broker；逐请求取消/二进制仍不支持
   page-frameworks/
     contract.js / loader.js    并行已完成 Page 可选静态资源及哈希
     react-19.2.0.js            已有，包含 React + ReactDOM createRoot
@@ -104,7 +104,7 @@ async function main() {
 }
 ```
 
-这是网页环境的真实 Axios，受实际同源/CORS/CSP 与网页网络策略约束，不会自动升级成扩展跨站权限。 发布包保留严格的动态反射扫描器；官方 Axios 在浏览器环境没有 Node Buffer，构建只将 v1.20.0 原样包的 Node Buffer 反射降为 false，并将 AxiosHeaders 的 `this.constructor` 动态判断改为准确的 `AxiosHeaders` 实例判断。任何上游源码模式变化均立即阻断 WXT 构建，不放宽 CSP。Controller 当前依然使用受授权的 `axiosx`；`axios-transport.js` 尚未接入 RunHost 的真实 Axios，且单请求取消未实现。
+这是网页环境的真实 Axios，受实际同源/CORS/CSP 与网页网络策略约束，不会自动升级成扩展跨站权限。 发布包保留严格的动态反射扫描器；官方 Axios 在浏览器环境没有 Node Buffer，构建只将 v1.20.0 原样包的 Node Buffer 反射降为 false，并将 AxiosHeaders 的 `this.constructor` 动态判断改为准确的 `AxiosHeaders` 实例判断。任何上游源码模式变化均立即阻断 WXT 构建，不放宽 CSP。Controller 仍保留受授权的 `axiosx`；显式 `@opendesk-lib axios` 已通过适配器连接真实 Axios 及受控 Broker；逐请求取消/二进制尚未实现。
 
 store.js 使用真实上游 `store@2.0.12`，只在 Page USER_SCRIPT 显式声明：
 

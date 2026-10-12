@@ -7,6 +7,7 @@ import {BUILTIN_ABI} from '../../src/libs/runtime-contract.js';
 const base=globalThis.__pageContentFixtureBase,expectedChars=globalThis.__pageContentExpectedChars;
 const networkOrigin=globalThis.__pageContentNetworkOrigin;
 const pageProof=globalThis.__pageContentPageProof===true;
+const publicExamples=globalThis.__pageContentExamples;
 const cases=[];globalThis.__pageContentNativeReport={state:'running',cases};
 const client=createHostClient(chrome),host=createRunHost({client});
 const assert=(yes,message)=>{if(!yes)throw new Error(message);};
@@ -127,6 +128,25 @@ async function check(name,fn){try{cases.push({name,ok:true,value:await fn()});}
         'Controller builtin globals absent in real opaque Worker '+JSON.stringify(value));
       return {...value,runId:result.runId,resultId:result.resultId};
     });
+    // Run the exact user demo bytes, including one ESM program produced by
+    // the normal Webpack authoring compiler and one Side Panel single file.
+    for(const key of ['controllerSingle','controllerESM']){
+      await check('controller-user-example-'+key+'-native',async()=>{
+        const fixture=publicExamples?.[key];
+        assert(typeof fixture?.code==='string'&&/^[a-f0-9]{64}$/.test(fixture.sha256),
+          'Missing frozen Controller example source');
+        const result=await run(fixture.code,target);
+        assert(result.outcome?.ok===true,'Actual Controller example failed '+JSON.stringify(result.outcome?.error));
+        const value=decodeValue(result.outcome.valueWire);
+        assert(value.title==='Native HTML content'&&value.url===base+'/large'&&
+          value.words?.join(' ')==='Native HTML content'&&/^\d{4}-\d{2}-\d{2}$/.test(value.date),
+          'Original Controller zero-arg example returned wrong data '+JSON.stringify(value));
+        if(key==='controllerSingle')assert(value.abi===BUILTIN_ABI,'Single-file ABI differs');
+        assert(typeof result.runId==='string'&&typeof result.resultId==='string',
+          'Real durable runId/resultId missing');
+        return {id:key,sourceHash:fixture.sha256,runId:result.runId,resultId:result.resultId,value};
+      });
+    }
     await check('controller-denies-undeclared-cross-origin',async()=>{
       const source="async function main(){await axiosx.get("+JSON.stringify(networkOrigin+'/api/get?source=blocked')+");}";
       const result=await run(source,target);
@@ -267,9 +287,33 @@ async function check(name,fn){try{cases.push({name,ok:true,value:await fn()});}
         assert(result?.state==='preview-evaluated'&&result.world==='USER_SCRIPT'&&
           result.documentId===optionalTarget.documentId,'Optional Page receipt mismatch '+JSON.stringify(result));
         return {value:JSON.parse(result.resultText),world:result.world,
+          sourceHash:result.sourceHash,documentId:result.documentId,
           optionalSha256:result.packagedOptionalSha256??null,
           ...(result.packagedOptionals?{packagedOptionals:result.packagedOptionals}: {})};
       };
+      // Real Chrome USER_SCRIPT, running EXACT original user-facing single-file
+      // and compiled multi-file Page examples, with document-bound native ack.
+      for(const key of ['pageSingle','pageESM']){
+        await check('page-user-example-'+key+'-native',async()=>{
+          await refreshOptionalDocument(); // Avoid per-document preview cap.
+          const fixture=publicExamples?.[key];
+          assert(typeof fixture?.code==='string'&&/^[a-f0-9]{64}$/.test(fixture.sha256),
+            'Missing frozen Page example source');
+          const result=await previewOptional(fixture.code);
+          assert(result.sourceHash===fixture.sha256&&result.documentId===optionalTarget.documentId,
+            'Native Page source/document identity differs from actual example');
+          assert(result.value?.title==='Native HTML content'&&
+            result.value.words?.join(' ')==='Native HTML content'&&
+            /^\d{4}-\d{2}-\d{2}$/.test(result.value.date),
+            'Original Page zero-arg example returned wrong data '+JSON.stringify(result));
+          if(key==='pageSingle')assert(result.value.url===base+'/large',
+            'Page single-file location differs');
+          if(key==='pageESM')assert(result.value.heading===null,
+            'Page ESM heading should be absent in the controlled fixture');
+          return {id:key,sourceHash:fixture.sha256,world:result.world,
+            documentId:result.documentId,value:result.value};
+        });
+      }
       await check('page-user-script-crypto-js-sha256-upstream',async()=>{
         const result=await previewOptional('// @opendesk-lib crypto-js\nasync function main(){return CryptoJS.SHA256("abc").toString(CryptoJS.enc.Hex)}');
         assert(result.value==='ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad',
@@ -372,6 +416,6 @@ async function check(name,fn){try{cases.push({name,ok:true,value:await fn()});}
       });
     }
   }finally{await chrome.tabs.remove(tab.id);host.dispose();client.dispose();}
-  globalThis.__pageContentNativeReport={state:'finished',cases,passed:cases.length===(pageProof?21:12)&&cases.every(row=>row.ok)};
+  globalThis.__pageContentNativeReport={state:'finished',cases,passed:cases.length===(pageProof?25:14)&&cases.every(row=>row.ok)};
 })().catch(e=>{host.dispose();client.dispose();globalThis.__pageContentNativeReport={state:'finished',cases,passed:false,
   fatal:{code:e.code,message:e.message,stack:e.stack?.slice(0,1000)}};});

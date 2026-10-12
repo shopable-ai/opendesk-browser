@@ -5,7 +5,7 @@
 - [Controller 全局变量零参数 Demo](controller-globals-zero-arg/README.md)：`export default async function main()`，直接读取 `page.title()/page.url()`、`_.words()`、`dayjs()`，无需给用户 main 传递对象。
 - [Page USER_SCRIPT 全局变量零参数 Demo](page-globals-zero-arg/README.md)：无参数 ESM `main()`、`document`、`_`、`dayjs`；不允许误用 Controller `page`。两者的 Node 回归统一见 `tests/environment/runtime-globals-zero-arg.test.mjs`，真实 Mac Chrome 验收另行绑定。
 
-单文件 Page 开发入口也已提供 [`async function main()` 零参数脚本](single-file/page-globals-zero-arg.js)；Background、可信宿主和普通工具的对照见 [固定静态导入与工具桥 Demo](../libs/trusted-imports/README.zh-CN.md)。单文件脚本不能使用 `export default`。
+单文件 Controller 的完整默认库实例见 [`controller-globals-zero-arg.js`](single-file/controller-globals-zero-arg.js)，可直接粘贴到 Side Panel「开发」→「运行草稿」；单文件 Page 开发入口见 [`async function main()` 零参数脚本](single-file/page-globals-zero-arg.js)；Background、可信宿主和普通工具的对照见 [固定静态导入与工具桥 Demo](../libs/trusted-imports/README.zh-CN.md)。单文件脚本不能使用 `export default`。
 
 这两项专门纠正旧多文件样例的 `main({page})` 误导，并保留旧入口 ABI，**不改写已有 R2.2 Golden 源码与历史回执**。完整各执行环境区别见 [零参数预装运行合同](../../docs/api/runtime-globals-and-preinstalled-libraries.zh-CN.md)。
 
