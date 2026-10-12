@@ -12,7 +12,7 @@
 ## 证据分级与限制
 
 - `BUILDER_PASS`：[R24.3 导入草稿原构建/校验](https://github.com/shopable-ai/opendesk-browser/actions/runs/38210525378) success；固定 React 资源复用，没有将框架打入用户源码；产物小于 100000 bytes Page 预算。
-- `NODE_PASS`：[同步后的项目合同 CI](https://github.com/shopable-ai/opendesk-browser/actions/runs/38210703095) success。该候选已验证当前 JSON 与原 builder 源码身份一致；新增跨站 matcher 单测需核对修复后 `npm test` 的最新日志。
+- `NODE_PASS`：[同步后的项目合同 CI](https://github.com/shopable-ai/opendesk-browser/actions/runs/38210703095) success，验证当前 JSON 与原 builder 源码身份一致；[修复后环境 CI](https://github.com/shopable-ai/opendesk-browser/actions/runs/38210836743) 的完整 `npm test` 日志中本专项 `React direct uses the existing floating host on unrelated HTTP(S) documents` 为 `ok 662`。完整环境 suite 仍 FAIL（另有导航驱动、组件 linker 测试与并行 TOC 示例测试失败），不可用局部 PASS 代表全仓库 PASS。
 - `NATIVE_PASS_LIMITED`：[真实 Mac CFT / Native / USER_SCRIPT](https://github.com/shopable-ai/opendesk-browser/actions/runs/38210525215) success，绑定源码提交 `700a8e9f127b1dcb418c5d90bcaa55d3dc88545c`，证明挂载、真实点击与受管 Stop（该源码之后未再修改）。此测试使用同一 localhost 实验网页，不等于已跨两个站点获得真实授权运行证据。
 - `NOT_TESTED`：在两种不同实际 HTTP(S) origin 上，分别验证 Chrome 网站许可、Run/Stop、文档身份、悬浮定位、SPA/BFCache、权限撤回、窄屏/200% 缩放/暗色。未经这些证据不宣布最终 95+ 或全网必然可注入。正式安装和自动运行依然要求收紧匹配与明确授权。
 - 其他工作流同时写 main；CI 旧候选报错须区分原因。初次 `npm test` 中本工作流误用 `checked.framework` 的断言已修复；另有 TOC 示例自身测试失败及 LocalDev managed UI 的 `preview-pending` 竞态，未经归因不把它归为本次跨站代码已关闭的缺陷，也不覆盖其他负责人文件。
