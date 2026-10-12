@@ -1392,6 +1392,16 @@ test('observer projection is fixed-namespace, paged and excludes all executable 
   await assert.rejects(f.cloud.cloudObserve({limit:51}),code('E_SCHEMA'));
   await assert.rejects(f.cloud.cloudObserve({namespace:'foreign'}),code('E_SCHEMA'));
 });
+test('cloudResolve uses a durable direct request key and rejects non-cloud identifiers',async()=>{
+  const f=await cloudTaskFixture();
+  const native=f.storage.transaction.bind(f.storage);
+  f.storage.transaction=(names,mode,callback)=>native(names,mode,tx=>callback({
+    ...tx,all:store=>{if(store==='frameworkKV')throw Error('Unbounded Cloud KV scan');return tx.all(store);}
+  }));
+  const direct=await f.cloud.cloudResolve({requestId:f.requestId},f.sender);
+  assert.equal(direct.cloudRequestId,f.requestId);
+  await assert.rejects(f.cloud.cloudResolve({requestId:'foreign'},f.sender),code('E_SCHEMA'));
+});
 test('cloud binds original run and slot before permit; no target or worker before durable permission',async t=>{
   const f=await cloudTaskFixture();let called=0;
   t.mock.method(globalThis,'fetch',async(url,options)=>{
