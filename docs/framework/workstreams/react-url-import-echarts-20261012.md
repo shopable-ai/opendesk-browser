@@ -94,6 +94,16 @@ Linux CFT 155.0.8059.39 用独立 profile/包副本启动，尚未进入 DevTool
 初次提交后启动 `.github/workflows/react-url-import-cft.yml`：Linux CFT 155.0.8059.39、普通 Chrome sandbox、独立 profile 和副本、Xvfb headed UI。代理默认阻断外网；冻结 JSON 的 import/Save/Run/图表更新/resize/Stop/Verify/Install 全离线。可选 browser-source 场景只在可信“确认获取”时允许真实 raw.githubusercontent.com TLS 隧道，固定后关断，另验原批准锁、D3 可见结果与 Stop。
 
 本节当前状态：**CI_PENDING**。没有提前填写 previewId/documentId 或截图 PASS。实际结果将以追加记录保存，包括失败阶段，不能拿准备或 Node 测试替代绘图。
-首个源码提交：`384274bd25c83120660af5a47ed3508541937f12`。提交准备中发现原 `.gitignore` 忽略七份 `.log` 档案；后续提交显式纳入本任务证据目录的这些原日志，确保 manifest 引用完整，不删除或改写其内容。
+本地首个源码提交：`384274bd25c83120660af5a47ed3508541937f12`。提交准备中发现原 `.gitignore` 忽略七份 `.log` 档案；后续本地提交 `87b0a858a4963b023eed1d2db3f145ecb2f32dd4` 显式纳入本任务证据目录的这些原日志，确保 manifest 引用完整，不删除或改写其内容。
+
+### 实际 main 发布与首次 CI 阻断
+
+已发布主线提交：[`aa39ef7ed6a109d98787845346d79db3b92f027e`](https://github.com/shopable-ai/opendesk-browser/commit/aa39ef7ed6a109d98787845346d79db3b92f027e)，父提交 `e2b63ad19e2e1d79ccf4eaf9a37d72a9117da8aa`。
+Git CLI 写入缺少凭据，改用已有授权的 GitHub 连接逐一核验 356 个实际 Git blob，再创建与本地完全相同的树 `68b5118f93e0288505cbd1e03d2043bba537405d`，通过 `expected_sha` 和 `force:false` 更新 main。没有创建分支、Worktree 或 PR，没有强推或改写他人提交。连接器产生的提交元数据与本地不同，因此以实际远端 SHA 为发布身份；本地两次提交保留为过程记录，不能冒充远端提交。
+
+随后保留并快进整合 Cloud 的两个独立提交 `8877fd66`、`3b11c98f`，仅涉及其 workflow 与 `k3-controller-authority.test.mjs`，未与本任务文件重叠。
+
+首次 [Chrome workflow run 38246684752](https://github.com/shopable-ai/opendesk-browser/actions/runs/38246684752) 精确绑定 `aa39ef7e`，但在 workflow 解析阶段失败，jobs=0、artifacts=0，未启动 Chrome。GitHub 原 annotation：`(Line: 40, Col: 29): Unrecognized named-value: 'runner'. Located at position 1 within expression: runner.temp`。[原报告及日志身份](evidence/react-url-import-echarts-20261012/ci/38246684752/report.json)和同目录压缩的原 Actions HTML 保留此失败。
+针对这一已观察的失败，将 `OPENDESK_CFT_PROGRAM` 从 job-level env 移到离线构建及 Chrome 两个 step 的 env；不改产品、驱动、权限或验收断言。后续执行使用新提交及独立证据，不把原失败改写为 PASS。
 
 保留的明确边界：用户 Mac 未访问；正式 Go Host 分块和主动 MCP 大源码路径未完成；浏览器单文件仅小型 ESM 图；作者缓存按原持久规则保留，尚无明确删除/GC 入口；多版本/下载中 Stop/导航等全部真实异常组合、独立 F3/ZIP 仍需各自原生证据。Page 自包含执行源的版本/更新/卸载走原记录，并不等于清空作者原始缓存。

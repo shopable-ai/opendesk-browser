@@ -1,0 +1,30 @@
+{
+  "checkedAt": "2026-10-12T12:08:55.852Z",
+  "repository": "shopable-ai/opendesk-browser",
+  "commit": "aa39ef7ed6a109d98787845346d79db3b92f027e",
+  "tree": "68b5118f93e0288505cbd1e03d2043bba537405d",
+  "runId": 38246684752,
+  "runAttempt": 1,
+  "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38246684752",
+  "status": "WORKFLOW_VALIDATION_FAILED_BEFORE_JOB_START",
+  "githubConclusion": "failure",
+  "originalAnnotation": "(Line: 40, Col: 29): Unrecognized named-value: 'runner'. Located at position 1 within expression: runner.temp",
+  "annotationSource": "run.html",
+  "jobCount": 0,
+  "artifactCount": 0,
+  "chromeStarted": false,
+  "packageHash": null,
+  "sourceHash": null,
+  "previewId": null,
+  "documentId": null,
+  "evidenceBoundary": "No runner job, browser, package build or execution receipt was produced by this run. Previous local build evidence must not be presented as this run's Chrome result.",
+  "cause": "jobs.native-free-json-echarts.env.OPENDESK_CFT_PROGRAM references runner.temp where the runner context is unavailable.",
+  "primaryContract": "https://docs.github.com/en/actions/reference/workflows-and-actions/contexts#context-availability",
+  "minimalCorrection": "Move OPENDESK_CFT_PROGRAM env unchanged from job level into the offline program build step and the actual CFT step.",
+  "mutationsPerformed": [],
+  "rerunRequested": false,
+  "accessNotes": [
+    "The GitHub connector rejected check-suites/.../check-runs as an unsupported fetch endpoint.",
+    "The original public Actions HTML was retrieved by a read-only HTTPS GET."
+  ]
+}

@@ -1,0 +1,69 @@
+{
+  "origin": "read-only original GitHub Actions resources, aa39ef7ed6a109d98787845346d79db3b92f027e",
+  "rows": [
+    {
+      "source": "annotation.txt",
+      "file": "annotation.txt",
+      "rawBytes": 132,
+      "rawSha256": "5a420ba0224b332ec5024ff749b648ba45c2078706615c595020550bed8672a2",
+      "storedBytes": 132,
+      "storedSha256": "5a420ba0224b332ec5024ff749b648ba45c2078706615c595020550bed8672a2"
+    },
+    {
+      "source": "artifacts.json",
+      "file": "artifacts.json",
+      "rawBytes": 22,
+      "rawSha256": "fb09a9699b26ad536855bb4263ff01baa31a107d9af48b348e96cb4a9eb2b8d9",
+      "storedBytes": 22,
+      "storedSha256": "fb09a9699b26ad536855bb4263ff01baa31a107d9af48b348e96cb4a9eb2b8d9"
+    },
+    {
+      "source": "jobs.json",
+      "file": "jobs.json",
+      "rawBytes": 17,
+      "rawSha256": "2f527e61389013edcdf5461496d3d656066a912a9749aacf3dd51b3e1e906d10",
+      "storedBytes": 17,
+      "storedSha256": "2f527e61389013edcdf5461496d3d656066a912a9749aacf3dd51b3e1e906d10"
+    },
+    {
+      "source": "manifest.json",
+      "file": "manifest.json",
+      "rawBytes": 970,
+      "rawSha256": "66a2fd0f0b0e94a16717e359c7af861aacce06ca2fe699d9deb2b95207b67a2e",
+      "storedBytes": 970,
+      "storedSha256": "66a2fd0f0b0e94a16717e359c7af861aacce06ca2fe699d9deb2b95207b67a2e"
+    },
+    {
+      "source": "original-workflow.yml",
+      "file": "original-workflow.yml",
+      "rawBytes": 3515,
+      "rawSha256": "e6f57f14a1f8c837e455d4cdbbd6b8681844bfdd7ebeff2876a4b6000e463e62",
+      "storedBytes": 3515,
+      "storedSha256": "e6f57f14a1f8c837e455d4cdbbd6b8681844bfdd7ebeff2876a4b6000e463e62"
+    },
+    {
+      "source": "report.json",
+      "file": "report.json",
+      "rawBytes": 1592,
+      "rawSha256": "2994b8e81da3650f6279409e21e6ebbc9435ce1a4123cb7289e202683536b6ab",
+      "storedBytes": 1592,
+      "storedSha256": "2994b8e81da3650f6279409e21e6ebbc9435ce1a4123cb7289e202683536b6ab"
+    },
+    {
+      "source": "run-metadata.json",
+      "file": "run-metadata.json",
+      "rawBytes": 14039,
+      "rawSha256": "fec8da79ed28d2fe9585861fd67b651e424aff3a87a978f3c6ec0762db27a3e8",
+      "storedBytes": 14039,
+      "storedSha256": "fec8da79ed28d2fe9585861fd67b651e424aff3a87a978f3c6ec0762db27a3e8"
+    },
+    {
+      "source": "run.html",
+      "file": "run.html.gz",
+      "rawBytes": 190297,
+      "rawSha256": "01e560a0a13f9736eb9e49dbcef81d9802e7dded6416db7888a8b3a10c505420",
+      "storedBytes": 29905,
+      "storedSha256": "736b539bf035db7783a23f8dc881ea6f633727b1f98e618c5cf35773bf6dfd47"
+    }
+  ]
+}

@@ -36,8 +36,6 @@ jobs:
     # edits or Native installation is used by this acceptance job.
     runs-on: ubuntu-22.04
     timeout-minutes: 15
-    env:
-      OPENDESK_CFT_PROGRAM: ${{ runner.temp }}/opendesk-react-url-import-program
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -50,6 +48,8 @@ jobs:
         run: npm run build
       - name: Build original React TOC ECharts JSON from its frozen offline cache
         shell: bash
+        env:
+          OPENDESK_CFT_PROGRAM: ${{ runner.temp }}/opendesk-react-url-import-program
         run: |
           node --input-type=module <<'NODE'
           import {buildProgramProject} from './scripts/build-program-project.mjs';
@@ -72,6 +72,7 @@ jobs:
       - name: Real Chrome JSON, ECharts, Stop, install and browser source HTTPS preparation
         env:
           CHROME_FOR_TESTING_BIN: ${{ steps.chrome.outputs.chrome-path }}
+          OPENDESK_CFT_PROGRAM: ${{ runner.temp }}/opendesk-react-url-import-program
         run: |
           xvfb-run --auto-servernum node tests/framework/page-url-import-linux-cft.mjs \
             --package=dist/production \
