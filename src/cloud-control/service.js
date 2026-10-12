@@ -63,19 +63,23 @@ export function createCloudService({storage,api,clock={now:()=>Date.now()},asser
   // The namespace is fixed by the extension; callers cannot select tenants.
   async function cloudObserve(request={}){
     invariant(request&&typeof request==='object'&&!Array.isArray(request)&&
-      Object.keys(request).every(k=>['limit','offset'].includes(k))&&
+      Object.keys(request).every(k=>['limit','offset','state'].includes(k))&&
       (request.limit===undefined||Number.isSafeInteger(request.limit)&&request.limit>=1&&request.limit<=50)&&
       (request.offset===undefined||Number.isSafeInteger(request.offset)&&request.offset>=0&&request.offset<=1000000),'E_SCHEMA');
     const limit=request.limit??20,offset=request.offset??0;
     const allowed=new Set(['waiting','prepared','permitted','finished','cancelled','cancellation-pending','OUTCOME_UNKNOWN']);
+    invariant(request.state===undefined||request.state==='all'||allowed.has(request.state),
+      'E_SCHEMA','Unrecognized Cloud history filter');
     const allowedRuns=new Set(['preparing','running','stopping','settling','completed','failed','stopped','interrupted','paused_unknown']);
     return transaction('readonly',async tx=>{
       const config=await tx.get(KV,CONFIG),slot=await tx.get('runs','@slot');
       const namespace='tool:'+api.runtime.id;
-      const requests=(await tx.all(KV)).filter(r=>r?.tag==='cloud-request-v1'&&r.namespace===namespace);
+      const allRequests=(await tx.all(KV)).filter(r=>r?.tag==='cloud-request-v1'&&r.namespace===namespace);
       const states={waiting:0,prepared:0,permitted:0,finished:0,cancelled:0,
         'cancellation-pending':0,OUTCOME_UNKNOWN:0,other:0};
-      for(const r of requests)states[allowed.has(r.state)?r.state:'other']++;
+      for(const r of allRequests)states[allowed.has(r.state)?r.state:'other']++;
+      const requests=request.state&&request.state!=='all'
+        ?allRequests.filter(r=>r.state===request.state):allRequests;
       requests.sort((a,b)=>(b.createdAt??0)-(a.createdAt??0)||
         String(b.requestId).localeCompare(String(a.requestId)));
       const page=requests.slice(offset,offset+limit),rows=[];
@@ -90,7 +94,8 @@ export function createCloudService({storage,api,clock={now:()=>Date.now()},asser
       return {schema:'opendesk.cloud-control.observer.v1',paired:!!config,
         enabled:config?.enabled===true,connection:connectionState,
         online,reconciled,hostReady:null,slotAvailable:!slot?.currentRunId&&!slot?.preview,
-        approvedTasks:Math.min(config?.tasks?.length??0,32),requestTotal:requests.length,
+        approvedTasks:Math.min(config?.tasks?.length??0,32),requestTotal:allRequests.length,
+        matchingTotal:requests.length,filter:request.state??'all',
         states,rows,page:{offset,limit,nextOffset:offset+rows.length<requests.length?offset+rows.length:null}};
     },[KV,'runs']);
   }
