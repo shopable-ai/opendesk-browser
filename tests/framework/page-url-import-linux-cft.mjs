@@ -128,32 +128,21 @@ async function key(session,keyValue,code,keyCode,modifiers=0){
   for(const type of ['rawKeyDown','keyUp'])
     await session.call('Input.dispatchKeyEvent',{type,key:keyValue,code,windowsVirtualKeyCode:keyCode,modifiers});
 }
-let x11ZoomWindowId;
-function x11BrowserKey(chord){
-  // Target only this driver's headed Chrome on its private Xvfb display.
-  // Separate processes are intentional: key --window, or a search/key command
-  // chain with a window stack, uses XSendEvent instead of real XTest input.
-  assert(options.headed&&process.env.DISPLAY,'Native browser zoom needs headed X11 Chrome');
-  assert(['ctrl+plus','ctrl+0'].includes(chord),'Only actual browser zoom controls are allowed');
-  const run=args=>execFileSync('xdotool',args,{encoding:'utf8',timeout:5000}).trim();
-  if(!x11ZoomWindowId){
-    const windows=run(['search','--onlyvisible','--all','--pid',String(chrome.pid),'--class','[Cc]hrome'])
-      .split(/\s+/).filter(Boolean);
-    assert.equal(windows.length,1,'Native zoom begins with exactly one visible owned Chrome window');
-    x11ZoomWindowId=windows[0];
-  }
-  // Keep that original window if Chrome later opens its native zoom bubble.
-  const windowId=x11ZoomWindowId;
-  assert.equal(Number(run(['getwindowpid',windowId])),chrome.pid,'X11 window belongs to the launched Chrome PID');
-  run(['windowfocus','--sync',windowId]);
-  const focused=run(['getwindowfocus']);
-  assert.equal(focused,windowId,'The original Chrome window receives the native input');
-  assert.equal(Number(run(['getwindowpid',focused])),chrome.pid,'The focused native window belongs to this Chrome');
-  const identity={windowId,focused,pid:chrome.pid,title:run(['getwindowname',windowId]),
-    display:process.env.DISPLAY,chord,input:'XTest without a target window or window stack'};
-  record('native-browser-zoom-key',identity);
-  run(['key','--clearmodifiers',chord]);
-  return identity;
+async function setNativeTabZoom(sidebar,tabId,factor){
+  // Chrome's own tabs API changes the actual browser zoom and thus the site's
+  // CSS pixel viewport. This is not a CSS/DOM assignment or device emulation.
+  // X11 _NET_WM_PID is not reliable for Chrome's multi-process Xvfb window.
+  assert(Number.isInteger(tabId)&&tabId>=0,'Real Chrome tab identity required');
+  assert(Number.isFinite(factor)&&factor>=1&&factor<=2,'Restrict this acceptance to browser zoom 100%-200%');
+  const before=await sidebar.read('chrome.tabs.getZoom('+tabId+')');
+  await sidebar.read('chrome.tabs.setZoom('+tabId+','+factor+')');
+  const after=await until(async()=>{
+    const z=await sidebar.read('chrome.tabs.getZoom('+tabId+')');
+    return Math.abs(z-factor)<0.001?z:null;
+  },'Native Chrome tabs.setZoom changes the real tab zoom',5000);
+  const evidence={tabId,before,after,requested:factor,mechanism:'chrome.tabs.setZoom'};
+  record('native-chrome-tab-zoom',evidence);
+  return evidence;
 }
 async function typeReal(session,selector,value){
   const expr='document.querySelector('+JSON.stringify(selector)+')';
@@ -840,11 +829,11 @@ async function main(){
     let actual=await observe({operation:'Browser.setWindowBounds',requested:resizeEvidence.requestedBounds});
     // Chrome's native minimum window leaves a 402px website viewport with
     // Sidebar open, above the card's 332px breakpoint. That correctly keeps
-    // its 300px card unchanged. Use Chrome's real Zoom In accelerator until
+    // its 300px card unchanged. Use Chrome's real tab zoom API until
     // the actual container changes; never assign CSS or emulate a viewport.
     for(let step=0;step<3&&Math.abs((actual.chart?.container.width??0)-initialChart.container.width)<=5;step++){
-      await clickReal(website.session,'document.querySelector("main h1")');
-      const input=x11BrowserKey('ctrl+plus'),beforeZoom=actual.zoom,beforeWidth=actual.chart.viewport.width;
+      const beforeZoom=actual.zoom,beforeWidth=actual.chart.viewport.width;
+      const input=await setNativeTabZoom(sidebar,receipt.tabId,1.25+0.25*step);
       await until(async()=>await getZoom()>beforeZoom,'Native Chrome Zoom In changes the actual tab zoom',5000);
       await until(async()=>{
         const value=await chartSnapshot(website.session,host);
@@ -871,7 +860,7 @@ async function main(){
   }finally{
     if(await getZoom()!==originalZoom){
       await browser.call('Target.activateTarget',{targetId:website.id});
-      x11BrowserKey('ctrl+0');
+      await setNativeTabZoom(sidebar,receipt.tabId,originalZoom);
       await until(async()=>await getZoom()===originalZoom,'Original native Chrome zoom restored',5000);
     }
     await browser.call('Browser.setWindowBounds',{windowId:nativeWindow.windowId,bounds:{
@@ -886,7 +875,7 @@ async function main(){
       zoom:await getZoom(),chart:restored};
     write('echarts-resize-observations.json',resizeEvidence);
   }
-  report.tests.push({name:'real-Chrome-window-and-native-zoom-resize-existing-ECharts-SVG',status:'PASS',
+  report.tests.push({name:'real-Chrome-window-and-tab-zoom-resize-existing-ECharts-SVG',status:'PASS',
     ...report.preview,instanceId:initialChart.instanceId,
     windowBefore:originalBounds,windowAfter:resizedBounds,zoomBefore:originalZoom,zoomAfter:resizedZoom,
     containerBefore:initialChart.container,containerAfter:resizedChart.container,
