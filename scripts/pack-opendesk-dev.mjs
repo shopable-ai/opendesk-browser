@@ -17,7 +17,7 @@ const stage=args.length?path.resolve(args[1]):path.join(root,'.runtime','r17-dev
 const packageDir=path.join(root,'packages','opendesk-dev');
 const runtime=path.join(stage,'runtime');
 const sourceEntry='native-agent/local-dev/dev-cli.mjs';
-const supported=/\.(?:js|mjs|json|css|html)$/i;
+const supported=/\.(?:js|mjs|cjs|json|css|html)$/i;
 const visited=new Set();
 function inside(file){
   const relative=path.relative(root,file);
@@ -41,9 +41,9 @@ function copy(relative){
   const output=path.join(runtime,relative);
   fs.mkdirSync(path.dirname(output),{recursive:true});
   fs.copyFileSync(from,output);
-  if(!/\.(?:js|mjs)$/.test(relative))return;
+  if(!/\.(?:js|mjs|cjs)$/.test(relative))return;
   const text=fs.readFileSync(from,'utf8');
-  const ast=parse(text,{ecmaVersion:'latest',sourceType:'module'});
+  const ast=parse(text,{ecmaVersion:'latest',sourceType:relative.endsWith('.cjs')?'script':'module'});
   const links=[];
   const stack=[ast];
   while(stack.length){
@@ -51,7 +51,9 @@ function copy(relative){
     if(!node||typeof node!=='object')continue;
     const importSpecifier=node.type==='ImportDeclaration'||node.type==='ExportNamedDeclaration'||
       node.type==='ExportAllDeclaration'?node.source?.value:
-      node.type==='ImportExpression'&&node.source?.type==='Literal'?node.source.value:null;
+      node.type==='ImportExpression'&&node.source?.type==='Literal'?node.source.value:
+      node.type==='CallExpression'&&node.callee?.name==='require'&&
+      node.arguments?.length===1&&node.arguments[0]?.type==='Literal'?node.arguments[0].value:null;
     if(typeof importSpecifier==='string')links.push(importSpecifier);
     if(node.type==='NewExpression'&&node.callee?.name==='URL'&&node.arguments?.[0]?.type==='Literal'&&
       node.arguments[1]?.type==='MemberExpression'&&node.arguments[1].object?.type==='MetaProperty')
