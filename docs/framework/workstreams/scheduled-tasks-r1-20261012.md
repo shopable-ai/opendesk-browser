@@ -147,3 +147,11 @@ python3 -m http.server 43111 --bind 127.0.0.1 --directory examples/tasks
 - Native 读浏览器真实 IndexedDB 仅使用 `readonly` 事务用于身份与效果交叉核对，不直接注入 JS 执行任务、不伪造 FireId、Chrome 权限或 Native ACK。原始截图和结果即使失败也写入专属 artifact。
 
 **验收证据：当前状态 `SOURCE_PREPARED / NOT_TESTED`。** 必须等这一 SHA 在 `Scheduled Tasks R1 component and package` 和 `Scheduled Tasks R1 installed Task real macOS Chrome` 两条工作流产生真实 Job 结果后才可升级。Mac CI 通过仍是独立 CI CFT 环境，不能伪称用户 Mac Chrome Profile 的最终人工/正式 F3 验收。
+
+
+### R1.3 验收分层与 Linux CFT 预检
+
+- Chrome 原生驱动沿用**同一份** `tests/framework/scheduled-tasks-r1-native-mac.test.mjs`，根据 CI 平台只改变 Mac Command-A / Linux Ctrl-A 与 Linux `--headless=new` 的实际键盘、窗口环境，不改变 Task 导入、Native 操作、FireId/RunId/ResultId 和 Worker 释放的成功判据。
+- `.github/workflows/scheduled-tasks-r1-linux.yml` 在 Ubuntu 上构建真实 WXT package 并启动隔离 Chrome 155，提供更快的浏览器预检。它的成功只能记为 `LINUX_CHROME_NATIVE_VERIFIED`，**不能**当作 `MAC_CHROME_NATIVE_VERIFIED`。
+- 原 `.github/workflows/scheduled-tasks-r1-native.yml` 独立 macOS runner 仍按相同受控 DOM/结果证据执行。GitHub 任务在排队时状态是 `QUEUED / NOT_TESTED`，不替换为 PASS。
+- 每个原生场景必须由 UI 真实按钮、Chrome 原生输入和真实用户安装身份进入 RunHost；CDP Runtime.evaluate 仅用于观察 IndexedDB 的 readonly 投影，不可拿来调用启动方法、设置 DOM 值、授权网站或伪造 Native 回执。

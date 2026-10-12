@@ -1,0 +1,64 @@
+name: Scheduled Tasks R1 actual Linux Chrome preflight
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/scheduled-tasks-r1-linux.yml'
+      - 'tests/framework/scheduled-tasks-r1-native-mac.test.mjs'
+      - 'src/platform/tasks/schedule-*.js'
+      - 'src/platform/host/authority.js'
+      - 'src/platform/host/controller-methods.js'
+      - 'src/platform/host/broker.js'
+      - 'src/platform/host/client.js'
+      - 'src/run-host.js'
+      - 'src/sw.js'
+      - 'src/ui/scheduled-task-*.js'
+      - 'src/ui/task-workbench.js'
+      - 'src/ui/tool-shell.js'
+      - 'src/ui/tool-shell.css'
+      - 'src/ui/tool.html'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: scheduled-tasks-r1-linux-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  scheduled-cft-linux:
+    runs-on: ubuntu-latest
+    timeout-minutes: 14
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Build real production WXT package
+        run: npm run build
+      - name: Verify source package identity and immutable entries
+        run: node scripts/verify-package.mjs dist/production
+      - uses: browser-actions/setup-chrome@v2
+        id: chrome
+        with:
+          chrome-version: '155.0.8059.39'
+      - name: Real Linux CFT installed Controller schedule smoke
+        env:
+          OPENDESK_SCHEDULED_NATIVE: '1'
+          SCHEDULE_NATIVE_PLATFORM: linux
+          CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
+          SCHEDULE_NATIVE_OUT: artifacts/scheduled-tasks-r1-linux
+        run: node --test tests/framework/scheduled-tasks-r1-native-mac.test.mjs
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: scheduled-tasks-r1-linux-${{ github.sha }}
+          path: artifacts/scheduled-tasks-r1-linux/
+          if-no-files-found: warn
+          retention-days: 14

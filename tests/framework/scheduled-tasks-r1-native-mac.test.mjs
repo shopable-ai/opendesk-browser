@@ -15,6 +15,8 @@ import {connect,evaluate} from './sidebar-native-session.mjs';
 import {packageFingerprint} from '../../scripts/verify-package.mjs';
 
 const ENABLED=process.env.OPENDESK_SCHEDULED_NATIVE==='1';
+const EXPECTED_PLATFORM=process.env.SCHEDULE_NATIVE_PLATFORM||'darwin';
+const CONTROL_MODIFIER=process.platform==='darwin'?4:2;
 const BIN=process.env.CHROME_BIN;
 const OUT=path.resolve(process.env.SCHEDULE_NATIVE_OUT||'artifacts/scheduled-tasks-r1-mac');
 const EXT=path.resolve('dist/production');
@@ -52,7 +54,7 @@ async function key(client,session,name,code,keyCode,modifiers=0){
 async function type(client,session,selector,value){
   assert.equal(typeof value,'string');
   await click(client,session,selector);
-  await key(client,session,'a','KeyA',65,4); // macOS Command-A on the focused actual input
+  await key(client,session,'a','KeyA',65,CONTROL_MODIFIER); // Native Command-A (Mac) / Ctrl-A (Linux)
   if(value)await client.send('Input.insertText',{text:value},session);
   else await key(client,session,'Backspace','Backspace',8);
   await deadline(()=>evaluate(client,expr(selector)+'.value==='+JSON.stringify(value),session),
@@ -129,9 +131,9 @@ async function stopChrome(proc){
     proc.kill('SIGTERM');
   });
 }
-test('real macOS Chrome: verified installed Task via Alarms -> original RunHost -> page effect -> released',
+test('real installed Chrome: verified Task via Alarms -> original RunHost -> page effect -> released',
   {skip:!ENABLED,timeout:450000},async t=>{
-  assert.equal(process.platform,'darwin','Native Mac Chromium test cannot be simulated by Linux');
+  assert.equal(process.platform,EXPECTED_PLATFORM,'Use an explicit native platform for this isolated CFT test');
   assert(BIN&&path.isAbsolute(BIN)&&spawnSync(BIN,['--version'],{stdio:'ignore'}).status===0,
     'Pinned real Chrome for Testing required');
   await mkdir(OUT,{recursive:true});
@@ -143,7 +145,7 @@ test('real macOS Chrome: verified installed Task via Alarms -> original RunHost 
   const sourceFile=path.join(profile,'sample.form-fill.js');
   await writeFile(sourceFile,task.sourceUtf8);
   const report={status:'RUNNING',startedAt:new Date().toISOString(),gitSha:process.env.GITHUB_SHA||null,
-    chromeBinary:BIN,package:packageInfo,sourceHash,taskSourceHash:sha(task.sourceUtf8),
+    chromeBinary:BIN,platform:process.platform,package:packageInfo,sourceHash,taskSourceHash:sha(task.sourceUtf8),
     fixture:URL,native:true,steps:[],screenshots:[],tests:{},limitations:[]};
   const note=(name,result)=>{report.steps.push({name,at:new Date().toISOString(),result});console.log('SCHEDULE_NATIVE '+name+' '+JSON.stringify(result));};
   let server,proc,client,chromeStderr='',completed=false,sideId=null,runnerId=null,siteId=null;
@@ -172,7 +174,8 @@ test('real macOS Chrome: verified installed Task via Alarms -> original RunHost 
   const args=['--use-mock-keychain','--password-store=basic','--disable-gpu','--disable-dev-shm-usage',
     '--no-first-run','--no-default-browser-check','--disable-background-networking',
     '--remote-allow-origins=*','--remote-debugging-address=127.0.0.1','--remote-debugging-port=0',
-    '--user-data-dir='+profile,'--disable-extensions-except='+EXT,'--load-extension='+EXT,'about:blank'];
+    '--user-data-dir='+profile,'--disable-extensions-except='+EXT,'--load-extension='+EXT,
+    ...(process.platform==='linux'?['--headless=new']:[]),'about:blank'];
   proc=spawn(BIN,args,{stdio:['ignore','ignore','pipe']});
   proc.stderr.on('data',bytes=>{chromeStderr=(chromeStderr+String(bytes)).slice(-7000);});
   report.profileOwned=true;report.chromePid=proc.pid;
