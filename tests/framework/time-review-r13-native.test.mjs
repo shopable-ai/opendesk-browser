@@ -544,7 +544,21 @@ test('Time Review R1.3 actual Mac Chrome install and trusted consent smoke',{ski
       const prior=hostMs(resumedCheckpoint,resumedHost);
       await sleep(1450);
       await nativeClick(browser,frame,'#refresh');
-      const afterResume=await readTime();
+      // This is a real asynchronous host RPC + verified local storage write.
+      // Do not treat the first storage snapshot after the click as final.
+      const afterResume=await until(async()=>{
+        const s=await readTime();
+        return hostMs(s,resumedHost)>prior?s:null;
+      },'post-idle website duration persisted after genuine UI refresh',9000)
+        .catch(async cause=>{
+          const observed=await readTime();
+          const idle=await evaluate(browser,side,'chrome.idle.queryState(60)').catch(()=>null);
+          note('real-idle-resume-not-settled',{idle,host:resumedHost,
+            previousMs:prior,actualMs:hostMs(observed,resumedHost),
+            checkpointHost:observed?.checkpoint?.host??null,
+            paused:observed?.paused,reason:String(cause)});
+          throw cause;
+        });
       assert.ok(hostMs(afterResume,resumedHost)>prior,
         'actual post-idle activity, not the idle gap, must accumulate');
       evidence.idleTransition='PASS';

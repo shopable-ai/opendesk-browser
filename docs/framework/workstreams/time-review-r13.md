@@ -154,3 +154,8 @@
 - 本新候选增补真实 HTTP(S) 计时中两个**不同 hostname**（`127.0.0.1`、`localhost`）真实浏览器标签切换，分别对两个 host 产生有来源的统计且原网站在切换后停止增长，不通过模拟 tab 事件制造业务数据。第二目标无法实际激活时仅记 `BLOCKED` 并说明原因，不得假报跨网站 PASS。
 - 进一步在真实 macOS Chrome 中，**停止发送用户 OS 输入**，最多观察 73 秒以等待实际 `chrome.idle.queryState(60)=idle`。如果真的空闲，必须观测 Time Review 检查点退休，日统计在空闲期间冻结；随后使用已有验证 CFT PID 的系统级鼠标活动输入真正恢复 `chrome.idle=active`，正式 Side Panel 刷新后再次出现检查点且仅恢复后的时间增长。不能调用假的 `onStateChanged`、修改存储或绕过 Chrome idle；CI 宿主如果始终不空闲则保守标记 `BLOCKED`。真实行为的 PASS 需与本新候选 SHA 绑定。
 - 多网站排序后分类编辑通过真实 DOM 的**只读行索引**定位 `127.0.0.1`，继续使用 macOS 原生系统按键和受信任按钮保存，不创建/伪造 DOM 节点，也不改写采集数据。
+
+## R1.3 Final · macOS 自然空闲恢复计时的异步回执闭环（2026-10-12）
+
+- [Mac Actions 38230832833](https://github.com/shopable-ai/opendesk-browser/actions/runs/38230832833)，候选 `3db3d69bd74d750d82c4b40f963e9a3ffef5d24c`：54/54 组件、官方安装、真正 Chrome 200% 缩放、JSON/CSV、两个真实网站（`127.0.0.1`、`localhost`）切换时的独立累计及旧站停止累计均原生通过。自然空闲后的恢复阶段在点击真实 Side Panel「刷新」后立即读 Storage，报 `actual post-idle activity ... must accumulate`，整体 Mac CI FAIL；该读数尚不能区分异步写入延迟与真实时钟采集问题。
+- 新候选只修真实浏览器测试驱动：保持真正的 Chrome idle->active 观察、空闲统计冻结和 macOS OS 输入；必须在刷新后的 **9 秒内读回真实网站毫秒值严格增长**才 PASS。若超时，以只读 Chrome idle、checkpoint、paused、前后网站时长及错误原因形成原生故障证据并继续 FAIL。禁止伪造存储、权限/Idle 事件或把超时判为成功。产品 `src/time-review/service.js`、权限、数据模型不变。
