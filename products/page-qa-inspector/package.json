@@ -1,0 +1,7 @@
+{
+  "name": "@opendesk/page-qa-inspector",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Independent on-click Page QA Inspector extension"
+}

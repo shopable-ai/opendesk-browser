@@ -1,0 +1,52 @@
+name: Extension Factory R2 independent product
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'products/page-qa-inspector/**'
+      - 'packages/extension-factory/**'
+      - 'packages/features/page-qa/**'
+      - 'scripts/product-*.mjs'
+      - 'tests/environment/extension-factory-r2.test.mjs'
+      - 'src/ui/design-tokens.css'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/extension-factory-r2.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: extension-factory-r2-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  independent-page-qa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Product contracts and trust-boundary checks
+        run: node --test tests/environment/extension-factory-r2.test.mjs
+      - name: Independently build Page QA with its own WXT config
+        run: npm run build:product -- --product page-qa-inspector
+      - name: Verify and create deterministic Page QA archive
+        run: npm run pack:product -- --product page-qa-inspector
+      - name: Assert untouched default OpenDesk build scripts
+        run: |
+          node -e "const x=require('./package.json').scripts; if(x.build!=='node scripts/build.mjs production'||x.pack!=='node scripts/pack.mjs production')process.exit(1)"
+      - name: Preserve product hashes and ZIP without claiming CWS approval
+        uses: actions/upload-artifact@v4
+        with:
+          name: page-qa-inspector-${{ github.sha }}
+          retention-days: 7
+          if-no-files-found: error
+          path: |
+            artifacts/products/page-qa-inspector/*.zip
+            artifacts/products/page-qa-inspector/build-receipt.json
+            artifacts/products/page-qa-inspector/pack-receipt.json

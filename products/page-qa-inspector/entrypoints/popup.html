@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Page QA Inspector</title>
+</head>
+<body>
+  <main class="qa-app">
+    <header class="qa-header">
+      <div class="qa-mark" aria-hidden="true">QA</div>
+      <div>
+        <h1>Page QA Inspector</h1>
+        <p>当前页面质量检查</p>
+      </div>
+    </header>
+    <section class="qa-intro" aria-label="检测操作">
+      <p>点击后才检查当前 HTTP(S) 标签页。不扫描其他标签，不读取 Cookie，不向服务器上传数据。</p>
+      <button id="inspect" class="qa-primary" type="button">检查当前页面</button>
+      <p id="status" class="qa-status" role="status" aria-live="polite">尚未执行检查</p>
+    </section>
+    <section id="results" class="qa-results" hidden>
+      <div class="qa-result-bar">
+        <h2>检测结果</h2>
+        <button id="export" type="button" class="qa-secondary" disabled>导出 JSON</button>
+      </div>
+      <p id="summary" class="qa-summary"></p>
+      <label class="qa-setting"><input id="only-warnings" type="checkbox">仅显示重点问题</label>
+      <ol id="issues" class="qa-issues" aria-label="页面问题"></ol>
+      <h2 class="qa-subtitle">DOM 定位示例</h2>
+      <ul id="locators" class="qa-locators"></ul>
+      <p class="qa-fine">这是有限范围的启发式检查，不代表完整 WCAG 合规验收；页面变化后需重新检查。</p>
+    </section>
+  </main>
+  <script type="module" src="../ui/popup.js"></script>
+</body>
+</html>
