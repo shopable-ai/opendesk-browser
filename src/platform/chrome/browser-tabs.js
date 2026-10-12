@@ -39,8 +39,16 @@ export function createBrowserTabHost({api=globalThis.chrome,authorize,clock=Date
  const invalidateTab=tabId=>{for(const [ref,row] of refs)if(row.tabId===tabId)purge(ref)};
  api?.tabs?.onRemoved?.addListener?.(invalidateTab);
  api?.tabs?.onUpdated?.addListener?.((id,change)=>{
-  if(change?.url!==undefined||change?.status==='loading'||change?.discarded===true)
-   invalidateTab(id);
+  for(const [ref,row] of refs){
+   if(row.tabId!==id)continue;
+   if(change?.discarded===true){purge(ref);continue;}
+   const grace=row.initialNavigation&&clock.now()<row.initialUntil;
+   // Chrome emits URL/loading for a freshly created tab. Retain its ref
+   // during that one initial load, but NEVER permit a different target URL.
+   if(change?.url!==undefined&&change.url!==row.url){purge(ref);continue;}
+   if(change?.status==='loading'&&!grace){purge(ref);continue;}
+   if(change?.status==='complete')row.initialNavigation=false;
+  }
  });
  const approved=async(operation,origin,context)=>{
   if(await authorize({operation,origin,context})!==true)
@@ -65,7 +73,9 @@ export function createBrowserTabHost({api=globalThis.chrome,authorize,clock=Date
    try{await api.tabs.remove(tab.id)}catch{}
    throw fail('E_CONTEXT','No secure opaque reference');
   }
-  refs.set(tabRef,{owner:owned,tabId:tab.id,origin:url.origin,expiresAt:clock.now()+TTL_MS});
+  refs.set(tabRef,{owner:owned,tabId:tab.id,origin:url.origin,url:url.href,
+    expiresAt:clock.now()+TTL_MS,initialNavigation:tab.status!=='complete',
+    initialUntil:clock.now()+15000});
   if(!byTool.has(owned))byTool.set(owned,new Set());
   byTool.get(owned).add(tabRef);
   return {tabRef};
@@ -81,8 +91,9 @@ export function createBrowserTabHost({api=globalThis.chrome,authorize,clock=Date
   const tab=await api.tabs.get(row.tabId).catch(()=>null);
   let matches=false;
   try{matches=Number.isSafeInteger(tab?.id)&&tab.id===row.tabId&&
-      browserTabUrl(tab.url).origin===row.origin}catch{}
+      browserTabUrl(tab.url).href===row.url}catch{}
   if(!matches){purge(args.tabRef);throw fail('E_TAB_REF_INVALID','Tab changed or closed')}
+  if(tab?.status==='complete')row.initialNavigation=false;
   const moved=await api.tabs.update(row.tabId,{active:true});
   if(Number.isSafeInteger(moved?.windowId)&&typeof api?.windows?.update==='function')
    await api.windows.update(moved.windowId,{focused:true});
