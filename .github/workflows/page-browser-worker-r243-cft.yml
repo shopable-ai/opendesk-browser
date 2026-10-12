@@ -1,0 +1,48 @@
+name: R24.3 browser compiler worker real Chrome without Native
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/page-browser-worker-r243-cft.yml'
+      - 'tests/framework/page-browser-worker-r243-cft.mjs'
+      - 'src/ui/page-component-compiler-worker.js'
+      - 'src/libs/page-frameworks/page-component-browser-linker.js'
+      - 'src/libs/page-frameworks/vue-sfc-transform.js'
+      - 'src/libs/page-frameworks/contract.js'
+      - 'scripts/prepare-public.mjs'
+      - 'scripts/verify-package.mjs'
+      - 'src/ui/page-component-preparer.js'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  real-extension-dedicated-worker:
+    runs-on: macos-15
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Build and verify actual MV3 package
+        run: |
+          npm run check
+          npm run build
+      - uses: browser-actions/setup-chrome@v2
+        id: chrome
+        with:
+          chrome-version: '155.0.8059.39'
+      - name: Real CFT fixed JSX and Vue SFC Workers with no Native installation
+        env:
+          CHROME_FOR_TESTING_BIN: ${{ steps.chrome.outputs.chrome-path }}
+          OPENDESK_DEV_EVIDENCE: .runtime/tests/page-browser-worker-r243
+          OPENDESK_DEV_CFT_LAUNCHER: ${{ github.workspace }}/tests/framework/cft-isolated-launcher.py
+        run: node tests/framework/page-browser-worker-r243-cft.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: r243-browser-worker-no-native-${{ github.sha }}
+          path: .runtime/tests/page-browser-worker-r243
+          if-no-files-found: warn
