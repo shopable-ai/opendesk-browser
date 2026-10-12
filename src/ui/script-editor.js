@@ -184,6 +184,21 @@ export function createScriptEditor({client, currentPageTarget, development=false
     }
     persistDraft();
     renderRevisionState();
+    // Describe the selected official source format instead of telling React /
+    // Vue authors to write the legacy async function main() entry.
+    const previewTitle=find('page-preview-mode-title');
+    const previewHint=find('page-preview-mode-hint');
+    const modeHint=find('page-component-hint');
+    if(previewTitle)previewTitle.textContent=componentMode==='javascript'?
+      '网页 JavaScript 试运行':componentMode==='react'?'网页 React JSX 组件试运行':'网页 Vue SFC 组件试运行';
+    if(previewHint)previewHint.textContent=componentMode==='react'?
+      '使用官方 React import、App JSX 和默认导出组件。系统按需编译并受管挂载；无需 main() 或手动 Vite。仅获授权网页可运行。':
+      componentMode==='vue'?
+        '使用官方 Vue script setup、template 与 scoped CSS。系统按需编译并受管挂载；无需 main() 或手动 Vite。仅获授权网页可运行。':
+        '直接使用上方 JavaScript 源码操作当前网页 DOM；可写 async function main() 返回结果，也可直接编写顶层语句。运行前仍需网站授权。';
+    if(modeHint)modeHint.textContent=componentMode==='javascript'?
+      '保存草稿不会运行网页':
+      '组件草稿保留在当前窗口会话；只有明确点击运行才操作网页，安装须另外授权。';
     find('script-save').disabled = editingBusy||componentMode!=='javascript'; find('script-load').disabled = editingBusy;
     find('script-list-refresh').disabled = editingBusy; find('script-list-load').disabled = editingBusy || !scriptList.value;
     find('script-delete').disabled = editingBusy || !revisions.has(scriptId());

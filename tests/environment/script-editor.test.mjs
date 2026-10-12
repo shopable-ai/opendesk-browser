@@ -599,6 +599,21 @@ test('Run silently checks Chrome permission; denied permission and invalid param
   f.find('script-params').value='invalid json';await f.click('script-run');assert.equal(f.permissions.length,0);assert.equal(f.executions.length,0);
 });
 
+test('R24.3 browser component help follows official syntax, never demands main() from JSX/SFC',async t=>{
+  const f=await fixture();t.after(()=>f.dispose());
+  assert.equal(f.find('page-preview-mode-title').textContent,'网页 JavaScript 试运行');
+  for(const [mode,expected] of [['react',/React.*JSX/],['vue',/Vue.*SFC/]]){
+    const choice=f.find('page-component-'+mode);
+    choice.checked=true;choice.fire('change');await tick();
+    assert.match(f.find('page-preview-mode-title').textContent,expected);
+    assert.match(f.find('page-preview-mode-hint').textContent,/无需 main\(\)/);
+    assert.match(f.find('page-component-hint').textContent,/不会自动运行|明确点击运行才操作网页/);
+  }
+  const choice=f.find('page-component-javascript');
+  choice.checked=true;choice.fire('change');await tick();
+  assert.equal(f.find('page-preview-mode-title').textContent,'网页 JavaScript 试运行');
+});
+
 test('R24.3 final asynchronous document check refuses a React component edited before admission',async t=>{
   const release=deferred(),entered=deferred();
   let revalidationCount=0;
