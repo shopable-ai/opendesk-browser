@@ -409,27 +409,83 @@ export async function runMarketR5Acceptance(d){
   check('already-installed-is-read-from-extension-and-old-fixed-version-stays-missing');
 
   await mark('worker-stop-and-http-cold-reconnect');
-  let oldContext,newContext;
+  // ServiceWorker target IDs are debugger identities, not a guarantee that
+  // the V8 execution has stopped. Chrome can retain the same target across
+  // a real version stop/restart. Prove the *actual* stopped version and old
+  // context loss before asking the unmodified HTTP page to connect again.
+  const swURL='chrome-extension://'+id+'/sw.js',controller=host();
+  let oldContext,newContext,versionSequence=0,eventSequence=0;
+  const versions=[],contextEvents=[],targetSnapshots=[];
+  const offStop=d.onBrowserEvent(event=>{
+    if(event.sessionId===controller.sessionId&&event.method==='ServiceWorker.workerVersionUpdated')
+      versions.push({sequence:++versionSequence,receivedAt:Date.now(),versions:event.params.versions});
+    if(oldContext&&event.sessionId===oldContext.sessionId&&
+       ['Runtime.executionContextDestroyed','Runtime.executionContextsCleared','Inspector.detached'].includes(event.method))
+      contextEvents.push({sequence:++eventSequence,at:Date.now(),method:event.method,params:event.params});
+  });
   async function workerContext(){
-    const info=await until(async()=>(await targets()).find(row=>row.type==='service_worker'&&row.url==='chrome-extension://'+id+'/sw.js'),'actual worker target');
+    const info=await until(async()=>(await targets()).find(row=>row.type==='service_worker'&&row.url===swURL),'actual worker target');
     const {sessionId}=await d.sendBrowser('Target.attachToTarget',{targetId:info.targetId,flatten:true});let context;
     const off=d.onBrowserEvent(event=>{if(event.sessionId===sessionId&&event.method==='Runtime.executionContextCreated')context=event.params.context;});
-    await d.sendBrowser('Runtime.enable',{},20000,sessionId);await until(()=>context?.uniqueId,'worker execution context');off();
-    return {targetId:info.targetId,sessionId,uniqueId:context.uniqueId};
+    try{
+      await d.sendBrowser('Runtime.enable',{},20000,sessionId);
+      await until(()=>context?.uniqueId,'worker execution context');
+    }finally{off();}
+    return {targetId:info.targetId,sessionId,contextId:context.id,uniqueId:context.uniqueId};
   }
-  oldContext=await workerContext();
-  assert.equal((await d.sendBrowser('Target.closeTarget',{targetId:oldContext.targetId})).success,true);
-  await until(async()=>(await targets()).every(row=>row.targetId!==oldContext.targetId),'actual prior worker target ended');
-  await click(existing.page,'#connect-button');
-  await until(()=>evaluate(existing.page,'document.querySelector("#connection-state").textContent.includes("已连接 OpenDesk")'),'HTTP wakes stopped worker');
-  newContext=await workerContext();assert.notEqual(newContext.uniqueId,oldContext.uniqueId);
-  await click(existing.page,'#open-review');await until(()=>evaluate(existing.page,'document.querySelector("#handoff-state").dataset.state==="success"'),'same intent after worker replacement');
-  const resumed=(await intentRows()).find(row=>row.intentId===existing.row.intentId);
-  assert.equal(resumed.reviewId,existing.row.reviewId);assert.equal(resumed.operationId,existing.row.operationId);
-  evidence.r5.workerRestart={method:'Target.closeTarget of exact owned worker; observed absence and replacement execution context',oldContext,newContext};
-  const resumedTarget=await until(async()=>(await targets()).find(row=>row.url===existing.reviewURL),'reopened exact review');
-  await close(await attach(resumedTarget.targetId));await close(existing.page);
-  check('real-worker-stop-observed-and-http-wakeup-preserves-identity');
+  try{
+    oldContext=await workerContext();
+    const originalProbe={expression:'void 0',uniqueContextId:oldContext.uniqueId,
+      throwOnSideEffect:true,returnByValue:true};
+    const before=await d.sendBrowser('Runtime.evaluate',originalProbe,10000,oldContext.sessionId);
+    assert.equal(before.exceptionDetails,undefined);
+    assert.equal(before.result?.type,'undefined','original worker context must exist before stop');
+    await controller.send('ServiceWorker.enable');
+    const running=await until(()=>versions.flatMap(event=>event.versions.filter(row=>
+      row.scriptURL===swURL&&row.targetId===oldContext.targetId&&row.runningStatus==='running')
+      .map(version=>({event,version}))).at(-1),'actual running worker version');
+    const afterSequence=versionSequence;
+    const stopResponse=await controller.send('ServiceWorker.stopWorker',{versionId:running.version.versionId});
+    const stopped=await until(()=>versions.flatMap(event=>event.sequence>afterSequence
+      ?event.versions.filter(row=>row.versionId===running.version.versionId&&
+        row.registrationId===running.version.registrationId&&row.scriptURL===swURL&&row.runningStatus==='stopped')
+        .map(version=>({event,version})):[]).at(-1),'actual post-request stopped worker version');
+    const stopProof=await until(async()=>{
+      const snapshot=await targets();targetSnapshots.push({at:Date.now(),targets:snapshot.filter(row=>row.url===swURL)});
+      if(snapshot.every(row=>row.targetId!==oldContext.targetId))
+        return {type:'physical-target-absent'};
+      const destroyed=contextEvents.some(event=>
+        event.method==='Runtime.executionContextsCleared'||
+        event.method==='Runtime.executionContextDestroyed'&&event.params.executionContextId===oldContext.contextId);
+      if(!destroyed)return false;
+      let rejection;
+      try{await d.sendBrowser('Runtime.evaluate',originalProbe,5000,oldContext.sessionId);}
+      catch(error){rejection=error.cdpError;}
+      if(rejection?.code===-32602&&rejection.message==='uniqueContextId not found')
+        return {type:'same-target-old-unique-context-destroyed',rejection};
+      return false;
+    },'real stopped worker target or destroyed original unique execution context');
+    // A new Worker may start only after the website's real PROBE: never use
+    // a synthetic runtime message or release an earlier paused test gesture.
+    const restartedBeforeProbe=versions.slice().flatMap(event=>event.sequence>stopped.event.sequence
+      ?event.versions.filter(row=>row.scriptURL===swURL&&row.runningStatus==='running'):[]);
+    assert.equal(restartedBeforeProbe.length,0,'worker must remain stopped until real HTTP PROBE');
+    await click(existing.page,'#connect-button');
+    await until(()=>evaluate(existing.page,'document.querySelector("#connection-state").textContent.includes("已连接 OpenDesk")'),'HTTP wakes stopped worker');
+    newContext=await workerContext();
+    assert.notEqual(newContext.uniqueId,oldContext.uniqueId,'new worker uses a new V8 execution context');
+    await click(existing.page,'#open-review');
+    await until(()=>evaluate(existing.page,'document.querySelector("#handoff-state").dataset.state==="success"'),'same intent after worker replacement');
+    const resumed=(await intentRows()).find(row=>row.intentId===existing.row.intentId);
+    assert.equal(resumed.reviewId,existing.row.reviewId);assert.equal(resumed.operationId,existing.row.operationId);
+    evidence.r5.workerRestart={method:'ServiceWorker.stopWorker, then real HTTP PROBE',
+      versionId:running.version.versionId,registrationId:running.version.registrationId,
+      stoppedEvent:stopped.event,stopResponse,stopProof,oldContext,newContext,
+      contextEvents,targetSnapshots};
+    const resumedTarget=await until(async()=>(await targets()).find(row=>row.url===existing.reviewURL),'reopened exact review');
+    await close(await attach(resumedTarget.targetId));await close(existing.page);
+    check('real-worker-stop-observed-and-http-wakeup-preserves-identity');
+  }finally{offStop();}
 
   await mark('website-fixed-collection-batch-and-reload');
   const kit=await websiteSubjectReview({kind:'collection',collectionId:'reading-kit',revision:currentKit.revision},{details:true});

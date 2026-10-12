@@ -255,3 +255,15 @@ FIX7 已于 2026-10-12 09:53 UTC 以 `13afc33f62f606fe8edf39124ebeb4acf0c89f60` 
 FIX8 将主动观察失败变成不可重试的结果并在外层立即抛出，保存 `NOT_OBSERVED`、原始错误及完整 DOM 转移。成功标记只在实际 callback 完成后写入。网站客户端是 ES module；没有猜测读取模块局部变量，也没有增加产品测试接口。临时只读观察器要求同一个真实 HTTP 页面恰好一次 `isTrusted` 点击、按钮禁用且显示“正在连接”、再恢复可用并取得新 CONNECTED 回执；旧文案、非可信点击、导航、超时、缺少中间状态全部拒绝。真实按钮点击仍走原有限 PROBE，未修改 sender、按钮状态、产品响应或安装存储。
 
 新增组件分别验证回执拒绝条件和失败不可被下一次“目标已消失”覆盖；它们只是观察器组件证据，不能替代 Mac/Linux Chrome 新候选复验。原运行失败记录与 FIX7 原件继续保留。已检查并正常快进至 `7aac9968` 的并行 Page/浏览器 SDK 文件，未与本轮写入文件重叠。
+
+
+## 最新主分支重新验收：Service Worker target 与实际执行分离
+
+在既有双平台 PASS 候选 `3744be08` 后，其他工作流修改了 Worker 定时唤醒、Sidebar Tool Browser SDK 能力及 UI。必须遵照上方 `AFFECTED_INPUTS` 重新验收。新候选 [CI 38250231218](https://github.com/shopable-ai/opendesk-browser/actions/runs/38250231218) 发现：
+
+- Linux R5 原生到 `r5-worker-stop-and-http-cold-reconnect` 之前的官网首装、真实 5 秒超时、A1/A2/B 中断等阶段已经执行；在 `actual prior worker target ended` 上超时，原验收仅等待 `Target.closeTarget` 后原 DevTools target ID 消失。**整轮失败**，不能把已运行阶段等同最终 PASS。
+- macOS R5 同次候选 Job 通过；两平台行为差异说明不能用目标 ID 生命周期代表 Worker V8 执行生命周期。
+- 生产原生生命周期本身仍 `REAL_CHROME_FIXTURE_PASS`，但完整环境回归出现两项 jQuery／Page 框架指令测试失败（`builtin-jquery.test.mjs`、R24.2 opt-in 合同）；属于并行 Page/公共库输入变化，保留原件、由对应工作流核对，不通过删除断言或改变 R5 来源/权限来消除。
+
+本轮对 `tests/helpers/app-market-r5-native.mjs` 的冷重连验证作最小重构：Chrome 的 `ServiceWorker.stopWorker` 只能指定当前真实 running version ID；成功后必须观察同 registration/script 的真实 `stopped` 事件，再核对原 target 确实消失，或同一 session 下旧 V8 uniqueContextId 已销毁且 `Runtime.evaluate` 返回精确 `-32602 uniqueContextId not found`。同时保证 HTTP PROBE 之前没有新的 running 版本；随后官网真实连接按钮动作唤起 Worker，验证新旧 uniqueContextId 不同、原 intent/review/operation 身份一致。保存 stopped event、上下文和 target 快照；不自行替换 browser sender、模拟 Worker 响应、直接写安装库或忽略失败。此修改必须由**下一次真实 Linux/macOS Chrome CI**确认，在取得完整原生收据前不能改写为 PASS。
+
