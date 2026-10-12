@@ -8,6 +8,7 @@ on:
       - 'src/ui/design-tokens.css'
       - 'src/ui/design-system.css'
       - 'scripts/tests/sidebar-r19-layout-visual.mjs'
+      - 'scripts/tests/sidebar-quick-notes-layout-visual.mjs'
       - 'official-tools/catalog.json'
       - 'examples/sidebar-tools/**'
       - 'scripts/build-official-tools.mjs'
@@ -40,11 +41,17 @@ jobs:
         env:
           CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
         run: node scripts/tests/sidebar-r19-layout-visual.mjs artifacts/sidebar-r19-layout-visual
+      - name: Inspect official Quick Notes source HTML/CSS across 12 widths and 4 states
+        env:
+          CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
+        run: node scripts/tests/sidebar-quick-notes-layout-visual.mjs artifacts/quick-notes-layout-visual
       - name: Preserve static-only screenshots and metrics
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: sidebar-r19-static-markup-visual
-          path: artifacts/sidebar-r19-layout-visual/
+          name: sidebar-r19-and-quick-notes-static-visual
+          path: |
+            artifacts/sidebar-r19-layout-visual/
+            artifacts/quick-notes-layout-visual/
           if-no-files-found: warn
           retention-days: 14

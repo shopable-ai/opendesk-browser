@@ -36,3 +36,11 @@
 - [Sidebar user tools package](https://github.com/shopable-ai/opendesk-browser/actions/runs/38210110488)：**PASS**，工具构建/包约束通过。
 - [官方工具目录 R4.5 Native](https://github.com/shopable-ai/opendesk-browser/actions/runs/38210110438)：**FAIL（独立遗留差异）**，`tests/framework/app-market-r3-native.test.mjs:108` 仍预期旧的五个官方工具，当前 catalog 已加入 `time-review`（六个）。失败发生在 Chrome 生命周期测试开始前的 catalog 断言；另有工作流负责目录/原生合同，不能在本轮用修改布局脚本的方式掩盖该失败。
 - 真实用户 Mac Chrome Side Panel 交互、125%/200% 缩放、版本更新与本地长期数据：`NOT_TESTED`。用户侧需加载本轮构建实际包，再验证上述流程。无法将这一缺项算作 UI 全面 95+。
+
+## R26.2 源码布局与窄屏回归补充（2026-10-12）
+
+- 历史 R26 已将 iframe 和宿主 gutter 归一化；针对本轮实际复核发现的有效内容宽度 160 CSS px 问题，网页笔记此前的 `.page-attach` 会被保存/删除按钮挤窄并折成多行。R26.2 在 `max-width:220px` 下将附页复选框安排为独立一行，两个操作图标另占一行、右对齐，普通 Side Panel 宽度不改变。
+- 独立大标签页原编辑器缺少最大宽度，补充 `min-width:800px` 的 760px 内容限制。工具 CSS 改动引起的发行身份变化：版本 `quick-notes 1.1.6 → 1.1.7`，沿用 `quick-notes` 原有 ID、权限及 storage local 数据模型；升级须用户主动确认。官方 `official-tools/catalog.json` 本来将 `quick-notes` 设为 `preinstalled`，本次仅修正文档对「默认未安装」的不准确描述，没有修改预装策略。
+- 新增 `scripts/tests/sidebar-quick-notes-layout-visual.mjs` 并接入 `.github/workflows/sidebar-r19-layout-visual.yml`：使用实际 Quick Notes HTML/CSS/Logo 在真实 Chrome 渲染，不加载扩展也不运行工具 JS；12 宽度 × 4 状态检查布局与控件边界，保留截图/metrics。有效 160/180/210px 仅覆盖缩放等效布局宽度；不将其算作真实 Chrome 200% zoom 证明。
+- 同步修改 `tests/environment/sidebar-tool-spacing-contract.test.mjs` 与工具 README。不得把 Node/CSS/静态 Chrome PASS 冒充实际 Side Panel 安装、版本更新和数据读写验收；这些应另外标识。首轮候选与 CI 结果在跑完对应 Actions 后填写真实身份，不预先标 PASS。
+

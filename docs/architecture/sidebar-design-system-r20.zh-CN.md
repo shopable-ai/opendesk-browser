@@ -46,6 +46,12 @@
 
 工具沙箱为 opaque-origin，`src/sidebar-tools/sandbox.html` 不加载高权限 `design-tokens.css` / `design-system.css`，不允许外部 CDN、运行时 @import 或绕过 CSP。独立工具在自身 CSS 中声明**数值匹配**的 token（例如 `examples/sidebar-tools/quick-notes/src/style.css`），而非跨信任边界复用宿主样式。默认 Page Installed 记录和 Side Panel 工具包属于两个不同安装系统，列表只进行可信读取展示，绝不合并注册表。
 
+### R26.2 网页笔记最窄尺寸规则（2026-10-12）
+
+- 侧栏支持 300/320/360/420/520 CSS px；浏览器实际 200% 缩放可能使有效 CSS 布局宽度降到约 160–220px。网页笔记在不超过 **220 CSS px** 时将「关联当前网页」单独占满一行，删除和保存按钮在第二行靠右对齐；其他宽度继续使用单行操作栏。该规则防止勾选标签被图标挤压折行。
+- 在 800 CSS px 及以上的独立工具标签页，笔记主体最大宽度 **760px** 并居中，避免独立页面的文本编辑框横跨整个桌面窗口；侧栏内保留原 12px 对称外边距。
+- `scripts/tests/sidebar-quick-notes-layout-visual.mjs` 从**实际工具源码**加载 HTML/CSS 和 Logo，在受控 Chrome 里验证 12 种有效 CSS 宽度 × 4 种内容状态：整个页面无横向溢出、详情/正文/附件/按钮左右边缘对齐、图标尺寸固定 34px、窄屏标签完整与宽屏编辑器限制。记录为 `STATIC_SOURCE_CHROME`，不执行工具 JS，也不宣称真实 Mac Chrome 200% 扩展 E2E。
+
 ### 交付检查标准
 
 - 静态回归检查宿主 gutter 与工具 iframe outdent、沙箱独立 4/8/12/16px token、控件 34px、简洁空状态、技术信息折叠与返回列表清理提示。
