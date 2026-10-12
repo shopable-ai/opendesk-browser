@@ -833,3 +833,29 @@ test('R17 accepts 32 scoped sources with same-name directories but rejects an un
   assert.equal(f.find('local-project-status').dataset.state,'disconnected');
   assert.equal(select.children.length,1,'invalid list must not retain stale online projects');
 });
+
+test('R24.3 React and Vue modes keep independent official source drafts without Native',async t=>{
+  const f=await fixture();t.after(()=>f.dispose());
+  const select=f.find('page-component-framework');
+  const editor=f.find('script-source');
+  const javascript=editor.value;
+  assert.equal(select.disabled,false);
+  select.value='react';select.fire('change');await tick();
+  assert.equal(select.value,'react');
+  assert.match(editor.value,/from 'react'/);
+  assert.match(editor.value,/export default function App/);
+  assert.match(f.find('page-component-status').textContent,/官方组件源码/);
+  const reactDraft=editor.value+'\n// unsaved react';
+  editor.value=reactDraft;editor.fire('input');await tick();
+  select.value='vue';select.fire('change');await tick();
+  assert.equal(select.value,'vue');
+  assert.match(editor.value,/<script setup>/);
+  assert.match(editor.value,/<style scoped>/);
+  select.value='javascript';select.fire('change');await tick();
+  assert.equal(editor.value,javascript,'Legacy JavaScript must not be overwritten by components');
+  select.value='react';select.fire('change');await tick();
+  assert.equal(editor.value,reactDraft,'Switch must recover exact unsaved React source');
+  assert.equal(f.find('script-save').disabled,true,'Component source cannot be saved as Controller code');
+  assert.equal(f.find('script-run').disabled,true,'Component source cannot enter Controller RunHost');
+  assert.equal(f.find('page-preview-run').textContent,'运行 React 组件');
+});
