@@ -191,7 +191,9 @@ export function createPageScriptPreview({api, storage, assertHost, dependencies,
         ...(script.packagedOptionalId?{packagedOptionalId:script.packagedOptionalId,
           packagedOptionalSha256:script.packagedOptionalSha256}:{})};
       if(!completion.ok)throw Object.assign(new FoundationError('E_PAGE_SCRIPT_EXECUTION',completion.error || '页面脚本执行失败'),
-        {response:{...identity,state:'preview-failed',completion:{format:completion.format,nonce:completion.nonce,
+        {response:{...identity,state:'preview-failed',
+          ...(managedRecord?{managedUI:true,managedPreviewId:managedRecord.previewId}:{}),
+          completion:{format:completion.format,nonce:completion.nonce,
           ok:false,error:String(completion.error||'').slice(0,2048)}}});
     // A real receipt proves the effect in the original document. Navigation
     // while awaiting it must not be reported as current-document success or replayed.
