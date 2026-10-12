@@ -26,3 +26,21 @@
 - 新分支双版本 CI：**以 Actions 实际结果为准**；编译器文件实测差额不等于 ZIP 差值或运行时内存。
 - **正式发布 BLOCKED**：需 Developer 真 Chrome 的 JSX/SFC 编辑、交互、Stop、无 Native 输入；Standard 真 Chrome 的普通 JavaScript/React/Vue Direct、旧草稿与本地 Native 链；分别安装/更新、扩展 ID 和对应 Go 授权；以及生产包与 ZIP 的同身份证据。
 - 同一开发分支验证未完成前，不给独立 95 分；不创建 PR，不发布、不合入 `main`。
+
+## 双包真实构建报告（已验证）
+
+R24.5 CI [38240441632](https://github.com/shopable-ai/opendesk-browser/actions/runs/38240441632) 在提交 `667eddccfedad677586bac831195d0beee1c6541` 上 **PASS**。源码检查、8/8 定向测试、两份 WXT 生产构建、两份严格资源包校验、`npm run pack` 和 `npm run pack:developer` 全部通过。实际产物：
+
+| 指标 | Standard | Developer |
+| --- | ---: | ---: |
+| WXT 文件数 | 83 | 90 |
+| 未压缩目录总大小 | 2,705,843 B | 6,956,776 B |
+| 生产 ZIP | 923,772 B | 1,881,170 B |
+| `packageHash` | `94ac94b375594482e3f98a8355e44be389b7feb654e9ed4f9c66f55521bfb1b4` | `9f62a8ddadb2e2414b8c8c7ae82ac43cb303daf508731f62c42879f2cce49cd6` |
+| ZIP SHA-256 | `aefba72a5c2f3aecc17d90572a6fe63952dbe712d7cb7a30c6bfb218c92a226d` | `97c1558ed4b02c2e1ed56af5a6bbd3f329d334f39fc925ffbe60f16f2cfeea46` |
+
+**真实 ZIP 少 957,398 B**；未压缩目录差 **4,250,933 B**，其中受信浏览器编译器原始字节为 **4,249,817 B**，另有许可证及 manifest/name 资源差异。上述数字有 CI 实际二进制，不是估算；ZIP/压缩比和浏览器 RAM 是不同指标。
+
+后续 [38241095878](https://github.com/shopable-ai/opendesk-browser/actions/runs/38241095878) 新增**实际编译后 Side Panel 开关**检查并 PASS；从两份 ZIP 取出 `ui/tool-shell.js`，确认 WXT 产物虽然字节数相同但 SHA 不同，`browserCompilerEnabled` 分别被编译为 `false/true`。不是仅前端隐藏大功能而忘记移除资源。后一轮 [38241423476](https://github.com/shopable-ai/opendesk-browser/actions/runs/38241423476) 加入 Mac Chrome 标准 UI 与 Developer 完整交互正向验收，当前以各 Job 的实际结果为准。
+
+**分发建议及 Chrome Web Store 政策约束：**首选正式版单独上架，Developer ZIP 暂时通过 GitHub Actions artifact / 开发者侧载分发。若要另在商店发布测试/开发版本，必须标注为 Developer/Beta Build、在说明中指出测试用途并链接正式版；Chrome Web Store 的重复内容政策对高度相似的公开重复条目存在审查限制。开发分支通过 CI 并不授权发布或合并。
