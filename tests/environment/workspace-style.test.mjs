@@ -25,7 +25,7 @@ test('R22 production and development publish the same generated Tailwind CSS',as
   assert.ok(css.includes('.tree-action svg'),'compact explorer toolbar must be bundled');
   assert.ok(css.includes('.tree-location'),'path context must be bundled');
   assert.ok(!css.includes('.file-entry .file-kind'),'legacy DIR/MD/TXT text badges must not ship');
-  assert.match(css,/\.file-rail:not\(\[open\]\)>\.rail-toggle\{[^}]*display:block/,
+  assert.match(css,/\.file-rail:not\(\[open\]\)>\.rail-toggle\{[^}]*display:flex/,
     'A directory collapsed on a narrow viewport must remain reopenable on desktop');
 });
 
@@ -63,4 +63,25 @@ test('Workspace memory demo builds with the same compiled stylesheet after remov
   assert.equal(result.backend,'memory-only');assert.equal(result.native,false);
   assert.ok(html.includes('内存演示'));assert.ok(html.includes('demo-banner'));
   assert.equal(await readFile(resolve(dir,'files/README.md'),'utf8'),(await import('../../src/native-agent/file-workspace-demo.js')).DEMO_FILES['README.md']);
+});
+
+test('R3 explorer ships an SVG-first compact toolbar with semantic accessible actions',async()=>{
+  const html=await readFile('src/native-agent/workspace.html','utf8');
+  const styles=await readFile('src/native-agent/workspace.tailwind.css','utf8');
+  assert.match(html,/data-workspace-ui="svg-r3"/);
+  assert.doesNotMatch(html,/<(?:path|circle|rect)\b[^>]*\/>/,
+    'SVG shapes must have explicit closing tags to satisfy the strict package HTML scanner');
+  assert.match(html,/id="file-list"[^>]*data-icon-system="local-svg"[^>]*role="tree"/);
+  for(const id of ['refresh-connection','open-settings','open-sidebar','open-workbench',
+    'reload-file','copy-content','open-preview-tab']){
+    const pattern=new RegExp('<button\\b(?=[^>]*id="'+id+'")(?=[^>]*aria-label="[^"]+")'+
+      '(?=[^>]*title="[^"]+")(?=[^>]*class="workspace-icon-action")[^>]*>\\s*<svg\\b');
+    assert.match(html,pattern,'Icon-only action must have an accessible name, tooltip and vector: '+id);
+  }
+  for(const [id,text] of [['save-file','保存'],['discard-file-draft','丢弃草稿']])
+    assert.match(html,new RegExp('id="'+id+'"[^>]*>\\s*<svg\\b[^>]*>[\\s\\S]*?<\\/svg>'+text+'<\\/button>'),
+      'Primary or destructive action must retain visible text: '+id);
+  assert.doesNotMatch(html,/展开 \/ 收起|>DIR<|>MD<|>TXT</);
+  assert.ok(styles.includes('.workspace-icon-action'),'compact icon-button style missing');
+  assert.ok(styles.includes('@media (pointer:coarse)'),'touch targets must remain at least 44px');
 });

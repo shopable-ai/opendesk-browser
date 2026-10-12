@@ -1,0 +1,37 @@
+[
+  {
+    "path": "annotation.txt",
+    "bytes": 132,
+    "sha256": "5a420ba0224b332ec5024ff749b648ba45c2078706615c595020550bed8672a2"
+  },
+  {
+    "path": "artifacts.json",
+    "bytes": 22,
+    "sha256": "fb09a9699b26ad536855bb4263ff01baa31a107d9af48b348e96cb4a9eb2b8d9"
+  },
+  {
+    "path": "jobs.json",
+    "bytes": 17,
+    "sha256": "2f527e61389013edcdf5461496d3d656066a912a9749aacf3dd51b3e1e906d10"
+  },
+  {
+    "path": "original-workflow.yml",
+    "bytes": 3515,
+    "sha256": "e6f57f14a1f8c837e455d4cdbbd6b8681844bfdd7ebeff2876a4b6000e463e62"
+  },
+  {
+    "path": "report.json",
+    "bytes": 1592,
+    "sha256": "2994b8e81da3650f6279409e21e6ebbc9435ce1a4123cb7289e202683536b6ab"
+  },
+  {
+    "path": "run-metadata.json",
+    "bytes": 14039,
+    "sha256": "fec8da79ed28d2fe9585861fd67b651e424aff3a87a978f3c6ec0762db27a3e8"
+  },
+  {
+    "path": "run.html",
+    "bytes": 190297,
+    "sha256": "01e560a0a13f9736eb9e49dbcef81d9802e7dded6416db7888a8b3a10c505420"
+  }
+]

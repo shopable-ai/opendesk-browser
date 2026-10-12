@@ -258,11 +258,40 @@ export function transact(db, stores, mode, work, {raw = false} = {}) {
       return native.objectStore(store);
     };
     const keyRequired = key => invariant(key !== undefined && key !== null, 'E_SCHEMA', 'Explicit key required');
+    // v2 primary keys are ordered. Native cursor.advance skips offsets
+    // without materializing an entire frameworkKV history in JavaScript.
+    const cursorPage = (store,{prefix,direction='next',offset=0,limit=50}={},keysOnly=false) => {
+      invariant(typeof prefix==='string'&&prefix.length>0&&
+        ['next','prev'].includes(direction)&&Number.isSafeInteger(offset)&&
+        offset>=0&&offset<=1000000&&Number.isSafeInteger(limit)&&
+        limit>=1&&limit<=1000001,'E_SCHEMA','Invalid bounded IDB cursor');
+      const range=globalThis.IDBKeyRange;
+      invariant(typeof range?.bound==='function','E_VERSION','Native IDBKeyRange unavailable');
+      return enqueue(() => ({cursor(done,fail){
+        const rows=[];let advanced=false,request;
+        try{request=object(store)[keysOnly?'openKeyCursor':'openCursor'](
+          range.bound(prefix,prefix+'\uffff'),direction);}
+        catch(error){fail(error);return;}
+        request.onerror=()=>fail(request.error);
+        request.onsuccess=()=>{
+          try{
+            const cursor=request.result;
+            if(!cursor){done(rows);return;}
+            if(!advanced&&offset>0){advanced=true;cursor.advance(offset);return;}
+            rows.push(keysOnly?cursor.primaryKey:cursor.value);
+            if(rows.length===limit)done(rows);
+            else cursor.continue();
+          }catch(error){fail(error);}
+        };
+      }}));
+    };
     const api = Object.freeze({
       get: (store, key) => enqueue(() => { keyRequired(key); return object(store).get(key); }),
       put: (store, value, key) => enqueue(() => { keyRequired(key); return object(store).put(value, key); }),
       delete: (store, key) => enqueue(() => { keyRequired(key); return object(store).delete(key); }),
-      all: store => enqueue(() => object(store).getAll())
+      all: store => enqueue(() => object(store).getAll()),
+      scan: (store,options) => cursorPage(store,options,false),
+      keys: (store,options) => cursorPage(store,options,true)
     });
     const abort = error => {
       failure ||= error;
@@ -281,8 +310,13 @@ export function transact(db, stores, mode, work, {raw = false} = {}) {
       for (const item of queue.splice(0)) {
         try {
           const request = item.action();
-          request.onsuccess = () => item.yes(request.result);
-          request.onerror = () => { const error = request.error; item.no(storageError(error)); abort(error); };
+          if(typeof request.cursor==='function')request.cursor(item.yes,error=>{
+            item.no(storageError(error));abort(error);
+          });
+          else{
+            request.onsuccess = () => item.yes(request.result);
+            request.onerror = () => { const error = request.error; item.no(storageError(error)); abort(error); };
+          }
         } catch (error) { item.no(storageError(error)); abort(error); return; }
       }
       if (!workDone) {

@@ -51,6 +51,7 @@ test('console is a fixed registered page and never constructs an executable Host
     readFile('src/ui/cloud-hosting.js','utf8')]);
   assert.match(html,/script src="cloud-console\.js"/);
   assert.match(html,/Observer-only/);
+  assert.match(html,/id="cc-filter"/);
   assert.match(build,/'ui\/cloud-console': '\.\/src\/ui\/cloud-control-console\.js'/);
   assert.match(prepare,/'src\/ui\/cloud-control\.html':'ui\/cloud-control\.html'/);
   assert.match(verify,/'ui\/cloud-control\.html': \['design-tokens\.css'/);
@@ -66,8 +67,8 @@ test('console is a fixed registered page and never constructs an executable Host
 test('console reads only cloudObserve and displays bounded redacted rows via textContent',async()=>{
   const ids=['cc-status','cc-request-list','cc-paired','cc-connection','cc-reconciled','cc-host',
     'cc-slot','cc-enabled','cc-tasks','cc-count','cc-page','cc-stage-counts',
-    'cc-prev','cc-next','cc-refresh'];
-  const makeNode=()=>({textContent:'',disabled:false,children:[],events:new Map(),
+    'cc-prev','cc-next','cc-refresh','cc-filter'];
+  const makeNode=()=>({textContent:'',disabled:false,value:'all',children:[],events:new Map(),
     addEventListener(type,fn){this.events.set(type,fn);},removeEventListener(type){this.events.delete(type);},
     replaceChildren(){this.children=[];},append(...children){this.children.push(...children);}});
   const nodes=new Map(ids.map(id=>[id,makeNode()]));
@@ -89,5 +90,10 @@ test('console reads only cloudObserve and displays bounded redacted rows via tex
   assert.match(nodes.get('cc-status').textContent,/只读/);
   assert.match(nodes.get('cc-request-list').children[0].children[2].textContent,/已确认回执/);
   assert.doesNotMatch(JSON.stringify([...nodes.values()].map(x=>x.textContent)),/SHOULD-NOT-RENDER/);
+  nodes.get('cc-filter').value='finished';
+  nodes.get('cc-filter').events.get('change')();
+  await new Promise(resolve=>setImmediate(resolve));
+  assert.equal(calls.length,2);
+  assert.deepEqual(calls[1].payload,{offset:0,limit:20,state:'finished'});
   consoleView.dispose();
 });

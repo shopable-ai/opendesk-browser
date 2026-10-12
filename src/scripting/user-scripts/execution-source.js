@@ -1,23 +1,23 @@
 import {invariant,digestUtf8 as sha256Utf8} from '../../platform/protocol.js';
 import {parseUserScriptDependencies, assertUserScriptExecutable} from './dependency-metadata.js';
-import {BUILTIN_ABI,BUILTIN_RUNTIME_CATALOG} from '../../libs/runtime-contract.js';
+import {BUILTIN_ABI,BUILTIN_RUNTIME_CATALOG,PAGE_OPTIONAL_LIBRARY_IDS} from '../../libs/runtime-contract.js';
 import {JQUERY_371} from './packaged-dependencies.js';
 import {PAGE_FRAMEWORK_RUNTIMES} from '../../libs/page-frameworks/contract.js';
+import {validatePageSource} from './page-bundle.js';
 
 export const PAGE_ENTRY_FORMATS = Object.freeze(['classic-userscript', 'async-main']);
 export const PAGE_SOURCE_LIMIT = 128 * 1024;
 export const PAGE_WORLD_CSP = "script-src 'self'; object-src 'none'";
 export const PAGE_PREVIEW_RECEIPT_FORMAT = 'opendesk.page-preview-receipt.v1';
-// Declaration aliases only; versions, worlds and resources remain in runtime-contract.js.
-const OPTIONAL_PAGE_LIBRARY_IDS=Object.freeze({'js-cookie':'jsCookie','crypto-js':'cryptoJs','file-saver':'fileSaver','query-string':'queryString','axios':'axios','store':'store','cheerio':'cheerio','fingerprintjs':'fingerprintjs'});
-export const pageOptionalLibraryId=name=>Object.hasOwn(OPTIONAL_PAGE_LIBRARY_IDS,name)?OPTIONAL_PAGE_LIBRARY_IDS[name]:null;
-/** One opt-in Page-only library declaration; never scanned after source code. */
-export function pageSelectedPackagedLibrary(sourceUtf8,parsed=parseUserScriptDependencies(sourceUtf8)) {
+// Declaration aliases, versions, worlds and output files have one source.
+export const pageOptionalLibraryId=name=>Object.hasOwn(PAGE_OPTIONAL_LIBRARY_IDS,name)?PAGE_OPTIONAL_LIBRARY_IDS[name]:null;
+// Opening metadata/comments only. Repeated IDs share one immutable resource.
+export const PAGE_OPTIONAL_LIBRARY_LIMIT=6;
+export const PAGE_COMPILED_SOURCE_LIMIT=512*1024;
+export function pageSelectedPackagedLibraries(sourceUtf8,parsed=parseUserScriptDependencies(sourceUtf8)){
   const header=parsed.directives.filter(row=>row.name==='opendesk-lib').map(row=>row.value);
   const leading=[];
   if(!parsed.hasHeader){
-    // Only the leading comment preamble may opt into an extension-bundled
-    // runtime. Do not discover an embedded comment inside executable JS.
     for(const line of sourceUtf8.replace(/^\uFEFF/,'').split(/\r?\n/)){
       if(/^\s*$/.test(line))continue;
       const directive=/^\s*\/\/\s*@opendesk-lib\s+([^\s]+)\s*$/.exec(line);
@@ -25,15 +25,23 @@ export function pageSelectedPackagedLibrary(sourceUtf8,parsed=parseUserScriptDep
       else if(!/^\s*\/\//.test(line))break;
     }
   }
-  const values=parsed.hasHeader?header:leading;
-  invariant(values.length<=1&&values.every(value=>['jquery','react','vue',...Object.keys(OPTIONAL_PAGE_LIBRARY_IDS)].includes(value)),
-    'E_BUILTIN_DECLARATION','@opendesk-lib 必须唯一');
-  invariant(!values.length||parsed.requires.length===0,
-    'E_BUILTIN_CONFLICT','不能混用 @opendesk-lib 和 @require');
-  return values[0]??null;
+  const ids=parsed.hasHeader?header:leading;
+  invariant(ids.length<=PAGE_OPTIONAL_LIBRARY_LIMIT&&
+    ids.every(id=>['jquery','react','vue',...Object.keys(PAGE_OPTIONAL_LIBRARY_IDS)].includes(id)),
+    'E_BUILTIN_DECLARATION','预装库声明未知或超过六条');
+  invariant(!ids.length||!parsed.requires.length,'E_BUILTIN_CONFLICT','不能混用 @opendesk-lib 与 @require');
+  const unique=[...new Set(ids)];
+  invariant(!(unique.includes('react')&&unique.includes('vue')),'E_BUILTIN_CONFLICT','React/Vue 运行时不能在同一 Page 程序同时声明');
+  return Object.freeze(unique);
 }
-export function pageWantsJquery(sourceUtf8,parsed=parseUserScriptDependencies(sourceUtf8)) {
-  return pageSelectedPackagedLibrary(sourceUtf8,parsed)==='jquery';
+// Historical scalar helper: deliberately fails closed on a multiple-selection caller.
+export function pageSelectedPackagedLibrary(sourceUtf8,parsed=parseUserScriptDependencies(sourceUtf8)){
+  const ids=pageSelectedPackagedLibraries(sourceUtf8,parsed);
+  invariant(ids.length<=1,'E_BUILTIN_DECLARATION','请使用多库选择接口');
+  return ids[0]??null;
+}
+export function pageWantsJquery(sourceUtf8,parsed=parseUserScriptDependencies(sourceUtf8)){
+  return pageSelectedPackagedLibraries(sourceUtf8,parsed).includes('jquery');
 }
 
 export function pageConsumerSource(sourceUtf8,entryFormat,receiptNonce) {
@@ -61,39 +69,39 @@ export function builtinReadinessSource(source,builtinSource,receiptNonce) {
   return 'if('+ready+'){\n'+source+'\n}else{'+failed+'}';
 }
 
-export async function compileLockedPageSource({sourceUtf8, entryFormat, entries = [], importSourceUrl,receiptNonce,builtinSource,jqueryCode,frameworkSource,optionalSource,storeOwnerId} = {}) {
-  invariant(typeof sourceUtf8 === 'string' && sourceUtf8.trim().length > 0 &&
-    new TextEncoder().encode(sourceUtf8).byteLength <= PAGE_SOURCE_LIMIT,
-    'E_SOURCE', '页面脚本源码须为非空文本，且不超过 128 KiB');
+export async function compileLockedPageSource({sourceUtf8, entryFormat, entries = [], importSourceUrl,receiptNonce,builtinSource,jqueryCode,frameworkSource,optionalSource,optionalSources,storeOwnerId} = {}) {
+  await validatePageSource(sourceUtf8);
   invariant(PAGE_ENTRY_FORMATS.includes(entryFormat), 'E_ENTRY_FORMAT', '请选择经典用户脚本或 async main 入口');
   const parsed = parseUserScriptDependencies(sourceUtf8, {importSourceUrl});
   const admission = assertUserScriptExecutable(parsed, {entryFormat, phase:'preview', dependenciesLocked:true});
   invariant(Array.isArray(entries) && entries.length === parsed.requires.length,
     'E_DEPENDENCY_LOCK', '源码依赖声明与已经批准的锁不同');
   const sourceHash=await sha256Utf8(sourceUtf8);
-  const selected=pageSelectedPackagedLibrary(sourceUtf8,parsed),jquery=selected==='jquery';
-  invariant(jquery||jqueryCode===undefined,'E_BUILTIN_CONFLICT','未声明内置 jQuery 却提供了依赖字节');
-  const framework=selected&&Object.hasOwn(PAGE_FRAMEWORK_RUNTIMES,selected)?PAGE_FRAMEWORK_RUNTIMES[selected]:null;
-  const optionalId=pageOptionalLibraryId(selected);
-  const optional=optionalId?BUILTIN_RUNTIME_CATALOG.libraries[optionalId]:null;
+  const selected=pageSelectedPackagedLibraries(sourceUtf8,parsed),jquery=selected.includes('jquery');
+  const frameworkId=selected.find(id=>Object.hasOwn(PAGE_FRAMEWORK_RUNTIMES,id));
+  const framework=frameworkId?PAGE_FRAMEWORK_RUNTIMES[frameworkId]:null;
+  const ids=selected.map(pageOptionalLibraryId).filter(Boolean);
+  invariant(optionalSource===undefined||optionalSources===undefined,'E_BUILTIN_CONFLICT','不可同时提供新旧库入参');
+  const assets=optionalSources??(optionalSource===undefined?[]:[optionalSource]);
+  invariant(Array.isArray(assets)&&assets.length===ids.length&&assets.every((a,i)=>a?.id===ids[i]),
+    'E_BUILTIN_VERSION_UNAVAILABLE','库身份或加载顺序与声明不一致');
+  invariant(jquery||jqueryCode===undefined,'E_BUILTIN_CONFLICT','无声明 jQuery 字节');
   invariant(framework?frameworkSource?.id===framework.id&&frameworkSource?.version===framework.version&&
     frameworkSource.sha256===framework.sha256&&typeof frameworkSource.code==='string':frameworkSource===undefined,
     'E_PAGE_FRAMEWORK_IDENTITY','Page framework identity mismatch');
   if(framework)invariant(await sha256Utf8(frameworkSource.code)===framework.sha256&&
-    new TextEncoder().encode(frameworkSource.code).length===framework.bytes,
-    'E_DEPENDENCY_HASH','Page framework hash mismatch');
-  invariant(optional?optionalSource?.id===optional.id&&optionalSource.version===optional.version&&
-    optionalSource.abi===BUILTIN_ABI&&optionalSource.catalogSha256===
-      (builtinSource?.catalogSha256??optionalSource.catalogSha256)&&
-    /^[a-f0-9]{64}$/.test(optionalSource.sha256)&&typeof optionalSource.code==='string'
-    :optionalSource===undefined,'E_BUILTIN_VERSION_UNAVAILABLE',
-    'Package identity mismatch');
-  if(optional)invariant(await sha256Utf8(optionalSource.code)===optionalSource.sha256&&
-    new TextEncoder().encode(optionalSource.code).length===optionalSource.bytes,
-    'E_DEPENDENCY_HASH','Package hash mismatch');
-  if(jquery)invariant(typeof jqueryCode==='string' &&
-    await sha256Utf8(jqueryCode)===JQUERY_371.sha256,
-    'E_DEPENDENCY_HASH','内置 jQuery 资源缺失或完整性不符');
+    new TextEncoder().encode(frameworkSource.code).length===framework.bytes,'E_DEPENDENCY_HASH');
+  for(let i=0;i<assets.length;i++){
+    const asset=assets[i],descriptor=BUILTIN_RUNTIME_CATALOG.libraries[ids[i]];
+    invariant(asset.version===descriptor.version&&asset.abi===BUILTIN_ABI&&
+      asset.catalogSha256===(builtinSource?.catalogSha256??asset.catalogSha256)&&
+      /^[a-f0-9]{64}$/.test(asset.sha256)&&typeof asset.code==='string'&&
+      Number.isSafeInteger(asset.bytes)&&asset.bytes>0,'E_BUILTIN_VERSION_UNAVAILABLE');
+    invariant(await sha256Utf8(asset.code)===asset.sha256&&
+      new TextEncoder().encode(asset.code).length===asset.bytes,'E_DEPENDENCY_HASH');
+  }
+  if(jquery)invariant(typeof jqueryCode==='string'&&await sha256Utf8(jqueryCode)===JQUERY_371.sha256,
+    'E_DEPENDENCY_HASH');
   const sources = [];
   if(builtinSource!==undefined) {
     invariant(builtinSource?.abi===BUILTIN_ABI && typeof builtinSource.code==='string' &&
@@ -105,14 +113,21 @@ export async function compileLockedPageSource({sourceUtf8, entryFormat, entries 
     // approved @require or user source is executed.
   }
 
-  if(jquery){
+  // Each fixed bundle executes once, in user-declared order in one isolated world.
+  for(const name of selected){
+    if(name==='jquery'){
     // One compilation unit: built-in readiness, jQuery and user JS stop
     // synchronously on the first failure; never use another execution world.
     sources.push("if(typeof globalThis.jQuery!=='undefined'||typeof globalThis.$!=='undefined')throw new Error('E_BUILTIN_COLLISION')");
     sources.push(jqueryCode);
     sources.push("if(globalThis.jQuery?.fn?.jquery!=='3.7.1')throw new Error('E_DEPENDENCY_NOT_READY')");
-  }
-  if(optional){
+    }else if(name===frameworkId){
+    sources.push(frameworkSource.code);
+    const expected=JSON.stringify(framework.version),api='globalThis.'+framework.global;
+    sources.push('if('+api+'?.version!=='+expected+')throw Error("E_PAGE_FRAMEWORK_NOT_READY")');
+    }else{
+      const optional=BUILTIN_RUNTIME_CATALOG.libraries[pageOptionalLibraryId(name)];
+      const optionalSource=assets[ids.indexOf(optional.id)];
     // Same admitted USER_SCRIPT world; never overwrite preexisting globals.
     const globalName=optional.id==='jsCookie'?'Cookies':optional.id==='cryptoJs'?'CryptoJS':optional.id==='fileSaver'?'FileSaver':optional.id==='queryString'?'queryString':optional.id==='store'?'store':optional.id==='cheerio'?'cheerio':optional.id==='fingerprintjs'?'FingerprintJS':'axios';
     sources.push('if(Object.hasOwn(globalThis,'+JSON.stringify(globalName)+'))throw Error("E_BUILTIN_COLLISION")');
@@ -141,11 +156,7 @@ export async function compileLockedPageSource({sourceUtf8, entryFormat, entries 
                 :optional.id==='fingerprintjs'
                   ?"if(typeof globalThis.FingerprintJS?.load!=='function'||typeof globalThis.FingerprintJS?.hashComponents!=='function')throw Error('E_DEPENDENCY_NOT_READY')"
                   :"if(typeof globalThis.axios!=='function'||typeof globalThis.axios?.create!=='function'||typeof globalThis.axios?.interceptors?.request?.use!=='function')throw Error('E_DEPENDENCY_NOT_READY')");
-  }
-  if(framework){
-    sources.push(frameworkSource.code);
-    const expected=JSON.stringify(framework.version),api='globalThis.'+framework.global;
-    sources.push('if('+api+'?.version!=='+expected+')throw Error("E_PAGE_FRAMEWORK_NOT_READY")');
+    }
   }
   for (let order = 0; order < entries.length; order++) {
     const row = entries[order];
@@ -165,11 +176,17 @@ export async function compileLockedPageSource({sourceUtf8, entryFormat, entries 
   // in one lexical block; prior runtime approvals require revalidation.
   const code = (builtinSource?sources.shift()+'\n;\n':'')+
     builtinReadinessSource(sources.join('\n;\n'),builtinSource,receiptNonce);
+  // Only newly introduced multi-library combinations use this bounded single
+  // compiled text budget. Do not retrofit it onto existing large, already
+  // reviewed external ESM/JSON programs with zero or one packaged library.
+  invariant(selected.length<=1||new TextEncoder().encode(code).length<=PAGE_COMPILED_SOURCE_LIMIT,
+    'E_PAGE_SOURCE_LIMIT','多库编译文本超过 512 KiB；请减少依赖');
   return Object.freeze({sourceHash, entryFormat,
     world:'USER_SCRIPT', js:Object.freeze([{code}]), warnings:admission.warnings,receiptNonce,
     ...(jquery?{packagedJquerySha256:JQUERY_371.sha256}:{}),
     ...(framework?{packagedFrameworkId:framework.id,packagedFrameworkSha256:framework.sha256}:{}),
-    ...(optional?{packagedOptionalId:optional.id,packagedOptionalSha256:optionalSource.sha256}:{}),
+    ...(assets.length?{packagedOptionals:Object.freeze(assets.map(a=>Object.freeze({id:a.id,sha256:a.sha256})))}:{}),
+    ...(assets.length===1?{packagedOptionalId:assets[0].id,packagedOptionalSha256:assets[0].sha256}:{}),
     ...(builtinSource?{builtinAbi:BUILTIN_ABI,builtinCatalogSha256:builtinSource.catalogSha256,
       builtinBundleSha256:builtinSource.sha256}:{})});
 }

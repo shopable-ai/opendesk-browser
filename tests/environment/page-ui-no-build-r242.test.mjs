@@ -73,8 +73,9 @@ test('R24.2 no-build JSX-free Page projects auto build with the original resolve
 test('R24.2 framework opt-in rejects unsupported directives and multiple dependencies',()=>{
   for(const value of ['react','vue','jquery'])
     assert.equal(pageSelectedPackagedLibrary('// @opendesk-lib '+value+'\nasync function main(){}'),value);
+  // Both are valid separately, but React and Vue cannot own one managed root.
   assert.throws(()=>pageSelectedPackagedLibrary('// @opendesk-lib react\n// @opendesk-lib vue\nasync function main(){}'),
-    {code:'E_BUILTIN_DECLARATION'});
+    {code:'E_BUILTIN_CONFLICT'});
   assert.throws(()=>pageSelectedPackagedLibrary('// @opendesk-lib angular\nasync function main(){}'),
     {code:'E_BUILTIN_DECLARATION'});
 });

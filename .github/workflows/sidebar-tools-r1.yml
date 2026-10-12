@@ -27,6 +27,8 @@ on:
       - 'wxt.config.mjs'
       - 'package.json'
       - 'examples/sidebar-tools/**'
+      - 'examples/libs/trusted-imports/**'
+      - 'tests/environment/runtime-libs-trusted-worlds.test.mjs'
       - 'tests/environment/sidebar-tools.test.mjs'
       - 'tests/environment/sidebar-tools-host.test.mjs'
       - 'tests/environment/tool-stage.test.mjs'
@@ -63,12 +65,16 @@ jobs:
       - run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Validate R14 tool isolation and all five Sidebar regressions
         run: |
-          node --test tests/environment/official-tools-catalog-r45.test.mjs tests/environment/sidebar-tools.test.mjs tests/environment/sidebar-tools-host.test.mjs tests/environment/tool-ui-tab.test.mjs tests/environment/tool-stage.test.mjs tests/environment/tool-snapshot.test.mjs tests/environment/tool-preview-session.test.mjs tests/environment/tool-watch.test.mjs tests/environment/sidebar-quick-notes.test.mjs tests/environment/sidebar-react-cdn-bundle.test.mjs tests/environment/sidebar-product-contract.test.mjs tests/environment/sidebar-ui-preview.test.mjs tests/environment/task-workbench.test.mjs
+          node --test tests/environment/runtime-libs-trusted-worlds.test.mjs tests/environment/official-tools-catalog-r45.test.mjs tests/environment/sidebar-tools.test.mjs tests/environment/sidebar-tools-host.test.mjs tests/environment/tool-ui-tab.test.mjs tests/environment/tool-stage.test.mjs tests/environment/tool-snapshot.test.mjs tests/environment/tool-preview-session.test.mjs tests/environment/tool-watch.test.mjs tests/environment/sidebar-quick-notes.test.mjs tests/environment/sidebar-react-cdn-bundle.test.mjs tests/environment/sidebar-product-contract.test.mjs tests/environment/sidebar-ui-preview.test.mjs tests/environment/task-workbench.test.mjs
           npm run check
       - name: Build installable offline notes tool JSON
         run: |
           npm run build:sidebar-tool -- examples/sidebar-tools/quick-notes --out artifacts/sidebar-tools/quick-notes/quick-notes.opendesk-tool.json
           node --input-type=module -e "import {readFileSync} from 'node:fs';import {validateSidebarToolPackage} from './src/ui/sidebar-tools/package.js';const p=validateSidebarToolPackage(JSON.parse(readFileSync('artifacts/sidebar-tools/quick-notes/quick-notes.opendesk-tool.json','utf8')));if(!p.html.includes('data:image/png;base64,'))throw Error('Local image was not bundled');console.log('SIDEBAR_TOOL_BUILT_AND_VALIDATED',p.id,p.version)"
+      - name: Package runnable sandbox world demo (not installed)
+        run: |
+          node scripts/build-sidebar-tool.mjs examples/sidebar-tools/runtime-globals-demo --out artifacts/sidebar-tools/runtime-globals-demo/1.0.0/runtime-globals-demo.opendesk-tool.json
+          node --input-type=module -e "import {readFileSync} from 'node:fs';import {validateSidebarToolPackage} from './src/ui/sidebar-tools/package.js';const p=validateSidebarToolPackage(JSON.parse(readFileSync('artifacts/sidebar-tools/runtime-globals-demo/1.0.0/runtime-globals-demo.opendesk-tool.json','utf8')));if(p.id!=='runtime-globals-demo'||p.capabilities.join(',')!=='currentPage.read')throw Error('Incorrect sandbox permissions');console.log('SANDBOX_RUNTIME_DEMO_PACKAGE_OK',p.id)"
       - name: Compile standalone React and Vue tool source with pinned toolchain
         run: |
           set -euo pipefail
@@ -94,6 +100,7 @@ jobs:
           retention-days: 7
           path: |
             artifacts/sidebar-tools/quick-notes/quick-notes.opendesk-tool.json
+            artifacts/sidebar-tools/runtime-globals-demo/1.0.0/runtime-globals-demo.opendesk-tool.json
             dist/production/official-tools/
             docs/framework/evidence/wxt/builds/build-production.json
             docs/framework/evidence/wxt/builds/build-development.json

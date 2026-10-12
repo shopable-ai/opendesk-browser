@@ -1,0 +1,29 @@
+{
+  "name": "@opendesk-examples/page-ui-react-axios-query",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Managed React Page UI with optional pinned Axios and query-string",
+  "opendesk": {
+    "format": "opendesk.project.v1",
+    "id": "sample.page-ui-react-axios-query",
+    "runtimeKind": "page-userscript",
+    "sourceFormat": "esm",
+    "entry": "src/main.js",
+    "framework": "react",
+    "libraries": [
+      "axios",
+      "query-string"
+    ],
+    "entryMode": "component",
+    "pageRules": {
+      "matches": [
+        "http://127.0.0.1/*"
+      ],
+      "excludeMatches": [],
+      "runAt": "document_idle",
+      "allFrames": false,
+      "world": "USER_SCRIPT"
+    }
+  }
+}

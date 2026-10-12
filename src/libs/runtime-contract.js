@@ -31,7 +31,7 @@ export const BUILTIN_RUNTIME_CATALOG=Object.freeze({
     queryString:Object.freeze({id:'queryString',version:'9.5.1',output:'libs/packages/query-string.js',
       worlds:Object.freeze(['USER_SCRIPT']),default:false}),
     axios:Object.freeze({id:'axios',version:'1.20.0',output:'libs/packages/axios.js',
-      worlds:Object.freeze(['USER_SCRIPT']),default:false}),
+      worlds:Object.freeze(['CONTROLLER','USER_SCRIPT']),default:false}),
     store:Object.freeze({id:'store',version:'2.0.12',output:'libs/packages/store.js',
       worlds:Object.freeze(['USER_SCRIPT']),default:false}),
     cheerio:Object.freeze({id:'cheerio',version:'1.2.0',output:'libs/packages/cheerio.js',
@@ -52,3 +52,11 @@ export const BUILTIN_RESOURCE_PATHS=Object.freeze([
   'licenses/my-utils-MIT.txt','licenses/jquery-MIT.txt',
   'licenses/js-cookie-MIT.txt','licenses/crypto-js-MIT.txt','licenses/file-saver-MIT.txt','licenses/query-string-MIT.txt','licenses/axios-MIT.txt','licenses/store-MIT.txt','licenses/cheerio-MIT.txt','licenses/fingerprintjs-MIT.txt'
 ]);
+
+// Public Page directive aliases are derived exclusively from the runtime
+// catalog. This is not a second package registry or an extension permission.
+export const PAGE_OPTIONAL_LIBRARY_IDS=Object.freeze(Object.fromEntries(
+  Object.values(BUILTIN_RUNTIME_CATALOG.libraries)
+    .filter(row=>!row.default&&row.id!=='jquery'&&row.worlds.includes('USER_SCRIPT'))
+    .map(row=>[row.id.replace(/[A-Z]/g,letter=>'-'+letter.toLowerCase()),row.id])
+));

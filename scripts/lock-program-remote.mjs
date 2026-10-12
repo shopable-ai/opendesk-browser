@@ -35,7 +35,7 @@ async function review(project){
   const identity={root,rootDev:String(info.dev),rootIno:String(info.ino),id:verified.id,
     version:verified.version,entry:verified.entry,runtimeKind:verified.runtimeKind,
     sources:verified.sources,assets:verified.assets,npmDependencies:verified.npmDependencies,
-    remoteImports:verified.remoteImports,lockHash};
+    remoteImports:verified.remoteImports,...(verified.remoteDependencies?{remoteDependencies:verified.remoteDependencies}:{}),lockHash};
   return {root,verified,token:sha(JSON.stringify(identity)).slice(0,20)};
 }
 
@@ -61,7 +61,7 @@ export async function lockProgramRemote(project,{approve,allowURL,fetchImpl}={})
   const temp=await mkdtemp(join(tmpdir(),'opendesk-lock-remote-'));
   try{
     const result=await prepareRemoteModules({root:before.root,temp,lockRemote:true,fetchImpl,
-      remoteImports:before.verified.remoteImports,approveURL:approveChild,
+      remoteImports:before.verified.remoteImports,remoteDependencies:before.verified.remoteDependencies,approveURL:approveChild,
       beforeCommit:async()=>{
         const current=await review(before.root);
         if(current.token!==before.token)fail('E_REMOTE_APPROVAL_CHANGED',

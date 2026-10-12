@@ -66,7 +66,7 @@ function hasNativeEffect(operation) {
 // Delegate of the unique authority. Every durable fence is ordered by its
 // injected storage transaction; the maps below only correlate live promises.
 export function controllerMethods({storage, api, session, clock, assertHost, currentHost,
-  loadBuiltin=loadBuiltinWorkerSource,emitToHost=async()=>{},cloud}) {
+  loadBuiltin=loadBuiltinWorkerSource,emitToHost=async()=>{},cloud,scheduled}) {
   const pending = new Map(), cancellations = new Map(), navigating = new Map(), boundTargets = new Map(), creatingTabs = new Map();
   const locatorWriters = new Set();
   const tabEpochs = new Map(), frameEpochs = new Map(), permissionRemovals = [];
@@ -348,7 +348,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
   async function prepareControllerRun(request, sender, assertCandidate) {
     // A single admission API supports exact saved revisions and immutable draft
     // snapshots. The original top-level saved request remains compatible.
-    fields(request, ['requestId', 'scriptId', 'revision', 'contentHash', 'source', 'paramsWire', 'target', 'deadlineAt','networkOrigins','expectedTaskGeneration','expectedTaskInstallationId','cloudRequestId'],
+    fields(request, ['requestId', 'scriptId', 'revision', 'contentHash', 'source', 'paramsWire', 'target', 'deadlineAt','networkOrigins','expectedTaskGeneration','expectedTaskInstallationId','cloudRequestId','scheduledFireId'],
       ['requestId', 'paramsWire', 'target', 'deadlineAt']);
     id(request.requestId); selection(request.target); const runParams=decodeValue(request.paramsWire);
     const environment=builtinIdentity(await loadBuiltin({runtime:api.runtime}));
@@ -365,6 +365,8 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
     invariant(isInstalledTask?Object.hasOwn(request,'expectedTaskGeneration')&&Object.hasOwn(request,'expectedTaskInstallationId'):
       !Object.hasOwn(request,'expectedTaskGeneration')&&!Object.hasOwn(request,'expectedTaskInstallationId'),
       'E_REVISION','安装任务必须绑定点击时的安装身份和授权代次');
+    invariant(!request.scheduledFireId || isInstalledTask && !request.cloudRequestId && request.requestId===request.scheduledFireId,
+      'E_PERMISSION','Schedule admission requires an immutable installed task and FireId');
     const draftSourceUtf8 = isDraft ? variant.sourceUtf8 : undefined;
     if (isDraft) {
       invariant(typeof draftSourceUtf8 === 'string' &&
@@ -390,7 +392,8 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
     const nativeNetworkFences = networkOrigins.map(origin => ({origin,
       permissionEpoch:nativeFence(request.target.tabId,origin).permissionEpoch}));
     const capturedFence = nativeFence(request.target.tabId, selectedOrigin || observed.allowedOrigin, request.target.frameId ?? 0);
-    const admissionKey = request.cloudRequestId ? `cloud-start:${request.cloudRequestId}` : `controller-start:${canonical([host.registrationId, request.requestId])}`;
+    const admissionKey = request.scheduledFireId ? `scheduled-start:${request.scheduledFireId}` :
+      request.cloudRequestId ? `cloud-start:${request.cloudRequestId}` : `controller-start:${canonical([host.registrationId, request.requestId])}`;
     invariant(!request.cloudRequestId || isInstalledTask && request.requestId===request.cloudRequestId && request.target.mode==='owned','E_TASK');
     const admitted = await tx(RUN_WRITE, async transaction => {
       await currentHost(transaction, host, sender);
@@ -399,6 +402,9 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
         scriptId:saved.scriptId,contentHash:saved.contentHash,
         origin:selectedOrigin || observed.allowedOrigin,params:runParams,migrate:true,builtinIdentity:environment,
         expectedGeneration:request.expectedTaskGeneration,expectedInstallationId:request.expectedTaskInstallationId}):null;
+      const scheduledFire=request.scheduledFireId?
+        await scheduled.admit(transaction,request.scheduledFireId,{...request,paramsDecoded:runParams},
+          selectedOrigin||observed.allowedOrigin,now()):null;
       const old = await transaction.get(COMMAND_JOURNAL, admissionKey);
       if (old) {
         invariant(old.requestDigest === requestDigest, REQUEST_CONFLICT);
@@ -418,6 +424,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
         ...(installedTask?{installedTaskAuthorization:{taskId:installedTask.installation.taskId,
           version:installedTask.installation.version,manifestHash:installedTask.installation.manifestHash,
           authorization:installedTask.installation.authorization}}:{}),
+        ...(scheduledFire?{scheduledFireId:scheduledFire.fireId}:{}),
         opId: newId(), resultId: newId(), requestId: request.requestId, requestDigest, deadlineAt: request.deadlineAt,
         paramsWire: structuredClone(request.paramsWire), selection: structuredClone(request.target),
         startUrl: request.target.mode === 'owned' ? httpUrl(request.target.url).href : null,
@@ -442,6 +449,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
       await transaction.put(RUN_STORE, run, runId);
       await transaction.put(RUN_STORE, {tag: 'slot', currentRunId: runId, state: 'held', releaseCount: 0, fencedEpoch: 1, retirementId: null}, '@slot');
       await transaction.put(COMMAND_JOURNAL, {tag: 'controller-start', runId, requestDigest}, admissionKey);
+      if(scheduledFire)await scheduled.bind(transaction,scheduledFire,run);
       return {run, pinned, duplicate: false};
     }, isDraft ? stores : [...stores, 'scriptHeads', 'scriptRevisions', ...(isInstalledTask?['frameworkKV']:[])]);
     const run = admitted.run;

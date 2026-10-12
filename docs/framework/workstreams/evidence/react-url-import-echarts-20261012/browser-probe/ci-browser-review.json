@@ -1,0 +1,118 @@
+{
+  "task": "React URL import evidence reuse and browser test entry audit",
+  "auditedHead": "4b3eef890082f2e60aefbc964ee10a17e20f60b6",
+  "originalSourceCI": {
+    "candidate": "7fcdb8b15a18d7cf711bc6ba734ed052d3dabcd1",
+    "runId": 38237319537,
+    "jobId": 114771079658,
+    "runURL": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38237319537",
+    "jobURL": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38237319537/job/114771079658",
+    "status": "success",
+    "nodeSource": "22.23.3",
+    "nodeL2": "26.3.1",
+    "sourceBuild": {
+      "pass": 169,
+      "fail": 0
+    },
+    "models": {
+      "pass": 13,
+      "fail": 0
+    },
+    "sourceCheckFiles": 533,
+    "targetedCases": [
+      {
+        "number": 39,
+        "name": "default TOC directly imports reviewed HTTPS ESM alongside packaged React"
+      },
+      {
+        "number": 40,
+        "name": "reviewed upstream cache builds deterministically and exports through the original JSON pipeline"
+      },
+      {
+        "number": 41,
+        "name": "missing lock blocks before downloading; explicit test-only pinning remains separate"
+      },
+      {
+        "number": 42,
+        "name": "missing or tampered cache never falls back to CDN or local math"
+      },
+      {
+        "number": 43,
+        "name": "changing a URL requires a new pin rather than silently reusing another version"
+      }
+    ],
+    "excerpt": "2026-10-12T10:35:52.6188253Z Complete job name: source-check\n2026-10-12T10:36:01.4805566Z node: v22.23.3\n2026-10-12T10:36:15.0231556Z ok 39 - default TOC directly imports reviewed HTTPS ESM alongside packaged React\n2026-10-12T10:36:16.8669159Z ok 40 - reviewed upstream cache builds deterministically and exports through the original JSON pipeline\n2026-10-12T10:36:18.2785996Z ok 41 - missing lock blocks before downloading; explicit test-only pinning remains separate\n2026-10-12T10:36:18.3156472Z ok 42 - missing or tampered cache never falls back to CDN or local math\n2026-10-12T10:36:18.3393473Z ok 43 - changing a URL requires a new pin rather than silently reusing another version\n2026-10-12T10:36:22.3601504Z # tests 169\n2026-10-12T10:36:22.3602216Z # pass 169\n2026-10-12T10:36:22.3602573Z # fail 0\n2026-10-12T10:36:22.4772808Z # tests 13\n2026-10-12T10:36:22.4773211Z # pass 13\n2026-10-12T10:36:22.4773397Z # fail 0\n2026-10-12T10:36:38.4865430Z Syntax checked 533 source/test/build files; scripts/build-contract.mjs entries, fixed SDK/control entries, strict CSP and original MIT checked\n2026-10-12T10:36:43.5115048Z node: v26.3.1",
+    "limits": "Source/build/model evidence only. live HTTPS smoke was skipped. No real React TOC Chrome, JSON install, or Mac Native proof."
+  },
+  "sidebarOriginalFailure": {
+    "candidate": "7fcdb8b15a18d7cf711bc6ba734ed052d3dabcd1",
+    "runId": 38237319659,
+    "jobId": 114771080041,
+    "URL": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38237319659/job/114771080041",
+    "counts": {
+      "pass": 276,
+      "fail": 1
+    },
+    "test": "cloudResolve uses a durable direct request key and rejects non-cloud identifiers",
+    "testLocation": "tests/framework/k3-controller-authority.test.mjs:1395",
+    "cause": "assertInstalledTask used tx.all(frameworkKV), tripping the bounded-read guard. Stack: src/platform/tasks/service.js:39, :311, :104.",
+    "excerpt": "2026-10-12T10:36:09.7809598Z   ...\n2026-10-12T10:36:09.8067517Z # Subtest: cloudResolve uses a durable direct request key and rejects non-cloud identifiers\n2026-10-12T10:36:09.8070357Z not ok 254 - cloudResolve uses a durable direct request key and rejects non-cloud identifiers\n2026-10-12T10:36:09.8071164Z   ---\n2026-10-12T10:36:09.8071514Z   duration_ms: 24.845405\n2026-10-12T10:36:09.8071907Z   type: 'test'\n2026-10-12T10:36:09.8072850Z   location: '/home/runner/work/opendesk-browser/opendesk-browser/tests/framework/k3-controller-authority.test.mjs:1395:1'\n2026-10-12T10:36:09.8073820Z   failureType: 'testCodeFailure'\n2026-10-12T10:36:09.8074310Z   error: 'Unbounded Cloud KV scan'\n2026-10-12T10:36:09.8074631Z   code: 'ERR_TEST_FAILURE'\n2026-10-12T10:36:09.8074936Z   stack: |-\n2026-10-12T10:36:09.8075580Z     Object.all (file:///home/runner/work/opendesk-browser/opendesk-browser/tests/framework/k3-controller-authority.test.mjs:1399:54)\n2026-10-12T10:36:09.8076550Z     assertInstalledTask (file:///home/runner/work/opendesk-browser/opendesk-browser/src/platform/tasks/service.js:39:28)\n2026-10-12T10:36:09.8078071Z     file:///home/runner/work/opendesk-browser/opendesk-browser/src/platform/tasks/service.js:311:31\n2026-10-12T10:36:09.8078893Z     async file:///home/runner/work/opendesk-browser/opendesk-browser/src/platform/tasks/service.js:104:20\n2026-10-12T10:36:09.8079994Z     async file:///home/runner/work/opendesk-browser/opendesk-browser/tests/framework/k3-controller-authority.test.mjs:30:22\n2026-10-12T10:36:09.8080704Z   ...\n2026-10-12T10:36:09.8426284Z # Subtest: cloud binds original run and slot before permit; no target or worker before durable permission\n2026-10-12T10:36:09.8427836Z ok 255 - cloud binds original run and slot before permit; no target or worker before durable permission"
+  },
+  "sidebarFix": {
+    "candidate": "d18b57f7f555fa1942224ecde1b20dc2b26d9216",
+    "containedInAuditedHead": true,
+    "implementation": "Parse strict task:taskId:version script identity; tx.get(installedKey(namespace,taskId)); preserve installed tag, namespace, version, script ID, enabled and immutable authorization checks.",
+    "runId": 38239459545,
+    "jobId": 114778186743,
+    "URL": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38239459545/job/114778186743",
+    "status": "success",
+    "counts": [
+      16,
+      277,
+      23,
+      37
+    ],
+    "excerpt": "2026-10-12T11:02:25.2139251Z d18b57f7f555fa1942224ecde1b20dc2b26d9216\n2026-10-12T11:02:34.6273390Z # tests 16\n2026-10-12T11:02:34.6273800Z # pass 16\n2026-10-12T11:02:34.6274010Z # fail 0\n2026-10-12T11:02:38.2416115Z ok 254 - cloudResolve uses a durable direct request key and rejects non-cloud identifiers\n2026-10-12T11:02:38.6641922Z # tests 277\n2026-10-12T11:02:38.6642288Z # pass 277\n2026-10-12T11:02:38.6642469Z # fail 0\n2026-10-12T11:02:39.7910029Z # tests 23\n2026-10-12T11:02:39.7911690Z # pass 23\n2026-10-12T11:02:39.7912057Z # fail 0\n2026-10-12T11:02:40.8383571Z # tests 37\n2026-10-12T11:02:40.8384660Z # pass 37\n2026-10-12T11:02:40.8385207Z # fail 0",
+    "relevance": "Installed Controller / cloud task admission; not the Page USER_SCRIPT draft/build path. Original failure remains recorded; do not claim old candidate was globally green."
+  },
+  "reuse": {
+    "unchanged": "TOC project files, build-program-project, validate-program-project, remote-esm-modules/network, lock-program-remote, Native resolver, page-component-preparer, execution-source, TOC builder test, root package lock.",
+    "mainBlob": "d8e266377be9d1bc344dba93f90e95a7ce630b71",
+    "packageBlob": "6c0e69ecf420b3cee12c1a3ba359918697934faf",
+    "lockBlob": "6276854f77566df5e32afe838fd91859361472c7",
+    "moduleBlob": "ce287368eb4402d359f18ec1c6c81dde0c774cc5",
+    "moduleSHA256": "691945a453633d9e204846af8ea4e299821b924f82b15eaf7906aba642979b1d",
+    "moduleBytes": 502,
+    "changedButSeparate": [
+      "src/ui/sidebar-tools/package.js: V2 capability names browser.tabs/browser.sidePanel/network added. TOC uses program-draft, not Sidebar tool V2.",
+      ".github/workflows/program-project-source.yml adds runtime-globals-zero-arg and runtime-libs-trusted-worlds tests. Historic 169 is historic combination size."
+    ]
+  },
+  "browserEnvironment": {
+    "executable": "/tmp/opendesk-r5-cft/chrome-linux64/chrome",
+    "observedVersion": "Google Chrome for Testing 155.0.8059.39",
+    "runtimeHas": [
+      "playwright",
+      "playwright-core"
+    ],
+    "nativeMacAccessible": false,
+    "launched": false,
+    "guidance": "Use a new task-owned profile and OS-assigned CDP port; never reuse other agent profile/dist/ports. Existing Linux branch in launchLocalDevChrome supports direct launch; Mac cft-isolated-launcher.py requires official .app suffix."
+  },
+  "minimalDriver": {
+    "reusableLocalEntry": "tests/framework/page-frameworks-r242-native.mjs::runPageFrameworkExamples, called by local-dev-native-acceptance.mjs",
+    "reusableBrowserUI": "tests/framework/page-browser-worker-r243-cft.mjs::verifyBrowserUI; uses real Chrome userScripts toggle, real Side Panel, trusted CDP Input, immutable receipt read and DOM observation.",
+    "browserUIConditions": "Current runner hardcodes dist/production, 43111, headed argv; Linux headless adaptation needs task-owned output/profile and exact package identity. Do not invoke unchanged long loop for this task.",
+    "jsonEntry": "program.opendesk-draft.json -> #task-package-file in full catalog -> existing opendesk.sidebar.draft-import.v1 -> same-window Sidebar source snapshot -> explicit #page-preview-run -> #page-candidate-save -> #page-program-verify -> explicit #page-program-install.",
+    "frozenValidation": "src/ui/program-source.js validates opendesk.program-draft.v1, sourceHash, byteLength, fixed React declaration, individual authoring hashes. It is not a directly installable tool JSON.",
+    "requiredAssertions": [
+      "Import alone creates no DOM and no install.",
+      "Run receipt sourceHash matches frozen builder bytes, world USER_SCRIPT, same documentId and real previewId.",
+      "D3 TOC shadow DOM shows actual summary and working chapter links; ECharts visible SVG/canvas plus state and resize results after implementation.",
+      "Stop removes managed host and chart disposal; no late remount after error/source switch/navigation.",
+      "Independent install identity manifestHash/sourceHash, verify receipt, installation ID and generation; future navigation retains code with Native/CDN absent.",
+      "Online network observation must distinguish source preparation from execution; offline frozen run must have no CDN requests.",
+      "Read original receipt on effect unknown; never replay."
+    ]
+  }
+}

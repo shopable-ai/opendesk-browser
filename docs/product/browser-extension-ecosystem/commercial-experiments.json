@@ -1,0 +1,358 @@
+{
+  "schemaVersion": "opendesk.browser-ecosystem.commercial-experiments.v1",
+  "asOf": "2026-10-12",
+  "sourceOfTruth": {
+    "opportunities": "docs/product/browser-extension-ecosystem/opportunity-register.json",
+    "capabilities": "docs/product/browser-automation-feature-catalog-r8.zh-CN.md",
+    "engineering": "docs/product/browser-automation-r8-implementation-plan.zh-CN.md"
+  },
+  "status": "RESEARCH_NOT_EXECUTED",
+  "notClaims": [
+    "No interviews",
+    "No paid order",
+    "No active user telemetry",
+    "No CWS approval",
+    "No background monitor"
+  ],
+  "experiments": [
+    {
+      "id": "EXP-001",
+      "title": "企业受控网页工作流付费试点",
+      "opportunityIds": [
+        "OPP-057",
+        "OPP-059"
+      ],
+      "r8CapabilityIds": [
+        "AUTO-007",
+        "SEC-001"
+      ],
+      "buyerHypothesis": "运营/IT 采购负责人",
+      "pricingUnitHypothesis": "项目部署费+明确维护合同",
+      "hypothesis": "一项可授权的重复内部任务可获得实际采购",
+      "successEvidenceTarget": "真实测试页任务验收+采购签署/付款证据",
+      "policyGate": "DATA_AND_COMPANY_PERMISSION_REQUIRED",
+      "priority": "NOW",
+      "stage": "PROPOSED",
+      "owner": "UNASSIGNED",
+      "startedAt": null,
+      "endedAt": null,
+      "metrics": {
+        "interviewCount": null,
+        "firstTaskSuccessRate": null,
+        "naturalRepeatUse": null,
+        "paidOrders": null,
+        "revenue": null,
+        "cac": null,
+        "monthlyContribution": null,
+        "maintenanceHours": null
+      },
+      "gates": {
+        "security": "NOT_AUDITED",
+        "userDemand": "NOT_TESTED",
+        "realProduct": "NOT_TESTED",
+        "payment": "NOT_MEASURED",
+        "economics": "NOT_MEASURED"
+      },
+      "evidence": [],
+      "lastReviewedAt": "2026-10-12"
+    },
+    {
+      "id": "EXP-002",
+      "title": "Page QA Inspector 单用途产品",
+      "opportunityIds": [
+        "OPP-004",
+        "OPP-001",
+        "OPP-071"
+      ],
+      "r8CapabilityIds": [
+        "AUTO-002",
+        "DEV-009"
+      ],
+      "buyerHypothesis": "QA 负责人或代理商",
+      "pricingUnitHypothesis": "免费当前页检查+可选团队报告",
+      "hypothesis": "用户相较 DevTools 能更快自主找到并处理问题",
+      "successEvidenceTarget": "无引导首次任务成功及自然重复使用",
+      "policyGate": "ACTIVE_TAB_AND_CWS_SINGLE_PURPOSE",
+      "priority": "ARCHIVED",
+      "stage": "ARCHIVED",
+      "owner": "UNASSIGNED",
+      "startedAt": null,
+      "endedAt": null,
+      "metrics": {
+        "interviewCount": null,
+        "firstTaskSuccessRate": null,
+        "naturalRepeatUse": null,
+        "paidOrders": null,
+        "revenue": null,
+        "cac": null,
+        "monthlyContribution": null,
+        "maintenanceHours": null
+      },
+      "gates": {
+        "security": "NOT_AUDITED",
+        "userDemand": "NOT_TESTED",
+        "realProduct": "NOT_TESTED",
+        "payment": "NOT_MEASURED",
+        "economics": "NOT_MEASURED"
+      },
+      "evidence": [],
+      "lastReviewedAt": "2026-10-12",
+      "decision": "STOP_COMMERCIAL_PRODUCT",
+      "technicalFixtureStatus": "DEPRECATED_NO_RELEASE_MANUAL_FIXTURE_ONLY",
+      "archivedReason": "Selected for easy factory test, not validated demand or differentiation; no buyer/retention/payment evidence.",
+      "reopenRequires": "New independent buyer and high-frequency need proof, clear advantage over incumbent tools, explicit product decision and approval."
+    },
+    {
+      "id": "EXP-003",
+      "title": "Research Clip & Cite 使用习惯",
+      "opportunityIds": [
+        "OPP-022",
+        "OPP-023",
+        "OPP-025"
+      ],
+      "r8CapabilityIds": [
+        "ECO-007",
+        "UX-009"
+      ],
+      "buyerHypothesis": "研究人员/团队主管",
+      "pricingUnitHypothesis": "免费本地+可选团队同步",
+      "hypothesis": "用户跨工作周期主动复用并要求来源证明",
+      "successEvidenceTarget": "独立跨两个研究周期的引用动作",
+      "policyGate": "PRIVACY_LOCAL_FIRST",
+      "priority": "NOW",
+      "stage": "PROPOSED",
+      "owner": "UNASSIGNED",
+      "startedAt": null,
+      "endedAt": null,
+      "metrics": {
+        "interviewCount": null,
+        "firstTaskSuccessRate": null,
+        "naturalRepeatUse": null,
+        "paidOrders": null,
+        "revenue": null,
+        "cac": null,
+        "monthlyContribution": null,
+        "maintenanceHours": null
+      },
+      "gates": {
+        "security": "NOT_AUDITED",
+        "userDemand": "NOT_TESTED",
+        "realProduct": "NOT_TESTED",
+        "payment": "NOT_MEASURED",
+        "economics": "NOT_MEASURED"
+      },
+      "evidence": [],
+      "lastReviewedAt": "2026-10-12"
+    },
+    {
+      "id": "EXP-004",
+      "title": "作者脚本版本与维护服务",
+      "opportunityIds": [],
+      "r8CapabilityIds": [
+        "INS-011",
+        "INS-012",
+        "INS-013",
+        "ECO-010"
+      ],
+      "buyerHypothesis": "脚本作者/企业 IT",
+      "pricingUnitHypothesis": "作者托管/站点维护合同",
+      "hypothesis": "可靠升级/回滚产生愿付费作者",
+      "successEvidenceTarget": "安全精选脚本真实升级+付费询价",
+      "policyGate": "LICENSE_AND_SCRIPT_SUPPLY_CHAIN",
+      "priority": "NEXT",
+      "stage": "PROPOSED",
+      "owner": "UNASSIGNED",
+      "startedAt": null,
+      "endedAt": null,
+      "metrics": {
+        "interviewCount": null,
+        "firstTaskSuccessRate": null,
+        "naturalRepeatUse": null,
+        "paidOrders": null,
+        "revenue": null,
+        "cac": null,
+        "monthlyContribution": null,
+        "maintenanceHours": null
+      },
+      "gates": {
+        "security": "NOT_AUDITED",
+        "userDemand": "NOT_TESTED",
+        "realProduct": "NOT_TESTED",
+        "payment": "NOT_MEASURED",
+        "economics": "NOT_MEASURED"
+      },
+      "evidence": [],
+      "lastReviewedAt": "2026-10-12"
+    },
+    {
+      "id": "EXP-005",
+      "title": "卖家 Listing QA",
+      "opportunityIds": [
+        "OPP-015",
+        "OPP-016"
+      ],
+      "r8CapabilityIds": [
+        "AUTO-008",
+        "SEC-001"
+      ],
+      "buyerHypothesis": "卖家团队主管",
+      "pricingUnitHypothesis": "席位或授权站点维护",
+      "hypothesis": "Listing 校验和回归带来重复付费价值",
+      "successEvidenceTarget": "卖家演示+授权网站原生验证",
+      "policyGate": "SELLER_SITE_TERMS_AND_DATA",
+      "priority": "NOW",
+      "stage": "PROPOSED",
+      "owner": "UNASSIGNED",
+      "startedAt": null,
+      "endedAt": null,
+      "metrics": {
+        "interviewCount": null,
+        "firstTaskSuccessRate": null,
+        "naturalRepeatUse": null,
+        "paidOrders": null,
+        "revenue": null,
+        "cac": null,
+        "monthlyContribution": null,
+        "maintenanceHours": null
+      },
+      "gates": {
+        "security": "NOT_AUDITED",
+        "userDemand": "NOT_TESTED",
+        "realProduct": "NOT_TESTED",
+        "payment": "NOT_MEASURED",
+        "economics": "NOT_MEASURED"
+      },
+      "evidence": [],
+      "lastReviewedAt": "2026-10-12"
+    },
+    {
+      "id": "EXP-006",
+      "title": "SEO 页面质量检查",
+      "opportunityIds": [
+        "OPP-071",
+        "OPP-072",
+        "OPP-073"
+      ],
+      "r8CapabilityIds": [
+        "DEV-009",
+        "SEC-014"
+      ],
+      "buyerHypothesis": "SEO 服务商",
+      "pricingUnitHypothesis": "团队报告或许可",
+      "hypothesis": "一个明确的技术 SEO 工作流形成周度复用",
+      "successEvidenceTarget": "与现有 SEO Toolbar 的真实任务对照",
+      "policyGate": "CWS_NARROW_PURPOSE_AND_COMPETITION",
+      "priority": "NEXT",
+      "stage": "PROPOSED",
+      "owner": "UNASSIGNED",
+      "startedAt": null,
+      "endedAt": null,
+      "metrics": {
+        "interviewCount": null,
+        "firstTaskSuccessRate": null,
+        "naturalRepeatUse": null,
+        "paidOrders": null,
+        "revenue": null,
+        "cac": null,
+        "monthlyContribution": null,
+        "maintenanceHours": null
+      },
+      "gates": {
+        "security": "NOT_AUDITED",
+        "userDemand": "NOT_TESTED",
+        "realProduct": "NOT_TESTED",
+        "payment": "NOT_MEASURED",
+        "economics": "NOT_MEASURED"
+      },
+      "evidence": [],
+      "lastReviewedAt": "2026-10-12"
+    },
+    {
+      "id": "EXP-007",
+      "title": "透明购物到手价",
+      "opportunityIds": [
+        "OPP-010",
+        "OPP-013"
+      ],
+      "r8CapabilityIds": [
+        "ECO-003",
+        "SEC-014"
+      ],
+      "buyerHypothesis": "购物消费者",
+      "pricingUnitHypothesis": "先免费，若有真实复用再研究订阅",
+      "hypothesis": "透明到手价比默认返利广告更可信",
+      "successEvidenceTarget": "商品金额正确性与自然复用",
+      "policyGate": "NO_SILENT_AFFILIATE_OR_COOKIE",
+      "priority": "NOW",
+      "stage": "PROPOSED",
+      "owner": "UNASSIGNED",
+      "startedAt": null,
+      "endedAt": null,
+      "metrics": {
+        "interviewCount": null,
+        "firstTaskSuccessRate": null,
+        "naturalRepeatUse": null,
+        "paidOrders": null,
+        "revenue": null,
+        "cac": null,
+        "monthlyContribution": null,
+        "maintenanceHours": null
+      },
+      "gates": {
+        "security": "NOT_AUDITED",
+        "userDemand": "NOT_TESTED",
+        "realProduct": "NOT_TESTED",
+        "payment": "NOT_MEASURED",
+        "economics": "NOT_MEASURED"
+      },
+      "evidence": [],
+      "lastReviewedAt": "2026-10-12"
+    },
+    {
+      "id": "EXP-008",
+      "title": "私有 Extension Factory 合作",
+      "opportunityIds": [],
+      "r8CapabilityIds": [
+        "PORT-007",
+        "ECO-012"
+      ],
+      "buyerHypothesis": "ISV/企业集成商",
+      "pricingUnitHypothesis": "私有构建项目+维护",
+      "hypothesis": "独立受控客户包节省重复 MV3 工程",
+      "successEvidenceTarget": "真实合作方范围确认与合法私有包",
+      "policyGate": "CWS_SPECIFIC_HOST_AND_WHITE_LABEL_EXCEPTION",
+      "priority": "NEXT",
+      "stage": "PROPOSED",
+      "owner": "UNASSIGNED",
+      "startedAt": null,
+      "endedAt": null,
+      "metrics": {
+        "interviewCount": null,
+        "firstTaskSuccessRate": null,
+        "naturalRepeatUse": null,
+        "paidOrders": null,
+        "revenue": null,
+        "cac": null,
+        "monthlyContribution": null,
+        "maintenanceHours": null
+      },
+      "gates": {
+        "security": "NOT_AUDITED",
+        "userDemand": "NOT_TESTED",
+        "realProduct": "NOT_TESTED",
+        "payment": "NOT_MEASURED",
+        "economics": "NOT_MEASURED"
+      },
+      "evidence": [],
+      "lastReviewedAt": "2026-10-12"
+    }
+  ],
+  "commercialPriorityDecision": {
+    "reviewedAt": "2026-10-12",
+    "status": "RESEARCH_PRIORITY_ONLY_NO_REAL_INTERVIEWS_OR_PAID_ORDERS",
+    "decisionDocument": "docs/product/browser-extension-ecosystem/commercial-decision-ecommerce-20261012.zh-CN.md",
+    "rationale": "Page QA business-first selection was incorrect; preserve code for manual technical history, prioritize EXP-005 and EXP-007 only for commerce opportunity research.",
+    "pageQaCommercialStatus": "ARCHIVED_STOP",
+    "nextResearchGoal": "docs/framework/prompts/goal-ecommerce-tool-universe-r2-commercial-validation.zh-CN.md"
+  }
+}

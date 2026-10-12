@@ -200,3 +200,9 @@ npm run check && npm run build && npm run build:dev && npm run verify
 ```
 
 使用**新建且完全独占**的 Mac Chrome for Testing Profile 安装该候选 `dist/production`；从官方发现入口审阅安装 Time Review 1.3.1，通过受信任设置授权并开始，依次真实测试不同网站切换、持续空闲 60 秒与恢复、暂停/恢复、分类、分钟授权与撤回、两种重复下载及磁盘实际读取、Service Worker 终止、整浏览器关闭重开、用户实际 200% 浏览器缩放、停用/启用与最后的确认卸载。务必保存候选 SHA、pack packageHash、真实时间/浏览器 Profile、截图、下载 SHA、PASS/FAIL/NOT_TESTED，不对个人 Chrome Profile 执行自动清理。
+
+## R1.3 Final · 原生 Chrome `idle` 权限撤销期间的停止隔离（2026-10-12）
+
+- 已核实 [Mac Actions 38234734682](https://github.com/shopable-ai/opendesk-browser/actions/runs/38234734682)，候选 `3646789508843d45bad7fe0321adc857df6b68c5` **SUCCESS**：macOS Chrome 155 真正自然空闲后 `chrome.idle` 转换、空闲时长冻结、真实 OS 输入恢复后的时长增长 PASS；其他 P0 JSON/CSV、单条 Canvas、跨两个 hostname、真正 Chrome 200% 缩放、分类、SW/浏览器重启、受信任启停和卸载清理均在同一候选下 PASS。该结果取代此前工作流中对此 SHA 的 QUEUED 记载，但不自动转移给当前其他模块变动后的 main。
+- 本轮进一步**增量修改现有原生 macOS CFT 验收源码**：在真实已安装工具恢复有效活动后，直接点击受信任详情的「撤销空闲检测」，观察 Chrome 权限确实移除、本机 Time Review 变为 paused、已授权包 SHA 和 epoch 清空、检查点退休、30 秒 alarms 心跳移除；再真正点击「开始／恢复记录」且必须看到 `E_TIME_PERMISSION`，随后从工具正常刷新检查日总时长没有继续增长。
+- 禁止本测试直接调用 `chrome.permissions.remove` 代替用户按钮、模拟原生点击、篡改存储、修改 `chrome.idle` 值、注入权限事件，或以单元测试替代本候选的 Mac CFT 证据。现有首次暂停、恢复、JSON/CSV 和后续分类/卸载仍沿用原操作入口。新测试尚未执行时标记 `idlePermissionRevocation=NOT_TESTED`。

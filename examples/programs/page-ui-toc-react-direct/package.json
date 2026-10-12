@@ -1,11 +1,11 @@
 {
   "name": "@opendesk-examples/page-ui-toc-react-direct",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
-  "description": "A minimal React Direct floating table of contents for OpenDesk Page USER_SCRIPT",
+  "description": "React Direct table of contents with real pinned HTTPS ECharts bar chart",
   "scripts": {
-    "test": "node --test src/toc-model.test.mjs src/heading-stats.test.mjs"
+    "test": "node --test src/toc-model.test.mjs src/heading-stats.test.mjs src/heading-chart.test.mjs"
   },
   "opendesk": {
     "format": "opendesk.project.v1",
@@ -25,6 +25,14 @@
       "runAt": "document_idle",
       "allFrames": false,
       "world": "USER_SCRIPT"
+    },
+    "remoteDependencies": {
+      "format": "opendesk.remote-dependencies.v1",
+      "profile": "page-library-v1",
+      "imports": {
+        "zrender/": "https://cdn.jsdelivr.net/npm/zrender@5.6.1/",
+        "tslib": "https://cdn.jsdelivr.net/npm/tslib@2.3.0/tslib.es6.js"
+      }
     }
   }
 }

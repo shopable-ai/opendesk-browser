@@ -1,6 +1,6 @@
 # OpenDesk Browser · 定时计划 R1：产品交互与调度设计
 
-> 2026-10-12。状态：**DESIGN / INTERACTIVE_PREVIEW_COMMITTED**；尚未接入正式调度器、权限执行链，也没有真实 Chrome 验收。
+> 2026-10-12。状态：**SOURCE_IMPLEMENTED / CHROME_NATIVE_NOT_TESTED**；正式源码已接入持久调度器、权限执行链和可见运行页；基础提交 `7dbcf8b391` 的生产/开发构建与包验证在 CI 通过，当前后续修订仍需独立重测；Mac Chrome 原生验收尚无证据。
 > 主分支预览： [examples/ui/scheduled-tasks-r1-preview.html](../../../examples/ui/scheduled-tasks-r1-preview.html)。
 
 ## 1. 任务来源：采用下拉框 + 右侧两个等尺寸图标按钮
@@ -101,3 +101,51 @@ Side Panel 保留「我的 / 发现 / 工作流 / 开发 / 工具」现有一级
 - 真正的源码编辑：现有「开发」Tab 和 src/ui/script-editor.js；导入/安装任务从「我的」/完整任务目录进入。
 - 新的「我的 → 任务管理」图标直达视图、从开发返回计划的身份绑定与排程都还 **未写入正式 src/ui 页面**。
 - 创建后立即可排程仍需冻结已安装 Task 的安装身份、版本/源哈希/参数/网站，并在原 Authority 持久 CAS 核验，不因为模拟下拉可选就宣称任务已获批准。
+
+
+---
+
+## R1 源码接线记录（2026-10-12，候选待 Chrome 验收）
+
+本节是对原 R1 设计的**增量实现说明**；保留上文设计、原型和安全边界。**源码写入或组件验证不等于 Mac Chrome 真实定时执行已经通过。**
+
+### 模块与执行链
+
+- `src/platform/tasks/schedule-time.js`：once / daily / weekly / interval 及 IANA 时区规则；春季 DST 跳时落在第一个存在的当地分钟，秋季重复时间只取较早一次；重复补跑有一小时上界。
+- `src/platform/tasks/schedule-contract.js`：封闭输入 Schema、FireId、精确 HTTP(S) 目标 URL、安全时间上限。
+- `src/platform/tasks/schedule-repository.js`：直接复用 `frameworkKV` 保存计划定义和发生实例；CAS 代次、防重复 FireId、运行关联与状态；用 `runs`/ResultId 回显原有执行证据，不创建第二套结果库。
+- `src/platform/tasks/schedule-service.js`：受 Run Authority Host 认证的固定 RPC、Chrome Alarms 精确名字空间对账、启动恢复、到期唤醒。Chrome Alarm **不是脚本完成回执**。
+- `src/platform/host/controller-methods.js`：`scheduledFireId` 在 Controller admission 的**同一 IndexedDB 原子事务**校验；再次核对安装版本、来源 Hash、网站、参数与 Task 授权，随后复用原 `runs/@slot`、Run、Result 及原 Worker。第二个 Host 不能再次领取已经 ADMITTED 的同一 FireId。
+- `src/ui/scheduled-task-host.js`：只有可见的 `tool.html` 注册宿主才会执行定时任务；可复用仍有效的精确 URL 页面，或仅在用户明确允许时创建 owned 目标。Side Panel 关闭且用户保留独立运行页时可继续处理；两个 Host 仍由 Authority/slot 去重。
+- `src/ui/scheduled-task-workbench.js`：在「我的」内置计划列表、创建/编辑/暂停/恢复/删除、历史状态、任务管理、双图标按钮，以及保存源码后安装回跳。
+
+页面地址 `ui/tool.html?scheduledRunner=1` 是用户主动打开的**可见运行页**，不是隐藏页面、离屏常驻或独立第二执行器。真实 URL 身份仍需经过 `toolDocumentIdentity` 和宿主注册；不得公开通配来源或由网页自行调用。页面关闭则不执行，持久记录等待合法宿主，错过窗口按规则处理，不重试未知页面副作用。
+
+### 状态边界
+
+- `READY` / `WAITING_HOST` / `WAITING_TARGET` / `WAITING_SLOT`：只有尚未领取且在截止时间内的发生实例才可再次尝试**准入**。
+- `ADMITTED`：已有原 RunId/ResultId；不再次执行，等待原有运行历史表明完成/失败/已释放或未知。
+- `UNKNOWN` / `NEEDS_ATTENTION` / `MISSED` / `CANCELLED`：停机或异常时保持证据、避免盲目重放。授权撤销或版本更新不会自动提升旧计划的权限。
+- 删除计划不能抹掉原有 Run/Result 历史，暂停和编辑会递增代次并拒绝旧 FireId 的新准入。
+
+### 测试可信度和限制
+
+`tests/environment/scheduled-tasks-r1.test.mjs` 提供时区、DST、重复触发、CAS 和状态的 Node 组件证据；`.github/workflows/scheduled-tasks-r1.yml` 负责源码检查、回归、双构建和包校验。**这些都不能替代真实 Mac Chrome 验收。**
+
+需用 `examples/tasks/demo-form.html` 和真实已验证/安装的 Controller Task 核对 Side Panel 运行、关闭侧栏/运行页继续、运行页关闭后等待、双 Host、浏览器重启、目标页变化、撤权、版本更替、Stop、超时、Durable Result 和资源释放。证据必须包含 RunId、ResultId、FireId、实际目标 DocumentId 与当前包 Hash，按测试指南独立记录。
+
+注意：用户预览原型不是生产组件测试，也不能直接作为真实 Chrome 成功证据。
+
+
+## 7. R1 源码实现落点与可信等级（2026-10-12）
+
+此节是对上文设计的实施说明；前文静态原型状态只用于产品交互依据，不可提升为正式 Chrome PASS。
+
+- 定义与触发：`src/platform/tasks/schedule-contract.js` 严格限制字段、网站、大小和安装身份；`schedule-time.js` 使用 IANA `Intl.DateTimeFormat` 转换当地日历为 UTC，DST 空白时间前进到第一个有效分钟、重复时间只选较早一次；`schedule-repository.js` 将至多 128 个活动计划保存到**原有** `frameworkKV`，以 `scheduleId + generation + scheduledAt` 组成持久 FireId。
+- 闹钟：`schedule-service.js` 与 `src/sw.js` 只管理 `opendesk.schedule.v1:` 前缀；每次启动/重启、计划变更和闹钟事件都以持久计划为准进行对账，不调用 `clearAll`，不使用 Chrome 150+ 参数。
+- 权威准入：`controller-methods.js` 原子事务中先经安装版本和精确网站校验，再核实 FireId、固定哈希、参数、来源安装身份、预期 URL 和截止时点，写入 Fire 的 `runId/resultId` 并保持原来的 `runs/@slot`、`commandJournal`、Controller Worker 和 retirement。**不能因为定时实例存在就直接执行。**
+- Host：`src/ui/scheduled-task-host.js` 只在已打开的 `ui/tool.html` 受信扩展文档中领到期任务；Side Panel 和 `?scheduledRunner=1` 的独立可见标签均复用同一个 `scriptEditor.host`；关闭所有页面只保留等待记录。宿主每 15 秒轮询，SW 的 Port 提示可提前触发。无后台常驻任务或强开 Side Panel。
+- UI：`src/ui/scheduled-task-workbench.js` 负责「我的」内部计划、表单、双图标与管理页，任务数据复用 `listTaskCatalog`、`resolveInstalledTask`、`getTaskCandidate`、`setInstalledTaskEnabled`、`uninstallTask`；开发与真实安装仍按旧 Task v1 验证流程，不以任意源码直接排程。
+- 结果：持久 Fire 的 `ADMITTED` 状态只意味着获得唯一 Run 准入，不意味着网页副作用成功；列表始终从原 `runs` 查询 state、`resultId` 和 `retirementState`，若存在未知副作用则保持 `UNKNOWN`，决不盲目重派。
+
+**尚未闭环的证明：** 最终候选的 GitHub Actions 复验和 Mac 原生页面操作、Side Panel 关闭与可见运行页切换、多宿主并发、Chrome 320/360/420 与 200% 视觉验收。这些实际没有证据时一律 `NOT_TESTED`。追踪见 `docs/framework/workstreams/scheduled-tasks-r1-20261012.md`。

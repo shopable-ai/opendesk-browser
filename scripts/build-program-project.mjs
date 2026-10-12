@@ -14,10 +14,12 @@ import {buildAssetRecords} from './program-assets.mjs';
 import {prepareRemoteModules,remoteURL,REMOTE_LOCK_FILE,REMOTE_CACHE_DIR} from './remote-esm-modules.mjs';
 import {snapshotFileSystem,safeRead} from '../native-agent/local-dev/snapshot.mjs';
 import {parseUserScriptDependencies,assertUserScriptExecutable} from '../src/scripting/user-scripts/dependency-metadata.js';
-import {compileLockedPageSource,pageSelectedPackagedLibrary} from '../src/scripting/user-scripts/execution-source.js';
+import {compileLockedPageSource,pageSelectedPackagedLibraries} from '../src/scripting/user-scripts/execution-source.js';
 import {createTaskPackage} from '../src/platform/tasks/contract.js';
 import {PAGE_FRAMEWORK_IMPORTS,PAGE_FRAMEWORK_RUNTIMES} from '../src/libs/page-frameworks/contract.js';
 import {createPageComponentEntry,COMPONENT_ENTRY_FILE} from './page-component-entry.mjs';
+import {resolveRemoteImport} from '../src/scripting/user-scripts/remote-esm-contract.js';
+import {createPageBundle,validatePageSource,inspectPageSource,PAGE_BUNDLE_LIMITS} from '../src/scripting/user-scripts/page-bundle.js';
 
 const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
 const runtimeName='__opendeskProjectModule';
@@ -65,7 +67,7 @@ function webpackError(root,projectLabel,stats,error){
   });
 }
 
-async function compileWebpack(root,entry,temp,mode,{remoteAliases=new Map(),virtualModules=new Map(),createInputFileSystem,onCompile,framework,projectId}={}){
+async function compileWebpack(root,entry,temp,mode,{remoteAliases=new Map(),virtualModules=new Map(),createInputFileSystem,onCompile,framework,projectId,remoteImportsMap={}}={}){
   const started=performance.now();
   const projectLabel=basename(root);
   const remoteURLs=new Map([...remoteAliases].map(([url,file])=>[file,url]));
@@ -90,7 +92,7 @@ async function compileWebpack(root,entry,temp,mode,{remoteAliases=new Map(),virt
       moduleIds:mode==='development'?'named':'deterministic',
       chunkIds:mode==='development'?'named':'deterministic',
       minimize:mode==='production',
-      minimizer:[new TerserPlugin({parallel:false})]
+      minimizer:[new TerserPlugin({parallel:false,extractComments:false})]
     },
     performance:{hints:false},
     // Resolve locked HTTPS imports before Webpack's external-module hook.
@@ -105,7 +107,7 @@ async function compileWebpack(root,entry,temp,mode,{remoteAliases=new Map(),virt
       if(!resource)return;
       const issuer=remoteURLs.get(resource.contextInfo?.issuer),request=resource.request;
       if(request.startsWith('https:')||issuer){
-        const url=remoteURL(issuer?new URL(request,issuer).href:request),target=remoteAliases.get(url);
+        const url=(issuer?resolveRemoteImport(request,issuer,remoteImportsMap):remoteURL(request)),target=remoteAliases.get(url);
         ensure(target,'E_REMOTE_UNLOCKED','Remote module is not in the locked graph: '+url,{phase:'remote'});
         resource.request=target;
         for(const dependency of resource.dependencies)if(dependency.request===request)dependency.request=target;
@@ -222,6 +224,7 @@ export function pageHeader(pkg,project){
     '// @run-at '+runAt[rules.runAt],
     ...(!rules.allFrames?['// @noframes']:[]),
     ...(project.framework?['// @opendesk-lib '+project.framework]:[]),
+    ...(project.libraries||[]).map(id=>'// @opendesk-lib '+id),
     '// ==/UserScript==',''].join('\n');
 }
 
@@ -271,10 +274,11 @@ async function npmLockHash(root){
   catch(error){if(error.code==='ENOENT')return null;throw error;}
 }
 
-function draftEnvelope({pkg,project,before,sourceUtf8,sourceHash,mode}){
+function draftEnvelope({pkg,project,before,sourceUtf8,sourceHash,mode,remoteLock}){
+  const bundle=inspectPageSource(sourceUtf8,{plainLimit:SOURCE_LIMIT});
   const files=before.sourceFiles.map(({path,sourceUtf8,sha256})=>({path,sourceUtf8,sha256}));
   const byteLength=Buffer.byteLength(sourceUtf8,'utf8');
-  ensure(byteLength<=SOURCE_LIMIT,'E_PROJECT_DRAFT_LIMIT','Draft runtime source exceeds UI import limit',
+  ensure(bundle||byteLength<=SOURCE_LIMIT,'E_PROJECT_DRAFT_LIMIT','Draft runtime source exceeds UI import limit',
     {project:project.id,phase:'draft',location:'program.js'});
   ensure(files.length<=AUTHORING_FILE_LIMIT,'E_PROJECT_DRAFT_LIMIT','Draft authoring file count exceeds UI import limit',
     {project:project.id,phase:'draft'});
@@ -282,16 +286,16 @@ function draftEnvelope({pkg,project,before,sourceUtf8,sourceHash,mode}){
   ensure(total<=AUTHORING_TOTAL_LIMIT,'E_PROJECT_DRAFT_LIMIT','Draft authoring source exceeds UI import limit',
     {project:project.id,phase:'draft'});
   const draft={
-    format:DRAFT_VERSION,
+    format:bundle?'opendesk.program-draft.v2':DRAFT_VERSION,
     project:{id:project.id,version:pkg.version,entry:project.entry,
       ...(project.entryMode?{entryMode:project.entryMode}:{})},
     runtimeKind:project.runtimeKind,
     build:{mode,sourceHash,byteLength},
     sourceUtf8,
-    authoring:{files}
+    authoring:{files,...(bundle?{remoteLock}:{})}
   };
   const bytes=Buffer.byteLength(JSON.stringify(draft,null,2)+'\n','utf8');
-  ensure(bytes<=ENVELOPE_LIMIT,'E_PROJECT_DRAFT_LIMIT','Draft envelope exceeds UI import limit',
+  ensure(bytes<=(bundle?PAGE_BUNDLE_LIMITS.draftBytes:ENVELOPE_LIMIT),'E_PROJECT_DRAFT_LIMIT','Draft envelope exceeds UI import limit',
     {project:project.id,phase:'draft'});
   return draft;
 }
@@ -367,7 +371,7 @@ export async function buildProgramProject(input,{outputDirectory,mode='productio
     if(readProjectFile&&before.remoteImports.length){
       try{await readProjectFile(REMOTE_LOCK_FILE,128*1024);}catch(error){if(error.code!=='E_PROJECT_FILE')throw error;}
     }
-    const remote=await prepareRemoteModules({root,remoteImports:before.remoteImports,temp,lockRemote,fetchImpl,beforeCommit});
+    const remote=await prepareRemoteModules({root,remoteImports:before.remoteImports,temp,lockRemote,fetchImpl,beforeCommit,remoteDependencies:project.remoteDependencies});
     // Stable virtual module IDs keep canonical hashes independent of temp paths.
     // Feed original locked bytes to Webpack: resolving imports must not rewrite
     // authoring text or shift original source-map columns.
@@ -386,13 +390,18 @@ export async function buildProgramProject(input,{outputDirectory,mode='productio
     const generated=createPageComponentEntry(project,{componentStyles:cssSources});
     if(generated)virtualModules.set(join(root,COMPONENT_ENTRY_FILE),Buffer.from(generated));
     const compiled=await compileWebpack(root,generated?COMPONENT_ENTRY_FILE:project.entry,temp,mode,
-      {remoteAliases,virtualModules,createInputFileSystem,onCompile,framework:project.framework,projectId:project.id});
+      {remoteAliases,virtualModules,createInputFileSystem,onCompile,framework:project.framework,projectId:project.id,remoteImportsMap:remote.lock?.imports||{}});
     const sourceMapFile=mode==='development'?'program.js.map':undefined;
     const embeddedAssets=await collectAssets(root,before.assets,readProjectFile);
-    const sourceUtf8=programSource(pkg,project,compiled.bundle,{sourceMapFile,assets:embeddedAssets,entryAsync:compiled.entryAsync});
+    let sourceUtf8=programSource(pkg,project,compiled.bundle,{sourceMapFile,assets:embeddedAssets,entryAsync:compiled.entryAsync});
+    if(project.remoteDependencies)sourceUtf8=await createPageBundle(sourceUtf8,{
+      remoteModules:remote.modules,remoteImports:before.remoteImports,remoteLock:remote.lock});
+    if(project.runtimeKind==='controller'&&project.libraries?.length)
+      sourceUtf8=project.libraries.map(id=>'// @opendesk-lib '+id).join('\n')+'\n'+sourceUtf8;
     const bytes=Buffer.from(sourceUtf8,'utf8');
     const limit=project.runtimeKind==='page-userscript'?SOURCE_LIMIT:65536;
-    ensure(bytes.length>0&&bytes.length<=limit,'E_PROJECT_OUTPUT_LIMIT',
+    if(project.runtimeKind==='page-userscript')await validatePageSource(sourceUtf8,{plainLimit:SOURCE_LIMIT});
+    ensure(bytes.length>0&&(project.remoteDependencies||bytes.length<=limit),'E_PROJECT_OUTPUT_LIMIT',
       'Program build output exceeds the current execution chain limit',
       {project:projectLabel,phase:'build',location:'program.js'});
     try{parse(sourceUtf8,{ecmaVersion:'latest',sourceType:'script'});}
@@ -410,11 +419,13 @@ export async function buildProgramProject(input,{outputDirectory,mode='productio
       // Source-only authoring can validate the directive without loading the
       // privileged extension's pinned React/Vue bytes in the Node bundler.
       // The real Page evaluator must separately fetch and hash those bytes.
-      const selected=pageSelectedPackagedLibrary(sourceUtf8);
-      ensure(selected===(project.framework||null),'E_PROJECT_FRAMEWORK',
-        'Compiled framework metadata does not match the approved Page project',
-        {project:projectLabel,phase:'build',location:'package.json#opendesk.framework'});
-      if(!selected)await compileLockedPageSource({sourceUtf8,entryFormat:'async-main',entries:[]});
+      const selected=pageSelectedPackagedLibraries(sourceUtf8);
+      const declared=[...(project.framework?[project.framework]:[]),...(project.libraries||[])];
+      const unique=[...new Set(declared)];
+      ensure(JSON.stringify(selected)===JSON.stringify(unique),'E_PROJECT_LIBRARIES',
+        'Compiled preinstalled library metadata does not match the approved Page project',
+        {project:projectLabel,phase:'build',location:'package.json#opendesk.libraries'});
+      if(!selected.length)await compileLockedPageSource({sourceUtf8,entryFormat:'async-main',entries:[]});
     }
     const after=await validateProgramProject(root,{readProjectFile});
     ensure(JSON.stringify(before)===JSON.stringify(after),'E_PROJECT_CHANGED',
@@ -422,13 +433,13 @@ export async function buildProgramProject(input,{outputDirectory,mode='productio
 
     const hash=sha(bytes);
     const header=project.runtimeKind==='page-userscript'?pageHeader(pkg,project):'';
-    const sourceMapUtf8=shiftSourceMap(compiled.sourceMapUtf8,{lineOffset:lineCount(header),file:'program.js'});
+    const sourceMapUtf8=shiftSourceMap(compiled.sourceMapUtf8,{lineOffset:lineCount(header)+(project.remoteDependencies?1:0),file:'program.js'});
   if(memoryOnly)return Object.freeze({pkg,project,before,sourceUtf8,sourceHash:hash,sourceBytes:bytes.length,sourceMapUtf8,modules:compiled.modules,remoteModules:remote.modules,webpackMs:compiled.webpackMs});
     const authoringHash=sha(Buffer.from(JSON.stringify({sources:before.sources,mode,npmLockSha256:await npmLockHash(root),
       ...(before.assets.length?{assets:before.assets}:{}),remoteModules:remote.modules})));
     const out=resolve(outputDirectory||join(process.cwd(),
       'artifacts','programs',project.id,pkg.version,'r31-'+mode,hash.slice(0,16)+'-'+authoringHash.slice(0,12)));
-    const draft=draftEnvelope({pkg,project,before,sourceUtf8,sourceHash:hash,mode});
+    const draft=draftEnvelope({pkg,project,before,sourceUtf8,sourceHash:hash,mode,remoteLock:remote.lock});
     const artifact={
       format:VERSION,
       status:'BUILT_UNVERIFIED',
@@ -485,7 +496,7 @@ export async function buildProgramProject(input,{outputDirectory,mode='productio
     await immutableWrite(join(out,'program.js'),sourceUtf8);
     if(sourceMapFile&&compiled.sourceMapUtf8){
       const header=project.runtimeKind==='page-userscript'?pageHeader(pkg,project):'';
-      const shifted=shiftSourceMap(compiled.sourceMapUtf8,{lineOffset:lineCount(header),file:'program.js'});
+      const shifted=shiftSourceMap(compiled.sourceMapUtf8,{lineOffset:lineCount(header)+(project.remoteDependencies?1:0),file:'program.js'});
       await immutableWrite(join(out,sourceMapFile),JSON.stringify(JSON.parse(shifted),null,2)+'\n');
     }
     if(taskPackage)await immutableWrite(join(out,'program.opendesk-task.json'),JSON.stringify(taskPackage,null,2)+'\n');

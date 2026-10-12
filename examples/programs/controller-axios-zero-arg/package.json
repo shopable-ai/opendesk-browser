@@ -1,0 +1,29 @@
+{
+  "name": "@opendesk-examples/controller-axios-zero-arg",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Zero-argument Controller ESM using real preinstalled Axios through admitted Broker",
+  "opendesk": {
+    "format": "opendesk.project.v1",
+    "id": "sample.controller-axios-zero-arg",
+    "runtimeKind": "controller",
+    "sourceFormat": "esm",
+    "entry": "src/main.js",
+    "libraries": [
+      "axios"
+    ],
+    "siteOrigins": [
+      "http://127.0.0.1:43111"
+    ],
+    "permissions": [
+      "page.automation"
+    ],
+    "paramsSchema": {
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    }
+  }
+}

@@ -11,8 +11,11 @@ import {parseUserScriptDependencies} from '../src/scripting/user-scripts/depende
 import {checkParamsSchema} from '../src/platform/tasks/contract.js';
 import {buildAssetRecords,ASSET_LIMITS} from './program-assets.mjs';
 import {remoteURL} from './remote-esm-modules.mjs';
+import {validateRemoteImports} from '../src/scripting/user-scripts/remote-esm-contract.js';
 import {inspectDefaultProgramEntry} from './program-entry.mjs';
 import {PAGE_FRAMEWORK_IMPORTS} from '../src/libs/page-frameworks/contract.js';
+import {pageOptionalLibraryId,PAGE_OPTIONAL_LIBRARY_LIMIT} from '../src/scripting/user-scripts/execution-source.js';
+import {BUILTIN_RUNTIME_CATALOG} from '../src/libs/runtime-contract.js';
 import {transformVueSFC} from '../src/libs/page-frameworks/vue-sfc-transform.js';
 
 const FORMAT='opendesk.project.v1';
@@ -85,10 +88,10 @@ function metadata(pkg,projectLabel){
 
   const shared=['format','id','runtimeKind','sourceFormat','entry','assets'];
   const allowed=p.runtimeKind==='page-userscript'
-    ?[...shared,'pageRules','framework','entryMode']
-    :[...shared,'siteOrigins','permissions','paramsSchema'];
+    ?[...shared,'pageRules','framework','libraries','entryMode','remoteDependencies']
+    :[...shared,'siteOrigins','permissions','paramsSchema','libraries'];
   ensure(Object.keys(p).every(k=>allowed.includes(k))&&
-    allowed.filter(k=>k!=='assets'&&k!=='framework'&&k!=='entryMode').every(k=>Object.hasOwn(p,k)),
+    allowed.filter(k=>k!=='assets'&&k!=='framework'&&k!=='entryMode'&&k!=='remoteDependencies'&&k!=='libraries').every(k=>Object.hasOwn(p,k)),
     'E_PROJECT_SCHEMA','Project fields do not match the declared runtime kind',details);
 
   declaredPath(p.entry,{...details,location:'package.json#opendesk.entry'});
@@ -101,6 +104,13 @@ function metadata(pkg,projectLabel){
 
   if(p.runtimeKind==='page-userscript'){
     validatePageProgramRules(p.pageRules);
+    if(p.remoteDependencies!==undefined){
+      const r=p.remoteDependencies;
+      ensure(plain(r)&&Object.keys(r).sort().join(',')==='format,imports,profile'&&
+        r.format==='opendesk.remote-dependencies.v1'&&r.profile==='page-library-v1',
+        'E_REMOTE_LOCK','Unknown versioned Page dependency profile',details);
+      validateRemoteImports(r.imports);
+    }
     ensure(p.entryMode===undefined||p.entryMode==='component',
       'E_PROJECT_ENTRY_MODE','Only explicit component entryMode is supported on Page projects',
       {...details,location:'package.json#opendesk.entryMode'});
@@ -110,7 +120,19 @@ function metadata(pkg,projectLabel){
     ensure(p.framework===undefined||['react','vue'].includes(p.framework),
       'E_PROJECT_FRAMEWORK','Only optional preinstalled React or Vue Page frameworks are supported',
       {...details,location:'package.json#opendesk.framework'});
+    // Reuse the authoritative Page opt-in ID mapping: this is only a source
+    // declaration, not another package catalog, downloader or permission model.
+    ensure(p.libraries===undefined||Array.isArray(p.libraries)&&
+      p.libraries.length<=PAGE_OPTIONAL_LIBRARY_LIMIT-(p.framework?1:0)&&
+      p.libraries.every(id=>typeof id==='string'&&
+        (id==='jquery'||pageOptionalLibraryId(id)!==null)),
+      'E_PROJECT_LIBRARIES','Use only reviewed Page library IDs, up to the existing declaration budget',
+      {...details,location:'package.json#opendesk.libraries'});
   }else{
+    ensure(p.libraries===undefined||Array.isArray(p.libraries)&&p.libraries.length<=1&&
+      p.libraries.every(id=>id==='axios'&&BUILTIN_RUNTIME_CATALOG.libraries.axios.worlds.includes('CONTROLLER')),
+      'E_PROJECT_LIBRARIES','Controller currently supports only opt-in, Broker-bound Axios',
+      {...details,location:'package.json#opendesk.libraries'});
     ensure(Array.isArray(p.siteOrigins)&&p.siteOrigins.length===1&&
       Array.isArray(p.permissions)&&p.permissions.length===1&&p.permissions[0]==='page.automation',
       'E_PROJECT_PERMISSION','Controller projects require exactly page.automation permission',
@@ -363,6 +385,8 @@ export async function validateProgramProject(input,{readProjectFile}={}){
     runtimeKind:p.runtimeKind,
     entry:p.entry,
     ...(p.framework?{framework:p.framework}:{}),
+    ...(p.libraries?{libraries:[...p.libraries]}:{}),
+    ...(p.remoteDependencies?{remoteDependencies:p.remoteDependencies}:{}),
     ...(p.runtimeKind==='page-userscript'?{pageRules:validatePageProgramRules(p.pageRules)}:{}),
     ...(p.entryMode?{entryMode:p.entryMode}:{}),
     sourceFormat:'esm',

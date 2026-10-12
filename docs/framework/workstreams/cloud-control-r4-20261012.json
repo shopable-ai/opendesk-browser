@@ -1,0 +1,178 @@
+{
+  "goal": "OpenDesk Browser Cloud Control R4",
+  "date": "2026-10-12",
+  "baseline": "ede684f63b9576b7dc6afd1377a744b5204220e2",
+  "finalCommit": null,
+  "changed": [
+    "src/platform/storage/idb.js",
+    "src/platform/storage/index.js",
+    "src/cloud-control/history-index.js",
+    "src/cloud-control/service.js",
+    "tests/cloud-control/history-index.test.mjs",
+    "docs/architecture/browser-framework/cloud-control-r4.zh-CN.md",
+    "docs/framework/workstreams/cloud-control-r4-20261012.md",
+    "docs/framework/workstreams/cloud-control-r4-20261012.json",
+    "examples/cloud-control/README.zh-CN.md",
+    ".github/workflows/cloud-control-r4-idb.yml",
+    "tests/cloud-control/native-idb-index-r4.mjs"
+  ],
+  "evidence": {
+    "source": "SOURCE_IMPLEMENTED",
+    "component": "COMPONENT_TESTED",
+    "ci": "BUILD_VERIFIED",
+    "nativeMac": "NATIVE_PENDING",
+    "runner": "NOT_IMPLEMENTED",
+    "scheduleMerge": "NOT_IMPLEMENTED",
+    "gate4": "NATIVE_PENDING"
+  },
+  "historicalCI": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38251928449",
+  "tests": {
+    "cloud": "PASS 16/16",
+    "authority": "PASS 113/113",
+    "build": "PASS at 9bf50e73a2780402da81cac14466b85ffe36c980",
+    "nativeIdb10k": "NATIVE_PENDING"
+  },
+  "productionPackageHash": "3d2f3031376e1fc7c136bb4e60182824b377f933b395a4f412f73fe5b239fdfd",
+  "developmentPackageHash": "23ed7262d092e29c903e175c837d669ced84aa0be06ac55780131549d35d3e0b",
+  "scores": [
+    {
+      "dimension": 1,
+      "score": null,
+      "status": "NOT_VERIFIED"
+    },
+    {
+      "dimension": 2,
+      "score": null,
+      "status": "NOT_VERIFIED"
+    },
+    {
+      "dimension": 3,
+      "score": null,
+      "status": "NOT_VERIFIED"
+    },
+    {
+      "dimension": 4,
+      "score": null,
+      "status": "NOT_VERIFIED"
+    },
+    {
+      "dimension": 5,
+      "score": null,
+      "status": "NOT_VERIFIED"
+    },
+    {
+      "dimension": 6,
+      "score": null,
+      "status": "NOT_VERIFIED"
+    },
+    {
+      "dimension": 7,
+      "score": null,
+      "status": "NOT_VERIFIED"
+    },
+    {
+      "dimension": 8,
+      "score": null,
+      "status": "NOT_VERIFIED"
+    },
+    {
+      "dimension": 9,
+      "score": null,
+      "status": "NOT_VERIFIED"
+    },
+    {
+      "dimension": 10,
+      "score": null,
+      "status": "NOT_VERIFIED"
+    }
+  ],
+  "safety": {
+    "mainOnly": true,
+    "noForce": true,
+    "noBranch": true,
+    "noSecondDb": true,
+    "noMacAccess": true
+  },
+  "verifiedSourceSha": "9bf50e73a2780402da81cac14466b85ffe36c980",
+  "verifiedCIUrl": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38258950806",
+  "componentTotal": {
+    "passed": 212,
+    "failed": 0
+  },
+  "firstAttempt": {
+    "sha": "eeb6b43bf49807a6e69dd568a8cf7e19b8544e88",
+    "ci": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38258751196",
+    "failure": "TEST_FIXTURE_WRONG_FILTERED_OFFSET",
+    "componentPassed": 15,
+    "componentFailed": 1,
+    "scope": "npm run test:cloud only"
+  },
+  "nativeIdbChrome": {
+    "status": "NATIVE_IDB_COMPONENT_VERIFIED",
+    "workflow": ".github/workflows/cloud-control-r4-idb.yml",
+    "method": "real Linux Chrome CFT IDB; synthetic ephemeral history; not installed extension",
+    "sourceSha": "658269e38ad20b879d2f7efccbfab8de901aebb9",
+    "ci": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38260781397",
+    "chrome": "Chrome/155.0.8059.39 on Linux",
+    "measurements": [
+      {
+        "count": 100,
+        "migrateMs": 93.5,
+        "queryMs": 12.5,
+        "returnedRows": 20,
+        "responseBytes": 2135,
+        "scanCalls": 1,
+        "clonedAllCalls": 0,
+        "rollbackVerified": true
+      },
+      {
+        "count": 1000,
+        "migrateMs": 470.3,
+        "queryMs": 5,
+        "returnedRows": 20,
+        "responseBytes": 2139,
+        "scanCalls": 1,
+        "clonedAllCalls": 0,
+        "rollbackVerified": true
+      },
+      {
+        "count": 10000,
+        "migrateMs": 5103.2,
+        "queryMs": 5.2,
+        "returnedRows": 20,
+        "responseBytes": 2143,
+        "scanCalls": 1,
+        "clonedAllCalls": 0,
+        "rollbackVerified": true
+      }
+    ],
+    "qualification": "Real isolated Linux CFT IndexedDB only; no installed extension, no Mac Chrome Gate 4 or long-runner validation"
+  },
+  "p0DurableOutcome": {
+    "previousSha": "a565b1b9f0c485ee1e1e3125bf168445b8868128",
+    "componentCI": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38265004633",
+    "componentPass": 222,
+    "componentFail": 0,
+    "packageBuild": "PASS_PRODUCTION_DEVELOPMENT_VERIFY",
+    "nextCodeScope": "Original Run absent, released without matching Result, paused_unknown and unadmitted waiting cancellation",
+    "nextEvidence": "COMPONENT_TESTED",
+    "nativeStatus": "NATIVE_PENDING",
+    "newCommitSha": "7e38eecd6cff4f480b4f2d128f51238ed744a093",
+    "verification": "BUILD_VERIFIED",
+    "productionPackageHash": "5e6c3da82091f405ef32fde8ec8fb0bab57bde64381ae127b99e5de9e6c19e0b",
+    "developmentPackageHash": "fc92a2e99c93ecacf96e6190e5fec33b7dd217ea7ffb2f1ce42703162a744353"
+  },
+  "latestShaBoundComponentAndBuild": {
+    "verifiedSourceSha": "7e38eecd6cff4f480b4f2d128f51238ed744a093",
+    "ci": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38265004633",
+    "testsPassed": 222,
+    "testsFailed": 0,
+    "check": "PASS",
+    "productionBuild": "PASS",
+    "developmentBuild": "PASS",
+    "verify": "PASS",
+    "productionPackageHash": "5e6c3da82091f405ef32fde8ec8fb0bab57bde64381ae127b99e5de9e6c19e0b",
+    "developmentPackageHash": "fc92a2e99c93ecacf96e6190e5fec33b7dd217ea7ffb2f1ce42703162a744353",
+    "macNative": "NATIVE_PENDING"
+  }
+}

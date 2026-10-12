@@ -24,9 +24,16 @@ function serialStore() {
     const next = tail.then(async () => {
       const copy = structuredClone(rows), changes = [];
       const store = name => { assert.ok(names.includes(name)); if (!copy.has(name)) copy.set(name, new Map()); return copy.get(name); };
+      const cursor = (n,{prefix,offset=0,limit=50,direction='next'},keysOnly=false) => {
+        const keys=[...store(n).keys()].filter(key=>typeof key==='string'&&key.startsWith(prefix)).sort();
+        if(direction==='prev')keys.reverse();
+        return keys.slice(offset,offset+limit).map(key=>keysOnly?key:structuredClone(store(n).get(key)));
+      };
       const tx = {get: async (n,k) => structuredClone(store(n).get(k)), all: async n => [...store(n).values()].map(v => structuredClone(v)),
         put: async (n,v,k) => { store(n).set(k, structuredClone(v)); changes.push({store:n, key:k, value:structuredClone(v)}); },
-        delete: async (n,k) => store(n).delete(k)};
+        delete: async (n,k) => store(n).delete(k),
+        keys: async (n,options) => cursor(n,options,true),
+        scan: async (n,options) => cursor(n,options,false)};
       const result = await body(tx); if (mode === 'readwrite') { rows = copy; writes.push(...changes); } return result;
     }); tail = next.catch(() => {}); return next;
   }};
@@ -1390,6 +1397,70 @@ test('cloud status returns bounded redacted pages and supports a cheap heartbeat
   await assert.rejects(f.cloud.cloudStatus({offset:-1},f.sender),code('E_SCHEMA'));
   await assert.rejects(f.cloud.cloudStatus({executorNamespace:'other'},f.sender),code('E_SCHEMA'));
 });
+test('indexed Cloud status and observer use bounded native KV cursor API without full history reads',async()=>{
+  const f=await cloudTaskFixture();
+  for(let i=0;i<125;i++){
+    const row={...f.row,requestId:'cloud:indexed-'+String(i).padStart(3,'0'),
+      createdAt:i,state:i%2?'waiting':'finished'};
+    await f.storage.transaction(['frameworkKV'],'readwrite',tx=>tx.put('frameworkKV',row,
+      'cloud:request:'+row.requestId));
+  }
+  let fullReads=0,scans=0,keys=0,mutations=0;
+  const original=f.storage.transaction.bind(f.storage);
+  f.storage.nativeCursorPaging=true;
+  f.storage.transaction=(stores,mode,callback)=>original(stores,mode,tx=>callback({
+    ...tx,
+    all:store=>{if(store==='frameworkKV')fullReads++;return tx.all(store);},
+    keys:(store,options)=>{if(store==='frameworkKV')keys++;return tx.keys(store,options);},
+    scan:(store,options)=>{if(store==='frameworkKV')scans++;return tx.scan(store,options);},
+    put:(store,value,key)=>{
+      if(store==='frameworkKV'&&key.startsWith('cloud:history:'))mutations++;
+      return tx.put(store,value,key);
+    }
+  }));
+  const status=await f.cloud.cloudStatus({limit:20,offset:30},f.sender);
+  assert.equal(status.requestTotal,126);
+  assert.equal(status.requests.length,20);
+  assert.equal(status.historyIndexStatus,'indexed');
+  assert.equal(keys,1);
+  assert.equal(fullReads,0);
+  const indexedWrites=mutations;
+  const view=await f.cloud.cloudObserve({limit:20,offset:10,state:'waiting'});
+  assert.equal(view.requestTotal,126);
+  assert.equal(view.matchingTotal,63);
+  assert.equal(view.rows.length,20);
+  assert.equal(view.states.finished,63);
+  assert.equal(fullReads,0);
+  assert.equal(mutations,indexedWrites);
+  assert(scans>=2);
+  assert.doesNotMatch(JSON.stringify(view),/cloud:indexed|assignment|credential|params|runId|secret|target/);
+  // Observer only performs native readonly transactions and never reindexes.
+  assert.equal(mutations,indexedWrites);
+});
+test('Cloud quota during index migration preserves requests and leaves management readable',async()=>{
+  const f=await cloudTaskFixture(),original=f.storage.transaction.bind(f.storage);
+  f.storage.nativeCursorPaging=true;
+  let failOnce=true,attempts=0;
+  f.storage.transaction=(stores,mode,callback)=>original(stores,mode,tx=>callback({
+    ...tx,
+    keys:(store,options)=>{attempts++;return tx.keys(store,options);},
+    put:(store,value,key)=>{
+      if(failOnce&&mode==='readwrite'&&store==='frameworkKV'&&key.startsWith('cloud:history:')){
+        failOnce=false;throw Object.assign(new Error('Quota'),{code:'E_QUOTA'});
+      }
+      return tx.put(store,value,key);
+    }
+  }));
+  const first=await f.cloud.cloudStatus({limit:5},f.sender);
+  assert.equal(first.requestTotal,1);
+  assert.equal(first.historyIndexStatus,'migration-blocked');
+  assert.equal(await f.cloud.cloudObserve({limit:5}).then(value=>value.requestTotal),1);
+  const again=await f.cloud.cloudStatus({limit:5},f.sender);
+  assert.equal(again.requestTotal,1);
+  assert.equal(attempts,1);
+  const kv=await original(['frameworkKV'],'readonly',tx=>tx.all('frameworkKV'));
+  assert.equal(kv.filter(row=>row.tag==='cloud-history-meta-v1').length,0);
+});
 test('observer projection is fixed-namespace, paged and excludes all executable identities',async()=>{
   const f=await cloudTaskFixture();
   await f.storage.transaction(['frameworkKV'],'readwrite',async tx=>{
@@ -1402,21 +1473,51 @@ test('observer projection is fixed-namespace, paged and excludes all executable 
   assert.equal(view.requestTotal,1);assert.equal(view.rows.length,1);
   assert.equal(view.rows[0].state,'waiting');
   assert.doesNotMatch(JSON.stringify(view),/foreign-secret|assignmentId|runId|providerId|credential|siteOrigins|params|target/);
+  const finished={...f.row,requestId:'cloud:finished-for-filter',state:'finished',
+    createdAt:Date.now()};
+  await f.storage.transaction(['frameworkKV'],'readwrite',
+    tx=>tx.put('frameworkKV',finished,'cloud:request:'+finished.requestId));
+  const filtered=await f.cloud.cloudObserve({limit:5,state:'finished'});
+  assert.equal(filtered.filter,'finished');
+  assert.equal(filtered.requestTotal,2);
+  assert.equal(filtered.matchingTotal,1);
+  assert.equal(filtered.rows.length,1);
+  assert.equal(filtered.rows[0].state,'finished');
+  assert.equal(filtered.page.nextOffset,null);
+  const empty=await f.cloud.cloudObserve({limit:5,state:'cancelled'});
+  assert.equal(empty.requestTotal,2);assert.equal(empty.matchingTotal,0);
+  assert.deepEqual(empty.rows,[]);
   await assert.rejects(f.cloud.cloudObserve({limit:51}),code('E_SCHEMA'));
+  await assert.rejects(f.cloud.cloudObserve({state:'anything-else'}),code('E_SCHEMA'));
   await assert.rejects(f.cloud.cloudObserve({namespace:'foreign'}),code('E_SCHEMA'));
 });
 test('cloudResolve uses a durable direct request key and rejects non-cloud identifiers',async()=>{
   const f=await cloudTaskFixture();
   let historyReads=0;
   const native=f.storage.transaction.bind(f.storage);
+  const cloudKVReads=[];
   f.storage.transaction=(names,mode,callback)=>native(names,mode,tx=>callback({
-    ...tx,all:store=>{if(store==='frameworkKV')historyReads++;return tx.all(store);}
+    ...tx,
+    get:(store,key)=>{
+      if(store==='frameworkKV')cloudKVReads.push({op:'get',key});
+      return tx.get(store,key);
+    },
+    all:store=>{
+      if(store==='frameworkKV'){historyReads++;cloudKVReads.push({op:'all'});}
+      return tx.all(store);
+    }
   }));
   await f.authority.resolveInstalledTask({taskId:f.resolved.taskId},f.sender);
-  const authorizationReads=historyReads;historyReads=0;
+  const authorizationReads=historyReads;historyReads=0;cloudKVReads.length=0;
   const direct=await f.cloud.cloudResolve({requestId:f.requestId},f.sender);
   assert.equal(historyReads,authorizationReads,'direct cloud lookup adds no history scan to native Task authorization');
   assert.equal(direct.cloudRequestId,f.requestId);
+  // The pairing-scoped lookup may precede this fixture's legacy-key fallback.
+  // The original request still must be read directly by its durable key.
+  // Task installation validation has its own legacy full-store scan; it does
+  // not belong to this cloud request lookup and must not be masked.
+  assert.deepEqual(cloudKVReads.find(row=>row.key==='cloud:request:'+f.requestId),
+    {op:'get',key:'cloud:request:'+f.requestId});
   await assert.rejects(f.cloud.cloudResolve({requestId:'foreign'},f.sender),code('E_SCHEMA'));
 });
 test('cloud binds original run and slot before permit; no target or worker before durable permission',async t=>{
@@ -1437,6 +1538,116 @@ test('cloud permit failure and admission rollback leave zero target effects',asy
   await assert.rejects(f.authority.startControllerRun(f.request,f.sender),code('E_PERMIT'));assert.equal(f.calls.filter(c=>c.method==='create').length,0);
   assert.equal((await f.rows('runs')).find(r=>r.tag==='slot').currentRunId,null);
   await assert.rejects(f.authority.startControllerRun({...f.request,paramsWire:encodeValue({no:true,zero:1})},f.sender),code('E_REQUEST_CONFLICT'));
+});
+test('cloud stop fences its current grant without rewriting prior or foreign assignments',async()=>{
+  const f=await cloudTaskFixture();
+  const prior={...f.row,requestId:'cloud:previous-approval',grantId:'retired-grant',
+    state:'waiting',reason:null};
+  const foreign={...f.row,requestId:'cloud:foreign-namespace',namespace:'tool:other-extension',
+    state:'waiting',reason:null};
+  await f.storage.transaction(['frameworkKV'],'readwrite',async tx=>{
+    await tx.put('frameworkKV',prior,'cloud:request:'+prior.requestId);
+    await tx.put('frameworkKV',foreign,'cloud:request:'+foreign.requestId);
+  });
+  const status=await f.cloud.cloudStop({},f.sender);
+  assert.equal(status.enabled,false);
+  const requestRows=(await f.rows('frameworkKV')).filter(row=>row.tag==='cloud-request-v1');
+  const current=requestRows.find(row=>row.requestId===f.requestId);
+  assert.equal(current.state,'cancelled');
+  assert.equal(current.reason,'E_CLOUD_REVOKED');
+  assert.deepEqual(requestRows.find(row=>row.requestId===prior.requestId),prior);
+  assert.deepEqual(requestRows.find(row=>row.requestId===foreign.requestId),foreign);
+  await f.cloud.cloudStop({},f.sender);
+  const repeated=(await f.rows('frameworkKV')).filter(row=>row.tag==='cloud-request-v1');
+  assert.deepEqual(repeated.find(row=>row.requestId===prior.requestId),prior);
+  assert.deepEqual(repeated.find(row=>row.requestId===foreign.requestId),foreign);
+});
+test('legacy pending request migrates once; repeated 2s claims use durable direct KV key',async t=>{
+  const f=await cloudTaskFixture();
+  f.cloud.connection('authenticated');f.cloud.setReconciled(true);
+  t.mock.method(globalThis,'fetch',async()=>{throw Error('Existing lease must not claim another job');});
+  const original=await f.cloud.cloudNext({},f.sender);
+  assert.deepEqual(original,{requestId:f.requestId});
+  let config=(await f.rows('frameworkKV')).find(r=>r?.providerId==='provider'&&Array.isArray(r.tasks));
+  assert.equal(config.pendingRequestId,f.requestId);
+  const transaction=f.storage.transaction.bind(f.storage);
+  f.storage.transaction=(names,mode,work)=>transaction(names,mode,tx=>work({
+    ...tx,
+    all:store=>{
+      if(store==='frameworkKV')throw Error('2s Cloud claim must not scan full KV after migration');
+      return tx.all(store);
+    }
+  }));
+  assert.deepEqual(await f.cloud.cloudNext({},f.sender),original);
+  assert.deepEqual(await f.cloud.cloudNext({},f.sender),original);
+  // The source document may later close, but the durable pointer remains and
+  // can be reconciled by a new service instance without redoing cloud effects.
+  assert.equal(f.calls.filter(x=>x.method==='create').length,0);
+});
+
+test('original Run admission clears a waiting pointer in the same durable bind',async t=>{
+  const f=await cloudTaskFixture();
+  await f.storage.transaction(['frameworkKV'],'readwrite',async tx=>{
+    const c=await tx.get('frameworkKV','cloud:config');
+    c.pendingRequestId=f.requestId;
+    await tx.put('frameworkKV',c,'cloud:config');
+  });
+  t.mock.method(globalThis,'fetch',async(url,options)=>{
+    assert.match(url,/\/v1\/admission$/);
+    const b=JSON.parse(options.body);
+    const c=(await f.rows('frameworkKV')).find(r=>r?.providerId==='provider'&&Array.isArray(r.tasks));
+    assert.equal(c.pendingRequestId,null,'original slot+Run bind retires the waiting pointer before permit');
+    return new Response(JSON.stringify({permitId:'permit',providerId:'provider',
+      assignmentId:'assignment',runRef:b.runRef,leaseUntil:Date.now()+90000}));
+  });
+  const run=await f.authority.startControllerRun(f.request,f.sender);
+  const c=(await f.rows('frameworkKV')).find(r=>r?.providerId==='provider'&&Array.isArray(r.tasks));
+  assert.equal(c.pendingRequestId,null);
+  await f.authority.stopControllerRun({runId:run.runId,requestId:'stop-pointer-test',reason:'E_CANCELLED'},f.sender);
+  await f.finish(run,'stopped');
+  await f.authority.retireControllerTarget({runId:run.runId},f.sender);
+});
+test('expired unstarted cloud assignment is retired once before a fresh provider claim',async t=>{
+  const f=await cloudTaskFixture();let claims=0;
+  await f.storage.transaction(['frameworkKV'],'readwrite',async tx=>{
+    const row=await tx.get('frameworkKV','cloud:request:'+f.requestId);
+    row.assignment.leaseUntil=Date.now()-1000;
+    await tx.put('frameworkKV',row,'cloud:request:'+f.requestId);
+  });
+  f.cloud.connection('authenticated');f.cloud.setReconciled(true);
+  t.mock.method(globalThis,'fetch',async url=>{
+    assert.match(url,/\/v1\/claim$/);claims++;
+    return new Response(JSON.stringify({assignment:null}));
+  });
+  assert.equal(await f.cloud.cloudNext({},f.sender),null);
+  assert.equal(claims,1,'expired waiting request must not block the next claim');
+  const original=(await f.rows('frameworkKV')).find(r=>r.requestId===f.requestId);
+  assert.equal(original.state,'cancelled');assert.equal(original.reason,'E_LEASE');
+  assert.equal(original.runId,undefined);
+  assert.equal(f.calls.filter(x=>x.method==='create').length,0);
+  assert.equal(await f.cloud.cloudNext({},f.sender),null);
+  assert.equal(claims,2,'the old assignment cannot be returned as a new execution');
+  assert.equal((await f.rows('frameworkKV')).find(r=>r.requestId===f.requestId).reason,'E_LEASE');
+});
+
+test('stopping and reapproving a Cloud grant invalidates its old claim ID',async()=>{
+  const f=await cloudTaskFixture();
+  await f.storage.transaction(['frameworkKV'],'readwrite',async tx=>{
+    const config=await tx.get('frameworkKV','cloud:config');
+    config.claimId='claim-from-old-grant';
+    await tx.put('frameworkKV',config,'cloud:config');
+  });
+  await f.cloud.cloudStop({},f.sender);
+  const stopped=(await f.rows('frameworkKV')).find(r=>r.grantId==='grant'&&r.providerId==='provider'&&Array.isArray(r.tasks));
+  assert.equal(stopped.enabled,false);assert.equal(stopped.claimId,null);
+  await f.cloud.cloudApprove({tasks:[{taskId:f.resolved.taskId,resultAllowed:true}]},f.sender);
+  const nextConfig=(await f.rows('frameworkKV')).find(r=>r?.providerId==='provider'&&Array.isArray(r.tasks));
+  assert.equal(nextConfig.claimId,null);
+  assert.notEqual(nextConfig.grantId,'grant');
+  assert.equal(nextConfig.enabled,true);
+  const oldRow=(await f.rows('frameworkKV')).find(r=>r.requestId===f.requestId);
+  assert.equal(oldRow.state,'cancelled');
+  assert.equal(oldRow.grantId,'grant');
 });
 test('cloud revocation, unknown recovery and install generation cannot restore execution',async t=>{
   const f=await cloudTaskFixture();t.mock.method(globalThis,'fetch',async(url,options)=>{const b=JSON.parse(options.body);return new Response(JSON.stringify({permitId:'permit',providerId:'provider',assignmentId:'assignment',runRef:b.runRef,leaseUntil:Date.now()+90000}));});
@@ -1540,6 +1751,26 @@ test('offline unpair blocks local execution and persists revocation until provid
   online=true;await f.cloud.retryRevocation();assert.equal(await f.cloud.read(),undefined);assert.equal((await f.cloud.cloudStatus({},f.sender)).revocation.state,'confirmed');
   assert.equal(revokeCalls,2);assert.equal(f.calls.filter(c=>c.method==='create').length,0);
 });
+test('repeated Cloud stop never advances an already durable original Run cancellation fence',async t=>{
+  const f=await admittedCloud(t);
+  await f.cloud.cloudStop({},f.sender);
+  const snapshot=async()=>(await f.rows('runs')).find(row=>row.runId===f.run.runId);
+  const once=await snapshot();
+  assert.equal(once.state,'stopping');
+  assert.ok(once.cancelSeq>0);
+  const firstRequest=(await f.rows('frameworkKV')).find(row=>row.requestId===f.requestId);
+  assert.equal(firstRequest.state,'cancellation-pending');
+  await f.cloud.cloudStop({},f.sender);
+  const repeated=await snapshot();
+  for(const field of ['state','cancelSeq','ownerEpoch','runRevision','eventSeq','terminalReason'])
+    assert.equal(repeated[field],once[field],field+' must not change on repeated Stop');
+  assert.equal((await f.rows('frameworkKV')).find(row=>row.requestId===f.requestId).state,'cancellation-pending');
+  await f.finish(f.run,'stopped');
+  await f.authority.retireControllerTarget({runId:f.run.runId},f.sender);
+  const settled=await snapshot();
+  assert.equal(settled.retirementState,'released');
+});
+
 test('expired local cloud permit is permanently fenced despite a live provider lease',async t=>{
   const f=await admittedCloud(t);let renewed=0;
   await f.storage.transaction(['frameworkKV'],'readwrite',async tx=>{const r=await tx.get('frameworkKV','cloud:request:'+f.requestId);r.permit.leaseUntil=Date.now()-1;await tx.put('frameworkKV',r,'cloud:request:'+f.requestId);});

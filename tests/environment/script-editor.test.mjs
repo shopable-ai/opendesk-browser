@@ -130,6 +130,14 @@ async function componentFixture(t,framework,{compilerError,previewError,compileG
   class ComponentWorker {
     terminate(){}
     postMessage(payload){
+      if(payload.action==='inspect'){
+        queueMicrotask(()=>this.onmessage({data:{requestId:payload.requestId,ok:true,result:{
+          framework:payload.framework,projectId:payload.projectId,
+          sourceHash:createHash('sha256').update(payload.componentSource).digest('hex'),
+          remoteRoots:[],missingUrls:[],modules:[],complete:true}}}));
+        return;
+      }
+      assert.equal(payload.action,'prepare');
       compiled.push(payload);
       queueMicrotask(async()=>{if(compileGate)await compileGate.promise;this.onmessage({data:{requestId:payload.requestId,
         ok:!compilerError,...(compilerError?{error:compilerError}:{result:{
@@ -149,7 +157,7 @@ async function componentFixture(t,framework,{compilerError,previewError,compileG
     f.previews.push(structuredClone(payload));
     return {state:'preview-evaluated',resultText:'component mounted',
       sourceHash:createHash('sha256').update(payload.sourceUtf8).digest('hex'),
-      documentId:payload.target.documentId,managedUI:true,managedPreviewId:payload.managedUI.previewId};
+      tabId:payload.target.tabId,documentId:payload.target.documentId,managedUI:true,managedPreviewId:payload.managedUI.previewId};
   };
   const componentInput=f.find('page-component-'+framework);
   componentInput.checked=true;
@@ -220,8 +228,9 @@ for(const changed of ['source','document'])test('component primary Run refuses '
   await f.click('script-run');
   for(let n=0;n<100&&!f.compiled.length;n++)await tick();
   assert.equal(f.compiled.length,1);
-  assert.match(f.find('script-status').textContent,/编译组件/);
-  assert.equal(f.find('script-run').disabled,true);assert.equal(f.find('script-stop').disabled,true);
+  assert.match(f.find('script-status').textContent,/核对当前文档/);
+  assert.equal(f.find('script-run').disabled,true);assert.equal(f.find('script-stop').disabled,false);
+  assert.equal(f.find('script-stop').textContent,'取消准备');
   if(changed==='source'){
     f.find('script-source').value='export default function Changed(){return <div/>;}';
     f.find('script-source').fire('input');
@@ -1048,7 +1057,7 @@ test('R24.3 React and Vue modes keep independent official source drafts without 
   assert.equal(editor.value,javascript,'Legacy JavaScript must not be overwritten by components');
   react.checked=true;react.fire('change');await tick();
   assert.equal(editor.value,reactDraft,'Switch must recover exact unsaved React source');
-  assert.equal(f.find('script-save').disabled,true,'Component source cannot be saved as Controller code');
+  assert.equal(f.find('script-save').disabled,false,'Components can prepare and save a frozen Page Candidate without running');
   assert.equal(f.find('script-run').disabled,f.find('page-preview-run').disabled,'Component primary run follows page-preview availability');
   assert.equal(f.find('script-run').textContent,'运行 React 组件');
   assert.equal(f.find('page-preview-run').textContent,'运行 React 组件');
@@ -1152,7 +1161,7 @@ test('R24.3 switching tabs retains the original confirmed managed preview for a 
     if(method==='previewPageScript'){
       f.previews.push(structuredClone(payload));
       return {state:'preview-evaluated',sourceHash:'a'.repeat(64),
-        documentId:payload.target.documentId,managedUI:true,
+        tabId:payload.target.tabId,documentId:payload.target.documentId,managedUI:true,
         managedPreviewId:payload.managedUI.previewId,resultText:'{"ok":true}'};
     }
     if(method==='retirePagePreview'){
@@ -1194,7 +1203,7 @@ test('R24.3 confirmed closure of the owning tab retires the editor ownership wit
     if(method==='previewPageScript'){
       count++;
       return {state:'preview-evaluated',sourceHash:'a'.repeat(64),
-        documentId:payload.target.documentId,managedUI:true,
+        tabId:payload.target.tabId,documentId:payload.target.documentId,managedUI:true,
         managedPreviewId:payload.managedUI.previewId,resultText:'ok'};
     }
     return original(method,payload);
@@ -1278,4 +1287,131 @@ test('R24.3 missing or forged browser results never allow a second same-document
     await waitForComponentUI(()=>f.find('page-preview-run').disabled===false,
       'only the original document changing can release the quarantine');
   }
+});
+
+function browserPageResponses(f){
+  const original=f.client.request.bind(f.client),requests=[],hashes=new Map();
+  f.client.request=async(method,payload)=>{
+    if(['previewPageScript','retirePagePreview','importPageCandidate'].includes(method))requests.push({method,payload:structuredClone(payload)});
+    if(method==='listPagePrograms')return {catalog:[],installed:[]};
+    if(method==='importPageCandidate')return {stage:'Candidate',candidateId:'fixed-candidate',manifestHash:'f'.repeat(64)};
+    if(method==='previewPageScript'){const sourceHash=createHash('sha256').update(payload.sourceUtf8).digest('hex');hashes.set(payload.managedUI.previewId,sourceHash);
+      return {state:'preview-evaluated',sourceHash,tabId:payload.target.tabId,documentId:payload.target.documentId,managedUI:true,managedPreviewId:payload.managedUI.previewId};}
+    if(method==='retirePagePreview')return {state:'preview-retired',sourceHash:hashes.get(payload.previewId)||createHash('sha256').update('// @opendesk-lib react\nasync function main(){}').digest('hex'),
+      receipt:{ok:true,scope:'managed-ui-only',instances:1}};
+    return original(method,payload);
+  };
+  return requests;
+}
+function honestComponentFixture(){
+  const compiler=browserComponentFixture(),original=compiler.prepare;
+  compiler.prepare=async input=>{const output=await original(input);output.sourceHash=createHash('sha256').update(output.sourceUtf8).digest('hex');return output;};
+  return compiler;
+}
+async function frozenComponentDraft(v2=false){
+  const source="// ==UserScript==\n// @name frozen-react\n// @match https://a.example/*\n// @opendesk-lib react\n// ==/UserScript==\nasync function main(){return {frozen:true}};";
+  const file={path:'src/App.jsx',sourceUtf8:"import React from 'react';export default function App(){return <b>frozen</b>}"};
+  file.sha256=createHash('sha256').update(file.sourceUtf8).digest('hex');
+  let sourceUtf8=source,remoteLock;
+  if(v2){
+    const {createPageBundle}=await import('../../src/scripting/user-scripts/page-bundle.js');
+    const url='https://example.org/frozen/v1/index.js',module={url,sha256:'a'.repeat(64),bytes:200000};
+    // Two immutable pins satisfy the existing 128 KiB single-module policy.
+    module.bytes=100000;
+    const second={url:'https://example.org/frozen/v1/part.js',sha256:'b'.repeat(64),bytes:100000};
+    remoteLock={format:'opendesk.remote-lock.v2',profile:'page-library-v1',imports:{},modules:{
+      [url]:{sha256:module.sha256,bytes:module.bytes},[second.url]:{sha256:second.sha256,bytes:second.bytes}}};
+    sourceUtf8=await createPageBundle(source+'\n/*'+('frozen '.repeat(22000))+'*/',{
+      remoteModules:[module,second],remoteImports:[url],remoteLock});
+  }
+  return {format:v2?'opendesk.program-draft.v2':'opendesk.program-draft.v1',runtimeKind:'page-userscript',
+    project:{id:'frozen-react',version:'1.0.0',entry:'src/App.jsx',entryMode:'component'},sourceUtf8,
+    build:{mode:'production',sourceHash:createHash('sha256').update(sourceUtf8).digest('hex'),byteLength:Buffer.byteLength(sourceUtf8)},
+    authoring:{files:[file],...(v2?{remoteLock}:{})}};
+}
+
+test('browser component Save prepares a frozen Candidate with zero Page execution, installation or Controller commit',async t=>{
+  const f=await fixture(undefined,undefined,{componentPreparerFactory:honestComponentFixture});t.after(()=>f.dispose());
+  const requests=browserPageResponses(f);await selectBrowserReact(f);const source=f.find('script-source').value;
+  await f.click('script-save');
+  await waitForComponentUI(()=>f.find('page-candidate-status').dataset.state==='saved','prepared component Candidate should save');
+  assert.deepEqual(requests.map(row=>row.method),['importPageCandidate']);
+  assert.match(requests[0].payload.sourceUtf8,/async function main/);
+  assert.notEqual(requests[0].payload.sourceUtf8,source);assert.equal(f.find('script-source').value,source);
+  assert.equal(f.starts.length,0);assert.equal(f.commits.length,0);assert.equal(f.permissions.length,0);
+  assert.match(f.find('page-component-status').textContent,/尚未进行网页运行验收/);
+  await f.click('page-preview-run');
+  await waitForComponentUI(()=>f.find('page-preview-status').dataset.state==='completed','explicit Run should receive managed result');
+  const dispatch=requests.find(row=>row.method==='previewPageScript');assert.ok(dispatch.payload.managedUI.previewId);
+  assert.equal(dispatch.payload.sourceUtf8,requests[0].payload.sourceUtf8);
+  await f.click('script-stop');
+  await waitForComponentUI(()=>requests.some(row=>row.method==='retirePagePreview'),'Stop should use managed preview');
+  assert.equal(requests.find(row=>row.method==='retirePagePreview').payload.previewId,dispatch.payload.managedUI.previewId);
+});
+
+test('frozen v1 and versioned v2 JSON components Save and Run exact verified bytes without recompilation, and Stop owns the same preview',async t=>{
+  for(const v2 of [false,true]){
+    let compiled=0;
+    const f=await fixture(undefined,undefined,{componentPreparerFactory:()=>({prepare:async()=>{compiled++;throw Error('frozen code must not compile');},cancel(){},dispose(){}})});
+    t.after(()=>f.dispose());const requests=browserPageResponses(f),draft=await frozenComponentDraft(v2);
+    await f.editor.importDraft(draft);assert.equal(requests.length,0);assert.equal(f.find('script-source').readOnly,true);
+    await f.click('script-save');await waitForComponentUI(()=>f.find('page-candidate-status').dataset.state==='saved','frozen JSON should save directly');
+    assert.equal(requests[0].method,'importPageCandidate');assert.equal(requests[0].payload.sourceUtf8,draft.sourceUtf8);
+    await f.click('page-preview-run');await waitForComponentUI(()=>f.find('page-preview-status').dataset.state==='completed','frozen JSON managed preview should complete');
+    const preview=requests.find(row=>row.method==='previewPageScript');
+    assert.equal(preview.payload.sourceUtf8,draft.sourceUtf8);assert.equal(preview.payload.managedUI.enabled,true);assert.equal(compiled,0);
+    assert.equal(f.find('script-stop').disabled,false);await f.click('script-stop');
+    await waitForComponentUI(()=>requests.some(row=>row.method==='retirePagePreview'),'frozen JSON Stop should use original managed preview');
+    assert.equal(requests.find(row=>row.method==='retirePagePreview').payload.previewId,preview.payload.managedUI.previewId);
+    assert.equal(f.commits.length,0);assert.equal(f.starts.length,0);assert.equal(f.permissions.length,0);
+  }
+});
+
+test('Stop during browser component preparation prevents a late compiler result from dispatching or saving',async t=>{
+  for(const save of [false,true]){
+    const ready=deferred(),value=await honestComponentFixture().prepare({framework:'react',projectId:'browser-react'});let started=false;
+    const f=await fixture(undefined,undefined,{componentPreparerFactory:()=>({prepare:async()=>{started=true;return ready.promise;},cancel(){},dispose(){}})});
+    t.after(()=>f.dispose());const requests=browserPageResponses(f);await selectBrowserReact(f);
+    await f.click(save?'script-save':'page-preview-run');await waitForComponentUI(()=>started,'compiler should be pending');
+    assert.equal(f.find('script-stop').disabled,false);assert.equal(f.find('script-stop').textContent,'取消准备');
+    await f.click('script-stop');ready.resolve(value);await tick();await tick();await tick();
+    assert.equal(requests.length,0,'a canceled operation may not dispatch or save stale source');
+    assert.equal(f.find('page-preview-run').disabled,false);
+  }
+});
+
+test('effect unknown reads one original completion, restores only Stop ownership and never reruns; forged queries stay quarantined',async t=>{
+  for(const forged of [false,true]){
+    const f=await fixture(undefined,undefined,{componentPreparerFactory:honestComponentFixture});t.after(()=>f.dispose());
+    const requests=browserPageResponses(f),original=f.client.request.bind(f.client);let queries=0,dispatches=0;
+    f.client.request=async(method,payload)=>{
+      if(method==='previewPageScript'){dispatches++;throw Object.assign(new Error('lost'),{code:'E_EFFECT_UNKNOWN'});}
+      if(method==='queryPagePreview'){
+        queries++;return {state:'preview-evaluated',managedUI:true,managedPreviewId:payload.previewId,sourceHash:payload.sourceHash,
+          tabId:payload.tabId,documentId:payload.documentId,world:'USER_SCRIPT',worldId:'managed-world',queryOnly:true,originalDocumentOnly:true,
+          receiptNonce:'original-nonce',completion:{format:'opendesk.page-preview-receipt.v1',nonce:forged?'wrong-nonce':'original-nonce',ok:true}};
+      }
+      return original(method,payload);
+    };
+    await selectBrowserReact(f);await f.click('page-preview-run');
+    await waitForComponentUI(()=>f.find('page-preview-status').dataset.state==='error','unknown effect should remain a visible error');
+    assert.equal(queries,1);assert.equal(dispatches,1);assert.equal(f.find('page-preview-run').disabled,true);
+    assert.equal(f.find('script-stop').disabled,forged);
+    if(!forged){await f.click('script-stop');await waitForComponentUI(()=>requests.some(row=>row.method==='retirePagePreview'),'original confirmed ownership permits cleanup');}
+    assert.equal(dispatches,1,'receipt recovery never causes a second execution');
+  }
+});
+
+test('reopening a large v2 component draft revalidates the envelope and restores exact frozen bytes without execution',async t=>{
+  const saved=new Map(),storage={get:async key=>({[key]:structuredClone(saved.get(key))}),
+    set:async values=>{for(const [key,value] of Object.entries(values))saved.set(key,structuredClone(value));}};
+  const first=await fixture(undefined,storage),draft=await frozenComponentDraft(true);
+  await first.editor.importDraft(draft);await tick();await tick();
+  assert.ok(Buffer.byteLength(draft.sourceUtf8)>100000);first.dispose();
+  const second=await fixture(undefined,storage);t.after(()=>second.dispose());
+  await waitForComponentUI(()=>second.find('script-source').value===draft.sourceUtf8,'v2 frozen source should restore from its validated snapshot');
+  assert.equal(second.find('script-source').readOnly,true);
+  assert.equal(second.editor.executionSource(),draft.sourceUtf8);
+  assert.match(second.find('program-source-info').textContent,new RegExp(draft.build.sourceHash));
+  assert.equal(second.starts.length,0);assert.equal(second.previews.length,0);assert.equal(second.commits.length,0);
 });

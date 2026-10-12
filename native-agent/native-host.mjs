@@ -10,6 +10,7 @@ import {manifestLocation} from './locations.mjs';
 import {assertInstalledRoot} from './installation-root.mjs';
 import {NativeDecoder, LineDecoder, WireError, HOST_NAME, MAX_BYTES,
   MAX_INFLIGHT, frame, requestShape, writeLine} from './wire.mjs';
+import {validLocalProjectRequest,localSourceMethod} from './local-project-source-contract.mjs';
 
 const ROOT = path.dirname(fileURLToPath(import.meta.url));
 const EXTENSION_ID = /^[a-p]{32}$/;
@@ -46,6 +47,7 @@ export function readInstalledConfiguration() {
   restricted(path.join(ROOT,'native-host.mjs'));
   restricted(path.join(ROOT,'locations.mjs'));
   restricted(path.join(ROOT,'installation-root.mjs'));
+  restricted(path.join(ROOT,'local-project-source-contract.mjs'));
   const manifestFile=manifestLocation(info.browser||'chrome',info.userDataDir??null);
   if (fs.lstatSync(manifestFile).isSymbolicLink()||fs.lstatSync(path.dirname(manifestFile)).isSymbolicLink()) throw new WireError('E_MANIFEST_CONFLICT');
   const manifest=JSON.parse(fs.readFileSync(manifestFile,'utf8'));
@@ -72,7 +74,7 @@ export function createNativeHost({installation,origin,input=process.stdin,output
 
   const clients=new Set(),pending=new Map(),devPending=new Map(),decoder=new NativeDecoder();
   let server=null,ownSocket=null,ready=false,closed=false,handshakeTimer=null;
-  let provider=null,localDev=false;
+  let provider=null,localDev=false,sourceTransfers=false;
   function sendNative(value) {
     const bytes=frame(value);
     if (closed || output.destroyed || output.writableLength+bytes.length > MAX_BYTES*2)
@@ -93,7 +95,7 @@ export function createNativeHost({installation,origin,input=process.stdin,output
       pending.delete(id);
     }
   }
-  function providerState(){sendNative({v:1,kind:'dev.state',connected:!!provider,providerEpoch:provider?.epoch??null});}
+  function providerState(){sendNative({v:1,kind:'dev.state',connected:!!provider,providerEpoch:provider?.epoch??null,...(sourceTransfers&&provider?.sourceTransfers?{localDevSourceVersion:1}:{})});}
   function devError(id,epoch,code){try{sendNative({v:1,kind:'dev.response',requestId:id,providerEpoch:epoch,error:{code,message:code}});}catch{}}
   function releaseProvider(item){
     if(provider?.item!==item)return;
@@ -102,10 +104,8 @@ export function createNativeHost({installation,origin,input=process.stdin,output
     try{providerState();}catch{}
   }
   function requestProvider(message){
-    if(!REQUEST_ID.test(message.requestId)||!['projects.list','project.resolve'].includes(message.method)||
-      !message.params||typeof message.params!=='object'||Array.isArray(message.params)||
-      Object.keys(message.params).some(key=>key!=='bindingId')||
-      message.method==='project.resolve'&&typeof message.params.bindingId!=='string')throw new WireError('E_SCHEMA');
+    if(!REQUEST_ID.test(message.requestId)||!validLocalProjectRequest(message.method,message.params))throw new WireError('E_SCHEMA');
+    if(localSourceMethod(message.method)&&(!sourceTransfers||!provider?.sourceTransfers)){devError(message.requestId,message.providerEpoch,'E_NATIVE_UPDATE_REQUIRED');return;}
     if(!provider||message.providerEpoch!==provider.epoch){devError(message.requestId,message.providerEpoch,'E_DEV_DISCONNECTED');return;}
     if(devPending.size>=4||pending.size+devPending.size>=MAX_INFLIGHT||devPending.has(message.requestId)){devError(message.requestId,provider.epoch,'E_LIMIT');return;}
     const epoch=provider.epoch;
@@ -142,7 +142,7 @@ export function createNativeHost({installation,origin,input=process.stdin,output
           if (message?.v!==1 || message.kind!=='welcome' ||
               message.extensionId!==installation.extensionId ||
               typeof message.extensionVersion!=='string') throw new WireError('E_NATIVE_HANDSHAKE');
-          ready=true;localDev=message.localDevVersion===1;clearTimeout(handshakeTimer);continue;
+          ready=true;localDev=message.localDevVersion===1;sourceTransfers=localDev&&message.localDevSourceVersion===1;clearTimeout(handshakeTimer);continue;
         }
         if(message?.v===1&&message.kind==='dev.request'){requestProvider(message);continue;}
         if (message?.v!==1 || message.kind!=='response' ||
@@ -169,7 +169,7 @@ export function createNativeHost({installation,origin,input=process.stdin,output
               !credentialMatches(installation.clientCredential,message.credential))
             throw new WireError('E_AUTH');
           item.authenticated=true;clearTimeout(item.authTimer);
-          sendLocal(socket,{v:1,kind:'authenticated',browserReady:ready,localDevVersion:localDev?1:0});
+          sendLocal(socket,{v:1,kind:'authenticated',browserReady:ready,localDevVersion:localDev?1:0,...(sourceTransfers?{localDevSourceVersion:1}:{})});
           continue;
         }
         if(provider?.item===item){
@@ -186,7 +186,7 @@ export function createNativeHost({installation,origin,input=process.stdin,output
         if(message?.v===1&&message.kind==='provider.register'){
           if(!ready||!localDev||!REQUEST_ID.test(message.providerId))throw new WireError('E_DEV_PROVIDER');
           if(provider){sendLocal(socket,{v:1,kind:'provider.rejected',error:{code:'E_DEV_PROVIDER_CONFLICT',message:'Another MCP process owns the local project connection'}});socket.end();continue;}
-          provider={item,epoch:crypto.randomUUID()};
+          provider={item,epoch:crypto.randomUUID(),sourceTransfers:sourceTransfers&&message.localDevSourceVersion===1};
           sendLocal(socket,{v:1,kind:'provider.registered',providerId:message.providerId,providerEpoch:provider.epoch});
           providerState();continue;
         }
@@ -228,7 +228,7 @@ export function createNativeHost({installation,origin,input=process.stdin,output
       if (!ownSocket.isSocket()) throw new WireError('E_SOCKET_INVALID');
       server.on('error',close);
       input.on('data',onNativeData);input.once('end',close);input.once('error',close);
-      sendNative({v:1,kind:'hello'});
+      sendNative({v:1,kind:'hello',localDevSourceVersion:1});
       handshakeTimer=setTimeout(close,handshakeTimeoutMs);
     }catch(e){close();throw e;}
     return {socketPath:installation.socketPath};

@@ -6,6 +6,7 @@ import {sdkMethods} from './sdk-methods.js';
 import {controllerMethods} from './controller-methods.js';
 import {loadBuiltinWorkerSource} from '../../libs/loader.js';
 import {taskMethods} from '../tasks/service.js';
+import {createScheduleService} from '../tasks/schedule-service.js';
 import {createPreviewAdmission} from './preview-admission.js';
 import {INCLUDE_DORMANT_TEMPLATE_RUNTIME} from '../template-runtime-contract.js';
 const COMMAND_JOURNAL="commandJournal",PAGE_SNAPSHOTS="pageSnapshots";
@@ -284,12 +285,21 @@ export function createRunAuthority({storage, api, session, entitlement, validate
   const sdk = sdkMethods({storage,api,session,clock,assertHost,currentHost});
   const tasks = taskMethods({storage,api,assertHost,currentHost,clock,loadBuiltin});
   const cloud = cloudFactory?.({storage,api,clock,assertHost,currentHost,resolveTask:tasks.resolveInstalledTask,emitToHost});
-  const controller = controllerMethods({storage,api,session,clock,assertHost,currentHost,loadBuiltin,emitToHost,cloud});
+  const schedules=createScheduleService({storage,api,clock,session,assertHost,emitToHost});
+  const controller = controllerMethods({storage,api,session,clock,assertHost,currentHost,loadBuiltin,emitToHost,cloud,scheduled:schedules});
+  async function notifyTaskChanged(taskId){
+    const hosts=await storage.transaction(['commandJournal'],'readonly',async tx=>
+      (await tx.all('commandJournal')).filter(row=>row?.tag==='host'&&row.active&&
+        row.namespace===`tool:${api.runtime.id}`&&!row.revoked));
+    await Promise.allSettled(hosts.map(row=>emitToHost(row.registrationId,
+      {type:'installed-task-changed',taskId})));
+  }
   // All former Template operations are unusable without the trusted optional
   // consumer. Do not ship their handlers in the fixed worker; keep recovery,
   // controller/SDK/Task admission, target fencing and host ownership intact.
-  return {...sdk, ...controller, ...tasks, cloud,
-    ...Object.fromEntries(['installTask','setInstalledTaskEnabled','uninstallTask'].map(name=>[name,(request,sender)=>{cloud?.invalidate();return tasks[name](request,sender);} ])),
+  return {...sdk, ...controller, ...tasks, ...Object.fromEntries(['saveSchedule','changeSchedule','listSchedules','listDueSchedules','setScheduleFireState'].map(name=>[name,schedules[name]])), cloud, schedules,
+    ...Object.fromEntries(['installTask','setInstalledTaskEnabled','uninstallTask'].map(name=>[name,async(request,sender)=>{cloud?.invalidate();const outcome=await tasks[name](request,sender);
+      await notifyTaskChanged(request.taskId).catch(error=>console.warn('Installed task event',error));return outcome;} ])),
     ...Object.fromEntries((cloud?['cloudStatus','cloudPair','cloudApprove','cloudStop','cloudUnpair','cloudNext','cloudResolve']:[]).map(name=>[name,cloud[name]])),
     registerHost, assertHost,
     ...(INCLUDE_DORMANT_TEMPLATE_RUNTIME ? {admitIdentity, claimRun, prepareCommand, authorizeDispatch, markUnknown, stopRun} : {}),

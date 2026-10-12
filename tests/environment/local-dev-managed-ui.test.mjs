@@ -10,6 +10,7 @@ import {createPreviewAdmission} from '../../src/platform/host/preview-admission.
 import {createNativeAgentHostAdapter} from '../../src/native-agent/host-adapter.js';
 import {sha256Utf8} from '../../src/scripting/user-scripts/page-program-package.js';
 import {loadFakeBuiltin} from './builtin-support.mjs';
+import {PAGE_PREVIEW_RECEIPT_FORMAT} from '../../src/scripting/user-scripts/execution-source.js';
 
 // Component doubles exercise lifecycle and protocol failures. Actual isolation,
 // CSP, native receipts and user interaction are separately checked in Chrome.
@@ -115,6 +116,39 @@ function previewFixture(projectBinding=bindingId){
   const request=(body='return {ok:true};')=>({sourceUtf8:helpers+'\nasync function main(){var ui=createPageUI({id:"test"});'+body+'}',entryFormat:'async-main',target:{...target},managedUI:{previewId:randomUUID(),bindingId:projectBinding}});
   return {doc,calls,session,api,make,request,get slot(){return slot;},owner:value=>{owner=value;},permission:value=>{permission=value;},hook:value=>{hook=value;},nativeReply:value=>{nativeReply=value;}};
 }
+test('original managed preview receipt can be queried after service recreation without executing or claiming a new document',async()=>{
+  const f=previewFixture(),request=f.request(),result=await f.make().preview(request,sender);
+  const reference={previewId:result.managedPreviewId,sourceHash:result.sourceHash,tabId:result.tabId,documentId:result.documentId};
+  const count=f.calls.length,slot=structuredClone(f.slot),service=f.make();
+  const query=await service.query(reference,sender);
+  assert.equal(query.state,'preview-evaluated');assert.equal(query.queryOnly,true);assert.equal(query.originalDocumentOnly,true);
+  assert.equal(query.receiptNonce,result.receiptNonce);assert.equal(query.completion.format,PAGE_PREVIEW_RECEIPT_FORMAT);
+  assert.equal(query.completion.ok,true);assert.equal(query.worldId,result.worldId);assert.equal(f.calls.length,count);assert.deepEqual(f.slot,slot);
+  for(const extra of [{sourceHash:'a'.repeat(64)},{tabId:6},{documentId:'new-doc'}])
+    await assert.rejects(service.query({...reference,...extra},sender),{code:'E_UI_LIFECYCLE'});
+  f.owner('other-owner');await assert.rejects(service.query(reference,sender),{code:'E_UI_OWNER'});f.owner('host-one');
+  f.permission(false);await assert.rejects(service.query(reference,sender),{code:'E_PERMISSION'});f.permission(true);
+  assert.equal(f.calls.length,count);
+  await service.retire({previewId:reference.previewId},sender);
+  const retired=await service.query(reference,sender);assert.equal(retired.state,'preview-retired');
+  assert.equal(retired.completion.nonce,result.receiptNonce,'cleanup must not replace the original execution receipt');
+});
+test('query of a lost original completion stays pending and preserves the admission fence without replay',async()=>{
+  const f=previewFixture(),request=f.request();
+  f.nativeReply((_request,value)=>value[0]?.result?.format===PAGE_PREVIEW_RECEIPT_FORMAT?[]:value);
+  await assert.rejects(f.make().preview(request,sender),{code:'E_EFFECT_UNKNOWN'});
+  const before=f.calls.length,slot=structuredClone(f.slot);
+  const query=await f.make().query({previewId:request.managedUI.previewId,sourceHash:await sha256Utf8(request.sourceUtf8),tabId:5,documentId:'doc-5'},sender);
+  assert.equal(query.state,'preview-pending');assert.equal(query.completion,undefined);
+  assert.equal(f.calls.length,before);assert.deepEqual(f.slot,slot);assert.ok(f.slot.preview?.nonce);
+});
+test('query preserves a failed completion as failed and leaves the original owner able to clean up',async()=>{
+  const f=previewFixture(),request=f.request('throw new Error("EXPECTED_FAILURE");'),service=f.make();
+  await assert.rejects(service.preview(request,sender),{code:'E_PAGE_SCRIPT_EXECUTION'});
+  const query=await service.query({previewId:request.managedUI.previewId,sourceHash:await sha256Utf8(request.sourceUtf8),tabId:5,documentId:'doc-5'},sender);
+  assert.equal(query.state,'preview-failed');assert.equal(query.completion.ok,false);assert.match(query.completion.error,/EXPECTED_FAILURE/);
+  await service.retire({previewId:request.managedUI.previewId},sender);assert.equal(f.doc.querySelectorAll().length,0);
+});
 test('Go scoped project bindings pass the adapter and preserve managed preview ownership through replacement and retirement',async t=>{
   for(const projectBinding of [bindingId,'local-v1-'+'b'.repeat(24),'local-v2-'+'c'.repeat(24)]){
     const f=previewFixture(projectBinding),service=f.make(),current={windowId:9,tabId:5,frameId:0,documentId:'doc-5',url:target.expectedUrl,origin:'https://example.test'};

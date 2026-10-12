@@ -1,6 +1,947 @@
 {
-  "format": "opendesk.remote-lock.v1",
+  "format": "opendesk.remote-lock.v2",
+  "profile": "page-library-v1",
+  "imports": {
+    "zrender/": "https://cdn.jsdelivr.net/npm/zrender@5.6.1/",
+    "tslib": "https://cdn.jsdelivr.net/npm/tslib@2.3.0/tslib.es6.js"
+  },
   "modules": {
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/core.js": {
+      "sha256": "c40d30695448336a18d80d6332259c2ee9dae110dc41d344aac7a6fdecb1b6ca",
+      "bytes": 829
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/animation/basicTransition.js": {
+      "sha256": "fd53ca02a23cfa23b26814c27dd416a244550b021ea8eeee3a85c34a95903002",
+      "bytes": 8674
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/chart/bar/BarSeries.js": {
+      "sha256": "467cf2830ec2e78245fc3232fb5646c19412e9ca63aea1e88b1e2c829a29ba30",
+      "bytes": 3852
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/chart/bar/BarView.js": {
+      "sha256": "186be9da96d82517d2957da41e8b8e4c11366d9536a9f9ee8fb42a98f4a067b5",
+      "bytes": 33820
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/chart/bar/BaseBarSeries.js": {
+      "sha256": "c399361e3ee5d6c71fd81a2c1db0c6395ba785e3adb964e48925fc697cb5fa97",
+      "bytes": 6282
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/chart/bar/install.js": {
+      "sha256": "28faca3451a99a48b8cb3e7258307038e53ea3b2ddc70d74ff5e5dc79f60d5ca",
+      "bytes": 3102
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/chart/helper/createClipPathFromCoordSys.js": {
+      "sha256": "687185b7fcff484263e9e1b8f4e42643752bf704fa618a0d9c2820e8f2febb5a",
+      "bytes": 4639
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/chart/helper/createRenderPlanner.js": {
+      "sha256": "30f6279a4b146d53c6e4be557442d9845fef3933d1515baff046f6b57b74a8bb",
+      "bytes": 2573
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/chart/helper/createSeriesData.js": {
+      "sha256": "3473a1172095e6fc48c09c12d7ab4182dccd2efcfbad8ff2efc26153b516dee9",
+      "bytes": 6692
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/chart/helper/labelHelper.js": {
+      "sha256": "df18c56897acc4382eadd0b823b50b471c6b1478e237eef7eb9c68b9337c3b26",
+      "bytes": 2794
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/chart/helper/sectorHelper.js": {
+      "sha256": "aee52cec659856555ea43d91d874a01b4dfdd440ca7659f4771c41a5fecc8612",
+      "bytes": 2252
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/component/axis/AxisBuilder.js": {
+      "sha256": "dbf9c41a2fe273d8d83a881278458d87fab6ef93ac00ccf28c379ce2bf9312ab",
+      "bytes": 22544
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/component/axis/AxisView.js": {
+      "sha256": "ad5bea1b600edc3dfb94b42b53564e772b62c0b291ed28cc7ae395b99894705a",
+      "bytes": 4270
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/component/axis/CartesianAxisView.js": {
+      "sha256": "0e78fd694455465c64f4b9c58e8faa8a90d3f859a86efbad7bc49f2e7c304b56",
+      "bytes": 8931
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/component/axis/axisSplitHelper.js": {
+      "sha256": "ef6d6de24a8975ac74cbe4a19044c6191ddcdff42ef850de5c1a522df5e842e5",
+      "bytes": 4288
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/component/axisPointer/AxisPointerModel.js": {
+      "sha256": "440948a86737c80bfe4582dd8f0ba0104d3a5e91e61f61186d43862aefa79ca6",
+      "bytes": 3708
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/component/axisPointer/AxisPointerView.js": {
+      "sha256": "cd0441440f32336a4d7d10d392d645655a4d2fa19fbb0301406a6890c82a868e",
+      "bytes": 3253
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/component/axisPointer/BaseAxisPointer.js": {
+      "sha256": "47c0ef881eb7937eb5fa599f0dc03f4fa4da656adf45be4a028703a47b4d4b4f",
+      "bytes": 13565
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/component/axisPointer/CartesianAxisPointer.js": {
+      "sha256": "8e7197530ccf9b09c177bdfc6f48dc1493ae09c27062216319090458766c4217",
+      "bytes": 5725
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/component/axisPointer/axisTrigger.js": {
+      "sha256": "0ab95ebc06149e8b22b5e38222f54d2fb9c3d531732376dec853ce92d1a378b7",
+      "bytes": 14619
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/component/axisPointer/findPointFromSeries.js": {
+      "sha256": "52831da73cb5383babcd39b0d933fdd2de5d04fae7924d78c1ad68465a3ac800",
+      "bytes": 3667
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/component/axisPointer/globalListener.js": {
+      "sha256": "3664a15bc1bddb6e6d969e79ef72ed4bba5a506e9ce163b54469d9eb75dd2ea5",
+      "bytes": 4426
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/component/axisPointer/install.js": {
+      "sha256": "2ae8b0a0a82a8ca7e99cd5f6ccba2540e7a7ba1045bc0b2d0d578a2fdd7aa3c3",
+      "bytes": 3625
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/component/axisPointer/modelHelper.js": {
+      "sha256": "e9bb9ee0ab316a1f694e0c6f2bb1a43b12ac766bc123e4030b169217cbe8dace",
+      "bytes": 12366
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/component/axisPointer/viewHelper.js": {
+      "sha256": "d7bfab811355c33a047846842fa5e16dbd9b0c2b5b07c408d542525890ebdad3",
+      "bytes": 7266
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/component/grid/install.js": {
+      "sha256": "3fdfcda2d55177deb8157059acf117668a4a2f57a029860ca712ca4996650496",
+      "bytes": 1917
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/component/grid/installSimple.js": {
+      "sha256": "d7bf5a3cbe4626fdb21ca03d3f09c7076f2ab1f6198559814366b39d1ab67c55",
+      "bytes": 3538
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/component/tooltip/seriesFormatTooltip.js": {
+      "sha256": "07ab4bc57d4e7d86a4a2117f1f4b8f69268cce49902882edcb5b9ed2ee4f64c4",
+      "bytes": 5691
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/component/tooltip/tooltipMarkup.js": {
+      "sha256": "3bb32e5dce33c670c5de87927ed29d47d76d717670ccf48fab6c1c9da9aef509",
+      "bytes": 13650
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/coord/Axis.js": {
+      "sha256": "039990edc7fcc92a7d97176fd28eb20f97243384d4971bb4deec6c37245cca83",
+      "bytes": 9705
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/coord/CoordinateSystem.js": {
+      "sha256": "385afcb05bec1a8fefcacff6a79143eb196e9799c65bcf4e0a829179e677af95",
+      "bytes": 1741
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/coord/axisAlignTicks.js": {
+      "sha256": "397760f83f2d4f27eb6a1de60164c0ab6f6354bf82970bc662e6b7664d23732f",
+      "bytes": 5811
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/coord/axisCommonTypes.js": {
+      "sha256": "72c0ef5acc54787a0ad9d31aee52d7b4bd13dcc9f112934e67c62d043d13464f",
+      "bytes": 1725
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/coord/axisDefault.js": {
+      "sha256": "3589696de17a7311f1e7674fc04ab066d50283dae7c9dd784b8b1a498975afe1",
+      "bytes": 5133
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/coord/axisHelper.js": {
+      "sha256": "d61f66deebba97d3ecad2042440842d80eeeb9bde0a62e1e4e4600c68f268540",
+      "bytes": 13763
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/coord/axisModelCommonMixin.js": {
+      "sha256": "0ded4a0b1a0f414eb11a31bc9c3d10b06d892d075585e7e4c3688a7563006536",
+      "bytes": 2193
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/coord/axisModelCreator.js": {
+      "sha256": "ce8ba701b63ace7aa14fb7ac37ffa840c811156197eb899bd0134bbf527b039d",
+      "bytes": 4381
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/coord/axisTickLabelBuilder.js": {
+      "sha256": "ac708bb246850780eac1e81798fb115bef97d850c0dfa416ca4f62a7cc4060cb",
+      "bytes": 13908
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/coord/cartesian/Axis2D.js": {
+      "sha256": "11e32e0f58cddac01e5e777e6d8d8b7f7c0c51a66931d5e7f7ed80a57fe1e339",
+      "bytes": 3219
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/coord/cartesian/AxisModel.js": {
+      "sha256": "54e55dc23eb7ef65fa4f778592ee3162794e10dc7f361e8360f5d8f9e4699dde",
+      "bytes": 2482
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/coord/cartesian/Cartesian.js": {
+      "sha256": "38051729d048ad6fc86b946d52ed77a51d771fda07dc98f1be58964a7525efdd",
+      "bytes": 2518
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/coord/cartesian/Cartesian2D.js": {
+      "sha256": "1fd5a8d054ba0d33c9e0b0bf2d4f191ee7c64e28e053b936da46f60d5cb5fb1d",
+      "bytes": 7025
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/coord/cartesian/Grid.js": {
+      "sha256": "3b3540d192628d01da0287bb74e728850ad612b3058be93ec4ccae0d1973d953",
+      "bytes": 17876
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/coord/cartesian/GridModel.js": {
+      "sha256": "53bf98c4fe5c3f8a106238697f6cfb14168537706ddb8fb15978a3e235c7c2ee",
+      "bytes": 2462
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/coord/cartesian/cartesianAxisHelper.js": {
+      "sha256": "7da39fd6c75ba0a8695b9f61a4155233627c54cf3b31a15cecbb17cda31356de",
+      "bytes": 4599
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/coord/geo/Region.js": {
+      "sha256": "b117338e908789aec8717e84fcb407223fd66a9e82e4e3762988731dc85b3b7f",
+      "bytes": 9389
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/coord/geo/parseGeoJson.js": {
+      "sha256": "6b6b59101581fe813a9ea5aea4ef5f982231b7f068ee60e02a1a99f97c9e8b5d",
+      "bytes": 5161
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/coord/scaleRawExtentInfo.js": {
+      "sha256": "4e45a142956b2dab3b63c51ca9861b442beb2e70a22a9c0db88a10609504bf92",
+      "bytes": 10036
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/core/CoordinateSystem.js": {
+      "sha256": "b7bf30868462cc8232f1f779c8c3cafd69816265b3efbeaf893cbd99bc02ae64",
+      "bytes": 2832
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/core/ExtensionAPI.js": {
+      "sha256": "8033124139d48ecec8f5ed95587eb6819b7168e5ec0a7443662a98c976800003",
+      "bytes": 2290
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/core/Scheduler.js": {
+      "sha256": "a7b917e65d74cf8fabff27ffc7ed9c3b1a5b3ad6cb1b7850fce9e10ebc211da9",
+      "bytes": 20841
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/core/echarts.js": {
+      "sha256": "91f451b778b83777f7d3f6bfe7337774fea6e3e5d3b8326b853206294b21da31",
+      "bytes": 84388
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/core/impl.js": {
+      "sha256": "7b5a25904a02fc4d3f5420bab55c971116b72dac360ebc332fe2898ba3f9d8cb",
+      "bytes": 2349
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/core/lifecycle.js": {
+      "sha256": "e4730e354a09e0300bd3dea8979093d81e3c5f99d1a03ade9c1f1e8f0e0adbae",
+      "bytes": 1762
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/core/locale.js": {
+      "sha256": "8400813a3ed4ac5c36089404a40e0eff1cd26c7cf21b96d2a372ac7ef6daa22c",
+      "bytes": 3270
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/core/task.js": {
+      "sha256": "91a77516e0b9d9c8d28b91b9ff59036cf71887f2975d26735666646324b54bd6",
+      "bytes": 12520
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/data/DataDiffer.js": {
+      "sha256": "c882da0dece079a3fc301d4993831645b3a901f24797f3a736a4d8502ff9196c",
+      "bytes": 9322
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/data/DataStore.js": {
+      "sha256": "c8deb9e3fd8d42038ee441c43fa7393bd9a6b407b88b7848a0cf73c426bcec0a",
+      "bytes": 35598
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/data/OrdinalMeta.js": {
+      "sha256": "6270cb35bf2810935afeb59904daa051ced5d16b47bc36a02b4ed4ac7219c46b",
+      "bytes": 4475
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/data/SeriesData.js": {
+      "sha256": "4b2cc061399d3dbb1cb5ccc1f5930767c3b5ad1ba6aa4596c83656e6c6c3d316",
+      "bytes": 37252
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/data/SeriesDimensionDefine.js": {
+      "sha256": "486a269bd1d465248a8342afe1e96b03b9a0b84a9341f003c15dd06ebf786a3a",
+      "bytes": 2951
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/data/Source.js": {
+      "sha256": "51ead3e77417916cd9bd258dd662eee9c2b0cfe2aba1f51f436d41c4860550ff",
+      "bytes": 10961
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/data/helper/SeriesDataSchema.js": {
+      "sha256": "0fed1b44bc7d4008a6349123ce4f264a877988c90dd477e2cfe5f8f0842deae3",
+      "bytes": 8784
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/data/helper/createDimensions.js": {
+      "sha256": "93ec48946726792348e3b5a64a4dd3739e1aae3b5d9c55e21a7f420638c251fd",
+      "bytes": 13058
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/data/helper/dataProvider.js": {
+      "sha256": "befe4481791382851c732760fcbebc9a01bf332e8053eac2bf2fa97da723e9af",
+      "bytes": 13363
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/data/helper/dataStackHelper.js": {
+      "sha256": "4f1bb509a87d76f5ce1bb3026edaf32dd472dee5277baa0b68bf1c3a1fa51276",
+      "bytes": 7301
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/data/helper/dataValueHelper.js": {
+      "sha256": "2e1102b87274f982cf61dd02c7aaba50de9483cdac0554ee7034bc7dbea1e982",
+      "bytes": 8935
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/data/helper/dimensionHelper.js": {
+      "sha256": "f2845e505edd5ed9d455d6cc71a0043e3809aa5c61b04a6d8a92ba58bfb1de9a",
+      "bytes": 6810
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/data/helper/sourceHelper.js": {
+      "sha256": "69c73b31fbf1aeb7a59b92e8c1ce9bbd9a80b69e0e524e35f0e7677abbdab9a7",
+      "bytes": 13711
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/data/helper/sourceManager.js": {
+      "sha256": "9eb9af1cbc27bd71eae490c67b133310d85e2e1a1cd00e1fe88ff8aa3bc0b66d",
+      "bytes": 15918
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/data/helper/transform.js": {
+      "sha256": "c28da79e3d2595b3ad070e0b93f358f64f331b65a71dbe8b9343d3ebadf0cb90",
+      "bytes": 16408
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/export/api.js": {
+      "sha256": "5ee0043f2e2246fbaefe626828556771acfe1ce9cb464fe99c66b34e43f0fa84",
+      "bytes": 4738
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/export/api/format.js": {
+      "sha256": "62cc08cdab84f3d7d13686462d73907d39564ac79e51ee9dceae4aa3c2e29453",
+      "bytes": 1825
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/export/api/graphic.js": {
+      "sha256": "226a179805752ed78670eb2dca224da861444aea0528a183b57a43327e9643c3",
+      "bytes": 2056
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/export/api/helper.js": {
+      "sha256": "1799c34e0e6e117fe0c03b7eb11a815beffe0224284ab197e3360fea3cd62f26",
+      "bytes": 4888
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/export/api/number.js": {
+      "sha256": "d27b59edb2ee440d98fa0022d3ee896694a2c90961305f8807fd7f60876595b6",
+      "bytes": 1936
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/export/api/time.js": {
+      "sha256": "1940385ce177d45e533d2f4c1b8aba0005d09e93f9dac290f35ad0175e376549",
+      "bytes": 1753
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/export/api/util.js": {
+      "sha256": "32f43a198530bb7158c8928d9970a3d532fb61ac3e1eee247f60ceb3a31cb1ac",
+      "bytes": 1824
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/export/core.js": {
+      "sha256": "680210f469bef723aa08021ba0652917b84af3875d08a12180b20addf9e0cb67",
+      "bytes": 1944
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/extension.js": {
+      "sha256": "e815b279b4b3bdce2a6b471a4a9470c9e2c8efeee572aec3413a4690d282c901",
+      "bytes": 4099
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/i18n/langEN.js": {
+      "sha256": "1d920e0a484d384d80f78e2c6fb333d6e776f9fe5e9d5504b3e7d7f97cc119ad",
+      "bytes": 4594
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/i18n/langZH.js": {
+      "sha256": "e2693cb9090b66e2eabf72e7447f134117480d29c114410c2a5f992eceb1da93",
+      "bytes": 4619
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/label/LabelManager.js": {
+      "sha256": "b92c9cbec5254c4b3e9fa86a330c991b4fe14ea45d7ad46cc22cb6a75c090201",
+      "bytes": 16841
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/label/installLabelLayout.js": {
+      "sha256": "7fde0862c741605fbd8cee72a3a178666bcae3d620b94850e8379d088a9acaaa",
+      "bytes": 2596
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/label/labelGuideHelper.js": {
+      "sha256": "84eaa843206a700fa2b931ff3dd69b9b32f87a163b900a1f786942859b9cb01b",
+      "bytes": 18144
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/label/labelLayoutHelper.js": {
+      "sha256": "9876b31abc80c4eedb51bf3d0a50bd6e06381d000f72c4b38f766be074b6ec79",
+      "bytes": 9878
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/label/labelStyle.js": {
+      "sha256": "c1e99d06081aaf551ef9d93421f2a62cd0034032d41c4b64365f757e4783c2df",
+      "bytes": 19178
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/label/sectorLabel.js": {
+      "sha256": "ae299050423b8587461ed32b23fbe8a05663fd9976b72315ad1cba91d6dff718",
+      "bytes": 7402
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/layout/barGrid.js": {
+      "sha256": "662093dec057778dc57ebeb169746d4ffd5d27c302affed2bc04960912774c80",
+      "bytes": 18844
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/legacy/dataSelectAction.js": {
+      "sha256": "9d0e0ebe096718a0244ca73c997eaa9c70687b7e37e94ead1d065eb4015885cc",
+      "bytes": 4792
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/legacy/getTextRect.js": {
+      "sha256": "1ce75ca05cab0aa173f5e7841d2806db291327568cd243d6205f4ce03d4ed3c5",
+      "bytes": 2090
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/loading/default.js": {
+      "sha256": "05fb187de7d28ff9e813f5d164e1bdc0fd8b7193591483b70ddc10cb8d5efe0e",
+      "bytes": 4623
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/model/Component.js": {
+      "sha256": "56514c2543be120e06ccf4f35326936658690a3acf490f076abbf49054f22335",
+      "bytes": 8448
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/model/Global.js": {
+      "sha256": "a03c4093cbe6d1a4c4f3ebba4478b33cdf36a427155de7c69b58c13a35c9e523",
+      "bytes": 29123
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/model/Model.js": {
+      "sha256": "9859e387c0370ba23d946c4deecbca46b9d6debce373f86ab5d6de1763911614",
+      "bytes": 6142
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/model/OptionManager.js": {
+      "sha256": "50e47044a69aba9606d7421c7684852c2d57056fcb76abeb90835fd39eb2049c",
+      "bytes": 17160
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/model/Series.js": {
+      "sha256": "5abf6bd46af3230fcd98b969f6df9077994fb55f8ec41f6f857076fc33d62424",
+      "bytes": 20028
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/model/globalDefault.js": {
+      "sha256": "0fe934ab8e5a53ca53551b087e30bc56b7fc29917289f515dffdfbcffaf3ddf8",
+      "bytes": 4319
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/model/internalComponentCreator.js": {
+      "sha256": "45aac875095ee734d0cbf910414c0cb9743246c7cceedc42ee42ee6508cf58db",
+      "bytes": 2563
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/model/mixin/areaStyle.js": {
+      "sha256": "c3808211c168062b78014faf9ac2259fc87294da3fc7cb793862477bf72be93b",
+      "bytes": 2276
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/model/mixin/dataFormat.js": {
+      "sha256": "ccc256e156266a6f366734c92ee13e69664fb6ec3cf2f794bf5ee04209a78d27",
+      "bytes": 7588
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/model/mixin/itemStyle.js": {
+      "sha256": "8c5495ae9a696dd39381d0335b009a86ec00a95a9e717f13d84c3697872ea06f",
+      "bytes": 2489
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/model/mixin/lineStyle.js": {
+      "sha256": "41852126362b518fd8c7da1b2d2e89e03c036cf43d01c34a5ba3a945c6b44eab",
+      "bytes": 2396
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/model/mixin/makeStyleMapper.js": {
+      "sha256": "d24ea21d6df1acc979d206020c60c7c9d63475f313a2481c3480e68aefcb2afd",
+      "bytes": 2505
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/model/mixin/palette.js": {
+      "sha256": "ff69112ca0844b352e91ab7b74dcca4f2c183555a52917c901f6d6e3a0aa78f4",
+      "bytes": 4084
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/model/mixin/textStyle.js": {
+      "sha256": "e34df1dcd5c667a92eb5d76ff190a51dd452912171bf6960ca1f21ff3f9fe619",
+      "bytes": 3247
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/model/referHelper.js": {
+      "sha256": "872fc5f0efbf880ba80f6e5bffe52cced25511bfdc1038b70ebfdbc7fe6135e3",
+      "bytes": 6582
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/preprocessor/backwardCompat.js": {
+      "sha256": "1f9cc9688086637119d9de8bb31739b34bc7e6f721b917551cc8f3bf47446762",
+      "bytes": 8772
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/preprocessor/helper/compatStyle.js": {
+      "sha256": "39e2eb95de2ca0d9084b779852b8b31bcc3008692af5a490409ff8f72d376548",
+      "bytes": 12174
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/processor/dataSample.js": {
+      "sha256": "63dbc426fb47c294b70b953046085cafadeb2a439359fa91a0e718fbaa5f495b",
+      "bytes": 4469
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/processor/dataStack.js": {
+      "sha256": "f777972078551596bdb6cd3e13ba6251443b537c924f34a6beb5f2c45b3b82b9",
+      "bytes": 5958
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/renderer/installSVGRenderer.js": {
+      "sha256": "1bded7c3c6f05053346dcf5069991c7bed475a839217ad437fce494bbf8a9404",
+      "bytes": 1789
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/scale/Interval.js": {
+      "sha256": "c55c1cccfedae76aed456efa06033326b1b27b27e2bd0158ac3a91edc1bd4043",
+      "bytes": 9354
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/scale/Log.js": {
+      "sha256": "5bfc155c4b2a6fa422ae99efc9c0525f966778d4100ed797177fbeab53e1862a",
+      "bytes": 6636
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/scale/Ordinal.js": {
+      "sha256": "f0a0df60e83d8c0952e0cbc570e1934b82391508bf2374400ae5898b70a33637",
+      "bytes": 7828
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/scale/Scale.js": {
+      "sha256": "708087bca06e768d7a2b6d47ddd5fe13e7f9dc7ffd92401440043c3fb0348c57",
+      "bytes": 3517
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/scale/Time.js": {
+      "sha256": "567080694a07a8a95e120becf66894542fc3a08163fef5566b8a9e38b5822012",
+      "bytes": 19540
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/scale/helper.js": {
+      "sha256": "cce99eec5a506172de2192b9cb98d7c1fcb251711f921b66b56a83d46b8bec29",
+      "bytes": 4391
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/theme/dark.js": {
+      "sha256": "dd23fd4d3405b7c9cc80bd870f3696c69058f0f436048d457f60c67c4dbd0dd5",
+      "bytes": 4944
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/theme/light.js": {
+      "sha256": "599509408da3bcf5a58108078b36fbab511314ee470776009154c1e5a259aeeb",
+      "bytes": 2077
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/util/ECEventProcessor.js": {
+      "sha256": "3a6621c306db5882f792c8ec314ae7f951ab49198dc080f3e6cd2037eb142251",
+      "bytes": 5641
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/util/clazz.js": {
+      "sha256": "fcd00d63b8d324a85d13ad22893f3259a8d50097b8863c395684a40ead2221a2",
+      "bytes": 10419
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/util/component.js": {
+      "sha256": "7337ddb4e1e18c486903083154d68908471f423ffb4fa0dd1ab24e3aa1a4a746",
+      "bytes": 7011
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/util/decal.js": {
+      "sha256": "bc5c5effcfda8d78f3918da905d2ff8290701822d76795b816d2f14c81c5295b",
+      "bytes": 12767
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/util/event.js": {
+      "sha256": "3b7cd3cd2c5332fc3c88b898ca537acffcbfae2e72fd34229f20eddc98b12dc6",
+      "bytes": 1927
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/util/format.js": {
+      "sha256": "b469aeacd010634da3cb4b2625331f51f7ee133a0f5259cd6d81698e6eaf9712",
+      "bytes": 8957
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/util/graphic.js": {
+      "sha256": "b49751c792ece1e9e5f25f191d7e9f5db57991215ee8b1d90172f3e89d2a268a",
+      "bytes": 17691
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/util/innerStore.js": {
+      "sha256": "39fb30685097c0750025c1d4b2d2ee813c312c1620f7594948114faa0c938d8e",
+      "bytes": 2424
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/util/layout.js": {
+      "sha256": "d234b1dd39f823b10e30579a8ff7462de99aab150c2a14a46487f4650879b50c",
+      "bytes": 15892
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/util/log.js": {
+      "sha256": "6a04efb2c32a85a5519f6df9272143e7395b53030bba536e395d2ae2379be3c8",
+      "bytes": 4605
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/util/model.js": {
+      "sha256": "d74d50167a6098612c6dfe4e950110de021c0133bdb58b4df6c1e2eebab323dd",
+      "bytes": 26280
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/util/number.js": {
+      "sha256": "eda989fb0e55ae7de28f9eab2b16d8eb3313c9afd4233cd425e0bfb5361ffdcd",
+      "bytes": 18365
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/util/shape/sausage.js": {
+      "sha256": "86940f9616d953fba14230180a90ae409ef9926ad08aba6e5f8867af6d114d05",
+      "bytes": 3755
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/util/states.js": {
+      "sha256": "52665699ec60df100430e9131f11ca2491114f8175c40b22a37751ba2d5d2bc6",
+      "bytes": 25680
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/util/symbol.js": {
+      "sha256": "f0a3a66dec757df1752f9326718362cd83af88737eaa03e08887cfd395f5e9f8",
+      "bytes": 9343
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/util/throttle.js": {
+      "sha256": "29a9e17233c3a6756b919911622ffdeb0adbd82e548159ceacf841406dde277c",
+      "bytes": 5304
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/util/time.js": {
+      "sha256": "867a78b97fe5115478a1a8d30450b9ccce2fd2d1a556b436115d3690f95eee9b",
+      "bytes": 10243
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/util/types.js": {
+      "sha256": "05cef2d32da8a94454fc46c6fd5d26ec25bf2a3592d5dd3732c0172ed1befc73",
+      "bytes": 2256
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/util/vendor.js": {
+      "sha256": "6ef85f60560722d1579afd70f9aa75c79d22f9c2b56852bc0a47ea7e3f9e91a9",
+      "bytes": 2103
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/view/Chart.js": {
+      "sha256": "6fcd208a7c9afa2834f5c8046f93e2ce5f031cc1695c4fd817f12a01ff4ae0db",
+      "bytes": 7212
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/view/Component.js": {
+      "sha256": "e0f6ed6cd3bd26ffa7d0280a355dd02a7c99847341cf461cddc814e02653262b",
+      "bytes": 3186
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/visual/decal.js": {
+      "sha256": "846016217eb1d649f2c6836f286bc7d30fe2c6ba79294348cfd6555253e3bcbc",
+      "bytes": 2410
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/visual/helper.js": {
+      "sha256": "afaa2db0b6482510ed1720444533eefe5db51f01e4d477f25e4a18d8c0db3954",
+      "bytes": 3400
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/visual/style.js": {
+      "sha256": "881cf630ee6b9352ecca694fd5b942b23d82961b6f151b665f22d210e0d161c6",
+      "bytes": 8738
+    },
+    "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/visual/symbol.js": {
+      "sha256": "831a8c7344ede66eb51f2729b51b4bdfa1cfa3906462c1e5f6f522f6a522821b",
+      "bytes": 4408
+    },
+    "https://cdn.jsdelivr.net/npm/tslib@2.3.0/tslib.es6.js": {
+      "sha256": "c96e000b4907cea73b7565349293dd152cc8259d0c6418fbc3bc931142139c36",
+      "bytes": 11774
+    },
+    "https://cdn.jsdelivr.net/npm/zrender@5.6.1/lib/Element.js": {
+      "sha256": "63b4e19b68bef0fd64f46248414abacc85b41f1599e3a60f622f32e0700465b5",
+      "bytes": 38707
+    },
+    "https://cdn.jsdelivr.net/npm/zrender@5.6.1/lib/Handler.js": {
+      "sha256": "c5365294fc01232b2d5375e3f36570d1ebc152afcc05075b7bcec73916ef269e",
+      "bytes": 10906
+    },
+    "https://cdn.jsdelivr.net/npm/zrender@5.6.1/lib/Storage.js": {
+      "sha256": "7e9ed3107798c72fc0e907403b58acdfe7be55176bb454fbb68e4afe903305ef",
+      "bytes": 5200
+    },
+    "https://cdn.jsdelivr.net/npm/zrender@5.6.1/lib/animation/Animation.js": {
+      "sha256": "85eb24d5194106c0edfc441465df65ba78d3723ca45cc1c16a9526a5ff35cde4",
+      "bytes": 4289
+    },
+    "https://cdn.jsdelivr.net/npm/zrender@5.6.1/lib/animation/Animator.js": {
+      "sha256": "906ec9d61a1cda3859a421fe48249b1276711ab3b0e713f953f0235acce0df48",
+      "bytes": 25665
+    },
+    "https://cdn.jsdelivr.net/npm/zrender@5.6.1/lib/animation/Clip.js": {
+      "sha256": "9a0cdfd5579811adaaf16732b36c3a92230224658d726458739bfc2313135f62",
+      "bytes": 2098
+    },
+    "https://cdn.jsdelivr.net/npm/zrender@5.6.1/lib/animation/cubicEasing.js": {
+      "sha256": "a7f54af53aa11f4ace79160a7d3c2a59298c676392787bfd795d44fb3114d1fe",
+      "bytes": 787
+    },
+    "https://cdn.jsdelivr.net/npm/zrender@5.6.1/lib/animation/easing.js": {
+      "sha256": "b5deb53b566b7b831c9c0057cfc35304d66a196ce75f5023acd76946b8eca3cd",
+      "bytes": 5080
+    },
+    "https://cdn.jsdelivr.net/npm/zrender@5.6.1/lib/animation/requestAnimationFrame.js": {
+      "sha256": "7f2cde568b04717c328f6bcf336adec2ce3d7c9313abb56793c1c36cf4458697",
+      "bytes": 467
+    },
+    "https://cdn.jsdelivr.net/npm/zrender@5.6.1/lib/canvas/dashStyle.js": {
+      "sha256": "b863dabbe473c3ba6f1a7e72167573635ebbceaeb1dda514234b3827b24da981",
+      "bytes": 1039
+    },
+    "https://cdn.jsdelivr.net/npm/zrender@5.6.1/lib/canvas/graphic.js": {
+      "sha256": "95781b204f8ebdd9e821cdd8f41f04a1019466f60c422d393c4d8a34073adb04",
+      "bytes": 19027
+    },
+    "https://cdn.jsdelivr.net/npm/zrender@5.6.1/lib/canvas/helper.js": {
+      "sha256": "ef47de3a72a1054072f10c6f4a14d06334034a8c719038a5599c3b6db7794aa2",
+      "bytes": 2721
+    },
+    "https://cdn.jsdelivr.net/npm/zrender@5.6.1/lib/config.js": {
+      "sha256": "99190c38f8c844d0e3f2ceb64789a53114042067399d28cce33de072710c2e56",
+      "bytes": 436
+    },
+    "https://cdn.jsdelivr.net/npm/zrender@5.6.1/lib/contain/arc.js": {
+      "sha256": "be40d74841c0d5016082b1d929e592e2c23e054bfca2d223f2cd427d24242747",
+      "bytes": 992
+    },
+    "https://cdn.jsdelivr.net/npm/zrender@5.6.1/lib/contain/cubic.js": {
+      "sha256": "dafb1e0c744802bf8f72837b24a6f3ef923dc1790b473ddc12077e526b80e4e7",
+      "bytes": 618
+    },
+    "https://cdn.jsdelivr.net/npm/zrender@5.6.1/lib/contain/line.js": {
+      "sha256": "22b05bc34db99129fd0dd89a380babf9c08a6370533a3eec17bc861687569c2b",
+      "bytes": 641
+    },
+    "https://cdn.jsdelivr.net/npm/zrender@5.6.1/lib/contain/path.js": {
+      "sha256": "80162a8daa596e87e4d464be546de15e649f56cc7d6d4cbca448cf3e1f38f451",
+      "bytes": 9874
+    },
+    "https://cdn.jsdelivr.net/npm/zrender@5.6.1/lib/contain/polygon.js": {
+      "sha256": "be7f7d6cb59665152ee4b224310b90e78d9e67e85132e79a9a7a8f7df1304475",
+      "bytes": 589
+    },
+    "https://cdn.jsdelivr.net/npm/zrender@5.6.1/lib/contain/quadratic.js": {
+      "sha256": "db18c22472306c0b2a0fa365169142529f3b173861bc01e4fd949b0335f662fc",
+      "bytes": 555
+    },
+    "https://cdn.jsdelivr.net/npm/zrender@5.6.1/lib/contain/text.js": {
+      "sha256": "90c06e682fe9823deaf7578e196de77e6b55fbf5cd17385e89d239df0ef4aaf5",
+      "bytes": 5423
+    },
+    "https://cdn.jsdelivr.net/npm/zrender@5.6.1/lib/contain/util.js": {
+      "sha256": "cd22404aa8f5d954968a7a2f547ea973aea7cae24c9dd9697e370a42fbe20257",
+      "bytes": 151
+    },
+    "https://cdn.jsdelivr.net/npm/zrender@5.6.1/lib/contain/windingLine.js": {
+      "sha256": "75f661dc1ce9b160f6409ab45de488af16c5033bf3b4fc7a0b1ff29b1026124d",
+      "bytes": 405
+    },
+    "https://cdn.jsdelivr.net/npm/zrender@5.6.1/lib/core/BoundingRect.js": {
+      "sha256": "93d0f4624b7e702f0914d503a535b40772ddf60a65eeb6790e2e4c1bd2bb373d",
+      "bytes": 6786
+    },
+    "https://cdn.jsdelivr.net/npm/zrender@5.6.1/lib/core/Eventful.js": {
+      "sha256": "17f9067bde239d92ad46af5b66cbfbf6b0724fa674f05e5d2e203d8a60f0a27f",
+      "bytes": 5350
+    },
+    "https://cdn.jsdelivr.net/npm/zrender@5.6.1/lib/core/GestureMgr.js": {
+      "sha256": "fa4913c4a5cc08a9847bc1e555bb1a8626e7bb057aa375dec1ba9e8baf0afa8b",
+      "bytes": 2592
+    },
+    "https://cdn.jsdelivr.net/npm/zrender@5.6.1/lib/core/LRU.js": {
+      "sha256": "4aff7a3396c2acef320fc84f4cd45607cce736d7749d5d0e8991c481d9319863",
+      "bytes": 2914
+    },
+    "https://cdn.jsdelivr.net/npm/zrender@5.6.1/lib/core/OrientedBoundingRect.js": {
+      "sha256": "1cb2204f8de8a2f5eab22f743bfb5fc4935435b83020536dce700ee01906cfbb",
+      "bytes": 4223
+    },
+    "https://cdn.jsdelivr.net/npm/zrender@5.6.1/lib/core/PathProxy.js": {
+      "sha256": "37e93a6820ace57c8e2c8a32aa4209f02be1349b00efbe17ef2c5c5da6564fed",
+      "bytes": 24444
+    },
+    "https://cdn.jsdelivr.net/npm/zrender@5.6.1/lib/core/Point.js": {
+      "sha256": "2a5f6748d74fa5ea16d0ffbe87c858200a8de3152b6e4ebacae488098fc3c943",
+      "bytes": 3562
+    },
+    "https://cdn.jsdelivr.net/npm/zrender@5.6.1/lib/core/Transformable.js": {
+      "sha256": "e0e67e3ad5a6721e8cbc1b44cc55a38af9e4acac96b800ac05ae179f236d04f6",
+      "bytes": 8099
+    },
+    "https://cdn.jsdelivr.net/npm/zrender@5.6.1/lib/core/WeakMap.js": {
+      "sha256": "72910c6ab873155865d59ab8829842d02da243d32ccbf5e6768a9c899777cf8d",
+      "bytes": 1263
+    },
+    "https://cdn.jsdelivr.net/npm/zrender@5.6.1/lib/core/bbox.js": {
+      "sha256": "c8a6dc155c37e325446b0a1ffa20516914d2b0d8f6595c2e8c75445e94195f9f",
+      "bytes": 3826
+    },
+    "https://cdn.jsdelivr.net/npm/zrender@5.6.1/lib/core/curve.js": {
+      "sha256": "390ddb41a3702cf1e1c2a1d78dce31d6caf4d9de59b000f0327ca49a1020ac5d",
+      "bytes": 9576
+    },
+    "https://cdn.jsdelivr.net/npm/zrender@5.6.1/lib/core/dom.js": {
+      "sha256": "b2951d957d5c88df931ede69902c0c38d625b1547cbb0702768d20413493785a",
+      "bytes": 3166
+    },
+    "https://cdn.jsdelivr.net/npm/zrender@5.6.1/lib/core/env.js": {
+      "sha256": "4d5e518a85e1edf9c329eaf39d99d52a84afaa0bd44b854fe335da42c35874da",
+      "bytes": 2543
+    },
+    "https://cdn.jsdelivr.net/npm/zrender@5.6.1/lib/core/event.js": {
+      "sha256": "94df28441f8309bee1b49076d69cf04264f1ea8c3b2112d8491efaae5eb46db3",
+      "bytes": 3206
+    },
+    "https://cdn.jsdelivr.net/npm/zrender@5.6.1/lib/core/fourPointsTransform.js": {
+      "sha256": "83a39dd23c1976c95f2cd081ba745f70d324ade3ab8034a46f731c059927964b",
+      "bytes": 2323
+    },
+    "https://cdn.jsdelivr.net/npm/zrender@5.6.1/lib/core/matrix.js": {
+      "sha256": "b78b1340991826e342722a2f40848e083a677afa5dd356228e5bdc1ed349189e",
+      "bytes": 2324
+    },
+    "https://cdn.jsdelivr.net/npm/zrender@5.6.1/lib/core/platform.js": {
+      "sha256": "0e80e1652a597498dda2a0ea899566975e88921ad5f35179402fb57a7b13aaa0",
+      "bytes": 2501
+    },
+    "https://cdn.jsdelivr.net/npm/zrender@5.6.1/lib/core/timsort.js": {
+      "sha256": "999a8cf4c90e0b6d513be4926a3e9e9d43c33b74bebfcbca72f0ace8d2bfbbe5",
+      "bytes": 15989
+    },
+    "https://cdn.jsdelivr.net/npm/zrender@5.6.1/lib/core/util.js": {
+      "sha256": "6ab48a895467240e6e538d9ba98ace5e1349584f38938c0e02bf62a848fa9b3d",
+      "bytes": 14886
+    },
+    "https://cdn.jsdelivr.net/npm/zrender@5.6.1/lib/core/vector.js": {
+      "sha256": "fe786d37f2384afc59649978c158e1cfc6eb8763ad464b6aac78bf9e3b35aa21",
+      "bytes": 2508
+    },
+    "https://cdn.jsdelivr.net/npm/zrender@5.6.1/lib/dom/HandlerProxy.js": {
+      "sha256": "ca7360c7ad7d67d7950ccba4a84401b82d93979caaa88f7bb06e4f0f046748ec",
+      "bytes": 10743
+    },
+    "https://cdn.jsdelivr.net/npm/zrender@5.6.1/lib/graphic/CompoundPath.js": {
+      "sha256": "a00b28b5ac23ba8a97dcdc46d7746bcd0c895b45da5885a84de3c2df4a194915",
+      "bytes": 1727
+    },
+    "https://cdn.jsdelivr.net/npm/zrender@5.6.1/lib/graphic/Displayable.js": {
+      "sha256": "daacf49228177904eb73a6da0657f752812904479d3ea1a189d2523ba4cd4d5f",
+      "bytes": 11867
+    },
+    "https://cdn.jsdelivr.net/npm/zrender@5.6.1/lib/graphic/Gradient.js": {
+      "sha256": "961c6b16f5f5c27926c9aefed8e10d0386e5132d120cbe61ae1ab541199a4e39",
+      "bytes": 336
+    },
+    "https://cdn.jsdelivr.net/npm/zrender@5.6.1/lib/graphic/Group.js": {
+      "sha256": "2c68c6911f63995e03588d8f657f795fd1a7c4e7e4e88b82c759bbe84f7ead02",
+      "bytes": 5843
+    },
+    "https://cdn.jsdelivr.net/npm/zrender@5.6.1/lib/graphic/Image.js": {
+      "sha256": "8ba2b0b75233b30a29bff6a8ba684e0da4050fc405345028ef40a648c40e007c",
+      "bytes": 2314
+    },
+    "https://cdn.jsdelivr.net/npm/zrender@5.6.1/lib/graphic/IncrementalDisplayable.js": {
+      "sha256": "1ea18099b85589cc54b7f29d14dc87e600b13c7bca5f9d89cb4faf41cb40ca6d",
+      "bytes": 4361
+    },
+    "https://cdn.jsdelivr.net/npm/zrender@5.6.1/lib/graphic/LinearGradient.js": {
+      "sha256": "5142ed7a572c8ce31e3906e1c0fb7d7fa20934f30a9a4d2821a058af4ec9994a",
+      "bytes": 614
+    },
+    "https://cdn.jsdelivr.net/npm/zrender@5.6.1/lib/graphic/Path.js": {
+      "sha256": "0c51baa3391eb43df9b9dcf4736d3f489eb69b1b839b205e12d2042d615e561a",
+      "bytes": 14088
+    },
+    "https://cdn.jsdelivr.net/npm/zrender@5.6.1/lib/graphic/RadialGradient.js": {
+      "sha256": "a16d12af265d0f095d18cc099270b78d65e7fa3ef22c9e2ca6e61325a43e796e",
+      "bytes": 570
+    },
+    "https://cdn.jsdelivr.net/npm/zrender@5.6.1/lib/graphic/TSpan.js": {
+      "sha256": "0930d0ffdb31d2d0462328b18ede4a4990497e56eddedb1095ad4f3a04d2cdf9",
+      "bytes": 2113
+    },
+    "https://cdn.jsdelivr.net/npm/zrender@5.6.1/lib/graphic/Text.js": {
+      "sha256": "7473b2ca2b6ce434d86d9b9cbdb9c0caeae8c43830136d0da174c89aafa72aab",
+      "bytes": 22840
+    },
+    "https://cdn.jsdelivr.net/npm/zrender@5.6.1/lib/graphic/constants.js": {
+      "sha256": "dd1576316cbfc9bb9c0603f3e16c094b59192bbefd2a87fbd9206ff0615e9eda",
+      "bytes": 95
+    },
+    "https://cdn.jsdelivr.net/npm/zrender@5.6.1/lib/graphic/helper/image.js": {
+      "sha256": "958edde7b0f1c8855cd626a03fa0f03ae4fd498d64984b9bac898560ed0a8bb7",
+      "bytes": 1872
+    },
+    "https://cdn.jsdelivr.net/npm/zrender@5.6.1/lib/graphic/helper/parseText.js": {
+      "sha256": "c9c3f790ccb7b4a30dbba0b86da99898701b54b4d0864b667946bf8b4670a753",
+      "bytes": 18874
+    },
+    "https://cdn.jsdelivr.net/npm/zrender@5.6.1/lib/graphic/helper/poly.js": {
+      "sha256": "078afefb7fe0f7b576f59972f63f5c1b90b0b7d32130c78f5c239ec55341a896",
+      "bytes": 979
+    },
+    "https://cdn.jsdelivr.net/npm/zrender@5.6.1/lib/graphic/helper/roundRect.js": {
+      "sha256": "8692ced09d0aff9db42e3dfdbc5d239783a88605f85bd0e27df3bb5ae014aa52",
+      "bytes": 1886
+    },
+    "https://cdn.jsdelivr.net/npm/zrender@5.6.1/lib/graphic/helper/roundSector.js": {
+      "sha256": "85238c64351142f8aa50dcb8b831b456bc50ea15275cc09616e5c9462ed89156",
+      "bytes": 8567
+    },
+    "https://cdn.jsdelivr.net/npm/zrender@5.6.1/lib/graphic/helper/smoothBezier.js": {
+      "sha256": "f37d0f624e2514520c06123fb8edd34619ad7e2e35aadcfe1bc7288ab0fe67ff",
+      "bytes": 1896
+    },
+    "https://cdn.jsdelivr.net/npm/zrender@5.6.1/lib/graphic/helper/subPixelOptimize.js": {
+      "sha256": "d0f2a84393a84c9509abe2d78f96a68f88be18f1216eed9d7e78919e64c9d0f2",
+      "bytes": 1998
+    },
+    "https://cdn.jsdelivr.net/npm/zrender@5.6.1/lib/graphic/shape/Arc.js": {
+      "sha256": "aa82ac21a7228e2f3886baadf8b77333b4a8e7cb6454b2c91bb9372f1e68baf0",
+      "bytes": 1239
+    },
+    "https://cdn.jsdelivr.net/npm/zrender@5.6.1/lib/graphic/shape/BezierCurve.js": {
+      "sha256": "42e0f732c81bc7ce15ac09391f852c844bae698d1dd15b2f27e9ff035c220222",
+      "bytes": 3229
+    },
+    "https://cdn.jsdelivr.net/npm/zrender@5.6.1/lib/graphic/shape/Circle.js": {
+      "sha256": "1d629161010f9ede6042879ef68c3b715b4dc61530302a064cb43c958c1429bf",
+      "bytes": 755
+    },
+    "https://cdn.jsdelivr.net/npm/zrender@5.6.1/lib/graphic/shape/Ellipse.js": {
+      "sha256": "e901bcc7aad17b47d59634aee846db1bc72d048be41769173c750fa05c10f53a",
+      "bytes": 1179
+    },
+    "https://cdn.jsdelivr.net/npm/zrender@5.6.1/lib/graphic/shape/Line.js": {
+      "sha256": "1e04045feb997df85813a0dd3f09189dc39ebf1a39db20d49c15651a0ef15bdc",
+      "bytes": 1894
+    },
+    "https://cdn.jsdelivr.net/npm/zrender@5.6.1/lib/graphic/shape/Polygon.js": {
+      "sha256": "31f685d23c79f1d64cb19f78c9c1439acc7e47a05c336a40102cc75221506055",
+      "bytes": 783
+    },
+    "https://cdn.jsdelivr.net/npm/zrender@5.6.1/lib/graphic/shape/Polyline.js": {
+      "sha256": "8e6342c6359f81ef93cf10146464e66f118a5fc772194780ce809fda0a756919",
+      "bytes": 963
+    },
+    "https://cdn.jsdelivr.net/npm/zrender@5.6.1/lib/graphic/shape/Rect.js": {
+      "sha256": "1842c3115df6a427b3db7d8ab8d8d6218c0e1c762f2447b92562d54b46f31ebf",
+      "bytes": 1661
+    },
+    "https://cdn.jsdelivr.net/npm/zrender@5.6.1/lib/graphic/shape/Ring.js": {
+      "sha256": "721813a23b9aa4705cf072430349f42fe8e3278121741eb982c307817e51a4eb",
+      "bytes": 884
+    },
+    "https://cdn.jsdelivr.net/npm/zrender@5.6.1/lib/graphic/shape/Sector.js": {
+      "sha256": "3754f04e43fb6bda146d1ec1f48dd01d24b7e1f98048f513a5eec11cbcb65a58",
+      "bytes": 1065
+    },
+    "https://cdn.jsdelivr.net/npm/zrender@5.6.1/lib/mixin/Draggable.js": {
+      "sha256": "920a0ba0fcca023f9020b0a9d9ff4ce21f715e5bd45f761aa14f5140305bc8f4",
+      "bytes": 2594
+    },
+    "https://cdn.jsdelivr.net/npm/zrender@5.6.1/lib/svg/Painter.js": {
+      "sha256": "00bf1110b61528eaefc1d3c192ede52bc6c848bcfa4d454be89a3ed1334d52ec",
+      "bytes": 10105
+    },
+    "https://cdn.jsdelivr.net/npm/zrender@5.6.1/lib/svg/SVGPathRebuilder.js": {
+      "sha256": "b5033e16572ef72799b8b6c2d309a1fb1228384bf7b07df1ee9f3702d2305f30",
+      "bytes": 3654
+    },
+    "https://cdn.jsdelivr.net/npm/zrender@5.6.1/lib/svg/core.js": {
+      "sha256": "05d725ecd029cfbd64ac4756686f55da82d8782c6f604dca53aba40f6ebc9c21",
+      "bytes": 3717
+    },
+    "https://cdn.jsdelivr.net/npm/zrender@5.6.1/lib/svg/cssAnimation.js": {
+      "sha256": "ffab91961b09b73bc56e8a4bd004812a69b7f648a7da147fe6fa927b5430ada8",
+      "bytes": 10404
+    },
+    "https://cdn.jsdelivr.net/npm/zrender@5.6.1/lib/svg/cssClassId.js": {
+      "sha256": "5719db1858562bb086b4bc7a34f5258fe9147ddec90127b2935626ccb92a063e",
+      "bytes": 80
+    },
+    "https://cdn.jsdelivr.net/npm/zrender@5.6.1/lib/svg/cssEmphasis.js": {
+      "sha256": "4eccc04f9dd9d57329d525e293abef7b76f75dfa5e42087a87c8d83ee6551485",
+      "bytes": 2213
+    },
+    "https://cdn.jsdelivr.net/npm/zrender@5.6.1/lib/svg/domapi.js": {
+      "sha256": "77bbce948dd006536ad862c77be4d700130fd747b1b795c4d74e5cd15cbf1ca1",
+      "bytes": 970
+    },
+    "https://cdn.jsdelivr.net/npm/zrender@5.6.1/lib/svg/graphic.js": {
+      "sha256": "e3fb5df88f4d0d1b64055619e2a99b82463ca16f1d551126272ff8a542ee8e8f",
+      "bytes": 17134
+    },
+    "https://cdn.jsdelivr.net/npm/zrender@5.6.1/lib/svg/helper.js": {
+      "sha256": "cf94d67284ca8c7b527004b3d20554a0f435fcb218935a552b11c8c4a0855e6d",
+      "bytes": 4496
+    },
+    "https://cdn.jsdelivr.net/npm/zrender@5.6.1/lib/svg/mapStyleToAttrs.js": {
+      "sha256": "7aeadcb92c70422e075bb1f6f51479a1e382cfa844c06942b7ea1cbb16db1a77",
+      "bytes": 3120
+    },
+    "https://cdn.jsdelivr.net/npm/zrender@5.6.1/lib/svg/patch.js": {
+      "sha256": "7aee5f709684655e1852a8fbd1e830a789bbfb02b7b03f0ce1f7a6d0ea9f949a",
+      "bytes": 8356
+    },
+    "https://cdn.jsdelivr.net/npm/zrender@5.6.1/lib/tool/color.js": {
+      "sha256": "61b6bee65f69c4b1506dbf04a7f523b0ba486dd5c739b47abda7166a5715a62a",
+      "bytes": 16150
+    },
+    "https://cdn.jsdelivr.net/npm/zrender@5.6.1/lib/tool/path.js": {
+      "sha256": "00fea74b08800270ebe7732c85d45f166fff7b7f5fdcc9087abed3c1c94c53f8",
+      "bytes": 12398
+    },
+    "https://cdn.jsdelivr.net/npm/zrender@5.6.1/lib/tool/transformPath.js": {
+      "sha256": "61132db5202b3defd685664b9f813b628588ddf371a809bb7988a455ac8fa55d",
+      "bytes": 2229
+    },
+    "https://cdn.jsdelivr.net/npm/zrender@5.6.1/lib/zrender.js": {
+      "sha256": "a0be9bfef9c4c640859f16a0f9fd6dcf9e19365ac2f0e6df64af43f753a11628",
+      "bytes": 9940
+    },
     "https://raw.githubusercontent.com/d3/d3-array/v3.2.4/src/max.js": {
       "sha256": "691945a453633d9e204846af8ea4e299821b924f82b15eaf7906aba642979b1d",
       "bytes": 502

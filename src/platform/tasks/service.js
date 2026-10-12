@@ -36,10 +36,17 @@ function installAuthorization(manifest,previous) {
 export async function assertInstalledTask(tx,namespace,{scriptId,contentHash,origin,params,migrate=false,expectedGeneration,expectedInstallationId,builtinIdentity:environment}) {
   // Run admission invokes this INSIDE its durable revision-pin/slot transaction.
   // Even a direct low-level startControllerRun cannot bypass an installation.
-  const installs=(await tx.all(TASK_STORE)).filter(row=>row?.tag==='task-installed-v1' &&
-    row.namespace===namespace && row.scriptId===scriptId && row.enabled===true);
-  invariant(installs.length===1,'E_PERMISSION','Task must be explicitly installed and enabled');
-  const install=installs[0];
+  // Task IDs cannot contain ':'; resolve by the installedTask primary key.
+  // A full frameworkKV scan is unnecessary and makes cloud/schedule admission
+  // dependent on unrelated records and can violate bounded-read guarantees.
+  const identity=typeof scriptId==='string'&&
+    /^task:([a-zA-Z0-9][a-zA-Z0-9._-]{0,59}):((?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*))$/.exec(scriptId);
+  invariant(identity,'E_PERMISSION','Task must be explicitly installed and enabled');
+  const install=await tx.get(TASK_STORE,installedKey(namespace,identity[1]));
+  invariant(install?.tag==='task-installed-v1'&&install.namespace===namespace&&
+    install.taskId===identity[1]&&install.version===identity[2]&&
+    install.scriptId===scriptId&&install.enabled===true,
+    'E_PERMISSION','Task must be explicitly installed and enabled');
   if(migrate)invariant(expectedGeneration===(install.authorization?.generation??null)&&
     expectedInstallationId===(install.authorization?.installationId??null),
     'E_REVISION','任务安装或授权在运行准备期间改变，请重新运行');

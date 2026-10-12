@@ -1,0 +1,79 @@
+{
+  "format": "opendesk.react-url-import-validation.v1",
+  "sourceHash": "8d3eedccdf62d90ddafcad3752e184ccd975479b51f649cb0b12595028ab2146",
+  "evidenceLevel": "source/build/model; Chrome pending CI",
+  "tests": [
+    {
+      "file": "tests/d3-regression.tap",
+      "scope": "D3 baseline with changed shared resolver, before ECharts source upgrade",
+      "passed": 5
+    },
+    {
+      "file": "tests/core-regression.tap",
+      "scope": "shared ESM/parser/security/review/program/Page package",
+      "passed": 59
+    },
+    {
+      "file": "tests/echarts-json-regression.tap",
+      "scope": "ECharts builder five cases passed; four new capsule fixture cases failed due to reserved .test hostname",
+      "passed": 5,
+      "failed": 4,
+      "followup": "tests/page-linked-resource-fixed.tap; tests/browser-admission-integrated.tap"
+    },
+    {
+      "file": "tests/page-linked-resource-fixed.tap",
+      "scope": "Corrected public example.com fixture; production URL guard unchanged",
+      "passed": 4
+    },
+    {
+      "file": "tests/lifecycle-query.tap",
+      "scope": "chart 5 + stats 7 + managed UI 22",
+      "passed": 34
+    },
+    {
+      "file": "tests/native-transfer.tap",
+      "scope": "frozen source transfer and existing connection models; not live Native socket",
+      "passed": 16
+    },
+    {
+      "file": "tests/browser-admission-integrated.tap",
+      "scope": "final browser preparer/linker/dependency/review/editor/source/candidate/import/hash regressions",
+      "passed": 116
+    },
+    {
+      "file": "tests/source-check.log",
+      "scope": "source/package boundary checks before unrelated main fast-forward",
+      "syntaxFiles": 552,
+      "status": "PASS"
+    }
+  ],
+  "localBuilds": {
+    "production": {
+      "status": "passed",
+      "packageHash": "6a09d7e122565f43aa08b5a4d4db8831599448de6a20521e61db06c7675e386f",
+      "sourceInputBaseCommit": "259c6d56a52b64f0d01fbe03acc06d49a5beaef9",
+      "sourceInputsFile": "builds/build-production.json.gz",
+      "note": "Later fast-forward changed separate browser SDK/schedule inputs. Preserve this package identity; CI must build and measure the integrated main candidate."
+    },
+    "development": {
+      "status": "passed",
+      "packageHash": "1e1301504fb36a405203653515cca00274395e8d10ffc6d23c68cb3d905d958c",
+      "sourceInputBaseCommit": "259c6d56a52b64f0d01fbe03acc06d49a5beaef9",
+      "sourceInputsFile": "builds/build-development.json.gz",
+      "note": "Later fast-forward changed separate browser SDK/schedule inputs. Preserve this package identity; CI must build and measure the integrated main candidate."
+    },
+    "verify": {
+      "status": "PASS",
+      "file": "builds/verify-final.log.gz"
+    }
+  },
+  "limitations": [
+    "No user Mac access.",
+    "Local Chrome probe blocked by AF_UNIX EPERM before DevTools.",
+    "No live Native socket or external Go Host chunk implementation.",
+    "Forward Native MCP oversized run remains E_LIMIT / NOT_DISPATCHED.",
+    "Browser source path supports v1 small graph; full ECharts uses fixed v2 JSON.",
+    "Author dependency reviews/locks retain raw caches under existing persistent cache policy; no forget/GC UI.",
+    "Source snapshots, producer labels and measurement document/nonce IDs are not compiler attestation or browser execution receipts."
+  ]
+}

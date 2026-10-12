@@ -1,0 +1,12 @@
+✔ versioned linked Page resource preserves the exact JS while ordinary Page and Controller limits stay unchanged (18.097239ms)
+✔ linked code tampering, source truncation and unsupported resource worlds fail before execution (7.314183ms)
+✔ JSON import binds source hash, fixed dependency lock and source snapshot independently (19.698644ms)
+✔ dependency provenance cannot declare local addresses, excessive graphs, nested resources or oversized descriptors (7.222335ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 133.431123

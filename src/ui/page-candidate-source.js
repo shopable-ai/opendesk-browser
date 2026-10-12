@@ -1,4 +1,5 @@
 import {parseUserScriptDependencies} from '../scripting/user-scripts/dependency-metadata.js';
+import {inspectPageSource} from '../scripting/user-scripts/page-bundle.js';
 import {validatePageProgramRules} from '../scripting/user-scripts/page-program-rules.js';
 
 // Native source is not a UserScript metadata document. Scheduling settings are
@@ -23,7 +24,7 @@ export function preparePageCandidateDraft({sourceUtf8,entryFormat,lockId,importS
   const rules=pageRules !== undefined ? validatePageProgramRules(pageRules) : !parsed.hasHeader
     ? validatePageProgramRules({matches:[match],excludeMatches:[],runAt:'document_idle',allFrames:false,world:'USER_SCRIPT'})
     : undefined;
-  if(new TextEncoder().encode(sourceUtf8).byteLength>128*1024)fail('E_SOURCE','冻结后的页面源码不能超过 128 KiB');
+  inspectPageSource(sourceUtf8);
   return Object.freeze({
     request:Object.freeze({programId,revision,sourceUtf8,entryFormat,
       importSourceUrl,lockId:lockId??null,...(rules ? {pageRules:rules} : {})}),

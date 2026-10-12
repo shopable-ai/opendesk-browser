@@ -1,0 +1,19 @@
+{
+  "status": "STATIC_REVIEW_ONLY",
+  "checkedAt": "2026-10-12T11:39:58.384156+00:00",
+  "temporaryPath": "/workspace/scratch/6d8850e5cd8c/evidence-research/page-url-import-linux-cft-browser-source.mjs",
+  "repositoryTargetAfterReview": "tests/framework/page-url-import-linux-cft.mjs",
+  "sha256": "2b67935ae0edd7bd464cc495f70048cfd230c8ed474b8ffefc68d34eecfd0719",
+  "bytes": 74850,
+  "originalFilesUnchanged": true,
+  "newFlag": "--browser-source",
+  "workflowEnabled": false,
+  "nodeCheck": {
+    "exitCode": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  "runtime": "NOT_TESTED; no new local Chrome attempt",
+  "network": "Proxy permits raw.githubusercontent.com:443 only during trusted download activation; real end-to-end TLS; original bytes independently hashed from actual persisted asset; all tunnels closed before approval/Save/Run/Stop",
+  "evidenceScope": "Original inspect/download/review/approve/save/run/stop UI, exact authoring and executable hashes, real persistent review/lock/candidate and preview receipts"
+}

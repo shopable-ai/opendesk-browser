@@ -69,15 +69,46 @@ async function load(world,{runtime=globalThis.chrome?.runtime,fetchImpl=globalTh
 export const loadBuiltinPageSource=options=>load('USER_SCRIPT',options);
 export const loadBuiltinWorkerSource=options=>load('CONTROLLER',options);
 
-// A Page program's opt-in is a selection, not a permission grant. The same
-// manifest verification applies to default and optional packaged resources.
-export async function loadPackagedOptionalPageLibrary(id,{runtime=globalThis.chrome?.runtime,
+// Every selection is verified against ONE fixed manifest; selection grants
+// no new world/network authority and does not fetch anything before validation.
+export async function loadPackagedOptionalPageLibraries(ids,{runtime=globalThis.chrome?.runtime,
   fetchImpl=globalThis.fetch}={}){
-  const library=Object.hasOwn(catalog.libraries,id)?catalog.libraries[id]:null;
-  if(!library||library.default||!library.worlds.includes('USER_SCRIPT'))
+  if(!Array.isArray(ids)||!ids.length||ids.length>6||new Set(ids).size!==ids.length||
+    ids.some(id=>typeof id!=='string'||!Object.hasOwn(catalog.libraries,id)||
+      catalog.libraries[id].default||!catalog.libraries[id].worlds.includes('USER_SCRIPT')))
     throw fail('E_BUILTIN_DECLARATION');
   const ctx={runtime,fetchImpl},{rows,catalogSha256}=await manifestFor(ctx);
-  const asset=await checked(library.output,ctx,rows);
-  return Object.freeze({id:library.id,version:library.version,code:asset.text,
-    bytes:asset.bytes,sha256:asset.sha256,catalogSha256,abi:BUILTIN_ABI});
+  const chosen=[];
+  for(const id of ids){
+    const library=catalog.libraries[id],asset=await checked(library.output,ctx,rows);
+    chosen.push(Object.freeze({id:library.id,version:library.version,code:asset.text,
+      bytes:asset.bytes,sha256:asset.sha256,catalogSha256,abi:BUILTIN_ABI}));
+  }
+  return Object.freeze(chosen);
+}
+export async function loadPackagedOptionalPageLibrary(id,options){
+  return (await loadPackagedOptionalPageLibraries([id],options))[0];
+}
+
+// Only Axios is currently admitted to the Controller optional world. The
+// binary is the SAME pinned resource used by Page, never a second npm bundle.
+export function controllerSelectedPackagedLibrary(sourceUtf8){
+  if(typeof sourceUtf8!=='string')throw fail('E_BUILTIN_DECLARATION');
+  const ids=[];
+  for(const line of sourceUtf8.replace(/^\uFEFF/,'').split(/\r?\n/)){
+    if(/^\s*$/.test(line))continue;
+    const row=/^\s*\/\/\s*@opendesk-lib\s+([^\s]+)\s*$/.exec(line);
+    if(row){ids.push(row[1]);continue;}
+    if(!/^\s*\/\//.test(line))break;
+  }
+  const chosen=[...new Set(ids)];
+  if(chosen.length>1||chosen.some(id=>id!=='axios')||
+     ids.length>6)throw fail('E_BUILTIN_DECLARATION');
+  return chosen[0]??null;
+}
+export async function loadPackagedOptionalControllerLibrary(id,options){
+  if(id!=='axios'||!catalog.libraries.axios.worlds.includes('CONTROLLER'))
+    throw fail('E_BUILTIN_DECLARATION');
+  // The shared loader performs one manifest read and exact SHA-256 per asset.
+  return (await loadPackagedOptionalPageLibraries([id],options))[0];
 }

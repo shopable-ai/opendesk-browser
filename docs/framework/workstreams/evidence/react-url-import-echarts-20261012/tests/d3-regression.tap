@@ -1,0 +1,13 @@
+✔ default TOC directly imports reviewed HTTPS ESM alongside packaged React (1075.042046ms)
+✔ reviewed upstream cache builds deterministically and exports through the original JSON pipeline (957.633898ms)
+✔ missing lock blocks before downloading; explicit test-only pinning remains separate (571.907143ms)
+✔ missing or tampered cache never falls back to CDN or local math (25.737738ms)
+✔ changing a URL requires a new pin rather than silently reusing another version (8.760856ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2820.83937

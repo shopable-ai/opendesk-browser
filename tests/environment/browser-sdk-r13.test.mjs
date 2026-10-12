@@ -88,8 +88,8 @@ test('Browser SDK tool wrapper preserves request channel; page SDK denies privil
   assert.equal((await page.capabilities.getStatus({operation:'browser.contextMenu.register'})).callableNow,false);
   await assert.rejects(page.contextMenu.register({actionIds:['capture-selection']}),{code:'E_CONTEXT'});
   assert.equal(Object.hasOwn(BROWSER_OPERATIONS,'browser.network.observe.start'),true);
-  assert.equal(BROWSER_OPERATIONS['browser.network.observe.start'].implementation,'PLANNED');
-  assert.throws(()=>normalizeBrowserOperation('browser.network.observe.start',{}),{code:'E_SERVICE_UNSUPPORTED'});
+  assert.equal(BROWSER_OPERATIONS['browser.network.observe.start'].implementation,'IMPLEMENTED');
+  assert.throws(()=>normalizeBrowserOperation('browser.network.observe.start',{}),{code:'E_SCHEMA'});
 });
 test('menus use browser optional permission, idempotent sync, real click and one-use source',async()=>{
   const sample=await readSample('selection-notes.opendesk-tool.json');
@@ -116,7 +116,7 @@ test('menus use browser optional permission, idempotent sync, real click and one
     args:{},...hostContext},sender);
   assert(Array.isArray(discovery)&&discovery.length>=20);
   assert(Buffer.byteLength(JSON.stringify(discovery))<=12000,'capability list must respect IPC response budget');
-  assert(discovery.some(row=>row.operation==='browser.network.observe.start'&&row.implementation==='PLANNED'));
+  assert(discovery.some(row=>row.operation==='browser.network.observe.start'&&row.implementation==='IMPLEMENTED'));
   markTrustedRightClick(host,api);
   host.onClicked({menuItemId:'opendesk.tool.selection-notes.capture-selection',
     pageUrl:'https://example.com/post',frameId:0,selectionText:'R1.3 selected'},frame);

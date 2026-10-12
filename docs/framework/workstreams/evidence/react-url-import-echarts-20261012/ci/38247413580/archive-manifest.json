@@ -1,0 +1,84 @@
+{
+  "runId": 38247413580,
+  "jobId": 114804679462,
+  "commit": "53eac6327055bf6e20b4393e2fa914c656b77d99",
+  "artifactId": 11746443504,
+  "completeArtifactUrl": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38247413580/artifacts/11746443504",
+  "completeArtifactBytes": 1993709,
+  "completeArtifactSha256": "fe83d0af75ac1b86666ab6c6c90336c90bbf3e7523aa4603713110e263dc3802",
+  "selection": "Unmodified original failure report, complete job log, actual package identity and catalog DOM/screenshot. Full package copy and unchanged fixtures remain in the complete artifact.",
+  "rows": [
+    {
+      "source": "report.json",
+      "file": "report.json",
+      "rawBytes": 3304,
+      "rawSha256": "1268e5c916d50a8cea88b4aaec6500b13d77dd130af612deedce9b12467a1a6d",
+      "storedBytes": 3304,
+      "storedSha256": "1268e5c916d50a8cea88b4aaec6500b13d77dd130af612deedce9b12467a1a6d"
+    },
+    {
+      "source": "jobs-final.json",
+      "file": "jobs-final.json",
+      "rawBytes": 2243,
+      "rawSha256": "c4664d3f2bf67584e58f7d5ea8086b7e49d65ae1f7afe6f54cc372ff47efbcdb",
+      "storedBytes": 2243,
+      "storedSha256": "c4664d3f2bf67584e58f7d5ea8086b7e49d65ae1f7afe6f54cc372ff47efbcdb"
+    },
+    {
+      "source": "artifacts.json",
+      "file": "artifacts.json",
+      "rawBytes": 881,
+      "rawSha256": "b6d2494ba8e19bd23cd6c742ed9c12d20d3a9e3289b605794fb4b39f348d958c",
+      "storedBytes": 881,
+      "storedSha256": "b6d2494ba8e19bd23cd6c742ed9c12d20d3a9e3289b605794fb4b39f348d958c"
+    },
+    {
+      "source": "job-114804679462.log",
+      "file": "job-114804679462.log.gz",
+      "rawBytes": 62929,
+      "rawSha256": "0731cd898899b0a51ed318bcd4e3818bbf086758cf6cc172159f2657bc0ed340",
+      "storedBytes": 13784,
+      "storedSha256": "a8b1b4f41aaa294c44b7f1fdf061a50319a8d797c7bec82956312aa6ab6e8446"
+    },
+    {
+      "source": "artifact/acceptance.json",
+      "file": "artifact/acceptance.json",
+      "rawBytes": 9709,
+      "rawSha256": "d7b20dab4c73a5bcd224427eff742b519ccd11ad93a17561e39f9d0ccfdbe6d8",
+      "storedBytes": 9709,
+      "storedSha256": "d7b20dab4c73a5bcd224427eff742b519ccd11ad93a17561e39f9d0ccfdbe6d8"
+    },
+    {
+      "source": "artifact/package-identity.json",
+      "file": "artifact/package-identity.json",
+      "rawBytes": 22859,
+      "rawSha256": "e6326fd63551725b6baafc472cab9fd600aca5130a675e25ce920003fe1d6faa",
+      "storedBytes": 22859,
+      "storedSha256": "e6326fd63551725b6baafc472cab9fd600aca5130a675e25ce920003fe1d6faa"
+    },
+    {
+      "source": "artifact/failure-2-catalog.json",
+      "file": "artifact/failure-2-catalog.json",
+      "rawBytes": 760,
+      "rawSha256": "c35564c47697ad9b396b57cca790b4e843016c7b7a614765bf32c03af886a1af",
+      "storedBytes": 760,
+      "storedSha256": "c35564c47697ad9b396b57cca790b4e843016c7b7a614765bf32c03af886a1af"
+    },
+    {
+      "source": "artifact/failure-2-catalog.png",
+      "file": "artifact/failure-2-catalog.png",
+      "rawBytes": 21436,
+      "rawSha256": "8c937909597d4da5a2dd2e9076fe714f6e2e8c1f711278d2a98630f47394959f",
+      "storedBytes": 21436,
+      "storedSha256": "8c937909597d4da5a2dd2e9076fe714f6e2e8c1f711278d2a98630f47394959f"
+    },
+    {
+      "source": "artifact/events.jsonl",
+      "file": "artifact/events.jsonl",
+      "rawBytes": 678,
+      "rawSha256": "271b8f650a1787229f7293b3167025d90180013c4e013de106ec33691e3297f9",
+      "storedBytes": 678,
+      "storedSha256": "271b8f650a1787229f7293b3167025d90180013c4e013de106ec33691e3297f9"
+    }
+  ]
+}

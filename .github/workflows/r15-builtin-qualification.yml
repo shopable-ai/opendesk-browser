@@ -28,6 +28,9 @@ on:
       - 'package-lock.json'
       - 'wxt.config.mjs'
       - 'tests/environment/builtin-*.mjs'
+      - 'tests/environment/runtime-globals-zero-arg.test.mjs'
+      - 'tests/environment/runtime-libs-trusted-worlds.test.mjs'
+      - 'examples/libs/trusted-imports/**'
       - 'tests/environment/libs-doctor-r155.test.mjs'
       - 'tests/environment/libs-history-r156.test.mjs'
       - 'tests/environment/packaged-jquery-loading-r155.test.mjs'
@@ -60,7 +63,7 @@ jobs:
       - name: R15.5 library doctor inventory and opt-in integrity regressions
         run: node --test tests/environment/libs-history-r156.test.mjs tests/environment/libs-doctor-r155.test.mjs tests/environment/packaged-jquery-loading-r155.test.mjs tests/environment/builtin-loader-failures-r155.test.mjs tests/environment/builtin-idempotence-r155.test.mjs
       - name: Builtin methods, consumers, compiler and development lifecycle
-        run: node --test tests/environment/builtin-*.test.mjs tests/environment/controller-main-entry.test.mjs tests/environment/page-script-preview.test.mjs tests/environment/user-script-dependency-flow.test.mjs tests/environment/page-installed-programs.test.mjs tests/environment/wxt-development.test.mjs
+        run: node --test tests/environment/builtin-*.test.mjs tests/environment/controller-main-entry.test.mjs tests/environment/runtime-globals-zero-arg.test.mjs tests/environment/runtime-libs-trusted-worlds.test.mjs tests/environment/page-script-preview.test.mjs tests/environment/user-script-dependency-flow.test.mjs tests/environment/page-installed-programs.test.mjs tests/environment/wxt-development.test.mjs
       - run: npm run check
       - run: npm run build
       - run: npm run build:dev

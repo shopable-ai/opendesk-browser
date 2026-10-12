@@ -1,0 +1,9 @@
+{
+  "probe": "socket.socket(AF_UNIX, SOCK_STREAM)",
+  "status": "BLOCKED",
+  "errno": 1,
+  "message": "Operation not permitted",
+  "AF_INET": "allowed",
+  "effect": "Chrome process singleton cannot start; no extension or USER_SCRIPT executed",
+  "originalLog": "probe-cft-baseline/chrome-stderr.log"
+}

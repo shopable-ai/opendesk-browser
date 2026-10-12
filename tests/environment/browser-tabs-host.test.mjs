@@ -14,7 +14,8 @@ function fixture(){
   remove:async id=>{operations.push('remove');items.delete(id)}
  }};
  return {api,items,operations,navigate:(id,url)=>{items.set(id,{...items.get(id),url});updated.forEach(fn=>fn(id,{url}))},
-  close:id=>removed.forEach(fn=>fn(id))};
+  close:id=>removed.forEach(fn=>fn(id)),
+  emitUpdated:(id,change)=>updated.forEach(fn=>fn(id,change))};
 }
 const ref='ref_'+('k'.repeat(40));
 test('HTTPS open returns only opaque ref and owner can focus it',async()=>{
@@ -67,4 +68,52 @@ test('invalid URLs and expired references never control arbitrary tabs',async()=
  await host.open({url:'https://example.org'},owner());
  at=601001;
  await assert.rejects(host.focus({tabRef:ref},owner()),code('E_TAB_REF_INVALID'));
+});
+
+test('first real Chrome loading event preserves a newly opened ref but later reload invalidates it',async()=>{
+ const f=fixture();
+ f.api.tabs.create=async({url})=>{
+  const tab={id:299,url,status:'loading'};f.items.set(tab.id,tab);return tab;
+ };
+ const host=createBrowserTabHost({api:f.api,createRef:()=>ref,authorize:async()=>true});
+ const tabRef=(await host.open({url:'https://example.org/initial'},owner())).tabRef;
+ f.emitUpdated(299,{url:'https://example.org/initial',status:'loading'});
+ assert.deepEqual(await host.focus({tabRef},owner()),{focused:true});
+ f.items.set(299,{...f.items.get(299),status:'complete'});
+ f.emitUpdated(299,{status:'complete'});
+ f.emitUpdated(299,{status:'loading'});
+ await assert.rejects(host.focus({tabRef},owner()),code('E_TAB_REF_INVALID'));
+});
+
+test('R5 security: missed Chrome onUpdated cannot reuse owned TabRef after same-Origin path navigation',async()=>{
+ const f=fixture();
+ f.api.webNavigation={getFrame:async({tabId})=>({
+   documentId:'doc-'+tabId,url:f.items.get(tabId)?.url,documentLifecycle:'active'})};
+ const host=createBrowserTabHost({api:f.api,createRef:()=>ref,authorize:async()=>true});
+ const {tabRef}=await host.open({url:'https://example.org/initial'},owner());
+ // Navigation is real in Chrome state, but this fixture deliberately drops onUpdated.
+ f.items.set(200,{...f.items.get(200),url:'https://example.org/other-document'});
+ await assert.rejects(host.resolve(tabRef,owner()),code('E_TAB_REF_INVALID'));
+ await assert.rejects(host.focus({tabRef},owner()),code('E_TAB_REF_INVALID'));
+});
+test('R5 security: revoke during asynchronous Chrome document lookup invalidates TabRef',async()=>{
+ const f=fixture();let enter,release;
+ const entered=new Promise(resolve=>{enter=resolve});
+ const blocked=new Promise(resolve=>{release=resolve});
+ f.api.webNavigation={getFrame:async({tabId})=>{
+   enter();await blocked;return {documentId:'doc-'+tabId,url:f.items.get(tabId)?.url,documentLifecycle:'active'};
+ }};
+ const host=createBrowserTabHost({api:f.api,createRef:()=>ref,authorize:async()=>true});
+ const {tabRef}=await host.open({url:'https://example.org/initial'},owner());
+ const pending=host.resolve(tabRef,owner());
+ await entered;host.revokeTool('tool-a');release();
+ await assert.rejects(pending,code('E_TAB_REF_INVALID'));
+});
+test('R5 security: revoke during Chrome tabs.get cannot focus a stale owned tab',async()=>{
+ const f=fixture();let host;
+ f.api.tabs.get=async id=>{host.revokeTool('tool-a');return f.items.get(id)};
+ host=createBrowserTabHost({api:f.api,createRef:()=>ref,authorize:async()=>true});
+ const {tabRef}=await host.open({url:'https://example.org/initial'},owner());
+ await assert.rejects(host.focus({tabRef},owner()),code('E_TAB_REF_INVALID'));
+ assert(!f.operations.includes('focus'),'No Chrome focus after authority was revoked');
 });

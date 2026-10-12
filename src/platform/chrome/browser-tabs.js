@@ -1,5 +1,5 @@
-// Isolated trusted Chrome Tabs driver. It is deliberately NOT wired to a
-// public tool route until site, package and user-intent admission is approved.
+// Trusted Chrome Tabs driver wired through the installed-tool Browser SDK Host.
+// Only exact, one-use Host-approved requests may reach these Chrome operations.
 const fail=(code,message=code)=>Object.assign(new Error(message),{code});
 const MAX_OWNED=8,TTL_MS=600000;
 const tokenPattern=/^[A-Za-z0-9_-]{16,160}$/;
@@ -39,8 +39,16 @@ export function createBrowserTabHost({api=globalThis.chrome,authorize,clock=Date
  const invalidateTab=tabId=>{for(const [ref,row] of refs)if(row.tabId===tabId)purge(ref)};
  api?.tabs?.onRemoved?.addListener?.(invalidateTab);
  api?.tabs?.onUpdated?.addListener?.((id,change)=>{
-  if(change?.url!==undefined||change?.status==='loading'||change?.discarded===true)
-   invalidateTab(id);
+  for(const [ref,row] of refs){
+   if(row.tabId!==id)continue;
+   if(change?.discarded===true){purge(ref);continue;}
+   const grace=row.initialNavigation&&clock.now()<row.initialUntil;
+   // Chrome emits URL/loading for a freshly created tab. Retain its ref
+   // during that one initial load, but NEVER permit a different target URL.
+   if(change?.url!==undefined&&change.url!==row.url){purge(ref);continue;}
+   if(change?.status==='loading'&&!grace){purge(ref);continue;}
+   if(change?.status==='complete')row.initialNavigation=false;
+  }
  });
  const approved=async(operation,origin,context)=>{
   if(await authorize({operation,origin,context})!==true)
@@ -65,7 +73,9 @@ export function createBrowserTabHost({api=globalThis.chrome,authorize,clock=Date
    try{await api.tabs.remove(tab.id)}catch{}
    throw fail('E_CONTEXT','No secure opaque reference');
   }
-  refs.set(tabRef,{owner:owned,tabId:tab.id,origin:url.origin,expiresAt:clock.now()+TTL_MS});
+  refs.set(tabRef,{owner:owned,tabId:tab.id,origin:url.origin,url:url.href,
+    expiresAt:clock.now()+TTL_MS,initialNavigation:tab.status!=='complete',
+    initialUntil:clock.now()+15000});
   if(!byTool.has(owned))byTool.set(owned,new Set());
   byTool.get(owned).add(tabRef);
   return {tabRef};
@@ -81,8 +91,10 @@ export function createBrowserTabHost({api=globalThis.chrome,authorize,clock=Date
   const tab=await api.tabs.get(row.tabId).catch(()=>null);
   let matches=false;
   try{matches=Number.isSafeInteger(tab?.id)&&tab.id===row.tabId&&
-      browserTabUrl(tab.url).origin===row.origin}catch{}
+      browserTabUrl(tab.url).href===row.url}catch{}
   if(!matches){purge(args.tabRef);throw fail('E_TAB_REF_INVALID','Tab changed or closed')}
+  if(refs.get(args.tabRef)!==row)throw fail('E_TAB_REF_INVALID','Tab authority was revoked');
+  if(tab?.status==='complete')row.initialNavigation=false;
   const moved=await api.tabs.update(row.tabId,{active:true});
   if(Number.isSafeInteger(moved?.windowId)&&typeof api?.windows?.update==='function')
    await api.windows.update(moved.windowId,{focused:true});
@@ -91,8 +103,34 @@ export function createBrowserTabHost({api=globalThis.chrome,authorize,clock=Date
   if(moved?.id!==row.tabId)throw fail('E_OUTCOME_UNKNOWN','Chrome did not confirm focus');
   return {focused:true};
  }
+ // Internal resolution: only Host receives a tabId, never untrusted callers.
+ async function resolve(tabRef,context){
+  const owned=owner(context),row=refs.get(tabRef);
+  if(!row||row.owner!==owned||clock.now()>=row.expiresAt){
+   if(row&&clock.now()>=row.expiresAt)purge(tabRef);
+   throw fail('E_TAB_REF_INVALID','Tab reference expired or belongs to another tool');
+  }
+  const tab=await api.tabs.get(row.tabId).catch(()=>null);
+  let currentUrl;
+  try{currentUrl=browserTabUrl(tab?.url)}catch{}
+  // Same-Origin path changes are not safe if Chrome's onUpdated event was missed.
+  if(!tab||tab.id!==row.tabId||currentUrl?.href!==row.url||tab.incognito){
+   purge(tabRef);throw fail('E_TAB_REF_INVALID','Tab closed or navigated');
+  }
+  if(typeof api.webNavigation?.getFrame!=='function')
+   throw fail('E_CHROME_UNSUPPORTED','Document identity unavailable');
+  const frame=await api.webNavigation.getFrame({tabId:row.tabId,frameId:0});
+  if(!frame?.documentId||frame.errorOccurred||
+     (frame.documentLifecycle&&frame.documentLifecycle!=='active')||
+     frame.url!==row.url)
+   throw fail('E_DOCUMENT_STALE','Owned tab document not active');
+  if(refs.get(tabRef)!==row||clock.now()>=row.expiresAt)
+   throw fail('E_TAB_REF_INVALID','Tab reference was revoked during Chrome lookup');
+  return {tabId:row.tabId,windowId:tab.windowId,documentId:frame.documentId,
+   url:frame.url,incognito:false,origin:row.origin};
+ }
  const revokeTool=id=>{for(const [ref,row] of refs)if(row.owner.startsWith(id+':'))purge(ref)};
- return Object.freeze({open,focus,invalidateTab,revokeTool,
+ return Object.freeze({open,focus,resolve,invalidateTab,revokeTool,
   dispose:()=>{refs.clear();byTool.clear()},
   diagnostics:()=>({references:refs.size})});
 }

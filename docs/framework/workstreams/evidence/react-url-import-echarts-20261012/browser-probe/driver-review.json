@@ -1,0 +1,90 @@
+{
+  "status": "STATIC_REVIEW_ONLY",
+  "checkedAt": "2026-10-12T11:30:32.567433+00:00",
+  "files": [
+    {
+      "temporaryPath": "/workspace/scratch/6d8850e5cd8c/evidence-research/page-url-import-linux-cft.mjs",
+      "repositoryTarget": "tests/framework/page-url-import-linux-cft.mjs",
+      "sha256": "938f7f5c55b0f36a71a7cdfd2b79435354ed145e6b7ea6675df41e6fdbc8d4c2",
+      "bytes": 54251
+    },
+    {
+      "temporaryPath": "/workspace/scratch/6d8850e5cd8c/evidence-research/page-url-import-controls.js",
+      "repositoryTarget": "tests/framework/fixtures/page-url-import-controls.js",
+      "sha256": "5dd9ec2429aead8c17f8b66d816f02c2d583bbd73bc8cf56eca74807792193ab",
+      "bytes": 1958
+    },
+    {
+      "temporaryPath": "/workspace/scratch/6d8850e5cd8c/evidence-research/react-url-import-cft.yml",
+      "repositoryTarget": ".github/workflows/react-url-import-cft.yml",
+      "sha256": "2d3fcbcdc171e46b50ea914f08a2900362f30915ea4a5602437427e2c544b53d",
+      "bytes": 3392
+    }
+  ],
+  "checks": [
+    {
+      "command": [
+        "node",
+        "--check",
+        "/workspace/scratch/6d8850e5cd8c/evidence-research/page-url-import-linux-cft.mjs"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "node",
+        "--check",
+        "/workspace/scratch/6d8850e5cd8c/evidence-research/page-url-import-controls.js"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "step": "Install locked repository build tools",
+      "command": [
+        "bash",
+        "-n"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "step": "Build actual production extension",
+      "command": [
+        "bash",
+        "-n"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "step": "Build original React TOC ECharts JSON from its frozen offline cache",
+      "command": [
+        "bash",
+        "-n"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "step": "Real Chrome JSON import, ECharts data and resize, Stop, install and next document",
+      "command": [
+        "bash",
+        "-n"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  ],
+  "yaml": "PARSED",
+  "browser": "NOT_TESTED; existing local AF_UNIX=EPERM probe retained without retry",
+  "runtimeDependencies": "Node 22.23.3 built-in WebSocket/CDP plus repository package-lock; no Playwright added",
+  "pendingEvidence": "Main writer must integrate/commit/push and read actual CFT job artifact and receipts"
+}

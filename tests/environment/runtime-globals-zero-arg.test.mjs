@@ -82,3 +82,49 @@ test('canonical docs explicitly distinguish lexical Controller context from othe
   assert(controller.includes('export default async function main()'));
   assert(controller.includes('runtime-globals-and-preinstalled-libraries.zh-CN.md'));
 });
+
+test('zero-argument Page single-file compiles and executes real default facades without export',async()=>{
+  const source=await readFile('examples/programs/single-file/page-globals-zero-arg.js','utf8');
+  assert.match(source,/async function main\(\)/);
+  const script=await compileLockedPageSource({sourceUtf8:source,entryFormat:'async-main',entries:[]});
+  assert.equal(script.world,'USER_SCRIPT');
+  const scope=vm.createContext({
+    document:{title:'OpenDesk Browser Test Lab'},
+    location:{href:'http://127.0.0.1:43111/demo-form.html'}
+  });
+  await withRealBuiltins(scope);
+  const result=await vm.runInContext(script.js[0].code,scope);
+  const value=JSON.parse(JSON.stringify(result));
+  assert.deepEqual(value.words,['Open','Desk','Browser','Test','Lab']);
+  assert.equal(value.title,'OpenDesk Browser Test Lab');
+  assert.equal(value.url,'http://127.0.0.1:43111/demo-form.html');
+  assert.match(value.date,/^\d{4}-\d{2}-\d{2}$/);
+  assert.equal(vm.runInContext('typeof page',scope),'undefined');
+});
+
+test('actual Side Panel single-file Controller demo runs with zero parameters and REAL default libraries',async()=>{
+  const path='examples/programs/single-file/controller-globals-zero-arg.js';
+  const source=await readFile(path,'utf8');
+  assert.match(source,/async function main\(\)/);
+  const executable=source.split('\n').filter(line=>!/^\s*\/\//.test(line)).join('\n');
+  assert.doesNotMatch(executable,/\bexport\s+default|main\(\{|\bimport\s/);
+  const scope=vm.createContext({});
+  await withRealBuiltins(scope);
+  const AsyncBody=vm.runInContext('Object.getPrototypeOf(async function(){}).constructor',scope);
+  const page=Object.freeze({
+    title:async()=> 'OpenDesk Browser Test Lab',
+    url:async()=> 'http://127.0.0.1:43111/demo-form.html'
+  });
+  const body=new AsyncBody('page','params','axiosx','AppStorage','AppLocal','storage',controllerProgramBody(source));
+  const value=JSON.parse(JSON.stringify(await body(page,{},undefined,undefined,undefined,undefined)));
+  assert.equal(value.title,'OpenDesk Browser Test Lab');
+  assert.equal(value.url,'http://127.0.0.1:43111/demo-form.html');
+  assert.deepEqual(value.words,['Open','Desk','Browser','Test','Lab']);
+  assert.match(value.date,/^\d{4}-\d{2}-\d{2}$/);
+  assert.equal(value.abi,BUILTIN_ABI);
+  assert.equal(vm.runInContext('typeof globalThis.page',scope),'undefined');
+  const html=await readFile('src/ui/tool.html','utf8');
+  assert.match(html,/id="tab-develop"/);
+  assert.match(html,/id="script-source"/);
+  assert.match(html,/id="script-run"/);
+});

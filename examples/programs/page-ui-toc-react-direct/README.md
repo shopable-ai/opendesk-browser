@@ -1,113 +1,142 @@
-# Page UI TOC · React Direct 网页目录 Demo
+# Page UI TOC · React、HTTPS ESM 与 ECharts
 
-这个项目是一个 **Page USER_SCRIPT React 组件示例**，用于学习「本地文件保存 → 自动准备 → 明确运行 → 悬浮 UI → 停止后清理」。它不是 `examples/sidebar-tools/reading-toc` 的替代实现，也不是 Side Panel 工具 iframe。
+本项目在原 React 网页目录中加入真实 **ECharts 5.6.0 SVG 柱状图**。目录仍读取当前正文的 H1–H6，支持章节跳转和动态更新；“统计”使用 ECharts 绘图，原 D3 `max` 继续参与计算。React、图表依赖和组件在同一个获准的 **Page USER_SCRIPT** 世界执行。
 
-## 默认入口直接使用 HTTPS URL import
+源码、固定原始缓存、锁、许可证和冻结 JSON 均在本目录。实际证据及尚未验收的项目见[本轮工作记录](../../../docs/framework/workstreams/react-url-import-echarts-20261012.md)；构建成功不等于 Chrome 已绘制或安装完成。
 
-打开 `src/main.js`，顶部就是实际生效的代码，不用再切换本地包装文件：
+## 顶部的 URL 就是实际依赖
+
+`src/main.js` 直接包含以下标准静态 import：
 
 ```js
 import {createElement, useEffect, useMemo, useRef, useState} from 'react';
-import {chooseActiveTocItem, createTocScanner, sameToc, selectTocItems} from './toc-model.js';
-import {summarizeHeadingLevels} from './heading-stats.js';
 import max from 'https://raw.githubusercontent.com/d3/d3-array/v3.2.4/src/max.js';
+import {init, use as useECharts} from 'https://cdn.jsdelivr.net/npm/echarts@5.6.0/core.js';
+import {install as BarChart} from 'https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/chart/bar/install.js';
+import {install as GridComponent} from 'https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/component/grid/install.js';
+import {install as SVGRenderer} from 'https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/renderer/installSVGRenderer.js';
+
+useECharts([BarChart, GridComponent, SVGRenderer]);
 ```
 
-组件内部实际使用外部模块计算标题统计条的比例上限：
+这些是真实固定版本 ESM 和实际 exports。传递依赖中的 `zrender/`、`tslib` 由本项目 `opendesk.remoteDependencies.imports` 固定映射到 `zrender@5.6.1`、`tslib@2.3.0`，不在运行时进行 npm 解析。
 
-```js
-const stats = useMemo(() => summarizeHeadingLevels(items, max), [items]);
-```
+React 继续由 OpenDesk 固定 React 19.2.0 框架提供，第三方代码在准备期链接进原程序。作者无需修改扩展的 `src/libs`、manifest 或 Service Worker，无需手写 `@require`、添加 CDN 标签或使用网站的 `window.echarts`。
 
-这是标准**静态 ESM import**，不是 `import(url)`、`@require` 或向网页插入 CDN `<script>`。来源为 D3 官方上游固定版本的 HTTPS 源码地址；HTTP 下载站不必是某一家 CDN。已有 `remote-esm-page` 中的 jsDelivr URL 走同一套解析机制。
+## 三个入口分别如何使用
 
-React 仍由 OpenDesk 固定框架资源提供；外部 max 模块由原项目解析器从已核验缓存链接到用户程序，二者在同一 USER_SCRIPT 环境供组件使用，不写入网站 MAIN 全局、不修改扩展源码。`package.json` 的项目类型、框架、权限规则和入口均保持不变，不需要重复添加 npm 依赖字段。
+### 1. 导入本目录的冻结 JSON
 
-## 文件与职责
+安装者使用 [page-ui-toc-react-direct.opendesk-draft.json](page-ui-toc-react-direct.opendesk-draft.json)，无需安装 Native、Node、npm 或访问 CDN。需要包含本轮格式适配的 OpenDesk；旧版本会拒绝未知草稿格式。
 
-- `package.json`：独立项目 ID `sample.page-ui-toc-react-direct`、React 固定运行时、组件入口、限定测试网站。
-- `src/main.js`：官方 React Hooks、可见 HTTPS import；悬浮目录、概览/当前/全部/统计四种视图、定位与动态更新。
-- `src/toc-model.js`：读取当前网页主要正文 H1–H6，保留元素身份，最多扫描 160 个标题，不修改网站 ID。
-- `src/heading-stats.js`：纯统计模型，App 传入 URL 导入的 max；默认数学实现仅服务模型独立测试，不是缺锁后的自动回退。
-- `src/heading-stats-cdn.js`：保留给旧调用方的适配器，已对齐同一个 HTTPS URL；不再是主示例的导入入口。
-- `opendesk.remote-lock.json` 与 `.opendesk/remote-cache/`：原 `opendesk.remote-lock.v1` 格式的固定来源、字节大小、SHA-256 与原始模块。
-- `licenses/d3-array-ISC.txt`：随原始模块保留的 ISC 许可证；再分发含该代码的导出包时也需附带此许可证。
+1. 打开获准的测试网页。项目规则覆盖 `http://127.0.0.1:43111/*`，排除 `/private/*`；`localhost` 是另一来源，不在此规则内。
+2. 在 OpenDesk 原程序目录导入 JSON，进入“开发”查看。源码列表的 `src/main.js` 显示上述 URL；`program.js` 是实际执行内容，源码快照只读。
+3. 确认 Chrome 已允许 OpenDesk 用户脚本，目标网站已授权。明确点击 **Run／运行**，网页才出现 `CONTENTS`；点击“统计”查看 ECharts，其他视图继续提供目录和章节跳转。
+4. **保存**只准备并保存 Candidate，不运行网页、不安装。**Stop／停止**清理本次受管组件。
+5. 如需安装，先 Stop，再按原流程 **Verify／验证**该 Candidate，审阅版本、来源、规则和执行哈希后点击 **Install／安装**。安装面向之后匹配规则的新文档，不把安装动作当作当前网页的隐式 Run。
 
-## 固定来源与证据边界
-
-本项目已随源码提交所需锁和缓存，普通运行不需再执行首次锁定命令，也不需要在本示例目录运行 npm install。缓存为官方 `d3/d3-array@v3.2.4/src/max.js` 的 **502 个 UTF-8 字节**：
-
-```text
-Git blob: ce287368eb4402d359f18ec1c6c81dde0c774cc5
-SHA-256: 691945a453633d9e204846af8ea4e299821b924f82b15eaf7906aba642979b1d
-```
-
-本次通过 GitHub 连接器读取官方上游源码，并核对 Git blob 和 SHA-256 后纳入项目。**没有伪造 jsDelivr 下载回执，也没有将上游源码标记为已完成 CDN HTTP 实测。** 本示例的 URL 因而明确指向同一官方上游；此前 jsDelivr 包装示例不再决定默认入口。缓存和锁没有新增权限或新的生产下载器。
-
-原有解析器仍必须拒绝缺锁、缓存缺失或篡改，分别报告 `E_REMOTE_UNLOCKED`、`E_REMOTE_CACHE`、`E_REMOTE_HASH`，不偷偷联网修复或退回本地数学函数。修改 URL、增加其他模块或升级版本时，应重新审阅并通过原有流程准备新的依赖，而不是复制另一 URL 的批准记录：
-
-```sh
-# 以下是维护者在仓库根目录的显式依赖变更流程，不是每次 Run 的前置步骤。
-node scripts/lock-program-remote.mjs examples/programs/page-ui-toc-react-direct
-# 审阅输出后，将 REVIEW_TOKEN 换成刚返回的真实 token。
-node scripts/lock-program-remote.mjs examples/programs/page-ui-toc-react-direct --approve REVIEW_TOKEN
-```
-
-这是**已有本地项目 URL 导入机制的实际消费示例**，不表示浏览器单文件编辑器已经支持任意第三方 URL，也不表示 ECharts 已完成。当前统计图仍由 React 渲染，D3 只参与数值计算；ECharts 的真实 ESM 图、体积、渲染与清理应独立验证，不能用本例替代。
-
-## 使用：选择本项目，保存后明确运行
-
-本地项目开发的前提仍是已安装/配对相容 Native Host 和扩展、Chrome 已允许用户脚本、测试网站已授权。原目录开发链保持不变。
-
-从仓库根目录启动标准测试页服务：
+标准测试页由仓库维护者按原约定启动：
 
 ```sh
 python3 -m http.server 43111 --bind 127.0.0.1 --directory examples/tasks
 ```
 
-在 Chrome 打开 `http://127.0.0.1:43111/demo-form.html`。需要检查长文章目录、重复标题和重复 ID 时，同一服务还提供 `reading-toc-article.html`。
+访问 `http://127.0.0.1:43111/demo-form.html`；同一服务也有 `reading-toc-article.html`。安装者只需访问已提供的测试站点，不必自己构建依赖。
 
-在另一个终端连接项目：
+冻结 JSON 含完整固定执行字节和作者源码/依赖锁快照。运行复验这些字节，不下载原始模块。SHA-256 证明字节身份，不能证明展示的作者源码一定生成了执行产物；请同时审阅实际执行代码。再次分发时，将本目录 `licenses/` 的许可证及 NOTICE 一并提供。
 
-```sh
-cd "/Users/shopme/Documents/workspace/opendesk-browser/examples/programs/page-ui-toc-react-direct"
-opendesk browser dev .
-```
+### 2. 本地项目：沿用原解析器和离线构建
 
-在 Side Panel →「开发」→「直接编辑本地项目」选择 `page-ui-toc-react-direct · 页面脚本`，不要误选仅展示计数器的 `page-ui-react-direct`。点击「运行本地项目」，预期网页出现 `CONTENTS`；点击「统计」检查 H1–H6 数量及比例，其他视图、章节跳转和自动目录扫描保持原行为。
-
-保存源码只触发准备，不自动操作网页。再次明确运行才使用新代码；Stop 仍由原 React 受管卸载清理 DOM、MutationObserver、scroll/resize/hashchange 监听。URL 依赖导入没有增加额外事件或图表实例。
-
-包规则只覆盖 `http://127.0.0.1:43111/*`，不覆盖 `localhost` 或远程网站。来源 URL 是**库的来源**，不是自动授予该来源站点的网页执行权限。普通安装者使用冻结 JSON 的路径与作者本地开发不同，不能把这里的 Native 前提套给安装者。
-
-## 测试与 JSON 导出
-
-```sh
-node --test examples/programs/page-ui-toc-react-direct/src/heading-stats.test.mjs
-node --test examples/programs/page-ui-toc-react-direct/src/toc-model.test.mjs
-node --test tests/environment/page-ui-toc-react-direct.test.mjs
-```
-
-第一条包含 7 项模型/源码/固定字节测试，使用真实上游模块，而非以 Mock 函数冒充它。第三条在完整仓库工具链上验证原 builder 的固定缓存离线构建、确定性 JSON 导出及缺锁/篡改/丢失/URL 变化拒绝；HTTP fixture 明确不代表实际 CDN 请求。
-
-需要导出固定草稿时才执行：
+完整缓存已提交。本示例目录不需要 `npm install`；维护者使用仓库已有构建工具：
 
 ```sh
 npm run build:program -- examples/programs/page-ui-toc-react-direct
 ```
 
-输出位置以构建器 `outputDirectory` 为准，状态仍为 `BUILT_UNVERIFIED`，不是安装、真实 Chrome 或最终验收通过。请随导出的含 D3 代码的产物一起分发 `licenses/d3-array-ISC.txt`。
+以输出的 `outputDirectory` 为准，导入其中的 `program.opendesk-draft.json`。`package.json` 是作者配置，不能当作安装包。输出状态仍为 `BUILT_UNVERIFIED`，需要浏览器原流程运行、验证和安装。
 
-本轮已通过 7 项模型/源码检查和 JS 语法检查；完整 builder 回归、Native 传输、真实 Chrome Run/Stop 和 ECharts 尚未取得本轮 PASS。详见 [工作记录](../../../docs/framework/workstreams/react-url-import-20261012.md)。
+修改 URL、固定映射或版本时，复用原显式准备流程：
 
-## 与官方阅读目录的区别
+```sh
+node scripts/lock-program-remote.mjs examples/programs/page-ui-toc-react-direct
+# 审阅刚输出的真实来源与 token 后再确认：
+node scripts/lock-program-remote.mjs examples/programs/page-ui-toc-react-direct --approve REVIEW_TOKEN
+```
 
-| 项目 | 本 Demo | `reading-toc` 正式工具 |
-| --- | --- | --- |
-| 所在目录 | `examples/programs/page-ui-toc-react-direct` | `examples/sidebar-tools/reading-toc` |
-| UI 运行位置 | 网页中的受管 React 悬浮组件 | Side Panel + 可信 Content Script 目录 |
-| 权限/接口 | Page USER_SCRIPT 授权，读取同一网页 DOM | `page.toc` + 受控目录能力 |
-| 复杂场景 | 单一主要正文、简单概览、URL 模块教学 | AI 多回答来源、站点适配、拖动及位置记忆 |
-| 退出 | 开发 Tab Stop，React 卸载并断开监听 | 网站开关/卸载，正式工具生命周期 |
+新传递来源也需要审阅；不能复制另一 URL 或旧版本的批准。缺锁、缓存缺失、篡改分别阻断为 `E_REMOTE_UNLOCKED`、`E_REMOTE_CACHE`、`E_REMOTE_HASH`，构建及 Run 不会联网修复。
+
+原 `opendesk browser dev .` 仍适用于具备相应能力的 Native Host。本轮为较大固定产物增加能力协商和分块读取，**仓库内 Node 参考 Host 已适配，正式外部 Go Host 尚未实现该能力**；旧 Host 明确提示升级。本示例尚未在用户 Mac 的直接本地入口验收。主动 MCP `session.run` 大报文仍受原 60 KiB 限制。完整 ECharts 可走上述冻结 JSON 入口，无需 Native。
+
+### 3. 只有浏览器组件源码编辑权限
+
+在原“开发”单文件编辑器选择 React，可以直接编写：
+
+```jsx
+import {createElement} from 'react';
+import max from 'https://raw.githubusercontent.com/d3/d3-array/v3.2.4/src/max.js';
+
+export default function App() {
+  return createElement('div', null, 'D3 max = ' + max([2, 5, 3]));
+}
+```
+
+点击 **检查依赖**只解析并列出来源；点击 **确认获取所列模块**才取得已列出的新代码。发现新的传递 URL 后继续逐批确认。完整图就绪后，查看 URL、实际字节数、SHA-256 和可提取的许可证信息，再点 **确认固定此版本**。来源未声明许可证时，由作者核对，界面不会虚构许可结论。
+
+固定后，保存和 Run 只读批准锁及原始缓存，缓存损坏立即失败。多个已固定版本需要明确选择；源码变化、取消或 Stop 使迟到准备结果失效，不能重新挂载。
+
+当前浏览器源码入口支持小型静态 ESM 图：最多 **32 模块、单模块 128 KiB、整图 256 KiB、链接结果 100 KB**。不承诺任意 URL、UMD、动态 import 或本地示例的完整 ECharts 图都能在单文件入口编译。大型 ECharts 使用本项目固定 JSON；本地构建成功不能替代浏览器源码入口验收。
+
+浏览器作者已经确认的准备记录和原始缓存按现有持久缓存规则保留。Stop 和卸载自包含 Page 程序不会删除这些可复用作者缓存；当前没有独立的“遗忘固定版本”或原始缓存回收入口。
+
+## 实际大小与格式选择
+
+下列数值来自真实模块和生产构建，完整输入身份见工作记录：
+
+| 层级 | 字节 / 数量 |
+| --- | ---: |
+| ECharts、ZRender、tslib 传递图 | 234 模块 / 1,744,184 B |
+| 加上原 D3 后的完整远端图 | 235 模块 / 1,744,686 B |
+| 最大原始模块 | 84,388 B |
+| 自包含 Page `sourceUtf8` | 482,082 B |
+| 含源码与锁的格式化 JSON | 558,789 B |
+| 加上固定 React 和内置资源的完整单一 JS | 718,450 B |
+| 完整 `chrome.userScripts.execute` JSON 测量包络 | 732,232 B |
+
+实际图超过原小项目预算，因此本项目使用 Page 专用 `page-library-v1`、`opendesk.remote-lock.v2` 和自包含 `opendesk.page-linked-resource.v1`。资源仍在原 `sourceUtf8` 中，没有旁路网络加载或第二个执行器。
+
+该版本限定整图 256 模块/2 MiB、单模块仍 128 KiB，linked JS 512 KiB、描述 4 KiB、v2 草稿 JSON 768 KiB。普通 Page、Controller、Native Messaging 的全局上限不变。Native reverse 路径将同一固定源分为 24 KiB 原始块，完整帧仍不得超过 61,440 B。
+
+最终示例 `sourceHash`：
+
+```text
+8d3eedccdf62d90ddafcad3752e184ccd975479b51f649cb0b12595028ab2146
+```
+
+## 图表生命周期与错误
+
+`src/heading-chart.js` 在容器挂载、连通且宽高有效后调用 `init`。标题数据变化调用同一实例的 `setOption`；容器尺寸变化由 `ResizeObserver` 调用 `resize`。切换出统计、折叠或 effect 清理时，断开 observer、取消待处理 RAF 并 `dispose`。初始化或更新失败显示明确错误，不用手画柱状条或备用库替换 ECharts。
+
+原目录 observer、scroll/resize/hashchange 监听仍在 React 卸载时清理。未知执行效果查询原 preview 回执，不自动重放 Run。导入新冻结版本前须停止原受管预览；各版本保持独立 sourceHash、Candidate 与安装身份。
+
+## 文件与针对性验证
+
+| 文件 | 职责 |
+| --- | --- |
+| `src/main.js` | 可见 HTTPS import、React 目录、D3 统计、ECharts UI |
+| `src/heading-chart.js` | init / setOption / resize / dispose |
+| `src/toc-model.js`、`src/heading-stats.js` | 正文扫描、章节定位、统计模型 |
+| `opendesk.remote-lock.json`、`.opendesk/remote-cache/` | 完整固定图和未修改的原始字节 |
+| `licenses/` | ECharts Apache-2.0 及 NOTICE、ZRender、tslib、D3 许可及来源哈希 |
+| `page-ui-toc-react-direct.opendesk-draft.json` | 可导入的完整固定草稿 |
+
+```sh
+node --test examples/programs/page-ui-toc-react-direct/src/heading-chart.test.mjs
+node --test examples/programs/page-ui-toc-react-direct/src/heading-stats.test.mjs
+node --test tests/environment/page-ui-toc-react-direct.test.mjs
+```
+
+五项 builder 回归验证真实缓存的离线构建、确定性 JSON，以及缺锁、丢失、篡改和 URL 变化拒绝。生命周期模型不能代替 Chrome SVG、尺寸变化或 Stop 验收。
+
+专用 CI 为 `React HTTPS ECharts JSON Run Stop and Install`，驱动 `tests/framework/page-url-import-linux-cft.mjs` 使用真实 Chrome、原 Sidebar、可信输入和原执行回执。具体 PASS、失败和未测试项以[工作记录](../../../docs/framework/workstreams/react-url-import-echarts-20261012.md)及原始证据为准。本地 Linux 拒绝 AF_UNIX，不能据此伪造 Chrome 或用户 Mac 的结果。
 
 [React Direct](../page-ui-react-direct/README.md) · [Page 框架](../../../docs/api/page-ui-frameworks.zh-CN.md) · [原 HTTPS ESM 合同](../../../docs/architecture/browser-framework/https-esm-imports-r1.zh-CN.md) · [项目与 JSON 执行边界](../../../docs/architecture/browser-framework/project-dependencies-json-and-execution.zh-CN.md)

@@ -19,7 +19,7 @@
       <section class="tasks-surface" aria-label="已安装任务">
       <div class="task-section-head od-toolbar">
         <strong>自动化任务</strong>
-        <div class="task-section-actions"><span id="task-installed-count" aria-live="polite"></span><button type="button" id="task-open-catalog" class="od-button" aria-label="打开任务目录添加任务">＋ 添加</button></div>
+        <div class="task-section-actions"><button id="schedule-open" type="button" class="od-icon-button" title="定时计划" aria-label="打开定时计划" aria-controls="scheduled-panel"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg></button><span id="task-installed-count" aria-live="polite"></span><button type="button" id="task-open-catalog" class="od-button" aria-label="打开任务目录添加任务">＋ 添加</button></div>
       </div>
       <label for="task-installed-list" class="visually-hidden">已安装任务</label><select id="task-installed-list" hidden><option value="">读取已安装任务…</option></select>
       <div id="task-installed-cards" class="task-card-list od-stack" aria-label="已安装任务列表"></div>
@@ -43,6 +43,97 @@
           <p class="hint">卸载不删除已有结果；停用将阻止后续启动。</p>
         </details>
       </details>
+      </div>
+    </section>
+    <section id="scheduled-panel" class="schedule-panel od-stack" aria-label="定时计划" hidden>
+      <header class="schedule-header od-toolbar">
+        <div><strong id="schedule-panel-title">定时计划</strong><p class="hint">安排已验证安装的自动化任务</p></div>
+        <button id="schedule-stop" type="button" class="od-button od-button--secondary" hidden>停止本次</button>
+        <button id="schedule-back" class="od-icon-button" type="button" title="返回我的任务" aria-label="返回我的任务"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5m7-7-7 7 7 7"></path></svg></button>
+      </header>
+      <p id="schedule-message" role="status" aria-live="polite" class="hint"></p>
+      <div id="schedule-list-view" class="od-stack">
+        <div class="schedule-actions od-toolbar">
+          <button id="schedule-create" type="button" class="od-button">＋ 新建计划</button>
+          <button id="schedule-open-runner" type="button" class="od-button od-button--secondary" title="打开可以在 Side Panel 关闭时运行的可见扩展页面">打开运行页 ↗</button>
+        </div>
+        <p id="schedule-host-status" class="hint" role="status">正在检查可用运行宿主…</p>
+        <div id="schedule-plan-list" class="od-stack" aria-label="已保存的定时计划"></div>
+      </div>
+      <form id="schedule-form" class="schedule-form od-stack" autocomplete="off" hidden>
+        <label class="od-field" for="schedule-title">计划名称
+          <input id="schedule-title" type="text" maxlength="100" required placeholder="例如：每天整理网页报告">
+        </label>
+        <div class="schedule-source-field">
+          <label for="schedule-task-select">执行任务（已验证并安装）</label>
+          <div class="schedule-source-row">
+            <select id="schedule-task-select" required aria-label="选择已安装任务"><option value="">请选择可用任务</option></select>
+            <button id="schedule-new-script" type="button" class="od-icon-button" title="新建脚本 · 进入开发" aria-label="新建脚本"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM14 2v6h6M8 13h8m-4-4v8"></path></svg></button>
+            <button id="schedule-manage-tasks" type="button" class="od-icon-button" title="管理任务 · 搜索、启停和卸载" aria-label="管理任务"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h12M9 12h12M9 18h12M3 6l1 1 2-2M3 12l1 1 2-2M3 18l1 1 2-2"></path></svg></button>
+          </div>
+          <p id="schedule-task-version" class="hint" aria-live="polite"></p>
+        </div>
+        <label class="od-field" for="schedule-target">目标网页 URL
+          <input id="schedule-target" type="url" inputmode="url" maxlength="2048" required placeholder="https://example.com/path">
+        </label>
+        <label class="od-field" for="schedule-params">任务参数（JSON 对象）
+          <textarea id="schedule-params" rows="2" spellcheck="false">{}</textarea>
+        </label>
+        <fieldset class="schedule-rule">
+          <legend>执行时间</legend>
+          <div class="schedule-rule-row">
+            <label for="schedule-kind" class="visually-hidden">频率</label>
+            <select id="schedule-kind"><option value="once">执行一次</option><option value="daily">每天</option><option value="weekly">每周</option><option value="interval">每隔一段时间</option></select>
+            <label for="schedule-timezone" class="visually-hidden">时区</label>
+            <input id="schedule-timezone" type="text" maxlength="80" required placeholder="Asia/Shanghai" aria-label="IANA 时区">
+          </div>
+          <label id="schedule-once-field" class="od-field" for="schedule-once">执行日期和时间
+            <input id="schedule-once" type="datetime-local">
+          </label>
+          <label id="schedule-clock-field" class="od-field" for="schedule-clock" hidden>当地时间
+            <input id="schedule-clock" type="time" value="09:00">
+          </label>
+          <fieldset id="schedule-weekdays-field" class="schedule-weekdays" hidden>
+            <legend>星期（至少选择一天）</legend>
+            <label><input type="checkbox" value="1" checked>一</label><label><input type="checkbox" value="2">二</label><label><input type="checkbox" value="3">三</label>
+            <label><input type="checkbox" value="4">四</label><label><input type="checkbox" value="5">五</label><label><input type="checkbox" value="6">六</label><label><input type="checkbox" value="0">日</label>
+          </fieldset>
+          <label id="schedule-interval-field" class="od-field" for="schedule-minutes" hidden>间隔分钟（1–10080）
+            <input id="schedule-minutes" type="number" min="1" max="10080" step="1" value="60">
+          </label>
+          <p id="schedule-next" class="hint" aria-live="polite">选择规则后显示下一次触发时间。</p>
+        </fieldset>
+        <details class="schedule-advanced"><summary>高级选项</summary>
+          <label class="schedule-check"><input type="checkbox" id="schedule-open-target">找不到已打开的目标网页时，允许为本次执行新开标签页</label>
+          <label class="od-field" for="schedule-misfire">错过触发
+            <select id="schedule-misfire"><option value="skip">跳过错过的执行</option><option value="latest-within-hour">只补最近 1 小时内的一次</option></select>
+          </label>
+          <label class="od-field" for="schedule-deadline">最长等待执行条件（分钟）
+            <input id="schedule-deadline" type="number" min="1" max="60" value="5" step="1">
+          </label>
+        </details>
+        <label class="schedule-check"><input type="checkbox" id="schedule-paused">创建后先暂停</label>
+        <div class="schedule-actions od-toolbar">
+          <button type="submit" id="schedule-save" class="od-button">保存计划</button>
+          <button type="button" id="schedule-cancel" class="od-button od-button--secondary">返回列表</button>
+        </div>
+      </form>
+      <div id="schedule-task-manager" class="od-stack" hidden>
+        <div class="schedule-actions od-toolbar">
+          <button id="schedule-manager-back" type="button" class="od-button od-button--secondary">← 返回计划</button>
+          <button id="schedule-manager-create" type="button" class="od-icon-button" aria-label="新建脚本" title="新建脚本"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM14 2v6h6M8 13h8"></path></svg></button>
+        </div>
+        <label class="od-field" for="schedule-manager-search">搜索已安装任务
+          <input id="schedule-manager-search" type="search" placeholder="任务名称 / ID">
+        </label>
+        <label class="od-field" for="schedule-manager-filter">筛选任务
+          <select id="schedule-manager-filter"><option value="all">全部</option><option value="enabled">已启用</option><option value="disabled">已停用</option></select>
+        </label>
+        <div id="schedule-manager-list" class="od-stack" aria-label="任务管理列表"></div>
+        <div id="schedule-uninstall-confirm" class="od-surface" hidden>
+          <p id="schedule-uninstall-label"></p>
+          <div class="schedule-actions od-toolbar"><button type="button" id="schedule-uninstall-yes" class="od-button">确认卸载</button><button type="button" id="schedule-uninstall-no" class="od-button od-button--secondary">取消</button></div>
+        </div>
       </div>
     </section>
     <section class="cloud-my-entry od-surface" aria-label="云端托管状态">
@@ -461,6 +552,14 @@
     <label for="script-source" class="visually-hidden">JavaScript、React JSX 或 Vue SFC 源码编辑器</label><textarea id="script-source" rows="6" spellcheck="false">async function main() {
   return {title: await page.title(), url: await page.url(), value: params.value};
 }</textarea>
+    <section id="page-component-remote" class="od-stack" aria-label="组件 HTTPS 依赖准备" hidden>
+      <p id="page-component-remote-status" role="status" aria-live="polite"></p>
+      <pre id="page-component-remote-sources" aria-label="本次需明确确认的 HTTPS 模块来源" hidden></pre>
+      <label for="page-component-remote-lock" class="visually-hidden">选择已固定的组件依赖版本</label>
+      <select id="page-component-remote-lock" hidden><option value="">选择固定依赖版本</option></select>
+      <div class="od-toolbar"><button id="page-component-remote-prepare" type="button">检查依赖</button><button id="page-component-remote-cancel" type="button" hidden>取消准备</button></div>
+      <details id="page-component-remote-details" hidden><summary>固定模块、许可证与 SHA-256</summary><pre id="page-component-remote-detail-body"></pre></details>
+    </section>
     <details id="program-generated" hidden><summary>高级诊断：查看编译产物</summary><pre id="program-generated-source"></pre></details>
     </div>
     <details id="manual-project-params-tools" class="developer-params"><summary>参数 JSON（可选）</summary><label for="script-params">参数 JSON</label><textarea id="script-params" rows="3" spellcheck="false">{"value":0}</textarea></details>

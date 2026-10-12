@@ -16,9 +16,10 @@ test('only a leading static declaration or UserScript header activates packaged 
   assert.equal(pageWantsJquery('async function main(){return "/* @opendesk-lib jquery */"}'),false);
   assert.equal(pageWantsJquery('const x=1;\n// @opendesk-lib jquery'),false);
   assert.equal(pageWantsJquery('async function main(){return typeof $}'),false);
-  for(const invalid of ['// @opendesk-lib unknown-package\nasync function main(){}',
-    '// ==UserScript==\n// @opendesk-lib jquery\n// @opendesk-lib jquery\n// ==/UserScript==\nasync function main(){}'])
-    assert.throws(()=>pageWantsJquery(invalid),errorCode('E_BUILTIN_DECLARATION'));
+  assert.throws(()=>pageWantsJquery('// @opendesk-lib unknown-package\nasync function main(){}'),
+    errorCode('E_BUILTIN_DECLARATION'));
+  // A repeated audited ID does not fetch or execute a second copy.
+  assert.equal(pageWantsJquery('// ==UserScript==\n// @opendesk-lib jquery\n// @opendesk-lib jquery\n// ==/UserScript==\nasync function main(){}'),true);
   const mixed='// ==UserScript==\n// @opendesk-lib jquery\n// @require https://cdn.example.org/jquery.js\n// ==/UserScript==\nasync function main(){}';
   assert.throws(()=>pageWantsJquery(mixed),errorCode('E_BUILTIN_CONFLICT'));
 });

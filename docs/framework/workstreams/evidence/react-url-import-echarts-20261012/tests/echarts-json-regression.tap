@@ -1,0 +1,87 @@
+✖ versioned linked Page resource preserves the exact JS while ordinary Page and Controller limits stay unchanged (8.173099ms)
+✖ linked code tampering, source truncation and unsupported resource worlds fail before execution (3.897339ms)
+✖ JSON import binds source hash, fixed dependency lock and source snapshot independently (2.815858ms)
+✖ dependency provenance cannot declare local addresses, excessive graphs, nested resources or oversized descriptors (2.342393ms)
+✔ default TOC directly imports reviewed HTTPS ESM alongside packaged React (6021.31232ms)
+✔ reviewed upstream cache builds deterministically and exports through the original JSON pipeline (4688.161802ms)
+✔ missing lock blocks before downloading; explicit test-only pinning remains separate (1342.038313ms)
+✔ missing or tampered cache never falls back to CDN or local math (1019.492768ms)
+✔ changing a URL requires a new pin rather than silently reusing another version (521.66242ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 5
+ℹ fail 4
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 13748.240274
+
+✖ failing tests:
+
+test at tests/environment/page-linked-resource.test.mjs:25:1
+✖ versioned linked Page resource preserves the exact JS while ordinary Page and Controller limits stay unchanged (8.173099ms)
+  Error: Remote ESM must use a public HTTPS host without credentials, custom port or fragment
+      at fail (file:///workspace/scratch/6d8850e5cd8c/opendesk-browser/src/scripting/user-scripts/remote-esm-contract.js:8:49)
+      at remoteURL (file:///workspace/scratch/6d8850e5cd8c/opendesk-browser/src/scripting/user-scripts/remote-esm-contract.js:23:5)
+      at file:///workspace/scratch/6d8850e5cd8c/opendesk-browser/src/scripting/user-scripts/page-bundle.js:37:75
+      at Array.every (<anonymous>)
+      at inspectPageSource (file:///workspace/scratch/6d8850e5cd8c/opendesk-browser/src/scripting/user-scripts/page-bundle.js:37:17)
+      at validatePageSource (file:///workspace/scratch/6d8850e5cd8c/opendesk-browser/src/scripting/user-scripts/page-bundle.js:45:16)
+      at createPageBundle (file:///workspace/scratch/6d8850e5cd8c/opendesk-browser/src/scripting/user-scripts/page-bundle.js:60:9)
+      at async fixture (file:///workspace/scratch/6d8850e5cd8c/opendesk-browser/tests/environment/page-linked-resource.test.mjs:13:20)
+      at async TestContext.<anonymous> (file:///workspace/scratch/6d8850e5cd8c/opendesk-browser/tests/environment/page-linked-resource.test.mjs:26:11)
+      at async Test.run (node:internal/test_runner/test:1389:7) {
+    code: 'E_REMOTE_URL',
+    phase: 'remote'
+  }
+
+test at tests/environment/page-linked-resource.test.mjs:36:1
+✖ linked code tampering, source truncation and unsupported resource worlds fail before execution (3.897339ms)
+  Error: Remote ESM must use a public HTTPS host without credentials, custom port or fragment
+      at fail (file:///workspace/scratch/6d8850e5cd8c/opendesk-browser/src/scripting/user-scripts/remote-esm-contract.js:8:49)
+      at remoteURL (file:///workspace/scratch/6d8850e5cd8c/opendesk-browser/src/scripting/user-scripts/remote-esm-contract.js:23:5)
+      at file:///workspace/scratch/6d8850e5cd8c/opendesk-browser/src/scripting/user-scripts/page-bundle.js:37:75
+      at Array.every (<anonymous>)
+      at inspectPageSource (file:///workspace/scratch/6d8850e5cd8c/opendesk-browser/src/scripting/user-scripts/page-bundle.js:37:17)
+      at validatePageSource (file:///workspace/scratch/6d8850e5cd8c/opendesk-browser/src/scripting/user-scripts/page-bundle.js:45:16)
+      at createPageBundle (file:///workspace/scratch/6d8850e5cd8c/opendesk-browser/src/scripting/user-scripts/page-bundle.js:60:9)
+      at async fixture (file:///workspace/scratch/6d8850e5cd8c/opendesk-browser/tests/environment/page-linked-resource.test.mjs:13:20)
+      at async TestContext.<anonymous> (file:///workspace/scratch/6d8850e5cd8c/opendesk-browser/tests/environment/page-linked-resource.test.mjs:37:11)
+      at async Test.run (node:internal/test_runner/test:1389:7) {
+    code: 'E_REMOTE_URL',
+    phase: 'remote'
+  }
+
+test at tests/environment/page-linked-resource.test.mjs:46:1
+✖ JSON import binds source hash, fixed dependency lock and source snapshot independently (2.815858ms)
+  Error: Remote ESM must use a public HTTPS host without credentials, custom port or fragment
+      at fail (file:///workspace/scratch/6d8850e5cd8c/opendesk-browser/src/scripting/user-scripts/remote-esm-contract.js:8:49)
+      at remoteURL (file:///workspace/scratch/6d8850e5cd8c/opendesk-browser/src/scripting/user-scripts/remote-esm-contract.js:23:5)
+      at file:///workspace/scratch/6d8850e5cd8c/opendesk-browser/src/scripting/user-scripts/page-bundle.js:37:75
+      at Array.every (<anonymous>)
+      at inspectPageSource (file:///workspace/scratch/6d8850e5cd8c/opendesk-browser/src/scripting/user-scripts/page-bundle.js:37:17)
+      at validatePageSource (file:///workspace/scratch/6d8850e5cd8c/opendesk-browser/src/scripting/user-scripts/page-bundle.js:45:16)
+      at createPageBundle (file:///workspace/scratch/6d8850e5cd8c/opendesk-browser/src/scripting/user-scripts/page-bundle.js:60:9)
+      at async fixture (file:///workspace/scratch/6d8850e5cd8c/opendesk-browser/tests/environment/page-linked-resource.test.mjs:13:20)
+      at async TestContext.<anonymous> (file:///workspace/scratch/6d8850e5cd8c/opendesk-browser/tests/environment/page-linked-resource.test.mjs:47:11)
+      at async Test.run (node:internal/test_runner/test:1389:7) {
+    code: 'E_REMOTE_URL',
+    phase: 'remote'
+  }
+
+test at tests/environment/page-linked-resource.test.mjs:60:1
+✖ dependency provenance cannot declare local addresses, excessive graphs, nested resources or oversized descriptors (2.342393ms)
+  Error: Remote ESM must use a public HTTPS host without credentials, custom port or fragment
+      at fail (file:///workspace/scratch/6d8850e5cd8c/opendesk-browser/src/scripting/user-scripts/remote-esm-contract.js:8:49)
+      at remoteURL (file:///workspace/scratch/6d8850e5cd8c/opendesk-browser/src/scripting/user-scripts/remote-esm-contract.js:23:5)
+      at file:///workspace/scratch/6d8850e5cd8c/opendesk-browser/src/scripting/user-scripts/page-bundle.js:37:75
+      at Array.every (<anonymous>)
+      at inspectPageSource (file:///workspace/scratch/6d8850e5cd8c/opendesk-browser/src/scripting/user-scripts/page-bundle.js:37:17)
+      at validatePageSource (file:///workspace/scratch/6d8850e5cd8c/opendesk-browser/src/scripting/user-scripts/page-bundle.js:45:16)
+      at createPageBundle (file:///workspace/scratch/6d8850e5cd8c/opendesk-browser/src/scripting/user-scripts/page-bundle.js:60:9)
+      at async fixture (file:///workspace/scratch/6d8850e5cd8c/opendesk-browser/tests/environment/page-linked-resource.test.mjs:13:20)
+      at async TestContext.<anonymous> (file:///workspace/scratch/6d8850e5cd8c/opendesk-browser/tests/environment/page-linked-resource.test.mjs:61:11)
+      at async Test.run (node:internal/test_runner/test:1389:7) {
+    code: 'E_REMOTE_URL',
+    phase: 'remote'
+  }

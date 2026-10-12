@@ -69,7 +69,7 @@ test('macOS isolated Native Host install, private socket, real wrapper and authe
   });
   const read=()=>queue.length?Promise.resolve(queue.shift()):new Promise(resolve=>waiting.push(resolve));
   const first=await deadline(read(),6000,'missing framed hello');
-  assert.deepEqual(first,{v:1,kind:'hello'});
+  assert.deepEqual(first,{v:1,kind:'hello',localDevSourceVersion:1});
   assert.equal(fs.statSync(sock).mode&0o777,0o600,'native Socket must be private');
   native.stdin.write(frame({v:1,kind:'welcome',extensionId:ID,extensionVersion:'0.1.0'}));
   await pause(200); // Native welcome has no acknowledgement; only a read-only status request follows.
@@ -138,7 +138,7 @@ test('macOS Chrome for Testing uses its own manifest and cannot replace Google C
       catch(e){reject(e);}
     });
   });
-  assert.deepEqual(await deadline(received,6000,'missing CFT Host hello'),{v:1,kind:'hello'});
+  assert.deepEqual(await deadline(received,6000,'missing CFT Host hello'),{v:1,kind:'hello',localDevSourceVersion:1});
   const finished=onceExit(host);
   host.stdin.end();
   assert.equal((await finished).code,0);
@@ -185,7 +185,7 @@ test('macOS Chrome for Testing manifest is isolated from regular Chrome and laun
     }
   });
   const read=()=>messages.length?Promise.resolve(messages.shift()):new Promise(resolve=>listeners.push(resolve));
-  assert.deepEqual(await deadline(read(),6000,'Chrome for Testing native host failed to launch'),{v:1,kind:'hello'});
+  assert.deepEqual(await deadline(read(),6000,'Chrome for Testing native host failed to launch'),{v:1,kind:'hello',localDevSourceVersion:1});
   const exit=onceExit(child);
   child.stdin.end();
   assert.equal((await exit).code,0);

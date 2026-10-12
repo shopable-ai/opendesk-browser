@@ -82,6 +82,16 @@ chrome.runtime.onUserScriptMessage?.addListener((message,sender,sendResponse)=>{
     data=>sendResponse({ok:true,data}),error=>sendResponse({ok:false,error:projectFoundationError(error)})).finally(()=>pendingFoundation--);
   return true;
 });
+// Chrome alarms are wake hints only; the durable FireId transaction is authoritative.
+chrome.alarms.onAlarm.addListener(alarm=>{
+  if(!alarm.name?.startsWith('opendesk.schedule.v1:'))return;
+  foundation.then(broker=>broker.authority.schedules.onAlarm(alarm))
+    .catch(error=>console.error('[scheduled alarm]',error));
+});
+chrome.runtime.onStartup?.addListener(()=>{
+  foundation.then(broker=>broker.authority.schedules.reconcile())
+    .catch(error=>console.error('[scheduled startup]',error));
+});
 chrome.action.onClicked.addListener(tab => {
   const source = tab && !tab.incognito && tab.url && /^https?:/.test(tab.url) ? {tabId: tab.id, origin: httpUrl(tab.url).origin} : null;
   chrome.storage.session.set({environmentSource: source}).then(async () => {

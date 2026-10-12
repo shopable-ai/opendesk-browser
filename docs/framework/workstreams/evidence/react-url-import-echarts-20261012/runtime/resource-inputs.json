@@ -1,0 +1,64 @@
+{
+  "snapshotAt": "2026-10-12T11:35:20.136052+00:00",
+  "resources": [
+    {
+      "resource": "libs/manifest.json",
+      "inputPath": "/workspace/scratch/6d8850e5cd8c/opendesk-browser/dist/production/libs/manifest.json",
+      "snapshotPath": "/workspace/scratch/6d8850e5cd8c/native-patch/measure-runtime/resources/libs/manifest.json",
+      "bytes": 4553,
+      "sha256": "a1c37a0e5d78aa31c267494b3b81f8f1a61e85969a6c11b66654a83c0e2b5e7f",
+      "matchesPackagedBaseline": true
+    },
+    {
+      "resource": "libs/runtime/bootstrap.js",
+      "inputPath": "/workspace/scratch/6d8850e5cd8c/opendesk-browser/src/libs/runtime/bootstrap.js",
+      "snapshotPath": "/workspace/scratch/6d8850e5cd8c/native-patch/measure-runtime/resources/libs/runtime/bootstrap.js",
+      "bytes": 876,
+      "sha256": "d8b6ff3a7a6a58a3ede0f630cd906f0af134307eeaa8a7db1f096ed24687868d",
+      "matchesPackagedBaseline": true
+    },
+    {
+      "resource": "libs/packages/lodash.js",
+      "inputPath": "/workspace/scratch/6d8850e5cd8c/opendesk-browser/dist/production/libs/packages/lodash.js",
+      "snapshotPath": "/workspace/scratch/6d8850e5cd8c/native-patch/measure-runtime/resources/libs/packages/lodash.js",
+      "bytes": 12832,
+      "sha256": "40d8258a2333573064f7173010cf6aa4eb07fb7d95a7a9c753a65fc23b9bfc18",
+      "matchesPackagedBaseline": true
+    },
+    {
+      "resource": "libs/packages/dayjs.js",
+      "inputPath": "/workspace/scratch/6d8850e5cd8c/opendesk-browser/dist/production/libs/packages/dayjs.js",
+      "snapshotPath": "/workspace/scratch/6d8850e5cd8c/native-patch/measure-runtime/resources/libs/packages/dayjs.js",
+      "bytes": 20304,
+      "sha256": "9b406af291725ac2b47409930c6d0ffba7545ece163e6579230c21fbccf40164",
+      "matchesPackagedBaseline": true
+    },
+    {
+      "resource": "libs/vendor/my-utils/1.0.0/index.js",
+      "inputPath": "/workspace/scratch/6d8850e5cd8c/opendesk-browser/src/libs/vendor/my-utils/1.0.0/index.js",
+      "snapshotPath": "/workspace/scratch/6d8850e5cd8c/native-patch/measure-runtime/resources/libs/vendor/my-utils/1.0.0/index.js",
+      "bytes": 291,
+      "sha256": "948e074af991e89df08091e28f8c7f42981dc213ae089da013772e755e54c461",
+      "matchesPackagedBaseline": true
+    },
+    {
+      "resource": "libs/runtime/page-core.js",
+      "inputPath": "/workspace/scratch/6d8850e5cd8c/opendesk-browser/dist/production/libs/runtime/page-core.js",
+      "snapshotPath": "/workspace/scratch/6d8850e5cd8c/native-patch/measure-runtime/resources/libs/runtime/page-core.js",
+      "bytes": 7932,
+      "sha256": "9c36abbee70a767a66e4086233057b6f89bb515d97677f0a22bfeaa38a65583a",
+      "matchesPackagedBaseline": true
+    },
+    {
+      "resource": "libs/page-frameworks/react-19.2.0.js",
+      "inputPath": "/workspace/scratch/6d8850e5cd8c/opendesk-browser/src/libs/page-frameworks/react-19.2.0.js",
+      "snapshotPath": "/workspace/scratch/6d8850e5cd8c/native-patch/measure-runtime/resources/libs/page-frameworks/react-19.2.0.js",
+      "bytes": 193163,
+      "sha256": "d1eec2e96ed42046ad543a10af7de992aee633ac06017f44f6b917e36451c758",
+      "matchesPackagedBaseline": true
+    }
+  ],
+  "sourcePath": "/workspace/scratch/6d8850e5cd8c/native-patch/measure-current-resolver/source.js",
+  "sourceHash": "8d3eedccdf62d90ddafcad3752e184ccd975479b51f649cb0b12595028ab2146",
+  "sourceBytes": 482082
+}

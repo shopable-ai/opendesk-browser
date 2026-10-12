@@ -3,7 +3,7 @@ import {createChromePermissionConsent,requireChromePermissions} from '../platfor
 import {decodeValue} from '../platform/page-port/codec.js';
 import {createTaskPackage, validateTaskParams} from '../platform/tasks/contract.js';
 import {digestUtf8} from '../platform/protocol.js';
-import {PROGRAM_DRAFT_FORMAT, PROGRAM_DRAFT_LIMIT, validateProgramDraft} from './program-source.js';
+import {PROGRAM_DRAFT_FORMAT, PROGRAM_DRAFT_V2_FORMAT, PROGRAM_DRAFT_INPUT_LIMIT, PROGRAM_DRAFT_LIMIT, validateProgramDraft} from './program-source.js';
 import {formatTaskValue, presentTaskValue, formatTaskError, formatTaskRunTechnical,
   unresolvedTaskRunMessage} from './task-run-diagnostics.js';
 import {formatRunValue} from './run-value-format.js';
@@ -14,7 +14,7 @@ const runStateNames={preparing:'正在准备',running:'运行中',stopping:'正�
 const textValue=formatTaskValue;
 
 export function createTaskWorkbench({client,host,currentPageTarget,api=globalThis.chrome,
-  document:doc=globalThis.document,importDraft,executionSource,debugEnabled=false,onNavigate,onTabSelected}) {
+  document:doc=globalThis.document,importDraft,executionSource,debugEnabled=false,onNavigate,onTabSelected,onTaskInstalled}) {
   const get=id=>doc.getElementById(id);
   if(debugEnabled){
     get('tab-debug').hidden=false;
@@ -23,6 +23,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
   const editorSource=executionSource || (() => get('script-source').value);
   let disposed=false, working=false, running=false, activeRunId=null, catalog=[], installed=[], renderKey=null;
   let toolActive=false, toolsViewListener=null, workflowRunId=null, workflowClaimPending=false;
+  let scheduledSurfaceActive=false, scheduledRunId=null;
   let catalogSequence=0, historySequence=0, currentPage=currentPageTarget?.snapshot;
   let permissionSequence=0,candidatePermission=null;
   const permissionRequest=row=>({origins:row.manifest.siteOrigins.map(origin=>permissionPattern(origin))});
@@ -140,14 +141,18 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     // Task admission may claim RunHost before start() returns its exact runId.
     // That pending task is never a Developer draft with a borrowed Stop control.
     const workflowOwns=Boolean(workflowClaimPending || workflowRunId && host.currentRun===workflowRunId);
-    const draftOwns=Boolean(host.currentRun && !taskOwns && !workflowOwns && !running);
-    get('task-dock').hidden=catalogSurface || (taskOwns?false:draftOwns || workflowOwns || view!=='tasks' || toolActive);
-    get('develop-dock').hidden=catalogSurface || (draftOwns?false:taskOwns || workflowOwns || view!=='develop');
-    get('workflow-dock').hidden=catalogSurface || (workflowOwns?false:taskOwns || draftOwns || view!=='workflow');
+    const scheduledOwns=Boolean(scheduledRunId && host.currentRun===scheduledRunId);
+    // Scheduled runs are owned by the visible plan's Stop, never the Developer draft dock.
+    const draftOwns=Boolean(host.currentRun && !taskOwns && !workflowOwns && !scheduledOwns && !running);
+    // Idle scheduled plans have no ordinary manual Run. If a manual Task is
+    // already running, keep its original Stop control visible across views.
+    get('task-dock').hidden=catalogSurface || (taskOwns?false:scheduledSurfaceActive || scheduledOwns || draftOwns || workflowOwns || view!=='tasks' || toolActive);
+    get('develop-dock').hidden=catalogSurface || (draftOwns?false:taskOwns || workflowOwns || scheduledOwns || view!=='develop');
+    get('workflow-dock').hidden=catalogSurface || (workflowOwns?false:taskOwns || draftOwns || scheduledOwns || view!=='workflow');
     // The dock follows the real RunHost owner, not the selected task or visible tab.
     // On another view (or another task), expose only that owner's Stop control.
     const selected=installedRow();
-    const stopOnly=taskOwns && (view!=='tasks' || toolActive || runOwnerKey!== (selected && identity(selected))) ||
+    const stopOnly=taskOwns && (scheduledSurfaceActive || view!=='tasks' || toolActive || runOwnerKey!== (selected && identity(selected))) ||
       draftOwns && view!=='develop' || workflowOwns && view!=='workflow';
     get('workspace-dock').dataset.stopOnly=String(Boolean(stopOnly));
     get('task-stop').setAttribute('aria-label',taskOwns
@@ -623,10 +628,10 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     // Capture the File first, then allow the same file to be selected again
     // after either a successful import or a rejected/failed handoff.
     get('task-package-file').value='';
-    if(file.size>PROGRAM_DRAFT_LIMIT)throw {code:'E_LIMIT',message:'文件超过程序草稿包大小上限'};
+    if(file.size>PROGRAM_DRAFT_INPUT_LIMIT)throw {code:'E_LIMIT',message:'文件超过程序草稿包大小上限'};
     const sourceUtf8=await file.text();
     const parsed=file.name.toLowerCase().endsWith('.js') ? null : JSON.parse(sourceUtf8);
-    const project=parsed?.format===PROGRAM_DRAFT_FORMAT ? await validateProgramDraft(parsed) : null;
+    const project=[PROGRAM_DRAFT_FORMAT,PROGRAM_DRAFT_V2_FORMAT].includes(parsed?.format) ? await validateProgramDraft(parsed) : null;
     if(!project && file.size>100000)throw {code:'E_LIMIT',message:'文件超过任务包大小上限'};
     if(project || file.name.toLowerCase().endsWith('.js')) {
       const draft=project || sourceUtf8;
@@ -734,6 +739,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       manifestHash:row.manifestHash,expectedInstalledVersion:previous?.version ?? null,
       expectedGeneration:previous?.generation??null,expectedInstallationId:previous?.installationId??null});
     await refresh(identity(row));announce();
+    onTaskInstalled?.(installedTask.taskId);
     get('task-status').textContent=`已安装 ${installedTask.taskId} · v${installedTask.version}`;
     const installedMessage=`已安装「${row.manifest.title}」v${installedTask.version}。返回目标网页，在 Sidebar「我的」填写参数并运行。`;
     get('task-catalog-status').textContent=installedMessage;
@@ -873,6 +879,12 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     listener?.(doc.documentElement?.dataset?.opendeskTab==='tools' && !catalogSurface);
   },setToolActive(value) {
     toolActive=Boolean(value);
+    if(!disposed)syncRunDock();
+  },setScheduledSurfaceActive(value) {
+    scheduledSurfaceActive=Boolean(value);
+    if(!disposed)syncRunDock();
+  },setScheduledRunOwner(runId) {
+    scheduledRunId=typeof runId==='string'&&runId?runId:null;
     if(!disposed)syncRunDock();
   },focusInstalledTask(taskId) {
     // Selecting an installed task for management is safe even when it is disabled.

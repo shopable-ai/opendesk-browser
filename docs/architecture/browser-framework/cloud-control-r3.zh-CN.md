@@ -45,6 +45,19 @@
 requestTotal，支持 1–50 的页长；云控页约 5 秒拉取、其他页约 15 秒拉取，
 不改变云任务原 2 秒领取检查节奏。
 
+**R3.2 已实现的领取热路径优化**：当前授权配置在原 `frameworkKV`
+保存 `pendingRequestId`，领取时按该主键读取原待执行请求，不再
+每 2 秒重新 `tx.all(frameworkKV)`。领取新 Assignment 时同一事务写入指针，
+原 Run 绑定时同一事务清理指针；取消托管、重新批准版本都会清理旧
+`claimId` 和 `pendingRequestId`。从旧版升级时，在发现配置尚没有此字段时
+只做一次历史兼容读取，找到有有效租约的原始 waiting 请求；
+若仅剩过期 waiting，必须在原事务中标记 `E_LEASE` 且绝不创建新 Run。
+该指针只优化领取，**不替代真正的 Request/Run/Result/retirement 幂等事实**。
+
+独立 Observer 支持 `state` 固定枚举过滤和 `matchingTotal`，
+界面提供状态筛选、分页和只读刷新；不能输入任意过滤表达式、
+网站 URL 或 Executor namespace。
+
 **已知未完成项**：详细 cloudStatus 和 Observer 都仍使用
 `tx.all(frameworkKV)` 再过滤排序，只限制 RPC 响应体，**并未实现原生 IDB
 有界扫描或索引分页**。后续需要 namespace/createdAt 索引、事务一致的聚合计数、
@@ -76,6 +89,18 @@ Observer 不能承担 Runner，也不以隐藏 offscreen 页面绕过 MV3 生命
   OUTCOME_UNKNOWN 以原持久 Run 为准；
 - SW/浏览器重启、升级、撤权、断网逐项验证；
 - 相关原生验证通过前，正式挂机开关保持不可用；Native/Desktop 是后续可选端。
+
+### 单一 Host Owner Lease 的已提交但未启用的基础设施
+
+`src/cloud-control/host-owner-lease.js` 已提供基于现有 `frameworkKV` 和
+`commandJournal` 的原子 claim/renew/release/dispatch-assert，
+包含 `ownerKind / registrationId / documentId / namespace / generation /
+fencingEpoch / leaseUntil`。测试覆盖两 Host 竞争、租约过期、旧 epoch、
+持久事务回滚。**它目前是 dormant 模块，没有 Broker 公共 RPC、没有
+Runner UI，也没有接入云端任务派发许可**。
+不得据此将「关闭 Side Panel 后执行」标记为通过。
+正式接线前必须将可信可见 Runner sender、RunHost/Authority 和 Owner Lease
+在原 Run admission 中进行持久 fencing，完成真实 Chrome 双宿主测试。
 
 ## 6. 定时任务衔接：仍未进入正式执行
 

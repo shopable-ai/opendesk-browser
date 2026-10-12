@@ -158,18 +158,24 @@ export async function createFoundationBroker({api = chrome, ports = new Map(), c
   await consumer?.reconcileRetirements();
   await installedPages.recoverExecutions();
   await installedPages.reconcile();
+  await authority.schedules.reconcile();
   const authenticate = (request,sender) => authority.assertHost(sender, request.registrationId);
   const routes = {
-    ...createMethodRoutes(authority,['cloudStatus','cloudPair','cloudApprove','cloudStop','cloudUnpair','cloudNext','cloudResolve','commitControllerScript','getControllerScript','listControllerScripts','startControllerRun','controllerOperation','stopControllerRun','finishControllerRun','snapshotControllerRun','retireControllerTarget','tombstoneControllerScript','garbageCollectControllerScript','importTaskPackage','listTaskCatalog','getTaskCandidate','verifyTaskCandidate','makeTaskAvailable','installTask','setInstalledTaskEnabled','uninstallTask','resolveInstalledTask','grantSdk','inspectSdkGrant','revokeSdkGrant','registerHost']),
+    ...createMethodRoutes(authority,['cloudStatus','cloudPair','cloudApprove','cloudStop','cloudUnpair','cloudNext','cloudResolve','commitControllerScript','getControllerScript','listControllerScripts','startControllerRun','controllerOperation','stopControllerRun','finishControllerRun','snapshotControllerRun','retireControllerTarget','tombstoneControllerScript','garbageCollectControllerScript','importTaskPackage','listTaskCatalog','getTaskCandidate','verifyTaskCandidate','makeTaskAvailable','installTask','setInstalledTaskEnabled','uninstallTask','resolveInstalledTask','saveSchedule','changeSchedule','listSchedules','listDueSchedules','setScheduleFireState','grantSdk','inspectSdkGrant','revokeSdkGrant','registerHost']),
     ...createMethodRoutes(pageDependencies,['importPageCandidate','getPageCandidate']),
     ...createMethodRoutes(installedPages,['listPagePrograms','verifyPageCandidate','makePageAvailable','installPageProgram','setInstalledPageEnabled']),
     ...createMethodRoutes(downloads,['prepareArtifact','prepareAttempt','retirePreparedArtifact','dispatchDownload','reconcileDownload','recordResourceRelease']),
     ...(INCLUDE_DORMANT_TEMPLATE_RUNTIME ? createMethodRoutes(downloads,['prepareAttempts']) : {}),
     previewPageScript:(p,s)=>pageScriptPreview.preview(p,s),
     retirePagePreview:(p,s)=>pageScriptPreview.retire(p,s),
+    queryPagePreview:(p,s)=>pageScriptPreview.query(p,s),
     inspectPageDependencies:(p,s)=>pageDependencies.inspect(p,s),
     preparePageDependencies:(p,s)=>pageDependencies.prepare(p,s),
     approvePageDependencies:(p,s)=>pageDependencies.approve(p,s),
+    inspectPageComponentDependencies:(p,s)=>pageDependencies.inspectComponentDependencies(p,s),
+    preparePageComponentDependencies:(p,s)=>pageDependencies.prepareComponentDependencies(p,s),
+    approvePageComponentDependencies:(p,s)=>pageDependencies.approveComponentDependencies(p,s),
+    loadPageComponentDependencies:(p,s)=>pageDependencies.loadComponentDependencies(p,s),
     installSdk:createSdkInstaller({authority,api}),
     registerHost:async(p,s)=>{
       await recoverPersistedHosts({api,storage,session,authority,consumer});

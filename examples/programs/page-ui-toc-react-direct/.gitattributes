@@ -1,0 +1,4 @@
+# Pinned HTTP bodies and upstream license hashes cover their original bytes.
+# Preserve CRLF/LF exactly on every author's checkout.
+.opendesk/remote-cache/*.mjs -text
+licenses/*.txt -text

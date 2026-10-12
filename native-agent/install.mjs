@@ -15,7 +15,7 @@ export const MANIFEST_FILE = manifestLocation('chrome');
 export const CFT_MANIFEST_FILE = manifestLocation('cft');
 export const manifestFor = manifestLocation;
 const SOURCE_DIR = path.dirname(fileURLToPath(import.meta.url));
-const SCRIPTS = ['native-host.mjs','wire.mjs','locations.mjs','installation-root.mjs'];
+const SCRIPTS = ['native-host.mjs','wire.mjs','locations.mjs','installation-root.mjs','local-project-source-contract.mjs'];
 const extensionIdPattern = /^[a-p]{32}$/;
 const providers = new Set(['node', 'opendesk']);
 // Read-only Node CLI / project-provider clients can continue speaking wire v1

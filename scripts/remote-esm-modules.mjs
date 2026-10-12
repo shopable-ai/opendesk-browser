@@ -3,92 +3,26 @@
 import {writeFile,mkdir,rename,rm,open,lstat,rmdir,realpath} from 'node:fs/promises';
 import {constants} from 'node:fs';
 import {join,relative,dirname} from 'node:path';
-import {isIP} from 'node:net';
 import {createHash,randomUUID} from 'node:crypto';
 import {parse} from 'acorn';
 import {fetchPinnedRemote} from './remote-esm-network.mjs';
+import {remoteURL,analyzeRemoteAST,validateRemoteLock,remoteLockLimits,REMOTE_LIMITS,validateRemoteImports} from '../src/scripting/user-scripts/remote-esm-contract.js';
+export {remoteURL} from '../src/scripting/user-scripts/remote-esm-contract.js';
 
 export const REMOTE_LOCK_FILE='opendesk.remote-lock.json';
 export const REMOTE_CACHE_DIR='.opendesk/remote-cache';
 const FORMAT='opendesk.remote-lock.v1';
-const MAX_MODULES=32, MAX_SINGLE_BYTES=128*1024, MAX_TOTAL_BYTES=256*1024;
+const MAX_SINGLE_BYTES=REMOTE_LIMITS.moduleBytes;
 const hash=value=>createHash('sha256').update(value).digest('hex');
 const fail=(code,message,details={})=>{throw Object.assign(new Error(message),{code,phase:'remote',...details});};
 
-export function remoteURL(value) {
-  if(typeof value!=='string'||value.length>2048)fail('E_REMOTE_URL','Remote import URL is missing or too long');
-  let url;
-  try{url=new URL(value);}catch{fail('E_REMOTE_URL','Invalid remote import URL');}
-  const host=url.hostname.toLowerCase();
-  // A pinned URL is written to a source-controlled lock and may appear in
-  // approval logs. Refuse credential-like query names BEFORE reporting the URL
-  // or contacting any host. Version/target parameters remain supported.
-  const credentialParam=/^(?:token|access_token|refresh_token|id_token|auth|authorization|api_?key|secret|client_secret|password|passwd|jwt|session_?token|signature|sig|key|(?:x_amz|x_goog)_signature)$/i;
-  if([...url.searchParams.keys()].some(name=>credentialParam.test(name.replaceAll('-','_'))))
-    fail('E_REMOTE_URL_SECRET','Remote ESM URL has a credential-like query parameter; use a public immutable dependency URL, never commit credentials in code or dependency locks');
-  if(url.protocol!=='https:'||url.username||url.password||url.port||url.hash||
-    !host.includes('.')||host.endsWith('.')||isIP(host.replace(/^\[|\]$/g,''))||host==='localhost'||host.endsWith('.localhost')||
-    host.endsWith('.local')||host.endsWith('.internal')||host.endsWith('.test')||
-    host.endsWith('.invalid')||url.pathname==='/'||/[\u0000-\u001f]/.test(value))
-    fail('E_REMOTE_URL','Remote ESM must use a public HTTPS host without credentials, custom port or fragment');
-  return url.href;
-}
-
-function moduleImports(source,url) {
+function moduleImports(source,url,imports={}) {
   let ast;
   try{ast=parse(source,{ecmaVersion:'latest',sourceType:'module'});}
   catch(error){fail('E_REMOTE_SYNTAX','Remote module '+url+' is not valid plain ESM: '+error.message);}
-  const refs=[],seen=new Set();
-  for(const row of ast.body){
-    if(!['ImportDeclaration','ExportNamedDeclaration','ExportAllDeclaration'].includes(row.type)||!row.source)continue;
-    const spec=row.source.value;
-    if(typeof spec!=='string')fail('E_REMOTE_IMPORT','Only literal remote static ESM imports are supported: '+url);
-    let next;
-    if(spec.startsWith('https:'))next=remoteURL(spec);
-    else if(spec.startsWith('./')||spec.startsWith('../')||spec.startsWith('/')){
-      next=remoteURL(new URL(spec,url).href);
-    }else fail('E_REMOTE_IMPORT','Remote ESM contains an unsupported bare, HTTP or other import: '+spec);
-    refs.push({start:row.source.start,end:row.source.end,url:next});
-    seen.add(next);
-  }
-  // No obvious runtime code-generation escape in pinned remote ESM.
-  // This is a static policy gate, not a guarantee that arbitrary third-party
-  // logic is safe. The execution world must enforce its own code permissions.
-  const dynamicTarget=callee=>{
-    if(callee?.type==='Identifier')
-      return ['require','eval','Function','AsyncFunction'].includes(callee.name);
-    if(callee?.type!=='MemberExpression'||callee.object?.type!=='Identifier'||
-      !['globalThis','window','self'].includes(callee.object.name))return false;
-    const member=callee.computed?callee.property?.value:callee.property?.name;
-    return ['eval','Function','AsyncFunction','require'].includes(member);
-  };
-  const walk=node=>{
-    if(!node||typeof node!=='object')return;
-    if(node.type==='ImportExpression'||['CallExpression','NewExpression'].includes(node.type)&&
-      dynamicTarget(node.callee))
-      fail('E_REMOTE_DYNAMIC','Remote modules cannot contain import(), require() or dynamic code evaluation: '+url);
-    for(const val of Object.values(node)){
-      if(Array.isArray(val))for(const child of val)walk(child);
-      else if(val&&typeof val==='object')walk(val);
-    }
-  };
-  walk(ast);
-  return {refs,children:[...seen].sort()};
+  return analyzeRemoteAST(ast,url,imports);
 }
-
-function validLock(raw){
-  if(raw?.format!==FORMAT||Object.keys(raw).sort().join(',')!=='format,modules'||
-    !raw.modules||typeof raw.modules!=='object'||Array.isArray(raw.modules))
-    fail('E_REMOTE_LOCK','Invalid remote import lock format');
-  for(const [url,entry] of Object.entries(raw.modules)){
-    if(remoteURL(url)!==url||!entry||Object.keys(entry).sort().join(',')!=='bytes,sha256'||
-      !/^[a-f0-9]{64}$/.test(entry.sha256)||!Number.isInteger(entry.bytes)||
-      entry.bytes<1||entry.bytes>MAX_SINGLE_BYTES)
-      fail('E_REMOTE_LOCK','Remote import lock contains an invalid entry: '+url);
-  }
-  if(Object.keys(raw.modules).length>MAX_MODULES)fail('E_REMOTE_LIMIT','Too many pinned remote modules');
-  return raw;
-}
+const validLock=validateRemoteLock;
 
 const sameInode=(a,b)=>a.dev===b.dev&&a.ino===b.ino;
 const fileVersion=info=>[info.dev,info.ino,info.size,info.mtimeNs,info.ctimeNs].join(':');
@@ -298,7 +232,7 @@ async function immutableCache(guard,entry,bytes){
   }
 }
 
-export async function prepareRemoteModules({root,remoteImports=[],temp,lockRemote=false,fetchImpl,approveURL,beforeCommit}) {
+export async function prepareRemoteModules({root,remoteImports=[],temp,lockRemote=false,fetchImpl,approveURL,beforeCommit,remoteDependencies}) {
   if(!remoteImports.length)return {aliases:new Map(),modules:[]};
   // Canonicalize the grant root once (macOS /var -> /private/var is valid).
   // Internal cache components still must be real directories, never symlinks.
@@ -308,13 +242,26 @@ export async function prepareRemoteModules({root,remoteImports=[],temp,lockRemot
   await guard.pin(root);
   release=lockRemote?await acquireLockWriter(guard):null;
   if(lockRemote)await cacheDir(guard,{create:true});
-  const {lock,version}=await readLock(guard),original=JSON.stringify(lock),sources=new Map(),additions=new Map();
+  const read=await readLock(guard),version=read.version,original=JSON.stringify(read.lock);
+  let lock=read.lock;
+  if(remoteDependencies){
+    if(remoteDependencies.format!=='opendesk.remote-dependencies.v1'||remoteDependencies.profile!=='page-library-v1')
+      fail('E_REMOTE_LOCK','Unsupported Page remote dependency profile');
+    validateRemoteImports(remoteDependencies.imports);
+    if(lock.format==='opendesk.remote-lock.v1'){
+      if(!lockRemote)fail('E_REMOTE_UNLOCKED','Page library profile needs an explicit versioned remote lock');
+      lock={format:'opendesk.remote-lock.v2',profile:'page-library-v1',imports:remoteDependencies.imports,modules:lock.modules};
+    }
+    if(JSON.stringify(Object.entries(lock.imports).sort())!==JSON.stringify(Object.entries(remoteDependencies.imports).sort()))
+      fail('E_REMOTE_LOCK_CHANGED','Project resolution map differs from the approved lock');
+  }else if(lock.format!=='opendesk.remote-lock.v1')fail('E_REMOTE_LOCK','Page library lock needs an explicit matching Page project profile');
+  const limits=remoteLockLimits(lock),sources=new Map(),additions=new Map();
   let totalBytes=0;
   const todo=[...new Set(remoteImports.map(remoteURL))].sort();
   while(todo.length){
     const url=todo.shift();
     if(sources.has(url))continue;
-    if(sources.size>=MAX_MODULES)fail('E_REMOTE_LIMIT','Remote graph exceeds 32 JavaScript modules');
+    if(sources.size>=limits.modules)fail('E_REMOTE_LIMIT','Remote graph exceeds its versioned module capacity');
     const entry=lock.modules[url];
     // The interactive preparation flow can require consent for each *new*
     // transitive URL before making its first network request.
@@ -324,8 +271,8 @@ export async function prepareRemoteModules({root,remoteImports=[],temp,lockRemot
       :lockRemote?await download(url,fetchImpl):fail('E_REMOTE_UNLOCKED',
         'Remote import is not pinned: '+url+'. Run the local build once with --lock-remote and commit the cache and lockfile.');
     totalBytes+=bytes.byteLength;
-    if(totalBytes>MAX_TOTAL_BYTES)fail('E_REMOTE_LIMIT','Remote source graph exceeds 256 KiB');
-    const code=utf8(bytes,url),parsed=moduleImports(code,url);
+    if(totalBytes>limits.totalBytes)fail('E_REMOTE_LIMIT','Remote source graph exceeds its versioned aggregate capacity');
+    const code=utf8(bytes,url),parsed=moduleImports(code,url,lock.imports||{});
     sources.set(url,{code,refs:parsed.refs,sha256:hash(bytes),bytes:bytes.byteLength});
     if(!entry)additions.set(url,bytes);
     for(const child of parsed.children)if(!sources.has(child)&&!todo.includes(child))todo.push(child);
@@ -333,12 +280,12 @@ export async function prepareRemoteModules({root,remoteImports=[],temp,lockRemot
   }
   // Commit fetched bytes to persistent content-addressed files, not to the
   // extension. A failed/partial network graph never writes a lockfile.
-  if(additions.size){
+  if(additions.size||JSON.stringify(lock)!==original){
     // Revalidate authoring identity before persisting downloaded source bytes.
     // A plain --lock-remote build supplies its own source-graph check; the
     // review CLI additionally binds the exact approval token and directory.
     await beforeCommit?.();
-    const next={format:FORMAT,modules:{...lock.modules}};
+    const next={...lock,modules:{...lock.modules}};
     for(const url of additions.keys()){
       const record=sources.get(url);
       next.modules[url]={sha256:record.sha256,bytes:record.bytes};
@@ -377,6 +324,7 @@ export async function prepareRemoteModules({root,remoteImports=[],temp,lockRemot
       const committed=await readLock(guard);
       if(JSON.stringify(committed.lock)!==JSON.stringify(next))
         fail('E_REMOTE_LOCK_CHANGED','Remote dependency lock changed during commit');
+      lock=committed.lock;
     }finally{
       await handle?.close();
       // Never remove another writer's staging file after directory replacement.
@@ -407,7 +355,7 @@ export async function prepareRemoteModules({root,remoteImports=[],temp,lockRemot
     await writeFile(aliases.get(url),code,{flag:'wx'});
   }
   await guard.check();
-  return {aliases,modules:[...sources].sort(([a],[b])=>a.localeCompare(b)).map(([url,row])=>({
+  return {lock,aliases,modules:[...sources].sort(([a],[b])=>a.localeCompare(b)).map(([url,row])=>({
     url,sha256:row.sha256,bytes:row.bytes}))};
   }finally{try{await release?.();}finally{await guard.close();}}
 }

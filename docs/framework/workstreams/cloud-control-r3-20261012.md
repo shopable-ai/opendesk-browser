@@ -79,3 +79,93 @@
 
 质量分数均在有对应证据之后单独给出；没有实施或没有验证的条目写
 NOT_VERIFIED，不将书面设计自动评为 95。
+
+
+## E. R3.2 源码/组件/构建证据补充（2026-10-12）
+
+### 经核查的同提交 CI
+
+- **源代码候选**：`e9e4fd513cc117360b44ab80d1a0919d37f26866`。
+- **R3 Actions**：https://github.com/shopable-ai/opendesk-browser/actions/runs/38249509707
+  - `cloud-r3-component`：**completed / success**。所有定向 Node 检查通过，
+    分项 4 + 6 + 4 + 2 + 11 + 41 + 7 + 7 + 110 + 9 = **201 PASS、0 FAIL**。
+    包括 6/7 页签、只读 sender/Observer、真实 Cloud Hosting 控制器手势、
+    选项卡记忆、Task/Workflow/Tools、原 Controller Authority、
+    durable receipt、Provider HTTP/WebSocket 与 dormant owner lease。
+  - `cloud-r3-package`：**completed / success**。
+    真实 GitHub Runner 上执行 `npm run check`、`npm run build`、
+    `npm run build:dev`、`npm run verify`，Production/Development 固定资源、
+    CSS/HTML/Manifest/CSP 检查均通过。
+    - 生产包 packageHash：`e14999103d090de93c3a540ce1109501b9070061dd6320093f4d6a31e1751a98`。
+    - 开发包 packageHash：`1b5d89bd2bfcc0ceb77c99b54fb8c7850da9afc0bd00a6f1b26a6bd674eb1572`。
+- 相关更早失败结果仍保留：R3 CI `38238873750` 的 K3 测试错误把
+  Task Authority 必要的 KV 检查也当作 Cloud 扫描禁止；后续已按请求主键
+  精确断言修复。状态筛选变更时 `38248005424` 的旧 Console 测试
+  夹具缺 `cc-filter` 元素，修复后新候选已通过。
+- 证据等级：**COMPONENT_TESTED + BUILD_VERIFIED（仅上述精确 SHA/包）**，
+  不等于 Windows/Linux/Mac 正式 Chrome 用户操作 PASS，也不构成
+  新 main HEAD 的相同 packageHash。之后的并行修改须按影响范围重查。
+
+### R3.2 实际新增的可靠性与性能变化
+
+- `src/cloud-control/service.js`：`pendingRequestId` 与原批准 grant 同库存储，
+  云控领取时直接按主键读取 waiting 请求，避免正常 2 秒热路径反复
+  `tx.all(frameworkKV)`。已有旧配置首次恢复做一次兼容扫描；
+  已过期且未执行的原 assignment 只进入 E_LEASE，不送原 Worker。
+- 新 claim response、原 Run 原子绑定、托管停止/取消和重新批准时更新指针
+  与 `claimId`；旧授权代次和别的 namespace 的请求/Result 不改写。
+  新的测试证明源数据与授权校验仍走原 Authority。
+- `src/cloud-control/host-owner-lease.js`：原 frameworkKV/commandJournal 上
+  具备 atomic ownerKind/registrationId/documentId/generation/fencingEpoch/TTL
+  claim/renew/release/assert，**尚未接入真正的 RunHost 派发**。
+  不发布 Runner，也不承诺关 Side Panel 后运行。
+- 控制台 `cloudObserve` 限定状态枚举过滤、matchingTotal 和只读分页；
+  UI 包括筛选器，不能触发 Host 注册或云任务领取。Side Panel 「在大页面打开」
+  行为已有真实控制器组件测试。
+- **长期数据缺口仍然存在**：Observer/详细历史读取虽不暴露完整原请求、
+  RPC 已有 1–50 行白名单限制，但底层仍遍历全量 KV。
+  待实现经过升级/失败回滚验证的索引/游标或持久聚合查询。
+- R3 定时任务衔接仍需复用实际已经开发的本地 ScheduleDefinition/FireId，
+  **没有启用跨本地+云端重复派发**；云端同计划唯一来源代次尚未实现。
+
+### 验收状态快照（不得自动晋升）
+
+| 验收层 | 状态 | 限定 |
+| --- | --- | --- |
+| 源码实现 | SOURCE_CONFIRMED | 上述精确文件、提交和读写边界 |
+| 云控节点/Authority/Host 控制器测试 | COMPONENT_TESTED | `38249509707`，201/201 |
+| 生产+开发 WXT 包 | BUILD_VERIFIED | 两个 packageHash 精确绑定 |
+| Linux 静态 Chrome 视觉/交互 | NOT_TESTED | 本次 Cloud R3 专项 CI 未产生这一级原始证据 |
+| Mac Chrome 原生 Side Panel/Console | NATIVE_PENDING | 同提交真实 Profile/截图/结果缺失 |
+| 副作用中断原请求恢复 | NATIVE_PENDING | 按 R1 原 job/request/run 保留，绝不重播 |
+| Host Owner Lease 真实转交 | NOT_IMPLEMENTED | 目前仅 dormant 原子存储组件 |
+| 24 h/72 h 长期 Runner | NOT_TESTED | 不开启未经验证的持续托管模式 |
+
+任何专家评分涉及真实网页执行、视觉缩放、Host 转交或最终安全性时，
+缺少对应原始证据必须标记 **NOT_VERIFIED**，不能根据 CI 通过填 95 分。
+
+
+## F. 跨底座变化后的最新完整候选 CI（2026-10-12）
+
+针对同一 main 在 Browser SDK、Extension Factory 等并行工作变化后的实际源码，
+Cloud R3 专项 workflow 已扩大触发到共享 Host/Task/Storage/RunHost/Manifest、
+构建配置和包依赖。CI 按 `github.sha` 独立保留候选，不再被后续 main
+提交自动取消。
+
+- **已验证候选**：`210d44311ed96954ddc1b125f6b45f6902fc18d7`。
+- **GitHub Actions**：https://github.com/shopable-ai/opendesk-browser/actions/runs/38250711041
+- `cloud-r3-component`：**completed/success**，10 组 4+6+4+2+11+41+7+7+110+9，
+  合计 **201 PASS，0 FAIL**。
+- `cloud-r3-package`：**completed/success**；`npm run check`、
+  `npm run build`、`npm run build:dev`、`npm run verify` 全部通过。
+  - 本候选生产 packageHash：
+    `645486f79e3638577f0810b0e797726039776c1bd7af61580af42b72ceb5a9db`。
+  - 本候选开发 packageHash：
+    `1f5228ea2d7470369089201aa3eb8cf85b4337dba3d32f1fe70c8a96dc1af87e`。
+- `docs/framework/prompts/cloud-control-r3-final-mac-chrome-acceptance.zh-CN.md`
+  已绑定本候选作为 Mac Native 验收参照。
+
+此记录不会将老的 e9e4fd51 包哈希覆盖成新值；
+不同源码/工具链/其他 Agent 后续修改需重新核对影响与包身份。
+**Mac Chrome Gate4、窗口切换、真实显示、CSP 安装行为和 Runner
+所有权仍 NATIVE_PENDING / NOT_IMPLEMENTED，绝不由该 CI 晋升。**

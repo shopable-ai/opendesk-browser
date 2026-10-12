@@ -36,6 +36,14 @@ test('remote script and unexpected lazy chunk fail final package verification', 
   }, /Unsafe HTML/);
   await mutatedPackage(root => writeFile(`${root}/chunk.js`, 'void 0;'), /Unexpected JS/);
 });
+
+test('R3 rejects a stale Workspace HTML artifact even when its JS bundle is otherwise valid',async()=>{
+  await mutatedPackage(async root=>{
+    const file=root+'/native-agent/workspace.html';
+    await writeFile(file,(await readFile(file,'utf8')).replace('data-icon-system="local-svg"','data-icon-system="legacy-text"'));
+  },/Workspace explorer UI asset is stale/);
+});
+
 test('packaged design system rejects remote CSS imports',async()=>{
   await mutatedPackage(async root=>{
     const path=root+'/ui/design-system.css';

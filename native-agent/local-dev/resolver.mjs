@@ -1,3 +1,4 @@
+import {validatePageSource} from '../../src/scripting/user-scripts/page-bundle.js';
 import fs from 'node:fs';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
@@ -14,8 +15,10 @@ import {createSnapshot,snapshotFileSystem,safeRead,sha256,devError} from './snap
 import {LocalProjectPreparation,preparationSlot,promotePreparation,cancelPreparation} from './preparation.mjs';
 
 const VERSION='opendesk.local-dev-resolver.v3';
+// The verifier retains the same guarded snapshots used to publish each artifact.
+const frozenValidators=new WeakMap();
 const FRAMEWORK=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..');
-const BUILD_INPUTS=['scripts/build-program-project.mjs','scripts/validate-program-project.mjs','scripts/program-assets.mjs','scripts/program-entry.mjs','scripts/page-component-entry.mjs','scripts/page-jsx-loader.cjs','scripts/page-vue-sfc-loader.cjs','src/libs/page-frameworks/contract.js','src/libs/page-frameworks/vue-compiler-contract.js','src/libs/page-frameworks/vue-sfc-transform.js','src/libs/page-frameworks/vue-sfc-compiler-3.5.22.mjs','scripts/remote-esm-modules.mjs','native-agent/local-dev/resolver.mjs','native-agent/local-dev/snapshot.mjs','src/scripting/user-scripts/page-program-contract.js','src/scripting/user-scripts/page-program-rules.js','src/scripting/user-scripts/dependency-metadata.js','src/scripting/user-scripts/execution-source.js','src/platform/tasks/contract.js'];
+const BUILD_INPUTS=['src/scripting/user-scripts/page-bundle.js','src/scripting/user-scripts/remote-esm-contract.js','scripts/build-program-project.mjs','scripts/validate-program-project.mjs','scripts/program-assets.mjs','scripts/program-entry.mjs','scripts/page-component-entry.mjs','scripts/page-jsx-loader.cjs','scripts/page-vue-sfc-loader.cjs','src/libs/page-frameworks/contract.js','src/libs/page-frameworks/vue-compiler-contract.js','src/libs/page-frameworks/vue-sfc-transform.js','src/libs/page-frameworks/vue-sfc-compiler-3.5.22.mjs','scripts/remote-esm-modules.mjs','native-agent/local-dev/resolver.mjs','native-agent/local-dev/snapshot.mjs','src/scripting/user-scripts/page-program-contract.js','src/scripting/user-scripts/page-program-rules.js','src/scripting/user-scripts/dependency-metadata.js','src/scripting/user-scripts/execution-source.js','src/platform/tasks/contract.js'];
 const require=createRequire(import.meta.url);
 const toolFiles=['webpack','acorn','terser','terser-webpack-plugin','esbuild'].map(name=>require.resolve(name+'/package.json'));
 const buildIdentity=()=>sha256(JSON.stringify([...BUILD_INPUTS.map(file=>{const actual=path.join(FRAMEWORK,file);return [file,sha256(safeRead(FRAMEWORK,actual,Math.min(fs.lstatSync(actual).size,4*1024*1024)).bytes)];}),...toolFiles.map(file=>[path.basename(path.dirname(file)),sha256(fs.readFileSync(file))])]));
@@ -132,6 +135,18 @@ export class LocalDevResolver{
   detach(bindingId){this.get(bindingId);this.preparation.stop(bindingId);this.bindings.delete(bindingId);this.cache.delete(bindingId);this.identities.delete(bindingId);this.buildCounts.delete(bindingId);this.failures.delete(bindingId);return {bindingId,connected:false};}
   list(){return [...this.bindings.values()].map(x=>({bindingId:x.bindingId,name:path.basename(x.path),source:'local-files',preparation:this.preparation.status(x.bindingId)}));}
   close(){this.closed=true;this.preparation.close();for(const pending of this.inflight.values())cancelPreparation(pending,devError('E_DEV_SESSION_CLOSED','Resolver is closed'));this.cache.clear();this.buildCounts.clear();this.identities.clear();this.failures.clear();}
+  async validateFrozen(bindingId,identity){
+    if(this.closed)throw devError('E_DEV_SESSION_CLOSED','Resolver is closed');
+    const binding=this.get(bindingId),cached=this.cache.get(bindingId);
+    const matches=value=>value&&['artifactId','inputHash','sourceHash','sourceBytes'].every(key=>value[key]===identity?.[key]);
+    const verify=cached&&frozenValidators.get(cached);
+    if(!matches(cached)||!verify)throw devError('E_PROJECT_CHANGED','Frozen artifact is no longer current');
+    // This reuses the original file, root, helper and positive/negative probe
+    // checks. It does not join preparation, resolve or compile another artifact.
+    await verify();
+    if(this.bindings.get(bindingId)!==binding||!matches(this.cache.get(bindingId)))throw devError('E_PROJECT_CHANGED','Frozen artifact changed during validation');
+    return cached;
+  }
   async resolve(bindingId,options={}){
     if(this.closed)throw devError('E_DEV_SESSION_CLOSED','Resolver is closed');
     // An explicit run joins the current preparation, then rechecks actual disk inputs.
@@ -207,8 +222,8 @@ export class LocalDevResolver{
     }
     let inputHash=hashInputs(manifest(),sameGraph?cached.probes:[]),cacheHit=sameGraph&&cached?.inputHash===inputHash;
     dependencyMs=performance.now()-dependencyStarted;
-    const verifyInputs=async()=>{
-      await beforeVerify?.();snapshot.verify();locks.verify();dependencies.verify();npm.verify();
+    const verifyInputs=async(withHook=true)=>{
+      if(withHook)await beforeVerify?.();snapshot.verify();locks.verify();dependencies.verify();npm.verify();
     for(const [file,bytes] of helpers){
       const root=HELPERS.includes(file)?path.dirname(UI):FRAMEWORK;
       if(!safeRead(root,file,256*1024).bytes.equals(bytes))
@@ -249,11 +264,13 @@ export class LocalDevResolver{
     }
     const files=manifest();
     const sourceBytes=Buffer.byteLength(sourceUtf8);
-    if(!sourceBytes||sourceBytes>(project.runtimeKind==='controller'?65536:100000))throw devError('E_DEV_LIMIT','Compiled source exceeds the existing execution limit');
+    if(project.runtimeKind==='page-userscript')await validatePageSource(sourceUtf8,{plainLimit:100000});
+    else if(!sourceBytes||sourceBytes>65536)throw devError('E_DEV_LIMIT','Compiled source exceeds the existing Controller execution limit');
     await verifyInputs();
     const result=immutable({bindingId,projectId:project.id,runtimeKind:project.runtimeKind,managedUI:helpers.has(UI),entry:project.entry,entryFormat:binding.entryFormat,sourceUtf8,sourceHash:sha256(sourceUtf8),sourceBytes,inputHash,sourceRevision:inputHash,artifactId:sha256(inputHash+sha256(sourceUtf8)),validationHash,sourceMapUtf8,files,probes:cacheHit?cached.probes:npm.probes(),cacheHit:!!cacheHit,capturedAt:new Date().toISOString(),
       timings:Object.freeze({validationMs,dependencyMs,webpackMs,checkMs:performance.now()-started-validationMs-dependencyMs-webpackMs,totalMs:performance.now()-started,buildCount,moduleCount:cacheHit?cached.timings.moduleCount:moduleCount}),
       siteOrigins:project.siteOrigins||[binding.siteOrigin].filter(Boolean),...(project.pageRules?{pageRules:project.pageRules}:{}),...(project.paramsSchema?{paramsSchema:project.paramsSchema}:{})});
+    frozenValidators.set(result,()=>verifyInputs(false));
     this.identities.set(bindingId,identityKey);this.cache.set(bindingId,result);this.failures.delete(bindingId);this.preparation.published(bindingId,result);return result;
   }
 }

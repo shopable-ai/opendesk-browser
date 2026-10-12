@@ -7,6 +7,7 @@ import {BUILTIN_ABI} from '../../src/libs/runtime-contract.js';
 const base=globalThis.__pageContentFixtureBase,expectedChars=globalThis.__pageContentExpectedChars;
 const networkOrigin=globalThis.__pageContentNetworkOrigin;
 const pageProof=globalThis.__pageContentPageProof===true;
+const publicExamples=globalThis.__pageContentExamples;
 const cases=[];globalThis.__pageContentNativeReport={state:'running',cases};
 const client=createHostClient(chrome),host=createRunHost({client});
 const assert=(yes,message)=>{if(!yes)throw new Error(message);};
@@ -127,6 +128,25 @@ async function check(name,fn){try{cases.push({name,ok:true,value:await fn()});}
         'Controller builtin globals absent in real opaque Worker '+JSON.stringify(value));
       return {...value,runId:result.runId,resultId:result.resultId};
     });
+    // Run the exact user demo bytes, including one ESM program produced by
+    // the normal Webpack authoring compiler and one Side Panel single file.
+    for(const key of ['controllerSingle','controllerESM']){
+      await check('controller-user-example-'+key+'-native',async()=>{
+        const fixture=publicExamples?.[key];
+        assert(typeof fixture?.code==='string'&&/^[a-f0-9]{64}$/.test(fixture.sha256),
+          'Missing frozen Controller example source');
+        const result=await run(fixture.code,target);
+        assert(result.outcome?.ok===true,'Actual Controller example failed '+JSON.stringify(result.outcome?.error));
+        const value=decodeValue(result.outcome.valueWire);
+        assert(value.title==='Native HTML content'&&value.url===base+'/large'&&
+          value.words?.join(' ')==='Native HTML content'&&/^\d{4}-\d{2}-\d{2}$/.test(value.date),
+          'Original Controller zero-arg example returned wrong data '+JSON.stringify(value));
+        if(key==='controllerSingle')assert(value.abi===BUILTIN_ABI,'Single-file ABI differs');
+        assert(typeof result.runId==='string'&&typeof result.resultId==='string',
+          'Real durable runId/resultId missing');
+        return {id:key,sourceHash:fixture.sha256,runId:result.runId,resultId:result.resultId,value};
+      });
+    }
     await check('controller-denies-undeclared-cross-origin',async()=>{
       const source="async function main(){await axiosx.get("+JSON.stringify(networkOrigin+'/api/get?source=blocked')+");}";
       const result=await run(source,target);
@@ -152,6 +172,52 @@ async function check(name,fn){try{cases.push({name,ok:true,value:await fn()});}
       const value=decodeValue(result.outcome.valueWire);
       assert(value.status===200&&value.data?.method==='POST'&&value.data?.data?.marker==='OpenDesk'&&
         value.data?.data?.n===1&&value.data?.cookie===null,'POST did not reach real second HTTP listener '+JSON.stringify(value));
+      return {...value,runId:result.runId,resultId:result.resultId};
+    });
+    await check('controller-real-axios-zero-arg-broker-get-and-interceptors',async()=>{
+      const source=[
+        '// @opendesk-lib axios',
+        'async function main(){',
+        ' const client=axios.create({baseURL:'+JSON.stringify(networkOrigin)+',timeout:8000});',
+        ' const id=client.interceptors.request.use(config=>{config.headers.set("x-opendesk-axios","yes");return config});',
+        ' const reply=await client.get("/api/get",{params:{source:"controller-axios"}});',
+        ' client.interceptors.request.eject(id);',
+        ' return {status:reply.status,data:reply.data,create:typeof axios.create,mainPage:typeof globalThis.page};',
+        '}'
+      ].join('\n');
+      const result=await run(source,target,{networkOrigins:[networkOrigin]});
+      assert(result.outcome?.ok===true,'Real Controller Axios GET failed '+JSON.stringify(result.outcome?.error));
+      const value=decodeValue(result.outcome.valueWire);
+      assert(value.status===200&&value.data?.path==='/api/get'&&
+        value.data?.source==='controller-axios'&&value.data.cookie===null&&
+        value.create==='function'&&value.mainPage==='undefined',
+        'Real Axios client bypassed transport or lost response '+JSON.stringify(value));
+      return {...value,runId:result.runId,resultId:result.resultId};
+    });
+    await check('controller-real-axios-denies-undeclared-origin',async()=>{
+      const source='// @opendesk-lib axios\nasync function main(){return await axios.get('+
+        JSON.stringify(networkOrigin+'/api/get?source=denied-controller-axios')+');}';
+      const result=await run(source,target);
+      assert(result.outcome?.ok===false&&result.outcome?.error?.code==='E_PERMISSION',
+        'Undeclared Controller Axios origin must fail at admitted Broker '+JSON.stringify(result.outcome));
+      return {runId:result.runId,errorCode:result.outcome.error.code};
+    });
+    await check('controller-real-axios-http-error-and-validate-status',async()=>{
+      const source=[
+        '// @opendesk-lib axios',
+        'async function main(){',
+        ' const base='+JSON.stringify(networkOrigin)+';',
+        ' const accepted=await axios.get(base+"/api/status/429",{validateStatus:s=>s<500});',
+        ' let rejected;try{await axios.get(base+"/api/status/500")}catch(error){rejected={status:error.response?.status,isAxiosError:error.isAxiosError===true}}',
+        ' return {accepted:{status:accepted.status,data:accepted.data},rejected};',
+        '}'
+      ].join('\n');
+      const result=await run(source,target,{networkOrigins:[networkOrigin]});
+      assert(result.outcome?.ok===true,'Real Axios error projection failed '+JSON.stringify(result.outcome?.error));
+      const value=decodeValue(result.outcome.valueWire);
+      assert(value.accepted?.status===429&&value.accepted?.data?.status===429&&
+        value.rejected?.status===500&&value.rejected.isAxiosError,
+        'Axios validateStatus/AxiosError lost the real Broker HTTP cause '+JSON.stringify(value));
       return {...value,runId:result.runId,resultId:result.resultId};
     });
     await check('controller-cross-origin-429-500-preserve-real-HTTP-cause',async()=>{
@@ -221,8 +287,33 @@ async function check(name,fn){try{cases.push({name,ok:true,value:await fn()});}
         assert(result?.state==='preview-evaluated'&&result.world==='USER_SCRIPT'&&
           result.documentId===optionalTarget.documentId,'Optional Page receipt mismatch '+JSON.stringify(result));
         return {value:JSON.parse(result.resultText),world:result.world,
-          optionalSha256:result.packagedOptionalSha256??null};
+          sourceHash:result.sourceHash,documentId:result.documentId,
+          optionalSha256:result.packagedOptionalSha256??null,
+          ...(result.packagedOptionals?{packagedOptionals:result.packagedOptionals}: {})};
       };
+      // Real Chrome USER_SCRIPT, running EXACT original user-facing single-file
+      // and compiled multi-file Page examples, with document-bound native ack.
+      for(const key of ['pageSingle','pageESM']){
+        await check('page-user-example-'+key+'-native',async()=>{
+          await refreshOptionalDocument(); // Avoid per-document preview cap.
+          const fixture=publicExamples?.[key];
+          assert(typeof fixture?.code==='string'&&/^[a-f0-9]{64}$/.test(fixture.sha256),
+            'Missing frozen Page example source');
+          const result=await previewOptional(fixture.code);
+          assert(result.sourceHash===fixture.sha256&&result.documentId===optionalTarget.documentId,
+            'Native Page source/document identity differs from actual example');
+          assert(result.value?.title==='Native HTML content'&&
+            result.value.words?.join(' ')==='Native HTML content'&&
+            /^\d{4}-\d{2}-\d{2}$/.test(result.value.date),
+            'Original Page zero-arg example returned wrong data '+JSON.stringify(result));
+          if(key==='pageSingle')assert(result.value.url===base+'/large',
+            'Page single-file location differs');
+          if(key==='pageESM')assert(result.value.heading===null,
+            'Page ESM heading should be absent in the controlled fixture');
+          return {id:key,sourceHash:fixture.sha256,world:result.world,
+            documentId:result.documentId,value:result.value};
+        });
+      }
       await check('page-user-script-crypto-js-sha256-upstream',async()=>{
         const result=await previewOptional('// @opendesk-lib crypto-js\nasync function main(){return CryptoJS.SHA256("abc").toString(CryptoJS.enc.Hex)}');
         assert(result.value==='ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad',
@@ -247,6 +338,38 @@ async function check(name,fn){try{cases.push({name,ok:true,value:await fn()});}
           result.value?.create==='function'&&result.value?.uri?.includes('/api/items?tag='),
           'Genuine Axios Page instance or getUri unavailable: '+JSON.stringify(result));
         return result;
+      });
+      await check('page-user-script-real-multi-axios-query-string-GET-and-main-isolation',async()=>{
+        // Real CFT in a fresh site document, not a VM, mock Axios or a source scan.
+        // It verifies multi-resource hashes in ONE admitted USER_SCRIPT execution.
+        await refreshOptionalDocument();
+        const script=[
+          '// @opendesk-lib axios',
+          '// @opendesk-lib query-string',
+          'async function main(){',
+          '  const tags=queryString.parse("tag=one&tag=two").tag;',
+          '  const client=axios.create({timeout:10000,withCredentials:false});',
+          '  const interceptor=client.interceptors.request.use(config=>{config.headers.set("x-opendesk-demo","multi");return config;});',
+          '  const reply=await client.get(location.origin+"/large",{responseType:"text"});',
+          '  client.interceptors.request.eject(interceptor);',
+          '  return {status:reply.status,containsTitle:reply.data.includes("Native HTML content"),tags,',
+          '    adapter:typeof client.get,requestInterceptor:typeof client.interceptors.request.use};',
+          '}'
+        ].join('\n');
+        const result=await previewOptional(script);
+        assert(result.value?.status===200&&result.value.containsTitle===true&&
+          result.value.tags?.join('|')==='one|two'&&result.value.adapter==='function'&&
+          result.value.requestInterceptor==='function','Real Page multi-library HTTP path failed '+JSON.stringify(result));
+        assert(Array.isArray(result.packagedOptionals)&&result.packagedOptionals.length===2&&
+          result.packagedOptionals[0].id==='axios'&&result.packagedOptionals[1].id==='queryString'&&
+          result.packagedOptionals.every(row=>/^[a-f0-9]{64}$/.test(row.sha256)),
+          'Native preview did not bind both library SHA identities '+JSON.stringify(result));
+        const [main]=await chrome.scripting.executeScript({
+          target:{tabId:tab.id,documentIds:[optionalTarget.documentId]},world:'MAIN',
+          func:()=>({axios:typeof window.axios,queryString:typeof window.queryString})});
+        assert(main?.result?.axios==='undefined'&&main?.result?.queryString==='undefined',
+          'Real multi-library USER_SCRIPT contaminated website MAIN');
+        return {...result,websiteMainUntouched:true};
       });
       await check('page-user-script-real-store-persistence-and-owner-prefix',async()=>{
         await refreshOptionalDocument();
@@ -293,6 +416,6 @@ async function check(name,fn){try{cases.push({name,ok:true,value:await fn()});}
       });
     }
   }finally{await chrome.tabs.remove(tab.id);host.dispose();client.dispose();}
-  globalThis.__pageContentNativeReport={state:'finished',cases,passed:cases.length===(pageProof?21:12)&&cases.every(row=>row.ok)};
+  globalThis.__pageContentNativeReport={state:'finished',cases,passed:cases.length===(pageProof?25:14)&&cases.every(row=>row.ok)};
 })().catch(e=>{host.dispose();client.dispose();globalThis.__pageContentNativeReport={state:'finished',cases,passed:false,
   fatal:{code:e.code,message:e.message,stack:e.stack?.slice(0,1000)}};});

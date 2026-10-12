@@ -2,7 +2,8 @@ import {PageError, requireValue, encodeValue, decodeValue, frozenCopy} from '../
 import {relayContextRequest} from '../../framework/context.js';
 import {createResultAssembler} from '../../framework/control/result-transfer.js';
 import {BUILTIN_RUNTIME_CATALOG as BUILTIN_CATALOG} from '../../libs/runtime-contract.js';
-import {loadBuiltinWorkerSource} from '../../libs/loader.js';
+import {loadBuiltinWorkerSource,loadPackagedOptionalControllerLibrary,
+  controllerSelectedPackagedLibrary} from '../../libs/loader.js';
 import {builtinIdentity,assertBuiltinIdentity} from '../../libs/identity.js';
 
 function safeErrorCause(error) {
@@ -57,10 +58,10 @@ export function createControlController({context, sandboxURL, workerURL, documen
   const ready = new Promise((resolve, reject) => { readyResolve = resolve; readyReject = reject; });
   const result = new Promise(resolve => { terminalResolve = resolve; });
   const resultAssembler = createResultAssembler();
-  let builtinBundleSha256;
+  let builtinBundleSha256,builtinCatalogSha256;
   const workerSource=loadBuiltinWorkerSource({runtime:{id:root.host,getURL:path=>root.protocol+'//'+root.host+'/'+path}}).then(asset=>{
     assertBuiltinIdentity(revision.builtinIdentity,builtinIdentity(asset));
-    builtinBundleSha256=asset.sha256;
+    builtinBundleSha256=asset.sha256;builtinCatalogSha256=asset.catalogSha256;
     return asset.code;
   });
   workerSource.catch(error => finish('error', {error: {code: error.code || 'E_RESOURCE_LOAD', message: error.message}}));
@@ -144,7 +145,21 @@ export function createControlController({context, sandboxURL, workerURL, documen
   return Object.freeze({ready, result, retired, resourceReleased,
     async execute(body, params) {
       requireValue(typeof body === 'string' && !executing, 'E_ARGUMENT_TYPE'); encodeValue(params); await ready; guard(); executing = true;
-      send({kind: 'execute', runId: identity.runId, ownerEpoch: identity.ownerEpoch, body, params: structuredClone(params)}); return result;
+      let admitted=body;
+      const selected=controllerSelectedPackagedLibrary(body);
+      if(selected){
+        const asset=await loadPackagedOptionalControllerLibrary(selected,{
+          runtime:{id:root.host,getURL:path=>root.protocol+'//'+root.host+'/'+path}});
+        guard();
+        requireValue(asset.catalogSha256===builtinCatalogSha256&&
+          asset.abi===revision.builtinIdentity?.abi,'E_BUILTIN_VERSION_UNAVAILABLE');
+        // Only the admitted Worker AsyncBody evaluates this fixed code; its
+        // lexical axiosx capability comes from the existing bound Broker.
+        admitted=asset.code+'\n;\n'+body;
+      }
+      guard();
+      send({kind: 'execute', runId: identity.runId, ownerEpoch: identity.ownerEpoch,
+        body: admitted, params: structuredClone(params)}); return result;
     },
     stop: () => finish('stopped'), close: () => finish('host-closed'),
     async observeResource() { await ready; guard(); send({kind: 'observe-resource', runId: identity.runId, ownerEpoch: identity.ownerEpoch}); },

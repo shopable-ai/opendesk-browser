@@ -1,4 +1,46 @@
-# OpenDeskSDK.browser API · R1.3 源码接口索引
+# OpenDeskSDK.browser API · 推荐短接口与原有高级操作
+
+> **更新：2026-10-12。** 对安装工具的开发者，优先使用易理解的高层写法；下方保留的 R1.3 `PLANNED` / `HOST_ONLY` 表是 **2026-10-11 历史快照，不能当作当前进度**。当前真实合同为 [32 项操作注册表](../../src/framework/sdk/browser-contract.js)，状态与原生证据见 [Browser SDK 工作流](../framework/workstreams/browser-sdk-status.md)。
+
+## 开发者优先：`browser.network.watch()`
+
+```js
+// 仅在已安装、已启用且具备 capability 的 Side Panel 工具沙箱中。
+// OpenDeskSDK 是运行时提供的环境对象，不向 main() 传参数。
+const {browser} = OpenDeskSDK;
+const {tabRef} = await browser.tabs.open({url:'https://example.org/page'});
+
+// 通过可信 UI 明确批准指定 TabRef + Origin，开启不超过 30 秒的元数据观察。
+const watch = await browser.network.watch({
+  tabRef,
+  origin:'https://example.org'
+});
+const {events,nextCursor} = await watch.read({limit:25});
+const status = await watch.status();
+await watch.stop();
+await watch.export();  // JSON Save As；需要另一次用户确认
+await watch.close();
+```
+
+**为什么不再推荐把 `network.observe.start` 写进普通示例？** 因为 `network.observe.start`、`events.read`、`operations.cancel` 属于内部按能力领域拆分的**精确 Host 操作合同**，用户不应为一次短时观察自行维护 `observationId/sessionRef/operationId`。推荐 `watch` 作为**仅存在于工具沙箱的轻量便捷句柄**；其 `read/status/stop/export/close/cancel` 仍分别调用原已批准的 Host RPC，没有第二套权限、Driver 或持久观察系统。旧写法完全保留兼容，不改变 32 项合同分母、错误码和能力体系。
+
+| 用户操作 | 推荐方式 | 复用的可信底层操作 |
+| --- | --- | --- |
+| 开始网络观察 | `browser.network.watch({tabRef,origin})` | `browser.network.observe.start({tabRef,origins:[origin]})` |
+| 读取有界 HTTP 元数据 | `watch.read({limit:25})` | `browser.events.read({sessionRef,cursor,limit})` |
+| 查看会话状态 | `watch.status()` | `browser.network.observe.getStatus({observationId})` |
+| 停止观察 | `watch.stop()` | `browser.network.observe.stop({observationId})` |
+| 导出 JSON | `watch.export()` | `browser.network.observe.export({observationId,format:'json'})` |
+| 取消本工具操作 | `watch.cancel()` | `browser.operations.cancel({operationId})` |
+| 关闭读取会话 | `watch.close()` | `browser.events.close({sessionRef})` |
+
+**权限边界不变**：`tabRef` 必须是该工具此前获准拥有的标签页；`origin` 必须是精确 HTTP(S) Origin；开始/导出操作必须经过可信界面单次批准；请求只收集单 Tab / 单 Origin 的有界 HTTP 元数据，默认不含 Cookie、Token、Body、完整 URL。安装包至少声明 `browser.network.observe` 和 `browser.events`；`watch.cancel()` 另外需要 `browser.operations`。普通 HTTP(S) Page SDK 和只读开发预览不暴露这些特权方法。
+
+`watch` 对象含函数，不是可跨 Worker、工具实例或页面序列化的授权凭据；工具重新打开时必须重新获取合法引用。该便利封装本身不代表 Mac Chrome 原生验收。参见 [可导入真实功能验证工具](../../examples/sidebar-tools/browser-sdk-r2/README.zh-CN.md)。
+
+---
+
+## R1.3 历史设计与合同参考（以下统计与 PLANNED 状态已过期）
 
 > 当前核查：2026-10-12，main，Browser API 1.0.0。实施与测试分开记录；最新候选/包身份及原生状态见 [当前验收总表](../framework/workstreams/browser-sdk-r13-20261011.md) 和 [机器记录](../framework/workstreams/browser-sdk-r13-acceptance.json)。历史隔离分支已合入；IMPLEMENTED 仍不等于真实 Chrome PASS。Chrome 最低 138。
 

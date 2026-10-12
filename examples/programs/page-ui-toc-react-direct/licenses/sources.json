@@ -1,0 +1,38 @@
+[
+  {
+    "url": "https://cdn.jsdelivr.net/npm/echarts@5.6.0/LICENSE",
+    "bytes": 11990,
+    "sha256": "634293835b43a6dd2094fa39182a3d9a6b9ca43b7fdb9ac354e8037af2a3093a",
+    "file": "ECHARTS-LICENSE.txt"
+  },
+  {
+    "url": "https://cdn.jsdelivr.net/npm/echarts@5.6.0/NOTICE",
+    "bytes": 168,
+    "sha256": "fa99ac3af859d0e13166906dc53a73ad34a08898da7e8ae83407275496e9e30c",
+    "file": "ECHARTS-NOTICE.txt"
+  },
+  {
+    "url": "https://cdn.jsdelivr.net/npm/echarts@5.6.0/licenses/LICENSE-d3",
+    "bytes": 1475,
+    "sha256": "e1211892da0b0e0585b7aebe8f98c1274fba15bafe47fa1f4ee8a7a502c06304",
+    "file": "ECHARTS-LICENSE-d3.txt"
+  },
+  {
+    "url": "https://cdn.jsdelivr.net/npm/zrender@5.6.1/LICENSE",
+    "bytes": 1509,
+    "sha256": "a681e9d183c72b4af4856935893805eb48c08f0f5a3f260203db7444c20fb98a",
+    "file": "ZRENDER-LICENSE.txt"
+  },
+  {
+    "url": "https://cdn.jsdelivr.net/npm/tslib@2.3.0/CopyrightNotice.txt",
+    "bytes": 824,
+    "sha256": "dd835e67a9a297da32f9467d7677a5d02c8e50e10f15da43b810147c79c04b9b",
+    "file": "TSLIB-CopyrightNotice.txt"
+  },
+  {
+    "url": "https://cdn.jsdelivr.net/npm/tslib@2.3.0/LICENSE.txt",
+    "bytes": 655,
+    "sha256": "210b19e543130388c68654b7497e967119ce17145f66ab7d85688fbd70f08751",
+    "file": "TSLIB-LICENSE.txt"
+  }
+]

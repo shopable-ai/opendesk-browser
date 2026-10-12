@@ -9,6 +9,7 @@ import os from 'node:os';
 import webpack from 'webpack';
 import {createBuiltinResourceManifest,verifyBuiltinResourceManifest} from '../../scripts/verify-package.mjs';
 import {BUILTIN_CATALOG} from '../../src/libs/catalog.js';
+import {buildProgramProjectInMemory} from '../../scripts/build-program-project.mjs';
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..');
 const binary=process.env.CHROME_FOR_TESTING_BIN;
@@ -111,8 +112,20 @@ try{
   const extensionId=createHash('sha256').update(publicKey).digest('hex').slice(0,32)
     .split('').map(c=>String.fromCharCode(97+parseInt(c,16))).join('');
   await writeFile(path.join(extension,'manifest.json'),JSON.stringify(manifest));
+  // Reuse the ACTUAL user-facing examples. Build multi-file ESM through the
+  // production authoring compiler, not a handwritten in-test lookalike.
+  const [controllerESM,pageESM,controllerSingle,pageSingle]=await Promise.all([
+    buildProgramProjectInMemory('examples/programs/controller-globals-zero-arg',{mode:'production'}),
+    buildProgramProjectInMemory('examples/programs/page-globals-zero-arg',{mode:'production'}),
+    readFile(path.join(root,'examples/programs/single-file/controller-globals-zero-arg.js'),'utf8'),
+    readFile(path.join(root,'examples/programs/single-file/page-globals-zero-arg.js'),'utf8')
+  ]);
+  const examples=Object.fromEntries(Object.entries({
+    controllerESM:controllerESM.sourceUtf8,pageESM:pageESM.sourceUtf8,
+    controllerSingle,pageSingle
+  }).map(([id,code])=>[id,{code,sha256:createHash('sha256').update(code).digest('hex')}]));
   await writeFile(path.join(extension,'ui/fixture-config.js'),
-    'globalThis.__pageContentFixtureBase='+JSON.stringify(base)+';globalThis.__pageContentExpectedChars='+expectedBody.length+';globalThis.__pageContentNetworkOrigin='+JSON.stringify(networkOrigin)+';globalThis.__pageContentPageProof='+JSON.stringify(pageProof)+';');
+    'globalThis.__pageContentFixtureBase='+JSON.stringify(base)+';globalThis.__pageContentExpectedChars='+expectedBody.length+';globalThis.__pageContentNetworkOrigin='+JSON.stringify(networkOrigin)+';globalThis.__pageContentPageProof='+JSON.stringify(pageProof)+';globalThis.__pageContentExamples='+JSON.stringify(examples)+';');
   await writeFile(path.join(extension,'ui/tool.html'),
     '<!doctype html><meta charset="utf-8"><script src="fixture-config.js"></script><script src="tool-shell.js"></script>');
   for(const file of ['ui/target-bootstrap.html','scripting/sandbox/sandbox.html'])
@@ -135,7 +148,11 @@ try{
   // approved Catalog: missing entries must fail the real resource manifest.
   for(const id of ['jsCookie','cryptoJs','fileSaver','queryString','axios','store','cheerio','fingerprintjs']){
     const row=BUILTIN_CATALOG.libraries[id];
-    if(!row||row.origin!=='npm'||row.default||row.worlds.join(',')!=='USER_SCRIPT')
+    // Axios was explicitly approved in BOTH Controller and USER_SCRIPT.
+    // Every other optional npm bundle remains Page-only. Guard the exact
+    // catalog world order; do not weaken the SHA/permission/runtime checks.
+    const expectedWorlds=id==='axios'?'CONTROLLER,USER_SCRIPT':'USER_SCRIPT';
+    if(!row||row.origin!=='npm'||row.default||row.worlds.join(',')!==expectedWorlds)
       throw Error('Native optional library contract changed: '+id);
     config.entry[row.output.slice(0,-3)]='./tests/framework/page-content-native-'+id+'.js';
   }

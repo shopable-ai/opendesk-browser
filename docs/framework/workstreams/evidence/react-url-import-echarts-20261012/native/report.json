@@ -1,0 +1,1717 @@
+{
+  "format": "opendesk.native-source-measurement.v1",
+  "measuredAt": "2026-10-12T11:43:26.653Z",
+  "scope": "Actual offline LocalDevResolver output and frozen source read/validate; JSON/frame serialization measured in-process. No Native socket, Go Host, Chrome admission or visible chart claimed.",
+  "repositoryHead": "259c6d56a52b64f0d01fbe03acc06d49a5beaef9",
+  "repositoryBranch": "main",
+  "repositoryInputsFile": "repository-inputs.json",
+  "worktreeChangesPresent": true,
+  "previousMeasurement": {
+    "report": "../measure-current-resolver/report.json",
+    "sourceHash": "8d3eedccdf62d90ddafcad3752e184ccd975479b51f649cb0b12595028ab2146",
+    "inputHash": "f11fc131bdf2d97949fc7c938f05175728032dd500ae4a406fcaf37d3ba11231",
+    "artifactId": "ca0761dd7cbdb7cd7352c9b505c5ec0ae01be1c28c6079c429812c69c755901e",
+    "buildIdentity": "de604be8b63d69b6a6b87f421cfe6dd2137688ce5b2f260860d4108a4dd7b65e"
+  },
+  "sameSourceAsPrevious": true,
+  "project": "/workspace/scratch/6d8850e5cd8c/opendesk-browser/examples/programs/page-ui-toc-react-direct",
+  "bindingId": "local-2aac94926b8071ed6afb",
+  "sourceHash": "8d3eedccdf62d90ddafcad3752e184ccd975479b51f649cb0b12595028ab2146",
+  "sourceBytes": 482082,
+  "inputHash": "5cd5fe05bf3f8092c3e064a74be3ced3934045f084fbc5b01feb8f464a8cc8f3",
+  "artifactId": "a15ab86d2113aabaa2630b941bb735b9dfc8d1f248b54d096837f9e93cdd19da",
+  "sourceRevision": "5cd5fe05bf3f8092c3e064a74be3ced3934045f084fbc5b01feb8f464a8cc8f3",
+  "buildIdentity": "e3cf68e80d8afc0e31d1753197fbac4f3767cf75d32ca3369d24d94f132aa8a2",
+  "buildCount": 1,
+  "cacheHit": false,
+  "sourceFile": "source.js",
+  "resolvedFile": "resolved.full.json",
+  "sourceMapBytes": 2650400,
+  "sourceInputFiles": 241,
+  "protocol": {
+    "MAX_BYTES": 61440,
+    "sourceLimit": 528384,
+    "chunkBytes": 24576,
+    "base64Bytes": 32768
+  },
+  "observed": {
+    "inlineResolveResponse": {
+      "jsonBytes": 491042,
+      "nativeFramedBytes": 491046,
+      "socketLineBytes": 491043,
+      "sha256": "ee6a888a023a8ba7c22583269280e4c6296882dc6c6150514b64b1248638eea4"
+    },
+    "resolveRequest": {
+      "jsonBytes": 213,
+      "nativeFramedBytes": 217,
+      "socketLineBytes": 214,
+      "sha256": "6b482189212522149ac2068d52fb6dfbc747dc3f52f50fa9e57597a8da190fdd"
+    },
+    "descriptorResponse": {
+      "jsonBytes": 1479,
+      "nativeFramedBytes": 1483,
+      "socketLineBytes": 1480,
+      "sha256": "e4320fc1f188fb4e523c55c446549e515342a6a99bd1d6fbee3a6efea2310746"
+    },
+    "chunkCount": 20,
+    "chunkRequestMaxJsonBytes": 545,
+    "chunkResponseMaxJsonBytes": 33331,
+    "chunkResponseMaxFramedBytes": 33335,
+    "rawChunkMaxBytes": 24576,
+    "base64ChunkMaxBytes": 32768,
+    "finalValidationRequest": {
+      "jsonBytes": 533,
+      "nativeFramedBytes": 537,
+      "socketLineBytes": 534,
+      "sha256": "07391b1f89b883297b04adfb2a7828ada6b68f7e7b93eb92432812fc59f47f6f"
+    },
+    "finalValidationResponse": {
+      "jsonBytes": 516,
+      "nativeFramedBytes": 520,
+      "socketLineBytes": 517,
+      "sha256": "fd1098ee0ba0b8bbdabcdf32e2642886932ee1c9700f8cb707cc14195f15b91a"
+    },
+    "totalRequestJsonBytes": 11637,
+    "totalResponseJsonBytes": 656021
+  },
+  "conservativeScopedEnvelope": {
+    "requestIdChars": 100,
+    "providerEpochChars": 240,
+    "bindingIdChars": 240,
+    "transferIdChars": 240,
+    "descriptorResponseJsonBytes": 2165,
+    "chunkRequestMaxJsonBytes": 1231,
+    "chunkResponseMaxJsonBytes": 34017,
+    "finalValidationRequestJsonBytes": 1219,
+    "finalValidationResponseJsonBytes": 1202
+  },
+  "forwardMcpRejection": {
+    "code": "E_LIMIT",
+    "message": "Native IPC message exceeds 60 KiB: jsonBytes=490610, limitBytes=61440",
+    "outcome": "NOT_DISPATCHED",
+    "requestId": "measurement-forward-page-preview",
+    "methods": [
+      "target.current"
+    ],
+    "admissionRecords": 0,
+    "serializedRequest": {
+      "jsonBytes": 490610,
+      "nativeFramedBytes": 490614,
+      "socketLineBytes": 490611,
+      "sha256": "ac3d458b9ccc5edea43774f33c0777490635cdec4c811c4f9582b43fb5a1106b"
+    },
+    "serializedRequestFile": "forward-page-preview.full.json"
+  },
+  "generatedTransportIds": {
+    "providerEpoch": "d5a94bd2-8724-4c7e-aed8-999f7152ba82",
+    "transferId": "b47459bb-e194-4845-9a26-3fdf4725fee8",
+    "note": "Measurement envelope IDs only, not live Native identities."
+  },
+  "limitations": [
+    "No real Native socket, Go Host or Chrome document was used.",
+    "Formal external Go Host must independently advertise and implement localDevSourceVersion=1; old capability negotiation blocks oversized sources with E_NATIVE_UPDATE_REQUIRED.",
+    "Experimental Node Host chunk support does not supply the formal CLI R17 localDevMultiVersion/localFilesVersion/localDevAccessVersion capabilities.",
+    "Forward MCP run remains inline and is rejected by the original 61440-byte wire limit before page.preview dispatch; only the reverse UI project.resolve/source.read/validate path supports chunking."
+  ],
+  "inputs": [
+    {
+      "path": ".opendesk/remote-cache/00bf1110b61528eaefc1d3c192ede52bc6c848bcfa4d454be89a3ed1334d52ec.mjs",
+      "bytes": 10105,
+      "sha256": "00bf1110b61528eaefc1d3c192ede52bc6c848bcfa4d454be89a3ed1334d52ec"
+    },
+    {
+      "path": ".opendesk/remote-cache/00fea74b08800270ebe7732c85d45f166fff7b7f5fdcc9087abed3c1c94c53f8.mjs",
+      "bytes": 12398,
+      "sha256": "00fea74b08800270ebe7732c85d45f166fff7b7f5fdcc9087abed3c1c94c53f8"
+    },
+    {
+      "path": ".opendesk/remote-cache/039990edc7fcc92a7d97176fd28eb20f97243384d4971bb4deec6c37245cca83.mjs",
+      "bytes": 9705,
+      "sha256": "039990edc7fcc92a7d97176fd28eb20f97243384d4971bb4deec6c37245cca83"
+    },
+    {
+      "path": ".opendesk/remote-cache/05cef2d32da8a94454fc46c6fd5d26ec25bf2a3592d5dd3732c0172ed1befc73.mjs",
+      "bytes": 2256,
+      "sha256": "05cef2d32da8a94454fc46c6fd5d26ec25bf2a3592d5dd3732c0172ed1befc73"
+    },
+    {
+      "path": ".opendesk/remote-cache/05d725ecd029cfbd64ac4756686f55da82d8782c6f604dca53aba40f6ebc9c21.mjs",
+      "bytes": 3717,
+      "sha256": "05d725ecd029cfbd64ac4756686f55da82d8782c6f604dca53aba40f6ebc9c21"
+    },
+    {
+      "path": ".opendesk/remote-cache/05fb187de7d28ff9e813f5d164e1bdc0fd8b7193591483b70ddc10cb8d5efe0e.mjs",
+      "bytes": 4623,
+      "sha256": "05fb187de7d28ff9e813f5d164e1bdc0fd8b7193591483b70ddc10cb8d5efe0e"
+    },
+    {
+      "path": ".opendesk/remote-cache/078afefb7fe0f7b576f59972f63f5c1b90b0b7d32130c78f5c239ec55341a896.mjs",
+      "bytes": 979,
+      "sha256": "078afefb7fe0f7b576f59972f63f5c1b90b0b7d32130c78f5c239ec55341a896"
+    },
+    {
+      "path": ".opendesk/remote-cache/07ab4bc57d4e7d86a4a2117f1f4b8f69268cce49902882edcb5b9ed2ee4f64c4.mjs",
+      "bytes": 5691,
+      "sha256": "07ab4bc57d4e7d86a4a2117f1f4b8f69268cce49902882edcb5b9ed2ee4f64c4"
+    },
+    {
+      "path": ".opendesk/remote-cache/0930d0ffdb31d2d0462328b18ede4a4990497e56eddedb1095ad4f3a04d2cdf9.mjs",
+      "bytes": 2113,
+      "sha256": "0930d0ffdb31d2d0462328b18ede4a4990497e56eddedb1095ad4f3a04d2cdf9"
+    },
+    {
+      "path": ".opendesk/remote-cache/0ab95ebc06149e8b22b5e38222f54d2fb9c3d531732376dec853ce92d1a378b7.mjs",
+      "bytes": 14619,
+      "sha256": "0ab95ebc06149e8b22b5e38222f54d2fb9c3d531732376dec853ce92d1a378b7"
+    },
+    {
+      "path": ".opendesk/remote-cache/0c51baa3391eb43df9b9dcf4736d3f489eb69b1b839b205e12d2042d615e561a.mjs",
+      "bytes": 14088,
+      "sha256": "0c51baa3391eb43df9b9dcf4736d3f489eb69b1b839b205e12d2042d615e561a"
+    },
+    {
+      "path": ".opendesk/remote-cache/0ded4a0b1a0f414eb11a31bc9c3d10b06d892d075585e7e4c3688a7563006536.mjs",
+      "bytes": 2193,
+      "sha256": "0ded4a0b1a0f414eb11a31bc9c3d10b06d892d075585e7e4c3688a7563006536"
+    },
+    {
+      "path": ".opendesk/remote-cache/0e78fd694455465c64f4b9c58e8faa8a90d3f859a86efbad7bc49f2e7c304b56.mjs",
+      "bytes": 8931,
+      "sha256": "0e78fd694455465c64f4b9c58e8faa8a90d3f859a86efbad7bc49f2e7c304b56"
+    },
+    {
+      "path": ".opendesk/remote-cache/0e80e1652a597498dda2a0ea899566975e88921ad5f35179402fb57a7b13aaa0.mjs",
+      "bytes": 2501,
+      "sha256": "0e80e1652a597498dda2a0ea899566975e88921ad5f35179402fb57a7b13aaa0"
+    },
+    {
+      "path": ".opendesk/remote-cache/0fe934ab8e5a53ca53551b087e30bc56b7fc29917289f515dffdfbcffaf3ddf8.mjs",
+      "bytes": 4319,
+      "sha256": "0fe934ab8e5a53ca53551b087e30bc56b7fc29917289f515dffdfbcffaf3ddf8"
+    },
+    {
+      "path": ".opendesk/remote-cache/0fed1b44bc7d4008a6349123ce4f264a877988c90dd477e2cfe5f8f0842deae3.mjs",
+      "bytes": 8784,
+      "sha256": "0fed1b44bc7d4008a6349123ce4f264a877988c90dd477e2cfe5f8f0842deae3"
+    },
+    {
+      "path": ".opendesk/remote-cache/11e32e0f58cddac01e5e777e6d8d8b7f7c0c51a66931d5e7f7ed80a57fe1e339.mjs",
+      "bytes": 3219,
+      "sha256": "11e32e0f58cddac01e5e777e6d8d8b7f7c0c51a66931d5e7f7ed80a57fe1e339"
+    },
+    {
+      "path": ".opendesk/remote-cache/1799c34e0e6e117fe0c03b7eb11a815beffe0224284ab197e3360fea3cd62f26.mjs",
+      "bytes": 4888,
+      "sha256": "1799c34e0e6e117fe0c03b7eb11a815beffe0224284ab197e3360fea3cd62f26"
+    },
+    {
+      "path": ".opendesk/remote-cache/17f9067bde239d92ad46af5b66cbfbf6b0724fa674f05e5d2e203d8a60f0a27f.mjs",
+      "bytes": 5350,
+      "sha256": "17f9067bde239d92ad46af5b66cbfbf6b0724fa674f05e5d2e203d8a60f0a27f"
+    },
+    {
+      "path": ".opendesk/remote-cache/1842c3115df6a427b3db7d8ab8d8d6218c0e1c762f2447b92562d54b46f31ebf.mjs",
+      "bytes": 1661,
+      "sha256": "1842c3115df6a427b3db7d8ab8d8d6218c0e1c762f2447b92562d54b46f31ebf"
+    },
+    {
+      "path": ".opendesk/remote-cache/186be9da96d82517d2957da41e8b8e4c11366d9536a9f9ee8fb42a98f4a067b5.mjs",
+      "bytes": 33820,
+      "sha256": "186be9da96d82517d2957da41e8b8e4c11366d9536a9f9ee8fb42a98f4a067b5"
+    },
+    {
+      "path": ".opendesk/remote-cache/1940385ce177d45e533d2f4c1b8aba0005d09e93f9dac290f35ad0175e376549.mjs",
+      "bytes": 1753,
+      "sha256": "1940385ce177d45e533d2f4c1b8aba0005d09e93f9dac290f35ad0175e376549"
+    },
+    {
+      "path": ".opendesk/remote-cache/1bded7c3c6f05053346dcf5069991c7bed475a839217ad437fce494bbf8a9404.mjs",
+      "bytes": 1789,
+      "sha256": "1bded7c3c6f05053346dcf5069991c7bed475a839217ad437fce494bbf8a9404"
+    },
+    {
+      "path": ".opendesk/remote-cache/1cb2204f8de8a2f5eab22f743bfb5fc4935435b83020536dce700ee01906cfbb.mjs",
+      "bytes": 4223,
+      "sha256": "1cb2204f8de8a2f5eab22f743bfb5fc4935435b83020536dce700ee01906cfbb"
+    },
+    {
+      "path": ".opendesk/remote-cache/1ce75ca05cab0aa173f5e7841d2806db291327568cd243d6205f4ce03d4ed3c5.mjs",
+      "bytes": 2090,
+      "sha256": "1ce75ca05cab0aa173f5e7841d2806db291327568cd243d6205f4ce03d4ed3c5"
+    },
+    {
+      "path": ".opendesk/remote-cache/1d629161010f9ede6042879ef68c3b715b4dc61530302a064cb43c958c1429bf.mjs",
+      "bytes": 755,
+      "sha256": "1d629161010f9ede6042879ef68c3b715b4dc61530302a064cb43c958c1429bf"
+    },
+    {
+      "path": ".opendesk/remote-cache/1d920e0a484d384d80f78e2c6fb333d6e776f9fe5e9d5504b3e7d7f97cc119ad.mjs",
+      "bytes": 4594,
+      "sha256": "1d920e0a484d384d80f78e2c6fb333d6e776f9fe5e9d5504b3e7d7f97cc119ad"
+    },
+    {
+      "path": ".opendesk/remote-cache/1e04045feb997df85813a0dd3f09189dc39ebf1a39db20d49c15651a0ef15bdc.mjs",
+      "bytes": 1894,
+      "sha256": "1e04045feb997df85813a0dd3f09189dc39ebf1a39db20d49c15651a0ef15bdc"
+    },
+    {
+      "path": ".opendesk/remote-cache/1ea18099b85589cc54b7f29d14dc87e600b13c7bca5f9d89cb4faf41cb40ca6d.mjs",
+      "bytes": 4361,
+      "sha256": "1ea18099b85589cc54b7f29d14dc87e600b13c7bca5f9d89cb4faf41cb40ca6d"
+    },
+    {
+      "path": ".opendesk/remote-cache/1f9cc9688086637119d9de8bb31739b34bc7e6f721b917551cc8f3bf47446762.mjs",
+      "bytes": 8772,
+      "sha256": "1f9cc9688086637119d9de8bb31739b34bc7e6f721b917551cc8f3bf47446762"
+    },
+    {
+      "path": ".opendesk/remote-cache/1fd5a8d054ba0d33c9e0b0bf2d4f191ee7c64e28e053b936da46f60d5cb5fb1d.mjs",
+      "bytes": 7025,
+      "sha256": "1fd5a8d054ba0d33c9e0b0bf2d4f191ee7c64e28e053b936da46f60d5cb5fb1d"
+    },
+    {
+      "path": ".opendesk/remote-cache/226a179805752ed78670eb2dca224da861444aea0528a183b57a43327e9643c3.mjs",
+      "bytes": 2056,
+      "sha256": "226a179805752ed78670eb2dca224da861444aea0528a183b57a43327e9643c3"
+    },
+    {
+      "path": ".opendesk/remote-cache/22b05bc34db99129fd0dd89a380babf9c08a6370533a3eec17bc861687569c2b.mjs",
+      "bytes": 641,
+      "sha256": "22b05bc34db99129fd0dd89a380babf9c08a6370533a3eec17bc861687569c2b"
+    },
+    {
+      "path": ".opendesk/remote-cache/28faca3451a99a48b8cb3e7258307038e53ea3b2ddc70d74ff5e5dc79f60d5ca.mjs",
+      "bytes": 3102,
+      "sha256": "28faca3451a99a48b8cb3e7258307038e53ea3b2ddc70d74ff5e5dc79f60d5ca"
+    },
+    {
+      "path": ".opendesk/remote-cache/29a9e17233c3a6756b919911622ffdeb0adbd82e548159ceacf841406dde277c.mjs",
+      "bytes": 5304,
+      "sha256": "29a9e17233c3a6756b919911622ffdeb0adbd82e548159ceacf841406dde277c"
+    },
+    {
+      "path": ".opendesk/remote-cache/2a5f6748d74fa5ea16d0ffbe87c858200a8de3152b6e4ebacae488098fc3c943.mjs",
+      "bytes": 3562,
+      "sha256": "2a5f6748d74fa5ea16d0ffbe87c858200a8de3152b6e4ebacae488098fc3c943"
+    },
+    {
+      "path": ".opendesk/remote-cache/2ae8b0a0a82a8ca7e99cd5f6ccba2540e7a7ba1045bc0b2d0d578a2fdd7aa3c3.mjs",
+      "bytes": 3625,
+      "sha256": "2ae8b0a0a82a8ca7e99cd5f6ccba2540e7a7ba1045bc0b2d0d578a2fdd7aa3c3"
+    },
+    {
+      "path": ".opendesk/remote-cache/2c68c6911f63995e03588d8f657f795fd1a7c4e7e4e88b82c759bbe84f7ead02.mjs",
+      "bytes": 5843,
+      "sha256": "2c68c6911f63995e03588d8f657f795fd1a7c4e7e4e88b82c759bbe84f7ead02"
+    },
+    {
+      "path": ".opendesk/remote-cache/2e1102b87274f982cf61dd02c7aaba50de9483cdac0554ee7034bc7dbea1e982.mjs",
+      "bytes": 8935,
+      "sha256": "2e1102b87274f982cf61dd02c7aaba50de9483cdac0554ee7034bc7dbea1e982"
+    },
+    {
+      "path": ".opendesk/remote-cache/30f6279a4b146d53c6e4be557442d9845fef3933d1515baff046f6b57b74a8bb.mjs",
+      "bytes": 2573,
+      "sha256": "30f6279a4b146d53c6e4be557442d9845fef3933d1515baff046f6b57b74a8bb"
+    },
+    {
+      "path": ".opendesk/remote-cache/31f685d23c79f1d64cb19f78c9c1439acc7e47a05c336a40102cc75221506055.mjs",
+      "bytes": 783,
+      "sha256": "31f685d23c79f1d64cb19f78c9c1439acc7e47a05c336a40102cc75221506055"
+    },
+    {
+      "path": ".opendesk/remote-cache/32f43a198530bb7158c8928d9970a3d532fb61ac3e1eee247f60ceb3a31cb1ac.mjs",
+      "bytes": 1824,
+      "sha256": "32f43a198530bb7158c8928d9970a3d532fb61ac3e1eee247f60ceb3a31cb1ac"
+    },
+    {
+      "path": ".opendesk/remote-cache/3473a1172095e6fc48c09c12d7ab4182dccd2efcfbad8ff2efc26153b516dee9.mjs",
+      "bytes": 6692,
+      "sha256": "3473a1172095e6fc48c09c12d7ab4182dccd2efcfbad8ff2efc26153b516dee9"
+    },
+    {
+      "path": ".opendesk/remote-cache/3589696de17a7311f1e7674fc04ab066d50283dae7c9dd784b8b1a498975afe1.mjs",
+      "bytes": 5133,
+      "sha256": "3589696de17a7311f1e7674fc04ab066d50283dae7c9dd784b8b1a498975afe1"
+    },
+    {
+      "path": ".opendesk/remote-cache/3664a15bc1bddb6e6d969e79ef72ed4bba5a506e9ce163b54469d9eb75dd2ea5.mjs",
+      "bytes": 4426,
+      "sha256": "3664a15bc1bddb6e6d969e79ef72ed4bba5a506e9ce163b54469d9eb75dd2ea5"
+    },
+    {
+      "path": ".opendesk/remote-cache/3754f04e43fb6bda146d1ec1f48dd01d24b7e1f98048f513a5eec11cbcb65a58.mjs",
+      "bytes": 1065,
+      "sha256": "3754f04e43fb6bda146d1ec1f48dd01d24b7e1f98048f513a5eec11cbcb65a58"
+    },
+    {
+      "path": ".opendesk/remote-cache/37e93a6820ace57c8e2c8a32aa4209f02be1349b00efbe17ef2c5c5da6564fed.mjs",
+      "bytes": 24444,
+      "sha256": "37e93a6820ace57c8e2c8a32aa4209f02be1349b00efbe17ef2c5c5da6564fed"
+    },
+    {
+      "path": ".opendesk/remote-cache/38051729d048ad6fc86b946d52ed77a51d771fda07dc98f1be58964a7525efdd.mjs",
+      "bytes": 2518,
+      "sha256": "38051729d048ad6fc86b946d52ed77a51d771fda07dc98f1be58964a7525efdd"
+    },
+    {
+      "path": ".opendesk/remote-cache/385afcb05bec1a8fefcacff6a79143eb196e9799c65bcf4e0a829179e677af95.mjs",
+      "bytes": 1741,
+      "sha256": "385afcb05bec1a8fefcacff6a79143eb196e9799c65bcf4e0a829179e677af95"
+    },
+    {
+      "path": ".opendesk/remote-cache/390ddb41a3702cf1e1c2a1d78dce31d6caf4d9de59b000f0327ca49a1020ac5d.mjs",
+      "bytes": 9576,
+      "sha256": "390ddb41a3702cf1e1c2a1d78dce31d6caf4d9de59b000f0327ca49a1020ac5d"
+    },
+    {
+      "path": ".opendesk/remote-cache/397760f83f2d4f27eb6a1de60164c0ab6f6354bf82970bc662e6b7664d23732f.mjs",
+      "bytes": 5811,
+      "sha256": "397760f83f2d4f27eb6a1de60164c0ab6f6354bf82970bc662e6b7664d23732f"
+    },
+    {
+      "path": ".opendesk/remote-cache/39e2eb95de2ca0d9084b779852b8b31bcc3008692af5a490409ff8f72d376548.mjs",
+      "bytes": 12174,
+      "sha256": "39e2eb95de2ca0d9084b779852b8b31bcc3008692af5a490409ff8f72d376548"
+    },
+    {
+      "path": ".opendesk/remote-cache/39fb30685097c0750025c1d4b2d2ee813c312c1620f7594948114faa0c938d8e.mjs",
+      "bytes": 2424,
+      "sha256": "39fb30685097c0750025c1d4b2d2ee813c312c1620f7594948114faa0c938d8e"
+    },
+    {
+      "path": ".opendesk/remote-cache/3a6621c306db5882f792c8ec314ae7f951ab49198dc080f3e6cd2037eb142251.mjs",
+      "bytes": 5641,
+      "sha256": "3a6621c306db5882f792c8ec314ae7f951ab49198dc080f3e6cd2037eb142251"
+    },
+    {
+      "path": ".opendesk/remote-cache/3b3540d192628d01da0287bb74e728850ad612b3058be93ec4ccae0d1973d953.mjs",
+      "bytes": 17876,
+      "sha256": "3b3540d192628d01da0287bb74e728850ad612b3058be93ec4ccae0d1973d953"
+    },
+    {
+      "path": ".opendesk/remote-cache/3b7cd3cd2c5332fc3c88b898ca537acffcbfae2e72fd34229f20eddc98b12dc6.mjs",
+      "bytes": 1927,
+      "sha256": "3b7cd3cd2c5332fc3c88b898ca537acffcbfae2e72fd34229f20eddc98b12dc6"
+    },
+    {
+      "path": ".opendesk/remote-cache/3bb32e5dce33c670c5de87927ed29d47d76d717670ccf48fab6c1c9da9aef509.mjs",
+      "bytes": 13650,
+      "sha256": "3bb32e5dce33c670c5de87927ed29d47d76d717670ccf48fab6c1c9da9aef509"
+    },
+    {
+      "path": ".opendesk/remote-cache/3fdfcda2d55177deb8157059acf117668a4a2f57a029860ca712ca4996650496.mjs",
+      "bytes": 1917,
+      "sha256": "3fdfcda2d55177deb8157059acf117668a4a2f57a029860ca712ca4996650496"
+    },
+    {
+      "path": ".opendesk/remote-cache/41852126362b518fd8c7da1b2d2e89e03c036cf43d01c34a5ba3a945c6b44eab.mjs",
+      "bytes": 2396,
+      "sha256": "41852126362b518fd8c7da1b2d2e89e03c036cf43d01c34a5ba3a945c6b44eab"
+    },
+    {
+      "path": ".opendesk/remote-cache/42e0f732c81bc7ce15ac09391f852c844bae698d1dd15b2f27e9ff035c220222.mjs",
+      "bytes": 3229,
+      "sha256": "42e0f732c81bc7ce15ac09391f852c844bae698d1dd15b2f27e9ff035c220222"
+    },
+    {
+      "path": ".opendesk/remote-cache/440948a86737c80bfe4582dd8f0ba0104d3a5e91e61f61186d43862aefa79ca6.mjs",
+      "bytes": 3708,
+      "sha256": "440948a86737c80bfe4582dd8f0ba0104d3a5e91e61f61186d43862aefa79ca6"
+    },
+    {
+      "path": ".opendesk/remote-cache/45aac875095ee734d0cbf910414c0cb9743246c7cceedc42ee42ee6508cf58db.mjs",
+      "bytes": 2563,
+      "sha256": "45aac875095ee734d0cbf910414c0cb9743246c7cceedc42ee42ee6508cf58db"
+    },
+    {
+      "path": ".opendesk/remote-cache/467cf2830ec2e78245fc3232fb5646c19412e9ca63aea1e88b1e2c829a29ba30.mjs",
+      "bytes": 3852,
+      "sha256": "467cf2830ec2e78245fc3232fb5646c19412e9ca63aea1e88b1e2c829a29ba30"
+    },
+    {
+      "path": ".opendesk/remote-cache/47c0ef881eb7937eb5fa599f0dc03f4fa4da656adf45be4a028703a47b4d4b4f.mjs",
+      "bytes": 13565,
+      "sha256": "47c0ef881eb7937eb5fa599f0dc03f4fa4da656adf45be4a028703a47b4d4b4f"
+    },
+    {
+      "path": ".opendesk/remote-cache/486a269bd1d465248a8342afe1e96b03b9a0b84a9341f003c15dd06ebf786a3a.mjs",
+      "bytes": 2951,
+      "sha256": "486a269bd1d465248a8342afe1e96b03b9a0b84a9341f003c15dd06ebf786a3a"
+    },
+    {
+      "path": ".opendesk/remote-cache/4aff7a3396c2acef320fc84f4cd45607cce736d7749d5d0e8991c481d9319863.mjs",
+      "bytes": 2914,
+      "sha256": "4aff7a3396c2acef320fc84f4cd45607cce736d7749d5d0e8991c481d9319863"
+    },
+    {
+      "path": ".opendesk/remote-cache/4b2cc061399d3dbb1cb5ccc1f5930767c3b5ad1ba6aa4596c83656e6c6c3d316.mjs",
+      "bytes": 37252,
+      "sha256": "4b2cc061399d3dbb1cb5ccc1f5930767c3b5ad1ba6aa4596c83656e6c6c3d316"
+    },
+    {
+      "path": ".opendesk/remote-cache/4d5e518a85e1edf9c329eaf39d99d52a84afaa0bd44b854fe335da42c35874da.mjs",
+      "bytes": 2543,
+      "sha256": "4d5e518a85e1edf9c329eaf39d99d52a84afaa0bd44b854fe335da42c35874da"
+    },
+    {
+      "path": ".opendesk/remote-cache/4e45a142956b2dab3b63c51ca9861b442beb2e70a22a9c0db88a10609504bf92.mjs",
+      "bytes": 10036,
+      "sha256": "4e45a142956b2dab3b63c51ca9861b442beb2e70a22a9c0db88a10609504bf92"
+    },
+    {
+      "path": ".opendesk/remote-cache/4eccc04f9dd9d57329d525e293abef7b76f75dfa5e42087a87c8d83ee6551485.mjs",
+      "bytes": 2213,
+      "sha256": "4eccc04f9dd9d57329d525e293abef7b76f75dfa5e42087a87c8d83ee6551485"
+    },
+    {
+      "path": ".opendesk/remote-cache/4f1bb509a87d76f5ce1bb3026edaf32dd472dee5277baa0b68bf1c3a1fa51276.mjs",
+      "bytes": 7301,
+      "sha256": "4f1bb509a87d76f5ce1bb3026edaf32dd472dee5277baa0b68bf1c3a1fa51276"
+    },
+    {
+      "path": ".opendesk/remote-cache/50e47044a69aba9606d7421c7684852c2d57056fcb76abeb90835fd39eb2049c.mjs",
+      "bytes": 17160,
+      "sha256": "50e47044a69aba9606d7421c7684852c2d57056fcb76abeb90835fd39eb2049c"
+    },
+    {
+      "path": ".opendesk/remote-cache/5142ed7a572c8ce31e3906e1c0fb7d7fa20934f30a9a4d2821a058af4ec9994a.mjs",
+      "bytes": 614,
+      "sha256": "5142ed7a572c8ce31e3906e1c0fb7d7fa20934f30a9a4d2821a058af4ec9994a"
+    },
+    {
+      "path": ".opendesk/remote-cache/51ead3e77417916cd9bd258dd662eee9c2b0cfe2aba1f51f436d41c4860550ff.mjs",
+      "bytes": 10961,
+      "sha256": "51ead3e77417916cd9bd258dd662eee9c2b0cfe2aba1f51f436d41c4860550ff"
+    },
+    {
+      "path": ".opendesk/remote-cache/52665699ec60df100430e9131f11ca2491114f8175c40b22a37751ba2d5d2bc6.mjs",
+      "bytes": 25680,
+      "sha256": "52665699ec60df100430e9131f11ca2491114f8175c40b22a37751ba2d5d2bc6"
+    },
+    {
+      "path": ".opendesk/remote-cache/52831da73cb5383babcd39b0d933fdd2de5d04fae7924d78c1ad68465a3ac800.mjs",
+      "bytes": 3667,
+      "sha256": "52831da73cb5383babcd39b0d933fdd2de5d04fae7924d78c1ad68465a3ac800"
+    },
+    {
+      "path": ".opendesk/remote-cache/53bf98c4fe5c3f8a106238697f6cfb14168537706ddb8fb15978a3e235c7c2ee.mjs",
+      "bytes": 2462,
+      "sha256": "53bf98c4fe5c3f8a106238697f6cfb14168537706ddb8fb15978a3e235c7c2ee"
+    },
+    {
+      "path": ".opendesk/remote-cache/54e55dc23eb7ef65fa4f778592ee3162794e10dc7f361e8360f5d8f9e4699dde.mjs",
+      "bytes": 2482,
+      "sha256": "54e55dc23eb7ef65fa4f778592ee3162794e10dc7f361e8360f5d8f9e4699dde"
+    },
+    {
+      "path": ".opendesk/remote-cache/56514c2543be120e06ccf4f35326936658690a3acf490f076abbf49054f22335.mjs",
+      "bytes": 8448,
+      "sha256": "56514c2543be120e06ccf4f35326936658690a3acf490f076abbf49054f22335"
+    },
+    {
+      "path": ".opendesk/remote-cache/567080694a07a8a95e120becf66894542fc3a08163fef5566b8a9e38b5822012.mjs",
+      "bytes": 19540,
+      "sha256": "567080694a07a8a95e120becf66894542fc3a08163fef5566b8a9e38b5822012"
+    },
+    {
+      "path": ".opendesk/remote-cache/5719db1858562bb086b4bc7a34f5258fe9147ddec90127b2935626ccb92a063e.mjs",
+      "bytes": 80,
+      "sha256": "5719db1858562bb086b4bc7a34f5258fe9147ddec90127b2935626ccb92a063e"
+    },
+    {
+      "path": ".opendesk/remote-cache/599509408da3bcf5a58108078b36fbab511314ee470776009154c1e5a259aeeb.mjs",
+      "bytes": 2077,
+      "sha256": "599509408da3bcf5a58108078b36fbab511314ee470776009154c1e5a259aeeb"
+    },
+    {
+      "path": ".opendesk/remote-cache/5abf6bd46af3230fcd98b969f6df9077994fb55f8ec41f6f857076fc33d62424.mjs",
+      "bytes": 20028,
+      "sha256": "5abf6bd46af3230fcd98b969f6df9077994fb55f8ec41f6f857076fc33d62424"
+    },
+    {
+      "path": ".opendesk/remote-cache/5bfc155c4b2a6fa422ae99efc9c0525f966778d4100ed797177fbeab53e1862a.mjs",
+      "bytes": 6636,
+      "sha256": "5bfc155c4b2a6fa422ae99efc9c0525f966778d4100ed797177fbeab53e1862a"
+    },
+    {
+      "path": ".opendesk/remote-cache/5ee0043f2e2246fbaefe626828556771acfe1ce9cb464fe99c66b34e43f0fa84.mjs",
+      "bytes": 4738,
+      "sha256": "5ee0043f2e2246fbaefe626828556771acfe1ce9cb464fe99c66b34e43f0fa84"
+    },
+    {
+      "path": ".opendesk/remote-cache/61132db5202b3defd685664b9f813b628588ddf371a809bb7988a455ac8fa55d.mjs",
+      "bytes": 2229,
+      "sha256": "61132db5202b3defd685664b9f813b628588ddf371a809bb7988a455ac8fa55d"
+    },
+    {
+      "path": ".opendesk/remote-cache/61b6bee65f69c4b1506dbf04a7f523b0ba486dd5c739b47abda7166a5715a62a.mjs",
+      "bytes": 16150,
+      "sha256": "61b6bee65f69c4b1506dbf04a7f523b0ba486dd5c739b47abda7166a5715a62a"
+    },
+    {
+      "path": ".opendesk/remote-cache/6270cb35bf2810935afeb59904daa051ced5d16b47bc36a02b4ed4ac7219c46b.mjs",
+      "bytes": 4475,
+      "sha256": "6270cb35bf2810935afeb59904daa051ced5d16b47bc36a02b4ed4ac7219c46b"
+    },
+    {
+      "path": ".opendesk/remote-cache/62cc08cdab84f3d7d13686462d73907d39564ac79e51ee9dceae4aa3c2e29453.mjs",
+      "bytes": 1825,
+      "sha256": "62cc08cdab84f3d7d13686462d73907d39564ac79e51ee9dceae4aa3c2e29453"
+    },
+    {
+      "path": ".opendesk/remote-cache/63b4e19b68bef0fd64f46248414abacc85b41f1599e3a60f622f32e0700465b5.mjs",
+      "bytes": 38707,
+      "sha256": "63b4e19b68bef0fd64f46248414abacc85b41f1599e3a60f622f32e0700465b5"
+    },
+    {
+      "path": ".opendesk/remote-cache/63dbc426fb47c294b70b953046085cafadeb2a439359fa91a0e718fbaa5f495b.mjs",
+      "bytes": 4469,
+      "sha256": "63dbc426fb47c294b70b953046085cafadeb2a439359fa91a0e718fbaa5f495b"
+    },
+    {
+      "path": ".opendesk/remote-cache/662093dec057778dc57ebeb169746d4ffd5d27c302affed2bc04960912774c80.mjs",
+      "bytes": 18844,
+      "sha256": "662093dec057778dc57ebeb169746d4ffd5d27c302affed2bc04960912774c80"
+    },
+    {
+      "path": ".opendesk/remote-cache/680210f469bef723aa08021ba0652917b84af3875d08a12180b20addf9e0cb67.mjs",
+      "bytes": 1944,
+      "sha256": "680210f469bef723aa08021ba0652917b84af3875d08a12180b20addf9e0cb67"
+    },
+    {
+      "path": ".opendesk/remote-cache/687185b7fcff484263e9e1b8f4e42643752bf704fa618a0d9c2820e8f2febb5a.mjs",
+      "bytes": 4639,
+      "sha256": "687185b7fcff484263e9e1b8f4e42643752bf704fa618a0d9c2820e8f2febb5a"
+    },
+    {
+      "path": ".opendesk/remote-cache/691945a453633d9e204846af8ea4e299821b924f82b15eaf7906aba642979b1d.mjs",
+      "bytes": 502,
+      "sha256": "691945a453633d9e204846af8ea4e299821b924f82b15eaf7906aba642979b1d"
+    },
+    {
+      "path": ".opendesk/remote-cache/69c73b31fbf1aeb7a59b92e8c1ce9bbd9a80b69e0e524e35f0e7677abbdab9a7.mjs",
+      "bytes": 13711,
+      "sha256": "69c73b31fbf1aeb7a59b92e8c1ce9bbd9a80b69e0e524e35f0e7677abbdab9a7"
+    },
+    {
+      "path": ".opendesk/remote-cache/6a04efb2c32a85a5519f6df9272143e7395b53030bba536e395d2ae2379be3c8.mjs",
+      "bytes": 4605,
+      "sha256": "6a04efb2c32a85a5519f6df9272143e7395b53030bba536e395d2ae2379be3c8"
+    },
+    {
+      "path": ".opendesk/remote-cache/6ab48a895467240e6e538d9ba98ace5e1349584f38938c0e02bf62a848fa9b3d.mjs",
+      "bytes": 14886,
+      "sha256": "6ab48a895467240e6e538d9ba98ace5e1349584f38938c0e02bf62a848fa9b3d"
+    },
+    {
+      "path": ".opendesk/remote-cache/6b6b59101581fe813a9ea5aea4ef5f982231b7f068ee60e02a1a99f97c9e8b5d.mjs",
+      "bytes": 5161,
+      "sha256": "6b6b59101581fe813a9ea5aea4ef5f982231b7f068ee60e02a1a99f97c9e8b5d"
+    },
+    {
+      "path": ".opendesk/remote-cache/6ef85f60560722d1579afd70f9aa75c79d22f9c2b56852bc0a47ea7e3f9e91a9.mjs",
+      "bytes": 2103,
+      "sha256": "6ef85f60560722d1579afd70f9aa75c79d22f9c2b56852bc0a47ea7e3f9e91a9"
+    },
+    {
+      "path": ".opendesk/remote-cache/6fcd208a7c9afa2834f5c8046f93e2ce5f031cc1695c4fd817f12a01ff4ae0db.mjs",
+      "bytes": 7212,
+      "sha256": "6fcd208a7c9afa2834f5c8046f93e2ce5f031cc1695c4fd817f12a01ff4ae0db"
+    },
+    {
+      "path": ".opendesk/remote-cache/708087bca06e768d7a2b6d47ddd5fe13e7f9dc7ffd92401440043c3fb0348c57.mjs",
+      "bytes": 3517,
+      "sha256": "708087bca06e768d7a2b6d47ddd5fe13e7f9dc7ffd92401440043c3fb0348c57"
+    },
+    {
+      "path": ".opendesk/remote-cache/721813a23b9aa4705cf072430349f42fe8e3278121741eb982c307817e51a4eb.mjs",
+      "bytes": 884,
+      "sha256": "721813a23b9aa4705cf072430349f42fe8e3278121741eb982c307817e51a4eb"
+    },
+    {
+      "path": ".opendesk/remote-cache/72910c6ab873155865d59ab8829842d02da243d32ccbf5e6768a9c899777cf8d.mjs",
+      "bytes": 1263,
+      "sha256": "72910c6ab873155865d59ab8829842d02da243d32ccbf5e6768a9c899777cf8d"
+    },
+    {
+      "path": ".opendesk/remote-cache/72c0ef5acc54787a0ad9d31aee52d7b4bd13dcc9f112934e67c62d043d13464f.mjs",
+      "bytes": 1725,
+      "sha256": "72c0ef5acc54787a0ad9d31aee52d7b4bd13dcc9f112934e67c62d043d13464f"
+    },
+    {
+      "path": ".opendesk/remote-cache/7337ddb4e1e18c486903083154d68908471f423ffb4fa0dd1ab24e3aa1a4a746.mjs",
+      "bytes": 7011,
+      "sha256": "7337ddb4e1e18c486903083154d68908471f423ffb4fa0dd1ab24e3aa1a4a746"
+    },
+    {
+      "path": ".opendesk/remote-cache/7473b2ca2b6ce434d86d9b9cbdb9c0caeae8c43830136d0da174c89aafa72aab.mjs",
+      "bytes": 22840,
+      "sha256": "7473b2ca2b6ce434d86d9b9cbdb9c0caeae8c43830136d0da174c89aafa72aab"
+    },
+    {
+      "path": ".opendesk/remote-cache/75f661dc1ce9b160f6409ab45de488af16c5033bf3b4fc7a0b1ff29b1026124d.mjs",
+      "bytes": 405,
+      "sha256": "75f661dc1ce9b160f6409ab45de488af16c5033bf3b4fc7a0b1ff29b1026124d"
+    },
+    {
+      "path": ".opendesk/remote-cache/77bbce948dd006536ad862c77be4d700130fd747b1b795c4d74e5cd15cbf1ca1.mjs",
+      "bytes": 970,
+      "sha256": "77bbce948dd006536ad862c77be4d700130fd747b1b795c4d74e5cd15cbf1ca1"
+    },
+    {
+      "path": ".opendesk/remote-cache/7aeadcb92c70422e075bb1f6f51479a1e382cfa844c06942b7ea1cbb16db1a77.mjs",
+      "bytes": 3120,
+      "sha256": "7aeadcb92c70422e075bb1f6f51479a1e382cfa844c06942b7ea1cbb16db1a77"
+    },
+    {
+      "path": ".opendesk/remote-cache/7aee5f709684655e1852a8fbd1e830a789bbfb02b7b03f0ce1f7a6d0ea9f949a.mjs",
+      "bytes": 8356,
+      "sha256": "7aee5f709684655e1852a8fbd1e830a789bbfb02b7b03f0ce1f7a6d0ea9f949a"
+    },
+    {
+      "path": ".opendesk/remote-cache/7b5a25904a02fc4d3f5420bab55c971116b72dac360ebc332fe2898ba3f9d8cb.mjs",
+      "bytes": 2349,
+      "sha256": "7b5a25904a02fc4d3f5420bab55c971116b72dac360ebc332fe2898ba3f9d8cb"
+    },
+    {
+      "path": ".opendesk/remote-cache/7da39fd6c75ba0a8695b9f61a4155233627c54cf3b31a15cecbb17cda31356de.mjs",
+      "bytes": 4599,
+      "sha256": "7da39fd6c75ba0a8695b9f61a4155233627c54cf3b31a15cecbb17cda31356de"
+    },
+    {
+      "path": ".opendesk/remote-cache/7e9ed3107798c72fc0e907403b58acdfe7be55176bb454fbb68e4afe903305ef.mjs",
+      "bytes": 5200,
+      "sha256": "7e9ed3107798c72fc0e907403b58acdfe7be55176bb454fbb68e4afe903305ef"
+    },
+    {
+      "path": ".opendesk/remote-cache/7f2cde568b04717c328f6bcf336adec2ce3d7c9313abb56793c1c36cf4458697.mjs",
+      "bytes": 467,
+      "sha256": "7f2cde568b04717c328f6bcf336adec2ce3d7c9313abb56793c1c36cf4458697"
+    },
+    {
+      "path": ".opendesk/remote-cache/7fde0862c741605fbd8cee72a3a178666bcae3d620b94850e8379d088a9acaaa.mjs",
+      "bytes": 2596,
+      "sha256": "7fde0862c741605fbd8cee72a3a178666bcae3d620b94850e8379d088a9acaaa"
+    },
+    {
+      "path": ".opendesk/remote-cache/80162a8daa596e87e4d464be546de15e649f56cc7d6d4cbca448cf3e1f38f451.mjs",
+      "bytes": 9874,
+      "sha256": "80162a8daa596e87e4d464be546de15e649f56cc7d6d4cbca448cf3e1f38f451"
+    },
+    {
+      "path": ".opendesk/remote-cache/8033124139d48ecec8f5ed95587eb6819b7168e5ec0a7443662a98c976800003.mjs",
+      "bytes": 2290,
+      "sha256": "8033124139d48ecec8f5ed95587eb6819b7168e5ec0a7443662a98c976800003"
+    },
+    {
+      "path": ".opendesk/remote-cache/831a8c7344ede66eb51f2729b51b4bdfa1cfa3906462c1e5f6f522f6a522821b.mjs",
+      "bytes": 4408,
+      "sha256": "831a8c7344ede66eb51f2729b51b4bdfa1cfa3906462c1e5f6f522f6a522821b"
+    },
+    {
+      "path": ".opendesk/remote-cache/83a39dd23c1976c95f2cd081ba745f70d324ade3ab8034a46f731c059927964b.mjs",
+      "bytes": 2323,
+      "sha256": "83a39dd23c1976c95f2cd081ba745f70d324ade3ab8034a46f731c059927964b"
+    },
+    {
+      "path": ".opendesk/remote-cache/8400813a3ed4ac5c36089404a40e0eff1cd26c7cf21b96d2a372ac7ef6daa22c.mjs",
+      "bytes": 3270,
+      "sha256": "8400813a3ed4ac5c36089404a40e0eff1cd26c7cf21b96d2a372ac7ef6daa22c"
+    },
+    {
+      "path": ".opendesk/remote-cache/846016217eb1d649f2c6836f286bc7d30fe2c6ba79294348cfd6555253e3bcbc.mjs",
+      "bytes": 2410,
+      "sha256": "846016217eb1d649f2c6836f286bc7d30fe2c6ba79294348cfd6555253e3bcbc"
+    },
+    {
+      "path": ".opendesk/remote-cache/84eaa843206a700fa2b931ff3dd69b9b32f87a163b900a1f786942859b9cb01b.mjs",
+      "bytes": 18144,
+      "sha256": "84eaa843206a700fa2b931ff3dd69b9b32f87a163b900a1f786942859b9cb01b"
+    },
+    {
+      "path": ".opendesk/remote-cache/85238c64351142f8aa50dcb8b831b456bc50ea15275cc09616e5c9462ed89156.mjs",
+      "bytes": 8567,
+      "sha256": "85238c64351142f8aa50dcb8b831b456bc50ea15275cc09616e5c9462ed89156"
+    },
+    {
+      "path": ".opendesk/remote-cache/85eb24d5194106c0edfc441465df65ba78d3723ca45cc1c16a9526a5ff35cde4.mjs",
+      "bytes": 4289,
+      "sha256": "85eb24d5194106c0edfc441465df65ba78d3723ca45cc1c16a9526a5ff35cde4"
+    },
+    {
+      "path": ".opendesk/remote-cache/867a78b97fe5115478a1a8d30450b9ccce2fd2d1a556b436115d3690f95eee9b.mjs",
+      "bytes": 10243,
+      "sha256": "867a78b97fe5115478a1a8d30450b9ccce2fd2d1a556b436115d3690f95eee9b"
+    },
+    {
+      "path": ".opendesk/remote-cache/8692ced09d0aff9db42e3dfdbc5d239783a88605f85bd0e27df3bb5ae014aa52.mjs",
+      "bytes": 1886,
+      "sha256": "8692ced09d0aff9db42e3dfdbc5d239783a88605f85bd0e27df3bb5ae014aa52"
+    },
+    {
+      "path": ".opendesk/remote-cache/86940f9616d953fba14230180a90ae409ef9926ad08aba6e5f8867af6d114d05.mjs",
+      "bytes": 3755,
+      "sha256": "86940f9616d953fba14230180a90ae409ef9926ad08aba6e5f8867af6d114d05"
+    },
+    {
+      "path": ".opendesk/remote-cache/872fc5f0efbf880ba80f6e5bffe52cced25511bfdc1038b70ebfdbc7fe6135e3.mjs",
+      "bytes": 6582,
+      "sha256": "872fc5f0efbf880ba80f6e5bffe52cced25511bfdc1038b70ebfdbc7fe6135e3"
+    },
+    {
+      "path": ".opendesk/remote-cache/881cf630ee6b9352ecca694fd5b942b23d82961b6f151b665f22d210e0d161c6.mjs",
+      "bytes": 8738,
+      "sha256": "881cf630ee6b9352ecca694fd5b942b23d82961b6f151b665f22d210e0d161c6"
+    },
+    {
+      "path": ".opendesk/remote-cache/8ba2b0b75233b30a29bff6a8ba684e0da4050fc405345028ef40a648c40e007c.mjs",
+      "bytes": 2314,
+      "sha256": "8ba2b0b75233b30a29bff6a8ba684e0da4050fc405345028ef40a648c40e007c"
+    },
+    {
+      "path": ".opendesk/remote-cache/8c5495ae9a696dd39381d0335b009a86ec00a95a9e717f13d84c3697872ea06f.mjs",
+      "bytes": 2489,
+      "sha256": "8c5495ae9a696dd39381d0335b009a86ec00a95a9e717f13d84c3697872ea06f"
+    },
+    {
+      "path": ".opendesk/remote-cache/8e6342c6359f81ef93cf10146464e66f118a5fc772194780ce809fda0a756919.mjs",
+      "bytes": 963,
+      "sha256": "8e6342c6359f81ef93cf10146464e66f118a5fc772194780ce809fda0a756919"
+    },
+    {
+      "path": ".opendesk/remote-cache/8e7197530ccf9b09c177bdfc6f48dc1493ae09c27062216319090458766c4217.mjs",
+      "bytes": 5725,
+      "sha256": "8e7197530ccf9b09c177bdfc6f48dc1493ae09c27062216319090458766c4217"
+    },
+    {
+      "path": ".opendesk/remote-cache/906ec9d61a1cda3859a421fe48249b1276711ab3b0e713f953f0235acce0df48.mjs",
+      "bytes": 25665,
+      "sha256": "906ec9d61a1cda3859a421fe48249b1276711ab3b0e713f953f0235acce0df48"
+    },
+    {
+      "path": ".opendesk/remote-cache/90c06e682fe9823deaf7578e196de77e6b55fbf5cd17385e89d239df0ef4aaf5.mjs",
+      "bytes": 5423,
+      "sha256": "90c06e682fe9823deaf7578e196de77e6b55fbf5cd17385e89d239df0ef4aaf5"
+    },
+    {
+      "path": ".opendesk/remote-cache/91a77516e0b9d9c8d28b91b9ff59036cf71887f2975d26735666646324b54bd6.mjs",
+      "bytes": 12520,
+      "sha256": "91a77516e0b9d9c8d28b91b9ff59036cf71887f2975d26735666646324b54bd6"
+    },
+    {
+      "path": ".opendesk/remote-cache/91f451b778b83777f7d3f6bfe7337774fea6e3e5d3b8326b853206294b21da31.mjs",
+      "bytes": 84388,
+      "sha256": "91f451b778b83777f7d3f6bfe7337774fea6e3e5d3b8326b853206294b21da31"
+    },
+    {
+      "path": ".opendesk/remote-cache/920a0ba0fcca023f9020b0a9d9ff4ce21f715e5bd45f761aa14f5140305bc8f4.mjs",
+      "bytes": 2594,
+      "sha256": "920a0ba0fcca023f9020b0a9d9ff4ce21f715e5bd45f761aa14f5140305bc8f4"
+    },
+    {
+      "path": ".opendesk/remote-cache/93d0f4624b7e702f0914d503a535b40772ddf60a65eeb6790e2e4c1bd2bb373d.mjs",
+      "bytes": 6786,
+      "sha256": "93d0f4624b7e702f0914d503a535b40772ddf60a65eeb6790e2e4c1bd2bb373d"
+    },
+    {
+      "path": ".opendesk/remote-cache/93ec48946726792348e3b5a64a4dd3739e1aae3b5d9c55e21a7f420638c251fd.mjs",
+      "bytes": 13058,
+      "sha256": "93ec48946726792348e3b5a64a4dd3739e1aae3b5d9c55e21a7f420638c251fd"
+    },
+    {
+      "path": ".opendesk/remote-cache/94df28441f8309bee1b49076d69cf04264f1ea8c3b2112d8491efaae5eb46db3.mjs",
+      "bytes": 3206,
+      "sha256": "94df28441f8309bee1b49076d69cf04264f1ea8c3b2112d8491efaae5eb46db3"
+    },
+    {
+      "path": ".opendesk/remote-cache/95781b204f8ebdd9e821cdd8f41f04a1019466f60c422d393c4d8a34073adb04.mjs",
+      "bytes": 19027,
+      "sha256": "95781b204f8ebdd9e821cdd8f41f04a1019466f60c422d393c4d8a34073adb04"
+    },
+    {
+      "path": ".opendesk/remote-cache/958edde7b0f1c8855cd626a03fa0f03ae4fd498d64984b9bac898560ed0a8bb7.mjs",
+      "bytes": 1872,
+      "sha256": "958edde7b0f1c8855cd626a03fa0f03ae4fd498d64984b9bac898560ed0a8bb7"
+    },
+    {
+      "path": ".opendesk/remote-cache/961c6b16f5f5c27926c9aefed8e10d0386e5132d120cbe61ae1ab541199a4e39.mjs",
+      "bytes": 336,
+      "sha256": "961c6b16f5f5c27926c9aefed8e10d0386e5132d120cbe61ae1ab541199a4e39"
+    },
+    {
+      "path": ".opendesk/remote-cache/9859e387c0370ba23d946c4deecbca46b9d6debce373f86ab5d6de1763911614.mjs",
+      "bytes": 6142,
+      "sha256": "9859e387c0370ba23d946c4deecbca46b9d6debce373f86ab5d6de1763911614"
+    },
+    {
+      "path": ".opendesk/remote-cache/9876b31abc80c4eedb51bf3d0a50bd6e06381d000f72c4b38f766be074b6ec79.mjs",
+      "bytes": 9878,
+      "sha256": "9876b31abc80c4eedb51bf3d0a50bd6e06381d000f72c4b38f766be074b6ec79"
+    },
+    {
+      "path": ".opendesk/remote-cache/99190c38f8c844d0e3f2ceb64789a53114042067399d28cce33de072710c2e56.mjs",
+      "bytes": 436,
+      "sha256": "99190c38f8c844d0e3f2ceb64789a53114042067399d28cce33de072710c2e56"
+    },
+    {
+      "path": ".opendesk/remote-cache/999a8cf4c90e0b6d513be4926a3e9e9d43c33b74bebfcbca72f0ace8d2bfbbe5.mjs",
+      "bytes": 15989,
+      "sha256": "999a8cf4c90e0b6d513be4926a3e9e9d43c33b74bebfcbca72f0ace8d2bfbbe5"
+    },
+    {
+      "path": ".opendesk/remote-cache/9a0cdfd5579811adaaf16732b36c3a92230224658d726458739bfc2313135f62.mjs",
+      "bytes": 2098,
+      "sha256": "9a0cdfd5579811adaaf16732b36c3a92230224658d726458739bfc2313135f62"
+    },
+    {
+      "path": ".opendesk/remote-cache/9d0e0ebe096718a0244ca73c997eaa9c70687b7e37e94ead1d065eb4015885cc.mjs",
+      "bytes": 4792,
+      "sha256": "9d0e0ebe096718a0244ca73c997eaa9c70687b7e37e94ead1d065eb4015885cc"
+    },
+    {
+      "path": ".opendesk/remote-cache/9eb9af1cbc27bd71eae490c67b133310d85e2e1a1cd00e1fe88ff8aa3bc0b66d.mjs",
+      "bytes": 15918,
+      "sha256": "9eb9af1cbc27bd71eae490c67b133310d85e2e1a1cd00e1fe88ff8aa3bc0b66d"
+    },
+    {
+      "path": ".opendesk/remote-cache/a00b28b5ac23ba8a97dcdc46d7746bcd0c895b45da5885a84de3c2df4a194915.mjs",
+      "bytes": 1727,
+      "sha256": "a00b28b5ac23ba8a97dcdc46d7746bcd0c895b45da5885a84de3c2df4a194915"
+    },
+    {
+      "path": ".opendesk/remote-cache/a03c4093cbe6d1a4c4f3ebba4478b33cdf36a427155de7c69b58c13a35c9e523.mjs",
+      "bytes": 29123,
+      "sha256": "a03c4093cbe6d1a4c4f3ebba4478b33cdf36a427155de7c69b58c13a35c9e523"
+    },
+    {
+      "path": ".opendesk/remote-cache/a0be9bfef9c4c640859f16a0f9fd6dcf9e19365ac2f0e6df64af43f753a11628.mjs",
+      "bytes": 9940,
+      "sha256": "a0be9bfef9c4c640859f16a0f9fd6dcf9e19365ac2f0e6df64af43f753a11628"
+    },
+    {
+      "path": ".opendesk/remote-cache/a16d12af265d0f095d18cc099270b78d65e7fa3ef22c9e2ca6e61325a43e796e.mjs",
+      "bytes": 570,
+      "sha256": "a16d12af265d0f095d18cc099270b78d65e7fa3ef22c9e2ca6e61325a43e796e"
+    },
+    {
+      "path": ".opendesk/remote-cache/a7b917e65d74cf8fabff27ffc7ed9c3b1a5b3ad6cb1b7850fce9e10ebc211da9.mjs",
+      "bytes": 20841,
+      "sha256": "a7b917e65d74cf8fabff27ffc7ed9c3b1a5b3ad6cb1b7850fce9e10ebc211da9"
+    },
+    {
+      "path": ".opendesk/remote-cache/a7f54af53aa11f4ace79160a7d3c2a59298c676392787bfd795d44fb3114d1fe.mjs",
+      "bytes": 787,
+      "sha256": "a7f54af53aa11f4ace79160a7d3c2a59298c676392787bfd795d44fb3114d1fe"
+    },
+    {
+      "path": ".opendesk/remote-cache/aa82ac21a7228e2f3886baadf8b77333b4a8e7cb6454b2c91bb9372f1e68baf0.mjs",
+      "bytes": 1239,
+      "sha256": "aa82ac21a7228e2f3886baadf8b77333b4a8e7cb6454b2c91bb9372f1e68baf0"
+    },
+    {
+      "path": ".opendesk/remote-cache/ac708bb246850780eac1e81798fb115bef97d850c0dfa416ca4f62a7cc4060cb.mjs",
+      "bytes": 13908,
+      "sha256": "ac708bb246850780eac1e81798fb115bef97d850c0dfa416ca4f62a7cc4060cb"
+    },
+    {
+      "path": ".opendesk/remote-cache/ad5bea1b600edc3dfb94b42b53564e772b62c0b291ed28cc7ae395b99894705a.mjs",
+      "bytes": 4270,
+      "sha256": "ad5bea1b600edc3dfb94b42b53564e772b62c0b291ed28cc7ae395b99894705a"
+    },
+    {
+      "path": ".opendesk/remote-cache/ae299050423b8587461ed32b23fbe8a05663fd9976b72315ad1cba91d6dff718.mjs",
+      "bytes": 7402,
+      "sha256": "ae299050423b8587461ed32b23fbe8a05663fd9976b72315ad1cba91d6dff718"
+    },
+    {
+      "path": ".opendesk/remote-cache/aee52cec659856555ea43d91d874a01b4dfdd440ca7659f4771c41a5fecc8612.mjs",
+      "bytes": 2252,
+      "sha256": "aee52cec659856555ea43d91d874a01b4dfdd440ca7659f4771c41a5fecc8612"
+    },
+    {
+      "path": ".opendesk/remote-cache/afaa2db0b6482510ed1720444533eefe5db51f01e4d477f25e4a18d8c0db3954.mjs",
+      "bytes": 3400,
+      "sha256": "afaa2db0b6482510ed1720444533eefe5db51f01e4d477f25e4a18d8c0db3954"
+    },
+    {
+      "path": ".opendesk/remote-cache/b117338e908789aec8717e84fcb407223fd66a9e82e4e3762988731dc85b3b7f.mjs",
+      "bytes": 9389,
+      "sha256": "b117338e908789aec8717e84fcb407223fd66a9e82e4e3762988731dc85b3b7f"
+    },
+    {
+      "path": ".opendesk/remote-cache/b2951d957d5c88df931ede69902c0c38d625b1547cbb0702768d20413493785a.mjs",
+      "bytes": 3166,
+      "sha256": "b2951d957d5c88df931ede69902c0c38d625b1547cbb0702768d20413493785a"
+    },
+    {
+      "path": ".opendesk/remote-cache/b469aeacd010634da3cb4b2625331f51f7ee133a0f5259cd6d81698e6eaf9712.mjs",
+      "bytes": 8957,
+      "sha256": "b469aeacd010634da3cb4b2625331f51f7ee133a0f5259cd6d81698e6eaf9712"
+    },
+    {
+      "path": ".opendesk/remote-cache/b49751c792ece1e9e5f25f191d7e9f5db57991215ee8b1d90172f3e89d2a268a.mjs",
+      "bytes": 17691,
+      "sha256": "b49751c792ece1e9e5f25f191d7e9f5db57991215ee8b1d90172f3e89d2a268a"
+    },
+    {
+      "path": ".opendesk/remote-cache/b5033e16572ef72799b8b6c2d309a1fb1228384bf7b07df1ee9f3702d2305f30.mjs",
+      "bytes": 3654,
+      "sha256": "b5033e16572ef72799b8b6c2d309a1fb1228384bf7b07df1ee9f3702d2305f30"
+    },
+    {
+      "path": ".opendesk/remote-cache/b5deb53b566b7b831c9c0057cfc35304d66a196ce75f5023acd76946b8eca3cd.mjs",
+      "bytes": 5080,
+      "sha256": "b5deb53b566b7b831c9c0057cfc35304d66a196ce75f5023acd76946b8eca3cd"
+    },
+    {
+      "path": ".opendesk/remote-cache/b78b1340991826e342722a2f40848e083a677afa5dd356228e5bdc1ed349189e.mjs",
+      "bytes": 2324,
+      "sha256": "b78b1340991826e342722a2f40848e083a677afa5dd356228e5bdc1ed349189e"
+    },
+    {
+      "path": ".opendesk/remote-cache/b7bf30868462cc8232f1f779c8c3cafd69816265b3efbeaf893cbd99bc02ae64.mjs",
+      "bytes": 2832,
+      "sha256": "b7bf30868462cc8232f1f779c8c3cafd69816265b3efbeaf893cbd99bc02ae64"
+    },
+    {
+      "path": ".opendesk/remote-cache/b863dabbe473c3ba6f1a7e72167573635ebbceaeb1dda514234b3827b24da981.mjs",
+      "bytes": 1039,
+      "sha256": "b863dabbe473c3ba6f1a7e72167573635ebbceaeb1dda514234b3827b24da981"
+    },
+    {
+      "path": ".opendesk/remote-cache/b92c9cbec5254c4b3e9fa86a330c991b4fe14ea45d7ad46cc22cb6a75c090201.mjs",
+      "bytes": 16841,
+      "sha256": "b92c9cbec5254c4b3e9fa86a330c991b4fe14ea45d7ad46cc22cb6a75c090201"
+    },
+    {
+      "path": ".opendesk/remote-cache/bc5c5effcfda8d78f3918da905d2ff8290701822d76795b816d2f14c81c5295b.mjs",
+      "bytes": 12767,
+      "sha256": "bc5c5effcfda8d78f3918da905d2ff8290701822d76795b816d2f14c81c5295b"
+    },
+    {
+      "path": ".opendesk/remote-cache/be40d74841c0d5016082b1d929e592e2c23e054bfca2d223f2cd427d24242747.mjs",
+      "bytes": 992,
+      "sha256": "be40d74841c0d5016082b1d929e592e2c23e054bfca2d223f2cd427d24242747"
+    },
+    {
+      "path": ".opendesk/remote-cache/be7f7d6cb59665152ee4b224310b90e78d9e67e85132e79a9a7a8f7df1304475.mjs",
+      "bytes": 589,
+      "sha256": "be7f7d6cb59665152ee4b224310b90e78d9e67e85132e79a9a7a8f7df1304475"
+    },
+    {
+      "path": ".opendesk/remote-cache/befe4481791382851c732760fcbebc9a01bf332e8053eac2bf2fa97da723e9af.mjs",
+      "bytes": 13363,
+      "sha256": "befe4481791382851c732760fcbebc9a01bf332e8053eac2bf2fa97da723e9af"
+    },
+    {
+      "path": ".opendesk/remote-cache/c1e99d06081aaf551ef9d93421f2a62cd0034032d41c4b64365f757e4783c2df.mjs",
+      "bytes": 19178,
+      "sha256": "c1e99d06081aaf551ef9d93421f2a62cd0034032d41c4b64365f757e4783c2df"
+    },
+    {
+      "path": ".opendesk/remote-cache/c28da79e3d2595b3ad070e0b93f358f64f331b65a71dbe8b9343d3ebadf0cb90.mjs",
+      "bytes": 16408,
+      "sha256": "c28da79e3d2595b3ad070e0b93f358f64f331b65a71dbe8b9343d3ebadf0cb90"
+    },
+    {
+      "path": ".opendesk/remote-cache/c3808211c168062b78014faf9ac2259fc87294da3fc7cb793862477bf72be93b.mjs",
+      "bytes": 2276,
+      "sha256": "c3808211c168062b78014faf9ac2259fc87294da3fc7cb793862477bf72be93b"
+    },
+    {
+      "path": ".opendesk/remote-cache/c399361e3ee5d6c71fd81a2c1db0c6395ba785e3adb964e48925fc697cb5fa97.mjs",
+      "bytes": 6282,
+      "sha256": "c399361e3ee5d6c71fd81a2c1db0c6395ba785e3adb964e48925fc697cb5fa97"
+    },
+    {
+      "path": ".opendesk/remote-cache/c40d30695448336a18d80d6332259c2ee9dae110dc41d344aac7a6fdecb1b6ca.mjs",
+      "bytes": 829,
+      "sha256": "c40d30695448336a18d80d6332259c2ee9dae110dc41d344aac7a6fdecb1b6ca"
+    },
+    {
+      "path": ".opendesk/remote-cache/c5365294fc01232b2d5375e3f36570d1ebc152afcc05075b7bcec73916ef269e.mjs",
+      "bytes": 10906,
+      "sha256": "c5365294fc01232b2d5375e3f36570d1ebc152afcc05075b7bcec73916ef269e"
+    },
+    {
+      "path": ".opendesk/remote-cache/c55c1cccfedae76aed456efa06033326b1b27b27e2bd0158ac3a91edc1bd4043.mjs",
+      "bytes": 9354,
+      "sha256": "c55c1cccfedae76aed456efa06033326b1b27b27e2bd0158ac3a91edc1bd4043"
+    },
+    {
+      "path": ".opendesk/remote-cache/c882da0dece079a3fc301d4993831645b3a901f24797f3a736a4d8502ff9196c.mjs",
+      "bytes": 9322,
+      "sha256": "c882da0dece079a3fc301d4993831645b3a901f24797f3a736a4d8502ff9196c"
+    },
+    {
+      "path": ".opendesk/remote-cache/c8a6dc155c37e325446b0a1ffa20516914d2b0d8f6595c2e8c75445e94195f9f.mjs",
+      "bytes": 3826,
+      "sha256": "c8a6dc155c37e325446b0a1ffa20516914d2b0d8f6595c2e8c75445e94195f9f"
+    },
+    {
+      "path": ".opendesk/remote-cache/c8deb9e3fd8d42038ee441c43fa7393bd9a6b407b88b7848a0cf73c426bcec0a.mjs",
+      "bytes": 35598,
+      "sha256": "c8deb9e3fd8d42038ee441c43fa7393bd9a6b407b88b7848a0cf73c426bcec0a"
+    },
+    {
+      "path": ".opendesk/remote-cache/c96e000b4907cea73b7565349293dd152cc8259d0c6418fbc3bc931142139c36.mjs",
+      "bytes": 11774,
+      "sha256": "c96e000b4907cea73b7565349293dd152cc8259d0c6418fbc3bc931142139c36"
+    },
+    {
+      "path": ".opendesk/remote-cache/c9c3f790ccb7b4a30dbba0b86da99898701b54b4d0864b667946bf8b4670a753.mjs",
+      "bytes": 18874,
+      "sha256": "c9c3f790ccb7b4a30dbba0b86da99898701b54b4d0864b667946bf8b4670a753"
+    },
+    {
+      "path": ".opendesk/remote-cache/ca7360c7ad7d67d7950ccba4a84401b82d93979caaa88f7bb06e4f0f046748ec.mjs",
+      "bytes": 10743,
+      "sha256": "ca7360c7ad7d67d7950ccba4a84401b82d93979caaa88f7bb06e4f0f046748ec"
+    },
+    {
+      "path": ".opendesk/remote-cache/ccc256e156266a6f366734c92ee13e69664fb6ec3cf2f794bf5ee04209a78d27.mjs",
+      "bytes": 7588,
+      "sha256": "ccc256e156266a6f366734c92ee13e69664fb6ec3cf2f794bf5ee04209a78d27"
+    },
+    {
+      "path": ".opendesk/remote-cache/cce99eec5a506172de2192b9cb98d7c1fcb251711f921b66b56a83d46b8bec29.mjs",
+      "bytes": 4391,
+      "sha256": "cce99eec5a506172de2192b9cb98d7c1fcb251711f921b66b56a83d46b8bec29"
+    },
+    {
+      "path": ".opendesk/remote-cache/cd0441440f32336a4d7d10d392d645655a4d2fa19fbb0301406a6890c82a868e.mjs",
+      "bytes": 3253,
+      "sha256": "cd0441440f32336a4d7d10d392d645655a4d2fa19fbb0301406a6890c82a868e"
+    },
+    {
+      "path": ".opendesk/remote-cache/cd22404aa8f5d954968a7a2f547ea973aea7cae24c9dd9697e370a42fbe20257.mjs",
+      "bytes": 151,
+      "sha256": "cd22404aa8f5d954968a7a2f547ea973aea7cae24c9dd9697e370a42fbe20257"
+    },
+    {
+      "path": ".opendesk/remote-cache/ce8ba701b63ace7aa14fb7ac37ffa840c811156197eb899bd0134bbf527b039d.mjs",
+      "bytes": 4381,
+      "sha256": "ce8ba701b63ace7aa14fb7ac37ffa840c811156197eb899bd0134bbf527b039d"
+    },
+    {
+      "path": ".opendesk/remote-cache/cf94d67284ca8c7b527004b3d20554a0f435fcb218935a552b11c8c4a0855e6d.mjs",
+      "bytes": 4496,
+      "sha256": "cf94d67284ca8c7b527004b3d20554a0f435fcb218935a552b11c8c4a0855e6d"
+    },
+    {
+      "path": ".opendesk/remote-cache/d0f2a84393a84c9509abe2d78f96a68f88be18f1216eed9d7e78919e64c9d0f2.mjs",
+      "bytes": 1998,
+      "sha256": "d0f2a84393a84c9509abe2d78f96a68f88be18f1216eed9d7e78919e64c9d0f2"
+    },
+    {
+      "path": ".opendesk/remote-cache/d234b1dd39f823b10e30579a8ff7462de99aab150c2a14a46487f4650879b50c.mjs",
+      "bytes": 15892,
+      "sha256": "d234b1dd39f823b10e30579a8ff7462de99aab150c2a14a46487f4650879b50c"
+    },
+    {
+      "path": ".opendesk/remote-cache/d24ea21d6df1acc979d206020c60c7c9d63475f313a2481c3480e68aefcb2afd.mjs",
+      "bytes": 2505,
+      "sha256": "d24ea21d6df1acc979d206020c60c7c9d63475f313a2481c3480e68aefcb2afd"
+    },
+    {
+      "path": ".opendesk/remote-cache/d27b59edb2ee440d98fa0022d3ee896694a2c90961305f8807fd7f60876595b6.mjs",
+      "bytes": 1936,
+      "sha256": "d27b59edb2ee440d98fa0022d3ee896694a2c90961305f8807fd7f60876595b6"
+    },
+    {
+      "path": ".opendesk/remote-cache/d61f66deebba97d3ecad2042440842d80eeeb9bde0a62e1e4e4600c68f268540.mjs",
+      "bytes": 13763,
+      "sha256": "d61f66deebba97d3ecad2042440842d80eeeb9bde0a62e1e4e4600c68f268540"
+    },
+    {
+      "path": ".opendesk/remote-cache/d74d50167a6098612c6dfe4e950110de021c0133bdb58b4df6c1e2eebab323dd.mjs",
+      "bytes": 26280,
+      "sha256": "d74d50167a6098612c6dfe4e950110de021c0133bdb58b4df6c1e2eebab323dd"
+    },
+    {
+      "path": ".opendesk/remote-cache/d7bf5a3cbe4626fdb21ca03d3f09c7076f2ab1f6198559814366b39d1ab67c55.mjs",
+      "bytes": 3538,
+      "sha256": "d7bf5a3cbe4626fdb21ca03d3f09c7076f2ab1f6198559814366b39d1ab67c55"
+    },
+    {
+      "path": ".opendesk/remote-cache/d7bfab811355c33a047846842fa5e16dbd9b0c2b5b07c408d542525890ebdad3.mjs",
+      "bytes": 7266,
+      "sha256": "d7bfab811355c33a047846842fa5e16dbd9b0c2b5b07c408d542525890ebdad3"
+    },
+    {
+      "path": ".opendesk/remote-cache/daacf49228177904eb73a6da0657f752812904479d3ea1a189d2523ba4cd4d5f.mjs",
+      "bytes": 11867,
+      "sha256": "daacf49228177904eb73a6da0657f752812904479d3ea1a189d2523ba4cd4d5f"
+    },
+    {
+      "path": ".opendesk/remote-cache/dafb1e0c744802bf8f72837b24a6f3ef923dc1790b473ddc12077e526b80e4e7.mjs",
+      "bytes": 618,
+      "sha256": "dafb1e0c744802bf8f72837b24a6f3ef923dc1790b473ddc12077e526b80e4e7"
+    },
+    {
+      "path": ".opendesk/remote-cache/db18c22472306c0b2a0fa365169142529f3b173861bc01e4fd949b0335f662fc.mjs",
+      "bytes": 555,
+      "sha256": "db18c22472306c0b2a0fa365169142529f3b173861bc01e4fd949b0335f662fc"
+    },
+    {
+      "path": ".opendesk/remote-cache/dbf9c41a2fe273d8d83a881278458d87fab6ef93ac00ccf28c379ce2bf9312ab.mjs",
+      "bytes": 22544,
+      "sha256": "dbf9c41a2fe273d8d83a881278458d87fab6ef93ac00ccf28c379ce2bf9312ab"
+    },
+    {
+      "path": ".opendesk/remote-cache/dd1576316cbfc9bb9c0603f3e16c094b59192bbefd2a87fbd9206ff0615e9eda.mjs",
+      "bytes": 95,
+      "sha256": "dd1576316cbfc9bb9c0603f3e16c094b59192bbefd2a87fbd9206ff0615e9eda"
+    },
+    {
+      "path": ".opendesk/remote-cache/dd23fd4d3405b7c9cc80bd870f3696c69058f0f436048d457f60c67c4dbd0dd5.mjs",
+      "bytes": 4944,
+      "sha256": "dd23fd4d3405b7c9cc80bd870f3696c69058f0f436048d457f60c67c4dbd0dd5"
+    },
+    {
+      "path": ".opendesk/remote-cache/df18c56897acc4382eadd0b823b50b471c6b1478e237eef7eb9c68b9337c3b26.mjs",
+      "bytes": 2794,
+      "sha256": "df18c56897acc4382eadd0b823b50b471c6b1478e237eef7eb9c68b9337c3b26"
+    },
+    {
+      "path": ".opendesk/remote-cache/e0e67e3ad5a6721e8cbc1b44cc55a38af9e4acac96b800ac05ae179f236d04f6.mjs",
+      "bytes": 8099,
+      "sha256": "e0e67e3ad5a6721e8cbc1b44cc55a38af9e4acac96b800ac05ae179f236d04f6"
+    },
+    {
+      "path": ".opendesk/remote-cache/e0f6ed6cd3bd26ffa7d0280a355dd02a7c99847341cf461cddc814e02653262b.mjs",
+      "bytes": 3186,
+      "sha256": "e0f6ed6cd3bd26ffa7d0280a355dd02a7c99847341cf461cddc814e02653262b"
+    },
+    {
+      "path": ".opendesk/remote-cache/e2693cb9090b66e2eabf72e7447f134117480d29c114410c2a5f992eceb1da93.mjs",
+      "bytes": 4619,
+      "sha256": "e2693cb9090b66e2eabf72e7447f134117480d29c114410c2a5f992eceb1da93"
+    },
+    {
+      "path": ".opendesk/remote-cache/e34df1dcd5c667a92eb5d76ff190a51dd452912171bf6960ca1f21ff3f9fe619.mjs",
+      "bytes": 3247,
+      "sha256": "e34df1dcd5c667a92eb5d76ff190a51dd452912171bf6960ca1f21ff3f9fe619"
+    },
+    {
+      "path": ".opendesk/remote-cache/e3fb5df88f4d0d1b64055619e2a99b82463ca16f1d551126272ff8a542ee8e8f.mjs",
+      "bytes": 17134,
+      "sha256": "e3fb5df88f4d0d1b64055619e2a99b82463ca16f1d551126272ff8a542ee8e8f"
+    },
+    {
+      "path": ".opendesk/remote-cache/e4730e354a09e0300bd3dea8979093d81e3c5f99d1a03ade9c1f1e8f0e0adbae.mjs",
+      "bytes": 1762,
+      "sha256": "e4730e354a09e0300bd3dea8979093d81e3c5f99d1a03ade9c1f1e8f0e0adbae"
+    },
+    {
+      "path": ".opendesk/remote-cache/e815b279b4b3bdce2a6b471a4a9470c9e2c8efeee572aec3413a4690d282c901.mjs",
+      "bytes": 4099,
+      "sha256": "e815b279b4b3bdce2a6b471a4a9470c9e2c8efeee572aec3413a4690d282c901"
+    },
+    {
+      "path": ".opendesk/remote-cache/e901bcc7aad17b47d59634aee846db1bc72d048be41769173c750fa05c10f53a.mjs",
+      "bytes": 1179,
+      "sha256": "e901bcc7aad17b47d59634aee846db1bc72d048be41769173c750fa05c10f53a"
+    },
+    {
+      "path": ".opendesk/remote-cache/e9bb9ee0ab316a1f694e0c6f2bb1a43b12ac766bc123e4030b169217cbe8dace.mjs",
+      "bytes": 12366,
+      "sha256": "e9bb9ee0ab316a1f694e0c6f2bb1a43b12ac766bc123e4030b169217cbe8dace"
+    },
+    {
+      "path": ".opendesk/remote-cache/eda989fb0e55ae7de28f9eab2b16d8eb3313c9afd4233cd425e0bfb5361ffdcd.mjs",
+      "bytes": 18365,
+      "sha256": "eda989fb0e55ae7de28f9eab2b16d8eb3313c9afd4233cd425e0bfb5361ffdcd"
+    },
+    {
+      "path": ".opendesk/remote-cache/ef47de3a72a1054072f10c6f4a14d06334034a8c719038a5599c3b6db7794aa2.mjs",
+      "bytes": 2721,
+      "sha256": "ef47de3a72a1054072f10c6f4a14d06334034a8c719038a5599c3b6db7794aa2"
+    },
+    {
+      "path": ".opendesk/remote-cache/ef6d6de24a8975ac74cbe4a19044c6191ddcdff42ef850de5c1a522df5e842e5.mjs",
+      "bytes": 4288,
+      "sha256": "ef6d6de24a8975ac74cbe4a19044c6191ddcdff42ef850de5c1a522df5e842e5"
+    },
+    {
+      "path": ".opendesk/remote-cache/f0a0df60e83d8c0952e0cbc570e1934b82391508bf2374400ae5898b70a33637.mjs",
+      "bytes": 7828,
+      "sha256": "f0a0df60e83d8c0952e0cbc570e1934b82391508bf2374400ae5898b70a33637"
+    },
+    {
+      "path": ".opendesk/remote-cache/f0a3a66dec757df1752f9326718362cd83af88737eaa03e08887cfd395f5e9f8.mjs",
+      "bytes": 9343,
+      "sha256": "f0a3a66dec757df1752f9326718362cd83af88737eaa03e08887cfd395f5e9f8"
+    },
+    {
+      "path": ".opendesk/remote-cache/f2845e505edd5ed9d455d6cc71a0043e3809aa5c61b04a6d8a92ba58bfb1de9a.mjs",
+      "bytes": 6810,
+      "sha256": "f2845e505edd5ed9d455d6cc71a0043e3809aa5c61b04a6d8a92ba58bfb1de9a"
+    },
+    {
+      "path": ".opendesk/remote-cache/f37d0f624e2514520c06123fb8edd34619ad7e2e35aadcfe1bc7288ab0fe67ff.mjs",
+      "bytes": 1896,
+      "sha256": "f37d0f624e2514520c06123fb8edd34619ad7e2e35aadcfe1bc7288ab0fe67ff"
+    },
+    {
+      "path": ".opendesk/remote-cache/f777972078551596bdb6cd3e13ba6251443b537c924f34a6beb5f2c45b3b82b9.mjs",
+      "bytes": 5958,
+      "sha256": "f777972078551596bdb6cd3e13ba6251443b537c924f34a6beb5f2c45b3b82b9"
+    },
+    {
+      "path": ".opendesk/remote-cache/fa4913c4a5cc08a9847bc1e555bb1a8626e7bb057aa375dec1ba9e8baf0afa8b.mjs",
+      "bytes": 2592,
+      "sha256": "fa4913c4a5cc08a9847bc1e555bb1a8626e7bb057aa375dec1ba9e8baf0afa8b"
+    },
+    {
+      "path": ".opendesk/remote-cache/fcd00d63b8d324a85d13ad22893f3259a8d50097b8863c395684a40ead2221a2.mjs",
+      "bytes": 10419,
+      "sha256": "fcd00d63b8d324a85d13ad22893f3259a8d50097b8863c395684a40ead2221a2"
+    },
+    {
+      "path": ".opendesk/remote-cache/fd53ca02a23cfa23b26814c27dd416a244550b021ea8eeee3a85c34a95903002.mjs",
+      "bytes": 8674,
+      "sha256": "fd53ca02a23cfa23b26814c27dd416a244550b021ea8eeee3a85c34a95903002"
+    },
+    {
+      "path": ".opendesk/remote-cache/fe786d37f2384afc59649978c158e1cfc6eb8763ad464b6aac78bf9e3b35aa21.mjs",
+      "bytes": 2508,
+      "sha256": "fe786d37f2384afc59649978c158e1cfc6eb8763ad464b6aac78bf9e3b35aa21"
+    },
+    {
+      "path": ".opendesk/remote-cache/ff69112ca0844b352e91ab7b74dcca4f2c183555a52917c901f6d6e3a0aa78f4.mjs",
+      "bytes": 4084,
+      "sha256": "ff69112ca0844b352e91ab7b74dcca4f2c183555a52917c901f6d6e3a0aa78f4"
+    },
+    {
+      "path": ".opendesk/remote-cache/ffab91961b09b73bc56e8a4bd004812a69b7f648a7da147fe6fa927b5430ada8.mjs",
+      "bytes": 10404,
+      "sha256": "ffab91961b09b73bc56e8a4bd004812a69b7f648a7da147fe6fa927b5430ada8"
+    },
+    {
+      "path": "opendesk.remote-lock.json",
+      "bytes": 44679,
+      "sha256": "8ab3c639777076dfd0ddba541c773c48c58cb09c59a2d3b1b1a08260f76c4599"
+    },
+    {
+      "path": "package.json",
+      "bytes": 1130,
+      "sha256": "4f51a4a4e98464857c5904c5fbb746d6e87ac5f068f41acb15085ed3e2c7b155"
+    },
+    {
+      "path": "src/heading-chart.js",
+      "bytes": 3078,
+      "sha256": "93c8436cca778f51dd0f77e98da122c4adcc1d7aba99d83176cb7b15eae7fd12"
+    },
+    {
+      "path": "src/heading-stats.js",
+      "bytes": 749,
+      "sha256": "f63a8c1a2b6f29abc1b6a66c57e8958bcca8549278d5de915e59d514b843fb21"
+    },
+    {
+      "path": "src/main.js",
+      "bytes": 9916,
+      "sha256": "bb49e8fdd20353d24419f5ed3c11aa960146290f33763489b3f693c637d43760"
+    },
+    {
+      "path": "src/toc-model.js",
+      "bytes": 5076,
+      "sha256": "52c07a647d5fec0e1e62bc7d4f8121de41b90d4a7a1c8e87798febc8e9b80407"
+    }
+  ],
+  "frames": [
+    {
+      "method": "project.resolve",
+      "request": {
+        "jsonBytes": 213,
+        "nativeFramedBytes": 217,
+        "socketLineBytes": 214,
+        "sha256": "6b482189212522149ac2068d52fb6dfbc747dc3f52f50fa9e57597a8da190fdd"
+      },
+      "response": {
+        "jsonBytes": 1479,
+        "nativeFramedBytes": 1483,
+        "socketLineBytes": 1480,
+        "sha256": "e4320fc1f188fb4e523c55c446549e515342a6a99bd1d6fbee3a6efea2310746"
+      }
+    },
+    {
+      "method": "project.source.read",
+      "request": {
+        "jsonBytes": 540,
+        "nativeFramedBytes": 544,
+        "socketLineBytes": 541,
+        "sha256": "313550f478beef08934c088977a99aac5f9c124a7fa23697d561d43b0598908e"
+      },
+      "response": {
+        "jsonBytes": 33326,
+        "nativeFramedBytes": 33330,
+        "socketLineBytes": 33327,
+        "sha256": "b7dc7530d596b6de756f9eb3bcb016c21bca66adc4f9037aac450fe897743bcb"
+      },
+      "offset": 0,
+      "rawBytes": 24576
+    },
+    {
+      "method": "project.source.read",
+      "request": {
+        "jsonBytes": 544,
+        "nativeFramedBytes": 548,
+        "socketLineBytes": 545,
+        "sha256": "3d5344532e3402d41507cadb71a42ab0fd8940fd86888299bf42236bd713da19"
+      },
+      "response": {
+        "jsonBytes": 33330,
+        "nativeFramedBytes": 33334,
+        "socketLineBytes": 33331,
+        "sha256": "0d412f105ef25f21e31c1ec1c55659808841563ff96cdea24d6b08a8b4e6533f"
+      },
+      "offset": 24576,
+      "rawBytes": 24576
+    },
+    {
+      "method": "project.source.read",
+      "request": {
+        "jsonBytes": 544,
+        "nativeFramedBytes": 548,
+        "socketLineBytes": 545,
+        "sha256": "71fbbb2850f8df4ce904eb345ba51ed0c0a0d73c71ebe86fc224d73df66aa2bf"
+      },
+      "response": {
+        "jsonBytes": 33330,
+        "nativeFramedBytes": 33334,
+        "socketLineBytes": 33331,
+        "sha256": "4ee9696a53b0268bc65a0420c6ad20da42ed33ecaed25419546b28b79d50a518"
+      },
+      "offset": 49152,
+      "rawBytes": 24576
+    },
+    {
+      "method": "project.source.read",
+      "request": {
+        "jsonBytes": 544,
+        "nativeFramedBytes": 548,
+        "socketLineBytes": 545,
+        "sha256": "6101a9e34192a6b22e20bc5c858b8b2b6ed5ff35d466bf30ce17693a67e93610"
+      },
+      "response": {
+        "jsonBytes": 33330,
+        "nativeFramedBytes": 33334,
+        "socketLineBytes": 33331,
+        "sha256": "dca3ab0a40516d1f6b39b5f44f8b0bbf87f7e3c9314943d0ac2abd86c90a7a06"
+      },
+      "offset": 73728,
+      "rawBytes": 24576
+    },
+    {
+      "method": "project.source.read",
+      "request": {
+        "jsonBytes": 544,
+        "nativeFramedBytes": 548,
+        "socketLineBytes": 545,
+        "sha256": "c9a22dd4e0eb99458efdb0d945cfa1bac9b605f253784bb38fcd6bb03653915c"
+      },
+      "response": {
+        "jsonBytes": 33330,
+        "nativeFramedBytes": 33334,
+        "socketLineBytes": 33331,
+        "sha256": "387619cc775a963d0632111873fd49a14573d0fa0084f056b3ac37e04e4d6515"
+      },
+      "offset": 98304,
+      "rawBytes": 24576
+    },
+    {
+      "method": "project.source.read",
+      "request": {
+        "jsonBytes": 545,
+        "nativeFramedBytes": 549,
+        "socketLineBytes": 546,
+        "sha256": "9906ca082d5d04ebcd7285381279f74b5dabebb568442caaf0da9c7087b8f97a"
+      },
+      "response": {
+        "jsonBytes": 33331,
+        "nativeFramedBytes": 33335,
+        "socketLineBytes": 33332,
+        "sha256": "9d6fbf18bb0b24c872fa0c70c013114d19d222c4ac3ec1e416fdb804fac00a0c"
+      },
+      "offset": 122880,
+      "rawBytes": 24576
+    },
+    {
+      "method": "project.source.read",
+      "request": {
+        "jsonBytes": 545,
+        "nativeFramedBytes": 549,
+        "socketLineBytes": 546,
+        "sha256": "d8e3024b6277e31844e4248b37e968c4b23058a258e34c89ae4cff301deb9a66"
+      },
+      "response": {
+        "jsonBytes": 33331,
+        "nativeFramedBytes": 33335,
+        "socketLineBytes": 33332,
+        "sha256": "c95ca8875e687dd84c73c10e9efdb0c7450af77f5a1ab9adcce2376344fcf965"
+      },
+      "offset": 147456,
+      "rawBytes": 24576
+    },
+    {
+      "method": "project.source.read",
+      "request": {
+        "jsonBytes": 545,
+        "nativeFramedBytes": 549,
+        "socketLineBytes": 546,
+        "sha256": "caee5d7e8304e058a4416c18c7916279be28deda14be6175ce9a3ef4db0b1600"
+      },
+      "response": {
+        "jsonBytes": 33331,
+        "nativeFramedBytes": 33335,
+        "socketLineBytes": 33332,
+        "sha256": "62bcee2f340cf0cf85c7e5c92fdfd47155d02c1e44dd90fde0db0ec23e269649"
+      },
+      "offset": 172032,
+      "rawBytes": 24576
+    },
+    {
+      "method": "project.source.read",
+      "request": {
+        "jsonBytes": 545,
+        "nativeFramedBytes": 549,
+        "socketLineBytes": 546,
+        "sha256": "b0a6b13a9718dfbc14326fe3fe990a0bcb9f2f4d9c94e798374850245277a863"
+      },
+      "response": {
+        "jsonBytes": 33331,
+        "nativeFramedBytes": 33335,
+        "socketLineBytes": 33332,
+        "sha256": "56f7c879aee01a5d1fb47026206556fd07df60e45c7b63c96391e6cc15103a10"
+      },
+      "offset": 196608,
+      "rawBytes": 24576
+    },
+    {
+      "method": "project.source.read",
+      "request": {
+        "jsonBytes": 545,
+        "nativeFramedBytes": 549,
+        "socketLineBytes": 546,
+        "sha256": "cbc0ff3d45e70a2663d71ee86ae6d2eb5e41e6d577bae38b2564e5838767a4b6"
+      },
+      "response": {
+        "jsonBytes": 33331,
+        "nativeFramedBytes": 33335,
+        "socketLineBytes": 33332,
+        "sha256": "a9ae10c695b9a478047a29e9edb30ebf360b3ad6a5be27fe3db17f174144080d"
+      },
+      "offset": 221184,
+      "rawBytes": 24576
+    },
+    {
+      "method": "project.source.read",
+      "request": {
+        "jsonBytes": 545,
+        "nativeFramedBytes": 549,
+        "socketLineBytes": 546,
+        "sha256": "60efbad11bba6e42de74ff20482c44a98f31fe5559b66b7920fea951013e0f8c"
+      },
+      "response": {
+        "jsonBytes": 33331,
+        "nativeFramedBytes": 33335,
+        "socketLineBytes": 33332,
+        "sha256": "1fdc045afcb2a64357682e3563011071db71dcecb3af77ac742b5be33a7086a9"
+      },
+      "offset": 245760,
+      "rawBytes": 24576
+    },
+    {
+      "method": "project.source.read",
+      "request": {
+        "jsonBytes": 545,
+        "nativeFramedBytes": 549,
+        "socketLineBytes": 546,
+        "sha256": "f0c370563abfb9430f0be8bc5c0fc081b6055861a43691dde3fd5410b3c952fb"
+      },
+      "response": {
+        "jsonBytes": 33331,
+        "nativeFramedBytes": 33335,
+        "socketLineBytes": 33332,
+        "sha256": "6946314d42a8ee237985229ebdc7e10114cc1d0928837829045681ec7d747818"
+      },
+      "offset": 270336,
+      "rawBytes": 24576
+    },
+    {
+      "method": "project.source.read",
+      "request": {
+        "jsonBytes": 545,
+        "nativeFramedBytes": 549,
+        "socketLineBytes": 546,
+        "sha256": "999d090a458cc0a5f3f5e9362d51045db7d800629d5c2ecc3404f28b964f6186"
+      },
+      "response": {
+        "jsonBytes": 33331,
+        "nativeFramedBytes": 33335,
+        "socketLineBytes": 33332,
+        "sha256": "80ca84f9996b45ffadd54e2cbbed6fcbfeb5ee2a694d62c584f21b5ad4df98d4"
+      },
+      "offset": 294912,
+      "rawBytes": 24576
+    },
+    {
+      "method": "project.source.read",
+      "request": {
+        "jsonBytes": 545,
+        "nativeFramedBytes": 549,
+        "socketLineBytes": 546,
+        "sha256": "1b38c153ff0303673efe312614c61a41efe33d68106a92a2da4cf7b3324a299f"
+      },
+      "response": {
+        "jsonBytes": 33331,
+        "nativeFramedBytes": 33335,
+        "socketLineBytes": 33332,
+        "sha256": "793437c67090a8a1ba4ccec362a528f11e8f28106580f08511a9bc1dd74157c0"
+      },
+      "offset": 319488,
+      "rawBytes": 24576
+    },
+    {
+      "method": "project.source.read",
+      "request": {
+        "jsonBytes": 545,
+        "nativeFramedBytes": 549,
+        "socketLineBytes": 546,
+        "sha256": "515382921b8c57dd32278f7817edff5fd0a0a6b340ff2db58fe778aeb0b21404"
+      },
+      "response": {
+        "jsonBytes": 33331,
+        "nativeFramedBytes": 33335,
+        "socketLineBytes": 33332,
+        "sha256": "4048e651042fc9a6f1131fa6f76ef69d12c0e7d43c14ac1e457f23da1f188d01"
+      },
+      "offset": 344064,
+      "rawBytes": 24576
+    },
+    {
+      "method": "project.source.read",
+      "request": {
+        "jsonBytes": 545,
+        "nativeFramedBytes": 549,
+        "socketLineBytes": 546,
+        "sha256": "51e6bb935c9526ff3032aac1dad976c1e5868925cf2956db913a322099c8d778"
+      },
+      "response": {
+        "jsonBytes": 33331,
+        "nativeFramedBytes": 33335,
+        "socketLineBytes": 33332,
+        "sha256": "25dc3dffcc2e5f2e8be9931c5c19638f92576660e006e93e90652bb5718ef436"
+      },
+      "offset": 368640,
+      "rawBytes": 24576
+    },
+    {
+      "method": "project.source.read",
+      "request": {
+        "jsonBytes": 545,
+        "nativeFramedBytes": 549,
+        "socketLineBytes": 546,
+        "sha256": "3b49f155f1a966d7b20f003fc090fdd15c261e9e398f6ebc19a20507fed7d21c"
+      },
+      "response": {
+        "jsonBytes": 33331,
+        "nativeFramedBytes": 33335,
+        "socketLineBytes": 33332,
+        "sha256": "39aeaa2e88c20eb96e30e631adbc16a12a357ce08fe5a1d7fa018ac69864166c"
+      },
+      "offset": 393216,
+      "rawBytes": 24576
+    },
+    {
+      "method": "project.source.read",
+      "request": {
+        "jsonBytes": 545,
+        "nativeFramedBytes": 549,
+        "socketLineBytes": 546,
+        "sha256": "957e435f98918b782fa54f813402008762e482515232ec04b2e2163ffc63c444"
+      },
+      "response": {
+        "jsonBytes": 33331,
+        "nativeFramedBytes": 33335,
+        "socketLineBytes": 33332,
+        "sha256": "7d10971e82d52ab94718fc922edae47ff6ab08226acd99f3df5842983d91550b"
+      },
+      "offset": 417792,
+      "rawBytes": 24576
+    },
+    {
+      "method": "project.source.read",
+      "request": {
+        "jsonBytes": 545,
+        "nativeFramedBytes": 549,
+        "socketLineBytes": 546,
+        "sha256": "c664a48d74b35dade405b335f90720ef4b894b48b4e431b09096fdb308365562"
+      },
+      "response": {
+        "jsonBytes": 33331,
+        "nativeFramedBytes": 33335,
+        "socketLineBytes": 33332,
+        "sha256": "f776a89785e724c60f8558314102a6a0db83caba90032c50704beb3ba5f07a1d"
+      },
+      "offset": 442368,
+      "rawBytes": 24576
+    },
+    {
+      "method": "project.source.read",
+      "request": {
+        "jsonBytes": 545,
+        "nativeFramedBytes": 549,
+        "socketLineBytes": 546,
+        "sha256": "765a4d25c4e529abf0dfc31d2ed957dbe933469b4c96a52b6ee02c252bb4ebc7"
+      },
+      "response": {
+        "jsonBytes": 20746,
+        "nativeFramedBytes": 20750,
+        "socketLineBytes": 20747,
+        "sha256": "a4f622e4b20319c1a0ab43d0d6764bb788f9a68358544d09c27464307af6203e"
+      },
+      "offset": 466944,
+      "rawBytes": 15138
+    },
+    {
+      "method": "project.source.validate",
+      "request": {
+        "jsonBytes": 533,
+        "nativeFramedBytes": 537,
+        "socketLineBytes": 534,
+        "sha256": "07391b1f89b883297b04adfb2a7828ada6b68f7e7b93eb92432812fc59f47f6f"
+      },
+      "response": {
+        "jsonBytes": 516,
+        "nativeFramedBytes": 520,
+        "socketLineBytes": 517,
+        "sha256": "fd1098ee0ba0b8bbdabcdf32e2642886932ee1c9700f8cb707cc14195f15b91a"
+      }
+    }
+  ],
+  "fullFrameFiles": {
+    "json": "frames.full.json",
+    "inlineOversizedIncluded": true,
+    "forwardOversized": "forward-page-preview.full.json",
+    "binary": {
+      "request": {
+        "file": "native-requests.bin",
+        "bytes": 11725,
+        "sha256": "0d68af26e87c8646e14d0c81d1c9d1afe19ae22e693e3c40ec4221f8feaef87a",
+        "frameCount": 22
+      },
+      "response": {
+        "file": "native-responses.bin",
+        "bytes": 656109,
+        "sha256": "084ad8c1e7e4ee780fd66ceb1ec08329fd3b7562a782a73ba02dcf03236bf947",
+        "frameCount": 22
+      }
+    },
+    "note": "Binary files contain sequential 4-byte little-endian Native length prefixes followed by each exact request/response JSON body. They are serialization evidence only; neither file was sent to a Native Host."
+  },
+  "fullInputIdentityReproduced": true,
+  "inputHashPayloadFile": "input-hash-payload.json"
+}

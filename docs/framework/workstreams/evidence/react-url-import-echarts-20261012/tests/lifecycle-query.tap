@@ -1,0 +1,42 @@
+✔ ECharts initializes only after a connected container has finite positive dimensions (2.561774ms)
+✔ data changes call setOption on the existing chart; observed size changes call resize (0.608739ms)
+✔ Stop during loading cancels pending work and late observer/frame results cannot initialize (0.306483ms)
+✔ mounted Stop disposes exactly once and stale updates cannot touch the old version (0.299522ms)
+✔ ECharts failures become a visible error and never select a fallback renderer or implementation (0.397159ms)
+✔ heading level chart counts H1-H6 without modifying source items (1.751622ms)
+✔ empty chart and invalid headings have a valid accessible scale (0.308435ms)
+✔ model calls the supplied max implementation with the actual counts (0.215726ms)
+✔ the default React entry directly declares and actually consumes its HTTPS import (5.452635ms)
+✔ checked-in remote lock refers to byte-identical upstream source, not a mock (2.753924ms)
+✔ real reviewed D3 code computes the statistics model offline (1.513944ms)
+✔ the compatibility adapter uses the same URL while the project keeps its original framework contract (1.55783ms)
+✔ managed cleanup waits for async disposers and callbacks; repeated retirement never repeats disposal (11.178844ms)
+✔ sync and async cleanup failures remain tombstones even when the DOM host was removed (3.528994ms)
+✔ managed cleanup times out conservatively and never promotes a late completion to success (17.684819ms)
+✔ the captured lexical registry survives global alias forgery and ignores DOM close as a success receipt (3.044853ms)
+✔ changed Promise primitives cannot turn an unfinished async disposer into successful cleanup (1.442195ms)
+✔ a manual preview cannot bypass a managed old instance through its legacy DOM replacement path (2.36667ms)
+✔ prototype then pollution cannot assimilate a failed cleanup receipt into forged success (1.847497ms)
+✔ retirement freezes entry to every managed instance before any disposer can trigger new business callbacks (1.71712ms)
+✔ original managed preview receipt can be queried after service recreation without executing or claiming a new document (16.54548ms)
+✔ query of a lost original completion stays pending and preserves the admission fence without replay (8.559112ms)
+✔ query preserves a failed completion as failed and leaves the original owner able to clean up (6.665876ms)
+✔ Go scoped project bindings pass the adapter and preserve managed preview ownership through replacement and retirement (72.600167ms)
+✔ malformed scoped bindings fail before Page native effects (11.060675ms)
+✔ explicit next preview retires the original world before new code; service recreation preserves identity and budget (16.156344ms)
+✔ confirmed cleanup failure blocks new code and preserves the failed record across retries (14.72246ms)
+✔ lost cleanup receipt holds the original shared Authority fence; no second retirement or Controller admission (7.128634ms)
+✔ Host loss after bootstrap or retiring ledger write prevents the next native effect (8.202894ms)
+✔ pre-bootstrap refusal does not poison next valid admission; previous main failure still requires managed cleanup (9.711922ms)
+✔ removing the UI import cannot silently bypass an old managed binding (8.271288ms)
+✔ Native adapter maps uncoded transport rejection to unknown for preview and managed disposal (1.376486ms)
+✔ browser-only component binding cannot silently adopt or overlap an older editor root (12.400247ms)
+✔ browser component managed binding is strict and cannot spoof arbitrary project identity (3.497407ms)
+ℹ tests 34
+ℹ suites 0
+ℹ pass 34
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 505.516971

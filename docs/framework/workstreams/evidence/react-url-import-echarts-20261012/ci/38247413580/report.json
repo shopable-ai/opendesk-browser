@@ -1,0 +1,47 @@
+{
+  "runId": 38247413580,
+  "jobId": 114804679462,
+  "sourceHead": "53eac6327055bf6e20b4393e2fa914c656b77d99",
+  "status": "FAIL_BEFORE_JSON_IMPORT_DRIVER_URL_PREDICATE",
+  "chromeStarted": true,
+  "chromeVersion": "Google Chrome for Testing 155.0.8059.39",
+  "sandbox": "default",
+  "nativeHostConfigured": false,
+  "packageHash": "bae682e5f8abe2498d6140def69c3101f8748c02db693593c9a533dacdb1a26b",
+  "extensionId": "kkmpejjgfmdbdepkacgjablinpofcmah",
+  "driverSha256": "5ac2bea287c1403e03abbc9ef513c23d5e5460980590a328e12fea635bba1896",
+  "ciBuildSourceHash": "8d3eedccdf62d90ddafcad3752e184ccd975479b51f649cb0b12595028ab2146",
+  "ciBuildSourceBytes": 482082,
+  "ciRemoteModuleCount": 235,
+  "ciRemoteSourceBytes": 1744686,
+  "previewId": null,
+  "documentId": null,
+  "originalError": {
+    "message": "catalog DOM loaded timed out",
+    "stack": "Error: catalog DOM loaded timed out\n    at until (file:///home/runner/work/opendesk-browser/opendesk-browser/tests/framework/page-url-import-linux-cft.mjs:73:9)\n    at async newTab (file:///home/runner/work/opendesk-browser/opendesk-browser/tests/framework/page-url-import-linux-cft.mjs:555:5)\n    at async main (file:///home/runner/work/opendesk-browser/opendesk-browser/tests/framework/page-url-import-linux-cft.mjs:598:17)\n    at async file:///home/runner/work/opendesk-browser/opendesk-browser/tests/framework/page-url-import-linux-cft.mjs:987:5",
+    "code": null
+  },
+  "actualCatalogUrl": "chrome-extension://kkmpejjgfmdbdepkacgjablinpofcmah/ui/tool.html?hostInstanceId=b0e0c528-db68-44fa-b3ea-e5e60da4a4f4",
+  "observedCatalogText": "LOCAL TASK CATALOG\n\n发现本地任务\n\n在完整页面搜索、筛选、查看说明并明确安装；不是云端 Marketplace。\n\n打开开发侧栏\n搜索任务\n全部\n已安装\n可安装\n待验证\n\n共 0 个本地任务版本\n\n没有匹配的任务，请尝试其他关键词或分类。\n\n候选版本\n请选择任务卡片，查看完整用途、来源和所需权限。\n安装确定版本\n\n开发者：核对证据与设为本地可用\n导入任务包 JSON 或 JavaScript 草稿\n\n仅本机验证，不代表第三方审核或签名认证\n\n刷新目录",
+  "artifactId": 11746443504,
+  "artifactBytes": 1993709,
+  "artifactSha256": "fe83d0af75ac1b86666ab6c6c90336c90bbf3e7523aa4603713110e263dc3802",
+  "cause": "The original tool-shell canonicalizes a bare /ui/tool.html into ?hostInstanceId=<uuid>, while driver newTab requires exact equality to the bare URL. The catalog did render successfully; the waiting predicate was incorrect for that entry URL.",
+  "minimalFix": "Pass an explicitly generated hostInstanceId in the initial catalog URL as existing real native drivers do, retaining the exact URL predicate.",
+  "rawEvidence": [
+    "job-114804679462.log",
+    "artifact/acceptance.json",
+    "artifact/failure-2-catalog.json",
+    "artifact/failure-2-catalog.png"
+  ],
+  "visualObservation": "CJK fonts are absent from this Ubuntu runner screenshot, so Chinese glyphs render as empty squares despite correct DOM text. This did not cause the failure.",
+  "notTested": [
+    "JSON import/install",
+    "React/ECharts rendering",
+    "preview/document receipts",
+    "Stop",
+    "browser-source preparation"
+  ],
+  "mutationPerformed": false,
+  "rerunRequested": false
+}

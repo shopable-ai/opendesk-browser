@@ -1,0 +1,326 @@
+{
+  "schema": "opendesk.market.r5.native-ci-evidence.v1",
+  "recordedAt": "2026-10-12",
+  "candidateCommit": "3744be088240124d3ab803ef10c2c0256e787b37",
+  "branch": "main",
+  "ci": {
+    "runId": 38237391020,
+    "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38237391020",
+    "conclusion": "success",
+    "jobs": [
+      {
+        "platform": "linux",
+        "jobId": 114771321266,
+        "conclusion": "success"
+      },
+      {
+        "platform": "macos-15",
+        "jobId": 114771321193,
+        "conclusion": "success"
+      },
+      {
+        "platform": "production-linux",
+        "jobId": 114771321005,
+        "conclusion": "success"
+      }
+    ]
+  },
+  "catalog": {
+    "catalogSha256": "80bd653266e4c378ffd8b372fd12dc0f5c9a9d53f8617296c99e7e9bd98f302c",
+    "recommendedApps": 7,
+    "immutableReleaseSnapshots": 13,
+    "readingKitRevisions": [
+      1,
+      2,
+      3
+    ],
+    "unresolvedHistoricalRelease": [
+      {
+        "id": "opendesk/quick-notes",
+        "version": "1.1.1",
+        "status": "missing-documented-not-replaced"
+      }
+    ]
+  },
+  "linux": {
+    "origin": "http://127.0.0.1:43132",
+    "chromeVersion": "155.0.8059.39",
+    "websiteFileCount": 59,
+    "checks": [
+      {
+        "name": "real-browser-sender-and-live-document-verification",
+        "status": "PASS"
+      },
+      {
+        "name": "public-routes-search-filters-responsive-dark-refresh-404",
+        "status": "PASS"
+      },
+      {
+        "name": "two-real-valid-pending-candidates-cannot-replace-each-other",
+        "status": "PASS"
+      },
+      {
+        "name": "trusted-install-result-open-action-reaches-current-installed-tool",
+        "status": "PASS"
+      },
+      {
+        "name": "http-real-sender-fixed-review-first-install-close-website-then-confirm-and-real-markdown-use",
+        "status": "PASS"
+      },
+      {
+        "name": "real-website-five-second-timeout-does-not-claim-uninstalled-and-explicit-reconnect",
+        "status": "PASS"
+      },
+      {
+        "name": "native-worker-prepared-before-create-and-created-before-persist-recovery",
+        "status": "PASS"
+      },
+      {
+        "name": "native-consumed-before-first-journal-interruption-never-replays-and-explicitly-closes-unknown",
+        "status": "PASS"
+      },
+      {
+        "name": "actual-browser-origin-port-iframe-protocol-fields-id-and-conflict-rejections",
+        "status": "PASS"
+      },
+      {
+        "name": "already-installed-is-read-from-extension-and-old-fixed-version-stays-missing",
+        "status": "PASS"
+      },
+      {
+        "name": "real-worker-stop-observed-and-http-wakeup-preserves-identity",
+        "status": "PASS"
+      },
+      {
+        "name": "website-fixed-revision-real-batch-skips-installed-preserves-operation-ids-and-reloads",
+        "status": "PASS"
+      },
+      {
+        "name": "native-registry-committed-page-interruption-recovers-original-operation-and-user-data",
+        "status": "PASS"
+      },
+      {
+        "name": "baseline-change-requires-new-review-and-official-update-preserves-user-data",
+        "status": "PASS"
+      },
+      {
+        "name": "separate-site-authorization-and-standard-demo-heading-navigation",
+        "status": "PASS"
+      },
+      {
+        "name": "inline-uninstall-cancel-confirm-and-normal-chrome-restart-with-persisted-updated-data",
+        "status": "PASS"
+      }
+    ],
+    "checksPassed": 16,
+    "checksFailed": 0,
+    "negativeExternalCases": 8,
+    "interruptions": {
+      "A1": "PASS",
+      "A2": "PASS",
+      "B": "PASS",
+      "C": "PASS"
+    },
+    "chromeNormalExits": 2,
+    "uiEvidence": {
+      "layout": 23,
+      "zoom": 4,
+      "keyboard": 101
+    },
+    "registeredToolsDirectWritesFromDriver": 0,
+    "recoveryRegistrySubmissions": 0,
+    "unexplainedRuntimeExceptions": 0,
+    "consoleErrors": 0,
+    "extensionId": "nmeilgnolfnnlopgjoijdafbkelekcbj",
+    "packageHash": "df3e2a7552577d0a6386075a6cb017fdf8145a2c1886635c80265dad090efcc2",
+    "siteBuildId": "0526637ef3accd46a6c150e0d3f4d6eeefbbec36941a06700b161af6a80025f5",
+    "siteBuildManifestSha256": "e6e16a2573d7a549ba4c2c182207e3e6cb17761edad90327d1ef88cb40878309",
+    "artifact": {
+      "id": 11741732191,
+      "name": "market-r5-http-ubuntu-latest-3744be088240124d3ab803ef10c2c0256e787b37",
+      "originalResult": "artifacts/app-market-r5/native/native-result.json",
+      "originalSha256": "7954e6fbbed41c8c9977a055685dedef57fd542199718d509345274df9b9f93b"
+    },
+    "result": "REAL_CHROME_MARKET_R5_PASS"
+  },
+  "macos": {
+    "origin": "http://127.0.0.1:43132",
+    "chromeVersion": "155.0.8059.39",
+    "websiteFileCount": 59,
+    "checks": [
+      {
+        "name": "real-browser-sender-and-live-document-verification",
+        "status": "PASS"
+      },
+      {
+        "name": "public-routes-search-filters-responsive-dark-refresh-404",
+        "status": "PASS"
+      },
+      {
+        "name": "two-real-valid-pending-candidates-cannot-replace-each-other",
+        "status": "PASS"
+      },
+      {
+        "name": "trusted-install-result-open-action-reaches-current-installed-tool",
+        "status": "PASS"
+      },
+      {
+        "name": "http-real-sender-fixed-review-first-install-close-website-then-confirm-and-real-markdown-use",
+        "status": "PASS"
+      },
+      {
+        "name": "real-website-five-second-timeout-does-not-claim-uninstalled-and-explicit-reconnect",
+        "status": "PASS"
+      },
+      {
+        "name": "native-worker-prepared-before-create-and-created-before-persist-recovery",
+        "status": "PASS"
+      },
+      {
+        "name": "native-consumed-before-first-journal-interruption-never-replays-and-explicitly-closes-unknown",
+        "status": "PASS"
+      },
+      {
+        "name": "actual-browser-origin-port-iframe-protocol-fields-id-and-conflict-rejections",
+        "status": "PASS"
+      },
+      {
+        "name": "already-installed-is-read-from-extension-and-old-fixed-version-stays-missing",
+        "status": "PASS"
+      },
+      {
+        "name": "real-worker-stop-observed-and-http-wakeup-preserves-identity",
+        "status": "PASS"
+      },
+      {
+        "name": "website-fixed-revision-real-batch-skips-installed-preserves-operation-ids-and-reloads",
+        "status": "PASS"
+      },
+      {
+        "name": "native-registry-committed-page-interruption-recovers-original-operation-and-user-data",
+        "status": "PASS"
+      },
+      {
+        "name": "baseline-change-requires-new-review-and-official-update-preserves-user-data",
+        "status": "PASS"
+      },
+      {
+        "name": "separate-site-authorization-and-standard-demo-heading-navigation",
+        "status": "PASS"
+      },
+      {
+        "name": "inline-uninstall-cancel-confirm-and-normal-chrome-restart-with-persisted-updated-data",
+        "status": "PASS"
+      }
+    ],
+    "checksPassed": 16,
+    "checksFailed": 0,
+    "negativeExternalCases": 8,
+    "interruptions": {
+      "A1": "PASS",
+      "A2": "PASS",
+      "B": "PASS",
+      "C": "PASS"
+    },
+    "chromeNormalExits": 2,
+    "uiEvidence": {
+      "layout": 23,
+      "zoom": 4,
+      "keyboard": 101
+    },
+    "registeredToolsDirectWritesFromDriver": 0,
+    "recoveryRegistrySubmissions": 0,
+    "unexplainedRuntimeExceptions": 0,
+    "consoleErrors": 0,
+    "extensionId": "oibdecbpklpnlljpiolnkgpohmpflnmj",
+    "packageHash": "20672ab1f074cc086920039ad6498d5c8e533e42ea699d4eda466700375af158",
+    "siteBuildId": "ba4c16d2de8ddea656e0bde112e2f4aea009218f8c5c3e79f052ee67542ccec8",
+    "siteBuildManifestSha256": "01dc51dbd20e949740f0ec4bc0aba13a9d6d7e2c1c226ca69758f8de93ef5a94",
+    "artifact": {
+      "id": 11741938035,
+      "name": "market-r5-http-macos-15-3744be088240124d3ab803ef10c2c0256e787b37",
+      "originalResult": "artifacts/app-market-r5/native/native-result.json",
+      "originalSha256": "56c326cb266a92f290bf372897f1893b14ce666797f096fa7321a9babdce9ee8"
+    },
+    "result": "REAL_CHROME_MARKET_R5_PASS",
+    "actualMacChrome": "PASS"
+  },
+  "production": {
+    "result": "REAL_CHROME_FIXTURE_PASS",
+    "platform": "linux",
+    "extensionId": "jhajepcnohiplmafaiokjlcagcfjgaap",
+    "packageHash": "4ad4bc83493acfaf2325a9df8b4ca7857a8086a5806606e919018d257a313cb7",
+    "normalBrowserExits": 3,
+    "environmentTests": {
+      "pass": 1528,
+      "fail": 0,
+      "skip": 7
+    },
+    "artifact": {
+      "id": 11740959365,
+      "name": "market-r3-production-native",
+      "originalResult": "artifacts/app-market-r3/native-result.json",
+      "originalSha256": "723402e199fbe4ce24755eeef7caf23fba028232c05b10986a2dbc8e233050ba"
+    }
+  },
+  "visualReview": {
+    "source": "original Chrome screenshots; no alterations or generated replacements",
+    "files": [
+      {
+        "platform": "macos",
+        "path": "artifacts/app-market-r5/native/r5-home-320.png",
+        "sha256": "b780bac53960b6bcc290532afedd2899d6f9a11538be731ef357140bf31faaba"
+      },
+      {
+        "platform": "macos",
+        "path": "artifacts/app-market-r5/native/r5-trusted-review-200-action-visible.png",
+        "sha256": "f676e116e40794e629a7f75e6a715133b629942d6628450414a15f13974e5cf6"
+      },
+      {
+        "platform": "linux",
+        "path": "artifacts/app-market-r5/native/r5-home-320.png",
+        "sha256": "aa07b1c24af58ae3d16f280c3a04a7aafc5b37c0cb18f10077cd8ee1fe3d71d0"
+      },
+      {
+        "platform": "linux",
+        "path": "artifacts/app-market-r5/native/r5-trusted-review-200-action-visible.png",
+        "sha256": "3903bbbd9fa6abe2b9bd6f82e97612bd29699d993b785937d36f527da14cd75b"
+      }
+    ]
+  },
+  "reuse": {
+    "candidate": "REUSE_RECORDED_PASS",
+    "latestMain": "AFFECTED_INPUTS",
+    "reason": "Subsequent main changes include src/sw.js scheduled alarms, src/ui/sidebar-tools/package.js expanded v2 capabilities, src/ui/sidebar-tools.js SDK and Side Panel flows, src/ui/tool.html scheduled UI, and src/ui/tool-shell.css. Existing CI PASS stays scoped to candidateCommit; current HEAD requires new affected native tests.",
+    "affectedPaths": [
+      "src/sw.js",
+      "src/ui/sidebar-tools/package.js",
+      "src/ui/sidebar-tools.js",
+      "src/ui/tool.html",
+      "src/ui/tool-shell.css"
+    ]
+  },
+  "status": {
+    "candidateLocalHttp": "PASSED_BOTH_LINUX_MACOS_NATIVE",
+    "candidateProductionBrowser": "PASSED",
+    "latestMain": "AFFECTED_INPUTS_RETEST_REQUIRED",
+    "officialHttps": "BLOCKED",
+    "userLocalMacProfile": "NOT_TESTED"
+  },
+  "notTested": [
+    "formal-https-and-web-store-channel",
+    "configured-production-manifest-real-chrome",
+    "user-local-mac-profile",
+    "native-tabs-create-acknowledgement-loss",
+    "native-storage-set-acknowledgement-loss",
+    "native-capacity-and-artifact-corruption-faults",
+    "real-30-minute-intent-expiry",
+    "natural-idle-worker-shutdown"
+  ],
+  "limitations": [
+    "Chrome API acknowledgment loss is not the same as caller interruption.",
+    "CI macOS 15 is not a test on the user's local Mac profile.",
+    "Retained original ZIP artifacts may expire under GitHub Actions retention; the native JSON SHA-256 binds the unedited original file.",
+    "A file/link alone is not proof that production HTTPS is deployed."
+  ]
+}

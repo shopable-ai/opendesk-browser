@@ -196,10 +196,12 @@ export function createNativeAgentService({api=globalThis.chrome,hostPorts=new Ma
       if(msg?.v===AGENT_VERSION&&msg.kind==='hello'&&!ready) {
         workflowAiVersion=msg.workflowAiVersion===1?1:0;ready=true;
         files.negotiate(msg.localFilesVersion);
+        projects.negotiateSource(msg.localDevSourceVersion);
         try{connected.postMessage({v:AGENT_VERSION,kind:'welcome',extensionId:api.runtime.id,
           extensionVersion:api.runtime.getManifest().version,localDevVersion:1,localDevMultiVersion:msg.localDevMultiVersion===1?1:0,localFilesVersion:1,
           ...(workflowAiVersion===1?{workflowAiVersion:1}:{}),
-          ...(msg.localDevAccessVersion===1?{localDevAccessVersion:1}:{})});}catch{connected.disconnect();}
+          ...(msg.localDevAccessVersion===1?{localDevAccessVersion:1}:{}),
+          ...(msg.localDevSourceVersion===1?{localDevSourceVersion:1}:{})});}catch{connected.disconnect();}
         workflowAI.publish();
       }else if(ready&&workflowAI.receive(msg)){ /* isolated workflow AI protocol */ }
       else if(ready&&projects.receive(msg)){ /* read-only project transport */ }

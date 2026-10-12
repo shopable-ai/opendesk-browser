@@ -2,6 +2,80 @@
 
 日期：2026-10-12。集成者：本轮 `/root`；分支：`main`。
 
+## R5 双平台真实 Chrome 验收与最新 main 影响核对（2026-10-12）
+
+**原始候选：** `3744be088240124d3ab803ef10c2c0256e787b37`，仅写入 `main`，未创建分支或 Worktree。完整 [GitHub Actions run 38237391020](https://github.com/shopable-ai/opendesk-browser/actions/runs/38237391020) 的三个关键 Job 均为 `success`：Linux R5 HTTP Native、macOS 15 R5 HTTP Native、生产包 Market Native。以下是真实运行候选的事实，不表示未来任意 `main` 构建自动继承。
+
+**本轮结果：本地 HTTP 官网到扩展的官方工具真实安装、使用和必要恢复已在 Linux 与 macOS Chrome 通过；正式 HTTPS 上线未测试且被配置输入阻塞。** 当前官网版本数由源目录决定，不再沿用历史“五个工具全部未安装”假设。
+
+| 验收项 | Linux Chrome for Testing | macOS 15 Chrome for Testing | 证据及边界 |
+| --- | --- | --- | --- |
+| 网站 `http://127.0.0.1:43132` → 外部消息 → 可信页 → 安装 → 打开使用 | **PASS，16/16** | **PASS，16/16** | 原生扩展与实际 sender/document，`r5.result=PASS`、`publicWebsite=REAL_HTTP_CHROME_PASS`；不直接写安装记录 |
+| 网站布局与键盘 | 布局 23、真实缩放 4、键盘观察 101 | 布局 23、真实缩放 4、键盘观察 101 | 原始截图含 320px、深色、可信审阅、125%/200% 和用户可见焦点；仅对实测界面有效 |
+| 外部不可信请求拒绝 | 8 项实测 | 8 项实测 | 错协议、额外字段、任意运行入口、错误扩展 ID/端口、iframe、重复 ID 冲突等；未运行通用 RPC |
+| 交接中断与恢复 | A1/A2/B/C **PASS** | A1/A2/B/C **PASS** | 真实 Worker 停止、可信页关闭，恢复沿用原事务与候选；C 恢复期间安装注册表再次提交 **0 次** |
+| 五秒连接超时、固定套装、版本、更新数据、网站授权、卸载和重启 | **PASS** | **PASS** | 分别验证真实超时后连接、固定 reading-kit、网页笔记迁移数据及标准 demo 网页，浏览器各正常退出 2 次 |
+| 产品运行错误 | 0 项未解释异常／0 项控制台错误 | 0 项未解释异常／0 项控制台错误 | 原执行上下文 ID 及加载包摘要有证据；应用正常流程没有自定义 JS 弹窗 |
+| 生产插件独立回归 | **REAL_CHROME_FIXTURE_PASS** | 本 Job 在 Linux；不能记为 macOS 生产包测试 | 环境 **1528 PASS、0 FAIL、7 SKIP**；独立生产扩展 ID 与包 SHA，三次正常 Chrome 退出 |
+| 正式 HTTPS 官网和用户本机 Chrome | **BLOCKED / NOT_TESTED** | **BLOCKED / NOT_TESTED** | 缺经核验的正式 HTTPS Origin、发行扩展 ID、官方下载 URL、部署权限和真实线上操作 |
+
+实际身份必须逐平台保存，不能把 Linux 的扩展 ID 或 build ID 写到 Mac：
+
+| 绑定字段 | Linux R5 | macOS R5 |
+| --- | --- | --- |
+| 扩展 ID | `nmeilgnolfnnlopgjoijdafbkelekcbj` | `oibdecbpklpnlljpiolnkgpohmpflnmj` |
+| 插件包 SHA-256 | `df3e2a7552577d0a6386075a6cb017fdf8145a2c1886635c80265dad090efcc2` | `20672ab1f074cc086920039ad6498d5c8e533e42ea699d4eda466700375af158` |
+| 站点 build ID | `0526637ef3accd46a6c150e0d3f4d6eeefbbec36941a06700b161af6a80025f5` | `ba4c16d2de8ddea656e0bde112e2f4aea009218f8c5c3e79f052ee67542ccec8` |
+| 原生结果 JSON SHA-256 | `7954e6fbbed41c8c9977a055685dedef57fd542199718d509345274df9b9f93b` | `56c326cb266a92f290bf372897f1893b14ce666797f096fa7321a9babdce9ee8` |
+
+两站均为精确开发 Origin `http://127.0.0.1:43132`。本候选官方目录摘要 `80bd653266e4c378ffd8b372fd12dc0f5c9a9d53f8617296c99e7e9bd98f302c`；7 个当前推荐工具、13 个受控固定发行、reading-kit revision 1/2/3 未改写。`quick-notes@1.1.1` 旧页面仍标记缺发行快照，没有伪造哈希或代换当前版。
+
+生产包独立 ID `jhajepcnohiplmafaiokjlcagcfjgaap`、包 SHA-256 `4ad4bc83493acfaf2325a9df8b4ca7857a8086a5806606e919018d257a313cb7`、原生结果 JSON SHA-256 `723402e199fbe4ce24755eeef7caf23fba028232c05b10986a2dbc8e233050ba`。
+
+**证据索引：** [`ci-38237391020/index.json`](evidence/app-market-r5/ci-38237391020/index.json)。它固定 CI Job、构建及实际身份、16 条原生检查名称、原始 GitHub Artifact ID、未经修改的 JSON SHA-256、重点截图 SHA-256 和未测试边界。原始 ZIP 可从该 CI 的 Artifacts 取回；若超出 Actions 保留期限，索引不会冒充仍能下载原件。旧候选的 FAIL/TAP/索引均原样保留。
+
+### 独立维度评分（仅针对 `3744be08` 的受测范围）
+
+分数是依据该候选设计、源码、原生 CI 与截图的**阶段工程评价**，不是用户可用性样本或正式商店审核结论。UI 和 UX 分开；本地 HTTP 和正式 HTTPS 分开。标 `待评`、低于 95 或缺必要证据的维度未验收完成，不能用平均分抵消。
+
+| 维度 | 设计 /100 | 实现 /100 | 证据等级及状态 | 未关闭问题／下一步 |
+| --- | ---: | ---: | --- | --- |
+| 产品定位与架构边界 | 97 | 96 | 代码与双平台真实 Chrome，候选 PASS | 各类型远程分发仍独立准入任务 |
+| 网站 UI 视觉、响应式 | 96 | 95 | Linux/Mac 真实截图、窄屏／深色／缩放／键盘 PASS | 低影响文字与更多实际屏宽可继续优化 |
+| 用户交互与可理解性 | 96 | 95 | 双平台网页点击、可信页、超时恢复和使用 PASS | 尚未开展外部非开发者观察研究 |
+| 真实安装、更新、卸载、使用 | 97 | 96 | 16+16 原生检查、生产真实生命周期 PASS | 用户私人 Mac Profile 未实测 |
+| 来源、权限与执行安全 | 97 | 95 | 真实 sender、开发 Origin、8×2 拒绝路径 PASS | 正式 HTTPS 源尚未启用；其他 Chrome 版本待测 |
+| 隐私与最小暴露 | 97 | 96 | 实际有限消息与源码拒绝规则 PASS | 公网上线后仍需检查部署日志及第三方资源 |
+| 固定版本、套装、事务一致性 | 96 | 95 | 3 个固定 revision、批次锁、四个中断窗口 PASS | 历史缺包保持不可用，30 分钟原生 TTL 未测 |
+| 本地 HTTP 开发可用性 | 97 | 97 | Linux/macOS 实际 43132/43111 与浏览器动作 PASS | 修改端口须重建对应两端来源 |
+| 正式 HTTPS 部署与渠道 | 95 | 待评 | 生产来源默认关闭的合同已测；**BLOCKED** | 需正式域名、扩展 ID、官网获取地址、部署与线上原生测试 |
+| 兼容性、性能与维护成本 | 96 | 94 | 两平台真实 Chrome 155 与包校验 PASS | 跨版本／性能样本不足；之后主分支输入变更 |
+| 故障恢复与真实验收完整性 | 97 | 93 | A1/A2/B/C 双平台原生中断 PASS，原始失败保留 | API ACK 丢失、实际配额不足/损坏、自然空闲 Worker/完整 30 分钟 TTL 等未原生验证 |
+
+适用于**本次已执行的测试集合**的 P0/P1 未发现未关闭项；它不等于所有未来异常路径已被证明无缺陷。对于最后两项实现低于 95 的维度和正式渠道，状态维持未达完整门槛。
+
+### 新 `main` 的复用边界
+
+**重要：`3744be08` 之后的并行 `main` 已修改受影响输入，不能将以上三个 Job 的 PASS 自动升格为新主分支 PASS。** 按仓库测试指南标记 `AFFECTED_INPUTS`：
+
+- `src/sw.js`：新增 Chrome Alarms / 定时任务唤醒入口，会影响 Worker 生命周期与异常清理。
+- `src/ui/sidebar-tools/package.js`：扩大已定义的 v2 Browser SDK 能力集合，应核对权限/候选验证不被绕过。
+- `src/ui/sidebar-tools.js`：新增 SDK／Side Panel 协调逻辑，影响工具宿主调用路径。
+- `src/ui/tool.html`、`src/ui/tool-shell.css`：定时任务界面和布局变动，需做受影响的焦点、标签与空间验证。
+
+本候选的 `official-tools/catalog.json`、`src/marketplace/external.js`、`intent.js`、`page.js`、`installation.js`、`scripts/build-market-site.mjs`、`scripts/market-channel.mjs` 的 Git blob 在该次比对中一致；以上五个变化文件为已证实的影响项，其他传递依赖仍须由新 CI 做实际构建和行为核对。以最新 `main` R5 workflow 的原始结果判断复验是否通过，不应重复运行全部无关框架测试，也不覆盖别的 Agent 的代码。
+
+### 仍需执行且不得改称已完成
+
+- 完整 30 分钟意图自然过期与 Chrome 自然空闲 Worker 关闭；
+- `tabs.create`、`chrome.storage.local.set` 浏览器 API 回执丢失的真实容错，非仅关闭调用者；
+- 真正的配额不足、损坏包与更多异常源的故障注入；
+- 正式 HTTPS（已核验域名、实际发行 ID、正式获取渠道和线上 Chrome 交接），以及用户本地 Mac Profile 的确认。
+
+启动方式：`npm run build:dev` → `npm run build:market-site` → `python3 -m http.server 43132 --bind 127.0.0.1 --directory dist/app-market-public`；或用已提交的 `npm run dev:market` 统一启动本地网站。两种方式均需要加载同一来源配置构建的开发扩展，扩展实际 ID 应与生成的 channel 一致；正式构建默认不接受 loopback。
+
+---
+
 ## 固定范围与执行状态
 
 `IN_PROGRESS`，首个 main 实施提交已推送，真实 Linux／Mac CI 已发现兼容性及驱动问题，正在修复并补测。开始基线 `67fefdac3f5576cb7f3dc042149d95ca046810c7`，检出目录 `/workspace/scratch/58f5833cea67/opendesk-browser`，开始时无未提交差异。期间先后安全快进到 `df1ce25a`、`50456353`，保留 R27、Workspace、Page、Cloud Control、Time Review 与计划任务的并行修改。用户已授权在 main 修改、测试、提交与正常推送；不创建分支/worktree，不公网发布。
@@ -181,3 +255,49 @@ FIX7 已于 2026-10-12 09:53 UTC 以 `13afc33f62f606fe8edf39124ebeb4acf0c89f60` 
 FIX8 将主动观察失败变成不可重试的结果并在外层立即抛出，保存 `NOT_OBSERVED`、原始错误及完整 DOM 转移。成功标记只在实际 callback 完成后写入。网站客户端是 ES module；没有猜测读取模块局部变量，也没有增加产品测试接口。临时只读观察器要求同一个真实 HTTP 页面恰好一次 `isTrusted` 点击、按钮禁用且显示“正在连接”、再恢复可用并取得新 CONNECTED 回执；旧文案、非可信点击、导航、超时、缺少中间状态全部拒绝。真实按钮点击仍走原有限 PROBE，未修改 sender、按钮状态、产品响应或安装存储。
 
 新增组件分别验证回执拒绝条件和失败不可被下一次“目标已消失”覆盖；它们只是观察器组件证据，不能替代 Mac/Linux Chrome 新候选复验。原运行失败记录与 FIX7 原件继续保留。已检查并正常快进至 `7aac9968` 的并行 Page/浏览器 SDK 文件，未与本轮写入文件重叠。
+
+
+## 最新主分支重新验收：Service Worker target 与实际执行分离
+
+在既有双平台 PASS 候选 `3744be08` 后，其他工作流修改了 Worker 定时唤醒、Sidebar Tool Browser SDK 能力及 UI。必须遵照上方 `AFFECTED_INPUTS` 重新验收。新候选 [CI 38250231218](https://github.com/shopable-ai/opendesk-browser/actions/runs/38250231218) 发现：
+
+- Linux R5 原生到 `r5-worker-stop-and-http-cold-reconnect` 之前的官网首装、真实 5 秒超时、A1/A2/B 中断等阶段已经执行；在 `actual prior worker target ended` 上超时，原验收仅等待 `Target.closeTarget` 后原 DevTools target ID 消失。**整轮失败**，不能把已运行阶段等同最终 PASS。
+- macOS R5 同次候选 Job 通过；两平台行为差异说明不能用目标 ID 生命周期代表 Worker V8 执行生命周期。
+- 生产原生生命周期本身仍 `REAL_CHROME_FIXTURE_PASS`，但完整环境回归出现两项 jQuery／Page 框架指令测试失败（`builtin-jquery.test.mjs`、R24.2 opt-in 合同）；属于并行 Page/公共库输入变化，保留原件、由对应工作流核对，不通过删除断言或改变 R5 来源/权限来消除。
+
+本轮对 `tests/helpers/app-market-r5-native.mjs` 的冷重连验证作最小重构：Chrome 的 `ServiceWorker.stopWorker` 只能指定当前真实 running version ID；成功后必须观察同 registration/script 的真实 `stopped` 事件，再核对原 target 确实消失，或同一 session 下旧 V8 uniqueContextId 已销毁且 `Runtime.evaluate` 返回精确 `-32602 uniqueContextId not found`。同时保证 HTTP PROBE 之前没有新的 running 版本；随后官网真实连接按钮动作唤起 Worker，验证新旧 uniqueContextId 不同、原 intent/review/operation 身份一致。保存 stopped event、上下文和 target 快照；不自行替换 browser sender、模拟 Worker 响应、直接写安装库或忽略失败。此修改必须由**下一次真实 Linux/macOS Chrome CI**确认，在取得完整原生收据前不能改写为 PASS。
+
+
+## 新 main 对 Worker 与 SDK 修改的 R5 影响复验（2026-10-12）
+
+受验候选 `6d71854b49fc2fcbace0047b8703b9c2c154211b`，原始 [Actions run #38262192082](https://github.com/shopable-ai/opendesk-browser/actions/runs/38262192082)。与首次 R5 成功候选 `3744be08` 分开记录，绝不跨包混用哈希。新候选继承定时任务 Chrome Alarms 与 Browser SDK 扩展等并行改动，R5 此轮不是重新建立市场安装服务。
+
+| 执行 | 当前结论 | 受验输入和明确证据 |
+| --- | --- | --- |
+| Linux CFT 155，官网到扩展真实安装 | **PASS**，16/16 原生专项、98/98 组件；来源拒绝 8 项、四个中断点 A1/A2/B/C、笔记更新数据保留、固定套装、网站单独授权、卸载和两次正常 Chrome 退出 | job `114855249892`；开发扩展 ID `nmeilgnolfnnlopgjoijdafbkelekcbj`、包 hash `23ed7262d092e29c903e175c837d669ced84aa0be06ac55780131549d35d3e0b`；`native-result.json` SHA-256 `8c3c0c88cc22d72c11d92fc7f2961af924154c50f218399adc117ad742646fc2` |
+| 本轮 Worker 真实停止再连接 | **PASS**。原生 `ServiceWorker.stopWorker`，匹配 running-version ID、stopped 事件和原 target 消失或原 uniqueContextId 实际失效，随后官网真实 PROBE 恢复；没有伪造 sender 或重复写安装表 | 该 Linux 原件 `r5.workerRestart`：本次走 `physical-target-absent`；目标 ID 不消失时仅接受严格上下文身份反证；相关修复 `52b7c9b3` |
+| 生产包 Chrome 安装、权限、两次重启、卸载和环境回归 | **PASS**，`REAL_CHROME_FIXTURE_PASS`，原生生命周期 13 阶段、正常 Chrome 退出 3 次、环境测试 1634 PASS／0 FAIL／7 SKIP | job `114855249452`；扩展 ID `jhajepcnohiplmafaiokjlcagcfjgaap`、包 hash `3d2f3031376e1fc7c136bb4e60182824b377f933b395a4f412f73fe5b239fdfd`；原始结果 SHA-256 `ce5fc5828b201b6ff5d813004bce647584456b620a76f334c60228f178c4d36d` |
+| macOS 15 CFT 155，官网到扩展真实安装 | **PASS**，16/16 原生专项、8 项负面拒绝、A1/A2/B/C 四个中断恢复与 Worker 真实停止后重连；0 次安装表重提交、2 次正常 Chrome 退出 | job `114855249827`；实际扩展 ID `oibdecbpklpnlljpiolnkgpohmpflnmj`、包 hash `c7ed813e6412f4ebb2976694c5798f9089ee7303b2e161adcffb6ddff3896bea`、站点 build ID `ba4c16d2de8ddea656e0bde112e2f4aea009218f8c5c3e79f052ee67542ccec8`；原始 `native-result.json` SHA-256 `f236b360effb8bbdfe54c6550d5b8eccd8122850b00419b32651f3331267c86b` |
+| 正式 HTTPS 实际安装 | **BLOCKED**，生产默认关闭外部通道 | 缺正式域名/Origin、Chrome Web Store 发行扩展 ID、经核验的官方获取 URL、部署访问权限；必须以真实线上 Chrome 验收 |
+
+这批 Linux/macOS 原生页面均源于 `http://127.0.0.1:43132`，受控目录 SHA-256 `80bd653266e4c378ffd8b372fd12dc0f5c9a9d53f8617296c99e7e9bd98f302c`；网站 build ID `0526637ef3accd46a6c150e0d3f4d6eeefbbec36941a06700b161af6a80025f5`、59 个产物。真实恢复期间观察到 **0 次工具安装注册表重新提交**、未解释 runtime exception 和 console error 均为 0。**两平台分别**有 23 项布局、4 次真实浏览器缩放、101 条键盘操作记录；真实用户网站按 Chrome 浏览器提供的扩展 ID 而非固定开发包 ID 连接。
+
+上一轮生产全环境的 jQuery 声明与多库错误码失败，已经通过其对应公共库工作流修复与本候选绿色结果关闭；市场没有另造依赖解析器、破坏多库 API 或删除失败测试。原失败仍留在旧 run。较早 Linux CI 因 Chrome 保留 Worker target ID 而失败，修复后现在以真实 version、V8 context 和 HTTP 网站现有 PROBE 实测。
+
+[机器可读原始证据索引](evidence/app-market-r5/ci-38262192082/index.json) 同步绑定 commit／job／原件路径与 SHA-256／包／网站 ID／原生检查／未测试项，Actions Artifact 原始 ZIP 有 GitHub 保留期限，索引不假装 ZIP 永久可获取。
+
+**复用限制与单项评分：** 当前候选已执行的定位架构、UI、UX、安装、来源安全、隐私、固定发行、开发 HTTP 部分沿用上文有来源的设计/实现评分（分别 ≥95）；兼容性能维护仍是设计 96／实现 94，恢复与真实验收完整性仍是设计 97／实现 93，正式 HTTPS 是设计 95／实现待评 BLOCKED。不得用本次 Linux/macOS 或生产包 PASS 自动把这三项改为 ≥95。新的 `main` 如修改 Service Worker、工具包准入、权限、官方目录或测试观察器，先按测试指南核对具体变化，再判 `AFFECTED_INPUTS` 并只对受影响路径补验。
+
+仍须原生验证：浏览器 `tabs.create` / `storage.local.set` API **本身 ACK 丢失**（区别于已测调用者中断）、真实配额不足与损坏包、完整 30 分钟 TTL、Worker 自然空闲关闭、用户自己的 Mac Profile 与正式 HTTPS。远程 Page、sandbox、Task 整包分发另需签名信任根/撤回/密钥轮换/各类型准入，不在 R5 扩大网站消息能力。
+
+
+## 并行 Native Workspace 图标包校验阻塞与恢复（2026-10-12）
+
+在 R5 新候选 `6d71854b` 的 Linux/macOS 真实安装与生产包三项均为 PASS 后，另一个 Workspace 文件树图标工作流于 `bebdf4dd7478db3ecb782da8ef2b8d4857dc61ea` 修改了 `src/native-agent/workspace.html` 和 `scripts/verify-package.mjs`。其 [run 38263164441](https://github.com/shopable-ai/opendesk-browser/actions/runs/38263164441) 的市场三个 Job 均在 **build/verify 阶段**报 `Unsafe HTML attributes in native-agent/workspace.html`，尚未启动本候选的 R5 浏览器交接；这不是安装协议拒绝或 R5 原生场景失败。原失败继续保存，不得按旧成功结果涂绿。
+
+原因是内联 SVG 形状标签未满足当前包扫描器的严格 HTML 属性解析约束。Workspace 作者随后以 `907326963b68d52bef76deb0ac140ac394c194c9` 修正 SVG 形状闭合，未修改 R5 独立站或外部安装器。新候选的 [固定资源与包预算 CI 38263803784](https://github.com/shopable-ai/opendesk-browser/actions/runs/38263803784) 为 **SUCCESS**，11 项包校验变异和资源边界检查 PASS，包括失效 Workspace HTML、资源注入、CSS 动态 import、固定 entry 与双模式打包拒绝。后续完整 GitHub 分发包应继续以其自身源码/打包身份验证。
+
+**证据复用决定：** `6d71854b` 的 R5 双平台 16/16 和生产组件/原生 PASS 仍按原固定包永久保留。`90732696` 及后续 `main` 的 Workspace HTML 改动是包构建的 `AFFECTED_INPUTS`，已有包级 CI 验证；未做新编译候选的 R5 全链路时，不称最新版包已获 R5 新原生 PASS。对于市场自身安装协议、候选/摘要/权限、消费标记和事务逻辑，未发现这些 Workspace 编辑改变其输入；按测试指南先复用原场景结论并记录差异，不因无关 UI 改动重复耗费全量 Chrome 测试。
+
+本轮本会话没有撤销、删除或覆盖 Workspace 并行成果，也没有为了获取测试绿色而放松 `inspectHTML`、禁用危险标签/CSP 校验或直接操作 `dist`。正式 HTTPS 和原生 ACK 故障注入仍维持本工作流前述 **BLOCKED / NOT_TESTED**。
+

@@ -2,6 +2,12 @@
 
 日期：2026-10-12。实现入口及逐项结果见 [R5 工作流](../../framework/workstreams/app-market-r5.md)。本文描述已写入源码的合同；源码、组件、真实 Chrome、本机 Mac 与正式 HTTPS 的完成状态分别记录，不能互相替代。
 
+## 实施与验证状态（2026-10-12）
+
+受测候选 `3744be088240124d3ab803ef10c2c0256e787b37` 的 [Linux/macOS R5 HTTP 原生安装和生产包验收](https://github.com/shopable-ai/opendesk-browser/actions/runs/38237391020) 三个作业均通过。Linux/macOS 各 16 个专项场景覆盖官网交接、可信审阅、安装、工具真实使用、固定版本与套装、五秒超时、错误请求拒绝、A1/A2/B/C 中断恢复、用户数据保留及 Chrome 正常重启。实际证据的扩展 ID、版本、包、网页 build 和未测边界见 [R5 机器索引](../../framework/workstreams/evidence/app-market-r5/ci-38237391020/index.json) 与 [R5 工作流](../../framework/workstreams/app-market-r5.md)。
+
+这证明的是**该候选的本地 HTTP 闭环**，不是正式官网已上线或后续变更后的 `main` 自动验收。之后 `main` 对 Worker 定时唤醒、Browser SDK 能力、工具页和 Side Panel 进行了并行修改，必须按 `AFFECTED_INPUTS` 复查新的构建与受影响的原生链路。正式 HTTPS 缺经核验的 Origin、发行扩展 ID、获取链接及部署前提，保持 `BLOCKED`。真实 Chrome API 回执丢失、配额不足、完整 30 分钟 TTL 和自然空闲关停等仍是独立 `NOT_TESTED`，不能与本轮物理中断等同。
+
 ## 1. 本轮固定范围与路线
 
 交付范围在实施开始时固定为：独立网站源码和完整构建、官方固定发行的受限交接、一次可信审阅、本地 HTTP 安装及实际使用、必要恢复、开发／生产隔离、版本归档、可部署产物及正式渠道合同。真实安装、使用和恢复是验收要求，不因环境受限而改称后续功能。未完成的证据必须在工作流保留 `BLOCKED`／`NOT_TESTED`。

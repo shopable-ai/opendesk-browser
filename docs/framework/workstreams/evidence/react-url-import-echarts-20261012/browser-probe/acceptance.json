@@ -1,0 +1,38 @@
+{
+  "status": "FAIL",
+  "startedAt": "2026-10-12T11:10:53.752Z",
+  "sourceHead": "ca75fff47fcc6aed02332797512188ac32a8c1ca",
+  "sourceWorkingTree": " M docs/framework/evidence/wxt/builds/build-production.json\n M scripts/remote-esm-modules.mjs\n?? evidence/react-url-import-r2/\n?? src/scripting/user-scripts/page-bundle.js\n?? src/scripting/user-scripts/remote-esm-contract.js\n",
+  "platform": "linux",
+  "chromeBinary": "/tmp/opendesk-r5-cft/chrome-linux64/chrome",
+  "chromeVersion": "Google Chrome for Testing 155.0.8059.39",
+  "headless": true,
+  "nativeHostConfigured": false,
+  "sandbox": "explicit --no-sandbox for this isolated root-container Chrome child",
+  "profile": "/tmp/opendesk-url-import-profile-ABDk5D",
+  "tests": [],
+  "network": [],
+  "limits": [
+    "Linux headless CFT, not user Mac Native acceptance."
+  ],
+  "packageHash": "f89bb13d13f1920038c6a1ea9c3e3b5b3686b4f3c59cbd9f032c85ec57c6a784",
+  "packageInput": "/workspace/scratch/6d8850e5cd8c/opendesk-browser/dist/production",
+  "loadedPackage": "/workspace/scratch/6d8850e5cd8c/evidence-research/probe-cft-baseline/extension",
+  "packageVerified": true,
+  "fixture": {
+    "url": "http://127.0.0.1:43111/demo-form.html",
+    "bytes": 48155,
+    "sha256": "c3844af84832e1d1722029d1ee10b828dc575468ff8e490f5d67fb77ede28443",
+    "transport": "task-owned HTTP proxy on OS-assigned loopback port",
+    "proxyPort": 37989
+  },
+  "error": {
+    "message": "Chrome DevTools timed out",
+    "stack": "Error: Chrome DevTools timed out\n    at waitFor (file:///workspace/scratch/6d8850e5cd8c/opendesk-browser/tests/framework/local-dev-cft-launcher.mjs:34:9)\n    at async launchLocalDevChrome (file:///workspace/scratch/6d8850e5cd8c/opendesk-browser/tests/framework/local-dev-cft-launcher.mjs:68:45)\n    at async main (file:///workspace/scratch/6d8850e5cd8c/evidence-research/page-url-import-linux-cft.mjs:215:18)\n    at async file:///workspace/scratch/6d8850e5cd8c/evidence-research/page-url-import-linux-cft.mjs:413:5",
+    "code": null
+  },
+  "cleanup": {
+    "profileRemoved": true
+  },
+  "finishedAt": "2026-10-12T11:11:15.403Z"
+}

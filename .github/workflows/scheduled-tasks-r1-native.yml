@@ -1,0 +1,71 @@
+name: Scheduled Tasks R1 installed Task real macOS Chrome
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/scheduled-tasks-r1-native.yml'
+      - 'tests/framework/scheduled-tasks-r1-native-mac.test.mjs'
+      - 'src/platform/tasks/schedule-*.js'
+      - 'src/platform/tasks/service.js'
+      - 'src/platform/host/authority.js'
+      - 'src/platform/host/broker.js'
+      - 'src/platform/host/controller-methods.js'
+      - 'src/platform/host/client.js'
+      - 'src/run-host.js'
+      - 'src/sw.js'
+      - 'src/ui/scheduled-task-*.js'
+      - 'src/ui/task-workbench.js'
+      - 'src/ui/tool-shell.js'
+      - 'src/ui/tool-shell.css'
+      - 'src/ui/tool.html'
+      - 'src/tool-document-url.js'
+      - 'src/ui/sidebar-tools/navigation.js'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  # GitHub concurrency permits only one pending run per group; with a busy
+  # main, ref-scoping silently replaces earlier pending native evidence.
+  # SHA isolation preserves each immutable candidate's actual Chrome result.
+  group: scheduled-tasks-r1-native-${{ github.sha }}
+  cancel-in-progress: false
+
+jobs:
+  scheduled-native-macos:
+    runs-on: macos-15
+    timeout-minutes: 16
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Locked offline-capable build dependencies
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Build real fixed WXT production extension
+        run: npm run build
+      - name: Verify installed package before Chrome launch
+        run: node scripts/verify-package.mjs dist/production
+      - uses: browser-actions/setup-chrome@v2
+        id: chrome
+        with:
+          chrome-version: '155.0.8059.39'
+      - name: Actual Task verification, alarm, runner tab, DOM effect, Run/Result and retirement
+        env:
+          OPENDESK_SCHEDULED_NATIVE: '1'
+          CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
+          SCHEDULE_NATIVE_OUT: artifacts/scheduled-tasks-r1-mac
+        run: node --test tests/framework/scheduled-tasks-r1-native-mac.test.mjs
+      - name: Retain native evidence and failures without turning failures into success
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: scheduled-tasks-r1-macos-${{ github.sha }}
+          path: artifacts/scheduled-tasks-r1-mac/
+          if-no-files-found: warn
+          retention-days: 14

@@ -1,0 +1,253 @@
+{
+  "capturedAt": "2026-10-12T11:43:20.506Z",
+  "repositoryHead": "259c6d56a52b64f0d01fbe03acc06d49a5beaef9",
+  "repositoryBranch": "main",
+  "worktreeChangesPresent": true,
+  "statusFile": "repository-status-before.txt",
+  "note": "The stated HEAD is the main baseline. Resolver identity covers actual merged worktree files recorded below; these task changes are not yet committed at measurement time.",
+  "buildInputRows": [
+    {
+      "file": "src/scripting/user-scripts/page-bundle.js",
+      "path": "/workspace/scratch/6d8850e5cd8c/opendesk-browser/src/scripting/user-scripts/page-bundle.js",
+      "bytes": 4488,
+      "sha256": "919f24a6f093f74d130ec866304629a91fea312c0b01d00849eb4e298d89bccf"
+    },
+    {
+      "file": "src/scripting/user-scripts/remote-esm-contract.js",
+      "path": "/workspace/scratch/6d8850e5cd8c/opendesk-browser/src/scripting/user-scripts/remote-esm-contract.js",
+      "bytes": 6809,
+      "sha256": "2b3f25786220c2001d12a00ebb02a165944ad532270424bd0817f356fb02ff52"
+    },
+    {
+      "file": "scripts/build-program-project.mjs",
+      "path": "/workspace/scratch/6d8850e5cd8c/opendesk-browser/scripts/build-program-project.mjs",
+      "bytes": 29166,
+      "sha256": "47296e1084f20bcd07b0cc6e8fefd677146133e270a941d629d4b9b82c9883c7"
+    },
+    {
+      "file": "scripts/validate-program-project.mjs",
+      "path": "/workspace/scratch/6d8850e5cd8c/opendesk-browser/scripts/validate-program-project.mjs",
+      "bytes": 21607,
+      "sha256": "8206ca04f2bf431855715d91383f2f031cecc1064bbd8f90e950b7f8c96020fe"
+    },
+    {
+      "file": "scripts/program-assets.mjs",
+      "path": "/workspace/scratch/6d8850e5cd8c/opendesk-browser/scripts/program-assets.mjs",
+      "bytes": 5238,
+      "sha256": "f4010853c7a467484a8cde7db156dea17a790ad7c0a661627483753282f9795b"
+    },
+    {
+      "file": "scripts/program-entry.mjs",
+      "path": "/workspace/scratch/6d8850e5cd8c/opendesk-browser/scripts/program-entry.mjs",
+      "bytes": 4349,
+      "sha256": "6861aedaa36083aa9d0dd75b1b7f673268828add85de7c0e6c19a13ee03cebd1"
+    },
+    {
+      "file": "scripts/page-component-entry.mjs",
+      "path": "/workspace/scratch/6d8850e5cd8c/opendesk-browser/scripts/page-component-entry.mjs",
+      "bytes": 1715,
+      "sha256": "bb0f9d64f8313d0e3bdd7e8d0666f05a1eff76cce3ef1b6f919cce9d2d1d73e8"
+    },
+    {
+      "file": "scripts/page-jsx-loader.cjs",
+      "path": "/workspace/scratch/6d8850e5cd8c/opendesk-browser/scripts/page-jsx-loader.cjs",
+      "bytes": 668,
+      "sha256": "f6187f7688a879e1bf7384215fbc30cf3a21995ab81f69faaca656e7592c4fad"
+    },
+    {
+      "file": "scripts/page-vue-sfc-loader.cjs",
+      "path": "/workspace/scratch/6d8850e5cd8c/opendesk-browser/scripts/page-vue-sfc-loader.cjs",
+      "bytes": 665,
+      "sha256": "445820ddd3747fd025191a13e4c920dee3294b336a569f32e7d090b2b763fdf7"
+    },
+    {
+      "file": "src/libs/page-frameworks/contract.js",
+      "path": "/workspace/scratch/6d8850e5cd8c/opendesk-browser/src/libs/page-frameworks/contract.js",
+      "bytes": 7730,
+      "sha256": "860fb82620dfb324c54cf5b8453a189c62532ddacf33e3ce1922fcc106bfbc8d"
+    },
+    {
+      "file": "src/libs/page-frameworks/vue-compiler-contract.js",
+      "path": "/workspace/scratch/6d8850e5cd8c/opendesk-browser/src/libs/page-frameworks/vue-compiler-contract.js",
+      "bytes": 658,
+      "sha256": "5bbf2b841ef76f890465240191032c9bd57ee67f79b6f780a8ec6bb32f95162e"
+    },
+    {
+      "file": "src/libs/page-frameworks/vue-sfc-transform.js",
+      "path": "/workspace/scratch/6d8850e5cd8c/opendesk-browser/src/libs/page-frameworks/vue-sfc-transform.js",
+      "bytes": 4401,
+      "sha256": "15a8135c2ab19a659fb5fdee369450886235dee78d902b828f536328272685d8"
+    },
+    {
+      "file": "src/libs/page-frameworks/vue-sfc-compiler-3.5.22.mjs",
+      "path": "/workspace/scratch/6d8850e5cd8c/opendesk-browser/src/libs/page-frameworks/vue-sfc-compiler-3.5.22.mjs",
+      "bytes": 1071582,
+      "sha256": "19be293a11bd724a1252d745c406d69275f44c77ab922df27ca4a484a5a5b2b1"
+    },
+    {
+      "file": "scripts/remote-esm-modules.mjs",
+      "path": "/workspace/scratch/6d8850e5cd8c/opendesk-browser/scripts/remote-esm-modules.mjs",
+      "bytes": 18098,
+      "sha256": "a8597577f7c773b7877e364017b351d95fce9aed49874c9230e7d0e1aa70456a"
+    },
+    {
+      "file": "native-agent/local-dev/resolver.mjs",
+      "path": "/workspace/scratch/6d8850e5cd8c/opendesk-browser/native-agent/local-dev/resolver.mjs",
+      "bytes": 23861,
+      "sha256": "dac46410cc426eae2888b7f9730ff2dbf14f6ebf773ff31e110f2931f45e0ad4"
+    },
+    {
+      "file": "native-agent/local-dev/snapshot.mjs",
+      "path": "/workspace/scratch/6d8850e5cd8c/opendesk-browser/native-agent/local-dev/snapshot.mjs",
+      "bytes": 6992,
+      "sha256": "327671d538b77611f0ee86b6c976f0bdb8d51099db20d2a4f30f031cbde9979a"
+    },
+    {
+      "file": "src/scripting/user-scripts/page-program-contract.js",
+      "path": "/workspace/scratch/6d8850e5cd8c/opendesk-browser/src/scripting/user-scripts/page-program-contract.js",
+      "bytes": 6597,
+      "sha256": "a99517dbc6f97f8e4a3c2bd90477c7cf544466e42983cc286622f24b7fc4cc2c"
+    },
+    {
+      "file": "src/scripting/user-scripts/page-program-rules.js",
+      "path": "/workspace/scratch/6d8850e5cd8c/opendesk-browser/src/scripting/user-scripts/page-program-rules.js",
+      "bytes": 5869,
+      "sha256": "b92339ffa78ad52d450716c19bdcbc2feb1580481e2572c1b41f978f5331826a"
+    },
+    {
+      "file": "src/scripting/user-scripts/dependency-metadata.js",
+      "path": "/workspace/scratch/6d8850e5cd8c/opendesk-browser/src/scripting/user-scripts/dependency-metadata.js",
+      "bytes": 21982,
+      "sha256": "c4d7438caaf78b8759b3b9a6509a18208dc885fb7f1e51a51cab0ef935c0d042"
+    },
+    {
+      "file": "src/scripting/user-scripts/execution-source.js",
+      "path": "/workspace/scratch/6d8850e5cd8c/opendesk-browser/src/scripting/user-scripts/execution-source.js",
+      "bytes": 12544,
+      "sha256": "c27b9405e0925bea62043aa23c33a395c1eebe79f39bd0b377777c7b6af59f9d"
+    },
+    {
+      "file": "src/platform/tasks/contract.js",
+      "path": "/workspace/scratch/6d8850e5cd8c/opendesk-browser/src/platform/tasks/contract.js",
+      "bytes": 8316,
+      "sha256": "d523c6313e963e7a7f618a49d1ce3412dc37290e38676fa75c7e57780fe293e9"
+    }
+  ],
+  "toolRows": [
+    {
+      "name": "webpack",
+      "path": "/workspace/scratch/6d8850e5cd8c/opendesk-browser/node_modules/webpack/package.json",
+      "bytes": 12500,
+      "sha256": "7aff48065b623b44a5c774ccab3df84eb85830342509f4fd8165271a481ed404"
+    },
+    {
+      "name": "acorn",
+      "path": "/workspace/scratch/6d8850e5cd8c/opendesk-browser/node_modules/acorn/package.json",
+      "bytes": 1061,
+      "sha256": "9e422c8225c9cc4c774e9a9392d0ecac7f766b46122ef2db99db0fc4bbedc247"
+    },
+    {
+      "name": "terser",
+      "path": "/workspace/scratch/6d8850e5cd8c/opendesk-browser/node_modules/terser/package.json",
+      "bytes": 3214,
+      "sha256": "6631db224e4f623d31ece951d7bdf48f0df70372113af09f6323ea0c8b48e2e2"
+    },
+    {
+      "name": "terser-webpack-plugin",
+      "path": "/workspace/scratch/6d8850e5cd8c/opendesk-browser/node_modules/terser-webpack-plugin/package.json",
+      "bytes": 4433,
+      "sha256": "39c83fbb9613536d9e443bd7c26287fe019ea41636438c85509aaa2b434c0675"
+    },
+    {
+      "name": "esbuild",
+      "path": "/workspace/scratch/6d8850e5cd8c/opendesk-browser/node_modules/esbuild/package.json",
+      "bytes": 3980,
+      "sha256": "9d0bc453f4e791553c4cc2298ba023b409241fd9801e494741666eb0f6051490"
+    }
+  ],
+  "protocolInputRows": [
+    {
+      "file": "native-agent/local-project-source-contract.mjs",
+      "path": "/workspace/scratch/6d8850e5cd8c/opendesk-browser/native-agent/local-project-source-contract.mjs",
+      "bytes": 2704,
+      "sha256": "3044cec19a858ed797d6657c0ab4a3319b9dc3c5188722a828e41f290a0428bd"
+    },
+    {
+      "file": "native-agent/local-dev/frozen-source.mjs",
+      "path": "/workspace/scratch/6d8850e5cd8c/opendesk-browser/native-agent/local-dev/frozen-source.mjs",
+      "bytes": 3867,
+      "sha256": "8b1c8f0eb7a254c0b8c5020360493ae7072d4a730dcb9ec3c11fe7ae59b270e3"
+    },
+    {
+      "file": "native-agent/local-dev/provider.mjs",
+      "path": "/workspace/scratch/6d8850e5cd8c/opendesk-browser/native-agent/local-dev/provider.mjs",
+      "bytes": 12846,
+      "sha256": "ff2cc79f6cb9df419280931e62e60bff9e5c1aeeca2d07d247e75cc059da9d19"
+    },
+    {
+      "file": "native-agent/local-dev/session.mjs",
+      "path": "/workspace/scratch/6d8850e5cd8c/opendesk-browser/native-agent/local-dev/session.mjs",
+      "bytes": 18273,
+      "sha256": "a94cbe458659fd8afcd1d15cdcab2b3127a47e381b519d928eead0a414283072"
+    },
+    {
+      "file": "native-agent/native-host.mjs",
+      "path": "/workspace/scratch/6d8850e5cd8c/opendesk-browser/native-agent/native-host.mjs",
+      "bytes": 13629,
+      "sha256": "228a1b819d080f076b7540055ced9330a3f4770db8efe4b764828f0272f9fd28"
+    },
+    {
+      "file": "native-agent/wire.mjs",
+      "path": "/workspace/scratch/6d8850e5cd8c/opendesk-browser/native-agent/wire.mjs",
+      "bytes": 2788,
+      "sha256": "1b656a5516e00511f326e914b0e539797179dea1bd8852810a6fa4bbe29d25d1"
+    },
+    {
+      "file": "src/native-agent/local-project-service.js",
+      "path": "/workspace/scratch/6d8850e5cd8c/opendesk-browser/src/native-agent/local-project-service.js",
+      "bytes": 4701,
+      "sha256": "fc86840581d3dbe0fc77d89bd64a5eca88fc84feab21d75a6d72c299b41f03d9"
+    },
+    {
+      "file": "src/native-agent/local-project-client.js",
+      "path": "/workspace/scratch/6d8850e5cd8c/opendesk-browser/src/native-agent/local-project-client.js",
+      "bytes": 5280,
+      "sha256": "285aa021c32a5dc2d915be378e97b22354270c65bc108e8f3f28d430bbd7e554"
+    },
+    {
+      "file": "src/native-agent/service-worker.js",
+      "path": "/workspace/scratch/6d8850e5cd8c/opendesk-browser/src/native-agent/service-worker.js",
+      "bytes": 17348,
+      "sha256": "4bd98d7d4cddce7dc757023e800039b2cbca8e0dce97568d2153b8c5a3e87a34"
+    }
+  ],
+  "measuredBuildIdentity": "e3cf68e80d8afc0e31d1753197fbac4f3767cf75d32ca3369d24d94f132aa8a2",
+  "helperRows": [
+    {
+      "file": "src/scripting/user-scripts/page-ui.js",
+      "path": "page-ui.js",
+      "bytes": 11130,
+      "sha256": "b0fa6efb8c2a2a0b3b8d62a49026e81cd210b57e1e085e5ac32203ec5d7987e8"
+    },
+    {
+      "file": "src/scripting/user-scripts/page-ui-mount.js",
+      "path": "page-ui-mount.js",
+      "bytes": 10735,
+      "sha256": "f29fd77df1fa432cd185ff19125f1b658a23214b00205fb9a6fbcca680968f7e"
+    },
+    {
+      "file": "src/scripting/user-scripts/page-program-rules.js",
+      "path": "page-program-rules.js",
+      "bytes": 5869,
+      "sha256": "b92339ffa78ad52d450716c19bdcbc2feb1580481e2572c1b41f978f5331826a"
+    },
+    {
+      "file": "scripts/page-jsx-loader.cjs",
+      "path": "page-jsx-loader.cjs",
+      "bytes": 668,
+      "sha256": "f6187f7688a879e1bf7384215fbc30cf3a21995ab81f69faaca656e7592c4fad"
+    }
+  ],
+  "inputHashPayloadFile": "input-hash-payload.json",
+  "inputHashReproduced": "5cd5fe05bf3f8092c3e064a74be3ced3934045f084fbc5b01feb8f464a8cc8f3"
+}

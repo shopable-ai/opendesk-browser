@@ -17,12 +17,16 @@ export function canonicalToolHostUrl(address,hostInstanceId){
     throw new TypeError('invalid host instance id');
   const url=new URL(address);
   const toolId=requestedToolId(url.href),previewId=requestedPreviewId(url.href);
+  const scheduledRunner=url.searchParams.getAll('scheduledRunner');
+  const runnerAlone=!url.searchParams.has('toolId')&&!url.searchParams.has('previewId');
   // The first navigation commits the stable sender URL. Never carry over
   // unapproved parameters or both mutually exclusive locators.
   url.search='';url.hash='';
   url.searchParams.set('hostInstanceId',hostInstanceId);
   if(toolId&&!previewId)url.searchParams.set('toolId',toolId);
   if(previewId&&!toolId)url.searchParams.set('previewId',previewId);
+  if(runnerAlone&&!toolId&&!previewId&&scheduledRunner.length===1&&scheduledRunner[0]==='1')
+    url.searchParams.set('scheduledRunner','1');
   return url.href;
 }
 

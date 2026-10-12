@@ -95,3 +95,35 @@ Linux CI 构建不能替代 Mac Chrome Gate 4 真实停止、副作用后中断�
 原 IDB 故障和执行宿主关闭验收。没有当前同身份原生证据时保持 NOT_TESTED。
 控制台关闭不应结束 Side Panel 正在执行的原 Run；Side Panel 关闭后也
 **不承诺继续挂机**。长期 Runner 正式开关仍未实现。
+
+
+## R3.2 · 任务领取主键、控制台筛选与本机验收入口
+
+- Side Panel 2 秒轮询现在同时避免了**读取全部云请求状态**和**每次领取前搜索全部历史请求**：`cloudStatus({includeRequests:false})` 只读连接/槽；`cloudNext` 使用配置中的 `pendingRequestId` 按原 `frameworkKV` 主键查询未执行请求。
+- 对旧版本没有该字段的配置，只做首次兼容读取，优先保留仍在有效期的原 waiting Assignment。新 Claim、Run 的原子准入、Stop 与重新批准会维护该指针；过期而未运行的请求只能记为 `E_LEASE`，不能复用失效许可执行 Worker。
+- 独立控制台状态筛选固定为：全部、waiting、prepared、permitted、finished、cancellation-pending、cancelled、OUTCOME_UNKNOWN。分页 `matchingTotal` 表示筛选结果条数；`requestTotal` 才是全历史条数。没有后端事实不模拟等待目标或 Host 就绪。
+- `src/cloud-control/host-owner-lease.js` 的单一 Host Owner Lease 仅是 dormant 测试基础，尚未连接实际 RunHost；**无法凭此文件关闭 Side Panel 持续挂机**。
+- 详细历史界面虽然限制了单次响应条数，但目前仍从原 `frameworkKV` 全表读取后筛选；大数据量原生游标/索引和内存性能仍待后续实施。
+- 受检生产/开发包必须核对自己的源码 SHA 和 packageHash。不能以已通过 Node CI 替代 Mac Chrome 真实运行中的 UI Stop、权限撤销及副作用后中断恢复。
+
+可供本地 Codex 直接执行的 R3 原生最终测试修复 GOAL：
+`docs/framework/prompts/cloud-control-r3-final-mac-chrome-acceptance.zh-CN.md`。
+先读取历史 `docs/framework/workstreams/cloud-control-r1.json` 的未完成
+`pendingUnknownCase`；禁止重新投递或重跑那个原副作用请求。
+
+## Cloud Control R4 · 同一 IDB 内的真正有限历史分页（源码候选）
+
+> R3.2 上文描述的是当时的已知缺口；以下 R4 实现为后续增量，原 R1/R3 事实和旧 CI 证据保持原样。
+
+- 独立控制台仍使用 `cloudObserve`，无云任务 claim/start/approve/stop 权限。Side Panel 的管理和领取权限仍要求真实 Chrome SIDE_PANEL sender。
+- 新的 `src/cloud-control/history-index.js` 在现有 v2 `frameworkKV` 里保存按命名空间、创建时间和状态排列的**脱敏派生索引**和同事务状态总数；原云 request、Run、Result 和回执的持久主键与数据库均不变。
+- 首次详细 Cloud 状态读取会在已授权 Side Panel 中原子建立历史索引；Observer 不执行任何迁移。已迁移后 `cloudStatus({includeRequests:true})` 和 `cloudObserve({state,offset,limit})` 通过原生 IDB 有界游标读取，不再先克隆全部 `frameworkKV`。
+- 查询最多返回 50 个脱敏条目；状态计数按持久索引维护，不能返回原请求 ID、目标 URL、params、credentials 或结果体。历史非常深的 offset 仍需要游标推进，不保证 O(1)。
+- 如果旧 schema、只读恢复或迁移前的索引尚未存在，查询可以沿用只读兼容读取；正式 Chrome Quota/回滚和 100/1,000/10,000 条真实耗时/内存测量仍为 `NATIVE_PENDING`。
+- **这不是“关闭 Side Panel 仍能云端挂机”**：`HostOwnerLease` 尚未接入云 Run admission/Worker，Scheduled 可见 Runner 没有获得 Cloud RPC 执行权限，跨本地/云端 FireId 幂等尚未完成。
+
+R4 架构与验收清单：
+`docs/architecture/browser-framework/cloud-control-r4.zh-CN.md`
+和 `docs/framework/workstreams/cloud-control-r4-20261012.md`。
+
+后续新增专项 CI：`.github/workflows/cloud-control-r4-idb.yml`，以独立 Linux Chrome for Testing 对**真实 IDB 引擎和 R4 游标代码**进行数据量与回滚微基准。此验证不安装完整扩展、不运行 Task、不替代 Mac Chrome Gate 4。

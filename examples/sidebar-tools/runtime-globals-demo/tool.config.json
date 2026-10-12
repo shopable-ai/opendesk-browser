@@ -1,0 +1,12 @@
+{
+  "id": "runtime-globals-demo",
+  "version": "1.0.0",
+  "title": "运行环境演示",
+  "description": "演示独立 Side Panel 工具使用 OpenDeskTool 授权桥，不依赖 Controller 或 Page 全局变量。",
+  "capabilities": ["currentPage.read"],
+  "files": {
+    "html": "src/index.html",
+    "css": "src/style.css",
+    "js": "src/main.js"
+  }
+}

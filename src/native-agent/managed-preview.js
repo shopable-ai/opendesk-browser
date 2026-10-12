@@ -20,7 +20,8 @@ export function createManagedUIPreview({worlds,assertHost,verifyTarget}){
     const row=rows.find(row=>row.worldId===record.worldId);
     invariant(row?.managed?.nonce===record.nonce,'E_UI_LIFECYCLE','受管界面身份已变化');
     invariant(({executing:['ready'],evaluated:['executing','retiring'],retiring:['evaluated'],retired:['retiring'],failed:['retiring'],discarded:['ready','executing']})[state]?.includes(row.managed.state),'E_UI_LIFECYCLE','受管生命周期状态已变化');
-    row.managed={...row.managed,state,...(receipt?{receipt}:{})};
+    row.managed={...row.managed,state,...(receipt?{receipt}:{}),
+      ...(state==='evaluated'&&receipt?{completion:receipt}:{})};
   });
   async function inspect(frozen,host){
     const value=frozen.managedUI;
