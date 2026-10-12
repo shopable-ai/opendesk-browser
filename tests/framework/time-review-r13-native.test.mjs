@@ -414,13 +414,47 @@ test('Time Review R1.3 actual Mac Chrome install and trusted consent smoke',{ski
     assert.equal(total(await readTime()),total(paused),'paused time never accumulates');
     evidence.pauseResume='PARTIAL';
     note('real-pause',{ms:total(paused)});
-    await browser.send('ServiceWorker.enable');
-    await browser.send('ServiceWorker.stopAllWorkers');
-    await nativeClick(browser,frame,'#refresh');
-    const recovered=await until(async()=>{const s=await readTime();return s?.paused?s:null;},
-      'SW wake after real stop',12000);
-    assert.equal(total(recovered),total(paused),'worker restarts preserve durable totals');
-    evidence.swRestart='PASS';note('real-service-worker-restart',{ms:total(recovered)});
+    // In Chrome 155 the ServiceWorker CDP domain is not exposed on the
+    // root Browser connection. First close the one observed extension worker
+    // target; fall back to the page-session domain only in this owned profile.
+    // A plain CDP detach is NOT a restart and cannot be reported as PASS.
+    const swBefore=(await browser.send('Target.getTargets')).targetInfos.filter(x=>
+      x.type==='service_worker'&&x.url?.endsWith('/sw.js'));
+    const oldSw=swBefore.length===1?swBefore[0]:null;
+    let stopConfirmed=false,stopMethod=null;
+    const stopErrors=[];
+    if(oldSw)try{
+      const response=await browser.send('Target.closeTarget',{targetId:oldSw.targetId});
+      stopConfirmed=response?.success===true;
+      if(stopConfirmed)stopMethod='Target.closeTarget';
+    }catch(e){stopErrors.push('Target.closeTarget: '+String(e).slice(0,180));}
+    if(oldSw&&!stopConfirmed)for(const session of [side,uiTarget.sessionId])try{
+      await browser.send('ServiceWorker.enable',{},session);
+      await browser.send('ServiceWorker.stopAllWorkers',{},session);
+      stopConfirmed=true;stopMethod='ServiceWorker.stopAllWorkers in page session';break;
+    }catch(e){stopErrors.push('ServiceWorker page session: '+String(e).slice(0,180));}
+    if(!stopConfirmed){
+      evidence.swRestart='BLOCKED';
+      note('worker-stop-blocked',{reason:'CFT did not expose a supported isolated worker termination method',
+        count:swBefore.length,errors:stopErrors});
+    }else{
+      await nativeClick(browser,frame,'#refresh');
+      const swAfter=await until(async()=>{
+        const rows=(await browser.send('Target.getTargets')).targetInfos;
+        return rows.find(row=>row.type==='service_worker'&&row.url?.endsWith('/sw.js')&&row.targetId!==oldSw.targetId)||null;
+      },'real replacement extension service worker target',12000).catch(()=>null);
+      if(!swAfter){
+        evidence.swRestart='BLOCKED';
+        note('worker-restart-not-confirmed',{method:stopMethod,oldTarget:oldSw.targetId});
+      }else{
+        const recovered=await until(async()=>{const s=await readTime();return s?.paused?s:null;},
+          'durable paused state after actual worker replacement',12000);
+        assert.equal(total(recovered),total(paused),'worker restart must preserve durable website totals');
+        evidence.swRestart='PASS';
+        note('real-service-worker-restart',{ms:total(recovered),method:stopMethod,
+          targetChanged:swAfter.targetId!==oldSw.targetId});
+      }
+    }
     await nativeClick(browser,side,'#sidebar-tool-settings-open');
     await nativeClick(browser,side,'#time-review-trusted-start');
     const resumed=await until(async()=>{const s=await readTime();return s&&!s.paused?s:null;},'trusted resume',10000);
