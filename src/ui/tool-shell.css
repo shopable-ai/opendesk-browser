@@ -708,8 +708,8 @@
 .cloud-my-copy{display:grid;gap:var(--space-1);flex:1;min-width:0}
 .cloud-my-copy strong{font-size:12px}
 #cloud-my-state{color:var(--od-sub);font-size:11px;line-height:1.5;overflow-wrap:anywhere}
-#cloud-my-open,#cloud-overview-refresh{flex:0 0 var(--od-icon-size)}
-#cloud-my-open svg,#cloud-overview-refresh svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+#cloud-my-open,#cloud-overview-refresh,#cloud-open-console{flex:0 0 var(--od-icon-size)}
+#cloud-my-open svg,#cloud-overview-refresh svg,#cloud-open-console svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .cloud-panel{min-width:0;gap:var(--space-3)}
 .cloud-panel-head{display:flex;align-items:center;justify-content:space-between;gap:var(--space-2);min-width:0}
 .cloud-panel-heading{min-width:0}
