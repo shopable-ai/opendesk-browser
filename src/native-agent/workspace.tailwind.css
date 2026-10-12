@@ -9,11 +9,13 @@
 @layer base {
   :root {
     font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC",system-ui,sans-serif;
-    font-size:13px; line-height:1.45; color-scheme:light;
+    /* Tailwind v4 uses rem: keep 1rem=16px for spacing, typography and breakpoints.
+     * The compact Workspace UI remains 13px on body rather than shrinking the rem scale. */
+    font-size:16px; line-height:1.45; color-scheme:light;
   }
   *,*::before,*::after {box-sizing:border-box}
   html {min-width:0; min-height:100%}
-  body {min-width:0; margin:0; background:var(--od-bg); color:var(--od-ink); overflow-wrap:anywhere}
+  body {min-width:0; margin:0; font-size:13px; background:var(--od-bg); color:var(--od-ink); overflow-wrap:anywhere}
   h1,h2,h3,p {margin:0}
   button,input,select,textarea {font:inherit}
   button,summary,select {touch-action:manipulation}
