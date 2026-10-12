@@ -881,3 +881,7 @@
 #workbench-cloud .cloud-task-choice input{flex:0 0 auto}
 #workbench-cloud .cloud-task-scope{font-size:10px;line-height:1.5;color:var(--od-sub);margin:0;overflow-wrap:anywhere}
 #workbench-cloud #cloud-approval-summary{font-size:11px;line-height:1.4;overflow-wrap:anywhere}
+
+#workbench-cloud .cloud-task-choice details{min-width:0}
+#workbench-cloud .cloud-task-choice details summary{font-size:11px;font-weight:600;cursor:pointer}
+#workbench-cloud .cloud-task-choice details pre{white-space:pre-wrap;overflow-wrap:anywhere;font-size:10px;line-height:1.5;max-height:200px;overflow:auto}
