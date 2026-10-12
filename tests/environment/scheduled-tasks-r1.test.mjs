@@ -18,6 +18,12 @@ function storageFake(){
         get:async(store,key)=>structuredClone(buckets.get(store).get(key)),
         put:async(store,row,key)=>{buckets.get(store).set(key,structuredClone(row));},
         all:async store=>structuredClone([...buckets.get(store).values()]),
+        scan:async(store,{prefix,direction='next',offset=0,limit=50})=>{
+          const rows=[...buckets.get(store).entries()].filter(([key])=>String(key).startsWith(prefix))
+            .sort(([a],[b])=>a<b?-1:a>b?1:0);
+          if(direction==='prev')rows.reverse();
+          return structuredClone(rows.slice(offset,offset+limit).map(([,value])=>value));
+        },
         delete:async(store,key)=>{buckets.get(store).delete(key);}
       });
       const next=queue.then(work);
@@ -345,4 +351,29 @@ test('R2 rebuilt service restores only schedule-prefixed Chrome Alarms without d
   const one=(await f.repo.ready())[0];
   await service().reconcile();
   assert.equal((await f.repo.ready())[0].fireId,one.fireId);
+});
+
+test('R2 native-prefix paging sorts generation 10 after 9 without mutating persisted FireId',async()=>{
+  const f=await fixture();let def=await f.repo.save(f.input);
+  for(let i=0;i<9;i++)
+    def=await f.repo.changeState({scheduleId:def.scheduleId,expectedGeneration:def.generation,
+      action:i%2===0?'pause':'resume'});
+  assert.equal(def.generation,10);
+  const base=millis('2026-10-13T10:00:00Z');
+  for(let i=0;i<25;i++){
+    const generation=i===24?10:9,at=base+i*60000;
+    const fireId=scheduleFireId(def.scheduleId,generation,at);
+    f.db.put('frameworkKV',fireKey(fireId),{
+      tag:'schedule-fire-v1',namespace:f.namespace,fireId,
+      scheduleId:def.scheduleId,generation,scheduledAt:at,deadlineAt:at+300000,
+      status:'MISSED',runId:null,resultId:null,createdAt:at
+    });
+  }
+  const first=(await f.repo.list())[0].history;
+  assert.equal(first.length,20);
+  assert.equal(first[0].generation,10,'generation 10 is newer than 9 regardless of key lexical order');
+  const older=await f.repo.history({scheduleId:def.scheduleId,offset:20,limit:20});
+  assert.equal(older.history.length,5);
+  assert.equal(older.hasMore,false);
+  assert.equal(older.history[0].scheduledAt,base+4*60000);
 });

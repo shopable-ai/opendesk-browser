@@ -22,14 +22,26 @@ export function createScheduleRepository({storage,clock,namespace,session}){
   const fires=async tx=>(await keyedRows(tx,'frameworkKV',SCHEDULE_FIRE_PREFIX))
     .filter(row=>row?.tag==='schedule-fire-v1'&&row.namespace===namespace);
   async function historySlice(tx,definition,offset=0,limit=20){
-    const prefix=SCHEDULE_FIRE_PREFIX+'sched:'+definition.scheduleId+':';
-    const rows=typeof tx.scan==='function'?
-      await tx.scan('frameworkKV',{prefix,direction:'prev',offset,limit:limit+1}):
-      (await fires(tx)).filter(row=>row.scheduleId===definition.scheduleId)
+    // Fire primary keys contain a variable-length generation before the time.
+    // One reverse scan over "sched:<id>:" would put generation 9 ahead
+    // of generation 10. Read each numeric generation in descending order,
+    // then return a bounded ordered slice. Do NOT rewrite persisted FireIds.
+    const needed=offset+limit+1;
+    let rows;
+    if(typeof tx.scan==='function'){
+      const grouped=[];
+      for(let generation=definition.generation;generation>=1&&grouped.length<needed;generation--){
+        const prefix=SCHEDULE_FIRE_PREFIX+'sched:'+definition.scheduleId+':'+generation+':';
+        grouped.push(...await tx.scan('frameworkKV',
+          {prefix,direction:'prev',limit:needed-grouped.length}));
+      }
+      rows=grouped.sort((a,b)=>b.scheduledAt-a.scheduledAt).slice(offset,offset+limit+1);
+    }else{
+      rows=(await fires(tx)).filter(row=>row.scheduleId===definition.scheduleId)
         .sort((a,b)=>b.scheduledAt-a.scheduledAt).slice(offset,offset+limit+1);
+    }
     return rows.filter(row=>row?.tag==='schedule-fire-v1'&&
-      row.namespace===namespace&&row.scheduleId===definition.scheduleId)
-      .sort((a,b)=>b.scheduledAt-a.scheduledAt);
+      row.namespace===namespace&&row.scheduleId===definition.scheduleId);
   }
   async function hydrateHistory(tx,rows){
     const hydrated=[];
