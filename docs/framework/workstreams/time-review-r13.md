@@ -40,3 +40,8 @@
     8. 只有以上证据齐全后，才能给各项质量真实评分并决定是否达到 95+。
 
 受限 V8 的 9 项模型断言属于早期临时烟雾测试；现在以带 SHA 的真实 Node 51/51 与包构建证据为准。旧 R1.2 结果不提升为 R1.3 原生结果。
+
+## Mac CI 首次故障与修复（2026-10-12）
+
+- GitHub Actions 运行 [38203749966](https://github.com/shopable-ai/opendesk-browser/actions/runs/38203749966) 的 macOS-15 CFT 155 安装、Node 回归和 Production 构建/verify 已通过，但原生测试在准备阶段 **FAIL**：工作流 YAML 中 `CHROME_BIN` 多了一个字面值反斜杠，路径变成 `\\/Users/runner/...`，未启动 Chrome；此日志不是应用功能失败或 Mac Chrome PASS。
+- 后续候选删除了 YAML 误加的反斜杠，仍保留先前失败历史。只有下一个同候选 Actions 的原生实装、授权和下载回执成功，才提升对应子项为 PASS。
