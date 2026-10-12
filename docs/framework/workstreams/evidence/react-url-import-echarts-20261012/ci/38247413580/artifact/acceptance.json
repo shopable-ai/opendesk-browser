@@ -1,0 +1,283 @@
+{
+  "status": "FAIL",
+  "startedAt": "2026-10-12T12:12:10.942Z",
+  "sourceHead": "53eac6327055bf6e20b4393e2fa914c656b77d99",
+  "sourceWorkingTree": " M docs/framework/evidence/wxt/builds/build-production.json\n",
+  "platform": "linux",
+  "chromeBinary": "/opt/hostedtoolcache/setup-chrome/chrome/155.0.8059.39/x64/chrome",
+  "chromeVersion": "Google Chrome for Testing 155.0.8059.39",
+  "headless": false,
+  "nativeHostConfigured": false,
+  "sandbox": "default",
+  "profile": "/tmp/opendesk-url-import-profile-Y0AYsM",
+  "tests": [
+    {
+      "name": "real-cft-and-original-http-fixture",
+      "status": "PASS",
+      "fixture": {
+        "url": "http://127.0.0.1:43111/demo-form.html?opendesk-url-import=1",
+        "originalPath": "examples/tasks/demo-form.html",
+        "originalBytes": 48155,
+        "originalSha256": "c3844af84832e1d1722029d1ee10b828dc575468ff8e490f5d67fb77ede28443",
+        "servedBytes": 48213,
+        "servedSha256": "4236c9224f8f97a966ad253c6885960ae0feef2e3dad757d20b34be9e5f91f98",
+        "controls": {
+          "path": "/home/runner/work/opendesk-browser/opendesk-browser/tests/framework/fixtures/page-url-import-controls.js",
+          "bytes": 1958,
+          "sha256": "5dd9ec2429aead8c17f8b66d816f02c2d583bbd73bc8cf56eca74807792193ab"
+        },
+        "transport": "task-owned HTTP proxy on OS-assigned loopback port",
+        "proxyPort": 33161
+      }
+    }
+  ],
+  "network": [
+    {
+      "method": "GET",
+      "url": "http://clients2.google.com/time/1/current",
+      "allowed": false,
+      "at": "2026-10-12T12:12:15.172Z"
+    },
+    {
+      "method": "CONNECT",
+      "authority": "accounts.google.com:443",
+      "allowed": false,
+      "phase": "closed",
+      "at": "2026-10-12T12:12:15.238Z"
+    },
+    {
+      "method": "CONNECT",
+      "authority": "www.google.com:443",
+      "allowed": false,
+      "phase": "closed",
+      "at": "2026-10-12T12:12:15.239Z"
+    },
+    {
+      "method": "CONNECT",
+      "authority": "update.googleapis.com:443",
+      "allowed": false,
+      "phase": "closed",
+      "at": "2026-10-12T12:12:15.330Z"
+    },
+    {
+      "method": "CONNECT",
+      "authority": "update.googleapis.com:443",
+      "allowed": false,
+      "phase": "closed",
+      "at": "2026-10-12T12:12:15.369Z"
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:43111/demo-form.html?opendesk-url-import=1",
+      "allowed": true,
+      "at": "2026-10-12T12:12:15.380Z"
+    },
+    {
+      "method": "CONNECT",
+      "authority": "update.googleapis.com:443",
+      "allowed": false,
+      "phase": "closed",
+      "at": "2026-10-12T12:12:15.392Z"
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:43111/opendesk-url-import-controls.js",
+      "allowed": true,
+      "at": "2026-10-12T12:12:15.416Z"
+    },
+    {
+      "method": "CONNECT",
+      "authority": "redirector.gvt1.com:443",
+      "allowed": false,
+      "phase": "closed",
+      "at": "2026-10-12T12:12:15.530Z"
+    },
+    {
+      "method": "CONNECT",
+      "authority": "content-autofill.googleapis.com:443",
+      "allowed": false,
+      "phase": "closed",
+      "at": "2026-10-12T12:12:15.592Z"
+    },
+    {
+      "method": "CONNECT",
+      "authority": "content-autofill.googleapis.com:443",
+      "allowed": false,
+      "phase": "closed",
+      "at": "2026-10-12T12:12:15.594Z"
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:43111/favicon.ico",
+      "allowed": false,
+      "at": "2026-10-12T12:12:15.644Z"
+    },
+    {
+      "method": "CONNECT",
+      "authority": "accounts.google.com:443",
+      "allowed": false,
+      "phase": "closed",
+      "at": "2026-10-12T12:12:16.066Z"
+    },
+    {
+      "method": "CONNECT",
+      "authority": "content-autofill.googleapis.com:443",
+      "allowed": false,
+      "phase": "closed",
+      "at": "2026-10-12T12:12:16.382Z"
+    },
+    {
+      "method": "CONNECT",
+      "authority": "content-autofill.googleapis.com:443",
+      "allowed": false,
+      "phase": "closed",
+      "at": "2026-10-12T12:12:17.220Z"
+    },
+    {
+      "method": "CONNECT",
+      "authority": "android.clients.google.com:443",
+      "allowed": false,
+      "phase": "closed",
+      "at": "2026-10-12T12:12:18.441Z"
+    },
+    {
+      "method": "CONNECT",
+      "authority": "accounts.google.com:443",
+      "allowed": false,
+      "phase": "closed",
+      "at": "2026-10-12T12:12:18.900Z"
+    },
+    {
+      "method": "CONNECT",
+      "authority": "content-autofill.googleapis.com:443",
+      "allowed": false,
+      "phase": "closed",
+      "at": "2026-10-12T12:12:19.606Z"
+    },
+    {
+      "method": "CONNECT",
+      "authority": "content-autofill.googleapis.com:443",
+      "allowed": false,
+      "phase": "closed",
+      "at": "2026-10-12T12:12:23.217Z"
+    },
+    {
+      "method": "CONNECT",
+      "authority": "accounts.google.com:443",
+      "allowed": false,
+      "phase": "closed",
+      "at": "2026-10-12T12:12:26.610Z"
+    },
+    {
+      "method": "CONNECT",
+      "authority": "content-autofill.googleapis.com:443",
+      "allowed": false,
+      "phase": "closed",
+      "at": "2026-10-12T12:12:30.843Z"
+    },
+    {
+      "method": "CONNECT",
+      "authority": "android.clients.google.com:443",
+      "allowed": false,
+      "phase": "closed",
+      "at": "2026-10-12T12:12:43.570Z"
+    },
+    {
+      "method": "CONNECT",
+      "authority": "content-autofill.googleapis.com:443",
+      "allowed": false,
+      "phase": "closed",
+      "at": "2026-10-12T12:12:50.527Z"
+    },
+    {
+      "method": "CONNECT",
+      "authority": "accounts.google.com:443",
+      "allowed": false,
+      "phase": "closed",
+      "at": "2026-10-12T12:12:52.238Z"
+    },
+    {
+      "method": "CONNECT",
+      "authority": "content-autofill.googleapis.com:443",
+      "allowed": false,
+      "phase": "closed",
+      "at": "2026-10-12T12:13:00.845Z"
+    }
+  ],
+  "limits": [
+    "Linux CFT, not user Mac Native acceptance.",
+    "This is one frozen-JSON UI acceptance, not the browser source editor new-origin preparation flow.",
+    "Browser loading/Stop races, renderer error injection, source/version switching and uninstall remain NOT_TESTED.",
+    "DOM disposal is observed directly; observer/listener resource counts use the separate lifecycle component tests."
+  ],
+  "driverSha256": "5ac2bea287c1403e03abbc9ef513c23d5e5460980590a328e12fea635bba1896",
+  "packageHash": "bae682e5f8abe2498d6140def69c3101f8748c02db693593c9a533dacdb1a26b",
+  "packageInput": "/home/runner/work/opendesk-browser/opendesk-browser/dist/production",
+  "loadedPackage": "/home/runner/work/opendesk-browser/opendesk-browser/.runtime/tests/react-url-import-cft/extension",
+  "packageVerified": true,
+  "unixSocketPreflight": "allowed",
+  "fixture": {
+    "url": "http://127.0.0.1:43111/demo-form.html?opendesk-url-import=1",
+    "originalPath": "examples/tasks/demo-form.html",
+    "originalBytes": 48155,
+    "originalSha256": "c3844af84832e1d1722029d1ee10b828dc575468ff8e490f5d67fb77ede28443",
+    "servedBytes": 48213,
+    "servedSha256": "4236c9224f8f97a966ad253c6885960ae0feef2e3dad757d20b34be9e5f91f98",
+    "controls": {
+      "path": "/home/runner/work/opendesk-browser/opendesk-browser/tests/framework/fixtures/page-url-import-controls.js",
+      "bytes": 1958,
+      "sha256": "5dd9ec2429aead8c17f8b66d816f02c2d583bbd73bc8cf56eca74807792193ab"
+    },
+    "transport": "task-owned HTTP proxy on OS-assigned loopback port",
+    "proxyPort": 33161
+  },
+  "launch": {
+    "kind": "direct",
+    "executable": "/opt/hostedtoolcache/setup-chrome/chrome/155.0.8059.39/x64/chrome",
+    "argv": [
+      "--window-size=1440,1000",
+      "--no-first-run",
+      "--no-default-browser-check",
+      "--disable-gpu",
+      "--disable-background-networking",
+      "--disable-sync",
+      "--password-store=basic",
+      "--remote-debugging-address=127.0.0.1",
+      "--remote-debugging-port=0",
+      "--user-data-dir=/tmp/opendesk-url-import-profile-Y0AYsM",
+      "--proxy-server=http://127.0.0.1:33161",
+      "--proxy-bypass-list=<-loopback>",
+      "--disable-extensions-except=/home/runner/work/opendesk-browser/opendesk-browser/.runtime/tests/react-url-import-cft/extension",
+      "--load-extension=/home/runner/work/opendesk-browser/opendesk-browser/.runtime/tests/react-url-import-cft/extension",
+      "about:blank"
+    ],
+    "pid": 2383
+  },
+  "cdpPort": 35539,
+  "browserVersion": {
+    "protocolVersion": "1.3",
+    "product": "Chrome/155.0.8059.39",
+    "revision": "@3ff7ac5a9224be9156d7f8703a06e22890aafd34",
+    "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36",
+    "jsVersion": "15.5.35.20"
+  },
+  "extensionId": "kkmpejjgfmdbdepkacgjablinpofcmah",
+  "browserSourceNetwork": {
+    "requests": [],
+    "responses": [],
+    "transport": "raw CONNECT to real raw.githubusercontent.com:443, browser-verified end-to-end HTTPS"
+  },
+  "error": {
+    "message": "catalog DOM loaded timed out",
+    "stack": "Error: catalog DOM loaded timed out\n    at until (file:///home/runner/work/opendesk-browser/opendesk-browser/tests/framework/page-url-import-linux-cft.mjs:73:9)\n    at async newTab (file:///home/runner/work/opendesk-browser/opendesk-browser/tests/framework/page-url-import-linux-cft.mjs:555:5)\n    at async main (file:///home/runner/work/opendesk-browser/opendesk-browser/tests/framework/page-url-import-linux-cft.mjs:598:17)\n    at async file:///home/runner/work/opendesk-browser/opendesk-browser/tests/framework/page-url-import-linux-cft.mjs:987:5",
+    "code": null
+  },
+  "cleanup": {
+    "pid": 2383,
+    "exitCode": 0,
+    "signalCode": null,
+    "forced": false,
+    "profileRemoved": true
+  },
+  "finishedAt": "2026-10-12T12:13:06.118Z"
+}

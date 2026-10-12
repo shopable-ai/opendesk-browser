@@ -801,7 +801,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
         const editorChanged=!previewMatchesEditor(lastPagePreview);
         componentMessage('completed',editorChanged?'旧源码已运行，但编辑内容已变化；先停止旧组件，再运行最新源码':
           '组件已运行 · 可停止或保存固定版本 · 保存不会自动运行或安装');
-        displayPreview('completed','组件已在当前网页运行；停止可清理受管 UI。可保存固定版本并单独审阅安装。',result.resultText??'undefined');
+        displayPreview('completed','组件已在当前网页运行；停止可清理受管 UI。可保存固定版本并单独审阅安装。',result.resultText ?? 'undefined');
         pageTechnicalPanel.hidden=false;pageTechnicalPanel.open=false;
         pageTechnical.textContent=JSON.stringify({...result,authoring:{framework:built.framework,compilerVersion:built.compilerVersion,
           sourceHash:built.sourceHash,cacheHit:built.cacheHit,prepareMs:built.prepareMs,remoteModules:built.remoteModules||[]}},null,2);
@@ -812,7 +812,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
       lastPagePreview={sourceUtf8:pageSource.sourceUtf8,entryFormat:pageSource.entryFormat,lockId:pageSource.lockId,
         importSourceUrl:pageSource.importSourceUrl??null,previewUrl:captured.url,documentId:captured.documentId,
         tabId:captured.tabId,target:captured,sourceHash:result.sourceHash};
-      displayPreview('completed','当前精确文档试运行完成；不是正式 Task 结果。可保存待验证 Page 候选；不会自动安装。',result.resultText??'undefined');
+      displayPreview('completed','当前精确文档试运行完成；不是正式 Task 结果。可保存待验证 Page 候选；不会自动安装。',result.resultText ?? 'undefined');
       pageTechnicalPanel.hidden=false;pageTechnicalPanel.open=false;pageTechnical.textContent=JSON.stringify(result,null,2);
     })().catch(error=>{
       const recovered=error.previewRecovered?'；已读取原完成回执，可以停止原组件。未重放运行。':'';

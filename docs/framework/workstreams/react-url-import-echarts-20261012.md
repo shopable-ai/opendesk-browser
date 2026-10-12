@@ -106,4 +106,14 @@ Git CLI 写入缺少凭据，改用已有授权的 GitHub 连接逐一核验 356
 首次 [Chrome workflow run 38246684752](https://github.com/shopable-ai/opendesk-browser/actions/runs/38246684752) 精确绑定 `aa39ef7e`，但在 workflow 解析阶段失败，jobs=0、artifacts=0，未启动 Chrome。GitHub 原 annotation：`(Line: 40, Col: 29): Unrecognized named-value: 'runner'. Located at position 1 within expression: runner.temp`。[原报告及日志身份](evidence/react-url-import-echarts-20261012/ci/38246684752/report.json)和同目录压缩的原 Actions HTML 保留此失败。
 针对这一已观察的失败，将 `OPENDESK_CFT_PROGRAM` 从 job-level env 移到离线构建及 Chrome 两个 step 的 env；不改产品、驱动、权限或验收断言。后续执行使用新提交及独立证据，不把原失败改写为 PASS。
 
+### 第一次真实 Chrome：目录页地址观察器修正
+
+修正提交 [`53eac6327055bf6e20b4393e2fa914c656b77d99`](https://github.com/shopable-ai/opendesk-browser/commit/53eac6327055bf6e20b4393e2fa914c656b77d99) 的 [run 38247413580](https://github.com/shopable-ai/opendesk-browser/actions/runs/38247413580)、job `114804679462` 已真实构建并启动 CFT 155.0.8059.39，普通 sandbox、Xvfb、独立 profile；原 HTTP 测试页通过。构建再次得出相同的 `8d3eedcc…` / 482,082 B 固定源、235 模块 / 1,744,686 B 原始图；该次真实 production packageHash 为 `bae682e5f8abe2498d6140def69c3101f8748c02db693593c9a533dacdb1a26b`。
+
+随后 `catalog DOM loaded timed out`。原 [失败报告和身份](evidence/react-url-import-echarts-20261012/ci/38247413580/report.json)、[实际 DOM](evidence/react-url-import-echarts-20261012/ci/38247413580/artifact/failure-2-catalog.json)与同目录 PNG 证实应用已经正常显示目录，但 `tool-shell.js` 按既有合同为裸 URL 添加 `hostInstanceId`，驱动仍等待原裸 URL 精确相等。尚未 JSON 导入、Run 或绘图，因此没有 previewId/documentId 验收回执。
+
+下一候选只按仓库已有原生驱动惯例，初始目录 URL 带 `crypto.randomUUID()` 生成的 `hostInstanceId`，保持精确 URL、真实 sender、原产品按钮与权限校验；另外为已观察到中文缺字的 runner 安装 CJK 字体，便于阅读后续真实截图。两项修正均不替换业务效果或放宽断言。
+
+`aa39ef7e` 的 Native job `114802206554` 原全量 npm test 为 1600 PASS / 1 FAIL / 7 SKIP；唯一失败是旧 `sidebar-dynamic-result-ui.test.mjs` 静态正则要求 `result.resultText ?? 'undefined'` 的空格。本任务改写该行时省略空格，现只恢复原表达式格式，原定向测试 1/1 PASS，不改断言和执行语义。该次 Native 专组 65/65 PASS，并包含实际受认证 Host socket 的分块读取/最终校验和未协商旧 provider 拒绝；不升级为用户 Mac 或 Chrome 页面验收。
+
 保留的明确边界：用户 Mac 未访问；正式 Go Host 分块和主动 MCP 大源码路径未完成；浏览器单文件仅小型 ESM 图；作者缓存按原持久规则保留，尚无明确删除/GC 入口；多版本/下载中 Stop/导航等全部真实异常组合、独立 F3/ZIP 仍需各自原生证据。Page 自包含执行源的版本/更新/卸载走原记录，并不等于清空作者原始缓存。

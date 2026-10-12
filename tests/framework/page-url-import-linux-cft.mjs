@@ -595,7 +595,7 @@ async function main(){
     report.browserSourceNetwork={requests:sourceRequests,responses:sourceResponses,
       transport:'raw CONNECT to real raw.githubusercontent.com:443, browser-verified end-to-end HTTPS'};
   }
-  const catalog=await newTab('chrome-extension://'+extensionId+'/ui/tool.html','catalog');
+  const catalog=await newTab('chrome-extension://'+extensionId+'/ui/tool.html?hostInstanceId='+crypto.randomUUID(),'catalog');
   await until(()=>catalog.session.read('!!document.querySelector("#catalog-open-dev-sidebar")'),'Original catalog UI');
   report.tests.push({name:'actual-verified-extension-package-loaded',status:'PASS',
     extensionId,packageHash:report.packageHash});
