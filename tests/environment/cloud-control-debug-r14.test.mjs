@@ -78,9 +78,9 @@ test('cloud status refresh is read-only and full tool/catalog tabs cannot claim 
  assert.match(hosting,/if\(!busy&&!disposed\)await dispatchNext\(s\)/);
  assert.match(shell,/let cloudHosting=null;/);
  assert.match(shell,/const actualSidePanel=await isActualSidePanelContext\(\{api:chrome,href:hostUrl\.href\}\)/);
- const start=shell.indexOf('const actualSidePanel='),end=shell.indexOf('const toolId=requestedToolId',start);
- assert.ok(start>=0&&end>start);
- const sidePanelOnly=shell.slice(start,end);
+ const sidePanelStart=shell.indexOf('const actualSidePanel='),sidePanelEnd=shell.indexOf('const toolId=requestedToolId',sidePanelStart);
+ assert.ok(sidePanelStart>=0&&sidePanelEnd>sidePanelStart);
+ const sidePanelOnly=shell.slice(sidePanelStart,sidePanelEnd);
  assert.match(sidePanelOnly,/if\(actualSidePanel\|\|!tab\?\.id\)\{/);
  assert.match(sidePanelOnly,/cloudHosting=createCloudHosting\(/);
  assert.match(sidePanelOnly,/tabMemory\.restore\(\)/);
