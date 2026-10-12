@@ -25,6 +25,7 @@ export function initCloudControlConsole({api=globalThis.chrome,doc=globalThis.do
     get('cc-prev').disabled=inflight||offset===0;
     get('cc-next').disabled=inflight||nextOffset===null;
     get('cc-refresh').disabled=inflight;
+    get('cc-filter').disabled=inflight;
   }
   function render(data){
     put('cc-paired',data.paired?'已配对':'未配对');
@@ -35,6 +36,7 @@ export function initCloudControlConsole({api=globalThis.chrome,doc=globalThis.do
     put('cc-enabled',data.enabled?'托管已启用':'托管未启用');
     put('cc-tasks',Number.isSafeInteger(data.approvedTasks)?data.approvedTasks:0);
     total=Number.isSafeInteger(data.requestTotal)?data.requestTotal:0;
+    const matched=Number.isSafeInteger(data.matchingTotal)?data.matchingTotal:total;
     put('cc-count',total);
     const rows=Array.isArray(data.rows)?data.rows.slice(0,20):[];
     list.replaceChildren();
@@ -49,7 +51,7 @@ export function initCloudControlConsole({api=globalThis.chrome,doc=globalThis.do
     if(!rows.length){const empty=doc.createElement('li');empty.textContent='此页暂无请求记录';list.append(empty);}
     offset=Number.isSafeInteger(data.page?.offset)?data.page.offset:0;
     nextOffset=Number.isSafeInteger(data.page?.nextOffset)?data.page.nextOffset:null;
-    put('cc-page',total?'第 '+(offset+1)+'–'+(offset+rows.length)+' 条，共 '+total+' 条':'暂无历史记录');
+    put('cc-page',matched?'第 '+(offset+1)+'–'+(offset+rows.length)+' 条，共 '+matched+' 条':'暂无匹配记录');
     const active=Object.entries(data.states||{}).filter(([key])=>key!=='other')
       .map(([key,value])=>(STATES[key]||STATES.other)+' '+(Number.isSafeInteger(value)?value:0)).join(' · ');
     put('cc-stage-counts',active);
@@ -57,11 +59,12 @@ export function initCloudControlConsole({api=globalThis.chrome,doc=globalThis.do
   }
   async function refresh(next=offset){
     if(disposed||inflight)return;
-    inflight=true;const token=++sequence;showControls();
-    status.textContent='正在读取扩展内的脱敏状态…';
+    inflight=true;const token=++sequence;
+    const filter=get('cc-filter').value||'all';
+    showControls();status.textContent='正在读取扩展内的脱敏状态…';
     try{
       const response=await api.runtime.sendMessage({protocol:PROTOCOL,type:'cloudObserve',
-        payload:{offset:next,limit:20}});
+        payload:{offset:next,limit:20,...(filter==='all'?{}:{state:filter})}});
       if(disposed||token!==sequence)return;
       if(!response?.ok)throw {code:response?.error?.code||'E_CLOUD_OBSERVE'};
       if(response.data?.schema!=='opendesk.cloud-control.observer.v1')
@@ -72,6 +75,7 @@ export function initCloudControlConsole({api=globalThis.chrome,doc=globalThis.do
     }finally{if(!disposed&&token===sequence){inflight=false;showControls();}}
   }
   on('cc-refresh','click',()=>{void refresh();});
+  on('cc-filter','change',()=>{void refresh(0);});
   on('cc-prev','click',()=>{void refresh(Math.max(0,offset-20));});
   on('cc-next','click',()=>{if(nextOffset!==null)void refresh(nextOffset);});
   const visibility=()=>{if(doc.visibilityState==='visible'&&!inflight)void refresh();};
