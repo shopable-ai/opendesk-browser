@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {inspectLibraries,inspectLibraryOutputInventory,verifyShippedSwBudget} from '../../scripts/libs-doctor.mjs';
 import {BUILTIN_CATALOG,BUILTIN_RESOURCE_PATHS} from '../../src/libs/catalog.js';
-import {PAGE_FRAMEWORK_RUNTIMES} from '../../src/libs/page-frameworks/contract.js';
+import {PAGE_FRAMEWORK_RUNTIMES,PAGE_BROWSER_PRIVATE_FILES} from '../../src/libs/page-frameworks/contract.js';
 import {mkdtemp,mkdir,writeFile,rm,symlink} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {dirname,join} from 'node:path';
@@ -35,6 +35,7 @@ async function withLibraryFiles(run){
   const dir=await mkdtemp(join(tmpdir(),'opendesk-r155-output-'));
   const expected=[...BUILTIN_RESOURCE_PATHS.filter(path=>path.startsWith('libs/')),
     ...Object.values(PAGE_FRAMEWORK_RUNTIMES).map(row=>row.output),
+    ...PAGE_BROWSER_PRIVATE_FILES.map(row=>row.output).filter(output=>output.startsWith('libs/')),
     BUILTIN_CATALOG.resourceManifest].sort();
   const write=async(path)=>{const filename=join(dir,path);await mkdir(dirname(filename),{recursive:true});await writeFile(filename,'fixture');};
   try{for(const path of expected)await write(path);await run({dir,expected,write});}
