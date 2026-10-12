@@ -58,6 +58,42 @@ export function createCloudService({storage,api,clock={now:()=>Date.now()},asser
         requestTotal:total,requestPage:{offset,limit,nextOffset},requests:projected};
     });
   }
+  // A read-only observer never receives executor/Host IDs, Task manifests,
+  // grants, URLs, credentials, Run references, result bodies or error details.
+  // The namespace is fixed by the extension; callers cannot select tenants.
+  async function cloudObserve(request={}){
+    invariant(request&&typeof request==='object'&&!Array.isArray(request)&&
+      Object.keys(request).every(k=>['limit','offset'].includes(k))&&
+      (request.limit===undefined||Number.isSafeInteger(request.limit)&&request.limit>=1&&request.limit<=50)&&
+      (request.offset===undefined||Number.isSafeInteger(request.offset)&&request.offset>=0&&request.offset<=1000000),'E_SCHEMA');
+    const limit=request.limit??20,offset=request.offset??0;
+    const allowed=new Set(['waiting','prepared','permitted','finished','cancelled','cancellation-pending','OUTCOME_UNKNOWN']);
+    const allowedRuns=new Set(['preparing','running','stopping','settling','completed','failed','stopped','interrupted','paused_unknown']);
+    return transaction('readonly',async tx=>{
+      const config=await tx.get(KV,CONFIG),slot=await tx.get('runs','@slot');
+      const namespace='tool:'+api.runtime.id;
+      const requests=(await tx.all(KV)).filter(r=>r?.tag==='cloud-request-v1'&&r.namespace===namespace);
+      const states={waiting:0,prepared:0,permitted:0,finished:0,cancelled:0,
+        'cancellation-pending':0,OUTCOME_UNKNOWN:0,other:0};
+      for(const r of requests)states[allowed.has(r.state)?r.state:'other']++;
+      requests.sort((a,b)=>(b.createdAt??0)-(a.createdAt??0)||
+        String(b.requestId).localeCompare(String(a.requestId)));
+      const page=requests.slice(offset,offset+limit),rows=[];
+      for(const r of page){
+        const run=r.runId?await tx.get('runs',r.runId):null;
+        rows.push({state:allowed.has(r.state)?r.state:'other',
+          runState:allowedRuns.has(run?.state)?run.state:null,
+          retirementReleased:run?.retirementState==='released',
+          receiptConfirmed:!!r.receipt&&r.delivery?.state==='confirmed',
+          createdAt:Number.isSafeInteger(r.createdAt)&&r.createdAt>=0?r.createdAt:null});
+      }
+      return {schema:'opendesk.cloud-control.observer.v1',paired:!!config,
+        enabled:config?.enabled===true,connection:connectionState,
+        online,reconciled,hostReady:null,slotAvailable:!slot?.currentRunId&&!slot?.preview,
+        approvedTasks:Math.min(config?.tasks?.length??0,32),requestTotal:requests.length,
+        states,rows,page:{offset,limit,nextOffset:offset+rows.length<requests.length?offset+rows.length:null}};
+    },[KV,'runs']);
+  }
   async function cloudPair(request,sender){
     invariant(Object.keys(request).every(k=>['url','providerId','pairingCode','allowLoopback'].includes(k)),'E_SCHEMA');
     const url=providerUrl(request.url,request.allowLoopback===true),host=await assertHost(sender);
@@ -163,6 +199,6 @@ export function createCloudService({storage,api,clock={now:()=>Date.now()},asser
       });
     }
   }
-  return {cloudStatus,cloudPair,cloudApprove,cloudStop,cloudUnpair,cloudNext,cloudResolve,bind,permit,assertActive,read,post,reconcile,invalidate,
+  return {cloudStatus,cloudObserve,cloudPair,cloudApprove,cloudStop,cloudUnpair,cloudNext,cloudResolve,bind,permit,assertActive,read,post,reconcile,invalidate,
     attachConnection({start,stop}){wake=start;close=stop;},connection(state){connectionState=state;online=state==='authenticated';if(!online)reconciled=false;},setReconciled(value){reconciled=value;}};
 }
