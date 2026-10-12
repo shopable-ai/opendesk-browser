@@ -18,6 +18,7 @@ on:
       - 'scripts/verify-package.mjs'
       - 'tests/cloud-control/**'
       - 'tests/environment/cloud-control-*.test.mjs'
+      - 'tests/environment/cloud-hosting-r3.test.mjs'
       - 'tests/environment/sidebar-tab-memory.test.mjs'
       - 'tests/framework/k3-controller-authority.test.mjs'
   workflow_dispatch:
@@ -48,7 +49,13 @@ jobs:
           node --test tests/environment/cloud-control-sidebar-r28.test.mjs
           node --test tests/environment/cloud-control-debug-r14.test.mjs
           node --test tests/environment/cloud-control-console-r3.test.mjs
+          node --test tests/environment/cloud-hosting-r3.test.mjs
           node --test tests/environment/sidebar-tab-memory.test.mjs
+      - name: Cloud navigation, task ownership and workflow regressions
+        run: |
+          node --test tests/environment/task-workbench.test.mjs
+          node --test tests/environment/workflow-r15.test.mjs
+          node --test tests/environment/sidebar-ui-preview.test.mjs
       - name: Original Authority, Run, Result and browser component regressions
         run: node --test tests/framework/k3-controller-authority.test.mjs
       - name: Cloud HTTP and WebSocket provider integration
