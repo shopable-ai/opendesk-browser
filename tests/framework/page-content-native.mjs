@@ -148,7 +148,11 @@ try{
   // approved Catalog: missing entries must fail the real resource manifest.
   for(const id of ['jsCookie','cryptoJs','fileSaver','queryString','axios','store','cheerio','fingerprintjs']){
     const row=BUILTIN_CATALOG.libraries[id];
-    if(!row||row.origin!=='npm'||row.default||row.worlds.join(',')!=='USER_SCRIPT')
+    // Axios was explicitly approved in BOTH Controller and USER_SCRIPT.
+    // Every other optional npm bundle remains Page-only. Guard the exact
+    // catalog world order; do not weaken the SHA/permission/runtime checks.
+    const expectedWorlds=id==='axios'?'CONTROLLER,USER_SCRIPT':'USER_SCRIPT';
+    if(!row||row.origin!=='npm'||row.default||row.worlds.join(',')!==expectedWorlds)
       throw Error('Native optional library contract changed: '+id);
     config.entry[row.output.slice(0,-3)]='./tests/framework/page-content-native-'+id+'.js';
   }

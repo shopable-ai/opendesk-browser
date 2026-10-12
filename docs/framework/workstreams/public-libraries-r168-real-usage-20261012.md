@@ -29,3 +29,9 @@ Controller 产出持久 runId/resultId；Page 产出 document-bound 预览回执
 4. 最后在用户 Mac Chrome 安装实际候选发行包，按上述四条 Side Panel 入口手动运行，同时核对权限、停止、重开、版本更新和持久结果。保留截图/原始结构化回执，关联 packageHash、ZIP SHA、运行时间和精确页面来源。
 
 **状态约束**：源码存在=SOURCE_DONE；编译可用=BUILD_PASS；Node=TEST_PASS；CFT/实际用户 UI=需各自原生 PASS。没有最新同候选真实运行，不写 NATIVE_PASS/FINAL_ACCEPTED。
+
+## Mac Chrome 初次执行失败与对应修复
+
+- 源码候选 `14a59b77f32831bd083a8f9a32af7611a9d427c6`：R15 Node/双包已 PASS（1635 pass / 0 fail / 7 skipped）；原始 CI：https://github.com/shopable-ai/opendesk-browser/actions/runs/38262783793。
+- 同 SHA 的两条 macOS CFT [R16.1 Page builtin](https://github.com/shopable-ai/opendesk-browser/actions/runs/38262783575) 和 [Controller HTML](https://github.com/shopable-ai/opendesk-browser/actions/runs/38262783844) 均 FAIL，**不是**产品运行结果：`tests/framework/page-content-native.mjs` 启动前仍断言所有可选库 worlds 仅为 `USER_SCRIPT`，与现行 Axios `CONTROLLER,USER_SCRIPT` 不一致，实际抛 `Native optional library contract changed: axios`；没有任何新四场景 case 取得原生回执。
+- 此次仅修改该真实测试夹具，让 Axios 使用现行双世界身份，其余按需库仍限定 USER_SCRIPT。不存在权限扩容、SHA 绕过或重新定义产品合同。重新运行同 SHA Mac CFT，不能沿用失败候选或先行填入 NATIVE_PASS。
