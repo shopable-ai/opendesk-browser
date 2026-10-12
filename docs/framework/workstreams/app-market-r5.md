@@ -129,3 +129,11 @@ UI 审阅指出 R5 分支没有执行旧分支键盘／缩放用例。已补网�
 三个原始失败 receipt 与源码、包、网站、浏览器、artifact/hash 绑定见 [本轮原件索引](evidence/app-market-r5/ci-38222122668/index.json)。旧失败保留。严格原生 `tabs.create`/`storage.set` ACK 丢失、真实容量/损坏故障、30分钟TTL和自然空闲关闭尚未验证，正式 HTTPS 仍缺核验后的渠道输入。表中的阶段评分继续适用；实现分等待实际证据。
 
 并行 main 的 Time Review 分类/生命周期、Page 浏览器验收和编辑器用例已在核对不重叠的文件差异后快进到 `df3b96c8`，没有分支、worktree、强推或覆盖其他会话文件。
+
+## 精确原生调用位置与后续结果（2026-10-12）
+
+`66da8d77` 已在保留并行 main 的正常父提交上推送。[run 38224251074](https://github.com/shopable-ai/opendesk-browser/actions/runs/38224251074) 的生产包已证明六个实际独立工具宿主全部连接，runtimeExceptions/consoleErrors均为零；完成实际网站授权/撤销、超过10MiB本机存储验证以及第一次正常完整Chrome重启。后续失败在 `grantSite()` 已检查完成UI并返回列表清空notice后，又冗余要求那条临时成功文案。改为保留已发生的UI检查和返回后的持久授权核对，不删撤权/卸载场景。最终未完成的生产尾段仍需新原件。
+
+Linux与macOS已通过公共页面、搜索、首页320/360/520/1280与深色、历史/套装/帮助窄屏和分享刷新，随后A1在设置断点时 `NOT_OBSERVED`，没有开始中断或网站首次安装。原假设“AST调用节点首字符等于V8 call位置”不正确；V8将成员调用的位置标在表达式内部。修复只接受同一精确AST调用范围内唯一浏览器 `type=call` 位置，AST先拒绝所有嵌套Call/New/TaggedTemplate；保存所有原始possible位置及选择理由，仍要求setBreakpoint实际位置完全一致，不接受相邻语句、范围外、多调用或自行迁移。独立审阅确认这不改变四个事务边界；Node V8仅编译、不执行产品代码的五个位置验证通过，不能代替Chrome实测。
+
+正常首次安装/打开/使用在独立中断案例之前执行，四个中断案例保持必需，改用仍未安装的可选知识收件箱验证A/B，更新时继续验证C；没有删除失败场景或降低最终PASS门槛。完整失败与定位原件见 [索引](evidence/app-market-r5/ci-38224251074/index.json)。

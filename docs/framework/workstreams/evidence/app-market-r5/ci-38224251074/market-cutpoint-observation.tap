@@ -1,0 +1,22 @@
+TAP version 13
+# Subtest: market observation binds current non-nested source calls and declines changed call shapes
+ok 1 - market observation binds current non-nested source calls and declines changed call shapes
+  ---
+  duration_ms: 47.648694
+  type: 'test'
+  ...
+# Subtest: browser call position must be unique inside the exact invocation, never a neighbouring statement
+ok 2 - browser call position must be unique inside the exact invocation, never a neighbouring statement
+  ---
+  duration_ms: 1.295665
+  type: 'test'
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 2
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 137.20294

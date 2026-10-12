@@ -722,9 +722,10 @@ test(process.env.OPENDESK_NATIVE_MARKET_R5==='1'?'R5 real HTTP Chrome: finite ex
   await grantSite('reading-toc');
   await grantSite('web-markdown-clipper');
   await until(()=>evaluate(pageA,'document.querySelectorAll("[data-opendesk-toc-root]").length===1'),'TOC re-granted before uninstall');
-  await until(async()=>JSON.stringify(await readStore(CLIP_SITE_STORE))===JSON.stringify(grantedBefore.clip)&&
-    await evaluate(side,'document.querySelector("#sidebar-tool-status").textContent==="已授权当前网站剪藏"'),
-    'durable clip grant and completed UI before uninstall');
+  // grantSite already observes its completed trusted UI, then back() clears
+  // the transient status. Recheck the durable permission after navigation.
+  await until(async()=>JSON.stringify(await readStore(CLIP_SITE_STORE))===JSON.stringify(grantedBefore.clip),
+    'durable clip grant after returning to the library before uninstall');
   assert.deepEqual(await readStore(READING_TOC_SITE_STORE),grantedBefore.toc);
   assert.deepEqual(await readStore(CLIP_SITE_STORE),grantedBefore.clip);
   for(const row of await installed())await uninstall(row.id);

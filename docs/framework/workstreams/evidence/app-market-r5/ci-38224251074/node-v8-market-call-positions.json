@@ -1,0 +1,164 @@
+{
+  "scope": "Node V8 compile-only source-position validation; never executes product code; NOT_CHROME_ACCEPTANCE",
+  "node": "v24.19.0",
+  "v8": "13.6.233.17-node.51",
+  "files": [
+    {
+      "file": "dist/development/marketplace/market-host.js",
+      "sha256": "8a30f3044e1d878d424eb8ddac9f82e525fe66b872686e554d814cc58c60161c",
+      "observations": [
+        {
+          "name": "A1",
+          "text": "e.tabs.query({})",
+          "astRange": [
+            20442,
+            20458
+          ],
+          "possible": [
+            {
+              "scriptId": "191",
+              "lineNumber": 0,
+              "columnNumber": 20449,
+              "type": "call"
+            }
+          ],
+          "chosen": {
+            "scriptId": "191",
+            "lineNumber": 0,
+            "columnNumber": 20449,
+            "type": "call"
+          },
+          "actual": {
+            "scriptId": "191",
+            "lineNumber": 0,
+            "columnNumber": 20449
+          }
+        },
+        {
+          "name": "A2",
+          "text": "Number.isSafeInteger(m?.id)",
+          "astRange": [
+            20654,
+            20681
+          ],
+          "possible": [
+            {
+              "scriptId": "191",
+              "lineNumber": 0,
+              "columnNumber": 20661,
+              "type": "call"
+            }
+          ],
+          "chosen": {
+            "scriptId": "191",
+            "lineNumber": 0,
+            "columnNumber": 20661,
+            "type": "call"
+          },
+          "actual": {
+            "scriptId": "191",
+            "lineNumber": 0,
+            "columnNumber": 20661
+          }
+        }
+      ]
+    },
+    {
+      "file": "dist/development/ui/marketplace.js",
+      "sha256": "6d53c12c19ba22e0b0a277bd2982fea363d48c2de3d938fa2a53dd3d3a0a433f",
+      "observations": [
+        {
+          "name": "B",
+          "text": "w(\"reviewed\")",
+          "astRange": [
+            24725,
+            24738
+          ],
+          "possible": [
+            {
+              "scriptId": "192",
+              "lineNumber": 0,
+              "columnNumber": 24725,
+              "type": "call"
+            }
+          ],
+          "chosen": {
+            "scriptId": "192",
+            "lineNumber": 0,
+            "columnNumber": 24725,
+            "type": "call"
+          },
+          "actual": {
+            "scriptId": "192",
+            "lineNumber": 0,
+            "columnNumber": 24725
+          }
+        },
+        {
+          "name": "C",
+          "text": "e.storage.local.get(t)",
+          "astRange": [
+            17518,
+            17540
+          ],
+          "possible": [
+            {
+              "scriptId": "192",
+              "lineNumber": 0,
+              "columnNumber": 17520
+            },
+            {
+              "scriptId": "192",
+              "lineNumber": 0,
+              "columnNumber": 17534,
+              "type": "call"
+            }
+          ],
+          "chosen": {
+            "scriptId": "192",
+            "lineNumber": 0,
+            "columnNumber": 17534,
+            "type": "call"
+          },
+          "actual": {
+            "scriptId": "192",
+            "lineNumber": 0,
+            "columnNumber": 17534
+          }
+        },
+        {
+          "name": "C_submission",
+          "text": "e.storage.local.set({[t]:o})",
+          "astRange": [
+            17463,
+            17491
+          ],
+          "possible": [
+            {
+              "scriptId": "192",
+              "lineNumber": 0,
+              "columnNumber": 17465
+            },
+            {
+              "scriptId": "192",
+              "lineNumber": 0,
+              "columnNumber": 17479,
+              "type": "call"
+            }
+          ],
+          "chosen": {
+            "scriptId": "192",
+            "lineNumber": 0,
+            "columnNumber": 17479,
+            "type": "call"
+          },
+          "actual": {
+            "scriptId": "192",
+            "lineNumber": 0,
+            "columnNumber": 17479
+          }
+        }
+      ]
+    }
+  ]
+}
