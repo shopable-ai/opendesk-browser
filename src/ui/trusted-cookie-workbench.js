@@ -18,7 +18,7 @@ export function createTrustedCookieWorkbench({
   const saveButton=doc?.getElementById?.('trusted-cookie-save');
   if(!panel||!readButton||!rowsNode||!statusNode||!targetNode||!nameNode||!valueNode||!pathNode||!saveButton)
     return Object.freeze({dispose(){}});
-  let disposed=false,busy=false,rows=[],documentRef=null,pending=null,generation=0;
+  let disposed=false,busy=false,rows=[],documentRef=null,lastKnownTarget=null,pending=null,generation=0;
   const listeners=[],rowListeners=[],subscriptions=[];
   const listenRow=(node,name,fn)=>{node.addEventListener(name,fn);rowListeners.push(()=>node.removeEventListener?.(name,fn));};
   const listen=(node,name,fn)=>{node.addEventListener(name,fn);listeners.push(()=>node.removeEventListener?.(name,fn));};
@@ -77,8 +77,13 @@ export function createTrustedCookieWorkbench({
   };
   function updateTarget(state){
     const current=state?.status==='available'?targetShape(state):null;
+    // A pending two-click WRITE must be tied to the document already shown,
+    // even if the user never fetched a Cookie list on that document.
+    if(!current||lastKnownTarget&&!same(current,lastKnownTarget)||
+       documentRef&&!same(current,documentRef))
+      reset('网页或文档已变化；敏感数据已清除，请重新读取。');
+    lastKnownTarget=current;
     targetNode.textContent=current?.origin??'尚未选择 HTTP(S) 网页';
-    if(!current||documentRef&&!same(current,documentRef))reset('网页或文档已变化；敏感数据已清除，请重新读取。');
   }
   const unsubscribe=currentPageTarget.subscribe(updateTarget);
   subscriptions.push(unsubscribe);
