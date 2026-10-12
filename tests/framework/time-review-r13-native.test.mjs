@@ -613,39 +613,60 @@ test('Time Review R1.3 actual Mac Chrome install and trusted consent smoke',{ski
   // disabling rotates the tool's installation epoch without deleting time
   // records, re-enabling does not auto-resume, and confirmed uninstall clears
   // ONLY Time Review and does not resurrect stale data.
-  await until(()=>evaluate(browser,newSide,'Boolean(document.querySelector("#tab-tools"))'),
-    'restarted extension application available',12000);
-  await nativeClick(browser,newSide,'#tab-tools');
-  await nativeClick(browser,newSide,installed);
-  await until(()=>evaluate(browser,newSide,
+  // The blank /ui/tool.html extension TAB is the official catalog surface;
+  // its workbench navigation is intentionally hidden. Reopen the *real*
+  // SIDE_PANEL through its visible "打开开发侧栏" button and trusted native
+  // pointer input rather than pretending the catalog tab is a Side Panel.
+  await nativeClick(browser,newSide,'#catalog-open-dev-sidebar');
+  const restoredSideContext=await until(async()=>{
+    const contexts=await evaluate(browser,newSide,
+      'chrome.runtime.getContexts({contextTypes:["SIDE_PANEL"]})');
+    return contexts.find(c=>c.documentId&&c.documentUrl?.includes('/ui/tool.html'))||null;
+  },'original native Side Panel reopens after Chrome restart',12000);
+  const restoredSideTarget=await until(async()=>{
+    const targets=(await browser.send('Target.getTargets')).targetInfos;
+    return targets.find(t=>t.url===restoredSideContext.documentUrl)||null;
+  },'real restarted Side Panel target',12000);
+  const manager=(await browser.send('Target.attachToTarget',{
+    targetId:restoredSideTarget.targetId,flatten:true})).sessionId;
+  sideSid=manager;
+  await browser.send('Runtime.enable',{},manager);
+  await browser.send('Page.enable',{},manager);
+  evidence.realSidePanelReopened='PASS';
+  note('real-sidepanel-reopened-after-chrome-restart',{
+    ownSidePanel:true,documentId:restoredSideContext.documentId,
+    targetId:restoredSideTarget.targetId});
+  await nativeClick(browser,manager,'#tab-tools');
+  await nativeClick(browser,manager,installed);
+  await until(()=>evaluate(browser,manager,
     '!document.querySelector("#sidebar-tool-display").hidden'),'reopened installed tool');
-  await nativeClick(browser,newSide,'#sidebar-tool-settings-open');
-  await until(()=>evaluate(browser,newSide,
+  await nativeClick(browser,manager,'#sidebar-tool-settings-open');
+  await until(()=>evaluate(browser,manager,
     '!document.querySelector("#sidebar-tool-settings-view").hidden'),'trusted tool management');
-  const epoch=()=>evaluate(browser,newSide,
+  const epoch=()=>evaluate(browser,manager,
     'chrome.storage.local.get("opendesk.sidebar-tools.revocation-epochs.v1").then(v=>v["opendesk.sidebar-tools.revocation-epochs.v1"]?.["time-review"]??null)');
-  const toolEnabled=()=>evaluate(browser,newSide,
+  const toolEnabled=()=>evaluate(browser,manager,
     'chrome.storage.local.get("opendesk.sidebar-tools.enabled.v1").then(v=>v["opendesk.sidebar-tools.enabled.v1"]?.["time-review"]!==false)');
   const beforeDisableEpoch=await epoch();
-  await nativeClick(browser,newSide,'#sidebar-tool-enable');
+  await nativeClick(browser,manager,'#sidebar-tool-enable');
   await until(async()=>!await toolEnabled(),'trusted disable persisted',10000);
   const disabledEpoch=await epoch();
   assert.ok(disabledEpoch&&disabledEpoch!==beforeDisableEpoch,'disable must rotate revoked instance identity');
-  const disabledData=await evaluate(browser,newSide,
+  const disabledData=await evaluate(browser,manager,
     'chrome.storage.local.get("opendesk.time-review.v1").then(v=>v["opendesk.time-review.v1"])');
   assert.deepEqual(disabledData.days,persisted.review.days,'disabling preserves existing recorded days');
   assert.equal(disabledData.paused,true,'disable must remain paused');
-  await nativeClick(browser,newSide,'#sidebar-tool-enable');
+  await nativeClick(browser,manager,'#sidebar-tool-enable');
   await until(toolEnabled,'trusted re-enable persisted',10000);
   assert.notEqual(await epoch(),disabledEpoch,'re-enable also rotates revoked instance identity');
-  const enabledData=await evaluate(browser,newSide,
+  const enabledData=await evaluate(browser,manager,
     'chrome.storage.local.get("opendesk.time-review.v1").then(v=>v["opendesk.time-review.v1"])');
   assert.equal(enabledData.paused,true,'enabling tool does not silently start tracking');
   evidence.disableEnable='PASS';
   note('real-tool-disable-reenable',{rotatedEpoch:true,daysPreserved:true,noAutoStart:true});
-  await nativeClick(browser,newSide,'#sidebar-tool-remove');
-  await nativeClick(browser,newSide,'#sidebar-tool-inline-remove-confirm');
-  const afterUninstall=await until(async()=>evaluate(browser,newSide,
+  await nativeClick(browser,manager,'#sidebar-tool-remove');
+  await nativeClick(browser,manager,'#sidebar-tool-inline-remove-confirm');
+  const afterUninstall=await until(async()=>evaluate(browser,manager,
     '(async()=>{const x=await chrome.storage.local.get(["opendesk.sidebar-tools.installed.v1","opendesk.time-review.v1","opendesk.sidebar-tools.uninstall-cleanup.v1"]);const rows=x["opendesk.sidebar-tools.installed.v1"];return {timeInstalled:rows?.some(t=>t.id==="time-review"),otherInstalled:rows?.some(t=>t.id==="reading-toc"),reviewPresent:Object.hasOwn(x,"opendesk.time-review.v1"),cleanup:x["opendesk.sidebar-tools.uninstall-cleanup.v1"]?.["time-review"]??null};})()'),
     'confirmed uninstall and complete selective Time Review cleanup',10000);
   assert.equal(afterUninstall.timeInstalled,false,'official Time Review uninstall completed');
@@ -653,7 +674,7 @@ test('Time Review R1.3 actual Mac Chrome install and trusted consent smoke',{ski
   assert.equal(afterUninstall.cleanup,null,'cleanup transaction has no pending state');
   assert.equal(afterUninstall.otherInstalled,true,'other installed tools must remain intact');
   await sleep(1300);
-  assert.equal(await evaluate(browser,newSide,
+  assert.equal(await evaluate(browser,manager,
     'chrome.storage.local.get("opendesk.time-review.v1").then(v=>Object.hasOwn(v,"opendesk.time-review.v1"))'),false,
     'stale worker events may not resurrect uninstalled Time Review data');
   evidence.uninstall='PASS';
