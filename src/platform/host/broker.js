@@ -158,9 +158,10 @@ export async function createFoundationBroker({api = chrome, ports = new Map(), c
   await consumer?.reconcileRetirements();
   await installedPages.recoverExecutions();
   await installedPages.reconcile();
+  await authority.schedules.reconcile();
   const authenticate = (request,sender) => authority.assertHost(sender, request.registrationId);
   const routes = {
-    ...createMethodRoutes(authority,['cloudStatus','cloudPair','cloudApprove','cloudStop','cloudUnpair','cloudNext','cloudResolve','commitControllerScript','getControllerScript','listControllerScripts','startControllerRun','controllerOperation','stopControllerRun','finishControllerRun','snapshotControllerRun','retireControllerTarget','tombstoneControllerScript','garbageCollectControllerScript','importTaskPackage','listTaskCatalog','getTaskCandidate','verifyTaskCandidate','makeTaskAvailable','installTask','setInstalledTaskEnabled','uninstallTask','resolveInstalledTask','grantSdk','inspectSdkGrant','revokeSdkGrant','registerHost']),
+    ...createMethodRoutes(authority,['cloudStatus','cloudPair','cloudApprove','cloudStop','cloudUnpair','cloudNext','cloudResolve','commitControllerScript','getControllerScript','listControllerScripts','startControllerRun','controllerOperation','stopControllerRun','finishControllerRun','snapshotControllerRun','retireControllerTarget','tombstoneControllerScript','garbageCollectControllerScript','importTaskPackage','listTaskCatalog','getTaskCandidate','verifyTaskCandidate','makeTaskAvailable','installTask','setInstalledTaskEnabled','uninstallTask','resolveInstalledTask','saveSchedule','changeSchedule','listSchedules','listDueSchedules','setScheduleFireState','grantSdk','inspectSdkGrant','revokeSdkGrant','registerHost']),
     ...createMethodRoutes(pageDependencies,['importPageCandidate','getPageCandidate']),
     ...createMethodRoutes(installedPages,['listPagePrograms','verifyPageCandidate','makePageAvailable','installPageProgram','setInstalledPageEnabled']),
     ...createMethodRoutes(downloads,['prepareArtifact','prepareAttempt','retirePreparedArtifact','dispatchDownload','reconcileDownload','recordResourceRelease']),

@@ -12,10 +12,12 @@ export function toolDocumentIdentity(baseAddress,address){
     if(url.protocol!==base.protocol||url.host!==base.host||url.pathname!==base.pathname||
       url.hash||url.username||url.password)return null;
     const pairs=[...url.searchParams],keys=new Set(pairs.map(([key])=>key));
-    if(pairs.length!==keys.size||[...keys].some(key=>!['hostInstanceId','toolId','previewId'].includes(key)))return null;
+    if(pairs.length!==keys.size||[...keys].some(key=>!['hostInstanceId','toolId','previewId','scheduledRunner'].includes(key)))return null;
     const hostInstanceId=url.searchParams.get('hostInstanceId'),toolId=url.searchParams.get('toolId'),previewId=url.searchParams.get('previewId');
+    const scheduledRunner=url.searchParams.get('scheduledRunner');
     if(pairs.length&&(!validHostInstanceId(hostInstanceId)||pairs.length>2))return null;
+    if(keys.has('scheduledRunner')&&(scheduledRunner!=='1'||toolId||previewId))return null;
     if(keys.has('toolId')&&!validToolId(toolId)||keys.has('previewId')&&!validPreviewId(previewId)||toolId&&previewId)return null;
-    return {hostInstanceId,toolId,previewId,hasLocator:Boolean(toolId||previewId)};
+    return {hostInstanceId,toolId,previewId,scheduledRunner:scheduledRunner==='1',hasLocator:Boolean(toolId||previewId||scheduledRunner)};
   }catch{return null;}
 }

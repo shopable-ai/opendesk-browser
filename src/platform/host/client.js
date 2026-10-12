@@ -3,7 +3,7 @@ import {createLocalProjectClient} from '../../native-agent/local-project-client.
 import {createWorkflowAIClient} from '../../native-agent/workflow-ai-client.js';
 
 export function createHostClient(api = chrome, {requestTimeoutMs = 35000, reconnectDelayMs = 250, hostInstanceId = newId()} = {}) {
-  const sourceListeners = new Map(), commandListeners = new Map(), runListeners = new Set(), connectionListeners = new Set(), nativeAgentListeners = new Set();
+  const sourceListeners = new Map(), commandListeners = new Map(), runListeners = new Set(), scheduleListeners=new Set(), taskInstallListeners=new Set(), connectionListeners = new Set(), nativeAgentListeners = new Set();
   const pending = new Set(), requestTimers = new Set(), runDeadlines = new Map();
   const localProjects=createLocalProjectClient(),workflowAI=createWorkflowAIClient();
   let registration, port, disposed = false, connected = false, connecting, reconnectTimer = null;
@@ -38,6 +38,8 @@ export function createHostClient(api = chrome, {requestTimeoutMs = 35000, reconn
       return;
     }
     const event = message.event;
+    if(event?.type==='scheduled-fire-ready') for(const listener of scheduleListeners)listener(event);
+    if(event?.type==='installed-task-changed') for(const listener of taskInstallListeners)listener(event);
     if (event?.selectionId) for (const listener of sourceListeners.get(event.selectionId) || []) listener(event);
     if (event?.commandId) for (const listener of commandListeners.get(event.commandId) || []) listener(event);
     if (event?.runId) for (const listener of runListeners) listener(event);
@@ -118,9 +120,11 @@ export function createHostClient(api = chrome, {requestTimeoutMs = 35000, reconn
     entitlement:{getSnapshot:()=>send('getEntitlementSnapshot',{}), install:request=>send('installEntitlement',request)},
     runCommands:Object.fromEntries(['claimRun','stopRun','abandonUnknown','retireTarget','snapshotRun','finishRun'].map(method=>[method,request=>send(method,request)])),
     subscribeRun:listener=>{runListeners.add(listener);return()=>runListeners.delete(listener);},
+    subscribeSchedule:listener=>{scheduleListeners.add(listener);return()=>scheduleListeners.delete(listener);},
+    subscribeInstalledTasks:listener=>{taskInstallListeners.add(listener);return()=>taskInstallListeners.delete(listener);},
     get registration(){return registration;}, get hostInstanceId(){return hostInstanceId;},
     resourceSnapshot: () => ({pending:pending.size+localProjects.snapshot().pending+workflowAI.snapshot().pending, subscriptions: [...sourceListeners.values(),...commandListeners.values()]
       .reduce((count,listeners)=>count+listeners.size,runListeners.size+connectionListeners.size+nativeAgentListeners.size) + Number(messageListening) + Number(disconnectListening)+localProjects.snapshot().subscriptions+workflowAI.snapshot().subscriptions,
       timers:requestTimers.size + Number(reconnectTimer !== null)+localProjects.snapshot().timers+workflowAI.snapshot().timers, ports:Number(connected)}),
-    dispose(){if(disposed)return;disposed=true;localProjects.dispose();workflowAI.dispose();clearTimeout(reconnectTimer);reconnectTimer=null;connectionListeners.clear();sourceListeners.clear();commandListeners.clear();runListeners.clear();nativeAgentListeners.clear();removePortListeners();connected=false;port?.disconnect();port=undefined;}};
+    dispose(){if(disposed)return;disposed=true;localProjects.dispose();workflowAI.dispose();clearTimeout(reconnectTimer);reconnectTimer=null;connectionListeners.clear();sourceListeners.clear();commandListeners.clear();runListeners.clear();nativeAgentListeners.clear();scheduleListeners.clear();taskInstallListeners.clear();removePortListeners();connected=false;port?.disconnect();port=undefined;}};
 }

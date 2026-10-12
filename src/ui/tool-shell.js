@@ -9,6 +9,8 @@ import {createSdkApproval, snapshotSdkApproval, sdkHttpLabPreset} from './sdk-ap
 import {snapshotToolResources} from './resource-diagnostics.js';
 import {createCurrentPageTarget} from './current-page-target.js';
 import {createTaskWorkbench} from './task-workbench.js';
+import {createScheduledTaskWorkbench} from './scheduled-task-workbench.js';
+import {createScheduledTaskHost} from './scheduled-task-host.js';
 import {createSidebarTabMemory} from './sidebar-tab-memory.js';
 import {createWorkflowView} from './workflow/workflow-view.js';
 import {createSidebarTools} from './sidebar-tools.js';
@@ -72,8 +74,10 @@ const tabMemory=createSidebarTabMemory({
   selectTab:view=>taskWorkbench.navigate(view),
   onError:error=>console.warn('Sidebar tab preference unavailable',error)
 });
+let scheduleUI=null,scheduleHost=null;
 const taskWorkbench = createTaskWorkbench({client:foundationClient,host:scriptEditor.host,currentPageTarget,
   importDraft:sourceUtf8=>scriptEditor.importDraft(sourceUtf8),executionSource:scriptEditor.executionSource,
+  onTaskInstalled:taskId=>void scheduleUI?.onInstalled(taskId),
   debugEnabled,onNavigate:view=>{if(view==='debug')void debugWorkbench?.refresh();},
   onTabSelected:(view,options)=>tabMemory.record(view,options)});
 const workflowView=createWorkflowView({api:chrome,client:foundationClient,host:scriptEditor.host,currentPageTarget,
@@ -82,6 +86,18 @@ const workflowView=createWorkflowView({api:chrome,client:foundationClient,host:s
   openCatalog:()=>taskWorkbench.navigate('catalog')});
 const sidebarTools=createSidebarTools({api:chrome,currentPageTarget,taskWorkbench});
 const installedPageTools=createInstalledPageTools({client:foundationClient,api:chrome,doc:document});
+scheduleUI=createScheduledTaskWorkbench({client:foundationClient,host:scriptEditor.host,taskWorkbench,
+  api:chrome,document,onOpen:()=>{const label=document.getElementById('schedule-host-status');
+    if(label)label.textContent=scheduleHost?'宿主已连接；到期时将通过现有执行槽运行':'没有活动运行页';}});
+function startScheduledHost(){
+  if(scheduleHost)return;
+  scheduleHost=createScheduledTaskHost({client:foundationClient,host:scriptEditor.host,api:chrome,
+    onStatus:message=>{const label=document.getElementById('schedule-host-status');
+      if(label)label.textContent=message;},
+    onChange:()=>{if(scheduleUI?.shown)void scheduleUI.refresh().catch(()=>{});},
+    onRun:runId=>scheduleUI?.setRun(runId)});
+}
+
 // A full catalog/tool tab also loads tool.html. It must never become a second
 // cloud-claiming Host merely because the extension's trusted UI is open.
 let cloudHosting=null;
@@ -97,6 +113,7 @@ pageRefresh?.addEventListener('click',()=>void installedPageTools.refresh());
 const nativeAgentHost=createNativeAgentHostAdapter({client:foundationClient,host:scriptEditor.host,currentPageTarget});
 scriptEditor.connectLocalProjects(nativeAgentHost,{onInstalled:({kind,id})=>{
   if(kind==='controller'){
+    void scheduleUI?.onInstalled(id);
     void taskWorkbench.refresh().then(()=>taskWorkbench.focusInstalledTask(id)).catch(console.warn);
   }else{
     taskWorkbench.navigate('tools');
@@ -127,7 +144,15 @@ Promise.resolve(chrome.tabs.getCurrent?.()).then(async tab => {
     sidebarSurface=true;
     taskWorkbench.setCloudAvailable(true);
     cloudHosting=createCloudHosting({client:foundationClient,host:scriptEditor.host});
+    startScheduledHost();
     void tabMemory.restore().catch(error=>console.warn('Sidebar tab restoration unavailable',error));
+    return;
+  }
+  if(hostUrl.searchParams.get('scheduledRunner')==='1'){
+    document.documentElement.dataset.opendeskSurface='scheduled-runner';
+    taskWorkbench.navigate('tasks');
+    startScheduledHost();
+    void scheduleUI.open('list').catch(error=>console.warn('Visible runner page',error));
     return;
   }
   const toolId=requestedToolId(hostUrl.href),previewId=requestedPreviewId(hostUrl.href);
@@ -443,6 +468,7 @@ listen(window, 'pagehide', () => {
   browserListenersAttached = false;
   for (const {element, event, listener, options} of listeners) element.removeEventListener(event, listener, options);
   listeners.length = 0;
+  scheduleHost?.dispose();scheduleUI?.dispose();
   tabMemory.dispose(); debugWorkbench?.dispose(); workflowView.dispose(); installedPageTools.dispose(); sidebarTools.dispose(); nativeAgentHost.dispose(); siteAccess.dispose(); taskWorkbench.dispose(); scriptEditor.dispose(); currentPageTarget.dispose(); foundationClient.dispose();
 }, {once: true});
 

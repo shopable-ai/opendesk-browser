@@ -735,3 +735,54 @@
 #workbench-cloud #cloud-hosting>div{display:flex;flex-wrap:wrap;gap:var(--space-2);margin-top:var(--space-2)}
 #workbench-cloud #cloud-hosting>div button{flex:1 1 130px;min-height:36px}
 @media(max-width:270px){.cloud-overview-metrics{grid-template-columns:1fr}}
+
+
+/* Scheduled Tasks R1: only a nested "我的" view, not a new production tab. */
+#scheduled-panel[hidden],#scheduled-panel [hidden]{display:none!important}
+.schedule-panel{min-width:0;display:grid;gap:var(--space-3);font-size:12px}
+.schedule-header,.schedule-actions,.schedule-card-head{display:flex;align-items:center;justify-content:space-between;gap:var(--space-2);min-width:0;flex-wrap:wrap}
+.schedule-header strong{font-size:16px;font-weight:700}
+.schedule-header .hint{margin:4px 0 0}
+.schedule-panel .hint{font-size:12px;line-height:1.5;color:var(--od-sub);overflow-wrap:anywhere}
+#schedule-message:empty{display:none}
+#schedule-message[data-state=error]{color:var(--od-negative)}
+.schedule-panel .od-button{min-height:34px;font-size:12px}
+.schedule-panel .od-icon-button{width:var(--od-icon-size);height:var(--od-icon-size);min-width:var(--od-icon-size);flex:none;padding:7px}
+.schedule-panel .od-icon-button svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.schedule-card,.schedule-manager-card{display:grid;gap:var(--space-2);min-width:0;padding:var(--space-3)}
+.schedule-card p,.schedule-manager-card p{margin:0}
+.schedule-card-head strong{font-size:13px;overflow-wrap:anywhere;min-width:0}
+.schedule-state{font-size:11px;color:var(--od-sub);background:var(--od-bg);border-radius:var(--radius-control);padding:3px 7px}
+.schedule-card .schedule-actions{justify-content:flex-start}
+.schedule-history{border-top:1px solid var(--od-line);padding-top:var(--space-2)}
+.schedule-history summary{cursor:pointer;font-size:12px;font-weight:600}
+.schedule-history-row{padding:var(--space-2) 0;border-bottom:1px solid var(--od-line);font-size:11px;overflow-wrap:anywhere}
+.schedule-history-row small{display:block;margin-top:4px;color:var(--od-sub);overflow-wrap:anywhere}
+.schedule-delete-confirm{display:grid;gap:8px;padding:12px;border:1px solid var(--od-line)}
+.schedule-delete-confirm p{margin:0}
+.schedule-form{min-width:0;display:grid;gap:var(--space-3)}
+.schedule-form .od-field,.schedule-rule .od-field,#schedule-task-manager .od-field{display:grid;gap:var(--space-1);font-size:12px;font-weight:600;min-width:0}
+.schedule-form input,.schedule-form select,.schedule-form textarea,
+#schedule-task-manager input,#schedule-task-manager select{max-width:100%;width:100%;min-width:0;min-height:36px;font-size:13px;line-height:1.45;border:1px solid var(--od-line);border-radius:var(--radius-control);padding:7px 8px;background:var(--od-paper);color:var(--od-ink)}
+.schedule-form textarea{resize:vertical}
+.schedule-source-field{display:grid;gap:var(--space-1);min-width:0}
+.schedule-source-field>label{font-weight:600}
+.schedule-source-row{display:grid;grid-template-columns:minmax(0,1fr) var(--od-icon-size) var(--od-icon-size);gap:var(--space-2);align-items:center;min-width:0}
+.schedule-source-row select{width:100%;min-width:0;overflow:hidden;text-overflow:ellipsis}
+.schedule-rule,.schedule-weekdays{min-width:0;border:1px solid var(--od-line);border-radius:var(--radius-control);padding:var(--space-3);margin:0;display:grid;gap:var(--space-2)}
+.schedule-rule legend,.schedule-weekdays legend{font-size:12px;font-weight:650;padding-inline:5px}
+.schedule-rule-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:var(--space-2)}
+.schedule-weekdays{display:flex;flex-wrap:wrap;gap:var(--space-2)}
+.schedule-weekdays label{display:inline-flex;align-items:center;gap:4px;min-height:32px;font-size:12px}
+.schedule-check{display:flex;align-items:flex-start;gap:var(--space-2);font-size:12px;line-height:1.5}
+.schedule-check input,.schedule-weekdays input{min-width:16px;width:16px;height:16px;min-height:16px;flex:none;margin:2px 0}
+.schedule-advanced{border:1px solid var(--od-line);border-radius:var(--radius-control);padding:var(--space-2)}
+.schedule-advanced>summary{cursor:pointer;font-size:12px;font-weight:600}
+.schedule-advanced>.od-field,.schedule-advanced>.schedule-check{margin-top:var(--space-2)}
+#schedule-task-manager{display:grid;gap:var(--space-3);min-width:0}
+#schedule-uninstall-confirm{padding:var(--space-3);display:grid;gap:var(--space-2)}
+#schedule-uninstall-confirm p{margin:0;overflow-wrap:anywhere}
+@media(max-width:340px){
+  .schedule-panel .od-button{padding-inline:8px}
+  .schedule-rule-row{grid-template-columns:minmax(0,1fr)}
+}

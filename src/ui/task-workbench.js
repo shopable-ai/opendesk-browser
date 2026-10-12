@@ -14,7 +14,7 @@ const runStateNames={preparing:'正在准备',running:'运行中',stopping:'正�
 const textValue=formatTaskValue;
 
 export function createTaskWorkbench({client,host,currentPageTarget,api=globalThis.chrome,
-  document:doc=globalThis.document,importDraft,executionSource,debugEnabled=false,onNavigate,onTabSelected}) {
+  document:doc=globalThis.document,importDraft,executionSource,debugEnabled=false,onNavigate,onTabSelected,onTaskInstalled}) {
   const get=id=>doc.getElementById(id);
   if(debugEnabled){
     get('tab-debug').hidden=false;
@@ -735,6 +735,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       manifestHash:row.manifestHash,expectedInstalledVersion:previous?.version ?? null,
       expectedGeneration:previous?.generation??null,expectedInstallationId:previous?.installationId??null});
     await refresh(identity(row));announce();
+    onTaskInstalled?.(installedTask.taskId);
     get('task-status').textContent=`已安装 ${installedTask.taskId} · v${installedTask.version}`;
     const installedMessage=`已安装「${row.manifest.title}」v${installedTask.version}。返回目标网页，在 Sidebar「我的」填写参数并运行。`;
     get('task-catalog-status').textContent=installedMessage;

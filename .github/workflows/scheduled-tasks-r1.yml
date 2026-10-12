@@ -1,0 +1,65 @@
+name: Scheduled Tasks R1 component and package
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/scheduled-tasks-r1.yml'
+      - 'src/platform/tasks/schedule-*'
+      - 'src/platform/host/authority.js'
+      - 'src/platform/host/controller-methods.js'
+      - 'src/platform/host/broker.js'
+      - 'src/platform/host/client.js'
+      - 'src/run-host.js'
+      - 'src/sw.js'
+      - 'src/tool-document-url.js'
+      - 'src/ui/sidebar-tools/navigation.js'
+      - 'src/ui/scheduled-task-*'
+      - 'src/ui/task-workbench.js'
+      - 'src/ui/tool-shell.js'
+      - 'src/ui/tool-shell.css'
+      - 'src/ui/tool.html'
+      - 'tests/environment/scheduled-tasks-r1.test.mjs'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: scheduled-tasks-r1-main
+  cancel-in-progress: true
+
+jobs:
+  scheduled-components:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - name: Schedule UTC DST state and idempotency tests (unit evidence only)
+        run: node --test tests/environment/scheduled-tasks-r1.test.mjs
+      - name: Original task catalog, installed authorization and toolbar regressions
+        run: |
+          node --test tests/environment/task-package-flow.test.mjs
+          node --test tests/environment/task-workbench.test.mjs
+          node --test tests/environment/tool-ui-tab.test.mjs
+          node --test tests/environment/sidebar-product-contract.test.mjs
+          node --test tests/framework/k3-controller-authority.test.mjs
+  scheduled-package:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npm run check
+      - run: npm run build
+      - run: npm run build:dev
+      - run: npm run verify
