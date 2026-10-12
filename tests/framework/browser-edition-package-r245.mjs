@@ -17,6 +17,20 @@ assert.equal(standard.manifestVersion,3);
 assert.equal(full.manifestVersion,3);
 const std=new Map(standard.files.map(row=>[row.path,row]));
 const dev=new Map(full.files.map(row=>[row.path,row]));
+// Guard the actual WXT-compiled Side Panel. It is NOT enough to omit binaries
+// while accidentally still advertising a JSX/SFC mode that cannot run.
+const [standardUI,developerUI]=await Promise.all([
+  fs.readFile(path.join(baseline,'ui/tool-shell.js'),'utf8'),
+  fs.readFile(path.join(developer,'ui/tool-shell.js'),'utf8')
+]);
+const compiledMode=text=>{
+  const found=/browserCompilerEnabled:[A-Za-z_$][\\w$]*=!([01])/.exec(text);
+  assert(found,'compiled browser edition flag missing from real tool-shell.js');
+  return found[1]==='0';
+};
+assert.equal(compiledMode(standardUI),false,'Standard must disable browser JSX/SFC authoring');
+assert.equal(compiledMode(developerUI),true,'Developer must retain browser JSX/SFC authoring');
+assert.notEqual(std.get('ui/tool-shell.js')?.sha256,dev.get('ui/tool-shell.js')?.sha256);
 const compilerPaths=PAGE_BROWSER_PRIVATE_FILES.map(row=>row.output);
 const extras=[...dev.keys()].filter(key=>!std.has(key)).sort();
 assert.deepEqual(extras,[...compilerPaths,PAGE_BROWSER_COMPILER.licensePath].sort(),
@@ -44,6 +58,9 @@ const record={
   verifiedRawBrowserCompilerBytes:expectedCompilerBytes,
   rawPackageDeltaBytes:devPackageBytes-stdPackageBytes,
   reactVueRuntimesRemainInStandard:true,
+  compiledSidebarCapabilities:{standard:false,developer:true},
+  sidebarFileSha256:{standard:std.get('ui/tool-shell.js')?.sha256,
+    developer:dev.get('ui/tool-shell.js')?.sha256},
   notes:'Uncompressed directory byte comparison; not ZIP savings or RAM usage'
 };
 const output=process.env.OPENDESK_EDITION_TEST_OUTPUT||'.runtime/tests/browser-editions-r245/acceptance.json';
