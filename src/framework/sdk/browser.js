@@ -34,6 +34,9 @@ export function createBrowserSdk({request,context='sidebar-tool'}={}){
     launch:Object.freeze({consume:()=>ask('browser.launch.consume')}),
     page:Object.freeze({getContext:()=>ask('browser.page.getContext'),getSelection:()=>ask('browser.page.getSelection')}),
     clipboard:Object.freeze({writeText:text=>legacy('browser.clipboard.writeText','clipboard.writeText')({text})}),
-    downloads:Object.freeze({text:legacy('browser.downloads.text','file.download')})
+    downloads:Object.freeze({text:legacy('browser.downloads.text','file.download')}),
+    tabs:Object.freeze({open:method('browser.tabs.open'),focus:method('browser.tabs.focus')}),
+    sidePanel:Object.freeze({openSelf:()=>ask('browser.sidePanel.openSelf')}),
+    network:Object.freeze({request:method('browser.network.request')})
   });
 }

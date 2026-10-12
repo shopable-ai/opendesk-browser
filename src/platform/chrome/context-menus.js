@@ -1,4 +1,6 @@
 import {isToolSender,resolveToolSender,permissionPattern} from '../../environment.js';
+import {createBrowserTabHost} from './browser-tabs.js';
+import {createNetworkService} from './network.js';
 import {SIDEBAR_TOOL_ENABLE_STORE,requireToolEnableRecords,sidebarToolEnabled} from '../../ui/sidebar-tools/lifecycle.js';
 // Trusted Chrome MV3 context-menu driver. No third-party code executes here.
 // Listener registration is synchronous; storage and install checks are async.
@@ -121,13 +123,48 @@ function scopedMenuPatterns(origins,action){
     return url.protocol+'//'+url.hostname+'/*';
   }))];
 }
-export function createContextMenuHost({api=globalThis.chrome,logger=console,lockManager=globalThis.navigator?.locks}={}){
+export function createContextMenuHost({api=globalThis.chrome,logger=console,lockManager=globalThis.navigator?.locks,fetchImpl=globalThis.fetch}={}){
   let chain=Promise.resolve();
   const documentEpochs=new Map();
   const recentSourceContexts=new Map();
   const pendingSourceContexts=new Map();
   let menuActionsAvailable=false;
   const activeMenuOrigins=new Set(); // Ephemeral projection of approved menus, never a grant store.
+  // Single-use intents are created only by the trusted extension UI after a user click.
+  // They do not survive Worker restart and are never supplied by tool script.
+  const browserIntents=new Map(),INTENT_TTL=15000;
+  const intentOperations=new Set(['browser.tabs.open','browser.tabs.focus','browser.network.request']);
+  async function verifyBrowserOwner(identity,operation,origin=null){
+    const owned=await readSources(api),tool=admittedTool(owned.tools,identity.toolId);
+    if(!sidebarToolEnabled(owned.enabled,tool.id))throw failure('E_TOOL_DISABLED');
+    if(tool.version!==identity.toolVersion||(owned.epochs[tool.id]??null)!==(identity.epoch??null)||
+       await digestTool(tool)!==identity.packageHash)throw failure('E_TOOL_CHANGED','Tool package or install epoch changed');
+    const op=browserOperation(operation);
+    if(!op||!op.requiredCapabilities.every(cap=>tool.capabilities.includes(cap)))throw failure('E_TOOL_CAPABILITY_REQUIRED');
+    for(const permission of op.requiredChromePermissions)
+      if(!api.permissions?.contains||!await api.permissions.contains({permissions:[permission]}))
+        throw failure('E_CHROME_PERMISSION_REQUIRED');
+    if(origin!==null){
+      const site=parsedHttp(origin);
+      if(!site||site.origin!==origin||!api.permissions?.contains||
+         !await api.permissions.contains({origins:[permissionPattern(origin+'/')]}))
+        throw failure('E_SITE_PERMISSION_REVOKED');
+    }
+    return tool;
+  }
+  const tabHost=createBrowserTabHost({api,authorize:async({operation,origin,context})=>{
+    if(context.approvedOrigin!==null&&context.approvedOrigin!==origin)throw failure('E_SITE_GRANT_REQUIRED','Tab origin changed');
+    await verifyBrowserOwner(context,operation,origin);
+    return true;
+  }});
+  const networkHost=createNetworkService({fetchImpl,maxResponseBytes:8192,
+    authorize:async({url},context)=>{
+      const origin=new URL(url).origin;
+      if(origin!==context.approvedOrigin)throw failure('E_SITE_GRANT_REQUIRED','HTTP request Origin changed');
+      await verifyBrowserOwner(context,'browser.network.request',origin);
+    }});
+  function revokeBrowserOperations(){browserIntents.clear();tabHost.dispose();}
+
   const SOURCE_PROOF_LIFETIME_MS=60000;
   // Content scripts send no selected text: only Chrome's native sender exposes
   // the real tab/frame/document of a trusted right-click gesture.
@@ -271,11 +308,15 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
     const isMenu=operation.startsWith('browser.contextMenu')||operation.startsWith('browser.launch')||
       operation==='browser.page.getSelection';
     const menuApiAvailable=Boolean(api.contextMenus?.create&&api.contextMenus?.onClicked);
-    const platformSupported=!isMenu||menuApiAvailable;
+    const platformSupported=(!isMenu||menuApiAvailable)&&(
+      operation==='browser.tabs.open'?Boolean(api.tabs?.create):
+      operation==='browser.tabs.focus'?Boolean(api.tabs?.get&&api.tabs?.update):
+      operation==='browser.sidePanel.openSelf'?Boolean(api.sidePanel?.open):
+      operation==='browser.network.request'?typeof fetchImpl==='function':true);
     const hasToolCap=op.requiredCapabilities.every(cap=>tool.capabilities.includes(cap));
     const chromium=menuApiAvailable&&await permissionGranted(api);
-    const requiredBrowser=op.requiredChromePermissions.length?op.requiredChromePermissions.every(id=>
-      id!=='contextMenus'||chromium):true;
+    const requiredBrowser=(await Promise.all(op.requiredChromePermissions.map(async id=>
+      id==='contextMenus'?chromium:await api.permissions?.contains?.({permissions:[id]}).catch(()=>false)===true))).every(Boolean);
     const exposure=op.supportedContexts.includes('sidebar-tool')&&hasToolCap?'allowed':'not-exposed';
     const consuming=operation==='browser.launch.consume'||operation==='browser.page.getSelection';
     let hasLaunch=true;
@@ -303,7 +344,7 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
       exposure,platform:platformSupported?'supported':'unsupported',
       authorization:{tool:hasToolCap?'granted':'missing',browser:requiredBrowser?'granted':'missing',
         site:isMenu?(menu?'granted':'missing'):'not-required'},
-      callableNow:runnable,reasonCode,
+      callableNow:runnable,requiresUserGesture:op.requiresUserGesture,reasonCode,
       nextAction:runnable?null:!hasToolCap?'update-tool-package':!platformSupported?null:
         !requiredBrowser?'enable-in-tool-details':isMenu&&!menu?'enable-in-tool-details':null};
   }
@@ -314,7 +355,7 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
       throw failure('E_TOOL_CAPABILITY_REQUIRED','Unapproved menu action ID');
     return actions;
   }
-  async function handleTool({operation,args={},toolId,toolVersion,toolInstance,hostInstanceId,installEpoch},sender){
+  async function handleTool({operation,args={},toolId,toolVersion,toolInstance,hostInstanceId,installEpoch,approvalRef},sender){
     const actualHost=await checkedSender(api,sender);
     if(actualHost!==hostInstanceId||!validId(toolId)||
        typeof toolInstance!=='string'||!/^[0-9a-f-]{36}$/i.test(toolInstance))
@@ -325,6 +366,33 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
         throw failure('E_TOOL_DISABLED','Tool was disabled; existing menu and launch authority revoked');
       if(tool.version!==toolVersion||(owned.epochs[toolId]??null)!==(installEpoch??null))
         throw failure('E_TOOL_CHANGED','Old tool version or revoked instance');
+      if(intentOperations.has(operation)||operation==='browser.sidePanel.openSelf'){
+        const checked=normalizeBrowserOperation(operation,args),hash=await digestTool(tool);
+        const owner={toolId,toolVersion,packageHash:hash,epoch:installEpoch??null,
+          installEpoch:String(installEpoch??'initial-install'),approvedOrigin:null};
+        if(operation==='browser.sidePanel.openSelf'){
+          await verifyBrowserOwner(owner,operation);
+          return {requiresVisibleUserClick:true};
+        }
+        const intent=browserIntents.get(approvalRef);
+        browserIntents.delete(approvalRef);
+        if(!intent||Date.now()>=intent.expiresAt||intent.operation!==operation||
+           intent.toolId!==toolId||intent.toolVersion!==toolVersion||
+           intent.packageHash!==hash||intent.epoch!==(installEpoch??null)||
+           intent.toolInstance!==toolInstance||intent.hostInstanceId!==hostInstanceId||
+           intent.args!==canonicalJSON(checked))
+          throw failure('E_USER_GESTURE_REQUIRED','New explicit approval required for this exact action');
+        const approvedOrigin=['browser.tabs.open','browser.network.request'].includes(operation)
+          ?new URL(checked.url).origin:null;
+        const context={...owner,approvedOrigin};
+        await verifyBrowserOwner(context,operation,approvedOrigin);
+        if(operation==='browser.tabs.open')return tabHost.open(checked,context);
+        if(operation==='browser.tabs.focus')return tabHost.focus(checked,context);
+        const response=await networkHost.request(checked,{...context,deadlineAt:Date.now()+15000});
+        const result={status:response.status,data:response.data};
+        if(jsonBytes(result)>12000)throw failure('E_LIMIT','HTTP response exceeds IPC budget');
+        return result;
+      }
       if(operation==='browser.capabilities.list'){
         normalizeBrowserOperation(operation,args);
         const values=await Promise.all(browserCapabilityList().map(async row=>{
@@ -396,11 +464,30 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
       throw failure('E_SERVICE_UNSUPPORTED','Browser operation is not available to installed tools');
     }));
   }
-  async function handleHost({operation,toolId,enabled,origin,document,launchId,toolInstance,hostInstanceId},sender){
+  async function handleHost({operation,toolId,enabled,origin,document,launchId,toolInstance,hostInstanceId,toolVersion,installEpoch,targetOperation,targetArgs},sender){
     const actualHost=await checkedSender(api,sender);
     if(actualHost!==hostInstanceId||!validId(toolId))
       throw failure('E_OWNER','Wrong OpenDesk tool host');
     return serial(()=>runLocked(toolId,async()=>{
+      if(operation==='browser.intent.confirm'){
+        if(!intentOperations.has(targetOperation)||typeof toolInstance!=='string'||
+           !/^[0-9a-f-]{36}$/i.test(toolInstance))throw failure('E_SCHEMA','Invalid trusted action');
+        const args=normalizeBrowserOperation(targetOperation,targetArgs);
+        const source=await readSources(api),tool=admittedTool(source.tools,toolId);
+        if(!sidebarToolEnabled(source.enabled,toolId))throw failure('E_TOOL_DISABLED');
+        if(tool.version!==toolVersion||(source.epochs[toolId]??null)!==(installEpoch??null))
+          throw failure('E_TOOL_CHANGED','Tool updated during approval');
+        const packageHash=await digestTool(tool);
+        const origin=['browser.tabs.open','browser.network.request'].includes(targetOperation)
+          ?new URL(args.url).origin:null;
+        await verifyBrowserOwner({toolId,toolVersion,packageHash,epoch:installEpoch??null},targetOperation,origin);
+        for(const [ref,intent] of browserIntents)if(Date.now()>=intent.expiresAt)browserIntents.delete(ref);
+        if(browserIntents.size>=16)throw failure('E_LIMIT','Too many pending approvals');
+        const approvalRef=crypto.randomUUID(),expiresAt=Date.now()+INTENT_TTL;
+        browserIntents.set(approvalRef,{operation:targetOperation,args:canonicalJSON(args),toolId,toolVersion,
+          packageHash,epoch:installEpoch??null,toolInstance,hostInstanceId:actualHost,expiresAt});
+        return {approvalRef,expiresAt};
+      }
       if(operation==='browser.contextMenu.userToggle'){
         const doc=await api.webNavigation.getFrame({tabId:document?.tabId,frameId:0});
         const url=parsedHttp(document?.url);
@@ -531,6 +618,8 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
   }
   ensureListener();
   api.storage?.onChanged?.addListener((changes,area)=>{
+    if(area==='local'&&[SIDEBAR_TOOL_ENABLE_STORE,SIDEBAR_TOOL_STORE,TOOL_REVOCATION_EPOCHS_STORE].some(key=>Object.hasOwn(changes,key)))
+      revokeBrowserOperations();
     if(area==='local'&&Object.hasOwn(changes,SIDEBAR_TOOL_ENABLE_STORE))
       void revokeLaunches().catch(error=>logger.warn('OpenDesk disabled-tool launch cleanup',error));
     if(area==='local'&&(Object.hasOwn(changes,SIDEBAR_TOOL_ENABLE_STORE)||
@@ -561,5 +650,5 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
     const rows=(await api.storage.session.get(BROWSER_MENU_LAUNCH_STORE))[BROWSER_MENU_LAUNCH_STORE]||{};
     if(Object.keys(rows).length)await confirmedWrite(api.storage.session,BROWSER_MENU_LAUNCH_STORE,{});
   });
-  return Object.freeze({synchronize:sync,handleTool,handleHost,onClicked,ensureListener,invalidateTab,revokeLaunches,revokePermission,noteNavigation,noteSourceContext,receiveSourceContext});
+  return Object.freeze({synchronize:sync,handleTool,handleHost,onClicked,ensureListener,invalidateTab,revokeLaunches,revokePermission,revokeBrowserOperations,noteNavigation,noteSourceContext,receiveSourceContext});
 }
