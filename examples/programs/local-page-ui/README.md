@@ -1,17 +1,37 @@
-# 本地 Page UI 直接预览
+# Local Page UI · 跨网站悬浮 Demo
 
-> R10.1 当前中文使用入口：[快速入门](../../../docs/api/quickstart.zh-CN.md)，[七个 MCP 工具](../../../docs/api/mcp-local-development.zh-CN.md)。复用原候选证据，按相关输入判断是否需要重测；不以示例运行代替安装/F3。
+本示例是 Page USER_SCRIPT 本地多文件 UI，**不是 Controller**。它使用已有 @opendesk/ui 创建 Shadow DOM 悬浮面板，计数按钮只修改卡片内数字。无需网页存在 h1、固定表单或特定 DOM 挂载点。
 
-按 [本地开发指南](../../../docs/framework/local-development-r22.zh-CN.md) 完成首次配置或旧 Native Host 的一次 update；`--allow-project` 必须包含此目录。启动后可从 `opendesk.dev.status` 取得自动绑定的 bindingId，也可以显式 attach。按 [Controller 示例](../local-controller/README.md) 启动唯一标准测试网页，在 Chrome 打开项目 `pageRules` 允许的 demo-form.html，开启扩展的「允许用户脚本」并授予目标网站权限。
+## 网页适配与权限
 
-调用 `opendesk.dev.run({bindingId, requestId})`，不传 Controller params 或自定义 deadline。它返回 `previewId`，用 `opendesk.dev.result({previewId})` 获取实际 USER_SCRIPT 回执。页面显示 Shadow DOM 按钮、计数器和受控 PNG。
+开发项目的 pageRules.matches 改为 *://*/*，覆盖普通 HTTP 和 HTTPS 网页、本机不同端口和其他域名，仍使用 document_idle、allFrames:false、USER_SCRIPT。**通配符只是 URL 允许范围，不授予网站权限，也不会自动运行。**
 
-修改 `src/model.js` 的 `label` 与 `step`，修改 `assets/ui.css` 的颜色，直接再次调用 run；平台确认旧受管实例清理后挂载新版本；无需 build、JSON、上传或重新安装扩展。源码无效会拒绝本次新预览，保留此前实例的现有状态，不把旧字节冒充本次执行。显式再运行读取最新文件，不表示存在文件监听或自动 HMR。
+必须在活动标签页上明确点击「运行本地项目」，并通过 Chrome「允许用户脚本」、网站访问授权和 OpenDesk 原有 Host/文档/Authority 检查。修改文件只会自动准备，保存不是 Run。导航或换标签后需要在新网页再次明确点击运行；不会全站驻留或自动重放旧运行。
 
-Page 预览没有 Controller runId，不会创建正式 Task。只显式点击页面按钮改变这个 Demo 的计数器，不操作网站表单、不自动执行业务行为。关闭按钮走 `createPageUI().destroy()`。`dev.stop({previewId})` 对这个受管示例执行 typed 清理；非受管 Page 返回 `E_PAGE_PREVIEW_STOP_UNSUPPORTED`，不能把通用第三方脚本当作 Controller 强制停止。
+chrome://、扩展页、Chrome Web Store 的受保护页面、PDF 浏览器、file:// 及浏览器禁止注入的页面不支持；仅顶层 frame，不注入跨域 iframe。严格 CSP、网站遮挡、BFCache、200% 缩放和窄屏须真实 Chrome 单项验收。开发态宽匹配范围**不应不经独立安全审查直接发布为全站自动运行的正式工具**；正式安装应改为最小业务范围。
 
-若入场 ACK 丢失，在同一 MCP 会话用 `dev.result({admissionRequestId:原requestId})` 只读对账；恢复仍只得到原 previewId，不会变成 Controller，也不自动重跑未知效果。
+## 使用流程
 
-正式打包安装仍使用仓库 `build:program` 命令，与本地预览分开。
+1. 安装并配对相容的 Native Host 与扩展，开启用户脚本并授予要测试的站点权限；参照 [目录开发说明](../../../docs/framework/local-directory-cli-r17.zh-CN.md)。
+2. 在本目录执行 opendesk browser dev .，或用已经授权 --allow-project 的现有 MCP 连接；在 Side Panel「开发 → 直接编辑本地项目」选择 **local-page-ui · 页面脚本**。
+3. 在任一普通 HTTP/HTTPS 页面点击「运行本地项目」，网页右上角应出现 OpenDesk Page UI 卡片，显示目标域名；点「点击计数」只更新卡片中的数字，点「关闭」卸载卡片。开发 Tab 的「停止」使用原 previewId 释放受管资源。
+4. 切到不同域名或不同端口的新网页并授予网站权限，重新点击运行。不再依赖 Browser Test Lab 标题、h1 或 #page-ui-demo-target。保存 src/model.js 中的 label/step 或 assets/ui.css 后仍须手动 Run 才挂新版。
 
-候选 `99a26c38e576ad0653143dd130582d15820054d6` 已通过真实 Chrome：修改 JS/CSS 后预览新版本、图片/按钮/Shadow DOM、等待异步清理并停止旧定时器、typed Stop、清理抛错时不挂新 UI。原始身份与证据见 [P3 CI 摘要](../../../docs/framework/evidence/local-dev-r22-c036/p3-ci-summary.json)，剩余边界见 [交付报告](../../../docs/framework/local-development-r22-report.zh-CN.md)。
+统一本机标准测试页也可使用：
+
+    python3 -m http.server 43111 --bind 127.0.0.1 --directory examples/tasks
+
+随后访问 http://127.0.0.1:43111/demo-form.html 。
+
+## 避免误读 Controller 结果
+
+local-controller 返回 version、title、heading，例如 Browser Test Lab。这个 JSON 表示 Controller 读取网页成功，不代表 UI 已挂载。新版 local-page-ui 的运行结果返回 project:"sample.local-page-ui"、runtime:"page-userscript"、state:"mounted"、placement:"floating"、targetOrigin。mounted 只证明当时 UI 宿主活跃，**不能替代**实际 Chrome 可见性、点击与 Stop 验收；需核对真实 previewId、documentId 和原运行来源。
+
+Page 预览没有 Controller 的持久 runId/resultId，「已完成 · 资源已释放」不能单独作为 UI 显示证据。失败时先核对所选项目、当前标签页、网站授权、用户脚本开关、受保护页面及错误码；未知效果不盲目重试。
+
+## 验证
+
+    node --test tests/environment/local-page-ui.test.mjs
+    node scripts/validate-program-project.mjs examples/programs/local-page-ui
+
+Node 定向测试不是 Mac Chrome 验收，仍须分站点 Run/Stop、撤权、导航、缩放、窄屏和受管清理测试。旧候选原始证据只属于旧候选。正式打包安装仍使用现有 build:program 与包校验。

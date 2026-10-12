@@ -1,2 +1,2 @@
-export const label='Local v1';
+export const label='点击计数';
 export const step=1;
