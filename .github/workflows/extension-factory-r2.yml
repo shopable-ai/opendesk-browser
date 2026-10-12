@@ -1,17 +1,7 @@
-name: Extension Factory R2 independent product
+# DEPRECATED / NO_RELEASE: Page QA is retained for opt-in historical diagnostics.
+# Do not auto-build this retired product on unrelated main pushes.
+name: DEPRECATED Page QA R2 fixture (manual only)
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'products/page-qa-inspector/**'
-      - 'packages/extension-factory/**'
-      - 'packages/features/page-qa/**'
-      - 'scripts/product-*.mjs'
-      - 'tests/environment/extension-factory-r2.test.mjs'
-      - 'src/ui/design-tokens.css'
-      - 'package.json'
-      - 'package-lock.json'
-      - '.github/workflows/extension-factory-r2.yml'
   workflow_dispatch:
 permissions:
   contents: read
