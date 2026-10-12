@@ -202,3 +202,66 @@ test('asset, review provenance and lock tampering fail closed; quota failure ato
   const q=fixture();q.throwOnPut=row=>row.tag==='userscript-review-v1';
   await assert.rejects(q.prepare(),failCode('E_QUOTA'));assert.equal(q.rows().length,0);
 });
+
+
+// R7: shared SHA bytes are not shared runtime permissions or owner locks.
+test('approved HTTPS bytes can be explicitly reused across programs without network or inherited approval',async()=>{
+  const f=fixture(),src=source(),review=await f.prepare(src),firstLock=await f.approve(review);
+  const other=f.managerForNamespace('tool:other');
+  const inspected=await other.inspect({sourceUtf8:src},{});
+  assert.equal(inspected.requires[0].status,'needs-review');
+  assert.deepEqual(inspected.requires[0].cacheChoices,[]);
+  assert.equal(inspected.requires[0].sharedCacheChoices.length,1);
+  assert.equal(inspected.requires[0].sharedCacheChoices[0].sha256,sha(first));
+  assert.equal(inspected.requires[0].sharedCacheChoices[0].sourceKind,'https');
+  await assert.rejects(other.loadForExecution({sourceUtf8:src,lockId:firstLock.lockId},{}),failCode('E_DEPENDENCY_LOCK'));
+  f.offline=true;f.granted=false;
+  await assert.rejects(other.prepare({sourceUtf8:src,explicitUserAction:true,
+    selections:[{order:0,assetSha256:sha(first)}]},{}),failCode('E_DEPENDENCY_REVIEW'));
+  const pending=await other.prepare({sourceUtf8:src,explicitUserAction:true,
+    selections:[{order:0,sharedAssetSha256:sha(first)}]},{});
+  assert.equal(pending.entries[0].acquisition,'shared-content-cache');
+  assert.equal(pending.entries[0].sourceKind,'https');
+  assert.equal(f.calls.length,1,'second program must not fetch on explicit shared-content reuse');
+  await assert.rejects(other.loadForExecution({sourceUtf8:src},{}),failCode('E_DEPENDENCY_UNLOCKED'));
+  const secondLock=await other.approve({reviewId:pending.reviewId,explicitUserAction:true,
+    acceptedHashes:[sha(first)]},{});
+  assert.notEqual(secondLock.lockId,firstLock.lockId,'different owner always receives its own approval lock');
+  assert.equal((await other.loadForExecution({sourceUtf8:src,lockId:secondLock.lockId},{})).entries[0].code,first);
+  assert.equal(f.rows().filter(row=>row.tag==='userscript-asset-v1').length,1);
+  assert.equal(f.calls.length,1);
+});
+
+test('unapproved/local bytes never enter shared HTTPS provenance; corrupted index and bytes block reuse',async()=>{
+  const pending=fixture();await pending.prepare();
+  const otherPending=pending.managerForNamespace('tool:other');
+  assert.deepEqual((await otherPending.inspect({sourceUtf8:source()},{})).requires[0].sharedCacheChoices,[]);
+  const local=fixture();local.offline=true;local.granted=false;
+  await local.approve(await local.prepare(source(),{selections:[{order:0,
+    localFile:{name:'local.js',bytesBase64:Buffer.from(first).toString('base64')}}]}));
+  const other=local.managerForNamespace('tool:other');
+  assert.deepEqual((await other.inspect({sourceUtf8:source()},{})).requires[0].sharedCacheChoices,[]);
+  await assert.rejects(other.prepare({sourceUtf8:source(),explicitUserAction:true,
+    selections:[{order:0,sharedAssetSha256:sha(first)}]},{}),failCode('E_DEPENDENCY_REVIEW'));
+  const tamper=fixture();await tamper.approve(await tamper.prepare());
+  tamper.change('frameworkKV',keys.sharedSource(firstUrl),row=>({...row,
+    choices:row.choices.map(choice=>({...choice,resolvedUrl:secondUrl}))}));
+  await assert.rejects(tamper.managerForNamespace('tool:other').inspect({sourceUtf8:source()},{}),
+    failCode('E_DEPENDENCY_SHARED_SOURCE'));
+  const broken=fixture();await broken.approve(await broken.prepare());
+  broken.change('frameworkKV',keys.asset(sha(first)),row=>{new Uint8Array(row.bytes)[0]^=1;return row;});
+  await assert.rejects(broken.managerForNamespace('tool:other').inspect({sourceUtf8:source()},{}),
+    failCode('E_DEPENDENCY_HASH'));
+});
+
+test('multiple reviewed versions remain separately selectable without upgrading old revisions',async()=>{
+  const f=fixture(),old=await f.approve(await f.prepare());
+  f.routes.set(firstUrl,{bytes:first+'\n// immutable second version'});
+  const latest=await f.approve(await f.prepare());
+  const other=f.managerForNamespace('tool:other'),inspected=await other.inspect({sourceUtf8:source()},{});
+  assert.deepEqual(inspected.requires[0].sharedCacheChoices.map(x=>x.sha256),
+    [sha(first+'\n// immutable second version'),sha(first)]);
+  assert.notEqual(old.lockId,latest.lockId);
+  assert.equal((await f.load(old)).entries[0].code,first);
+  assert.equal((await f.load(latest)).entries[0].code,first+'\n// immutable second version');
+});

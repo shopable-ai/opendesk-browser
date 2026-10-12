@@ -1,6 +1,6 @@
 # OpenDesk Browser R9：旧新模块与第三方依赖迁移清单
 
-更新：2026-10-09。本文以当前源码、WXT 产物和对应构建记录为准；历史快照不是运行资源。R9 的已观察候选、CI、包 SHA 和原生失败保存在 [工作记录](../../framework/workstreams/r9-dependency-closure-20261009.md)。源码、构建、浏览器组件和正式产品验收分别记录，不能互相替代。
+更新：2026-10-09。**2026-10-13 File-First R7 增量**：[独立文件与跨程序 SHA 复用阶段账本](../../framework/workstreams/universal-dependency-file-first-r7-20261013.md)。旧 R9 清单保留历史证据；新方案不覆盖 R8 Browser SDK。本文以当前源码、WXT 产物和对应构建记录为准；历史快照不是运行资源。R9 的已观察候选、CI、包 SHA 和原生失败保存在 [工作记录](../../framework/workstreams/r9-dependency-closure-20261009.md)。源码、构建、浏览器组件和正式产品验收分别记录，不能互相替代。
 
 > **R9.1 使用方式更正：不要把旧版的多套依赖机制当作一个缺失库清单。** `src-bex/TimeReview.ts` 的 Lodash/Moment 早已通过 npm/TS import 打包到旧 `background.js`；旧 `background-sw.js` 又用 `importScripts` 为**其他独立全局脚本**引入库；旧 `manifest.json` 的 Content ISOLATED 加载及 `my-content-script.js` 向 MAIN 的 `appendScript` 注入是**第三条链**。对于已经打包的 `src-bex` 模块，旧 `.min.js` 不需要再重复加载；不同世界的全局库也不会互相提供变量。新版根 `package.json` 未安装 Lodash **不单独证明框架能力缺失**；但旧 TimeReview 业务和 SDK Fingerprint 等行为不能冒称等价迁移。Page npm 示例仅证明 Page 的构建链。清晰的 **Background / Content / MAIN / USER_SCRIPT / Controller / Sidebar** 引入位置与 LocalDev v2 操作见 [R9.1 多运行世界依赖方案](background-dependencies-restoration-r1.zh-CN.md)。
 
