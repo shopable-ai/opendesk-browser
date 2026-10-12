@@ -20,7 +20,7 @@
 
 ## 二、源码级审计与 R8 差分
 
-| 能力 | ${date} 状态（证据级别） | 源码/权威 | 下一关口 |
+| 能力 | 2026-10-12 状态（证据级别） | 源码/权威 | 下一关口 |
 | --- | --- | --- | --- |
 | 元数据解析、匹配、排除、依赖锁 | SOURCE_IMPLEMENTED 部分语义；GM 扩展语法仍须按矩阵拒绝/适配 | src/scripting/user-scripts/dependency-metadata.js、dependency-manager.js、page-program-rules.js | @include/exclude、@connect、@resource 分别审计 |
 | 安装版本与用户授权 | SOURCE_IMPLEMENTED 受信安装与候选 API | src/scripting/user-scripts/installed-programs.js、page-install-authorization.js | 逐候选证明安装/撤销/升级用户体验 |
