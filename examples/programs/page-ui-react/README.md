@@ -1,5 +1,12 @@
 # React JSX · OpenDesk Browser R24.3
 
+## 自动编译状态（2026-10-12）
+
+**状态：已实现、历史候选真实 Chrome PASS；R24.4 最终验收未完成。** `src/App.jsx` 是原始 JSX，Chrome 不能直接将其作为普通 JavaScript 运行。OpenDesk 会自动转换：本地 `opendesk browser dev .` 在保存后准备最新源码，Side Panel 明确 Run 才执行；浏览器无 Native 的「直接编辑 → React JSX」在 Run 时按需编译，同样无需用户每次手动 Vite/npm build。**保存和编译不会自动执行网页业务。**
+
+证据：[本地 React 20 次 Chrome Run/Stop](https://github.com/shopable-ai/opendesk-browser/actions/runs/38155034890)、[浏览器 JSX Hooks 点击与 Stop](https://github.com/shopable-ai/opendesk-browser/actions/runs/38225425847)、[独立安装 CLI JSX 编译](https://github.com/shopable-ai/opendesk-browser/actions/runs/38231722128)。上述只对对应历史 CI 候选 PASS；最新 `main` 的浏览器 20 次独立循环、SPA/BFCache、撤权、缩放/主题及最终安装验收 **NOT_TESTED**。[完整状态表](../../../docs/api/page-ui-frameworks.zh-CN.md)。
+
+
 **当前默认入口：`src/App.jsx`**。用户写官方 React `import`、Hooks 与 JSX、默认导出 `App`，无需手工 `main()`、`createPageUI`、`createDemoEnhancer` 或项目级 Vite 操作。OpenDesk 使用原本地编译器（固定 esbuild + Webpack）和内置 React/ReactDOM，生成受管页面挂载与 `root.unmount()`；不重复打包框架到用户源码。
 
 ## 使用方法
