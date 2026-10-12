@@ -10,7 +10,7 @@
 | --- | --- | --- | --- |
 | `page-ui-react` | `src/App.jsx` | `import {useState} from 'react'`、JSX、`export default App` | JSX 转换、内置 React/ReactDOM、受管挂载 |
 | `page-ui-vue` | `src/App.vue` | `<script setup>`、`<template>`、`<style scoped>` | Vue SFC 编译、固定 runtime/helper、scoped CSS |
-| `page-ui-react-direct` | `src/main.js` | 标准 React `createElement`、`useReducer`、`useCallback` | 无 JSX 编译，仍自动生成 React root/Stop |
+| `page-ui-react-direct` | `src/main.js` | 标准 React Hooks、当前网页信息与悬浮交互 | 跨普通 HTTP(S) 网页的自动悬浮挂载与 Stop |
 | `page-ui-vue-direct` | `src/main.js` | 标准 Vue `h/ref` 普通 JavaScript Options 组件 | 无 SFC 编译，仍自动生成 Vue app/Stop |
 
 四个目录各有独立项目身份，但只共用**一套** `opendesk.project.v1` 本地解析器、页面执行链、固定 framework 资源和受管 UI 生命周期，不产生额外 SDK/安装器。默认入口标记 `opendesk.entryMode: "component"` + `framework: "react" | "vue"`；未声明该入口的旧 `async-main`、classic 用户脚本和 Controller 保持兼容。
@@ -27,7 +27,7 @@
 python3 -m http.server 43111 --bind 127.0.0.1 --directory examples/tasks
 ```
 
-Chrome 打开 `http://127.0.0.1:43111/demo-form.html`。进入任意一个示例目录，启动已配置的 `opendesk browser dev .`；Sidebar → 开发 → 本地项目 → 选择已授权项目。编辑器或 Codex **保存后自动准备，保存不是 Run/HMR**；明确点击「运行本地项目」才在获准网页执行当前输入。停止由原 `previewId` 生命周期调用 React `root.unmount()` 或 Vue `app.unmount()`，移除受管 DOM/样式。不要将网页权限和项目 `pageRules` 混为一谈。
+Chrome 可打开 `http://127.0.0.1:43111/demo-form.html` 进行回归；**React Direct 也能在另一个已授权的普通 HTTP(S) 网页手动运行**，不依赖本测试服务。进入任意一个示例目录，启动已配置的 `opendesk browser dev .`；Sidebar → 开发 → 本地项目 → 选择已授权项目。编辑器或 Codex **保存后自动准备，保存不是 Run/HMR**；明确点击「运行本地项目」才在获准网页执行当前输入。停止由原 `previewId` 生命周期调用 React `root.unmount()` 或 Vue `app.unmount()`，移除受管 DOM/样式。不要将网页权限和项目 `pageRules` 混为一谈。
 
 维护者/离线导出如需显式构建，`npm run build:program` 直接调用 `scripts/build-program-project.mjs`，**不再隐式执行 Vite**。`build:framework` 与 `src/runtime-entry.js` 仅保留为维护者预装固定运行时来源，不是用户日常 Run 操作。
 
@@ -46,7 +46,7 @@ Chrome 打开 `http://127.0.0.1:43111/demo-form.html`。进入任意一个示例
 
 固定 React 19.2.0 与 Vue 3.5.22 来自扩展资源并进行 SHA-256/字节/许可证校验；React/Vue 官方常用 Hook/helper 已按真实运行时导出注册，缺失导出和跨框架导入在准备期拒绝。Vue SFC `@vue/compiler-sfc@3.5.22` 以独立固定资源进行数据转换，不在页面 USER_SCRIPT 执行编译器。Node 路径使用现有根锁定 `esbuild@0.28.2` 和原 Webpack，限制源码图及编译字节，不重复打入 ReactDOM/Vue。
 
-所有业务源码仅由原 Chrome `USER_SCRIPT`、原权限/目标文档/来源身份运行；Shadow DOM 不是安全沙箱。安装、预览、运行、停止是不同的明确动作；Stop 可卸载受管 DOM/监听器/样式，不承诺撤销已经提交的表单或网络请求。示例 `pageRules` 仅匹配 `http://127.0.0.1:43111/*`；精确端口和排除路径需遵守原声明。
+所有业务源码仅由原 Chrome `USER_SCRIPT`、原权限/目标文档/来源身份运行；Shadow DOM 不是安全沙箱。安装、预览、运行、停止是不同的明确动作；Stop 可卸载受管 DOM/监听器/样式，不承诺撤销已经提交的表单或网络请求。**React Direct 通用悬浮示例**现使用 `*://*/*` 匹配普通 HTTP(S) 网页，仅供手动跨站开发；这不是网站权限授予，更不是全站自动安装许可。另三个示例仍使用各自的页面规则。
 
 ## 五、实测证据与缺口
 
