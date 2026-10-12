@@ -216,3 +216,22 @@ test('registered catalog alone cannot claim Host presence; live runner restores 
   assert.equal(resumed.fires[0].fireId,waiting.fires[0].fireId,'recovery cannot mint a second occurrence');
   assert.equal((await f.repo.list())[0].history.length,1);
 });
+
+test('short outage latest-within-hour selects LAST occurrence, skip preserves first due',async()=>{
+  for(const policy of ['latest-within-hour','skip']){
+    const f=await fixture(),start=f.getTime(),spec={anchorAt:start+60000,everyMinutes:1};
+    const plan=await f.repo.save({...f.input,triggerKind:'interval',triggerSpec:spec,
+      misfirePolicy:policy,startDeadlineMs:300000});
+    assert.equal(plan.nextDueAt,start+60000);
+    // Chrome was asleep for 4 minutes, but the old first deadline (5 min)
+    // has not expired. A catch-up plan must nevertheless choose minute 4.
+    f.setTime(start+4*60000+1000);
+    const changed=await f.repo.reconcile();
+    assert.equal(changed.length,1);
+    const [fire]=await f.repo.ready();
+    assert.equal(fire.scheduledAt,policy==='latest-within-hour'?start+4*60000:start+60000);
+    assert.equal(fire.fireId,scheduleFireId(plan.scheduleId,plan.generation,fire.scheduledAt));
+    assert.equal((await f.repo.reconcile()).length,0,'same wall time must never mint a second FireId');
+    assert.equal((await f.repo.list())[0].history.length,1);
+  }
+});

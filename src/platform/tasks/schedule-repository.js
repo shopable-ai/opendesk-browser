@@ -76,7 +76,10 @@ export function createScheduleRepository({storage,clock,namespace,session}){
       for(const def of await definitions(tx)){
         if(def.paused||def.nextDueAt===null||def.nextDueAt>time)continue;
         let due=def.nextDueAt;
-        if(due<time-def.startDeadlineMs&&def.misfirePolicy==='latest-within-hour'){
+        if(def.misfirePolicy==='latest-within-hour'){
+          // Catch-up always chooses the most recent eligible occurrence,
+          // even after a short (< startDeadlineMs) host outage. The skip
+          // policy alone retains the original due time and deadline.
           const recent=recentMissedAt(def,time);
           if(recent!==null)due=recent;
         }
