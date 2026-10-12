@@ -31,12 +31,13 @@ async function fixture(persisted={scripts:[],runs:[],results:[]}, draftStorage,
   const find=id=>nodes.get(id), view=new Element(), doc={getElementById:find,defaultView:view,createElement:()=>new Element()};
   find('script-id').value='my-script';find('script-source').value='return params.value;';find('script-params').value='{"value":1}';find('script-target-mode').value='current';
   const traces=[], permissions=[], permissionChecks=[], starts=[], executions=[], snapshots=[], commits=[], previews=[], dependencyInspections=[], terminal=deferred();
-  let activeTab=11, permission=Promise.resolve(true), saveGate, loadGate;
+  let activeTab=11, permission=Promise.resolve(true), saveGate, loadGate, documentVersion=0;
+  const tabDocuments=new Map([[11,'doc-11'],[12,'doc-12']]);
   const tabs=new Map([[11,{id:11,windowId:7,url:'https://a.example/',title:'A',incognito:false}],[12,{id:12,windowId:7,url:'https://b.example/',title:'B',incognito:false}]]);
   const api={storage:draftStorage?{session:draftStorage}:undefined,runtime:{getURL:p=>'chrome-extension://extension/'+p},permissions:{contains:request=>{permissionChecks.push(request);traces.push('permission-check');return permission;},request:request=>{permissions.push(request);return Promise.resolve(false);}},
     tabs:{getCurrent:async()=>contextTabId?{id:contextTabId}:undefined,onActivated:event(),onUpdated:event(),onRemoved:event(),query:async query=>[...tabs.values()].filter(row=>!query.active||row.id===activeTab).map(row=>({...row,active:row.id===activeTab}))},
     windows:{getCurrent:async()=>({id:7}),onRemoved:event()},
-    webNavigation:{onCommitted:event(),onHistoryStateUpdated:event(),onReferenceFragmentUpdated:event(),getAllFrames:async({tabId})=>[{frameId:0,documentId:'doc-'+tabId,url:tabs.get(tabId).url,documentLifecycle:'active'}]}};
+    webNavigation:{onCommitted:event(),onHistoryStateUpdated:event(),onReferenceFragmentUpdated:event(),getAllFrames:async({tabId})=>[{frameId:0,documentId:tabDocuments.get(tabId),url:tabs.get(tabId).url,documentLifecycle:'active'}]}};
   const controller={
     async commitControllerScript(request){if(saveGate)await saveGate.promise;commits.push(structuredClone(request));
       const head=persisted.scripts.filter(row=>row.scriptId===request.scriptId&&!row.tombstoned).at(-1);
@@ -93,6 +94,21 @@ async function fixture(persisted={scripts:[],runs:[],results:[]}, draftStorage,
     finish:async value=>{terminal.resolve({status:'succeeded',value:controlEncode(value)});await editor.host.completion;await tick();},
     setPermission:value=>{permission=value;},setSaveGate:value=>{saveGate=value;},setLoadGate:value=>{loadGate=value;},
     switchTab:async()=>{activeTab=12;api.tabs.onActivated.emit({windowId:7,tabId:12});await tick();},
+    activateTab:async id=>{activeTab=id;api.tabs.onActivated.emit({windowId:7,tabId:id});await tick();await tick();},
+    navigateTab:async(id=activeTab)=>{
+      const row=tabs.get(id),url=new URL(row.url);
+      url.pathname='/new-document-'+(++documentVersion);
+      tabDocuments.set(id,'doc-'+id+'-nav-'+documentVersion);
+      tabs.set(id,{...row,url:url.href,status:'complete'});
+      api.webNavigation.onCommitted.emit({tabId:id,frameId:0,
+        documentId:tabDocuments.get(id),url:url.href});
+      await tick();await tick();
+    },
+    removeTab:async id=>{
+      tabs.delete(id);tabDocuments.delete(id);
+      api.tabs.onRemoved.emit(id,{windowId:7});
+      await tick();
+    },
     dispose(){editor.dispose();target.dispose();}};
 }
 
@@ -971,9 +987,15 @@ test('R24.3 an outcome-unknown browser component blocks the SAME document, but a
   f.find('page-component-vue').checked=true;f.find('page-component-vue').fire('change');await tick();
   assert.equal(f.find('page-component-react').checked,true,'framework switch cannot bypass uncertain execution');
   assert.equal(dispatched,1,'no duplicate dispatch after unknown receipt');
-  await f.switchTab(); // new actual available document: tabId and documentId both change.
+  await f.switchTab();
+  assert.equal(f.find('page-preview-run').disabled,true,
+    'switching tabs does not prove the unknown original document was retired');
+  await f.activateTab(11);
+  assert.equal(f.find('page-preview-run').disabled,true,
+    'returning to the same potentially affected document must stay blocked');
+  await f.navigateTab(11);
   await waitForComponentUI(()=>f.find('page-preview-run').disabled===false,
-    'verified new document must release the old effect-unknown fence');
+    'only a new document in the original tab can release the uncertain effect');
   assert.match(f.find('page-component-status').textContent,/新网页文档/);
   assert.equal(dispatched,1,'navigation alone must never replay user code');
   await f.click('page-preview-run');
@@ -1001,7 +1023,80 @@ test('R24.3 malformed Page receipt is quarantined and cannot be retried in the s
   assert.equal(f.find('page-preview-run').disabled,true);
   assert.equal(dispatches,1);
   await f.switchTab();
+  assert.equal(f.find('page-preview-run').disabled,true,
+    'an unrelated tab must not unlock a mismatched receipt');
+  await f.activateTab(11);
+  assert.equal(f.find('page-preview-run').disabled,true);
+  await f.navigateTab(11);
   await waitForComponentUI(()=>f.find('page-preview-run').disabled===false,
-    'only a new document can release a mismatched Page receipt');
+    'only the original tab navigating to a new document can release a mismatched receipt');
   assert.equal(dispatches,1,'new document must not auto-run');
+});
+
+test('R24.3 switching tabs retains the original confirmed managed preview for a later authentic Stop',async t=>{
+  const f=await fixture(undefined,undefined,{componentPreparerFactory:browserComponentFixture});
+  t.after(()=>f.dispose());
+  const original=f.client.request.bind(f.client);
+  const retirements=[];
+  f.client.request=async(method,payload)=>{
+    if(method==='previewPageScript'){
+      f.previews.push(structuredClone(payload));
+      return {state:'preview-evaluated',sourceHash:'a'.repeat(64),
+        documentId:payload.target.documentId,managedUI:true,
+        managedPreviewId:payload.managedUI.previewId,resultText:'{"ok":true}'};
+    }
+    if(method==='retirePagePreview'){
+      retirements.push(payload.previewId);
+      return {state:'preview-retired',previewId:payload.previewId,
+        sourceHash:'a'.repeat(64),receipt:{ok:true,scope:'managed-ui-only',instances:1}};
+    }
+    return original(method,payload);
+  };
+  await selectBrowserReact(f);
+  await f.click('page-preview-run');
+  await waitForComponentUI(()=>f.find('page-preview-status').dataset.state==='completed',
+    'original Page preview must be confirmed before changing tabs');
+  assert.equal(f.previews.length,1);
+  const previewId=f.previews[0].managedUI.previewId;
+  assert.equal(f.find('script-stop').disabled,false,'original document can Stop');
+  await f.switchTab();
+  assert.equal(f.find('page-preview-run').disabled,true,
+    'a different tab cannot orphan the original live managed UI');
+  assert.equal(f.find('script-stop').disabled,true,
+    'a different document cannot Stop the original one');
+  await f.activateTab(11);
+  assert.equal(f.find('script-stop').disabled,false,
+    'returning to the owning document restores Stop without losing its identity');
+  await f.click('script-stop');
+  await waitForComponentUI(()=>f.find('page-component-status').textContent.includes('已停止'),
+    'original Stop receipt must be acknowledged');
+  assert.deepEqual(retirements,[previewId],
+    'Stop uses the original real preview ID, not a new or fabricated ID');
+  assert.equal(f.find('page-preview-run').disabled,false,
+    'normal explicit Run becomes available after confirmed retirement');
+});
+test('R24.3 confirmed closure of the owning tab retires the editor ownership without replay',async t=>{
+  const f=await fixture(undefined,undefined,{componentPreparerFactory:browserComponentFixture});
+  t.after(()=>f.dispose());
+  const original=f.client.request.bind(f.client);
+  let count=0;
+  f.client.request=async(method,payload)=>{
+    if(method==='previewPageScript'){
+      count++;
+      return {state:'preview-evaluated',sourceHash:'a'.repeat(64),
+        documentId:payload.target.documentId,managedUI:true,
+        managedPreviewId:payload.managedUI.previewId,resultText:'ok'};
+    }
+    return original(method,payload);
+  };
+  await selectBrowserReact(f);
+  await f.click('page-preview-run');
+  await waitForComponentUI(()=>f.find('page-preview-status').dataset.state==='completed',
+    'managed Page ownership was established');
+  await f.switchTab();
+  assert.equal(f.find('page-preview-run').disabled,true);
+  await f.removeTab(11);
+  await waitForComponentUI(()=>f.find('page-preview-run').disabled===false,
+    'actual tab removal proves the previous document cannot still own the UI');
+  assert.equal(count,1,'removal must never auto-dispatch user source');
 });
