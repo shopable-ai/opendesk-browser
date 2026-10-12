@@ -639,7 +639,7 @@ export function initFileWorkspace({api=globalThis.chrome,doc=globalThis.document
     byId('file-title').textContent='打开一个文件';byId('file-editor').value='';
     byId('file-preview').removeAttribute('srcdoc');
     if(!demo)api.storage?.local?.set({[HISTORY_KEY]:{workspaces:history,selection:workspaceId}}).catch(()=>{});
-    if(connected&&workspaceAccess.has(workspaceId))await listDirectory('');
+    if(connected&&workspaceAccess.has(workspaceId))await refreshFileTree();
   }));
   byId('target-picker').addEventListener('change',()=>{chatEdit.invalidate('已切换目标对话，旧请求和提案已失效。');controls();});
   byId('file-editor').addEventListener('input',()=>{if(!current||busy)return;current.content=byId('file-editor').value;controls();clearTimeout(previewTimer);previewTimer=setTimeout(renderPreview,200);});
