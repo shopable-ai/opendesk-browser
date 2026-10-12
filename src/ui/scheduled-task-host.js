@@ -47,11 +47,23 @@ export function createScheduledTaskHost({client,host,api=globalThis.chrome,clock
     onRun(started.runId);
     status('定时任务运行中：'+started.runId);
     onChange();
-    const result=await host.completion;
-    onRun(null);
-    status(result?.pendingSettlement||result?.state==='paused_unknown'?'结果未知，禁止自动重试':
-      '本次任务已结束：'+(result?.state??'待核对'));
-    onChange();
+    // From this point the original Authority may already have ADMITTED
+    // native page effects. A missing completion ack must never flow into
+    // the pre-admission WAITING_TARGET/READY retry classification.
+    try{
+      const result=await host.completion;
+      status(result?.pendingSettlement||result?.state==='paused_unknown'?
+        '结果未知，禁止自动重试':
+        '本次任务已结束：'+(result?.state??'待核对'));
+    }catch(error){
+      // Keep the original FireId -> RunId/ResultId binding untouched.
+      // Reconciliation queries the authoritative Run/Result; no new Run
+      // or synthetic UNKNOWN receipt may be created from this UI.
+      status('运行回执丢失；请检查原运行结果，已禁止自动重试');
+    }finally{
+      onRun(null);
+      onChange();
+    }
   }
   async function poll(){
     if(busy||disposed)return;

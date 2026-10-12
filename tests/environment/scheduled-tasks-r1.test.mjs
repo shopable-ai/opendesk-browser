@@ -4,6 +4,7 @@ import {nextScheduleAt,parseWallScheduleTime,formatWallScheduleTime,recentMissed
 import {scheduleFireId,fireKey,validateScheduleInput} from '../../src/platform/tasks/schedule-contract.js';
 import {createScheduleRepository} from '../../src/platform/tasks/schedule-repository.js';
 import {createScheduleService,scheduledHostDocumentIds} from '../../src/platform/tasks/schedule-service.js';
+import {createScheduledTaskHost} from '../../src/ui/scheduled-task-host.js';
 import {createTaskPackage,installedKey,taskKey,taskScriptId} from '../../src/platform/tasks/contract.js';
 import {digestUtf8} from '../../src/platform/protocol.js';
 
@@ -376,4 +377,45 @@ test('R2 native-prefix paging sorts generation 10 after 9 without mutating persi
   assert.equal(older.history.length,5);
   assert.equal(older.hasMore,false);
   assert.equal(older.history[0].scheduledAt,base+4*60000);
+});
+
+test('R2 lost completion after admitted Run never becomes WAITING_TARGET or mints a second Run',async()=>{
+  const definition={taskId:'demo.form',version:'1.0.0',manifestHash:'a'.repeat(64),
+    sourceHash:'b'.repeat(64),installationId:'install-approved',taskGeneration:7,
+    targetUrl:'https://example.com/form',openIfMissing:true,params:{name:'R2'}};
+  const fire={fireId:'sched:stable:7:1791819235665',
+    deadlineAt:1791819535665,definition};
+  const calls=[],owners=[],statuses=[];
+  let due=true,starts=0;
+  const client={
+    ready:new Promise(()=>{}),
+    request:async(name,body)=>{
+      calls.push({name,body});
+      if(name==='listDueSchedules'){const fires=due?[fire]:[];due=false;return {fires};}
+      if(name==='resolveInstalledTask')return {taskId:definition.taskId,version:definition.version,
+        manifestHash:definition.manifestHash,contentHash:definition.sourceHash,
+        installationId:definition.installationId,generation:definition.taskGeneration,
+        revision:1,scriptId:'task:demo.form:1.0.0'};
+      if(name==='setScheduleFireState')throw Error('Never mutate already ADMITTED Fire');
+      throw Error('Unexpected operation '+name);
+    }
+  };
+  const host={executionPending:false,start:async(input)=>{
+    starts++;assert.equal(input.scheduledFireId,fire.fireId);
+    return {runId:'run-accepted-once'};
+  },get completion(){return Promise.reject(Error('Lost native completion acknowledgement'));}};
+  const scheduled=createScheduledTaskHost({client,host,
+    api:{tabs:{query:async()=>[]}},clock:()=>1791819300000,pollMs:600000,
+    onRun:id=>owners.push(id),onStatus:value=>statuses.push(value)});
+  try{
+    await scheduled.poll();
+    await scheduled.poll();
+    assert.equal(starts,1,'post-admission errors cannot start a replacement Run');
+    assert.deepEqual(owners,['run-accepted-once',null],
+      'stop control must be cleared even if original completion promise rejects');
+    assert.equal(calls.some(c=>c.name==='setScheduleFireState'),false,
+      'already ADMITTED Fire state must remain owned by original Authority/Result');
+    assert.match(scheduled.status,/回执丢失|禁止自动重试/);
+    assert.equal(statuses.some(s=>s.startsWith('等待目标或运行环境')),false);
+  }finally{scheduled.dispose();}
 });
