@@ -4,6 +4,7 @@
 import {defineUnlistedScript} from 'wxt/utils/define-unlisted-script';
 import {createContextMenuHost} from '../platform/chrome/context-menus.js';
 import {BROWSER_HOST_PROTOCOL,BROWSER_MENU_SOURCE_PROTOCOL} from '../framework/sdk/browser-contract.js';
+import {reportBrowserCleanupError} from '../platform/chrome/lifecycle-errors.js';
 export default defineUnlistedScript(() => {
   const api=chrome,host=createContextMenuHost({api});
   const observe=(promise,label)=>void Promise.resolve(promise).catch(error=>
@@ -15,7 +16,8 @@ export default defineUnlistedScript(() => {
   });
   api.tabs.onRemoved.addListener(tabId=>{
     host.noteNavigation(tabId,0);
-    observe(host.invalidateTab(tabId),'tab removal');
+    void host.invalidateTab(tabId).catch(error=>reportBrowserCleanupError(error,{
+      phase:'context-menu-tab-removed',label:'Browser menu tab removal'}));
   });
   api.permissions.onRemoved.addListener(removed=>{
     if(removed.permissions?.includes('contextMenus'))observe(host.revokePermission(),'Chrome menu permission revoke');

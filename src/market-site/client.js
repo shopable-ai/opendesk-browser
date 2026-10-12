@@ -43,7 +43,8 @@ async function connect(){
   const generation=++probeGeneration;
   connectButton.disabled=true;connection.textContent='正在连接 OpenDesk…';
   try{await configuration();await send({protocol,action:'PROBE'});if(generation===probeGeneration)connection.textContent='已连接 OpenDesk · 安装在扩展内确认';}
-  catch(error){if(generation===probeGeneration){connection.textContent='无法连接 OpenDesk · '+error.message;}}
+  catch(error){if(generation===probeGeneration){connection.textContent=error.message.startsWith('无法连接 OpenDesk')?
+    error.message:'无法连接 OpenDesk · '+error.message;}}
   finally{if(generation===probeGeneration)connectButton.disabled=false;}
 }
 connectButton?.addEventListener('click',connect);

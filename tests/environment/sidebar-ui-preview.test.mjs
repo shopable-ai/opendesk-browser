@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {Script} from 'node:vm';
+import {load} from 'cheerio';
 
 const read=path=>readFile(path,'utf8');
 test('R3 remains immutable reference; R4 preview keeps installed Discover and independent full catalog',async()=>{
@@ -25,11 +26,10 @@ test('R4.9 Tools has one navigation tier and three accessible add/import/market 
   const [html,css,host]=await Promise.all([
     read('src/ui/tool.html'),read('src/ui/tool-shell.css'),read('src/ui/sidebar-tools.js')
   ]);
-  // The formal sixth Cloud pane now follows Tools, before Discover's full catalog.
-  // Bound the Tool DOM at the next top-level pane, not a historical fifth-page anchor.
-  const start=html.indexOf('<section id="sidebar-tools"'),end=html.indexOf('id="workbench-cloud"',start);
-  assert.ok(start>=0&&end>start);
-  const tools=html.slice(start,end);
+  const $=load(html),section=$('#sidebar-tools');
+  assert.equal(section.length,1,'one installed-tools surface');
+  // The following Cloud tab is a sibling, not a second Tools navigation tier.
+  const tools=$.html(section);
   assert.doesNotMatch(tools,/role="tablist"|role="tab"|role="tabpanel"|我的工具|发现工具/);
   assert.match(tools,/id="sidebar-tool-my-panel" aria-label="已安装工具列表"/);
   assert.match(tools,/id="sidebar-tool-discover-panel"[^>]+hidden/);

@@ -75,7 +75,7 @@ npm run verify
 | Site Authorized | 现有逐工具、逐 HTTP(S) origin 的专用授权存储 | 网站 A 不授权网站 B；不同 capability 不相互借权 |
 | Active | 实际存活的工具 iframe，或已授权的可信网页组件 | 不能通过一个全局 `enabled` 布尔值推断 |
 
-R4.5 原始合同不主动预装；R4.8 的当前首次安装策略以源码 Catalog 为准，TOC 和网页笔记预装，其余四项可选。预装不创建工具 iframe、运行工具代码或批准网站。安装 TOC 后，网页目录仍需独立网站授权；关闭 Side Panel 销毁工具 iframe，已经授权的网页组件按其原合同继续管理，撤权应立即清除相关网页能力。
+R4.5 原始合同不主动预装；R4.8 之后的当前首次安装策略以源码 Catalog 为准，七项工具中 TOC 和网页笔记预装，其余五项可选。预装不创建工具 iframe、运行工具代码或批准网站。安装 TOC 后，网页目录仍需独立网站授权；关闭 Side Panel 销毁工具 iframe，已经授权的网页组件按其原合同继续管理，撤权应立即清除相关网页能力。
 
 ## 5. 共用安装、升级和卸载
 
@@ -110,7 +110,7 @@ Side Panel 官方候选和扩展内市场都通过 `official-catalog.js` 读取�
 
 `official-tools/releases/*.json` 从已有官方生产者或已绑定历史原始证据派生。构建合并归档和当前目录，拒绝同版本不同字节／元数据及同 revision 不同成员。追加发布使用 `npm run snapshot:market -- <新文件名.json>`，不能改写历史文件来使校验通过。当前推荐和固定历史路径分开；有历史页面不保证当前扩展包含其包。reading-kit r1、r2 原成员不变；网页笔记升级 1.1.8 后新增推荐 r3。缺完整发行证据的 quick-notes 1.1.1 只显示历史套装引用，不编造摘要。详见 [R5 网站架构](../architecture/browser-framework/app-market-website-r5.zh-CN.md)。
 
-未来默认安装型系统功能的边界、一次性迁移标记和用户选择优先规则见 [市场兼容合同](../product/sidebar-tool-market-compat-r41.zh-CN.md#未来默认系统功能设计合同尚未实施)。本轮五工具仍全部 `optional`，没有为未来假设实现第二套初始化安装器。
+未来默认安装型系统功能的边界、一次性迁移标记和用户选择优先规则见 [市场兼容合同](../product/sidebar-tool-market-compat-r41.zh-CN.md#未来默认系统功能设计合同尚未实施)。该历史 R4.5 阶段的五工具全部 `optional`；当前策略已由上述原 Catalog 的2项预装、5项可选取代，继续使用原初始化/安装体系。
 
 ## 7. 验证入口
 

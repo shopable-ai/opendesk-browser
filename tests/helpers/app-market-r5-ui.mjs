@@ -39,7 +39,7 @@ export function marketUIAudit(d){
       await new Promise(requestAnimationFrame);await new Promise(requestAnimationFrame);
       return [...document.images].filter(img=>{const r=img.getBoundingClientRect();return r.width>0&&r.bottom>0&&r.top<innerHeight;}).every(img=>img.complete&&img.naturalWidth>0);})()`),label+' fonts and visible images ready');
     const state=await evaluate(target,`(()=>{const el=document.querySelector(${JSON.stringify(selector)}),r=el?.getBoundingClientRect();return {
-      url:location.href,width:innerWidth,height:innerHeight,scrollWidth:document.documentElement.scrollWidth,
+      url:location.href,width:innerWidth,height:innerHeight,scrollY,scrollWidth:document.documentElement.scrollWidth,
       dark:matchMedia('(prefers-color-scheme: dark)').matches,color:getComputedStyle(document.body).color,background:getComputedStyle(document.body).backgroundColor,
       control:r?{left:r.left,right:r.right,width:r.width,top:r.top,bottom:r.bottom}:null,
       images:[...document.images].map(img=>({src:img.getAttribute('src'),widthAttribute:img.getAttribute('width'),heightAttribute:img.getAttribute('height'),naturalWidth:img.naturalWidth,naturalHeight:img.naturalHeight}))};})()`);
@@ -53,6 +53,8 @@ export function marketUIAudit(d){
     try{
       await target.send('Emulation.setDeviceMetricsOverride',{width:320,height:900,deviceScaleFactor:1,mobile:false});
       await until(()=>evaluate(target,'innerWidth===320'),label+' viewport 320');await layout(target,label+'-320',selector);
+      const interactive=await evaluate(target,'document.querySelector('+JSON.stringify(selector)+')?.matches(\'button,a[href],input,select,textarea,[tabindex]:not([tabindex="-1"])\')');
+      if(interactive){await reach(target,selector,label+'-320-action');await layout(target,label+'-320-action-visible',selector);}
     }finally{await target.send('Emulation.clearDeviceMetricsOverride');}
   }
   async function detail(target,label,selector){
@@ -61,12 +63,16 @@ export function marketUIAudit(d){
       await target.send('Emulation.setEmulatedMedia',{features:[{name:'prefers-color-scheme',value:'light'}]});
       for(const width of [320,1280]){
         await target.send('Emulation.setDeviceMetricsOverride',{width,height:900,deviceScaleFactor:1,mobile:false});
-        await until(()=>evaluate(target,'innerWidth==='+width),label+' viewport '+width);await layout(target,label+'-'+width,selector);
+        await until(()=>evaluate(target,'innerWidth==='+width),label+' viewport '+width);
+        await evaluate(target,'window.scrollTo({top:0,left:0,behavior:"instant"})');
+        await layout(target,label+'-'+width,selector);
         if(width===320){
           await target.send('Emulation.setEmulatedMedia',{features:[{name:'prefers-color-scheme',value:'dark'}]});
           await until(()=>evaluate(target,"matchMedia('(prefers-color-scheme: dark)').matches"),label+' actual dark media preference');
           await layout(target,label+'-320-dark',selector);
           await target.send('Emulation.setEmulatedMedia',{features:[{name:'prefers-color-scheme',value:'light'}]});
+          await reach(target,selector,label+'-320-action');
+          await layout(target,label+'-320-action-visible',selector);
         }
       }
     }finally{await target.send('Emulation.clearDeviceMetricsOverride');await target.send('Emulation.setEmulatedMedia',{features:[]});}
@@ -81,7 +87,10 @@ export function marketUIAudit(d){
         await evaluate(d.getHost(),`chrome.tabs.setZoom(${tab.id},${factor})`);
         const actual=await evaluate(d.getHost(),`chrome.tabs.getZoom(${tab.id})`);assert.equal(actual,factor,'actual Chrome tab zoom');
         record.zoom.push({label,tabId:tab.id,factor:actual,method:'Chrome tabs.setZoom/getZoom',scope:'per-tab'});
+        await evaluate(target,'window.scrollTo({top:0,left:0,behavior:"instant"})');
         await layout(target,label+'-'+Math.round(factor*100)+'-percent',selector);
+        await reach(target,selector,label+'-'+Math.round(factor*100)+'-action');
+        await layout(target,label+'-'+Math.round(factor*100)+'-action-visible',selector);
       }
     }finally{
       await evaluate(d.getHost(),`chrome.tabs.setZoom(${tab.id},${original.factor})`);

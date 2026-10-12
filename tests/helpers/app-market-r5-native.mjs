@@ -88,7 +88,11 @@ export async function runMarketR5Acceptance(d){
   async function interruptedHandoff(page){
     const initialState=await storedCutState();
     const beforeTargets=(await targets()).map(row=>({targetId:row.targetId,url:row.url}));
-    const a1=await armMarketCut(d,'A1');
+    const wakeAfterContextDestroyed=async()=>{
+      await click(page,'#connect-button');
+      return {url:await evaluate(page,'location.href'),selector:'#connect-button',clickedAt:Date.now()};
+    };
+    const a1=await armMarketCut(d,'A1',{wakeAfterContextDestroyed});
     await click(page,'#open-review');const hit1=await a1.wait();
     assert.equal(hit1.value.intent.phase,'prepared');assert.equal(hit1.value.intent.tabId,null);
     assert(!(await targets()).some(row=>row.url===hit1.value.reviewURL));
@@ -97,9 +101,11 @@ export async function runMarketR5Acceptance(d){
     assert.deepEqual(after1.operations,initialState.operations);assert.deepEqual(after1.registry,initialState.registry);
     Object.assign(a1.record,{beforeTargets,afterTermination:after1});
     await until(()=>evaluate(page,'document.querySelector("#handoff-state").dataset.state==="error"'),'interrupted handoff returns unknown/transport error');
-    await click(page,'#connect-button');
+    if(!a1.record.termination.webProbeWake)await click(page,'#connect-button');
     await until(()=>evaluate(page,'document.querySelector("#connection-state").textContent.includes("已连接 OpenDesk")'),'HTTP probe wakes worker after prepared interruption');
-    const a2=await armMarketCut(d,'A2');
+    if(a1.record.termination.webProbeWake)Object.assign(a1.record.termination.webProbeWake,
+      {connectedObservedAt:Date.now(),responseText:await evaluate(page,'document.querySelector("#connection-state").textContent')});
+    const a2=await armMarketCut(d,'A2',{wakeAfterContextDestroyed});
     assert.notEqual(a2.record.executionContext.uniqueId,a1.record.executionContext.uniqueId,'real replacement worker context');
     await click(page,'#open-review');const hit2=await a2.wait();
     assert.equal(hit2.value.intent.intentId,row1.intentId);assert.equal(hit2.value.intent.operationId,row1.operationId);
@@ -112,8 +118,10 @@ export async function runMarketR5Acceptance(d){
     assert.deepEqual(after2.operations,initialState.operations);assert.deepEqual(after2.registry,initialState.registry);
     Object.assign(a2.record,{afterTermination:after2,createdReview:created[0]});
     await until(()=>evaluate(page,'document.querySelector("#handoff-state").dataset.state==="error"'),'created-before-persist interruption becomes unknown');
-    await click(page,'#connect-button');
+    if(!a2.record.termination.webProbeWake)await click(page,'#connect-button');
     await until(()=>evaluate(page,'document.querySelector("#connection-state").textContent.includes("已连接 OpenDesk")'),'HTTP probe wakes worker after create interruption');
+    if(a2.record.termination.webProbeWake)Object.assign(a2.record.termination.webProbeWake,
+      {connectedObservedAt:Date.now(),responseText:await evaluate(page,'document.querySelector("#connection-state").textContent')});
     await click(page,'#open-review');
     await until(()=>evaluate(page,'document.querySelector("#handoff-state").dataset.state==="success"'),'same HTTP intent recovers existing review');
     const recovered=(await intentRows()).find(row=>row.intentId===row1.intentId),actual=(await targets()).filter(row=>row.url===hit2.value.reviewURL);
@@ -162,7 +170,8 @@ export async function runMarketR5Acceptance(d){
   check('real-browser-sender-and-live-document-verification',{observations:senderObserver.record.observations.length});
   await ui.reach(website,'.skip-link','r5-home-skip-link');await ui.key(website,'Enter','Enter',13);
   assert.equal(await evaluate(website,'document.activeElement.id'),'content');
-  assert.equal(await evaluate(website,'document.querySelectorAll(".app-card").length'),6);
+  assert.deepEqual(await evaluate(website,'[...document.querySelectorAll(".app-card h2 a")].map(row=>row.getAttribute("href")).sort()'),
+    evidence.releases.map(row=>'/apps/'+row.id+'/').sort(),'website lists every actual current official release exactly once');
   await inputText(website,'#app-search','Markdown');
   const visibleAppLinks=()=>evaluate(website,'[...document.querySelectorAll(".app-card")].filter(row=>!row.hidden).map(row=>row.querySelector("h2 a").getAttribute("href")).sort()');
   assert.deepEqual(await visibleAppLinks(),['/apps/opendesk/markdown-workbench/','/apps/opendesk/web-markdown-clipper/']);
@@ -270,7 +279,9 @@ export async function runMarketR5Acceptance(d){
     assert.equal(heldSender.frameId.value,0);assert.equal(heldSender.documentLifecycle.value,'active');
     timeoutState=await until(()=>evaluate(timeoutPage,'(()=>{const state=document.querySelector("#connection-state"),button=document.querySelector("#connect-button");return state?.textContent.includes("等待响应超时")&&!button.disabled&&({text:state.textContent,buttonDisabled:button.disabled,url:location.href,at:Date.now()});})()'),'real website five-second connection timeout');
     assert.match(timeoutState.text,/无法连接 OpenDesk/);assert.doesNotMatch(timeoutState.text,/未安装|没有安装/);
-    timeoutObserver.record.timeoutUI=timeoutState;await screenshot(timeoutPage,'r5-real-connection-timeout.png');
+    timeoutObserver.record.timeoutUI=timeoutState;
+    timeoutObserver.record.timeoutControlFocus=await ui.reach(timeoutPage,'#connect-button','r5-timeout-reconnect-focus');
+    await ui.layout(timeoutPage,'r5-real-connection-timeout','#connect-button');
   }finally{await timeoutObserver.dispose();}
   assert.equal(timeoutObserver.record.status,'OBSERVED');assert.deepEqual(timeoutObserver.record.errors,[]);
   await click(timeoutPage,'#connect-button');

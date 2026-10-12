@@ -163,6 +163,10 @@ CI 在 Linux 和 macOS 上使用固定 Chrome for Testing，分别保存输入�
 
 原生中断测试复用未修改产物中的四个实际调用位置：prepared持久化后/开页前、创建审阅页后/记录opened前、消费标记确认后/首事务日志前、注册表写入确认后/结果终态前。位置通过 AST、加载脚本 SHA 和 CDP 精确 call 断点绑定；只读观察后停止实际 Worker 或关闭可信审阅页，再由原 HTTP 意图恢复。不把这些调用者中断称为 Chrome API 原生回执丢失。原始错误、未知状态和具体未测范围必须保留。
 
+Worker 的 DevTools target ID 可能跨执行重启保留。观察器先对同一 session 的浏览器 uniqueContextId 作只读正对照，断点命中时再次核对；停止后只接受本次匹配 version/registration/source 的 stopped 事件，加实际 target 消失，或旧 context 真实销毁和同一 target/session 上的新执行证据。后者要求旧 unique ID 精确返回原生 `-32602 / uniqueContextId not found`、新 unique ID 正对照成功、实际脚本 SHA 不变；断开、超时、旧 stopped 事件都不能替代。动态保存实际 Target 快照，避免把延迟消失误判为复用。仅在旧执行已销毁而 target 留存时，可点击原 HTTP 网页的连接按钮发送一次 PROBE 唤醒；这不是安装重放，也不能代替终止证明。PROBE 正常维护限流和过期记录，不能宣称整个存储完全无写入。
+
+浏览器正常关闭时，Chrome 可能拒绝后到的被动清理 API。产品仍执行原清理，只将四个明确被动阶段的精确 `The browser is shutting down.` 拒绝记为“清理被中断”警告；其他消息、启动、授权、活动调用和 Foundation 身份错误仍为错误。原生验收保留每个原始警告，要求实际固定入口、原生 Error、同一 Chrome generation、真实 Browser.close 至观察到 code=0/signal=null 正常退出的时间区间同时匹配。警告不表示清理完成，不改变安装事务或恢复状态；错误和未解释异常门禁继续保留。
+
 可信审阅“打开使用”沿用内部 `tool.html`。导航和 Foundation 宿主边界共用纯 URL 形态：零参数、单 hostInstanceId，或该host加唯一有效toolId/previewId。有定位参数必须是真实顶层TAB sender；不进入缺documentId的SidePanel恢复分支。定位值只选择已有界面，不能代表安装批准、任务执行或权限；原 Authority/任务工作台/工具能力核对均保留。正常工具页需观察原资源诊断中的真实已连接端口，并在完整关闭前后拒绝未解释的产品运行异常。
 
 ## 11. 后续远程分发的独立接入边界

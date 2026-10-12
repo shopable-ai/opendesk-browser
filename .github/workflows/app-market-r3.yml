@@ -11,6 +11,8 @@ on:
       - 'src/ui/sidebar-tools.js'
       - 'src/ui/tool.html'
       - 'src/tool-document-url.js'
+      - 'src/platform/chrome/lifecycle-errors.js'
+      - 'src/entrypoints/context-menus.js'
       - 'src/environment.js'
       - 'src/ui/tool-shell.js'
       - 'src/ui/tool-shell.css'
@@ -34,6 +36,8 @@ on:
       - 'tests/helpers/app-market-r5-observers.mjs'
       - 'tests/helpers/app-market-r5-cutpoints.mjs'
       - 'tests/helpers/app-market-r5-ui.mjs'
+      - 'tests/helpers/browser-cleanup-evidence.mjs'
+      - 'tests/environment/browser-cleanup-lifecycle.test.mjs'
       - 'tests/environment/sidebar-storage-unlimited.test.mjs'
       - 'tests/environment/app-market-batch-r3.test.mjs'
 
@@ -77,7 +81,7 @@ jobs:
       - name: R5 handoff, installer, immutable archive and client state components
         run: |
           mkdir -p artifacts/app-market-r5
-          node --test --test-reporter=tap tests/environment/app-market-r5.test.mjs tests/environment/market-site-client-r5.test.mjs tests/environment/market-site-media-r5.test.mjs tests/environment/market-cutpoint-observation-r5.test.mjs tests/environment/app-market-r3.test.mjs tests/environment/app-market-batch-r3.test.mjs tests/environment/sidebar-storage-unlimited.test.mjs tests/environment/tool-ui-tab.test.mjs tests/environment/boundaries.test.mjs tests/foundation/runtime.test.mjs | tee artifacts/app-market-r5/components.tap
+          node --test --test-reporter=tap tests/environment/app-market-r5.test.mjs tests/environment/market-site-client-r5.test.mjs tests/environment/market-site-media-r5.test.mjs tests/environment/market-cutpoint-observation-r5.test.mjs tests/environment/browser-cleanup-lifecycle.test.mjs tests/environment/app-market-r3.test.mjs tests/environment/app-market-batch-r3.test.mjs tests/environment/sidebar-storage-unlimited.test.mjs tests/environment/tool-ui-tab.test.mjs tests/environment/boundaries.test.mjs tests/foundation/runtime.test.mjs | tee artifacts/app-market-r5/components.tap
       - name: Build exact development extension and independent HTTP site
         run: |
           npm run build:dev

@@ -2,16 +2,88 @@
   "schema": "opendesk.market.media.v1",
   "items": [
     {
+      "toolId": "reading-toc",
+      "version": "1.0.3",
+      "sha256": "1a6223978c669f1760fe3a4497286c0e70af9137fe5568f7825c9883b61eda97",
+      "alt": "阅读目录 1.0.3 · Side Panel · 授权演示网站后显示实际页面目录（真实 Chrome 截图）",
+      "caption": "阅读目录 1.0.3 · Side Panel · 授权演示网站后显示实际页面目录",
+      "evidence": {
+        "sourceCommit": "93b636449ad0600601cce4a3b025be686cc49a34",
+        "runId": 38225774632,
+        "artifactId": 11737716060,
+        "packageHash": "0387ba942a2c1a7bd7a7e65289f2e027bfeb71fd0476d01a24171532f60023ba",
+        "releaseSha256": "fe0014228befd1b4ab0c99b771f966d0f304ed55bf2de874855501250a5288eb",
+        "chromeVersion": "Chrome/155.0.8059.39",
+        "capturePath": "artifacts/app-market-r5/native/r5-toc-demo-use.png",
+        "surface": "side-panel",
+        "state": "授权演示网站后显示实际页面目录"
+      }
+    },
+    {
+      "toolId": "web-markdown-clipper",
+      "version": "1.0.0",
+      "sha256": "7a52462351d2da6d5a805e3c407992dbaaeab8d546ef900c7cd85878b91f80fc",
+      "alt": "网页剪藏 1.0.0 · Side Panel · 授权本地演示文章后取得 Markdown 正文（真实 Chrome 截图）",
+      "caption": "网页剪藏 1.0.0 · Side Panel · 授权本地演示文章后取得 Markdown 正文",
+      "evidence": {
+        "sourceCommit": "f86026018f939d6d430acb7fe1bfe11ed8de6f52",
+        "runId": 38228139922,
+        "artifactId": 11738111435,
+        "packageHash": "f8647e26b97238990d4265606ab4ffb7ba7fce5385fb4775612b1b52d4e0380d",
+        "releaseSha256": "c4d1dc7b605e1d981840f3064a116a157d2ed6a01f720ec585278129d4c111a8",
+        "chromeVersion": "Chrome/155.0.8059.39",
+        "capturePath": "artifacts/app-market-r3/app-use-web-markdown-clipper-1.0.0-side-panel.png",
+        "surface": "side-panel",
+        "state": "授权本地演示文章后取得 Markdown 正文"
+      }
+    },
+    {
+      "toolId": "markdown-workbench",
+      "version": "1.0.1",
+      "sha256": "05ac3cd6bd040175ebee135cdf3fab0862145ae3461dfe675f04f537d6310ab4",
+      "alt": "Markdown 工作台 1.0.1 · Side Panel · 真实安装后预览验收示例；内容仅在当前编辑会话（真实 Chrome 截图）",
+      "caption": "Markdown 工作台 1.0.1 · Side Panel · 真实安装后预览验收示例；内容仅在当前编辑会话",
+      "evidence": {
+        "sourceCommit": "93b636449ad0600601cce4a3b025be686cc49a34",
+        "runId": 38225774632,
+        "artifactId": 11737716060,
+        "packageHash": "0387ba942a2c1a7bd7a7e65289f2e027bfeb71fd0476d01a24171532f60023ba",
+        "releaseSha256": "106df783a1d8eae5345c49288f0bc48ffdabb7ec85d98a8e8edaaeb79d7f0a91",
+        "chromeVersion": "Chrome/155.0.8059.39",
+        "capturePath": "artifacts/app-market-r5/native/r5-markdown-real-use.png",
+        "surface": "side-panel",
+        "state": "真实安装后预览验收示例；内容仅在当前编辑会话"
+      }
+    },
+    {
+      "toolId": "quick-notes",
+      "version": "1.1.8",
+      "sha256": "aa37618e8a6aa0de1d1727122b61bd036964ce4b67da516fb349cfd593af0255",
+      "alt": "网页笔记 1.1.8 · Side Panel · 更新后保留的验收笔记（真实 Chrome 截图）",
+      "caption": "网页笔记 1.1.8 · Side Panel · 更新后保留的验收笔记",
+      "evidence": {
+        "sourceCommit": "93b636449ad0600601cce4a3b025be686cc49a34",
+        "runId": 38225774632,
+        "artifactId": 11737716060,
+        "packageHash": "0387ba942a2c1a7bd7a7e65289f2e027bfeb71fd0476d01a24171532f60023ba",
+        "releaseSha256": "99c42ea8573446fc8842f48be6f0567d0242b4d127ee6e96e22b650e9b2f99a7",
+        "chromeVersion": "Chrome/155.0.8059.39",
+        "capturePath": "artifacts/app-market-r5/native/r5-notes-after-update.png",
+        "surface": "side-panel",
+        "state": "更新后保留的验收笔记"
+      }
+    },
+    {
       "toolId": "knowledge-inbox",
       "version": "1.2.6",
-      "sha256": "c7760d7df11a5d31d6fe07e336abaaf892f88e3ed0e7dabcc2bf8609cdc2b243",
-      "alt": "知识收件箱 1.2.6 的真实独立工具页，初始界面",
+      "sha256": "e038ce5217f8278eef33a0a38fd7a882002bf5bac5eaf1d04c42259422ef957b",
+      "alt": "知识收件箱 1.2.6 · 独立工具页 · 初始界面（真实 Chrome 截图）",
       "caption": "知识收件箱 1.2.6 · 独立工具页 · 初始界面",
       "evidence": {
-        "sourceCommit": "66da8d772c4695fca8f56e5eb6f42d48a7ed0ae2",
-        "runId": 38224251074,
-        "artifactId": 11734909879,
-        "packageHash": "48651ead8d7b7cdfeb55077c9dd9cc9eecbd12b9e387690534ea174eb42a530b",
+        "sourceCommit": "f86026018f939d6d430acb7fe1bfe11ed8de6f52",
+        "runId": 38228139922,
+        "artifactId": 11738111435,
+        "packageHash": "f8647e26b97238990d4265606ab4ffb7ba7fce5385fb4775612b1b52d4e0380d",
         "releaseSha256": "262157c730eebbe7b0cb4245fb436c1b3440c6971f63a2b50e06a5a92b022119",
         "chromeVersion": "Chrome/155.0.8059.39",
         "capturePath": "artifacts/app-market-r3/app-ui-knowledge-inbox-1.2.6.png",
@@ -20,52 +92,16 @@
       }
     },
     {
-      "toolId": "markdown-workbench",
-      "version": "1.0.1",
-      "sha256": "189744cf158ad34ab5d2b76fc55fe2563b0aea32c84262b9184a5ac629aa374d",
-      "alt": "Markdown 工作台 1.0.1 的真实独立工具页，初始编辑界面",
-      "caption": "Markdown 工作台 1.0.1 · 独立工具页 · 初始编辑界面",
-      "evidence": {
-        "sourceCommit": "66da8d772c4695fca8f56e5eb6f42d48a7ed0ae2",
-        "runId": 38224251074,
-        "artifactId": 11734909879,
-        "packageHash": "48651ead8d7b7cdfeb55077c9dd9cc9eecbd12b9e387690534ea174eb42a530b",
-        "releaseSha256": "106df783a1d8eae5345c49288f0bc48ffdabb7ec85d98a8e8edaaeb79d7f0a91",
-        "chromeVersion": "Chrome/155.0.8059.39",
-        "capturePath": "artifacts/app-market-r3/app-ui-markdown-workbench-1.0.1.png",
-        "surface": "standalone-tool-page",
-        "state": "初始编辑界面"
-      }
-    },
-    {
-      "toolId": "quick-notes",
-      "version": "1.1.8",
-      "sha256": "3302d07e42d6f67721aab9a99497fa56c4c4a5b2dda5b5812a1cfef4015e48e9",
-      "alt": "网页笔记 1.1.8 的真实独立工具页，离线初始界面",
-      "caption": "网页笔记 1.1.8 · 独立工具页 · 离线初始界面",
-      "evidence": {
-        "sourceCommit": "66da8d772c4695fca8f56e5eb6f42d48a7ed0ae2",
-        "runId": 38224251074,
-        "artifactId": 11734909879,
-        "packageHash": "48651ead8d7b7cdfeb55077c9dd9cc9eecbd12b9e387690534ea174eb42a530b",
-        "releaseSha256": "99c42ea8573446fc8842f48be6f0567d0242b4d127ee6e96e22b650e9b2f99a7",
-        "chromeVersion": "Chrome/155.0.8059.39",
-        "capturePath": "artifacts/app-market-r3/app-ui-quick-notes-1.1.8.png",
-        "surface": "standalone-tool-page",
-        "state": "离线初始界面"
-      }
-    },
-    {
       "toolId": "time-review",
       "version": "1.3.1",
-      "sha256": "ee0cb1868fb74a626f367b0af87d247b53720eb6b60371bfaf4313680e0a0f15",
-      "alt": "时间回顾 1.3.1 的真实独立工具页，尚未开始记录",
-      "caption": "时间回顾 1.3.1 · 独立工具页 · 尚未开始记录",
+      "sha256": "be257f782648dfd517017fb9af121412a53415d6b134be05f56dd5407ea23d27",
+      "alt": "Time Review · 时间回顾 1.3.1 · 独立工具页 · 尚未开始记录（真实 Chrome 截图）",
+      "caption": "Time Review · 时间回顾 1.3.1 · 独立工具页 · 尚未开始记录",
       "evidence": {
-        "sourceCommit": "66da8d772c4695fca8f56e5eb6f42d48a7ed0ae2",
-        "runId": 38224251074,
-        "artifactId": 11734909879,
-        "packageHash": "48651ead8d7b7cdfeb55077c9dd9cc9eecbd12b9e387690534ea174eb42a530b",
+        "sourceCommit": "f86026018f939d6d430acb7fe1bfe11ed8de6f52",
+        "runId": 38228139922,
+        "artifactId": 11738111435,
+        "packageHash": "f8647e26b97238990d4265606ab4ffb7ba7fce5385fb4775612b1b52d4e0380d",
         "releaseSha256": "d6e5bffd17db96bea08d26d5d437061d4d92790ac921bc7b35bb04e00ee59be5",
         "chromeVersion": "Chrome/155.0.8059.39",
         "capturePath": "artifacts/app-market-r3/app-ui-time-review-1.3.1.png",

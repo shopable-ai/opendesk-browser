@@ -23,7 +23,7 @@ const CAPABILITY_NAMES={
   'time.review':'明确开始后在后台记录聚焦、非空闲网站的域名与时长（仅本机）'
 };
 const capabilityNames=values=>values.map(value=>CAPABILITY_NAMES[value]||value).join('；')||'无';
-const BATCH_STATUS_NAMES={ready:'可安装',skip:'已安装，跳过',blocked:'需要处理',queued:'等待安装',
+const BATCH_STATUS_NAMES={ready:'可安装',reviewed:'已审阅，待核对',skip:'已安装，跳过',blocked:'需要处理',queued:'等待安装',
   committing:'正在提交',succeeded:'安装完成',failed:'安装失败',cancelled:'已取消',
   interrupted:'已中断，未重新提交','outcome-unknown':'结果未知，需核对','already-installed':'相同发行已安装'};
 const elem=(tag,cls='',label='')=>{
@@ -236,7 +236,7 @@ export function initMarketplace({api=globalThis.chrome,root=globalThis.document?
     const box=elem('section','surface');box.append(elem('h2','','待核对的本地操作'));
     for(const [id,row] of operations){
       const line=elem('div','action-row');
-      line.append(para((row.toolId||'工具')+' · 安装事务 '+row.state,'minor'),
+      line.append(para((row.toolId||'工具')+' · 安装事务 '+(BATCH_STATUS_NAMES[row.state]||row.state),'minor'),
         button('核对安装结果',()=>recoverPending(id)));box.append(line);
     }
     for(const [id,row] of cleanups){
@@ -384,7 +384,8 @@ export function initMarketplace({api=globalThis.chrome,root=globalThis.document?
       }
       state.review={app,...candidate,baseline:installedTool(app),operationId,
         unknown:Boolean(state.handoff&&(prior||state.handoff.recoveryOnly||state.handoff.consumedAt!==null))};
-      state.notice='安装前请检查版本、所需能力与站点授权说明。';state.error=false;
+      state.notice=state.review.unknown?'等待核对原安装结果；不会自动重试。':
+        '安装前请检查版本、所需能力与站点授权说明。';state.error=false;
     }catch(e){state.review=null;state.notice=(e.code||'E_PACKAGE')+'：'+e.message;state.error=true;}
     finally{state.busy=false;render();}
   }
@@ -457,7 +458,7 @@ export function initMarketplace({api=globalThis.chrome,root=globalThis.document?
         throw fail('安装状态读回不一致，请先恢复核对','E_OUTCOME_UNKNOWN');
       state.review=null;void refreshUsage();
       state.notice=result.state==='cancelled'?'已取消更新。':result.state==='already-installed'?'已经安装相同工具。':
-        '安装完成。请从我的应用主动点击打开；网站访问还需独立授权。';state.error=false;
+        '安装完成。点击“打开使用”开始；需要网站访问能力时请单独授权。';state.error=false;
     }catch(e){
       if(['E_OUTCOME_UNKNOWN','E_HANDOFF_UNKNOWN','E_INTENT_CONSUMED'].includes(e.code))review.unknown=true;
       if(e.code==='E_TOOL_CHANGED')review.stale=true;

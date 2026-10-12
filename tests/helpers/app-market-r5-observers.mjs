@@ -106,10 +106,11 @@ export async function observeMarketSender(d,{holdProbe=false}={}){
 
 // Hold one exact, unchanged product call until the driver physically terminates
 // its owned worker/page. Unlike sender observation, this never resumes a hit.
-export async function armMarketCut(d,name,{targetId=null,observeRegistryWrites=false}={}){
+export async function armMarketCut(d,name,{targetId=null,observeRegistryWrites=false,wakeAfterContextDestroyed=null}={}){
   assert(['A1','A2','B','C'].includes(name));
   assert(!observeRegistryWrites||name==='C');
   const isWorker=name.startsWith('A'),origin='chrome-extension://'+d.getExtensionId();
+  assert(wakeAfterContextDestroyed===null||isWorker&&typeof wakeAfterContextDestroyed==='function');
   const path=isWorker?'marketplace/market-host.js':'ui/marketplace.js',url=origin+'/'+path;
   const target=await d.until(async()=>(await d.sendBrowser('Target.getTargets')).targetInfos.find(row=>
     isWorker?row.type==='service_worker'&&row.url===origin+'/sw.js':row.targetId===targetId),'actual market cut target '+name);
@@ -121,21 +122,36 @@ export async function armMarketCut(d,name,{targetId=null,observeRegistryWrites=f
     'physical trusted page close at real installer call; not native storage.set ACK loss'};
   if(observeRegistryWrites){record.observations=[];record.boundary='readonly original registry-write call counter during explicit recovery';d.evidence.r5.registryWritesDuringRecovery=record;}
   else (d.evidence.r5.interruptions??=[]).push(record);
-  const scripts=[],contexts=[],versions=[],reads=new Set();let point,breakpointId,disposed=false,failed=null;
+  const scripts=[],contexts=[],versions=[],liveContexts=new Map(),reads=new Set();
+  let point,breakpointId,disposed=false,failed=null,eventSequence=0;
+  if(isWorker)record.workerVersionEvents=[];
+  const observed=event=>({sequence:++eventSequence,receivedAt:Date.now(),...event});
   const controller=isWorker?d.getHost():null;
   const off=d.onBrowserEvent(event=>{
-    if(controller&&event.sessionId===controller.sessionId&&event.method==='ServiceWorker.workerVersionUpdated')versions.push(...event.params.versions);
-    if(event.method==='Target.targetDestroyed'&&event.params.targetId===target.targetId)record.events.push(event);
+    if(controller&&event.sessionId===controller.sessionId&&event.method==='ServiceWorker.workerVersionUpdated'){
+      versions.push(...event.params.versions);record.workerVersionEvents.push(observed(event));
+    }
+    if(event.method==='Target.targetDestroyed'&&event.params.targetId===target.targetId)record.events.push(observed(event));
     if(event.sessionId!==sessionId)return;
-    if(event.method==='Runtime.executionContextCreated')contexts.push(event.params.context);
-    if(event.method==='Debugger.scriptParsed')scripts.push(event.params);
-    if(['Runtime.executionContextDestroyed','Runtime.executionContextsCleared','Inspector.detached'].includes(event.method))record.events.push(event);
+    if(event.method==='Runtime.executionContextCreated'){
+      contexts.push(event.params.context);liveContexts.set(event.params.context.id,event.params.context);
+      record.events.push(observed(event));
+    }
+    if(event.method==='Debugger.scriptParsed')scripts.push({...event.params,observedSequence:++eventSequence,receivedAt:Date.now(),
+      executionContextUniqueId:liveContexts.get(event.params.executionContextId)?.uniqueId??null});
+    if(['Runtime.executionContextDestroyed','Runtime.executionContextsCleared','Inspector.detached'].includes(event.method)){
+      record.events.push({...observed(event),contextsBefore:[...liveContexts.values()]});
+      if(event.method==='Runtime.executionContextDestroyed')liveContexts.delete(event.params.executionContextId);
+      if(event.method==='Runtime.executionContextsCleared')liveContexts.clear();
+    }
     if(event.method!=='Debugger.paused'||!event.params.hitBreakpoints?.includes(breakpointId))return;
     const reading=(async()=>{
       try{
         if(!observeRegistryWrites)assert.equal(record.hit,undefined,'a cut can hit only once');
         const frame=event.params.callFrames[0];
         for(const key of ['scriptId','lineNumber','columnNumber'])assert.equal(frame.location[key],record.actualLocation[key]);
+        assert.equal(liveContexts.get(record.script.executionContextId)?.uniqueId,record.executionContext.uniqueId,
+          'the exact call still belongs to the execution context armed for this cut');
         const expression=isWorker?'({intent:'+point.intentExpression+',reviewURL:'+point.reviewURLExpression+
           ',sender:{documentId:'+point.senderExpression+'.documentId,tabId:'+point.senderExpression+'.tab.id}'+
           (name==='A2'?',tab:'+point.tabExpression:'')+'})':name==='B'?
@@ -165,11 +181,19 @@ export async function armMarketCut(d,name,{targetId=null,observeRegistryWrites=f
   d.t.after(dispose);
   try{
     await client.send('Runtime.enable');await client.send('Debugger.enable');
-    const script=await d.until(()=>scripts.find(row=>row.url===url),'source-bound market cut script '+name);
+    const script=await d.until(()=>scripts.find(row=>row.url===url&&row.executionContextUniqueId&&
+      liveContexts.get(row.executionContextId)?.uniqueId===row.executionContextUniqueId),'source-bound market cut script '+name);
     const actual=(await client.send('Debugger.getScriptSource',{scriptId:script.scriptId})).scriptSource;
     assert.equal(hash(actual),hash(await readFile(join(d.extension,path),'utf8')),'cut source matches the loaded package');
-    const context=contexts.find(row=>row.id===script.executionContextId);assert(context?.uniqueId,'actual cut execution context');
+    const context=liveContexts.get(script.executionContextId);assert(context?.uniqueId,'actual cut execution context');
     Object.assign(record,{script,sourceHash:hash(actual),executionContext:context});
+    if(isWorker){
+      const request={expression:'void 0',uniqueContextId:context.uniqueId,throwOnSideEffect:true,returnByValue:true};
+      const response=await client.send('Runtime.evaluate',request);
+      record.contextProbeBefore={sessionId,targetId:target.targetId,request,response,at:Date.now()};
+      assert.equal(response.exceptionDetails,undefined);assert.equal(response.result?.type,'undefined',
+        'same-session uniqueContextId positive control before the worker cut');
+    }
     const discovered=discoverMarketCutPoints(actual,{required:[name],registryStoreKey:SIDEBAR_TOOL_STORE})[name];
     point=observeRegistryWrites?discovered.submission:discovered;record.point=point;
     record.breakpointQuery={start:{scriptId:script.scriptId,...point.location},end:{scriptId:script.scriptId,...point.endLocation},restrictToFunction:true};
@@ -189,12 +213,79 @@ export async function armMarketCut(d,name,{targetId=null,observeRegistryWrites=f
   }catch(error){failed=error;record.status='NOT_OBSERVED';record.errors.push({stage:'arm',message:error.message});await dispose();throw error;}
   async function wait(){return d.until(()=>{if(failed)throw failed;return record.hit;},'native exact interruption '+name);}
   async function terminate(){
-    await wait();record.termination={requestedAt:new Date().toISOString(),method:isWorker?'ServiceWorker.stopWorker':'Target.closeTarget'};
-    if(isWorker)await controller.send('ServiceWorker.stopWorker',{versionId:record.workerVersion.versionId});
-    else assert.equal((await d.sendBrowser('Target.closeTarget',{targetId:target.targetId})).success,true);
-    await d.until(async()=>(await d.sendBrowser('Target.getTargets')).targetInfos.every(row=>row.targetId!==target.targetId),'cut target physically absent '+name);
-    if(isWorker)record.termination.stoppedVersion=await d.until(()=>versions.find(row=>row.versionId===record.workerVersion.versionId&&row.runningStatus==='stopped'),'cut worker version actually stopped');
-    record.termination.targetAbsent=true;record.termination.observedAt=new Date().toISOString();record.status='INTERRUPTED';
+    await wait();record.termination={requestedAt:new Date().toISOString(),requestedAtMs:Date.now(),afterSequence:eventSequence,
+      method:isWorker?'ServiceWorker.stopWorker':'Target.closeTarget'};
+    const termination=record.termination;
+    if(isWorker){
+      termination.response=await controller.send('ServiceWorker.stopWorker',{versionId:record.workerVersion.versionId});
+      // A ServiceWorker DevTools target ID can survive an execution restart.
+      // Require the actual post-request stopped version and destruction of the
+      // previously proven unique context; never reuse A1's earlier stop event.
+      const stopped=await d.until(()=>record.workerVersionEvents.flatMap(event=>
+        event.sequence>termination.afterSequence?event.params.versions.filter(row=>
+          row.versionId===record.workerVersion.versionId&&row.registrationId===record.workerVersion.registrationId&&
+          row.scriptURL===origin+'/sw.js'&&row.runningStatus==='stopped').map(version=>({event,version})):[]).at(-1),
+      'actual post-request stopped worker version '+name);
+      termination.stoppedVersion=stopped.version;termination.stoppedEvent=stopped.event;
+      termination.targetSnapshots=[];
+      // Some Chrome builds keep an inspector target while stopping the V8
+      // execution, then remove it later. Observe actual snapshots throughout
+      // this wait; a first still-present snapshot is not proof of target reuse.
+      const afterStop=await d.until(async()=>{
+        const snapshot=await d.sendBrowser('Target.getTargets');
+        termination.targetsAfterStop=snapshot;termination.targetSnapshots.push({at:Date.now(),snapshot});
+        const remaining=snapshot.targetInfos.find(row=>row.targetId===target.targetId);
+        termination.targetAbsent=!remaining;termination.targetStillPresent=Boolean(remaining);termination.targetReused=remaining?null:false;
+        if(!remaining)return {targetAbsent:true};
+        assert.equal(remaining.type,'service_worker');assert.equal(remaining.url,origin+'/sw.js');
+        const contextDestroyed=record.events.find(event=>event.sequence>termination.afterSequence&&
+          event.sessionId===sessionId&&
+          ((event.method==='Runtime.executionContextDestroyed'&&
+            event.params.executionContextId===record.executionContext.id)||event.method==='Runtime.executionContextsCleared')&&
+          event.contextsBefore?.some(context=>context.uniqueId===record.executionContext.uniqueId));
+        const next=scripts.find(row=>row.observedSequence>termination.afterSequence&&row.url===url&&
+          row.executionContextUniqueId&&liveContexts.get(row.executionContextId)?.uniqueId===row.executionContextUniqueId&&
+          row.executionContextUniqueId!==record.executionContext.uniqueId);
+        if(contextDestroyed&&!next&&wakeAfterContextDestroyed&&!termination.webProbeWake){
+          // The supported website button may wake a stopped execution. It is
+          // not an install/recovery action, and cannot replace the identity
+          // checks below. PROBE can update its normal request-limit metadata.
+          termination.webProbeWake={requestedAt:Date.now(),action:'PROBE',via:'real HTTP connect button'};
+          termination.webProbeWake.result=await wakeAfterContextDestroyed();
+        }
+        return contextDestroyed&&next?{targetAbsent:false,contextDestroyed,next}:null;
+      },'actual stopped target absence or replacement execution '+name);
+      if(!afterStop.targetAbsent){
+        termination.contextDestroyed=afterStop.contextDestroyed;
+        // Keep the same target and observation session. A missing context in an
+        // unrelated target, a disconnected inspector or a timeout is no proof.
+        const next=afterStop.next;
+        const context=liveContexts.get(next.executionContextId),source=await client.send('Debugger.getScriptSource',{scriptId:next.scriptId});
+        assert.equal(hash(source.scriptSource),record.sourceHash,'reused worker target must load the identical product source');
+        termination.newExecution={sessionId,targetId:target.targetId,context,script:next,sourceHash:hash(source.scriptSource)};
+        const request={...record.contextProbeBefore.request};let response,error;
+        try{response=await client.send('Runtime.evaluate',request);}catch(failure){error=failure.cdpError;termination.oldContextProbeFailure=failure.message;}
+        termination.oldContextProbe={sessionId,targetId:target.targetId,request,...(response?{response}:{}),...(error?{error}:{}),at:Date.now()};
+        assert.equal(error?.code,-32602,'old unique context must return the exact native CDP not-found rejection');
+        assert.equal(error.message,'uniqueContextId not found');
+        const nextRequest={...request,uniqueContextId:context.uniqueId},nextResponse=await client.send('Runtime.evaluate',nextRequest);
+        termination.newContextProbe={sessionId,targetId:target.targetId,request:nextRequest,response:nextResponse,at:Date.now()};
+        assert.equal(nextResponse.exceptionDetails,undefined);assert.equal(nextResponse.result?.type,'undefined');
+        termination.targetReused=true;
+        termination.executionProof='stopped-version-and-destroyed-unique-context-on-reused-target';
+      }else{
+        // A removed inspector target need not deliver a final V8 context event.
+        // The original physical target absence proof remains sufficient here.
+        termination.executionProof='stopped-version-and-physical-target-absence';
+      }
+      termination.executionTerminated=true;
+    }else{
+      termination.response=await d.sendBrowser('Target.closeTarget',{targetId:target.targetId});
+      assert.equal(termination.response.success,true);
+      await d.until(async()=>(await d.sendBrowser('Target.getTargets')).targetInfos.every(row=>row.targetId!==target.targetId),'cut target physically absent '+name);
+      termination.targetAbsent=true;
+    }
+    termination.observedAt=new Date().toISOString();record.status='INTERRUPTED';
     await dispose();return record;
   }
   return {record,wait,terminate,dispose};

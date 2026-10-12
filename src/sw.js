@@ -3,6 +3,7 @@ import {PROTOCOL as FOUNDATION_PROTOCOL, projectFoundationError} from './platfor
 import {createFoundationBroker} from './platform/host/broker.js';
 import {registerDownloadEvents} from './platform/downloads/events.js';
 import {PAGE_BOOT_PROTOCOL} from './scripting/user-scripts/installed-programs.js';
+import {reportBrowserCleanupError} from './platform/chrome/lifecycle-errors.js';
 
 
 export function initServiceWorker({development=null}={}) {
@@ -93,9 +94,11 @@ chrome.action.onClicked.addListener(tab => {
 chrome.tabs.onRemoved.addListener(tabId => {
   invalidateSdk('tab-removed',{tabId});
   foundation.then(broker => broker.recoverHostTab(tabId))
-    .catch(error => console.error(`[foundation host tab ${error.code || 'E_OWNER'}] ${error.message}`));
+    .catch(error => reportBrowserCleanupError(error,{phase:'foundation-tab-removed',
+      label:`[foundation host tab ${error.code || 'E_OWNER'}] ${error.message}`}));
   foundation.then(broker => broker.cleanupPagePreviewWorlds({tabId,removed:true}))
-    .catch(error => console.error(`[page preview cleanup ${error.code || 'E_WORLD_ISOLATION'}] ${error.message}`));
+    .catch(error => reportBrowserCleanupError(error,{phase:'page-preview-tab-removed',
+      label:`[page preview cleanup ${error.code || 'E_WORLD_ISOLATION'}] ${error.message}`}));
 });
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   // The independent fixed health-host listener owns only the environment
@@ -143,7 +146,8 @@ chrome.runtime.onConnect.addListener(port => {
     if (hostPorts.get(documentId) !== port) return;
     hostPorts.delete(documentId);
     if (registrationId) foundation.then(broker => broker.disconnectHost(registrationId, documentId))
-      .catch(error => console.error(`[foundation disconnect ${error.code || 'E_OWNER'}] ${error.message}`));
+      .catch(error => reportBrowserCleanupError(error,{phase:'foundation-port-disconnected',
+        label:`[foundation disconnect ${error.code || 'E_OWNER'}] ${error.message}`}));
   });
 });
 
