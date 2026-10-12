@@ -116,4 +116,12 @@ Git CLI 写入缺少凭据，改用已有授权的 GitHub 连接逐一核验 356
 
 `aa39ef7e` 的 Native job `114802206554` 原全量 npm test 为 1600 PASS / 1 FAIL / 7 SKIP；唯一失败是旧 `sidebar-dynamic-result-ui.test.mjs` 静态正则要求 `result.resultText ?? 'undefined'` 的空格。本任务改写该行时省略空格，现只恢复原表达式格式，原定向测试 1/1 PASS，不改断言和执行语义。该次 Native 专组 65/65 PASS，并包含实际受认证 Host socket 的分块读取/最终校验和未协商旧 provider 拒绝；不升级为用户 Mac 或 Chrome 页面验收。
 
+### 第二次真实 Chrome：等待最终 Sidebar 文档
+
+提交 [`8c998e725226cec09da45a1d23140e3752d39259`](https://github.com/shopable-ai/opendesk-browser/commit/8c998e725226cec09da45a1d23140e3752d39259) 的 [run 38248262739](https://github.com/shopable-ai/opendesk-browser/actions/runs/38248262739)、job `114807561326` 通过真实 fixture、实际固定包加载和 Chrome userScripts 可信开关。sourceHash 仍为 `8d3eedcc…`；本次 packageHash 是 `a0f978d8bf8c17bab18184783a90f30b417f2e04e6cfd19e9849688fbfd49e29`。CJK 字体已正常绘制。
+
+随后 `Developer tab selected timed out`，尚未导入或 Run JSON。[原报告](evidence/react-url-import-echarts-20261012/ci/38248262739/report.json)及同目录原日志/截图显示：捕获的 `sidePanelContext.documentUrl` 仍是裸 `ui/tool.html`，documentId `92078E5778E2FA1AD2C185C5FA39EA47`；失败时实际 Sidebar URL 已有 `hostInstanceId=8a85a651-bad2-4ace-8bdd-531a2b4efee9`。这个 ID 是侧栏自身的观察身份，**不是 Page Run 回执**。
+
+因此驱动的“元素存在”与旧 context 不足以证明最终宿主初始化完毕；原证据没有点击瞬间坐标，不能进一步断言具体丢失时刻。新观察门槛要求最终 canonical URL、readyState complete、原工作台已写入的 opendeskTab、可见按钮、实际 Sidebar 初始化后的 Cloud tab，以及完整 URL 匹配的 fresh SIDE_PANEL documentId；切回网站后复查仍为同一 Sidebar 文档，再发送一次原生点击。新增只读输入坐标/URL 记录，不修改产品导航、不重放 Run，不延长原超时。
+
 保留的明确边界：用户 Mac 未访问；正式 Go Host 分块和主动 MCP 大源码路径未完成；浏览器单文件仅小型 ESM 图；作者缓存按原持久规则保留，尚无明确删除/GC 入口；多版本/下载中 Stop/导航等全部真实异常组合、独立 F3/ZIP 仍需各自原生证据。Page 自包含执行源的版本/更新/卸载走原记录，并不等于清空作者原始缓存。

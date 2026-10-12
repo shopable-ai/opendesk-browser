@@ -1,0 +1,92 @@
+{
+  "runId": 38248262739,
+  "jobId": 114807561326,
+  "commit": "8c998e725226cec09da45a1d23140e3752d39259",
+  "artifactId": 11746624854,
+  "completeArtifactUrl": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38248262739/artifacts/11746624854",
+  "completeArtifactBytes": 2478208,
+  "completeArtifactSha256": "8106e135aa4e8ac34070de0b890eae524c38ad18713b12d0add89edae98e3dfd",
+  "selection": "Unmodified original failure report, complete job log, package identity and original Sidebar/website observations. Full frozen program/package copies remain in the complete artifact.",
+  "rows": [
+    {
+      "source": "report.json",
+      "file": "report.json",
+      "rawBytes": 5905,
+      "rawSha256": "c6fa494eb73794043ff1bb9b9750534211ddc0d0c2b0d01bac26ca374ee17315",
+      "storedBytes": 5905,
+      "storedSha256": "c6fa494eb73794043ff1bb9b9750534211ddc0d0c2b0d01bac26ca374ee17315"
+    },
+    {
+      "source": "jobs-final.json",
+      "file": "jobs-final.json",
+      "rawBytes": 2432,
+      "rawSha256": "327f7d96c89b635376db88ecedf62b85b311e87969ce7a6f144d4322836dbf50",
+      "storedBytes": 2432,
+      "storedSha256": "327f7d96c89b635376db88ecedf62b85b311e87969ce7a6f144d4322836dbf50"
+    },
+    {
+      "source": "artifacts.json",
+      "file": "artifacts.json",
+      "rawBytes": 881,
+      "rawSha256": "e4250ea1f77fcc389c4f74a6b52fb630b68a886861e6c35203d7f5e28b008ff3",
+      "storedBytes": 881,
+      "storedSha256": "e4250ea1f77fcc389c4f74a6b52fb630b68a886861e6c35203d7f5e28b008ff3"
+    },
+    {
+      "source": "job-114807561326.log",
+      "file": "job-114807561326.log.gz",
+      "rawBytes": 62071,
+      "rawSha256": "c3d5d8c99e56e0b7f78749a1ddd1acec8317afc117a106ec04da8b3291639b95",
+      "storedBytes": 14088,
+      "storedSha256": "3870b29e9496b36805c670305499964e1af6ea54a3bd35d090b9513826d49ff9"
+    },
+    {
+      "source": "artifact/acceptance.json",
+      "file": "artifact/acceptance.json",
+      "rawBytes": 62435,
+      "rawSha256": "c54a63665f2a555d489c599ffc140f1cf2626bab2d0f744efe94f20c1d6fa213",
+      "storedBytes": 62435,
+      "storedSha256": "c54a63665f2a555d489c599ffc140f1cf2626bab2d0f744efe94f20c1d6fa213"
+    },
+    {
+      "source": "artifact/package-identity.json",
+      "file": "artifact/package-identity.json",
+      "rawBytes": 22859,
+      "rawSha256": "e4dbacf6213973db07785f4c9fbd0f9fdf4bd86f90474d15be665daf7161058c",
+      "storedBytes": 22859,
+      "storedSha256": "e4dbacf6213973db07785f4c9fbd0f9fdf4bd86f90474d15be665daf7161058c"
+    },
+    {
+      "source": "artifact/failure-4-sidebar.json",
+      "file": "artifact/failure-4-sidebar.json",
+      "rawBytes": 403,
+      "rawSha256": "ee97ff4a1060fe36e8b054e85a7c0cf49678612ea94e514a75c0a4d14abab1b5",
+      "storedBytes": 403,
+      "storedSha256": "ee97ff4a1060fe36e8b054e85a7c0cf49678612ea94e514a75c0a4d14abab1b5"
+    },
+    {
+      "source": "artifact/failure-4-sidebar.png",
+      "file": "artifact/failure-4-sidebar.png",
+      "rawBytes": 19463,
+      "rawSha256": "fe14d3e20d62b8efad778fdca7fc044d52e16339998d91d76bcae1060d6efc06",
+      "storedBytes": 19463,
+      "storedSha256": "fe14d3e20d62b8efad778fdca7fc044d52e16339998d91d76bcae1060d6efc06"
+    },
+    {
+      "source": "artifact/failure-0-website.png",
+      "file": "artifact/failure-0-website.png",
+      "rawBytes": 125877,
+      "rawSha256": "b82f6fc052443cf3c48a00281a96871089e2ebfef36d97777e40cdbd9b05b10b",
+      "storedBytes": 125877,
+      "storedSha256": "b82f6fc052443cf3c48a00281a96871089e2ebfef36d97777e40cdbd9b05b10b"
+    },
+    {
+      "source": "artifact/events.jsonl",
+      "file": "artifact/events.jsonl",
+      "rawBytes": 551,
+      "rawSha256": "685e10066e3ffa725bca4b94a162991490c649ec9b9dc956e4fe1194a38a9309",
+      "storedBytes": 551,
+      "storedSha256": "685e10066e3ffa725bca4b94a162991490c649ec9b9dc956e4fe1194a38a9309"
+    }
+  ]
+}

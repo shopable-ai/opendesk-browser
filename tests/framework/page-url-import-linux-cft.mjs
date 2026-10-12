@@ -117,6 +117,7 @@ async function clickReal(session,expression,{beforeRelease}={}){
     const rect=await session.read('(()=>{const e=('+expression+');if(!e||e.disabled)return null;'+
       'const r=e.getBoundingClientRect();return {x:r.x+r.width/2,y:r.y+r.height/2,width:r.width,height:r.height}})()');
     assert(rect?.width>0&&rect.height>0&&rect.x>0&&rect.y>0,'Visible enabled real input: '+expression);
+    record('trusted-input-target',{surface:session.label,expression,rect,url:await session.read('location.href')});
     for(const type of ['mousePressed','mouseReleased']){
       if(type==='mouseReleased')beforeRelease?.();
       await session.call('Input.dispatchMouseEvent',{type,x:rect.x,y:rect.y,button:'left',clickCount:1});
@@ -656,11 +657,28 @@ async function main(){
   },'Real Side Panel target');
   const sidebar=await cdp(panelInfo.webSocketDebuggerUrl,'sidebar');sessions.push(sidebar);
   await sidebar.call('Page.enable');
-  const panelContext=await until(()=>sidebar.read('(async()=>{const c=await chrome.runtime.getContexts({contextTypes:["SIDE_PANEL"],documentUrls:[location.href]});'+
-    'return c.find(x=>x.contextType==="SIDE_PANEL"&&x.documentUrl===location.href)})()'),'Confirmed actual Side Panel context');
-  report.sidePanelContext=panelContext;
-  await until(()=>sidebar.read('!!document.querySelector("#tab-develop")'),'Developer tab');
+  // The manifest opens bare tool.html once; its original bootstrap then commits
+  // a new canonical hostInstanceId document. Do not click the first HTML's tabs
+  // before that navigation and the existing workbench listeners are complete.
+  const panelReady=await until(()=>sidebar.read('(async()=>{const href=location.href,url=new URL(href);'+
+    'const tab=document.querySelector("#tab-develop"),r=tab?.getBoundingClientRect();'+
+    'const selected=document.documentElement.dataset.opendeskTab;'+
+    'if(document.readyState!=="complete"||!url.searchParams.get("hostInstanceId")||'+
+    '!selected||!r||r.width<=0||r.height<=0||document.querySelector("#tab-cloud")?.hidden!==false)return null;'+
+    'const contexts=await chrome.runtime.getContexts({contextTypes:["SIDE_PANEL"],documentUrls:[href]});'+
+    'const context=contexts.find(x=>x.contextType==="SIDE_PANEL"&&x.documentUrl===href);'+
+    'return context&&location.href===href?{context,href,selected,rect:{x:r.x,y:r.y,width:r.width,height:r.height}}:null})()'),
+    'Canonical initialized actual Side Panel document');
+  const {toolDocumentIdentity}=await import(pathToFileURL(path.join(repo,'src/tool-document-url.js')));
+  const panelIdentity=toolDocumentIdentity('chrome-extension://'+extensionId+'/ui/tool.html',panelReady.href);
+  assert(panelIdentity?.hostInstanceId&&!panelIdentity.hasLocator,'Original canonical Sidebar sender identity');
+  report.sidePanelContext=panelReady.context;report.sidePanelReady=panelReady;
+  record('canonical-sidebar-ready',panelReady);
   await browser.call('Target.activateTarget',{targetId:website.id});
+  const activePanel=await sidebar.read('(async()=>{const contexts=await chrome.runtime.getContexts({contextTypes:["SIDE_PANEL"],documentUrls:[location.href]});'+
+    'return {url:location.href,context:contexts.find(x=>x.documentUrl===location.href)}})()');
+  assert.equal(activePanel.url,panelReady.href,'Sidebar remains on its initialized host after website activation');
+  assert.equal(activePanel.context?.documentId,panelReady.context.documentId,'The same original Sidebar document receives the input');
   await clickReal(sidebar,'document.querySelector("#tab-develop")');
   await until(()=>sidebar.read('document.querySelector("#tab-develop").getAttribute("aria-selected")==="true"'),'Developer tab selected');
   assert.equal(await sidebar.read('chrome.permissions.contains({origins:["http://127.0.0.1:43111/*"]})'),true,

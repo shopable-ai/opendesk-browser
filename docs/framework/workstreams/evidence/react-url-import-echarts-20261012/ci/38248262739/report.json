@@ -1,0 +1,105 @@
+{
+  "runId": 38248262739,
+  "jobId": 114807561326,
+  "sourceHead": "8c998e725226cec09da45a1d23140e3752d39259",
+  "status": "FAIL_BEFORE_JSON_IMPORT_SIDEPANEL_INITIALIZATION_OBSERVATION",
+  "chromeStarted": true,
+  "chromeVersion": "Google Chrome for Testing 155.0.8059.39",
+  "sandbox": "default",
+  "nativeHostConfigured": false,
+  "packageHash": "a0f978d8bf8c17bab18184783a90f30b417f2e04e6cfd19e9849688fbfd49e29",
+  "extensionId": "kkmpejjgfmdbdepkacgjablinpofcmah",
+  "driverSha256": "00f6272cd57bf942ae7b757f95e86db760a2cb23dd467c7f87e51e411bb13eab",
+  "program": {
+    "format": "opendesk.program-draft.v2",
+    "project": {
+      "id": "sample.page-ui-toc-react-direct",
+      "version": "0.2.0",
+      "entry": "src/main.js",
+      "entryMode": "component"
+    },
+    "sourceHash": "8d3eedccdf62d90ddafcad3752e184ccd975479b51f649cb0b12595028ab2146",
+    "sourceBytes": 482082,
+    "jsonBytes": 558789,
+    "jsonSha256": "73f4df0f0c7e3e3a0862d04f58e47031e7562c28270b696654882ea4f8c1a484",
+    "linkedResource": {
+      "format": "opendesk.page-linked-resource.v1",
+      "world": "USER_SCRIPT",
+      "linkedBytes": 480935,
+      "linkedSha256": "f42ed71c3208ead45d4ce395394d6b391980618a2425acc7764554aef1584f0e",
+      "producer": "webpack-5.111.1",
+      "dependencies": {
+        "lockSha256": "2e17186d12fb3ebeff6c1de67ce29dee4b5a7d7417c05fe265ff7085a08f655f",
+        "moduleCount": 235,
+        "sourceBytes": 1744686,
+        "roots": [
+          {
+            "url": "https://cdn.jsdelivr.net/npm/echarts@5.6.0/core.js",
+            "sha256": "c40d30695448336a18d80d6332259c2ee9dae110dc41d344aac7a6fdecb1b6ca"
+          },
+          {
+            "url": "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/chart/bar/install.js",
+            "sha256": "28faca3451a99a48b8cb3e7258307038e53ea3b2ddc70d74ff5e5dc79f60d5ca"
+          },
+          {
+            "url": "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/component/grid/install.js",
+            "sha256": "3fdfcda2d55177deb8157059acf117668a4a2f57a029860ca712ca4996650496"
+          },
+          {
+            "url": "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/renderer/installSVGRenderer.js",
+            "sha256": "1bded7c3c6f05053346dcf5069991c7bed475a839217ad437fce494bbf8a9404"
+          },
+          {
+            "url": "https://raw.githubusercontent.com/d3/d3-array/v3.2.4/src/max.js",
+            "sha256": "691945a453633d9e204846af8ea4e299821b924f82b15eaf7906aba642979b1d"
+          }
+        ]
+      }
+    },
+    "buildArtifactSha256": "7355573ae826ebd2183788020e4ca1a2fa9d65bfeaaae642f7d3038a47132aa0"
+  },
+  "originalError": {
+    "message": "Developer tab selected timed out",
+    "stack": "Error: Developer tab selected timed out\n    at until (file:///home/runner/work/opendesk-browser/opendesk-browser/tests/framework/page-url-import-linux-cft.mjs:73:9)\n    at async main (file:///home/runner/work/opendesk-browser/opendesk-browser/tests/framework/page-url-import-linux-cft.mjs:665:3)\n    at async file:///home/runner/work/opendesk-browser/opendesk-browser/tests/framework/page-url-import-linux-cft.mjs:987:5",
+    "code": null
+  },
+  "observedInitialSidePanelContext": {
+    "contextId": "e001a2d2-9e27-478c-8485-6e1e38945682",
+    "contextType": "SIDE_PANEL",
+    "documentId": "92078E5778E2FA1AD2C185C5FA39EA47",
+    "documentOrigin": "chrome-extension://kkmpejjgfmdbdepkacgjablinpofcmah",
+    "documentUrl": "chrome-extension://kkmpejjgfmdbdepkacgjablinpofcmah/ui/tool.html",
+    "frameId": 0,
+    "incognito": false,
+    "tabId": -1,
+    "windowId": -1
+  },
+  "actualFailureSidePanelUrl": "chrome-extension://kkmpejjgfmdbdepkacgjablinpofcmah/ui/tool.html?hostInstanceId=8a85a651-bad2-4ace-8bdd-531a2b4efee9",
+  "actualFailureSidePanelText": "我的\n发现\n工作流\n开发\n工具\n云控\n自动化任务\n0 个\n＋ 添加\n已安装任务\n\n暂无任务。点击上方「添加」导入本地任务。\n\n云控\n未配对 · 已批准 0 项任务\n运行任务",
+  "previewId": null,
+  "pageExecutionDocumentId": null,
+  "artifactId": 11746624854,
+  "artifactBytes": 2478208,
+  "artifactSha256": "8106e135aa4e8ac34070de0b890eae524c38ad18713b12d0add89edae98e3dfd",
+  "provenObservations": [
+    "Original catalog entry rendered with its explicit hostInstanceId.",
+    "Actual Chrome userScripts switch was enabled via native input.",
+    "A SIDE_PANEL context was read for the first bare /ui/tool.html document, before its mandatory canonical redirect.",
+    "At failure the same Sidebar target showed a canonical UUID URL, with a visible unobscured Developer tab and Tasks still selected.",
+    "The website viewport and sidepanel were visibly rendered; screenshots do not support an offscreen-pane explanation.",
+    "The original dataset.opendeskTab is assigned by task-workbench only after tab listeners have been installed.",
+    "sidebar-tab-memory protects genuine selections made before restore completion."
+  ],
+  "evidenceLimit": "There is no pre-click stable document/bounds/hit-test snapshot in this run. The precise delivery moment of the unsuccessful click is not proven; the initial context definitively predates the mandatory reload.",
+  "minimalNextCorrection": "Wait for canonical hostInstanceId URL, complete readyState, initialized valid dataset.opendeskTab, and a fresh exact SIDE_PANEL context for that final URL. Record stable visible bounds, elementFromPoint and active website before one trusted click; do not lengthen the timeout or mutate application state.",
+  "visualObservation": "CJK font installation succeeded: Chinese text is readable in the original failure screenshots. The black circle beside task count is the original schedule icon, not input-position evidence.",
+  "notTested": [
+    "JSON import/install",
+    "React/ECharts rendering",
+    "Run receipts",
+    "Stop",
+    "browser-source preparation"
+  ],
+  "mutationPerformed": false,
+  "rerunRequested": false
+}
