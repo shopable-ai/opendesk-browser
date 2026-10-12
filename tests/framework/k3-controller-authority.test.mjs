@@ -24,9 +24,16 @@ function serialStore() {
     const next = tail.then(async () => {
       const copy = structuredClone(rows), changes = [];
       const store = name => { assert.ok(names.includes(name)); if (!copy.has(name)) copy.set(name, new Map()); return copy.get(name); };
+      const cursor = (n,{prefix,offset=0,limit=50,direction='next'},keysOnly=false) => {
+        const keys=[...store(n).keys()].filter(key=>typeof key==='string'&&key.startsWith(prefix)).sort();
+        if(direction==='prev')keys.reverse();
+        return keys.slice(offset,offset+limit).map(key=>keysOnly?key:structuredClone(store(n).get(key)));
+      };
       const tx = {get: async (n,k) => structuredClone(store(n).get(k)), all: async n => [...store(n).values()].map(v => structuredClone(v)),
         put: async (n,v,k) => { store(n).set(k, structuredClone(v)); changes.push({store:n, key:k, value:structuredClone(v)}); },
-        delete: async (n,k) => store(n).delete(k)};
+        delete: async (n,k) => store(n).delete(k),
+        keys: async (n,options) => cursor(n,options,true),
+        scan: async (n,options) => cursor(n,options,false)};
       const result = await body(tx); if (mode === 'readwrite') { rows = copy; writes.push(...changes); } return result;
     }); tail = next.catch(() => {}); return next;
   }};
@@ -1376,6 +1383,70 @@ test('cloud status returns bounded redacted pages and supports a cheap heartbeat
   await assert.rejects(f.cloud.cloudStatus({limit:500},f.sender),code('E_SCHEMA'));
   await assert.rejects(f.cloud.cloudStatus({offset:-1},f.sender),code('E_SCHEMA'));
   await assert.rejects(f.cloud.cloudStatus({executorNamespace:'other'},f.sender),code('E_SCHEMA'));
+});
+test('indexed Cloud status and observer use bounded native KV cursor API without full history reads',async()=>{
+  const f=await cloudTaskFixture();
+  for(let i=0;i<125;i++){
+    const row={...f.row,requestId:'cloud:indexed-'+String(i).padStart(3,'0'),
+      createdAt:i,state:i%2?'waiting':'finished'};
+    await f.storage.transaction(['frameworkKV'],'readwrite',tx=>tx.put('frameworkKV',row,
+      'cloud:request:'+row.requestId));
+  }
+  let fullReads=0,scans=0,keys=0,mutations=0;
+  const original=f.storage.transaction.bind(f.storage);
+  f.storage.nativeCursorPaging=true;
+  f.storage.transaction=(stores,mode,callback)=>original(stores,mode,tx=>callback({
+    ...tx,
+    all:store=>{if(store==='frameworkKV')fullReads++;return tx.all(store);},
+    keys:(store,options)=>{if(store==='frameworkKV')keys++;return tx.keys(store,options);},
+    scan:(store,options)=>{if(store==='frameworkKV')scans++;return tx.scan(store,options);},
+    put:(store,value,key)=>{
+      if(store==='frameworkKV'&&key.startsWith('cloud:history:'))mutations++;
+      return tx.put(store,value,key);
+    }
+  }));
+  const status=await f.cloud.cloudStatus({limit:20,offset:30},f.sender);
+  assert.equal(status.requestTotal,126);
+  assert.equal(status.requests.length,20);
+  assert.equal(status.historyIndexStatus,'indexed');
+  assert.equal(keys,1);
+  assert.equal(fullReads,0);
+  const indexedWrites=mutations;
+  const view=await f.cloud.cloudObserve({limit:20,offset:10,state:'waiting'});
+  assert.equal(view.requestTotal,126);
+  assert.equal(view.matchingTotal,63);
+  assert.equal(view.rows.length,20);
+  assert.equal(view.states.finished,63);
+  assert.equal(fullReads,0);
+  assert.equal(mutations,indexedWrites);
+  assert(scans>=2);
+  assert.doesNotMatch(JSON.stringify(view),/cloud:indexed|assignment|credential|params|runId|secret|target/);
+  // Observer only performs native readonly transactions and never reindexes.
+  assert.equal(mutations,indexedWrites);
+});
+test('Cloud quota during index migration preserves requests and leaves management readable',async()=>{
+  const f=await cloudTaskFixture(),original=f.storage.transaction.bind(f.storage);
+  f.storage.nativeCursorPaging=true;
+  let failOnce=true,attempts=0;
+  f.storage.transaction=(stores,mode,callback)=>original(stores,mode,tx=>callback({
+    ...tx,
+    keys:(store,options)=>{attempts++;return tx.keys(store,options);},
+    put:(store,value,key)=>{
+      if(failOnce&&mode==='readwrite'&&store==='frameworkKV'&&key.startsWith('cloud:history:')){
+        failOnce=false;throw Object.assign(new Error('Quota'),{code:'E_QUOTA'});
+      }
+      return tx.put(store,value,key);
+    }
+  }));
+  const first=await f.cloud.cloudStatus({limit:5},f.sender);
+  assert.equal(first.requestTotal,1);
+  assert.equal(first.historyIndexStatus,'migration-blocked');
+  assert.equal(await f.cloud.cloudObserve({limit:5}).then(value=>value.requestTotal),1);
+  const again=await f.cloud.cloudStatus({limit:5},f.sender);
+  assert.equal(again.requestTotal,1);
+  assert.equal(attempts,1);
+  const kv=await original(['frameworkKV'],'readonly',tx=>tx.all('frameworkKV'));
+  assert.equal(kv.filter(row=>row.tag==='cloud-history-meta-v1').length,0);
 });
 test('observer projection is fixed-namespace, paged and excludes all executable identities',async()=>{
   const f=await cloudTaskFixture();

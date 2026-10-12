@@ -1,0 +1,94 @@
+{
+  "goal": "OpenDesk Browser Cloud Control R4",
+  "date": "2026-10-12",
+  "baseline": "ede684f63b9576b7dc6afd1377a744b5204220e2",
+  "finalCommit": null,
+  "changed": [
+    "src/platform/storage/idb.js",
+    "src/platform/storage/index.js",
+    "src/cloud-control/history-index.js",
+    "src/cloud-control/service.js",
+    "tests/cloud-control/history-index.test.mjs",
+    "docs/architecture/browser-framework/cloud-control-r4.zh-CN.md",
+    "docs/framework/workstreams/cloud-control-r4-20261012.md",
+    "docs/framework/workstreams/cloud-control-r4-20261012.json",
+    "examples/cloud-control/README.zh-CN.md"
+  ],
+  "evidence": {
+    "source": "SOURCE_IMPLEMENTED",
+    "component": "NOT_TESTED",
+    "ci": "NOT_TESTED",
+    "nativeMac": "NATIVE_PENDING",
+    "runner": "NOT_IMPLEMENTED",
+    "scheduleMerge": "NOT_IMPLEMENTED",
+    "gate4": "NATIVE_PENDING"
+  },
+  "historicalCI": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38251928449",
+  "tests": {
+    "cloud": "NOT_TESTED",
+    "authority": "NOT_TESTED",
+    "build": "NOT_TESTED",
+    "nativeIdb10k": "NATIVE_PENDING"
+  },
+  "productionPackageHash": null,
+  "developmentPackageHash": null,
+  "scores": [
+    {
+      "dimension": 1,
+      "score": null,
+      "status": "NOT_VERIFIED"
+    },
+    {
+      "dimension": 2,
+      "score": null,
+      "status": "NOT_VERIFIED"
+    },
+    {
+      "dimension": 3,
+      "score": null,
+      "status": "NOT_VERIFIED"
+    },
+    {
+      "dimension": 4,
+      "score": null,
+      "status": "NOT_VERIFIED"
+    },
+    {
+      "dimension": 5,
+      "score": null,
+      "status": "NOT_VERIFIED"
+    },
+    {
+      "dimension": 6,
+      "score": null,
+      "status": "NOT_VERIFIED"
+    },
+    {
+      "dimension": 7,
+      "score": null,
+      "status": "NOT_VERIFIED"
+    },
+    {
+      "dimension": 8,
+      "score": null,
+      "status": "NOT_VERIFIED"
+    },
+    {
+      "dimension": 9,
+      "score": null,
+      "status": "NOT_VERIFIED"
+    },
+    {
+      "dimension": 10,
+      "score": null,
+      "status": "NOT_VERIFIED"
+    }
+  ],
+  "safety": {
+    "mainOnly": true,
+    "noForce": true,
+    "noBranch": true,
+    "noSecondDb": true,
+    "noMacAccess": true
+  }
+}

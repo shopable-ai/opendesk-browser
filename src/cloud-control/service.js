@@ -3,6 +3,7 @@ import {validateTaskParams} from '../platform/tasks/contract.js';
 import {assertRunTaskAuthorization} from '../platform/tasks/service.js';
 import {requireGrant} from '../platform/target/index.js';
 import {decodeValue} from '../platform/page-port/codec.js';
+import {createCloudHistoryIndex} from './history-index.js';
 const KV='frameworkKV',CONFIG='cloud:config',IDENTITY='cloud:executor',PREFIX='cloud:request:';
 export function providerUrl(value,allowLoopback=false){
   const u=new URL(value);invariant(!u.username&&!u.password&&!u.search&&!u.hash&&u.pathname==='/'&&
@@ -14,6 +15,8 @@ export function createCloudService({storage,api,clock={now:()=>Date.now()},asser
   function invalidate(){revocationEpoch++;for(const abort of deliveries)abort.abort();}
   const transaction=(mode,fn,names=[KV,'runs','commandJournal','results'])=>storage.transaction(names,mode,fn);
   const read=()=>transaction('readonly',tx=>tx.get(KV,CONFIG),[KV]);
+  const history=createCloudHistoryIndex({storage,namespace:'tool:'+api.runtime.id});
+  let historyReady=false,historyMigrationBlocked=null;
   const rows=()=>transaction('readonly',async tx=>(await tx.all(KV)).filter(r=>r.tag==='cloud-request-v1'),[KV]);
   async function post(config,path,body,{isCurrent=()=>true}={}){
     invariant(config?.credential,'E_PAIRING');
@@ -34,14 +37,33 @@ export function createCloudService({storage,api,clock={now:()=>Date.now()},asser
       (request.limit===undefined||Number.isSafeInteger(request.limit)&&request.limit>=1&&request.limit<=50)&&
       (request.offset===undefined||Number.isSafeInteger(request.offset)&&request.offset>=0&&request.offset<=1000000),'E_SCHEMA');
     const includeRequests=request.includeRequests!==false,limit=request.limit??5,offset=request.offset??0;
+    // An authenticated actual Host activates the v2 KV key-range index.
+    // The Observer RPC never creates or repairs it. The migration is atomic
+    // and never changes the original Run, Result or request key.
+    if(includeRequests&&storage.nativeCursorPaging&&!storage.readOnly&&!historyReady&&!historyMigrationBlocked){
+      await scoped(sender,async()=>{});
+      try{await history.ensure();historyReady=true;}
+      catch(error){
+        // Quota or an old incompatible database cannot make Cloud management
+        // unusable. Continue read-only legacy history; never delete records
+        // or repeatedly attempt migration on the two-second heartbeat.
+        if(!['E_QUOTA','E_LIMIT','E_VERSION'].includes(error?.code))throw error;
+        historyMigrationBlocked=error.code;
+      }
+    }
     return scoped(sender,async(tx,host)=>{
       const c=await tx.get(KV,CONFIG),slot=await tx.get('runs','@slot');
       let total=null,nextOffset=null,projected=[];
       if(includeRequests){
-        const requests=(await tx.all(KV)).filter(r=>r.tag==='cloud-request-v1'&&r.namespace===host.namespace)
-          .sort((x,y)=>(y.createdAt??0)-(x.createdAt??0)||String(y.requestId).localeCompare(String(x.requestId)));
-        total=requests.length;
-        const page=requests.slice(offset,offset+limit);
+        const indexed=await history.page(tx,{limit,offset});
+        let page;
+        if(indexed){
+          total=indexed.total;page=indexed.rows;
+        }else{
+          const requests=(await tx.all(KV)).filter(r=>r.tag==='cloud-request-v1'&&r.namespace===host.namespace)
+            .sort((x,y)=>(y.createdAt??0)-(x.createdAt??0)||String(y.requestId).localeCompare(String(x.requestId)));
+          total=requests.length;page=requests.slice(offset,offset+limit);
+        }
         nextOffset=offset+page.length<total?offset+page.length:null;
         for(const r of page){
           const run=r.runId?await tx.get('runs',r.runId):null;
@@ -55,7 +77,8 @@ export function createCloudService({storage,api,clock={now:()=>Date.now()},asser
         slotAvailable:!slot?.currentRunId&&!slot?.preview,
         tasks:c?.tasks?.map(t=>({taskId:t.taskId,version:t.version,manifestHash:t.manifestHash,
           sourceHash:t.contentHash,siteOrigins:t.manifest.siteOrigins,resultAllowed:t.resultAllowed}))||[],
-        requestTotal:total,requestPage:{offset,limit,nextOffset},requests:projected};
+        requestTotal:total,requestPage:{offset,limit,nextOffset},requests:projected,
+        historyIndexStatus:historyMigrationBlocked?'migration-blocked':historyReady?'indexed':'legacy'};
     });
   }
   // A read-only observer never receives executor/Host IDs, Task manifests,
@@ -74,15 +97,23 @@ export function createCloudService({storage,api,clock={now:()=>Date.now()},asser
     return transaction('readonly',async tx=>{
       const config=await tx.get(KV,CONFIG),slot=await tx.get('runs','@slot');
       const namespace='tool:'+api.runtime.id;
-      const allRequests=(await tx.all(KV)).filter(r=>r?.tag==='cloud-request-v1'&&r.namespace===namespace);
-      const states={waiting:0,prepared:0,permitted:0,finished:0,cancelled:0,
-        'cancellation-pending':0,OUTCOME_UNKNOWN:0,other:0};
-      for(const r of allRequests)states[allowed.has(r.state)?r.state:'other']++;
-      const requests=request.state&&request.state!=='all'
-        ?allRequests.filter(r=>r.state===request.state):allRequests;
-      requests.sort((a,b)=>(b.createdAt??0)-(a.createdAt??0)||
-        String(b.requestId).localeCompare(String(a.requestId)));
-      const page=requests.slice(offset,offset+limit),rows=[];
+      const indexed=await history.page(tx,{limit,offset,state:request.state??'all'});
+      let total,matchingTotal,states,page;
+      if(indexed){
+        ({total,matchingTotal,states}=indexed);page=indexed.rows;
+      }else{
+        const allRequests=(await tx.all(KV)).filter(r=>r?.tag==='cloud-request-v1'&&r.namespace===namespace);
+        states={waiting:0,prepared:0,permitted:0,finished:0,cancelled:0,
+          'cancellation-pending':0,OUTCOME_UNKNOWN:0,other:0};
+        for(const r of allRequests)states[allowed.has(r.state)?r.state:'other']++;
+        const requests=request.state&&request.state!=='all'
+          ?allRequests.filter(r=>r.state===request.state):allRequests;
+        requests.sort((a,b)=>(b.createdAt??0)-(a.createdAt??0)||
+          String(b.requestId).localeCompare(String(a.requestId)));
+        total=allRequests.length;matchingTotal=requests.length;
+        page=requests.slice(offset,offset+limit);
+      }
+      const rows=[];
       for(const r of page){
         const run=r.runId?await tx.get('runs',r.runId):null;
         rows.push({state:allowed.has(r.state)?r.state:'other',
@@ -94,9 +125,9 @@ export function createCloudService({storage,api,clock={now:()=>Date.now()},asser
       return {schema:'opendesk.cloud-control.observer.v1',paired:!!config,
         enabled:config?.enabled===true,connection:connectionState,
         online,reconciled,hostReady:null,slotAvailable:!slot?.currentRunId&&!slot?.preview,
-        approvedTasks:Math.min(config?.tasks?.length??0,32),requestTotal:allRequests.length,
-        matchingTotal:requests.length,filter:request.state??'all',
-        states,rows,page:{offset,limit,nextOffset:offset+rows.length<requests.length?offset+rows.length:null}};
+        approvedTasks:Math.min(config?.tasks?.length??0,32),requestTotal:total,
+        matchingTotal,filter:request.state??'all',
+        states,rows,page:{offset,limit,nextOffset:offset+rows.length<matchingTotal?offset+rows.length:null}};
     },[KV,'runs']);
   }
   async function cloudPair(request,sender){
@@ -117,14 +148,15 @@ export function createCloudService({storage,api,clock={now:()=>Date.now()},asser
   async function fence(request,reason){
     const result=await transaction('readwrite',async tx=>{const r=await tx.get(KV,PREFIX+request.requestId);if(!r)return;const run=r.runId&&await tx.get('runs',r.runId);
       // Original released Run + confirmed receipt is immutable history.
-      if(r.receipt&&r.state==='finished'&&run?.retirementState==='released')return null;
-      r.reason=reason;if(!run){r.state='cancelled';await tx.put(KV,r,PREFIX+r.requestId);return;}
+      if(r.receipt&&run?.retirementState==='released'&&
+        (r.state==='finished'||r.delivery?.state==='confirmed'))return null;
+      r.reason=reason;if(!run){r.state='cancelled';await history.put(tx,r);return;}
       // A run already stopping has an original durable cancellation fence.
       // Repeated cloudStop/reconnect notifications must not advance its owner
       // epoch or cancellation sequence and invalidate its pending settlement.
       const newlyFenced=['preparing','running'].includes(run.state)&&!run.cancelSeq;
       if(newlyFenced){run.cancelSeq++;run.ownerEpoch++;run.runRevision++;run.eventSeq++;run.state='stopping';run.terminalReason=reason;await tx.put('runs',run,run.runId);const k='controller-pin:'+run.runId,l=await tx.get('commandJournal',k);if(l)await tx.put('commandJournal',{...l,state:run.state,cancelSeq:run.cancelSeq},k);}
-      r.state=run.retirementState==='released'?'finished':'cancellation-pending';await tx.put(KV,r,PREFIX+r.requestId);
+      r.state=run.retirementState==='released'?'finished':'cancellation-pending';await history.put(tx,r);
       return newlyFenced?run:null;});
     if(result)await emitToHost(result.registrationId,{type:'controller-fenced',runId:result.runId,reasonCode:reason});
   }
@@ -182,7 +214,7 @@ export function createCloudService({storage,api,clock={now:()=>Date.now()},asser
       if(row?.namespace===current.namespace&&row.grantId===c.grantId&&
         row.state==='waiting'&&!row.runId&&!(row.assignment?.leaseUntil>clock.now())){
         row.state='cancelled';row.reason='E_LEASE';
-        await tx.put(KV,row,PREFIX+row.requestId);
+        await history.put(tx,row);
       }
       c.pendingRequestId=null;
       await tx.put(KV,c,CONFIG);
@@ -202,7 +234,7 @@ export function createCloudService({storage,api,clock={now:()=>Date.now()},asser
     return scoped(sender,async tx=>{const config=await tx.get(KV,CONFIG);invariant(config?.enabled&&config.grantId===c.grantId&&config.claimId===claim.claimId,'E_CLOUD_REVOKED');
       if(answer.assignment){const a=answer.assignment;invariant(a.executorId===c.executorId&&a.claimId===claim.claimId&&a.leaseUntil>clock.now(),'E_ASSIGNMENT');const t=c.tasks.find(t=>t.taskId===a.task.taskId&&t.version===a.task.version&&t.manifestHash===a.task.manifestHash&&t.contentHash===a.task.sourceHash);invariant(t&&a.target.mode==='owned'&&t.manifest.siteOrigins.includes(new URL(a.target.url).origin),'E_TASK');
         const params=validateTaskParams(t.manifest.paramsSchema,a.params),requestId='cloud:'+a.assignmentId;const digestValue=await digest({providerId:c.providerId,executorId:c.executorId,assignmentId:a.assignmentId,task:a.task,params,target:a.target});const prior=await tx.get(KV,PREFIX+requestId);invariant(!prior||prior.digest===digestValue,'E_REQUEST_CONFLICT');
-        if(!prior)await tx.put(KV,{tag:'cloud-request-v1',requestId,digest:digestValue,assignment:a,params,task:t,grantId:c.grantId,namespace:host.namespace,state:'waiting',createdAt:clock.now()},PREFIX+requestId);
+        if(!prior)await history.put(tx,{tag:'cloud-request-v1',requestId,digest:digestValue,assignment:a,params,task:t,grantId:c.grantId,namespace:host.namespace,state:'waiting',createdAt:clock.now()});
         config.claimId=null;config.pendingRequestId=!prior||prior.state==='waiting'&&!prior.runId?requestId:null;
         await tx.put(KV,config,CONFIG);return config.pendingRequestId?{requestId}:null;}
       config.claimId=null;config.pendingRequestId=null;await tx.put(KV,config,CONFIG);return null;
@@ -213,13 +245,13 @@ export function createCloudService({storage,api,clock={now:()=>Date.now()},asser
   async function bind(tx,run,request,host){
     const r=await tx.get(KV,PREFIX+request.cloudRequestId),c=await tx.get(KV,CONFIG);invariant(c?.enabled&&r?.namespace===host.namespace&&r.grantId===c.grantId&&r.state==='waiting'&&!r.runId&&r.assignment.leaseUntil>clock.now(),'E_CLOUD_REVOKED');
     invariant(run.scriptId===r.task.scriptId&&run.contentHash===r.task.contentHash&&run.installedTaskAuthorization?.manifestHash===r.task.manifestHash&&canonical(run.installedTaskAuthorization?.authorization)===canonical({tag:'task-install-authorization-v1',installationId:r.task.installationId,generation:r.task.generation,scope:{capabilities:r.task.manifest.permissions,siteOrigins:r.task.manifest.siteOrigins,networkOrigins:[]}})&&canonical(decodeValue(run.paramsWire))===canonical(r.params)&&canonical(run.selection)===canonical(r.assignment.target)&&!run.networkOrigins.length,'E_TASK');
-    run.cloudRequestId=r.requestId;r.runId=run.runId;r.runRef={runId:run.runId,resultId:run.resultId,requestId:r.requestId,sourceHash:run.contentHash,manifestHash:r.task.manifestHash,grantId:r.grantId};r.state='prepared';await tx.put(KV,r,PREFIX+r.requestId);
+    run.cloudRequestId=r.requestId;r.runId=run.runId;r.runRef={runId:run.runId,resultId:run.resultId,requestId:r.requestId,sourceHash:run.contentHash,manifestHash:r.task.manifestHash,grantId:r.grantId};r.state='prepared';await history.put(tx,r);
     if(c.pendingRequestId===r.requestId){c.pendingRequestId=null;await tx.put(KV,c,CONFIG);}
   }
   async function permit(run){
     const r=await transaction('readonly',tx=>tx.get(KV,PREFIX+run.cloudRequestId),[KV]),c=await read();invariant(c?.enabled&&c.grantId===r?.grantId,'E_CLOUD_REVOKED');let p;
     for(let attempt=0;attempt<2;attempt++){try{p=await post(c,'admission',{assignmentId:r.assignment.assignmentId,runRef:r.runRef});break;}catch(e){if(attempt||e.code)throw e;}}
-    await transaction('readwrite',async tx=>{const current=await tx.get(KV,PREFIX+r.requestId),config=await tx.get(KV,CONFIG),stored=await tx.get('runs',run.runId);invariant(config?.enabled&&config.grantId===r.grantId&&stored?.state==='preparing'&&!stored.cancelSeq&&current?.runId===run.runId&&p.providerId===config.providerId&&p.assignmentId===r.assignment.assignmentId&&canonical(p.runRef)===canonical(r.runRef)&&p.leaseUntil>clock.now(),'E_PERMIT');await assertRunTaskAuthorization(tx,stored);current.permit=p;current.state='permitted';await tx.put(KV,current,PREFIX+r.requestId);});
+    await transaction('readwrite',async tx=>{const current=await tx.get(KV,PREFIX+r.requestId),config=await tx.get(KV,CONFIG),stored=await tx.get('runs',run.runId);invariant(config?.enabled&&config.grantId===r.grantId&&stored?.state==='preparing'&&!stored.cancelSeq&&current?.runId===run.runId&&p.providerId===config.providerId&&p.assignmentId===r.assignment.assignmentId&&canonical(p.runRef)===canonical(r.runRef)&&p.leaseUntil>clock.now(),'E_PERMIT');await assertRunTaskAuthorization(tx,stored);current.permit=p;current.state='permitted';await history.put(tx,current);});
   }
   async function assertActive(tx,run){if(!run.cloudRequestId)return;const r=await tx.get(KV,PREFIX+run.cloudRequestId),c=await tx.get(KV,CONFIG);invariant(c?.enabled&&r?.grantId===c.grantId&&r.runId===run.runId&&r.permit?.runRef.runId===run.runId&&r.permit?.leaseUntil>clock.now()&&!['cancelled','cancellation-pending','OUTCOME_UNKNOWN'].includes(r.state),'E_CLOUD_FENCED');}
   async function reconcile({isCurrent=()=>true}={}){
@@ -230,11 +262,12 @@ export function createCloudService({storage,api,clock={now:()=>Date.now()},asser
       if(!current())return;if(r.grantId!==c.grantId)continue;
       const run=r.runId?await transaction('readonly',tx=>tx.get('runs',r.runId)):null;
       // Remote expiry, cancellation or pruning cannot cancel confirmed completion.
-      if(r.receipt&&r.state==='finished'&&run?.retirementState==='released')continue;
+      if(r.receipt&&run?.retirementState==='released'&&
+        (r.state==='finished'||r.delivery?.state==='confirmed'))continue;
       const a=remote.assignments.find(a=>a.assignmentId===r.assignment.assignmentId);
       if(!a||a.runRef&&r.runRef&&canonical(a.runRef)!==canonical(r.runRef)){await fence(r,'E_RUN_REF');continue;}
       if(run?.state==='paused_unknown'){
-        await transaction('readwrite',async tx=>{if(!current())return;const row=await tx.get(KV,PREFIX+r.requestId);row.state='OUTCOME_UNKNOWN';row.reason='Original Run recovery fenced execution';await tx.put(KV,row,PREFIX+r.requestId);});continue;
+        await transaction('readwrite',async tx=>{if(!current())return;const row=await tx.get(KV,PREFIX+r.requestId);row.state='OUTCOME_UNKNOWN';row.reason='Original Run recovery fenced execution';await history.put(tx,row);});continue;
       }
       if(a.cancelled||a.leaseUntil<=clock.now()){await fence(r,'E_CLOUD_CANCELLED');if(!r.runId)continue;}
       const active=run&&['preparing','running'].includes(run.state)&&!run.cancelSeq&&r.state==='permitted';
@@ -245,7 +278,7 @@ export function createCloudService({storage,api,clock={now:()=>Date.now()},asser
           await transaction('readwrite',async tx=>{
             const row=await tx.get(KV,PREFIX+r.requestId),config=await tx.get(KV,CONFIG),stored=await tx.get('runs',r.runId);
             invariant(current()&&config?.enabled&&config.grantId===r.grantId&&row?.state==='permitted'&&row.permit?.permitId===r.permit.permitId&&canonical(row.runRef)===canonical(r.runRef)&&row.permit.leaseUntil>clock.now()&&['preparing','running'].includes(stored?.state)&&!stored.cancelSeq&&lease.leaseUntil>clock.now(),'E_CLOUD_FENCED');
-            await assertRunTaskAuthorization(tx,stored);row.permit.leaseUntil=lease.leaseUntil;await tx.put(KV,row,PREFIX+r.requestId);
+            await assertRunTaskAuthorization(tx,stored);row.permit.leaseUntil=lease.leaseUntil;await history.put(tx,row);
           });
         }catch{if(current())await fence(r,'E_LEASE');}
       }
@@ -261,14 +294,14 @@ export function createCloudService({storage,api,clock={now:()=>Date.now()},asser
       const allowed=await transaction('readwrite',async tx=>{
         const row=await tx.get(KV,PREFIX+r.requestId),config=await tx.get(KV,CONFIG),stored=await tx.get('runs',r.runId);await assertRunTaskAuthorization(tx,stored);
         if(!current()||stored.resultDeliveryRevoked||!config?.enabled||config.grantId!==r.grantId||canonical(row.runRef)!==canonical(r.runRef))return false;
-        row.delivery={state:'pending',receiptKey:r.runRef.resultId,grantId:r.grantId,runRef:r.runRef};await tx.put(KV,row,PREFIX+r.requestId);return true;
+        row.delivery={state:'pending',receiptKey:r.runRef.resultId,grantId:r.grantId,runRef:r.runRef};await history.put(tx,row);return true;
       });if(!allowed||!current())continue;
       const result=projection.result,limited={runId:result.runId,resultId:result.resultId,revision:result.revision,state:result.state,sourceHash:r.runRef.sourceHash,retirementState:projection.run.retirementState,...(result.outcome?.valueWire!==undefined?{valueWire:result.outcome.valueWire}:{}),...(result.outcome?.error?{error:result.outcome.error}:{})};
       const receipt=await post(c,'receipt',{assignmentId:r.assignment.assignmentId,receiptKey:r.runRef.resultId,runRef:r.runRef,result:limited},{isCurrent:current});
       await transaction('readwrite',async tx=>{
         const row=await tx.get(KV,PREFIX+r.requestId),config=await tx.get(KV,CONFIG),stored=await tx.get('runs',r.runId);
         if(!current()||!config?.enabled||config.grantId!==r.grantId||stored.resultDeliveryRevoked||canonical(row.runRef)!==canonical(r.runRef))return;
-        await assertRunTaskAuthorization(tx,stored);row.receipt=receipt;row.delivery.state='confirmed';row.state='finished';await tx.put(KV,row,PREFIX+r.requestId);
+        await assertRunTaskAuthorization(tx,stored);row.receipt=receipt;row.delivery.state='confirmed';row.state='finished';await history.put(tx,row);
       });
     }
   }

@@ -64,3 +64,18 @@ Linux CI 构建不能替代 Mac Chrome Gate 4 真实停止、副作用后中断�
 `docs/framework/prompts/cloud-control-r3-final-mac-chrome-acceptance.zh-CN.md`。
 先读取历史 `docs/framework/workstreams/cloud-control-r1.json` 的未完成
 `pendingUnknownCase`；禁止重新投递或重跑那个原副作用请求。
+
+## Cloud Control R4 · 同一 IDB 内的真正有限历史分页（源码候选）
+
+> R3.2 上文描述的是当时的已知缺口；以下 R4 实现为后续增量，原 R1/R3 事实和旧 CI 证据保持原样。
+
+- 独立控制台仍使用 `cloudObserve`，无云任务 claim/start/approve/stop 权限。Side Panel 的管理和领取权限仍要求真实 Chrome SIDE_PANEL sender。
+- 新的 `src/cloud-control/history-index.js` 在现有 v2 `frameworkKV` 里保存按命名空间、创建时间和状态排列的**脱敏派生索引**和同事务状态总数；原云 request、Run、Result 和回执的持久主键与数据库均不变。
+- 首次详细 Cloud 状态读取会在已授权 Side Panel 中原子建立历史索引；Observer 不执行任何迁移。已迁移后 `cloudStatus({includeRequests:true})` 和 `cloudObserve({state,offset,limit})` 通过原生 IDB 有界游标读取，不再先克隆全部 `frameworkKV`。
+- 查询最多返回 50 个脱敏条目；状态计数按持久索引维护，不能返回原请求 ID、目标 URL、params、credentials 或结果体。历史非常深的 offset 仍需要游标推进，不保证 O(1)。
+- 如果旧 schema、只读恢复或迁移前的索引尚未存在，查询可以沿用只读兼容读取；正式 Chrome Quota/回滚和 100/1,000/10,000 条真实耗时/内存测量仍为 `NATIVE_PENDING`。
+- **这不是“关闭 Side Panel 仍能云端挂机”**：`HostOwnerLease` 尚未接入云 Run admission/Worker，Scheduled 可见 Runner 没有获得 Cloud RPC 执行权限，跨本地/云端 FireId 幂等尚未完成。
+
+R4 架构与验收清单：
+`docs/architecture/browser-framework/cloud-control-r4.zh-CN.md`
+和 `docs/framework/workstreams/cloud-control-r4-20261012.md`。

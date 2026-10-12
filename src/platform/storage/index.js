@@ -29,6 +29,9 @@ export async function createStorage({indexedDB = globalThis.indexedDB, name = 'o
     db.onclose = close;
     const service = {
       name, version: db.version, readOnly: effectiveReadOnly, migrationError, migrationBackup,
+      // Version 2 keeps its existing stores; cursor access is an additive
+      // transaction API, not a new Run/Result database or schema migration.
+      nativeCursorPaging: db.version === 2,
       close,
       transaction(stores, mode, work) {
         invariant(!closed, 'E_VERSION', 'Storage connection closed');
