@@ -1,0 +1,54 @@
+name: Time Review R1.3 - native macOS Chrome Side Panel
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'examples/sidebar-tools/time-review/**'
+      - 'src/time-review/**'
+      - 'src/ui/sidebar-tools.js'
+      - 'tests/framework/time-review-r13-native.test.mjs'
+      - '.github/workflows/time-review-r13-native.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  native-mac-time-review:
+    runs-on: macos-15
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install pinned dependencies
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Real R1.3 model and consent regression
+        run: |
+          node --test tests/environment/time-review-r12.test.mjs tests/environment/time-review-r13.test.mjs tests/environment/time-review-r13-service.test.mjs tests/environment/time-review-r13-consent.test.mjs tests/environment/time-review-host-controls-r51.test.mjs
+      - name: Build exact Production Chrome MV3 package
+        run: |
+          npm run check
+          npm run build
+          node scripts/verify-package.mjs dist/production
+      - uses: browser-actions/setup-chrome@v2
+        id: chrome
+        with:
+          chrome-version: '155.0.8059.39'
+      - name: Real Mac CFT installed tool, native SIDE_PANEL, trusted opt-in, actual download
+        env:
+          CHROME_BIN: \${{ steps.chrome.outputs.chrome-path }}
+          OPENDESK_TIME_NATIVE_EVIDENCE: artifacts/time-review-r13-native
+        run: node --test tests/framework/time-review-r13-native.test.mjs
+      - name: Keep raw Native Chrome evidence including failures
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: time-review-r13-actual-macos-chrome-\${{ github.sha }}
+          retention-days: 14
+          if-no-files-found: warn
+          path:
+            artifacts/time-review-r13-native/
