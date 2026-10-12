@@ -77,7 +77,12 @@ test('cloud status refresh is read-only and full tool/catalog tabs cannot claim 
  assert.match(hosting,/click\('cloud-refresh',async\(\)=>\{\}\)/);
  assert.match(hosting,/if\(!busy&&!disposed\)await dispatchNext\(s\)/);
  assert.match(shell,/let cloudHosting=null;/);
- assert.match(shell,/if\(!tab\?\.id\)\{[\s\S]*?cloudHosting=createCloudHosting\(/);
- const remainder=shell.slice(shell.indexOf('if(!tab?.id){')+10,shell.indexOf('const toolId=requestedToolId'));
- assert.equal((remainder.match(/createCloudHosting\(/g)||[]).length,1);
+ assert.match(shell,/const actualSidePanel=await isActualSidePanelContext\(\{api:chrome,href:hostUrl\.href\}\)/);
+ const start=shell.indexOf('const actualSidePanel='),end=shell.indexOf('const toolId=requestedToolId',start);
+ assert.ok(start>=0&&end>start);
+ const sidePanelOnly=shell.slice(start,end);
+ assert.match(sidePanelOnly,/if\(actualSidePanel\|\|!tab\?\.id\)\{/);
+ assert.match(sidePanelOnly,/cloudHosting=createCloudHosting\(/);
+ assert.match(sidePanelOnly,/tabMemory\.restore\(\)/);
+ assert.equal((sidePanelOnly.match(/createCloudHosting\(/g)||[]).length,1);
 });
