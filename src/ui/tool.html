@@ -48,11 +48,38 @@
     </section>
     <section id="scheduled-panel" class="schedule-panel od-stack" aria-label="定时计划" hidden>
       <header class="schedule-header od-toolbar">
-        <div><strong id="schedule-panel-title">定时计划</strong><p class="hint">安排已验证安装的自动化任务</p></div>
+        <div><strong id="schedule-panel-title">定时计划</strong><p id="schedule-panel-subtitle" class="hint">安排已验证安装的自动化任务</p></div>
         <button id="schedule-stop" type="button" class="od-button od-button--secondary" hidden>停止本次</button>
         <button id="schedule-back" class="od-icon-button" type="button" title="返回我的任务" aria-label="返回我的任务"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5m7-7-7 7 7 7"></path></svg></button>
       </header>
       <p id="schedule-message" role="status" aria-live="polite" class="hint"></p>
+      <section id="schedule-runner-view" class="schedule-runner-view od-stack" aria-label="定时任务运行概览" hidden>
+        <div class="schedule-runner-intro">
+          <div>
+            <p class="schedule-runner-kicker">可见运行宿主 · Chrome 定时计划</p>
+            <h1>运行概览</h1>
+            <p class="hint">本页保持打开时可领取到期任务。Chrome 完全退出、设备休眠或没有任何可见运行宿主时不会在后台执行。</p>
+          </div>
+          <div class="schedule-actions od-toolbar">
+            <button id="schedule-runner-manage" type="button" class="od-button">管理全部计划</button>
+            <button id="schedule-runner-refresh" type="button" class="od-button od-button--secondary">刷新</button>
+          </div>
+        </div>
+        <div class="schedule-runner-metrics" aria-label="运行概况">
+          <div class="schedule-runner-metric od-surface"><span>运行宿主</span><strong id="schedule-runner-host-status" role="status">正在连接…</strong></div>
+          <div class="schedule-runner-metric od-surface"><span>下次执行</span><strong id="schedule-runner-next">暂无计划</strong><small id="schedule-runner-next-detail"></small></div>
+          <div class="schedule-runner-metric od-surface"><span>当前任务</span><strong id="schedule-runner-current">暂无任务运行</strong><small id="schedule-runner-current-detail"></small></div>
+          <div class="schedule-runner-metric od-surface"><span>最近结果</span><strong id="schedule-runner-result">尚无记录</strong><small id="schedule-runner-result-detail"></small></div>
+        </div>
+        <section class="schedule-runner-focus od-surface" aria-labelledby="schedule-runner-focus-title">
+          <div class="schedule-card-head od-toolbar">
+            <div><strong id="schedule-runner-focus-title">下一个计划</strong><p id="schedule-runner-focus-detail" class="hint">暂无已安装计划</p></div>
+            <button id="schedule-runner-toggle" type="button" class="od-button od-button--secondary" disabled>暂停计划</button>
+          </div>
+          <p id="schedule-runner-explain" class="hint">到期时将检查目标网页、固定任务身份和执行槽。</p>
+          <button id="schedule-runner-history" type="button" class="od-button od-button--secondary">查看计划及运行记录</button>
+        </section>
+      </section>
       <div id="schedule-list-view" class="od-stack">
         <div class="schedule-actions od-toolbar">
           <button id="schedule-create" type="button" class="od-button">＋ 新建计划</button>

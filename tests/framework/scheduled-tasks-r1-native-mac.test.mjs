@@ -435,10 +435,15 @@ test('real installed Chrome: verified Task via Alarms -> original RunHost -> pag
   assert.equal(runnerPresentation.scheduleVisible,true,'visible runner must retain its real plan manager');
   assert(runnerPresentation.contentWidth>250&&runnerPresentation.contentWidth<=761,
     'wide runner must use a bounded readable content column');
-  assert.match(runnerPresentation.title,/运行页.*定时计划/);
+  assert.match(runnerPresentation.title,/运行页.*运行概览/);
   assert.match(runnerPresentation.openRunnerLabel,/再开运行页/);
+  assert.equal(await evaluate(client,
+    '!document.querySelector("#schedule-runner-view").hidden && document.querySelector("#schedule-list-view").hidden',runnerSid),
+    true,'dedicated tab must open the operational overview instead of an enlarged Side Panel');
   report.tests.dedicatedRunnerLayout='PASS';
   note('dedicated-runner-layout',runnerPresentation);
+  // User opens the original manager from the dedicated operational dashboard.
+  await click(client,runnerSid,'#schedule-runner-manage');
   let secondRunnerId=null;
   if(LIFECYCLE){
     // A second visible extension document races the SAME durable FireId.

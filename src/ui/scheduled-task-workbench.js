@@ -50,20 +50,25 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
   };
   let disposed=false,shown=false,busy=false,editing=null,managerReturn='list';
   let pendingCreate=false,pendingTask=null,confirmUninstall=null,allPlans=[],catalog=[],installed=[];
-  let selectedFire=null,lastRefresh=0;
+  let selectedFire=null,lastRefresh=0,activeView='list',runnerFocusId=null;
   const message=(value,error=false)=>{
     const el=get('schedule-message');text(el,value);el.dataset.state=error?'error':'ready';
   };
-  const views={list:get('schedule-list-view'),form:get('schedule-form'),manager:get('schedule-task-manager')};
+  const isRunner=()=>doc.documentElement?.dataset?.opendeskSurface==='scheduled-runner';
+  const views={runner:get('schedule-runner-view'),list:get('schedule-list-view'),
+    form:get('schedule-form'),manager:get('schedule-task-manager')};
   const show=view=>{
+    activeView=view;
     for(const [key,node] of Object.entries(views))node.hidden=key!==view;
-    // The separately visible runner is already a Host. Keep a deliberate
-    // second-Host action instead of saying "open a runner" inside one.
-    text(get('schedule-open-runner'),
-      doc.documentElement?.dataset?.opendeskSurface==='scheduled-runner'?'再开运行页 ↗':'打开运行页 ↗');
-    get('schedule-panel-title').textContent=view==='manager'?'任务管理':view==='form'?
-      (editing?'编辑定时计划':'创建定时计划'):
-      doc.documentElement?.dataset?.opendeskSurface==='scheduled-runner'?'OpenDesk 运行页 · 定时计划':'定时计划';
+    // The separately visible runner is already a Host, not a second Side Panel.
+    text(get('schedule-open-runner'),isRunner()?'再开运行页 ↗':'打开运行页 ↗');
+    get('schedule-back').hidden=isRunner()&&view==='runner';
+    get('schedule-back').setAttribute('aria-label',isRunner()?'返回运行概览':'返回我的任务');
+    text(get('schedule-panel-title'),view==='runner'?'OpenDesk 运行页 · 运行概览':
+      view==='manager'?'任务管理':view==='form'?
+      (editing?'编辑定时计划':'创建定时计划'):'定时计划');
+    text(get('schedule-panel-subtitle'),view==='runner'?'已验证任务 · 可见运行页':
+      '安排已验证安装的自动化任务');
   };
   const showPanel=()=>{
     shown=true;get('scheduled-panel').hidden=false;
@@ -86,7 +91,7 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
     if(disposed)return;
     catalog=tasks.catalog||[];installed=tasks.installed||[];
     allPlans=plans.schedules||[];lastRefresh=Date.now();
-    populateChoices();renderPlans();renderManager();
+    populateChoices();renderPlans();renderManager();renderRunner();
     if(shown)message('');
   }
   function eligible(){
@@ -115,11 +120,46 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
       `固定版本 v${row.version} · 授权网站：${manifest?.siteOrigins?.join('，')||'不可用'}`:
       '请选择已安装、已验证且已启用的 Controller 任务');
   }
+  function renderRunner(){
+    const byTime=(a,b)=>(a.nextDueAt??Infinity)-(b.nextDueAt??Infinity);
+    const plans=allPlans.slice().sort(byTime);
+    const upcoming=plans.find(p=>!p.paused&&Number.isFinite(p.nextDueAt));
+    const focus=upcoming||plans.find(p=>!p.paused)||plans[0];
+    runnerFocusId=focus?.scheduleId??null;
+    const active=allPlans.flatMap(plan=>(plan.history||[])
+      .filter(f=>['READY','WAITING_HOST','WAITING_TARGET','WAITING_SLOT','ADMITTED','RUNNING','SETTLING'].includes(f.status))
+      .map(f=>({plan,fire:f}))).sort((a,b)=>b.fire.scheduledAt-a.fire.scheduledAt)[0];
+    const latest=allPlans.flatMap(plan=>(plan.history||[])
+      .filter(f=>terminal.has(f.status)).map(f=>({plan,fire:f})))
+      .sort((a,b)=>b.fire.scheduledAt-a.fire.scheduledAt)[0];
+    text(get('schedule-runner-next'),upcoming?upcoming.title:'暂无待执行计划');
+    text(get('schedule-runner-next-detail'),upcoming?
+      frequencyLabel(upcoming)+' · '+describeTime(upcoming.nextDueAt,upcoming.timezone):'可从计划管理创建或恢复计划');
+    text(get('schedule-runner-current'),selectedFire?'正在执行任务':
+      active?active.plan.title:'暂无任务运行');
+    text(get('schedule-runner-current-detail'),selectedFire?'任务已进入原始 Controller 执行槽':
+      active?scheduleStatus(active.fire.status)+' · '+describeTime(active.fire.scheduledAt,active.plan.timezone):
+      '任务到期后将在此页检查执行条件');
+    text(get('schedule-runner-result'),latest?scheduleStatus(latest.fire.status):'尚无执行结果');
+    text(get('schedule-runner-result-detail'),latest?
+      latest.plan.title+' · '+describeTime(latest.fire.scheduledAt,latest.plan.timezone):'运行历史可在计划管理中查看');
+    text(get('schedule-runner-focus-title'),focus?focus.title:'还没有定时计划');
+    text(get('schedule-runner-focus-detail'),focus?
+      frequencyLabel(focus)+' · '+(focus.paused?'已暂停':describeTime(focus.nextDueAt,focus.timezone)):'创建一个已验证并安装的任务计划');
+    text(get('schedule-runner-explain'),focus?.needsAttention?
+      '任务安装或网站访问权限发生变化，需处理后才能继续。':
+      focus?.paused?'此计划已暂停，不会在到期时触发。':
+      '计划到期后校验目标网页、固定任务身份和执行槽；浏览器关闭期间不执行。');
+    const toggle=get('schedule-runner-toggle');
+    toggle.disabled=!focus||Boolean(focus.needsAttention&&!focus.paused);
+    text(toggle,focus?.paused?'恢复计划':'暂停计划');
+  }
   function renderPlans(){
     const parent=get('schedule-plan-list');parent.replaceChildren();
     if(!allPlans.length){parent.append(element(doc,'p','hint','尚无定时计划。点击「新建计划」安排第一个已验证任务。'));return;}
     for(const plan of allPlans.slice().sort((a,b)=>(a.nextDueAt??Infinity)-(b.nextDueAt??Infinity))){
       const card=element(doc,'article','schedule-card od-surface');
+      card.dataset.scheduleId=plan.scheduleId;
       const head=element(doc,'div','schedule-card-head od-toolbar');
       head.append(element(doc,'strong',null,plan.title),element(doc,'span','schedule-state',
         plan.paused?'已暂停':plan.needsAttention||plan.history?.[0]?.status==='NEEDS_ATTENTION'?'需要处理':'已启用'));
@@ -135,8 +175,13 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
       for(const fire of plan.history||[]){
         const row=element(doc,'div','schedule-history-row',
           `${describeTime(fire.scheduledAt,plan.timezone)} · ${scheduleStatus(fire.status)}`);
-        if(fire.runId)row.append(element(doc,'small',null,
-          `Run ${fire.runId} · Result ${fire.resultId??'未生成'} · 释放：${fire.retirementState||'等待'}`));
+        if(fire.runId){
+          const advanced=element(doc,'details','schedule-run-details');
+          advanced.append(element(doc,'summary',null,'技术详情'));
+          advanced.append(element(doc,'small',null,
+            `RunId：${fire.runId} · ResultId：${fire.resultId??'未生成'} · 资源：${fire.retirementState==='released'?'已释放':'等待释放'}`));
+          row.append(advanced);
+        }
         historyList.append(row);
       }
       history.append(historyList);
@@ -318,7 +363,20 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
   }
   bind('schedule-open','click',()=>void open());
   bind('schedule-stop','click',stop);
-  bind('schedule-back','click',()=>hidePanel());
+  bind('schedule-back','click',()=>isRunner()?show('runner'):hidePanel());
+  bind('schedule-runner-manage','click',()=>show('list'));
+  bind('schedule-runner-refresh','click',()=>void refresh().catch(error=>message(error.message,true)));
+  bind('schedule-runner-toggle','click',()=>{
+    const plan=allPlans.find(p=>p.scheduleId===runnerFocusId);
+    if(plan)void change(plan,plan.paused?'resume':'pause');
+  });
+  bind('schedule-runner-history','click',()=>{
+    show('list');
+    const card=[...get('schedule-plan-list').querySelectorAll('.schedule-card')]
+      .find(node=>node.dataset.scheduleId===runnerFocusId);
+    const details=card?.querySelector('.schedule-history');
+    if(details){details.open=true;details.querySelector('summary')?.focus();card.scrollIntoView?.({block:'nearest'});}
+  });
   bind('schedule-create','click',()=>{reset();show('form');get('schedule-title').focus();});
   bind('schedule-cancel','click',()=>show('list'));
   bind('schedule-form','submit',save);
@@ -358,6 +416,7 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
     selectedFire=runId;
     taskWorkbench.setScheduledRunOwner?.(runId);
     get('schedule-stop').hidden=!runId;
+    renderRunner();
   },onInstalled:onInstalledTask,get shown(){return shown;},dispose(){
     disposed=true;for(const remove of listeners)remove();unsubscribe?.();installedUpdates?.();hidePanel();
   }};

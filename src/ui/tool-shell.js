@@ -86,14 +86,19 @@ const workflowView=createWorkflowView({api:chrome,client:foundationClient,host:s
   openCatalog:()=>taskWorkbench.navigate('catalog')});
 const sidebarTools=createSidebarTools({api:chrome,currentPageTarget,taskWorkbench});
 const installedPageTools=createInstalledPageTools({client:foundationClient,api:chrome,doc:document});
+const scheduleStatus=message=>{
+  for(const id of ['schedule-host-status','schedule-runner-host-status']){
+    const label=document.getElementById(id);
+    if(label)label.textContent=message;
+  }
+};
 scheduleUI=createScheduledTaskWorkbench({client:foundationClient,host:scriptEditor.host,taskWorkbench,
-  api:chrome,document,onOpen:()=>{const label=document.getElementById('schedule-host-status');
-    if(label)label.textContent=scheduleHost?'宿主已连接；到期时将通过现有执行槽运行':'没有活动运行页';}});
+  api:chrome,document,onOpen:()=>scheduleStatus(scheduleHost?
+    '宿主已连接；到期时将通过现有执行槽运行':'没有活动运行页')});
 function startScheduledHost(){
   if(scheduleHost)return;
   scheduleHost=createScheduledTaskHost({client:foundationClient,host:scriptEditor.host,api:chrome,
-    onStatus:message=>{const label=document.getElementById('schedule-host-status');
-      if(label)label.textContent=message;},
+    onStatus:scheduleStatus,
     onChange:()=>{if(scheduleUI?.shown)void scheduleUI.refresh().catch(()=>{});},
     onRun:runId=>scheduleUI?.setRun(runId)});
 }
@@ -152,7 +157,7 @@ Promise.resolve(chrome.tabs.getCurrent?.()).then(async tab => {
     document.documentElement.dataset.opendeskSurface='scheduled-runner';
     taskWorkbench.navigate('tasks');
     startScheduledHost();
-    void scheduleUI.open('list').catch(error=>console.warn('Visible runner page',error));
+    void scheduleUI.open('runner').catch(error=>console.warn('Visible runner page',error));
     return;
   }
   const toolId=requestedToolId(hostUrl.href),previewId=requestedPreviewId(hostUrl.href);

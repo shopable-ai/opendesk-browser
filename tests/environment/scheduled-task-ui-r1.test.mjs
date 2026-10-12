@@ -98,3 +98,29 @@ test('R1.12 real runner focuses the scheduled page and keeps human-readable plan
   assert.match(ui,/再开运行页 ↗/,'runner tab has a distinct second-host action');
   assert.match(host,/host\.start\(/,'layout must not replace the actual Controller runner');
 });
+
+test('R2 standalone running tab shows a focused operational dashboard and retains the single trusted Host',async()=>{
+  const [html,css,ui,shell]=await Promise.all([
+    load('src/ui/tool.html'),load('src/ui/tool-shell.css'),
+    load('src/ui/scheduled-task-workbench.js'),load('src/ui/tool-shell.js')
+  ]);
+  for(const id of ['schedule-runner-view','schedule-runner-host-status','schedule-runner-next',
+    'schedule-runner-current','schedule-runner-result','schedule-runner-toggle',
+    'schedule-runner-manage','schedule-runner-history','schedule-runner-refresh'])
+    assert.match(html,new RegExp('id="'+id+'"'));
+  assert.match(html,/id="schedule-runner-view"[^>]*hidden/);
+  assert.match(shell,/scheduleUI\.open\('runner'\)/);
+  assert.match(shell,/onStatus:scheduleStatus/);
+  assert.match(ui,/const views=\{runner:get\('schedule-runner-view'\)/);
+  assert.match(ui,/renderPlans\(\);renderManager\(\);renderRunner\(\)/);
+  assert.match(ui,/runnerFocusId/);
+  assert.match(css,/schedule-runner-metrics\{display:grid/);
+  assert.match(css,/:root\[data-opendesk-surface="scheduled-runner"\] #workspace-dock\{display:none!important\}/);
+  assert.doesNotMatch(ui,/chrome\.alarms\.create|new Worker\(/);
+});
+test('R2 history keeps technical run identity behind expandable detail',async()=>{
+  const ui=await load('src/ui/scheduled-task-workbench.js');
+  assert.match(ui,/element\(doc,'details','schedule-run-details'\)/);
+  assert.match(ui,/RunId：/);
+  assert.match(ui,/scheduleStatus\(fire.status\)/);
+});
