@@ -37,6 +37,9 @@ if command == "key" || command == "text" {
     case "down":key(125)
     case "up":key(126)
     case "end":key(119)
+    case "zoom-in":key(24,[.maskCommand,.maskShift])
+    case "zoom-out":key(27,.maskCommand)
+    case "zoom-reset":key(29,.maskCommand)
     default:exit(5)
     }
   } else {

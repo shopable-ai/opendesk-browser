@@ -141,3 +141,9 @@
 
 - [Actions 38224127005](https://github.com/shopable-ai/opendesk-browser/actions/runs/38224127005)，候选 `80005b5e7bad2ae07f717e8620fd72f774bd8596`：54/54 组件、实际 Side Panel 重启后真实恢复、分类、非空 JSON/CSV、完整 Chrome 重启、受信任停用/重新启用及撤权 epoch 轮换均已独立观察到 PASS，但整条 Mac 测试仍 FAIL：卸载观察器中 `until(async()=>evaluate(...))` 仅凭任意 truthy 对象就返回，在安装列表尚未删除时立即断言 `timeInstalled===false`。
 - 仅修改原生验收驱动：轮询直到**工具确实不存在于安装列表、Time Review 的本机记录确实删除、卸载恢复标记确实清除**三条件同时为真；失败时保存当前只读状态，不改变实际卸载服务或放宽合同。另检查其他工具仍安装且异步事件不会复活已清理记录。新候选 SHA 对应 Mac 原生测试通过前不可关闭卸载验收。
+
+## R1.3 Final · 真正 Chrome 200% 缩放原生验收候选（2026-10-12）
+
+- 在隔离 macOS Chrome for Testing 155 的真实 SIDE_PANEL 中，保留已有工具 Canvas V3 与原生权限、计时闭环；新增通过仓库已有 CFT PID + macOS Accessibility 可信输入辅助程序发送 **Command + Plus**，逐次读取 Chrome **实际** `devicePixelRatio` 倍率和 iframe `innerWidth`，只有约 2 倍 zoom 的真实浏览器结果才允许记 `realBrowserZoom=PASS`。不使用 CDP `Emulation.setDeviceMetricsOverride` 或把 DPR=2 夹具当作 Chrome 200% 缩放。
+- 达到真实 200% 后，检查单行 Canvas 宽度不超屏、无 iframe 内水平溢出和额外内层纵向滚动，保存真正 SIDE_PANEL 截图，并通过 macOS Command+0 恢复原比例，保护同一原生验收里的权限操作。如果 CI 无法将真正 SIDE_PANEL 放大，则保留 `BLOCKED` 和原始比例数据，绝不假报 PASS；如果已确认 200% 但布局出错则验收 FAIL，需修产品 UI。
+- `tests/framework/time-review-native-input.swift` 新增真正 Chrome 系统快捷键 zoom-in/zoom-out/zoom-reset，仍限已验证的专属 CFT PID 和前台拥有者，不能操作用户正在运行的个人浏览器。

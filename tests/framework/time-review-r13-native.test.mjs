@@ -238,6 +238,60 @@ test('Time Review R1.3 actual Mac Chrome install and trusted consent smoke',{ski
   const outerGeometry=await evaluate(browser,side,
     '(()=>{const frame=document.querySelector(".sidebar-tool-iframe"),rect=frame?.getBoundingClientRect();return {viewportHeight:innerHeight,iframeHeight:rect?.height,iframeMaxHeight:frame?getComputedStyle(frame).maxHeight:null,hostScrollHeight:document.documentElement.scrollHeight}})()');
   note('native-canvas',{...visual,frameGeometry,outerGeometry});
+  // Actual Chrome page zoom: macOS native Command+Plus/Command+0 input on the
+  // owned, headed SIDE_PANEL. DPR emulation cannot satisfy this contract.
+  const zoomMetrics=()=>evaluate(browser,frame,
+    '(()=>({cssWidth:innerWidth,cssScrollWidth:document.documentElement.scrollWidth,cssHeight:innerHeight,contentHeight:document.documentElement.scrollHeight,dpr:devicePixelRatio,canvasWidth:document.querySelector("#minute-canvas")?.getBoundingClientRect().width||0}))()');
+  const originalZoom=await zoomMetrics();
+  const zoomInput=path.join(profile,'time-review-native-activity');
+  const nativeCompiler=spawnSync('swiftc',[
+    path.resolve('tests/framework/time-review-native-input.swift'),'-o',zoomInput
+  ],{encoding:'utf8',timeout:80000});
+  let browserZoom='BLOCKED',zoomObserved=originalZoom,zoomSteps=0,zoomFailure='';
+  if(nativeCompiler.status===0){
+    await nativeClick(browser,frame,'#minute-canvas');
+    for(let i=0;i<8;i++){
+      const pressed=spawnSync(zoomInput,[String(proc.pid),'key',i>=6?'zoom-out':'zoom-in'],
+        {encoding:'utf8',timeout:10000});
+      if(pressed.status!==0){
+        zoomFailure='real macOS zoom shortcut not accepted, status '+pressed.status;
+        break;
+      }
+      zoomSteps++;
+      await sleep(160);
+      zoomObserved=await zoomMetrics();
+      const ratio=zoomObserved.dpr/originalZoom.dpr;
+      if(ratio>=1.93&&ratio<=2.08){browserZoom='PASS';break;}
+      if(ratio>2.08){
+        zoomFailure='overshot actual Chrome 200% ratio ('+ratio.toFixed(3)+')';
+        break;
+      }
+    }
+    if(browserZoom==='PASS'){
+      const measurable=await until(async()=>{
+        const m=await zoomMetrics();
+        return m.cssScrollWidth<=m.cssWidth+1&&
+          m.contentHeight<=m.cssHeight+3?m:null;
+      },'actual 200 percent zoom has no nested iframe scrolling or horizontal overflow',6000);
+      zoomObserved=measurable;
+      assert.ok(zoomObserved.canvasWidth>0&&zoomObserved.canvasWidth<=zoomObserved.cssWidth,
+        'actual zoom must keep the one-track Canvas inside the Side Panel width');
+      evidence.screenshots.push(await screenshot(browser,side,'real-chrome-200-percent-zoom'));
+    }else if(!zoomFailure)zoomFailure='macOS zoom shortcut did not produce verified double CSS zoom';
+    // Reset the real browser zoom before permission/collection acceptance.
+    const reset=spawnSync(zoomInput,[String(proc.pid),'key','zoom-reset'],{
+      encoding:'utf8',timeout:10000
+    });
+    if(reset.status!==0)throw Error('Unable to reset native Chrome zoom after test');
+    await until(async()=>{
+      const m=await zoomMetrics();
+      return Math.abs(m.dpr/originalZoom.dpr-1)<0.08?m:null;
+    },'owned Chrome returned to original zoom',6000);
+  }else zoomFailure='owned macOS Swift accessibility helper unavailable';
+  evidence.realBrowserZoom=browserZoom;
+  note('real-chrome-zoom',{verdict:browserZoom,source:'macOS CGEvent Command+Plus',steps:zoomSteps,
+    baseline:originalZoom,observed:zoomObserved,reason:zoomFailure||null,
+    browser200PercentVerified:browserZoom==='PASS'});
   const readTime=()=>evaluate(browser,side,'chrome.storage.local.get('+JSON.stringify(KEY)+').then(v=>v['+JSON.stringify(KEY)+'])');
   let state=await readTime();assert.ok(state&&state.paused,'install/open must not begin recording');
   assert.equal(state.minuteConsent,false,'minute data opt-in must default false');
@@ -371,9 +425,10 @@ test('Time Review R1.3 actual Mac Chrome install and trusted consent smoke',{ski
       // it checks the actual process and emits a real macOS CGEvent, without
       // injecting Chrome idle responses, permissions, or Time Review storage.
       const helper=path.join(profile,'time-review-native-activity');
-      const compile=spawnSync('swiftc',[
-        path.resolve('tests/framework/time-review-native-input.swift'),'-o',helper
-      ],{encoding:'utf8',timeout:80000});
+      const compile=await stat(helper).catch(()=>null)
+        ?{status:0}:{...spawnSync('swiftc',[
+          path.resolve('tests/framework/time-review-native-input.swift'),'-o',helper
+        ],{encoding:'utf8',timeout:80000})};
       let delivered=false,reason='';
       if(compile.status===0){
         const input=spawnSync(helper,[String(proc.pid),'activity'],{encoding:'utf8',timeout:10000});
@@ -694,6 +749,7 @@ test('Time Review R1.3 actual Mac Chrome install and trusted consent smoke',{ski
     minuteConsent:state.minuteConsent,paused:state.paused,days:Object.keys(state.days||{}).length,
     nativeInstall:true,downloadChecks,browserRestart:evidence.browserRestart,
     populatedExport:evidence.populatedExport,classification:evidence.classification,
+    realBrowserZoom:evidence.realBrowserZoom,
     disableEnable:evidence.disableEnable,uninstall:evidence.uninstall,
     currentSourceHash:process.env.GITHUB_SHA||null,actualSidePanelDocumentId:sideDocument.documentId
   },null,2)+'\n');
