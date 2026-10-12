@@ -43,5 +43,5 @@ test('Tools list avoids long technical empty text and stale toggling notices',as
   assert.match(close,/suspendTool\(\);notice\(''\)/);
   assert.match(shell,/#installed-page-tools-list>section\{[^}]*padding:var\(--space-3\)/);
   assert.match(doc,/R26 Side Panel 和隔离工具/);
-  assert.match(doc,/沙箱边界/);
+  assert.match(doc,/工具隔离边界/);
 });
