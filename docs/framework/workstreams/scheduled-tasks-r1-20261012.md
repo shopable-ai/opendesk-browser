@@ -87,3 +87,50 @@ GitHub Actions [Scheduled Tasks R1](https://github.com/shopable-ai/opendesk-brow
 - `scheduled-components`：**FAIL（定位为新增静态断言拼写）**。计划时间、FireId、Host 缺席、授权投影、Result 退休专项 **9/9 PASS**；新增 Side Panel 结构/URL 静态断言 **4/5 PASS**，唯一失败的测试将真实 CSS `#scheduled-panel [hidden]` 错写为 `schedule-panel [hidden]`。这不是产品源码 selector 不存在，而是测试中少写一个字母。
 - 先前 K3 `Unbounded Cloud KV scan` 的源码修复在本候选已存在，但该 job 因静态测试提前失败，K3 回归命令未执行。因此 K3 **NOT_TESTED on eb4b candidate**，不得直接填 PASS。
 - 下一次提交只改正静态测试选择器，并重跑原工作流；Mac Chrome 真实验收仍为 **NOT_TESTED**。
+
+
+### R1.2 正式组件与包验证已完成（2026-10-12）
+
+**正式候选提交：** [`6ae0e6eea92eb6cc28dff5e1b9d9202cfba1b920`](https://github.com/shopable-ai/opendesk-browser/commit/6ae0e6eea92eb6cc28dff5e1b9d9202cfba1b920)。
+
+**最终同候选 GitHub Actions：** [Scheduled Tasks R1 · run #38243526235](https://github.com/shopable-ai/opendesk-browser/actions/runs/38243526235)，`completed / success`，`scheduled-components` 与 `scheduled-package` 两个 job **均 PASS**。
+
+| 定向组件 | 真实 Node CI 回执 |
+| --- | ---: |
+| 定时计划、时间、持久 Fire、状态与结算 | 9/9 |
+| Side Panel/双图标、无弹窗、可信可见 Host 的静态源码合同 | 5/5 |
+| 原 Task 固定包、真实安装身份与授权组件 | 8/8 |
+| 原 Task Workbench 兼容组件 | 41/41 |
+| 原网页工具入口与 Host URL 组件 | 5/5 |
+| 原 Sidebar 产品合同 | 8/8 |
+| 原 Controller Authority / Cloud K3 回归 | 105/105 |
+| **合计** | **181/181 PASS** |
+
+构建与包验证（同一 SHA）：
+
+- `npm ci`、`npm run check`：PASS；后者检查 545 个源码/测试/构建文件、固定入口、CSP 与许可证。
+- `npm run build`：PASS，WXT production 输出 89 资产，包指纹 `c8355736c9b8e4894ef9ddadbf0cec77b5269a3bcec55d6f5312b62d230f09d1`。
+- `npm run build:dev`：PASS，WXT development 输出 123 资产，包指纹 `c3ed59a4fc7b0b93866a42900ba636c88b2d1445a565bab112039ba4f50687ed`。
+- `npm run verify`：PASS，对 production 与 development 分别执行固定入口、CSP、SDK/内置资产与哈希校验。
+- 生产 `ui/tool-shell.js` 460,324 字节，低于 524,288 字节硬限，但超过 327,680 字节软提醒；开发包为 460,564 字节，仍在硬限内。生产 `sw.js` 346,654 字节，低于 SW 的 1 MiB 硬限。
+
+**先前失败保留为历史而非抹除：** `38242914514` 的一条 UI 静态选择器断言笔误已由 `6ae0e6ee` 修复；此前独立 K3 回归的无界 Task KV 查询已由 `d18b57f7` 修复。本次同候选的 UI **5/5** 与 K3 **105/105** 均真实复验通过。
+
+**Native Chrome 仍是 BLOCKED / NOT_TESTED：** 以上回执只能证明 Node 组件与安装包的可构建、可校验，不能证明定时 Alarm 在真实 Chrome 中已使获准任务实际操作网页、产生原始 Run/Result/页面效果并完成 `retirementState=released`。Mac Side Panel 关闭后保留可见运行页、完全无 Host、双 Host、Chrome 重启、撤权/版本更新、320/360/420px 和真实 200% 缩放，仍需要本机独占 Chrome Profile 的原生 E2E。十项独立专家评分不得以 181/181 或构建 PASS 直接换算成 95+，未经 Native 的维度继续为 `NOT_TESTED`。
+
+#### 本地 Mac Codex 后续精准验收
+
+在获得本地唯一写入者/Chrome Profile/43111 端口使用权、确认无并行冲突后，于 `main` 核对 HEAD 与最新 `origin/main`，不要覆盖其他 Agent 的未提交改动。仅在安全情况下 `git pull --ff-only origin main`，然后运行：
+
+```bash
+node --test tests/environment/scheduled-tasks-r1.test.mjs tests/environment/scheduled-task-ui-r1.test.mjs
+node --test tests/environment/task-package-flow.test.mjs tests/environment/task-workbench.test.mjs
+node --test tests/framework/k3-controller-authority.test.mjs
+npm run check
+npm run build
+npm run build:dev
+npm run verify
+python3 -m http.server 43111 --bind 127.0.0.1 --directory examples/tasks
+```
+
+用与最终候选 SHA 绑定的 `dist/production` 或 `dist/development` 在受控 Mac Chrome 加载 OpenDesk；打开 `http://127.0.0.1:43111/demo-form.html`。验证真实 Controller Task 的**原生网页成功回执→固定版本安装/授权→保存短期一次计划→Chrome Alarm→可见 Host 领取→真实 DOM 动作→原 RunId/ResultId→retirement released**，再测试上述 Host 生命周期、重复 Alarm/双 Host、停止、撤权、未知效果与 UI 宽度。原始证据应保留候选 SHA、包 hash、Profile 身份、目标 Tab/Document、截图/视频、Run/Result、Alarm/FireId、Worker 释放和原生日志；只读 Mock/组件/截图不能替代完整 Native 成功。
