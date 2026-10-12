@@ -163,7 +163,13 @@ test('R20/R23 five-tab design system has one token source and a strict trusted a
   assert.match(prepare,/'src\/ui\/design-tokens\.css':'ui\/design-tokens\.css'/);
   assert.match(prepare,/'src\/ui\/design-system\.css':'ui\/design-system\.css'/);
   assert.match(verify,/'ui\/tool\.html': \['design-tokens\.css', 'design-system\.css', 'tool-shell\.css', 'tool-shell\.js'\]/);
-  assert.match(verify,/for\(const cssPath of \['ui\/design-tokens\.css','ui\/design-system\.css','ui\/tool-shell\.css','native-agent\/settings\.css','native-agent\/workspace\.css'\]\)/);
+  // Resource auditors may add newly trusted CSS (for example Cloud Console)
+  // without weakening the original token, shell and workspace audit closure.
+  const auditedCSS=[...verify.matchAll(/for\(const cssPath of \[([^\]]+)\]\)/g)]
+    .flatMap(([,list])=>[...list.matchAll(/'([^']+\.css)'/g)].map(([,path])=>path));
+  for(const path of ['ui/design-tokens.css','ui/design-system.css','ui/tool-shell.css',
+    'ui/cloud-control-console.css','native-agent/settings.css','native-agent/workspace.css'])
+    assert(auditedCSS.includes(path),'CSS build verification audits '+path);
   assert.match(verify,/if\(cssPath==='native-agent\/workspace\.css'\)inspectWorkspaceStyle\(css\)/,'Workspace CSS extends the original closed asset audit');
   assert.match(visual,/document\.styleSheets\.length===3/);
 });

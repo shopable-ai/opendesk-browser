@@ -57,7 +57,10 @@ test('console is a fixed registered page and never constructs an executable Host
   assert.match(broker,/await requireCloudConsoleSender\(api,sender\)/);
   assert.match(broker,/await requireCloudSidePanelSender\(api,sender\)/);
   assert.match(broker,/return authority\.cloud\.cloudObserve\(message\.payload \?\? \{\}\)/);
-  assert.doesNotMatch(js,/createHostClient|registerHost|cloudNext|cloudResolve|cloudPair|host\.start/);
+  // The console intentionally documents its forbidden Host APIs in comments.
+  // Inspect executable source text, not the prohibitions stated in comments.
+  const executable=js.replace(/^[ \t]*\/\/[^\n]*(?:\n|$)/gm,'');
+  assert.doesNotMatch(executable,/createHostClient|registerHost|cloudNext|cloudResolve|cloudPair|host\.start/);
   assert.match(side,/api\.tabs\.create\(\{url:api\.runtime\.getURL\('ui\/cloud-control\.html'\)\}\)/);
 });
 test('console reads only cloudObserve and displays bounded redacted rows via textContent',async()=>{

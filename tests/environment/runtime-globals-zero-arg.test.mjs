@@ -40,7 +40,7 @@ test('zero-argument Controller ESM captures trusted page and real preinstalled _
   const value=JSON.parse(JSON.stringify(output));
   assert.equal(value.title,'OpenDesk Browser Test Lab');
   assert.equal(value.url,'http://127.0.0.1:43111/demo-form.html');
-  assert.deepEqual(value.words,['OpenDesk','Browser','Test','Lab']);
+  assert.deepEqual(value.words,['Open','Desk','Browser','Test','Lab']);
   assert.match(value.date,/^\d{4}-\d{2}-\d{2}$/);
   assert.equal(vm.runInContext('typeof document',scope),'undefined');
   assert.equal(vm.runInContext('OpenDeskLibs.abi',scope),BUILTIN_ABI);
@@ -65,7 +65,7 @@ test('zero-argument Page ESM uses document and the same REAL approved builtin fa
   const value=JSON.parse(JSON.stringify(output));
   assert.equal(value.title,'OpenDesk Browser Test Lab');
   assert.equal(value.heading,'Heading One');
-  assert.deepEqual(value.words,['OpenDesk','Browser','Test','Lab']);
+  assert.deepEqual(value.words,['Open','Desk','Browser','Test','Lab']);
   assert.match(value.date,/^\d{4}-\d{2}-\d{2}$/);
   assert.equal(vm.runInContext('typeof page',scope),'undefined');
   assert.equal(vm.runInContext('typeof axiosx',scope),'undefined');

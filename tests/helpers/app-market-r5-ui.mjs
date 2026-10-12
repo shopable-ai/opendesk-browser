@@ -14,14 +14,40 @@ export function marketUIAudit(d){
       matches:el.matches(${JSON.stringify(selector)}),id:el.id,
       label:el.getAttribute('aria-label')||el.textContent.trim().slice(0,120),
       focusVisible:el.matches(':focus-visible'),disabled:Boolean(el.disabled),
-      visible:r.width>0&&r.height>0&&r.left>=0&&r.right<=innerWidth&&r.top>=0&&r.bottom<=innerHeight};})()`);
+      visible:r.width>0&&r.height>0&&r.left>=0&&r.right<=innerWidth&&r.top>=0&&r.bottom<=innerHeight,
+      rect:{left:r.left,top:r.top,right:r.right,bottom:r.bottom,width:r.width,height:r.height},
+      viewport:{width:innerWidth,height:innerHeight},scroll:{x:scrollX,y:scrollY,behavior:getComputedStyle(document.documentElement).scrollBehavior}};})()`);
   }
   async function reach(target,selector,label){
     await activate(target);
     for(let step=0;step<40;step++){
       await key(target,'Tab','Tab',9);const state=await focused(target,selector);
       record.keyboard.push({label,action:'Tab',step,...state});
-      if(state.matches){assert(state.visible&&state.focusVisible&&!state.disabled,label+' visible keyboard focus');return state;}
+      if(state.matches){
+        // A native Tab may trigger document smooth-scrolling. Read until the
+        // browser finishes exposing the focused control; never call focus(),
+        // scrollIntoView(), or dispatch a second gesture to manufacture PASS.
+        assert(state.focusVisible&&!state.disabled,label+' native keyboard focus is valid');
+        let settled=state;
+        if(!settled.visible){
+          try{
+            settled=await until(async()=>{
+              const actual=await focused(target,selector);
+              if(!actual.matches||!actual.focusVisible||actual.disabled)return false;
+              return actual.visible?actual:false;
+            },label+' actual native focus scroll becomes visible');
+          }catch(error){
+            const last=await focused(target,selector).catch(e=>({error:e.message}));
+            record.keyboard.push({label,action:'native-focus-clipped',initial:state,last});
+            await screenshot(target,label+'-native-focus-clipped.png').catch(()=>{});
+            throw error;
+          }
+        }
+        assert(settled.matches&&settled.visible&&settled.focusVisible&&!settled.disabled,
+          label+' visible keyboard focus after native scrolling');
+        record.keyboard.push({label,action:'native-focus-settled',...settled});
+        return settled;
+      }
     }
     assert.fail(label+': intended control unreachable through native Tab');
   }
