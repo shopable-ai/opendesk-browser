@@ -90,3 +90,9 @@
 - P2 本轮直接调整现有 Time Review 沙箱 `index.html/main.js/style.css` 的四象限名称为模型的规范六分类（不变更编码），去除重复的视觉副标题，改善紧凑排版、键盘焦点保持、点击分类筛选可切换返回、避免自动刷新抹去用户的编辑控件；保留 Canvas V3 **单条 24 小时时间线**。
 - 宿主 `src/ui/sidebar-tools.js` 的 iframe 尺寸上限对 `time-review` 专门设为 4000px 并覆盖 CSS 全局 1600px cap，其他工具继续维持 1600px；防止长表单及高缩放下 iframe 内滚动+宿主滚动叠加。边界仍检查受信任 frame instance、null origin、同 tool ID 与 80-4000px 合法报文。
 - 新候选需通过 R1.3 Chromium 合成状态四宽度和真实 Mac Chrome Side Panel；原生真正 Chrome 200% Zoom 和浏览器重启仍独立 NOT_TESTED。用户个人 Mac 工作区未访问，未覆盖任何本地修改。
+
+## R1.3 Final · P1 源码隐私保护与实测扩展（2026-10-12）
+
+- `src/time-review/model.js`：载入时如果 `minuteConsent=false` 但历史 / 异常写入留有分钟明细，只保留合法日汇总，绝不向 Side Panel / JSON 导出暴露陈旧明细；下一次经验证的写入清除残留。`readReview` 不会直接修改外部传入对象。
+- `tests/framework/time-review-r13-native.test.mjs`：在 P0 原生下载之后，以用户真实信任操作尝试可选 idle 授权；获准才继续真实 localhost HTTP 标签打开、有效计时、暂停、SW 真实终止/恢复与恢复记录，不向 Chrome Storage 填充模拟计时。如果 Chrome 未授权则记录 `BLOCKED`，而非编造授权 / 活动 PASS。
+- `time-review-r13-native.yml`：增加使用真实 Time Review 源码、仅请求数据由 Fixture 提供的 320/360/400/600、鼠标键盘触屏与 DPR2 视觉回归；**不把 DPR=2 等同 Chrome 真正 200% 缩放**。完整 Chrome 重启、空闲阈值、跨网站导航仍待独立验证。

@@ -6,6 +6,8 @@ on:
     paths:
       - 'tests/framework/time-review-r13-native.test.mjs'
       - 'src/time-review/**'
+      - 'src/ui/sidebar-tools.js'
+      - 'tests/framework/time-review-r13-visual.mjs'
       - 'examples/sidebar-tools/time-review/**'
       - 'tests/environment/time-review-*.test.mjs'
       - '.github/workflows/time-review-r13-native.yml'
@@ -46,6 +48,10 @@ jobs:
         id: chrome
         with:
           chrome-version: '155.0.8059.39'
+      - name: Real Chromium source-UI visual widths, pointer, keyboard, touch, DPR
+        env:
+          CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
+        run: node tests/framework/time-review-r13-visual.mjs artifacts/time-review-r13-native/visual
       - name: Real Mac CFT installed tool, native SIDE_PANEL, trusted opt-in, actual download
         env:
           OPENDESK_TIME_REVIEW_NATIVE: '1'

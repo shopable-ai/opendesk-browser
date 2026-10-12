@@ -61,6 +61,10 @@ export function readReview(raw){
   result.categories??={};
   result.minuteConsent??=false;
   result.minuteDays??={};
+  // The absence of consent is the final authority. Do not surface stale
+  // minute entries that may survive an interrupted/legacy opt-out write.
+  // The next verified persistence operation will erase these rows at rest.
+  if(!result.minuteConsent)result.minuteDays={};
   if(!Object.hasOwn(result,'authorizedEpoch')){result.authorizedHash=null;result.authorizedEpoch=null;result.paused=true;result.checkpoint=null;}
   if(!(result.authorizedEpoch===null||typeof result.authorizedEpoch==='string')||result.highWater!==undefined&&(!Number.isSafeInteger(result.highWater)||result.highWater<0))fail('时间授权或时钟记录无效');
   result.highWater??=0;

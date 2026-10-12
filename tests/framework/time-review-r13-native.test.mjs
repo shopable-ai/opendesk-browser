@@ -4,6 +4,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {spawn,spawnSync} from 'node:child_process';
+import {createServer} from 'node:http';
 import {mkdtemp,mkdir,readFile,writeFile,rm,stat} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import path from 'node:path';
@@ -98,7 +99,8 @@ test('Time Review R1.3 actual Mac Chrome install and trusted consent smoke',{ski
     package:{id:pkg.id,version:pkg.version,sha256:createHash('sha256').update(pkgBytes).digest('hex')},
     chromePid:proc.pid,profileOwned:true,install:'NOT_TESTED',realSidePanel:'NOT_TESTED',
     minuteConsent:'NOT_TESTED',browserRestart:'NOT_TESTED',download:'NOT_TESTED',
-    beginAndActiveCollection:'NOT_TESTED',hostedCI:true,screenshots:[],steps:[]};
+    beginAndActiveCollection:'NOT_TESTED',pauseResume:'NOT_TESTED',
+    swRestart:'NOT_TESTED',hostedCI:true,screenshots:[],steps:[]};
   const note=(name,data)=>{evidence.steps.push({name,...data});console.log('TIME_NATIVE '+name+' '+JSON.stringify(data));};
   proc.stderr.on('data',data=>{stderr=(stderr+String(data)).slice(-3500);});
   t.after(async()=>{
@@ -320,6 +322,66 @@ test('Time Review R1.3 actual Mac Chrome install and trusted consent smoke',{ski
   evidence.download=issues.length?'FAIL':'PASS';
   if(issues.length)assert.deepEqual(issues,[],'Actual JSON/CSV export failures');
   state=await readTime();assert.equal(state.paused,true,'no idle prompt or start should be bypassed');
+  // Native activity is driven by real Chrome permission UI and active tabs.
+  // Never pre-seed business storage or replace the idle API in this test.
+  await nativeClick(browser,side,'#sidebar-tool-settings-open');
+  await nativeClick(browser,side,'#time-review-grant-idle');
+  const granted=await until(()=>evaluate(browser,side,
+    'chrome.permissions.contains({permissions:["idle"]})'),'genuine idle permission',5000).catch(()=>false);
+  if(!granted){
+    evidence.beginAndActiveCollection='BLOCKED';
+    note('activity-native-blocked',{reason:'Native browser optional idle grant was not approved'});
+  }else{
+    const siteServer=createServer((_req,res)=>{
+      res.writeHead(200,{'content-type':'text/html; charset=utf-8','cache-control':'no-store'});
+      res.end('<!doctype html><html lang="zh-CN"><title>Time Review native</title><body><h1>Real HTTP activity</h1></body></html>');
+    });
+    await new Promise((resolve,reject)=>{
+      siteServer.once('error',reject);siteServer.listen(0,'127.0.0.1',resolve);
+    });
+    t.after(()=>new Promise(resolve=>siteServer.close(resolve)));
+    const siteUrl='http://127.0.0.1:'+siteServer.address().port+'/activity';
+    await nativeClick(browser,side,'#time-review-trusted-start');
+    await until(async()=>{const s=await readTime();return s&&!s.paused&&s.authorizedHash?s:null;},'trusted start',10000);
+    const site=await browser.send('Target.createTarget',{url:siteUrl});
+    await until(async()=>{
+      const active=await evaluate(browser,side,'chrome.tabs.query({active:true,lastFocusedWindow:true})');
+      return active.some(tab=>tab.url===siteUrl);
+    },'real HTTP(S) Chrome active tab',10000);
+    await until(async()=>{const s=await readTime();return s.checkpoint?.host==='127.0.0.1'?s:null;},
+      'website checkpoint from live Chrome tab',10000);
+    await sleep(1600);
+    await nativeClick(browser,side,'#sidebar-tool-settings-open');
+    await nativeClick(browser,frame,'#refresh');
+    const settled=await until(async()=>{
+      const s=await readTime();
+      return Object.values(s.days||{}).some(sites=>(sites['127.0.0.1']||0)>=750)?s:null;
+    },'real observed time persisted for local HTTP website',10000);
+    const total=s=>Object.values(s.days||{}).reduce((sum,sites)=>sum+(sites['127.0.0.1']||0),0);
+    evidence.beginAndActiveCollection='PASS';
+    note('real-http-activity',{host:'127.0.0.1',ms:total(settled),from:'real active browser tab'});
+    await nativeClick(browser,frame,'#pause');
+    const paused=await until(async()=>{const s=await readTime();return s.paused?s:null;},'user pause',8000);
+    await sleep(1500);await nativeClick(browser,frame,'#refresh');
+    assert.equal(total(await readTime()),total(paused),'paused time never accumulates');
+    evidence.pauseResume='PARTIAL';
+    note('real-pause',{ms:total(paused)});
+    await browser.send('ServiceWorker.enable');
+    await browser.send('ServiceWorker.stopAllWorkers');
+    await nativeClick(browser,frame,'#refresh');
+    const recovered=await until(async()=>{const s=await readTime();return s?.paused?s:null;},
+      'SW wake after real stop',12000);
+    assert.equal(total(recovered),total(paused),'worker restarts preserve durable totals');
+    evidence.swRestart='PASS';note('real-service-worker-restart',{ms:total(recovered)});
+    await nativeClick(browser,side,'#sidebar-tool-settings-open');
+    await nativeClick(browser,side,'#time-review-trusted-start');
+    const resumed=await until(async()=>{const s=await readTime();return s&&!s.paused?s:null;},'trusted resume',10000);
+    evidence.pauseResume='PASS';note('real-resume',{paused:resumed.paused});
+    await nativeClick(browser,side,'#sidebar-tool-settings-open');
+    await nativeClick(browser,frame,'#pause');
+    await until(async()=>{const s=await readTime();return s.paused?s:null;},'final trusted stop');
+    await browser.send('Target.closeTarget',{targetId:site.targetId});
+  }
   complete=true;
   await writeFile(path.join(OUT,'state-summary.json'),JSON.stringify({
     minuteConsent:state.minuteConsent,paused:state.paused,days:Object.keys(state.days||{}).length,

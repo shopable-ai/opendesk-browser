@@ -22,6 +22,20 @@ test('R1.3 migration preserves legacy v1 days and defaults to no minute consent'
   assert.equal(reviewDay(restored,'2026-10-11').timelineStatus,'unavailable');
 });
 
+test('R1.3 a revoked minute-consent snapshot cannot leak orphan minute detail',()=>{
+  const at=t(),raw=emptyReview(),day=localDay(at);
+  raw.days[day]={'example.com':12000};
+  raw.minuteConsent=false;
+  raw.minuteDays[day]={offset:new Date(at).getTimezoneOffset(),
+    ambiguous:false,truncated:false,entries:[[545,'example.com',12000]]};
+  const s=readReview(raw);
+  assert.deepEqual(s.minuteDays,{});
+  assert.equal(reviewDay(s,day).totalMs,12000);
+  assert.equal(reviewDay(s,day).timelineStatus,'unavailable');
+  assert.deepEqual(JSON.parse(reviewExport(s,'json').text).minuteDays,{});
+  assert.equal(raw.minuteDays[day].entries.length,1,'readReview cannot mutate stored source outside verified write');
+});
+
 test('R1.3 does not record future minute slots unless separately opted in',()=>{
   const at=t(),state=emptyReview();state.checkpoint=checkpoint(at);
   const next=settleReview(state,at+10000,{session:'session'});
