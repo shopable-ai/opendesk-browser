@@ -261,3 +261,88 @@ test('R2 schedule history pages 135 persisted fires without losing original iden
   assert.notEqual(last.history[0].fireId,rows[0].history[0].fireId);
   await assert.rejects(f.repo.history({scheduleId:plan.scheduleId,offset:-1,limit:20}));
 });
+
+test('R2 UNKNOWN side effect retains same FireId and never requeues',async()=>{
+  const f=await fixture(),plan=await f.repo.save(f.input);
+  f.setTime(plan.nextDueAt+1000);
+  await f.repo.reconcile();
+  const due=(await f.repo.ready())[0];
+  await f.repo.recordWait(due.fireId,'UNKNOWN');
+  await f.repo.reconcile();
+  assert.equal((await f.repo.ready()).length,0);
+  assert.equal((await f.repo.list())[0].history[0].fireId,due.fireId);
+  assert.equal((await f.repo.recordWait(due.fireId,'WAITING_TARGET')).status,'UNKNOWN');
+  await f.repo.changeState({scheduleId:plan.scheduleId,expectedGeneration:plan.generation,action:'pause'});
+  assert.equal((await f.repo.list())[0].history[0].status,'UNKNOWN');
+});
+test('R2 task disable/update/uninstall/authorization rotation never silently rebind a schedule',async()=>{
+  const edits=[
+    row=>({...row,enabled:false}),
+    row=>({...row,version:'1.0.1'}),
+    row=>({...row,manifestHash:'f'.repeat(64)}),
+    row=>({...row,authorization:{...row.authorization,generation:2}}),
+    row=>({...row,authorization:{...row.authorization,
+      installationId:'ffffffff-ffff-4fff-8fff-ffffffffffff'}}),
+    ()=>null
+  ];
+  for(const edit of edits){
+    const f=await fixture(),plan=await f.repo.save(f.input);
+    const key=installedKey(f.namespace,plan.taskId);
+    await f.db.transaction(['frameworkKV'],'readwrite',async tx=>{
+      const row=edit(await tx.get('frameworkKV',key));
+      if(row)await tx.put('frameworkKV',row,key);
+      else await tx.delete('frameworkKV',key);
+    });
+    const current=(await f.repo.list())[0];
+    assert.equal(current.needsAttention,true);
+    assert.equal(current.version,plan.version);
+    assert.equal(current.taskGeneration,plan.taskGeneration);
+    assert.equal(current.manifestHash,plan.manifestHash);
+    await assert.rejects(f.repo.save({...f.input,scheduleId:plan.scheduleId,
+      expectedGeneration:plan.generation}),/Installed task authorization changed/);
+  }
+});
+test('R2 website grant revocation is visible without re-requesting permission',async()=>{
+  const f=await fixture(),plan=await f.repo.save(f.input);
+  let granted=true,permissionRequests=0;
+  const api={runtime:{id:'schedule-test',getURL:()=>
+    'chrome-extension://abcdefghijklmnopabcdefghijklmnop/ui/tool.html',
+    getContexts:async()=>[]},alarms:{getAll:async()=>[],create:async()=>{},clear:async()=>{}},
+    permissions:{contains:async()=>granted,request:async()=>{permissionRequests++;return true;}}};
+  const service=createScheduleService({storage:f.db,api,clock:{now:f.getTime},
+    assertHost:async()=>({}),emitToHost:async()=>{}});
+  assert.equal((await service.listSchedules({},{})).schedules[0].needsAttention,false);
+  granted=false;
+  const revoked=await service.listSchedules({},{});
+  assert.equal(revoked.schedules[0].scheduleId,plan.scheduleId);
+  assert.equal(revoked.schedules[0].needsAttention,true);
+  assert.equal(permissionRequests,0);
+  await assert.rejects(service.saveSchedule(f.input,{}),/Grant website access/);
+  granted=true;
+  assert.equal((await service.listSchedules({},{})).schedules[0].needsAttention,false);
+  assert.equal(permissionRequests,0);
+});
+test('R2 rebuilt service restores only schedule-prefixed Chrome Alarms without duplication',async()=>{
+  const f=await fixture(),plan=await f.repo.save(f.input);
+  const alarms=new Map([['unrelated.cloud',{name:'unrelated.cloud',scheduledTime:42}]]);
+  const api={runtime:{id:'schedule-test',getURL:()=> 'chrome-extension://abcdefghijklmnopabcdefghijklmnop/ui/tool.html',
+    getContexts:async()=>[]},
+    alarms:{getAll:async()=>[...alarms.values()],
+      create:async(name,{when})=>{alarms.set(name,{name,scheduledTime:when});},
+      clear:async name=>{alarms.delete(name);}},
+    permissions:{contains:async()=>true}};
+  const service=()=>createScheduleService({storage:f.db,api,clock:{now:f.getTime},
+    assertHost:async()=>({}),emitToHost:async()=>{}});
+  await service().reconcile();
+  const alarm='opendesk.schedule.v1:'+plan.scheduleId;
+  assert.equal(alarms.get(alarm)?.scheduledTime,plan.nextDueAt);
+  alarms.delete(alarm);
+  await service().reconcile();
+  assert.equal(alarms.get(alarm)?.scheduledTime,plan.nextDueAt);
+  assert.equal(alarms.get('unrelated.cloud')?.scheduledTime,42);
+  f.setTime(plan.nextDueAt+1000);
+  await service().reconcile();
+  const one=(await f.repo.ready())[0];
+  await service().reconcile();
+  assert.equal((await f.repo.ready())[0].fireId,one.fireId);
+});
