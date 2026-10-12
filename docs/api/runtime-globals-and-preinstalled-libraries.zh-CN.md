@@ -73,6 +73,19 @@ async function main() {
 
 `src/libs` 是 **框架的源码与公共能力目录**，不是用户需要逐文件 `import` 的 npm 路径。确实需要第三方依赖的后台、Side Panel 页面与扩展自定义页，应让受信构建器把**用到的**模块归属到自己的入口；保持各包资源和 SW 运行组独立，不因 ZIP 内包含多个物理资源就判定 SW 重复加载。区别参见 [src/libs/README](../../src/libs/README.md) 和 [真实大小报告](../../scripts/audit-fixed-entries.mjs)。
 
+### Side Panel 工具 iframe 的不同写法
+
+这是另一个隔离程序类型，**并不使用** Controller 的 `main()` 或用户 Page 脚本的 `page`：
+
+```js
+const {root, request} = globalThis.OpenDeskTool;
+const label = root.querySelector('[data-output]');
+if (label) label.textContent = '工具已初始化';
+// 只有当前工具被授权的具体 method 才能经 request 发往可信宿主。
+```
+
+可信 Background / Side Panel 宿主 / 扩展自定义页面的源码可以在其各自 WXT 固定入口中静态导入实际需要的包，例如 `import dayjs from 'dayjs'`，**不是**把 `OpenDeskLibs` 全局注入所有扩展页面；这属于框架开发者构建行为，而不是普通用户脚本需要写的 import。
+
 ## 3. 可选 Page 库如何直接使用
 
 **示例一：真实 Axios（普通网页网络，遵从 CORS/CSP）**：
@@ -94,17 +107,7 @@ async function main() {
 }
 ```
 
-**示例三：Page React/Vue**（分别放在不同程序中，不同时写两个声明）：
-
-```js
-// @opendesk-lib react
-async function main() {
-  const root = OpenDeskPageReact.createRoot(document.createElement('div'));
-  // 必须把容器通过受管 UI/明确挂载放进 DOM，停止时调用 root.unmount()。
-  root.unmount();
-  return {ready:true};
-}
-```
+**示例三：Page React/Vue**：必须在受管 Page UI 中真正挂载并于 Stop 时清理，而非创建游离 DOM 后声称已显示。优先直接使用 [React Direct](../../examples/programs/page-ui-react-direct/README.md)、[Vue Direct](../../examples/programs/page-ui-vue-direct/README.md) 和 [React TOC](../../examples/programs/page-ui-toc-react-direct/README.md) 的可见 UI 项目；仍是各自独立的 `// @opendesk-lib react` 或 `vue` 选项，不支持在一个 Page 脚本声明多个可选 ID。
 
 这几段仅说明 **当前世界与 API 写法**，不是对网络端点、任意 DOM 挂载、Controller Axios 或 Chrome 成功回执的承诺。精确可选清单及状态查当前 [运行 Catalog](../../src/libs/runtime-contract.js)、[公共库 README](../../src/libs/README.md)；并按所选版本检查该 ID 是否已接线、是否通过正式构建及真实 Chrome。用户不用自行安装 npm 或填写版本，但框架开发者必须固定上游来源/锁文件并审计权限、许可证、大小、ABI。
 
@@ -122,4 +125,4 @@ async function main() {
 - [Page USER_SCRIPT 零参数多文件](../../examples/programs/page-globals-zero-arg/README.md)：运行 `document.title` + `_.words()` + `dayjs()`。
 - [Controller 单文件](../../examples/programs/single-file/title.js)、[React Direct](../../examples/programs/page-ui-react-direct/README.md)、[Vue Direct](../../examples/programs/page-ui-vue-direct/README.md)、[Side Panel 工具开发](sidebar-tool-development.zh-CN.md)。
 
-相关来源合同：[Controller](controller.zh-CN.md)、[Page](page-userscript.zh-CN.md)、[项目格式](local-projects.zh-CN.md)、[公共库实现](../../docs/architecture/browser-framework/public-preinstalled-libraries.contract.zh-CN.md)。**使用体验必须以同一候选实际运行代码来证明，文档和组件测试不等于整体 95 分产品验收。**
+相关来源合同：[Controller](controller.zh-CN.md)、[Page](page-userscript.zh-CN.md)、[项目格式](local-projects.zh-CN.md)、[公共库实现](../architecture/browser-framework/public-preinstalled-libraries.contract.zh-CN.md)。**使用体验必须以同一候选实际运行代码来证明，文档和组件测试不等于整体 95 分产品验收。**
