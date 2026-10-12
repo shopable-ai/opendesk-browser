@@ -1,4 +1,9 @@
-# Extension Factory R2 — Page QA Inspector 源码与验收记录
+# Extension Factory R2 — Page QA Inspector 源码与验收记录（DEPRECATED）
+
+> **2026-10-12 新决策：`DEPRECATED / NO_RELEASE / MANUAL_FIXTURE_ONLY`。** Page QA 不再是首款商业插件、独立发布候选或当前需要执行的 Mac Chrome 验收 GOAL。下方 Node/WXT/ZIP/Chrome 门槛、历史 `NOT_TESTED` 状态和来源记录均仅供技术追溯，不能作为继续推进产品的指令。
+>
+> 暂留源码是为了展示早期 ProductConfig、最小权限、独立 Manifest/ZIP 构建隔离。当前 CLI 仍**硬编码 `page-qa-inspector`**，不能宣称已实现通用多产品工厂。后续优先验证 [电商工具宇宙等真实需求](../../product/browser-extension-ecosystem/commercial-decision-ecommerce-20261012.zh-CN.md)，再决定将样例迁移或删除；保留旧验收事实，不伪造 PASS。
+
 
 > 2026-10-12。工作范围仅 `main`；不创建分支、worktree、PR；不强推。远端 GitHub Connector 直接写入，**没有**用户 Mac 工作目录、CFT Profile 的读取权限。本工作流只记录自己的源码和证据，严禁移动其他任务的候选或重写全局 owner。
 
