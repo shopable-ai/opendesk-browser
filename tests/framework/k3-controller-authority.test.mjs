@@ -1377,6 +1377,21 @@ test('cloud status returns bounded redacted pages and supports a cheap heartbeat
   await assert.rejects(f.cloud.cloudStatus({offset:-1},f.sender),code('E_SCHEMA'));
   await assert.rejects(f.cloud.cloudStatus({executorNamespace:'other'},f.sender),code('E_SCHEMA'));
 });
+test('observer projection is fixed-namespace, paged and excludes all executable identities',async()=>{
+  const f=await cloudTaskFixture();
+  await f.storage.transaction(['frameworkKV'],'readwrite',async tx=>{
+    await tx.put('frameworkKV',{...f.row,namespace:'foreign',requestId:'foreign-secret'},
+      'cloud:request:foreign-secret');
+  });
+  const view=await f.cloud.cloudObserve({limit:5});
+  assert.equal(view.schema,'opendesk.cloud-control.observer.v1');
+  assert.equal(view.hostReady,null);assert.equal(view.approvedTasks,1);
+  assert.equal(view.requestTotal,1);assert.equal(view.rows.length,1);
+  assert.equal(view.rows[0].state,'waiting');
+  assert.doesNotMatch(JSON.stringify(view),/foreign-secret|assignmentId|runId|providerId|credential|siteOrigins|params|target/);
+  await assert.rejects(f.cloud.cloudObserve({limit:51}),code('E_SCHEMA'));
+  await assert.rejects(f.cloud.cloudObserve({namespace:'foreign'}),code('E_SCHEMA'));
+});
 test('cloud binds original run and slot before permit; no target or worker before durable permission',async t=>{
   const f=await cloudTaskFixture();let called=0;
   t.mock.method(globalThis,'fetch',async(url,options)=>{
