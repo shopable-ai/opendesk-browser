@@ -8,7 +8,7 @@ Time Review 仍是 opendesk.sidebar-tool.v1，ID 始终是 time-review，能力�
 
 1. Side Panel → 工具 → 发现工具（或应用市场）→ Time Review → 安装/更新，审阅权限。不能新建相同 ID 的平行工具。
 2. 在工具详情设置中，由用户本人授权 Chrome 空闲检测；单独授权不会开始计时。
-3. 打开 Time Review，主动点击「开始记录」。只有聚焦、非空闲、非隐身的普通 HTTP(S) 已授权网站才计时；关闭侧栏不停止已开启的可信后台。
+3. 在已安装的工具**详情设置**中主动点击「开始／恢复记录」；沙箱界面的「开始记录」只会带你前往该受信任入口，不会绕过用户授权。只有聚焦、非空闲、非隐身的普通 HTTP(S) 已授权网站才计时；关闭侧栏不停止已开启的可信后台。
 4. 在工具内「设置、分钟明细与数据管理」选择开启时，只会打开扩展受信任的工具详情设置区，必须在那里由用户本人点击「开启分钟明细」才会真正生效。**只保存以后真正结算的分钟**，不会根据旧日汇总反推历史。关闭必须经过受信任的工具详情设置区页面内确认，届时删除已有分钟明细，不影响毫秒日汇总。
 5. 在当前网站卡片或所选日期的网站列表修改分类；会重新计算保留期内的分类时长、重要时间、生产率和已存在的分钟色带，绝不重新计时。
 6. 日期箭头查看历史日，「所选日期/近七天」切换排行；设置可调整空闲阈值、排除域名、汇总保留期，导出 JSON/CSV，暂停与撤权；清空全部记录需在受信任设置区完成一次页面内二次确认。卸载会清理本工具本机数据，请先备份。
@@ -18,10 +18,10 @@ Time Review 仍是 opendesk.sidebar-tool.v1，ID 始终是 time-review，能力�
 | 类别 | 名称 | 颜色 | 象限 |
 | --- | --- | --- | --- |
 | 0 | 未分类 | #788494 | 独立 |
-| 1 | 工作/生产 | #1976d2 | 重要且紧急 |
-| 2 | 阅读学习 | #3b8ad9 | 重要不紧急 |
-| 3 | 聊天/新闻 | #b64f4f | 紧急不重要 |
-| 4 | 娱乐 | #ec5d5d | 不重要不紧急 |
+| 1 | 重要且紧急 | #1976d2 | 重要且紧急 |
+| 2 | 重要不紧急 | #3b8ad9 | 重要不紧急 |
+| 3 | 紧急不重要 | #b64f4f | 紧急不重要 |
+| 4 | 不重要不紧急 | #ec5d5d | 不重要不紧急 |
 | 5 | 生活 | #c8992d | 独立 |
 
 默认未分类，分类仅由用户主动设置域名，不猜测网站用途。重要时间 = 1 + 2；生产率 = 重要毫秒数 / 当日全部记录毫秒数，**只在全部时长均已分类时显示百分比**；否则显示「—」并标明已分类覆盖率。分类是保留期内同一域名的当前属性；旧记录日毫秒不改变。七天分类与导出共用同一映射。
@@ -39,7 +39,7 @@ Time Review 仍是 opendesk.sidebar-tool.v1，ID 始终是 time-review，能力�
 
 沿用 opendesk.time-review.v1 的版本 1 日汇总，添加可选 categories / minuteConsent / minuteDays 字段；旧记录无明细、默认不开启新增采样。固定服务新操作 time.classify、time.day、time.minuteConsent 都经过原工具安装身份/包哈希、sender/documentId、Authority 与撤权代际校验。不新增安装器、RPC、时间采集器或动态 JS。
 
-JSON 导出继续包含原汇总与设置，另包含分类和已保存的分钟数据。CSV 保持原有 date,website,milliseconds,seconds 四列顺序，只在末尾追加 category 列。下载请求成功不等于实际文件落盘，请检查 Chrome 下载记录。清空操作删除汇总、域名分类、分钟数据，保留偏好设置。更新包会使旧包的计时授权失效，新包需重新明确开始。
+JSON 导出继续包含原汇总与设置，另包含分类和已保存的分钟数据。CSV 保持原有 date,website,milliseconds,seconds 四列顺序，只在末尾追加 category 列。JSON 实际文件名为 `time-review.json`，CSV 为 `time-review.csv`；同名重复下载由 Chrome 生成如 `time-review (1).json` / `time-review (1).csv`，不直接覆盖既有文件。工具只提示「已请求下载」，下载完成或中断仍以 Chrome 下载记录和实际文件为准。清空操作删除汇总、域名分类、分钟数据，保留偏好设置。更新包会使旧包的计时授权失效，新包需重新明确开始。
 
 ## 构建与验收（必须在实际仓库执行）
 
@@ -50,4 +50,6 @@ JSON 导出继续包含原汇总与设置，另包含分类和已保存的分钟
 - npm run build:dev
 - npm run verify
 
-包输出目标：artifacts/sidebar-tools/time-review/1.3.0/time-review.opendesk-tool.json。必须额外在真实 Mac Chrome 和 320/360/400/600px、200% 缩放完成同包 UI、权限、分类、下载落盘、恢复、撤权、卸载验收。旧候选/原型图不能替代。具体证据与状态见 docs/framework/workstreams/time-review-r13.md。
+包输出目标：`artifacts/sidebar-tools/time-review/<当前 tool.config.json 版本>/time-review.opendesk-tool.json`（2026-10-12 为 `1.3.1`，不要硬编码旧版）。必须额外在真实 Mac Chrome 和 320/360/400/600px、200% 缩放完成同包 UI、权限、分类、下载落盘、恢复、撤权、卸载验收。旧候选/原型图不能替代。具体证据与状态见 docs/framework/workstreams/time-review-r13.md。
+
+Mac Chrome 155 对 Time Review 1.3.1 的真实内容导出、同名文件防覆盖、暂停状态下完整 Chrome 重启的证据为 [Actions 38222319502](https://github.com/shopable-ai/opendesk-browser/actions/runs/38222319502)，绑定源码 SHA `f4719da31a876fc4f82b6b0658176fd2693c4a26`。分类编辑、工具启停/卸载和 200% 真正缩放以各自独立的后续验证为准，不能引用该任务替代尚未执行的验收。

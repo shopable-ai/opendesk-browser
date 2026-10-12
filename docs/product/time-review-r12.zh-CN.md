@@ -31,7 +31,7 @@ time.review 使用 MV3 可信后台和现有安装器，保留开始/暂停/恢�
 
 ## 新增能力
 
-- categories：用户主动选择域名类别，默认 0 未分类；1 工作/生产、2 阅读学习、3 聊天/新闻、4 娱乐、5 生活。重要时间 = 1 + 2；只有全部时长已分类时才显示生产率百分比。
+- categories：用户主动选择域名类别，默认 0 未分类；1 重要且紧急、2 重要不紧急、3 紧急不重要、4 不重要不紧急、5 生活。重要时间 = 1 + 2；只有全部时长已分类时才显示生产率百分比。
 - minuteConsent：默认关闭。用户明确开启后才从未来可信结算区间保存分钟/域名/毫秒数据；关闭即清除已有分钟数据，不补造旧日汇总的时间线。
 - minuteDays：每天 1440 分钟索引在普通 24 小时本地日期使用；时区/DST 不适用日期隐藏明细并保留日汇总。每日最多 2000 行、最多保留 90 天。多域名占同一分钟以毫秒占比最高类别作为色带代表色，详情标记多个网站。
 - time.classify、time.day、time.minuteConsent 共用已有固定 time.review 服务、包 SHA、安装代际和可信 sender/document 身份校验。
@@ -41,7 +41,7 @@ time.review 使用 MV3 可信后台和现有安装器，保留开始/暂停/恢�
 
 ## 构建与验收
 
-稳定工具 ID time-review、工具版本 1.3.0，capabilities 仍为 time.review + user.export；扩展可信后台变更意味着必须同时构建与更新扩展。旧工具包身份不能自动延续后台计时许可。工具包已构建并不等于真实安装。真实 Mac Chrome、导出实际落盘、权限、重启、200% 和 320/360/400/600px 视口必须由当前候选证据确认，未测试记为 NOT_TESTED。
+稳定工具 ID `time-review`；当前示例工具版本按 `examples/sidebar-tools/time-review/tool.config.json` 为准（2026-10-12 为 `1.3.1`），capabilities 仍为 `time.review` + `user.export`；扩展可信后台变更意味着必须同时构建与更新扩展。旧工具包身份不能自动延续后台计时许可。工具包已构建并不等于真实安装。真实 Mac Chrome、导出实际落盘、权限、重启、200% 和 320/360/400/600px 视口必须由当前候选证据确认，未测试记为 NOT_TESTED。
 
 工具说明：examples/sidebar-tools/time-review/README.zh-CN.md。
 历史工作记录：docs/framework/workstreams/time-review-r12-01a12b0d.md。
@@ -49,3 +49,9 @@ time.review 使用 MV3 可信后台和现有安装器，保留开始/暂停/恢�
 
 
 R1.3 启用或删除分钟明细必须在已合并的 R5.1 受信任工具详情设置区由本人点击确认。沙箱本身只打开该设置入口，不能直接允许增加精细的活动采集；清空仍由详情内联确认执行。CSV 保持原有四列顺序，在尾部追加 category。
+
+## R1.3.1 实际 Chrome 验收口径（2026-10-12）
+
+- 当前 Time Review 为已安装的可选官方工具；`time-review` 是固定 ID，存储仍为 `opendesk.time-review.v1`。扩展受信任宿主设置负责空闲权限、开始/恢复、分钟授权与真正的清空确认；沙箱「开始」只会引导到受信任操作区。
+- [Actions 38222319502](https://github.com/shopable-ai/opendesk-browser/actions/runs/38222319502)，绑定 `f4719da31a876fc4f82b6b0658176fd2693c4a26`：已在真正 Mac Chrome 155 里确认 JSON/CSV 规范文件名、包含有效网站时长的重复导出、同名 `(1)` 防覆盖、原生侧栏、暂停、真正 SW 恢复及暂停状态下整个 Chrome 进程的同 Profile 重启，所有该工作流子项 PASS。
+- 后续原生六分类修改、工具启停/卸载以及真正 200% Chrome 缩放仍需按**各自最新候选**的证据判断，不把 Chromium DPR2 或旧候选通过当成完整最终验收。参见 [R1.3 工作流](../framework/workstreams/time-review-r13.md)。
