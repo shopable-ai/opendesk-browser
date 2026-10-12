@@ -69,6 +69,8 @@ test('R3 explorer ships an SVG-first compact toolbar with semantic accessible ac
   const html=await readFile('src/native-agent/workspace.html','utf8');
   const styles=await readFile('src/native-agent/workspace.tailwind.css','utf8');
   assert.match(html,/data-workspace-ui="svg-r3"/);
+  assert.doesNotMatch(html,/<(?:path|circle|rect)\b[^>]*\/>/,
+    'SVG shapes must have explicit closing tags to satisfy the strict package HTML scanner');
   assert.match(html,/id="file-list"[^>]*data-icon-system="local-svg"[^>]*role="tree"/);
   for(const id of ['refresh-connection','open-settings','open-sidebar','open-workbench',
     'reload-file','copy-content','open-preview-tab']){
