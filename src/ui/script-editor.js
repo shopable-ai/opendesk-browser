@@ -649,7 +649,8 @@ export function createScriptEditor({client, currentPageTarget, development=false
     });
   }
   function previewPage(event) {
-    if (!event.isTrusted || disposed || previewBusy || dependencyResolver?.busy || editingBusy || running || host.currentRun) return;
+    if (!event.isTrusted || disposed || previewBusy || (componentMode==='javascript'&&dependencyResolver?.busy) ||
+      editingBusy || running || host.currentRun) return;
     if(localProject?.active())return;
     let captured, permission, pageSource,componentSnapshot;
     const displayPreview=(state,message,result)=>{
@@ -691,6 +692,12 @@ export function createScriptEditor({client, currentPageTarget, development=false
           programSource.source()!==componentSnapshot.source)
           throw {code:'E_PAGE_COMPILER_STALE',message:'编辑器或框架已变化；本次组件不运行'};
         await currentPageTarget.revalidate(captured);
+        // The asynchronous last document read can outlive an editor input.
+        // Re-compare the exact source and selected framework immediately
+        // before the irreversible Page admission call; never send stale bytes.
+        if(disposed||componentMode!==componentSnapshot.framework||
+          programSource.source()!==componentSnapshot.source)
+          throw {code:'E_PAGE_COMPILER_STALE',message:'最终文档核验期间源码或框架已变化；旧编译结果不会运行'};
         const previewId=crypto.randomUUID();
         const managedUI={previewId,bindingId:browserBinding,enabled:true};
         const identity={previewId,bindingId:browserBinding,target:captured,sourceHash:built.sourceHash,
@@ -713,7 +720,11 @@ export function createScriptEditor({client, currentPageTarget, development=false
           throw {code:'E_PAGE_COMPILER_RECEIPT',message:'页面脚本回执和编译身份不一致'};
         browserManagedPreview=identity;
         await currentPageTarget.revalidate(captured);
-        componentMessage('completed','组件已运行 · 受管 Stop 可用 · 保存源码不会自动运行');
+        const editorChanged=componentMode!==componentSnapshot.framework||
+          programSource.source()!==componentSnapshot.source;
+        componentMessage('completed',editorChanged?
+          '旧源码已运行，但当前编辑内容已变化；先停止旧组件，再运行最新源码':
+          '组件已运行 · 受管 Stop 可用 · 保存源码不会自动运行');
         displayPreview('completed','组件已在当前网页运行；停止可清理受管 UI。不是自动安装。',
           result.resultText??'undefined');
         pageTechnicalPanel.hidden=false;pageTechnicalPanel.open=false;
