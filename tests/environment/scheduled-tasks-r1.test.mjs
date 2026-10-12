@@ -125,3 +125,47 @@ test('bounded catch-up selects last eligible occurrence without accumulating mis
   assert.equal((await f.repo.ready()).length,1);
   assert.equal((await f.repo.list())[0].history.length,1);
 });
+
+
+test('revoked installation is visibly marked needs attention while keeping plan identity',async()=>{
+  const f=await fixture(),plan=await f.repo.save(f.input);
+  await f.db.transaction(['frameworkKV'],'readwrite',async tx=>{
+    const key=installedKey(f.namespace,'demo.form');
+    const row=await tx.get('frameworkKV',key);
+    await tx.put('frameworkKV',{...row,enabled:false},key);
+  });
+  const current=(await f.repo.list())[0];
+  assert.equal(current.scheduleId,plan.scheduleId);
+  assert.equal(current.needsAttention,true);
+});
+test('no active Host records WAITING_HOST and eventually MISSED without replay',async()=>{
+  const f=await fixture(),plan=await f.repo.save(f.input);
+  await f.db.transaction(['commandJournal'],'readwrite',tx=>tx.delete('commandJournal','host:test'));
+  f.setTime(plan.nextDueAt+1000);
+  await f.repo.reconcile();
+  assert.equal((await f.repo.ready())[0].status,'WAITING_HOST');
+  f.setTime(plan.nextDueAt+plan.startDeadlineMs+1000);
+  await f.repo.reconcile();
+  assert.equal((await f.repo.ready()).length,0);
+  assert.equal((await f.repo.list())[0].history[0].status,'MISSED');
+});
+test('completed Controller Run is not displayed SUCCESS before resource release',async()=>{
+  const f=await fixture(),plan=await f.repo.save(f.input);
+  f.setTime(plan.nextDueAt+100);
+  await f.repo.reconcile();
+  const fire=(await f.repo.ready())[0];
+  await f.db.transaction(['frameworkKV'],'readwrite',async tx=>{
+    const admitted=await f.repo.admit(tx,fire.fireId,{
+      source:{kind:'saved',scriptId:taskScriptId('demo.form','1.0.0'),contentHash:f.input.sourceHash},
+      paramsDecoded:{},target:{mode:'borrowed',expectedUrl:f.input.targetUrl},requestId:fire.fireId,
+      expectedTaskGeneration:1,expectedTaskInstallationId:f.input.installationId
+    },'https://example.com',f.getTime());
+    await f.repo.bind(tx,admitted,{runId:'scheduled-test-run',resultId:'scheduled-test-result'});
+  });
+  f.db.put('runs','scheduled-test-run',{tag:'controller-run',state:'completed',retirementState:'fenced',
+    runId:'scheduled-test-run',resultId:'scheduled-test-result'});
+  assert.equal((await f.repo.list())[0].history[0].status,'SETTLING');
+  f.db.put('runs','scheduled-test-run',{tag:'controller-run',state:'completed',retirementState:'released',
+    runId:'scheduled-test-run',resultId:'scheduled-test-result'});
+  assert.equal((await f.repo.list())[0].history[0].status,'SUCCESS');
+});

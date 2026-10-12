@@ -6,6 +6,7 @@ on:
     paths:
       - '.github/workflows/scheduled-tasks-r1.yml'
       - 'src/platform/tasks/schedule-*'
+      - 'src/platform/tasks/service.js'
       - 'src/platform/host/authority.js'
       - 'src/platform/host/controller-methods.js'
       - 'src/platform/host/broker.js'
@@ -20,6 +21,7 @@ on:
       - 'src/ui/tool-shell.css'
       - 'src/ui/tool.html'
       - 'tests/environment/scheduled-tasks-r1.test.mjs'
+      - 'tests/environment/scheduled-task-ui-r1.test.mjs'
   workflow_dispatch:
 
 permissions:
@@ -42,6 +44,8 @@ jobs:
       - run: npm ci
       - name: Schedule UTC DST state and idempotency tests (unit evidence only)
         run: node --test tests/environment/scheduled-tasks-r1.test.mjs
+      - name: Scheduled plan, icon-only picker and visible Host source contracts
+        run: node --test tests/environment/scheduled-task-ui-r1.test.mjs
       - name: Original task catalog, installed authorization and toolbar regressions
         run: |
           node --test tests/environment/task-package-flow.test.mjs

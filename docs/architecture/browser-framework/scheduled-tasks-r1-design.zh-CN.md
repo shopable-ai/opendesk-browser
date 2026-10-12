@@ -1,6 +1,6 @@
 # OpenDesk Browser · 定时计划 R1：产品交互与调度设计
 
-> 2026-10-12。状态：**DESIGN / INTERACTIVE_PREVIEW_COMMITTED**；尚未接入正式调度器、权限执行链，也没有真实 Chrome 验收。
+> 2026-10-12。状态：**SOURCE_IMPLEMENTED / CHROME_NATIVE_NOT_TESTED**；正式源码已接入持久调度器、权限执行链和可见运行页；基础提交 `7dbcf8b391` 的生产/开发构建与包验证在 CI 通过，当前后续修订仍需独立重测；Mac Chrome 原生验收尚无证据。
 > 主分支预览： [examples/ui/scheduled-tasks-r1-preview.html](../../../examples/ui/scheduled-tasks-r1-preview.html)。
 
 ## 1. 任务来源：采用下拉框 + 右侧两个等尺寸图标按钮
@@ -135,3 +135,17 @@ Side Panel 保留「我的 / 发现 / 工作流 / 开发 / 工具」现有一级
 需用 `examples/tasks/demo-form.html` 和真实已验证/安装的 Controller Task 核对 Side Panel 运行、关闭侧栏/运行页继续、运行页关闭后等待、双 Host、浏览器重启、目标页变化、撤权、版本更替、Stop、超时、Durable Result 和资源释放。证据必须包含 RunId、ResultId、FireId、实际目标 DocumentId 与当前包 Hash，按测试指南独立记录。
 
 注意：用户预览原型不是生产组件测试，也不能直接作为真实 Chrome 成功证据。
+
+
+## 7. R1 源码实现落点与可信等级（2026-10-12）
+
+此节是对上文设计的实施说明；前文静态原型状态只用于产品交互依据，不可提升为正式 Chrome PASS。
+
+- 定义与触发：`src/platform/tasks/schedule-contract.js` 严格限制字段、网站、大小和安装身份；`schedule-time.js` 使用 IANA `Intl.DateTimeFormat` 转换当地日历为 UTC，DST 空白时间前进到第一个有效分钟、重复时间只选较早一次；`schedule-repository.js` 将至多 128 个活动计划保存到**原有** `frameworkKV`，以 `scheduleId + generation + scheduledAt` 组成持久 FireId。
+- 闹钟：`schedule-service.js` 与 `src/sw.js` 只管理 `opendesk.schedule.v1:` 前缀；每次启动/重启、计划变更和闹钟事件都以持久计划为准进行对账，不调用 `clearAll`，不使用 Chrome 150+ 参数。
+- 权威准入：`controller-methods.js` 原子事务中先经安装版本和精确网站校验，再核实 FireId、固定哈希、参数、来源安装身份、预期 URL 和截止时点，写入 Fire 的 `runId/resultId` 并保持原来的 `runs/@slot`、`commandJournal`、Controller Worker 和 retirement。**不能因为定时实例存在就直接执行。**
+- Host：`src/ui/scheduled-task-host.js` 只在已打开的 `ui/tool.html` 受信扩展文档中领到期任务；Side Panel 和 `?scheduledRunner=1` 的独立可见标签均复用同一个 `scriptEditor.host`；关闭所有页面只保留等待记录。宿主每 15 秒轮询，SW 的 Port 提示可提前触发。无后台常驻任务或强开 Side Panel。
+- UI：`src/ui/scheduled-task-workbench.js` 负责「我的」内部计划、表单、双图标与管理页，任务数据复用 `listTaskCatalog`、`resolveInstalledTask`、`getTaskCandidate`、`setInstalledTaskEnabled`、`uninstallTask`；开发与真实安装仍按旧 Task v1 验证流程，不以任意源码直接排程。
+- 结果：持久 Fire 的 `ADMITTED` 状态只意味着获得唯一 Run 准入，不意味着网页副作用成功；列表始终从原 `runs` 查询 state、`resultId` 和 `retirementState`，若存在未知副作用则保持 `UNKNOWN`，决不盲目重派。
+
+**尚未闭环的证明：** 最终候选的 GitHub Actions 复验和 Mac 原生页面操作、Side Panel 关闭与可见运行页切换、多宿主并发、Chrome 320/360/420 与 200% 视觉验收。这些实际没有证据时一律 `NOT_TESTED`。追踪见 `docs/framework/workstreams/scheduled-tasks-r1-20261012.md`。

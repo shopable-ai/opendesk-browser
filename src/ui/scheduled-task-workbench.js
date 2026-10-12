@@ -94,9 +94,10 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
       const card=element(doc,'article','schedule-card od-surface');
       const head=element(doc,'div','schedule-card-head od-toolbar');
       head.append(element(doc,'strong',null,plan.title),element(doc,'span','schedule-state',
-        plan.paused?'已暂停':plan.history?.[0]?.status==='NEEDS_ATTENTION'?'需要处理':'已启用'));
+        plan.paused?'已暂停':plan.needsAttention||plan.history?.[0]?.status==='NEEDS_ATTENTION'?'需要处理':'已启用'));
       const info=element(doc,'p','hint',`${plan.taskId} · v${plan.version} · ${plan.triggerKind} · ${plan.timezone}`);
       const next=element(doc,'p','hint','下次：'+describeTime(plan.nextDueAt,plan.timezone));
+      if(plan.needsAttention)next.append(element(doc,'span','schedule-warning',' · 任务已停用、版本改变或网站权限不足，需重新授权'));
       const last=plan.history?.[0];
       const history=element(doc,'details','schedule-history');
       history.append(element(doc,'summary',null,

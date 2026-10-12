@@ -59,7 +59,13 @@ export function createScheduleService({storage,api,clock,session,assertHost,emit
     await checkSender(sender);
     invariant(request&&Object.keys(request).length===0,'E_SCHEMA');
     await reconcile();
-    return {schedules:await repo.list()};
+    const schedules=await repo.list();
+    const origins=[...new Set(schedules.map(row=>new URL(row.targetUrl).origin))];
+    const grants=new Map(await Promise.all(origins.map(async origin=>[
+      origin,api.permissions?.contains?await api.permissions.contains({origins:[permissionPattern(origin)]}).catch(()=>false):false
+    ])));
+    return {schedules:schedules.map(row=>({...row,
+      needsAttention:row.needsAttention||grants.get(new URL(row.targetUrl).origin)!==true}))};
   }
   async function listDueSchedules(request,sender){
     await checkSender(sender);

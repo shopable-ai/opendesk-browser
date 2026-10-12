@@ -31,6 +31,7 @@ export function createScheduleRepository({storage,clock,namespace,session}){
     return storage.transaction(['frameworkKV'],'readwrite',async tx=>{
       const id=checked.scheduleId??crypto.randomUUID(),key=scheduleKey(id);
       const old=await tx.get('frameworkKV',key);
+      if(!old)invariant((await definitions(tx)).length<128,'E_LIMIT','No more than 128 active schedules');
       invariant(old?old.namespace===namespace&&!old.deleted&&checked.expectedGeneration===old.generation:
         checked.expectedGeneration===undefined||checked.expectedGeneration===null,
         'E_REVISION','Schedule was modified by another host');
@@ -104,10 +105,18 @@ export function createScheduleRepository({storage,clock,namespace,session}){
   async function list(){
     return storage.transaction(['frameworkKV','runs'],'readonly',async tx=>{
       const all=await definitions(tx),allFires=await fires(tx);
+      const installs=new Map();
+      for(const def of all)if(!installs.has(def.taskId))
+        installs.set(def.taskId,await tx.get('frameworkKV',installedKey(namespace,def.taskId)));
       const scheduleRows=all.map(def=>{
         const history=allFires.filter(f=>f.scheduleId===def.scheduleId)
           .sort((a,b)=>b.scheduledAt-a.scheduledAt).slice(0,20);
-        return {...def,history};
+        const installed=installs.get(def.taskId);
+        const needsAttention=!installed||!installed.enabled||installed.version!==def.version||
+          installed.manifestHash!==def.manifestHash||
+          installed.authorization?.installationId!==def.installationId||
+          installed.authorization?.generation!==def.taskGeneration;
+        return {...def,needsAttention,history};
       });
       const runIds=new Set(scheduleRows.flatMap(d=>d.history.map(f=>f.runId).filter(Boolean)));
       const runs=new Map();
@@ -115,7 +124,8 @@ export function createScheduleRepository({storage,clock,namespace,session}){
       return scheduleRows.map(d=>({...d,history:d.history.map(f=>{
         const run=runs.get(f.runId);
         return {...f,status:run?(run.state==='paused_unknown'?'UNKNOWN':run.retirementState==='released'?
-          (run.state==='completed'?'SUCCESS':run.state==='stopped'?'STOPPED':'FAILED'):'RUNNING'):f.status,
+          (run.state==='completed'?'SUCCESS':run.state==='stopped'?'STOPPED':'FAILED'):
+          ['completed','failed','stopped','interrupted'].includes(run.state)?'SETTLING':'RUNNING'):f.status,
           resultId:run?.resultId??f.resultId??null,retirementState:run?.retirementState??null};
       })}));
     });
