@@ -276,6 +276,11 @@ async function check(name,fn){try{cases.push({name,ok:true,value:await fn()});}
         return {...result,visitorIdCaptured:false};
       });
       await check('page-user-script-file-saver-blob-only-and-main-isolation',async()=>{
+        // Prior async FingerprintJS initialization and repeated isolated-world
+        // executions may leave the original Chrome document stale. A genuine
+        // navigation obtains a fresh documentId instead of loosening the
+        // per-document preview budget or reusing an invalid receipt.
+        await refreshOptionalDocument();
         const result=await previewOptional('// @opendesk-lib file-saver\nasync function main(){try{FileSaver.saveAs("https://invalid.example/file","x.txt");return "UNSAFE";}catch(e){return {saveAs:typeof FileSaver.saveAs,code:e.code}}}');
         assert(result.value?.saveAs==='function'&&result.value?.code==='E_CONFIG_UNSUPPORTED',
           'FileSaver failed to reject remote URL in actual Chrome: '+JSON.stringify(result));
