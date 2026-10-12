@@ -105,6 +105,7 @@ test('Time Review R1.3 actual Mac Chrome install and trusted consent smoke',{ski
     chromePid:proc.pid,profileOwned:true,install:'NOT_TESTED',realSidePanel:'NOT_TESTED',
     minuteConsent:'NOT_TESTED',browserRestart:'NOT_TESTED',download:'NOT_TESTED',
     beginAndActiveCollection:'NOT_TESTED',pauseResume:'NOT_TESTED',
+    idlePermissionRevocation:'NOT_TESTED',
     swRestart:'NOT_TESTED',hostedCI:true,screenshots:[],steps:[]};
   const note=(name,data)=>{evidence.steps.push({name,...data});console.log('TIME_NATIVE '+name+' '+JSON.stringify(data));};
   proc.stderr.on('data',data=>{stderr=(stderr+String(data)).slice(-3500);});
@@ -617,16 +618,41 @@ test('Time Review R1.3 actual Mac Chrome install and trusted consent smoke',{ski
     await nativeClick(browser,side,'#time-review-trusted-start');
     const resumed=await until(async()=>{const s=await readTime();return s&&!s.paused?s:null;},'trusted resume',10000);
     evidence.pauseResume='PASS';note('real-resume',{paused:resumed.paused});
+
+    // Revoke the actual optional Chrome idle permission during an authorized
+    // running session through the trusted Side Panel UI, never through a
+    // synthetic permissions event or direct storage mutation.
+    await nativeClick(browser,side,'#time-review-revoke-idle');
+    const revoked=await until(async()=>{
+      const allowed=await evaluate(browser,side,'chrome.permissions.contains({permissions:["idle"]})');
+      const s=await readTime();
+      return allowed===false&&s?.paused===true&&s.authorizedHash===null&&
+        s.authorizedEpoch===null&&s.checkpoint===null?s:null;
+    },'actual idle revocation retires authorization and active checkpoint',12000);
+    const alarmActive=await evaluate(browser,side,
+      'chrome.alarms.get("opendesk.time-review.heartbeat.v1").then(Boolean)');
+    assert.equal(alarmActive,false,'revocation must retire the background heartbeat');
+
+    // Even a second genuine Start click is forbidden until the user regrants
+    // Chrome idle permission. Assert a visible rejection, not merely a paused
+    // snapshot that could precede a late unauthorized write.
+    await nativeClick(browser,side,'#time-review-trusted-start');
+    await until(()=>evaluate(browser,side,
+      'document.querySelector("#sidebar-tool-status")?.textContent?.includes("E_TIME_PERMISSION")'),
+      'trusted start rejected while idle permission is revoked',10000);
     await nativeClick(browser,side,'#sidebar-tool-settings-open');
-    // The sandbox has been hidden while the trusted host resumed collection.
-    // Request a normal status refresh before acting on its formerly disabled
-    // Pause button; do not synthesize a click on disabled UI.
     await nativeClick(browser,frame,'#refresh');
-    await until(()=>evaluate(browser,frame,
-      'Boolean(document.querySelector("#pause")&&!document.querySelector("#pause").disabled)'),
-      'resumed Pause button ready after genuine status refresh',9000);
-    await nativeClick(browser,frame,'#pause');
-    await until(async()=>{const s=await readTime();return s.paused?s:null;},'final trusted stop');
+    await sleep(1500);
+    const stillRevoked=await readTime();
+    assert.equal(stillRevoked.paused,true);
+    assert.equal(stillRevoked.authorizedHash,null);
+    assert.equal(stillRevoked.checkpoint,null);
+    assert.deepEqual(stillRevoked.days,revoked.days,
+      'removing Chrome idle permission must not accrue unobserved website time');
+    evidence.idlePermissionRevocation='PASS';
+    note('real-idle-permission-revocation',{chromePermissionRemoved:true,
+      revokedHash:true,checkpointRetired:true,heartbeatRetired:true,
+      unauthorizedRestartDenied:true,daysPreserved:true});
     }
     await browser.send('Target.closeTarget',{targetId:site.targetId});
   }
@@ -846,6 +872,7 @@ test('Time Review R1.3 actual Mac Chrome install and trusted consent smoke',{ski
     populatedExport:evidence.populatedExport,classification:evidence.classification,
     realBrowserZoom:evidence.realBrowserZoom,multiSite:evidence.multiSite,
     idleTransition:evidence.idleTransition,
+    idlePermissionRevocation:evidence.idlePermissionRevocation,
     disableEnable:evidence.disableEnable,uninstall:evidence.uninstall,
     currentSourceHash:process.env.GITHUB_SHA||null,actualSidePanelDocumentId:sideDocument.documentId
   },null,2)+'\n');
