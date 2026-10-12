@@ -5,7 +5,7 @@
   "type": "module",
   "description": "A minimal React Direct floating table of contents for OpenDesk Page USER_SCRIPT",
   "scripts": {
-    "test": "node --test src/toc-model.test.mjs"
+    "test": "node --test src/toc-model.test.mjs src/heading-stats.test.mjs"
   },
   "opendesk": {
     "format": "opendesk.project.v1",
@@ -16,8 +16,12 @@
     "framework": "react",
     "entryMode": "component",
     "pageRules": {
-      "matches": ["http://127.0.0.1:43111/*"],
-      "excludeMatches": ["http://127.0.0.1:43111/private/*"],
+      "matches": [
+        "http://127.0.0.1:43111/*"
+      ],
+      "excludeMatches": [
+        "http://127.0.0.1:43111/private/*"
+      ],
       "runAt": "document_idle",
       "allFrames": false,
       "world": "USER_SCRIPT"
