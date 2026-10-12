@@ -6,6 +6,16 @@ import {decodeValue} from '../platform/page-port/codec.js';
 import {createCloudHistoryIndex} from './history-index.js';
 import {isDurableCloudResult} from './durable-outcome.js';
 const KV='frameworkKV',CONFIG='cloud:config',IDENTITY='cloud:executor',PREFIX='cloud:request:';
+function acceptedCloudTarget(target,origins){
+  if(!target||typeof target!=='object'||Array.isArray(target)||
+    Object.keys(target).some(k=>!['mode','url'].includes(k))||
+    target.mode!=='owned'||typeof target.url!=='string'||target.url.length>8192)return false;
+  try{
+    const url=new URL(target.url);
+    return (url.protocol==='http:'||url.protocol==='https:')&&
+      url.href===target.url&&!url.username&&!url.password&&!url.hash&&origins.includes(url.origin);
+  }catch{return false;}
+}
 export function providerUrl(value,allowLoopback=false){
   const u=new URL(value);invariant(!u.username&&!u.password&&!u.search&&!u.hash&&u.pathname==='/'&&
     (u.protocol==='https:'||allowLoopback&&u.origin==='http://127.0.0.1:43112'),'E_PROVIDER','HTTPS provider or explicitly approved fixed loopback required');return u.origin;
@@ -141,7 +151,26 @@ export function createCloudService({storage,api,clock={now:()=>Date.now()},asser
   }
   async function cloudApprove(request,sender){
     invariant(Object.keys(request).every(k=>k==='tasks')&&Array.isArray(request.tasks)&&request.tasks.length>0&&request.tasks.length<=32,'E_SCHEMA');
-    const tasks=[];for(const approval of request.tasks){invariant(Object.keys(approval).every(k=>['taskId','resultAllowed'].includes(k))&&typeof approval.resultAllowed==='boolean','E_SCHEMA');tasks.push({...await resolveTask({taskId:approval.taskId},sender),resultAllowed:approval.resultAllowed});}
+    const tasks=[],seen=new Set();
+    for(const approval of request.tasks){
+      invariant(approval&&typeof approval==='object'&&!Array.isArray(approval)&&
+        Object.keys(approval).every(k=>['taskId','version','manifestHash','sourceHash','installationId','generation','siteOrigins','resultAllowed'].includes(k))&&
+        typeof approval.taskId==='string'&&typeof approval.resultAllowed==='boolean'&&
+        !seen.has(approval.taskId),'E_SCHEMA','Invalid or duplicate task approval');
+      seen.add(approval.taskId);
+      const installed=await resolveTask({taskId:approval.taskId},sender);
+      // An explicit UI consent must still name the exact installed identity
+      // at the moment the original Task resolver authorizes the request.
+      for(const [key,value] of [['version',installed.version],['manifestHash',installed.manifestHash],
+        ['sourceHash',installed.contentHash],['installationId',installed.installationId],
+        ['generation',installed.generation]])
+        if(Object.hasOwn(approval,key))invariant(approval[key]===value,'E_REVISION',
+          'Task version or installation changed during approval');
+      if(Object.hasOwn(approval,'siteOrigins'))
+        invariant(canonical(approval.siteOrigins)===canonical(installed.manifest.siteOrigins),
+          'E_REVISION','Task website scope changed during approval');
+      tasks.push({...installed,resultAllowed:approval.resultAllowed});
+    }
     for(const t of tasks)for(const origin of t.manifest.siteOrigins)await requireGrant(api,origin);
     await scoped(sender,async(tx,host)=>{const c=await tx.get(KV,CONFIG);invariant(c&&c.namespace===host.namespace&&!c.enabled,'E_PAIRING','Stop current hosting before changing approval');
       c.tasks=tasks;c.grantId=newId();c.claimId=null;c.pendingRequestId=null;c.enabled=true;c.revokedAt=null;await tx.put(KV,c,CONFIG);},'readwrite');wake();return cloudStatus({},sender);
@@ -258,7 +287,7 @@ export function createCloudService({storage,api,clock={now:()=>Date.now()},asser
       config.claimId??=newId();await tx.put(KV,config,CONFIG);return {claimId:config.claimId,tasks:c.tasks.map(t=>({taskId:t.taskId,manifestHash:t.manifestHash,sourceHash:t.contentHash}))};},'readwrite');if(!claim)return null;
     const answer=await post(c,'claim',claim);
     return scoped(sender,async tx=>{const config=await tx.get(KV,CONFIG);invariant(config?.enabled&&config.grantId===c.grantId&&config.claimId===claim.claimId,'E_CLOUD_REVOKED');
-      if(answer.assignment){const a=answer.assignment;invariant(a.executorId===c.executorId&&a.claimId===claim.claimId&&a.leaseUntil>clock.now(),'E_ASSIGNMENT');const t=c.tasks.find(t=>t.taskId===a.task.taskId&&t.version===a.task.version&&t.manifestHash===a.task.manifestHash&&t.contentHash===a.task.sourceHash);invariant(t&&a.target.mode==='owned'&&t.manifest.siteOrigins.includes(new URL(a.target.url).origin),'E_TASK');
+      if(answer.assignment){const a=answer.assignment;invariant(a.executorId===c.executorId&&a.claimId===claim.claimId&&a.leaseUntil>clock.now(),'E_ASSIGNMENT');const t=c.tasks.find(t=>t.taskId===a.task.taskId&&t.version===a.task.version&&t.manifestHash===a.task.manifestHash&&t.contentHash===a.task.sourceHash);invariant(t&&acceptedCloudTarget(a.target,t.manifest.siteOrigins),'E_TASK');
         const params=validateTaskParams(t.manifest.paramsSchema,a.params),requestId='cloud:'+a.assignmentId;const digestValue=await digest({providerId:c.providerId,executorId:c.executorId,assignmentId:a.assignmentId,task:a.task,params,target:a.target});const prior=await tx.get(KV,PREFIX+requestId);invariant(!prior||prior.digest===digestValue,'E_REQUEST_CONFLICT');
         if(!prior)await history.put(tx,{tag:'cloud-request-v1',requestId,digest:digestValue,assignment:a,params,task:t,grantId:c.grantId,namespace:host.namespace,state:'waiting',createdAt:clock.now()});
         config.claimId=null;config.pendingRequestId=!prior||prior.state==='waiting'&&!prior.runId?requestId:null;
@@ -267,7 +296,7 @@ export function createCloudService({storage,api,clock={now:()=>Date.now()},asser
     },'readwrite');
   }
   async function cloudResolve(request,sender){invariant(typeof request?.requestId==='string'&&request.requestId.startsWith('cloud:'),'E_SCHEMA');const initial=await transaction('readonly',tx=>tx.get(KV,PREFIX+request.requestId),[KV]);invariant(initial?.tag==='cloud-request-v1','E_TASK');const t=await resolveTask({taskId:initial.task.taskId},sender);return scoped(sender,async(tx,host)=>{const r=await tx.get(KV,PREFIX+request.requestId),c=await tx.get(KV,CONFIG);invariant(c?.enabled&&r?.namespace===host.namespace&&r.grantId===c.grantId&&!r.runId&&r.state==='waiting'&&r.assignment.leaseUntil>clock.now(),'E_CLOUD_REVOKED');
-    invariant(t.installationId===r.task.installationId&&t.generation===r.task.generation&&t.manifestHash===r.task.manifestHash,'E_PERMISSION');return {scriptId:t.scriptId,revision:t.revision,contentHash:t.contentHash,params:r.params,target:r.assignment.target,expectedTaskGeneration:t.generation,expectedTaskInstallationId:t.installationId,requestId:r.requestId,cloudRequestId:r.requestId,deadlineAt:Math.min(clock.now()+60000,r.assignment.leaseUntil)};});}
+    invariant(t.installationId===r.task.installationId&&t.generation===r.task.generation&&t.manifestHash===r.task.manifestHash&&t.version===r.task.version&&t.contentHash===r.task.contentHash&&t.scriptId===r.task.scriptId,'E_PERMISSION');return {scriptId:t.scriptId,revision:t.revision,contentHash:t.contentHash,params:r.params,target:r.assignment.target,expectedTaskGeneration:t.generation,expectedTaskInstallationId:t.installationId,requestId:r.requestId,cloudRequestId:r.requestId,deadlineAt:Math.min(clock.now()+60000,r.assignment.leaseUntil)};});}
   async function bind(tx,run,request,host){
     const r=await tx.get(KV,PREFIX+request.cloudRequestId),c=await tx.get(KV,CONFIG);invariant(c?.enabled&&r?.namespace===host.namespace&&r.grantId===c.grantId&&r.state==='waiting'&&!r.runId&&r.assignment.leaseUntil>clock.now(),'E_CLOUD_REVOKED');
     invariant(run.scriptId===r.task.scriptId&&run.contentHash===r.task.contentHash&&run.installedTaskAuthorization?.manifestHash===r.task.manifestHash&&canonical(run.installedTaskAuthorization?.authorization)===canonical({tag:'task-install-authorization-v1',installationId:r.task.installationId,generation:r.task.generation,scope:{capabilities:r.task.manifest.permissions,siteOrigins:r.task.manifest.siteOrigins,networkOrigins:[]}})&&canonical(decodeValue(run.paramsWire))===canonical(r.params)&&canonical(run.selection)===canonical(r.assignment.target)&&!run.networkOrigins.length,'E_TASK');
