@@ -25,8 +25,10 @@ permissions:
   contents: read
 
 concurrency:
-  group: cloud-control-r3-main
-  cancel-in-progress: true
+  # Keep exact-commit checks running when other agents push to main.
+  # Do not reinterpret a cancelled older candidate as a tested newer package.
+  group: cloud-control-r3-${{ github.sha }}
+  cancel-in-progress: false
 
 jobs:
   components:
