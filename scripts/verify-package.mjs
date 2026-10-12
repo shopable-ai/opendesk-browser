@@ -450,6 +450,17 @@ export async function verifyPackage(directory, {mode: requestedMode} = {}) {
   if(digest(babelLicense)!==PAGE_BROWSER_COMPILER.licenseSha256)
     throw Error('Browser compiler license mismatch');
   for (const file of Object.keys(HTML_REFERENCES)) await inspectHTML(root, file);
+  // A checked-in SVG explorer cannot ship with a stale compiled settings bundle.
+  // The extension serves HTML/CSS as public assets, but Workspace JS is built
+  // into the fixed native-agent/settings.js IIFE; verify both halves together.
+  const explorerHTML=await readFile(join(root,'native-agent/workspace.html'),'utf8');
+  if(!explorerHTML.includes('data-workspace-ui="svg-r3"')||
+     !explorerHTML.includes('data-icon-system="local-svg"')||
+     /<span>展开\s*\/\s*收起<\/span>/.test(explorerHTML))
+    throw Error('Workspace explorer UI asset is stale or missing SVG R3 contract');
+  const explorerJS=await readFile(join(root,'native-agent/settings.js'),'utf8');
+  if(!['data-variant','folder-open','tree-caret','file-icon'].every(value=>explorerJS.includes(value)))
+    throw Error('Workspace explorer runtime is stale: packaged settings.js lacks SVG file-tree icons');
   for(const cssPath of ['ui/design-tokens.css','ui/design-system.css','ui/tool-shell.css','ui/cloud-control-console.css','native-agent/settings.css','native-agent/workspace.css']) {
     const css = await readFile(join(root,cssPath),'utf8');
     if(/@(?:import|source|apply|tailwind|config|plugin)\b|url\s*\(|expression\s*\(/i.test(css)) throw new Error('Unsafe CSS resources in '+cssPath);
