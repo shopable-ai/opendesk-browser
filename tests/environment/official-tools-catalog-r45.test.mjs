@@ -34,13 +34,13 @@ async function fixture(t){
   }
   return {root,catalog,config,write,save};
 }
-test('R4.8 authored catalog has exactly two default tools and three optional projects',async()=>{
+test('R4.8 authored catalog keeps two default tools and includes optional Cookie Editor UI',async()=>{
   const source=await readOfficialSources();
   assert.deepEqual(source.tools.map(row=>row.id).sort(),
-    ['knowledge-inbox','markdown-workbench','quick-notes','reading-toc','time-review','web-markdown-clipper']);
+    ['cookie-editor','knowledge-inbox','markdown-workbench','quick-notes','reading-toc','time-review','web-markdown-clipper']);
   const policies=Object.fromEntries(source.tools.map(row=>[row.id,row.installationPolicy]));
   assert.deepEqual(policies,{'reading-toc':'preinstalled','web-markdown-clipper':'optional',
-    'quick-notes':'preinstalled','markdown-workbench':'optional','knowledge-inbox':'optional','time-review':'optional'});
+    'quick-notes':'preinstalled','markdown-workbench':'optional','knowledge-inbox':'optional','time-review':'optional','cookie-editor':'optional'});
   for(const row of source.tools){
     assert(['optional','preinstalled'].includes(row.installationPolicy));
     assert.equal(Object.hasOwn(row,'version'),false);assert.equal(Object.hasOwn(row,'capabilities'),false);
