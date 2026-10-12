@@ -42,17 +42,42 @@ async function visible(client,session,selector){
   return evaluate(client,expr(selector)+'&&!('+expr(selector)+').disabled&&('+expr(selector)+').getClientRects().length>0',session);
 }
 async function click(client,session,selector){
-  await deadline(()=>visible(client,session,selector),'visible clickable '+selector);
-  const node=await client.send('Runtime.evaluate',{expression:expr(selector),returnByValue:false},session);
-  assert(node.result?.objectId,'native target object is required: '+selector);
-  try{
-    await client.send('DOM.scrollIntoViewIfNeeded',{objectId:node.result.objectId},session);
-    await sleep(65);
-    const rect=await evaluate(client,'(()=>{const n='+expr(selector)+';const r=n.getBoundingClientRect();return {x:r.x+r.width/2,y:r.y+r.height/2,w:r.width,h:r.height}})()',session);
-    assert(rect.w>7&&rect.h>7&&rect.x>0&&rect.y>0,'actual screen geometry '+selector);
-    for(const type of ['mousePressed','mouseReleased'])
-      await client.send('Input.dispatchMouseEvent',{type,x:rect.x,y:rect.y,button:'left',clickCount:1},session);
-  }finally{await client.send('Runtime.releaseObject',{objectId:node.result.objectId},session).catch(()=>{});}
+  // A genuine extension page may self-navigate from tool.html to its
+  // hostInstanceId URL as the DevTools session attaches. Reacquire DOM
+  // geometry only BEFORE the first real pointer event; never replay an
+  // uncertain user click after mousePressed.
+  let last;
+  for(let attempt=0;attempt<4;attempt++){
+    await deadline(()=>visible(client,session,selector),'visible clickable '+selector);
+    let objectId=null,gestureStarted=false;
+    try{
+      const node=await client.send('Runtime.evaluate',{
+        expression:expr(selector),returnByValue:false},session);
+      objectId=node.result?.objectId;
+      if(!objectId)throw Error('CDP context changed before native pointer targeting');
+      await client.send('DOM.scrollIntoViewIfNeeded',{objectId},session);
+      await sleep(65);
+      const rect=await evaluate(client,'(()=>{const n='+expr(selector)+';const r=n.getBoundingClientRect();return {x:r.x+r.width/2,y:r.y+r.height/2,w:r.width,h:r.height}})()',session);
+      assert(rect.w>7&&rect.h>7&&rect.x>0&&rect.y>0,'actual screen geometry '+selector);
+      for(const type of ['mousePressed','mouseReleased']){
+        gestureStarted=true;
+        await client.send('Input.dispatchMouseEvent',{
+          type,x:rect.x,y:rect.y,button:'left',clickCount:1},session);
+      }
+      return;
+    }catch(error){
+      // No input has been issued yet. A new DOM lookup is safe. If native
+      // input was issued, propagate the uncertainty instead of double-clicking.
+      if(gestureStarted||!/(?:context|navigated|target.*closed)/i.test(String(error?.message))){
+        throw error;
+      }
+      last=error;
+      await sleep(250);
+    }finally{
+      if(objectId)await client.send('Runtime.releaseObject',{objectId},session).catch(()=>{});
+    }
+  }
+  throw last??Error('Native pointer context unavailable');
 }
 async function key(client,session,name,code,keyCode,modifiers=0){
   for(const type of ['rawKeyDown','keyUp'])
