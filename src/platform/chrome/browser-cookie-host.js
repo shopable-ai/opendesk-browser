@@ -40,12 +40,12 @@ function normalized(op,input={}){
     case 'browser.cookies.getAll':fields(input,['storeId','partitionKey']);break;
     case 'browser.cookies.set':{
       fields(input,['cookie'],['cookie']);const c=input.cookie;
-      fields(c,['name','value','domain','path','secure','httpOnly','sameSite','session','hostOnly','expirationDate','storeId','partitionKey'],['name','value']);
+      fields(c,['name','value','domain','path','secure','httpOnly','sameSite','session','expirationDate','storeId','partitionKey'],['name','value']);
       if(typeof c.name!=='string'||!c.name||c.name.length>256||
          typeof c.value!=='string'||c.value.length>4096||
          c.path!==undefined&&(typeof c.path!=='string'||!c.path.startsWith('/')||c.path.length>512)||
          c.domain!==undefined&&(typeof c.domain!=='string'||c.domain.length>253)||
-         ['secure','httpOnly','session','hostOnly'].some(k=>c[k]!==undefined&&typeof c[k]!=='boolean')||
+         ['secure','httpOnly','session'].some(k=>c[k]!==undefined&&typeof c[k]!=='boolean')||
          c.sameSite!==undefined&&!['unspecified','no_restriction','lax','strict'].includes(c.sameSite)||
          c.expirationDate!==undefined&&(!Number.isFinite(c.expirationDate)||c.expirationDate<0))
         throw error('E_SCHEMA','Invalid Cookie attributes');
@@ -133,10 +133,9 @@ export function createTrustedCookieHost({api=globalThis.chrome,now=Date.now}={})
   async function read(target,args={}){
     const exact=await scope(target,args);
     await guard(target);
-    // Legacy Controller driver retains its original behavior and authority checks.
-    const rows=!args.partitionKey&&args.storeId===undefined?
-      await existing.getCookies(target.url,{target}):
-      await chromeCall(api,api.cookies,'getAll',{url:target.url,...exact});
+    // R8 Driver redacts values. This HOST_ONLY native read uses the exact
+    // current Cookie store and never forwards values to the installed sandbox.
+    const rows=await chromeCall(api,api.cookies,'getAll',{url:target.url,...exact});
     await guard(target);
     if(!Array.isArray(rows)||rows.length>100)throw error('E_LIMIT','Narrow the Cookie scope');
     const owned=rows.filter(row=>row.storeId===exact.storeId);
@@ -193,8 +192,12 @@ export function createTrustedCookieHost({api=globalThis.chrome,now=Date.now}={})
     if(op==='browser.cookies.observe.start'){
       if(!api.cookies?.onChanged?.addListener)throw error('E_CAPABILITY');
       if(sessions.size>=8)throw error('E_LIMIT');
+      const ownStore=await storeId(target);
+      const partition=(await chromeCall(api,api.cookies,'getPartitionKey',{
+        tabId:target.tabId,frameId:0}))?.partitionKey;
+      if(!partition?.topLevelSite)throw error('E_COOKIE_PARTITION');
       const sessionRef=crypto.randomUUID(),expiresAt=now()+(args.durationMs??15000);
-      sessions.set(sessionRef,{target,storeId:await storeId(target),expiresAt,
+      sessions.set(sessionRef,{target,storeId:ownStore,partitionKey:partition,expiresAt,
         events:[],maxEvents:args.maxEvents??40,dropped:0});
       return {sessionRef,expiresAt,status:'running'};
     }
@@ -213,6 +216,7 @@ export function createTrustedCookieHost({api=globalThis.chrome,now=Date.now}={})
     for(const [id,s] of sessions){
       if(now()>=s.expiresAt){sessions.delete(id);continue;}
       if(!cookie||cookie.storeId!==s.storeId)continue;
+      if(cookie.partitionKey&&JSON.stringify(cookie.partitionKey)!==JSON.stringify(s.partitionKey))continue;
       const domain=String(cookie.domain||'').replace(/^\./,'').toLowerCase();
       const host=new URL(s.target.url).hostname;
       if(!domain||host!==domain&&!host.endsWith('.'+domain))continue;
