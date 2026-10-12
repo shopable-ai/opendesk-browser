@@ -15,14 +15,14 @@
 ### 已经完成的远端 R3 证据（只对应指定代码候选）
 
 - 已通过的云控组件、导航、Host 控制器、Authority、Provider 和双构建候选：
-  `e9e4fd513cc117360b44ab80d1a0919d37f26866`。
-- 真实 GitHub Actions：https://github.com/shopable-ai/opendesk-browser/actions/runs/38249509707
+  `210d44311ed96954ddc1b125f6b45f6902fc18d7`。
+- 真实 GitHub Actions：https://github.com/shopable-ai/opendesk-browser/actions/runs/38250711041
 - cloud-r3-component：**201 PASS / 0 FAIL**。
 - cloud-r3-package：`npm run check`、`npm run build`、`npm run build:dev`、`npm run verify` **PASS**。
 - 该候选生产包 packageHash：
-  `e14999103d090de93c3a540ce1109501b9070061dd6320093f4d6a31e1751a98`。
+  `645486f79e3638577f0810b0e797726039776c1bd7af61580af42b72ceb5a9db`。
 - 该候选开发包 packageHash：
-  `1b5d89bd2bfcc0ceb77c99b54fb8c7850da9afc0bd00a6f1b26a6bd674eb1572`。
+  `1f5228ea2d7470369089201aa3eb8cf85b4337dba3d32f1fe70c8a96dc1af87e`。
 
 **重要**：上面的 SHA 是可信的 R3 代码/CI 复用锚点，**不是对未来 main HEAD 的猜测**。
 本地实际开工先记 `git rev-parse HEAD` 和 `git rev-parse origin/main`，
