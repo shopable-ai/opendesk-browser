@@ -230,3 +230,8 @@ Axios 1.20.0 已按 npm 锁和完整传递来源集成到 `packages/axios.js` �
 ## R16.3 FingerprintJS npm 隐私回写（2026-10-12）
 
 真实上游 `@fingerprintjs/fingerprintjs@5.3.0`（MIT）按原有 npm 锁、WXT 固定资源、manifest SHA 与 USER_SCRIPT 单项声明接入。官方 `src/agent.ts` 明确 npm 默认 `monitoring=true`，可能对服务器发送使用统计，因此 OpenDesk Facade 只在用户程序显式调用 `FingerprintJS.load()` 时初始化，并强制 `monitoring:false`、`debug:false`；任何 `monitoring:true` 直接拒绝。`Agent.get()` 必须由用户代码进一步主动执行。没有调用就不能采集、生成或保存访问者识别码，不向 SW、云控或网站 MAIN 自动注入。具体代码、来源/许可和分层验收见 `docs/framework/workstreams/public-libraries-r163-fingerprintjs-20261012.md`；提交状态不等于生产、原生或安装包验收已通过。其他公共库缺口不因该增量删除。
+
+
+## R16.4 用户零参数公开入口及按执行环境消费说明（2026-10-12）
+
+本合同中所有公共预装库的**默认消费者**均为受授权 Controller / Page USER_SCRIPT 普通用户代码，而不是第三方包作者或 SW 宿主。Controller 多文件 ESM 的推荐入口是 `export default async function main()`，直接调用受控词法 `page`、`params` 和默认 `_`、`dayjs`；Sidebar 手写 Controller 草稿使用普通 `async function main()`。旧 `main({page,params})` 由现存编译包装器保留兼容，不代表需要用户传参。Page 使用 `document` 而不是 Controller `page`；背景/Sidebar 可信宿主/独立插件页面只从自己的 WXT 入口导入所用第三方包，已安装工具 iframe 不继承内置全局。禁止据此增加一套共享注入器或放宽权限。详细列表、两种零参数 Demo 与回归测试见 [运行变量世界矩阵](../../docs/api/runtime-globals-and-preinstalled-libraries.zh-CN.md)。此前目录设计稿和历史提示词若与本节冲突，以当前用户明确需求、真实运行器和测试为准。

@@ -2,6 +2,14 @@
 
 继承根 AGENTS.md 的 main、安全、并行资源与真实证据规则。先读取 `docs/architecture/browser-framework/public-preinstalled-libraries.contract.zh-CN.md` R1.1 和本目录 README；用户的最新明确决定优先于历史方案，不得将需求文档写成永远不可调整的规则。
 
+## 2026-10-12 新增：用户脚本的零参数入口与环境全局不得回退
+
+**AI、Codex、Demo 和 API 文档推荐的 Controller 入口必须是零参数。** 多文件 ESM 写 `export default async function main()`；Sidebar 手写单文件写 `async function main()`。直接引用词法 `page`、`params`、`axiosx`、`AppStorage` 等和默认 `_`、`dayjs`、`OpenDeskLibs`，不要求用户写 `main({page})`、显式传入能力对象或重复 npm 安装内置 Lodash/Day.js。内部 `scripts/build-program-project.mjs` 仍须保留历史对象形参入口的 ABI 兼容，**不得为了新样例删除旧调用**。
+
+Controller Worker 受控词法 `page` **不是 `globalThis.page`**；Page USER_SCRIPT 的无参 main 使用 DOM 和默认内置全局，不获得 Controller page/params/axiosx。SW、Side Panel 可信宿主、插件自定义页以**自己的固定构建入口按需 import**，不会继承 Controller/Page 的全局；Side Panel 已安装工具 iframe 只使用受控 `OpenDeskTool.root/request`。不得注入网站 MAIN、扩大 Chrome 权限或将全部 npm 包打进生产 SW。
+
+**权威产品使用合同**：[零参数预置变量与世界矩阵](../../docs/api/runtime-globals-and-preinstalled-libraries.zh-CN.md)；运行证据为 `src/scripting/sandbox/worker-runtime.js`、`scripts/build-program-project.mjs`、`src/libs/core.js` 和独立 Page 编译器。必须保留 L2 编译/实际调用回归以及独立的同包 Mac Chrome 回执，不能用文档或设计自评分代替验收。
+
 ## 2026-10-11 最新日期决策
 
 **公共日期库统一为 Day.js，不预装 Moment，不新增 packages/moment.js，不提供 moment=dayjs 假别名。** 在已有 packages/dayjs.js 接入经审核的 duration/utc/timezone/customParseFormat，同步用户可见 API/版本/构建/测试。旧 moment 脚本明确迁移，不批量改历史快照；原合同强制双库要求已被取代。此日期特例不得扩展成删除其他真实公共库需求。

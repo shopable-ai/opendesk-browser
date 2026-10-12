@@ -1,0 +1,27 @@
+{
+  "name": "@opendesk-examples/controller-globals-zero-arg",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "零参数 Controller ESM 预置环境 Demo",
+  "author": "OpenDesk examples",
+  "opendesk": {
+    "format": "opendesk.project.v1",
+    "id": "sample.controller-globals-zero-arg",
+    "runtimeKind": "controller",
+    "sourceFormat": "esm",
+    "entry": "src/main.js",
+    "siteOrigins": [
+      "http://127.0.0.1:43111"
+    ],
+    "permissions": [
+      "page.automation"
+    ],
+    "paramsSchema": {
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    }
+  }
+}

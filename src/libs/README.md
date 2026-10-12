@@ -2,6 +2,23 @@
 
 更新：2026-10-11，R15.9 交接。实际源码与**规划中的文件**必须分开：部分库已接线但尚未通过最新同候选工程/Chrome 验收，不能因文件存在就视为正式可交付。总需求见 [公共预装合同](../../docs/architecture/browser-framework/public-preinstalled-libraries.contract.zh-CN.md)。
 
+## 首先确认用户代码入口（2026-10-12 补充的不可回退需求）
+
+用户**不需要**把内置变量通过 `main` 参数传入。Controller 多文件 ESM 直接写：
+
+```js
+export default async function main() {
+  const title = await page.title();
+  return {title,words:_.words(title),date:dayjs().format('YYYY-MM-DD')};
+}
+```
+
+Sidebar 内联 Controller 草稿写 `async function main()`（不含 `export default`），拥有同样的 `page`、`_`、`dayjs` 使用合同。这里 `page` / `params` 是受控 Worker 的**词法能力**，不是网页 `window.page`；`_` / `dayjs` / `OpenDeskLibs` 由内置库注册器只在 Controller / Page USER_SCRIPT 世界预装。Controller 的旧 `main({page})` ESM 入口仍兼容，但不能以此要求新用户显式传参。
+
+Page USER_SCRIPT 用 `document` + 默认 `_` / `dayjs`，没有 Controller `page`。SW、Side Panel 可信宿主和扩展自定义 HTML 页面要在**各自的 WXT 固定入口**静态导入依赖，不能把 `src/libs` 当作整个浏览器共享的 JS 全局；安装的 Side Panel 工具 iframe 使用 `OpenDeskTool.root/request`，不继承主扩展全局。现有可选 Page 库仍按 `@opendesk-lib` 单 ID 声明才加载；无 CDN、不污染网站 MAIN。
+
+具体的世界矩阵、正确 API、零参数 Controller/Page 双 Demo 和下一阶段验收入口，见 **[零参数 main 与预装库使用合同](../../docs/api/runtime-globals-and-preinstalled-libraries.zh-CN.md)**。请优先引用该规范，避免继续从历史样例误推导 `main({page,params})` 是强制签名。
+
 ## 1. 当前真实目录及库状态
 
 ```text

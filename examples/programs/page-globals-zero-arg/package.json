@@ -1,0 +1,24 @@
+{
+  "name": "@opendesk-examples/page-globals-zero-arg",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "零参数 Page USER_SCRIPT 预置环境 Demo",
+  "author": "OpenDesk examples",
+  "opendesk": {
+    "format": "opendesk.project.v1",
+    "id": "sample.page-globals-zero-arg",
+    "runtimeKind": "page-userscript",
+    "sourceFormat": "esm",
+    "entry": "src/main.js",
+    "pageRules": {
+      "matches": [
+        "http://127.0.0.1/*"
+      ],
+      "excludeMatches": [],
+      "runAt": "document_idle",
+      "allFrames": false,
+      "world": "USER_SCRIPT"
+    }
+  }
+}

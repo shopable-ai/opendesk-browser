@@ -25,6 +25,9 @@ Page 单文件则使用 `--runtime-kind page-userscript --entry-format classic-u
 
 ## 单文件
 
+Controller 的 `page` / `params` 是运行器词法绑定，`_` / `dayjs` 是内置库全局；不需要通过 main 参数注入。独立脚本不写 `export default`，与 ESM 项目语法区分。见[零参数预置变量与执行世界](runtime-globals-and-preinstalled-libraries.zh-CN.md)。
+
+
 使用 [single-file/title.js](../../examples/programs/single-file/title.js)：
 
 ```js
@@ -44,6 +47,9 @@ async function main() {
 单文件不强制 package，也没有项目 npm/资产上下文；静态 import 改为目录项目。Page 最小源码是 `async function main(){return document.title;}`，attach 改为 page-userscript，查询用 previewId；无受管资源的脚本不支持受管 Stop。
 
 ## 相对 ESM 目录
+
+**推荐零参数 ESM 项目：**[controller-globals-zero-arg](../../examples/programs/controller-globals-zero-arg/README.md)。旧项目的参数兼容入口仍保留，以便复用历史测试和源码哈希。
+
 
 独立脚本 [single-file/title.js](../../examples/programs/single-file/title.js) 与下述多文件示例分开保存，避免改变项目目录中经过验证的文件结构。
 
@@ -78,11 +84,11 @@ local-controller/
 }
 ```
 
-入口 [src/main.js](../../examples/programs/local-controller/src/main.js)：
+入口 [src/main.js](../../examples/programs/local-controller/src/main.js) 的实际旧源码仍使用 `main({page})` 兼容入口；下方展示**新项目推荐写法**，不改变历史源码与 Golden SHA：
 
 ```js
 import {readSummary} from './extract.js';
-export default async function main({page}) {
+export default async function main() {
   return readSummary(page);
 }
 ```
@@ -99,7 +105,7 @@ export async function readSummary(page) {
 
 ## 参数、Page 规则和资产
 
-Controller siteOrigins 恰好一个，permissions 为 `["page.automation"]`；paramsSchema 验证 run 参数。示例只允许 `{}`，不能向它传 value。需要 value 时在自己的项目 schema 声明数字字段，并在 `main({params})` 中读取。Sidebar 本地参数与手工草稿参数分开保存。
+Controller siteOrigins 恰好一个，permissions 为 `["page.automation"]`；paramsSchema 验证 run 参数。示例只允许 `{}`，不能向它传 value。需要 value 时在自己的项目 schema 声明数字字段，在零参数 `main()` 中直接读取 `params.value`。Sidebar 本地参数与手工草稿参数分开保存。
 
 Page 使用 pageRules 替代 Controller 网站/参数字段。下列是 [local-page-ui/package.json](../../examples/programs/local-page-ui/package.json) 的 opendesk 部分，外层 name/version/private/type/description 仍必需：
 
