@@ -94,7 +94,7 @@ test('Time Review R1.3 actual Mac Chrome install and trusted consent smoke',{ski
     '--user-data-dir='+profile,'--disable-extensions-except='+EXTENSION,
     '--load-extension='+EXTENSION,'about:blank'];
   const proc=spawn(BIN,args,{stdio:['ignore','ignore','pipe']});
-  let stderr='',browser=null,complete=false,sideSid=null,frameSid=null;
+  let stderr='',browser=null,complete=false,sideSid=null,frameSid=null,restartProc=null;
   const evidence={candidate:process.env.GITHUB_SHA||null,mode:'actual-headed-macos-CFT',
     package:{id:pkg.id,version:pkg.version,sha256:createHash('sha256').update(pkgBytes).digest('hex')},
     chromePid:proc.pid,profileOwned:true,install:'NOT_TESTED',realSidePanel:'NOT_TESTED',
@@ -135,7 +135,15 @@ test('Time Review R1.3 actual Mac Chrome install and trusted consent smoke',{ski
         proc.kill('SIGTERM');
       });
     }
-    const terminated=proc.exitCode!==null||proc.signalCode!==null;
+    if(restartProc&&restartProc.exitCode===null&&restartProc.signalCode===null){
+      await new Promise(resolve=>{
+        const timer=setTimeout(()=>{restartProc.kill('SIGKILL');resolve();},2600);
+        restartProc.once('close',()=>{clearTimeout(timer);resolve();});
+        restartProc.kill('SIGTERM');
+      });
+    }
+    const terminated=(proc.exitCode!==null||proc.signalCode!==null)&&
+      (!restartProc||restartProc.exitCode!==null||restartProc.signalCode!==null);
     const owned=path.basename(profile).startsWith('opendesk-time-r13-')&&path.dirname(profile)===tmpdir();
     assert.ok(owned,'Only the unique owned temp profile may be removed');
     await rm(profile,{recursive:true,force:true,maxRetries:6,retryDelay:200});
@@ -472,10 +480,93 @@ test('Time Review R1.3 actual Mac Chrome install and trusted consent smoke',{ski
     }
     await browser.send('Target.closeTarget',{targetId:site.targetId});
   }
+  state=await readTime();
+  // The initial exports were intentionally empty. Check actual subsequent
+  // JSON/CSV after a trusted real website session, including name uniquify.
+  if(evidence.beginAndActiveCollection==='PASS'){
+    assert.ok(state.paused);
+    assert.ok(Object.values(state.days).some(sites=>(sites['127.0.0.1']||0)>0));
+    if(!await evaluate(browser,frame,'document.querySelector("#settings").open'))
+      await nativeClick(browser,frame,'#settings summary');
+    for(const [format,selector] of [['json','#export-json'],['csv','#export-csv']]){
+      const previous=new Set((await readDownloads()).map(row=>row.id));
+      await nativeClick(browser,frame,selector);
+      const done=await until(async()=>{
+        const rows=await readDownloads();
+        return rows.find(row=>!previous.has(row.id)&&row.state==='complete')||null;
+      },'populated '+format+' download',20000);
+      const file=path.resolve(done.filename||'');
+      assert.equal(path.dirname(file),path.resolve(downloads),'never inspect outside owned directory');
+      assert.match(path.basename(file),new RegExp('^time-review \\(\\d+\\)\\.'+format+'
+));
+      const contents=await readFile(file,'utf8');
+      if(format==='json'){
+        const parsed=JSON.parse(contents);
+        assert.equal(parsed.format,'opendesk.time-review.export.v1');
+        for(const key of ['days','categories','minuteDays','settings'])
+          assert.deepEqual(parsed[key],state[key],'populated '+format+' '+key);
+        assert.equal(parsed.minuteConsent,state.minuteConsent);
+        assert.equal(parsed.discardedMs,state.discardedMs);
+      }else assert.equal(contents,reviewExport(state,'csv').text);
+      note('populated-export',{format,filename:path.basename(file),bytes:Buffer.byteLength(contents),
+        sha256:createHash('sha256').update(contents).digest('hex'),actualWebsiteTime:true});
+    }
+    evidence.populatedExport='PASS';
+  }else evidence.populatedExport='NOT_TESTED';
+
+  // Test a truly new browser PROCESS on the same uniquely owned profile.
+  // All writes to Time Review storage remain exclusively product-initiated.
+  const oldState=structuredClone(state);
+  const oldSession=await evaluate(browser,side,
+    'chrome.storage.session.get("opendesk.time-review.session.v1").then(v=>v["opendesk.time-review.session.v1"]||null)');
+  const portPath=path.join(profile,'DevToolsActivePort');
+  const oldPort=await readFile(portPath,'utf8').catch(()=>null);
+  const oldBrowser=browser;
+  await oldBrowser.send('Browser.close').catch(()=>{});
+  oldBrowser.close();browser=null;sideSid=null;frameSid=null;
+  await until(()=>proc.exitCode!==null||proc.signalCode!==null,
+    'original Chrome PID exit before reusing Profile',15000);
+  await sleep(350);
+  restartProc=spawn(BIN,args,{stdio:['ignore','ignore','pipe']});
+  restartProc.stderr.on('data',data=>{stderr=(stderr+String(data)).slice(-3500);});
+  const port=await until(async()=>{
+    const raw=await readFile(portPath,'utf8').catch(()=>null);
+    if(!raw||raw===oldPort)return null;
+    const number=Number(raw.split('\n')[0]);return number>0?number:null;
+  },'new CFT CDP port on same Profile',30000);
+  const nextVersion=await(await fetch('http://127.0.0.1:'+port+'/json/version')).json();
+  assert.equal(nextVersion.Browser,version.Browser,'same pinned CFT binary');
+  browser=cdp(nextVersion.webSocketDebuggerUrl);await browser.ready;
+  const reopened=await browser.send('Target.createTarget',{
+    url:'chrome-extension://'+present+'/ui/tool.html?hostInstanceId='+randomUUID()});
+  const newSide=(await browser.send('Target.attachToTarget',{
+    targetId:reopened.targetId,flatten:true})).sessionId;
+  await browser.send('Runtime.enable',{},newSide);await browser.send('Page.enable',{},newSide);
+  const persisted=await until(async()=>evaluate(browser,newSide,
+    '(async()=>{const rows=(await chrome.storage.local.get("opendesk.sidebar-tools.installed.v1"))["opendesk.sidebar-tools.installed.v1"];const review=(await chrome.storage.local.get("opendesk.time-review.v1"))["opendesk.time-review.v1"];return {extensionId:chrome.runtime.id,version:rows?.find(t=>t.id==="time-review")?.version||null,review:review||null};})()'),
+    'installed Time Review and durable data after whole Chrome restart',15000);
+  assert.equal(persisted.extensionId,present,'same installed extension after restart');
+  assert.equal(persisted.version,'1.3.0','installed Time Review retained');
+  assert.ok(persisted.review?.paused,'paused state retained after restart');
+  for(const key of ['days','categories','minuteDays'])
+    assert.deepEqual(persisted.review[key],oldState[key],'durable '+key+' across Chrome restart');
+  assert.equal(persisted.review.minuteConsent,oldState.minuteConsent);
+  const newSession=await until(()=>evaluate(browser,newSide,
+    'chrome.storage.session.get("opendesk.time-review.session.v1").then(v=>v["opendesk.time-review.session.v1"]||null)'),
+    'new browser session identity after Chrome restart',15000);
+  assert.ok(oldSession&&newSession&&oldSession!==newSession,
+    'entire Chrome restart must replace the per-browser session UUID');
+  evidence.browserRestart=evidence.beginAndActiveCollection==='PASS'?'PASS':'PARTIAL';
+  evidence.browserRestartScope='paused genuine website totals, same owned Profile';
+  note('real-chrome-restart',{previousPid:proc.pid,newPid:restartProc.pid,
+    sameProfile:true,sessionChanged:true,toolVersion:persisted.version,
+    days:Object.keys(persisted.review.days).length,paused:persisted.review.paused});
+  state=persisted.review;
   complete=true;
   await writeFile(path.join(OUT,'state-summary.json'),JSON.stringify({
     minuteConsent:state.minuteConsent,paused:state.paused,days:Object.keys(state.days||{}).length,
-    nativeInstall:true,downloadChecks,
+    nativeInstall:true,downloadChecks,browserRestart:evidence.browserRestart,
+    populatedExport:evidence.populatedExport,
     currentSourceHash:process.env.GITHUB_SHA||null,actualSidePanelDocumentId:sideDocument.documentId
   },null,2)+'\n');
 });
