@@ -59,3 +59,29 @@ sourceHash/依赖，按网站授权安装；保留普通 JS 和零参数 Control
 在安全无并行冲突与同候选真实 Chrome 测试满足后提交到 main；
 未通过的流程逐项写 NOT_TESTED/BLOCKED，禁止宣称全面 95+。
 ```
+
+## GOAL 3 — Commercial Discovery R2：商业机会与真实付费验证
+
+~~~text
+# GOAL：OpenDesk Browser Commercial Discovery R2
+## 首要目标：不重复整理 188 功能和 84 个机会，直接把前三个商业假设验证成真实用户与付费/留存证据。
+
+仓库：https://github.com/shopable-ai/opendesk-browser
+只在 main 修改研究文档，不创建分支、Worktree、PR，不强推，不覆盖并行修改。
+先读取 AGENTS.md 和 docs/product/browser-extension-ecosystem/ 下的
+README.zh-CN.md、commercial-opportunity-framework.zh-CN.md、
+monetization-unit-economics.zh-CN.md、distribution-and-validation.zh-CN.md、
+commercial-experiments.json；同时继承 R8 188 功能账本与 E01–E40。
+
+先核对最新 main 和相关工作流；不重新开发 Browser SDK 或第二执行器。
+优先验证 EXP-001 企业重复工作流付费试点、
+EXP-002 Page QA Inspector 自主使用及独立产品价值、
+EXP-003 Research Clip & Cite 在真实任务中的重复使用。
+脚本作者市场 EXP-004 先验证安装/更新/回滚安全，不预设收入。
+针对买方、实际工作步骤、频次、替代方案、渠道、付款单位与维护工时，
+记录可验证事实，未收款不得宣称收入，未访谈不得编造需求。
+所有外部客户联系、收款或隐私数据处理需另获明确授权。
+CWS 单一用途、重复内容、白标、最小权限和合法数据来源为独立否决项。
+交付 GO/PIVOT/STOP、真实/缺失证据、各项 Gate 结果和下一轮产品建议；
+仅在安全无并行冲突时将研究文档保存 main。
+~~~

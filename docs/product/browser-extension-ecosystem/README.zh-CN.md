@@ -1,4 +1,4 @@
-# OpenDesk Browser Product Ecosystem R1（决策与长期导航）
+# OpenDesk Browser Product Ecosystem R1–R2（决策与长期导航）
 
 > 2026-10-12。本目录是**产品机会研究与产品架构提案**，并非已发布软件、正式验收或市场规模证明。仅基于远端 GitHub `main` 的抽样源码、既有 R8 账本/工作记录及公开产品和政策资料；**未能访问用户 Mac 本地工作区，不能证明其 git status、真实 Chrome、最终构建或本地并行写入情况**。新研究不得覆盖现有 R8 188 条稳定 ID 与 E01–E40。
 >
@@ -43,6 +43,10 @@ OpenDesk Product Ecosystem
 - [研究优先级](product-priorities.zh-CN.md) — TOP30、TOP10 行业、TOP5 概念、首批三个真实 MVP
 - [24 个月候选路线](roadmap-24-months.zh-CN.md) — 0–3/3–6/6–12/12–24 月里程碑与否决门
 - [持续研究办法](research-process.zh-CN.md) — 去重、证据升级、周/月/季节奏与手工执行说明
+- [商业机会发现框架](commercial-opportunity-framework.zh-CN.md) — 14 个机会视角、五层漏斗与八类跨行业商业方向（R2）
+- [盈利模式与单位经济](monetization-unit-economics.zh-CN.md) — 十二种收费方式、支付/权限分离及成本公式（R2）
+- [获客与商业验证](distribution-and-validation.zh-CN.md) — 渠道、合作伙伴、付费试点与六周实验方法（R2）
+- [商业实验台账](commercial-experiments.json) — 8 个 EXP、无虚构订单和访谈、不复制 84 个 OPP（R2）
 - [下一轮 GOAL](next-goals.zh-CN.md) — Extension Factory / UserScript 两份可复制实施提示词
 
 ## 权威文档边界

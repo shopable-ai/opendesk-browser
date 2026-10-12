@@ -39,3 +39,9 @@
 ## 跨对话复用方式
 
 每次开始先读取本目录 README 与 JSON，核对最新 GitHub `main` 和原 R8 唯一账本；本次研究新增源先在现有机会 ID 下标注影响，只有不同工作流才新增 ID。文档改动需记录 `base HEAD`、`lastReviewAt`、变更行、证据来源、计划与代码的差异；无 Mac Chrome 原生访问不得标记 95+ 通过。
+
+## R2 商业实验：只新增不同层级的证据账本
+
+- 机会保持 [OPP 唯一表](opportunity-register.json)，工程能力仍按 R8 188 项，工程任务仍按 E01–E40。新 [EXP 台账](commercial-experiments.json) 只记录购买者、渠道、假设、测试、订单与经济性证据；**不是第二份功能表**。一个机会可有多个 EXP；一个 EXP 可关联多个已有 OPP，不能靠换名称增加数量。
+- 没有真实访谈、实际收入、真实浏览器验收、独立客户成交时，保留 null/NOT_TESTED/NOT_MEASURED；商业优先级不能替换源代码验收等级。机密企业原始网页、个人数据、Cookie、订单和合同只能留在获授权的私有环境，不写公开仓库。
+- 日后每周可人工审查 CWS 规则和竞争变化；每月检查 EXP 真实证据；每季度决定继续/转向/暂停与 OPP 排名。详细流程见 [商业发现](commercial-opportunity-framework.zh-CN.md)、[盈利模式](monetization-unit-economics.zh-CN.md) 与 [商业验证](distribution-and-validation.zh-CN.md)。**本轮没有创建定时任务。**
