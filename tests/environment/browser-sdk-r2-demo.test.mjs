@@ -13,8 +13,12 @@ test('Browser SDK R2–R4 demo is a valid installable v2 tool, not a fake privil
   'browser.network.observe','browser.events','browser.operations','browser.screenshot']);
  assert.match(pkg.js,/OpenDeskSDK\.browser/);
  assert.match(pkg.js,/browser\.tabs\.open/);
- assert.match(pkg.js,/browser\.network\.observe\.start/);
- assert.match(pkg.js,/browser\.operations\.cancel/);
+ assert.match(pkg.js,/browser\.network\.watch/);
+ assert.match(pkg.js,/currentWatch\(\)\.read/);
+ assert.match(pkg.js,/currentWatch\(\)\.stop/);
+ assert.match(pkg.js,/currentWatch\(\)\.export/);
+ assert.doesNotMatch(pkg.js,/browser\.network\.observe\.start/);
+ assert.match(pkg.js,/currentWatch\(\)\.cancel/);
  assert.match(pkg.js,/browser\.screenshot\.captureVisible/);
  assert.doesNotMatch(pkg.js,/chrome\.tabs|chrome\.downloads|document\.createElement\(['"]script/);
 });
