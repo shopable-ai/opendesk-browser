@@ -119,8 +119,13 @@ export function createCloudService({storage,api,clock={now:()=>Date.now()},asser
       // Original released Run + confirmed receipt is immutable history.
       if(r.receipt&&r.state==='finished'&&run?.retirementState==='released')return null;
       r.reason=reason;if(!run){r.state='cancelled';await tx.put(KV,r,PREFIX+r.requestId);return;}
-      if(['preparing','running','stopping'].includes(run.state)){run.cancelSeq++;run.ownerEpoch++;run.runRevision++;run.eventSeq++;run.state='stopping';run.terminalReason=reason;await tx.put('runs',run,run.runId);const k='controller-pin:'+run.runId,l=await tx.get('commandJournal',k);if(l)await tx.put('commandJournal',{...l,state:run.state,cancelSeq:run.cancelSeq},k);}
-      r.state=run.retirementState==='released'?'finished':'cancellation-pending';await tx.put(KV,r,PREFIX+r.requestId);return run;});
+      // A run already stopping has an original durable cancellation fence.
+      // Repeated cloudStop/reconnect notifications must not advance its owner
+      // epoch or cancellation sequence and invalidate its pending settlement.
+      const newlyFenced=['preparing','running'].includes(run.state)&&!run.cancelSeq;
+      if(newlyFenced){run.cancelSeq++;run.ownerEpoch++;run.runRevision++;run.eventSeq++;run.state='stopping';run.terminalReason=reason;await tx.put('runs',run,run.runId);const k='controller-pin:'+run.runId,l=await tx.get('commandJournal',k);if(l)await tx.put('commandJournal',{...l,state:run.state,cancelSeq:run.cancelSeq},k);}
+      r.state=run.retirementState==='released'?'finished':'cancellation-pending';await tx.put(KV,r,PREFIX+r.requestId);
+      return newlyFenced?run:null;});
     if(result)await emitToHost(result.registrationId,{type:'controller-fenced',runId:result.runId,reasonCode:reason});
   }
   async function cloudStop(_,sender){
