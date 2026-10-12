@@ -8,7 +8,10 @@
     "03ecb592130ca476567f24603a41b6d126921e8f",
     "5c34ffced54c53535cf44a737f29f3e24c5ed10f",
     "849ab2b901beab02b837f5d91fcd2477ed2ef4a9",
-    "d0ad8ed119a22343be38dfa62a650199ce6872ba"
+    "d0ad8ed119a22343be38dfa62a650199ce6872ba",
+    "05f3fc8f5a9220b237adb57e6052c3615f753d8e",
+    "539bb35c05bc44aabdd501dadb18bc4fcef56fec",
+    "c3356edd26092aac2470594076e42dd4ef63befc"
   ],
   "taskExamples": [
     {
@@ -26,15 +29,16 @@
   ],
   "status": {
     "source": "SOURCE_IMPLEMENTED",
-    "components": "CI_PENDING",
-    "build": "CI_PENDING",
+    "components": "CI_QUEUED",
+    "build": "CI_QUEUED",
     "nativeTwoTasks": "NATIVE_PENDING",
     "nativeMac": "NATIVE_PENDING",
     "longRunningRunner": "NOT_IMPLEMENTED"
   },
   "ci": {
-    "url": null,
-    "headSha": null,
+    "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38291579062",
+    "headSha": "c3356edd26092aac2470594076e42dd4ef63befc",
+    "status": "queued",
     "passed": null,
     "failed": null,
     "productionPackageHash": null,
