@@ -387,11 +387,20 @@ test('Time Review R1.3 actual Mac Chrome install and trusted consent smoke',{ski
       // A CI host that is physically idle is not a product defect. Never
       // weaken observe(), simulate chrome.idle, or count this as native PASS.
     }else{
-      await until(async()=>{const s=await readTime();return s.checkpoint?.host==='127.0.0.1'?s:null;},
-        'website checkpoint from live Chrome tab',10000);
-    await sleep(1600);
-    await nativeClick(browser,side,'#sidebar-tool-settings-open');
-    await nativeClick(browser,frame,'#refresh');
+      // A genuine OS activity transition does not force an immediate SW wake:
+      // the heartbeat may legitimately arrive up to 30 seconds later. Use
+      // the actual Side Panel refresh button to request a normal status tick.
+      // No Chrome storage/business data or privileged API response is forged.
+      await nativeClick(browser,side,'#sidebar-tool-settings-open');
+      await nativeClick(browser,frame,'#refresh');
+      const checkpoint=await until(async()=>{
+        const s=await readTime();
+        return s?.checkpoint?.host==='127.0.0.1'?s:null;
+      },'website checkpoint after visible Time Review refresh',10000);
+      note('real-web-checkpoint',{host:checkpoint.checkpoint.host,paused:checkpoint.paused,
+        startedAt:checkpoint.checkpoint.at,hasPermission:true});
+      await sleep(1600);
+      await nativeClick(browser,frame,'#refresh');
     const settled=await until(async()=>{
       const s=await readTime();
       return Object.values(s.days||{}).some(sites=>(sites['127.0.0.1']||0)>=750)?s:null;
