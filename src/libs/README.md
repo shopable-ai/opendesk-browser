@@ -243,3 +243,9 @@ npm run pack:dev
 当前固定入口集合由 `scripts/build-contract.mjs` 的 `PACKAGE_ENTRIES`、`FIXED_OUTPUTS` 唯一定义；历史 19/20 个入口的数字已过时，脚本和测试须随真实入口变更同步核对。现行 `BUILD_POLICY`：**生产 SW 1 MiB 硬限、512 KiB 复核线；其他独立固定 JS 512 KiB 硬限、320 KiB 复核线；开发 SW 1.5 MiB**。此数值是仓库工程约束而不是 Chrome 平台强制上限；历史 327680 B 合同已被后续构建策略替代。单独按需库超限时应先精简依赖、确认模块溯源和拆分是否可行，确需提高某一类资源上限必须**同步调整加载器、manifest 校验、固定包验证、测试和文档**，不能仅修改一个 WXT 常量获得 PASS。所有体积调整均不允许扩大 Chrome 权限或放宽 CSP/供应链校验。Node CI/ZIP 结果和同包 Mac Chrome 结果分别记录；Chrome 未核验时为 `NATIVE_UNVERIFIED`。
 
 本轮实际补充与阻断见 [R15.9 工作记录](../../docs/framework/workstreams/public-libraries-r159-status-20261011.md)。原 [R15.7 Mac Codex GOAL](../../docs/framework/prompts/goal-r157-public-libraries-mac-codex-final-20261011.zh-CN.md) 属于尚未完成库迁移的历史实施任务，**不能称为已经可执行的最终验收**。
+
+## R16.7 Controller Axios 独立能力
+
+Controller **不默认加载**真实 Axios。只有单文件源码开头 `// @opendesk-lib axios` 或 Controller 项目 `package.json#opendesk.libraries=["axios"]` 才从同一已审计、固定 SHA 的 `libs/packages/axios.js` 读取资源，在受控 Worker 中运行。没有再发布第二份 Axios 或将其打进 SW；Page 继续使用自身的 CORS Axios 实例，Controller 则通过现有 `axiosx` Broker 严格授权。用户均可零参数 `main()` 直接使用 `axios`，Controller 不暴露到网站 MAIN。
+
+[完整零参数 Controller + Axios Demo](../../examples/programs/controller-axios-zero-arg/README.md)。其原生回执不能用单元测试替代；逐请求 AbortSignal、文件上传流和适配器覆盖明确不支持，禁止绕过 Broker。

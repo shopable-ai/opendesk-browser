@@ -153,3 +153,11 @@ async function main() {
 - [Controller 单文件](../../examples/programs/single-file/title.js)、[Page 单文件零参数](../../examples/programs/single-file/page-globals-zero-arg.js)、[可信扩展静态 ESM 模块](../../examples/libs/trusted-imports/README.zh-CN.md)、[可打包 Side Panel 工具](../../examples/sidebar-tools/runtime-globals-demo/README.md)、[React Direct](../../examples/programs/page-ui-react-direct/README.md)、[Vue Direct](../../examples/programs/page-ui-vue-direct/README.md)、[Side Panel 工具开发](sidebar-tool-development.zh-CN.md)。
 
 相关来源合同：[Controller](controller.zh-CN.md)、[Page](page-userscript.zh-CN.md)、[项目格式](local-projects.zh-CN.md)、[公共库实现](../architecture/browser-framework/public-preinstalled-libraries.contract.zh-CN.md)。**使用体验必须以同一候选实际运行代码来证明，文档和组件测试不等于整体 95 分产品验收。**
+
+## R16.7 Controller 真实 Axios opt-in
+
+Controller 支持 `// @opendesk-lib axios`（单文件）或多文件项目的 `opendesk.libraries: ["axios"]`，由可信运行器按声明加载已审核的同一固定 Axios 1.20.0 WXT 资源，并只在受控 Worker 初始化真实 Axios。新推荐仍为零参数 `main()`。所有 HTTP 请求从 Axios transport 经过原本的 `axiosx`→Host Broker→网站授权路径；不会通过 Worker/目标网站全局 fetch 绕过 Broker。已有默认 Controller 的启动资源不会主动获取 Axios。
+
+已实现的范围：`get/post/put/delete/request/create/getUri`、请求/响应拦截器、常见文本/JSON 响应、`validateStatus`、最终 URL 及安全 Header，HTTP 错误在受授权回执基础上生成 AxiosError。拒绝替换 `adapter`、高权限敏感 Header、请求携带 Cookie/凭据、上传/下载流、二进制及逐请求取消令牌。停止任务会通过原 Controller 生命周期中断授权操作。
+
+[完整 Controller Axios 项目](../../examples/programs/controller-axios-zero-arg/README.md)；该环境没有 Page `document` 或网页 `window.axios`。发布/真实 Chrome 验收必须核对实际 Broker 及同候选 SHA。

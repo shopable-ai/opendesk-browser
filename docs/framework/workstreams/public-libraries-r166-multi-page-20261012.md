@@ -34,3 +34,7 @@ npm run verify && npm run build:size && npm run pack && npm run pack:dev
 ## Controller 真实 Axios 工厂（阶段一）
 
 `src/libs/packages/axios.js` 新增直接复用真实 upstream Axios 1.20.0 的受控 Controller 工厂；`src/libs/adapters/axios-transport.js` 接受由现有 Worker Bridge 传送的已授权 `E_HTTP.cause.response`，其余取消/撤权直接拒绝。新定向单测覆盖 `get/post/create/request/interceptors`、最终 URL、Header、HTTP 错误以及覆盖 adapter 的拒绝。**这一步只提供受控工厂和 L2 测试，不应宣称 Controller main() 已接通**；仍需在固定库按需装载及真实 Worker 入口连接后另行验收。
+
+## Controller Axios R16.7 正式调用闭环的新增源码
+
+在上一阶段真实 upstream Axios 受控工厂的基础上，复用**同一个** `libs/packages/axios.js` 固定 WXT 资源：`runtime-contract.js` 为 Axios 开通显式 Controller 世界（仍为 opt-in），`libs/loader.js` 使用已有 SHA manifest、`scripting/sandbox/controller.js` 只对声明的程序加载并绑定同默认 Catalog 身份，再经 Worker 原有词法 `axiosx` 使用 Broker。Controller ESM 项目 `opendesk.libraries=["axios"]` 由现有编译器生成源码前缀；历史无声明程序不加载。新增 `tests/environment/axios-controller-world-r167.test.mjs` 对已构建实际 IIFE 的 Worker VM 调用测试、示例 `examples/programs/controller-axios-zero-arg/`。这表示代码新增，需要当前提交的包/原生 Chrome 证据才能宣称产品验收，不能借前一提交的成功资格 CI 自动升级。
