@@ -172,3 +172,19 @@ python3 -m http.server 43111 --bind 127.0.0.1 --directory examples/tasks
 在 GitHub Actions [#38250058359](https://github.com/shopable-ai/opendesk-browser/actions/runs/38250058359) 中，Linux 已使用独立 `xvfb-run`，但真实 `native-report.json` 记录 Chrome 155 在读取 DevTools 端口前以 `SIGTRAP` 退出，stderr 明确为 `zygote_host_impl_linux.cc:130 No usable sandbox!`。这是 Ubuntu GitHub runner 的 AppArmor/user namespace 限制，**没有形成任何可验证的网页或定时执行证据**。不是通过注入数据或放宽 OpenDesk CSP 能解决的问题。
 
 为了获得浏览器执行预检，Linux 流水线现在**仅在**实际 `linux`、`CI=true`、`GITHUB_ACTIONS=true` 和显式 `SCHEDULE_NATIVE_CI_NO_SANDBOX=1` 同时成立时，对该单次隔离 Chrome for Testing 进程追加 `--no-sandbox`。非 CI / Mac 环境不接受这一开关；正常扩展权限、CSP、Authority 和 MV3 都未改变。**该 Linux 结果不评价 Chrome OS sandbox 安全性，更不能代替 Mac 真实 Chrome 验收。** 原失败 artifact 仍保留，不改写为通过。
+
+
+### R1.6 Linux CFT 真实执行正向验收（2026-10-12，固定候选）
+
+[Linux Chrome for Testing CI #38250781773](https://github.com/shopable-ai/opendesk-browser/actions/runs/38250781773)，候选源码 `f58d6a8c35a458440f4a8f8028d1934d44cd9e0a`，`scheduled-cft-linux=completed/success`。正式 WXT production 的固定包指纹：`645486f79e3638577f0810b0e797726039776c1bd7af61580af42b72ceb5a9db`。Chrome for Testing 155.0.8059.39，独立 Xvfb + 临时 profile，Linux CI-only 关闭 OS sandbox（**不支持 Chrome Sandbox 安全验收**）。
+
+[CI 原始证据包](https://github.com/shopable-ai/opendesk-browser/actions/runs/38250781773) artifact 名称 `scheduled-tasks-r1-linux-f58d6a8c35a458440f4a8f8028d1934d44cd9e0a`，包含 `native-report.json` 与 4 张真实 Chrome 截图。经读取报告和真实 CI 日志核对：
+- `manualTaskVerification=PASS`：用户 UI 载入 `form-fill.v1.opendesk-task.json`、将完全一致的源码通过真实 Chrome 文件选择器导入 Developer，原 Chrome Page 发生表单输入/提交，并取得原 `Run/Result`、Native effect receipt、worker retired/released；
+- `verifiedInstallation=PASS`：Candidate 通过原 `verifyTaskCandidate`，设为 Available，固定版本安装并授权；
+- `nativeScheduleCreation=PASS`：在原 `我的` 内创建 `interval=1m` 持久计划；
+- `sidePanelClosedRunnerLive=PASS`：通过 UI 打开可见 `scheduledRunner=1` TAB，并真实关闭 `SIDE_PANEL` 目标；
+- `actualScheduledNativeEffect=PASS`：Chrome 到期之后原 Controller `RunId=26b36080-c307-49c2-bd87-766f2ab700b6` 与 `ResultId=9a4c5b9d-d9a9-4431-9c4c-82e926b5a6f2` 绑定持久 FireId `sched:901cc494-e5ee-4236-a593-487af7c33967:1:1791809194502`；原 `run.state=completed`、`retirementState=released`、`workerRetired=true`，有真实 Controller native receipt，网页 `#name` 为 `Scheduled Native` 且 `#done` 存在；
+- `nativePause=PASS`：最后通过可见扩展 UI 暂停计划，持久 `nextDueAt=null`；
+- 按固定源码实际执行的原生测试 **1/1 PASS**。该结果不是 Node 模拟、只触发 Alarm 回调或访问静态原型。
+
+**仍需核对：** macOS CFT 工作流在 runner 队列中，不能把 Linux CFT 提升为 `MAC_CHROME_NATIVE_VERIFIED`；多 Host 同时竞争、Host 全部消失及恢复、Chrome 整浏览器重启、真实撤权/版本变更/未知后效、Side Panel 真实 200% 缩放均没有此候选的正式原生证据。Linux 截图缺 CJK 字体，不能据此进行中文视觉 95 分评分。新增功能与旧稳定候选不得混同为系统最终 F3/ZIP 验收。
