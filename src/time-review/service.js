@@ -54,7 +54,12 @@ export function createTimeReviewService({api=globalThis.chrome,lockManager=globa
     const tabs=await api.tabs.query({active:true,windowId:window.id});
     const tab=tabs.length===1?tabs[0]:null,host=reviewHost(tab?.url);
     if(!host||tab.incognito||tab.pendingUrl||state.settings.excludedHosts.some(row=>host===row||host.endsWith('.'+row)))return {permitted:true,current:null};
-    if(!await api.permissions.contains({origins:[new URL(tab.url).origin+'/*']}))return {permitted:true,current:null};
+    // Chrome host-permission patterns identify scheme + host, not a TCP port.
+    // URL.origin includes ':43111' for a localhost development site; sending
+    // that to permissions.contains can reject the pattern and silently stop
+    // real tracking. Keep same scheme/hostname and never widen to '*' hosts.
+    const address=new URL(tab.url),pattern=address.protocol+'//'+address.hostname+'/*';
+    if(!await api.permissions.contains({origins:[pattern]}))return {permitted:true,current:null};
     return {permitted:true,current:{host,tabId:tab.id,windowId:window.id}};
   }
   async function reconcileLocked({boot=false,operation=null,payload=null,auth=null,at=now(),validateHost=null}={}){

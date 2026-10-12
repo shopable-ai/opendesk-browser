@@ -348,6 +348,9 @@ test('Time Review R1.3 actual Mac Chrome install and trusted consent smoke',{ski
       const active=await evaluate(browser,side,'chrome.tabs.query({active:true,lastFocusedWindow:true})');
       return active.some(tab=>tab.url===siteUrl);
     },'real HTTP(S) Chrome active tab',10000);
+    const observationGates=await evaluate(browser,side,
+      '(async()=>{const w=await chrome.windows.getLastFocused();const t=(await chrome.tabs.query({active:true,windowId:w.id}))[0];return {focused:w.focused,windowType:w.type,idle:await chrome.idle.queryState(60),isLoopbackTab:t?.url?.startsWith("http://127.0.0.1:"),hasHostPermission:await chrome.permissions.contains({origins:["http://127.0.0.1/*"]})};})()');
+    note('native-observation-gates',observationGates);
     await until(async()=>{const s=await readTime();return s.checkpoint?.host==='127.0.0.1'?s:null;},
       'website checkpoint from live Chrome tab',10000);
     await sleep(1600);

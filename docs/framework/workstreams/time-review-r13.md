@@ -96,3 +96,6 @@
 - `src/time-review/model.js`：载入时如果 `minuteConsent=false` 但历史 / 异常写入留有分钟明细，只保留合法日汇总，绝不向 Side Panel / JSON 导出暴露陈旧明细；下一次经验证的写入清除残留。`readReview` 不会直接修改外部传入对象。
 - `tests/framework/time-review-r13-native.test.mjs`：在 P0 原生下载之后，以用户真实信任操作尝试可选 idle 授权；获准才继续真实 localhost HTTP 标签打开、有效计时、暂停、SW 真实终止/恢复与恢复记录，不向 Chrome Storage 填充模拟计时。如果 Chrome 未授权则记录 `BLOCKED`，而非编造授权 / 活动 PASS。
 - `time-review-r13-native.yml`：增加使用真实 Time Review 源码、仅请求数据由 Fixture 提供的 320/360/400/600、鼠标键盘触屏与 DPR2 视觉回归；**不把 DPR=2 等同 Chrome 真正 200% 缩放**。完整 Chrome 重启、空闲阈值、跨网站导航仍待独立验证。
+
+- [Actions 38215717554](https://github.com/shopable-ai/opendesk-browser/actions/runs/38215717554) 在 `ee6c109019d84409424c52e07812faacfe3b0cdb`：P0 JSON/CSV 与真实 Side Panel、合成状态的 Chromium 320/360/400/600/DPR2/鼠标/键盘/触摸全部 PASS；P1 **FAIL**：真实授权和 HTTP loopback tab 创建成功，但检查点 10 秒未出现。检视 `src/time-review/service.js` 发现对 `chrome.permissions.contains(origins)` 传递 `new URL(tab.url).origin+'/*'`，非标准端口产生 `http://127.0.0.1:43111/*`，这不是应传递的 Chrome host match pattern。改为明确的 scheme + hostname + /*，仍逐网站验证，不加入 broad host grants。新候选应记录 window focus、真实 idle 状态和 host grant，只能通过真实 Mac 同 SHA 数据决定是否已修复。
+- P3 CI 补充正式 `npm run build:sidebar-tool -- examples/sidebar-tools/time-review`、`npm run build:dev`、`npm run verify`，输出独立工具包及 sw.js 的 SHA-256；不增加第三方库、权限、版本号和存储 key。
