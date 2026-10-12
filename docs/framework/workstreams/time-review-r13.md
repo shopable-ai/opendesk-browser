@@ -99,3 +99,9 @@
 
 - [Actions 38215717554](https://github.com/shopable-ai/opendesk-browser/actions/runs/38215717554) 在 `ee6c109019d84409424c52e07812faacfe3b0cdb`：P0 JSON/CSV 与真实 Side Panel、合成状态的 Chromium 320/360/400/600/DPR2/鼠标/键盘/触摸全部 PASS；P1 **FAIL**：真实授权和 HTTP loopback tab 创建成功，但检查点 10 秒未出现。检视 `src/time-review/service.js` 发现对 `chrome.permissions.contains(origins)` 传递 `new URL(tab.url).origin+'/*'`，非标准端口产生 `http://127.0.0.1:43111/*`，这不是应传递的 Chrome host match pattern。改为明确的 scheme + hostname + /*，仍逐网站验证，不加入 broad host grants。新候选应记录 window focus、真实 idle 状态和 host grant，只能通过真实 Mac 同 SHA 数据决定是否已修复。
 - P3 CI 补充正式 `npm run build:sidebar-tool -- examples/sidebar-tools/time-review`、`npm run build:dev`、`npm run verify`，输出独立工具包及 sw.js 的 SHA-256；不增加第三方库、权限、版本号和存储 key。
+
+## R1.3 Final · P1 原生 macOS 空闲输入核验（2026-10-12）
+
+- [Actions 38216276174](https://github.com/shopable-ai/opendesk-browser/actions/runs/38216276174)（候选 `8b00de31c7ce1304c29e793b04c3bd718d02842f`）：R1.3 组件 **54 PASS / 0 FAIL**；真实 Chrome P0 JSON/CSV 内容和命名仍 PASS；真实网页活动阶段 FAIL，原生只读证据明确 `window.focused=true`、`window.type=normal`、`localhost HTTP tab active=true`、`host permission=true`，但 `chrome.idle.queryState(60)=idle`。这证明本轮拒绝累加是空闲安全策略生效，不能解除空闲检查来令 CI 通过。
+- 原生测试驱动仅在 macOS Runner 的 idle 不为 active 时调用**仓库已有** `tests/framework/time-review-native-input.swift` 系统级输入辅助程序；辅助程序校验 Chrome for Testing 的运行进程、Accessibility 权限后发送真实 macOS 鼠标移动事件。然后读取真正的 Chrome `idle.queryState`、焦点、授权和活动网站。若平台无法产生可验证真实活动，则独立记录 `beginAndActiveCollection=BLOCKED` 并保留原始 gate，而非假造 PASS、存储造数据或让原生用例错误失败；只有读回实际非零统计及暂停数据不再增长才为活动 PASS。生产 `service.js`、`model.js`、授权与隐私策略未更改。
+- 仍需在允许 OS 真实输入的用户 Mac Profile/CFT 验证 P1 活动、空闲切换、跨网站、整个 Chrome 重启；Blocked 与 Pass 分级必须保留。后续 CI 绑定新 SHA 后再记录结果。

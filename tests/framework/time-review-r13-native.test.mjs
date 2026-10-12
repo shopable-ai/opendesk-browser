@@ -348,11 +348,47 @@ test('Time Review R1.3 actual Mac Chrome install and trusted consent smoke',{ski
       const active=await evaluate(browser,side,'chrome.tabs.query({active:true,lastFocusedWindow:true})');
       return active.some(tab=>tab.url===siteUrl);
     },'real HTTP(S) Chrome active tab',10000);
-    const observationGates=await evaluate(browser,side,
+    const readActivityGates=()=>evaluate(browser,side,
       '(async()=>{const w=await chrome.windows.getLastFocused();const t=(await chrome.tabs.query({active:true,windowId:w.id}))[0];return {focused:w.focused,windowType:w.type,idle:await chrome.idle.queryState(60),isLoopbackTab:t?.url?.startsWith("http://127.0.0.1:"),hasHostPermission:await chrome.permissions.contains({origins:["http://127.0.0.1/*"]})};})()');
-    note('native-observation-gates',observationGates);
-    await until(async()=>{const s=await readTime();return s.checkpoint?.host==='127.0.0.1'?s:null;},
-      'website checkpoint from live Chrome tab',10000);
+    let observationGates=await readActivityGates();
+    note('native-observation-gates-before-input',observationGates);
+    if(observationGates.idle!=='active'){
+      // CDP mouse dispatch is a browser renderer event and is NOT proof of
+      // operating-system activity. Use the existing macOS-owned CFT helper:
+      // it checks the actual process and emits a real macOS CGEvent, without
+      // injecting Chrome idle responses, permissions, or Time Review storage.
+      const helper=path.join(profile,'time-review-native-activity');
+      const compile=spawnSync('swiftc',[
+        path.resolve('tests/framework/time-review-native-input.swift'),'-o',helper
+      ],{encoding:'utf8',timeout:80000});
+      let delivered=false,reason='';
+      if(compile.status===0){
+        const input=spawnSync(helper,[String(proc.pid),'activity'],{encoding:'utf8',timeout:10000});
+        delivered=input.status===0&&String(input.stdout).includes('OWNED_NATIVE_MOUSE_MOVED');
+        reason=delivered?'macOS owned CGEvent sent':
+          'macOS Accessibility/CGEvent permission unavailable (status '+input.status+')';
+      }else reason='macOS Swift helper unavailable (status '+compile.status+')';
+      note('native-os-activity-attempt',{delivered,reason});
+      if(delivered)observationGates=await until(async()=>{
+        const gates=await readActivityGates();
+        return gates.idle==='active'?gates:null;
+      },'macOS real input transitions chrome.idle to active',3000).catch(()=>observationGates);
+    }
+    note('native-observation-gates-final',observationGates);
+    const canProveActivity=observationGates.idle==='active'&&observationGates.focused===true&&
+      observationGates.windowType==='normal'&&observationGates.isLoopbackTab===true&&
+      observationGates.hasHostPermission===true;
+    if(!canProveActivity){
+      evidence.beginAndActiveCollection='BLOCKED';
+      note('activity-native-blocked',{
+        reason:'Real system activity and focused, authorized HTTP(S) tab are required',
+        gates:observationGates
+      });
+      // A CI host that is physically idle is not a product defect. Never
+      // weaken observe(), simulate chrome.idle, or count this as native PASS.
+    }else{
+      await until(async()=>{const s=await readTime();return s.checkpoint?.host==='127.0.0.1'?s:null;},
+        'website checkpoint from live Chrome tab',10000);
     await sleep(1600);
     await nativeClick(browser,side,'#sidebar-tool-settings-open');
     await nativeClick(browser,frame,'#refresh');
@@ -383,6 +419,7 @@ test('Time Review R1.3 actual Mac Chrome install and trusted consent smoke',{ski
     await nativeClick(browser,side,'#sidebar-tool-settings-open');
     await nativeClick(browser,frame,'#pause');
     await until(async()=>{const s=await readTime();return s.paused?s:null;},'final trusted stop');
+    }
     await browser.send('Target.closeTarget',{targetId:site.targetId});
   }
   complete=true;
