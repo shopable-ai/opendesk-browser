@@ -4,6 +4,7 @@ import {createNetworkService} from './network.js';
 import {createBrowserNetworkObserver} from './browser-network-observe.js';
 import {createBrowserScreenshotHost} from './browser-screenshot.js';
 import {createBrowserScreenshotResources} from './browser-screenshot-resources.js';
+import {createTrustedCookieHost} from './browser-cookie-host.js';
 import {SIDEBAR_TOOL_ENABLE_STORE,requireToolEnableRecords,sidebarToolEnabled} from '../../ui/sidebar-tools/lifecycle.js';
 // Trusted Chrome MV3 context-menu driver. No third-party code executes here.
 // Listener registration is synchronous; storage and install checks are async.
@@ -177,6 +178,7 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
     }});
   const networkObserver=createBrowserNetworkObserver({api});
   const screenshotResources=createBrowserScreenshotResources({api});
+  const trustedCookies=createTrustedCookieHost({api});
   const screenshotHost=createBrowserScreenshotHost({api,
     resolveTarget:(ref,context)=>tabHost.resolve(ref,context),
     authorize:async({origin,context})=>{
@@ -187,6 +189,7 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
     discardResource:ref=>screenshotResources.discardResource(ref)
   });
   function revokeBrowserOperations(){
+    trustedCookies.revoke();
     networkObserver.revokeAll();
     screenshotResources.revokeAll();
     browserIntents.clear();
@@ -262,7 +265,7 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
   }
   const epochKey=(tabId,frameId)=>String(tabId)+':'+String(frameId);
   function noteNavigation(tabId,frameId=0){
-    if(frameId===0){networkObserver.invalidateTab(tabId);screenshotResources.revokeTab(tabId);}
+    if(frameId===0){networkObserver.invalidateTab(tabId);screenshotResources.revokeTab(tabId);trustedCookies.noteNavigation(tabId);}
     const key=epochKey(tabId,frameId);
     documentEpochs.set(key,(documentEpochs.get(key)||0)+1);
     if(frameId===0){
@@ -580,10 +583,20 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
       throw failure('E_SERVICE_UNSUPPORTED','Browser operation is not available to installed tools');
     }));
   }
-  async function handleHost({operation,toolId,enabled,origin,document,launchId,toolInstance,hostInstanceId,toolVersion,installEpoch,targetOperation,targetArgs},sender){
+  async function handleHost({operation,toolId,enabled,origin,document,launchId,toolInstance,hostInstanceId,toolVersion,installEpoch,targetOperation,targetArgs,approvalRef},sender){
     const actualHost=await checkedSender(api,sender);
-    if(actualHost!==hostInstanceId||!validId(toolId))
+    if(actualHost!==hostInstanceId)
       throw failure('E_OWNER','Wrong OpenDesk tool host');
+    // Cookie calls are HOST_ONLY: the existing Chrome sender check authenticates
+    // this packaged extension document. Sandbox tool messages never enter here.
+    if(operation==='browser.cookies.approve'||operation==='browser.cookies.execute'){
+      const trustedSender=await resolveToolSender(api,sender);
+      const caller={documentId:trustedSender.documentId,hostInstanceId:actualHost};
+      return serial(()=>operation==='browser.cookies.approve'
+        ?trustedCookies.approve({targetOperation,targetArgs,document,hostInstanceId},caller)
+        :trustedCookies.execute({approvalRef,hostInstanceId},caller));
+    }
+    if(!validId(toolId))throw failure('E_OWNER','Wrong OpenDesk tool host');
     return serial(()=>runLocked(toolId,async()=>{
       if(operation==='browser.intent.confirm'){
         if(!intentOperations.has(targetOperation)||typeof toolInstance!=='string'||
