@@ -15,7 +15,7 @@
 
 - Browser SDK 当前正式登记操作：**35**（26 IMPLEMENTED、7 PLANNED、0 HOST_ONLY、2 NOT_EXPOSED），其中原冻结 32 项是 23/7/0/2，新增 R5 已接线三项独立计数。IMPLEMENTED 只是源码状态，不表示同候选原生 Mac Chrome 通过。
 - 原能力生态审计：18 域、74 叶子；能力叶子不是接口数量。例如单一 Cookie 叶子包含 get/getAll/set/remove/getStores/partitionKey/事件等多个方法。
-- `src/platform/chrome/cookies.js` 已有 Controller Cookie 驱动：getCookies/setCookies/deleteCookiesByUrl。**不等于普通工具拥有 cookies API**。
+- `src/platform/chrome/cookies.js` 已有 Controller 原 Cookie 驱动（getCookies/setCookies/deleteCookiesByUrl），R8 还新增受信的 get/getAll/set/remove/clearSite/getStores/getPartitionKey；R7 经既有 Host 接入 10 个 Host-only Cookie 私有操作及受信 UI。**普通工具与 Page SDK 仍不能调用 cookies API；公开 SDK 0/10、Chrome 原生未验收**。详见 [R7 架构补充](../architecture/browser-sdk-r7-architecture-contract.zh-CN.md)。
 - `examples/sidebar-tools/cookie-editor/README.zh-CN.md` 表示 Cookie Editor 只支持临时内存 UI、JSON/Header/Netscape 导入导出，真实浏览器 Cookie 读写没有接入。
 - 本仓 `manifest.json` 已含 cookies/notifications/alarms 等扩展权限及可选 bookmarks/history/webRequest；manifest 权限不等于用户工具的授权。不要擅自改变默认权限。
 
