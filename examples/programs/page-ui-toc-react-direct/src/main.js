@@ -1,11 +1,13 @@
 import {createElement, useEffect, useMemo, useRef, useState} from 'react';
 import {chooseActiveTocItem, createTocScanner, sameToc, selectTocItems} from './toc-model.js';
 import {summarizeHeadingLevels} from './heading-stats.js';
+import max from 'https://raw.githubusercontent.com/d3/d3-array/v3.2.4/src/max.js';
 
 // Official React JavaScript syntax. OpenDesk provides React, mounts this
 // component in its managed Shadow DOM and runs root.unmount() on Stop.
-// The default chart remains offline. The optional pinned CDN ESM adapter
-// requires explicit local review, but never loads remote JS in Chrome at Run.
+// Real HTTPS ESM import above: the original project resolver verifies the
+// checked-in lock/cache and links these bytes offline before Page execution.
+// No @require, runtime import(), CDN script tag or extension-source edit.
 const h = createElement;
 const colors = {
   text: '#273247', muted: '#728095', line: '#e1e7f0', accent: '#4269d9',
@@ -58,7 +60,7 @@ export default function App() {
   const [error, setError] = useState('');
   const scan = useMemo(() => createTocScanner(document), []);
   const currentItems = useRef([]);
-  const stats = useMemo(() => summarizeHeadingLevels(items), [items]);
+  const stats = useMemo(() => summarizeHeadingLevels(items, max), [items]);
 
   useEffect(() => {
     const win = document.defaultView;

@@ -8,74 +8,101 @@ import {buildProgramProject, buildProgramProjectInMemory} from '../../scripts/bu
 import {createPageComponentEntry} from '../../scripts/page-component-entry.mjs';
 
 const path = 'examples/programs/page-ui-toc-react-direct';
-const cdnURL = 'https://cdn.jsdelivr.net/npm/d3-array@3.2.4/src/max.js';
+const remoteURL = 'https://raw.githubusercontent.com/d3/d3-array/v3.2.4/src/max.js';
+const lockName = 'opendesk.remote-lock.json';
+const hash = '691945a453633d9e204846af8ea4e299821b924f82b15eaf7906aba642979b1d';
+const cachePath = '.opendesk/remote-cache/' + hash + '.mjs';
+const noNetwork = () => {throw Error('An ordinary build must never download code');};
 
-test('TOC React Direct stays runnable offline and renders a local statistics tab', async () => {
-  const project = await validateProgramProject(path);
-  assert.equal(project.entryMode, 'component');
-  assert.equal(project.framework, 'react');
-  assert.equal(project.entry, 'src/main.js');
-  assert.deepEqual(project.npmDependencies, []);
-  assert.deepEqual(project.remoteImports, []);
-  assert.deepEqual(project.sources.map(file => file.path).sort(), [
-    'src/heading-stats.js', 'src/main.js', 'src/toc-model.js'
-  ]);
-  assert.deepEqual(project.pageRules.matches, ['http://127.0.0.1:43111/*']);
-  const source = await readFile(path + '/src/main.js', 'utf8');
-  assert.match(source, /from 'react'/);
-  assert.match(source, /export default function App\(/);
-  assert.match(source, /\['stats', '统计'\]/);
-  assert.match(source, /summarizeHeadingLevels\(items\)/);
-  assert.doesNotMatch(source, /\bcreatePageUI\s*\(|\bcreateRoot\s*\(|\bOpenDeskPageReact\b/);
-  const built = await buildProgramProjectInMemory(path, {mode: 'production'});
-  assert.ok(built.sourceBytes < 100000);
-  assert.deepEqual(built.remoteModules, []);
-  assert.doesNotMatch(built.sourceUtf8, /https:\/\/cdn\.jsdelivr\.net/);
-  const manifest = JSON.parse(await readFile(path + '/package.json', 'utf8'));
-  assert.match(createPageComponentEntry(manifest.opendesk), /root\.unmount\(\)/);
-  assert.match(built.sourceUtf8, /\/\/ @opendesk-lib react/);
-});
-
-test('optional D3 CDN module requires explicit lock, then builds fully offline', async t => {
-  const root = await mkdtemp(join(tmpdir(), 'opendesk-toc-cdn-'));
+async function fixture(t, {locked = true} = {}) {
+  const root = await mkdtemp(join(tmpdir(), 'opendesk-toc-url-'));
   t.after(() => rm(root, {recursive: true, force: true}));
   await mkdir(join(root, 'src'));
   await copyFile(path + '/package.json', join(root, 'package.json'));
-  for (const name of ['main.js', 'toc-model.js', 'heading-stats.js', 'heading-stats-cdn.js']) {
+  for (const name of ['main.js', 'toc-model.js', 'heading-stats.js']) {
     await copyFile(path + '/src/' + name, join(root, 'src', name));
   }
-  const source = await readFile(join(root, 'src/main.js'), 'utf8');
-  assert.ok(source.includes("from './heading-stats.js'"), 'known single-line opt-in switch');
-  await writeFile(join(root, 'src/main.js'),
-    source.replace("from './heading-stats.js'", "from './heading-stats-cdn.js'"));
-  const reviewed = await validateProgramProject(root);
-  assert.deepEqual(reviewed.remoteImports, [cdnURL]);
-  await assert.rejects(buildProgramProjectInMemory(root), {code: 'E_REMOTE_UNLOCKED'});
+  if (locked) {
+    await mkdir(join(root, '.opendesk/remote-cache'), {recursive:true});
+    await copyFile(join(path, lockName), join(root, lockName));
+    await copyFile(join(path, cachePath), join(root, cachePath));
+  }
+  return root;
+}
+
+test('default TOC directly imports reviewed HTTPS ESM alongside packaged React', async () => {
+  const project = await validateProgramProject(path);
+  const manifest = JSON.parse(await readFile(path + '/package.json', 'utf8'));
+  assert.equal(project.entryMode, 'component');
+  // Framework/pageRules belong to the source manifest, not validator summary fields.
+  assert.equal(manifest.opendesk.framework, 'react');
+  assert.equal(project.entry, 'src/main.js');
+  assert.deepEqual(project.npmDependencies, []);
+  assert.deepEqual(project.remoteImports, [remoteURL]);
+  assert.deepEqual(project.sources.map(file => file.path).sort(), [
+    'src/heading-stats.js', 'src/main.js', 'src/toc-model.js'
+  ]);
+  assert.deepEqual(manifest.opendesk.pageRules.matches, ['http://127.0.0.1:43111/*']);
+  const source = await readFile(path + '/src/main.js', 'utf8');
+  assert.ok(source.includes("import max from '" + remoteURL + "';"));
+  assert.match(source, /summarizeHeadingLevels\(items, max\)/);
+  assert.match(createPageComponentEntry(manifest.opendesk), /root\.unmount\(\)/);
+  const built = await buildProgramProjectInMemory(path, {mode:'production',fetchImpl:noNetwork});
+  assert.ok(built.sourceBytes < 100000);
+  assert.equal(built.remoteModules.length, 1);
+  assert.equal(built.remoteModules[0].url, remoteURL);
+  assert.equal(built.remoteModules[0].sha256, hash);
+  assert.match(built.sourceUtf8, /\/\/ @opendesk-lib react/);
+  assert.ok(!built.sourceUtf8.includes(remoteURL), 'runtime code does not retain a remote loader');
+});
+
+test('reviewed upstream cache builds deterministically and exports through the original JSON pipeline', async t => {
+  const root = await fixture(t);
+  const first = await buildProgramProjectInMemory(root, {fetchImpl:noNetwork});
+  const second = await buildProgramProjectInMemory(root, {fetchImpl:noNetwork});
+  assert.equal(second.sourceHash, first.sourceHash);
+  const outputDirectory = join(root, 'built');
+  const artifact = await buildProgramProject(root, {outputDirectory,fetchImpl:noNetwork});
+  const draft = JSON.parse(await readFile(join(outputDirectory, 'program.opendesk-draft.json'), 'utf8'));
+  assert.equal(artifact.status, 'BUILT_UNVERIFIED');
+  assert.equal(artifact.installable, false);
+  assert.equal(draft.build.sourceHash, first.sourceHash);
+  assert.equal(draft.sourceUtf8, first.sourceUtf8);
+  assert.equal(draft.runtimeKind, 'page-userscript');
+  assert.equal(draft.project.entryMode, 'component');
+});
+
+test('missing lock blocks before downloading; explicit test-only pinning remains separate', async t => {
+  const root = await fixture(t, {locked:false});
   let fetches = 0;
-  const mockD3Module = [
-    '// Controlled test fixture, not proof that the real CDN was fetched.',
-    'export default function max(values) { return Math.max(...values); }'
-  ].join('\n');
-  const pinned = await buildProgramProject(root, {
-    lockRemote: true, outputDirectory: join(root, 'built'),
-    fetchImpl: async url => {
-      assert.equal(url, cdnURL);
-      fetches++;
-      return new Response(mockD3Module, {status: 200,
-        headers: {'content-type': 'text/javascript'}});
-    }
-  });
+  const actualUpstreamBytes = await readFile(join(path, cachePath));
+  const fetchImpl = async url => {
+    assert.equal(url, remoteURL);
+    fetches++;
+    // Controlled HTTP fixture containing real upstream bytes, NOT a live CDN receipt.
+    return new Response(actualUpstreamBytes, {status:200,headers:{'content-type':'text/javascript'}});
+  };
+  await assert.rejects(buildProgramProjectInMemory(root, {fetchImpl}), {code:'E_REMOTE_UNLOCKED'});
+  assert.equal(fetches, 0);
+  await buildProgramProject(root, {lockRemote:true,fetchImpl,outputDirectory:join(root, 'built')});
   assert.equal(fetches, 1);
-  assert.ok(pinned.sourceBytes < 100000);
-  assert.equal(pinned.remoteModules.length, 1);
-  const offline = await buildProgramProjectInMemory(root, {mode: 'production',
-    fetchImpl: () => {throw Error('Ordinary dev.run must never download JavaScript');}});
-  assert.equal(offline.sourceHash, pinned.sourceHash);
-  assert.equal(offline.remoteModules.length, 1);
-  assert.doesNotMatch(offline.sourceUtf8, /https:\/\/cdn\.jsdelivr\.net/);
-  const lock = JSON.parse(await readFile(join(root, 'opendesk.remote-lock.json'), 'utf8'));
-  assert.equal(lock.format, 'opendesk.remote-lock.v1');
-  const hash = lock.modules[cdnURL].sha256;
-  await writeFile(join(root, '.opendesk/remote-cache', hash + '.mjs'), 'tampered');
-  await assert.rejects(buildProgramProjectInMemory(root), {code: 'E_REMOTE_HASH'});
+  const written = JSON.parse(await readFile(join(root, lockName), 'utf8'));
+  assert.deepEqual(written.modules[remoteURL], {sha256:hash,bytes:502});
+  await buildProgramProjectInMemory(root, {fetchImpl:noNetwork});
+});
+
+test('missing or tampered cache never falls back to CDN or local math', async t => {
+  const root = await fixture(t);
+  await writeFile(join(root, cachePath), 'tampered');
+  await assert.rejects(buildProgramProjectInMemory(root, {fetchImpl:noNetwork}), {code:'E_REMOTE_HASH'});
+  await rm(join(root, cachePath));
+  await assert.rejects(buildProgramProjectInMemory(root, {fetchImpl:noNetwork}), {code:'E_REMOTE_CACHE'});
+});
+
+test('changing a URL requires a new pin rather than silently reusing another version', async t => {
+  const root = await fixture(t);
+  const entry = join(root, 'src/main.js');
+  const source = await readFile(entry, 'utf8');
+  await writeFile(entry, source.replace(remoteURL, remoteURL.replace('v3.2.4', 'v3.2.3')));
+  await assert.rejects(buildProgramProjectInMemory(root, {fetchImpl:noNetwork}), {code:'E_REMOTE_UNLOCKED'});
 });

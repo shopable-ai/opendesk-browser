@@ -1,0 +1,52 @@
+TAP version 13
+# Subtest: heading level chart counts H1-H6 without modifying source items
+ok 1 - heading level chart counts H1-H6 without modifying source items
+  ---
+  duration_ms: 1.34269
+  type: 'test'
+  ...
+# Subtest: empty chart and invalid headings have a valid accessible scale
+ok 2 - empty chart and invalid headings have a valid accessible scale
+  ---
+  duration_ms: 0.208384
+  type: 'test'
+  ...
+# Subtest: model calls the supplied max implementation with the actual counts
+ok 3 - model calls the supplied max implementation with the actual counts
+  ---
+  duration_ms: 0.384739
+  type: 'test'
+  ...
+# Subtest: the default React entry directly declares and actually consumes its HTTPS import
+ok 4 - the default React entry directly declares and actually consumes its HTTPS import
+  ---
+  duration_ms: 5.468228
+  type: 'test'
+  ...
+# Subtest: checked-in remote lock refers to byte-identical upstream source, not a mock
+ok 5 - checked-in remote lock refers to byte-identical upstream source, not a mock
+  ---
+  duration_ms: 2.128528
+  type: 'test'
+  ...
+# Subtest: real reviewed D3 code computes the statistics model offline
+ok 6 - real reviewed D3 code computes the statistics model offline
+  ---
+  duration_ms: 1.712747
+  type: 'test'
+  ...
+# Subtest: the compatibility adapter uses the same URL while the project keeps its original framework contract
+ok 7 - the compatibility adapter uses the same URL while the project keeps its original framework contract
+  ---
+  duration_ms: 1.918216
+  type: 'test'
+  ...
+1..7
+# tests 7
+# suites 0
+# pass 7
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 76.466228
