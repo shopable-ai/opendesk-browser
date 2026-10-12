@@ -123,3 +123,13 @@
 新增 `tests/framework/page-browser-ui-r243-cycles.mjs` 与 `.github/workflows/page-browser-ui-r243-40-loop.yml`。测试真实 Chrome 无 Native Side Panel 的 React JSX 和 Vue SFC 各 20 次明确运行：每次 `Page.navigate` 创建不同文档，原 `chrome.webNavigation` 读取真实 `tabId/documentId`，真实鼠标点击组件并验证计数变化，等待原 `managedPreviewId`、`sourceHash`、框架身份以及可信 `retirePagePreview` 回执，确认 UI 和受管 DOM 已移除。总计要求 **40 个独立预览身份、40 个独立文档、40 次 Stop 成功、40 次 DOM 清理**，同输入从第二轮起还须出现固定编译器缓存命中。四张首末轮真实截图及每轮回执保存为 CI 附件。
 
 [对应 macOS Chrome CFT run 38233706775](https://github.com/shopable-ai/opendesk-browser/actions/runs/38233706775) 已创建。**截至本轮交付其状态为 QUEUED / NOT_TESTED，并非 PASS**，不能借用 [历史本地 Native 40 次 Run/Stop](https://github.com/shopable-ai/opendesk-browser/actions/runs/38155034890) 或 [历史无 Native 单次组件 CI](https://github.com/shopable-ai/opendesk-browser/actions/runs/38225425847) 代替这一轮新的独立浏览器验证。当前候选和 GitHub Actions 排队不构成最终 F3/ZIP 或完整产品评分。
+
+## 2026-10-12 · 重新核对无 Native 40× 原生回执（已完成）
+
+此前本文件记录的 [Chrome CFT run 38233706775](https://github.com/shopable-ai/opendesk-browser/actions/runs/38233706775) **已由 QUEUED 转为 SUCCESS，原生完成报告已核实**。本记录修正历史状态，不伪造新的候选验收。
+
+- 验收提交：`b77a2a80ae026c30746ab0329f957d467fddb72e`；扩展 ID：`pnhiokdnhhpbidgojhbjknpldipijdfa`。
+- 原生报告：`PASS_BROWSER_UI_NO_NATIVE_20X_EACH_RUN_STOP`。React JSX `20/20`、Vue SFC `20/20`，合计 40 个独立 `previewId` 与 40 个独立 `documentId`，40 次原 `retirePagePreview` 受管成功停止回执及 DOM 清理。每轮使用真实 Chrome 指针输入，全部 `noNative: true`，重复输入缓存命中得到回执。
+- 源码身份（此次浏览器直编产物）：React `a48fe4ddd903c078337b3a0b0e0241aa5e777b3c1a7faf1e49eff58dac2b8926`；Vue `d7071713db0fed4d16fee1b7ab2f6ec3ff4f1254b71a8de06ded4bca30c27f59`。
+- CI 附件：`r243-browser-native-free-40-cycles-b77a2a80ae026c30746ab0329f957d467fddb72e`，artifact ID `11740568040`，包含原生截图和逐次证据。
+- **判定：**这项 P0 核心功能已达到对应候选的真实 Chrome 测试要求。但 `b77a2a8` 并非最新 `main`；最新生产包、安装/更新、撤权、SPA/BFCache、Portal/Teleport、暗色/200%/键盘及全部独立评分仍需要对应候选证据，不能自动继承这一项通过结论。
