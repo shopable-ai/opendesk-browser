@@ -290,3 +290,14 @@ FIX8 将主动观察失败变成不可重试的结果并在外层立即抛出，
 
 仍须原生验证：浏览器 `tabs.create` / `storage.local.set` API **本身 ACK 丢失**（区别于已测调用者中断）、真实配额不足与损坏包、完整 30 分钟 TTL、Worker 自然空闲关闭、用户自己的 Mac Profile 与正式 HTTPS。远程 Page、sandbox、Task 整包分发另需签名信任根/撤回/密钥轮换/各类型准入，不在 R5 扩大网站消息能力。
 
+
+## 并行 Native Workspace 图标包校验阻塞与恢复（2026-10-12）
+
+在 R5 新候选 `6d71854b` 的 Linux/macOS 真实安装与生产包三项均为 PASS 后，另一个 Workspace 文件树图标工作流于 `bebdf4dd7478db3ecb782da8ef2b8d4857dc61ea` 修改了 `src/native-agent/workspace.html` 和 `scripts/verify-package.mjs`。其 [run 38263164441](https://github.com/shopable-ai/opendesk-browser/actions/runs/38263164441) 的市场三个 Job 均在 **build/verify 阶段**报 `Unsafe HTML attributes in native-agent/workspace.html`，尚未启动本候选的 R5 浏览器交接；这不是安装协议拒绝或 R5 原生场景失败。原失败继续保存，不得按旧成功结果涂绿。
+
+原因是内联 SVG 形状标签未满足当前包扫描器的严格 HTML 属性解析约束。Workspace 作者随后以 `907326963b68d52bef76deb0ac140ac394c194c9` 修正 SVG 形状闭合，未修改 R5 独立站或外部安装器。新候选的 [固定资源与包预算 CI 38263803784](https://github.com/shopable-ai/opendesk-browser/actions/runs/38263803784) 为 **SUCCESS**，11 项包校验变异和资源边界检查 PASS，包括失效 Workspace HTML、资源注入、CSS 动态 import、固定 entry 与双模式打包拒绝。后续完整 GitHub 分发包应继续以其自身源码/打包身份验证。
+
+**证据复用决定：** `6d71854b` 的 R5 双平台 16/16 和生产组件/原生 PASS 仍按原固定包永久保留。`90732696` 及后续 `main` 的 Workspace HTML 改动是包构建的 `AFFECTED_INPUTS`，已有包级 CI 验证；未做新编译候选的 R5 全链路时，不称最新版包已获 R5 新原生 PASS。对于市场自身安装协议、候选/摘要/权限、消费标记和事务逻辑，未发现这些 Workspace 编辑改变其输入；按测试指南先复用原场景结论并记录差异，不因无关 UI 改动重复耗费全量 Chrome 测试。
+
+本轮本会话没有撤销、删除或覆盖 Workspace 并行成果，也没有为了获取测试绿色而放松 `inspectHTML`、禁用危险标签/CSP 校验或直接操作 `dist`。正式 HTTPS 和原生 ACK 故障注入仍维持本工作流前述 **BLOCKED / NOT_TESTED**。
+
