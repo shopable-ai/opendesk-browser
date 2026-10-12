@@ -7,6 +7,7 @@ const file=new URL('../../examples/sidebar-tools/browser-sdk-r2/browser-operatio
 test('Browser SDK R2–R4 demo is a valid installable v2 tool, not a fake privileged page',async()=>{
  const pkg=validateSidebarToolPackage(JSON.parse(await readFile(file,'utf8')));
  assert.equal(pkg.format,'opendesk.sidebar-tool.v2');
+ assert.equal(pkg.version,'1.0.1','Updated compact SDK demo must not reuse the old installed package version');
  assert.equal(pkg.requires.browserSdk,'1.0.0');
  assert.deepEqual(pkg.contributes.contextMenus,[]);
  assert.deepEqual(pkg.capabilities,['browser.tabs','browser.sidePanel','network',
