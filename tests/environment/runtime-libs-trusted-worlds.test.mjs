@@ -63,7 +63,9 @@ test('an installed Side Panel tool packages HTML/CSS/classic JS, and never gains
   assert.deepEqual(called,['currentPage.info']);
   assert.equal(rows.get('#runtime-title').textContent,'OpenDesk Demo Title');
   assert.equal(rows.get('#runtime-read').disabled,false);
-  assert.deepEqual(states.at(-1),{dirty:false,busy:false});
+  // A real VM tool sends a cross-realm object through the narrow bridge.
+  // Compare wire values, not realm-specific Object prototypes.
+  assert.deepEqual(JSON.parse(JSON.stringify(states.at(-1))),{dirty:false,busy:false});
 });
 
 test('public docs and single-file Page syntax distinguish globals from host imports',async()=>{
