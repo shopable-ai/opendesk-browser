@@ -1,8 +1,12 @@
-# 下一轮可直接复制的实施 GOAL（两条独立工作线）
+# OpenDesk 后续 GOAL：当前电商 R2 与已废弃历史方案
 
 > 仅供下一轮执行，当前 R1 **不实现**以下代码、不新增分支/Worktree/PR。开始时必须重新阅读最新 `AGENTS.md` 和 main HEAD；若发现并行写入冲突，保持只读并提醒，不强推、不修改其他 Agent 的工作。
 
 > **2026-10-12 商业方向调整：**原 GOAL 1 Page QA / GOAL 3 EXP-002 的“首款商业产品”建议属于历史计划，**仅保留工厂技术验证参考，不能直接作为新的商业优先级**。现在应先执行 [电商工具宇宙唯一研究 GOAL](../../framework/prompts/goal-ecommerce-tool-universe-r1.zh-CN.md)；其他研发任务需按各自原有授权执行，勿因此删除已有 QA 源码或影响其他 Agent 验收。
+
+## 当前推荐：电商需求与商业验证 R2
+
+请直接复制 [电商工具宇宙 R2 正式 GOAL](../../framework/prompts/goal-ecommerce-tool-universe-r2-commercial-validation.zh-CN.md)，本轮首先对齐已保存的研究文件、分析卖家与购物者真实任务、筛选有买方和合法数据源的 MVP，而不是进一步实现 Page QA。
 
 ## 历史 GOAL 1（DEPRECATED / 禁止继续执行）— Page QA 独立插件
 
@@ -64,7 +68,9 @@ sourceHash/依赖，按网站授权安装；保留普通 JS 和零参数 Control
 未通过的流程逐项写 NOT_TESTED/BLOCKED，禁止宣称全面 95+。
 ```
 
-## GOAL 3 — Commercial Discovery R2：商业机会与真实付费验证
+## 历史 GOAL 3（DEPRECATED / 禁止按旧优先级执行）— Commercial Discovery R2
+
+> 下方旧 GOAL 曾把 EXP-002 Page QA 作为当前付费验证对象，现已废弃。其余领域需求需与当前电商 R2 和 EXP 台账对齐，严禁从此历史文本恢复 QA 商业立项。
 
 ~~~text
 # GOAL：OpenDesk Browser Commercial Discovery R2

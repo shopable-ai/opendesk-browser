@@ -6068,5 +6068,17 @@
       "stage": "VALIDATE_P0_P1",
       "notImplementationClaim": true
     }
-  ]
+  ],
+  "currentCommercialDecision": {
+    "date": "2026-10-12",
+    "doc": "docs/product/browser-extension-ecosystem/commercial-decision-ecommerce-20261012.zh-CN.md",
+    "r1Top30Status": "HISTORICAL_RESEARCH_RANKING_NOT_COMMERCIAL_PRIORITY",
+    "activeResearchExperiments": [
+      "EXP-005",
+      "EXP-007"
+    ],
+    "pageQa": "ARCHIVED_STOP_COMMERCIAL_DEVELOPMENT_TECH_FIXTURE_ONLY",
+    "evidenceStatus": "NOT_VALIDATED",
+    "note": "OPP-004 research rank #1 does not reactivate Page QA or imply business first-product status. Stable OPP IDs and historic ranks preserved."
+  }
 }

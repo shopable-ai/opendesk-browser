@@ -100,4 +100,4 @@
 
 ## 八、正式续接
 
-[唯一电商研究 GOAL](../../framework/prompts/goal-ecommerce-tool-universe-r1.zh-CN.md) 负责把本功能树落实为**证据支持的产品候选、竞争地图、TOP30、三个 MVP 和可执行后续开发方案**；不从头审 Page QA、AdBlock 或复刻第二套 SDK。
+[电商研究 R1 GOAL（历史）](../../framework/prompts/goal-ecommerce-tool-universe-r1.zh-CN.md) 保留原始功能树；当前使用 [电商工具宇宙 R2 商业验证 GOAL](../../framework/prompts/goal-ecommerce-tool-universe-r2-commercial-validation.zh-CN.md) 对真实需求、用户买方、合法来源、盈利可行性和三个 MVP 做证据收敛，不重新开发已废弃的 Page QA、AdBlock 或第二套 SDK。

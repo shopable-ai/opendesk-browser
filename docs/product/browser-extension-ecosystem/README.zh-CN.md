@@ -6,6 +6,13 @@
 
 > 首次合入审计基线：`main@8ccec441898bc3a175b20105d7116850de9f5be0`，研究首轮提交 [`6463b7098bc9`](https://github.com/shopable-ai/opendesk-browser/commit/6463b7098bc968b12097c48f754a102cd4390312)。后续工作不得将此 SHA 的源码审计状态提升成更新后主线的原生验收。任何状态声明都要按最新 HEAD 再核对。
 
+## 当前有效产品决策（2026-10-12，覆盖旧 R1 排名）
+**停止将 Page QA Inspector 当成商业产品或首款独立 Chrome 扩展。** 源码 `products/page-qa-inspector/` 确实已存在，但现标记 `DEPRECATED / NO_RELEASE / MANUAL_FIXTURE_ONLY`；历史 ProductConfig/ZIP/CI 只作为可选的技术样品，不代表完成跨产品通用 Factory、真实发布或有效市场需求。商业实验 `EXP-002` 已归档，不得根据旧 TOP5、MVP1、GOAL 擅自恢复产品开发或 CWS 上架。
+
+当前优先研究 **电商卖家 B2B 的 Listing/SKU/毛利工作流（EXP-005）** 与 **消费者 B2C 的实际到手价/购物决策（EXP-007）**；两者仍是 `HYPOTHESIS / NOT_VALIDATED`，不是已经核实的付费项目。保留企业工作流/研究剪藏等其他方向作为独立备选。请以[商业纠偏决策](commercial-decision-ecommerce-20261012.zh-CN.md)和[电商工具宇宙](ecommerce-tool-universe.zh-CN.md)为准，**不要把旧 TOP30 技术机会排序当商业立项排序**。
+
+下一轮推荐执行：[电商机会验证 R2 GOAL](../../framework/prompts/goal-ecommerce-tool-universe-r2-commercial-validation.zh-CN.md)，而不是旧 Page QA 专项验收。
+
 ## 一句话结论
 
 **A 做通用能力和受信内核，C 做多网站功能试验和开发者生态，B 把通过验证的独立用途做成独立商业产品。** 不能把克隆换壳扩展的数量作为目标；不为了“全网覆盖”无价值地上架。
@@ -40,17 +47,18 @@ OpenDesk Product Ecosystem
 - [通用浏览器工具](common-browser-tools.zh-CN.md) — 平台内置工具及受信 Host 的边界
 - [竞品与证据](competitor-research.zh-CN.md) — 代表性竞品、风险与来源置信度
 - [机器可读机会库](opportunity-register.json) — 84 条稳定机会 ID，TOP30 标记，证据强弱明确
-- [研究优先级](product-priorities.zh-CN.md) — TOP30、TOP10 行业、TOP5 概念、首批三个真实 MVP
+- [研究优先级](product-priorities.zh-CN.md) — R1 历史 TOP30/TOP5 与当前商业决策区分
 - [24 个月候选路线](roadmap-24-months.zh-CN.md) — 0–3/3–6/6–12/12–24 月里程碑与否决门
 - [持续研究办法](research-process.zh-CN.md) — 去重、证据升级、周/月/季节奏与手工执行说明
 - [商业机会发现框架](commercial-opportunity-framework.zh-CN.md) — 14 个机会视角、五层漏斗与八类跨行业商业方向（R2）
 - [盈利模式与单位经济](monetization-unit-economics.zh-CN.md) — 十二种收费方式、支付/权限分离及成本公式（R2）
 - [获客与商业验证](distribution-and-validation.zh-CN.md) — 渠道、合作伙伴、付费试点与六周实验方法（R2）
 - [商业实验台账](commercial-experiments.json) — 8 个 EXP、无虚构订单和访谈、不复制 84 个 OPP（R2）
-- [下一轮 GOAL](next-goals.zh-CN.md) — Extension Factory / UserScript 两份可复制实施提示词
+- [下一轮 GOAL](next-goals.zh-CN.md) — 当前电商验证 GOAL 与历史已废弃提案
 - [商业方向调整：电商优先](commercial-decision-ecommerce-20261012.zh-CN.md) — Page QA 保留技术样品、暂缓商业首发；先验证电商问题与付费方
 - [电商工具宇宙](ecommerce-tool-universe.zh-CN.md) — 消费者/卖家/品牌/供应链/生态共 20 个研究领域
-- [电商研究独立 GOAL](../../framework/prompts/goal-ecommerce-tool-universe-r1.zh-CN.md) — 下一轮可直接复制的深度研究任务
+- [电商研究 R1 历史 GOAL](../../framework/prompts/goal-ecommerce-tool-universe-r1.zh-CN.md) — 原始研究范围
+- [电商商业验证 R2 当前 GOAL](../../framework/prompts/goal-ecommerce-tool-universe-r2-commercial-validation.zh-CN.md) — 文档收敛、真实买方与三个 MVP 决策
 
 ## 权威文档边界
 

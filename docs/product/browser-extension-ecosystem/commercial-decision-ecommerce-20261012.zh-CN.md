@@ -1,4 +1,4 @@
-# 商业产品选择决策：Page QA 商业优先级下调、优先探索电商工具宇宙
+# 商业纠偏决定：Page QA 首款商业产品选择错误，停止商业立项，优先研究电商
 
 - 日期：2026-10-12
 - 状态：**产品战略决策（DECIDED）**；用户需求、收入与市场份额仍为 **NOT_VALIDATED**。
@@ -47,7 +47,7 @@ Extension Factory 仍是长期基础设施，但属于**被真实需求拉动的
 4. 成本模型必须计算站点适配、支持、数据 API、第三方费用、商店合规、误操作赔付风险。
 5. 每个方向分别给出 GO / PIVOT / STOP；不以多个未经验证分数的平均值代替付款或安全证据。
 
-- 商业追踪仍以 [commercial-experiments.json](commercial-experiments.json) 的 EXP 为准；本决定将 EXP-002 视为 LATER / 暂缓商业化，EXP-005 与 EXP-007 提升为优先**研究**候选。旧 EXP 已有 metrics、gates 为 null / NOT_TESTED，不得填入推测值。
+- 商业追踪仍以 [commercial-experiments.json](commercial-experiments.json) 的 EXP 为准；本决定将 EXP-002 **归档停止商业验证**，EXP-005 与 EXP-007 提升为优先**研究**候选。旧 EXP 已有 metrics、gates 为 null / NOT_TESTED，不得填入推测值。
 - 产品机会唯一账本为 [opportunity-register.json](opportunity-register.json)。既有 OPP-008 至 OPP-021 优先复用，新增条目须去重、增量 ID、证据来源齐备。
 - Browser SDK、Page 能力的真实实施与验收按各自 workstream 维护，本决策不改变工程状态。
 - 不联系真实客户、不获取商家账号凭证、不启动收款或大规模网页抓取，除非后续获得具体授权。
@@ -65,3 +65,13 @@ Extension Factory 仍是长期基础设施，但属于**被真实需求拉动的
 - [电商工具宇宙](ecommerce-tool-universe.zh-CN.md)：覆盖买家、卖家、供应链、品牌、运营服务和软件集成的机会树。
 - [独立可执行 GOAL](../../framework/prompts/goal-ecommerce-tool-universe-r1.zh-CN.md)：下一轮专注电商研究、机会去重、竞品/政策和 3 个付费验证 MVP。
 - 历史 R1 排名见 [product-priorities.zh-CN.md](product-priorities.zh-CN.md)，只保留作当时的研究记录；商业产品选择以本日期决策为准。
+
+## 七、复盘：为什么先选 Page QA 是错误方向？
+
+- **技术方便不等于用户价值。** 当时仅因为当前页 DOM/a11y 检查容易实现、权限和独立 ZIP 好验证，就选为商业首款；没有先证明岗位高频痛点、现有替代不足和独特工作流。
+- **有样品代码不等于存在付费市场。** 现有 DevTools/Lighthouse/WAVE/axe 已解决大量基础问题；未获得本产品的真实访谈、付款、留存和维护经济证据。不能用主观 95 分、Node 组件通过或生成 ZIP 来替代这些事实。
+- **工程 Factory 与商业发行混淆。** `scripts/product-build.mjs` / `scripts/product-pack.mjs` 仍特定支持 `page-qa-inspector`，并未实现任意行业产品的选择性打包；专属 CI 已为手动历史诊断。
+
+最终裁决：**Page QA Inspector 商业产品 = STOP / ARCHIVED / NO_RELEASE；技术文件 = DEPRECATED / MANUAL_FIXTURE_ONLY**。不继续专属商业产品开发、增长、定价、CWS 发布和无意义的 Mac Chrome 20 次验收；保留历史源码/测试数据，不无授权删除或改写他人工作。只有新出现可核验的特定用户工作流、相对成熟替代的差异化、真实买方/重复需求和正式批准，才能重新评估。此结论不等于宣称 QA 整个市场无任何客户。
+
+当前有效研究转向[电商工具宇宙](ecommerce-tool-universe.zh-CN.md)并与[商业实验记录](commercial-experiments.json)同步。Chrome [禁止重复内容](https://developer.chrome.com/docs/webstore/program-policies/spam-faq/)与[最低实用价值](https://developer.chrome.com/docs/webstore/program-policies/minimum-functionality)依旧是独立发行否决项。

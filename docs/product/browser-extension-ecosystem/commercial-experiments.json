@@ -73,8 +73,8 @@
       "hypothesis": "用户相较 DevTools 能更快自主找到并处理问题",
       "successEvidenceTarget": "无引导首次任务成功及自然重复使用",
       "policyGate": "ACTIVE_TAB_AND_CWS_SINGLE_PURPOSE",
-      "priority": "LATER",
-      "stage": "PROPOSED",
+      "priority": "ARCHIVED",
+      "stage": "ARCHIVED",
       "owner": "UNASSIGNED",
       "startedAt": null,
       "endedAt": null,
@@ -96,7 +96,11 @@
         "economics": "NOT_MEASURED"
       },
       "evidence": [],
-      "lastReviewedAt": "2026-10-12"
+      "lastReviewedAt": "2026-10-12",
+      "decision": "STOP_COMMERCIAL_PRODUCT",
+      "technicalFixtureStatus": "DEPRECATED_NO_RELEASE_MANUAL_FIXTURE_ONLY",
+      "archivedReason": "Selected for easy factory test, not validated demand or differentiation; no buyer/retention/payment evidence.",
+      "reopenRequires": "New independent buyer and high-frequency need proof, clear advantage over incumbent tools, explicit product decision and approval."
     },
     {
       "id": "EXP-003",
@@ -347,6 +351,8 @@
     "reviewedAt": "2026-10-12",
     "status": "RESEARCH_PRIORITY_ONLY_NO_REAL_INTERVIEWS_OR_PAID_ORDERS",
     "decisionDocument": "docs/product/browser-extension-ecosystem/commercial-decision-ecommerce-20261012.zh-CN.md",
-    "rationale": "Defer Page QA commercial debut (keep factory tech fixture); prioritize e-commerce seller and consumer needs research without implying product launch or funding."
+    "rationale": "Page QA business-first selection was incorrect; preserve code for manual technical history, prioritize EXP-005 and EXP-007 only for commerce opportunity research.",
+    "pageQaCommercialStatus": "ARCHIVED_STOP",
+    "nextResearchGoal": "docs/framework/prompts/goal-ecommerce-tool-universe-r2-commercial-validation.zh-CN.md"
   }
 }
