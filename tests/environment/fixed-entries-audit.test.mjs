@@ -94,8 +94,21 @@ test('full inventory includes raw and static assets and sums the actual runtime 
   assert.equal(vueSfc.budgetBytes,PAGE_BROWSER_COMPILER_RESOURCE_LIMIT);
   assert(babel.bytes>BUILD_POLICY.productionBytes);
   assert(vueSfc.bytes>BUILD_POLICY.productionBytes);
-  assert.equal(report.loadingGroups.find(row=>row.id==='browser-vue-compiler-on-demand').resources.length,
+  // Standard no longer starts browser compilers: they are Developer-only.
+  // Test both editions explicitly rather than dereference a missing Standard group.
+  assert.equal(report.loadingGroups.some(row=>row.id==='browser-vue-compiler-on-demand'),false);
+  assert.equal(report.loadingGroups.some(row=>row.id==='browser-react-compiler-on-demand'),false);
+  const developer=packageFixture();
+  developer.receipt.report.edition='developer';
+  const devReport=summarizePackageResources(developer.receipt,developer.measured);
+  assert.equal(devReport.loadingGroups.find(row=>row.id==='browser-vue-compiler-on-demand')?.resources.length,
     PAGE_BROWSER_PRIVATE_FILES.length);
+  assert.equal(devReport.loadingGroups.find(row=>row.id==='browser-react-compiler-on-demand')?.resources.length,
+    PAGE_BROWSER_PRIVATE_FILES.filter(row=>!['page-vue-sfc-transform','page-vue-sfc-compiler'].includes(row.id)).length);
+  for(const privateFile of PAGE_BROWSER_PRIVATE_FILES){
+    assert.equal(devReport.runtimeResourcePlan.backgroundStartupResources.includes(privateFile.output),false,
+      'Developer-only compilers must never be preloaded into the background');
+  }
 
 });
 test('full inventory catches oversize raw code and missing or mismatched resources',()=>{

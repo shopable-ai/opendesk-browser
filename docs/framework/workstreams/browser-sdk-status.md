@@ -1,3 +1,10 @@
+## R5 CI 兼容修复：标准/开发双版本资源清单（2026-10-12）
+
+- **阻塞证据**：R5 Tabs commit `4c7d8fb5bf1aaa5a113bda1b63c627b07e2f7d8d` 的 Browser SDK CI [38268105391](https://github.com/shopable-ai/opendesk-browser/actions/runs/38268105391) 中 `browser-bundles` PASS；`browser-contracts` 在 R1.3 组合测试 183 项中的 `fixed-entries-audit.test.mjs:97` FAILED（182 PASS / 1 FAIL）。
+- **根因**：Standard/Developer 构建分离后，`scripts/audit-fixed-entries.mjs` 仅当 `receipt.report.edition === 'developer'` 提供 `browser-vue-compiler-on-demand` 和 React 编译器加载组；测试仍假设 Standard 默认具备该加载组，导致 `undefined.resources`。不得因此重新给 Standard 打入开发编译器。
+- **修复与拒绝性验证**：测试分别断言 Standard 不包含编译器加载组，Developer 明确包含完整 Vue/受限 React 按需组，且编译器不会进入后台预加载。业务实现和包权限边界保持不变。
+- **验收口径**：本修复提交的 CI 需新 Git SHA 绑定后才能标记 PASS；R5 35 项源码接线与 0 项同候选 Mac Chrome 原生正式 PASS 的统计均不变。
+
 ## R5 Tabs 三项新增正式接口（2026-10-12）
 
 - **接口登记**：原冻结的 32 项保持 23 IMPLEMENTED、7 PLANNED、2 NOT_EXPOSED。本轮新增并实际接线 R5 `browser.tabs.getOwned`、`browser.tabs.listOwned`、`browser.tabs.closeOwned`，累计 35 项（26 SOURCE_WIRED、7 PLANNED、2 NOT_EXPOSED）；R5+ 原 114 候选晋级 3 项，尚未批准 111 项。前期统计在下方仅作为历史记录。
