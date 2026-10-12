@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>OpenDesk · 云控控制台</title>
+<link rel="stylesheet" href="design-tokens.css">
+<link rel="stylesheet" href="design-system.css">
+<link rel="stylesheet" href="cloud-control-console.css">
+</head>
+<body class="cloud-console">
+<header class="cc-topbar">
+ <div><strong>OpenDesk · 云控控制台</strong><p class="hint">可信扩展页面 · Observer-only 只读观察</p></div>
+ <span class="cc-readonly" role="note">只读 · 不领取任务</span>
+</header>
+<main class="cc-main">
+ <section class="cc-intro od-surface" aria-label="控制台说明">
+  <h1>云控总览</h1>
+  <p id="cc-status" role="status" aria-live="polite">正在读取扩展内的脱敏状态…</p>
+  <p class="hint">本页面不注册执行宿主、不配对、不新增权限，也不执行或停止任务。配对、授权和停止仍在 Side Panel「云控」操作。关闭本页面不影响原运行宿主；关闭 Side Panel 不保证任务继续执行。</p>
+ </section>
+ <section class="cc-card od-surface" aria-label="连接与执行">
+  <h2>连接及设备状态</h2>
+  <div class="cc-metrics">
+   <div><span>提供者</span><strong id="cc-paired">检查中</strong></div>
+   <div><span>网络连接</span><strong id="cc-connection">检查中</strong></div>
+   <div><span>对账</span><strong id="cc-reconciled">检查中</strong></div>
+   <div><span>执行宿主</span><strong id="cc-host">检查中</strong></div>
+   <div><span>执行槽</span><strong id="cc-slot">检查中</strong></div>
+   <div><span>托管</span><strong id="cc-enabled">检查中</strong></div>
+   <div><span>已批准任务</span><strong id="cc-tasks">—</strong></div>
+   <div><span>历史请求数</span><strong id="cc-count">—</strong></div>
+  </div>
+ </section>
+ <section class="cc-card od-surface" aria-label="请求阶段概览">
+  <h2>队列与运行阶段</h2>
+  <p id="cc-stage-counts" class="cc-counts">正在读取…</p>
+  <p class="hint">只有后端已经记录的阶段才会计数。连接在线不代表目标、授权或执行槽都已就绪。</p>
+ </section>
+ <section class="cc-card od-surface" aria-label="分页请求历史">
+  <div class="cc-heading">
+   <h2>最近任务与已确认结果</h2>
+   <button type="button" id="cc-refresh" class="od-button od-button--secondary">刷新状态</button>
+  </div>
+  <ol id="cc-request-list" class="cc-list" aria-live="polite"><li>正在读取…</li></ol>
+  <nav class="cc-pagination" aria-label="历史分页">
+   <button type="button" id="cc-prev" class="od-button od-button--secondary" disabled>上一页</button>
+   <span id="cc-page" role="status">—</span>
+   <button type="button" id="cc-next" class="od-button od-button--secondary" disabled>下一页</button>
+  </nav>
+ </section>
+</main>
+<script src="cloud-console.js"></script>
+</body>
+</html>
