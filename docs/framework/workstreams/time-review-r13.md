@@ -45,3 +45,6 @@
 
 - GitHub Actions 运行 [38203749966](https://github.com/shopable-ai/opendesk-browser/actions/runs/38203749966) 的 macOS-15 CFT 155 安装、Node 回归和 Production 构建/verify 已通过，但原生测试在准备阶段 **FAIL**：工作流 YAML 中 `CHROME_BIN` 多了一个字面值反斜杠，路径变成 `\\/Users/runner/...`，未启动 Chrome；此日志不是应用功能失败或 Mac Chrome PASS。
 - 后续候选删除了 YAML 误加的反斜杠，仍保留先前失败历史。只有下一个同候选 Actions 的原生实装、授权和下载回执成功，才提升对应子项为 PASS。
+
+- Mac Actions 第二次运行 [38203931569](https://github.com/shopable-ai/opendesk-browser/actions/runs/38203931569) 的 CFT 155 已真正启动，并通过可信 `Input.dispatchMouseEvent` 打开真正的 `SIDE_PANEL`（`chrome.runtime.getContexts` 返回原生上下文）。随后出现 **FAIL**：测试驱动仍点击已删除的 `#sidebar-tool-discover-tab`，而当前生产 UI 已改用紧凑 `#sidebar-tool-discover-toggle`（该按钮位于 `src/ui/tool.html`）。属于测试选择器陈旧，尚未执行官方 Time Review 安装；保留原始失败回执 `time-review-r13-actual-macos-chrome-...`，不提升安装/授权/下载状态。
+- 新候选改用主分支存在的“添加工具”真实按钮，并等待 `#sidebar-tool-discover-panel` 可见。后续 Mac CI 需重新运行，不能将第二次 PARTIAL 视为完整 PASS。

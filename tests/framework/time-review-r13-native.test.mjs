@@ -149,7 +149,11 @@ test('Time Review R1.3 actual Mac Chrome install and trusted consent smoke',{tim
   await browser.send('Runtime.enable',{},side);await browser.send('Page.enable',{},side);
   evidence.realSidePanel='PASS';
   await nativeClick(browser,side,'#tab-tools');
-  await nativeClick(browser,side,'#sidebar-tool-discover-tab');
+  // The production R4.9 UI uses the compact '+' button, not the obsolete
+  // #sidebar-tool-discover-tab control from the historical knowledge driver.
+  await nativeClick(browser,side,'#sidebar-tool-discover-toggle');
+  await until(()=>evaluate(browser,side,
+    '!document.querySelector("#sidebar-tool-discover-panel").hidden'),'official discovery visible');
   await nativeClick(browser,side,'#sidebar-tool-official-time-review-install');
   await until(()=>evaluate(browser,side,'!document.querySelector("#sidebar-tool-preview")?.hidden'),'review package');
   assert.equal(await evaluate(browser,side,'document.querySelectorAll("#sidebar-tool-frame iframe").length'),0,
