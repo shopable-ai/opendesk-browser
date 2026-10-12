@@ -209,7 +209,7 @@ test('Time Review R1.3 actual Mac Chrome install and trusted consent smoke',{ski
   await until(()=>evaluate(browser,side,'Boolean(document.querySelector('+JSON.stringify(installed)+'))'),'official Time Review installed');
   const saved=await evaluate(browser,side,
     'chrome.storage.local.get("opendesk.sidebar-tools.installed.v1").then(v=>v["opendesk.sidebar-tools.installed.v1"]?.find(x=>x.id==="time-review")?.version)');
-  assert.equal(saved,'1.3.0','real installed package persisted');
+  assert.equal(saved,pkg.version,'real installed package persisted with exact built tool version');
   evidence.install='PASS';note('install',{version:saved});
   await nativeClick(browser,side,installed);
   await until(()=>evaluate(browser,side,'!document.querySelector("#sidebar-tool-display").hidden'),'tool opened');
