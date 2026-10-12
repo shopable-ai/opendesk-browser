@@ -7,7 +7,7 @@
 > 首次合入审计基线：`main@8ccec441898bc3a175b20105d7116850de9f5be0`，研究首轮提交 [`6463b7098bc9`](https://github.com/shopable-ai/opendesk-browser/commit/6463b7098bc968b12097c48f754a102cd4390312)。后续工作不得将此 SHA 的源码审计状态提升成更新后主线的原生验收。任何状态声明都要按最新 HEAD 再核对。
 
 ## 当前有效产品决策（2026-10-12，覆盖旧 R1 排名）
-**停止将 Page QA Inspector 当成商业产品或首款独立 Chrome 扩展。** 源码 `products/page-qa-inspector/` 确实已存在，但现标记 `DEPRECATED / NO_RELEASE / MANUAL_FIXTURE_ONLY`；历史 ProductConfig/ZIP/CI 只作为可选的技术样品，不代表完成跨产品通用 Factory、真实发布或有效市场需求。商业实验 `EXP-002` 已归档，不得根据旧 TOP5、MVP1、GOAL 擅自恢复产品开发或 CWS 上架。
+**停止将 Page QA Inspector 当成商业产品或首款独立 Chrome 扩展。** `DEPRECATED / NO_RELEASE / SOURCE_REMOVED_FROM_MAIN`：原 `products/page-qa-inspector/`、QA 专用 feature、专用实验工厂脚本/测试/CI 已从当前 `main` 源码树移除，根产品构建命令也已清理。历史设计、源码提交、决策与证据仍可追溯；本仓库当前**没有已交付的跨产品通用 Extension Factory**。商业实验 `EXP-002` 已归档，不得根据旧 TOP5、MVP1、GOAL 恢复 Page QA 开发或上架。
 
 当前优先研究 **电商卖家 B2B 的 Listing/SKU/毛利工作流（EXP-005）** 与 **消费者 B2C 的实际到手价/购物决策（EXP-007）**；两者仍是 `HYPOTHESIS / NOT_VALIDATED`，不是已经核实的付费项目。保留企业工作流/研究剪藏等其他方向作为独立备选。请以[商业纠偏决策](commercial-decision-ecommerce-20261012.zh-CN.md)和[电商工具宇宙](ecommerce-tool-universe.zh-CN.md)为准，**不要把旧 TOP30 技术机会排序当商业立项排序**。
 
@@ -55,7 +55,7 @@ OpenDesk Product Ecosystem
 - [获客与商业验证](distribution-and-validation.zh-CN.md) — 渠道、合作伙伴、付费试点与六周实验方法（R2）
 - [商业实验台账](commercial-experiments.json) — 8 个 EXP、无虚构订单和访谈、不复制 84 个 OPP（R2）
 - [下一轮 GOAL](next-goals.zh-CN.md) — 当前电商验证 GOAL 与历史已废弃提案
-- [商业方向调整：电商优先](commercial-decision-ecommerce-20261012.zh-CN.md) — Page QA 保留技术样品、暂缓商业首发；先验证电商问题与付费方
+- [商业方向调整：电商优先](commercial-decision-ecommerce-20261012.zh-CN.md) — Page QA 已退出商业路线且实验源码已从 main 移除；先验证电商问题与付费方
 - [电商工具宇宙](ecommerce-tool-universe.zh-CN.md) — 消费者/卖家/品牌/供应链/生态共 20 个研究领域
 - [电商研究 R1 历史 GOAL](../../framework/prompts/goal-ecommerce-tool-universe-r1.zh-CN.md) — 原始研究范围
 - [电商商业验证 R2 当前 GOAL](../../framework/prompts/goal-ecommerce-tool-universe-r2-commercial-validation.zh-CN.md) — 文档收敛、真实买方与三个 MVP 决策

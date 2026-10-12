@@ -14,7 +14,7 @@
 - [axe DevTools](https://www.deque.com/axe/devtools/pricing/) 有免费基础检查和付费 Pro/团队功能；这证明专业工作流有付费产品，**不证明**“图片 alt/标题/表单标签检查”就有足够的新付费需求。
 - 尚未获得本项目 Page QA 的真实试用留存、付款订单、潜在客户采访或不同于免费竞品的独立优势证据；不使用任何未经重核的商店安装量或价格推断转化。
 
-**产品决定**：Page QA Inspector **不再作为首款商业主推产品、商业获客或优先上架对象**；保留已有源码、验证记录和独立产品样品作为 Extension Factory 的内部技术验收材料。不得因此删除已有 QA 代码、历史验收或阻断其他 Agent 已授权的技术交付；若将来获得独立付费价值证据，可重新评审恢复商业候选。
+**产品与源码决定（2026-10-12 更新）**：Page QA Inspector **停止商业立项和优先发布**。经后续用户明确要求清理后，已将 Page QA 产品代码、专用功能、绑定 QA 的不通用工厂脚本/测试/CI 从当前 `main` **实际移除**，不再把源码留作自动运行的技术样例；设计说明、历史 Git 提交与原始验收记录保留，不重写历史，也不覆盖其他 Agent 的独立工作。只有出现可验证的具体用户问题和付费/留存证据，才可能重新评审。
 
 ## 二、调整“先建工厂，再找产品”的顺序
 
@@ -70,8 +70,8 @@ Extension Factory 仍是长期基础设施，但属于**被真实需求拉动的
 
 - **技术方便不等于用户价值。** 当时仅因为当前页 DOM/a11y 检查容易实现、权限和独立 ZIP 好验证，就选为商业首款；没有先证明岗位高频痛点、现有替代不足和独特工作流。
 - **有样品代码不等于存在付费市场。** 现有 DevTools/Lighthouse/WAVE/axe 已解决大量基础问题；未获得本产品的真实访谈、付款、留存和维护经济证据。不能用主观 95 分、Node 组件通过或生成 ZIP 来替代这些事实。
-- **工程 Factory 与商业发行混淆。** `scripts/product-build.mjs` / `scripts/product-pack.mjs` 仍特定支持 `page-qa-inspector`，并未实现任意行业产品的选择性打包；专属 CI 已为手动历史诊断。
+- **工程 Factory 与商业发行混淆。** 历史 `scripts/product-build.mjs` / `scripts/product-pack.mjs` 仅支持 `page-qa-inspector`，无法作为多行业通用构建器；现已连同专属 CI、测试和产品源码从当前 `main` 移除。
 
-最终裁决：**Page QA Inspector 商业产品 = STOP / ARCHIVED / NO_RELEASE；技术文件 = DEPRECATED / MANUAL_FIXTURE_ONLY**。不继续专属商业产品开发、增长、定价、CWS 发布和无意义的 Mac Chrome 20 次验收；保留历史源码/测试数据，不无授权删除或改写他人工作。只有新出现可核验的特定用户工作流、相对成熟替代的差异化、真实买方/重复需求和正式批准，才能重新评估。此结论不等于宣称 QA 整个市场无任何客户。
+最终裁决：**Page QA Inspector 商业产品 = STOP / ARCHIVED / NO_RELEASE；实验源码 = DEPRECATED / SOURCE_REMOVED_FROM_MAIN**。不继续产品开发、定价、CWS 发布或无意义的 Mac Chrome 20 次验收；**历史 Git 提交和已存在的原始测试证据仍予以保留**。只有新出现可核验的用户工作流、差异化、真实买方及明确批准，才能重新评估；这不意味着 QA 整个市场无客户。
 
 当前有效研究转向[电商工具宇宙](ecommerce-tool-universe.zh-CN.md)并与[商业实验记录](commercial-experiments.json)同步。Chrome [禁止重复内容](https://developer.chrome.com/docs/webstore/program-policies/spam-faq/)与[最低实用价值](https://developer.chrome.com/docs/webstore/program-policies/minimum-functionality)依旧是独立发行否决项。

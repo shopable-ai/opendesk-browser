@@ -1,6 +1,6 @@
 # Extension Factory：技术复用审计与增量架构
 
-> **2026-10-12 纠偏：Page QA Inspector = `DEPRECATED / NO_RELEASE`。** 下文 Page QA 产品目录与配置示例只是 R1/R2 历史技术样例，**不是仍然有效的首款商业产品选择**。R2 构建脚本仍硬编码该产品，因此尚不是任意产品可用的通用工厂；保留最少权限/Manifest/ZIP 技术路线，但应先验证电商等真实用户需求和付费可能性，再选产品并实现通用构建。参见 [商业决策](commercial-decision-ecommerce-20261012.zh-CN.md)。
+> **2026-10-12 最新状态：Page QA = `DEPRECATED / NO_RELEASE / SOURCE_REMOVED_FROM_MAIN`。** 下文产品目录、配置和构建示例仅保留 R1/R2 历史设计，不再存在于当前 `main`。原 R2 CLI/Resolver/Feature Catalog 只支持 Page QA，已与其专用产品代码一起清理，**不能继续宣称现有仓库实现了任意多产品构建工厂**；保留最少权限/Manifest/ZIP 设计理念，先验证电商等真实需求，再决定新一代通用实现。参见 [商业决策](commercial-decision-ecommerce-20261012.zh-CN.md)。
 
 > R1 为**设计研究**，没有创建产品打包器或运行第二套执行框架。本文件所称“现有”仅指在 2026-10-12 远端 `main` 抽样读取的代码，CI/原生证据另见对应 workstream。
 
@@ -40,7 +40,7 @@ flowchart TB
   E2E --> Release["独立 ZIP / CWS 审核和发布"]
 ```
 
-以下为 **R1 历史目标架构示例，不能当作当前商业开发计划**。`packages/extension-factory/`、`packages/features/page-qa/`、`products/page-qa-inspector/` 已存在，但 Page QA 已废弃，其余目录并不一定已实现：
+以下为 **R1 历史目标架构示例，不是当前仓库源码清单**。曾新增的 `packages/extension-factory/`、`packages/features/page-qa/`、`products/page-qa-inspector/` 均已从当前 `main` 移除；其他列出的目标目录并不一定存在：
 
 ```text
 packages/
@@ -64,7 +64,7 @@ scripts/
 
 ## 三、历史 Page QA 配置示意（DEPRECATED，非当前业务产品）
 
-> 以下示例仅解释产品独立 Manifest 和权限裁剪。以现存 `products/page-qa-inspector/product.config.mjs` 为技术样品证据，不得复制当作当前新产品的实施要求。
+> 以下示例仅解释产品独立 Manifest 和权限裁剪。来源为已经从 `main` 移除的历史 `products/page-qa-inspector/product.config.mjs`，可通过旧 Git commit 查看；不得当作当前已实现配置或新产品需求。
 
 ```js
 export default {
@@ -111,7 +111,7 @@ export default {
 
 ## 六、最小实施节奏
 
-现有 R2 源码仅为 Page QA 的一个特定样品：`ProductConfig` 与 Feature Resolver 已有相关文件，但 `scripts/product-build.mjs` / `scripts/product-pack.mjs` 仍硬编码 `page-qa-inspector`，不具备通用多产品能力。专属 CI 已是手动、历史验证性质。原 OpenDesk 默认构建保持独立。新的行业扩展须先有真实需求、合法数据、可持续维护和购买者证据，再决定通用 Factory 投资与 CWS 审查。CWS API 只能辅助上传和提交审核，不承诺自动批准，见[官方发布 API](https://developer.chrome.com/docs/webstore/using-api)。
+历史 R2 源码曾实现一款 Page QA 产品的隔离打包，但其 ProductConfig/Feature Resolver、`scripts/product-build.mjs`、`scripts/product-pack.mjs` 和专属 CI 均已从当前 `main` 移除，避免留下只支持一款废弃产品的死代码；原 OpenDesk 默认构建保持独立。新的行业扩展须先有真实需求、合法数据、可持续维护和购买者证据，再决定是否建设通用 Factory 与申请 CWS 审查。CWS API 只能辅助上传和提交审核，不承诺自动批准，见[官方发布 API](https://developer.chrome.com/docs/webstore/using-api)。
 
 ## 七、如何避免维护成本失控？
 

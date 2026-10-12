@@ -1,8 +1,8 @@
-# Extension Factory R2 — Page QA Inspector 源码与验收记录（DEPRECATED）
+# Extension Factory R2 — Page QA Inspector 历史技术记录（DEPRECATED / SOURCE_REMOVED_FROM_MAIN）
 
-> **2026-10-12 新决策：`DEPRECATED / NO_RELEASE / MANUAL_FIXTURE_ONLY`。** Page QA 不再是首款商业插件、独立发布候选或当前需要执行的 Mac Chrome 验收 GOAL。下方 Node/WXT/ZIP/Chrome 门槛、历史 `NOT_TESTED` 状态和来源记录均仅供技术追溯，不能作为继续推进产品的指令。
+> **2026-10-12 最新源码清理：`DEPRECATED / NO_RELEASE / SOURCE_REMOVED_FROM_MAIN`。** 已从当前 `main` 源码树移除 Page QA 产品、其专属功能模块、绑定 QA 的实验 Factory、仅供 QA 的 build/pack/verify、测试与 CI，并移除根 `package.json` 中的 `build:product`、`pack:product` 命令。下方的路径/Node/WXT/ZIP/Chrome 门槛、历史 `NOT_TESTED` 状态均为当时的历史记录，**不再是当前可执行命令、文件存在证明或待继续验收任务**。历史 Git 提交和已有原始证据不重写、不删除；旧代码可从 `665a5b93a98a8e3d5e60570af9839aa62c0c4125`、`48d5ce6d32c40efb5c23b24139cb89e13eb16393` 等历史提交检索。
 >
-> 暂留源码是为了展示早期 ProductConfig、最小权限、独立 Manifest/ZIP 构建隔离。当前 CLI 仍**硬编码 `page-qa-inspector`**，不能宣称已实现通用多产品工厂。后续优先验证 [电商工具宇宙等真实需求](../../product/browser-extension-ecosystem/commercial-decision-ecommerce-20261012.zh-CN.md)，再决定将样例迁移或删除；保留旧验收事实，不伪造 PASS。
+> **为什么连实验 Factory 一起移除：** 这套 CLI、Resolver 和 Feature Catalog 实际只支持硬编码 Page QA，当前没有独立于 Page QA 的用户入口。留下会形成死代码和不可运行的构建命令。仅保留设计和历史 commit，未来先验证[电商等实际需求](../../product/browser-extension-ecosystem/commercial-decision-ecommerce-20261012.zh-CN.md)，再设计真正通用的产品注册、最小权限和按需构建。正常 OpenDesk 的 `npm run build` / `npm run pack` 未改；没有在本轮补做 Mac Chrome 或 CWS 验收。
 
 
 > 2026-10-12。工作范围仅 `main`；不创建分支、worktree、PR；不强推。远端 GitHub Connector 直接写入，**没有**用户 Mac 工作目录、CFT Profile 的读取权限。本工作流只记录自己的源码和证据，严禁移动其他任务的候选或重写全局 owner。

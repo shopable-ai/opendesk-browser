@@ -33,9 +33,7 @@
     "cloud:fault": "node scripts/cloud-control/cli.mjs fault",
     "test:cloud": "node --test tests/cloud-control/*.test.mjs",
     "dev:market": "node scripts/serve-market-site.mjs",
-    "snapshot:market": "node scripts/snapshot-market-release.mjs",
-    "build:product": "node scripts/product-build.mjs",
-    "pack:product": "node scripts/product-pack.mjs"
+    "snapshot:market": "node scripts/snapshot-market-release.mjs"
   },
   "devDependencies": {
     "@tailwindcss/cli": "4.3.3",
