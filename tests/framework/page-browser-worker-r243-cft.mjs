@@ -182,6 +182,111 @@ async function verifyBrowserUI({browser,page,catalogTabId,base,extensionId,outpu
       const image=await website.session.call('Page.captureScreenshot',{format:'png'});
       fs.writeFileSync(path.join(output,'r243-browser-'+framework+'-stopped.png'),Buffer.from(image.data,'base64'));
     }
+    // The last successfully executed Vue source must NEVER be replayed when
+    // the user edits it into a syntax error. Use Chrome's native text input;
+    // Runtime.evaluate is used only to select the textarea, never to fake Run.
+    const vuePrevious=report.tests.find(row=>row.name==='r243-browser-vue-no-native-real-run-stop');
+    assert(vuePrevious?.previewId);
+    const editorNode='document.querySelector("#script-source")';
+    const originalVue=await sidebar.read(editorNode+'.value');
+    const brokenVue='<script setup>import {ref} from "vue"; const = ref(0);</script>'+
+      '<template><button>broken</button></template>';
+    async function typeSource(source){
+      assert.equal(await sidebar.read('(()=>{const editor='+editorNode+
+        ';if(!editor)return false;editor.focus();editor.select();return true})()'),true);
+      await sidebar.call('Input.insertText',{text:source});
+      await until(()=>sidebar.read(editorNode+'.value==='+JSON.stringify(source)),
+        'native editor input preserved exact authored bytes',10000);
+    }
+    await typeSource(brokenVue);
+    await until(()=>sidebar.read('!document.querySelector("#page-preview-run").disabled'),
+      'invalid source is still reviewable via explicit Run');
+    await clickReal(sidebar,'document.querySelector("#page-preview-run")');
+    const invalid=await until(()=>sidebar.read('(()=>{const el=document.querySelector("#page-preview-status");'+
+      'return el?.dataset.state==="error"?el.textContent:null})()'),
+      'syntax-error source rejected by on-demand SFC compiler',60000);
+    assert.match(invalid,/E_PAGE_VUE_|E_PAGE_COMPONENT_SYNTAX|E_PAGE_COMPILER_/,
+      'Compiler must reject broken source with an actionable error');
+    assert.equal(await website.session.read(
+      '!document.querySelector("[data-od-id=browser-vue]")'),true,
+      'New invalid source must not resurrect previous successful Vue DOM');
+    assert.equal(await sidebar.read('document.querySelector("#page-preview-technical").textContent'), '',
+      'No previous sourceHash, previewId or success receipt may be reused for failed source');
+    report.tests.push({name:'r243-browser-vue-invalid-edit-no-stale-execution',
+      status:'PASS',previousPreviewId:vuePrevious.previewId,
+      error:invalid.slice(0,240),noOldDOM:true,noStaleReceipt:true,noNative:true});
+    // A later corrected source is a separate explicit Run/Stop with its own
+    // previewId; a failed transform cannot poison the next valid candidate.
+    await typeSource(originalVue);
+    await until(()=>sidebar.read('!document.querySelector("#page-preview-run").disabled'),
+      'corrected Vue source ready for explicit user Run',15000);
+    await clickReal(sidebar,'document.querySelector("#page-preview-run")');
+    const recovered=await until(()=>sidebar.read('(()=>{const el=document.querySelector("#page-preview-status");'+
+      'return el?.dataset.state==="completed"?el.textContent:null})()'),
+      'genuine Vue component recovery after compiler failure',60000);
+    assert.match(recovered,/组件已在当前网页运行/);
+    const nextReceipt=JSON.parse(await sidebar.read(
+      'document.querySelector("#page-preview-technical").textContent'));
+    assert.equal(nextReceipt.state,'preview-evaluated');
+    assert.notEqual(nextReceipt.managedPreviewId,vuePrevious.previewId);
+    assert.equal(nextReceipt.packagedFrameworkId,'vue');
+    await until(()=>website.session.read(
+      'document.querySelector("[data-od-id=browser-vue]")?.shadowRoot?.querySelector("button")!=null'),
+      'corrected Vue component genuinely mounted',12000);
+    await clickReal(sidebar,'document.querySelector("#script-stop")');
+    await until(()=>website.session.read('!document.querySelector("[data-od-id=browser-vue]")'),
+      'corrected Vue component stopped using original managed receipt',12000);
+    report.tests.push({name:'r243-browser-vue-recovery-after-invalid-edit',status:'PASS',
+      previewId:nextReceipt.managedPreviewId,sourceHash:nextReceipt.sourceHash,
+      previousPreviewId:vuePrevious.previewId,realRun:true,domClean:true,noNative:true});
+    // A Vue Teleport deliberately renders outside the managed Shadow DOM.
+    // Its externally mounted DOM must still be owned by Vue app.unmount()
+    // when the same original previewId is explicitly retired.
+    const teleportSource=[
+      '<script setup>',
+      "import {ref} from 'vue';",
+      'const count=ref(0);',
+      '</script>',
+      '<template>',
+      '  <Teleport to="body">',
+      '    <aside id="r243-teleported-vue" aria-label="Vue Teleport cleanup">Teleported {{count}}</aside>',
+      '  </Teleport>',
+      '  <button type="button" @click="count++">Change</button>',
+      '</template>'
+    ].join('\n');
+    await typeSource(teleportSource);
+    assert.equal(await website.session.read('document.querySelector("#r243-teleported-vue")'),null);
+    await until(()=>sidebar.read('!document.querySelector("#page-preview-run").disabled'),
+      'Teleport source ready for explicit Run');
+    await clickReal(sidebar,'document.querySelector("#page-preview-run")');
+    const teleportState=await until(()=>sidebar.read('(()=>{const el=document.querySelector("#page-preview-status");'+
+      'return ["completed","error"].includes(el?.dataset.state)?{state:el.dataset.state,text:el.textContent}:null})()'),
+      'genuine Vue Teleport Page preview receipt',60000);
+    assert.equal(teleportState.state,'completed',teleportState.text);
+    const teleportReceipt=JSON.parse(await sidebar.read(
+      'document.querySelector("#page-preview-technical").textContent'));
+    assert.equal(teleportReceipt.managedUI,true);
+    assert.equal(teleportReceipt.packagedFrameworkId,'vue');
+    assert.notEqual(teleportReceipt.managedPreviewId,nextReceipt.managedPreviewId);
+    await until(()=>website.session.read('(()=>{const el=document.querySelector("#r243-teleported-vue");'+
+      'return el?.parentElement===document.body&&el.textContent.includes("Teleported 0")})()'),
+      'Vue Teleport rendered outside managed Shadow DOM');
+    await clickReal(website.session,
+      'document.querySelector("[data-od-id=browser-vue]")?.shadowRoot?.querySelector("button")');
+    await until(()=>website.session.read(
+      'document.querySelector("#r243-teleported-vue")?.textContent.includes("Teleported 1")'),
+      'real pointer updates Vue Teleport outside Shadow DOM');
+    await clickReal(sidebar,'document.querySelector("#script-stop")');
+    await until(()=>website.session.read('!document.querySelector("#r243-teleported-vue")&&'+
+      '!document.querySelector("[data-od-id=browser-vue]")'),
+      'Vue app.unmount removed both owned UI and external Teleport DOM');
+    report.tests.push({name:'r243-browser-vue-teleport-external-dom-managed-stop',
+      status:'PASS',previewId:teleportReceipt.managedPreviewId,
+      documentId:teleportReceipt.documentId,sourceHash:teleportReceipt.sourceHash,
+      actualPointerInput:true,teleportOutsideShadow:true,externalDOMClean:true,noNative:true});
+    await typeSource(originalVue);
+    assert.equal(await website.session.read('!document.querySelector("#r243-teleported-vue")'),true,
+      'restoring the editor source alone must never execute a Page component');
   }finally{
     settings?.session.close();website?.session.close();sidebar?.close();
     if(site)await new Promise(resolve=>site.close(resolve));

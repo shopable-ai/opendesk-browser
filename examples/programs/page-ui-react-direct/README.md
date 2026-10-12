@@ -19,6 +19,8 @@
 
 ## 与其他示例的边界
 
+浏览器无需 Native 的 **React JSX 直接编辑模式** 已支持官方单组件 JSX 的按需编译与网页 Run/Stop（[真实 Chrome 历史证据](https://github.com/shopable-ai/opendesk-browser/actions/runs/38225425847)），但它**不会读取本目录、继承本目录通配 `pageRules`、执行多文件导入或隐式替换已安装版本**。本目录 `src/main.js` 仍按 `opendesk browser dev .` 的 Native 已授权本地目录开发方式操作；两者都只能显式 Run。
+
 `page-ui-toc-react-direct`（由另一个对话单独实现时）负责章节抽取和目录跳转。本项目只验证跨站 React 悬浮挂载，**不复制阅读目录功能**，不修改 `page-ui-react`、`page-ui-vue`、`page-ui-vue-direct`。
 
 旧的 `src/legacy-main.js` 和 `src/enhancement.js` 只作为 R24.2 指定测试页的可逆高亮兼容示例保留；`examples/import-ready/history/` 中的旧版导入快照/回执不得重写。每次修改当前源码或匹配规则后，必须用原有构建器重新生成并验证**当前** `examples/import-ready/page-ui-react-direct.opendesk-draft.json`，旧文件哈希不得冒充本版证据。

@@ -406,18 +406,45 @@ test('R4.1 real Chrome installs bundled TOC, follows multiple H1, restores and r
     if(!node)throw Error('TOC host is not mounted');
     const rect=node.getBoundingClientRect();
     return {left:rect.left,top:rect.top,right:rect.right,bottom:rect.bottom,
-      width:rect.width,height:rect.height,x:rect.left+26,y:rect.top+26,
+      width:rect.width,height:rect.height,
       viewportWidth:innerWidth,viewportHeight:innerHeight};
   })()`);
+  // Inspect only the actual closed-shadow control's CDP box model. Pointer
+  // events remain native; this test never simulates website DOM events.
+  async function tocControlPoint(className){
+    await articlePage.send('DOM.enable');
+    const tree=(await articlePage.send('DOM.getDocument',{depth:-1,pierce:true})).root;
+    const seek=(node,predicate)=>{
+      if(predicate(node))return node;
+      for(const part of ['children','shadowRoots','pseudoElements']){
+        for(const child of node[part]||[]){
+          const result=seek(child,predicate);
+          if(result)return result;
+        }
+      }
+      return node.contentDocument?seek(node.contentDocument,predicate):null;
+    };
+    const host=seek(tree,node=>node.attributes?.includes('data-opendesk-toc-root'));
+    assert(host,'real TOC root is absent from the attached document');
+    const control=seek(host,node=>node.nodeName==='BUTTON'&&
+      node.attributes?.some((key,index,attrs)=>key==='class'&&attrs[index+1]?.split(/\s+/).includes(className)));
+    assert(control?.backendNodeId,'closed-shadow TOC control is absent: '+className);
+    const box=(await articlePage.send('DOM.getBoxModel',{backendNodeId:control.backendNodeId})).model.content;
+    const point={x:(box[0]+box[2]+box[4]+box[6])/4,
+      y:(box[1]+box[3]+box[5]+box[7])/4};
+    assert(point.x>=0&&point.y>=0,'TOC control is not in the visible viewport');
+    return point;
+  }
   async function clickAt(x,y){
     await articlePage.send('Input.dispatchMouseEvent',{type:'mouseMoved',x,y,button:'none'});
     await articlePage.send('Input.dispatchMouseEvent',{type:'mousePressed',x,y,button:'left',buttons:1,clickCount:1});
     await articlePage.send('Input.dispatchMouseEvent',{type:'mouseReleased',x,y,button:'left',buttons:0,clickCount:1});
   }
   async function dragFromHandle(rect,wantedLeft,wantedTop){
-    const finalX=rect.x+wantedLeft-rect.left,finalY=rect.y+wantedTop-rect.top;
-    await articlePage.send('Input.dispatchMouseEvent',{type:'mouseMoved',x:rect.x,y:rect.y,button:'none'});
-    await articlePage.send('Input.dispatchMouseEvent',{type:'mousePressed',x:rect.x,y:rect.y,button:'left',buttons:1,clickCount:1});
+    const start=await tocControlPoint('grab');
+    const finalX=start.x+wantedLeft-rect.left,finalY=start.y+wantedTop-rect.top;
+    await articlePage.send('Input.dispatchMouseEvent',{type:'mouseMoved',...start,button:'none'});
+    await articlePage.send('Input.dispatchMouseEvent',{type:'mousePressed',...start,button:'left',buttons:1,clickCount:1});
     await articlePage.send('Input.dispatchMouseEvent',{type:'mouseMoved',x:finalX,y:finalY,button:'left',buttons:1});
     await articlePage.send('Input.dispatchMouseEvent',{type:'mouseReleased',x:finalX,y:finalY,button:'left',buttons:0,clickCount:1});
   }
@@ -448,7 +475,8 @@ test('R4.1 real Chrome installs bundled TOC, follows multiple H1, restores and r
   },'R4.2 TOC placement escaped the smaller viewport');
   await articlePage.send('Emulation.clearDeviceMetricsOverride');
   const toReset=await tocRect();
-  await clickAt(toReset.right-25,toReset.top+26);
+  const resetPoint=await tocControlPoint('reset');
+  await clickAt(resetPoint.x,resetPoint.y);
   await eventually(()=>evaluate(host,`chrome.storage.local.get(${JSON.stringify(placementKey)}).then(
     values=>!Object.hasOwn(values,${JSON.stringify(placementKey)}))`),
   'R4.2 reset did not remove the saved site-specific placement');

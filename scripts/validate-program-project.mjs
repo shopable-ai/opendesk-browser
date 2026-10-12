@@ -362,6 +362,8 @@ export async function validateProgramProject(input,{readProjectFile}={}){
     version:pkg.version,
     runtimeKind:p.runtimeKind,
     entry:p.entry,
+    ...(p.framework?{framework:p.framework}:{}),
+    ...(p.runtimeKind==='page-userscript'?{pageRules:validatePageProgramRules(p.pageRules)}:{}),
     ...(p.entryMode?{entryMode:p.entryMode}:{}),
     sourceFormat:'esm',
     sources,

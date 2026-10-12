@@ -2,6 +2,7 @@ import {createStorage} from '../storage/index.js';
 import {createSessionTyped} from '../storage/session.js';
 import {createDownloadService} from '../downloads/index.js';
 import {createRunAuthority} from './authority.js';
+import {requireCloudConsoleSender,requireCloudSidePanelSender} from './cloud-observer.js';
 import {createSdkBroker} from './sdk-broker.js';
 import {createPageScriptPreview} from '../../scripting/user-scripts/preview.js';
 import {createDependencyManager} from '../../scripting/user-scripts/dependency-manager.js';
@@ -198,8 +199,17 @@ export async function createFoundationBroker({api = chrome, ports = new Map(), c
     if (message.type === 'BOOTSTRAP_READY') return consumer ? consumer.bootstrapReady(message.payload,sender) : unavailable();
     if (message.type === 'TARGET_READY') return consumer ? consumer.agentReady(message.payload,sender) : unavailable();
     if (['AGENT_READY','PAGE_DATA','PAGE_END','PAGE_EFFECT','PAGE_ERROR','SOURCE_RESULT','SOURCE_PREVIEW_DATA','SOURCE_PREVIEW_END','SOURCE_ERROR'].includes(message.type)) return consumer ? consumer.handleAgentMessage(message,sender) : unavailable();
+    if(message.type==='cloudObserve'){
+      // Observer is never registered as a Host. Its only capability is this
+      // redacted, fixed-namespace readonly projection.
+      await requireCloudConsoleSender(api,sender);
+      invariant(authority.cloud,'E_CAPABILITY','Cloud service is not installed');
+      return authority.cloud.cloudObserve(message.payload ?? {});
+    }
     sender = await resolveToolSender(api, sender);
     invariant(isToolSender(api,sender),'E_OWNER','Only actual packaged tool documents may invoke foundation services');
+    if(['cloudStatus','cloudPair','cloudApprove','cloudStop','cloudUnpair','cloudNext','cloudResolve'].includes(message.type))
+      await requireCloudSidePanelSender(api,sender);
     if (!consumer && templateOperations.has(message.type)) unavailable();
     const route = Object.hasOwn(routes, message.type) ? routes[message.type] : undefined;
     invariant(route,'E_CAPABILITY','Unknown or unavailable foundation operation');

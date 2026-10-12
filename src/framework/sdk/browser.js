@@ -11,18 +11,29 @@ export function createBrowserSdk({request,context='sidebar-tool'}={}){
   };
   const capabilities=Object.freeze({
     list:()=>page?Promise.resolve(browserCapabilityList('page-sdk')):ask('browser.capabilities.list'),
-    getStatus:({operation}={})=>page?Promise.resolve(deniedBrowserStatus(operation)):ask('browser.capabilities.getStatus',{operation})
+    getStatus:input=>{
+      const args=input??{};
+      normalizeBrowserOperation('browser.capabilities.getStatus',args);
+      return page?Promise.resolve(deniedBrowserStatus(args.operation)):
+        ask('browser.capabilities.getStatus',args);
+    }
   });
   if(page)return Object.freeze({apiVersion:'1.0.0',capabilities,
     // Explicit denial does not add any browser method to the admitted Page RPC list.
     contextMenu:Object.freeze({register:()=>Promise.reject(fail('E_CONTEXT','Page SDK cannot register context menus'))})});
   const method=(name)=>args=>ask(name,args??{});
+  // These two existing methods use approved legacy UI operations, not Browser Host RPC.
+  const legacy=(name,alias)=>args=>{
+    normalizeBrowserOperation(name,args);
+    if(typeof request!=='function')return Promise.reject(fail('E_CONTEXT','This browser operation needs an installed tool'));
+    return request(alias,args);
+  };
   return Object.freeze({apiVersion:'1.0.0',capabilities,
     contextMenu:Object.freeze({getStatus:()=>ask('browser.contextMenu.getStatus'),
       register:method('browser.contextMenu.register'),unregister:()=>ask('browser.contextMenu.unregister')}),
     launch:Object.freeze({consume:()=>ask('browser.launch.consume')}),
     page:Object.freeze({getContext:()=>ask('browser.page.getContext'),getSelection:()=>ask('browser.page.getSelection')}),
-    clipboard:Object.freeze({writeText:text=>ask('browser.clipboard.writeText',{text})}),
-    downloads:Object.freeze({text:method('browser.downloads.text')})
+    clipboard:Object.freeze({writeText:text=>legacy('browser.clipboard.writeText','clipboard.writeText')({text})}),
+    downloads:Object.freeze({text:legacy('browser.downloads.text','file.download')})
   });
 }

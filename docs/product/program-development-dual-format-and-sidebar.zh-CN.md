@@ -4,9 +4,9 @@
 
 **当前中文主入口：[docs/api](../api/README.md)**，从[快速入门](../api/quickstart.zh-CN.md)开始；精确参数见[七个 MCP 工具](../api/mcp-local-development.zh-CN.md)。沿用现有“我的 / 发现 / 开发 / 工具”和 RunHost，不重新设计 Sidebar，也不恢复已移除的依赖配置界面。
 
-> **产品方向修订（预装库 R1，尚未实现）：** OpenDesk Browser 面向普通用户的主方案是**扩展开发者预装常用库**，普通用户在 Sidebar 手写 Controller/Page 代码时默认即可使用 `_`、`dayjs`（以及 `OpenDeskLibs`），不要求每人安装 npm、构建或使用 MCP。当前代码尚未提供这一套默认全局，不能把示例当成已交付功能。本文后面的 npm/HTTPS/LocalDev 指引是**复杂自定义项目的现有高级路径**，不是零配置脚本的产品目标。正式设计与反方审计见 [预装第三方库与零配置运行环境 R1](../architecture/browser-framework/preinstalled-libraries-r1.zh-CN.md)。
+> **2026-10-12 状态修订：** 早期 R1 文档的“尚未实现默认全局”已经过时：现有 `src/libs/core.js`、固定资源 Loader 和 Controller/Page 编译器已实现 `_`、`dayjs`、`OpenDeskLibs` 在获准用户程序执行前的默认安装，普通用户不需要 npm 或手动向 main 传参。但**并不是所有库和所有执行世界都完成**：当前可选库有独立世界限制，Controller 全量真实 Axios、Socket.IO 和公共 Tailwind 等按实时 Catalog/CI 确认。设计或组件通过不代表同候选 Chrome/ZIP 正式通过。
 
-**框架开发者实施入口：** [R15 预装第三方库、零配置 Sidebar 脚本与 main 实施 GOAL](../framework/prompts/goal-r15-preinstalled-libraries-main-implementation.md)。这是下一轮需要实际修改运行时、构建和 Chrome 测试的任务书；尚未完成前，下面手工示例不能假设已有 `_` 或 `dayjs` 全局。普通用户最终不需要学习项目 npm 构建流程。
+**当前使用合同与下一轮研发入口：** 首先阅读 [零参数 main()、预置运行变量与执行世界矩阵](../api/runtime-globals-and-preinstalled-libraries.zh-CN.md)，再查 [公共库源码/状态](../../src/libs/README.md)。旧 [R15 首期 GOAL](../framework/prompts/goal-r15-preinstalled-libraries-main-implementation.md) 是历史任务，不应再据此要求用户 npm 安装默认包、`main({page})` 或重新开发第二个内置系统。
 
 ## 先选正确的开发方式
 

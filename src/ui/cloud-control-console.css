@@ -1,0 +1,28 @@
+/* R27-based extension-only console. No separate reset, dependency or CDN. */
+html,body{width:100%;min-width:0;min-height:100%;height:auto;overflow-x:hidden;overflow-y:auto}
+.cloud-console{display:block;color:var(--od-ink);background:var(--od-bg)}
+.cc-topbar{display:flex;align-items:center;justify-content:space-between;gap:var(--space-3);padding:var(--space-3) max(var(--space-3),calc((100vw - 1060px)/2));background:var(--od-paper);border-bottom:1px solid var(--od-line);min-width:0}
+.cc-topbar strong{font-size:16px;overflow-wrap:anywhere}
+.cc-topbar .hint{margin:4px 0 0}
+.cc-readonly{flex:none;border:1px solid var(--od-line);border-radius:var(--radius-control);color:var(--od-sub);padding:6px 10px;font-size:12px}
+.cc-main{display:grid;gap:var(--space-3);width:min(100% - 32px,1060px);margin:var(--space-4) auto var(--space-4);min-width:0}
+.cc-intro,.cc-card{padding:var(--space-4)}
+.cc-intro h1{font-size:19px}
+.cc-card h2{font-size:15px;margin:0 0 var(--space-3)}
+.cc-intro p{line-height:1.55}
+.cc-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--space-3)}
+.cc-metrics>div{display:grid;gap:var(--space-1);min-width:0;padding:var(--space-3);background:var(--od-muted);border-radius:var(--radius-control)}
+.cc-metrics span{color:var(--od-sub);font-size:12px}
+.cc-metrics strong{font-size:13px;overflow-wrap:anywhere}
+.cc-counts{line-height:1.8;overflow-wrap:anywhere}
+.cc-heading{display:flex;align-items:center;justify-content:space-between;gap:var(--space-3);flex-wrap:wrap}
+.cc-heading h2{margin:0}
+.cc-list{display:grid;gap:0;list-style:none;padding:0;margin:var(--space-3) 0}
+.cc-list li{display:grid;grid-template-columns:minmax(110px,.7fr) minmax(90px,.7fr) minmax(180px,1.6fr);gap:var(--space-3);align-items:center;min-width:0;padding:var(--space-3) 0;border-top:1px solid var(--od-line)}
+.cc-list li>*{min-width:0;overflow-wrap:anywhere}
+.cc-list li small{font-size:12px;color:var(--od-sub)}
+.cc-pagination{display:flex;align-items:center;justify-content:space-between;gap:var(--space-3);flex-wrap:wrap}
+.cc-pagination button{min-height:36px}
+.cc-pagination span{text-align:center;font-size:12px;color:var(--od-sub)}
+@media(max-width:720px){.cc-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.cc-list li{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.cc-list li small{grid-column:1/-1}}
+@media(max-width:390px){.cc-topbar{align-items:flex-start;flex-wrap:wrap}.cc-metrics{grid-template-columns:1fr}.cc-main{width:calc(100% - 24px)}.cc-intro,.cc-card{padding:var(--space-3)}}

@@ -8,6 +8,7 @@ const APP_PRESENTATION = Object.freeze([
   {id:'opendesk/web-markdown-clipper',toolId:'web-markdown-clipper',category:'阅读',author:'OpenDesk',summary:'按需把已授权网页的正文或选区整理为 Markdown。',sites:'普通 HTTP(S) 网页；正文读取单独授权',surfaces:['侧边栏'],features:['正文与选区','复制 Markdown','下载文件'],media:'clip'},
   {id:'opendesk/quick-notes',toolId:'quick-notes',category:'笔记',author:'OpenDesk',summary:'独立保存简短笔记，也可主动关联网页标题与链接。',sites:'本地笔记；关联网页由你主动选择',surfaces:['侧边栏','独立标签页'],features:['本机存储','关联网页','快速编辑'],media:'notes'},
   {id:'opendesk/markdown-workbench',toolId:'markdown-workbench',category:'Markdown',author:'OpenDesk',summary:'离线编辑、预览与导入导出 Markdown。',sites:'无需网站权限',surfaces:['侧边栏','独立标签页'],features:['源码与预览','本地文件导入','导出 Markdown'],media:'markdown'},
+  {id:'opendesk/cookie-editor',toolId:'cookie-editor',category:'开发工具',author:'OpenDesk',summary:'离线模拟 Cookie 新增、编辑、删除以及 JSON、Header、Netscape 导入导出。',sites:'本地临时工作区；当前尚不读取或修改浏览器 Cookie',surfaces:['侧边栏','独立标签页'],features:['Cookie 列表与属性','多格式导入导出','本地编辑与清空'],media:'cookies'},
   {id:'opendesk/knowledge-inbox',toolId:'knowledge-inbox',category:'AI',author:'OpenDesk',summary:'在获授权的 ChatGPT 页面按点击保存回答、图片及想法。',sites:'chatgpt.com；按网站单独授权',surfaces:['侧边栏','ChatGPT 页面'],features:['保存回答','整理收件箱','显式导出'],media:'inbox'}
 ]);
 export const OFFICIAL_COLLECTIONS = Object.freeze([

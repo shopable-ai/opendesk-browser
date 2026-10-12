@@ -18,6 +18,12 @@ YOU ARE AN AUTONOMOUS CODING AGENT. EXECUTE AUTHORIZED TASKS TO COMPLETION WITHO
 
 核对 Chrome 实际启用扩展的加载路径、真实 ID、Go doctor 的 `local.extensionId` 及 Native manifest 的 `allowed_origins`，不能用仓库 HEAD、目录名或版本号替代配对检查。用户明确要求切换或删除历史副本时，先保留必要证据和可恢复备份、收尾连接，再使用所属 owner 的官方命令修复配对；跨 ID 的 `E_EXTENSION_ID_CONFLICT` 不得靠直接改写或删除 Native 配置绕过。日常源码开发详见 `docs/framework/extension-development-r131.zh-CN.md`。
 
+## Controller/Page 零参数用户入口及 src/libs 环境合同（2026-10-12）
+
+用户当前明确要求：**推荐示例、AI 生成代码与多文件 ESM Controller 入口使用 `export default async function main()`，Side Panel「开发」直接编辑 Controller 草稿使用 `async function main()`，直接引用受控 Worker 词法 `page`、`params` 及默认 `_`、`dayjs`、`OpenDeskLibs`，不让用户给 `main` 传能力对象、重复 npm 安装或写 CDN。** 历史 `main({page})` ESM 入口只保留兼容，不得再宣传为唯一/推荐格式。
+
+Controller 的 `page` 不是网站 `window.page` 或 Worker `globalThis.page`。Page USER_SCRIPT 使用 `document` 和自己的默认/显式按需库，不拥有 Controller `page/params/axiosx`；SW、Side Panel 宿主、独立扩展页面由各自构建入口静态引入，第三方工具 iframe 使用 `OpenDeskTool`。禁止将各执行世界混成一个全局表、把全部库打进 SW、运行时 CDN 或增加不必要 Chrome 权限。**权威使用说明、示例和验证级别**：[预置变量与世界矩阵](docs/api/runtime-globals-and-preinstalled-libraries.zh-CN.md)。新需求先检查实际 Worker/ESM 编译器及 Page 世界合同，再写提示词。
+
 ## UI 布局与 Tailwind 样式规范（2026-10-12）
 
 所有新增或调整的 Side Panel、Native Workspace/Settings、应用市场、侧栏工具及网页注入 UI，先按 [`docs/architecture/ui-layout-conventions-r27.zh-CN.md`](docs/architecture/ui-layout-conventions-r27.zh-CN.md) 的**跨界面**规则选择布局密度、间距、容器 gutter、断点、焦点和验证级别；Side Panel 特殊细节继续以 [R20/R26 文档](docs/architecture/sidebar-design-system-r20.zh-CN.md) 为准。权威变量只有 `src/ui/design-tokens.css`，不要为每个 Tab 重建颜色、间距和按钮系统。

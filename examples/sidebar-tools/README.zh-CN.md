@@ -4,7 +4,7 @@
 
 | 入口 | 适用场景 | 示例/模板 |
 | --- | --- | --- |
-| **原生 HTML/CSS/JS** | 新手、轻量工具、最小包和最快迭代 | [quick-notes](quick-notes/README.md)、[markdown-workbench](markdown-workbench/README.md) |
+| **原生 HTML/CSS/JS** | 新手、轻量工具、最小包和最快迭代 | [quick-notes](quick-notes/README.md)、[markdown-workbench](markdown-workbench/README.md)、[Cookie Editor 本地 UI](cookie-editor/README.zh-CN.md) |
 | **React 预编译** | 组件较多，需要 React 状态/UI | [react-starter](react-starter/README.md) |
 | **Vue 预编译** | 组件较多，需要 Vue | [vue-starter](vue-starter/README.md) |
 | **受信任网页目录** | 官方站点授权、可信 Content Script | [reading-toc](reading-toc/README.md) |
@@ -13,7 +13,7 @@
 
 普通工具的标准源码是 `tool.config.json` + `src/index.html` / `style.css` / `main.js`；React/Vue 先编译为单文件经典 JS 和静态 CSS，再交给**同一个** `scripts/build-sidebar-tool.mjs`。其他官方工具可能还修改 `src/` 内的可信扩展代码，不能假定普通工具通过 JSON 就获得相同能力。
 
-当前六个官方候选为 reading-toc、web-markdown-clipper、quick-notes、markdown-workbench、knowledge-inbox、time-review，均由根目录 `official-tools/catalog.json` 登记；Time Review 为可选安装，其余工具遵循 Catalog 中各自的预装策略。版本、能力与内容由各项目配置和源码生成，具体见 [官方 Catalog](../../docs/api/official-tools-catalog.zh-CN.md)。React/Vue starter 仍是本地示例，不属于官方发行。所有源码目录都不需要维护第二份生成 JSON。
+当前七个官方候选为 reading-toc、web-markdown-clipper、quick-notes、markdown-workbench、knowledge-inbox、time-review、cookie-editor，均由根目录 `official-tools/catalog.json` 登记；Time Review 为可选安装，其余工具遵循 Catalog 中各自的预装策略。版本、能力与内容由各项目配置和源码生成，具体见 [官方 Catalog](../../docs/api/official-tools-catalog.zh-CN.md)。React/Vue starter 仍是本地示例，不属于官方发行。所有源码目录都不需要维护第二份生成 JSON。
 
 最短打包命令（在仓库根执行）：
 

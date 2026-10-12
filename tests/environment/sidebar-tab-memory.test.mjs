@@ -169,6 +169,7 @@ test('the real shell only restores the Side Panel and ignores navigation rejecte
   const [shell,work]=await Promise.all([
     readFile('src/ui/tool-shell.js','utf8'),readFile('src/ui/task-workbench.js','utf8')
   ]);
+  assert.match(shell,/const actualSidePanel=await isActualSidePanelContext\(\{api:chrome,href:hostUrl\.href\}\)/);
   assert.match(shell,/if\(actualSidePanel\|\|!tab\?\.id\)\{[\s\S]*?tabMemory\.restore\(\)/);
   assert.match(shell,/onTabSelected:\(view,options\)=>tabMemory\.record\(view,options\)/);
   const navigateStart=work.indexOf('function navigate(name,{initial=false}={})');

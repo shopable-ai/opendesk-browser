@@ -1,0 +1,39 @@
+<main class="cookie-app" aria-label="Cookie Editor 管理面板">
+<header class="site-bar"><div class="site-meta"><strong id="site-host">正在读取当前网站…</strong><span id="site-url" class="secondary" hidden></span></div>
+<button id="refresh" class="icon-button" type="button" aria-label="刷新 Cookie" title="刷新 Cookie"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 0 0-14.5-4.7L3 9m0-5v5h5M4 13a8 8 0 0 0 14.5 4.7L21 15m0 5v-5h-5"/></svg></button></header>
+<p id="preview-banner" class="preview-banner" role="note">本地演示模式：不读取、不修改真实浏览器 Cookie。关闭工具后数据不保留。</p>
+<section id="cookie-content" class="cookie-content" aria-label="Cookie 列表">
+<div class="toolbar"><label for="search" class="visually-hidden">搜索 Cookie</label><input id="search" class="search-field" type="search" autocomplete="off" placeholder="搜索名称、域名或路径" aria-label="搜索 Cookie">
+<button id="add" class="icon-button" type="button" title="新建 Cookie" aria-label="新建 Cookie"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
+<button id="import-toggle" class="icon-button" type="button" title="导入 Cookie" aria-label="导入 Cookie"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V3m-4 4 4-4 4 4M4 15v5h16v-5"/></svg></button></div>
+<div class="toolbar export-actions"><span id="cookie-count" class="count">0 条 Cookie</span><span class="fill"></span>
+<label for="export-format" class="visually-hidden">导出格式</label>
+<select id="export-format" aria-label="导出格式"><option value="json">JSON</option><option value="header">Cookie Header</option><option value="netscape">Netscape</option></select>
+<button id="copy" class="text-button" type="button">复制</button><button id="download" class="text-button" type="button">导出</button></div>
+<div id="cookie-list" class="cookie-list" role="list" aria-label="本地临时 Cookie 列表"></div>
+<p id="empty-message" class="empty-message">正在准备本地工作区…</p>
+<button id="sample" class="text-button sample-button" type="button" hidden>载入两条虚构示例</button>
+<div class="footer-actions"><button id="clear" class="text-button danger-text" type="button" disabled>清空工作区 Cookie</button></div></section>
+<section id="editor-panel" class="editor-panel" aria-labelledby="editor-heading" hidden>
+<div class="section-head"><strong id="editor-heading">新建 Cookie</strong><button id="editor-close" class="icon-button" type="button" title="关闭编辑" aria-label="关闭编辑"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
+<form id="editor-form">
+<div class="field"><label for="cookie-name">名称</label><input id="cookie-name" type="text" maxlength="256" autocomplete="off" required></div>
+<div class="field"><label for="cookie-value">值</label><textarea id="cookie-value" data-sensitive="true" rows="3" maxlength="4096" autocomplete="off" spellcheck="false"></textarea></div>
+<div class="field-grid">
+<div class="field"><label for="cookie-domain">域名</label><input id="cookie-domain" type="text" maxlength="253" autocomplete="off" required></div>
+<div class="field"><label for="cookie-path">路径</label><input id="cookie-path" type="text" maxlength="1024" value="/" autocomplete="off" required></div></div>
+<div class="field"><label for="cookie-same-site">SameSite</label><select id="cookie-same-site"><option value="unspecified">未指定</option><option value="lax">Lax</option><option value="strict">Strict</option><option value="no_restriction">None</option></select></div>
+<div class="flag-grid"><label class="check-label"><input id="cookie-host-only" type="checkbox" checked>仅当前主机</label><label class="check-label"><input id="cookie-secure" type="checkbox">Secure</label><label class="check-label"><input id="cookie-http-only" type="checkbox">HttpOnly</label><label class="check-label"><input id="cookie-session" type="checkbox" checked>会话 Cookie</label></div>
+<div id="expiry-field" class="field" hidden><label for="cookie-expiry">过期时间</label><input id="cookie-expiry" type="datetime-local"></div>
+<p class="hint">编辑当前工作区的临时数据；名称、域名、路径、分区身份不可修改。连接浏览器后才可能影响网站登录。</p>
+<div class="form-actions"><button id="editor-cancel" class="text-button" type="button">取消</button><button id="editor-save" class="text-button primary" type="submit">保存 Cookie</button></div></form></section>
+<section id="import-panel" class="editor-panel" aria-labelledby="import-heading" hidden>
+<div class="section-head"><strong id="import-heading">导入当前网站 Cookie</strong><button id="import-close" class="icon-button" type="button" title="关闭导入" aria-label="关闭导入"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
+<div class="field"><label for="import-format">导入格式</label><select id="import-format"><option value="auto">自动识别</option><option value="json">JSON（数组或 cookies 对象）</option><option value="header">Cookie Header</option><option value="netscape">Netscape</option></select></div>
+<div class="field"><label for="import-file">选择本地文件（可选）</label><input id="import-file" data-sensitive="true" type="file" accept=".json,.txt,text/plain,application/json"></div>
+<div class="field"><label for="import-text">导入内容</label><textarea id="import-text" data-sensitive="true" rows="5" maxlength="150000" spellcheck="false" placeholder="粘贴或选择本地文件…"></textarea></div>
+<p class="hint">仅操作本地临时工作区，每次最多导入 100 条。会先显示新增/覆盖数量供确认；不会写入真实浏览器。</p>
+<div class="form-actions"><button id="import-cancel" class="text-button" type="button">取消</button><button id="import-apply" class="text-button primary" type="button">确认导入</button></div></section>
+<section id="confirm-panel" class="confirmation" role="alertdialog" aria-modal="true" aria-labelledby="confirm-message" hidden>
+<p id="confirm-message"></p><div class="form-actions"><button id="confirm-cancel" class="text-button" type="button">取消</button><button id="confirm-accept" class="text-button danger-button" type="button">确认操作</button></div></section>
+<p id="status" class="status" role="status" aria-live="polite" hidden></p></main>

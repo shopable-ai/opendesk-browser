@@ -60,6 +60,9 @@ export function initSidebarToolSandbox() {
     if(!instance)return;
     let text='',truncated=false;
     for(const node of root.querySelectorAll?.('textarea,input:not([type="password"]),[contenteditable]:not([contenteditable="false"])')||[]){
+      // Sensitive fields may hold session secrets. Never mirror their values
+      // into host draft recovery, even for a manually installed untrusted tool.
+      if(node.hasAttribute?.('data-sensitive')||node.closest?.('[data-sensitive]'))continue;
       const value=node.isContentEditable?node.textContent:node.value;
       if(typeof value!=='string'||!value)continue;
       const entry=(node.getAttribute?.('aria-label')||node.id||node.name||'编辑内容')+'\n'+value+'\n\n';

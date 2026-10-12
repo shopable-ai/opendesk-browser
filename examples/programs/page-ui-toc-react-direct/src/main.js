@@ -1,9 +1,11 @@
 import {createElement, useEffect, useMemo, useRef, useState} from 'react';
 import {chooseActiveTocItem, createTocScanner, sameToc, selectTocItems} from './toc-model.js';
+import {summarizeHeadingLevels} from './heading-stats.js';
 
 // Official React JavaScript syntax. OpenDesk provides React, mounts this
 // component in its managed Shadow DOM and runs root.unmount() on Stop.
-// No createRoot, createPageUI, JSX transform, CDN or npm install is needed.
+// The default chart remains offline. The optional pinned CDN ESM adapter
+// requires explicit local review, but never loads remote JS in Chrome at Run.
 const h = createElement;
 const colors = {
   text: '#273247', muted: '#728095', line: '#e1e7f0', accent: '#4269d9',
@@ -17,9 +19,9 @@ const ui = {
     padding: 11, font: '13px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif',
     colorScheme: 'light'
   },
-  head: {display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 7},
+  head: {display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 7},
   title: {fontWeight: 700, letterSpacing: '.06em', fontSize: 11, color: colors.muted},
-  buttons: {display: 'flex', gap: 3, alignItems: 'center'},
+  buttons: {display: 'flex', flexWrap: 'wrap', gap: 3, alignItems: 'center'},
   mode: {padding: '4px 6px', cursor: 'pointer', border: '1px solid transparent',
     borderRadius: 6, background: 'transparent', font: 'inherit', fontSize: 11,
     color: colors.muted},
@@ -36,9 +38,17 @@ const ui = {
   more: {border: 0, padding: 4, color: colors.accent, background: 'transparent',
     font: 'inherit', fontSize: 11, cursor: 'pointer'},
   empty: {padding: '10px 4px', color: colors.muted, fontSize: 12},
-  status: {marginTop: 7, fontSize: 11, color: '#ad4a4f'}
+  status: {marginTop: 7, fontSize: 11, color: '#ad4a4f'},
+  chart: {marginTop: 10, padding: '8px 4px 2px'},
+  chartTitle: {margin: '0 0 9px', fontSize: 12, fontWeight: 650},
+  chartRow: {display: 'grid', gridTemplateColumns: '24px minmax(0, 1fr) 22px',
+    alignItems: 'center', gap: 7, minHeight: 23},
+  chartName: {color: colors.muted, fontSize: 11},
+  chartTrack: {height: 8, borderRadius: 5, background: '#edf1f7', overflow: 'hidden'},
+  chartFill: {height: '100%', borderRadius: 5, background: colors.accent},
+  chartCount: {textAlign: 'right', fontSize: 11, fontVariantNumeric: 'tabular-nums'}
 };
-const modes = [['overview', '概览'], ['focus', '当前'], ['full', '全部']];
+const modes = [['overview', '概览'], ['focus', '当前'], ['full', '全部'], ['stats', '统计']];
 
 export default function App() {
   const [items, setItems] = useState([]);
@@ -48,6 +58,7 @@ export default function App() {
   const [error, setError] = useState('');
   const scan = useMemo(() => createTocScanner(document), []);
   const currentItems = useRef([]);
+  const stats = useMemo(() => summarizeHeadingLevels(items), [items]);
 
   useEffect(() => {
     const win = document.defaultView;
@@ -98,7 +109,7 @@ export default function App() {
     };
   }, [scan]);
 
-  const shown = selectTocItems(items, activeId, mode);
+  const shown = mode === 'stats' ? [] : selectTocItems(items, activeId, mode);
   function goTo(item) {
     if (!item.element?.isConnected) {
       setError('此章节已改变，请重新运行目录扫描。');
@@ -134,7 +145,23 @@ export default function App() {
         }, collapsed ? '＋' : '－')
       )
     ),
-    !collapsed && h('nav', {style: ui.nav, 'aria-label': '章节导航'},
+    !collapsed && (mode === 'stats'
+      ? h('section', {style: ui.chart, 'aria-label': '网页标题层级统计'},
+        h('h3', {style: ui.chartTitle}, '标题层级分布 · ' + stats.total + ' 个'),
+        h('div', {role: 'list', 'aria-label': 'H1 至 H6 的数量'},
+          ...stats.levels.map(row => h('div', {
+            key: row.level, role: 'listitem', style: ui.chartRow
+          },
+            h('span', {style: ui.chartName}, 'H' + row.level),
+            h('div', {style: ui.chartTrack, role: 'meter',
+              'aria-label': 'H' + row.level + ' 标题数量',
+              'aria-valuemin': 0, 'aria-valuemax': stats.peak,
+              'aria-valuenow': row.count},
+              h('div', {style: {...ui.chartFill, width: row.percent + '%'}})),
+            h('span', {style: ui.chartCount}, String(row.count))
+          )))
+      )
+      : h('nav', {style: ui.nav, 'aria-label': '章节导航'},
       shown.length === 0
         ? h('p', {style: ui.empty}, '当前网页暂无可用正文标题')
         : h('ol', {style: ui.list}, ...shown.map(item => h('li', {key: item.id},
@@ -149,10 +176,11 @@ export default function App() {
                 background: colors.light, borderLeftColor: colors.accent
               } : {})}
           }, item.label)
-        )))),
+        ))))
+    ),
     !collapsed && h('div', {style: ui.footer},
       h('span', null, items.length + ' 个章节 · React Direct Demo'),
-      shown.length < items.length && h('button', {
+      mode !== 'stats' && shown.length < items.length && h('button', {
         type: 'button', onClick: () => setMode('full'), style: ui.more
       }, '查看全部')
     ),

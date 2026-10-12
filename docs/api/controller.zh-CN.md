@@ -2,38 +2,43 @@
 
 [返回总入口](README.md)。Controller 在受控 Worker 中通过公开 `page` 操作获准网页；没有网页全局 document。本地项目、MCP、Sidebar 使用原 RunHost、Authority 和持久结果体系。
 
-## main 输入
+## main 输入：推荐零参数环境变量写法（Controller）
 
-目录项目入口 default export 接收对象：
+**多文件 ESM 项目**应优先写 `export default async function main()`，直接使用受控 Worker 里的 `page`、`params` 和已预装 `_`、`dayjs`：
 
 ```js
-export default async function main({page,params}) {
+export default async function main() {
+  const title = await page.title();
+  const url = await page.url();
   return {
-    title:await page.title(),
-    url:await page.url(),
-    heading:await page.locator('h1').textContent()
+    title,
+    url,
+    words: _.words(title),
+    date: dayjs().format('YYYY-MM-DD')
   };
 }
 ```
 
-实际项目调用对象包含 `page, params, axiosx, AppStorage, AppLocal, storage`；按需解构。params 来自 run/Sidebar 的 JSON 对象并受项目 paramsSchema 验证。本页主要覆盖 Page/Locator；HTTP 实例复用[现有测试示例说明](../../examples/tasks/README.zh-CN.md)，不通过 Controller 访问 Node 文件系统或 Native 内部协议。
-
-**单文件或手工草稿调用 main() 时不传这个对象**，page/params 是注入变量，使用：
+**Sidebar 手写草稿／独立单文件**不通过 ESM 构建器，去掉 `export default`：
 
 ```js
 async function main() {
-  return {title:await page.title(),value:params.value ?? 0};
+  return {title:await page.title(),keyword:params.keyword ?? ''};
 }
 ```
 
-可直接运行的文件见 [title.js](../../examples/programs/single-file/title.js)，多文件见 [local-controller](../../examples/programs/local-controller/README.md)。
+运行器内部的 `AsyncBody` 受控词法作用域提供 `page`、`params`、`axiosx`、`AppStorage`、`AppLocal`、`storage`；`src/libs/core.js` 在运行前提供 `_`、`dayjs`、`OpenDeskLibs`。这些是用户可以直接使用的环境变量，**不要让用户在 `main()` 签名解构参数、创建 `new Page()` 或 npm 安装已有内置库**。其中 `page` 是 Worker 的词法绑定，**不是** `window.page` / `globalThis.page`；Controller 不存在网页 `document`。params 仍由 run/Sidebar JSON 提供并受 paramsSchema 校验，不等于 `main` 必须声明形参。
+
+历史多文件代码 `main({page,params})` 仍由 `scripts/build-program-project.mjs` 内部兼容调用支持；这只是避免破坏已安装程序/旧源码，**不再是生成新代码的推荐示例**。本页覆盖现代 Page/Locator；特权 HTTP 应使用受限 `axiosx` 而不是把 Page 普通 Axios 假装成 Broker。实现范围详见[零参数预置运行合同](runtime-globals-and-preinstalled-libraries.zh-CN.md)。
+
+真正的零参数多文件示例：[controller-globals-zero-arg](../../examples/programs/controller-globals-zero-arg/README.md)；单文件示例：[title.js](../../examples/programs/single-file/title.js)。
 
 ## Page / Locator 最小用法
 
 在 demo-form 的项目入口中可写：
 
 ```js
-export default async function main({page}) {
+export default async function main() {
   await page.getByLabel('搜索关键词',{exact:true}).fill('OpenDesk');
   await page.getByRole('button',{name:'搜索',exact:true}).click();
   await page.getByText('搜索完成',{exact:true}).waitFor({state:'visible'});

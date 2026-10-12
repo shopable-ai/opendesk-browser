@@ -1,5 +1,12 @@
 # OpenDesk Browser 多文件 Demo 总览
 
+## 优先选择零参数预装库 Demo（2026-10-12）
+
+- [Controller 全局变量零参数 Demo](controller-globals-zero-arg/README.md)：`export default async function main()`，直接读取 `page.title()/page.url()`、`_.words()`、`dayjs()`，无需给用户 main 传递对象。
+- [Page USER_SCRIPT 全局变量零参数 Demo](page-globals-zero-arg/README.md)：无参数 ESM `main()`、`document`、`_`、`dayjs`；不允许误用 Controller `page`。两者的 Node 回归统一见 `tests/environment/runtime-globals-zero-arg.test.mjs`，真实 Mac Chrome 验收另行绑定。
+
+这两项专门纠正旧多文件样例的 `main({page})` 误导，并保留旧入口 ABI，**不改写已有 R2.2 Golden 源码与历史回执**。完整各执行环境区别见 [零参数预装运行合同](../../docs/api/runtime-globals-and-preinstalled-libraries.zh-CN.md)。
+
 ## ESM R2.2 当前验收与开发入口
 
 命令均从 opendesk-browser 仓库根目录执行。已有 Native/扩展配对时，用 `opendesk browser dev "$PWD/examples/programs/项目目录"` 接入现有 Sidebar；修改模块后再次明确运行，不需要导出/上传编译结果。MCP 仍使用现有七个 `opendesk.dev.*` 工具，身份取实际回执。保存只触发本地准备，不自动操作网页。

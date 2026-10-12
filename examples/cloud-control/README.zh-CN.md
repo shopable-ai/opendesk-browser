@@ -15,3 +15,37 @@
 服务端 admin API 为 POST /admin/state、/seed、/cancel、/fault，需独立 Bearer adminToken。/seed 只接受 requestKey、params、固定 demo-form 目标；固定包由仓库内部读取，不接受任意源码或文件路径。Executor API 为 POST /v1/pair、/auth、/capabilities、/claim、/admission、/renew、/cancellation、/receipt、/reconcile；WS /v1/events 只认证/心跳/通知。
 
 mac24dev 旧 Midway 运行项目目前只绑定回环，HTTP/Socket.IO 18001/18002 从本机 LAN 不可达。其旧直接脚本接口不能替代本合同；本轮没有修改或部署该服务器。
+
+
+## Cloud Control R3 · Observer-only 控制台及验证
+
+正式 Side Panel 仍为「我的 / 发现 / 工作流 / 开发 / 工具 / 云控」；
+开发构建另外增加「调试」。云控页增加「在新标签页打开只读云控控制台」入口，
+对应扩展内部 `ui/cloud-control.html`，不是 Sidebar Tool 或任意外部网页。
+
+该控制台**不注册 Host**，只能通过验证 Chrome TAB/documentId 的
+`cloudObserve` 接口查看连接、执行槽、队列计数和分页脱敏请求；每页最多
+50 条，UI 默认 20 条。控制台不会 claim、start、授权、停止或执行。
+正式配对、安装 Task 审批和停止托管仍在原 Side Panel 进行。
+
+原 Side Panel 轮询继续 2 秒检查可执行任务，但使用
+`cloudStatus({includeRequests:false})` 跳过历史扫描；
+云控页详细读取使用 `cloudStatus({limit:5})`，另返回 requestTotal。
+**注意**：详细读取和 Observer 仍扫描 frameworkKV 后分页，尚未是原生 IDB
+索引/游标分页；大量历史数据性能需后续迁移验收。
+
+专项回归使用：
+
+- `node --test tests/environment/cloud-control-console-r3.test.mjs`
+- `node --test tests/environment/cloud-control-debug-r14.test.mjs`
+- `node --test tests/environment/cloud-control-sidebar-r28.test.mjs`
+- `node --test tests/environment/sidebar-tab-memory.test.mjs`
+- `node --test tests/framework/k3-controller-authority.test.mjs`
+- `npm run test:cloud`
+- `npm run check && npm run build && npm run build:dev && npm run verify`
+
+GitHub Actions 专项工作流为 `.github/workflows/cloud-control-r3.yml`。
+Linux CI 构建不能替代 Mac Chrome Gate 4 真实停止、副作用后中断恢复、
+原 IDB 故障和执行宿主关闭验收。没有原生证据时保持 NATIVE_PENDING。
+控制台关闭不应结束 Side Panel 正在执行的原 Run；Side Panel 关闭后也
+**不承诺继续挂机**。长期 Runner 正式开关仍未实现。

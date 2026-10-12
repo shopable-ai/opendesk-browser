@@ -4,6 +4,9 @@
 
 ## 普通 main 与项目 main
 
+Page 与 Controller 都可以写零参数 main，但**只有 Page USER_SCRIPT 可直接访问 `document`，没有 Controller `page` / `params` / `axiosx`**。默认 `_`、`dayjs`、`OpenDeskLibs` 来自扩展本地固定资源；可选库通过批准声明按需加载，不会自动进入网站 MAIN。见[零参数预置运行变量与多环境区别](runtime-globals-and-preinstalled-libraries.zh-CN.md)以及 [Page 零参数 ESM Demo](../../examples/programs/page-globals-zero-arg/README.md)。
+
+
 手工草稿或单文件：
 
 ```js

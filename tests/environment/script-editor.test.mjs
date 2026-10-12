@@ -26,7 +26,8 @@ class Element {
 globalThis.Option=class extends Element {constructor(text,value){super();this.textContent=text;this.value=value;}};
 const event=()=>{const e=new Element();return {addListener:fn=>e.addEventListener('event',fn),removeListener:fn=>e.removeEventListener('event',fn),emit:(...args)=>{for(const fn of e.listeners.get('event')||[])fn(...args);}};};
 const html=await readFile('src/ui/tool.html','utf8');
-async function fixture(persisted={scripts:[],runs:[],results:[]}, draftStorage, {contextTabId}={}) {
+async function fixture(persisted={scripts:[],runs:[],results:[]}, draftStorage,
+  {contextTabId,componentPreparerFactory,wrapTarget}={}) {
   const nodes=new Map([...html.matchAll(/id="([^"]+)"/g)].map(([,id])=>[id,new Element()]));
   const find=id=>nodes.get(id), view=new Element(), doc={getElementById:find,defaultView:view,createElement:()=>new Element()};
   find('script-id').value='my-script';find('script-source').value='return params.value;';find('script-params').value='{"value":1}';find('script-target-mode').value='current';
@@ -81,7 +82,9 @@ async function fixture(persisted={scripts:[],runs:[],results:[]}, draftStorage, 
       return {state:'preview-evaluated',resultText:'{"ok":true}',sourceHash:'a'.repeat(64)};
     }};
   const target=createCurrentPageTarget({api});await target.ready;
-  const editor=createScriptEditor({client,currentPageTarget:target,api,document:doc,hostFactory:options=>createRunHost({...options,controllerFactory:({context})=>({
+  const testedTarget=wrapTarget?wrapTarget(target):target;
+  const editor=createScriptEditor({client,currentPageTarget:testedTarget,api,document:doc,
+    ...(componentPreparerFactory?{componentPreparerFactory}:{}),hostFactory:options=>createRunHost({...options,controllerFactory:({context})=>({
     execute:async(source,params)=>{executions.push({source,params});context.signal.addEventListener('abort',()=>terminal.resolve({status:context.signal.reason.code==='E_HOST_CLOSED'?'host-closed':'stopped'}),{once:true});return terminal.promise;},
     retired:Promise.resolve({acknowledged:true}),stop(){traces.push('local-stop');},close(){traces.push('local-close');}
   })})});
@@ -703,6 +706,68 @@ test('Run silently checks Chrome permission; denied permission and invalid param
   f.find('script-params').value='invalid json';await f.click('script-run');assert.equal(f.permissions.length,0);assert.equal(f.executions.length,0);
 });
 
+test('R24.3 browser component help follows official syntax, never demands main() from JSX/SFC',async t=>{
+  const f=await fixture();t.after(()=>f.dispose());
+  assert.equal(f.find('page-preview-mode-title').textContent,'网页 JavaScript 试运行');
+  for(const [mode,expected] of [['react',/React.*JSX/],['vue',/Vue.*SFC/]]){
+    const choice=f.find('page-component-'+mode);
+    choice.checked=true;choice.fire('change');await tick();
+    assert.match(f.find('page-preview-mode-title').textContent,expected);
+    assert.match(f.find('page-preview-mode-hint').textContent,/无需 main\(\)/);
+    assert.match(f.find('page-component-hint').textContent,/不会自动运行|明确点击运行才操作网页/);
+  }
+  const choice=f.find('page-component-javascript');
+  choice.checked=true;choice.fire('change');await tick();
+  assert.equal(f.find('page-preview-mode-title').textContent,'网页 JavaScript 试运行');
+});
+
+test('R24.3 final asynchronous document check refuses a React component edited before admission',async t=>{
+  const release=deferred(),entered=deferred();
+  let revalidationCount=0;
+  const f=await fixture(undefined,undefined,{
+    componentPreparerFactory:()=>({
+      async prepare({framework,projectId}){
+        return {sourceUtf8:'// @opendesk-lib '+framework+'\nasync function main(){}',
+          entryFormat:'async-main',sourceHash:'a'.repeat(64),framework,projectId,
+          compilerVersion:'7.29.9',cacheHit:false,prepareMs:1};
+      },
+      cancel(){},dispose(){}
+    }),
+    wrapTarget:original=>Object.freeze({
+      ...original,
+      // The real currentPageTarget is frozen; a Proxy cannot replace its
+      // non-configurable revalidate property. Create a separate test facade.
+      revalidate:async captured=>{
+        revalidationCount++;
+        if(revalidationCount===2){entered.resolve();await release.promise;}
+        return original.revalidate(captured);
+      },
+      get snapshot(){return original.snapshot;},
+      get windowId(){return original.windowId;}
+    })
+  });
+  t.after(()=>{release.resolve();f.dispose();});
+  const radio=f.find('page-component-react');
+  radio.checked=true;radio.fire('change');await tick();
+  const first=f.find('script-source').value;
+  assert.match(first,/from 'react'/);
+  f.find('page-preview-run').fire('click',{isTrusted:true});
+  const reached=await Promise.race([entered.promise.then(()=>true),
+    new Promise(resolve=>setTimeout(()=>resolve(false),1200))]);
+  assert.equal(reached,true,'Component did not reach the final async document fence; checks='+
+    revalidationCount+' previewStatus='+f.find('page-preview-status').textContent+
+    ' componentStatus='+f.find('page-component-status').textContent);
+  f.find('script-source').value=first+'\n// user edited while Chrome checked the document';
+  f.find('script-source').fire('input');
+  release.resolve();
+  await tick();await tick();
+  assert.equal(revalidationCount,2);
+  assert.equal(f.previews.length,0,'stale compiled bytes must never reach the existing Page executor');
+  assert.equal(f.find('page-preview-status').dataset.state,'error');
+  assert.match(f.find('page-preview-status').textContent,/E_PAGE_COMPILER_STALE/);
+  assert.equal(f.find('page-preview-run').disabled,false,'new source can be explicitly run after stale admission rejected');
+});
+
 test('DOM preview binds frozen plain JavaScript and exact current document from trusted click',async t=>{
   const f=await fixture();t.after(()=>f.dispose());
   const pending=deferred();f.setPermission(pending.promise);
@@ -973,4 +1038,80 @@ test('R24.3 React and Vue modes keep independent official source drafts without 
   assert.equal(f.find('page-preview-run').textContent,'运行 React 组件');
   f.click('script-run');await tick();
   assert.equal(f.starts.length,0,'Component source cannot enter Controller RunHost');
+});
+
+async function waitForComponentUI(check,label){
+  for(let i=0;i<80;i++){
+    if(check())return;
+    await tick();
+  }
+  assert.fail(label);
+}
+function browserComponentFixture(){
+  return {prepare:async({framework,projectId})=>({
+    framework,projectId,entryFormat:'async-main',
+    sourceUtf8:'// @opendesk-lib '+framework+'\nasync function main(){}',
+    sourceHash:'a'.repeat(64)
+  }),cancel(){},dispose(){}};
+}
+async function selectBrowserReact(f){
+  const input=f.find('page-component-react');
+  input.checked=true;input.fire('change');await tick();
+  assert.equal(input.checked,true);
+  assert.equal(f.find('page-preview-run').textContent,'运行 React 组件');
+}
+test('R24.3 an outcome-unknown browser component blocks the SAME document, but a genuinely new document permits explicit Run',async t=>{
+  const f=await fixture(undefined,undefined,{componentPreparerFactory:browserComponentFixture});
+  t.after(()=>f.dispose());
+  let dispatched=0;
+  const original=f.client.request.bind(f.client);
+  f.client.request=async(method,payload)=>{
+    if(method==='previewPageScript'){
+      dispatched++;
+      throw Object.assign(new Error('Browser receipt was lost'),{code:'E_EFFECT_UNKNOWN'});
+    }
+    return original(method,payload);
+  };
+  await selectBrowserReact(f);
+  await f.click('page-preview-run');
+  await waitForComponentUI(()=>f.find('page-preview-status').dataset.state==='error',
+    'unknown page effect must be reported');
+  assert.match(f.find('page-preview-status').textContent,/E_EFFECT_UNKNOWN/);
+  assert.equal(f.find('page-preview-run').disabled,true,'unknown effect fences additional Run');
+  f.find('page-component-vue').checked=true;f.find('page-component-vue').fire('change');await tick();
+  assert.equal(f.find('page-component-react').checked,true,'framework switch cannot bypass uncertain execution');
+  assert.equal(dispatched,1,'no duplicate dispatch after unknown receipt');
+  await f.switchTab(); // new actual available document: tabId and documentId both change.
+  await waitForComponentUI(()=>f.find('page-preview-run').disabled===false,
+    'verified new document must release the old effect-unknown fence');
+  assert.match(f.find('page-component-status').textContent,/新网页文档/);
+  assert.equal(dispatched,1,'navigation alone must never replay user code');
+  await f.click('page-preview-run');
+  await waitForComponentUI(()=>dispatched===2,'new document requires a NEW explicit Run');
+});
+test('R24.3 malformed Page receipt is quarantined and cannot be retried in the same document',async t=>{
+  const f=await fixture(undefined,undefined,{componentPreparerFactory:browserComponentFixture});
+  t.after(()=>f.dispose());
+  let dispatches=0;
+  const original=f.client.request.bind(f.client);
+  f.client.request=async(method,payload)=>{
+    if(method==='previewPageScript'){
+      dispatches++;
+      return {state:'preview-evaluated',sourceHash:'b'.repeat(64),
+        documentId:payload.target.documentId,managedUI:false,
+        managedPreviewId:payload.managedUI.previewId};
+    }
+    return original(method,payload);
+  };
+  await selectBrowserReact(f);
+  await f.click('page-preview-run');
+  await waitForComponentUI(()=>f.find('page-preview-status').dataset.state==='error',
+    'untrusted Page receipt must be rejected');
+  assert.match(f.find('page-preview-status').textContent,/E_PAGE_COMPILER_RECEIPT/);
+  assert.equal(f.find('page-preview-run').disabled,true);
+  assert.equal(dispatches,1);
+  await f.switchTab();
+  await waitForComponentUI(()=>f.find('page-preview-run').disabled===false,
+    'only a new document can release a mismatched Page receipt');
+  assert.equal(dispatches,1,'new document must not auto-run');
 });

@@ -14,6 +14,8 @@ const pageFrameworks=Object.values(PAGE_FRAMEWORK_RUNTIMES);
 const browserCompilerFiles=PAGE_BROWSER_PRIVATE_FILES;
 export const STATIC_RESOURCES=Object.freeze({
   'src/ui/tool.html':'ui/tool.html',
+  'src/ui/cloud-control.html':'ui/cloud-control.html',
+  'src/ui/cloud-control-console.css':'ui/cloud-control-console.css',
   'src/marketplace/marketplace.html':'ui/marketplace.html',
   'src/marketplace/marketplace.css':'ui/marketplace.css',
   'src/ui/design-tokens.css':'ui/design-tokens.css',

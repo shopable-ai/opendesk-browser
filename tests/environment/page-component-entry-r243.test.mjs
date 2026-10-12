@@ -30,6 +30,7 @@ test('R24.3 standard React/Vue JS imports link to fixed runtime and generated UI
   for(const framework of ['react','vue'])await fixture(framework,async(root,pkg)=>{
     const checked=await validateProgramProject(root);
     assert.equal(checked.entryMode,'component');
+    assert.equal(checked.framework,framework,'validated authoring metadata reports the immutable selected runtime');
     assert.deepEqual(checked.npmDependencies,[]);
     const output=await buildProgramProjectInMemory(root,{mode:'production'});
     assert.ok(output.sourceBytes<100000);

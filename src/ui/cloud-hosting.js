@@ -1,10 +1,10 @@
 // Hosting shares the visible document's existing RunHost and Authority slot.
 import {projectCloudStatus,cloudHostingSummary,projectCloudRequestSamples} from './cloud-status-presentation.js';
-export function createCloudHosting({client,host,document:doc=globalThis.document}){
+export function createCloudHosting({client,host,document:doc=globalThis.document,api=globalThis.chrome}){
   const get=id=>doc.getElementById(id),cloud=client.cloud;let disposed=false,busy=false,starting=false,timer;
   const status=get('cloud-status'),brief=get('cloud-brief'),myState=get('cloud-my-state');
   const overview=get('cloud-overview-state'),sampleList=get('cloud-request-samples');
-  let lastSamples='';
+  let lastSamples='',lastFullRefresh=0;
   function sampleView(s){
     const samples=projectCloudRequestSamples(s),serial=JSON.stringify(samples);
     if(serial===lastSamples)return;lastSamples=serial;sampleList.replaceChildren();
@@ -18,9 +18,9 @@ export function createCloudHosting({client,host,document:doc=globalThis.document
     myState.textContent='状态不可读取';overview.textContent='云端托管状态暂不可读取';};
   // Refresh is deliberately read-only. Cloud claim/dispatch belongs only to poll().
   async function refresh(){
-    const s=await cloud.cloudStatus({});if(disposed)return null;
+    const s=await cloud.cloudStatus({limit:5});if(disposed)return null;
     const projected=projectCloudStatus(s),summary=cloudHostingSummary(projected);
-    brief.textContent=!projected.paired?'未配对':!projected.enabled?'已关闭':!projected.online?'连接中':!projected.reconciled?'对账中':!projected.slotAvailable?'执行槽繁忙':'可用';
+    brief.textContent=!projected.paired?'未配对':!projected.enabled?'已关闭':!projected.online?'连接中':!projected.reconciled?'对账中':!projected.hostReady?'等待宿主':!projected.slotAvailable?'执行槽繁忙':'可用';
     status.textContent=summary+`\n已批准任务 ${projected.approvedTasks} 项 · 历史云请求 ${projected.requests.total} 条 · 已确认回执 ${projected.requests.receivedReceipts} 条（最近 ${projected.requests.sampled} 条统计）`;
     myState.textContent=brief.textContent+' · 已批准 '+projected.approvedTasks+' 项任务';
     overview.textContent=summary;
@@ -30,7 +30,7 @@ export function createCloudHosting({client,host,document:doc=globalThis.document
     put('cloud-overview-slot',projected.slotAvailable?'空闲':'占用／未就绪');
     put('cloud-overview-tasks',String(projected.approvedTasks));
     put('cloud-overview-requests',String(projected.requests.total));
-    sampleView(s);
+    sampleView(s);lastFullRefresh=Date.now();
     get('cloud-pair').disabled=!!s.provider;get('cloud-approve').disabled=!s.provider||s.enabled;get('cloud-stop').disabled=!s.provider;get('cloud-unpair').disabled=!s.provider;
     return s;
   }
@@ -47,6 +47,14 @@ export function createCloudHosting({client,host,document:doc=globalThis.document
   // The user's “核对状态” gesture must never itself claim or run a cloud task.
   click('cloud-refresh',async()=>{});
   click('cloud-overview-refresh',async()=>{});
-  async function poll(){if(disposed)return;try{if(!busy){const s=await refresh();if(!busy&&!disposed)await dispatchNext(s);}}catch(e){if(!disposed)fail(e);}finally{if(!disposed)timer=setTimeout(poll,2000);}}
-  void poll();return {dispose(){disposed=true;clearTimeout(timer);for(const[id,fn]of listeners)get(id).removeEventListener('click',fn);}};
+  click('cloud-open-console',()=>api.tabs.create({url:api.runtime.getURL('ui/cloud-control.html')}));
+  // Preserve the two-second dispatch cadence without scanning cloud history
+  // every time. Visibility changes observations, not execution ownership.
+  async function poll(){if(disposed)return;try{if(!busy){
+    const s=await cloud.cloudStatus({includeRequests:false});
+    if(!busy&&!disposed)await dispatchNext(s);
+    const cloudVisible=doc.documentElement?.dataset?.opendeskTab==='cloud';
+    if(!busy&&!disposed&&Date.now()-lastFullRefresh>=(cloudVisible?5000:15000))await refresh();
+  }}catch(e){if(!disposed)fail(e);}finally{if(!disposed)timer=setTimeout(poll,2000);}}
+  void poll();return {refresh,dispose(){disposed=true;clearTimeout(timer);for(const[id,fn]of listeners)get(id).removeEventListener('click',fn);}};
 }

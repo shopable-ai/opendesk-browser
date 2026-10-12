@@ -178,6 +178,7 @@
     <section class="cloud-panel od-stack" aria-label="云控管理">
       <header class="cloud-panel-head od-toolbar">
         <div class="cloud-panel-heading"><strong>云控</strong><p class="hint">与当前目标网页并排查看云任务及执行状态。</p></div>
+        <button type="button" id="cloud-open-console" class="od-icon-button" title="在大页面打开云控控制台" aria-label="在新标签页打开只读云控控制台"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 5h5v5m0-5-9 9M19 14v5H5V5h5"></path></svg></button>
         <button type="button" id="cloud-overview-refresh" class="od-icon-button" title="刷新云控状态" aria-label="刷新云控状态"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 0 0-14-5L4 8m0-5v5h5M4 13a8 8 0 0 0 14 5l2-2m0 5v-5h-5"></path></svg></button>
       </header>
       <section class="cloud-overview od-surface" aria-label="云控实时概览">
@@ -498,8 +499,8 @@
     <p id="script-task-version" class="identity"></p>
   </details>
 
-    <details id="page-preview-tools"><summary>网页 JavaScript 试运行</summary>
-      <p class="hint">直接使用上方 JavaScript 源码操作当前网页 DOM；可写 async function main() 返回结果，也可直接编写顶层语句。不要求特殊脚本声明；运行前仍需网站授权。</p>
+    <details id="page-preview-tools"><summary id="page-preview-mode-title">网页 JavaScript 试运行</summary>
+      <p id="page-preview-mode-hint" class="hint">直接使用上方 JavaScript 源码操作当前网页 DOM；可写 async function main() 返回结果，也可直接编写顶层语句。不要求特殊脚本声明；运行前仍需网站授权。</p>
       <button id="page-preview-run" type="button" disabled>在当前网页试运行</button>
       <p id="page-component-status" role="status" aria-live="polite" hidden></p>
       <p id="page-preview-status" role="status">请先确认当前网页可用；试运行不会保存版本或安装任务。</p>

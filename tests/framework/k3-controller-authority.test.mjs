@@ -1359,6 +1359,39 @@ async function cloudTaskFixture(){
   const request={...resolvedRequest,paramsWire:encodeValue(params)};
   return {...f,cloud,config,row,request,requestId};
 }
+test('cloud status returns bounded redacted pages and supports a cheap heartbeat',async()=>{
+  const f=await cloudTaskFixture();
+  for(let i=0;i<75;i++){
+    const row={...f.row,requestId:'cloud:extra-'+String(i).padStart(3,'0'),createdAt:i+1};
+    await f.storage.transaction(['frameworkKV'],'readwrite',tx=>tx.put('frameworkKV',row,'cloud:request:'+row.requestId));
+  }
+  const cheap=await f.cloud.cloudStatus({includeRequests:false},f.sender);
+  assert.equal(cheap.requestTotal,null);assert.deepEqual(cheap.requests,[]);
+  const full=await f.cloud.cloudStatus({limit:5},f.sender);
+  assert.equal(full.requestTotal,76);assert.equal(full.requests.length,5);
+  assert.equal(full.requestPage.nextOffset,5);
+  assert.doesNotMatch(JSON.stringify(full.requests),/cloud:extra|assignment|credential|params|runId|target\.url/);
+  const next=await f.cloud.cloudStatus({limit:5,offset:5},f.sender);
+  assert.equal(next.requests.length,5);assert.equal(next.requestTotal,76);
+  await assert.rejects(f.cloud.cloudStatus({limit:500},f.sender),code('E_SCHEMA'));
+  await assert.rejects(f.cloud.cloudStatus({offset:-1},f.sender),code('E_SCHEMA'));
+  await assert.rejects(f.cloud.cloudStatus({executorNamespace:'other'},f.sender),code('E_SCHEMA'));
+});
+test('observer projection is fixed-namespace, paged and excludes all executable identities',async()=>{
+  const f=await cloudTaskFixture();
+  await f.storage.transaction(['frameworkKV'],'readwrite',async tx=>{
+    await tx.put('frameworkKV',{...f.row,namespace:'foreign',requestId:'foreign-secret'},
+      'cloud:request:foreign-secret');
+  });
+  const view=await f.cloud.cloudObserve({limit:5});
+  assert.equal(view.schema,'opendesk.cloud-control.observer.v1');
+  assert.equal(view.hostReady,null);assert.equal(view.approvedTasks,1);
+  assert.equal(view.requestTotal,1);assert.equal(view.rows.length,1);
+  assert.equal(view.rows[0].state,'waiting');
+  assert.doesNotMatch(JSON.stringify(view),/foreign-secret|assignmentId|runId|providerId|credential|siteOrigins|params|target/);
+  await assert.rejects(f.cloud.cloudObserve({limit:51}),code('E_SCHEMA'));
+  await assert.rejects(f.cloud.cloudObserve({namespace:'foreign'}),code('E_SCHEMA'));
+});
 test('cloud binds original run and slot before permit; no target or worker before durable permission',async t=>{
   const f=await cloudTaskFixture();let called=0;
   t.mock.method(globalThis,'fetch',async(url,options)=>{
@@ -1419,6 +1452,26 @@ test('expired local cloud permit is permanently fenced despite a live provider l
   t.mock.method(globalThis,'fetch',async url=>{if(url.endsWith('/renew'))renewed++;return new Response(JSON.stringify(await remoteCloud(f)));});
   await f.cloud.reconcile();assert.equal(renewed,0);assert.equal((await f.rows('frameworkKV')).find(r=>r.tag==='cloud-request-v1').reason,'E_LEASE');
   await assert.rejects(f.authority.controllerOperation({envelope:f.operation(f.run,'packaged','title')},f.sender));
+});
+test('confirmed Cloud Result stays finished after provider lease expiry and local stop',async t=>{
+  const f=await admittedCloud(t);
+  await f.finish(f.run);await f.authority.retireControllerTarget({runId:f.run.runId},f.sender);
+  const remote=await remoteCloud(f);
+  t.mock.method(globalThis,'fetch',async url=>{
+    if(url.endsWith('/receipt'))return new Response(JSON.stringify({receiptId:'original-ack',digest:'original-digest'}));
+    if(url.endsWith('/reconcile'))return new Response(JSON.stringify(remote));
+    throw Error('Unexpected provider method: '+url);
+  });
+  await f.cloud.reconcile();
+  const before=(await f.rows('frameworkKV')).find(r=>r.tag==='cloud-request-v1');
+  assert.equal(before.state,'finished');assert.equal(before.delivery.state,'confirmed');assert.ok(before.receipt);
+  remote.assignments[0].cancelled=true;remote.assignments[0].leaseUntil=Date.now()-1000;
+  await f.cloud.reconcile();await f.cloud.cloudStop({},f.sender);
+  const after=(await f.rows('frameworkKV')).find(r=>r.tag==='cloud-request-v1');
+  assert.equal(after.state,'finished');assert.equal(after.reason,before.reason);
+  assert.deepEqual(after.receipt,before.receipt);
+  assert.equal(after.runId,f.run.runId);
+  assert.equal((await f.rows('runs')).find(r=>r.runId===f.run.runId).retirementState,'released');
 });
 test('late cloud renewal cannot restore a stopped grant or permit',async t=>{
   const f=await admittedCloud(t);let enter,release;const entered=new Promise(r=>{enter=r;}),gate=new Promise(r=>{release=r;});

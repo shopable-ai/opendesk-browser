@@ -45,7 +45,7 @@ function copy(relative){
   fs.copyFileSync(from,output);
   if(!/\.(?:js|mjs|cjs)$/.test(relative))return;
   const text=fs.readFileSync(from,'utf8');
-  const ast=parse(text,{ecmaVersion:'latest',sourceType:'module'});
+  const ast=parse(text,{ecmaVersion:'latest',sourceType:relative.endsWith('.cjs')?'script':'module'});
   const links=[];
   const stack=[ast];
   while(stack.length){
@@ -53,7 +53,9 @@ function copy(relative){
     if(!node||typeof node!=='object')continue;
     const importSpecifier=node.type==='ImportDeclaration'||node.type==='ExportNamedDeclaration'||
       node.type==='ExportAllDeclaration'?node.source?.value:
-      node.type==='ImportExpression'&&node.source?.type==='Literal'?node.source.value:null;
+      node.type==='ImportExpression'&&node.source?.type==='Literal'?node.source.value:
+      node.type==='CallExpression'&&node.callee?.name==='require'&&
+      node.arguments?.length===1&&node.arguments[0]?.type==='Literal'?node.arguments[0].value:null;
     if(typeof importSpecifier==='string')links.push(importSpecifier);
     if(node.type==='CallExpression'&&node.callee?.type==='Identifier'&&node.callee.name==='require'&&
       node.arguments?.[0]?.type==='Literal'&&typeof node.arguments[0].value==='string')links.push(node.arguments[0].value);

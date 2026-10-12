@@ -40,6 +40,8 @@
 
 源模板对动态文本及属性转义；客户端只使用文本和固定 DOM 更新。无第三方脚本、远程字体、分析 SDK、Cookie 或用户上传执行入口。真实截图只接受仓库受控 PNG；没有媒体时不把结构示意冒充实际截图。截图及响应式实测是否完成以工作流为准。
 
+`src/market-site/media-index.json` 只登记展示图片来源：应用固定版本、图片 SHA-256、对应发行制品 SHA-256、源码提交、真实 Chrome 版本、CI run/artifact 与原始截图路径。它不是应用登记或安装事实。构建拒绝缺登记的图片、缺文件的登记、版本/制品不符、重复图片、字节被改动和超限尺寸；从 PNG IHDR 读取真实宽高，不写虚构比例。`site-build.json` 同时绑定这些展示输入。详情图注明独立工具页/Side Panel/授权网页，以及实际初始或使用状态，并提供完整原图；“初始编辑界面”不能改称已输入示例成果。单张真实截图也不能把其所属失败运行提升为整套通过。
+
 ## 4. 开发与生产来源
 
 配置协议为 `opendesk.market.channel-source.v1`，安装协议固定 `opendesk.market.intent.v1`。
@@ -55,6 +57,8 @@
 开发环境可使用 `OPENDESK_MARKET_DEV_ORIGIN`、`OPENDESK_MARKET_DEV_EXTENSION_ID`，并须同时重建扩展和网站。生产解析忽略这些开发变量，不能因运行 shell 留有开发值而开放 HTTP。`OPENDESK_MARKET_SITE_ORIGIN` 只表达部署 metadata；它不会授予安装信任，且启用交接时必须与受控 Origin 相同。
 
 目前正式域名、生产发行 ID、经核验获取地址均未提供，源码中为 `null`。这是一份可审查的配置合同，不是已发布渠道。生产生成器和包校验拒绝未授权来源，不使用占位地址冒充上线。
+
+生产禁用通道的真实工具生命周期与“已配置 HTTPS `:443/*` 的 Chrome 外部交接”是不同证据。后者在真实正式输入和部署到位前保留 `configured-production-manifest-real-chrome: NOT_TESTED`／渠道阶段 `BLOCKED`。
 
 ## 5. 仅两个外部操作
 

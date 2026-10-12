@@ -136,3 +136,21 @@
 - 修复：在现有 `tests/framework/time-review-native-input.swift` 的真实本机 CFT 专用键盘输入中补 Home/Down/Up/End；它继续检查实际 PID、CFT Bundle、Accessibility 授权和前台所有权。分类测试通过**真正 macOS 系统按键**选择下拉选项并确认，绝不使用 `select.value=`、`dispatchEvent` 或直接修改 Chrome Storage 来伪造通过。后续仍须以新 SHA 的 Mac run 判定保存、持久化和工具停用/卸载是否通过。
 
 - [Mac Actions 38223472073](https://github.com/shopable-ai/opendesk-browser/actions/runs/38223472073) 在 `651a174168a084306b02c888df3a620677fe08e2`：54/54 组件、真实活动计时、分类编码 2 的**原生 macOS 键盘选择和 UI 保存 PASS**，随后 JSON/CSV 非空分类内容与完整浏览器重启也 PASS；新增工具生命周期阶段 **FAIL**，原因是重启后仅打开 `/ui/tool.html` 的独立官方目录标签页。该页面的 `#tab-tools` 工作台导航按设计隐藏，故不能当成真正 Side Panel 点击，报 `actionable #tab-tools timed out`。本次调整测试：通过该目录页现有「打开开发侧栏」按钮执行**真正 Chrome 受信任点击**、读回 `chrome.runtime.getContexts(SIDE_PANEL)` 的文档 ID、绑定新的 Side Panel CDP target；停用/启用/卸载全部在该真正 Side Panel 中操作。不修改生产工具行为或扩大权限。新提交必须重新验收尾部操作才能算生命周期 PASS。
+
+## R1.3 Final · Mac 原生卸载完成条件修复（2026-10-12）
+
+- [Actions 38224127005](https://github.com/shopable-ai/opendesk-browser/actions/runs/38224127005)，候选 `80005b5e7bad2ae07f717e8620fd72f774bd8596`：54/54 组件、实际 Side Panel 重启后真实恢复、分类、非空 JSON/CSV、完整 Chrome 重启、受信任停用/重新启用及撤权 epoch 轮换均已独立观察到 PASS，但整条 Mac 测试仍 FAIL：卸载观察器中 `until(async()=>evaluate(...))` 仅凭任意 truthy 对象就返回，在安装列表尚未删除时立即断言 `timeInstalled===false`。
+- 仅修改原生验收驱动：轮询直到**工具确实不存在于安装列表、Time Review 的本机记录确实删除、卸载恢复标记确实清除**三条件同时为真；失败时保存当前只读状态，不改变实际卸载服务或放宽合同。另检查其他工具仍安装且异步事件不会复活已清理记录。新候选 SHA 对应 Mac 原生测试通过前不可关闭卸载验收。
+
+## R1.3 Final · 真正 Chrome 200% 缩放原生验收候选（2026-10-12）
+
+- 在隔离 macOS Chrome for Testing 155 的真实 SIDE_PANEL 中，保留已有工具 Canvas V3 与原生权限、计时闭环；新增通过仓库已有 CFT PID + macOS Accessibility 可信输入辅助程序发送 **Command + Plus**，逐次读取 Chrome **实际** `devicePixelRatio` 倍率和 iframe `innerWidth`，只有约 2 倍 zoom 的真实浏览器结果才允许记 `realBrowserZoom=PASS`。不使用 CDP `Emulation.setDeviceMetricsOverride` 或把 DPR=2 夹具当作 Chrome 200% 缩放。
+- 达到真实 200% 后，检查单行 Canvas 宽度不超屏、无 iframe 内水平溢出和额外内层纵向滚动，保存真正 SIDE_PANEL 截图，并通过 macOS Command+0 恢复原比例，保护同一原生验收里的权限操作。如果 CI 无法将真正 SIDE_PANEL 放大，则保留 `BLOCKED` 和原始比例数据，绝不假报 PASS；如果已确认 200% 但布局出错则验收 FAIL，需修产品 UI。
+- `tests/framework/time-review-native-input.swift` 新增真正 Chrome 系统快捷键 zoom-in/zoom-out/zoom-reset，仍限已验证的专属 CFT PID 和前台拥有者，不能操作用户正在运行的个人浏览器。
+
+## R1.3 Final · 真正网站切换与系统空闲恢复（2026-10-12）
+
+- [Actions 38229698394](https://github.com/shopable-ai/opendesk-browser/actions/runs/38229698394)，候选 `2afc31a0e83d60f33fb94f39f7562cdc4c512de1` **SUCCESS**：macOS CFT 原生系统级 Command+Plus 5 次，Side Panel iframe CSS 349→174px、设备比 1→2，真实 Chrome **200% zoom PASS**；同包 Canvas 单行、不横向溢出、iframe 无二次内部滚动、Command+0 恢复亦 PASS。54/54 组件、真实计时、分类、非空导出、完整浏览器重启、停用启用及卸载等既有回归全部通过。
+- 本新候选增补真实 HTTP(S) 计时中两个**不同 hostname**（`127.0.0.1`、`localhost`）真实浏览器标签切换，分别对两个 host 产生有来源的统计且原网站在切换后停止增长，不通过模拟 tab 事件制造业务数据。第二目标无法实际激活时仅记 `BLOCKED` 并说明原因，不得假报跨网站 PASS。
+- 进一步在真实 macOS Chrome 中，**停止发送用户 OS 输入**，最多观察 73 秒以等待实际 `chrome.idle.queryState(60)=idle`。如果真的空闲，必须观测 Time Review 检查点退休，日统计在空闲期间冻结；随后使用已有验证 CFT PID 的系统级鼠标活动输入真正恢复 `chrome.idle=active`，正式 Side Panel 刷新后再次出现检查点且仅恢复后的时间增长。不能调用假的 `onStateChanged`、修改存储或绕过 Chrome idle；CI 宿主如果始终不空闲则保守标记 `BLOCKED`。真实行为的 PASS 需与本新候选 SHA 绑定。
+- 多网站排序后分类编辑通过真实 DOM 的**只读行索引**定位 `127.0.0.1`，继续使用 macOS 原生系统按键和受信任按钮保存，不创建/伪造 DOM 节点，也不改写采集数据。

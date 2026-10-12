@@ -1,0 +1,16 @@
+{
+  "id": "cookie-editor",
+  "version": "1.0.0",
+  "title": "Cookie Editor · Cookie 管理",
+  "description": "Cookie 管理界面：本地临时工作区，可新增、编辑、删除及以 JSON、Header 字符串、Netscape 导入导出。真实浏览器 Cookie API 待接入。",
+  "capabilities": [
+    "currentPage.read",
+    "user.export"
+  ],
+  "files": {
+    "html": "src/index.html",
+    "css": "src/style.css",
+    "js": "src/main.js"
+  },
+  "assets": []
+}

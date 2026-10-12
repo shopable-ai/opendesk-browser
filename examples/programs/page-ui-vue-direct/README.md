@@ -4,6 +4,6 @@
 
 在已配对 Native Host 的本目录执行 `opendesk browser dev .`；保存只准备，Sidebar 明确点击 Run 才应用于获准网页。测试页 `http://127.0.0.1:43111/demo-form.html`，仓库根目录用 `python3 -m http.server 43111 --bind 127.0.0.1 --directory examples/tasks` 启动。Stop 清理受管 DOM，不更改宿主表单。
 
-**旧版兼容：** `src/legacy-main.js` 原样保留 R24.2 `async-main` 高亮/撤销与 `enhancement.js`；历史 JSON、SHA 和回执继续保存，不冒充 R24.3 PASS。当前 JSON 将通过原构建器重新生成。浏览器无 Native 的源码即时编译仍待实施。
+**旧版兼容：** `src/legacy-main.js` 原样保留 R24.2 `async-main` 高亮/撤销与 `enhancement.js`；历史 JSON、SHA 和回执继续保存，不冒充 R24.3 PASS。当前 JSON 将通过原构建器重新生成。浏览器现在已有无需 Native 的 **Vue SFC 单组件** 编辑、编译、Run/Stop（[真实 Chrome 历史证据](https://github.com/shopable-ai/opendesk-browser/actions/runs/38225425847)）；但那是输入 `<script setup>`/`<template>` 的浏览器直接模式，**不会读取本目录 `src/main.js` 或自动将其转换成 SFC**。当前 Vue Direct 项目依然通过 `opendesk browser dev .` 进行本地目录开发并明确点击 Run，保存只准备、不会自动执行。
 
 [组件总览](../../../docs/api/page-ui-frameworks.zh-CN.md) · [导入草稿](../../import-ready/README.zh-CN.md) · [目录 CLI](../../../docs/framework/local-directory-cli-r17.zh-CN.md)
