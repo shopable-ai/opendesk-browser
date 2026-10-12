@@ -98,7 +98,18 @@ status.textContent = '已保存';
 | `page.clip` | `clip.article`、`clip.selection`、`clip.link` 等固定剪藏操作 | 复用剪藏可信 Content Script、单独的网站许可及定向结果 |
 | `page.capture` | ChatGPT 知识保存专用页面捕获 | 已批准网站和官方扩展固定入口；不能自行定义任意采集脚本 |
 | `knowledge.store` | `knowledge.list/get/update/remove/backup/download/openSource/workspace` 等 | 只有 `knowledge-inbox` 固定宿主与服务识别的工具身份允许相应操作；不是通用存储配额 |
-| `time.review` | `time.status/start/pause/revoke/settings/clear/export` | 固定 `time-review` 工具经审阅、启用与明确开始后使用可信 MV3 后台；空闲检测在详情设置单独批准，导出另需 `user.export`。只保存域名/本地日期/毫秒统计 |
+| `time.review` | `time.status/start/pause/revoke/settings/clear/export`、R1.3 `time.day/classify/minuteConsent` | 仅固定 `time-review` 工具使用可信 MV3 后台；空闲检测需要 Chrome 原生授权，开始/清空/分钟采集选择由受信任详情设置区的真实点击批准。默认只保存域名、日期及毫秒日汇总；可选择性保存未来真实分钟/域名/毫秒，不会补造历史 |
+
+### Time Review R1.3 的固定操作及授权边界
+
+`time.review` 是官方固定工具的专用 capability，不是普通可安装第三方工具的通用计时 API。原有 `time.status / time.pause / time.revoke / time.settings / time.export` 保持兼容；`time.start` 与 `time.clear` 以及新增的 `time.minuteConsent` **不能仅凭工具沙箱请求完成敏感操作**：请求会打开受信任的工具详情设置区，并返回 `E_TIME_TRUSTED_CLICK`，由用户在该界面真实点击开始、选择未来分钟采集或二次确认清空。停用、卸载、包 SHA 更新及撤权不会自动恢复旧授权。
+
+- `time.classify`：请求 `{host: 'example.com', category: 0..5}`，用户主动将已有记录的网站分类到未分类/工作生产/阅读学习/聊天新闻/娱乐/生活；重新计算保留期限内的分类聚合，不改变已计入的原始毫秒数。权限和 hostname 由可信后台复验。
+- `time.day`：请求 `{date: 'YYYY-MM-DD'}`，仅查询保留期内的本地日期，返回真实当日网站、六分类毫秒统计、`minuteSlots` 与 `timelineStatus`。旧日汇总没有分钟条目，绝不按比例制造 1440 个分钟槽；部分覆盖与 DST/时区不确定日期必须如实提示。
+- `time.minuteConsent`：请求 `{enabled: true|false}` 只能引导至**受信任宿主**；开启之后才聚合未来可信活动区间的分钟/域名/毫秒，关闭时须界面内确认并永久删除全部分钟明细。旧历史日汇总和网站分类不随该关闭而删除。
+- 重要时间 = 类别 1+2；生产率仅在当天所有已记录时间完成分类时才显示，未分类时应显示 `—` 及覆盖程度。时间线灰色分类 0 表示真正记录但用户尚未归类，浅底无色表示没有真实分钟证据。
+
+细节和限制参考 [Time Review 产品合同](../product/time-review-r12.zh-CN.md)、[Time Review 官方示例](../../examples/sidebar-tools/time-review/README.zh-CN.md)。JSON 可包含自愿保存的本地分钟明细；CSV 在原有四列后追加分类 ID，不修改原有列的意义。
 
 **重要区别**：schema 接受某能力名称，**不代表**任何安装的第三方工具都得到相同的可信宿主逻辑，更不能直接调用 `chrome.tabs`、网页 DOM、Native Messaging 或网络。开发新的跨网页能力必须先设计并实现受信任宿主、站点授权、sender/document 校验、撤权和负向测试。专项工具的具体业务接口与版本由其源码和项目文档维护，不在通用 API 中承诺扩展能力。
 

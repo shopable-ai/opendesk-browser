@@ -95,9 +95,17 @@ test('Time Review R1.3 actual Mac Chrome install and trusted consent smoke',{ski
   const note=(name,data)=>{evidence.steps.push({name,...data});console.log('TIME_NATIVE '+name+' '+JSON.stringify(data));};
   proc.stderr.on('data',data=>{stderr=(stderr+String(data)).slice(-3500);});
   t.after(async()=>{
-    if(!complete&&browser)for(const [name,sid] of [['side',sideSid],['sandbox',frameSid]]){
-      if(sid)try{evidence.screenshots.push(await screenshot(browser,sid,'failure-'+name));}
-      catch(error){evidence.steps.push({name:'failure-screenshot-unavailable',target:name,error:String(error)});}
+    if(!complete&&browser){
+      // CDP Page.captureScreenshot only supports a top-level Page/Side Panel.
+      // Its image already composites the sandbox iframe; never screenshot an
+      // OOPIF directly (Chrome rejects that command).
+      if(sideSid)try{evidence.screenshots.push(await screenshot(browser,sideSid,'failure-side'));}
+      catch(error){evidence.steps.push({name:'failure-screenshot-unavailable',target:'side',error:String(error)});}
+      if(frameSid)try{
+        const state=await evaluate(browser,frameSid,
+          '(()=>({text:document.body.innerText.slice(0,500),rootHeight:document.querySelector(".review")?.getBoundingClientRect().height,viewportHeight:innerHeight,scrollHeight:document.documentElement.scrollHeight}))()');
+        evidence.steps.push({name:'failure-sandbox-readonly-geometry',...state});
+      }catch(error){evidence.steps.push({name:'failure-frame-observe-unavailable',error:String(error)});}
     }
     if(browser)try{await browser.send('Browser.close');}catch{}
     browser?.close();
@@ -189,8 +197,11 @@ test('Time Review R1.3 actual Mac Chrome install and trusted consent smoke',{ski
   assert.equal(visual.timeline,'尚无分钟明细','No fabricated historical minutes');
   assert.equal(visual.horizontal,true,'No horizontal overflow in actual tool iframe');
   evidence.screenshots.push(await screenshot(browser,side,'installed-native-side-panel'));
-  evidence.screenshots.push(await screenshot(browser,frame,'installed-native-r13-sandbox'));
-  note('native-canvas',visual);
+  const frameGeometry=await evaluate(browser,frame,
+    '(()=>({viewportHeight:innerHeight,documentHeight:document.documentElement.scrollHeight,rootHeight:document.querySelector(".review")?.getBoundingClientRect().height}))()');
+  const outerGeometry=await evaluate(browser,side,
+    '(()=>{const frame=document.querySelector(".sidebar-tool-iframe"),rect=frame?.getBoundingClientRect();return {viewportHeight:innerHeight,iframeHeight:rect?.height,iframeMaxHeight:frame?getComputedStyle(frame).maxHeight:null,hostScrollHeight:document.documentElement.scrollHeight}})()');
+  note('native-canvas',{...visual,frameGeometry,outerGeometry});
   const readTime=()=>evaluate(browser,side,'chrome.storage.local.get('+JSON.stringify(KEY)+').then(v=>v['+JSON.stringify(KEY)+'])');
   let state=await readTime();assert.ok(state&&state.paused,'install/open must not begin recording');
   assert.equal(state.minuteConsent,false,'minute data opt-in must default false');
