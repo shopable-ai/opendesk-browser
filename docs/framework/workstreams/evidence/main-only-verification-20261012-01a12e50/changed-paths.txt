@@ -1,0 +1,17 @@
+A	.github/workflows/time-review-r13.yml
+A	docs/framework/workstreams/time-review-r13.md
+M	docs/product/time-review-r12.zh-CN.md
+M	examples/sidebar-tools/time-review/README.zh-CN.md
+M	examples/sidebar-tools/time-review/src/index.html
+M	examples/sidebar-tools/time-review/src/main.js
+M	examples/sidebar-tools/time-review/src/style.css
+M	examples/sidebar-tools/time-review/tool.config.json
+M	src/time-review/host-controls.js
+M	src/time-review/model.js
+M	src/time-review/policy.js
+M	src/time-review/service.js
+M	src/ui/sidebar-tools.js
+A	tests/environment/time-review-r13-consent.test.mjs
+A	tests/environment/time-review-r13-service.test.mjs
+A	tests/environment/time-review-r13.test.mjs
+A	tests/framework/time-review-r13-visual.mjs

@@ -1,0 +1,15 @@
+diff --cc .github/workflows/time-review-r13-native.yml
+index e5a8b818,33439697..00000000
+--- a/.github/workflows/time-review-r13-native.yml
++++ b/.github/workflows/time-review-r13-native.yml
+@@@ -40,7 -40,6 +40,10 @@@ jobs
+            chrome-version: '155.0.8059.39'
+        - name: Real Mac CFT installed tool, native SIDE_PANEL, trusted opt-in, actual download
+          env:
+++<<<<<<< HEAD
+ +          OPENDESK_TIME_REVIEW_NATIVE: '1'
+++=======
+++>>>>>>> origin/agent/time-review-r13-native-acceptance-20261012
+            CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
+            OPENDESK_TIME_NATIVE_EVIDENCE: artifacts/time-review-r13-native
+          run: node --test tests/framework/time-review-r13-native.test.mjs

@@ -1,0 +1,19 @@
+{
+  "mode": "independent read-only",
+  "canvasBranch": "3 commits, 17 paths, no same-path conflict with initial main",
+  "noModalBranch": "no material product merge blocker found",
+  "nativeBrowserExecution": "NOT_TESTED",
+  "nativeHarnessGaps": [
+    "test-only DOM opener instead of real product open entry",
+    "process termination and cleanup evidence",
+    "non-empty minute removal",
+    "retention of raw downloaded file",
+    "full package/source binding"
+  ],
+  "noModalResidualRisks": [
+    "silent cancellation while saving",
+    "lock-wait state races",
+    "uncovered replace/close/external toggle/failure cases",
+    "modal static scan precision"
+  ]
+}

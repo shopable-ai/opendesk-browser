@@ -1,0 +1,17 @@
+{
+  "heads": {
+    "refs/heads/agent/no-modal-toggle-review-r56-20261012": "35c4faf4004eb1f2d3c1a75383796e0f9ecebde5",
+    "refs/heads/agent/time-review-r13-native-acceptance-20261012": "5b81d4a07bfffc61672af60552d495478a4b1eae",
+    "refs/heads/main": "fb58c53241b246f85e58999d52ee6c4539b9346d"
+  },
+  "candidate": "7c1ce9b00f46c6e1d6fe289a33771839d19dd8d0",
+  "ancestorChecks": "all passed",
+  "deletedBranches": {
+    "refs/heads/agent/no-modal-toggle-review-r56-20261012": "35c4faf4004eb1f2d3c1a75383796e0f9ecebde5",
+    "refs/heads/agent/time-review-r13-native-acceptance-20261012": "5b81d4a07bfffc61672af60552d495478a4b1eae"
+  },
+  "mainUpdate": "normal fast-forward only",
+  "branchDelete": "exact-tip compare-and-swap",
+  "atomic": true,
+  "exitCode": 0
+}

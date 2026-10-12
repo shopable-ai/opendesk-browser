@@ -1,0 +1,1647 @@
+diff --git a/.github/workflows/time-review-r13.yml b/.github/workflows/time-review-r13.yml
+new file mode 100644
+index 00000000..fcc3702d
+--- /dev/null
++++ b/.github/workflows/time-review-r13.yml
+@@ -0,0 +1,67 @@
++name: Time Review R1.3 - real model, tool package and MV3 build
++on:
++  pull_request:
++    paths:
++      - 'src/time-review/**'
++      - 'src/ui/sidebar-tools.js'
++      - 'examples/sidebar-tools/time-review/**'
++      - 'tests/environment/time-review-r12.test.mjs'
++      - 'tests/environment/time-review-r13*.test.mjs'
++      - 'tests/framework/time-review-r13-visual.mjs'
++      - '.github/workflows/time-review-r13.yml'
++  workflow_dispatch:
++permissions:
++  contents: read
++jobs:
++  time-review-r13:
++    runs-on: ubuntu-latest
++    timeout-minutes: 20
++    steps:
++      - uses: actions/checkout@v4
++      - uses: actions/setup-node@v4
++        with:
++          node-version: '22'
++          cache: npm
++      - name: Install pinned dependencies
++        run: npm ci --ignore-scripts --no-audit --no-fund
++      - name: R1.2 compatibility and R1.3 real data security tests
++        run: node --test tests/environment/time-review-r12.test.mjs tests/environment/time-review-host-controls-r51.test.mjs tests/environment/time-review-r13.test.mjs tests/environment/time-review-r13-service.test.mjs tests/environment/time-review-r13-consent.test.mjs
++      - name: Security source contract
++        run: npm run check
++      - name: Build versioned Time Review package without bypassing budget
++        run: |
++          npm run build:sidebar-tool -- examples/sidebar-tools/time-review
++          node --input-type=module -e "import {readFileSync} from 'node:fs';import {validateSidebarToolPackage} from './src/ui/sidebar-tools/package.js';import {createHash} from 'node:crypto';const file='artifacts/sidebar-tools/time-review/1.3.0/time-review.opendesk-tool.json';const b=readFileSync(file);const p=validateSidebarToolPackage(JSON.parse(b));if(p.id!=='time-review'||p.version!=='1.3.0'||p.capabilities.join(',')!=='time.review,user.export')throw Error('Time Review package identity drift');console.log('TIME_REVIEW_PACKAGE',b.length,createHash('sha256').update(b).digest('hex'))"
++      - name: Both MV3 builds and verified packages
++        run: |
++          npm run build
++          npm run build:dev
++          npm run verify
++      - name: Set up Chromium for real source-code rendering (synthetic fixture only)
++        uses: browser-actions/setup-chrome@v2
++        id: chrome
++      - name: Real Chromium 320/360/400/600px and DPR2 fixture layouts + input
++        env:
++          CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
++        run: node tests/framework/time-review-r13-visual.mjs artifacts/time-review-r13-visual
++      - name: Preserve fixture screenshots (not native Side Panel)
++        if: always()
++        uses: actions/upload-artifact@v4
++        with:
++          name: time-review-r13-chromium-fixture-NOT_NATIVE
++          retention-days: 14
++          if-no-files-found: warn
++          path: artifacts/time-review-r13-visual/
++      - name: Preserve built candidates (not native Chrome evidence)
++        if: always()
++        uses: actions/upload-artifact@v4
++        with:
++          name: time-review-r13-built-packages
++          retention-days: 7
++          if-no-files-found: error
++          path: |
++            artifacts/sidebar-tools/time-review/1.3.0/time-review.opendesk-tool.json
++            dist/production/official-tools/time-review/time-review.opendesk-tool.json
++            dist/development/official-tools/time-review/time-review.opendesk-tool.json
++            docs/framework/evidence/wxt/builds/build-production.json
++            docs/framework/evidence/wxt/builds/build-development.json
+diff --git a/docs/framework/workstreams/time-review-r13.md b/docs/framework/workstreams/time-review-r13.md
+new file mode 100644
+index 00000000..02657a66
+--- /dev/null
++++ b/docs/framework/workstreams/time-review-r13.md
+@@ -0,0 +1,44 @@
++# Time Review R1.3 · Canvas V3 单行时间线
++
++日期：2026-10-12。目标仓库：shopable-ai/opendesk-browser，正式主分支 main。
++
++## 仓库和执行环境
++
++本轮通过已连接 GitHub 读取远端 main，最初核查 HEAD = 61715bd8fc6cf56542af90fc2a135d69ac2c7bcf。由于无法访问用户 Mac 的 /Users/shopme/Documents/workspace/opendesk-browser，不能获得其 git status/index/其他 Agent 的本地修改。为避免对远端 main 直接写入，候选代码在独立远端分支 agent/time-review-r13-canvas-v3-20261012；未直接覆盖主分支，后续由实际仓库集成者核对后合入。
++
++## 已编写的改造
++
++    工具 UI：Canvas V3 紧凑卡片、单行时间带、分类编辑、所选日期和七天排行
++    视觉：保持 V3 分类颜色与卡片结构，避免沙箱 CSS 污染其他工具
++    数据模型：兼容旧 v1 日汇总，新增域名六分类、未来分钟采集同意、按日分钟桶
++    安全：仍复用固定 time.review 服务的包身份、安装代际和 documentId 验证
++    隐私：默认无分钟明细；只记录域名、日期、分钟、毫秒；关闭会清除分钟数据
++    测试：新增 R1.3 Node 单元测试；已有 R1.2 用例保留
++
++## 验证状态（不夸大）
++
++    代码源文件已编写：是（具体候选 SHA 由 GitHub 提交给出）
++    组件独立烟雾检查：仅受限 JS 语法与模型样例，不等同完整 Node 测试
++    node --test 时间审计：NOT_TESTED（当前无仓库运行环境）
++    npm run build:sidebar-tool -- examples/sidebar-tools/time-review：NOT_TESTED
++    npm run check / build / build:dev / verify：NOT_TESTED
++    Chromium 320/360/400/600px 与 200%：NOT_TESTED
++    实际 Side Panel 安装、更新、分类、权限、下载落盘与重启：NOT_TESTED
++    真实 Mac Chrome 原生录制、截图和卸载：NOT_TESTED
++
++## 证据复用与风险
++
++旧 R1.2 工作流 docs/framework/workstreams/time-review-r12-01a12b0d.md 的组件和 candidate2 原生结果都是历史候选证据。R1.3 修改了服务与 UI 输入，旧 PASS 不自动等于新候选 PASS。PR #68 已合并到 main。R1.3 随后按受信任详情按钮模式增量修改 host-controls.js 和 src/ui/sidebar-tools.js：沙箱请求 time.start/time.clear/time.minuteConsent 只打开详情并被拒绝直接执行，只有受信任主界面真实 click 可向可信后台转发；分钟明细关闭和全部清空采用宿主页面内确认，无 JavaScript 弹窗。合入时仍须检查共享文件最新差异归属。
++
++## 最短补验流程
++
++    1. 在 Mac 工作区检查 git status --short --branch 和所有并行修改；审阅候选差异
++    2. node --test tests/environment/time-review-r12.test.mjs tests/environment/time-review-host-controls-r51.test.mjs tests/environment/time-review-r13*.test.mjs
++    3. npm run build:sidebar-tool -- examples/sidebar-tools/time-review，核对真实包尺寸、SHA、capabilities
++    4. npm run check，npm run build，npm run build:dev，npm run verify
++    5. 隔离 Chrome Profile 完成授权、开始/暂停/恢复、分钟/分类持久化、切换日期、撤权和下载落盘
++    6. Chromium/Playwright 对 320/360/400/600px + 200% 缩放测试并截图，保存绑定 packageHash 的原始证据
++    7. 核对已合并 PR #68 及本轮新增分钟受信任同意，不得恢复 JS confirm 或绕过用户手势
++    8. 只有以上证据齐全后，才能给各项质量真实评分并决定是否达到 95+。
++
++受限 V8 语法和本机毫秒模型 9 项断言已通过（使用 URL/structuredClone shim）；并非 npm/node 实际仓库测试，不能宣称完整回归成功。GitHub Draft PR #70 保存候选供同候选 CI 和原生测试。
+diff --git a/docs/product/time-review-r12.zh-CN.md b/docs/product/time-review-r12.zh-CN.md
+index b215a9a3..e7b5f4e6 100644
+--- a/docs/product/time-review-r12.zh-CN.md
++++ b/docs/product/time-review-r12.zh-CN.md
+@@ -18,3 +18,34 @@
+ - 扩展后台仍检查 Time Review 安装身份、`time.review` 能力、工具启停、精确安装代际、唯一宿主文档、Chrome `idle` 授权和真实网站访问权限；缺失则拒绝。
+ - `chrome.permissions.request({permissions:['idle']})` 仍仅在用户明确点击“授权空闲检测”时调用；Chrome 原生权限对话框无法替代或自动跳过。
+ - 清空动作的 `{confirm:true}` 只能由受信任宿主的“确认清空全部记录”按钮产生，且发生写入前仍由后台再次核验。
++
++---
++
++## R1.3 六分类与真实分钟数据（2026-10-12）
++
++正式视觉基准：prototypes/time-review-r12/time-review-r12-canvas-v3-single-track.html。继续使用单行 00:00—24:00 Canvas、四象限、生活、未分类，不复制静态原型的模拟数据或宿主浏览器外壳。
++
++## 原有能力不变
++
++time.review 使用 MV3 可信后台和现有安装器，保留开始/暂停/恢复、域名/日期毫秒汇总、30 秒心跳、45 秒保守上限、失焦/空闲/跨会话排除、七天排行、排除域名、保留期限和 JSON/CSV 导出。无新的采集器、RPC、Native 权限或远程上传。
++
++## 新增能力
++
++- categories：用户主动选择域名类别，默认 0 未分类；1 工作/生产、2 阅读学习、3 聊天/新闻、4 娱乐、5 生活。重要时间 = 1 + 2；只有全部时长已分类时才显示生产率百分比。
++- minuteConsent：默认关闭。用户明确开启后才从未来可信结算区间保存分钟/域名/毫秒数据；关闭即清除已有分钟数据，不补造旧日汇总的时间线。
++- minuteDays：每天 1440 分钟索引在普通 24 小时本地日期使用；时区/DST 不适用日期隐藏明细并保留日汇总。每日最多 2000 行、最多保留 90 天。多域名占同一分钟以毫秒占比最高类别作为色带代表色，详情标记多个网站。
++- time.classify、time.day、time.minuteConsent 共用已有固定 time.review 服务、包 SHA、安装代际和可信 sender/document 身份校验。
++- 新 UI：紧凑日概览、四象限、单条 Canvas、当前网站和网站分类修改、日期及近七天排行、设置与导出。
++
++存储继续使用 opendesk.time-review.v1，旧记录向后兼容；新增字段不会修改原先日毫秒。继续不采集网页标题、URL 路径/查询参数、搜索词、Cookie 或 Token。
++
++## 构建与验收
++
++稳定工具 ID time-review、工具版本 1.3.0，capabilities 仍为 time.review + user.export；扩展可信后台变更意味着必须同时构建与更新扩展。旧工具包身份不能自动延续后台计时许可。工具包已构建并不等于真实安装。真实 Mac Chrome、导出实际落盘、权限、重启、200% 和 320/360/400/600px 视口必须由当前候选证据确认，未测试记为 NOT_TESTED。
++
++工具说明：examples/sidebar-tools/time-review/README.zh-CN.md。
++历史工作记录：docs/framework/workstreams/time-review-r12-01a12b0d.md。
++本轮工作记录：docs/framework/workstreams/time-review-r13.md。
++
++
++R1.3 启用或删除分钟明细必须在已合并的 R5.1 受信任工具详情设置区由本人点击确认。沙箱本身只打开该设置入口，不能直接允许增加精细的活动采集；清空仍由详情内联确认执行。CSV 保持原有四列顺序，在尾部追加 category。
+diff --git a/examples/sidebar-tools/time-review/README.zh-CN.md b/examples/sidebar-tools/time-review/README.zh-CN.md
+index 9abb9b76..5d6c78e4 100644
+--- a/examples/sidebar-tools/time-review/README.zh-CN.md
++++ b/examples/sidebar-tools/time-review/README.zh-CN.md
+@@ -1,30 +1,53 @@
+-# Time Review · 时间回顾 R1.2
++# Time Review · 时间回顾 R1.3 (Canvas V3)
+ 
+-本机网站时长回顾。只保存域名、本地日期和毫秒汇总，不保存标题、路径、查询参数、搜索词或 Token，不登录、不上传。旧版时间清单网站是详情操作区的独立外部入口，不同步本机记录。
++正式界面基准：prototypes/time-review-r12/time-review-r12-canvas-v3-single-track.html。正式 Side Panel 工具只采用单条 24h Canvas、紧凑四象限/生活/未分类和卡片视觉，不采用原型的浏览器外壳、样例时间、模拟同步或账号设置。
+ 
+-## 安装和使用
++## 安装、更新与使用
+ 
+-首次使用需加载包含 Time Review 后台服务的 OpenDesk 扩展（`dist/production`）；只有旧扩展时，单独导入工具 UI 无法添加后台服务或 Chrome 权限。
++Time Review 仍是 opendesk.sidebar-tool.v1，ID 始终是 time-review，能力为 time.review + user.export。R1.3 新增了可信后台接口，所以**需要含 R1.3 后台的 OpenDesk Browser 扩展**；只把新 UI 导入旧扩展无法正常读取分钟详情。
+ 
+-1. 打开 OpenDesk Side Panel →「工具」→「发现」，找到「Time Review · 时间回顾」，点击安装，审阅 `time.review` 和 `user.export` 后确认。也可从应用市场详情页审阅安装。
+-2. 在「我的工具」打开详情，进入齿轮「设置」，点击「授权空闲检测」，批准 Chrome 权限提示。授权本身不开始计时。
+-3. 主动打开工具，点击「开始记录」。浏览普通 HTTP(S) 网页；回到工具点击刷新可看今日、七天和网站排行。关闭工具后已开启的后台继续记录。
+-4. 「暂停」保留统计；「恢复记录」重新开始。「停止并撤销时间授权」清除本工具授权；详情设置还可撤销 Chrome 空闲检测权限。
+-5. 「设置与数据」可设空闲阈值、保留天数、排除域名（包括其子域），导出 JSON/CSV 或二次确认清空。下载请求后以 Chrome 下载记录和实际文件为准。
+-6. 卸载工具会停止计时并清理本机统计，请先导出。重新安装默认暂停，旧实例和授权不会恢复。停用保留统计，恢复启用后需重新开始记录。
++1. Side Panel → 工具 → 发现工具（或应用市场）→ Time Review → 安装/更新，审阅权限。不能新建相同 ID 的平行工具。
++2. 在工具详情设置中，由用户本人授权 Chrome 空闲检测；单独授权不会开始计时。
++3. 打开 Time Review，主动点击「开始记录」。只有聚焦、非空闲、非隐身的普通 HTTP(S) 已授权网站才计时；关闭侧栏不停止已开启的可信后台。
++4. 在工具内「设置、分钟明细与数据管理」选择开启时，只会打开扩展受信任的工具详情设置区，必须在那里由用户本人点击「开启分钟明细」才会真正生效。**只保存以后真正结算的分钟**，不会根据旧日汇总反推历史。关闭必须经过受信任的工具详情设置区页面内确认，届时删除已有分钟明细，不影响毫秒日汇总。
++5. 在当前网站卡片或所选日期的网站列表修改分类；会重新计算保留期内的分类时长、重要时间、生产率和已存在的分钟色带，绝不重新计时。
++6. 日期箭头查看历史日，「所选日期/近七天」切换排行；设置可调整空闲阈值、排除域名、汇总保留期，导出 JSON/CSV，暂停与撤权；清空全部记录需在受信任设置区完成一次页面内二次确认。卸载会清理本工具本机数据，请先备份。
+ 
+-## 计时语义
++## 六分类与真实口径
+ 
+-只有浏览器普通窗口聚焦、系统状态 active、当前标签为可访问 HTTP(S) 网页时计时；隐身、锁屏、失焦、受限页面和排除域名不计。达到空闲阈值后停止；阈值前静止阅读仍计入。
++| 类别 | 名称 | 颜色 | 象限 |
++| --- | --- | --- | --- |
++| 0 | 未分类 | #788494 | 独立 |
++| 1 | 工作/生产 | #1976d2 | 重要且紧急 |
++| 2 | 阅读学习 | #3b8ad9 | 重要不紧急 |
++| 3 | 聊天/新闻 | #b64f4f | 紧急不重要 |
++| 4 | 娱乐 | #ec5d5d | 不重要不紧急 |
++| 5 | 生活 | #c8992d | 独立 |
+ 
+-Chrome alarms 每 30 秒持久化检查点，标签/URL/窗口/空闲/授权变化也触发结算。保存单位始终是毫秒，本地午夜拆分。SW 恢复仅接续同浏览器 session、同活动目标且不超过 45 秒的间隔；浏览器重启、休眠、长延迟、时间回拨或时区变化无法确认活动时保守排除，界面展示排除时长。跨日期与故障注入以组件证据单独标明，不由 Mock 推断真实 Chrome PASS。
++默认未分类，分类仅由用户主动设置域名，不猜测网站用途。重要时间 = 1 + 2；生产率 = 重要毫秒数 / 当日全部记录毫秒数，**只在全部时长均已分类时显示百分比**；否则显示「—」并标明已分类覆盖率。分类是保留期内同一域名的当前属性；旧记录日毫秒不改变。七天分类与导出共用同一映射。
+ 
+-## 独立工具 UI 更新
++## 单行时间线与数据真实性
+ 
+-```sh
+-npm run build:sidebar-tool -- examples/sidebar-tools/time-review
+-```
++- Canvas 色带铺满内容宽度：00:00–24:00，1440 个本地分钟位置。鼠标、触摸、方向键、Home/End 可查看分钟；设备像素比和 ResizeObserver 重绘不改变坐标，狭窄布局减少中间刻度。
++- 源数据仅来自原 trusted time.review 结算：30 秒 checkpoint，最长 45 秒确认间隔；失焦、空闲、长睡眠、跨浏览器 Session、撤权均保守排除，毫秒统计独立保留。
++- 同一分钟多站点时以**实际毫秒时长最多的分类**表示主色，详情提示多个网站并显示实际毫秒合计。灰色未分类是已经发生的活动，浅底/无数据不是未分类。
++- 没有历史分钟数据时，只能显示诚实的空状态；同一天已有汇总但部分才开启分钟采样时显示「部分明细」，其他空白不代表未访问。
++- 23/25 小时夏令时日期、历史时区偏移不匹配或同日本地时区发生变化时，无法用普通 1440 槽展示准确分钟，保留日汇总并显示原因。
++- 明细只存本机日期、域名、分钟序号、毫秒、时区偏移及授权标志。最多保存 90 天、每天 2000 条域名分钟条目；超限保留日汇总并标记部分。**不保存**标题、URL 路径/查询参数、Cookie、搜索词、正文或 Token，不上传。
+ 
+-生成 `artifacts/sidebar-tools/time-review/1.2.0/time-review.opendesk-tool.json`；通过现有「＋ 导入」审阅更新，升级时使用新三段版本。纯 UI 可独立更新；后台服务/Chrome 权限/可信宿主变化才需要重编扩展。官方内置资源由 `scripts/build-official-tools.mjs` 生成。包更新保留统计，撤销旧包计时授权，新包需明确重新开始。
++## 存储、兼容与导出
+ 
+-开发与测试见 `src/time-review/`、`tests/environment/time-review-r12.test.mjs` 和 `docs/framework/workstreams/time-review-r12-01a12b0d.md`。
++沿用 opendesk.time-review.v1 的版本 1 日汇总，添加可选 categories / minuteConsent / minuteDays 字段；旧记录无明细、默认不开启新增采样。固定服务新操作 time.classify、time.day、time.minuteConsent 都经过原工具安装身份/包哈希、sender/documentId、Authority 与撤权代际校验。不新增安装器、RPC、时间采集器或动态 JS。
++
++JSON 导出继续包含原汇总与设置，另包含分类和已保存的分钟数据。CSV 保持原有 date,website,milliseconds,seconds 四列顺序，只在末尾追加 category 列。下载请求成功不等于实际文件落盘，请检查 Chrome 下载记录。清空操作删除汇总、域名分类、分钟数据，保留偏好设置。更新包会使旧包的计时授权失效，新包需重新明确开始。
++
++## 构建与验收（必须在实际仓库执行）
++
++- node --test tests/environment/time-review-r12.test.mjs tests/environment/time-review-r13.test.mjs
++- npm run build:sidebar-tool -- examples/sidebar-tools/time-review
++- npm run check
++- npm run build
++- npm run build:dev
++- npm run verify
++
++包输出目标：artifacts/sidebar-tools/time-review/1.3.0/time-review.opendesk-tool.json。必须额外在真实 Mac Chrome 和 320/360/400/600px、200% 缩放完成同包 UI、权限、分类、下载落盘、恢复、撤权、卸载验收。旧候选/原型图不能替代。具体证据与状态见 docs/framework/workstreams/time-review-r13.md。
+diff --git a/examples/sidebar-tools/time-review/src/index.html b/examples/sidebar-tools/time-review/src/index.html
+index fe1a88e8..aff90549 100644
+--- a/examples/sidebar-tools/time-review/src/index.html
++++ b/examples/sidebar-tools/time-review/src/index.html
+@@ -1,21 +1,76 @@
+ <main class="review">
+-  <header><h1>时间回顾</h1><p>看见时间去了哪里</p></header>
+-  <p id="status" class="status" role="status" aria-live="polite">正在读取本机统计…</p>
+-  <div class="actions"><button id="start" type="button">开始记录</button><button id="pause" type="button">暂停</button><button id="refresh" type="button">刷新</button></div>
+-  <p class="hint">只记录聚焦且非空闲网页的域名与时长。关闭工具后后台继续；浏览器关闭、休眠、隐身窗口和受限页面不计时。</p>
+-  <div class="totals"><section><span>今日</span><strong id="today-total">—</strong></section><section><span>最近七天</span><strong id="week-total">—</strong></section></div>
+-  <nav aria-label="统计范围"><button id="today" type="button" aria-pressed="true">今日</button><button id="week" type="button" aria-pressed="false">七天</button></nav>
+-  <section id="daily-section" hidden><h2>每日时长</h2><ol id="daily"></ol></section>
+-  <section><h2>网站排行</h2><ol id="sites"></ol></section>
+-  <p id="gap" class="hint" hidden></p>
+-  <details id="settings"><summary>设置与数据</summary>
+-    <p class="hint">先在工具详情「设置」授权空闲检测，再点击开始。授权本身不启动记录。</p>
+-    <label for="idle">空闲阈值（秒）</label><input id="idle" type="number" min="15" max="3600" value="60">
+-    <label for="retention">保留天数</label><input id="retention" type="number" min="7" max="365" value="90">
+-    <label for="excluded">排除域名（每行一个，包含其子域）</label><textarea id="excluded" rows="3" placeholder="example.com"></textarea>
+-    <button id="save-settings" type="button">保存设置</button>
+-    <div class="actions"><button id="export-json" type="button">导出 JSON</button><button id="export-csv" type="button">导出 CSV</button></div>
+-    <button id="revoke" type="button">停止并撤销时间授权</button>
+-    <div id="clear-area"><button id="clear" type="button" class="danger">清空记录…</button><div id="clear-confirm" hidden><p>清空所有本机时间统计？此操作不可撤回。</p><button id="clear-yes" type="button" class="danger">确认清空</button><button id="clear-no" type="button">取消</button></div></div>
++  <header class="review-top">
++    <div class="review-heading"><span class="eyebrow">今日回顾</span><p id="status" class="status" role="status" aria-live="polite">正在读取本机统计…</p></div>
++    <div class="top-actions"><button id="refresh" type="button" title="刷新统计" aria-label="刷新统计">↻</button><button id="settings-shortcut" type="button">设置</button></div>
++  </header>
++  <div class="datebar" aria-label="查看日期">
++    <button id="prev-date" type="button" title="前一天" aria-label="前一天">‹</button>
++    <div class="date-center"><strong id="date-label">—</strong><small id="date-subtitle">本机记录</small></div>
++    <button id="next-date" type="button" title="后一天" aria-label="后一天">›</button>
++  </div>
++
++  <section class="hero" aria-label="日期概览">
++    <div class="hero-metrics">
++      <div class="hero-metric main"><small>已记录</small><b id="today-total">—</b></div>
++      <div class="hero-metric important"><small>重要时间</small><b id="important-time">—</b></div>
++    </div>
++    <div class="hero-footer"><div class="rate"><strong id="productivity">—</strong><small>生产率</small></div><div class="compare"><span id="yesterday-compare">暂无昨日比较</span><small id="coverage">尚未分类</small></div></div>
++    <div class="eff-track" aria-hidden="true"><i id="eff-fill"></i></div>
++  </section>
++
++  <section aria-label="时间分类">
++    <div class="sectionbar"><h2>时间分类</h2><span id="category-total">—</span></div>
++    <div class="surface">
++      <div class="distribution" id="distribution" aria-label="各分类占比"></div>
++      <div class="quadrants" id="quadrants"></div>
++      <div class="extra-categories" id="extra-categories"></div>
++    </div>
++  </section>
++
++  <section aria-label="今日时间线">
++    <div class="sectionbar"><h2>24 小时时间线</h2><span id="timeline-state">尚无分钟明细</span></div>
++    <div class="timeline-card">
++      <canvas id="minute-canvas" class="timeline-canvas" tabindex="0" role="slider" aria-label="分钟时间线" aria-valuemin="0" aria-valuemax="1439" aria-valuenow="0" aria-valuetext="00:00 · 暂无分钟明细"></canvas>
++      <p class="timeline-readout" id="timeline-readout" role="status" aria-live="off"><i id="timeline-swatch"></i><span id="timeline-text">点击色带查看时间</span></p>
++      <p id="timeline-note" class="subtle" hidden></p>
++    </div>
++  </section>
++
++  <section aria-label="当前记录网站">
++    <div class="sectionbar"><h2>当前网站</h2><span id="tracking-state">—</span></div>
++    <div class="current-card">
++      <div class="site-first"><div><b id="site-host">尚未开始记录</b><small id="site-hint">打开普通网页后可查看当前网站</small></div><strong id="site-time">—</strong></div>
++      <div class="site-category"><span>网站分类</span><b id="site-category">—</b><button id="edit-category" type="button" class="text-link">修改</button></div>
++      <div class="inline-edit" id="inline-edit" hidden>
++        <label class="sr-only" for="type-select">选择当前网站分类</label>
++        <select id="type-select"><option value="0">未分类</option><option value="1">工作/生产</option><option value="2">阅读学习</option><option value="3">聊天/新闻</option><option value="4">娱乐</option><option value="5">生活</option></select>
++        <button id="save-category" type="button" class="primary">保存</button><button id="cancel-category" type="button">取消</button>
++      </div>
++    </div>
++  </section>
++
++  <div class="actions" aria-label="计时操作"><button id="start" class="primary" type="button">开始记录</button><button id="pause" type="button">暂停</button></div>
++  <p id="gap" class="subtle" hidden></p>
++
++  <section class="records-section" aria-label="详细记录">
++    <div class="sectionbar"><h2>详细记录</h2><span id="week-total">七天 —</span></div>
++    <nav class="tabs" aria-label="记录范围"><button id="today" type="button" aria-pressed="true">所选日期</button><button id="week" type="button" aria-pressed="false">近七天</button></nav>
++    <section id="daily-section" hidden><h3>每日统计</h3><ol id="daily" class="detail-list"></ol></section>
++    <h3>网站排行</h3><ol id="sites" class="detail-list"></ol>
++  </section>
++
++  <details id="settings" class="settings">
++    <summary>设置、分钟明细与数据管理</summary>
++    <div class="settings-body">
++      <p class="subtle">记录仅在明确开始后进行；浏览器空闲检测权限请在本工具详情的「设置」中授权。</p>
++      <div class="setting-row"><div><b>保存分钟明细</b><small>仅在工具详情受信任的设置区明确同意后，才保存未来分钟明细；关闭时清除已存明细，不补造旧记录。</small></div><button id="minute-consent" type="button">开启</button></div>
++      <label for="idle">空闲阈值（秒）</label><input id="idle" type="number" min="15" max="3600" value="60">
++      <label for="retention">汇总保留天数（7–365；分钟明细最多 90 天）</label><input id="retention" type="number" min="7" max="365" value="90">
++      <label for="excluded">排除域名（每行一个，包含子域名）</label><textarea id="excluded" rows="3" placeholder="example.com"></textarea>
++      <button id="save-settings" type="button" class="primary">保存设置</button>
++      <div class="actions"><button id="export-json" type="button">导出 JSON</button><button id="export-csv" type="button">导出 CSV</button></div>
++      <button id="revoke" type="button">停止并撤销时间授权</button>
++      <div id="clear-area"><button id="clear" type="button" class="danger">清空本机记录…</button></div>
++    </div>
+   </details>
+-</main>
++</main>
+\ No newline at end of file
+diff --git a/examples/sidebar-tools/time-review/src/main.js b/examples/sidebar-tools/time-review/src/main.js
+index 3c4597c8..425238a6 100644
+--- a/examples/sidebar-tools/time-review/src/main.js
++++ b/examples/sidebar-tools/time-review/src/main.js
+@@ -1,48 +1,310 @@
+ (() => {
+   'use strict';
+   const {root,request}=globalThis.OpenDeskTool;
+-  const get=id=>root.querySelector('#'+id);
+-  let state=null,scope='today',busy=false,settingsLoaded=false;
+-  const duration=ms=>{const seconds=Math.floor(ms/1000),minutes=Math.floor(seconds/60),hours=Math.floor(minutes/60);return hours?hours+'小时 '+minutes%60+'分':minutes?minutes+'分 '+seconds%60+'秒':seconds+'秒';};
+-  const message=(text,error=false)=>{get('status').textContent=text;get('status').dataset.error=String(error);};
+-  function rows(container,values){
+-    container.replaceChildren();
+-    if(!values.length){const empty=document.createElement('li');empty.textContent='暂无记录，开始后浏览普通网页即可。';container.append(empty);return;}
+-    for(const [label,ms] of values){const row=document.createElement('li'),name=document.createElement('span'),value=document.createElement('span');name.textContent=label;value.textContent=duration(ms);row.append(name,value);container.append(row);}
++  const $=id=>root.querySelector('#'+id);
++  const C=[
++    {name:'未分类',short:'未分类',color:'#788494'},
++    {name:'工作/生产',short:'重要且紧急',color:'#1976d2'},
++    {name:'阅读学习',short:'重要不紧急',color:'#3b8ad9'},
++    {name:'聊天/新闻',short:'紧急不重要',color:'#b64f4f'},
++    {name:'娱乐',short:'不重要不紧急',color:'#ec5d5d'},
++    {name:'生活',short:'生活',color:'#c8992d'}
++  ];
++  let state=null,day=null,selectedDate=null,scope='today',busy=false,settingsLoaded=false,selectedMinute=null,filter=null,editing=false,daySerial=0;
++  let canvasGeometry=null;
++  const formatMs=ms=>{
++    if(!Number.isFinite(ms)||ms<0)return '—';
++    const sec=Math.floor(ms/1000),min=Math.floor(sec/60),hr=Math.floor(min/60);
++    return hr?hr+'小时'+(min%60?min%60+'分':''):min?min+'分':sec+'秒';
++  };
++  const percent=(n,total)=>total?Math.round(n/total*100)+'%':'—';
++  const minuteLabel=m=>String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0');
++  const newNode=(tag,cls,text)=>{
++    const element=document.createElement(tag);
++    if(cls)element.className=cls;
++    if(text!==undefined)element.textContent=text;
++    return element;
++  };
++  const showMessage=(message,error=false)=>{$('status').textContent=message;$('status').dataset.error=String(error);};
++  const safeDate=date=>new Date(date+'T12:00:00');
++  const shiftDate=(date,offset)=>{
++    const d=safeDate(date);d.setDate(d.getDate()+offset);
++    return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
++  };
++  const earliest=()=>{
++    if(!state)return null;
++    return shiftDate(state.today,-state.settings.retentionDays+1);
++  };
++  function dayData(){
++    if(day?.date===selectedDate)return day;
++    if(state?.today===selectedDate){
++      return {date:state.today,totalMs:state.todayMs,importantMs:state.todayImportantMs,
++        categoryMs:state.todayCategoryMs||[0,0,0,0,0,0],classifiedMs:state.todayClassifiedMs||0,
++        productivityPct:state.todayProductivityPct??null,sites:state.todaySites||[],
++        minuteSlots:[],timelineStatus:'unavailable',minuteCoveredMs:0,minuteConsent:state.minuteConsent};
++    }
++    return null;
++  }
++  function renderCategories(data){
++    const counts=data?.categoryMs||[0,0,0,0,0,0],total=data?.totalMs||0;
++    $('category-total').textContent=total?'合计 '+formatMs(total):'暂无记录';
++    const dist=$('distribution');dist.replaceChildren();
++    for(const cat of [1,2,0,3,4,5]){
++      const track=newNode('i');
++      track.style.background=C[cat].color;
++      track.style.width=(total?100*counts[cat]/total:0)+'%';
++      track.title=C[cat].name+' · '+formatMs(counts[cat]);
++      dist.append(track);
++    }
++    const quad=$('quadrants');quad.replaceChildren();
++    for(const cat of [1,2,3,4]){
++      const card=newNode('button','qcard');card.type='button';card.dataset.cat=String(cat);
++      card.style.setProperty('--cat',C[cat].color);
++      const name=newNode('span','q-name',C[cat].short);
++      const description=newNode('span','q-desc',C[cat].name);
++      const bottom=newNode('span','q-bottom');
++      bottom.append(newNode('b','',total?formatMs(counts[cat]):'—'),newNode('small','',percent(counts[cat],total)));
++      const meter=newNode('span','q-meter'),fill=newNode('i');
++      fill.style.width=(total?counts[cat]/total*100:0)+'%';meter.append(fill);
++      card.append(name,description,bottom,meter);
++      card.addEventListener('click',()=>{filter=cat;scope='today';$('sites').scrollIntoView({block:'nearest'});renderRecords();});
++      quad.append(card);
++    }
++    const extras=$('extra-categories');extras.replaceChildren();
++    for(const cat of [5,0]){
++      const card=newNode('button','extra-card');card.type='button';card.dataset.cat=String(cat);
++      card.style.setProperty('--cat',C[cat].color);
++      const name=newNode('span','extra-name'),dot=newNode('i','dot');
++      name.append(dot,document.createTextNode(C[cat].name));
++      card.append(name,newNode('span','extra-min',total?formatMs(counts[cat]):'—'));
++      card.addEventListener('click',()=>{filter=cat;scope='today';renderRecords();$('sites').scrollIntoView({block:'nearest'});});
++      extras.append(card);
++    }
++  }
++  function renderCanvas(data){
++    const canvas=$('minute-canvas'),rect=canvas.getBoundingClientRect(),w=Math.max(1,rect.width||canvas.clientWidth||250);
++    const h=54,dpr=Math.min(window.devicePixelRatio||1,3);
++    const pw=Math.round(w*dpr),ph=Math.round(h*dpr);
++    if(canvas.width!==pw||canvas.height!==ph){canvas.width=pw;canvas.height=ph;}
++    const ctx=canvas.getContext('2d');if(!ctx)return;
++    ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,w,h);
++    const barY=7,barH=18,bins=Array(1440).fill(null);
++    for(const entry of data?.minuteSlots||[]){
++      if(Array.isArray(entry)&&Number.isInteger(entry[0])&&entry[0]>=0&&entry[0]<1440&&Number.isInteger(entry[1])&&entry[1]>=0&&entry[1]<=5)
++        bins[entry[0]]=entry;
++    }
++    canvasGeometry={w,bins,barY,barH,complete:data?.timelineStatus==='complete'};
++    ctx.save();ctx.beginPath();
++    if(typeof ctx.roundRect==='function')ctx.roundRect(0,barY,w,barH,5);else ctx.rect(0,barY,w,barH);
++    ctx.clip();ctx.fillStyle='#eef2f8';ctx.fillRect(0,barY,w,barH);
++    for(let minute=0;minute<1440;){
++      const current=bins[minute],cat=current?.[1],begin=minute;
++      while(minute<1440&&bins[minute]?.[1]===cat)minute++;
++      if(current){ctx.fillStyle=C[cat].color;ctx.fillRect(begin/1440*w,barY,(minute-begin)/1440*w,barH);}
++    }
++    ctx.restore();
++    ctx.font='10px -apple-system,system-ui,sans-serif';ctx.fillStyle='#798ba3';ctx.textBaseline='middle';
++    const step=w<110?4:w<230?2:1;
++    for(let q=0;q<=4;q+=step){
++      const x=q*w/4;ctx.textAlign=q===0?'left':q===4?'right':'center';
++      ctx.fillText(minuteLabel(q*360),x,barY+barH+14);
++    }
++    if(selectedMinute!==null){
++      const x=Math.max(0,Math.min(w-1,selectedMinute/1440*w));
++      ctx.fillStyle='#203047';ctx.fillRect(x,barY-3,1.5,barH+6);
++    }
++    renderReadout();
++  }
++  function renderReadout(){
++    const minute=selectedMinute;
++    if(minute===null){$('timeline-text').textContent='选择时间查看对应分钟';$('timeline-swatch').style.background='#b3c0d0';return;}
++    const data=dayData(),item=canvasGeometry?.bins[minute];
++    let info='暂无可验证的分钟数据',color='#b3c0d0';
++    if(item){info=C[item[1]].name+' · '+item[3]+' · '+formatMs(item[2]);color=C[item[1]].color;}
++    else if(data?.timelineStatus==='complete')info='未记录';
++    else if(data?.timelineStatus==='partial')info='未保存分钟明细';
++    $('timeline-text').textContent=minuteLabel(minute)+' · '+info;
++    $('timeline-swatch').style.background=color;
++    $('minute-canvas').setAttribute('aria-valuenow',String(minute));
++    $('minute-canvas').setAttribute('aria-valuetext',minuteLabel(minute)+' · '+info);
++  }
++  function renderTimeline(data){
++    const status=data?.timelineStatus||'unavailable';
++    const labels={complete:'分钟明细完整',partial:'部分分钟明细',unavailable:'尚无分钟明细',dst:'夏令时日期',timezone:'时区数据不确定'};
++    $('timeline-state').textContent=labels[status];
++    $('timeline-note').hidden=status==='complete';
++    $('timeline-note').textContent=status==='partial'?'仅显示已保存的真实分钟；空白位置不代表未访问。':
++      status==='dst'||status==='timezone'?'该日期的本地 24 小时刻度无法可靠定位，保留真实日汇总。':
++      data?.totalMs?'此日期有汇总记录，但没有可验证的分钟位置。旧历史不会自动补造。':
++      state?.minuteConsent?'还没有产生分钟记录。':'可在设置中自愿开启未来的分钟明细。';
++    renderCanvas(data);
++  }
++  function renderCurrent(data){
++    const host=state?.paused?null:state?.trackingHost||null;
++    $('site-host').textContent=host||'当前没有正在记录的网站';
++    $('site-hint').textContent=host?'仅记录域名，不读取网页正文':'暂停、失焦、空闲或未授权时不记录';
++    // The live-site card always reflects today, even while reviewing an earlier date.
++    const site=(state?.todaySites||[]).find(row=>row.host===host);
++    $('site-time').textContent=site?formatMs(site.ms):'—';
++    const cat=host?(state?.siteCategories?.[host]??0):undefined;
++    $('site-category').textContent=host&&cat!==undefined?C[cat].name:'—';
++    $('tracking-state').textContent=host?'正在记录':'未记录';
++    $('edit-category').disabled=busy||!host||!site;
++    $('inline-edit').hidden=!editing||!host||!site;
++    if(site&&!editing)$('type-select').value=String(site.category??0);
++  }
++  function renderRecords(){
++    if(!state)return;
++    $('today').setAttribute('aria-pressed',String(scope==='today'));
++    $('week').setAttribute('aria-pressed',String(scope==='week'));
++    $('daily-section').hidden=scope!=='week';
++    $('week-total').textContent='七天 '+formatMs(state.weekMs);
++    const daily=$('daily');daily.replaceChildren();
++    for(const item of state.days||[]){
++      const row=newNode('li','detail-item');
++      row.append(newNode('b','',item.date),newNode('strong','',formatMs(item.ms)));
++      daily.append(row);
++    }
++    const selected=dayData();
++    const items=scope==='week'?state.sites||[]:selected?.sites||[];
++    const shown=items.filter(item=>scope==='week'||filter===null||(item.category??0)===filter).slice(0,50);
++    const list=$('sites');list.replaceChildren();
++    if(!shown.length){
++      const item=newNode('li','detail-item',filter!==null?'该分类暂无网站记录':'暂无记录');
++      list.append(item);return;
++    }
++    for(const item of shown){
++      const row=newNode('li','detail-item'),entry=newNode('div','entry');
++      const currentCat=scope==='today'?item.category??0:state.siteCategories?.[item.host]??0;
++      entry.append(newNode('b','',item.host),newNode('small','',C[currentCat].name+(scope==='week'?' · 近七天':'')));
++
++      const value=newNode('strong','',formatMs(item.ms));
++      row.append(entry,value);
++      {
++        const edit=newNode('button','','分类');edit.type='button';edit.disabled=busy;
++        edit.setAttribute('aria-label','修改 '+item.host+' 的分类');
++        edit.addEventListener('click',()=>{
++          if(row.querySelector('select')){row.querySelector('.row-edit').remove();return;}
++          const area=newNode('div','row-edit'),sel=newNode('select'),save=newNode('button','primary','保存');
++          for(let id=0;id<C.length;id++){const option=document.createElement('option');option.value=String(id);option.textContent=C[id].name;sel.append(option);}
++          sel.value=String(currentCat);sel.setAttribute('aria-label',item.host+' 的分类');save.type='button';
++          save.addEventListener('click',()=>void act('time.classify',{host:item.host,category:Number(sel.value)}));
++          area.append(sel,save);entry.append(area);sel.focus();
++        });
++        row.append(edit);
++      }
++      list.append(row);
++    }
+   }
+   function render(){
+-    for(const button of root.querySelectorAll('button'))button.disabled=busy;
++    for(const button of root.querySelectorAll('button'))button.disabled=busy||!state;
++    if(!state)return;
++    const data=dayData();
++    $('start').disabled=busy||!state.paused;
++    $('start').textContent=state.authorized?'恢复记录':'开始记录';
++    $('pause').disabled=busy||state.paused;
++    $('next-date').disabled=busy||selectedDate>=state.today;
++    $('prev-date').disabled=busy||selectedDate<=earliest();
++    $('date-label').textContent=safeDate(selectedDate).toLocaleDateString('zh-CN',{month:'long',day:'numeric',weekday:'short'});
++    $('date-subtitle').textContent=selectedDate===state.today?'今天 · 本机统计':selectedDate;
++    $('today-total').textContent=data?formatMs(data.totalMs):'—';
++    $('important-time').textContent=data?formatMs(data.importantMs):'—';
++    $('productivity').textContent=data?.productivityPct===null||!data?'—':data.productivityPct+'%';
++    $('coverage').textContent=data?.totalMs?'已分类 '+percent(data.classifiedMs,data.totalMs):'暂无分类统计';
++    $('eff-fill').style.width=(data?.productivityPct??0)+'%';
++    const yesterday=selectedDate===state.today?state.yesterdayMs:null;
++    $('yesterday-compare').textContent=yesterday===null?'暂无昨日比较':
++      '较昨日 '+(state.todayMs-yesterday>=0?'+':'−')+formatMs(Math.abs(state.todayMs-yesterday));
++    $('minute-consent').textContent=state.minuteConsent?'关闭并删除':'开启';
++    if(!settingsLoaded){
++      $('idle').value=String(state.settings.idleSeconds);
++      $('retention').value=String(state.settings.retentionDays);
++      $('excluded').value=state.settings.excludedHosts.join('\n');settingsLoaded=true;
++    }
++    $('gap').hidden=!state.discardedMs;
++    $('gap').textContent=state.discardedMs?'无法确认的活动间隔 '+formatMs(state.discardedMs)+'，已排除。':'';
++    renderCategories(data);renderTimeline(data);renderCurrent(data);renderRecords();
++  }
++  async function readDay(){
+     if(!state)return;
+-    get('start').disabled=busy||!state.paused;get('start').textContent=state.authorized?'恢复记录':'开始记录';get('pause').disabled=busy||state.paused;
+-    get('today-total').textContent=duration(state.todayMs);get('week-total').textContent=duration(state.weekMs);
+-    get('today').setAttribute('aria-pressed',String(scope==='today'));get('week').setAttribute('aria-pressed',String(scope==='week'));
+-    get('daily-section').hidden=scope!=='week';rows(get('daily'),state.days.map(row=>[row.date,row.ms]));
+-    rows(get('sites'),(scope==='today'?state.todaySites:state.sites).slice(0,50).map(row=>[row.host,row.ms]));
+-    get('gap').hidden=!state.discardedMs;get('gap').textContent='有 '+duration(state.discardedMs)+' 无法确认活动的间隔（例如休眠或重启），已保守排除。';
+-    if(!settingsLoaded){get('idle').value=String(state.settings.idleSeconds);get('retention').value=String(state.settings.retentionDays);get('excluded').value=state.settings.excludedHosts.join('\n');settingsLoaded=true;}
++    const serial=++daySerial,requested=selectedDate;
++    try{
++      const result=await request('time.day',{date:requested});
++      if(serial!==daySerial||selectedDate!==requested)return;
++      day=result;render();
++    }catch(err){if(serial!==daySerial)return;day=null;showMessage((err.code||'E_TIME_DAY')+'：'+err.message,true);render();}
+   }
+   async function act(operation,payload={}){
+-    if(busy)return;busy=true;render();
++    if(busy)return;
++    busy=true;render();
+     try{
+       const result=await request(operation,payload);
+-      if(operation==='time.export')message('已请求下载 '+result.name+'；请在浏览器下载记录中确认完成。');
+-      else{state=result;message(!state.idlePermission?'请在工具详情设置中授权空闲检测；当前未记录。':state.paused?'已暂停，历史记录保留。':state.trackingHost?'正在记录 '+state.trackingHost:'后台已开启，等待聚焦的普通网页。');}
+-    }catch(error){message((error.code||'E_TIME_REVIEW')+'：'+error.message,true);}
++      if(operation==='time.export'){
++        showMessage('已请求下载 '+result.name+'；请在 Chrome 下载记录中核对文件。');
++      }else{
++        state=result;
++        if(!selectedDate||selectedDate>state.today||selectedDate<earliest())selectedDate=state.today;
++        if(operation==='time.clear'){day=null;filter=null;editing=false;}
++        showMessage(!state.idlePermission?'未授权空闲检测；请在工具详情设置中授权。':
++          state.paused?'已暂停 · 历史数据保留':state.trackingHost?'正在记录 '+state.trackingHost:'记录已开启 · 等待可访问网页');
++        await readDay();
++      }
++    }catch(err){
++      if(err?.code==='E_TIME_TRUSTED_CLICK')showMessage('已打开工具详情设置，请在那里明确执行操作。');
++      else showMessage((err.code||'E_TIME_REVIEW')+'：'+err.message,true);
++    }
+     finally{busy=false;render();}
+   }
+-  get('start').addEventListener('click',()=>act('time.start'));
+-  get('pause').addEventListener('click',()=>act('time.pause'));
+-  get('refresh').addEventListener('click',()=>act('time.status'));
+-  for(const id of ['today','week'])get(id).addEventListener('click',()=>{scope=id;render();});
+-  get('save-settings').addEventListener('click',()=>act('time.settings',{idleSeconds:Number(get('idle').value),retentionDays:Number(get('retention').value),excludedHosts:get('excluded').value.split(/\s+/).filter(Boolean).map(value=>value.toLowerCase())}));
+-  get('export-json').addEventListener('click',()=>act('time.export',{format:'json'}));
+-  get('export-csv').addEventListener('click',()=>act('time.export',{format:'csv'}));
+-  get('revoke').addEventListener('click',()=>act('time.revoke'));
+-  get('clear').addEventListener('click',()=>{get('clear-confirm').hidden=false;get('clear-yes').focus();});
+-  get('clear-no').addEventListener('click',()=>{get('clear-confirm').hidden=true;get('clear').focus();});
+-  get('clear-yes').addEventListener('click',()=>{get('clear-confirm').hidden=true;void act('time.clear',{confirm:true});});
+-  // This timer refreshes presentation only; alarms and SW own all tracking.
+-  const timer=setInterval(()=>{if(!busy&&!document.hidden&&!get('settings').open)void act('time.status');},15000);
+-  window.addEventListener('pagehide',()=>clearInterval(timer),{once:true});
++  function chooseMinute(minute){
++    selectedMinute=Math.max(0,Math.min(1439,minute));
++    renderCanvas(dayData());
++  }
++  const canvas=$('minute-canvas');
++  function onPointer(event){
++    const rect=canvas.getBoundingClientRect(),w=rect.width;
++    if(!w)return;
++    chooseMinute(Math.min(1439,Math.floor(Math.max(0,Math.min(w,event.clientX-rect.left))/w*1440)));
++  }
++  canvas.addEventListener('pointerdown',onPointer);
++  canvas.addEventListener('pointermove',event=>{if(event.pointerType==='mouse')onPointer(event);});
++  canvas.addEventListener('keydown',event=>{
++    const key=event.key;
++    if(!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Home','End'].includes(key))return;
++    event.preventDefault();
++    if(key==='Home')chooseMinute(0);else if(key==='End')chooseMinute(1439);
++    else chooseMinute((selectedMinute??0)+({ArrowLeft:-1,ArrowRight:1,ArrowUp:60,ArrowDown:-60}[key]||0)*(event.shiftKey?10:1));
++  });
++  $('prev-date').addEventListener('click',()=>{if(selectedDate>earliest()){selectedDate=shiftDate(selectedDate,-1);day=null;selectedMinute=null;editing=false;filter=null;render();void readDay();}});
++  $('next-date').addEventListener('click',()=>{if(selectedDate<state.today){selectedDate=shiftDate(selectedDate,1);day=null;selectedMinute=null;editing=false;filter=null;render();void readDay();}});
++  $('today').addEventListener('click',()=>{scope='today';filter=null;renderRecords();});
++  $('week').addEventListener('click',()=>{scope='week';filter=null;renderRecords();});
++  $('start').addEventListener('click',()=>void act('time.start'));
++  $('pause').addEventListener('click',()=>void act('time.pause'));
++  $('refresh').addEventListener('click',()=>void act('time.status'));
++  $('settings-shortcut').addEventListener('click',()=>{$('settings').open=true;$('settings').scrollIntoView({block:'nearest'});});
++  $('edit-category').addEventListener('click',()=>{editing=!editing;renderCurrent(dayData());if(editing)$('type-select').focus();});
++  $('cancel-category').addEventListener('click',()=>{editing=false;renderCurrent(dayData());});
++  $('save-category').addEventListener('click',()=>{
++    const host=state.trackingHost;
++    if(host){editing=false;void act('time.classify',{host,category:Number($('type-select').value)});}
++  });
++  $('minute-consent').addEventListener('click',()=>void act('time.minuteConsent',{enabled:!state.minuteConsent}));
++  $('save-settings').addEventListener('click',()=>void act('time.settings',{
++    idleSeconds:Number($('idle').value),retentionDays:Number($('retention').value),
++    excludedHosts:$('excluded').value.split(/\s+/).filter(Boolean).map(x=>x.toLowerCase())
++  }));
++  $('export-json').addEventListener('click',()=>void act('time.export',{format:'json'}));
++  $('export-csv').addEventListener('click',()=>void act('time.export',{format:'csv'}));
++  $('revoke').addEventListener('click',()=>void act('time.revoke'));
++  // The trusted extension host owns the irreversible-operation confirmation.
++  $('clear').addEventListener('click',()=>void act('time.clear',{confirm:true}));
++  const resize=typeof ResizeObserver==='function'?new ResizeObserver(()=>renderCanvas(dayData())):null;
++  resize?.observe(canvas);
++  const onResize=()=>renderCanvas(dayData());
++  if(!resize)window.addEventListener('resize',onResize);
++  const timer=window.setInterval(()=>{
++    if(!busy&&!document.hidden&&!$('settings').open)void act('time.status');
++  },15000);
++  window.addEventListener('pagehide',()=>{window.clearInterval(timer);resize?.disconnect();if(!resize)window.removeEventListener('resize',onResize);},{once:true});
+   void act('time.status');
+-})();
++})();
+\ No newline at end of file
+diff --git a/examples/sidebar-tools/time-review/src/style.css b/examples/sidebar-tools/time-review/src/style.css
+index 9a89263b..d4f5a1fe 100644
+--- a/examples/sidebar-tools/time-review/src/style.css
++++ b/examples/sidebar-tools/time-review/src/style.css
+@@ -1 +1,111 @@
+-:root{color-scheme:light dark;--bg:#fff;--fg:#263449;--muted:#66758a;--line:#e3e8ef;--surface:#f5f7fa;--accent:#2563eb;--danger:#b42318}*{box-sizing:border-box}body{margin:0;font:13px/1.6 system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--fg)}.review{padding:14px;max-width:760px;margin:auto}h1{font-size:19px;margin:0}header p{color:var(--muted);margin:2px 0 12px}h2{font-size:13px;margin:14px 0 6px}.status{border-left:3px solid var(--accent);padding:7px 9px;background:var(--surface);overflow-wrap:anywhere}.status[data-error=true]{border-color:var(--danger)}.actions,nav{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}button,input,textarea{font:inherit;color:inherit;border:1px solid var(--line);border-radius:6px;background:var(--bg);padding:6px 10px}button{cursor:pointer;min-height:32px}button:hover{background:var(--surface)}button:disabled{opacity:.5;cursor:default}button[aria-pressed=true],#start{color:var(--accent);border-color:var(--accent)}:focus-visible{outline:2px solid var(--accent);outline-offset:2px}.hint{font-size:12px;color:var(--muted);margin:9px 0}.totals{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:14px 0}.totals section{background:var(--surface);border-radius:8px;padding:10px}.totals span{color:var(--muted);display:block;font-size:12px}.totals strong{display:block;font-size:20px;font-variant-numeric:tabular-nums}ol{padding:0;list-style:none;margin:0}li{display:flex;justify-content:space-between;gap:12px;border-bottom:1px solid var(--line);padding:7px 0}li span:first-child{overflow-wrap:anywhere;min-width:0}li span:last-child{white-space:nowrap;font-variant-numeric:tabular-nums}details{border-top:1px solid var(--line);margin-top:18px;padding-top:10px}summary{cursor:pointer;font-weight:600}label{display:block;margin:9px 0 4px}input,textarea{display:block;width:100%;max-width:100%}textarea{resize:vertical}.danger{color:var(--danger)}#clear-confirm{background:var(--surface);padding:8px;margin-top:6px}#clear-area{margin-top:12px}@media(prefers-color-scheme:dark){:root{--bg:#151c27;--fg:#e0e7f1;--muted:#a1aec0;--line:#344052;--surface:#202a39;--accent:#8db7ff;--danger:#ff9b90}}
++.review{--ink:#1b2c49;--sub:#53647e;--line:#e1e8f1;--brand:#365eda;--bg:#f5f7fb;--positive:#138263;--negative:#ae3d4b;--cat-0:#788494;--cat-1:#1976d2;--cat-2:#3b8ad9;--cat-3:#b64f4f;--cat-4:#ec5d5d;--cat-5:#c8992d;box-sizing:border-box;min-width:0;max-width:680px;margin:auto;padding:12px;color:var(--ink);background:var(--bg);font:13px/1.5 -apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC",system-ui,sans-serif;overflow-wrap:anywhere}
++.review *,.review *::before,.review *::after{box-sizing:border-box}
++.review [hidden]{display:none!important}
++.review h2,.review h3,.review p{margin:0}
++.review button,.review select,.review input,.review textarea{font:inherit}
++.review button{cursor:pointer;touch-action:manipulation;min-height:32px;padding:6px 10px;border:1px solid #d5e0ef;border-radius:8px;background:#fff;color:#315aa3}
++.review button:hover:not(:disabled){background:#edf3ff}
++.review button:disabled{opacity:.48;cursor:not-allowed}
++.review button:focus-visible,.review select:focus-visible,.review canvas:focus-visible,.review input:focus-visible,.review textarea:focus-visible,.review summary:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
++.review button.primary{background:var(--brand);color:#fff;border-color:var(--brand);font-weight:700}
++.review button.primary:hover:not(:disabled){background:#264cae}
++.review .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
++.review .review-top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:9px}
++.review .review-heading{min-width:0}
++.review .eyebrow{font-size:11px;font-weight:800;color:#4966aa;letter-spacing:.04em}
++.review .status{font-size:11px;color:var(--sub);line-height:1.5;min-height:17px}
++.review .status[data-error=true]{color:var(--negative)}
++.review .top-actions{display:flex;flex:none;gap:6px}
++.review .top-actions button{font-size:11px;padding:5px 9px;min-height:30px}
++.review .top-actions #refresh{width:31px;padding:0;font-size:18px}
++.review .datebar{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px}
++.review .datebar>button{flex:0 0 30px;width:30px;height:30px;padding:0;font-size:20px;line-height:1}
++.review .date-center{text-align:center;min-width:0}
++.review .date-center strong{font-size:12px}
++.review .date-center small{display:block;font-size:10px;color:#7a8ca4}
++.review .hero{background:white;border:1px solid #dce5f0;border-radius:12px;padding:13px}
++.review .hero-metrics{display:grid;grid-template-columns:1.12fr 1fr;gap:8px}
++.review .hero-metric{min-width:0}
++.review .hero-metric small{display:block;font-size:11px;color:#687b97}
++.review .hero-metric b{display:block;font-size:20px;line-height:1.3;margin-top:3px;font-variant-numeric:tabular-nums;letter-spacing:-.025em;overflow-wrap:anywhere}
++.review .hero-metric.main b{font-size:24px}
++.review .hero-metric.important{border-left:1px solid #e2eaf3;padding-left:12px}
++.review .hero-metric.important b{color:#2756b5}
++.review .hero-footer{display:flex;justify-content:space-between;align-items:center;gap:10px;padding-top:10px;margin-top:10px;border-top:1px solid #eef1f7}
++.review .rate{display:flex;align-items:center;gap:8px;min-width:0}
++.review .rate strong{font-size:20px;line-height:1;color:#234f9b}
++.review .rate small{font-size:10px;color:#708198}
++.review .compare{text-align:right;font-size:10px;color:#62758f;min-width:0}
++.review .compare small{display:block;color:#73839a}
++.review .eff-track{height:6px;border-radius:6px;background:#eaf0f9;overflow:hidden;margin-top:11px}
++.review .eff-track i{display:block;height:100%;width:0;background:#4270d7;border-radius:6px;transition:width .15s}
++.review .sectionbar{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:13px 0 7px;min-width:0}
++.review .sectionbar h2{font-size:12px;font-weight:800;line-height:1.4}
++.review .sectionbar span{font-size:10px;color:#7586a1;text-align:right}
++.review .surface,.review .timeline-card,.review .current-card{border:1px solid #dce5f0;background:#fff;border-radius:11px;padding:11px;min-width:0}
++.review .distribution{height:10px;display:flex;gap:2px;background:#edf2f7;border-radius:5px;overflow:hidden}
++.review .distribution i{display:block;flex:0 0 auto;height:100%}
++.review .quadrants{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin-top:10px}
++.review .qcard{display:flex;flex-direction:column;align-items:stretch;text-align:left;gap:4px;min-width:0;min-height:89px;padding:9px;border:1px solid #e4eaf3;border-top:3px solid var(--cat);border-radius:9px;color:var(--ink);background:#fff}
++.review .qcard:hover:not(:disabled){border-color:#b4c8ec;border-top-color:var(--cat);background:#f8faff}
++.review .qcard .q-name{font-size:11px;font-weight:750;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
++.review .qcard .q-desc{font-size:10px;color:#7587a0;overflow-wrap:anywhere}
++.review .qcard .q-bottom{display:flex;align-items:baseline;justify-content:space-between;gap:3px;margin-top:auto}
++.review .qcard .q-bottom b{font-size:15px;font-variant-numeric:tabular-nums}
++.review .qcard .q-bottom small{font-size:10px;color:#71849b}
++.review .q-meter{height:3px;background:#eef3f9;border-radius:4px;overflow:hidden}
++.review .q-meter i{display:block;height:100%;background:var(--cat)}
++.review .extra-categories{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin-top:8px}
++.review .extra-card{display:flex;justify-content:space-between;align-items:center;gap:5px;min-width:0;padding:8px 9px;border:1px solid #e4eaf3;border-radius:8px;background:#f9fafc;color:var(--ink);text-align:left}
++.review .extra-name{display:flex;align-items:center;gap:5px;min-width:0;font-size:11px;font-weight:700}
++.review .extra-name .dot{display:inline-block;flex:none;width:7px;height:7px;background:var(--cat);border-radius:3px}
++.review .extra-min{font-size:12px;font-weight:750;white-space:nowrap;font-variant-numeric:tabular-nums}
++.review .timeline-canvas{display:block;width:100%;height:54px;max-width:100%;background:#fcfdff;border-radius:6px;touch-action:pan-y;cursor:crosshair}
++.review .timeline-readout{display:flex;align-items:center;gap:8px;min-height:31px;margin-top:7px;padding:7px 9px;background:#f5f8fd;border-radius:8px;color:#4c6284;font-size:11px}
++.review .timeline-readout i{flex:none;width:8px;height:8px;background:#b3c0d0;border-radius:3px}
++.review .timeline-readout span{min-width:0}
++.review .subtle{margin:7px 0 0;font-size:11px;color:#72839b;line-height:1.65}
++.review .site-first{display:flex;justify-content:space-between;align-items:start;gap:8px}
++.review .site-first>div{min-width:0}
++.review .site-first b{display:block;font-size:12px;overflow-wrap:anywhere}
++.review .site-first small{display:block;font-size:10px;color:#72849d;margin-top:3px}
++.review .site-first>strong{font-size:13px;white-space:nowrap}
++.review .site-category{display:flex;align-items:center;gap:6px;border-top:1px solid #eef1f7;margin-top:9px;padding-top:9px;font-size:11px}
++.review .site-category span{color:#6c7e98}
++.review .site-category b{color:#355a9d;margin-left:auto}
++.review .site-category .text-link{border:0;padding:3px 5px;background:none;font-weight:750;font-size:11px;min-height:26px}
++.review .inline-edit{display:flex;align-items:center;gap:5px;margin-top:8px}
++.review .inline-edit select{min-width:0;flex:1}
++.review select,.review input,.review textarea{border:1px solid #cbd8eb;border-radius:8px;background:#fff;color:var(--ink);padding:7px;width:100%;max-width:100%}
++.review .inline-edit button{padding:6px 8px;white-space:nowrap}
++.review .actions{display:flex;gap:7px;margin-top:11px}
++.review .actions button{flex:1;min-width:0}
++.review .records-section h3{font-size:11px;color:#6d7f99;margin:10px 0 6px}
++.review .tabs{display:flex;gap:6px;margin:8px 0}
++.review .tabs button{flex:1}
++.review .tabs button[aria-pressed=true]{color:#2f58c0;background:#eaf0ff;border-color:#a9bff3;font-weight:750}
++.review .detail-list{list-style:none;margin:0;padding:0;display:grid;gap:6px}
++.review .detail-item{display:flex;align-items:center;justify-content:space-between;gap:8px;min-width:0;border:1px solid var(--line);border-radius:9px;background:#fff;padding:9px}
++.review .detail-item .entry{min-width:0;flex:1}
++.review .detail-item b{display:block;font-size:11px;overflow-wrap:anywhere}
++.review .detail-item small{display:block;font-size:10px;color:#71849b;margin-top:3px}
++.review .detail-item strong{white-space:nowrap;font-variant-numeric:tabular-nums;font-size:11px}
++.review .detail-item button{padding:3px 7px;min-height:27px;font-size:10px}
++.review .detail-item .row-edit{display:flex;gap:5px;margin-top:7px;align-items:center}
++.review .detail-item .row-edit select{min-width:0;flex:1}
++.review .settings{border-top:1px solid var(--line);margin-top:17px;padding:12px 0 3px}
++.review .settings summary{font-weight:750;font-size:12px;cursor:pointer;color:#355a9d}
++.review .settings-body{padding-top:10px}
++.review .settings label{display:block;margin:10px 0 4px;font-size:11px;color:#5c6e89}
++.review .settings textarea{resize:vertical}
++.review .setting-row{display:flex;justify-content:space-between;align-items:center;gap:10px;background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px;margin:9px 0}
++.review .setting-row div{min-width:0}
++.review .setting-row b{font-size:11px}
++.review .setting-row small{display:block;font-size:10px;line-height:1.6;color:#708198;margin-top:3px}
++.review .setting-row button{flex:none}
++.review .danger{color:#a72f41!important;border-color:#e8bfc7!important}
++.review .confirm{background:#fff4f4;padding:9px;margin-top:7px;border:1px solid #e5b7bd;border-radius:8px}
++.review .confirm p{font-size:11px}
++.review #clear-area{margin-top:10px}
++@media(max-width:349px){.review{padding:9px}.review .hero{padding:10px}.review .surface,.review .timeline-card,.review .current-card{padding:9px}.review .qcard{padding:7px}.review .qcard .q-bottom b{font-size:13px}.review .hero-metric.main b{font-size:21px}}
++@media(prefers-reduced-motion:reduce){.review .eff-track i{transition:none}}
+\ No newline at end of file
+diff --git a/examples/sidebar-tools/time-review/tool.config.json b/examples/sidebar-tools/time-review/tool.config.json
+index 7b239e86..908a31ce 100644
+--- a/examples/sidebar-tools/time-review/tool.config.json
++++ b/examples/sidebar-tools/time-review/tool.config.json
+@@ -1,9 +1,16 @@
+ {
+   "id": "time-review",
+-  "version": "1.2.0",
++  "version": "1.3.0",
+   "title": "Time Review · 时间回顾",
+-  "description": "明确开始后记录聚焦、非空闲网站的本机使用时长，支持今日、七天、网站排行、导出和暂停恢复。无登录，无上传。",
+-  "capabilities": ["time.review", "user.export"],
+-  "files": {"html": "src/index.html", "css": "src/style.css", "js": "src/main.js"},
++  "description": "明确开始后本机记录网站时长；六分类、日期回顾与自愿开启的真实分钟时间线，支持导出与暂停恢复。无登录、无上传。",
++  "capabilities": [
++    "time.review",
++    "user.export"
++  ],
++  "files": {
++    "html": "src/index.html",
++    "css": "src/style.css",
++    "js": "src/main.js"
++  },
+   "assets": []
+ }
+diff --git a/src/time-review/host-controls.js b/src/time-review/host-controls.js
+index 331844b2..9c52fc5d 100644
+--- a/src/time-review/host-controls.js
++++ b/src/time-review/host-controls.js
+@@ -3,7 +3,7 @@
+ import {TIME_REVIEW_ID,TIME_REVIEW_CAPABILITY} from './policy.js';
+ 
+ export function createTimeReviewPermissionControls({api,doc,container,notice,runOperation}){
+-  let section=null,clearReview=null,busy=false,buttons=[];
++  let section=null,clearReview=null,minuteReview=null,busy=false,buttons=[];
+   const say=(message,problem=false)=>notice(message,problem);
+   const button=(id,label,action)=>{
+     const node=doc.createElement('button');node.type='button';node.id=id;
+@@ -18,6 +18,8 @@ export function createTimeReviewPermissionControls({api,doc,container,notice,run
+     Promise.resolve().then(()=>runOperation(operation,payload,event))
+       .then(()=>say(operation==='time.start'
+         ?'已确认开始／恢复后台记录；统计仅保留在本机。'
++        :operation==='time.minuteConsent'?(payload?.enabled
++          ?'已开启未来有效活动的本机分钟明细。':'已关闭分钟明细并清除已保存的明细。')
+         :'已清空本机时间统计。'))
+       .catch(error=>say((error?.code||'E_TIME_REVIEW')+'：'+String(error?.message||error),true))
+       .finally(()=>setBusy(false));
+@@ -27,6 +29,7 @@ export function createTimeReviewPermissionControls({api,doc,container,notice,run
+     if(!visible){
+       if(section)section.hidden=true;
+       if(clearReview)clearReview.hidden=true;
++      if(minuteReview)minuteReview.hidden=true;
+       return;
+     }
+     if(!section){
+@@ -74,7 +77,31 @@ export function createTimeReviewPermissionControls({api,doc,container,notice,run
+         clear.focus?.({preventScroll:true});
+       });
+       clearReview.append(warning,approve,cancel);
+-      section.append(hint,grant,revoke,start,clear,clearReview);
++      const minuteNotice=doc.createElement('p');
++      minuteNotice.textContent='可选分钟明细：开启后只保存未来已经确认的活动日期、域名、分钟序号及毫秒；不保存标题、路径或网页内容。不根据历史日汇总补造分钟数据。';
++      const minuteEnable=button('time-review-minute-enable','开启分钟明细',event=>{
++        operate('time.minuteConsent',{enabled:true},event);
++      });
++      const minuteDisable=button('time-review-minute-disable','关闭并删除分钟明细…',event=>{
++        if(event?.isTrusted!==true||busy)return;
++        minuteReview.hidden=false;minuteReview.scrollIntoView?.({block:'nearest'});
++      });
++      minuteReview=doc.createElement('section');
++      minuteReview.id='time-review-minute-delete-review';
++      minuteReview.className='time-review-inline-clear-review';minuteReview.hidden=true;
++      const minuteWarning=doc.createElement('p');
++      minuteWarning.textContent='确认关闭未来分钟采集并永久删除已有分钟明细？网站日汇总与分类不受影响。';
++      const minuteApprove=button('time-review-minute-delete-approve','确认关闭并删除',event=>{
++        if(event?.isTrusted!==true||busy)return;
++        minuteReview.hidden=true;
++        operate('time.minuteConsent',{enabled:false},event);
++      });
++      const minuteCancel=button('time-review-minute-delete-cancel','取消',()=>{
++        minuteReview.hidden=true;minuteDisable.focus?.({preventScroll:true});
++      });
++      minuteReview.append(minuteWarning,minuteApprove,minuteCancel);
++      section.append(hint,grant,revoke,start,clear,clearReview,
++        minuteNotice,minuteEnable,minuteDisable,minuteReview);
+       container.append(section);
+     }
+     section.hidden=false;
+diff --git a/src/time-review/model.js b/src/time-review/model.js
+index b66f25a9..c3435e59 100644
+--- a/src/time-review/model.js
++++ b/src/time-review/model.js
+@@ -1,5 +1,7 @@
+ export const TIME_REVIEW_KEY='opendesk.time-review.v1';
+ export const MAX_OBSERVATION_GAP=45000;
++export const MAX_MINUTE_DAYS=90;
++export const MAX_MINUTE_ROWS=2000;
+ export const DEFAULT_SETTINGS=Object.freeze({idleSeconds:60,retentionDays:90,excludedHosts:[]});
+ const fail=message=>{throw Object.assign(new Error(message),{code:'E_TIME_DATA'});};
+ export function localDay(at){
+@@ -18,7 +20,7 @@ export function reviewSettings(value){
+     fail('设置无效：空闲阈值 15–3600 秒，保留 7–365 天，最多排除 100 个域名');
+   return {...value,excludedHosts:[...new Set(value.excludedHosts)].sort()};
+ }
+-export function emptyReview(){return {version:1,authorizedHash:null,authorizedEpoch:null,highWater:0,paused:true,settings:{...DEFAULT_SETTINGS,excludedHosts:[]},days:{},checkpoint:null,discardedMs:0};}
++export function emptyReview(){return {version:1,authorizedHash:null,authorizedEpoch:null,highWater:0,paused:true,settings:{...DEFAULT_SETTINGS,excludedHosts:[]},days:{},checkpoint:null,discardedMs:0,categories:{},minuteConsent:false,minuteDays:{}};}
+ export function readReview(raw){
+   if(raw===undefined)return emptyReview();
+   if(!raw||raw.version!==1||typeof raw.paused!=='boolean'||
+@@ -33,12 +35,111 @@ export function readReview(raw){
+   const cp=raw.checkpoint;
+   if(cp!==null&&(!cp||reviewHost('https://'+cp.host+'/')!==cp.host||!Number.isSafeInteger(cp.at)||
+     !Number.isInteger(cp.tabId)||!Number.isInteger(cp.windowId)||typeof cp.session!=='string'||!Number.isInteger(cp.offset)))fail('时间检查点无效');
++  // Optional R1.3 fields preserve all legacy v1 totals without fabricating detail.
++  if(raw.categories!==undefined){
++    if(!raw.categories||typeof raw.categories!=='object'||Array.isArray(raw.categories)||Object.keys(raw.categories).length>5000)fail('网站分类记录无效');
++    for(const [host,id] of Object.entries(raw.categories))if(reviewHost('https://'+host+'/')!==host||!Number.isInteger(id)||id<1||id>5)fail('网站分类记录无效');
++  }
++  if(raw.minuteConsent!==undefined&&typeof raw.minuteConsent!=='boolean')fail('分钟明细授权记录无效');
++  if(raw.minuteDays!==undefined){
++    if(!raw.minuteDays||typeof raw.minuteDays!=='object'||Array.isArray(raw.minuteDays)||Object.keys(raw.minuteDays).length>MAX_MINUTE_DAYS)fail('分钟明细记录无效');
++    for(const [day,bucket] of Object.entries(raw.minuteDays)){
++      if(!/^\d{4}-\d{2}-\d{2}$/.test(day)||!bucket||!Number.isInteger(bucket.offset)||Math.abs(bucket.offset)>1440||
++        typeof bucket.ambiguous!=='boolean'||typeof bucket.truncated!=='boolean'||
++        !Array.isArray(bucket.entries)||bucket.entries.length>MAX_MINUTE_ROWS)fail('分钟明细记录无效');
++      const perMinute=new Map();
++      for(const entry of bucket.entries){
++        if(!Array.isArray(entry)||entry.length!==3||!Number.isInteger(entry[0])||entry[0]<0||entry[0]>1439||
++          typeof entry[1]!=='string'||reviewHost('https://'+entry[1]+'/')!==entry[1]||
++          !Number.isSafeInteger(entry[2])||entry[2]<1||entry[2]>60000)fail('分钟条目无效');
++        perMinute.set(entry[0],(perMinute.get(entry[0])||0)+entry[2]);
++      }
++      if([...perMinute.values()].some(ms=>ms>60000))fail('分钟时长超过物理上限');
++    }
++  }
+   const result=structuredClone(raw);
++  result.categories??={};
++  result.minuteConsent??=false;
++  result.minuteDays??={};
+   if(!Object.hasOwn(result,'authorizedEpoch')){result.authorizedHash=null;result.authorizedEpoch=null;result.paused=true;result.checkpoint=null;}
+   if(!(result.authorizedEpoch===null||typeof result.authorizedEpoch==='string')||result.highWater!==undefined&&(!Number.isSafeInteger(result.highWater)||result.highWater<0))fail('时间授权或时钟记录无效');
+   result.highWater??=0;
+   return result;
+ }
++export function reviewCategory(state,host){
++  return Object.hasOwn(state.categories||{},host)?state.categories[host]:0;
++}
++export function reviewClassify(state,payload){
++  const {host,category}=payload||{};
++  if(typeof host!=='string'||reviewHost('https://'+host+'/')!==host||
++    !Number.isInteger(category)||category<0||category>5||
++    !Object.values(state.days).some(sites=>Object.hasOwn(sites,host)))fail('请选择已有网站及有效的分类');
++  if(category===0)delete state.categories[host];
++  else Object.defineProperty(state.categories,host,{value:category,enumerable:true,writable:true,configurable:true});
++  return state;
++}
++export function reviewCategoryTotals(sites,categories={}){
++  const ms=[0,0,0,0,0,0];
++  for(const [host,duration] of Object.entries(sites)){
++    const cat=Object.hasOwn(categories,host)?categories[host]:0;
++    ms[cat]+=duration;
++  }
++  const total=ms.reduce((a,b)=>a+b,0);
++  const classified=total-ms[0];
++  return {categoryMs:ms,classifiedMs:classified,importantMs:ms[1]+ms[2],
++    productivityPct:total>0&&classified===total?Math.round((ms[1]+ms[2])*100/total):null};
++}
++function addMinute(state,day,host,start,end){
++  if(!state.minuteConsent)return;
++  const midnight=new Date(start);midnight.setHours(0,0,0,0);
++  const next=new Date(midnight);next.setDate(next.getDate()+1);
++  // A 1440-slot civil-day timeline cannot represent a 23/25-hour DST day.
++  if(next.getTime()-midnight.getTime()!==86400000)return;
++  const offset=new Date(start).getTimezoneOffset();
++  const bucket=state.minuteDays[day]||={offset,ambiguous:false,truncated:false,entries:[]};
++  if(bucket.offset!==offset){bucket.ambiguous=true;return;}
++  if(bucket.ambiguous||bucket.truncated)return;
++  let cursor=start;
++  while(cursor<end){
++    const moment=new Date(cursor),minute=moment.getHours()*60+moment.getMinutes();
++    const endOfMinute=Math.min(end,(Math.floor(cursor/60000)+1)*60000);
++    const duration=endOfMinute-cursor;
++    const existing=bucket.entries.find(row=>row[0]===minute&&row[1]===host);
++    if(existing)existing[2]+=duration;
++    else if(bucket.entries.length<MAX_MINUTE_ROWS)bucket.entries.push([minute,host,duration]);
++    else {bucket.truncated=true;return;}
++    cursor=endOfMinute;
++  }
++}
++export function reviewDay(state,date){
++  if(typeof date!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(date)||
++    Number.isNaN(Date.parse(date+'T12:00:00'))||localDay(new Date(date+'T12:00:00').getTime())!==date)fail('日期无效');
++  const sites=state.days[date]||{},totals=reviewCategoryTotals(sites,state.categories);
++  const bucket=state.minuteDays?.[date];
++  const start=new Date(date+'T00:00:00'),end=new Date(start);end.setDate(end.getDate()+1);
++  const representable=end.getTime()-start.getTime()===86400000;
++  const usable=bucket&&!bucket.ambiguous&&representable&&bucket.offset===new Date(date+'T12:00:00').getTimezoneOffset();
++  const byMinute=new Map();
++  if(usable)for(const [minute,host,ms] of bucket.entries){
++    let slot=byMinute.get(minute);if(!slot){slot=[];byMinute.set(minute,slot);}
++    slot.push({host,ms,category:reviewCategory(state,host)});
++  }
++  const minuteSlots=[];
++  let coveredMs=0;
++  for(const [minute,rows] of [...byMinute].sort((a,b)=>a[0]-b[0])){
++    const categories=Array(6).fill(0);let total=0,bestHost='',best=0;
++    for(const row of rows){total+=row.ms;categories[row.category]+=row.ms;if(row.ms>best){best=row.ms;bestHost=row.host;}}
++    const dominant=categories.indexOf(Math.max(...categories));
++    minuteSlots.push([minute,dominant,total,rows.length===1?bestHost:'多个网站']);
++    coveredMs+=total;
++  }
++  const totalMs=Object.values(sites).reduce((a,b)=>a+b,0);
++  const timelineStatus=!representable?'dst':bucket?.ambiguous||bucket&&!usable?'timezone':
++    !minuteSlots.length?'unavailable':
++    bucket.truncated||coveredMs!==totalMs?'partial':'complete';
++  return {date,totalMs,sites:Object.entries(sites).sort((a,b)=>b[1]-a[1]).map(([host,ms])=>({host,ms,category:reviewCategory(state,host)})),
++    ...totals,minuteSlots,timelineStatus,minuteCoveredMs:coveredMs,minuteConsent:Boolean(state.minuteConsent)};
++}
+ export function settleReview(state,at,{session,recover=false}={}){
+   const next=readReview(state),cp=next.checkpoint;next.checkpoint=null;
+   next.highWater=Math.max(next.highWater,cp?.at||0,at);
+@@ -51,8 +152,10 @@ export function settleReview(state,at,{session,recover=false}={}){
+         const midnight=new Date(cursor);midnight.setHours(24,0,0,0);
+         const end=Math.min(at,midnight.getTime()),day=localDay(cursor);
+         const sites=next.days[day]||={};
+-        if(Object.hasOwn(sites,cp.host)||Object.keys(sites).length<500)Object.defineProperty(sites,cp.host,{value:Math.min(86400000,(Object.hasOwn(sites,cp.host)?sites[cp.host]:0)+end-cursor),enumerable:true,configurable:true,writable:true});
+-        else next.discardedMs+=end-cursor;
++        if(Object.hasOwn(sites,cp.host)||Object.keys(sites).length<500){
++          Object.defineProperty(sites,cp.host,{value:Math.min(86400000,(Object.hasOwn(sites,cp.host)?sites[cp.host]:0)+end-cursor),enumerable:true,configurable:true,writable:true});
++          addMinute(next,day,cp.host,cursor,end);
++        }else next.discardedMs+=end-cursor;
+         cursor=end;
+       }
+     }else if(elapsed>0)next.discardedMs+=elapsed;
+@@ -60,6 +163,9 @@ export function settleReview(state,at,{session,recover=false}={}){
+   const cutoff=new Date(at);cutoff.setDate(cutoff.getDate()-next.settings.retentionDays+1);
+   const oldest=localDay(cutoff.getTime());
+   for(const day of Object.keys(next.days))if(day<oldest)delete next.days[day];
++  const detailStart=new Date(at);detailStart.setDate(detailStart.getDate()-Math.min(next.settings.retentionDays,MAX_MINUTE_DAYS)+1);
++  const oldestDetail=localDay(detailStart.getTime());
++  for(const day of Object.keys(next.minuteDays))if(day<oldestDetail||!Object.hasOwn(next.days,day))delete next.minuteDays[day];
+   return next;
+ }
+ export function reviewSummary(state,at){
+@@ -67,18 +173,26 @@ export function reviewSummary(state,at){
+   const first=localDay(start.getTime()),days=[];
+   for(let i=0;i<7;i++){const day=new Date(start);day.setDate(day.getDate()+i);const date=localDay(day.getTime());days.push({date,ms:Object.values(state.days[date]||{}).reduce((a,b)=>a+b,0)});}
+   const sites=new Map();for(const [day,rows] of Object.entries(state.days))if(day>=first&&day<=today)for(const [host,ms] of Object.entries(rows))sites.set(host,(sites.get(host)||0)+ms);
+-  return {today,todayMs:Object.values(state.days[today]||{}).reduce((a,b)=>a+b,0),weekMs:days.reduce((a,b)=>a+b.ms,0),days,
++  const thisDay=reviewDay(state,today),weekRows=Object.fromEntries(sites);
++  const yesterday=new Date(at);yesterday.setDate(yesterday.getDate()-1);
++  const yesterdayKey=localDay(yesterday.getTime()),yesterdayMs=Object.hasOwn(state.days,yesterdayKey)?
++    Object.values(state.days[yesterdayKey]).reduce((a,b)=>a+b,0):null;
++  return {today,todayMs:thisDay.totalMs,weekMs:days.reduce((a,b)=>a+b.ms,0),days,
++    todayCategoryMs:thisDay.categoryMs,todayImportantMs:thisDay.importantMs,todayProductivityPct:thisDay.productivityPct,
++    todayClassifiedMs:thisDay.classifiedMs,weekCategories:reviewCategoryTotals(weekRows,state.categories),
++    siteCategories:Object.fromEntries([...sites].map(([host])=>[host,reviewCategory(state,host)])),
++    yesterdayMs,minuteConsent:Boolean(state.minuteConsent),
+     todaySites:Object.entries(state.days[today]||{}).sort((a,b)=>b[1]-a[1]).map(([host,ms])=>({host,ms})),
+     sites:[...sites].sort((a,b)=>b[1]-a[1]).map(([host,ms])=>({host,ms})),paused:state.paused,
+     authorized:Boolean(state.authorizedHash),settings:state.settings,trackingHost:state.checkpoint?.host||null,discardedMs:state.discardedMs};
+ }
+ export function reviewExport(state,format='json'){
+-  if(format==='json')return {name:'time-review.json',text:JSON.stringify({format:'opendesk.time-review.export.v1',days:state.days,settings:state.settings,discardedMs:state.discardedMs},null,2)};
++  if(format==='json')return {name:'time-review.json',text:JSON.stringify({format:'opendesk.time-review.export.v1',days:state.days,settings:state.settings,discardedMs:state.discardedMs,categories:state.categories,minuteConsent:state.minuteConsent,minuteDays:state.minuteDays},null,2)};
+   if(format!=='csv')fail('导出格式无效');
+-  const rows=['date,website,milliseconds,seconds'];
++  const rows=['date,website,milliseconds,seconds,category'];
+   for(const day of Object.keys(state.days).sort())for(const host of Object.keys(state.days[day]).sort()){
+     const safeHost='"'+(/^[=+\-@\t\r]/.test(host)?"'":'')+host.replaceAll('"','""')+'"';
+-    rows.push([day,safeHost,state.days[day][host],(state.days[day][host]/1000).toFixed(3)].join(','));
++    rows.push([day,safeHost,state.days[day][host],(state.days[day][host]/1000).toFixed(3),reviewCategory(state,host)].join(','));
+   }
+   return {name:'time-review.csv',text:rows.join('\r\n')+'\r\n'};
+ }
+diff --git a/src/time-review/policy.js b/src/time-review/policy.js
+index d9babb59..c9e4c89b 100644
+--- a/src/time-review/policy.js
++++ b/src/time-review/policy.js
+@@ -3,7 +3,7 @@ export const TIME_REVIEW_PROTOCOL='opendesk.time-review.v1';
+ export const TIME_REVIEW_CAPABILITY='time.review';
+ export const TIME_REVIEW_ALARM='opendesk.time-review.heartbeat.v1';
+ export const TIME_REVIEW_SESSION='opendesk.time-review.session.v1';
+-export const TIME_REVIEW_OPERATIONS=Object.freeze(['time.status','time.start','time.pause','time.revoke','time.settings','time.clear','time.export']);
++export const TIME_REVIEW_OPERATIONS=Object.freeze(['time.status','time.start','time.pause','time.revoke','time.settings','time.clear','time.export','time.classify','time.day','time.minuteConsent']);
+ export async function timeReviewPackageHash(tool){
+   const bytes=new TextEncoder().encode(JSON.stringify(['format','id','version','title','description','capabilities','html','css','js'].map(key=>tool[key])));
+   const digest=await crypto.subtle.digest('SHA-256',bytes);
+diff --git a/src/time-review/service.js b/src/time-review/service.js
+index 7c02da98..d8d570a2 100644
+--- a/src/time-review/service.js
++++ b/src/time-review/service.js
+@@ -2,7 +2,7 @@ import {SIDEBAR_TOOL_STORE,validateSidebarToolPackage} from '../ui/sidebar-tools
+ import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE,sidebarToolEnabled} from '../ui/sidebar-tools/lifecycle.js';
+ import {writeVerifiedLocalValue} from '../ui/sidebar-tools/storage-state.js';
+ import {isReadingTocToolSender} from '../reading-toc/page.js';
+-import {TIME_REVIEW_KEY,readReview,reviewHost,reviewSettings,settleReview,reviewSummary,reviewExport,MAX_OBSERVATION_GAP} from './model.js';
++import {TIME_REVIEW_KEY,readReview,reviewHost,reviewSettings,reviewClassify,reviewDay,localDay,settleReview,reviewSummary,reviewExport,MAX_OBSERVATION_GAP} from './model.js';
+ import {TIME_REVIEW_ID,TIME_REVIEW_PROTOCOL,TIME_REVIEW_CAPABILITY,TIME_REVIEW_ALARM,TIME_REVIEW_SESSION,TIME_REVIEW_OPERATIONS,timeReviewPackageHash} from './policy.js';
+ const error=(message,code='E_TIME_AUTHORITY')=>Object.assign(new Error(message),{code});
+ 
+@@ -78,9 +78,17 @@ export function createTimeReviewService({api=globalThis.chrome,lockManager=globa
+     else if(operation==='time.revoke'){state.paused=true;state.authorizedHash=null;state.authorizedEpoch=null;}
+     else if(operation==='time.settings'){
+       state.settings=reviewSettings(payload);observation=await observe(state);
++    }else if(operation==='time.classify'){
++      if(!payload||Object.keys(payload).sort().join(',')!=='category,host')throw error('分类请求参数无效','E_TIME_DATA');
++      reviewClassify(state,payload);
++    }else if(operation==='time.minuteConsent'){
++      if(!payload||Object.keys(payload).join(',')!=='enabled'||typeof payload.enabled!=='boolean')
++        throw error('分钟记录授权请求无效','E_TIME_DATA');
++      state.minuteConsent=payload.enabled;
++      if(!payload.enabled)state.minuteDays={};
+     }else if(operation==='time.clear'){
+       if(payload?.confirm!==true)throw error('请明确确认清空本机时间记录','E_TIME_CONFIRM');
+-      state.days={};state.discardedMs=0;
++      state.days={};state.discardedMs=0;state.minuteDays={};state.categories={};
+     }
+     const checkpointAt=Math.max(at,now());
+     if(!state.paused&&state.authorizedHash===hash&&auth.enabled&&observation.current&&checkpointAt>=state.highWater){
+@@ -130,6 +138,17 @@ export function createTimeReviewService({api=globalThis.chrome,lockManager=globa
+       const result=await reconcileLocked({operation:message.operation,payload:message.payload,auth,validateHost:()=>hostDocument(sender,documentId)});
+       if(!result)throw error('工具已卸载');
+       try{await hostDocument(sender,documentId);}catch(cause){throw error('宿主在提交期间变化；请恢复核对本机记录，不要盲目重试','E_OUTCOME_UNKNOWN');}
++      if(message.operation==='time.day'){
++        const date=message.payload?.date;
++        if(!message.payload||Object.keys(message.payload).join(',')!=='date')
++          throw error('按日期查询参数无效','E_TIME_DATA');
++        const day=reviewDay(result.state,date);
++        const end=new Date(result.summary.today+'T12:00:00'),earliest=new Date(end);
++        earliest.setDate(earliest.getDate()-result.state.settings.retentionDays+1);
++        if(date<localDay(earliest.getTime())||date>result.summary.today)
++          throw error('查询日期超出本机保留范围','E_TIME_DATA');
++        return day;
++      }
+       if(message.operation==='time.export'){
+         if(!auth.tool.capabilities.includes('user.export'))throw error('工具没有导出权限');
+         const file=reviewExport(result.state,message.payload?.format||'json');
+diff --git a/src/ui/sidebar-tools.js b/src/ui/sidebar-tools.js
+index 6c9dd485..35ad48db 100644
+--- a/src/ui/sidebar-tools.js
++++ b/src/ui/sidebar-tools.js
+@@ -168,10 +168,12 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
+   // Only a genuine click on the trusted extension host can start background
+   // tracking or authorize destructive clearing. Sandbox requests cannot forge it.
+   async function runTrustedTimeReviewOperation(operation,payload,event){
+-    if(event?.isTrusted!==true||!['time.start','time.clear'].includes(operation))
++    if(event?.isTrusted!==true||!['time.start','time.clear','time.minuteConsent'].includes(operation))
+       throw Object.assign(new Error('请在工具详情中主动点击操作'),{code:'E_TIME_TRUSTED_CLICK'});
+     if(operation==='time.clear'&&payload?.confirm!==true)
+       throw Object.assign(new Error('请明确选择清空本机时间记录'),{code:'E_TIME_CONFIRM'});
++    if(operation==='time.minuteConsent'&&(typeof payload?.enabled!=='boolean'||Object.keys(payload).join(',')!=='enabled'))
++      throw Object.assign(new Error('请明确选择是否开启分钟明细'),{code:'E_TIME_CONSENT'});
+     const tool=active;
+     if(disposed||busy||readOnlyPreview||tool?.id!==TIME_REVIEW_ID||
+        !tool.capabilities.includes(TIME_REVIEW_CAPABILITY))
+@@ -189,7 +191,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
+       throw Object.assign(new Error('时间回顾详情已变化'),{code:'E_TOOL_CHANGED'});
+     const response=await api.runtime.sendMessage({
+       protocol:TIME_REVIEW_PROTOCOL,toolId:tool.id,operation,
+-      payload:operation==='time.clear'?{confirm:true}:{},
++      payload:operation==='time.clear'?{confirm:true}:operation==='time.minuteConsent'?{enabled:payload.enabled}:{},
+       packageHash,installEpoch:epoch
+     });
+     if(!response?.ok)throw Object.assign(
+@@ -619,10 +621,11 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
+       if(tool.id!==TIME_REVIEW_ID)throw new Error('时间回顾工具身份无效');
+       // Neither the sandbox's script nor a synthetic DOM event is a trusted
+       // browser gesture. Use the explicit non-modal controls in host settings.
+-      if(operation==='time.start'||operation==='time.clear'){
++      if(operation==='time.start'||operation==='time.clear'||operation==='time.minuteConsent'){
+         tocSettingsOpen=true;render();
+         throw Object.assign(new Error(operation==='time.start'
+           ?'请在工具设置中点击「开始／恢复记录」'
++          :operation==='time.minuteConsent'?'请在工具详情设置中明确选择开启或关闭分钟明细'
+           :'请在工具设置中审阅并明确选择「清空全部记录」'),
+         {code:'E_TIME_TRUSTED_CLICK'});
+       }
+diff --git a/tests/environment/time-review-r13-consent.test.mjs b/tests/environment/time-review-r13-consent.test.mjs
+new file mode 100644
+index 00000000..1da2bc3a
+--- /dev/null
++++ b/tests/environment/time-review-r13-consent.test.mjs
+@@ -0,0 +1,67 @@
++import test from 'node:test';
++import assert from 'node:assert/strict';
++import {readFile} from 'node:fs/promises';
++import {createTimeReviewPermissionControls} from '../../src/time-review/host-controls.js';
++
++class FakeNode{
++  constructor(tag='div'){this.tag=tag;this.children=[];this.listeners=new Map();this.hidden=false;this.disabled=false;}
++  append(...children){this.children.push(...children);}
++  addEventListener(name,listener){this.listeners.set(name,[...(this.listeners.get(name)||[]),listener]);}
++  emit(name,isTrusted=true){for(const listener of this.listeners.get(name)||[])listener({isTrusted});}
++  focus(){}
++  scrollIntoView(){}
++}
++function find(root,id){
++  if(root.id===id)return root;
++  for(const node of root.children){const match=find(node,id);if(match)return match;}
++  return null;
++}
++const flush=()=>new Promise(resolve=>setImmediate(resolve));
++
++test('R1.3 minute collection requires genuine host click and is never enabled by sandbox load',async()=>{
++  const target=new FakeNode(),operations=[],notifications=[];
++  const controls=createTimeReviewPermissionControls({
++    api:{permissions:{request:async()=>true,remove:async()=>true}},
++    doc:{createElement:tag=>new FakeNode(tag)},container:target,
++    notice:(value,error)=>notifications.push({value,error}),
++    runOperation:async(operation,payload)=>{operations.push({operation,payload});return {ok:true};}
++  });
++  controls.render({id:'time-review',capabilities:['time.review']});
++  const enable=find(target,'time-review-minute-enable');
++  const disable=find(target,'time-review-minute-disable');
++  const review=find(target,'time-review-minute-delete-review');
++  const approve=find(target,'time-review-minute-delete-approve');
++  const cancel=find(target,'time-review-minute-delete-cancel');
++  assert(enable&&disable&&review&&approve&&cancel,'trusted UI exposes explicit consent controls');
++  enable.emit('click',false);await flush();
++  assert.deepEqual(operations,[],'synthetic click cannot grant minute collection consent');
++  enable.emit('click',true);await flush();
++  assert.deepEqual(operations,[{operation:'time.minuteConsent',payload:{enabled:true}}]);
++  disable.emit('click',true);
++  assert.equal(review.hidden,false,'deletion requires an inline confirmation');
++  cancel.emit('click',true);
++  assert.equal(review.hidden,true);
++  assert.equal(operations.length,1);
++  disable.emit('click',true);
++  approve.emit('click',false);await flush();
++  assert.equal(operations.length,1,'synthetic deletion consent rejected');
++  approve.emit('click',true);await flush();
++  assert.deepEqual(operations[1],{operation:'time.minuteConsent',payload:{enabled:false}});
++  controls.render({id:'other-tool',capabilities:['time.review']});
++  assert.equal(review.hidden,true,'unrelated tool hides pending consent');
++  assert.ok(notifications.some(row=>row.error),'untrusted attempt gives feedback');
++});
++
++test('R1.3 shared host intercepts sandbox minute consent without browser JavaScript dialogs',async()=>{
++  const source=await readFile('src/ui/sidebar-tools.js','utf8');
++  const start=source.indexOf('if(TIME_REVIEW_OPERATIONS.includes(operation)){');
++  const end=source.indexOf("if(operation==='knowledge.editorState')",start);
++  assert(start>0&&end>start);
++  const block=source.slice(start,end);
++  assert.match(block,/operation==='time\.minuteConsent'/);
++  assert.match(block,/E_TIME_TRUSTED_CLICK/);
++  assert.match(block,/tocSettingsOpen=true/);
++  assert.doesNotMatch(block,/\.confirm\s*\(/);
++  assert.match(source,/!\['time\.start','time\.clear','time\.minuteConsent'\]\.includes\(operation\)/);
++  assert.match(source,/payload:operation==='time\.clear'\?\{confirm:true\}:operation==='time\.minuteConsent'/);
++});
+diff --git a/tests/environment/time-review-r13-service.test.mjs b/tests/environment/time-review-r13-service.test.mjs
+new file mode 100644
+index 00000000..131067e7
+--- /dev/null
++++ b/tests/environment/time-review-r13-service.test.mjs
+@@ -0,0 +1,100 @@
++import test from 'node:test';
++import assert from 'node:assert/strict';
++import {createTimeReviewService} from '../../src/time-review/service.js';
++import {createSidebarToolPackage} from '../../scripts/build-sidebar-tool.mjs';
++import {timeReviewPackageHash,TIME_REVIEW_PROTOCOL,TIME_REVIEW_SESSION} from '../../src/time-review/policy.js';
++import {SIDEBAR_TOOL_STORE} from '../../src/ui/sidebar-tools/package.js';
++import {TIME_REVIEW_KEY} from '../../src/time-review/model.js';
++
++function emitter(){
++  const listeners=new Set();
++  return {addListener:callback=>listeners.add(callback),removeListener:callback=>listeners.delete(callback),emit(...args){for(const fn of listeners)fn(...args);}};
++}
++function locks(){
++  const inflight=new Map();
++  return {request(key,fn){const next=(inflight.get(key)||Promise.resolve()).then(fn);inflight.set(key,next.catch(()=>{}));return next;}};
++}
++async function makeFixture(){
++  let clock=new Date(2026,9,11,10).getTime(),permission=true;
++  const tool=await createSidebarToolPackage('examples/sidebar-tools/time-review'),hash=await timeReviewPackageHash(tool);
++  const local={[SIDEBAR_TOOL_STORE]:[tool]},session={},alarms=new Map();
++  const area=data=>({
++    async get(keys){return structuredClone(Object.fromEntries((Array.isArray(keys)?keys:[keys]).map(key=>[key,data[key]])));},
++    async set(rows){Object.assign(data,structuredClone(rows));}
++  });
++  const sender={
++    id:'abcdefghijklmnopabcdefghijklmnop',
++    url:'chrome-extension://abcdefghijklmnopabcdefghijklmnop/ui/tool.html?hostInstanceId=11111111-1111-4111-8111-111111111111&toolId=time-review',
++    documentId:'doc-live',frameId:0,documentLifecycle:'active',tab:{id:99,incognito:false}
++  };
++  let contexts=[{contextType:'TAB',documentUrl:sender.url,documentId:sender.documentId,tabId:99,frameId:0,incognito:false}];
++  const api={
++    runtime:{id:sender.id,getURL:path=>'chrome-extension://'+sender.id+'/'+path,async getContexts(){return contexts;}},
++    storage:{local:area(local),session:area(session),onChanged:emitter()},
++    idle:{async queryState(){return 'active';},setDetectionInterval(){}},
++    windows:{async getLastFocused(){return {id:2,type:'normal',focused:true,incognito:false};}},
++    tabs:{async query(){return [{id:11,windowId:2,url:'https://example.com/?q=private',incognito:false}];}},
++    permissions:{async contains(q){return q.permissions?permission:true;}},
++    alarms:{async get(name){return alarms.get(name);},async create(name,value){alarms.set(name,value);},async clear(name){alarms.delete(name);}},
++    downloads:{async download(){return 1;}}
++  };
++  const service=createTimeReviewService({api,lockManager:locks(),now:()=>clock});
++  const call=(operation,payload={},override={})=>service.dispatch({
++    protocol:TIME_REVIEW_PROTOCOL,toolId:'time-review',packageHash:hash,installEpoch:null,operation,payload,...override
++  },sender);
++  return {call,local,session,service,sender,api,advance:n=>{clock+=n;},setDocumentId:id=>{
++    contexts=[{...contexts[0],documentId:id}];
++  },setPermission:value=>{permission=value;}};
++}
++
++test('R1.3 minute opt-in records only future live intervals and opt-out purges detail',async()=>{
++  const f=await makeFixture();
++  assert.equal((await f.call('time.status')).minuteConsent,false);
++  await f.call('time.start');f.advance(1000);
++  const legacy=await f.call('time.day',{date:'2026-10-11'});
++  assert.equal(legacy.totalMs,1000);
++  assert.equal(legacy.minuteSlots.length,0);
++  const enabled=await f.call('time.minuteConsent',{enabled:true});
++  assert.equal(enabled.minuteConsent,true);
++  f.advance(2200);
++  const day=await f.call('time.day',{date:'2026-10-11'});
++  assert.equal(day.totalMs,3200);
++  assert.equal(day.minuteCoveredMs,2200);
++  assert.equal(day.timelineStatus,'partial');
++  assert.equal(f.local[TIME_REVIEW_KEY].minuteDays['2026-10-11'].entries.length,1);
++  await f.call('time.minuteConsent',{enabled:false});
++  assert.equal(f.local[TIME_REVIEW_KEY].minuteConsent,false);
++  assert.deepEqual(f.local[TIME_REVIEW_KEY].minuteDays,{});
++  assert.equal((await f.call('time.day',{date:'2026-10-11'})).totalMs,3200);
++});
++
++test('R1.3 classification updates real state/summary/day and export without altering ms',async()=>{
++  const f=await makeFixture();await f.call('time.start');f.advance(9000);await f.call('time.pause');
++  const before=await f.call('time.day',{date:'2026-10-11'});
++  assert.equal(before.categoryMs[0],9000);
++  const after=await f.call('time.classify',{host:'example.com',category:2});
++  assert.equal(after.todayImportantMs,9000);
++  assert.equal(after.todayProductivityPct,100);
++  assert.equal((await f.call('time.day',{date:'2026-10-11'})).categoryMs[2],9000);
++  assert.equal(f.local[TIME_REVIEW_KEY].days['2026-10-11']['example.com'],9000);
++});
++
++test('R1.3 new APIs validate payload, package identity and pinned document',async()=>{
++  const f=await makeFixture();
++  for(const payload of [{host:'unknown.example',category:1},{host:'example.com/path',category:1},{host:'example.com',category:8}])
++    await assert.rejects(f.call('time.classify',payload),{code:'E_TIME_DATA'});
++  await assert.rejects(f.call('time.minuteConsent',{enabled:'yes'}),{code:'E_TIME_DATA'});
++  await assert.rejects(f.call('time.day',{date:'2010-01-01'}),{code:'E_TIME_DATA'});
++  await assert.rejects(f.call('time.minuteConsent',{enabled:true},{packageHash:'0'.repeat(64)}),{code:'E_TOOL_CHANGED'});
++  f.setDocumentId('new-doc');
++  await assert.rejects(f.call('time.minuteConsent',{enabled:true}),{code:'E_TIME_AUTHORITY'});
++  assert.equal(f.local[TIME_REVIEW_KEY]?.minuteConsent,false);
++});
++
++test('R1.3 restart never generates unobserved minute history',async()=>{
++  const f=await makeFixture();await f.call('time.minuteConsent',{enabled:true});
++  await f.call('time.start');f.advance(5000);
++  await f.service.tick();f.advance(5000);
++  await f.service.tick({boot:true});
++  assert.equal((await f.call('time.day',{date:'2026-10-11'})).minuteCoveredMs,10000);
++});
+diff --git a/tests/environment/time-review-r13.test.mjs b/tests/environment/time-review-r13.test.mjs
+new file mode 100644
+index 00000000..bf27eb26
+--- /dev/null
++++ b/tests/environment/time-review-r13.test.mjs
+@@ -0,0 +1,125 @@
++import test from 'node:test';
++import assert from 'node:assert/strict';
++import {
++  emptyReview,readReview,settleReview,reviewSummary,reviewDay,reviewClassify,
++  reviewCategory,reviewExport,localDay,MAX_MINUTE_ROWS
++} from '../../src/time-review/model.js';
++
++const checkpoint=(at,host='example.com',session='session')=>({
++  at,host,session,tabId:1,windowId:2,offset:new Date(at).getTimezoneOffset()
++});
++const t=(h=9,m=5,s=0)=>new Date(2026,9,11,h,m,s).getTime();
++
++test('R1.3 migration preserves legacy v1 days and defaults to no minute consent',()=>{
++  const legacy=emptyReview();
++  legacy.days={'2026-10-11':{'example.com':1001}};
++  delete legacy.categories;delete legacy.minuteConsent;delete legacy.minuteDays;
++  const restored=readReview(legacy);
++  assert.equal(restored.minuteConsent,false);
++  assert.deepEqual(restored.minuteDays,{});
++  assert.equal(reviewDay(restored,'2026-10-11').totalMs,1001);
++  assert.equal(reviewDay(restored,'2026-10-11').minuteCoveredMs,0);
++  assert.equal(reviewDay(restored,'2026-10-11').timelineStatus,'unavailable');
++});
++
++test('R1.3 does not record future minute slots unless separately opted in',()=>{
++  const at=t(),state=emptyReview();state.checkpoint=checkpoint(at);
++  const next=settleReview(state,at+10000,{session:'session'});
++  assert.equal(next.days[localDay(at)]['example.com'],10000);
++  assert.deepEqual(next.minuteDays,{});
++  assert.equal(reviewDay(next,localDay(at)).productivityPct,null);
++});
++
++test('R1.3 exact sub-minute milliseconds conserve across minute and category changes',()=>{
++  const at=t(9,5,50),first=emptyReview();first.minuteConsent=true;first.checkpoint=checkpoint(at);
++  let state=settleReview(first,at+20000,{session:'session'});
++  assert.equal(state.days[localDay(at)]['example.com'],20000);
++  assert.deepEqual(state.minuteDays[localDay(at)].entries,[[545,'example.com',10000],[546,'example.com',10000]]);
++  assert.equal(reviewDay(state,localDay(at)).minuteCoveredMs,20000);
++  assert.equal(reviewDay(state,localDay(at)).timelineStatus,'complete');
++  reviewClassify(state,{host:'example.com',category:1});
++  const day=reviewDay(state,localDay(at));
++  assert.equal(day.categoryMs[1],20000);
++  assert.equal(day.importantMs,20000);
++  assert.equal(day.productivityPct,100);
++  assert.deepEqual(day.minuteSlots.map(row=>row[1]),[1,1]);
++  assert.equal(reviewSummary(state,at+20000).todayImportantMs,20000);
++});
++
++test('R1.3 real unclassified is category zero, never an empty timeline minute',()=>{
++  const at=t(),state=emptyReview();state.minuteConsent=true;state.checkpoint=checkpoint(at);
++  const next=settleReview(state,at+10000,{session:'session'});
++  const day=reviewDay(next,localDay(at));
++  assert.equal(day.minuteSlots[0][1],0);
++  assert.equal(day.categoryMs[0],10000);
++  assert.equal(day.timelineStatus,'complete');
++  assert.equal(day.productivityPct,null);
++});
++
++test('R1.3 old summary plus new opted-in interval stays partial, never fabricates older minutes',()=>{
++  const at=t(),state=emptyReview();
++  state.days[localDay(at)]={'example.com':15000};
++  state.minuteConsent=true;state.checkpoint=checkpoint(at);
++  const next=settleReview(state,at+5000,{session:'session'});
++  const day=reviewDay(next,localDay(at));
++  assert.equal(day.totalMs,20000);
++  assert.equal(day.minuteCoveredMs,5000);
++  assert.equal(day.timelineStatus,'partial');
++});
++
++test('R1.3 user classification recalculates all retained daily totals and exports',()=>{
++  const at=t(),state=emptyReview();
++  const today=localDay(at),yesterday=localDay(at-86400000);
++  state.days[today]={'example.com':2000,'other.example':5000};
++  state.days[yesterday]={'example.com':8000};
++  reviewClassify(state,{host:'example.com',category:2});
++  reviewClassify(state,{host:'other.example',category:5});
++  assert.equal(reviewDay(state,today).importantMs,2000);
++  assert.equal(reviewDay(state,today).productivityPct,Math.round(2000/7000*100));
++  assert.equal(reviewSummary(state,at).weekCategories.importantMs,10000);
++  assert.equal(reviewCategory(state,'example.com'),2);
++  assert.match(reviewExport(state,'csv').text,/"example.com",2000,2\.000,2/);
++  const parsed=JSON.parse(reviewExport(state,'json').text);
++  assert.equal(parsed.categories['example.com'],2);
++  reviewClassify(state,{host:'example.com',category:0});
++  assert.equal(reviewDay(state,today).productivityPct,null);
++  assert.equal(reviewCategory(state,'example.com'),0);
++});
++
++test('R1.3 minute color uses dominant actual duration when multiple sites share a minute',()=>{
++  const at=t(),s=emptyReview();s.minuteConsent=true;s.checkpoint=checkpoint(at,'first.example');
++  let state=settleReview(s,at+15000,{session:'session'});
++  state.checkpoint=checkpoint(at+15000,'second.example');
++  state=settleReview(state,at+22000,{session:'session'});
++  reviewClassify(state,{host:'first.example',category:1});
++  reviewClassify(state,{host:'second.example',category:4});
++  const [slot]=reviewDay(state,localDay(at)).minuteSlots;
++  assert.equal(slot[1],1);
++  assert.equal(slot[2],22000);
++  assert.equal(slot[3],'多个网站');
++});
++
++test('R1.3 opt-out removal and time clear do not keep orphan categories/slots',()=>{
++  const at=t(),s=emptyReview();s.minuteConsent=true;s.checkpoint=checkpoint(at);
++  const a=settleReview(s,at+3000,{session:'session'});
++  reviewClassify(a,{host:'example.com',category:1});
++  a.minuteConsent=false;a.minuteDays={};
++  assert.equal(reviewDay(a,localDay(at)).timelineStatus,'unavailable');
++  assert.equal(reviewDay(a,localDay(at)).importantMs,3000);
++  a.days={};a.minuteDays={};a.categories={};a.discardedMs=0;
++  assert.equal(reviewDay(a,localDay(at)).totalMs,0);
++  assert.deepEqual(a.categories,{});
++});
++
++test('R1.3 bounds invalid categories, private fields, fabricated detail and unsafe hosts',()=>{
++  const s=emptyReview();s.days['2026-10-11']={'example.com':2000};
++  assert.throws(()=>reviewClassify(s,{host:'https://example.com/private?q=secret',category:1}));
++  assert.throws(()=>reviewClassify(s,{host:'unknown.example',category:1}));
++  assert.throws(()=>reviewClassify(s,{host:'example.com',category:6}));
++  assert.throws(()=>readReview({...s,categories:{'example.com':7}}));
++  assert.throws(()=>readReview({...s,minuteConsent:'yes'}));
++  const invalid=structuredClone(s);
++  invalid.minuteDays['2026-10-11']={offset:0,ambiguous:false,truncated:false,entries:[[1440,'example.com',1000]]};
++  assert.throws(()=>readReview(invalid));
++  assert.ok(MAX_MINUTE_ROWS<10000);
++});
+diff --git a/tests/framework/time-review-r13-visual.mjs b/tests/framework/time-review-r13-visual.mjs
+new file mode 100644
+index 00000000..5a401ea0
+--- /dev/null
++++ b/tests/framework/time-review-r13-visual.mjs
+@@ -0,0 +1,144 @@
++// Real Chromium layout/input audit for actual Time Review R1.3 HTML/CSS/JS.
++// Uses synthetic fixtures; screenshots MUST NOT be labeled native Side Panel acceptance.
++import assert from 'node:assert/strict';
++import {spawn} from 'node:child_process';
++import {createServer} from 'node:http';
++import {readFile,writeFile,mkdir,mkdtemp,rm} from 'node:fs/promises';
++import {tmpdir} from 'node:os';
++import path from 'node:path';
++import {setTimeout as sleep} from 'node:timers/promises';
++
++const root=path.resolve('examples/sidebar-tools/time-review/src');
++const output=path.resolve(process.argv[2]||'artifacts/time-review-r13-visual');
++const [html,css,js]=await Promise.all(['index.html','style.css','main.js'].map(p=>readFile(path.join(root,p),'utf8')));
++const categories=[360000,3600000,1800000,720000,720000,0];
++const summary={
++  today:'2026-10-12',todayMs:7200000,weekMs:19000000,yesterdayMs:3600000,
++  days:[{date:'2026-10-12',ms:7200000},{date:'2026-10-11',ms:3600000}],
++  sites:[{host:'example.com',ms:3600000},{host:'docs.example',ms:1800000}],
++  todaySites:[{host:'example.com',ms:3600000},{host:'docs.example',ms:1800000}],
++  siteCategories:{'example.com':1,'docs.example':2},
++  todayCategoryMs:categories,todayImportantMs:5400000,todayProductivityPct:null,todayClassifiedMs:6840000,
++  paused:false,authorized:true,minuteConsent:true,trackingHost:'example.com',idlePermission:true,discardedMs:0,
++  settings:{idleSeconds:60,retentionDays:90,excludedHosts:[]}
++};
++const detail={
++  date:'2026-10-12',totalMs:7200000,importantMs:5400000,productivityPct:null,classifiedMs:6840000,
++  categoryMs:categories,timelineStatus:'partial',minuteConsent:true,minuteCoveredMs:175000,
++  minuteSlots:[[540,1,60000,'example.com'],[541,2,60000,'docs.example'],[542,0,25000,'news.example'],[700,3,30000,'social.example']],
++  sites:[{host:'example.com',ms:3600000,category:1},{host:'docs.example',ms:1800000,category:2},
++    {host:'news.example',ms:720000,category:3},{host:'social.example',ms:720000,category:4},
++    {host:'video.example',ms:360000,category:0}]
++};
++const fixture=[
++  'window.__timeReviewFixture=true;window.__fixtureErrors=[];',
++  "window.addEventListener('error',e=>window.__fixtureErrors.push(String(e.message)));",
++  'const summary='+JSON.stringify(summary)+';',
++  'const detail='+JSON.stringify(detail)+';',
++  "globalThis.OpenDeskTool={root:document.querySelector('.review'),request:async(operation,payload={})=>{",
++  "if(operation==='time.status')return structuredClone(summary);",
++  "if(operation==='time.day')return {...structuredClone(detail),date:payload.date};",
++  "if(operation==='time.start'||operation==='time.clear'||operation==='time.minuteConsent')",
++  "throw Object.assign(Error('请在受信任宿主设置中操作'),{code:'E_TIME_TRUSTED_CLICK'});",
++  "return structuredClone(summary);}};"
++].join('\n');
++const page='<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>R1.3 fixture — not native Side Panel</title><link rel="stylesheet" href="/style.css"></head><body style="margin:0;padding:0">'+html+'<script src="/mock.js"></script><script src="/main.js"></script></body></html>';
++const server=createServer((req,res)=>{
++  const route=new URL(req.url,'http://localhost').pathname;
++  const val=route==='/style.css'?css:route==='/main.js'?js:route==='/mock.js'?fixture:page;
++  const type=route==='/style.css'?'text/css':route.endsWith('.js')?'application/javascript':'text/html';
++  res.writeHead(200,{'content-type':type+';charset=utf-8'});res.end(val);
++});
++await new Promise(ok=>server.listen(0,'127.0.0.1',ok));
++await mkdir(output,{recursive:true});
++const profile=await mkdtemp(path.join(tmpdir(),'od-time-r13-'));
++const bin=process.env.CHROME_BIN||'/usr/bin/google-chrome';
++const chrome=spawn(bin,['--headless=new','--no-sandbox','--disable-gpu','--disable-dev-shm-usage','--no-first-run',
++  '--disable-extensions','--remote-debugging-port=0','--user-data-dir='+profile,'about:blank'],{stdio:['ignore','ignore','pipe']});
++let stderr='',client;
++chrome.stderr.on('data',data=>stderr=(stderr+String(data)).slice(-2000));
++const report={kind:'real-source-UI-with-synthetic-requests-NOT_NATIVE',viewports:[],inputs:{},errors:[]};
++function clientFor(endpoint){
++  const ws=new WebSocket(endpoint),pending=new Map();let seq=0;
++  ws.onmessage=event=>{
++    const msg=JSON.parse(event.data);
++    if(!msg.id){if(msg.method==='Runtime.exceptionThrown')report.errors.push(String(msg.params?.exceptionDetails?.text||'Runtime exception'));return;}
++    const p=pending.get(msg.id);if(!p)return;pending.delete(msg.id);clearTimeout(p.timeout);
++    msg.error?p.reject(Error(JSON.stringify(msg.error))):p.resolve(msg.result);
++  };
++  return {
++    ready:new Promise((ok,no)=>{ws.onopen=ok;ws.onerror=no;}),
++    send(method,params={},sessionId){return new Promise((resolve,reject)=>{
++      const id=++seq,timeout=setTimeout(()=>{pending.delete(id);reject(Error('CDP timeout '+method));},15000);
++      pending.set(id,{resolve,reject,timeout});
++      ws.send(JSON.stringify({id,method,params,...(sessionId?{sessionId}:{})}));
++    });},
++    close:()=>ws.close()
++  };
++}
++async function until(get,label){
++  const end=Date.now()+15000;let last;
++  while(Date.now()<end){try{const got=await get();if(got)return got;}catch(e){last=String(e);}await sleep(100);}
++  throw Error('timeout '+label+' '+last+' '+stderr);
++}
++async function evaluate(expression,sid){
++  const v=await client.send('Runtime.evaluate',{expression,returnByValue:true,awaitPromise:true},sid);
++  if(v.exceptionDetails)throw Error('Browser JS '+JSON.stringify(v.exceptionDetails));
++  return v.result.value;
++}
++const measure="(()=>{const a=document.querySelector('.review').getBoundingClientRect(),c=document.querySelector('#minute-canvas'),r=c.getBoundingClientRect();return {width:innerWidth,scroll:Math.max(document.documentElement.scrollWidth,document.body.scrollWidth),rootLeft:a.left,rootRight:a.right,canvasLeft:r.left,canvasTop:r.top,canvasWidth:r.width,backing:c.width,dpr:devicePixelRatio,quadrants:document.querySelectorAll('.qcard').length,extras:document.querySelectorAll('.extra-card').length,errors:window.__fixtureErrors};})()";
++let failed=false;
++try{
++  const lines=await until(async()=>{const v=await readFile(path.join(profile,'DevToolsActivePort'),'utf8').catch(()=>null);return v?.trim().split('\n');},'Chrome debugger');
++  client=clientFor('ws://127.0.0.1:'+lines[0]+lines[1]);await client.ready;
++  const target=await client.send('Target.createTarget',{url:'http://127.0.0.1:'+server.address().port+'/'});
++  const {sessionId}=await client.send('Target.attachToTarget',{targetId:target.targetId,flatten:true});
++  await client.send('Page.enable',{},sessionId);await client.send('Runtime.enable',{},sessionId);
++  await until(()=>evaluate("document.querySelector('#timeline-state')?.textContent==='部分分钟明细'",sessionId),'tool render');
++  async function testSize(width,dpr=1,label=String(width)){
++    await client.send('Emulation.setDeviceMetricsOverride',{width,height:900,deviceScaleFactor:dpr,mobile:false},sessionId);
++    await sleep(250);
++    const m=await evaluate(measure,sessionId);
++    assert.equal(m.width,width);
++    assert.ok(m.scroll<=width+1,'horizontal overflow '+label+' '+JSON.stringify(m));
++    assert.ok(m.rootLeft>=-1&&m.rootRight<=width+1,'root overflow '+label);
++    assert.ok(m.canvasWidth>0&&m.canvasWidth<=width,'canvas width '+label);
++    assert.ok(Math.abs(m.backing-m.canvasWidth*m.dpr)<=2,'DPR backing mismatch '+label);
++    assert.equal(m.quadrants,4);assert.equal(m.extras,2);
++    assert.deepEqual(m.errors,[],'runtime errors '+label);
++    const png=await client.send('Page.captureScreenshot',{format:'png',captureBeyondViewport:false},sessionId);
++    const file='r13-fixture-'+label+'.png';
++    await writeFile(path.join(output,file),Buffer.from(png.data,'base64'));
++    report.viewports.push({...m,file,scale:dpr});
++  }
++  for(const width of [320,360,400,600])await testSize(width);
++  await client.send('Emulation.setDeviceMetricsOverride',{width:360,height:900,deviceScaleFactor:1,mobile:false},sessionId);
++  await sleep(220);
++  await evaluate("document.querySelector('#minute-canvas').focus()",sessionId);
++  for(const [key,code,vk] of [['Home','Home',36],['ArrowRight','ArrowRight',39]]){
++    await client.send('Input.dispatchKeyEvent',{type:'keyDown',key,code,windowsVirtualKeyCode:vk},sessionId);
++    await client.send('Input.dispatchKeyEvent',{type:'keyUp',key,code,windowsVirtualKeyCode:vk},sessionId);
++  }
++  const keyboard=await evaluate("Number(document.querySelector('#minute-canvas').getAttribute('aria-valuenow'))",sessionId);
++  assert.equal(keyboard,1,'keyboard should advance exactly one minute');report.inputs.keyboard=keyboard;
++  const g=await evaluate("(()=>{const r=document.querySelector('#minute-canvas').getBoundingClientRect();return{x:r.left+r.width*540/1440+.1,y:r.top+12,w:r.width}})()",sessionId);
++  await client.send('Input.dispatchMouseEvent',{type:'mouseMoved',x:g.x,y:g.y,button:'none'},sessionId);
++  const pointer=await evaluate("Number(document.querySelector('#minute-canvas').getAttribute('aria-valuenow'))",sessionId);
++  assert.ok(Math.abs(pointer-540)<=5,'mouse minute '+pointer);report.inputs.pointer=pointer;
++  await client.send('Emulation.setTouchEmulationEnabled',{enabled:true,maxTouchPoints:1},sessionId);
++  await client.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:g.x+g.w*60/1440,y:g.y}]},sessionId);
++  await client.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]},sessionId);
++  const touch=await evaluate("Number(document.querySelector('#minute-canvas').getAttribute('aria-valuenow'))",sessionId);
++  assert.ok(Math.abs(touch-600)<=6,'touch minute '+touch);report.inputs.touch=touch;
++  await client.send('Emulation.setTouchEmulationEnabled',{enabled:false},sessionId);
++  await testSize(320,2,'dpr2-equivalent-not-real-browser-zoom');
++  assert.deepEqual(report.errors,[],'CDP Runtime.exceptionThrown');
++}catch(e){failed=true;report.failure={error:String(e),stack:e.stack?.slice(0,1200)};console.error(e);}
++finally{
++  await writeFile(path.join(output,'visual-report.json'),JSON.stringify(report,null,2)+'\n');
++  try{client?.close();}catch{}
++  chrome.kill('SIGTERM');await sleep(300);if(chrome.exitCode===null)chrome.kill('SIGKILL');
++  server.close();await rm(profile,{recursive:true,force:true});
++}
++console.log(JSON.stringify({status:failed?'FAIL':'PASS',screens:report.viewports.map(x=>x.file),inputs:report.inputs,errors:report.errors}));
++if(failed)process.exitCode=1;

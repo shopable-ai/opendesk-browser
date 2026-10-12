@@ -1,0 +1,23 @@
+{
+  "status": "COMPLETE_SOURCE_SYNC",
+  "remoteHeads": {
+    "refs/heads/main": "7c1ce9b00f46c6e1d6fe289a33771839d19dd8d0"
+  },
+  "sourceCommit": "7c1ce9b00f46c6e1d6fe289a33771839d19dd8d0",
+  "incomingTips": [
+    "07b2fab0c650a7111b64f4e91916bbce97a63c84",
+    "5b81d4a07bfffc61672af60552d495478a4b1eae",
+    "35c4faf4004eb1f2d3c1a75383796e0f9ecebde5"
+  ],
+  "remoteBranchesRemaining": [
+    "main"
+  ],
+  "localBranchesRemaining": [
+    "main"
+  ],
+  "remoteBranchesDeletedExplicitly": 2,
+  "remoteBranchesDisappearedAfterPR70Merge": 1,
+  "dirtyFilesPreserved": 60,
+  "primaryFastForward": true,
+  "resources": "released"
+}

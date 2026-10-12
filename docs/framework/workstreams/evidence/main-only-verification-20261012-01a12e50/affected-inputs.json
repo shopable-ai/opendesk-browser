@@ -1,0 +1,75 @@
+{
+  "productBase": "fcdab07d50283d57f19abd37e9015d606150ce17",
+  "incomingTip": "07b2fab0c650a7111b64f4e91916bbce97a63c84",
+  "stagedTree": "2040998f1f92fbeb78cffec52663afe78a1444bd",
+  "files": [
+    {
+      "path": ".github/workflows/time-review-r13.yml",
+      "sha256": "6a6589d3a0fd097a8920867cc78b3ece528416e4587d6909be229fc4b623e7d3"
+    },
+    {
+      "path": "docs/framework/workstreams/time-review-r13.md",
+      "sha256": "ef49fd7b8d2f180bfa8f6eb0c1161f13398d64e18745cd1413a6c0c88b718f2b"
+    },
+    {
+      "path": "docs/product/time-review-r12.zh-CN.md",
+      "sha256": "1e40aa3d0c07a7a4e93f2bd492c340b20350f775369d92ba2e5a767e14c1b339"
+    },
+    {
+      "path": "examples/sidebar-tools/time-review/README.zh-CN.md",
+      "sha256": "3f82ac6d72a4171737adc8621d688c18c1228e10c95bbd7aba93bc58dd49e6ba"
+    },
+    {
+      "path": "examples/sidebar-tools/time-review/src/index.html",
+      "sha256": "8d511b96258dd1912c879bce270cb1f30da00030934d5a64b9c172e01533cbaa"
+    },
+    {
+      "path": "examples/sidebar-tools/time-review/src/main.js",
+      "sha256": "02bfb4a75389a50b9f908e5e07ee69857da094fa836d0f267991f9ce53b888ab"
+    },
+    {
+      "path": "examples/sidebar-tools/time-review/src/style.css",
+      "sha256": "81c767df01bcc29aa636437b235856b59fd91cbffd88ef9f8113f54b62245622"
+    },
+    {
+      "path": "examples/sidebar-tools/time-review/tool.config.json",
+      "sha256": "645fedf349aae64a10c8fc36019aabaf545959f0c25104e8d34cec794775d6e2"
+    },
+    {
+      "path": "src/time-review/host-controls.js",
+      "sha256": "4b4f271adfcc399b0d0f1c391d73aeb972c89028f7b69cbdbaf32efceb255923"
+    },
+    {
+      "path": "src/time-review/model.js",
+      "sha256": "6493370896b255ab36ddc726350be275e54536f18d01b0bc48794eeb2282aa55"
+    },
+    {
+      "path": "src/time-review/policy.js",
+      "sha256": "e4a519c3fa1365c8ed742d79073cd52e9e82c49d0880d036910690bb4dab72a6"
+    },
+    {
+      "path": "src/time-review/service.js",
+      "sha256": "e4f5e127916d8c8549e055434beaf2c97411cd16d776321d0df3b925307ce4c9"
+    },
+    {
+      "path": "src/ui/sidebar-tools.js",
+      "sha256": "1aa48fd3cf445ca46b245e9c12c6871fe81e3893b14e10f306a69f4532b7fdba"
+    },
+    {
+      "path": "tests/environment/time-review-r13-consent.test.mjs",
+      "sha256": "f303165bf45b587806e4b98cf126c9c6b3e92aa4a0831bfd36387d7a41136935"
+    },
+    {
+      "path": "tests/environment/time-review-r13-service.test.mjs",
+      "sha256": "f1dabc71b904eefb61b7a99ca3f0a87f56fa47d717f00b6307f77b04c1d177e9"
+    },
+    {
+      "path": "tests/environment/time-review-r13.test.mjs",
+      "sha256": "cc7e60d313b97cc57eb2065b72cddb6f54eba0304f597aca546c0c844891a7ec"
+    },
+    {
+      "path": "tests/framework/time-review-r13-visual.mjs",
+      "sha256": "5f8e5fa5c246e0e528a35f30f044d8d796e622154f99a248232ec08f89bc178a"
+    }
+  ]
+}

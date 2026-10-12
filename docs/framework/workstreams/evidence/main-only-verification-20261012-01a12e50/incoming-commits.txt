@@ -1,0 +1,3 @@
+07b2fab0c650a7111b64f4e91916bbce97a63c84 test(time-review): capture actual R1.3 UI markup in Chromium fixture at responsive widths
+16d816cf36e915635963f33c2f4b7648810feba4 feat(time-review): integrate trusted nonmodal consent with R1.3 real Canvas timeline
+fe2226b8ac8828da30a5eef3b5362a141a715f84 feat(time-review): integrate Canvas V3 and opt-in real minute tracking

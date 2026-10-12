@@ -1,0 +1,131 @@
+{
+  "status": "COMPLETE",
+  "incomingTip": "07b2fab0c650a7111b64f4e91916bbce97a63c84",
+  "base": "fcdab07d50283d57f19abd37e9015d606150ce17",
+  "componentTests": {
+    "timeReview": 51,
+    "sharedSidebarHost": 70,
+    "total": 121,
+    "failed": 0
+  },
+  "sourceCheck": {
+    "files": 477,
+    "status": "PASS"
+  },
+  "toolPackage": {
+    "id": "time-review",
+    "version": "1.3.0",
+    "bytes": 35131,
+    "sha256": "355449b333c84f7cca2cee823754d25686c9cd1783af2dc4b1c6a5e0cb7e1f88"
+  },
+  "builds": {
+    "production": {
+      "mode": "production",
+      "builder": "wxt",
+      "status": "passed",
+      "packageHash": "234747d2075085f75feef6680ca963dddac22c25156b54e8b585f8f32275a482",
+      "assets": 74
+    },
+    "development": {
+      "mode": "development",
+      "builder": "wxt",
+      "status": "passed",
+      "packageHash": "81b6862d90e34c03ca9ca0a4de4d471ba997700535077e5576c98d9c6f9d73a1",
+      "assets": 105
+    }
+  },
+  "notTested": [
+    "actual Side Panel installation/update and Chrome interactions",
+    "native download persistence",
+    "browser zoom and UI",
+    "final F3",
+    "ZIP installation"
+  ],
+  "failuresPreserved": [
+    "build-production-symlink-failed.log",
+    "build-development-symlink-failed.log"
+  ],
+  "environmentRepair": "Cloned existing locked node_modules into the isolated worktree; no product-code or boundary changes.",
+  "sourceCommit": "fb58c53241b246f85e58999d52ee6c4539b9346d",
+  "mergeParents": [
+    "fcdab07d50283d57f19abd37e9015d606150ce17",
+    "07b2fab0c650a7111b64f4e91916bbce97a63c84"
+  ],
+  "sourceCommitNote": "Product merge tree tested before commit; workstream evidence is untracked until cleanup completion.",
+  "finalComponents": {
+    "tests": 125,
+    "passed": 125,
+    "failed": 0,
+    "skipped": 0,
+    "raw": "final-affected-tests-confirmed.tap"
+  },
+  "nativeDefaultGate": {
+    "passed": 0,
+    "skipped": 1,
+    "browserExecuted": false,
+    "raw": "native-default-gate.tap"
+  },
+  "finalSourceCheck": {
+    "files": 477,
+    "status": "PASS",
+    "raw": "final-source-check.log"
+  },
+  "finalBuilds": {
+    "production": {
+      "mode": "production",
+      "builder": "wxt",
+      "status": "passed",
+      "packageHash": "1382485027975d3e6e724c910200215a7c95aeb2c227f1c2b95a420261c4914b",
+      "assets": 74
+    },
+    "development": {
+      "mode": "development",
+      "builder": "wxt",
+      "status": "passed",
+      "packageHash": "ee45a9c13803f9cd548d749b4ce25de6505b6428252b0031e695c03d76ca755a",
+      "assets": 105
+    }
+  },
+  "finalPackageVerification": [
+    {
+      "mode": "production",
+      "status": "passed",
+      "packageHash": "1382485027975d3e6e724c910200215a7c95aeb2c227f1c2b95a420261c4914b"
+    },
+    {
+      "mode": "development",
+      "status": "passed",
+      "packageHash": "ee45a9c13803f9cd548d749b4ce25de6505b6428252b0031e695c03d76ca755a"
+    }
+  ],
+  "finalSourceCommit": "7c1ce9b00f46c6e1d6fe289a33771839d19dd8d0",
+  "cleanup": {
+    "status": "COMPLETE_SOURCE_SYNC",
+    "remoteHeads": {
+      "refs/heads/main": "7c1ce9b00f46c6e1d6fe289a33771839d19dd8d0"
+    },
+    "sourceCommit": "7c1ce9b00f46c6e1d6fe289a33771839d19dd8d0",
+    "incomingTips": [
+      "07b2fab0c650a7111b64f4e91916bbce97a63c84",
+      "5b81d4a07bfffc61672af60552d495478a4b1eae",
+      "35c4faf4004eb1f2d3c1a75383796e0f9ecebde5"
+    ],
+    "remoteBranchesRemaining": [
+      "main"
+    ],
+    "localBranchesRemaining": [
+      "main"
+    ],
+    "remoteBranchesDeletedExplicitly": 2,
+    "remoteBranchesDisappearedAfterPR70Merge": 1,
+    "dirtyFilesPreserved": 60,
+    "primaryFastForward": true,
+    "resources": "released"
+  },
+  "buildReuseAfterFinalProductMerge": {
+    "productCommit": "57b892b1",
+    "finalSourceCommit": "7c1ce9b00f46c6e1d6fe289a33771839d19dd8d0",
+    "productPathsChanged": [],
+    "nativeHarnessOnlyChanges": "syntax checked and default gated skip; actual native NOT_TESTED"
+  }
+}

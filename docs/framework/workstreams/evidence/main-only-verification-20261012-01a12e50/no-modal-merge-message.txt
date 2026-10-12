@@ -1,0 +1,8 @@
+让未保存内容的确认动作真正完成工具启停
+
+保留远端修复及异步测试的完整历史；只移除测试文件末尾多余空行。
+
+Confidence: high
+Scope-risk: narrow
+Tested: 最终受影响组件 125/125、源码/安全契约 477、生产与开发构建、双包校验
+Not-tested: 新原生验收 harness、真实 Chrome 产品交互、最终 F3/ZIP

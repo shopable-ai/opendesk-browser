@@ -1,0 +1,9 @@
+避免分支整合后普通组件测试启动原生浏览器
+
+原生验证只在明确 opt-in 时运行；修正 CI 的 Chrome 路径与产物 SHA 表达式，保留新增测试原提交。
+
+Constraint: 普通组件测试不能争用 Chrome/profile 资源
+Confidence: high
+Scope-risk: narrow
+Tested: 默认执行为明确 SKIP、脚本语法、两份 YAML 解析及原生启用与表达式值
+Not-tested: 新原生测试实际 Chrome 执行；测试专用打开入口、清理与原始下载证据仍需原负责人补齐

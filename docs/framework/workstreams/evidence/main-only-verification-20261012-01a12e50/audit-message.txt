@@ -1,0 +1,6 @@
+让主分支整理的决策与未提交工作保护可追溯
+
+Confidence: high
+Scope-risk: narrow
+Tested: 三分支完整历史可达、原子删除、远端/本地仅 main、60 个未提交文件哈希一致、125 组件与双包校验记录
+Not-tested: 原生 harness 实际运行、最终 F3/ZIP
