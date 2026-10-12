@@ -46,7 +46,8 @@ test('R7 trusted native workbench is outside installed sandbox bridge; no additi
   assert.match(workbench,/browser\.cookies\.execute/);
   assert.match(host,/checkedSender\(api,sender\)/);
   assert.match(host,/createTrustedCookieHost/);
-  assert.match(sidecar,/host\.handleHost/);
+  assert.match(sidecar,/host\[method\]/);
+  assert.match(sidecar,/message\.kind==='host'/);
   assert.match(shell,/createTrustedCookieWorkbench/);
   assert(!workbench.includes('chrome.cookies.'));
   assert(!workbench.includes('storage.local.set('));
