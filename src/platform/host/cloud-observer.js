@@ -19,3 +19,23 @@ export async function requireCloudConsoleSender(api,sender){
     contexts[0].frameId===0&&!contexts[0].incognito,
   'E_OWNER','Cloud console document identity could not be confirmed');
 }
+
+/**
+ * Cloud management/claim is exclusive to a real Chrome Side Panel.
+ * A full-size tool/catalog tab may register a generic foundation Host for its
+ * own features, but that does not grant it Cloud executor privileges.
+ */
+export async function requireCloudSidePanelSender(api,sender){
+  invariant(sender?.id===api.runtime.id&&typeof sender.url==='string'&&
+    typeof sender.documentId==='string'&&sender.documentId.length>0&&
+    (sender.frameId===undefined||sender.frameId===0)&&!sender.tab?.incognito&&
+    (sender.documentLifecycle===undefined||sender.documentLifecycle==='active'),
+  'E_OWNER','Cloud execution requires an active Side Panel document');
+  const contexts=await api.runtime.getContexts({
+    contextTypes:['SIDE_PANEL'],documentUrls:[sender.url],documentIds:[sender.documentId]
+  });
+  invariant(Array.isArray(contexts)&&contexts.length===1&&
+    contexts[0].contextType==='SIDE_PANEL'&&contexts[0].documentId===sender.documentId&&
+    contexts[0].documentUrl===sender.url&&contexts[0].frameId===0&&!contexts[0].incognito,
+  'E_OWNER','Cloud execution sender is not a live Side Panel document');
+}
