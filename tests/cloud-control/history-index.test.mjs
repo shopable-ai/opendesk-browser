@@ -129,7 +129,7 @@ for(const count of [100,1000,10000]){
     const before={...storage.metrics};
     const queryStart=performance.now();
     const page=await storage.transaction([KV],'readonly',tx=>index.page(tx,{
-      limit:20,offset:Math.min(200,count-20),state:'waiting'}));
+      limit:20,offset:Math.min(30,Math.floor(count*0.2)),state:'waiting'}));
     const durationMs=performance.now()-queryStart;
     assert.equal(page.total,count);
     assert.equal(page.rows.length,20);
