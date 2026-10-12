@@ -1,6 +1,6 @@
 // Hosting shares the visible document's existing RunHost and Authority slot.
 import {projectCloudStatus,cloudHostingSummary,projectCloudRequestSamples} from './cloud-status-presentation.js';
-export function createCloudHosting({client,host,document:doc=globalThis.document}){
+export function createCloudHosting({client,host,document:doc=globalThis.document,api=globalThis.chrome}){
   const get=id=>doc.getElementById(id),cloud=client.cloud;let disposed=false,busy=false,starting=false,timer;
   const status=get('cloud-status'),brief=get('cloud-brief'),myState=get('cloud-my-state');
   const overview=get('cloud-overview-state'),sampleList=get('cloud-request-samples');
@@ -47,6 +47,7 @@ export function createCloudHosting({client,host,document:doc=globalThis.document
   // The user's “核对状态” gesture must never itself claim or run a cloud task.
   click('cloud-refresh',async()=>{});
   click('cloud-overview-refresh',async()=>{});
+  click('cloud-open-console',()=>api.tabs.create({url:api.runtime.getURL('ui/cloud-control.html')}));
   // Preserve the two-second dispatch cadence without scanning cloud history
   // every time. Visibility changes observations, not execution ownership.
   async function poll(){if(disposed)return;try{if(!busy){
