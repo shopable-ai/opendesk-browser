@@ -286,7 +286,7 @@ async function readBrowserSourceStore(session,programId){
     'const asset=rows.find(r=>r.tag==="userscript-asset-v1"&&r.sha256==='+JSON.stringify(D3_HASH)+');'+
     'const candidate=rows.find(r=>r.tag==="page-candidate-v1"&&r.manifest?.programId==='+JSON.stringify(programId)+');'+
     'return {dependencyRows,asset:asset?{sha256:asset.sha256,byteLength:asset.byteLength,integrityStatus:asset.integrityStatus,'+
-    'bytes:Array.from(asset.bytes)}:null,candidate:candidate?{candidateId:candidate.candidateId,stage:candidate.stage,'+
+    'bytes:Array.from(new Uint8Array(asset.bytes))}:null,candidate:candidate?{candidateId:candidate.candidateId,stage:candidate.stage,'+
     'manifestHash:candidate.manifestHash,manifest:candidate.manifest,sourceUtf8:candidate.sourceUtf8}:null}})()');
 }
 async function runBrowserSourceScenario({sidebar,website,browser,frameworkSha256}){
