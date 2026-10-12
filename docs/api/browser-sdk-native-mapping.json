@@ -1,0 +1,369 @@
+{
+  "schemaVersion": "opendesk.browser-sdk.native-mapping.r7.0.v1",
+  "date": "2026-10-13",
+  "publicSourceOfTruth": "src/framework/sdk/browser-contract.js",
+  "legacyOperations": {
+    "count": 35,
+    "canonicalMapping": "docs/api/browser-sdk-compatibility-map.json",
+    "schemas": "src/framework/sdk/browser-schemas.js",
+    "canonicalHost": "src/platform/chrome/context-menus.js",
+    "compatibility": "UNCHANGED",
+    "comment": "Inherit the R8 mapping; do not fork 35 canonical public methods into a second registry."
+  },
+  "discoveryOnly": "docs/api/chrome-native-api-catalog.json",
+  "localScope": "New HOST_ONLY Cookie operations not registered in public SDK and not admitted by installed-tool sandbox.",
+  "stage": "HOST_PRIVATE_SOURCE_WIRED_NATIVE_CHROME_NOT_TESTED",
+  "entries": [
+    {
+      "chromeNativeApis": [
+        "chrome.cookies.get"
+      ],
+      "openDeskOperationId": "browser.cookies.get",
+      "publicSdkMethod": null,
+      "reservedFutureMethod": "OpenDeskSDK.browser.cookies.get",
+      "mappingKind": "HOST_ONLY",
+      "mappingDetail": "host-private-read",
+      "existingService": "src/platform/chrome/cookies.js#createCookieService",
+      "existingHost": "src/platform/chrome/context-menus.js#createContextMenuHost",
+      "trustedAdapter": "src/platform/chrome/browser-cookie-host.js#createTrustedCookieHost",
+      "runtimeContexts": [
+        "TRUSTED_SIDE_PANEL_HOST",
+        "TRUSTED_SERVICE_WORKER"
+      ],
+      "trustLevel": "CHROME_VERIFIED_SENDER_PLUS_FRESH_USER_CLICK",
+      "capability": "HOST_PRIVATE_NO_TOOL_CAPABILITY",
+      "requiredChromePermissions": [
+        "cookies"
+      ],
+      "hostPermission": "exact-origin + active-tab+document revalidated before/after",
+      "siteScope": "https://selected document URL",
+      "effectClass": "read",
+      "inputSchema": "src/platform/chrome/browser-cookie-host.js#normalized (strict plain-object validation)",
+      "outputSchema": "bounded-cookie-records",
+      "lifecycle": "request",
+      "test": {
+        "source": "tests/environment/browser-sdk-r7-trusted-cookies.test.mjs",
+        "status": "MOCK_OR_SOURCE_ONLY_NATIVE_CHROME_NOT_TESTED"
+      },
+      "exposure": "NOT_AVAILABLE_TO_SANDBOX_OR_PAGE_SDK",
+      "nativeTarget": "Chrome >=138",
+      "limits": "100 cookies / 60KB read; one use per 15s approval; observer 30s/50 events"
+    },
+    {
+      "chromeNativeApis": [
+        "chrome.cookies.getAll"
+      ],
+      "openDeskOperationId": "browser.cookies.getAll",
+      "publicSdkMethod": null,
+      "reservedFutureMethod": "OpenDeskSDK.browser.cookies.getAll",
+      "mappingKind": "HOST_ONLY",
+      "mappingDetail": "host-private-read",
+      "existingService": "src/platform/chrome/cookies.js#createCookieService",
+      "existingHost": "src/platform/chrome/context-menus.js#createContextMenuHost",
+      "trustedAdapter": "src/platform/chrome/browser-cookie-host.js#createTrustedCookieHost",
+      "runtimeContexts": [
+        "TRUSTED_SIDE_PANEL_HOST",
+        "TRUSTED_SERVICE_WORKER"
+      ],
+      "trustLevel": "CHROME_VERIFIED_SENDER_PLUS_FRESH_USER_CLICK",
+      "capability": "HOST_PRIVATE_NO_TOOL_CAPABILITY",
+      "requiredChromePermissions": [
+        "cookies"
+      ],
+      "hostPermission": "exact-origin + active-tab+document revalidated before/after",
+      "siteScope": "https://selected document URL",
+      "effectClass": "read",
+      "inputSchema": "src/platform/chrome/browser-cookie-host.js#normalized (strict plain-object validation)",
+      "outputSchema": "cookies current-URL only ≤100/60KB",
+      "lifecycle": "request",
+      "test": {
+        "source": "tests/environment/browser-sdk-r7-trusted-cookies.test.mjs",
+        "status": "MOCK_OR_SOURCE_ONLY_NATIVE_CHROME_NOT_TESTED"
+      },
+      "exposure": "NOT_AVAILABLE_TO_SANDBOX_OR_PAGE_SDK",
+      "nativeTarget": "Chrome >=138",
+      "limits": "100 cookies / 60KB read; one use per 15s approval; observer 30s/50 events"
+    },
+    {
+      "chromeNativeApis": [
+        "chrome.cookies.set"
+      ],
+      "openDeskOperationId": "browser.cookies.set",
+      "publicSdkMethod": null,
+      "reservedFutureMethod": "OpenDeskSDK.browser.cookies.set",
+      "mappingKind": "HOST_ONLY",
+      "mappingDetail": "host-private-write",
+      "existingService": "src/platform/chrome/cookies.js#createCookieService",
+      "existingHost": "src/platform/chrome/context-menus.js#createContextMenuHost",
+      "trustedAdapter": "src/platform/chrome/browser-cookie-host.js#createTrustedCookieHost",
+      "runtimeContexts": [
+        "TRUSTED_SIDE_PANEL_HOST",
+        "TRUSTED_SERVICE_WORKER"
+      ],
+      "trustLevel": "CHROME_VERIFIED_SENDER_PLUS_FRESH_USER_CLICK",
+      "capability": "HOST_PRIVATE_NO_TOOL_CAPABILITY",
+      "requiredChromePermissions": [
+        "cookies"
+      ],
+      "hostPermission": "exact-origin + active-tab+document revalidated before/after",
+      "siteScope": "selected origin + exact store/partition",
+      "effectClass": "write",
+      "inputSchema": "src/platform/chrome/browser-cookie-host.js#normalized (strict plain-object validation)",
+      "outputSchema": "receipt verified by R8 Driver",
+      "lifecycle": "single-use-no-retry",
+      "test": {
+        "source": "tests/environment/browser-sdk-r7-trusted-cookies.test.mjs",
+        "status": "MOCK_OR_SOURCE_ONLY_NATIVE_CHROME_NOT_TESTED"
+      },
+      "exposure": "NOT_AVAILABLE_TO_SANDBOX_OR_PAGE_SDK",
+      "nativeTarget": "Chrome >=138",
+      "limits": "100 cookies / 60KB read; one use per 15s approval; observer 30s/50 events"
+    },
+    {
+      "chromeNativeApis": [
+        "chrome.cookies.remove"
+      ],
+      "openDeskOperationId": "browser.cookies.remove",
+      "publicSdkMethod": null,
+      "reservedFutureMethod": "OpenDeskSDK.browser.cookies.remove",
+      "mappingKind": "HOST_ONLY",
+      "mappingDetail": "host-private-write",
+      "existingService": "src/platform/chrome/cookies.js#createCookieService",
+      "existingHost": "src/platform/chrome/context-menus.js#createContextMenuHost",
+      "trustedAdapter": "src/platform/chrome/browser-cookie-host.js#createTrustedCookieHost",
+      "runtimeContexts": [
+        "TRUSTED_SIDE_PANEL_HOST",
+        "TRUSTED_SERVICE_WORKER"
+      ],
+      "trustLevel": "CHROME_VERIFIED_SENDER_PLUS_FRESH_USER_CLICK",
+      "capability": "HOST_PRIVATE_NO_TOOL_CAPABILITY",
+      "requiredChromePermissions": [
+        "cookies"
+      ],
+      "hostPermission": "exact-origin + active-tab+document revalidated before/after",
+      "siteScope": "selected origin + exact cookie key",
+      "effectClass": "write",
+      "inputSchema": "src/platform/chrome/browser-cookie-host.js#normalized (strict plain-object validation)",
+      "outputSchema": "receipt verified by R8 Driver",
+      "lifecycle": "single-use-no-retry",
+      "test": {
+        "source": "tests/environment/browser-sdk-r7-trusted-cookies.test.mjs",
+        "status": "MOCK_OR_SOURCE_ONLY_NATIVE_CHROME_NOT_TESTED"
+      },
+      "exposure": "NOT_AVAILABLE_TO_SANDBOX_OR_PAGE_SDK",
+      "nativeTarget": "Chrome >=138",
+      "limits": "100 cookies / 60KB read; one use per 15s approval; observer 30s/50 events"
+    },
+    {
+      "chromeNativeApis": [
+        "chrome.cookies.getAll",
+        "chrome.cookies.remove"
+      ],
+      "openDeskOperationId": "browser.cookies.clearSite",
+      "publicSdkMethod": null,
+      "reservedFutureMethod": "OpenDeskSDK.browser.cookies.clearSite",
+      "mappingKind": "HOST_ONLY",
+      "mappingDetail": "host-private-destructive",
+      "existingService": "src/platform/chrome/cookies.js#createCookieService",
+      "existingHost": "src/platform/chrome/context-menus.js#createContextMenuHost",
+      "trustedAdapter": "src/platform/chrome/browser-cookie-host.js#createTrustedCookieHost",
+      "runtimeContexts": [
+        "TRUSTED_SIDE_PANEL_HOST",
+        "TRUSTED_SERVICE_WORKER"
+      ],
+      "trustLevel": "CHROME_VERIFIED_SENDER_PLUS_FRESH_USER_CLICK",
+      "capability": "HOST_PRIVATE_NO_TOOL_CAPABILITY",
+      "requiredChromePermissions": [
+        "cookies"
+      ],
+      "hostPermission": "exact-origin + active-tab+document revalidated before/after",
+      "siteScope": "current URL matching, not whole site",
+      "effectClass": "write",
+      "inputSchema": "src/platform/chrome/browser-cookie-host.js#normalized (strict plain-object validation)",
+      "outputSchema": "partial or unknown effect disclosed",
+      "lifecycle": "single-use-no-retry",
+      "test": {
+        "source": "tests/environment/browser-sdk-r7-trusted-cookies.test.mjs",
+        "status": "MOCK_OR_SOURCE_ONLY_NATIVE_CHROME_NOT_TESTED"
+      },
+      "exposure": "NOT_AVAILABLE_TO_SANDBOX_OR_PAGE_SDK",
+      "nativeTarget": "Chrome >=138",
+      "limits": "100 cookies / 60KB read; one use per 15s approval; observer 30s/50 events"
+    },
+    {
+      "chromeNativeApis": [
+        "chrome.cookies.getAllCookieStores"
+      ],
+      "openDeskOperationId": "browser.cookies.getStores",
+      "publicSdkMethod": null,
+      "reservedFutureMethod": "OpenDeskSDK.browser.cookies.getStores",
+      "mappingKind": "HOST_ONLY",
+      "mappingDetail": "host-private-read",
+      "existingService": "src/platform/chrome/cookies.js#createCookieService",
+      "existingHost": "src/platform/chrome/context-menus.js#createContextMenuHost",
+      "trustedAdapter": "src/platform/chrome/browser-cookie-host.js#createTrustedCookieHost",
+      "runtimeContexts": [
+        "TRUSTED_SIDE_PANEL_HOST",
+        "TRUSTED_SERVICE_WORKER"
+      ],
+      "trustLevel": "CHROME_VERIFIED_SENDER_PLUS_FRESH_USER_CLICK",
+      "capability": "HOST_PRIVATE_NO_TOOL_CAPABILITY",
+      "requiredChromePermissions": [
+        "cookies"
+      ],
+      "hostPermission": "exact-origin + active-tab+document revalidated before/after",
+      "siteScope": "selected tab only",
+      "effectClass": "read",
+      "inputSchema": "src/platform/chrome/browser-cookie-host.js#normalized (strict plain-object validation)",
+      "outputSchema": "own Cookie storeId only",
+      "lifecycle": "request",
+      "test": {
+        "source": "tests/environment/browser-sdk-r7-trusted-cookies.test.mjs",
+        "status": "MOCK_OR_SOURCE_ONLY_NATIVE_CHROME_NOT_TESTED"
+      },
+      "exposure": "NOT_AVAILABLE_TO_SANDBOX_OR_PAGE_SDK",
+      "nativeTarget": "Chrome >=138",
+      "limits": "100 cookies / 60KB read; one use per 15s approval; observer 30s/50 events"
+    },
+    {
+      "chromeNativeApis": [
+        "chrome.cookies.getPartitionKey"
+      ],
+      "openDeskOperationId": "browser.cookies.getPartitionKey",
+      "publicSdkMethod": null,
+      "reservedFutureMethod": "OpenDeskSDK.browser.cookies.getPartitionKey",
+      "mappingKind": "HOST_ONLY",
+      "mappingDetail": "host-private-read",
+      "existingService": "src/platform/chrome/cookies.js#createCookieService",
+      "existingHost": "src/platform/chrome/context-menus.js#createContextMenuHost",
+      "trustedAdapter": "src/platform/chrome/browser-cookie-host.js#createTrustedCookieHost",
+      "runtimeContexts": [
+        "TRUSTED_SIDE_PANEL_HOST",
+        "TRUSTED_SERVICE_WORKER"
+      ],
+      "trustLevel": "CHROME_VERIFIED_SENDER_PLUS_FRESH_USER_CLICK",
+      "capability": "HOST_PRIVATE_NO_TOOL_CAPABILITY",
+      "requiredChromePermissions": [
+        "cookies"
+      ],
+      "hostPermission": "exact-origin + active-tab+document revalidated before/after",
+      "siteScope": "selected document frameId=0",
+      "effectClass": "read",
+      "inputSchema": "src/platform/chrome/browser-cookie-host.js#normalized (strict plain-object validation)",
+      "outputSchema": "only own partition key",
+      "lifecycle": "request",
+      "test": {
+        "source": "tests/environment/browser-sdk-r7-trusted-cookies.test.mjs",
+        "status": "MOCK_OR_SOURCE_ONLY_NATIVE_CHROME_NOT_TESTED"
+      },
+      "exposure": "NOT_AVAILABLE_TO_SANDBOX_OR_PAGE_SDK",
+      "nativeTarget": "Chrome >=138",
+      "limits": "100 cookies / 60KB read; one use per 15s approval; observer 30s/50 events"
+    },
+    {
+      "chromeNativeApis": [
+        "chrome.cookies.onChanged"
+      ],
+      "openDeskOperationId": "browser.cookies.observe.start",
+      "publicSdkMethod": null,
+      "reservedFutureMethod": "OpenDeskSDK.browser.cookies.observe.start",
+      "mappingKind": "HOST_ONLY",
+      "mappingDetail": "host-private-observation",
+      "existingService": "src/platform/chrome/cookies.js#createCookieService",
+      "existingHost": "src/platform/chrome/context-menus.js#createContextMenuHost",
+      "trustedAdapter": "src/platform/chrome/browser-cookie-host.js#createTrustedCookieHost",
+      "runtimeContexts": [
+        "TRUSTED_SIDE_PANEL_HOST",
+        "TRUSTED_SERVICE_WORKER"
+      ],
+      "trustLevel": "CHROME_VERIFIED_SENDER_PLUS_FRESH_USER_CLICK",
+      "capability": "HOST_PRIVATE_NO_TOOL_CAPABILITY",
+      "requiredChromePermissions": [
+        "cookies"
+      ],
+      "hostPermission": "exact-origin + active-tab+document revalidated before/after",
+      "siteScope": "selected document/store; no values",
+      "effectClass": "read",
+      "inputSchema": "src/platform/chrome/browser-cookie-host.js#normalized (strict plain-object validation)",
+      "outputSchema": "opaque sessionRef; bounded metadata",
+      "lifecycle": "worker-volatile-max30s",
+      "test": {
+        "source": "tests/environment/browser-sdk-r7-trusted-cookies.test.mjs",
+        "status": "MOCK_OR_SOURCE_ONLY_NATIVE_CHROME_NOT_TESTED"
+      },
+      "exposure": "NOT_AVAILABLE_TO_SANDBOX_OR_PAGE_SDK",
+      "nativeTarget": "Chrome >=138",
+      "limits": "100 cookies / 60KB read; one use per 15s approval; observer 30s/50 events"
+    },
+    {
+      "chromeNativeApis": [
+        "chrome.cookies.onChanged"
+      ],
+      "openDeskOperationId": "browser.cookies.observe.getStatus",
+      "publicSdkMethod": null,
+      "reservedFutureMethod": "OpenDeskSDK.browser.cookies.observe.getStatus",
+      "mappingKind": "HOST_ONLY",
+      "mappingDetail": "host-private-observation",
+      "existingService": "src/platform/chrome/cookies.js#createCookieService",
+      "existingHost": "src/platform/chrome/context-menus.js#createContextMenuHost",
+      "trustedAdapter": "src/platform/chrome/browser-cookie-host.js#createTrustedCookieHost",
+      "runtimeContexts": [
+        "TRUSTED_SIDE_PANEL_HOST",
+        "TRUSTED_SERVICE_WORKER"
+      ],
+      "trustLevel": "CHROME_VERIFIED_SENDER_PLUS_FRESH_USER_CLICK",
+      "capability": "HOST_PRIVATE_NO_TOOL_CAPABILITY",
+      "requiredChromePermissions": [
+        "cookies"
+      ],
+      "hostPermission": "exact-origin + active-tab+document revalidated before/after",
+      "siteScope": "owned opaque session",
+      "effectClass": "read",
+      "inputSchema": "src/platform/chrome/browser-cookie-host.js#normalized (strict plain-object validation)",
+      "outputSchema": "no values; dropped counts",
+      "lifecycle": "worker-volatile-max30s",
+      "test": {
+        "source": "tests/environment/browser-sdk-r7-trusted-cookies.test.mjs",
+        "status": "MOCK_OR_SOURCE_ONLY_NATIVE_CHROME_NOT_TESTED"
+      },
+      "exposure": "NOT_AVAILABLE_TO_SANDBOX_OR_PAGE_SDK",
+      "nativeTarget": "Chrome >=138",
+      "limits": "100 cookies / 60KB read; one use per 15s approval; observer 30s/50 events"
+    },
+    {
+      "chromeNativeApis": [
+        "NATIVE_SESSION_CLEANUP"
+      ],
+      "openDeskOperationId": "browser.cookies.observe.stop",
+      "publicSdkMethod": null,
+      "reservedFutureMethod": "OpenDeskSDK.browser.cookies.observe.stop",
+      "mappingKind": "HOST_ONLY",
+      "mappingDetail": "host-private-observation",
+      "existingService": "src/platform/chrome/cookies.js#createCookieService",
+      "existingHost": "src/platform/chrome/context-menus.js#createContextMenuHost",
+      "trustedAdapter": "src/platform/chrome/browser-cookie-host.js#createTrustedCookieHost",
+      "runtimeContexts": [
+        "TRUSTED_SIDE_PANEL_HOST",
+        "TRUSTED_SERVICE_WORKER"
+      ],
+      "trustLevel": "CHROME_VERIFIED_SENDER_PLUS_FRESH_USER_CLICK",
+      "capability": "HOST_PRIVATE_NO_TOOL_CAPABILITY",
+      "requiredChromePermissions": [
+        "cookies"
+      ],
+      "hostPermission": "exact-origin + active-tab+document revalidated before/after",
+      "siteScope": "owned opaque session",
+      "effectClass": "write",
+      "inputSchema": "src/platform/chrome/browser-cookie-host.js#normalized (strict plain-object validation)",
+      "outputSchema": "stop receipt",
+      "lifecycle": "worker-volatile-max30s",
+      "test": {
+        "source": "tests/environment/browser-sdk-r7-trusted-cookies.test.mjs",
+        "status": "MOCK_OR_SOURCE_ONLY_NATIVE_CHROME_NOT_TESTED"
+      },
+      "exposure": "NOT_AVAILABLE_TO_SANDBOX_OR_PAGE_SDK",
+      "nativeTarget": "Chrome >=138",
+      "limits": "100 cookies / 60KB read; one use per 15s approval; observer 30s/50 events"
+    }
+  ]
+}
