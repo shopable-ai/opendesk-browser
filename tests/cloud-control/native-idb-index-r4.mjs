@@ -57,6 +57,10 @@ async function browserBenchmark(count){
     const projected=await storage.transaction([KV],'readonly',tx=>index.page(tx,{
       limit:20,offset:Math.min(30,Math.floor(count*.2)),state:'waiting'}));
     const queryMs=performance.now()-queryStart;
+    // Snapshot the single-page measurement BEFORE extra rollback checks,
+    // which intentionally invoke their own independent cursors.
+    const primaryScanCalls=metrics.scanCalls-scanBefore;
+    const primaryAllCalls=metrics.allCalls-allBefore;
     const response=JSON.stringify({
       rows:projected.rows.map(r=>({state:r.state,createdAt:r.createdAt,
         retirementReleased:false,receiptConfirmed:false})),
@@ -92,7 +96,7 @@ async function browserBenchmark(count){
       migrateMs:Math.round(migrateMs*100)/100,queryMs:Math.round(queryMs*100)/100,
       requestTotal:projected.total,matchingTotal:projected.matchingTotal,
       returnedRows:projected.rows.length,responseBytes,
-      scanCalls:metrics.scanCalls-scanBefore,clonedAllCalls:metrics.allCalls-allBefore,
+      scanCalls:primaryScanCalls,clonedAllCalls:primaryAllCalls,
       rollbackVerified:true,heapUsedBytes:performance.memory?.usedJSHeapSize??null,
       userAgent:navigator.userAgent};
   }finally{
