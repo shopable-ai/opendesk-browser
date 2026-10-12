@@ -1,3 +1,4 @@
+import {toolDocumentIdentity} from './tool-document-url.js';
 export const PROTOCOL = 'opendesk.environment.v1';
 export const HEALTH_FILE = 'agents/health.js';
 export const SELECTION_FILE = 'agents/selection-entry.js';
@@ -21,26 +22,20 @@ export function isToolSender(api, sender) {
   // sender.tab and sender.frameId. If a tab is present, require its top frame;
   // otherwise accept only the packaged top-level extension document.
   const topLevel = sender?.tab ? sender.frameId === 0 : sender?.frameId === undefined || sender.frameId === 0;
-  return sender?.id === api.runtime.id && isToolDocumentUrl(api, sender.url) &&
+  const route=toolDocumentIdentity(api.runtime.getURL('ui/tool.html'),sender?.url);
+  return sender?.id === api.runtime.id && Boolean(route) &&
+    (!route.hasLocator||Number.isSafeInteger(sender.tab?.id)&&sender.tab.id>=0) &&
     typeof sender.documentId === 'string' && sender.documentId.length > 0 &&
     topLevel && (!sender.documentLifecycle || sender.documentLifecycle === 'active') && !sender.tab?.incognito;
-}
-function isToolDocumentUrl(api, value) {
-  try {
-    const url = new URL(value), base = new URL(api.runtime.getURL('ui/tool.html'));
-    return url.protocol === base.protocol && url.host === base.host && url.pathname === base.pathname && !url.hash &&
-      (!url.search || [...url.searchParams].length === 1 &&
-        /^[A-Za-z0-9._:-]{1,128}$/.test(url.searchParams.get('hostInstanceId') || ''));
-  } catch { return false; }
 }
 // Chrome Side Panel MessageSender can omit documentId. Resolve it only from
 // a unique native context for this packaged host instance, never from payload.
 export async function resolveToolSender(api, sender) {
   if (isToolSender(api, sender)) return sender;
+  const route=toolDocumentIdentity(api.runtime.getURL('ui/tool.html'),sender?.url);
   if (sender?.documentId || sender?.id !== api.runtime.id || sender.tab ||
       sender.frameId !== undefined && sender.frameId !== 0 ||
-      !isToolDocumentUrl(api, sender.url) ||
-      !new URL(sender.url).searchParams.has('hostInstanceId'))
+      !route||route.hasLocator||!route.hostInstanceId)
     throw new EnvironmentError('E_OWNER', 'Unresolved packaged tool sender');
   const contexts = await api.runtime.getContexts({contextTypes:['SIDE_PANEL'], documentUrls:[sender.url]});
   const matches = contexts.filter(context => context.contextType === 'SIDE_PANEL' &&

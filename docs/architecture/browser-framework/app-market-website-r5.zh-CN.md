@@ -157,6 +157,10 @@ node --test tests/framework/app-market-r3-native.test.mjs
 
 CI 在 Linux 和 macOS 上使用固定 Chrome for Testing，分别保存输入身份、网站 build ID、实际扩展 ID/Origin、真实操作、事务、数据摘要、截图、正常重启和失败原件。CI 状态、原始 receipt 和未测试数组必须一起核对；没有最终原始 PASS 不能凭绿色 job 验收。
 
+原生中断测试复用未修改产物中的四个实际调用位置：prepared持久化后/开页前、创建审阅页后/记录opened前、消费标记确认后/首事务日志前、注册表写入确认后/结果终态前。位置通过 AST、加载脚本 SHA 和 CDP 精确 call 断点绑定；只读观察后停止实际 Worker 或关闭可信审阅页，再由原 HTTP 意图恢复。不把这些调用者中断称为 Chrome API 原生回执丢失。原始错误、未知状态和具体未测范围必须保留。
+
+可信审阅“打开使用”沿用内部 `tool.html`。导航和 Foundation 宿主边界共用纯 URL 形态：零参数、单 hostInstanceId，或该host加唯一有效toolId/previewId。有定位参数必须是真实顶层TAB sender；不进入缺documentId的SidePanel恢复分支。定位值只选择已有界面，不能代表安装批准、任务执行或权限；原 Authority/任务工作台/工具能力核对均保留。正常工具页需观察原资源诊断中的真实已连接端口，并在完整关闭前后拒绝未解释的产品运行异常。
+
 ## 11. 后续远程分发的独立接入边界
 
 现有能力不能回退：Page 的 `dependency-manager.js` 仍支持显式准备／批准的受控 HTTPS `@require` 依赖；执行仅使用锁定本地字节。Page／controller／Task 开发构建已有 `lock-program-remote.mjs`、`remote-esm-modules.mjs`、`remote-esm-network.mjs` 的远程 ESM 审阅、锁、限额和离线编译。这些不是应用市场远程整包安装。

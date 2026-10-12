@@ -113,3 +113,19 @@ UI 审阅指出 R5 分支没有执行旧分支键盘／缩放用例。已补网�
 整合网页笔记 1.1.8 后追加官方生产者快照与 reading-kit r3，保留 r1/r2 原成员，当前归档为 12 个完整发行描述、3 个套装revision；不把原 r2 的1.1.6换成1.1.8。当前相关组件修复重新验证见本目录 TAP；开页/写入窗口与安装未知结果原生恢复仍待补测，十一维实现评分继续待评。
 
 后续修复提交 `b392b7f0` 已推送。run `38221688395` 在组件门禁因同批次隔离 fixture 将 r2 Notes 1.1.6 错配到当前 1.1.8 而失败，原 batch 精确版本检查正确拒绝，未进入新一轮 native。用例改用 r3 并同时匹配ID和版本；受影响的82项组件重新全部通过，r1/r2缺包用例保留。原失败与修复 TAP 见 [该轮索引](evidence/app-market-r5/ci-38221688395/index.json)。
+
+## 真实发送者通过后的进一步整改（2026-10-12）
+
+`b177a7bb` 对应 [run 38222122668](https://github.com/shopable-ai/opendesk-browser/actions/runs/38222122668) 的 Linux 和 macOS 都已取得真实 sender `OBSERVED`：加载脚本摘要匹配、32HEX documentId、顶层 frame、active lifecycle、精确 Origin/URL、真实非隐身 tab，HTTP PROBE 已连接。两者随后因搜索“Markdown”应命中工作台和剪藏两项、旧断言仅要求一项而失败。现在核对具体主链接集合，并追加唯一词“Markdown 工作台”的搜索；不是删除搜索失败。尚不能宣称此轮网站安装通过。
+
+同轮生产包在跨页撤权阶段失败：原件证明授权存储已清空、剪藏安全关闭包含正文的 sandbox 并返回工具列表；隐藏设置容器保留禁用 DOM。驱动改为核对真实持久化、可见完成状态、内容 iframe 消失和当前列表，而不要求隐藏节点必须删除。
+
+独立证据/安全审阅同时发现真正的 P1：六个独立工具页出现 Foundation 登记拒绝。导航生成器保留有效 `toolId/previewId`，原 `environment.js` 却只允许 `hostInstanceId`。新增纯 `tool-document-url.js` 统一有限内部 URL 形态；有定位参数时只允许真实顶层 TAB 和浏览器 documentId，禁止进入 Side Panel 缺 documentId 的恢复分支。现有 `tasks.open` 工作台、Authority、工具对应关系、权限和运行准入保留；外部市场消息与来源没有扩大。新回归读取原 `OpenDeskResourceDiagnostics` 确认真正连接的宿主端口。修复需由新原生结果关闭，不能用初始工具画面代替。
+
+最终 native gate 现记录 `Runtime.exceptionRevoked`，在正常 Chrome 退出前后检查未解释异常和 console errors，防止把未处理产品错误写成 PASS。87项相关组件已通过，独立安全审阅未发现该纯 URL 修复引入的 P0/P1；原生验证仍待新提交。
+
+四个真实中断窗口已加入原 CDP 驱动：A1 持久 prepared 后开页前；A2 实际创建审阅页后 opened 持久化前；B 消费确认后首条原事务日志前；C 原注册表写入确认后、读回和来源终态前。精确 AST 绑定实际未修改产物、加载摘要、真实 context 与原始调用断点，分别物理停止 Worker 或关闭审阅页；同一 HTTP 请求恢复原身份。C 恢复期间另只读计数原注册表写调用，要求零次再次提交。它们没有模拟API结果或写安装表。断点缺失或实际销毁未观察到即失败，不能扩大为原生 API ACK 丢失通过。
+
+三个原始失败 receipt 与源码、包、网站、浏览器、artifact/hash 绑定见 [本轮原件索引](evidence/app-market-r5/ci-38222122668/index.json)。旧失败保留。严格原生 `tabs.create`/`storage.set` ACK 丢失、真实容量/损坏故障、30分钟TTL和自然空闲关闭尚未验证，正式 HTTPS 仍缺核验后的渠道输入。表中的阶段评分继续适用；实现分等待实际证据。
+
+并行 main 的 Time Review 分类/生命周期、Page 浏览器验收和编辑器用例已在核对不重叠的文件差异后快进到 `df3b96c8`，没有分支、worktree、强推或覆盖其他会话文件。

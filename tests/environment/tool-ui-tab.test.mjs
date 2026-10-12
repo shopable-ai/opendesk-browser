@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {requestedToolId,toolPageHref,validToolId,canonicalToolHostUrl,requestedPreviewId,toolPreviewHref} from '../../src/ui/sidebar-tools/navigation.js';
+import {isToolSender,resolveToolSender} from '../../src/environment.js';
 const runtime={getURL:path=>'chrome-extension://abcdefghijklmnopabcdefghijklmnop/'+path};
 test('fixed full-page routes carry an installed ID, not a path or credential',()=>{
   assert.equal(toolPageHref(runtime,'quick-notes'),'chrome-extension://abcdefghijklmnopabcdefghijklmnop/ui/tool.html?toolId=quick-notes');
@@ -51,4 +52,26 @@ test('ephemeral read-only preview route survives first navigation and excludes i
   const mixed=canonicalToolHostUrl(route+'&toolId=quick-notes','host-4fdd02c4-9ca4-4d05-9339-b83519872636');
   assert.equal(requestedToolId(mixed),null);assert.equal(requestedPreviewId(mixed),null);
   assert.throws(()=>toolPreviewHref(runtime,'../../etc'),/invalid preview ID/);
+});
+
+test('canonical tool/preview tabs retain original host admission with exact browser document identity',async()=>{
+  const api={runtime:{...runtime,id:'abcdefghijklmnopabcdefghijklmnop',getContexts:async()=>{throw Error('locator must never use Side Panel fallback');}}};
+  const base=runtime.getURL('ui/tool.html'),host='host-4fdd02c4-9ca4-4d05-9339-b83519872636';
+  const routes=[canonicalToolHostUrl(toolPageHref(runtime,'quick-notes'),host),
+    canonicalToolHostUrl(toolPreviewHref(runtime,'00000000-0000-4000-8000-000000000001'),host)];
+  for(const url of routes){
+    const sender={id:api.runtime.id,url,documentId:'browser-document',documentLifecycle:'active',frameId:0,tab:{id:7,incognito:false}};
+    assert.equal(isToolSender(api,sender),true);assert.equal(await resolveToolSender(api,sender),sender);
+    for(const changed of [{tab:undefined},{tab:{id:-1}},{tab:{id:7,incognito:true}},{frameId:1},{documentId:undefined},{documentLifecycle:'cached'},
+      {url:url+'&hostInstanceId='+host},{url:url+'&toolId=other'},{url:url+'&unknown=1'},
+      {url:url+'#fragment'},{url:url.replace('chrome-extension:','https:')},{url:url.replace('/ui/tool.html','/ui/marketplace.html')}]){
+      assert.equal(isToolSender(api,{...sender,...changed}),false,JSON.stringify(changed));
+      await assert.rejects(resolveToolSender(api,{...sender,...changed}),{code:'E_OWNER'});
+    }
+  }
+  for(const suffix of ['?toolId=quick-notes','?previewId=00000000-0000-4000-8000-000000000001',
+    '?hostInstanceId='+host+'&toolId=../../bad','?hostInstanceId='+host+'&previewId=bad',
+    '?hostInstanceId='+host+'&toolId=quick-notes&previewId=00000000-0000-4000-8000-000000000001']){
+    assert.equal(isToolSender(api,{id:api.runtime.id,url:base+suffix,documentId:'browser-document',frameId:0,tab:{id:7}}),false,suffix);
+  }
 });

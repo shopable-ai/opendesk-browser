@@ -6,6 +6,8 @@ import {readFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import {createHash} from 'node:crypto';
 import {exactBreakpointLocation,readFrame} from '../framework/b05-native-observers.mjs';
+import {discoverMarketCutPoints} from './app-market-r5-cutpoints.mjs';
+import {SIDEBAR_TOOL_STORE} from '../../src/ui/sidebar-tools/package.js';
 const hash=value=>createHash('sha256').update(value).digest('hex');
 const isFunction=node=>['FunctionDeclaration','FunctionExpression','ArrowFunctionExpression'].includes(node?.type);
 export function marketSenderPoints(source){
@@ -86,4 +88,96 @@ export async function observeMarketSender(d){
     }
   }catch(error){record.status='NOT_OBSERVED';record.errors.push({stage:'arm',message:error.message});await dispose();throw error;}
   return {record,dispose};
+}
+
+// Hold one exact, unchanged product call until the driver physically terminates
+// its owned worker/page. Unlike sender observation, this never resumes a hit.
+export async function armMarketCut(d,name,{targetId=null,observeRegistryWrites=false}={}){
+  assert(['A1','A2','B','C'].includes(name));
+  assert(!observeRegistryWrites||name==='C');
+  const isWorker=name.startsWith('A'),origin='chrome-extension://'+d.getExtensionId();
+  const path=isWorker?'marketplace/market-host.js':'ui/marketplace.js',url=origin+'/'+path;
+  const target=await d.until(async()=>(await d.sendBrowser('Target.getTargets')).targetInfos.find(row=>
+    isWorker?row.type==='service_worker'&&row.url===origin+'/sw.js':row.targetId===targetId),'actual market cut target '+name);
+  assert(isWorker||target.type==='page'&&target.url.startsWith(origin+'/ui/marketplace.html?intent='));
+  const {sessionId}=await d.sendBrowser('Target.attachToTarget',{targetId:target.targetId,flatten:true});
+  const client={send:(method,params={},timeout=10000)=>d.sendBrowser(method,params,timeout,sessionId)};
+  const record={name,status:'ARMING',target,url,sessionId,events:[],errors:[],boundary:isWorker?
+    'physical worker stop at real handoff call; not native tabs.create ACK loss':
+    'physical trusted page close at real installer call; not native storage.set ACK loss'};
+  if(observeRegistryWrites){record.observations=[];record.boundary='readonly original registry-write call counter during explicit recovery';d.evidence.r5.registryWritesDuringRecovery=record;}
+  else (d.evidence.r5.interruptions??=[]).push(record);
+  const scripts=[],contexts=[],versions=[],reads=new Set();let point,breakpointId,disposed=false,failed=null;
+  const controller=isWorker?d.getHost():null;
+  const off=d.onBrowserEvent(event=>{
+    if(controller&&event.sessionId===controller.sessionId&&event.method==='ServiceWorker.workerVersionUpdated')versions.push(...event.params.versions);
+    if(event.method==='Target.targetDestroyed'&&event.params.targetId===target.targetId)record.events.push(event);
+    if(event.sessionId!==sessionId)return;
+    if(event.method==='Runtime.executionContextCreated')contexts.push(event.params.context);
+    if(event.method==='Debugger.scriptParsed')scripts.push(event.params);
+    if(['Runtime.executionContextDestroyed','Runtime.executionContextsCleared','Inspector.detached'].includes(event.method))record.events.push(event);
+    if(event.method!=='Debugger.paused'||!event.params.hitBreakpoints?.includes(breakpointId))return;
+    const reading=(async()=>{
+      try{
+        if(!observeRegistryWrites)assert.equal(record.hit,undefined,'a cut can hit only once');
+        const frame=event.params.callFrames[0];
+        for(const key of ['scriptId','lineNumber','columnNumber'])assert.equal(frame.location[key],record.actualLocation[key]);
+        const expression=isWorker?'({intent:'+point.intentExpression+',reviewURL:'+point.reviewURLExpression+
+          ',sender:{documentId:'+point.senderExpression+'.documentId,tabId:'+point.senderExpression+'.tab.id}'+
+          (name==='A2'?',tab:'+point.tabExpression:'')+'})':name==='B'?
+          '({operationId:'+point.operationIdExpression+',toolId:'+point.toolIdExpression+',registryKey:'+point.registryKeyExpression+',journalKey:'+point.journalKeyExpression+'})':
+          '({key:'+point.keyExpression+',scope:'+point.scopeExpression+',failure:'+point.failureExpression+',next:'+point.nextExpression+',previous:'+point.previousExpression+'})';
+        const observation={at:new Date().toISOString(),location:frame.location,value:await readFrame(client,frame,expression)};
+        if(observeRegistryWrites)record.observations.push(observation);
+        else {record.hit=observation;record.status='PAUSED_AT_EXACT_CALL';}
+      }catch(error){failed=error;record.status='NOT_OBSERVED';record.errors.push({stage:'hit',message:error.message});}
+      finally{if(observeRegistryWrites)await client.send('Debugger.resume').catch(error=>record.errors.push({stage:'resume',message:error.message}));}
+    })();reads.add(reading);void reading.finally(()=>reads.delete(reading));
+  });
+  async function dispose(){
+    if(disposed)return;disposed=true;
+    await Promise.allSettled([...reads]);
+    const alive=(await d.sendBrowser('Target.getTargets').catch(()=>({targetInfos:[]}))).targetInfos.some(row=>row.targetId===target.targetId);
+    if(alive){
+      if(breakpointId)await client.send('Debugger.removeBreakpoint',{breakpointId},2000).catch(()=>{});
+      // Failed observation may have left a paused target. Teardown releases only
+      // the debugger; a failed case cannot acquire a PASS through this cleanup.
+      await client.send('Debugger.disable',{},2000).catch(()=>{});
+      await d.sendBrowser('Target.detachFromTarget',{sessionId},2000).catch(()=>{});
+    }
+    off();
+    if(controller)await controller.send('ServiceWorker.disable',{},2000).catch(()=>{});
+  }
+  d.t.after(dispose);
+  try{
+    await client.send('Runtime.enable');await client.send('Debugger.enable');
+    const script=await d.until(()=>scripts.find(row=>row.url===url),'source-bound market cut script '+name);
+    const actual=(await client.send('Debugger.getScriptSource',{scriptId:script.scriptId})).scriptSource;
+    assert.equal(hash(actual),hash(await readFile(join(d.extension,path),'utf8')),'cut source matches the loaded package');
+    const context=contexts.find(row=>row.id===script.executionContextId);assert(context?.uniqueId,'actual cut execution context');
+    Object.assign(record,{script,sourceHash:hash(actual),executionContext:context});
+    const discovered=discoverMarketCutPoints(actual,{required:[name],registryStoreKey:SIDEBAR_TOOL_STORE})[name];
+    point=observeRegistryWrites?discovered.submission:discovered;record.point=point;
+    const possible=await client.send('Debugger.getPossibleBreakpoints',{start:{scriptId:script.scriptId,...point.location},end:{scriptId:script.scriptId,...point.endLocation},restrictToFunction:true});
+    const location=exactBreakpointLocation(point,possible.locations,script.scriptId);
+    const installed=await client.send('Debugger.setBreakpoint',{location,...(point.condition?{condition:point.condition}:{})});
+    for(const key of ['scriptId','lineNumber','columnNumber'])assert.equal(installed.actualLocation[key],location[key],'no cut relocation');
+    breakpointId=installed.breakpointId;record.actualLocation=installed.actualLocation;
+    if(controller){
+      await controller.send('ServiceWorker.enable');
+      record.workerVersion=await d.until(()=>versions.filter(row=>row.targetId===target.targetId&&row.scriptURL===origin+'/sw.js'&&row.runningStatus==='running').at(-1),'exact running market worker version');
+    }
+    record.status='ARMED';
+  }catch(error){failed=error;record.status='NOT_OBSERVED';record.errors.push({stage:'arm',message:error.message});await dispose();throw error;}
+  async function wait(){return d.until(()=>{if(failed)throw failed;return record.hit;},'native exact interruption '+name);}
+  async function terminate(){
+    await wait();record.termination={requestedAt:new Date().toISOString(),method:isWorker?'ServiceWorker.stopWorker':'Target.closeTarget'};
+    if(isWorker)await controller.send('ServiceWorker.stopWorker',{versionId:record.workerVersion.versionId});
+    else assert.equal((await d.sendBrowser('Target.closeTarget',{targetId:target.targetId})).success,true);
+    await d.until(async()=>(await d.sendBrowser('Target.getTargets')).targetInfos.every(row=>row.targetId!==target.targetId),'cut target physically absent '+name);
+    if(isWorker)record.termination.stoppedVersion=await d.until(()=>versions.find(row=>row.versionId===record.workerVersion.versionId&&row.runningStatus==='stopped'),'cut worker version actually stopped');
+    record.termination.targetAbsent=true;record.termination.observedAt=new Date().toISOString();record.status='INTERRUPTED';
+    await dispose();return record;
+  }
+  return {record,wait,terminate,dispose};
 }

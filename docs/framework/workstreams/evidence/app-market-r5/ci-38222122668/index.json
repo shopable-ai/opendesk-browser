@@ -1,0 +1,80 @@
+{
+  "schema": "opendesk.market.r5.ci-evidence.v1",
+  "runId": 38222122668,
+  "sourceCommit": "b177a7bba28576a37da98f5dae40396e91940f5b",
+  "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38222122668",
+  "state": "FAILED",
+  "receipts": [
+    {
+      "platform": "linux",
+      "artifactId": 11734134684,
+      "jobId": 114720640928,
+      "zipBytes": 758692,
+      "zipSha256": "9e5684d26adab0a4b38aa9197554ff8854f12468d6887691d366051aa15bf148",
+      "receiptPath": "artifacts/app-market-r5/native/native-result.json",
+      "retainedReceipt": "linux-native-result.json.gz",
+      "rawSha256": "5178fdfd23a1e3e1e133971b88049225ec368a2b677417e3439db1818bd8e519",
+      "gzipSha256": "a89dea3f465dfc33666bb7be1d8376e70b210ebfb779bbc7d4cab8be52306f3b",
+      "result": "FAILED",
+      "failedStage": "r5-public-pages-and-responsive-layout",
+      "extensionId": "nmeilgnolfnnlopgjoijdafbkelekcbj",
+      "packageHash": "b0d63a17f99622ae58b96ab4f9a36e4b8dce9cf10c69afc708f3a949c84da98d",
+      "catalogSha256": "bb75f59865ef03db0c9ec75b6f703c2f346ac5e591467e36d6c49d62ada2cfd6",
+      "chrome": "Chrome/155.0.8059.39",
+      "siteBuildId": "0733854fc7c2f9a5387d801cf5f7064095d66905b3f793ea3f77d2a63cd9d119",
+      "senderObservation": "OBSERVED"
+    },
+    {
+      "platform": "macos",
+      "artifactId": 11735041270,
+      "jobId": 114720641217,
+      "zipBytes": 639305,
+      "zipSha256": "e36c4edbc1cc230bb028c745e23a36dd95c8b79518cd192e21f5844910c26b3f",
+      "receiptPath": "artifacts/app-market-r5/native/native-result.json",
+      "retainedReceipt": "macos-native-result.json.gz",
+      "rawSha256": "7065a1e690f638e954ff603d9af942214235a89b64ad78d81bd8da2f3c980741",
+      "gzipSha256": "58a01a7e89fca6cc19b703c9537498eac602f2325e0c687bd86aa40cc08cfa5a",
+      "result": "FAILED",
+      "failedStage": "r5-public-pages-and-responsive-layout",
+      "extensionId": "oibdecbpklpnlljpiolnkgpohmpflnmj",
+      "packageHash": "c801a6af45c029e3ab9b5b98b564a0df25dcc1f89357d700c31a39bb99797646",
+      "catalogSha256": "bb75f59865ef03db0c9ec75b6f703c2f346ac5e591467e36d6c49d62ada2cfd6",
+      "chrome": "Chrome/155.0.8059.39",
+      "siteBuildId": "2b33dca85b69f1b0e69055d8aa7791e1927fdbe7f96bb64a07ce0ef1ab06ec4c",
+      "senderObservation": "OBSERVED"
+    },
+    {
+      "platform": "production",
+      "artifactId": 11734464829,
+      "jobId": 114720640606,
+      "zipBytes": 1435167,
+      "zipSha256": "c43f4006ef741f68a2dfcc7c1b1e0e480baab86062907deb07bc71eff38082a7",
+      "receiptPath": "artifacts/app-market-r3/native-result.json",
+      "retainedReceipt": "production-native-result.json.gz",
+      "rawSha256": "bae6cc53db42eb48480f1d43e071241b030cac30c2010ce854cd24c1c5ebf9d4",
+      "gzipSha256": "3a5a74337bace24d361174a90557589b23f14d88708099c662ef1cdba3088af4",
+      "result": "FAILED",
+      "failedStage": "panel-close-reopen-preserves-grants-and-no-automatic-tool-instance",
+      "extensionId": "jhajepcnohiplmafaiokjlcagcfjgaap",
+      "packageHash": "1cef10d0eac7f5e224d7f1cec6d2bb4347d9cd5ab952316efe212f2ce4e65b65",
+      "catalogSha256": "bb75f59865ef03db0c9ec75b6f703c2f346ac5e591467e36d6c49d62ada2cfd6",
+      "chrome": "Chrome/155.0.8059.39",
+      "siteBuildId": null,
+      "senderObservation": null
+    }
+  ],
+  "findings": [
+    "Linux and macOS actual browser-provided external sender observation passed; both native chains then stopped at the obsolete Markdown=one-card assertion. No website install was reached.",
+    "Production revocation persisted correctly and safely closed the clipper sandbox; a hidden-DOM assertion failed.",
+    "Six production tool-page Foundation registration rejections are retained and require a product fix, not a test exclusion.",
+    "No overall R5 native PASS, formal HTTPS PASS or Mac user-profile PASS is implied."
+  ],
+  "localComponentFollowup": {
+    "file": "components-native-cut-host-fix.tap",
+    "tests": 87,
+    "pass": 87,
+    "sourceBase": "b177a7bba28576a37da98f5dae40396e91940f5b",
+    "workingDiff": "R5 exact cut driver and finite internal tool URL fix, before unrelated main fast-forward",
+    "nativeEvidence": false
+  }
+}
