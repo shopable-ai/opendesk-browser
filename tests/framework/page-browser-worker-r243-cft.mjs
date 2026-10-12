@@ -12,7 +12,7 @@ import {launchLocalDevChrome} from './local-dev-cft-launcher.mjs';
 import {runBrowserComponentCycles} from './page-browser-ui-r243-cycles.mjs';
 
 const root=process.cwd(),output=path.resolve(process.env.OPENDESK_DEV_EVIDENCE||
-  '.runtime/tests/page-browser-worker-r243'),packageRoot=path.resolve('dist/production');
+  '.runtime/tests/page-browser-worker-r243'),packageRoot=path.resolve(process.env.OPENDESK_DEV_PACKAGE_DIR||'dist/production');
 fs.mkdirSync(output,{recursive:true});
 const binary=process.env.CHROME_FOR_TESTING_BIN;
 if(!binary||!fs.existsSync(binary))throw Error('Chrome for Testing binary is required');
@@ -135,6 +135,31 @@ async function verifyBrowserUI({browser,page,catalogTabId,base,extensionId,outpu
       'trusted Sidebar developer navigation',10000);
     const permission=await sidebar.read('chrome.permissions.contains({origins:["http://127.0.0.1:43111/*"]})');
     assert.equal(permission,true,'original Chrome website permission must be granted');
+    if(process.env.OPENDESK_R245_STANDARD_SMOKE==='1'){
+      const marker=await sidebar.read('(async()=>{const r=await fetch(chrome.runtime.getURL("framework/browser-edition.json"));'+
+        'if(!r.ok)throw Error("E_EDITION_MARKER");return r.json()})()');
+      assert.equal(marker.edition,'standard');
+      assert.equal(marker.browserComponentCompiler,false);
+      const state=await sidebar.read('(()=>{const js=document.querySelector("#page-component-javascript");'+
+        'const react=document.querySelector("#page-component-react");'+
+        'const vue=document.querySelector("#page-component-vue");'+
+        'const hint=document.querySelector("#page-component-hint");'+
+        'return {jsChecked:js?.checked,reactDisabled:react?.disabled,vueDisabled:vue?.disabled,'+
+        'reactHidden:react?.parentElement?.hidden,vueHidden:vue?.parentElement?.hidden,'+
+        'hint:hint?.textContent}})()');
+      assert.equal(state.jsChecked,true);
+      assert.equal(state.reactDisabled,true);
+      assert.equal(state.vueDisabled,true);
+      assert.equal(state.reactHidden,true);
+      assert.equal(state.vueHidden,true);
+      assert.match(state.hint,/标准版/);
+      report.tests.push({name:'r245-standard-real-chrome-no-browser-compiler-ui',
+        status:'PASS',edition:marker.edition,noNative:true,compilerChoicesHidden:true,
+        javascriptChoiceRetained:true});
+      const screenshot=await sidebar.call('Page.captureScreenshot',{format:'png'});
+      fs.writeFileSync(path.join(output,'r245-standard-sidepanel.png'),Buffer.from(screenshot.data,'base64'));
+      return;
+    }
     for(const framework of ['react','vue']){
       await selectFramework(sidebar,framework);
       await until(()=>sidebar.read('document.querySelector("#page-component-'+framework+'").checked===true'),
@@ -321,7 +346,7 @@ async function main(){
     await until(()=>page.read('location.protocol==="chrome-extension:"&&document.readyState==="complete"'),
       'actual packaged extension page');
     assert.equal(await page.read('typeof Worker'),'function');
-    for(const [framework,fixture] of [
+    if(process.env.OPENDESK_R245_STANDARD_SMOKE!=='1')for(const [framework,fixture] of [
       ['react','examples/programs/page-ui-react/src/App.jsx'],
       ['vue','examples/programs/page-ui-vue/src/App.vue']
     ]){
@@ -355,7 +380,10 @@ async function main(){
         bytes:result.bytes,cspWorker:true,noNative:true,compiledWithoutExecutingComponent:true};
       report.tests.push(proof);
     }
-    if(process.env.OPENDESK_R243_BROWSER_FULL_UI==='1'){
+    if(process.env.OPENDESK_R245_STANDARD_SMOKE==='1'){
+      await verifyBrowserUI({browser,page,catalogTabId:tab.id,base,extensionId,output,report});
+      report.status='PASS_STANDARD_BROWSER_NO_COMPILER';
+    }else if(process.env.OPENDESK_R243_BROWSER_FULL_UI==='1'){
       await verifyBrowserUI({browser,page,catalogTabId:tab.id,base,extensionId,output,report});
       report.status=process.env.OPENDESK_R243_BROWSER_STRESS==='1'?
         'PASS_BROWSER_UI_NO_NATIVE_20X_EACH_RUN_STOP':'PASS_BROWSER_UI_NO_NATIVE_REACT_VUE_RUN_STOP';
