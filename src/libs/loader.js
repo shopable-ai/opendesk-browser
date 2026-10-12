@@ -89,3 +89,26 @@ export async function loadPackagedOptionalPageLibraries(ids,{runtime=globalThis.
 export async function loadPackagedOptionalPageLibrary(id,options){
   return (await loadPackagedOptionalPageLibraries([id],options))[0];
 }
+
+// Only Axios is currently admitted to the Controller optional world. The
+// binary is the SAME pinned resource used by Page, never a second npm bundle.
+export function controllerSelectedPackagedLibrary(sourceUtf8){
+  if(typeof sourceUtf8!=='string')throw fail('E_BUILTIN_DECLARATION');
+  const ids=[];
+  for(const line of sourceUtf8.replace(/^\uFEFF/,'').split(/\r?\n/)){
+    if(/^\s*$/.test(line))continue;
+    const row=/^\s*\/\/\s*@opendesk-lib\s+([^\s]+)\s*$/.exec(line);
+    if(row){ids.push(row[1]);continue;}
+    if(!/^\s*\/\//.test(line))break;
+  }
+  const chosen=[...new Set(ids)];
+  if(chosen.length>1||chosen.some(id=>id!=='axios')||
+     ids.length>6)throw fail('E_BUILTIN_DECLARATION');
+  return chosen[0]??null;
+}
+export async function loadPackagedOptionalControllerLibrary(id,options){
+  if(id!=='axios'||!catalog.libraries.axios.worlds.includes('CONTROLLER'))
+    throw fail('E_BUILTIN_DECLARATION');
+  // The shared loader performs one manifest read and exact SHA-256 per asset.
+  return (await loadPackagedOptionalPageLibraries([id],options))[0];
+}

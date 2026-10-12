@@ -396,6 +396,8 @@ export async function buildProgramProject(input,{outputDirectory,mode='productio
     let sourceUtf8=programSource(pkg,project,compiled.bundle,{sourceMapFile,assets:embeddedAssets,entryAsync:compiled.entryAsync});
     if(project.remoteDependencies)sourceUtf8=await createPageBundle(sourceUtf8,{
       remoteModules:remote.modules,remoteImports:before.remoteImports,remoteLock:remote.lock});
+    if(project.runtimeKind==='controller'&&project.libraries?.length)
+      sourceUtf8=project.libraries.map(id=>'// @opendesk-lib '+id).join('\n')+'\n'+sourceUtf8;
     const bytes=Buffer.from(sourceUtf8,'utf8');
     const limit=project.runtimeKind==='page-userscript'?SOURCE_LIMIT:65536;
     if(project.runtimeKind==='page-userscript')await validatePageSource(sourceUtf8,{plainLimit:SOURCE_LIMIT});

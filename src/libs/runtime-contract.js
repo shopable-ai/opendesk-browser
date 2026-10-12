@@ -31,7 +31,7 @@ export const BUILTIN_RUNTIME_CATALOG=Object.freeze({
     queryString:Object.freeze({id:'queryString',version:'9.5.1',output:'libs/packages/query-string.js',
       worlds:Object.freeze(['USER_SCRIPT']),default:false}),
     axios:Object.freeze({id:'axios',version:'1.20.0',output:'libs/packages/axios.js',
-      worlds:Object.freeze(['USER_SCRIPT']),default:false}),
+      worlds:Object.freeze(['CONTROLLER','USER_SCRIPT']),default:false}),
     store:Object.freeze({id:'store',version:'2.0.12',output:'libs/packages/store.js',
       worlds:Object.freeze(['USER_SCRIPT']),default:false}),
     cheerio:Object.freeze({id:'cheerio',version:'1.2.0',output:'libs/packages/cheerio.js',

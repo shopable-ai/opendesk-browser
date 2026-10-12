@@ -126,7 +126,8 @@ export async function inspectLibraries({cwd=process.cwd()}={}) {
   if(history.issues.length)errors.push(...history.issues);
   const invalidWorlds=Object.values(BUILTIN_CATALOG.libraries).filter(row=>
     row.worlds.some(world=>!['CONTROLLER','USER_SCRIPT'].includes(world))||
-    (['jquery','jsCookie','cryptoJs','fileSaver','queryString','axios','store','cheerio','fingerprintjs'].includes(row.id)&&(row.default||row.worlds.join(',')!=='USER_SCRIPT'))||
+    (['jquery','jsCookie','cryptoJs','fileSaver','queryString','store','cheerio','fingerprintjs'].includes(row.id)&&(row.default||row.worlds.join(',')!=='USER_SCRIPT'))||
+    (row.id==='axios'&&(row.default||row.worlds.join(',')!=='CONTROLLER,USER_SCRIPT'))||
     (!['jquery','jsCookie','cryptoJs','fileSaver','queryString','axios','store','cheerio','fingerprintjs'].includes(row.id)&&!row.default));
   report.sources.worlds=result(invalidWorlds.length?'SOURCE_FAIL':'SOURCE_PASS',
     invalidWorlds.length?{location:'src/libs/runtime-contract.js:1',ids:invalidWorlds.map(row=>row.id)}:undefined);

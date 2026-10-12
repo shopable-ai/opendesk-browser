@@ -15,6 +15,7 @@ import {validateRemoteImports} from '../src/scripting/user-scripts/remote-esm-co
 import {inspectDefaultProgramEntry} from './program-entry.mjs';
 import {PAGE_FRAMEWORK_IMPORTS} from '../src/libs/page-frameworks/contract.js';
 import {pageOptionalLibraryId,PAGE_OPTIONAL_LIBRARY_LIMIT} from '../src/scripting/user-scripts/execution-source.js';
+import {BUILTIN_RUNTIME_CATALOG} from '../src/libs/runtime-contract.js';
 import {transformVueSFC} from '../src/libs/page-frameworks/vue-sfc-transform.js';
 
 const FORMAT='opendesk.project.v1';
@@ -88,7 +89,7 @@ function metadata(pkg,projectLabel){
   const shared=['format','id','runtimeKind','sourceFormat','entry','assets'];
   const allowed=p.runtimeKind==='page-userscript'
     ?[...shared,'pageRules','framework','libraries','entryMode','remoteDependencies']
-    :[...shared,'siteOrigins','permissions','paramsSchema'];
+    :[...shared,'siteOrigins','permissions','paramsSchema','libraries'];
   ensure(Object.keys(p).every(k=>allowed.includes(k))&&
     allowed.filter(k=>k!=='assets'&&k!=='framework'&&k!=='entryMode'&&k!=='remoteDependencies'&&k!=='libraries').every(k=>Object.hasOwn(p,k)),
     'E_PROJECT_SCHEMA','Project fields do not match the declared runtime kind',details);
@@ -128,6 +129,10 @@ function metadata(pkg,projectLabel){
       'E_PROJECT_LIBRARIES','Use only reviewed Page library IDs, up to the existing declaration budget',
       {...details,location:'package.json#opendesk.libraries'});
   }else{
+    ensure(p.libraries===undefined||Array.isArray(p.libraries)&&p.libraries.length<=1&&
+      p.libraries.every(id=>id==='axios'&&BUILTIN_RUNTIME_CATALOG.libraries.axios.worlds.includes('CONTROLLER')),
+      'E_PROJECT_LIBRARIES','Controller currently supports only opt-in, Broker-bound Axios',
+      {...details,location:'package.json#opendesk.libraries'});
     ensure(Array.isArray(p.siteOrigins)&&p.siteOrigins.length===1&&
       Array.isArray(p.permissions)&&p.permissions.length===1&&p.permissions[0]==='page.automation',
       'E_PROJECT_PERMISSION','Controller projects require exactly page.automation permission',
