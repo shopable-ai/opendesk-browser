@@ -1,0 +1,53 @@
+{
+  "status": "NOT_TESTED",
+  "scope": "passive browser identity only; no UI or product calls",
+  "pid": 85732,
+  "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-muy7plfv",
+  "version": {
+    "protocolVersion": "1.3",
+    "product": "Chrome/155.0.8059.39",
+    "revision": "@3ff7ac5a9224be9156d7f8703a06e22890aafd34",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36",
+    "jsVersion": "15.5.35.20"
+  },
+  "targets": [
+    {
+      "targetId": "93434A1B0CA49908A7B37EDB3F423F04",
+      "type": "service_worker",
+      "url": "chrome-extension://cnedppiekhfmhdlnhdhgbegfoibllbho/sw.js",
+      "title": "Service Worker chrome-extension://cnedppiekhfmhdlnhdhgbegfoibllbho/sw.js"
+    },
+    {
+      "targetId": "4F2A7B8701706181E58057A219379D23",
+      "type": "page",
+      "url": "chrome-extension://cnedppiekhfmhdlnhdhgbegfoibllbho/native-agent/settings.html",
+      "title": "OpenDesk Browser · Native Agent"
+    },
+    {
+      "targetId": "298781D491B01C5434416B6C0074282D",
+      "type": "browser_ui",
+      "url": "chrome://omnibox-popup.top-chrome/omnibox_popup_aim.html",
+      "title": "Omnibox Popup"
+    },
+    {
+      "targetId": "09EAAB39849AB225A3C3A68EDF709075",
+      "type": "page",
+      "url": "chrome-extension://cnedppiekhfmhdlnhdhgbegfoibllbho/ui/tool.html?hostInstanceId=0a7de48f-6149-4d11-ae31-f0cada9933d9",
+      "title": "OpenDesk Browser"
+    },
+    {
+      "targetId": "C99E8479B4DF2714354B840C127CC8F0",
+      "type": "page",
+      "url": "http://127.0.0.1:43111/demo-form.html",
+      "title": "OpenDesk Browser · Browser Test Lab"
+    },
+    {
+      "targetId": "3150E2DB215A699B6BBC241EA75A854B",
+      "type": "browser_ui",
+      "url": "chrome://omnibox-popup.top-chrome/",
+      "title": "Omnibox Popup"
+    }
+  ],
+  "newProviderStarted": false,
+  "newJobSeeded": false
+}

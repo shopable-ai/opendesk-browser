@@ -1,0 +1,14 @@
+{
+  "observedAt": "2026-10-12",
+  "status": "BLOCKED",
+  "actualToolResponse": "The Mac is locked and automatic unlock could not unlock it. Ask the user to unlock the Mac manually before continuing.",
+  "precedingBinding": "getApp exact official CFT path returned another workflow Native Agent window; no UI action performed",
+  "ownedCftPid": 85732,
+  "ownedProfile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-muy7plfv",
+  "ownedCandidate": "candidate-a, superseded by B",
+  "newJobSeeded": false,
+  "nativePassClaim": false,
+  "userQuestionPending": true,
+  "bindingClarification": "Passive CDP and Secure Preferences prove cnedppiekhfmhdlnhdhgbegfoibllbho belongs to this task candidate-A PID85732. R16 continuation recorded stopping immediately after opening only menu/SidePanel/settings in this same-name instance, with no auth/turn/run/save. Do not assume app name/path identifies a specific profile.",
+  "otherWorkflowEvidence": "docs/framework/workstreams/r16-r2-continue-01a12f91.md"
+}

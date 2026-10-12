@@ -1,0 +1,146 @@
+
+> opendesk-browser@0.1.0 build:dev
+> node scripts/build.mjs development
+
+ℹ Generating types...
+ℹ Building chrome-mv3 for development with Vite 7.3.6
+[?25l⠋ Preparing...[K⠋ [1/34] axios[K⠙ [1/34] axios[K⠹ [1/34] axios[K⠸ [1/34] axios[K⠼ [1/34] axios[K⠴ [1/34] axios[K⠦ [1/34] axios[K⠧ [1/34] axios[K⠇ [1/34] axios[K⠏ [1/34] axios[K⠋ [1/34] axios[K⠙ [1/34] axios[K⠙ [2/34] sw[K⠹ [2/34] sw[K⠸ [2/34] sw[K⠼ [2/34] sw[K⠴ [2/34] sw[K⠦ [2/34] sw[K⠧ [2/34] sw[K⠇ [2/34] sw[K⠏ [2/34] sw[K⠋ [2/34] sw[K⠙ [2/34] sw[K⠹ [2/34] sw[K⠸ [2/34] sw[K⠼ [2/34] sw[K⠴ [2/34] sw[K⠦ [2/34] sw[K⠧ [2/34] sw[K⠇ [2/34] sw[K⠏ [2/34] sw[K⠋ [2/34] sw[K⠙ [2/34] sw[K⠹ [2/34] sw[K⠸ [2/34] sw[K⠼ [2/34] sw[K⠴ [2/34] sw[K⠦ [2/34] sw[K⠧ [2/34] sw[K⠇ [2/34] sw[K⠏ [2/34] sw[K⠋ [2/34] sw[K⠙ [2/34] sw[K⠹ [2/34] sw[K⠸ [2/34] sw[K⠸ [3/34] bootstrap[K⠼ [3/34] bootstrap[K⠼ [4/34] bridge[K⠴ [4/34] bridge[K⠦ [4/34] bridge[K⠦ [5/34] cheerio[K⠧ [5/34] cheerio[K⠇ [5/34] cheerio[K⠏ [5/34] cheerio[K⠋ [5/34] cheerio[K⠙ [5/34] cheerio[K⠹ [5/34] cheerio[K⠸ [5/34] cheerio[K⠼ [5/34] cheerio[K⠼ [6/34] cloud-console[K⠴ [6/34] cloud-console[K⠴ [7/34] cloud-host[K⠦ [7/34] cloud-host[K⠧ [7/34] cloud-host[K⠇ [7/34] cloud-host[K⠏ [7/34] cloud-host[K⠋ [7/34] cloud-host[K⠋ [8/34] context-menus[K⠙ [8/34] context-menus[K⠹ [8/34] context-menus[K⠸ [8/34] context-menus[K⠼ [8/34] context-menus[K⠴ [8/34] context-menus[K⠴ [9/34] crypto-js[K⠦ [9/34] crypto-js[K⠧ [9/34] crypto-js[K⠇ [9/34] crypto-js[K⠏ [9/34] crypto-js[K⠋ [9/34] crypto-js[K⠙ [9/34] crypto-js[K⠹ [9/34] crypto-js[K⠸ [9/34] crypto-js[K⠼ [9/34] crypto-js[K⠴ [9/34] crypto-js[K⠦ [9/34] crypto-js[K⠧ [9/34] crypto-js[K⠧ [10/34] dayjs[K⠇ [10/34] dayjs[K⠏ [10/34] dayjs[K⠋ [10/34] dayjs[K⠙ [10/34] dayjs[K⠹ [10/34] dayjs[K⠹ [11/34] file-saver[K⠸ [11/34] file-saver[K⠸ [12/34] fingerprintjs[K⠼ [12/34] fingerprintjs[K⠴ [12/34] fingerprintjs[K⠦ [12/34] fingerprintjs[K⠧ [12/34] fingerprintjs[K⠧ [13/34] health-host[K⠇ [13/34] health-host[K⠏ [13/34] health-host[K⠏ [14/34] health[K⠋ [14/34] health[K⠋ [15/34] js-cookie[K⠙ [15/34] js-cookie[K⠙ [16/34] knowledge-host[K⠹ [16/34] knowledge-host[K⠸ [16/34] knowledge-host[K⠼ [16/34] knowledge-host[K⠴ [16/34] knowledge-host[K⠴ [17/34] lodash[K⠦ [17/34] lodash[K⠧ [17/34] lodash[K⠧ [18/34] market-host[K⠇ [18/34] market-host[K⠏ [18/34] market-host[K⠋ [18/34] market-host[K⠋ [19/34] marketplace[K⠙ [19/34] marketplace[K⠹ [19/34] marketplace[K⠸ [19/34] marketplace[K⠼ [19/34] marketplace[K⠴ [19/34] marketplace[K⠦ [19/34] marketplace[K⠧ [19/34] marketplace[K⠧ [20/34] page-agent[K⠇ [20/34] page-agent[K⠏ [20/34] page-agent[K⠏ [21/34] page-core[K⠋ [21/34] page-core[K⠙ [21/34] page-core[K⠙ [22/34] page-relay[K⠹ [22/34] page-relay[K⠸ [22/34] page-relay[K⠼ [22/34] page-relay[K⠴ [22/34] page-relay[K⠦ [22/34] page-relay[K⠧ [22/34] page-relay[K⠧ [23/34] page-session[K⠇ [23/34] page-session[K⠏ [23/34] page-session[K⠋ [23/34] page-session[K⠙ [23/34] page-session[K⠙ [24/34] preinstall-intent[K⠹ [24/34] preinstall-intent[K⠸ [24/34] preinstall-intent[K⠼ [24/34] preinstall-intent[K⠴ [24/34] preinstall-intent[K⠴ [25/34] query-string[K⠦ [25/34] query-string[K⠧ [25/34] query-string[K⠧ [26/34] sandbox[K⠇ [26/34] sandbox[K⠇ [27/34] sdk-main[K⠏ [27/34] sdk-main[K⠋ [27/34] sdk-main[K⠙ [27/34] sdk-main[K⠹ [27/34] sdk-main[K⠹ [28/34] selection-entry[K⠸ [28/34] selection-entry[K⠸ [29/34] settings[K⠼ [29/34] settings[K⠴ [29/34] settings[K⠦ [29/34] settings[K⠧ [29/34] settings[K⠇ [29/34] settings[K⠏ [29/34] settings[K⠏ [30/34] store[K⠋ [30/34] store[K⠙ [30/34] store[K⠙ [31/34] time-review-host[K⠹ [31/34] time-review-host[K⠸ [31/34] time-review-host[K⠼ [31/34] time-review-host[K⠼ [32/34] tool-shell[K⠴ [32/34] tool-shell[K⠦ [32/34] tool-shell[K⠧ [32/34] tool-shell[K⠇ [32/34] tool-shell[K⠏ [32/34] tool-shell[K⠋ [32/34] tool-shell[K⠙ [32/34] tool-shell[K⠹ [32/34] tool-shell[K⠸ [32/34] tool-shell[K⠼ [32/34] tool-shell[K⠴ [32/34] tool-shell[K⠦ [32/34] tool-shell[K⠧ [32/34] tool-shell[K⠇ [32/34] tool-shell[K⠏ [32/34] tool-shell[K⠋ [32/34] tool-shell[K⠙ [32/34] tool-shell[K⠹ [32/34] tool-shell[K⠸ [32/34] tool-shell[K⠼ [32/34] tool-shell[K⠴ [32/34] tool-shell[K⠦ [32/34] tool-shell[K⠧ [32/34] tool-shell[K⠇ [32/34] tool-shell[K⠇ [33/34] transport[K⠏ [33/34] transport[K⠋ [33/34] transport[K⠙ [33/34] transport[K⠹ [33/34] transport[K⠹ [34/34] worker-runtime[K⠸ [34/34] worker-runtime[K⠼ [34/34] worker-runtime[K⠴ [34/34] worker-runtime[K⠦ [34/34] worker-runtime[K[K[?25h[K[?25h✔ Built extension in 14.9 s
+  ├─ dist/development/manifest.json                                                                2.21 kB  
+  ├─ dist/development/native-agent/settings.html                                                   2.23 kB  
+  ├─ dist/development/native-agent/workspace.html                                                  12.25 kB 
+  ├─ dist/development/scripting/sandbox/sandbox.html                                               385 B    
+  ├─ dist/development/sidebar-tools/sandbox.html                                                   560 B    
+  ├─ dist/development/ui/cloud-control.html                                                        2.92 kB  
+  ├─ dist/development/ui/marketplace.html                                                          931 B    
+  ├─ dist/development/ui/target-bootstrap.html                                                     200 B    
+  ├─ dist/development/ui/tool.html                                                                 62.98 kB 
+  ├─ dist/development/agents/bootstrap.js                                                          1.17 kB  
+  ├─ dist/development/agents/bootstrap.js.map                                                      13.91 kB 
+  ├─ dist/development/agents/health-host.js                                                        8.62 kB  
+  ├─ dist/development/agents/health-host.js.map                                                    26.03 kB 
+  ├─ dist/development/agents/health.js                                                             1.06 kB  
+  ├─ dist/development/agents/health.js.map                                                         14.84 kB 
+  ├─ dist/development/agents/page-agent.js                                                         34.66 kB 
+  ├─ dist/development/agents/page-agent.js.map                                                     95.80 kB 
+  ├─ dist/development/agents/page-relay.js                                                         77.44 kB 
+  ├─ dist/development/agents/page-relay.js.map                                                     253.09 kB
+  ├─ dist/development/agents/selection-entry.js                                                    638 B    
+  ├─ dist/development/agents/selection-entry.js.map                                                968 B    
+  ├─ dist/development/cloud-control/cloud-host.js                                                  39.78 kB 
+  ├─ dist/development/cloud-control/cloud-host.js.map                                              177.73 kB
+  ├─ dist/development/framework/sdk-main.js                                                        45.59 kB 
+  ├─ dist/development/framework/sdk-main.js.map                                                    138.24 kB
+  ├─ dist/development/knowledge/knowledge-host.js                                                  37.42 kB 
+  ├─ dist/development/knowledge/knowledge-host.js.map                                              144.09 kB
+  ├─ dist/development/libs/packages/axios.js                                                       51.90 kB 
+  ├─ dist/development/libs/packages/axios.js.map                                                   259.90 kB
+  ├─ dist/development/libs/packages/cheerio.js                                                     121.83 kB
+  ├─ dist/development/libs/packages/cheerio.js.map                                                 486.73 kB
+  ├─ dist/development/libs/packages/crypto-js.js                                                   66.93 kB 
+  ├─ dist/development/libs/packages/crypto-js.js.map                                               344.00 kB
+  ├─ dist/development/libs/packages/dayjs.js                                                       20.53 kB 
+  ├─ dist/development/libs/packages/dayjs.js.map                                                   53.20 kB 
+  ├─ dist/development/libs/packages/file-saver.js                                                  4.37 kB  
+  ├─ dist/development/libs/packages/file-saver.js.map                                              9.55 kB  
+  ├─ dist/development/libs/packages/fingerprintjs.js                                               36.57 kB 
+  ├─ dist/development/libs/packages/fingerprintjs.js.map                                           183.44 kB
+  ├─ dist/development/libs/packages/js-cookie.js                                                   2.47 kB  
+  ├─ dist/development/libs/packages/js-cookie.js.map                                               7.73 kB  
+  ├─ dist/development/libs/packages/lodash.js                                                      13.06 kB 
+  ├─ dist/development/libs/packages/lodash.js.map                                                  105.58 kB
+  ├─ dist/development/libs/packages/query-string.js                                                9.52 kB  
+  ├─ dist/development/libs/packages/query-string.js.map                                            38.48 kB 
+  ├─ dist/development/libs/packages/store.js                                                       8.91 kB  
+  ├─ dist/development/libs/packages/store.js.map                                                   29.79 kB 
+  ├─ dist/development/libs/page-frameworks/babel-7.29.9.min.js                                     3.14 MB  
+  ├─ dist/development/libs/page-frameworks/page-ui-helper-r243.js                                  17.90 kB 
+  ├─ dist/development/libs/page-frameworks/react-19.2.0.js                                         193.16 kB
+  ├─ dist/development/libs/page-frameworks/vue-3.5.22.js                                           118.13 kB
+  ├─ dist/development/libs/runtime/bootstrap.js                                                    876 B    
+  ├─ dist/development/libs/runtime/page-core.js                                                    8.17 kB  
+  ├─ dist/development/libs/runtime/page-core.js.map                                                18.27 kB 
+  ├─ dist/development/libs/vendor/jquery/3.7.1/jquery.min.js                                       87.53 kB 
+  ├─ dist/development/libs/vendor/my-utils/1.0.0/index.js                                          291 B    
+  ├─ dist/development/marketplace/market-host.js                                                   28.02 kB 
+  ├─ dist/development/marketplace/market-host.js.map                                               131.27 kB
+  ├─ dist/development/native-agent/settings.js                                                     99.18 kB 
+  ├─ dist/development/native-agent/settings.js.map                                                 252.17 kB
+  ├─ dist/development/native-agent/transport.js                                                    41.62 kB 
+  ├─ dist/development/native-agent/transport.js.map                                                150.62 kB
+  ├─ dist/development/platform/context-menus.js                                                    60.49 kB 
+  ├─ dist/development/platform/context-menus.js.map                                                189.32 kB
+  ├─ dist/development/scripting/packaged/page-session.js                                           39.73 kB 
+  ├─ dist/development/scripting/packaged/page-session.js.map                                       137.01 kB
+  ├─ dist/development/scripting/sandbox/sandbox.js                                                 4.24 kB  
+  ├─ dist/development/scripting/sandbox/sandbox.js.map                                             11.64 kB 
+  ├─ dist/development/scripting/sandbox/worker-runtime.js                                          40.14 kB 
+  ├─ dist/development/scripting/sandbox/worker-runtime.js.map                                      135.02 kB
+  ├─ dist/development/sidebar-tools/bridge.js                                                      26.65 kB 
+  ├─ dist/development/sidebar-tools/bridge.js.map                                                  84.10 kB 
+  ├─ dist/development/sidebar-tools/preinstall-intent.js                                           39.67 kB 
+  ├─ dist/development/sidebar-tools/preinstall-intent.js.map                                       149.54 kB
+  ├─ dist/development/sw.js                                                                        334.72 kB
+  ├─ dist/development/sw.js.map                                                                    1.15 MB  
+  ├─ dist/development/time-review/time-review-host.js                                              23.79 kB 
+  ├─ dist/development/time-review/time-review-host.js.map                                          89.37 kB 
+  ├─ dist/development/ui/cloud-console.js                                                          4.01 kB  
+  ├─ dist/development/ui/cloud-console.js.map                                                      22.54 kB 
+  ├─ dist/development/ui/marketplace.js                                                            86.83 kB 
+  ├─ dist/development/ui/marketplace.js.map                                                        277.61 kB
+  ├─ dist/development/ui/page-component-compiler-worker.js                                         2.22 kB  
+  ├─ dist/development/ui/tool-shell.js                                                             455.83 kB
+  ├─ dist/development/ui/tool-shell.js.map                                                         1.40 MB  
+  ├─ dist/development/native-agent/settings.css                                                    2.17 kB  
+  ├─ dist/development/native-agent/workspace.css                                                   32.22 kB 
+  ├─ dist/development/ui/cloud-control-console.css                                                 2.53 kB  
+  ├─ dist/development/ui/design-system.css                                                         4.07 kB  
+  ├─ dist/development/ui/design-tokens.css                                                         2.09 kB  
+  ├─ dist/development/ui/marketplace.css                                                           9.05 kB  
+  ├─ dist/development/ui/tool-shell.css                                                            71.43 kB 
+  ├─ dist/development/icons/notification.png                                                       595 B    
+  ├─ dist/development/libs/page-frameworks/page-component-linker-r243.mjs                          13.69 kB 
+  ├─ dist/development/libs/page-frameworks/vue-sfc-compiler-3.5.22.mjs                             1.07 MB  
+  ├─ dist/development/libs/page-frameworks/vue-sfc-transform-r243.mjs                              3.31 kB  
+  ├─ dist/development/licenses/axios-MIT.txt                                                       1.08 kB  
+  ├─ dist/development/licenses/cheerio-MIT.txt                                                     1.08 kB  
+  ├─ dist/development/licenses/crypto-js-MIT.txt                                                   1.17 kB  
+  ├─ dist/development/licenses/dayjs-MIT.txt                                                       1.07 kB  
+  ├─ dist/development/licenses/file-saver-MIT.txt                                                  1.10 kB  
+  ├─ dist/development/licenses/fingerprintjs-MIT.txt                                               1.07 kB  
+  ├─ dist/development/licenses/jquery-MIT.txt                                                      1.10 kB  
+  ├─ dist/development/licenses/js-cookie-MIT.txt                                                   1.12 kB  
+  ├─ dist/development/licenses/lodash-es-MIT.txt                                                   1.95 kB  
+  ├─ dist/development/licenses/my-utils-MIT.txt                                                    1.08 kB  
+  ├─ dist/development/licenses/page-browser-babel-MIT.txt                                          1.11 kB  
+  ├─ dist/development/licenses/page-framework-react-MIT.txt                                        1.09 kB  
+  ├─ dist/development/licenses/page-framework-vue-MIT.txt                                          1.11 kB  
+  ├─ dist/development/licenses/query-string-MIT.txt                                                1.12 kB  
+  ├─ dist/development/licenses/store-MIT.txt                                                       1.08 kB  
+  ├─ dist/development/licenses/todo-user-vue-MIT.txt                                               1.10 kB  
+  ├─ dist/development/marketplace/channel.json                                                     267 B    
+  ├─ dist/development/official-tools/catalog.json                                                  4.55 kB  
+  ├─ dist/development/official-tools/cookie-editor/cookie-editor.opendesk-tool.json                36.37 kB 
+  ├─ dist/development/official-tools/knowledge-inbox/knowledge-inbox.opendesk-tool.json            62.33 kB 
+  ├─ dist/development/official-tools/markdown-workbench/markdown-workbench.opendesk-tool.json      15.09 kB 
+  ├─ dist/development/official-tools/quick-notes/quick-notes.opendesk-tool.json                    23.14 kB 
+  ├─ dist/development/official-tools/reading-toc/reading-toc.opendesk-tool.json                    9.39 kB  
+  ├─ dist/development/official-tools/time-review/time-review.opendesk-tool.json                    36.46 kB 
+  └─ dist/development/official-tools/web-markdown-clipper/web-markdown-clipper.opendesk-tool.json  10.21 kB 
+Σ Total size: 13.53 MB                                                                           
+FAILED_BUILD_DIAGNOSTIC=/Users/shopme/Documents/workspace/opendesk-browser/.runtime/cloud-control-r14-final-20261012/candidate-c/docs/framework/evidence/wxt/builds/build-development-failed-1791805429637-42b56e4a-6949-43ae-984c-14a7aca0b547.json
+node:internal/fs/promises:1686
+  const result = await PromisePrototypeThen(
+                 ^
+
+Error: ENOENT: no such file or directory, stat '/Users/shopme/Documents/workspace/opendesk-browser/.runtime/cloud-control-r14-final-20261012/candidate-c/dist/development/ui/cloud-hosting.css'
+    at async stat (node:internal/fs/promises:1686:18)
+    at async inspectHTML (file:///Users/shopme/Documents/workspace/opendesk-browser/.runtime/cloud-control-r14-final-20261012/candidate-c/scripts/verify-package.mjs:351:49)
+    at async verifyPackage (file:///Users/shopme/Documents/workspace/opendesk-browser/.runtime/cloud-control-r14-final-20261012/candidate-c/scripts/verify-package.mjs:452:52)
+    at async file:///Users/shopme/Documents/workspace/opendesk-browser/.runtime/cloud-control-r14-final-20261012/candidate-c/scripts/build.mjs:43:16 {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'stat',
+  path: '/Users/shopme/Documents/workspace/opendesk-browser/.runtime/cloud-control-r14-final-20261012/candidate-c/dist/development/ui/cloud-hosting.css'
+}
+
+Node.js v26.3.1

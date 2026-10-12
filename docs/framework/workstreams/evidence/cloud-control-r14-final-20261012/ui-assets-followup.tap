@@ -1,0 +1,25 @@
+✔ all approved fixed entries use actual minified byte counts and retain a non-blocking margin signal (8.491083ms)
+✔ full inventory includes raw and static assets and sums the actual runtime resource sets (1.244125ms)
+✔ full inventory catches oversize raw code and missing or mismatched resources (1.614833ms)
+✔ SW review at 512 KiB is non-blocking and 1 MiB hard cap blocks +1 byte (0.554958ms)
+✔ Sidebar and other generated scripts may cross 320 KiB, but 512 KiB remains a strict limit (0.453291ms)
+✔ development distinguishes SW budget and source maps from executable code (0.400791ms)
+✔ fails closed on missing, duplicated, unmeasured or mismatched fixed entries (0.1695ms)
+✔ does not allow lodash-es/dayjs implementation into privileged SW (0.376708ms)
+✔ build budget and receipt freshness failures remain hard blockers (0.191833ms)
+✔ physical measurements reject incomplete or mismatched attempts and retain portable historical receipts (21.813125ms)
+✔ R3 remains immutable reference; R4 preview keeps installed Discover and independent full catalog (3.092667ms)
+✔ R4.9 Tools has one navigation tier and three accessible add/import/market controls (20.893834ms)
+✔ R15 official sidebar preserves five product views, privileged controls, compact discovery and task history (1.230375ms)
+✔ R5 keeps one derived interactive prototype with installed-only compact discovery (0.892709ms)
+✔ Developer source selector and new-script action use one narrow Sidebar toolbar (0.797708ms)
+✔ R19 Sidebar spacing and corner system is consistent across all five tabs (0.935416ms)
+✔ R20/R23 five-tab design system has one token source and a strict trusted asset pipeline (1.251041ms)
+ℹ tests 17
+ℹ suites 0
+ℹ pass 17
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 135.834417

@@ -1,0 +1,10 @@
+{
+  "status": "NOT_TESTED",
+  "ownedPid": 85732,
+  "reason": "candidate A superseded and Mac locked; empty native inventory verified",
+  "signal": "SIGTERM exact owned PID only",
+  "profilePreserved": true,
+  "nativeRunReleaseAsserted": false,
+  "historicalProfileTouched": false,
+  "otherCftTouched": false
+}

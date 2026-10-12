@@ -1,0 +1,751 @@
+{
+  "owner": "01a12f5b-8ed0-7782-8277-c1168b30a715",
+  "acquiredAt": "2026-10-12T11:58:43.992207+00:00",
+  "headBefore": "e859cf1942d2fc3dd70c4658052eecf51d60c68f",
+  "originMain": "43e7e47703b0fff40be2d9e5140dde91d7e20279",
+  "sharedIndexInitiallyEmpty": true,
+  "authorizedPaths": [
+    "scripts/cloud-control/provider.mjs",
+    "src/cloud-control/service.js",
+    "src/cloud-control/connection.js",
+    "src/ui/cloud-hosting.js",
+    "src/ui/cloud-status-presentation.js",
+    "src/ui/debug-workbench.js",
+    "src/ui/sidebar-tab-memory.js",
+    "src/ui/task-workbench.js",
+    "src/ui/tool-shell.js",
+    "src/ui/tool.html",
+    "src/ui/cloud-control-console.js",
+    "src/ui/cloud-hosting.css",
+    "scripts/prepare-public.mjs",
+    "scripts/verify-package.mjs",
+    "scripts/audit-fixed-entries.mjs",
+    "scripts/tests/sidebar-r19-layout-visual.mjs",
+    "tests/cloud-control/provider.test.mjs",
+    "tests/cloud-control/connection.test.mjs",
+    "tests/cloud-control/browser-provider-integration.test.mjs",
+    "tests/framework/k3-controller-authority.test.mjs",
+    "tests/environment/cloud-control-debug-r14.test.mjs",
+    "tests/environment/cloud-control-sidebar-r28.test.mjs",
+    "tests/environment/sidebar-ui-preview.test.mjs",
+    "tests/environment/sidebar-tab-memory.test.mjs",
+    "tests/environment/fixed-entries-audit.test.mjs",
+    "docs/architecture/browser-framework/cloud-control-r1.zh-CN.md",
+    "docs/contracts/execution-control/v0.2/README.zh-CN.md",
+    "docs/framework/workstreams/cloud-control-r1.md",
+    "docs/framework/workstreams/cloud-control-r1.json",
+    "examples/cloud-control/README.zh-CN.md",
+    "docs/framework/prompts/goal-cloud-control-r14-final.zh-CN.md",
+    "docs/framework/workstreams/cloud-control-r14-final-20261012.md",
+    "docs/framework/workstreams/cloud-control-r14-provider-20261012.md",
+    "docs/framework/workstreams/cloud-control-r14-ui-20261012.md",
+    "docs/framework/workstreams/cloud-control-r14-docs-20261012.md"
+  ],
+  "evidenceDirectoryOwnedByThisTask": "docs/framework/workstreams/evidence/cloud-control-r14-final-20261012",
+  "statusBefore": [
+    {
+      "status": " M",
+      "path": ".github/workflows/page-frameworks-r242-import-drafts.yml"
+    },
+    {
+      "status": " M",
+      "path": "docs/api/README.md"
+    },
+    {
+      "status": " M",
+      "path": "docs/api/page-ui-frameworks.zh-CN.md"
+    },
+    {
+      "status": " M",
+      "path": "docs/architecture/browser-framework/cloud-control-r1.zh-CN.md"
+    },
+    {
+      "status": " M",
+      "path": "docs/contracts/execution-control/v0.2/README.zh-CN.md"
+    },
+    {
+      "status": " M",
+      "path": "docs/framework/workstreams/cloud-control-r1.json"
+    },
+    {
+      "status": " M",
+      "path": "docs/framework/workstreams/cloud-control-r1.md"
+    },
+    {
+      "status": " M",
+      "path": "examples/cloud-control/README.zh-CN.md"
+    },
+    {
+      "status": " M",
+      "path": "examples/import-ready/README.zh-CN.md"
+    },
+    {
+      "status": " M",
+      "path": "examples/import-ready/page-ui-react-direct.opendesk-draft.json"
+    },
+    {
+      "status": " M",
+      "path": "examples/programs/page-ui-react-direct/README.md"
+    },
+    {
+      "status": " D",
+      "path": "examples/programs/page-ui-react-direct/src/enhancement.js"
+    },
+    {
+      "status": " D",
+      "path": "examples/programs/page-ui-react-direct/src/legacy-main.js"
+    },
+    {
+      "status": " M",
+      "path": "examples/programs/page-ui-react-direct/src/main.js"
+    },
+    {
+      "status": " M",
+      "path": "examples/programs/page-ui-toc-react-direct/README.md"
+    },
+    {
+      "status": " M",
+      "path": "examples/programs/page-ui-toc-react-direct/package.json"
+    },
+    {
+      "status": " M",
+      "path": "scripts/audit-fixed-entries.mjs"
+    },
+    {
+      "status": " M",
+      "path": "scripts/cloud-control/provider.mjs"
+    },
+    {
+      "status": " M",
+      "path": "scripts/prepare-public.mjs"
+    },
+    {
+      "status": " M",
+      "path": "scripts/tests/sidebar-r19-layout-visual.mjs"
+    },
+    {
+      "status": " M",
+      "path": "scripts/verify-package.mjs"
+    },
+    {
+      "status": " M",
+      "path": "src/cloud-control/connection.js"
+    },
+    {
+      "status": " M",
+      "path": "src/cloud-control/service.js"
+    },
+    {
+      "status": " M",
+      "path": "src/platform/host/broker.js"
+    },
+    {
+      "status": " M",
+      "path": "src/scripting/user-scripts/dependency-manager.js"
+    },
+    {
+      "status": " M",
+      "path": "src/scripting/user-scripts/dependency-metadata.js"
+    },
+    {
+      "status": " M",
+      "path": "src/scripting/user-scripts/execution-source.js"
+    },
+    {
+      "status": " M",
+      "path": "src/scripting/user-scripts/installed-programs.js"
+    },
+    {
+      "status": " M",
+      "path": "src/ui/cloud-control-console.js"
+    },
+    {
+      "status": " M",
+      "path": "src/ui/cloud-hosting.js"
+    },
+    {
+      "status": " M",
+      "path": "src/ui/cloud-status-presentation.js"
+    },
+    {
+      "status": " M",
+      "path": "src/ui/debug-workbench.js"
+    },
+    {
+      "status": " M",
+      "path": "src/ui/design-system.css"
+    },
+    {
+      "status": " M",
+      "path": "src/ui/design-tokens.css"
+    },
+    {
+      "status": " M",
+      "path": "src/ui/esm-source-detector.js"
+    },
+    {
+      "status": " M",
+      "path": "src/ui/installed-page-tools.js"
+    },
+    {
+      "status": " M",
+      "path": "src/ui/local-project-install-ui.js"
+    },
+    {
+      "status": " M",
+      "path": "src/ui/local-project-install.js"
+    },
+    {
+      "status": " M",
+      "path": "src/ui/page-dependencies.js"
+    },
+    {
+      "status": " M",
+      "path": "src/ui/script-editor.js"
+    },
+    {
+      "status": " M",
+      "path": "src/ui/sidebar-tab-memory.js"
+    },
+    {
+      "status": " M",
+      "path": "src/ui/task-workbench.js"
+    },
+    {
+      "status": " M",
+      "path": "src/ui/tool-shell.css"
+    },
+    {
+      "status": " M",
+      "path": "src/ui/tool-shell.js"
+    },
+    {
+      "status": " M",
+      "path": "src/ui/tool.html"
+    },
+    {
+      "status": " M",
+      "path": "tests/cloud-control/provider.test.mjs"
+    },
+    {
+      "status": " M",
+      "path": "tests/environment/cloud-control-debug-r14.test.mjs"
+    },
+    {
+      "status": " M",
+      "path": "tests/environment/cloud-control-sidebar-r28.test.mjs"
+    },
+    {
+      "status": " M",
+      "path": "tests/environment/dependency-manager.test.mjs"
+    },
+    {
+      "status": " M",
+      "path": "tests/environment/fixed-entries-audit.test.mjs"
+    },
+    {
+      "status": " M",
+      "path": "tests/environment/local-project-install-r251.test.mjs"
+    },
+    {
+      "status": " M",
+      "path": "tests/environment/local-project-install-ui-r251.test.mjs"
+    },
+    {
+      "status": " M",
+      "path": "tests/environment/page-dependencies-ui.test.mjs"
+    },
+    {
+      "status": " M",
+      "path": "tests/environment/page-direct-component-r243.test.mjs"
+    },
+    {
+      "status": " M",
+      "path": "tests/environment/page-direct-import-ready-r243.test.mjs"
+    },
+    {
+      "status": " M",
+      "path": "tests/environment/page-installed-programs.test.mjs"
+    },
+    {
+      "status": " M",
+      "path": "tests/environment/page-ui-import-drafts-r242.test.mjs"
+    },
+    {
+      "status": " M",
+      "path": "tests/environment/page-ui-toc-react-direct.test.mjs"
+    },
+    {
+      "status": " M",
+      "path": "tests/environment/sidebar-tab-memory.test.mjs"
+    },
+    {
+      "status": " M",
+      "path": "tests/environment/sidebar-ui-preview.test.mjs"
+    },
+    {
+      "status": " M",
+      "path": "tests/environment/ui-r23-design-boundaries.test.mjs"
+    },
+    {
+      "status": " M",
+      "path": "tests/framework/k3-controller-authority.test.mjs"
+    },
+    {
+      "status": " M",
+      "path": "tests/framework/local-dev-native-acceptance.mjs"
+    },
+    {
+      "status": " M",
+      "path": "tests/framework/page-frameworks-r242-native.mjs"
+    },
+    {
+      "status": "??",
+      "path": "docs/api/network-javascript.zh-CN.md"
+    },
+    {
+      "status": "??",
+      "path": "docs/framework/prompts/goal-cloud-control-r14-final.zh-CN.md"
+    },
+    {
+      "status": "??",
+      "path": "docs/framework/workstreams/cloud-control-r14-docs-20261012.md"
+    },
+    {
+      "status": "??",
+      "path": "docs/framework/workstreams/cloud-control-r14-final-20261012.md"
+    },
+    {
+      "status": "??",
+      "path": "docs/framework/workstreams/cloud-control-r14-provider-20261012.md"
+    },
+    {
+      "status": "??",
+      "path": "docs/framework/workstreams/cloud-control-r14-ui-20261012.md"
+    },
+    {
+      "status": "??",
+      "path": "docs/framework/workstreams/evidence/cloud-control-r14-final-20261012/"
+    },
+    {
+      "status": "??",
+      "path": "docs/framework/workstreams/evidence/git-pull-20261012-01a12f80/"
+    },
+    {
+      "status": "??",
+      "path": "docs/framework/workstreams/evidence/git-pull-20261012-01a12fb9/"
+    },
+    {
+      "status": "??",
+      "path": "docs/framework/workstreams/evidence/local-project-lan-origin-20261012/"
+    },
+    {
+      "status": "??",
+      "path": "docs/framework/workstreams/evidence/network-javascript-20261012/"
+    },
+    {
+      "status": "??",
+      "path": "docs/framework/workstreams/evidence/public-libraries-metadata-r164-01a12f58/"
+    },
+    {
+      "status": "??",
+      "path": "docs/framework/workstreams/evidence/r251-final-mac-01a12fbf/"
+    },
+    {
+      "status": "??",
+      "path": "docs/framework/workstreams/evidence/react-direct-legacy-cleanup-20261012/"
+    },
+    {
+      "status": "??",
+      "path": "docs/framework/workstreams/evidence/react-direct-multifile-20261012/"
+    },
+    {
+      "status": "??",
+      "path": "docs/framework/workstreams/git-pull-20261012-01a12f80.md"
+    },
+    {
+      "status": "??",
+      "path": "docs/framework/workstreams/git-pull-20261012-01a12fb9.md"
+    },
+    {
+      "status": "??",
+      "path": "docs/framework/workstreams/local-project-lan-origin-20261012.md"
+    },
+    {
+      "status": "??",
+      "path": "docs/framework/workstreams/network-javascript-20261012.md"
+    },
+    {
+      "status": "??",
+      "path": "docs/framework/workstreams/network-javascript-browser-driver-20261012.md"
+    },
+    {
+      "status": "??",
+      "path": "docs/framework/workstreams/network-javascript-docs-20261012.md"
+    },
+    {
+      "status": "??",
+      "path": "docs/framework/workstreams/public-libraries-metadata-r164-20261012-01a12f58.md"
+    },
+    {
+      "status": "??",
+      "path": "docs/framework/workstreams/r16-r2-continue-01a12f91.json"
+    },
+    {
+      "status": "??",
+      "path": "docs/framework/workstreams/r16-r2-continue-01a12f91.md"
+    },
+    {
+      "status": "??",
+      "path": "docs/framework/workstreams/r251-final-mac-01a12fbf.md"
+    },
+    {
+      "status": "??",
+      "path": "docs/framework/workstreams/react-direct-legacy-cleanup-20261012.md"
+    },
+    {
+      "status": "??",
+      "path": "docs/framework/workstreams/react-direct-multifile-20261012.md"
+    },
+    {
+      "status": "??",
+      "path": "evidence/browser-provider-integration.tap"
+    },
+    {
+      "status": "??",
+      "path": "examples/network-javascript/"
+    },
+    {
+      "status": "??",
+      "path": "examples/programs/page-ui-react-direct/src/counter.js"
+    },
+    {
+      "status": "??",
+      "path": "examples/programs/page-ui-react-direct/src/demo-config.js"
+    },
+    {
+      "status": "??",
+      "path": "src/ui/cloud-hosting.css"
+    },
+    {
+      "status": "??",
+      "path": "src/ui/page-dependency-review.js"
+    },
+    {
+      "status": "??",
+      "path": "tests/cloud-control/browser-provider-integration.test.mjs"
+    },
+    {
+      "status": "??",
+      "path": "tests/environment/installed-page-tools-r251.test.mjs"
+    },
+    {
+      "status": "??",
+      "path": "tests/environment/page-dependency-review.test.mjs"
+    },
+    {
+      "status": "??",
+      "path": "tests/environment/page-react-direct-multifile.test.mjs"
+    },
+    {
+      "status": "??",
+      "path": "tests/environment/public-libraries-metadata-r164.test.mjs"
+    },
+    {
+      "status": "??",
+      "path": "tests/environment/r251-ui-contract.test.mjs"
+    },
+    {
+      "status": "??",
+      "path": "tests/framework/network-javascript-cft.mjs"
+    },
+    {
+      "status": "??",
+      "path": "tests/framework/r251-local-install-native.mjs"
+    }
+  ],
+  "otherChangesToPreserve": [
+    {
+      "status": " M",
+      "path": ".github/workflows/page-frameworks-r242-import-drafts.yml"
+    },
+    {
+      "status": " M",
+      "path": "docs/api/README.md"
+    },
+    {
+      "status": " M",
+      "path": "docs/api/page-ui-frameworks.zh-CN.md"
+    },
+    {
+      "status": " M",
+      "path": "examples/import-ready/README.zh-CN.md"
+    },
+    {
+      "status": " M",
+      "path": "examples/import-ready/page-ui-react-direct.opendesk-draft.json"
+    },
+    {
+      "status": " M",
+      "path": "examples/programs/page-ui-react-direct/README.md"
+    },
+    {
+      "status": " D",
+      "path": "examples/programs/page-ui-react-direct/src/enhancement.js"
+    },
+    {
+      "status": " D",
+      "path": "examples/programs/page-ui-react-direct/src/legacy-main.js"
+    },
+    {
+      "status": " M",
+      "path": "examples/programs/page-ui-react-direct/src/main.js"
+    },
+    {
+      "status": " M",
+      "path": "examples/programs/page-ui-toc-react-direct/README.md"
+    },
+    {
+      "status": " M",
+      "path": "examples/programs/page-ui-toc-react-direct/package.json"
+    },
+    {
+      "status": " M",
+      "path": "src/platform/host/broker.js"
+    },
+    {
+      "status": " M",
+      "path": "src/scripting/user-scripts/dependency-manager.js"
+    },
+    {
+      "status": " M",
+      "path": "src/scripting/user-scripts/dependency-metadata.js"
+    },
+    {
+      "status": " M",
+      "path": "src/scripting/user-scripts/execution-source.js"
+    },
+    {
+      "status": " M",
+      "path": "src/scripting/user-scripts/installed-programs.js"
+    },
+    {
+      "status": " M",
+      "path": "src/ui/design-system.css"
+    },
+    {
+      "status": " M",
+      "path": "src/ui/design-tokens.css"
+    },
+    {
+      "status": " M",
+      "path": "src/ui/esm-source-detector.js"
+    },
+    {
+      "status": " M",
+      "path": "src/ui/installed-page-tools.js"
+    },
+    {
+      "status": " M",
+      "path": "src/ui/local-project-install-ui.js"
+    },
+    {
+      "status": " M",
+      "path": "src/ui/local-project-install.js"
+    },
+    {
+      "status": " M",
+      "path": "src/ui/page-dependencies.js"
+    },
+    {
+      "status": " M",
+      "path": "src/ui/script-editor.js"
+    },
+    {
+      "status": " M",
+      "path": "src/ui/tool-shell.css"
+    },
+    {
+      "status": " M",
+      "path": "tests/environment/dependency-manager.test.mjs"
+    },
+    {
+      "status": " M",
+      "path": "tests/environment/local-project-install-r251.test.mjs"
+    },
+    {
+      "status": " M",
+      "path": "tests/environment/local-project-install-ui-r251.test.mjs"
+    },
+    {
+      "status": " M",
+      "path": "tests/environment/page-dependencies-ui.test.mjs"
+    },
+    {
+      "status": " M",
+      "path": "tests/environment/page-direct-component-r243.test.mjs"
+    },
+    {
+      "status": " M",
+      "path": "tests/environment/page-direct-import-ready-r243.test.mjs"
+    },
+    {
+      "status": " M",
+      "path": "tests/environment/page-installed-programs.test.mjs"
+    },
+    {
+      "status": " M",
+      "path": "tests/environment/page-ui-import-drafts-r242.test.mjs"
+    },
+    {
+      "status": " M",
+      "path": "tests/environment/page-ui-toc-react-direct.test.mjs"
+    },
+    {
+      "status": " M",
+      "path": "tests/environment/ui-r23-design-boundaries.test.mjs"
+    },
+    {
+      "status": " M",
+      "path": "tests/framework/local-dev-native-acceptance.mjs"
+    },
+    {
+      "status": " M",
+      "path": "tests/framework/page-frameworks-r242-native.mjs"
+    },
+    {
+      "status": "??",
+      "path": "docs/api/network-javascript.zh-CN.md"
+    },
+    {
+      "status": "??",
+      "path": "docs/framework/workstreams/evidence/git-pull-20261012-01a12f80/"
+    },
+    {
+      "status": "??",
+      "path": "docs/framework/workstreams/evidence/git-pull-20261012-01a12fb9/"
+    },
+    {
+      "status": "??",
+      "path": "docs/framework/workstreams/evidence/local-project-lan-origin-20261012/"
+    },
+    {
+      "status": "??",
+      "path": "docs/framework/workstreams/evidence/network-javascript-20261012/"
+    },
+    {
+      "status": "??",
+      "path": "docs/framework/workstreams/evidence/public-libraries-metadata-r164-01a12f58/"
+    },
+    {
+      "status": "??",
+      "path": "docs/framework/workstreams/evidence/r251-final-mac-01a12fbf/"
+    },
+    {
+      "status": "??",
+      "path": "docs/framework/workstreams/evidence/react-direct-legacy-cleanup-20261012/"
+    },
+    {
+      "status": "??",
+      "path": "docs/framework/workstreams/evidence/react-direct-multifile-20261012/"
+    },
+    {
+      "status": "??",
+      "path": "docs/framework/workstreams/git-pull-20261012-01a12f80.md"
+    },
+    {
+      "status": "??",
+      "path": "docs/framework/workstreams/git-pull-20261012-01a12fb9.md"
+    },
+    {
+      "status": "??",
+      "path": "docs/framework/workstreams/local-project-lan-origin-20261012.md"
+    },
+    {
+      "status": "??",
+      "path": "docs/framework/workstreams/network-javascript-20261012.md"
+    },
+    {
+      "status": "??",
+      "path": "docs/framework/workstreams/network-javascript-browser-driver-20261012.md"
+    },
+    {
+      "status": "??",
+      "path": "docs/framework/workstreams/network-javascript-docs-20261012.md"
+    },
+    {
+      "status": "??",
+      "path": "docs/framework/workstreams/public-libraries-metadata-r164-20261012-01a12f58.md"
+    },
+    {
+      "status": "??",
+      "path": "docs/framework/workstreams/r16-r2-continue-01a12f91.json"
+    },
+    {
+      "status": "??",
+      "path": "docs/framework/workstreams/r16-r2-continue-01a12f91.md"
+    },
+    {
+      "status": "??",
+      "path": "docs/framework/workstreams/r251-final-mac-01a12fbf.md"
+    },
+    {
+      "status": "??",
+      "path": "docs/framework/workstreams/react-direct-legacy-cleanup-20261012.md"
+    },
+    {
+      "status": "??",
+      "path": "docs/framework/workstreams/react-direct-multifile-20261012.md"
+    },
+    {
+      "status": "??",
+      "path": "evidence/browser-provider-integration.tap"
+    },
+    {
+      "status": "??",
+      "path": "examples/network-javascript/"
+    },
+    {
+      "status": "??",
+      "path": "examples/programs/page-ui-react-direct/src/counter.js"
+    },
+    {
+      "status": "??",
+      "path": "examples/programs/page-ui-react-direct/src/demo-config.js"
+    },
+    {
+      "status": "??",
+      "path": "src/ui/page-dependency-review.js"
+    },
+    {
+      "status": "??",
+      "path": "tests/environment/installed-page-tools-r251.test.mjs"
+    },
+    {
+      "status": "??",
+      "path": "tests/environment/page-dependency-review.test.mjs"
+    },
+    {
+      "status": "??",
+      "path": "tests/environment/page-react-direct-multifile.test.mjs"
+    },
+    {
+      "status": "??",
+      "path": "tests/environment/public-libraries-metadata-r164.test.mjs"
+    },
+    {
+      "status": "??",
+      "path": "tests/environment/r251-ui-contract.test.mjs"
+    },
+    {
+      "status": "??",
+      "path": "tests/framework/network-javascript-cft.mjs"
+    },
+    {
+      "status": "??",
+      "path": "tests/framework/r251-local-install-native.mjs"
+    }
+  ],
+  "nativeGoalComplete": false,
+  "remotePushAuthorized": false
+}

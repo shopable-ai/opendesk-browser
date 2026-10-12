@@ -1,0 +1,336 @@
+✔ read-only cloud diagnostics omit tokens and all private identifiers (1.131958ms)
+✔ untrusted provider state is reduced to a known diagnostic enum (0.8535ms)
+✔ completed diagnostics remain read-only and preserve true cancellation counts despite old reasons (0.612334ms)
+✔ revocation projects only confirmation state and separates local stop from server confirmation (0.268083ms)
+✔ development UI only reads cloudStatus and never claims, pairs, approves or starts a run (0.482958ms)
+✔ late diagnostics after disposal are ignored (0.104458ms)
+✖ production Cloud tab is visible in Side Panel while Debug remains hidden (7.883458ms)
+✔ cloud status refresh is read-only and full tool/catalog tabs cannot claim cloud tasks (2.031708ms)
+✖ Side Panel has six product tabs and development-only Debug at seventh (5.798834ms)
+✔ only tab navigation scrolls horizontally and Cloud cards wrap on narrow panels (2.499708ms)
+✖ Cloud controls exist once in the Cloud tab; My retains a compact entry (1.750458ms)
+✔ cloud request previews project whitelisted states rather than IDs or result data (0.474167ms)
+✔ request previews distinguish waiting, execution, saved results, retirement and receipts (0.201958ms)
+✔ waiting reasons conservatively follow hosting prerequisites (0.091042ms)
+✔ only fully confirmed successful completion hides a historical cloud cancellation reason (0.203125ms)
+✔ unknown states and reasons stay conservative, bounded and secret free (0.168833ms)
+✔ My hosting status displays saved stopped results and pending release with read-only refresh (4.26275ms)
+✔ My hosting readiness and unreadable status never expose raw errors or stale request samples (0.62825ms)
+✔ pending server revocation blocks new pairing and both refresh gestures stay read-only (0.943542ms)
+✖ Side Panel restores each previously selected product tab after reopening (1.834959ms)
+✔ a user selection is persisted across new Side Panel documents and extension restarts (4.074917ms)
+✔ rapid switches are serialized; a slow earlier save cannot overwrite a later tab (1.8575ms)
+✔ clicking while storage is loading wins over the old persisted selection (0.452958ms)
+✔ navigation before Side Panel surface detection is remembered, not overwritten (0.34975ms)
+✔ full-size catalog and standalone tool pages never write Side Panel preference (0.40775ms)
+✔ untrusted and unsupported stored values cannot become navigable pages (0.54875ms)
+✔ development can remember Debug, while production cannot reopen a hidden Debug page (0.140375ms)
+✔ a disposed panel does not apply a late storage result or persist a late click (0.705125ms)
+✔ storage failure leaves navigation usable and emits diagnostic warning (0.5955ms)
+✔ the real shell only restores the Side Panel and ignores navigation rejected by the tool guard (1.978833ms)
+✔ R3 remains immutable reference; R4 preview keeps installed Discover and independent full catalog (3.546375ms)
+✖ R4.9 Tools has one navigation tier and three accessible add/import/market controls (5.113375ms)
+✔ R15 official sidebar preserves five views, privileged controls, compact discovery and task history (1.78125ms)
+✔ R5 keeps one derived interactive prototype with installed-only compact discovery (1.140709ms)
+✔ Developer source selector and new-script action use one narrow Sidebar toolbar (1.948375ms)
+✔ R19 Sidebar spacing and corner system is consistent across all five tabs (2.01075ms)
+✔ R20/R23 five-tab design system has one token source and a strict trusted asset pipeline (1.291667ms)
+ℹ tests 37
+ℹ suites 0
+ℹ pass 32
+ℹ fail 5
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 64.503459
+
+✖ failing tests:
+
+test at tests/environment/cloud-control-debug-r14.test.mjs:81:1
+✖ production Cloud tab is visible in Side Panel while Debug remains hidden (7.883458ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /<button[^>]*id="tab-cloud"[^>]*hidden>云控<\/button>/. Input:
+  
+  '<!doctype html>\n' +
+    '<html lang="zh-CN">\n' +
+    `<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="frame-src 'self'"><title>OpenDesk Browser</title><link rel="stylesheet" href="design-tokens.css"><link rel="stylesheet" href="design-system.css"><link rel="stylesheet" href="tool-shell.css"></head>\n` +
+    '<body>\n' +
+    '<nav class="workbench-nav" role="tablist" aria-label="工作台" aria-description="较窄时可以横向滚动；左右方向键以及 Home、End 切换页签">\n' +
+    '  <button type="button" id="tab-my-tasks" role="tab" tabindex="0" data-workbench-tab="tasks" aria-selected="true" aria-controls="workbench-tasks">我的</button>\n' +
+    '  <button type="button" id="tab-discover" role="tab" tabindex="-1" data-workbench-tab="discover" aria-selected="false" aria-controls="workbench-local-discover">发现</button>\n' +
+    '  <button type="button" id="tab-workflow" role="tab" tabindex="-1" data-workbench-tab="workflow" aria-selected="false" aria-controls="workbench-workflow">工作流</button>\n' +
+    '  <button type="button" id="tab-develop" role="tab" tabindex="-1" data-workbench-tab="develop" aria-selected="false" aria-controls="workbench-develop">开发</button>\n' +
+    '  <button type="button" id="tab-tools" role="tab" tabindex="-1" data-workbench-tab="tools" aria-selected="false" aria-controls="workbench-tools">工具</button>\n' +
+    '  <button type="button" id="tab-debug" role="tab" tabindex="-1" data-workbench-tab="debug" aria-selected="false" aria-controls="workbench-debug" hidden>调试</button>\n' +
+    '</nav>\n' +
+    '<main id="workspace-content">\n' +
+    '  <div id="site-access-recovery" class="row" role="status" hidden>\n' +
+    '    <span id="site-access-recovery-message">访问受限：Chrome 已限制网站访问。</span>\n' +
+    '    <button id="site-access-restore" type="button" aria-describedby="site-access-recovery-message">恢复全部网站访问</button>\n' +
+    '  </div>\n' +
+    '  <div id="workbench-tasks" role="tabpanel" aria-labelledby="tab-my-tasks" class="od-page" data-workbench-page="tasks">\n' +
+    '      <section class="tasks-surface" aria-label="已安装任务">\n' +
+    '      <div class="task-section-head od-toolbar">\n' +
+    '        <strong>自动化任务</strong>\n' +
+    '        <div class="task-section-actions"><span id="task-installed-count" aria-live="polite"></span><button type="button" id="task-open-catalog" class="od-button" aria-label="打开任务目录添加任务">＋ 添加</button></div>\n' +
+    '      </div>\n' +
+    '      <label for="task-installed-list" class="visually-hidden">已安装任务</label><select id="task-installed-list" hidden><option value="">读取已安装任务…</option></select>\n' +
+    '      <div id="task-installed-cards" class="task-card-list od-stack" aria-label="已安装任务列表"></div>\n' +
+    '      <div id="task-selected-workspace" class="task-selected-workspace">\n' +
+    '      <p id="task-current-site" class="identity"></p>\n' +
+    '      <form id="task-params-form" autocomplete="off" aria-label="任务参数"></form>\n' +
+    '      <p id="task-status" role="status" aria-live="polite"></p>\n' +
+    '      <div id="task-result-panel" class="task-result-panel" hidden>\n' +
+    '        <div class="task-result-controls">\n' +
+    '          <h3 class="task-result-heading">最近结果</h3>\n' +
+    '          <button type="button" id="task-result-reveal" title="完整返回值可能包含敏感信息" hidden>查看完整原值</button>\n' +
+    '        </div>\n' +
+    '        <pre id="task-result" aria-label="当前任务结果">尚未运行</pre>\n' +
+    '      </div>\n' +
+    '      <details id="task-history-panel" class="task-history-panel" hidden><summary>运行记录</summary><div id="task-history" aria-live="polite"></div></details>\n' +
+    '      <details class="task-scope-panel"><summary>网站与权限</summary><div id="task-installed-detail" class="task-detail" aria-live="polite"></div></details>\n' +
+    '      <details class="task-tools"><summary>更多操作</summary>\n' +
+    '        <div class="row"><button type="button" id="task-refresh">刷新任务</button><button type="button" id="task-fork-draft" disabled>复制草稿</button></div>\n' +
+    '        <details><summary>任务管理</summary>\n' +
+    '          <div class="row"><button type="button" id="task-toggle" disabled>停用 / 启用</button><button type="button" id="task-uninstall" disabled>卸载当前版本</button><button type="button" id="open-catalog" class="catalog-open" aria-label="打开完整任务目录以导入或管理任务">导入/管理任务 ↗</button></div>\n' +
+    '          <p class="hint">卸载不删除已有结果；停用将阻止后续启动。</p>\n' +
+    '        </details>\n' +
+    '      </details>\n' +
+    '      </div>\n' +
+    '    </section>\n' +
+    '    <section class="cloud-my-entry od-surface" aria-label="云端托管状态">\n' +
+    '    <strong>云端托管</strong><span id="cloud-my-state" role="status" aria-live="polite">托管未启用</span>\n' +
+    '  </section>\n' +
+    '    <section class="cloud-panel od-stack" aria-label="云控管理">\n' +
+    '      <header class="cloud-panel-head od-toolbar">\n' +
+    '        <div class="cloud-panel-heading"><strong>云控</strong><p class="hint">与当前目标网页并排查看云任务及执行状态。</p></div>\n' +
+    '        <button type="button" id="cloud-overview-refresh" class="od-icon-button" title="刷新云控状态" aria-label="刷新云控状态"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 0 0-14-5L4 8m0-5v5h5M4 13a8 8 0 0 0 14 5l2-2m0 5v-5h-5"></path></svg></button>\n' +
+    '      </header>\n' +
+    '      <section class="cloud-overview od-surface" aria-label="云控实时概览">\n' +
+    '        <p id="cloud-overview-state" role="status" aria-live="polite">正在读取云控状态…</p>\n' +
+    '        <div class="cloud-overview-metrics">\n' +
+    '          <div><span>提供者</span><strong id="cloud-overview-provider">检测中</strong></div>\n' +
+    '          <div><span>连接</span><strong id="cloud-overview-connection">检测中</strong></div>\n' +
+    '          <div><span>执行宿主</span><strong id="cloud-overview-host">检测中</strong></div>\n' +
+    '          <div><span>执行槽</span><strong id="cloud-overview-slot">检测中</strong></div>\n' +
+    '          <div><span>已批准任务</span><strong id="cloud-overview-tasks">—</strong></div>\n' +
+    '          <div><span>云请求数</span><strong id="cloud-overview-requests">—</strong></div>\n' +
+    '        </div>\n' +
+    '      </section>\n' +
+    '      <section class="cloud-requests od-surface" aria-label="云请求状态样本">\n' +
+    '        <div class="cloud-section-title od-toolbar"><strong>请求状态</strong><span class="hint">最多 5 条，脱敏显示</span></div>\n' +
+    '        <ol id="cloud-request-samples" class="cloud-request-samples"><li>暂无云请求</li></ol>\n' +
+    '      </section>\n' +
+    '    <details id="cloud-hosting" class="task-scope-panel"><summary>连接与授权 <span id="cloud-brief" class="cloud-status-brief">未配对</span></summary>\n' +
+    '        <label>提供者地址 <input id="cloud-url" type="url" placeholder="https://可信提供者地址"></label>\n' +
+    '        <label>提供者身份 <input id="cloud-provider-id" autocomplete="off"></label>\n' +
+    '        <label>配对码 <input id="cloud-pairing-code" type="password" autocomplete="off"></label>\n' +
+    '        <label><input id="cloud-loopback" type="checkbox">明确允许固定本地测试提供者 HTTP/WS</label>\n' +
+    '        <p class="hint">云控框架已内置，无需在「工具」中导入。开发回环服务请输入 http://127.0.0.1:43112 并明确允许本地测试；普通服务器应使用 HTTPS。</p>\n' +
+    '        <button id="cloud-pair" type="button">配对提供者</button>\n' +
+    '        <p>请先在「我的」安装并选择任务。托管授权固定当前安装版本、摘要、授权代次及该任务网站范围。</p>\n' +
+    '        <label><input id="cloud-consent" type="checkbox">批准所选固定任务和网站范围，在合法浏览器执行宿主可用时运行</label>\n' +
+    '        <label><input id="cloud-result-consent" type="checkbox">允许该固定任务结果回传</label>\n' +
+    '        <div><button id="cloud-approve" type="button">批准并启用托管</button><button id="cloud-stop" type="button">停止托管并请求取消</button><button id="cloud-unpair" type="button">解除配对</button><button id="cloud-refresh" type="button">核对状态</button></div>\n' +
+    '        <p class="hint">关闭 Side Panel 后不承诺无人值守执行。停止后保留取消处理中、退休待核对和未知结果；正常重连复用已有授权。</p>\n' +
+    '        <p id="cloud-status" role="status" aria-live="polite">尚未配对</p>\n' +
+    '      </details>\n' +
+    '\n' +
+    '      <p class="hint">云控复用「我的」已安装授权的任务和原 RunHost。切换选项卡不会启动第二个执行器；关闭 Side Panel 后不承诺任务继续运行。</p>\n' +
+    '    </section>\n' +
+    '\n' +
+    '  </div>\n' +
+    '  <div id="workbench-tools" role="tabpanel" aria-labelledby="tab-tools" class="od-page" data-workbench-page="tools" hidden>\n' +
+    '    <section id="sidebar-tools" class="sidebar-tools" aria-label="自定义工具">\n' +
+    '      <section id="sidebar-tool-action-review" class="sidebar-tool-action-review od-surface" role="group" aria-label="确认当前工具操作" hidden>\n' +
+    '        <p id="sidebar-tool-action-summary" role="status"></p>\n' +
+    '        <div class="sidebar-tool-action-buttons">\n' +
+    '          <button type="button" id="sidebar-tool-action-continue" class="od-button">继续</button>\n' +
+    '          <button type="button" id="sidebar-tool-action-cancel" class="od-button od-button--secondary">取消</button>\n' +
+    '        </div>\n' +
+    '      </section>\n' +
+    '      <div id="sidebar-tool-list-view">\n' +
+    '        <div class="sidebar-tools-head od-toolbar">\n' +
+    '          <strong>已安装工具</strong>\n' +
+    '          <div class="sidebar-tools-actions od-toolbar" role="group" aria-label="添加和管理工具">\n' +
+    '            <button type="button" id="sidebar-tool-discover-toggle" class="od-icon-button" aria-label="添加工具" title="查找并安装官方工具" aria-expanded="false" aria-controls="sidebar-tool-discover-panel"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></button>\n' +
+    '            <button type="button" id="sidebar-tool-market" class="od-icon-button" aria-label="打开应用市场" title="在新标签页打开完整应用市场"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10h16l-1.5-6h-13L4 10Zm2 0v10h12V10M10 20v-6h4v6"></path></svg></button>\n' +
+    '            <button type="button" id="sidebar-tool-import-trigger" class="od-icon-button" aria-label="导入工具文件" title="导入本地工具文件" aria-expanded="false" aria-controls="sidebar-tool-import"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V4m-5 5 5-5 5 5M4 16v4h16v-4"></path></svg></button>\n' +
+    '          </div>\n' +
+    '        </div>\n' +
+    '        <div id="sidebar-tool-import" class="sidebar-tool-import od-surface" hidden>\n' +
+    '          <div class="sidebar-tool-import-head od-toolbar">\n' +
+    '            <strong>导入工具</strong>\n' +
+    '            <button type="button" id="sidebar-tool-import-close" class="sidebar-tool-icon-action od-icon-button" title="取消导入" aria-label="取消导入"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5l14 14M19 5 5 19"></path></svg></button>\n' +
+    '          </div>\n' +
+    '          <label for="sidebar-tool-file">选择 .opendesk-tool.json 文件</label>\n' +
+    '          <input id="sidebar-tool-file" type="file" accept=".json,application/json" aria-describedby="sidebar-tool-file-error">\n' +
+    '          <p id="sidebar-tool-file-error" class="sidebar-tool-file-error" role="alert" hidden></p>\n' +
+    '          <p class="sidebar-tool-import-hint">选择文件和安装都不会运行代码；安装后由你点击“打开”启动工具。</p>\n' +
+    '          <div id="sidebar-tool-preview" class="sidebar-tool-preview" hidden>\n' +
+    '            <div class="sidebar-tool-preview-heading">\n' +
+    '              <strong id="sidebar-too'... 43406 more characters
+  
+      at TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/environment/cloud-control-debug-r14.test.mjs:89:9)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: `<!doctype html>\n<html lang="zh-CN">\n<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="frame-src 'self'"><title>OpenDesk Browser</title><link rel="stylesheet" href="design-tokens.css"><link rel="stylesheet" href="design-system.css"><link rel="stylesheet" href="tool-shell.css"></head>\n<body>\n<nav class="workbench-nav" role="tablist" aria-label="工作台" aria-description="较窄时可以横向滚动；左右方向键以及 Home、End 切换页签">\n  <button type="button" id="tab-my-tasks" role="tab" tabindex="0" data-workbench-tab="tasks" aria-selected="true" aria-controls="workbench-tasks">我的</button>\n  <button type="button" id="tab-discover" role="tab" tabindex="-1" data-workbench-tab="discover" aria-selected="false" aria-controls="workbench-local-discover">发现</button>\n  <button type="button" id="tab-workflow" role="tab" tabindex="-1" data-workbench-tab="workflow" aria-selected="false" aria-controls="workbench-workflow">工作流</button>\n  <button type="button" id="tab-develop" role="tab" tabindex="-1" data-workbench-tab="develop" aria-selected="false" aria-controls="workbench-develop">开发</button>\n  <button type="button" id="tab-tools" role="tab" tabindex="-1" data-workbench-tab="tools" aria-selected="false" aria-controls="workbench-tools">工具</button>\n  <button type="button" id="tab-debug" role="tab" tabindex="-1" data-workbench-tab="debug" aria-selected="false" aria-controls="workbench-debug" hidden>调试</button>\n</nav>\n<main id="workspace-content">\n  <div id="site-access-recovery" class="row" role="status" hidden>\n    <span id="site-access-recovery-message">访问受限：Chrome 已限制网站访问。</span>\n    <button id="site-access-restore" type="button" aria-describedby="site-access-recovery-message">恢复全部网站访问</button>\n  </div>\n  <div id="workbench-tasks" role="tabpanel" aria-labelledby="tab-my-tasks" class="od-page" data-workbench-page="tasks">\n      <section class="tasks-surface" aria-label="已安装任务">\n      <div class="task-section-head od-toolbar">\n        <strong>自动化任务</strong>\n        <div class="task-section-actions"><span id="task-installed-count" aria-live="polite"></span><button type="button" id="task-open-catalog" class="od-button" aria-label="打开任务目录添加任务">＋ 添加</button></div>\n      </div>\n      <label for="task-installed-list" class="visually-hidden">已安装任务</label><select id="task-installed-list" hidden><option value="">读取已安装任务…</option></select>\n      <div id="task-installed-cards" class="task-card-list od-stack" aria-label="已安装任务列表"></div>\n      <div id="task-selected-workspace" class="task-selected-workspace">\n      <p id="task-current-site" class="identity"></p>\n      <form id="task-params-form" autocomplete="off" aria-label="任务参数"></form>\n      <p id="task-status" role="status" aria-live="polite"></p>\n      <div id="task-result-panel" class="task-result-panel" hidden>\n        <div class="task-result-controls">\n          <h3 class="task-result-heading">最近结果</h3>\n          <button type="button" id="task-result-reveal" title="完整返回值可能包含敏感信息" hidden>查看完整原值</button>\n        </div>\n        <pre id="task-result" aria-label="当前任务结果">尚未运行</pre>\n      </div>\n      <details id="task-history-panel" class="task-history-panel" hidden><summary>运行记录</summary><div id="task-history" aria-live="polite"></div></details>\n      <details class="task-scope-panel"><summary>网站与权限</summary><div id="task-installed-detail" class="task-detail" aria-live="polite"></div></details>\n      <details class="task-tools"><summary>更多操作</summary>\n        <div class="row"><button type="button" id="task-refresh">刷新任务</button><button type="button" id="task-fork-draft" disabled>复制草稿</button></div>\n        <details><summary>任务管理</summary>\n          <div class="row"><button type="button" id="task-toggle" disabled>停用 / 启用</button><button type="button" id="task-uninstall" disabled>卸载当前版本</button><button type="button" id="open-catalog" class="catalog-open" aria-label="打开完整任务目录以导入或管理任务">导入/管理任务 ↗</button></div>\n          <p class="hint">卸载不删除已有结果；停用将阻止后续启动。</p>\n        </details>\n      </details>\n      </div>\n    </section>\n    <section class="cloud-my-entry od-surface" aria-label="云端托管状态">\n    <strong>云端托管</strong><span id="cloud-my-state" role="status" aria-live="polite">托管未启用</span>\n  </section>\n    <section class="cloud-panel od-stack" aria-label="云控管理">\n      <header class="cloud-panel-head od-toolbar">\n        <div class="cloud-panel-heading"><strong>云控</strong><p class="hint">与当前目标网页并排查看云任务及执行状态。</p></div>\n        <button type="button" id="cloud-overview-refresh" class="od-icon-button" title="刷新云控状态" aria-label="刷新云控状态"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 0 0-14-5L4 8m0-5v5h5M4 13a8 8 0 0 0 14 5l2-2m0 5v-5h-5"></path></svg></button>\n      </header>\n      <section class="cloud-overview od-surface" aria-label="云控实时概览">\n        <p id="cloud-overview-state" role="status" aria-live="polite">正在读取云控状态…</p>\n        <div class="cloud-overview-metrics">\n          <div><span>提供者</span><strong id="cloud-overview-provider">检测中</strong></div>\n          <div><span>连接</span><strong id="cloud-overview-connection">检测中</strong></div>\n          <div><span>执行宿主</span><strong id="cloud-overview-host">检测中</strong></div>\n          <div><span>执行槽</span><strong id="cloud-overview-slot">检测中</strong></div>\n          <div><span>已批准任务</span><strong id="cloud-overview-tasks">—</strong></div>\n          <div><span>云请求数</span><strong id="cloud-overview-requests">—</strong></div>\n        </div>\n      </section>\n      <section class="cloud-requests od-surface" aria-label="云请求状态样本">\n        <div class="cloud-section-title od-toolbar"><strong>请求状态</strong><span class="hint">最多 5 条，脱敏显示</span></div>\n        <ol id="cloud-request-samples" class="cloud-request-samples"><li>暂无云请求</li></ol>\n      </section>\n    <details id="cloud-hosting" class="task-scope-panel"><summary>连接与授权 <span id="cloud-brief" class="cloud-status-brief">未配对</span></summary>\n        <label>提供者地址 <input id="cloud-url" type="url" placeholder="https://可信提供者地址"></label>\n        <label>提供者身份 <input id="cloud-provider-id" autocomplete="off"></label>\n        <label>配对码 <input id="cloud-pairing-code" type="password" autocomplete="off"></label>\n        <label><input id="cloud-loopback" type="checkbox">明确允许固定本地测试提供者 HTTP/WS</label>\n        <p class="hint">云控框架已内置，无需在「工具」中导入。开发回环服务请输入 http://127.0.0.1:43112 并明确允许本地测试；普通服务器应使用 HTTPS。</p>\n        <button id="cloud-pair" type="button">配对提供者</button>\n        <p>请先在「我的」安装并选择任务。托管授权固定当前安装版本、摘要、授权代次及该任务网站范围。</p>\n        <label><input id="cloud-consent" type="checkbox">批准所选固定任务和网站范围，在合法浏览器执行宿主可用时运行</label>\n        <label><input id="cloud-result-consent" type="checkbox">允许该固定任务结果回传</label>\n        <div><button id="cloud-approve" type="button">批准并启用托管</button><button id="cloud-stop" type="button">停止托管并请求取消</button><button id="cloud-unpair" type="button">解除配对</button><button id="cloud-refresh" type="button">核对状态</button></div>\n        <p class="hint">关闭 Side Panel 后不承诺无人值守执行。停止后保留取消处理中、退休待核对和未知结果；正常重连复用已有授权。</p>\n        <p id="cloud-status" role="status" aria-live="polite">尚未配对</p>\n      </details>\n\n      <p class="hint">云控复用「我的」已安装授权的任务和原 RunHost。切换选项卡不会启动第二个执行器；关闭 Side Panel 后不承诺任务继续运行。</p>\n    </section>\n\n  </div>\n  <div id="workbench-tools" role="tabpanel" aria-labelledby="tab-tools" class="od-page" data-workbench-page="tools" hidden>\n    <section id="sidebar-tools" class="sidebar-tools" aria-label="自定义工具">\n      <section id="sidebar-tool-action-review" class="sidebar-tool-action-review od-surface" role="group" aria-label="确认当前工具操作" hidden>\n        <p id="sidebar-tool-action-summary" role="status"></p>\n        <div class="sidebar-tool-action-buttons">\n          <button type="button" id="sidebar-tool-action-continue" class="od-button">继续</button>\n          <button type="button" id="sidebar-tool-action-cancel" class="od-button od-button--secondary">取消</button>\n        </div>\n      </section>\n      <div id="sidebar-tool-list-view">\n        <div class="sidebar-tools-head od-toolbar">\n          <strong>已安装工具</strong>\n          <div class="sidebar-tools-actions od-toolbar" role="group" aria-label="添加和管理工具">\n            <button type="button" id="sidebar-tool-discover-toggle" class="od-icon-button" aria-label="添加工具" title="查找并安装官方工具" aria-expanded="false" aria-controls="sidebar-tool-discover-panel"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></button>\n            <button type="button" id="sidebar-tool-market" class="od-icon-button" aria-label="打开应用市场" title="在新标签页打开完整应用市场"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10h16l-1.5-6h-13L4 10Zm2 0v10h12V10M10 20v-6h4v6"></path></svg></button>\n            <button type="button" id="sidebar-tool-import-trigger" class="od-icon-button" aria-label="导入工具文件" title="导入本地工具文件" aria-expanded="false" aria-controls="sidebar-tool-import"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V4m-5 5 5-5 5 5M4 16v4h16v-4"></path></svg></button>\n          </div>\n        </div>\n        <div id="sidebar-tool-import" class="sidebar-tool-import od-surface" hidden>\n          <div class="sidebar-tool-import-head od-toolbar">\n            <strong>导入工具</strong>\n            <button type="button" id="sidebar-tool-import-close" class="sidebar-tool-icon-action od-icon-button" title="取消导入" aria-label="取消导入"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5l14 14M19 5 5 19"></path></svg></button>\n          </div>\n          <label for="sidebar-tool-file">选择 .opendesk-tool.json 文件</label>\n          <input id="sidebar-tool-file" type="file" accept=".json,application/json" aria-describedby="sidebar-tool-file-error">\n          <p id="sidebar-tool-file-error" class="sidebar-tool-file-error" role="alert" hidden></p>\n          <p class="sidebar-tool-import-hint">选择文件和安装都不会运行代码；安装后由你点击“打开”启动工具。</p>\n          <div id="sidebar-tool-preview" class="sidebar-tool-preview" hidden>\n            <div class="sidebar-tool-preview-heading">\n              <strong id="sidebar-too`... 43406 more characters,
+    expected: /<button[^>]*id="tab-cloud"[^>]*hidden>云控<\/button>/,
+    operator: 'match',
+    diff: 'simple'
+  }
+
+test at tests/environment/cloud-control-sidebar-r28.test.mjs:8:1
+✖ Side Panel has six product tabs and development-only Debug at seventh (5.798834ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    [
+      'tasks',
+      'discover',
+      'workflow',
+      'develop',
+      'tools',
+  -   'cloud',
+      'debug'
+    ]
+  
+      at TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/environment/cloud-control-sidebar-r28.test.mjs:13:10)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ 'tasks', 'discover', 'workflow', 'develop', 'tools', 'debug' ],
+    expected: [
+      'tasks',    'discover',
+      'workflow', 'develop',
+      'tools',    'cloud',
+      'debug'
+    ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at tests/environment/cloud-control-sidebar-r28.test.mjs:33:1
+✖ Cloud controls exist once in the Cloud tab; My retains a compact entry (1.750458ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /id="cloud-my-open"/. Input:
+  
+  'id="workbench-tasks" role="tabpanel" aria-labelledby="tab-my-tasks" class="od-page" data-workbench-page="tasks">\n' +
+    '      <section class="tasks-surface" aria-label="已安装任务">\n' +
+    '      <div class="task-section-head od-toolbar">\n' +
+    '        <strong>自动化任务</strong>\n' +
+    '        <div class="task-section-actions"><span id="task-installed-count" aria-live="polite"></span><button type="button" id="task-open-catalog" class="od-button" aria-label="打开任务目录添加任务">＋ 添加</button></div>\n' +
+    '      </div>\n' +
+    '      <label for="task-installed-list" class="visually-hidden">已安装任务</label><select id="task-installed-list" hidden><option value="">读取已安装任务…</option></select>\n' +
+    '      <div id="task-installed-cards" class="task-card-list od-stack" aria-label="已安装任务列表"></div>\n' +
+    '      <div id="task-selected-workspace" class="task-selected-workspace">\n' +
+    '      <p id="task-current-site" class="identity"></p>\n' +
+    '      <form id="task-params-form" autocomplete="off" aria-label="任务参数"></form>\n' +
+    '      <p id="task-status" role="status" aria-live="polite"></p>\n' +
+    '      <div id="task-result-panel" class="task-result-panel" hidden>\n' +
+    '        <div class="task-result-controls">\n' +
+    '          <h3 class="task-result-heading">最近结果</h3>\n' +
+    '          <button type="button" id="task-result-reveal" title="完整返回值可能包含敏感信息" hidden>查看完整原值</button>\n' +
+    '        </div>\n' +
+    '        <pre id="task-result" aria-label="当前任务结果">尚未运行</pre>\n' +
+    '      </div>\n' +
+    '      <details id="task-history-panel" class="task-history-panel" hidden><summary>运行记录</summary><div id="task-history" aria-live="polite"></div></details>\n' +
+    '      <details class="task-scope-panel"><summary>网站与权限</summary><div id="task-installed-detail" class="task-detail" aria-live="polite"></div></details>\n' +
+    '      <details class="task-tools"><summary>更多操作</summary>\n' +
+    '        <div class="row"><button type="button" id="task-refresh">刷新任务</button><button type="button" id="task-fork-draft" disabled>复制草稿</button></div>\n' +
+    '        <details><summary>任务管理</summary>\n' +
+    '          <div class="row"><button type="button" id="task-toggle" disabled>停用 / 启用</button><button type="button" id="task-uninstall" disabled>卸载当前版本</button><button type="button" id="open-catalog" class="catalog-open" aria-label="打开完整任务目录以导入或管理任务">导入/管理任务 ↗</button></div>\n' +
+    '          <p class="hint">卸载不删除已有结果；停用将阻止后续启动。</p>\n' +
+    '        </details>\n' +
+    '      </details>\n' +
+    '      </div>\n' +
+    '    </section>\n' +
+    '    <section class="cloud-my-entry od-surface" aria-label="云端托管状态">\n' +
+    '    <strong>云端托管</strong><span id="cloud-my-state" role="status" aria-live="polite">托管未启用</span>\n' +
+    '  </section>\n' +
+    '    <section class="cloud-panel od-stack" aria-label="云控管理">\n' +
+    '      <header class="cloud-panel-head od-toolbar">\n' +
+    '        <div class="cloud-panel-heading"><strong>云控</strong><p class="hint">与当前目标网页并排查看云任务及执行状态。</p></div>\n' +
+    '        <button type="button" id="cloud-overview-refresh" class="od-icon-button" title="刷新云控状态" aria-label="刷新云控状态"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 0 0-14-5L4 8m0-5v5h5M4 13a8 8 0 0 0 14 5l2-2m0 5v-5h-5"></path></svg></button>\n' +
+    '      </header>\n' +
+    '      <section class="cloud-overview od-surface" aria-label="云控实时概览">\n' +
+    '        <p id="cloud-overview-state" role="status" aria-live="polite">正在读取云控状态…</p>\n' +
+    '        <div class="cloud-overview-metrics">\n' +
+    '          <div><span>提供者</span><strong id="cloud-overview-provider">检测中</strong></div>\n' +
+    '          <div><span>连接</span><strong id="cloud-overview-connection">检测中</strong></div>\n' +
+    '          <div><span>执行宿主</span><strong id="cloud-overview-host">检测中</strong></div>\n' +
+    '          <div><span>执行槽</span><strong id="cloud-overview-slot">检测中</strong></div>\n' +
+    '          <div><span>已批准任务</span><strong id="cloud-overview-tasks">—</strong></div>\n' +
+    '          <div><span>云请求数</span><strong id="cloud-overview-requests">—</strong></div>\n' +
+    '        </div>\n' +
+    '      </section>\n' +
+    '      <section class="cloud-requests od-surface" aria-label="云请求状态样本">\n' +
+    '        <div class="cloud-section-title od-toolbar"><strong>请求状态</strong><span class="hint">最多 5 条，脱敏显示</span></div>\n' +
+    '        <ol id="cloud-request-samples" class="cloud-request-samples"><li>暂无云请求</li></ol>\n' +
+    '      </section>\n' +
+    '    <details id="cloud-hosting" class="task-scope-panel"><summary>连接与授权 <span id="cloud-brief" class="cloud-status-brief">未配对</span></summary>\n' +
+    '        <label>提供者地址 <input id="cloud-url" type="url" placeholder="https://可信提供者地址"></label>\n' +
+    '        <label>提供者身份 <input id="cloud-provider-id" autocomplete="off"></label>\n' +
+    '        <label>配对码 <input id="cloud-pairing-code" type="password" autocomplete="off"></label>\n' +
+    '        <label><input id="cloud-loopback" type="checkbox">明确允许固定本地测试提供者 HTTP/WS</label>\n' +
+    '        <p class="hint">云控框架已内置，无需在「工具」中导入。开发回环服务请输入 http://127.0.0.1:43112 并明确允许本地测试；普通服务器应使用 HTTPS。</p>\n' +
+    '        <button id="cloud-pair" type="button">配对提供者</button>\n' +
+    '        <p>请先在「我的」安装并选择任务。托管授权固定当前安装版本、摘要、授权代次及该任务网站范围。</p>\n' +
+    '        <label><input id="cloud-consent" type="checkbox">批准所选固定任务和网站范围，在合法浏览器执行宿主可用时运行</label>\n' +
+    '        <label><input id="cloud-result-consent" type="checkbox">允许该固定任务结果回传</label>\n' +
+    '        <div><button id="cloud-approve" type="button">批准并启用托管</button><button id="cloud-stop" type="button">停止托管并请求取消</button><button id="cloud-unpair" type="button">解除配对</button><button id="cloud-refresh" type="button">核对状态</button></div>\n' +
+    '        <p class="hint">关闭 Side Panel 后不承诺无人值守执行。停止后保留取消处理中、退休待核对和未知结果；正常重连复用已有授权。</p>\n' +
+    '        <p id="cloud-status" role="status" aria-live="polite">尚未配对</p>\n' +
+    '      </details>\n' +
+    '\n' +
+    '      <p class="hint">云控复用「我的」已安装授权的任务和原 RunHost。切换选项卡不会启动第二个执行器；关闭 Side Panel 后不承诺任务继续运行。</p>\n' +
+    '    </section>\n' +
+    '\n' +
+    '  </div>\n' +
+    '  <div '
+  
+      at TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/environment/cloud-control-sidebar-r28.test.mjs:39:10)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'id="workbench-tasks" role="tabpanel" aria-labelledby="tab-my-tasks" class="od-page" data-workbench-page="tasks">\n      <section class="tasks-surface" aria-label="已安装任务">\n      <div class="task-section-head od-toolbar">\n        <strong>自动化任务</strong>\n        <div class="task-section-actions"><span id="task-installed-count" aria-live="polite"></span><button type="button" id="task-open-catalog" class="od-button" aria-label="打开任务目录添加任务">＋ 添加</button></div>\n      </div>\n      <label for="task-installed-list" class="visually-hidden">已安装任务</label><select id="task-installed-list" hidden><option value="">读取已安装任务…</option></select>\n      <div id="task-installed-cards" class="task-card-list od-stack" aria-label="已安装任务列表"></div>\n      <div id="task-selected-workspace" class="task-selected-workspace">\n      <p id="task-current-site" class="identity"></p>\n      <form id="task-params-form" autocomplete="off" aria-label="任务参数"></form>\n      <p id="task-status" role="status" aria-live="polite"></p>\n      <div id="task-result-panel" class="task-result-panel" hidden>\n        <div class="task-result-controls">\n          <h3 class="task-result-heading">最近结果</h3>\n          <button type="button" id="task-result-reveal" title="完整返回值可能包含敏感信息" hidden>查看完整原值</button>\n        </div>\n        <pre id="task-result" aria-label="当前任务结果">尚未运行</pre>\n      </div>\n      <details id="task-history-panel" class="task-history-panel" hidden><summary>运行记录</summary><div id="task-history" aria-live="polite"></div></details>\n      <details class="task-scope-panel"><summary>网站与权限</summary><div id="task-installed-detail" class="task-detail" aria-live="polite"></div></details>\n      <details class="task-tools"><summary>更多操作</summary>\n        <div class="row"><button type="button" id="task-refresh">刷新任务</button><button type="button" id="task-fork-draft" disabled>复制草稿</button></div>\n        <details><summary>任务管理</summary>\n          <div class="row"><button type="button" id="task-toggle" disabled>停用 / 启用</button><button type="button" id="task-uninstall" disabled>卸载当前版本</button><button type="button" id="open-catalog" class="catalog-open" aria-label="打开完整任务目录以导入或管理任务">导入/管理任务 ↗</button></div>\n          <p class="hint">卸载不删除已有结果；停用将阻止后续启动。</p>\n        </details>\n      </details>\n      </div>\n    </section>\n    <section class="cloud-my-entry od-surface" aria-label="云端托管状态">\n    <strong>云端托管</strong><span id="cloud-my-state" role="status" aria-live="polite">托管未启用</span>\n  </section>\n    <section class="cloud-panel od-stack" aria-label="云控管理">\n      <header class="cloud-panel-head od-toolbar">\n        <div class="cloud-panel-heading"><strong>云控</strong><p class="hint">与当前目标网页并排查看云任务及执行状态。</p></div>\n        <button type="button" id="cloud-overview-refresh" class="od-icon-button" title="刷新云控状态" aria-label="刷新云控状态"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 0 0-14-5L4 8m0-5v5h5M4 13a8 8 0 0 0 14 5l2-2m0 5v-5h-5"></path></svg></button>\n      </header>\n      <section class="cloud-overview od-surface" aria-label="云控实时概览">\n        <p id="cloud-overview-state" role="status" aria-live="polite">正在读取云控状态…</p>\n        <div class="cloud-overview-metrics">\n          <div><span>提供者</span><strong id="cloud-overview-provider">检测中</strong></div>\n          <div><span>连接</span><strong id="cloud-overview-connection">检测中</strong></div>\n          <div><span>执行宿主</span><strong id="cloud-overview-host">检测中</strong></div>\n          <div><span>执行槽</span><strong id="cloud-overview-slot">检测中</strong></div>\n          <div><span>已批准任务</span><strong id="cloud-overview-tasks">—</strong></div>\n          <div><span>云请求数</span><strong id="cloud-overview-requests">—</strong></div>\n        </div>\n      </section>\n      <section class="cloud-requests od-surface" aria-label="云请求状态样本">\n        <div class="cloud-section-title od-toolbar"><strong>请求状态</strong><span class="hint">最多 5 条，脱敏显示</span></div>\n        <ol id="cloud-request-samples" class="cloud-request-samples"><li>暂无云请求</li></ol>\n      </section>\n    <details id="cloud-hosting" class="task-scope-panel"><summary>连接与授权 <span id="cloud-brief" class="cloud-status-brief">未配对</span></summary>\n        <label>提供者地址 <input id="cloud-url" type="url" placeholder="https://可信提供者地址"></label>\n        <label>提供者身份 <input id="cloud-provider-id" autocomplete="off"></label>\n        <label>配对码 <input id="cloud-pairing-code" type="password" autocomplete="off"></label>\n        <label><input id="cloud-loopback" type="checkbox">明确允许固定本地测试提供者 HTTP/WS</label>\n        <p class="hint">云控框架已内置，无需在「工具」中导入。开发回环服务请输入 http://127.0.0.1:43112 并明确允许本地测试；普通服务器应使用 HTTPS。</p>\n        <button id="cloud-pair" type="button">配对提供者</button>\n        <p>请先在「我的」安装并选择任务。托管授权固定当前安装版本、摘要、授权代次及该任务网站范围。</p>\n        <label><input id="cloud-consent" type="checkbox">批准所选固定任务和网站范围，在合法浏览器执行宿主可用时运行</label>\n        <label><input id="cloud-result-consent" type="checkbox">允许该固定任务结果回传</label>\n        <div><button id="cloud-approve" type="button">批准并启用托管</button><button id="cloud-stop" type="button">停止托管并请求取消</button><button id="cloud-unpair" type="button">解除配对</button><button id="cloud-refresh" type="button">核对状态</button></div>\n        <p class="hint">关闭 Side Panel 后不承诺无人值守执行。停止后保留取消处理中、退休待核对和未知结果；正常重连复用已有授权。</p>\n        <p id="cloud-status" role="status" aria-live="polite">尚未配对</p>\n      </details>\n\n      <p class="hint">云控复用「我的」已安装授权的任务和原 RunHost。切换选项卡不会启动第二个执行器；关闭 Side Panel 后不承诺任务继续运行。</p>\n    </section>\n\n  </div>\n  <div ',
+    expected: /id="cloud-my-open"/,
+    operator: 'match',
+    diff: 'simple'
+  }
+
+test at tests/environment/sidebar-tab-memory.test.mjs:30:1
+✖ Side Panel restores each previously selected product tab after reopening (1.834959ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  'tasks' !== 'cloud'
+  
+      at TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/environment/sidebar-tab-memory.test.mjs:34:12)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'tasks',
+    expected: 'cloud',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/environment/sidebar-ui-preview.test.mjs:24:1
+✖ R4.9 Tools has one navigation tier and three accessible add/import/market controls (5.113375ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert.ok(start>=0&&end>start)
+  
+      at TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/environment/sidebar-ui-preview.test.mjs:29:10)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }

@@ -1365,9 +1365,22 @@ test('cloud status returns bounded redacted pages and supports a cheap heartbeat
     const row={...f.row,requestId:'cloud:extra-'+String(i).padStart(3,'0'),createdAt:i+1};
     await f.storage.transaction(['frameworkKV'],'readwrite',tx=>tx.put('frameworkKV',row,'cloud:request:'+row.requestId));
   }
+  let historyReads=0;
+  const transaction=f.storage.transaction.bind(f.storage);
+  f.storage.transaction=(names,mode,body)=>transaction(names,mode,tx=>body({...tx,all:async name=>{
+    if(name==='frameworkKV')historyReads++;
+    return tx.all(name);
+  }}));
+  await f.authority.resolveInstalledTask({taskId:f.resolved.taskId},f.sender);
+  const authorizationReads=historyReads;
+  historyReads=0;
   const cheap=await f.cloud.cloudStatus({includeRequests:false},f.sender);
   assert.equal(cheap.requestTotal,null);assert.deepEqual(cheap.requests,[]);
+  assert.equal(historyReads,0,'heartbeat must not enumerate historical cloud records');
+  await f.cloud.cloudResolve({requestId:f.requestId},f.sender);
+  assert.equal(historyReads,authorizationReads,'request resolution adds no history scan beyond existing task authorization');
   const full=await f.cloud.cloudStatus({limit:5},f.sender);
+  assert.equal(historyReads,authorizationReads+1,'the bounded observation explicitly reads history once');
   assert.equal(full.requestTotal,76);assert.equal(full.requests.length,5);
   assert.equal(full.requestPage.nextOffset,5);
   assert.doesNotMatch(JSON.stringify(full.requests),/cloud:extra|assignment|credential|params|runId|target\.url/);
@@ -1394,11 +1407,15 @@ test('observer projection is fixed-namespace, paged and excludes all executable 
 });
 test('cloudResolve uses a durable direct request key and rejects non-cloud identifiers',async()=>{
   const f=await cloudTaskFixture();
+  let historyReads=0;
   const native=f.storage.transaction.bind(f.storage);
   f.storage.transaction=(names,mode,callback)=>native(names,mode,tx=>callback({
-    ...tx,all:store=>{if(store==='frameworkKV')throw Error('Unbounded Cloud KV scan');return tx.all(store);}
+    ...tx,all:store=>{if(store==='frameworkKV')historyReads++;return tx.all(store);}
   }));
+  await f.authority.resolveInstalledTask({taskId:f.resolved.taskId},f.sender);
+  const authorizationReads=historyReads;historyReads=0;
   const direct=await f.cloud.cloudResolve({requestId:f.requestId},f.sender);
+  assert.equal(historyReads,authorizationReads,'direct cloud lookup adds no history scan to native Task authorization');
   assert.equal(direct.cloudRequestId,f.requestId);
   await assert.rejects(f.cloud.cloudResolve({requestId:'foreign'},f.sender),code('E_SCHEMA'));
 });
@@ -1444,7 +1461,7 @@ test('cloud transaction quota failure rolls back run, slot, binding and revision
 });
 test('cloud stop before permit commit and changed installation generation prevent target creation',async t=>{
   const f=await cloudTaskFixture();t.mock.method(globalThis,'fetch',async(url,options)=>{const b=JSON.parse(options.body);await f.cloud.cloudStop({},f.sender);return new Response(JSON.stringify({permitId:'old',providerId:'provider',assignmentId:'assignment',runRef:b.runRef,leaseUntil:Date.now()+90000}));});
-  await assert.rejects(f.authority.startControllerRun(f.request,f.sender),code('E_PERMIT'));assert.equal(f.calls.filter(c=>c.method==='create').length,0);
+  await assert.rejects(f.authority.startControllerRun(f.request,f.sender),code('E_CLOUD_FENCED'));assert.equal(f.calls.filter(c=>c.method==='create').length,0);
   const changed=await cloudTaskFixture();await changed.authority.setInstalledTaskEnabled({...changed.installClaim(changed.resolved),enabled:false},changed.sender);
   await assert.rejects(changed.authority.startControllerRun(changed.request,changed.sender));assert.equal(changed.calls.filter(c=>c.method==='create').length,0);
 });
@@ -1455,7 +1472,74 @@ async function admittedCloud(t){
   t.mock.method(globalThis,'fetch',responder);const run=await f.authority.startControllerRun(f.request,f.sender);
   return {...f,run};
 }
+test('cloud rejects missing or non-finite durable permit before any target or worker effect',async t=>{
+  for(const change of [p=>delete p.permitId,p=>p.permitId='',p=>p.leaseUntil='tomorrow',p=>p.leaseUntil=Infinity]){
+    const f=await cloudTaskFixture(),before=f.calls.length;
+    t.mock.method(globalThis,'fetch',async(_url,options)=>{
+      const b=JSON.parse(options.body),p={permitId:'permit',providerId:'provider',assignmentId:'assignment',runRef:b.runRef,leaseUntil:Date.now()+90000};change(p);
+      return new Response(JSON.stringify(p));
+    });
+    await assert.rejects(f.authority.startControllerRun(f.request,f.sender),code('E_PERMIT'));
+    assert.equal(f.calls.slice(before).filter(c=>['create','userScripts.execute'].includes(c.method)).length,0);
+  }
+});
+test('cloud late permit from a retired connection epoch cannot dispatch',async t=>{
+  const f=await cloudTaskFixture(),before=f.calls.length;let enter,release;
+  const entered=new Promise(r=>enter=r),gate=new Promise(r=>release=r);
+  t.mock.method(globalThis,'fetch',async(_url,options)=>{
+    const b=JSON.parse(options.body);enter();await gate;
+    return new Response(JSON.stringify({permitId:'permit',providerId:'provider',assignmentId:'assignment',runRef:b.runRef,leaseUntil:Date.now()+90000}));
+  });
+  const pending=f.authority.startControllerRun(f.request,f.sender);await entered;
+  f.cloud.connection('offline');f.cloud.connection('authenticated');release();
+  await assert.rejects(pending,code('E_CLOUD_FENCED'));
+  assert.equal(f.calls.slice(before).filter(c=>['create','userScripts.execute'].includes(c.method)).length,0);
+});
+test('completed released receipt-confirmed cloud run ignores later lease expiry without hiding cancellation history',async t=>{
+  const f=await admittedCloud(t);await f.finish(f.run);await f.authority.retireControllerTarget({runId:f.run.runId},f.sender);
+  t.mock.method(globalThis,'fetch',async url=>url.endsWith('/receipt')?new Response(JSON.stringify({receiptId:'ack',digest:'digest'})):new Response(JSON.stringify(await remoteCloud(f))));
+  await f.cloud.reconcile();
+  const before=(await f.rows('frameworkKV')).find(r=>r.tag==='cloud-request-v1');
+  t.mock.method(globalThis,'fetch',async()=>{const remote=await remoteCloud(f);remote.assignments[0].leaseUntil=Date.now()-1;return new Response(JSON.stringify(remote));});
+  await f.cloud.reconcile();const after=(await f.rows('frameworkKV')).find(r=>r.tag==='cloud-request-v1');
+  assert.equal(after.reason,before.reason);assert.deepEqual(after.receipt,before.receipt);assert.equal(after.state,'finished');
+  assert.equal((await f.rows('runs')).find(r=>r.runId===f.run.runId).state,'completed');
+});
 const remoteCloud=async f=>({providerId:'provider',assignments:[{assignmentId:'assignment',runRef:(await f.rows('frameworkKV')).find(r=>r.tag==='cloud-request-v1').runRef,leaseUntil:Date.now()+90000,cancelled:false}]});
+async function claimingCloud(){
+  const f=await cloudTaskFixture();
+  await f.storage.transaction(['frameworkKV'],'readwrite',tx=>tx.delete('frameworkKV','cloud:request:'+f.requestId));
+  f.cloud.connection('authenticated');f.cloud.setReconciled(true);return f;
+}
+test('late cloud claim after connection invalidation preserves claim for query and admits no request',async t=>{
+  const f=await claimingCloud();let enter,release;const entered=new Promise(r=>enter=r),gate=new Promise(r=>release=r);
+  t.mock.method(globalThis,'fetch',async(_url,options)=>{const b=JSON.parse(options.body);enter();await gate;return new Response(JSON.stringify({assignment:{...f.row.assignment,claimId:b.claimId}}));});
+  const pending=f.cloud.cloudNext({},f.sender);await entered;f.cloud.invalidate();release();
+  await assert.rejects(pending,code('E_CLOUD_FENCED'));
+  assert.equal((await f.rows('frameworkKV')).filter(r=>r.tag==='cloud-request-v1').length,0);
+  assert.ok((await f.cloud.read()).claimId);assert.equal(f.calls.filter(c=>c.method==='create').length,0);
+});
+test('same public assignment ID is isolated across provider pairings; wrong pairing and epoch rejected',async t=>{
+  const f=await claimingCloud();let override={};
+  t.mock.method(globalThis,'fetch',async(_url,options)=>{const b=JSON.parse(options.body),c=await f.cloud.read();return new Response(JSON.stringify({assignment:{...f.row.assignment,claimId:b.claimId,providerId:c.providerId,pairingId:c.pairingId,pairingGeneration:c.pairingGeneration,attemptEpoch:1,...override}}));});
+  async function config(providerId,pairingId){await f.storage.transaction(['frameworkKV'],'readwrite',async tx=>{const c=await tx.get('frameworkKV','cloud:config');Object.assign(c,{providerId,pairingId,pairingGeneration:1,grantId:pairingId,claimId:null});await tx.put('frameworkKV',c,'cloud:config');});}
+  await config('provider-a','pair-a');assert.equal((await f.cloud.cloudNext({},f.sender)).requestId,f.requestId);
+  await config('provider-b','pair-b');assert.equal((await f.cloud.cloudNext({},f.sender)).requestId,f.requestId);
+  const requests=(await f.rows('frameworkKV')).filter(r=>r.tag==='cloud-request-v1');assert.equal(requests.length,2);assert.notEqual(requests[0].storageKey,requests[1].storageKey);
+  assert.equal((await f.cloud.cloudResolve({requestId:f.requestId},f.sender)).cloudRequestId,f.requestId);
+  await config('provider-b','pair-c');override={pairingId:'pair-b'};await assert.rejects(f.cloud.cloudNext({},f.sender),code('E_ASSIGNMENT'));
+  override={attemptEpoch:0};await assert.rejects(f.cloud.cloudNext({},f.sender),code('E_ASSIGNMENT'));
+  assert.equal(f.calls.filter(c=>c.method==='create').length,0);
+});
+test('offline unpair blocks local execution and persists revocation until provider acknowledgement',async t=>{
+  const f=await cloudTaskFixture();let online=false,revokeCalls=0;
+  t.mock.method(globalThis,'fetch',async(url,options)=>{assert.ok(url.endsWith('/revoke'));revokeCalls++;if(!online)throw new TypeError('offline');const b=JSON.parse(options.body);return new Response(JSON.stringify({providerId:'provider',pairingId:'legacy-pair',pairingGeneration:1,revocationId:b.revocationId,revoked:true}));});
+  const status=await f.cloud.cloudUnpair({},f.sender);assert.equal(status.enabled,false);assert.equal(status.provider,null);assert.equal(status.revocation.state,'pending');
+  assert.equal((await f.cloud.read()).enabled,false);assert.ok((await f.cloud.read()).credential);
+  assert.equal(await f.cloud.cloudNext({},f.sender),null);await assert.rejects(f.cloud.cloudResolve({requestId:f.requestId},f.sender));
+  online=true;await f.cloud.retryRevocation();assert.equal(await f.cloud.read(),undefined);assert.equal((await f.cloud.cloudStatus({},f.sender)).revocation.state,'confirmed');
+  assert.equal(revokeCalls,2);assert.equal(f.calls.filter(c=>c.method==='create').length,0);
+});
 test('expired local cloud permit is permanently fenced despite a live provider lease',async t=>{
   const f=await admittedCloud(t);let renewed=0;
   await f.storage.transaction(['frameworkKV'],'readwrite',async tx=>{const r=await tx.get('frameworkKV','cloud:request:'+f.requestId);r.permit.leaseUntil=Date.now()-1;await tx.put('frameworkKV',r,'cloud:request:'+f.requestId);});
@@ -1511,4 +1595,24 @@ test('cloud receipt transport loss leaves one durable result pending and retries
   await assert.rejects(f.cloud.reconcile(),/response lost/);const pending=(await f.rows('frameworkKV')).find(r=>r.tag==='cloud-request-v1');assert.equal(pending.delivery.state,'pending');assert.equal(pending.receipt,undefined);
   await f.cloud.reconcile();assert.equal(uploads,2);assert.deepEqual(bodies[0],bodies[1]);assert.equal(f.calls.filter(c=>c.method==='create').length,1);
   assert.equal((await f.rows('results')).filter(r=>r.tag==='controller-result'&&r.runId===f.run.runId).length,1);assert.equal((await f.rows('frameworkKV')).find(r=>r.tag==='cloud-request-v1').delivery.state,'confirmed');
+});
+test('website or task authorization withdrawn after delivery intent prevents result transmission',async t=>{
+  for(const kind of ['website','task','output']){
+    const f=await admittedCloud(t);await f.finish(f.run);await f.authority.retireControllerTarget({runId:f.run.runId},f.sender);let uploads=0,revoked=false;
+    t.mock.method(globalThis,'fetch',async url=>{if(url.endsWith('/receipt'))uploads++;return new Response(JSON.stringify(await remoteCloud(f)));});
+    const transaction=f.storage.transaction.bind(f.storage);
+    f.storage.transaction=async(names,mode,body)=>{
+      const answer=await transaction(names,mode,body);
+      if(!revoked&&mode==='readwrite'&&names.includes('frameworkKV')){
+        revoked=true;
+        if(kind==='website')f.setAllowed(false);
+        else if(kind==='task')await f.authority.setInstalledTaskEnabled({...f.installClaim(f.resolved),enabled:false},f.sender);
+        else await transaction(['frameworkKV'],'readwrite',async tx=>{const r=await tx.get('frameworkKV','cloud:request:'+f.requestId);r.task.resultAllowed=false;await tx.put('frameworkKV',r,'cloud:request:'+f.requestId);});
+      }
+      return answer;
+    };
+    await f.cloud.reconcile().catch(error=>{assert.ok(['E_PERMISSION','E_TASK_REVOKED'].includes(error.code),error.code);});
+    assert.equal(uploads,0);assert.equal((await f.rows('results')).filter(r=>r.runId===f.run.runId).length,1);
+    assert.equal((await f.rows('frameworkKV')).find(r=>r.tag==='cloud-request-v1').receipt,undefined);
+  }
 });

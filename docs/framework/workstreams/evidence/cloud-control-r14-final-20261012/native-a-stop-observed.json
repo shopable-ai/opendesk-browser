@@ -1,0 +1,17 @@
+{
+  "observedAt": "2026-10-12T11:42:38.021305+00:00",
+  "pid": 85732,
+  "processGone": true,
+  "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-muy7plfv",
+  "profilePreserved": true,
+  "launcherExitCode": 0,
+  "launcherOutput": {
+    "preservedProfile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-muy7plfv"
+  },
+  "candidate": "A",
+  "nativeStatus": "NOT_TESTED",
+  "nativeResourceReleaseAsserted": false,
+  "providerStarted": false,
+  "jobSeeded": false,
+  "reason": "Superseded build and Mac locked; empty native inventory retained; no original historical resources modified"
+}

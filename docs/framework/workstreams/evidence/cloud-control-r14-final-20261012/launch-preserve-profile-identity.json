@@ -1,0 +1,7 @@
+{
+  "derivedFrom": "/Users/shopme/.codex/skills/chrome-testing-keychain/scripts/launch.py",
+  "originalSha256": "1b92b98e7442fdeae88dae0277604aedccfe487cfb8b80d9adf479c725398a36",
+  "taskCopySha256": "c272d4d369ab856e9d612a28b972b7f1667d1276791c3afbd3dbe3a263405840",
+  "change": "only preserve owned temporary profile on exit; original launch and mock-keychain ownership checks unchanged",
+  "modifiesSkill": false
+}

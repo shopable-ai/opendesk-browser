@@ -1,0 +1,75 @@
+{
+  "schema": "opendesk.cloud-control.candidate-build-identity.v1",
+  "observedAt": "2026-10-12T11:48:30.817879+00:00",
+  "candidate": "B",
+  "candidatePath": "/Users/shopme/Documents/workspace/opendesk-browser/.runtime/cloud-control-r14-final-20261012/candidate-b",
+  "snapshotHead": "e859cf1942d2fc3dd70c4658052eecf51d60c68f",
+  "sourceIdentity": "Immutable source-input and package-file hashes, not HEAD alone; snapshot includes then-current parallel edits",
+  "builds": {
+    "production": {
+      "status": "BUILD_VERIFIED",
+      "packageHash": "09bfae9d7bc3ed1cf9e90a0290bbf8a810e3cb3bdb16710fda95eb4e1edbf991",
+      "packageFiles": 89,
+      "sourceInputs": 409,
+      "receipt": "build-b-production-receipt.json",
+      "swBytes": 333231,
+      "toolShellBytes": 453990
+    },
+    "development": {
+      "status": "BUILD_VERIFIED",
+      "packageHash": "648d90a1bf2032018adc7ccd2cf5996e945eb5f51a07eaff30158aea7ea7572b",
+      "packageFiles": 123,
+      "sourceInputs": 409,
+      "receipt": "build-b-development-receipt.json",
+      "swBytes": 333397,
+      "toolShellBytes": 454230
+    }
+  },
+  "currentRootSourceDrift": {
+    "production": [
+      "scripts/audit-fixed-entries.mjs",
+      "scripts/prepare-public.mjs",
+      "scripts/tests/sidebar-r19-layout-visual.mjs",
+      "scripts/verify-package.mjs",
+      "src/scripting/user-scripts/dependency-manager.js",
+      "src/scripting/user-scripts/installed-programs.js",
+      "src/ui/debug-workbench.js",
+      "src/ui/design-system.css",
+      "src/ui/design-tokens.css",
+      "src/ui/esm-source-detector.js",
+      "src/ui/installed-page-tools.js",
+      "src/ui/local-project-install-ui.js",
+      "src/ui/local-project-install.js",
+      "src/ui/page-dependencies.js",
+      "src/ui/page-dependency-review.js",
+      "src/ui/tool-shell.css",
+      "src/ui/tool.html"
+    ],
+    "development": [
+      "scripts/audit-fixed-entries.mjs",
+      "scripts/prepare-public.mjs",
+      "scripts/tests/sidebar-r19-layout-visual.mjs",
+      "scripts/verify-package.mjs",
+      "src/scripting/user-scripts/dependency-manager.js",
+      "src/scripting/user-scripts/installed-programs.js",
+      "src/ui/debug-workbench.js",
+      "src/ui/design-system.css",
+      "src/ui/design-tokens.css",
+      "src/ui/esm-source-detector.js",
+      "src/ui/installed-page-tools.js",
+      "src/ui/local-project-install-ui.js",
+      "src/ui/local-project-install.js",
+      "src/ui/page-dependencies.js",
+      "src/ui/page-dependency-review.js",
+      "src/ui/tool-shell.css",
+      "src/ui/tool.html"
+    ]
+  },
+  "nativeStatus": "NOT_TESTED",
+  "formalF3": "NOT_TESTED",
+  "zipInstallation": "NOT_TESTED",
+  "finalCandidate": false,
+  "supersededBy": "C",
+  "buildBudgetChanged": false,
+  "ordinaryRootDistModified": false
+}

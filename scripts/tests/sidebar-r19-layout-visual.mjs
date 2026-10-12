@@ -289,11 +289,12 @@ function validate(scene,width,m){
 try{
   await mkdir(out,{recursive:true});
   const officialReleases=(await createOfficialToolResources()).catalog.apps;
-  const [source,tokens,design,style]=await Promise.all([
+  const [source,tokens,design,style,hostingStyle]=await Promise.all([
     readFile(join(root,'src/ui/tool.html'),'utf8'),
     readFile(join(root,'src/ui/design-tokens.css'),'utf8'),
     readFile(join(root,'src/ui/design-system.css'),'utf8'),
-    readFile(join(root,'src/ui/tool-shell.css'),'utf8')
+    readFile(join(root,'src/ui/tool-shell.css'),'utf8'),
+    readFile(join(root,'src/ui/cloud-hosting.css'),'utf8')
   ]);
   const html=source.replace(/<script src="tool-shell\.js"><\/script>/,'');
   if(html===source)throw Error('Expected script marker missing: refusing native JS execution in static fixture');
@@ -303,6 +304,7 @@ try{
     else if(name==='/ui/design-tokens.css')res.writeHead(200,{'Content-Type':'text/css; charset=utf-8'}).end(tokens);
     else if(name==='/ui/design-system.css')res.writeHead(200,{'Content-Type':'text/css; charset=utf-8'}).end(design);
     else if(name==='/ui/tool-shell.css')res.writeHead(200,{'Content-Type':'text/css; charset=utf-8'}).end(style);
+    else if(name==='/ui/cloud-hosting.css')res.writeHead(200,{'Content-Type':'text/css; charset=utf-8'}).end(hostingStyle);
     else res.writeHead(404).end();
   });
   await new Promise(ok=>server.listen(0,'127.0.0.1',ok));
@@ -336,7 +338,7 @@ try{
   }
   await writeFile(join(out,'metrics.json'),JSON.stringify({
     evidence:'STATIC_MARKUP_CHROME',nativeExtension:false,nativeControlEvents:false,
-    source:'src/ui/tool.html + src/ui/design-tokens.css + src/ui/design-system.css + src/ui/tool-shell.css',samples
+    source:'src/ui/tool.html + src/ui/design-tokens.css + src/ui/design-system.css + src/ui/tool-shell.css + src/ui/cloud-hosting.css',samples
   },null,2)+'\n');
   console.log('SIDEBAR_R21_STATIC_STATES_ALL_PASS '+samples.length);
 }finally{

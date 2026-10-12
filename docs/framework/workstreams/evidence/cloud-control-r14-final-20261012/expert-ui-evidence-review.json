@@ -1,0 +1,482 @@
+{
+  "schema": "opendesk.cloud-control.independent-ui-evidence-review.v1",
+  "reviewedAtUtc": "2026-10-12T11:33:07.719717+00:00",
+  "mode": "INDEPENDENT_READ_ONLY_NO_DELEGATION",
+  "candidate": "B",
+  "candidateSnapshotHead": "e859cf1942d2fc3dd70c4658052eecf51d60c68f",
+  "sourceReviewBoundary": "Current read-time main files; candidate snapshot HEAD does not describe uncommitted source bytes by itself. Files are identified by SHA-256 below.",
+  "performed": [
+    "Read source, tests, workstreams and raw evidence",
+    "Computed SHA-256 and compared actual candidate-B copy",
+    "Read-only Git status/branch check at start; no index/HEAD mutation"
+  ],
+  "notPerformed": [
+    "No source/formal-doc edits",
+    "No tests or builds rerun",
+    "No Chrome/native/browser actions",
+    "No delegates",
+    "No commit, push, branch, worktree or PR"
+  ],
+  "scores": {
+    "uiUx": {
+      "score": 80,
+      "outOf": 100,
+      "basis": "Reviewer quality rating, not product completion or test pass percentage",
+      "rubric": {
+        "navigationAndProductBoundary": {
+          "earned": 20,
+          "maximum": 20
+        },
+        "currentFactsAndConservativeStates": {
+          "earned": 29,
+          "maximum": 30
+        },
+        "redactionAndErrors": {
+          "earned": 17,
+          "maximum": 20
+        },
+        "layoutImplementationAndInputBinding": {
+          "earned": 10,
+          "maximum": 15
+        },
+        "accessibilitySourceAndRealValidation": {
+          "earned": 4,
+          "maximum": 15
+        }
+      }
+    },
+    "testEvidence": {
+      "score": 78,
+      "outOf": 100,
+      "basis": "Evidence quality/coverage rating, not candidate-B acceptance",
+      "rubric": {
+        "componentAndProviderEvidence": {
+          "earned": 35,
+          "maximum": 35
+        },
+        "identityAndReproducibleBinding": {
+          "earned": 17,
+          "maximum": 20
+        },
+        "failurePreservationAndReuseBoundaries": {
+          "earned": 20,
+          "maximum": 20
+        },
+        "dualBuildEvidence": {
+          "earned": 6,
+          "maximum": 10
+        },
+        "currentCandidateNativeEvidence": {
+          "earned": 0,
+          "maximum": 15
+        }
+      }
+    }
+  },
+  "checks": [
+    {
+      "topic": "five product tabs / hosting in My / development sixth Debug / production refusal",
+      "status": "SOURCE_AND_COMPONENT_SUPPORTED",
+      "refs": [
+        "src/ui/tool.html:5",
+        "src/ui/task-workbench.js:108",
+        "src/ui/task-workbench.js:777",
+        "src/entrypoints/tool-shell.js:7",
+        "tests/environment/cloud-control-debug-r14.test.mjs:81"
+      ],
+      "limit": "Production guard is explicit and entry build-mode controlled; source-regex tests are not a real production Chrome navigation test."
+    },
+    {
+      "topic": "all approved origins / current grant / current slot / resources independent of five samples",
+      "status": "SOURCE_AND_COMPONENT_SUPPORTED",
+      "refs": [
+        "src/cloud-control/service.js:35",
+        "src/cloud-control/service.js:47",
+        "src/cloud-control/service.js:112",
+        "src/ui/cloud-status-presentation.js:43",
+        "src/ui/cloud-hosting.js:38",
+        "tests/cloud-control/browser-provider-integration.test.mjs:332"
+      ],
+      "limit": "Native grants, slot and old run recovery on B remain unverified. Fenced alone is not treated as unknown side effects."
+    },
+    {
+      "topic": "true request total vs five-row sample",
+      "status": "SOURCE_AND_COMPONENT_SUPPORTED",
+      "refs": [
+        "src/cloud-control/service.js:119",
+        "src/ui/cloud-status-presentation.js:47",
+        "src/ui/cloud-hosting.js:42",
+        "tests/environment/cloud-control-sidebar-r28.test.mjs:231"
+      ],
+      "limit": "Sample receipt/released/unknown counters count the returned sample only; current resource readiness uses separate scalar facts."
+    },
+    {
+      "topic": "read failure withdraws old positive facts",
+      "status": "SOURCE_AND_COMPONENT_SUPPORTED",
+      "refs": [
+        "src/ui/cloud-hosting.js:26",
+        "src/ui/debug-workbench.js:30",
+        "tests/environment/cloud-control-sidebar-r28.test.mjs:252",
+        "tests/environment/cloud-control-debug-r14.test.mjs:139"
+      ]
+    },
+    {
+      "topic": "operation failure separate from status / safe mapping",
+      "status": "SOURCE_AND_COMPONENT_SUPPORTED_FOR_MY_DEBUG_ERROR_GAP",
+      "refs": [
+        "src/ui/cloud-hosting.js:10",
+        "src/ui/cloud-hosting.js:63",
+        "tests/environment/cloud-control-sidebar-r28.test.mjs:273",
+        "src/ui/debug-workbench.js:34"
+      ]
+    },
+    {
+      "topic": "schema sensitive-field omission / read-only Debug",
+      "status": "SOURCE_AND_COMPONENT_SUPPORTED_WITH_ERROR_CODE_EXCEPTION",
+      "refs": [
+        "src/ui/cloud-status-presentation.js:22",
+        "src/ui/cloud-status-presentation.js:122",
+        "src/ui/debug-workbench.js:17",
+        "tests/environment/cloud-control-debug-r14.test.mjs:61",
+        "tests/environment/cloud-control-debug-r14.test.mjs:139"
+      ],
+      "limit": "Debug calls only cloudStatus and clipboard; host is inspected, never started. My polling execution remains a separate host responsibility."
+    },
+    {
+      "topic": "saved result vs reserved ID",
+      "status": "NO_UNSUPPORTED_FINDING",
+      "refs": [
+        "src/ui/cloud-status-presentation.js:134",
+        "src/platform/host/controller-methods.js:773",
+        "src/platform/host/controller-methods.js:784"
+      ],
+      "evidence": "Controller result and terminal Run are written within the same transaction; sample projection relies on terminal run state, not merely resultId. Interrupted saved result is not successful completion, released resources or receipt."
+    }
+  ],
+  "findings": [
+    {
+      "id": "debug-error-whitelist",
+      "priority": "P2",
+      "type": "SOURCE_CONFIRMED",
+      "path": "src/ui/debug-workbench.js",
+      "line": 34,
+      "title": "Debug read errors expose arbitrary E_* codes",
+      "evidence": "The regex accepts any E_[A-Z0-9_]{1,60}; E_TOKEN_PRIVATE passes and is rendered unchanged at line 37. My operationFail uses an own-property whitelist instead. The failure test at tests/environment/cloud-control-debug-r14.test.mjs:142 throws an Error without code and cannot catch this branch. Snapshot/request field projection otherwise omits raw identifiers, URL, receipt contents and result data.",
+      "closure": "Use a finite diagnostic error-code mapping or a fixed safe fallback; test both a known diagnostic code and E_TOKEN_PRIVATE/unknown codes. Unknown raw code and message must appear in neither feedback nor copied JSON; failed reads must still clear all metrics and prohibit copying stale snapshots."
+    },
+    {
+      "id": "hosting-dead-layout-selectors",
+      "priority": "P2",
+      "type": "SOURCE_CONFIRMED",
+      "path": "src/ui/tool-shell.css",
+      "line": 737,
+      "related": [
+        {
+          "path": "src/ui/tool.html",
+          "line": 18
+        },
+        {
+          "path": "src/ui/tool.html",
+          "line": 72
+        },
+        {
+          "path": "tests/environment/cloud-control-sidebar-r28.test.mjs",
+          "line": 21
+        }
+      ],
+      "title": "Hosting control layout is still scoped to removed workbench-cloud ancestor",
+      "evidence": "No workbench-cloud element exists. Rules at current CSS lines 737-742 (candidate B lines 731-736) therefore never match cloud-hosting in My. In particular the action row flex-wrap/gap and button flex/min-height rules do not apply. Global styles still supply usable defaults; actual clipping is NOT observed. Existing narrow CSS test checks navigation and metric cards, not this selector/DOM relation.",
+      "closure": "Bind intended control styles to the actual My/cloud-panel ancestor; add a focused assertion for the selector/DOM relation or rendered control layout. At the selected candidate, verify the four action buttons, provider fields and approval labels at 300/320 CSS px and 200% zoom remain reachable, wrap correctly and retain visible focus."
+    },
+    {
+      "id": "visual-candidate-input-drift",
+      "priority": "P1",
+      "type": "EVIDENCE_BINDING_GAP",
+      "path": "src/ui/tool.html",
+      "line": 3,
+      "title": "Current main visual inputs differ from candidate B",
+      "evidence": "All six requested UI files and the supporting entry, memory, service, connection and provider match B. All three linked stylesheets differ from B. This changes current visual-input identity, not B historical identity or unrelated service test validity.",
+      "closure": "Owner explicitly selects B styles or a later package containing current styles; append an immutable identity record for the selected source/styles/dist. Bind affected visual/a11y evidence to that package. If current styles are integrated into the deliverable, rebuild affected bundles and verify only impacted checks; preserve original B records."
+    },
+    {
+      "id": "current-candidate-native-and-a11y",
+      "priority": "P1",
+      "type": "NOT_TESTED_OR_BLOCKED",
+      "path": "tests/environment/cloud-control-sidebar-r28.test.mjs",
+      "line": 21,
+      "related": [
+        {
+          "path": "src/ui/task-workbench.js",
+          "line": 777
+        },
+        {
+          "path": "docs/framework/workstreams/evidence/cloud-control-r14-final-20261012/native-ui-blocker.json",
+          "line": 3
+        },
+        {
+          "path": "docs/framework/workstreams/evidence/cloud-control-r14-final-20261012/historical-recovery-summary.json",
+          "line": 1
+        }
+      ],
+      "title": "B native workflow and real narrow/keyboard/a11y acceptance remain open",
+      "evidence": "The narrow test is CSS text assertions; keyboard/focus tests use double DOM. Lock-screen blocker explicitly refers to candidate A superseded by B, reports no job seeded and no native PASS. There is no completed B native record in the inspected evidence set. Original recovery has one interrupted result, fenced retirement, held slot/releaseCount 0, no receipt and remains BLOCKED.",
+      "closure": "On the identity-bound selected package, capture controlled real Chrome evidence for five product tabs, dev-only sixth Debug/prod refusal including restored preferences; native grant/slot/unknown/stop/reconnect/result/receipt behavior and read failures. Add width 300/320/360/420/520, zoom 125%/200%, Tab/Shift+Tab/Enter/Escape/Arrow/Home/End, visible focus and accessibility checks. Preserve old unknown run without reseeding/replay or DB mutation; either obtain authentic retirement released/receipt or retain the explicit blocker. Component PASS cannot close this finding."
+    }
+  ],
+  "fileIdentities": [
+    {
+      "path": "src/ui/cloud-hosting.js",
+      "sha256": "016bb24ff668f3f07684fe5bf217e8a523aca5cc90e69b1a0d2984af1f77d723",
+      "candidateBSnapshotIncludesPath": true,
+      "candidateBSnapshotSha256": "016bb24ff668f3f07684fe5bf217e8a523aca5cc90e69b1a0d2984af1f77d723",
+      "matchesCandidateBSnapshot": true,
+      "candidateBCopySha256": "016bb24ff668f3f07684fe5bf217e8a523aca5cc90e69b1a0d2984af1f77d723",
+      "matchesCandidateBCopy": true
+    },
+    {
+      "path": "src/ui/cloud-status-presentation.js",
+      "sha256": "aae6895d9392998ecdfdeafb37370ecb5e78a713299dad61b99dd61b4d17ba6a",
+      "candidateBSnapshotIncludesPath": true,
+      "candidateBSnapshotSha256": "aae6895d9392998ecdfdeafb37370ecb5e78a713299dad61b99dd61b4d17ba6a",
+      "matchesCandidateBSnapshot": true,
+      "candidateBCopySha256": "aae6895d9392998ecdfdeafb37370ecb5e78a713299dad61b99dd61b4d17ba6a",
+      "matchesCandidateBCopy": true
+    },
+    {
+      "path": "src/ui/debug-workbench.js",
+      "sha256": "9586b4886378053ded64da1b3f1007cc3460da4b8b5f49f5e566fca3f883af2d",
+      "candidateBSnapshotIncludesPath": true,
+      "candidateBSnapshotSha256": "9586b4886378053ded64da1b3f1007cc3460da4b8b5f49f5e566fca3f883af2d",
+      "matchesCandidateBSnapshot": true,
+      "candidateBCopySha256": "9586b4886378053ded64da1b3f1007cc3460da4b8b5f49f5e566fca3f883af2d",
+      "matchesCandidateBCopy": true
+    },
+    {
+      "path": "src/ui/task-workbench.js",
+      "sha256": "88f6e523b80ff69ddc7c68c3b733ef9d97aefaf13f1e67ea724f4f47851de4a7",
+      "candidateBSnapshotIncludesPath": true,
+      "candidateBSnapshotSha256": "88f6e523b80ff69ddc7c68c3b733ef9d97aefaf13f1e67ea724f4f47851de4a7",
+      "matchesCandidateBSnapshot": true,
+      "candidateBCopySha256": "88f6e523b80ff69ddc7c68c3b733ef9d97aefaf13f1e67ea724f4f47851de4a7",
+      "matchesCandidateBCopy": true
+    },
+    {
+      "path": "src/ui/tool.html",
+      "sha256": "5479a392d85b98779868aeb433538d15cf2d09707f8dac1fcf185b20a77dfff9",
+      "candidateBSnapshotIncludesPath": true,
+      "candidateBSnapshotSha256": "5479a392d85b98779868aeb433538d15cf2d09707f8dac1fcf185b20a77dfff9",
+      "matchesCandidateBSnapshot": true,
+      "candidateBCopySha256": "5479a392d85b98779868aeb433538d15cf2d09707f8dac1fcf185b20a77dfff9",
+      "matchesCandidateBCopy": true
+    },
+    {
+      "path": "src/ui/tool-shell.js",
+      "sha256": "52471fb9d3ffe2ab6e2ec1448bf361053f1e41547035d37097e6d19fa510a796",
+      "candidateBSnapshotIncludesPath": true,
+      "candidateBSnapshotSha256": "52471fb9d3ffe2ab6e2ec1448bf361053f1e41547035d37097e6d19fa510a796",
+      "matchesCandidateBSnapshot": true,
+      "candidateBCopySha256": "52471fb9d3ffe2ab6e2ec1448bf361053f1e41547035d37097e6d19fa510a796",
+      "matchesCandidateBCopy": true
+    },
+    {
+      "path": "src/entrypoints/tool-shell.js",
+      "sha256": "cd18fd0f142d4860aa161579e338ac56259346de05cab69eec4324ba050a6368",
+      "candidateBSnapshotIncludesPath": true,
+      "candidateBSnapshotSha256": "cd18fd0f142d4860aa161579e338ac56259346de05cab69eec4324ba050a6368",
+      "matchesCandidateBSnapshot": true,
+      "candidateBCopySha256": "cd18fd0f142d4860aa161579e338ac56259346de05cab69eec4324ba050a6368",
+      "matchesCandidateBCopy": true
+    },
+    {
+      "path": "src/ui/sidebar-tab-memory.js",
+      "sha256": "6d56007a965c3cab3c8eb94aa8f7661c449ae06b4a72f3631b8601fff086409f",
+      "candidateBSnapshotIncludesPath": true,
+      "candidateBSnapshotSha256": "6d56007a965c3cab3c8eb94aa8f7661c449ae06b4a72f3631b8601fff086409f",
+      "matchesCandidateBSnapshot": true,
+      "candidateBCopySha256": "6d56007a965c3cab3c8eb94aa8f7661c449ae06b4a72f3631b8601fff086409f",
+      "matchesCandidateBCopy": true
+    },
+    {
+      "path": "src/ui/tool-shell.css",
+      "sha256": "f5ed2ee5f155580aa33781aa3f20638c08a0379bc194f24742bd70233744cecf",
+      "candidateBSnapshotIncludesPath": true,
+      "candidateBSnapshotSha256": "389e40a7a73c30bd423bc2a553d5642a4a210db9aede451e1af49610afe1f92a",
+      "matchesCandidateBSnapshot": false,
+      "candidateBCopySha256": "389e40a7a73c30bd423bc2a553d5642a4a210db9aede451e1af49610afe1f92a",
+      "matchesCandidateBCopy": false
+    },
+    {
+      "path": "src/ui/design-tokens.css",
+      "sha256": "25b2f14842cfd61b8f819e65ac7b27b1481040ad0159aa2ffcbdf72410a8e0c4",
+      "candidateBSnapshotIncludesPath": true,
+      "candidateBSnapshotSha256": "87a1b976b94eeb997eeb7cab35d297357db3795936e6115088e2ab4d6b43805f",
+      "matchesCandidateBSnapshot": false,
+      "candidateBCopySha256": "87a1b976b94eeb997eeb7cab35d297357db3795936e6115088e2ab4d6b43805f",
+      "matchesCandidateBCopy": false
+    },
+    {
+      "path": "src/ui/design-system.css",
+      "sha256": "7d5a82a42179a1f246c21c304ca8e8304abf923ce311503cd71ca3289b97bfa8",
+      "candidateBSnapshotIncludesPath": true,
+      "candidateBSnapshotSha256": "613ca831e412ac52273cf7f0b3b6ec9c55d38dc3610dc289fc60bddfd67529e8",
+      "matchesCandidateBSnapshot": false,
+      "candidateBCopySha256": "613ca831e412ac52273cf7f0b3b6ec9c55d38dc3610dc289fc60bddfd67529e8",
+      "matchesCandidateBCopy": false
+    },
+    {
+      "path": "src/cloud-control/service.js",
+      "sha256": "d04ce76166a89e2e7f4acea665e4228d676d3e110e90784359149a29d6b2439c",
+      "candidateBSnapshotIncludesPath": true,
+      "candidateBSnapshotSha256": "d04ce76166a89e2e7f4acea665e4228d676d3e110e90784359149a29d6b2439c",
+      "matchesCandidateBSnapshot": true,
+      "candidateBCopySha256": "d04ce76166a89e2e7f4acea665e4228d676d3e110e90784359149a29d6b2439c",
+      "matchesCandidateBCopy": true
+    },
+    {
+      "path": "src/cloud-control/connection.js",
+      "sha256": "af6f3774c2393af9c92594076eac73fe806955a1bc1e48dd1f78750210a9f614",
+      "candidateBSnapshotIncludesPath": true,
+      "candidateBSnapshotSha256": "af6f3774c2393af9c92594076eac73fe806955a1bc1e48dd1f78750210a9f614",
+      "matchesCandidateBSnapshot": true,
+      "candidateBCopySha256": "af6f3774c2393af9c92594076eac73fe806955a1bc1e48dd1f78750210a9f614",
+      "matchesCandidateBCopy": true
+    },
+    {
+      "path": "scripts/cloud-control/provider.mjs",
+      "sha256": "76484917249810a36e96d5a00b85af4658354474ee60d937b472ad5b99f8209d",
+      "candidateBSnapshotIncludesPath": true,
+      "candidateBSnapshotSha256": "76484917249810a36e96d5a00b85af4658354474ee60d937b472ad5b99f8209d",
+      "matchesCandidateBSnapshot": true,
+      "candidateBCopySha256": "76484917249810a36e96d5a00b85af4658354474ee60d937b472ad5b99f8209d",
+      "matchesCandidateBCopy": true
+    },
+    {
+      "path": "tests/environment/cloud-control-debug-r14.test.mjs",
+      "sha256": "5ef29f9a705dea5fa256ec82c4fb86060c74ae12013d81856d064eb3f40db98f",
+      "candidateBSnapshotIncludesPath": false
+    },
+    {
+      "path": "tests/environment/cloud-control-sidebar-r28.test.mjs",
+      "sha256": "194ae8db35e1dddb3e07277bb2c0ba244a87754ae8db2dadc40bd4961d00ed6d",
+      "candidateBSnapshotIncludesPath": false
+    },
+    {
+      "path": "tests/environment/task-workbench.test.mjs",
+      "sha256": "47aa43b7572095648c7fe0238bf817c9c52c1c6cb1c95c850977dbd34deb0393",
+      "candidateBSnapshotIncludesPath": false
+    },
+    {
+      "path": "tests/cloud-control/browser-provider-integration.test.mjs",
+      "sha256": "42bbf8b77b5028e6ee00012618f195137153c19612cb5e106682184ee9ae3457",
+      "candidateBSnapshotIncludesPath": false
+    },
+    {
+      "path": "tests/cloud-control/provider.test.mjs",
+      "sha256": "99a4a6fe208e111ebc924284a79859705b0ce26be3bebfd520d29361daf8aeb4",
+      "candidateBSnapshotIncludesPath": false
+    },
+    {
+      "path": "tests/cloud-control/connection.test.mjs",
+      "sha256": "6fd2a1b6eb41f74540778eedd550ca0af5ac6ce12eab32e90654a7b739369d2f",
+      "candidateBSnapshotIncludesPath": false
+    },
+    {
+      "path": "tests/framework/k3-controller-authority.test.mjs",
+      "sha256": "a60fe815a1ffcef77cf5f3137c48d2b4ec38156c62d69a8f2eeac70688e04f0d",
+      "candidateBSnapshotIncludesPath": false
+    }
+  ],
+  "evidence": [
+    {
+      "path": "docs/framework/workstreams/evidence/cloud-control-r14-final-20261012/browser-provider-integration.tap",
+      "sha256": "0a072b98ba1673d304c8e056d87a8303bd8743a97f4fb22e27ba22992024a280",
+      "level": "COMPONENT_REAL_PROVIDER_HTTP_DISK_BROWSER_DOUBLE",
+      "result": "11 tests / 11 pass / 0 fail"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/cloud-control-r14-final-20261012/connection-provider-current.tap",
+      "sha256": "fcfa07097aba2b55b8370ce4b8ea2134fc213cb96f7a5f92b9e796a20854d559",
+      "level": "COMPONENT_PROVIDER_AND_CONNECTION",
+      "result": "11 tests / 11 pass / 0 fail"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/cloud-control-r14-final-20261012/targeted-r14-migration-ui.tap",
+      "sha256": "20c0d5d330749d73f3bd9e2cf340e61a2e77a438b835cc4373b5b2b4c4fdabe0",
+      "level": "COMPONENT",
+      "result": "156 tests / 155 pass / 1 fail"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/cloud-control-r14-final-20261012/direct-query-followup.tap",
+      "sha256": "4456f0cf1c0e3e9e89c42d3d2866e7ffecddd3eb404971710a9271c85c4d3062",
+      "level": "COMPONENT_CORRECTED_TEST_FOLLOWUP",
+      "result": "1 test / 1 pass / 0 fail"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/cloud-control-r14-final-20261012/ui-navigation-fixed.tap",
+      "sha256": "7e23c9940fb0eac5df04f86fef7f9c3fbdeefa5ae6c7c7d9fe5929b5ff30d398",
+      "level": "COMPONENT_HISTORICAL_ITERATION",
+      "result": "38 tests / 38 pass / 0 fail; do not silently bind this older iteration to every later input"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/cloud-control-r14-final-20261012/historical-recovery-summary.json",
+      "sha256": "070d1056a203def8bc78b17787c2688c4e8e627612e9118f6877a92fe0606e43",
+      "level": "ORIGINAL_NATIVE_PACKAGE_ONLY",
+      "result": "BLOCKED; interrupted/fenced/slot held/noReceipt; single run/result"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/cloud-control-r14-final-20261012/historical-package-identity.json",
+      "sha256": "17de36b55725cc2a2d7baa61e9f986a2a32ce8fa169e904a6f32f549f1376a9f",
+      "level": "ORIGINAL_NATIVE_PACKAGE_IDENTITY",
+      "result": "44c6cfa5b937f0a84b5226e82181357494a886a314b0f7eb21cdeb937955f7a1"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/cloud-control-r14-final-20261012/native-ui-blocker.json",
+      "sha256": "227e7c57d1a41cee928c1a2b4030d736daa15f02c497b66dce2a3a01717b7a5a",
+      "level": "MAC_TOOL_ENVIRONMENT_BLOCKER_CANDIDATE_A",
+      "result": "Mac locked; no seeded job/no native PASS; A superseded by B"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/cloud-control-r14-final-20261012/candidate-b-snapshot.json",
+      "sha256": "be985d2cc39b598949f2f515f2bdbe745654a7ed6da57957f1f26c50453425c2",
+      "level": "SOURCE_IDENTITY",
+      "result": "Six requested UI file SHA values match B"
+    }
+  ],
+  "candidateBBuilds": [
+    {
+      "mode": "development",
+      "status": "USER_REPORTED_PASS_ARTIFACTS_READ_VERIFIED",
+      "manifestSha256": "05ff8d22f78c7eb6b1dbb2ee4c4d57d392c69c97a1c42a204f4d0f531551cd82",
+      "toolShellSha256": "ec17350aa1b8933f6916faade531e644ef019eb1a8d353cd26e08c53f92b0864",
+      "limit": "Reviewer did not rebuild. Candidate-B dedicated raw build log/identity receipt was not present in this evidence directory at inspection; do not use candidate-a-build-identity for B."
+    },
+    {
+      "mode": "production",
+      "status": "USER_REPORTED_PASS_ARTIFACTS_READ_VERIFIED",
+      "manifestSha256": "def515c8405f1afe5b0e6619f136df0d0b6728fdded9f7dad7d1c5e62ee1e785",
+      "toolShellSha256": "3e231eb69f86636a33e83e6b40dc26c3e0ab8edffed02b3f36387dfbcf302dc5",
+      "limit": "Reviewer did not rebuild. Candidate-B dedicated raw build log/identity receipt was not present in this evidence directory at inspection; do not use candidate-a-build-identity for B."
+    }
+  ],
+  "testInterpretation": {
+    "browserProvider": "Real local HTTP/Provider files and service code, with memory storage, controlled API/sender/Host doubles; no real Chrome permission/Native sender or actual browser RunHost execution proof.",
+    "providerConnection": "11 aggregate test results; connection.test uses a Socket double. Provider tests include real HTTP/native WebSocket/disk.",
+    "targeted156": "Keep original 155/156 and failure. Follow-up test measures required installed-task authorization KV reads, then asserts cloudResolve adds no extra history scans. This is a test correction, not evidence of a current Cloud scan bug.",
+    "oldPermit": "Provider test at tests/cloud-control/provider.test.mjs:188 asserts original admission once-cache answer remains structurally unchanged after binding response. New integration 11/11 is current component evidence; no upgrade to Native.",
+    "testInputBinding": "candidate-b-snapshot does not include test files. Their absence is not a SHA mismatch. Current test hashes are recorded here; per-run historic test/input identities are not inferred from TAP output alone."
+  },
+  "finalStatus": "SOURCE_AND_COMPONENT_REVIEW_COMPLETE_CURRENT_NATIVE_AND_VISUAL_ACCEPTANCE_OPEN",
+  "formalAcceptanceClaim": false,
+  "oldNativeReuse": "Only original 44c6 package and its exact scenes. Original unknown recovery is BLOCKED. Never promote it to B, whole workflow, F3 or ZIP PASS.",
+  "verification": {
+    "reviewInputsRechecked": "All recorded file identities unchanged at final recheck",
+    "historicalRawHashMatchesSummary": true,
+    "historicalPackageHashRecomputed": "44c6cfa5b937f0a84b5226e82181357494a886a314b0f7eb21cdeb937955f7a1",
+    "originalCaseRawRunCount": 1,
+    "originalCaseRawResultCount": 1,
+    "originalCaseRawRunState": "interrupted",
+    "originalCaseRawRetirementState": "fenced",
+    "originalCaseRawSlotReleaseCount": 0,
+    "originalCaseRawReceipt": null
+  }
+}

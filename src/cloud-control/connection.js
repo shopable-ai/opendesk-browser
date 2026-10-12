@@ -12,16 +12,20 @@ export function createCloudConnection({service,api,Socket=globalThis.WebSocket,c
   async function start(){
     if(socket||connecting)return;connecting=true;clearTimeout(timer);const epoch=++generation;
     try{
-      const c=await service.read();if(epoch!==generation)return;if(!c?.enabled){connecting=false;return;}
-      service.connection('connecting');const auth=await service.post(c,'auth',{});if(epoch!==generation)return;
+      await service.retryRevocation?.();if(epoch!==generation)return;
+      let c=await service.read();if(epoch!==generation)return;if(!c?.enabled){connecting=false;return;}
+      service.connection('connecting');const fresh=service.captureAuthentication?.()??(()=>true),currentAuth=()=>epoch===generation&&fresh();
+      const auth=await service.post(c,'auth',{}, {isCurrent:currentAuth});if(!currentAuth()){if(epoch===generation)retry(epoch);return;}
       if(auth.providerId!==c.providerId||auth.expiresAt<=clock.now())throw Error('Provider connection identity differs');
+      if(c.pairingId&&(auth.pairingId!==c.pairingId||auth.pairingGeneration!==c.pairingGeneration))throw Error('Provider pairing identity differs');
+      if(service.adoptPairing)c=await service.adoptPairing(c,auth,{isCurrent:currentAuth});if(!currentAuth()){if(epoch===generation)retry(epoch);return;}
       const ws=socket=new Socket(c.url.replace(/^http/,'ws')+'/v1/events');
       let authenticated=false;
       const stale=()=>epoch!==generation||socket!==ws;
       const authTimeout=setTimeout(()=>{if(!stale())ws.close();},5000);
       ws.onopen=()=>{if(!stale())ws.send(JSON.stringify({type:'authenticate',ticket:auth.ticket}));};
       ws.onmessage=async event=>{if(stale())return;try{const m=JSON.parse(event.data);
-        if(m.type==='authenticated'&&!authenticated&&m.providerId===c.providerId){
+        if(m.type==='authenticated'&&!authenticated&&m.providerId===c.providerId&&(!c.pairingId||m.executorId===c.executorId&&m.pairingId===c.pairingId&&m.pairingGeneration===c.pairingGeneration)){
           authenticated=true;
           clearTimeout(authTimeout);attempt=0;lastPong=clock.now();connecting=false;service.connection('authenticated');
           await service.post(c,'capabilities',{tasks:c.tasks.map(t=>({taskId:t.taskId,manifestHash:t.manifestHash,sourceHash:t.contentHash}))});if(stale())return;

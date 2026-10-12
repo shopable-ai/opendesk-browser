@@ -1,0 +1,15 @@
+{
+  "capturedAt": "2026-10-12T09:55:54.177655+00:00",
+  "state": "WRITER_COMPLETED_AND_CLOSED",
+  "files": {
+    "docs/architecture/browser-framework/cloud-control-r1.zh-CN.md": "3c7dff58e618142377d5cf57b6e11f0e2b070760f8671ad8642be56d10fc8181",
+    "docs/contracts/execution-control/v0.2/README.zh-CN.md": "5398568f6e00ad3a60ae2c7ba8eb88a24f6301067d99ff0e5ccb468b477a3356",
+    "examples/cloud-control/README.zh-CN.md": "758f9a54b2f3bcf19e573fce1949546911dd3b6aba48a57e1882a7832d7805df",
+    "docs/framework/workstreams/cloud-control-r14-docs-20261012.md": "d9c5edc0f12ab5903b547d59ec58b0843186d1102f435b71a58bdfef1adfa4cb"
+  },
+  "patchSha256": "6a4758e779300e428a2923a75cd082a10b372f92823404c89991d0ae00e36bcd",
+  "whitespace": "PASS",
+  "localLinksChecked": 80,
+  "build": "NOT_TESTED",
+  "nativeCandidate": "NOT_TESTED"
+}

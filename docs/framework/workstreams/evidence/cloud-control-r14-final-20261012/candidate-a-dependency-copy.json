@@ -1,0 +1,7 @@
+{
+  "method": "APFS copy-on-write clone of existing node_modules",
+  "installedNewDependencies": false,
+  "sourceDependenciesModified": false,
+  "firstBuild": "failed because dependency symlink resolves outside candidate; full diagnostics preserved",
+  "retryChanges": "physical candidate-local dependency tree only"
+}

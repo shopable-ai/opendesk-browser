@@ -1,0 +1,7 @@
+/* Hosting controls in My; shared colors, spacing and focus remain token-owned. */
+#workbench-tasks #cloud-hosting{min-width:0;padding:var(--space-3);margin:0}
+#workbench-tasks #cloud-hosting>summary{cursor:pointer;font-size:12px;font-weight:650}
+#workbench-tasks #cloud-hosting>label{display:block;margin-top:var(--space-2);font-size:12px}
+#workbench-tasks #cloud-hosting label>input:not([type=checkbox]){display:block;min-width:0;width:100%;margin-top:var(--space-1)}
+#workbench-tasks #cloud-hosting>div{display:flex;flex-wrap:wrap;gap:var(--space-2);margin-top:var(--space-2)}
+#workbench-tasks #cloud-hosting>div button{flex:1 1 130px;min-height:36px}

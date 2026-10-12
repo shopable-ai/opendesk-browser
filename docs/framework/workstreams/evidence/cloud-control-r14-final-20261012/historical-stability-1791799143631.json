@@ -1,0 +1,90 @@
+{
+  "observedAt": "2026-10-12T09:59:03.631Z",
+  "scope": "READ_ONLY_HISTORICAL_NATIVE_STABILITY",
+  "extensionId": "bldkfieeffncnmjgnmlkmdmimicflfen",
+  "jobId": "584bcbd1-eefa-4f78-8c52-8761a004dd4e",
+  "requestId": "cloud:ed794251-e8b3-4345-8dfc-6e98e15181ab",
+  "runId": "afd37543-f456-45f6-9e12-ea3548e65d4d",
+  "native": {
+    "databaseName": "opendesk-browser",
+    "runCount": 1,
+    "resultCount": 1,
+    "run": {
+      "runId": "afd37543-f456-45f6-9e12-ea3548e65d4d",
+      "resultId": "0b388df6-783c-47b0-a8f9-3e9fd2df20a3",
+      "state": "interrupted",
+      "retirementState": "fenced",
+      "workerRetired": true,
+      "cancelSeq": 2,
+      "terminalReason": {
+        "code": "E_TIMEOUT",
+        "name": "FoundationError",
+        "message": "Controller fenced"
+      }
+    },
+    "slot": {
+      "tag": "slot",
+      "currentRunId": "afd37543-f456-45f6-9e12-ea3548e65d4d",
+      "state": "held",
+      "releaseCount": 0,
+      "fencedEpoch": 3,
+      "retirementId": "32d1f02f-7ca8-4174-a5ac-5d941c79981f"
+    },
+    "request": [
+      {
+        "requestId": "cloud:ed794251-e8b3-4345-8dfc-6e98e15181ab",
+        "state": "cancellation-pending",
+        "reason": "E_CLOUD_CANCELLED",
+        "runId": "afd37543-f456-45f6-9e12-ea3548e65d4d",
+        "runRef": {
+          "runId": "afd37543-f456-45f6-9e12-ea3548e65d4d",
+          "resultId": "0b388df6-783c-47b0-a8f9-3e9fd2df20a3",
+          "requestId": "cloud:ed794251-e8b3-4345-8dfc-6e98e15181ab",
+          "sourceHash": "1f72cf17aa04e8a8597ef43e554ae5507f9da58b73e46d731373cd318f6dcf63",
+          "manifestHash": "57598844f11f75d7566c5adeab283a3aaed0614d151590a6f34124e7abf3632a",
+          "grantId": "0c4babd5-2bae-40dc-a676-ebfea36f02a0"
+        },
+        "receipt": null
+      }
+    ],
+    "journal": [
+      {},
+      {
+        "state": "created",
+        "dispatchAt": 1791733558768,
+        "submissionCount": 1
+      },
+      {
+        "state": "effect_unknown",
+        "dispatchAt": 1791733558980,
+        "submissionCount": 1
+      },
+      {
+        "state": "durable",
+        "dispatchAt": 1791733558916,
+        "submissionCount": 1
+      },
+      {
+        "state": "interrupted"
+      },
+      {}
+    ]
+  },
+  "provider": {
+    "providerId": "6854f350-a976-4ef0-87ab-95cd6e4674fa",
+    "jobId": "584bcbd1-eefa-4f78-8c52-8761a004dd4e",
+    "state": "admitted",
+    "runRef": {
+      "runId": "afd37543-f456-45f6-9e12-ea3548e65d4d",
+      "resultId": "0b388df6-783c-47b0-a8f9-3e9fd2df20a3",
+      "requestId": "cloud:ed794251-e8b3-4345-8dfc-6e98e15181ab",
+      "sourceHash": "1f72cf17aa04e8a8597ef43e554ae5507f9da58b73e46d731373cd318f6dcf63",
+      "manifestHash": "57598844f11f75d7566c5adeab283a3aaed0614d151590a6f34124e7abf3632a",
+      "grantId": "0c4babd5-2bae-40dc-a676-ebfea36f02a0"
+    },
+    "receipt": null
+  },
+  "status": "BLOCKED",
+  "reason": "Target retirement remains fenced across browser-session incarnation; no release or Receipt asserted",
+  "observerIsolation": "standalone Node WebSocket; no imports from merging source tree"
+}

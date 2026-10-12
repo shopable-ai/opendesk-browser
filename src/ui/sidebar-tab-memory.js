@@ -1,7 +1,7 @@
 // Only the actual Chrome Side Panel remembers its selected top-level page.
 // The catalog/tool-page and iframe tools share the shell but not this preference.
 export const SIDEBAR_LAST_TAB_KEY='opendesk.sidebar.last-tab.v1';
-const PRODUCT_TABS=new Set(['tasks','discover','workflow','develop','tools','cloud']);
+const PRODUCT_TABS=new Set(['tasks','discover','workflow','develop','tools']);
 
 export function isRestorableSidebarTab(value,{debugEnabled=false}={}){
   return typeof value==='string' && (PRODUCT_TABS.has(value) || (debugEnabled && value==='debug'));
@@ -29,6 +29,7 @@ export function createSidebarTabMemory({storage,getActiveTab,selectTab,debugEnab
       let saved;
       try {
         saved=(await storage.get(SIDEBAR_LAST_TAB_KEY))?.[SIDEBAR_LAST_TAB_KEY];
+        if(saved==='cloud')saved='tasks';
       }catch(error){onError(error);}
       if(disposed)return;
       enabled=true;

@@ -21,6 +21,7 @@ export const STATIC_RESOURCES=Object.freeze({
   'src/ui/design-tokens.css':'ui/design-tokens.css',
   'src/ui/design-system.css':'ui/design-system.css',
   'src/ui/tool-shell.css':'ui/tool-shell.css',
+  'src/ui/cloud-hosting.css':'ui/cloud-hosting.css',
   'src/ui/target-bootstrap.html':'ui/target-bootstrap.html',
   'src/native-agent/settings.html':'native-agent/settings.html',
   'src/native-agent/settings.css':'native-agent/settings.css',

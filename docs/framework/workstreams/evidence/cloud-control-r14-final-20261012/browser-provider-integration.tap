@@ -1,0 +1,19 @@
+✔ legacy credential adoption maps only original request keys and keeps old Provider once-cache bytes (47.501792ms)
+✔ service restart and repeated adopt keep old rows and legacy Provider cache unchanged (21.5215ms)
+✔ adoptPairing rejects stale, partial, foreign and invalid legacy inputs transactionally (52.424292ms)
+✔ modern pairing uses new claim storage and does not associate other grants, namespaces or pairs (13.609084ms)
+✔ modern Provider claim binds a fresh Browser run and permit with full pairing identity (44.284625ms)
+✔ remote runRef without local row blocks cached claim replay instead of creating a second Browser row (50.985667ms)
+✔ expired local legacy permit cannot be revived by Provider admission cache or a newer lease (20.307459ms)
+✔ legacy rows from another active grant, namespace or pairing cannot resolve or activate (26.189042ms)
+✔ cloudStatus projects actual grants, slot resources and config drift without scanning journal in cheap mode (1.86575ms)
+✔ unknown side effects project only from interrupted unresolved operations or paused_unknown and reconcile preserves native facts (20.136709ms)
+✔ Browser rejects forged modern Provider binding before pairing or WebSocket reconciliation (0.774792ms)
+ℹ tests 11
+ℹ suites 0
+ℹ pass 11
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 370.354958

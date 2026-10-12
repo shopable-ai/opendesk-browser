@@ -1,0 +1,45 @@
+{
+  "observedAt": "2026-10-12T10:08:59.958966+00:00",
+  "scope": "FROZEN_DOCUMENT_FIELD_AND_GATE_COVERAGE_ONLY",
+  "input": "git-handoff-docs.patch",
+  "inputSha256": "6a4758e779300e428a2923a75cd082a10b372f92823404c89991d0ae00e36bcd",
+  "fields": {
+    "providerId": true,
+    "executorId": true,
+    "pairingId": true,
+    "jobId": true,
+    "requestId": true,
+    "claimId": true,
+    "assignmentId": true,
+    "attemptEpoch": true,
+    "requestDigest": true,
+    "lease": true,
+    "TaskRef": false,
+    "installationId": true,
+    "generation": true,
+    "manifestHash": true,
+    "sourceHash": true,
+    "Grant": true,
+    "runId": true,
+    "resultId": true,
+    "revision": true,
+    "commandJournal": true,
+    "runs/@slot": true,
+    "StartPermit": true,
+    "retirement": true,
+    "Receipt": true,
+    "connectionGeneration": true
+  },
+  "gates": {
+    "CONNECTION_VERIFIED": false,
+    "ADMISSION_VERIFIED": false,
+    "EXECUTION_VERIFIED": false,
+    "RECOVERY_VERIFIED": false,
+    "PRODUCT_VERIFIED": false
+  },
+  "missingFields": [
+    "TaskRef"
+  ],
+  "runtimePassClaim": false,
+  "note": "Text coverage alone does not prove functionality, model correctness, transactional behavior or native acceptance"
+}

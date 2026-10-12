@@ -4,17 +4,91 @@ import {assertRunTaskAuthorization} from '../platform/tasks/service.js';
 import {requireGrant} from '../platform/target/index.js';
 import {decodeValue} from '../platform/page-port/codec.js';
 const KV='frameworkKV',CONFIG='cloud:config',IDENTITY='cloud:executor',PREFIX='cloud:request:';
+const nonempty=value=>typeof value==='string'&&value.length>0&&value.length<=512;
+const finiteLease=value=>Number.isFinite(value)&&value>0;
+const rowKey=row=>row.storageKey||PREFIX+row.requestId;
+const requestBinding=row=>row.identity?.pairing?.pairingId&&row.assignment.pairingId?{binding:{...row.identity.pairing,jobId:row.identity.jobId,claimId:row.identity.claimId,assignmentId:row.identity.assignmentId,attemptEpoch:row.identity.attemptEpoch}}:{};
+const pairingIdentity=c=>({providerId:c.providerId,executorId:c.executorId,pairingId:c.pairingId??null,pairingGeneration:c.pairingGeneration??0});
+const legacyMapped=(row,c)=>!row.identity&&c?.legacyPairing&&canonical(pairingIdentity(c))===canonical(c.legacyPairing.pairing)&&row.namespace===c.legacyPairing.namespace&&row.grantId===c.legacyPairing.grantId&&row.assignment?.executorId===c.executorId&&c.legacyPairing.requestKeys.includes(rowKey(row));
+const samePairing=(row,c)=>!!c&&(row.identity?canonical(pairingIdentity(c))===canonical(row.identity.pairing):legacyMapped(row,c)||!c.pairingId&&row.assignment?.executorId===c.executorId&&row.namespace===c.namespace);
+const effectiveIdentity=(row,c)=>row.identity??{pairing:pairingIdentity(c),jobId:row.assignment.jobId,claimId:row.assignment.claimId,assignmentId:row.assignment.assignmentId,attemptEpoch:row.assignment.attemptEpoch??1};
+function assignmentIdentity(c,a){
+  invariant(nonempty(a?.assignmentId)&&nonempty(a.jobId)&&a.executorId===c.executorId&&nonempty(a.claimId)&&finiteLease(a.leaseUntil),'E_ASSIGNMENT');
+  if(c.pairingId)invariant(a.providerId===c.providerId&&a.pairingId===c.pairingId&&a.pairingGeneration===c.pairingGeneration&&Number.isSafeInteger(a.attemptEpoch)&&a.attemptEpoch>0,'E_ASSIGNMENT');
+  return {pairing:pairingIdentity(c),jobId:a.jobId,claimId:a.claimId,assignmentId:a.assignmentId,attemptEpoch:a.attemptEpoch??0};
+}
+function assertPermit(p,c,r){
+  invariant(nonempty(p?.permitId)&&p.providerId===c?.providerId&&p.assignmentId===r.assignment.assignmentId&&p.runRef&&canonical(p.runRef)===canonical(r.runRef)&&finiteLease(p.leaseUntil),'E_PERMIT');
+  if(c?.pairingId){const identity=effectiveIdentity(r,c),expected={...identity.pairing,attemptEpoch:identity.attemptEpoch,jobId:identity.jobId,claimId:identity.claimId};
+    for(const [key,value]of Object.entries(expected))invariant(legacyMapped(r,c)&&!Object.hasOwn(p,key)||p[key]===value,'E_PERMIT');}
+}
 export function providerUrl(value,allowLoopback=false){
   const u=new URL(value);invariant(!u.username&&!u.password&&!u.search&&!u.hash&&u.pathname==='/'&&
     (u.protocol==='https:'||allowLoopback&&u.origin==='http://127.0.0.1:43112'),'E_PROVIDER','HTTPS provider or explicitly approved fixed loopback required');return u.origin;
 }
 export function createCloudService({storage,api,clock={now:()=>Date.now()},assertHost,currentHost,resolveTask,emitToHost,fetcher=(...args)=>globalThis.fetch(...args)}){
-  let online=false,reconciled=false,connectionState='offline',wake=()=>{},close=()=>{},revocationEpoch=0;
-  const deliveries=new Set();
-  function invalidate(){revocationEpoch++;for(const abort of deliveries)abort.abort();}
+  let online=false,reconciled=false,connectionState='offline',wake=()=>{},close=()=>{},revocationEpoch=0,connectionEpoch=0;
+  const deliveries=new Set();let knownRemoteRuns=new Map();
+  function invalidate(){revocationEpoch++;connectionEpoch++;knownRemoteRuns=new Map();for(const abort of deliveries)abort.abort();}
   const transaction=(mode,fn,names=[KV,'runs','commandJournal','results'])=>storage.transaction(names,mode,fn);
   const read=()=>transaction('readonly',tx=>tx.get(KV,CONFIG),[KV]);
+  async function siteAuthorization(config){
+    const origins=[...new Set(config?.tasks?.flatMap(task=>task.manifest.siteOrigins)??[])];
+    if(!origins.length)return 'none';
+    const grants=await Promise.all(origins.map(async origin=>{try{await requireGrant(api,origin);return 'granted';}catch(error){return error.code==='E_PERMISSION'?'revoked':'unknown';}}));
+    return grants.includes('revoked')?'revoked':grants.includes('unknown')?'unknown':'granted';
+  }
+  async function unknownOutcome(tx,run,operations){
+    if(run?.state==='paused_unknown')return true;
+    if(run?.state!=='interrupted')return false;
+    return (operations??await tx.all('commandJournal')).some(operation=>operation.runId===run.runId&&
+      ['controller-operation','controller-navigation'].includes(operation.tag)&&['dispatched','effect_unknown'].includes(operation.state));
+  }
+  async function slotFacts(tx,slot){
+    if(!slot?.currentRunId)return {slotState:slot?.preview?'preview':'available',pendingResources:false};
+    const run=await tx.get('runs',slot.currentRunId);
+    if(!run)return {slotState:'unknown',pendingResources:true};
+    const request=run.cloudRequestId?await tx.get(KV,run.cloudRequestKey||PREFIX+run.cloudRequestId):null;
+    if(run.state==='paused_unknown'||run.state==='interrupted'&&request?.runId===run.runId&&request.state==='OUTCOME_UNKNOWN')return {slotState:'outcome-unknown',pendingResources:true};
+    if(run.state==='stopping')return {slotState:'stopping',pendingResources:true};
+    if(['preparing','running','settling'].includes(run.state))return {slotState:run.cloudRequestId?'cloud-running':'local-running',pendingResources:false};
+    if(['completed','failed','stopped','interrupted'].includes(run.state)&&run.retirementState!=='released')return {slotState:'retirement-pending',pendingResources:true};
+    return {slotState:'unknown',pendingResources:true};
+  }
+  // Existing credential authentication may name the original legacy pairing.
+  // Adopt only its identity; old rows, bodies, leases and native facts stay intact.
+  async function adoptPairing(before,auth,{isCurrent=()=>true}={}){
+    invariant(auth.providerId===before.providerId&&auth.executorId===before.executorId&&nonempty(auth.pairingId)&&Number.isSafeInteger(auth.pairingGeneration)&&auth.pairingGeneration>0&&nonempty(auth.ticket)&&finiteLease(auth.expiresAt)&&auth.expiresAt>clock.now(),'E_PAIRING');
+    if(Object.hasOwn(before,'pairingId')||Object.hasOwn(before,'pairingGeneration')){invariant(before.pairingId===auth.pairingId&&before.pairingGeneration===auth.pairingGeneration,'E_PAIRING');return before;}
+    return transaction('readwrite',async tx=>{
+      const current=await tx.get(KV,CONFIG),executor=await tx.get(KV,IDENTITY);
+      invariant(isCurrent()&&auth.expiresAt>clock.now()&&current?.enabled&&!current.unpairing&&!current.revokedAt&&nonempty(current.grantId)&&nonempty(current.namespace)&&Array.isArray(current.tasks)&&executor===before.executorId&&canonical(current)===canonical(before),'E_CLOUD_FENCED');
+      const requestKeys=[],seen=new Set();
+      for(const row of await tx.all(KV))if(row?.tag==='cloud-request-v1'&&!row.identity&&row.namespace===current.namespace&&row.grantId===current.grantId){
+        invariant(row.assignment?.executorId===executor&&row.requestId==='cloud:'+row.assignment.assignmentId&&nonempty(row.assignment.jobId)&&nonempty(row.assignment.claimId)&&finiteLease(row.assignment.leaseUntil)&&(!Object.hasOwn(row.assignment,'attemptEpoch')||row.assignment.attemptEpoch===1)&&(!row.storageKey||row.storageKey===PREFIX+row.requestId)&&!seen.has(row.requestId),'E_REQUEST_CONFLICT');
+        seen.add(row.requestId);requestKeys.push(rowKey(row));
+      }
+      current.pairingId=auth.pairingId;current.pairingGeneration=auth.pairingGeneration;
+      current.legacyPairing={pairing:pairingIdentity(current),namespace:current.namespace,grantId:current.grantId,requestKeys};
+      await tx.put(KV,current,CONFIG);return current;
+    },[KV]);
+  }
   const rows=()=>transaction('readonly',async tx=>(await tx.all(KV)).filter(r=>r.tag==='cloud-request-v1'),[KV]);
+  const findRequest=async(tx,requestId,c,runId)=>{
+    if(!c)return undefined;
+    const key=PREFIX+await digest({pairing:pairingIdentity(c),requestId});
+    const candidates=[await tx.get(KV,key),await tx.get(KV,PREFIX+requestId)];
+    const matches=candidates.filter(r=>r?.tag==='cloud-request-v1'&&r.requestId===requestId&&samePairing(r,c)&&(!runId||r.runId===runId));
+    invariant(matches.length<=1,'E_REQUEST_CONFLICT');return matches[0];
+  };
+  const requestForRun=async(tx,run,c)=>{
+    if(run.cloudRequestKey){
+      const r=await tx.get(KV,run.cloudRequestKey);
+      invariant(r?.tag==='cloud-request-v1'&&r.requestId===run.cloudRequestId&&samePairing(r,c)&&r.runId===run.runId,'E_CLOUD_FENCED');
+      return r;
+    }
+    return findRequest(tx,run.cloudRequestId,c,run.runId);
+  };
   async function post(config,path,body,{isCurrent=()=>true}={}){
     invariant(config?.credential,'E_PAIRING');
     invariant(isCurrent(),'E_CLOUD_REVOKED');const abort=new AbortController();if(path==='receipt')deliveries.add(abort);
@@ -34,25 +108,32 @@ export function createCloudService({storage,api,clock={now:()=>Date.now()},asser
       (request.limit===undefined||Number.isSafeInteger(request.limit)&&request.limit>=1&&request.limit<=50)&&
       (request.offset===undefined||Number.isSafeInteger(request.offset)&&request.offset>=0&&request.offset<=1000000),'E_SCHEMA');
     const includeRequests=request.includeRequests!==false,limit=request.limit??5,offset=request.offset??0;
+    const permissionConfig=await scoped(sender,tx=>tx.get(KV,CONFIG));
+    const sites=await siteAuthorization(permissionConfig);
     return scoped(sender,async(tx,host)=>{
-      const c=await tx.get(KV,CONFIG),slot=await tx.get('runs','@slot');
-      let total=null,nextOffset=null,projected=[];
+      const c=await tx.get(KV,CONFIG),slot=await tx.get('runs','@slot'),values=includeRequests?await tx.all(KV):[];
+      const nativeSlot=await slotFacts(tx,slot);
+      const lastRevocation=values.filter(r=>r?.tag==='cloud-revocation-v1'&&r.namespace===host.namespace).sort((a,b)=>b.confirmedAt-a.confirmedAt)[0];
+      let total=null,nextOffset=null,projected=[],operations;
       if(includeRequests){
-        const requests=(await tx.all(KV)).filter(r=>r.tag==='cloud-request-v1'&&r.namespace===host.namespace)
+        const requests=values.filter(r=>r.tag==='cloud-request-v1'&&r.namespace===host.namespace)
           .sort((x,y)=>(y.createdAt??0)-(x.createdAt??0)||String(y.requestId).localeCompare(String(x.requestId)));
         total=requests.length;
         const page=requests.slice(offset,offset+limit);
         nextOffset=offset+page.length<total?offset+page.length:null;
         for(const r of page){
           const run=r.runId?await tx.get('runs',r.runId):null;
-          projected.push({state:r.state,runState:run?.state??null,retirementState:run?.retirementState??null,
+          if(run?.state==='interrupted')operations??=await tx.all('commandJournal');
+          projected.push({state:r.state,runState:run?.state??null,retirementState:run?.retirementState??null,reason:r.reason??null,outcomeUnknown:await unknownOutcome(tx,run,operations),
             receipt:r.receipt?true:null,targetReady:!!run?.target&&run.retirementState!=='released'});
         }
         projected.reverse(); // Existing Side Panel shows the newest sample first.
       }
-      return {executorId:await tx.get(KV,IDENTITY),provider:c?{url:c.url,providerId:c.providerId}:null,
+      return {executorId:await tx.get(KV,IDENTITY),provider:c&&!c.unpairing?{url:c.url,providerId:c.providerId}:null,
+        revocation:c?.unpairing?{state:'pending'}:!c&&lastRevocation?{state:'confirmed'}:null,
         enabled:!!c?.enabled,connection:connectionState,online,reconciled,hostReady:true,
-        slotAvailable:!slot?.currentRunId&&!slot?.preview,
+        slotAvailable:nativeSlot.slotState==='available',...nativeSlot,
+        siteAuthorization:canonical(c??null)===canonical(permissionConfig??null)?sites:'unknown',
         tasks:c?.tasks?.map(t=>({taskId:t.taskId,version:t.version,manifestHash:t.manifestHash,
           sourceHash:t.contentHash,siteOrigins:t.manifest.siteOrigins,resultAllowed:t.resultAllowed}))||[],
         requestTotal:total,requestPage:{offset,limit,nextOffset},requests:projected};
@@ -78,10 +159,10 @@ export function createCloudService({storage,api,clock={now:()=>Date.now()},asser
       for(const r of requests)states[allowed.has(r.state)?r.state:'other']++;
       requests.sort((a,b)=>(b.createdAt??0)-(a.createdAt??0)||
         String(b.requestId).localeCompare(String(a.requestId)));
-      const page=requests.slice(offset,offset+limit),rows=[];
+      const page=requests.slice(offset,offset+limit),observerRows=[];
       for(const r of page){
         const run=r.runId?await tx.get('runs',r.runId):null;
-        rows.push({state:allowed.has(r.state)?r.state:'other',
+        observerRows.push({state:allowed.has(r.state)?r.state:'other',
           runState:allowedRuns.has(run?.state)?run.state:null,
           retirementReleased:run?.retirementState==='released',
           receiptConfirmed:!!r.receipt&&r.delivery?.state==='confirmed',
@@ -91,88 +172,124 @@ export function createCloudService({storage,api,clock={now:()=>Date.now()},asser
         enabled:config?.enabled===true,connection:connectionState,
         online,reconciled,hostReady:null,slotAvailable:!slot?.currentRunId&&!slot?.preview,
         approvedTasks:Math.min(config?.tasks?.length??0,32),requestTotal:requests.length,
-        states,rows,page:{offset,limit,nextOffset:offset+rows.length<requests.length?offset+rows.length:null}};
+        states,rows:observerRows,page:{offset,limit,nextOffset:offset+observerRows.length<requests.length?offset+observerRows.length:null}};
     },[KV,'runs']);
   }
   async function cloudPair(request,sender){
+    await retryRevocation();
     invariant(Object.keys(request).every(k=>['url','providerId','pairingCode','allowLoopback'].includes(k)),'E_SCHEMA');
     const url=providerUrl(request.url,request.allowLoopback===true),host=await assertHost(sender);
     const executorId=await scoped(sender,async tx=>{invariant(!(await tx.get(KV,CONFIG)),'E_PAIRING','Unpair existing provider first');let id=await tx.get(KV,IDENTITY);if(!id){id=newId();await tx.put(KV,id,IDENTITY);}return id;},'readwrite');
     const response=await fetcher(url+'/v1/pair',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({executorId,pairingCode:request.pairingCode}),signal:AbortSignal.timeout(10000),redirect:'error'}),pair=await response.json();
-    invariant(response.ok&&pair.providerId===request.providerId&&typeof pair.credential==='string','E_PAIRING','Provider identity or pairing credential rejected');
-    await scoped(sender,async tx=>{invariant(!(await tx.get(KV,CONFIG)),'E_PAIRING');await tx.put(KV,{url,providerId:pair.providerId,credential:pair.credential,executorId,namespace:host.namespace,enabled:false,tasks:[]},CONFIG);},'readwrite');return cloudStatus({},sender);
+    invariant(response.ok&&pair.providerId===request.providerId&&pair.executorId===executorId&&nonempty(pair.credential)&&nonempty(pair.pairingId)&&Number.isSafeInteger(pair.pairingGeneration)&&pair.pairingGeneration>0,'E_PAIRING','Provider identity or pairing credential rejected');
+    await scoped(sender,async tx=>{invariant(!(await tx.get(KV,CONFIG)),'E_PAIRING');await tx.put(KV,{url,providerId:pair.providerId,credential:pair.credential,executorId,pairingId:pair.pairingId,pairingGeneration:pair.pairingGeneration,namespace:host.namespace,enabled:false,tasks:[]},CONFIG);},'readwrite');return cloudStatus({},sender);
   }
   async function cloudApprove(request,sender){
     invariant(Object.keys(request).every(k=>k==='tasks')&&Array.isArray(request.tasks)&&request.tasks.length>0&&request.tasks.length<=32,'E_SCHEMA');
     const tasks=[];for(const approval of request.tasks){invariant(Object.keys(approval).every(k=>['taskId','resultAllowed'].includes(k))&&typeof approval.resultAllowed==='boolean','E_SCHEMA');tasks.push({...await resolveTask({taskId:approval.taskId},sender),resultAllowed:approval.resultAllowed});}
     for(const t of tasks)for(const origin of t.manifest.siteOrigins)await requireGrant(api,origin);
-    await scoped(sender,async(tx,host)=>{const c=await tx.get(KV,CONFIG);invariant(c&&c.namespace===host.namespace&&!c.enabled,'E_PAIRING','Stop current hosting before changing approval');
+    await scoped(sender,async(tx,host)=>{const c=await tx.get(KV,CONFIG);invariant(c&&!c.unpairing&&c.namespace===host.namespace&&!c.enabled,'E_PAIRING','Stop current hosting before changing approval');
       c.tasks=tasks;c.grantId=newId();c.enabled=true;c.revokedAt=null;await tx.put(KV,c,CONFIG);},'readwrite');wake();return cloudStatus({},sender);
   }
   async function fence(request,reason){
-    const result=await transaction('readwrite',async tx=>{const r=await tx.get(KV,PREFIX+request.requestId);if(!r)return;const run=r.runId&&await tx.get('runs',r.runId);
+    const result=await transaction('readwrite',async tx=>{const r=await tx.get(KV,rowKey(request));if(!r)return;const run=r.runId&&await tx.get('runs',r.runId);
       // Original released Run + confirmed receipt is immutable history.
       if(r.receipt&&r.state==='finished'&&run?.retirementState==='released')return null;
-      r.reason=reason;if(!run){r.state='cancelled';await tx.put(KV,r,PREFIX+r.requestId);return;}
+      if(run?.state==='completed'&&run.retirementState==='released')return null;
+      r.reason=reason;if(!run){r.state='cancelled';await tx.put(KV,r,rowKey(r));return;}
       if(['preparing','running','stopping'].includes(run.state)){run.cancelSeq++;run.ownerEpoch++;run.runRevision++;run.eventSeq++;run.state='stopping';run.terminalReason=reason;await tx.put('runs',run,run.runId);const k='controller-pin:'+run.runId,l=await tx.get('commandJournal',k);if(l)await tx.put('commandJournal',{...l,state:run.state,cancelSeq:run.cancelSeq},k);}
-      r.state=run.retirementState==='released'?'finished':'cancellation-pending';await tx.put(KV,r,PREFIX+r.requestId);return run;});
+      r.state=run.retirementState==='released'?'finished':'cancellation-pending';await tx.put(KV,r,rowKey(r));return run;});
     if(result)await emitToHost(result.registrationId,{type:'controller-fenced',runId:result.runId,reasonCode:reason});
   }
   async function cloudStop(_,sender){invalidate();await scoped(sender,async tx=>{const c=await tx.get(KV,CONFIG);if(c){c.enabled=false;c.revokedAt=clock.now();await tx.put(KV,c,CONFIG);}},'readwrite');close();for(const r of await rows())await fence(r,'E_CLOUD_REVOKED');return cloudStatus({},sender);}
-  async function cloudUnpair(_,sender){await cloudStop({},sender);await scoped(sender,tx=>tx.delete(KV,CONFIG),'readwrite');return cloudStatus({},sender);}
+  let revocationPromise;
+  async function retryRevocation(){
+    if(revocationPromise)return revocationPromise;
+    revocationPromise=(async()=>{
+      const c=await read();if(!c?.unpairing)return;
+      try{
+        const body={revocationId:c.unpairing.revocationId,...(c.pairingId?{pairingId:c.pairingId,pairingGeneration:c.pairingGeneration}:{})};
+        const receipt=await post(c,'revoke',body);
+        invariant(receipt.revoked===true&&receipt.providerId===c.providerId&&receipt.revocationId===body.revocationId&&nonempty(receipt.pairingId)&&Number.isSafeInteger(receipt.pairingGeneration)&&(!c.pairingId||receipt.pairingId===c.pairingId&&receipt.pairingGeneration===c.pairingGeneration),'E_REVOCATION');
+        await transaction('readwrite',async tx=>{
+          const current=await tx.get(KV,CONFIG);if(current?.unpairing?.revocationId!==body.revocationId)return;
+          await tx.put(KV,{tag:'cloud-revocation-v1',namespace:c.namespace,...receipt,state:'confirmed',confirmedAt:clock.now()},'cloud:revocation:'+body.revocationId);
+          await tx.delete(KV,CONFIG);
+        },[KV]);
+      }catch(error){
+        await transaction('readwrite',async tx=>{const current=await tx.get(KV,CONFIG);if(current?.unpairing?.revocationId!==c.unpairing.revocationId)return;current.unpairing.lastError=/^E_[A-Z0-9_]+$/.test(error?.code)?error.code:'E_PROVIDER_OFFLINE';await tx.put(KV,current,CONFIG);},[KV]);
+      }
+    })().finally(()=>{revocationPromise=null;});return revocationPromise;
+  }
+  async function cloudUnpair(_,sender){
+    await cloudStop({},sender);
+    await scoped(sender,async tx=>{const c=await tx.get(KV,CONFIG);if(!c)return;c.unpairing??={revocationId:newId(),state:'pending',requestedAt:clock.now()};await tx.put(KV,c,CONFIG);},'readwrite');
+    await retryRevocation();wake();return cloudStatus({},sender);
+  }
   let nextPromise;
   async function cloudNext(_,sender){if(nextPromise)return null;nextPromise=next(sender);try{return await nextPromise;}finally{nextPromise=null;}}
   async function next(sender){
     const host=await assertHost(sender),c=await read();if(!c?.enabled||!online||!reconciled||c.namespace!==host.namespace)return null;
-    const existing=(await rows()).find(r=>r.namespace===host.namespace&&!r.runId&&r.grantId===c.grantId&&r.state==='waiting');if(existing)return {requestId:existing.requestId};
+    const epoch=connectionEpoch,current=()=>epoch===connectionEpoch;
+    const existing=(await rows()).find(r=>r.namespace===host.namespace&&samePairing(r,c)&&!r.runId&&r.grantId===c.grantId&&r.state==='waiting');if(existing)return {requestId:existing.requestId};
     const claim=await scoped(sender,async tx=>{const slot=await tx.get('runs','@slot');if(slot?.currentRunId||slot?.preview)return null;const config=await tx.get(KV,CONFIG);if(!config?.enabled||config.grantId!==c.grantId)return null;
       config.claimId??=newId();await tx.put(KV,config,CONFIG);return {claimId:config.claimId,tasks:c.tasks.map(t=>({taskId:t.taskId,manifestHash:t.manifestHash,sourceHash:t.contentHash}))};},'readwrite');if(!claim)return null;
-    const answer=await post(c,'claim',claim);
-    return scoped(sender,async tx=>{const config=await tx.get(KV,CONFIG);invariant(config?.enabled&&config.grantId===c.grantId&&config.claimId===claim.claimId,'E_CLOUD_REVOKED');
-      if(answer.assignment){const a=answer.assignment;invariant(a.executorId===c.executorId&&a.claimId===claim.claimId&&a.leaseUntil>clock.now(),'E_ASSIGNMENT');const t=c.tasks.find(t=>t.taskId===a.task.taskId&&t.version===a.task.version&&t.manifestHash===a.task.manifestHash&&t.contentHash===a.task.sourceHash);invariant(t&&a.target.mode==='owned'&&t.manifest.siteOrigins.includes(new URL(a.target.url).origin),'E_TASK');
-        const params=validateTaskParams(t.manifest.paramsSchema,a.params),requestId='cloud:'+a.assignmentId;const digestValue=await digest({providerId:c.providerId,executorId:c.executorId,assignmentId:a.assignmentId,task:a.task,params,target:a.target});const prior=await tx.get(KV,PREFIX+requestId);invariant(!prior||prior.digest===digestValue,'E_REQUEST_CONFLICT');
-        if(!prior)await tx.put(KV,{tag:'cloud-request-v1',requestId,digest:digestValue,assignment:a,params,task:t,grantId:c.grantId,namespace:host.namespace,state:'waiting',createdAt:clock.now()},PREFIX+requestId);
+    const answer=await post(c,'claim',claim,{isCurrent:current});
+    return scoped(sender,async tx=>{const config=await tx.get(KV,CONFIG);invariant(current(),'E_CLOUD_FENCED');invariant(config?.enabled&&config.grantId===c.grantId&&config.claimId===claim.claimId,'E_CLOUD_REVOKED');
+      if(answer.assignment){const a=answer.assignment,identity=assignmentIdentity(c,a);invariant(!knownRemoteRuns.has(a.assignmentId),'E_RUN_REF','Query the original remote Run instead of creating another');invariant(a.executorId===c.executorId&&a.claimId===claim.claimId&&a.leaseUntil>clock.now(),'E_ASSIGNMENT');const t=c.tasks.find(t=>t.taskId===a.task.taskId&&t.version===a.task.version&&t.manifestHash===a.task.manifestHash&&t.contentHash===a.task.sourceHash);invariant(t&&a.target.mode==='owned'&&t.manifest.siteOrigins.includes(new URL(a.target.url).origin),'E_TASK');
+        const params=validateTaskParams(t.manifest.paramsSchema,a.params),requestId='cloud:'+a.assignmentId;const digestValue=await digest({identity,task:a.task,params,target:a.target});const storageKey=PREFIX+await digest({pairing:identity.pairing,requestId});const prior=await findRequest(tx,requestId,c);invariant(!prior||prior.digest===digestValue,'E_REQUEST_CONFLICT');invariant(!prior||prior.grantId===c.grantId&&prior.state==='waiting'&&!prior.runId,'E_CLOUD_FENCED');
+        if(!prior)await tx.put(KV,{tag:'cloud-request-v1',storageKey,identity,requestId,digest:digestValue,assignment:a,params,task:t,grantId:c.grantId,namespace:host.namespace,state:'waiting',createdAt:clock.now()},storageKey);
         config.claimId=null;await tx.put(KV,config,CONFIG);return prior?.runId?null:{requestId};}
       config.claimId=null;await tx.put(KV,config,CONFIG);return null;
     },'readwrite');
   }
-  async function cloudResolve(request,sender){invariant(typeof request?.requestId==='string'&&request.requestId.startsWith('cloud:'),'E_SCHEMA');const initial=await transaction('readonly',tx=>tx.get(KV,PREFIX+request.requestId),[KV]);invariant(initial?.tag==='cloud-request-v1','E_TASK');const t=await resolveTask({taskId:initial.task.taskId},sender);return scoped(sender,async(tx,host)=>{const r=await tx.get(KV,PREFIX+request.requestId),c=await tx.get(KV,CONFIG);invariant(c?.enabled&&r?.namespace===host.namespace&&r.grantId===c.grantId&&!r.runId&&r.state==='waiting'&&r.assignment.leaseUntil>clock.now(),'E_CLOUD_REVOKED');
+  async function cloudResolve(request,sender){invariant(typeof request?.requestId==='string'&&request.requestId.startsWith('cloud:'),'E_SCHEMA');const config=await read(),initial=await transaction('readonly',tx=>findRequest(tx,request.requestId,config),[KV]);invariant(initial,'E_TASK');const t=await resolveTask({taskId:initial.task.taskId},sender);return scoped(sender,async(tx,host)=>{const c=await tx.get(KV,CONFIG),r=await findRequest(tx,request.requestId,c);invariant(c?.enabled&&r?.namespace===host.namespace&&r.grantId===c.grantId&&!r.runId&&r.state==='waiting'&&r.assignment.leaseUntil>clock.now(),'E_CLOUD_REVOKED');
     invariant(t.installationId===r.task.installationId&&t.generation===r.task.generation&&t.manifestHash===r.task.manifestHash,'E_PERMISSION');return {scriptId:t.scriptId,revision:t.revision,contentHash:t.contentHash,params:r.params,target:r.assignment.target,expectedTaskGeneration:t.generation,expectedTaskInstallationId:t.installationId,requestId:r.requestId,cloudRequestId:r.requestId,deadlineAt:Math.min(clock.now()+60000,r.assignment.leaseUntil)};});}
   async function bind(tx,run,request,host){
-    const r=await tx.get(KV,PREFIX+request.cloudRequestId),c=await tx.get(KV,CONFIG);invariant(c?.enabled&&r?.namespace===host.namespace&&r.grantId===c.grantId&&r.state==='waiting'&&!r.runId&&r.assignment.leaseUntil>clock.now(),'E_CLOUD_REVOKED');
+    const c=await tx.get(KV,CONFIG),r=await findRequest(tx,request.cloudRequestId,c);invariant(c?.enabled&&r?.namespace===host.namespace&&r.grantId===c.grantId&&r.state==='waiting'&&!r.runId&&r.assignment.leaseUntil>clock.now(),'E_CLOUD_REVOKED');
     invariant(run.scriptId===r.task.scriptId&&run.contentHash===r.task.contentHash&&run.installedTaskAuthorization?.manifestHash===r.task.manifestHash&&canonical(run.installedTaskAuthorization?.authorization)===canonical({tag:'task-install-authorization-v1',installationId:r.task.installationId,generation:r.task.generation,scope:{capabilities:r.task.manifest.permissions,siteOrigins:r.task.manifest.siteOrigins,networkOrigins:[]}})&&canonical(decodeValue(run.paramsWire))===canonical(r.params)&&canonical(run.selection)===canonical(r.assignment.target)&&!run.networkOrigins.length,'E_TASK');
-    run.cloudRequestId=r.requestId;r.runId=run.runId;r.runRef={runId:run.runId,resultId:run.resultId,requestId:r.requestId,sourceHash:run.contentHash,manifestHash:r.task.manifestHash,grantId:r.grantId};r.state='prepared';await tx.put(KV,r,PREFIX+r.requestId);
+    run.cloudRequestId=r.requestId;run.cloudRequestKey=rowKey(r);r.runId=run.runId;r.runRef={runId:run.runId,resultId:run.resultId,requestId:r.requestId,sourceHash:run.contentHash,manifestHash:r.task.manifestHash,grantId:r.grantId};r.state='prepared';await tx.put(KV,r,rowKey(r));
   }
   async function permit(run){
-    const r=await transaction('readonly',tx=>tx.get(KV,PREFIX+run.cloudRequestId),[KV]),c=await read();invariant(c?.enabled&&c.grantId===r?.grantId,'E_CLOUD_REVOKED');let p;
-    for(let attempt=0;attempt<2;attempt++){try{p=await post(c,'admission',{assignmentId:r.assignment.assignmentId,runRef:r.runRef});break;}catch(e){if(attempt||e.code)throw e;}}
-    await transaction('readwrite',async tx=>{const current=await tx.get(KV,PREFIX+r.requestId),config=await tx.get(KV,CONFIG),stored=await tx.get('runs',run.runId);invariant(config?.enabled&&config.grantId===r.grantId&&stored?.state==='preparing'&&!stored.cancelSeq&&current?.runId===run.runId&&p.providerId===config.providerId&&p.assignmentId===r.assignment.assignmentId&&canonical(p.runRef)===canonical(r.runRef)&&p.leaseUntil>clock.now(),'E_PERMIT');await assertRunTaskAuthorization(tx,stored);current.permit=p;current.state='permitted';await tx.put(KV,current,PREFIX+r.requestId);});
+    const c=await read(),r=await transaction('readonly',tx=>requestForRun(tx,run,c),[KV]);invariant(c?.enabled&&c.grantId===r?.grantId,'E_CLOUD_REVOKED');const epoch=connectionEpoch,currentEpoch=()=>epoch===connectionEpoch;let p;
+    for(let attempt=0;attempt<2;attempt++){try{p=await post(c,'admission',{assignmentId:r.assignment.assignmentId,runRef:r.runRef,...requestBinding(r)},{isCurrent:currentEpoch});break;}catch(e){if(attempt||e.code)throw e;}}
+    await transaction('readwrite',async tx=>{const current=await tx.get(KV,rowKey(r)),config=await tx.get(KV,CONFIG),stored=await tx.get('runs',run.runId);invariant(currentEpoch(),'E_CLOUD_FENCED');assertPermit(p,config,r);invariant(config?.enabled&&samePairing(r,config)&&config.grantId===r.grantId&&stored?.state==='preparing'&&!stored.cancelSeq&&current?.runId===run.runId&&p.providerId===config.providerId&&p.assignmentId===r.assignment.assignmentId&&canonical(p.runRef)===canonical(r.runRef)&&p.leaseUntil>clock.now(),'E_PERMIT');await assertRunTaskAuthorization(tx,stored);
+      if(current.permit){
+        assertPermit(current.permit,config,current);const issued={...p};
+        if(legacyMapped(current,config))for(const key of ['executorId','pairingId','pairingGeneration','attemptEpoch','jobId','claimId'])if(!Object.hasOwn(current.permit,key))delete issued[key];
+        invariant(current.permit.leaseUntil>clock.now()&&canonical(current.permit)===canonical(issued),'E_PERMIT');
+      }else current.permit=p;
+      current.state='permitted';await tx.put(KV,current,rowKey(r));});
   }
-  async function assertActive(tx,run){if(!run.cloudRequestId)return;const r=await tx.get(KV,PREFIX+run.cloudRequestId),c=await tx.get(KV,CONFIG);invariant(c?.enabled&&r?.grantId===c.grantId&&r.runId===run.runId&&r.permit?.runRef.runId===run.runId&&r.permit?.leaseUntil>clock.now()&&!['cancelled','cancellation-pending','OUTCOME_UNKNOWN'].includes(r.state),'E_CLOUD_FENCED');}
+  async function assertActive(tx,run){if(!run.cloudRequestId)return;const c=await tx.get(KV,CONFIG),r=await requestForRun(tx,run,c);invariant(c?.enabled&&r?.grantId===c.grantId&&r.runId===run.runId&&r.permit?.runRef.runId===run.runId&&r.permit?.leaseUntil>clock.now()&&r.state==='permitted','E_CLOUD_FENCED');assertPermit(r.permit,c,r);}
   async function reconcile({isCurrent=()=>true}={}){
     const epoch=revocationEpoch,current=()=>isCurrent()&&epoch===revocationEpoch;
     const c=await read();if(!c?.enabled||!current())return;
     const remote=await post(c,'reconcile',{}, {isCurrent:current});if(!current())return;invariant(remote.providerId===c.providerId,'E_PROVIDER');
+    if(c.pairingId)invariant(remote.executorId===c.executorId&&remote.pairingId===c.pairingId&&remote.pairingGeneration===c.pairingGeneration,'E_PAIRING');
+    knownRemoteRuns=new Map(remote.assignments.filter(a=>a.runRef).map(a=>[a.assignmentId,a.runRef]));
     for(const r of await rows()){
-      if(!current())return;if(r.grantId!==c.grantId)continue;
+      if(!current())return;if(r.grantId!==c.grantId||!samePairing(r,c))continue;
+      const a=remote.assignments.find(a=>a.assignmentId===r.assignment.assignmentId);
+      if(!a||a.runRef&&r.runRef&&canonical(a.runRef)!==canonical(r.runRef)){await fence(r,'E_RUN_REF');continue;}
+      if(c.pairingId){const identity=assignmentIdentity(c,a);invariant(canonical(identity)===canonical(effectiveIdentity(r,c)),'E_ASSIGNMENT');}
       const run=r.runId?await transaction('readonly',tx=>tx.get('runs',r.runId)):null;
       // Remote expiry, cancellation or pruning cannot cancel confirmed completion.
       if(r.receipt&&r.state==='finished'&&run?.retirementState==='released')continue;
-      const a=remote.assignments.find(a=>a.assignmentId===r.assignment.assignmentId);
-      if(!a||a.runRef&&r.runRef&&canonical(a.runRef)!==canonical(r.runRef)){await fence(r,'E_RUN_REF');continue;}
-      if(run?.state==='paused_unknown'){
-        await transaction('readwrite',async tx=>{if(!current())return;const row=await tx.get(KV,PREFIX+r.requestId);row.state='OUTCOME_UNKNOWN';row.reason='Original Run recovery fenced execution';await tx.put(KV,row,PREFIX+r.requestId);});continue;
+      if(await transaction('readonly',tx=>unknownOutcome(tx,run))){
+        await transaction('readwrite',async tx=>{if(!current())return;const row=await tx.get(KV,rowKey(r));row.state='OUTCOME_UNKNOWN';row.reason??='E_OUTCOME_UNKNOWN';await tx.put(KV,row,rowKey(r));});continue;
       }
       if(a.cancelled||a.leaseUntil<=clock.now()){await fence(r,'E_CLOUD_CANCELLED');if(!r.runId)continue;}
       const active=run&&['preparing','running'].includes(run.state)&&!run.cancelSeq&&r.state==='permitted';
       if(active&&r.permit&&!r.receipt&&!a.cancelled&&a.leaseUntil>clock.now()){
         if(r.permit.leaseUntil<=clock.now())await fence(r,'E_LEASE');
         else try{
-          const lease=await post(c,'renew',{assignmentId:r.assignment.assignmentId,permitId:r.permit.permitId},{isCurrent:current});
+          const lease=await post(c,'renew',{assignmentId:r.assignment.assignmentId,permitId:r.permit.permitId,...requestBinding(r)},{isCurrent:current});
+          invariant(finiteLease(lease.leaseUntil),'E_LEASE');
           await transaction('readwrite',async tx=>{
-            const row=await tx.get(KV,PREFIX+r.requestId),config=await tx.get(KV,CONFIG),stored=await tx.get('runs',r.runId);
+            const row=await tx.get(KV,rowKey(r)),config=await tx.get(KV,CONFIG),stored=await tx.get('runs',r.runId);
             invariant(current()&&config?.enabled&&config.grantId===r.grantId&&row?.state==='permitted'&&row.permit?.permitId===r.permit.permitId&&canonical(row.runRef)===canonical(r.runRef)&&row.permit.leaseUntil>clock.now()&&['preparing','running'].includes(stored?.state)&&!stored.cancelSeq&&lease.leaseUntil>clock.now(),'E_CLOUD_FENCED');
-            await assertRunTaskAuthorization(tx,stored);row.permit.leaseUntil=lease.leaseUntil;await tx.put(KV,row,PREFIX+r.requestId);
+            await assertRunTaskAuthorization(tx,stored);row.permit.leaseUntil=lease.leaseUntil;await tx.put(KV,row,rowKey(r));
           });
         }catch{if(current())await fence(r,'E_LEASE');}
       }
@@ -186,19 +303,29 @@ export function createCloudService({storage,api,clock={now:()=>Date.now()},asser
       if(!projection||r.receipt||projection.run.retirementState!=='released')continue;
       for(const origin of r.task.manifest.siteOrigins)await requireGrant(api,origin);
       const allowed=await transaction('readwrite',async tx=>{
-        const row=await tx.get(KV,PREFIX+r.requestId),config=await tx.get(KV,CONFIG),stored=await tx.get('runs',r.runId);await assertRunTaskAuthorization(tx,stored);
+        const row=await tx.get(KV,rowKey(r)),config=await tx.get(KV,CONFIG),stored=await tx.get('runs',r.runId);await assertRunTaskAuthorization(tx,stored);
         if(!current()||stored.resultDeliveryRevoked||!config?.enabled||config.grantId!==r.grantId||canonical(row.runRef)!==canonical(r.runRef))return false;
-        row.delivery={state:'pending',receiptKey:r.runRef.resultId,grantId:r.grantId,runRef:r.runRef};await tx.put(KV,row,PREFIX+r.requestId);return true;
+        row.delivery={state:'pending',receiptKey:r.runRef.resultId,grantId:r.grantId,runRef:r.runRef};await tx.put(KV,row,rowKey(r));return true;
       });if(!allowed||!current())continue;
+      // The durable delivery intent is not permission to send after an asynchronous
+      // boundary. Recheck website and installed/output authorization at submission.
+      for(const origin of r.task.manifest.siteOrigins)await requireGrant(api,origin);
+      const stillAllowed=await transaction('readonly',async tx=>{
+        const config=await tx.get(KV,CONFIG),stored=await tx.get('runs',r.runId),row=await tx.get(KV,rowKey(r));
+        if(!current()||!config?.enabled||config.revokedAt||config.grantId!==r.grantId||stored?.resultDeliveryRevoked||!row?.task.resultAllowed||canonical(row.runRef)!==canonical(r.runRef))return false;
+        await assertRunTaskAuthorization(tx,stored);return true;
+      });if(!stillAllowed||!current())continue;
       const result=projection.result,limited={runId:result.runId,resultId:result.resultId,revision:result.revision,state:result.state,sourceHash:r.runRef.sourceHash,retirementState:projection.run.retirementState,...(result.outcome?.valueWire!==undefined?{valueWire:result.outcome.valueWire}:{}),...(result.outcome?.error?{error:result.outcome.error}:{})};
-      const receipt=await post(c,'receipt',{assignmentId:r.assignment.assignmentId,receiptKey:r.runRef.resultId,runRef:r.runRef,result:limited},{isCurrent:current});
+      const receipt=await post(c,'receipt',{assignmentId:r.assignment.assignmentId,receiptKey:r.runRef.resultId,runRef:r.runRef,result:limited,...requestBinding(r)},{isCurrent:current});
+      invariant(nonempty(receipt?.receiptId)&&nonempty(receipt.digest),'E_RECEIPT');
       await transaction('readwrite',async tx=>{
-        const row=await tx.get(KV,PREFIX+r.requestId),config=await tx.get(KV,CONFIG),stored=await tx.get('runs',r.runId);
+        const row=await tx.get(KV,rowKey(r)),config=await tx.get(KV,CONFIG),stored=await tx.get('runs',r.runId);
         if(!current()||!config?.enabled||config.grantId!==r.grantId||stored.resultDeliveryRevoked||canonical(row.runRef)!==canonical(r.runRef))return;
-        await assertRunTaskAuthorization(tx,stored);row.receipt=receipt;row.delivery.state='confirmed';row.state='finished';await tx.put(KV,row,PREFIX+r.requestId);
+        await assertRunTaskAuthorization(tx,stored);row.receipt=receipt;row.delivery.state='confirmed';row.state='finished';await tx.put(KV,row,rowKey(r));
       });
     }
   }
-  return {cloudStatus,cloudObserve,cloudPair,cloudApprove,cloudStop,cloudUnpair,cloudNext,cloudResolve,bind,permit,assertActive,read,post,reconcile,invalidate,
-    attachConnection({start,stop}){wake=start;close=stop;},connection(state){connectionState=state;online=state==='authenticated';if(!online)reconciled=false;},setReconciled(value){reconciled=value;}};
+  return {cloudStatus,cloudObserve,cloudPair,cloudApprove,cloudStop,cloudUnpair,cloudNext,cloudResolve,bind,permit,assertActive,read,post,reconcile,invalidate,retryRevocation,adoptPairing,
+    captureAuthentication(){const epoch=connectionEpoch;return ()=>epoch===connectionEpoch;},
+    attachConnection({start,stop}){wake=start;close=stop;},connection(state){if(state!=='authenticated')connectionEpoch++;connectionState=state;online=state==='authenticated';if(!online)reconciled=false;},setReconciled(value){reconciled=value;}};
 }

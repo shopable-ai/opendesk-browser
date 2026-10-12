@@ -1,0 +1,24 @@
+✔ cloud status returns bounded redacted pages and supports a cheap heartbeat (74.569459ms)
+✔ cloudResolve uses a durable direct request key and rejects non-cloud identifiers (14.797375ms)
+✔ cloud binds original run and slot before permit; no target or worker before durable permission (29.0745ms)
+✔ cloud permit failure and admission rollback leave zero target effects (14.086958ms)
+✔ cloud revocation, unknown recovery and install generation cannot restore execution (19.645375ms)
+✔ cloud transaction quota failure rolls back run, slot, binding and revision pin with zero native effects (12.7465ms)
+✔ cloud stop before permit commit and changed installation generation prevent target creation (26.643708ms)
+✔ cloud rejects missing or non-finite durable permit before any target or worker effect (51.657625ms)
+✔ cloud late permit from a retired connection epoch cannot dispatch (12.39825ms)
+✔ completed released receipt-confirmed cloud run ignores later lease expiry without hiding cancellation history (18.245167ms)
+✔ late cloud claim after connection invalidation preserves claim for query and admits no request (12.498708ms)
+✔ expired local cloud permit is permanently fenced despite a live provider lease (14.325333ms)
+✔ confirmed Cloud Result stays finished after provider lease expiry and local stop (19.824083ms)
+✔ late cloud renewal cannot restore a stopped grant or permit (14.941417ms)
+✔ cloud result pending-write failure prevents upload; retry uploads original result without execution (16.546167ms)
+✔ cloud receipt transport loss leaves one durable result pending and retries without dispatch (18.522042ms)
+ℹ tests 16
+ℹ suites 0
+ℹ pass 16
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 448.695041

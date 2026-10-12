@@ -1,0 +1,17 @@
+{
+  "observedAt": "2026-10-12T10:05:37.735634+00:00",
+  "scope": "OWNED_HISTORICAL_RESOURCES_ONLY",
+  "providerPid": 11416,
+  "providerMethod": "ownership verified before SIGTERM; CLI close exit 0",
+  "providerStillRunning": false,
+  "cftPid": 11427,
+  "cftMethod": "native Chrome app menu Quit (CmdQ initial attempt did not exit)",
+  "cftStillRunning": false,
+  "port43112StillListening": false,
+  "profileExists": true,
+  "providerStateExists": true,
+  "idbDirectoryExists": true,
+  "dataDeletion": false,
+  "historicalRetirementStatus": "BLOCKED",
+  "nativeResourceReleaseAsserted": false
+}

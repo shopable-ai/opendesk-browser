@@ -1,0 +1,531 @@
+{
+  "schema": "opendesk.cloud-control.independent-ui-followup-review.v1",
+  "reviewedAtUtc": "2026-10-12T11:49:18.144075+00:00",
+  "mode": "INDEPENDENT_READ_ONLY_NO_DELEGATION_TARGETED_FOLLOWUP",
+  "repository": "/Users/shopme/Documents/workspace/opendesk-browser",
+  "branchContext": "main per user and candidate snapshot; no Git command performed",
+  "reviewer": {
+    "role": "独立 UI/证据 reviewer",
+    "independence": "本会话未编写两个修复、未与前 reviewer 共写；旧报告仅作发现与评分基线。",
+    "writeOwner": "本会话仅拥有本 review JSON",
+    "authorizedWrite": "docs/framework/workstreams/evidence/cloud-control-r14-final-20261012/expert-ui-followup-review.json",
+    "skillScopeOverride": "code-review 技能仅取定向审查清单；用户明确禁止 Git 和派代理，覆盖技能的 Git/双代理工作流。本结果是独立定向复核，不是双代理 merge-ready 审批。"
+  },
+  "constraints": {
+    "gitCommands": false,
+    "chromeOrNativeActions": false,
+    "testsExecuted": false,
+    "buildsExecuted": false,
+    "delegation": false,
+    "sourceOrFormalDocumentationWrites": false,
+    "onlyNewReviewJson": true
+  },
+  "baseline": {
+    "path": "docs/framework/workstreams/evidence/cloud-control-r14-final-20261012/expert-ui-evidence-review.json",
+    "uiUx": 80,
+    "testEvidence": 78,
+    "interpretation": "仅继承旧报告未受影响的审查背景，不提升旧组件、旧候选或历史 native 的证据等级。"
+  },
+  "scores": {
+    "uiUx": {
+      "score": 87,
+      "outOf": 100,
+      "basis": "独立复核后的质量评分，不是产品完成率或当前候选验收分。沿用旧报告量表以便比较。",
+      "rubric": {
+        "navigationAndProductBoundary": {
+          "earned": 20,
+          "maximum": 20,
+          "reason": "所读 HTML/两 Cloud UI 测试仍支持五产品 Tab、我的内托管和开发 Debug 边界。"
+        },
+        "currentFactsAndConservativeStates": {
+          "earned": 29,
+          "maximum": 30,
+          "reason": "保守清除与状态分离有组件支持；当前候选真实状态刷新/失败/恢复连续交互尚无现场证据。"
+        },
+        "redactionAndErrors": {
+          "earned": 20,
+          "maximum": 20,
+          "reason": "固定 E_DIAGNOSTICS，不读取原始 code/message；敏感、已知与任意错误输入均有针对性断言。"
+        },
+        "layoutImplementationAndInputBinding": {
+          "earned": 14,
+          "maximum": 15,
+          "reason": "六条规则静态匹配真实 My DOM、CSS 被直接引用，当前相关源码匹配 C 副本；最终视觉包的真实布局仍待验收。"
+        },
+        "accessibilitySourceAndRealValidation": {
+          "earned": 4,
+          "maximum": 15,
+          "reason": "HTML 有语义 label/summary/button、状态 live region 与共享 focus 样式；未取得真实 300/320 CSS px、200% zoom、完整键盘及辅助技术验收。"
+        }
+      },
+      "deltaFromBaseline": 7,
+      "below95Reasons": [
+        "真实窄面板、200% zoom、键盘焦点/可达性及辅助技术证据缺失（a11y 项扣 11）。",
+        "当前最终候选的视觉包身份及真实布局验收尚未闭合（布局项扣 1）。",
+        "当前候选连续状态失败/恢复的现场交互未验证（状态项扣 1）。"
+      ]
+    },
+    "testEvidence": {
+      "score": 83,
+      "outOf": 100,
+      "basis": "证据质量/覆盖评分，不是 B/C 功能、native、F3 或 ZIP 安装验收 PASS。",
+      "rubric": {
+        "componentAndProviderEvidence": {
+          "earned": 35,
+          "maximum": 35,
+          "reason": "旧组件证据按原级别保留；本次读取两个 Cloud UI 测试和修复日志，存在定向失败输入及 DOM/CSS 关联断言。"
+        },
+        "identityAndReproducibleBinding": {
+          "earned": 18,
+          "maximum": 20,
+          "reason": "记录当前输入、B 实际副本/构建回执/关键 dist 文件/ZIP SHA，当前 UI 源码匹配 C；ui-review-fixes.tap 本身没有逐次 source/test hash 及完整命令 receipt，不能追溯为 C 包执行结果。"
+        },
+        "failurePreservationAndReuseBoundaries": {
+          "earned": 20,
+          "maximum": 20,
+          "reason": "旧 155/156、旧原生 BLOCKED 和 C 首次 ENOENT 均保留；成功 follow-up 不覆盖原失败，不跨候选提升。"
+        },
+        "dualBuildEvidence": {
+          "earned": 10,
+          "maximum": 10,
+          "reason": "实际读取 B 独立双构建/双 pack 原始日志及 .runtime 回执；status、packageHash、ZIP SHA 一致，关键产物与 ZIP hash 只读核对通过。"
+        },
+        "currentCandidateNativeEvidence": {
+          "earned": 0,
+          "maximum": 15,
+          "reason": "没有当前候选 C 的真实 sender、可信 native 输入、完整执行/停止/退休/回执及安装验收闭环。"
+        }
+      },
+      "deltaFromBaseline": 5,
+      "below95Reasons": [
+        "当前候选 native 证据缺失扣 15，无法凭静态/组件/build/pack 达到 95。",
+        "修复日志缺逐次测试输入与执行命令绑定扣 2；本次输入 hash 不能追认日志生成时的所有字节。"
+      ]
+    }
+  },
+  "fixes": [
+    {
+      "id": "debug-error-whitelist",
+      "previousPriority": "P2",
+      "sourceGapClosed": true,
+      "status": "CLOSED_SOURCE_AND_COMPONENT_SUPPORTED",
+      "refs": [
+        "src/ui/debug-workbench.js:30",
+        "src/ui/debug-workbench.js:32",
+        "src/ui/debug-workbench.js:34",
+        "src/ui/debug-workbench.js:42",
+        "tests/environment/cloud-control-debug-r14.test.mjs:139",
+        "tests/environment/cloud-control-debug-r14.test.mjs:154",
+        "tests/environment/cloud-control-debug-r14.test.mjs:159",
+        "tests/environment/cloud-control-debug-r14.test.mjs:165"
+      ],
+      "evidence": "catch 统一固定 E_DIAGNOSTICS；error.code/error.message 未插入反馈或 JSON。失败将 snapshot 置 null、六个指标置未知、快照文本替换；copy 无 snapshot 即拒绝。测试以 E_TOKEN_PRIVATE、E_HOST_CLOSED、PRIVATE URL 覆盖固定反馈和敏感数据不外露，并断言失败后无剪贴板写入。",
+      "reachableOriginalTrigger": "development Debug 已成功刷新后，可信 Host 的下一次 cloudStatus 读取拒绝且错误 code 包含敏感 E_*；旧实现会显示原 code，当前固定反馈阻断。",
+      "testLimit": "fixture 用 Map/textContent/clipboard double；不证明真实剪贴板权限、屏幕朗读或 Chrome 交互。",
+      "remainingSourceTask": null
+    },
+    {
+      "id": "hosting-dead-layout-selectors",
+      "previousPriority": "P2",
+      "sourceGapClosed": true,
+      "status": "CLOSED_SOURCE_SELECTOR_GAP_REAL_VISUAL_ACCEPTANCE_OPEN",
+      "refs": [
+        "src/ui/cloud-hosting.css:2",
+        "src/ui/cloud-hosting.css:3",
+        "src/ui/cloud-hosting.css:4",
+        "src/ui/cloud-hosting.css:5",
+        "src/ui/cloud-hosting.css:6",
+        "src/ui/cloud-hosting.css:7",
+        "src/ui/tool.html:3",
+        "src/ui/tool.html:18",
+        "src/ui/tool.html:72",
+        "src/ui/tool.html:82",
+        "tests/environment/cloud-control-sidebar-r28.test.mjs:30"
+      ],
+      "sixRules": [
+        {
+          "line": 2,
+          "selector": "#workbench-tasks #cloud-hosting",
+          "match": "真实 My tabpanel 内 details；min-width/padding/margin"
+        },
+        {
+          "line": 3,
+          "selector": "#workbench-tasks #cloud-hosting>summary",
+          "match": "details 的直接 summary；指针/字体"
+        },
+        {
+          "line": 4,
+          "selector": "#workbench-tasks #cloud-hosting>label",
+          "match": "提供者字段和批准/回传/回环复选框均为直接 label；块布局/间距"
+        },
+        {
+          "line": 5,
+          "selector": "#workbench-tasks #cloud-hosting label>input:not([type=checkbox])",
+          "match": "URL/身份/配对码输入；复选框排除；100% 宽度/收缩"
+        },
+        {
+          "line": 6,
+          "selector": "#workbench-tasks #cloud-hosting>div",
+          "match": "四操作按钮所在直接 div；flex-wrap/gap"
+        },
+        {
+          "line": 7,
+          "selector": "#workbench-tasks #cloud-hosting>div button",
+          "match": "批准、停止、解除配对、核对状态；flex 130px/min-height 36px"
+        }
+      ],
+      "evidence": "tool.html 在 tool-shell.css 之后引用专用 cloud-hosting.css；六条规则不依赖不存在的 workbench-cloud，继续引用现有 token。定向测试核对真实 My 区域、link、无旧祖先及 action row/button 规则。",
+      "testLimit": "测试是文本/正则关联，直接断言重点为按钮行两规则；其余四条由本次源码/DOM 静态复核确认。没有计算样式、几何、真实宽度、zoom、焦点或辅助技术测量。",
+      "remainingSourceTask": null,
+      "remainingAcceptanceTask": "在最终候选真实 My 中展开托管，验证四按钮、provider 字段、长批准标签及焦点在 300/320 CSS px、200% zoom 下可达且无必要信息截断。"
+    }
+  ],
+  "targetedTests": {
+    "path": "docs/framework/workstreams/evidence/cloud-control-r14-final-20261012/ui-review-fixes.tap",
+    "sha256": "dda0d1bb1b8db8353dcf3cb26324d6e0748b184ce5d1d743c10e1515bcbb86d0",
+    "observed": {
+      "tests": 50,
+      "pass": 50,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "scope": "日志列出 Debug 10、Cloud Sidebar 21、Sidebar tab memory 12、UI preview 7 个用例；50 不是仅两个 Cloud UI 文件的用例数。",
+    "level": "EXISTING_COMPONENT_AND_STATIC_LOG_READ_ONLY",
+    "sourceTestIdentityLimit": "B/C 副本未带上述测试文件，属于未复制，不是 hash mismatch。记录当前测试 hash；未从日志推断逐次输入 hash。",
+    "notClaimed": [
+      "real 300/320 CSS px",
+      "200% zoom",
+      "keyboard",
+      "accessibility",
+      "native",
+      "candidate-C package execution",
+      "F3",
+      "ZIP installation"
+    ]
+  },
+  "candidateB": {
+    "status": "HISTORICAL_BUILD_AND_PACK_EVIDENCE_VERIFIED_NOT_CURRENT_VISUAL_PACKAGE",
+    "receipts": [
+      {
+        "mode": "production",
+        "buildReceipt": ".runtime/cloud-control-r14-final-20261012/candidate-b/docs/framework/evidence/wxt/builds/build-production.json",
+        "buildReceiptSha256": "9dbe43e39a62e12d039df0753a19d27f5aa150c5a24936de08ba202391ca59e7",
+        "status": "passed",
+        "reportStatus": "passed",
+        "sourceDriftDuringBuild": [],
+        "packageHash": "09bfae9d7bc3ed1cf9e90a0290bbf8a810e3cb3bdb16710fda95eb4e1edbf991",
+        "packReceipt": ".runtime/cloud-control-r14-final-20261012/candidate-b/docs/framework/evidence/wxt/packages/pack-production.json",
+        "packReceiptSha256": "4fb5f5b55408a8980a50929a9f667f98244ebb1b5cd5f56c4c37f482fe3b61c9",
+        "pack": {
+          "status": "passed",
+          "mode": "production",
+          "packageHash": "09bfae9d7bc3ed1cf9e90a0290bbf8a810e3cb3bdb16710fda95eb4e1edbf991",
+          "zipSha256": "26e2f406c8eb4682174db0e6df2eb44c14aacde36dbd94e88c7927f9ed8a2f2b",
+          "bytes": 1876182
+        },
+        "checkedArtifactsMatchReceipt": {
+          "ui/tool.html": true,
+          "ui/tool-shell.css": true,
+          "ui/design-system.css": true,
+          "ui/design-tokens.css": true,
+          "ui/tool-shell.js": true,
+          "manifest.json": true
+        },
+        "checkedSourcesMatchReceipt": {
+          "src/ui/tool.html": true,
+          "src/ui/tool-shell.css": true,
+          "src/ui/design-system.css": true,
+          "src/ui/design-tokens.css": true,
+          "src/ui/debug-workbench.js": true
+        },
+        "zips": [
+          {
+            "path": ".runtime/cloud-control-r14-final-20261012/candidate-b/artifacts/opendesk-browser-production.zip",
+            "sha256": "26e2f406c8eb4682174db0e6df2eb44c14aacde36dbd94e88c7927f9ed8a2f2b",
+            "bytes": 1876182,
+            "matchesPack": true
+          }
+        ]
+      },
+      {
+        "mode": "development",
+        "buildReceipt": ".runtime/cloud-control-r14-final-20261012/candidate-b/docs/framework/evidence/wxt/builds/build-development.json",
+        "buildReceiptSha256": "dd9bbaceb75edd4143da127e3b01d753312c1d07cb587bc3dcffa614325ef6d8",
+        "status": "passed",
+        "reportStatus": "passed",
+        "sourceDriftDuringBuild": [],
+        "packageHash": "648d90a1bf2032018adc7ccd2cf5996e945eb5f51a07eaff30158aea7ea7572b",
+        "packReceipt": ".runtime/cloud-control-r14-final-20261012/candidate-b/docs/framework/evidence/wxt/packages/pack-development.json",
+        "packReceiptSha256": "6f36225799d7e7e57847e57c99429508f2aec6c70c8cc501249e0b62324c9fac",
+        "pack": {
+          "status": "passed",
+          "mode": "development",
+          "packageHash": "648d90a1bf2032018adc7ccd2cf5996e945eb5f51a07eaff30158aea7ea7572b",
+          "zipSha256": "ea969cf5e6dd54afcf7d814a6d18a700b6efa8813a22bb0969782b2bf183bef9",
+          "bytes": 3805935
+        },
+        "checkedArtifactsMatchReceipt": {
+          "ui/tool.html": true,
+          "ui/tool-shell.css": true,
+          "ui/design-system.css": true,
+          "ui/design-tokens.css": true,
+          "ui/tool-shell.js": true,
+          "manifest.json": true
+        },
+        "checkedSourcesMatchReceipt": {
+          "src/ui/tool.html": true,
+          "src/ui/tool-shell.css": true,
+          "src/ui/design-system.css": true,
+          "src/ui/design-tokens.css": true,
+          "src/ui/debug-workbench.js": true
+        },
+        "zips": [
+          {
+            "path": ".runtime/cloud-control-r14-final-20261012/candidate-b/artifacts/opendesk-browser-development.zip",
+            "sha256": "ea969cf5e6dd54afcf7d814a6d18a700b6efa8813a22bb0969782b2bf183bef9",
+            "bytes": 3805935,
+            "matchesPack": true
+          }
+        ]
+      }
+    ],
+    "correctionToPreviousReview": "B 专用回执在 .runtime/candidate-b/docs/framework/evidence/wxt/builds，原始 build/pack 日志在工作流 evidence。正式 evidence 目录没有同名回执不能推断 B 未构建。",
+    "visualDrift": "tool-shell.css、design-system.css、design-tokens.css 三份原链接 CSS 均与 B 不同；当前新增 cloud-hosting.css 在 B 中不存在，tool.html 与 debug-workbench.js 也已变化。B 双构建/ZIP 的成功不证明当前修复或当前配色/焦点/布局通过。",
+    "cssChangeExamples": [
+      "design-tokens 改变 input border、positive、focus/warning 及暗色 token。",
+      "design-system 的 summary/focus-visible/secondary button 改为 token。",
+      "tool-shell 多处颜色/焦点和任务区域布局变化。"
+    ],
+    "noUpgradeToCurrentAcceptance": true
+  },
+  "candidateC": {
+    "status": "GENERATION_PROGRESS_OBSERVED_FINAL_ACCEPTANCE_PENDING",
+    "observedAtUtc": "2026-10-12T11:49:18.144075+00:00",
+    "initialObservation": "审查较早读取时 C 双 build 已有 passed，pack 回执尚不存在。",
+    "finalObservation": "最终只读复核时 C 双 pack 回执已出现。这里只记录已存在的回执阶段结果；未执行、未完整验证 C 包或 ZIP，不预写候选整体 PASS。",
+    "receiptsAtFinalRead": [
+      {
+        "path": ".runtime/cloud-control-r14-final-20261012/candidate-c/docs/framework/evidence/wxt/builds/build-development.json",
+        "sha256": "a97cd44b249c072c6d19e61bc36e086ed0f095eb028027f541d511eaed7c0fa4",
+        "status": "passed",
+        "packageHash": "9e2262ecda958200eb0c42eef901085909a318af34d48239fde2226dbfb7a93c",
+        "zipSha256": null,
+        "sourceDriftDuringBuild": []
+      },
+      {
+        "path": ".runtime/cloud-control-r14-final-20261012/candidate-c/docs/framework/evidence/wxt/packages/pack-development.json",
+        "sha256": "bcb09220c04ca012ef62e6fc270669bde94910a91b5f6e11b233ba0b96b157e0",
+        "status": "passed",
+        "packageHash": "9e2262ecda958200eb0c42eef901085909a318af34d48239fde2226dbfb7a93c",
+        "zipSha256": "8d1613c683efb03d26a073c184ae175330e42e9d26695782e448f8c1ae6452e5",
+        "sourceDriftDuringBuild": null
+      },
+      {
+        "path": ".runtime/cloud-control-r14-final-20261012/candidate-c/docs/framework/evidence/wxt/builds/build-production.json",
+        "sha256": "d6a05950a6d1fc898a43efc6b2e014883427c68a883428ea82974f1ef6222168",
+        "status": "passed",
+        "packageHash": "7d8058874fdc727a9ec21c41d8a176fdab092fdb4dbbfe284fb13a957d73257b",
+        "zipSha256": null,
+        "sourceDriftDuringBuild": []
+      },
+      {
+        "path": ".runtime/cloud-control-r14-final-20261012/candidate-c/docs/framework/evidence/wxt/packages/pack-production.json",
+        "sha256": "9a09b0a73d0e7f86ae86cc3ecaff8c33dc6d84f894409c86a993adf3d9aadb35",
+        "status": "passed",
+        "packageHash": "7d8058874fdc727a9ec21c41d8a176fdab092fdb4dbbfe284fb13a957d73257b",
+        "zipSha256": "12085ae5ad3b269c84be30130536c97d349cbe37ab48e2279a6882a810cba230",
+        "sourceDriftDuringBuild": null
+      }
+    ],
+    "relatedUiSourceCopiesMatchCurrent": true,
+    "sourceIdentityLimit": "按当前 UI 源码实际副本 SHA 匹配，不以 HEAD 或目录名代替字节身份。C 测试文件未复制不算 SHA 不一致。",
+    "preservedFailure": "build-c-development.log 保留首次 dist/development/ui/cloud-hosting.css ENOENT；后续重试不抹除该失败。构建脚本登记修复属于主代理工作，本定向 reviewer 未给这些脚本完整代码验收。",
+    "nativeStatus": "NOT_TESTED_FOR_CURRENT_CANDIDATE",
+    "visualAndAccessibilityStatus": "NOT_TESTED_FOR_CURRENT_CANDIDATE",
+    "f3AndZipInstallationStatus": "NOT_ACCEPTED_BY_THIS_REVIEW",
+    "overallPass": false
+  },
+  "newBugs": {
+    "confirmed": [],
+    "assessment": "在两个修复及相关测试的有限范围内，未发现额外可证实、可达的新源码 bug；未将缺少真实证据描述为已观察到裁剪/键盘故障。",
+    "resultId": "未提出 resultId 缺陷。已有测试明确 reserved resultId 不是保存完成依据；本轮未改判旧报告的 NO_UNSUPPORTED_FINDING。"
+  },
+  "remainingTasks": [
+    {
+      "id": "current-visual-package-binding",
+      "status": "OPEN",
+      "owner": "主代理/最终候选集成者",
+      "closure": "完成 C 最终输入/双 dist/ZIP 身份核对；将后续真实视觉结果绑定到最终 packageHash、ZIP SHA、扩展 ID、profile 和环境，不能用 B 替代。"
+    },
+    {
+      "id": "real-width-zoom-keyboard-a11y",
+      "status": "NOT_TESTED",
+      "owner": "受控真实环境验收者",
+      "closure": "最终候选 My/Debug 在 300/320 CSS px 与 200% zoom 下检查 provider 字段、四按钮、长批准标签；真实键盘测试 Tab/Shift+Tab、details、勾选/按钮、焦点可见/不丢失/不陷阱，验证 labels 与 live-status 辅助技术反馈并保存原始证据。"
+    },
+    {
+      "id": "current-native-cloud-lifecycle",
+      "status": "NOT_TESTED",
+      "owner": "主代理/受控 native 验收者",
+      "closure": "最终候选验证真实网站授权、多 origin、slot/资源、请求总量与最多五条样本、只读刷新/Debug、读取失败清除、操作拒绝分离、停止/重连/撤权及 production Debug 拒绝。保留真实 sender、可信输入、精确 controller-result/runId/resultId、result revision/sourceHash、真实 native ack、retirement released 和 Receipt；缺失保持 NOT_TESTED/BLOCKED。"
+    },
+    {
+      "id": "historical-unknown-retirement",
+      "status": "BLOCKED_ORIGINAL_PACKAGE_ONLY",
+      "owner": "历史现场负责人",
+      "closure": "原 run interrupted、retirement fenced、slot held/releaseCount 0、Receipt null 的旧证据维持 BLOCKED；退出进程、单一 saved Result、C build/pack 不关闭它。禁止盲重放/伪造 released；只按原身份与真实可验证资源收尾。"
+    },
+    {
+      "id": "test-per-run-input-receipt",
+      "status": "EVIDENCE_BINDING_GAP",
+      "owner": "测试证据负责人",
+      "closure": "后续必要验证保存实际命令、执行时测试/源输入 hash 与最终候选身份；不追造旧 receipt，不为新聊天重跑未改变输入。"
+    },
+    {
+      "id": "final-f3-and-zip-installation",
+      "status": "OPEN",
+      "owner": "正式验收负责人/独立 F3 reviewer",
+      "closure": "按原完整验收合同完成同一最终身份原始证据、正式账本关闭、独立最终 F3 与 ZIP 安装一致性。此定向静态复核不能代替。"
+    }
+  ],
+  "environmentEvidence": {
+    "nativeBlockerPath": "docs/framework/workstreams/evidence/cloud-control-r14-final-20261012/native-ui-blocker.json",
+    "interpretation": "既有 candidate-A 工具回报 Mac 锁定；属于原时点/原候选环境证据，本轮未操作 Chrome、未验证 Mac 当前是否仍锁定，不凭该记录推断 C 运行事实。",
+    "historicalRecoveryPath": "docs/framework/workstreams/evidence/cloud-control-r14-final-20261012/historical-recovery-summary.json",
+    "historicalFacts": {
+      "runState": "interrupted",
+      "retirementState": "fenced",
+      "releaseCount": 0,
+      "receipt": null,
+      "runs": 1,
+      "results": 1
+    }
+  },
+  "inputIdentities": [
+    {
+      "path": "src/ui/debug-workbench.js",
+      "sha256": "ec2ad1e2b7701031f78bef773b1ea09ef1d9916d1fe2f6fd0f37ead5f0f7d14d",
+      "bSha256": "9586b4886378053ded64da1b3f1007cc3460da4b8b5f49f5e566fca3f883af2d",
+      "cSha256": "ec2ad1e2b7701031f78bef773b1ea09ef1d9916d1fe2f6fd0f37ead5f0f7d14d"
+    },
+    {
+      "path": "src/ui/cloud-hosting.css",
+      "sha256": "1600c2e3ce4d18ff668c800e5023294e1dd847e801ed28a13062dc2bd0e89734",
+      "bSha256": null,
+      "cSha256": "1600c2e3ce4d18ff668c800e5023294e1dd847e801ed28a13062dc2bd0e89734"
+    },
+    {
+      "path": "src/ui/tool.html",
+      "sha256": "3030a14c8b1b2c3243dc9274a528b5c91fc3c28dc17fc675d800a4cf7c466ab4",
+      "bSha256": "5479a392d85b98779868aeb433538d15cf2d09707f8dac1fcf185b20a77dfff9",
+      "cSha256": "3030a14c8b1b2c3243dc9274a528b5c91fc3c28dc17fc675d800a4cf7c466ab4"
+    },
+    {
+      "path": "src/ui/tool-shell.css",
+      "sha256": "f5ed2ee5f155580aa33781aa3f20638c08a0379bc194f24742bd70233744cecf",
+      "bSha256": "389e40a7a73c30bd423bc2a553d5642a4a210db9aede451e1af49610afe1f92a",
+      "cSha256": "f5ed2ee5f155580aa33781aa3f20638c08a0379bc194f24742bd70233744cecf"
+    },
+    {
+      "path": "src/ui/design-system.css",
+      "sha256": "7d5a82a42179a1f246c21c304ca8e8304abf923ce311503cd71ca3289b97bfa8",
+      "bSha256": "613ca831e412ac52273cf7f0b3b6ec9c55d38dc3610dc289fc60bddfd67529e8",
+      "cSha256": "7d5a82a42179a1f246c21c304ca8e8304abf923ce311503cd71ca3289b97bfa8"
+    },
+    {
+      "path": "src/ui/design-tokens.css",
+      "sha256": "25b2f14842cfd61b8f819e65ac7b27b1481040ad0159aa2ffcbdf72410a8e0c4",
+      "bSha256": "87a1b976b94eeb997eeb7cab35d297357db3795936e6115088e2ab4d6b43805f",
+      "cSha256": "25b2f14842cfd61b8f819e65ac7b27b1481040ad0159aa2ffcbdf72410a8e0c4"
+    },
+    {
+      "path": "tests/environment/cloud-control-debug-r14.test.mjs",
+      "sha256": "c065382f08e29d0409a4e9a389dffc4fc5f2943ce9298c62fb766f42474f629a",
+      "bSha256": null,
+      "cSha256": null
+    },
+    {
+      "path": "tests/environment/cloud-control-sidebar-r28.test.mjs",
+      "sha256": "da47641d85c13435188657aa91039002cbd158b44717f9c3aa5fb68c00a33f41",
+      "bSha256": null,
+      "cSha256": null
+    },
+    {
+      "path": "src/ui/cloud-hosting.js",
+      "sha256": "016bb24ff668f3f07684fe5bf217e8a523aca5cc90e69b1a0d2984af1f77d723",
+      "bSha256": "016bb24ff668f3f07684fe5bf217e8a523aca5cc90e69b1a0d2984af1f77d723",
+      "cSha256": "016bb24ff668f3f07684fe5bf217e8a523aca5cc90e69b1a0d2984af1f77d723"
+    },
+    {
+      "path": "src/ui/cloud-status-presentation.js",
+      "sha256": "aae6895d9392998ecdfdeafb37370ecb5e78a713299dad61b99dd61b4d17ba6a",
+      "bSha256": "aae6895d9392998ecdfdeafb37370ecb5e78a713299dad61b99dd61b4d17ba6a",
+      "cSha256": "aae6895d9392998ecdfdeafb37370ecb5e78a713299dad61b99dd61b4d17ba6a"
+    },
+    {
+      "path": "tests/environment/sidebar-tab-memory.test.mjs",
+      "sha256": "2f8cc5c7d3d125bb5a78a416ad3ac30961a8cd515b36dac854784ca3a300b758",
+      "bSha256": null,
+      "cSha256": null
+    },
+    {
+      "path": "tests/environment/sidebar-ui-preview.test.mjs",
+      "sha256": "22cefade489da0f5c7b2dbbf30a88b047864d4b65a8a5182580a019da3c675da",
+      "bSha256": null,
+      "cSha256": null
+    }
+  ],
+  "readEvidenceIdentities": [
+    {
+      "path": "docs/framework/workstreams/evidence/cloud-control-r14-final-20261012/expert-ui-evidence-review.json",
+      "sha256": "6a1b9b8ac641bd6766a7b4825bc7ee2e5f47282e9ea9f5dafc85101011b0d70d"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/cloud-control-r14-final-20261012/ui-review-fixes.tap",
+      "sha256": "dda0d1bb1b8db8353dcf3cb26324d6e0748b184ce5d1d743c10e1515bcbb86d0"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/cloud-control-r14-final-20261012/build-b-production.log",
+      "sha256": "958f5e506d5c3f85be9197bf2ad4c5c0537e3684ea5ab012f6af7df0d6cd902c"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/cloud-control-r14-final-20261012/build-b-development.log",
+      "sha256": "50ec8c020fc9eb8ca3f71a63df2064a8cdfc126a9c018c70f9e03d7be98dc35f"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/cloud-control-r14-final-20261012/pack-b-production.log",
+      "sha256": "088bcaf5cc18e4901933ef79187d65419e42a0410fefff18c12914de3e584548"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/cloud-control-r14-final-20261012/pack-b-development.log",
+      "sha256": "d969c2d5fc27bfb8f1ac46b9184baa6d79cc688f670a092985667471650d22a9"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/cloud-control-r14-final-20261012/native-ui-blocker.json",
+      "sha256": "227e7c57d1a41cee928c1a2b4030d736daa15f02c497b66dce2a3a01717b7a5a"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/cloud-control-r14-final-20261012/historical-recovery-summary.json",
+      "sha256": "070d1056a203def8bc78b17787c2688c4e8e627612e9118f6877a92fe0606e43"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/cloud-control-r14-final-20261012/candidate-b-snapshot.json",
+      "sha256": "be985d2cc39b598949f2f515f2bdbe745654a7ed6da57957f1f26c50453425c2"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/cloud-control-r14-final-20261012/candidate-c-snapshot.json",
+      "sha256": "02d09e061a428be6bfa6e9161ae8580cf5e118bcbfbe84ca565103ab7370f714"
+    }
+  ],
+  "verification": {
+    "reviewInputsUnchangedAtFinalRecheck": true,
+    "recheckedAtUtc": "2026-10-12T11:49:18.144075+00:00",
+    "onlyAuthorizedNewFile": true,
+    "noRuntimeValidationPerformed": true,
+    "noFormalAcceptanceClaim": true
+  },
+  "finalStatus": "TWO_SOURCE_GAPS_CLOSED_CURRENT_VISUAL_A11Y_NATIVE_AND_FINAL_ACCEPTANCE_OPEN",
+  "formalAcceptanceClaim": false
+}

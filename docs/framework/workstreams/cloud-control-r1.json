@@ -165,5 +165,688 @@
   "reusePolicy": "Reuse successful evidence with unchanged relevant source, package, contract and environment. Compare actual current inputs first; no repeated global tests, reinstall, completed job seed, or browser restart for chat handoff. Existing native proof does not certify unrelated newer main changes.",
   "commitPolicy": "Only task-owned explicit paths; keep other agents changes/index; no branch/worktree/PR/reset/clean/push. Several earlier cloud changes are already in mixed concurrent main commits, not a standalone completed Cloud Control delivery.",
   "handoffDateLocal": "2026-10-12",
-  "handoffFinalizedAtUtc": "2026-10-11T16:01:13.482570+00:00"
+  "handoffFinalizedAtUtc": "2026-10-11T16:01:13.482570+00:00",
+  "r14Final": {
+    "date": "2026-10-12",
+    "owner": "Codex leader 01a12f5b-8ed0-7782-8277-c1168b30a715; bounded writers/reviewers completed",
+    "status": "BLOCKED",
+    "writeScope": [
+      "docs/architecture/browser-framework/cloud-control-r1.zh-CN.md",
+      "docs/contracts/execution-control/v0.2/README.zh-CN.md",
+      "examples/cloud-control/README.zh-CN.md",
+      "docs/framework/workstreams/cloud-control-r1.md",
+      "docs/framework/workstreams/cloud-control-r1.json"
+    ],
+    "boundaries": {
+      "branch": "main",
+      "gitOperations": false,
+      "chromeOperations": false,
+      "testsOrBuildsRun": false,
+      "sourceOrOtherWorkstreamsModified": false,
+      "agentsDelegated": 0,
+      "sharedResourcesOwned": [],
+      "upperBaseline": "/Users/shopme/Documents/workspace/opendesk/docs/architecture/execution-control-r02.zh-CN.md",
+      "executors": [
+        "Browser",
+        "Desktop",
+        "Mobile"
+      ],
+      "nodeProvider": "development only; no production acceptance",
+      "runResult": "original Browser runs/results/commandJournal/@slot remain authoritative; no second protocol"
+    },
+    "currentCandidate": {
+      "name": "C",
+      "snapshotHead": "e859cf1942d2fc3dd70c4658052eecf51d60c68f",
+      "sourceIdentity": "Exact SHA-256 sourceInputs in both original receipts; preserved then-current parallel inputs; HEAD alone is not package identity",
+      "buildIdentity": "evidence/cloud-control-r14-final-20261012/candidate-c-build-identity.json",
+      "productionPackageHash": "7d8058874fdc727a9ec21c41d8a176fdab092fdb4dbbfe284fb13a957d73257b",
+      "developmentPackageHash": "9e2262ecda958200eb0c42eef901085909a318af34d48239fde2226dbfb7a93c",
+      "productionZipSha256": "12085ae5ad3b269c84be30130536c97d349cbe37ab48e2279a6882a810cba230",
+      "developmentZipSha256": "8d1613c683efb03d26a073c184ae175330e42e9d26695782e448f8c1ae6452e5",
+      "nativeStatus": "NOT_TESTED",
+      "nativeBlocker": "User reported Mac unlocked; native tool/owned profile check pending",
+      "extensionId": null,
+      "profile": null
+    },
+    "currentCandidateStatus": "BUILD_VERIFIED",
+    "source": {
+      "status": "SOURCE_CONFIRMED",
+      "files": [
+        "src/cloud-control/service.js",
+        "src/cloud-control/connection.js",
+        "scripts/cloud-control/provider.mjs",
+        "src/platform/storage/idb.js",
+        "src/platform/tasks/service.js",
+        "src/platform/host/controller-methods.js",
+        "src/ui/cloud-status-presentation.js",
+        "src/ui/cloud-control-console.js",
+        "src/ui/sidebar-tab-memory.js",
+        "src/ui/debug-workbench.js"
+      ],
+      "taskRef": "R0.2 surface/runtime + artifactType + immutable version/hash; current ProviderJob.task/Assignment.task is taskId/version/manifestHash/sourceHash, not a new wire envelope",
+      "browserLocalIdentity": "installationId/generation/builtin/dependency identity remain original installation/Revision/resource-owner facts; Provider reference never grants local authority",
+      "transactions": "network outside IDB; original transact keepalive success-event request queue supports SHA-256 digest await; preserve atomic Run/pin/@slot/cloud binding and rollback",
+      "legacyMigration": "original credential auth adds only validated legacyPairing/requestKeys mapping under current Provider/Executor/ticket/epoch/config/grant/namespace; old rows/digest/cached network bodies/leases/native Run/Result/Receipt unchanged",
+      "isolation": "no cross grant/namespace/pair reuse; remote existing runRef without a local association forbids a second Run",
+      "diagnostics": {
+        "siteAuthorization": "readonly real Chrome requireGrant: granted/revoked/unknown/none; no permission request",
+        "slotState": "original slot lifecycle independent of connection",
+        "pendingResources": "original slot/resources not yet retired or verified",
+        "outcomeUnknown": "paused_unknown or interrupted plus original controller-operation/controller-navigation dispatched/effect_unknown; fenced alone is insufficient"
+      },
+      "product": {
+        "productTabs": [
+          "我的",
+          "发现",
+          "工作流",
+          "开发",
+          "工具"
+        ],
+        "sixthDebug": "调试; development only; production hidden and entry blocked",
+        "observer": "existing trusted extension console/cloudObserve: readonly redacted paging; no Host registration, claim, start, authorization, stop or execution authority"
+      }
+    },
+    "components": {
+      "status": "COMPONENT_TESTED",
+      "targetedInitial": {
+        "tests": 156,
+        "pass": 155,
+        "fail": 1,
+        "evidence": "evidence/cloud-control-r14-final-20261012/targeted-r14-migration-ui.tap",
+        "failure": "cloudResolve scan assertion incorrectly blocked original Task authorization reads"
+      },
+      "leaderFollowup": {
+        "tests": 1,
+        "pass": 1,
+        "fail": 0,
+        "evidence": "evidence/cloud-control-r14-final-20261012/direct-query-followup.tap",
+        "correction": "query baseline permits original Task authorization reads and prohibits added Cloud history scans",
+        "scope": "same failed case only; not a fresh 156/156 full run"
+      },
+      "providerConnection": {
+        "tests": 11,
+        "pass": 11,
+        "fail": 0,
+        "evidence": "evidence/cloud-control-r14-final-20261012/connection-provider-current.tap"
+      },
+      "historicalReuse": "keep prior 122/122,119/119 and UI component logs at their recorded input identity; do not sum counts into coverage or native acceptance",
+      "browserProviderIntegration": {
+        "tests": 11,
+        "pass": 11,
+        "fail": 0,
+        "evidence": "evidence/cloud-control-r14-final-20261012/browser-provider-integration.tap",
+        "scope": "Real Provider HTTP/disk; Browser API/storage doubles; component only",
+        "retainedFirstFailure": "evidence/cloud-control-r14-final-20261012/browser-provider-integration-first.tap"
+      },
+      "testCloudFinal": {
+        "tests": 22,
+        "pass": 22,
+        "fail": 0,
+        "evidence": "evidence/cloud-control-r14-final-20261012/test-cloud-final.tap",
+        "scope": "Provider/connection/Browser integration components"
+      },
+      "authorityCloudFinal": {
+        "tests": 16,
+        "pass": 16,
+        "fail": 0,
+        "evidence": "evidence/cloud-control-r14-final-20261012/authority-cloud-final.tap",
+        "scope": "Cloud-specific original Authority/permit component cases"
+      },
+      "uiReviewFixes": {
+        "tests": 50,
+        "pass": 50,
+        "fail": 0,
+        "evidence": "evidence/cloud-control-r14-final-20261012/ui-review-fixes.tap",
+        "scope": "Readonly error redaction and live My controls; component/DOM doubles"
+      },
+      "uiAssetFollowup": {
+        "tests": 17,
+        "pass": 17,
+        "fail": 0,
+        "evidence": "evidence/cloud-control-r14-final-20261012/ui-assets-followup.tap",
+        "scope": "Only affected fixed-entry audit/Sidebar preview after fixture and asset-list repair"
+      },
+      "uiAssetInitial": {
+        "tests": 62,
+        "pass": 59,
+        "fail": 3,
+        "evidence": "evidence/cloud-control-r14-final-20261012/ui-assets-final.tap",
+        "meaning": "New CSS missing in old audit fixtures/expected assets; initial record retained, not rewritten as pass"
+      },
+      "sourceCheck": {
+        "status": "SOURCE_CONFIRMED",
+        "files": 545,
+        "evidence": "evidence/cloud-control-r14-final-20261012/check-r14-candidate-c.log"
+      }
+    },
+    "historicalRecovery": {
+      "status": "BLOCKED",
+      "highestPriority": true,
+      "nativeObservedThrough": "real Chrome UI recovery; read-only native stability followup",
+      "candidateIsCurrent": false,
+      "sourceSha": "030cc248de025e0434d38b188de93e941974f3e5",
+      "packageHash": "44c6cfa5b937f0a84b5226e82181357494a886a314b0f7eb21cdeb937955f7a1",
+      "extensionId": "bldkfieeffncnmjgnmlkmdmimicflfen",
+      "jobId": "584bcbd1-eefa-4f78-8c52-8761a004dd4e",
+      "requestId": "cloud:ed794251-e8b3-4345-8dfc-6e98e15181ab",
+      "runId": "afd37543-f456-45f6-9e12-ea3548e65d4d",
+      "resultId": "0b388df6-783c-47b0-a8f9-3e9fd2df20a3",
+      "singleRun": true,
+      "runs": 1,
+      "results": 1,
+      "runState": "interrupted",
+      "retirementState": "fenced",
+      "workerRetired": true,
+      "slotState": "held",
+      "releaseCount": 0,
+      "receipt": null,
+      "providerJobState": "admitted",
+      "noDispatchAfterInterruption": true,
+      "originalOperationSubmissions": [
+        {
+          "requestId": "8e6475fc2eab949f4b1dcb1e6befed07",
+          "submissionCount": 1,
+          "state": "effect_unknown",
+          "dispatchAt": 1791733558980
+        },
+        {
+          "requestId": "b87668a865f3783ca6fbe3b775d3d962",
+          "submissionCount": 1,
+          "state": "durable",
+          "dispatchAt": 1791733558916
+        }
+      ],
+      "blocking": "old-incarnation owned target creation-unknown; retirement not released; workerRetired or process exit cannot release slot or authorize replay",
+      "evidence": [
+        "evidence/cloud-control-r14-final-20261012/historical-recovery-summary.json",
+        "evidence/cloud-control-r14-final-20261012/historical-stability-1791799143631.json",
+        "evidence/cloud-control-r14-final-20261012/historical-resource-stop-observed.json"
+      ],
+      "resources": {
+        "providerClosed": true,
+        "cftClosed": true,
+        "port43112Listening": false,
+        "profilePreserved": true,
+        "providerStatePreserved": true,
+        "idbPreserved": true,
+        "dataDeletion": false,
+        "nativeResourceReleaseAsserted": false
+      }
+    },
+    "gates": [
+      {
+        "name": "CONNECTION_VERIFIED",
+        "status": "COMPONENT_TESTED",
+        "historicalReuse": {
+          "evidence": [
+            "evidence/cloud-control-r1/handoff-20261011.json"
+          ],
+          "scope": "Gate1 authentication and Provider/same-profile Browser restart; old package only"
+        },
+        "currentCandidate": {
+          "name": "C",
+          "snapshotHead": "e859cf1942d2fc3dd70c4658052eecf51d60c68f",
+          "sourceIdentity": "Exact SHA-256 sourceInputs in both original receipts; preserved then-current parallel inputs; HEAD alone is not package identity",
+          "buildIdentity": "evidence/cloud-control-r14-final-20261012/candidate-c-build-identity.json",
+          "productionPackageHash": "7d8058874fdc727a9ec21c41d8a176fdab092fdb4dbbfe284fb13a957d73257b",
+          "developmentPackageHash": "9e2262ecda958200eb0c42eef901085909a318af34d48239fde2226dbfb7a93c",
+          "productionZipSha256": "12085ae5ad3b269c84be30130536c97d349cbe37ab48e2279a6882a810cba230",
+          "developmentZipSha256": "8d1613c683efb03d26a073c184ae175330e42e9d26695782e448f8c1ae6452e5",
+          "nativeStatus": "NOT_TESTED",
+          "nativeBlocker": "Mac locked; native UI cannot automatically unlock; human unlock pending",
+          "extensionId": null,
+          "profile": null
+        },
+        "currentCandidateStatus": "BUILD_VERIFIED",
+        "componentTested": {
+          "status": "COMPONENT_TESTED",
+          "scenarios": [
+            "credential pairing migration",
+            "rotation/revoke, stale tickets/sockets",
+            "connection generations and reconcile"
+          ],
+          "evidence": [
+            "evidence/cloud-control-r14-final-20261012/connection-provider-current.tap"
+          ]
+        },
+        "native": {
+          "status": "NOT_TESTED",
+          "scenarios": [
+            "new package pairing/reconnect",
+            "SW/Host restart and real authorization rejection"
+          ],
+          "environmentBlocker": "User reported unlocked; native tool/owned CFT check pending"
+        },
+        "blocking": [
+          "current package and native identity evidence absent"
+        ]
+      },
+      {
+        "name": "ADMISSION_VERIFIED",
+        "status": "COMPONENT_TESTED",
+        "historicalReuse": {
+          "evidence": [
+            "evidence/cloud-control-r1/handoff-20261011.json"
+          ],
+          "scope": "Gate2 original Run/pin/@slot and durable Permit; old package only"
+        },
+        "currentCandidate": {
+          "name": "C",
+          "snapshotHead": "e859cf1942d2fc3dd70c4658052eecf51d60c68f",
+          "sourceIdentity": "Exact SHA-256 sourceInputs in both original receipts; preserved then-current parallel inputs; HEAD alone is not package identity",
+          "buildIdentity": "evidence/cloud-control-r14-final-20261012/candidate-c-build-identity.json",
+          "productionPackageHash": "7d8058874fdc727a9ec21c41d8a176fdab092fdb4dbbfe284fb13a957d73257b",
+          "developmentPackageHash": "9e2262ecda958200eb0c42eef901085909a318af34d48239fde2226dbfb7a93c",
+          "productionZipSha256": "12085ae5ad3b269c84be30130536c97d349cbe37ab48e2279a6882a810cba230",
+          "developmentZipSha256": "8d1613c683efb03d26a073c184ae175330e42e9d26695782e448f8c1ae6452e5",
+          "nativeStatus": "NOT_TESTED",
+          "nativeBlocker": "Mac locked; native UI cannot automatically unlock; human unlock pending",
+          "extensionId": null,
+          "profile": null
+        },
+        "currentCandidateStatus": "BUILD_VERIFIED",
+        "componentTested": {
+          "status": "COMPONENT_TESTED",
+          "scenarios": [
+            "installed Task/params/owned target",
+            "grant/pair isolation and no second Run for remote runRef",
+            "original transaction/Permit rollback and direct request lookup"
+          ],
+          "evidence": [
+            "evidence/cloud-control-r14-final-20261012/targeted-r14-migration-ui.tap",
+            "evidence/cloud-control-r14-final-20261012/direct-query-followup.tap"
+          ]
+        },
+        "native": {
+          "status": "NOT_TESTED",
+          "scenarios": [
+            "Chrome IDB rollback/quota",
+            "Task/site revocation",
+            "zero target/Worker dispatch on rejected Permit"
+          ],
+          "environmentBlocker": "User reported unlocked; native tool/owned CFT check pending"
+        },
+        "blocking": [
+          "real IDB/admission negative evidence absent"
+        ]
+      },
+      {
+        "name": "EXECUTION_VERIFIED",
+        "status": "COMPONENT_TESTED",
+        "historicalReuse": {
+          "evidence": [
+            "evidence/cloud-control-r1/handoff-20261011.json"
+          ],
+          "scope": "Gate3 fixed form original Worker/Result/released/Receipt; old package only"
+        },
+        "currentCandidate": {
+          "name": "C",
+          "snapshotHead": "e859cf1942d2fc3dd70c4658052eecf51d60c68f",
+          "sourceIdentity": "Exact SHA-256 sourceInputs in both original receipts; preserved then-current parallel inputs; HEAD alone is not package identity",
+          "buildIdentity": "evidence/cloud-control-r14-final-20261012/candidate-c-build-identity.json",
+          "productionPackageHash": "7d8058874fdc727a9ec21c41d8a176fdab092fdb4dbbfe284fb13a957d73257b",
+          "developmentPackageHash": "9e2262ecda958200eb0c42eef901085909a318af34d48239fde2226dbfb7a93c",
+          "productionZipSha256": "12085ae5ad3b269c84be30130536c97d349cbe37ab48e2279a6882a810cba230",
+          "developmentZipSha256": "8d1613c683efb03d26a073c184ae175330e42e9d26695782e448f8c1ae6452e5",
+          "nativeStatus": "NOT_TESTED",
+          "nativeBlocker": "Mac locked; native UI cannot automatically unlock; human unlock pending",
+          "extensionId": null,
+          "profile": null
+        },
+        "currentCandidateStatus": "BUILD_VERIFIED",
+        "componentTested": {
+          "status": "COMPONENT_TESTED",
+          "scenarios": [
+            "original Run/Result identity",
+            "result delivery authorization and pending-send recheck",
+            "Receipt idempotency and resend"
+          ],
+          "evidence": [
+            "evidence/cloud-control-r14-final-20261012/targeted-r14-migration-ui.tap"
+          ]
+        },
+        "native": {
+          "status": "NOT_TESTED",
+          "scenarios": [
+            "new package real form submit",
+            "Result revision/sourceHash",
+            "released slot and durable Receipt complete chain"
+          ],
+          "environmentBlocker": "User reported unlocked; native tool/owned CFT check pending"
+        },
+        "blocking": [
+          "same-candidate native execution chain absent"
+        ]
+      },
+      {
+        "name": "RECOVERY_VERIFIED",
+        "status": "BLOCKED",
+        "historicalReuse": {
+          "evidence": [
+            "evidence/cloud-control-r1/handoff-20261011.json",
+            "evidence/cloud-control-r14-final-20261012/historical-recovery-summary.json",
+            "evidence/cloud-control-r14-final-20261012/historical-stability-1791799143631.json",
+            "evidence/cloud-control-r14-final-20261012/historical-resource-stop-observed.json"
+          ],
+          "scope": "Gate4 reuse limited to prior named scenarios; current old-package recovery/stability observations remain BLOCKED"
+        },
+        "currentCandidate": {
+          "name": "C",
+          "snapshotHead": "e859cf1942d2fc3dd70c4658052eecf51d60c68f",
+          "sourceIdentity": "Exact SHA-256 sourceInputs in both original receipts; preserved then-current parallel inputs; HEAD alone is not package identity",
+          "buildIdentity": "evidence/cloud-control-r14-final-20261012/candidate-c-build-identity.json",
+          "productionPackageHash": "7d8058874fdc727a9ec21c41d8a176fdab092fdb4dbbfe284fb13a957d73257b",
+          "developmentPackageHash": "9e2262ecda958200eb0c42eef901085909a318af34d48239fde2226dbfb7a93c",
+          "productionZipSha256": "12085ae5ad3b269c84be30130536c97d349cbe37ab48e2279a6882a810cba230",
+          "developmentZipSha256": "8d1613c683efb03d26a073c184ae175330e42e9d26695782e448f8c1ae6452e5",
+          "nativeStatus": "NOT_TESTED",
+          "nativeBlocker": "Mac locked; native UI cannot automatically unlock; human unlock pending",
+          "extensionId": null,
+          "profile": null
+        },
+        "currentCandidateStatus": "BUILD_VERIFIED",
+        "componentTested": {
+          "status": "COMPONENT_TESTED",
+          "scenarios": [
+            "cancel/lease/stale epoch",
+            "durable revoke and output-revoked resend refusal",
+            "unknown diagnostics and legacy no redispatch"
+          ],
+          "evidence": [
+            "evidence/cloud-control-r14-final-20261012/targeted-r14-migration-ui.tap",
+            "evidence/cloud-control-r14-final-20261012/connection-provider-current.tap"
+          ]
+        },
+        "native": {
+          "status": "NOT_TESTED",
+          "scenarios": [
+            "running UI Stop and revocation",
+            "Host close/disconnect/restart",
+            "real IDB failure and unknown target legal retirement"
+          ],
+          "environmentBlocker": "User reported unlocked; native tool/owned CFT check pending"
+        },
+        "blocking": [
+          "original singleRun interrupted/fenced/held without Receipt",
+          "old-incarnation target release unproven"
+        ]
+      },
+      {
+        "name": "PRODUCT_VERIFIED",
+        "status": "BUILD_VERIFIED",
+        "historicalReuse": {
+          "evidence": [
+            "evidence/cloud-control-r1/handoff-20261011.json"
+          ],
+          "scope": "prior local-mode/budget and UI components at original input identity; no complete product native acceptance"
+        },
+        "currentCandidate": {
+          "name": "C",
+          "snapshotHead": "e859cf1942d2fc3dd70c4658052eecf51d60c68f",
+          "sourceIdentity": "Exact SHA-256 sourceInputs in both original receipts; preserved then-current parallel inputs; HEAD alone is not package identity",
+          "buildIdentity": "evidence/cloud-control-r14-final-20261012/candidate-c-build-identity.json",
+          "productionPackageHash": "7d8058874fdc727a9ec21c41d8a176fdab092fdb4dbbfe284fb13a957d73257b",
+          "developmentPackageHash": "9e2262ecda958200eb0c42eef901085909a318af34d48239fde2226dbfb7a93c",
+          "productionZipSha256": "12085ae5ad3b269c84be30130536c97d349cbe37ab48e2279a6882a810cba230",
+          "developmentZipSha256": "8d1613c683efb03d26a073c184ae175330e42e9d26695782e448f8c1ae6452e5",
+          "nativeStatus": "NOT_TESTED",
+          "nativeBlocker": "Mac locked; native UI cannot automatically unlock; human unlock pending",
+          "extensionId": null,
+          "profile": null
+        },
+        "currentCandidateStatus": "BUILD_VERIFIED",
+        "componentTested": {
+          "status": "COMPONENT_TESTED",
+          "scenarios": [
+            "five productTabs/dev sixthDebug/prod entry guard",
+            "siteAuthorization/slotState/pendingResources",
+            "readonly Observer isolation",
+            "Safe fixed Debug error fallback/live My CSS; strict offline CSS registration/scan; UI 50/50 and affected asset followup 17/17"
+          ],
+          "evidence": [
+            "evidence/cloud-control-r14-final-20261012/targeted-r14-migration-ui.tap",
+            "cloud-control-r14-ui-20261012.md"
+          ]
+        },
+        "native": {
+          "status": "NOT_TESTED",
+          "scenarios": [
+            "current dual build/package security",
+            "independent local mode",
+            "real widths/zoom/keyboard and refresh/close zero execution",
+            "six-dimension review/F3/ZIP"
+          ],
+          "environmentBlocker": "User reported unlocked; native tool/owned CFT check pending"
+        },
+        "blocking": [
+          "Current-candidate real My/Debug/local-run/Observer and visual/keyboard/a11y acceptance missing",
+          "Independent final F3 and ZIP installation missing"
+        ]
+      }
+    ],
+    "taskTree": [
+      {
+        "priority": "P0",
+        "name": "原未知副作用恢复",
+        "status": "BLOCKED",
+        "sources": [
+          "src/platform/host/controller-methods.js",
+          "src/run-host.js",
+          "src/cloud-control/service.js"
+        ],
+        "evidence": [
+          "evidence/cloud-control-r14-final-20261012/historical-recovery-summary.json",
+          "evidence/cloud-control-r14-final-20261012/historical-stability-1791799143631.json",
+          "evidence/cloud-control-r14-final-20261012/historical-resource-stop-observed.json"
+        ],
+        "closure": "one original Run/Result, no redispatch, trustworthy original Worker/target retirement and released slot; authorized original receipt handling"
+      },
+      {
+        "priority": "P0",
+        "name": "安全准入与执行",
+        "status": "COMPONENT_TESTED",
+        "sources": [
+          "src/cloud-control/service.js",
+          "src/cloud-control/connection.js",
+          "scripts/cloud-control/provider.mjs",
+          "src/platform/storage/idb.js",
+          "src/platform/tasks/service.js"
+        ],
+        "evidence": [
+          "evidence/cloud-control-r14-final-20261012/targeted-r14-migration-ui.tap",
+          "evidence/cloud-control-r14-final-20261012/direct-query-followup.tap",
+          "evidence/cloud-control-r14-final-20261012/connection-provider-current.tap"
+        ],
+        "closure": "current identity connection/admission/execution/recovery native evidence, real revocation/IDB failure and zero-side-effect rejection"
+      },
+      {
+        "priority": "P1",
+        "name": "产品与交付",
+        "status": "COMPONENT_TESTED",
+        "sources": [
+          "src/ui/cloud-hosting.js",
+          "src/ui/cloud-status-presentation.js",
+          "src/ui/debug-workbench.js",
+          "src/ui/cloud-control-console.js",
+          "src/ui/sidebar-tab-memory.js"
+        ],
+        "evidence": [
+          "cloud-control-r14-ui-20261012.md",
+          "evidence/cloud-control-r14-final-20261012/targeted-r14-migration-ui.tap"
+        ],
+        "closure": "five productTabs/dev sixthDebug/prod guard, real grant/slot/unknown diagnostics, readonly observer zero execution, local mode and width/zoom/keyboard; five Gates, independent six-dimension review/F3 and same-package ZIP",
+        "buildStatus": "BUILD_VERIFIED",
+        "nativeStatus": "NOT_TESTED"
+      },
+      {
+        "priority": "P2",
+        "name": "正式 Provider 与 Desktop/Mobile",
+        "status": "NOT_TESTED",
+        "sources": [
+          "/Users/shopme/Documents/workspace/opendesk/docs/architecture/execution-control-r02.zh-CN.md",
+          "docs/contracts/execution-control/v0.2/README.zh-CN.md"
+        ],
+        "evidence": [],
+        "closure": "single versioned contract, production auth/database unique/outbox/inbox/audit; each platform native owner/permissions and separate acceptance"
+      }
+    ],
+    "sixDimensionReview": {
+      "architecture": {
+        "status": "SOURCE_CONFIRMED",
+        "score": 94,
+        "outOf": 100,
+        "evidence": "evidence/cloud-control-r14-final-20261012/expert-architecture-security-review.md",
+        "basis": "Independent Browser/Desktop/Mobile owners and unique R0.2 retained; current same-package native evidence missing",
+        "meaning": "Independent quality rating, not product completion percentage or Gate acceptance"
+      },
+      "security": {
+        "status": "SOURCE_CONFIRMED",
+        "score": 94,
+        "outOf": 100,
+        "evidence": "evidence/cloud-control-r14-final-20261012/expert-architecture-security-review.md",
+        "basis": "Full pairing/epoch/immutable Permit/revoke/output component checks pass; actual Chrome negative revocation/IDB zero-effect cases pending",
+        "meaning": "Independent quality rating, not product completion percentage or Gate acceptance"
+      },
+      "durableReliability": {
+        "status": "SOURCE_CONFIRMED",
+        "score": 90,
+        "outOf": 100,
+        "evidence": "evidence/cloud-control-r14-final-20261012/expert-architecture-security-review.md",
+        "basis": "Original interrupted Run/Result conserved; target creation-unknown, slot held and no Receipt remain BLOCKED",
+        "meaning": "Independent quality rating, not product completion percentage or Gate acceptance"
+      },
+      "maintainability": {
+        "status": "SOURCE_CONFIRMED",
+        "score": 93,
+        "outOf": 100,
+        "evidence": "evidence/cloud-control-r14-final-20261012/expert-architecture-security-review.md",
+        "basis": "Unique native stores/protocol retained; final integration/native acceptance incomplete; stale build metadata since corrected",
+        "meaning": "Independent quality rating, not product completion percentage or Gate acceptance"
+      },
+      "uiUx": {
+        "status": "SOURCE_CONFIRMED",
+        "score": 87,
+        "outOf": 100,
+        "evidence": "evidence/cloud-control-r14-final-20261012/expert-ui-followup-review.json",
+        "basis": "Both source defects closed; true 300/320px/200%/keyboard/focus/a11y/current native are absent",
+        "meaning": "Independent quality rating, not product completion percentage or Gate acceptance"
+      },
+      "testEvidence": {
+        "status": "SOURCE_CONFIRMED",
+        "score": 83,
+        "outOf": 100,
+        "evidence": "evidence/cloud-control-r14-final-20261012/expert-ui-followup-review.json",
+        "basis": "Raw failures, current dual builds/receipts/ZIP SHA preserved; actual current Chrome, final F3 and ZIP installation absent",
+        "meaning": "Independent quality rating, not product completion percentage or Gate acceptance"
+      }
+    },
+    "notTested": [
+      "current candidate native five-Gate acceptance",
+      "current Chrome running UI stop, IDB rollback/quota, website/Task/output revocation",
+      "real candidate-C narrow widths/zoom/keyboard/focus/a11y",
+      "independent final F3",
+      "same accepted dist ZIP installation"
+    ],
+    "documentationChecks": {
+      "status": "SOURCE_CONFIRMED",
+      "scope": "local links/anchors and evidence paths, whitespace and JSON parsing; documentation-only checks, no tests/builds",
+      "localLinksAndEvidenceChecked": 144,
+      "issues": 0,
+      "legacyJsonFieldsPreserved": true,
+      "workstreamMarkdownAppendOnly": true,
+      "leaderFinalCheck": {
+        "status": "SOURCE_CONFIRMED",
+        "localReferencesChecked": 134,
+        "failures": 0,
+        "legacyJsonPreserved": true,
+        "legacyWorkflowPrefixPreserved": true,
+        "evidence": "evidence/cloud-control-r14-final-20261012/doc-final-check.json"
+      }
+    },
+    "builds": {
+      "status": "BUILD_VERIFIED",
+      "candidate": "C",
+      "modes": {
+        "production": {
+          "status": "BUILD_VERIFIED",
+          "packageHash": "7d8058874fdc727a9ec21c41d8a176fdab092fdb4dbbfe284fb13a957d73257b",
+          "packageFiles": 90,
+          "sourceInputs": 410,
+          "receipt": "build-c-production-receipt.json",
+          "swBytes": 334555,
+          "toolShellBytes": 455595
+        },
+        "development": {
+          "status": "BUILD_VERIFIED",
+          "packageHash": "9e2262ecda958200eb0c42eef901085909a318af34d48239fde2226dbfb7a93c",
+          "packageFiles": 124,
+          "sourceInputs": 410,
+          "receipt": "build-c-development-final-receipt.json",
+          "swBytes": 334721,
+          "toolShellBytes": 455835
+        }
+      },
+      "zipFiles": {
+        "production": {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/.runtime/cloud-control-r14-final-20261012/candidate-c/artifacts/opendesk-browser-production.zip",
+          "bytes": 1877818,
+          "sha256": "12085ae5ad3b269c84be30130536c97d349cbe37ab48e2279a6882a810cba230",
+          "installationStatus": "NOT_TESTED"
+        },
+        "development": {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/.runtime/cloud-control-r14-final-20261012/candidate-c/artifacts/opendesk-browser-development.zip",
+          "bytes": 3810752,
+          "sha256": "8d1613c683efb03d26a073c184ae175330e42e9d26695782e448f8c1ae6452e5",
+          "installationStatus": "NOT_TESTED"
+        }
+      },
+      "zipParity": {
+        "production": {
+          "fileCount": 90,
+          "status": "BUILD_VERIFIED",
+          "meaning": "Exact ZIP entry hashes equal accepted build file manifest; ZIP installation is NOT_TESTED"
+        },
+        "development": {
+          "fileCount": 124,
+          "status": "BUILD_VERIFIED",
+          "meaning": "Exact ZIP entry hashes equal accepted build file manifest; ZIP installation is NOT_TESTED"
+        }
+      },
+      "currentRootSourceDriftAtCheck": {
+        "production": [],
+        "development": []
+      },
+      "rootDistModified": false,
+      "budgetsChanged": false,
+      "supersededCandidates": [
+        "A",
+        "B"
+      ],
+      "notTested": [
+        "ZIP installation",
+        "independent final F3",
+        "current candidate real Chrome acceptance"
+      ]
+    },
+    "finalUpdateAt": "2026-10-12T11:53:34.735705+00:00",
+    "gitAtFreeze": {
+      "localHead": "e859cf1942d2fc3dd70c4658052eecf51d60c68f",
+      "originMain": "43e7e47703b0fff40be2d9e5140dde91d7e20279",
+      "ahead": 11,
+      "behind": 6,
+      "pushed": false,
+      "sourceSnapshotContainsUncommittedInputs": true
+    },
+    "deliveryStatus": "BLOCKED",
+    "deliveryBlockers": [
+      "Original historical retirement creation-unknown/held slot/no receipt",
+      "Final F3 and ZIP installation depend on native acceptance",
+      "Current candidate native and real a11y/fault acceptance not yet performed"
+    ],
+    "nativeEnvironment": {
+      "state": "USER_UNLOCK_REPORTED",
+      "reportedAt": "2026-10-12T12:01:20.427630+00:00",
+      "nativeToolRecheckPending": true
+    }
+  }
 }

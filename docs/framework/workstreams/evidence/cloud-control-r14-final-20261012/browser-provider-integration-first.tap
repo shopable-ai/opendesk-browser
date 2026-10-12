@@ -1,0 +1,47 @@
+✖ legacy credential adoption maps only original request keys and keeps old Provider once-cache bytes (49.527667ms)
+✔ adoptPairing rejects stale, partial, foreign and invalid legacy inputs transactionally (68.312792ms)
+✔ modern pairing uses new claim storage and does not associate other grants, namespaces or pairs (18.985458ms)
+✔ cloudStatus projects actual grants, slot resources and config drift without scanning journal in cheap mode (1.825417ms)
+✔ unknown side effects project only from interrupted unresolved operations or paused_unknown and reconcile preserves native facts (25.199208ms)
+✔ Browser rejects forged modern Provider binding before pairing or WebSocket reconciliation (1.0295ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 5
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 243.87575
+
+✖ failing tests:
+
+test at tests/cloud-control/browser-provider-integration.test.mjs:130:1
+✖ legacy credential adoption maps only original request keys and keeps old Provider once-cache bytes (49.527667ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    {
+      assignmentId: 'd0688d30-f73b-4b51-97ae-2a90beba989b',
+  +   attemptEpoch: 1,
+  +   claimId: 'legacy-claim',
+  +   executorId: 'a3688527-951d-47b7-9efe-6b58f3a553bb',
+  +   jobId: '7820255e-45f1-4183-8fc8-0fe86455d3dd',
+      leaseUntil: 100000,
+  +   pairingGeneration: 1,
+  +   pairingId: '170ec7e9-87c9-43a1-9b6c-369cbba819c5',
+      permitId: 'f48f2b9a-9939-453d-9409-92dd827a652e',
+      providerId: '08adc879-0b34-4c1c-a6fa-303a1ffcab5c',
+      runRef: {
+        grantId: '8ec24d92-1a38-484f-8434-02e181d2bee4',
+        manifestHash: '57598844f11f75d7566c5adeab283a3aaed0614d151590a6f34124e7abf3632a',
+  
+      at TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/cloud-control/browser-provider-integration.test.mjs:148:10)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: { providerId: '08adc879-0b34-4c1c-a6fa-303a1ffcab5c', assignmentId: 'd0688d30-f73b-4b51-97ae-2a90beba989b', permitId: 'f48f2b9a-9939-453d-9409-92dd827a652e', runRef: { runId: 'f48c468c-da20-4eb5-941d-b18c62d4e9d7', resultId: '7e2aa4ec-2afe-4df3-bff6-8d09edf2c028', requestId: 'cloud:d0688d30-f73b-4b51-97ae-2a90beba989b', sourceHash: '1f72cf17aa04e8a8597ef43e554ae5507f9da58b73e46d731373cd318f6dcf63', manifestHash: '57598844f11f75d7566c5adeab283a3aaed0614d151590a6f34124e7abf3632a', grantId: '8ec24d92-1a38-484f-8434-02e181d2bee4' }, leaseUntil: 100000, executorId: 'a3688527-951d-47b7-9efe-6b58f3a553bb', pairingId: '170ec7e9-87c9-43a1-9b6c-369cbba819c5', pairingGeneration: 1, attemptEpoch: 1, claimId: 'legacy-claim', jobId: '7820255e-45f1-4183-8fc8-0fe86455d3dd' },
+    expected: { providerId: '08adc879-0b34-4c1c-a6fa-303a1ffcab5c', assignmentId: 'd0688d30-f73b-4b51-97ae-2a90beba989b', permitId: 'f48f2b9a-9939-453d-9409-92dd827a652e', runRef: { runId: 'f48c468c-da20-4eb5-941d-b18c62d4e9d7', resultId: '7e2aa4ec-2afe-4df3-bff6-8d09edf2c028', requestId: 'cloud:d0688d30-f73b-4b51-97ae-2a90beba989b', sourceHash: '1f72cf17aa04e8a8597ef43e554ae5507f9da58b73e46d731373cd318f6dcf63', manifestHash: '57598844f11f75d7566c5adeab283a3aaed0614d151590a6f34124e7abf3632a', grantId: '8ec24d92-1a38-484f-8434-02e181d2bee4' }, leaseUntil: 100000 },
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }

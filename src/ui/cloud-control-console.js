@@ -1,4 +1,4 @@
-// Trusted Cloud extension console: deliberately NO createHostClient/RunHost.
+// Trusted Cloud extension console: read-only observations without an execution host.
 // This UI can only send cloudObserve to the sender-validated readonly route.
 import {PROTOCOL} from '../environment.js';
 

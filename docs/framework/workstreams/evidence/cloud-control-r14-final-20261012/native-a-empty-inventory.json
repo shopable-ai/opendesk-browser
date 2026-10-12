@@ -1,0 +1,55 @@
+{
+  "observedAt": "2026-10-12T11:30:29.392Z",
+  "pid": 85732,
+  "extensionId": "cnedppiekhfmhdlnhdhgbegfoibllbho",
+  "actualLoadPath": ".runtime/cloud-control-r14-final-20261012/candidate-a/dist/development",
+  "status": "NOT_TESTED",
+  "scope": "read-only native setup facts, no task calls",
+  "inventory": [
+    {
+      "name": "opendesk-browser",
+      "version": 2,
+      "counts": [
+        {
+          "store": "runs",
+          "count": 0
+        },
+        {
+          "store": "results",
+          "count": 0
+        },
+        {
+          "store": "commandJournal",
+          "count": 1
+        },
+        {
+          "store": "frameworkKV",
+          "count": 0
+        }
+      ],
+      "runs": [],
+      "cloudPaired": false
+    }
+  ],
+  "permissions": {
+    "origins": [
+      "<all_urls>",
+      "http://*/*",
+      "https://*/*"
+    ],
+    "permissions": [
+      "activeTab",
+      "alarms",
+      "cookies",
+      "downloads",
+      "notifications",
+      "storage",
+      "tabs",
+      "unlimitedStorage",
+      "webNavigation",
+      "scripting",
+      "sidePanel",
+      "userScripts"
+    ]
+  }
+}

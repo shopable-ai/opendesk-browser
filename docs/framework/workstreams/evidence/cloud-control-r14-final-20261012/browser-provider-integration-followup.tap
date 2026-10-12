@@ -1,0 +1,14 @@
+✔ legacy credential adoption maps only original request keys and keeps old Provider once-cache bytes (47.359042ms)
+✔ adoptPairing rejects stale, partial, foreign and invalid legacy inputs transactionally (54.721084ms)
+✔ modern pairing uses new claim storage and does not associate other grants, namespaces or pairs (14.8915ms)
+✔ cloudStatus projects actual grants, slot resources and config drift without scanning journal in cheap mode (1.88075ms)
+✔ unknown side effects project only from interrupted unresolved operations or paused_unknown and reconcile preserves native facts (22.563875ms)
+✔ Browser rejects forged modern Provider binding before pairing or WebSocket reconciliation (0.906958ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 213.406667

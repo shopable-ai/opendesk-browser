@@ -1,0 +1,150 @@
+✔ installed Task v1 cannot inherit Controller storage, cross-site HTTP or Cookie authority (43.99075ms)
+✔ Task disable and re-enable fence old operations, old replies, late success and stale Run clicks (50.182833ms)
+✔ uninstall and same-version reinstall cannot reuse stale Run, Toggle, Install or Uninstall authorization (19.178167ms)
+✔ same-scope Task upgrade preserves installation while programs and versions cannot borrow each others approval (19.749417ms)
+✔ proven legacy Task installs migrate once on new admission and cannot resurrect an old run (18.899959ms)
+✔ Sidebar captured URL rejects SPA change and pending navigation before creating a run (1.632708ms)
+✔ Sidebar URL changing during revision pinning fails durably and releases the slot without executing (1.392292ms)
+✔ persistent history presents the latest task by creation time rather than storage key order (5.676167ms)
+✔ cookie input rejection settles zero-dispatch failure once and permits the next admitted call (60.55975ms)
+✔ corrupted cookie preflight checkpoints stay unknown and never become replayable replies (36.898708ms)
+✔ cookie preflight still fences delivery when permission is lost after its checkpoint (4.560125ms)
+✔ cookie input rejection still fences delivery after the selected document changes (3.042875ms)
+✔ cookie native callback errors or missing success receipts retain effect-unknown fencing (9.546ms)
+✔ observed packaged failures replay once and allow the next admitted call (12.85475ms)
+✔ unvalidated packaged wrong request stays unknown and cannot resubmit (5.072209ms)
+✔ unvalidated packaged wrong run stays unknown and cannot resubmit (6.143625ms)
+✔ unvalidated packaged wrong owner stays unknown and cannot resubmit (4.371375ms)
+✔ unvalidated packaged malformed error stays unknown and cannot resubmit (5.604042ms)
+✔ unvalidated packaged missing final reply stays unknown and cannot resubmit (4.399458ms)
+✔ unvalidated packaged replaced document stays unknown and cannot resubmit (4.645417ms)
+✔ packaged final failure still fences delivery after its receipt when permission is lost (6.277875ms)
+✔ observed final page failures replay once, preserve cause and allow the next admitted call (29.993041ms)
+✔ unvalidated wrong document failure stays unknown and cannot resubmit (4.426834ms)
+✔ unvalidated missing final error failure stays unknown and cannot resubmit (4.977334ms)
+✔ unvalidated malformed final code failure stays unknown and cannot resubmit (4.159917ms)
+✔ observed final failure still fences delivery when permission is lost after its validated receipt (6.001542ms)
+✔ typed depth 4: params, operation args and immutable result survive wider JSON envelopes (11.607625ms)
+✔ typed depth 5: params, operation args and immutable result survive wider JSON envelopes (10.894583ms)
+✔ typed depth 6: params, operation args and immutable result survive wider JSON envelopes (12.000458ms)
+✔ typed depth 7: params, operation args and immutable result survive wider JSON envelopes (11.08375ms)
+✔ typed depth 8: params, operation args and immutable result survive wider JSON envelopes (13.820792ms)
+✔ typed depth 9: params, operation args and immutable result survive wider JSON envelopes (12.622875ms)
+✔ typed depth 10: params, operation args and immutable result survive wider JSON envelopes (13.73925ms)
+✔ typed depth 11: params, operation args and immutable result survive wider JSON envelopes (14.092792ms)
+✔ typed depth 12: params, operation args and immutable result survive wider JSON envelopes (13.938458ms)
+✔ JSON envelope depth 48 never widens the typed depth-12 admission/result/args budgets (3.466791ms)
+✔ controller script deletion is CAS tombstone only; GC waits for terminal, Worker and target retirement (14.579959ms)
+✔ deleted or hash-invalid scripts abort controller admission without run, slot or pin (1.009583ms)
+✔ each controller lease pin binding is required; forged retired lease cannot authorize GC (3.888042ms)
+✔ recovery upgrades old terminal lease bindings without reviving its result, Worker or slot (2.866292ms)
+✔ public authority commits exact UTF8/headCAS and pins r1 while head advances to r2 without templates (2.830042ms)
+✔ controller script list is a host-authorized head projection filtered by namespace and tombstone (1.293833ms)
+✔ borrowed child frame is observed exactly; sibling commits do not fence it; top replacement does (16.102209ms)
+✔ worker retirement gates durable result then borrowed release, without closing borrowed tab (2.746291ms)
+✔ owned retirement closes only exact created tab after durable terminal commit (2.935459ms)
+✔ new registered host reads old namespace result without acquiring its owner or replaying (2.7425ms)
+✔ permission removal matches exact origin patterns and remains fenced after regrant (1.642416ms)
+▶ additional Origin revocation fences active and completed result delivery without replay
+  ✔ active run (28.042416ms)
+  ✔ completed result (14.419666ms)
+✔ additional Origin revocation fences active and completed result delivery without replay (42.922416ms)
+▶ contains false without an event durably fences the complete Controller Origin scope
+  ✔ saved reply (5.425875ms)
+  ✔ new page operation (5.333375ms)
+  ✔ first finish (4.610875ms)
+  ✔ completed snapshot (4.65375ms)
+✔ contains false without an event durably fences the complete Controller Origin scope (20.398791ms)
+✔ additional Origin removal aborts an in-flight HTTP effect and never resubmits it (2.629125ms)
+✔ snapshot blocks an additional Origin event before its durable transaction can run (1.9905ms)
+✔ historical Controller results survive navigation and Worker epochs but never durable revocation (4.562125ms)
+✔ user-script lookup failure without native effect fails terminal and retires controller (7.177583ms)
+✔ native rejection after submission without receipt stays unknown and cannot replay (3.230708ms)
+✔ native receipt survives post-dispatch permission loss; request is never resubmitted (4.781875ms)
+✔ public recovery pauses controller, holds slot and never replays committed source (1.843417ms)
+✔ restart retires only a Controller whose exact host document is natively absent (6.273417ms)
+✔ host port loss pauses while live context remains, but recovered missing host tab retires once (3.759042ms)
+✔ public hostGone interruption retires borrowed target and exact pin once (1.997583ms)
+✔ hostGone after completed result preserves the immutable result and finishes pending retirement (2.071ms)
+✔ SDK short persistent service completes while controller owns the same unique slot (4.157833ms)
+✔ template-disabled host registers once; forced harnessWorker termination precedes durable result and slot release (28.80975ms)
+✔ controller services share run authority and storage adapter without SDK admission or extra slot (6.9485ms)
+✔ Dev draft axiosx discovers cross-origin grant automatically, pins it to the run, and fences revocation (3.714459ms)
+✔ Dev draft axiosx denied by Chrome never dispatches or silently asks for an Origin grant (2.828167ms)
+✔ controller network grant pins a real broker GET to exact run Origin and fences revocation (5.528209ms)
+✔ controller HTTP uses the admitted target origin and repeats only a saved response (3.504958ms)
+✔ saved controller result is retained but is not delivered after target permission revocation (1.567709ms)
+✔ observed HTTP error is durable and never sent twice (2.419542ms)
+✔ controller initialization failure plus lost finish response still retires its admitted slot (2.786167ms)
+✔ repeating finish after permission revocation cannot bypass result delivery authorization (1.963417ms)
+✔ Current Page active switch before admission rejects same URL B without creating run (0.738333ms)
+✔ same-URL navigation beginning during admission invalidates the old document before commit (1.30325ms)
+✔ Current Page activation during pin fails original run durably and releases slot (1.285375ms)
+✔ Current Page activation after last native observation is fenced; admitted target can later be inactive (4.455292ms)
+✔ native target changes after final candidate query reject admission and release durable slot and pin (4.715333ms)
+✔ draft source is bound to one durable run, not saved as a script head, and erased only after retirement (2.478875ms)
+✔ controller never trusts draft callers to assert their own saved hash or unrecognized source format (0.397959ms)
+✔ Page preview and Controller share one atomic slot across service instances and unknown receipts (3.600917ms)
+✔ HTTP first delivery preserves full response cause for 404, 429 and 500 (6.945333ms)
+✔ recovery preserves durable HTTP error cause without delivering or redispatching the old request (2.914292ms)
+✔ durable HTTP errors still obey permission, document, deadline, stop and host delivery fences (14.59975ms)
+✔ HTTP timeout, transport, forged error and malformed JSON without a receipt remain unknown (6.939666ms)
+✔ Controller saved revision freezes runtime; old bytes cannot allocate a run or revision pin (2.101791ms)
+✔ duplicate draft admissions require the original frozen runtime, without another run or dispatch (5.558083ms)
+✔ cloud binds original run and slot before permit; no target or worker before durable permission (19.749292ms)
+✔ cloud permit failure and admission rollback leave zero target effects (16.124875ms)
+✔ cloud revocation, unknown recovery and install generation cannot restore execution (16.723ms)
+✔ cloud transaction quota failure rolls back run, slot, binding and revision pin with zero native effects (12.767208ms)
+✔ cloud stop before permit commit and changed installation generation prevent target creation (27.750333ms)
+✖ cloud rejects missing or non-finite durable permit before any target or worker effect (13.200709ms)
+✖ cloud late permit from a retired connection epoch cannot dispatch (27.138875ms)
+✔ completed released receipt-confirmed cloud run ignores later lease expiry without hiding cancellation history (19.472833ms)
+✔ expired local cloud permit is permanently fenced despite a live provider lease (14.9295ms)
+✔ late cloud renewal cannot restore a stopped grant or permit (17.167458ms)
+✔ cloud result pending-write failure prevents upload; retry uploads original result without execution (17.5795ms)
+✔ revocation between durable delivery intent and network submission suppresses sensitive upload (17.791625ms)
+✔ cloud receipt transport loss leaves one durable result pending and retries without dispatch (30.385083ms)
+ℹ tests 104
+ℹ suites 0
+ℹ pass 102
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1099.462166
+
+✖ failing tests:
+
+test at tests/framework/k3-controller-authority.test.mjs:1415:1
+✖ cloud rejects missing or non-finite durable permit before any target or worker effect (13.200709ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  1 !== 0
+  
+      at TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k3-controller-authority.test.mjs:1423:12)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/framework/k3-controller-authority.test.mjs:1426:1
+✖ cloud late permit from a retired connection epoch cannot dispatch (27.138875ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  1 !== 0
+  
+      at TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k3-controller-authority.test.mjs:1436:10)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

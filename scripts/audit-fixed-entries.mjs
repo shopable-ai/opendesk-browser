@@ -170,7 +170,7 @@ export function summarizePackageResources(receipt,measuredFiles) {
     group('page-default-libraries',libraryPaths('USER_SCRIPT'),{assembled:true}),
     group('page-with-jquery',[...libraryPaths('USER_SCRIPT'),BUILTIN_CATALOG.libraries.jquery.output],{assembled:true}),
     group('automatic-page-injection',['agents/page-relay.js','framework/sdk-main.js']),
-    group('sidebar-shell',['ui/tool.html','ui/tool-shell.css','ui/tool-shell.js']),
+    group('sidebar-shell',['ui/tool.html','ui/tool-shell.css','ui/cloud-hosting.css','ui/tool-shell.js']),
     group('browser-react-compiler-on-demand',PAGE_BROWSER_PRIVATE_FILES.filter(row=>
       !['page-vue-sfc-transform','page-vue-sfc-compiler'].includes(row.id)).map(row=>row.output)),
     group('browser-vue-compiler-on-demand',PAGE_BROWSER_PRIVATE_FILES.map(row=>row.output)),

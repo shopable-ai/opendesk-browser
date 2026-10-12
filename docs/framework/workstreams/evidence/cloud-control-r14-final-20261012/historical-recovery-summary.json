@@ -1,0 +1,51 @@
+{
+  "status": "BLOCKED",
+  "scope": "Original post-effect recovery observed through native Chrome UI; resource retirement not released",
+  "jobId": "584bcbd1-eefa-4f78-8c52-8761a004dd4e",
+  "requestId": "cloud:ed794251-e8b3-4345-8dfc-6e98e15181ab",
+  "runId": "afd37543-f456-45f6-9e12-ea3548e65d4d",
+  "resultId": "0b388df6-783c-47b0-a8f9-3e9fd2df20a3",
+  "providerId": "6854f350-a976-4ef0-87ab-95cd6e4674fa",
+  "executorId": "cae55e61-ff22-411d-8684-cfd97e3a93d3",
+  "extensionId": "bldkfieeffncnmjgnmlkmdmimicflfen",
+  "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-eyauw4w0",
+  "runState": "interrupted",
+  "retirementState": "fenced",
+  "workerRetired": true,
+  "runs": 1,
+  "results": 1,
+  "providerJobState": "admitted",
+  "receipt": null,
+  "slot": [
+    {
+      "tag": "slot",
+      "currentRunId": "afd37543-f456-45f6-9e12-ea3548e65d4d",
+      "state": "held",
+      "releaseCount": 0,
+      "fencedEpoch": 3,
+      "retirementId": "32d1f02f-7ca8-4174-a5ac-5d941c79981f"
+    }
+  ],
+  "originalOperationSubmissions": [
+    {
+      "requestId": "8e6475fc2eab949f4b1dcb1e6befed07",
+      "submissionCount": 1,
+      "state": "effect_unknown",
+      "dispatchAt": 1791733558980
+    },
+    {
+      "requestId": "b87668a865f3783ca6fbe3b775d3d962",
+      "submissionCount": 1,
+      "state": "durable",
+      "dispatchAt": 1791733558916
+    }
+  ],
+  "beforeOperationIds": [
+    "b87668a865f3783ca6fbe3b775d3d962"
+  ],
+  "raw": "docs/framework/workstreams/evidence/cloud-control-r14-final-20261012/historical-recovery-1791796461814.json",
+  "rawSha256": "b7cbe0e4d884e741c0ba6cc081d5069807f16bbd3c30a2dade34ef89210f23ad",
+  "blocker": "Owned target creation belongs to previous browserSessionIncarnation; original retirement safely refuses creation-unknown. Slot held, no receipt. No reseed, no replay, no IDB write.",
+  "interruptedAt": 1791733558986,
+  "noDispatchAfterInterruption": true
+}

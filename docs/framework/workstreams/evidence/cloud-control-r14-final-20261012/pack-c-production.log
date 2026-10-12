@@ -1,0 +1,5 @@
+
+> opendesk-browser@0.1.0 pack
+> node scripts/pack.mjs production
+
+{"status":"passed","mode":"production","packageHash":"7d8058874fdc727a9ec21c41d8a176fdab092fdb4dbbfe284fb13a957d73257b","zipSha256":"12085ae5ad3b269c84be30130536c97d349cbe37ab48e2279a6882a810cba230","bytes":1877818}

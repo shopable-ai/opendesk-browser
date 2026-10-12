@@ -1,0 +1,14 @@
+{
+  "schema": "opendesk.cloud-control.doc-link-check.v1",
+  "files": [
+    "docs/architecture/browser-framework/cloud-control-r1.zh-CN.md",
+    "docs/contracts/execution-control/v0.2/README.zh-CN.md",
+    "docs/framework/workstreams/cloud-control-r1.md",
+    "docs/framework/workstreams/cloud-control-r14-final-20261012.md",
+    "examples/cloud-control/README.zh-CN.md"
+  ],
+  "localReferencesChecked": 134,
+  "failures": [],
+  "jsonParsed": true,
+  "boundary": "Document checks only, no native/F3 or product acceptance"
+}

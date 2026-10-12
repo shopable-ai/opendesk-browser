@@ -1,0 +1,27 @@
+{
+  "capturedAt": "2026-10-12T10:13:34.815760+00:00",
+  "scope": "PRIMARY_SOURCE_FAULT_METHOD_RESEARCH",
+  "reviewer": "01a12f8b-75ab-77a3-ab39-5f3fcc94f7ce",
+  "sourceRevision": "8ab6fb5e22f6593bd428937ae2dd9581fd0f82e1",
+  "observedHistoricalRequiredPermission": "unlimitedStorage",
+  "quotaOverrideSelected": false,
+  "reason": "Default bucket native quota check bypasses normal limit for storage-unlimited origins; an override acknowledgement alone cannot demonstrate abort",
+  "limits": [
+    "Zero quota is treated as unlimited in reviewed source",
+    "IDB remaining-space cache may persist for 30 seconds",
+    "Request success is not transaction completion",
+    "Override does not undo committed state"
+  ],
+  "currentCftPartitionProof": "NOT_TESTED",
+  "currentCandidateNativeAdmissionRollback": "NOT_TESTED",
+  "references": {
+    "protocol": "https://chromedevtools.github.io/devtools-protocol/tot/Storage/#method-overrideQuotaForOrigin",
+    "originPath": "https://github.com/chromium/chromium/blob/8ab6fb5e22f6593bd428937ae2dd9581fd0f82e1/content/browser/devtools/protocol/storage_handler.cc#L635-L661",
+    "unlimitedBypass": "https://github.com/chromium/chromium/blob/8ab6fb5e22f6593bd428937ae2dd9581fd0f82e1/storage/browser/quota/quota_manager_impl.cc#L1142-L1153",
+    "extensionPersistence": "https://developer.chrome.com/docs/extensions/develop/concepts/storage-and-cookies#persistence",
+    "commitQuotaAbort": "https://github.com/chromium/chromium/blob/8ab6fb5e22f6593bd428937ae2dd9581fd0f82e1/content/browser/indexed_db/instance/transaction.cc#L697-L724",
+    "rollback": "https://github.com/chromium/chromium/blob/8ab6fb5e22f6593bd428937ae2dd9581fd0f82e1/content/browser/indexed_db/instance/transaction.cc#L197-L225",
+    "positiveQuota": "https://github.com/chromium/chromium/blob/8ab6fb5e22f6593bd428937ae2dd9581fd0f82e1/storage/browser/quota/quota_manager_impl.cc#L1261-L1287",
+    "spaceCache": "https://github.com/chromium/chromium/blob/8ab6fb5e22f6593bd428937ae2dd9581fd0f82e1/content/browser/indexed_db/instance/bucket_context.cc#L473-L531"
+  }
+}

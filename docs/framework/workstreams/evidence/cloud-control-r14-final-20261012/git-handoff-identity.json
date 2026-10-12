@@ -1,0 +1,64 @@
+{
+  "schema": "opendesk.cloud-control.r14.git-handoff.v1",
+  "capturedAt": "2026-10-12T09:55:22.999093+00:00",
+  "owner": "01a12f5b-8ed0-7782-8277-c1168b30a715",
+  "receivingOwner": "01a12f80-47de-7343-b3bc-2adb7cae2a75",
+  "state": "SOURCE_AND_GIT_WRITES_PAUSED_FOR_MAIN_MERGE",
+  "head": "af54d89b9fd931ae589b48daa080bf52876bfbcf",
+  "originMain": "e5852c5db056eb58498a7cc5eec0f944ae60e4f8",
+  "files": {
+    "src/cloud-control/service.js": "51a766fd20dca5d222a60d409b0c0663b4a896ce984fed7dec871105449a4e48",
+    "src/cloud-control/connection.js": "628f0a0127251f7d3943acf5619c11d89ea2e99c2e4bb8275dda82675b6b019e",
+    "scripts/cloud-control/provider.mjs": "76484917249810a36e96d5a00b85af4658354474ee60d937b472ad5b99f8209d",
+    "src/ui/cloud-hosting.js": "23126812315c3322893b2374b8592191778a85143a4c8b6ac6aa768f2d2c6bf3",
+    "src/ui/cloud-status-presentation.js": "2788dad53bfc2af05422adfafcc546ac3ff09fcb0bfe01f92d498d05e4cb0edc",
+    "src/ui/tool.html": "2e5791a2f480756060441e9dabddccd1128510098d809e518a71aeaa607ec05c",
+    "src/ui/task-workbench.js": "88f6e523b80ff69ddc7c68c3b733ef9d97aefaf13f1e67ea724f4f47851de4a7",
+    "src/ui/tool-shell.js": "52471fb9d3ffe2ab6e2ec1448bf361053f1e41547035d37097e6d19fa510a796",
+    "src/ui/sidebar-tab-memory.js": "6d56007a965c3cab3c8eb94aa8f7661c449ae06b4a72f3631b8601fff086409f",
+    "tests/cloud-control/provider.test.mjs": "99a4a6fe208e111ebc924284a79859705b0ce26be3bebfd520d29361daf8aeb4",
+    "tests/framework/k3-controller-authority.test.mjs": "2bf7475be8cf2b9b876820eeb0190309534a781fa9a0fa512f367a588bacff94",
+    "tests/environment/cloud-control-debug-r14.test.mjs": "cca2abe471289007d918c084438701c950e387f51eebc8fe8ec74878d5351d0c",
+    "tests/environment/cloud-control-sidebar-r28.test.mjs": "62bb03efaef4110b75235c249dcc963ce910949e30192482ed4937ddc1dc527f",
+    "tests/environment/sidebar-tab-memory.test.mjs": "fb8b8d6b58e6eacd40c634c2710a8be5b9618bf35d0eb84ae11bcf2264d9910f",
+    "tests/environment/sidebar-ui-preview.test.mjs": "a7810cab8b3445a31a4cb95ae07b5ff177758a22ad260c3bea1a729474ed7265"
+  },
+  "patchSha256": "d135c91dc99e29cd104ebb00735b12007942baad98f196a902fa2281664f5b46",
+  "evidence": {
+    "handoff-security.tap": "176a90538809407f8de9b333ae1e12a2468f9e40e0105b98b04e0cd11440fc23",
+    "ui-navigation-fixed.tap": "7e23c9940fb0eac5df04f86fef7f9c3fbdeefa5ae6c7c7d9fe5929b5ff30d398",
+    "historical-recovery-summary.json": "070d1056a203def8bc78b17787c2688c4e8e627612e9118f6877a92fe0606e43",
+    "historical-package-identity.json": "17de36b55725cc2a2d7baa61e9f986a2a32ce8fa169e904a6f32f549f1376a9f"
+  },
+  "testScope": {
+    "security": {
+      "tests": 119,
+      "pass": 119,
+      "fail": 0
+    },
+    "ui": {
+      "tests": 38,
+      "pass": 38,
+      "fail": 0
+    },
+    "level": "COMPONENT_TESTED",
+    "currentCandidateNative": "NOT_TESTED",
+    "currentCandidateBuild": "NOT_TESTED"
+  },
+  "resources": {
+    "providerPid": 11416,
+    "providerPort": 43112,
+    "providerState": ".local/cloud-control",
+    "providerSource": ".runtime/cloud-control-r1/candidate-security/scripts/cloud-control/cli.mjs",
+    "cftPid": 11427,
+    "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-eyauw4w0",
+    "extensionId": "bldkfieeffncnmjgnmlkmdmimicflfen",
+    "rootDistWriter": false,
+    "newCandidateBuilt": false
+  },
+  "git": {
+    "stagedByThisTask": false,
+    "committedByThisTask": false,
+    "pushed": false
+  }
+}

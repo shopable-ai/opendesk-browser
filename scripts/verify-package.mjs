@@ -37,7 +37,7 @@ export const FIXED_ASSETS = Object.freeze({
   'licenses/jquery-MIT.txt': {bytes: 1097, sha256: 'd4db9ebe6f29f5168eac45ad713f055623ac5d0dcd5ba92da23d650ae012020d'}
 });
 const HTML_REFERENCES = Object.freeze({
-  'ui/tool.html': ['design-tokens.css', 'design-system.css', 'tool-shell.css', 'tool-shell.js'],
+  'ui/tool.html': ['design-tokens.css', 'design-system.css', 'tool-shell.css', 'cloud-hosting.css', 'tool-shell.js'],
   'ui/cloud-control.html': ['design-tokens.css', 'design-system.css', 'cloud-control-console.css', 'cloud-console.js'],
   'ui/marketplace.html': ['design-tokens.css', 'marketplace.css', 'marketplace.js'],
   'native-agent/settings.html': ['../ui/design-tokens.css', 'settings.css', 'settings.js'],
@@ -57,7 +57,7 @@ const officialSource=await readOfficialSources();
 const officialPaths=[OFFICIAL_CATALOG_PATH,...officialSource.tools.map(row=>officialPackagePath(row.id))];
 const required = ['manifest.json', MARKET_CHANNEL_PATH, SDK_RESOURCE_MANIFEST, BUILTIN_RESOURCE_MANIFEST,
   ...BUILTIN_RESOURCE_PATHS,...frameworkLicenses,...browserCompilerESM,PAGE_BROWSER_COMPILER.licensePath,
-  ...Object.keys(HTML_REFERENCES), 'ui/design-tokens.css', 'ui/design-system.css', 'ui/tool-shell.css', 'ui/cloud-control-console.css', 'native-agent/settings.css', 'native-agent/workspace.css', 'ui/marketplace.css', ...officialPaths, ...expectedJS, ...Object.keys(FIXED_ASSETS)].sort();
+  ...Object.keys(HTML_REFERENCES), 'ui/design-tokens.css', 'ui/design-system.css', 'ui/tool-shell.css', 'ui/cloud-hosting.css', 'ui/cloud-control-console.css', 'native-agent/settings.css', 'native-agent/workspace.css', 'ui/marketplace.css', ...officialPaths, ...expectedJS, ...Object.keys(FIXED_ASSETS)].sort();
 const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 const digest = bytes => createHash('sha256').update(bytes).digest('hex');
 // SW shipping cap: 1 MiB (512 KiB review); development SW: 1.5 MiB.
@@ -450,7 +450,7 @@ export async function verifyPackage(directory, {mode: requestedMode} = {}) {
   if(digest(babelLicense)!==PAGE_BROWSER_COMPILER.licenseSha256)
     throw Error('Browser compiler license mismatch');
   for (const file of Object.keys(HTML_REFERENCES)) await inspectHTML(root, file);
-  for(const cssPath of ['ui/design-tokens.css','ui/design-system.css','ui/tool-shell.css','ui/cloud-control-console.css','native-agent/settings.css','native-agent/workspace.css']) {
+  for(const cssPath of ['ui/design-tokens.css','ui/design-system.css','ui/tool-shell.css','ui/cloud-hosting.css','ui/cloud-control-console.css','native-agent/settings.css','native-agent/workspace.css']) {
     const css = await readFile(join(root,cssPath),'utf8');
     if(/@(?:import|source|apply|tailwind|config|plugin)\b|url\s*\(|expression\s*\(/i.test(css)) throw new Error('Unsafe CSS resources in '+cssPath);
     if(cssPath==='native-agent/workspace.css')inspectWorkspaceStyle(css);

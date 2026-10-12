@@ -1,0 +1,34 @@
+
+> opendesk-browser@0.1.0 test:cloud
+> node --test tests/cloud-control/*.test.mjs
+
+✔ legacy credential adoption maps only original request keys and keeps old Provider once-cache bytes (57.875208ms)
+✔ service restart and repeated adopt keep old rows and legacy Provider cache unchanged (37.592917ms)
+✔ adoptPairing rejects stale, partial, foreign and invalid legacy inputs transactionally (91.718458ms)
+✔ modern pairing uses new claim storage and does not associate other grants, namespaces or pairs (28.191583ms)
+✔ modern Provider claim binds a fresh Browser run and permit with full pairing identity (62.361125ms)
+✔ remote runRef without local row blocks cached claim replay instead of creating a second Browser row (67.694667ms)
+✔ expired local legacy permit cannot be revived by Provider admission cache or a newer lease (23.587708ms)
+✔ legacy rows from another active grant, namespace or pairing cannot resolve or activate (36.860542ms)
+✔ cloudStatus projects actual grants, slot resources and config drift without scanning journal in cheap mode (2.106667ms)
+✔ unknown side effects project only from interrupted unresolved operations or paused_unknown and reconcile preserves native facts (35.197041ms)
+✔ Browser rejects forged modern Provider binding before pairing or WebSocket reconciliation (1.071417ms)
+✔ stopped socket cannot publish late reconciliation or install a heartbeat (1.396042ms)
+✔ new socket performs its own reconciliation while old generation remains pending (0.738ms)
+✔ real HTTP/native WebSocket provider: durable claim, empty retry, permit response loss, restart and receipt identity (277.684167ms)
+✔ provider rejects missing fields, incomplete runRef, forged binding, old epochs and receipt keys (156.857125ms)
+✔ renew commits assignment/current permit together while admission keeps the issued snapshot (91.09025ms)
+✔ revoke is durable before ticket/socket retirement, retryable only by the same token/revocation (135.492042ms)
+✔ active re-pair rotates credential and invalidates both connected sockets and unused tickets (64.761666ms)
+✔ legacy migration retains credential, jobs and idempotent history only for the original pairing (86.8085ms)
+✔ persisted invalid leases and old assignment/permit epochs cannot be admitted or renewed (265.401875ms)
+✔ HTTP requests already queued behind a revoke revalidate credentials inside serial (49.408042ms)
+✔ provider persistence failure rolls back memory before a retry can publish facts (22.175291ms)
+ℹ tests 22
+ℹ suites 0
+ℹ pass 22
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1224.159834

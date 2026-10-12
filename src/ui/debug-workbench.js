@@ -30,7 +30,8 @@ export function createDebugWorkbench({client,host,api=globalThis.chrome,document
     }catch(error){
       if(disposed||current!==sequence)return;
       snapshot=null;
-      const code=/^E_[A-Z0-9_]{1,60}$/.test(String(error?.code))?String(error.code):'E_DIAGNOSTICS';
+      for(const id of ['debug-pairing','debug-connection','debug-reconcile','debug-slot','debug-task-count','debug-request-count'])get(id).textContent='未知';
+      const code='E_DIAGNOSTICS';
       get('debug-cloud-summary').textContent='云控状态暂不可读取';
       get('debug-snapshot').textContent='未获得可信诊断快照。';
       feedback.textContent=code+'：请核对扩展 Host 和后台连接；详情请查看开发日志。';

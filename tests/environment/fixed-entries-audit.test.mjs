@@ -40,7 +40,7 @@ function packageFixture(){
   const f=fixture();
   for(const path of [BUILTIN_CATALOG.bootstrap,...Object.values(BUILTIN_CATALOG.libraries).filter(row=>row.origin==='vendor').map(row=>row.output),
     ...Object.values(PAGE_FRAMEWORK_RUNTIMES).map(row=>row.output),
-    'ui/tool.html','ui/tool-shell.css','native-agent/workspace.html','native-agent/workspace.css']){
+    'ui/tool.html','ui/tool-shell.css','ui/cloud-hosting.css','native-agent/workspace.html','native-agent/workspace.css']){
     f.measured[path]={bytes:1000,sha256:digest};f.receipt.report.files.push({path,...f.measured[path]});
   }
   // Independent private browser compiler inputs are never ordinary 512 KiB

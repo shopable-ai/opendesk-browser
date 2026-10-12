@@ -28,7 +28,7 @@ function fixture({store=storage(),debugEnabled=false}={}){
 }
 
 test('Side Panel restores each previously selected product tab after reopening',async()=>{
-  for(const view of ['tasks','discover','workflow','develop','tools','cloud']){
+  for(const view of ['tasks','discover','workflow','develop','tools']){
     const f=fixture({store:storage({[KEY]:view})});
     await f.memory.restore();
     assert.equal(f.selected,view);
@@ -177,4 +177,8 @@ test('the real shell only restores the Side Panel and ignores navigation rejecte
   const recorded=work.indexOf('onTabSelected?.(name,{initial});',navigateStart);
   assert.ok(navigateStart>=0 && veto>navigateStart && recorded>veto);
   assert.match(work,/navigate\('tasks',\{initial:true\}\);update\(\)/);
+});
+
+test('historical Cloud tab preference restores My without opening another workbench',async()=>{
+  const f=fixture({store:storage({[KEY]:'cloud'})});await f.memory.restore();assert.equal(f.selected,'tasks');f.memory.dispose();
 });

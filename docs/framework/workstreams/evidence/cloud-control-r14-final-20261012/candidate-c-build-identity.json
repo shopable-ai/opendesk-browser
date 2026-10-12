@@ -1,0 +1,66 @@
+{
+  "schema": "opendesk.cloud-control.candidate-build-identity.v1",
+  "observedAt": "2026-10-12T11:48:30.888715+00:00",
+  "candidate": "C",
+  "candidatePath": "/Users/shopme/Documents/workspace/opendesk-browser/.runtime/cloud-control-r14-final-20261012/candidate-c",
+  "snapshotHead": "e859cf1942d2fc3dd70c4658052eecf51d60c68f",
+  "sourceIdentity": "Immutable source-input and package-file hashes, not HEAD alone; snapshot includes then-current parallel edits",
+  "builds": {
+    "production": {
+      "status": "BUILD_VERIFIED",
+      "packageHash": "7d8058874fdc727a9ec21c41d8a176fdab092fdb4dbbfe284fb13a957d73257b",
+      "packageFiles": 90,
+      "sourceInputs": 410,
+      "receipt": "build-c-production-receipt.json",
+      "swBytes": 334555,
+      "toolShellBytes": 455595
+    },
+    "development": {
+      "status": "BUILD_VERIFIED",
+      "packageHash": "9e2262ecda958200eb0c42eef901085909a318af34d48239fde2226dbfb7a93c",
+      "packageFiles": 124,
+      "sourceInputs": 410,
+      "receipt": "build-c-development-final-receipt.json",
+      "swBytes": 334721,
+      "toolShellBytes": 455835
+    }
+  },
+  "currentRootSourceDrift": {
+    "production": [],
+    "development": []
+  },
+  "nativeStatus": "NOT_TESTED",
+  "formalF3": "NOT_TESTED",
+  "zipInstallation": "NOT_TESTED",
+  "finalCandidate": true,
+  "supersededBy": null,
+  "buildBudgetChanged": false,
+  "ordinaryRootDistModified": false,
+  "zipFiles": {
+    "production": {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/.runtime/cloud-control-r14-final-20261012/candidate-c/artifacts/opendesk-browser-production.zip",
+      "bytes": 1877818,
+      "sha256": "12085ae5ad3b269c84be30130536c97d349cbe37ab48e2279a6882a810cba230",
+      "installationStatus": "NOT_TESTED"
+    },
+    "development": {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/.runtime/cloud-control-r14-final-20261012/candidate-c/artifacts/opendesk-browser-development.zip",
+      "bytes": 3810752,
+      "sha256": "8d1613c683efb03d26a073c184ae175330e42e9d26695782e448f8c1ae6452e5",
+      "installationStatus": "NOT_TESTED"
+    }
+  },
+  "finalCheckAt": "2026-10-12T11:50:03.774861+00:00",
+  "zipParity": {
+    "production": {
+      "fileCount": 90,
+      "status": "BUILD_VERIFIED",
+      "meaning": "Exact ZIP entry hashes equal accepted build file manifest; ZIP installation is NOT_TESTED"
+    },
+    "development": {
+      "fileCount": 124,
+      "status": "BUILD_VERIFIED",
+      "meaning": "Exact ZIP entry hashes equal accepted build file manifest; ZIP installation is NOT_TESTED"
+    }
+  }
+}

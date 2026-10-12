@@ -1,0 +1,51 @@
+{
+  "capturedAt": "2026-10-12T10:27:09.566701+00:00",
+  "scope": "OFFICIAL_NATIVE_FAULT_METHODS_BEFORE_ACTUAL_CFT_VALIDATION",
+  "reviewer": "01a12f9a-7693-7071-b6f6-1e7960b1c92f",
+  "sourceRevision": "0b268b1263a4a94c8659b3609fa1d9990da1dee0",
+  "cftVersionBinding": "NOT_TESTED",
+  "methods": [
+    {
+      "method": "generated SW transaction breakpoint then actual stopWorker",
+      "status": "NOT_TESTED",
+      "requiredProof": [
+        "Resolved breakpoint location bound to exact candidate source map and actual paused frame",
+        "An original real write request has succeeded while transaction has not committed",
+        "Same worker version actually terminates; protocol success alone is insufficient",
+        "Read original durable Run/journal/slot and native target/Worker events after reopening"
+      ],
+      "limits": [
+        "Debugger pause cannot undo already sent commit",
+        "Await put completion alone does not prove uncommitted transaction",
+        "No production fault hooks or direct IDB writes permitted"
+      ]
+    },
+    {
+      "method": "Pause only actual owned page JavaScript then native SidePanel Stop",
+      "status": "NOT_TESTED",
+      "requiredProof": [
+        "Actual page pause event before fast Task completes",
+        "SidePanel/SW remain responsive during page pause",
+        "Trusted native UI Stop during running state",
+        "Original single Run/Result/retirement/Receipt evidence, no invented ack"
+      ],
+      "limits": [
+        "Different target IDs do not alone prove Renderer isolation",
+        "Debugger pause is not an entire Renderer freeze",
+        "Task might already be completed unless timing is observed"
+      ]
+    }
+  ],
+  "references": {
+    "sourceMaps": "https://developer.chrome.com/docs/devtools/javascript/source-maps",
+    "breakpoint": "https://chromedevtools.github.io/devtools-protocol/tot/Debugger/#method-setBreakpointByUrl",
+    "stopWorker": "https://github.com/chromium/chromium/blob/0b268b1263a4a94c8659b3609fa1d9990da1dee0/content/browser/devtools/protocol/service_worker_handler.cc#L352",
+    "pausedTermination": "https://github.com/chromium/chromium/blob/0b268b1263a4a94c8659b3609fa1d9990da1dee0/third_party/blink/renderer/core/workers/worker_thread_test.cc#L504",
+    "contextDestroyed": "https://github.com/chromium/chromium/blob/0b268b1263a4a94c8659b3609fa1d9990da1dee0/third_party/blink/renderer/modules/indexeddb/idb_database.cc#L672",
+    "backendAbort": "https://github.com/chromium/chromium/blob/0b268b1263a4a94c8659b3609fa1d9990da1dee0/content/browser/indexed_db/instance/connection.cc#L170",
+    "automaticCommit": "https://github.com/chromium/chromium/blob/0b268b1263a4a94c8659b3609fa1d9990da1dee0/third_party/blink/renderer/modules/indexeddb/idb_transaction.cc#L322",
+    "transactionLifecycle": "https://w3c.github.io/IndexedDB/#transaction-lifecycle",
+    "pagePauser": "https://github.com/chromium/chromium/blob/0b268b1263a4a94c8659b3609fa1d9990da1dee0/third_party/blink/renderer/core/page/scoped_page_pauser.cc#L39"
+  },
+  "formalNativePassClaim": false
+}

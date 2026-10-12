@@ -1,0 +1,19 @@
+✔ stopped socket cannot publish late reconciliation or install a heartbeat (1.543083ms)
+✔ new socket performs its own reconciliation while old generation remains pending (1.326208ms)
+✔ real HTTP/native WebSocket provider: durable claim, empty retry, permit response loss, restart and receipt identity (339.045334ms)
+✔ provider rejects missing fields, incomplete runRef, forged binding, old epochs and receipt keys (129.142208ms)
+✔ renew commits assignment/current permit together while admission keeps the issued snapshot (82.655916ms)
+✔ revoke is durable before ticket/socket retirement, retryable only by the same token/revocation (129.975709ms)
+✔ active re-pair rotates credential and invalidates both connected sockets and unused tickets (66.021375ms)
+✔ legacy migration retains credential, jobs and idempotent history only for the original pairing (88.929375ms)
+✔ persisted invalid leases and old assignment/permit epochs cannot be admitted or renewed (323.786375ms)
+✔ HTTP requests already queued behind a revoke revalidate credentials inside serial (51.076917ms)
+✔ provider persistence failure rolls back memory before a retry can publish facts (20.896333ms)
+ℹ tests 11
+ℹ suites 0
+ℹ pass 11
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1318.701333

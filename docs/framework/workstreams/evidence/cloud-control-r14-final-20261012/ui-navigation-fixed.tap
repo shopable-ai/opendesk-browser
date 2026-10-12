@@ -1,0 +1,46 @@
+✔ read-only cloud diagnostics omit tokens and all private identifiers (1.217ms)
+✔ untrusted provider state is reduced to a known diagnostic enum (1.299542ms)
+✔ completed diagnostics remain read-only and preserve true cancellation counts despite old reasons (0.546375ms)
+✔ revocation projects only confirmation state and separates local stop from server confirmation (0.255709ms)
+✔ development UI only reads cloudStatus and never claims, pairs, approves or starts a run (0.46875ms)
+✔ late diagnostics after disposal are ignored (0.10275ms)
+✔ production Cloud tab is visible in Side Panel while Debug remains hidden (4.375667ms)
+✔ cloud status refresh is read-only and full tool/catalog tabs cannot claim cloud tasks (0.549375ms)
+✔ Side Panel keeps hosting in My and development-only Debug at sixth (4.170375ms)
+✔ only tab navigation scrolls horizontally and Cloud cards wrap on narrow panels (1.056916ms)
+✔ Cloud controls exist once within My and refresh stays read-only (0.682166ms)
+✔ cloud request previews project whitelisted states rather than IDs or result data (0.261875ms)
+✔ request previews distinguish waiting, execution, saved results, retirement and receipts (0.206458ms)
+✔ waiting reasons conservatively follow hosting prerequisites (0.085375ms)
+✔ only fully confirmed successful completion hides a historical cloud cancellation reason (0.148041ms)
+✔ unknown states and reasons stay conservative, bounded and secret free (0.139167ms)
+✔ My hosting status displays saved stopped results and pending release with read-only refresh (2.420333ms)
+✔ My hosting readiness and unreadable status never expose raw errors or stale request samples (0.766ms)
+✔ pending server revocation blocks new pairing and both refresh gestures stay read-only (0.674125ms)
+✔ Side Panel restores each previously selected product tab after reopening (1.132417ms)
+✔ a user selection is persisted across new Side Panel documents and extension restarts (1.688917ms)
+✔ rapid switches are serialized; a slow earlier save cannot overwrite a later tab (1.395375ms)
+✔ clicking while storage is loading wins over the old persisted selection (0.271584ms)
+✔ navigation before Side Panel surface detection is remembered, not overwritten (0.315208ms)
+✔ full-size catalog and standalone tool pages never write Side Panel preference (0.271334ms)
+✔ untrusted and unsupported stored values cannot become navigable pages (0.21375ms)
+✔ development can remember Debug, while production cannot reopen a hidden Debug page (0.090875ms)
+✔ a disposed panel does not apply a late storage result or persist a late click (0.430292ms)
+✔ storage failure leaves navigation usable and emits diagnostic warning (0.522167ms)
+✔ the real shell only restores the Side Panel and ignores navigation rejected by the tool guard (1.126584ms)
+✔ historical Cloud tab preference restores My without opening another workbench (0.081209ms)
+✔ R3 remains immutable reference; R4 preview keeps installed Discover and independent full catalog (3.460834ms)
+✔ R4.9 Tools has one navigation tier and three accessible add/import/market controls (2.260625ms)
+✔ R15 official sidebar preserves five views, privileged controls, compact discovery and task history (1.020292ms)
+✔ R5 keeps one derived interactive prototype with installed-only compact discovery (0.926625ms)
+✔ Developer source selector and new-script action use one narrow Sidebar toolbar (0.826084ms)
+✔ R19 Sidebar spacing and corner system is consistent across all five tabs (0.960916ms)
+✔ R20/R23 five-tab design system has one token source and a strict trusted asset pipeline (1.692958ms)
+ℹ tests 38
+ℹ suites 0
+ℹ pass 38
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 57.996375

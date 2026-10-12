@@ -1,0 +1,58 @@
+✖ cloud rejects missing or non-finite durable permit before any target or worker effect (40.243125ms)
+✖ cloud late permit from a retired connection epoch cannot dispatch (14.628208ms)
+✖ completed released receipt-confirmed cloud run ignores later lease expiry without hiding cancellation history (26.194375ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 0
+ℹ fail 3
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 156.535416
+
+✖ failing tests:
+
+test at tests/framework/k3-controller-authority.test.mjs:1415:1
+✖ cloud rejects missing or non-finite durable permit before any target or worker effect (40.243125ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k3-controller-authority.test.mjs:1422:5)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at tests/framework/k3-controller-authority.test.mjs:1426:1
+✖ cloud late permit from a retired connection epoch cannot dispatch (14.628208ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k3-controller-authority.test.mjs:1435:3)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at tests/framework/k3-controller-authority.test.mjs:1438:1
+✖ completed released receipt-confirmed cloud run ignores later lease expiry without hiding cancellation history (26.194375ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'E_CLOUD_CANCELLED'
+  - undefined
+  
+      at TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k3-controller-authority.test.mjs:1445:10)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'E_CLOUD_CANCELLED',
+    expected: undefined,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

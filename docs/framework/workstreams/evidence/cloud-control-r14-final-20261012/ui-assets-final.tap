@@ -1,0 +1,243 @@
+✔ read-only cloud diagnostics omit tokens and all private identifiers (1.871125ms)
+✔ untrusted provider state is reduced to a known diagnostic enum (1.664292ms)
+✔ completed diagnostics remain read-only and preserve true cancellation counts despite old reasons (0.582125ms)
+✔ revocation projects only confirmation state and separates local stop from server confirmation (0.275125ms)
+✔ development UI only reads cloudStatus and never claims, pairs, approves or starts a run (0.46675ms)
+✔ late diagnostics after disposal are ignored (0.100709ms)
+✔ production Cloud tab is visible in Side Panel while Debug remains hidden (5.280833ms)
+✔ cloud status refresh is read-only and full tool/catalog tabs cannot claim cloud tasks (0.899041ms)
+✔ diagnostic facts are enum-only, bounded, and conservative for absent or malicious inputs (0.314709ms)
+✔ Debug reads and copies new facts without expanding its authority, then clears stale diagnostics on read failure (0.48275ms)
+✔ Side Panel keeps hosting in My and development-only Debug at sixth (5.497167ms)
+✔ only tab navigation scrolls horizontally and Cloud cards wrap on narrow panels (2.091125ms)
+✔ hosting control rules match the live My container and wrap action buttons (1.05575ms)
+✔ Cloud controls exist once within My and refresh stays read-only (0.716375ms)
+✔ cloud request previews project whitelisted states rather than IDs or result data (0.30575ms)
+✔ request previews distinguish waiting, execution, saved results, retirement and receipts (0.219833ms)
+✔ waiting reasons conservatively follow hosting prerequisites (0.124916ms)
+✔ only fully confirmed successful completion hides a historical cloud cancellation reason (0.176417ms)
+✔ unknown states and reasons stay conservative, bounded and secret free (0.178291ms)
+✔ My hosting status displays saved stopped results and pending release with read-only refresh (2.499542ms)
+✔ My hosting readiness and unreadable status never expose raw errors or stale request samples (0.884291ms)
+✔ pending server revocation blocks new pairing and both refresh gestures stay read-only (0.703125ms)
+✔ waiting follows current website authorization and original slot reasons (0.13575ms)
+✔ unknown native effects remain independent of interrupted saved results and retirement (0.132417ms)
+✔ unknown outcome reason uses a safe whitelist without changing interrupted native facts (0.109791ms)
+✔ My displays current grants, bounded totals, and stopped pending resources without historical samples (0.657917ms)
+✔ read failure clears every affirmative metric and blocks pairing approval while refresh and console remain usable (0.391208ms)
+✔ operation rejection and local approval validation preserve trusted status and use separate safe feedback (0.479042ms)
+✔ missing facts never advertise readiness even when legacy booleans are true (0.367125ms)
+✔ periodic polling stays cheap between bounded refreshes and failed cheap reads clear stale facts (0.721542ms)
+✔ dispatch rejection is operation feedback and does not erase successful status reads (0.31325ms)
+✔ all approved fixed entries use actual minified byte counts and retain a non-blocking margin signal (8.668709ms)
+✖ full inventory includes raw and static assets and sums the actual runtime resource sets (1.046541ms)
+✔ full inventory catches oversize raw code and missing or mismatched resources (1.636834ms)
+✔ SW review at 512 KiB is non-blocking and 1 MiB hard cap blocks +1 byte (0.574333ms)
+✔ Sidebar and other generated scripts may cross 320 KiB, but 512 KiB remains a strict limit (0.45125ms)
+✖ development distinguishes SW budget and source maps from executable code (0.3345ms)
+✔ fails closed on missing, duplicated, unmeasured or mismatched fixed entries (0.181167ms)
+✔ does not allow lodash-es/dayjs implementation into privileged SW (0.362083ms)
+✔ build budget and receipt freshness failures remain hard blockers (0.180625ms)
+✔ physical measurements reject incomplete or mismatched attempts and retain portable historical receipts (24.442875ms)
+✔ Side Panel restores each previously selected product tab after reopening (1.169208ms)
+✔ a user selection is persisted across new Side Panel documents and extension restarts (1.86575ms)
+✔ rapid switches are serialized; a slow earlier save cannot overwrite a later tab (1.647ms)
+✔ clicking while storage is loading wins over the old persisted selection (0.401459ms)
+✔ navigation before Side Panel surface detection is remembered, not overwritten (0.413292ms)
+✔ full-size catalog and standalone tool pages never write Side Panel preference (0.742375ms)
+✔ untrusted and unsupported stored values cannot become navigable pages (0.183042ms)
+✔ development can remember Debug, while production cannot reopen a hidden Debug page (0.0825ms)
+✔ a disposed panel does not apply a late storage result or persist a late click (0.5425ms)
+✔ storage failure leaves navigation usable and emits diagnostic warning (1.311625ms)
+✔ the real shell only restores the Side Panel and ignores navigation rejected by the tool guard (1.236375ms)
+✔ historical Cloud tab preference restores My without opening another workbench (0.08075ms)
+✔ R3 remains immutable reference; R4 preview keeps installed Discover and independent full catalog (16.804583ms)
+✔ R4.9 Tools has one navigation tier and three accessible add/import/market controls (17.559708ms)
+✔ R15 official sidebar preserves five product views, privileged controls, compact discovery and task history (1.089041ms)
+✔ R5 keeps one derived interactive prototype with installed-only compact discovery (0.941292ms)
+✔ Developer source selector and new-script action use one narrow Sidebar toolbar (0.909917ms)
+✔ R19 Sidebar spacing and corner system is consistent across all five tabs (0.946667ms)
+✖ R20/R23 five-tab design system has one token source and a strict trusted asset pipeline (1.868083ms)
+✔ R23 semantic tokens are sole source of shared values and carry no page reset (3.494125ms)
+✔ R23 trusted page styles respect explicit load order and sandbox boundary (1.7055ms)
+ℹ tests 62
+ℹ suites 0
+ℹ pass 59
+ℹ fail 3
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 164.774375
+
+✖ failing tests:
+
+test at tests/environment/fixed-entries-audit.test.mjs:55:1
+✖ full inventory includes raw and static assets and sums the actual runtime resource sets (1.046541ms)
+  Error: Missing loading-group resource: ui/cloud-hosting.css
+      at file:///Users/shopme/Documents/workspace/opendesk-browser/scripts/audit-fixed-entries.mjs:143:51
+      at Array.map (<anonymous>)
+      at group (file:///Users/shopme/Documents/workspace/opendesk-browser/scripts/audit-fixed-entries.mjs:142:22)
+      at summarizePackageResources (file:///Users/shopme/Documents/workspace/opendesk-browser/scripts/audit-fixed-entries.mjs:173:5)
+      at TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/environment/fixed-entries-audit.test.mjs:56:35)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:897:18)
+      at Test.postRun (node:internal/test_runner/test:1447:19)
+      at Test.run (node:internal/test_runner/test:1372:12)
+
+test at tests/environment/fixed-entries-audit.test.mjs:166:1
+✖ development distinguishes SW budget and source maps from executable code (0.3345ms)
+  Error: Missing loading-group resource: ui/cloud-hosting.css
+      at file:///Users/shopme/Documents/workspace/opendesk-browser/scripts/audit-fixed-entries.mjs:143:51
+      at Array.map (<anonymous>)
+      at group (file:///Users/shopme/Documents/workspace/opendesk-browser/scripts/audit-fixed-entries.mjs:142:22)
+      at summarizePackageResources (file:///Users/shopme/Documents/workspace/opendesk-browser/scripts/audit-fixed-entries.mjs:173:5)
+      at TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/environment/fixed-entries-audit.test.mjs:173:16)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:897:18)
+      at Test.postRun (node:internal/test_runner/test:1447:19)
+      at Test.run (node:internal/test_runner/test:1372:12)
+
+test at tests/environment/sidebar-ui-preview.test.mjs:135:1
+✖ R20/R23 five-tab design system has one token source and a strict trusted asset pipeline (1.868083ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /'ui\/tool\.html': \['design-tokens\.css', 'design-system\.css', 'tool-shell\.css', 'tool-shell\.js'\]/. Input:
+  
+  "import {readdir, readFile, stat} from 'node:fs/promises';\n" +
+    "import {join, resolve, dirname, basename} from 'node:path';\n" +
+    "import {createHash} from 'node:crypto';\n" +
+    "import {createRequire} from 'node:module';\n" +
+    "import {pathToFileURL} from 'node:url';\n" +
+    "import {PACKAGE_ENTRIES, FIXED_OUTPUTS, BUILD_POLICY, PINNED_USER_SCRIPT_LIBRARIES, RESOURCE_LIMITS, entryByteBudget} from './build-contract.mjs';\n" +
+    "import {REQUIRED_BROWSER_API_PERMISSIONS, OPTIONAL_PLUGIN_API_PERMISSIONS, REQUIRED_HOST_PATTERNS} from '../src/platform/chrome/permission-gate.js';\n" +
+    "import {SDK_RESOURCE_PATHS, SDK_RESOURCE_MANIFEST} from '../src/framework/sdk/resource-contract.js';\n" +
+    "import {BUILTIN_CATALOG,BUILTIN_RESOURCE_PATHS,BUILTIN_RUNTIME_CATALOG} from '../src/libs/catalog.js';\n" +
+    "import {PAGE_FRAMEWORK_RUNTIMES,PAGE_FRAMEWORK_RESOURCE_LIMIT,PAGE_BROWSER_PRIVATE_FILES,PAGE_BROWSER_COMPILER,PAGE_BROWSER_COMPILER_RESOURCE_LIMIT} from '../src/libs/page-frameworks/contract.js';\n" +
+    "import {inspectWorkspaceStyle} from './build-workspace-style.mjs';\n" +
+    "import {readOfficialSources,createOfficialToolResources} from './build-official-tools.mjs';\n" +
+    "import {OFFICIAL_CATALOG_PATH,officialPackagePath} from '../src/sidebar-tools/official-catalog.js';\n" +
+    "import {resolveMarketChannel,marketExternalConnectable,MARKET_CHANNEL_PATH} from './market-channel.mjs';\n" +
+    'const require = createRequire(import.meta.url);\n' +
+    "const {parse} = require('acorn');\n" +
+    'export {PACKAGE_ENTRIES, FIXED_OUTPUTS, BUILD_POLICY, SDK_RESOURCE_MANIFEST};\n' +
+    "export const BUILD_CONTRACT_SOURCE = 'scripts/build-contract.mjs';\n" +
+    'export const BUILTIN_RESOURCE_MANIFEST=BUILTIN_CATALOG.resourceManifest;\n' +
+    "export const SANDBOX_HTML = 'scripting/sandbox/sandbox.html';\n" +
+    "export const TOOL_SANDBOX_HTML = 'sidebar-tools/sandbox.html';\n" +
+    `export const TOOL_SANDBOX_META_CSP = "default-src 'none'; script-src 'self' blob:; style-src 'unsafe-inline'; img-src data: blob:; connect-src 'none'; child-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'";\n` +
+    `export const TOOL_HOST_META_CSP = "frame-src 'self'";\n` +
+    `export const WORKSPACE_HOST_META_CSP = "frame-src 'self' http://127.0.0.1:* http://localhost:*";\n` +
+    "export const CONTROL_WORKER = 'scripting/sandbox/worker-runtime.js';\n" +
+    `export const EXTENSION_CSP = "script-src 'self'; object-src 'self'";\n` +
+    `export const SANDBOX_META_CSP = "default-src 'none'; script-src 'self' 'unsafe-eval'; worker-src blob:; connect-src 'none'; child-src 'none'; img-src 'none'; style-src 'none'; base-uri 'none'; form-action 'none'";\n` +
+    `export const SANDBOX_CSP = "sandbox allow-scripts; default-src 'none'; script-src 'self' 'unsafe-eval' blob:; worker-src blob:; connect-src 'none'; child-src 'none'; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; base-uri 'none'; form-action 'none'";\n` +
+    "export const SDK_MAIN_WAR = Object.freeze([{resources: ['framework/sdk-main.js'], matches: ['http://*/*', 'https://*/*']}]);\n" +
+    'export const SDK_AUTOMATIC_CONTENT_SCRIPTS = Object.freeze([\n' +
+    "  {matches:['http://*/*','https://*/*'],js:['agents/page-relay.js'],run_at:'document_start',all_frames:true,world:'ISOLATED'},\n" +
+    "  {matches:['http://*/*','https://*/*'],js:['framework/sdk-main.js'],run_at:'document_start',all_frames:true,world:'MAIN'}\n" +
+    ']);\n' +
+    'export const FIXED_ASSETS = Object.freeze({\n' +
+    "  'icons/notification.png': {bytes: 595, sha256: 'efb5caddc95697204e98f9e7319119095ea195fa02448904bc985e90e96d4de6'},\n" +
+    "  'licenses/todo-user-vue-MIT.txt': {bytes: 1096, sha256: 'e301f131f52747f87193c4a41d3d5c09e6c021cc664a6a3101a2213635f03f29'},\n" +
+    "  'licenses/jquery-MIT.txt': {bytes: 1097, sha256: 'd4db9ebe6f29f5168eac45ad713f055623ac5d0dcd5ba92da23d650ae012020d'}\n" +
+    '});\n' +
+    'const HTML_REFERENCES = Object.freeze({\n' +
+    "  'ui/tool.html': ['design-tokens.css', 'design-system.css', 'tool-shell.css', 'cloud-hosting.css', 'tool-shell.js'],\n" +
+    "  'ui/cloud-control.html': ['design-tokens.css', 'design-system.css', 'cloud-control-console.css', 'cloud-console.js'],\n" +
+    "  'ui/marketplace.html': ['design-tokens.css', 'marketplace.css', 'marketplace.js'],\n" +
+    "  'native-agent/settings.html': ['../ui/design-tokens.css', 'settings.css', 'settings.js'],\n" +
+    "  'native-agent/workspace.html': ['workspace.css','settings.js'],\n" +
+    "  'ui/target-bootstrap.html': ['../agents/bootstrap.js'],\n" +
+    "  [SANDBOX_HTML]: ['sandbox.js'],\n" +
+    "  [TOOL_SANDBOX_HTML]: ['bridge.js']\n" +
+    '});\n' +
+    "const generatedJS = ['sw.js', ...Object.values(FIXED_OUTPUTS)].sort();\n" +
+    'const vendorJS = [BUILTIN_CATALOG.bootstrap,...Object.values(PINNED_USER_SCRIPT_LIBRARIES).map(row => row.output)];\n' +
+    'const frameworkJS=Object.values(PAGE_FRAMEWORK_RUNTIMES).map(row=>row.output);\n' +
+    "const browserCompilerJS=PAGE_BROWSER_PRIVATE_FILES.map(row=>row.output).filter(path=>path.endsWith('.js'));\n" +
+    "const browserCompilerESM=PAGE_BROWSER_PRIVATE_FILES.map(row=>row.output).filter(path=>path.endsWith('.mjs'));\n" +
+    'const frameworkLicenses=Object.values(PAGE_FRAMEWORK_RUNTIMES).map(row=>row.licensePath);\n' +
+    'const expectedJS = [...generatedJS, ...vendorJS, ...frameworkJS, ...browserCompilerJS].sort();\n' +
+    'const officialSource=await readOfficialSources();\n' +
+    'const officialPaths=[OFFICIAL_CATALOG_PATH,...officialSource.tools.map(row=>officialPackagePath(row.id))];\n' +
+    "const required = ['manifest.json', MARKET_CHANNEL_PATH, SDK_RESOURCE_MANIFEST, BUILTIN_RESOURCE_MANIFEST,\n" +
+    '  ...BUILTIN_RESOURCE_PATHS,...frameworkLicenses,...browserCompilerESM,PAGE_BROWSER_COMPILER.licensePath,\n' +
+    "  ...Object.keys(HTML_REFERENCES), 'ui/design-tokens.css', 'ui/design-system.css', 'ui/tool-shell.css', 'ui/cloud-hosting.css', 'ui/cloud-control-console.css', 'native-agent/settings.css', 'native-agent/workspace.css', 'ui/marketplace.css', ...officialPaths, ...expectedJS, ...Object.keys(FIXED_ASSETS)].sort();\n" +
+    'const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);\n' +
+    "const digest = bytes => createHash('sha256').update(bytes).digest('hex');\n" +
+    '// SW shipping cap: 1 MiB (512 KiB review); development SW: 1.5 MiB.\n' +
+    '// Other generated JS remains capped at 512 KiB; safety scans are unchanged.\n' +
+    "if (!same(BUILD_POLICY, {productionBytes: 512 * 1024, fixedEntryReviewBytes: 320 * 1024, serviceWorkerProductionBytes: 1024 * 1024, serviceWorkerReviewBytes: 512 * 1024, developmentBytes: 1536 * 1024, splitChunks: false, runtimeChunk: false, formats: ['iife'], sourcemap: {production: false, development: true}})) throw new Error('Unexpected build policy contract');\n" +
+    "if (Object.entries(PACKAGE_ENTRIES).some(([name]) => name !== 'sw' && FIXED_OUTPUTS[name.split('/').at(-1)] !== `${name}.js`)) throw new Error('Unexpected fixed output contract');\n" +
+    "if (!Object.isFrozen(SDK_RESOURCE_PATHS) || !same(SDK_RESOURCE_PATHS, ['framework/sdk-main.js', 'agents/page-relay.js']) || SDK_RESOURCE_MANIFEST !== 'framework/sdk-resources.json') throw new Error('Unexpected SDK resource contract');\n" +
+    "export async function filesAt(root, prefix = '') {\n" +
+    '  const list = [];\n' +
+    '  for (const item of await readdir(join(root, prefix), {withFileTypes: true})) {\n' +
+    '    const name = prefix ? `${prefix}/${item.name}` : item.name;\n' +
+    '    if (item.isSymbolicLink()) throw new Error(`Symlink forbidden in artifact: ${name}`);\n' +
+    '    if (item.isDirectory()) list.push(...await filesAt(root, name));\n' +
+    '    else if (item.isFile()) list.push(name);\n' +
+    '    else throw new Error(`Non-file forbidden in artifact: ${name}`);\n' +
+    '  }\n' +
+    '  return list.sort();\n' +
+    '}\n' +
+    'export async function packageFingerprint(root) {\n' +
+    '  const files = [];\n' +
+    '  for (const path of await filesAt(root)) {\n' +
+    '    const bytes = await readFile(join(root, path));\n' +
+    '    files.push({path, bytes: bytes.length, sha256: digest(bytes)});\n' +
+    '  }\n' +
+    "  return {packageHash: digest(JSON.stringify(files)), hashRecipe: 'SHA256 UTF-8 JSON.stringify(path-sorted [{path,bytes,sha256}]); exact file bytes', files};\n" +
+    '}\n' +
+    'export async function createSdkResourceManifest(directory) {\n' +
+    '  const root = resolve(directory), resources = [];\n' +
+    '  for (const path of SDK_RESOURCE_PATHS) {\n' +
+    '    const bytes = await readFile(join(root, path));\n' +
+    '    resources.push({path, bytes: bytes.length, sha256: digest(bytes)});\n' +
+    '  }\n' +
+    '  return {schemaVersion: 1, resources};\n' +
+    '}\n' +
+    'export async function verifySdkResourceManifest(directory) {\n' +
+    '  const root = resolve(directory);\n' +
+    '  const bytes = await readFile(join(root, SDK_RESOURCE_MANIFEST));\n' +
+    '  if (bytes.length > 8192) throw new Error(`SDK resource manifest exceeds reader size limit: ${SDK_RESOURCE_MANIFEST}`);\n' +
+    '  let manifest;\n' +
+    "  try { manifest = JSON.parse(new TextDecoder('utf-8', {fatal: true}).decode(bytes)); }\n" +
+    '  catch { throw new Error(`Invalid SDK resource manifest JSON: ${SDK_RESOURCE_MANIFEST}`); }\n' +
+    "  const fields = (value, keys) => value && typeof value === 'object' && !Array.isArray(value) &&\n" +
+    '    same(Object.keys(value).sort(), [...keys].sort());\n' +
+    "  if (!fields(manifest, ['schemaVersion', 'resources']) || manifest.schemaVersion !== 1 ||\n" +
+    '      !Array.isArray(manifest.resources) || manifest.resources.length !== SDK_RESOURCE_PATHS.length ||\n' +
+    "      !manifest.resources.every((entry, index) => fields(entry, ['path', 'bytes', 'sha256']) &&\n" +
+    '        entry.path === SDK_RESOURCE_PATHS[index] && Number.isSafeInteger(entry.bytes) && entry.bytes > 0 &&\n' +
+    "        entry.bytes <= BUILD_POLICY.productionBytes && typeof entry.sha256 === 'string' && entry.sha256.length === 64 && /^[a-f0-9]{64}$/.test(entry.sha256)))\n" +
+    '    throw new Error(`Invalid SDK resource manifest schema: ${SDK_RESOURCE_MANIFEST}`);\n' +
+    '  const actual = await createSdkResourceManifest(root);\n' +
+    '  for (const [index, entry] of actual.resources.entries()) {\n' +
+    '    const expected = manifest.resources[index];\n' +
+    '    if (entry.bytes !== expected.bytes || entry.sha256 !== expected.sha256) throw new Error(`SDK resource integrity mismatch in ${entry.path}`);\n' +
+    '  }\n' +
+    '  return actual;\n' +
+    '}\n' +
+    'export async function createBuiltinResourceManifest(directory) {\n' +
+    '  const root=resolve(directory),resources=[];\n' +
+    '  const paths=BUILTIN_RESOURCE_PATHS;\n' +
+    '  for(const path of paths) {\n' +
+    '    const bytes=await readFile(join(root,path));\n' +
+    '    resources.push({path,bytes:bytes.length,sha256:digest(bytes)});\n' +
+    '  }\n' +
+    "  return {format:'opendesk.builtin-resources.v2',abi:BUILTIN_CATALOG.abi,\n" +
+    '    catalogSha256:digest(Buffer.from(JSON.stringify(BUILTIN_RUNTIME_CATALOG))),resources};\n' +
+    '}\n' +
+    'export async function verifyBuiltinResourc'... 28448 more characters
+  
+      at TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/environment/sidebar-ui-preview.test.mjs:165:10)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'import {readdir, readFile, stat} from \'node:fs/promises\';\nimport {join, resolve, dirname, basename} from \'node:path\';\nimport {createHash} from \'node:crypto\';\nimport {createRequire} from \'node:module\';\nimport {pathToFileURL} from \'node:url\';\nimport {PACKAGE_ENTRIES, FIXED_OUTPUTS, BUILD_POLICY, PINNED_USER_SCRIPT_LIBRARIES, RESOURCE_LIMITS, entryByteBudget} from \'./build-contract.mjs\';\nimport {REQUIRED_BROWSER_API_PERMISSIONS, OPTIONAL_PLUGIN_API_PERMISSIONS, REQUIRED_HOST_PATTERNS} from \'../src/platform/chrome/permission-gate.js\';\nimport {SDK_RESOURCE_PATHS, SDK_RESOURCE_MANIFEST} from \'../src/framework/sdk/resource-contract.js\';\nimport {BUILTIN_CATALOG,BUILTIN_RESOURCE_PATHS,BUILTIN_RUNTIME_CATALOG} from \'../src/libs/catalog.js\';\nimport {PAGE_FRAMEWORK_RUNTIMES,PAGE_FRAMEWORK_RESOURCE_LIMIT,PAGE_BROWSER_PRIVATE_FILES,PAGE_BROWSER_COMPILER,PAGE_BROWSER_COMPILER_RESOURCE_LIMIT} from \'../src/libs/page-frameworks/contract.js\';\nimport {inspectWorkspaceStyle} from \'./build-workspace-style.mjs\';\nimport {readOfficialSources,createOfficialToolResources} from \'./build-official-tools.mjs\';\nimport {OFFICIAL_CATALOG_PATH,officialPackagePath} from \'../src/sidebar-tools/official-catalog.js\';\nimport {resolveMarketChannel,marketExternalConnectable,MARKET_CHANNEL_PATH} from \'./market-channel.mjs\';\nconst require = createRequire(import.meta.url);\nconst {parse} = require(\'acorn\');\nexport {PACKAGE_ENTRIES, FIXED_OUTPUTS, BUILD_POLICY, SDK_RESOURCE_MANIFEST};\nexport const BUILD_CONTRACT_SOURCE = \'scripts/build-contract.mjs\';\nexport const BUILTIN_RESOURCE_MANIFEST=BUILTIN_CATALOG.resourceManifest;\nexport const SANDBOX_HTML = \'scripting/sandbox/sandbox.html\';\nexport const TOOL_SANDBOX_HTML = \'sidebar-tools/sandbox.html\';\nexport const TOOL_SANDBOX_META_CSP = "default-src \'none\'; script-src \'self\' blob:; style-src \'unsafe-inline\'; img-src data: blob:; connect-src \'none\'; child-src \'none\'; object-src \'none\'; base-uri \'none\'; form-action \'none\'";\nexport const TOOL_HOST_META_CSP = "frame-src \'self\'";\nexport const WORKSPACE_HOST_META_CSP = "frame-src \'self\' http://127.0.0.1:* http://localhost:*";\nexport const CONTROL_WORKER = \'scripting/sandbox/worker-runtime.js\';\nexport const EXTENSION_CSP = "script-src \'self\'; object-src \'self\'";\nexport const SANDBOX_META_CSP = "default-src \'none\'; script-src \'self\' \'unsafe-eval\'; worker-src blob:; connect-src \'none\'; child-src \'none\'; img-src \'none\'; style-src \'none\'; base-uri \'none\'; form-action \'none\'";\nexport const SANDBOX_CSP = "sandbox allow-scripts; default-src \'none\'; script-src \'self\' \'unsafe-eval\' blob:; worker-src blob:; connect-src \'none\'; child-src \'none\'; img-src \'self\' data: blob:; style-src \'self\' \'unsafe-inline\'; base-uri \'none\'; form-action \'none\'";\nexport const SDK_MAIN_WAR = Object.freeze([{resources: [\'framework/sdk-main.js\'], matches: [\'http://*/*\', \'https://*/*\']}]);\nexport const SDK_AUTOMATIC_CONTENT_SCRIPTS = Object.freeze([\n  {matches:[\'http://*/*\',\'https://*/*\'],js:[\'agents/page-relay.js\'],run_at:\'document_start\',all_frames:true,world:\'ISOLATED\'},\n  {matches:[\'http://*/*\',\'https://*/*\'],js:[\'framework/sdk-main.js\'],run_at:\'document_start\',all_frames:true,world:\'MAIN\'}\n]);\nexport const FIXED_ASSETS = Object.freeze({\n  \'icons/notification.png\': {bytes: 595, sha256: \'efb5caddc95697204e98f9e7319119095ea195fa02448904bc985e90e96d4de6\'},\n  \'licenses/todo-user-vue-MIT.txt\': {bytes: 1096, sha256: \'e301f131f52747f87193c4a41d3d5c09e6c021cc664a6a3101a2213635f03f29\'},\n  \'licenses/jquery-MIT.txt\': {bytes: 1097, sha256: \'d4db9ebe6f29f5168eac45ad713f055623ac5d0dcd5ba92da23d650ae012020d\'}\n});\nconst HTML_REFERENCES = Object.freeze({\n  \'ui/tool.html\': [\'design-tokens.css\', \'design-system.css\', \'tool-shell.css\', \'cloud-hosting.css\', \'tool-shell.js\'],\n  \'ui/cloud-control.html\': [\'design-tokens.css\', \'design-system.css\', \'cloud-control-console.css\', \'cloud-console.js\'],\n  \'ui/marketplace.html\': [\'design-tokens.css\', \'marketplace.css\', \'marketplace.js\'],\n  \'native-agent/settings.html\': [\'../ui/design-tokens.css\', \'settings.css\', \'settings.js\'],\n  \'native-agent/workspace.html\': [\'workspace.css\',\'settings.js\'],\n  \'ui/target-bootstrap.html\': [\'../agents/bootstrap.js\'],\n  [SANDBOX_HTML]: [\'sandbox.js\'],\n  [TOOL_SANDBOX_HTML]: [\'bridge.js\']\n});\nconst generatedJS = [\'sw.js\', ...Object.values(FIXED_OUTPUTS)].sort();\nconst vendorJS = [BUILTIN_CATALOG.bootstrap,...Object.values(PINNED_USER_SCRIPT_LIBRARIES).map(row => row.output)];\nconst frameworkJS=Object.values(PAGE_FRAMEWORK_RUNTIMES).map(row=>row.output);\nconst browserCompilerJS=PAGE_BROWSER_PRIVATE_FILES.map(row=>row.output).filter(path=>path.endsWith(\'.js\'));\nconst browserCompilerESM=PAGE_BROWSER_PRIVATE_FILES.map(row=>row.output).filter(path=>path.endsWith(\'.mjs\'));\nconst frameworkLicenses=Object.values(PAGE_FRAMEWORK_RUNTIMES).map(row=>row.licensePath);\nconst expectedJS = [...generatedJS, ...vendorJS, ...frameworkJS, ...browserCompilerJS].sort();\nconst officialSource=await readOfficialSources();\nconst officialPaths=[OFFICIAL_CATALOG_PATH,...officialSource.tools.map(row=>officialPackagePath(row.id))];\nconst required = [\'manifest.json\', MARKET_CHANNEL_PATH, SDK_RESOURCE_MANIFEST, BUILTIN_RESOURCE_MANIFEST,\n  ...BUILTIN_RESOURCE_PATHS,...frameworkLicenses,...browserCompilerESM,PAGE_BROWSER_COMPILER.licensePath,\n  ...Object.keys(HTML_REFERENCES), \'ui/design-tokens.css\', \'ui/design-system.css\', \'ui/tool-shell.css\', \'ui/cloud-hosting.css\', \'ui/cloud-control-console.css\', \'native-agent/settings.css\', \'native-agent/workspace.css\', \'ui/marketplace.css\', ...officialPaths, ...expectedJS, ...Object.keys(FIXED_ASSETS)].sort();\nconst same = (a, b) => JSON.stringify(a) === JSON.stringify(b);\nconst digest = bytes => createHash(\'sha256\').update(bytes).digest(\'hex\');\n// SW shipping cap: 1 MiB (512 KiB review); development SW: 1.5 MiB.\n// Other generated JS remains capped at 512 KiB; safety scans are unchanged.\nif (!same(BUILD_POLICY, {productionBytes: 512 * 1024, fixedEntryReviewBytes: 320 * 1024, serviceWorkerProductionBytes: 1024 * 1024, serviceWorkerReviewBytes: 512 * 1024, developmentBytes: 1536 * 1024, splitChunks: false, runtimeChunk: false, formats: [\'iife\'], sourcemap: {production: false, development: true}})) throw new Error(\'Unexpected build policy contract\');\nif (Object.entries(PACKAGE_ENTRIES).some(([name]) => name !== \'sw\' && FIXED_OUTPUTS[name.split(\'/\').at(-1)] !== `${name}.js`)) throw new Error(\'Unexpected fixed output contract\');\nif (!Object.isFrozen(SDK_RESOURCE_PATHS) || !same(SDK_RESOURCE_PATHS, [\'framework/sdk-main.js\', \'agents/page-relay.js\']) || SDK_RESOURCE_MANIFEST !== \'framework/sdk-resources.json\') throw new Error(\'Unexpected SDK resource contract\');\nexport async function filesAt(root, prefix = \'\') {\n  const list = [];\n  for (const item of await readdir(join(root, prefix), {withFileTypes: true})) {\n    const name = prefix ? `${prefix}/${item.name}` : item.name;\n    if (item.isSymbolicLink()) throw new Error(`Symlink forbidden in artifact: ${name}`);\n    if (item.isDirectory()) list.push(...await filesAt(root, name));\n    else if (item.isFile()) list.push(name);\n    else throw new Error(`Non-file forbidden in artifact: ${name}`);\n  }\n  return list.sort();\n}\nexport async function packageFingerprint(root) {\n  const files = [];\n  for (const path of await filesAt(root)) {\n    const bytes = await readFile(join(root, path));\n    files.push({path, bytes: bytes.length, sha256: digest(bytes)});\n  }\n  return {packageHash: digest(JSON.stringify(files)), hashRecipe: \'SHA256 UTF-8 JSON.stringify(path-sorted [{path,bytes,sha256}]); exact file bytes\', files};\n}\nexport async function createSdkResourceManifest(directory) {\n  const root = resolve(directory), resources = [];\n  for (const path of SDK_RESOURCE_PATHS) {\n    const bytes = await readFile(join(root, path));\n    resources.push({path, bytes: bytes.length, sha256: digest(bytes)});\n  }\n  return {schemaVersion: 1, resources};\n}\nexport async function verifySdkResourceManifest(directory) {\n  const root = resolve(directory);\n  const bytes = await readFile(join(root, SDK_RESOURCE_MANIFEST));\n  if (bytes.length > 8192) throw new Error(`SDK resource manifest exceeds reader size limit: ${SDK_RESOURCE_MANIFEST}`);\n  let manifest;\n  try { manifest = JSON.parse(new TextDecoder(\'utf-8\', {fatal: true}).decode(bytes)); }\n  catch { throw new Error(`Invalid SDK resource manifest JSON: ${SDK_RESOURCE_MANIFEST}`); }\n  const fields = (value, keys) => value && typeof value === \'object\' && !Array.isArray(value) &&\n    same(Object.keys(value).sort(), [...keys].sort());\n  if (!fields(manifest, [\'schemaVersion\', \'resources\']) || manifest.schemaVersion !== 1 ||\n      !Array.isArray(manifest.resources) || manifest.resources.length !== SDK_RESOURCE_PATHS.length ||\n      !manifest.resources.every((entry, index) => fields(entry, [\'path\', \'bytes\', \'sha256\']) &&\n        entry.path === SDK_RESOURCE_PATHS[index] && Number.isSafeInteger(entry.bytes) && entry.bytes > 0 &&\n        entry.bytes <= BUILD_POLICY.productionBytes && typeof entry.sha256 === \'string\' && entry.sha256.length === 64 && /^[a-f0-9]{64}$/.test(entry.sha256)))\n    throw new Error(`Invalid SDK resource manifest schema: ${SDK_RESOURCE_MANIFEST}`);\n  const actual = await createSdkResourceManifest(root);\n  for (const [index, entry] of actual.resources.entries()) {\n    const expected = manifest.resources[index];\n    if (entry.bytes !== expected.bytes || entry.sha256 !== expected.sha256) throw new Error(`SDK resource integrity mismatch in ${entry.path}`);\n  }\n  return actual;\n}\nexport async function createBuiltinResourceManifest(directory) {\n  const root=resolve(directory),resources=[];\n  const paths=BUILTIN_RESOURCE_PATHS;\n  for(const path of paths) {\n    const bytes=await readFile(join(root,path));\n    resources.push({path,bytes:bytes.length,sha256:digest(bytes)});\n  }\n  return {format:\'opendesk.builtin-resources.v2\',abi:BUILTIN_CATALOG.abi,\n    catalogSha256:digest(Buffer.from(JSON.stringify(BUILTIN_RUNTIME_CATALOG))),resources};\n}\nexport async function verifyBuiltinResourc'... 28448 more characters,
+    expected: /'ui\/tool\.html': \['design-tokens\.css', 'design-system\.css', 'tool-shell\.css', 'tool-shell\.js'\]/,
+    operator: 'match',
+    diff: 'simple'
+  }
