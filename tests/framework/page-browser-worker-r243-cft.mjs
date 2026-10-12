@@ -182,6 +182,63 @@ async function verifyBrowserUI({browser,page,catalogTabId,base,extensionId,outpu
       const image=await website.session.call('Page.captureScreenshot',{format:'png'});
       fs.writeFileSync(path.join(output,'r243-browser-'+framework+'-stopped.png'),Buffer.from(image.data,'base64'));
     }
+    // The last successfully executed Vue source must NEVER be replayed when
+    // the user edits it into a syntax error. Use Chrome's native text input;
+    // Runtime.evaluate is used only to select the textarea, never to fake Run.
+    const vuePrevious=report.tests.find(row=>row.name==='r243-browser-vue-no-native-real-run-stop');
+    assert(vuePrevious?.previewId);
+    const editorNode='document.querySelector("#script-source")';
+    const originalVue=await sidebar.read(editorNode+'.value');
+    const brokenVue='<script setup>import {ref} from "vue"; const = ref(0);</script>'+
+      '<template><button>broken</button></template>';
+    async function typeSource(source){
+      assert.equal(await sidebar.read('(()=>{const editor='+editorNode+
+        ';if(!editor)return false;editor.focus();editor.select();return true})()'),true);
+      await sidebar.call('Input.insertText',{text:source});
+      await until(()=>sidebar.read(editorNode+'.value==='+JSON.stringify(source)),
+        'native editor input preserved exact authored bytes',10000);
+    }
+    await typeSource(brokenVue);
+    await until(()=>sidebar.read('!document.querySelector("#page-preview-run").disabled'),
+      'invalid source is still reviewable via explicit Run');
+    await clickReal(sidebar,'document.querySelector("#page-preview-run")');
+    const invalid=await until(()=>sidebar.read('(()=>{const el=document.querySelector("#page-preview-status");'+
+      'return el?.dataset.state==="error"?el.textContent:null})()'),
+      'syntax-error source rejected by on-demand SFC compiler',60000);
+    assert.match(invalid,/E_PAGE_VUE_|E_PAGE_COMPONENT_SYNTAX|E_PAGE_COMPILER_/,
+      'Compiler must reject broken source with an actionable error');
+    assert.equal(await website.session.read(
+      '!document.querySelector("[data-od-id=browser-vue]")'),true,
+      'New invalid source must not resurrect previous successful Vue DOM');
+    assert.equal(await sidebar.read('document.querySelector("#page-preview-technical").textContent'), '',
+      'No previous sourceHash, previewId or success receipt may be reused for failed source');
+    report.tests.push({name:'r243-browser-vue-invalid-edit-no-stale-execution',
+      status:'PASS',previousPreviewId:vuePrevious.previewId,
+      error:invalid.slice(0,240),noOldDOM:true,noStaleReceipt:true,noNative:true});
+    // A later corrected source is a separate explicit Run/Stop with its own
+    // previewId; a failed transform cannot poison the next valid candidate.
+    await typeSource(originalVue);
+    await until(()=>sidebar.read('!document.querySelector("#page-preview-run").disabled'),
+      'corrected Vue source ready for explicit user Run',15000);
+    await clickReal(sidebar,'document.querySelector("#page-preview-run")');
+    const recovered=await until(()=>sidebar.read('(()=>{const el=document.querySelector("#page-preview-status");'+
+      'return el?.dataset.state==="completed"?el.textContent:null})()'),
+      'genuine Vue component recovery after compiler failure',60000);
+    assert.match(recovered,/组件已在当前网页运行/);
+    const nextReceipt=JSON.parse(await sidebar.read(
+      'document.querySelector("#page-preview-technical").textContent'));
+    assert.equal(nextReceipt.state,'preview-evaluated');
+    assert.notEqual(nextReceipt.managedPreviewId,vuePrevious.previewId);
+    assert.equal(nextReceipt.packagedFrameworkId,'vue');
+    await until(()=>website.session.read(
+      'document.querySelector("[data-od-id=browser-vue]")?.shadowRoot?.querySelector("button")!=null'),
+      'corrected Vue component genuinely mounted',12000);
+    await clickReal(sidebar,'document.querySelector("#script-stop")');
+    await until(()=>website.session.read('!document.querySelector("[data-od-id=browser-vue]")'),
+      'corrected Vue component stopped using original managed receipt',12000);
+    report.tests.push({name:'r243-browser-vue-recovery-after-invalid-edit',status:'PASS',
+      previewId:nextReceipt.managedPreviewId,sourceHash:nextReceipt.sourceHash,
+      previousPreviewId:vuePrevious.previewId,realRun:true,domClean:true,noNative:true});
   }finally{
     settings?.session.close();website?.session.close();sidebar?.close();
     if(site)await new Promise(resolve=>site.close(resolve));
