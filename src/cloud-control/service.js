@@ -87,7 +87,8 @@ export function createCloudService({storage,api,clock={now:()=>Date.now()},asser
         enabled:!!c?.enabled,connection:connectionState,online,reconciled,hostReady:true,
         slotAvailable:!slot?.currentRunId&&!slot?.preview,
         tasks:c?.tasks?.map(t=>({taskId:t.taskId,version:t.version,manifestHash:t.manifestHash,
-          sourceHash:t.contentHash,siteOrigins:t.manifest.siteOrigins,resultAllowed:t.resultAllowed}))||[],
+          sourceHash:t.contentHash,siteOrigins:t.manifest.siteOrigins,resultAllowed:t.resultAllowed,
+          installationId:t.installationId,generation:t.generation}))||[],
         requestTotal:total,requestPage:{offset,limit,nextOffset},requests:projected,
         historyIndexStatus:historyMigrationBlocked?'migration-blocked':historyReady?'indexed':'legacy'};
     });
