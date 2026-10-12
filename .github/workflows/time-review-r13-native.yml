@@ -40,14 +40,14 @@ jobs:
           chrome-version: '155.0.8059.39'
       - name: Real Mac CFT installed tool, native SIDE_PANEL, trusted opt-in, actual download
         env:
-          CHROME_BIN: \${{ steps.chrome.outputs.chrome-path }}
+          CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
           OPENDESK_TIME_NATIVE_EVIDENCE: artifacts/time-review-r13-native
         run: node --test tests/framework/time-review-r13-native.test.mjs
       - name: Keep raw Native Chrome evidence including failures
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: time-review-r13-actual-macos-chrome-\${{ github.sha }}
+          name: time-review-r13-actual-macos-chrome-${{ github.sha }}
           retention-days: 14
           if-no-files-found: warn
           path:
