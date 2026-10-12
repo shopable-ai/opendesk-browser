@@ -112,7 +112,7 @@ dist/production/、dist/development/           # 整个 Chrome 扩展构建产�
 | `storage.local` | `storage.get`、`storage.set` | 工具 ID 专属存储，单项 JSON ≤8,192 bytes、最多 32 键、总 JSON ≤32,768 bytes；支持条件写入 `withEtag/ifMatch` |
 | `currentPage.read` | `currentPage.info` | 当前可信目标的普通网页标题与 URL；不返回 DOM、Cookie、完整正文 |
 | `tasks.open` | `tasks.open` | 导航到已安装且已启用任务的 UI；不等于启动任务 |
-| `user.export` | `clipboard.writeText`、`file.download` | 手动复制或请求 Markdown 下载；本文本上限 150 KB，下载文件名必须为安全的 `.md`；浏览器可能拒绝剪贴板 |
+| `user.export` | `clipboard.writeText`、`file.download` | 用户操作后复制或下载纯文本；上限 150 KB，文件名仅允许安全的 `.md` / `.txt` / `.json`；浏览器可能拒绝剪贴板 |
 
 **仅在已有官方可信服务存在、并取得额外授权时才可用的专项能力**：`page.toc`（目录服务）、`page.clip`（文章/选区剪藏）、`page.capture` 与 `knowledge.store`（知识收件箱官方专用）。这些名字即使在 schema 允许列表中，也**不代表第三方小工具可获得任意网页访问、后台调用、任意 Native 文件写入或通用数据采集**。扩展新 capability 需要先实现受信宿主、精确消息合同、用户批准、撤权和负向测试，不靠文档或 JSON 声明虚构运行能力。
 
