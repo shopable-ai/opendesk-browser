@@ -5,6 +5,7 @@ on:
     paths:
       - 'src/framework/sdk/browser*.js'
       - 'src/platform/chrome/browser-tabs.js'
+      - 'src/platform/chrome/cookies.js'
       - 'src/platform/chrome/browser-screenshot*.js'
       - 'src/platform/chrome/browser-network-observe.js'
       - 'src/platform/chrome/context-menus.js'
@@ -41,6 +42,7 @@ jobs:
         run: |
           node --test --test-reporter=spec \
             tests/environment/browser-sdk-r8-catalog.test.mjs \
+            tests/environment/browser-sdk-r8-cookies.test.mjs \
             tests/environment/browser-sdk-contract-compat.test.mjs \
             tests/environment/browser-sdk-coverage.test.mjs \
             tests/environment/browser-tabs-host.test.mjs \
