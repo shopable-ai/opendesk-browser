@@ -30,3 +30,7 @@ npm run verify && npm run build:size && npm run pack && npm run pack:dev
 ## 原生 Mac Chrome for Testing 专项新增用例
 
 `tests/framework/page-content-native-page.js` 在现有 R16.1 macOS CFT 真实用户脚本流程中新增 Axios + query-string 同程序的同源 HTTP GET、Interceptors、参数解析、双 SHA 回执及网站 MAIN 全局未污染断言。使用原生扩展 Broker 的 `previewPageScript`、严格 documentId 和已验资源，不以本地 VM 代替。已提交测试源码不等于成功，等待对应 SHA 的 [R16.1 工作流](https://github.com/shopable-ai/opendesk-browser/actions/workflows/r16-1-page-builtin-native.yml) 得到可信原始回执。
+
+## Controller 真实 Axios 工厂（阶段一）
+
+`src/libs/packages/axios.js` 新增直接复用真实 upstream Axios 1.20.0 的受控 Controller 工厂；`src/libs/adapters/axios-transport.js` 接受由现有 Worker Bridge 传送的已授权 `E_HTTP.cause.response`，其余取消/撤权直接拒绝。新定向单测覆盖 `get/post/create/request/interceptors`、最终 URL、Header、HTTP 错误以及覆盖 adapter 的拒绝。**这一步只提供受控工厂和 L2 测试，不应宣称 Controller main() 已接通**；仍需在固定库按需装载及真实 Worker 入口连接后另行验收。

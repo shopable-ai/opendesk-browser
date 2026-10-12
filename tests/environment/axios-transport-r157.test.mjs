@@ -74,3 +74,78 @@ test('fails if host proxy/getUri missing, never supplies a privileged fallback',
   assert.throws(()=>createAuthorizedAxiosTransport(),errorCode('E_AXIOS_TRANSPORT_NOT_READY'));
   assert.equal(/\b(?:chrome|fetch|eval)\s*\(/.test(String(createAuthorizedAxiosTransport)),false);
 });
+
+// The public Controller Axios must use the real upstream factory, without
+// changing main() ABI or allowing custom adapters/fetch fallback.
+test('real Controller Axios uses the same authorized Broker for create, request and interceptors',async()=>{
+  const {installControllerAxios}=await import('../../src/libs/packages/axios.js');
+  const calls=[];
+  const http=Object.fromEntries(['get','post','put','delete'].map(method=>[method,async(...args)=>{
+    calls.push({method,args});
+    return {status:200,statusText:'OK',data:'{"ok":true,"method":"'+method+'"}',
+      headers:{'content-type':'application/json'}};
+  }]));
+  const scope={};
+  const axios=installControllerAxios(scope,http);
+  assert.equal(scope.axios,axios);
+  assert.equal(typeof axios,'function');
+  assert.equal(typeof axios.request,'function');
+  assert.equal(typeof axios.create,'function');
+  const client=axios.create({baseURL:'https://example.test/api/'});
+  let intercepted=0;
+  const id=client.interceptors.request.use(config=>{intercepted++;config.headers.set('x-demo','yes');return config;});
+  const response=await client.get('items',{params:{word:'hello world'}});
+  assert.deepEqual(response.data,{ok:true,method:'get'});
+  assert.equal(response.status,200);
+  assert.equal(intercepted,1);
+  assert.equal(calls.length,1);
+  assert.equal(calls[0].method,'get');
+  assert.equal(calls[0].args[0],'https://example.test/api/items?word=hello+world');
+  assert.equal(calls[0].args[1].headers['x-demo'],'yes');
+  client.interceptors.request.eject(id);
+  await client.post('/save',{label:'OpenDesk'});
+  assert.equal(calls[1].method,'post');
+  assert.equal(calls[1].args[1],'{"label":"OpenDesk"}');
+  assert.throws(()=>installControllerAxios(scope,http),errorCode('E_BUILTIN_COLLISION'));
+  assert.throws(()=>installControllerAxios({document:{}},http),errorCode('E_BUILTIN_WORLD'));
+});
+
+test('Controller Axios cannot bypass admitted transport with custom adapter or forbidden headers',async()=>{
+  const {installControllerAxios}=await import('../../src/libs/packages/axios.js');
+  const calls=[];
+  const http=Object.fromEntries(['get','post','put','delete'].map(name=>[name,async()=>{
+    calls.push(name);return {status:200,data:'ok',headers:{}};
+  }]));
+  const axios=installControllerAxios({},http);
+  assert.throws(()=>axios.create({adapter:()=>({})}),errorCode('E_CONFIG_UNSUPPORTED'));
+  assert.throws(()=>axios.interceptors.request.clear(),errorCode('E_CONFIG_UNSUPPORTED'));
+  assert.throws(()=>axios.interceptors.request.eject(0),errorCode('E_CONFIG_UNSUPPORTED'));
+  for(const config of [
+    {url:'https://example.test/x',adapter:async()=>({status:200,data:'bypass'})},
+    {url:'https://example.test/x',headers:{Authorization:'secret'}},
+    {url:'https://example.test/x',responseType:'arraybuffer'},
+    {url:'https://example.test/x',withCredentials:true}
+  ])await assert.rejects(axios.request(config),error=>/^E_/.test(error.code));
+  assert.equal(calls.length,0,'No forbidden config may reach the Broker');
+});
+
+test('Controller Axios interprets authorized HTTP cause, but propagates revocation and stop',async()=>{
+  const {installControllerAxios}=await import('../../src/libs/packages/axios.js');
+  const response={status:429,statusText:'Too Many Requests',data:'{"message":"rate limit"}',
+    headers:{'content-type':'application/json'}};
+  let failureCode='E_HTTP';
+  const http=Object.fromEntries(['get','post','put','delete'].map(name=>[name,async()=>{
+    if(failureCode==='E_HTTP')throw Object.assign(new Error('HTTP 429'),{code:'E_HTTP',cause:{status:429,response}});
+    throw Object.assign(new Error(failureCode),{code:failureCode});
+  }]));
+  const axios=installControllerAxios({},http);
+  const accepted=await axios.get('https://example.test/status',{validateStatus:status=>status<500});
+  assert.equal(accepted.status,429);
+  assert.deepEqual(accepted.data,{message:'rate limit'});
+  await assert.rejects(axios.get('https://example.test/status'),
+    error=>error.isAxiosError===true&&error.response?.status===429);
+  for(const code of ['E_PERMISSION','E_CANCELLED','E_TIMEOUT']){
+    failureCode=code;
+    await assert.rejects(axios.get('https://example.test/status'),error=>error.code===code);
+  }
+});

@@ -62,10 +62,12 @@ export function createAuthorizedAxiosTransport({http,getUri,makeHttpError}={}){
       projection=method==='post'||method==='put'?
         await http[method](url,data,options):await http[method](url,options);
     }catch(error){
-      if(error?.code!=='E_HTTP'||!error.response)throw error;
-      // E_HTTP.response was produced after the host's authorization/receipt
-      // checks. Permissions, revocation and unknown native effects never land here.
-      projection=error.response;
+      // The Worker Bridge wraps authorized Broker HTTP errors as PageError
+      // with a structured cause. Preserve E_HTTP only; never reinterpret
+      // permission denial, cancellation or effect-unknown as HTTP responses.
+      const response=error?.response??error?.cause?.response;
+      if(error?.code!=='E_HTTP'||!response)throw error;
+      projection=response;
     }
     if(!projection||!Number.isInteger(projection.status)||projection.status<100||
       projection.status>599||typeof projection.data!=='string')
