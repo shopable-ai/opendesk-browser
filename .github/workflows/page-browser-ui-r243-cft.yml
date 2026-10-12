@@ -32,7 +32,7 @@ jobs:
       - name: Verify and build real MV3 package
         run: |
           npm run check
-          npm run build
+          npm run build:developer
       - uses: browser-actions/setup-chrome@v2
         id: chrome
         with:
@@ -40,6 +40,7 @@ jobs:
       - name: Genuine Chrome editor JSX Vue Run pointer update and managed Stop; Native absent
         env:
           CHROME_FOR_TESTING_BIN: ${{ steps.chrome.outputs.chrome-path }}
+          OPENDESK_DEV_PACKAGE_DIR: dist/production-developer
           OPENDESK_R243_BROWSER_FULL_UI: '1'
           OPENDESK_DEV_EVIDENCE: .runtime/tests/page-browser-ui-r243
           OPENDESK_DEV_CFT_LAUNCHER: ${{ github.workspace }}/tests/framework/cft-isolated-launcher.py
