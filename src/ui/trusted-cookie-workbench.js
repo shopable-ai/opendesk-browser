@@ -19,13 +19,17 @@ export function createTrustedCookieWorkbench({
   if(!panel||!readButton||!rowsNode||!statusNode||!targetNode||!nameNode||!valueNode||!pathNode||!saveButton)
     return Object.freeze({dispose(){}});
   let disposed=false,busy=false,rows=[],documentRef=null,pending=null,generation=0;
-  const listeners=[],subscriptions=[];
+  const listeners=[],rowListeners=[],subscriptions=[];
+  const listenRow=(node,name,fn)=>{node.addEventListener(name,fn);rowListeners.push(()=>node.removeEventListener?.(name,fn));};
   const listen=(node,name,fn)=>{node.addEventListener(name,fn);listeners.push(()=>node.removeEventListener?.(name,fn));};
   const setStatus=value=>{statusNode.textContent=value;};
-  const clearList=()=>{rows=[];rowsNode.replaceChildren();};
+  const clearList=()=>{
+    for(const off of rowListeners.splice(0))off();
+    rows=[];rowsNode.replaceChildren();
+  };
   const clearPending=()=>{pending=null;saveButton.textContent='写入 Cookie';};
   const reset=(message='选择已打开的网页并点击读取；默认隐藏 Cookie 值。')=>{
-    documentRef=null;generation++;clearPending();clearList();setStatus(message);
+    documentRef=null;generation++;clearPending();clearList();valueNode.value='';setStatus(message);
   };
   const targetShape=target=>Object.freeze({
     tabId:target.tabId,windowId:target.windowId,
@@ -79,6 +83,7 @@ export function createTrustedCookieWorkbench({
   const unsubscribe=currentPageTarget.subscribe(updateTarget);
   subscriptions.push(unsubscribe);
   function render(){
+    for(const off of rowListeners.splice(0))off();
     rowsNode.replaceChildren();
     if(!rows.length){const p=doc.createElement('p');p.className='hint';p.textContent='当前 URL 没有匹配的 Cookie。';rowsNode.append(p);return;}
     for(const cookie of rows){
@@ -95,12 +100,12 @@ export function createTrustedCookieWorkbench({
       const del=doc.createElement('button');del.type='button';del.className='od-button od-button--secondary';
       del.textContent='删除';del.setAttribute('aria-label','删除当前 Cookie');
       let revealed=false;
-      listen(show,'click',event=>{
+      listenRow(show,'click',event=>{
         if(!event.isTrusted||disposed)return;
         revealed=!revealed;secret.textContent=revealed?cookie.value:'••••••';
         show.textContent=revealed?'隐藏':'显示';
       });
-      listen(del,'click',event=>{
+      listenRow(del,'click',event=>{
         if(!event.isTrusted||disposed||busy)return;
         const key=cookieKey(cookie);
         if(!pending||pending.kind!=='remove'||pending.key!==key){
@@ -157,7 +162,7 @@ export function createTrustedCookieWorkbench({
     }
     clearPending();
     void execute('browser.cookies.set',{cookie:{name,value,path,
-      secure:true,sameSite:'lax'}},'Cookie 写入已提交。请重新点击读取以确认。');
+      secure:currentPageTarget.snapshot?.origin?.startsWith('https://')===true,sameSite:'lax'}},'Cookie 写入已提交。请重新点击读取以确认。');
   });
   listen(nameNode,'input',clearPending);
   listen(valueNode,'input',clearPending);
