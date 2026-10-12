@@ -666,9 +666,18 @@ test('Time Review R1.3 actual Mac Chrome install and trusted consent smoke',{ski
   note('real-tool-disable-reenable',{rotatedEpoch:true,daysPreserved:true,noAutoStart:true});
   await nativeClick(browser,manager,'#sidebar-tool-remove');
   await nativeClick(browser,manager,'#sidebar-tool-inline-remove-confirm');
-  const afterUninstall=await until(async()=>evaluate(browser,manager,
-    '(async()=>{const x=await chrome.storage.local.get(["opendesk.sidebar-tools.installed.v1","opendesk.time-review.v1","opendesk.sidebar-tools.uninstall-cleanup.v1"]);const rows=x["opendesk.sidebar-tools.installed.v1"];return {timeInstalled:rows?.some(t=>t.id==="time-review"),otherInstalled:rows?.some(t=>t.id==="reading-toc"),reviewPresent:Object.hasOwn(x,"opendesk.time-review.v1"),cleanup:x["opendesk.sidebar-tools.uninstall-cleanup.v1"]?.["time-review"]??null};})()'),
-    'confirmed uninstall and complete selective Time Review cleanup',10000);
+  const readUninstallState=()=>evaluate(browser,manager,
+    '(async()=>{const x=await chrome.storage.local.get(["opendesk.sidebar-tools.installed.v1","opendesk.time-review.v1","opendesk.sidebar-tools.uninstall-cleanup.v1"]);const rows=x["opendesk.sidebar-tools.installed.v1"];return {timeInstalled:rows?.some(t=>t.id==="time-review"),otherInstalled:rows?.some(t=>t.id==="reading-toc"),reviewPresent:Object.hasOwn(x,"opendesk.time-review.v1"),cleanup:x["opendesk.sidebar-tools.uninstall-cleanup.v1"]?.["time-review"]??null};})()');
+  // Returning a truthy object was not evidence of a completed removal.
+  // Require every durable condition before marking the native case PASS.
+  const afterUninstall=await until(async()=>{
+    const row=await readUninstallState();
+    return row?.timeInstalled===false&&row.reviewPresent===false&&row.cleanup===null?row:null;
+  },'confirmed uninstall and complete selective Time Review cleanup',12000).catch(async error=>{
+    const current=await readUninstallState().catch(()=>null);
+    note('uninstall-not-settled',{state:current,error:String(error)});
+    throw error;
+  });
   assert.equal(afterUninstall.timeInstalled,false,'official Time Review uninstall completed');
   assert.equal(afterUninstall.reviewPresent,false,'uninstall removed Time Review local record');
   assert.equal(afterUninstall.cleanup,null,'cleanup transaction has no pending state');

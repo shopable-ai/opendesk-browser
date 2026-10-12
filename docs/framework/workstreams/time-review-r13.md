@@ -136,3 +136,8 @@
 - 修复：在现有 `tests/framework/time-review-native-input.swift` 的真实本机 CFT 专用键盘输入中补 Home/Down/Up/End；它继续检查实际 PID、CFT Bundle、Accessibility 授权和前台所有权。分类测试通过**真正 macOS 系统按键**选择下拉选项并确认，绝不使用 `select.value=`、`dispatchEvent` 或直接修改 Chrome Storage 来伪造通过。后续仍须以新 SHA 的 Mac run 判定保存、持久化和工具停用/卸载是否通过。
 
 - [Mac Actions 38223472073](https://github.com/shopable-ai/opendesk-browser/actions/runs/38223472073) 在 `651a174168a084306b02c888df3a620677fe08e2`：54/54 组件、真实活动计时、分类编码 2 的**原生 macOS 键盘选择和 UI 保存 PASS**，随后 JSON/CSV 非空分类内容与完整浏览器重启也 PASS；新增工具生命周期阶段 **FAIL**，原因是重启后仅打开 `/ui/tool.html` 的独立官方目录标签页。该页面的 `#tab-tools` 工作台导航按设计隐藏，故不能当成真正 Side Panel 点击，报 `actionable #tab-tools timed out`。本次调整测试：通过该目录页现有「打开开发侧栏」按钮执行**真正 Chrome 受信任点击**、读回 `chrome.runtime.getContexts(SIDE_PANEL)` 的文档 ID、绑定新的 Side Panel CDP target；停用/启用/卸载全部在该真正 Side Panel 中操作。不修改生产工具行为或扩大权限。新提交必须重新验收尾部操作才能算生命周期 PASS。
+
+## R1.3 Final · Mac 原生卸载完成条件修复（2026-10-12）
+
+- [Actions 38224127005](https://github.com/shopable-ai/opendesk-browser/actions/runs/38224127005)，候选 `80005b5e7bad2ae07f717e8620fd72f774bd8596`：54/54 组件、实际 Side Panel 重启后真实恢复、分类、非空 JSON/CSV、完整 Chrome 重启、受信任停用/重新启用及撤权 epoch 轮换均已独立观察到 PASS，但整条 Mac 测试仍 FAIL：卸载观察器中 `until(async()=>evaluate(...))` 仅凭任意 truthy 对象就返回，在安装列表尚未删除时立即断言 `timeInstalled===false`。
+- 仅修改原生验收驱动：轮询直到**工具确实不存在于安装列表、Time Review 的本机记录确实删除、卸载恢复标记确实清除**三条件同时为真；失败时保存当前只读状态，不改变实际卸载服务或放宽合同。另检查其他工具仍安装且异步事件不会复活已清理记录。新候选 SHA 对应 Mac 原生测试通过前不可关闭卸载验收。
