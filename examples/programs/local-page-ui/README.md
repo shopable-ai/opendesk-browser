@@ -35,3 +35,9 @@ Page 预览没有 Controller 的持久 runId/resultId，「已完成 · 资源�
     node scripts/validate-program-project.mjs examples/programs/local-page-ui
 
 Node 定向测试不是 Mac Chrome 验收，仍须分站点 Run/Stop、撤权、导航、缩放、窄屏和受管清理测试。旧候选原始证据只属于旧候选。正式打包安装仍使用现有 build:program 与包校验。
+
+## 历史基线（不升级为本次 PASS）
+
+原 R2.2 本地 Page 候选 99a26c38e576ad0653143dd130582d15820054d6 已在真实 Chrome 验证多文件 JS/CSS/受控 PNG、Shadow DOM、替换前受管清理和 typed Stop；原始证据保留在 [P3 CI 摘要](../../../docs/framework/evidence/local-dev-r22-c036/p3-ci-summary.json) 和 [历史交付报告](../../../docs/framework/local-development-r22-report.zh-CN.md)。
+
+本次扩大 URL 范围和更新示例 UI 的结果**不能继承**上述候选的真实 Chrome 身份。若 MCP 入场 ACK 丢失，按 [MCP 七工具说明](../../../docs/api/mcp-local-development.zh-CN.md) 用原 admissionRequestId 只读对账，不自动重跑。受管 Page 的 Stop 作用域仅为 managed-ui-only，不回滚网页侧已经发生的效果。
