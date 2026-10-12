@@ -91,3 +91,18 @@
 2. 任务版本更新、停用、卸载及安装 generation 变化有组件覆盖，真实 Chrome UI/Authority 测试仍需扩展；不可将组件证据升级为原生 PASS。
 3. Chrome 125%/150%/200% 真正浏览器缩放、实体 Side Panel 320/360/420px 宽度、键盘焦点、长 URL、超大历史性能和未知外部副作用故障注入仍未完成完整逐项 95 分正式验收。
 4. 若多 Agent 修改 `tests/framework/scheduled-tasks-r1-native-mac.test.mjs`，提交前必须重新核对文件 SHA、原始 HEAD 与其他 Agent 的改动；本轮不覆盖并行测试驱动。
+
+## R2.2 增量证据与功能状态
+
+| 项目 | 提交 / CI | 结论 |
+| --- | --- | --- |
+| 浏览器整进程重启、同一隔离 Profile 恢复及真实网页效果复验 | `30f304a7` / [38285912024](https://github.com/shopable-ai/opendesk-browser/actions/runs/38285912024) | Linux/macOS Chrome **PASS** |
+| 待处理 Fire 索引与千条历史迁移/原 FireId 复用 | `594a089e` / [38285360759](https://github.com/shopable-ai/opendesk-browser/actions/runs/38285360759) | 组件和构建 PASS；原生单独核验，不借旧包升级结论 |
+| 原生 Chrome 站点访问撤销、拒绝运行与恢复 | `04d29694` / [38286386885](https://github.com/shopable-ai/opendesk-browser/actions/runs/38286386885) | Linux CFT **PASS**：Chrome WebUI ON_ALL_SITES→ON_CLICK，下一 Fire NEEDS_ATTENTION、Run=0、网页无动作，原成功 Run=1，手动恢复后旧 Fire 不重放；macOS CI 独立待核对 |
+| 原 Host 已启动但完成回执丢失 | `25eed755` / [38284962462](https://github.com/shopable-ai/opendesk-browser/actions/runs/38284962462) | 组件 PASS，保留原 Run/Result，清除不再有效的 Stop UI；原生故障注入尚缺 |
+| 当前授权正常但历史最近一次 NEEDS_ATTENTION 时状态误报 | `b59d897b`、`a77b121c` | 已修源码和 UI 合同测试；历史详情仍保留失败事实，等待同候选 CI |
+| Task 经真实 UI 停用、启用、授权 generation 旋转和卸载，旧计划不自动重绑 | `802c30de` / [R2 Task Identity 工作流](https://github.com/shopable-ai/opendesk-browser/actions/workflows/scheduled-tasks-r2-task-identity.yml) | TEST_IMPLEMENTED，Linux/macOS CFT **NOT_YET_VERIFIED** |
+
+保留原始失败记录：`594a089e` 的整 Chrome 重启 CI [38285360764](https://github.com/shopable-ai/opendesk-browser/actions/runs/38285360764) 是 **FAIL**，重启后扩展目录页 canonical URL 重定向期间只读 DevTools 会话失效。测试驱动在 `30f304a7` 明确增加等待，并由新的双平台真实 Chrome PASS 关闭该具体测试竞态，**没有因此宣称其他权限/浏览器 Profile 场景都 PASS**。
+
+当前 R2 仍有独立未关闭项：长期历史按审计约束的合规保留/清理策略、数万 Fire 真实 IndexedDB 持续使用时延、用户自己的 macOS Chrome Profile、浏览器真实 200% 缩放（不同于 CDP viewport emulation）、真实 Worker 故障时的未知网页副作用判定，以及全部体验维度分别达到 95 分。上述没有完整证据的维度继续 **NOT_TESTED / NOT_SCORED**。

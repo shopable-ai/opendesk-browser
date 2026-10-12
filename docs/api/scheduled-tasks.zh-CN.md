@@ -58,3 +58,9 @@ R1 源码实现与未测项：[`scheduled-tasks-r1-20261012.md`](../framework/wo
 其中 `offset` 是从最新 Fire 开始的非负整数（上限 100000），`limit` 限制为 1–50。记录保留原 `fireId`、`runId`、`resultId` 和 `retirementState`；若原 Run 仍未释放资源，不把结算中的记录误标为成功。该接口是 **Host 内部受限 API**，不等于公开网页 SDK，也不会让任意网页通过此接口读取任务历史。
 
 R2 验收和欠账见 [Scheduled Tasks R2 追踪文档](../framework/workstreams/scheduled-tasks-r2-20261013.md)。
+
+### R2 网站权限变化与恢复
+
+在 Chrome 扩展详情页的「网站访问」设置中撤销 OpenDesk 的目标网站权限，会导致已安装任务对应计划提示「需要处理」；即使目标标签页因此不可见，也不会将权限不足误判为仅仅等待网页。独立可见 RunHost 在真实执行前调用 Chrome 自己的只读权限检查，Controller Authority 在准入时仍再次验证。**不会自动弹出权限恢复申请、隐形执行或回放已拒绝的 FireId。** 若要重新授权，须由用户在 Chrome 网站访问设置明确允许，并重新核对原安装任务身份；授权 generation 或固定版本不一致时，原计划不会静默改绑。历史中的「需要处理」仍保留，当前是否可运行由最新安装/站点授权决定。
+
+长期计划与 Run/Result 历史仍在同一 Framework Storage 内；R2 新增待处理 Fire 派生索引用于减少定时轮询扫描的数据量，不是另一个执行队列。**仍没有实施自动删除历史的保留期限。**

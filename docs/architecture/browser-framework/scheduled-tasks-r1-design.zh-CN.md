@@ -162,3 +162,10 @@ R2 复用原有 Controller Authority、RunHost、Task 安装授权、唯一 `run
 - 新增独立完整 Chrome 进程退出/同一受控 Profile 重启测试工作流，不修改 R1 baseline/lifecycle 的触发逻辑和证据语义；通过与否仅由对应 CI Run 的真实日志决定。
 
 完整进度和可验证的 PASS / NOT_TESTED：`docs/framework/workstreams/scheduled-tasks-r2-20261013.md`。
+
+### R2.1 待处理索引及授权变更边界
+
+- `schedule-repository.js` 在同一 `frameworkKV` 中使用 `schedule:pending:v1:` 轻量待处理指针及 `schedule:pending-index:v1:` 迁移标记。首次对账扫描原历史并为可候选的 READY/WAITING 状态补充派生指针，后续 `reconcile/ready` 仅读取当前待处理 Fire，对原 Fire 仍使用精确主键校验；ADMITTED/UNKNOWN/MISSED/CANCELLED 等不能再次准入的状态移除指针而**不删除原始审计记录**。没有扩展 IndexedDB Schema，没有新的 Worker 或执行槽。
+- 原始 Controller Run 完成回执丢失时，宿主清除过期 UI Stop 控制，提示查询原 Run/Result；不得将已准入 Run 误写成 WAITING_TARGET，更不能分配替代 RunId。
+- Chrome 网站权限撤销可能导致 `tabs.query` 隐去 URL；宿主在探测目标网页前使用 Chrome `permissions.contains` 做保守预检，并通过原 `setScheduleFireState` 标为 NEEDS_ATTENTION；真正准入仍由现有 Authority 进行第二次检查，不增加权限或静默重取。恢复 Chrome 授权后的当前计划状态与历史失败状态分别展示，不混为一项。
+- 2026-10-13 已有 Linux Chrome 实际扩展设置 ON_ALL_SITES→ON_CLICK→ON_ALL_SITES 的原生验证，包含下一 Fire 无 Run/网页无动作；macOS 用户 Profile 和全部异常场景依然各自保留独立验收闸门。
