@@ -3,17 +3,18 @@
 日期：2026-10-12。状态：**ARCHITECTURE_DECISION / IMPLEMENTATION_PENDING**。
 本文件针对 Browser 产品规划，不表示独立控制台或挂机能力已经交付。上位总体协议归属 `shopable-ai/opendesk/docs/architecture/execution-control-r02.zh-CN.md`；Browser 真正的执行事实仍由原 Authority / RunHost / Worker / ChromePage / IDB 拥有。
 
-## 一、决策：三层入口，避免七个 Side Panel 顶级页签
+## 一、决策更新：正式 Side Panel 云控优先，可选独立大页面
 
 | 界面 | 可用环境 | 职责 | 明确不能做 |
 | --- | --- | --- | --- |
-| Side Panel「我的」 | 正式/开发 | 已安装 Task、上次结果、云托管摘要与停止/跳转 | 展开长期日志、承载全部云运维操作 |
+| Side Panel「我的」 | 正式/开发 | 已安装 Task、上次结果、简洁云端摘要与跳转 | 展开长期日志、承载全部云运维操作 |
+| Side Panel「云控」第六页 | 正式/开发 | 与目标网页并排显示连接、执行宿主、请求状态及原配对/托管控件 | 开启第二套执行器或承诺后台永久执行 |
 | 独立「云控控制台」扩展标签页（待实现） | 正式/开发 | 配对/授权与范围、队列、运行中/等待中、历史结果、计划、Host 状态和可靠恢复 | 绕过本地 Authority、另建 Task/Run 数据库或执行器 |
-| Side Panel「调试」第六页 | development，仅受限只读 | 可信诊断快照、故障定位、只读证据与脱敏导出 | 在生产公开控制、领任务、注入远端脚本或伪造回执 |
+| Side Panel「调试」第七页 | development，仅受限只读 | 可信诊断快照、故障定位、只读证据与脱敏导出 | 在生产公开控制、领任务、注入远端脚本或伪造回执 |
 
-不将 Cloud Control 做成用户须安装的 `.opendesk-tool.json`，也不再增加一个 Side Panel 一级 Tab。完整控制台建议落点 `src/ui/cloud-control-console.*` + 受信 `ui/cloud-control.html`，使用现有 token 和布局原语，独立响应式，不复用 Side Panel 的窄窗口结构。
+不将 Cloud Control 做成用户须安装的 `.opendesk-tool.json`。正式 Side Panel 六个页签、开发版七个；仅顶部页签横向滚动。云控原配置从「我的」迁至侧栏「云控」，「我的」只保留入口。完整控制台建议落点 `src/ui/cloud-control-console.*` + 受信 `ui/cloud-control.html`，使用现有 token 和布局原语，独立响应式，不复用 Side Panel 的窄窗口结构。
 
-Sidebar「我的」只增加一个“打开云控控制台 ↗”操作，采用 `chrome.runtime.getURL` + 明确可信点击打开扩展内正式页面；不得让 URL query、localStorage 或普通工具获得云控管理权。正式控制台初期**只读**，应通过独立的受信观察者只读 RPC 获取经过字段白名单与分页限制的状态：验证同扩展 sender、页面 URL、Host/Executor namespace 的授权视图，**但不能为控制台登记执行型 Host，也不能授予云任务 claim、startPermit、RunHost 派发权**。当前 `cloudStatus()` 仍要求实际 Host 身份，不可未经审计就直接用新的 `createHostClient()` 在控制台注册一个竞争执行者；P2 必须先补只读 Observer 身份/服务端投影并实测拒绝普通网页/工具沙箱的请求。云控管理动作在可信 RPC 做当前本机授权、配对和代次复核。
+Sidebar「我的」仅保留“进入云控”快捷按钮，切换同一 Side Panel 内的第六页；不得让 URL query、localStorage 或普通工具获得云控管理权。未来独立控制台再由可信点击通过 `chrome.runtime.getURL` 打开扩展正式大页面。正式控制台初期**只读**，应通过独立的受信观察者只读 RPC 获取经过字段白名单与分页限制的状态：验证同扩展 sender、页面 URL、Host/Executor namespace 的授权视图，**但不能为控制台登记执行型 Host，也不能授予云任务 claim、startPermit、RunHost 派发权**。当前 `cloudStatus()` 仍要求实际 Host 身份，不可未经审计就直接用新的 `createHostClient()` 在控制台注册一个竞争执行者；P2 必须先补只读 Observer 身份/服务端投影并实测拒绝普通网页/工具沙箱的请求。云控管理动作在可信 RPC 做当前本机授权、配对和代次复核。
 
 ## 二、R1 当前缺口与立即修复
 
@@ -62,7 +63,7 @@ Sidebar「我的」只增加一个“打开云控控制台 ↗”操作，采用
 | --- | --- | --- |
 | P0 当前入口硬化 | 只读 refresh、不让全尺寸任务目录成为云端领取者；补 Node/回归 | 不能把 UI 改动算成原生挂机通过 |
 | P1 云控原生 Gate4 | 副作用后中断恢复、运行中取消、授权撤销、真正 IDB 失败窗口、终态 reason 清理 | 不能凭旧候选取代新候选 |
-| P2 独立 Cloud Console | 独立受信扩展标签页、只读分页列表/队列和安全配置；「我的」只留摘要/跳转；开发调试复用投影 | 不重做配对协议或第二套 Host |
+| P2 独立 Cloud Console | 已建立 Side Panel「云控」作为主入口；后续按需追加独立受信大页面，承载分页队列/历史与计划 | 不重做配对协议或第二套 Host |
 | P3 可见运行页与持久 owner | 明确持续运行许可、单 owner/lease/fence、Host 转移、关闭 Sidebar/运行页恢复 | 不能假设 offscreen/SW 保障后台一直运行 |
 | P4 定时与多端计划 | 复用既有 ScheduleDefinition、FireId、原运行结果、云 Provider 幂等与 source ownership | 不让本地/云重复触发 |
 | P5 长期可靠性 | 24h/72h 受控运行、SW重启/浏览器重启/睡眠/断网/升级、成千请求分页、延迟与资源预算 | 无真实 Chrome/CFT 与原始 run/receipt 不可声明产品级 PASS |
