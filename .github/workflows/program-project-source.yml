@@ -49,6 +49,8 @@ on:
       - 'schemas/opendesk-program-project.v1.schema.json'
       - 'examples/programs/**'
       - 'tests/environment/page-ui-toc-react-direct.test.mjs'
+      - 'tests/environment/runtime-globals-zero-arg.test.mjs'
+      - 'tests/environment/runtime-libs-trusted-worlds.test.mjs'
       - 'native-agent/wire.mjs'
       - 'native-agent/local-dev/resolver.mjs'
       - 'tests/environment/esm-r21-wire-boundary.test.mjs'
@@ -80,6 +82,8 @@ on:
       - 'tests/framework/esm-r22-examples.mjs'
       - 'examples/programs/**'
       - 'tests/environment/page-ui-toc-react-direct.test.mjs'
+      - 'tests/environment/runtime-globals-zero-arg.test.mjs'
+      - 'tests/environment/runtime-libs-trusted-worlds.test.mjs'
       - '.github/workflows/program-project-source.yml'
   workflow_dispatch:
     inputs:
@@ -106,7 +110,7 @@ jobs:
       - run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Validate multi-file ESM source metadata
         run: |
-          node --test tests/environment/page-framework-build-commands-r243.test.mjs tests/environment/page-component-preparer-r243.test.mjs tests/environment/page-direct-import-ready-r243.test.mjs tests/environment/page-component-import-ready-r243.test.mjs tests/environment/page-direct-component-r243.test.mjs tests/environment/page-component-draft-import-r243.test.mjs tests/environment/page-vue-component-r243.test.mjs tests/environment/page-vue-sfc-transform-r243.test.mjs tests/environment/page-vue-sfc-compiler-r243.test.mjs tests/environment/page-jsx-component-r243.test.mjs tests/environment/page-component-entry-r243.test.mjs tests/environment/page-dependencies-ui.test.mjs tests/environment/program-entry.test.mjs tests/environment/remote-esm-review.test.mjs tests/environment/local-project-connection.test.mjs tests/environment/r101-source-map.test.mjs tests/environment/program-project.test.mjs tests/environment/program-build.test.mjs tests/environment/remote-esm-import.test.mjs tests/environment/remote-esm-security.test.mjs tests/environment/script-editor.test.mjs tests/environment/sidebar-project-demo.test.mjs tests/environment/page-ui-toc-react-direct.test.mjs
+          node --test tests/environment/runtime-globals-zero-arg.test.mjs tests/environment/runtime-libs-trusted-worlds.test.mjs tests/environment/page-framework-build-commands-r243.test.mjs tests/environment/page-component-preparer-r243.test.mjs tests/environment/page-direct-import-ready-r243.test.mjs tests/environment/page-component-import-ready-r243.test.mjs tests/environment/page-direct-component-r243.test.mjs tests/environment/page-component-draft-import-r243.test.mjs tests/environment/page-vue-component-r243.test.mjs tests/environment/page-vue-sfc-transform-r243.test.mjs tests/environment/page-vue-sfc-compiler-r243.test.mjs tests/environment/page-jsx-component-r243.test.mjs tests/environment/page-component-entry-r243.test.mjs tests/environment/page-dependencies-ui.test.mjs tests/environment/program-entry.test.mjs tests/environment/remote-esm-review.test.mjs tests/environment/local-project-connection.test.mjs tests/environment/r101-source-map.test.mjs tests/environment/program-project.test.mjs tests/environment/program-build.test.mjs tests/environment/remote-esm-import.test.mjs tests/environment/remote-esm-security.test.mjs tests/environment/script-editor.test.mjs tests/environment/sidebar-project-demo.test.mjs tests/environment/page-ui-toc-react-direct.test.mjs
           node --test examples/programs/page-ui-toc-react-direct/src/toc-model.test.mjs examples/programs/page-ui-toc-react-direct/src/heading-stats.test.mjs
           node scripts/validate-program-project.mjs examples/programs/page-heading
           node scripts/validate-program-project.mjs examples/programs/controller-title
