@@ -293,8 +293,8 @@ for(const subject of [{kind:'app',marketId:'opendesk/markdown-workbench',version
   });
 }
 test('R5 a fixed collection review never displays or recovers another intent batch of the same revision',async t=>{
-  const official=await officialFixtures(),collection=getOfficialCollection('reading-kit',2),apps=officialMarketApps(official.catalog);
-  const otherBatch=createMarketBatch(collection,collection.members.map(member=>({app:apps.find(app=>app.id===member.id),status:'ready',reason:'OTHER_BATCH_PRIVATE_REASON'})),{releases:apps});
+  const official=await officialFixtures(),collection=getOfficialCollection('reading-kit',3),apps=officialMarketApps(official.catalog);
+  const otherBatch=createMarketBatch(collection,collection.members.map(member=>({app:apps.find(app=>app.id===member.id&&app.version===member.version),status:'ready',reason:'OTHER_BATCH_PRIVATE_REASON'})),{releases:apps});
   otherBatch.items[0].status='outcome-unknown';otherBatch.items[0].reason='OTHER_BATCH_PRIVATE_REASON';
   const f=await handoffPage(t,{kind:'collection',collectionId:collection.id,revision:collection.revision},{otherBatch});
   await settle(()=>f.labels().includes('另一个安装请求的批次有待处理'));
