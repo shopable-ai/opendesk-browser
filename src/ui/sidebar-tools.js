@@ -1,4 +1,5 @@
-import {BROWSER_HOST_PROTOCOL,BROWSER_MENU_GRANTS_STORE,normalizeBrowserOperation} from '../framework/sdk/browser-contract.js';
+import {BROWSER_HOST_PROTOCOL,BROWSER_MENU_GRANTS_STORE,normalizeBrowserOperation,browserOperation} from '../framework/sdk/browser-contract.js';
+import {createSidePanelOpenCoordinator} from '../platform/chrome/browser-side-panel.js';
 import {SIDEBAR_TOOL_ENABLE_STORE,requireToolEnableRecords,sidebarToolEnabled,assertSidebarToolEnabled} from './sidebar-tools/lifecycle.js';
 import {SIDEBAR_TOOL_PROTOCOL,SIDEBAR_TOOL_STORE,MAX_INSTALLED_TOOLS,SIDEBAR_TOOL_DATA_LIMITS,
   sidebarToolStorageKey,validateSidebarToolPackage} from './sidebar-tools/package.js';
@@ -104,6 +105,9 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     'knowledge.store':'管理此工具的本机知识收件箱（200 条 / 4 MiB）',
     'time.review':'明确开始后在后台记录聚焦、非空闲网站的域名与时长（仅本机）',
     'browser.contextMenu':'在明确授权的网站显示 Chrome 右键菜单（最多三项）',
+    'browser.tabs':'经用户单次批准打开或聚焦自己获准的标签页',
+    'browser.sidePanel':'经真实点击打开 OpenDesk 自己的侧边栏',
+    'network':'经用户单次批准向指定 Origin 发送受控 HTTP 请求',
   });
   const timePermissions=settingsView?createTimeReviewPermissionControls({api,doc,container:settingsView,notice,runOperation:runTrustedTimeReviewOperation}):null;
   const versionOrder=compareToolVersions;
@@ -131,22 +135,40 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   // In-page decisions replace synchronous browser dialogs. Every destructive
   // confirmation is bound to a reviewed action and rechecks identity on commit.
   function cancelActionReview(){
-    pendingAction=null;
-    actionReview.hidden=true;
+    const old=pendingAction;pendingAction=null;actionReview.hidden=true;
+    old?.cancel?.();
   }
-  function requestActionReview({message,button='继续',run,toolId=null}){
+  function requestActionReview({message,button='继续',run,toolId=null,cancel=null}){
     if(disposed||busy)return;
-    pendingAction={run,toolId};
+    if(pendingAction)cancelActionReview();
+    pendingAction={run,toolId,cancel};
     actionSummary.textContent=message;
     actionContinue.textContent=button;
     actionReview.hidden=false;
     actionReview.scrollIntoView?.({block:'nearest'});
   }
-  async function applyActionReview(){
+  async function applyActionReview(event){
     const choice=pendingAction;
     if(!choice||busy||disposed)return;
-    cancelActionReview();
-    await choice.run();
+    pendingAction=null;actionReview.hidden=true;
+    await choice.run(event); // Do not defer actual Chrome user activation.
+  }
+  function requestBrowserClick({message,button,toolId,run}){
+    if(disposed||busy)return Promise.reject(Object.assign(new Error('Tool UI unavailable'),{code:'E_HOST_CLOSED'}));
+    return new Promise((resolve,reject)=>{
+      let settled=false,timer=null;
+      const settle=(ok,value)=>{
+        if(settled)return;settled=true;clearTimeout(timer);
+        if(ok)resolve(value);else reject(value);
+      };
+      const cancel=()=>settle(false,Object.assign(new Error('Browser action cancelled'),{code:'E_CANCELLED'}));
+      requestActionReview({message,button,toolId,cancel,run:event=>{
+        if(!event?.isTrusted){cancel();return;}
+        try{Promise.resolve(run(event)).then(v=>settle(true,v),e=>settle(false,e));}
+        catch(e){settle(false,e);}
+      }});
+      timer=setTimeout(()=>{if(pendingAction?.cancel===cancel)cancelActionReview();},90000);
+    });
   }
   // chrome.storage may reorder object properties; compare the validated schema values.
   const samePackage=sameSidebarToolPackage;
@@ -588,7 +610,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     if(operation.startsWith('browser.')){
       normalizeBrowserOperation(operation,payload);
       const isDiscovery=['browser.capabilities.list','browser.capabilities.getStatus'].includes(operation);
-      if(!isDiscovery&&!tool.capabilities.includes(operation==='browser.page.getContext'?'currentPage.read':'browser.contextMenu'))
+      if(!isDiscovery&&(!browserOperation(operation)||!browserOperation(operation).requiredCapabilities.every(cap=>tool.capabilities.includes(cap))))
         throw Object.assign(new Error('此工具没有获准浏览器能力'),{code:'E_TOOL_CAPABILITY_REQUIRED'});
       if(operation==='browser.page.getContext')
         return dispatch('currentPage.info',{},tool,source,token,revocationEpoch);
@@ -1496,7 +1518,8 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     ()=>toggleTocDisplay(READING_TOC_TOOL_ID,'site'))));
   listen(settingsPageVisibility,'click',action(()=>runSiteToggle(READING_TOC_TOOL_ID,
     ()=>toggleTocDisplay(READING_TOC_TOOL_ID,'page'))));
-  listen(actionContinue,'click',action(applyActionReview));
+  listen(actionContinue,'click',event=>{void applyActionReview(event).catch(error=>notice(
+    (error?.code||'E_TOOL')+'：'+String(error?.message||error).slice(0,240),true));});
   listen(actionCancel,'click',()=>{cancelActionReview();notice('已取消，原内容仍保留。');});
   listen(removeButton,'click',action(remove));
   listen(removeReviewConfirm,'click',action(()=>remove(pendingUninstallId,{confirmed:true})));
