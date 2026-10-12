@@ -4,10 +4,10 @@
   const $=id=>root.querySelector('#'+id);
   const C=[
     {name:'未分类',short:'未分类',color:'#788494'},
-    {name:'工作/生产',short:'重要且紧急',color:'#1976d2'},
-    {name:'阅读学习',short:'重要不紧急',color:'#3b8ad9'},
-    {name:'聊天/新闻',short:'紧急不重要',color:'#b64f4f'},
-    {name:'娱乐',short:'不重要不紧急',color:'#ec5d5d'},
+    {name:'重要且紧急',short:'重要且紧急',color:'#1976d2'},
+    {name:'重要不紧急',short:'重要不紧急',color:'#3b8ad9'},
+    {name:'紧急不重要',short:'紧急不重要',color:'#b64f4f'},
+    {name:'不重要不紧急',short:'不重要不紧急',color:'#ec5d5d'},
     {name:'生活',short:'生活',color:'#c8992d'}
   ];
   let state=null,day=null,selectedDate=null,scope='today',busy=false,settingsLoaded=false,selectedMinute=null,filter=null,editing=false,daySerial=0;
@@ -56,30 +56,39 @@
       track.title=C[cat].name+' · '+formatMs(counts[cat]);
       dist.append(track);
     }
-    const quad=$('quadrants');quad.replaceChildren();
+    const quad=$('quadrants');
+    const focusedCategory=quad.contains(document.activeElement)?document.activeElement?.dataset?.cat:null;
+    quad.replaceChildren();
     for(const cat of [1,2,3,4]){
       const card=newNode('button','qcard');card.type='button';card.dataset.cat=String(cat);
       card.style.setProperty('--cat',C[cat].color);
       const name=newNode('span','q-name',C[cat].short);
-      const description=newNode('span','q-desc',C[cat].name);
+      card.setAttribute('aria-pressed',String(scope==='today'&&filter===cat));
+      card.setAttribute('aria-label','按'+C[cat].name+'筛选网站');
       const bottom=newNode('span','q-bottom');
       bottom.append(newNode('b','',total?formatMs(counts[cat]):'—'),newNode('small','',percent(counts[cat],total)));
       const meter=newNode('span','q-meter'),fill=newNode('i');
       fill.style.width=(total?counts[cat]/total*100:0)+'%';meter.append(fill);
-      card.append(name,description,bottom,meter);
-      card.addEventListener('click',()=>{filter=cat;scope='today';$('sites').scrollIntoView({block:'nearest'});renderRecords();});
+      card.append(name,bottom,meter);
+      card.addEventListener('click',()=>{filter=scope==='today'&&filter===cat?null:cat;scope='today';render();$('sites').scrollIntoView({block:'nearest'});});
       quad.append(card);
     }
-    const extras=$('extra-categories');extras.replaceChildren();
+    if(focusedCategory!==null)quad.querySelector('[data-cat="'+focusedCategory+'"]')?.focus({preventScroll:true});
+    const extras=$('extra-categories');
+    const focusedExtra=extras.contains(document.activeElement)?document.activeElement?.dataset?.cat:null;
+    extras.replaceChildren();
     for(const cat of [5,0]){
       const card=newNode('button','extra-card');card.type='button';card.dataset.cat=String(cat);
       card.style.setProperty('--cat',C[cat].color);
       const name=newNode('span','extra-name'),dot=newNode('i','dot');
       name.append(dot,document.createTextNode(C[cat].name));
       card.append(name,newNode('span','extra-min',total?formatMs(counts[cat]):'—'));
-      card.addEventListener('click',()=>{filter=cat;scope='today';renderRecords();$('sites').scrollIntoView({block:'nearest'});});
+      card.setAttribute('aria-pressed',String(scope==='today'&&filter===cat));
+      card.setAttribute('aria-label','按'+C[cat].name+'筛选网站');
+      card.addEventListener('click',()=>{filter=scope==='today'&&filter===cat?null:cat;scope='today';render();$('sites').scrollIntoView({block:'nearest'});});
       extras.append(card);
     }
+    if(focusedExtra!==null)extras.querySelector('[data-cat="'+focusedExtra+'"]')?.focus({preventScroll:true});
   }
   function renderCanvas(data){
     const canvas=$('minute-canvas'),rect=canvas.getBoundingClientRect(),w=Math.max(1,rect.width||canvas.clientWidth||250);
@@ -303,7 +312,9 @@
   const onResize=()=>renderCanvas(dayData());
   if(!resize)window.addEventListener('resize',onResize);
   const timer=window.setInterval(()=>{
-    if(!busy&&!document.hidden&&!$('settings').open)void act('time.status');
+    // A background refresh must not destroy a user's unsaved classification
+    // editor (record rows are re-rendered from the current summary).
+    if(!busy&&!document.hidden&&!$('settings').open&&!editing&&!root.querySelector('.row-edit'))void act('time.status');
   },15000);
   window.addEventListener('pagehide',()=>{window.clearInterval(timer);resize?.disconnect();if(!resize)window.removeEventListener('resize',onResize);},{once:true});
   void act('time.status');

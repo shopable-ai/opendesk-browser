@@ -105,6 +105,8 @@ try{
     assert.ok(m.canvasWidth>0&&m.canvasWidth<=width,'canvas width '+label);
     assert.ok(Math.abs(m.backing-m.canvasWidth*m.dpr)<=2,'DPR backing mismatch '+label);
     assert.equal(m.quadrants,4);assert.equal(m.extras,2);
+    assert.deepEqual(await evaluate("Array.from(document.querySelectorAll('.q-name')).map(el=>el.textContent)",sessionId),
+      ['重要且紧急','重要不紧急','紧急不重要','不重要不紧急']);
     assert.deepEqual(m.errors,[],'runtime errors '+label);
     const png=await client.send('Page.captureScreenshot',{format:'png',captureBeyondViewport:false},sessionId);
     const file='r13-fixture-'+label+'.png';

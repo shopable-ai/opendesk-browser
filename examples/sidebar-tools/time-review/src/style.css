@@ -1,5 +1,6 @@
 .review{--ink:#1b2c49;--sub:#53647e;--line:#e1e8f1;--brand:#365eda;--bg:#f5f7fb;--positive:#138263;--negative:#ae3d4b;--cat-0:#788494;--cat-1:#1976d2;--cat-2:#3b8ad9;--cat-3:#b64f4f;--cat-4:#ec5d5d;--cat-5:#c8992d;box-sizing:border-box;min-width:0;max-width:680px;margin:auto;padding:12px;color:var(--ink);background:var(--bg);font:13px/1.5 -apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC",system-ui,sans-serif;overflow-wrap:anywhere}
 .review *,.review *::before,.review *::after{box-sizing:border-box}
+.review .surface,.review .timeline-card,.review .current-card,.review .records-section,.review .settings{min-width:0;max-width:100%}
 .review [hidden]{display:none!important}
 .review h2,.review h3,.review p{margin:0}
 .review button,.review select,.review input,.review textarea{font:inherit}
@@ -39,16 +40,17 @@
 .review .compare small{display:block;color:#73839a}
 .review .eff-track{height:6px;border-radius:6px;background:#eaf0f9;overflow:hidden;margin-top:11px}
 .review .eff-track i{display:block;height:100%;width:0;background:#4270d7;border-radius:6px;transition:width .15s}
-.review .sectionbar{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:13px 0 7px;min-width:0}
+.review .sectionbar{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:12px 0 8px;min-width:0}
 .review .sectionbar h2{font-size:12px;font-weight:800;line-height:1.4}
 .review .sectionbar span{font-size:10px;color:#7586a1;text-align:right}
 .review .surface,.review .timeline-card,.review .current-card{border:1px solid #dce5f0;background:#fff;border-radius:11px;padding:11px;min-width:0}
 .review .distribution{height:10px;display:flex;gap:2px;background:#edf2f7;border-radius:5px;overflow:hidden}
 .review .distribution i{display:block;flex:0 0 auto;height:100%}
 .review .quadrants{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin-top:10px}
-.review .qcard{display:flex;flex-direction:column;align-items:stretch;text-align:left;gap:4px;min-width:0;min-height:89px;padding:9px;border:1px solid #e4eaf3;border-top:3px solid var(--cat);border-radius:9px;color:var(--ink);background:#fff}
+.review .qcard{display:flex;flex-direction:column;align-items:stretch;text-align:left;gap:4px;min-width:0;min-height:80px;padding:9px;border:1px solid #e4eaf3;border-top:3px solid var(--cat);border-radius:9px;color:var(--ink);background:#fff}
 .review .qcard:hover:not(:disabled){border-color:#b4c8ec;border-top-color:var(--cat);background:#f8faff}
-.review .qcard .q-name{font-size:11px;font-weight:750;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.review .qcard[aria-pressed=true],.review .extra-card[aria-pressed=true]{border-color:var(--cat);box-shadow:inset 0 0 0 1px var(--cat);background:#f5f8ff}
+.review .qcard .q-name{font-size:11px;font-weight:750;line-height:1.45;white-space:normal;overflow-wrap:anywhere}
 .review .qcard .q-desc{font-size:10px;color:#7587a0;overflow-wrap:anywhere}
 .review .qcard .q-bottom{display:flex;align-items:baseline;justify-content:space-between;gap:3px;margin-top:auto}
 .review .qcard .q-bottom b{font-size:15px;font-variant-numeric:tabular-nums}
@@ -57,7 +59,7 @@
 .review .q-meter i{display:block;height:100%;background:var(--cat)}
 .review .extra-categories{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin-top:8px}
 .review .extra-card{display:flex;justify-content:space-between;align-items:center;gap:5px;min-width:0;padding:8px 9px;border:1px solid #e4eaf3;border-radius:8px;background:#f9fafc;color:var(--ink);text-align:left}
-.review .extra-name{display:flex;align-items:center;gap:5px;min-width:0;font-size:11px;font-weight:700}
+.review .extra-name{display:flex;align-items:center;gap:5px;min-width:0;font-size:11px;font-weight:700;overflow-wrap:anywhere}
 .review .extra-name .dot{display:inline-block;flex:none;width:7px;height:7px;background:var(--cat);border-radius:3px}
 .review .extra-min{font-size:12px;font-weight:750;white-space:nowrap;font-variant-numeric:tabular-nums}
 .review .timeline-canvas{display:block;width:100%;height:54px;max-width:100%;background:#fcfdff;border-radius:6px;touch-action:pan-y;cursor:crosshair}

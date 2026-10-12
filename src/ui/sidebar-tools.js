@@ -831,8 +831,14 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     }
     if(message.kind==='resize'){
       // Only live frame, null origin, matching tool ID and session are accepted above.
-      if(Number.isInteger(message.height)&&message.height>=80&&message.height<=4000)
-        frame.style.height=Math.max(140,Math.min(1600,message.height))+'px';
+      if(Number.isInteger(message.height)&&message.height>=80&&message.height<=4000){
+        // The Time Review long-form settings / zoomed Canvas can legitimately
+        // exceed the general tool limit. Keep one outer workspace scroll,
+        // without changing other installed tools' height policy.
+        const isTimeReview=active?.id===TIME_REVIEW_ID;
+        frame.style.height=Math.max(140,Math.min(isTimeReview?4000:1600,message.height))+'px';
+        if(isTimeReview)frame.style.maxHeight='none';
+      }
       return;
     }
     if(message.kind!=='request'||typeof message.requestId!=='string'||message.requestId.length>32||typeof message.operation!=='string')return;

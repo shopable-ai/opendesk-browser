@@ -83,3 +83,10 @@
 
 - **诊断收敛**：[Actions 38214014564](https://github.com/shopable-ai/opendesk-browser/actions/runs/38214014564)，候选 `357fe92057729995f2d4a5c578623fff7b61c311`，原生 Mac CFT 155 JSON/CSV 的创建、完成、受控目录、真实磁盘、内容完整性、实际预期文件名 **全部 PASS**。旧 Mac 失败驱动的 `Browser.setDownloadBehavior` 在下载启动前覆盖了文件名决定；改为预先写入专用 Chrome Profile 的 `Default/Preferences` 下载目录后恢复正确。
 - **最小化消除副作用（待新候选验证）**：因文件名在正常浏览器下载条件下正确，移除实验性的 `src/time-review/download-naming.js` 以及其全局下载事件处理、会话令牌表和配套测试；保留原 `downloads.download({filename,saveAs:false,conflictAction:'uniquify'})` 的生产调用，并补充并发和请求受理非完成语义测试。之前阶段记录属于历史诊断方案，并非当前产品行为。若新候选 Mac 回归通过，P0 方可正式关闭。
+
+## R1.3 Final · P0 正式关闭、P2 产品 UI 修复候选（2026-10-12）
+
+- [Actions 38214396278](https://github.com/shopable-ai/opendesk-browser/actions/runs/38214396278)，候选 `23cf0f845a7c0f0b68fb8573a6ef1a3c32f432a5`，原生 macOS-15 CFT155 + 当前实装包下 JSON/CSV 均达到：Chrome 创建 PASS、完成 PASS、独占磁盘路径 PASS、磁盘实际字节 PASS、格式与保存状态一致 PASS、最终文件名分别 `time-review.json`/`time-review.csv` PASS；组件测试与生产构建亦 PASS。最终源码未添加 `onDeterminingFilename`，原生 harness 不再使用 CDP `Browser.setDownloadBehavior`。
+- P2 本轮直接调整现有 Time Review 沙箱 `index.html/main.js/style.css` 的四象限名称为模型的规范六分类（不变更编码），去除重复的视觉副标题，改善紧凑排版、键盘焦点保持、点击分类筛选可切换返回、避免自动刷新抹去用户的编辑控件；保留 Canvas V3 **单条 24 小时时间线**。
+- 宿主 `src/ui/sidebar-tools.js` 的 iframe 尺寸上限对 `time-review` 专门设为 4000px 并覆盖 CSS 全局 1600px cap，其他工具继续维持 1600px；防止长表单及高缩放下 iframe 内滚动+宿主滚动叠加。边界仍检查受信任 frame instance、null origin、同 tool ID 与 80-4000px 合法报文。
+- 新候选需通过 R1.3 Chromium 合成状态四宽度和真实 Mac Chrome Side Panel；原生真正 Chrome 200% Zoom 和浏览器重启仍独立 NOT_TESTED。用户个人 Mac 工作区未访问，未覆盖任何本地修改。

@@ -211,6 +211,10 @@ test('Time Review R1.3 actual Mac Chrome install and trusted consent smoke',{ski
   const visual=await evaluate(browser,frame,
     '(()=>({quadrants:document.querySelectorAll(".qcard").length,extras:document.querySelectorAll(".extra-card").length,day:document.querySelector("#today-total")?.textContent,timeline:document.querySelector("#timeline-state")?.textContent,horizontal:document.documentElement.scrollWidth<=innerWidth+1}))()');
   assert.equal(visual.quadrants,4);assert.equal(visual.extras,2);
+  assert.deepEqual(await evaluate(browser,frame,
+    'Array.from(document.querySelectorAll(".q-name")).map(el=>el.textContent)'),
+    ['重要且紧急','重要不紧急','紧急不重要','不重要不紧急'],
+    'native Canvas classifications must use canonical data model labels');
   assert.equal(visual.timeline,'尚无分钟明细','No fabricated historical minutes');
   assert.equal(visual.horizontal,true,'No horizontal overflow in actual tool iframe');
   evidence.screenshots.push(await screenshot(browser,side,'installed-native-side-panel'));
