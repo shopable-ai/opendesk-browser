@@ -82,3 +82,22 @@ test('canonical docs explicitly distinguish lexical Controller context from othe
   assert(controller.includes('export default async function main()'));
   assert(controller.includes('runtime-globals-and-preinstalled-libraries.zh-CN.md'));
 });
+
+test('zero-argument Page single-file compiles and executes real default facades without export',async()=>{
+  const source=await readFile('examples/programs/single-file/page-globals-zero-arg.js','utf8');
+  assert.match(source,/async function main\(\)/);
+  const script=await compileLockedPageSource({sourceUtf8:source,entryFormat:'async-main',entries:[]});
+  assert.equal(script.world,'USER_SCRIPT');
+  const scope=vm.createContext({
+    document:{title:'OpenDesk Browser Test Lab'},
+    location:{href:'http://127.0.0.1:43111/demo-form.html'}
+  });
+  await withRealBuiltins(scope);
+  const result=await vm.runInContext(script.js[0].code,scope);
+  const value=JSON.parse(JSON.stringify(result));
+  assert.deepEqual(value.words,['Open','Desk','Browser','Test','Lab']);
+  assert.equal(value.title,'OpenDesk Browser Test Lab');
+  assert.equal(value.url,'http://127.0.0.1:43111/demo-form.html');
+  assert.match(value.date,/^\d{4}-\d{2}-\d{2}$/);
+  assert.equal(vm.runInContext('typeof page',scope),'undefined');
+});
