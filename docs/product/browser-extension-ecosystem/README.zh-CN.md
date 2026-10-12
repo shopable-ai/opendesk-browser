@@ -1,4 +1,4 @@
-# OpenDesk Browser Product Ecosystem R1–R2（决策与长期导航）
+# OpenDesk Browser Product Ecosystem R1–R3（决策、任务树与长期导航）
 
 > 2026-10-12。本目录是**产品机会研究与产品架构提案**，并非已发布软件、正式验收或市场规模证明。仅基于远端 GitHub `main` 的抽样源码、既有 R8 账本/工作记录及公开产品和政策资料；**未能访问用户 Mac 本地工作区，不能证明其 git status、真实 Chrome、最终构建或本地并行写入情况**。新研究不得覆盖现有 R8 188 条稳定 ID 与 E01–E40。
 >
@@ -6,12 +6,21 @@
 
 > 首次合入审计基线：`main@8ccec441898bc3a175b20105d7116850de9f5be0`，研究首轮提交 [`6463b7098bc9`](https://github.com/shopable-ai/opendesk-browser/commit/6463b7098bc968b12097c48f754a102cd4390312)。后续工作不得将此 SHA 的源码审计状态提升成更新后主线的原生验收。任何状态声明都要按最新 HEAD 再核对。
 
+## 当前工程推进入口：Product Ecosystem R3
+
+- **[R3 完整任务树与状态](product-ecosystem-r3-roadmap.zh-CN.md)**：P0 清理回归 → P1 框架能力复用 → P2 真实电商 A/C MVP → P3 条件性独立插件工厂 → P4 验收 → P5 工程交接。
+- **[R3 可复制完整实施 GOAL](../../framework/prompts/goal-product-ecosystem-r3.zh-CN.md)**：供下一次需要修改真实源码、实现可用工具的工程对话直接使用。
+- **[R3 工程工作流](../../framework/workstreams/product-ecosystem-r3.md)**：本轮文档落库与下次代码/测试证据记录，不代替原 Browser SDK、Cloud Control 等工作流。
+- 商业研究仍按[电商工具宇宙 R2](../../framework/prompts/goal-ecommerce-tool-universe-r2-commercial-validation.zh-CN.md)推进，研究结论不能直接当作功能完成或付费事实。
+
+> 本次新增的是**文档导航和下一阶段执行计划**，不是新插件、SDK 接口或 Factory 代码；不要将 R3 GOAL 的任务当作已完成。Page QA 仍是 DEPRECATED / SOURCE_REMOVED_FROM_MAIN。
+
 ## 当前有效产品决策（2026-10-12，覆盖旧 R1 排名）
 **停止将 Page QA Inspector 当成商业产品或首款独立 Chrome 扩展。** `DEPRECATED / NO_RELEASE / SOURCE_REMOVED_FROM_MAIN`：原 `products/page-qa-inspector/`、QA 专用 feature、专用实验工厂脚本/测试/CI 已从当前 `main` 源码树移除，根产品构建命令也已清理。历史设计、源码提交、决策与证据仍可追溯；本仓库当前**没有已交付的跨产品通用 Extension Factory**。商业实验 `EXP-002` 已归档，不得根据旧 TOP5、MVP1、GOAL 恢复 Page QA 开发或上架。
 
 当前优先研究 **电商卖家 B2B 的 Listing/SKU/毛利工作流（EXP-005）** 与 **消费者 B2C 的实际到手价/购物决策（EXP-007）**；两者仍是 `HYPOTHESIS / NOT_VALIDATED`，不是已经核实的付费项目。保留企业工作流/研究剪藏等其他方向作为独立备选。请以[商业纠偏决策](commercial-decision-ecommerce-20261012.zh-CN.md)和[电商工具宇宙](ecommerce-tool-universe.zh-CN.md)为准，**不要把旧 TOP30 技术机会排序当商业立项排序**。
 
-下一轮推荐执行：[电商机会验证 R2 GOAL](../../framework/prompts/goal-ecommerce-tool-universe-r2-commercial-validation.zh-CN.md)，而不是旧 Page QA 专项验收。
+下一轮工程实施优先参考 [R3 GOAL](../../framework/prompts/goal-product-ecosystem-r3.zh-CN.md)（真实工具与框架复用）；商业研究继续参考 [电商 R2 GOAL](../../framework/prompts/goal-ecommerce-tool-universe-r2-commercial-validation.zh-CN.md)。两条工作线独立维护证据，不再执行旧 Page QA 专项验收。
 
 ## 一句话结论
 
@@ -39,6 +48,10 @@ OpenDesk Product Ecosystem
 
 
 ## 文档索引
+
+- [R3 任务树与阶段验收](product-ecosystem-r3-roadmap.zh-CN.md) — 当前工程推进顺序、产品形态、依赖、状态和实际验收门
+- [R3 实施 GOAL](../../framework/prompts/goal-product-ecosystem-r3.zh-CN.md) — 新对话复制执行的完整工程任务
+- [R3 工程记录](../../framework/workstreams/product-ecosystem-r3.md) — 候选身份、实际修改、测试证据和阻断交接
 
 - [整体产品战略](product-strategy.zh-CN.md) — 三路线业务边界、商业模式和发行方式判断
 - [Extension Factory](extension-factory-architecture.zh-CN.md) — 基于最新源码的可复用性审计、建议分层与构建/发布闭环
