@@ -622,9 +622,49 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
         throw Object.assign(new Error('当前工具实例已撤销'),{code:'E_TOOL_CHANGED'});
       assertSession(source,token);
       const hostInstanceId=new URL(globalThis.location.href).searchParams.get('hostInstanceId');
-      const reply=await api.runtime.sendMessage({protocol:BROWSER_HOST_PROTOCOL,kind:'tool',
-        operation,args:payload||{},toolId:tool.id,toolVersion:tool.version,installEpoch:revocationEpoch,
-        toolInstance:token,hostInstanceId});
+      const envelope={protocol:BROWSER_HOST_PROTOCOL,kind:'tool',
+        operation,args:payload||{},toolId:tool.id,toolVersion:tool.version,
+        installEpoch:revocationEpoch,toolInstance:token,hostInstanceId};
+      if(operation==='browser.sidePanel.openSelf'){
+        const preflight=await api.runtime.sendMessage(envelope);
+        if(!preflight?.ok||preflight.data?.requiresVisibleUserClick!==true)
+          throw Object.assign(new Error(preflight?.error?.message||'Side Panel Host denied'),
+            {code:preflight?.error?.code||'E_BROWSER'});
+        const windowInfo=await api.windows.getCurrent();
+        const coordinator=createSidePanelOpenCoordinator({api,authorize:async()=>{
+          assertSession(source,token);
+          await assertSidebarToolEnabled(api,tool.id);
+          const saved=(await api.storage.local.get(SIDEBAR_TOOL_STORE))[SIDEBAR_TOOL_STORE];
+          const epochs=(await api.storage.local.get(TOOL_REVOCATION_EPOCHS_STORE))[TOOL_REVOCATION_EPOCHS_STORE]||{};
+          return requireCompleteInstalledSidebarTools(saved).some(row=>samePackage(row,tool))&&
+            (epochs[tool.id]??null)===revocationEpoch;
+        }});
+        const prepared=await coordinator.prepare({toolId:tool.id,hostInstanceId,windowId:windowInfo?.id});
+        try{return await requestBrowserClick({toolId:tool.id,
+          message:'「'+tool.title+'」请求打开 OpenDesk 自己的侧边栏。仅此一次。',
+          button:'打开侧边栏',run:event=>coordinator.confirm(prepared.requestRef,event)});
+        }finally{coordinator.dispose();}
+      }
+      if(['browser.tabs.open','browser.tabs.focus','browser.network.request'].includes(operation)){
+        const target=operation==='browser.tabs.focus'?'聚焦此工具此前打开的标签页':
+          operation==='browser.tabs.open'?'打开网页 '+new URL(payload.url).origin:
+            '向 '+new URL(payload.url).origin+' 发送 '+payload.method+' HTTP 请求';
+        const approvalRef=await requestBrowserClick({toolId:tool.id,
+          message:'「'+tool.title+'」请求'+target+'；确认仅批准这一次操作。',
+          button:'允许本次操作',run:async()=>{
+            assertSession(source,token);
+            const approval=await api.runtime.sendMessage({protocol:BROWSER_HOST_PROTOCOL,kind:'host',
+              operation:'browser.intent.confirm',toolId:tool.id,toolVersion:tool.version,
+              installEpoch:revocationEpoch,toolInstance:token,hostInstanceId,
+              targetOperation:operation,targetArgs:payload||{}});
+            if(!approval?.ok)throw Object.assign(new Error(approval?.error?.message||'Browser Host approval denied'),
+              {code:approval?.error?.code||'E_BROWSER'});
+            return approval.data.approvalRef;
+          }});
+        assertSession(source,token);
+        envelope.approvalRef=approvalRef;
+      }
+      const reply=await api.runtime.sendMessage(envelope);
       assertSession(source,token);
       if(!reply?.ok)throw Object.assign(new Error(reply?.error?.message||'浏览器操作失败'),{
         code:reply?.error?.code||'E_BROWSER'});
@@ -918,6 +958,8 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     // SW may record a genuine install intent while the first-party UI is open.
     if(changes?.[DEFAULT_PREINSTALL_STORE]?.newValue?.state==='pending')
       void runDefaultPreinstall();
+    if([SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE,SIDEBAR_TOOL_STORE].some(key=>Object.hasOwn(changes||{},key)))
+      if(pendingAction?.cancel)cancelActionReview();
     if(Object.hasOwn(changes||{},SIDEBAR_TOOL_ENABLE_STORE)){
       enableReadEpoch++;enableRecords=changes[SIDEBAR_TOOL_ENABLE_STORE]?.newValue;
       try{requireToolEnableRecords(enableRecords);enableReadError=false;}catch{enableReadError=true;}
