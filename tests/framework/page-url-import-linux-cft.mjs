@@ -397,8 +397,8 @@ async function runBrowserSourceScenario({sidebar,website,browser,frameworkSha256
   report.browserSource={...report.browserSource,lockId:approved.lockId,manifestDigest:approved.manifestDigest,
     reviewId:pending.reviewId,reviewDigest:pending.reviewDigest,dependencyHash:D3_HASH,dependencyBytes:502};
   write('browser-source-approved-lock.json',approvedStore);
-  report.tests.push({name:'browser-source-real-HTTPS-download-hash-review-and-explicit-fixed-lock',status:'PASS',
-    ...report.browserSource,httpsRequests:requestCount,connects:networkCount});
+  report.tests.push({name:'browser-source-real-HTTPS-download-hash-review-and-explicit-fixed-lock',
+    ...report.browserSource,status:'PASS',httpsRequests:requestCount,connects:networkCount});
 
   report.browserSource.phase='save-only';
   await until(()=>sidebar.read('!document.querySelector("#script-save").disabled'),'Original prepare-and-save enabled');
@@ -1077,7 +1077,10 @@ async function main(){
     report.status+='_BROWSER_SOURCE';
     report.limits=report.limits.filter(line=>!line.includes('browser source editor new-origin preparation flow'));
     report.limits.push('Browser source preparation is tested only for this single fixed 502-byte D3 module, not arbitrary URL graphs.');
+    assert(report.tests.length>=20,'Full JSON+browser-source acceptance must retain all 20 independently checked stages');
   }
+  assert.deepEqual(report.tests.filter(row=>row.status!=='PASS').map(row=>({name:row.name,status:row.status})),[],
+    'The final machine report must not mark a completed scenario as pending, untested or failed');
 }
 try{await main();}
 catch(error){
