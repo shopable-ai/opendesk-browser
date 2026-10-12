@@ -13,7 +13,7 @@
 
 不将 Cloud Control 做成用户须安装的 `.opendesk-tool.json`，也不再增加一个 Side Panel 一级 Tab。完整控制台建议落点 `src/ui/cloud-control-console.*` + 受信 `ui/cloud-control.html`，使用现有 token 和布局原语，独立响应式，不复用 Side Panel 的窄窗口结构。
 
-Sidebar「我的」只增加一个“打开云控控制台 ↗”操作，采用 `chrome.runtime.getURL` + 明确可信点击打开扩展内正式页面；不得让 URL query、localStorage 或普通工具获得云控管理权。正式控制台初期**只读**，通过真正的 Host 注册和经过批准的身份接口获取状态。云控管理动作在可信 RPC 做当前本机授权、配对和代次复核。
+Sidebar「我的」只增加一个“打开云控控制台 ↗”操作，采用 `chrome.runtime.getURL` + 明确可信点击打开扩展内正式页面；不得让 URL query、localStorage 或普通工具获得云控管理权。正式控制台初期**只读**，应通过独立的受信观察者只读 RPC 获取经过字段白名单与分页限制的状态：验证同扩展 sender、页面 URL、Host/Executor namespace 的授权视图，**但不能为控制台登记执行型 Host，也不能授予云任务 claim、startPermit、RunHost 派发权**。当前 `cloudStatus()` 仍要求实际 Host 身份，不可未经审计就直接用新的 `createHostClient()` 在控制台注册一个竞争执行者；P2 必须先补只读 Observer 身份/服务端投影并实测拒绝普通网页/工具沙箱的请求。云控管理动作在可信 RPC 做当前本机授权、配对和代次复核。
 
 ## 二、R1 当前缺口与立即修复
 
