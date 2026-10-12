@@ -57,3 +57,10 @@ GitHub main 在本轮由其他 Agent 并行提交更新。修改只针对 Cloud 
 - `c3356edd26092aac2470594076e42dd4ef63befc`：UI 测试覆盖同版本但代际更换后的过期批准与参数展示。
 - [Cloud 组件 + 双构建 CI #38291579062](https://github.com/shopable-ai/opendesk-browser/actions/runs/38291579062)，绑定源码 SHA `c3356edd26092aac2470594076e42dd4ef63befc`。观察时仍为 queued，不能记录通过数量、packageHash 或误称 Native Chrome PASS。
 - Node HTTP/WebSocket 任务测试中的 runRef 是人工协议模拟，不能替代真实 Worker 的 RunId、ResultId、retirement released、Provider receipt。
+
+
+## R5.1.2 · 参数约束完整展示
+
+- `ae5e765fe743ee7396f752702880ed0a26de5d32`：云控任务卡增加可展开的完整参数 Schema（含默认值、enum、长度及数值范围），避免只显示参数名称导致审批内容不透明。
+- `c814449e08d45baef40bee5439017551b42408a5`：沿用现有设计变量，为窄 Side Panel 提供自动换行、限制高度和滚动容器。
+- [最新受影响源码专项 CI #38291915410](https://github.com/shopable-ai/opendesk-browser/actions/runs/38291915410)，对应 SHA `c814449e08d45baef40bee5439017551b42408a5`；查询时 queued，组件/双构建结果均 **CI_PENDING**，不能填写 PASS 数字或原生证据。
