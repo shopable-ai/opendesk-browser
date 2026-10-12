@@ -26,6 +26,12 @@ node --test tests/integration/esm-examples-acceptance.test.mjs
 
 > R10.1 当前中文使用入口：[快速入门](../../docs/api/quickstart.zh-CN.md)，[七个 MCP 工具](../../docs/api/mcp-local-development.zh-CN.md)。复用原候选证据，按相关输入判断是否需要重测；不以示例运行代替安装/F3。
 
+## R24.5 正式版与可选开发版
+
+**普通用户默认 Standard：**React Direct、Vue Direct、普通 JavaScript 与已冻结 JSX/SFC 组件程序继续运行，浏览器安装包**不附带** Babel / Vue SFC 浏览器编译器。**开发者使用 `opendesk browser dev .`：**本机 Node/Go 已授权环境在编辑保存后自动准备 JSX/SFC，明确 Run 才执行。**少数需要无 Native 直接在 Side Panel 粘贴原始 JSX/SFC 的开发者**才使用 Developer Edition；它是同一源码构建的独立实验 ZIP，不是另一套应用框架或已上架的正式插件。
+
+双版本与真实压缩体积、Mac Chrome 验收见 [架构说明](../../docs/architecture/browser-framework/browser-compiler-editions-r245.zh-CN.md) 和 [专项工作记录](../../docs/framework/workstreams/browser-compiler-editions-r245-20261012.md)。不能再依据过期 R24.1 “Page 容量不足 / Chrome NOT_TESTED” 判断现在的 JSX/SFC 示例。
+
 ## 默认本地开发
 
 [local-controller](local-controller/README.md) 提供“改 src/extract.js → MCP 运行新源码 → 原 Controller 持久结果”的只读示例。按 [R2.2 使用说明](../../docs/framework/local-development-r22.zh-CN.md) 完成一次连接，之后不用 build:program、JSON 上传或覆盖草稿。现有多文件示例沿用同一个项目格式；下文构建流程保留为显式冻结交付。Page 本地预览与 Sidebar 目录控件的当前状态见 [工作记录](../../docs/framework/workstreams/local-dev-r22-c036.json)。
@@ -33,13 +39,13 @@ node --test tests/integration/esm-examples-acceptance.test.mjs
 
 | 示例 | 技术目标 | 当前证据边界 |
 | --- | --- | --- |
-| [可直接导入的 React/Vue 草稿](../import-ready/README.zh-CN.md) | 发现 → 导入已有 JSON，切换开发/直接编辑运行 | 已构建未验证草稿，不是安装/自动启动 |
+| [可直接导入的 React/Vue 草稿](../import-ready/README.zh-CN.md) | 导入已冻结、带 SHA 的 JSON 执行产物后明确运行 | 生产构建及历史 SHA 校验已有 CI；导入不是自动安装或自动执行 |
 | [page-ui-react-direct](page-ui-react-direct/) | 推荐：React 19 纯 JS，直接在目标网站插入组件 | 用户无需 npm、Vite 或自行编译 |
 | [page-ui-toc-react-direct](page-ui-toc-react-direct/README.md) | React Direct 网页悬浮目录，自动收集 H1–H6、章节定位和 Stop 清理 | 独立 Demo；模型测试已跑，Mac 原生验收待执行 |
 | [page-ui-vue-direct](page-ui-vue-direct/) | 推荐：Vue 3 纯 JS，直接在目标网站插入组件 | 用户无需 npm、Vite 或自行编译 |
 | [page-ui-basic](page-ui-basic/) | 原生网页增强按钮、可撤销段落标记（R24.1） | 当前补丁待真实 Chrome 候选验收 |
-| [page-ui-react](page-ui-react/) | React JSX + `root.unmount()` 的网页内 UI，原 Page Runtime | LOCKED_SOURCE：Vite PASS；Page 容量不足 / Chrome NOT_TESTED |
-| [page-ui-vue](page-ui-vue/) | Vue 3 SFC + `app.unmount()` 的网页内 UI，原 Page Runtime | LOCKED_SOURCE：Vite PASS；Page 容量不足 / Chrome NOT_TESTED |
+| [page-ui-react](page-ui-react/) | `src/App.jsx` 官方 JSX → Node 本地自动编译、固定 React + 受管 Stop；Developer Edition 可浏览器直接编辑 | 本地 20 次真实 Chrome Run/Stop、npm 全局 CLI 编译、历史无 Native JSX Chrome PASS；R24.5 分版全矩阵未放行 |
+| [page-ui-vue](page-ui-vue/) | `src/App.vue` 官方 SFC → Node 本地自动编译、固定 Vue + 受管 Stop；Developer Edition 可浏览器直接编辑 | 本地 20 次真实 Chrome Run/Stop、npm 全局 CLI 编译、历史无 Native SFC Chrome PASS；R24.5 分版全矩阵未放行 |
 | [page-heading](page-heading/) | namespace/re-export Page ESM 标题读取 | R2.2 localhost 临时授权副本 Chrome L4 PASS；原 example.com 未测 |
 | [controller-title](controller-title/) | Controller ESM 标题读取 | R2.2 localhost 临时授权副本 Chrome L4 PASS；原 example.com 未测 |
 | [local-controller](local-controller/README.md) | Codex/MCP 修改本地多文件，直接使用最新已保存源码 | 原 R2.2 证据与[R10.1 后续 Mac/Codex 证据](../../docs/framework/workstreams/r101-development-01a12159.md)分开核对；不推广为每个新包已重跑 |
