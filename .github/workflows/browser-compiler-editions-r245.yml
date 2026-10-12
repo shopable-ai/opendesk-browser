@@ -17,6 +17,7 @@ on:
       - 'tests/environment/browser-editions-r245.test.mjs'
       - 'tests/framework/browser-edition-package-r245.mjs'
       - 'package.json'
+      - 'tests/framework/page-browser-worker-r243-cft.mjs'
   workflow_dispatch:
 permissions:
   contents: read
@@ -55,4 +56,51 @@ jobs:
             .runtime/tests/browser-editions-r245
             artifacts/opendesk-browser-production.zip
             artifacts/opendesk-browser-production-developer.zip
+          if-no-files-found: warn
+
+  browser-editions-real-chrome:
+    runs-on: macos-15
+    timeout-minutes: 28
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - uses: browser-actions/setup-chrome@v2
+        id: chrome
+        with:
+          chrome-version: '155.0.8059.39'
+      - name: Build Standard and verify true physical compiler absence
+        run: |
+          npm run build
+          node scripts/verify-package.mjs dist/production production
+      - name: Real Chrome Standard Side Panel hides compiler modes, Native absent
+        env:
+          CHROME_FOR_TESTING_BIN: ${{ steps.chrome.outputs.chrome-path }}
+          OPENDESK_R245_STANDARD_SMOKE: '1'
+          OPENDESK_DEV_PACKAGE_DIR: dist/production
+          OPENDESK_DEV_EVIDENCE: .runtime/tests/r245-standard-chrome
+          OPENDESK_DEV_CFT_LAUNCHER: ${{ github.workspace }}/tests/framework/cft-isolated-launcher.py
+        run: node tests/framework/page-browser-worker-r243-cft.mjs
+      - name: Build Developer and verify fixed compiler assets
+        run: |
+          npm run build:developer
+          node scripts/verify-package.mjs dist/production-developer production
+      - name: Real Chrome Developer JSX/SFC edit, interactions, error recovery and Stop, Native absent
+        env:
+          CHROME_FOR_TESTING_BIN: ${{ steps.chrome.outputs.chrome-path }}
+          OPENDESK_R243_BROWSER_FULL_UI: '1'
+          OPENDESK_DEV_PACKAGE_DIR: dist/production-developer
+          OPENDESK_DEV_EVIDENCE: .runtime/tests/r245-developer-chrome
+          OPENDESK_DEV_CFT_LAUNCHER: ${{ github.workspace }}/tests/framework/cft-isolated-launcher.py
+        run: node tests/framework/page-browser-worker-r243-cft.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: r245-standard-and-developer-native-${{ github.sha }}
+          path: |
+            .runtime/tests/r245-standard-chrome
+            .runtime/tests/r245-developer-chrome
           if-no-files-found: warn
