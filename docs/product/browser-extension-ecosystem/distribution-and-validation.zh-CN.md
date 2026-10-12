@@ -1,5 +1,7 @@
 # OpenDesk 获客、合作伙伴和商业实验 R2
 
+> **2026-10-12 商业决策更新：**下文 EXP-002 Page QA 的商业首发与六周计划为旧候选，现仅保留技术实验价值、商业验证暂缓。新增长期研究重点为[电商工具宇宙](ecommerce-tool-universe.zh-CN.md)，优先调查 EXP-005 卖家工作流与 EXP-007 消费购物价值；真实访谈、数据权限与付费证据尚未取得。[查看决策](commercial-decision-ecommerce-20261012.zh-CN.md)。
+
 > 2026-10-12。本文件是推广与实验的执行方案，**没有真实获客、合作合同、CWS 付费转化或自然留存数据**。实验状态以 [commercial-experiments.json](commercial-experiments.json) 为准。
 
 ## 一、商店不是唯一获客渠道

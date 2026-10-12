@@ -73,7 +73,7 @@
       "hypothesis": "用户相较 DevTools 能更快自主找到并处理问题",
       "successEvidenceTarget": "无引导首次任务成功及自然重复使用",
       "policyGate": "ACTIVE_TAB_AND_CWS_SINGLE_PURPOSE",
-      "priority": "NOW",
+      "priority": "LATER",
       "stage": "PROPOSED",
       "owner": "UNASSIGNED",
       "startedAt": null,
@@ -196,7 +196,7 @@
       "hypothesis": "Listing 校验和回归带来重复付费价值",
       "successEvidenceTarget": "卖家演示+授权网站原生验证",
       "policyGate": "SELLER_SITE_TERMS_AND_DATA",
-      "priority": "NEXT",
+      "priority": "NOW",
       "stage": "PROPOSED",
       "owner": "UNASSIGNED",
       "startedAt": null,
@@ -279,7 +279,7 @@
       "hypothesis": "透明到手价比默认返利广告更可信",
       "successEvidenceTarget": "商品金额正确性与自然复用",
       "policyGate": "NO_SILENT_AFFILIATE_OR_COOKIE",
-      "priority": "LATER",
+      "priority": "NOW",
       "stage": "PROPOSED",
       "owner": "UNASSIGNED",
       "startedAt": null,
@@ -342,5 +342,11 @@
       "evidence": [],
       "lastReviewedAt": "2026-10-12"
     }
-  ]
+  ],
+  "commercialPriorityDecision": {
+    "reviewedAt": "2026-10-12",
+    "status": "RESEARCH_PRIORITY_ONLY_NO_REAL_INTERVIEWS_OR_PAID_ORDERS",
+    "decisionDocument": "docs/product/browser-extension-ecosystem/commercial-decision-ecommerce-20261012.zh-CN.md",
+    "rationale": "Defer Page QA commercial debut (keep factory tech fixture); prioritize e-commerce seller and consumer needs research without implying product launch or funding."
+  }
 }

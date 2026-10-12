@@ -2,6 +2,8 @@
 
 > TOP30 为**人工推断的研究顺序**，不是商店流量排名，也不是已验证需求排名。每个 `OPP-xxx` 的详细证据和验证法见 [JSON 机会库](opportunity-register.json)。无真实用户访谈，用户频率与商业意愿均不可视为已证明。
 
+> **商业方向复审（2026-10-12，新决策优先）：**下方 R1 TOP30、TOP5、MVP 1 是历史研究提议，**不再将 Page QA Inspector 作为首款商业重点或默认 CWS 上架对象**；已开发的 Page QA 可继续作为 Extension Factory 技术验证样品。下一轮商业优先研究电商工具宇宙（B2B 卖家与 B2C 消费者），真实用户任务、竞品免费替代、付费证据和数据合法性之后才可重排商业名次。详情：[商业决策](commercial-decision-ecommerce-20261012.zh-CN.md)、[电商工具宇宙](ecommerce-tool-universe.zh-CN.md)。
+
 ## 一、TOP30 候选，交付方式与下一步
 
 | 研究位次 | 机会 ID | 用户价值假设 | 适宜分发 | 当前重点验证 |

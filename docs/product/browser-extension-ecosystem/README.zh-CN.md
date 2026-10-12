@@ -48,6 +48,9 @@ OpenDesk Product Ecosystem
 - [获客与商业验证](distribution-and-validation.zh-CN.md) — 渠道、合作伙伴、付费试点与六周实验方法（R2）
 - [商业实验台账](commercial-experiments.json) — 8 个 EXP、无虚构订单和访谈、不复制 84 个 OPP（R2）
 - [下一轮 GOAL](next-goals.zh-CN.md) — Extension Factory / UserScript 两份可复制实施提示词
+- [商业方向调整：电商优先](commercial-decision-ecommerce-20261012.zh-CN.md) — Page QA 保留技术样品、暂缓商业首发；先验证电商问题与付费方
+- [电商工具宇宙](ecommerce-tool-universe.zh-CN.md) — 消费者/卖家/品牌/供应链/生态共 20 个研究领域
+- [电商研究独立 GOAL](../../framework/prompts/goal-ecommerce-tool-universe-r1.zh-CN.md) — 下一轮可直接复制的深度研究任务
 
 ## 权威文档边界
 
