@@ -8,12 +8,12 @@ import {randomUUID,createHash} from 'node:crypto';
 import {setTimeout as pause} from 'node:timers/promises';
 import {MARKET_HEADERS} from '../../scripts/build-market-site.mjs';
 import {MARKET_INTENTS_STORE,MARKET_INTENT_PROTOCOL as protocol} from '../../src/marketplace/intent.js';
-import {MARKET_OPERATIONS_STORE} from '../../src/ui/sidebar-tools/installation.js';
+import {MARKET_OPERATIONS_STORE,MARKET_PROVENANCE_STORE} from '../../src/ui/sidebar-tools/installation.js';
 import {MARKET_BATCH_STORE,marketBatchUnresolved} from '../../src/marketplace/batch.js';
 import {OFFICIAL_COLLECTIONS} from '../../src/marketplace/catalog.js';
-import {sidebarToolStorageKey} from '../../src/ui/sidebar-tools/package.js';
+import {sidebarToolStorageKey,SIDEBAR_TOOL_STORE} from '../../src/ui/sidebar-tools/package.js';
 import {READING_TOC_SITE_STORE} from '../../src/reading-toc/policy.js';
-import {observeMarketSender} from './app-market-r5-observers.mjs';
+import {observeMarketSender,armMarketCut} from './app-market-r5-observers.mjs';
 import {marketUIAudit} from './app-market-r5-ui.mjs';
 const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
 const mime={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.json':'application/json','.png':'image/png','.xml':'application/xml','.txt':'text/plain'};
@@ -38,8 +38,9 @@ export async function runMarketR5Acceptance(d){
     websiteFiles:output.length,channel,actualBrowser:'Chrome for Testing; real extension and HTTP',
     externalSender:'browser-provided; never supplied by driver',checks:[],negative:[],responsive:[],
     result:'IN_PROGRESS',formalHttps:'BLOCKED_NO_REVIEWED_PRODUCTION_CHANNEL',macChrome:process.platform==='darwin'?'IN_PROGRESS':'NOT_TESTED',
-    notTested:['formal-https-and-web-store-channel','user-local-mac-profile','handoff-create-persist-window-interruption',
-      'native-install-acknowledgement-loss','native-capacity-and-artifact-corruption-faults']};
+    notTested:['formal-https-and-web-store-channel','user-local-mac-profile',
+      'native-tabs-create-acknowledgement-loss','native-storage-set-acknowledgement-loss',
+      'native-capacity-and-artifact-corruption-faults','real-30-minute-intent-expiry','natural-idle-worker-shutdown']};
   const check=(name,detail={})=>{evidence.r5.checks.push({name,status:'PASS',...detail});};
   const ui=marketUIAudit(d);
   const mark=(name,detail={})=>phase('r5-'+name,detail);
@@ -70,6 +71,9 @@ export async function runMarketR5Acceptance(d){
   const demo=await serverAt(43111,async(req,res)=>{if(new URL(req.url,'http://127.0.0.1:43111').pathname!=='/demo-form.html'){res.writeHead(404);return res.end();}res.writeHead(200,{'content-type':mime['.html']});res.end(demoBytes);});d.t.after(demo.close);
   evidence.r5.demo={url:demo.origin+'/demo-form.html',source:'examples/tasks/demo-form.html',sha256:hash(demoBytes)};
   const intentRows=async()=>((await readStore(MARKET_INTENTS_STORE,host()))?.intents||[]);
+  const storedCutState=async()=>({intents:await intentRows(),operations:(await readStore(MARKET_OPERATIONS_STORE,host()))||{},
+    registry:await installed(),provenance:(await readStore(MARKET_PROVENANCE_STORE,host()))||{},
+    batch:(await readStore(MARKET_BATCH_STORE,host()))||null});
   async function newIntentBudget(){
     // Product rate limits remain active; never alter the journal or test clock.
     for(let i=0;i<65;i++){
@@ -80,7 +84,45 @@ export async function runMarketR5Acceptance(d){
     }
     throw Error('Real intent rate window did not expire');
   }
-  async function websiteSubjectReview(subject,{existingPage=null,details=false,keyboard=false,audit=false}={}){
+  async function interruptedHandoff(page){
+    const initialState=await storedCutState();
+    const beforeTargets=(await targets()).map(row=>({targetId:row.targetId,url:row.url}));
+    const a1=await armMarketCut(d,'A1');
+    await click(page,'#open-review');const hit1=await a1.wait();
+    assert.equal(hit1.value.intent.phase,'prepared');assert.equal(hit1.value.intent.tabId,null);
+    assert(!(await targets()).some(row=>row.url===hit1.value.reviewURL));
+    await a1.terminate();const after1=await storedCutState(),row1=after1.intents.find(row=>row.intentId===hit1.value.intent.intentId);
+    assert.deepEqual(row1,hit1.value.intent);assert.equal(row1.consumedAt,null);
+    assert.deepEqual(after1.operations,initialState.operations);assert.deepEqual(after1.registry,initialState.registry);
+    Object.assign(a1.record,{beforeTargets,afterTermination:after1});
+    await until(()=>evaluate(page,'document.querySelector("#handoff-state").dataset.state==="error"'),'interrupted handoff returns unknown/transport error');
+    await click(page,'#connect-button');
+    await until(()=>evaluate(page,'document.querySelector("#connection-state").textContent.includes("已连接 OpenDesk")'),'HTTP probe wakes worker after prepared interruption');
+    const a2=await armMarketCut(d,'A2');
+    assert.notEqual(a2.record.executionContext.uniqueId,a1.record.executionContext.uniqueId,'real replacement worker context');
+    await click(page,'#open-review');const hit2=await a2.wait();
+    assert.equal(hit2.value.intent.intentId,row1.intentId);assert.equal(hit2.value.intent.operationId,row1.operationId);
+    assert.equal(hit2.value.intent.phase,'prepared');assert.equal(hit2.value.intent.tabId,null);
+    assert(Number.isSafeInteger(hit2.value.tab.id));
+    const created=(await targets()).filter(row=>row.url===hit2.value.reviewURL);
+    assert.equal(created.length,1);assert(!beforeTargets.some(row=>row.targetId===created[0].targetId),'real newly created review');
+    await a2.terminate();const after2=await storedCutState();
+    assert.equal(after2.intents.find(row=>row.intentId===row1.intentId).phase,'prepared');
+    assert.deepEqual(after2.operations,initialState.operations);assert.deepEqual(after2.registry,initialState.registry);
+    Object.assign(a2.record,{afterTermination:after2,createdReview:created[0]});
+    await until(()=>evaluate(page,'document.querySelector("#handoff-state").dataset.state==="error"'),'created-before-persist interruption becomes unknown');
+    await click(page,'#connect-button');
+    await until(()=>evaluate(page,'document.querySelector("#connection-state").textContent.includes("已连接 OpenDesk")'),'HTTP probe wakes worker after create interruption');
+    await click(page,'#open-review');
+    await until(()=>evaluate(page,'document.querySelector("#handoff-state").dataset.state==="success"'),'same HTTP intent recovers existing review');
+    const recovered=(await intentRows()).find(row=>row.intentId===row1.intentId),actual=(await targets()).filter(row=>row.url===hit2.value.reviewURL);
+    assert.equal(actual.length,1);assert.equal(actual[0].targetId,created[0].targetId);
+    assert.equal(recovered.reviewId,row1.reviewId);assert.equal(recovered.operationId,row1.operationId);assert.equal(recovered.phase,'opened');
+    assert.equal(recovered.tabId,hit2.value.tab.id);assert.deepEqual(await installed(),initialState.registry);
+    for(const cut of [a1,a2])Object.assign(cut.record,{status:'PASS',recovered});
+    check('native-worker-prepared-before-create-and-created-before-persist-recovery',{intentId:row1.intentId,reviewId:row1.reviewId,operationId:row1.operationId});
+  }
+  async function websiteSubjectReview(subject,{existingPage=null,details=false,keyboard=false,audit=false,handoffCuts=false}={}){
     await newIntentBudget();
     const route=subject.kind==='app'?subject.marketId+'/versions/'+subject.version+'/':
       'collections/'+subject.collectionId+'/revisions/'+subject.revision+'/';
@@ -88,7 +130,8 @@ export async function runMarketR5Acceptance(d){
     const page=existingPage||await openTab(url);await visible(page,'#open-review');
     await until(()=>evaluate(page,'document.querySelector("#connection-state").textContent.includes("已连接 OpenDesk")'),'real page script and external probe ready');
     if(audit)await ui.detail(page,'r5-web-detail','#open-review');
-    if(keyboard)await ui.enter(page,'#open-review','r5-first-website-handoff');
+    if(handoffCuts)await interruptedHandoff(page);
+    else if(keyboard)await ui.enter(page,'#open-review','r5-first-website-handoff');
     else await click(page,'#open-review');
     await until(async()=>{const state=await evaluate(page,'document.querySelector("#handoff-state").dataset.state');
       if(state==='error')throw Error(await evaluate(page,'document.querySelector("#handoff-state").textContent'));return state==='success';},'HTTP website opened trusted review');
@@ -120,7 +163,10 @@ export async function runMarketR5Acceptance(d){
   assert.equal(await evaluate(website,'document.activeElement.id'),'content');
   assert.equal(await evaluate(website,'document.querySelectorAll(".app-card").length'),6);
   await inputText(website,'#app-search','Markdown');
-  assert.equal(await evaluate(website,'[...document.querySelectorAll(".app-card")].filter(row=>!row.hidden).length'),1);
+  const visibleAppLinks=()=>evaluate(website,'[...document.querySelectorAll(".app-card")].filter(row=>!row.hidden).map(row=>row.querySelector("h2 a").getAttribute("href")).sort()');
+  assert.deepEqual(await visibleAppLinks(),['/apps/opendesk/markdown-workbench/','/apps/opendesk/web-markdown-clipper/']);
+  await inputText(website,'#app-search','Markdown 工作台');
+  assert.deepEqual(await visibleAppLinks(),['/apps/opendesk/markdown-workbench/']);
   await inputText(website,'#app-search','不存在的应用名称');
   assert.equal(await evaluate(website,'document.querySelector("#no-results").hidden'),false);
   await inputText(website,'#app-search','');await click(website,'button[data-filter="阅读"]');
@@ -155,7 +201,34 @@ export async function runMarketR5Acceptance(d){
 
   await mark('http-first-install-fixed-review-and-use');
   const initial=await installed();assert(!initial.some(row=>row.id==='markdown-workbench'));
+  const abandoned=await websiteReview('markdown-workbench',packages.get('markdown-workbench').version,{details:true,handoffCuts:true});
+  await visible(abandoned.review,'[data-market-action="confirm-install"]');
+  const beforeConsume=await storedCutState(),consumeCut=await armMarketCut(d,'B',{targetId:abandoned.review.targetId});
+  const consumeGesture=click(abandoned.review,'[data-market-action="confirm-install"]').then(()=>({status:'ACKNOWLEDGED'}),error=>({status:'TARGET_CLOSED',message:error.message}));
+  const consumeHit=await consumeCut.wait();
+  assert.equal(consumeHit.value.operationId,abandoned.row.operationId);assert.equal(consumeHit.value.toolId,'markdown-workbench');
+  await consumeCut.terminate();consumeCut.record.gesture=await consumeGesture;
+  const afterConsume=await storedCutState(),consumed=afterConsume.intents.find(row=>row.intentId===abandoned.row.intentId);
+  assert(Number.isSafeInteger(consumed.consumedAt));assert.equal(consumed.settledAt,null);
+  assert.equal(afterConsume.operations[abandoned.row.operationId],undefined);
+  assert.deepEqual(afterConsume.operations,beforeConsume.operations);assert.deepEqual(afterConsume.registry,initial);
+  Object.assign(consumeCut.record,{afterTermination:afterConsume});
+  const unjournaled=await websiteReview('markdown-workbench',packages.get('markdown-workbench').version,{existingPage:abandoned.page,details:true});
+  assert.equal(unjournaled.row.reviewId,abandoned.row.reviewId);assert.equal(unjournaled.row.operationId,abandoned.row.operationId);
+  await visible(unjournaled.review,'[data-market-action="close-unjournaled"]');
+  assert.equal(await evaluate(unjournaled.review,'!!document.querySelector("[data-market-action=confirm-install]")'),false);
+  await screenshot(unjournaled.review,'r5-consumed-without-journal.png');
+  await click(unjournaled.review,'[data-market-action="close-unjournaled"]');
+  const closedUnknown=await until(async()=>(await intentRows()).find(row=>row.intentId===consumed.intentId&&row.settledAt!==null),'explicit unknown-without-journal closure');
+  assert.equal(closedUnknown.closureReason,'unknown-without-journal');assert.equal(closedUnknown.consumedAt,consumed.consumedAt);
+  assert.equal((await readStore(MARKET_OPERATIONS_STORE,host()))?.[abandoned.row.operationId],undefined);
+  assert.deepEqual(await installed(),initial);
+  await close(unjournaled.review);await close(unjournaled.page);
+  Object.assign(consumeCut.record,{status:'PASS',recovered:closedUnknown});
+  check('native-consumed-before-first-journal-interruption-never-replays-and-explicitly-closes-unknown',
+    {intentId:closedUnknown.intentId,operationId:closedUnknown.operationId,closureReason:closedUnknown.closureReason});
   let first=await websiteReview('markdown-workbench',packages.get('markdown-workbench').version,{details:true,keyboard:true,audit:true});
+  assert.notEqual(first.row.intentId,abandoned.row.intentId,'a fresh approved candidate needs a new web intent after an unknown closure');
   await visible(first.review,'[data-market-action="confirm-install"]');
   assert.deepEqual(await installed(),initial,'website handoff cannot install');await d.assertNoFrames();await d.assertNoGrants();
   assert.match(await evaluate(first.review,'document.body.innerText'),/发布者：OpenDesk/);
@@ -183,6 +256,16 @@ export async function runMarketR5Acceptance(d){
   const completedIntent=await until(async()=>(await intentRows()).find(row=>row.intentId===first.row.intentId&&row.settledAt!==null),'first install handoff settled');
   await until(()=>evaluate(first.review,'!!document.querySelector("[data-market-action=open-installed]")'),'explicit open after install');
   await screenshot(first.review,'r5-installed-trusted-state.png');
+  await click(first.review,'[data-market-action="open-installed"]');
+  const trustedOpen=await until(async()=>(await targets()).find(row=>row.type==='page'&&row.url.startsWith('chrome-extension://'+id+'/ui/tool.html?')&&
+    new URL(row.url).searchParams.get('toolId')==='markdown-workbench'),'trusted installed action opens actual fixed tool');
+  await d.iframeWith('markdown-workbench');
+  const openedToolPage=await attach(trustedOpen.targetId);
+  const actualToolURL=await evaluate(openedToolPage,'location.href');assert(new URL(actualToolURL).searchParams.get('hostInstanceId'));
+  const hostResources=await until(()=>evaluate(openedToolPage,'(()=>{const value=globalThis.OpenDeskResourceDiagnostics?.snapshot();return value?.owners?.client?.ports===1&&value;})()'),'trusted opened tool uses actual connected Foundation host');
+  await close(openedToolPage);
+  await until(async()=>(await targets()).every(row=>row.type!=='iframe'||!row.url.includes('/sidebar-tools/sandbox.html')),'trusted opened tool closes its real sandbox');
+  check('trusted-install-result-open-action-reaches-current-installed-tool',{targetId:trustedOpen.targetId,url:actualToolURL,resources:hostResources});
   await close(first.review);
   let frame=await openTool('markdown-workbench');
   await inputText(frame,'#mdw-source','# R5 真实安装\n\n**已运行**');await click(frame,'button[data-mode="preview"]');
@@ -295,12 +378,38 @@ export async function runMarketR5Acceptance(d){
   assert.equal((await installed()).find(row=>row.id==='quick-notes').version,'0.0.2');
   await click(upgrade.review,'[data-market-action="review-again"]');await visible(upgrade.review,'[data-market-action="confirm-install"]');
   assert.match(await evaluate(upgrade.review,'document.body.innerText'),/当前：v0\.0\.2/);
-  await screenshot(upgrade.review,'r5-update-review.png');await click(upgrade.review,'[data-market-action="confirm-install"]');
-  await until(async()=>(await installed()).find(row=>row.id==='quick-notes')?.version===notes.version,'official website update');
-  await until(async()=>(await readStore(MARKET_OPERATIONS_STORE,host()))?.[upgrade.row.operationId]?.state==='succeeded','official update transaction completed');
+  await screenshot(upgrade.review,'r5-update-review.png');
+  const beforeRegistry=await storedCutState(),registryCut=await armMarketCut(d,'C',{targetId:upgrade.review.targetId});
+  const registryGesture=click(upgrade.review,'[data-market-action="confirm-install"]').then(()=>({status:'ACKNOWLEDGED'}),error=>({status:'TARGET_CLOSED',message:error.message}));
+  const registryHit=await registryCut.wait();
+  assert.equal(registryHit.value.key,SIDEBAR_TOOL_STORE);assert.equal(registryHit.value.scope,'工具安装记录');assert.equal(registryHit.value.failure,null);
+  assert.equal(registryHit.value.next.find(row=>row.id==='quick-notes').version,notes.version);
+  assert.equal(registryHit.value.previous.find(row=>row.id==='quick-notes').version,'0.0.2');
+  await registryCut.terminate();registryCut.record.gesture=await registryGesture;
+  const afterRegistry=await storedCutState(),committing=afterRegistry.operations[upgrade.row.operationId];
+  assert.equal(committing.state,'committing');assert.equal(committing.toolId,'quick-notes');
+  assert.equal(committing.version,notes.version);assert.deepEqual(afterRegistry.registry,registryHit.value.next);
+  assert.deepEqual(afterRegistry.provenance,beforeRegistry.provenance);assert.deepEqual(await readStore(sidebarToolStorageKey('quick-notes')),noteData);
+  Object.assign(registryCut.record,{afterTermination:afterRegistry});
+  const resumedUpdate=await websiteReview('quick-notes',notes.version,{existingPage:upgrade.page});
+  assert.equal(resumedUpdate.row.operationId,upgrade.row.operationId);assert.equal(resumedUpdate.row.reviewId,upgrade.row.reviewId);
+  await visible(resumedUpdate.review,'.review > button');
+  assert.equal(await evaluate(resumedUpdate.review,'document.querySelector(".review > button").textContent'),'恢复核对安装结果');
+  assert.equal(await evaluate(resumedUpdate.review,'!!document.querySelector("[data-market-action=confirm-install]")'),false);
+  await screenshot(resumedUpdate.review,'r5-registry-committed-review-recovery.png');
+  const recoveryWrites=await armMarketCut(d,'C',{targetId:resumedUpdate.review.targetId,observeRegistryWrites:true});
+  await click(resumedUpdate.review,'.review > button');
+  await until(async()=>(await readStore(MARKET_OPERATIONS_STORE,host()))?.[upgrade.row.operationId]?.state==='succeeded','original official update transaction recovered');
+  assert.deepEqual(await installed(),afterRegistry.registry,'recovery preserves the actual already-committed candidate');
   const settledUpgrade=await until(async()=>(await intentRows()).find(row=>row.intentId===upgrade.row.intentId&&row.settledAt!==null),'official update handoff settled');
-  await visible(upgrade.review,'[data-market-action="open-installed"]');
-  assert.deepEqual(await readStore(sidebarToolStorageKey('quick-notes')),noteData);await close(upgrade.page);await close(upgrade.review);
+  await visible(resumedUpdate.review,'[data-market-action="open-installed"]');
+  assert.equal(recoveryWrites.record.events.length,0,'recovery observation context stayed live throughout the gesture and completion');
+  await recoveryWrites.dispose();assert.deepEqual(recoveryWrites.record.errors,[]);assert.deepEqual(recoveryWrites.record.observations,[],'explicit recovery never resubmits the installed registry');
+  recoveryWrites.record.status='PASS_ZERO_REGISTRY_SUBMISSIONS';
+  assert.deepEqual(await readStore(sidebarToolStorageKey('quick-notes')),noteData);await close(resumedUpdate.page);await close(resumedUpdate.review);
+  Object.assign(registryCut.record,{status:'PASS',recoveredOperation:(await readStore(MARKET_OPERATIONS_STORE,host()))[upgrade.row.operationId],recoveredIntent:settledUpgrade});
+  check('native-registry-committed-page-interruption-recovers-original-operation-and-user-data',
+    {operationId:upgrade.row.operationId,version:notes.version,storageAcknowledgementLoss:'NOT_TESTED; interrupted only after successful native set'});
   frame=await openTool('quick-notes');await until(()=>evaluate(frame,'document.querySelector("#note-text").value==='+JSON.stringify(note)),'same note in updated actual tool');
   await screenshot(side(),'r5-notes-after-update.png');await back();
   evidence.r5.update={fixtureVersions:['0.0.1','0.0.2'],fixtureStatus:'controlled local test packages, not historical official releases',officialVersion:notes.version,

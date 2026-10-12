@@ -1,0 +1,1252 @@
+TAP version 13
+# Subtest: batch record uses one immutable revision, bounded official members and real transaction identifiers
+ok 1 - batch record uses one immutable revision, bounded official members and real transaction identifiers
+  ---
+  duration_ms: 0.954917
+  type: 'test'
+  ...
+# Subtest: already installed, denied permissions, missing release are represented without launching
+ok 2 - already installed, denied permissions, missing release are represented without launching
+  ---
+  duration_ms: 0.149417
+  type: 'test'
+  ...
+# Subtest: recovery never replays queued members and preserves committed and unknown results
+ok 3 - recovery never replays queued members and preserves committed and unknown results
+  ---
+  duration_ms: 0.271167
+  type: 'test'
+  ...
+# Subtest: malformed or contaminated durable records fail closed rather than being overwritten
+ok 4 - malformed or contaminated durable records fail closed rather than being overwritten
+  ---
+  duration_ms: 0.365125
+  type: 'test'
+  ...
+# Subtest: stale review order and unapproved members cannot create a batch
+ok 5 - stale review order and unapproved members cannot create a batch
+  ---
+  duration_ms: 0.1475
+  type: 'test'
+  ...
+# Subtest: non-blocking Web Lock refuses overlapping browser market windows
+ok 6 - non-blocking Web Lock refuses overlapping browser market windows
+  ---
+  duration_ms: 0.185334
+  type: 'test'
+  ...
+# Subtest: fixed unavailable members retain their historical version and never enter the queue
+ok 7 - fixed unavailable members retain their historical version and never enter the queue
+  ---
+  duration_ms: 0.201292
+  type: 'test'
+  ...
+# Subtest: market catalog uses pinned immutable member identity and all six tool versions
+ok 8 - market catalog uses pinned immutable member identity and all six tool versions
+  ---
+  duration_ms: 0.779292
+  type: 'test'
+  ...
+# Subtest: every official release is the exact packaged tool ID, version and title
+ok 9 - every official release is the exact packaged tool ID, version and title
+  ---
+  duration_ms: 0.317833
+  type: 'test'
+  ...
+# Subtest: manual tool replacement clears stale official publisher identity
+ok 10 - manual tool replacement clears stale official publisher identity
+  ---
+  duration_ms: 3.508917
+  type: 'test'
+  ...
+# Subtest: never installs without explicit review or runs tool code
+ok 11 - never installs without explicit review or runs tool code
+  ---
+  duration_ms: 0.505208
+  type: 'test'
+  ...
+# Subtest: same release is idempotent; stale baseline and author conflicts fail closed
+ok 12 - same release is idempotent; stale baseline and author conflicts fail closed
+  ---
+  duration_ms: 0.756375
+  type: 'test'
+  ...
+# Subtest: 12-tool capacity rejects excess without deleting existing installations
+ok 13 - 12-tool capacity rejects excess without deleting existing installations
+  ---
+  duration_ms: 0.246625
+  type: 'test'
+  ...
+# Subtest: a lost registry acknowledgement requires explicit finalization even after exact readback
+ok 14 - a lost registry acknowledgement requires explicit finalization even after exact readback
+  ---
+  duration_ms: 1.612
+  type: 'test'
+  ...
+# Subtest: an unreadable registry after a lost acknowledgement requires local finalization without another install write
+ok 15 - an unreadable registry after a lost acknowledgement requires local finalization without another install write
+  ---
+  duration_ms: 1.421208
+  type: 'test'
+  ...
+# Subtest: recovery rejects a changed transaction identity before writing any provenance
+ok 16 - recovery rejects a changed transaction identity before writing any provenance
+  ---
+  duration_ms: 0.297083
+  type: 'test'
+  ...
+# Subtest: data-only transfer rejects script, site grants, tokens, duplicates and unknown versions
+ok 17 - data-only transfer rejects script, site grants, tokens, duplicates and unknown versions
+  ---
+  duration_ms: 0.270584
+  type: 'test'
+  ...
+# Subtest: R4.5 legacy source adoption requires explicit confirmation and preserves the original private data
+ok 18 - R4.5 legacy source adoption requires explicit confirmation and preserves the original private data
+  ---
+  duration_ms: 0.754542
+  type: 'test'
+  ...
+# Subtest: R4.5 capability additions cannot activate orphan site grants and retained capabilities preserve existing sites
+ok 19 - R4.5 capability additions cannot activate orphan site grants and retained capabilities preserve existing sites
+  ---
+  duration_ms: 0.598542
+  type: 'test'
+  ...
+# Subtest: R4.5 old unknown operations cannot be reconciled using a newer release or different bytes
+ok 20 - R4.5 old unknown operations cannot be reconciled using a newer release or different bytes
+  ---
+  duration_ms: 0.677166
+  type: 'test'
+  ...
+# Subtest: fresh or newly capable tools never publish a registry entry while orphan site grants remain
+ok 21 - fresh or newly capable tools never publish a registry entry while orphan site grants remain
+  ---
+  duration_ms: 0.56875
+  type: 'test'
+  ...
+# Subtest: orphan-grant cleanup failure cannot activate a fresh package; registry failure retains existing valid grants and data
+ok 22 - orphan-grant cleanup failure cannot activate a fresh package; registry failure retains existing valid grants and data
+  ---
+  duration_ms: 0.427583
+  type: 'test'
+  ...
+# Subtest: uninstall recovery accepts a real package version and never deletes a newly reinstalled tool
+ok 23 - uninstall recovery accepts a real package version and never deletes a newly reinstalled tool
+  ---
+  duration_ms: 0.485542
+  type: 'test'
+  ...
+# Subtest: host quota refusal before registry commit retains the previous package and its private data
+ok 24 - host quota refusal before registry commit retains the previous package and its private data
+  ---
+  duration_ms: 0.160291
+  type: 'test'
+  ...
+# Subtest: offline recovery uses only local package digest and durable operation journal
+ok 25 - offline recovery uses only local package digest and durable operation journal
+  ---
+  duration_ms: 0.935958
+  type: 'test'
+  ...
+# Subtest: partially failed uninstall keeps recovery journal and never deletes reinstalled same-ID data
+ok 26 - partially failed uninstall keeps recovery journal and never deletes reinstalled same-ID data
+  ---
+  duration_ms: 0.304667
+  type: 'test'
+  ...
+# Subtest: an acknowledged official baseline can finalize an upgrade with a lost registry acknowledgement without replay
+ok 27 - an acknowledged official baseline can finalize an upgrade with a lost registry acknowledgement without replay
+  ---
+  duration_ms: 4.155
+  type: 'test'
+  ...
+# Subtest: reviewed market hash must actually match the candidate even if ID and version look valid
+ok 28 - reviewed market hash must actually match the candidate even if ID and version look valid
+  ---
+  duration_ms: 0.20775
+  type: 'test'
+  ...
+# Subtest: orphaned notes are retained when new same-ID installation cannot safely commit
+ok 29 - orphaned notes are retained when new same-ID installation cannot safely commit
+  ---
+  duration_ms: 0.118709
+  type: 'test'
+  ...
+# Subtest: installer fails closed on malformed, duplicated or overflowed local registries without erasing any rows
+ok 30 - installer fails closed on malformed, duplicated or overflowed local registries without erasing any rows
+  ---
+  duration_ms: 0.332375
+  type: 'test'
+  ...
+# Subtest: R5 production trust is disabled until all reviewed inputs exist; development cannot leak into it
+ok 31 - R5 production trust is disabled until all reviewed inputs exist; development cannot leak into it
+  ---
+  duration_ms: 1.208291
+  type: 'test'
+  ...
+# Subtest: R5 finite messages reject code, URLs, approval flags, protocol drift and unbounded fields
+ok 32 - R5 finite messages reject code, URLs, approval flags, protocol drift and unbounded fields
+  ---
+  duration_ms: 0.843959
+  type: 'test'
+  ...
+# Subtest: R5 validates browser sender, live top document and exact port before any handoff mutation
+ok 33 - R5 validates browser sender, live top document and exact port before any handoff mutation
+  ---
+  duration_ms: 1.622333
+  type: 'test'
+  ...
+# Subtest: R5 probe exposes no installed information; same intent resumes exact review after worker replacement
+ok 34 - R5 probe exposes no installed information; same intent resumes exact review after worker replacement
+  ---
+  duration_ms: 1.249167
+  type: 'test'
+  ...
+# Subtest: R5 prepared/opened persistence and committed-tab acknowledgement faults reconcile without duplicate pages
+ok 35 - R5 prepared/opened persistence and committed-tab acknowledgement faults reconcile without duplicate pages
+  ---
+  duration_ms: 1.55275
+  type: 'test'
+  ...
+# Subtest: R5 queue, global/origin rate and capacity are bounded across tabs and worker restarts
+ok 36 - R5 queue, global/origin rate and capacity are bounded across tabs and worker restarts
+  ---
+  duration_ms: 13.475125
+  type: 'test'
+  ...
+# Subtest: R5 expiry protects only the original unresolved operation/batch, without deleting installer journals
+ok 37 - R5 expiry protects only the original unresolved operation/batch, without deleting installer journals
+  ---
+  duration_ms: 0.637708
+  type: 'test'
+  ...
+# Subtest: R5 consumed handoff cannot replay when terminal installer or batch history is gone
+ok 38 - R5 consumed handoff cannot replay when terminal installer or batch history is gone
+  ---
+  duration_ms: 0.8255
+  type: 'test'
+  ...
+# Subtest: R5 shared consumption and external requests do not overwrite each other; expired approval is refused
+ok 39 - R5 shared consumption and external requests do not overwrite each other; expired approval is refused
+  ---
+  duration_ms: 0.895083
+  type: 'test'
+  ...
+# Subtest: R5 existing installer checks baseline and hash before consuming a handoff; consumption failure cannot install
+ok 40 - R5 existing installer checks baseline and hash before consuming a handoff; consumption failure cannot install
+  ---
+  duration_ms: 42.708625
+  type: 'test'
+  ...
+# Subtest: R5 consumed-without-journal survives TTL, and explicit locked recovery ends only the handoff
+ok 41 - R5 consumed-without-journal survives TTL, and explicit locked recovery ends only the handoff
+  ---
+  duration_ms: 1.574042
+  type: 'test'
+  ...
+# Subtest: R5 a lost consumption acknowledgement stops before installer writes, and two consumers never both succeed
+ok 42 - R5 a lost consumption acknowledgement stops before installer writes, and two consumers never both succeed
+  ---
+  duration_ms: 1.144292
+  type: 'test'
+  ...
+# Subtest: R5 terminal settlement survives journal trimming and missing recovery respects existing locks
+ok 43 - R5 terminal settlement survives journal trimming and missing recovery respects existing locks
+  ---
+  duration_ms: 0.752917
+  type: 'test'
+  ...
+# Subtest: R5 immutable archive conflicts reject same-version bytes and same-revision replacement
+ok 44 - R5 immutable archive conflicts reject same-version bytes and same-revision replacement
+  ---
+  duration_ms: 2.17575
+  type: 'test'
+  ...
+# Subtest: R5 independent website build is reproducible, self-contained and replaces only generated output
+ok 45 - R5 independent website build is reproducible, self-contained and replaces only generated output
+  ---
+  duration_ms: 122.571875
+  type: 'test'
+  ...
+# Subtest: R1.3 v1 strict unchanged; v2 contribution validated and digest-sensitive
+ok 46 - R1.3 v1 strict unchanged; v2 contribution validated and digest-sensitive
+  ---
+  duration_ms: 3.884666
+  type: 'test'
+  ...
+# Subtest: Browser SDK tool wrapper preserves request channel; page SDK denies privileged menu
+ok 47 - Browser SDK tool wrapper preserves request channel; page SDK denies privileged menu
+  ---
+  duration_ms: 0.81075
+  type: 'test'
+  ...
+# Subtest: menus use browser optional permission, idempotent sync, real click and one-use source
+ok 48 - menus use browser optional permission, idempotent sync, real click and one-use source
+  ---
+  duration_ms: 9.988333
+  type: 'test'
+  ...
+# Subtest: uninstall, site revocation, stale package, stale document invalidate menus and launch
+ok 49 - uninstall, site revocation, stale package, stale document invalidate menus and launch
+  ---
+  duration_ms: 3.088041
+  type: 'test'
+  ...
+# Subtest: denied Chrome permission and untrusted sender never create site menus
+ok 50 - denied Chrome permission and untrusted sender never create site menus
+  ---
+  duration_ms: 0.597334
+  type: 'test'
+  ...
+# Subtest: optional menu API can appear after startup; native click listener installs only once
+ok 51 - optional menu API can appear after startup; native click listener installs only once
+  ---
+  duration_ms: 0.097292
+  type: 'test'
+  ...
+# Subtest: Chrome permission revocation and install epoch invalidate old menu grants
+ok 52 - Chrome permission revocation and install epoch invalidate old menu grants
+  ---
+  duration_ms: 1.277541
+  type: 'test'
+  ...
+# Subtest: disabled tool removes menu and pending selection, and rejects later tool/host requests
+ok 53 - disabled tool removes menu and pending selection, and rejects later tool/host requests
+  ---
+  duration_ms: 2.7285
+  type: 'test'
+  ...
+# Subtest: corrupt tool-enable records fail closed without permitting menu reconciliation
+ok 54 - corrupt tool-enable records fail closed without permitting menu reconciliation
+  ---
+  duration_ms: 0.698459
+  type: 'test'
+  ...
+# Subtest: unregister stays idempotent after site approval has been revoked
+ok 55 - unregister stays idempotent after site approval has been revoked
+  ---
+  duration_ms: 2.076625
+  type: 'test'
+  ...
+# Subtest: native menu ignores missing proof and same-URL replaced source documents
+ok 56 - native menu ignores missing proof and same-URL replaced source documents
+  ---
+  duration_ms: 1.739083
+  type: 'test'
+  ...
+# Subtest: Page relay only sends metadata on trusted contextmenu; no selection or URL is read
+ok 57 - Page relay only sends metadata on trusted contextmenu; no selection or URL is read
+  ---
+  duration_ms: 0.248875
+  type: 'test'
+  ...
+# Subtest: Chrome host website revocation blocks menu registration, binding and selection delivery
+ok 58 - Chrome host website revocation blocks menu registration, binding and selection delivery
+  ---
+  duration_ms: 2.634791
+  type: 'test'
+  ...
+# Subtest: first right-click proof survives MV3 cold-start before menu state has rehydrated
+ok 59 - first right-click proof survives MV3 cold-start before menu state has rehydrated
+  ---
+  duration_ms: 1.480625
+  type: 'test'
+  ...
+# Subtest: navigation invalidates a pending cold-worker source proof without delivering text
+ok 60 - navigation invalidates a pending cold-worker source proof without delivering text
+  ---
+  duration_ms: 1.332208
+  type: 'test'
+  ...
+# Subtest: Browser canonical export methods preserve payload, bounds and strict schema
+ok 61 - Browser canonical export methods preserve payload, bounds and strict schema
+  ---
+  duration_ms: 0.43575
+  type: 'test'
+  ...
+# Subtest: menu discovery and idempotent unregister remain callable without site or Chrome menu grant
+ok 62 - menu discovery and idempotent unregister remain callable without site or Chrome menu grant
+  ---
+  duration_ms: 0.98825
+  type: 'test'
+  ...
+# Subtest: unregister revokes both unbound and bound launches; re-register never revives them
+ok 63 - unregister revokes both unbound and bound launches; re-register never revives them
+  ---
+  duration_ms: 5.807625
+  type: 'test'
+  ...
+# Subtest: launch status rejects same-URL replacement documents before consume
+ok 64 - launch status rejects same-URL replacement documents before consume
+  ---
+  duration_ms: 3.160625
+  type: 'test'
+  ...
+# Subtest: queued Browser requests require the mounted package digest, even at unchanged version and epoch
+ok 65 - queued Browser requests require the mounted package digest, even at unchanged version and epoch
+  ---
+  duration_ms: 1.918959
+  type: 'test'
+  ...
+# Subtest: expiry during document validation or confirmed consumption never delivers sensitive content
+ok 66 - expiry during document validation or confirmed consumption never delivers sensitive content
+  ---
+  duration_ms: 5.535958
+  type: 'test'
+  ...
+# Subtest: BFCache suspends and restores source listeners without restoring pending requests or duplicating listeners
+ok 67 - BFCache suspends and restores source listeners without restoring pending requests or duplicating listeners
+  ---
+  duration_ms: 0.255
+  type: 'test'
+  ...
+# Subtest: unregister with zero approved origins clears authority before later site reapproval
+ok 68 - unregister with zero approved origins clears authority before later site reapproval
+  ---
+  duration_ms: 3.537875
+  type: 'test'
+  ...
+# Subtest: Developer shows one terminal status line and hides it for unrelated feedback
+ok 69 - Developer shows one terminal status line and hides it for unrelated feedback
+  ---
+  duration_ms: 10.8615
+  type: 'test'
+  ...
+# Subtest: react primary Run compiles a managed Page preview and shows its result
+ok 70 - react primary Run compiles a managed Page preview and shows its result
+  ---
+  duration_ms: 8.678042
+  type: 'test'
+  ...
+# Subtest: vue primary Run compiles a managed Page preview and shows its result
+ok 71 - vue primary Run compiles a managed Page preview and shows its result
+  ---
+  duration_ms: 7.906084
+  type: 'test'
+  ...
+# Subtest: component primary Run preserves permission protection and visible feedback
+ok 72 - component primary Run preserves permission protection and visible feedback
+  ---
+  duration_ms: 5.467042
+  type: 'test'
+  ...
+# Subtest: component primary Run preserves document protection and visible feedback
+ok 73 - component primary Run preserves document protection and visible feedback
+  ---
+  duration_ms: 7.407875
+  type: 'test'
+  ...
+# Subtest: component primary Run preserves compiler protection and visible feedback
+ok 74 - component primary Run preserves compiler protection and visible feedback
+  ---
+  duration_ms: 6.2845
+  type: 'test'
+  ...
+# Subtest: component primary Run preserves unknown protection and visible feedback
+ok 75 - component primary Run preserves unknown protection and visible feedback
+  ---
+  duration_ms: 7.64725
+  type: 'test'
+  ...
+# Subtest: component primary Run retains the shared execution slot gate
+ok 76 - component primary Run retains the shared execution slot gate
+  ---
+  duration_ms: 7.941375
+  type: 'test'
+  ...
+# Subtest: component primary Run refuses source changes during compilation
+ok 77 - component primary Run refuses source changes during compilation
+  ---
+  duration_ms: 3.816917
+  type: 'test'
+  ...
+# Subtest: component primary Run refuses document changes during compilation
+ok 78 - component primary Run refuses document changes during compilation
+  ---
+  duration_ms: 7.224875
+  type: 'test'
+  ...
+# Subtest: Dev Run has no per-Origin axiosx form or prompt; backend discovers HTTP targets at request time
+ok 79 - Dev Run has no per-Origin axiosx form or prompt; backend discovers HTTP targets at request time
+  ---
+  duration_ms: 4.778333
+  type: 'test'
+  ...
+# Subtest: twenty Controller runs and twenty Page previews reuse Chrome grants with zero request calls
+ok 80 - twenty Controller runs and twenty Page previews reuse Chrome grants with zero request calls
+  ---
+  duration_ms: 123.570834
+  type: 'test'
+  ...
+# Subtest: developer source switch hides local controls until enabled and reports a missing local connection
+ok 81 - developer source switch hides local controls until enabled and reports a missing local connection
+  ---
+  duration_ms: 3.781458
+  type: 'test'
+  ...
+# Subtest: local project can open the packaged native connection settings only by a trusted click
+ok 82 - local project can open the packaged native connection settings only by a trusted click
+  ---
+  duration_ms: 5.739208
+  type: 'test'
+  ...
+# Subtest: local project setup guide opens only after a trusted user click in local mode
+ok 83 - local project setup guide opens only after a trusted user click in local mode
+  ---
+  duration_ms: 8.2805
+  type: 'test'
+  ...
+# Subtest: developer current-page summary follows the actual tab without exposing document internals
+ok 84 - developer current-page summary follows the actual tab without exposing document internals
+  ---
+  duration_ms: 3.056291
+  type: 'test'
+  ...
+# Subtest: one authorized local project is selected automatically without starting execution
+ok 85 - one authorized local project is selected automatically without starting execution
+  ---
+  duration_ms: 4.475166
+  type: 'test'
+  ...
+# Subtest: a remembered project is never silently replaced by a different sole authorized project
+ok 86 - a remembered project is never silently replaced by a different sole authorized project
+  ---
+  duration_ms: 7.221292
+  type: 'test'
+  ...
+# Subtest: preparation-only same-epoch updates preserve pending resolve; catalog changes still invalidate it
+ok 87 - preparation-only same-epoch updates preserve pending resolve; catalog changes still invalidate it
+  ---
+  duration_ms: 510.450708
+  type: 'test'
+  ...
+# Subtest: local project mode preserves manual draft and params while running fresh bytes through the same Host
+ok 88 - local project mode preserves manual draft and params while running fresh bytes through the same Host
+  ---
+  duration_ms: 62.926083
+  type: 'test'
+  ...
+# Subtest: local source response after mode switch is rejected before Host admission
+ok 89 - local source response after mode switch is rejected before Host admission
+  ---
+  duration_ms: 7.24525
+  type: 'test'
+  ...
+# Subtest: local managed Page Stop owns a confirmed failing main, survives provider disconnect and blocks overlapping Run
+ok 90 - local managed Page Stop owns a confirmed failing main, survives provider disconnect and blocks overlapping Run
+  ---
+  duration_ms: 426.52875
+  type: 'test'
+  ...
+# Subtest: reopening the editor restores window-scoped source and params without starting or saving
+ok 91 - reopening the editor restores window-scoped source and params without starting or saving
+  ---
+  duration_ms: 5.112208
+  type: 'test'
+  ...
+# Subtest: another window draft and the catalog editor never replace the Sidebar draft
+ok 92 - another window draft and the catalog editor never replace the Sidebar draft
+  ---
+  duration_ms: 4.814208
+  type: 'test'
+  ...
+# Subtest: reopening a project draft preserves the source view and compiled execution bytes
+ok 93 - reopening a project draft preserves the source view and compiled execution bytes
+  ---
+  duration_ms: 6.375833
+  type: 'test'
+  ...
+# Subtest: a delayed draft restore never overwrites newly imported source
+ok 94 - a delayed draft restore never overwrites newly imported source
+  ---
+  duration_ms: 4.509542
+  type: 'test'
+  ...
+# Subtest: importing a JS draft leaves saved versions and running source independent
+ok 95 - importing a JS draft leaves saved versions and running source independent
+  ---
+  duration_ms: 4.718708
+  type: 'test'
+  ...
+# Subtest: draft import rejects empty/oversized sources and active saves without overwriting the editor
+ok 96 - draft import rejects empty/oversized sources and active saves without overwriting the editor
+  ---
+  duration_ms: 4.488292
+  type: 'test'
+  ...
+# Subtest: imported legacy @require only reads previously approved versions and never adds a form or downloads code
+ok 97 - imported legacy @require only reads previously approved versions and never adds a form or downloads code
+  ---
+  duration_ms: 5.020584
+  type: 'test'
+  ...
+# Subtest: Save persists revision/hash without requesting permission, creating a Run, or executing code
+ok 98 - Save persists revision/hash without requesting permission, creating a Run, or executing code
+  ---
+  duration_ms: 4.368084
+  type: 'test'
+  ...
+# Subtest: reopened editor lists saved scripts without running and loads the selected latest head explicitly
+ok 99 - reopened editor lists saved scripts without running and loads the selected latest head explicitly
+  ---
+  duration_ms: 4.432666
+  type: 'test'
+  ...
+# Subtest: loading a historical revision does not turn it into the latest Save CAS head
+ok 100 - loading a historical revision does not turn it into the latest Save CAS head
+  ---
+  duration_ms: 5.715125
+  type: 'test'
+  ...
+# Subtest: Delete tombstones the latest head and refreshes the saved-script selector
+ok 101 - Delete tombstones the latest head and refreshes the saved-script selector
+  ---
+  duration_ms: 4.476833
+  type: 'test'
+  ...
+# Subtest: saved A stays immutable; Run freezes unsaved B/params/page A; editing C and Save do not replace B
+ok 102 - saved A stays immutable; Run freezes unsaved B/params/page A; editing C and Save do not replace B
+  ---
+  duration_ms: 8.792
+  type: 'test'
+  ...
+# Subtest: a brand-new unsaved draft runs with an empty script ID and never creates a saved revision
+ok 103 - a brand-new unsaved draft runs with an empty script ID and never creates a saved revision
+  ---
+  duration_ms: 4.540625
+  type: 'test'
+  ...
+# Subtest: permission preparation rejects a switched page; closing the editor during permission never admits a run
+ok 104 - permission preparation rejects a switched page; closing the editor during permission never admits a run
+  ---
+  duration_ms: 13.807125
+  type: 'test'
+  ...
+# Subtest: shared RunHost completion or Stop restores the draft Run button after another consumer settles
+ok 105 - shared RunHost completion or Stop restores the draft Run button after another consumer settles
+  ---
+  duration_ms: 8.921375
+  type: 'test'
+  ...
+# Subtest: Stop uses the formal RunHost abort/retirement path and persists stopped with the original pin
+ok 106 - Stop uses the formal RunHost abort/retirement path and persists stopped with the original pin
+  ---
+  duration_ms: 7.23875
+  type: 'test'
+  ...
+# Subtest: pagehide invokes RunHost host-close; reopened editor only reads the durable interrupted Result
+ok 107 - pagehide invokes RunHost host-close; reopened editor only reads the durable interrupted Result
+  ---
+  duration_ms: 6.290791
+  type: 'test'
+  ...
+# Subtest: late Save/Load replies do not overwrite another script selection or edits made during loading
+ok 108 - late Save/Load replies do not overwrite another script selection or edits made during loading
+  ---
+  duration_ms: 6.841583
+  type: 'test'
+  ...
+# Subtest: late saved-script selector load cannot overwrite edits made during loading
+ok 109 - late saved-script selector load cannot overwrite edits made during loading
+  ---
+  duration_ms: 4.261375
+  type: 'test'
+  ...
+# Subtest: an older snapshot reply cannot disable Run after a newer durable observation
+ok 110 - an older snapshot reply cannot disable Run after a newer durable observation
+  ---
+  duration_ms: 5.621125
+  type: 'test'
+  ...
+# Subtest: an older snapshot error cannot overwrite a newer successful durable view
+ok 111 - an older snapshot error cannot overwrite a newer successful durable view
+  ---
+  duration_ms: 7.060792
+  type: 'test'
+  ...
+# Subtest: Run silently checks Chrome permission; denied permission and invalid params never request or execute
+ok 112 - Run silently checks Chrome permission; denied permission and invalid params never request or execute
+  ---
+  duration_ms: 7.028875
+  type: 'test'
+  ...
+# Subtest: DOM preview binds frozen plain JavaScript and exact current document from trusted click
+ok 113 - DOM preview binds frozen plain JavaScript and exact current document from trusted click
+  ---
+  duration_ms: 4.457458
+  type: 'test'
+  ...
+# Subtest: DOM preview refuses to inject when the active document changes while permission is pending
+ok 114 - DOM preview refuses to inject when the active document changes while permission is pending
+  ---
+  duration_ms: 5.605584
+  type: 'test'
+  ...
+# Subtest: Developer Stop cannot cancel the formal Task or another view using the shared RunHost
+ok 115 - Developer Stop cannot cancel the formal Task or another view using the shared RunHost
+  ---
+  duration_ms: 4.381917
+  type: 'test'
+  ...
+# Subtest: project import displays source while Save and Run freeze compiled bytes and the original hash
+ok 116 - project import displays source while Save and Run freeze compiled bytes and the original hash
+  ---
+  duration_ms: 6.167542
+  type: 'test'
+  ...
+# Subtest: invalid project envelope leaves the previous editor source and no execution or saved revision
+ok 117 - invalid project envelope leaves the previous editor source and no execution or saved revision
+  ---
+  duration_ms: 2.126667
+  type: 'test'
+  ...
+# Subtest: R12: real Page preview gates explicit immutable Candidate import, never auto installs
+ok 118 - R12: real Page preview gates explicit immutable Candidate import, never auto installs
+  ---
+  duration_ms: 9.218958
+  type: 'test'
+  ...
+# Subtest: R12: navigating the actual page or a rejected preview cannot save a Page Candidate
+ok 119 - R12: navigating the actual page or a rejected preview cannot save a Page Candidate
+  ---
+  duration_ms: 9.90875
+  type: 'test'
+  ...
+# Subtest: denied results never populate visible values, technical history or download choices
+ok 120 - denied results never populate visible values, technical history or download choices
+  ---
+  duration_ms: 3.090542
+  type: 'test'
+  ...
+# Subtest: failed HTML content read displays actionable advice, not the internal controller envelope
+ok 121 - failed HTML content read displays actionable advice, not the internal controller envelope
+  ---
+  duration_ms: 3.067166
+  type: 'test'
+  ...
+# Subtest: a failed evaluate surfaces Chrome settings and read-only recovery without replaying a run
+ok 122 - a failed evaluate surfaces Chrome settings and read-only recovery without replaying a run
+  ---
+  duration_ms: 11.313667
+  type: 'test'
+  ...
+# Subtest: R17 accepts 32 scoped sources with same-name directories but rejects an unbounded catalog
+ok 123 - R17 accepts 32 scoped sources with same-name directories but rejects an unbounded catalog
+  ---
+  duration_ms: 4.801709
+  type: 'test'
+  ...
+# Subtest: R24.3 React and Vue modes keep independent official source drafts without Native
+ok 124 - R24.3 React and Vue modes keep independent official source drafts without Native
+  ---
+  duration_ms: 18.778833
+  type: 'test'
+  ...
+# Subtest: Sidebar owns one horizontal inset and tool iframes use a full-width canvas
+ok 125 - Sidebar owns one horizontal inset and tool iframes use a full-width canvas
+  ---
+  duration_ms: 2.386167
+  type: 'test'
+  ...
+# Subtest: Quick notes uses a matching 4-step density without loading trusted host CSS
+ok 126 - Quick notes uses a matching 4-step density without loading trusted host CSS
+  ---
+  duration_ms: 0.90225
+  type: 'test'
+  ...
+# Subtest: Tools list avoids long technical empty text and stale toggling notices
+ok 127 - Tools list avoids long technical empty text and stale toggling notices
+  ---
+  duration_ms: 1.225625
+  type: 'test'
+  ...
+# Subtest: R26 stopped details remain manageable and enabling waits for an explicit Open
+ok 128 - R26 stopped details remain manageable and enabling waits for an explicit Open
+  ---
+  duration_ms: 73.400834
+  type: 'test'
+  ...
+# Subtest: R26 cross-panel disable destroys old frames and resume does not revive them
+ok 129 - R26 cross-panel disable destroys old frames and resume does not revive them
+  ---
+  duration_ms: 2.114542
+  type: 'test'
+  ...
+# Subtest: R26 remote disable retains a bounded inert draft while destroying the sandbox
+ok 130 - R26 remote disable retains a bounded inert draft while destroying the sandbox
+  ---
+  duration_ms: 1.088583
+  type: 'test'
+  ...
+# Subtest: R26 eye restores intersecting site/page appearance without mutating grants
+ok 131 - R26 eye restores intersecting site/page appearance without mutating grants
+  ---
+  duration_ms: 13.101083
+  type: 'test'
+  ...
+# Subtest: stopped website disables the eye while restore settings remain available
+ok 132 - stopped website disables the eye while restore settings remain available
+  ---
+  duration_ms: 1.47225
+  type: 'test'
+  ...
+# Subtest: built-in host reads default sites and blocks stopped sites before sending page messages
+ok 133 - built-in host reads default sites and blocks stopped sites before sending page messages
+  ---
+  duration_ms: 13.7325
+  type: 'test'
+  ...
+# Subtest: R26 corrupted enable records preserve bytes and refuse execution or changes
+ok 134 - R26 corrupted enable records preserve bytes and refuse execution or changes
+  ---
+  duration_ms: 1.103833
+  type: 'test'
+  ...
+# Subtest: Chrome storage object-key normalization does not invalidate a successful conditional write
+ok 135 - Chrome storage object-key normalization does not invalidate a successful conditional write
+  ---
+  duration_ms: 62.79225
+  type: 'test'
+  ...
+# Subtest: Final R2 request throttling returns an error and recovers after its time window
+ok 136 - Final R2 request throttling returns an error and recovers after its time window
+  ---
+  duration_ms: 10.194208
+  type: 'test'
+  ...
+# Subtest: trusted tool host installs only by explicit click, scopes messages and removes storage
+ok 137 - trusted tool host installs only by explicit click, scopes messages and removes storage
+  ---
+  duration_ms: 4.172625
+  type: 'test'
+  ...
+# Subtest: Final R2 cancellation preserves a dirty iframe and pending saves block navigation
+ok 138 - Final R2 cancellation preserves a dirty iframe and pending saves block navigation
+  ---
+  duration_ms: 1.217084
+  type: 'test'
+  ...
+# Subtest: actual sandbox state object clears host dirty state only after busy work ends
+ok 139 - actual sandbox state object clears host dirty state only after busy work ends
+  ---
+  duration_ms: 1.63775
+  type: 'test'
+  ...
+# Subtest: Final R2 revocation during ETag digest prevents a write that has not started
+ok 140 - Final R2 revocation during ETag digest prevents a write that has not started
+  ---
+  duration_ms: 1.345208
+  type: 'test'
+  ...
+# Subtest: queued task navigation loses authority when its tool is closed
+ok 141 - queued task navigation loses authority when its tool is closed
+  ---
+  duration_ms: 1.054083
+  type: 'test'
+  ...
+# Subtest: uninstall waits for a committed write before deleting the namespace
+ok 142 - uninstall waits for a committed write before deleting the namespace
+  ---
+  duration_ms: 2.269875
+  type: 'test'
+  ...
+# Subtest: two Side Panels preserve distinct fields through the same storage lock
+ok 143 - two Side Panels preserve distinct fields through the same storage lock
+  ---
+  duration_ms: 1.73475
+  type: 'test'
+  ...
+# Subtest: a second iframe load revokes the old document instead of resending its token
+ok 144 - a second iframe load revokes the old document instead of resending its token
+  ---
+  duration_ms: 1.027917
+  type: 'test'
+  ...
+# Subtest: cross-window uninstall rejects storage from a still open stale document
+ok 145 - cross-window uninstall rejects storage from a still open stale document
+  ---
+  duration_ms: 1.129583
+  type: 'test'
+  ...
+# Subtest: cross-window revocation also blocks stale page reads and task navigation
+ok 146 - cross-window revocation also blocks stale page reads and task navigation
+  ---
+  duration_ms: 1.058875
+  type: 'test'
+  ...
+# Subtest: Chrome storage property ordering does not revoke the same installed package
+ok 147 - Chrome storage property ordering does not revoke the same installed package
+  ---
+  duration_ms: 7.96725
+  type: 'test'
+  ...
+# Subtest: tools switch as one mini-app, return to list, and revoke hidden frames
+ok 148 - tools switch as one mini-app, return to list, and revoke hidden frames
+  ---
+  duration_ms: 1.2915
+  type: 'test'
+  ...
+# Subtest: R14 import refuses oversized packages, ignores stale asynchronous reads and preserves filename
+ok 149 - R14 import refuses oversized packages, ignores stale asynchronous reads and preserves filename
+  ---
+  duration_ms: 1.246666
+  type: 'test'
+  ...
+# Subtest: R14 preview compares permissions and downgrade, confirmation protects update and retains data
+ok 150 - R14 preview compares permissions and downgrade, confirmation protects update and retains data
+  ---
+  duration_ms: 1.863083
+  type: 'test'
+  ...
+# Subtest: R26 stopped detail uninstall requires consent without running tool code
+ok 151 - R26 stopped detail uninstall requires consent without running tool code
+  ---
+  duration_ms: 2.533416
+  type: 'test'
+  ...
+# Subtest: R14 cross-window tool update invalidates review and clears the stale file selection
+ok 152 - R14 cross-window tool update invalidates review and clears the stale file selection
+  ---
+  duration_ms: 1.121583
+  type: 'test'
+  ...
+# Subtest: R14.1 delayed initial catalog read never overwrites a newer storage notification
+ok 153 - R14.1 delayed initial catalog read never overwrites a newer storage notification
+  ---
+  duration_ms: 0.941375
+  type: 'test'
+  ...
+# Subtest: R4.5 fresh reinstall preserves orphaned private data and requires explicit cleanup
+ok 154 - R4.5 fresh reinstall preserves orphaned private data and requires explicit cleanup
+  ---
+  duration_ms: 12.029875
+  type: 'test'
+  ...
+# Subtest: R4.5 delayed initial revocation read preserves a newer epoch without losing the installed list
+ok 155 - R4.5 delayed initial revocation read preserves a newer epoch without losing the installed list
+  ---
+  duration_ms: 7.595834
+  type: 'test'
+  ...
+# Subtest: R4.5 an old iframe cannot read or write an identical reinstall even before epoch notification
+ok 156 - R4.5 an old iframe cannot read or write an identical reinstall even before epoch notification
+  ---
+  duration_ms: 6.41625
+  type: 'test'
+  ...
+# Subtest: R4.5 orphaned private data blocks reinstall until the acknowledged uninstall cleanup completes
+ok 157 - R4.5 orphaned private data blocks reinstall until the acknowledged uninstall cleanup completes
+  ---
+  duration_ms: 26.066375
+  type: 'test'
+  ...
+# Subtest: R14.1 list renders and Back/uninstall preserve useful keyboard focus
+ok 158 - R14.1 list renders and Back/uninstall preserve useful keyboard focus
+  ---
+  duration_ms: 2.441667
+  type: 'test'
+  ...
+# Subtest: stopped tool detail opens a fixed full-page route without running sidebar code
+ok 159 - stopped tool detail opens a fixed full-page route without running sidebar code
+  ---
+  duration_ms: 1.216583
+  type: 'test'
+  ...
+# Subtest: R18 resize and status messages accept only the live opaque frame and bounded sizes
+ok 160 - R18 resize and status messages accept only the live opaque frame and bounded sizes
+  ---
+  duration_ms: 1.073958
+  type: 'test'
+  ...
+# Subtest: uninstalled read-only preview cannot write, run Task or invoke page operations
+ok 161 - uninstalled read-only preview cannot write, run Task or invoke page operations
+  ---
+  duration_ms: 2.456458
+  type: 'test'
+  ...
+# Subtest: R18.1 conditional writes atomically reject a stale full-array replacement
+ok 162 - R18.1 conditional writes atomically reject a stale full-array replacement
+  ---
+  duration_ms: 35.8955
+  type: 'test'
+  ...
+# Subtest: R18.1 page metadata notification only targets a live tool iframe
+ok 163 - R18.1 page metadata notification only targets a live tool iframe
+  ---
+  duration_ms: 0.871959
+  type: 'test'
+  ...
+# Subtest: R4.5 identical page revalidation preserves actual clipper results, while same-URL navigation invalidates them
+ok 164 - R4.5 identical page revalidation preserves actual clipper results, while same-URL navigation invalidates them
+  ---
+  duration_ms: 22.232917
+  type: 'test'
+  ...
+# Subtest: R4.5 unrelated page notifications preserve the official install button through a pointer gesture
+ok 165 - R4.5 unrelated page notifications preserve the official install button through a pointer gesture
+  ---
+  duration_ms: 7.537875
+  type: 'test'
+  ...
+# Subtest: R4.7 official TOC list stays compact while repeated page observations preserve its Open action
+ok 166 - R4.7 official TOC list stays compact while repeated page observations preserve its Open action
+  ---
+  duration_ms: 1.090958
+  type: 'test'
+  ...
+# Subtest: R4.7 settings live next to retained TOC iframe; appearance remains separate from runtime permissions
+ok 167 - R4.7 settings live next to retained TOC iframe; appearance remains separate from runtime permissions
+  ---
+  duration_ms: 0.939458
+  type: 'test'
+  ...
+# Subtest: R26 page appearance is independent of site authorization and global availability
+ok 168 - R26 page appearance is independent of site authorization and global availability
+  ---
+  duration_ms: 13.836
+  type: 'test'
+  ...
+# Subtest: default reader settings can restore a stopped website without revisiting it
+ok 169 - default reader settings can restore a stopped website without revisiting it
+  ---
+  duration_ms: 6.176208
+  type: 'test'
+  ...
+# Subtest: site permission settings apply one click without a second dialog: reading-toc
+ok 170 - site permission settings apply one click without a second dialog: reading-toc
+  ---
+  duration_ms: 30.551208
+  type: 'test'
+  ...
+# Subtest: site permission settings apply one click without a second dialog: web-markdown-clipper
+ok 171 - site permission settings apply one click without a second dialog: web-markdown-clipper
+  ---
+  duration_ms: 18.392
+  type: 'test'
+  ...
+# Subtest: site permission settings apply one click without a second dialog: knowledge-inbox
+ok 172 - site permission settings apply one click without a second dialog: knowledge-inbox
+  ---
+  duration_ms: 21.84675
+  type: 'test'
+  ...
+# Subtest: R4.3 existing 1.0.0 TOC exposes update, reviews patch, preserves site grants
+ok 173 - R4.3 existing 1.0.0 TOC exposes update, reviews patch, preserves site grants
+  ---
+  duration_ms: 12.535875
+  type: 'test'
+  ...
+# Subtest: knowledge editor protects user navigation, clears after save, and never vetoes uninstall
+ok 174 - knowledge editor protects user navigation, clears after save, and never vetoes uninstall
+  ---
+  duration_ms: 79.3185
+  type: 'test'
+  ...
+# Subtest: R4.8 manual reviewed installation remains available for every offline official package
+ok 175 - R4.8 manual reviewed installation remains available for every offline official package
+  ---
+  duration_ms: 145.977709
+  type: 'test'
+  ...
+# Subtest: R4.9 Tools disclosure keeps installed tools visible and never runs code or changes registry
+ok 176 - R4.9 Tools disclosure keeps installed tools visible and never runs code or changes registry
+  ---
+  duration_ms: 0.82575
+  type: 'test'
+  ...
+# Subtest: R4.8 discovery search and filter never mutate the actual installed registry
+ok 177 - R4.8 discovery search and filter never mutate the actual installed registry
+  ---
+  duration_ms: 1.237667
+  type: 'test'
+  ...
+# Subtest: R4.5 two official review windows share the original installation lock and reject stale approvals
+ok 178 - R4.5 two official review windows share the original installation lock and reject stale approvals
+  ---
+  duration_ms: 20.395417
+  type: 'test'
+  ...
+# Subtest: R4.5 missing official resources and a cancelled in-flight preview never install or overwrite local review
+ok 179 - R4.5 missing official resources and a cancelled in-flight preview never install or overwrite local review
+  ---
+  duration_ms: 6.468291
+  type: 'test'
+  ...
+# Subtest: R4.5 lost registry acknowledgement revokes approval without replay; readback failure=false
+ok 180 - R4.5 lost registry acknowledgement revokes approval without replay; readback failure=false
+  ---
+  duration_ms: 13.19175
+  type: 'test'
+  ...
+# Subtest: R4.5 lost registry acknowledgement revokes approval without replay; readback failure=true
+ok 181 - R4.5 lost registry acknowledgement revokes approval without replay; readback failure=true
+  ---
+  duration_ms: 14.22075
+  type: 'test'
+  ...
+# Subtest: R4.5 failure to refresh after a confirmed commit cannot reuse the consumed approval
+ok 182 - R4.5 failure to refresh after a confirmed commit cannot reuse the consumed approval
+  ---
+  duration_ms: 12.379375
+  type: 'test'
+  ...
+# Subtest: R4.5 an official package removed after review is rejected before any installation write
+ok 183 - R4.5 an official package removed after review is rejected before any installation write
+  ---
+  duration_ms: 12.898417
+  type: 'test'
+  ...
+# Subtest: quota failure is returned with a stable bridge code and preserves the current tool draft
+ok 184 - quota failure is returned with a stable bridge code and preserves the current tool draft
+  ---
+  duration_ms: 7.996167
+  type: 'test'
+  ...
+# Subtest: reinstalling identical bytes never restores an old iframe right to write
+ok 185 - reinstalling identical bytes never restores an old iframe right to write
+  ---
+  duration_ms: 6.325875
+  type: 'test'
+  ...
+# Subtest: corrupt installed registry stays protected in Side Panel and never masquerades as empty
+ok 186 - corrupt installed registry stays protected in Side Panel and never masquerades as empty
+  ---
+  duration_ms: 1.088125
+  type: 'test'
+  ...
+# Subtest: uninstall refuses a newly corrupted registry rather than dropping unrelated rows
+ok 187 - uninstall refuses a newly corrupted registry rather than dropping unrelated rows
+  ---
+  duration_ms: 7.488
+  type: 'test'
+  ...
+# Subtest: default TOC availability needs no grant; stopping and restoring use one click
+ok 188 - default TOC availability needs no grant; stopping and restoring use one click
+  ---
+  duration_ms: 11.376
+  type: 'test'
+  ...
+# Subtest: R4.9 clipboard and knowledge site toggles authorize directly without a second modal
+ok 189 - R4.9 clipboard and knowledge site toggles authorize directly without a second modal
+  ---
+  duration_ms: 26.959916
+  type: 'test'
+  ...
+# Subtest: R4.9 availability controls use the ordinary compact button geometry
+ok 190 - R4.9 availability controls use the ordinary compact button geometry
+  ---
+  duration_ms: 0.835417
+  type: 'test'
+  ...
+# Subtest: R5.1 three official tool site grants require no extra JavaScript modal
+ok 191 - R5.1 three official tool site grants require no extra JavaScript modal
+  ---
+  duration_ms: 38.123833
+  type: 'test'
+  ...
+# Subtest: R5.1 inline removal has cancellation, identity pinning, and no accidental double-delete
+ok 192 - R5.1 inline removal has cancellation, identity pinning, and no accidental double-delete
+  ---
+  duration_ms: 1.558917
+  type: 'test'
+  ...
+# Subtest: R5.1 host does not use JavaScript confirm or browser unload dialogs
+ok 193 - R5.1 host does not use JavaScript confirm or browser unload dialogs
+  ---
+  duration_ms: 0.508417
+  type: 'test'
+  ...
+# Subtest: R50 inline dirty navigation has no native modal and requires explicit continuation
+ok 194 - R50 inline dirty navigation has no native modal and requires explicit continuation
+  ---
+  duration_ms: 1.132875
+  type: 'test'
+  ...
+# Subtest: native menu launch gate prevents sandbox code until trusted ticket binding ACK
+ok 195 - native menu launch gate prevents sandbox code until trusted ticket binding ACK
+  ---
+  duration_ms: 1.119917
+  type: 'test'
+  ...
+# Subtest: denied native menu ticket binding discards iframe without running untrusted JS
+ok 196 - denied native menu ticket binding discards iframe without running untrusted JS
+  ---
+  duration_ms: 1.0205
+  type: 'test'
+  ...
+# Subtest: a stopped v2 tool cannot request Chrome contextMenus even if click is spoofed
+ok 197 - a stopped v2 tool cannot request Chrome contextMenus even if click is spoofed
+  ---
+  duration_ms: 1.256166
+  type: 'test'
+  ...
+# Subtest: native menu cannot defer an unbound launch behind the current tool dirty review
+ok 198 - native menu cannot defer an unbound launch behind the current tool dirty review
+  ---
+  duration_ms: 1.045583
+  type: 'test'
+  ...
+# Subtest: R56 dirty tool enable/disable uses a cancellable inline review and cannot lose data
+ok 199 - R56 dirty tool enable/disable uses a cancellable inline review and cannot lose data
+  ---
+  duration_ms: 33.865291
+  type: 'test'
+  ...
+# Subtest: R1.3 canonical browser exports reuse installed user.export services and reject absent capability
+ok 200 - R1.3 canonical browser exports reuse installed user.export services and reject absent capability
+  ---
+  duration_ms: 37.162542
+  type: 'test'
+  ...
+# Subtest: R1.3 frontend status and list reflect callable export services and include mounted package identity
+ok 201 - R1.3 frontend status and list reflect callable export services and include mounted package identity
+  ---
+  duration_ms: 25.593875
+  type: 'test'
+  ...
+# Subtest: R1.3 final sandbox delivery rejects selection that expires during frontend authority recheck
+ok 202 - R1.3 final sandbox delivery rejects selection that expires during frontend authority recheck
+  ---
+  duration_ms: 8.250125
+  type: 'test'
+  ...
+# Subtest: fixed full-page routes carry an installed ID, not a path or credential
+ok 203 - fixed full-page routes carry an installed ID, not a path or credential
+  ---
+  duration_ms: 1.106083
+  type: 'test'
+  ...
+# Subtest: full-page routing retains original sandbox and manifest boundaries
+ok 204 - full-page routing retains original sandbox and manifest boundaries
+  ---
+  duration_ms: 2.981458
+  type: 'test'
+  ...
+# Subtest: first committed full-tab host URL retains only a valid tool locator
+ok 205 - first committed full-tab host URL retains only a valid tool locator
+  ---
+  duration_ms: 0.378833
+  type: 'test'
+  ...
+# Subtest: ephemeral read-only preview route survives first navigation and excludes installed-tool routes
+ok 206 - ephemeral read-only preview route survives first navigation and excludes installed-tool routes
+  ---
+  duration_ms: 0.367875
+  type: 'test'
+  ...
+# Subtest: canonical tool/preview tabs retain original host admission with exact browser document identity
+ok 207 - canonical tool/preview tabs retain original host admission with exact browser document identity
+  ---
+  duration_ms: 1.286792
+  type: 'test'
+  ...
+1..207
+# tests 207
+# suites 0
+# pass 207
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 3167.315708

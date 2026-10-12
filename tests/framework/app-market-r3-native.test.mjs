@@ -120,7 +120,7 @@ test(process.env.OPENDESK_NATIVE_MARKET_R5==='1'?'R5 real HTTP Chrome: finite ex
   const servers=await Promise.all([fixtureServer('A'),fixtureServer('B')]);
   const evidence={result:'IN_PROGRESS',commit:process.env.GITHUB_SHA||spawnSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).stdout.trim(),
     extensionPath:extension,packageHash:fingerprint.packageHash,catalogSha256:hash(catalogBytes),releases:catalog.apps,
-    platform:process.platform,nodeVersion:process.version,consoleErrors:[],runtimeExceptions:[],
+    platform:process.platform,nodeVersion:process.version,consoleErrors:[],runtimeExceptions:[],runtimeExceptionRevocations:[],
     phases:[],dialogs:[],dialogErrors:[],chromeLifecycles:[],sites:servers.map(x=>x.origin),
     privateDataVia:'native input and save',protectedStorageWritesFromDriver:0,publicWebsite:'NOT_TESTED',
     actualMacChrome:'NOT_TESTED',fullFrameworkF3:'NOT_TESTED',zipInstallation:'NOT_TESTED',publicMarket:'NOT_CONFIGURED',
@@ -128,6 +128,12 @@ test(process.env.OPENDESK_NATIVE_MARKET_R5==='1'?'R5 real HTTP Chrome: finite ex
   let browser,child,local,extensionId,host,side,pageA,pageB,stage='launch',currentLifecycle;
   const ownedChildren=[],dialogPlans=new Map(),attachedTargets=[];
   const save=()=>writeFile(join(artifactDir,'native-result.json'),JSON.stringify(evidence,null,2)+'\n');
+  function assertRuntimeClean(){
+    evidence.unresolvedRuntimeExceptions=evidence.runtimeExceptions.filter(row=>!evidence.runtimeExceptionRevocations.some(revoked=>
+      revoked.generation===row.generation&&revoked.sessionId===row.sessionId&&revoked.exceptionId===row.exceptionDetails.exceptionId));
+    assert.deepEqual(evidence.unresolvedRuntimeExceptions,[],'unexplained product runtime exceptions prevent native PASS');
+    assert.deepEqual(evidence.consoleErrors,[],'product console errors prevent native PASS');
+  }
   const phase=async(name,detail={})=>{
     stage=name;
     const registry=(await installed()).map(({id,version,title,capabilities})=>({id,version,title,capabilities}));
@@ -189,8 +195,9 @@ test(process.env.OPENDESK_NATIVE_MARKET_R5==='1'?'R5 real HTTP Chrome: finite ex
     const version=await(await fetch(local+'/json/version')).json();record.version=version.Browser;
     browser=cdpSocket(version.webSocketDebuggerUrl);await browser.ready;
     browser.onEvent(event=>{
-      if(event.method==='Runtime.exceptionThrown')evidence.runtimeExceptions.push({stage,sessionId:event.sessionId,...event.params});
-      if(event.method==='Runtime.consoleAPICalled'&&event.params.type==='error')evidence.consoleErrors.push({stage,sessionId:event.sessionId,...event.params});
+      if(event.method==='Runtime.exceptionThrown')evidence.runtimeExceptions.push({stage,generation:record.generation,sessionId:event.sessionId,...event.params});
+      if(event.method==='Runtime.exceptionRevoked')evidence.runtimeExceptionRevocations.push({stage,generation:record.generation,sessionId:event.sessionId,...event.params});
+      if(event.method==='Runtime.consoleAPICalled'&&event.params.type==='error')evidence.consoleErrors.push({stage,generation:record.generation,sessionId:event.sessionId,...event.params});
       if(event.method!=='Page.javascriptDialogOpening')return;
       const expected=dialogPlans.get(event.sessionId)?.shift(),message=event.params.message;
       const matches=expected&&event.params.type==='confirm'&&expected.parts.every(part=>message.includes(part));
@@ -439,7 +446,7 @@ test(process.env.OPENDESK_NATIVE_MARKET_R5==='1'?'R5 real HTTP Chrome: finite ex
       back,uninstall,importPackage,screenshot,phase,save,assertNoFrames,assertNoGrants,
       restartChrome:async()=>{await closeChrome();host=null;side=null;await launch();side=await openPanel();return {side,host};}});
     assert.equal((await packageFingerprint(extension)).packageHash,fingerprint.packageHash);
-    evidence.buildMode=buildMode;evidence.finalRegistry=await installed();await closeChrome();
+    assertRuntimeClean();evidence.buildMode=buildMode;evidence.finalRegistry=await installed();await closeChrome();assertRuntimeClean();
     evidence.result='REAL_CHROME_MARKET_R5_PASS';evidence.r5.result='PASS';
     evidence.publicWebsite='REAL_HTTP_CHROME_PASS';
     evidence.r5.macChrome=process.platform==='darwin'?'PASS':'NOT_TESTED';
@@ -492,6 +499,11 @@ test(process.env.OPENDESK_NATIVE_MARKET_R5==='1'?'R5 real HTTP Chrome: finite ex
     const opened=await until(async()=>(await browser.send('Target.getTargets')).targetInfos.find(row=>row.type==='page'&&row.url?.includes('/ui/tool.html')&&new URL(row.url).searchParams.get('toolId')===release.toolId),'explicit market tool open');
     await iframeWith(release.toolId);
     const toolPage=await attach(opened.targetId);
+    const hostResources=await until(()=>evaluate(toolPage,'(()=>{const value=globalThis.OpenDeskResourceDiagnostics?.snapshot();return value?.owners?.client?.ports===1&&value;})()'),'actual standalone Foundation host connected '+release.toolId);
+    (evidence.standaloneHosts??=[]).push({toolId:release.toolId,version:release.version,url:await evaluate(toolPage,'location.href'),resources:hostResources});
+    const emptyCorner=await evaluate(toolPage,'({x:innerWidth-8,y:innerHeight-8})');
+    await toolPage.send('Input.dispatchMouseEvent',{type:'mouseMoved',...emptyCorner});
+    await evaluate(toolPage,'new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)))');
     await screenshot(toolPage,'app-ui-'+release.toolId+'-'+release.version+'.png');
     assert.equal((await browser.send('Target.closeTarget',{targetId:opened.targetId})).success,true);
     await until(async()=>(await browser.send('Target.getTargets')).targetInfos.every(row=>row.type!=='iframe'||!row.url?.includes('/sidebar-tools/sandbox.html')),'market tool sandbox destroyed');
@@ -644,11 +656,19 @@ test(process.env.OPENDESK_NATIVE_MARKET_R5==='1'?'R5 real HTTP Chrome: finite ex
     // Native mouseReleased does not await the async storage/lock handler. Wait
     // for this revocation and its final UI before the next gesture can be made.
     await until(async()=>!(await readStore(key))?.[id]?.includes(servers[0].origin),'persisted revocation '+id);
-    await until(()=>evaluate(side,'!document.querySelector('+JSON.stringify('#sidebar-tool-settings-sites .sidebar-tool-site-revoke')+')&&document.querySelector("#sidebar-tool-status").textContent==='+
+    await until(()=>evaluate(side,'document.querySelector("#sidebar-tool-status").textContent==='+
       JSON.stringify('已撤销 '+servers[0].origin+' 的'+label+'授权')),'completed revocation UI '+id);
+    if(id==='web-markdown-clipper'){
+      // Revocation suspends the tool holding page content and returns to the
+      // library. Hidden settings may retain disabled DOM until the next render.
+      await until(()=>evaluate(side,'!document.querySelector("#sidebar-tool-list-view").hidden&&document.querySelector("#sidebar-tool-settings-view").hidden'),'revocation closes content-bearing clipper');
+      await assertNoFrames();
+    }else{
+      assert.equal(await evaluate(side,'[...document.querySelectorAll("#sidebar-tool-settings-sites .sidebar-tool-site-revoke")].some(button=>!button.disabled&&button.getClientRects().length>0)'),false);
+    }
     (evidence.revocations??=[]).push({id,key,before,after:await readStore(key)});
 
-    await back();
+    if(await evaluate(side,'document.querySelector("#sidebar-tool-list-view").hidden'))await back();
   }
   await until(()=>evaluate(pageA,'document.querySelectorAll("[data-opendesk-toc-root]").length===0'),'revocation immediately removes A TOC');
   await assertNoGrants();await screenshot(side,'r45-revoked-from-other-origin.png');
@@ -759,7 +779,7 @@ test(process.env.OPENDESK_NATIVE_MARKET_R5==='1'?'R5 real HTTP Chrome: finite ex
   evidence.controlledOldVersionsAreHistoricalReleases=false;evidence.confirmedOptionalTools=catalog.apps.filter(row=>row.installationPolicy==='optional').map(row=>row.toolId);
   evidence.defaultPreinstalledTools=defaultIds;
   evidence.finalRegistry=await installed();
-  await closeChrome();evidence.result='REAL_CHROME_FIXTURE_PASS';
+  assertRuntimeClean();await closeChrome();assertRuntimeClean();evidence.result='REAL_CHROME_FIXTURE_PASS';
   evidence.actualMacChrome=process.platform==='darwin'?'PASS':'NOT_TESTED';
   await save();console.log('R45_NATIVE_RESULT '+JSON.stringify({result:evidence.result,commit:evidence.commit,extensionId,packageHash:evidence.packageHash,
     phases:evidence.phases.length,normalChromeRestarts:2,dialogCount:evidence.dialogs.length}));

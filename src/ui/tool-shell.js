@@ -20,6 +20,22 @@ import {createNativeAgentHostAdapter} from '../native-agent/host-adapter.js';
 import {createSiteAccess} from './site-access.js';
 import {requireChromePermissions} from '../platform/chrome/permission-gate.js';
 
+// An extension's Side Panel and its full-size catalog share tool.html.
+// Chrome can expose a tab-like current context in some builds; classify the
+// exact current document positively before choosing the catalog-only UI.
+// Match the full hostInstanceId URL, not just the extension origin/path.
+export async function isActualSidePanelContext({api,href}={}){
+  if(!api?.runtime?.getContexts||typeof href!=='string'||!href)return false;
+  try{
+    const contexts=await api.runtime.getContexts({
+      contextTypes:['SIDE_PANEL'],documentUrls:[href]
+    });
+    return Array.isArray(contexts)&&contexts.some(row=>
+      row?.contextType==='SIDE_PANEL'&&row.documentUrl===href&&
+      typeof row.documentId==='string'&&row.documentId.length>0);
+  }catch{return false;}
+}
+
 // A source-only UI handoff. It never grants permissions, saves or starts a run.
 export function receiveSidebarDraft({message,sender,windowId,sidebarSurface,api,receiveDraft}) {
   if(message?.protocol!=='opendesk.sidebar.draft-import.v1' || !sidebarSurface ||
@@ -103,7 +119,11 @@ chrome.runtime.onMessage.addListener(draftImportListener);draftImportAttached=tr
  * No new document allowlist, authority, or storage instance is introduced.
  */
 Promise.resolve(chrome.tabs.getCurrent?.()).then(async tab => {
-  if(!tab?.id){
+  // Native Chrome context identity wins over tab-like heuristics; this keeps
+  // the visible Developer/Tools tabs in a genuine Side Panel and prevents
+  // catalog-only layout from hiding them after an asynchronous reclassification.
+  const actualSidePanel=await isActualSidePanelContext({api:chrome,href:hostUrl.href});
+  if(actualSidePanel||!tab?.id){
     sidebarSurface=true;
     cloudHosting=createCloudHosting({client:foundationClient,host:scriptEditor.host});
     void tabMemory.restore().catch(error=>console.warn('Sidebar tab restoration unavailable',error));
