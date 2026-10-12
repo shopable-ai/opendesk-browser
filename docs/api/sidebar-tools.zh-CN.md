@@ -84,11 +84,11 @@ status.textContent = '已保存';
 | `currentPage.read` | `currentPage.info` | `{status:'available',title,url}` 或 `{status:'unavailable',message}`；只提供当前目标标题/URL |
 | `tasks.open` | `tasks.open`：`{taskId}` | 聚焦已安装、已启用任务的 UI，不执行/停止任务 |
 | `user.export` | `clipboard.writeText`：`{text}` | 环境允许时复制纯文本，成功返回 `{copied:true}` |
-| `user.export` | `file.download`：`{text,filename}` | 请求 Chrome 下载安全文件名的 `.md`；返回 `{downloadId}` 不能单独证明真实落盘 |
+| `user.export` | `file.download`：`{text,filename}` | 请求 Chrome 下载安全文件名的 `.md` / `.txt` / `.json` 纯文本；返回 `{downloadId}` 不能单独证明真实落盘 |
 
 普通 `storage.local` 当前最多 32 个键，每项 JSON ≤8,192 字节，工具数据对象总 JSON ≤32,768 字节。`key` 须以英文字母开头，仅允许英文字母/数字/点/下划线/连字符，最长 60 字符。`withEtag/ifMatch` 是可选的条件更新；发生冲突应重新读回并让用户决定，不自动覆盖。
 
-`clipboard.writeText`、`file.download` 的文本须非空且 UTF-8 ≤150,000 bytes。`file.download` 仅允许不含路径分隔符等危险字符的 `.md` 文件名（长度 ≤90）；一般网络下载、二进制文件和任意绝对路径写入都**不是**此 API 的能力。工具不使用宿主的任意网络代理。
+`clipboard.writeText`、`file.download` 的文本须非空且 UTF-8 ≤150,000 bytes。`file.download` 仅允许不含路径分隔符等危险字符的 `.md`、`.txt` 或 `.json` 文件名（长度 ≤90）；一般网络下载、二进制文件和任意绝对路径写入都**不是**此 API 的能力。工具不使用宿主的任意网络代理。
 
 ### 官方固定网页增强能力（不是任意 DOM API）
 
@@ -125,6 +125,7 @@ status.textContent = '已保存';
 
 ## 4. 维护和排错入口
 
+- **Cookie Editor UI 示例**：[本地临时工作区](../../examples/sidebar-tools/cookie-editor/README.zh-CN.md)。当前仅用 `currentPage.read` 和 `user.export`，不提供 `chrome.cookies` 能力；不能把内存改动当作浏览器 Cookie 变更。
 - **开发方法**：[统一开发规范](sidebar-tool-development.zh-CN.md)。
 - **示例**：[quick-notes](../../examples/sidebar-tools/quick-notes/README.md)、[React starter](../../examples/sidebar-tools/react-starter/README.md)、[Vue starter](../../examples/sidebar-tools/vue-starter/README.md)。
 - **专项网页工具**：[阅读目录](../../examples/sidebar-tools/reading-toc/README.md)（含文章/AI 对话手工 fixture）、[网页剪藏](../../examples/sidebar-tools/web-markdown-clipper/README.md)、[知识收件箱](../../examples/sidebar-tools/knowledge-inbox/README.zh-CN.md)。
