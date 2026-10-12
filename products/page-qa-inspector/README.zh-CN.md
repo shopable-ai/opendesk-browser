@@ -1,4 +1,10 @@
-# Page QA Inspector — 独立 Chrome MV3 产品（Extension Factory R2）
+# Page QA Inspector — DEPRECATED / 已废弃的实验产品
+
+> **状态（2026-10-12）：`DEPRECATED / NO_RELEASE / MANUAL_FIXTURE_ONLY`。** 本产品已退出首款独立商业 Chrome 插件与发布排期。不得据此继续产品功能、CWS 上架、Mac Chrome 20 次专项验收或对外宣传正式完成。
+>
+> 它的原始用途是用户手动检查当前网页的 DOM/图片 alt/标题与表单基础可访问性，定位元素及本地导出 JSON。由于与 DevTools / Lighthouse / axe 等现有工具重叠，而且尚无本项目的用户留存、显著差异化或付费证据，当前不继续投入。
+>
+> **暂时保留代码仅为了历史工程参考：** 独立 WXT 配置、权限最小化、Manifest/ZIP 隔离和 Feature Resolver 样例。它不会加入默认 OpenDesk 构建；下方 `build:product` / `pack:product` 命令仅供手动诊断，不代表支持任意产品的工厂，也不构成发布授权。专属自动 CI 和旧测试属于后续隔离清理范围。详见 [商业方向决策](../../docs/product/browser-extension-ecosystem/commercial-decision-ecommerce-20261012.zh-CN.md)。
 
 本产品的独立身份为 `page-qa-inspector`，版本 `0.1.0`；这是产品配置 ID，**不是** Chrome Web Store 分配的安装扩展 ID。
 
