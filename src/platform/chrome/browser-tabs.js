@@ -1,5 +1,5 @@
-// Isolated trusted Chrome Tabs driver. It is deliberately NOT wired to a
-// public tool route until site, package and user-intent admission is approved.
+// Trusted Chrome Tabs driver wired through the installed-tool Browser SDK Host.
+// Only exact, one-use Host-approved requests may reach these Chrome operations.
 const fail=(code,message=code)=>Object.assign(new Error(message),{code});
 const MAX_OWNED=8,TTL_MS=600000;
 const tokenPattern=/^[A-Za-z0-9_-]{16,160}$/;
