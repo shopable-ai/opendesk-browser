@@ -631,7 +631,11 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
           throw Object.assign(new Error(preflight?.error?.message||'Side Panel Host denied'),
             {code:preflight?.error?.code||'E_BROWSER'});
         const windowInfo=await api.windows.getCurrent();
-        const coordinator=createSidePanelOpenCoordinator({api,authorize:async()=>{
+        const coordinator=createSidePanelOpenCoordinator({api,
+          isCurrent:()=>sameInstance(source,token)&&active?.id===tool.id&&
+            !readOnlyPreview&&!busy&&sidebarToolEnabled(enableRecords,tool.id)&&
+            (revocationEpochs[tool.id]??null)===revocationEpoch,
+          authorize:async()=>{
           assertSession(source,token);
           await assertSidebarToolEnabled(api,tool.id);
           const saved=(await api.storage.local.get(SIDEBAR_TOOL_STORE))[SIDEBAR_TOOL_STORE];

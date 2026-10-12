@@ -133,6 +133,8 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
   // Single-use intents are created only by the trusted extension UI after a user click.
   // They do not survive Worker restart and are never supplied by tool script.
   const browserIntents=new Map(),INTENT_TTL=15000;
+  // A permission or installed-package change must fence requests that are already in fetch().
+  const activeNetworkRequests=new Set();
   const intentOperations=new Set(['browser.tabs.open','browser.tabs.focus','browser.network.request']);
   async function verifyBrowserOwner(identity,operation,origin=null){
     const owned=await readSources(api),tool=admittedTool(owned.tools,identity.toolId);
@@ -163,7 +165,13 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
       if(origin!==context.approvedOrigin)throw failure('E_SITE_GRANT_REQUIRED','HTTP request Origin changed');
       await verifyBrowserOwner(context,'browser.network.request',origin);
     }});
-  function revokeBrowserOperations(){browserIntents.clear();tabHost.dispose();}
+  function revokeBrowserOperations(){
+    browserIntents.clear();
+    for(const controller of activeNetworkRequests)
+      controller.abort(failure('E_GRANT_REVOKED','Installed tool authority changed during HTTP request'));
+    activeNetworkRequests.clear();
+    tabHost.dispose();
+  }
 
   const SOURCE_PROOF_LIFETIME_MS=60000;
   // Content scripts send no selected text: only Chrome's native sender exposes
@@ -388,10 +396,15 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
         await verifyBrowserOwner(context,operation,approvedOrigin);
         if(operation==='browser.tabs.open')return tabHost.open(checked,context);
         if(operation==='browser.tabs.focus')return tabHost.focus(checked,context);
-        const response=await networkHost.request(checked,{...context,deadlineAt:Date.now()+15000});
-        const result={status:response.status,data:response.data};
-        if(jsonBytes(result)>12000)throw failure('E_LIMIT','HTTP response exceeds IPC budget');
-        return result;
+        const controller=new AbortController();
+        activeNetworkRequests.add(controller);
+        try{
+          const response=await networkHost.request(checked,{...context,signal:controller.signal,
+            deadlineAt:Date.now()+15000});
+          const result={status:response.status,data:response.data};
+          if(jsonBytes(result)>12000)throw failure('E_LIMIT','HTTP response exceeds IPC budget');
+          return result;
+        }finally{activeNetworkRequests.delete(controller)}
       }
       if(operation==='browser.capabilities.list'){
         normalizeBrowserOperation(operation,args);

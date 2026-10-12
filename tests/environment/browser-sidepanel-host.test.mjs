@@ -7,13 +7,13 @@ const tool={toolId:'tool-a',hostInstanceId:host,windowId:15};
 const clicked={type:'click',isTrusted:true}; // simulated only within this Node fixture
 const code=x=>e=>e?.code===x;
 function setup(){
- const called=[];let now=1000;let valid=true;
+ const called=[];let now=1000;let valid=true,current=true;
  const ui=createSidePanelOpenCoordinator({
   api:{sidePanel:{open:opts=>{called.push(opts);return Promise.resolve()}}},
   clock:{now:()=>now},createRef:()=>ref,isTrustedClick:evt=>evt===clicked,
-  authorize:async()=>valid
+  authorize:async()=>valid,isCurrent:()=>current
  });
- return {ui,called,expire:()=>now=20000,revoke:()=>valid=false};
+ return {ui,called,expire:()=>now=20000,revoke:()=>valid=false,stale:()=>current=false};
 }
 test('trusted user click opens only the first-party extension Side Panel',async()=>{
  const a=setup(),queued=await a.ui.prepare(tool);
@@ -40,4 +40,14 @@ test('disable and invalid install identity revoke pending actions',async()=>{
  const b=setup();b.revoke();
  await assert.rejects(b.ui.prepare(tool),code('E_TOOL_CHANGED'));
  await assert.rejects(b.ui.prepare({...tool,windowId:-1}),code('E_SCHEMA'));
+});
+
+test('a tool disabled after preparation cannot spend a pending native click',async()=>{
+ const a=setup();await a.ui.prepare(tool);a.stale();
+ assert.throws(()=>a.ui.confirm(ref,clicked),code('E_TOOL_CHANGED'));
+ assert.equal(a.called.length,0);
+ assert.throws(()=>a.ui.confirm(ref,clicked),code('E_LAUNCH_EXPIRED'));
+});
+test('the coordinator refuses missing synchronous identity fencing',()=>{
+ assert.throws(()=>createSidePanelOpenCoordinator({authorize:async()=>true}),code('E_CONTEXT'));
 });

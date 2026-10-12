@@ -137,3 +137,18 @@ test('R2 Side Panel Host only authorizes preflight; synthetic tool RPC never dir
   f.setChrome(false);
   await assert.rejects(f.call('browser.sidePanel.openSelf'),err('E_CHROME_PERMISSION_REQUIRED'));
 });
+
+test('R2 revocation aborts a request that already entered the trusted fetch driver',async()=>{
+ let entered;
+ const inFlight=new Promise(resolve=>{entered=resolve});
+ const f=fixture({fetchImpl:(_url,init)=>new Promise((_resolve,reject)=>{
+   init.signal.addEventListener('abort',()=>reject(init.signal.reason),{once:true});
+   entered();
+ })});
+ const args={method:'GET',url:'https://example.org/private'};
+ const token=(await f.confirm('browser.network.request',args)).approvalRef;
+ const pending=f.call('browser.network.request',args,token);
+ await inFlight;
+ f.host.revokeBrowserOperations();
+ await assert.rejects(pending,err('E_CANCELLED'));
+});

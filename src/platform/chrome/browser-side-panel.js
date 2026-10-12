@@ -4,9 +4,10 @@
 const fail=(code,message=code)=>Object.assign(new Error(message),{code});
 const UUID=/^[0-9a-f-]{36}$/i;
 export function createSidePanelOpenCoordinator({api=globalThis.chrome,clock=Date,
- authorize,createRef=()=>crypto.randomUUID(),
+ authorize,isCurrent,createRef=()=>crypto.randomUUID(),
  isTrustedClick=event=>event instanceof Event&&event.type==='click'&&event.isTrusted===true}={}){
- if(typeof authorize!=='function')throw fail('E_CONTEXT','Trusted UI authorization required');
+ if(typeof authorize!=='function'||typeof isCurrent!=='function')
+  throw fail('E_CONTEXT','Trusted UI authorization and synchronous identity fence required');
  const pending=new Map();
  async function prepare({toolId,hostInstanceId,windowId}={}){
   if(typeof toolId!=='string'||!/^[a-z][a-z0-9-]{1,39}$/.test(toolId)||
@@ -30,6 +31,11 @@ export function createSidePanelOpenCoordinator({api=globalThis.chrome,clock=Date
   const row=pending.get(requestRef);
   pending.delete(requestRef); // one-shot even if Chrome refuses the operation
   if(!row||clock.now()>=row.expiresAt)throw fail('E_LAUNCH_EXPIRED','User gesture expired or already consumed');
+  // Permission state is checked during prepare; synchronously fence the live tool
+  // session here without consuming the native user activation in an async check.
+  let current=false;
+  try{current=isCurrent(row.context)===true}catch{}
+  if(!current)throw fail('E_TOOL_CHANGED','Tool was switched, disabled or revoked before the click');
   if(typeof api?.sidePanel?.open!=='function')throw fail('E_CHROME_UNSUPPORTED');
   let result;
   try{result=api.sidePanel.open({windowId:row.context.windowId})}
