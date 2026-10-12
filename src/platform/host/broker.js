@@ -2,7 +2,7 @@ import {createStorage} from '../storage/index.js';
 import {createSessionTyped} from '../storage/session.js';
 import {createDownloadService} from '../downloads/index.js';
 import {createRunAuthority} from './authority.js';
-import {requireCloudConsoleSender} from './cloud-observer.js';
+import {requireCloudConsoleSender,requireCloudSidePanelSender} from './cloud-observer.js';
 import {createSdkBroker} from './sdk-broker.js';
 import {createPageScriptPreview} from '../../scripting/user-scripts/preview.js';
 import {createDependencyManager} from '../../scripting/user-scripts/dependency-manager.js';
@@ -208,6 +208,8 @@ export async function createFoundationBroker({api = chrome, ports = new Map(), c
     }
     sender = await resolveToolSender(api, sender);
     invariant(isToolSender(api,sender),'E_OWNER','Only actual packaged tool documents may invoke foundation services');
+    if(['cloudStatus','cloudPair','cloudApprove','cloudStop','cloudUnpair','cloudNext','cloudResolve'].includes(message.type))
+      await requireCloudSidePanelSender(api,sender);
     if (!consumer && templateOperations.has(message.type)) unavailable();
     const route = Object.hasOwn(routes, message.type) ? routes[message.type] : undefined;
     invariant(route,'E_CAPABILITY','Unknown or unavailable foundation operation');
