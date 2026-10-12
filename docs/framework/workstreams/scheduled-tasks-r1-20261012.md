@@ -77,3 +77,13 @@ GitHub Actions [Scheduled Tasks R1](https://github.com/shopable-ai/opendesk-brow
 ### 后续原生验收如何执行
 
 按仓库测试指南确认最新 commit SHA、单个 Mac Chrome Profile 与端口资源独占，先在本地 `main` 运行新专项 Node + 两构建 + verify，再安装**确实构建自同一 SHA** 的生产或开发包；使用 `examples/tasks/demo-form.html` 安装经 Native 回执验证的 Controller Task。分别在 Side Panel 打开、Side Panel 关闭而可见运行页保留、唯一运行页关闭和恢复、多 Host 同时开启、浏览器重启、撤权/更新/停止/超时/未知效果场景下采集独立证据，并逐项提交报告。全部真实证据齐备前，十项专家分数继续标 `NOT_TESTED` 或 `BLOCKED`，不填虚高分。
+
+
+### R1.1 GitHub Actions 回执（eb4b3f7c83）
+
+[本候选工作流](https://github.com/shopable-ai/opendesk-browser/actions/runs/38242914514) 的已完成 job：
+
+- `scheduled-package`：**PASS**。Node 22、`npm ci`、`npm run check`、生产 `npm run build`、开发 `npm run build:dev` 和 `npm run verify` 均确实执行并成功。
+- `scheduled-components`：**FAIL（定位为新增静态断言拼写）**。计划时间、FireId、Host 缺席、授权投影、Result 退休专项 **9/9 PASS**；新增 Side Panel 结构/URL 静态断言 **4/5 PASS**，唯一失败的测试将真实 CSS `#scheduled-panel [hidden]` 错写为 `schedule-panel [hidden]`。这不是产品源码 selector 不存在，而是测试中少写一个字母。
+- 先前 K3 `Unbounded Cloud KV scan` 的源码修复在本候选已存在，但该 job 因静态测试提前失败，K3 回归命令未执行。因此 K3 **NOT_TESTED on eb4b candidate**，不得直接填 PASS。
+- 下一次提交只改正静态测试选择器，并重跑原工作流；Mac Chrome 真实验收仍为 **NOT_TESTED**。

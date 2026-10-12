@@ -43,7 +43,7 @@ test('source UI provides four triggers and a strictly typed local time rule',asy
   const css=await load('src/ui/tool-shell.css');
   assert.match(css,/\.schedule-source-row\{display:grid;grid-template-columns:minmax\(0,1fr\)/);
   assert.match(css,/var\(--od-icon-size\)/);
-  assert.match(css,/schedule-panel \[hidden\]\{display:none!important\}/);
+  assert.match(css,/#scheduled-panel\[hidden\],#scheduled-panel \[hidden\]\{display:none!important\}/);
   assert.doesNotMatch(html,/id="tab-schedule"/);
 });
 test('no native JS alert/confirm/prompt and no unapproved background execution realm',async()=>{
