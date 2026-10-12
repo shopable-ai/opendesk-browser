@@ -611,14 +611,18 @@ test('R24.3 final asynchronous document check refuses a React component edited b
       },
       cancel(){},dispose(){}
     }),
-    wrapTarget:original=>new Proxy(original,{get(target,key){
-      if(key==='revalidate')return async captured=>{
+    wrapTarget:original=>Object.freeze({
+      ...original,
+      // The real currentPageTarget is frozen; a Proxy cannot replace its
+      // non-configurable revalidate property. Create a separate test facade.
+      revalidate:async captured=>{
         revalidationCount++;
         if(revalidationCount===2){entered.resolve();await release.promise;}
-        return target.revalidate(captured);
-      };
-      return Reflect.get(target,key);
-    }})
+        return original.revalidate(captured);
+      },
+      get snapshot(){return original.snapshot;},
+      get windowId(){return original.windowId;}
+    })
   });
   t.after(()=>{release.resolve();f.dispose();});
   const radio=f.find('page-component-react');
