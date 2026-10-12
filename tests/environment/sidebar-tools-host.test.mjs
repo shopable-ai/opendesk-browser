@@ -1516,3 +1516,46 @@ test('native menu cannot defer an unbound launch behind the current tool dirty r
   assert.match(f.elements['sidebar-tool-status'].textContent,/重新从右键菜单启动/);
   assert.equal(f.elements['sidebar-tool-action-review'].hidden,true,'no deferred mount without ticket binding');
 });
+
+test('R56 dirty tool enable/disable uses a cancellable inline review and cannot lose data',async t=>{
+  const key=sidebarToolStorageKey(sample.id),privateData={notes:'keep after stop'},
+    store=new Map([[SIDEBAR_TOOL_STORE,[sample]],[key,privateData]]);
+  const f=await hostFixture(t,{store}),frame=f.frame;
+  let dialogs=0;
+  globalThis.confirm=()=>{dialogs++;throw Error('native confirm must not be invoked');};
+  const editorState=(dirty,busy)=>f.win.emit('message',{origin:'null',source:frame.contentWindow,
+    data:{protocol:f.loaded.protocol,toolId:sample.id,instance:f.loaded.instance,
+      kind:'edit-state',dirty,busy}});
+  editorState(true,false);
+  f.elements['sidebar-tool-settings-open'].emit('click');
+  f.elements['sidebar-tool-enable'].emit('click');
+  await settle(()=>f.elements['sidebar-tool-action-review'].hidden===false);
+  assert.equal(f.elements['sidebar-tool-action-review'].hidden,false,'dirty stop must open inline review');
+  assert.notEqual(store.get(SIDEBAR_TOOL_ENABLE_STORE)?.[sample.id],false,'opening review does not stop');
+  f.elements['sidebar-tool-action-cancel'].emit('click');
+  assert.equal(f.elements['sidebar-tool-frame'].children[0],frame,'Cancel must preserve live unsaved editor');
+  assert.notEqual(store.get(SIDEBAR_TOOL_ENABLE_STORE)?.[sample.id],false);
+
+  f.elements['sidebar-tool-enable'].emit('click');
+  await settle(()=>f.elements['sidebar-tool-action-review'].hidden===false);
+  editorState(true,true);
+  f.elements['sidebar-tool-action-continue'].emit('click');
+  await pause();await pause();
+  assert.notEqual(store.get(SIDEBAR_TOOL_ENABLE_STORE)?.[sample.id],false,
+    'a save starting during review prevents a stale stop');
+  assert.equal(f.elements['sidebar-tool-frame'].children[0],frame);
+
+  editorState(true,false);
+  f.elements['sidebar-tool-enable'].emit('click');
+  await settle(()=>f.elements['sidebar-tool-action-review'].hidden===false);
+  f.elements['sidebar-tool-action-continue'].emit('click');
+  await settle(()=>store.get(SIDEBAR_TOOL_ENABLE_STORE)?.[sample.id]===false);
+  assert.equal(f.elements['sidebar-tool-frame'].children.length,0,'confirmed stop retires the sandbox');
+  assert.deepEqual(store.get(key),privateData,'stop never deletes tool data');
+  assert.equal(dialogs,0,'all choices remain non-modal');
+
+  f.elements['sidebar-tool-enable'].emit('click');
+  await settle(()=>store.get(SIDEBAR_TOOL_ENABLE_STORE)?.[sample.id]===true);
+  assert.equal(f.elements['sidebar-tool-frame'].children.length,0,'re-enable never auto-launches code');
+  assert.deepEqual(store.get(key),privateData);
+});

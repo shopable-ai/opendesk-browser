@@ -31,3 +31,11 @@
 `tests/environment/no-modal-ui-r50.test.mjs` 将可信 Side Panel、应用市场、Native Workspace、官方工具示例中的浏览器 `alert()/confirm()/prompt()` 及 `beforeunload` 弹窗作为回归错误，并要求工具卸载、未保存编辑、工作流新建和 Markdown 清空仍有页面内明确取消／放弃入口。此检查已纳入 Sidebar PR 定向工作流；外部浏览器扩展自身的权限窗口不可由本项目静默取消。
 
 工具沙箱的 MV3 CSP 使用 `sandbox allow-scripts`，不包含 `allow-modals`。这只限制非受信任工具 iframe 的浏览器模态能力，不意味着可以取消 Chrome 自己的权限确认。
+
+## R5.6 扩展无弹窗审计与脏编辑停用修复（2026-10-12）
+
+- 发现并修复：已打开的工具存在未保存编辑时，点击“停用工具”会出现行内“放弃并继续”，但此前未传入回调，用户确认后无动作。
+- 现在启停操作将待执行动作绑定到当前工具包、受限 iframe 实例、原始启用状态；页面内取消保留草稿，明确继续才允许停用。确认前若开始保存、工具已更换或窗口已改变则中止，要求重新操作。
+- 停用保留本地数据及网站授权；重新启用不会自动执行工具代码。Chrome 权限撤销与双锁/安装身份校验保持原有严格行为。
+- 无弹窗语法检查扩展到 `src/platform`、`src/framework`、`src/scripting` 和 `examples/programs`，并拒绝 `dialog.showModal()`；`permission-gate.js` 的局部 `confirm(event, value)` 是 Chrome 权限 API 的可信方法，不是浏览器阻断式弹窗。
+- 新增 `R56 dirty tool enable/disable` 实际宿主组件回归，覆盖取消、保存中拒绝、明确继续、数据保留、重新启用不自启动。

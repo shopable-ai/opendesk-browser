@@ -1457,12 +1457,30 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   listen(settingsAllow,'click',action(()=>runSiteToggle(active?.id,()=>setSitePermission(true))));
   listen(settingsDeny,'click',action(()=>runSiteToggle(active?.id,()=>setSitePermission(false))));
   if(enableButton)listen(enableButton,'click',action(async()=>{
-    if(!active||readOnlyPreview||busy||enableReadError||!canLeave())return;
-    const tool=active,enabled=!sidebarToolEnabled(enableRecords,tool.id);busy=true;render();
-    try{await setInstalledSidebarToolEnabled({api,lockManager,tool,enabled});
-      destroyFrame();toolDirty=false;toolSaving=false;knowledgeDirty=false;tocSettingsOpen=true;
-      await Promise.all([loadEnableRecords(),loadInstalled()]);notice(enabled?'已启用；点击“打开工具”后运行':'已停用；数据和授权保留');
-    }finally{busy=false;render();}
+    if(!active||readOnlyPreview||busy||enableReadError)return;
+    const tool=active,session=instance;
+    const wasEnabled=sidebarToolEnabled(enableRecords,tool.id),enabled=!wasEnabled;
+    const apply=async()=>{
+      // The inline "discard and continue" may be clicked after the tool was
+      // saved, replaced or closed. Never commit an outdated or busy action.
+      if(disposed||busy||toolSaving||enableReadError||!active||
+         !samePackage(active,tool)||instance!==session||
+         sidebarToolEnabled(enableRecords,tool.id)!==wasEnabled){
+        notice('工具状态或编辑内容已变化；请核对后重新点击启停。',true);
+        return;
+      }
+      busy=true;render();
+      try{
+        await setInstalledSidebarToolEnabled({api,lockManager,tool,enabled});
+        destroyFrame();toolDirty=false;toolSaving=false;knowledgeDirty=false;tocSettingsOpen=true;
+        await Promise.all([loadEnableRecords(),loadInstalled()]);
+        notice(enabled?'已启用；点击“打开工具”后运行':'已停用；数据和授权保留');
+      }finally{busy=false;render();}
+    };
+    // Pass the deferred mutation into the existing non-modal review. Previously
+    // canLeave() without a callback showed a Continue button that did nothing.
+    if(!canLeave(apply))return;
+    await apply();
   }));
   if(launchButton)listen(launchButton,'click',action(()=>openTool(active?.id)));
   if(eyeButton)listen(eyeButton,'click',action(()=>runSiteToggle(READING_TOC_TOOL_ID,
