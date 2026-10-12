@@ -5,7 +5,7 @@
 | 示例 | 应放到哪里 | 运行时访问方式 |
 | --- | --- | --- |
 | [background.mjs](background.mjs) | 现有受信 Background/SW 入口内部，需要此功能时才静态 import | `import dayjs from 'dayjs'`、`import {words} from 'lodash-es'`；没有 Controller `page` |
-| [sidebar-host.mjs](sidebar-host.mjs) | 现有受信 Side Panel shell 的源码模块 | `import {parseUrl} from 'query-string'`、`import dayjs from 'dayjs'`；不传到 sandbox 工具 |
+| [sidebar-host.mjs](sidebar-host.mjs) | 现有受信 Side Panel shell 的源码模块 | `import queryString from 'query-string'`、`import dayjs from 'dayjs'`；不传到 sandbox 工具 |
 | [extension-page.mjs](extension-page.mjs) | 自有受信扩展 HTML 页的独立构建入口 | `import {uniq,words} from 'lodash-es'`；调用方传 DOM 节点、使用 `textContent` |
 
 实际接入生产时，请在仓库现有的、已批准的 `src/**` WXT 入口按需添加这些静态 import，把使用的模块编入**该入口自己的构建图**，而不是新建第二套公共库注册表、在所有世界安装 `globalThis.dayjs`，或者把全部预装库打入 Background。修改受信扩展源码需要重新构建扩展；普通用户 Controller/Page 项目无需这样做。
