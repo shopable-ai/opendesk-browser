@@ -37,6 +37,12 @@
       "project": "examples/sidebar-tools/time-review",
       "kind": "sidebar-tool",
       "installationPolicy": "optional"
+    },
+    {
+      "id": "cookie-editor",
+      "project": "examples/sidebar-tools/cookie-editor",
+      "kind": "sidebar-tool",
+      "installationPolicy": "optional"
     }
   ]
 }
