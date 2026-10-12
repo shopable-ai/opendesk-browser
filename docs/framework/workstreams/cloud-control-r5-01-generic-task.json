@@ -1,0 +1,58 @@
+{
+  "goal": "Cloud Control R5.1 Universal Installed Task Delivery",
+  "date": "2026-10-13",
+  "branch": "main",
+  "observedStartingHead": "de52893a69d5107b4d60f837c9e570d7298ac588",
+  "sourceCommits": [
+    "bf98690daf760d472895f5c447c365611f3e100e",
+    "03ecb592130ca476567f24603a41b6d126921e8f",
+    "5c34ffced54c53535cf44a737f29f3e24c5ed10f",
+    "849ab2b901beab02b837f5d91fcd2477ed2ef4a9",
+    "d0ad8ed119a22343be38dfa62a650199ce6872ba"
+  ],
+  "taskExamples": [
+    {
+      "taskId": "sample.form-fill",
+      "version": "1.0.0",
+      "manifestHash": "57598844f11f75d7566c5adeab283a3aaed0614d151590a6f34124e7abf3632a",
+      "sourceHash": "1f72cf17aa04e8a8597ef43e554ae5507f9da58b73e46d731373cd318f6dcf63"
+    },
+    {
+      "taskId": "sample.modern-search",
+      "version": "1.0.0",
+      "manifestHash": "5bce863a91c5abd26513dc19a50c55eeb068eb030c7e0aa5a664b9f8e902984a",
+      "sourceHash": "1618934805a4104191be8e2005a608d0537a51ca65c1e291c8a8fb042ed34b2d"
+    }
+  ],
+  "status": {
+    "source": "SOURCE_IMPLEMENTED",
+    "components": "CI_PENDING",
+    "build": "CI_PENDING",
+    "nativeTwoTasks": "NATIVE_PENDING",
+    "nativeMac": "NATIVE_PENDING",
+    "longRunningRunner": "NOT_IMPLEMENTED"
+  },
+  "ci": {
+    "url": null,
+    "headSha": null,
+    "passed": null,
+    "failed": null,
+    "productionPackageHash": null,
+    "developmentPackageHash": null
+  },
+  "originalRunEvidence": {
+    "runIds": [],
+    "resultIds": [],
+    "sourceHashes": [],
+    "workerOutcomes": [],
+    "retirementReleased": [],
+    "providerReceiptIds": []
+  },
+  "safety": {
+    "mainOnly": true,
+    "noForce": true,
+    "noWorktree": true,
+    "noMacResources": true,
+    "noSharedProvider": true
+  }
+}
