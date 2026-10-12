@@ -1,0 +1,71 @@
+name: Cloud Control R3 component and package
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/cloud-control-r3.yml'
+      - 'src/cloud-control/**'
+      - 'src/platform/host/broker.js'
+      - 'src/platform/host/cloud-observer.js'
+      - 'src/ui/cloud-*'
+      - 'src/ui/tool.html'
+      - 'src/ui/tool-shell.css'
+      - 'src/ui/sidebar-tab-memory.js'
+      - 'src/entrypoints/cloud-console.js'
+      - 'scripts/build-contract.mjs'
+      - 'scripts/prepare-public.mjs'
+      - 'scripts/verify-package.mjs'
+      - 'tests/environment/cloud-control-*.test.mjs'
+      - 'tests/environment/sidebar-tab-memory.test.mjs'
+      - 'tests/framework/k3-controller-authority.test.mjs'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cloud-control-r3-main
+  cancel-in-progress: true
+
+jobs:
+  components:
+    name: cloud-r3-component
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - name: Cloud six/seven tabs and Observer sender isolation
+        run: |
+          node --test tests/environment/cloud-control-sidebar-r28.test.mjs
+          node --test tests/environment/cloud-control-debug-r14.test.mjs
+          node --test tests/environment/cloud-control-console-r3.test.mjs
+          node --test tests/environment/sidebar-tab-memory.test.mjs
+      - name: Original Authority, Run, Result and browser component regressions
+        run: node --test tests/framework/k3-controller-authority.test.mjs
+      - name: Cloud HTTP and WebSocket provider integration
+        run: npm run test:cloud
+  package:
+    name: cloud-r3-package
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - name: Source integrity, security scanner, HTML and fixed entry contract
+        run: npm run check
+      - name: Production MV3 build
+        run: npm run build
+      - name: Development MV3 build
+        run: npm run build:dev
+      - name: Strict package and CSP verification
+        run: npm run verify
