@@ -50,7 +50,7 @@ async function cdp(uri){
 
 async function clickReal(session,expression){
   const box=await session.read('(()=>{const node=('+expression+');if(!node||node.disabled)return null;'+
-    'node.scrollIntoView({block:"center"});const r=node.getBoundingClientRect();'+
+    'node.scrollIntoView({block:"center",inline:"center"});const r=node.getBoundingClientRect();'+
     'return {x:r.x+r.width/2,y:r.y+r.height/2,width:r.width,height:r.height}})()');
   assert(box?.width>0&&box.height>0&&box.x>0&&box.y>0,'visible, enabled input '+expression);
   for(const type of ['mousePressed','mouseReleased'])
@@ -144,8 +144,23 @@ async function verifyBrowserUI({browser,page,catalogTabId,base,extensionId,outpu
     sidebar=await cdp(sidebarTarget.webSocketDebuggerUrl);
     await until(()=>sidebar.read('document.querySelector("#tab-develop")!=null'),
       'Side Panel workbench available');
+    const observePanel=()=>sidebar.read('(async()=>{const e=document.querySelector("#tab-develop");'+
+      'const r=e?.getBoundingClientRect();const nav=document.querySelector(".workbench-nav");'+
+      'let contexts=[];try{contexts=await chrome.runtime.getContexts({contextTypes:["SIDE_PANEL"]})}catch(error){contexts=[{error:String(error)}]};'+
+      'return {url:location.href,surface:document.documentElement.dataset.opendeskSurface,'+
+      'selected:document.documentElement.dataset.opendeskTab,'+
+      'navStyle:nav&&getComputedStyle(nav).display,tabVisible:!!(r&&r.width>0&&r.height>0),'+
+      'rect:r?{x:r.x,y:r.y,width:r.width,height:r.height}:null,'+
+      'currentTab:await chrome.tabs.getCurrent(),contexts:contexts.map(x=>({type:x.contextType,url:x.documentUrl,tabId:x.tabId}))}})()');
+    console.log('R243_SIDEPANEL_CONTEXT '+JSON.stringify({
+      target:{id:sidebarTarget.id,type:sidebarTarget.type,url:sidebarTarget.url},
+      ui:await observePanel()}));
+    await until(async()=>{const result=await observePanel();return result.tabVisible?result:null},
+      'actual Sidebar Developer tab becomes visible',10000);
     await browser.call('Target.activateTarget',{targetId:website.info.id});
     await clickReal(sidebar,'document.querySelector("#tab-develop")');
+    await until(()=>sidebar.read('document.querySelector("#tab-develop").getAttribute("aria-selected")==="true"'),
+      'trusted Sidebar developer navigation',10000);
     const permission=await sidebar.read('chrome.permissions.contains({origins:["http://127.0.0.1:43111/*"]})');
     assert.equal(permission,true,'original Chrome website permission must be granted');
     for(const framework of ['react','vue']){
