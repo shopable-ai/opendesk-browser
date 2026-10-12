@@ -12,7 +12,7 @@ export const BROWSER_MENU_ROOT='opendesk.browser.root';
 const shared={apiVersion:BROWSER_API_VERSION,platform:'chrome>=138',timeout:8000,maxRequestBytes:12000,maxResponseBytes:12000};
 const USER_GESTURE_OPERATIONS=new Set([
   'browser.clipboard.writeText','browser.downloads.text','browser.tabs.open',
-  'browser.tabs.focus','browser.sidePanel.openSelf','browser.network.observe.start',
+  'browser.tabs.focus','browser.sidePanel.openSelf','browser.network.request','browser.network.observe.start',
   'browser.screenshot.captureVisible','browser.media.recording.prepare'
 ]);
 function entry(operation,capability,contexts,chromePermissions,effect,risk,siteScope='none',state='IMPLEMENTED',lifecycle='request'){

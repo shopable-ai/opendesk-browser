@@ -20,6 +20,7 @@ export default defineUnlistedScript(() => {
       phase:'context-menu-tab-removed',label:'Browser menu tab removal'}));
   });
   api.permissions.onRemoved.addListener(removed=>{
+    host.revokeBrowserOperations();
     if(removed.permissions?.includes('contextMenus'))observe(host.revokePermission(),'Chrome menu permission revoke');
     else if(removed.origins?.length)observe(host.revokeLaunches(),'site permission revoke');
     observe(host.synchronize(),'permissions removed');
