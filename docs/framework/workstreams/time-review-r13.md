@@ -60,3 +60,11 @@
 
 - [Actions 38206716855](https://github.com/shopable-ai/opendesk-browser/actions/runs/38206716855) 的 main 版原生下载诊断表明：`chrome.downloads.search()` 在隔离 Profile 内得到新记录 `id=1`、`state=complete`、`error=null`、`bytesReceived=241`，实际保存路径也属于本轮专属文件夹，但文件基名为 `download`，并非请求的 `time-review.json`。这证明实际磁盘下载**已发生**，同时原始格式/文件名约定**未满足**。测试保持 FAIL，不凭受理回执虚报 JSON 导出全部成功。
 - 按最小修复对 JSON/CSV 增加精确媒体类型和 `name=...` 参数，并继续显式设置 `downloads.download.filename`；保留 `saveAs:false` 避免额外浏览器弹窗，`conflictAction:'uniquify'` 避免覆盖旧文件。新增 Node 固定接口回归，仍要求原生文件名和真实 JSON 内容双验证；这项更改经主分支定向 Mac CI 后才可判断是否成功。
+
+## 主分支 Mac 导出回归与下一步（2026-10-12）
+
+- 仅对 `main` 的两个提交开展定向修复，不创建额外开发分支：`ba9f29a5bf85f310357fedb66fab2074b571ecee` 加强原生下载观测，`c03f1ccd39f59352d862cae2cd263fc95c10322a` 调整导出 MIME / `name` 参数并补 R1.2 请求格式断言。
+- 同一候选 [Actions 38206716855](https://github.com/shopable-ai/opendesk-browser/actions/runs/38206716855)：真实 Chrome 下载 ID=1，`state=complete`，`error=null`，241 字节真正写入被 CI 独占的临时目录，但 basename 为 `download`，**预期文件名 time-review.json 未满足；本轮不能声称完整导出 PASS**。
+- MIME/名称参数调整后 [Actions 38207101247](https://github.com/shopable-ai/opendesk-browser/actions/runs/38207101247)：真实 Chrome 155 仍为 `state=complete`、`error=null`、241 字节和正确的隔离目录，文件名变为 `download.json`，而非 `time-review.json`。因此仅可声明落盘 PASS、Chrome 正确命名 **FAIL**；本轮没有读回并断言真实 JSON 字节内容，继续 `NOT_TESTED`。保留原始失败及 Artifacts。
+- 后续严格流程：先修改原生观察器，让其在受控 Profile 内读回实际文件并校验 `opendesk.time-review.export.v1` / minuteConsent / 分类数据，命名仍单独作为失败；再审计 Chrome 155 是否忽略 `chrome.downloads.download().filename`。若确需 `downloads.onDeterminingFilename` 覆盖，必须避免永久安装影响**其他**工具导出命名的通用监听器，要求只有精确工具身份和精确待下载标识可以命名，补跨工具并发、SW 恢复与负向测试后再动可信后台。不能仅为使 CI 绿而将 `download.json` 当作通过。
+- 下一优先级：真实网页的有效活动计时、域名分类持久化、暂停恢复/空闲/跨日/整浏览器重启、更新撤权与卸载；最后做真实 Side Panel 320/360/400/600px 和 Chrome 200% 缩放及长内容双滚动排版。未由匹配候选绑定的原生证据支撑时保持 `NOT_TESTED`；此处仍无法查看用户 Mac 本地 `git status`。
