@@ -147,3 +147,10 @@
 - 在隔离 macOS Chrome for Testing 155 的真实 SIDE_PANEL 中，保留已有工具 Canvas V3 与原生权限、计时闭环；新增通过仓库已有 CFT PID + macOS Accessibility 可信输入辅助程序发送 **Command + Plus**，逐次读取 Chrome **实际** `devicePixelRatio` 倍率和 iframe `innerWidth`，只有约 2 倍 zoom 的真实浏览器结果才允许记 `realBrowserZoom=PASS`。不使用 CDP `Emulation.setDeviceMetricsOverride` 或把 DPR=2 夹具当作 Chrome 200% 缩放。
 - 达到真实 200% 后，检查单行 Canvas 宽度不超屏、无 iframe 内水平溢出和额外内层纵向滚动，保存真正 SIDE_PANEL 截图，并通过 macOS Command+0 恢复原比例，保护同一原生验收里的权限操作。如果 CI 无法将真正 SIDE_PANEL 放大，则保留 `BLOCKED` 和原始比例数据，绝不假报 PASS；如果已确认 200% 但布局出错则验收 FAIL，需修产品 UI。
 - `tests/framework/time-review-native-input.swift` 新增真正 Chrome 系统快捷键 zoom-in/zoom-out/zoom-reset，仍限已验证的专属 CFT PID 和前台拥有者，不能操作用户正在运行的个人浏览器。
+
+## R1.3 Final · 真正网站切换与系统空闲恢复（2026-10-12）
+
+- [Actions 38229698394](https://github.com/shopable-ai/opendesk-browser/actions/runs/38229698394)，候选 `2afc31a0e83d60f33fb94f39f7562cdc4c512de1` **SUCCESS**：macOS CFT 原生系统级 Command+Plus 5 次，Side Panel iframe CSS 349→174px、设备比 1→2，真实 Chrome **200% zoom PASS**；同包 Canvas 单行、不横向溢出、iframe 无二次内部滚动、Command+0 恢复亦 PASS。54/54 组件、真实计时、分类、非空导出、完整浏览器重启、停用启用及卸载等既有回归全部通过。
+- 本新候选增补真实 HTTP(S) 计时中两个**不同 hostname**（`127.0.0.1`、`localhost`）真实浏览器标签切换，分别对两个 host 产生有来源的统计且原网站在切换后停止增长，不通过模拟 tab 事件制造业务数据。第二目标无法实际激活时仅记 `BLOCKED` 并说明原因，不得假报跨网站 PASS。
+- 进一步在真实 macOS Chrome 中，**停止发送用户 OS 输入**，最多观察 73 秒以等待实际 `chrome.idle.queryState(60)=idle`。如果真的空闲，必须观测 Time Review 检查点退休，日统计在空闲期间冻结；随后使用已有验证 CFT PID 的系统级鼠标活动输入真正恢复 `chrome.idle=active`，正式 Side Panel 刷新后再次出现检查点且仅恢复后的时间增长。不能调用假的 `onStateChanged`、修改存储或绕过 Chrome idle；CI 宿主如果始终不空闲则保守标记 `BLOCKED`。真实行为的 PASS 需与本新候选 SHA 绑定。
+- 多网站排序后分类编辑通过真实 DOM 的**只读行索引**定位 `127.0.0.1`，继续使用 macOS 原生系统按键和受信任按钮保存，不创建/伪造 DOM 节点，也不改写采集数据。

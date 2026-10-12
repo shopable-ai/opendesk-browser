@@ -476,6 +476,82 @@ test('Time Review R1.3 actual Mac Chrome install and trusted consent smoke',{ski
     const total=s=>Object.values(s.days||{}).reduce((sum,sites)=>sum+(sites['127.0.0.1']||0),0);
     evidence.beginAndActiveCollection='PASS';
     note('real-http-activity',{host:'127.0.0.1',ms:total(settled),from:'real active browser tab'});
+    const hostMs=(s,host)=>Object.values(s.days||{}).reduce(
+      (ms,sites)=>ms+(sites[host]||0),0);
+    // Two real browser origins: hostname, not path or port, determines
+    // Time Review aggregation. The same owned loopback server handles both.
+    const otherUrl='http://localhost:'+siteServer.address().port+'/other-activity';
+    const otherTab=await browser.send('Target.createTarget',{url:otherUrl});
+    const otherLoaded=await until(async()=>{
+      const tabs=await evaluate(browser,side,
+        'chrome.tabs.query({active:true,lastFocusedWindow:true})');
+      return tabs.find(row=>row.url===otherUrl)||null;
+    },'second real HTTP(S) tab with distinct localhost hostname',10000).catch(()=>null);
+    if(!otherLoaded){
+      evidence.multiSite='BLOCKED';
+      note('real-multisite-blocked',{reason:'second browser tab did not become active'});
+    }else{
+      await nativeClick(browser,frame,'#refresh');
+      const onOther=await until(async()=>{
+        const s=await readTime();
+        return s?.checkpoint?.host==='localhost'?s:null;
+      },'actual localhost domain checkpoint after tab switch',11000);
+      const previousHostMs=hostMs(onOther,'127.0.0.1');
+      await sleep(1600);
+      await nativeClick(browser,frame,'#refresh');
+      const both=await until(async()=>{
+        const s=await readTime();
+        return hostMs(s,'127.0.0.1')>=750&&hostMs(s,'localhost')>=750?s:null;
+      },'both actual HTTP site totals written without synthetic events',10000);
+      assert.equal(hostMs(both,'127.0.0.1'),previousHostMs,
+        'first domain must stop accumulating after a different tab is active');
+      assert.ok(hostMs(both,'localhost')>0,'second domain independently accumulates');
+      evidence.multiSite='PASS';
+      note('real-site-switch',{firstHost:'127.0.0.1',firstMs:previousHostMs,
+        secondHost:'localhost',secondMs:hostMs(both,'localhost'),separateTotals:true});
+    }
+
+    // Genuine active -> idle -> active: no test writes idle state or fakes
+    // service-worker events. CDP read-only queries do not reset OS activity.
+    const idleObserved=await until(async()=>{
+      const current=await evaluate(browser,side,'chrome.idle.queryState(60)');
+      return current==='idle'?true:null;
+    },'actual macOS Chrome idle after no real user input',73000).catch(()=>false);
+    if(!idleObserved){
+      evidence.idleTransition='BLOCKED';
+      note('real-idle-blocked',{reason:'macOS CI never reported genuine idle in the observation window'});
+    }else{
+      const atIdle=await until(async()=>{
+        const s=await readTime();return s?.checkpoint===null?s:null;
+      },'worker stops active checkpoint in real idle state',7500);
+      const preserved=JSON.stringify(atIdle.days);
+      await sleep(1800);
+      const afterIdle=await readTime();
+      assert.equal(JSON.stringify(afterIdle.days),preserved,
+        'genuinely idle browser may not accrue active website time');
+      const helper=path.join(profile,'time-review-native-activity');
+      const pulse=spawnSync(helper,[String(proc.pid),'activity'],{
+        encoding:'utf8',timeout:10000
+      });
+      assert.equal(pulse.status,0,'real macOS CFT input restores idle tracking');
+      await until(()=>evaluate(browser,side,'chrome.idle.queryState(60)').then(
+        state=>state==='active'), 'Chrome observes genuine resumed macOS input',5000);
+      await nativeClick(browser,frame,'#refresh');
+      const resumedCheckpoint=await until(async()=>{
+        const s=await readTime();return s?.checkpoint?s:null;
+      },'real active website checkpoint resumes after idle',8000);
+      const resumedHost=resumedCheckpoint.checkpoint.host;
+      const prior=hostMs(resumedCheckpoint,resumedHost);
+      await sleep(1450);
+      await nativeClick(browser,frame,'#refresh');
+      const afterResume=await readTime();
+      assert.ok(hostMs(afterResume,resumedHost)>prior,
+        'actual post-idle activity, not the idle gap, must accumulate');
+      evidence.idleTransition='PASS';
+      note('real-idle-transition',{enteredIdle:true,idleTotalsFrozen:true,
+        resumedHost,postIdleMs:hostMs(afterResume,resumedHost)-prior});
+    }
+    await browser.send('Target.closeTarget',{targetId:otherTab.targetId});
     await nativeClick(browser,frame,'#pause');
     const paused=await until(async()=>{const s=await readTime();return s.paused?s:null;},'user pause',8000);
     await sleep(1500);await nativeClick(browser,frame,'#refresh');
@@ -549,8 +625,13 @@ test('Time Review R1.3 actual Mac Chrome install and trusted consent smoke',{ski
       'Array.from(document.querySelectorAll("#sites .detail-item .entry b")).some(e=>e.textContent==="127.0.0.1")'),
       'real website displayed in the daily records',9000);
     const beforeCategory=await readTime();
-    await nativeClick(browser,frame,'#sites .detail-item button[aria-label^="修改"]');
-    const selector='#sites .detail-item .row-edit select';
+    const matchingSiteIndex=await evaluate(browser,frame,
+      'Array.from(document.querySelectorAll("#sites .detail-item")).findIndex(e=>e.querySelector(".entry b")?.textContent==="127.0.0.1")');
+    assert.ok(Number.isInteger(matchingSiteIndex)&&matchingSiteIndex>=0,
+      'edit the intended recorded domain even when multiple sites reorder');
+    const rowSelector='#sites .detail-item:nth-child('+(matchingSiteIndex+1)+')';
+    await nativeClick(browser,frame,rowSelector+' button[aria-label^="修改"]');
+    const selector=rowSelector+' .row-edit select';
     await nativeClick(browser,frame,selector);
     // macOS select popovers consume OS-level key events, not OOPIF CDP
     // Input.dispatchKeyEvent. Use the existing owned/AX-authorized CFT helper:
@@ -568,9 +649,9 @@ test('Time Review R1.3 actual Mac Chrome install and trusted consent smoke',{ski
       assert.equal(input.status,0,'real Mac CFT key '+key+': '+String(input.stdout||input.stderr).slice(-300));
     }
     await until(()=>evaluate(browser,frame,
-      'document.querySelector("#sites .row-edit select")?.value==="2"'),
+      'document.querySelector('+JSON.stringify(selector)+')?.value==="2"'),
       'native OS keyboard selected important-not-urgent category',6000);
-    await nativeClick(browser,frame,'#sites .row-edit button.primary');
+    await nativeClick(browser,frame,rowSelector+' .row-edit button.primary');
     const afterCategory=await until(async()=>{
       const s=await readTime();
       return s?.categories?.['127.0.0.1']===2?s:null;
@@ -749,7 +830,8 @@ test('Time Review R1.3 actual Mac Chrome install and trusted consent smoke',{ski
     minuteConsent:state.minuteConsent,paused:state.paused,days:Object.keys(state.days||{}).length,
     nativeInstall:true,downloadChecks,browserRestart:evidence.browserRestart,
     populatedExport:evidence.populatedExport,classification:evidence.classification,
-    realBrowserZoom:evidence.realBrowserZoom,
+    realBrowserZoom:evidence.realBrowserZoom,multiSite:evidence.multiSite,
+    idleTransition:evidence.idleTransition,
     disableEnable:evidence.disableEnable,uninstall:evidence.uninstall,
     currentSourceHash:process.env.GITHUB_SHA||null,actualSidePanelDocumentId:sideDocument.documentId
   },null,2)+'\n');
