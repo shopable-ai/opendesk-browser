@@ -50,3 +50,12 @@
 - 因样式字节发生变化，官方包版本继续由 1.1.7 提升为 **1.1.8**。存储身份、已存数据、权限及运行 JS 不变；既有用户需执行显式更新，不可卸载旧工具后重新安装。
 - 源码 Chrome 的 `confirm` 状态新增两个真实按钮的矩形测量，检查同一行、8px 间距、按钮右侧对齐及文本未折行；视觉等级仍为 `STATIC_SOURCE_CHROME`，与真实扩展 E2E 明确区分。
 
+## R26.3 固定候选 CI 回执
+
+本节所有 PASS 均严格绑定 **源码候选 [b16426f1093e12c762ddc108d368089650013906](https://github.com/shopable-ai/opendesk-browser/commit/b16426f1093e12c762ddc108d368089650013906)**。文档后续单独提交不改变已验收产品输入。
+
+- [R19 Static Chrome layout #38220416505](https://github.com/shopable-ai/opendesk-browser/actions/runs/38220416505)：**SUCCESS**。已有宿主 R19 共 96 个静态 UI 状态；新增直接读取官方 Quick Notes 源码的 `STATIC_SOURCE_CHROME` 覆盖 **12 CSS 宽度 × 4 状态 = 48 条**，包括 160/180/210/220px 等效窄宽、300/320/360/420/520px Sidebar、760/1100px 独立窗口。真实浏览器计算几何确认页面无横向溢出，编辑区/详情/状态/附注边距相同，保存/删除均 34px 与 8px 间隔，确认按钮内容不竖排且水平对齐。保存截图及 `metrics.json` 属于**静态源码渲染**，无扩展 JS、权限或真实数据写入。
+- [Sidebar R21 integrated UI quality #38220416510](https://github.com/shopable-ai/opendesk-browser/actions/runs/38220416510)：**SUCCESS**，147/147 组件合同通过；`npm run check` 核查 508 源码/测试/构建文件，生产及开发 WXT 构建、包资源 `verify` 通过，CSS/包安全回归 14/14。
+- [Sidebar user tools R1 #38220416548](https://github.com/shopable-ai/opendesk-browser/actions/runs/38220416548)：**SUCCESS**，181/181 组件/工具合同通过；`SIDEBAR_TOOL_BUILT_AND_VALIDATED quick-notes 1.1.8`；独立 `build:sidebar-tool` 的 JSON 与 `dist/production/official-tools/quick-notes/quick-notes.opendesk-tool.json` 经 `cmp` 核对完全一致；生产/开发生成包均包含版本 1.1.8（约 23.14 kB）。权限与 CSP 未放宽。
+- [应用市场 R4.5/R5 独立流水线 #38220416459](https://github.com/shopable-ai/opendesk-browser/actions/runs/38220416459)：**FAIL**，在 `tests/environment/app-market-r5.test.mjs:233` 出现当前与预期数量 `12 !== 11`。属于另一个工作流的市场目录/夹具数量核对差异，不能以本轮网页笔记布局 PASS 覆盖其失败。
+- **仍需实际用户 Mac Chrome 手工确认**：更新已安装的旧网页笔记为 1.1.8，核对原笔记仍在、保存/删除真实生效以及浏览器实际 125%/200% 缩放后 CSS 宽度/焦点/滚动。当前该证据记为 `NOT_TESTED`，不能将 `STATIC_SOURCE_CHROME` 提升成原生扩展最终 PASS。
