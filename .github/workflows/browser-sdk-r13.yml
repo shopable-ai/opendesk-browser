@@ -1,7 +1,17 @@
-name: Browser SDK R1.3 isolated candidate verification
+name: Browser SDK targeted main verification
 on:
   push:
-    branches: [agent/browser-sdk-r13-20261011]
+    branches: [main]
+    paths:
+      - 'src/framework/sdk/browser*.js'
+      - 'src/platform/chrome/browser-*.js'
+      - 'src/platform/chrome/context-menus.js'
+      - 'src/ui/sidebar-tools.js'
+      - 'src/ui/sidebar-tools/**'
+      - 'tests/environment/browser-*.test.mjs'
+      - 'scripts/check-browser-sdk-coverage.mjs'
+      - 'docs/framework/workstreams/browser-sdk-*'
+      - '.github/workflows/browser-sdk-r13.yml'
   workflow_dispatch:
 permissions:
   contents: read
@@ -26,6 +36,10 @@ jobs:
       - name: Browser SDK R1.3 and existing tool install regressions
         run: |
           node --test --test-reporter=spec tests/environment/browser-sdk-r13.test.mjs tests/environment/sidebar-tools.test.mjs tests/environment/sidebar-tools-host.test.mjs tests/environment/official-tools-catalog-r45.test.mjs tests/environment/fixed-entries-audit.test.mjs tests/framework/k4-sdk-reinjection.test.mjs tests/framework/k4-sdk.test.mjs tests/framework/k2-sdk-relay-races.test.mjs tests/environment/boundaries.test.mjs
+      - name: Browser SDK schema and evidence guards
+        run: |
+          node --test tests/environment/browser-sdk-contract-compat.test.mjs tests/environment/browser-sdk-coverage.test.mjs
+          node scripts/check-browser-sdk-coverage.mjs --check
       - name: Source and fixed entry guard
         run: npm run check
   browser-bundles:
@@ -73,6 +87,7 @@ jobs:
   browser-native-restart:
     # Real, isolated macOS Chrome/CFT service-worker registration and
     # stop/start evidence. This is NOT a native right-click menu UI PASS.
+    if: github.event_name == 'workflow_dispatch'
     needs: [browser-contracts, browser-bundles]
     runs-on: macos-15
     timeout-minutes: 25
