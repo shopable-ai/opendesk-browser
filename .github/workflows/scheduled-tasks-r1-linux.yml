@@ -54,7 +54,9 @@ jobs:
           SCHEDULE_NATIVE_PLATFORM: linux
           CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
           SCHEDULE_NATIVE_OUT: artifacts/scheduled-tasks-r1-linux
-        run: node --test tests/framework/scheduled-tasks-r1-native-mac.test.mjs
+        run: |
+          command -v xvfb-run
+          xvfb-run -a --server-args="-screen 0 1440x900x24" node --test tests/framework/scheduled-tasks-r1-native-mac.test.mjs
       - if: always()
         uses: actions/upload-artifact@v4
         with:

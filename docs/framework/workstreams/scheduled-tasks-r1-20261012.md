@@ -155,3 +155,13 @@ python3 -m http.server 43111 --bind 127.0.0.1 --directory examples/tasks
 - `.github/workflows/scheduled-tasks-r1-linux.yml` 在 Ubuntu 上构建真实 WXT package 并启动隔离 Chrome 155，提供更快的浏览器预检。它的成功只能记为 `LINUX_CHROME_NATIVE_VERIFIED`，**不能**当作 `MAC_CHROME_NATIVE_VERIFIED`。
 - 原 `.github/workflows/scheduled-tasks-r1-native.yml` 独立 macOS runner 仍按相同受控 DOM/结果证据执行。GitHub 任务在排队时状态是 `QUEUED / NOT_TESTED`，不替换为 PASS。
 - 每个原生场景必须由 UI 真实按钮、Chrome 原生输入和真实用户安装身份进入 RunHost；CDP Runtime.evaluate 仅用于观察 IndexedDB 的 readonly 投影，不可拿来调用启动方法、设置 DOM 值、授权网站或伪造 Native 回执。
+
+
+### R1.4 实际 Chrome 原生第一轮失败与修复（不可把失败掩盖）
+
+- [macOS CFT #38248468806](https://github.com/shopable-ai/opendesk-browser/actions/runs/38248468806)：**NATIVE FAIL**，真实 Chrome 155 成功启动已安装 WXT 包，获取正确扩展 ID 和 `SIDE_PANEL` 原生文档 ID，JSON/JS 导入已越过阻塞，但到 `#script-params` 的原生文本替换时，CDP 普通 macOS Command-A 未确保选中全部原值；尚未运行已安装任务，更不能宣称 Alarm/RunHost Native PASS。
+- [Linux CFT #38249409647](https://github.com/shopable-ai/opendesk-browser/actions/runs/38249409647)：**ENVIRONMENT FAIL**，Ubuntu Chrome 155 在 `--headless=new` 启动阶段收到 signal 6，未产生 `DevToolsActivePort`，没有获取扩展/网页原生证据。
+- 后续改用 CDP 原生 `Input.dispatchKeyEvent.commands=['selectAll']` 与实际 selection/focus 回读验证，再调用原生 `Input.insertText`；**禁止**通过 `Runtime.evaluate` 改 `element.value` 或派发 synthetic input 来让测试过关。
+- Linux CI 改为 `xvfb-run` 真实桌面显示服务，并延长失败 Chrome stderr/退出码留档。保留 Mac 与 Linux 单独 CI 结果与原始失败，修复前后的源码、包和浏览器证据不可混算。
+
+新 Chrome 作业实际通过前，`scheduled-native-macos`、`scheduled-cft-linux` 都保持 `NOT_PASSED`。

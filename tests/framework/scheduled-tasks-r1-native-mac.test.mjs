@@ -54,11 +54,34 @@ async function key(client,session,name,code,keyCode,modifiers=0){
 async function type(client,session,selector,value){
   assert.equal(typeof value,'string');
   await click(client,session,selector);
-  await key(client,session,'a','KeyA',65,CONTROL_MODIFIER); // Native Command-A (Mac) / Ctrl-A (Linux)
-  if(value)await client.send('Input.insertText',{text:value},session);
-  else await key(client,session,'Backspace','Backspace',8);
-  await deadline(()=>evaluate(client,expr(selector)+'.value==='+JSON.stringify(value),session),
-    'trusted typed field '+selector,7000);
+  const node=await client.send('Runtime.evaluate',{expression:expr(selector),returnByValue:false},session);
+  assert(node.result?.objectId,'Native editable node required: '+selector);
+  try{
+    // Actual Chrome text-selection editing command, not element.value writes
+    // or synthetic input/change events. Plain modifier-A is not reliable in
+    // real macOS SIDE_PANEL DevTools sessions without this native command.
+    const snapshot=()=>evaluate(client,'(()=>{const n='+expr(selector)+';return {value:n.value,'+
+      'focus:document.activeElement===n,start:n.selectionStart,end:n.selectionEnd}})()',session);
+    let state=await snapshot();
+    if(!state.focus)await client.send('DOM.focus',{objectId:node.result.objectId},session);
+    for(let attempt=0;attempt<2;attempt++){
+      await client.send('Input.dispatchKeyEvent',{type:attempt?'rawKeyDown':'keyDown',
+        key:'a',code:'KeyA',windowsVirtualKeyCode:65,modifiers:CONTROL_MODIFIER,
+        commands:['selectAll']},session);
+      await client.send('Input.dispatchKeyEvent',{type:'keyUp',key:'a',code:'KeyA',
+        windowsVirtualKeyCode:65,modifiers:CONTROL_MODIFIER},session);
+      state=await snapshot();
+      if(state.value===''||state.start===0&&state.end===state.value.length)break;
+    }
+    if(state.value&&state.start!==null&&!(state.start===0&&state.end===state.value.length))
+      throw Error('Native select-all did not focus/select '+selector+' '+JSON.stringify(state));
+    if(value)await client.send('Input.insertText',{text:value},session);
+    else await key(client,session,'Backspace','Backspace',8);
+    const result=await snapshot();
+    if(result.value!==value)throw Error('Native typed field mismatch '+selector+
+      ' actual='+JSON.stringify(result.value?.slice(0,180))+
+      ' expected='+JSON.stringify(value.slice(0,180))+' focus='+result.focus);
+  }finally{await client.send('Runtime.releaseObject',{objectId:node.result.objectId},session).catch(()=>{});}
 }
 async function select(client,session,selector,index){
   const expected=await evaluate(client,expr(selector)+'.options['+index+']?.value',session);
@@ -152,7 +175,8 @@ test('real installed Chrome: verified Task via Alarms -> original RunHost -> pag
   t.after(async()=>{
     report.completedAt=new Date().toISOString();
     report.status=completed?'PASS':'FAIL_OR_BLOCKED';
-    report.chromeStderr=chromeStderr.slice(-2200);
+    report.chromeStderr=chromeStderr.slice(-8000);
+    report.chromeExit={exitCode:proc?.exitCode??null,signalCode:proc?.signalCode??null};
     if(client)try{await client.send('Browser.close');}catch{}
     client?.close();
     await stopChrome(proc);
@@ -175,7 +199,7 @@ test('real installed Chrome: verified Task via Alarms -> original RunHost -> pag
     '--no-first-run','--no-default-browser-check','--disable-background-networking',
     '--remote-allow-origins=*','--remote-debugging-address=127.0.0.1','--remote-debugging-port=0',
     '--user-data-dir='+profile,'--disable-extensions-except='+EXT,'--load-extension='+EXT,
-    ...(process.platform==='linux'?['--headless=new']:[]),'about:blank'];
+    'about:blank'];
   proc=spawn(BIN,args,{stdio:['ignore','ignore','pipe']});
   proc.stderr.on('data',bytes=>{chromeStderr=(chromeStderr+String(bytes)).slice(-7000);});
   report.profileOwned=true;report.chromePid=proc.pid;
