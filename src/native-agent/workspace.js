@@ -6,6 +6,7 @@ import {sourceLabel,sourceName} from './source-label.js';
 import {recoverControlFocus} from './control-focus.js';
 import {validateRequestPath} from './workspace-chat-request.js';
 import {validateWorkspaceTreeListing,parentDirectoriesForFile,MAX_WORKSPACE_TREE_EXPANSIONS,MAX_WORKSPACE_TREE_REFRESH} from './workspace-file-tree.js';
+import {createWorkspaceFileIcon,createWorkspaceTreeChevron} from './workspace-file-icons.js';
 import {readToolSnapshot} from './tool-snapshot.js';
 import {openPreviewSession} from '../ui/sidebar-tools/preview-session.js';
 import {initKnowledgeWorkspaceHandoff} from '../knowledge/workspace-handoff.js';
@@ -193,12 +194,14 @@ export function initFileWorkspace({api=globalThis.chrome,doc=globalThis.document
     byId('preview-kind').textContent=/\.(md|markdown)$/i.test(current.path)?'基础 Markdown':/\.html?$/i.test(current.path)?'静态 HTML · 无脚本':'源码文本 · 未执行';
   }
   function showRecord(record){
-    current=record;byId('file-title').textContent=record.path;byId('file-editor').value=record.content;
+    current=record;byId('file-title').textContent=record.path.split('/').at(-1);byId('file-editor').value=record.content;
     for(const node of byId('file-list').querySelectorAll('button')){
       const selected=node.dataset.kind==='file'&&node.dataset.path===record.path;
       node.classList.toggle('selected',selected);node.setAttribute('aria-selected',String(selected));
     }
-    byId('directory-name').textContent='/'+(record.path.includes('/')?record.path.slice(0,record.path.lastIndexOf('/')):'');
+    const parent=record.path.includes('/')?record.path.slice(0,record.path.lastIndexOf('/')):'';
+    byId('directory-name').textContent=parent?'/'+parent:'根目录';
+    byId('directory-name').title=parent?'当前路径：/'+parent:'当前路径：根目录';
     renderPreview();controls();
   }
   function validateRead(data,ws,path){
@@ -241,7 +244,7 @@ export function initFileWorkspace({api=globalThis.chrome,doc=globalThis.document
   // folder does NOT navigate away or request its siblings again.
   function resetFileTree(){
     treeFolders=new Map();treeIdentity='';treeRevision++;
-    byId('file-list').replaceChildren();byId('directory-name').textContent='/';
+    byId('file-list').replaceChildren();byId('directory-name').textContent='根目录';
     byId('tree-message').textContent='';
   }
   const folderState=()=>({expanded:false,entries:null,truncated:false});
@@ -257,7 +260,7 @@ export function initFileWorkspace({api=globalThis.chrome,doc=globalThis.document
   function renderFileTree(){
     const list=byId('file-list'),rootFolder=treeFolders.get('');
     if(!rootFolder){list.replaceChildren();byId('tree-message').textContent='';return;}
-    const rows=[{path:'',name:'授权根目录',kind:'directory',depth:0,pos:1,size:1}],warnings=[];
+    const rows=[{path:'',name:'根目录',kind:'directory',depth:0,pos:1,size:1}],warnings=[];
     function visit(path,depth){
       const folder=treeFolders.get(path);
       if(!folder?.expanded||!folder.entries)return;
@@ -286,13 +289,12 @@ export function initFileWorkspace({api=globalThis.chrome,doc=globalThis.document
       const folder=row.kind==='directory'?treeFolders.get(row.path):null;
       if(folder)button.setAttribute('aria-expanded',String(folder.expanded));
       button.title=row.path?'/'+row.path:'已授权目录';
-      button.style?.setProperty('--tree-indent',String(Math.min(row.depth,16)*14+8)+'px');
-      const caret=doc.createElement('span');caret.className='tree-caret';
-      caret.textContent=folder?(folder.expanded?'▾':'▸'):'';
-      const kind=doc.createElement('span');kind.className='file-kind';
-      kind.textContent=folder?'DIR':/\.(md|markdown)$/i.test(row.name)?'MD':/\.html?$/i.test(row.name)?'HTML':'TXT';
+      button.style?.setProperty('--tree-indent',String(Math.min(row.depth,16)*16+8)+'px');
+      const caret=folder?createWorkspaceTreeChevron(doc,folder.expanded):doc.createElement('span');
+      if(!folder){caret.className='tree-caret tree-caret-empty';caret.setAttribute('aria-hidden','true');}
+      const icon=createWorkspaceFileIcon(doc,row.kind,row.name,!!folder?.expanded);
       const name=doc.createElement('span');name.className='file-name';name.textContent=row.name;
-      button.append(caret,kind,name);
+      button.append(caret,icon,name);
       if(folder?.truncated){
         const flag=doc.createElement('span');flag.className='tree-truncated';flag.textContent='部分';
         flag.title='Native 目录列表被截断，并非全部文件';button.append(flag);

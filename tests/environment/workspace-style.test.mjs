@@ -20,9 +20,11 @@ test('R22 production and development publish the same generated Tailwind CSS',as
   }
   for(const marker of ['.file-entry.selected','.connection.ready','data-view','.workspace-status.error','--space-2:','--od-brand:'])
     assert.ok(css.includes(marker),'Missing state selector '+marker);
-  assert.match(css,/\.file-entry \.file-kind\{[^}]*white-space:nowrap/,
-    'DIR/TXT file badges must remain on one line');
-  assert.ok(css.includes('.file-entry .tree-caret'));
+  assert.ok(css.includes('.file-entry .file-icon'),'SVG tree icons must be styled');
+  assert.ok(css.includes('.file-entry .tree-caret'),'folder disclosure chevrons must remain visible');
+  assert.ok(css.includes('.tree-action svg'),'compact explorer toolbar must be bundled');
+  assert.ok(css.includes('.tree-location'),'path context must be bundled');
+  assert.ok(!css.includes('.file-entry .file-kind'),'legacy DIR/MD/TXT text badges must not ship');
   assert.match(css,/\.file-rail:not\(\[open\]\)>\.rail-toggle\{[^}]*display:block/,
     'A directory collapsed on a narrow viewport must remain reopenable on desktop');
 });
@@ -33,6 +35,13 @@ test('R22 workspace HTML retains critical controls and collapses secondary panel
   assert.ok(html.includes('<details class="workspace-tool-preview"'));
   assert.ok(html.includes('<details class="file-rail" open'));
   assert.match(html,/id="file-list"[^>]*role="tree"/);
+  for(const [id,label] of [['refresh-files','刷新文件树'],['parent-directory','折叠所有子目录']]){
+    assert.match(html,new RegExp('<button[^>]*id="'+id+'"[^>]*aria-label="'+label+'"[^>]*title="'+label+'"'),
+      id+' must remain discoverable by keyboard and assistive technology');
+  }
+  assert.ok(html.includes('<details class="page-disclosure">'),'technical preview explanation must be opt-in');
+  assert.ok(html.includes('<details class="workspace-technical">'),'technical footer must not dominate the page');
+  assert.doesNotMatch(html,/文件树<\/strong><button/,'explorer controls must not concatenate with the heading');
   for(const id of ['file-editor','file-list','save-file','discard-file-draft','save-as','edit-answer','edit-review',
     'conflict-panel','file-surface','app-surface','chat-request-path','chat-file-result-panel','edit-receipt-panel','tree-message'])
     assert.equal((html.match(new RegExp('id="'+id+'"','g'))||[]).length,1,'Missing/duplicate '+id);

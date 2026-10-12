@@ -283,12 +283,18 @@ test('Workspace file tree keeps parents visible, loads branches on demand and pr
   const rows=()=>h.get('file-list').children.filter(node=>node.tagName==='BUTTON');
   const find=path=>rows().find(node=>node.dataset.path===path);
   assert.ok(find('README.md'));assert.ok(find('src'));assert.ok(find('docs'));
+  assert.equal(find('README.md').children[1].attrs['data-variant'],'markdown',
+    'file-type icon must be SVG, not a DIR/MD/TXT character badge');
+  assert.equal(find('src').children[1].attrs['data-variant'],'folder');
+  assert.equal(find('src').children[0].attrs['data-expanded'],'false');
   assert.equal(find('src').getAttribute('aria-expanded'),'false');
   assert.equal(h.calls.filter(call=>call.method==='files.list'&&call.params.path==='src').length,0);
   find('src').events.get('click')();await h.settle();
   assert.ok(find('README.md'),'root files stay visible while subdirectories expand');
   assert.ok(find('src/app'));assert.ok(find('src/index.ts'));
   assert.equal(find('src').getAttribute('aria-expanded'),'true');
+  assert.equal(find('src').children[1].attrs['data-variant'],'folder-open');
+  assert.equal(find('src').children[0].attrs['data-expanded'],'true');
   const listsBefore=h.calls.filter(call=>call.method==='files.list'&&call.params.path==='src').length;
   find('src').events.get('click')();await h.settle();
   assert.equal(find('src/app'),undefined);assert.ok(find('README.md'));
@@ -298,6 +304,9 @@ test('Workspace file tree keeps parents visible, loads branches on demand and pr
   assert.ok(find('src/app/page.tsx'));assert.ok(find('README.md'));
   find('src/app/page.tsx').events.get('click')();await h.settle();
   assert.match(h.get('file-editor').value,/export default/);
+  assert.equal(h.get('file-title').textContent,'page.tsx','show the basename, not a long path in the main title');
+  assert.equal(h.get('file-title').title,'src/app/page.tsx','the full path remains discoverable');
+  assert.equal(h.get('directory-name').textContent,'/src/app');
   h.edit('locally edited, not saved');
   await h.click('refresh-files');
   assert.ok(find('src/app/page.tsx'));assert.equal(h.get('file-editor').value,'locally edited, not saved');
