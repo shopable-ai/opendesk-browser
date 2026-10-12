@@ -1,0 +1,58 @@
+name: R24.5 Standard slim and optional Developer compiler editions
+on:
+  push:
+    branches: [feature/r245-optional-browser-compiler]
+    paths:
+      - '.github/workflows/browser-compiler-editions-r245.yml'
+      - 'scripts/browser-editions-r245.mjs'
+      - 'scripts/build-page-edition-r245.mjs'
+      - 'scripts/pack-page-edition-r245.mjs'
+      - 'scripts/prepare-public.mjs'
+      - 'scripts/build.mjs'
+      - 'scripts/pack.mjs'
+      - 'scripts/audit-fixed-entries.mjs'
+      - 'scripts/verify-package.mjs'
+      - 'wxt.config.mjs'
+      - 'src/ui/script-editor.js'
+      - 'tests/environment/browser-editions-r245.test.mjs'
+      - 'tests/framework/browser-edition-package-r245.mjs'
+      - 'package.json'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  dual-edition-package:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Targeted edition contracts and source check
+        run: |
+          node --test tests/environment/browser-editions-r245.test.mjs tests/environment/page-component-preparer-r243.test.mjs
+          npm run check
+      - name: Build the ordinary Standard package with NO JSX/SFC browser compiler
+        run: npm run build
+      - name: Build Developer Edition into a separate isolated output path
+        run: npm run build:developer
+      - name: Verify both packages and compare actual compiled resource bytes and hashes
+        env:
+          OPENDESK_EDITION_TEST_OUTPUT: .runtime/tests/browser-editions-r245/acceptance.json
+        run: node tests/framework/browser-edition-package-r245.mjs
+      - name: Pack both independently, without publishing a release
+        run: |
+          npm run pack
+          npm run pack:developer
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: r245-two-editions-${{ github.sha }}
+          path: |
+            .runtime/tests/browser-editions-r245
+            artifacts/opendesk-browser-production.zip
+            artifacts/opendesk-browser-production-developer.zip
+          if-no-files-found: warn
