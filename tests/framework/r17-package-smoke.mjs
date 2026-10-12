@@ -57,6 +57,32 @@ try{
   assert.notEqual(second.sourceHash,first.sourceHash,
     'saving a source dependency must change the next explicitly resolved input');
   assert.notEqual(second.inputHash,first.inputHash);
+  // R24.4: a globally installed tarball must transform ORIGINAL JSX / Vue
+  // SFC without Vite or the checkout's accidental npm hoisting. A comment-only
+  // save still invalidates inputHash even when minified JS bytes are identical.
+  for(const [framework,entry] of [['react','src/App.jsx'],['vue','src/App.vue']]){
+    const source=path.join(root,'examples','programs','page-ui-'+framework);
+    const isolated=path.join(temp,'isolated-'+framework);
+    fs.cpSync(source,isolated,{recursive:true,
+      filter:file=>!path.relative(source,file).split(path.sep).includes('node_modules')});
+    const componentResolver=new LocalDevResolver({allowedPaths:[isolated]});
+    try{
+      const bound=componentResolver.attach({path:isolated});
+      const first=await componentResolver.resolve(bound.bindingId);
+      assert.equal(first.runtimeKind,'page-userscript');
+      assert.equal(first.entry,entry);
+      assert.equal(first.managedUI,true);
+      assert.match(first.sourceUtf8,new RegExp('// @opendesk-lib '+framework));
+      assert.ok(first.sourceBytes>0&&first.sourceBytes<=100000);
+      const hit=await componentResolver.resolve(bound.bindingId);
+      assert.equal(hit.cacheHit,true);
+      assert.equal(hit.sourceHash,first.sourceHash);
+      fs.appendFileSync(path.join(isolated,entry),'\n// R24.4 saved source revision\n');
+      const edited=await componentResolver.resolve(bound.bindingId);
+      assert.notEqual(edited.inputHash,first.inputHash);
+      assert.equal(edited.cacheHit,false);
+    }finally{componentResolver.close();}
+  }
   if(fs.existsSync(path.join(packageRoot,'runtime','node_modules')))throw Error('E_PACKAGE_LEAK');
   for(const p of ['README.md','package-lock.json','package.json']){
     if(fs.existsSync(path.join(packageRoot,'runtime',p)))throw Error('E_AUTHOR_WORKTREE_LEAK');
