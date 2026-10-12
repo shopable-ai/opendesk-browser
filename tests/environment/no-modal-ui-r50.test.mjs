@@ -66,7 +66,10 @@ test('R5.4 no-modal interaction still keeps explicit undo/cancel and Chrome auth
 const OWNED_UI_ROOTS=[
   'src/ui','src/native-agent','src/marketplace','src/sidebar-tools',
   'src/entrypoints','src/development','src/features','src/agents',
-  'src/knowledge','src/reading-toc','src/page-clip','src/time-review','examples/sidebar-tools'
+  'src/knowledge','src/reading-toc','src/page-clip','src/time-review','examples/sidebar-tools',
+  // First-party page programs and browser support modules may also run in
+  // extension-owned or user-visible contexts. Exclude vendored libraries.
+  'src/platform','src/framework','src/scripting','examples/programs'
 ];
 async function ownedScripts(directory){
   const entries=await readdir(directory,{withFileTypes:true});
@@ -104,13 +107,14 @@ function visitSyntax(node,callback){
 }
 test('R5.5 all first-party UI and official tool JS refuse browser modal APIs',async()=>{
   const paths=(await Promise.all(OWNED_UI_ROOTS.map(ownedScripts))).flat().sort();
-  assert.ok(paths.length>=75,'no-modal audit must still scan the actual authored UI tree');
+  assert.ok(paths.length>=150,'no-modal audit must scan both extension UI and authored page scripts');
   const violations=[];
   for(const path of paths){
     const name=relative('.',path).replaceAll('\\','/');
     const syntax=parse(await readFile(path,'utf8'),{ecmaVersion:'latest',sourceType:'module',allowHashBang:true});
     let localConfirm=false;
-    if(name==='src/ui/local-project-install-ui.js')visitSyntax(syntax,node=>{
+    if(['src/ui/local-project-install-ui.js','src/platform/chrome/permission-gate.js'].includes(name))
+      visitSyntax(syntax,node=>{
       if(node.type==='FunctionDeclaration'&&node.id?.name==='confirm')localConfirm=true;
     });
     visitSyntax(syntax,node=>{
@@ -119,6 +123,10 @@ test('R5.5 all first-party UI and official tool JS refuse browser modal APIs',as
         if(node.callee?.type==='Identifier'&&browserModalMethods.has(node.callee.name)&&
           !(localConfirm&&node.callee.name==='confirm'))
           violations.push(where+': unqualified '+node.callee.name+'()');
+        // HTMLDialogElement.showModal() is a blocking modal even though it
+        // does not call window.confirm()/alert()/prompt().
+        if(propertyName(node.callee)==='showModal')
+          violations.push(where+': blocking dialog.showModal()');
         if(propertyName(node.callee)==='addEventListener'&&
           node.arguments[0]?.type==='Literal'&&node.arguments[0].value==='beforeunload'&&
           (browserGlobal(node.callee.object)||node.callee.object?.name==='document'))
