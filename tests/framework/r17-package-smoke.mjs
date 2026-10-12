@@ -60,9 +60,14 @@ try{
   // R24.4: a globally installed tarball must transform ORIGINAL JSX / Vue
   // SFC without Vite or the checkout's accidental npm hoisting. A comment-only
   // save still invalidates inputHash even when minified JS bytes are identical.
-  for(const [framework,entry] of [['react','src/App.jsx'],['vue','src/App.vue']]){
-    const source=path.join(root,'examples','programs','page-ui-'+framework);
-    const isolated=path.join(temp,'isolated-'+framework);
+  for(const [framework,entry,slug] of [
+    ['react','src/App.jsx','page-ui-react'],
+    ['vue','src/App.vue','page-ui-vue'],
+    ['react','src/main.js','page-ui-react-direct'],
+    ['vue','src/main.js','page-ui-vue-direct']
+  ]){
+    const source=path.join(root,'examples','programs',slug);
+    const isolated=path.join(temp,'isolated-'+slug);
     fs.cpSync(source,isolated,{recursive:true,
       filter:file=>!path.relative(source,file).split(path.sep).includes('node_modules')});
     const componentResolver=new LocalDevResolver({allowedPaths:[isolated]});
