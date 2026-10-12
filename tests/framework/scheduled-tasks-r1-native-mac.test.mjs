@@ -68,7 +68,7 @@ async function click(client,session,selector){
     }catch(error){
       // No input has been issued yet. A new DOM lookup is safe. If native
       // input was issued, propagate the uncertainty instead of double-clicking.
-      if(gestureStarted||!/(?:context|navigated|target.*closed)/i.test(String(error?.message))){
+      if(gestureStarted||!/(?:context|navigated|target.*closed|node is detached|could not find node)/i.test(String(error?.message))){
         throw error;
       }
       last=error;
