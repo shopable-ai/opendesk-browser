@@ -450,7 +450,7 @@ export async function verifyPackage(directory, {mode: requestedMode} = {}) {
   if(digest(babelLicense)!==PAGE_BROWSER_COMPILER.licenseSha256)
     throw Error('Browser compiler license mismatch');
   for (const file of Object.keys(HTML_REFERENCES)) await inspectHTML(root, file);
-  for(const cssPath of ['ui/design-tokens.css','ui/design-system.css','ui/tool-shell.css','native-agent/settings.css','native-agent/workspace.css']) {
+  for(const cssPath of ['ui/design-tokens.css','ui/design-system.css','ui/tool-shell.css','ui/cloud-control-console.css','native-agent/settings.css','native-agent/workspace.css']) {
     const css = await readFile(join(root,cssPath),'utf8');
     if(/@(?:import|source|apply|tailwind|config|plugin)\b|url\s*\(|expression\s*\(/i.test(css)) throw new Error('Unsafe CSS resources in '+cssPath);
     if(cssPath==='native-agent/workspace.css')inspectWorkspaceStyle(css);
