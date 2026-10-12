@@ -6,8 +6,8 @@ import {validateProgramDraft} from '../../src/ui/program-source.js';
 import {buildProgramProjectInMemory} from '../../scripts/build-program-project.mjs';
 const sha=value=>createHash('sha256').update(value).digest('hex');
 const fixtures=[
-  {framework:'react',bytes:20575,draftSha:'9c9bfb0a54fd4e4aa835ccc0ae076e073357075ee116fd97ef6c69bd735db912',
-    sourceHash:'29186e6f09cc72a2e2671e1dfbc777dbf62c24b0b5c90dd3d013029b383118ba'},
+  {framework:'react',bytes:26061,draftSha:'0af5dd2833d0722523f1c23a298c21d1a5abb49bb64d709a517254b0aa0e3224',
+    sourceHash:'c3ad6f43aaedf2b59e14896df6414f7caaaf2392d01d02bb265030d9ac44146d'},
   {framework:'vue',bytes:20267,draftSha:'423dae24742e16446e387a9b8d0e922fb39e3578f98a04b1f3837ce8aed8f873',
     sourceHash:'f83a08b3e2d9952cf5729276b01388b1fca8a5334ea683b5df00ad4e372618f5'}
 ];
