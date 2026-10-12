@@ -47,6 +47,15 @@ OpenDesk Product Ecosystem
 ```
 
 
+## 全球竞品与全球第一细分赛道 R1（2026-10-13）
+
+- **[全球第一细分赛道定位](global-first-positioning.zh-CN.md)**：竞争边界、双因素 D01–D08、三因素 F01–F10、三座优先小山头和功能/证据边界。
+- **[竞品时间线（JSON）](competitor-timeline.json)**：16 个代表性竞品的稳定版、预览版、代码活动及来源时间字段；不把推送时间当正式发布日期。
+- **[全球第一声明台账（JSON）](first-claims-ledger.json)**：14 条候选/已被反例否定的声明、限制条件和审核门；**当前 0 条全球第一声明获准对外使用**。
+- **[营销执行手册](marketing-playbook.zh-CN.md)**：安全可用的中英定位文案、首创称号候选、竞品真实对照实验、视频/官网/商店传播与审批清单。
+
+**宣传硬边界：**“研究候选/细分组合潜力”不等于“全球首个或全球第一已经成立”。Stable / Beta / 源码推送分开；OpenDesk Standard、Developer、本地 Native 三种体验分开；正式排名/首创只能在相应台账证据门通过后宣称。这组文档属于**市场定位研究**，不改变 R8/Browser SDK/GM API/商业 EXP 的工程和市场验收事实。
+
 ## 文档索引
 
 - [R3 任务树与阶段验收](product-ecosystem-r3-roadmap.zh-CN.md) — 当前工程推进顺序、产品形态、依赖、状态和实际验收门
