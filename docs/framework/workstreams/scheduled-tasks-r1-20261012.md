@@ -1,5 +1,7 @@
 # OpenDesk Browser Scheduled Tasks R1 — 实施与证据追踪
 
+> **最新证据（R1.11）**：同候选 macOS Chrome 真实安装及定时页面执行 **PASS**，Linux Chrome 基础 + 双 Host / 无 Host 恢复 **PASS**；用户本机 Mac、整浏览器重启及完整视觉验收仍待证据。前面表格是历史阶段快照，请以文末 R1.11 的同 SHA 回执为准。
+
 日期：2026-10-12。工作仓库：`shopable-ai/opendesk-browser`，目标分支 `main`。该工作流与 Cloud、Time Review 等其他工作流独立保存记录；不得覆盖它们的历史证据。
 
 ## 产品目标与语义需求
@@ -249,3 +251,31 @@ Lifecycle 原始日志的关键因果关系（不是人工推断）：第一 Fir
 **测试级别边界：** 本次是 Ubuntu runner 的真实 Linux Chrome for Testing 155、Xvfb、CI-only `--no-sandbox` 与隔离 profile。证明了两个 Host 并发、无 Host 恢复和真实网页效果；**不证明 Mac CFT、用户 Mac Chrome 原生 UI、真实整浏览器重启、站点撤权、固定任务升级/卸载后等待、未知副作用安全性、320/360/420px 与 200% 缩放**。Linux 缺 CJK 字体，截图不能作为中文视觉 95 分依据。真实 macOS 基础验收需等待该 SHA 的 [Mac CFT #38269870147](https://github.com/shopable-ai/opendesk-browser/actions/runs/38269870147) 取得终态，未有回执前维持 `NOT_TESTED`。
 
 本阶段目标已超出单纯 Node 组件与 Linux baseline：新增生命周期专项具备可复现、可溯源、无 Mock 的真实浏览器原生正向证据，但最终十项专家验收仍按各平台/场景独立评分，**不得写「全部 95 分」或 `FINAL_F3_VERIFIED`**。
+
+
+### R1.11 macOS CFT 原生定时执行正式通过（2026-10-12，固定候选）
+
+**固定源码候选：** [`7bd735259379478200b896223ecd5212b72ee163`](https://github.com/shopable-ai/opendesk-browser/commit/7bd735259379478200b896223ecd5212b72ee163)。
+
+**实际 CI 证据：** [macOS Chrome for Testing #38269870147](https://github.com/shopable-ai/opendesk-browser/actions/runs/38269870147) 的 `scheduled-native-macos` Job = `completed/success`；原始 `native-report.json` = `PASS`，Node 原生测试 `1/1 PASS`。已逐项读取原始 Job 日志和 GitHub Artifact `scheduled-tasks-r1-macos-7bd735259379478200b896223ecd5212b72ee163`，包含 4 张真实 Chrome 截图和按时间排列的原生收据。浏览器 `Chrome/155.0.8059.39`，独立隔离 Profile、真实 `SIDE_PANEL` documentId、实际 CFT 扩展 ID `pnhiokdnhhpbidgojhbjknpldipijdfa`。与 Linux baseline / lifecycle 使用同源码、相同生产包指纹：
+
+`9833c92e259ed970d56b0475449b118737941db679bb5ea9087495cd599a123c`
+
+真实 Chrome 页面执行路径及通过项：
+
+| macOS CFT 实际证据 | 状态 |
+| --- | --- |
+| 用户 UI 导入 Task JSON 和同 SHA 原始 JS，原生表单操作、持久 Native 回执 / Worker released | PASS |
+| Candidate Verified → Available → 固定版本安装与网站权限 | PASS |
+| 「我的」定时计划 UI，关闭无关手动 Run Dock | PASS |
+| 定时计划持久写入、Chrome 原生 Alarms `getAll()` 核对精确计划和 `nextDueAt` | PASS |
+| 真实 UI 打开可见 `scheduledRunner=1` Tab，关闭 Side Panel 后仍有合法 Host | PASS |
+| 到期后正式 Controller Run，页面姓名变为 `Scheduled Native`、`#done` 存在 | PASS |
+| 持久唯一 FireId 与原 RunId/ResultId，Native effect receipt，`state=completed`、`retirementState=released`、Worker 退休 | PASS |
+| 用户界面暂停计划、`nextDueAt=null` | PASS |
+
+macOS 原生收据关联：FireId `sched:bf2be0e0-b721-4d33-894d-d7fd0c856cd4:1:1791819235665`；对应 RunId `88c3caa4-b4ce-4640-9d6d-9425a6ab4c53`；ResultId `9db82787-0094-4717-9c90-8e31e24c4957`；目标原 DocumentId `D35AB82873D97E1B5EAE893A7CF53FFC`，网页原生 `#done` 与期望参数一致。OS 下拉框输入使用仓库既有、已授予 Accessibility 的 PID 绑定 `time-review-native-input.swift`，通过真正的 CGEvent 键盘操作成功，没有修改 `element.value` 或调用合成 `change`，也未伪造扩展权限或数据库回执。
+
+**跨环境综合结论：** 同一个源码 SHA 在 **Linux CFT baseline 1/1 PASS、Linux CFT 双 Host/无 Host 恢复 lifecycle 1/1 PASS、macOS CFT baseline 1/1 PASS**；两种 OS 均证明了真实可见宿主、Task 安装、Chrome 闹钟注册及 Run/Result 的原生闭环；Linux 另有原 FireId 竞争唯一性和 `WAITING_HOST`→重新打开 Side Panel→原 FireId 真正执行一次的真实证据。
+
+**仍不能宣称 Final 95 / 用户 Mac F3：** 用户本人 Mac Chrome Profile 与日常工作目录不在此会话访问范围；Mac 平台的*双宿主和无宿主恢复*尚未专项执行（只在 Linux CFT 成功）；完整退出/重启 Chrome 的同 Profile 恢复、SW/扩展升级时 Alarm 对账、真实站点撤权/任务版本修改、未知副作用审计、320/360/420px 与实际 Chrome 200% 缩放、管理/新建回填全链路，仍须各自保存独立原生证据。macOS 截图已具备真实中文渲染，但宽屏运行页沿用 Side Panel 样式，视觉是否达 95 分仍 **NOT_SCORED**。不得把上述有限案例写为全产品 `FINAL_F3_VERIFIED` 或逐项 95 分以上。

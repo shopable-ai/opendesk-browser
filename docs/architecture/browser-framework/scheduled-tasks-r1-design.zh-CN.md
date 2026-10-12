@@ -1,6 +1,6 @@
 # OpenDesk Browser · 定时计划 R1：产品交互与调度设计
 
-> 2026-10-12。状态：**SOURCE_IMPLEMENTED / CHROME_NATIVE_NOT_TESTED**；正式源码已接入持久调度器、权限执行链和可见运行页；基础提交 `7dbcf8b391` 的生产/开发构建与包验证在 CI 通过，当前后续修订仍需独立重测；Mac Chrome 原生验收尚无证据。
+> 2026-10-12。状态：**LINUX_CFT_BASELINE_LIFECYCLE_PASS / MACOS_CFT_BASELINE_PASS / USER_MAC_F3_NOT_TESTED**。固定源码 `7bd735259379` 的真实 Linux CFT 双宿主、无宿主恢复与真实 macOS CFT 基础定时闭环均有原 Run/Result 和页面原生效果证据；整 Chrome 重启、撤权、完整缩放与用户 Mac 验收未通过最终闸门。
 > 主分支预览： [examples/ui/scheduled-tasks-r1-preview.html](../../../examples/ui/scheduled-tasks-r1-preview.html)。
 
 ## 1. 任务来源：采用下拉框 + 右侧两个等尺寸图标按钮
@@ -148,4 +148,4 @@ Side Panel 保留「我的 / 发现 / 工作流 / 开发 / 工具」现有一级
 - UI：`src/ui/scheduled-task-workbench.js` 负责「我的」内部计划、表单、双图标与管理页，任务数据复用 `listTaskCatalog`、`resolveInstalledTask`、`getTaskCandidate`、`setInstalledTaskEnabled`、`uninstallTask`；开发与真实安装仍按旧 Task v1 验证流程，不以任意源码直接排程。
 - 结果：持久 Fire 的 `ADMITTED` 状态只意味着获得唯一 Run 准入，不意味着网页副作用成功；列表始终从原 `runs` 查询 state、`resultId` 和 `retirementState`，若存在未知副作用则保持 `UNKNOWN`，决不盲目重派。
 
-**尚未闭环的证明：** 最终候选的 GitHub Actions 复验和 Mac 原生页面操作、Side Panel 关闭与可见运行页切换、多宿主并发、Chrome 320/360/420 与 200% 视觉验收。这些实际没有证据时一律 `NOT_TESTED`。追踪见 `docs/framework/workstreams/scheduled-tasks-r1-20261012.md`。
+**已取得的原生证明：** Linux Chrome 的完整基础与双 Host / 无 Host 恢复，以及 Mac Chrome 的基础真实页面执行，均有固定候选 GitHub Actions 证据；剩余是用户 Mac Profile、真实完整浏览器重启/升级、版本和权限变更、Mac 双 Host、320/360/420 与真实 200% 视觉验收，缺证据部分仍为 `NOT_TESTED`。追踪见 `docs/framework/workstreams/scheduled-tasks-r1-20261012.md`。

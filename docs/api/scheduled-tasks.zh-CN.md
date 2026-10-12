@@ -1,6 +1,6 @@
 # OpenDesk Browser：使用定时计划
 
-> 2026-10-12。R1 源码实施；真实 Mac Chrome 安装验收仍需以独立证据为准。本说明描述应有的正式插件操作，不代表所有原生情形已经通过验收。
+> 2026-10-12。固定候选的真实 macOS/Linux Chrome for Testing 已验证基础创建、到期执行、网页效果及原 Run/Result；Linux 还验证双 Host 和无 Host 恢复。用户自己的 Mac Profile、整浏览器重启、撤权和视觉完整验收仍需独立执行。
 
 ## 先准备任务
 
