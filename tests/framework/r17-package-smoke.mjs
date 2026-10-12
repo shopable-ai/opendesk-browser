@@ -60,6 +60,7 @@ try{
   // R24.4: a globally installed tarball must transform ORIGINAL JSX / Vue
   // SFC without Vite or the checkout's accidental npm hoisting. A comment-only
   // save still invalidates inputHash even when minified JS bytes are identical.
+  const componentResults=[];
   for(const [framework,entry,slug] of [
     ['react','src/App.jsx','page-ui-react'],
     ['vue','src/App.vue','page-ui-vue'],
@@ -79,6 +80,8 @@ try{
       assert.equal(first.managedUI,true);
       assert.match(first.sourceUtf8,new RegExp('// @opendesk-lib '+framework));
       assert.ok(first.sourceBytes>0&&first.sourceBytes<=100000);
+      assert.equal(Buffer.byteLength(first.sourceUtf8,'utf8'),first.sourceBytes);
+      assert.equal((await import('node:crypto')).createHash('sha256').update(first.sourceUtf8).digest('hex'),first.sourceHash);
       const hit=await componentResolver.resolve(bound.bindingId);
       assert.equal(hit.cacheHit,true);
       assert.equal(hit.sourceHash,first.sourceHash);
@@ -86,6 +89,9 @@ try{
       const edited=await componentResolver.resolve(bound.bindingId);
       assert.notEqual(edited.inputHash,first.inputHash);
       assert.equal(edited.cacheHit,false);
+      componentResults.push({project:slug,entry,sourceBytes:first.sourceBytes,
+        sourceHash:first.sourceHash,originalInputHash:first.inputHash,
+        modifiedInputHash:edited.inputHash,cacheHit:hit.cacheHit,editedRebuilt:!edited.cacheHit});
     }finally{componentResolver.close();}
   }
   if(fs.existsSync(path.join(packageRoot,'runtime','node_modules')))throw Error('E_PACKAGE_LEAK');
@@ -93,5 +99,6 @@ try{
     if(fs.existsSync(path.join(packageRoot,'runtime',p)))throw Error('E_AUTHOR_WORKTREE_LEAK');
   }
   console.log(JSON.stringify({result:'PASS',archive,packageRoot,
-    registeredBin:executable,dependencyGraph:'multi-file-bundled-from-installed-tarball'}));
+    registeredBin:executable,dependencyGraph:'multi-file-bundled-from-installed-tarball',
+    componentResults}));
 }finally{fs.rmSync(temp,{recursive:true,force:true});}
