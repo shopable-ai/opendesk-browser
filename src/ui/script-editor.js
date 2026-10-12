@@ -871,6 +871,8 @@ export function createScriptEditor({client, currentPageTarget, development=false
           throw {code:'E_UI_CLEANUP_FAILED',message:'没有收到可信的组件停止回执'};
         if(browserManagedPreview===owned)browserManagedPreview=null;
         componentMessage('completed','已停止 · 受管组件和样式已清理');
+        pageTechnicalPanel.hidden=false;pageTechnicalPanel.open=false;
+        pageTechnical.textContent=JSON.stringify({stop:result,framework:owned.framework},null,2);
         display('completed','受管组件已清理；网页业务效果不会回滚。');
       }catch(error){componentMessage('error',error.code+'：'+error.message);throw error;}
       finally{stopping=false;update();}
