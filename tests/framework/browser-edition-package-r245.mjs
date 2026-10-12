@@ -24,7 +24,7 @@ const [standardUI,developerUI]=await Promise.all([
   fs.readFile(path.join(developer,'ui/tool-shell.js'),'utf8')
 ]);
 const compiledMode=text=>{
-  const found=/browserCompilerEnabled:[A-Za-z_$][\\w$]*=!([01])/.exec(text);
+  const found=/browserCompilerEnabled:[A-Za-z_$][\w$]*=!([01])/.exec(text);
   assert(found,'compiled browser edition flag missing from real tool-shell.js');
   return found[1]==='0';
 };
