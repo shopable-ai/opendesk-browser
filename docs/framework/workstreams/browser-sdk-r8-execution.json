@@ -4,7 +4,7 @@
   "branch": "main",
   "reviewedBaseSha": "a6f68e04bf9788d7f287385a1081ca973a9a4990",
   "resultCommitSha": null,
-  "phase": "B_PARTIAL_NATIVE_CATALOG",
+  "phase": "C_COOKIE_DRIVER_IMPLEMENTED_HOST_UI_PENDING",
   "scope": "Single Host/Authority; no additional permissions",
   "modifiedFiles": [
     "scripts/sync-chrome-api-catalog.mjs",
@@ -22,7 +22,8 @@
     "vendor/chromium-extension-api/tabs.json",
     "vendor/chromium-extension-api/web_navigation.json",
     "vendor/chromium-extension-api/windows.json",
-    "vendor/chromium-extension-api/cookies.json"
+    "vendor/chromium-extension-api/cookies.json",
+    "src/platform/chrome/cookies.js"
   ],
   "sdkOperationCountBefore": 35,
   "sdkOperationCountAfter": 35,
@@ -51,13 +52,24 @@
   "blocked": [
     "No mounted Mac workspace/Chrome in current execution environment",
     "Cookie Editor is sandboxed, not a trusted native UI",
-    "Pinned JSON schemas cover only 8 namespaces; IDL and other namespaces pending"
+    "Pinned JSON schemas cover only 8 namespaces; IDL and other namespaces pending",
+    "Cookie driver is Host-only but current trusted UI and Browser SDK formal RPC routes remain unimplemented"
   ],
   "next": [
-    "Run R8 catalog check and Node tests on committed SHA",
-    "Extend existing CookieService behind trusted Sender/Origin and user click; do not grant sandbox trust",
-    "Complete Chromium IDL conversion using upstream chrome-types tools; no regex .d.ts parsing",
-    "Tabs/Downloads/Permissions/Storage/Scheduler bounded additions; run builds and native Chrome acceptance"
+    "Add Cookie driver Node tests and wire into R8 CI",
+    "Implement trusted first-party Cookie UI actions via current Browser Host without sandbox upgrade",
+    "Implement Cookie observe via bounded events and Origin/Document lifecycle fences",
+    "Expand official Chromium catalog to IDL/all namespaces",
+    "Continue Tabs/Downloads/Permission/Storage/Scheduler"
   ],
-  "conflictStatus": "REMOTE_MAIN_MOVES; conditional expected-SHA commit; no Mac local uncommitted status accessible"
+  "conflictStatus": "REMOTE_MAIN_MOVES; conditional expected-SHA commit; no Mac local uncommitted status accessible",
+  "internalCookieDriverMethods": [
+    "get",
+    "getAll",
+    "set",
+    "remove",
+    "clearSite",
+    "getStores",
+    "getPartitionKey"
+  ]
 }
