@@ -264,3 +264,67 @@ test('P1 screenshot revocation and wrong visible tab prevent a Chrome capture si
    err('E_TARGET_CHANGED'));
  assert.equal(f.downloads.length,0);
 });
+
+test('compact network.watch() returns an owned session handle and uses only existing trusted Host operations',async()=>{
+ const f=fixture(),routed=[];
+ const needsApproval=new Set(['browser.tabs.open','browser.network.observe.start','browser.network.observe.export']);
+ const sdk=createBrowserSdk({request:async(operation,args)=>{
+   routed.push(operation);
+   const approvalRef=needsApproval.has(operation)
+     ?(await f.confirm(operation,args)).approvalRef:undefined;
+   return f.call(operation,args,approvalRef);
+ }});
+ const tab=await sdk.tabs.open({url:'https://example.org/page'});
+ const watch=await sdk.network.watch({
+   tabRef:tab.tabRef,origin:'https://example.org',durationMs:30000,
+   maxEvents:12,maxBufferedBytes:2048
+ });
+ assert.equal(Object.isFrozen(watch),true);
+ assert.match(watch.id,/^[A-Za-z0-9_-]{16,160}$/);
+ assert.equal(typeof watch.read,'function');
+ assert.deepEqual(Object.keys(JSON.parse(JSON.stringify(watch))),['id','expiresAt']);
+ assert.deepEqual((await watch.status()).state,'running');
+ f.observeEvent('start',{tabId:100,url:'https://example.org/secret?auth=HIDDEN',
+   method:'GET',type:'xmlhttprequest',timeStamp:1000});
+ const data=await watch.read({limit:10});
+ assert.equal(data.events.length,1);
+ assert.equal(data.events[0].kind,'request');
+ assert(!JSON.stringify(data).includes('HIDDEN'));
+ assert.throws(()=>watch.read({sessionRef:'r'.repeat(32)}),err('E_SCHEMA'));
+ assert.throws(()=>watch.export({format:'csv'}),err('E_SCHEMA'));
+ const stop=await watch.stop();
+ assert.equal(stop.state,'stopped');
+ assert.equal(Number.isFinite(stop.stoppedAt),true);
+ const saved=await watch.export();
+ assert.equal(saved.downloadId,777);
+ assert.equal(f.downloads.length,1);
+ assert.equal((await watch.cancel()).cancelRequested,false);
+ assert.equal((await watch.close()).closed,true);
+ await assert.rejects(watch.read(),err('E_OBSERVATION_UNKNOWN'));
+ assert.deepEqual(routed,[
+   'browser.tabs.open','browser.network.observe.start',
+   'browser.network.observe.getStatus','browser.events.read','browser.network.observe.stop',
+   'browser.network.observe.export','browser.operations.cancel','browser.events.close',
+   'browser.events.read'
+ ]);
+ assert(!routed.some(name=>name.includes('network.watch')),'No new privileged RPC route');
+});
+test('compact network.watch rejects non-exact origins, foreign fields, and absent site grants',async()=>{
+ const f=fixture(),sdk=createBrowserSdk({request:async(operation,args)=>{
+   const approvalRef=['browser.tabs.open','browser.network.observe.start'].includes(operation)
+      ?(await f.confirm(operation,args)).approvalRef:undefined;
+   return f.call(operation,args,approvalRef);
+ }});
+ const tab=await sdk.tabs.open({url:'https://example.org/page'});
+ await assert.rejects(sdk.network.watch({tabRef:tab.tabRef,
+   origin:'https://example.org/private'}),err('E_SCHEMA'));
+ await assert.rejects(sdk.network.watch({tabRef:tab.tabRef,
+   origins:['https://example.org']}),err('E_SCHEMA'));
+ await assert.rejects(sdk.network.watch({tabRef:tab.tabRef,
+   origin:'https://other.example'}),err('E_SITE_PERMISSION_REVOKED'));
+ f.setSite(false);
+ await assert.rejects(sdk.network.watch({tabRef:tab.tabRef,
+   origin:'https://example.org'}),err('E_SITE_PERMISSION_REVOKED'));
+ const page=createBrowserSdk({context:'page-sdk'});
+ assert.equal(typeof page.network,'undefined');
+});
