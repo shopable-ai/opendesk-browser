@@ -66,3 +66,7 @@
 - P2：让 UI 消费 `sharedCacheChoices` 并提供“复用已审核字节 / 在线下载”的显式操作；确保来源版本与许可证展示。
 - P3：将同样的 SHA 复用带给 Controller ESM 固定图、React/Vue 组件和 Native 项目，但不能把 Classic 的 globals 转成 ESM exports。
 - P4：Chrome restart、离线、撤权、版本升级、Stop、已安装工具、Scheduled、Cloud 全链路真实验收；性能以 SHA 资产字节和实际浏览器 profile 量测，尚无量化结论。
+
+## Standard / Developer 打包诊断修正（2026-10-13）
+
+R15 `libs:doctor --strict` 错把六个 Developer-only `PAGE_BROWSER_PRIVATE_FILES` 当成 Standard 物理打包必备，真实生产与开发 Standard 包因此报告 `PACKAGE_FAIL missing`。本轮改为直接复用 `scripts/browser-editions-r245.mjs` 的 `compilerResourcesForEdition` 与物理 `browser-edition.json`，按照版本校验：Standard 不得有这六项、Developer 必须全有，其他固定库和 SHA 校验不放宽。独立 Node 测试覆盖反向负例；不触碰 R8 Browser SDK 映射。

@@ -5,7 +5,8 @@ import {execFileSync} from 'node:child_process';
 import {resolve,join} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {BUILTIN_CATALOG,BUILTIN_RUNTIME_CATALOG,BUILTIN_RESOURCE_PATHS} from '../src/libs/catalog.js';
-import {PAGE_FRAMEWORK_RUNTIMES,PAGE_BROWSER_PRIVATE_FILES} from '../src/libs/page-frameworks/contract.js';
+import {PAGE_FRAMEWORK_RUNTIMES} from '../src/libs/page-frameworks/contract.js';
+import {BROWSER_EDITION_RECORD,compilerResourcesForEdition,readEditionRecord} from './browser-editions-r245.mjs';
 import {BUILD_POLICY} from './build-contract.mjs';
 import {inspectHistoricalLibraryUsage} from './libs-history-audit.mjs';
 
@@ -19,12 +20,14 @@ const result=(status,detail)=>({status,...(detail?{detail}: {})});
 // This does not attest to native execution. It only rejects foreign/missing
 // files in the packaged libs/ tree, including source maps in the wrong mode.
 // All paths come from the existing library contract and approved WXT entries.
-export async function inspectLibraryOutputInventory(root,mode){
+export async function inspectLibraryOutputInventory(root,mode,edition='standard'){
   if(!['production','development'].includes(mode))throw Error('Invalid library build mode: '+mode);
+  // Standard must not accidentally ship or require Developer-only compiler files.
+  const privateFiles=compilerResourcesForEdition(edition);
   const approved=new Set([
     ...BUILTIN_RESOURCE_PATHS.filter(path=>path.startsWith('libs/')),
     ...Object.values(PAGE_FRAMEWORK_RUNTIMES).map(row=>row.output),
-    ...PAGE_BROWSER_PRIVATE_FILES.map(row=>row.output).filter(path=>path.startsWith('libs/')),
+    ...privateFiles.map(row=>row.output).filter(path=>path.startsWith('libs/')),
     BUILTIN_CATALOG.resourceManifest
   ]);
   if(mode==='development'){
@@ -225,7 +228,10 @@ export async function inspectLibraries({cwd=process.cwd()}={}) {
       const sw=await maybe(join(root,'sw.js'));
       if(!sw)throw Error('sw.js missing');
       verifyShippedSwBudget(mode,sw.length);
-      await inspectLibraryOutputInventory(root,mode);
+      const editionBytes=await maybe(join(root,BROWSER_EDITION_RECORD));
+      if(!editionBytes)throw Error('Missing browser edition record: '+BROWSER_EDITION_RECORD);
+      const edition=readEditionRecord(editionBytes.toString('utf8'));
+      await inspectLibraryOutputInventory(root,mode,edition);
       const defaults=Object.values(BUILTIN_CATALOG.libraries).filter(row=>row.default)
         .reduce((sum,row)=>sum+data[row.output],0)+data[BUILTIN_CATALOG.bootstrap];
       const optional=Object.values(BUILTIN_CATALOG.libraries).filter(row=>!row.default)
