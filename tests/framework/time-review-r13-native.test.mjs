@@ -485,6 +485,41 @@ test('Time Review R1.3 actual Mac Chrome install and trusted consent smoke',{ski
     }
     await browser.send('Target.closeTarget',{targetId:site.targetId});
   }
+  // Change the category via the actual visible sandbox UI: native pointer
+  // focus, native arrow-key selection and the normal Save button. Neither the
+  // test nor CDP may write Time Review business records directly.
+  if(evidence.beginAndActiveCollection==='PASS'){
+    await nativeClick(browser,frame,'#refresh');
+    await until(()=>evaluate(browser,frame,
+      'Array.from(document.querySelectorAll("#sites .detail-item .entry b")).some(e=>e.textContent==="127.0.0.1")'),
+      'real website displayed in the daily records',9000);
+    const beforeCategory=await readTime();
+    await nativeClick(browser,frame,'#sites .detail-item button[aria-label^="修改"]');
+    const selector='#sites .detail-item .row-edit select';
+    await nativeClick(browser,frame,selector);
+    const press=async(key,vk)=>{
+      for(const type of ['keyDown','keyUp'])
+        await browser.send('Input.dispatchKeyEvent',{type,key,code:key,windowsVirtualKeyCode:vk},frame);
+    };
+    await press('Home',36);
+    await press('ArrowDown',40);
+    await press('ArrowDown',40);
+    assert.equal(await evaluate(browser,frame,'document.querySelector("#sites .row-edit select")?.value'),
+      '2','native keyboard selected the canonical important-not-urgent category');
+    await nativeClick(browser,frame,'#sites .row-edit button.primary');
+    const afterCategory=await until(async()=>{
+      const s=await readTime();
+      return s?.categories?.['127.0.0.1']===2?s:null;
+    },'real category edit saved through installed tool',9000);
+    assert.deepEqual(afterCategory.days,beforeCategory.days,
+      'classification may not rewrite or fabricate captured time');
+    const row=await evaluate(browser,frame,
+      'Array.from(document.querySelectorAll("#sites .detail-item")).find(e=>e.textContent.includes("127.0.0.1"))?.textContent||""');
+    assert.ok(row.includes('重要不紧急'),'updated classification appears in native UI');
+    evidence.classification='PASS';
+    note('real-classification',{host:'127.0.0.1',category:2,
+      unchangedTime:true,visible:true});
+  }else evidence.classification='NOT_TESTED';
   state=await readTime();
   // The initial exports were intentionally empty. Check actual subsequent
   // JSON/CSV after a trusted real website session, including name uniquify.
@@ -565,12 +600,62 @@ test('Time Review R1.3 actual Mac Chrome install and trusted consent smoke',{ski
   note('real-chrome-restart',{previousPid:proc.pid,newPid:restartProc.pid,
     sameProfile:true,sessionChanged:true,toolVersion:persisted.version,
     days:Object.keys(persisted.review.days).length,paused:persisted.review.paused});
+  // Real trusted UI lifecycle after the full Chrome restart. Confirm
+  // disabling rotates the tool's installation epoch without deleting time
+  // records, re-enabling does not auto-resume, and confirmed uninstall clears
+  // ONLY Time Review and does not resurrect stale data.
+  await until(()=>evaluate(browser,newSide,'Boolean(document.querySelector("#tab-tools"))'),
+    'restarted extension application available',12000);
+  await nativeClick(browser,newSide,'#tab-tools');
+  await nativeClick(browser,newSide,installed);
+  await until(()=>evaluate(browser,newSide,
+    '!document.querySelector("#sidebar-tool-display").hidden'),'reopened installed tool');
+  await nativeClick(browser,newSide,'#sidebar-tool-settings-open');
+  await until(()=>evaluate(browser,newSide,
+    '!document.querySelector("#sidebar-tool-settings-view").hidden'),'trusted tool management');
+  const epoch=()=>evaluate(browser,newSide,
+    'chrome.storage.local.get("opendesk.sidebar-tools.revocation-epochs.v1").then(v=>v["opendesk.sidebar-tools.revocation-epochs.v1"]?.["time-review"]??null)');
+  const toolEnabled=()=>evaluate(browser,newSide,
+    'chrome.storage.local.get("opendesk.sidebar-tools.enabled.v1").then(v=>v["opendesk.sidebar-tools.enabled.v1"]?.["time-review"]!==false)');
+  const beforeDisableEpoch=await epoch();
+  await nativeClick(browser,newSide,'#sidebar-tool-enable');
+  await until(async()=>!await toolEnabled(),'trusted disable persisted',10000);
+  const disabledEpoch=await epoch();
+  assert.ok(disabledEpoch&&disabledEpoch!==beforeDisableEpoch,'disable must rotate revoked instance identity');
+  const disabledData=await evaluate(browser,newSide,
+    'chrome.storage.local.get("opendesk.time-review.v1").then(v=>v["opendesk.time-review.v1"])');
+  assert.deepEqual(disabledData.days,persisted.review.days,'disabling preserves existing recorded days');
+  assert.equal(disabledData.paused,true,'disable must remain paused');
+  await nativeClick(browser,newSide,'#sidebar-tool-enable');
+  await until(toolEnabled,'trusted re-enable persisted',10000);
+  assert.notEqual(await epoch(),disabledEpoch,'re-enable also rotates revoked instance identity');
+  const enabledData=await evaluate(browser,newSide,
+    'chrome.storage.local.get("opendesk.time-review.v1").then(v=>v["opendesk.time-review.v1"])');
+  assert.equal(enabledData.paused,true,'enabling tool does not silently start tracking');
+  evidence.disableEnable='PASS';
+  note('real-tool-disable-reenable',{rotatedEpoch:true,daysPreserved:true,noAutoStart:true});
+  await nativeClick(browser,newSide,'#sidebar-tool-remove');
+  await nativeClick(browser,newSide,'#sidebar-tool-inline-remove-confirm');
+  const afterUninstall=await until(async()=>evaluate(browser,newSide,
+    '(async()=>{const x=await chrome.storage.local.get(["opendesk.sidebar-tools.installed.v1","opendesk.time-review.v1","opendesk.sidebar-tools.uninstall-cleanup.v1"]);const rows=x["opendesk.sidebar-tools.installed.v1"];return {timeInstalled:rows?.some(t=>t.id==="time-review"),otherInstalled:rows?.some(t=>t.id==="reading-toc"),reviewPresent:Object.hasOwn(x,"opendesk.time-review.v1"),cleanup:x["opendesk.sidebar-tools.uninstall-cleanup.v1"]?.["time-review"]??null};})()'),
+    'confirmed uninstall and complete selective Time Review cleanup',10000);
+  assert.equal(afterUninstall.timeInstalled,false,'official Time Review uninstall completed');
+  assert.equal(afterUninstall.reviewPresent,false,'uninstall removed Time Review local record');
+  assert.equal(afterUninstall.cleanup,null,'cleanup transaction has no pending state');
+  assert.equal(afterUninstall.otherInstalled,true,'other installed tools must remain intact');
+  await sleep(1300);
+  assert.equal(await evaluate(browser,newSide,
+    'chrome.storage.local.get("opendesk.time-review.v1").then(v=>Object.hasOwn(v,"opendesk.time-review.v1"))'),false,
+    'stale worker events may not resurrect uninstalled Time Review data');
+  evidence.uninstall='PASS';
+  note('real-tool-uninstall',{selective:true,recordDeleted:true,othersIntact:true,noResurrection:true});
   state=persisted.review;
   complete=true;
   await writeFile(path.join(OUT,'state-summary.json'),JSON.stringify({
     minuteConsent:state.minuteConsent,paused:state.paused,days:Object.keys(state.days||{}).length,
     nativeInstall:true,downloadChecks,browserRestart:evidence.browserRestart,
-    populatedExport:evidence.populatedExport,
+    populatedExport:evidence.populatedExport,classification:evidence.classification,
+    disableEnable:evidence.disableEnable,uninstall:evidence.uninstall,
     currentSourceHash:process.env.GITHUB_SHA||null,actualSidePanelDocumentId:sideDocument.documentId
   },null,2)+'\n');
 });
