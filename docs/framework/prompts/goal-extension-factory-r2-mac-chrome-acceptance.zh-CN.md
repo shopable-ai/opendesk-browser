@@ -1,6 +1,8 @@
-# GOAL：Extension Factory R2 — Mac Chrome 原生验收
+# 历史 GOAL（DEPRECATED / 不再执行）：Page QA Mac Chrome 验收
 
-## 首要目标
+> **2026-10-12：停止执行。** Page QA Inspector 现为 `DEPRECATED / NO_RELEASE / MANUAL_FIXTURE_ONLY`。下面的构建、Mac CFT、20 次点击、双扩展安装和 CWS 检查仅作旧技术验收方案存档；没有新的用户价值证明和明确重新授权，**不得按此文安排 Page QA 专项验收或发布**。历史源代码与证据保留，不冒充完成。
+
+## 历史目标（非当前指令）
 
 在用户本机真实 Mac Chrome/CFT 中安装已构建的 **Page QA Inspector v0.1.0**，与原 OpenDesk 独立并装；逐项确认权限、用户点击检查、定位、报告、导航与重启，保存原始同包候选证据。**不得以 Node、CI、静态截图、模拟 DOM 代替真实浏览器。**
 
