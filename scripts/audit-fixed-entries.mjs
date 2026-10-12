@@ -7,7 +7,7 @@ import {pathToFileURL} from 'node:url';
 import {PACKAGE_ENTRIES, BUILD_POLICY, RESOURCE_LIMITS, entryByteBudget} from './build-contract.mjs';
 import {assertLibraryModuleBoundary} from './bundle-provenance.mjs';
 import {BUILTIN_CATALOG} from '../src/libs/catalog.js';
-import {PAGE_FRAMEWORK_RUNTIMES,PAGE_FRAMEWORK_RESOURCE_LIMIT} from '../src/libs/page-frameworks/contract.js';
+import {PAGE_FRAMEWORK_RUNTIMES,PAGE_FRAMEWORK_RESOURCE_LIMIT,PAGE_BROWSER_PRIVATE_FILES,PAGE_BROWSER_COMPILER_RESOURCE_LIMIT} from '../src/libs/page-frameworks/contract.js';
 import {verifyPackage} from './verify-package.mjs';
 
 export const FIXED_ENTRY_PATHS = Object.freeze(Object.keys(PACKAGE_ENTRIES).map(name => name + '.js').sort());
@@ -116,9 +116,11 @@ export function summarizePackageResources(receipt,measuredFiles) {
   // Their real loader enforces 256 KiB; reporting only the generic 512 KiB
   // raw-JS ceiling would falsely claim a package can run when it cannot.
   const frameworkPaths=new Set(Object.values(PAGE_FRAMEWORK_RUNTIMES).map(row=>row.output));
+  const browserCompilerAssets=new Map(PAGE_BROWSER_PRIVATE_FILES.map(row=>[row.output,row]));
   const resources=files.map(file=>{
     const kind=resourceKind(file.path),generated=byPath.get(file.path);
-    const budget=generated?.budgetBytes??(kind==='raw-vendor-js'?RESOURCE_LIMITS.vendorBytes:
+    const budget=generated?.budgetBytes??(browserCompilerAssets.has(file.path)?PAGE_BROWSER_COMPILER_RESOURCE_LIMIT:
+      kind==='raw-vendor-js'?RESOURCE_LIMITS.vendorBytes:
       kind==='raw-runtime-js'?(frameworkPaths.has(file.path)?PAGE_FRAMEWORK_RESOURCE_LIMIT:BUILD_POLICY.productionBytes):kind==='license'?RESOURCE_LIMITS.licenseBytes:
       ['libs/manifest.json','framework/sdk-resources.json'].includes(file.path)?RESOURCE_LIMITS.manifestBytes:null);
     if(budget!==null&&file.bytes>budget)throw Error('Package resource exceeds byte budget: '+file.path);
@@ -162,11 +164,16 @@ export function summarizePackageResources(receipt,measuredFiles) {
     group('page-with-jquery',[...libraryPaths('USER_SCRIPT'),BUILTIN_CATALOG.libraries.jquery.output],{assembled:true}),
     group('automatic-page-injection',['agents/page-relay.js','framework/sdk-main.js']),
     group('sidebar-shell',['ui/tool.html','ui/tool-shell.css','ui/tool-shell.js']),
+    group('browser-react-compiler-on-demand',PAGE_BROWSER_PRIVATE_FILES.filter(row=>
+      !['page-vue-sfc-transform','page-vue-sfc-compiler'].includes(row.id)).map(row=>row.output)),
+    group('browser-vue-compiler-on-demand',PAGE_BROWSER_PRIVATE_FILES.map(row=>row.output)),
     group('workspace-shell',['native-agent/workspace.html','native-agent/workspace.css','native-agent/settings.js']),
     ...optInPageAssets.filter(row=>row.id!=='jquery')
       .map(row=>group('page-with-'+row.id,[...pageDefaults,row.path],{assembled:true}))
   ];
   const startup=groups.find(row=>row.id==='background-startup');
+  if(PAGE_BROWSER_PRIVATE_FILES.some(row=>startup.resources.some(resource=>resource.path===row.output)))
+    throw Error('Browser compilers must never be included in background startup');
   if(optInPageAssets.some(row=>startup.resources.some(resource=>resource.path===row.path)))
     throw Error('Opt-in Page asset is included in the background startup group');
   const optInAssets=optInPageAssets.map(row=>{
