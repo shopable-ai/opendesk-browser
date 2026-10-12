@@ -221,7 +221,8 @@ async function check(name,fn){try{cases.push({name,ok:true,value:await fn()});}
         assert(result?.state==='preview-evaluated'&&result.world==='USER_SCRIPT'&&
           result.documentId===optionalTarget.documentId,'Optional Page receipt mismatch '+JSON.stringify(result));
         return {value:JSON.parse(result.resultText),world:result.world,
-          optionalSha256:result.packagedOptionalSha256??null};
+          optionalSha256:result.packagedOptionalSha256??null,
+          ...(result.packagedOptionals?{packagedOptionals:result.packagedOptionals}: {})};
       };
       await check('page-user-script-crypto-js-sha256-upstream',async()=>{
         const result=await previewOptional('// @opendesk-lib crypto-js\nasync function main(){return CryptoJS.SHA256("abc").toString(CryptoJS.enc.Hex)}');
@@ -247,6 +248,38 @@ async function check(name,fn){try{cases.push({name,ok:true,value:await fn()});}
           result.value?.create==='function'&&result.value?.uri?.includes('/api/items?tag='),
           'Genuine Axios Page instance or getUri unavailable: '+JSON.stringify(result));
         return result;
+      });
+      await check('page-user-script-real-multi-axios-query-string-GET-and-main-isolation',async()=>{
+        // Real CFT in a fresh site document, not a VM, mock Axios or a source scan.
+        // It verifies multi-resource hashes in ONE admitted USER_SCRIPT execution.
+        await refreshOptionalDocument();
+        const script=[
+          '// @opendesk-lib axios',
+          '// @opendesk-lib query-string',
+          'async function main(){',
+          '  const tags=queryString.parse("tag=one&tag=two").tag;',
+          '  const client=axios.create({timeout:10000,withCredentials:false});',
+          '  const interceptor=client.interceptors.request.use(config=>{config.headers.set("x-opendesk-demo","multi");return config;});',
+          '  const reply=await client.get(location.origin+"/large",{responseType:"text"});',
+          '  client.interceptors.request.eject(interceptor);',
+          '  return {status:reply.status,containsTitle:reply.data.includes("Native HTML content"),tags,',
+          '    adapter:typeof client.get,requestInterceptor:typeof client.interceptors.request.use};',
+          '}'
+        ].join('\n');
+        const result=await previewOptional(script);
+        assert(result.value?.status===200&&result.value.containsTitle===true&&
+          result.value.tags?.join('|')==='one|two'&&result.value.adapter==='function'&&
+          result.value.requestInterceptor==='function','Real Page multi-library HTTP path failed '+JSON.stringify(result));
+        assert(Array.isArray(result.packagedOptionals)&&result.packagedOptionals.length===2&&
+          result.packagedOptionals[0].id==='axios'&&result.packagedOptionals[1].id==='queryString'&&
+          result.packagedOptionals.every(row=>/^[a-f0-9]{64}$/.test(row.sha256)),
+          'Native preview did not bind both library SHA identities '+JSON.stringify(result));
+        const [main]=await chrome.scripting.executeScript({
+          target:{tabId:tab.id,documentIds:[optionalTarget.documentId]},world:'MAIN',
+          func:()=>({axios:typeof window.axios,queryString:typeof window.queryString})});
+        assert(main?.result?.axios==='undefined'&&main?.result?.queryString==='undefined',
+          'Real multi-library USER_SCRIPT contaminated website MAIN');
+        return {...result,websiteMainUntouched:true};
       });
       await check('page-user-script-real-store-persistence-and-owner-prefix',async()=>{
         await refreshOptionalDocument();

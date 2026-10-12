@@ -26,3 +26,7 @@ npm run verify && npm run build:size && npm run pack && npm run pack:dev
 ## 2026-10-12：CI 反馈与准入修复
 
 上一候选 `9ec2df6b83eccb00b063229a69daadc3fe8cfe1d` 的 R15 总体资格 [CI](https://github.com/shopable-ai/opendesk-browser/actions/runs/38251106383) 出现 1619 PASS / 1 FAIL / 7 SKIP：多库 React 示例在 `dependency-metadata.js` 的历史三项硬编码白名单被阻断。新增从唯一 `runtime-contract.js` 导出衍生 alias 表，解析器和编译器共同引用，禁止继续维护不同步的第二份库 ID；定向测试遍历所有可选 alias。此段描述的是源码修复而非新候选的 CI PASS。
+
+## 原生 Mac Chrome for Testing 专项新增用例
+
+`tests/framework/page-content-native-page.js` 在现有 R16.1 macOS CFT 真实用户脚本流程中新增 Axios + query-string 同程序的同源 HTTP GET、Interceptors、参数解析、双 SHA 回执及网站 MAIN 全局未污染断言。使用原生扩展 Broker 的 `previewPageScript`、严格 documentId 和已验资源，不以本地 VM 代替。已提交测试源码不等于成功，等待对应 SHA 的 [R16.1 工作流](https://github.com/shopable-ai/opendesk-browser/actions/workflows/r16-1-page-builtin-native.yml) 得到可信原始回执。
