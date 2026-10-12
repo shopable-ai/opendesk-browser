@@ -334,7 +334,7 @@ details.advanced[open] summary{margin-bottom:14px}
     {id:"p2",name:"订单状态检查",sourceId:"orders",rule:"interval",time:"09:00",interval:"30",date:"",days:[1,3,5],target:"https://shop.example.org/orders",enabled:true,autoOpen:false,misfire:"skip",wait:"5",last:"模拟成功 · 30 分钟前",history:[{state:"成功（模拟）",when:"30 分钟前",detail:"无新增订单 · 原型演示"}]},
     {id:"p3",name:"阅读笔记整理",sourceId:"note",rule:"weekly",time:"18:00",interval:"30",date:"",days:[1,3,5],target:"https://notes.example.org",enabled:false,autoOpen:false,misfire:"skip",wait:"5",last:"尚未运行",history:[]}
   ];
-  var editing=null,lastView="plans",counter=4,toastTimeout;
+  var editing=null,lastView="plans",scriptBack="edit",counter=4,toastTimeout;
   var timezone=Intl.DateTimeFormat().resolvedOptions().timeZone||"本机";
   $("timezoneInfo").textContent="执行时区：" + timezone + " · 真实调度需保存 IANA 时区";
   function getSource(id){return sources.find(function(x){return x.id===id;});}
@@ -476,6 +476,7 @@ details.advanced[open] summary{margin-bottom:14px}
     show("plans");notify("计划已保存（原型模拟），未创建真实浏览器闹钟。");
   }
   function openScript(copy){
+    scriptBack=lastView==="manage"?"manage":lastView==="plans"?"plans":"edit";
     $("scriptError").hidden=true;
     $("scriptName").value=copy?copy.title+" 副本":"我的每日检查";
     $("scriptOrigin").value=copy?copy.origin:"https://example.com";
@@ -490,7 +491,7 @@ details.advanced[open] summary{margin-bottom:14px}
     if(!/\basync\s+function\s+main\s*\(/.test(code))error="演示要求包含 async function main() 入口";
     if(error){$("scriptError").textContent=error;$("scriptError").hidden=false;return;}
     var id="demo"+(counter++),s={id:id,title:title,version:"0.1.0",origin:new URL(origin).origin,type:"Controller Task",source:code};
-    sources.push(s);show("edit");populateSources(id);$("planTitle").value=$("planTitle").value.trim()||title+" · 定时运行";
+    sources.push(s);if(scriptBack==="edit")show("edit");else openEditor();populateSources(id);$("planTitle").value=$("planTitle").value.trim()||title+" · 定时运行";
     $("targetUrl").value=s.origin+"/";validate();
     notify("已加入模拟已安装列表并自动选中。真实产品必须经过保存、验证和安装。");
   }
@@ -521,7 +522,7 @@ details.advanced[open] summary{margin-bottom:14px}
     else if(b.dataset.history)openHistory(b.dataset.history);
     else if(b.dataset.demo)demoRun(b.dataset.demo);
     else if(b.dataset.copy)openScript(getSource(b.dataset.copy));
-    else if(b.dataset.back)show(b.dataset.back);
+    else if(b.dataset.back)show(b.closest("#viewScript")?scriptBack:b.dataset.back);
   });
   document.addEventListener("change",function(event){
     if(event.target.matches("[data-toggle]")){
@@ -539,7 +540,15 @@ details.advanced[open] summary{margin-bottom:14px}
   $("navTasks").addEventListener("click",function(){show("manage");$("returnFromManage").dataset.back="plans";});
   $("navDev").addEventListener("click",function(){openScript();});
   $("mockInstall").addEventListener("click",mockInstall);
-  $("scheduleType").addEventListener("change",setRuleVisibility);
+  $("scheduleType").addEventListener("change",function(){
+    if(this.value==="once"){
+      var d=new Date(),hm=($("runTime").value||"09:00").split(":");
+      d.setHours(Number(hm[0]),Number(hm[1]),0,0);
+      if(d<=new Date())d.setDate(d.getDate()+1);
+      $("runDate").value=[d.getFullYear(),String(d.getMonth()+1).padStart(2,"0"),String(d.getDate()).padStart(2,"0")].join("-");
+    }
+    setRuleVisibility();
+  });
   ["planTitle","sourceSelect","runTime","runInterval","runDate","targetUrl","autoOpen","misfire","maxWait"].forEach(function(id){
     $(id).addEventListener("input",function(){
       if(id==="sourceSelect"){
