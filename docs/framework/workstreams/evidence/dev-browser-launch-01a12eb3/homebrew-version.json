@@ -1,0 +1,13 @@
+{
+  "package": "@shopable/opendesk-dev",
+  "packageRoot": "/opt/homebrew/lib/node_modules/@shopable/opendesk-dev",
+  "mode": "installed-package",
+  "status": "verified",
+  "version": "0.1.0-r17.1",
+  "entryPath": "/opt/homebrew/lib/node_modules/@shopable/opendesk-dev/bin/opendesk-dev.mjs",
+  "entrySha256": "c1477fe00c64665bc8d229914fa2bdca4d2f472ae247fab64e1d08fe966bb563",
+  "contentFingerprint": "5b28b274fc6cc500387519e70957e648dad1867f1ebf7367ae0a0f60cbc8f746",
+  "metadataSha256": "d35010bfd2e8996bed78bf6bcae5fa1984955207834f84cb5b2d955ff3775c62",
+  "recordedFingerprint": "5b28b274fc6cc500387519e70957e648dad1867f1ebf7367ae0a0f60cbc8f746",
+  "provenance": "recorded-not-independently-verified"
+}

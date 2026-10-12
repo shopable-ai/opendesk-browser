@@ -168,6 +168,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
       localPageResult.documentId===currentPageState.documentId&&
       localPageResult.url===currentPageState.url;
   }
+  const isComponentDraft = () => componentMode === 'react' || componentMode === 'vue';
   function update() {
     if (disposed) return;
     localInstaller.update();
@@ -193,6 +194,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
       !programSource.source().trim()||programSource.kind()==='controller'||
       currentPageState?.status!=='available';
     find('page-preview-run').textContent=componentMode==='javascript'?'在当前网页试运行':'运行'+(componentMode==='react'?' React':' Vue')+' 组件';
+    if(isComponentDraft())find('script-run').disabled=find('page-preview-run').disabled||!projection?.slotAvailable;
     const pageCandidateButton=find('page-candidate-save');
     if(pageCandidateButton)pageCandidateButton.disabled=componentMode!=='javascript'||editingBusy||previewBusy||!!localProject?.active()||
       !lastPagePreview||lastPagePreview.sourceUtf8!==programSource.source()||
@@ -208,7 +210,12 @@ export function createScriptEditor({client, currentPageTarget, development=false
       find('script-run').textContent='运行本地项目';
       find('script-run').disabled=stopping||editingBusy||previewBusy||running||!projection?.slotAvailable||!!host.currentRun||!localProject.connected()||currentPageState?.status!=='available';
       find('script-version').textContent='本地项目模式 · 手工草稿已保留；正式任务请使用打包安装流程';
-    }else {find('script-run').textContent='运行草稿';find('script-save').textContent='保存版本';}
+    }else {
+      find('script-run').textContent=componentMode!=='javascript'
+        ? '运行'+(componentMode==='react'?' React':' Vue')+' 组件'
+        : '运行草稿';
+      find('script-save').textContent='保存版本';
+    }
     find('script-library-tools').hidden=!!localProject?.active();
     find('page-preview-tools').hidden=!!localProject?.active();
   }
@@ -512,6 +519,10 @@ export function createScriptEditor({client, currentPageTarget, development=false
   function start(event) {
     if (!event.isTrusted || disposed || stopping || running || previewBusy || editingBusy || host.currentRun) return;
     if(localProject?.active()){startLocal(event);return;}
+    if(isComponentDraft()){
+      if(!projection?.slotAvailable)return;
+      previewPage(event);return;
+    }
     let chosen, params, permission, sourceUtf8;
     try {
       // Freeze exact editor bytes, params and target inside the trusted click
@@ -644,13 +655,19 @@ export function createScriptEditor({client, currentPageTarget, development=false
     });
   }
   function previewPage(event) {
-    if (!event.isTrusted || disposed || previewBusy || dependencyResolver?.busy || editingBusy || running || host.currentRun) return;
+    if (!event.isTrusted || disposed || stopping || previewBusy ||
+      (componentMode==='javascript'&&dependencyResolver?.busy) || editingBusy || running || host.currentRun) return;
     if(localProject?.active())return;
     let captured, permission, pageSource,componentSnapshot;
     const displayPreview=(state,message,result)=>{
       if(disposed)return;
       const node=find('page-preview-status');node.dataset.state=state;node.textContent=message;
       if(result!==undefined)find('page-preview-result').textContent=result;
+      display(state,message);
+      output.textContent=state==='running'?'正在运行…':state==='error'?'本次网页试运行失败，未产生可显示的返回值':result??'undefined';
+      resultKind.textContent=state==='completed'?'网页试运行结果':state==='error'?'网页试运行失败':'等待网页返回值';
+      copyResult.disabled=state!=='completed';
+      find('developer-results-panel').open=true;
     };
     try {
       // Freeze source, dependency and document during the trusted click,
@@ -669,7 +686,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
     } catch(error) {displayPreview('error',(error.code||'E_SOURCE')+'：'+(error.message||error));return;}
     lastPagePreview=null;
     previewBusy=true;update();pageTechnicalPanel.hidden=true;pageTechnical.textContent='';
-    displayPreview('running','正在核对当前文档并执行一次性页面脚本…','');
+    displayPreview('running',componentSnapshot?'正在编译组件并核对当前网页…':'正在核对当前文档并执行一次性页面脚本…','');
     (async()=>{
       await permission;
       if(disposed)throw {code:'E_HOST_CLOSED',message:'工作台已关闭'};

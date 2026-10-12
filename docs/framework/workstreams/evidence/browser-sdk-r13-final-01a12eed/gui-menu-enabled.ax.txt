@@ -1,0 +1,2 @@
+There has been no change in the accessibility tree for Window: "OpenDesk Browser · Browser Test Lab".
+The focused UI element is 244 切换按钮 停用此网站的右键菜单, Value: 1

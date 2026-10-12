@@ -267,10 +267,11 @@ test('R4.1 real Chrome installs bundled TOC, follows multiple H1, restores and r
   await trustedClick(host,'#sidebar-tool-settings-open');
   await eventually(()=>evaluate(host,'!document.querySelector("#sidebar-tool-settings-view").hidden'),
     'TOC settings did not open inside the Side Panel');
-  await trustedClick(host,'#sidebar-tool-settings-allow');
-  console.log('TOC_NATIVE_STAGE: site grant saved');
+  assert.equal(await evaluate(host,'document.querySelector("#sidebar-tool-settings-allow").getAttribute("aria-pressed")'),'true',
+    'Built-in reader is available without a per-origin grant');
+  console.log('TOC_NATIVE_STAGE: default site availability verified');
   await eventually(()=>evaluate(articlePage,'document.querySelectorAll("[data-opendesk-toc-root]").length===1'),
-    'Actual content script did not mount after verified origin grant');
+    'Actual content script did not mount under default site availability');
   async function panelSend(url,operation,details={}){
     const code=`(async()=>{
       const candidates=await chrome.tabs.query({});
@@ -471,7 +472,7 @@ test('R4.1 real Chrome installs bundled TOC, follows multiple H1, restores and r
   await trustedClick(host,'#sidebar-tool-settings-open');
   if(!await evaluate(host,'document.querySelector(".sidebar-toc-advanced").open'))
     await trustedClick(host,'.sidebar-toc-advanced summary');
-  await trustedClick(host,'#sidebar-tool-settings-sites .sidebar-tool-site-revoke');
+  await trustedClick(host,'#sidebar-tool-settings-deny');
   await eventually(async()=>
     await evaluate(articlePage,'document.querySelectorAll("[data-opendesk-toc-root]").length===0')&&
     await evaluate(chatPage,'document.querySelectorAll("[data-opendesk-toc-root]").length===0'),
@@ -528,7 +529,7 @@ test('R4.1 real Chrome installs bundled TOC, follows multiple H1, restores and r
     const stored=await evaluate(side,'chrome.storage.local.get("opendesk.sidebar-tools.installed.v1")');
     return stored?.['opendesk.sidebar-tools.installed.v1']?.some(item=>item.id==='reading-toc');
   },'Real Side Panel local import did not install the package');
-  // Exact-site permission is enabled by the user's real Side Panel click.
+  // Built-in default availability and explicit site stops use real controls.
   // The extension must not open a second blocking JavaScript confirmation.
   await browser.send('Target.activateTarget',{targetId:second.targetId});
   await chatPage.send('Page.bringToFront');
@@ -544,9 +545,13 @@ test('R4.1 real Chrome installs bundled TOC, follows multiple H1, restores and r
     void browser.send('Page.handleJavaScriptDialog',{accept:true},10000,attached.sessionId)
       .catch(error=>dialogErrors.push(String(error.message||error)));
   });
+  assert.equal(await evaluate(side,'document.querySelector("#sidebar-tool-settings-allow").getAttribute("aria-pressed")'),'true');
+  await trustedClick(side,'#sidebar-tool-settings-deny');
+  await eventually(()=>evaluate(chatPage,'document.querySelectorAll("[data-opendesk-toc-root]").length===0'),
+    'Explicit site stop did not release the default webpage overlay');
   await trustedClick(side,'#sidebar-tool-settings-allow');
   await eventually(()=>evaluate(side,`chrome.storage.local.get('opendesk.sidebar-tools.toc-sites.v1').then(
-    value=>value['opendesk.sidebar-tools.toc-sites.v1']?.['reading-toc']?.includes(${JSON.stringify(origin)})===true)`),
+    value=>value['opendesk.sidebar-tools.toc-sites.v1']?.['reading-toc']===undefined)`),
     'Real Side Panel website toggle did not authorize the exact origin');
   assert.equal(confirmedDialogs,0,'A site grant is one click with zero JavaScript dialogs');
   assert.deepEqual(dialogErrors,[]);
@@ -603,7 +608,7 @@ test('R4.1 real Chrome installs bundled TOC, follows multiple H1, restores and r
   await trustedClick(side,'#sidebar-tool-settings-open');
   if(!await evaluate(side,'document.querySelector(".sidebar-toc-advanced").open'))
     await trustedClick(side,'.sidebar-toc-advanced summary');
-  await trustedClick(side,'#sidebar-tool-settings-sites .sidebar-tool-site-revoke');
+  await trustedClick(side,'#sidebar-tool-settings-deny');
   await eventually(()=>evaluate(chatPage,'document.querySelectorAll("[data-opendesk-toc-root]").length===0'),
     'Revoking an origin in the actual Side Panel did not clean the webpage');
   assert.equal((await panelSend(origin+'/chat.html','toc.snapshot')).ok,false);

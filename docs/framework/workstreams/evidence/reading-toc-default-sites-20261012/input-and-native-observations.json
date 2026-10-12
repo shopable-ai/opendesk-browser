@@ -1,0 +1,38 @@
+{
+  "time": "2026-10-12T14:16:44.289973+08:00",
+  "head": "caee8920d3a6852613285a0c3aa5baaca3becf09",
+  "sourceHashes": {
+    "src/reading-toc/policy.js": "e5e40138641dc2125b0330137a845bd39ddf61a9036342f9620f2ce791c595b4",
+    "src/ui/sidebar-tools.js": "8c8cf9fe27bad2a5280293e537fabc9902b258256b607f2a5d1b6e1cd5b222ad",
+    "src/ui/tool.html": "2ad5b680973bdb94a9378e2cbe7ea1730f9200fcf975b4a5fb3ee91c1dfdd0c4",
+    "src/marketplace/catalog.js": "c80384bb15f7b7049d86409714b0bd9dae0379ef9bf4172d02c8f5041d493bfa",
+    "src/marketplace/page.js": "50cb94e0c6b18b7e6dddca1c38007c05b96e2c8c25c3f1f9352b50e84a0016a7",
+    "src/marketplace/marketplace.html": "9f1ee3d70829f5e746617cecfe87e8ac24388cd67f29acca8f753b8a931bd24c",
+    "examples/sidebar-tools/reading-toc/src/main.js": "045ae1ba98eec4d5b182f614ce07830f728ee36cccab0cf662a9d592c83783d1",
+    "examples/sidebar-tools/reading-toc/tool.config.json": "51da8d83eb5eaf98bd24962b5598fa762adf404ba2fde82f106b5a578a680e51",
+    "tests/environment/reading-toc-r41.test.mjs": "258cc25f3e3def4fbae777af0741311dc9b2e4b3bda2963a1466137da2368659",
+    "tests/environment/reading-toc-lifecycle-r41.test.mjs": "4a4cfa630b60071d743560d28abf28a73e96b3bd7e747f066e7960c89dcfc5de",
+    "tests/environment/sidebar-tools-host.test.mjs": "f7c7a005f587bc06113972b3f67ef95dabb504ca3b74d1d2225ef9cdcbdbc3a3",
+    "tests/framework/reading-toc-native-r41.test.mjs": "c7f012e6a492e49d2706ebb76bf654ba0f52f9c6e140367a46e68e0eecff8ef4"
+  },
+  "developmentRevision": "86ba4b2cf9521848b6cc88416b08ef458edb9280023405608d0a6e18df5d3ca4",
+  "manifestHash": "ff95488528884f4d4a617ace287d64d834665508a7eadb1d5195b1d4293f724f",
+  "readingTocVersion": "1.0.4",
+  "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+  "nativeObservationRevision": "8a8c03919f5b01d52cb3d20331ce36a6bb7a7b6806b9613127afdcee747535e2",
+  "observationKind": "Agent-authored summary of real macOS Chrome CUA output; not a controlled CFT/F3/ZIP receipt",
+  "observations": [
+    "Chrome extension details show ID ccfcjegpkdlgbclopjmadlcjedelidmf, fixed dist/development path, and site access 在所有网站上.",
+    "Existing reading-toc updated using actual official bundled marketplace review UI from 1.0.2 to 1.0.4; no new capability.",
+    "New https://example.com was not explicitly granted: refreshed page showed floating 网页目录 and side panel 暂无章节, without authorization error. No headings were detected on this page.",
+    "Real tool settings displayed default HTTP(S) availability; site stop removed floating TOC and showed 当前网站已停用.",
+    "Real enable-current-site restored floating TOC and empty blocked-site list. Test tab closed.",
+    "Original Zhihu page refreshed under observed revision; both TOCs listed chapters. Real sidebar click 写在最后 scrolled the matching heading to the top and highlighted it. Screenshot returned in CUA tool output."
+  ],
+  "devService": {
+    "npmPid": 82944,
+    "ownerPid": 82965,
+    "sessionId": 16068,
+    "state": "retained for requested daily development workflow"
+  }
+}

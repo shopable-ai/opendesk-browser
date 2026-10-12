@@ -1,0 +1,48 @@
+{
+  "startedAt": "2026-10-11T16:33:27.608Z",
+  "head": "f70ccb918e7e9046de7befa73a69f361e4d88b2f",
+  "node": "v24.16.0",
+  "npm": "11.13.0",
+  "inputs": [
+    {
+      "path": "package.json",
+      "sha256": "c9cfd69b5e807ec1fe6f2b40bc12ad2e2cb7f5c937bce5ae8195a43bcb3525c1"
+    },
+    {
+      "path": "package-lock.json",
+      "sha256": "9bee40f237f8622e9417ae52b40473c7a989b53ccee7519b52246de8733d2e57"
+    },
+    {
+      "path": "scripts/dev.mjs",
+      "sha256": "44b5bf5affb01ee08cf3d5dc673660d85cf27e877bd2861ce7be5bfcf18495c8"
+    },
+    {
+      "path": "scripts/prepare-public.mjs",
+      "sha256": "d8bba66d0d5097550e0aacff5f2e2b2c7795c594acbd3af8d6f83566e19f48c5"
+    },
+    {
+      "path": "scripts/development-lock.mjs",
+      "sha256": "1af495e567dadb76453cf10f204beeb5c9cb39b7c9320da88e603dc8c0811b5f"
+    },
+    {
+      "path": "scripts/wxt-development.mjs",
+      "sha256": "e22fe6537629b109b95fcf89a1862c0e509c01bf6cc479a74a6cdf7c56552959"
+    },
+    {
+      "path": "scripts/verify-package.mjs",
+      "sha256": "525bb13ce9bab4903a8aff3f30dca3828b08ff0b21023db5b7826e3c3303a18c"
+    },
+    {
+      "path": "wxt.config.mjs",
+      "sha256": "04a3e1866c601ef6065140ee54a6b334f221609efff6e6210ae07ed94aa14637"
+    },
+    {
+      "path": "src/libs/catalog.js",
+      "sha256": "30078b769ae4b45ec901196d405a3a7716c48fe17378f5d46d4436a1816e8ad0"
+    },
+    {
+      "path": "src/libs/runtime-contract.js",
+      "sha256": "6818bea03015c3cab54c04d0fbcff76f20fde6bf11b96f420acf3a5e3e12b68e"
+    }
+  ]
+}

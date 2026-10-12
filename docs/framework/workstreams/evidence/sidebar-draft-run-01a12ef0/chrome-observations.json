@@ -1,0 +1,71 @@
+{
+  "date": "2026-10-12",
+  "level": "targeted manual native Chrome UI with real Page stop receipts",
+  "browserApplication": "/Users/shopme/Applications/Google Chrome.app",
+  "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+  "loadedPath": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+  "observedLoadedRevision": "b58f413434af2db86e7371a590b16eb4f6ac3e5e5c940c21340beb34e95327ee",
+  "testPage": "http://127.0.0.1:43111/demo-form.html",
+  "input": "native CUA clicks and keyboard only",
+  "cases": [
+    {
+      "framework": "react",
+      "status": "PASS",
+      "primaryButton": "运行 React 组件",
+      "feedback": "组件已在当前网页运行；停止可清理受管 UI。不是自动安装。",
+      "interaction": ["已点击 0 次", "已点击 1 次"],
+      "previewReceiptObservedFragment": {
+        "state": "preview-evaluated",
+        "durable": false,
+        "registered": false,
+        "tabId": 560065351,
+        "documentId": "591E446BAF0241A5EDDF2981E456B0EC",
+        "sourceHash": "a48fe4ddd903c078337b3a0b0e0241aa5e777b3c1a7faf1e49eff58dac2b8926",
+        "world": "USER_SCRIPT",
+        "worldId": "opendesk-preview-d1-c2bff2723ba747c08d627cc9b3973c16",
+        "receiptNonce": "05d1ec18-2c2e-4477-939f-48a1b2b1a5b1"
+      },
+      "stop": {
+        "previewId": "e49eb51d-a703-438b-bff6-55a6dd4a7bec",
+        "sourceHash": "a48fe4ddd903c078337b3a0b0e0241aa5e777b3c1a7faf1e49eff58dac2b8926",
+        "state": "preview-retired",
+        "receipt": {
+          "format": "opendesk.managed-ui.v1",
+          "instances": 1,
+          "nonce": "6643e92c-42ae-43e9-8191-e1b2da6cc54f",
+          "ok": true,
+          "requestNonce": "6fd1caaf-afec-43cb-bc02-33064c2a9d6b",
+          "scope": "managed-ui-only"
+        }
+      }
+    },
+    {
+      "framework": "vue",
+      "status": "PASS",
+      "primaryButton": "运行 Vue 组件",
+      "feedback": "组件已在当前网页运行；停止可清理受管 UI。不是自动安装。",
+      "interaction": ["已点击 0 次", "已点击 1 次"],
+      "stop": {
+        "previewId": "355a81f8-026c-4bef-917e-18160763154a",
+        "sourceHash": "d7071713db0fed4d16fee1b7ab2f6ec3ff4f1254b71a8de06ded4bca30c27f59",
+        "state": "preview-retired",
+        "receipt": {
+          "format": "opendesk.managed-ui.v1",
+          "instances": 1,
+          "nonce": "9fe5570d-bc2d-4117-bebd-b7899e7db0ea",
+          "ok": true,
+          "requestNonce": "54fce9df-6e64-42c1-9083-f65cf4f58a5f",
+          "scope": "managed-ui-only"
+        }
+      }
+    }
+  ],
+  "cleanup": "Both managed UIs stopped with matching sourceHash and trusted cleanup receipts; this task's new demo tab closed; original JavaScript draft selected and retained.",
+  "limitations": [
+    "Observed fragments were transcribed from native CUA AX output in this conversation; these are not exported complete runtime ledger receipts.",
+    "The original React preview JSON was truncated by AX; the stop JSON was fully visible. Vue's complete initial preview JSON was not exported.",
+    "This manual run used the standard local demo page. Post-fix Zhihu execution was not tested.",
+    "Chrome changed to an AI Proxy settings page during final tab restoration; no further navigation was attempted.",
+    "No claim of complete original campaign, F3, ZIP installation, or all native failure cases."
+  ]
+}

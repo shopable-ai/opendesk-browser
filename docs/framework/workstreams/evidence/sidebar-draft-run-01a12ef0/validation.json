@@ -1,0 +1,72 @@
+{
+  "recordedAt": "2026-10-12T07:41:53.178Z",
+  "status": "COMPLETE_TARGETED_FIX",
+  "gitHead": "fac70cb28800cec9dc0f9337eb5ca087b5098373",
+  "branch": "main",
+  "inputs": {
+    "src/ui/script-editor.js": "93a72848253ed2e51ec072130949bba825c46bdcf206d5f705f508c081a3ca09",
+    "tests/environment/script-editor.test.mjs": "af4bee02e1b65f0aab28c775308b86941922c931594bde509b2a69ce7840a25d",
+    "src/ui/tool.html": "2ad5b680973bdb94a9378e2cbe7ea1730f9200fcf975b4a5fb3ee91c1dfdd0c4",
+    "src/ui/page-component-preparer.js": "61bec68172cd60b831383c7016895bf2f560c4ebf208e1a95725ff7c3c32a716",
+    "src/platform/host/preview-admission.js": "c4e22db7c8eacfeed06e1c1331ffc60c6bcc2b004f9b132b1278bb4001733430",
+    "src/ui/program-source.js": "e3f35b7db8cb6b3973a284db2b280f689ef678843a556f98721d1e702125d2a4",
+    "src/ui/page-dependencies.js": "3b400bc2cfd04fe9f88790f7751d381cc9a3de8674a3743f280d9f68742858f1",
+    "src/platform/chrome/permission-gate.js": "3a1abe5f510b809360b1fb44f835d44e8b1d01964db020e11af9efb45bf6ec57",
+    "src/ui/current-page-target.js": "239873391f73036c7b0d7b33a8438e870d1d74c8533495e6fb6ba40dfdb2a221",
+    "src/ui/local-project.js": "6292ac754c22971ed66895819a4bbf8c5d2f046c6b231338f5cae680578697f8",
+    "src/ui/local-project-install-ui.js": "e2ddc28ede428c152a0c35e142bac71decf05ba87ddaf56702e8d9bb4a3f2e34",
+    "src/ui/run-result-presentation.js": "5c309129f394f3b2b4eda69662b199ff132950bd73e1eaa74b87cc71cb254e1f",
+    "src/ui/task-run-diagnostics.js": "22dd62a72d93ade47184d238cc85f17eefee6752b953146eca1115a06ddb036b",
+    "src/ui/user-scripts-access.js": "7e8e73b34effee7a51b0943c85976b1a4e3b90898542bd707cbf25876389a2b5",
+    "src/ui/page-program-library.js": "39921233250d3ca095f908f0b7770924f323de1a0b2ae9a07b17d9466ce88369",
+    "src/scripting/user-scripts/dependency-metadata.js": "c4d7438caaf78b8759b3b9a6509a18208dc885fb7f1e51a51cab0ef935c0d042",
+    "src/ui/page-candidate-source.js": "97a67d5cecb985e9ccd89dac233dfb1cff24879200f36d756ffd74e0c126cbbe",
+    "src/run-host.js": "7e291c525a089836f4615903eb8143acae7bba6cbce702a8792c4b71c1fac34e",
+    "src/environment.js": "d6d1c9c0282d82730317175811147896b1fdf77dc0a9a5a3085a9b0fd707b158",
+    "src/platform/page-port/codec.js": "fef4eb401fa97d15c76d2e251ef42d7cd61e382002607e199bd75a1347516b10",
+    "src/platform/downloads/blob-lifecycle.js": "32f4b7e877fcfc08d1115a9941807d0092a0e60aa42cea85be5f24991d65e025",
+    "src/platform/protocol.js": "be91db624627180e21e2a8b4d2ebe9f7ec3f1da8048d4aa236a23f56b552ad94",
+    "src/platform/tasks/contract.js": "d523c6313e963e7a7f618a49d1ce3412dc37290e38676fa75c7e57780fe293e9",
+    "package-lock.json": "63bd16ac21bb1c3c6653849af8946bcbc7fc8c4bbe7b0bee39087bb393c6146c",
+    "tests/environment/sidebar-product-contract.test.mjs": "a91f114913c7b83748e591f9b0c1195759c9be358e6790f15b51e3a19a1d22f2",
+    "tests/environment/page-component-preparer-r243.test.mjs": "1ca8d98631f07b0c4ec5a5bcd183c462a6a43a8ad462ef2a7c2e52c1ab461510",
+    "tests/environment/page-direct-component-r243.test.mjs": "81ab66e959ed1247c44715f729bdbec30e51ce1237aee721aa663ecda6ab3e6e",
+    "docs/framework/workstreams/evidence/sidebar-draft-run-01a12ef0/targeted-final.tap": "5df686901c657fec483d3fdbe97975b832b13ab2a6acb4f03085e5c4bfb1a09b",
+    "docs/framework/workstreams/evidence/sidebar-draft-run-01a12ef0/source-check-final.log": "160df46ee7aa26e5a4e7855ae471d152143800d1f27f3b4f727aff9134c2e21d",
+    "docs/framework/workstreams/evidence/sidebar-draft-run-01a12ef0/chrome-observations.json": "f504c2d9963e157c8a81e1689aab56fcb4fb41ed68e1c0ae2a25dc205e181f17"
+  },
+  "componentTests": {
+    "passed": 68,
+    "failed": 0,
+    "log": "docs/framework/workstreams/evidence/sidebar-draft-run-01a12ef0/targeted-final.tap"
+  },
+  "sourceCheck": {
+    "status": "PASS",
+    "filesChecked": 497,
+    "log": "docs/framework/workstreams/evidence/sidebar-draft-run-01a12ef0/source-check-final.log"
+  },
+  "currentDevelopmentOutput": {
+    "revision": "e08f7ab4376391223518eedeec55519152dda1d4b01ffc93bedb95d5d6f3e7d2",
+    "sidebarBundleSha256": "5f1c2064df8a8d72b436b01c3870610c60d09b1289fc8c4920d26381a0bb70a3",
+    "matchesObservedRevision": false
+  },
+  "nativeUI": {
+    "status": "PASS_TARGETED_REACT_VUE",
+    "observation": "docs/framework/workstreams/evidence/sidebar-draft-run-01a12ef0/chrome-observations.json"
+  },
+  "resources": {
+    "newDemoTab": "closed",
+    "managedPreviews": "retired",
+    "existingDevService": "retained",
+    "existingDemoServer": "retained",
+    "productionDist": "not used",
+    "CFT": "not used"
+  },
+  "notTested": [
+    "post-fix Zhihu execution",
+    "complete native failure matrix",
+    "F3",
+    "ZIP"
+  ],
+  "release": false
+}

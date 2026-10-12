@@ -1,0 +1,108 @@
+{
+  "candidateSha": "fdb048513b8f93dafbf7c177b0dbb11def805475",
+  "snapshot": "/Users/shopme/Documents/workspace/opendesk-browser/.runtime/tests/browser-sdk-r13-final/01a12eed/candidate",
+  "env": {
+    "OPENDESK_OUTPUT_GUARD_PORT": "43123",
+    "OPENDESK_BUILD_EVIDENCE_DIR": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/evidence/browser-sdk-r13-final-01a12eed/candidate-builds"
+  },
+  "node": "v26.3.1",
+  "results": [
+    {
+      "name": "candidate-targeted-final",
+      "command": "node --test --test-reporter=tap tests/environment/browser-sdk-r13.test.mjs tests/environment/sidebar-tools.test.mjs tests/environment/sidebar-tools-host.test.mjs tests/environment/official-tools-catalog-r45.test.mjs tests/environment/fixed-entries-audit.test.mjs tests/framework/k4-sdk-reinjection.test.mjs tests/framework/k4-sdk.test.mjs tests/framework/k2-sdk-relay-races.test.mjs tests/environment/boundaries.test.mjs",
+      "cwd": "/Users/shopme/Documents/workspace/opendesk-browser/.runtime/tests/browser-sdk-r13-final/01a12eed/candidate",
+      "startedAt": "2026-10-12T07:49:26.652821+00:00",
+      "status": "PASS",
+      "log": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/evidence/browser-sdk-r13-final-01a12eed/candidate-targeted-final.log",
+      "exitCode": 0,
+      "finishedAt": "2026-10-12T07:49:27.826152+00:00",
+      "counts": {
+        "tests": 194,
+        "pass": 194,
+        "fail": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "name": "candidate-check",
+      "command": "npm run check",
+      "cwd": "/Users/shopme/Documents/workspace/opendesk-browser/.runtime/tests/browser-sdk-r13-final/01a12eed/candidate",
+      "startedAt": "2026-10-12T07:49:27.827246+00:00",
+      "status": "PASS",
+      "log": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/evidence/browser-sdk-r13-final-01a12eed/candidate-check.log",
+      "exitCode": 0,
+      "finishedAt": "2026-10-12T07:49:54.349724+00:00"
+    },
+    {
+      "name": "build-production",
+      "command": "npm run build",
+      "cwd": "/Users/shopme/Documents/workspace/opendesk-browser/.runtime/tests/browser-sdk-r13-final/01a12eed/candidate",
+      "startedAt": "2026-10-12T07:49:54.350136+00:00",
+      "status": "FAIL",
+      "log": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/evidence/browser-sdk-r13-final-01a12eed/build-production.log",
+      "exitCode": 1,
+      "finishedAt": "2026-10-12T07:49:55.808089+00:00"
+    },
+    {
+      "name": "build-production-attempt2",
+      "command": "npm run build",
+      "cwd": "/Users/shopme/Documents/workspace/opendesk-browser/.runtime/tests/browser-sdk-r13-final/01a12eed/candidate",
+      "startedAt": "2026-10-12T07:52:43.492855+00:00",
+      "status": "PASS",
+      "log": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/evidence/browser-sdk-r13-final-01a12eed/build-production-attempt2.log",
+      "exitCode": 0,
+      "finishedAt": "2026-10-12T07:53:00.042478+00:00"
+    },
+    {
+      "name": "build-development",
+      "command": "npm run build:dev",
+      "cwd": "/Users/shopme/Documents/workspace/opendesk-browser/.runtime/tests/browser-sdk-r13-final/01a12eed/candidate",
+      "startedAt": "2026-10-12T07:53:00.043199+00:00",
+      "status": "PASS",
+      "log": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/evidence/browser-sdk-r13-final-01a12eed/build-development.log",
+      "exitCode": 0,
+      "finishedAt": "2026-10-12T07:53:14.648127+00:00"
+    },
+    {
+      "name": "build-size",
+      "command": "npm run build:size",
+      "cwd": "/Users/shopme/Documents/workspace/opendesk-browser/.runtime/tests/browser-sdk-r13-final/01a12eed/candidate",
+      "startedAt": "2026-10-12T07:53:14.648768+00:00",
+      "status": "PASS",
+      "log": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/evidence/browser-sdk-r13-final-01a12eed/build-size.log",
+      "exitCode": 0,
+      "finishedAt": "2026-10-12T07:53:15.444435+00:00"
+    },
+    {
+      "name": "verify",
+      "command": "npm run verify",
+      "cwd": "/Users/shopme/Documents/workspace/opendesk-browser/.runtime/tests/browser-sdk-r13-final/01a12eed/candidate",
+      "startedAt": "2026-10-12T07:53:15.444915+00:00",
+      "status": "PASS",
+      "log": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/evidence/browser-sdk-r13-final-01a12eed/verify.log",
+      "exitCode": 0,
+      "finishedAt": "2026-10-12T07:53:17.031878+00:00"
+    },
+    {
+      "name": "candidate-bundle-regression",
+      "command": "node --test --test-reporter=tap tests/framework/k4-sdk-hello-races.test.mjs tests/framework/k4-sdk-bundle-reinjection.test.mjs",
+      "cwd": "/Users/shopme/Documents/workspace/opendesk-browser/.runtime/tests/browser-sdk-r13-final/01a12eed/candidate",
+      "startedAt": "2026-10-12T07:53:17.032482+00:00",
+      "status": "PASS",
+      "log": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/evidence/browser-sdk-r13-final-01a12eed/candidate-bundle-regression.log",
+      "exitCode": 0,
+      "finishedAt": "2026-10-12T07:53:17.237585+00:00",
+      "counts": {
+        "tests": 12,
+        "pass": 12,
+        "fail": 0,
+        "skipped": 0
+      }
+    }
+  ],
+  "dependencyIsolation": {
+    "method": "ditto existing node_modules into owned snapshot; no symlink outside build root",
+    "reason": "strict provenance rejects external module realpaths; failure preserved",
+    "npmScriptNode": "same as PATH node"
+  }
+}

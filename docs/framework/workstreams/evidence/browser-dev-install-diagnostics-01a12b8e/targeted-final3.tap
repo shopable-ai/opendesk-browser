@@ -1,0 +1,100 @@
+✔ standalone JSX compiler uses exactly the existing root-locked esbuild version (3.811375ms)
+✔ publishable CLI lock preserves required/transitive/optional versions and excludes unrelated dev tools (1.808458ms)
+✔ runtime closure accepts existing transitive modules but does not borrow unrelated development dependencies (0.091875ms)
+✔ pack refuses existing output without deleting backups, including dangling symlink output (176.825333ms)
+✔ pack rejects a parent symlink before writing to its target (81.873584ms)
+✔ publishable dependency lock is part of the installed content identity (8.253541ms)
+✔ readonly dependency-lock diagnosis detects changed versions and missing required packages (14.738208ms)
+✔ version uses actual package metadata, identity is deterministic and detects same-version changed bytes (7.262959ms)
+✔ a verified package is self-consistent, not evidence of latest; explicit reference catches same-version old content (11.294583ms)
+✔ missing metadata, renamed version and unexpected runtime file cannot pass identity verification (6.32125ms)
+✔ missing declared runtime dependencies are diagnosed without loading or executing them (6.910417ms)
+✔ an intact require branch does not hide a missing ESM import target (10.373583ms)
+✔ nvm CLI and Homebrew registered package are diagnosed independently of matching version and entry bytes (11.063333ms)
+✔ Go selection prefers trusted Homebrew node over PATH nvm, skipping project/node_modules executables (7.557ms)
+✔ different Go Node is never executed to infer its version or mutate the filesystem (12.247083ms)
+✔ old Node owner is migration-required and is never probed or changed (8.522833ms)
+✔ missing socket, disconnected extension, incompatible capability and invalid manifest have distinct repairs (9.217375ms)
+✔ private file permissions, invalid provenance and protocol payload never expose credentials (6.953ms)
+✔ receipt and entry sizes match Go admission limits (5.721459ms)
+✔ an executable directory cannot be accepted as a Go binary even with a live socket (5.8075ms)
+✔ doctor flags never reinterpret directory names and reject malformed combinations (0.318ms)
+✔ doctor exit code and JSON reflect faults without invoking an attach or browser opener (5.55425ms)
+✔ real socket probe sends only auth, strips unknown response fields and closes its connection (10.534209ms)
+✔ oversized, malformed, unauthenticated or silent responses are bounded and never leaked (6.187959ms)
+✔ managed cleanup waits for async disposers and callbacks; repeated retirement never repeats disposal (5.86975ms)
+✔ sync and async cleanup failures remain tombstones even when the DOM host was removed (1.957458ms)
+✔ managed cleanup times out conservatively and never promotes a late completion to success (17.933542ms)
+✔ the captured lexical registry survives global alias forgery and ignores DOM close as a success receipt (2.538333ms)
+✔ changed Promise primitives cannot turn an unfinished async disposer into successful cleanup (2.112ms)
+✔ a manual preview cannot bypass a managed old instance through its legacy DOM replacement path (1.737625ms)
+✔ prototype then pollution cannot assimilate a failed cleanup receipt into forged success (0.82975ms)
+✔ retirement freezes entry to every managed instance before any disposer can trigger new business callbacks (0.838333ms)
+✖ Go scoped project bindings pass the adapter and preserve managed preview ownership through replacement and retirement (18.023792ms)
+✔ malformed scoped bindings fail before Page native effects (15.607917ms)
+✔ explicit next preview retires the original world before new code; service recreation preserves identity and budget (7.51025ms)
+✔ confirmed cleanup failure blocks new code and preserves the failed record across retries (4.956792ms)
+✔ lost cleanup receipt holds the original shared Authority fence; no second retirement or Controller admission (5.260334ms)
+✔ Host loss after bootstrap or retiring ledger write prevents the next native effect (8.761416ms)
+✔ pre-bootstrap refusal does not poison next valid admission; previous main failure still requires managed cleanup (5.868959ms)
+✔ removing the UI import cannot silently bypass an old managed binding (5.301209ms)
+✔ Native adapter maps uncoded transport rejection to unknown for preview and managed disposal (1.169ms)
+✔ ready artifact: ten explicit reads add zero compilations, immutable identities and no implicit business (423.145209ms)
+✔ 30 saves coalesce, atomic save/delete/rename/recovery and latest syntax error never fall back (1078.408334ms)
+✔ explicit request joins preparing version; superseded build cannot publish and detach releases watchers (74.425583ms)
+✔ two projects have independent artifacts, outputs/irrelevant edits stay outside closure (170.417375ms)
+✔ workspace is not runnable; close during build prevents late cache publication (18.816ms)
+✔ explicit runs share the two-slot limit and superseded compilations remain counted (103.680875ms)
+✔ disconnect cancels a queued background preparation before it can compile or publish (100.152542ms)
+✔ queued explicit projects are cancelled on close and background gets a bounded turn (58.854917ms)
+✔ an obsolete syntax failure cannot overwrite a newer merge or publish an error (256.092584ms)
+✔ explicit requests are FIFO and promote the existing queued preparation (67.951584ms)
+✔ public preparation strips source bytes, absolute diagnostics and unknown fields (1.069666ms)
+✔ public preparation retains bounded identity, timings and relative actionable diagnostics (0.160125ms)
+✔ malformed public preparation cannot introduce identity or unbounded metadata (0.773ms)
+✔ preparation notifications require explicit Host capability and release subscriptions (1.609042ms)
+✔ legacy listing and modern catalog both sanitize preparation at the actual provider boundary (5.493625ms)
+✔ help/version never read a Go installation, start the provider or touch directory (22.610166ms)
+✔ Go installation discovery accepts only paired private Go owner (3.070875ms)
+✔ online identity stays distinct from the display cache (0.140959ms)
+✔ R17 requires a pinned modern Node runtime but help remains side-effect free (0.18175ms)
+✔ all Node directory forms request temporary read-write by default and share explicit read-only parsing (0.148084ms)
+✔ attach sends explicit access and reports the actual permanent or existing-session permission (2.028791ms)
+✔ old components are diagnosed before the new CLI sends an access request (0.188333ms)
+✔ malformed owner replies and a read-only mode mismatch never reach Provider setup (2.699458ms)
+✔ owner close interrupts pending initialization and leaves another owner intact (0.492208ms)
+✔ owner notices a close before listener installation and releases only its own signal listeners (0.231292ms)
+✔ a signal or failed setup closes the owned provider exactly once (0.294042ms)
+✔ R17 recognized directory exports validated runtimeKind into its modern Native source catalog (32.759041ms)
+✔ real Go lower-camel installation and isolated instance retain the private owner boundary (2.392334ms)
+ℹ tests 69
+ℹ suites 0
+ℹ pass 68
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2504.570375
+
+✖ failing tests:
+
+test at tests/environment/local-dev-managed-ui.test.mjs:118:1
+✖ Go scoped project bindings pass the adapter and preserve managed preview ownership through replacement and retirement (18.023792ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'preview-pending'
+  - 'preview-evaluated'
+             ^
+  
+      at run (file:///Users/shopme/.codex/tmp/browser-dev-install-diagnostics-01a12b8e/source-final3/tests/environment/local-dev-managed-ui.test.mjs:130:14)
+      at async TestContext.<anonymous> (file:///Users/shopme/.codex/tmp/browser-dev-install-diagnostics-01a12b8e/source-final3/tests/environment/local-dev-managed-ui.test.mjs:134:37)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'preview-pending',
+    expected: 'preview-evaluated',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

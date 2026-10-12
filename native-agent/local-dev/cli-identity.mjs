@@ -9,8 +9,13 @@ export const digest=bytes=>crypto.createHash('sha256').update(bytes).digest('hex
 const moduleRoot=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..');
 function json(file){return JSON.parse(fs.readFileSync(file,'utf8'));}
 export function contentInventory(root,paths=['package.json','bin','runtime']){
+  if(paths.length===3&&paths.includes('package.json')&&fs.existsSync(path.join(root,'npm-shrinkwrap.json')))
+    paths=[...paths,'npm-shrinkwrap.json'];
+  const pkg=json(path.join(root,'package.json'));
+  if(paths.includes('runtime')&&(pkg.bundleDependencies===true||Array.isArray(pkg.bundleDependencies)&&pkg.bundleDependencies.length))paths=[...paths,'node_modules'];
   const rows=[];
   function visit(relative){
+    if(/(?:^|\/)node_modules\/(?:\.bin|\.package-lock\.json)$/.test(relative.split(path.sep).join('/')))return;
     const file=path.join(root,relative),stat=fs.lstatSync(file);
     if(stat.isSymbolicLink())throw new Error('E_DEV_PACKAGE_LINK');
     if(stat.isDirectory()){
@@ -54,12 +59,11 @@ export function readCliIdentity(root=defaultCliRoot()){
     if(!fs.existsSync(path.join(root,'build-info.json')))return {...result,status:'legacy-unrecorded'};
     const bytes=fs.readFileSync(path.join(root,'build-info.json'));
     result.metadataSha256=digest(bytes);
-    const recorded=JSON.parse(bytes);
+    let recorded;try{recorded=JSON.parse(bytes);}catch{return {...result,status:'invalid-build-info'};}
     result.recordedFingerprint=/^[a-f0-9]{64}$/.test(recorded.contentFingerprint||'')?recorded.contentFingerprint:null;
-    // Only emit known provenance fields; never return arbitrary package metadata.
-    result.source={gitHead:/^[a-f0-9]{40}$/.test(recorded.source?.gitHead||'')?recorded.source.gitHead:null,
-      dirty:typeof recorded.source?.dirty==='boolean'?recorded.source.dirty:null,
-      lockSha256:/^[a-f0-9]{64}$/.test(recorded.source?.lockSha256||'')?recorded.source.lockSha256:null};
+    // Provenance was recorded by the builder, but an installed package cannot
+    // independently verify it. Do not echo arbitrary metadata (even hex hashes).
+    result.provenance='recorded-not-independently-verified';
     result.status=recorded.format===BUILD_FORMAT&&recorded.package===pkg.name&&recorded.version===pkg.version&&
       recorded.contentFingerprint===result.contentFingerprint&&
       JSON.stringify(recorded.files)===JSON.stringify(files)?'verified':'content-mismatch';
@@ -67,5 +71,5 @@ export function readCliIdentity(root=defaultCliRoot()){
   }catch{return result;}
 }
 export function formatCliVersion(identity=readCliIdentity()){
-  return `OpenDesk Browser 本地目录直连 R17.1\n包版本：${identity.version||'未知'}\n内容 SHA-256：${identity.contentFingerprint||'不可读取'}\n身份：${identity.status}\n安装路径：${identity.packageRoot}\n入口：${identity.entryPath||'不可读取'}\n`;
+  return `OpenDesk Browser 本地目录直连 R17.1\n包版本：${identity.version||'未知'}\n内容 SHA-256：${identity.contentFingerprint||'不可读取'}\n构建记录 SHA-256：${identity.metadataSha256||'未记录'}\n身份：${identity.status} · ${identity.mode}\n安装路径：${identity.packageRoot}\n入口：${identity.entryPath||'不可读取'}\n`;
 }

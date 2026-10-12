@@ -1,0 +1,282 @@
+✔ standalone JSX compiler uses exactly the existing root-locked esbuild version (2.392291ms)
+✔ runtime closure accepts existing transitive modules but does not borrow unrelated development dependencies (0.09175ms)
+✔ pack refuses existing output without deleting backups, including dangling symlink output (157.45425ms)
+✔ pack rejects a parent symlink before writing to its target (74.193958ms)
+✔ version uses actual package metadata, identity is deterministic and detects same-version changed bytes (11.535125ms)
+✔ a verified package is self-consistent, not evidence of latest; explicit reference catches same-version old content (8.102542ms)
+✔ missing metadata, renamed version and unexpected runtime file cannot pass identity verification (5.474125ms)
+✔ missing declared runtime dependencies are diagnosed without loading or executing them (5.946208ms)
+✔ an intact require branch does not hide a missing ESM import target (7.831125ms)
+✔ nvm CLI and Homebrew registered package are diagnosed independently of matching version and entry bytes (7.719333ms)
+✔ Go selection prefers trusted Homebrew node over PATH nvm, skipping project/node_modules executables (7.31675ms)
+✔ different Go Node is never executed to infer its version or mutate the filesystem (5.833292ms)
+✔ old Node owner is migration-required and is never probed or changed (5.810958ms)
+✔ missing socket, disconnected extension, incompatible capability and invalid manifest have distinct repairs (7.633542ms)
+✔ private file permissions, invalid provenance and protocol payload never expose credentials (5.999667ms)
+✔ receipt and entry sizes match Go admission limits (5.655916ms)
+✔ an executable directory cannot be accepted as a Go binary even with a live socket (4.945208ms)
+✔ doctor flags never reinterpret directory names and reject malformed combinations (0.261834ms)
+✔ doctor exit code and JSON reflect faults without invoking an attach or browser opener (4.708084ms)
+✔ real socket probe sends only auth, strips unknown response fields and closes its connection (9.206791ms)
+✔ oversized, malformed, unauthenticated or silent responses are bounded and never leaked (6.120792ms)
+✔ managed cleanup waits for async disposers and callbacks; repeated retirement never repeats disposal (6.639917ms)
+✔ sync and async cleanup failures remain tombstones even when the DOM host was removed (1.969166ms)
+✔ managed cleanup times out conservatively and never promotes a late completion to success (17.475209ms)
+✔ the captured lexical registry survives global alias forgery and ignores DOM close as a success receipt (1.535417ms)
+✔ changed Promise primitives cannot turn an unfinished async disposer into successful cleanup (0.753291ms)
+✔ a manual preview cannot bypass a managed old instance through its legacy DOM replacement path (1.576917ms)
+✔ prototype then pollution cannot assimilate a failed cleanup receipt into forged success (0.723917ms)
+✔ retirement freezes entry to every managed instance before any disposer can trigger new business callbacks (0.805916ms)
+✔ Go scoped project bindings pass the adapter and preserve managed preview ownership through replacement and retirement (26.380375ms)
+✔ malformed scoped bindings fail before Page native effects (5.9285ms)
+✔ explicit next preview retires the original world before new code; service recreation preserves identity and budget (5.363917ms)
+✔ confirmed cleanup failure blocks new code and preserves the failed record across retries (4.650917ms)
+✔ lost cleanup receipt holds the original shared Authority fence; no second retirement or Controller admission (3.502291ms)
+✔ Host loss after bootstrap or retiring ledger write prevents the next native effect (4.212958ms)
+✔ pre-bootstrap refusal does not poison next valid admission; previous main failure still requires managed cleanup (4.971459ms)
+✔ removing the UI import cannot silently bypass an old managed binding (4.315333ms)
+✔ Native adapter maps uncoded transport rejection to unknown for preview and managed disposal (0.471167ms)
+✖ ready artifact: ten explicit reads add zero compilations, immutable identities and no implicit business (5.436542ms)
+✖ 30 saves coalesce, atomic save/delete/rename/recovery and latest syntax error never fall back (2.62275ms)
+✖ explicit request joins preparing version; superseded build cannot publish and detach releases watchers (1.902875ms)
+✖ two projects have independent artifacts, outputs/irrelevant edits stay outside closure (1.59875ms)
+✖ workspace is not runnable; close during build prevents late cache publication (2.609042ms)
+✖ explicit runs share the two-slot limit and superseded compilations remain counted (2.511042ms)
+✖ disconnect cancels a queued background preparation before it can compile or publish (2.396667ms)
+✖ queued explicit projects are cancelled on close and background gets a bounded turn (3.276125ms)
+✖ an obsolete syntax failure cannot overwrite a newer merge or publish an error (2.391541ms)
+✖ explicit requests are FIFO and promote the existing queued preparation (2.814375ms)
+✔ public preparation strips source bytes, absolute diagnostics and unknown fields (1.011125ms)
+✔ public preparation retains bounded identity, timings and relative actionable diagnostics (0.169084ms)
+✔ malformed public preparation cannot introduce identity or unbounded metadata (0.767833ms)
+✔ preparation notifications require explicit Host capability and release subscriptions (1.532959ms)
+✔ legacy listing and modern catalog both sanitize preparation at the actual provider boundary (3.43325ms)
+✔ help/version never read a Go installation, start the provider or touch directory (20.147584ms)
+✔ Go installation discovery accepts only paired private Go owner (2.030542ms)
+✔ online identity stays distinct from the display cache (0.148625ms)
+✔ R17 requires a pinned modern Node runtime but help remains side-effect free (0.177458ms)
+✔ all Node directory forms request temporary read-write by default and share explicit read-only parsing (0.135291ms)
+✔ attach sends explicit access and reports the actual permanent or existing-session permission (1.929917ms)
+✔ old components are diagnosed before the new CLI sends an access request (0.186084ms)
+✔ malformed owner replies and a read-only mode mismatch never reach Provider setup (1.16025ms)
+✔ owner close interrupts pending initialization and leaves another owner intact (0.360542ms)
+✔ owner notices a close before listener installation and releases only its own signal listeners (0.652792ms)
+✔ a signal or failed setup closes the owned provider exactly once (0.30875ms)
+✖ R17 recognized directory exports validated runtimeKind into its modern Native source catalog (21.225875ms)
+✔ real Go lower-camel installation and isolated instance retain the private owner boundary (2.334875ms)
+ℹ tests 66
+ℹ suites 0
+ℹ pass 55
+ℹ fail 11
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 365.928916
+
+✖ failing tests:
+
+test at tests/environment/local-dev-preparation.test.mjs:24:1
+✖ ready artifact: ten explicit reads add zero compilations, immutable identities and no implicit business (5.436542ms)
+  Error: ENOENT: no such file or directory, lstat '/Users/shopme/.codex/tmp/browser-dev-install-diagnostics-01a12b8e/source-final/scripts/page-vue-sfc-loader.cjs'
+      at Object.lstatSync (node:fs:1694:25)
+      at file:///Users/shopme/.codex/tmp/browser-dev-install-diagnostics-01a12b8e/source-final/native-agent/local-dev/resolver.mjs:21:172
+      at Array.map (<anonymous>)
+      at buildIdentity (file:///Users/shopme/.codex/tmp/browser-dev-install-diagnostics-01a12b8e/source-final/native-agent/local-dev/resolver.mjs:21:64)
+      at new LocalDevResolver (file:///Users/shopme/.codex/tmp/browser-dev-install-diagnostics-01a12b8e/source-final/native-agent/local-dev/resolver.mjs:108:24)
+      at fixture (file:///Users/shopme/.codex/tmp/browser-dev-install-diagnostics-01a12b8e/source-final/tests/environment/local-dev-preparation.test.mjs:20:18)
+      at TestContext.<anonymous> (file:///Users/shopme/.codex/tmp/browser-dev-install-diagnostics-01a12b8e/source-final/tests/environment/local-dev-preparation.test.mjs:25:11)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.start (node:internal/test_runner/test:1242:17) {
+    errno: -2,
+    code: 'ENOENT',
+    syscall: 'lstat',
+    path: '/Users/shopme/.codex/tmp/browser-dev-install-diagnostics-01a12b8e/source-final/scripts/page-vue-sfc-loader.cjs'
+  }
+
+test at tests/environment/local-dev-preparation.test.mjs:32:1
+✖ 30 saves coalesce, atomic save/delete/rename/recovery and latest syntax error never fall back (2.62275ms)
+  Error: ENOENT: no such file or directory, lstat '/Users/shopme/.codex/tmp/browser-dev-install-diagnostics-01a12b8e/source-final/scripts/page-vue-sfc-loader.cjs'
+      at Object.lstatSync (node:fs:1694:25)
+      at file:///Users/shopme/.codex/tmp/browser-dev-install-diagnostics-01a12b8e/source-final/native-agent/local-dev/resolver.mjs:21:172
+      at Array.map (<anonymous>)
+      at buildIdentity (file:///Users/shopme/.codex/tmp/browser-dev-install-diagnostics-01a12b8e/source-final/native-agent/local-dev/resolver.mjs:21:64)
+      at new LocalDevResolver (file:///Users/shopme/.codex/tmp/browser-dev-install-diagnostics-01a12b8e/source-final/native-agent/local-dev/resolver.mjs:108:24)
+      at fixture (file:///Users/shopme/.codex/tmp/browser-dev-install-diagnostics-01a12b8e/source-final/tests/environment/local-dev-preparation.test.mjs:20:18)
+      at TestContext.<anonymous> (file:///Users/shopme/.codex/tmp/browser-dev-install-diagnostics-01a12b8e/source-final/tests/environment/local-dev-preparation.test.mjs:33:11)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18) {
+    errno: -2,
+    code: 'ENOENT',
+    syscall: 'lstat',
+    path: '/Users/shopme/.codex/tmp/browser-dev-install-diagnostics-01a12b8e/source-final/scripts/page-vue-sfc-loader.cjs'
+  }
+
+test at tests/environment/local-dev-preparation.test.mjs:48:1
+✖ explicit request joins preparing version; superseded build cannot publish and detach releases watchers (1.902875ms)
+  Error: ENOENT: no such file or directory, lstat '/Users/shopme/.codex/tmp/browser-dev-install-diagnostics-01a12b8e/source-final/scripts/page-vue-sfc-loader.cjs'
+      at Object.lstatSync (node:fs:1694:25)
+      at file:///Users/shopme/.codex/tmp/browser-dev-install-diagnostics-01a12b8e/source-final/native-agent/local-dev/resolver.mjs:21:172
+      at Array.map (<anonymous>)
+      at buildIdentity (file:///Users/shopme/.codex/tmp/browser-dev-install-diagnostics-01a12b8e/source-final/native-agent/local-dev/resolver.mjs:21:64)
+      at new LocalDevResolver (file:///Users/shopme/.codex/tmp/browser-dev-install-diagnostics-01a12b8e/source-final/native-agent/local-dev/resolver.mjs:108:24)
+      at fixture (file:///Users/shopme/.codex/tmp/browser-dev-install-diagnostics-01a12b8e/source-final/tests/environment/local-dev-preparation.test.mjs:20:18)
+      at TestContext.<anonymous> (file:///Users/shopme/.codex/tmp/browser-dev-install-diagnostics-01a12b8e/source-final/tests/environment/local-dev-preparation.test.mjs:49:11)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18) {
+    errno: -2,
+    code: 'ENOENT',
+    syscall: 'lstat',
+    path: '/Users/shopme/.codex/tmp/browser-dev-install-diagnostics-01a12b8e/source-final/scripts/page-vue-sfc-loader.cjs'
+  }
+
+test at tests/environment/local-dev-preparation.test.mjs:60:1
+✖ two projects have independent artifacts, outputs/irrelevant edits stay outside closure (1.59875ms)
+  Error: ENOENT: no such file or directory, lstat '/Users/shopme/.codex/tmp/browser-dev-install-diagnostics-01a12b8e/source-final/scripts/page-vue-sfc-loader.cjs'
+      at Object.lstatSync (node:fs:1694:25)
+      at file:///Users/shopme/.codex/tmp/browser-dev-install-diagnostics-01a12b8e/source-final/native-agent/local-dev/resolver.mjs:21:172
+      at Array.map (<anonymous>)
+      at buildIdentity (file:///Users/shopme/.codex/tmp/browser-dev-install-diagnostics-01a12b8e/source-final/native-agent/local-dev/resolver.mjs:21:64)
+      at new LocalDevResolver (file:///Users/shopme/.codex/tmp/browser-dev-install-diagnostics-01a12b8e/source-final/native-agent/local-dev/resolver.mjs:108:24)
+      at fixture (file:///Users/shopme/.codex/tmp/browser-dev-install-diagnostics-01a12b8e/source-final/tests/environment/local-dev-preparation.test.mjs:20:18)
+      at TestContext.<anonymous> (file:///Users/shopme/.codex/tmp/browser-dev-install-diagnostics-01a12b8e/source-final/tests/environment/local-dev-preparation.test.mjs:61:11)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18) {
+    errno: -2,
+    code: 'ENOENT',
+    syscall: 'lstat',
+    path: '/Users/shopme/.codex/tmp/browser-dev-install-diagnostics-01a12b8e/source-final/scripts/page-vue-sfc-loader.cjs'
+  }
+
+test at tests/environment/local-dev-preparation.test.mjs:66:1
+✖ workspace is not runnable; close during build prevents late cache publication (2.609042ms)
+  Error: ENOENT: no such file or directory, lstat '/Users/shopme/.codex/tmp/browser-dev-install-diagnostics-01a12b8e/source-final/scripts/page-vue-sfc-loader.cjs'
+      at Object.lstatSync (node:fs:1694:25)
+      at file:///Users/shopme/.codex/tmp/browser-dev-install-diagnostics-01a12b8e/source-final/native-agent/local-dev/resolver.mjs:21:172
+      at Array.map (<anonymous>)
+      at buildIdentity (file:///Users/shopme/.codex/tmp/browser-dev-install-diagnostics-01a12b8e/source-final/native-agent/local-dev/resolver.mjs:21:64)
+      at new LocalDevResolver (file:///Users/shopme/.codex/tmp/browser-dev-install-diagnostics-01a12b8e/source-final/native-agent/local-dev/resolver.mjs:108:24)
+      at fixture (file:///Users/shopme/.codex/tmp/browser-dev-install-diagnostics-01a12b8e/source-final/tests/environment/local-dev-preparation.test.mjs:20:18)
+      at TestContext.<anonymous> (file:///Users/shopme/.codex/tmp/browser-dev-install-diagnostics-01a12b8e/source-final/tests/environment/local-dev-preparation.test.mjs:67:11)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18) {
+    errno: -2,
+    code: 'ENOENT',
+    syscall: 'lstat',
+    path: '/Users/shopme/.codex/tmp/browser-dev-install-diagnostics-01a12b8e/source-final/scripts/page-vue-sfc-loader.cjs'
+  }
+
+test at tests/environment/local-dev-preparation.test.mjs:72:1
+✖ explicit runs share the two-slot limit and superseded compilations remain counted (2.511042ms)
+  Error: ENOENT: no such file or directory, lstat '/Users/shopme/.codex/tmp/browser-dev-install-diagnostics-01a12b8e/source-final/scripts/page-vue-sfc-loader.cjs'
+      at Object.lstatSync (node:fs:1694:25)
+      at file:///Users/shopme/.codex/tmp/browser-dev-install-diagnostics-01a12b8e/source-final/native-agent/local-dev/resolver.mjs:21:172
+      at Array.map (<anonymous>)
+      at buildIdentity (file:///Users/shopme/.codex/tmp/browser-dev-install-diagnostics-01a12b8e/source-final/native-agent/local-dev/resolver.mjs:21:64)
+      at new LocalDevResolver (file:///Users/shopme/.codex/tmp/browser-dev-install-diagnostics-01a12b8e/source-final/native-agent/local-dev/resolver.mjs:108:24)
+      at fixture (file:///Users/shopme/.codex/tmp/browser-dev-install-diagnostics-01a12b8e/source-final/tests/environment/local-dev-preparation.test.mjs:20:18)
+      at TestContext.<anonymous> (file:///Users/shopme/.codex/tmp/browser-dev-install-diagnostics-01a12b8e/source-final/tests/environment/local-dev-preparation.test.mjs:73:11)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18) {
+    errno: -2,
+    code: 'ENOENT',
+    syscall: 'lstat',
+    path: '/Users/shopme/.codex/tmp/browser-dev-install-diagnostics-01a12b8e/source-final/scripts/page-vue-sfc-loader.cjs'
+  }
+
+test at tests/environment/local-dev-preparation.test.mjs:88:1
+✖ disconnect cancels a queued background preparation before it can compile or publish (2.396667ms)
+  Error: ENOENT: no such file or directory, lstat '/Users/shopme/.codex/tmp/browser-dev-install-diagnostics-01a12b8e/source-final/scripts/page-vue-sfc-loader.cjs'
+      at Object.lstatSync (node:fs:1694:25)
+      at file:///Users/shopme/.codex/tmp/browser-dev-install-diagnostics-01a12b8e/source-final/native-agent/local-dev/resolver.mjs:21:172
+      at Array.map (<anonymous>)
+      at buildIdentity (file:///Users/shopme/.codex/tmp/browser-dev-install-diagnostics-01a12b8e/source-final/native-agent/local-dev/resolver.mjs:21:64)
+      at new LocalDevResolver (file:///Users/shopme/.codex/tmp/browser-dev-install-diagnostics-01a12b8e/source-final/native-agent/local-dev/resolver.mjs:108:24)
+      at fixture (file:///Users/shopme/.codex/tmp/browser-dev-install-diagnostics-01a12b8e/source-final/tests/environment/local-dev-preparation.test.mjs:20:18)
+      at TestContext.<anonymous> (file:///Users/shopme/.codex/tmp/browser-dev-install-diagnostics-01a12b8e/source-final/tests/environment/local-dev-preparation.test.mjs:89:11)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18) {
+    errno: -2,
+    code: 'ENOENT',
+    syscall: 'lstat',
+    path: '/Users/shopme/.codex/tmp/browser-dev-install-diagnostics-01a12b8e/source-final/scripts/page-vue-sfc-loader.cjs'
+  }
+
+test at tests/environment/local-dev-preparation.test.mjs:102:1
+✖ queued explicit projects are cancelled on close and background gets a bounded turn (3.276125ms)
+  Error: ENOENT: no such file or directory, lstat '/Users/shopme/.codex/tmp/browser-dev-install-diagnostics-01a12b8e/source-final/scripts/page-vue-sfc-loader.cjs'
+      at Object.lstatSync (node:fs:1694:25)
+      at file:///Users/shopme/.codex/tmp/browser-dev-install-diagnostics-01a12b8e/source-final/native-agent/local-dev/resolver.mjs:21:172
+      at Array.map (<anonymous>)
+      at buildIdentity (file:///Users/shopme/.codex/tmp/browser-dev-install-diagnostics-01a12b8e/source-final/native-agent/local-dev/resolver.mjs:21:64)
+      at new LocalDevResolver (file:///Users/shopme/.codex/tmp/browser-dev-install-diagnostics-01a12b8e/source-final/native-agent/local-dev/resolver.mjs:108:24)
+      at fixture (file:///Users/shopme/.codex/tmp/browser-dev-install-diagnostics-01a12b8e/source-final/tests/environment/local-dev-preparation.test.mjs:20:18)
+      at TestContext.<anonymous> (file:///Users/shopme/.codex/tmp/browser-dev-install-diagnostics-01a12b8e/source-final/tests/environment/local-dev-preparation.test.mjs:109:11)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    errno: -2,
+    code: 'ENOENT',
+    syscall: 'lstat',
+    path: '/Users/shopme/.codex/tmp/browser-dev-install-diagnostics-01a12b8e/source-final/scripts/page-vue-sfc-loader.cjs'
+  }
+
+test at tests/environment/local-dev-preparation.test.mjs:120:1
+✖ an obsolete syntax failure cannot overwrite a newer merge or publish an error (2.391541ms)
+  Error: ENOENT: no such file or directory, lstat '/Users/shopme/.codex/tmp/browser-dev-install-diagnostics-01a12b8e/source-final/scripts/page-vue-sfc-loader.cjs'
+      at Object.lstatSync (node:fs:1694:25)
+      at file:///Users/shopme/.codex/tmp/browser-dev-install-diagnostics-01a12b8e/source-final/native-agent/local-dev/resolver.mjs:21:172
+      at Array.map (<anonymous>)
+      at buildIdentity (file:///Users/shopme/.codex/tmp/browser-dev-install-diagnostics-01a12b8e/source-final/native-agent/local-dev/resolver.mjs:21:64)
+      at new LocalDevResolver (file:///Users/shopme/.codex/tmp/browser-dev-install-diagnostics-01a12b8e/source-final/native-agent/local-dev/resolver.mjs:108:24)
+      at fixture (file:///Users/shopme/.codex/tmp/browser-dev-install-diagnostics-01a12b8e/source-final/tests/environment/local-dev-preparation.test.mjs:20:18)
+      at TestContext.<anonymous> (file:///Users/shopme/.codex/tmp/browser-dev-install-diagnostics-01a12b8e/source-final/tests/environment/local-dev-preparation.test.mjs:121:11)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18) {
+    errno: -2,
+    code: 'ENOENT',
+    syscall: 'lstat',
+    path: '/Users/shopme/.codex/tmp/browser-dev-install-diagnostics-01a12b8e/source-final/scripts/page-vue-sfc-loader.cjs'
+  }
+
+test at tests/environment/local-dev-preparation.test.mjs:136:1
+✖ explicit requests are FIFO and promote the existing queued preparation (2.814375ms)
+  Error: ENOENT: no such file or directory, lstat '/Users/shopme/.codex/tmp/browser-dev-install-diagnostics-01a12b8e/source-final/scripts/page-vue-sfc-loader.cjs'
+      at Object.lstatSync (node:fs:1694:25)
+      at file:///Users/shopme/.codex/tmp/browser-dev-install-diagnostics-01a12b8e/source-final/native-agent/local-dev/resolver.mjs:21:172
+      at Array.map (<anonymous>)
+      at buildIdentity (file:///Users/shopme/.codex/tmp/browser-dev-install-diagnostics-01a12b8e/source-final/native-agent/local-dev/resolver.mjs:21:64)
+      at new LocalDevResolver (file:///Users/shopme/.codex/tmp/browser-dev-install-diagnostics-01a12b8e/source-final/native-agent/local-dev/resolver.mjs:108:24)
+      at fixture (file:///Users/shopme/.codex/tmp/browser-dev-install-diagnostics-01a12b8e/source-final/tests/environment/local-dev-preparation.test.mjs:20:18)
+      at TestContext.<anonymous> (file:///Users/shopme/.codex/tmp/browser-dev-install-diagnostics-01a12b8e/source-final/tests/environment/local-dev-preparation.test.mjs:148:11)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    errno: -2,
+    code: 'ENOENT',
+    syscall: 'lstat',
+    path: '/Users/shopme/.codex/tmp/browser-dev-install-diagnostics-01a12b8e/source-final/scripts/page-vue-sfc-loader.cjs'
+  }
+
+test at tests/environment/r17-dev-cli.test.mjs:173:1
+✖ R17 recognized directory exports validated runtimeKind into its modern Native source catalog (21.225875ms)
+  Error: ENOENT: no such file or directory, lstat '/Users/shopme/.codex/tmp/browser-dev-install-diagnostics-01a12b8e/source-final/scripts/page-vue-sfc-loader.cjs'
+      at Object.lstatSync (node:fs:1694:25)
+      at file:///Users/shopme/.codex/tmp/browser-dev-install-diagnostics-01a12b8e/source-final/native-agent/local-dev/resolver.mjs:21:172
+      at Array.map (<anonymous>)
+      at buildIdentity (file:///Users/shopme/.codex/tmp/browser-dev-install-diagnostics-01a12b8e/source-final/native-agent/local-dev/resolver.mjs:21:64)
+      at new LocalDevResolver (file:///Users/shopme/.codex/tmp/browser-dev-install-diagnostics-01a12b8e/source-final/native-agent/local-dev/resolver.mjs:108:24)
+      at new LocalDevSession (file:///Users/shopme/.codex/tmp/browser-dev-install-diagnostics-01a12b8e/source-final/native-agent/local-dev/session.mjs:19:29)
+      at TestContext.<anonymous> (file:///Users/shopme/.codex/tmp/browser-dev-install-diagnostics-01a12b8e/source-final/tests/environment/r17-dev-cli.test.mjs:181:17)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    errno: -2,
+    code: 'ENOENT',
+    syscall: 'lstat',
+    path: '/Users/shopme/.codex/tmp/browser-dev-install-diagnostics-01a12b8e/source-final/scripts/page-vue-sfc-loader.cjs'
+  }

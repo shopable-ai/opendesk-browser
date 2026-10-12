@@ -73,6 +73,8 @@ npm run build:program -- examples/programs/remote-esm-page
 
 ## 出错后具体做什么
 
+`opendesk browser dev .` 的安装故障先运行 `opendesk-dev --doctor --json`，按 Node、CLI 包/登记、Native 注册、扩展连接、能力层定位。`E_MIGRATION_REQUIRED` 是旧 Node Host，`E_DEV_SAME_VERSION_CONTENT` 是同版本旧内容，`E_DEV_ENTRY_DIFFERENT` 是不同全局安装，`E_EXTENSION_DISCONNECTED` 是已认证但扩展未就绪；不能统一归为未安装。备份、精确 prefix/Node 更新、注册、包一致性和回退见[安装指南](../framework/browser-dev-install-update.zh-CN.md)。诊断只读，不迁移或自动运行。
+
 | 错误 / 状态 | 动作 |
 | --- | --- |
 | E_DEV_AUTH / E_DEV_PATH / E_DEV_DETACHED | 核对 exact --allow-project、绝对路径和 attach；不要扩大为整个工作区 |

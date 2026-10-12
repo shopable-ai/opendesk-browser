@@ -5,17 +5,19 @@ import {readFile,mkdtemp,rm} from 'node:fs/promises';
 import {join} from 'node:path';
 import {tmpdir} from 'node:os';
 import {createReadingTocIndex} from '../../src/reading-toc/model.js';
-import {websiteOrigin,changeTocGrant,tocGrantAllowed,READING_TOC_SITE_STORE,
+import {websiteOrigin,changeTocGrant,tocGrantAllowed,changeTocSiteAllowed,tocSiteAllowed,blockedTocOrigins,READING_TOC_SITE_STORE,
   READING_TOC_PAGE_RULES_STORE,changeTocPageAllowed,readingTocPageAllowed,disabledTocPages} from '../../src/reading-toc/policy.js';
 import {validateSidebarToolPackage} from '../../src/ui/sidebar-tools/package.js';
 import {buildSidebarTool} from '../../scripts/build-sidebar-tool.mjs';
+import {changeClipGrant,clipGrantAllowed} from '../../src/page-clip/policy.js';
 
 const pack={format:'opendesk.sidebar-tool.v1',id:'reading-toc',version:'1.0.0',
   title:'阅读目录',description:'Trusted host only',capabilities:['page.toc'],
   html:'<main>目录</main>',css:'',js:'void 0;'};
 const other={...pack,id:'other-tool',capabilities:['storage.local']};
 
-test('R4.1 per-site TOC authority is explicit and v1 legacy packages remain compatible',()=>{
+test('imported TOC tools still require explicit origin grants',()=>{
+  const custom={...pack,id:'custom-toc'};
   const legacy=validateSidebarToolPackage(other);
   const admitted=validateSidebarToolPackage(pack);
   assert.deepEqual(legacy.capabilities,['storage.local']);
@@ -23,16 +25,61 @@ test('R4.1 per-site TOC authority is explicit and v1 legacy packages remain comp
   assert.equal(websiteOrigin('javascript:alert(1)'),null);
   assert.equal(websiteOrigin('https://a:pass@example.com/'),null);
   assert.equal(websiteOrigin('https://example.com/articles?q=2'),'https://example.com');
-  assert.equal(tocGrantAllowed([pack],{},pack.id,'https://example.com/a'),false);
-  const granted=changeTocGrant({},pack.id,'https://example.com/a',true);
-  assert.deepEqual(granted,{'reading-toc':['https://example.com']});
-  assert.equal(tocGrantAllowed([pack],granted,pack.id,'https://example.com/a'),true);
-  assert.equal(tocGrantAllowed([pack],granted,pack.id,'https://evil.example/a'),false);
-  assert.equal(tocGrantAllowed([other],granted,pack.id,'https://example.com/a'),false);
-  assert.equal(tocGrantAllowed([pack],granted,'other-tool','https://example.com/a'),false);
-  assert.deepEqual(changeTocGrant(granted,pack.id,'https://example.com/b',false),{});
+  assert.equal(tocGrantAllowed([custom],{},custom.id,'https://example.com/a'),false);
+  const granted=changeTocGrant({},custom.id,'https://example.com/a',true);
+  assert.deepEqual(granted,{'custom-toc':['https://example.com']});
+  assert.equal(tocGrantAllowed([custom],granted,custom.id,'https://example.com/a'),true);
+  assert.equal(tocGrantAllowed([custom],granted,custom.id,'https://evil.example/a'),false);
+  assert.equal(tocGrantAllowed([other],granted,custom.id,'https://example.com/a'),false);
+  assert.equal(tocGrantAllowed([custom],granted,'other-tool','https://example.com/a'),false);
+  assert.deepEqual(changeTocGrant(granted,custom.id,'https://example.com/b',false),{});
   assert.ok(READING_TOC_SITE_STORE.includes('toc-sites'));
   assert.throws(()=>validateSidebarToolPackage({...pack,capabilities:['page.toc','chrome.tabs']}),/能力/);
+});
+
+test('built-in reader defaults to HTTP(S) pages and preserves explicit site stops',()=>{
+  const id=pack.id,url='https://example.com/a?private=1#chapter';
+  for(const settings of [undefined,{}, {[id]:['https://previous.example'] }]){
+    assert.equal(tocGrantAllowed([pack],settings,id,url),true);
+    assert.equal(tocGrantAllowed([pack],settings,id,'http://another.example:43111/a'),true);
+  }
+  assert.equal(tocGrantAllowed([],{},id,url),false);
+  assert.equal(tocGrantAllowed([pack],{},id,url,{[id]:false}),false);
+  const prior={'custom-toc':['https://example.com']};
+  const denied=changeTocSiteAllowed(prior,id,url,false);
+  assert.deepEqual(denied,{...prior,[id]:{mode:'all-except',blockedOrigins:['https://example.com']}});
+  assert.deepEqual(blockedTocOrigins(denied),['https://example.com']);
+  assert.equal(tocSiteAllowed(denied,id,'https://example.com/another'),false);
+  assert.equal(tocSiteAllowed(denied,id,'https://elsewhere.example'),true);
+  assert.equal(tocSiteAllowed(denied,id,'http://example.com'),true);
+  assert.deepEqual(changeTocSiteAllowed(denied,id,url,true),prior);
+  assert.deepEqual(changeTocSiteAllowed(denied,id,url,false),denied);
+  for(const invalid of ['chrome://settings','file:///tmp/a','https://user:pass@example.com'])
+    assert.equal(tocSiteAllowed({},id,invalid),false);
+});
+
+test('damaged default-site records cannot silently widen authority',()=>{
+  const id=pack.id,url='https://example.com';
+  for(const settings of [[],false,{[id]:null},{[id]:['*']},
+    {[id]:{mode:'all-except',blockedOrigins:'https://example.com'}},
+    {[id]:{mode:'all-except',blockedOrigins:['https://example.com/path']}},
+    {[id]:{mode:'all-except',blockedOrigins:[],unknown:true}},
+    {[id]:{mode:'unknown',blockedOrigins:[]}}]){
+    assert.equal(tocSiteAllowed(settings,id,url),false);
+    assert.throws(()=>changeTocSiteAllowed(settings,id,url,true),/设置无效/);
+  }
+  const blocked=Array.from({length:64},(_,i)=>'https://s'+i+'.example');
+  const settings={[id]:{mode:'all-except',blockedOrigins:blocked}};
+  assert.throws(()=>changeTocSiteAllowed(settings,id,'https://extra.example',false),/64/);
+});
+
+test('shared clip grants stay explicit even when the package uses the reading-toc ID',()=>{
+  const clip={...pack,capabilities:['page.clip']},url='https://example.com/a';
+  assert.equal(clipGrantAllowed([clip],{},clip.id,url),false);
+  const grants=changeClipGrant({},clip.id,url,true);
+  assert.deepEqual(grants,{[clip.id]:['https://example.com']});
+  assert.equal(clipGrantAllowed([clip],grants,clip.id,url),true);
+  assert.equal(clipGrantAllowed([clip],grants,clip.id,'https://other.example'),false);
 });
 
 test('R4.7 current-page exclusions do not grant origin authority or capture URL queries',()=>{

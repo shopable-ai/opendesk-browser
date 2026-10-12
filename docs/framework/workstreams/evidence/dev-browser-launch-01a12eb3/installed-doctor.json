@@ -1,0 +1,160 @@
+{
+  "format": "opendesk.dev-cli.diagnostic.v1",
+  "ok": true,
+  "cli": {
+    "package": "@shopable/opendesk-dev",
+    "packageRoot": "/Users/shopme/.nvm/versions/node/v24.16.0/lib/node_modules/@shopable/opendesk-dev",
+    "mode": "installed-package",
+    "status": "verified",
+    "version": "0.1.0-r17.1",
+    "entryPath": "/Users/shopme/.nvm/versions/node/v24.16.0/lib/node_modules/@shopable/opendesk-dev/bin/opendesk-dev.mjs",
+    "entrySha256": "c1477fe00c64665bc8d229914fa2bdca4d2f472ae247fab64e1d08fe966bb563",
+    "contentFingerprint": "5b28b274fc6cc500387519e70957e648dad1867f1ebf7367ae0a0f60cbc8f746",
+    "metadataSha256": "d35010bfd2e8996bed78bf6bcae5fa1984955207834f84cb5b2d955ff3775c62",
+    "recordedFingerprint": "5b28b274fc6cc500387519e70957e648dad1867f1ebf7367ae0a0f60cbc8f746",
+    "provenance": "recorded-not-independently-verified",
+    "runtimeDependencies": [
+      {
+        "name": "acorn",
+        "resolvedPath": "/Users/shopme/.nvm/versions/node/v24.16.0/lib/node_modules/@shopable/opendesk-dev/node_modules/acorn/dist/acorn.js",
+        "importPath": "/Users/shopme/.nvm/versions/node/v24.16.0/lib/node_modules/@shopable/opendesk-dev/node_modules/acorn/dist/acorn.mjs"
+      },
+      {
+        "name": "webpack",
+        "resolvedPath": "/Users/shopme/.nvm/versions/node/v24.16.0/lib/node_modules/@shopable/opendesk-dev/node_modules/webpack/lib/index.js",
+        "importPath": "/Users/shopme/.nvm/versions/node/v24.16.0/lib/node_modules/@shopable/opendesk-dev/node_modules/webpack/lib/index.js"
+      },
+      {
+        "name": "terser",
+        "resolvedPath": "/Users/shopme/.nvm/versions/node/v24.16.0/lib/node_modules/@shopable/opendesk-dev/node_modules/terser/dist/bundle.min.js",
+        "importPath": "/Users/shopme/.nvm/versions/node/v24.16.0/lib/node_modules/@shopable/opendesk-dev/node_modules/terser/main.js"
+      },
+      {
+        "name": "terser-webpack-plugin",
+        "resolvedPath": "/Users/shopme/.nvm/versions/node/v24.16.0/lib/node_modules/@shopable/opendesk-dev/node_modules/terser-webpack-plugin/dist/index.js",
+        "importPath": "/Users/shopme/.nvm/versions/node/v24.16.0/lib/node_modules/@shopable/opendesk-dev/node_modules/terser-webpack-plugin/dist/index.js"
+      },
+      {
+        "name": "dayjs",
+        "resolvedPath": "/Users/shopme/.nvm/versions/node/v24.16.0/lib/node_modules/@shopable/opendesk-dev/node_modules/dayjs/dayjs.min.js",
+        "importPath": "/Users/shopme/.nvm/versions/node/v24.16.0/lib/node_modules/@shopable/opendesk-dev/node_modules/dayjs/dayjs.min.js"
+      },
+      {
+        "name": "lodash-es",
+        "resolvedPath": "/Users/shopme/.nvm/versions/node/v24.16.0/lib/node_modules/@shopable/opendesk-dev/node_modules/lodash-es/lodash.js",
+        "importPath": "/Users/shopme/.nvm/versions/node/v24.16.0/lib/node_modules/@shopable/opendesk-dev/node_modules/lodash-es/lodash.js"
+      },
+      {
+        "name": "esbuild",
+        "resolvedPath": "/Users/shopme/.nvm/versions/node/v24.16.0/lib/node_modules/@shopable/opendesk-dev/node_modules/esbuild/lib/main.js",
+        "importPath": "/Users/shopme/.nvm/versions/node/v24.16.0/lib/node_modules/@shopable/opendesk-dev/node_modules/esbuild/lib/main.js"
+      }
+    ],
+    "dependencyLock": {
+      "status": "verified",
+      "checked": 68,
+      "mismatches": []
+    }
+  },
+  "expected": {
+    "package": "@shopable/opendesk-dev",
+    "packageRoot": "/Users/shopme/Documents/workspace/.opendesk-browser-worktrees/browser-launch-01a12eb3/.runtime/browser-launch/cli",
+    "mode": "installed-package",
+    "status": "verified",
+    "version": "0.1.0-r17.1",
+    "entryPath": "/Users/shopme/Documents/workspace/.opendesk-browser-worktrees/browser-launch-01a12eb3/.runtime/browser-launch/cli/bin/opendesk-dev.mjs",
+    "entrySha256": "c1477fe00c64665bc8d229914fa2bdca4d2f472ae247fab64e1d08fe966bb563",
+    "contentFingerprint": "5b28b274fc6cc500387519e70957e648dad1867f1ebf7367ae0a0f60cbc8f746",
+    "metadataSha256": "d35010bfd2e8996bed78bf6bcae5fa1984955207834f84cb5b2d955ff3775c62",
+    "recordedFingerprint": "5b28b274fc6cc500387519e70957e648dad1867f1ebf7367ae0a0f60cbc8f746",
+    "provenance": "recorded-not-independently-verified"
+  },
+  "node": {
+    "execPath": "/Users/shopme/.nvm/versions/node/v24.16.0/bin/node",
+    "resolvedPath": "/Users/shopme/.nvm/versions/node/v24.16.0/bin/node",
+    "version": "24.16.0",
+    "pathNode": {
+      "path": "/opt/homebrew/bin/node",
+      "resolvedPath": "/opt/homebrew/Cellar/node/26.3.1/bin/node"
+    },
+    "goSelection": {
+      "path": "/opt/homebrew/bin/node",
+      "resolvedPath": "/opt/homebrew/Cellar/node/26.3.1/bin/node",
+      "version": null,
+      "versionEvidence": "not-executed"
+    },
+    "goSelectionEvidence": "predicted-from-current-upstream-policy"
+  },
+  "registration": {
+    "path": "/Users/shopme/.opendesk-browser/dev-tool-r17/entry.json",
+    "state": "readable",
+    "entryPath": "/Users/shopme/.nvm/versions/node/v24.16.0/lib/node_modules/@shopable/opendesk-dev/bin/opendesk-dev.mjs",
+    "entryMatches": true,
+    "identity": {
+      "package": "@shopable/opendesk-dev",
+      "packageRoot": "/Users/shopme/.nvm/versions/node/v24.16.0/lib/node_modules/@shopable/opendesk-dev",
+      "mode": "installed-package",
+      "status": "verified",
+      "version": "0.1.0-r17.1",
+      "entryPath": "/Users/shopme/.nvm/versions/node/v24.16.0/lib/node_modules/@shopable/opendesk-dev/bin/opendesk-dev.mjs",
+      "entrySha256": "c1477fe00c64665bc8d229914fa2bdca4d2f472ae247fab64e1d08fe966bb563",
+      "contentFingerprint": "5b28b274fc6cc500387519e70957e648dad1867f1ebf7367ae0a0f60cbc8f746",
+      "metadataSha256": "d35010bfd2e8996bed78bf6bcae5fa1984955207834f84cb5b2d955ff3775c62",
+      "recordedFingerprint": "5b28b274fc6cc500387519e70957e648dad1867f1ebf7367ae0a0f60cbc8f746",
+      "provenance": "recorded-not-independently-verified"
+    },
+    "contentMatches": true,
+    "pathEntry": {
+      "path": "/opt/homebrew/bin/opendesk-dev",
+      "resolvedPath": "/opt/homebrew/lib/node_modules/@shopable/opendesk-dev/bin/opendesk-dev.mjs"
+    }
+  },
+  "native": {
+    "state": "installed",
+    "connection": {
+      "state": "connected",
+      "authenticated": true,
+      "browserReady": true,
+      "capabilities": {
+        "localDevMultiVersion": 1,
+        "localFilesVersion": 1,
+        "localDevAccessVersion": 1
+      },
+      "compatible": true
+    },
+    "installRoot": "/Users/shopme/.opendesk-browser/native-agent-r1",
+    "configPath": "/Users/shopme/.opendesk-browser/native-agent-r1/install.json",
+    "provider": "go",
+    "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+    "browser": "chrome",
+    "manifestPath": "/Users/shopme/Library/Application Support/Google/Chrome/NativeMessagingHosts/com.shopable.opendesk_browser.agent.json",
+    "wrapperPath": "/Users/shopme/.opendesk-browser/native-agent-r1/native-host",
+    "registeredTarget": "/Users/shopme/.opendesk-browser/native-agent-r1/native-host",
+    "manifestMatches": true,
+    "executablePath": "/Applications/OpenDesk.app/Contents/MacOS/opendesk",
+    "wrapperMatches": true
+  },
+  "issues": [
+    {
+      "layer": "node",
+      "code": "W_NODE_PATH_DIFFERENT",
+      "severity": "warning",
+      "reason": "直接 CLI 与 Go 预计 Node 不同；未执行候选程序，其版本尚未验证",
+      "repair": "先确认此 Node 来源，再用其绝对路径执行已登记 CLI --doctor，核对 execPath/版本。"
+    },
+    {
+      "layer": "registration",
+      "code": "W_PATH_CLI_DIFFERENT",
+      "severity": "warning",
+      "reason": "PATH 中 opendesk-dev 与当前执行包不同",
+      "repair": "用报告中的绝对入口诊断、安装与登记；不要用 PATH 上的另一份包覆盖登记。"
+    }
+  ],
+  "limitations": [
+    "未指定 --expect-package 时不能判断是否为最新源码；verified 只表示包内自洽。",
+    "Go 当前登记接口只强制校验入口 SHA；完整 runtime 指纹由本诊断核对。",
+    "Go Node 选择是当前上游策略推断；Go 暂不转发 dev --doctor/--version --json，须用指定 Node/已登记入口诊断。",
+    "认证响应不含扩展加载路径/packageHash；扩展内容一致性须按文档独立核对。",
+    "内容指纹覆盖 bin/runtime/package.json；不覆盖外部 node_modules 或运行中的旧进程。"
+  ]
+}

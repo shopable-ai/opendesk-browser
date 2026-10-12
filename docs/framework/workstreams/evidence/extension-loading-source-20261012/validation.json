@@ -1,0 +1,84 @@
+{
+  "schema": "opendesk.extension-source-repair.v1",
+  "status": "PASS",
+  "verifiedAt": "2026-10-12T04:53:23.321Z",
+  "verificationScope": "local Chrome extension removal, configured directory, actual authenticated Native connection, documentation checks; no business/F3/ZIP acceptance",
+  "historicalThread": {
+    "title": "排查 Native Host 迁移错误",
+    "id": "01a12b39-6ec3-7221-bf8e-edf633c676ca",
+    "createdPackageHash": "439a983b23672643ac45471dcbc09032dc682b6463b2d65f2879e396766c75bc"
+  },
+  "checks": {
+    "oldDirectoryRemoved": true,
+    "oldExtensionRemoved": true,
+    "normalDirectory": true,
+    "normalEnabled": true,
+    "nativeConfigured": true,
+    "manifestPaired": true,
+    "authenticatedConnection": true,
+    "diffClean": true,
+    "documentLinks": true
+  },
+  "chrome": {
+    "profile": "/Users/shopme/Library/Application Support/Google/Chrome/Default",
+    "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+    "path": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+    "disableReasons": []
+  },
+  "nativeManifest": {
+    "path": "/Users/shopme/Library/Application Support/Google/Chrome/NativeMessagingHosts/com.shopable.opendesk_browser.agent.json",
+    "allowed_origins": [
+      "chrome-extension://ccfcjegpkdlgbclopjmadlcjedelidmf/"
+    ]
+  },
+  "doctor": {
+    "command": [
+      "/Applications/OpenDesk.app/Contents/MacOS/opendesk",
+      "browser",
+      "doctor"
+    ],
+    "exitCode": 0,
+    "stdout": "{\n  \"connected\": true,\n  \"local\": {\n    \"browser\": \"chrome\",\n    \"extensionId\": \"ccfcjegpkdlgbclopjmadlcjedelidmf\",\n    \"installed\": true,\n    \"manifest\": \"/Users/shopme/Library/Application Support/Google/Chrome/NativeMessagingHosts/com.shopable.opendesk_browser.agent.json\",\n    \"note\": \"Socket presence does not prove an authenticated Chrome connection\",\n    \"provider\": \"opendesk\",\n    \"socketExists\": true\n  },\n  \"response\": {\n    \"v\": 1,\n    \"kind\": \"response\",\n    \"requestId\": \"9a1b1508-a452-4cf4-855c-f0ceebcdd1b0\",\n    \"result\": {\n      \"extensionId\": \"ccfcjegpkdlgbclopjmadlcjedelidmf\",\n      \"bridgeVersion\": 1,\n      \"nativeConnected\": true,\n      \"enabled\": true,\n      \"hostRegistrations\": [\n        \"83c683d9-acf4-4059-b781-7bd6ea85c569\"\n      ]\n    }\n  }\n}\n",
+    "stderr": ""
+  },
+  "backup": {
+    "directory": "/Users/shopme/.opendesk-browser/extension-source-repair-20261012-PKCNhN",
+    "oldExtensionPackageHash": "439a983b23672643ac45471dcbc09032dc682b6463b2d65f2879e396766c75bc",
+    "oldExtensionFiles": 66,
+    "oldStorageLocations": [
+      "Local Extension Settings/mknncoaonlkeljgcbdncdkenloofpfle",
+      "IndexedDB/chrome-extension_mknncoaonlkeljgcbdncdkenloofpfle_0.indexeddb.leveldb"
+    ]
+  },
+  "documentation": {
+    "diffCheck": {
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    "links": [
+      {
+        "target": "../product/program-development-dual-format-and-sidebar.zh-CN.md",
+        "exists": true
+      },
+      {
+        "target": "../api/official-tools-catalog.zh-CN.md",
+        "exists": true
+      }
+    ],
+    "inputs": [
+      {
+        "path": "AGENTS.md",
+        "sha256": "1b1611b1336102792d8b2f3dd6fc771f19a03a417a981b8b121b740cb0a1708d"
+      },
+      {
+        "path": "docs/framework/extension-development-r131.zh-CN.md",
+        "sha256": "b41eb8900cc6b414e467c57e204e6079de2dcfcab1b41a0ef0ba1eeed58debb2"
+      },
+      {
+        "path": "docs/framework/workstreams/extension-loading-source-20261012.md",
+        "sha256": "a5de1082a2aee2ef355a63bf7de69ebca8bfe3653f18d6faea8ba4de56522694"
+      }
+    ]
+  }
+}

@@ -4,7 +4,7 @@
 // catalog. Current versions, titles and capabilities always come from releases.
 const APP_PRESENTATION = Object.freeze([
   {id:'opendesk/time-review',toolId:'time-review',category:'效率',author:'OpenDesk',summary:'明确开始后，在本机回顾聚焦、非空闲网站的使用时长。',sites:'HTTP(S) 网页；需明确开启与空闲检测授权',surfaces:['侧边栏','独立标签页','MV3 后台'],features:['今日与七天','网站排行','暂停恢复','本机 JSON / CSV 导出'],media:'time',externalWeb:{label:'打开旧版时间清单网站',url:'https://todo6.com/',verifiedAt:'2026-10-11',source:'docs/contracts/source-snapshots/todo-src-bex/src-bex/background.ts:446'}},
-  {id:'opendesk/reading-toc',toolId:'reading-toc',category:'阅读',author:'OpenDesk',summary:'浏览网页章节、快速定位标题，可选网页悬浮目录。',sites:'普通 HTTP(S) 网页；按网站单独授权',surfaces:['侧边栏','网页目录'],features:['多级标题导航','独立站点授权','悬浮目录'],media:'chapters'},
+  {id:'opendesk/reading-toc',toolId:'reading-toc',category:'阅读',author:'OpenDesk',summary:'浏览网页章节、快速定位标题，可选网页悬浮目录。',sites:'普通 HTTP(S) 网页默认可用；支持按网站停用',surfaces:['侧边栏','网页目录'],features:['多级标题导航','网站与页面例外','悬浮目录'],media:'chapters'},
   {id:'opendesk/web-markdown-clipper',toolId:'web-markdown-clipper',category:'阅读',author:'OpenDesk',summary:'按需把已授权网页的正文或选区整理为 Markdown。',sites:'普通 HTTP(S) 网页；正文读取单独授权',surfaces:['侧边栏'],features:['正文与选区','复制 Markdown','下载文件'],media:'clip'},
   {id:'opendesk/quick-notes',toolId:'quick-notes',category:'笔记',author:'OpenDesk',summary:'独立保存简短笔记，也可主动关联网页标题与链接。',sites:'本地笔记；关联网页由你主动选择',surfaces:['侧边栏','独立标签页'],features:['本机存储','关联网页','快速编辑'],media:'notes'},
   {id:'opendesk/markdown-workbench',toolId:'markdown-workbench',category:'Markdown',author:'OpenDesk',summary:'离线编辑、预览与导入导出 Markdown。',sites:'无需网站权限',surfaces:['侧边栏','独立标签页'],features:['源码与预览','本地文件导入','导出 Markdown'],media:'markdown'},

@@ -8,6 +8,7 @@ import {createCurrentPageTarget} from '../../src/ui/current-page-target.js';
 import {createRunHost} from '../../src/run-host.js';
 import {encodeValue} from '../../src/platform/page-port/codec.js';
 import {encodeValue as controlEncode} from '../../src/framework/control/value.js';
+import {PAGE_BROWSER_UI_HELPER} from '../../src/libs/page-frameworks/contract.js';
 
 // Component fixtures only: no Chrome gesture, native effect or retirement proof.
 const deferred=()=>{let resolve;const promise=new Promise(done=>{resolve=done;});return {promise,resolve};};
@@ -103,6 +104,111 @@ test('Developer shows one terminal status line and hides it for unrelated feedba
   await f.click('script-save');
   assert.match(f.find('script-status').textContent,/已持久保存/);
   assert.equal(f.find('script-task-status').hidden,true);
+});
+
+async function componentFixture(t,framework,{compilerError,previewError,compileGate}={}) {
+  const compiled=[];
+  class ComponentWorker {
+    terminate(){}
+    postMessage(payload){
+      compiled.push(payload);
+      queueMicrotask(async()=>{if(compileGate)await compileGate.promise;this.onmessage({data:{requestId:payload.requestId,
+        ok:!compilerError,...(compilerError?{error:compilerError}:{result:{
+          framework:payload.framework,projectId:payload.projectId,entryFormat:'async-main',
+          sourceUtf8:'// @opendesk-lib '+payload.framework+'\nasync function main(){}'}})}});});
+    }
+  }
+  const oldWorker=globalThis.Worker;globalThis.Worker=ComponentWorker;
+  t.after(()=>{if(oldWorker===undefined)delete globalThis.Worker;else globalThis.Worker=oldWorker;});
+  const helper=await readFile(PAGE_BROWSER_UI_HELPER.source,'utf8');
+  t.mock.method(globalThis,'fetch',async url=>({ok:true,redirected:false,url,text:async()=>helper}));
+  const f=await fixture();t.after(()=>f.dispose());
+  const request=f.client.request;
+  f.client.request=async(type,payload)=>{
+    if(type!=='previewPageScript')return request(type,payload);
+    if(previewError)throw previewError;
+    f.previews.push(structuredClone(payload));
+    return {state:'preview-evaluated',resultText:'component mounted',
+      sourceHash:createHash('sha256').update(payload.sourceUtf8).digest('hex'),
+      documentId:payload.target.documentId,managedUI:true,managedPreviewId:payload.managedUI.previewId};
+  };
+  f.find('page-component-framework').value=framework;
+  f.find('page-component-framework').fire('change');await tick();
+  return {...f,compiled,settle:async()=>{
+    for(let n=0;n<100&&f.find('script-status').dataset.state==='running';n++)await tick();
+    assert.notEqual(f.find('script-status').dataset.state,'running','preview must settle');
+  }};
+}
+
+for(const framework of ['react','vue'])test(framework+' primary Run compiles a managed Page preview and shows its result',async t=>{
+  const f=await componentFixture(t,framework);
+  assert.equal(f.find('script-run').disabled,false);
+  assert.match(f.find('script-run').textContent,new RegExp(framework==='react'?'React':'Vue'));
+  f.find('script-run').fire('click',{isTrusted:false});await tick();
+  assert.equal(f.compiled.length,0);assert.equal(f.previews.length,0);
+  const source=f.find('script-source').value,pending=deferred();f.setPermission(pending.promise);
+  await f.click('script-run');
+  assert.equal(f.find('script-run').disabled,true);
+  assert.equal(f.find('script-status').dataset.state,'running');
+  f.find('script-run').fire('click',{isTrusted:true});
+  pending.resolve(true);await f.settle();
+  assert.equal(f.compiled.length,1);assert.equal(f.compiled[0].componentSource,source);
+  assert.equal(f.previews.length,1);assert.equal(f.previews[0].managedUI.enabled,true);
+  assert.equal(f.previews[0].target.documentId,'doc-11');
+  assert.equal(f.find('script-status').dataset.state,'completed');
+  assert.equal(f.find('script-result').textContent,'component mounted');
+  assert.equal(f.find('script-result-kind').textContent,'网页试运行结果');
+  assert.equal(f.find('script-task-status').hidden,true);
+  assert.equal(f.find('script-copy-result').disabled,false);
+  assert.equal(f.find('script-stop').disabled,false);
+  assert.equal(f.starts.length,0);assert.equal(f.commits.length,0);
+});
+
+for(const failure of ['permission','document','compiler','unknown'])test('component primary Run preserves '+failure+' protection and visible feedback',async t=>{
+  const f=await componentFixture(t,'react',{
+    ...(failure==='compiler'?{compilerError:{code:'E_PAGE_COMPILER_WORKER',message:'Invalid JSX'}}:{}),
+    ...(failure==='unknown'?{previewError:{code:'E_EFFECT_UNKNOWN',message:'Unknown native outcome'}}:{})
+  });
+  const pending=deferred();f.setPermission(failure==='permission'?Promise.resolve(false):pending.promise);
+  await f.click('script-run');
+  if(failure==='document')await f.switchTab();
+  pending.resolve(true);await f.settle();
+  assert.equal(f.find('script-status').dataset.state,'error');
+  assert.match(f.find('script-status').textContent,/E_/);
+  assert.equal(f.find('script-copy-result').disabled,true);
+  assert.equal(f.previews.length,0);assert.equal(f.starts.length,0);
+  if(failure==='permission'||failure==='document')assert.equal(f.compiled.length,0);
+  if(failure==='unknown'){
+    assert.equal(f.find('script-run').disabled,true);
+    await f.click('script-run');assert.equal(f.compiled.length,1,'unknown effect must not be replayed');
+  }
+});
+
+test('component primary Run retains the shared execution slot gate',async t=>{
+  const f=await componentFixture(t,'react');
+  const snapshot=f.editor.host.controller.snapshotControllerRun;
+  f.editor.host.controller.snapshotControllerRun=async request=>({...await snapshot(request),slotAvailable:false});
+  await f.click('script-read');
+  assert.equal(f.find('script-run').disabled,true);
+  await f.click('script-run');assert.equal(f.compiled.length,0);assert.equal(f.previews.length,0);
+  f.editor.host.controller.snapshotControllerRun=snapshot;await f.click('script-read');
+  assert.equal(f.find('script-run').disabled,false);
+});
+
+for(const changed of ['source','document'])test('component primary Run refuses '+changed+' changes during compilation',async t=>{
+  const compileGate=deferred(),f=await componentFixture(t,'react',{compileGate});
+  await f.click('script-run');
+  for(let n=0;n<100&&!f.compiled.length;n++)await tick();
+  assert.equal(f.compiled.length,1);
+  assert.match(f.find('script-status').textContent,/编译组件/);
+  assert.equal(f.find('script-run').disabled,true);assert.equal(f.find('script-stop').disabled,true);
+  if(changed==='source'){
+    f.find('script-source').value='export default function Changed(){return <div/>;}';
+    f.find('script-source').fire('input');
+  }else await f.switchTab();
+  compileGate.resolve();await f.settle();
+  assert.equal(f.previews.length,0);assert.equal(f.starts.length,0);
+  assert.equal(f.find('script-status').dataset.state,'error');
 });
 
 test('Dev Run has no per-Origin axiosx form or prompt; backend discovers HTTP targets at request time',async t=>{

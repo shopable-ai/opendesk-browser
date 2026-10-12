@@ -1,0 +1,46 @@
+✔ macOS uses verified daily Chrome when the system Google Chrome.app is CFT (2.0045ms)
+✔ macOS supports a normal system installation when user Applications has no Chrome (0.12825ms)
+✔ macOS refuses a same-name app with the wrong bundle identity (0.238959ms)
+✔ macOS keeps CFT pairing distinct and supports its official and renamed app paths (0.135583ms)
+✔ custom profiles stay blocked before any application lookup (0.076708ms)
+✔ publishable dependency lock is part of the installed content identity (9.88575ms)
+✔ bundled dependency bytes are fingerprinted while npm-generated links are excluded (7.826666ms)
+✔ readonly dependency-lock diagnosis detects changed versions and missing required packages (9.332208ms)
+✔ version uses actual package metadata, identity is deterministic and detects same-version changed bytes (7.004416ms)
+✔ a verified package is self-consistent, not evidence of latest; explicit reference catches same-version old content (7.408708ms)
+✔ missing metadata, renamed version and unexpected runtime file cannot pass identity verification (6.17ms)
+✔ missing declared runtime dependencies are diagnosed without loading or executing them (6.000334ms)
+✔ an intact require branch does not hide a missing ESM import target (8.336459ms)
+✔ nvm CLI and Homebrew registered package are diagnosed independently of matching version and entry bytes (8.2115ms)
+✔ Go selection prefers trusted Homebrew node over PATH nvm, skipping project/node_modules executables (5.857875ms)
+✔ different Go Node is never executed to infer its version or mutate the filesystem (4.888792ms)
+✔ old Node owner is migration-required and is never probed or changed (5.601584ms)
+✔ missing socket, disconnected extension, incompatible capability and invalid manifest have distinct repairs (7.215125ms)
+✔ private file permissions, invalid provenance and protocol payload never expose credentials (6.993833ms)
+✔ receipt and entry sizes match Go admission limits (5.362709ms)
+✔ an executable directory cannot be accepted as a Go binary even with a live socket (5.807042ms)
+✔ doctor flags never reinterpret directory names and reject malformed combinations (0.303208ms)
+✔ doctor exit code and JSON reflect faults without invoking an attach or browser opener (4.267458ms)
+✔ real socket probe sends only auth, strips unknown response fields and closes its connection (10.2755ms)
+✔ oversized, malformed, unauthenticated or silent responses are bounded and never leaked (6.224667ms)
+✔ help/version never read a Go installation, start the provider or touch directory (23.813459ms)
+✔ Go installation discovery accepts only paired private Go owner (1.901125ms)
+✔ online identity stays distinct from the display cache (0.121458ms)
+✔ R17 requires a pinned modern Node runtime but help remains side-effect free (0.157625ms)
+✔ all Node directory forms request temporary read-write by default and share explicit read-only parsing (0.140875ms)
+✔ attach sends explicit access and reports the actual permanent or existing-session permission (1.835875ms)
+✔ old components are diagnosed before the new CLI sends an access request (0.181334ms)
+✔ malformed owner replies and a read-only mode mismatch never reach Provider setup (0.533208ms)
+✔ owner close interrupts pending initialization and leaves another owner intact (0.317917ms)
+✔ owner notices a close before listener installation and releases only its own signal listeners (0.187166ms)
+✔ a signal or failed setup closes the owned provider exactly once (0.242958ms)
+✔ R17 recognized directory exports validated runtimeKind into its modern Native source catalog (24.996375ms)
+✔ real Go lower-camel installation and isolated instance retain the private owner boundary (1.712709ms)
+ℹ tests 38
+ℹ suites 0
+ℹ pass 38
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 234.200834

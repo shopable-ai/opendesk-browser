@@ -1,0 +1,55 @@
+{
+  "status": "passed",
+  "kind": "isolated-installation-fixture-not-native-acceptance",
+  "node": {
+    "execPath": "/opt/homebrew/Cellar/node/26.3.1/bin/node",
+    "version": "v26.3.1"
+  },
+  "prefix": "/Users/shopme/.codex/tmp/browser-dev-install-diagnostics-01a12b8e/prefix-final4",
+  "version": "0.1.0-r17.1",
+  "contentFingerprint": "1f6dbdfd1758e8533e5576abe4bb453ed76290c58af836165870db105880105d",
+  "metadataSha256": "e662ba3d97d85c8345e0fd5d58ade15308c9b4fd801835655b9096b8b077ed07",
+  "installedDependencyLock": {
+    "status": "verified",
+    "checked": 68,
+    "mismatches": []
+  },
+  "compiled": [
+    {
+      "name": "local-controller",
+      "runtimeKind": "controller",
+      "sourceHash": "a135ac05ba6e32c65df9037388aa7a9d4f67bfd5dc8404e7a54d39865782cb88",
+      "artifactId": "f6be443bf5a85a83263779d6e9c4e9015ff9e7a740d28e40cbe519855dfc3470",
+      "sourceBytes": 760,
+      "cacheHit": true
+    },
+    {
+      "name": "page-ui-react",
+      "runtimeKind": "page-userscript",
+      "sourceHash": "97ff050d29977932156b130a01f2149799a2c821a65a25778c2f269591e3c557",
+      "artifactId": "adca7644a920376f9c299111ee09da7fa985b1bef83a8ef5edfb2347cfec1bc3",
+      "sourceBytes": 18592,
+      "cacheHit": true
+    },
+    {
+      "name": "page-ui-vue",
+      "runtimeKind": "page-userscript",
+      "sourceHash": "747838ef6225583e6128f906ec2491f0ce141b7f8f50f3d01e2bcf7877f8f0c0",
+      "artifactId": "381e5c75f5a064fa972315002d32c2dfab068c5cd9a2b4890da74b7b3a6ac164",
+      "sourceBytes": 18873,
+      "cacheHit": true
+    }
+  ],
+  "backup": "/Users/shopme/.codex/tmp/browser-dev-install-diagnostics-01a12b8e/cli-before-final4.tgz",
+  "registrationBackup": "/Users/shopme/.codex/tmp/browser-dev-install-diagnostics-01a12b8e/registration-before-final4.tgz",
+  "sameVersionMismatchCodes": [
+    "E_DEV_PACKAGE_CHANGED",
+    "E_DEV_SAME_VERSION_CONTENT",
+    "E_DEV_REGISTRATION_CONTENT_CHANGED",
+    "E_DEV_REGISTERED_PACKAGE_INVALID"
+  ],
+  "restoredFingerprint": "1f6dbdfd1758e8533e5576abe4bb453ed76290c58af836165870db105880105d",
+  "authOnlyConnections": 4,
+  "credentialsAbsent": true,
+  "projectRunRequests": 0
+}

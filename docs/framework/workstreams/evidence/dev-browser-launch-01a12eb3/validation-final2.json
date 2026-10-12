@@ -1,0 +1,33 @@
+{
+  "status": "PASS_LOCAL_WORKSPACE_LAUNCH",
+  "gitHead": "67fefdac3f5576cb7f3dc042149d95ca046810c7",
+  "sourceSha256": {
+    "native-agent/local-dev/dev-cli.mjs": "e763b1c27ae27f5df917477a09569109a8e598b88934bec4567a1d4d4b968c04",
+    "tests/environment/dev-cli-browser-launch.test.mjs": "861750cd8e0f6b995acb9ebae408c3e88e1c82ff9c25c179aa7fd74399981bda"
+  },
+  "mainMatchesIsolatedCandidate": true,
+  "contentFingerprint": "470281625b49db5885aa785053e92f481f5356d1146426b7f3fb7311f787d1d9",
+  "archiveSha256": "907cfd48846482edf7998d06003dd9b5d6db27f894ac166d7290fa2ae831a156",
+  "verifiedPrefixes": [
+    "/Users/shopme/.nvm/versions/node/v24.16.0/lib/node_modules/@shopable/opendesk-dev",
+    "/opt/homebrew/lib/node_modules/@shopable/opendesk-dev"
+  ],
+  "registeredDoctorOk": true,
+  "nativeConnectedAfterCleanup": true,
+  "nativeFilesUnchanged": true,
+  "uiObservation": {
+    "surface": "native CUA, daily Chrome absolute app path",
+    "title": "OpenDesk · 本地文件工作区",
+    "url": "chrome-extension://ccfcjegpkdlgbclopjmadlcjedelidmf/native-agent/workspace.html?sourceId=source-e7a88657f8a28a4368a6abdc",
+    "visibleStatus": "Native 已连接",
+    "workspace": "local-controller",
+    "readmeVisible": true,
+    "rawScreenshot": "Codex chat CUA getScreenshot tool output, final candidate"
+  },
+  "ownCliExit": 0,
+  "resources": "released",
+  "limitations": [
+    "Homebrew doctor reports E_DEV_ENTRY_DIFFERENT because the user-level Go registration intentionally points at NVM; both verified CLI contents are identical.",
+    "No project run/save, multi-browser concurrency, Linux/Windows, F3 or ZIP acceptance was performed."
+  ]
+}

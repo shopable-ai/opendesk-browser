@@ -1,0 +1,105 @@
+继续完成本机 Codex → OpenDesk → Chrome Side Panel「工作流」的 R16 R2 正式验证。
+直接接续已有代码和原始证据，补齐必要验证、修复实际缺陷并取得独立验收结论。不要只给计划，也不要从零开发。
+
+一、目标与完成边界
+
+本轮目标是关闭 R16 R2 正式任务书 Gate A–F。连接成功、doctor READY、组件测试通过、诊断包闭环成功，都不能单独作为最终接受。
+完成须同时满足：
+1. 冻结并标识同一最终候选：Browser/Go 源码输入、二进制、实际加载扩展包、Chrome profile/extensionId、Codex 可执行文件及受控配置均可追溯。未提交输入必须单独登记，不用 HEAD 冒充全部实际字节。
+2. 同候选真实链路通过：连接 → 真实多轮规划 → 网页观察批准/拒绝 → 采用 → 原 Compiler/RunHost/Controller 执行 → 保存 → 关闭 AI/Native 后重载并复跑两次。
+3. 原合同要求的安全、失败、旧 RPC、Node/Go、HTTPS/手动路线、UI 和受影响回归得到逐项证据。
+4. Gate A–F 的必需项没有未解决 FAIL/BLOCKED/NOT_TESTED。合同允许的能力不支持或安全拒绝单独保留，不冒充 PASS，也不自行增加或删除门槛。
+5. 独立只读审阅核对原始证据、输入身份和评分依据后明确接受。原任务书要求逐维 ≥95 的评分须有依据；不能当成产品完成百分比。
+
+本轮 R16 功能接受与整个框架的最终交付分别记录。原 603＋19、独立 B05、1000 mixed／10 reconnect／2 轮禁插件、六项资源 baseline、独立最终 F3、与已验收 dist 一致的 ZIP 安装合同继续保留。未经这些合同自身关闭，不宣布整个项目已交付；也不为本轮局部验证擅自重跑所有无关验收或扩大产品范围。
+
+二、仓库、权限与并行工作
+
+Browser：/Users/shopme/Documents/workspace/opendesk-browser，默认在现有 main。
+Go：/Users/shopme/Documents/workspace/opendesk，使用该仓实际主分支（历史为 master）。
+先读取两仓 AGENTS.md，核对当前 HEAD、git status、diff、未合并状态和相关工作流；历史 SHA、PID、端口、包目录只作检索线索，不当作当前身份。
+普通可逆的本地检查、修复和定向验证自主继续。提交、推送、安装替换和发布按当前明确授权边界执行；本提示词不新增远端 push/release 或覆盖日常 App 的授权。最终报告提交/推送/安装的真实状态。
+单写入者按主分支规则工作；只读原生子 Agent 可用于证据审阅。若确需并行写入，遵循 AGENTS.md 的独立工作区规则，不让多个写入者编辑同一 checkout。
+保留他人未提交修改、历史 receipt、原始失败和来源工程。禁止 reset --hard、git clean、强推、整体 stage、覆盖他人文件或抢占 profile/socket/dist/数据库/端口。
+2026-10-12 准备本提示词时，Browser 有开发安装诊断/CLI/打包相关并行差异，Go 有 Custom UI/runtime-api 差异；开始时重新确认，不纳入本轮候选或覆盖。
+不新增依赖，不开发采集、分页、语音或任务树产品界面，不扩展 ChromePage.js。
+
+三、必读合同与最新证据
+
+Browser 仓内：
+- docs/framework/prompts/goal-r16-r2-local-macos-repair-acceptance.zh-CN.md（正式 Gate A–F 任务书）。
+- docs/framework/testing-guide.md（跨对话复用与证据等级）。
+- docs/framework/workstreams/r16-r2-macos-01a128f3.md（以文末交接和资源补充为准）。
+- docs/framework/workstreams/r16-r2-macos-01a12689.md（历史失败与修复）。
+- docs/framework/prompts/goal-r16-r2-macos-continue-01a128f3.zh-CN.md（历史交接及授权来源；旧进程信息需重核）。
+- docs/framework/workstreams/r16-local-codex-20261010.md、r16-local-codex-r2-20261010.md。
+- docs/architecture/browser-framework/workflow-ai-provider-routing-r16.zh-CN.md。
+- docs/product/sidebar-ai-workflow-ux-r15.2.zh-CN.md。
+- docs/framework/workstreams/browser-dev-install-diagnostics-01a12b8e.md。
+- docs/framework/workstreams/dev-cheerio-dependencies-20261012.md。
+
+Go 仓内：
+- docs/integrations/browser/workflow-codex-app-server-r16.zh-CN.md。
+- docs/integrations/browser/workflow-codex-app-server-r16-implementation.zh-CN.md。
+- docs/integrations/browser/workflow-codex-app-server-r16-r2-macos-01a128f3.zh-CN.md。
+
+原始证据入口为两仓 .runtime/tests/r16-r2-macos/01a128f3/，并保留 01a12689 原件。查不到的文件明确标记缺失，不用历史文字替代原始证据。
+
+四、已有结果与真正缺口
+
+已有：官方受控 Codex 0.159.2、独立 Codex Home 登录、真实多轮/流式中断/ambient MCP canary；真实 Go Native 认证连接；诊断包观察批准/拒绝；规划→采用→执行→保存；断开 Native 后冻结工作流复跑两次；Stop interrupted、导航 E_DOCUMENT_STALE、撤权 E_AI_PERMISSION 有原件。
+关键证据：ai-adopted-business-run.json、frozen-offline-rerun1.json、frozen-offline-rerun2.json、ai-sidepanel-stop-terminal.json、official-sidepanel-tool-exchanges.json、continuation-resource-update.json。
+这些证明限定诊断闭环，历史独立结论仍 NOT_ACCEPTED。诊断包与后续正式包/main 输入有差异，不能直接转为正式候选 PASS。
+主要待补：正式同候选闭环、完整窗口的零额外模型请求直接观察、拒绝/撤权前后精确账本、旧十 RPC/Node 与完整失败矩阵、正式包布局、输入变化后的必要回归与独立接受。
+冷恢复曾 SKIP/NOT_TESTED。原合同允许安全条件不满足时 resumeSupported:false；保留真实能力结论，禁止强行测成 PASS。
+HTTPS Provider 的保留/回归按原合同做；没有本轮 API Key 的第二模型真实推理单列，不擅自读取其他凭据或新增关闭门槛。
+
+历史故障须先核对当前状态：扩展 manifest 缺失、旧 Node Host E_MIGRATION_REQUIRED、E_CODEX_POLICY、直连超时/OUTCOME_UNKNOWN、E_CHROME message port closed、锁屏/同 bundle Chrome 选择冲突。后续已有修复或绕开环境故障的成功证据，不重演旧阻塞，不凭旧失败制造修改。
+优先复用已登录的本轮独立 Codex Home。历史真人已授权为本轮隔离读取/复制 ~/.codex/auth.json，授权来源见旧交接；不打印正文、不修改源文件、不扩展到其他凭据/个人对话。
+历史测试给本轮子进程显式传入现有 HTTP_PROXY/HTTPS_PROXY 后恢复联网。开始时核对代理和真实连接，不把旧代理地址当作永久可用，不修改个人 provider、安全门禁或系统代理来凑 PASS。
+
+五、执行与验证顺序
+
+1. 只读盘点，建立本轮专属工作流与证据目录。首条更新说明目标、具体缺口、可能修改的文件、通过条件与资源范围。
+   制作 Gate A–F 逐项表：已有证据、对应输入、是否可复用、待补验证和具体阻塞。成功且相关输入/合同/环境未变的结果直接引用；有变化只补受影响项。
+   确认实际 App、manifest、CLI、extensionId、加载包与 profile。先解决缺失依赖/资源前置条件，再启动构建或下游验证。
+
+2. 必要修复与组件回归。使用正式任务书中的现有 npm/go 命令，先定向测试，再 check/build/verify、Go 普通/race/vet 和相关真实 opt-in。
+   全套历史失败保留并分类；不能静默改分母或把未知失败写 PASS。发现新问题时给出文件、预期行为、通过条件，做最小修复，不以放宽协议/权限/版本审计换取通过。
+   源码收敛后集中冻结最终候选并完成真实验收；若之后有相关修改，更新输入身份并重验受影响项。
+
+3. 真实 UI 的唯一人工测试页：
+   python3 -m http.server 43111 --bind 127.0.0.1 --directory examples/tasks
+   http://127.0.0.1:43111/demo-form.html
+   启动前确认端口和服务归属，已有正确服务可复用。只用本轮受控 CFT、真实 sender、可信原生输入；不操作用户日常 Chrome profile。
+   禁止 DOM 赋值、synthetic events、伪造 native ACK、直接 CDP 网页业务执行，禁止重放未知 native effect。
+
+4. 在实际 Side Panel「工作流」选择本机 Codex：
+   第一轮：“为当前示例表单创建一个可重复使用的观察工作流，暂不填写或提交内容。”
+   第二轮：“继续刚才的计划，将标题改为 R16 示例表单检查，保留观察步骤。”
+   按当前正式 UI 的同意语义发送；核对同一 threadId、不同 turnId、连续事件、真实 completed 与合法建议。doctor READY 不算模型推理成功。
+   逐次测试 browser.observe 批准/拒绝，以及导航失效/撤权；绑定 window/tab/frame/document/url/origin 和 revision/sourceHash，保存前后 Controller 账本及官方工具响应，验证脱敏和摘要预算。
+   原 UI 采用→原 WorkflowCompiler→RunHost/Controller→持久结果→保存冻结版本。保留精确 runId/resultId、结果自身 revision/sourceHash 和 retirement released。
+
+5. 提前启用仅覆盖本轮进程/扩展、完整复跑窗口的被动网络观察，不记录凭据或其他任务流量。
+   关闭 AI 会话与 Native，切换手动来源，重新加载已保存版本并复跑两次。两次新 run/result 均成功，冻结 revision/sourceHash 完全一致；结合进程/socket 与网络证据证明没有额外模型请求。
+   缺网络直接观察时明确该合同项尚未关闭，不用 rollout 未变或结果成功代替。
+
+6. 按原 Gate C/E 补旧十 RPC、Node 高级 ESM/npm/MCP、Go 迁移 fence、HTTPS/手动路线和失败矩阵。
+   十 RPC：bridge.status、target.current、script.save、run.start、run.get、run.stop、page.preview、page.get、page.dispose、request.get。
+   重点验证独立 Stop 通道、真实 interrupted 与取消 ACK 的区别、owner/generation/文档变更、撤权、断连、未授权工具、预算及未知效果不重放。
+   真实同包检查 320/360/420/520px、200% 缩放、键盘/aria 与 Stop/Run/Save 可达性。
+
+7. 交由独立只读审阅者检查冻结输入、原始证据、正式账本及逐维评分。审阅者不改实现、不替执行者伪造验收。
+   可用 Codex 原生子 Agent；App outside-tmux 环境不把 OMX team/question 当作可直接使用的运行面。
+   有可恢复缺口继续修复/验证；真正外部阻塞才停，并给出已尝试路径及具体缺失条件。
+
+六、最终交付给我的结果
+
+- Gate A–F 表及每个必需项的 PASS/FAIL/BLOCKED/NOT_TESTED、原始证据路径、命令/退出码、修复及缺口。
+- 两仓最终源码身份、二进制/生产和开发包身份、实际 App/CLI/Codex/Chrome 路径与版本、profile/extensionId；提交/推送/安装状态。
+- 多轮 thread/turn，观察审批/拒绝，采用执行/保存/两次复跑的 runId/resultId/revision/sourceHash，网络观察与 retirement released。
+- 独立审阅结论及有依据的评分；给出可直接照做的日常启动、连接、生成和执行方法。
+- 完成则明确“R16 R2 本机工作流正式验证已接受”，同时如实列出整体 F3/ZIP 的独立状态；未完成则明确 NOT_ACCEPTED 与必需缺项。
+
+约每 60 秒报告实际进展。任务树只用实际功能名和实施/证据/剩余任务，不推导产品完成百分比。不要反复询问是否继续普通可逆步骤。

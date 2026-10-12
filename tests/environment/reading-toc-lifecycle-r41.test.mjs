@@ -1,8 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {initReadingToc} from '../../src/reading-toc/page.js';
-import {READING_TOC_SITE_STORE,READING_TOC_PROTOCOL,READING_TOC_PAGE_RULES_STORE,
-  changeTocPageAllowed} from '../../src/reading-toc/policy.js';
+import {READING_TOC_SITE_STORE,READING_TOC_PROTOCOL,READING_TOC_PAGE_RULES_STORE,READING_TOC_VISIBILITY_STORE,
+  changeTocPageAllowed,changeTocSiteAllowed,changeReadingTocVisibility} from '../../src/reading-toc/policy.js';
 import {SIDEBAR_TOOL_STORE} from '../../src/ui/sidebar-tools/package.js';
 import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE} from '../../src/ui/sidebar-tools/lifecycle.js';
 
@@ -10,6 +10,32 @@ const tick=()=>new Promise(resolve=>setImmediate(resolve));
 const tool={format:'opendesk.sidebar-tool.v1',id:'test-toc',version:'1.0.0',
   title:'目录测试',description:'Trusted controller test',capabilities:['page.toc'],
   html:'<main>目录</main>',css:'',js:'void 0;'};
+
+test('built-in default access starts without grants and site/page stops release observers',async()=>{
+  const f=pageFixture(),id='reading-toc',prior=globalThis.MutationObserver;
+  f.state.set(SIDEBAR_TOOL_STORE,[{...tool,id}]);f.state.delete(READING_TOC_SITE_STORE);
+  // Isolate the content-service lifecycle from the separately tested view DOM.
+  f.state.set(READING_TOC_VISIBILITY_STORE,changeReadingTocVisibility({},id,f.win.location.href,'site',true));
+  globalThis.MutationObserver=f.Observer;
+  const controller=initReadingToc({api:f.api,doc:f.doc,win:f.win});
+  const request=()=>f.send({toolId:id});
+  const change=(key,value)=>{f.state.set(key,value);f.changes.send({[key]:{newValue:value}},'local');};
+  try{
+    await tick();await tick();assert.equal(f.Observer.active,1);
+    assert.equal((await request()).ok,true,'no positive origin grant is needed for the reader');
+    change(READING_TOC_SITE_STORE,changeTocSiteAllowed({},id,f.win.location.href,false));
+    assert.equal(f.Observer.active,0);await tick();await tick();assert.equal((await request()).ok,false);
+    change(READING_TOC_SITE_STORE,{});await tick();await tick();assert.equal(f.Observer.active,1);
+    change(READING_TOC_PAGE_RULES_STORE,changeTocPageAllowed({},id,f.win.location.href,false));
+    assert.equal(f.Observer.active,0);await tick();await tick();assert.equal((await request()).ok,false);
+    change(READING_TOC_PAGE_RULES_STORE,{});await tick();await tick();assert.equal((await request()).ok,true);
+    change(SIDEBAR_TOOL_ENABLE_STORE,{[id]:false});
+    assert.equal(f.Observer.active,0);await tick();await tick();assert.equal((await request()).ok,false);
+    change(SIDEBAR_TOOL_ENABLE_STORE,{[id]:true});await tick();await tick();
+    change(SIDEBAR_TOOL_STORE,[]);assert.equal(f.Observer.active,0);await tick();await tick();
+    assert.equal((await request()).ok,false,'default access never survives uninstall');
+  }finally{controller.dispose();globalThis.MutationObserver=prior;}
+});
 
 test('R26 stop releases TOC observers immediately and BFCache cannot restore disabled authority',async()=>{
   const f=pageFixture(),prior=globalThis.MutationObserver;globalThis.MutationObserver=f.Observer;

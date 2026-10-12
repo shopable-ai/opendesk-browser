@@ -1,0 +1,16 @@
+{
+  "status": "no-new-substantive-blockers",
+  "reviewers": [
+    {
+      "agent": "Singer",
+      "scope": "identity/readonly diagnostics/default import condition/dependency closure"
+    },
+    {
+      "agent": "Zeno",
+      "scope": "bundling/packlist/generated exclusions/permissions/readonly diagnostics",
+      "agentId": "01a12bcd-27a0-77b2-8c91-508387fea1f5"
+    }
+  ],
+  "readOnly": true,
+  "browserOrMigrationActions": false
+}

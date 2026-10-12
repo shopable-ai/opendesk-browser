@@ -1,0 +1,114 @@
+{
+  "workstreamId": "dev-cheerio-dependencies-20261012",
+  "sessionId": "01a12bcc-301a-7ca0-80fd-48c847d012b7",
+  "status": "VERIFIED_STOPPED",
+  "completedAt": "2026-10-11T16:37:15.081Z",
+  "headBefore": "f70ccb918e7e9046de7befa73a69f361e4d88b2f",
+  "headAfter": "f70ccb918e7e9046de7befa73a69f361e4d88b2f",
+  "changedInputs": [],
+  "installation": {
+    "command": "npm ci --ignore-scripts --no-audit --no-fund",
+    "exitCode": 0,
+    "topLevelDependencyCheck": "PASS",
+    "fullDependencyTreeCheck": "PASS",
+    "cheerioVersion": "1.2.0"
+  },
+  "development": {
+    "command": "npm run dev",
+    "runningObserved": true,
+    "stopObserved": true,
+    "exitCode": 0,
+    "activePackageVerification": {
+      "exitCode": 1,
+      "error": "Unexpected packaged asset",
+      "reason": "Live development-update.json is outside the static package contract; stopped verifier passed after normal marker removal."
+    },
+    "stoppedPackageVerification": {
+      "exitCode": 0,
+      "mode": "development",
+      "packageHash": "962849b70f173573c9f67a92a2fc5e2d679e0cf20ccd8a490dce6843acd9be2b",
+      "assets": 103
+    },
+    "license": {
+      "bytes": 1081,
+      "sha256": "61c1e21d3a8ff20f9b69abe15104a75584688080febc22f60a4cbf3854becf4e",
+      "packagedSha256": "61c1e21d3a8ff20f9b69abe15104a75584688080febc22f60a4cbf3854becf4e",
+      "equal": true
+    }
+  },
+  "resources": {
+    "status": "released",
+    "ownerPid": 32934,
+    "absent": {
+      ".wxt/development.lock": true,
+      "dist/development/development-update.json": true
+    },
+    "ports": {
+      "43119": {
+        "available": true
+      },
+      "43120": {
+        "available": true
+      }
+    },
+    "transientOtherGuard": {
+      "pid": 33343,
+      "observedAfterOwnShutdown": true,
+      "noLongerPresent": true,
+      "untouched": true
+    }
+  },
+  "notTested": [
+    "Chrome/native business flows",
+    "F3",
+    "ZIP installation",
+    "production build"
+  ],
+  "artifacts": [
+    {
+      "path": "before.json",
+      "bytes": 1512,
+      "sha256": "620894de305f43dc97532d68224112b94c4ceb09116785c64a9cefa417595dce"
+    },
+    {
+      "path": "npm-ls-before.log",
+      "bytes": 807,
+      "sha256": "b4e52666aad6de24a3515fcd8409c715b37a08ff0e5d3b457e581a559528561e"
+    },
+    {
+      "path": "npm-ci.log",
+      "bytes": 26,
+      "sha256": "dffceb943f7ecc8075da3748b5c3e03090a5570b5a46117201961edc710e3d3a"
+    },
+    {
+      "path": "npm-ls-after.log",
+      "bytes": 577,
+      "sha256": "5314699bbf93c5e9fd6ad96bbb0f8d29a76b94465519e7da50d8c10541999ba0"
+    },
+    {
+      "path": "npm-tree-after.json",
+      "bytes": 89456,
+      "sha256": "ff8797c6ad4a90a109846ea87fde45b2b5617932ce3a253b1901ecce5769b896"
+    },
+    {
+      "path": "installation.json",
+      "bytes": 211,
+      "sha256": "f9eec2dfb9cbcb488b7445b348b7307055d907156fd0575b1a5634c69a0781cd"
+    },
+    {
+      "path": "dev.log",
+      "bytes": 17284,
+      "sha256": "a00a75dbd40a76814b6cc761e5b1201a2c60f9cc24dfc669abd0e2d5adc08785"
+    },
+    {
+      "path": "verify-development.log",
+      "bytes": 517,
+      "sha256": "d6745ed6f88849457842212fe1d89ab8c2ecd35212cf0394af7afef942c7c3fe"
+    },
+    {
+      "path": "verify-development-stopped.log",
+      "bytes": 19259,
+      "sha256": "1da50bad3a28f088cfbbbf2602d0ee718fe7b76ec9c55f984e6312ba415496f8"
+    }
+  ]
+}

@@ -44,6 +44,37 @@ function fixture(t){
   return {home,cliRoot,identity,registration,installFile,config,manifest,installRoot,options,connected};
 }
 const codes=report=>report.issues.map(row=>row.code);
+test('publishable dependency lock is part of the installed content identity',t=>{
+  const f=fixture(t),file=path.join(f.cliRoot,'npm-shrinkwrap.json');
+  write(file,JSON.stringify({lockfileVersion:3,packages:{}}));
+  write(path.join(f.cliRoot,'build-info.json'),JSON.stringify(createBuildInfo(f.cliRoot)));
+  const old=readCliIdentity(f.cliRoot);assert.equal(old.status,'verified');
+  fs.appendFileSync(file,'\n');
+  const changed=readCliIdentity(f.cliRoot);assert.equal(changed.status,'content-mismatch');
+  assert.equal(changed.entrySha256,old.entrySha256);assert.notEqual(changed.contentFingerprint,old.contentFingerprint);
+});
+test('bundled dependency bytes are fingerprinted while npm-generated links are excluded',t=>{
+  const f=fixture(t),metadata=path.join(f.cliRoot,'package.json');
+  write(metadata,JSON.stringify({name:CLI_PACKAGE,version:f.identity.version,bundleDependencies:['tool']}));
+  const module=path.join(f.cliRoot,'node_modules/tool/index.js');write(module,'export const value=1;');
+  write(path.join(f.cliRoot,'node_modules/.package-lock.json'),'generated');
+  fs.mkdirSync(path.join(f.cliRoot,'node_modules/.bin'));fs.symlinkSync('../tool/index.js',path.join(f.cliRoot,'node_modules/.bin/tool'));
+  write(path.join(f.cliRoot,'build-info.json'),JSON.stringify(createBuildInfo(f.cliRoot)));
+  const old=readCliIdentity(f.cliRoot);assert.equal(old.status,'verified');
+  write(path.join(f.cliRoot,'node_modules/.package-lock.json'),'updated generated');assert.equal(readCliIdentity(f.cliRoot).contentFingerprint,old.contentFingerprint);
+  fs.appendFileSync(module,'\n');assert.equal(readCliIdentity(f.cliRoot).status,'content-mismatch');
+});
+test('readonly dependency-lock diagnosis detects changed versions and missing required packages',async t=>{
+  const f=fixture(t),file=path.join(f.cliRoot,'npm-shrinkwrap.json');
+  write(file,JSON.stringify({lockfileVersion:3,packages:{'':{},'node_modules/tool':{version:'1.0.0'},'node_modules/platform':{version:'1.0.0',optional:true}}}));
+  write(path.join(f.cliRoot,'node_modules/tool/package.json'),JSON.stringify({version:'1.0.0'}));
+  write(path.join(f.cliRoot,'build-info.json'),JSON.stringify(createBuildInfo(f.cliRoot)));
+  const valid=await diagnoseInstallation(f.options);assert.equal(valid.cli.dependencyLock.status,'verified');
+  write(path.join(f.cliRoot,'node_modules/tool/package.json'),JSON.stringify({version:'2.0.0'}));
+  const changed=await diagnoseInstallation(f.options);assert.ok(codes(changed).includes('E_DEV_DEPENDENCY_LOCK'));assert.equal(changed.cli.status,'verified');
+  fs.unlinkSync(path.join(f.cliRoot,'node_modules/tool/package.json'));
+  assert.ok(codes(await diagnoseInstallation(f.options)).includes('E_DEV_DEPENDENCY_LOCK'));
+});
 test('version uses actual package metadata, identity is deterministic and detects same-version changed bytes',async t=>{
   const f=fixture(t),old=readCliIdentity(f.cliRoot);
   assert.equal(old.status,'verified');assert.equal(readCliIdentity(f.cliRoot).contentFingerprint,old.contentFingerprint);
@@ -75,6 +106,24 @@ test('missing metadata, renamed version and unexpected runtime file cannot pass 
   write(path.join(f.cliRoot,'build-info.json'),JSON.stringify(createBuildInfo(f.cliRoot)));
   write(path.join(f.cliRoot,'runtime/extra.mjs'),'unexpected');assert.equal(readCliIdentity(f.cliRoot).status,'content-mismatch');
 });
+test('missing declared runtime dependencies are diagnosed without loading or executing them',async t=>{
+  const f=fixture(t),file=path.join(f.cliRoot,'package.json'),data=JSON.parse(fs.readFileSync(file));
+  write(file,JSON.stringify({...data,dependencies:{'opendesk-doctor-missing-fixture':'1.0.0'}}));
+  write(path.join(f.cliRoot,'build-info.json'),JSON.stringify(createBuildInfo(f.cliRoot)));
+  const report=await diagnoseInstallation(f.options);
+  assert.ok(codes(report).includes('E_DEV_RUNTIME_DEPENDENCY'));assert.equal(report.cli.runtimeDependencies[0].resolvedPath,null);
+});
+test('an intact require branch does not hide a missing ESM import target',async t=>{
+  const f=fixture(t),file=path.join(f.cliRoot,'package.json'),data=JSON.parse(fs.readFileSync(file));
+  write(file,JSON.stringify({...data,dependencies:{acorn:'8.15.0'}}));
+  write(path.join(f.cliRoot,'build-info.json'),JSON.stringify(createBuildInfo(f.cliRoot)));
+  write(path.join(f.cliRoot,'node_modules/acorn/package.json'),JSON.stringify({name:'acorn',version:'8.15.0',exports:{'.':{import:'./dist/acorn.mjs',require:'./dist/acorn.js'}}}));
+  write(path.join(f.cliRoot,'node_modules/acorn/dist/acorn.js'),'throw new Error("must not execute");');
+  const report=await diagnoseInstallation(f.options);
+  assert.ok(codes(report).includes('E_DEV_RUNTIME_DEPENDENCY'));
+  assert.ok(report.cli.runtimeDependencies[0].resolvedPath.endsWith('acorn.js'));
+  assert.equal(report.cli.runtimeDependencies[0].importPath,null);
+});
 test('nvm CLI and Homebrew registered package are diagnosed independently of matching version and entry bytes',async t=>{
   const f=fixture(t),brew=pkg(path.join(f.home,'homebrew/lib/node_modules/@shopable/opendesk-dev'),'export const value=4;');
   const other=readCliIdentity(brew);
@@ -94,10 +143,12 @@ test('Go selection prefers trusted Homebrew node over PATH nvm, skipping project
   assert.equal(selectGoNode({env,cwd:project,preferredDirs:[]}).path,path.join(nvm,'node'));
   assert.equal(selectGoNode({env:{PATH:project},cwd:project,preferredDirs:[]}),null);
 });
-test('unreadable Go node version is not silently replaced by the current process version',async t=>{
-  const f=fixture(t),fake=path.join(f.home,'not-node');write(fake,'#!/bin/sh\nexit 1\n',0o700);
+test('different Go Node is never executed to infer its version or mutate the filesystem',async t=>{
+  const f=fixture(t),fake=path.join(f.home,'not-node'),marker=path.join(f.home,'must-not-exist');
+  write(fake,`#!/bin/sh\ntouch '${marker}'\necho v22.12.0\n`,0o700);
   const report=await diagnoseInstallation({...f.options,goNode:{path:fake,resolvedPath:fake}});
-  assert.ok(codes(report).includes('E_GO_NODE_VERSION'));assert.ok(codes(report).includes('W_NODE_PATH_DIFFERENT'));
+  assert.ok(codes(report).includes('W_NODE_PATH_DIFFERENT'));assert.equal(report.node.goSelection.version,null);
+  assert.equal(fs.existsSync(marker),false);
 });
 test('old Node owner is migration-required and is never probed or changed',async t=>{
   const f=fixture(t);write(f.installFile,JSON.stringify({...f.config,provider:'node'}));
@@ -123,13 +174,28 @@ test('missing socket, disconnected extension, incompatible capability and invali
 test('private file permissions, invalid provenance and protocol payload never expose credentials',async t=>{
   const f=fixture(t);
   const metadata=JSON.parse(fs.readFileSync(path.join(f.cliRoot,'build-info.json')));
-  metadata.source.clientCredential=credential;metadata.source.gitHead=credential;
+  metadata.source.clientCredential=credential;metadata.source.gitHead=credential;metadata.source.lockSha256=credential;
   write(path.join(f.cliRoot,'build-info.json'),JSON.stringify(metadata));
   const report=await diagnoseInstallation(f.options);
   assert.ok(!JSON.stringify(report).includes(credential));assert.ok(!formatDiagnostic(report).includes(credential));
   fs.chmodSync(f.installFile,0o644);
   const denied=await diagnoseInstallation(f.options);
   assert.ok(codes(denied).includes('E_INSTALL_PERMISSIONS'));assert.equal(denied.native.connection.state,'not-probed');
+});
+test('receipt and entry sizes match Go admission limits',async t=>{
+  const f=fixture(t),receipt=JSON.parse(fs.readFileSync(f.registration));
+  write(f.registration,JSON.stringify({...receipt,unknown:'x'.repeat(5000)}));
+  assert.ok(codes(await diagnoseInstallation(f.options)).includes('E_DEV_COMPONENT_INVALID'));
+  write(f.registration,JSON.stringify(receipt));
+  write(f.identity.entryPath,'x'.repeat(131073));
+  assert.ok(codes(await diagnoseInstallation(f.options)).includes('E_DEV_COMPONENT_INVALID'));
+});
+test('an executable directory cannot be accepted as a Go binary even with a live socket',async t=>{
+  const f=fixture(t),directory=path.join(f.home,'binary-directory');fs.mkdirSync(directory);
+  write(f.installFile,JSON.stringify({...f.config,executable:directory}));
+  write(path.join(f.installRoot,'native-host'),`#!/bin/sh\nunset OPENDESK_NATIVE_INSTANCE\nexec '${directory}' browser native-host "$@"\n`,0o700);
+  const report=await diagnoseInstallation(f.options);
+  assert.ok(codes(report).includes('E_NATIVE_EXECUTABLE'));assert.equal(report.ok,false);
 });
 test('doctor flags never reinterpret directory names and reject malformed combinations',()=>{
   assert.equal(parseArgs(['doctor']).action,'attach');

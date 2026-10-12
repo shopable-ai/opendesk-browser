@@ -24,6 +24,10 @@ npm run dev
 
 如果此前已从同一个目录加载过 `build:dev` 的静态包，在首次切换到持续开发时，点击扩展卡片的「重新加载」一次，再打开 Sidebar。以后保留同一加载目录，不需重复安装或打包 ZIP。
 
+日常源码开发始终使用上述 `dist/development`。`~/.opendesk-browser/extensions/local-dev-<会话标识>` 是历史会话手工复制的静态安装包，`npm run dev` 不会更新它。隔离验收包只加载到验收专属 CFT/Profile，不替换日常 Chrome 的开发扩展；不要为日常修复再复制到一个新目录。
+
+切回已有 `dist/development` 扩展时，核对其真实 ID 与 `opendesk browser doctor` 的 `local.extensionId`，以及 Native manifest 的 `allowed_origins`。加载目录变化可能产生另一个 ID，启用扩展和 Go 配对必须一致。跨 ID 的 `setup/update` 会返回 `E_EXTENSION_ID_CONFLICT`；先备份并收尾旧连接，再由所属 Go 的 `cleanup` 和 `setup --extension-id <正常开发扩展的真实ID>` 重新配对，最后在该扩展设置页连接并用 doctor 验证。`cleanup` 会撤销旧目录/项目授权，有授权时先记录并妥善处理，不能为改目录直接删 Native 安装文件。旧静态副本停用、需要保留的证据及数据备份后，可移除该副本。
+
 `npm run dev` 默认不启动浏览器。需要独立 Chrome for Testing 时，按现有 `npm run dev:chrome` 帮助启动；它是另一个浏览器启动流程，不是持续编译服务。
 
 ## 每天开发

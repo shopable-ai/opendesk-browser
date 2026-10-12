@@ -1,0 +1,60 @@
+{
+  "sourceCandidate": "source-final4-binding.json",
+  "files": [
+    {
+      "path": "native-agent/local-dev/cli-identity.mjs",
+      "sha256": "b69b26acdf9c64e28d0e75fa77781dba50ae7833dcceca534c2c1c90527a0c36"
+    },
+    {
+      "path": "native-agent/local-dev/installation-diagnostics.mjs",
+      "sha256": "e06747c7cece99d62b282a20b848fb4f594c679bcb289e48b8d785ca68e06321"
+    },
+    {
+      "path": "native-agent/local-dev/dev-cli.mjs",
+      "sha256": "26d96e8b61e9f348851b2fddca7d994917ca4aa38928ef8afdbb786766cb4e22"
+    },
+    {
+      "path": "scripts/pack-opendesk-dev.mjs",
+      "sha256": "20b6ab350d5467bb8d6081d53d710a12683f4e6b13ab0ef1909b343e13a0b8ba"
+    },
+    {
+      "path": "scripts/dev-package-dependencies.mjs",
+      "sha256": "5ca0b0b6e084d33fb6bfac807443b932916225982e8abf990d891ed8998d1c56"
+    },
+    {
+      "path": "packages/opendesk-dev/package.json",
+      "sha256": "4910868c27a37759a64dd6ccc59c076cd5f3cad9e1930925bd80985c839ce75b"
+    },
+    {
+      "path": "tests/environment/dev-installation-diagnostics.test.mjs",
+      "sha256": "64d870fb1dd1519161164df7789812a6f67d14963bdf5867dd6837b47d7430aa"
+    },
+    {
+      "path": "tests/environment/dev-cli-pack-boundaries.test.mjs",
+      "sha256": "2e8d9a54f960908df1a36a1d5441d00876c3845732dd4a048b5ccb609401317f"
+    },
+    {
+      "path": "docs/framework/browser-dev-install-update.zh-CN.md",
+      "sha256": "5c1c046c1866fbe83c66cdd217f9e30efc9080afa966913b60733ce54e99335b"
+    },
+    {
+      "path": "docs/framework/local-directory-cli-r17.zh-CN.md",
+      "sha256": "d58d4edba7bad91b372402f7eb93c2ee96d4f48968d6823c067d810d77c353ba"
+    },
+    {
+      "path": "docs/framework/local-development-quickstart.zh-CN.md",
+      "sha256": "3ca88570c923722a42eb800b3c48084854fc0e58703d71af69e32b9007e5c84e"
+    },
+    {
+      "path": "docs/api/quickstart.zh-CN.md",
+      "sha256": "2f905db9f5ca0859a244259a37d8ac4ceff971071f123757cf51719704d7019b"
+    },
+    {
+      "path": "docs/api/dependencies-and-errors.zh-CN.md",
+      "sha256": "e2dbfdcee2f9097edfc5e167f3764b9d10aea7cd2522c12811b4397201f8b1bf"
+    }
+  ],
+  "postSnapshotDocumentationOnlyChanges": [
+    "docs/framework/browser-dev-install-update.zh-CN.md"
+  ]
+}

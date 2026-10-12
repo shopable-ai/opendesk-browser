@@ -44,16 +44,19 @@ CLI 默认前台运行，打开 **现有** `native-agent/workspace.html` 页面�
 
 ```bash
 npm ci --ignore-scripts --no-audit --no-fund
-node scripts/pack-opendesk-dev.mjs
-npm install -g .runtime/r17-dev-package/shopable-opendesk-dev-0.1.0-r17.1.tgz
+node scripts/pack-opendesk-dev.mjs --out /absolute/new/cli-stage
+npm install -g --ignore-scripts /absolute/new/cli-stage/shopable-opendesk-dev-0.1.0-r17.1.tgz
 opendesk-dev --register-go
 opendesk-dev --version
+opendesk-dev --doctor --expect-package /absolute/new/cli-stage
 opendesk browser --help
 ```
 
-`scripts/pack-opendesk-dev.mjs` 只生成 `.runtime/r17-dev-package/` 下的候选 tarball，并验证包内所需源码/Resolver 图；保留原仓库根包 `private:true`。npm 包为 `@shopable/opendesk-dev`，真实 bin 为 `opendesk-dev`，源代码入口为 `native-agent/local-dev/dev-cli.mjs`。该入口依赖随包分发的 Node 模块与资源；**不能只复制一个 .mjs 文件就称它完全独立**。
+`scripts/pack-opendesk-dev.mjs` 默认生成 `.runtime/r17-dev-package/`，也可指定新的 `--out /absolute/candidate` 下的候选 tarball，并验证包内所需源码/Resolver 图；保留原仓库根包 `private:true`。npm 包为 `@shopable/opendesk-dev`，真实 bin 为 `opendesk-dev`，源代码入口为 `native-agent/local-dev/dev-cli.mjs`。该入口依赖随包分发的 Node 模块与资源；**不能只复制一个 .mjs 文件就称它完全独立**。
 
 注册命令把 `localDevAccessVersion:1`、已安装 npm **全局包入口及入口文件 SHA-256** 写到用户私有的 `~/.opendesk-browser/dev-tool-r17/entry.json`。Go 每次检查此入口、文件身份与哈希，不从当前目录或未登记的同名命令加载组件，也不使用 shell 拼接。升级 npm 工具后需要重新执行 `opendesk-dev --register-go`，不会自动下载 latest。若 npm 全局目录不可写，请使用当前账号允许的 npm prefix；不要把包安装在当前业务项目的 `node_modules` 后冒充全局入口。
+
+`--version` 显示实际包版本、内容指纹和路径；完整包/登记/Node/Native/连接只读核对见[安装诊断与可回退更新](browser-dev-install-update.zh-CN.md)。新登记包含包版本和完整内容指纹；Go 当前仍强制核验入口 SHA，完整 runtime 由诊断比对。打包新增 `--out`，已有输出目录会拒绝覆盖。
 
 本项目没有执行 `npm publish`、官方 release 或远端安装操作。**更新 GitHub 主分支并不等于本机安装的新二进制或 Chrome 已加载新代码**。
 

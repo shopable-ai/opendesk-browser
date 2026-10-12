@@ -1,0 +1,17 @@
+The following is a diff from the previous accessibility tree for Window: "OpenDesk Browser · Browser Test Lab" with ~ and + representing changed and added elements, respectively. Removed elements are summarized by ID range.
+Removed element IDs: 202, 207-216, 244-273
++								244 文本 选区笔记（Browser SDK R1.3）
++								245 container 选区笔记（Browser SDK R1.3）（独立受限界面）
++									246 HTML 内容 OpenDesk 隔离工具界面, URL: chrome-extension://geiinkifhankgponciolindbojeaddfl/sidebar-tools/sandbox.html
++										247 container
++											248 标题 选区笔记, Value: 2
++												249 文本 选区笔记
++											250 text 请在已授权的网站选中文字，右键选择 OpenDesk Browser → 保存到选区笔记。 选区已领取，请点击“确认保存”；不会后台静默保存。 本周共有 3 项阅读计划，当前状态：等待开始。
++											251 按钮 确认保存
++											252 标题 已保存记录, Value: 3
++												253 文本 已保存记录
+Selected text: ```
+本周共有 3 项阅读计划，当前状态：等待开始。
+```
+
+Note: Pay special attention to the content selected by the user. If the user asks a question or refers to the content they are looking at on-screen, they might be referring to the selected content (but they might be referring to something else that's visible, too).

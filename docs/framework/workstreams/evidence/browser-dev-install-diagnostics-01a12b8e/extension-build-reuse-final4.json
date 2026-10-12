@@ -1,0 +1,12 @@
+{
+  "receipt": "build-production-final3.json",
+  "candidate": "source-final4-binding.json",
+  "sourceInputChanges": [
+    "scripts/pack-opendesk-dev.mjs"
+  ],
+  "bundleModuleChanges": [],
+  "consumedModuleCount": 575,
+  "status": "reuse-unchanged-consumed-inputs",
+  "virtualModuleCount": 86,
+  "limitation": "Original receipt remains bound to source-final3. Packaging-only input changed; no claim of a new full-main acceptance."
+}

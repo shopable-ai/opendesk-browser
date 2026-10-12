@@ -15,7 +15,7 @@ const TRANSFER_FORMAT='opendesk.market.transfer.v1';
 const idPattern=/^[a-z][a-z0-9-]{1,39}$/;
 const CAPABILITY_NAMES={
   'storage.local':'保存该工具的本机数据','currentPage.read':'读取用户当前网页的标题和地址',
-  'tasks.open':'打开已安装任务','page.toc':'按网站授权读取标题目录',
+  'tasks.open':'打开已安装任务','page.toc':'读取可用网站的标题目录',
   'page.clip':'按网站授权读取正文或选区','user.export':'复制内容或下载文件',
   'page.capture':'授权后在 ChatGPT 页面提供保存按钮',
   'knowledge.store':'管理本机知识收件箱',
@@ -270,7 +270,7 @@ export function initMarketplace({api=globalThis.chrome,root=globalThis.document?
     for(const [key,value] of [
       ['版本','v'+app.version],['发布者',app.author],['适用网页',app.sites],
       ['运行位置',app.surfaces.join('、')],['交付方式','随 OpenDesk 扩展打包；可离线安装'],
-      ['站点授权','安装后独立授权，不自动读取网页']
+      ['站点授权',app.toolId==='reading-toc'?'启用后 HTTP(S) 网页默认可用，可停用网站或排除单页':'安装后独立授权，不自动读取网页']
     ])list.append(elem('dt','',key),elem('dd','',value));
     return list;
   }
@@ -281,7 +281,8 @@ export function initMarketplace({api=globalThis.chrome,root=globalThis.document?
     main.append(drawDemo(app),elem('h2','','主要功能'));
     const featureList=elem('ul');for(const f of app.features)featureList.append(elem('li','',f));
     main.append(featureList,elem('h2','','安全与权限'),
-      para('只有审阅并确认后才能安装。安装本身不运行工具、不授予站点授权，也不会读取网页内容。','minor'));
+      para(app.toolId==='reading-toc'?'安装并启用后，阅读目录默认可用于普通 HTTP(S) 网页；可在工具设置中停用网站或排除单页。':
+        '只有审阅并确认后才能安装。安装本身不运行工具、不授予站点授权，也不会读取网页内容。','minor'));
     const side=elem('aside','side'),meta=elem('section','surface');meta.append(infoSpecs(app));
     const acts=elem('div','actions');
     const open=button('打开使用',()=>api.tabs.create({url:toolPageHref(api.runtime,app.toolId)}),true);
@@ -294,7 +295,9 @@ export function initMarketplace({api=globalThis.chrome,root=globalThis.document?
     }
     meta.append(acts);
     side.append(meta);
-    const perm=elem('section','surface');perm.append(elem('h3','','权限说明'),para('正式能力列表以已验证发行包为准。站点授权在工具页面独立管理。','minor'));
+    const perm=elem('section','surface');perm.append(elem('h3','','权限说明'),para(app.toolId==='reading-toc'?
+      '内置阅读目录默认可用于 HTTP(S) 网页；网站停用、单页排除和工具启停在工具设置中管理。':
+      '正式能力列表以已验证发行包为准。站点授权在工具页面独立管理。','minor'));
     side.append(perm);layout.append(main,side);content.append(layout);
     if(state.review?.app.id===app.id)content.append(renderReview(state.review));
     return content;
@@ -323,7 +326,8 @@ export function initMarketplace({api=globalThis.chrome,root=globalThis.document?
         parent.append(para('市场不允许用同版本不同内容或旧版本覆盖现有工具。','minor'));
       }
     }
-    parent.append(para('网站授权需在工具列表另行确认；安装完成后不会自动打开工具。','minor'));
+    parent.append(para(review.app.toolId==='reading-toc'?'内置阅读目录启用后默认可用于普通网页，可在工具设置中管理网站和页面例外。':
+      '网站授权需在工具列表另行确认；安装完成后不会自动打开工具。','minor'));
     if(review.unknown){
       parent.append(button('恢复核对安装结果',()=>recover(review)));return parent;
     }
@@ -362,6 +366,7 @@ export function initMarketplace({api=globalThis.chrome,root=globalThis.document?
         throw fail('安装状态读回不一致，请先恢复核对','E_OUTCOME_UNKNOWN');
       state.review=null;void refreshUsage();
       state.notice=result.state==='cancelled'?'已取消更新。':result.state==='already-installed'?'已经安装相同工具。':
+        review.app.toolId==='reading-toc'?'安装完成。阅读目录默认可用于 HTTP(S) 网页；请从我的应用点击打开。':
         '安装完成。请从我的应用主动点击打开；网站访问还需独立授权。';state.error=false;
     }catch(e){
       if(e.code==='E_OUTCOME_UNKNOWN')review.unknown=true;
@@ -543,7 +548,7 @@ export function initMarketplace({api=globalThis.chrome,root=globalThis.document?
               reviewApproved:true,market:{marketId:row.app.id,sha256:row.release.sha256,operationId:item.operationId},
               approveUpdate:()=>true});
             item.status=result.state==='installed'?'succeeded':result.state;
-            item.reason='经安装服务完成；未自动运行或授予网站权限';
+            item.reason=row.app.toolId==='reading-toc'?'经安装服务完成；目录可用性按工具设置生效':'经安装服务完成；未自动运行或授予网站权限';
           }catch(e){
             item.status=e.code==='E_OUTCOME_UNKNOWN'?'outcome-unknown':'failed';
             item.reason=((e.code||'E_INSTALL')+': '+String(e.message||e)).slice(0,300);

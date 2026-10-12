@@ -1,0 +1,13 @@
+{
+  "package": "@shopable/opendesk-dev",
+  "packageRoot": "/Users/shopme/.nvm/versions/node/v24.16.0/lib/node_modules/@shopable/opendesk-dev",
+  "mode": "installed-package",
+  "status": "verified",
+  "version": "0.1.0-r17.1",
+  "entryPath": "/Users/shopme/.nvm/versions/node/v24.16.0/lib/node_modules/@shopable/opendesk-dev/bin/opendesk-dev.mjs",
+  "entrySha256": "c1477fe00c64665bc8d229914fa2bdca4d2f472ae247fab64e1d08fe966bb563",
+  "contentFingerprint": "470281625b49db5885aa785053e92f481f5356d1146426b7f3fb7311f787d1d9",
+  "metadataSha256": "491b43ae43bfc45ccc227a6943ba42b7a1d172945148468626d9f83f47fae933",
+  "recordedFingerprint": "470281625b49db5885aa785053e92f481f5356d1146426b7f3fb7311f787d1d9",
+  "provenance": "recorded-not-independently-verified"
+}

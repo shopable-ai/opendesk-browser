@@ -1,0 +1,25 @@
+✔ managed cleanup waits for async disposers and callbacks; repeated retirement never repeats disposal (5.640334ms)
+✔ sync and async cleanup failures remain tombstones even when the DOM host was removed (2.144417ms)
+✔ managed cleanup times out conservatively and never promotes a late completion to success (18.620875ms)
+✔ the captured lexical registry survives global alias forgery and ignores DOM close as a success receipt (3.502625ms)
+✔ changed Promise primitives cannot turn an unfinished async disposer into successful cleanup (1.8415ms)
+✔ a manual preview cannot bypass a managed old instance through its legacy DOM replacement path (2.786125ms)
+✔ prototype then pollution cannot assimilate a failed cleanup receipt into forged success (0.890958ms)
+✔ retirement freezes entry to every managed instance before any disposer can trigger new business callbacks (1.117041ms)
+✔ Go scoped project bindings pass the adapter and preserve managed preview ownership through replacement and retirement (26.623667ms)
+✔ malformed scoped bindings fail before Page native effects (5.970583ms)
+✔ explicit next preview retires the original world before new code; service recreation preserves identity and budget (5.134791ms)
+✔ confirmed cleanup failure blocks new code and preserves the failed record across retries (4.869791ms)
+✔ lost cleanup receipt holds the original shared Authority fence; no second retirement or Controller admission (3.8895ms)
+✔ Host loss after bootstrap or retiring ledger write prevents the next native effect (5.170083ms)
+✔ pre-bootstrap refusal does not poison next valid admission; previous main failure still requires managed cleanup (5.150667ms)
+✔ removing the UI import cannot silently bypass an old managed binding (4.11925ms)
+✔ Native adapter maps uncoded transport rejection to unknown for preview and managed disposal (0.578833ms)
+ℹ tests 17
+ℹ suites 0
+ℹ pass 17
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 378.253166

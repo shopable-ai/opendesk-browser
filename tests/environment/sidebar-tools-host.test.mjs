@@ -13,7 +13,7 @@ import {MARKET_PROVENANCE_STORE,MARKET_OPERATIONS_STORE,reconcileMarketOperation
   TOOL_CLEANUP_STORE,retryUninstalledToolCleanup,TOOL_REVOCATION_EPOCHS_STORE,recordToolUninstall} from '../../src/ui/sidebar-tools/installation.js';
 import {CLIP_SITE_STORE} from '../../src/page-clip/policy.js';
 import {CAPTURE_SITE_STORE} from '../../src/knowledge/policy.js';
-import {READING_TOC_SITE_STORE,READING_TOC_VISIBILITY_STORE,READING_TOC_PAGE_RULES_STORE,changeReadingTocVisibility} from '../../src/reading-toc/policy.js';
+import {READING_TOC_SITE_STORE,READING_TOC_VISIBILITY_STORE,READING_TOC_PAGE_RULES_STORE,changeReadingTocVisibility,changeTocSiteAllowed,tocSiteAllowed} from '../../src/reading-toc/policy.js';
 
 test('R26 stopped details remain manageable and enabling waits for an explicit Open',async t=>{
   const key=sidebarToolStorageKey(sample.id),grants={[sample.id]:['https://example.com']};
@@ -72,11 +72,32 @@ test('R26 eye restores intersecting site/page appearance without mutating grants
   assert.deepEqual(store.get(READING_TOC_SITE_STORE),grants);
 });
 
-test('R26 missing site permission disables eye with a reason while settings remain available',async t=>{
+test('stopped website disables the eye while restore settings remain available',async t=>{
   const toc=await officialToolFixture('reading-toc'),target={snapshot:{status:'available',url:'https://example.com/a'}};
-  const f=await hostFixture(t,{tool:toc,target,store:new Map([[SIDEBAR_TOOL_STORE,[toc]]])});
-  assert.equal(f.elements['sidebar-tool-visibility'].disabled,true);assert.match(f.elements['sidebar-tool-visibility'].title,/授权/);
+  const f=await hostFixture(t,{tool:toc,target,store:new Map([[SIDEBAR_TOOL_STORE,[toc]],
+    [READING_TOC_SITE_STORE,changeTocSiteAllowed({},toc.id,target.snapshot.url,false)]])});
+  assert.equal(f.elements['sidebar-tool-visibility'].disabled,true);assert.match(f.elements['sidebar-tool-visibility'].title,/停用/);
   f.elements['sidebar-tool-settings-open'].emit('click');assert.equal(f.elements['sidebar-tool-settings-view'].hidden,false);
+});
+
+test('built-in host reads default sites and blocks stopped sites before sending page messages',async t=>{
+  const toc=await officialToolFixture('reading-toc'),url='https://new-site.example/article';
+  const target={snapshot:{status:'available',url},
+    capture:()=>({url,origin:'https://new-site.example',tabId:7,documentId:'doc-default'}),
+    async revalidate(){return true;}};
+  const f=await hostFixture(t,{tool:toc,target,store:new Map([[SIDEBAR_TOOL_STORE,[toc]]])});
+  let reads=0;
+  f.api.tabs={async sendMessage(tabId,message,options){
+    reads++;assert.equal(tabId,7);assert.equal(message.expectedUrl,url);
+    assert.deepEqual(options,{frameId:0,documentId:'doc-default'});
+    return {ok:true,data:{items:[],sources:[],activeId:''}};
+  }};
+  f.ask('toc.snapshot');await settle(()=>f.frame.contentWindow.sent.some(row=>row.kind==='response'));
+  assert.equal(f.frame.contentWindow.sent.at(-1).ok,true);assert.equal(reads,1);
+  f.store.set(READING_TOC_SITE_STORE,changeTocSiteAllowed({},toc.id,url,false));
+  f.ask('toc.navigate',{id:'h-1',sourceId:'s-1'},'2');await settle(()=>f.frame.contentWindow.sent.some(row=>row.requestId==='2'));
+  assert.equal(f.frame.contentWindow.sent.at(-1).ok,false);assert.equal(reads,1);
+  assert.match(f.frame.contentWindow.sent.at(-1).error.message,/停用/);
 });
 
 test('R26 corrupted enable records preserve bytes and refuse execution or changes',async t=>{
@@ -154,7 +175,7 @@ test('trusted tool host installs only by explicit click, scopes messages and rem
     'sidebar-tool-settings-scope-label','sidebar-tool-settings-target',
     'sidebar-tool-settings-allow','sidebar-tool-settings-deny','sidebar-tool-settings-hint',
     'sidebar-tool-settings-site-visibility','sidebar-tool-settings-page-visibility',
-    'sidebar-tool-settings-sites','sidebar-tool-settings-pages',
+    'sidebar-tool-settings-sites','sidebar-tool-settings-sites-title','sidebar-tool-settings-pages',
     'sidebar-tool-import-trigger','sidebar-tool-import','sidebar-tool-import-close','sidebar-tool-preview',
     'sidebar-tool-preview-title','sidebar-tool-preview-version','sidebar-tool-preview-description',
     'sidebar-tool-preview-capabilities','sidebar-tool-preview-file','sidebar-tool-file-error',
@@ -353,7 +374,7 @@ async function hostFixture(t,{store=new Map([[SIDEBAR_TOOL_STORE,[sample]]]),loc
     'sidebar-tool-settings-scope-label','sidebar-tool-settings-target',
     'sidebar-tool-settings-allow','sidebar-tool-settings-deny','sidebar-tool-settings-hint',
     'sidebar-tool-settings-site-visibility','sidebar-tool-settings-page-visibility',
-    'sidebar-tool-settings-sites','sidebar-tool-settings-pages',
+    'sidebar-tool-settings-sites','sidebar-tool-settings-sites-title','sidebar-tool-settings-pages',
     'sidebar-tool-import-trigger','sidebar-tool-import','sidebar-tool-import-close','sidebar-tool-preview',
     'sidebar-tool-preview-title','sidebar-tool-preview-version','sidebar-tool-preview-description',
     'sidebar-tool-preview-capabilities','sidebar-tool-preview-file','sidebar-tool-file-error',
@@ -939,20 +960,22 @@ test('R26 page appearance is independent of site authorization and global availa
   await settle(()=>!store.get(READING_TOC_VISIBILITY_STORE)?.[toc.id]);
 });
 
-test('R4.7 the independent settings page can revoke a previously granted website',async t=>{
+test('default reader settings can restore a stopped website without revisiting it',async t=>{
   const toc={...sample,id:'reading-toc',capabilities:['page.toc']};
   const store=new Map([[SIDEBAR_TOOL_STORE,[toc]],
-    [READING_TOC_SITE_STORE,{'reading-toc':['https://article.example','https://old.example']}]]); 
+    [READING_TOC_SITE_STORE,changeTocSiteAllowed({},toc.id,'https://old.example',false)]]);
   const target={snapshot:{status:'available',url:'https://article.example/latest'}};
   const f=await hostFixture(t,{store,startTool:true,tool:toc,target});
   assert.equal(f.elements['sidebar-tool-list'].children.length,1);
   f.elements['sidebar-tool-settings-open'].emit('click');
   const sites=f.elements['sidebar-tool-settings-sites'];
   const oldSite=sites.children.find(row=>row.children[0]?.textContent==='https://old.example');
-  assert.ok(oldSite,'previously approved websites can be managed from the independent view');
+  assert.ok(oldSite,'stopped websites can be managed from the independent view');
+  assert.equal(f.elements['sidebar-tool-settings-sites-title'].textContent,'已停用的网站');
+  assert.equal(oldSite.children[1].textContent,'恢复');
   oldSite.children[1].emit('click');
-  await settle(()=>!store.get(READING_TOC_SITE_STORE)?.[toc.id]?.includes('https://old.example'));
-  assert.deepEqual(store.get(READING_TOC_SITE_STORE),{'reading-toc':['https://article.example']});
+  await settle(()=>!store.get(READING_TOC_SITE_STORE)?.[toc.id]);
+  assert.deepEqual(store.get(READING_TOC_SITE_STORE),{});
   assert.deepEqual(store.get(SIDEBAR_TOOL_STORE),[toc],'revoke does not replace the tool package');
 });
 
@@ -963,6 +986,10 @@ for(const [toolId,key,url,origin] of [
   ['knowledge-inbox',CAPTURE_SITE_STORE,'https://chatgpt.com/c/fixture','https://chatgpt.com']
 ])test('site permission settings apply one click without a second dialog: '+toolId,async t=>{
   const tool=await officialToolFixture(toolId),store=new Map([[SIDEBAR_TOOL_STORE,[tool]]]);
+  if(toolId==='reading-toc')store.set(key,changeTocSiteAllowed({},toolId,url,false));
+  const siteAllowed=()=>toolId==='reading-toc'?tocSiteAllowed(store.get(key),toolId,url):
+    Boolean(store.get(key)?.[toolId]?.includes(origin));
+  const allowedRecord=toolId==='reading-toc'?{}:{[toolId]:[origin]};
   let invalidated=false,validated=0,dialogCount=0;
   const target={snapshot:{status:'available',url},
     capture(){return {url,origin,windowId:1,tabId:7,frameId:0,documentId:'doc-a'};},
@@ -975,13 +1002,13 @@ for(const [toolId,key,url,origin] of [
   const deny=f.elements['sidebar-tool-settings-deny'];
   assert.equal(allow.disabled,false);
   assert.equal(allow.attributes.get('aria-pressed'),'false');
-  assert.match(f.elements['sidebar-tool-settings-hint'].textContent,/点击授权后直接生效/);
+  assert.match(f.elements['sidebar-tool-settings-hint'].textContent,toolId==='reading-toc'?/默认可用于所有 HTTP\(S\) 网页/:/点击授权后直接生效/);
   globalThis.confirm=()=>{dialogCount++;return false;};
   allow.focus();
   allow.emit('click');
   allow.emit('click'); // repeated clicks before the first commit must not flip consent
-  await settle(()=>store.get(key)?.[toolId]?.includes(origin)===true&&!allow.disabled);
-  assert.deepEqual(store.get(key),{[toolId]:[origin]},'only the chosen exact Origin is granted');
+  await settle(()=>siteAllowed()&&!allow.disabled);
+  assert.deepEqual(store.get(key),allowedRecord,'the exact-origin stop/grant is restored');
   assert.equal(allow.attributes.get('aria-pressed'),'true');
   assert.equal(f.elements['sidebar-tool-settings-view'].hidden,false);
   assert.equal(dialogCount,0,'site grant is a direct action, not window.confirm');
@@ -990,19 +1017,19 @@ for(const [toolId,key,url,origin] of [
     assert.equal(eye.disabled,false);
     eye.emit('click');eye.emit('click');
     await settle(()=>Boolean(store.get(READING_TOC_VISIBILITY_STORE)?.[toolId]?.hiddenSites?.includes(origin))&&!eye.disabled);
-    assert.deepEqual(store.get(key),{[toolId]:[origin]},'hide is independent of website grant');
+    assert.deepEqual(store.get(key),allowedRecord,'hide is independent of website grant');
     eye.emit('click');
     await settle(()=>!store.get(READING_TOC_VISIBILITY_STORE)?.[toolId]&&!eye.disabled);
     assert.equal(dialogCount,0,'show/hide must never prompt');
   }
   deny.emit('click');
-  await settle(()=>!store.get(key)?.[toolId]&&!deny.disabled);
+  await settle(()=>!siteAllowed()&&!deny.disabled);
   assert.equal(deny.attributes.get('aria-pressed'),'true');
   assert.equal(dialogCount,0,'site revocation needs no dialog');
   invalidated=true;
   allow.emit('click');
   await settle(()=>/E_DOCUMENT_STALE/.test(f.elements['sidebar-tool-status'].textContent||''));
-  assert.equal(store.get(key)?.[toolId],undefined,'stale document must not gain a permission');
+  assert.equal(siteAllowed(),false,'stale document must not gain a permission');
   assert.equal(dialogCount,0);
   assert.ok(validated>=3,'native target binding is checked before persistent write');
 });
@@ -1331,7 +1358,7 @@ test('uninstall refuses a newly corrupted registry rather than dropping unrelate
   assert.equal(f.store.has(sidebarToolStorageKey(sample.id)),false);
 });
 
-test('R4.9 TOC availability is one explicit click, without repeated JavaScript confirmation',async t=>{
+test('default TOC availability needs no grant; stopping and restoring use one click',async t=>{
   const toc={...sample,id:'reading-toc',capabilities:['page.toc']};
   const url='https://article.example/guide';
   const target={snapshot:{status:'available',url,title:'Guide'},
@@ -1342,15 +1369,20 @@ test('R4.9 TOC availability is one explicit click, without repeated JavaScript c
   globalThis.confirm=()=>{prompts++;return false;};
   f.host.openTool(toc.id);
   f.elements['sidebar-tool-settings-open'].emit('click');
+  assert.equal(f.elements['sidebar-tool-settings-allow'].attributes.get('aria-pressed'),'true');
+  assert.equal(f.elements['sidebar-tool-visibility'].disabled,false);
   f.elements['sidebar-tool-settings-allow'].emit('click');
-  await settle(()=>f.store.get(READING_TOC_SITE_STORE)?.[toc.id]?.includes('https://article.example'));
+  await pause();assert.equal(f.store.has(READING_TOC_SITE_STORE),false);
   assert.equal(prompts,0,'site grant is the users explicit selection; no second modal');
   f.elements['sidebar-tool-settings-allow'].emit('click');await pause();
-  assert.deepEqual(f.store.get(READING_TOC_SITE_STORE),{'reading-toc':['https://article.example']},
+  assert.equal(f.store.has(READING_TOC_SITE_STORE),false,
     'selecting the already-active state is idempotent');
   f.elements['sidebar-tool-settings-deny'].emit('click');
-  await settle(()=>!f.store.get(READING_TOC_SITE_STORE)?.[toc.id]);
+  await settle(()=>f.store.get(READING_TOC_SITE_STORE)?.[toc.id]?.blockedOrigins?.includes('https://article.example'));
   assert.equal(prompts,0,'revoking site grant also needs no extra modal');
+  assert.equal(tocSiteAllowed(f.store.get(READING_TOC_SITE_STORE),toc.id,url),false);
+  f.elements['sidebar-tool-settings-allow'].emit('click');
+  await settle(()=>!f.store.get(READING_TOC_SITE_STORE)?.[toc.id]);
   assert.deepEqual(f.store.get(READING_TOC_SITE_STORE),{});
 });
 
@@ -1410,17 +1442,20 @@ test('R5.1 three official tool site grants require no extra JavaScript modal',as
   const target={snapshot:{status:'available',url:scenarios[0].url},
     capture(){return {url:this.snapshot.url,origin:new URL(this.snapshot.url).origin,tabId:5,documentId:'doc'};},
     async revalidate(){return true;}};
-  const f=await hostFixture(t,{store:new Map([[SIDEBAR_TOOL_STORE,packages]]),target,startTool:false});
+  const f=await hostFixture(t,{store:new Map([[SIDEBAR_TOOL_STORE,packages],
+    [READING_TOC_SITE_STORE,changeTocSiteAllowed({},'reading-toc',scenarios[0].url,false)]]),target,startTool:false});
   let prompts=0;globalThis.confirm=()=>{prompts++;return false;};
   for(const row of scenarios){
     target.snapshot={status:'available',url:row.url};
     f.host.openTool(row.id);
     f.elements['sidebar-tool-settings-open'].emit('click');
     f.elements['sidebar-tool-settings-allow'].emit('click');
-    await settle(()=>f.store.get(row.store)?.[row.id]?.includes(row.origin));
+    const allowed=()=>row.id==='reading-toc'?tocSiteAllowed(f.store.get(row.store),row.id,row.url):
+      Boolean(f.store.get(row.store)?.[row.id]?.includes(row.origin));
+    await settle(()=>allowed());
     assert.equal(prompts,0,row.id+' does not invoke confirm');
     f.elements['sidebar-tool-settings-deny'].emit('click');
-    await settle(()=>!f.store.get(row.store)?.[row.id]);
+    await settle(()=>!allowed());
     assert.equal(prompts,0,row.id+' revokes without confirm');
     f.host.closeTool();
   }

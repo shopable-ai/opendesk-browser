@@ -1,0 +1,30 @@
+✔ R1.3 v1 strict unchanged; v2 contribution validated and digest-sensitive (4.372792ms)
+✔ Browser SDK tool wrapper preserves request channel; page SDK denies privileged menu (0.714333ms)
+✔ menus use browser optional permission, idempotent sync, real click and one-use source (9.714375ms)
+✔ uninstall, site revocation, stale package, stale document invalidate menus and launch (3.181542ms)
+✔ denied Chrome permission and untrusted sender never create site menus (0.543125ms)
+✔ optional menu API can appear after startup; native click listener installs only once (0.095125ms)
+✔ Chrome permission revocation and install epoch invalidate old menu grants (1.454583ms)
+✔ disabled tool removes menu and pending selection, and rejects later tool/host requests (3.158042ms)
+✔ corrupt tool-enable records fail closed without permitting menu reconciliation (0.458625ms)
+✔ unregister stays idempotent after site approval has been revoked (2.325042ms)
+✔ native menu ignores missing proof and same-URL replaced source documents (1.821166ms)
+✔ Page relay only sends metadata on trusted contextmenu; no selection or URL is read (0.261708ms)
+✔ Chrome host website revocation blocks menu registration, binding and selection delivery (2.595625ms)
+✔ first right-click proof survives MV3 cold-start before menu state has rehydrated (1.896708ms)
+✔ navigation invalidates a pending cold-worker source proof without delivering text (1.292667ms)
+✔ Browser canonical export methods preserve payload, bounds and strict schema (0.403541ms)
+✔ menu discovery and idempotent unregister remain callable without site or Chrome menu grant (1.343125ms)
+✔ unregister revokes both unbound and bound launches; re-register never revives them (6.367041ms)
+✔ launch status rejects same-URL replacement documents before consume (2.818042ms)
+✔ queued Browser requests require the mounted package digest, even at unchanged version and epoch (2.257209ms)
+✔ expiry during document validation or confirmed consumption never delivers sensitive content (5.25725ms)
+✔ BFCache suspends and restores source listeners without restoring pending requests or duplicating listeners (0.384334ms)
+ℹ tests 22
+ℹ suites 0
+ℹ pass 22
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 109.290166

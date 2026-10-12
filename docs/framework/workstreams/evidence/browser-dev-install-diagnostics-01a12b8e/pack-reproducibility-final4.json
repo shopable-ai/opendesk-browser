@@ -1,0 +1,15 @@
+{
+  "status": "passed",
+  "first": "pack-final4.json",
+  "second": "pack-repro4.json",
+  "matchingFields": [
+    "version",
+    "contentFingerprint",
+    "archiveSha256",
+    "sha512",
+    "files",
+    "filesBytes"
+  ],
+  "contentFingerprint": "1f6dbdfd1758e8533e5576abe4bb453ed76290c58af836165870db105880105d",
+  "archiveSha256": "f78e02e0d07c9b36de543c89b60ab8cec14b2ff078a61ae74c85890121ae5b9a"
+}

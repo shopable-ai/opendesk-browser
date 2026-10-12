@@ -12,7 +12,8 @@
   "files": [
     "bin",
     "runtime",
-    "build-info.json"
+    "build-info.json",
+    "npm-shrinkwrap.json"
   ],
   "dependencies": {
     "acorn": "8.15.0",
@@ -20,6 +21,16 @@
     "terser": "5.34.1",
     "terser-webpack-plugin": "5.6.1",
     "dayjs": "1.11.23",
-    "lodash-es": "4.18.1"
-  }
+    "lodash-es": "4.18.1",
+    "esbuild": "0.28.2"
+  },
+  "bundleDependencies": [
+    "acorn",
+    "webpack",
+    "terser",
+    "terser-webpack-plugin",
+    "dayjs",
+    "lodash-es",
+    "esbuild"
+  ]
 }

@@ -1,0 +1,21 @@
+{
+  "test": "R12 SW native registration + stop/start",
+  "status": "passed",
+  "chromeProcessPid": 77891,
+  "packageHash": "d2559577f768395079675124c2ace804aa7a31a85bb38a60625aee1ae097e6ba",
+  "swBytes": 326370,
+  "swSha256": "137260c77dd5a700727f41a996e4c76de81deea0421c0fc90cd2780fb4b92485",
+  "firstUrl": "chrome-extension://geiinkifhankgponciolindbojeaddfl/sw.js",
+  "resumedUrl": "chrome-extension://geiinkifhankgponciolindbojeaddfl/sw.js",
+  "extensionId": "geiinkifhankgponciolindbojeaddfl",
+  "requiredEventListeners": {
+    "messages": true,
+    "connect": true,
+    "tabs": true,
+    "permissions": true,
+    "navigation": true,
+    "downloadCreated": true,
+    "downloadChanged": true
+  },
+  "originalSessionPreserved": true
+}

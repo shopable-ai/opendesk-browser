@@ -1,0 +1,8 @@
+The following is a diff from the previous accessibility tree for Window: "OpenDesk Browser · Browser Test Lab" with ~ and + representing changed and added elements, respectively. Removed elements are summarized by ID range.
+~											250 text 请在已授权的网站选中文字，右键选择 OpenDesk Browser → 保存到选区笔记。 已保存至此工具自己的本机存储（每条最多 800 字符、保留最近两条）。 本周共有 3 项阅读计划，当前状态：等待开始。
+~											251 按钮 (disabled) 确认保存
++											254 内容列表
++												255 container
++													256 AXListMarker 1. 
++													257 文本 本周共有 3 项阅读计划，当前状态：等待开始。
+The focused UI element is 246 HTML 内容 OpenDesk 隔离工具界面, URL: chrome-extension://geiinkifhankgponciolindbojeaddfl/sidebar-tools/sandbox.html

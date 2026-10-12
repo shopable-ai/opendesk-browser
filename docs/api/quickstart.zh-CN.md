@@ -57,10 +57,12 @@
 
 ## 首次配置
 
+日常目录直连使用 **Go 主路径**：已安装 OpenDesk Go，真实扩展 ID，`opendesk browser setup --extension-id "实际ID"`、`opendesk browser doctor`；npm CLI 打包安装/登记后用 `opendesk-dev --doctor --json` 复核。Node 用于 Resolver，Native Host 是 Go。完整版本/指纹、nvm/Homebrew、更新与回退见[安装指南](../framework/browser-dev-install-update.zh-CN.md)。下列 MCP 配置仍可用；旧 Node Host 安装命令仅属兼容路径，不能覆盖 Go owner。
+
 只在缺少环境时执行一次，已有正确配置则跳过。本轮文档工作没有执行安装。
 
 1. `node --version` 确认 Node >=22.12.0。仓库工具依赖缺少时执行 `npm ci --ignore-scripts`。使用匹配开发扩展；源码构建/加载、Native 浏览器和 profile 参数见[原配置指南](../framework/local-development-r22.zh-CN.md#首次配置)。
-2. 从 Chrome 读取真实扩展 ID。首次 Native 配置用 `node native-agent/cli.mjs setup --extension-id "实际扩展ID"`，诊断用 `node native-agent/cli.mjs doctor`。旧 Host 是复制安装快照，源码更新不会自动更新它；确需 update 时先收尾旧运行、停用 Native，再按原浏览器/profile 更新。
+2. 从 Chrome 读取真实扩展 ID。Go 主路径首次配置用 `opendesk browser setup --extension-id "实际扩展ID"`，连接诊断用 `opendesk browser doctor`，npm 安装诊断用 `opendesk-dev --doctor`。旧 Node Host 兼容路径才用 `node native-agent/cli.mjs setup`/`doctor`，不得覆盖已有 Go owner；更新或转换前按[安装指南](../framework/browser-dev-install-update.zh-CN.md)备份并由原 owner 清理。
 3. 检查已有 MCP 配置，避免重复 provider；缺少时配置一次：
 
    ```sh

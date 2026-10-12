@@ -55,9 +55,13 @@ HTML 不允许 `script/iframe/object/embed/base/link/meta/style` 标签、内联
 
 官方源码登记于仓库根 `official-tools/catalog.json`，版本和能力以对应 `examples/sidebar-tools/<id>/tool.config.json` 为准。正式构建自动生成 `dist/{production,development}/official-tools/catalog.json` 和 `official-tools/<id>/<id>.opendesk-tool.json`，不维护源码目录中的生成包副本。完整字段、构建和更新合同见 [官方工具 Catalog](official-tools-catalog.zh-CN.md)。
 
-**随扩展发行、已安装、网站已授权和正在运行是独立状态。** `SIDEBAR_TOOL_STORE` 是唯一安装事实。新扩展的五个官方工具默认未安装，不自动批准网站，不因读取 Catalog 执行 JavaScript。官方入口与本地导入复用原安装器和锁；审核、取消、更新确认、私有数据保留和卸载都遵守既有合同。
+**随扩展发行、已安装、工具启用、网站可用和正在运行是独立状态。** `SIDEBAR_TOOL_STORE` 是唯一安装事实。默认预装由宿主持久计划管理，不因读取 Catalog 执行 JavaScript。官方入口与本地导入复用原安装器和锁；审核、取消、更新确认、私有数据保留和卸载都遵守既有合同。
 
-五个官方候选统一显示安装/更新/已安装状态。官方包确认时再次核对固定资源的大小、SHA-256、身份与能力；缺包或不匹配不得安装。更新不自动替换旧安装或新增网站许可，卸载后也不会因 Chrome 重启、扩展升级或重开侧栏恢复安装。TOC 安装与网站授权始终分开。
+五个官方候选统一显示安装/更新/已安装状态。官方包确认时再次核对固定资源的大小、SHA-256、身份与能力；缺包或不匹配不得安装。更新不自动替换旧安装，卸载后也不会因 Chrome 重启、扩展升级或重开侧栏恢复安装。
+
+内置 `reading-toc` 安装并启用后默认可用于所有 HTTP(S) 网页，不再逐站点点击授权。工具停用、网站停用、单页排除、显示偏好和 Chrome 自身的站点访问权限仍独立生效；浏览器受限页面不支持。其他 ID 的 `page.toc` 工具、剪藏、知识保存仍逐工具、逐 origin 授权。
+
+`opendesk.sidebar-tools.toc-sites.v1` 中，`reading-toc` 缺记录或原有正向站点数组表示默认全部可用；停用记录为 `{mode:'all-except',blockedOrigins:[具体 HTTP(S) origin]}`，最多 64 个。恢复最后一个停用网站后移除该工具记录，回到默认可用。其他工具保持原有正向数组；异常内置记录保守拒绝，不自动丢弃。旧白名单不保存历史撤权意图，因此按新的用户要求改为全部默认可用，已有明确单页排除和隐藏偏好保留。
 
 ## 2. 工具的运行 API
 

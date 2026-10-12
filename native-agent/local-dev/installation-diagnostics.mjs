@@ -4,16 +4,17 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import net from 'node:net';
-import {spawnSync} from 'node:child_process';
+import {createRequire} from 'node:module';
 import {installationRoot} from '../installation-root.mjs';
 import {manifestLocation} from '../locations.mjs';
 import {HOST_NAME} from '../wire.mjs';
 import {readCliIdentity,digest} from './cli-identity.mjs';
 
 const quote=value=>"'"+value.replaceAll("'","'\\''")+"'";
-function readJSON(file,{privateFile=false}={}){
+function readJSON(file,{privateFile=false,maxBytes=65536}={}){
   const info=fs.lstatSync(file);
-  if(!info.isFile()||info.isSymbolicLink()||info.size>65536||
+  if(info.size>maxBytes)throw Object.assign(new Error(),{code:'E_DEV_COMPONENT_INVALID'});
+  if(!info.isFile()||info.isSymbolicLink()||
     privateFile&&((info.mode&0o077)!==0||process.getuid&&info.uid!==process.getuid()))
     throw Object.assign(new Error(),{code:'E_INSTALL_PERMISSIONS'});
   return JSON.parse(fs.readFileSync(file,'utf8'));
@@ -32,6 +33,31 @@ function onPath(name,env){
     const file=path.join(dir,name);try{fs.accessSync(file,fs.constants.X_OK);if(fs.statSync(file).isFile())return {path:file,resolvedPath:real(file)};}catch{}
   }
   return null;
+}
+function importEntry(root,name){
+  // Inspect Node's default node/import export branch without importing code.
+  // The CLI runtime has no nested node_modules; resolution starts at its package.
+  let directory=root;
+  for(;;){
+    const owner=path.join(directory,'node_modules',name),manifest=path.join(owner,'package.json');
+    if(fs.existsSync(manifest)){
+      const pkg=readJSON(manifest);
+      function select(value){
+        if(typeof value==='string')return value;
+        if(Array.isArray(value))return value.map(select).find(Boolean);
+        if(value&&typeof value==='object')for(const [key,child] of Object.entries(value))
+          if(['node','node-addons','import','default'].includes(key)){const chosen=select(child);if(chosen)return chosen;}
+        return null;
+      }
+      const exports=pkg.exports;
+      const target=exports===undefined?pkg.main||'index.js':select(exports&&typeof exports==='object'&&!Array.isArray(exports)&&Object.keys(exports).some(key=>key.startsWith('.'))?exports['.']:exports);
+      if(typeof target!=='string'||target.includes('\u0000'))return null;
+      const candidate=path.resolve(owner,target);
+      if(!candidate.startsWith(owner+path.sep))return null;
+      try{return fs.statSync(candidate).isFile()?real(candidate):null;}catch{return null;}
+    }
+    const parent=path.dirname(directory);if(parent===directory)return null;directory=parent;
+  }
 }
 // Mirrors the current read-only upstream findTrustedNode policy. This is a
 // prediction, not telemetry from an already running Go process.
@@ -85,16 +111,50 @@ export async function diagnoseInstallation({loadInstall,assertNode,home=os.homed
   try{assertNode(nodeVersion);}catch{issue('node','E_NODE_VERSION','当前执行 Node 低于 22.12 或版本无法识别','安装受支持 Node；用绝对 Node 路径执行已安装的 CLI，再核对 --doctor。');}
   if(!goNode)issue('node','E_NODE_MISSING','当前 Go 选择策略找不到受信 Node','安装受支持 Node 到用户/系统可执行目录，核对 PATH；项目 node_modules 不能充当 Go Node。');
   else{
-    const response=goNode.resolvedPath===node.resolvedPath?{status:0,stdout:'v'+nodeVersion}:
-      spawnSync(goNode.resolvedPath,['--version'],{encoding:'utf8',timeout:2000,maxBuffer:4096,env});
-    const match=response.status===0?/^v(\d+\.\d+\.\d+)\s*$/.exec(response.stdout||''):null;
-    node.goSelection={...goNode,version:match?.[1]||null};
-    try{assertNode(match?.[1]||'unknown');}catch{issue('node','E_GO_NODE_VERSION','Go 优先选择的 Node 不满足 22.12；切换 nvm 不会覆盖 Homebrew 优先项','更新报告中的 Go Node；用该 Node 绝对路径执行已登记 CLI --doctor 核对 execPath。');}
-    if(goNode.resolvedPath!==node.resolvedPath)issue('node','W_NODE_PATH_DIFFERENT','直接 npm CLI 与 Go 预计选择不同 Node','用 Go 预计 Node 的绝对路径执行已登记 CLI --doctor，核对 execPath；保持两者受支持。','warning');
+    const same=goNode.resolvedPath===node.resolvedPath;
+    node.goSelection={...goNode,version:same?nodeVersion:null,versionEvidence:same?'current-process':'not-executed'};
+    if(same){try{assertNode(nodeVersion);}catch{issue('node','E_GO_NODE_VERSION','Go 优先选择的当前 Node 不满足 22.12','更新报告中的 Go Node；用该 Node 绝对路径执行已登记 CLI --doctor。');}}
+    else issue('node','W_NODE_PATH_DIFFERENT','直接 CLI 与 Go 预计 Node 不同；未执行候选程序，其版本尚未验证',
+      '先确认此 Node 来源，再用其绝对路径执行已登记 CLI --doctor，核对 execPath/版本。','warning');
   }
   if(cli.status!=='verified')issue('cli',cli.status==='content-mismatch'?'E_DEV_PACKAGE_CHANGED':'E_DEV_BUILD_UNRECORDED',
     'CLI 内容身份：'+cli.status,'从当前 Browser 源码生成新 tarball；显式安装到选定 prefix 后 --register-go。');
+  cli.runtimeDependencies=[];
+  try{
+    const pkg=readJSON(path.join(cli.packageRoot,'package.json'));
+    const require=createRequire(path.join(cli.packageRoot,'package.json'));
+    for(const name of Object.keys(pkg.dependencies||{})){
+      if(!/^(?:@[a-z0-9._-]+\/)?[a-z0-9._-]+$/.test(name))throw new Error();
+      let resolvedPath=null;try{resolvedPath=require.resolve(name);}catch{}
+      const importPath=importEntry(cli.packageRoot,name);
+      cli.runtimeDependencies.push({name,resolvedPath,importPath});
+      if(!importPath)issue('cli','E_DEV_RUNTIME_DEPENDENCY','已声明运行依赖的 import 入口缺失：'+name,
+        '保留备份后从同一候选 tarball 重新 npm install -g --prefix 选定目录 --ignore-scripts；不要只复制 bin/runtime 或自动新增依赖。');
+    }
+  }catch{issue('cli','E_DEV_PACKAGE_METADATA','不能核对运行依赖声明','重新安装已审阅的完整 npm tarball，再核对候选指纹。');}
   let expected=null;
+  cli.dependencyLock={status:'not-recorded'};
+  if(fs.existsSync(path.join(cli.packageRoot,'npm-shrinkwrap.json'))){
+    try{
+      const lock=readJSON(path.join(cli.packageRoot,'npm-shrinkwrap.json'),{maxBytes:1024*1024});
+      if(lock.lockfileVersion!==3||!lock.packages||typeof lock.packages!=='object')throw new Error();
+      const mismatches=[];let checked=0;
+      for(const [relative,expected] of Object.entries(lock.packages)){
+        if(relative==='')continue;
+        if(!/^(?:node_modules\/(?:@[a-z0-9._-]+\/)?[a-z0-9._-]+)(?:\/node_modules\/(?:@[a-z0-9._-]+\/)?[a-z0-9._-]+)*$/.test(relative))throw new Error();
+        const file=path.join(cli.packageRoot,relative,'package.json');
+        if(!fs.existsSync(file)&&expected.optional===true)continue;
+        let installed=null;try{installed=readJSON(file).version;}catch{}
+        checked++;if(installed!==expected.version)mismatches.push(relative);
+      }
+      cli.dependencyLock={status:mismatches.length?'version-mismatch':'verified',checked,mismatches};
+      if(mismatches.length)issue('cli','E_DEV_DEPENDENCY_LOCK','已安装依赖版本或必需包与随包锁不一致',
+        '用候选 tarball 重新 npm install -g --prefix ... --ignore-scripts；核对 --doctor，不手工替换依赖。');
+    }catch{
+      cli.dependencyLock={status:'invalid'};
+      issue('cli','E_DEV_DEPENDENCY_LOCK','随包依赖锁无法安全核对','重新安装经过指纹验证的完整 tarball。');
+    }
+  }
   if(expectedRoot){
     expected=readCliIdentity(path.resolve(expectedRoot));
     if(expected.status!=='verified')issue('cli','E_EXPECTED_PACKAGE_INVALID','参考候选包不是可验证的完整打包目录','指定含 package.json、bin、runtime、build-info.json 的打包/解压目录。');
@@ -106,13 +166,14 @@ export async function diagnoseInstallation({loadInstall,assertNode,home=os.homed
   const registration={path:path.join(registryRoot,'entry.json'),state:'unavailable'};
   try{
     privateDirectories(home,registryRoot);
-    const receipt=readJSON(registration.path,{privateFile:true});
+    const receipt=readJSON(registration.path,{privateFile:true,maxBytes:4096});
     if(receipt.format!=='opendesk.dev-cli.r17'||!path.isAbsolute(receipt.entry||'')||
       path.normalize(receipt.entry)!==receipt.entry||!receipt.entry.endsWith(path.join('lib','node_modules','@shopable','opendesk-dev','bin','opendesk-dev.mjs'))||
-      !/^[a-f0-9]{64}$/.test(receipt.sha256||''))throw new Error();
+      !/^[a-f0-9]{64}$/.test(receipt.sha256||''))throw Object.assign(new Error(),{code:'E_DEV_COMPONENT_INVALID'});
     registration.entryPath=receipt.entry;
     const info=fs.lstatSync(receipt.entry);
-    if(!info.isFile()||info.isSymbolicLink()||process.getuid&&![0,process.getuid()].includes(info.uid))throw new Error();
+    if(!info.isFile()||info.isSymbolicLink()||info.size>131072||process.getuid&&![0,process.getuid()].includes(info.uid))
+      throw Object.assign(new Error(),{code:'E_DEV_COMPONENT_INVALID'});
     registration.entryMatches=digest(fs.readFileSync(receipt.entry))===receipt.sha256;
     registration.identity=readCliIdentity(path.dirname(path.dirname(receipt.entry)));
     registration.contentMatches=receipt.contentFingerprint===registration.identity.contentFingerprint;
@@ -122,14 +183,15 @@ export async function diagnoseInstallation({loadInstall,assertNode,home=os.homed
     if(!receipt.contentFingerprint)issue('registration','E_DEV_REGISTRATION_LEGACY','旧登记只有入口 SHA，未绑定 runtime 内容','确认包身份 verified 后重新 --register-go。');
     else if(!registration.contentMatches||receipt.packageVersion!==registration.identity.version)
       issue('registration','E_DEV_REGISTRATION_CONTENT_CHANGED','入口可能未变，但登记的包内容/版本已经变化','核对包内容与候选，再 --register-go；不要只比较 R17.1。');
-    if(registration.identity.status!=='verified')issue('registration','E_DEV_REGISTERED_PACKAGE_INVALID','Go 登记指向未记录或内容不一致的包','更新报告中 entryPath 所属全局安装，再用该入口 --register-go。');
-    if(real(receipt.entry)!==real(cli.entryPath))issue('registration','E_DEV_ENTRY_DIFFERENT','Go 登记与当前 CLI 属于不同全局安装（可能是 nvm/Homebrew）',
+    if(registration.identity.status!=='verified')issue('registration',registration.identity.status==='legacy-unrecorded'?'E_DEV_BUILD_UNRECORDED':'E_DEV_REGISTERED_PACKAGE_INVALID',
+      'Go 登记包身份：'+registration.identity.status,'更新报告中 entryPath 所属全局安装，再用该入口 --register-go。');
+    if(cli.mode==='installed-package'&&real(receipt.entry)!==real(cli.entryPath))issue('registration','E_DEV_ENTRY_DIFFERENT','Go 登记与当前 CLI 属于不同全局安装（可能是 nvm/Homebrew）',
       '选择目标 prefix；用该包绝对入口 --register-go，随后用报告中的 Go 预计 Node 执行该入口 --doctor。');
-  }catch(error){issue('registration',error.code==='E_INSTALL_PERMISSIONS'?'E_INSTALL_PERMISSIONS':'E_DEV_COMPONENT_MISSING',
+  }catch(error){issue('registration',['E_INSTALL_PERMISSIONS','E_DEV_COMPONENT_INVALID'].includes(error.code)?error.code:'E_DEV_COMPONENT_MISSING',
     '开发 CLI 登记缺失、不可读或不合法','核对私有目录归属/权限；安装到选定 npm prefix 后显式 --register-go。');}
   const pathEntry=onPath('opendesk-dev',env);
   registration.pathEntry=pathEntry;
-  if(pathEntry?.resolvedPath&&pathEntry.resolvedPath!==real(cli.entryPath))
+  if(cli.mode==='installed-package'&&pathEntry?.resolvedPath&&pathEntry.resolvedPath!==real(cli.entryPath))
     issue('registration','W_PATH_CLI_DIFFERENT','PATH 中 opendesk-dev 与当前执行包不同','用报告中的绝对入口诊断、安装与登记；不要用 PATH 上的另一份包覆盖登记。','warning');
   const native={state:'unavailable',connection:{state:'not-probed'}};
   try{
@@ -166,7 +228,11 @@ export async function diagnoseInstallation({loadInstall,assertNode,home=os.homed
         [ `#!/bin/sh\n${prefix}exec ${quote(executable)} browser native-host "$@"\n`,
           ...(instance===undefined?[`#!/bin/sh\nexec ${quote(executable)} browser native-host "$@"\n`]:[])].includes(body);
       if(!native.wrapperMatches)issue('native','E_NATIVE_WRAPPER','Go 配置与 Native launcher 目标不一致','核对报告中的 executablePath，按 Go 安装 update 恢复 launcher；不执行未知 wrapper。');
-      try{fs.accessSync(executable,fs.constants.X_OK);}catch{issue('native','E_NATIVE_EXECUTABLE','Go 注册二进制缺失或不可执行','恢复备份中的 Go 二进制或使用已构建受信安装，再由 Go update 修复。');}
+      try{
+        const info=fs.statSync(executable);
+        if(!info.isFile()||(info.mode&0o111)===0||process.getuid&&![0,process.getuid()].includes(info.uid))throw new Error();
+        fs.accessSync(executable,fs.constants.X_OK);
+      }catch{issue('native','E_NATIVE_EXECUTABLE','Go 注册目标不是受信普通可执行文件','恢复备份中的 Go 二进制或使用已构建受信安装，再由 Go update 修复。');}
       // Authenticate only if the local registration is consistent.
       if(native.wrapperMatches&&native.manifestMatches){
         native.connection=await probe(cfg);

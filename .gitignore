@@ -61,3 +61,12 @@ raw-cdp*.jsonl
 
 # Mutable build-attempt pointers; archive incident receipts in workstream evidence.
 /docs/cloud-build-evidence/build-*-latest.json
+
+# Mutable workstream build pointers; canonical and failed receipts stay versioned.
+/docs/framework/workstreams/evidence/**/build-*-latest.json
+/docs/framework/workstreams/evidence/reading-toc-default-sites-20261012/standalone-build-root.txt
+
+# Empty packaging stdout placeholders; preserve indexed failure evidence separately.
+/docs/framework/workstreams/evidence/browser-dev-install-diagnostics-01a12b8e/pack-final.json
+/docs/framework/workstreams/evidence/browser-dev-install-diagnostics-01a12b8e/pack-main-v3.json
+/docs/framework/workstreams/evidence/browser-dev-install-diagnostics-01a12b8e/pack-main-v4.json

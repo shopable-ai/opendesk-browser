@@ -1,0 +1,11 @@
+{
+  "status": "passed",
+  "files": [
+    "docs/framework/browser-dev-install-update.zh-CN.md",
+    "docs/framework/local-directory-cli-r17.zh-CN.md",
+    "docs/framework/local-development-quickstart.zh-CN.md",
+    "docs/api/quickstart.zh-CN.md",
+    "docs/api/dependencies-and-errors.zh-CN.md"
+  ],
+  "missing": []
+}

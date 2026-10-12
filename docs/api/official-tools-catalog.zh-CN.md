@@ -75,7 +75,7 @@ npm run verify
 | Site Authorized | 现有逐工具、逐 HTTP(S) origin 的专用授权存储 | 网站 A 不授权网站 B；不同 capability 不相互借权 |
 | Active | 实际存活的工具 iframe，或已授权的可信网页组件 | 不能通过一个全局 `enabled` 布尔值推断 |
 
-新扩展可以读取所有官方 JSON，但不会主动写入安装记录、创建工具 iframe、执行包 JavaScript或批准网站。TOC、剪藏和知识收件箱均按需安装。安装 TOC 后，网页目录仍需独立网站授权；关闭 Side Panel 销毁工具 iframe，已经授权的网页组件按其原合同继续管理，撤权应立即清除相关网页能力。
+读取官方 JSON 本身不会创建工具 iframe 或执行包 JavaScript。工具安装、启停和网站访问分别管理：内置 `reading-toc` 安装并启用后默认可用于 HTTP(S) 网页，支持网站停用和单页排除；其他工具仍使用各自显式网站授权。关闭 Side Panel 销毁工具 iframe，网页组件按其原合同继续管理，网站停用或撤权应立即清除相关网页能力。默认预装与卸载后的不自动重装规则见 [Side Panel API](sidebar-tools.zh-CN.md)。
 
 ## 5. 共用安装、升级和卸载
 

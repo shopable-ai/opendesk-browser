@@ -1,0 +1,86 @@
+{
+  "status": "reuse-lifecycle-evidence-only",
+  "priorWorkstream": "browser-dev-go-migration-01a12b39.md",
+  "sourceBindings": [
+    {
+      "path": "src/native-agent/protocol.js",
+      "expected": "69c8d8418b894ca55a65da311175b3bae22b982b017ffd265736bad11f8703b4",
+      "actual": "69c8d8418b894ca55a65da311175b3bae22b982b017ffd265736bad11f8703b4",
+      "unchanged": true
+    },
+    {
+      "path": "src/native-agent/host-adapter.js",
+      "expected": "1e1e1cef9942dee855f3cc163fc4802619206bca96b5ceb84dfc9fc0e9f7370e",
+      "actual": "1e1e1cef9942dee855f3cc163fc4802619206bca96b5ceb84dfc9fc0e9f7370e",
+      "unchanged": true
+    },
+    {
+      "path": "src/native-agent/managed-preview.js",
+      "expected": "6657eb4ce7bf49fd8840307cc01d755f961377ec4aa2b3637b5d096a94f50922",
+      "actual": "6657eb4ce7bf49fd8840307cc01d755f961377ec4aa2b3637b5d096a94f50922",
+      "unchanged": true
+    },
+    {
+      "path": "tests/environment/local-dev-managed-ui.test.mjs",
+      "expected": "23d3fdc4baf010a53817d875c5fa0630c0a5846f8b52fc91fa344979f0c442eb",
+      "actual": "23d3fdc4baf010a53817d875c5fa0630c0a5846f8b52fc91fa344979f0c442eb",
+      "unchanged": true
+    }
+  ],
+  "rawEvidence": [
+    {
+      "path": "/Users/shopme/.codex/tmp/opendesk-browser-dev-20261011-01a12b39/fixed-source-binding.json",
+      "sha256": "c153fd618927ad829286cf674bcb7390f56d0efbfb28e45b6f93718717f0c433"
+    },
+    {
+      "path": "/Users/shopme/.codex/tmp/opendesk-browser-dev-20261011-01a12b39/regression-after.log",
+      "sha256": "01cb2e33136e9cb1d5715ee72c1dc6073cde16de69e169599911a25f2d4d3510"
+    },
+    {
+      "path": "/Users/shopme/.codex/tmp/opendesk-browser-dev-20261011-01a12b39/fixed-check-final.log",
+      "sha256": "a38a6ac359c8321f43c3afcdde1ed88dbdcab15b7fca81af4103d0ca2ac4867e"
+    },
+    {
+      "path": "/Users/shopme/.codex/tmp/opendesk-browser-dev-20261011-01a12b39/native-test/ram-validation.json",
+      "sha256": "c124600fdfdf7349a21e3c35dd856e215c8c654068f8f15abb6fecb452fa262c"
+    },
+    {
+      "path": "/Users/shopme/.codex/tmp/opendesk-browser-dev-20261011-01a12b39/native-test/ram-ready-before-run.json",
+      "sha256": "2fddeb647d5a850dde550e55e0967cd28ed0280507401e010944440e47d461cd"
+    },
+    {
+      "path": "/Users/shopme/.codex/tmp/opendesk-browser-dev-20261011-01a12b39/native-test/ram-run-1.json",
+      "sha256": "06fd971a104b79b0ec7d0ee1053917aa3b0175d89fbf3fe6ba0488815ce84f6e"
+    },
+    {
+      "path": "/Users/shopme/.codex/tmp/opendesk-browser-dev-20261011-01a12b39/native-test/ram-after-save-immediate.json",
+      "sha256": "c794b88a8fbc3ab598cc28b0ca206aaf608961da20699355b68ef121c9395518"
+    },
+    {
+      "path": "/Users/shopme/.codex/tmp/opendesk-browser-dev-20261011-01a12b39/native-test/ram-saved-before-run-2.json",
+      "sha256": "d45275805b715258d6ec3d34759a5e09484b8bf4592a632374790f30691d2bb2"
+    },
+    {
+      "path": "/Users/shopme/.codex/tmp/opendesk-browser-dev-20261011-01a12b39/native-test/ram-run-2.json",
+      "sha256": "1acaa7ebc31ddc2591b392fbe028e7f79b64a52396cabb624a3ac6096dae591a"
+    },
+    {
+      "path": "/Users/shopme/.codex/tmp/opendesk-browser-dev-20261011-01a12b39/native-test/ram-stopped.json",
+      "sha256": "815b399c8fb79103048babe2c23181bf41cdf0c1f396a7ed9c4c03377412ec54"
+    },
+    {
+      "path": "/Users/shopme/.codex/tmp/opendesk-browser-dev-20261011-01a12b39/daily-package-binding.json",
+      "sha256": "1aa8d1ce8570d7fd3df3f3b03175d75c6bdbbb47babb3b6206fde9be50f2958b"
+    }
+  ],
+  "scope": [
+    "Save only prepares",
+    "explicit Run dispatches prepared source",
+    "replacement and Stop clean exact managed preview"
+  ],
+  "limits": [
+    "prior local Page preview evidence only; no new browser interaction",
+    "not full current main or durable runId/resultId acceptance",
+    "not F3/ZIP/overall migration acceptance"
+  ]
+}

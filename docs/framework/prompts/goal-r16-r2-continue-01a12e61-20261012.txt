@@ -1,0 +1,156 @@
+GOAL：续接 R16 R2 本机正式验证（01a12e61；2026-10-12）
+
+继续完成本机 Codex → OpenDesk → Chrome Side Panel「工作流」R16 R2 的 Gate A–F。直接接续下述已冻结候选、已成立真实证据和明确缺口，不重新规划、从零实施或重复无关全量验收。上一对话由用户要求转入交接，当前结论明确为 NOT_ACCEPTED。这不是“只剩写报告”：网络、布局、失败矩阵归并和独立最终审阅尚有必需缺项。
+
+一、先完整读取
+Browser=/Users/shopme/Documents/workspace/opendesk-browser，Go=/Users/shopme/Documents/workspace/opendesk。
+1. 两仓 AGENTS.md。
+2. Browser/docs/framework/prompts/goal-r16-r2-final-verification-20261012.txt（上轮授权/完整要求），以及它指定的正式任务书 goal-r16-r2-local-macos-repair-acceptance.zh-CN.md、testing-guide.md 和相关工作流。
+3. Browser/docs/framework/workstreams/r16-r2-final-01a12e61.md，尤其文末“续接交接：NOT_ACCEPTED”。前文 IN_PROGRESS/dev构建中已经由文末覆盖，历史失败不删。
+4. 原始证据根 R=/Users/shopme/Documents/workspace/opendesk-browser/.runtime/tests/r16-r2-macos/01a12e61。
+   R/handoff-resource-and-source-20261012.json
+   R/final-source-overrides-v2.json
+   R/interim-readonly-reviews.json
+   R/offline-readonly-review.json
+   R/handoff-observer-stop.json
+   R/final-build-evidence/build-production.json、build-development.json。
+历史 01a128f3/01a12689 是复用来源，不重审所有冻结材料替代本轮剩余验证；以精确输入身份决定复用范围。缺原件明确报告，不用文字结论代替。
+
+二、候选与当前源码身份，禁止混淆
+正式已测 Browser 候选：
+  base commit fb58c53241b246f85e58999d52ee6c4539b9346d
+  目录 R/browser-final（提交归档，无独立Git分支）
+  加两项本Agent未提交覆盖，完整清单见 final-source-overrides-v2.json：
+  src/native-agent/service-worker.js
+    SHA256 0aac70eb716d64ba94ee83a0dba762fd100f11f73921a2fdb13a56c67ec2db2d
+    welcome只在Go hello协商 numeric workflowAiVersion===1 时回报1。
+  tests/environment/native-agent-bridge.test.mjs
+    SHA256 2886f1bd2ea27f89cb6736df36995917b372c916d36868c08fdb49fa1bbcc400
+    [undefined,0,1,2,'1',true,null] 七种完整welcome正/反例，旧Node无字段。
+Go候选 9615110725e514b6f607740174cbf7b427654ff9，R/go-candidate；Go字节本轮未改。
+交接重读：生产/开发各351 sourceInputs无drift，全部包文件hash匹配、无extraFiles。
+  production packageHash adfa069ba6420e91db999ab5972e3ec458ee1d45020c550638c8f7e6f7737e2d
+  development packageHash a98bbca5ac7090b622948ca81ad42f14a60eaf321d34f3ac2da77071567055ad
+
+交接时根 Browser main 已推进至67fefdac3f5576cb7f3dc042149d95ca046810c7；Go master仍961。根两个自有修复文件与候选匹配；其他AGENTS/开发安装/CLI/打包/reading-toc/Sidebar等并行差异，以及Go CustomUI/runtime-api差异未纳入本候选，禁止覆盖或整体stage。
+开始重新核查HEAD/status/diff/未合并状态。不能拿当前HEAD冒充已测输入，不能把并行变更自动混入dist。若发现确实影响本轮合同的新变更，记录差异与决定，必要时更新候选后只做受影响验证。无相关变化则保留候选，不为追最新HEAD重跑。
+旧final-source-overrides.json和welcome-negotiation.patch是早期四例记录，v2才是最终七例身份；不要覆盖旧receipt冒充新冻结。
+
+三、资源与安装明确交接（先核对再续占）
+专属侧装App：
+  /Users/shopme/Applications/OpenDesk-R16R2-01a12e61.app
+  Contents/MacOS/opendesk SHA256 a364047a7b0ecb9d8675fa6ea5ce08ab32f5b589386cd2da1600cd8046372eca
+  当前ditto安装deep/strict codesign exit0，见test-app-install-ditto.json；最初shutil复制签名失败原件保留。
+未替换 /Applications/OpenDesk.app、日常CLI、系统信任或个人Chrome。
+官方受控Codex0.159.2：
+  /Users/shopme/.local/bin/codex
+  实际binary /Users/shopme/.local/opt/opendesk-codex-0.159.2/node_modules/@openai/codex-darwin-arm64/vendor/aarch64-apple-darwin/bin/codex
+  SHA256 16593cc2f422d5f398a8e40f550ebbaf1245392528957be342c295920a300704
+  已登录ChatGPT的受控CODEX_HOME：
+  /Users/shopme/Library/Application Support/OpenDesk/R16R2-01a128f3/codex-home
+复用已授权受控登录，不再读取/打印授权正文，不访问个人对话或其他凭据。
+
+专属受控CFT155：
+  交接主PID72843，launcher PID72842（原exec session71525）；CDP43139。
+  profile /var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-gl7_4prt
+  extensionId fhncdeblfodbicbfgdchllefogiknelh
+  实际 --load-extension=R/browser-final/dist/development
+  launcher元数据R/final-chrome-launch.json。Chrome/profile明确交接给续接R16同一任务，可核实后独占复用；不要无理由关闭，launcher结束可能自动删除临时profile。
+  若旧进程/profile已经消失，按专属CFT启动技能与原安装方法恢复，只加载同候选，记录新身份并判断受影响证据；不要伪造旧profile/extensionId。
+  Native instance r16-r2-final-v2-01a12e61：
+  ~/.opendesk-browser/native-agent-instances/r16-r2-final-v2-01a12e61/
+  旧hostInstance a2d10104-bb81-4163-97b2-8876f8a48f70；
+  旧registration f94ca747-7aa7-4c54-aa81-674ed0aeca06可能已过期，必须重新读取。
+  Demo旧target window845911704/tab845911705/frame0，导航后document D0D11E94873D59A55C92103279ECB5FD；历史值不是现行授权。
+最后真实UI：Native关闭、AI会话关闭、手动来源、保存工作流r1、zoom100%、侧栏360px；原Native74958/Codex75016/codehost75719/MCP83947均退出，开始时重读当前真实状态。
+共享demo服务43111/PID48261，根examples/tasks，只复用不停止。
+其他日常Chrome/CFT/Native/profile/端口一律不争用。
+两个本轮被动观察器72919/4212已核对精确argv后正常SIGTERM并退出。Chrome/profile未关闭。新完整观察器仅启动过、未开始第二正式窗口，不能写PASS。
+现有127.0.0.1:7897代理只曾显式给本轮子进程使用，开始时验证可用性，不改系统代理/个人配置。
+远端只读ls-remote曾得Browser main caee8920d3a6852613285a0c3aa5baaca3becf09、Go master afd6456342a677e5c72e002fd3c4033a093b2065；未fetch/merge。gh缺失，远端CI状态NOT_TESTED，不从SHA推导检查通过。
+
+四、已经完成的同候选真实叶子（核对原件后复用）
+1. 最终128定向测试PASS；477-file check、production/dev/verify exit0；Go internal/browserai/browserbridge/browsercli普通/race/vet exit0。命令/退出码在R/*-command.json，日志同前缀。
+   未变相关叶子：87workflow、98package PASS。兼容165tests中164PASS/1FAIL是/tmp祖先symlink触发严格E_FILES_PATH；原测试用已有OPENDESK_BROWSER_TEST_HOME_PREFIX=/private/tmp/od-r16-支持前缀后1PASS，原失败保留。
+   final-browser-package-regression原21tests为19PASS/2FAIL，原因是git归档继承旧receipt缺bundleModules；保留archive-inherited-build-*原件，隔离候选换本次构建receipt后原两项2PASS（final-package-provenance-current-receipts）。没有改产品代码/断言。见final-package-test-receipt-method.json。
+   历史全套环境17失败分类仍保留，不能宣称全套PASS；真实CLI opt-in需按任务书逐项核对历史已成功证据身份，普通go test不证明执行了opt-in。
+2. 修复后实际Chrome真实精确两轮：
+   thread 01a12e94-5fb8-7461-bb41-36612bfb2b0a
+   session 30f971465efa033d02f4897dbe5a8733
+   turn1 01a12e94-5fe1-7be1-85bd-2e5afc2ac3e5
+   turn2 01a12e94-d229-7c83-b5f6-a03badc9ac98
+   两轮提示精确符合正式任务书；同thread、不同turn、连续events、completed、合法建议，不是假READY。
+   原件ui-scope-readonly-1791782855567.json、1791782902146.json。
+3. 真实观察批准：
+   before/after final-ui-scope-readonly-1791782950412.json、1791782972214.json
+   run 1d4568d3-9677-487e-8710-4e57270a194b
+   result 7af81d2b-a22a-4419-b77e-a05cabcce7cb
+   completed/released/oktrue，result自身revision1/sourceHash
+   617f862336c067773f5440eff47b471a9f585cd1c53967558b63f815b2c75db9
+   拒绝before/after 1791783005428/1791783065723，整ledger相同1run/1result，不增observe Run；连续cursor248–323。
+   final-official-tool-exchanges.json只提取本受控thread工具交换；观察输出4270bytes、12KiB内。
+4. 采用→原Compiler/RunHost→Run：
+   run 0aa3ebcb-31a6-47da-86a1-e8a6c08a9db8
+   result 3701214d-623c-45f3-9368-959ec6a5cdd2
+   completed/released/workerRetired。
+   保存workflow wf-0ac779b7-2bb4-446c-a4a6-8f5a02da3281
+   revision1，sourceHash 7d93f458602dc520817d79f4d2116750b1bd4d4d62fd292b4df7a8d059c71585
+   原记录.sourceHash、冻结source.contentHash、重算UTF-8 hash一致。
+   原件final-ui-scope-readonly-1791783531493.json、1791783544519.json。
+5. 原生AI Stop turn 01a12ea3-c20e-77b2-aae5-b21400e0aca5，真实interrupted terminal，final-ai-stop-before/terminal.log。
+   导航旧document4F2AE122559790304DDFEDB4D2C7AB10→当前D0D11E94873D59A55C92103279ECB5FD；旧审批UI E_DOCUMENT_STALE，final-navigation-before/after.log整个ledger相同4runs/4results。
+   撤权UI E_AI_PERMISSION，不增run，final-revoke-before/after.log：runs4→4，results投影4→0，resultDeliveryDenied0→4，nativeLedger相同，permission true→false。禁止写成整个撤权ledger相同，禁止把交付投影隐藏解释为底层持久结果删除。
+   官方导航/撤权tool output只是generic declined；精确error由真实UI证据支持，不谎称官方回传同错误码。
+6. 关闭AI/Native、手动重新载入保存r1后两次成功新运行：
+   72ea9fb5-18cb-41ae-a692-bf47d4a77c5e → 9514d7e2-8308-4269-8bcc-20a0f67a40bc
+   56a04a74-0685-4e91-b3fa-79503e61478d → 33ab7080-bc3f-43f1-805d-ffde3780d9ba
+   两者result自身同r1/hash、completed/released/oktrue。原件final-offline-rerun1.log、rerun2.log。
+   final-offline-loaded-before-run.log已含恢复权限产生的保存版run17b6abcc…，不是空基线，不计入上面两次。
+   独立审阅已确认执行/保存身份成立，但网络叶子未闭。
+7. 十RPC：bridge.status/target.current/script.save/run.start/run.get/run.stop/page.preview/page.get/page.dispose/request.get均经原实际App/Native执行。
+   legacy-run-probe-summary.json、legacy-page-enabled-probe-summary.json及各*-rpc.json/原响应。
+   run.stop ACK=stopping；真实终态=stopped/E_CANCELLED/released。早期驱动错误期待cancelled造成轮询失败，已保留，不能改写成产品失败或重放run。
+   request.get以原admissionId/digest恢复ACK，不重新run。
+   Node高级ESM+CSS/PNG/JSON现有page-ui-basic经原build高级闭包，真实USER_SCRIPT preview/get/dispose且managed-ui退役。首次E_USER_SCRIPTS_UNAVAILABLE真实拒绝已保留；在当前test扩展原生启用“允许运行用户脚本”后新request成功，不能盲重放未知effect。
+   final-node-mcp-real-command.json exit0；final-mcp-stdio.jsonl/final-mcp-summary.json，真实标准MCP2025-11-25 initialize/initialized/tools/list/run/result/stop。授权仅两个专属例子根。
+   mcp-npm-project来自已有lodash-es例子和原lock4.17.21，离线ci cache miss保留；显式代理按原锁npm ci成功，不新增依赖/替换为根安装4.18.1。
+8. welcome：final-native-welcome-call-context.json实际Go hello numeric1，实际postMessage边界用相同源码表达式/调用上下文只读重算welcome得到workflowAiVersion1和原版本字段。不是原始pipe抓包或ACK。独立最终审阅需评价是否足以支持合同实际帧；不得伪造/放宽握手。初始debugger arguments[0]失败原件保留。完整welcome单元正反例PASS。
+9. 当前真实360px与真实200%有证据。200%来自原生Chrome zoom，innerWidth180/dpr4/scrollWidth180，Run/Save在viewport内，无横溢；原件final-layout-extension-zoom200.log、final-ui-scope-readonly-1791784975964.json和对应png。已原生恢复100%。
+
+五、只从必需缺项继续（不要重复已成立步骤）
+A. 先补完整离线网络窗口，仍是NOT_TESTED/证据不足。
+   原窗口05:52:21.953202Z至05:55:03.350650Z，offline-window-start/end.json。
+   offline-owned-nettop.csv最后完整行13:54:55.409336，末尾残行，缺约7.94秒。
+   Codex关闭阶段84bytes入站/96bytes出站，无端点不能判断模型/关闭流量。
+   final-extension-passive-network.jsonl窗口33request/33response，origin全null；没有WS覆盖/heartbeat，不能证明后段持续观察。
+   进程313样本最大间隔0.661s；进程退出和rollout未变不替代全窗口零模型请求直接观察。
+   详见offline-readonly-review.json（Harvey原独立结论，不是最终接受）。
+   优先检查已有原件是否可恢复完整尾部/端点/既存WS；没有就仅重做网络受影响窗口。
+   已备好final-passive-network-complete.mjs：exact extension-only HTTP+WS元数据、500ms heartbeat、结束health/fsync；之前那次日志仅启动健康，不能算完成窗口。它用exclusive wx，重启应新文件名/新scope目录，不覆盖旧原件。
+   拟解决nettop管道缓冲：可用PTY持续采样本轮准确PID及连接端点/计数，避免仅-P聚合；覆盖后续启动子进程/既存连接。只记录本轮元数据，不保存headers/body/token/其他流量。
+   提前启动观察器和进程/socket监控，再原生完成AI会话关闭/手动/Native关闭/载入r1/两次新运行；当前已经关闭时评估是否需仅重连Native再关闭，不生成无必要新模型turn。
+   从正式window.start持续到window.end后安全收尾（建议至少10秒，再正常停止并flush）；独立检查尾部、health、WS/端点及准确窗口归属。ChromeNetLog现未flush，不能拿半截当完整证据。
+   两次新运行精确记录不同run/result、同冻结r1/hash、结果自身revision/sourceHash、released。已有两次执行身份直接复用，不因网络观察修复重做构建/两轮规划/全部RPC。
+B. 真实320/420/520px布局、键盘/aria/Stop/Run/Save完整矩阵仍NOT_TESTED。
+   已尝试原生AX Decrement/Increment、多个不同位置/物理逻辑坐标drag，全部实际仍360px，失败原件final-layout-width*、*420.log保留。不能把drag返回成功、目标坐标或HTML prototype记成真实宽度通过。
+   更换受信原生方法，确认实际innerWidth；不重复同一无变化尝试，不用DOM CSS赋值/CDP viewport emulation/synthetic events凑PASS。工具/系统确实无法完成则如实NOT_TESTED，保留尝试与所缺条件。
+C. 按正式Gate B/C/E归并精确失败矩阵和兼容fence，已有结果按输入身份引用。
+   用interim-readonly-reviews.json映射现有测试/原件，逐项补足而不笼统称全PASS。
+   缺失CLI/登录、未审版本/协议、网络限额/断线重连、cursor/replay、owner/generation、跨window/session、撤权/导航/cross-origin、未授权shell/file/MCP/外网、60KiB/12KiB预算、独立Stop与unknown-effect不重放。
+   Go三包普通/race/vet已经通过；任务书真实opt-in Probe/ContinuousSession/Cancellation/AmbientMCP/WorkflowProposal需要逐一核对历史是否同受控CLI/Go/协议输入可复用，无缺项不重复模型调用。确缺必需原件则定向补测，区分真实与fixture。
+   Go迁移fence缺组件/未可信receipt/字节变动分别E_DEV_COMPONENT_MISSING/UPDATE_REQUIRED/CHANGED；旧Node无AI应零未知AI转发。源码/组件已有证据和实际Native证据分级，不互升。
+   HTTPS Provider保留/错误回归和手动路线按合同收敛；没有第二模型APIKey不擅自读取其他密钥，不自行新增第二模型真实推理门槛。冷恢复真实resumeSupported:false/SKIP是合同允许能力边界，不强改PASS。
+D. 完成后再独立最终只读审阅：
+   当前Harvey 01a12e62-f45e-7a42-ab4b-be5258320bb9 / Nietzsche 01a12e67-5989-7470-a942-702deb73e898的回包已保存；它们都是阶段审阅，没有独立最终接受/11维评分，不能升级。
+   新对话用可用原生只读子Agent独立检查全部同候选身份、GateA–F原件、失败分类、network完整窗口、布局和评分；不让审阅者写实现或替执行者伪造PASS。
+   十一维：Provider就绪、Agent多轮、网页工具授权、隐私、沙箱安全、取消/未知效果、Compiler/RunHost、保存复跑、Node/Go兼容、SidePanelUX、真实Chrome。分数须证据支持且逐维≥95，不强凑分，不当产品完成率。有可恢复必需缺口先补；仍缺则NOT_ACCEPTED。
+
+六、执行授权和最终结果
+普通可逆本地核查/最小修复/定向验证直接继续，无需重复问是否继续。默认main/master；并行写入另隔离，只读审阅可并行。保留其他差异、全部失败/receipt，不reset/clean/强推/整体stage；旧来源只读，不新增依赖或采集/分页/语音/任务树功能，不扩ChromePage.js。
+只用本轮受控Chrome/真实sender/可信原生输入/原Controller与App CLI。禁止DOM赋值、synthetic events、伪造NativeACK、直接CDP业务执行、未知effect重放。read-only CDP诊断不冒充业务成功。
+当前本轮没有commit/push/release，也未替换日常App。本提示词不新增远端push/release或日常安装替换授权；按原正式任务书与后续授权核对提交边界，未发生就如实报告。
+约60秒更新实际进展，进度用真实功能名称，不报完成百分比。
+最终保存专属工作流/正式证据索引，逐GateA–F及必需叶子给PASS/FAIL/BLOCKED/NOT_TESTED、输入身份、命令退出码/原件、关键run/result/revision/hash、retirement、网络及独立评分/接受结论。
+全部必需项关闭且独立接受才写“R16 R2 本机工作流正式验证已接受”；否则明确NOT_ACCEPTED，列精确缺项。
+整体603＋19、B05、1000mixed/10reconnect/2轮禁插件、六资源baseline、独立最终F3、已验dist一致ZIP安装仍是独立未关闭合同，不因R16叶子通过宣布整体交付，不在本轮无理由重跑。
+

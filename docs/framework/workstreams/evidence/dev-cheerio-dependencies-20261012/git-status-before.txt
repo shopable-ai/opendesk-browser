@@ -1,0 +1,17 @@
+## main...origin/main [ahead 5, behind 1]
+ M docs/api/dependencies-and-errors.zh-CN.md
+ M docs/api/quickstart.zh-CN.md
+ M docs/framework/local-development-quickstart.zh-CN.md
+ M docs/framework/local-directory-cli-r17.zh-CN.md
+ M native-agent/local-dev/cli-identity.mjs
+ M native-agent/local-dev/dev-cli.mjs
+ M native-agent/local-dev/installation-diagnostics.mjs
+ M packages/opendesk-dev/package.json
+ M scripts/pack-opendesk-dev.mjs
+ M tests/environment/dev-installation-diagnostics.test.mjs
+?? docs/framework/browser-dev-install-update.zh-CN.md
+?? docs/framework/workstreams/dev-cheerio-dependencies-20261012.md
+?? docs/framework/workstreams/evidence/browser-dev-install-diagnostics-01a12b8e/
+?? docs/framework/workstreams/evidence/dev-cheerio-dependencies-20261012/
+?? scripts/dev-package-dependencies.mjs
+?? tests/environment/dev-cli-pack-boundaries.test.mjs

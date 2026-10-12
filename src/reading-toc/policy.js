@@ -38,8 +38,46 @@ export function grantedOrigins(settings,id) {
 }
 export function tocGrantAllowed(installed,settings,id,url,enableRecords) {
   const origin=websiteOrigin(url);
-  return Boolean(sidebarToolEnabled(enableRecords,id)&&origin&&admittedTocTool(installed,id)&&grantedOrigins(settings,id).includes(origin));
+  return Boolean(sidebarToolEnabled(enableRecords,id)&&origin&&admittedTocTool(installed,id)&&tocSiteAllowed(settings,id,url));
 }
+// Only the built-in reader defaults to all HTTP(S) pages. Its old positive
+// arrays remain compatible; imported TOC tools keep explicit origin grants.
+function defaultTocBlockedOrigins(settings) {
+  if(settings!=null&&(typeof settings!=='object'||Array.isArray(settings)))return null;
+  const record=settings?.[READING_TOC_TOOL_ID];
+  if(record===undefined)return [];
+  if(Array.isArray(record))return record.length<=64&&record.every(origin=>
+    typeof origin==='string'&&origin.length<300&&websiteOrigin(origin)===origin)?[]:null;
+  if(!record||typeof record!=='object'||record.mode!=='all-except'||
+     Object.keys(record).some(key=>!['mode','blockedOrigins'].includes(key))||
+     !Array.isArray(record.blockedOrigins)||record.blockedOrigins.length>64||
+     !record.blockedOrigins.every(origin=>typeof origin==='string'&&origin.length<300&&websiteOrigin(origin)===origin))return null;
+  return [...new Set(record.blockedOrigins)];
+}
+export function blockedTocOrigins(settings) {
+  return defaultTocBlockedOrigins(settings)||[];
+}
+export function tocSiteAllowed(settings,id,url) {
+  const origin=websiteOrigin(url);
+  if(!origin)return false;
+  if(id!==READING_TOC_TOOL_ID)return grantedOrigins(settings,id).includes(origin);
+  const blocked=defaultTocBlockedOrigins(settings);
+  return blocked!==null&&!blocked.includes(origin);
+}
+export function changeTocSiteAllowed(settings,id,url,allow) {
+  const origin=websiteOrigin(url);
+  if(!origin || !/^[a-z][a-z0-9-]{1,39}$/.test(id)||typeof allow!=='boolean')throw Error('无效的网站或工具 ID');
+  const prior=settings&&typeof settings==='object'&&!Array.isArray(settings)?settings:{};
+  const next={...prior};
+  if(id!==READING_TOC_TOOL_ID)return changeTocGrant(settings,id,url,allow);
+  const previous=defaultTocBlockedOrigins(settings);
+  if(previous===null)throw Error('阅读目录网站设置无效');
+  const blocked=allow?previous.filter(value=>value!==origin):[...new Set([...previous,origin])];
+  if(blocked.length>64)throw Error('阅读目录最多停用 64 个网站');
+  if(blocked.length)next[id]={mode:'all-except',blockedOrigins:blocked};else delete next[id];
+  return next;
+}
+// Shared by clip/capture services; keep their positive-only grant contract.
 export function changeTocGrant(settings,id,url,allow) {
   const origin=websiteOrigin(url);
   if(!origin || !/^[a-z][a-z0-9-]{1,39}$/.test(id))throw Error('无效的网站或工具 ID');

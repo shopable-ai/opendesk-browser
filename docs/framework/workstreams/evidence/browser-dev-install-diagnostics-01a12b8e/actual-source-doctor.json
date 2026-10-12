@@ -1,0 +1,154 @@
+{
+  "format": "opendesk.dev-cli.diagnostic.v1",
+  "ok": false,
+  "cli": {
+    "package": "@shopable/opendesk-dev",
+    "packageRoot": "/Users/shopme/Documents/workspace/opendesk-browser/packages/opendesk-dev",
+    "mode": "source-tree",
+    "status": "source-unpacked",
+    "version": "0.1.0-r17.1",
+    "entryPath": "/Users/shopme/Documents/workspace/opendesk-browser/packages/opendesk-dev/bin/opendesk-dev.mjs",
+    "entrySha256": "2dae163adbb492d1f42ffd348fd412a921fbb6a4eda79f03fdfc4f71b154f17e",
+    "contentFingerprint": "dea31ca835d282dc0c5f4c3670746364a6c35f7e4419f7605c548f77d65d0d44",
+    "runtimeDependencies": [
+      {
+        "name": "acorn",
+        "resolvedPath": "/Users/shopme/Documents/workspace/opendesk-browser/node_modules/acorn/dist/acorn.js"
+      },
+      {
+        "name": "webpack",
+        "resolvedPath": "/Users/shopme/Documents/workspace/opendesk-browser/node_modules/webpack/lib/index.js"
+      },
+      {
+        "name": "terser",
+        "resolvedPath": "/Users/shopme/Documents/workspace/opendesk-browser/node_modules/terser/dist/bundle.min.js"
+      },
+      {
+        "name": "terser-webpack-plugin",
+        "resolvedPath": "/Users/shopme/Documents/workspace/opendesk-browser/node_modules/terser-webpack-plugin/dist/index.js"
+      },
+      {
+        "name": "dayjs",
+        "resolvedPath": "/Users/shopme/Documents/workspace/opendesk-browser/node_modules/dayjs/dayjs.min.js"
+      },
+      {
+        "name": "lodash-es",
+        "resolvedPath": "/Users/shopme/Documents/workspace/opendesk-browser/node_modules/lodash-es/lodash.js"
+      }
+    ]
+  },
+  "expected": null,
+  "node": {
+    "execPath": "/Users/shopme/.nvm/versions/node/v24.16.0/bin/node",
+    "resolvedPath": "/Users/shopme/.nvm/versions/node/v24.16.0/bin/node",
+    "version": "24.16.0",
+    "pathNode": {
+      "path": "/Users/shopme/.nvm/versions/node/v24.16.0/bin/node",
+      "resolvedPath": "/Users/shopme/.nvm/versions/node/v24.16.0/bin/node"
+    },
+    "goSelection": {
+      "path": "/opt/homebrew/bin/node",
+      "resolvedPath": "/opt/homebrew/Cellar/node/26.3.1/bin/node",
+      "version": null,
+      "versionEvidence": "not-executed"
+    },
+    "goSelectionEvidence": "predicted-from-current-upstream-policy"
+  },
+  "registration": {
+    "path": "/Users/shopme/.opendesk-browser/dev-tool-r17/entry.json",
+    "state": "readable",
+    "entryPath": "/Users/shopme/.nvm/versions/node/v24.16.0/lib/node_modules/@shopable/opendesk-dev/bin/opendesk-dev.mjs",
+    "entryMatches": true,
+    "identity": {
+      "package": "@shopable/opendesk-dev",
+      "packageRoot": "/Users/shopme/.nvm/versions/node/v24.16.0/lib/node_modules/@shopable/opendesk-dev",
+      "mode": "installed-package",
+      "status": "legacy-unrecorded",
+      "version": "0.1.0-r17.1",
+      "entryPath": "/Users/shopme/.nvm/versions/node/v24.16.0/lib/node_modules/@shopable/opendesk-dev/bin/opendesk-dev.mjs",
+      "entrySha256": "c1477fe00c64665bc8d229914fa2bdca4d2f472ae247fab64e1d08fe966bb563",
+      "contentFingerprint": "3acce3f88baf84904eb0a89ddc63623d902614155f017da6cc2f2301600f10e6"
+    },
+    "contentMatches": false,
+    "pathEntry": {
+      "path": "/Users/shopme/.nvm/versions/node/v24.16.0/bin/opendesk-dev",
+      "resolvedPath": "/Users/shopme/.nvm/versions/node/v24.16.0/lib/node_modules/@shopable/opendesk-dev/bin/opendesk-dev.mjs"
+    }
+  },
+  "native": {
+    "state": "installed",
+    "connection": {
+      "state": "connected",
+      "authenticated": true,
+      "browserReady": true,
+      "capabilities": {
+        "localDevMultiVersion": 1,
+        "localFilesVersion": 1,
+        "localDevAccessVersion": 1
+      },
+      "compatible": true
+    },
+    "installRoot": "/Users/shopme/.opendesk-browser/native-agent-r1",
+    "configPath": "/Users/shopme/.opendesk-browser/native-agent-r1/install.json",
+    "provider": "go",
+    "extensionId": "mknncoaonlkeljgcbdncdkenloofpfle",
+    "browser": "chrome",
+    "manifestPath": "/Users/shopme/Library/Application Support/Google/Chrome/NativeMessagingHosts/com.shopable.opendesk_browser.agent.json",
+    "wrapperPath": "/Users/shopme/.opendesk-browser/native-agent-r1/native-host",
+    "registeredTarget": "/Users/shopme/.opendesk-browser/native-agent-r1/native-host",
+    "manifestMatches": true,
+    "executablePath": "/Applications/OpenDesk.app/Contents/MacOS/opendesk",
+    "wrapperMatches": true
+  },
+  "issues": [
+    {
+      "layer": "node",
+      "code": "W_NODE_PATH_DIFFERENT",
+      "severity": "warning",
+      "reason": "直接 CLI 与 Go 预计 Node 不同；未执行候选程序，其版本尚未验证",
+      "repair": "先确认此 Node 来源，再用其绝对路径执行已登记 CLI --doctor，核对 execPath/版本。"
+    },
+    {
+      "layer": "cli",
+      "code": "E_DEV_BUILD_UNRECORDED",
+      "severity": "error",
+      "reason": "CLI 内容身份：source-unpacked",
+      "repair": "从当前 Browser 源码生成新 tarball；显式安装到选定 prefix 后 --register-go。"
+    },
+    {
+      "layer": "registration",
+      "code": "E_DEV_REGISTRATION_LEGACY",
+      "severity": "error",
+      "reason": "旧登记只有入口 SHA，未绑定 runtime 内容",
+      "repair": "确认包身份 verified 后重新 --register-go。"
+    },
+    {
+      "layer": "registration",
+      "code": "E_DEV_REGISTERED_PACKAGE_INVALID",
+      "severity": "error",
+      "reason": "Go 登记指向未记录或内容不一致的包",
+      "repair": "更新报告中 entryPath 所属全局安装，再用该入口 --register-go。"
+    },
+    {
+      "layer": "registration",
+      "code": "E_DEV_ENTRY_DIFFERENT",
+      "severity": "error",
+      "reason": "Go 登记与当前 CLI 属于不同全局安装（可能是 nvm/Homebrew）",
+      "repair": "选择目标 prefix；用该包绝对入口 --register-go，随后用报告中的 Go 预计 Node 执行该入口 --doctor。"
+    },
+    {
+      "layer": "registration",
+      "code": "W_PATH_CLI_DIFFERENT",
+      "severity": "warning",
+      "reason": "PATH 中 opendesk-dev 与当前执行包不同",
+      "repair": "用报告中的绝对入口诊断、安装与登记；不要用 PATH 上的另一份包覆盖登记。"
+    }
+  ],
+  "limitations": [
+    "未指定 --expect-package 时不能判断是否为最新源码；verified 只表示包内自洽。",
+    "Go 当前登记接口只强制校验入口 SHA；完整 runtime 指纹由本诊断核对。",
+    "Go Node 选择是当前上游策略推断；Go 暂不转发 dev --doctor/--version --json，须用指定 Node/已登记入口诊断。",
+    "认证响应不含扩展加载路径/packageHash；扩展内容一致性须按文档独立核对。",
+    "内容指纹覆盖 bin/runtime/package.json；不覆盖外部 node_modules 或运行中的旧进程。"
+  ]
+}

@@ -1,0 +1,26 @@
+✔ pack refuses existing output without deleting backups, including dangling symlink output (77.244708ms)
+✔ pack rejects a parent symlink before writing to its target (37.246042ms)
+✔ version uses actual package metadata, identity is deterministic and detects same-version changed bytes (8.81775ms)
+✔ a verified package is self-consistent, not evidence of latest; explicit reference catches same-version old content (6.925042ms)
+✔ missing metadata, renamed version and unexpected runtime file cannot pass identity verification (5.895ms)
+✔ missing declared runtime dependencies are diagnosed without loading or executing them (5.860916ms)
+✔ nvm CLI and Homebrew registered package are diagnosed independently of matching version and entry bytes (6.511041ms)
+✔ Go selection prefers trusted Homebrew node over PATH nvm, skipping project/node_modules executables (4.914708ms)
+✔ different Go Node is never executed to infer its version or mutate the filesystem (5.180041ms)
+✔ old Node owner is migration-required and is never probed or changed (5.403375ms)
+✔ missing socket, disconnected extension, incompatible capability and invalid manifest have distinct repairs (8.453625ms)
+✔ private file permissions, invalid provenance and protocol payload never expose credentials (5.476542ms)
+✔ receipt and entry sizes match Go admission limits (6.318792ms)
+✔ an executable directory cannot be accepted as a Go binary even with a live socket (5.063333ms)
+✔ doctor flags never reinterpret directory names and reject malformed combinations (0.310709ms)
+✔ doctor exit code and JSON reflect faults without invoking an attach or browser opener (4.861375ms)
+✔ real socket probe sends only auth, strips unknown response fields and closes its connection (9.405541ms)
+✔ oversized, malformed, unauthenticated or silent responses are bounded and never leaked (5.450542ms)
+ℹ tests 18
+ℹ suites 0
+ℹ pass 18
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 157.224916

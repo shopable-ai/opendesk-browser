@@ -1,0 +1,38 @@
+The following is a diff from the previous accessibility tree for Window: "OpenDesk Browser · Browser Test Lab" with ~ and + representing changed and added elements, respectively. Removed elements are summarized by ID range.
++					244 菜单 Secondary Actions: Cancel
++						245 查询“本周共有 3 项阅读计划，当前状态：等待开始。”, ID: itemSelected:
++						246 复制“本周共有 3 项阅读计划，当前状态：等待开始。”, ID: itemSelected:
++						247 复制指向突出显示的内容的链接, ID: itemSelected:
++						248 ID: itemSelected:, 打印“本周共有 3 项阅读计划，当前状态：等待开始。
+
+”
++						249 使用Google搜索“本周共有 3 项阅读计划，当前状态：等待开始。”, ID: itemSelected:
++						250 在阅读模式下打开, ID: itemSelected:
++						251 朗读此网页的内容, ID: itemSelected:
++						252 翻译“本周共有 3 项阅读计划，当前状态：等待开始。”, ID: itemSelected:
++						253 OpenDesk Browser
++							254 菜单 Secondary Actions: Cancel
++								255 打开 OpenDesk Browser, ID: itemSelected:
++								256 保存到选区笔记, ID: itemSelected:
++						257 从 Google 获取图片说明
++							258 菜单 Secondary Actions: Cancel
++								259 永远, ID: itemSelected:
++								260 仅一次, ID: itemSelected:
++						261 检查, ID: itemSelected:
++						262 语音
++							263 菜单 Secondary Actions: Cancel
++								264 开始讲话, ID: itemSelected:
++								265 (disabled) 停止讲话, ID: itemSelected:
++						266 服务
++							267 菜单 Secondary Actions: Cancel
++								268 打开
++								269 在“终端”打开man页面
++								270 在“终端”中搜索man页面索引
++								271 在访达中显示
++								272 在访达中显示简介
++								273 作为语音轨道添加到“音乐”
+Selected text: ```
+本周共有 3 项阅读计划，当前状态：等待开始。
+```
+
+Note: Pay special attention to the content selected by the user. If the user asks a question or refers to the content they are looking at on-screen, they might be referring to the selected content (but they might be referring to something else that's visible, too).

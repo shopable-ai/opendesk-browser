@@ -32,6 +32,24 @@ function mock({enabled=true,granted=true}={}){
 const message=(requestId,method,params={})=>({v:1,kind:'request',requestId,method,params});
 const settingsSender=f=>({id:f.api.runtime.id,
   url:f.api.runtime.getURL('native-agent/settings.html'),documentId:'settings-document'});
+test('R16 welcome echoes AI version only after the Native Host advertises version 1',async t=>{
+  for(const advertised of [undefined,0,1,2,'1',true,null])await t.test(String(advertised),async t=>{
+    const f=mock();t.after(()=>f.service.dispose());await f.service.ready;
+    const hello={v:1,kind:'hello'};
+    if(advertised!==undefined)hello.workflowAiVersion=advertised;
+    f.native().onMessage.fire(hello);await drain();
+    const welcomes=f.responses.filter(row=>row.kind==='welcome');
+    assert.equal(welcomes.length,1,'legacy Native handshakes remain available');
+    const [welcome]=welcomes;
+    assert.equal(Object.hasOwn(welcome,'workflowAiVersion'),advertised===1);
+    assert.deepEqual(welcome,{v:1,kind:'welcome',extensionId:f.api.runtime.id,
+      extensionVersion:'0.1.0',localDevVersion:1,localDevMultiVersion:0,localFilesVersion:1,
+      ...(advertised===1?{workflowAiVersion:1}:{})});
+    assert.equal(f.requests.length,0,'negotiation cannot dispatch a browser operation');
+    assert.equal(f.responses.some(row=>row.kind==='ai.request'),false);
+  });
+});
+
 test('R17 access capability is echoed only to a Go Host that advertises version 1',async t=>{
   for(const advertised of [undefined,0,1,2])await t.test(String(advertised),async t=>{
     const f=mock();t.after(()=>f.service.dispose());await f.service.ready;

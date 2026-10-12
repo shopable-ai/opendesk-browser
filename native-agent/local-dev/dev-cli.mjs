@@ -6,7 +6,7 @@ import fs from 'node:fs';
 import net from 'node:net';
 import path from 'node:path';
 import crypto from 'node:crypto';
-import {spawn} from 'node:child_process';
+import {spawn,execFileSync} from 'node:child_process';
 import {pathToFileURL} from 'node:url';
 import {installationRoot} from '../installation-root.mjs';
 import {readCliIdentity,formatCliVersion} from './cli-identity.mjs';
@@ -193,28 +193,44 @@ export function attachOnce(cfg,absolute,{timeoutMs=2500,access='read-write',conn
     socket.once('close',()=>{if(!done)fail('E_NATIVE_NOT_READY','Native Host 断开连接');});
   });
 }
-async function openWorkspace(cfg,sourceId){
+function macBundleIdentifier(app){
+  return execFileSync('/usr/bin/plutil',['-extract','CFBundleIdentifier','raw','-o','-',path.join(app,'Contents','Info.plist')],
+    {encoding:'utf8',timeout:1500,maxBuffer:4096,stdio:['ignore','pipe','ignore']}).trim();
+}
+export function workspaceOpenCommand(cfg,sourceId,{platform=process.platform,homeDirectory=os.homedir(),
+  bundleIdentifier=macBundleIdentifier,exists=fs.existsSync}={}){
   const url='chrome-extension://'+cfg.extensionId+'/native-agent/workspace.html?sourceId='+sourceId;
   if(cfg.userDataDir)throw problem('E_PROFILE_TARGET','使用了自定义 Chrome Profile，无法保证自动打开正确实例；可在已配对浏览器打开：'+url);
   let executable,args;
-  if(process.platform==='darwin'){
-    executable='/usr/bin/open';args=['-a',cfg.browser==='cft'?'Google Chrome for Testing':'Google Chrome',url];
-  }else if(process.platform==='linux'){
-    executable=['/usr/bin/google-chrome','/usr/bin/chromium','/opt/google/chrome/chrome'].find(p=>fs.existsSync(p));
+  if(platform==='darwin'){
+    const expected=cfg.browser==='cft'?'com.google.chrome.for.testing':'com.google.Chrome';
+    const names=cfg.browser==='cft'?['Google Chrome for Testing.app','Google Chrome.app']:['Google Chrome.app'];
+    const candidates=[path.join(homeDirectory,'Applications'),'/Applications'].flatMap(dir=>names.map(name=>path.join(dir,name)));
+    // An application named Google Chrome.app can actually contain CFT. An exact
+    // verified path also avoids LaunchServices choosing another registered copy.
+    const app=candidates.find(candidate=>{try{return bundleIdentifier(candidate)===expected;}catch{return false;}});
+    if(!app)throw problem('E_BROWSER_OPEN','未找到身份匹配的 '+(cfg.browser==='cft'?'Chrome for Testing':'Google Chrome')+'；可在已配对浏览器打开：'+url);
+    executable='/usr/bin/open';args=['-a',app,url];
+  }else if(platform==='linux'){
+    executable=['/usr/bin/google-chrome','/usr/bin/chromium','/opt/google/chrome/chrome'].find(p=>exists(p));
     args=[url];
   }else throw problem('E_BROWSER_PLATFORM','当前系统尚无受支持的自动打开实现：'+url);
   if(!executable)throw problem('E_BROWSER_OPEN','无法定位受信浏览器，请在已配对 Chrome 打开：'+url);
+  return {executable,args};
+}
+export async function openWorkspace(cfg,sourceId,{spawnProcess=spawn,...launchOptions}={}){
+  const {executable,args}=workspaceOpenCommand(cfg,sourceId,launchOptions);
   await new Promise((resolve,reject)=>{
-    const child=spawn(executable,args,{stdio:'ignore',windowsHide:true});
+    const child=spawnProcess(executable,args,{stdio:'ignore',windowsHide:true});
     child.on('error',e=>reject(problem('E_BROWSER_OPEN',e.message)));
-    child.on('close',code=>code===0?resolve():reject(problem('E_BROWSER_OPEN','打开浏览器失败，退出码 '+code+'；可手动打开：'+url)));
+    child.on('close',code=>code===0?resolve():reject(problem('E_BROWSER_OPEN','打开浏览器失败，退出码 '+code+'；可手动打开：'+args.at(-1))));
   });
 }
-function safeRegister(bin=process.argv[1]){
+export function safeRegister(bin=process.argv[1],{homeDirectory=os.homedir()}={}){
   const absolute=fs.realpathSync(bin||'');
   if(!absolute.endsWith(path.join('lib','node_modules','@shopable','opendesk-dev','bin','opendesk-dev.mjs')))
     throw problem('E_DEV_INSTALL','Go 入口只接受 npm 全局安装的 @shopable/opendesk-dev；请使用 npm install -g 后重新登记');
-  const home=path.join(os.homedir(),'.opendesk-browser'),dir=path.join(home,'dev-tool-r17');
+  const home=path.join(homeDirectory,'.opendesk-browser'),dir=path.join(home,'dev-tool-r17');
   const hash=crypto.createHash('sha256').update(fs.readFileSync(absolute)).digest('hex');
   const identity=readCliIdentity(path.dirname(path.dirname(absolute)));
   if(identity.status!=='verified')throw problem('E_DEV_PACKAGE_CHANGED','安装包缺少构建身份或内容不一致；请重新打包并安装后登记');

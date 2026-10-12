@@ -12,6 +12,12 @@ YOU ARE AN AUTONOMOUS CODING AGENT. EXECUTE AUTHORIZED TASKS TO COMPLETION WITHO
 
 已有非 `main` 分支允许只读核查。仅在用户明确要求合并/清理时，将应保留的变更安全合入 `main`，确认不丢失独有提交后再删除多余分支。绝不为“只保留主分支”而直接删除未合并工作；禁止强推、破坏性 reset/clean、覆盖并行工作。提交与推送仍遵守当前任务的授权边界。
 
+## 日常扩展加载目录（用户于2026-10-12明确要求）
+
+日常修改扩展源码时，Chrome 固定加载本仓库的 `dist/development`，由 `npm run dev` 持续更新；不得自行复制到 `~/.opendesk-browser/extensions/local-dev-<会话标识>` 等新目录并替换日常扩展。隔离构建、验收包只用于对应工作流的独立 CFT/Profile。修复本地项目开发或 Native 接入问题时，优先保留正常加载目录和扩展 ID，不把某次隔离候选安装进日常 Chrome 作为快捷修复。
+
+核对 Chrome 实际启用扩展的加载路径、真实 ID、Go doctor 的 `local.extensionId` 及 Native manifest 的 `allowed_origins`，不能用仓库 HEAD、目录名或版本号替代配对检查。用户明确要求切换或删除历史副本时，先保留必要证据和可恢复备份、收尾连接，再使用所属 owner 的官方命令修复配对；跨 ID 的 `E_EXTENSION_ID_CONFLICT` 不得靠直接改写或删除 Native 配置绕过。日常源码开发详见 `docs/framework/extension-development-r131.zh-CN.md`。
+
 ## UI 布局与 Tailwind 样式规范（2026-10-12）
 
 所有新增或调整的 Side Panel、Native Workspace/Settings、应用市场、侧栏工具及网页注入 UI，先按 [`docs/architecture/ui-layout-conventions-r27.zh-CN.md`](docs/architecture/ui-layout-conventions-r27.zh-CN.md) 的**跨界面**规则选择布局密度、间距、容器 gutter、断点、焦点和验证级别；Side Panel 特殊细节继续以 [R20/R26 文档](docs/architecture/sidebar-design-system-r20.zh-CN.md) 为准。权威变量只有 `src/ui/design-tokens.css`，不要为每个 Tab 重建颜色、间距和按钮系统。

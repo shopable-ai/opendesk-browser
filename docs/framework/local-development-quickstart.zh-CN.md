@@ -17,6 +17,8 @@ OpenDesk 是 Chrome 扩展；Native Host 连接本机目录和扩展；Codex 通
 
 ## 日常四步
 
+目录直连主路径是 `opendesk browser dev .`（Go Native Host + 已登记 npm CLI）。先用 `opendesk-dev --version --json` 和 `opendesk-dev --doctor --json` 核对实际安装；同版本内容、nvm/Homebrew 差异、备份/更新/回退与扩展一致性见[安装操作指南](browser-dev-install-update.zh-CN.md)。下列 MCP 仍是兼容/高级入口；保存只准备、明确运行和 Stop 合同相同。
+
 1. 本机编辑明确授权的 JS/项目文件，格式见[本地项目](../api/local-projects.zh-CN.md)。
 2. MCP status 核对绑定、Native、Host 和目标；目录自动绑定，单文件须显式指定类型与 origin。
 3. 新的有意 requestId 调 run，或 Sidebar「开发」开启「本地项目」开关，点击「刷新」、选项目后明确运行。

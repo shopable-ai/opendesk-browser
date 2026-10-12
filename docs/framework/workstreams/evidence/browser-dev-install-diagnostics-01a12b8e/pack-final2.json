@@ -1,0 +1,15 @@
+{
+  "package": "@shopable/opendesk-dev",
+  "archive": "/Users/shopme/.codex/tmp/browser-dev-install-diagnostics-01a12b8e/cli-final2/shopable-opendesk-dev-0.1.0-r17.1.tgz",
+  "files": 45,
+  "version": "0.1.0-r17.1",
+  "contentFingerprint": "08a182e38d6802304ee293dba10a3688f38c47a4661e08971262925fe6deef6b",
+  "source": {
+    "gitHead": null,
+    "dirty": null,
+    "lockSha256": "9bee40f237f8622e9417ae52b40473c7a989b53ccee7519b52246de8733d2e57"
+  },
+  "archiveSha256": "a230a91b6024dadfa326347aebe95ceaee2771b7e57236630b4094fea45205b5",
+  "filesBytes": 1505429,
+  "sha512": "sha512-m+usiTZDpxzSFCM0AhgmIO/OuBi69ckm362jDRdcqsC4fx8CDiX7d8zFERPQeyKbjm3IVWFf6t6DKeOSeCYqng=="
+}

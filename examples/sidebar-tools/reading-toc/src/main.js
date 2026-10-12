@@ -63,7 +63,7 @@ async function refresh(){
   if(!snapshot||!Array.isArray(snapshot.items)||!Array.isArray(snapshot.sources))throw Error('目录数据无效');
   data=snapshot;showError('');render();
  }catch(e){if(!closed){data={items:[],sources:[],activeId:''};lastKey='';render();
-  showError('此网站尚未授权或无法读取目录；可在工具详情的设置中授权当前网站。');}}
+  showError(String(e?.message||'目录读取失败，请检查工具设置或刷新页面。').slice(0,200));}}
  finally{reading=false;}
 }
 controls.forEach(button=>button.addEventListener('click',()=>{mode=button.dataset.tocMode;render();}));

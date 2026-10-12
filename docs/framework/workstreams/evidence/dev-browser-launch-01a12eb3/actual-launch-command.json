@@ -1,0 +1,13 @@
+{
+  "platform": "darwin",
+  "browser": "chrome",
+  "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+  "command": {
+    "executable": "/usr/bin/open",
+    "args": [
+      "-a",
+      "/Users/shopme/Applications/Google Chrome.app",
+      "chrome-extension://ccfcjegpkdlgbclopjmadlcjedelidmf/native-agent/workspace.html?sourceId=source-e7a88657f8a28a4368a6abdc"
+    ]
+  }
+}
