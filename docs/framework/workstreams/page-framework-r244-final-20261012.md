@@ -44,3 +44,21 @@
 | page-ui-vue-direct | 18608 | `f83a08b3e2d9952cf5729276b01388b1fca8a5334ea683b5df00ad4e372618f5` |
 
 只把这四项标为 **PASS_EXISTING_ARTIFACT_SHA256**，不将冻结产物重新分类成新 CLI 构建测试、Run/Stop 或最终 Chrome 验收。
+
+## R24.4 Mac 实际全局 tarball 四目录编译证据（2026-10-12）
+
+- [本轮独立安装与日志 run 38231722128](https://github.com/shopable-ai/opendesk-browser/actions/runs/38231722128) 的 `macos-latest` Job `114752556619` 为 **PASS**，来源 commit `8fe99dc853961b434c238bc68c1d25c3a8062b08`。它从真实 `npm pack` 安装全局 `@shopable/opendesk-dev@0.1.0-r17.1` 到 Git checkout 之外，使用安装包内 Resolver 针对四项目真实编译、命中缓存、保存后重新构建。用 `Buffer.byteLength` 和 SHA-256 重新复核，全部等于上表 18592 / 18873 / 20944 / 18608 B 及完整 `sourceHash`，无虚拟/Node Mock 假产物。
+- 四份独立 `originalInputHash` 在源码注释保存后均变化为新 `modifiedInputHash`；`cacheHit:true` 与 `editedRebuilt:true` 为四项实际断言结果，CI stdout 保留各自哈希。
+- 同一作业 95/95 CLI/Workspace 组件测试、5/5 Native access 兼容测试及 WXT 生产构建通过；`ui/tool-shell.js=429029 B`，硬上限 `524288 B`，尚有 `95259 B` 空间，但超出既有软审查阈值，不作为体积维度 95+ 的充分证据。
+- 此次运行 Ubuntu job 的状态以该 run 的最新实时结果为准；macOS 实际全局 CLI 编译 **不是** 同一 SHA 的真实浏览器 Native `opendesk browser dev .` 四目录 Run/Stop，更不能代替浏览器无需 Native 的 20× 独立 Run/Stop。
+
+## React JSX / Vue SFC 自动编译可行性标记（2026-10-12）
+
+本轮只更新已有文档、四个示例 README 的显式测试状态，不改动 `src/App.jsx`、`src/App.vue` 或编译器代码：**加注释也会改变原始源输入与缓存/冻结产物身份，需要重新构建 JSON 和重新绑定测试证据，因此不为单纯状态说明动业务源码。**
+
+- **已验证的技术路线**：JSX/SFC 在运行前必须转换为普通 JS，但用户不需要每次手动编译。本地有 Native 授权的 `opendesk browser dev .` 保存后自动准备，浏览器无 Native 的单组件编辑在点击 Run 后使用扩展可信 Worker 按需转换，两者最终沿用原 USER_SCRIPT 与固定 React/Vue Runtime。保存/转换本身不执行网页业务。
+- **HISTORICAL_NATIVE_PASS**：[本地 React 20× + Vue 20× Chrome Run/Stop](https://github.com/shopable-ai/opendesk-browser/actions/runs/38155034890)；[浏览器无 Native 的 React/Vue 真实交互与 Stop](https://github.com/shopable-ai/opendesk-browser/actions/runs/38225425847)；[Vue SFC 无效编辑拒绝和修复后重跑](https://github.com/shopable-ai/opendesk-browser/actions/runs/38230083408)。每次回执只证明其原始候选。
+- **PASS_INSTALLED_CLI**：[38231722128](https://github.com/shopable-ai/opendesk-browser/actions/runs/38231722128) macOS / Ubuntu 工作流完成成功；从真实 npm 全局安装包编译 React JSX、Vue SFC、React Direct 和 Vue Direct 的生产产物，均通过源字节、缓存和 SHA 校验。
+- **NOT_TESTED / 正式 R24.4 仍未放行**：最新 `main` 的浏览器编辑 React/Vue 各 20 次独立循环、完整 SPA/BFCache、页面授权撤销、未知效果 Stop、严格 CSP/作用域 CSS 全矩阵、200% 缩放/主题/窄屏、Go→Side Panel 全状态、同一包 F3/ZIP。
+- **明确不支持**：将原始 JSX/SFC 不经转换直接作为 Chrome JavaScript 运行；浏览器直接编辑路径不能凭空读取 Native 授权的本地目录、任意 npm/外部 CDN、动态 import、TSX 或自定义 Vite 插件。
+- 示例位置：`examples/programs/page-ui-react/README.md`、`page-ui-vue/README.md` 标识实际 JSX/SFC 的历史 PASS 和剩余未测；`page-ui-react-direct/README.md`、`page-ui-vue-direct/README.md` 明确它们本身是无需 JSX/SFC 转换的普通 JS 示例。[功能入口与状态表](../../api/page-ui-frameworks.zh-CN.md) 为主说明。

@@ -1,0 +1,190 @@
+{
+  "schema": "opendesk.market.r5.ci-evidence.v1",
+  "runId": 38228139922,
+  "sourceCommit": "f86026018f939d6d430acb7fe1bfe11ed8de6f52",
+  "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38228139922",
+  "state": "FAILED",
+  "receipts": [
+    {
+      "platform": "linux",
+      "artifactId": 11737673191,
+      "jobId": 114740637276,
+      "jobStatus": "FAILED",
+      "zipBytes": 3279155,
+      "zipSha256": "f19a90578cfbee9d179210fc5c595c1c8b26521b1119a800b27a3e9d10723ecf",
+      "retainedReceipt": "linux-native-result.json.gz",
+      "receiptPath": "artifacts/app-market-r5/native/native-result.json",
+      "rawSha256": "648ef23d907a7efab1ce2454c6b969a636f00f0c08425d31034e050c268e17de",
+      "gzipSha256": "4fd7baa7de7098d6e2d22407f6bc4cf1968b69d4c97f2275a5a430f3efcb4233",
+      "result": "FAILED",
+      "failedStage": "r5-uninstall-and-normal-chrome-restart",
+      "extensionId": "nmeilgnolfnnlopgjoijdafbkelekcbj",
+      "packageHash": "fab7c6d771032e73585b2cf1a5ec28592c5b927eddc49e6b0e297d4c0491f9ec",
+      "catalogSha256": "bb75f59865ef03db0c9ec75b6f703c2f346ac5e591467e36d6c49d62ada2cfd6",
+      "chrome": "Chrome/155.0.8059.39",
+      "siteBuildId": "d0fd8f526bb791a3ebd14addd1bb1eff4f52a1c6691b5f2492af9b3a43e8e8b8",
+      "origin": "http://127.0.0.1:43132",
+      "r5PassedChecks": [
+        "real-browser-sender-and-live-document-verification",
+        "public-routes-search-filters-responsive-dark-refresh-404",
+        "two-real-valid-pending-candidates-cannot-replace-each-other",
+        "trusted-install-result-open-action-reaches-current-installed-tool",
+        "http-real-sender-fixed-review-first-install-close-website-then-confirm-and-real-markdown-use",
+        "real-website-five-second-timeout-does-not-claim-uninstalled-and-explicit-reconnect",
+        "native-worker-prepared-before-create-and-created-before-persist-recovery",
+        "native-consumed-before-first-journal-interruption-never-replays-and-explicitly-closes-unknown",
+        "actual-browser-origin-port-iframe-protocol-fields-id-and-conflict-rejections",
+        "already-installed-is-read-from-extension-and-old-fixed-version-stays-missing",
+        "real-worker-stop-observed-and-http-wakeup-preserves-identity",
+        "website-fixed-revision-real-batch-skips-installed-preserves-operation-ids-and-reloads",
+        "native-registry-committed-page-interruption-recovers-original-operation-and-user-data",
+        "baseline-change-requires-new-review-and-official-update-preserves-user-data",
+        "separate-site-authorization-and-standard-demo-heading-navigation",
+        "inline-uninstall-cancel-confirm-and-normal-chrome-restart-with-persisted-updated-data"
+      ],
+      "interruptionStates": {
+        "A1": "PASS",
+        "A2": "PASS",
+        "B": "PASS",
+        "C": "PASS"
+      },
+      "registryRecoveryWrites": 0,
+      "consoleErrorsRecorded": 9,
+      "runtimeExceptionsRecorded": 0,
+      "normalChromeGenerations": [
+        1
+      ],
+      "incompleteChromeGenerations": [
+        2
+      ],
+      "extra": [
+        {
+          "retained": "linux-components.tap.gz",
+          "originalPath": "artifacts/app-market-r5/components.tap",
+          "rawSha256": "4ea0b181d2ef51b7807f42febe7d05db69e6e01f50216ff30acc8087c95ba081"
+        },
+        {
+          "retained": "linux-native.tap.gz",
+          "originalPath": "artifacts/app-market-r5/native.tap",
+          "rawSha256": "902a306cbe9f7cb4703e8efaf1009926ee0326885e2e8b926e8c856f85972261"
+        },
+        {
+          "retained": "linux-build-development.json.gz",
+          "originalPath": "docs/framework/evidence/wxt/builds/build-development.json",
+          "rawSha256": "b895e3b4c24638d7a89bef09df71893f19647a9cbf1b36de607aae138eba2b42"
+        }
+      ]
+    },
+    {
+      "platform": "macos",
+      "artifactId": 11738305723,
+      "jobId": 114740637644,
+      "jobStatus": "FAILED",
+      "zipBytes": 2365950,
+      "zipSha256": "b644889e98790c76d03382cc14f1a57292d54a906ffff02dd2668333f0d2cec8",
+      "retainedReceipt": "macos-native-result.json.gz",
+      "receiptPath": "artifacts/app-market-r5/native/native-result.json",
+      "rawSha256": "327f7b61c73b292bf064199985225f74ff0bd8d6dd3575bd47e6ec6d02d3789a",
+      "gzipSha256": "e68a6018a4d3bbaa33e2ebadd7777f4a41a08deae747b639a49a81f493274c31",
+      "result": "FAILED",
+      "failedStage": "r5-real-handoff-and-first-journal-interruption-recovery",
+      "extensionId": "oibdecbpklpnlljpiolnkgpohmpflnmj",
+      "packageHash": "388a340e9584458153536ed076175df0842d41e559e4a315d1df7d7ee7804dd6",
+      "catalogSha256": "bb75f59865ef03db0c9ec75b6f703c2f346ac5e591467e36d6c49d62ada2cfd6",
+      "chrome": "Chrome/155.0.8059.39",
+      "siteBuildId": "d7fc28c34fb44bc28e4cab151c7a3b403105a10b89eae3a0aa82a1e649316abd",
+      "origin": "http://127.0.0.1:43132",
+      "r5PassedChecks": [
+        "real-browser-sender-and-live-document-verification",
+        "public-routes-search-filters-responsive-dark-refresh-404",
+        "two-real-valid-pending-candidates-cannot-replace-each-other",
+        "trusted-install-result-open-action-reaches-current-installed-tool",
+        "http-real-sender-fixed-review-first-install-close-website-then-confirm-and-real-markdown-use",
+        "real-website-five-second-timeout-does-not-claim-uninstalled-and-explicit-reconnect"
+      ],
+      "interruptionStates": {
+        "A1": "INTERRUPTED",
+        "A2": "PAUSED_AT_EXACT_CALL"
+      },
+      "registryRecoveryWrites": null,
+      "consoleErrorsRecorded": 0,
+      "runtimeExceptionsRecorded": 0,
+      "normalChromeGenerations": [],
+      "incompleteChromeGenerations": [
+        1
+      ],
+      "extra": [
+        {
+          "retained": "macos-components.tap.gz",
+          "originalPath": "artifacts/app-market-r5/components.tap",
+          "rawSha256": "a96b4c23b8e4f1bf2e0dd558729bef8efe5ee1f6dd3f2196850801ed0db7f1c7"
+        },
+        {
+          "retained": "macos-native.tap.gz",
+          "originalPath": "artifacts/app-market-r5/native.tap",
+          "rawSha256": "0bd3aa012336804c5a50a32504aed4941d738c79dd824b8ea3f39f07eaed627a"
+        },
+        {
+          "retained": "macos-build-development.json.gz",
+          "originalPath": "docs/framework/evidence/wxt/builds/build-development.json",
+          "rawSha256": "ff3250e85a2833214edcb73896cf6747aabc3b5522dd2cb0c00ba646993d129e"
+        }
+      ]
+    },
+    {
+      "platform": "production",
+      "artifactId": 11738111435,
+      "jobId": 114740637556,
+      "jobStatus": "FAILED",
+      "zipBytes": 1962149,
+      "zipSha256": "d235417e0567c14b0b9993c3f7c8fd6f713511dc96676c4d0a485741804ff214",
+      "retainedReceipt": "production-native-result.json.gz",
+      "receiptPath": "artifacts/app-market-r3/native-result.json",
+      "rawSha256": "cde8fe1ac6069f8fd5bb00991423ccfb4f37471854db222b5b852dd95243482f",
+      "gzipSha256": "8f0dd5fb95150a11e4cb9ff79643f787a98db0dd5b1f4d7d2fa1399640763220",
+      "result": "REAL_CHROME_FIXTURE_PASS",
+      "failedStage": null,
+      "extensionId": "jhajepcnohiplmafaiokjlcagcfjgaap",
+      "packageHash": "f8647e26b97238990d4265606ab4ffb7ba7fce5385fb4775612b1b52d4e0380d",
+      "catalogSha256": "bb75f59865ef03db0c9ec75b6f703c2f346ac5e591467e36d6c49d62ada2cfd6",
+      "chrome": "Chrome/155.0.8059.39",
+      "siteBuildId": null,
+      "origin": null,
+      "r5PassedChecks": [],
+      "interruptionStates": {},
+      "registryRecoveryWrites": null,
+      "consoleErrorsRecorded": 0,
+      "runtimeExceptionsRecorded": 0,
+      "normalChromeGenerations": [
+        1,
+        2,
+        3
+      ],
+      "incompleteChromeGenerations": [],
+      "extra": [
+        {
+          "retained": "production-build-development.json.gz",
+          "originalPath": "docs/framework/evidence/wxt/builds/build-development.json",
+          "rawSha256": "0f5217ad060239661f5460db72a0e827056dbbcd132130b72d643422746f4520"
+        },
+        {
+          "retained": "production-build-production.json.gz",
+          "originalPath": "docs/framework/evidence/wxt/builds/build-production.json",
+          "rawSha256": "d0b71f28a436f3c678bcb6cb4bf14a8aad0958e9afa7f891144acfadebfc342c"
+        }
+      ]
+    }
+  ],
+  "findings": [
+    "Linux passed 16 real HTTP checks including the unchanged five-second timeout, explicit reconnect, A1/A2/B/C and zero registry resubmission in C recovery. It failed the final shutdown console gate; final second-generation normal close was not executed.",
+    "macOS passed the first six real checks including first Markdown install/use and the five-second timeout. A1 stopped with actual target absence; A2 hit the exact source call and received tabs.create ACK, then target-absence observation failed despite an actual executionContextsCleared event. No A2 recovery or later B/C pass may be claimed from this candidate.",
+    "Production native passed three normal Chrome generations, real keyboard back-label geometry and two authorized tool-use screenshots. Its CI job failed the following full environment tests; native PASS is not the whole job PASS."
+  ],
+  "limits": [
+    "Wrong extension ID/no receiver does not independently prove configured-target extension absent/disabled UI.",
+    "Native timeout and Worker stop are not native API ACK-loss injection.",
+    "Rate-budget waiting is not a native rate-limit rejection.",
+    "Website close is not a browser offline test.",
+    "The production channel was disabled; configured formal HTTPS remains BLOCKED."
+  ]
+}

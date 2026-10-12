@@ -1,5 +1,5 @@
-// Local fallback: the TOC demo runs without network, npm or CDN approval.
-// A pinned CDN example exports the exact same function from heading-stats-cdn.js.
+// Pure chart model. App supplies the reviewed HTTPS ESM max import.
+// The default is for isolated model tests, not automatic network fallback.
 export function summarizeHeadingLevels(items, maxOf = values => Math.max(...values)) {
   const counts = [0, 0, 0, 0, 0, 0];
   for (const item of items || []) {

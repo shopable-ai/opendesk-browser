@@ -101,3 +101,35 @@
 ### 三轮审计增量记录
 
 第一轮（源码入口与 UX）：消除“组件源码仍需 Vite”和旧 README 的误导，四目录入门都是官方组件语法；预编译导入与原始源码编辑分开标注。第二轮（API/兼容）：固定运行时导出与 Node JSX/SFC 链通过源码/CI，R24.2 原始 JSON、async-main、高亮/撤销保留独立身份。第三轮（安全/生命周期）：原 Chrome world、网站许可、原 Stop 40 次独立回执验证通过；浏览器无 Native Worker 与权限撤销/性能矩阵仍是阻断项。未闭环项目不得把本轮实现评分写为 95+。
+
+## 2026-10-12 · 浏览器直编链与受管异常恢复增量核查
+
+**历史真实浏览器闭环已经完成，但不得外推到随后每一次提交。** [macOS Chrome CI 38225425847](https://github.com/shopable-ai/opendesk-browser/actions/runs/38225425847) 在 `9cdb3bf98fe410b88c456801855e2635f6b1a7b0` 的实际扩展中，验证了无 Native 的 Side Panel 选择 React/Vue、Babel/Vue Worker 准备、当前网页 `USER_SCRIPT`、真实指针更新、按原预览身份受管 Stop 和 DOM 清理；React `previewId=55fa4b70-0d37-497d-9f2a-fa1750ab7316`，Vue `previewId=10c188da-05d3-4a1a-a947-9453636058f3`。该 CI 的 20447/21025 分别是 JavaScript **字符长度**，不是 UTF-8 字节大小。
+
+**本轮针对原生命周期发现并修复的三个输入身份漏洞：**
+
+- [`2ca8f0c`](https://github.com/shopable-ai/opendesk-browser/commit/2ca8f0c580a299bbb407ebe18cee34692be08fa8)：浏览器效果未知或 Page 回执不匹配时，不再因为没有 `previewId` 而永久锁死或被瞬时 `resolving` 状态解锁；按实际 `tabId/documentId` 保留隔离状态。
+- [`d2abfe9`](https://github.com/shopable-ai/opendesk-browser/commit/d2abfe93fb96bda4cdac9869ac8ad9e518c2a66c)：保留跨标签页受管组件的所有权，返回旧标签页后可用其原始 `previewId` 停止；切换到别的标签页**不是**旧 UI 已清理的证据。只有原标签页真实新文档或被关闭才允许释放旧保护。
+- [`7a7df1d`](https://github.com/shopable-ai/opendesk-browser/commit/7a7df1ddb911074e96b48b9c1d0c837742526e6a)：已确认的组件运行失败可保留 Stop，但必须完整匹配原 `previewId/sourceHash/tabId/documentId`；空回执、错误的 managed 身份和伪造状态一律隔离当前文档。修复涉及 `src/ui/script-editor.js` 与已有 `tests/environment/script-editor.test.mjs` 的多组 Node 回归，未创建新权限或执行器。
+
+**本轮证据状态：** 上述新候选已直接写入唯一 `main`；[项目合同 CI 38232831807](https://github.com/shopable-ai/opendesk-browser/actions/runs/38232831807) 与 [浏览器 UI 实机 CI 38232831583](https://github.com/shopable-ai/opendesk-browser/actions/runs/38232831583) 触发后截至本次核查仍处于 `queued`，不是 PASS。之后的本次修复需要按新的 SHA 复核 CI，不能自动继承早前 CFT 成功。当前也没有对用户 Mac 的 `/Users/shopme/Documents/workspace/opendesk-browser` 进行本地读取或占用端口/Profile。
+
+**保留的 P0/P1 放行门槛：** 新候选浏览器直接模式 20×React/20×Vue 独立 Run/Stop、异常 Stop 的真实回执、SPA/BFCache、主动撤权清理、200%/暗色/窄屏、固定程序安装/更新及完整生产包候选须单独验收。不能以本轮两三个缺陷的修复代替六维独立 95+ 评分或 R24.4 最终放行。
+
+## 2026-10-12 · 无 Native 40 次真实运行的独立验收候选
+
+提交 [`b77a2a8`](https://github.com/shopable-ai/opendesk-browser/commit/b77a2a80ae026c30746ab0329f957d467fddb72e) 在**现有** `tests/framework/page-browser-worker-r243-cft.mjs` 上仅增加可选 `OPENDESK_R243_BROWSER_STRESS=1` 测试切片；原有非 Stress 行为不变。
+
+新增 `tests/framework/page-browser-ui-r243-cycles.mjs` 与 `.github/workflows/page-browser-ui-r243-40-loop.yml`。测试真实 Chrome 无 Native Side Panel 的 React JSX 和 Vue SFC 各 20 次明确运行：每次 `Page.navigate` 创建不同文档，原 `chrome.webNavigation` 读取真实 `tabId/documentId`，真实鼠标点击组件并验证计数变化，等待原 `managedPreviewId`、`sourceHash`、框架身份以及可信 `retirePagePreview` 回执，确认 UI 和受管 DOM 已移除。总计要求 **40 个独立预览身份、40 个独立文档、40 次 Stop 成功、40 次 DOM 清理**，同输入从第二轮起还须出现固定编译器缓存命中。四张首末轮真实截图及每轮回执保存为 CI 附件。
+
+[对应 macOS Chrome CFT run 38233706775](https://github.com/shopable-ai/opendesk-browser/actions/runs/38233706775) 已创建。**截至本轮交付其状态为 QUEUED / NOT_TESTED，并非 PASS**，不能借用 [历史本地 Native 40 次 Run/Stop](https://github.com/shopable-ai/opendesk-browser/actions/runs/38155034890) 或 [历史无 Native 单次组件 CI](https://github.com/shopable-ai/opendesk-browser/actions/runs/38225425847) 代替这一轮新的独立浏览器验证。当前候选和 GitHub Actions 排队不构成最终 F3/ZIP 或完整产品评分。
+
+## 2026-10-12 · 重新核对无 Native 40× 原生回执（已完成）
+
+此前本文件记录的 [Chrome CFT run 38233706775](https://github.com/shopable-ai/opendesk-browser/actions/runs/38233706775) **已由 QUEUED 转为 SUCCESS，原生完成报告已核实**。本记录修正历史状态，不伪造新的候选验收。
+
+- 验收提交：`b77a2a80ae026c30746ab0329f957d467fddb72e`；扩展 ID：`pnhiokdnhhpbidgojhbjknpldipijdfa`。
+- 原生报告：`PASS_BROWSER_UI_NO_NATIVE_20X_EACH_RUN_STOP`。React JSX `20/20`、Vue SFC `20/20`，合计 40 个独立 `previewId` 与 40 个独立 `documentId`，40 次原 `retirePagePreview` 受管成功停止回执及 DOM 清理。每轮使用真实 Chrome 指针输入，全部 `noNative: true`，重复输入缓存命中得到回执。
+- 源码身份（此次浏览器直编产物）：React `a48fe4ddd903c078337b3a0b0e0241aa5e777b3c1a7faf1e49eff58dac2b8926`；Vue `d7071713db0fed4d16fee1b7ab2f6ec3ff4f1254b71a8de06ded4bca30c27f59`。
+- CI 附件：`r243-browser-native-free-40-cycles-b77a2a80ae026c30746ab0329f957d467fddb72e`，artifact ID `11740568040`，包含原生截图和逐次证据。
+- **判定：**这项 P0 核心功能已达到对应候选的真实 Chrome 测试要求。但 `b77a2a8` 并非最新 `main`；最新生产包、安装/更新、撤权、SPA/BFCache、Portal/Teleport、暗色/200%/键盘及全部独立评分仍需要对应候选证据，不能自动继承这一项通过结论。

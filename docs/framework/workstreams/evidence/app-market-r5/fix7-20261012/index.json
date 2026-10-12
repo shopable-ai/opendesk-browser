@@ -1,0 +1,142 @@
+{
+  "schema": "opendesk.market.r5.local-evidence.v1",
+  "sourceBase": "32d278223a9ac42f91e07bf5d95f21ffd3b97ef7",
+  "sourceState": "uncommitted fix7 differences, see exact build sourceInputs; not latest remote main",
+  "files": [
+    {
+      "file": "fix7-build-development.txt.gz",
+      "rawSha256": "f04e51efb34e1ac417a7e9060ee89a4365ad2ddbf73a0d076e78944e4e11a0d9",
+      "bytes": 23691
+    },
+    {
+      "file": "fix7-build-market-site.txt.gz",
+      "rawSha256": "52088efbe94af5b1047bdbc7709ef1fff15d9507425fbe77321ae6ecbd8962fe",
+      "bytes": 501
+    },
+    {
+      "file": "fix7-build-production.txt.gz",
+      "rawSha256": "8810c33fe78a4f471dc4d7eb5fff06b95155c4aa0c91dc01190504b1516941cf",
+      "bytes": 19391
+    },
+    {
+      "file": "fix7-check.txt.gz",
+      "rawSha256": "f6a792dce8a7748292058a29ecb6cff68c2311fb37c905c79a5f1b90ad8fbde3",
+      "bytes": 307
+    },
+    {
+      "file": "fix7-environment.tap.gz",
+      "rawSha256": "b31661d8e3c34d0dac5e3f381259c304b11933cb558b2c85061082b03760f22f",
+      "bytes": 164156
+    },
+    {
+      "file": "fix7-final-components.tap.gz",
+      "rawSha256": "5a684c2f84839edbd906b17a4abbb029ca809ae2b65d3c5272eea4370c3135d9",
+      "bytes": 8845
+    },
+    {
+      "file": "fix7-initial-targeted.tap.gz",
+      "rawSha256": "57da4d96c94a56b9b571205452ce582978f8b7faaf53a0dfe479a3af2bb73448",
+      "bytes": 13466
+    },
+    {
+      "file": "fix7-market-components.tap.gz",
+      "rawSha256": "63cc7f7b0d50e5eafd237481a352088f3d2d351f5e8cdd60cd53efb3521a8ed4",
+      "bytes": 23152
+    },
+    {
+      "file": "fix7-observer-final.tap.gz",
+      "rawSha256": "a94746db8d0eccbef127f2a7f016bb1740e206059b3715c159eae75577b02e41",
+      "bytes": 1418
+    },
+    {
+      "file": "fix7-targeted.tap.gz",
+      "rawSha256": "3672d7ae9a54d8a20b08639fcdc87938b4c68b21f294a077b1c3f5e7ac25ae9f",
+      "bytes": 13768
+    },
+    {
+      "file": "fix7-verify.txt.gz",
+      "rawSha256": "66eebe99bf393155432ed7dbb22e6b4414e7404bd138eff486b2be5d8589684b",
+      "bytes": 39530
+    },
+    {
+      "file": "build-development.json.gz",
+      "rawSha256": "069edba332dd339d3e34e8900ecfc4bfb91063c33cbb367ca701beb24438f2bf",
+      "bytes": 438536
+    },
+    {
+      "file": "build-production.json.gz",
+      "rawSha256": "3ddf3a910700926e6376dc56e4ccd573c73d6b6a261d861647c236052c4252f2",
+      "bytes": 419427
+    },
+    {
+      "file": "fix7-integrated-check.txt.gz",
+      "rawSha256": "2dd20d7b6811887fa1775ac2c3949bfab2a97f8bd21119d8feacf787fe4ed2d6",
+      "bytes": 307
+    },
+    {
+      "file": "fix7-integrated-components.tap.gz",
+      "rawSha256": "73f74fb0369a0bd8415ccd18ac49ac186e2e3be62f0279bbd70647a5ce8be74e",
+      "bytes": 13888
+    },
+    {
+      "file": "fix7-pre-push-check.txt.gz",
+      "rawSha256": "2dd20d7b6811887fa1775ac2c3949bfab2a97f8bd21119d8feacf787fe4ed2d6",
+      "bytes": 307
+    },
+    {
+      "file": "fix7-seven-apps-components-fixed.tap.gz",
+      "rawSha256": "be095f259ef34db57f7b8ea8c2c26d630a8eb4349edd2a02b22b43c46ab689e9",
+      "bytes": 23162
+    },
+    {
+      "file": "fix7-seven-apps-components.tap.gz",
+      "rawSha256": "03fbac3368898b2368244425d09f1a5b44843405d55d9a28cab02bd5ea5e79d4",
+      "bytes": 23854
+    },
+    {
+      "file": "fix7-seven-apps-site.txt.gz",
+      "rawSha256": "35f8b3fcf33b6a174d5c889136f568d6a6a684fce1ed20e10c461167916ee06d",
+      "bytes": 501
+    },
+    {
+      "file": "fix7-seven-apps-site-final.txt.gz",
+      "rawSha256": "e72b2498e3a7056c302452c90d55d42d3ceab103bd1529176c723ef5a1d35c3e",
+      "bytes": 501
+    }
+  ],
+  "results": {
+    "sourceCheck": "PASS 517",
+    "productionBuild": "PASS",
+    "developmentBuild": "PASS",
+    "packageVerification": "PASS both modes",
+    "siteBuild": "PASS 6 apps / 12 releases",
+    "targetedTests": "PASS 57/57",
+    "marketComponents": "PASS 95/95",
+    "environment": {
+      "pass": 1467,
+      "fail": 10,
+      "skip": 7,
+      "status": "FAILED",
+      "limitations": [
+        "Nine Unix-socket or socket-child tests are blocked by actual AF_UNIX EPERM.",
+        "Go Node selection fixture rejects this runtime executable owned by UID 65534 while current process UID is 0; the owner policy remains unchanged."
+      ]
+    }
+  },
+  "postIntegration": {
+    "sourceBase": "2ca8f0c5",
+    "preliminarySourceCheck": "PASS 525 at 93c6b0d7",
+    "components": "PASS 57/57 integrated affected checks and 95/95 seven-app market checks (overlapping sets, not additive)",
+    "catalog": "7 current apps / 13 fixed release descriptions / 3 unchanged collection revisions",
+    "newCatalogFirstAttempt": "94 passed / 1 failed: stale six-app assertion; original failure retained",
+    "sourceCheck": "PASS 525",
+    "siteBuild": "PASS 7 current applications / 13 releases / actual development channel"
+  },
+  "localNodeOwnerDiagnostic": {
+    "path": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+    "ownerUid": 65534,
+    "processUid": 0,
+    "mode": "0o100755",
+    "policyChanged": false
+  }
+}

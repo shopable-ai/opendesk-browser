@@ -165,6 +165,11 @@ export function createScriptEditor({client, currentPageTarget, development=false
       ? `已保存 r${currentRevision.revision} · 存在未保存修改 · 运行草稿不会覆盖已保存版本`
       : `已保存 r${currentRevision.revision} · 可运行草稿；不自动创建新 revision`;
   }
+  function otherTabOwnsBrowserUI(){
+    return !!browserManagedPreview&&currentPageState?.status==='available'&&
+      (browserManagedPreview.target.tabId!==currentPageState.tabId||
+       browserManagedPreview.target.documentId!==currentPageState.documentId);
+  }
   function canStopManaged(){
     if(browserManagedPreview&&!browserEffectUnknown&&!localProject?.active()&&!running&&!stopping&&!previewBusy&&!host.currentRun&&
       currentPageState?.status==='available'&&currentPageState.documentId===browserManagedPreview.target.documentId&&
@@ -217,7 +222,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
     find('script-stop').textContent=canStopManaged()?'停止受管 UI':'停止';
     if(componentSelector)componentSelector.disabled=!!localProject?.active()||editingBusy||previewBusy||running||stopping||!!programSource.snapshot();
     if(componentStatus)componentStatus.hidden=componentMode==='javascript'&&!componentStatus.textContent;
-    find('page-preview-run').disabled = stopping||browserEffectUnknown||previewBusy ||
+    find('page-preview-run').disabled = stopping||browserEffectUnknown||otherTabOwnsBrowserUI()||previewBusy ||
       (componentMode==='javascript'&&dependencyResolver?.busy)||editingBusy||running||!!host.currentRun||
       !programSource.source().trim()||programSource.kind()==='controller'||
       currentPageState?.status!=='available';
@@ -251,16 +256,18 @@ export function createScriptEditor({client, currentPageTarget, development=false
     if (disposed) return;
     if(next?.status==='available'&&Number.isSafeInteger(next.tabId)&&
        typeof next.documentId==='string'&&next.documentId){
-      if(browserManagedPreview&&(browserManagedPreview.target.tabId!==next.tabId||
-        browserManagedPreview.target.documentId!==next.documentId))
-        browserManagedPreview=null;
+      if(browserManagedPreview&&browserManagedPreview.target.tabId===next.tabId&&
+         browserManagedPreview.target.documentId!==next.documentId)
+        browserManagedPreview=null; // The owning tab actually navigated; do not mistake a tab switch for cleanup.
       if(browserEffectUnknown&&browserUnknownTarget&&
-         (browserUnknownTarget.tabId!==next.tabId||
-          browserUnknownTarget.documentId!==next.documentId)){
+         browserUnknownTarget.tabId===next.tabId&&
+         browserUnknownTarget.documentId!==next.documentId){
         browserEffectUnknown=false;
         browserUnknownTarget=null;
-        componentMessage('idle','已确认新网页文档；未知结果不会重试，需重新明确点击运行');
+        componentMessage('idle','已确认原标签页的新网页文档；未知结果不会重试，需重新明确点击运行');
       }
+      if(browserManagedPreview&&browserManagedPreview.target.tabId!==next.tabId)
+        componentMessage('idle','受管组件仍在另一标签页。请返回原网页停止后再切换运行目标。');
     }
     currentPageState = next;
     find('script-current-page-title').textContent = next?.status === 'available' ? next.title || next.url :
@@ -757,12 +764,17 @@ export function createScriptEditor({client, currentPageTarget, development=false
             managedUI,target:{tabId:captured.tabId,frameId:0,documentId:captured.documentId,
               expectedUrl:captured.url,expectedWindowId:captured.windowId}});
         }catch(error){
-          if(error.response?.managedUI===true&&error.response?.managedPreviewId===previewId)
-            browserManagedPreview=identity;
+          const response=error?.response;
+          if(response?.managedUI===true){
+            if(response.managedPreviewId===previewId&&response.sourceHash===built.sourceHash&&
+               response.tabId===captured.tabId&&response.documentId===captured.documentId)
+              browserManagedPreview=identity;
+            else quarantineBrowserEffect(captured); // An untrusted failed receipt cannot own Stop.
+          }
           if(error.code==='E_EFFECT_UNKNOWN')quarantineBrowserEffect(captured);
           throw error;
         }
-        if(result.state!=='preview-evaluated'||result.sourceHash!==built.sourceHash||
+        if(!result||result.state!=='preview-evaluated'||result.sourceHash!==built.sourceHash||
           result.documentId!==captured.documentId||result.managedUI!==true||
           result.managedPreviewId!==previewId){
           quarantineBrowserEffect(captured);
@@ -842,7 +854,20 @@ export function createScriptEditor({client, currentPageTarget, development=false
   const onNavigation = details => {
     if (String(details.tabId) === tab.value) clearDocuments();
   };
-  const onRemoved = tabId => {if (String(tabId) === tab.value) {tab.value = ''; clearDocuments();}};
+  const onRemoved = tabId => {
+    // Closing the exact owning tab proves its document is gone. Merely
+    // selecting a different tab is never evidence of successful Stop.
+    if(browserManagedPreview?.target.tabId===tabId){
+      browserManagedPreview=null;
+      componentMessage('idle','原组件所属标签页已关闭；下次运行仍需明确授权');
+    }
+    if(browserUnknownTarget?.tabId===tabId){
+      browserEffectUnknown=false;
+      browserUnknownTarget=null;
+    }
+    if(String(tabId)===tab.value){tab.value='';clearDocuments();}
+    update();
+  };
   const on = (id, event, operation) => listen(find(id), event, () => Promise.resolve().then(operation).catch(fail));
   const edit = operation => async () => {
     if(editingBusy || disposed) return;

@@ -75,7 +75,7 @@ npm run verify
 | Site Authorized | 现有逐工具、逐 HTTP(S) origin 的专用授权存储 | 网站 A 不授权网站 B；不同 capability 不相互借权 |
 | Active | 实际存活的工具 iframe，或已授权的可信网页组件 | 不能通过一个全局 `enabled` 布尔值推断 |
 
-R4.5 原始合同不主动预装；R4.8 的当前首次安装策略以源码 Catalog 为准，TOC 和网页笔记预装，其余四项可选。读取官方 JSON 本身不会创建工具 iframe 或执行包 JavaScript。工具安装、启停和网站访问分别管理：内置 `reading-toc` 安装并启用后默认可用于 HTTP(S) 网页，支持网站停用和单页排除；其他工具仍使用各自显式网站授权。关闭 Side Panel 销毁工具 iframe，网页组件按其原合同继续管理，网站停用或撤权应立即清除相关网页能力。默认预装与卸载后的不自动重装规则见 [Side Panel API](sidebar-tools.zh-CN.md)。
+R4.5 原始合同不主动预装；R4.8 之后的当前首次安装策略以源码 Catalog 为准，七项工具中 TOC 和网页笔记预装，其余五项可选。读取官方 JSON 本身不会创建工具 iframe 或执行包 JavaScript。工具安装、启停和网站访问分别管理：内置 `reading-toc` 安装并启用后默认可用于 HTTP(S) 网页，支持网站停用和单页排除；其他工具仍使用各自显式网站授权。关闭 Side Panel 销毁工具 iframe，网页组件按其原合同继续管理，网站停用或撤权应立即清除相关网页能力。默认预装与卸载后的不自动重装规则见 [Side Panel API](sidebar-tools.zh-CN.md)。
 
 ## 5. 共用安装、升级和卸载
 
@@ -110,7 +110,7 @@ Side Panel 官方候选和扩展内市场都通过 `official-catalog.js` 读取�
 
 `official-tools/releases/*.json` 从已有官方生产者或已绑定历史原始证据派生。构建合并归档和当前目录，拒绝同版本不同字节／元数据及同 revision 不同成员。追加发布使用 `npm run snapshot:market -- <新文件名.json>`，不能改写历史文件来使校验通过。当前推荐和固定历史路径分开；有历史页面不保证当前扩展包含其包。reading-kit r1、r2 原成员不变；网页笔记升级 1.1.8 后新增推荐 r3。缺完整发行证据的 quick-notes 1.1.1 只显示历史套装引用，不编造摘要。详见 [R5 网站架构](../architecture/browser-framework/app-market-website-r5.zh-CN.md)。
 
-未来默认安装型系统功能的边界、一次性迁移标记和用户选择优先规则见 [市场兼容合同](../product/sidebar-tool-market-compat-r41.zh-CN.md#未来默认系统功能设计合同尚未实施)。本轮五工具仍全部 `optional`，没有为未来假设实现第二套初始化安装器。
+未来默认安装型系统功能的边界、一次性迁移标记和用户选择优先规则见 [市场兼容合同](../product/sidebar-tool-market-compat-r41.zh-CN.md#未来默认系统功能设计合同尚未实施)。该历史 R4.5 阶段的五工具全部 `optional`；当前策略已由上述原 Catalog 的2项预装、5项可选取代，继续使用原初始化/安装体系。
 
 ## 7. 验证入口
 
@@ -126,10 +126,10 @@ node --test tests/environment/official-tools-catalog-r45.test.mjs \
 
 ## R4.8：预装与发现（2026-10-11）
 
-- 当前可信源码声明：`reading-toc`、`quick-notes` 为 `preinstalled`；`web-markdown-clipper`、`markdown-workbench`、`knowledge-inbox` 为 `optional`。后续调整只需变更并审核 `official-tools/catalog.json`，构建时自动传播到发行清单。
+- 当前可信源码声明：`reading-toc`、`quick-notes` 为 `preinstalled`；`web-markdown-clipper`、`markdown-workbench`、`knowledge-inbox`、`time-review`、`cookie-editor` 为 `optional`。后续调整只需变更并审核 `official-tools/catalog.json`，构建时自动传播到发行清单。
 - Service Worker 只在 `chrome.runtime.onInstalled` 的 `details.reason === "install"` 注册首次初始化意图，受信的固定后台资源立即复用安装器完成预装，Side Panel 在中断后负责幂等恢复（主 SW 仍受体积限制）。使用 `opendesk.sidebar-tools.bootstrap.v1` 记录版本固定的待办计划、进度与异常；这一标记**不是安装清单**。扩展升级及旧 Profile 不会静默补装。
 - 真正的安装记录继续使用 `opendesk.sidebar-tools.installed.v1`。受信宿主通过 `loadOfficialCatalog/loadOfficialTool` 校验固定发行包，再使用现有 `installReviewedSidebarTool` 的锁、容量、写入读回、市场来源及事务恢复；没有新的安装器或旁路权限。
-- 安装不执行 JS、不创建 iframe、不授权网站。阅读目录仅在用户明确操作中取得对应网站授权。已安装状态优先于市场异步加载；用户卸载产生的持久撤销代际和清理标记禁止初始化恢复重装。
+- 安装不执行 JS、不创建 iframe。内置 `reading-toc` 安装并启用后默认可用于 HTTP(S) 网页，支持网站停用和单页排除；其他工具仍需各自显式网站授权。已安装状态优先于市场异步加载；用户卸载产生的持久撤销代际和清理标记禁止初始化恢复重装。
 - 读取到未知存储结果或冲突时，预装进度设为 `attention`，不盲目重试。普通安装/更新仍走用户确认；官方升级不绕过新增能力、来源差异或数据保护审阅。Side Panel 保留当前本机工具列表与图标触发的发现入口，不恢复旧版双层导航；完整应用市场仍管理版本、权限与恢复。
 
 R4.5 的原候选证据保持原有身份，不因本页更新自动升级为 R4.8 的 Chrome 验收结果。参见 [本轮工作流](../framework/workstreams/sidebar-tools-default-preinstall-discovery-r48-20261011.md)。

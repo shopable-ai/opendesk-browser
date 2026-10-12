@@ -1,6 +1,6 @@
 # R24.3 · React/Vue 官方组件开发与四目录迁移
 
-日期：2026-10-11，实施状态更新于 2026-10-12。**原设计已分阶段实施：本地四目录、固定运行时、组件自动挂载、预构建导入、40 次独立 Chrome Run/Stop 已有源码与原生证据；浏览器原始 JSX/SFC 无 Native 实时编译仍未实现。**
+日期：2026-10-11；2026-10-12 源码与 CI 复核。**R24.3 本地四目录自动准备、固定运行时及组件受管 Run/Stop 已有原生证据；浏览器原始 JSX/SFC 无 Native 的 Side Panel 编辑 → 固定 Worker 转换 → Page USER_SCRIPT 点击交互 → Stop 亦在旧候选获得真实 Mac Chrome PASS。** [浏览器专项 CI](https://github.com/shopable-ai/opendesk-browser/actions/runs/38225425847)。下文是历史架构目标/边界，并不表示最新 `main` 已完成浏览器各 20 次独立循环、SPA/BFCache、撤权、窗口身份、200% 缩放、完整性能或最终发布验收；实施和缺口以 [R24.4 专项工作记录](../../framework/workstreams/page-framework-r244-final-20261012.md) 及同提交 CI 为准。
 
 > 下文 1—7 节保留最初设计决策和当时“待实现”措辞以避免丢失架构约束；其时间性状态应以 [最新 API 指南](../../api/page-ui-frameworks.zh-CN.md) 和 [工作流验收记录](../../framework/workstreams/page-framework-authoring-r243-20261011.md) 为准。不得将原始设计自评 96/100 当成实现评分。
 

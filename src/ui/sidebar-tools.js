@@ -1,4 +1,5 @@
-import {BROWSER_HOST_PROTOCOL,BROWSER_MENU_GRANTS_STORE,normalizeBrowserOperation} from '../framework/sdk/browser-contract.js';
+import {BROWSER_HOST_PROTOCOL,BROWSER_MENU_GRANTS_STORE,normalizeBrowserOperation,browserOperation} from '../framework/sdk/browser-contract.js';
+import {createSidePanelOpenCoordinator} from '../platform/chrome/browser-side-panel.js';
 import {SIDEBAR_TOOL_ENABLE_STORE,requireToolEnableRecords,sidebarToolEnabled,assertSidebarToolEnabled} from './sidebar-tools/lifecycle.js';
 import {SIDEBAR_TOOL_PROTOCOL,SIDEBAR_TOOL_STORE,MAX_INSTALLED_TOOLS,SIDEBAR_TOOL_DATA_LIMITS,
   sidebarToolStorageKey,sidebarToolPackageHash,validateSidebarToolPackage} from './sidebar-tools/package.js';
@@ -105,6 +106,9 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     'knowledge.store':'管理此工具的本机知识收件箱（200 条 / 4 MiB）',
     'time.review':'明确开始后在后台记录聚焦、非空闲网站的域名与时长（仅本机）',
     'browser.contextMenu':'在明确授权的网站显示 Chrome 右键菜单（最多三项）',
+    'browser.tabs':'经用户单次批准打开或聚焦自己获准的标签页',
+    'browser.sidePanel':'经真实点击打开 OpenDesk 自己的侧边栏',
+    'network':'经用户单次批准向指定 Origin 发送受控 HTTP 请求',
   });
   const timePermissions=settingsView?createTimeReviewPermissionControls({api,doc,container:settingsView,notice,runOperation:runTrustedTimeReviewOperation}):null;
   const versionOrder=compareToolVersions;
@@ -132,22 +136,40 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   // In-page decisions replace synchronous browser dialogs. Every destructive
   // confirmation is bound to a reviewed action and rechecks identity on commit.
   function cancelActionReview(){
-    pendingAction=null;
-    actionReview.hidden=true;
+    const old=pendingAction;pendingAction=null;actionReview.hidden=true;
+    old?.cancel?.();
   }
-  function requestActionReview({message,button='继续',run,toolId=null}){
+  function requestActionReview({message,button='继续',run,toolId=null,cancel=null}){
     if(disposed||busy)return;
-    pendingAction={run,toolId};
+    if(pendingAction)cancelActionReview();
+    pendingAction={run,toolId,cancel};
     actionSummary.textContent=message;
     actionContinue.textContent=button;
     actionReview.hidden=false;
     actionReview.scrollIntoView?.({block:'nearest'});
   }
-  async function applyActionReview(){
+  async function applyActionReview(event){
     const choice=pendingAction;
     if(!choice||busy||disposed)return;
-    cancelActionReview();
-    await choice.run();
+    pendingAction=null;actionReview.hidden=true;
+    await choice.run(event); // Do not defer actual Chrome user activation.
+  }
+  function requestBrowserClick({message,button,toolId,run}){
+    if(disposed||busy)return Promise.reject(Object.assign(new Error('Tool UI unavailable'),{code:'E_HOST_CLOSED'}));
+    return new Promise((resolve,reject)=>{
+      let settled=false,timer=null;
+      const settle=(ok,value)=>{
+        if(settled)return;settled=true;clearTimeout(timer);
+        if(ok)resolve(value);else reject(value);
+      };
+      const cancel=()=>settle(false,Object.assign(new Error('Browser action cancelled'),{code:'E_CANCELLED'}));
+      requestActionReview({message,button,toolId,cancel,run:event=>{
+        if(!event?.isTrusted){cancel();return;}
+        try{Promise.resolve(run(event)).then(v=>settle(true,v),e=>settle(false,e));}
+        catch(e){settle(false,e);}
+      }});
+      timer=setTimeout(()=>{if(pendingAction?.cancel===cancel)cancelActionReview();},90000);
+    });
   }
   // chrome.storage may reorder object properties; compare the validated schema values.
   const samePackage=sameSidebarToolPackage;
@@ -599,7 +621,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
         return dispatch(operation==='browser.clipboard.writeText'?'clipboard.writeText':'file.download',
           payload,tool,source,token,revocationEpoch);
       const isDiscovery=['browser.capabilities.list','browser.capabilities.getStatus'].includes(operation);
-      if(!isDiscovery&&!tool.capabilities.includes(operation==='browser.page.getContext'?'currentPage.read':'browser.contextMenu'))
+      if(!isDiscovery&&(!browserOperation(operation)||!browserOperation(operation).requiredCapabilities.every(cap=>tool.capabilities.includes(cap))))
         throw Object.assign(new Error('此工具没有获准浏览器能力'),{code:'E_TOOL_CAPABILITY_REQUIRED'});
       if(operation==='browser.page.getContext')
         return dispatch('currentPage.info',{},tool,source,token,revocationEpoch);
@@ -613,9 +635,49 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       const hostInstanceId=new URL(globalThis.location.href).searchParams.get('hostInstanceId');
       const packageHash=await sidebarToolPackageHash(tool);
       assertSession(source,token);
-      const reply=await api.runtime.sendMessage({protocol:BROWSER_HOST_PROTOCOL,kind:'tool',
-        operation,args:payload||{},toolId:tool.id,toolVersion:tool.version,installEpoch:revocationEpoch,
-        packageHash,toolInstance:token,hostInstanceId});
+      const envelope={protocol:BROWSER_HOST_PROTOCOL,kind:'tool',
+        operation,args:payload||{},toolId:tool.id,toolVersion:tool.version,
+        installEpoch:revocationEpoch,packageHash,toolInstance:token,hostInstanceId};
+      if(operation==='browser.sidePanel.openSelf'){
+        const preflight=await api.runtime.sendMessage(envelope);
+        if(!preflight?.ok||preflight.data?.requiresVisibleUserClick!==true)
+          throw Object.assign(new Error(preflight?.error?.message||'Side Panel Host denied'),
+            {code:preflight?.error?.code||'E_BROWSER'});
+        const windowInfo=await api.windows.getCurrent();
+        const coordinator=createSidePanelOpenCoordinator({api,authorize:async()=>{
+          assertSession(source,token);
+          await assertSidebarToolEnabled(api,tool.id);
+          const saved=(await api.storage.local.get(SIDEBAR_TOOL_STORE))[SIDEBAR_TOOL_STORE];
+          const epochs=(await api.storage.local.get(TOOL_REVOCATION_EPOCHS_STORE))[TOOL_REVOCATION_EPOCHS_STORE]||{};
+          return requireCompleteInstalledSidebarTools(saved).some(row=>samePackage(row,tool))&&
+            (epochs[tool.id]??null)===revocationEpoch;
+        }});
+        const prepared=await coordinator.prepare({toolId:tool.id,hostInstanceId,windowId:windowInfo?.id});
+        try{return await requestBrowserClick({toolId:tool.id,
+          message:'「'+tool.title+'」请求打开 OpenDesk 自己的侧边栏。仅此一次。',
+          button:'打开侧边栏',run:event=>coordinator.confirm(prepared.requestRef,event)});
+        }finally{coordinator.dispose();}
+      }
+      if(['browser.tabs.open','browser.tabs.focus','browser.network.request'].includes(operation)){
+        const target=operation==='browser.tabs.focus'?'聚焦此工具此前打开的标签页':
+          operation==='browser.tabs.open'?'打开网页 '+new URL(payload.url).origin:
+            '向 '+new URL(payload.url).origin+' 发送 '+payload.method+' HTTP 请求';
+        const approvalRef=await requestBrowserClick({toolId:tool.id,
+          message:'「'+tool.title+'」请求'+target+'；确认仅批准这一次操作。',
+          button:'允许本次操作',run:async()=>{
+            assertSession(source,token);
+            const approval=await api.runtime.sendMessage({protocol:BROWSER_HOST_PROTOCOL,kind:'host',
+              operation:'browser.intent.confirm',toolId:tool.id,toolVersion:tool.version,
+              installEpoch:revocationEpoch,packageHash,toolInstance:token,hostInstanceId,
+              targetOperation:operation,targetArgs:payload||{}});
+            if(!approval?.ok)throw Object.assign(new Error(approval?.error?.message||'Browser Host approval denied'),
+              {code:approval?.error?.code||'E_BROWSER'});
+            return approval.data.approvalRef;
+          }});
+        assertSession(source,token);
+        envelope.approvalRef=approvalRef;
+      }
+      const reply=await api.runtime.sendMessage(envelope);
       assertSession(source,token);
       if(!reply?.ok)throw Object.assign(new Error(reply?.error?.message||'浏览器操作失败'),{
         code:reply?.error?.code||'E_BROWSER'});
@@ -929,6 +991,8 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     // SW may record a genuine install intent while the first-party UI is open.
     if(changes?.[DEFAULT_PREINSTALL_STORE]?.newValue?.state==='pending')
       void runDefaultPreinstall();
+    if([SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE,SIDEBAR_TOOL_STORE].some(key=>Object.hasOwn(changes||{},key)))
+      if(pendingAction?.cancel)cancelActionReview();
     if(Object.hasOwn(changes||{},SIDEBAR_TOOL_ENABLE_STORE)){
       enableReadEpoch++;enableRecords=changes[SIDEBAR_TOOL_ENABLE_STORE]?.newValue;
       try{requireToolEnableRecords(enableRecords);enableReadError=false;}catch{enableReadError=true;}
@@ -1529,7 +1593,8 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     ()=>toggleTocDisplay(READING_TOC_TOOL_ID,'site'))));
   listen(settingsPageVisibility,'click',action(()=>runSiteToggle(READING_TOC_TOOL_ID,
     ()=>toggleTocDisplay(READING_TOC_TOOL_ID,'page'))));
-  listen(actionContinue,'click',action(applyActionReview));
+  listen(actionContinue,'click',event=>{void applyActionReview(event).catch(error=>notice(
+    (error?.code||'E_TOOL')+'：'+String(error?.message||error).slice(0,240),true));});
   listen(actionCancel,'click',()=>{cancelActionReview();notice('已取消，原内容仍保留。');});
   listen(removeButton,'click',action(remove));
   listen(removeReviewConfirm,'click',action(()=>remove(pendingUninstallId,{confirmed:true})));

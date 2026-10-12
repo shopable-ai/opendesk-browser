@@ -126,7 +126,14 @@ test('Go scoped project bindings pass the adapter and preserve managed preview o
       const request=f.request('return '+value+';'),sourceUtf8=request.sourceUtf8;
       const claim=await adapter.handle({method:'page.preview',params:{sourceUtf8,sourceHash:await sha256Utf8(sourceUtf8),sourceBytes:new TextEncoder().encode(sourceUtf8).length,entryFormat:'async-main',target:current,managedUI:true,bindingId:projectBinding}});
       let result=claim;
-      for(let i=0;i<20&&result.state==='preview-pending';i++){await turn();result=await adapter.handle({method:'page.get',params:{previewId:claim.previewId}});}
+      // Twenty setImmediate turns do not bound asynchronous crypto completion
+      // under a busy test worker. Observe the terminal adapter state with a
+      // wall-clock deadline; timeout/error remains a failure, never success.
+      const deadline=Date.now()+5000;
+      while(result.state==='preview-pending'&&Date.now()<deadline){
+        await new Promise(resolve=>setTimeout(resolve,10));
+        result=await adapter.handle({method:'page.get',params:{previewId:claim.previewId}});
+      }
       assert.equal(result.state,'preview-evaluated');assert.equal(result.bindingId,projectBinding);
       assert.equal(result.result.world,'USER_SCRIPT');assert.equal(result.result.documentId,current.documentId);
       return result;

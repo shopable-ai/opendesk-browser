@@ -4,6 +4,22 @@
 
 [Page USER_SCRIPT](page-userscript.zh-CN.md) · [本地项目](local-projects.zh-CN.md) · [受管 UI 生命周期](../framework/ui-api.zh-CN.md) · [架构](../architecture/browser-framework/page-framework-authoring-r243.zh-CN.md)
 
+## 零、自动编译可行性与验收状态
+
+**已证实可行：JSX 和 Vue SFC 必须转换为浏览器可执行的普通 JavaScript，但 OpenDesk 已能自动转换。用户不需要每次手动运行 Vite、npm build 或导入预编译 JSON。** 本地项目保存后后台准备，浏览器直接编辑则点击 Run 后按需编译；两条路径都只有用户明确点击 Run 才操作网页，绝不是“保存即热更新／自动执行”。
+
+| 实际入口 | 自动编译时机 | 本机 Native | 验收结论 |
+| --- | --- | --- | --- |
+| 本地 `page-ui-react/src/App.jsx` | 保存后准备；Run 时重验最新输入 | 必需（读取已授权本地目录） | **历史真实 Chrome PASS**：React 20/20 Run/Stop；独立 npm CLI 编译 PASS |
+| 本地 `page-ui-vue/src/App.vue` | 保存后准备；Run 时重验最新输入 | 必需 | **历史真实 Chrome PASS**：Vue 20/20 Run/Stop；独立 npm CLI 编译 PASS |
+| 浏览器直接编辑 React JSX | 用户点击 Run 后扩展可信 Worker 转换 | 不需要 | **历史真实 Chrome PASS**：JSX、Hooks 点击状态更新、Stop |
+| 浏览器直接编辑 Vue SFC | 用户点击 Run 后 Worker 编译 `<script setup>`、模板和样式 | 不需要 | **历史真实 Chrome PASS**：`ref` 交互、Stop、无效源码拒绝及修复后重新运行 |
+| 最新 `main` 的完整 R24.4 矩阵 | 每候选需重新核对受影响输入 | 各自对应 | **NOT_TESTED / 未正式放行**：浏览器 React/Vue 各 20 次独立循环，完整 SPA/BFCache、撤权、未知效果 Stop、主题/窄屏/200% 缩放与最终 F3/ZIP |
+
+证据：[本地各 20 次真实 Chrome](https://github.com/shopable-ai/opendesk-browser/actions/runs/38155034890)；[浏览器无需 Native 的 JSX/SFC 完整正向 Run/Stop](https://github.com/shopable-ai/opendesk-browser/actions/runs/38225425847)；[Vue 错误拒绝与修复后再次运行](https://github.com/shopable-ai/opendesk-browser/actions/runs/38230083408)；[macOS/Ubuntu 独立 npm 安装包四目录编译](https://github.com/shopable-ai/opendesk-browser/actions/runs/38231722128)。上述 PASS 只属于记录中的固定 CI 源码/包身份，不等于任意最新 HEAD 已通过完整测试。
+
+**不支持**：绕开 OpenDesk 把原始 `.jsx` / `.vue` 文件直接交给 Chrome 当普通 JS 执行；浏览器单组件编辑器也不支持任意磁盘多文件依赖、任意 npm/远程 CDN、TS/TSX、动态导入或自定义 Vite 插件。需要完整目录开发时请使用配对 Native 的 `opendesk browser dev .`。
+
 ## 一、选择官方组件开发方式
 
 | 项目目录（`examples/programs/`） | 默认入口 | 用户代码 | 系统承担 |
@@ -54,7 +70,7 @@ Chrome 可打开 `http://127.0.0.1:43111/demo-form.html` 进行回归；**React 
 - [R24.3 四目录冻结导入 JSON 生成](https://github.com/shopable-ai/opendesk-browser/actions/runs/38154353845)：固定产物、真实构建源码哈希、历史快照单独保存。
 - [项目合同、组件语法/导入/编译/哈希测试](https://github.com/shopable-ai/opendesk-browser/actions/runs/38154669950)，后续 CI 会验证更新后的构建入口。
 
-**R24.3 原生新增证据：**[无 Native Side Panel React/Vue 真实编辑/Run/指针交互/Stop](https://github.com/shopable-ai/opendesk-browser/actions/runs/38225425847) 已在所绑定的 macOS Chrome 候选 PASS；早期只有 Worker 编译的记录继续保留但不再代表唯一验收。**R24.4 仍未关闭：**浏览器内 20×React/20×Vue 独立编辑-运行-停止矩阵、编译错误恢复与重复运行保护、SPA/BFCache、撤权、CSS scoped 全面样式验证、200% 缩放/窄屏/暗色/键盘、性能与完整新候选安装/更新/F3/ZIP。未取得原生证据的项目依然 NOT_TESTED，不得自评 ≥95。浏览器编译器候选的供应链审查见 [工作流](../framework/workstreams/page-browser-compiler-r243-20261012.md)。这些缺口禁止用设计分或已有本地 Chrome PASS 抵消。
+**R24.3 原生新增证据：**[无 Native Side Panel React/Vue 真实编辑/Run/指针交互/Stop](https://github.com/shopable-ai/opendesk-browser/actions/runs/38225425847) 已在所绑定的 macOS Chrome 候选 PASS；早期只有 Worker 编译的记录继续保留但不再代表唯一验收。**R24.4 仍未关闭：**浏览器内 20×React/20×Vue 独立编辑-运行-停止矩阵、React 编译错误完整恢复与重复运行保护、SPA/BFCache、撤权、CSS scoped 全面样式验证、200% 缩放/窄屏/暗色/键盘、性能与完整新候选安装/更新/F3/ZIP。未取得原生证据的项目依然 NOT_TESTED，不得自评 ≥95。浏览器编译器候选的供应链审查见 [工作流](../framework/workstreams/page-browser-compiler-r243-20261012.md)。这些缺口禁止用设计分或已有本地 Chrome PASS 抵消。
 
 实测、评分和待办持续更新到 [R24.3 工作流](../framework/workstreams/page-framework-authoring-r243-20261011.md)。
 

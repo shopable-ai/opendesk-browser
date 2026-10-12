@@ -2,11 +2,19 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import vm from 'node:vm';
 import {readFile} from 'node:fs/promises';
-import {createRequire} from 'node:module';
+import {createHash} from 'node:crypto';
 import {prepareBrowserPageComponent} from '../../src/libs/page-frameworks/page-component-browser-linker.js';
 import {transformVueSFC} from '../../src/libs/page-frameworks/vue-sfc-transform.js';
-const require=createRequire(new URL('../../scripts/page-browser-babel/package.json',import.meta.url));
-const Babel=require('@babel/standalone');
+import {PAGE_BROWSER_COMPILER} from '../../src/libs/page-frameworks/contract.js';
+// Exercise the exact offline asset shipped to the browser compiler. The
+// maintainer-only npm package is not an installed root test dependency.
+const compilerBytes=await readFile(PAGE_BROWSER_COMPILER.source);
+assert.equal(compilerBytes.length,PAGE_BROWSER_COMPILER.bytes);
+assert.equal(createHash('sha256').update(compilerBytes).digest('hex'),PAGE_BROWSER_COMPILER.sha256);
+const compilerContext=vm.createContext({TextEncoder,TextDecoder});
+vm.runInContext(compilerBytes.toString('utf8'),compilerContext,{filename:PAGE_BROWSER_COMPILER.source,timeout:5000});
+const Babel=compilerContext.Babel;
+assert.equal(Babel.version,PAGE_BROWSER_COMPILER.version);
 const rules={matches:['http://127.0.0.1:43111/*'],excludeMatches:[],
   runAt:'document_idle',allFrames:false,world:'USER_SCRIPT'};
 const fakeUI='var __opendeskPageUIR243={createPageUI:function(){return {content:{},onDispose(){},addStyle(){},getMountDiagnostics(){return {}}}}};';

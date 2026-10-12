@@ -9,6 +9,7 @@ import os from 'node:os';
 import path from 'node:path';
 import {WebSocket} from 'ws';
 import {launchLocalDevChrome} from './local-dev-cft-launcher.mjs';
+import {runBrowserComponentCycles} from './page-browser-ui-r243-cycles.mjs';
 
 const root=process.cwd(),output=path.resolve(process.env.OPENDESK_DEV_EVIDENCE||
   '.runtime/tests/page-browser-worker-r243'),packageRoot=path.resolve('dist/production');
@@ -287,6 +288,8 @@ async function verifyBrowserUI({browser,page,catalogTabId,base,extensionId,outpu
     await typeSource(originalVue);
     assert.equal(await website.session.read('!document.querySelector("#r243-teleported-vue")'),true,
       'restoring the editor source alone must never execute a Page component');
+    if(process.env.OPENDESK_R243_BROWSER_STRESS==='1')
+      await runBrowserComponentCycles({sidebar,website,output,report,until,clickReal,selectFramework});
   }finally{
     settings?.session.close();website?.session.close();sidebar?.close();
     if(site)await new Promise(resolve=>site.close(resolve));
@@ -354,7 +357,8 @@ async function main(){
     }
     if(process.env.OPENDESK_R243_BROWSER_FULL_UI==='1'){
       await verifyBrowserUI({browser,page,catalogTabId:tab.id,base,extensionId,output,report});
-      report.status='PASS_BROWSER_UI_NO_NATIVE_REACT_VUE_RUN_STOP';
+      report.status=process.env.OPENDESK_R243_BROWSER_STRESS==='1'?
+        'PASS_BROWSER_UI_NO_NATIVE_20X_EACH_RUN_STOP':'PASS_BROWSER_UI_NO_NATIVE_REACT_VUE_RUN_STOP';
     }else report.status='PASS_BROWSER_WORKER_NO_NATIVE';
   }catch(error){report.status='FAIL';report.error={code:error.code||'E_BROWSER_WORKER_TEST',message:error.message,
     stack:error.stack};process.exitCode=1;}

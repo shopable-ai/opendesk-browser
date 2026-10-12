@@ -1,5 +1,10 @@
 # Vue 普通 JavaScript · R24.3 标准组件入口
 
+## 自动编译状态（2026-10-12）
+
+**状态：已验证的普通 JavaScript Vue 示例，不是 SFC 示例。** 默认入口 `src/main.js` 使用 Vue `h/ref`，**无需 `.vue` SFC 语法转换**；系统仍自动准备、链接固定 Vue Runtime、生成受管挂载/Stop。真实独立 npm 安装包四目录编译在 [macOS/Ubuntu CI PASS](https://github.com/shopable-ai/opendesk-browser/actions/runs/38231722128)，但最新完整 Chrome 生命周期仍有未测矩阵。使用本地项目需已授权 Native；浏览器 Vue SFC 单组件直接编辑是另一种入口。**保存不自动 Run。** [状态表](../../../docs/api/page-ui-frameworks.zh-CN.md)。
+
+
 原目录与项目 ID `sample.page-ui-vue-direct` 不变。默认 `src/main.js` 使用官方 `import {h, ref} from 'vue'`，默认导出 Vue Options 组件及渲染函数。无需 `.vue` 编译器、`main()`、`createPageUI`、手动 npm/Vite；系统复用固定 Vue 3.5.22 运行时和受管容器，执行 `createApp` / `app.unmount`。
 
 在已配对 Native Host 的本目录执行 `opendesk browser dev .`；保存只准备，Sidebar 明确点击 Run 才应用于获准网页。测试页 `http://127.0.0.1:43111/demo-form.html`，仓库根目录用 `python3 -m http.server 43111 --bind 127.0.0.1 --directory examples/tasks` 启动。Stop 清理受管 DOM，不更改宿主表单。

@@ -1,0 +1,50 @@
+name: R24.3 browser React Vue 40 independent Run Stop without Native
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/page-browser-ui-r243-40-loop.yml'
+      - 'tests/framework/page-browser-ui-r243-cycles.mjs'
+      - 'tests/framework/page-browser-worker-r243-cft.mjs'
+      - 'src/ui/script-editor.js'
+      - 'src/ui/page-component-preparer.js'
+      - 'src/ui/page-component-compiler-worker.js'
+      - 'src/libs/page-frameworks/**'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  native-free-40-independent-cycles:
+    runs-on: macos-15
+    timeout-minutes: 24
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Validate stress fixture syntax without executing Page code
+        run: node --check tests/framework/page-browser-ui-r243-cycles.mjs
+      - name: Audit and build original MV3 package
+        run: |
+          npm run check
+          npm run build
+      - uses: browser-actions/setup-chrome@v2
+        id: chrome
+        with:
+          chrome-version: '155.0.8059.39'
+      - name: Full native-free browser UI and 20 independent cycles per framework
+        env:
+          CHROME_FOR_TESTING_BIN: ${{ steps.chrome.outputs.chrome-path }}
+          OPENDESK_R243_BROWSER_FULL_UI: '1'
+          OPENDESK_R243_BROWSER_STRESS: '1'
+          OPENDESK_DEV_EVIDENCE: .runtime/tests/page-browser-ui-r243-40
+          OPENDESK_DEV_CFT_LAUNCHER: ${{ github.workspace }}/tests/framework/cft-isolated-launcher.py
+        run: node tests/framework/page-browser-worker-r243-cft.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: r243-browser-native-free-40-cycles-${{ github.sha }}
+          path: .runtime/tests/page-browser-ui-r243-40
+          if-no-files-found: warn

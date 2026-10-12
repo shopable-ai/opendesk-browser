@@ -1,6 +1,6 @@
 // Public contract and discovery metadata, not a grant store or an RPC router.
 // Actual admission remains in the trusted Side Panel / Chrome host.
-import {fields,fail} from './registry.js';
+import {fields,fail,jsonValue,normalizeConfig} from './registry.js';
 import {operationSchemas,assertBrowserSchemaCoverage,validateExportArguments} from './browser-schemas.js';
 export const BROWSER_API_VERSION='1.0.0';
 export const BROWSER_HOST_PROTOCOL='opendesk.browser.v1';
@@ -12,7 +12,7 @@ export const BROWSER_MENU_ROOT='opendesk.browser.root';
 const shared={apiVersion:BROWSER_API_VERSION,platform:'chrome>=138',timeout:8000,maxRequestBytes:12000,maxResponseBytes:12000};
 const USER_GESTURE_OPERATIONS=new Set([
   'browser.clipboard.writeText','browser.downloads.text','browser.tabs.open',
-  'browser.tabs.focus','browser.sidePanel.openSelf','browser.network.observe.start',
+  'browser.tabs.focus','browser.sidePanel.openSelf','browser.network.request','browser.network.observe.start',
   'browser.screenshot.captureVisible','browser.media.recording.prepare'
 ]);
 function entry(operation,capability,contexts,chromePermissions,effect,risk,siteScope='none',state='IMPLEMENTED',lifecycle='request'){
@@ -36,10 +36,10 @@ export const BROWSER_OPERATIONS=Object.freeze({
   'browser.page.getSelection':entry('browser.page.getSelection','browser.contextMenu',tool,[],'read','high','clicked-document'),
   'browser.clipboard.writeText':entry('browser.clipboard.writeText','user.export',tool,[],'write','medium'),
   'browser.downloads.text':entry('browser.downloads.text','user.export',tool,['downloads'],'write','medium'),
-  'browser.tabs.open':entry('browser.tabs.open','browser.tabs',tool,['tabs'],'write','medium','explicit-url','PLANNED'),
-  'browser.tabs.focus':entry('browser.tabs.focus','browser.tabs',tool,['tabs'],'write','medium','tab-ref','PLANNED'),
-  'browser.sidePanel.openSelf':entry('browser.sidePanel.openSelf','browser.sidePanel',tool,['sidePanel'],'write','medium','user-gesture','PLANNED'),
-  'browser.network.request':entry('browser.network.request','network',tool,[],'write','high','target-origin','HOST_ONLY'),
+  'browser.tabs.open':entry('browser.tabs.open','browser.tabs',tool,['tabs'],'write','medium','explicit-url','IMPLEMENTED'),
+  'browser.tabs.focus':entry('browser.tabs.focus','browser.tabs',tool,['tabs'],'write','medium','tab-ref','IMPLEMENTED'),
+  'browser.sidePanel.openSelf':entry('browser.sidePanel.openSelf','browser.sidePanel',tool,['sidePanel'],'write','medium','user-gesture','IMPLEMENTED'),
+  'browser.network.request':entry('browser.network.request','network',tool,[],'write','high','target-origin','IMPLEMENTED'),
   'browser.network.observe.start':entry('browser.network.observe.start','browser.network.observe',tool,['webRequest'],'read','high','approved-tab','PLANNED','bounded-session'),
   'browser.network.observe.getStatus':entry('browser.network.observe.getStatus','browser.network.observe',tool,['webRequest'],'read','medium','approved-tab','PLANNED','bounded-session'),
   'browser.network.observe.stop':entry('browser.network.observe.stop','browser.network.observe',tool,['webRequest'],'write','medium','approved-tab','PLANNED','bounded-session'),
@@ -77,6 +77,12 @@ export function deniedBrowserStatus(operation,context='page-sdk'){
     platform:'supported',authorization:{tool:'not-applicable',browser:'not-checked',site:'not-checked'},
     callableNow:false,nextAction:null,reasonCode:'E_CONTEXT'};
 }
+function approvedHttpUrl(value){
+ if(typeof value!=='string'||!value||value.trim()!==value||new TextEncoder().encode(value).length>2048)throw fail('E_SCHEMA','Invalid HTTP URL');
+ let url;try{url=new URL(value)}catch{throw fail('E_SCHEMA','Invalid HTTP URL')}
+ if(!['http:','https:'].includes(url.protocol)||url.username||url.password||url.href.length>2048)throw fail('E_SCHEMA','Only credential-free HTTP(S) URLs');
+ return url.href;
+}
 export function normalizeBrowserOperation(operation,args={}){
   if(!browserOperation(operation))throw fail('E_SERVICE_UNSUPPORTED','Unknown Browser SDK operation');
   switch(operation){
@@ -90,6 +96,25 @@ export function normalizeBrowserOperation(operation,args={}){
       fields(args,['operation'],['operation']);
       if(typeof args.operation!=='string'||!/^browser\.[A-Za-z.]+$/.test(args.operation))throw fail('E_SCHEMA','Invalid capability name');
       break;
+    case 'browser.tabs.open':
+      fields(args,['url'],['url']);return {url:approvedHttpUrl(args.url)};
+    case 'browser.tabs.focus':
+      fields(args,['tabRef'],['tabRef']);
+      if(typeof args.tabRef!=='string'||!/^[A-Za-z0-9_-]{16,160}$/.test(args.tabRef))throw fail('E_SCHEMA','Invalid tab reference');
+      return {tabRef:args.tabRef};
+    case 'browser.sidePanel.openSelf':fields(args,[]);break;
+    case 'browser.network.request': {
+      fields(args,['method','url','data','config'],['method','url']);
+      if(!['GET','POST','PUT','DELETE'].includes(args.method))throw fail('E_SCHEMA','Unsupported HTTP method');
+      const url=approvedHttpUrl(args.url);
+      if(args.data!==undefined&&!['POST','PUT'].includes(args.method))throw fail('E_SCHEMA','Body not permitted for this HTTP method');
+      if(args.config!==undefined)fields(args.config,['timeout','responseType']);
+      const config=normalizeConfig(args.config??{});
+      if(args.data!==undefined)jsonValue(args.data);
+      const normalized={method:args.method,url,config,...(args.data===undefined?{}:{data:args.data})};
+      if(new TextEncoder().encode(JSON.stringify(normalized)).length>12000)throw fail('E_LIMIT','HTTP payload budget exceeded');
+      return normalized;
+    }
     case 'browser.contextMenu.register':
       fields(args,['actionIds'],['actionIds']);
       if(!Array.isArray(args.actionIds)||!args.actionIds.length||args.actionIds.length>3||

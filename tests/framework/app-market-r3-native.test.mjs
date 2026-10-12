@@ -1,5 +1,7 @@
 import {runR261Acceptance} from '../helpers/sidebar-tool-r261-native.mjs';
 import {runMarketR5Acceptance} from '../helpers/app-market-r5-native.mjs';
+import {assertBrowserCleanupEvidence} from '../helpers/browser-cleanup-evidence.mjs';
+import {BROWSER_CLEANUP_INTERRUPTED} from '../../src/platform/chrome/lifecycle-errors.js';
 // Existing production CFT driver, extended for the R4.5 offline catalog lifecycle.
 // Every installation, permission, update and removal uses visible native input.
 // Storage reads are observations only. No storage writes arrange these tests.
@@ -26,7 +28,8 @@ const chromeBinary=[process.env.CHROME_BIN,'google-chrome','chromium','google-ch
   .filter(Boolean).find(exe=>spawnSync(exe,['--version'],{stdio:'ignore'}).status===0);
 const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
 const controls={'reading-toc':'#toc-list','web-markdown-clipper':'#clip-fetch',
-  'knowledge-inbox':'#ki-records','quick-notes':'#note-text','markdown-workbench':'#mdw-source','time-review':'#minute-canvas','r45-local-tool':'#mdw-source'};
+  'knowledge-inbox':'#ki-records','quick-notes':'#note-text','markdown-workbench':'#mdw-source','time-review':'#minute-canvas',
+  'cookie-editor':'#preview-banner','r45-local-tool':'#mdw-source'};
 const grantKeys=[READING_TOC_SITE_STORE,CLIP_SITE_STORE,CAPTURE_SITE_STORE];
 function cdpSocket(url){
   const ws=new WebSocket(url),pending=new Map(),observers=new Set();let nextId=0;
@@ -38,7 +41,7 @@ function cdpSocket(url){
     if(!result.id){for(const fn of observers)fn(result);return;}
     const job=pending.get(result.id);if(!job)return;
     clearTimeout(job.timer);pending.delete(result.id);
-    result.error?job.reject(Error(result.error.message)):job.resolve(result.result);
+    result.error?job.reject(Object.assign(Error(result.error.message),{cdpError:result.error})):job.resolve(result.result);
   };
   return {ready,onEvent(fn){observers.add(fn);return()=>observers.delete(fn);},send(method,params={},timeout=20000,sessionId){
     return new Promise((resolve,reject)=>{
@@ -120,7 +123,7 @@ test(process.env.OPENDESK_NATIVE_MARKET_R5==='1'?'R5 real HTTP Chrome: finite ex
   const servers=await Promise.all([fixtureServer('A'),fixtureServer('B')]);
   const evidence={result:'IN_PROGRESS',commit:process.env.GITHUB_SHA||spawnSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).stdout.trim(),
     extensionPath:extension,packageHash:fingerprint.packageHash,catalogSha256:hash(catalogBytes),releases:catalog.apps,
-    platform:process.platform,nodeVersion:process.version,consoleErrors:[],runtimeExceptions:[],runtimeExceptionRevocations:[],
+    platform:process.platform,nodeVersion:process.version,consoleErrors:[],browserCleanupInterruptions:[],runtimeExceptions:[],runtimeExceptionRevocations:[],
     phases:[],dialogs:[],dialogErrors:[],chromeLifecycles:[],sites:servers.map(x=>x.origin),
     privateDataVia:'native input and save',protectedStorageWritesFromDriver:0,publicWebsite:'NOT_TESTED',
     actualMacChrome:'NOT_TESTED',fullFrameworkF3:'NOT_TESTED',zipInstallation:'NOT_TESTED',publicMarket:'NOT_CONFIGURED',
@@ -133,6 +136,8 @@ test(process.env.OPENDESK_NATIVE_MARKET_R5==='1'?'R5 real HTTP Chrome: finite ex
       revoked.generation===row.generation&&revoked.sessionId===row.sessionId&&revoked.exceptionId===row.exceptionDetails.exceptionId));
     assert.deepEqual(evidence.unresolvedRuntimeExceptions,[],'unexplained product runtime exceptions prevent native PASS');
     assert.deepEqual(evidence.consoleErrors,[],'product console errors prevent native PASS');
+    for(const event of evidence.browserCleanupInterruptions)
+      assertBrowserCleanupEvidence(event,evidence.chromeLifecycles,extensionId);
   }
   const phase=async(name,detail={})=>{
     stage=name;
@@ -185,7 +190,7 @@ test(process.env.OPENDESK_NATIVE_MARKET_R5==='1'?'R5 real HTTP Chrome: finite ex
     const owned={child,closed:false};ownedChildren.push(owned);
     const record={generation:ownedChildren.length,pid:child.pid,profile,argv,stderr:'',normalExit:false};
     currentLifecycle=record;evidence.chromeLifecycles.push(record);
-    owned.exited=new Promise(ok=>child.once('close',(code,signal)=>{owned.closed=true;record.exit={code,signal};ok(record.exit);}));
+    owned.exited=new Promise(ok=>child.once('close',(code,signal)=>{owned.closed=true;record.exit={code,signal};record.exitObservedAt=Date.now();ok(record.exit);}));
     child.stderr.on('data',b=>{record.stderr=(record.stderr+b).slice(-5000);});
     const port=await until(async()=>{
       if(owned.closed)throw Error('Chrome exited: '+record.stderr);
@@ -198,6 +203,8 @@ test(process.env.OPENDESK_NATIVE_MARKET_R5==='1'?'R5 real HTTP Chrome: finite ex
       if(event.method==='Runtime.exceptionThrown')evidence.runtimeExceptions.push({stage,generation:record.generation,sessionId:event.sessionId,...event.params});
       if(event.method==='Runtime.exceptionRevoked')evidence.runtimeExceptionRevocations.push({stage,generation:record.generation,sessionId:event.sessionId,...event.params});
       if(event.method==='Runtime.consoleAPICalled'&&event.params.type==='error')evidence.consoleErrors.push({stage,generation:record.generation,sessionId:event.sessionId,...event.params});
+      if(event.method==='Runtime.consoleAPICalled'&&event.params.type==='warning'&&event.params.args?.[0]?.value===BROWSER_CLEANUP_INTERRUPTED)
+        evidence.browserCleanupInterruptions.push({stage,generation:record.generation,sessionId:event.sessionId,...event.params});
       if(event.method!=='Page.javascriptDialogOpening')return;
       const expected=dialogPlans.get(event.sessionId)?.shift(),message=event.params.message;
       const matches=expected&&event.params.type==='confirm'&&expected.parts.every(part=>message.includes(part));
@@ -215,6 +222,7 @@ test(process.env.OPENDESK_NATIVE_MARKET_R5==='1'?'R5 real HTTP Chrome: finite ex
   }
   async function closeChrome(){
     await profileUnchanged();const owned=ownedChildren.at(-1),record=currentLifecycle;
+    record.closeRequestedAt=Date.now();
     await browser.send('Browser.close',{},10000).catch(error=>{record.closeTransport=error.message;});
     let timer;
     try{await Promise.race([owned.exited,new Promise((_,fail)=>{timer=setTimeout(()=>fail(Error('Chrome did not fully exit')),15000);})]);}
@@ -307,6 +315,12 @@ test(process.env.OPENDESK_NATIVE_MARKET_R5==='1'?'R5 real HTTP Chrome: finite ex
     if(id==='knowledge-inbox'){
       await until(()=>evaluate(frame,'/^\\d+ 条结果/.test(document.querySelector("#ki-count").textContent)&&document.querySelector("#ki-list-loading").hidden'),'knowledge inbox loaded actual local store');
       assert.equal(await evaluate(frame,'document.querySelector("#ki-status").dataset.error === "true"'),false);
+    }
+    if(id==='cookie-editor'){
+      await until(()=>evaluate(frame,'!document.querySelector("#refresh").disabled&&document.querySelector("#status").textContent.includes("关闭工具后不会保留")'),
+        'optional Cookie Editor finishes its actual temporary workspace initialization');
+      assert.match(await evaluate(frame,'document.querySelector("#preview-banner").textContent'),
+        /本地演示模式.*不读取、不修改真实浏览器 Cookie/,'optional Cookie Editor is explicitly a temporary local workspace');
     }
     return frame;
   }
@@ -465,8 +479,8 @@ test(process.env.OPENDESK_NATIVE_MARKET_R5==='1'?'R5 real HTTP Chrome: finite ex
     await save();return;
   }
 
-  // Preserve and strengthen the upstream five-app market acceptance loop.
-  await phase('market-three-reviewed-plus-two-preinstalled-and-real-sandboxes');
+  // Preserve the upstream acceptance loop for every current official release.
+  await phase('market-current-preinstalled-and-reviewed-optional-real-sandboxes');
   await click(side,'#sidebar-tool-market');
   const marketInfo=await until(async()=>(await browser.send('Target.getTargets')).targetInfos.find(row=>row.type==='page'&&row.url?.includes('/ui/marketplace.html')),'market opened by Side Panel');
   const market=await attach(marketInfo.targetId);
@@ -568,7 +582,7 @@ test(process.env.OPENDESK_NATIVE_MARKET_R5==='1'?'R5 real HTTP Chrome: finite ex
   evidence.batch={collectionId:completedBatch.collectionId,revision:completedBatch.revision,statuses:expectedBatch,
     operationIds:completedBatch.items.map(row=>row.operationId),reloadVerified:true,unavailableOldRevisionNotSubstituted:true};
   await assertNoFrames();await assertNoGrants();
-  await click(market,'#market-my');await until(()=>evaluate(market,'document.querySelectorAll(".action-row").length==='+catalog.apps.length),'all five after batch');
+  await click(market,'#market-my');await until(()=>evaluate(market,'document.querySelectorAll(".action-row").length==='+catalog.apps.length),'all current official tools after batch');
   await screenshot(market,'market-my-apps.png');
   await browser.send('Target.closeTarget',{targetId:market.targetId});
   for(const release of catalog.apps)await uninstall(release.toolId);
@@ -598,7 +612,7 @@ test(process.env.OPENDESK_NATIVE_MARKET_R5==='1'?'R5 real HTTP Chrome: finite ex
   await until(()=>evaluate(side,'document.querySelector("#sidebar-tool-import").hidden||document.querySelector("#sidebar-tool-preview").hidden'),'first review consumed');
   if(await evaluate(side,'!document.querySelector("#sidebar-tool-import").hidden'))await click(side,'#sidebar-tool-import-close');
   await openTool('markdown-workbench');await back();
-  assert.equal((await installed()).length,catalog.apps.length);await assertNoGrants();await screenshot(side,'r45-five-official-installed.png');
+  assert.equal((await installed()).length,catalog.apps.length);await assertNoGrants();await screenshot(side,'r45-current-official-installed.png');
 
   await phase('independent-origin-grants-and-explicit-page-clip');
   await activate(pageA);

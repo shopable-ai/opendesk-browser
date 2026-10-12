@@ -154,3 +154,49 @@
 - 本新候选增补真实 HTTP(S) 计时中两个**不同 hostname**（`127.0.0.1`、`localhost`）真实浏览器标签切换，分别对两个 host 产生有来源的统计且原网站在切换后停止增长，不通过模拟 tab 事件制造业务数据。第二目标无法实际激活时仅记 `BLOCKED` 并说明原因，不得假报跨网站 PASS。
 - 进一步在真实 macOS Chrome 中，**停止发送用户 OS 输入**，最多观察 73 秒以等待实际 `chrome.idle.queryState(60)=idle`。如果真的空闲，必须观测 Time Review 检查点退休，日统计在空闲期间冻结；随后使用已有验证 CFT PID 的系统级鼠标活动输入真正恢复 `chrome.idle=active`，正式 Side Panel 刷新后再次出现检查点且仅恢复后的时间增长。不能调用假的 `onStateChanged`、修改存储或绕过 Chrome idle；CI 宿主如果始终不空闲则保守标记 `BLOCKED`。真实行为的 PASS 需与本新候选 SHA 绑定。
 - 多网站排序后分类编辑通过真实 DOM 的**只读行索引**定位 `127.0.0.1`，继续使用 macOS 原生系统按键和受信任按钮保存，不创建/伪造 DOM 节点，也不改写采集数据。
+
+## R1.3 Final · macOS 自然空闲恢复计时的异步回执闭环（2026-10-12）
+
+- [Mac Actions 38230832833](https://github.com/shopable-ai/opendesk-browser/actions/runs/38230832833)，候选 `3db3d69bd74d750d82c4b40f963e9a3ffef5d24c`：54/54 组件、官方安装、真正 Chrome 200% 缩放、JSON/CSV、两个真实网站（`127.0.0.1`、`localhost`）切换时的独立累计及旧站停止累计均原生通过。自然空闲后的恢复阶段在点击真实 Side Panel「刷新」后立即读 Storage，报 `actual post-idle activity ... must accumulate`，整体 Mac CI FAIL；该读数尚不能区分异步写入延迟与真实时钟采集问题。
+- 新候选只修真实浏览器测试驱动：保持真正的 Chrome idle->active 观察、空闲统计冻结和 macOS OS 输入；必须在刷新后的 **9 秒内读回真实网站毫秒值严格增长**才 PASS。若超时，以只读 Chrome idle、checkpoint、paused、前后网站时长及错误原因形成原生故障证据并继续 FAIL。禁止伪造存储、权限/Idle 事件或把超时判为成功。产品 `src/time-review/service.js`、权限、数据模型不变。
+
+## R1.3 Final · 独立验收状态与专家评分（2026-10-12）
+
+### 同一输入身份与证据等级
+
+- 历史 **macOS-15 Chrome for Testing 155 原生 SUCCESS**：[Actions 38229698394](https://github.com/shopable-ai/opendesk-browser/actions/runs/38229698394)，源码候选 `2afc31a0e83d60f33fb94f39f7562cdc4c512de1`。该候选 Time Review `1.3.1` 独立工具包 SHA-256：`d6e5bffd17db96bea08d26d5d437061d4d92790ac921bc7b35bb04e00ee59be5`；WXT production packageHash `bbb9b5e5a576b47581ee6b93eb6c077b5e06f583f4a692db2944ff2fa0083f19`，development packageHash `809fb337624fd369e0d132e874be6c23013236b26868ae315d722d6eaffff95d`；生产 `sw.js` SHA-256 `7870796087b47fea7e4771b76ddefa443fb6c054543b52ab8b631898cc9f2fe3`，实际报告大小约 327.13 kB（未提高预算）。
+- 上述 **54/54 组件 PASS、双包 build/verify PASS、真实 CFT 官方安装/SIDE_PANEL/权限隔离/Canvas V3/真实网站计时/暂停与恢复/SW 实际重启/分类与 JSON/CSV 非空导出及文件名防覆盖/整浏览器暂停态重启/真实 200% Chrome Zoom/受信任启停及卸载清理 PASS**。200% 属于 macOS Command+Plus 实际浏览器缩放，绝不是 `deviceScaleFactor=2` 夹具。
+- 新增双网站/自然空闲候选 `3db3d69bd74d750d82c4b40f963e9a3ffef5d24c` 在 [Actions 38230832833](https://github.com/shopable-ai/opendesk-browser/actions/runs/38230832833) **整体 FAIL**。其中不同 hostname 的 `127.0.0.1` 与 `localhost` 实际切换、双方分别累计且旧站冻结均有真实 Chrome PASS 日志；自然空闲恢复后的最终增长断言 FAIL，不得提升为 PASS。
+- 本轮提交 `3646789508843d45bad7fe0321adc857df6b68c5` 把空闲恢复后的立即读改为限时轮询真实持久化正增长。对应 [Actions 38234734682](https://github.com/shopable-ai/opendesk-browser/actions/runs/38234734682) 当前为 **QUEUED / NOT_TESTED**；未产生新候选原生通过证据前，不能宣称 R1.3 Final 全部关闭。所有旧 SHA 的 PASS 都是历史候选证据，不能自动绑定当前生产包。
+- 用户本人 Mac 工作目录 `/Users/shopme/Documents/workspace/opendesk-browser` 的 `git status --short --branch`、当前个人 Chrome Profile、200% 人工可读性和用户数据仍 **NOT_TESTED**；本轮只用授权 GitHub API 安全写入远端 `main`，没有触及用户本地文件、创建其他分支/Worktree/PR 或伪造本机测试。
+
+### 独立评分（临时专家评估；不是认证通过）
+
+| 维度 | 当前暂评分 | 扣分与仍需证据 |
+| --- | ---: | --- |
+| 功能完整性 | 92/100 | 核心计时、导出、分类、授权和卸载已原生验证；活动状态下异常浏览器关闭、更新过程及部分完整生命周期仍无同一最终包原生证据 |
+| 数据准确性 | 92/100 | 跨站与跨午夜组件合同通过；本轮自然 idle→active 恢复后持久增长仍待最新原生 CI，跨夏令时的真实 OS 验收未完成 |
+| 隐私与权限安全 | 94/100 | 分钟默认关闭、可信宿主点击、撤回清理与无敏感 URL 记录已有证据；Chrome idle 实际撤权与运行中包更新的独立正向路径仍待补验 |
+| UI/UX | 94/100 | 320/360/400/600px 真实源码夹具与真正 Mac Chrome 200%/Canvas/iframe 滚动通过；用户个人 Mac 字体、长内容及 200% 手工体验未最终签收 |
+| 性能与资源控制 | 91/100 | SW 预算未放宽、工具包有 SHA；长周期统计增长、存储上限及多日资源曲线缺少原生压力证据 |
+| 稳定性与恢复 | 92/100 | 实际 SW 重启、暂停后的 Chrome 整进程重启与防重复累加 PASS；活动中异常崩溃与长期休眠后用户恢复仍需测 |
+| 可维护性 | 94/100 | 复用同一 tool ID、storage key、服务和权限边界，移除了实验性全局下载监听器；共享宿主 UI 仍需跨模块集成回归 |
+| 测试覆盖与证据可信度 | 92/100 | 有真正 macOS CFT、原始 SHA、磁盘内容和用户输入证据；最新 idle 用例尚无新候选 PASS，本机 Mac 不能由 CI 冒充 |
+
+以上各项独立于目标 `≥95`，**未达目标不能标记整套 Final PASS**。每项后续需按真实缺口修复、运行、记录，而非调整分母或凭历史截图提分。
+
+### 用户 Mac 本地补验入口
+
+```bash
+cd /Users/shopme/Documents/workspace/opendesk-browser
+git status --short --branch
+git rev-parse HEAD
+git fetch origin main
+# 有未提交或并行修改时禁止直接覆盖；先核对 remote/local 差异
+node --test tests/environment/time-review-r12.test.mjs tests/environment/time-review-host-controls-r51.test.mjs
+node --test tests/environment/time-review-r13.test.mjs tests/environment/time-review-r13-service.test.mjs tests/environment/time-review-r13-consent.test.mjs
+npm run build:sidebar-tool -- examples/sidebar-tools/time-review
+npm run check && npm run build && npm run build:dev && npm run verify
+```
+
+使用**新建且完全独占**的 Mac Chrome for Testing Profile 安装该候选 `dist/production`；从官方发现入口审阅安装 Time Review 1.3.1，通过受信任设置授权并开始，依次真实测试不同网站切换、持续空闲 60 秒与恢复、暂停/恢复、分类、分钟授权与撤回、两种重复下载及磁盘实际读取、Service Worker 终止、整浏览器关闭重开、用户实际 200% 浏览器缩放、停用/启用与最后的确认卸载。务必保存候选 SHA、pack packageHash、真实时间/浏览器 Profile、截图、下载 SHA、PASS/FAIL/NOT_TESTED，不对个人 Chrome Profile 执行自动清理。

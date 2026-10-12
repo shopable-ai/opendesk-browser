@@ -1,6 +1,23 @@
 # React 普通 JavaScript · 通用跨站悬浮组件（R24.3）
 
+## 自动编译状态（2026-10-12）
+
+**状态：已验证的普通 JavaScript React 示例，不是 JSX 示例。** 默认入口 `src/main.js` 使用官方 React `createElement` 和 Hooks，**不需要 JSX 语法转换**；系统仍自动准备、链接固定 React Runtime、生成受管挂载/Stop。真实独立 npm 安装包四目录编译已在 [macOS/Ubuntu CI PASS](https://github.com/shopable-ai/opendesk-browser/actions/runs/38231722128)，但最新完整 Chrome 生命周期仍有未测矩阵。本项目 `opendesk browser dev .` 需要 Native；浏览器无 Native 的 JSX 单组件编辑是另一个入口，不读取本地目录。**保存不自动 Run。** [状态表](../../../docs/api/page-ui-frameworks.zh-CN.md)。
+
+
 本目录演示**在不同普通网页中运行的 React 悬浮 UI**，不是阅读目录、网页采集或 Side Panel 小工具。保留项目 ID、标准 `react` 导入和 `entryMode: "component"`。开发者只编辑 `src/main.js`，不必自行调用 `createPageUI`、创建 React root、运行 Vite 或在本项目安装 React。
+
+## 第三方依赖与 JSON：本项目不以油猴声明为主入口
+
+本目录 `package.json` 是**项目源码配置**，不是可直接安装的 Side Panel 工具 JSON。现有 `opendesk.framework: "react"` 声明由 OpenDesk 提供固定 React/ReactDOM；没有自动包含 ECharts，也不是任意 CDN 依赖表。
+
+新增用户项目依赖应继续使用标准 `dependencies` + 项目锁 + `import`，而不是修改 OpenDesk 扩展源码或往 React 组件顶部添加 `@require`。确需指定 CDN 的 **ESM** 可以写静态 HTTPS URL import，由现有本地项目准备器在显式锁定后离线链接；**UMD 的 `.min.js` 不等于 ESM 模块**。这些作者依赖在准备后进入冻结代码/包，安装者不必拥有 Node、npm 或仓库。
+
+不要用 `document.createElement('script')` 把 CDN 库放进目标网页 MAIN 世界，再假设本项目的 USER_SCRIPT React 组件能访问那个全局变量；也不要为此切换世界、降低 CSP 或破坏受管 Stop。Side Panel 内部图表则应在该工具自己的 sandbox 中运行，不向目标网页注入图表库。
+
+**当前边界**：本项目没有完成 ECharts 的依赖准备、实际体积、JSON 交付及真实 Chrome 图表验证。小依赖可复用现有固定打包流程；大型库是否需要版本化资源包，必须先测量并补齐构建器、包校验、安装存储与执行器，不能只在 v1 JSON 中添加未实现字段。浏览器只编辑源码的新第三方依赖准备也不能被当前单组件 JSX 编译能力替代。
+
+完整方案、源码事实、安装/加载顺序和清理规则见 [项目依赖、JSON 分发与执行世界](../../../docs/architecture/browser-framework/project-dependencies-json-and-execution.zh-CN.md)。其中明确区分已支持与待实现，不把设计文档当运行成功证明。
 
 ## 挂载与权限
 
