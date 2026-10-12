@@ -48,3 +48,12 @@
 ## 运行与协作限制
 
 GitHub main 在本轮由其他 Agent 并行提交更新。修改只针对 Cloud 所属文件与本工作流文档，每次远端推送均基于即时读取的当前 main 与预期 ref，不进行 force/reset，不修改已保留旧证据。没有本地 Mac 文件系统、Chrome Profile 或真实 Provider 资源使用权，因此原生项维持 NATIVE_PENDING。
+
+
+## R5.1.1 · 授权代际 UI 修复与 CI 链接
+
+- `05f3fc8f5a9220b237adb57e6052c3615f753d8e`：只在已认证 Side Panel cloudStatus 携带已批准 Task 安装身份与代际；只读 Observer 仍脱敏。
+- `539bb35c05bc44aabdd501dadb18bc4fcef56fec`：当前授权可见状态核对安装 ID / generation，附逐任务固定参数 Schema 名称、类型、必填描述。
+- `c3356edd26092aac2470594076e42dd4ef63befc`：UI 测试覆盖同版本但代际更换后的过期批准与参数展示。
+- [Cloud 组件 + 双构建 CI #38291579062](https://github.com/shopable-ai/opendesk-browser/actions/runs/38291579062)，绑定源码 SHA `c3356edd26092aac2470594076e42dd4ef63befc`。观察时仍为 queued，不能记录通过数量、packageHash 或误称 Native Chrome PASS。
+- Node HTTP/WebSocket 任务测试中的 runRef 是人工协议模拟，不能替代真实 Worker 的 RunId、ResultId、retirement released、Provider receipt。
