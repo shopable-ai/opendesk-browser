@@ -206,3 +206,12 @@ npm run check && npm run build && npm run build:dev && npm run verify
 - 已核实 [Mac Actions 38234734682](https://github.com/shopable-ai/opendesk-browser/actions/runs/38234734682)，候选 `3646789508843d45bad7fe0321adc857df6b68c5` **SUCCESS**：macOS Chrome 155 真正自然空闲后 `chrome.idle` 转换、空闲时长冻结、真实 OS 输入恢复后的时长增长 PASS；其他 P0 JSON/CSV、单条 Canvas、跨两个 hostname、真正 Chrome 200% 缩放、分类、SW/浏览器重启、受信任启停和卸载清理均在同一候选下 PASS。该结果取代此前工作流中对此 SHA 的 QUEUED 记载，但不自动转移给当前其他模块变动后的 main。
 - 本轮进一步**增量修改现有原生 macOS CFT 验收源码**：在真实已安装工具恢复有效活动后，直接点击受信任详情的「撤销空闲检测」，观察 Chrome 权限确实移除、本机 Time Review 变为 paused、已授权包 SHA 和 epoch 清空、检查点退休、30 秒 alarms 心跳移除；再真正点击「开始／恢复记录」且必须看到 `E_TIME_PERMISSION`，随后从工具正常刷新检查日总时长没有继续增长。
 - 禁止本测试直接调用 `chrome.permissions.remove` 代替用户按钮、模拟原生点击、篡改存储、修改 `chrome.idle` 值、注入权限事件，或以单元测试替代本候选的 Mac CFT 证据。现有首次暂停、恢复、JSON/CSV 和后续分类/卸载仍沿用原操作入口。新测试尚未执行时标记 `idlePermissionRevocation=NOT_TESTED`。
+
+## R1.3.1 · 2026-10-12 最新原生验收复核（已完成）
+
+- **当前确认的最新 Time Review 专项原生成功候选**：`e1e82ea7501c41713e6215883adac1f7836ab367`，[macOS Actions 38254766089](https://github.com/shopable-ai/opendesk-browser/actions/runs/38254766089) 为 **SUCCESS**。该候选与 1.3.1 实际包匹配：54/54 组件 PASS，Standalone 工具构建、WXT Production/Development、verify、Chromium 实际源码四宽度和键盘/触摸/DPR 测试全部通过。
+- 生产 packageHash 为 `292a348d80e0b9e446296a12a31941d7718b5088162eb63c755442320e14df3b`（89 assets）；开发 packageHash 为 `461fa40735cfd1efba22e44410533148dfef486ffcb0a3c895f1c40740bbb078`（123 assets）。这些是 **该 SHA 候选** 的包身份；不要误贴为较新全库 HEAD 的包哈希。
+- **同一 macOS Chrome for Testing 155 候选的真实 PASS**：官方安装/Side Panel/分钟授权与清除；JSON `time-review.json`、CSV `time-review.csv` 真正落盘与解析；两种含真实网站计时的二次导出 `time-review (1).json`、`time-review (1).csv` 不覆盖旧文件；`127.0.0.1` 与 `localhost` 双网站分开累计并安全结算；自然 Chrome idle 时有效时间冻结、真实 OS 输入恢复后继续增长；用户暂停/恢复；**用户受信任点击撤销 idle 权限后** Chrome 权限确已移除、授权 SHA 撤销、检查点/心跳退休、未经授权启动被拒绝、合法历史天数据保留；分类修改为编码 2 且原时长不变；真实 Service Worker Target 终止/重建；完整 Chrome 进程同 Profile 暂停态重启（会话标识变化）；真正浏览器 200% Zoom（CSS 349→174px、DPR 1→2）且 Canvas 单行无双滚动；受信任停用/重启授权 epoch/重新启用不自动采集/确认卸载完整清理且不复活；全部通过。
+- **历史 FAIL 已关闭对应障碍**：实验性 CDP `Browser.setDownloadBehavior` 影响文件名、原生测试旧版号/构建目录、macOS `<select>` 真实按键、worker root CDP 方法、浏览器目录标签页误当 Side Panel、卸载存储异步轮询与 idle 恢复时序，均已由之后的同阶段 SUCCESS 候选验证；原始 FAIL 证据不删除。
+- **仍为 NOT_TESTED 或需独立证据**：运行中的浏览器异常崩溃与中断恢复；用户包升级全过程的真实产品级验收；长期多天持续活动及存储接近上限的资源性能；跨 DST 的真实操作系统日界线；用户个人 Mac 的 `git status`、Chrome Profile 与人工视觉/阅读签收。即使历史专项候选 SUCCESS，后续其他模块提交导致的全库 `main` 包变化也不自动视为同 SHA 通过。
+- **本轮重新评价时沿用既有独立 95 分门槛**。实测新增权限撤销、自然空闲恢复和双站点后，隐私/数据准确性的旧文档“未测试”描述已过时，但不能凭一次 macOS Runner 就将全部 8 个维度统称 95+。推荐在异常关机、更新与长期资源压力关闭后，再对功能、数据、安全、UI、性能、稳定性、可维护性、证据分别正式评估。
