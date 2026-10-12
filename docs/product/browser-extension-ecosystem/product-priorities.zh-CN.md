@@ -70,7 +70,9 @@
 
 ## 四、首批三个真实 MVP／生态切片
 
-### MVP 1 — Page QA Inspector（第一款独立产品验证）
+### 历史 MVP 1（DEPRECATED / 已停止）— Page QA Inspector
+
+> 2026-10-12 产品结论：停止以 Page QA 作为首款商业插件或当前独立验收任务；已有源码只保留内部技术样例。尚无独立用户留存、付费或相对竞品差异化证据。
 **故事**：“作为测试工程师，我访问测试站，点击扩展后，得到当前页面 DOM/可访问性问题列表，点击问题定位页面元素；不浏览其他标签、更不读取 Cookie。”  
 - 最小范围：当前标签的 Locator 提示、标题/aria 标记检查、只读 JSON 报告和开关；其余能力不预置。复用 `src/framework/locator.js`、`src/platform/chrome`、`src/ui/design-tokens.css`，但 Browser SDK 未开放部分要通过自有可信 Host 重新验证。
 - 合法权限：`activeTab`、`scripting` 和本地设置所需 `storage`；无 `<all_urls>` / `cookies` / `nativeMessaging`。
