@@ -11,7 +11,9 @@
     "d0ad8ed119a22343be38dfa62a650199ce6872ba",
     "05f3fc8f5a9220b237adb57e6052c3615f753d8e",
     "539bb35c05bc44aabdd501dadb18bc4fcef56fec",
-    "c3356edd26092aac2470594076e42dd4ef63befc"
+    "c3356edd26092aac2470594076e42dd4ef63befc",
+    "ae5e765fe743ee7396f752702880ed0a26de5d32",
+    "c814449e08d45baef40bee5439017551b42408a5"
   ],
   "taskExamples": [
     {
@@ -36,8 +38,8 @@
     "longRunningRunner": "NOT_IMPLEMENTED"
   },
   "ci": {
-    "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38291579062",
-    "headSha": "c3356edd26092aac2470594076e42dd4ef63befc",
+    "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38291915410",
+    "headSha": "c814449e08d45baef40bee5439017551b42408a5",
     "status": "queued",
     "passed": null,
     "failed": null,
@@ -58,5 +60,9 @@
     "noWorktree": true,
     "noMacResources": true,
     "noSharedProvider": true
+  },
+  "exposure": {
+    "taskSchemaReview": "names, required fields and full manifest paramsSchema disclosure",
+    "authorizationGenerationReview": "strict display matching on installationId and generation"
   }
 }
