@@ -47,7 +47,7 @@ export function appDetail(app,{current,versions=[],media=null,fixed=true}={}){
     '<div class="tags">'+app.surfaces.map(tag).join('')+tag('v'+app.version)+'</div></div><div class="primary-action">'+handoffAction(subject,'在 OpenDesk 中审阅安装')+'</div></section>'+
     (archived?'<aside class="notice">历史固定版本。此页面保留已记录的发布信息；当前扩展是否包含该版本，需在可信审阅页核对。'+(current?' <a href="'+appPath(current,false)+'">查看当前推荐版本 v'+e(current.version)+'</a>':'')+'</aside>':'')+
     '<div class="detail-columns"><section class="stack">'+
-    (media?'<figure class="card screenshot"><img src="'+e(media)+'" width="960" height="720" alt="'+e(app.title)+'真实扩展界面，使用受控示例内容" loading="lazy"><figcaption>实际扩展界面 · 受控示例内容</figcaption></figure>':'')+
+    (media?'<figure class="card screenshot"><a class="screenshot-image" href="'+e(media.src)+'" aria-label="查看'+e(app.title)+'完整原图"><img src="'+e(media.src)+'" width="'+media.width+'" height="'+media.height+'" alt="'+e(media.alt)+'" decoding="async"></a><figcaption>'+e(media.caption)+' <a href="'+e(media.src)+'">查看原图</a></figcaption></figure>':'')+
     '<section class="card"><h2>用它可以做什么</h2>'+(archived?'<p>'+e(app.description)+'</p>':'<ul>'+app.features.map(f=>'<li>'+e(f)+'</li>').join('')+'</ul>')+
     '<h3>在哪里使用</h3><p>'+e(app.sites)+'</p></section><section class="card"><h2>安装与授权</h2><ol><li>在扩展可信页核对版本、来源和所需能力。</li><li>确认安装，然后主动打开应用。</li><li>需要网页内容的应用，在使用入口单独授权相应网站。</li></ol><p class="minor">已授权的正常使用沿用原许可。可离线使用的工具不依赖市场网站。</p></section></section>'+
     '<aside class="stack"><section class="card"><h2>应用信息</h2><dl><dt>发布者</dt><dd>OpenDesk</dd><dt>运行位置</dt><dd>'+e(app.surfaces.join('、'))+'</dd><dt>版本</dt><dd>v'+e(app.version)+'</dd><dt>本次分发</dt><dd>官方工具随扩展发行</dd></dl>'+

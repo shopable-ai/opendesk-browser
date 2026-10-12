@@ -1,0 +1,148 @@
+TAP version 13
+# Subtest: R5 production trust is disabled until all reviewed inputs exist; development cannot leak into it
+ok 1 - R5 production trust is disabled until all reviewed inputs exist; development cannot leak into it
+  ---
+  duration_ms: 3.00929
+  type: 'test'
+  ...
+# Subtest: R5 finite messages reject code, URLs, approval flags, protocol drift and unbounded fields
+ok 2 - R5 finite messages reject code, URLs, approval flags, protocol drift and unbounded fields
+  ---
+  duration_ms: 1.005136
+  type: 'test'
+  ...
+# Subtest: R5 validates browser sender, live top document and exact port before any handoff mutation
+ok 3 - R5 validates browser sender, live top document and exact port before any handoff mutation
+  ---
+  duration_ms: 2.918774
+  type: 'test'
+  ...
+# Subtest: R5 probe exposes no installed information; same intent resumes exact review after worker replacement
+ok 4 - R5 probe exposes no installed information; same intent resumes exact review after worker replacement
+  ---
+  duration_ms: 2.787735
+  type: 'test'
+  ...
+# Subtest: R5 prepared/opened persistence and committed-tab acknowledgement faults reconcile without duplicate pages
+ok 5 - R5 prepared/opened persistence and committed-tab acknowledgement faults reconcile without duplicate pages
+  ---
+  duration_ms: 2.509305
+  type: 'test'
+  ...
+# Subtest: R5 queue, global/origin rate and capacity are bounded across tabs and worker restarts
+ok 6 - R5 queue, global/origin rate and capacity are bounded across tabs and worker restarts
+  ---
+  duration_ms: 27.547658
+  type: 'test'
+  ...
+# Subtest: R5 expiry protects only the original unresolved operation/batch, without deleting installer journals
+ok 7 - R5 expiry protects only the original unresolved operation/batch, without deleting installer journals
+  ---
+  duration_ms: 1.720175
+  type: 'test'
+  ...
+# Subtest: R5 consumed handoff cannot replay when terminal installer or batch history is gone
+ok 8 - R5 consumed handoff cannot replay when terminal installer or batch history is gone
+  ---
+  duration_ms: 1.541876
+  type: 'test'
+  ...
+# Subtest: R5 shared consumption and external requests do not overwrite each other; expired approval is refused
+ok 9 - R5 shared consumption and external requests do not overwrite each other; expired approval is refused
+  ---
+  duration_ms: 1.707466
+  type: 'test'
+  ...
+# Subtest: R5 existing installer checks baseline and hash before consuming a handoff; consumption failure cannot install
+ok 10 - R5 existing installer checks baseline and hash before consuming a handoff; consumption failure cannot install
+  ---
+  duration_ms: 102.576016
+  type: 'test'
+  ...
+# Subtest: R5 consumed-without-journal survives TTL, and explicit locked recovery ends only the handoff
+ok 11 - R5 consumed-without-journal survives TTL, and explicit locked recovery ends only the handoff
+  ---
+  duration_ms: 2.942609
+  type: 'test'
+  ...
+# Subtest: R5 a lost consumption acknowledgement stops before installer writes, and two consumers never both succeed
+ok 12 - R5 a lost consumption acknowledgement stops before installer writes, and two consumers never both succeed
+  ---
+  duration_ms: 2.067469
+  type: 'test'
+  ...
+# Subtest: R5 terminal settlement survives journal trimming and missing recovery respects existing locks
+ok 13 - R5 terminal settlement survives journal trimming and missing recovery respects existing locks
+  ---
+  duration_ms: 1.824583
+  type: 'test'
+  ...
+# Subtest: R5 immutable archive conflicts reject same-version bytes and same-revision replacement
+ok 14 - R5 immutable archive conflicts reject same-version bytes and same-revision replacement
+  ---
+  duration_ms: 5.649002
+  type: 'test'
+  ...
+# Subtest: R5 independent website build is reproducible, self-contained and replaces only generated output
+ok 15 - R5 independent website build is reproducible, self-contained and replaces only generated output
+  ---
+  duration_ms: 262.5287
+  type: 'test'
+  ...
+# Subtest: reviewed actual screenshots bind exact release bytes, dimensions and honest display text
+ok 16 - reviewed actual screenshots bind exact release bytes, dimensions and honest display text
+  ---
+  duration_ms: 7.789732
+  type: 'test'
+  ...
+# Subtest: unreviewed image bytes, release mismatches and incomplete provenance fail closed
+ok 17 - unreviewed image bytes, release mismatches and incomplete provenance fail closed
+  ---
+  duration_ms: 6.045089
+  type: 'test'
+  ...
+# Subtest: actual PNG headers provide bounded intrinsic dimensions rather than a guessed aspect ratio
+ok 18 - actual PNG headers provide bounded intrinsic dimensions rather than a guessed aspect ratio
+  ---
+  duration_ms: 4.417324
+  type: 'test'
+  ...
+# Subtest: R21/R4.9 tool list has one Open entry while detail and header actions use accessible icon primitives
+ok 19 - R21/R4.9 tool list has one Open entry while detail and header actions use accessible icon primitives
+  ---
+  duration_ms: 6.714889
+  type: 'test'
+  ...
+# Subtest: R21 shared palette normal-text colors retain AA contrast against white
+ok 20 - R21 shared palette normal-text colors retain AA contrast against white
+  ---
+  duration_ms: 1.91547
+  type: 'test'
+  ...
+# Subtest: R21 Chrome fixture adds full-width states without changing its native evidence label
+ok 21 - R21 Chrome fixture adds full-width states without changing its native evidence label
+  ---
+  duration_ms: 1.369256
+  type: 'test'
+  ...
+# Subtest: R21 product specification reflects six official tabs and archived R5
+ok 22 - R21 product specification reflects six official tabs and archived R5
+  ---
+  duration_ms: 0.796101
+  type: 'test'
+  ...
+# Subtest: R21 secondary text selectors use the AA-contrast token, not faint local overrides
+ok 23 - R21 secondary text selectors use the AA-contrast token, not faint local overrides
+  ---
+  duration_ms: 0.95461
+  type: 'test'
+  ...
+1..23
+# tests 23
+# suites 0
+# pass 23
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 532.420202

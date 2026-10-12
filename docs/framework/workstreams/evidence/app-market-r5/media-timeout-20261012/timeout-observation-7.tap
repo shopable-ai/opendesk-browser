@@ -1,0 +1,52 @@
+TAP version 13
+# Subtest: held PROBE observation can read a request only in the exact two-parameter sender handler
+ok 1 - held PROBE observation can read a request only in the exact two-parameter sender handler
+  ---
+  duration_ms: 24.485915
+  type: 'test'
+  ...
+# Subtest: market observation binds current non-nested source calls and declines changed call shapes
+ok 2 - market observation binds current non-nested source calls and declines changed call shapes
+  ---
+  duration_ms: 35.571817
+  type: 'test'
+  ...
+# Subtest: browser call position must be unique inside the exact invocation, never a neighbouring statement
+ok 3 - browser call position must be unique inside the exact invocation, never a neighbouring statement
+  ---
+  duration_ms: 1.663841
+  type: 'test'
+  ...
+# Subtest: R5 client never lets a late probe overwrite a successful handoff or claim installed
+ok 4 - R5 client never lets a late probe overwrite a successful handoff or claim installed
+  ---
+  duration_ms: 5.068027
+  type: 'test'
+  ...
+# Subtest: R5 client timeout and missing receiver say unable to connect, without guessing installation state
+ok 5 - R5 client timeout and missing receiver say unable to connect, without guessing installation state
+  ---
+  duration_ms: 3.130113
+  type: 'test'
+  ...
+# Subtest: R5 client rejects incompatible and malformed replies instead of showing false success
+ok 6 - R5 client rejects incompatible and malformed replies instead of showing false success
+  ---
+  duration_ms: 2.852173
+  type: 'test'
+  ...
+# Subtest: R5 channel network/JSON errors and wrong origin are understandable and never send an install request
+ok 7 - R5 channel network/JSON errors and wrong origin are understandable and never send an install request
+  ---
+  duration_ms: 3.010673
+  type: 'test'
+  ...
+1..7
+# tests 7
+# suites 0
+# pass 7
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 160.652311

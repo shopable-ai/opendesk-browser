@@ -27,12 +27,15 @@ export function marketSenderPoints(source){
   assert(entries.some(({node,ancestors})=>node.type==='Literal'&&node.value==='E_SENDER'&&ancestors.filter(isFunction).at(-1)===fn));
   const calls=entries.filter(({node})=>node.type==='CallExpression'&&node.callee.type==='Identifier'&&node.callee.name===fn.id.name);
   assert(calls.length>0&&calls.length<=4,'bounded exact validator calls');
-  return calls.map(({node})=>{
+  return calls.map(({node,ancestors})=>{
     assert.equal(node.arguments.length,3);assert(node.arguments.every(arg=>arg.type==='Identifier'));
+    const owner=ancestors.filter(isFunction).at(-1);
+    const requestExpression=owner?.params.length===2&&owner.params.every(arg=>arg.type==='Identifier')&&
+      owner.params[1].name===node.arguments[1].name?owner.params[0].name:null;
     return {range:[node.start,node.end],text:source.slice(node.start,node.end),
       location:{lineNumber:node.loc.start.line-1,columnNumber:node.loc.start.column},
       endLocation:{lineNumber:node.loc.end.line-1,columnNumber:node.loc.end.column},
-      senderExpression:node.arguments[1].name,channelExpression:node.arguments[2].name};
+      senderExpression:node.arguments[1].name,channelExpression:node.arguments[2].name,requestExpression};
   });
 }
 function projection(point){
@@ -40,15 +43,17 @@ function projection(point){
   const shape=(base,fields)=>'{'+fields.map(key=>JSON.stringify(key)+':{present:Object.hasOwn('+base+','+JSON.stringify(key)+'),type:typeof '+base+'?.'+key+',value:'+base+'?.'+key+'??null}').join(',')+'}';
   return '({senderKeys:Object.keys('+s+'),sender:'+shape(s,['id','nativeApplication','frameId','documentId','documentLifecycle','origin','url'])+
     ',tabPresent:Object.hasOwn('+s+',"tab"),tabType:typeof '+s+'.tab,tab:'+shape('('+s+'.tab||{})',['id','incognito','url'])+
-    ',channel:'+shape(c,['enabled','mode','origin','extensionId','protocol'])+'})';
+    ',channel:'+shape(c,['enabled','mode','origin','extensionId','protocol'])+
+    ',request:'+(point.requestExpression?'{action:'+point.requestExpression+'.action,protocol:'+point.requestExpression+'.protocol}':'null')+'})';
 }
-export async function observeMarketSender(d){
+export async function observeMarketSender(d,{holdProbe=false}={}){
   const origin='chrome-extension://'+d.getExtensionId(),url=origin+'/marketplace/market-host.js';
   const target=await d.until(async()=>(await d.sendBrowser('Target.getTargets')).targetInfos.find(t=>t.type==='service_worker'&&t.url===origin+'/sw.js'),'market sender observer worker');
   const {sessionId}=await d.sendBrowser('Target.attachToTarget',{targetId:target.targetId,flatten:true});
   const client={send:(method,params={},timeout=20000)=>d.sendBrowser(method,params,timeout,sessionId)};
-  const record=d.evidence.r5.senderObservation={status:'IN_PROGRESS',targetId:target.targetId,sessionId,url,observations:[],errors:[]};
-  const scripts=[],contexts=[],pending=new Set(),points=new Map();let disposed=false;
+  const record=d.evidence.r5[holdProbe?'timeoutObservation':'senderObservation']={status:'IN_PROGRESS',targetId:target.targetId,sessionId,url,observations:[],errors:[]};
+  if(holdProbe)record.boundary='real website timer while its real PROBE is held at the unchanged validator call; no fake timer or API reply';
+  const scripts=[],contexts=[],pending=new Set(),points=new Map();let disposed=false,held=false;
   const off=d.onBrowserEvent(event=>{
     if(event.sessionId!==sessionId)return;
     if(event.method==='Debugger.scriptParsed')scripts.push(event.params);
@@ -60,17 +65,24 @@ export async function observeMarketSender(d){
         const frame=event.params.callFrames[0];
         assert.equal(frame.location.scriptId,record.script.scriptId);
         assert.equal(frame.location.lineNumber,point.location.lineNumber);assert.equal(frame.location.columnNumber,point.location.columnNumber);
-        record.observations.push({at:new Date().toISOString(),location:frame.location,value:await readFrame(client,frame,projection(point))});
+        const observation={at:new Date().toISOString(),location:frame.location,value:await readFrame(client,frame,projection(point))};
+        record.observations.push(observation);
+        if(holdProbe&&point.requestExpression&&record.heldAt===undefined){
+          assert.equal(observation.value.request.action,'PROBE');
+          assert.equal(observation.value.request.protocol,d.evidence.r5.channel.protocol);
+          record.heldAt=Date.now();record.heldObservation=record.observations.length-1;held=true;
+        }
         record.status='OBSERVED';
       }catch(error){record.errors.push({stage:'read',message:error.message});record.status='NOT_OBSERVED';}
-      finally{await client.send('Debugger.resume').catch(error=>record.errors.push({stage:'resume',message:error.message}));}
+      finally{if(!held)await client.send('Debugger.resume').catch(error=>record.errors.push({stage:'resume',message:error.message}));}
     })();pending.add(job);void job.finally(()=>pending.delete(job));
   });
   async function dispose(){
     if(disposed)return;disposed=true;await Promise.allSettled([...pending]);
-    for(const breakpointId of points.keys())await client.send('Debugger.removeBreakpoint',{breakpointId}).catch(()=>{});
-    await client.send('Debugger.disable').catch(()=>{});off();
-    await d.sendBrowser('Target.detachFromTarget',{sessionId}).catch(()=>{});
+    for(const breakpointId of points.keys())await client.send('Debugger.removeBreakpoint',{breakpointId}).catch(error=>record.errors.push({stage:'remove-breakpoint',message:error.message}));
+    if(held){await client.send('Debugger.resume').then(()=>{held=false;record.resumedAt=Date.now();}).catch(error=>record.errors.push({stage:'resume-held-probe',message:error.message}));}
+    await client.send('Debugger.disable').catch(error=>record.errors.push({stage:'disable-debugger',message:error.message}));off();
+    await d.sendBrowser('Target.detachFromTarget',{sessionId}).catch(error=>record.errors.push({stage:'detach-observer',message:error.message}));
   }
   d.t.after(dispose);
   try{
@@ -79,7 +91,9 @@ export async function observeMarketSender(d){
     const actual=(await client.send('Debugger.getScriptSource',{scriptId:script.scriptId})).scriptSource;
     assert.equal(hash(actual),hash(await readFile(join(d.extension,'marketplace/market-host.js'),'utf8')),'loaded market host matches exact package');
     Object.assign(record,{sourceHash:hash(actual),script,executionContext:contexts.find(c=>c.id===script.executionContextId),points:[]});
-    for(const point of marketSenderPoints(actual)){
+    const actualPoints=marketSenderPoints(actual);
+    if(holdProbe)assert.equal(actualPoints.filter(point=>point.requestExpression).length,1,'one exact request-bearing envelope call for the real probe delay');
+    for(const point of actualPoints){
       const locations=(await client.send('Debugger.getPossibleBreakpoints',{start:{scriptId:script.scriptId,...point.location},end:{scriptId:script.scriptId,...point.endLocation},restrictToFunction:true})).locations;
       const location=exactBreakpointLocation(point,locations,script.scriptId);
       const installed=await client.send('Debugger.setBreakpoint',{location});

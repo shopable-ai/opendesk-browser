@@ -7,6 +7,7 @@ import {OFFICIAL_COLLECTIONS,officialMarketApps} from '../src/marketplace/catalo
 import {createOfficialToolResources,officialToolInputs} from './build-official-tools.mjs';
 import {resolveMarketChannel,marketOrigin} from './market-channel.mjs';
 import {loadMarketSnapshots,mergeMarketReleases} from './market-release-snapshots.mjs';
+import {marketScreenshots} from '../src/market-site/media.mjs';
 import {layout,home,appDetail,appPath,collectionPath,collectionList,collectionDetail,
   installPage,installPath,helpPage,escapeHTML} from '../src/market-site/templates.mjs';
 const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
@@ -44,6 +45,11 @@ export async function buildMarketSite({env=process.env}={}){
     throw Error('Market output may not replace source or extension packages');
   const before=await inputIdentity(),official=await createOfficialToolResources();
   const archived=mergeMarketReleases(await loadMarketSnapshots(),official.catalog,OFFICIAL_COLLECTIONS);
+  const media=await marketScreenshots({index:JSON.parse(await readFile('src/market-site/media-index.json','utf8')),
+    releases:archived.releases,readScreenshot:filename=>readFile('src/market-site/media/'+filename)});
+  const expectedMedia=media.map(row=>'src/market-site/media/'+row.filename).sort();
+  if(JSON.stringify(before.filter(row=>row.path.startsWith('src/market-site/media/')).map(row=>row.path).sort())!==JSON.stringify(expectedMedia))
+    throw Error('Every screenshot must have exactly one reviewed provenance entry');
   const current=officialMarketApps(official.catalog),releases=archived.releases.map(row=>{
     const app=officialMarketApps({apps:[row]})[0];
     return current.some(r=>r.id===row.id&&r.version===row.version)?app:{...app,summary:row.description};
@@ -65,13 +71,11 @@ export async function buildMarketSite({env=process.env}={}){
     await write('channel.json',JSON.stringify(channel,null,2)+'\n');
     await write('catalog.json',JSON.stringify({format:'opendesk.market.public.v1',releases:archived.releases,
       recommended:official.catalog.apps.map(({id,version})=>({id,version})),collections:archived.collections},null,2)+'\n');
-    const mediaFiles=before.filter(row=>row.path.startsWith('src/market-site/media/'));
-    for(const file of mediaFiles){if(!/^[a-z0-9.-]+\.png$/.test(file.path.split('/').at(-1)))throw Error('Only reviewed PNG screenshots are supported');await write(file.path.replace('src/market-site/',''),await readFile(file.path));}
+    for(const file of media)await write('media/'+file.filename,file.bytes);
     await page('/','官方应用','发现 OpenDesk 官方应用，查看用途、运行位置与固定版本，在可信扩展页面审阅安装。',home(current));
     for(const app of releases){
       const live=current.find(row=>row.id===app.id),versions=releases.filter(row=>row.id===app.id).sort((a,b)=>b.version.localeCompare(a.version,undefined,{numeric:true}));
-      const media='/media/'+app.toolId+'-'+app.version+'.png';
-      const options={current:live,versions,media:mediaFiles.some(row=>row.path==='src/market-site'+media)?media:null};
+      const options={current:live,versions,media:media.find(row=>row.toolId===app.toolId&&row.version===app.version)||null};
       await page(appPath(app),app.title+' v'+app.version,app.description,appDetail(app,options));
       if(app.version===live?.version)await page(appPath(app,false),app.title,app.summary,appDetail(app,{...options,fixed:false}));
       const subject={kind:'app',marketId:app.id,version:app.version};
@@ -104,6 +108,7 @@ export async function buildMarketSite({env=process.env}={}){
     const after=await inputIdentity();if(JSON.stringify(before)!==JSON.stringify(after))throw Error('Market inputs changed during build');
     const manifest={schema:'opendesk.market.build.v1',mode,channel,origin,apps:current.length,archivedReleases:releases.length,unresolvedReleaseReferences:[...unresolved.values()],
       externalInstall:channel.enabled?'CONFIGURED':'NOT_CONFIGURED',routes,sourceInputs:before,
+      screenshots:media.map(({bytes,...row})=>row),
       sourceFingerprint:hash(JSON.stringify(before)),catalogSha256:hash(JSON.stringify(official.catalog)),
       files:outputFiles.sort((a,b)=>a.path.localeCompare(b.path))};
     manifest.buildId=hash(JSON.stringify(manifest));

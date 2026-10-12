@@ -633,7 +633,9 @@
 .sidebar-tool-icon-action:hover:not(:disabled){background:#f1f5fb}
 #sidebar-tool-remove:hover:not(:disabled),.sidebar-tool-list-remove:hover:not(:disabled){background:#fff1f2}
 .sidebar-tool-icon-action:focus-visible::after,.sidebar-tool-list-remove:focus-visible::after,.sidebar-tool-site:focus-visible::after,.sidebar-tool-settings:focus-visible::after,.sidebar-tool-list-tab:focus-visible::after{content:attr(aria-label);position:absolute;bottom:calc(100% + 5px);right:0;z-index:12;max-width:min(160px,calc(100vw - 24px));padding:4px 7px;background:#253951;color:#fff;font-size:11px;font-weight:500;line-height:1.45;white-space:normal;overflow-wrap:anywhere;text-align:left;border-radius:5px;box-shadow:0 2px 8px #15284a24;pointer-events:none}
-#sidebar-tool-back:focus-visible::after{left:0;right:auto}
+/* The first toolbar action sits at the scroll container's top edge. Keep its
+ * keyboard label below the button, sized by its text instead of the icon. */
+#sidebar-tool-back:focus-visible::after{left:0;right:auto;top:calc(100% + 5px);bottom:auto;width:max-content}
 
 /* Uninstalled previews cannot inherit storage, site or Task authorities. */
 .sidebar-tool-status[data-state=readonly]{background:#fff8e8;color:#7d5720;border:1px solid #f1dfb1}

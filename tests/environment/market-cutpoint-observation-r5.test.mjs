@@ -2,6 +2,18 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {discoverMarketCutPoints,marketCallLocation} from '../helpers/app-market-r5-cutpoints.mjs';
+import {marketSenderPoints} from '../helpers/app-market-r5-observers.mjs';
+
+test('held PROBE observation can read a request only in the exact two-parameter sender handler',async()=>{
+  const source=await readFile('src/marketplace/external.js','utf8');
+  const points=marketSenderPoints(source),requestPoints=points.filter(point=>point.requestExpression);
+  assert.equal(requestPoints.length,1);assert.equal(requestPoints[0].senderExpression,'sender');
+  assert.equal(requestPoints[0].requestExpression,'message');
+  const changed=source.replace('return {handle(message,sender){','return {handle(message,sender,unknown){');
+  assert.notEqual(changed,source);
+  assert.equal(marketSenderPoints(changed).filter(point=>point.requestExpression).length,0,
+    'an unknown handler shape cannot guess a request binding');
+});
 
 test('market observation binds current non-nested source calls and declines changed call shapes',async()=>{
   const host=await readFile('src/marketplace/external.js','utf8');

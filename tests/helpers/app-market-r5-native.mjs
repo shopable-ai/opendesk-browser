@@ -38,7 +38,8 @@ export async function runMarketR5Acceptance(d){
     websiteFiles:output.length,channel,actualBrowser:'Chrome for Testing; real extension and HTTP',
     externalSender:'browser-provided; never supplied by driver',checks:[],negative:[],responsive:[],
     result:'IN_PROGRESS',formalHttps:'BLOCKED_NO_REVIEWED_PRODUCTION_CHANNEL',macChrome:process.platform==='darwin'?'IN_PROGRESS':'NOT_TESTED',
-    notTested:['formal-https-and-web-store-channel','user-local-mac-profile',
+    notTested:['formal-https-and-web-store-channel','configured-production-manifest-real-chrome','user-local-mac-profile',
+      'native-five-second-connection-timeout',
       'native-tabs-create-acknowledgement-loss','native-storage-set-acknowledgement-loss',
       'native-capacity-and-artifact-corruption-faults','real-30-minute-intent-expiry','natural-idle-worker-shutdown']};
   const check=(name,detail={})=>{evidence.r5.checks.push({name,status:'PASS',...detail});};
@@ -104,7 +105,7 @@ export async function runMarketR5Acceptance(d){
     assert.equal(hit2.value.intent.intentId,row1.intentId);assert.equal(hit2.value.intent.operationId,row1.operationId);
     assert.equal(hit2.value.intent.phase,'prepared');assert.equal(hit2.value.intent.tabId,null);
     assert(Number.isSafeInteger(hit2.value.tab.id));
-    const created=(await targets()).filter(row=>row.url===hit2.value.reviewURL);
+    const created=await until(async()=>{const rows=(await targets()).filter(row=>row.url===hit2.value.reviewURL);return rows.length===1&&rows;},'created review target commits its fixed URL while worker remains held');
     assert.equal(created.length,1);assert(!beforeTargets.some(row=>row.targetId===created[0].targetId),'real newly created review');
     await a2.terminate();const after2=await storedCutState();
     assert.equal(after2.intents.find(row=>row.intentId===row1.intentId).phase,'prepared');
@@ -217,7 +218,7 @@ export async function runMarketR5Acceptance(d){
   await click(other.review,'[data-market-action="cancel-install"]');await close(other.review);await close(other.page);
   check('two-real-valid-pending-candidates-cannot-replace-each-other');
   await first.review.send('Page.navigate',{url:first.reviewURL+'#/apps/opendesk/time-review/versions/1.3.0'});
-  await until(()=>evaluate(first.review,'document.querySelector("h1")?.textContent==='+JSON.stringify(immutableTitle)),'hash cannot replace reviewed candidate');
+  await until(()=>evaluate(first.review,'location.href==='+JSON.stringify(first.reviewURL+'#/apps/opendesk/time-review/versions/1.3.0')+'&&document.querySelector("h1")?.textContent==='+JSON.stringify(immutableTitle)),'actual hash navigation cannot replace reviewed candidate');
   // Restore the fixed URL by actual navigation; no data mutation.
   await navigate(first.review,first.reviewURL);await visible(first.review,'[data-market-action="confirm-install"]');
   await screenshot(first.review,'r5-trusted-review.png');
@@ -257,6 +258,29 @@ export async function runMarketR5Acceptance(d){
   check('http-real-sender-fixed-review-first-install-close-website-then-confirm-and-real-markdown-use',
     {intentId:first.row.intentId,reviewId:first.row.reviewId,operationId:first.row.operationId,version:first.row.subject.version,
       operationState:operation.state,settledAt:completedIntent.settledAt});
+
+  await mark('real-website-connection-timeout-and-explicit-reconnect');
+  const beforeTimeout=await storedCutState(),timeoutObserver=await observeMarketSender(d,{holdProbe:true});
+  let timeoutPage,timeoutState;
+  try{
+    timeoutPage=await openTab(channel.origin+'/how-to-install/');
+    await until(()=>Number.isSafeInteger(timeoutObserver.record.heldAt),'actual unchanged PROBE paused at source-bound validator');
+    const heldSender=timeoutObserver.record.observations[timeoutObserver.record.heldObservation].value.sender;
+    assert.equal(heldSender.url.value,channel.origin+'/how-to-install/');assert.equal(heldSender.origin.value,channel.origin);
+    assert.equal(heldSender.frameId.value,0);assert.equal(heldSender.documentLifecycle.value,'active');
+    timeoutState=await until(()=>evaluate(timeoutPage,'(()=>{const state=document.querySelector("#connection-state"),button=document.querySelector("#connect-button");return state?.textContent.includes("等待响应超时")&&!button.disabled&&({text:state.textContent,buttonDisabled:button.disabled,url:location.href,at:Date.now()});})()'),'real website five-second connection timeout');
+    assert.match(timeoutState.text,/无法连接 OpenDesk/);assert.doesNotMatch(timeoutState.text,/未安装|没有安装/);
+    timeoutObserver.record.timeoutUI=timeoutState;await screenshot(timeoutPage,'r5-real-connection-timeout.png');
+  }finally{await timeoutObserver.dispose();}
+  assert.equal(timeoutObserver.record.status,'OBSERVED');assert.deepEqual(timeoutObserver.record.errors,[]);
+  await click(timeoutPage,'#connect-button');
+  await until(()=>evaluate(timeoutPage,'document.querySelector("#connection-state").textContent.includes("已连接 OpenDesk")'),'explicit real reconnect after delayed PROBE');
+  const afterTimeout=await storedCutState();
+  assert.deepEqual(afterTimeout.registry,beforeTimeout.registry);assert.deepEqual(afterTimeout.operations,beforeTimeout.operations);
+  assert.deepEqual(afterTimeout.intents,beforeTimeout.intents);assert.deepEqual(afterTimeout.provenance,beforeTimeout.provenance);
+  await close(timeoutPage);check('real-website-five-second-timeout-does-not-claim-uninstalled-and-explicit-reconnect',
+    {heldAt:timeoutObserver.record.heldAt,resumedAt:timeoutObserver.record.resumedAt,timeout:timeoutState});
+  evidence.r5.notTested=evidence.r5.notTested.filter(name=>name!=='native-five-second-connection-timeout');
 
   await mark('real-handoff-and-first-journal-interruption-recovery');
   const cutInitial=await installed();

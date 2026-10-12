@@ -501,6 +501,22 @@ test(process.env.OPENDESK_NATIVE_MARKET_R5==='1'?'R5 real HTTP Chrome: finite ex
     const toolPage=await attach(opened.targetId);
     const hostResources=await until(()=>evaluate(toolPage,'(()=>{const value=globalThis.OpenDeskResourceDiagnostics?.snapshot();return value?.owners?.client?.ports===1&&value;})()'),'actual standalone Foundation host connected '+release.toolId);
     (evidence.standaloneHosts??=[]).push({toolId:release.toolId,version:release.version,url:await evaluate(toolPage,'location.href'),resources:hostResources});
+    if(release.toolId==='reading-toc'){
+      await toolPage.send('Emulation.setDeviceMetricsOverride',{width:320,height:900,deviceScaleFactor:1,mobile:false});
+      try{
+        await until(()=>evaluate(toolPage,'innerWidth===320&&document.activeElement.id==="sidebar-tool-back"'),'actual initial back focus at narrow width');
+        for(const type of ['keyDown','keyUp'])await toolPage.send('Input.dispatchKeyEvent',{type,key:'Tab',code:'Tab',windowsVirtualKeyCode:9,modifiers:0});
+        const tabAway=await until(()=>evaluate(toolPage,'document.activeElement.id!=="sidebar-tool-back"&&({id:document.activeElement.id,tag:document.activeElement.tagName,label:document.activeElement.getAttribute("aria-label")})'),'native Tab actually leaves back');
+        for(const type of ['keyDown','keyUp'])await toolPage.send('Input.dispatchKeyEvent',{type,key:'Tab',code:'Tab',windowsVirtualKeyCode:9,modifiers:8});
+        const label=await until(()=>evaluate(toolPage,'(()=>{const el=document.activeElement;if(el.id!=="sidebar-tool-back"||!el.matches(":focus-visible"))return false;const r=el.getBoundingClientRect(),p=getComputedStyle(el,"::after"),container=document.querySelector("#workspace-content"),c=container.getBoundingClientRect(),n=name=>parseFloat(p.getPropertyValue(name))||0;const width=n("width")+(p.boxSizing==="border-box"?0:n("padding-left")+n("padding-right")+n("border-left-width")+n("border-right-width")),height=n("height")+(p.boxSizing==="border-box"?0:n("padding-top")+n("padding-bottom")+n("border-top-width")+n("border-bottom-width"));return {url:location.href,label:el.getAttribute("aria-label"),content:p.content,focusVisible:true,boxSizing:p.boxSizing,button:r.toJSON(),clip:{left:Math.max(0,c.left+container.clientLeft),top:Math.max(0,c.top+container.clientTop),right:Math.min(innerWidth,c.left+container.clientLeft+container.clientWidth),bottom:Math.min(innerHeight,c.top+container.clientTop+container.clientHeight)},left:r.left+el.clientLeft+n("left"),top:r.top+el.clientTop+n("top"),width,height,viewport:{width:innerWidth,height:innerHeight},scrollWidth:document.documentElement.scrollWidth};})()'),'native Tab and Shift+Tab expose complete back label');
+        assert.equal(label.content,JSON.stringify(label.label));assert(label.width>label.button.width);
+        assert(label.left>=label.clip.left&&label.left+label.width<=label.clip.right);
+        assert(label.top>=label.button.bottom&&label.top>=label.clip.top);
+        assert(label.top+label.height<=label.clip.bottom);
+        assert(label.scrollWidth<=label.viewport.width);evidence.toolBackKeyboardLabel={tabAway,...label};
+        await screenshot(toolPage,'r5-tool-back-keyboard-label-320.png');
+      }finally{await toolPage.send('Emulation.clearDeviceMetricsOverride');}
+    }
     const emptyCorner=await evaluate(toolPage,'({x:innerWidth-8,y:innerHeight-8})');
     await toolPage.send('Input.dispatchMouseEvent',{type:'mouseMoved',...emptyCorner});
     await evaluate(toolPage,'new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)))');
@@ -605,9 +621,14 @@ test(process.env.OPENDESK_NATIVE_MARKET_R5==='1'?'R5 real HTTP Chrome: finite ex
   await grantSite('reading-toc');
   await until(()=>evaluate(pageA,'document.querySelectorAll("[data-opendesk-toc-root]").length===1'),'TOC only on approved A');
   assert.equal(await evaluate(pageB,'document.querySelectorAll("[data-opendesk-toc-root]").length'),0);
+  await evaluate(pageA,'new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)))');
+  await screenshot(pageA,'app-use-reading-toc-'+packages.get('reading-toc').version+'-page.png');
   await grantSite('web-markdown-clipper');
   let frame=await openTool('web-markdown-clipper');await click(frame,'#clip-fetch');
-  await until(()=>evaluate(frame,'document.querySelector("#clip-source").value.includes("R45 授权边界")'),'actual article extraction');await back();
+  await until(()=>evaluate(frame,'document.querySelector("#clip-source").value.includes("R45 授权边界")'),'actual article extraction');
+  await until(()=>evaluate(frame,'document.querySelector("#clip-status").dataset.error!=="true"&&!document.querySelector("#clip-fetch").disabled'),'completed actual clip');
+  await evaluate(frame,'new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)))');
+  await screenshot(side,'app-use-web-markdown-clipper-'+packages.get('web-markdown-clipper').version+'-side-panel.png');await back();
   const grantedBefore={toc:await readStore(READING_TOC_SITE_STORE),clip:await readStore(CLIP_SITE_STORE)};
   assert.deepEqual(grantedBefore.toc,{'reading-toc':[servers[0].origin]});
   assert.deepEqual(grantedBefore.clip,{'web-markdown-clipper':[servers[0].origin]});
