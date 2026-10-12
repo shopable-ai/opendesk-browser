@@ -1,3 +1,13 @@
-.od-card{display:flex;align-items:center;gap:12px;min-width:320px}
+.local-page-ui{display:grid;gap:10px;width:min(340px,calc(100vw - 32px));min-width:0;padding:12px}
+.local-ui-header{display:flex;align-items:center;gap:9px;min-width:0}
+.local-ui-mark{display:block;width:24px;height:24px;object-fit:contain;flex:none}
+.local-ui-title{flex:1;min-width:0;font-size:14px;line-height:1.4;font-weight:700}
+.local-ui-close{min-height:30px;padding:5px 9px;flex:none}
+.local-ui-site,.local-ui-hint{margin:0;color:var(--od-muted);font-size:12px;line-height:1.5;overflow-wrap:anywhere}
+.local-ui-controls{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
 .od-button--primary{background:rgb(31,102,178);border-color:rgb(31,102,178)}
-output{min-width:24px;font-variant-numeric:tabular-nums;font-weight:700}
+.local-ui-action{flex:1 1 140px}
+.local-ui-counter{display:flex;align-items:baseline;gap:8px;padding:4px 0}
+.local-ui-counter-label{font-size:12px;color:var(--od-muted)}
+.local-ui-output{min-width:26px;text-align:right;font-variant-numeric:tabular-nums;font-weight:700;font-size:18px}
+@media(max-width:350px){.local-page-ui{gap:8px;padding:10px}.local-ui-title{font-size:13px}}
