@@ -208,3 +208,16 @@ python3 -m http.server 43111 --bind 127.0.0.1 --directory examples/tasks
 - [`b842a2e873` Linux CFT #38255899212](https://github.com/shopable-ai/opendesk-browser/actions/runs/38255899212) 已以正式 WXT 包通过完整 Task→Alarm→RunHost→Native DOM→released E2E，并新增 `scheduledDockIsolation=PASS`。此次成功仅证明 Linux CFT 且 GitHub CI 沙盒受限情形；Mac 仍单独等待。
 - 发现 `latest-within-hour` 错过策略短时间恢复时原逻辑只在最早 Fire 超过 `startDeadlineMs` 才选择最新发生点；例如一分钟间隔、宿主缺席三分钟而截止窗口为五分钟时，可能错误地补第一次而不是最后一次。修复为**只要选择 latest 策略，每次对账都取窗口内最后一次 occurrence**；`skip` 仍保留原首次到期点和截止规则，并新增按相同 FireId 防重复的短缺席回归。严格禁止按策略补跑未知副作用或已 ADMITTED 的 Fire。
 - 这一轮源码和队列改变后的组件、包、macOS Chrome 终态回执必须继续按**各自提交 SHA**记录；除已具备上述 Linux 真实证据外，新候选不得预先标记 Native PASS。
+
+
+### R1.9 macOS 原生 Select 输入与完整可见宿主生命周期专项
+
+**根因核查：** 对固定候选 [`123fb58f` macOS CFT #38257980920](https://github.com/shopable-ai/opendesk-browser/actions/runs/38257980920) 和 [`9641e601` macOS CFT #38257646344](https://github.com/shopable-ai/opendesk-browser/actions/runs/38257646344)，Job 原始日志均证明：Chrome 155、真实 Side Panel、Task 原生 Run/Result、Candidate Verified / Available / Installed 已成功；失败发生在 `#schedule-task-select`，其 `focused=true`、`options=2`，但仅用 CDP Home/ArrowDown/Enter 无法操作 macOS 系统弹出菜单，`selectedIndex` 留在 0。这不是 Alarm、FireId 或持久化验收失败，也绝不能把安装成功冒充计划执行成功。
+
+修复依据：仓库已有 `tests/framework/time-review-native-input.swift` 在 Time Review R1.3 的真实 macOS CFT 测试中用于原生 `<select>`；它核验确切 Chrome for Testing Bundle/PID、现有 Accessibility 授权与前台窗口，以 `CGEvent` 真实发送 OS 级按键。定时专项现在**复用同一份受信辅助程序**：只在独占 Mac CFT 进程与本次临时 Profile 下编译一次；真实点击打开系统菜单后，使用 `home/down/return` 系统按键，再从真实 DOM 只读核验值。不得使用 `element.value=`、合成 `change` 或无授权的 AX/TCC 绕过。原生 helper 需要系统已有 Accessibility 信任；没有授权则明确失败/阻塞，不允许静默绕过。
+
+新增 Linux 实际 Chrome 生命周期验收分为两个独立 Matrix 作业：
+- **baseline**：既有固定 Task 候选→真实网页 Native 收据→安装→保存计划→关闭 Side Panel 并保留可见 Runner→Alarm→原 Run/Result 及页面效果→释放→暂停。
+- **lifecycle**：在原正式 UI 打开第二个可见 Runner，同时监听同一次 FireId，检查仅有一个 `scheduledFireId` 的 Controller Run；随后通过 UI 恢复新一代计划，**关闭全部** Side Panel/Runner，普通 Catalog 标签保持可见但不得执行，Chrome Alarm 到期后 `WAITING_HOST` 且 `runId=null`；重新从原 Catalog 正常打开 Side Panel，旧 FireId 恢复原生网页执行且只执行一次，原 Result 退休成功，最后通过 UI 暂停。
+
+每个场景均独立安装同 SHA 的实际 WXT package，两个 Job 的 `native-report.json` 与截图分别上传、绝不共享正在运行的 browser Profile。Linux CI 仍有受限 `--no-sandbox` 条件，不能作为 Mac OS 沙盒与真实用户 Mac 的最终证据。新增 macOS OS 按键分支与 Linux lifecycle 分支**在 CI 产生同 SHA 真实 Job 回执前均标 `NOT_TESTED`**。未有同 SHA 的双 Host / 无 Host / Mac 真实通过时，不填写这些维度 95 分。

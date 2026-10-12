@@ -15,8 +15,10 @@ import {connect,evaluate} from './sidebar-native-session.mjs';
 import {packageFingerprint} from '../../scripts/verify-package.mjs';
 
 const ENABLED=process.env.OPENDESK_SCHEDULED_NATIVE==='1';
+const LIFECYCLE=process.env.SCHEDULE_NATIVE_LIFECYCLE==='1';
 const EXPECTED_PLATFORM=process.env.SCHEDULE_NATIVE_PLATFORM||'darwin';
 const CONTROL_MODIFIER=process.platform==='darwin'?4:2;
+let nativeOwnedMacInput=null; // Set after the uniquely owned Chrome PID is observed.
 const CI_UNSANDBOXED_LINUX=process.platform==='linux' &&
   EXPECTED_PLATFORM==='linux' && process.env.CI==='true' &&
   process.env.GITHUB_ACTIONS==='true' &&
@@ -97,6 +99,19 @@ async function select(client,session,selector,index){
   const expected=original.options[index]?.value;
   assert.equal(typeof expected,'string','real option '+selector+' '+index);
   assert.equal(original.options[index].disabled,false,'scheduled Task option must be selectable');
+  // macOS native <select> popovers consume OS input rather than CDP keys.
+  // The preexisting AX-approved helper emits real PID-bound CGEvents.
+  // No synthetic change/input, .value assignments or permission edits.
+  if(process.platform==='darwin'){
+    assert.equal(typeof nativeOwnedMacInput,'function','owned macOS keyboard unavailable');
+    nativeOwnedMacInput('activate');
+    await click(client,session,selector);
+    for(const key of ['home',...Array.from({length:index},()=> 'down'),'return'])
+      nativeOwnedMacInput('key',key);
+    await deadline(()=>evaluate(client,expression+'.value==='+JSON.stringify(expected),session),
+      'owned Mac CFT real select '+selector+' '+expected,8000);
+    return;
+  }
   const focused=()=>evaluate(client,'document.activeElement==='+expression,session);
   // The verified caller has focus in the preceding form input or textarea.
   // Tab navigation reaches the next genuine, Chrome-visible control without
@@ -261,6 +276,25 @@ test('real installed Chrome: verified Task via Alarms -> original RunHost -> pag
   proc=spawn(BIN,args,{stdio:['ignore','ignore','pipe']});
   proc.stderr.on('data',bytes=>{chromeStderr=(chromeStderr+String(bytes)).slice(-7000);});
   report.profileOwned=true;report.chromePid=proc.pid;
+  if(process.platform==='darwin'){
+    // Compile the already-reviewed Time Review native input helper into this
+    // run's disposable profile. It validates the exact owned CFT PID,
+    // bundle identity, existing AX approval and frontmost process.
+    const keyboard=path.join(profile,'scheduled-native-input');
+    const compiled=spawnSync('swiftc',[
+      path.resolve('tests/framework/time-review-native-input.swift'),'-o',keyboard
+    ],{encoding:'utf8',timeout:80000});
+    assert.equal(compiled.status,0,'PID-bound macOS CGEvent helper compile: '+
+      String(compiled.stderr||compiled.error||'').slice(-900));
+    nativeOwnedMacInput=(command,value)=>{
+      const result=spawnSync(keyboard,[String(proc.pid),command,...(value?[value]:[])],
+        {encoding:'utf8',timeout:12000});
+      assert.equal(result.status,0,'real owned macOS input '+command+' '+(value||'')+
+        ': '+String(result.stdout||result.stderr||result.error||'').slice(-900));
+      return String(result.stdout).trim();
+    };
+    report.macosInput='real owned CGEvent, preexisting AX grant required';
+  }
   const port=await deadline(async()=>{
     const rows=(await readFile(path.join(profile,'DevToolsActivePort'),'utf8').catch(()=>'' )).split('\n');
     const number=Number(rows[0]);return Number.isInteger(number)&&number>0?number:null;
@@ -362,6 +396,18 @@ test('real installed Chrome: verified Task via Alarms -> original RunHost -> pag
   await deadline(()=>evaluate(client,'!!document.querySelector("#schedule-plan-list .schedule-card")',sideSid),
     'persisted approved schedule visible in My',18000);
   report.tests.nativeScheduleCreation='PASS';
+  const registeredAlarm=await deadline(async()=>{
+    const state=await durable(client,sideSid),plan=state.plans[0];
+    if(!plan?.scheduleId)return null;
+    // Real Chrome Alarm state read only. The RunHost also polls, so this
+    // proves Chrome alarm registration, not sole onAlarm callback causality.
+    const alarms=await evaluate(client,'chrome.alarms.getAll().then(rows=>rows.map(a=>({name:a.name,scheduledTime:a.scheduledTime})))',sideSid);
+    const matching=alarms.find(a=>a.name==='opendesk.schedule.v1:'+plan.scheduleId);
+    return matching&&Number.isFinite(matching.scheduledTime)&&
+      Math.abs(matching.scheduledTime-plan.nextDueAt)<2000?matching:null;
+  },'actual Chrome Alarms registration matches persisted nextDueAt');
+  report.tests.chromeAlarmRegistered='PASS';
+  note('native-chrome-alarm-registered',registeredAlarm);
   report.screenshots.push(await screenshot(client,sideSid,'schedule-created-original-sidepanel'));
   await click(client,sideSid,'#schedule-open-runner');
   const runnerTarget=await deadline(async()=>{
@@ -375,6 +421,26 @@ test('real installed Chrome: verified Task via Alarms -> original RunHost -> pag
     return rows.find(x=>x.documentId&&x.documentUrl?.includes('scheduledRunner=1')&&x.contextType==='TAB');
   },'actual registered visible runner TAB context');
   note('visible-runner',{documentId:runnerContext.documentId,url:runnerContext.documentUrl});
+  let secondRunnerId=null;
+  if(LIFECYCLE){
+    // A second visible extension document races the SAME durable FireId.
+    // It is opened through the original product UI, never an injected Host.
+    await client.send('Target.activateTarget',{targetId:runnerId});
+    await click(client,runnerSid,'#schedule-open-runner');
+    const second=await deadline(async()=>{
+      const rows=(await client.send('Target.getTargets')).targetInfos;
+      return rows.find(x=>x.targetId!==runnerId&&x.url?.includes('scheduledRunner=1'));
+    },'second visible scheduling host');
+    secondRunnerId=second.targetId;
+    const secondSession=await attach(client,secondRunnerId);
+    const secondContext=await deadline(async()=>{
+      const rows=await contexts(client,secondSession);
+      return rows.find(x=>x.contextType==='TAB'&&x.documentId&&
+        x.documentUrl?.includes('scheduledRunner=1')&&x.documentId!==runnerContext.documentId);
+    },'independent second real runner TAB');
+    note('second-visible-runner',{documentId:secondContext.documentId,url:secondContext.documentUrl});
+    report.tests.twoVisibleRunners='PASS';
+  }
   // Verify unique Host with native actual lifecycle, not an injected mock.
   await client.send('Target.closeTarget',{targetId:sideId});
   await deadline(async()=>{
@@ -391,11 +457,14 @@ test('real installed Chrome: verified Task via Alarms -> original RunHost -> pag
     const result=snapshot.results.find(x=>x.runId===fire.runId&&x.resultId===fire.resultId);
     if(run?.state!=='completed'||run.retirementState!=='released'||result?.ok!==true)return null;
     if(!snapshot.native.some(x=>x.runId===fire.runId&&x.receipts>0))return null;
-    return {fire,run,result,occurrences:snapshot.fires.filter(x=>x.fireId===fire.fireId).length};
+    return {fire,run,result,occurrences:snapshot.fires.filter(x=>x.fireId===fire.fireId).length,
+      runCount:snapshot.runs.filter(x=>x.scheduledFireId===fire.fireId).length};
   },'actual Chrome Alarm -> visible scheduled RunHost -> native effect -> released Result',145000);
   const webEffect=await evaluate(client,'(()=>({name:document.querySelector("#name")?.value,done:!!document.querySelector("#done")}))()',siteSid);
   assert.deepEqual(webEffect,{name:'Scheduled Native',done:true},'scheduled installed script changed the real HTTP document');
   assert.equal(due.occurrences,1,'one stable FireId per scheduled occurrence');
+  assert.equal(due.runCount,1,'two real RunHosts may never admit two runs for one FireId');
+  if(LIFECYCLE)report.tests.concurrentVisibleHostsNoDuplicate='PASS';
   assert.equal(due.run.scheduledFireId,due.fire.fireId,'original Controller Run is bound to the scheduled FireId');
   assert.equal(due.run.workerRetired,true,'Worker retired before success');
   report.tests.actualScheduledNativeEffect='PASS';
@@ -410,5 +479,81 @@ test('real installed Chrome: verified Task via Alarms -> original RunHost -> pag
     return state.plans.length===1&&state.plans[0].paused===true&&state.plans[0].nextDueAt===null;
   },'original UI pauses future occurrences');
   report.tests.nativePause='PASS';
+  if(LIFECYCLE){
+    // Prepare a fresh second occurrence, then close EVERY scheduling Host.
+    // The ordinary Task catalog stays open to observe original IndexedDB
+    // readonly; it MUST NOT be counted as a scheduling Host.
+    await client.send('Page.navigate',{url:URL},siteSid);
+    await deadline(()=>evaluate(client,'document.readyState==="complete"&&!document.querySelector("#done")',siteSid),
+      'second untouched website document');
+    const oldState=await durable(client,runnerSid);
+    const oldGeneration=oldState.plans[0]?.generation;
+    await deadline(()=>evaluate(client,
+      'document.querySelector("#schedule-plan-list .schedule-card .schedule-actions button:nth-child(2)")?.textContent?.includes("恢复")',
+      runnerSid),'real disabled plan presents Resume, not stale Pause');
+    await click(client,runnerSid,'#schedule-plan-list .schedule-card .schedule-actions button:nth-child(2)');
+    const resumed=await deadline(async()=>{
+      const state=await durable(client,runnerSid),plan=state.plans[0];
+      return plan?.generation===oldGeneration+1&&plan.paused===false&&Number.isSafeInteger(plan.nextDueAt)?plan:null;
+    },'real UI resumed a new fixed schedule generation');
+    note('resumed-for-host-outage',{scheduleId:resumed.scheduleId,generation:resumed.generation,nextDueAt:resumed.nextDueAt});
+    await client.send('Target.closeTarget',{targetId:runnerId});
+    if(secondRunnerId)await client.send('Target.closeTarget',{targetId:secondRunnerId});
+    await deadline(async()=>{
+      const rows=await contexts(client,catalogSid);
+      return !rows.some(x=>x.contextType==='SIDE_PANEL'||
+        x.contextType==='TAB'&&x.documentUrl?.includes('scheduledRunner=1'));
+    },'all real scheduler documents closed',20000);
+    const withoutHost=await deadline(async()=>{
+      const state=await durable(client,catalogSid);
+      const record=state.fires.find(x=>x.fireId.split(':')[2]===String(resumed.generation));
+      return record?.status==='WAITING_HOST'&&record.runId===null?record:null;
+    },'missed Alarm persists WAITING_HOST without any scheduling Host',145000);
+    assert.equal(withoutHost.runId,null,'no hidden/background scheduler may execute the occurrence');
+    report.tests.noHostWait='PASS';
+    note('no-host-durable-wait',{fireId:withoutHost.fireId,status:withoutHost.status});
+    await client.send('Target.activateTarget',{targetId:catalog.targetId});
+    await click(client,catalogSid,'#catalog-open-dev-sidebar');
+    const returnedSide=await deadline(async()=>{
+      const rows=await contexts(client,catalogSid);
+      return rows.find(x=>x.contextType==='SIDE_PANEL'&&x.documentId&&
+        x.documentId!==sideContext.documentId&&x.documentUrl?.includes('/ui/tool.html'));
+    },'real Side Panel reopens after all scheduling Hosts vanished',25000);
+    const reopenedTarget=await deadline(async()=>{
+      const rows=(await client.send('Target.getTargets')).targetInfos;
+      return rows.find(x=>x.url===returnedSide.documentUrl);
+    },'new Side Panel native target');
+    const reopenedSid=await attach(client,reopenedTarget.targetId);
+    const recovered=await deadline(async()=>{
+      const state=await durable(client,reopenedSid);
+      const fire=state.fires.find(x=>x.fireId===withoutHost.fireId);
+      if(!fire?.runId||fire.resultId===null)return null;
+      const run=state.runs.find(x=>x.runId===fire.runId);
+      const result=state.results.find(x=>x.runId===fire.runId&&x.resultId===fire.resultId);
+      if(run?.state!=='completed'||run.retirementState!=='released'||result?.ok!==true)return null;
+      if(state.runs.filter(x=>x.scheduledFireId===fire.fireId).length!==1)return null;
+      if(!state.native.some(x=>x.runId===fire.runId&&x.receipts>0))return null;
+      return {fire,run,result};
+    },'returned Side Panel runs original WAITING_HOST FireId exactly once',140000);
+    assert.equal(recovered.fire.fireId,withoutHost.fireId,'recovered Host must not mint a new occurrence');
+    const secondEffect=await evaluate(client,'(()=>({name:document.querySelector("#name")?.value,done:!!document.querySelector("#done")}))()',siteSid);
+    assert.deepEqual(secondEffect,{name:'Scheduled Native',done:true},'restored scheduled Host changed a fresh real web document');
+    report.tests.noHostRestoreExactlyOnce='PASS';
+    note('restored-host-native-result',{fireId:recovered.fire.fireId,runId:recovered.run.runId,
+      resultId:recovered.result.resultId,retirement:recovered.run.retirementState,webEffect:secondEffect});
+    report.screenshots.push(await screenshot(client,reopenedSid,'resumed-sidepanel-after-no-host'));
+    await click(client,reopenedSid,'#schedule-open');
+    await deadline(()=>evaluate(client,'!!document.querySelector("#schedule-plan-list .schedule-card")',reopenedSid),
+      'visible restored schedule card');
+    await deadline(()=>evaluate(client,
+      'document.querySelector("#schedule-plan-list .schedule-card .schedule-actions button:nth-child(2)")?.textContent?.includes("暂停")',
+      reopenedSid),'reopened scheduler exposes Pause on active plan');
+    await click(client,reopenedSid,'#schedule-plan-list .schedule-card .schedule-actions button:nth-child(2)');
+    await deadline(async()=>{
+      const state=await durable(client,reopenedSid);
+      return state.plans.length===1&&state.plans[0].paused===true&&state.plans[0].nextDueAt===null;
+    },'real restored Side Panel pauses future occurrences');
+    report.tests.restoredHostPause='PASS';
+  }
   completed=true;
 });

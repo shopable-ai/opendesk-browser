@@ -33,6 +33,10 @@ concurrency:
 jobs:
   scheduled-cft-linux:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        scenario: [baseline, lifecycle]
     timeout-minutes: 14
     steps:
       - uses: actions/checkout@v4
@@ -51,21 +55,22 @@ jobs:
         id: chrome
         with:
           chrome-version: '155.0.8059.39'
-      - name: Real Linux CFT installed Controller schedule smoke
+      - name: Real Linux CFT installed Controller schedule ${{ matrix.scenario }}
         env:
           OPENDESK_SCHEDULED_NATIVE: '1'
           SCHEDULE_NATIVE_PLATFORM: linux
+          SCHEDULE_NATIVE_LIFECYCLE: ${{ matrix.scenario == 'lifecycle' && '1' || '0' }}
           # GitHub Ubuntu AppArmor blocks userns sandbox; never use outside this ephemeral CFT job.
           SCHEDULE_NATIVE_CI_NO_SANDBOX: '1'
           CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
-          SCHEDULE_NATIVE_OUT: artifacts/scheduled-tasks-r1-linux
+          SCHEDULE_NATIVE_OUT: artifacts/scheduled-tasks-r1-${{ matrix.scenario }}
         run: |
           command -v xvfb-run
           xvfb-run -a --server-args="-screen 0 1440x900x24" node --test tests/framework/scheduled-tasks-r1-native-mac.test.mjs
       - if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: scheduled-tasks-r1-linux-${{ github.sha }}
-          path: artifacts/scheduled-tasks-r1-linux/
+          name: scheduled-tasks-r1-linux-${{ matrix.scenario }}-${{ github.sha }}
+          path: artifacts/scheduled-tasks-r1-${{ matrix.scenario }}/
           if-no-files-found: warn
           retention-days: 14
