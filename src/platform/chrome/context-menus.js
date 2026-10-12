@@ -138,7 +138,7 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
   const browserIntents=new Map(),INTENT_TTL=15000;
   // A permission or installed-package change must fence requests that are already in fetch().
   const activeNetworkRequests=new Set();
-  const intentOperations=new Set(['browser.tabs.open','browser.tabs.focus','browser.network.request',
+  const intentOperations=new Set(['browser.tabs.open','browser.tabs.focus','browser.tabs.closeOwned','browser.network.request',
     'browser.network.observe.start','browser.network.observe.export','browser.screenshot.captureVisible']);
   const observationOperations=new Set(['browser.network.observe.getStatus','browser.network.observe.stop',
     'browser.events.read','browser.events.close']);
@@ -343,6 +343,8 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
     const platformSupported=(!isMenu||menuApiAvailable)&&(
       operation==='browser.tabs.open'?Boolean(api.tabs?.create):
       operation==='browser.tabs.focus'?Boolean(api.tabs?.get&&api.tabs?.update):
+      operation==='browser.tabs.getOwned'||operation==='browser.tabs.listOwned'?Boolean(api.tabs?.get&&api.webNavigation?.getFrame):
+      operation==='browser.tabs.closeOwned'?Boolean(api.tabs?.get&&api.tabs?.remove&&api.webNavigation?.getFrame):
       operation==='browser.sidePanel.openSelf'?Boolean(api.sidePanel?.open):
       operation==='browser.network.request'?typeof fetchImpl==='function':
       operation.startsWith('browser.network.observe.')?Boolean(api.webRequest?.onBeforeRequest?.addListener):
@@ -424,6 +426,7 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
         await verifyBrowserOwner(context,operation,approvedOrigin);
         if(operation==='browser.tabs.open')return tabHost.open(checked,context);
         if(operation==='browser.tabs.focus')return tabHost.focus(checked,context);
+        if(operation==='browser.tabs.closeOwned')return tabHost.closeOwned(checked,context);
         if(operation==='browser.screenshot.captureVisible'){
           // One-use approval was spent above; only the trusted Host may assert
           // that it came from the visible extension UI's verified click.
@@ -469,6 +472,16 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
           if(jsonBytes(result)>12000)throw failure('E_LIMIT','HTTP response exceeds IPC budget');
           return result;
         }finally{activeNetworkRequests.delete(controller)}
+      }
+      if(operation==='browser.tabs.getOwned'||operation==='browser.tabs.listOwned'){
+        const checked=normalizeBrowserOperation(operation,args),packageHash=await digestTool(tool);
+        const context={toolId,toolVersion,packageHash,epoch:installEpoch??null,
+          installEpoch:String(installEpoch??'initial-install'),approvedOrigin:null};
+        await verifyBrowserOwner(context,operation);
+        const value=operation==='browser.tabs.getOwned'
+          ?await tabHost.getOwned(checked,context):await tabHost.listOwned(checked,context);
+        await verifyBrowserOwner(context,operation);
+        return value;
       }
       if(observationOperations.has(operation)||ownedOperationMethods.has(operation)){
         const checked=normalizeBrowserOperation(operation,args),packageHash=await digestTool(tool);

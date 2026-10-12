@@ -3,11 +3,11 @@ import assert from 'node:assert/strict';
 import {BROWSER_OPERATIONS,browserCapabilityList,normalizeBrowserOperation} from '../../src/framework/sdk/browser-contract.js';
 import {createBrowserSdk} from '../../src/framework/sdk/browser.js';
 const isCode=expected=>e=>e?.code===expected;
-test('Browser SDK 32 operations each have typed input/output schema metadata',()=>{
+test('Browser SDK 32 original and three R5 owned Tabs methods have typed metadata',()=>{
   const rows=Object.values(BROWSER_OPERATIONS);
-  assert.equal(rows.length,32);
+  assert.equal(rows.length,35);
   assert.deepEqual(Object.assign({HOST_ONLY:0},Object.fromEntries(Object.entries(Object.groupBy(rows,x=>x.implementation))
-    .map(([key,values])=>[key,values.length]))),{IMPLEMENTED:23,PLANNED:7,HOST_ONLY:0,NOT_EXPOSED:2});
+    .map(([key,values])=>[key,values.length]))),{IMPLEMENTED:26,PLANNED:7,HOST_ONLY:0,NOT_EXPOSED:2});
   for(const op of rows){
     assert.equal(op.inputSchema?.type,'object',op.operation);
     assert.equal(op.inputSchema.additionalProperties,false,op.operation);
@@ -54,4 +54,15 @@ test('Legacy exports reject unsafe values before dispatch',async()=>{
 test('PLANNED, HOST_ONLY and NOT_EXPOSED operations fail closed',()=>{
   for(const op of Object.values(BROWSER_OPERATIONS).filter(x=>x.implementation!=='IMPLEMENTED'))
     assert.throws(()=>normalizeBrowserOperation(op.operation,{}),isCode('E_SERVICE_UNSUPPORTED'),op.operation);
+});
+
+test('R5 public Tabs wrappers route through original Host with no raw native tabId',async()=>{
+ const calls=[],sdk=createBrowserSdk({request:async(op,args)=>{calls.push(op);return {ok:true}}});
+ const tabRef='r'.repeat(32);
+ await sdk.tabs.getOwned({tabRef});await sdk.tabs.listOwned();await sdk.tabs.closeOwned({tabRef});
+ assert.deepEqual(calls,['browser.tabs.getOwned','browser.tabs.listOwned','browser.tabs.closeOwned']);
+ assert.throws(()=>sdk.tabs.getOwned({tabId:1}),isCode('E_SCHEMA'));
+ assert.throws(()=>sdk.tabs.closeOwned({tabId:1}),isCode('E_SCHEMA'));
+ assert.throws(()=>sdk.tabs.listOwned({all:true}),isCode('E_SCHEMA'));
+ assert.equal(typeof createBrowserSdk({context:'page-sdk'}).tabs,'undefined');
 });

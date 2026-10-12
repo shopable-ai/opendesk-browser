@@ -12,9 +12,9 @@
     "auditOnly": true
   },
   "summary": {
-    "operationCount": 32,
+    "operationCount": 35,
     "implementationCounts": {
-      "IMPLEMENTED": 23,
+      "IMPLEMENTED": 26,
       "PLANNED": 7,
       "HOST_ONLY": 0,
       "NOT_EXPOSED": 2
@@ -583,6 +583,138 @@
         "Integrated code; positive, denial, same-candidate native Chrome acceptance outstanding"
       ],
       "nextTask": "Execute and repair targeted CI then real user click, denial, revocation and Worker restart",
+      "commits": [],
+      "evidence": []
+    },
+    {
+      "api": "browser.tabs.getOwned",
+      "module": "browser.tabs",
+      "apiVersion": "1.0.0",
+      "implementation": "IMPLEMENTED",
+      "executionContexts": [
+        "sidebar-tool"
+      ],
+      "exposure": "APPROVED_TOOL",
+      "inputSchema": "src/framework/sdk/browser-contract.js#browser.tabs.getOwned",
+      "outputSchema": "src/framework/sdk/browser-contract.js#browser.tabs.getOwned",
+      "chromePermissions": [
+        "tabs",
+        "webNavigation"
+      ],
+      "toolCapabilities": [
+        "browser.tabs"
+      ],
+      "effectClass": "read",
+      "riskLevel": "medium",
+      "siteScope": "tab-ref",
+      "lifecycle": "request",
+      "hostImplementation": "src/platform/chrome/context-menus.js",
+      "sdkEntry": "src/framework/sdk/browser.js",
+      "positiveTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "denialTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "nativeChrome": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "callableNowVerification": "NOT_TESTED",
+      "blockers": [
+        "R5 source-wired; native installed Mac Chrome acceptance still NOT_TESTED"
+      ],
+      "nextTask": "Test one-use close, foreign/stale tabs, permission revocation and Worker restart in real Chrome",
+      "commits": [],
+      "evidence": []
+    },
+    {
+      "api": "browser.tabs.listOwned",
+      "module": "browser.tabs",
+      "apiVersion": "1.0.0",
+      "implementation": "IMPLEMENTED",
+      "executionContexts": [
+        "sidebar-tool"
+      ],
+      "exposure": "APPROVED_TOOL",
+      "inputSchema": "src/framework/sdk/browser-contract.js#browser.tabs.listOwned",
+      "outputSchema": "src/framework/sdk/browser-contract.js#browser.tabs.listOwned",
+      "chromePermissions": [
+        "tabs",
+        "webNavigation"
+      ],
+      "toolCapabilities": [
+        "browser.tabs"
+      ],
+      "effectClass": "read",
+      "riskLevel": "medium",
+      "siteScope": "owned-tabs",
+      "lifecycle": "request",
+      "hostImplementation": "src/platform/chrome/context-menus.js",
+      "sdkEntry": "src/framework/sdk/browser.js",
+      "positiveTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "denialTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "nativeChrome": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "callableNowVerification": "NOT_TESTED",
+      "blockers": [
+        "R5 source-wired; native installed Mac Chrome acceptance still NOT_TESTED"
+      ],
+      "nextTask": "Test one-use close, foreign/stale tabs, permission revocation and Worker restart in real Chrome",
+      "commits": [],
+      "evidence": []
+    },
+    {
+      "api": "browser.tabs.closeOwned",
+      "module": "browser.tabs",
+      "apiVersion": "1.0.0",
+      "implementation": "IMPLEMENTED",
+      "executionContexts": [
+        "sidebar-tool"
+      ],
+      "exposure": "APPROVED_TOOL",
+      "inputSchema": "src/framework/sdk/browser-contract.js#browser.tabs.closeOwned",
+      "outputSchema": "src/framework/sdk/browser-contract.js#browser.tabs.closeOwned",
+      "chromePermissions": [
+        "tabs",
+        "webNavigation"
+      ],
+      "toolCapabilities": [
+        "browser.tabs"
+      ],
+      "effectClass": "write",
+      "riskLevel": "high",
+      "siteScope": "tab-ref",
+      "lifecycle": "request",
+      "hostImplementation": "src/platform/chrome/context-menus.js",
+      "sdkEntry": "src/framework/sdk/browser.js",
+      "positiveTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "denialTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "nativeChrome": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "callableNowVerification": "NOT_TESTED",
+      "blockers": [
+        "R5 source-wired; native installed Mac Chrome acceptance still NOT_TESTED"
+      ],
+      "nextTask": "Test one-use close, foreign/stale tabs, permission revocation and Worker restart in real Chrome",
       "commits": [],
       "evidence": []
     },
@@ -1424,5 +1556,17 @@
       "commits": [],
       "evidence": []
     }
-  ]
+  ],
+  "r5": {
+    "originalFormalOperations": 32,
+    "originalImplemented": 23,
+    "approvedNewMethods": [
+      "browser.tabs.getOwned",
+      "browser.tabs.listOwned",
+      "browser.tabs.closeOwned"
+    ],
+    "initialCandidateCount": 114,
+    "remainingCandidateCount": 111,
+    "nativeChromePassed": 0
+  }
 }

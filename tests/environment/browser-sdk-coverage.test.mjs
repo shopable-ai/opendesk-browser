@@ -3,8 +3,8 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {inspectBrowserSdkLedger,checkBrowserSdk} from '../../scripts/check-browser-sdk-coverage.mjs';
 const ledger=JSON.parse(await readFile(new URL('../../docs/framework/workstreams/browser-sdk-acceptance.json',import.meta.url),'utf8'));
-test('Browser SDK ledger matches all 32 source operations',()=>{
- assert.equal(ledger.operations.length,32);
+test('Browser SDK ledger matches 32 original plus three R5 methods',()=>{
+ assert.equal(ledger.operations.length,35);
  assert.deepEqual(inspectBrowserSdkLedger(ledger),[]);
 });
 test('a status cannot be changed to PASS without real evidence',()=>{

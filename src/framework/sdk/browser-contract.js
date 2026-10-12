@@ -12,7 +12,7 @@ export const BROWSER_MENU_ROOT='opendesk.browser.root';
 const shared={apiVersion:BROWSER_API_VERSION,platform:'chrome>=138',timeout:8000,maxRequestBytes:12000,maxResponseBytes:12000};
 const USER_GESTURE_OPERATIONS=new Set([
   'browser.clipboard.writeText','browser.downloads.text','browser.tabs.open',
-  'browser.tabs.focus','browser.sidePanel.openSelf','browser.network.request','browser.network.observe.start',
+  'browser.tabs.focus','browser.tabs.closeOwned','browser.sidePanel.openSelf','browser.network.request','browser.network.observe.start',
   'browser.network.observe.export','browser.screenshot.captureVisible','browser.media.recording.prepare'
 ]);
 function entry(operation,capability,contexts,chromePermissions,effect,risk,siteScope='none',state='IMPLEMENTED',lifecycle='request'){
@@ -39,6 +39,9 @@ export const BROWSER_OPERATIONS=Object.freeze({
   'browser.downloads.text':entry('browser.downloads.text','user.export',tool,['downloads'],'write','medium'),
   'browser.tabs.open':entry('browser.tabs.open','browser.tabs',tool,['tabs'],'write','medium','explicit-url','IMPLEMENTED'),
   'browser.tabs.focus':entry('browser.tabs.focus','browser.tabs',tool,['tabs'],'write','medium','tab-ref','IMPLEMENTED'),
+  'browser.tabs.getOwned':entry('browser.tabs.getOwned','browser.tabs',tool,['tabs','webNavigation'],'read','medium','tab-ref','IMPLEMENTED'),
+  'browser.tabs.listOwned':entry('browser.tabs.listOwned','browser.tabs',tool,['tabs','webNavigation'],'read','medium','owned-tabs','IMPLEMENTED'),
+  'browser.tabs.closeOwned':entry('browser.tabs.closeOwned','browser.tabs',tool,['tabs','webNavigation'],'write','high','tab-ref','IMPLEMENTED'),
   'browser.sidePanel.openSelf':entry('browser.sidePanel.openSelf','browser.sidePanel',tool,['sidePanel'],'write','medium','user-gesture','IMPLEMENTED'),
   'browser.network.request':entry('browser.network.request','network',tool,[],'write','high','target-origin','IMPLEMENTED'),
   'browser.network.observe.start':entry('browser.network.observe.start','browser.network.observe',tool,['webRequest'],'read','high','approved-tab','IMPLEMENTED','bounded-session'),
@@ -100,9 +103,12 @@ export function normalizeBrowserOperation(operation,args={}){
     case 'browser.tabs.open':
       fields(args,['url'],['url']);return {url:approvedHttpUrl(args.url)};
     case 'browser.tabs.focus':
+    case 'browser.tabs.getOwned':
+    case 'browser.tabs.closeOwned':
       fields(args,['tabRef'],['tabRef']);
       if(typeof args.tabRef!=='string'||!/^[A-Za-z0-9_-]{16,160}$/.test(args.tabRef))throw fail('E_SCHEMA','Invalid tab reference');
       return {tabRef:args.tabRef};
+    case 'browser.tabs.listOwned':fields(args,[]);break;
     case 'browser.sidePanel.openSelf':fields(args,[]);break;
     case 'browser.network.request': {
       fields(args,['method','url','data','config'],['method','url']);

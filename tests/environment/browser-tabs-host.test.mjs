@@ -117,3 +117,29 @@ test('R5 security: revoke during Chrome tabs.get cannot focus a stale owned tab'
  await assert.rejects(host.focus({tabRef},owner()),code('E_TAB_REF_INVALID'));
  assert(!f.operations.includes('focus'),'No Chrome focus after authority was revoked');
 });
+
+test('R5 owned read/list never enumerates foreign or navigated TabRefs',async()=>{
+ const f=fixture();
+ f.api.webNavigation={getFrame:async({tabId})=>{
+  const tab=f.items.get(tabId);return tab?{url:tab.url,documentId:'doc-'+tabId,documentLifecycle:'active'}:null}};
+ const host=createBrowserTabHost({api:f.api,createRef:()=>ref,authorize:async()=>true});
+ const {tabRef}=await host.open({url:'https://example.org/own'},owner());
+ assert.equal((await host.getOwned({tabRef},owner())).url,'https://example.org/own');
+ assert.deepEqual((await host.listOwned({},owner())).tabs,[{tabRef,origin:'https://example.org'}]);
+ assert.deepEqual((await host.listOwned({},owner('tool-b'))).tabs,[]);
+ await assert.rejects(host.getOwned({tabRef},owner('tool-b')),code('E_TAB_REF_INVALID'));
+ f.items.set(200,{...f.items.get(200),url:'https://example.org/other'});
+ assert.deepEqual((await host.listOwned({},owner())).tabs,[]);
+ await assert.rejects(host.getOwned({tabRef},owner()),code('E_TAB_REF_INVALID'));
+});
+test('R5 owned close consumes TabRef, with unknown native outcome never retried',async()=>{
+ const f=fixture();
+ f.api.webNavigation={getFrame:async({tabId})=>{
+  const tab=f.items.get(tabId);return tab?{url:tab.url,documentId:'doc-'+tabId,documentLifecycle:'active'}:null}};
+ const host=createBrowserTabHost({api:f.api,createRef:()=>ref,authorize:async()=>true});
+ const {tabRef}=await host.open({url:'https://example.org/own'},owner());
+ let attempts=0;f.api.tabs.remove=async()=>{attempts++;throw Error('lost Chrome response')};
+ await assert.rejects(host.closeOwned({tabRef},owner()),code('E_OUTCOME_UNKNOWN'));
+ await assert.rejects(host.closeOwned({tabRef},owner()),code('E_TAB_REF_INVALID'));
+ assert.equal(attempts,1);
+});

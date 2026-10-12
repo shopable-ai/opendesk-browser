@@ -1,3 +1,12 @@
+## R5 Tabs 三项新增正式接口（2026-10-12）
+
+- **接口登记**：原冻结的 32 项保持 23 IMPLEMENTED、7 PLANNED、2 NOT_EXPOSED。本轮新增并实际接线 R5 `browser.tabs.getOwned`、`browser.tabs.listOwned`、`browser.tabs.closeOwned`，累计 35 项（26 SOURCE_WIRED、7 PLANNED、2 NOT_EXPOSED）；R5+ 原 114 候选晋级 3 项，尚未批准 111 项。前期统计在下方仅作为历史记录。
+- **调用路径**：SDK wrapper → 已安装 v2 工具 `browser.tabs` capability → 可信 Side Panel（close 需真实点击）→ 现有单次 intent + Host RPC → `createBrowserTabHost` → Chrome tabs / webNavigation → 精确自有 TabRef / 有界结果。
+- **安全约束**：最多八个本工具有效 TabRef；只返回本工具 origin 和可验证的页面信息，无原生 tabId 和任意标签枚举；页面导航、包变化、撤权、停用、Worker 重启均不得复用旧引用。关闭前再次核验 TabRef/Origin/Document；关闭前先消费引用，未知 Chrome 效果不自动重试。
+- **回归测试**：`browser-tabs-host.test.mjs`、`browser-sdk-r2-host.test.mjs`、`browser-sdk-contract-compat.test.mjs`，均新增正向、拒绝和反重试断言；本次 CI 要关联新 Git SHA。
+- **验收**：Mac Chrome 同候选完整 GUI / Worker 正式验收仍 **0/35 NOT_TESTED**；上轮 P0 修复 CI https://github.com/shopable-ai/opendesk-browser/actions/runs/38266349590 为 PASS，不等于本轮新增三接口 PASS。
+- **下一步**：继续 `browser-tabs.js` 的 reload/navigate；基于 `src/platform/downloads/**` 管理本工具下载及落盘状态；可信 Cookie Editor 对接 `src/platform/chrome/cookies.js`；复用现有任务和 Authority；最后补受控 Mac Chrome 实际安装验收。
+
 ## R5 P0 实际安全修复：TabRef 完整 URL 与撤权竞态（2026-10-12）
 
 - **不增加空接口**：原正式 32 项中仍有 23 项 SOURCE_WIRED、7 项 PLANNED、2 项 NOT_EXPOSED；原生完整 Mac Chrome 验收仍 **0/32 / NOT_TESTED**。R5+ 114 项尚未晋级正式合同。
@@ -118,6 +127,9 @@
 | `browser.downloads.text` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
 | `browser.tabs.open` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
 | `browser.tabs.focus` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
+| `browser.tabs.getOwned` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
+| `browser.tabs.listOwned` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
+| `browser.tabs.closeOwned` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
 | `browser.sidePanel.openSelf` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
 | `browser.network.request` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
 | `browser.network.observe.start` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |

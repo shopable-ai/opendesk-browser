@@ -328,3 +328,15 @@ test('compact network.watch rejects non-exact origins, foreign fields, and absen
  const page=createBrowserSdk({context:'page-sdk'});
  assert.equal(typeof page.network,'undefined');
 });
+
+test('R5 actual installed Host reads and closes an owned tab only after one-use approval',async()=>{
+ const f=fixture(),url={url:'https://example.org/r5'};
+ const {tabRef}=await f.call('browser.tabs.open',url,(await f.confirm('browser.tabs.open',url)).approvalRef);
+ assert.equal((await f.call('browser.tabs.getOwned',{tabRef})).origin,'https://example.org');
+ assert.deepEqual((await f.call('browser.tabs.listOwned')).tabs,[{tabRef,origin:'https://example.org'}]);
+ await assert.rejects(f.call('browser.tabs.closeOwned',{tabRef}),err('E_USER_GESTURE_REQUIRED'));
+ const receipt=(await f.confirm('browser.tabs.closeOwned',{tabRef})).approvalRef;
+ assert.deepEqual(await f.call('browser.tabs.closeOwned',{tabRef},receipt),{closed:true});
+ await assert.rejects(f.call('browser.tabs.closeOwned',{tabRef},receipt),err('E_USER_GESTURE_REQUIRED'));
+ assert.deepEqual((await f.call('browser.tabs.listOwned')).tabs,[]);
+});

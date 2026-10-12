@@ -129,8 +129,48 @@ export function createBrowserTabHost({api=globalThis.chrome,authorize,clock=Date
   return {tabId:row.tabId,windowId:tab.windowId,documentId:frame.documentId,
    url:frame.url,incognito:false,origin:row.origin};
  }
+ // Only the exact installed tool can discover its own live, bounded TabRef records.
+ async function getOwned(args,context){
+  input(args,'tabRef');
+  const before=await resolve(args.tabRef,context);
+  await approved('browser.tabs.getOwned',before.origin,context);
+  const after=await resolve(args.tabRef,context);
+  if(after.documentId!==before.documentId)throw fail('E_DOCUMENT_STALE');
+  const row=refs.get(args.tabRef);
+  return {tabRef:args.tabRef,url:row.url,origin:row.origin,expiresAt:row.expiresAt};
+ }
+ async function listOwned(args={},context){
+  if(!args||typeof args!=='object'||Array.isArray(args)||Object.keys(args).length)
+   throw fail('E_SCHEMA','Expected no arguments');
+  const owned=owner(context),tabs=[];
+  for(const tabRef of [...(byTool.get(owned)||[])]){
+   try{
+    const before=await resolve(tabRef,context);
+    await approved('browser.tabs.listOwned',before.origin,context);
+    const after=await resolve(tabRef,context);
+    if(after.documentId===before.documentId)tabs.push({tabRef,origin:before.origin});
+   }catch{/* A stale, foreign or revoked TabRef cannot be enumerated. */}
+  }
+  return {tabs};
+ }
+ async function closeOwned(args,context){
+  input(args,'tabRef');
+  if(typeof api?.tabs?.remove!=='function')throw fail('E_CHROME_UNSUPPORTED');
+  const before=await resolve(args.tabRef,context);
+  await approved('browser.tabs.closeOwned',before.origin,context);
+  const after=await resolve(args.tabRef,context);
+  if(after.tabId!==before.tabId||after.documentId!==before.documentId)
+   throw fail('E_DOCUMENT_STALE','Tab document changed');
+  // No retry when the native outcome is unknown: consume the ref first.
+  purge(args.tabRef);
+  try{await api.tabs.remove(after.tabId)}
+  catch{throw fail('E_OUTCOME_UNKNOWN','Chrome close outcome unknown')}
+  try{await approved('browser.tabs.closeOwned',before.origin,context)}
+  catch{throw fail('E_OUTCOME_UNKNOWN','Authority changed after native close')}
+  return {closed:true};
+ }
  const revokeTool=id=>{for(const [ref,row] of refs)if(row.owner.startsWith(id+':'))purge(ref)};
- return Object.freeze({open,focus,resolve,invalidateTab,revokeTool,
+ return Object.freeze({open,focus,resolve,getOwned,listOwned,closeOwned,invalidateTab,revokeTool,
   dispose:()=>{refs.clear();byTool.clear()},
   diagnostics:()=>({references:refs.size})});
 }
