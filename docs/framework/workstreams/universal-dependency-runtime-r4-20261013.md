@@ -54,3 +54,11 @@ export default async function main() {
 3. 第二个独立 script ID 复用 SHA 原始资产但生成新的独立审批锁；源代码变更、锁损坏、Stop 取消校验。
 4. 证据引用与候选 source SHA、extension packageHash、runId/resultId、预装 SDK ABI 严格一致。
 5. Page 普通单文件与独立工具及定时任务接入仍是下一阶段 P2/P3，不宣称全部支持。
+
+## 后续真实验证与第三方库补充（2026-10-13）
+
+- 主线源码提交 `39d2239ea1237ce69e38845d05d7058de69bb0cc`；定向 Developer Node CI `38280653537` 的固定 Babel R4 测试（包括真实 D3 max、两个独立程序离线复用缓存）全部通过，该 CI 整体 **84 PASS / 1 FAIL**，唯一失败为旧保存成功文案断言。Page 依赖组 `38280653475` **176 PASS / 2 FAIL**，另一项是旧 Controller RunHost 静态源码模式断言；均不应称为全套 PASS。
+- 修复提交 `61f09b035e7c1dd40056b95fe75ec8a1fb51d265` 恢复旧文案及 `host.start({source:{kind:'draft',sourceUtf8}})` 合同；此提交对应的 Page 用户依赖 CI `38281072893` 和多文件源码 CI `38281072873` 已真实成功，双版构建 CI `38281073167` 的 `dual-edition-package` job 已成功（macOS native 为独立项，不提升）。
+- 验收驱动提交 `1470b0d40fc4ecbd1e909f149ab6b5c1f09b260d` 在现有 macOS CFT `page-browser-worker-r243-cft.mjs` 增加 Developer 版单文件源码真实键入、Controller RunHost/Worker 持久 Result、Save/Load 流程，使用真实 CDP 指针，不在 CDP 执行用户源码；该项以 job 原始产物为准。
+- 新真实第三方 ESM CSV 样例 `@vanillaes/csv@4.1.3`：上游 <https://github.com/vanillaes/csv/tree/v4.1.3> MIT，用户编写 `// @opendesk-import @vanillaes/csv https://raw.githubusercontent.com/vanillaes/csv/v4.1.3/src/index.js`、`import {parse} from '@vanillaes/csv'`，精确 3 模块 ESM 图 `index.js` + `parse.js` + `stringify.js`，按原始上游 SHA 验证，目标输出 `count=2,total=21`。文件和 MIT LICENSE 只存 `tests/fixtures/external-esm/vanillaes-csv-4.1.3` 用于离线测试，**不是新增内置 Catalog 库**。需要以新增 CI 结果独立确认真实上游函数通过，不沿用此前模拟 CSV PASS。
+- 某些库的源码会使用 `new Function`（例如所核查的 `d3-dsv@3.0.1` 的 `objectConverter`）；现有受控 Worker 静态准备明确禁止此类动态代码，不能为扩大包覆盖而悄悄关闭安全检查。

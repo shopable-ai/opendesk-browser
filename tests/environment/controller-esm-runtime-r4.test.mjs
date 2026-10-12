@@ -118,3 +118,47 @@ test('R4 dedicated compiler inputs are pinned Developer-only source data',async(
   assert.match(worker,/import\('\.\.\/libs\/page-frameworks\/controller-esm-linker-r4\.mjs'\)/);
   assert.doesNotMatch(worker,/eval\s*\(|new\s+Function\s*\(/);
 });
+
+test('R4 authentic @vanillaes/csv@4.1.3 ESM exports and transitive modules parse CSV without CDN at Run',async()=>{
+  // Original upstream v4.1.3 bytes, NOT handwritten CSV or shimmed PapaParse.
+  const base='https://raw.githubusercontent.com/vanillaes/csv/v4.1.3/src/';
+  const verified=[
+    ['index.js','2bd2f3a102328c7defa541f475353ee6103aeba24143d70d734f22eeb683d734',114],
+    ['parse.js','9bc0f8f634de34595afb4d98bf9eb28a49e8b20572420f4d4a8d549258e0abc5',4528],
+    ['stringify.js','87886528603713273df58183ded8b40a22dd8f0f6645e287b759a0631c81c9a9',1913]
+  ];
+  const files=await Promise.all(verified.map(async([name,expected,bytes])=>{
+    const code=await readFile('tests/fixtures/external-esm/vanillaes-csv-4.1.3/'+name,'utf8');
+    assert.equal(Buffer.byteLength(code),bytes,'exact upstream file '+name);
+    assert.equal(sha(code),expected,'pinned original SHA-256 '+name);
+    return row(base+name,code);
+  }));
+  const license=await readFile('tests/fixtures/external-esm/vanillaes-csv-4.1.3/LICENSE','utf8');
+  assert.equal(sha(license),'1b2f6995df338ee08ee483fa6fbbead2f455d9c08a7b8cb8ba3de0d100c7148f');
+  assert.match(license,/MIT License/);
+  const author=await readFile('examples/programs/single-file/controller-vanillaes-csv-esm.js','utf8');
+  assert.match(author,/import \{parse\} from '@vanillaes\/csv'/);
+  const first=await inspectBrowserControllerESM(setup({componentSource:author}));
+  assert.deepEqual(first.missingUrls,[base+'index.js']);
+  const second=await inspectBrowserControllerESM(setup({componentSource:author,remoteModules:[files[0]]}));
+  assert.deepEqual(second.missingUrls,[base+'parse.js',base+'stringify.js']);
+  const complete=await inspectBrowserControllerESM(setup({componentSource:author,remoteModules:files}));
+  assert.equal(complete.complete,true);
+  const compiled=await prepareBrowserControllerESM(setup({componentSource:author,
+    remoteModules:files,remoteLock:frozenLock(files)}));
+  assert.equal(compiled.authoringSourceHash,sha(author));
+  assert.ok(Buffer.byteLength(compiled.sourceUtf8)<48000);
+  const value=await executeBuilt(compiled.sourceUtf8,{title:async()=>'Real CSV'},
+    {n:9});
+  assert.deepEqual(JSON.parse(JSON.stringify(value)),{
+    title:'Real CSV',count:2,first:{name:'Book',price:'18'},total:21
+  });
+  const saved=await createControllerESMSavedSource({authorSourceUtf8:author,
+    programId:'sample.real-csv-413',built:compiled,lockId:'component-lock-'+'f'.repeat(64)});
+  assert.equal((await verifiedControllerESMAuthorSource(saved)).authorSourceUtf8,author);
+  const offline=await executeBuilt(saved,{title:async()=>'Offline CSV'});
+  assert.equal(offline.total,21,'compiled revision uses local functions without CDN');
+  await assert.rejects(prepareBrowserControllerESM(setup({componentSource:author,
+    remoteModules:[...files.slice(0,2),{...files[2],code:files[2].code+' '}],
+    remoteLock:frozenLock(files)})),{code:'E_REMOTE_HASH'});
+});

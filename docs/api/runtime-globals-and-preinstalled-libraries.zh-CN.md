@@ -54,6 +54,8 @@ export default async function main() {
 - `保存版本` 存储不再依赖 CDN 的执行字节及可校验的作者源码快照，`加载版本` 恢复可编辑源码；已固定版本重复 Run 不得重新获取远端模块。老草稿、无 ESM 的版本保持旧格式。重启、定时和 Chrome 真实验收要以同一候选证据独立确认，不因本段文档升级为 PASS。
 - Papa Parse 官方 npm 用法通常是 `import Papa from 'papaparse'`。其 npm 原始分发不等于原生浏览器 ESM；需要验证可用的固定 ESM 转换分发及真实导出，不能把 UMD/CommonJS 原文件谎称 ESM。当前 R4 的无网 CSV 小图测试不能替代真实 Papa Parse CDN 和 Chrome 验收。
 
+**真实未预装 CSV 第三方库样例：**[Controller @vanillaes/csv@4.1.3](../../examples/programs/single-file/controller-vanillaes-csv-esm.README.md) 完整提供作者代码、确切 MIT 来源、原始模块字节与 SHA-256、预期返回 `count:2`/`total:21`。其 `index.js` 静态再导出 `parse.js` 与 `stringify.js`，验证真正的传递依赖和缓存图，而不是使用手写 CSV 伪装第三方库。Node/Chrome 证据须按特定候选分别记录。
+
 **Page USER_SCRIPT 网页运行**（有 `document`，没有 Controller `page`）：
 
 ```js
