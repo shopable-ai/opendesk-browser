@@ -92,7 +92,12 @@ export function createCloudHosting({client,host,document:doc=globalThis.document
       result.disabled=!task.eligible||cloudState.enabled;
       copy.textContent='允许此任务执行结果回传已配对 Provider'+
         (task.resultAllowed?'（当前已批准）':'（当前未批准）');
-      label.append(result,copy);section.append(label);parent.append(section);
+      label.append(result,copy);section.append(label);
+      const constraints=doc.createElement('details'),open=doc.createElement('summary'),
+        values=doc.createElement('pre');
+      open.textContent='查看完整参数约束（默认值、长度与数值范围）';
+      values.textContent=JSON.stringify(task.paramsSchema??{},null,2);
+      constraints.append(open,values);section.append(constraints);parent.append(section);
     }
     renderApprovalSummary();
   }
