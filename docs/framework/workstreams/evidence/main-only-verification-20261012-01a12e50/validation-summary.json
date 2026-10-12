@@ -127,5 +127,13 @@
     "finalSourceCommit": "7c1ce9b00f46c6e1d6fe289a33771839d19dd8d0",
     "productPathsChanged": [],
     "nativeHarnessOnlyChanges": "syntax checked and default gated skip; actual native NOT_TESTED"
+  },
+  "validationScopeAfterConcurrentMain": {
+    "testedProductCommit": "57b892b1",
+    "concurrentMain": "76fe95d8abb6bcc40ee2c2e7fa9ef596c939611b",
+    "newCompilerInputsCoveredByPriorResults": false,
+    "userInstruction": "不要过度测试",
+    "additionalFunctionalTestsRun": false,
+    "finalGitResult": "/Users/shopme/Documents/workspace/opendesk-merge-backups/20261012-main-only-01a12e50/final-result.json"
   }
 }

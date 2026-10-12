@@ -33,3 +33,11 @@
 主目录由 854b88a7 普通快进至产品集成提交；同步前后 60 个未提交文件、状态与 SHA-256 完全一致（相比最初 59 个文件，多出的是并行流程新增文件；也已备份）。原始备份及同步前最新备份位于 /Users/shopme/Documents/workspace/opendesk-merge-backups/20261012-main-only-01a12e50/。不把这些工作纳入提交。其他 detached worktree 保留，本次隔离目录也保持 detached，以保存独立产物，不增加普通分支。
 
 此次正式完成的是分支集成和清理。原生测试 harness 缺口、真实安装与产品交互、最终 F3/ZIP 仍按上述范围未测试，分支合并不提升其等级。所有历史工作流、owner、原 receipt 保留。Chrome/profile/固定端口/主目录 dist/ZIP 未占用；本次 Git 集成和验证资源 released。
+
+## 并行提交续接与用户测试限制
+
+上述完成状态绑定首次清理提交 7c1ce9b0。发布操作记录时，另一会话已将 main 推进到 76fe95d8，并创建 agent/time-review-r13-native-completion-20261012（当前 tip 75bfb690）。本会话已用普通 merge 保留 main 的全部并行编译器提交；继续合入新增分支的 API 文档与原生观察脚本，按准确 tip 删除。
+
+用户随后明确要求“不要过度测试”。从该要求起不新增、不重复功能测试、构建或原生验收；仅检查 Git 可达关系、冲突、推送结果、分支清单和未提交文件保护。125 项组件与双构建的通过结果仅绑定 57b892b1 的已验证产品输入，不能用于宣称并行新增编译器已通过这些验证；新增原生脚本仍为实际运行 NOT_TESTED。
+
+初始清理原始日志受仓库通用 .log 忽略规则影响，现显式跟踪本工作流目录中的原始日志，保留成功、失败和 stale-tip 拒绝证据。最终 Git 状态与主目录未提交文件对比另保存于 /Users/shopme/Documents/workspace/opendesk-merge-backups/20261012-main-only-01a12e50/final-result.json；该文件以实际远端读取结果记录最终 main，不依赖本记录所在提交的自引用。

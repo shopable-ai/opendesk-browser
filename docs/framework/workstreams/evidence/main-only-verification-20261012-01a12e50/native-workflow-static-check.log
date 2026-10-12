@@ -1,0 +1,1 @@
+PASS: both YAML documents parse, expression values and explicit native opt-in verified. Native browser execution NOT_TESTED.

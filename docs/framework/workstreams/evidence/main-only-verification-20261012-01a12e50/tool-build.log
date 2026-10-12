@@ -1,0 +1,16 @@
+
+> opendesk-browser@0.1.0 build:sidebar-tool
+> node scripts/build-sidebar-tool.mjs examples/sidebar-tools/time-review
+
+{
+  "output": "/Users/shopme/Documents/workspace/opendesk-main-only-20261012-01a12e50/artifacts/sidebar-tools/time-review/1.3.0/time-review.opendesk-tool.json",
+  "bytes": 35131,
+  "id": "time-review",
+  "version": "1.3.0",
+  "capabilities": [
+    "time.review",
+    "user.export"
+  ],
+  "validated": true,
+  "installed": false
+}

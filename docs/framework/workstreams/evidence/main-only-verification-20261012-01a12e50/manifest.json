@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-10-12T04:41:33.654156+00:00",
+  "capturedAt": "2026-10-12T04:47:49.176223+00:00",
   "sourceCommit": "7c1ce9b00f46c6e1d6fe289a33771839d19dd8d0",
   "rawPatchWhitespace": "Exact Git diff context contains mandatory leading spaces; raw *.diff excluded only from whitespace lint. Product diff checks passed.",
   "files": [
@@ -305,8 +305,8 @@
     },
     {
       "path": "validation-summary.json",
-      "bytes": 3891,
-      "sha256": "cd8d4839cf36dfc70104a366abeeaf04371580589607e21359202de906e689de"
+      "bytes": 4311,
+      "sha256": "844efa3436deef949f557122bdc5e5d7f758398ab24dd34ea5835d64869f7880"
     }
   ]
 }

@@ -1,0 +1,15 @@
+Updating fb58c532..7c1ce9b0
+Fast-forward
+ .github/workflows/time-review-r13-native.yml       |  55 +++++
+ .github/workflows/time-review-r13.yml              |   6 +
+ .../sidebar-no-modal-toggle-r56-20261012.md        |  33 +++
+ docs/framework/workstreams/time-review-r13.md      |  30 ++-
+ docs/product/sidebar-no-js-modals-r50.zh-CN.md     |   8 +
+ src/ui/sidebar-tools.js                            |  30 ++-
+ tests/environment/no-modal-ui-r50.test.mjs         |  14 +-
+ tests/environment/sidebar-tools-host.test.mjs      |  43 ++++
+ tests/framework/time-review-r13-native.test.mjs    | 240 +++++++++++++++++++++
+ 9 files changed, 439 insertions(+), 20 deletions(-)
+ create mode 100644 .github/workflows/time-review-r13-native.yml
+ create mode 100644 docs/framework/workstreams/sidebar-no-modal-toggle-r56-20261012.md
+ create mode 100644 tests/framework/time-review-r13-native.test.mjs
