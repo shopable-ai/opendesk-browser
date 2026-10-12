@@ -28,7 +28,7 @@ function fixture(sourceUtf8,{getLocks=()=>[],waitForInspect}={}) {
 test('development UI keeps one editor without @require insertion, lock dropdown or legacy jQuery controls',async()=>{
   const html=await readFile('src/ui/tool.html','utf8');
   assert.match(html,/id="script-source"/);
-  assert.match(html,/<summary>网页 JavaScript 试运行<\/summary>/);
+  assert.match(html,/<summary id="page-preview-mode-title">网页 JavaScript 试运行<\/summary>/);
   for(const id of ['page-dependency-panel','page-dependency-url','page-dependency-add','page-dependency-lock',
     'page-dependency-prepare','page-dependency-approve','page-dependency-review','page-preview-jquery','page-preview-entry'])
     assert.doesNotMatch(html,new RegExp('id="'+id+'"'),id+' is an obsolete UI control');
