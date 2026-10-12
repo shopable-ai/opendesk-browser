@@ -15,11 +15,19 @@ export default async function main() {
 
 Sidebar 内联 Controller 草稿写 `async function main()`（不含 `export default`），拥有同样的 `page`、`_`、`dayjs` 使用合同。这里 `page` / `params` 是受控 Worker 的**词法能力**，不是网页 `window.page`；`_` / `dayjs` / `OpenDeskLibs` 由内置库注册器只在 Controller / Page USER_SCRIPT 世界预装。Controller 的旧 `main({page})` ESM 入口仍兼容，但不能以此要求新用户显式传参。
 
-Page USER_SCRIPT 用 `document` + 默认 `_` / `dayjs`，没有 Controller `page`。SW、Side Panel 可信宿主和扩展自定义 HTML 页面要在**各自的 WXT 固定入口**静态导入依赖，不能把 `src/libs` 当作整个浏览器共享的 JS 全局；安装的 Side Panel 工具 iframe 使用 `OpenDeskTool.root/request`，不继承主扩展全局。现有可选 Page 库仍按 `@opendesk-lib` 单 ID 声明才加载；无 CDN、不污染网站 MAIN。
+Page USER_SCRIPT 用 `document` + 默认 `_` / `dayjs`，没有 Controller `page`。SW、Side Panel 可信宿主和扩展自定义 HTML 页面要在**各自的 WXT 固定入口**静态导入依赖，不能把 `src/libs` 当作整个浏览器共享的 JS 全局；安装的 Side Panel 工具 iframe 使用 `OpenDeskTool.root/request`，不继承主扩展全局。可选 Page 库按多个 `@opendesk-lib` 行有序声明、按需加载；无 CDN、不污染网站 MAIN。
 
 具体的世界矩阵、正确 API、零参数 Controller/Page 双 Demo 和下一阶段验收入口，见 **[零参数 main 与预装库使用合同](../../docs/api/runtime-globals-and-preinstalled-libraries.zh-CN.md)**。请优先引用该规范，避免继续从历史样例误推导 `main({page,params})` 是强制签名。
 
 **四类用法的可复制演示（R16.5）**：普通用户 [Controller 零参数 ESM](../../examples/programs/controller-globals-zero-arg/README.md)、[Page 零参数 ESM](../../examples/programs/page-globals-zero-arg/README.md)、[单文件 Page](../../examples/programs/single-file/page-globals-zero-arg.js) 使用已提供的变量；扩展维护者的 [Background/可信 Side Panel/自定义页静态 import](../../examples/libs/trusted-imports/README.zh-CN.md) 与用户的 [可打包 Side Panel 工具 OpenDeskTool](../../examples/sidebar-tools/runtime-globals-demo/README.md) 则走各自独立构建/沙箱规则。每类都有 Node/打包校验，原生 Chrome 结果仍单独记账。不要把这五类源码格式混作一份 `main({page})` 模板。
+
+## 多库组合（R16.6 新增）
+
+普通用户无需传参、无需 npm：单文件 Page 源码最前面依次写 `// @opendesk-lib react`、`// @opendesk-lib axios`、`// @opendesk-lib query-string`，再写零参数 `async function main()`。正式 UserScript 元数据头也接受多条。支持最多六条声明、重复去重、按作者顺序加载，拒绝 React+Vue 和 `@require` 混用。
+
+读取器为组合共享一次本地 manifest，并对每个选中的本地资源校验固定 SHA/ABI。编译结果整体不能超过 512 KiB；超限直接 `E_PAGE_SOURCE_LIMIT`，不能通过增加浏览器权限或加载运行时 CDN 解决。新安装验收回执绑定每项 ID/SHA，历史单库回执不会自动批准多库更新。
+
+真实双库演示：[Axios + query-string](../../examples/programs/single-file/page-axios-query-string.README.md)。React 的固定资源包含 ReactDOM，只加载一份；**可见 React UI 仍须使用已有受管挂载/Stop 系统**。本次新增源码和 Node 回归并不能替代新候选的 Chrome 原生结果。
 
 ## 1. 当前真实目录及库状态
 
@@ -60,7 +68,7 @@ src/libs/
 
 - **构建期**：WXT 为每个 `src/libs/packages/*` 执行独立的固定入口，生成扩展本地 IIFE；所有正式预装代码随安装 ZIP 分发，用户不需要 npm/CDN，不在浏览器里现场编译。这会增加 ZIP 文件量，但**不等于把所有库合并进 SW 或浏览器启动时内存**。
 - **后台启动**：SW 只依赖已审核的后台入口和明确登记的本地 sidecar；Lodash/Day.js 的公共包装器、Cheerio/React/Vue 等 UI 或解析库**不应被编进 SW**。发布构建的真实 Rollup 模块图由 `scripts/bundle-provenance.mjs` 检查。
-- **用户运行**：Controller/Page 在启动相应用户程序时才取默认 Lodash、Day.js、my-utils 等固定资源；Page 的 `// @opendesk-lib <id>` 必须显式声明，才读取对应扩展内代码文件并验证 manifest SHA。jQuery、React（内含 ReactDOM）、Vue 和其他可选库**不进入未声明的程序**。当前仍是**一个 Page 程序最多一个可选声明**，不是自动加载全部。
+- **用户运行**：Controller/Page 在启动相应用户程序时才取默认 Lodash、Day.js、my-utils 等固定资源；Page 的 `// @opendesk-lib <id>` 必须显式声明，才读取对应扩展内代码文件并验证 manifest SHA。jQuery、React（内含 ReactDOM）、Vue 和其他可选库**不进入未声明的程序**。一个 Page 程序现在最多六条可选库声明（顺序固定，重复项去重，不可组合 React 和 Vue），不是自动加载全部。
 - **静态样式**：Tailwind 目标是本地构建的 CSS，只有特定工具 UI 用到时才挂载，不应生成后台 `tailwind.js` 或网页全局重置样式。
 
 真实体积报告运行 `npm run build:size`，结果位于 `artifacts/package-size-production.json`。其中 `totalPackageBytes` 是 **dist 文件原始字节数之和，不等于压缩 ZIP 大小**（开发包还含 source map），`loadingGroups` 是彼此**重叠、不能相加**的典型资源集合；`runtimeResourcePlan` 明列 SW 启动、Page/Controller 默认资源及每项按需资源的独立字节数、真实加载器允许的上限和剩余空间。React/Vue 独立固定资源当前按其 **256 KiB** 运行时读取限制计，不得错误当成普通 JS 的 512 KiB 上限。报告不是内存峰值或性能基准；若需得到真正的运行开销，应使用实际 Chrome 内存和网络记录。
@@ -142,7 +150,7 @@ async function main() {
 
 `cheerio` 不是 DOMPurify；其解析结果不代表已净化，未经审核不得插入特权 DOM。默认不抓取网页、不自动联网、不加载网站 MAIN。
 
-query-string 必须在 Page USER_SCRIPT 显式声明（不能与其他可选库在同一程序声明）：
+query-string 必须在 Page USER_SCRIPT 显式声明（可与 Axios/React 等组合）：
 
 ```js
 // @opendesk-lib query-string

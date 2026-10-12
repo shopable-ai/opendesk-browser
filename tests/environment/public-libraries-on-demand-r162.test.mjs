@@ -11,7 +11,7 @@ import {
 } from '../../src/libs/runtime-contract.js';
 import {BUILTIN_CATALOG} from '../../src/libs/catalog.js';
 import {
-  loadBuiltinPageSource,loadBuiltinWorkerSource,loadPackagedOptionalPageLibrary
+  loadBuiltinPageSource,loadBuiltinWorkerSource,loadPackagedOptionalPageLibrary,loadPackagedOptionalPageLibraries
 } from '../../src/libs/loader.js';
 import {loadPackagedPageFramework} from '../../src/libs/page-frameworks/loader.js';
 import {PAGE_FRAMEWORK_RUNTIMES,PAGE_FRAMEWORK_RESOURCE_LIMIT} from '../../src/libs/page-frameworks/contract.js';
@@ -137,4 +137,23 @@ test('build and runtime caps match; only SW has its distinct larger budget',()=>
   assert.equal(BUILD_POLICY.splitChunks,false);
   assert.equal(BUILD_POLICY.runtimeChunk,false);
   assert.equal(BUILD_POLICY.formats[0],'iife');
+});
+
+// Multi selections share one manifest. No optional asset is eagerly loaded.
+test('multi Page opt-ins fetch only selected SHA-verified code from one manifest',async()=>{
+  const f=await fixture(),ids=['axios','queryString','cheerio'];
+  const result=await loadPackagedOptionalPageLibraries(ids,{runtime,fetchImpl:f.fetchImpl});
+  assert.deepEqual(result.map(item=>item.id),ids);
+  assert.deepEqual(f.requests.map(item=>item.path),[
+    BUILTIN_CATALOG.resourceManifest,...ids.map(id=>BUILTIN_CATALOG.libraries[id].output)
+  ]);
+  assert(result.every(item=>item.sha256===sha(item.code)&&item.abi===BUILTIN_ABI));
+  f.requests.length=0;
+  for(const bad of [[],['axios','axios'],['axios','lodash'],['missing']])
+    await assert.rejects(loadPackagedOptionalPageLibraries(bad,{runtime,fetchImpl:f.fetchImpl}),
+      error=>error.code==='E_BUILTIN_DECLARATION');
+  assert.deepEqual(f.requests,[],'invalid declarations never load even the manifest');
+  f.sources.set(BUILTIN_CATALOG.libraries.queryString.output,'// tampered');
+  await assert.rejects(loadPackagedOptionalPageLibraries(ids,{runtime,fetchImpl:f.fetchImpl}),
+    error=>error.code==='E_BUILTIN_HASH');
 });

@@ -107,6 +107,12 @@ node scripts/build-sidebar-tool.mjs examples/sidebar-tools/runtime-globals-demo
 
 构建后的工具 JSON 还须用户在「工具」中审阅、确认安装与主动打开；真实 Chrome 验收用原始版本/权限/文档/构建哈希判断，L2 与实测不能混作一个 PASS。
 
+## 多库声明（R16.6）
+
+用户在 Page USER_SCRIPT 源码的前导注释或正式元数据头中，可以最多写六行 `// @opendesk-lib <id>`。例如 React、Axios、query-string 可组合使用，重复的相同 ID 不会重复读入；React 和 Vue 同时声明、未知 ID、与 `@require` 混用均拒绝。声明顺序决定独立固定资源的执行顺序，默认 `_` / `dayjs` 不受影响，`main()` 仍是零参数。
+
+按需载入不修改网站 MAIN、SW 或任何 Chrome 权限。组合后的 Chrome USER_SCRIPT 编译文本上限 512 KiB，新回执逐库保存 ID/SHA 供安装和升级核对。完整双库源码和手工路径见 [Page Axios + query-string](../../examples/programs/single-file/page-axios-query-string.README.md)；可见 React UI 需要既有受管 ShadowRoot 生命周期，不能仅靠声明就声称 React UI 已安装并可卸载。
+
 ## 3. 可选 Page 库如何直接使用
 
 **示例一：真实 Axios（普通网页网络，遵从 CORS/CSP）**：
@@ -128,7 +134,7 @@ async function main() {
 }
 ```
 
-**示例三：Page React/Vue**：必须在受管 Page UI 中真正挂载并于 Stop 时清理，而非创建游离 DOM 后声称已显示。优先直接使用 [React Direct](../../examples/programs/page-ui-react-direct/README.md)、[Vue Direct](../../examples/programs/page-ui-vue-direct/README.md) 和 [React TOC](../../examples/programs/page-ui-toc-react-direct/README.md) 的可见 UI 项目；仍是各自独立的 `// @opendesk-lib react` 或 `vue` 选项，不支持在一个 Page 脚本声明多个可选 ID。
+**示例三：Page React/Vue**：必须在受管 Page UI 中真正挂载并于 Stop 时清理，而非创建游离 DOM 后声称已显示。优先直接使用 [React Direct](../../examples/programs/page-ui-react-direct/README.md)、[Vue Direct](../../examples/programs/page-ui-vue-direct/README.md) 和 [React TOC](../../examples/programs/page-ui-toc-react-direct/README.md) 的可见 UI 项目；仍使用各自的 `// @opendesk-lib react` 或 `vue` 选项，可在同一个 Page 脚本里声明多个可选 ID，但 React 和 Vue 不可同用。
 
 这几段仅说明 **当前世界与 API 写法**，不是对网络端点、任意 DOM 挂载、Controller Axios 或 Chrome 成功回执的承诺。精确可选清单及状态查当前 [运行 Catalog](../../src/libs/runtime-contract.js)、[公共库 README](../../src/libs/README.md)；并按所选版本检查该 ID 是否已接线、是否通过正式构建及真实 Chrome。用户不用自行安装 npm 或填写版本，但框架开发者必须固定上游来源/锁文件并审计权限、许可证、大小、ABI。
 
