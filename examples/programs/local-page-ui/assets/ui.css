@@ -5,6 +5,7 @@
 .local-ui-close{min-height:30px;padding:5px 9px;flex:none}
 .local-ui-site,.local-ui-hint{margin:0;color:var(--od-muted);font-size:12px;line-height:1.5;overflow-wrap:anywhere}
 .local-ui-controls{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.od-button--primary{background:rgb(31,102,178);border-color:rgb(31,102,178)}
 .local-ui-action{flex:1 1 140px}
 .local-ui-counter{display:flex;align-items:baseline;gap:8px;padding:4px 0}
 .local-ui-counter-label{font-size:12px;color:var(--od-muted)}

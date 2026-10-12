@@ -30,3 +30,10 @@
 - 当前工作：隔离提交供代码评审/CI，保留 main 的并行写入，不合并或强推。
 - 资源占用：无；不伪造任何浏览器测试回执。
 - 合入前复核最新 main 并完成上述验证；如 CI 或原生验收失败，应在同一分支修复并保留失败记录。
+
+## 2026-10-12 首轮 CI 失败与兼容修复
+
+- 初始候选 65b3ad4f98675ad87c894f3bffca4456c3f0095c：源码合同 PASS（[workflow 38206940595](https://github.com/shopable-ai/opendesk-browser/actions/runs/38206940595)）、网站授权 PASS（[38206940634](https://github.com/shopable-ai/opendesk-browser/actions/runs/38206940634)）、Page 打包 PASS（[38206940656](https://github.com/shopable-ai/opendesk-browser/actions/runs/38206940656)）。
+- Mac Native [workflow 38206940811](https://github.com/shopable-ai/opendesk-browser/actions/runs/38206940811) **FAIL**；该轮 Controller 已通过真实运行，随后在 Page UI R2.2 native case `pageVersion(1)` 断言失败，`'点击计数' !== 'Local v1'`。失败原始 run 不删除、不提升为 PASS。
+- 与既有 native 断言核对后保留 `src/model.js` 原 `Local v1`，恢复受管计数按钮的 CSS 初始颜色 `rgb(31,102,178)`（测试会替换为 v2 色彩），恢复关闭按钮的 `data-action=close`。同时保留扩展的网页范围、Shadow DOM 悬浮、窄屏和运行身份诊断。Node 定向测试补充对约定数据属性/颜色的断言。
+- 这次代码/测试更改构成新的明确输入，需在新的 CI 候选重新执行受影响 Native 检查；保留失败记录及 SHA。

@@ -52,6 +52,7 @@ test('local-page-ui remains a top-frame, on-demand USER_SCRIPT with standard HTT
 });
 
 test('floating view works without host-page headings or special DOM; actions affect only its own nodes',()=>{
+  assert.match(await readFile(project+'/assets/ui.css','utf8'),/background:rgb\(31,102,178\)/);
   const h=harness('shop.example.test:8443');
   render(h.ui,{label:'测试点击',step:3});
   const card=h.find(node=>node.className==='od-card local-page-ui');
@@ -66,6 +67,8 @@ test('floating view works without host-page headings or special DOM; actions aff
   assert.equal(counter.dataset.count,'6');
   const close=h.find(node=>node.className==='od-button local-ui-close');
   assert.equal(close.type,'button');
+  assert.equal(close.dataset.action,'close');
+  assert.equal(action.dataset.action,'count');
   close.click();assert.equal(h.disposed,1);
 });
 

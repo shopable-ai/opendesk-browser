@@ -16,14 +16,14 @@ export function render(ui,{label,step}) {
   mark.alt='';mark.width=24;mark.height=24;
   const title=node('strong','local-ui-title','OpenDesk Page UI');
   const close=node('button','od-button local-ui-close','关闭');
-  close.type='button';close.setAttribute('aria-label','关闭 OpenDesk 页面 UI');
+  close.type='button';close.dataset.action='close';close.setAttribute('aria-label','关闭 OpenDesk 页面 UI');
   header.append(mark,title,close);
 
   const host=doc.defaultView?.location?.host||'当前网页';
   const site=node('p','local-ui-site','已挂载 · '+host);
   const controls=node('div','local-ui-controls');
   const action=node('button','od-button od-button--primary local-ui-action',label);
-  action.type='button';action.dataset.action='count';
+  action.type='button';action.dataset.action='count';action.setAttribute('aria-label','点击计数');
   const counter=node('div','local-ui-counter');
   const caption=node('span','local-ui-counter-label','计数');
   const output=node('output','local-ui-output','0');

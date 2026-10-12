@@ -14,7 +14,7 @@ chrome://、扩展页、Chrome Web Store 的受保护页面、PDF 浏览器、fi
 
 1. 安装并配对相容的 Native Host 与扩展，开启用户脚本并授予要测试的站点权限；参照 [目录开发说明](../../../docs/framework/local-directory-cli-r17.zh-CN.md)。
 2. 在本目录执行 opendesk browser dev .，或用已经授权 --allow-project 的现有 MCP 连接；在 Side Panel「开发 → 直接编辑本地项目」选择 **local-page-ui · 页面脚本**。
-3. 在任一普通 HTTP/HTTPS 页面点击「运行本地项目」，网页右上角应出现 OpenDesk Page UI 卡片，显示目标域名；点「点击计数」只更新卡片中的数字，点「关闭」卸载卡片。开发 Tab 的「停止」使用原 previewId 释放受管资源。
+3. 在任一普通 HTTP/HTTPS 页面点击「运行本地项目」，网页右上角应出现 OpenDesk Page UI 卡片，显示目标域名；点「Local v1」（计数按钮）只更新卡片中的数字，点「关闭」卸载卡片。开发 Tab 的「停止」使用原 previewId 释放受管资源。
 4. 切到不同域名或不同端口的新网页并授予网站权限，重新点击运行。不再依赖 Browser Test Lab 标题、h1 或 #page-ui-demo-target。保存 src/model.js 中的 label/step 或 assets/ui.css 后仍须手动 Run 才挂新版。
 
 统一本机标准测试页也可使用：
