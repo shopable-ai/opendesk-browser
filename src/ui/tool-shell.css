@@ -847,3 +847,28 @@
 
 /* Scheduled R2: paged history stays within the original plan card. */
 .schedule-load-more{justify-self:start;min-height:36px}
+
+
+/* Trusted native Cookie inspector: within existing Tools surface, not the sandbox. */
+.trusted-cookie-panel{margin-top:var(--space-3);padding:var(--space-3);min-width:0}
+.trusted-cookie-panel>summary{display:flex;align-items:center;gap:var(--space-2);flex-wrap:wrap;cursor:pointer}
+.trusted-cookie-panel>summary::marker{color:var(--od-sub)}
+.trusted-cookie-panel>summary strong{color:var(--od-ink)}
+.trusted-cookie-content{display:grid;gap:var(--space-2);padding-top:var(--space-3);min-width:0}
+.trusted-cookie-content>.hint{line-height:1.6;margin:0}
+.trusted-cookie-content>.identity{margin:0}
+.trusted-cookie-content>button{justify-self:start}
+.trusted-cookie-list{display:grid;gap:var(--space-2);max-height:330px;overflow:auto;min-width:0}
+.trusted-cookie-item{display:flex;align-items:flex-start;gap:var(--space-2);padding:var(--space-2);border:1px solid var(--od-input-border);border-radius:var(--radius-control);min-width:0;flex-wrap:wrap}
+.trusted-cookie-item-copy{display:grid;gap:2px;flex:1 1 140px;min-width:0}
+.trusted-cookie-item-copy>strong,.trusted-cookie-value{overflow-wrap:anywhere;word-break:break-word}
+.trusted-cookie-item-copy>small{color:var(--od-sub);overflow-wrap:anywhere}
+.trusted-cookie-value{font:12px/1.5 ui-monospace,monospace}
+.trusted-cookie-item-actions{display:flex;flex-wrap:wrap;gap:var(--space-1)}
+.trusted-cookie-item-actions button{min-height:32px}
+.trusted-cookie-write{padding:var(--space-2);border-top:1px solid var(--od-input-border);min-width:0}
+.trusted-cookie-write>summary{margin-bottom:var(--space-2)}
+.trusted-cookie-write label{margin-bottom:var(--space-1)}
+.trusted-cookie-write input{margin-top:0}
+.trusted-cookie-write>.hint{line-height:1.6}
+@media(max-width:350px){.trusted-cookie-item-actions{width:100%}}
