@@ -83,3 +83,18 @@ test('existing preview asset remains committed separately from production runtim
   const html=await load('src/ui/tool.html');
   assert.doesNotMatch(html,/scheduled-tasks-r1-preview\.html/);
 });
+
+test('R1.12 real runner focuses the scheduled page and keeps human-readable plan labels',async()=>{
+  const [css,ui,host]=await Promise.all([
+    load('src/ui/tool-shell.css'),load('src/ui/scheduled-task-workbench.js'),
+    load('src/ui/scheduled-task-host.js')
+  ]);
+  assert.match(css,/:root\[data-opendesk-surface="scheduled-runner"\] \.workbench-nav\{display:none!important\}/);
+  assert.match(css,/:root\[data-opendesk-surface="scheduled-runner"\] #workspace-content\{/);
+  assert.match(css,/max-width:760px/);
+  assert.match(ui,/frequencyLabel\(plan\)/,'plan displays translated schedule instead of internal trigger enum');
+  assert.match(ui,/scheduleStatus\(last.status\)/,'history status is user-readable');
+  assert.match(ui,/catalogEntry\?\.manifest\?\.title\|\|plan.taskId/,'installed Task title is preferred');
+  assert.match(ui,/再开运行页 ↗/,'runner tab has a distinct second-host action');
+  assert.match(host,/host\.start\(/,'layout must not replace the actual Controller runner');
+});

@@ -421,6 +421,24 @@ test('real installed Chrome: verified Task via Alarms -> original RunHost -> pag
     return rows.find(x=>x.documentId&&x.documentUrl?.includes('scheduledRunner=1')&&x.contextType==='TAB');
   },'actual registered visible runner TAB context');
   note('visible-runner',{documentId:runnerContext.documentId,url:runnerContext.documentUrl});
+  const runnerPresentation=await deadline(async()=>{
+    const observation=await evaluate(client,
+      '(()=>{const root=document.documentElement,main=document.querySelector("#workspace-content"),nav=document.querySelector(".workbench-nav"),panel=document.querySelector("#scheduled-panel");'+
+      'return {surface:root.dataset.opendeskSurface,navHidden:getComputedStyle(nav).display==="none",contentWidth:main.getBoundingClientRect().width,'+
+      'viewportWidth:innerWidth,scheduleVisible:!!panel&&!panel.hidden,title:document.querySelector("#schedule-panel-title")?.textContent,openRunnerLabel:document.querySelector("#schedule-open-runner")?.textContent}})()',
+      runnerSid);
+    return observation.surface==='scheduled-runner'&&observation.scheduleVisible&&
+      observation.title?.includes('运行页')?observation:null;
+  },'real dedicated visible runner finished its normal product navigation');
+  assert.equal(runnerPresentation.surface,'scheduled-runner');
+  assert.equal(runnerPresentation.navHidden,true,'dedicated runner must not inherit unrelated workbench tabs');
+  assert.equal(runnerPresentation.scheduleVisible,true,'visible runner must retain its real plan manager');
+  assert(runnerPresentation.contentWidth>250&&runnerPresentation.contentWidth<=761,
+    'wide runner must use a bounded readable content column');
+  assert.match(runnerPresentation.title,/运行页.*定时计划/);
+  assert.match(runnerPresentation.openRunnerLabel,/再开运行页/);
+  report.tests.dedicatedRunnerLayout='PASS';
+  note('dedicated-runner-layout',runnerPresentation);
   let secondRunnerId=null;
   if(LIFECYCLE){
     // A second visible extension document races the SAME durable FireId.

@@ -14,6 +14,27 @@ function action(doc,label,fn,css='od-button od-button--secondary'){
   const button=element(doc,'button',css,label);
   button.type='button';button.addEventListener('click',fn);return button;
 }
+const scheduleStatusLabels=Object.freeze({
+  READY:'待执行',WAITING_HOST:'等待运行页',WAITING_TARGET:'等待目标页',
+  WAITING_SLOT:'等待执行槽',ADMITTED:'已启动',RUNNING:'运行中',
+  SUCCESS:'成功',SETTLING:'正在结算',FAILED:'失败',STOPPED:'已停止',
+  UNKNOWN:'结果未确认',MISSED:'已错过',CANCELLED:'已取消',
+  NEEDS_ATTENTION:'需要处理'
+});
+const scheduleStatus=status=>scheduleStatusLabels[status]||status||'未知';
+const pad2=value=>String(value).padStart(2,'0');
+const frequencyLabel=plan=>{
+  const kind=plan.triggerKind,rule=plan.triggerSpec||{};
+  const at=pad2(rule.hour)+':'+pad2(rule.minute);
+  if(kind==='once')return '执行一次';
+  if(kind==='daily')return '每天 '+at;
+  if(kind==='weekly'){
+    const weekdays=['日','一','二','三','四','五','六'];
+    return '每周'+(rule.days||[]).slice().sort((a,b)=>((a+6)%7)-((b+6)%7)).map(i=>weekdays[i]).join('、')+' '+at;
+  }
+  if(kind==='interval')return '每隔 '+rule.everyMinutes+' 分钟';
+  return kind||'未知频率';
+};
 const describeTime=(at,zone)=>{
   if(at===null||!Number.isFinite(at))return '无后续触发';
   try{return new Intl.DateTimeFormat('zh-CN',{timeZone:zone,year:'numeric',month:'2-digit',
@@ -36,8 +57,13 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
   const views={list:get('schedule-list-view'),form:get('schedule-form'),manager:get('schedule-task-manager')};
   const show=view=>{
     for(const [key,node] of Object.entries(views))node.hidden=key!==view;
+    // The separately visible runner is already a Host. Keep a deliberate
+    // second-Host action instead of saying "open a runner" inside one.
+    text(get('schedule-open-runner'),
+      doc.documentElement?.dataset?.opendeskSurface==='scheduled-runner'?'再开运行页 ↗':'打开运行页 ↗');
     get('schedule-panel-title').textContent=view==='manager'?'任务管理':view==='form'?
-      (editing?'编辑定时计划':'创建定时计划'):'定时计划';
+      (editing?'编辑定时计划':'创建定时计划'):
+      doc.documentElement?.dataset?.opendeskSurface==='scheduled-runner'?'OpenDesk 运行页 · 定时计划':'定时计划';
   };
   const showPanel=()=>{
     shown=true;get('scheduled-panel').hidden=false;
@@ -97,17 +123,18 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
       const head=element(doc,'div','schedule-card-head od-toolbar');
       head.append(element(doc,'strong',null,plan.title),element(doc,'span','schedule-state',
         plan.paused?'已暂停':plan.needsAttention||plan.history?.[0]?.status==='NEEDS_ATTENTION'?'需要处理':'已启用'));
-      const info=element(doc,'p','hint',`${plan.taskId} · v${plan.version} · ${plan.triggerKind} · ${plan.timezone}`);
+      const catalogEntry=catalog.find(item=>item.taskId===plan.taskId&&item.version===plan.version);
+      const info=element(doc,'p','hint',`${catalogEntry?.manifest?.title||plan.taskId} · v${plan.version} · ${frequencyLabel(plan)} · ${plan.timezone}`);
       const next=element(doc,'p','hint','下次：'+describeTime(plan.nextDueAt,plan.timezone));
       if(plan.needsAttention)next.append(element(doc,'span','schedule-warning',' · 任务已停用、版本改变或网站权限不足，需重新授权'));
       const last=plan.history?.[0];
       const history=element(doc,'details','schedule-history');
       history.append(element(doc,'summary',null,
-        '运行记录'+(last?` · 最近：${last.status} · ${describeTime(last.scheduledAt,plan.timezone)}`:' · 暂无')));
+        '运行记录'+(last?` · 最近：${scheduleStatus(last.status)} · ${describeTime(last.scheduledAt,plan.timezone)}`:' · 暂无')));
       const historyList=element(doc,'div','od-stack');
       for(const fire of plan.history||[]){
         const row=element(doc,'div','schedule-history-row',
-          `${describeTime(fire.scheduledAt,plan.timezone)} · ${fire.status}`);
+          `${describeTime(fire.scheduledAt,plan.timezone)} · ${scheduleStatus(fire.status)}`);
         if(fire.runId)row.append(element(doc,'small',null,
           `Run ${fire.runId} · Result ${fire.resultId??'未生成'} · 释放：${fire.retirementState||'等待'}`));
         historyList.append(row);

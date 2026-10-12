@@ -794,3 +794,19 @@
 #page-component-remote pre{white-space:pre-wrap;overflow-wrap:anywhere;min-width:0;max-height:16rem;overflow:auto;font-size:12px;line-height:1.5;margin:0}
 #page-component-remote .od-toolbar{flex-wrap:wrap;gap:var(--space-2)}
 #page-component-remote-status[data-state="error"]{color:var(--od-negative)}
+
+/* Dedicated, visible scheduled RunHost tab. This is the SAME trusted tool.html
+ * entry and execution chain, not a second scheduler or an offscreen page.
+ * Keep the validated 320px Side Panel layout unchanged. */
+:root[data-opendesk-surface="scheduled-runner"] .workbench-nav{display:none!important}
+:root[data-opendesk-surface="scheduled-runner"] #workspace-content{
+  max-width:760px;
+  width:100%;
+  padding:20px clamp(12px,3vw,24px) 32px;
+  margin-inline:auto
+}
+:root[data-opendesk-surface="scheduled-runner"] .schedule-header strong{font-size:18px}
+:root[data-opendesk-surface="scheduled-runner"] .schedule-panel{gap:var(--space-4)}
+:root[data-opendesk-surface="scheduled-runner"] .schedule-card,
+:root[data-opendesk-surface="scheduled-runner"] .schedule-manager-card{padding:var(--space-4)}
+:root[data-opendesk-surface="scheduled-runner"] .schedule-card-head strong{font-size:14px}
