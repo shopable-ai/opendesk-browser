@@ -129,6 +129,33 @@ export async function observeMarketSender(d,{holdProbe=false}={}){
   return {record,dispose};
 }
 
+// A debugger observer can report executionContextCreated while attaching to an
+// already-running document. Those pre-arming events are valid diagnostics, not
+// a recovery failure. After arming, reject termination/replacement of the
+// particular original context, and independently require ZERO registry calls.
+export function assertMarketRecoveryObserverStable(record){
+  assert.equal(record?.name,'C');
+  assert.equal(record.status,'ARMED','source-bound original registry observer must remain armed');
+  assert(Number.isInteger(record.armedEventSequence)&&record.armedEventSequence>=0);
+  assert(typeof record.executionContext?.uniqueId==='string'&&record.executionContext.uniqueId.length>0);
+  assert(Number.isSafeInteger(record.executionContext.id));
+  assert.deepEqual(record.errors,[],'observer read errors invalidate the receipt');
+  assert.deepEqual(record.observations,[],'explicit recovery must never resubmit the installed registry');
+  const invalid=record.events.filter(event=>{
+    if(!(event.sequence>record.armedEventSequence))return false;
+    if(event.method==='Target.targetDestroyed')
+      return event.params?.targetId===record.target.targetId;
+    if(event.sessionId!==record.sessionId)return false;
+    if(['Inspector.detached','Runtime.executionContextsCleared'].includes(event.method))return true;
+    if(event.method==='Runtime.executionContextDestroyed')
+      return event.params?.executionContextId===record.executionContext.id;
+    return event.method==='Runtime.executionContextCreated'&&
+      event.params?.context?.id===record.executionContext.id&&
+      event.params?.context?.uniqueId!==record.executionContext.uniqueId;
+  });
+  assert.deepEqual(invalid,[],'original trusted review context changed after recovery observer was armed');
+}
+
 // Hold one exact, unchanged product call until the driver physically terminates
 // its owned worker/page. Unlike sender observation, this never resumes a hit.
 export async function armMarketCut(d,name,{targetId=null,observeRegistryWrites=false,wakeAfterContextDestroyed=null}={}){
@@ -234,6 +261,10 @@ export async function armMarketCut(d,name,{targetId=null,observeRegistryWrites=f
       await controller.send('ServiceWorker.enable');
       record.workerVersion=await d.until(()=>versions.filter(row=>row.targetId===target.targetId&&row.scriptURL===origin+'/sw.js'&&row.runningStatus==='running').at(-1),'exact running market worker version');
     }
+    // Keep pre-arm events for diagnostics. Native recovery observes only events
+    // after this exact breakpoint/context pair was successfully armed.
+    record.armedEventSequence=eventSequence;
+    record.armedContextUniqueId=context.uniqueId;
     record.status='ARMED';
   }catch(error){failed=error;record.status='NOT_OBSERVED';record.errors.push({stage:'arm',message:error.message});await dispose();throw error;}
   async function wait(){return d.until(()=>{if(failed)throw failed;return record.hit;},'native exact interruption '+name);}

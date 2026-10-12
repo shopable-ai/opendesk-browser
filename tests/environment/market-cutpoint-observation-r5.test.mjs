@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {discoverMarketCutPoints,marketCallLocation} from '../helpers/app-market-r5-cutpoints.mjs';
-import {marketSenderPoints,assertObservedMarketConnection,waitForMarketCutOutcome} from '../helpers/app-market-r5-observers.mjs';
+import {marketSenderPoints,assertObservedMarketConnection,waitForMarketCutOutcome,assertMarketRecoveryObserverStable} from '../helpers/app-market-r5-observers.mjs';
 
 test('a failed active wake cannot be swallowed by polling and replaced with later success',async()=>{
   const failure=Error('actual website wake failed');let calls=0;
@@ -74,4 +74,32 @@ test('browser call position must be unique inside the exact invocation, never a 
     assert.throws(()=>marketCallLocation(point,locations,'loaded-script'),{code:'E_NATIVE_NOT_OBSERVED'});
   }
   assert.throws(()=>marketCallLocation({...point,nestedInvocations:1},[actual],'loaded-script'),{code:'E_NATIVE_NOT_OBSERVED'});
+});
+
+test('recovery observer preserves pre-arm context events and forbids post-arm registry replay or context loss',()=>{
+  const initial={sequence:1,method:'Runtime.executionContextCreated',sessionId:'test-session',
+    params:{context:{id:7,uniqueId:'unique-original'}}};
+  const good={name:'C',status:'ARMED',sessionId:'test-session',armedEventSequence:2,
+    target:{targetId:'review-target'},executionContext:{id:7,uniqueId:'unique-original'},
+    errors:[],observations:[],events:[initial]};
+  assert.doesNotThrow(()=>assertMarketRecoveryObserverStable(good),
+    'a contextCreated event received during native debugger attachment is not a recovery write');
+  for(const event of [
+    {sequence:3,method:'Target.targetDestroyed',params:{targetId:'review-target'}},
+    {sequence:3,method:'Inspector.detached',sessionId:'test-session'},
+    {sequence:3,method:'Runtime.executionContextsCleared',sessionId:'test-session'},
+    {sequence:3,method:'Runtime.executionContextDestroyed',sessionId:'test-session',params:{executionContextId:7}},
+    {sequence:3,method:'Runtime.executionContextCreated',sessionId:'test-session',
+      params:{context:{id:7,uniqueId:'different'}}}
+  ]){
+    assert.throws(()=>assertMarketRecoveryObserverStable({...good,events:[initial,event]}),
+      'post-arm destruction of original context invalidates zero-replay evidence');
+  }
+  assert.doesNotThrow(()=>assertMarketRecoveryObserverStable({...good,events:[initial,
+    {sequence:3,method:'Runtime.executionContextCreated',sessionId:'test-session',
+      params:{context:{id:11,uniqueId:'unrelated'}}}]}));
+  assert.throws(()=>assertMarketRecoveryObserverStable({...good,observations:[{value:{key:'opendesk.sidebar-tools.installed.v1'}}]}),
+    'any observed installed-registry submission invalidates the recovery receipt');
+  assert.throws(()=>assertMarketRecoveryObserverStable({...good,status:'NOT_OBSERVED'}));
+  assert.throws(()=>assertMarketRecoveryObserverStable({...good,errors:[{message:'debugger lost'}]}));
 });

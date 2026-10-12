@@ -13,7 +13,7 @@ import {MARKET_BATCH_STORE,marketBatchUnresolved} from '../../src/marketplace/ba
 import {OFFICIAL_COLLECTIONS} from '../../src/marketplace/catalog.js';
 import {sidebarToolStorageKey,SIDEBAR_TOOL_STORE} from '../../src/ui/sidebar-tools/package.js';
 import {READING_TOC_SITE_STORE} from '../../src/reading-toc/policy.js';
-import {observeMarketSender,armMarketCut,assertObservedMarketConnection} from './app-market-r5-observers.mjs';
+import {observeMarketSender,armMarketCut,assertObservedMarketConnection,assertMarketRecoveryObserverStable} from './app-market-r5-observers.mjs';
 import {marketUIAudit} from './app-market-r5-ui.mjs';
 const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
 const mime={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.json':'application/json','.png':'image/png','.xml':'application/xml','.txt':'text/plain'};
@@ -492,8 +492,19 @@ export async function runMarketR5Acceptance(d){
   assert.deepEqual(await installed(),afterRegistry.registry,'recovery preserves the actual already-committed candidate');
   const settledUpgrade=await until(async()=>(await intentRows()).find(row=>row.intentId===upgrade.row.intentId&&row.settledAt!==null),'official update handoff settled');
   await visible(resumedUpdate.review,'[data-market-action="open-installed"]');
-  assert.equal(recoveryWrites.record.events.length,0,'recovery observation context stayed live throughout the gesture and completion');
-  await recoveryWrites.dispose();assert.deepEqual(recoveryWrites.record.errors,[]);assert.deepEqual(recoveryWrites.record.observations,[],'explicit recovery never resubmits the installed registry');
+  // Prove the original review's browser context is still live after the
+  // installer recovered. Observer attachment itself can emit an initial
+  // executionContextCreated event; only later invalidations are failures.
+  const proofRequest={expression:'void 0',uniqueContextId:recoveryWrites.record.executionContext.uniqueId,
+    throwOnSideEffect:true,returnByValue:true};
+  const proofResponse=await d.sendBrowser('Runtime.evaluate',proofRequest,10000,recoveryWrites.record.sessionId);
+  assert.equal(proofResponse.exceptionDetails,undefined);
+  assert.equal(proofResponse.result?.type,'undefined');
+  recoveryWrites.record.liveContextAfterRecovery={request:proofRequest,response:proofResponse,at:Date.now()};
+  assertMarketRecoveryObserverStable(recoveryWrites.record);
+  await recoveryWrites.dispose();
+  assert.deepEqual(recoveryWrites.record.errors,[]);
+  assert.deepEqual(recoveryWrites.record.observations,[],'explicit recovery never resubmits the installed registry');
   recoveryWrites.record.status='PASS_ZERO_REGISTRY_SUBMISSIONS';
   assert.deepEqual(await readStore(sidebarToolStorageKey('quick-notes')),noteData);await close(resumedUpdate.page);await close(resumedUpdate.review);
   Object.assign(registryCut.record,{status:'PASS',recoveredOperation:(await readStore(MARKET_OPERATIONS_STORE,host()))[upgrade.row.operationId],recoveredIntent:settledUpgrade});
