@@ -12,12 +12,14 @@
     "docs/architecture/browser-framework/cloud-control-r4.zh-CN.md",
     "docs/framework/workstreams/cloud-control-r4-20261012.md",
     "docs/framework/workstreams/cloud-control-r4-20261012.json",
-    "examples/cloud-control/README.zh-CN.md"
+    "examples/cloud-control/README.zh-CN.md",
+    ".github/workflows/cloud-control-r4-idb.yml",
+    "tests/cloud-control/native-idb-index-r4.mjs"
   ],
   "evidence": {
     "source": "SOURCE_IMPLEMENTED",
-    "component": "NOT_TESTED",
-    "ci": "NOT_TESTED",
+    "component": "COMPONENT_TESTED",
+    "ci": "BUILD_VERIFIED",
     "nativeMac": "NATIVE_PENDING",
     "runner": "NOT_IMPLEMENTED",
     "scheduleMerge": "NOT_IMPLEMENTED",
@@ -25,13 +27,13 @@
   },
   "historicalCI": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38251928449",
   "tests": {
-    "cloud": "NOT_TESTED",
-    "authority": "NOT_TESTED",
-    "build": "NOT_TESTED",
+    "cloud": "PASS 16/16",
+    "authority": "PASS 113/113",
+    "build": "PASS at 9bf50e73a2780402da81cac14466b85ffe36c980",
     "nativeIdb10k": "NATIVE_PENDING"
   },
-  "productionPackageHash": null,
-  "developmentPackageHash": null,
+  "productionPackageHash": "3d2f3031376e1fc7c136bb4e60182824b377f933b395a4f412f73fe5b239fdfd",
+  "developmentPackageHash": "23ed7262d092e29c903e175c837d669ced84aa0be06ac55780131549d35d3e0b",
   "scores": [
     {
       "dimension": 1,
@@ -90,5 +92,24 @@
     "noBranch": true,
     "noSecondDb": true,
     "noMacAccess": true
+  },
+  "verifiedSourceSha": "9bf50e73a2780402da81cac14466b85ffe36c980",
+  "verifiedCIUrl": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38258950806",
+  "componentTotal": {
+    "passed": 212,
+    "failed": 0
+  },
+  "firstAttempt": {
+    "sha": "eeb6b43bf49807a6e69dd568a8cf7e19b8544e88",
+    "ci": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38258751196",
+    "failure": "TEST_FIXTURE_WRONG_FILTERED_OFFSET",
+    "componentPassed": 15,
+    "componentFailed": 1,
+    "scope": "npm run test:cloud only"
+  },
+  "nativeIdbChrome": {
+    "status": "NATIVE_PENDING",
+    "workflow": ".github/workflows/cloud-control-r4-idb.yml",
+    "method": "real Linux Chrome CFT IDB; synthetic ephemeral history; not installed extension"
   }
 }

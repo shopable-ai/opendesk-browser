@@ -58,3 +58,14 @@
 4. 协调 Scheduled FireId 的 source/generation CAS，并在真实 local alarm 与 cloud notification 并发时证明不双执行。
 5. 仅在 1h/24h/72h 真实连续性、独立控制台 UI/UX 和包验收后考虑发布。
 
+
+## R4.1 · 同提交 Cloud CI 真实回执（2026-10-12）
+
+- 源码与组件验证候选：`9bf50e73a2780402da81cac14466b85ffe36c980`。
+- [GitHub Actions Cloud R3 compatible workflow #38258950806](https://github.com/shopable-ai/opendesk-browser/actions/runs/38258950806)：`cloud-r3-component=success`，合计 **212 PASS / 0 FAIL**；`cloud-r3-package=success`，`npm run check`、`npm run build`、`npm run build:dev`、`npm run verify` 全部实际成功。
+- Production `packageHash=3d2f3031376e1fc7c136bb4e60182824b377f933b395a4f412f73fe5b239fdfd`。
+- Development `packageHash=23ed7262d092e29c903e175c837d669ced84aa0be06ac55780131549d35d3e0b`。
+- 首次源码提交 `eeb6b43bf498` 的 CI #38258751196 曾出现 **1 个新增测试断言 FAIL**：100 条数据只有 85 条 waiting，测试从 offset=80 却错误要求完整 20 条；随后 `9bf50e7` 修正测试偏移并通过，**失败和修复事实均保留**。
+- 以上仅证明当时打包源码、组件和构建；不证明 IndexedDB 真正 Chrome 原生分页或用户 Mac Gate 4。
+
+下一步新增只跑隔离 Linux Chrome for Testing 的 `.github/workflows/cloud-control-r4-idb.yml` 与 `tests/cloud-control/native-idb-index-r4.mjs`：实际 IndexedDB v2 游标、三种数据量、事务中断回滚、耗时与响应字节。该测试使用临时合成记录，只能作为 **NATIVE_IDB_COMPONENT**，不能提升为用户 Mac 的正式 Chrome 云控执行验收。此段添加时该工作流还未产生实际结果，保持 `NATIVE_PENDING`。

@@ -79,3 +79,5 @@ Linux CI 构建不能替代 Mac Chrome Gate 4 真实停止、副作用后中断�
 R4 架构与验收清单：
 `docs/architecture/browser-framework/cloud-control-r4.zh-CN.md`
 和 `docs/framework/workstreams/cloud-control-r4-20261012.md`。
+
+后续新增专项 CI：`.github/workflows/cloud-control-r4-idb.yml`，以独立 Linux Chrome for Testing 对**真实 IDB 引擎和 R4 游标代码**进行数据量与回滚微基准。此验证不安装完整扩展、不运行 Task、不替代 Mac Chrome Gate 4。

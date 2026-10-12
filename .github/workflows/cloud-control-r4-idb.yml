@@ -1,0 +1,56 @@
+name: Cloud Control R4 actual Chrome IndexedDB cursor
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/cloud-control-r4-idb.yml'
+      - 'src/platform/storage/idb.js'
+      - 'src/platform/storage/index.js'
+      - 'src/cloud-control/history-index.js'
+      - 'tests/cloud-control/native-idb-index-r4.mjs'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cloud-r4-idb-${{ github.sha }}
+  cancel-in-progress: false
+
+jobs:
+  native-idb-chrome:
+    name: native-idb-chrome-real-cursor
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Locked dependencies for native driver
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - uses: browser-actions/setup-chrome@v2
+        id: chrome
+        with:
+          chrome-version: '155.0.8059.39'
+      - name: Real Chrome IDB v2 cursor, 100/1000/10000 projections and aborted transaction
+        env:
+          CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
+          CLOUD_NATIVE_OUT: artifacts/cloud-control-r4-idb-native
+          # Ubuntu CI AppArmor only, never Mac or local sessions.
+          CLOUD_NATIVE_CI_NO_SANDBOX: '1'
+        run: |
+          command -v xvfb-run
+          xvfb-run -a --server-args="-screen 0 1440x900x24" node tests/cloud-control/native-idb-index-r4.mjs
+      - name: Keep Chrome run metrics and genuine failures
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cloud-r4-native-idb-${{ github.sha }}
+          path: artifacts/cloud-control-r4-idb-native/
+          if-no-files-found: warn
+          retention-days: 14
