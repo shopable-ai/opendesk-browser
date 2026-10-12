@@ -105,14 +105,14 @@ export function createCloudService({storage,api,clock={now:()=>Date.now()},asser
     const executorId=await scoped(sender,async tx=>{invariant(!(await tx.get(KV,CONFIG)),'E_PAIRING','Unpair existing provider first');let id=await tx.get(KV,IDENTITY);if(!id){id=newId();await tx.put(KV,id,IDENTITY);}return id;},'readwrite');
     const response=await fetcher(url+'/v1/pair',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({executorId,pairingCode:request.pairingCode}),signal:AbortSignal.timeout(10000),redirect:'error'}),pair=await response.json();
     invariant(response.ok&&pair.providerId===request.providerId&&typeof pair.credential==='string','E_PAIRING','Provider identity or pairing credential rejected');
-    await scoped(sender,async tx=>{invariant(!(await tx.get(KV,CONFIG)),'E_PAIRING');await tx.put(KV,{url,providerId:pair.providerId,credential:pair.credential,executorId,namespace:host.namespace,enabled:false,tasks:[]},CONFIG);},'readwrite');return cloudStatus({},sender);
+    await scoped(sender,async tx=>{invariant(!(await tx.get(KV,CONFIG)),'E_PAIRING');await tx.put(KV,{url,providerId:pair.providerId,credential:pair.credential,executorId,namespace:host.namespace,enabled:false,tasks:[],pendingRequestId:null},CONFIG);},'readwrite');return cloudStatus({},sender);
   }
   async function cloudApprove(request,sender){
     invariant(Object.keys(request).every(k=>k==='tasks')&&Array.isArray(request.tasks)&&request.tasks.length>0&&request.tasks.length<=32,'E_SCHEMA');
     const tasks=[];for(const approval of request.tasks){invariant(Object.keys(approval).every(k=>['taskId','resultAllowed'].includes(k))&&typeof approval.resultAllowed==='boolean','E_SCHEMA');tasks.push({...await resolveTask({taskId:approval.taskId},sender),resultAllowed:approval.resultAllowed});}
     for(const t of tasks)for(const origin of t.manifest.siteOrigins)await requireGrant(api,origin);
     await scoped(sender,async(tx,host)=>{const c=await tx.get(KV,CONFIG);invariant(c&&c.namespace===host.namespace&&!c.enabled,'E_PAIRING','Stop current hosting before changing approval');
-      c.tasks=tasks;c.grantId=newId();c.claimId=null;c.enabled=true;c.revokedAt=null;await tx.put(KV,c,CONFIG);},'readwrite');wake();return cloudStatus({},sender);
+      c.tasks=tasks;c.grantId=newId();c.claimId=null;c.pendingRequestId=null;c.enabled=true;c.revokedAt=null;await tx.put(KV,c,CONFIG);},'readwrite');wake();return cloudStatus({},sender);
   }
   async function fence(request,reason){
     const result=await transaction('readwrite',async tx=>{const r=await tx.get(KV,PREFIX+request.requestId);if(!r)return;const run=r.runId&&await tx.get('runs',r.runId);
@@ -131,7 +131,7 @@ export function createCloudService({storage,api,clock={now:()=>Date.now()},asser
       const c=await tx.get(KV,CONFIG);
       if(!c)return null;
       const owned={namespace:host.namespace,grantId:c.grantId};
-      c.enabled=false;c.revokedAt=clock.now();c.claimId=null;
+      c.enabled=false;c.revokedAt=clock.now();c.claimId=null;c.pendingRequestId=null;
       await tx.put(KV,c,CONFIG);
       return owned;
     },'readwrite');
@@ -145,32 +145,62 @@ export function createCloudService({storage,api,clock={now:()=>Date.now()},asser
   async function cloudUnpair(_,sender){await cloudStop({},sender);await scoped(sender,tx=>tx.delete(KV,CONFIG),'readwrite');return cloudStatus({},sender);}
   let nextPromise;
   async function cloudNext(_,sender){if(nextPromise)return null;nextPromise=next(sender);try{return await nextPromise;}finally{nextPromise=null;}}
-  async function next(sender){
-    const host=await assertHost(sender),c=await read();if(!c?.enabled||!online||!reconciled||c.namespace!==host.namespace)return null;
-    const pending=(await rows()).filter(r=>r.namespace===host.namespace&&!r.runId&&r.grantId===c.grantId&&r.state==='waiting');
-    // Never offer an expired assignment to cloudResolve on every heartbeat.
-    // Only a still-leased, never-dispatched original request can be retried.
-    const existing=pending.find(r=>r.assignment?.leaseUntil>clock.now());
-    if(existing)return {requestId:existing.requestId};
-    const expired=pending[0];
-    if(expired)await scoped(sender,async(tx,current)=>{
-      const config=await tx.get(KV,CONFIG),row=await tx.get(KV,PREFIX+expired.requestId);
-      if(config?.enabled&&config.grantId===c.grantId&&row?.namespace===current.namespace&&
-        row.grantId===c.grantId&&row.state==='waiting'&&!row.runId&&
-        !(row.assignment?.leaseUntil>clock.now())){
+  async function pendingRequest(sender,host,configSnapshot){
+    let id=configSnapshot.pendingRequestId;
+    if(id===undefined){
+      // Migration: pre-R3 config has no pointer. Find at most one original
+      // never-started request, preserving the provider's persisted claim.
+      const candidates=(await rows()).filter(r=>r.namespace===host.namespace&&
+        r.grantId===configSnapshot.grantId&&!r.runId&&r.state==='waiting');
+      const original=candidates.find(r=>r.assignment?.leaseUntil>clock.now())??candidates[0];
+      const legacyId=original?.requestId??null;
+      id=await scoped(sender,async tx=>{
+        const c=await tx.get(KV,CONFIG);
+        if(!c?.enabled||c.grantId!==configSnapshot.grantId)return null;
+        if(c.pendingRequestId!==undefined)return c.pendingRequestId;
+        c.pendingRequestId=legacyId;
+        await tx.put(KV,c,CONFIG);
+        return legacyId;
+      },'readwrite');
+    }
+    if(!id)return null;
+    const stored=await transaction('readonly',tx=>tx.get(KV,PREFIX+id),[KV]);
+    if(stored?.namespace===host.namespace&&stored.grantId===configSnapshot.grantId&&
+      stored.state==='waiting'&&!stored.runId&&stored.assignment?.leaseUntil>clock.now())
+      return {requestId:id};
+    // Only retire an expired, still-waiting request. An admitted Run, a
+    // revoked grant and another Host's record must never be rewritten.
+    await scoped(sender,async(tx,current)=>{
+      const c=await tx.get(KV,CONFIG);
+      if(!c?.enabled||c.grantId!==configSnapshot.grantId||c.pendingRequestId!==id)return;
+      const row=await tx.get(KV,PREFIX+id);
+      if(row?.namespace===current.namespace&&row.grantId===c.grantId&&
+        row.state==='waiting'&&!row.runId&&!(row.assignment?.leaseUntil>clock.now())){
         row.state='cancelled';row.reason='E_LEASE';
         await tx.put(KV,row,PREFIX+row.requestId);
       }
+      c.pendingRequestId=null;
+      await tx.put(KV,c,CONFIG);
     },'readwrite');
-    const claim=await scoped(sender,async tx=>{const slot=await tx.get('runs','@slot');if(slot?.currentRunId||slot?.preview)return null;const config=await tx.get(KV,CONFIG);if(!config?.enabled||config.grantId!==c.grantId)return null;
+    return null;
+  }
+  async function next(sender){
+    const host=await assertHost(sender),c=await read();if(!c?.enabled||!online||!reconciled||c.namespace!==host.namespace)return null;
+    // Primary-key hint is durably updated with the original assignment/Run
+    // binding. The one-time legacy read supports older installed versions.
+    // Normal two-second polls never enumerate the entire frameworkKV journal.
+    const pending=await pendingRequest(sender,host,c);
+    if(pending)return pending;
+    const claim=await scoped(sender,async tx=>{const slot=await tx.get('runs','@slot');if(slot?.currentRunId||slot?.preview)return null;const config=await tx.get(KV,CONFIG);if(!config?.enabled||config.grantId!==c.grantId||config.pendingRequestId)return null;
       config.claimId??=newId();await tx.put(KV,config,CONFIG);return {claimId:config.claimId,tasks:c.tasks.map(t=>({taskId:t.taskId,manifestHash:t.manifestHash,sourceHash:t.contentHash}))};},'readwrite');if(!claim)return null;
     const answer=await post(c,'claim',claim);
     return scoped(sender,async tx=>{const config=await tx.get(KV,CONFIG);invariant(config?.enabled&&config.grantId===c.grantId&&config.claimId===claim.claimId,'E_CLOUD_REVOKED');
       if(answer.assignment){const a=answer.assignment;invariant(a.executorId===c.executorId&&a.claimId===claim.claimId&&a.leaseUntil>clock.now(),'E_ASSIGNMENT');const t=c.tasks.find(t=>t.taskId===a.task.taskId&&t.version===a.task.version&&t.manifestHash===a.task.manifestHash&&t.contentHash===a.task.sourceHash);invariant(t&&a.target.mode==='owned'&&t.manifest.siteOrigins.includes(new URL(a.target.url).origin),'E_TASK');
         const params=validateTaskParams(t.manifest.paramsSchema,a.params),requestId='cloud:'+a.assignmentId;const digestValue=await digest({providerId:c.providerId,executorId:c.executorId,assignmentId:a.assignmentId,task:a.task,params,target:a.target});const prior=await tx.get(KV,PREFIX+requestId);invariant(!prior||prior.digest===digestValue,'E_REQUEST_CONFLICT');
         if(!prior)await tx.put(KV,{tag:'cloud-request-v1',requestId,digest:digestValue,assignment:a,params,task:t,grantId:c.grantId,namespace:host.namespace,state:'waiting',createdAt:clock.now()},PREFIX+requestId);
-        config.claimId=null;await tx.put(KV,config,CONFIG);return prior?.runId?null:{requestId};}
-      config.claimId=null;await tx.put(KV,config,CONFIG);return null;
+        config.claimId=null;config.pendingRequestId=!prior||prior.state==='waiting'&&!prior.runId?requestId:null;
+        await tx.put(KV,config,CONFIG);return config.pendingRequestId?{requestId}:null;}
+      config.claimId=null;config.pendingRequestId=null;await tx.put(KV,config,CONFIG);return null;
     },'readwrite');
   }
   async function cloudResolve(request,sender){invariant(typeof request?.requestId==='string'&&request.requestId.startsWith('cloud:'),'E_SCHEMA');const initial=await transaction('readonly',tx=>tx.get(KV,PREFIX+request.requestId),[KV]);invariant(initial?.tag==='cloud-request-v1','E_TASK');const t=await resolveTask({taskId:initial.task.taskId},sender);return scoped(sender,async(tx,host)=>{const r=await tx.get(KV,PREFIX+request.requestId),c=await tx.get(KV,CONFIG);invariant(c?.enabled&&r?.namespace===host.namespace&&r.grantId===c.grantId&&!r.runId&&r.state==='waiting'&&r.assignment.leaseUntil>clock.now(),'E_CLOUD_REVOKED');
@@ -179,6 +209,7 @@ export function createCloudService({storage,api,clock={now:()=>Date.now()},asser
     const r=await tx.get(KV,PREFIX+request.cloudRequestId),c=await tx.get(KV,CONFIG);invariant(c?.enabled&&r?.namespace===host.namespace&&r.grantId===c.grantId&&r.state==='waiting'&&!r.runId&&r.assignment.leaseUntil>clock.now(),'E_CLOUD_REVOKED');
     invariant(run.scriptId===r.task.scriptId&&run.contentHash===r.task.contentHash&&run.installedTaskAuthorization?.manifestHash===r.task.manifestHash&&canonical(run.installedTaskAuthorization?.authorization)===canonical({tag:'task-install-authorization-v1',installationId:r.task.installationId,generation:r.task.generation,scope:{capabilities:r.task.manifest.permissions,siteOrigins:r.task.manifest.siteOrigins,networkOrigins:[]}})&&canonical(decodeValue(run.paramsWire))===canonical(r.params)&&canonical(run.selection)===canonical(r.assignment.target)&&!run.networkOrigins.length,'E_TASK');
     run.cloudRequestId=r.requestId;r.runId=run.runId;r.runRef={runId:run.runId,resultId:run.resultId,requestId:r.requestId,sourceHash:run.contentHash,manifestHash:r.task.manifestHash,grantId:r.grantId};r.state='prepared';await tx.put(KV,r,PREFIX+r.requestId);
+    if(c.pendingRequestId===r.requestId){c.pendingRequestId=null;await tx.put(KV,c,CONFIG);}
   }
   async function permit(run){
     const r=await transaction('readonly',tx=>tx.get(KV,PREFIX+run.cloudRequestId),[KV]),c=await read();invariant(c?.enabled&&c.grantId===r?.grantId,'E_CLOUD_REVOKED');let p;
