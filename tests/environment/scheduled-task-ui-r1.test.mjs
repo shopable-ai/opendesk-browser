@@ -148,3 +148,16 @@ test('R2 create form validates URL, JSON and wall-time inline and requires an ex
   assert.match(css,/schedule-field-error:empty\{display:none\}/);
   assert.doesNotMatch(ui,/window\.(?:alert|prompt|confirm)\(/);
 });
+
+test('R2 history pagination is authorized and preserves original Run/Result audit identity',async()=>{
+  const [ui,repo,broker,authority]=await Promise.all([
+    load('src/ui/scheduled-task-workbench.js'),load('src/platform/tasks/schedule-repository.js'),
+    load('src/platform/host/broker.js'),load('src/platform/host/authority.js')
+  ]);
+  assert.match(ui,/client\.request\('listScheduleHistory'/);
+  assert.match(ui,/加载更早记录/);
+  assert.match(ui,/makeHistoryRow\(fire,plan\.timezone\)/);
+  assert.match(repo,/tx\.scan\('frameworkKV',\{prefix,direction:'prev',offset,limit:limit\+1\}\)/);
+  assert.match(broker,/'listSchedules','listScheduleHistory','listDueSchedules'/);
+  assert.match(authority,/'listSchedules','listScheduleHistory','listDueSchedules'/);
+});

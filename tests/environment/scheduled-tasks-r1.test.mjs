@@ -235,3 +235,29 @@ test('short outage latest-within-hour selects LAST occurrence, skip preserves fi
     assert.equal((await f.repo.list())[0].history.length,1);
   }
 });
+
+test('R2 schedule history pages 135 persisted fires without losing original identities',async()=>{
+  const f=await fixture(),plan=await f.repo.save(f.input);
+  for(let i=0;i<135;i++){
+    const at=millis('2026-10-13T10:00:00Z')+i*60000;
+    const fireId=scheduleFireId(plan.scheduleId,plan.generation,at);
+    f.db.put('frameworkKV',fireKey(fireId),{
+      tag:'schedule-fire-v1',namespace:f.namespace,fireId,
+      scheduleId:plan.scheduleId,generation:plan.generation,scheduledAt:at,
+      deadlineAt:at+300000,status:'MISSED',runId:null,resultId:null,createdAt:at
+    });
+  }
+  const rows=await f.repo.list();
+  assert.equal(rows.length,1);
+  assert.equal(rows[0].history.length,20,'initial view is bounded');
+  assert.equal(rows[0].history[0].scheduledAt,millis('2026-10-13T10:00:00Z')+134*60000);
+  const second=await f.repo.history({scheduleId:plan.scheduleId,offset:20,limit:20});
+  assert.equal(second.history.length,20);
+  assert.equal(second.hasMore,true);
+  assert.equal(second.history[0].scheduledAt,millis('2026-10-13T10:00:00Z')+114*60000);
+  const last=await f.repo.history({scheduleId:plan.scheduleId,offset:120,limit:20});
+  assert.equal(last.history.length,15);
+  assert.equal(last.hasMore,false);
+  assert.notEqual(last.history[0].fireId,rows[0].history[0].fireId);
+  await assert.rejects(f.repo.history({scheduleId:plan.scheduleId,offset:-1,limit:20}));
+});

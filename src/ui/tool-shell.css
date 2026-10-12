@@ -844,3 +844,6 @@
 .schedule-save-confirm>strong{font-size:13px}
 .schedule-run-details{margin-top:4px;max-width:100%}
 .schedule-run-details summary{cursor:pointer;color:var(--od-sub)}
+
+/* Scheduled R2: paged history stays within the original plan card. */
+.schedule-load-more{justify-self:start;min-height:36px}

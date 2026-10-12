@@ -179,6 +179,18 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
     toggle.disabled=!focus||Boolean(focus.needsAttention&&!focus.paused);
     text(toggle,focus?.paused?'恢复计划':'暂停计划');
   }
+  function makeHistoryRow(fire,zone){
+    const row=element(doc,'div','schedule-history-row',
+      `${describeTime(fire.scheduledAt,zone)} · ${scheduleStatus(fire.status)}`);
+    if(fire.runId){
+      const advanced=element(doc,'details','schedule-run-details');
+      advanced.append(element(doc,'summary',null,'技术详情'));
+      advanced.append(element(doc,'small',null,
+        `RunId：${fire.runId} · ResultId：${fire.resultId??'未生成'} · 资源：${fire.retirementState==='released'?'已释放':'等待释放'}`));
+      row.append(advanced);
+    }
+    return row;
+  }
   function renderPlans(){
     const parent=get('schedule-plan-list');parent.replaceChildren();
     if(!allPlans.length){parent.append(element(doc,'p','hint','尚无定时计划。点击「新建计划」安排第一个已验证任务。'));return;}
@@ -197,17 +209,25 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
       history.append(element(doc,'summary',null,
         '运行记录'+(last?` · 最近：${scheduleStatus(last.status)} · ${describeTime(last.scheduledAt,plan.timezone)}`:' · 暂无')));
       const historyList=element(doc,'div','od-stack');
-      for(const fire of plan.history||[]){
-        const row=element(doc,'div','schedule-history-row',
-          `${describeTime(fire.scheduledAt,plan.timezone)} · ${scheduleStatus(fire.status)}`);
-        if(fire.runId){
-          const advanced=element(doc,'details','schedule-run-details');
-          advanced.append(element(doc,'summary',null,'技术详情'));
-          advanced.append(element(doc,'small',null,
-            `RunId：${fire.runId} · ResultId：${fire.resultId??'未生成'} · 资源：${fire.retirementState==='released'?'已释放':'等待释放'}`));
-          row.append(advanced);
-        }
-        historyList.append(row);
+      for(const fire of plan.history||[])historyList.append(makeHistoryRow(fire,plan.timezone));
+      if((plan.history||[]).length===20){
+        let offset=20;
+        const more=action(doc,'加载更早记录',async()=>{
+          if(more.disabled)return;
+          more.disabled=true;text(more,'正在读取…');
+          try{
+            const page=await client.request('listScheduleHistory',{
+              scheduleId:plan.scheduleId,offset,limit:20});
+            for(const fire of page.history)historyList.insertBefore(makeHistoryRow(fire,plan.timezone),more);
+            offset+=page.history.length;
+            if(!page.hasMore||!page.history.length)more.remove();
+            else {more.disabled=false;text(more,'加载更早记录');}
+          }catch(error){
+            more.disabled=false;text(more,'重试加载记录');
+            message('加载历史失败：'+(error?.message||String(error)),true);
+          }
+        },'od-button od-button--secondary schedule-load-more');
+        historyList.append(more);
       }
       history.append(historyList);
       const toolbar=element(doc,'div','schedule-actions od-toolbar');
