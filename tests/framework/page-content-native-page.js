@@ -154,6 +154,52 @@ async function check(name,fn){try{cases.push({name,ok:true,value:await fn()});}
         value.data?.data?.n===1&&value.data?.cookie===null,'POST did not reach real second HTTP listener '+JSON.stringify(value));
       return {...value,runId:result.runId,resultId:result.resultId};
     });
+    await check('controller-real-axios-zero-arg-broker-get-and-interceptors',async()=>{
+      const source=[
+        '// @opendesk-lib axios',
+        'async function main(){',
+        ' const client=axios.create({baseURL:'+JSON.stringify(networkOrigin)+',timeout:8000});',
+        ' const id=client.interceptors.request.use(config=>{config.headers.set("x-opendesk-axios","yes");return config});',
+        ' const reply=await client.get("/api/get",{params:{source:"controller-axios"}});',
+        ' client.interceptors.request.eject(id);',
+        ' return {status:reply.status,data:reply.data,create:typeof axios.create,mainPage:typeof globalThis.page};',
+        '}'
+      ].join('\n');
+      const result=await run(source,target,{networkOrigins:[networkOrigin]});
+      assert(result.outcome?.ok===true,'Real Controller Axios GET failed '+JSON.stringify(result.outcome?.error));
+      const value=decodeValue(result.outcome.valueWire);
+      assert(value.status===200&&value.data?.path==='/api/get'&&
+        value.data?.source==='controller-axios'&&value.data.cookie===null&&
+        value.create==='function'&&value.mainPage==='undefined',
+        'Real Axios client bypassed transport or lost response '+JSON.stringify(value));
+      return {...value,runId:result.runId,resultId:result.resultId};
+    });
+    await check('controller-real-axios-denies-undeclared-origin',async()=>{
+      const source='// @opendesk-lib axios\nasync function main(){return await axios.get('+
+        JSON.stringify(networkOrigin+'/api/get?source=denied-controller-axios')+');}';
+      const result=await run(source,target);
+      assert(result.outcome?.ok===false&&result.outcome?.error?.code==='E_PERMISSION',
+        'Undeclared Controller Axios origin must fail at admitted Broker '+JSON.stringify(result.outcome));
+      return {runId:result.runId,errorCode:result.outcome.error.code};
+    });
+    await check('controller-real-axios-http-error-and-validate-status',async()=>{
+      const source=[
+        '// @opendesk-lib axios',
+        'async function main(){',
+        ' const base='+JSON.stringify(networkOrigin)+';',
+        ' const accepted=await axios.get(base+"/api/status/429",{validateStatus:s=>s<500});',
+        ' let rejected;try{await axios.get(base+"/api/status/500")}catch(error){rejected={status:error.response?.status,isAxiosError:error.isAxiosError===true}}',
+        ' return {accepted:{status:accepted.status,data:accepted.data},rejected};',
+        '}'
+      ].join('\n');
+      const result=await run(source,target,{networkOrigins:[networkOrigin]});
+      assert(result.outcome?.ok===true,'Real Axios error projection failed '+JSON.stringify(result.outcome?.error));
+      const value=decodeValue(result.outcome.valueWire);
+      assert(value.accepted?.status===429&&value.accepted?.data?.status===429&&
+        value.rejected?.status===500&&value.rejected.isAxiosError,
+        'Axios validateStatus/AxiosError lost the real Broker HTTP cause '+JSON.stringify(value));
+      return {...value,runId:result.runId,resultId:result.resultId};
+    });
     await check('controller-cross-origin-429-500-preserve-real-HTTP-cause',async()=>{
       const source="async function main(){const out=[];for(const status of [429,500]){try{await axiosx.get("+
         JSON.stringify(networkOrigin)+
