@@ -460,6 +460,13 @@ test('Time Review R1.3 actual Mac Chrome install and trusted consent smoke',{ski
     const resumed=await until(async()=>{const s=await readTime();return s&&!s.paused?s:null;},'trusted resume',10000);
     evidence.pauseResume='PASS';note('real-resume',{paused:resumed.paused});
     await nativeClick(browser,side,'#sidebar-tool-settings-open');
+    // The sandbox has been hidden while the trusted host resumed collection.
+    // Request a normal status refresh before acting on its formerly disabled
+    // Pause button; do not synthesize a click on disabled UI.
+    await nativeClick(browser,frame,'#refresh');
+    await until(()=>evaluate(browser,frame,
+      'Boolean(document.querySelector("#pause")&&!document.querySelector("#pause").disabled)'),
+      'resumed Pause button ready after genuine status refresh',9000);
     await nativeClick(browser,frame,'#pause');
     await until(async()=>{const s=await readTime();return s.paused?s:null;},'final trusted stop');
     }
