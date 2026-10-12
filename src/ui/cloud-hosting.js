@@ -15,10 +15,13 @@ export function projectCloudInstalledTasks(data,approved=[]){
         item?.verification?.manifestHash===row.manifestHash&&
         item?.verification?.sourceHash===sourceHash&&sourceHash&&siteOrigins.length);
     const authorized=grants.find(grant=>grant.taskId===row.taskId&&
-      grant.version===row.version&&grant.manifestHash===row.manifestHash&&grant.sourceHash===sourceHash);
+      grant.version===row.version&&grant.manifestHash===row.manifestHash&&
+      grant.sourceHash===sourceHash&&grant.installationId===row.installationId&&
+      grant.generation===row.generation);
     return {taskId:row.taskId,version:row.version,manifestHash:row.manifestHash,
       sourceHash,installationId:row.installationId??null,generation:row.generation??null,
-      title:manifest?.title||row.taskId,siteOrigins,enabled:row.enabled===true,
+      title:manifest?.title||row.taskId,siteOrigins,paramsSchema:manifest?.paramsSchema??null,
+      enabled:row.enabled===true,
       eligible,approved:!!authorized,resultAllowed:authorized?.resultAllowed===true};
   });
 }
@@ -76,6 +79,14 @@ export function createCloudHosting({client,host,document:doc=globalThis.document
         ' · Source SHA-256：'+(task.sourceHash||'缺失')+
         ' · 安装代际：'+(task.generation??'未知');
       section.append(scope);
+      const params=doc.createElement('p');params.className='cloud-task-scope';
+      const schema=task.paramsSchema;
+      params.textContent='参数许可（固定 Schema）：'+(schema?.properties
+        ?Object.entries(schema.properties).map(([name,rule])=>
+          name+' ('+rule.type+(schema.required?.includes(name)?'，必填':'，可选')+
+          (Array.isArray(rule.enum)?'，选项 '+rule.enum.join('/'):'')+')').join('；')||'无参数'
+        :'不可读取');
+      section.append(params);
       const label=doc.createElement('label'),result=doc.createElement('input'),copy=doc.createElement('span');
       result.type='checkbox';result.dataset.cloudResultKey=key;result.checked=selection.resultAllowed;
       result.disabled=!task.eligible||cloudState.enabled;
