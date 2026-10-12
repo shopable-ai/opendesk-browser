@@ -118,7 +118,25 @@ export function createCloudService({storage,api,clock={now:()=>Date.now()},asser
       r.state=run.retirementState==='released'?'finished':'cancellation-pending';await tx.put(KV,r,PREFIX+r.requestId);return run;});
     if(result)await emitToHost(result.registrationId,{type:'controller-fenced',runId:result.runId,reasonCode:reason});
   }
-  async function cloudStop(_,sender){invalidate();await scoped(sender,async tx=>{const c=await tx.get(KV,CONFIG);if(c){c.enabled=false;c.revokedAt=clock.now();await tx.put(KV,c,CONFIG);}},'readwrite');close();for(const r of await rows())await fence(r,'E_CLOUD_REVOKED');return cloudStatus({},sender);}
+  async function cloudStop(_,sender){
+    // A hosting stop revokes only its current, authenticated grant. Historical
+    // assignments from retired providers/approval generations are immutable
+    // evidence and must never be rewritten or have unrelated hosts fenced.
+    const scope=await scoped(sender,async(tx,host)=>{
+      const c=await tx.get(KV,CONFIG);
+      if(!c)return null;
+      const owned={namespace:host.namespace,grantId:c.grantId};
+      c.enabled=false;c.revokedAt=clock.now();
+      await tx.put(KV,c,CONFIG);
+      return owned;
+    },'readwrite');
+    invalidate();close();
+    if(scope?.grantId)for(const r of await rows()){
+      if(r.namespace===scope.namespace&&r.grantId===scope.grantId)
+        await fence(r,'E_CLOUD_REVOKED');
+    }
+    return cloudStatus({},sender);
+  }
   async function cloudUnpair(_,sender){await cloudStop({},sender);await scoped(sender,tx=>tx.delete(KV,CONFIG),'readwrite');return cloudStatus({},sender);}
   let nextPromise;
   async function cloudNext(_,sender){if(nextPromise)return null;nextPromise=next(sender);try{return await nextPromise;}finally{nextPromise=null;}}
