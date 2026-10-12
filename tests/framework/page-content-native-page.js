@@ -266,19 +266,28 @@ async function check(name,fn){try{cases.push({name,ok:true,value:await fn()});}
           'Cheerio slim failed in genuine Chrome Page world: '+JSON.stringify(result));
         return result;
       });
+      await check('page-user-script-fingerprintjs-opt-in-no-automatic-get-or-monitoring',async()=>{
+        // Explicit load exercises real upstream initialization. We do NOT call
+        // agent.get(), store a visitorId, or expose source component values.
+        const result=await previewOptional('// @opendesk-lib fingerprintjs\nasync function main(){const agent=await FingerprintJS.load();let rejected=false;try{await FingerprintJS.load({monitoring:true})}catch(e){rejected=e.code==="E_MONITORING_DISABLED"}return {get:typeof agent.get,hash:typeof FingerprintJS.hashComponents,monitoringBlocked:rejected}}');
+        assert(result.value?.get==='function'&&result.value?.hash==='function'&&
+          result.value?.monitoringBlocked===true,
+          'FingerprintJS does not enforce explicit local-only initialization: '+JSON.stringify(result));
+        return {...result,visitorIdCaptured:false};
+      });
       await check('page-user-script-file-saver-blob-only-and-main-isolation',async()=>{
         const result=await previewOptional('// @opendesk-lib file-saver\nasync function main(){try{FileSaver.saveAs("https://invalid.example/file","x.txt");return "UNSAFE";}catch(e){return {saveAs:typeof FileSaver.saveAs,code:e.code}}}');
         assert(result.value?.saveAs==='function'&&result.value?.code==='E_CONFIG_UNSUPPORTED',
           'FileSaver failed to reject remote URL in actual Chrome: '+JSON.stringify(result));
         const [main]=await chrome.scripting.executeScript({
           target:{tabId:tab.id,documentIds:[optionalTarget.documentId]},world:'MAIN',
-          func:()=>({cryptoJs:typeof window.CryptoJS,fileSaver:typeof window.FileSaver,cookies:typeof window.Cookies,queryString:typeof window.queryString,axios:typeof window.axios,store:typeof window.store,cheerio:typeof window.cheerio})});
+          func:()=>({cryptoJs:typeof window.CryptoJS,fileSaver:typeof window.FileSaver,cookies:typeof window.Cookies,queryString:typeof window.queryString,axios:typeof window.axios,store:typeof window.store,cheerio:typeof window.cheerio,fingerprintjs:typeof window.FingerprintJS})});
         assert(Object.values(main.result).every(value=>value==='undefined'),
           'Optional USER_SCRIPT packages contaminated website MAIN '+JSON.stringify(main));
         return {...result,websiteMainUntouched:true};
       });
     }
   }finally{await chrome.tabs.remove(tab.id);host.dispose();client.dispose();}
-  globalThis.__pageContentNativeReport={state:'finished',cases,passed:cases.length===(pageProof?20:12)&&cases.every(row=>row.ok)};
+  globalThis.__pageContentNativeReport={state:'finished',cases,passed:cases.length===(pageProof?21:12)&&cases.every(row=>row.ok)};
 })().catch(e=>{host.dispose();client.dispose();globalThis.__pageContentNativeReport={state:'finished',cases,passed:false,
   fatal:{code:e.code,message:e.message,stack:e.stack?.slice(0,1000)}};});

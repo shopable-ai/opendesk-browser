@@ -5,7 +5,7 @@ import {execFileSync} from 'node:child_process';
 import {resolve,join} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {BUILTIN_CATALOG,BUILTIN_RUNTIME_CATALOG,BUILTIN_RESOURCE_PATHS} from '../src/libs/catalog.js';
-import {PAGE_FRAMEWORK_RUNTIMES} from '../src/libs/page-frameworks/contract.js';
+import {PAGE_FRAMEWORK_RUNTIMES,PAGE_BROWSER_PRIVATE_FILES} from '../src/libs/page-frameworks/contract.js';
 import {BUILD_POLICY} from './build-contract.mjs';
 import {inspectHistoricalLibraryUsage} from './libs-history-audit.mjs';
 
@@ -24,6 +24,7 @@ export async function inspectLibraryOutputInventory(root,mode){
   const approved=new Set([
     ...BUILTIN_RESOURCE_PATHS.filter(path=>path.startsWith('libs/')),
     ...Object.values(PAGE_FRAMEWORK_RUNTIMES).map(row=>row.output),
+    ...PAGE_BROWSER_PRIVATE_FILES.map(row=>row.output).filter(path=>path.startsWith('libs/')),
     BUILTIN_CATALOG.resourceManifest
   ]);
   if(mode==='development'){
@@ -125,8 +126,8 @@ export async function inspectLibraries({cwd=process.cwd()}={}) {
   if(history.issues.length)errors.push(...history.issues);
   const invalidWorlds=Object.values(BUILTIN_CATALOG.libraries).filter(row=>
     row.worlds.some(world=>!['CONTROLLER','USER_SCRIPT'].includes(world))||
-    (['jquery','jsCookie','cryptoJs','fileSaver','queryString','axios','store','cheerio'].includes(row.id)&&(row.default||row.worlds.join(',')!=='USER_SCRIPT'))||
-    (!['jquery','jsCookie','cryptoJs','fileSaver','queryString','axios','store','cheerio'].includes(row.id)&&!row.default));
+    (['jquery','jsCookie','cryptoJs','fileSaver','queryString','axios','store','cheerio','fingerprintjs'].includes(row.id)&&(row.default||row.worlds.join(',')!=='USER_SCRIPT'))||
+    (!['jquery','jsCookie','cryptoJs','fileSaver','queryString','axios','store','cheerio','fingerprintjs'].includes(row.id)&&!row.default));
   report.sources.worlds=result(invalidWorlds.length?'SOURCE_FAIL':'SOURCE_PASS',
     invalidWorlds.length?{location:'src/libs/runtime-contract.js:1',ids:invalidWorlds.map(row=>row.id)}:undefined);
   if(invalidWorlds.length)errors.push('src/libs/runtime-contract.js:1 built-in library world/default drift');
@@ -139,7 +140,8 @@ export async function inspectLibraries({cwd=process.cwd()}={}) {
     BUILTIN_CATALOG.libraries.queryString.methods.join(',')==='extract,parse,stringify,parseUrl,stringifyUrl,pick,exclude'&&
     BUILTIN_CATALOG.libraries.axios.methods.join(',')==='get,post,put,delete,request,create,getUri'&&
     BUILTIN_CATALOG.libraries.store.methods.join(',')==='get,set,remove,clearAll,each'&&
-    BUILTIN_CATALOG.libraries.cheerio.methods.join(',')==='load';
+    BUILTIN_CATALOG.libraries.cheerio.methods.join(',')==='load'&&
+    BUILTIN_CATALOG.libraries.fingerprintjs.methods.join(',')==='load,hashComponents,componentsToDebugString';
   report.sources.api=result(apiValid?'SOURCE_PASS':'SOURCE_FAIL',
     apiValid?undefined:{location:'src/libs/catalog.js:1',reason:'built-in API contract drift'});
   if(!apiValid)errors.push('src/libs/catalog.js:1 built-in API contract drift');

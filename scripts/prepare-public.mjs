@@ -3,13 +3,14 @@ import {resolve,dirname} from 'node:path';
 import {createHash} from 'node:crypto';
 import {SANDBOX_HTML} from './verify-package.mjs';
 import {BUILTIN_CATALOG} from '../src/libs/catalog.js';
-import {PAGE_FRAMEWORK_RUNTIMES,PAGE_FRAMEWORK_RESOURCE_LIMIT} from '../src/libs/page-frameworks/contract.js';
+import {PAGE_FRAMEWORK_RUNTIMES,PAGE_FRAMEWORK_RESOURCE_LIMIT,PAGE_BROWSER_PRIVATE_FILES,PAGE_BROWSER_COMPILER_RESOURCE_LIMIT,PAGE_BROWSER_COMPILER} from '../src/libs/page-frameworks/contract.js';
 import {RESOURCE_LIMITS} from './build-contract.mjs';
 import {compileWorkspaceStyle} from './build-workspace-style.mjs';
 import {buildOfficialTools} from './build-official-tools.mjs';
 
 const vendors=Object.values(BUILTIN_CATALOG.libraries).filter(row=>row.origin==='vendor');
 const pageFrameworks=Object.values(PAGE_FRAMEWORK_RUNTIMES);
+const browserCompilerFiles=PAGE_BROWSER_PRIVATE_FILES;
 export const STATIC_RESOURCES=Object.freeze({
   'src/ui/tool.html':'ui/tool.html',
   'src/marketplace/marketplace.html':'ui/marketplace.html',
@@ -26,7 +27,9 @@ export const STATIC_RESOURCES=Object.freeze({
   'docs/contracts/licenses/todo-user-vue-MIT.txt':'licenses/todo-user-vue-MIT.txt',
   'src/libs/runtime/bootstrap.js':BUILTIN_CATALOG.bootstrap,
   ...Object.fromEntries(vendors.flatMap(row=>[[row.source,row.output],[row.licenseSource,row.licensePath]])),
-  ...Object.fromEntries(pageFrameworks.flatMap(row=>[[row.source,row.output],[row.licenseSource,row.licensePath]]))
+  ...Object.fromEntries(pageFrameworks.flatMap(row=>[[row.source,row.output],[row.licenseSource,row.licensePath]])),
+  ...Object.fromEntries(browserCompilerFiles.map(row=>[row.source,row.output])),
+  [PAGE_BROWSER_COMPILER.licenseSource]:PAGE_BROWSER_COMPILER.licensePath
 });
 
 function digest(bytes){return createHash('sha256').update(bytes).digest('hex');}
@@ -51,6 +54,12 @@ export async function preparePublic() {
     const license=await readFile(row.licenseSource);
     if(license.length<100||license.length>8192)throw Error('Missing Page framework license: '+row.id);
   }
+  for(const row of browserCompilerFiles){
+    if(row.bytes>PAGE_BROWSER_COMPILER_RESOURCE_LIMIT)
+      throw Error('Oversized optional browser compiler resource: '+row.id);
+    await assertBytes(row.source,row.bytes,row.sha256);
+  }
+  await assertBytes(PAGE_BROWSER_COMPILER.licenseSource,undefined,PAGE_BROWSER_COMPILER.licenseSha256);
   const publicRoot=resolve('.wxt/public');
   await rm(publicRoot,{recursive:true,force:true});
   await mkdir(publicRoot,{recursive:true});
@@ -75,6 +84,7 @@ export async function preparePublic() {
   await cp('node_modules/axios/LICENSE',resolve(publicRoot,'licenses/axios-MIT.txt'));
   await cp('node_modules/store/LICENSE',resolve(publicRoot,'licenses/store-MIT.txt'));
   await cp('node_modules/cheerio/LICENSE',resolve(publicRoot,'licenses/cheerio-MIT.txt'));
+  await cp('node_modules/@fingerprintjs/fingerprintjs/LICENSE',resolve(publicRoot,'licenses/fingerprintjs-MIT.txt'));
 const notificationIcon = 'iVBORw0KGgoAAAANSUhEUgAAAIAAAACACAYAAADDPmHLAAACGklEQVR42u3d223DMBAEQNaSutJm6lNqCJKIe7ezgP8l7kgGbD7OERERERERWZWPz6/nNx8jWFQ2FAoHQukwKB4EpcOgeBAUD4LyIVA8CMqHQPEgKB8C5UOgfAiUD4HiQVA+BAAAoHwIlA9Bfvk/DQTDy//rQDCg/LcCQRCA26kH0Fp8CgTlQ/DUAJiSCgDKL0ag+EwI6wBsySoAyi9HoPxsBMqH4BkLoCUAADAPwIbyJ15LDIKp5W++ttcATHz6G6/x3xCYuDHzeuMBTP2xZcp11zz90/+Wjn4LKH/2fawGsGkuIgAA5AFQfjmC1MHasvgEAAD6AGwtP/n+AABgx+t/ygreFV8DAADg9d/8NeDp33WvAAAAAAAAAAAAAAAAAAAAAAAAAAAAAOCnYD8F+zPIn0EAAOBrwOsfAABMCjUpFAAALAyxMAQCawMBAMDycMvDbRDRvEGELWLKt4ixSZRNomwT175NnI0in3EAbBX7iwFPuhb7BS+M3cIBAMCBEU4NcWSMM4McGuXkMMfGOTdwM4I3x8rRsaXFv14+BMq/AiAdwq3xODcDQXH5txEkQLh57yclm+bmTZqLeJKycZp28jT0k5hNS7aS7+UkZ9pGDtM+Z0IUVVw+BMoHAAAI6ssHQfEQKB8C5UOgfAiUD4LiIVA+CIqHQPm1EDRbCkGThRg0VgpBQ4UYNFEGwkgXoTCCIiIiIiKyK98xnCdLBZ58zAAAAABJRU5ErkJggg==';
 await writeFile(resolve(publicRoot, 'icons/notification.png'), Buffer.from(notificationIcon, 'base64'));
 }

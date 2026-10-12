@@ -7,7 +7,7 @@ import {PACKAGE_ENTRIES, FIXED_OUTPUTS, BUILD_POLICY, PINNED_USER_SCRIPT_LIBRARI
 import {REQUIRED_BROWSER_API_PERMISSIONS, OPTIONAL_PLUGIN_API_PERMISSIONS, REQUIRED_HOST_PATTERNS} from '../src/platform/chrome/permission-gate.js';
 import {SDK_RESOURCE_PATHS, SDK_RESOURCE_MANIFEST} from '../src/framework/sdk/resource-contract.js';
 import {BUILTIN_CATALOG,BUILTIN_RESOURCE_PATHS,BUILTIN_RUNTIME_CATALOG} from '../src/libs/catalog.js';
-import {PAGE_FRAMEWORK_RUNTIMES,PAGE_FRAMEWORK_RESOURCE_LIMIT} from '../src/libs/page-frameworks/contract.js';
+import {PAGE_FRAMEWORK_RUNTIMES,PAGE_FRAMEWORK_RESOURCE_LIMIT,PAGE_BROWSER_PRIVATE_FILES,PAGE_BROWSER_COMPILER,PAGE_BROWSER_COMPILER_RESOURCE_LIMIT} from '../src/libs/page-frameworks/contract.js';
 import {inspectWorkspaceStyle} from './build-workspace-style.mjs';
 import {readOfficialSources,createOfficialToolResources} from './build-official-tools.mjs';
 import {OFFICIAL_CATALOG_PATH,officialPackagePath} from '../src/sidebar-tools/official-catalog.js';
@@ -47,12 +47,14 @@ const HTML_REFERENCES = Object.freeze({
 const generatedJS = ['sw.js', ...Object.values(FIXED_OUTPUTS)].sort();
 const vendorJS = [BUILTIN_CATALOG.bootstrap,...Object.values(PINNED_USER_SCRIPT_LIBRARIES).map(row => row.output)];
 const frameworkJS=Object.values(PAGE_FRAMEWORK_RUNTIMES).map(row=>row.output);
+const browserCompilerJS=PAGE_BROWSER_PRIVATE_FILES.map(row=>row.output).filter(path=>path.endsWith('.js'));
+const browserCompilerESM=PAGE_BROWSER_PRIVATE_FILES.map(row=>row.output).filter(path=>path.endsWith('.mjs'));
 const frameworkLicenses=Object.values(PAGE_FRAMEWORK_RUNTIMES).map(row=>row.licensePath);
-const expectedJS = [...generatedJS, ...vendorJS, ...frameworkJS].sort();
+const expectedJS = [...generatedJS, ...vendorJS, ...frameworkJS, ...browserCompilerJS].sort();
 const officialSource=await readOfficialSources();
 const officialPaths=[OFFICIAL_CATALOG_PATH,...officialSource.tools.map(row=>officialPackagePath(row.id))];
 const required = ['manifest.json', SDK_RESOURCE_MANIFEST, BUILTIN_RESOURCE_MANIFEST,
-  ...BUILTIN_RESOURCE_PATHS,...frameworkLicenses,
+  ...BUILTIN_RESOURCE_PATHS,...frameworkLicenses,...browserCompilerESM,PAGE_BROWSER_COMPILER.licensePath,
   ...Object.keys(HTML_REFERENCES), 'ui/design-tokens.css', 'ui/design-system.css', 'ui/tool-shell.css', 'native-agent/settings.css', 'native-agent/workspace.css', 'ui/marketplace.css', ...officialPaths, ...expectedJS, ...Object.keys(FIXED_ASSETS)].sort();
 const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 const digest = bytes => createHash('sha256').update(bytes).digest('hex');
@@ -375,8 +377,27 @@ export async function verifyPackage(directory, {mode: requestedMode} = {}) {
     const vendor = Object.values(PINNED_USER_SCRIPT_LIBRARIES).find(row => row.output === file);
     const rawBootstrap=file===BUILTIN_CATALOG.bootstrap;
     const framework=Object.values(PAGE_FRAMEWORK_RUNTIMES).find(row=>row.output===file);
-    const budget=vendor?RESOURCE_LIMITS.vendorBytes:framework?PAGE_FRAMEWORK_RESOURCE_LIMIT:entryByteBudget(file,mode);
+    const compilerResource=PAGE_BROWSER_PRIVATE_FILES.find(row=>row.output===file);
+    const budget=vendor?RESOURCE_LIMITS.vendorBytes:framework?PAGE_FRAMEWORK_RESOURCE_LIMIT:compilerResource?PAGE_BROWSER_COMPILER_RESOURCE_LIMIT:entryByteBudget(file,mode);
     if(bytes.length>budget)throw new Error(`Packaged JS exceeds byte budget: ${file} (${bytes.length} > ${budget})`);
+    if(compilerResource){
+      // Exact source byte identity is mandatory. The trusted classic Worker is
+      // the only approved importScripts consumer; all imported URLs are local
+      // resources from the same immutable private package. Never allow
+      // arbitrary user JS to acquire this exemption.
+      if(bytes.length!==compilerResource.bytes||digest(bytes)!==compilerResource.sha256||
+         files.includes(file+'.map'))throw Error('Browser compiler asset hash/byte mismatch: '+file);
+      const code=bytes.toString('utf8');
+      if(file==='ui/page-component-compiler-worker.js'){
+        if(!code.includes("importScripts('../libs/page-frameworks/babel-7.29.9.min.js')")||
+           !code.includes("import('../libs/page-frameworks/page-component-linker-r243.mjs')")||
+           !code.includes("import('../libs/page-frameworks/vue-sfc-transform-r243.mjs')"))
+          throw Error('Browser compiler Worker only accepts fixed packaged imports');
+      }else if(/\b(?:eval|new\s+Function|AsyncFunction|importScripts)\s*\(/.test(code)
+        &&file!==PAGE_BROWSER_COMPILER.output)
+        throw Error('Dynamic execution forbidden in fixed compiler source: '+file);
+      continue;
+    }
     if(vendor||rawBootstrap||framework) {
       if((vendor&&bytes.length!==vendor.bytes)||(framework&&bytes.length!==framework.bytes)||
           digest(bytes)!==(vendor?.sha256||framework?.sha256||BUILTIN_CATALOG.bootstrapSha256)||
@@ -407,6 +428,18 @@ export async function verifyPackage(directory, {mode: requestedMode} = {}) {
     const maps = [...text.matchAll(/\/\/# sourceMappingURL=(.+)/g)];
     if (maps.length !== (mapFiles.length ? 1 : 0) || maps.some(m => m[1].trim() !== file.split('/').at(-1) + '.map' || !files.includes(file + '.map'))) throw new Error(`Unsafe/missing source map in ${file}`);
   }
+  // Browser-only ESM modules are private extension resources, not runtime
+  // dynamically generated JS entries. Validate all bytes and MIME-ready paths.
+  for(const row of PAGE_BROWSER_PRIVATE_FILES.filter(row=>row.output.endsWith('.mjs'))){
+    const bytes=await readFile(join(root,row.output));
+    if(bytes.length!==row.bytes||bytes.length>PAGE_BROWSER_COMPILER_RESOURCE_LIMIT||
+       digest(bytes)!==row.sha256)throw Error('Browser compiler ESM resource drift: '+row.output);
+    const code=bytes.toString('utf8');
+    parse(code,{ecmaVersion:'latest',sourceType:'module'});
+  }
+  const babelLicense=await readFile(join(root,PAGE_BROWSER_COMPILER.licensePath));
+  if(digest(babelLicense)!==PAGE_BROWSER_COMPILER.licenseSha256)
+    throw Error('Browser compiler license mismatch');
   for (const file of Object.keys(HTML_REFERENCES)) await inspectHTML(root, file);
   for(const cssPath of ['ui/design-tokens.css','ui/design-system.css','ui/tool-shell.css','native-agent/settings.css','native-agent/workspace.css']) {
     const css = await readFile(join(root,cssPath),'utf8');

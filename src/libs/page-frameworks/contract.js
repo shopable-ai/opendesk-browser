@@ -52,3 +52,25 @@ export const PAGE_BROWSER_UI_HELPER=Object.freeze({
     'src/scripting/user-scripts/page-program-rules.js'])
 });
 export const PAGE_BROWSER_COMPILER_RESOURCE_LIMIT=4*1024*1024;
+
+// Approved, immutable internal compiler resources. These are not MV3 entrypoints,
+// web-accessible resources, Page user libraries, or Service Worker imports.
+export const PAGE_BROWSER_PRIVATE_FILES=Object.freeze([
+  PAGE_BROWSER_COMPILER,PAGE_BROWSER_UI_HELPER,
+  Object.freeze({id:'page-compiler-worker',
+    source:'src/ui/page-component-compiler-worker.js',
+    output:'ui/page-component-compiler-worker.js',
+    bytes:2223,sha256:'fa047f906f223c5e30d9358dc9bbc7699aaab8425e20fc2144703b6d1f14149a'}),
+  Object.freeze({id:'page-component-linker',
+    source:'src/libs/page-frameworks/page-component-linker-r243.mjs',
+    output:'libs/page-frameworks/page-component-linker-r243.mjs',
+    bytes:13685,sha256:'2d55f6da335272e6590d6bc51d4ed2dd017d21350a2256394c30fd63c634d5ad'}),
+  Object.freeze({id:'page-vue-sfc-transform',
+    source:'src/libs/page-frameworks/vue-sfc-transform-r243.mjs',
+    output:'libs/page-frameworks/vue-sfc-transform-r243.mjs',
+    bytes:3314,sha256:'cdfbef6b2f8aa69706caba576831fc10a82687b07c76b5de6e26ec416b158712'}),
+  Object.freeze({id:'page-vue-sfc-compiler',
+    source:'src/libs/page-frameworks/vue-sfc-compiler-3.5.22.mjs',
+    output:'libs/page-frameworks/vue-sfc-compiler-3.5.22.mjs',
+    bytes:1071582,sha256:'19be293a11bd724a1252d745c406d69275f44c77ab922df27ca4a484a5a5b2b1'})
+]);
