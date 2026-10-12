@@ -1,3 +1,12 @@
+## R4 开发体验：网络观察短 API（2026-10-12）
+
+- **用户提出的问题**：`OpenDeskSDK.browser.network.observe.start()` 把内部操作分类和 `start` 生命周期动词叠加在公开入口上，普通工具编写不便。以 `const {browser}=OpenDeskSDK; const watch=await browser.network.watch({tabRef,origin})` 作为推荐方式，随后 `watch.read()/status()/stop()/export()/cancel()/close()`。
+- **实现原则**：**仅修改现有 `src/framework/sdk/browser.js` 的便捷层，不新增 RPC、不新增 Chrome 权限、不改变正式 32 项接口或已安装工具 capability**。`watch()` 内部转为原 `browser.network.observe.start`；句柄方法逐一复用原 `browser.network.observe.*`、`browser.events.*`、`browser.operations.cancel`。原完整方法仍存在，旧工具兼容。
+- **源码进度口径不变**：23 / 32 已接线（71.875%），剩余录制四项、语音三项 PLANNED、两项通知 NOT_EXPOSED；**Mac Chrome 同候选原生验收仍为 0/32，全部保持 NOT_TESTED**。短接口不另算实现数。
+- **安全条件**：必须提供工具获准的 `tabRef` + 精确单个 HTTP(S) Origin；不允许 `watch()` 无参监听所有网站；工具沙箱持有的便捷句柄不是可转让凭证。每次读取、停止、导出和取消继续经过可信 Host 的工具版本、Epoch、Chrome 权限、站点与会话所有权校验。
+- **开发验证**：扩充 SDK→现有 Host 的正向及拒绝测试；示例 JSON 采用推荐短写法，保存原生/高级接口兼容；`node` 定向与构建和真实 Chrome 证据分开记录。此前 [`39b9277` 的 Browser SDK CI](https://github.com/shopable-ai/opendesk-browser/actions/runs/38253245050) 合同与构建 PASS；本次修改需新候选 CI。
+- **下一步**：先使 SDK 短接口与工具示例的 CI 通过，再安排同候选真实 Chrome 页面点击、Network Observe / Screenshot 正向、站点撤权、Worker 重启和下载结果验收。不要继续只改文档或把别的候选 PASS 晋升。
+
 ## R3 P1 截图实际调用链续接（2026-10-12）
 
 - **首要需求**：安装的工具调用 `OpenDeskSDK.browser.screenshot.captureVisible({tabRef})`，由真实扩展 UI 单次点击确认，只能操作本工具此前打开且仍可见、仍为同一文档的 HTTP(S) 标签页。
