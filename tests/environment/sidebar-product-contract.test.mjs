@@ -73,7 +73,7 @@ test('R4 Sidebar sections preserve consumer controls and keep engineering tools 
     'Tools lives in its own tab panel, never nested under installed Tasks');
   assert.doesNotMatch(html.slice(html.indexOf('id="workbench-tasks"'),html.indexOf('id="workbench-tools"')),
     /id="sidebar-tool-import"|id="sidebar-tools"/,'My must not contain Tool management');
-  assert.match(css,/grid-template-columns:repeat\(5,minmax\(0,1fr\)\)/);
+  assert.match(css,/\.workbench-nav\{[^}]*display:flex;[^}]*overflow-x:auto;/);
   assert.match(html, /id="task-history-panel" class="task-history-panel" hidden/);
   const advanced=html.slice(html.indexOf('<details id="tool-diagnostics">'));
   for(const id of ['sdk-install','check-source','check-target','scraping-panel'])assert(advanced.includes(`id="${id}"`));

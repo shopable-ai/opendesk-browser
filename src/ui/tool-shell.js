@@ -125,6 +125,7 @@ Promise.resolve(chrome.tabs.getCurrent?.()).then(async tab => {
   const actualSidePanel=await isActualSidePanelContext({api:chrome,href:hostUrl.href});
   if(actualSidePanel||!tab?.id){
     sidebarSurface=true;
+    taskWorkbench.setCloudAvailable(true);
     cloudHosting=createCloudHosting({client:foundationClient,host:scriptEditor.host});
     void tabMemory.restore().catch(error=>console.warn('Sidebar tab restoration unavailable',error));
     return;

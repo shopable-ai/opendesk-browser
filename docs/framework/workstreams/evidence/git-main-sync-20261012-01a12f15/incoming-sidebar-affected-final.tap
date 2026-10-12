@@ -1,0 +1,400 @@
+TAP version 13
+# Subtest: read-only cloud diagnostics omit tokens and all private identifiers
+ok 1 - read-only cloud diagnostics omit tokens and all private identifiers
+  ---
+  duration_ms: 0.58025
+  type: 'test'
+  ...
+# Subtest: untrusted provider state is reduced to a known diagnostic enum
+ok 2 - untrusted provider state is reduced to a known diagnostic enum
+  ---
+  duration_ms: 1.241833
+  type: 'test'
+  ...
+# Subtest: development UI only reads cloudStatus and never claims, pairs, approves or starts a run
+ok 3 - development UI only reads cloudStatus and never claims, pairs, approves or starts a run
+  ---
+  duration_ms: 0.438333
+  type: 'test'
+  ...
+# Subtest: late diagnostics after disposal are ignored
+ok 4 - late diagnostics after disposal are ignored
+  ---
+  duration_ms: 0.100375
+  type: 'test'
+  ...
+# Subtest: production Cloud tab is visible in Side Panel while Debug remains hidden
+ok 5 - production Cloud tab is visible in Side Panel while Debug remains hidden
+  ---
+  duration_ms: 3.663708
+  type: 'test'
+  ...
+# Subtest: cloud status refresh is read-only and full tool/catalog tabs cannot claim cloud tasks
+ok 6 - cloud status refresh is read-only and full tool/catalog tabs cannot claim cloud tasks
+  ---
+  duration_ms: 0.452334
+  type: 'test'
+  ...
+# Subtest: Side Panel restores each previously selected product tab after reopening
+ok 7 - Side Panel restores each previously selected product tab after reopening
+  ---
+  duration_ms: 1.0015
+  type: 'test'
+  ...
+# Subtest: a user selection is persisted across new Side Panel documents and extension restarts
+ok 8 - a user selection is persisted across new Side Panel documents and extension restarts
+  ---
+  duration_ms: 1.897584
+  type: 'test'
+  ...
+# Subtest: rapid switches are serialized; a slow earlier save cannot overwrite a later tab
+ok 9 - rapid switches are serialized; a slow earlier save cannot overwrite a later tab
+  ---
+  duration_ms: 1.144458
+  type: 'test'
+  ...
+# Subtest: clicking while storage is loading wins over the old persisted selection
+ok 10 - clicking while storage is loading wins over the old persisted selection
+  ---
+  duration_ms: 0.289875
+  type: 'test'
+  ...
+# Subtest: navigation before Side Panel surface detection is remembered, not overwritten
+ok 11 - navigation before Side Panel surface detection is remembered, not overwritten
+  ---
+  duration_ms: 0.34075
+  type: 'test'
+  ...
+# Subtest: full-size catalog and standalone tool pages never write Side Panel preference
+ok 12 - full-size catalog and standalone tool pages never write Side Panel preference
+  ---
+  duration_ms: 0.219625
+  type: 'test'
+  ...
+# Subtest: untrusted and unsupported stored values cannot become navigable pages
+ok 13 - untrusted and unsupported stored values cannot become navigable pages
+  ---
+  duration_ms: 0.176833
+  type: 'test'
+  ...
+# Subtest: development can remember Debug, while production cannot reopen a hidden Debug page
+ok 14 - development can remember Debug, while production cannot reopen a hidden Debug page
+  ---
+  duration_ms: 0.090916
+  type: 'test'
+  ...
+# Subtest: a disposed panel does not apply a late storage result or persist a late click
+ok 15 - a disposed panel does not apply a late storage result or persist a late click
+  ---
+  duration_ms: 0.400667
+  type: 'test'
+  ...
+# Subtest: storage failure leaves navigation usable and emits diagnostic warning
+ok 16 - storage failure leaves navigation usable and emits diagnostic warning
+  ---
+  duration_ms: 0.316125
+  type: 'test'
+  ...
+# Subtest: the real shell only restores the Side Panel and ignores navigation rejected by the tool guard
+ok 17 - the real shell only restores the Side Panel and ignores navigation rejected by the tool guard
+  ---
+  duration_ms: 0.847459
+  type: 'test'
+  ...
+# Subtest: R3 remains immutable reference; R4 preview keeps installed Discover and independent full catalog
+ok 18 - R3 remains immutable reference; R4 preview keeps installed Discover and independent full catalog
+  ---
+  duration_ms: 3.155042
+  type: 'test'
+  ...
+# Subtest: R4.9 Tools has one navigation tier and three accessible add/import/market controls
+ok 19 - R4.9 Tools has one navigation tier and three accessible add/import/market controls
+  ---
+  duration_ms: 1.680792
+  type: 'test'
+  ...
+# Subtest: R15 official sidebar preserves five views, privileged controls, compact discovery and task history
+ok 20 - R15 official sidebar preserves five views, privileged controls, compact discovery and task history
+  ---
+  duration_ms: 0.876458
+  type: 'test'
+  ...
+# Subtest: R5 keeps one derived interactive prototype with installed-only compact discovery
+ok 21 - R5 keeps one derived interactive prototype with installed-only compact discovery
+  ---
+  duration_ms: 0.791416
+  type: 'test'
+  ...
+# Subtest: Developer source selector and new-script action use one narrow Sidebar toolbar
+ok 22 - Developer source selector and new-script action use one narrow Sidebar toolbar
+  ---
+  duration_ms: 0.763333
+  type: 'test'
+  ...
+# Subtest: R19 Sidebar spacing and corner system is consistent across all five tabs
+ok 23 - R19 Sidebar spacing and corner system is consistent across all five tabs
+  ---
+  duration_ms: 0.890625
+  type: 'test'
+  ...
+# Subtest: R20/R23 five-tab design system has one token source and a strict trusted asset pipeline
+ok 24 - R20/R23 five-tab design system has one token source and a strict trusted asset pipeline
+  ---
+  duration_ms: 1.499584
+  type: 'test'
+  ...
+# Subtest: legacy first-run migration refreshes the installed identity before the next explicit Run
+ok 25 - legacy first-run migration refreshes the installed identity before the next explicit Run
+  ---
+  duration_ms: 15.824167
+  type: 'test'
+  ...
+# Subtest: Task Install requests only missing access on the trusted click and never installs after denial or close
+ok 26 - Task Install requests only missing access on the trusted click and never installs after denial or close
+  ---
+  duration_ms: 14.693709
+  type: 'test'
+  ...
+# Subtest: R25.1 fixed-version manager can focus an installed disabled Task without running it
+ok 27 - R25.1 fixed-version manager can focus an installed disabled Task without running it
+  ---
+  duration_ms: 1.868292
+  type: 'test'
+  ...
+# Subtest: entering Sidebar task views reads external installations without executing and preserves unchanged form inputs
+ok 28 - entering Sidebar task views reads external installations without executing and preserves unchanged form inputs
+  ---
+  duration_ms: 11.338583
+  type: 'test'
+  ...
+# Subtest: installed tasks default page, render schema form and freeze the exact saved version/params/target
+ok 29 - installed tasks default page, render schema form and freeze the exact saved version/params/target
+  ---
+  duration_ms: 16.717333
+  type: 'test'
+  ...
+# Subtest: installed task can be explicitly forked into an independent unsaved editor draft
+ok 30 - installed task can be explicitly forked into an independent unsaved editor draft
+  ---
+  duration_ms: 5.423375
+  type: 'test'
+  ...
+# Subtest: task Stop cannot cancel another view's in-flight draft; parameter form never navigates
+ok 31 - task Stop cannot cancel another view's in-flight draft; parameter form never navigates
+  ---
+  duration_ms: 4.76375
+  type: 'test'
+  ...
+# Subtest: installed task refuses stale target after async installed-version lookup
+ok 32 - installed task refuses stale target after async installed-version lookup
+  ---
+  duration_ms: 7.672042
+  type: 'test'
+  ...
+# Subtest: task cards retain readable selection and do not surface raw IDs as the main UI
+ok 33 - task cards retain readable selection and do not surface raw IDs as the main UI
+  ---
+  duration_ms: 2.9445
+  type: 'test'
+  ...
+# Subtest: Sidebar Discover searches installed tasks only and selects a task without running or opening the catalog
+ok 34 - Sidebar Discover searches installed tasks only and selects a task without running or opening the catalog
+  ---
+  duration_ms: 6.544584
+  type: 'test'
+  ...
+# Subtest: Discover filter controls are real view filters and cannot start another run
+ok 35 - Discover filter controls are real view filters and cannot start another run
+  ---
+  duration_ms: 9.503834
+  type: 'test'
+  ...
+# Subtest: opening the separate full-size catalog preserves its import and management view
+ok 36 - opening the separate full-size catalog preserves its import and management view
+  ---
+  duration_ms: 2.83375
+  type: 'test'
+  ...
+# Subtest: full-size catalog keeps its own reader after real install and re-reads the single Task Catalog state
+ok 37 - full-size catalog keeps its own reader after real install and re-reads the single Task Catalog state
+  ---
+  duration_ms: 6.49775
+  type: 'test'
+  ...
+# Subtest: idle Discover has no fixed footer and inline import still opens the authenticated catalog
+ok 38 - idle Discover has no fixed footer and inline import still opens the authenticated catalog
+  ---
+  duration_ms: 11.020125
+  type: 'test'
+  ...
+# Subtest: R5 result/history stay out of sight until a task has runs
+ok 39 - R5 result/history stay out of sight until a task has runs
+  ---
+  duration_ms: 6.454042
+  type: 'test'
+  ...
+# Subtest: card view retains original action identities, history and parameter form across tab changes
+ok 40 - card view retains original action identities, history and parameter form across tab changes
+  ---
+  duration_ms: 9.913
+  type: 'test'
+  ...
+# Subtest: reopening My Tasks restores independent parameter drafts without permissions or execution
+ok 41 - reopening My Tasks restores independent parameter drafts without permissions or execution
+  ---
+  duration_ms: 5.656875
+  type: 'test'
+  ...
+# Subtest: switching between two installed tasks preserves each independent unsaved parameter input
+ok 42 - switching between two installed tasks preserves each independent unsaved parameter input
+  ---
+  duration_ms: 2.875458
+  type: 'test'
+  ...
+# Subtest: R6 accessible roving tabs support Arrow and Home/End
+ok 43 - R6 accessible roving tabs support Arrow and Home/End
+  ---
+  duration_ms: 1.731625
+  type: 'test'
+  ...
+# Subtest: R6 task card refresh, keyboard selection and Discover handoff restore focus
+ok 44 - R6 task card refresh, keyboard selection and Discover handoff restore focus
+  ---
+  duration_ms: 5.214792
+  type: 'test'
+  ...
+# Subtest: twenty installed Task runs never request Chrome permission; revoked access stops admission
+ok 45 - twenty installed Task runs never request Chrome permission; revoked access stops admission
+  ---
+  duration_ms: 97.352333
+  type: 'test'
+  ...
+# Subtest: R6 late run start/result cannot become the newly selected task status
+ok 46 - R6 late run start/result cannot become the newly selected task status
+  ---
+  duration_ms: 12.50775
+  type: 'test'
+  ...
+# Subtest: R6 previous-version notices and results do not leak after installed upgrade
+ok 47 - R6 previous-version notices and results do not leak after installed upgrade
+  ---
+  duration_ms: 8.944292
+  type: 'test'
+  ...
+# Subtest: two extension documents share only a refresh hint and re-read authoritative installed state
+ok 48 - two extension documents share only a refresh hint and re-read authoritative installed state
+  ---
+  duration_ms: 18.105625
+  type: 'test'
+  ...
+# Subtest: catalog installation stays in the complete directory and directs running back to Sidebar
+ok 49 - catalog installation stays in the complete directory and directs running back to Sidebar
+  ---
+  duration_ms: 6.706667
+  type: 'test'
+  ...
+# Subtest: catalog JS import hands source to Sidebar and never enters a view with a hidden runner
+ok 50 - catalog JS import hands source to Sidebar and never enters a view with a hidden runner
+  ---
+  duration_ms: 2.923292
+  type: 'test'
+  ...
+# Subtest: missing Sidebar refuses import with an actionable message, without losing the directory
+ok 51 - missing Sidebar refuses import with an actionable message, without losing the directory
+  ---
+  duration_ms: 2.756084
+  type: 'test'
+  ...
+# Subtest: catalog draft transport errors retain their cause instead of claiming Sidebar is missing
+ok 52 - catalog draft transport errors retain their cause instead of claiming Sidebar is missing
+  ---
+  duration_ms: 3.959667
+  type: 'test'
+  ...
+# Subtest: receiving a source-only import selects Sidebar Developer without creating a run
+ok 53 - receiving a source-only import selects Sidebar Developer without creating a run
+  ---
+  duration_ms: 2.6965
+  type: 'test'
+  ...
+# Subtest: R6.1 task-owned Stop is the sole cross-view action and names the launching task
+ok 54 - R6.1 task-owned Stop is the sole cross-view action and names the launching task
+  ---
+  duration_ms: 14.665292
+  type: 'test'
+  ...
+# Subtest: R6.1 a draft-owned run exposes only its Stop when viewing Tasks or Discover
+ok 55 - R6.1 a draft-owned run exposes only its Stop when viewing Tasks or Discover
+  ---
+  duration_ms: 2.750083
+  type: 'test'
+  ...
+# Subtest: R6.1 stop-only footer CSS hides all non-owner actions without hiding Stop
+ok 56 - R6.1 stop-only footer CSS hides all non-owner actions without hiding Stop
+  ---
+  duration_ms: 0.387333
+  type: 'test'
+  ...
+# Subtest: catalog project JSON import validates snapshots and hands frozen bytes to Sidebar without running
+ok 57 - catalog project JSON import validates snapshots and hands frozen bytes to Sidebar without running
+  ---
+  duration_ms: 4.4945
+  type: 'test'
+  ...
+# Subtest: catalog rejects a changed project snapshot before handoff and permits reselecting the file
+ok 58 - catalog rejects a changed project snapshot before handoff and permits reselecting the file
+  ---
+  duration_ms: 3.237208
+  type: 'test'
+  ...
+# Subtest: R8 R2 task history masks sensitive values and exposes only durable technical identifiers
+ok 59 - R8 R2 task history masks sensitive values and exposes only durable technical identifiers
+  ---
+  duration_ms: 8.845333
+  type: 'test'
+  ...
+# Subtest: R8 R2 a persisted timeout gives an actionable warning without leaking request credentials
+ok 60 - R8 R2 a persisted timeout gives an actionable warning without leaking request credentials
+  ---
+  duration_ms: 4.344792
+  type: 'test'
+  ...
+# Subtest: R8 R2 an unresolved persisted run warns before an unsafe repeat
+ok 61 - R8 R2 an unresolved persisted run warns before an unsafe repeat
+  ---
+  duration_ms: 2.828334
+  type: 'test'
+  ...
+# Subtest: R14 an in-flight task keeps its original Stop owner across Tools navigation
+ok 62 - R14 an in-flight task keeps its original Stop owner across Tools navigation
+  ---
+  duration_ms: 9.801334
+  type: 'test'
+  ...
+# Subtest: R14.1 pending task RunHost admission cannot borrow the Developer Stop dock
+ok 63 - R14.1 pending task RunHost admission cannot borrow the Developer Stop dock
+  ---
+  duration_ms: 13.404333
+  type: 'test'
+  ...
+# Subtest: Final R2 tool navigation refusal leaves the selected pane and tab intact
+ok 64 - Final R2 tool navigation refusal leaves the selected pane and tab intact
+  ---
+  duration_ms: 8.674708
+  type: 'test'
+  ...
+# Subtest: tool editor navigation veto retains visible panel, selected tab and keyboard focus
+ok 65 - tool editor navigation veto retains visible panel, selected tab and keyboard focus
+  ---
+  duration_ms: 1.645333
+  type: 'test'
+  ...
+1..65
+# tests 65
+# suites 0
+# pass 65
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 563.949834

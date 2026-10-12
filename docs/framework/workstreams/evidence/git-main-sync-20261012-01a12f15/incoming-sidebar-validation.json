@@ -1,0 +1,35 @@
+{
+  "scope": "main merge component/static validation; native/F3/ZIP NOT_TESTED",
+  "upstream": "e12716b9a9868b13d895f2615e5035727bba1145",
+  "tests": {
+    "total": 283,
+    "passed": 283,
+    "failed": 0,
+    "log": "incoming-sidebar-final.tap"
+  },
+  "sourceCheck": {
+    "files": 515,
+    "log": "incoming-sidebar-source-check.log"
+  },
+  "repairs": [
+    "DOM querySelector fixture",
+    "exact Side Panel guard fixture",
+    "Tools section boundary fixture"
+  ],
+  "inputs": {
+    "src/ui/cloud-hosting.js": "73b9fc6fa6a9fd92412ec90df8169e23010e0511f70f2893f7bb4174d9fa123d",
+    "src/ui/cloud-status-presentation.js": "9f07aee533ce03d41008a9b1576b9f8e62964d1ececb2b505add68864d4c80fc",
+    "src/ui/sidebar-tab-memory.js": "83357d3d35c1a13d04075ef74cc991394818a4475b888fe9332c170fb4b0bcf2",
+    "src/ui/task-workbench.js": "d2d815e084ad7fe8e83d95ffe46da4115af4f89edbc2ed65f332cc7484b41ea3",
+    "src/ui/tool-shell.css": "7e4e768efa41896cd28b1c560de4f8dc849ad8d9f7180f51170257ef3990d889",
+    "src/ui/tool-shell.js": "29182b2997d311efadb49fc13e7090285945298714afa0bd99f79782f5f1d608",
+    "src/ui/tool.html": "39517f0d74e9227b34ec66a679150aff5d3b95c11dcd5277a865f2a0a66dde0d",
+    "tests/environment/cloud-control-debug-r14.test.mjs": "19aedfa7a8feefe40f580df58f169c5050eb4009f4f331512480f7f1327ac7a3",
+    "tests/environment/page-sidebar-context-r243.test.mjs": "8842380fe9d01f951a0a92fdf083d61928ea7bf05f6a0029d0d68e7ee729faba",
+    "tests/environment/sidebar-product-contract.test.mjs": "f3384dc533ba6918806e1c3acd853a58506042bb1e0ea59b865151188a258b81",
+    "tests/environment/sidebar-tab-memory.test.mjs": "e38df39484b15af1f10f367d1baa1949afe18ef596601149c04df9b14bee8dee",
+    "tests/environment/sidebar-ui-preview.test.mjs": "d25e3d5a7fe7cd3f9d1fa0f8662e4788d23948dcb78e29e9fb49bfd6629379a4",
+    "tests/environment/task-workbench.test.mjs": "47aa43b7572095648c7fe0238bf817c9c52c1c6cb1c95c850977dbd34deb0393"
+  },
+  "failedAttemptRetained": "incoming-sidebar-failed.tap"
+}

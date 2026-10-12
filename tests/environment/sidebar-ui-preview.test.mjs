@@ -25,7 +25,7 @@ test('R4.9 Tools has one navigation tier and three accessible add/import/market 
   const [html,css,host]=await Promise.all([
     read('src/ui/tool.html'),read('src/ui/tool-shell.css'),read('src/ui/sidebar-tools.js')
   ]);
-  const start=html.indexOf('<section id="sidebar-tools"'),end=html.indexOf('id="workbench-local-discover"');
+  const start=html.indexOf('<section id="sidebar-tools"'),end=html.indexOf('id="workbench-cloud"');
   assert.ok(start>=0&&end>start);
   const tools=html.slice(start,end);
   assert.doesNotMatch(tools,/role="tablist"|role="tab"|role="tabpanel"|我的工具|发现工具/);
@@ -58,7 +58,7 @@ test('R15 official sidebar preserves five views, privileged controls, compact di
   assert.match(work,/new BroadcastChannel|new globalThis\.BroadcastChannel/);
   assert.match(work,/listTaskCatalog/,'broadcast does not replace authoritative data');
   assert.match(css,/task-history-entry/);
-  assert.match(css,/grid-template-columns:repeat\(5,minmax\(0,1fr\)\)/);
+  assert.match(css,/\.workbench-nav\{[^}]*display:flex;[^}]*overflow-x:auto;/);
 });
 
 test('R5 keeps one derived interactive prototype with installed-only compact discovery',async()=>{

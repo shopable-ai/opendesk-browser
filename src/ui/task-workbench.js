@@ -20,6 +20,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     get('tab-debug').hidden=false;
     doc.querySelector('.workbench-nav').dataset.debugEnabled='true';
   }
+  let cloudAvailable=false;
   const editorSource=executionSource || (() => get('script-source').value);
   let disposed=false, working=false, running=false, activeRunId=null, catalog=[], installed=[], renderKey=null;
   let toolActive=false, toolsViewListener=null, workflowRunId=null, workflowClaimPending=false;
@@ -106,7 +107,8 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
   const option=(name,value)=>new Option(name,value);
   function navigate(name,{initial=false}={}) {
     if(name==='debug'&&!debugEnabled)return false;
-    if(!['tasks','discover','workflow','develop','tools','catalog','debug'].includes(name))return;
+    if(name==='cloud'&&!cloudAvailable)return false;
+    if(!['tasks','discover','workflow','develop','tools','cloud','catalog','debug'].includes(name))return;
     if(name==='catalog'&&!catalogSurface) {
       // Package import and installation live only in a separate full-size
       // extension tab. Sidebar Discover is a view of installed local tasks.
@@ -116,9 +118,9 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     // Ask the live tool before changing panes or destroying its editor.
     if(toolsViewListener?.(name==='tools' && !catalogSurface,name)===false)return false;
     for(const [element,view] of [
-      ['tasks','tasks'],['local-discover','discover'],['workflow','workflow'],['develop','develop'],['tools','tools'],['discover','catalog'],['debug','debug']
+      ['tasks','tasks'],['local-discover','discover'],['workflow','workflow'],['develop','develop'],['tools','tools'],['cloud','cloud'],['discover','catalog'],['debug','debug']
     ])get('workbench-'+element).hidden=view!==name;
-    for(const [view,id] of [['tasks','tab-my-tasks'],['discover','tab-discover'],['workflow','tab-workflow'],['develop','tab-develop'],['tools','tab-tools'],...(debugEnabled?[['debug','tab-debug']]:[])]) {
+    for(const [view,id] of [['tasks','tab-my-tasks'],['discover','tab-discover'],['workflow','tab-workflow'],['develop','tab-develop'],['tools','tab-tools'],...(cloudAvailable?[['cloud','tab-cloud']]:[]),...(debugEnabled?[['debug','tab-debug']]:[])]) {
       const tab=get(id);
       tab.setAttribute('aria-selected',String(name===view));
       tab.tabIndex=name===view?0:-1;
@@ -127,6 +129,8 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     if(doc.documentElement?.dataset)doc.documentElement.dataset.opendeskTab=name;
     if(name==='discover')renderLocalDiscovery();
     if(name==='debug')onNavigate?.('debug');
+    if(name==='cloud')onNavigate?.('cloud');
+    doc.querySelector('.workbench-nav button[aria-selected="true"]')?.scrollIntoView?.({block:'nearest',inline:'nearest'});
     // Only an accepted top-level navigation may update the Sidebar preference.
     onTabSelected?.(name,{initial});
   }
@@ -771,27 +775,31 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     working=true;update();
     try{await fn(event);}catch(error){fail(error);}finally{working=false;update();}
   };
-  const tabOrder=[['tasks','tab-my-tasks'],['discover','tab-discover'],['workflow','tab-workflow'],['develop','tab-develop'],['tools','tab-tools']];
+  const tabOrder=[['tasks','tab-my-tasks'],['discover','tab-discover'],['workflow','tab-workflow'],['develop','tab-develop'],['tools','tab-tools'],['cloud','tab-cloud']];
   if(debugEnabled)tabOrder.push(['debug','tab-debug']);
-  for(const [index,[tab,id]] of tabOrder.entries()){
+  const visibleTabs=()=>tabOrder.filter(([view])=>view!=='cloud'||cloudAvailable);
+  for(const [tab,id] of tabOrder){
     listen(get(id),'click',()=>{
       if(navigate(tab)===false)return;
       if(tab==='tasks'||tab==='discover')refresh(undefined,{skipUnchanged:true}).catch(fail);
     });
     listen(get(id),'keydown',event=>{
+      const available=visibleTabs(),index=available.findIndex(([view])=>view===tab);
+      if(index<0)return;
       let next;
-      if(event.key==='ArrowRight')next=(index+1)%tabOrder.length;
-      else if(event.key==='ArrowLeft')next=(index+tabOrder.length-1)%tabOrder.length;
+      if(event.key==='ArrowRight')next=(index+1)%available.length;
+      else if(event.key==='ArrowLeft')next=(index+available.length-1)%available.length;
       else if(event.key==='Home')next=0;
-      else if(event.key==='End')next=tabOrder.length-1;
+      else if(event.key==='End')next=available.length-1;
       else return; // Enter/Space retain native button activation.
       event.preventDefault();
-      if(navigate(tabOrder[next][0])===false)return;
-      get(tabOrder[next][1]).focus?.({preventScroll:true});
-      if(tabOrder[next][0]==='tasks'||tabOrder[next][0]==='discover')
+      if(navigate(available[next][0])===false)return;
+      get(available[next][1]).focus?.({preventScroll:true});
+      if(available[next][0]==='tasks'||available[next][0]==='discover')
         refresh(undefined,{skipUnchanged:true}).catch(fail);
     });
   }
+  listen(get('cloud-my-open'),'click',()=>navigate('cloud'));
   listen(get('open-catalog'),'click',()=>navigate('catalog'));
   listen(get('task-open-catalog'),'click',()=>navigate('catalog'));
   listen(get('local-discover-open-catalog'),'click',()=>navigate('catalog'));
@@ -858,7 +866,12 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     if(!disposed)return refresh();
   }).catch(fail);
   navigate('tasks',{initial:true});update();
-  return {navigate,showCatalogPage,refresh,setWorkflowRunOwner(runId) {
+  return {navigate,showCatalogPage,refresh,setCloudAvailable(value){
+    cloudAvailable=Boolean(value);
+    get('tab-cloud').hidden=!cloudAvailable;
+    get('cloud-my-open').hidden=!cloudAvailable;
+    if(!cloudAvailable&&doc.documentElement?.dataset?.opendeskTab==='cloud')navigate('tasks');
+  },setWorkflowRunOwner(runId) {
     workflowClaimPending=runId==='pending';
     workflowRunId=runId && runId!=='pending'?runId:null;
     if(!disposed)syncRunDock();

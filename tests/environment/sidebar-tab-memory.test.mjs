@@ -28,7 +28,7 @@ function fixture({store=storage(),debugEnabled=false}={}){
 }
 
 test('Side Panel restores each previously selected product tab after reopening',async()=>{
-  for(const view of ['tasks','discover','workflow','develop','tools']){
+  for(const view of ['tasks','discover','workflow','develop','tools','cloud']){
     const f=fixture({store:storage({[KEY]:view})});
     await f.memory.restore();
     assert.equal(f.selected,view);
@@ -169,7 +169,7 @@ test('the real shell only restores the Side Panel and ignores navigation rejecte
   const [shell,work]=await Promise.all([
     readFile('src/ui/tool-shell.js','utf8'),readFile('src/ui/task-workbench.js','utf8')
   ]);
-  assert.match(shell,/if\(!tab\?\.id\)\{[\s\S]*?tabMemory\.restore\(\)/);
+  assert.match(shell,/if\(actualSidePanel\|\|!tab\?\.id\)\{[\s\S]*?tabMemory\.restore\(\)/);
   assert.match(shell,/onTabSelected:\(view,options\)=>tabMemory\.record\(view,options\)/);
   const navigateStart=work.indexOf('function navigate(name,{initial=false}={})');
   const veto=work.indexOf("if(toolsViewListener?.(name==='tools' && !catalogSurface,name)===false)return false;",navigateStart);
