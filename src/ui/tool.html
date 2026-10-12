@@ -90,23 +90,27 @@
       </div>
       <form id="schedule-form" class="schedule-form od-stack" autocomplete="off" hidden>
         <label class="od-field" for="schedule-title">计划名称
-          <input id="schedule-title" type="text" maxlength="100" required placeholder="例如：每天整理网页报告">
+          <input id="schedule-title" type="text" maxlength="100" required aria-describedby="schedule-title-error" placeholder="例如：每天整理网页报告">
         </label>
+        <p id="schedule-title-error" class="schedule-field-error" role="alert"></p>
         <div class="schedule-source-field">
           <label for="schedule-task-select">执行任务（已验证并安装）</label>
           <div class="schedule-source-row">
-            <select id="schedule-task-select" required aria-label="选择已安装任务"><option value="">请选择可用任务</option></select>
+            <select id="schedule-task-select" required aria-label="选择已安装任务" aria-describedby="schedule-task-version schedule-task-error"><option value="">请选择可用任务</option></select>
             <button id="schedule-new-script" type="button" class="od-icon-button" title="新建脚本 · 进入开发" aria-label="新建脚本"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM14 2v6h6M8 13h8m-4-4v8"></path></svg></button>
             <button id="schedule-manage-tasks" type="button" class="od-icon-button" title="管理任务 · 搜索、启停和卸载" aria-label="管理任务"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h12M9 12h12M9 18h12M3 6l1 1 2-2M3 12l1 1 2-2M3 18l1 1 2-2"></path></svg></button>
           </div>
           <p id="schedule-task-version" class="hint" aria-live="polite"></p>
+          <p id="schedule-task-error" class="schedule-field-error" role="alert"></p>
         </div>
         <label class="od-field" for="schedule-target">目标网页 URL
-          <input id="schedule-target" type="url" inputmode="url" maxlength="2048" required placeholder="https://example.com/path">
+          <input id="schedule-target" type="url" inputmode="url" maxlength="2048" required aria-describedby="schedule-target-error" placeholder="https://example.com/path">
         </label>
+        <p id="schedule-target-error" class="schedule-field-error" role="alert"></p>
         <label class="od-field" for="schedule-params">任务参数（JSON 对象）
-          <textarea id="schedule-params" rows="2" spellcheck="false">{}</textarea>
+          <textarea id="schedule-params" rows="2" spellcheck="false" aria-describedby="schedule-params-error">{}</textarea>
         </label>
+        <p id="schedule-params-error" class="schedule-field-error" role="alert"></p>
         <fieldset class="schedule-rule">
           <legend>执行时间</legend>
           <div class="schedule-rule-row">
@@ -130,6 +134,7 @@
             <input id="schedule-minutes" type="number" min="1" max="10080" step="1" value="60">
           </label>
           <p id="schedule-next" class="hint" aria-live="polite">选择规则后显示下一次触发时间。</p>
+          <p id="schedule-time-error" class="schedule-field-error" role="alert"></p>
         </fieldset>
         <details class="schedule-advanced"><summary>高级选项</summary>
           <label class="schedule-check"><input type="checkbox" id="schedule-open-target">找不到已打开的目标网页时，允许为本次执行新开标签页</label>
@@ -141,8 +146,17 @@
           </label>
         </details>
         <label class="schedule-check"><input type="checkbox" id="schedule-paused">创建后先暂停</label>
+        <div id="schedule-save-confirm" class="schedule-save-confirm od-surface" role="group" aria-label="确认定时计划" hidden>
+          <strong>确认计划及固定任务授权</strong>
+          <p id="schedule-save-summary"></p>
+          <p class="hint">保存后仅在已授权网页及合法可见运行宿主内按时尝试执行。浏览器关闭时不会自动操作网页。</p>
+          <div class="schedule-actions od-toolbar">
+            <button id="schedule-confirm-yes" type="button" class="od-button">确认并保存</button>
+            <button id="schedule-confirm-no" type="button" class="od-button od-button--secondary">返回修改</button>
+          </div>
+        </div>
         <div class="schedule-actions od-toolbar">
-          <button type="submit" id="schedule-save" class="od-button">保存计划</button>
+          <button type="submit" id="schedule-save" class="od-button">检查并确认</button>
           <button type="button" id="schedule-cancel" class="od-button od-button--secondary">返回列表</button>
         </div>
       </form>

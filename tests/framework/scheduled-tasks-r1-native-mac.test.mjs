@@ -393,6 +393,10 @@ test('real installed Chrome: verified Task via Alarms -> original RunHost -> pag
   await type(client,sideSid,'#schedule-minutes','1');
   assert.equal(await evaluate(client,expr('#schedule-kind')+'.value',sideSid),'interval');
   await click(client,sideSid,'#schedule-save');
+  await deadline(()=>evaluate(client,
+    '!document.querySelector("#schedule-save-confirm").hidden',sideSid),
+    'visible review of exact installed task and schedule before saving');
+  await click(client,sideSid,'#schedule-confirm-yes');
   await deadline(()=>evaluate(client,'!!document.querySelector("#schedule-plan-list .schedule-card")',sideSid),
     'persisted approved schedule visible in My',18000);
   report.tests.nativeScheduleCreation='PASS';

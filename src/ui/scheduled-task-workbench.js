@@ -51,6 +51,18 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
   let disposed=false,shown=false,busy=false,editing=null,managerReturn='list';
   let pendingCreate=false,pendingTask=null,confirmUninstall=null,allPlans=[],catalog=[],installed=[];
   let selectedFire=null,lastRefresh=0,activeView='list',runnerFocusId=null;
+  let permissionSeq=0,awaitingSave=null;
+  const touched=new Set();
+  const formFields={title:'schedule-title',task:'schedule-task-select',
+    target:'schedule-target',params:'schedule-params',time:'schedule-timezone'};
+  const clearConfirmation=()=>{
+    awaitingSave=null;get('schedule-save-confirm').hidden=true;
+  };
+  function fieldError(name,value){
+    const field=get(formFields[name]),error=get('schedule-'+name+'-error');
+    text(error,value||'');
+    field?.setAttribute('aria-invalid',value?'true':'false');
+  }
   const message=(value,error=false)=>{
     const el=get('schedule-message');text(el,value);el.dataset.state=error?'error':'ready';
   };
@@ -113,12 +125,25 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
     else select.value='';
     showTaskVersion();
   }
-  function showTaskVersion(){
+  async function showTaskVersion(){
+    const seq=++permissionSeq;
     const row=eligible().find(r=>r.taskId===get('schedule-task-select').value);
-    const manifest=candidate(row)?.manifest;
-    text(get('schedule-task-version'),row?
-      `固定版本 v${row.version} · 授权网站：${manifest?.siteOrigins?.join('，')||'不可用'}`:
-      '请选择已安装、已验证且已启用的 Controller 任务');
+    const origins=candidate(row)?.manifest?.siteOrigins||[];
+    if(!row){
+      text(get('schedule-task-version'),'请选择已安装、已验证且已启用的 Controller 任务');
+      return;
+    }
+    const prefix=`固定版本 v${row.version} · 网站范围：${origins.join('，')||'不可用'}`;
+    text(get('schedule-task-version'),prefix+' · 正在核查网站权限…');
+    try{
+      const allowed=Boolean(api.permissions?.contains)&&origins.length>0&&
+        (await Promise.all(origins.map(origin=>api.permissions.contains({
+          origins:[permissionPattern(origin)]}).catch(()=>false)))).every(Boolean);
+      if(seq!==permissionSeq)return;
+      text(get('schedule-task-version'),prefix+(allowed?' · 网站权限已授权':' · 网站权限不足，需要处理'));
+    }catch{
+      if(seq===permissionSeq)text(get('schedule-task-version'),prefix+' · 网站权限状态未知');
+    }
   }
   function renderRunner(){
     const byTime=(a,b)=>(a.nextDueAt??Infinity)-(b.nextDueAt??Infinity);
@@ -238,11 +263,53 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
     try{
       const {kind,zone,spec}=trigger();
       const next=nextScheduleAt(kind,spec,zone,Date.now());
+      if(next===null)throw Error('该时间没有后续触发，请选择未来时间');
       text(get('schedule-next'),'预计下次：'+describeTime(next,zone));
-    }catch{ text(get('schedule-next'),'填写有效时区和时间后显示下一次触发'); }
+      if(!touched.has('time'))fieldError('time','');
+    }catch(error){
+      text(get('schedule-next'),'填写有效时区和时间后显示下一次触发');
+      if(touched.has('time'))fieldError('time',error?.message||'请输入有效的执行时间和时区');
+    }
+  }
+  function validateLocal(showAll=false){
+    const errors={};const fail=(name,value)=>{errors[name]=value;};
+    const title=get('schedule-title').value.trim();
+    if(!title||title.length>100)fail('title','计划名称应为 1–100 个字符');
+    const row=eligible().find(r=>r.taskId===get('schedule-task-select').value);
+    if(!row)fail('task','请选择已验证、已安装且已启用的任务');
+    let url;
+    const entered=get('schedule-target').value.trim();
+    try{
+      url=new URL(entered);
+      if(!['http:','https:'].includes(url.protocol)||url.username||url.password||url.hash||
+        url.href.length>2048)throw Error('请输入没有账号密码或片段的 HTTP(S) 地址');
+      if(row&&!candidate(row)?.manifest?.siteOrigins?.includes(url.origin))
+        throw Error('目标网址不在当前任务批准的网站范围内');
+    }catch(error){fail('target',error?.message?.startsWith('Invalid URL')?
+      '请输入完整的 http:// 或 https:// 网页地址':(error?.message||'目标网址无效'));}
+    let params;
+    try{
+      params=JSON.parse(get('schedule-params').value||'{}');
+      if(!params||typeof params!=='object'||Array.isArray(params)||
+        JSON.stringify(params).length>8192)throw Error('请输入不超过 8192 字符的 JSON 对象');
+    }catch(error){fail('params',error instanceof SyntaxError?
+      'JSON 格式错误，请检查逗号、引号及括号':error.message);}
+    let rule;
+    try{
+      rule=trigger();
+      const next=nextScheduleAt(rule.kind,rule.spec,rule.zone,Date.now());
+      if(next===null)throw Error('执行时间已过，请选择未来时间');
+      const deadline=Number(get('schedule-deadline').value);
+      if(!Number.isSafeInteger(deadline)||deadline<1||deadline>60)
+        throw Error('最长等待时间必须为 1–60 分钟');
+    }catch(error){fail('time',error?.message||'执行规则或 IANA 时区不正确');}
+    for(const name of Object.keys(formFields))
+      if(showAll||touched.has(name))fieldError(name,errors[name]||'');
+    return Object.keys(errors).length?null:{title,row,url,params,rule};
   }
   function reset(){
-    editing=null;pendingTask=null;
+    editing=null;pendingTask=null;clearConfirmation();touched.clear();
+    for(const name of Object.keys(formFields))fieldError(name,'');
     const form=get('schedule-form');form.reset();
     get('schedule-title').value='';
     const local=new Date(Date.now()+10*60000);
@@ -254,6 +321,8 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
     populateChoices();switchKind();
   }
   function edit(plan){
+    clearConfirmation();touched.clear();
+    for(const name of Object.keys(formFields))fieldError(name,'');
     editing=plan;show('form');
     get('schedule-title').value=plan.title;
     get('schedule-task-select').value=plan.taskId;
@@ -277,26 +346,47 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
   }
   async function save(event){
     event.preventDefault();if(busy)return;
+    clearConfirmation();
+    const local=validateLocal(true);
+    if(!local){message('请先修正上方标记的字段',true);return;}
     busy=true;get('schedule-save').disabled=true;
     try{
-      const id=get('schedule-task-select').value;
-      const resolved=await client.request('resolveInstalledTask',{taskId:id});
-      const url=new URL(get('schedule-target').value.trim());
-      url.hash='';
-      if(!resolved.manifest.siteOrigins.includes(url.origin))throw Error('目标 URL 不在任务已批准网站范围内');
-      const params=JSON.parse(get('schedule-params').value||'{}');
-      const {kind,zone,spec}=trigger();
+      const resolved=await client.request('resolveInstalledTask',{taskId:local.row.taskId});
+      if(resolved.version!==local.row.version||resolved.manifestHash!==local.row.manifestHash||
+        resolved.installationId!==local.row.installationId)
+        throw Error('任务安装身份已变更，请重新选择已验证的固定版本');
+      if(editing&&(editing.taskId!==resolved.taskId||editing.version!==resolved.version||
+        editing.manifestHash!==resolved.manifestHash||editing.sourceHash!==resolved.contentHash||
+        editing.installationId!==resolved.installationId||editing.taskGeneration!==resolved.generation))
+        throw Error('原计划绑定的任务版本或授权已变化；请新建计划，不能自动替换原固定版本');
+      const {kind,zone,spec}=local.rule;
       const input={...(editing?{scheduleId:editing.scheduleId,expectedGeneration:editing.generation}:{}),
-        title:get('schedule-title').value.trim(),taskId:resolved.taskId,
+        title:local.title,taskId:resolved.taskId,
         version:resolved.version,manifestHash:resolved.manifestHash,sourceHash:resolved.contentHash,
         installationId:resolved.installationId,taskGeneration:resolved.generation,
-        params,targetUrl:url.href,openIfMissing:get('schedule-open-target').checked,
+        params:local.params,targetUrl:local.url.href,openIfMissing:get('schedule-open-target').checked,
         timezone:zone,triggerKind:kind,triggerSpec:spec,misfirePolicy:get('schedule-misfire').value,
         startDeadlineMs:Number(get('schedule-deadline').value)*60000,paused:get('schedule-paused').checked};
-      await client.request('saveSchedule',input);
-      await refresh();editing=null;show('list');message('定时计划已保存，Chrome Alarms 已按照持久计划对账');
-    }catch(error){message('无法保存计划：'+(error?.message||String(error)),true);}
+      awaitingSave={input};
+      const timing=frequencyLabel(input)+' · '+describeTime(nextScheduleAt(kind,spec,zone,Date.now()),zone);
+      text(get('schedule-save-summary'),
+        `${input.title}\n任务：${resolved.manifest.title||resolved.taskId} · v${resolved.version}\n网址：${input.targetUrl}\n时间：${timing}\n状态：${input.paused?'先暂停':'启用'}`);
+      get('schedule-save-confirm').hidden=false;
+      message('请核对固定任务、目标网址与执行规则后确认保存');
+      get('schedule-confirm-yes').focus();
+    }catch(error){message('无法确认计划：'+(error?.message||String(error)),true);}
     finally{busy=false;get('schedule-save').disabled=false;}
+  }
+  async function confirmSave(){
+    if(busy||!awaitingSave)return;
+    busy=true;get('schedule-confirm-yes').disabled=true;
+    const pending=awaitingSave;
+    try{
+      await client.request('saveSchedule',pending.input);
+      clearConfirmation();await refresh();editing=null;show(isRunner()?'runner':'list');
+      message('定时计划已保存，Chrome Alarms 已按照持久计划对账');
+    }catch(error){message('无法保存计划：'+(error?.message||String(error)),true);}
+    finally{busy=false;get('schedule-confirm-yes').disabled=false;}
   }
   function enterDeveloper(){
     pendingCreate=true;hidePanel();taskWorkbench.navigate('develop');
@@ -378,7 +468,21 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
     if(details){details.open=true;details.querySelector('summary')?.focus();card.scrollIntoView?.({block:'nearest'});}
   });
   bind('schedule-create','click',()=>{reset();show('form');get('schedule-title').focus();});
-  bind('schedule-cancel','click',()=>show('list'));
+  bind('schedule-cancel','click',()=>{clearConfirmation();show(isRunner()?'runner':'list');});
+  bind('schedule-confirm-yes','click',()=>void confirmSave());
+  bind('schedule-confirm-no','click',()=>{clearConfirmation();get('schedule-save').focus();});
+  for(const [id,name] of [
+    ['schedule-title','title'],['schedule-task-select','task'],['schedule-target','target'],
+    ['schedule-params','params'],['schedule-kind','time'],['schedule-timezone','time'],
+    ['schedule-once','time'],['schedule-clock','time'],['schedule-minutes','time'],
+    ['schedule-weekdays-field','time'],['schedule-deadline','time']]){
+    bind(id,'input',()=>{
+      touched.add(name);clearConfirmation();validateLocal(false);
+      if(name==='time')preview();
+    });
+  }
+  for(const id of ['schedule-open-target','schedule-misfire','schedule-paused'])
+    bind(id,'change',clearConfirmation);
   bind('schedule-form','submit',save);
   bind('schedule-task-select','change',showTaskVersion);
   bind('schedule-new-script','click',enterDeveloper);

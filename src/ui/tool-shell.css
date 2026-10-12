@@ -834,3 +834,13 @@
  :root[data-opendesk-surface="scheduled-runner"] #workspace-content{padding:12px 10px 20px}
  .schedule-runner-metric,.schedule-runner-focus{padding:var(--space-3)}
 }
+
+/* R2: field-level validation and explicit inline approval, no native JS dialog. */
+.schedule-panel .schedule-field-error{color:var(--od-negative);font-size:12px;line-height:1.4;margin:0;overflow-wrap:anywhere}
+.schedule-field-error:empty{display:none}
+.schedule-form [aria-invalid="true"]{border-color:var(--od-negative);outline-offset:2px}
+.schedule-save-confirm{display:grid;gap:var(--space-2);padding:var(--space-3);min-width:0}
+.schedule-save-confirm>p{margin:0;font-size:12px;line-height:1.6;overflow-wrap:anywhere;white-space:pre-line}
+.schedule-save-confirm>strong{font-size:13px}
+.schedule-run-details{margin-top:4px;max-width:100%}
+.schedule-run-details summary{cursor:pointer;color:var(--od-sub)}

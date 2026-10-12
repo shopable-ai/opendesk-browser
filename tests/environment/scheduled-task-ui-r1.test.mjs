@@ -124,3 +124,25 @@ test('R2 history keeps technical run identity behind expandable detail',async()=
   assert.match(ui,/RunId：/);
   assert.match(ui,/scheduleStatus\(fire.status\)/);
 });
+
+test('R2 create form validates URL, JSON and wall-time inline and requires an explicit product confirmation',async()=>{
+  const [html,ui,css]=await Promise.all([
+    load('src/ui/tool.html'),load('src/ui/scheduled-task-workbench.js'),
+    load('src/ui/tool-shell.css')
+  ]);
+  for(const id of ['schedule-title-error','schedule-task-error','schedule-target-error',
+    'schedule-params-error','schedule-time-error','schedule-save-confirm',
+    'schedule-save-summary','schedule-confirm-yes','schedule-confirm-no'])
+    assert.match(html,new RegExp('id="'+id+'"'));
+  assert.match(html,/id="schedule-save-confirm"[^>]*hidden/);
+  assert.match(html,/id="schedule-save"[^>]*>检查并确认/);
+  assert.match(ui,/function validateLocal\(showAll=false\)/);
+  assert.match(ui,/fieldError\('target'/);
+  assert.match(ui,/fieldError\('params'/);
+  assert.match(ui,/awaitingSave=\{input\}/);
+  assert.match(ui,/bind\('schedule-confirm-yes','click'/);
+  assert.match(ui,/await client\.request\('saveSchedule',pending\.input\)/);
+  assert.match(ui,/原计划绑定的任务版本或授权已变化/);
+  assert.match(css,/schedule-field-error:empty\{display:none\}/);
+  assert.doesNotMatch(ui,/window\.(?:alert|prompt|confirm)\(/);
+});
