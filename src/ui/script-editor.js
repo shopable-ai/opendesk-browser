@@ -55,6 +55,13 @@ export function createScriptEditor({client, currentPageTarget, development=false
   // In Standard Edition the browser compiler is physically absent from the
   // package, so do not present JSX/SFC radio choices as usable actions.
   if(!browserCompilerEnabled){
+    // Standard is a normal JS editor, not a three-way code-mode picker.
+    // Keep the DOM IDs present for legacy draft restoration and lifecycle
+    // guards, but never advertise a compilation mode missing from this ZIP.
+    const authoringModes=find('page-component-editor-tools');
+    if(authoringModes)authoringModes.hidden=true;
+    const sourceLabel=doc.querySelector('label[for="script-source"]');
+    if(sourceLabel)sourceLabel.textContent='JavaScript 源码编辑器';
     for(const mode of ['react','vue']){
       const choice=componentInputs[mode];
       if(choice){choice.disabled=true;if(choice.parentElement)choice.parentElement.hidden=true;}
