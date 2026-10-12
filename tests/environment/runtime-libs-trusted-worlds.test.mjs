@@ -18,8 +18,8 @@ test('trusted SW and host ESM examples use pinned npm imports, not Controller gl
   assert.equal(formatTrustedSidebarStatus('https://docs.example.org/?tag=a&tag=b','2026-10-12T09:00:00.000Z'),
     '2026-10-12 · https://docs.example.org/ · 2 tag(s)');
   const node={textContent:''};
-  assert.equal(renderTrustedExtensionPageTitle(node,'OpenDesk OpenDesk Browser'), 'OpenDesk · Browser');
-  assert.equal(node.textContent,'OpenDesk · Browser');
+  assert.equal(renderTrustedExtensionPageTitle(node,'OpenDesk OpenDesk Browser'), 'Open · Desk · Browser');
+  assert.equal(node.textContent,'Open · Desk · Browser');
 
   for(const file of ['background.mjs','sidebar-host.mjs','extension-page.mjs']){
     const source=await readFile('examples/libs/trusted-imports/'+file,'utf8');
@@ -80,6 +80,9 @@ test('public docs and single-file Page syntax distinguish globals from host impo
     assert(guide.includes(term),'runtime guide is missing '+term);
   assert.match(controller,/export default async function main\(\)/);
   assert.match(page,/async function main\(\)/);
-  assert.doesNotMatch(page,/export\s+default|\bpage\.title\(|\baxiosx\s*\(/);
+  // Comments intentionally document forbidden forms. The executable code
+  // must not contain them; do not mistake a warning comment for an import.
+  const executablePage=page.split('\n').filter(line=>!/^\s*\/\//.test(line)).join('\n');
+  assert.doesNotMatch(executablePage,/\bexport\s+default|\bpage\.title\(|\baxiosx\s*\(/);
   assert.doesNotMatch(tool,/async\s+function\s+main\(|globalThis\.dayjs|\bpage\.title\(/);
 });
