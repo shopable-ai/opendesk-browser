@@ -1,5 +1,7 @@
 # OpenDesk Browser Cookies R6：框架接口优先任务
 
+> **R8 必补设计差异**：[R8 架构](../../api/browser-sdk-architecture-r8.zh-CN.md) 已明确内置 Cookie Editor 如果仍在 `src/sidebar-tools/bridge.js` 的普通 Sandbox 运行，不能自行声称 `BUILTIN_TRUSTED`。此外现有 `browser.events.read` Schema 是网络观察的 `request/completed/failed`，**无法直接读取 `chrome.cookies.onChanged` 的 Cookie 事件**；建议增加单独 `browser.cookies.observe.read`（第 11 个候选，未进入原 10 项和正式 35 项），先批准独立 Schema/Host 与权限再实施，禁止用已存在的 observe.start/getStatus/stop 冒充完整观察能力。
+
 > [四层总账](../../api/browser-framework-four-layer-ledger.zh-CN.md) 的 P0 实施子任务。**不以 Cookie Editor UI 或本地数据演示作为成果。**
 
 ## 当前状态

@@ -1,9 +1,11 @@
 # OpenDeskSDK.browser API · 推荐短接口与原有高级操作
 
+> **R8 统一规范（已建立分阶段实施工作流）**：[单一 `OpenDeskSDK.browser` / Host / Authority 架构](browser-sdk-architecture-r8.zh-CN.md)、[35 项旧接口兼容映射](browser-sdk-compatibility-map.json)、[上游复用决策](browser-sdk-open-source-reuse.zh-CN.md)、[官方 Native Catalog（目前只覆盖 8 组固定 JSON，不能称 Chrome 全量）](chrome-native-api-catalog.json)。R8 的 Catalog 发现层不授予执行权限。本页 R1.3 历史表格明确不是今日状态；`cookies.*` 尚未成为正式可信调用链。
+
 > **框架能力四层总账**：[Chrome 原生 ↔ Driver/Host ↔ Browser SDK ↔ 验收证据](browser-framework-four-layer-ledger.zh-CN.md)；所有 27 组 114 项候选和 Cookie 10 项 P0 缺口都有逐项索引。此页保留当前开发者 API/历史设计，四层总账不构成额外授权。
 
 
-> **更新：2026-10-12。** 对安装工具的开发者，优先使用易理解的高层写法；下方保留的 R1.3 `PLANNED` / `HOST_ONLY` 表是 **2026-10-11 历史快照，不能当作当前进度**。当前真实合同为 [32 项操作注册表](../../src/framework/sdk/browser-contract.js)，状态与原生证据见 [Browser SDK 工作流](../framework/workstreams/browser-sdk-status.md)。
+> **更新：2026-10-12。** 对安装工具的开发者，优先使用易理解的高层写法；下方保留的 R1.3 `PLANNED` / `HOST_ONLY` 表是 **2026-10-11 历史快照，不能当作当前进度**。当前源码正式合同为 [35 项操作注册表](../../src/framework/sdk/browser-contract.js)，状态与原生证据见 [Browser SDK 工作流](../framework/workstreams/browser-sdk-status.md)。
 
 ## R5：查询、列出并关闭本工具的标签页
 

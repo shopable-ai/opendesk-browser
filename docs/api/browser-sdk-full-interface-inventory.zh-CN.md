@@ -1,5 +1,7 @@
 # Browser SDK 全接口扩展候选目录（R5+ / 2026-10-12）
 
+> **R8 阅读提示**：下面 **27 组、114 项**是旧版产品候选，不是 Chrome 官方全量 API；当下已存在 [固定 Chromium JSON 的首批 8 个 Namespace](chrome-native-api-catalog.json)，IDL 和其余 Namespace 仍未同步，不能把未知标成 UNSUPPORTED。正式操作由 [注册表](../../src/framework/sdk/browser-contract.js) 定义，新架构和映射看 [R8 决策](browser-sdk-architecture-r8.zh-CN.md)。原始 Cookie 10 项不变；观察结果读取缺口建议另列 `browser.cookies.observe.read` 第 11 个候选（未登记、未实现，不加入原 114 项）。
+
 > **四层总账导航（2026-10-13）**：本页保留 27 组、114 项原始候选方法（3 项 R5 已晋级）。对应的 Chrome 原生、OpenDesk Driver/Host、SDK 开放、真实验收四层交叉状态参见 [浏览器框架四层总账](browser-framework-four-layer-ledger.zh-CN.md)，Cookie 10 项仍属于 P0 未登记。该总账不修改本页候选权限。
 
 

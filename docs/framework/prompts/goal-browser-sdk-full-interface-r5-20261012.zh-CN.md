@@ -1,5 +1,7 @@
 # GOAL：OpenDesk Browser SDK 全接口目录冻结与实现优先 R5
 
+> **历史 R5 GOAL，已由 R8 架构及真实增量实现路径取代。** 本文旧“32 项”指当时冻结合同，现 `browser-contract.js` 已登记 35 项；续接实际任务应读取 [R8 架构](../../api/browser-sdk-architecture-r8.zh-CN.md)、[R8 执行账本](../workstreams/browser-sdk-r8-execution.json)、[新固定 Chromium Catalog](../../api/chrome-native-api-catalog.json)，而非按历史条目重建另一套 Host/Authority。历史任务正文保留供追溯，不自动提升原生验证级别。
+
 ## 最优先用户需求：Cookie Editor 真正读取/编辑/删除浏览器 Cookie；同时确保 Tabs、Side Panel、HTTP Request、存储、权限等接口形成真实 SDK → Host → Chrome 调用闭环。
 
 ### 一、执行仓库与规则

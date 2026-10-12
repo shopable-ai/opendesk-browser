@@ -1,5 +1,7 @@
 # 浏览器框架四层总账（R6，2026-10-13）
 
+> **R8 新阶段提示（保留 R6 快照）**：本页及原四层 JSON 记录旧候选与正式合同，**不是 Chromium 原生 API 的自动全量目录**；35/26/7/2、原 114 项与 Cookie 0/10 均是原账本历史范围，不因 R8 自动目录出现而改变。新的 [R8 单一 SDK/Host 架构](browser-sdk-architecture-r8.zh-CN.md)、[35 项迁移映射](browser-sdk-compatibility-map.json) 和 [首批部分官方 Native Catalog](chrome-native-api-catalog.json) 分别承担新职责。Cookie 额外事件读取候选不改变下方“Cookies 全部 10 项”历史统计。
+
 > **这是框架接口总账，不是 UI 列表或第二套运行时 Registry。** 基准 SHA `74c11918e327ac8f0c6a05cb78c9de13dadb8e6d`。机器索引 `docs/framework/workstreams/browser-framework-four-layer-ledger.json` 包含全部 35 正式方法、114 原始候选（含 3 个晋级）、以及 32 个增补 Chrome API 审计域。
 
 ## 四层含义
