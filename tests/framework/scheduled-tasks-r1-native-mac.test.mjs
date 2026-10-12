@@ -622,16 +622,23 @@ test('real installed Chrome: verified Task via Alarms -> original RunHost -> pag
     report.tests.sameControlledProfileRestarted='PASS';
     note('same-profile-chrome-restarted',{oldPid,newPid:proc.pid,chrome:restartedVersion.Browser});
     // No fake plan reinsertion or DOM write: inspect the same persisted IDB.
-    const freshSite=await client.send('Target.createTarget',{url:URL});
+    // On macOS a new target may still be navigating as DevTools attaches.
+    // Create a stable blank tab, attach first, then navigate using Chrome.
+    // This is only a harness race fix, not a synthetic page effect.
+    const freshSite=await client.send('Target.createTarget',{url:'about:blank'});
     const freshSiteSid=await attach(client,freshSite.targetId);
+    await client.send('Page.navigate',{url:URL},freshSiteSid);
     await deadline(()=>evaluate(client,
       'document.readyState==="complete"&&!document.querySelector("#done")',freshSiteSid),
       'new Chrome process opens an untouched REAL webpage');
-    const catalogAgain=await client.send('Target.createTarget',{
-      url:'chrome-extension://'+extensionId+'/ui/tool.html'});
+    note('restarted-site-observed',{targetId:freshSite.targetId,url:URL});
+    const catalogAgain=await client.send('Target.createTarget',{url:'about:blank'});
     const catAgainSid=await attach(client,catalogAgain.targetId);
+    await client.send('Page.navigate',{
+      url:'chrome-extension://'+extensionId+'/ui/tool.html'},catAgainSid);
     await deadline(()=>evaluate(client,
       '!!document.querySelector("#catalog-open-dev-sidebar")',catAgainSid),'restarted trusted catalog');
+    note('restarted-catalog-observed',{targetId:catalogAgain.targetId});
     const recovered=await durable(client,catAgainSid);
     assert.equal(recovered.plans.length,1,'Original plan persisted through entire Chrome process exit');
     assert.equal(recovered.plans[0].scheduleId,stableScheduleId);
