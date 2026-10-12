@@ -221,3 +221,31 @@ python3 -m http.server 43111 --bind 127.0.0.1 --directory examples/tasks
 - **lifecycle**：在原正式 UI 打开第二个可见 Runner，同时监听同一次 FireId，检查仅有一个 `scheduledFireId` 的 Controller Run；随后通过 UI 恢复新一代计划，**关闭全部** Side Panel/Runner，普通 Catalog 标签保持可见但不得执行，Chrome Alarm 到期后 `WAITING_HOST` 且 `runId=null`；重新从原 Catalog 正常打开 Side Panel，旧 FireId 恢复原生网页执行且只执行一次，原 Result 退休成功，最后通过 UI 暂停。
 
 每个场景均独立安装同 SHA 的实际 WXT package，两个 Job 的 `native-report.json` 与截图分别上传、绝不共享正在运行的 browser Profile。Linux CI 仍有受限 `--no-sandbox` 条件，不能作为 Mac OS 沙盒与真实用户 Mac 的最终证据。新增 macOS OS 按键分支与 Linux lifecycle 分支**在 CI 产生同 SHA 真实 Job 回执前均标 `NOT_TESTED`**。未有同 SHA 的双 Host / 无 Host / Mac 真实通过时，不填写这些维度 95 分。
+
+
+### R1.10 同 SHA 真实双 RunHost／无宿主／恢复验收结果（2026-10-12）
+
+**源码候选** [`7bd735259379478200b896223ecd5212b72ee163`](https://github.com/shopable-ai/opendesk-browser/commit/7bd735259379478200b896223ecd5212b72ee163)。**实测** [Linux Chrome CFT CI #38269870084](https://github.com/shopable-ai/opendesk-browser/actions/runs/38269870084) 的两个独立 Job：
+- `scheduled-cft-linux (baseline)`：`completed/success`，原生验收 1/1 PASS；
+- `scheduled-cft-linux (lifecycle)`：`completed/success`，原生验收 1/1 PASS。
+
+从 GitHub Actions 的两份**原始 artifact 压缩包**读取 `native-report.json`、截图清单，再与 Job 日志交叉核对，确认使用同一源码 SHA、同一来源固定的 WXT Production 包指纹 `9833c92e259ed970d56b0475449b118737941db679bb5ea9087495cd599a123c`。两次浏览器各自独立执行安装和页面操作，没有共享 Chrome Profile 或通过脚本注入到产品数据库伪造执行。
+
+| 实际原生测试事实 | Baseline | Lifecycle |
+| --- | --- | --- |
+| Task 原生运行回执 → Candidate Verified → Available → 安装 | PASS | PASS |
+| 正式计划、可见宿主、真实 Chrome Alarms 注册时间 | PASS | PASS |
+| 关闭 Side Panel 后 Runner 继续执行原 Controller Run | PASS | PASS |
+| 页面 `#name` 为 `Scheduled Native` 且 `#done` 出现 | PASS | PASS |
+| FireId / 原 RunId / 原 ResultId、Native 收据、Worker 退休与 `released` | PASS | PASS |
+| 通过 UI 暂停计划，持久 `nextDueAt=null` | PASS | PASS |
+| **同时有两个可见 Runner，原 FireId 只产生一个 Run** | 不适用 | **PASS** |
+| **关闭全部 Side Panel / Runner，普通 Catalog 保留但不执行；持久 `WAITING_HOST`、`runId=null`** | 不适用 | **PASS** |
+| **重新打开 Side Panel，原 FireId 恢复并恰好执行一次、获得新 Result 且释放资源** | 不适用 | **PASS** |
+| **恢复后 UI 再次暂停** | 不适用 | **PASS** |
+
+Lifecycle 原始日志的关键因果关系（不是人工推断）：第一 FireId `sched:7700c42a-466d-4bc7-9072-7341ff85f807:1:1791818739619` 对应原 Run `fcd950da-dc2b-4f0b-9226-b1263794193b`、原 Result `622615b9-7bfe-4d5f-8b32-a097a9d0fdf9`；第二代计划在真实无 Host 时持久 FireId `sched:7700c42a-466d-4bc7-9072-7341ff85f807:3:1791818799619` 且 `WAITING_HOST`，恢复后**仍为同一个 FireId**，绑定原 Controller Run `c620bacd-c365-4a70-801e-4202c2b71e49` 与 Result `958a68c2-7149-49fa-ae10-4d200624d820`，网页真实 `#done` 出现且 `retirementState=released`。
+
+**测试级别边界：** 本次是 Ubuntu runner 的真实 Linux Chrome for Testing 155、Xvfb、CI-only `--no-sandbox` 与隔离 profile。证明了两个 Host 并发、无 Host 恢复和真实网页效果；**不证明 Mac CFT、用户 Mac Chrome 原生 UI、真实整浏览器重启、站点撤权、固定任务升级/卸载后等待、未知副作用安全性、320/360/420px 与 200% 缩放**。Linux 缺 CJK 字体，截图不能作为中文视觉 95 分依据。真实 macOS 基础验收需等待该 SHA 的 [Mac CFT #38269870147](https://github.com/shopable-ai/opendesk-browser/actions/runs/38269870147) 取得终态，未有回执前维持 `NOT_TESTED`。
+
+本阶段目标已超出单纯 Node 组件与 Linux baseline：新增生命周期专项具备可复现、可溯源、无 Mock 的真实浏览器原生正向证据，但最终十项专家验收仍按各平台/场景独立评分，**不得写「全部 95 分」或 `FINAL_F3_VERIFIED`**。
