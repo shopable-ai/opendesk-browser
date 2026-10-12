@@ -1,6 +1,6 @@
 import {invariant,digestUtf8 as sha256Utf8} from '../../platform/protocol.js';
 import {parseUserScriptDependencies, assertUserScriptExecutable} from './dependency-metadata.js';
-import {BUILTIN_ABI,BUILTIN_RUNTIME_CATALOG} from '../../libs/runtime-contract.js';
+import {BUILTIN_ABI,BUILTIN_RUNTIME_CATALOG,PAGE_OPTIONAL_LIBRARY_IDS} from '../../libs/runtime-contract.js';
 import {JQUERY_371} from './packaged-dependencies.js';
 import {PAGE_FRAMEWORK_RUNTIMES} from '../../libs/page-frameworks/contract.js';
 import {validatePageSource} from './page-bundle.js';
@@ -9,9 +9,8 @@ export const PAGE_ENTRY_FORMATS = Object.freeze(['classic-userscript', 'async-ma
 export const PAGE_SOURCE_LIMIT = 128 * 1024;
 export const PAGE_WORLD_CSP = "script-src 'self'; object-src 'none'";
 export const PAGE_PREVIEW_RECEIPT_FORMAT = 'opendesk.page-preview-receipt.v1';
-// Declaration aliases only; versions, worlds and resources remain in runtime-contract.js.
-const OPTIONAL_PAGE_LIBRARY_IDS=Object.freeze({'js-cookie':'jsCookie','crypto-js':'cryptoJs','file-saver':'fileSaver','query-string':'queryString','axios':'axios','store':'store','cheerio':'cheerio','fingerprintjs':'fingerprintjs'});
-export const pageOptionalLibraryId=name=>Object.hasOwn(OPTIONAL_PAGE_LIBRARY_IDS,name)?OPTIONAL_PAGE_LIBRARY_IDS[name]:null;
+// Declaration aliases, versions, worlds and output files have one source.
+export const pageOptionalLibraryId=name=>Object.hasOwn(PAGE_OPTIONAL_LIBRARY_IDS,name)?PAGE_OPTIONAL_LIBRARY_IDS[name]:null;
 // Opening metadata/comments only. Repeated IDs share one immutable resource.
 export const PAGE_OPTIONAL_LIBRARY_LIMIT=6;
 export const PAGE_COMPILED_SOURCE_LIMIT=512*1024;
@@ -28,7 +27,7 @@ export function pageSelectedPackagedLibraries(sourceUtf8,parsed=parseUserScriptD
   }
   const ids=parsed.hasHeader?header:leading;
   invariant(ids.length<=PAGE_OPTIONAL_LIBRARY_LIMIT&&
-    ids.every(id=>['jquery','react','vue',...Object.keys(OPTIONAL_PAGE_LIBRARY_IDS)].includes(id)),
+    ids.every(id=>['jquery','react','vue',...Object.keys(PAGE_OPTIONAL_LIBRARY_IDS)].includes(id)),
     'E_BUILTIN_DECLARATION','预装库声明未知或超过六条');
   invariant(!ids.length||!parsed.requires.length,'E_BUILTIN_CONFLICT','不能混用 @opendesk-lib 与 @require');
   const unique=[...new Set(ids)];

@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import vm from 'node:vm';
 import {readFile} from 'node:fs/promises';
 import {createHash,webcrypto} from 'node:crypto';
-import {BUILTIN_ABI,BUILTIN_RUNTIME_CATALOG as catalog} from '../../src/libs/runtime-contract.js';
+import {BUILTIN_ABI,BUILTIN_RUNTIME_CATALOG as catalog,PAGE_OPTIONAL_LIBRARY_IDS} from '../../src/libs/runtime-contract.js';
 import {PAGE_FRAMEWORK_RUNTIMES} from '../../src/libs/page-frameworks/contract.js';
 import {pageSelectedPackagedLibraries,compileLockedPageSource,PAGE_COMPILED_SOURCE_LIMIT}
   from '../../src/scripting/user-scripts/execution-source.js';
@@ -74,4 +74,19 @@ test('multi-file managed React demo emits framework plus optional library IDs',a
   assert(built.sourceUtf8.includes('queryString.parse'));
   assert(built.sourceUtf8.includes('axios.get'));
   assert(built.sourceBytes<128*1024);
+});
+
+// The metadata gate must use the SAME public library IDs as the compiler,
+// or a valid Page project will fail after Webpack has already built it.
+test('metadata admission recognizes every optional alias from the pinned catalog',async()=>{
+  const {parseUserScriptDependencies,assertUserScriptExecutable}=
+    await import('../../src/scripting/user-scripts/dependency-metadata.js');
+  for(const id of Object.keys(PAGE_OPTIONAL_LIBRARY_IDS)){
+    const code='// ==UserScript==\n// @opendesk-lib '+id+'\n// ==/UserScript==\nasync function main(){}';
+    assert.doesNotThrow(()=>assertUserScriptExecutable(parseUserScriptDependencies(code),
+      {entryFormat:'async-main',dependenciesLocked:true}),id);
+  }
+  assert.throws(()=>assertUserScriptExecutable(parseUserScriptDependencies(
+    '// ==UserScript==\n// @opendesk-lib unreviewed\n// ==/UserScript==\nasync function main(){}'),
+    {entryFormat:'async-main',dependenciesLocked:true}),error=>error.code==='E_BUILTIN_DECLARATION');
 });

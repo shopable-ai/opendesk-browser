@@ -22,3 +22,7 @@ npm run verify && npm run build:size && npm run pack && npm run pack:dev
 ```
 
 未覆盖：Controller 真实 Axios Broker 接线和取消；Socket.IO 上游固定版本及真实联机；Tailwind 用户预编译样式隔离；React+Axios 用户可见受管 UI 实机 Demo；最新 main 原生浏览器/ZIP 安装。上述均为 `SOURCE_PENDING` 或 `NATIVE_UNVERIFIED`，不是“只剩最终验收”。不修改旧证据、不预先自评95分。
+
+## 2026-10-12：CI 反馈与准入修复
+
+上一候选 `9ec2df6b83eccb00b063229a69daadc3fe8cfe1d` 的 R15 总体资格 [CI](https://github.com/shopable-ai/opendesk-browser/actions/runs/38251106383) 出现 1619 PASS / 1 FAIL / 7 SKIP：多库 React 示例在 `dependency-metadata.js` 的历史三项硬编码白名单被阻断。新增从唯一 `runtime-contract.js` 导出衍生 alias 表，解析器和编译器共同引用，禁止继续维护不同步的第二份库 ID；定向测试遍历所有可选 alias。此段描述的是源码修复而非新候选的 CI PASS。
