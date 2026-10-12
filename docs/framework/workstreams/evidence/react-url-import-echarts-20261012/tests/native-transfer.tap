@@ -1,0 +1,24 @@
+✔ reverse project reads require the exact registered Host object and only bindingId (5.338875ms)
+✔ provider changes, Native generation changes and closed Host replies never deliver old source (5.317763ms)
+✔ project client waits for real bind ACK; disconnect rejects read without resend (1.66372ms)
+✔ MCP provider uses the same resolver and transmits only execution inputs (2.959024ms)
+✔ provider EOF during resolution discards late source and oversized replies stay bounded (4.265314ms)
+✔ Native provider exposes actionable codes and safe relative module locations, never private paths (2.564189ms)
+✔ real Provider dev.response measures complete JSON bytes, exact 60 KiB, and recovers (18.816497ms)
+✔ frozen source descriptor uses bounded base64 chunks and round-trips UTF-8 without another resolve (25.00863ms)
+✔ old Host keeps small inline source and clearly rejects a large frozen source without new methods (2.018725ms)
+✔ part source, binding, artifact, offset, size, epoch and base64 corruption fail before final validation (27.332066ms)
+✔ correctly-sized tampered bytes fail the complete source hash and changed source fails final validation (29.302216ms)
+✔ expiry, changed binding, changed cached version and detach block frozen reads without resolving (4.245716ms)
+✔ chunk requests reject paths, unknown fields, arbitrary lengths and non-aligned offsets (1.110285ms)
+✔ source bridge forwards read-only identity only after capability negotiation and rejects a changed Native generation (2.416376ms)
+✔ disconnect during source transfer rejects without replay after a new connection (2.766493ms)
+✔ actual Resolver final frozen validation reuses guarded source snapshots and never rebuilds (67.326673ms)
+ℹ tests 16
+ℹ suites 0
+ℹ pass 16
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 267.552876

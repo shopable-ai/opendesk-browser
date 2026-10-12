@@ -51,8 +51,9 @@ test('the default React entry directly declares and actually consumes its HTTPS 
 
 test('checked-in remote lock refers to byte-identical upstream source, not a mock', async () => {
   const lock = JSON.parse(await readFile(new URL('../opendesk.remote-lock.json', import.meta.url), 'utf8'));
-  assert.equal(lock.format, 'opendesk.remote-lock.v1');
-  assert.deepEqual(Object.keys(lock.modules), [sourceURL]);
+  assert.equal(lock.format, 'opendesk.remote-lock.v2');
+  assert.equal(Object.keys(lock.modules).length, 235);
+  assert.ok(Object.hasOwn(lock.modules, sourceURL));
   const bytes = await readFile(cacheURL);
   assert.deepEqual(lock.modules[sourceURL], {sha256:expectedHash, bytes:502});
   assert.equal(bytes.length, 502);

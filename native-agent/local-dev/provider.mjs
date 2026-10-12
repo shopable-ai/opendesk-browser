@@ -2,6 +2,8 @@ import net from 'node:net';
 import crypto from 'node:crypto';
 import {loadInstall} from '../install.mjs';
 import {LineDecoder,writeLine,MAX_BYTES} from '../wire.mjs';
+import {validLocalProjectRequest,localSourceMethod} from '../local-project-source-contract.mjs';
+import {createFrozenProjectSources} from './frozen-source.mjs';
 
 // Keep private absolute paths, source text and source maps inside the trusted
 // Node/MCP process. Only actionable codes and safe project-relative locations
@@ -30,7 +32,10 @@ export function publicLocalProjectError(error){
     E_DEV_DETACHED:'本地项目已断开；请重新授权或选择。',
     E_DEV_LIMIT:'项目或 Native 消息超过当前容量；请精简依赖闭包。',
     E_PROJECT_OUTPUT_LIMIT:'构建产物超出当前执行容量；减少运行时依赖。',
-    E_DEV_DISCONNECTED:'本地开发连接已断开；恢复后需明确重新发起运行。'
+    E_DEV_DISCONNECTED:'本地开发连接已断开；恢复后需明确重新发起运行。',
+    E_NATIVE_UPDATE_REQUIRED:'当前 Native Host 不支持固定源码分块读取；请更新已安装的 OpenDesk 本地连接后重试。',
+    E_DEV_SOURCE_EXPIRED:'固定源码读取已过期；请核对项目后明确重新运行。',
+    E_DEV_HASH:'固定源码字节或身份不一致；已拒绝运行。'
   };
   const loc=typeof error?.location==='string'?{file:error.location}:error?.location;
   const file=loc?.file;
@@ -72,7 +77,8 @@ export function createLocalProjectProvider({session,installation=loadInstall,con
   const publicProjects=()=>session.resolver.list().map(row=>({...row,preparation:publicLocalProjectPreparation(row.preparation)}));
   const catalog=()=>publicProjects().map(row=>({bindingId:row.bindingId,name:row.name,
     runtimeKind:session.resolver.get(row.bindingId).runtimeKind,preparation:row.preparation}));
-  let socket,epoch,closed=false,timer,authenticated=false,lastError=null,preparationUpdates=false,unsubscribePreparation;
+  const frozenSources=createFrozenProjectSources({resolver:session.resolver});
+  let socket,epoch,closed=false,timer,authenticated=false,lastError=null,preparationUpdates=false,sourceTransfers=false,unsubscribePreparation;
   const state=()=>({connected:!!epoch,providerId,lastError});
   function write(value){writeLine(socket,value);}
   function changed(){if(epoch)try{write({v:1,kind:'provider.changed',providerEpoch:epoch,...(modern?{projects:catalog()}:{})});}catch{socket.destroy();}}
@@ -82,7 +88,7 @@ export function createLocalProjectProvider({session,installation=loadInstall,con
     try{info=installation();socket=connect({path:info.socketPath});}
     catch{timer=setTimeout(attempt,retryMs);timer.unref?.();return;}
     const current=socket,decoder=new LineDecoder(),seen=new Set();let active=0;
-    authenticated=false;epoch=null;
+    authenticated=false;epoch=null;sourceTransfers=false;frozenSources.clear();
     const live=()=>!closed&&current===socket&&!current.destroyed;
     current.on('connect',()=>{try{write({v:1,kind:'auth',credential:info.clientCredential});}catch{current.destroy();}});
     current.on('data',chunk=>{
@@ -91,7 +97,8 @@ export function createLocalProjectProvider({session,installation=loadInstall,con
           if(message?.v!==1||message.kind!=='authenticated'||!message.browserReady)throw Error('E_NATIVE_NOT_READY');
           if(message.localDevVersion!==1||modern&&message.localDevMultiVersion!==1){lastError='E_NATIVE_UPDATE_REQUIRED';throw Error(lastError);}
             preparationUpdates=modern&&message.localDevPreparationVersion===1;
-            authenticated=true;write({v:1,kind:'provider.register',providerId,
+            sourceTransfers=message.localDevSourceVersion===1;
+            authenticated=true;write({v:1,kind:'provider.register',providerId,...(sourceTransfers?{localDevSourceVersion:1}:{}),
             ...(modern?{catalogVersion:2,leaseId,projects:catalog()}:{})});continue;
         }
         if(!epoch){
@@ -103,16 +110,23 @@ export function createLocalProjectProvider({session,installation=loadInstall,con
           continue;
         }
         if(message?.v!==1||message.kind!=='dev.request'||message.providerEpoch!==epoch||
-          typeof message.requestId!=='string'||!['projects.list','project.resolve'].includes(message.method)||
-          !message.params||typeof message.params!=='object'||Array.isArray(message.params)||
-          Object.keys(message.params).some(key=>key!=='bindingId')||
-          message.method==='project.resolve'&&typeof message.params.bindingId!=='string'||
+          typeof message.requestId!=='string'||!validLocalProjectRequest(message.method,message.params)||
+          localSourceMethod(message.method)&&!sourceTransfers||
           seen.has(message.requestId))throw Error('E_SCHEMA');
         seen.add(message.requestId);
         const capturedEpoch=epoch;
         const reply=data=>{
           if(!live()||epoch!==capturedEpoch)return;
-          const response={v:1,kind:'dev.response',providerEpoch:capturedEpoch,requestId:message.requestId,...data};
+          let response={v:1,kind:'dev.response',providerEpoch:capturedEpoch,requestId:message.requestId,...data};
+          // Leave headroom for an aggregating Host's scoped binding and JSON
+          // escaping. Large code crosses only the negotiated frozen protocol.
+          if(message.method==='project.resolve'&&data.result&&sourceTransfers&&
+            Buffer.byteLength(JSON.stringify(response),'utf8')>MAX_BYTES-4096){
+            try{
+              const {sourceUtf8,...metadata}=data.result;
+              response={...response,result:{...metadata,sourceRef:frozenSources.capture(data.result,capturedEpoch)}};
+            }catch(error){response={v:1,kind:'dev.response',providerEpoch:capturedEpoch,requestId:message.requestId,error:publicLocalProjectError(error)};}
+          }
           // A valid compiled JS byte length does NOT imply a valid JSON frame.
           // This Provider is read-only: overflow happens before any browser run.
           const jsonBytes=Buffer.byteLength(JSON.stringify(response),'utf8');
@@ -121,8 +135,8 @@ export function createLocalProjectProvider({session,installation=loadInstall,con
               ?data.result.sourceBytes:typeof data.result?.sourceUtf8==='string'
                 ?Buffer.byteLength(data.result.sourceUtf8,'utf8'):0;
             try{write({v:1,kind:'dev.response',providerEpoch:capturedEpoch,
-              requestId:message.requestId,error:{code:'E_LIMIT',
-                message:'Native dev.response exceeds limit: sourceBytes='+sourceBytes+
+              requestId:message.requestId,error:{code:!sourceTransfers&&frozenSources.supported(data.result)?'E_NATIVE_UPDATE_REQUIRED':'E_LIMIT',
+                message:(!sourceTransfers&&frozenSources.supported(data.result)?'当前 Native Host 不支持固定源码分块读取，请更新本地 OpenDesk 连接。 ':'')+'Native dev.response exceeds limit: sourceBytes='+sourceBytes+
                   ', jsonBytes='+jsonBytes+', limitBytes='+MAX_BYTES+
                   ', dispatch=NOT_DISPATCHED'}});}
             catch{current.destroy();}
@@ -135,6 +149,8 @@ export function createLocalProjectProvider({session,installation=loadInstall,con
         active++;
         Promise.resolve().then(async()=>{
           if(message.method==='projects.list')return {projects:publicProjects()};
+          if(message.method==='project.source.read')return frozenSources.read(message.params,capturedEpoch);
+          if(message.method==='project.source.validate')return frozenSources.validate(message.params,capturedEpoch);
           const value=await session.resolve(message.params.bindingId);
           // Only execution inputs cross into the extension. Paths, file graph,
           // source maps and the rest of the workspace remain in the Node process.
@@ -144,8 +160,8 @@ export function createLocalProjectProvider({session,installation=loadInstall,con
       }}catch{current.destroy();}
     });
     current.on('error',()=>current.destroy());
-    current.on('close',()=>{if(current!==socket)return;epoch=null;preparationUpdates=false;unsubscribePreparation?.();unsubscribePreparation=null;session.resolver?.preparation?.stopAll();if(!closed){timer=setTimeout(attempt,lastError==='E_DEV_PROVIDER_CONFLICT'?Math.max(retryMs,15000):retryMs);timer.unref?.();}});
+    current.on('close',()=>{if(current!==socket)return;epoch=null;preparationUpdates=false;sourceTransfers=false;frozenSources.clear();unsubscribePreparation?.();unsubscribePreparation=null;session.resolver?.preparation?.stopAll();if(!closed){timer=setTimeout(attempt,lastError==='E_DEV_PROVIDER_CONFLICT'?Math.max(retryMs,15000):retryMs);timer.unref?.();}});
   }
   attempt();
-  return {changed,state,close(){closed=true;epoch=null;preparationUpdates=false;unsubscribePreparation?.();unsubscribePreparation=null;clearTimeout(timer);session.resolver?.preparation?.stopAll();socket?.destroy();}};
+  return {changed,state,close(){closed=true;epoch=null;preparationUpdates=false;sourceTransfers=false;frozenSources.clear();unsubscribePreparation?.();unsubscribePreparation=null;clearTimeout(timer);session.resolver?.preparation?.stopAll();socket?.destroy();}};
 }

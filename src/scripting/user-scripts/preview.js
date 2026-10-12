@@ -7,7 +7,8 @@ import {loadBuiltinPageSource,loadPackagedOptionalPageLibrary} from '../../libs/
 import {BUILTIN_ABI} from '../../libs/runtime-contract.js';
 import {builtinIdentity,assertBuiltinIdentity} from '../../libs/identity.js';
 import {createDependencyManager} from './dependency-manager.js';
-import {compileLockedPageSource, builtinReadinessSource, pageWantsJquery, pageSelectedPackagedLibrary, pageOptionalLibraryId, pageConsumerSource, PAGE_PREVIEW_RECEIPT_FORMAT, PAGE_ENTRY_FORMATS, PAGE_SOURCE_LIMIT} from './execution-source.js';
+import {compileLockedPageSource, builtinReadinessSource, pageWantsJquery, pageSelectedPackagedLibrary, pageOptionalLibraryId, pageConsumerSource, PAGE_PREVIEW_RECEIPT_FORMAT, PAGE_ENTRY_FORMATS} from './execution-source.js';
+import {inspectPageSource} from './page-bundle.js';
 import {createPreviewWorlds} from './preview-worlds.js';
 import {parseUserScriptDependencies, assertUserScriptExecutable} from './dependency-metadata.js';
 
@@ -37,7 +38,7 @@ function frozenSource(request) {
       Object.keys(request).every(key => allowed.includes(key)) &&
       ['sourceUtf8','entryFormat','target'].every(key => Object.hasOwn(request,key)), 'E_SCHEMA', 'Unexpected page preview fields');
     invariant(typeof request.sourceUtf8 === 'string' && request.sourceUtf8.trim().length > 0 &&
-      new TextEncoder().encode(request.sourceUtf8).byteLength <= PAGE_SOURCE_LIMIT &&
+      (inspectPageSource(request.sourceUtf8), true) &&
       PAGE_ENTRY_FORMATS.includes(request.entryFormat) &&
       (request.lockId == null || typeof request.lockId === 'string'), 'E_SOURCE', 'Invalid page script entry or source');
     return Object.freeze({sourceUtf8:request.sourceUtf8,entryFormat:request.entryFormat,
@@ -180,7 +181,9 @@ export function createPageScriptPreview({api, storage, assertHost, dependencies,
     invariant(completion && completion.format===PAGE_PREVIEW_RECEIPT_FORMAT && completion.nonce===receiptNonce &&
       typeof completion.ok==='boolean','E_PAGE_SCRIPT_EXECUTION',
       '脚本未返回完成回执，请查看网页控制台');
-    if(managedRecord)await managed.mark(managedRecord,'evaluated');
+    if(managedRecord)await managed.mark(managedRecord,'evaluated',{
+      format:completion.format,nonce:completion.nonce,ok:completion.ok,
+      ...(!completion.ok?{error:String(completion.error||'').slice(0,2048)}:{})});
     confirmed=true;
       const identity={tabId,documentId,sourceHash:script.sourceHash,world:script.world,worldId,receiptNonce,
         builtinAbi:script.builtinAbi,builtinCatalogSha256:script.builtinCatalogSha256,
@@ -221,6 +224,32 @@ export function createPageScriptPreview({api, storage, assertHost, dependencies,
     invariant(!active&&managed,'E_OWNER','受管清理不可用或忙碌');active=true;
     try{return await managed.retirePreview(request,sender,{assertHost,verifyTarget,nativeAPI,admission});}
     finally{active=false;}
+  }
+  // Read the original receipt only. A UI timeout must never turn into another
+  // execute call, a new admission, or a claim about a later document/version.
+  async function query(request,sender){
+    fields(request,['previewId','sourceHash','tabId','documentId']);
+    invariant(managed&&/^[a-f0-9-]{36}$/.test(request.previewId)&&
+      /^[a-f0-9]{64}$/.test(request.sourceHash)&&Number.isSafeInteger(request.tabId)&&request.tabId>=0&&
+      typeof request.documentId==='string'&&request.documentId.length>0&&request.documentId.length<=128,
+      'E_SCHEMA','Expected the original managed preview identity');
+    const owner=await assertHost(sender),record=await managed.read(request.previewId,owner);
+    invariant(record.sourceHash===request.sourceHash&&record.target.tabId===request.tabId&&
+      record.target.documentId===request.documentId,'E_UI_LIFECYCLE','查询身份与原预览不一致');
+    invariant(await api.permissions.contains({origins:[permissionPattern(record.target.expectedUrl)]}),
+      'E_PERMISSION','Site permission was not granted or was revoked');
+    invariant((await assertHost(sender)).registrationId===owner.registrationId,'E_HOST_STALE','工作台身份已变化');
+    const receipt=record.completion;
+    const confirmed=receipt?.format===PAGE_PREVIEW_RECEIPT_FORMAT&&
+      /^[a-f0-9-]{36}$/.test(receipt.nonce)&&typeof receipt.ok==='boolean';
+    const state=record.state==='retired'?'preview-retired':
+      record.state==='executing'?'preview-pending':record.state==='evaluated'&&confirmed?
+      (receipt.ok?'preview-evaluated':'preview-failed'):'preview-unknown';
+    return {state,queryOnly:true,durable:false,originalDocumentOnly:true,
+      managedUI:true,managedPreviewId:record.previewId,sourceHash:record.sourceHash,
+      tabId:record.target.tabId,documentId:record.target.documentId,world:'USER_SCRIPT',worldId:record.worldId,
+      ...(confirmed?{receiptNonce:receipt.nonce,completion:{format:receipt.format,nonce:receipt.nonce,
+        ok:receipt.ok,...(!receipt.ok?{error:String(receipt.error||'').slice(0,2048)}:{})}}:{})};
   }
   // Only the trusted installed-program service supplies frozen bytes and its
   // persisted grant. No UI/Native message route exposes this method directly.
@@ -290,7 +319,7 @@ export function createPageScriptPreview({api, storage, assertHost, dependencies,
       active=false;
     }
   }
-  return Object.freeze({preview,retire,executeInstalled,async cleanupWorlds(details){
+  return Object.freeze({preview,retire,query,executeInstalled,async cleanupWorlds(details){
     if(details.removed)await admission.release({removedTabId:details.tabId});
     return worlds.cleanup(details);
   }});

@@ -3,7 +3,7 @@ import {createChromePermissionConsent,requireChromePermissions} from '../platfor
 import {decodeValue} from '../platform/page-port/codec.js';
 import {createTaskPackage, validateTaskParams} from '../platform/tasks/contract.js';
 import {digestUtf8} from '../platform/protocol.js';
-import {PROGRAM_DRAFT_FORMAT, PROGRAM_DRAFT_LIMIT, validateProgramDraft} from './program-source.js';
+import {PROGRAM_DRAFT_FORMAT, PROGRAM_DRAFT_V2_FORMAT, PROGRAM_DRAFT_INPUT_LIMIT, PROGRAM_DRAFT_LIMIT, validateProgramDraft} from './program-source.js';
 import {formatTaskValue, presentTaskValue, formatTaskError, formatTaskRunTechnical,
   unresolvedTaskRunMessage} from './task-run-diagnostics.js';
 import {formatRunValue} from './run-value-format.js';
@@ -624,10 +624,10 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     // Capture the File first, then allow the same file to be selected again
     // after either a successful import or a rejected/failed handoff.
     get('task-package-file').value='';
-    if(file.size>PROGRAM_DRAFT_LIMIT)throw {code:'E_LIMIT',message:'文件超过程序草稿包大小上限'};
+    if(file.size>PROGRAM_DRAFT_INPUT_LIMIT)throw {code:'E_LIMIT',message:'文件超过程序草稿包大小上限'};
     const sourceUtf8=await file.text();
     const parsed=file.name.toLowerCase().endsWith('.js') ? null : JSON.parse(sourceUtf8);
-    const project=parsed?.format===PROGRAM_DRAFT_FORMAT ? await validateProgramDraft(parsed) : null;
+    const project=[PROGRAM_DRAFT_FORMAT,PROGRAM_DRAFT_V2_FORMAT].includes(parsed?.format) ? await validateProgramDraft(parsed) : null;
     if(!project && file.size>100000)throw {code:'E_LIMIT',message:'文件超过任务包大小上限'};
     if(project || file.name.toLowerCase().endsWith('.js')) {
       const draft=project || sourceUtf8;

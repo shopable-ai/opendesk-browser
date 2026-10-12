@@ -1,0 +1,29 @@
+[
+  {
+    "name": "echarts",
+    "version": "5.6.0",
+    "url": "https://registry.npmjs.org/echarts/-/echarts-5.6.0.tgz",
+    "bytes": 10432423,
+    "integrity": "sha512-oTbVTsXfKuEhxftHqL5xprgLoc0k7uScAwtryCgWF6hPYFLRwOUHiFmHGCBKP5NPFNkDVopOieyUqYGH8Fa3kA==",
+    "verified": true,
+    "filesExtracted": 665
+  },
+  {
+    "name": "zrender",
+    "version": "5.6.1",
+    "url": "https://registry.npmjs.org/zrender/-/zrender-5.6.1.tgz",
+    "bytes": 866166,
+    "integrity": "sha512-OFXkDJKcrlx5su2XbzJvj/34Q3m6PvyCZkVPHGYpcCJ52ek4U/ymZyfuV1nKE23AyBJ51E/6Yr0mhZ7xGTO4ag==",
+    "verified": true,
+    "filesExtracted": 130
+  },
+  {
+    "name": "tslib",
+    "version": "2.3.0",
+    "url": "https://registry.npmjs.org/tslib/-/tslib-2.3.0.tgz",
+    "bytes": 8025,
+    "integrity": "sha512-N82ooyxVNm6h1riLCoyS9e3fuJ3AMG2zIZs2Gd1ATcSFjSA23Q0fzjjZeh0jbJvWVDZ0cJT8yaNNaaXHzueNjg==",
+    "verified": true,
+    "filesExtracted": 6
+  }
+]

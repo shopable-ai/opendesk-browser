@@ -1,0 +1,15 @@
+{
+  "at": "2026-10-12T11:46:01.513002+00:00",
+  "lock": {
+    "pid": 18,
+    "token": "186bc0b6-fd2a-41f0-a41a-a0bb9c05257c",
+    "kind": "build",
+    "root": "/workspace/scratch/6d8850e5cd8c/opendesk-browser",
+    "startedAt": "2026-10-12T11:41:18.985Z"
+  },
+  "completedSession": 92940,
+  "exitCode": 0,
+  "ownerAlive": false,
+  "guardPortFree": true,
+  "action": "Preserve only own completed build lock; no process stopped."
+}

@@ -7,6 +7,8 @@ import {createDependencyManager} from '../../src/scripting/user-scripts/dependen
 import {createMethodRoutes} from '../../src/platform/host/broker.js';
 import {hashPageProgramManifest,validatePageProgramManifest,verifyPageProgramSource} from '../../src/scripting/user-scripts/page-program-contract.js';
 import {invariant} from '../../src/platform/protocol.js';
+import {validateProgramDraft} from '../../src/ui/program-source.js';
+import {describeDependencyManifest} from '../../src/scripting/user-scripts/dependency-manager.js';
 globalThis.crypto ||= webcrypto;
 const source=['// ==UserScript==','// @name Candidate fixture','// @match https://example.com/*',
   '// @run-at document-idle','// @noframes','// ==/UserScript==',
@@ -48,6 +50,24 @@ function setup(){
   return {manager,a,b,rows:()=>data.get('frameworkKV'),hosts:()=>data.get('commandJournal'),
     setGate:promise=>{gate=promise;}};
 }
+test('actual ECharts v2 JSON crosses dependency admission and Candidate storage offline with its exact fixed source',async()=>{
+  const draft=await validateProgramDraft(JSON.parse(readFileSync('examples/programs/page-ui-toc-react-direct/page-ui-toc-react-direct.opendesk-draft.json','utf8')));
+  const sourceUtf8=draft.sourceUtf8;
+  assert.ok(Buffer.byteLength(sourceUtf8)>128*1024,'exercise the measured large resource, not a tiny stand-in');
+  const f=setup(),input={programId:'echarts-frozen-json',revision:1,sourceUtf8,entryFormat:'async-main',lockId:null,
+    pageRules:{matches:['http://127.0.0.1:43111/*'],excludeMatches:['http://127.0.0.1:43111/private/*'],runAt:'document_idle',allFrames:false,world:'USER_SCRIPT'}};
+  const declaration=await describeDependencyManifest(input);assert.equal(declaration.parsed.requires.length,0);
+  const candidate=await f.manager.importPageCandidate(input,f.a);assert.equal(candidate.stage,'Candidate');
+  const stored=await f.manager.getPageCandidate({programId:input.programId,revision:1},f.a);
+  assert.equal(stored.sourceUtf8,sourceUtf8);assert.equal(stored.manifest.sourceHash,draft.build.sourceHash);
+  const resolution=await f.manager.loadForExecution({sourceUtf8,entryFormat:'async-main',lockId:null},f.a);
+  await verifyPageProgramSource({manifest:stored.manifest,sourceUtf8,dependencyResolution:resolution});
+  assert.equal(resolution.entries.length,0,'ECharts is already linked; no classic dependency acquisition');
+  const tampered=sourceUtf8.replace('async function main','async function maim');assert.notEqual(tampered,sourceUtf8);
+  await assert.rejects(f.manager.loadForExecution({sourceUtf8:tampered,entryFormat:'async-main',lockId:null},f.a),{code:'E_PAGE_BUNDLE_HASH'});
+  await assert.rejects(f.manager.importPageCandidate({...input,revision:2,sourceUtf8:tampered},f.a),{code:'E_PAGE_BUNDLE_HASH'});
+  assert.equal((await f.manager.getPageCandidate({programId:input.programId,revision:1},f.a)).manifestHash,stored.manifestHash);
+});
 test('E07.1 Candidate is stored without execution or installation and matches Page v1 contract',async()=>{
   const f=setup(),c=await f.manager.importPageCandidate(request,f.a);
   assert.match(c.candidateId,/^page-[a-f0-9]{64}$/);assert.equal(c.stage,'Candidate');

@@ -3,6 +3,7 @@ import {parseUserScriptDependencies, assertUserScriptExecutable} from './depende
 import {BUILTIN_ABI,BUILTIN_RUNTIME_CATALOG} from '../../libs/runtime-contract.js';
 import {JQUERY_371} from './packaged-dependencies.js';
 import {PAGE_FRAMEWORK_RUNTIMES} from '../../libs/page-frameworks/contract.js';
+import {validatePageSource} from './page-bundle.js';
 
 export const PAGE_ENTRY_FORMATS = Object.freeze(['classic-userscript', 'async-main']);
 export const PAGE_SOURCE_LIMIT = 128 * 1024;
@@ -62,9 +63,7 @@ export function builtinReadinessSource(source,builtinSource,receiptNonce) {
 }
 
 export async function compileLockedPageSource({sourceUtf8, entryFormat, entries = [], importSourceUrl,receiptNonce,builtinSource,jqueryCode,frameworkSource,optionalSource,storeOwnerId} = {}) {
-  invariant(typeof sourceUtf8 === 'string' && sourceUtf8.trim().length > 0 &&
-    new TextEncoder().encode(sourceUtf8).byteLength <= PAGE_SOURCE_LIMIT,
-    'E_SOURCE', '页面脚本源码须为非空文本，且不超过 128 KiB');
+  await validatePageSource(sourceUtf8);
   invariant(PAGE_ENTRY_FORMATS.includes(entryFormat), 'E_ENTRY_FORMAT', '请选择经典用户脚本或 async main 入口');
   const parsed = parseUserScriptDependencies(sourceUtf8, {importSourceUrl});
   const admission = assertUserScriptExecutable(parsed, {entryFormat, phase:'preview', dependenciesLocked:true});

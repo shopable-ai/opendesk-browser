@@ -1,0 +1,86 @@
+name: React HTTPS ECharts JSON Run Stop and Install
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/react-url-import-cft.yml'
+      - 'tests/framework/page-url-import-linux-cft.mjs'
+      - 'tests/framework/fixtures/page-url-import-controls.js'
+      - 'tests/framework/local-dev-cft-launcher.mjs'
+      - 'examples/programs/page-ui-toc-react-direct/**'
+      - 'examples/tasks/demo-form.html'
+      - 'src/ui/program-source.js'
+      - 'src/ui/script-editor.js'
+      - 'src/ui/page-candidate-source.js'
+      - 'src/ui/page-component-*.js'
+      - 'src/ui/page-program-library.js'
+      - 'src/ui/task-workbench.js'
+      - 'src/ui/tool.html'
+      - 'src/ui/tool-shell.js'
+      - 'src/native-agent/managed-preview.js'
+      - 'src/platform/host/broker.js'
+      - 'src/scripting/user-scripts/**'
+      - 'src/libs/page-frameworks/**'
+      - 'scripts/build-program-project.mjs'
+      - 'scripts/validate-program-project.mjs'
+      - 'scripts/remote-esm-modules.mjs'
+      - 'scripts/verify-package.mjs'
+      - 'package.json'
+      - 'package-lock.json'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  native-free-json-echarts:
+    # Keep the ordinary Chromium sandbox. No --no-sandbox, profile permission
+    # edits or Native installation is used by this acceptance job.
+    runs-on: ubuntu-22.04
+    timeout-minutes: 15
+    env:
+      OPENDESK_CFT_PROGRAM: ${{ runner.temp }}/opendesk-react-url-import-program
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.23.3'
+          cache: npm
+      - name: Install locked repository build tools
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Build actual production extension
+        run: npm run build
+      - name: Build original React TOC ECharts JSON from its frozen offline cache
+        shell: bash
+        run: |
+          node --input-type=module <<'NODE'
+          import {buildProgramProject} from './scripts/build-program-project.mjs';
+          const built=await buildProgramProject('examples/programs/page-ui-toc-react-direct',{
+            mode:'production',
+            outputDirectory:process.env.OPENDESK_CFT_PROGRAM,
+            fetchImpl:async()=>{throw new Error('CFT frozen build must not download dependency code');}
+          });
+          console.log(JSON.stringify({
+            sourceHash:built.sourceHash,sourceBytes:built.sourceBytes,
+            remoteModuleCount:built.remoteModules.length,
+            remoteSourceBytes:built.remoteModules.reduce((n,row)=>n+row.bytes,0),
+            outputDirectory:built.outputDirectory
+          },null,2));
+          NODE
+      - uses: browser-actions/setup-chrome@v2
+        id: chrome
+        with:
+          chrome-version: '155.0.8059.39'
+      - name: Real Chrome JSON, ECharts, Stop, install and browser source HTTPS preparation
+        env:
+          CHROME_FOR_TESTING_BIN: ${{ steps.chrome.outputs.chrome-path }}
+        run: |
+          xvfb-run --auto-servernum node tests/framework/page-url-import-linux-cft.mjs \
+            --package=dist/production \
+            --draft="$OPENDESK_CFT_PROGRAM/program.opendesk-draft.json" \
+            --output=.runtime/tests/react-url-import-cft \
+            --headed --install --browser-source
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: react-url-import-cft-${{ github.sha }}
+          path: .runtime/tests/react-url-import-cft
+          if-no-files-found: warn

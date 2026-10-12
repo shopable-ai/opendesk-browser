@@ -11,6 +11,7 @@ import {parseUserScriptDependencies} from '../src/scripting/user-scripts/depende
 import {checkParamsSchema} from '../src/platform/tasks/contract.js';
 import {buildAssetRecords,ASSET_LIMITS} from './program-assets.mjs';
 import {remoteURL} from './remote-esm-modules.mjs';
+import {validateRemoteImports} from '../src/scripting/user-scripts/remote-esm-contract.js';
 import {inspectDefaultProgramEntry} from './program-entry.mjs';
 import {PAGE_FRAMEWORK_IMPORTS} from '../src/libs/page-frameworks/contract.js';
 import {transformVueSFC} from '../src/libs/page-frameworks/vue-sfc-transform.js';
@@ -85,10 +86,10 @@ function metadata(pkg,projectLabel){
 
   const shared=['format','id','runtimeKind','sourceFormat','entry','assets'];
   const allowed=p.runtimeKind==='page-userscript'
-    ?[...shared,'pageRules','framework','entryMode']
+    ?[...shared,'pageRules','framework','entryMode','remoteDependencies']
     :[...shared,'siteOrigins','permissions','paramsSchema'];
   ensure(Object.keys(p).every(k=>allowed.includes(k))&&
-    allowed.filter(k=>k!=='assets'&&k!=='framework'&&k!=='entryMode').every(k=>Object.hasOwn(p,k)),
+    allowed.filter(k=>k!=='assets'&&k!=='framework'&&k!=='entryMode'&&k!=='remoteDependencies').every(k=>Object.hasOwn(p,k)),
     'E_PROJECT_SCHEMA','Project fields do not match the declared runtime kind',details);
 
   declaredPath(p.entry,{...details,location:'package.json#opendesk.entry'});
@@ -101,6 +102,13 @@ function metadata(pkg,projectLabel){
 
   if(p.runtimeKind==='page-userscript'){
     validatePageProgramRules(p.pageRules);
+    if(p.remoteDependencies!==undefined){
+      const r=p.remoteDependencies;
+      ensure(plain(r)&&Object.keys(r).sort().join(',')==='format,imports,profile'&&
+        r.format==='opendesk.remote-dependencies.v1'&&r.profile==='page-library-v1',
+        'E_REMOTE_LOCK','Unknown versioned Page dependency profile',details);
+      validateRemoteImports(r.imports);
+    }
     ensure(p.entryMode===undefined||p.entryMode==='component',
       'E_PROJECT_ENTRY_MODE','Only explicit component entryMode is supported on Page projects',
       {...details,location:'package.json#opendesk.entryMode'});
@@ -363,6 +371,7 @@ export async function validateProgramProject(input,{readProjectFile}={}){
     runtimeKind:p.runtimeKind,
     entry:p.entry,
     ...(p.framework?{framework:p.framework}:{}),
+    ...(p.remoteDependencies?{remoteDependencies:p.remoteDependencies}:{}),
     ...(p.runtimeKind==='page-userscript'?{pageRules:validatePageProgramRules(p.pageRules)}:{}),
     ...(p.entryMode?{entryMode:p.entryMode}:{}),
     sourceFormat:'esm',

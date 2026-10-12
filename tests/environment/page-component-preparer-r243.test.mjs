@@ -106,3 +106,35 @@ test('R24.3 exact input and compiler identities reuse only an immutable successf
   assert.equal(FakeWorker.count,originalCount+4,'website scope change invalidates preparation');
   compiler.dispose();
 });
+
+test('browser dependency inspection uses only a fixed Worker and never even fetches the trusted UI helper',async()=>{
+  let requests=0;
+  class InspectionWorker extends FakeWorker{
+    postMessage(payload){
+      this.payload=payload;
+      assert.equal(payload.action,'inspect');assert.equal(payload.uiHelperSource,undefined);
+      digestUtf8(payload.componentSource).then(sourceHash=>this.onmessage?.({data:{requestId:payload.requestId,ok:true,
+        result:{sourceHash,framework:payload.framework,projectId:payload.projectId,remoteRoots:['https://example.org/module.js'],missingUrls:['https://example.org/module.js'],modules:[],complete:false}}}));
+    }
+  }
+  const preparer=createBrowserPageComponentPreparer({api,WorkerClass:InspectionWorker,fetchImpl:async()=>{requests++;throw Error('no network');}});
+  const report=await preparer.inspect(fixtures);
+  assert.equal(report.sourceHash,await digestUtf8(fixtures.componentSource));assert.equal(report.complete,false);
+  assert.equal(requests,0);assert.equal(FakeWorker.latest.terminated,true);preparer.dispose();
+});
+
+test('an immutable compiled-cache hit cannot hide deleted or corrupt remote raw bytes',async()=>{
+  const {readFile}=await import('node:fs/promises'),trusted=await readFile(PAGE_BROWSER_UI_HELPER.source,'utf8');
+  let fetched=0;
+  const preparer=createBrowserPageComponentPreparer({api,WorkerClass:FakeWorker,fetchImpl:async()=>{
+    fetched++;return {ok:true,redirected:false,url:api.runtime.getURL(PAGE_BROWSER_UI_HELPER.output),text:async()=>trusted};}});
+  const url='https://example.org/module.js',code='export default 2;',sha256=await digestUtf8(code),size=new TextEncoder().encode(code).length;
+  const remoteSnapshot={lock:{format:'opendesk.remote-lock.v1',modules:{[url]:{sha256,bytes:size}}},modules:[{url,code,sha256,bytes:size}]};
+  await preparer.prepare({...fixtures,remoteSnapshot});
+  const workers=FakeWorker.count,hit=await preparer.prepare({...fixtures,remoteSnapshot});
+  assert.equal(hit.cacheHit,true);assert.equal(FakeWorker.count,workers);
+  await assert.rejects(preparer.prepare({...fixtures,remoteSnapshot:{...remoteSnapshot,modules:[]}}),{code:'E_REMOTE_CACHE'});
+  await assert.rejects(preparer.prepare({...fixtures,remoteSnapshot:{...remoteSnapshot,modules:[{...remoteSnapshot.modules[0],code:'export default 3;'}]}}),{code:'E_REMOTE_HASH'});
+  assert.equal(FakeWorker.count,workers,'invalid raw graph fails before any new Worker');
+  assert.equal(fetched,1,'only the fixed internal helper was fetched; no repair download');preparer.dispose();
+});

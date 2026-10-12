@@ -1,0 +1,35 @@
+[39:39:1012/041055.332266:FATAL:chrome/browser/process_singleton_posix.cc:297] Check failed: . socket() failed: Operation not permitted (1)
+[1012/041055.337262:ERROR:third_party/crashpad/crashpad/util/linux/scoped_ptrace_attach.cc:27] ptrace: Operation not permitted (1)
+[1012/041055.337459:ERROR:third_party/crashpad/crashpad/util/file/directory_reader_posix.cc:43] opendir /proc/39/task: No such file or directory (2)
+Received signal 6
+#0 0x55c1c1b73fc3 (/tmp/opendesk-r5-cft/chrome-linux64/chrome+0x6aecfc2)
+#1 0x55c1c6b42174 (/tmp/opendesk-r5-cft/chrome-linux64/chrome+0xbabb173)
+#2 0x7f1b14e68330 (/usr/lib/x86_64-linux-gnu/libc.so.6+0x4532f)
+#3 0x7f1b14e6827e (/usr/lib/x86_64-linux-gnu/libc.so.6+0x4527d)
+#4 0x7f1b14e4b8ff (/usr/lib/x86_64-linux-gnu/libc.so.6+0x288fe)
+#5 0x55c1c6b38ed5 (/tmp/opendesk-r5-cft/chrome-linux64/chrome+0xbab1ed4)
+#6 0x55c1c6af8b8d (/tmp/opendesk-r5-cft/chrome-linux64/chrome+0xba71b8c)
+#7 0x55c1c6af8add (/tmp/opendesk-r5-cft/chrome-linux64/chrome+0xba71adc)
+#8 0x55c1c183dc12 (/tmp/opendesk-r5-cft/chrome-linux64/chrome+0x67b6c11)
+#9 0x55c1c004e4e9 (/tmp/opendesk-r5-cft/chrome-linux64/chrome+0x4fc74e8)
+#10 0x55c1c6af8d00 (/tmp/opendesk-r5-cft/chrome-linux64/chrome+0xba71cff)
+#11 0x55c1c12ae539 (/tmp/opendesk-r5-cft/chrome-linux64/chrome+0x6227538)
+#12 0x55c1c1ac7cd8 (/tmp/opendesk-r5-cft/chrome-linux64/chrome+0x6a40cd7)
+#13 0x55c1c1ac69d7 (/tmp/opendesk-r5-cft/chrome-linux64/chrome+0x6a3f9d6)
+#14 0x55c1c1ac67e1 (/tmp/opendesk-r5-cft/chrome-linux64/chrome+0x6a3f7e0)
+#15 0x55c1c1ac6784 (/tmp/opendesk-r5-cft/chrome-linux64/chrome+0x6a3f783)
+#16 0x55c1c1ab55c9 (/tmp/opendesk-r5-cft/chrome-linux64/chrome+0x6a2e5c8)
+#17 0x55c1c1ab5d73 (/tmp/opendesk-r5-cft/chrome-linux64/chrome+0x6a2ed72)
+#18 0x55c1c0fae230 (/tmp/opendesk-r5-cft/chrome-linux64/chrome+0x5f2722f)
+#19 0x55c1c0fada2e (/tmp/opendesk-r5-cft/chrome-linux64/chrome+0x5f26a2d)
+#20 0x55c1c0fad060 (/tmp/opendesk-r5-cft/chrome-linux64/chrome+0x5f2605f)
+#21 0x7f1b14e4d1ca (/usr/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9)
+#22 0x7f1b14e4d28b (/usr/lib/x86_64-linux-gnu/libc.so.6+0x2a28a)
+#23 0x55c1c1e2d36a (/tmp/opendesk-r5-cft/chrome-linux64/chrome+0x6da6369)
+  r8: 000002c00006850b  r9: 0000000000000001 r10: 0000000000000008 r11: 0000000000000246
+ r12: 0000000000000006 r13: 000002c000068480 r14: 0000000000000016 r15: 000002c0000d8500
+  di: 0000000000000027  si: 0000000000000027  bp: 00007ffeae4f5060  bx: 0000000000000027
+  dx: 0000000000000006  ax: 0000000000000000  cx: 00007f1b14ec1b2c  sp: 00007ffeae4f5020
+  ip: 00007f1b14ec1b2c efl: 0000000000000246 cgf: 002b000000000033 erf: 0000000000000000
+ trp: 0000000000000000 msk: 0000000000000000 cr2: 0000000000000000
+[end of stack trace]

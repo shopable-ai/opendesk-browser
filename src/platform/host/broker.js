@@ -168,9 +168,14 @@ export async function createFoundationBroker({api = chrome, ports = new Map(), c
     ...(INCLUDE_DORMANT_TEMPLATE_RUNTIME ? createMethodRoutes(downloads,['prepareAttempts']) : {}),
     previewPageScript:(p,s)=>pageScriptPreview.preview(p,s),
     retirePagePreview:(p,s)=>pageScriptPreview.retire(p,s),
+    queryPagePreview:(p,s)=>pageScriptPreview.query(p,s),
     inspectPageDependencies:(p,s)=>pageDependencies.inspect(p,s),
     preparePageDependencies:(p,s)=>pageDependencies.prepare(p,s),
     approvePageDependencies:(p,s)=>pageDependencies.approve(p,s),
+    inspectPageComponentDependencies:(p,s)=>pageDependencies.inspectComponentDependencies(p,s),
+    preparePageComponentDependencies:(p,s)=>pageDependencies.prepareComponentDependencies(p,s),
+    approvePageComponentDependencies:(p,s)=>pageDependencies.approveComponentDependencies(p,s),
+    loadPageComponentDependencies:(p,s)=>pageDependencies.loadComponentDependencies(p,s),
     installSdk:createSdkInstaller({authority,api}),
     registerHost:async(p,s)=>{
       await recoverPersistedHosts({api,storage,session,authority,consumer});

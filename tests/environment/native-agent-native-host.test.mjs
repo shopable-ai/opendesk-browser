@@ -146,3 +146,27 @@ test('existing socket is never unlinked or replaced by a second host',async t=>{
   await assert.rejects(()=>host.start(),{code:'E_SOCKET_IN_USE'});
   assert.equal(fs.readFileSync(sock,'utf8'),'preserved');
 });
+
+test('negotiated frozen source reads and final validation share the authenticated bounded socket',async t=>{
+  const f=await fixture(t);
+  f.input.write(frame({v:1,kind:'welcome',extensionId:ID,extensionVersion:'0.1.0',localDevVersion:1,localDevSourceVersion:1}));
+  const p=await connect(f);t.after(()=>p.socket.destroy());assert.equal(p.authenticated.localDevSourceVersion,1);
+  writeLine(p.socket,{v:1,kind:'provider.register',providerId:'provider-source',localDevSourceVersion:1});
+  const registered=await p.reply.next(),state=await f.emitted.next();assert.equal(state.localDevSourceVersion,1);
+  const params={bindingId:'local-source',transferId:'transfer-a',artifactId:'a'.repeat(64),inputHash:'b'.repeat(64),sourceHash:'c'.repeat(64),sourceBytes:200000};
+  for(const method of ['project.source.read','project.source.validate']){
+    const request={v:1,kind:'dev.request',requestId:method,providerEpoch:registered.providerEpoch,method,params:{...params,...(method.endsWith('.read')?{offset:0}:{})}};
+    f.input.write(frame(request));assert.deepEqual(await p.reply.next(),request);
+    const result={...params,...(method.endsWith('.read')?{offset:0,byteLength:24576,dataBase64:Buffer.alloc(24576,120).toString('base64'),done:false}:{validated:true})};
+    writeLine(p.socket,{v:1,kind:'dev.response',requestId:method,providerEpoch:registered.providerEpoch,result});
+    assert.deepEqual((await f.emitted.next()).result,result);
+  }
+  assert.equal(f.host.pending,0);
+});
+test('legacy provider cannot receive unnegotiated source methods',async t=>{
+  const f=await fixture(t);f.input.write(frame({v:1,kind:'welcome',extensionId:ID,extensionVersion:'0.1.0',localDevVersion:1}));
+  const p=await connect(f);t.after(()=>p.socket.destroy());writeLine(p.socket,{v:1,kind:'provider.register',providerId:'legacy'});
+  const registered=await p.reply.next();await f.emitted.next();
+  f.input.write(frame({v:1,kind:'dev.request',requestId:'needs-upgrade',providerEpoch:registered.providerEpoch,method:'project.source.read',params:{bindingId:'local-source',transferId:'transfer-a',artifactId:'a'.repeat(64),inputHash:'b'.repeat(64),sourceHash:'c'.repeat(64),sourceBytes:200000,offset:0}}));
+  assert.equal((await f.emitted.next()).error.code,'E_NATIVE_UPDATE_REQUIRED');assert.equal(f.host.ready,true);
+});

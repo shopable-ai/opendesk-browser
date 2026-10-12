@@ -1,0 +1,253 @@
+{
+  "format": "opendesk.page-runtime-measurement.v1",
+  "measuredAt": "2026-10-12T11:36:25.478Z",
+  "scope": "Real frozen ECharts source + real snapshotted built-in/React resource bytes, verified through existing loaders and compileLockedPageSource; JSON assembly only. No userScripts.execute call or Chrome/Native visible acceptance.",
+  "input": {
+    "sourceHash": "8d3eedccdf62d90ddafcad3752e184ccd975479b51f649cb0b12595028ab2146",
+    "sourceBytes": 482082,
+    "linkedDescriptor": {
+      "format": "opendesk.page-linked-resource.v1",
+      "world": "USER_SCRIPT",
+      "linkedBytes": 480935,
+      "linkedSha256": "f42ed71c3208ead45d4ce395394d6b391980618a2425acc7764554aef1584f0e",
+      "producer": "webpack-5.111.1",
+      "dependencies": {
+        "lockSha256": "2e17186d12fb3ebeff6c1de67ce29dee4b5a7d7417c05fe265ff7085a08f655f",
+        "moduleCount": 235,
+        "sourceBytes": 1744686,
+        "roots": [
+          {
+            "url": "https://cdn.jsdelivr.net/npm/echarts@5.6.0/core.js",
+            "sha256": "c40d30695448336a18d80d6332259c2ee9dae110dc41d344aac7a6fdecb1b6ca"
+          },
+          {
+            "url": "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/chart/bar/install.js",
+            "sha256": "28faca3451a99a48b8cb3e7258307038e53ea3b2ddc70d74ff5e5dc79f60d5ca"
+          },
+          {
+            "url": "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/component/grid/install.js",
+            "sha256": "3fdfcda2d55177deb8157059acf117668a4a2f57a029860ca712ca4996650496"
+          },
+          {
+            "url": "https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/renderer/installSVGRenderer.js",
+            "sha256": "1bded7c3c6f05053346dcf5069991c7bed475a839217ad437fce494bbf8a9404"
+          },
+          {
+            "url": "https://raw.githubusercontent.com/d3/d3-array/v3.2.4/src/max.js",
+            "sha256": "691945a453633d9e204846af8ea4e299821b924f82b15eaf7906aba642979b1d"
+          }
+        ]
+      }
+    },
+    "resourceSnapshotAt": "2026-10-12T11:35:20.136052+00:00",
+    "resourceSnapshot": "resource-inputs.json",
+    "compilerInputs": [
+      {
+        "file": "src/libs/loader.js",
+        "sha256": "0fcf6d46579196f17e68247ea005d68e025f3050a35ff84789b168275c05a5a1"
+      },
+      {
+        "file": "src/libs/runtime-contract.js",
+        "sha256": "ce385d6bb21a5935db4d5d52f2273c449b8a10c953cd9c95060448f570387843"
+      },
+      {
+        "file": "src/libs/page-frameworks/loader.js",
+        "sha256": "d83233bbcebec14ea7c3701f8efd813641c14d683bd310f72b01562a486335a7"
+      },
+      {
+        "file": "src/libs/page-frameworks/contract.js",
+        "sha256": "860fb82620dfb324c54cf5b8453a189c62532ddacf33e3ce1922fcc106bfbc8d"
+      },
+      {
+        "file": "src/scripting/user-scripts/execution-source.js",
+        "sha256": "c27b9405e0925bea62043aa23c33a395c1eebe79f39bd0b377777c7b6af59f9d"
+      },
+      {
+        "file": "src/scripting/user-scripts/page-bundle.js",
+        "sha256": "919f24a6f093f74d130ec866304629a91fea312c0b01d00849eb4e298d89bccf"
+      },
+      {
+        "file": "src/scripting/user-scripts/dependency-metadata.js",
+        "sha256": "c4d7438caaf78b8759b3b9a6509a18208dc885fb7f1e51a51cab0ef935c0d042"
+      },
+      {
+        "file": "src/scripting/user-scripts/remote-esm-contract.js",
+        "sha256": "2b3f25786220c2001d12a00ebb02a165944ad532270424bd0817f356fb02ff52"
+      },
+      {
+        "file": "src/scripting/user-scripts/managed-ui-lifecycle.js",
+        "sha256": "81e5232dd66907d4341544cf0fc0b22307301978632d88be901a76b21707fd29"
+      },
+      {
+        "file": "src/platform/protocol.js",
+        "sha256": "be91db624627180e21e2a8b4d2ebe9f7ec3f1da8048d4aa236a23f56b552ad94"
+      }
+    ],
+    "builtinRuntimeCatalogSha256": "e3d76c73803ff0670e344a96de2f6e495ef440a961728e7e9e1ca0be2114c63a",
+    "reactRuntimeDescriptor": {
+      "id": "react",
+      "version": "19.2.0",
+      "source": "src/libs/page-frameworks/react-19.2.0.js",
+      "output": "libs/page-frameworks/react-19.2.0.js",
+      "bytes": 193163,
+      "sha256": "d1eec2e96ed42046ad543a10af7de992aee633ac06017f44f6b917e36451c758",
+      "licenseSource": "src/libs/page-frameworks/react-LICENSE.txt",
+      "licensePath": "licenses/page-framework-react-MIT.txt",
+      "global": "OpenDeskPageReact"
+    },
+    "note": "Browser compiler/private resource descriptor changes do not change the selected runtime slices; compare the recorded runtime catalog/React descriptor and raw resource hashes before reusing this measurement."
+  },
+  "builtin": {
+    "abi": "opendesk-builtins.v10",
+    "catalogSha256": "e3d76c73803ff0670e344a96de2f6e495ef440a961728e7e9e1ca0be2114c63a",
+    "combinedCodeBytes": 42247,
+    "sha256": "e3a1a5a9dbd3f5a6b8851a7ac76836e4ccd721cead31f70c75c0da2e24ce5806",
+    "rawResourceBytes": 42235,
+    "resources": [
+      {
+        "path": "libs/runtime/bootstrap.js",
+        "bytes": 876,
+        "sha256": "d8b6ff3a7a6a58a3ede0f630cd906f0af134307eeaa8a7db1f096ed24687868d"
+      },
+      {
+        "path": "libs/packages/lodash.js",
+        "bytes": 12832,
+        "sha256": "40d8258a2333573064f7173010cf6aa4eb07fb7d95a7a9c753a65fc23b9bfc18"
+      },
+      {
+        "path": "libs/packages/dayjs.js",
+        "bytes": 20304,
+        "sha256": "9b406af291725ac2b47409930c6d0ffba7545ece163e6579230c21fbccf40164"
+      },
+      {
+        "path": "libs/vendor/my-utils/1.0.0/index.js",
+        "bytes": 291,
+        "sha256": "948e074af991e89df08091e28f8c7f42981dc213ae089da013772e755e54c461"
+      },
+      {
+        "path": "libs/runtime/page-core.js",
+        "bytes": 7932,
+        "sha256": "9c36abbee70a767a66e4086233057b6f89bb515d97677f0a22bfeaa38a65583a"
+      }
+    ]
+  },
+  "react": {
+    "id": "react",
+    "version": "19.2.0",
+    "bytes": 193163,
+    "sha256": "d1eec2e96ed42046ad543a10af7de992aee633ac06017f44f6b917e36451c758",
+    "source": "src/libs/page-frameworks/react-19.2.0.js"
+  },
+  "requiredRuntimeResources": {
+    "count": 6,
+    "rawBytes": 235398,
+    "manifestDataBytes": 4553,
+    "totalLocalReadBytes": 239951,
+    "reads": [
+      {
+        "resource": "libs/manifest.json",
+        "bytes": 4553,
+        "sha256": "a1c37a0e5d78aa31c267494b3b81f8f1a61e85969a6c11b66654a83c0e2b5e7f"
+      },
+      {
+        "resource": "libs/page-frameworks/react-19.2.0.js",
+        "bytes": 193163,
+        "sha256": "d1eec2e96ed42046ad543a10af7de992aee633ac06017f44f6b917e36451c758"
+      },
+      {
+        "resource": "libs/runtime/bootstrap.js",
+        "bytes": 876,
+        "sha256": "d8b6ff3a7a6a58a3ede0f630cd906f0af134307eeaa8a7db1f096ed24687868d"
+      },
+      {
+        "resource": "libs/packages/lodash.js",
+        "bytes": 12832,
+        "sha256": "40d8258a2333573064f7173010cf6aa4eb07fb7d95a7a9c753a65fc23b9bfc18"
+      },
+      {
+        "resource": "libs/packages/dayjs.js",
+        "bytes": 20304,
+        "sha256": "9b406af291725ac2b47409930c6d0ffba7545ece163e6579230c21fbccf40164"
+      },
+      {
+        "resource": "libs/vendor/my-utils/1.0.0/index.js",
+        "bytes": 291,
+        "sha256": "948e074af991e89df08091e28f8c7f42981dc213ae089da013772e755e54c461"
+      },
+      {
+        "resource": "libs/runtime/page-core.js",
+        "bytes": 7932,
+        "sha256": "9c36abbee70a767a66e4086233057b6f89bb515d97677f0a22bfeaa38a65583a"
+      }
+    ],
+    "excludes": [
+      "Babel authoring compiler",
+      "Vue compiler/runtime",
+      "source maps",
+      "optional packaged libraries",
+      "network CDN modules at runtime"
+    ]
+  },
+  "compiled": {
+    "sourceHash": "8d3eedccdf62d90ddafcad3752e184ccd975479b51f649cb0b12595028ab2146",
+    "world": "USER_SCRIPT",
+    "jsCount": 1,
+    "js": [
+      {
+        "index": 0,
+        "bytes": 718450,
+        "sha256": "811d5c3f49af36164b956d040a8897942c71c20b209c912ef92a021708c6d824"
+      }
+    ],
+    "totalCodeBytes": 718450,
+    "jsArray": {
+      "jsonBytes": 732096,
+      "sha256": "d65dac72fb5d6501f310dc64f2894c642ef4801697bdc5f9ed37caba3b1aa897"
+    },
+    "userScriptsExecuteRequest": {
+      "jsonBytes": 732232,
+      "sha256": "59eab75375b65b5cd51891d41fef79004c5c43a8967d9cc1e936fd8864b55724"
+    },
+    "wrapperAndGuardBytes": 958,
+    "builtinAbi": "opendesk-builtins.v10",
+    "builtinCatalogSha256": "e3d76c73803ff0670e344a96de2f6e495ef440a961728e7e9e1ca0be2114c63a",
+    "builtinBundleSha256": "e3a1a5a9dbd3f5a6b8851a7ac76836e4ccd721cead31f70c75c0da2e24ce5806",
+    "packagedFrameworkId": "react",
+    "packagedFrameworkSha256": "d1eec2e96ed42046ad543a10af7de992aee633ac06017f44f6b917e36451c758",
+    "codeFile": "execution.js",
+    "arrayFile": "js-array.json",
+    "requestFile": "execute-request.json"
+  },
+  "managedPreviewBootstrap": {
+    "codeBytes": 3695,
+    "sha256": "088d784575f346576d4bb9f9deeae3bd271caf9b039ee8992ad902974eca56cd",
+    "request": {
+      "jsonBytes": 3895,
+      "sha256": "b2a67028f6f6516a9bce1f3de134b4bf29ea745516e6b3a87bf0db4058fbc84c"
+    },
+    "codeFile": "managed-bootstrap.js",
+    "requestFile": "managed-bootstrap-request.json",
+    "note": "Existing separate lifecycle bootstrap emitted before the user code into the same USER_SCRIPT world. Included separately from the one compiled JS unit."
+  },
+  "measurementIds": {
+    "receiptNonce": "11111111-1111-4111-8111-111111111111",
+    "managedNonce": "22222222-2222-4222-8222-222222222222",
+    "target": {
+      "tabId": 1,
+      "documentIds": [
+        "measurement-document-id"
+      ]
+    },
+    "worldId": "opendesk-preview-measurement-v1",
+    "note": "Synthetic exact-size envelope identifiers only; no browser document/preview receipt is claimed."
+  },
+  "sourceMap": {
+    "loaded": false,
+    "requiredForExecution": false,
+    "sourceContainsMapDirective": false
+  },
+  "boundaries": [
+    "chrome.userScripts.execute request JSON is not the 60 KiB Native Messaging wire frame. The Native source transfer is measured separately.",
+    "Only stored original code/source bytes are hashed; SHA confirms identity, not execution or successful chart drawing."
+  ]
+}

@@ -4,6 +4,8 @@
 
 **状态：源码核查后的架构决策与实施合同，不是 ECharts/CDN 通用加载器已经实现的声明。** 本文及 README 导航的更新不改变运行代码、安装格式、权限或既有冻结 JSON；不构成 Chrome、安装、Stop 或生产验收 PASS。
 
+> 上述状态对应 `b77a2a80` 的原设计快照，历史正文保留。本日后续已有源码实施：见下文第 9 节及 [React HTTPS ESM / ECharts 工作记录](../../framework/workstreams/react-url-import-echarts-20261012.md)。各项真实验收以该记录绑定的输入和原始回执为准。
+
 ## 1. 结论与前一轮方向纠正
 
 主路线继续是 **JavaScript/React/Vue 项目 + 标准 import + 项目配置/锁 + 原有 JSON 分发和执行器**。用户仅能编写自己的代码或项目，不能修改扩展本体；这意味着框架应承担准备、链接与加载，而不是要求用户维护扩展的 src/libs、manifest 或 SW。
@@ -146,3 +148,38 @@ Stop 能清理登记过的实例、监听和 DOM；任意第三方 JS 的顶层�
 - Chrome 远程代码说明：https://developer.chrome.com/docs/extensions/develop/migrate/remote-hosted-code
 - ECharts 模块化引入：https://echarts.apache.org/handbook/en/basics/import/
 - ECharts 容器、resize 与 dispose：https://echarts.apache.org/handbook/en/concepts/chart-size/
+
+## 9. 同日实施补充：复用原链路的版本化适配
+
+这部分更新实现状态，不改写上文的历史核查结论，也不登记全仓、Mac、F3 或 ZIP PASS。
+
+### 9.1 真实图和测量先于容量适配
+
+原 `page-ui-toc-react-direct` 现使用 ECharts 5.6.0 的真实 `core.js`、bar、grid、SVG renderer 静态 HTTPS ESM import；D3 的顶层 URL 和统计调用保留。固定 ZRender 5.6.1、tslib 2.3.0 后，实际完整远端图是 235 个模块、1,744,686 B，最大模块 84,388 B。生产固定源为 482,082 B，含作者源码/锁的 JSON 为 558,789 B。原小图/普通源码预算确实不足，因而增加下列限定版本，不提高所有上限。
+
+| 层 | 实际合同 | 兼容边界 |
+| --- | --- | --- |
+| 作者项目 | 原 `opendesk.project.v1` 内可选 `remoteDependencies`，格式 `opendesk.remote-dependencies.v1`、Page `page-library-v1` 与最多 8 个固定 HTTPS import 映射 | 仅 Page；不能覆盖 React/Vue、绕过路径/URL 检查或作为运行时 npm 解析器 |
+| 原始锁和缓存 | `opendesk.remote-lock.v2` 保存 profile、imports、逐 URL SHA/字节；复用原内容寻址缓存、网络边界和显式审阅 | 最大 256 模块/2 MiB，单模块 128 KiB 不变；原 v1 保持 32 模块/256 KiB |
+| 固定执行资源 | `opendesk.page-linked-resource.v1` 描述行 + 完整 linked JS，保留在原 `sourceUtf8` | linked JS 512 KiB，描述 4 KiB；只接受 USER_SCRIPT，完整字节和锁身份校验失败即阻断 |
+| JSON | `opendesk.program-draft.v2` 增加 `authoring.remoteLock`，仍使用原导入、Candidate、验证和安装流程 | v2 768 KiB；旧 v1 不变；未知版本拒绝；源码快照不冒充编译证明 |
+| 存储/更新/卸载 | 固定执行资源跟随原 Candidate、revision、grant 和已安装 Page 记录 | 不增加需要运行时取得的资产；仍按原程序版本/文档身份更新和卸载 |
+| Native reverse 读取 | `localDevSourceVersion=1`；原 `project.resolve` 返回固定产物引用，再 `project.source.read`、`project.source.validate` | 单块 24 KiB、整体源 516 KiB、有界 TTL/并发；原 61,440 B 帧上限不变 |
+
+完整 USER_SCRIPT 执行 JS 718,450 B；包含固定框架和内置资源，排除准备器 Babel、Vue、可选库和 source map。Native 原 inline 响应约 491 KB，分块后的最大实际响应 JSON 33,331 B（含长度头 33,335 B）；完整序列化报文与输入哈希保存在工作流证据中。
+
+### 9.2 浏览器源码与冻结 JSON 入口分别适配
+
+原组件准备器的固定 Worker 只解析、转换并链接文本，不执行用户依赖。浏览器作者在同一编辑器依次“检查依赖 → 确认获取所列模块 → 审阅完整图并确认固定”。每个新传递 URL 都需明确确认。保存、Run、重试读取批准锁和核验缓存，不隐式下载；编译缓存命中也重新核验原始字节。
+
+浏览器单文件入口当前沿用小图 v1 限额：32 模块、整图 256 KiB、链接结果 100 KB，不等于已支持本地 ECharts 完整图或任意网络模块。固定 JSON 则导入完整产物，原组件模式进入 managed UI；保存只创建 Candidate，Run 需要明确操作，原 Stop 回执对应原 preview/source/document 身份。未知效果只查询原回执，不自动重放。
+
+浏览器已确认的作者 review/lock/cache 按原持久缓存规则保留。目前没有“遗忘固定版本”或原始字节 GC；卸载自包含 Page 产物不代表删除作者准备缓存。不得将现有 namespace 字节复用描述为共享跨程序安装授权。
+
+### 9.3 生命周期与仍需独立验收的边界
+
+真实图表 effect 在有效尺寸后 init，数据变化 setOption，容器变化 resize；清理断开 observer、取消 RAF 并 dispose。原 TOC listener/observer 随 root.unmount 清理。准备取消、Stop、源码变化用代际检查阻止迟到挂载；版本导入先停止原预览。模型负例及包验证与真实 SVG/回执分别报告。
+
+仓库内 Node 参考 Host 已实现上述分块能力；正式外部 Go Host 尚需独立适配，实验 Node Host 不能代替正式 CLI 所需的 R17 能力。主动 MCP `session.run` 大报文仍明确 `E_LIMIT / NOT_DISPATCHED`。冻结 JSON 的安装和运行不需要 Native。
+
+本轮不能访问用户 Mac；Linux 本地 CFT 因 AF_UNIX 被环境拒绝。专用 GitHub Chrome 工作流覆盖真实 JSON、ECharts 数据/尺寸变化、Stop、安装/新文档，并单独检查浏览器源码首次 HTTPS 准备；是否通过、对应 packageHash/previewId/documentId 必须读取该任务实际原始证据，不能由本节设计说明推定。

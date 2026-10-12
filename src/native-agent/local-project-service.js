@@ -1,9 +1,10 @@
-import {AGENT_MAX_BYTES,AgentBridgeError,agentObject} from './protocol.js';
+import {AGENT_MAX_BYTES,AgentBridgeError} from './protocol.js';
+import {validLocalProjectRequest,localSourceMethod} from '../../native-agent/local-project-source-contract.mjs';
 
 // Reverse, read-only project transport on authenticated Native Messaging. Only
 // the original broker's currently registered Host ports may request a binding.
 export function createLocalProjectService({api,hostPorts,connection}) {
-  let providerEpoch=null;
+  let providerEpoch=null,sourceTransfers=false;
   const pending=new Map();
   const live=host=>[...hostPorts.values()].includes(host)&&typeof host.registrationId==='string';
   const available=()=>{const c=connection();return c.enabled&&c.ready&&c.port&&providerEpoch;};
@@ -41,9 +42,8 @@ export function createLocalProjectService({api,hostPorts,connection}) {
     const fail=error=>send(host,{type:'native-agent.dev.response',requestId:message.requestId,error:{code:error.code||'E_DEV_DISCONNECTED',message:error.message||'Local project unavailable'}});
     (async()=>{
       if(!live(host)||message.registrationId!==host.registrationId)throw new AgentBridgeError('E_OWNER');
-      if(typeof message.requestId!=='string'||!['status','projects.list','project.resolve'].includes(message.method)||
-        !agentObject(message.params)||Object.keys(message.params).some(key=>key!=='bindingId')||
-        message.method==='project.resolve'&&typeof message.params.bindingId!=='string')throw new AgentBridgeError('E_SCHEMA');
+      if(typeof message.requestId!=='string'||!validLocalProjectRequest(message.method,message.params,{status:true}))throw new AgentBridgeError('E_SCHEMA');
+      if(localSourceMethod(message.method)&&!sourceTransfers)throw new AgentBridgeError('E_NATIVE_UPDATE_REQUIRED');
       if(message.method==='status'){send(host,{type:'native-agent.dev.response',requestId:message.requestId,result:state()});return;}
       const c=connection(),epoch=providerEpoch;
       if(!available())throw new AgentBridgeError('E_DEV_DISCONNECTED');
@@ -58,5 +58,5 @@ export function createLocalProjectService({api,hostPorts,connection}) {
     })().catch(fail);return true;
   }
   function dropHost(host){for(const [id,row] of pending)if(row.host===host){clearTimeout(row.timer);pending.delete(id);}}
-  return {receive,acceptHostRequest,disconnected,dropHost};
+  return {receive,acceptHostRequest,disconnected,dropHost,negotiateSource(version){sourceTransfers=version===1;}};
 }

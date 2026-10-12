@@ -12,8 +12,11 @@ self.onmessage=async event=>{
   try{
     if(message.framework!=='react'&&message.framework!=='vue')
       throw fail('E_PAGE_COMPONENT_IDENTITY','Unsupported Page framework');
+    const inspect=message.action==='inspect';
+    if(message.action!==undefined&&!['inspect','prepare'].includes(message.action))throw fail('E_PAGE_COMPONENT_IDENTITY','Unknown compiler action');
     if(typeof message.componentSource!=='string'||count(message.componentSource)>128*1024||
-       typeof message.uiHelperSource!=='string'||count(message.uiHelperSource)>49152)
+       !inspect&&(typeof message.uiHelperSource!=='string'||count(message.uiHelperSource)>49152)||
+       message.remoteModules!==undefined&&(!Array.isArray(message.remoteModules)||message.remoteModules.length>32))
       throw fail('E_PAGE_COMPONENT_LIMIT','Compiler source input too large');
     if(!babelReady){
       importScripts('../libs/page-frameworks/babel-7.29.9.min.js');
@@ -26,10 +29,12 @@ self.onmessage=async event=>{
       vuePromise??=import('../libs/page-frameworks/vue-sfc-transform-r243.mjs');
     const [linker,vue]=await Promise.all([linkerPromise,
       message.framework==='vue'?vuePromise:Promise.resolve(null)]);
-    const ready=await linker.prepareBrowserPageComponent({
+    const prepare=inspect?linker.inspectBrowserPageComponent:linker.prepareBrowserPageComponent;
+    const ready=await prepare({
       framework:message.framework,projectId:message.projectId,pageRules:message.pageRules,
       componentSource:message.componentSource,uiHelperSource:message.uiHelperSource,
-      babel:self.Babel,transformSFC:vue?.transformVueSFC
+      babel:self.Babel,transformSFC:vue?.transformVueSFC,
+      remoteLock:message.remoteLock,remoteModules:message.remoteModules||[]
     });
     self.postMessage({requestId:id,ok:true,result:ready});
   }catch(error){

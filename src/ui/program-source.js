@@ -1,7 +1,11 @@
-import {digestUtf8, invariant} from '../platform/protocol.js';
+import {validatePageSource,PAGE_BUNDLE_LIMITS} from '../scripting/user-scripts/page-bundle.js';
+import {validateRemoteLock} from '../scripting/user-scripts/remote-esm-contract.js';
+import {digest,digestUtf8, invariant} from '../platform/protocol.js';
 
 export const PROGRAM_DRAFT_FORMAT = 'opendesk.program-draft.v1';
 export const PROGRAM_DRAFT_LIMIT = 512000;
+export const PROGRAM_DRAFT_V2_FORMAT='opendesk.program-draft.v2';
+export const PROGRAM_DRAFT_INPUT_LIMIT=PAGE_BUNDLE_LIMITS.draftBytes;
 const bytes = value => new TextEncoder().encode(value).length;
 // Source snapshots cannot grant execution privileges. Component projects may
 // display official JSX/SFC files; their frozen program.js is what executes.
@@ -21,9 +25,11 @@ export async function validateProgramDraft(input) {
   fields(value,['format','project','runtimeKind','build','sourceUtf8','authoring']);
   fields(value.project,['id','version','entry',...(Object.hasOwn(value.project??{},'entryMode')?['entryMode']:[])]);
   fields(value.build,['mode','sourceHash','byteLength']);
-  fields(value.authoring,['files']);
-  invariant(value?.format === PROGRAM_DRAFT_FORMAT, 'E_PROGRAM_DRAFT', '需要本地程序草稿包');
-  invariant(bytes(JSON.stringify(value)) <= PROGRAM_DRAFT_LIMIT, 'E_LIMIT', '程序草稿包超过 512000 字节');
+  const v2=value.format===PROGRAM_DRAFT_V2_FORMAT;
+  fields(value.authoring,v2?['files','remoteLock']:['files']);
+  invariant((value?.format === PROGRAM_DRAFT_FORMAT||v2&&value.runtimeKind==='page-userscript'), 'E_PROGRAM_DRAFT', '需要本地程序草稿包');
+  invariant(bytes(JSON.stringify(value)) <= (v2?PROGRAM_DRAFT_INPUT_LIMIT:PROGRAM_DRAFT_LIMIT), 'E_LIMIT',
+    `程序草稿包超过 ${v2?PROGRAM_DRAFT_INPUT_LIMIT:PROGRAM_DRAFT_LIMIT} 字节`);
   invariant(['controller','page-userscript'].includes(value.runtimeKind), 'E_PROGRAM_KIND', '未知程序运行环境');
   const component=value.project.entryMode==='component';
   invariant(value.project.entryMode===undefined||
@@ -33,8 +39,22 @@ export async function validateProgramDraft(input) {
     typeof value.project.version === 'string' && /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-[0-9A-Za-z.-]+)?$/.test(value.project.version) && pathIsLocal(value.project.entry,component),
   'E_PROGRAM_DRAFT', '项目身份或入口无效');
   const executableLimit = value.runtimeKind === 'controller' ? 65536 : 100000;
-  invariant(typeof value.sourceUtf8 === 'string' && value.sourceUtf8.trim() && bytes(value.sourceUtf8) <= executableLimit,
-    'E_LIMIT', `执行产物必须非空且不超过 ${executableLimit} 字节`);
+  invariant(typeof value.sourceUtf8==='string'&&value.sourceUtf8.trim(),'E_LIMIT','执行产物必须为非空文本');
+  if(v2){
+    const bundle=await validatePageSource(value.sourceUtf8,{plainLimit:100000});
+    invariant(bundle,'E_PROGRAM_DRAFT','Page v2 必须提供有版本的固定执行资源');
+    const lock=validateRemoteLock(value.authoring.remoteLock);
+    invariant(lock.format==='opendesk.remote-lock.v2'&&await digest(lock)===bundle.descriptor.dependencies.lockSha256,
+      'E_PROGRAM_HASH','远端锁与固定执行资源的图身份不同');
+    for(const row of bundle.descriptor.dependencies.roots)
+      invariant(lock.modules[row.url]?.sha256===row.sha256,'E_PROGRAM_HASH','执行资源入口与原始依赖锁不一致');
+    // A lock may retain older unused pins. The measured reachable graph must
+    // at least include its roots, and cannot exceed all locked source bytes.
+    const graph=bundle.descriptor.dependencies,pins=Object.values(lock.modules);
+    invariant(graph.moduleCount<=pins.length&&graph.sourceBytes<=pins.reduce((n,row)=>n+row.bytes,0)&&
+      graph.sourceBytes>=graph.roots.reduce((n,row)=>n+lock.modules[row.url].bytes,0),
+      'E_PROGRAM_HASH','执行资源声明的依赖数量或字节数与固定锁不一致');
+  }else invariant(bytes(value.sourceUtf8)<=executableLimit,'E_LIMIT',`执行产物必须非空且不超过 ${executableLimit} 字节`);
   if(component){
     // The existing build directive chooses the pinned Page framework. Do not
     // infer it from a filename or silently accept a React/Vue mixed snapshot.
@@ -71,6 +91,7 @@ export async function validateProgramDraft(input) {
     Object.freeze(file);
   }
   Object.freeze(files); Object.freeze(value.authoring); Object.freeze(value.project); Object.freeze(value.build);
+  if(v2){Object.values(value.authoring.remoteLock.modules).forEach(Object.freeze);Object.freeze(value.authoring.remoteLock.modules);Object.freeze(value.authoring.remoteLock.imports);Object.freeze(value.authoring.remoteLock);}
   return Object.freeze(value);
 }
 

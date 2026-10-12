@@ -4,6 +4,8 @@ import {loadPackagedJquery,JQUERY_371} from './packaged-dependencies.js';
 import {loadBuiltinPageSource} from '../../libs/loader.js';
 import {builtinIdentity,assertBuiltinIdentity} from '../../libs/identity.js';
 import {resolvePageProgramRules} from './page-program-rules.js';
+import {createPageComponentDependencyMethods} from './page-component-dependencies.js';
+import {inspectPageSource,validatePageSource,PAGE_BUNDLE_PREFIX} from './page-bundle.js';
 
 // Assets contain bytes only. Source identity and approval belong to namespace
 // scoped reviews/locks; sharing a hash never shares an authorization.
@@ -61,7 +63,9 @@ function sourceSummary(url) {
   return {name:npm?.[1] || path.split('/').at(-1) || new URL(url).hostname,version:npm?.[2] || null};
 }
 function manifestFor(request) {
-  ensure(typeof request.sourceUtf8==='string' && encoder.encode(request.sourceUtf8).byteLength<=128*1024,'E_SOURCE','页面脚本最大 128 KiB');
+  ensure(typeof request.sourceUtf8==='string' &&
+    (request.sourceUtf8.startsWith(PAGE_BUNDLE_PREFIX)?(inspectPageSource(request.sourceUtf8),true):
+      encoder.encode(request.sourceUtf8).byteLength<=128*1024),'E_SOURCE','普通页面脚本最大 128 KiB；大型资源须有固定版本与哈希');
   const entryFormat=request.entryFormat===undefined ? 'async-main' : request.entryFormat;
   ensure(['classic-userscript','async-main'].includes(entryFormat),'E_ENTRY_FORMAT','页面入口必须明确为 classic-userscript 或 async-main');
   const parsed=parseUserScriptDependencies(request.sourceUtf8,{importSourceUrl:request.importSourceUrl});
@@ -74,7 +78,11 @@ function manifestFor(request) {
 // implementing a second URL/integrity normalizer. No host/storage/network use.
 export async function describeDependencyManifest(request) {
   const profile=manifestFor(request);
+  await validateFixedResource(request.sourceUtf8);
   return {...profile,manifestDigest:await hashObject(profile.manifest)};
+}
+async function validateFixedResource(sourceUtf8){
+  if(typeof sourceUtf8==='string'&&sourceUtf8.startsWith(PAGE_BUNDLE_PREFIX))await validatePageSource(sourceUtf8);
 }
 function decodeCode(bytes) {
   try { return new TextDecoder('utf-8',{fatal:true,ignoreBOM:true}).decode(bytes); }
@@ -145,6 +153,7 @@ export function createDependencyManager({api,storage,assertHost,fetchImpl=global
   }
   async function inspect(request,sender) {
     fields(request,['sourceUtf8','entryFormat','importSourceUrl']);
+    await validateFixedResource(request.sourceUtf8);
     const host=await hostFor(sender),{parsed,manifest,entryFormat}=manifestFor(request),manifestDigest=await hashObject(manifest);
     const result=await inTransaction(host,'readonly',async tx=>{
       const requires=[];
@@ -220,6 +229,7 @@ export function createDependencyManager({api,storage,assertHost,fetchImpl=global
   }
   async function prepare(request,sender) {
     fields(request,['sourceUtf8','entryFormat','importSourceUrl','explicitUserAction','selections']);
+    await validateFixedResource(request.sourceUtf8);
     ensure(request.explicitUserAction===true,'E_DEPENDENCY_REVIEW','下载依赖需要用户明确操作');
     const host=await hostFor(sender),{parsed,manifest,entryFormat}=manifestFor(request);
     assertUserScriptExecutable(parsed,{entryFormat,phase:'preview',dependenciesLocked:true});
@@ -344,6 +354,7 @@ export function createDependencyManager({api,storage,assertHost,fetchImpl=global
     return result;
   }
   async function loadInNamespace(request,namespace,read) {
+    await validateFixedResource(request.sourceUtf8);
     const {parsed,manifest,entryFormat}=manifestFor(request),manifestDigest=await hashObject(manifest);
     assertUserScriptExecutable(parsed,{entryFormat,phase:'preview',dependenciesLocked:true});
     if(!parsed.requires.length){
@@ -375,6 +386,7 @@ export function createDependencyManager({api,storage,assertHost,fetchImpl=global
       row.verification===null && typeof row.sourceUtf8==='string','E_PAGE_CANDIDATE');
     ensure(row.manifestHash===await hashObject(row.manifest) &&
       row.manifest.sourceHash===await hashBytes(encoder.encode(row.sourceUtf8)),'E_HASH');
+    await validateFixedResource(row.sourceUtf8);
     return row;
   }
   async function importPageCandidate(request,sender) {
@@ -434,5 +446,7 @@ export function createDependencyManager({api,storage,assertHost,fetchImpl=global
   // References are durable and no automatic GC runs. A future collector must
   // trace revisions, installations and historical runs in addition to these
   // review/lock references; deleting an editor draft cannot delete asset bytes.
-  return Object.freeze({inspect,prepare,approve,loadForExecution,importPageCandidate,getPageCandidate,readStoredPageCandidate});
+  const components=createPageComponentDependencyMethods({hostFor,inTransaction,httpsAsset,verifiedAsset,
+    timestamp,hashObject,hashBytes,ensure,fields,clone,assetKey:key.asset,referenceKey:key.reference,risk});
+  return Object.freeze({inspect,prepare,approve,loadForExecution,importPageCandidate,getPageCandidate,readStoredPageCandidate,...components});
 }

@@ -2,6 +2,14 @@ import {createElement, useEffect, useMemo, useRef, useState} from 'react';
 import {chooseActiveTocItem, createTocScanner, sameToc, selectTocItems} from './toc-model.js';
 import {summarizeHeadingLevels} from './heading-stats.js';
 import max from 'https://raw.githubusercontent.com/d3/d3-array/v3.2.4/src/max.js';
+import {init, use as useECharts} from 'https://cdn.jsdelivr.net/npm/echarts@5.6.0/core.js';
+import {install as BarChart} from 'https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/chart/bar/install.js';
+import {install as GridComponent} from 'https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/component/grid/install.js';
+import {install as SVGRenderer} from 'https://cdn.jsdelivr.net/npm/echarts@5.6.0/lib/renderer/installSVGRenderer.js';
+import {mountHeadingChart} from './heading-chart.js';
+
+useECharts([BarChart, GridComponent, SVGRenderer]);
+const echarts = {init};
 
 // Official React JavaScript syntax. OpenDesk provides React, mounts this
 // component in its managed Shadow DOM and runs root.unmount() on Stop.
@@ -43,14 +51,27 @@ const ui = {
   status: {marginTop: 7, fontSize: 11, color: '#ad4a4f'},
   chart: {marginTop: 10, padding: '8px 4px 2px'},
   chartTitle: {margin: '0 0 9px', fontSize: 12, fontWeight: 650},
-  chartRow: {display: 'grid', gridTemplateColumns: '24px minmax(0, 1fr) 22px',
-    alignItems: 'center', gap: 7, minHeight: 23},
-  chartName: {color: colors.muted, fontSize: 11},
-  chartTrack: {height: 8, borderRadius: 5, background: '#edf1f7', overflow: 'hidden'},
-  chartFill: {height: '100%', borderRadius: 5, background: colors.accent},
-  chartCount: {textAlign: 'right', fontSize: 11, fontVariantNumeric: 'tabular-nums'}
+  chartContainer: {width: '100%', height: 208, minWidth: 0},
+  chartSummary: {fontSize: 10, color: colors.muted, margin: '4px 0 0'}
 };
 const modes = [['overview', '概览'], ['focus', '当前'], ['full', '全部'], ['stats', '统计']];
+
+function HeadingChart({stats}) {
+  const container = useRef(null), chart = useRef(null);
+  const [state, setState] = useState({status: 'loading', message: '正在绘制图表…'});
+  useEffect(() => {
+    const current = mountHeadingChart({element: container.current, echarts, stats, onState: setState});
+    chart.current = current;
+    return () => { chart.current = null; current.dispose(); };
+  }, []);
+  useEffect(() => { chart.current?.update(stats); }, [stats]);
+  return h('div', {'data-echarts-state': state.status},
+    h('div', {ref: container, style: ui.chartContainer, role: 'img',
+      'aria-label': 'ECharts 标题层级分布，' + stats.levels.map(row => 'H' + row.level + '：' + row.count).join('，')}),
+    h('p', {style: ui.chartSummary}, 'ECharts 5.6.0 · SVG · ' + stats.levels.map(row => 'H' + row.level + ' ' + row.count).join(' / ')),
+    state.message && h('p', {role: state.status === 'error' ? 'alert' : 'status', style: ui.status}, state.message)
+  );
+}
 
 export default function App() {
   const [items, setItems] = useState([]);
@@ -150,18 +171,7 @@ export default function App() {
     !collapsed && (mode === 'stats'
       ? h('section', {style: ui.chart, 'aria-label': '网页标题层级统计'},
         h('h3', {style: ui.chartTitle}, '标题层级分布 · ' + stats.total + ' 个'),
-        h('div', {role: 'list', 'aria-label': 'H1 至 H6 的数量'},
-          ...stats.levels.map(row => h('div', {
-            key: row.level, role: 'listitem', style: ui.chartRow
-          },
-            h('span', {style: ui.chartName}, 'H' + row.level),
-            h('div', {style: ui.chartTrack, role: 'meter',
-              'aria-label': 'H' + row.level + ' 标题数量',
-              'aria-valuemin': 0, 'aria-valuemax': stats.peak,
-              'aria-valuenow': row.count},
-              h('div', {style: {...ui.chartFill, width: row.percent + '%'}})),
-            h('span', {style: ui.chartCount}, String(row.count))
-          )))
+        h(HeadingChart, {stats})
       )
       : h('nav', {style: ui.nav, 'aria-label': '章节导航'},
       shown.length === 0

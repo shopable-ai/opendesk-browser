@@ -154,7 +154,7 @@ try{
  const newTab=async url=>{const response=await fetch(base+'/json/new?about%3Ablank',{method:'PUT'});assert.equal(response.status,200);const tab=await response.json(),session=await cdp(tab.webSocketDebuggerUrl);await observePage(session,tab);if(url!=='about:blank')await session.call('Page.navigate',{url});return {tab,session};};
  const extensionId=await until(async()=>{const list=await (await fetch(base+'/json/list')).json();return list.find(row=>row.type==='service_worker'&&/chrome-extension:\/\/[a-p]{32}\/sw\.js/.test(row.url))?.url.split('/')[2];},'OpenDesk extension');report.extensionId=extensionId;
  const install=setup(extensionId,'cft',profile);installed=true;record('native.install',install);
- report.nativeInputs=['native-host.mjs','wire.mjs','locations.mjs','installation-root.mjs'].map(file=>({path:'native-agent/'+file,sha256:sha(fs.readFileSync(path.join(path.dirname(install.nativeHost),file)))}));
+ report.nativeInputs=['native-host.mjs','wire.mjs','locations.mjs','installation-root.mjs','local-project-source-contract.mjs'].map(file=>({path:'native-agent/'+file,sha256:sha(fs.readFileSync(path.join(path.dirname(install.nativeHost),file)))}));
  const nativeOptions=await newTab('about:blank');options=nativeOptions.session;await options.call('Page.navigate',{url:'chrome-extension://'+extensionId+'/native-agent/settings.html'});
  // The HTML button exists before settings.js has installed its trusted handler.
  // Wait for the real settings response, not merely for a DOM node.

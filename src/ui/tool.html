@@ -555,6 +555,14 @@
     <label for="script-source" class="visually-hidden">JavaScript、React JSX 或 Vue SFC 源码编辑器</label><textarea id="script-source" rows="6" spellcheck="false">async function main() {
   return {title: await page.title(), url: await page.url(), value: params.value};
 }</textarea>
+    <section id="page-component-remote" class="od-stack" aria-label="组件 HTTPS 依赖准备" hidden>
+      <p id="page-component-remote-status" role="status" aria-live="polite"></p>
+      <pre id="page-component-remote-sources" aria-label="本次需明确确认的 HTTPS 模块来源" hidden></pre>
+      <label for="page-component-remote-lock" class="visually-hidden">选择已固定的组件依赖版本</label>
+      <select id="page-component-remote-lock" hidden><option value="">选择固定依赖版本</option></select>
+      <div class="od-toolbar"><button id="page-component-remote-prepare" type="button">检查依赖</button><button id="page-component-remote-cancel" type="button" hidden>取消准备</button></div>
+      <details id="page-component-remote-details" hidden><summary>固定模块、许可证与 SHA-256</summary><pre id="page-component-remote-detail-body"></pre></details>
+    </section>
     <details id="program-generated" hidden><summary>高级诊断：查看编译产物</summary><pre id="program-generated-source"></pre></details>
     </div>
     <details id="manual-project-params-tools" class="developer-params"><summary>参数 JSON（可选）</summary><label for="script-params">参数 JSON</label><textarea id="script-params" rows="3" spellcheck="false">{"value":0}</textarea></details>
