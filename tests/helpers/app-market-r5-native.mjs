@@ -178,6 +178,9 @@ export async function runMarketR5Acceptance(d){
   for(const width of [320,360,520,1280]){
     await website.send('Emulation.setDeviceMetricsOverride',{width,height:900,deviceScaleFactor:1,mobile:false});
     await until(()=>evaluate(website,'innerWidth==='+width),'website viewport width');
+    // Position only the visual inspection viewport; no product state changes.
+    await evaluate(website,'scrollTo({top:0,left:0,behavior:"instant"})');
+    await until(()=>evaluate(website,'scrollY===0'),'home screenshot begins at actual page top');
     const result=await evaluate(website,'({width:innerWidth,scroll:document.documentElement.scrollWidth})');
     assert.equal(result.width,width);assert(result.scroll<=width);evidence.r5.responsive.push({page:'home',...result});
     await screenshot(website,'r5-home-'+width+'.png');
@@ -201,34 +204,7 @@ export async function runMarketR5Acceptance(d){
 
   await mark('http-first-install-fixed-review-and-use');
   const initial=await installed();assert(!initial.some(row=>row.id==='markdown-workbench'));
-  const abandoned=await websiteReview('markdown-workbench',packages.get('markdown-workbench').version,{details:true,handoffCuts:true});
-  await visible(abandoned.review,'[data-market-action="confirm-install"]');
-  const beforeConsume=await storedCutState(),consumeCut=await armMarketCut(d,'B',{targetId:abandoned.review.targetId});
-  const consumeGesture=click(abandoned.review,'[data-market-action="confirm-install"]').then(()=>({status:'ACKNOWLEDGED'}),error=>({status:'TARGET_CLOSED',message:error.message}));
-  const consumeHit=await consumeCut.wait();
-  assert.equal(consumeHit.value.operationId,abandoned.row.operationId);assert.equal(consumeHit.value.toolId,'markdown-workbench');
-  await consumeCut.terminate();consumeCut.record.gesture=await consumeGesture;
-  const afterConsume=await storedCutState(),consumed=afterConsume.intents.find(row=>row.intentId===abandoned.row.intentId);
-  assert(Number.isSafeInteger(consumed.consumedAt));assert.equal(consumed.settledAt,null);
-  assert.equal(afterConsume.operations[abandoned.row.operationId],undefined);
-  assert.deepEqual(afterConsume.operations,beforeConsume.operations);assert.deepEqual(afterConsume.registry,initial);
-  Object.assign(consumeCut.record,{afterTermination:afterConsume});
-  const unjournaled=await websiteReview('markdown-workbench',packages.get('markdown-workbench').version,{existingPage:abandoned.page,details:true});
-  assert.equal(unjournaled.row.reviewId,abandoned.row.reviewId);assert.equal(unjournaled.row.operationId,abandoned.row.operationId);
-  await visible(unjournaled.review,'[data-market-action="close-unjournaled"]');
-  assert.equal(await evaluate(unjournaled.review,'!!document.querySelector("[data-market-action=confirm-install]")'),false);
-  await screenshot(unjournaled.review,'r5-consumed-without-journal.png');
-  await click(unjournaled.review,'[data-market-action="close-unjournaled"]');
-  const closedUnknown=await until(async()=>(await intentRows()).find(row=>row.intentId===consumed.intentId&&row.settledAt!==null),'explicit unknown-without-journal closure');
-  assert.equal(closedUnknown.closureReason,'unknown-without-journal');assert.equal(closedUnknown.consumedAt,consumed.consumedAt);
-  assert.equal((await readStore(MARKET_OPERATIONS_STORE,host()))?.[abandoned.row.operationId],undefined);
-  assert.deepEqual(await installed(),initial);
-  await close(unjournaled.review);await close(unjournaled.page);
-  Object.assign(consumeCut.record,{status:'PASS',recovered:closedUnknown});
-  check('native-consumed-before-first-journal-interruption-never-replays-and-explicitly-closes-unknown',
-    {intentId:closedUnknown.intentId,operationId:closedUnknown.operationId,closureReason:closedUnknown.closureReason});
   let first=await websiteReview('markdown-workbench',packages.get('markdown-workbench').version,{details:true,keyboard:true,audit:true});
-  assert.notEqual(first.row.intentId,abandoned.row.intentId,'a fresh approved candidate needs a new web intent after an unknown closure');
   await visible(first.review,'[data-market-action="confirm-install"]');
   assert.deepEqual(await installed(),initial,'website handoff cannot install');await d.assertNoFrames();await d.assertNoGrants();
   assert.match(await evaluate(first.review,'document.body.innerText'),/发布者：OpenDesk/);
@@ -281,6 +257,43 @@ export async function runMarketR5Acceptance(d){
   check('http-real-sender-fixed-review-first-install-close-website-then-confirm-and-real-markdown-use',
     {intentId:first.row.intentId,reviewId:first.row.reviewId,operationId:first.row.operationId,version:first.row.subject.version,
       operationState:operation.state,settledAt:completedIntent.settledAt});
+
+  await mark('real-handoff-and-first-journal-interruption-recovery');
+  const cutInitial=await installed();
+  const abandoned=await websiteReview('knowledge-inbox',packages.get('knowledge-inbox').version,{details:true,handoffCuts:true});
+  await visible(abandoned.review,'[data-market-action="confirm-install"]');
+  const beforeConsume=await storedCutState(),consumeCut=await armMarketCut(d,'B',{targetId:abandoned.review.targetId});
+  const consumeGesture=click(abandoned.review,'[data-market-action="confirm-install"]').then(()=>({status:'ACKNOWLEDGED'}),error=>({status:'TARGET_CLOSED',message:error.message}));
+  const consumeHit=await consumeCut.wait();
+  assert.equal(consumeHit.value.operationId,abandoned.row.operationId);assert.equal(consumeHit.value.toolId,'knowledge-inbox');
+  await consumeCut.terminate();consumeCut.record.gesture=await consumeGesture;
+  const afterConsume=await storedCutState(),consumed=afterConsume.intents.find(row=>row.intentId===abandoned.row.intentId);
+  assert(Number.isSafeInteger(consumed.consumedAt));assert.equal(consumed.settledAt,null);
+  assert.equal(afterConsume.operations[abandoned.row.operationId],undefined);
+  assert.deepEqual(afterConsume.operations,beforeConsume.operations);assert.deepEqual(afterConsume.registry,cutInitial);
+  Object.assign(consumeCut.record,{afterTermination:afterConsume});
+  const unjournaled=await websiteReview('knowledge-inbox',packages.get('knowledge-inbox').version,{existingPage:abandoned.page,details:true});
+  assert.equal(unjournaled.row.reviewId,abandoned.row.reviewId);assert.equal(unjournaled.row.operationId,abandoned.row.operationId);
+  await visible(unjournaled.review,'[data-market-action="close-unjournaled"]');
+  assert.equal(await evaluate(unjournaled.review,'!!document.querySelector("[data-market-action=confirm-install]")'),false);
+  await screenshot(unjournaled.review,'r5-consumed-without-journal.png');
+  await click(unjournaled.review,'[data-market-action="close-unjournaled"]');
+  const closedUnknown=await until(async()=>(await intentRows()).find(row=>row.intentId===consumed.intentId&&row.settledAt!==null),'explicit unknown-without-journal closure');
+  assert.equal(closedUnknown.closureReason,'unknown-without-journal');assert.equal(closedUnknown.consumedAt,consumed.consumedAt);
+  assert.equal((await readStore(MARKET_OPERATIONS_STORE,host()))?.[abandoned.row.operationId],undefined);
+  assert.deepEqual(await installed(),cutInitial);
+  await close(unjournaled.review);await close(unjournaled.page);
+  Object.assign(consumeCut.record,{status:'PASS',recovered:closedUnknown});
+  check('native-consumed-before-first-journal-interruption-never-replays-and-explicitly-closes-unknown',
+    {intentId:closedUnknown.intentId,operationId:closedUnknown.operationId,closureReason:closedUnknown.closureReason});
+  const freshAfterUnknown=await websiteReview('knowledge-inbox',packages.get('knowledge-inbox').version);
+  assert.notEqual(freshAfterUnknown.row.intentId,closedUnknown.intentId);
+  assert.notEqual(freshAfterUnknown.row.operationId,closedUnknown.operationId);
+  assert.equal(freshAfterUnknown.row.consumedAt,null);
+  await visible(freshAfterUnknown.review,'[data-market-action="confirm-install"]');
+  await click(freshAfterUnknown.review,'[data-market-action="cancel-install"]');
+  await close(freshAfterUnknown.review);await close(freshAfterUnknown.page);
+  assert.deepEqual(await installed(),cutInitial,'a new review after explicit closure still cannot install automatically');
 
   await mark('negative-external-messages');
   const registryBefore=await installed(),intentsBefore=(await intentRows()).length;

@@ -52,10 +52,10 @@ test('R21 Chrome fixture adds full-width states without changing its native evid
   assert.match(visual,/Expected script marker missing: refusing native JS execution/);
 });
 
-test('R21 current product spec has five tabs with historical R5 retained',async()=>{
+test('R21 product specification reflects six official tabs and archived R5',async()=>{
   const spec=await read('docs/product/sidebar-ui-spec.zh-CN.md');
-  assert.ok(spec.startsWith('# OpenDesk Browser Sidebar UI SPEC · R21（现行五页签）'));
-  for(const name of ['我的','发现','工作流','开发','工具'])
+  assert.ok(spec.startsWith('# OpenDesk Browser Sidebar UI SPEC · R21（生产六页签）'));
+  for(const name of ['我的','发现','工作流','开发','工具','云控'])
     assert.match(spec,new RegExp('\\| '+name+' \\|'));
   assert.match(spec,/历史存档：OpenDesk Browser Sidebar UI SPEC · R5/);
   assert.match(spec,/STATIC_MARKUP_CHROME/);

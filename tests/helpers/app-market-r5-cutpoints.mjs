@@ -28,9 +28,13 @@ export function discoverMarketCutPoints(source,{required=['A1','A2','B','C'],reg
   const calls=(fn,predicate)=>own(fn,node=>node.type==='CallExpression'&&predicate(node));
   const awaited=node=>need(index.get(node).ancestors.at(-1)?.type==='AwaitExpression','direct awaited call: '+source.slice(node.start,node.end));
   const ownerOfMarker=value=>one(entries.filter(entry=>literal(entry.node,value)),'unique marker '+value);
-  const point=(node,bindings)=>({range:[node.start,node.end],text:source.slice(node.start,node.end),
+  const point=(node,bindings)=>{
+    const nested=entries.filter(({node:child})=>child!==node&&child.start>=node.start&&child.end<=node.end&&
+      ['CallExpression','NewExpression','TaggedTemplateExpression','ImportExpression'].includes(child.type));
+    need(nested.length===0,'cut call must contain no nested invocation');
+    return {range:[node.start,node.end],text:source.slice(node.start,node.end),nestedInvocations:0,
     location:{lineNumber:node.loc.start.line-1,columnNumber:node.loc.start.column},
-    endLocation:{lineNumber:node.loc.end.line-1,columnNumber:node.loc.end.column},breakpointType:'call',...bindings});
+    endLocation:{lineNumber:node.loc.end.line-1,columnNumber:node.loc.end.column},breakpointType:'call',...bindings};};
   const wanted=new Set(required),result={};
   need(wanted.size===required.length&&required.length>0&&required.every(id=>['A1','A2','B','C'].includes(id)),'explicit unique required cuts');
   if(wanted.has('A1')||wanted.has('A2')){
@@ -117,4 +121,21 @@ export function discoverMarketCutPoints(source,{required=['A1','A2','B','C'],reg
       result.C.condition=store+'==='+JSON.stringify(registryStoreKey)+' && '+scopeName+'==="工具安装记录"';result.C.submission.condition=result.C.condition;}
   }
   return result;
+}
+
+// V8 reports a call position inside a member expression; it need not be the
+// AST node's first character. Accept only the browser's sole explicit call in
+// this exact invocation (proved above to contain no nested invocations).
+export function marketCallLocation(point,locations,scriptId){
+  const order=(a,b)=>a.lineNumber-b.lineNumber||a.columnNumber-b.columnNumber;
+  const valid=row=>row&&Number.isInteger(row.lineNumber)&&row.lineNumber>=0&&Number.isInteger(row.columnNumber)&&row.columnNumber>=0;
+  const bad=()=>{
+    const error=new Error('Unique browser call position inside the exact non-nested market invocation unavailable');
+    error.code='E_NATIVE_NOT_OBSERVED';throw error;
+  };
+  if(point.nestedInvocations!==0||point.breakpointType!=='call'||!valid(point.location)||!valid(point.endLocation)||
+    order(point.location,point.endLocation)>=0||!Array.isArray(locations))bad();
+  if(locations.some(row=>row.scriptId!==scriptId||!valid(row)||order(row,point.location)<0||order(row,point.endLocation)>=0))bad();
+  const calls=locations.filter(row=>row.type==='call');if(calls.length!==1)bad();
+  const {lineNumber,columnNumber}=calls[0];return {scriptId,lineNumber,columnNumber};
 }

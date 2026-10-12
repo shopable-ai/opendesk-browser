@@ -8,7 +8,7 @@
 
 | 产品界面 | 真实源码 | 样式及基线 | 禁止事项 |
 | --- | --- | --- | --- |
-| Side Panel 五选项卡、工具列表/详情 | `src/ui/tool.html`、`src/ui/design-system.css`、`src/ui/tool-shell.css` | 引用设计 token，使用 `od-page / od-toolbar / od-stack / od-surface / od-button / od-field` 原语 | 不因有 Tailwind 依赖就加载 Workspace CSS；不向 sandbox iframe 注入宿主 CSS |
+| Side Panel 六个正式选项卡（开发版七个）、工具列表/详情 | `src/ui/tool.html`、`src/ui/design-system.css`、`src/ui/tool-shell.css` | 引用设计 token，使用 `od-page / od-toolbar / od-stack / od-surface / od-button / od-field` 原语 | 不因有 Tailwind 依赖就加载 Workspace CSS；不向 sandbox iframe 注入宿主 CSS |
 | Native Workspace | `src/native-agent/workspace.tailwind.css`、`scripts/build-workspace-style.mjs` | **Tailwind CSS v4.3.3 离线编译**，token CSS 在构建阶段内联到单个 `workspace.css` | 不使用 CDN、浏览器端 JIT、`npx` 联网下载；不把 Tailwind Preflight 扩散到 Sidebar |
 | Native Settings | `src/native-agent/settings.css` | 原生 CSS + 共享 tokens，页面允许自然滚动 | 不引入 Sidebar 的 `html,body{overflow:hidden}` |
 | 应用市场扩展标签页 | `src/marketplace/marketplace.css` | 独立响应式排版 + 共享 tokens | 不直接复制窄 Side Panel 的布局约束 |

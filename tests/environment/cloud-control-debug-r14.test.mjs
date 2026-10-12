@@ -56,6 +56,8 @@ test('production Cloud tab is visible in Side Panel while Debug remains hidden',
  assert.match(work,/if\(name==='debug'&&!debugEnabled\)return false/);
  assert.match(work,/if\(debugEnabled\)tabOrder\.push\(\['debug','tab-debug'\]\)/);
  assert.match(html,/<button[^>]*id="tab-debug"[^>]*hidden>调试<\/button>/);
+ assert.match(html,/<button[^>]*id="tab-cloud"[^>]*hidden>云控<\/button>/);
+ assert.ok(html.indexOf('id="cloud-my-open"')<html.indexOf('id="workbench-cloud"'));
  assert.match(html,/id="workbench-debug" role="tabpanel"[^>]*hidden>/);
  assert.match(css,/\.workbench-nav\{[^}]*display:flex;[^}]*overflow-x:auto;/);
  assert.ok(html.indexOf('id="task-installed-cards"')<html.indexOf('id="cloud-hosting"'), 'tasks first; cloud config below');

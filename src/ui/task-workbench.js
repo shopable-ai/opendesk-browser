@@ -130,7 +130,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     if(name==='discover')renderLocalDiscovery();
     if(name==='debug')onNavigate?.('debug');
     if(name==='cloud')onNavigate?.('cloud');
-    doc.querySelector('.workbench-nav button[aria-selected="true"]')?.scrollIntoView?.({block:'nearest',inline:'nearest'});
+    doc.querySelector?.('.workbench-nav button[aria-selected="true"]')?.scrollIntoView?.({block:'nearest',inline:'nearest'});
     // Only an accepted top-level navigation may update the Sidebar preference.
     onTabSelected?.(name,{initial});
   }

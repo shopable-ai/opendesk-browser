@@ -6,7 +6,7 @@ import {readFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import {createHash} from 'node:crypto';
 import {exactBreakpointLocation,readFrame} from '../framework/b05-native-observers.mjs';
-import {discoverMarketCutPoints} from './app-market-r5-cutpoints.mjs';
+import {discoverMarketCutPoints,marketCallLocation} from './app-market-r5-cutpoints.mjs';
 import {SIDEBAR_TOOL_STORE} from '../../src/ui/sidebar-tools/package.js';
 const hash=value=>createHash('sha256').update(value).digest('hex');
 const isFunction=node=>['FunctionDeclaration','FunctionExpression','ArrowFunctionExpression'].includes(node?.type);
@@ -158,11 +158,15 @@ export async function armMarketCut(d,name,{targetId=null,observeRegistryWrites=f
     Object.assign(record,{script,sourceHash:hash(actual),executionContext:context});
     const discovered=discoverMarketCutPoints(actual,{required:[name],registryStoreKey:SIDEBAR_TOOL_STORE})[name];
     point=observeRegistryWrites?discovered.submission:discovered;record.point=point;
-    const possible=await client.send('Debugger.getPossibleBreakpoints',{start:{scriptId:script.scriptId,...point.location},end:{scriptId:script.scriptId,...point.endLocation},restrictToFunction:true});
-    const location=exactBreakpointLocation(point,possible.locations,script.scriptId);
+    record.breakpointQuery={start:{scriptId:script.scriptId,...point.location},end:{scriptId:script.scriptId,...point.endLocation},restrictToFunction:true};
+    const possible=await client.send('Debugger.getPossibleBreakpoints',record.breakpointQuery);
+    record.possibleBreakpoints=possible;
+    const location=marketCallLocation(point,possible.locations,script.scriptId);
+    record.callPositionRule='sole browser type=call inside exact AST CallExpression with no nested invocation; no adjacent statement or relocation';
+    record.selectedCall={...location,type:'call'};
     const installed=await client.send('Debugger.setBreakpoint',{location,...(point.condition?{condition:point.condition}:{})});
+    breakpointId=installed.breakpointId;record.installedBreakpoint=installed;record.actualLocation=installed.actualLocation;
     for(const key of ['scriptId','lineNumber','columnNumber'])assert.equal(installed.actualLocation[key],location[key],'no cut relocation');
-    breakpointId=installed.breakpointId;record.actualLocation=installed.actualLocation;
     if(controller){
       await controller.send('ServiceWorker.enable');
       record.workerVersion=await d.until(()=>versions.filter(row=>row.targetId===target.targetId&&row.scriptURL===origin+'/sw.js'&&row.runningStatus==='running').at(-1),'exact running market worker version');

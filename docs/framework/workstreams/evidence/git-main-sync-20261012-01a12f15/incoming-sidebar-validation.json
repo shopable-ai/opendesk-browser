@@ -9,7 +9,7 @@
   },
   "sourceCheck": {
     "files": 515,
-    "log": "incoming-sidebar-source-check.log"
+    "log": "incoming-sidebar-source-check.txt"
   },
   "repairs": [
     "DOM querySelector fixture",

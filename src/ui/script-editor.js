@@ -48,11 +48,16 @@ export function createScriptEditor({client, currentPageTarget, development=false
   const scriptList = find('script-list'), resultSelect = find('script-download-result'), downloadStatus = find('script-download-status');
   let downloading = false, projection, currentTask, editingBusy = false, stopping = false, previewBusy = false, snapshotSequence = 0;
   const componentSelector=find('page-component-framework'),componentStatus=find('page-component-status');
+  const componentInputs=Object.freeze(Object.fromEntries(
+    ['javascript','react','vue'].map(mode=>[mode,find('page-component-'+mode)])));
   const componentPresets=Object.freeze({
     react:"import {useState} from 'react';\n\nexport default function App(){\n  const [count,setCount]=useState(0);\n  return <button type=\"button\" onClick={()=>setCount(n=>n+1)}>已点击 {count} 次</button>;\n}",
     vue:"<script setup>\nimport {ref} from 'vue';\nconst count=ref(0);\n</script>\n<template>\n  <button type=\"button\" @click=\"count++\">已点击 {{ count }} 次</button>\n</template>\n<style scoped>\nbutton{padding:8px 14px;cursor:pointer}\n</style>"
   });
   let componentMode='javascript',browserManagedPreview=null,browserEffectUnknown=false;
+  const syncComponentInputs=()=>{
+    for(const [mode,node] of Object.entries(componentInputs))if(node)node.checked=mode===componentMode;
+  };
   const componentDrafts={javascript:'',react:componentPresets.react,vue:componentPresets.vue};
   const browserPreparer=createBrowserPageComponentPreparer({api});
   const browserBinding='browser-v1-'+crypto.randomUUID().replaceAll('-','').slice(0,24);
@@ -821,17 +826,20 @@ export function createScriptEditor({client, currentPageTarget, development=false
   });
   on('script-download','click',downloadResult); on('script-download-result','change',update);
   on('script-refresh','click',refreshTabs); on('script-tab','change',refreshDocuments);
-  if(componentSelector)listen(componentSelector,'change',()=>{
+  // Native radio input events work with genuine pointer, Tab and arrow-key
+  // interaction on macOS; no scripted change or OS-native popup is needed.
+  // The fieldset disables all choices during preparation or an active project.
+  for(const [next,input] of Object.entries(componentInputs))if(input)listen(input,'change',()=>{
+    if(!input.checked)return;
     if(previewBusy||browserManagedPreview||browserEffectUnknown||localProject?.active()||programSource.snapshot()){
-      componentSelector.value=componentMode;
+      syncComponentInputs();
       componentMessage('error','请先停止旧组件或打开新网页，再切换框架');
       return;
     }
     browserPreparer.cancel();
     componentDrafts[componentMode]=programSource.source();
-    const next=componentSelector.value;
-    if(!['javascript','react','vue'].includes(next)){componentSelector.value=componentMode;return;}
     componentMode=next;
+    syncComponentInputs();
     programSource.replaceSource(componentDrafts[next]??componentPresets[next]??'');
     dependencyResolver.refresh();lastPagePreview=null;
     componentMessage('idle',next==='javascript'?'':'官方组件源码 · 按需编译 · 明确点击运行');
@@ -952,7 +960,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
               componentDrafts[modeName]=item;
           }
           componentMode=saved.componentMode;
-          componentSelector.value=componentMode;
+          syncComponentInputs();
         }
         for(const [name,id] of Object.entries(draftFields))if(name!=='source')find(id).value=saved[name]??'';
         dependencyResolver.refresh();
@@ -963,7 +971,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
   refreshTabs().catch(fail); refreshScripts({silent: true}).catch(fail); update();
   function applyImported(sourceUtf8) {
     browserPreparer.cancel();
-    componentMode='javascript';if(componentSelector)componentSelector.value=componentMode;
+    componentMode='javascript';syncComponentInputs();
     currentRevision = undefined;
     find('script-id').value = `import-${Date.now()}`;
     find('script-revision').value = '';

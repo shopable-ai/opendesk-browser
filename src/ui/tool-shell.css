@@ -162,6 +162,20 @@
 .developer-source-switch input:focus-visible+.local-project-switch-track{outline:2px solid var(--blue);outline-offset:3px}
 /* Reserve a fixed right inset for every Dev dropdown arrow, including truncated project names. */
 #workbench-develop select{-webkit-appearance:none;appearance:none;padding-right:34px;background-image:linear-gradient(45deg,transparent 50%,#62758f 50%),linear-gradient(135deg,#62758f 50%,transparent 50%);background-repeat:no-repeat;background-position:right 17px center,right 11px center;background-size:6px 6px,6px 6px;text-overflow:ellipsis;white-space:nowrap}
+/* R24.3 three official source modes: browser-native radio interaction rather
+ * than an OS select popup. One row, true keyboard focus, narrow-sidepanel safe. */
+#page-component-editor-tools{display:grid;grid-template-columns:minmax(0,1fr);gap:4px;min-width:0}
+#page-component-framework{border:0;padding:0;margin:0;min-width:0}
+#page-component-framework legend{font-size:11px;font-weight:600;line-height:1.4;color:var(--od-sub);padding:0 0 4px}
+#page-component-framework .page-component-choices{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:2px;padding:3px;border:1px solid var(--line);border-radius:var(--radius-control);background:#f3f6fb;min-width:0}
+#page-component-framework .page-component-choices label{position:relative;display:flex;align-items:center;justify-content:center;min-width:0;min-height:36px;padding:7px 3px;margin:0;border:1px solid transparent;border-radius:calc(var(--radius-control) - 3px);background:transparent;color:var(--sub);font-size:11px;font-weight:600;line-height:1.4;text-align:center;cursor:pointer}
+#page-component-framework .page-component-choices input[type=radio]{position:absolute;top:0;left:0;width:1px;height:1px;padding:0;margin:0;opacity:0}
+#page-component-framework .page-component-choices label:has(input:checked){background:#fff;color:var(--blue);border-color:#d4dfef;box-shadow:0 1px 3px #20375112}
+#page-component-framework .page-component-choices label:has(input:focus-visible){outline:2px solid var(--blue);outline-offset:1px}
+#page-component-framework:disabled .page-component-choices label{opacity:.55;cursor:not-allowed}
+#page-component-hint{font-size:11px;line-height:1.4}
+@media(max-width:320px){#page-component-framework .page-component-choices label{font-size:10px;padding-inline:2px}}
+
 .local-project-tools{display:grid;gap:var(--space-2);margin:0}
 .local-project-intro{font-size:11px;line-height:1.55;color:var(--sub);margin:0}
 .local-project-connect{margin:0;padding:7px 11px;min-height:34px;background:#edf3ff;border:1px solid #c6d7f0;color:#315a9b;font-size:12px;font-weight:650;width:100%;text-align:center}

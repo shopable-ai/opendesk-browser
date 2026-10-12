@@ -1,0 +1,49 @@
+{
+  "scope": "component/static main integration; native/F3/ZIP NOT_TESTED",
+  "upstream": "bf351454a4c1f1794365a0592fb5707ea2ea822a",
+  "validation": {
+    "initial": {
+      "tests": 302,
+      "passed": 294,
+      "failed": 8,
+      "log": "incoming-radio-failed.tap"
+    },
+    "repair": "Switch original component run fixture using native radio input instead of removed select",
+    "editorFinal": {
+      "tests": 56,
+      "passed": 56,
+      "failed": 0,
+      "log": "incoming-radio-editor-final.tap"
+    },
+    "reuse": "Other 246 passing tests unchanged by the fixture-only repair"
+  },
+  "sourceCheck": {
+    "files": 518,
+    "log": "incoming-radio-source-check.txt"
+  },
+  "inputs": {
+    "examples/sidebar-tools/react-starter/README.md": "b01d71e0241b82a65142e290830794c604c236c69f899637dd5b00c4596a7f17",
+    "examples/sidebar-tools/react-starter/package.json": "11b67b680a781eba7d1b4a2770117bf5b9206e6b86c435f47aa712a05352acce",
+    "examples/sidebar-tools/react-starter/src/ActivityChart.jsx": "b479a1b79b6c9454147bb1dc435d7470b2bad9f3929fb13e03ec4ff42ccfbaf6",
+    "examples/sidebar-tools/react-starter/src/App.jsx": "5f931d4b982bedaa03d39aa6d3461d3635fd73da5d1120bdb347dfb49e47f4d7",
+    "examples/sidebar-tools/react-starter/src/style.css": "26ab452f50bd23edec38f01dfd21ada18fd548ed841d346b371dcc8d83190064",
+    "examples/sidebar-tools/react-starter/tool.config.json": "174a652f228c708acd4b8986cb8d60b8ce3d8f351b9289f5ae46578071f0ed79",
+    "src/ui/script-editor.js": "6547caa7407d2a93f768ab194c5b0d10248aad440f8c3b2c7c1445d96c0efbdc",
+    "src/ui/task-workbench.js": "4a0a254498fb71fe09cdff1c82e9cf7e52f9c2e30d997785bed6b1729e05c2bc",
+    "src/ui/tool-shell.css": "36e4da9f90feb63f50dff7554b28273960a3a670d75f6931a226163c2b6d17a7",
+    "src/ui/tool.html": "bbc21b5527d28982a742bb6f622c56d471b869368d1adea18b275349c2f8c36c",
+    "tests/environment/cloud-control-debug-r14.test.mjs": "8ab0d45c97e0149fb647f86be4ca5a9cfbe1fc64e12c7c0f8e303a230e4ae43b",
+    "tests/environment/cloud-control-sidebar-r28.test.mjs": "268c0cb0fbff9280658a202091724225745c6f9392f6b7ad29c19508f49e4fb2",
+    "tests/environment/market-cutpoint-observation-r5.test.mjs": "e400d0cdd77dd0c1016708faf32a67698e266cd7e4b601a7bc2f03a727a17f2a",
+    "tests/environment/script-editor.test.mjs": "395dbb08305bc88d8fb6c482ba04e3f72c14928611d48484d5a744d640b6c507",
+    "tests/environment/sidebar-r21-design-system.test.mjs": "fd9db06af522af13b725208eb1c209735ce4df4c9f93ef12edc0fc322aa50dbc",
+    "tests/environment/sidebar-react-cdn-bundle.test.mjs": "69372123159698e851daa8fa5a8808f3a59c1720ff1a1bc56a191be3530a45f8",
+    "tests/environment/workflow-r15.test.mjs": "4b1047ff334a14e201a02372916919053dd833f886fafb465e0570505fc6dd05",
+    "tests/framework/app-market-r3-native.test.mjs": "9159118c6615b5f4e02c4c3f7aca0b37e4ec78238edd23fb1ee5ac667ddf7985",
+    "tests/framework/page-browser-worker-r243-cft.mjs": "0567118505498be0e369e452074cf0c2282352d791c689ec6cad68fd11d6ce52",
+    "tests/framework/sidebar-tool-starter-build.mjs": "51e3bdc453c18df6205a8cc59d1cecedd9bc31f16ae7ec5d4ffd1923fac3de69",
+    "tests/helpers/app-market-r5-cutpoints.mjs": "751633b3841952e68b893f57264a34eab6d597afc10908d234e3bc4442f4e241",
+    "tests/helpers/app-market-r5-native.mjs": "413c42f101eba17e9c73a00cbc9a7952d29886a6719315195d68f91fe0cee495",
+    "tests/helpers/app-market-r5-observers.mjs": "e47df23a00d76b633fe351b21b1d0ad03078e89393ef97f9d559a6502a818055"
+  }
+}

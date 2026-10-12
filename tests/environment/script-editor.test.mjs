@@ -132,8 +132,9 @@ async function componentFixture(t,framework,{compilerError,previewError,compileG
       sourceHash:createHash('sha256').update(payload.sourceUtf8).digest('hex'),
       documentId:payload.target.documentId,managedUI:true,managedPreviewId:payload.managedUI.previewId};
   };
-  f.find('page-component-framework').value=framework;
-  f.find('page-component-framework').fire('change');await tick();
+  const componentInput=f.find('page-component-'+framework);
+  componentInput.checked=true;
+  componentInput.fire('change');await tick();
   return {...f,compiled,settle:async()=>{
     for(let n=0;n<100&&f.find('script-status').dataset.state==='running';n++)await tick();
     assert.notEqual(f.find('script-status').dataset.state,'running','preview must settle');
@@ -942,24 +943,29 @@ test('R17 accepts 32 scoped sources with same-name directories but rejects an un
 
 test('R24.3 React and Vue modes keep independent official source drafts without Native',async t=>{
   const f=await fixture();t.after(()=>f.dispose());
-  const select=f.find('page-component-framework');
+  const group=f.find('page-component-framework');
+  const react=f.find('page-component-react');
+  const vue=f.find('page-component-vue');
+  const javascriptRadio=f.find('page-component-javascript');
   const editor=f.find('script-source');
   const javascript=editor.value;
-  assert.equal(select.disabled,false);
-  select.value='react';select.fire('change');await tick();
-  assert.equal(select.value,'react');
+  assert.equal(group.disabled,false);
+  react.checked=true;react.fire('change');await tick();
+  assert.equal(react.checked,true);
+  assert.equal(javascriptRadio.checked,false);
   assert.match(editor.value,/from 'react'/);
   assert.match(editor.value,/export default function App/);
   assert.match(f.find('page-component-status').textContent,/官方组件源码/);
   const reactDraft=editor.value+'\n// unsaved react';
   editor.value=reactDraft;editor.fire('input');await tick();
-  select.value='vue';select.fire('change');await tick();
-  assert.equal(select.value,'vue');
+  vue.checked=true;vue.fire('change');await tick();
+  assert.equal(vue.checked,true);
+  assert.equal(react.checked,false);
   assert.match(editor.value,/<script setup>/);
   assert.match(editor.value,/<style scoped>/);
-  select.value='javascript';select.fire('change');await tick();
+  javascriptRadio.checked=true;javascriptRadio.fire('change');await tick();
   assert.equal(editor.value,javascript,'Legacy JavaScript must not be overwritten by components');
-  select.value='react';select.fire('change');await tick();
+  react.checked=true;react.fire('change');await tick();
   assert.equal(editor.value,reactDraft,'Switch must recover exact unsaved React source');
   assert.equal(f.find('script-save').disabled,true,'Component source cannot be saved as Controller code');
   assert.equal(f.find('script-run').disabled,f.find('page-preview-run').disabled,'Component primary run follows page-preview availability');

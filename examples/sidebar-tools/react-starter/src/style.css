@@ -1,9 +1,76 @@
-:root{font-family:system-ui,-apple-system,"PingFang SC",sans-serif;color:#233552}
-*{box-sizing:border-box}body{margin:0}.tool-app{max-width:660px;margin:auto;padding:20px}
-h1{font-size:17px;margin:0 0 8px}p{font-size:12px;line-height:1.6;color:#677990}
-label{display:block;font-size:12px;font-weight:650;margin:12px 0 6px}
-textarea{display:block;width:100%;min-height:140px;padding:10px;border:1px solid #b6c7dd;border-radius:9px;font:inherit;resize:vertical}
-button{display:inline-flex;margin-top:12px;background:#365eda;color:#fff;border:0;border-radius:8px;padding:9px 16px;font-weight:650;cursor:pointer}
-button:disabled{opacity:.5;cursor:not-allowed}:focus-visible{outline:2px solid #365eda;outline-offset:2px}
-[role=status]{min-height:20px;margin:8px 0}
-@media(max-width:430px){.tool-app{padding:12px}}
+.tool-app{
+  --tool-ink:#253448;--tool-muted:#5e6d80;--tool-border:#d7e1ed;
+  --tool-surface:#fff;--tool-tint:#f3f7fc;--tool-accent:#2458cc;
+  font-family:system-ui,-apple-system,"PingFang SC",sans-serif;
+  color:var(--tool-ink);max-width:660px;min-width:0;margin:auto;padding:12px;
+  display:grid;gap:16px;font-size:13px;line-height:1.5;
+}
+.tool-app *{box-sizing:border-box}
+.tool-app h1,.tool-app h2{font-size:16px;line-height:1.4;margin:0 0 6px}
+.tool-app h2{font-size:14px}
+.tool-app p{margin:0;color:var(--tool-muted);line-height:1.55}
+.tool-app .note-panel,.tool-app .chart-panel{min-width:0}
+.tool-app .field-label{display:block;margin:12px 0 6px;font-weight:650}
+.tool-app textarea{
+  display:block;width:100%;min-height:96px;padding:10px;
+  border:1px solid var(--tool-border);border-radius:9px;
+  background:var(--tool-surface);color:var(--tool-ink);
+  font:inherit;resize:vertical;
+}
+.tool-app button{font:inherit;cursor:pointer;min-height:34px}
+.tool-app button:disabled{opacity:.58;cursor:not-allowed}
+.tool-app :is(button,textarea,summary):focus-visible{
+  outline:2px solid var(--tool-accent);outline-offset:2px;
+}
+.note-actions{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-top:10px}
+.primary-button{
+  color:#fff;background:var(--tool-accent);border:1px solid var(--tool-accent);
+  border-radius:8px;padding:7px 13px;font-weight:650;
+}
+.note-status{font-size:12px;color:var(--tool-muted);overflow-wrap:anywhere}
+.chart-panel{border-top:1px solid var(--tool-border);padding-top:16px}
+.chart-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.chart-heading p{font-size:12px}
+.period-switch{
+  display:inline-flex;flex-shrink:0;border:1px solid var(--tool-border);
+  border-radius:8px;padding:2px;gap:2px;background:var(--tool-tint);
+}
+.period-button{
+  border:0;border-radius:6px;padding:5px 9px;background:transparent;
+  color:var(--tool-muted);font-weight:600;
+}
+.period-button[aria-pressed="true"]{
+  background:var(--tool-surface);color:var(--tool-accent);
+  box-shadow:0 1px 3px #13243f18;
+}
+.chart-surface{
+  min-width:0;margin-top:12px;border:1px solid var(--tool-border);
+  border-radius:10px;background:var(--tool-tint);padding:12px;
+}
+.demo-sparkline{display:block;width:100%;max-width:480px;height:auto;margin:auto;overflow:visible}
+.demo-sparkline .sparkline--line{stroke:var(--tool-accent);stroke-width:3;fill:none}
+.demo-sparkline .sparkline--fill{fill:#3577e522;stroke:none}
+.chart-stat{display:flex;flex-wrap:wrap;justify-content:space-between;gap:6px 12px;
+  margin-top:8px;color:var(--tool-muted);font-size:12px}
+.chart-stat strong{font-size:14px;color:var(--tool-ink);font-variant-numeric:tabular-nums}
+.chart-error{margin:8px 0 0!important;color:#b42318!important}
+.chart-data{margin-top:10px}
+.chart-data summary{color:var(--tool-accent);font-size:12px;cursor:pointer;width:fit-content}
+.chart-data table{width:100%;border-collapse:collapse;margin-top:8px;font-size:12px}
+.chart-data caption{text-align:left;color:var(--tool-muted);padding-bottom:4px}
+.chart-data th,.chart-data td{border-bottom:1px solid var(--tool-border);padding:5px 8px;text-align:left}
+.chart-data td{font-variant-numeric:tabular-nums}
+@media(max-width:360px){
+  .tool-app{padding:10px;gap:12px}
+  .chart-surface{padding:8px}
+  .chart-heading{gap:8px}
+}
+@media(prefers-color-scheme:dark){
+  .tool-app{
+    --tool-ink:#e9f1fc;--tool-muted:#b4c4d9;--tool-border:#394f68;
+    --tool-surface:#1e2d42;--tool-tint:#172436;--tool-accent:#91b8ff;
+  }
+  .primary-button{background:#477fec;color:#fff;border-color:#477fec}
+  .demo-sparkline .sparkline--fill{fill:#91b8ff22}
+  .chart-error{color:#ffb4a9!important}
+}

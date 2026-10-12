@@ -48,7 +48,7 @@
     </section>
     <section class="cloud-my-entry od-surface" aria-label="云控状态与入口">
       <div class="cloud-my-copy"><strong>云控</strong><span id="cloud-my-state" role="status" aria-live="polite">正在检查云控状态…</span></div>
-      <button type="button" id="cloud-my-open" class="od-icon-button" title="进入云控" aria-label="进入云控选项卡" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></button>
+      <button type="button" id="cloud-my-open" class="od-icon-button" title="进入云控" aria-label="进入云控选项卡" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"></path></svg></button>
     </section>
   </div>
   <div id="workbench-tools" role="tabpanel" aria-labelledby="tab-tools" class="od-page" data-workbench-page="tools" hidden>
@@ -178,7 +178,7 @@
     <section class="cloud-panel od-stack" aria-label="云控管理">
       <header class="cloud-panel-head od-toolbar">
         <div class="cloud-panel-heading"><strong>云控</strong><p class="hint">与当前目标网页并排查看云任务及执行状态。</p></div>
-        <button type="button" id="cloud-overview-refresh" class="od-icon-button" title="刷新云控状态" aria-label="刷新云控状态"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 0 0-14-5L4 8m0-5v5h5M4 13a8 8 0 0 0 14 5l2-2m0 5v-5h-5"/></svg></button>
+        <button type="button" id="cloud-overview-refresh" class="od-icon-button" title="刷新云控状态" aria-label="刷新云控状态"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 0 0-14-5L4 8m0-5v5h5M4 13a8 8 0 0 0 14 5l2-2m0 5v-5h-5"></path></svg></button>
       </header>
       <section class="cloud-overview od-surface" aria-label="云控实时概览">
         <p id="cloud-overview-state" role="status" aria-live="polite">正在读取云控状态…</p>
@@ -449,13 +449,15 @@
       <select id="program-source-files" hidden></select>
       <button type="button" id="program-new-script" title="创建可编辑的 JavaScript 草稿（退出当前只读源码视图）" aria-label="新建 JavaScript 草稿" hidden>新建</button>
     </div>
-    <div id="page-component-editor-tools" class="row" role="group" aria-label="网页组件开发方式">
-      <label for="page-component-framework">代码类型</label>
-      <select id="page-component-framework" aria-describedby="page-component-hint">
-        <option value="javascript">普通 JavaScript</option>
-        <option value="react">React · JSX</option>
-        <option value="vue">Vue · SFC</option>
-      </select>
+    <div id="page-component-editor-tools" class="row">
+      <fieldset id="page-component-framework" aria-describedby="page-component-hint">
+        <legend>代码类型</legend>
+        <div class="page-component-choices">
+          <label for="page-component-javascript"><input id="page-component-javascript" type="radio" name="page-component-choice" value="javascript" checked><span>JavaScript</span></label>
+          <label for="page-component-react"><input id="page-component-react" type="radio" name="page-component-choice" value="react"><span>React · JSX</span></label>
+          <label for="page-component-vue"><input id="page-component-vue" type="radio" name="page-component-choice" value="vue"><span>Vue · SFC</span></label>
+        </div>
+      </fieldset>
       <span id="page-component-hint" class="hint">保存草稿不会运行网页</span>
     </div>
     <label for="script-source" class="visually-hidden">JavaScript、React JSX 或 Vue SFC 源码编辑器</label><textarea id="script-source" rows="6" spellcheck="false">async function main() {

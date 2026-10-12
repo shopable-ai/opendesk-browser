@@ -95,7 +95,7 @@ test('R15 navigation and executor wiring is real source, not simulated preview',
   for (const id of ['tab-workflow','workbench-workflow','workflow-steps','workflow-params',
     'workflow-run','workflow-save','workflow-stop','workflow-candidate','workflow-output'])
     assert.match(html,new RegExp('id="'+id+'"'));
-  assert.match(css,/repeat\(5,minmax\(0,1fr\)\)/);
+  assert.match(css,/\.workbench-nav\{[^}]*display:flex;[^}]*overflow-x:auto;/);
   assert.match(task,/\['workflow','tab-workflow'\]/);
   assert.match(task,/setWorkflowRunOwner\(runId\)/);
   assert.match(shell,/createWorkflowView\(/);

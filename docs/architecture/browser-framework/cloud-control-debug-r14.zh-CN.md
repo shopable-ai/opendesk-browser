@@ -12,7 +12,7 @@
 
 - **我的**：已安装任务/最近结果优先显示；折叠的「云端托管」位于任务区之后，提供真实配对、授权、托管停止。移除对 Browser R1「关闭 Side Panel 仍无人值守」的误导文案；云端状态用脱敏中文摘要代替原始 JSON。
 - **工具**：保留现有工具安装器和沙箱，不能接受 Task v1 安装为等价云端执行任务。
-- **调试**：WXT development 构建显示第六 Tab，production 默认隐藏并由导航逻辑拒绝进入。调试页只经已有可信 `client.cloud.cloudStatus({})` RPC 投影真实状态，不调用 `cloudNext()`、`cloudResolve()`、`host.start()`、配对、审批、存储写入或网络管理端点；原 RunHost Stop 的跨页所有权不变。
+- **调试**：WXT development 构建显示第七 Tab（第六正式 Tab 为云控），production 默认隐藏并由导航逻辑拒绝进入。调试页只经已有可信 `client.cloud.cloudStatus({})` RPC 投影真实状态，不调用 `cloudNext()`、`cloudResolve()`、`host.start()`、配对、审批、存储写入或网络管理端点；原 RunHost Stop 的跨页所有权不变。
 
 调试快照使用字段白名单：连接状态、对账、Host/slot 可用性、批准任务数量、请求状态计数及回执/退休计数；不包含服务地址、pairingCode、credential、Executor/Task/Request/Run ID、网站 URL、结果正文或错误原文。最多统计最近 2000 条请求，避免巨型快照。
 

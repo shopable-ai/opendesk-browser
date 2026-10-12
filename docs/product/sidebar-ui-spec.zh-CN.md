@@ -1,4 +1,4 @@
-# OpenDesk Browser Sidebar UI SPEC · R21（现行五页签）
+# OpenDesk Browser Sidebar UI SPEC · R21（生产六页签）
 
 > 更新：2026-10-11。当前实现以 `src/ui/tool.html`、`src/ui/design-system.css`、`src/ui/tool-shell.css`、R20 架构决议为准。本节覆盖下方保留的 R5/R6 历史说明；历史章节中的「三个页签」仅描述当时产品，不再是当前导航合同。
 
@@ -11,8 +11,9 @@
 | 工作流 | AI 对话、步骤预览／编辑、用户批准、参数确认、结果、历史版本与模型设置 | 对话与设置共享紧凑表单规范；审批必须依赖真实操作和授权 |
 | 开发 | 当前网页摘要、直接编辑／本地项目切换、JavaScript 编辑器、JSON 参数、折叠高级功能、结果历史、Run/Save/Stop | 本地项目只有明确执行才读取最新源码；切换不自动运行或授权 |
 | 工具 | 已安装工具优先；按需展开官方工具搜索、应用市场与文件导入；版本更新审阅、网页笔记和独立工具运行 | 图标操作必须有 `title`、`aria-label`、焦点状态；工具 iframe 继续隔离，不导入高权限侧栏 CSS |
+| 云控 | 在目标网页旁边查看云端连接、RunHost、队列状态和托管设置；「我的」保留轻量入口 | 只在真正的 Side Panel 中可见，复用固定已安装 Task／原 RunHost；开发「调试」仍只读且生产隐藏 |
 
-导航采用五个 `role=tab`，内容对应独立 `role=tabpanel`；完整任务目录和独立工具标签页沿用受信任宿主的统一样式，但不授予用户工具新的权限。原有 RunHost、Task v1、权限审批、停止所有权、CurrentPageTarget 与本地服务契约不因视觉调整改变。
+导航采用六个正式 `role=tab`，开发构建增加第七个「调试」；每个页面使用独立的 `role=tabpanel`。只有顶部导航在宽度不足时横向滚动，方向键/Home/End 和焦点可见性保持可访问；完整任务目录和独立工具标签页沿用受信任宿主的统一样式，但不授予用户工具新的权限。原有 RunHost、Task v1、权限审批、停止所有权、CurrentPageTarget 与本地服务契约不因视觉调整改变。
 
 ### 工具页信息架构（2026-10-11）
 
@@ -25,7 +26,7 @@
 
 - 唯一共享基线：`src/ui/design-system.css`；视图差异只在 `src/ui/tool-shell.css`。先复用 `od-page`、`od-toolbar`、`od-stack`、`od-surface`、`od-button`、`od-field`、`od-segmented`、`od-icon-button`。
 - 4／8／12／16px 空间节奏；普通控件 8px 圆角，独立卡片／表面 12px，状态徽章和真实开关轨道才使用胶囊。常规按钮／输入 36px 等级，图标按钮默认 34×34px；特殊工作流工具栏允许经过审查的 36px 变体。
-- 页面内滚动，不允许横向溢出、固定操作栏遮挡内容或长名称撑破行布局。对 300／360／420／520px 与浏览器 125%／200% 缩放审查，保留显著 `:focus-visible`、语义标签、提示文字与 WCAG AA 对比度。
+- 页面内纵向滚动，只有顶部一级导航允许横向滚动；不得让内容页横向溢出、固定操作栏遮挡内容或长名称撑破行布局。对 300／360／420／520px 与浏览器 125%／200% 缩放审查，保留显著 `:focus-visible`、语义标签、提示文字与 WCAG AA 对比度。
 - 静态视觉门禁 `scripts/tests/sidebar-r19-layout-visual.mjs` 在 R21 扩展状态矩阵；截图只能记为 `STATIC_MARKUP_CHROME`，绝不冒充安装扩展、真实用户点击、权限、读写、原生 Stop 或最终 F3。
 - 安装包应静态引用本地 CSS，继续执行源校验、生产／开发构建、CSP／危险 CSS／固定文件大小检查；不引入 Tailwind CDN 或无必要的构建依赖。
 

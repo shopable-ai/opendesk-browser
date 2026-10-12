@@ -1,0 +1,454 @@
+✔ batch record uses one immutable revision, bounded official members and real transaction identifiers (1.061875ms)
+✔ already installed, denied permissions, missing release are represented without launching (0.147291ms)
+✔ recovery never replays queued members and preserves committed and unknown results (0.174709ms)
+✔ malformed or contaminated durable records fail closed rather than being overwritten (0.312916ms)
+✔ stale review order and unapproved members cannot create a batch (0.142542ms)
+✔ non-blocking Web Lock refuses overlapping browser market windows (0.187459ms)
+✔ fixed unavailable members retain their historical version and never enter the queue (0.216208ms)
+✔ market catalog uses pinned immutable member identity and all six tool versions (0.919541ms)
+✔ every official release is the exact packaged tool ID, version and title (0.3715ms)
+✔ manual tool replacement clears stale official publisher identity (4.035958ms)
+✔ never installs without explicit review or runs tool code (0.5545ms)
+✔ same release is idempotent; stale baseline and author conflicts fail closed (1.467458ms)
+✔ 12-tool capacity rejects excess without deleting existing installations (0.278458ms)
+✔ a lost registry acknowledgement requires explicit finalization even after exact readback (2.337167ms)
+✔ an unreadable registry after a lost acknowledgement requires local finalization without another install write (1.171625ms)
+✔ recovery rejects a changed transaction identity before writing any provenance (0.396875ms)
+✔ data-only transfer rejects script, site grants, tokens, duplicates and unknown versions (0.307458ms)
+✔ R4.5 legacy source adoption requires explicit confirmation and preserves the original private data (1.158792ms)
+✔ R4.5 capability additions cannot activate orphan site grants and retained capabilities preserve existing sites (0.696208ms)
+✔ R4.5 old unknown operations cannot be reconciled using a newer release or different bytes (0.746792ms)
+✔ fresh or newly capable tools never publish a registry entry while orphan site grants remain (0.654166ms)
+✔ orphan-grant cleanup failure cannot activate a fresh package; registry failure retains existing valid grants and data (0.447166ms)
+✔ uninstall recovery accepts a real package version and never deletes a newly reinstalled tool (0.558291ms)
+✔ host quota refusal before registry commit retains the previous package and its private data (0.184084ms)
+✔ offline recovery uses only local package digest and durable operation journal (0.945209ms)
+✔ partially failed uninstall keeps recovery journal and never deletes reinstalled same-ID data (0.316458ms)
+✔ an acknowledged official baseline can finalize an upgrade with a lost registry acknowledgement without replay (5.304208ms)
+✔ reviewed market hash must actually match the candidate even if ID and version look valid (0.242875ms)
+✔ orphaned notes are retained when new same-ID installation cannot safely commit (0.123791ms)
+✔ installer fails closed on malformed, duplicated or overflowed local registries without erasing any rows (0.349125ms)
+✔ R5 production trust is disabled until all reviewed inputs exist; development cannot leak into it (1.95825ms)
+✔ R5 finite messages reject code, URLs, approval flags, protocol drift and unbounded fields (1.045958ms)
+✔ R5 validates browser sender, live top document and exact port before any handoff mutation (1.579417ms)
+✔ R5 probe exposes no installed information; same intent resumes exact review after worker replacement (1.359ms)
+✔ R5 prepared/opened persistence and committed-tab acknowledgement faults reconcile without duplicate pages (1.5775ms)
+✔ R5 queue, global/origin rate and capacity are bounded across tabs and worker restarts (19.144458ms)
+✔ R5 expiry protects only the original unresolved operation/batch, without deleting installer journals (0.68775ms)
+✔ R5 consumed handoff cannot replay when terminal installer or batch history is gone (0.876125ms)
+✔ R5 shared consumption and external requests do not overwrite each other; expired approval is refused (0.62375ms)
+✔ R5 existing installer checks baseline and hash before consuming a handoff; consumption failure cannot install (139.383625ms)
+✔ R5 consumed-without-journal survives TTL, and explicit locked recovery ends only the handoff (1.408667ms)
+✔ R5 a lost consumption acknowledgement stops before installer writes, and two consumers never both succeed (1.057041ms)
+✔ R5 terminal settlement survives journal trimming and missing recovery respects existing locks (0.918292ms)
+✔ R5 immutable archive conflicts reject same-version bytes and same-revision replacement (3.639042ms)
+✔ R5 independent website build is reproducible, self-contained and replaces only generated output (145.524666ms)
+✔ R1.3 v1 strict unchanged; v2 contribution validated and digest-sensitive (18.387917ms)
+✔ Browser SDK tool wrapper preserves request channel; page SDK denies privileged menu (0.885833ms)
+✔ menus use browser optional permission, idempotent sync, real click and one-use source (31.509917ms)
+✔ uninstall, site revocation, stale package, stale document invalidate menus and launch (11.489167ms)
+✔ denied Chrome permission and untrusted sender never create site menus (0.940375ms)
+✔ optional menu API can appear after startup; native click listener installs only once (0.125584ms)
+✔ Chrome permission revocation and install epoch invalidate old menu grants (3.579958ms)
+✔ disabled tool removes menu and pending selection, and rejects later tool/host requests (7.857166ms)
+✔ corrupt tool-enable records fail closed without permitting menu reconciliation (2.326583ms)
+✔ unregister stays idempotent after site approval has been revoked (5.001375ms)
+✔ native menu ignores missing proof and same-URL replaced source documents (5.926333ms)
+✔ Page relay only sends metadata on trusted contextmenu; no selection or URL is read (0.305083ms)
+✔ Chrome host website revocation blocks menu registration, binding and selection delivery (22.262625ms)
+✔ first right-click proof survives MV3 cold-start before menu state has rehydrated (17.959208ms)
+✔ navigation invalidates a pending cold-worker source proof without delivering text (3.513375ms)
+✔ Browser canonical export methods preserve payload, bounds and strict schema (0.586083ms)
+✔ menu discovery and idempotent unregister remain callable without site or Chrome menu grant (6.251458ms)
+✔ unregister revokes both unbound and bound launches; re-register never revives them (14.334709ms)
+✔ launch status rejects same-URL replacement documents before consume (4.764625ms)
+✔ queued Browser requests require the mounted package digest, even at unchanged version and epoch (3.927375ms)
+✔ expiry during document validation or confirmed consumption never delivers sensitive content (9.030125ms)
+✔ BFCache suspends and restores source listeners without restoring pending requests or duplicating listeners (0.249208ms)
+✔ unregister with zero approved origins clears authority before later site reapproval (5.600167ms)
+✔ read-only cloud diagnostics omit tokens and all private identifiers (1.879291ms)
+✔ untrusted provider state is reduced to a known diagnostic enum (3.630792ms)
+✔ development UI only reads cloudStatus and never claims, pairs, approves or starts a run (0.5365ms)
+✔ late diagnostics after disposal are ignored (0.108125ms)
+✔ production Cloud tab is visible in Side Panel while Debug remains hidden (8.440084ms)
+✔ cloud status refresh is read-only and full tool/catalog tabs cannot claim cloud tasks (1.456542ms)
+✔ Side Panel has six product tabs and development-only Debug at seventh (5.019375ms)
+✔ only tab navigation scrolls horizontally and Cloud cards wrap on narrow panels (6.734ms)
+✔ Cloud controls exist once in the Cloud tab; My retains a compact entry (5.077334ms)
+✔ cloud request previews project whitelisted states rather than IDs or result data (0.312541ms)
+✔ market observation binds current non-nested source calls and declines changed call shapes (41.005708ms)
+✔ browser call position must be unique inside the exact invocation, never a neighbouring statement (1.043292ms)
+✔ R24.3 authentic Side Panel context wins over tab-like getCurrent heuristics (0.7935ms)
+✔ R24.3 other extension tabs, catalogs and unrelated Side Panels never inherit authority (0.14625ms)
+✔ R24.3 unavailable context API fails closed for tab classification (0.101292ms)
+✔ Developer shows one terminal status line and hides it for unrelated feedback (15.047125ms)
+✖ react primary Run compiles a managed Page preview and shows its result (6.636583ms)
+✖ vue primary Run compiles a managed Page preview and shows its result (11.94475ms)
+✔ component primary Run preserves permission protection and visible feedback (5.470667ms)
+✖ component primary Run preserves document protection and visible feedback (12.04325ms)
+✖ component primary Run preserves compiler protection and visible feedback (6.744792ms)
+✖ component primary Run preserves unknown protection and visible feedback (5.527834ms)
+✖ component primary Run retains the shared execution slot gate (10.306334ms)
+✖ component primary Run refuses source changes during compilation (130.1535ms)
+✖ component primary Run refuses document changes during compilation (116.413334ms)
+✔ Dev Run has no per-Origin axiosx form or prompt; backend discovers HTTP targets at request time (3.438125ms)
+✔ twenty Controller runs and twenty Page previews reuse Chrome grants with zero request calls (119.287625ms)
+✔ developer source switch hides local controls until enabled and reports a missing local connection (3.660208ms)
+✔ local project can open the packaged native connection settings only by a trusted click (5.372833ms)
+✔ local project setup guide opens only after a trusted user click in local mode (7.69975ms)
+✔ developer current-page summary follows the actual tab without exposing document internals (2.878833ms)
+✔ one authorized local project is selected automatically without starting execution (3.034166ms)
+✔ a remembered project is never silently replaced by a different sole authorized project (6.594125ms)
+✔ preparation-only same-epoch updates preserve pending resolve; catalog changes still invalidate it (498.572125ms)
+✔ local project mode preserves manual draft and params while running fresh bytes through the same Host (76.637792ms)
+✔ local source response after mode switch is rejected before Host admission (5.387417ms)
+✔ local managed Page Stop owns a confirmed failing main, survives provider disconnect and blocks overlapping Run (416.766625ms)
+✔ reopening the editor restores window-scoped source and params without starting or saving (4.739333ms)
+✔ another window draft and the catalog editor never replace the Sidebar draft (3.371041ms)
+✔ reopening a project draft preserves the source view and compiled execution bytes (5.779791ms)
+✔ a delayed draft restore never overwrites newly imported source (4.042708ms)
+✔ importing a JS draft leaves saved versions and running source independent (5.336917ms)
+✔ draft import rejects empty/oversized sources and active saves without overwriting the editor (4.121208ms)
+✔ imported legacy @require only reads previously approved versions and never adds a form or downloads code (5.819875ms)
+✔ Save persists revision/hash without requesting permission, creating a Run, or executing code (4.027791ms)
+✔ reopened editor lists saved scripts without running and loads the selected latest head explicitly (3.991584ms)
+✔ loading a historical revision does not turn it into the latest Save CAS head (4.02ms)
+✔ Delete tombstones the latest head and refreshes the saved-script selector (3.93575ms)
+✔ saved A stays immutable; Run freezes unsaved B/params/page A; editing C and Save do not replace B (7.802459ms)
+✔ a brand-new unsaved draft runs with an empty script ID and never creates a saved revision (2.922625ms)
+✔ permission preparation rejects a switched page; closing the editor during permission never admits a run (12.330625ms)
+✔ shared RunHost completion or Stop restores the draft Run button after another consumer settles (6.927792ms)
+✔ Stop uses the formal RunHost abort/retirement path and persists stopped with the original pin (5.505375ms)
+✔ pagehide invokes RunHost host-close; reopened editor only reads the durable interrupted Result (6.014625ms)
+✔ late Save/Load replies do not overwrite another script selection or edits made during loading (6.213583ms)
+✔ late saved-script selector load cannot overwrite edits made during loading (5.032292ms)
+✔ an older snapshot reply cannot disable Run after a newer durable observation (6.227375ms)
+✔ an older snapshot error cannot overwrite a newer successful durable view (5.102708ms)
+✔ Run silently checks Chrome permission; denied permission and invalid params never request or execute (5.239666ms)
+✔ DOM preview binds frozen plain JavaScript and exact current document from trusted click (4.055666ms)
+✔ DOM preview refuses to inject when the active document changes while permission is pending (5.171459ms)
+✔ Developer Stop cannot cancel the formal Task or another view using the shared RunHost (4.179208ms)
+✔ project import displays source while Save and Run freeze compiled bytes and the original hash (6.856792ms)
+✔ invalid project envelope leaves the previous editor source and no execution or saved revision (1.816625ms)
+✔ R12: real Page preview gates explicit immutable Candidate import, never auto installs (10.446583ms)
+✔ R12: navigating the actual page or a rejected preview cannot save a Page Candidate (7.791916ms)
+✔ denied results never populate visible values, technical history or download choices (2.856542ms)
+✔ failed HTML content read displays actionable advice, not the internal controller envelope (2.789958ms)
+✔ a failed evaluate surfaces Chrome settings and read-only recovery without replaying a run (9.941625ms)
+✔ R17 accepts 32 scoped sources with same-name directories but rejects an unbounded catalog (4.967292ms)
+✔ R24.3 React and Vue modes keep independent official source drafts without Native (16.852125ms)
+✔ manifest exposes tool.html as a global Chrome Side Panel (3.898375ms)
+✔ product shell has no popup-window fallback (2.742667ms)
+✔ default Run freezes Current Page then revalidates before existing RunHost (12.38ms)
+✔ trusted Side Panel run sends the exact unsaved draft to the original Controller authority (4.822416ms)
+✔ R6 uses valid tab roles with labelled content panels (1.769417ms)
+✔ R4 Sidebar sections preserve consumer controls and keep engineering tools folded (2.415125ms)
+✔ developer mode uses one accessible switch and keeps page details folded by default (2.461125ms)
+✔ Sidebar starts at its five tabs without repeating Chrome extension identity (4.773917ms)
+✔ R21/R4.9 tool list has one Open entry while detail and header actions use accessible icon primitives (4.809334ms)
+✔ R21 shared palette normal-text colors retain AA contrast against white (12.612458ms)
+✔ R21 Chrome fixture adds full-width states without changing its native evidence label (3.411042ms)
+✔ R21 product specification reflects six official tabs and archived R5 (2.268167ms)
+✔ R21 secondary text selectors use the AA-contrast token, not faint local overrides (1.585125ms)
+✔ React Sidebar starter pins and bundles a CDN-published library locally (7.026375ms)
+✔ Side Panel restores each previously selected product tab after reopening (2.411834ms)
+✔ a user selection is persisted across new Side Panel documents and extension restarts (3.841042ms)
+✔ rapid switches are serialized; a slow earlier save cannot overwrite a later tab (2.126708ms)
+✔ clicking while storage is loading wins over the old persisted selection (0.718208ms)
+✔ navigation before Side Panel surface detection is remembered, not overwritten (1.818459ms)
+✔ full-size catalog and standalone tool pages never write Side Panel preference (0.678916ms)
+✔ untrusted and unsupported stored values cannot become navigable pages (0.190166ms)
+✔ development can remember Debug, while production cannot reopen a hidden Debug page (0.089334ms)
+✔ a disposed panel does not apply a late storage result or persist a late click (0.586583ms)
+✔ storage failure leaves navigation usable and emits diagnostic warning (0.590292ms)
+✔ the real shell only restores the Side Panel and ignores navigation rejected by the tool guard (22.986667ms)
+✔ Sidebar owns one horizontal inset and tool iframes use a full-width canvas (3.739875ms)
+✔ Quick notes uses a matching 4-step density without loading trusted host CSS (2.427625ms)
+✔ Tools list avoids long technical empty text and stale toggling notices (2.726208ms)
+✔ R26 stopped details remain manageable and enabling waits for an explicit Open (89.012833ms)
+✔ R26 cross-panel disable destroys old frames and resume does not revive them (1.911917ms)
+✔ R26 remote disable retains a bounded inert draft while destroying the sandbox (1.069875ms)
+✔ R26 eye restores intersecting site/page appearance without mutating grants (12.306208ms)
+✔ stopped website disables the eye while restore settings remain available (1.351292ms)
+✔ built-in host reads default sites and blocks stopped sites before sending page messages (11.425667ms)
+✔ R26 corrupted enable records preserve bytes and refuse execution or changes (1.362709ms)
+✔ Chrome storage object-key normalization does not invalidate a successful conditional write (54.970125ms)
+✔ Final R2 request throttling returns an error and recovers after its time window (11.6205ms)
+✔ trusted tool host installs only by explicit click, scopes messages and removes storage (4.679667ms)
+✔ Final R2 cancellation preserves a dirty iframe and pending saves block navigation (1.276708ms)
+✔ actual sandbox state object clears host dirty state only after busy work ends (1.89675ms)
+✔ Final R2 revocation during ETag digest prevents a write that has not started (1.462ms)
+✔ queued task navigation loses authority when its tool is closed (1.158458ms)
+✔ uninstall waits for a committed write before deleting the namespace (2.649083ms)
+✔ two Side Panels preserve distinct fields through the same storage lock (2.13225ms)
+✔ a second iframe load revokes the old document instead of resending its token (1.176584ms)
+✔ cross-window uninstall rejects storage from a still open stale document (1.044333ms)
+✔ cross-window revocation also blocks stale page reads and task navigation (1.317708ms)
+✔ Chrome storage property ordering does not revoke the same installed package (8.644ms)
+✔ tools switch as one mini-app, return to list, and revoke hidden frames (1.427875ms)
+✔ R14 import refuses oversized packages, ignores stale asynchronous reads and preserves filename (1.48175ms)
+✔ R14 preview compares permissions and downgrade, confirmation protects update and retains data (1.836958ms)
+✔ R26 stopped detail uninstall requires consent without running tool code (2.915834ms)
+✔ R14 cross-window tool update invalidates review and clears the stale file selection (1.429458ms)
+✔ R14.1 delayed initial catalog read never overwrites a newer storage notification (1.088083ms)
+✔ R4.5 fresh reinstall preserves orphaned private data and requires explicit cleanup (11.515375ms)
+✔ R4.5 delayed initial revocation read preserves a newer epoch without losing the installed list (7.181ms)
+✔ R4.5 an old iframe cannot read or write an identical reinstall even before epoch notification (7.279708ms)
+✔ R4.5 orphaned private data blocks reinstall until the acknowledged uninstall cleanup completes (23.504042ms)
+✔ R14.1 list renders and Back/uninstall preserve useful keyboard focus (2.496958ms)
+✔ stopped tool detail opens a fixed full-page route without running sidebar code (1.355542ms)
+✔ R18 resize and status messages accept only the live opaque frame and bounded sizes (1.156083ms)
+✔ uninstalled read-only preview cannot write, run Task or invoke page operations (2.985166ms)
+✔ R18.1 conditional writes atomically reject a stale full-array replacement (33.083458ms)
+✔ R18.1 page metadata notification only targets a live tool iframe (0.923833ms)
+✔ R4.5 identical page revalidation preserves actual clipper results, while same-URL navigation invalidates them (17.512292ms)
+✔ R4.5 unrelated page notifications preserve the official install button through a pointer gesture (6.933084ms)
+✔ R4.7 official TOC list stays compact while repeated page observations preserve its Open action (1.296166ms)
+✔ R4.7 settings live next to retained TOC iframe; appearance remains separate from runtime permissions (0.922292ms)
+✔ R26 page appearance is independent of site authorization and global availability (12.615125ms)
+✔ default reader settings can restore a stopped website without revisiting it (7.024583ms)
+✔ site permission settings apply one click without a second dialog: reading-toc (30.021834ms)
+✔ site permission settings apply one click without a second dialog: web-markdown-clipper (18.461333ms)
+✔ site permission settings apply one click without a second dialog: knowledge-inbox (18.040209ms)
+✔ R4.3 existing 1.0.0 TOC exposes update, reviews patch, preserves site grants (10.5545ms)
+✔ knowledge editor protects user navigation, clears after save, and never vetoes uninstall (76.945125ms)
+✔ R4.8 manual reviewed installation remains available for every offline official package (134.90625ms)
+✔ R4.9 Tools disclosure keeps installed tools visible and never runs code or changes registry (0.967083ms)
+✔ R4.8 discovery search and filter never mutate the actual installed registry (1.498792ms)
+✔ R4.5 two official review windows share the original installation lock and reject stale approvals (17.577167ms)
+✔ R4.5 missing official resources and a cancelled in-flight preview never install or overwrite local review (5.9375ms)
+✔ R4.5 lost registry acknowledgement revokes approval without replay; readback failure=false (13.560084ms)
+✔ R4.5 lost registry acknowledgement revokes approval without replay; readback failure=true (11.72225ms)
+✔ R4.5 failure to refresh after a confirmed commit cannot reuse the consumed approval (10.770708ms)
+✔ R4.5 an official package removed after review is rejected before any installation write (11.8015ms)
+✔ quota failure is returned with a stable bridge code and preserves the current tool draft (6.64175ms)
+✔ reinstalling identical bytes never restores an old iframe right to write (7.5325ms)
+✔ corrupt installed registry stays protected in Side Panel and never masquerades as empty (1.131375ms)
+✔ uninstall refuses a newly corrupted registry rather than dropping unrelated rows (5.839958ms)
+✔ default TOC availability needs no grant; stopping and restoring use one click (11.769417ms)
+✔ R4.9 clipboard and knowledge site toggles authorize directly without a second modal (23.832125ms)
+✔ R4.9 availability controls use the ordinary compact button geometry (0.629708ms)
+✔ R5.1 three official tool site grants require no extra JavaScript modal (36.223958ms)
+✔ R5.1 inline removal has cancellation, identity pinning, and no accidental double-delete (1.613292ms)
+✔ R5.1 host does not use JavaScript confirm or browser unload dialogs (0.544458ms)
+✔ R50 inline dirty navigation has no native modal and requires explicit continuation (1.211458ms)
+✔ native menu launch gate prevents sandbox code until trusted ticket binding ACK (1.12825ms)
+✔ denied native menu ticket binding discards iframe without running untrusted JS (1.012375ms)
+✔ a stopped v2 tool cannot request Chrome contextMenus even if click is spoofed (1.4665ms)
+✔ native menu cannot defer an unbound launch behind the current tool dirty review (1.047042ms)
+✔ R56 dirty tool enable/disable uses a cancellable inline review and cannot lose data (28.346667ms)
+✔ R1.3 canonical browser exports reuse installed user.export services and reject absent capability (35.197334ms)
+✔ R1.3 frontend status and list reflect callable export services and include mounted package identity (23.400584ms)
+✔ R1.3 final sandbox delivery rejects selection that expires during frontend authority recheck (7.600875ms)
+✔ R3 remains immutable reference; R4 preview keeps installed Discover and independent full catalog (6.70225ms)
+✔ R4.9 Tools has one navigation tier and three accessible add/import/market controls (3.259042ms)
+✔ R15 official sidebar preserves five views, privileged controls, compact discovery and task history (2.176875ms)
+✔ R5 keeps one derived interactive prototype with installed-only compact discovery (1.972791ms)
+✔ Developer source selector and new-script action use one narrow Sidebar toolbar (1.223084ms)
+✔ R19 Sidebar spacing and corner system is consistent across all five tabs (4.363583ms)
+✔ R20/R23 five-tab design system has one token source and a strict trusted asset pipeline (4.407042ms)
+✔ legacy first-run migration refreshes the installed identity before the next explicit Run (19.361334ms)
+✔ Task Install requests only missing access on the trusted click and never installs after denial or close (16.142166ms)
+✔ R25.1 fixed-version manager can focus an installed disabled Task without running it (2.886167ms)
+✔ entering Sidebar task views reads external installations without executing and preserves unchanged form inputs (14.17ms)
+✔ installed tasks default page, render schema form and freeze the exact saved version/params/target (16.961833ms)
+✔ installed task can be explicitly forked into an independent unsaved editor draft (6.263541ms)
+✔ task Stop cannot cancel another view's in-flight draft; parameter form never navigates (5.496ms)
+✔ installed task refuses stale target after async installed-version lookup (7.974833ms)
+✔ task cards retain readable selection and do not surface raw IDs as the main UI (2.047542ms)
+✔ Sidebar Discover searches installed tasks only and selects a task without running or opening the catalog (6.885667ms)
+✔ Discover filter controls are real view filters and cannot start another run (9.658041ms)
+✔ opening the separate full-size catalog preserves its import and management view (3.017959ms)
+✔ full-size catalog keeps its own reader after real install and re-reads the single Task Catalog state (7.00025ms)
+✔ idle Discover has no fixed footer and inline import still opens the authenticated catalog (11.246167ms)
+✔ R5 result/history stay out of sight until a task has runs (6.716084ms)
+✔ card view retains original action identities, history and parameter form across tab changes (9.845541ms)
+✔ reopening My Tasks restores independent parameter drafts without permissions or execution (6.952917ms)
+✔ switching between two installed tasks preserves each independent unsaved parameter input (2.868ms)
+✔ R6 accessible roving tabs support Arrow and Home/End (3.221459ms)
+✔ R6 task card refresh, keyboard selection and Discover handoff restore focus (5.3585ms)
+✔ twenty installed Task runs never request Chrome permission; revoked access stops admission (100.28025ms)
+✔ R6 late run start/result cannot become the newly selected task status (12.867834ms)
+✔ R6 previous-version notices and results do not leak after installed upgrade (10.409542ms)
+✔ two extension documents share only a refresh hint and re-read authoritative installed state (18.55625ms)
+✔ catalog installation stays in the complete directory and directs running back to Sidebar (6.684708ms)
+✔ catalog JS import hands source to Sidebar and never enters a view with a hidden runner (2.942459ms)
+✔ missing Sidebar refuses import with an actionable message, without losing the directory (2.8775ms)
+✔ catalog draft transport errors retain their cause instead of claiming Sidebar is missing (5.193417ms)
+✔ receiving a source-only import selects Sidebar Developer without creating a run (1.707833ms)
+✔ R6.1 task-owned Stop is the sole cross-view action and names the launching task (15.897333ms)
+✔ R6.1 a draft-owned run exposes only its Stop when viewing Tasks or Discover (2.900375ms)
+✔ R6.1 stop-only footer CSS hides all non-owner actions without hiding Stop (0.416209ms)
+✔ catalog project JSON import validates snapshots and hands frozen bytes to Sidebar without running (4.951917ms)
+✔ catalog rejects a changed project snapshot before handoff and permits reselecting the file (2.156583ms)
+✔ R8 R2 task history masks sensitive values and exposes only durable technical identifiers (7.689458ms)
+✔ R8 R2 a persisted timeout gives an actionable warning without leaking request credentials (4.319541ms)
+✔ R8 R2 an unresolved persisted run warns before an unsafe repeat (4.082625ms)
+✔ R14 an in-flight task keeps its original Stop owner across Tools navigation (9.935125ms)
+✔ R14.1 pending task RunHost admission cannot borrow the Developer Stop dock (13.560834ms)
+✔ Final R2 tool navigation refusal leaves the selected pane and tab intact (7.637625ms)
+✔ tool editor navigation veto retains visible panel, selected tab and keyboard focus (1.659083ms)
+✔ fixed full-page routes carry an installed ID, not a path or credential (1.249541ms)
+✔ full-page routing retains original sandbox and manifest boundaries (4.634708ms)
+✔ first committed full-tab host URL retains only a valid tool locator (0.30125ms)
+✔ ephemeral read-only preview route survives first navigation and excludes installed-tool routes (0.304792ms)
+✔ canonical tool/preview tabs retain original host admission with exact browser document identity (1.606917ms)
+✔ schema, typed parameters, and deterministic source/hash (4.795167ms)
+✔ emitter quotes arbitrary literal rather than interpreting script (0.507625ms)
+✔ cross-origin, unknown args, duplicate ids and untrusted model payload rejected (0.674291ms)
+✔ same origin navigation allowed; confirmations fail closed (0.707292ms)
+✔ AI adapter sends only agreed structure to explicit HTTPS provider and validates response (0.843542ms)
+✔ malicious AI output never changes site, adds authority or injects JavaScript (0.175292ms)
+✔ R15 navigation and executor wiring is real source, not simulated preview (1.74925ms)
+ℹ tests 302
+ℹ suites 0
+ℹ pass 294
+ℹ fail 8
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1753.881208
+
+✖ failing tests:
+
+test at tests/environment/script-editor.test.mjs:143:40
+✖ react primary Run compiles a managed Page preview and shows its result (6.636583ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /React/. Input:
+  
+  '运行草稿'
+  
+      at TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/environment/script-editor.test.mjs:146:10)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: '运行草稿',
+    expected: /React/,
+    operator: 'match',
+    diff: 'simple'
+  }
+
+test at tests/environment/script-editor.test.mjs:143:40
+✖ vue primary Run compiles a managed Page preview and shows its result (11.94475ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /Vue/. Input:
+  
+  '运行草稿'
+  
+      at TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/environment/script-editor.test.mjs:146:10)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: '运行草稿',
+    expected: /Vue/,
+    operator: 'match',
+    diff: 'simple'
+  }
+
+test at tests/environment/script-editor.test.mjs:167:69
+✖ component primary Run preserves document protection and visible feedback (12.04325ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'checking'
+  - 'error'
+  
+      at TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/environment/script-editor.test.mjs:176:10)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'checking',
+    expected: 'error',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/environment/script-editor.test.mjs:167:69
+✖ component primary Run preserves compiler protection and visible feedback (6.744792ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'checking'
+  - 'error'
+  
+      at TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/environment/script-editor.test.mjs:176:10)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'checking',
+    expected: 'error',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/environment/script-editor.test.mjs:167:69
+✖ component primary Run preserves unknown protection and visible feedback (5.527834ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'checking'
+  - 'error'
+  
+      at TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/environment/script-editor.test.mjs:176:10)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'checking',
+    expected: 'error',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/environment/script-editor.test.mjs:187:1
+✖ component primary Run retains the shared execution slot gate (10.306334ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  true !== false
+  
+      at TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/environment/script-editor.test.mjs:195:10)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: true,
+    expected: false,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/environment/script-editor.test.mjs:198:44
+✖ component primary Run refuses source changes during compilation (130.1535ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  0 !== 1
+  
+      at TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/environment/script-editor.test.mjs:202:10)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 0,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/environment/script-editor.test.mjs:198:44
+✖ component primary Run refuses document changes during compilation (116.413334ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  0 !== 1
+  
+      at TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/environment/script-editor.test.mjs:202:10)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 0,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
