@@ -1434,6 +1434,29 @@ test('cloud permit failure and admission rollback leave zero target effects',asy
   assert.equal((await f.rows('runs')).find(r=>r.tag==='slot').currentRunId,null);
   await assert.rejects(f.authority.startControllerRun({...f.request,paramsWire:encodeValue({no:true,zero:1})},f.sender),code('E_REQUEST_CONFLICT'));
 });
+test('cloud stop fences its current grant without rewriting prior or foreign assignments',async()=>{
+  const f=await cloudTaskFixture();
+  const prior={...f.row,requestId:'cloud:previous-approval',grantId:'retired-grant',
+    state:'waiting',reason:null};
+  const foreign={...f.row,requestId:'cloud:foreign-namespace',namespace:'tool:other-extension',
+    state:'waiting',reason:null};
+  await f.storage.transaction(['frameworkKV'],'readwrite',async tx=>{
+    await tx.put('frameworkKV',prior,'cloud:request:'+prior.requestId);
+    await tx.put('frameworkKV',foreign,'cloud:request:'+foreign.requestId);
+  });
+  const status=await f.cloud.cloudStop({},f.sender);
+  assert.equal(status.enabled,false);
+  const requestRows=(await f.rows('frameworkKV')).filter(row=>row.tag==='cloud-request-v1');
+  const current=requestRows.find(row=>row.requestId===f.requestId);
+  assert.equal(current.state,'cancelled');
+  assert.equal(current.reason,'E_CLOUD_REVOKED');
+  assert.deepEqual(requestRows.find(row=>row.requestId===prior.requestId),prior);
+  assert.deepEqual(requestRows.find(row=>row.requestId===foreign.requestId),foreign);
+  await f.cloud.cloudStop({},f.sender);
+  const repeated=(await f.rows('frameworkKV')).filter(row=>row.tag==='cloud-request-v1');
+  assert.deepEqual(repeated.find(row=>row.requestId===prior.requestId),prior);
+  assert.deepEqual(repeated.find(row=>row.requestId===foreign.requestId),foreign);
+});
 test('cloud revocation, unknown recovery and install generation cannot restore execution',async t=>{
   const f=await cloudTaskFixture();t.mock.method(globalThis,'fetch',async(url,options)=>{const b=JSON.parse(options.body);return new Response(JSON.stringify({permitId:'permit',providerId:'provider',assignmentId:'assignment',runRef:b.runRef,leaseUntil:Date.now()+90000}));});
   const run=await f.authority.startControllerRun(f.request,f.sender);await f.cloud.cloudStop({},f.sender);
