@@ -1559,3 +1559,57 @@ test('R56 dirty tool enable/disable uses a cancellable inline review and cannot 
   assert.equal(f.elements['sidebar-tool-frame'].children.length,0,'re-enable never auto-launches code');
   assert.deepEqual(store.get(key),privateData);
 });
+
+test('R1.3 canonical browser exports reuse installed user.export services and reject absent capability',async t=>{
+  const tool={...sample,capabilities:[...sample.capabilities,'user.export']};
+  const f=await hostFixture(t,{tool,store:new Map([[SIDEBAR_TOOL_STORE,[tool]]])});
+  const old=Object.getOwnPropertyDescriptor(globalThis,'navigator'),copied=[],downloads=[];
+  Object.defineProperty(globalThis,'navigator',{configurable:true,value:{clipboard:{writeText:async text=>copied.push(text)}}});
+  t.after(()=>{if(old)Object.defineProperty(globalThis,'navigator',old);else delete globalThis.navigator;});
+  f.api.downloads={download:async args=>{downloads.push(args);return 91;}};
+  const ask=async(operation,payload,id)=>{
+    f.ask(operation,payload,id);await settle(()=>f.frame.contentWindow.sent.some(row=>row.requestId===id));
+    return f.frame.contentWindow.sent.find(row=>row.requestId===id);
+  };
+  const text='x'.repeat(20000);
+  assert.equal((await ask('browser.clipboard.writeText',{text},'browser-copy')).result.copied,true);
+  assert.equal((await ask('clipboard.writeText',{text},'legacy-copy')).result.copied,true);
+  assert.deepEqual(copied,[text,text]);
+  assert.deepEqual((await ask('browser.downloads.text',{text:'notes',filename:'notes.md'},'browser-download')).result,{downloadId:91});
+  assert.deepEqual((await ask('file.download',{text:'notes',filename:'notes.md'},'legacy-download')).result,{downloadId:91});
+  assert.deepEqual(downloads[0],downloads[1]);
+  const invalid=await ask('browser.downloads.text',{text:'notes',filename:'escape.txt'},'invalid-download');
+  assert.equal(invalid.ok,false);assert.equal(downloads.length,2);
+  const missing={...tool,capabilities:sample.capabilities};
+  f.store.set(SIDEBAR_TOOL_STORE,[missing]);
+  const stale=await ask('browser.clipboard.writeText',{text:'stale'},'stale-copy');
+  assert.equal(stale.ok,false);assert.equal(copied.length,2);
+});
+test('R1.3 frontend status and list reflect callable export services and include mounted package identity',async t=>{
+  const tool={...sample,capabilities:[...sample.capabilities,'user.export']};
+  const f=await hostFixture(t,{tool,store:new Map([[SIDEBAR_TOOL_STORE,[tool]]])});
+  const oldNavigator=Object.getOwnPropertyDescriptor(globalThis,'navigator'),oldLocation=globalThis.location;
+  Object.defineProperty(globalThis,'navigator',{configurable:true,value:{}});
+  globalThis.location={href:'chrome-extension://test/ui/tool.html?hostInstanceId=01234567-89ab-4def-8123-456789abcdef'};
+  t.after(()=>{if(oldNavigator)Object.defineProperty(globalThis,'navigator',oldNavigator);else delete globalThis.navigator;globalThis.location=oldLocation;});
+  f.api.downloads={download:async()=>91};
+  const calls=[];
+  f.api.runtime.sendMessage=async message=>{
+    calls.push(message);assert.match(message.packageHash,/^[a-f0-9]{64}$/);
+    if(message.operation==='browser.capabilities.list')return {ok:true,data:[
+      {operation:'browser.clipboard.writeText',implementation:'IMPLEMENTED',status:{exposure:'allowed',callableNow:false,reasonCode:'E_FRONTEND_CONTEXT_REQUIRED'}},
+      {operation:'browser.downloads.text',implementation:'IMPLEMENTED',status:{exposure:'allowed',callableNow:false,reasonCode:'E_FRONTEND_CONTEXT_REQUIRED'}}]};
+    return {ok:true,data:{operation:message.args.operation,implementation:'implemented',authorization:{tool:'granted'},
+      callableNow:false,reasonCode:'E_FRONTEND_CONTEXT_REQUIRED'}};
+  };
+  const ask=async(operation,payload,id)=>{
+    f.ask(operation,payload,id);await settle(()=>f.frame.contentWindow.sent.some(row=>row.requestId===id));
+    const response=f.frame.contentWindow.sent.find(row=>row.requestId===id);assert.equal(response.ok,true);return response.result;
+  };
+  assert.equal((await ask('browser.capabilities.getStatus',{operation:'browser.clipboard.writeText'},'no-clipboard')).callableNow,false);
+  assert.equal((await ask('browser.capabilities.getStatus',{operation:'browser.downloads.text'},'downloads')).callableNow,true);
+  globalThis.navigator.clipboard={writeText:async()=>{}};
+  assert.equal((await ask('browser.capabilities.getStatus',{operation:'browser.clipboard.writeText'},'clipboard')).callableNow,true);
+  assert((await ask('browser.capabilities.list',{},'list')).every(row=>row.status.callableNow));
+  assert.equal(new Set(calls.map(row=>row.packageHash)).size,1);
+});

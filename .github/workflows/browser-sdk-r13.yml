@@ -1,8 +1,27 @@
-name: Browser SDK R1.3 isolated candidate verification
+name: Browser SDK R1.3 verification
 on:
   push:
-    branches: [agent/browser-sdk-r13-20261011]
+    branches: [main]
+    paths:
+      - 'src/framework/sdk/browser*.js'
+      - 'src/sidebar-tools/bridge.js'
+      - 'src/platform/chrome/context-menus.js'
+      - 'src/entrypoints/context-menus.js'
+      - 'src/agents/page-relay.js'
+      - 'src/ui/sidebar-tools.js'
+      - 'src/ui/sidebar-tools/**'
+      - 'src/ui/tool-shell.js'
+      - 'src/sw.js'
+      - 'examples/sidebar-tools/browser-sdk-r13/**'
+      - 'tests/environment/browser-sdk-r13.test.mjs'
+      - 'tests/environment/sidebar-tools*.test.mjs'
+      - '.github/workflows/browser-sdk-r13.yml'
   workflow_dispatch:
+    inputs:
+      native_macos:
+        description: 'Run isolated macOS MV3 Worker smoke (does not prove native menu GUI acceptance)'
+        type: boolean
+        default: false
 permissions:
   contents: read
 jobs:
@@ -56,7 +75,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: browser-sdk-r13-unpacked-${{ github.sha }}
-          retention-days: 2
+          retention-days: 14
           if-no-files-found: error
           path: dist/production/
       - name: Retain candidate build receipt only
@@ -71,6 +90,7 @@ jobs:
             docs/framework/evidence/wxt/builds/build-development.json
 
   browser-native-restart:
+    if: github.event_name == 'workflow_dispatch' && inputs.native_macos
     # Real, isolated macOS Chrome/CFT service-worker registration and
     # stop/start evidence. This is NOT a native right-click menu UI PASS.
     needs: [browser-contracts, browser-bundles]

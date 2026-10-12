@@ -1,5 +1,10 @@
 # Browser Capability Universe · OpenDesk Browser R1.3
 
+> 当前状态：2026-10-12，main，API 1.0.0。[32 操作的当前实施/测试矩阵](../framework/workstreams/browser-sdk-r13-20261011.md) 与 [机器记录](../framework/workstreams/browser-sdk-r13-acceptance.json) 为最新验收入口。以下 18 域/74 叶子仍是能力规划，不能与公开操作数相加或推导完成百分比。
+
+本轮接通规范 Browser clipboard/downloads 请求并使前台可调用状态一致；菜单注销、过期、包摘要和 BFCache 生命周期已修复并有组件回归，原生结果按独立记录。`tabs.open/focus/sidePanel.openSelf` 缺受控引用、网站批准/真实手势合同，继续 PLANNED；通知 NOT_EXPOSED，网络请求/截图 HOST_ONLY。R2 被动观察仍 PLANNED，未提前实现。
+
+
 **核查范围**：18 个浏览器功能域、74 个叶子能力；以本次目标仓库的 Chrome 138+ Manifest、当前源码及 R1.3 变更为依据。此矩阵是**审计和扩展规划**，不构成额外的权限批准名单，不能据此直接向工具沙箱开放 `chrome.*`。
 
 ## 状态与证据规则

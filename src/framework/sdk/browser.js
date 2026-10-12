@@ -22,7 +22,7 @@ export function createBrowserSdk({request,context='sidebar-tool'}={}){
       register:method('browser.contextMenu.register'),unregister:()=>ask('browser.contextMenu.unregister')}),
     launch:Object.freeze({consume:()=>ask('browser.launch.consume')}),
     page:Object.freeze({getContext:()=>ask('browser.page.getContext'),getSelection:()=>ask('browser.page.getSelection')}),
-    clipboard:Object.freeze({writeText:text=>request('clipboard.writeText',{text})}),
-    downloads:Object.freeze({text:({text,filename})=>request('file.download',{text,filename})})
+    clipboard:Object.freeze({writeText:text=>ask('browser.clipboard.writeText',{text})}),
+    downloads:Object.freeze({text:method('browser.downloads.text')})
   });
 }

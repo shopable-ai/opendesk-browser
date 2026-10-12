@@ -188,3 +188,14 @@ R4.8 暂不提供新的全局工具启停按钮；原有“当前网站目录显
 复用已有安装器、工具身份、Web Locks、版本管理和卸载。可选 Chrome `contextMenus` 权限仅由可信工具详情中的真实点击申请；网站批准绑定工具包完整摘要和撤销代际。沙箱调用 `OpenDeskSDK.browser.contextMenu.*` 与 `launch.consume()`，现有 `OpenDeskTool.request()` 不变。普通网页不取得菜单注册能力。
 
 详情见 [Browser SDK](browser-sdk.zh-CN.md) 和 [可导入示例](../../examples/sidebar-tools/browser-sdk-r13/README.zh-CN.md)。真实 Chrome 状态须以当前候选验收为准。
+
+
+## Browser SDK R1.3 当前安装与验收（2026-10-12）
+
+v1/v2 JSON 直接导入既有工具安装器，无需开发者另编译 Chrome 扩展；Builder 和官方工具仍遵守原资源与严格 schema/CSP 校验。v2 `requires.browserSdk` 固定为 `1.0.0`，最多三项 `open-self` 菜单，网站必须明确 HTTP(S) host；本轮不新增 tabs/sidePanel 等能力批准字段。
+
+安装/更新仍绑定规范包 SHA-256 和撤销代际；Browser 请求同时带挂载包摘要，在 SW 排队及安装锁后再次复核。菜单注销清除旧启动票据，关闭/实例替换不能继续领取；来源文档、网站批准、Chrome 权限及 TTL 每次复核。工具 JS 等启动绑定 ACK 后运行。普通网页的 Page SDK 只做本地能力发现，不能注册特权菜单或调用 Native Host。
+
+规范 `browser.clipboard.writeText` / `browser.downloads.text` 与便捷层共用原 `user.export`、安装锁和服务；旧操作保持兼容。菜单授权通过可信详情按钮与 Chrome 原生权限，不新增工具 alert/confirm/prompt。
+
+最新实施/组件/原生状态及精确候选见 [R1.3 当前总表](../framework/workstreams/browser-sdk-r13-20261011.md) 和 [验收 JSON](../framework/workstreams/browser-sdk-r13-acceptance.json)。组件通过不能提升为原生菜单、F3 或 ZIP 通过。

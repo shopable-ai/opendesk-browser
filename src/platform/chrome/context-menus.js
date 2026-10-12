@@ -2,7 +2,7 @@ import {isToolSender,resolveToolSender,permissionPattern} from '../../environmen
 import {SIDEBAR_TOOL_ENABLE_STORE,requireToolEnableRecords,sidebarToolEnabled} from '../../ui/sidebar-tools/lifecycle.js';
 // Trusted Chrome MV3 context-menu driver. No third-party code executes here.
 // Listener registration is synchronous; storage and install checks are async.
-import {SIDEBAR_TOOL_STORE,SIDEBAR_TOOL_FORMAT_V2,validateSidebarToolPackage,serializeSidebarToolPackage} from '../../ui/sidebar-tools/package.js';
+import {SIDEBAR_TOOL_STORE,SIDEBAR_TOOL_FORMAT_V2,validateSidebarToolPackage,sidebarToolPackageHash} from '../../ui/sidebar-tools/package.js';
 // The installer owns the revocation store. Keep the SW's menu listener small:
  // importing installation.js here would bundle the entire tool installer in SW.
 const TOOL_REVOCATION_EPOCHS_STORE='opendesk.sidebar-tools.revocation-epochs.v1';
@@ -50,9 +50,7 @@ const chromeMenuCall=(api,method,...args)=>new Promise((resolve,reject)=>{
     if(last)reject(failure('E_CHROME',last.message));else resolve();
   });}catch(error){reject(failure('E_CHROME',error.message));}
 });
-const sha=async value=>Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(value))),
-  b=>b.toString(16).padStart(2,'0')).join('');
-const digestTool=tool=>sha(serializeSidebarToolPackage(tool));
+const digestTool=sidebarToolPackageHash;
 async function checkedSender(api,sender){
   sender=await resolveToolSender(api,sender);
   if(!isToolSender(api,sender))throw failure('E_OWNER','Untrusted Browser SDK sender');
@@ -113,6 +111,11 @@ async function confirmedWrite(area,key,value){
 function validLaunch(row){
   return row&&row.state==='pending'&&Date.now()<row.expiresAt&&validId(row.toolId)&&
     typeof row.ticketId==='string'&&row.ticketId.length===36;
+}
+function launchActionEnabled(row,tool,grants){
+  return Array.isArray(grants?.[tool.id]?.activeActions)&&
+    grants[tool.id].activeActions.includes(row?.actionId)&&
+    menuActions(tool).some(action=>action.actionId===row?.actionId&&matchesMenuDocument(action,row.url));
 }
 function scopedMenuPatterns(origins,action){
   return [...new Set(origins.filter(origin=>matchesMenuDocument(action,origin)).map(origin=>{
@@ -221,6 +224,10 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
     }
   };
   async function synchronize(){
+    const launchStore=(await api.storage.session.get(BROWSER_MENU_LAUNCH_STORE))[BROWSER_MENU_LAUNCH_STORE]||{};
+    const retained=Object.fromEntries(Object.entries(launchStore).filter(([,row])=>validLaunch(row)));
+    if(Object.keys(retained).length!==Object.keys(launchStore).length)
+      await confirmedWrite(api.storage.session,BROWSER_MENU_LAUNCH_STORE,retained);
     if(!await permissionGranted(api)){
       menuActionsAvailable=false;
       recentSourceContexts.clear();pendingSourceContexts.clear();activeMenuOrigins.clear();
@@ -267,15 +274,16 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
     const op=browserOperation(operation);
     if(!op)return deniedBrowserStatus(operation);
     const sources=owned??await readSources(api);
-    const menu=(await permittedOrigins(api,await approvedOrigins(sources.grants,tool))).length>0;
+    const origins=await permittedOrigins(api,await approvedOrigins(sources.grants,tool));
+    const menu=origins.length>0;
     const isMenu=operation.startsWith('browser.contextMenu')||operation.startsWith('browser.launch')||
       operation==='browser.page.getSelection';
     const menuApiAvailable=Boolean(api.contextMenus?.create&&api.contextMenus?.onClicked);
-    const platformSupported=!isMenu||menuApiAvailable;
+    const platformSupported=!isMenu||['browser.contextMenu.getStatus','browser.contextMenu.unregister'].includes(operation)||menuApiAvailable;
     const hasToolCap=op.requiredCapabilities.every(cap=>tool.capabilities.includes(cap));
     const chromium=menuApiAvailable&&await permissionGranted(api);
-    const requiredBrowser=op.requiredChromePermissions.length?op.requiredChromePermissions.every(id=>
-      id!=='contextMenus'||chromium):true;
+    const requiredBrowser=operation==='browser.contextMenu.getStatus'||!op.requiredChromePermissions.length||
+      op.requiredChromePermissions.every(id=>id!=='contextMenus'||chromium);
     const exposure=op.supportedContexts.includes('sidebar-tool')&&hasToolCap?'allowed':'not-exposed';
     const consuming=operation==='browser.launch.consume'||operation==='browser.page.getSelection';
     let hasLaunch=true;
@@ -284,19 +292,27 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
       const row=rows[tool.id];
       hasLaunch=Boolean(validLaunch(row)&&row.boundTo?.hostInstanceId===identity?.hostInstanceId&&
         row.boundTo?.toolInstance===identity?.toolInstance&&row.packageHash===await digestTool(tool)&&
-        row.installEpoch===(sources.epochs[tool.id]??null));
+        row.installEpoch===(sources.epochs[tool.id]??null)&&origins.includes(row.origin)&&
+        launchActionEnabled(row,tool,sources.grants));
+      if(hasLaunch){
+        try {
+          const current=await api.webNavigation.getFrame({tabId:row.tabId,frameId:row.frameId});
+          hasLaunch=Boolean(validLaunch(row)&&current?.documentId===row.documentId&&current?.url===row.url);
+        }catch{hasLaunch=false;}
+      }
     }
     // Clipboard availability belongs to the actual trusted front-end document;
     // the background must never claim it is callable solely from a permission.
-    const frontendOnly=operation==='browser.clipboard.writeText';
+    const frontendOnly=['browser.clipboard.writeText','browser.downloads.text','browser.page.getContext'].includes(operation);
+    const needsSite=isMenu&&!['browser.contextMenu.getStatus','browser.contextMenu.unregister'].includes(operation);
     const runnable=op.implementation==='IMPLEMENTED'&&exposure==='allowed'&&platformSupported&&
-      requiredBrowser&&(!isMenu||menu)&&hasLaunch&&!frontendOnly;
+      requiredBrowser&&(!needsSite||menu)&&hasLaunch&&!frontendOnly;
     const reasonCode=runnable?null:
       op.implementation!=='IMPLEMENTED'?'E_NOT_IMPLEMENTED':
       !hasToolCap?'E_TOOL_CAPABILITY_REQUIRED':
       !platformSupported?'E_CHROME_UNSUPPORTED':
       !requiredBrowser?'E_CHROME_PERMISSION_REQUIRED':
-      isMenu&&!menu?'E_SITE_GRANT_REQUIRED':
+      needsSite&&!menu?'E_SITE_GRANT_REQUIRED':
       !hasLaunch?'E_LAUNCH_UNAVAILABLE':
       frontendOnly?'E_FRONTEND_CONTEXT_REQUIRED':'E_CONTEXT';
     return {operation,apiVersion:BROWSER_API_VERSION,implementation:op.implementation.toLowerCase().replaceAll('_','-'),
@@ -314,7 +330,7 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
       throw failure('E_TOOL_CAPABILITY_REQUIRED','Unapproved menu action ID');
     return actions;
   }
-  async function handleTool({operation,args={},toolId,toolVersion,toolInstance,hostInstanceId,installEpoch},sender){
+  async function handleTool({operation,args={},toolId,toolVersion,toolInstance,hostInstanceId,installEpoch,packageHash},sender){
     const actualHost=await checkedSender(api,sender);
     if(actualHost!==hostInstanceId||!validId(toolId)||
        typeof toolInstance!=='string'||!/^[0-9a-f-]{36}$/i.test(toolInstance))
@@ -323,7 +339,8 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
       const owned=await readSources(api),tool=admittedTool(owned.tools,toolId);
       if(!sidebarToolEnabled(owned.enabled,toolId))
         throw failure('E_TOOL_DISABLED','Tool was disabled; existing menu and launch authority revoked');
-      if(tool.version!==toolVersion||(owned.epochs[toolId]??null)!==(installEpoch??null))
+      if(tool.version!==toolVersion||(owned.epochs[toolId]??null)!==(installEpoch??null)||
+         packageHash!==await digestTool(tool))
         throw failure('E_TOOL_CHANGED','Old tool version or revoked instance');
       if(operation==='browser.capabilities.list'){
         normalizeBrowserOperation(operation,args);
@@ -369,6 +386,13 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
         const activeActions=operation.endsWith('unregister')?[]:args.actionIds;
         const next={...owned.grants,[toolId]:{...current,activeActions}};
         await confirmedWrite(api.storage.local,BROWSER_MENU_GRANTS_STORE,next);
+        if(operation==='browser.contextMenu.unregister'){
+          const launches=(await api.storage.session.get(BROWSER_MENU_LAUNCH_STORE))[BROWSER_MENU_LAUNCH_STORE]||{};
+          if(Object.hasOwn(launches,toolId)){
+            const cleared={...launches};delete cleared[toolId];
+            await confirmedWrite(api.storage.session,BROWSER_MENU_LAUNCH_STORE,cleared);
+          }
+        }
         await synchronize();
         return {registered:activeActions.length>0,actionIds:activeActions};
       }
@@ -380,15 +404,18 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
         const row=source[toolId];
         if(!validLaunch(row)||row.boundTo?.hostInstanceId!==actualHost||
           row.boundTo?.toolInstance!==toolInstance||row.packageHash!==await digestTool(tool)||
-          row.installEpoch!==(installEpoch??null)||!(await approvedOrigins(owned.grants,tool)).includes(row.origin))
+           row.installEpoch!==(installEpoch??null)||!launchActionEnabled(row,tool,owned.grants)||
+           !(await approvedOrigins(owned.grants,tool)).includes(row.origin))
           throw failure('E_LAUNCH_EXPIRED','Menu launch expired, unbound or permission changed');
         if(!await chromeSitePermitted(api,row.origin))
           throw failure('E_SITE_PERMISSION_REVOKED','Chrome website access was revoked');
         const current=await api.webNavigation.getFrame({tabId:row.tabId,frameId:row.frameId});
         if(!current?.documentId||current.documentId!==row.documentId||current.url!==row.url)
           throw failure('E_DOCUMENT_CHANGED','Clicked document was replaced; selection discarded');
+        if(!validLaunch(row))throw failure('E_LAUNCH_EXPIRED','Menu launch expired during validation');
         const next={...source,[toolId]:{...row,state:'consumed',selection:null,consumedAt:Date.now()}};
         await confirmedWrite(api.storage.session,BROWSER_MENU_LAUNCH_STORE,next);
+        if(!validLaunch(row))throw failure('E_LAUNCH_EXPIRED','Menu launch expired before delivery');
         return {ticketId:row.ticketId,toolId,actionId:row.actionId,source:{
           url:row.url,origin:row.origin,tabRef:row.tabRef},
           selection:row.selection,linkUrl:row.linkUrl??null,expiresAt:row.expiresAt};
@@ -437,13 +464,14 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
         if(!await permissionGranted(api))
           throw failure('E_CHROME_PERMISSION_REQUIRED','Chrome context menu permission is no longer present');
         if(!validLaunch(row)||row.ticketId!==launchId||row.packageHash!==await digestTool(tool)||
-          row.installEpoch!==(owned.epochs[toolId]??null)||
+           row.installEpoch!==(owned.epochs[toolId]??null)||!launchActionEnabled(row,tool,owned.grants)||
           !(await approvedOrigins(owned.grants,tool)).includes(row.origin))
           throw failure('E_LAUNCH_EXPIRED','No valid matching menu launch');
         if(!await chromeSitePermitted(api,row.origin))
           throw failure('E_SITE_PERMISSION_REVOKED','Chrome website access was revoked');
         if(row.boundTo && (row.boundTo.hostInstanceId!==actualHost||row.boundTo.toolInstance!==toolInstance))
           throw failure('E_OWNER','Launch already belongs to another tool instance');
+        if(!validLaunch(row))throw failure('E_LAUNCH_EXPIRED','Menu launch expired during binding');
         const updated={...store,[toolId]:{...row,boundTo:{hostInstanceId:actualHost,toolInstance}}};
         await confirmedWrite(api.storage.session,BROWSER_MENU_LAUNCH_STORE,updated);
         return {bound:true,ticketId:launchId};

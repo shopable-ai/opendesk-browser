@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
-import {validateSidebarToolPackage,serializeSidebarToolPackage} from '../../src/ui/sidebar-tools/package.js';
+import {validateSidebarToolPackage,serializeSidebarToolPackage,sidebarToolPackageHash} from '../../src/ui/sidebar-tools/package.js';
 import {sameSidebarToolPackage} from '../../src/ui/sidebar-tools/installation.js';
 import {createBrowserSdk} from '../../src/framework/sdk/browser.js';
 import {BROWSER_OPERATIONS,BROWSER_MENU_GRANTS_STORE,BROWSER_MENU_LAUNCH_STORE,
@@ -50,7 +50,7 @@ function makeChrome(){
 }
 const lockManager={request(_key,work){return work();}};
 const hostContext={toolId:'selection-notes',toolVersion:'1.0.0',installEpoch:null,
-  toolInstance:uid,hostInstanceId:uid};
+  toolInstance:uid,hostInstanceId:uid,packageHash:await sidebarToolPackageHash(await readSample('selection-notes.opendesk-tool.json'))};
 const frame={id:9,tabId:9,windowId:2,url:'https://example.com/post',incognito:false};
 const authenticSender=api=>({id:api.runtime.id,tab:{id:9,incognito:false},
   frameId:0,documentId:'document-A',documentLifecycle:'active',url:'https://example.com/post'});
@@ -404,4 +404,100 @@ test('navigation invalidates a pending cold-worker source proof without deliveri
   await cold.synchronize();
   const stored=(await api.storage.session.get(BROWSER_MENU_LAUNCH_STORE))[BROWSER_MENU_LAUNCH_STORE];
   assert.equal(stored,undefined,'navigated document proof must be rejected, even on the same URL');
+});
+
+async function approvedLaunch(){
+  const sample=await readSample('selection-notes.opendesk-tool.json'),fake=makeChrome();
+  const host=createContextMenuHost({api:fake.api,lockManager,logger:{warn(){}}});
+  await fake.api.storage.local.set({'opendesk.sidebar-tools.installed.v1':[sample]});
+  fake.setPermission(true);
+  await host.handleHost({operation:'browser.contextMenu.userToggle',toolId:sample.id,enabled:true,
+    origin:'https://example.com',document:{tabId:9,documentId:'document-A',url:'https://example.com/post'},
+    hostInstanceId:uid},sender);
+  markTrustedRightClick(host,fake.api);
+  host.onClicked({menuItemId:'opendesk.tool.selection-notes.capture-selection',
+    pageUrl:'https://example.com/post',frameId:0,selectionText:'private selection'},frame);
+  await cycle(host);
+  const launchId=fake.sessionValues.get(BROWSER_MENU_LAUNCH_STORE)[sample.id].ticketId;
+  const bind=()=>host.handleHost({operation:'browser.launch.bind',toolId:sample.id,
+    launchId,hostInstanceId:uid,toolInstance:uid},sender);
+  const ask=(operation,args={})=>host.handleTool({operation,args,...hostContext},sender);
+  return {sample,fake,host,bind,ask};
+}
+test('Browser canonical export methods preserve payload, bounds and strict schema',async()=>{
+  const calls=[],sdk=createBrowserSdk({request:async(operation,args)=>{calls.push({operation,args});return args;}});
+  assert.deepEqual(await sdk.clipboard.writeText('中文'),{text:'中文'});
+  assert.deepEqual(await sdk.downloads.text({text:'notes',filename:'notes.md'}),{text:'notes',filename:'notes.md'});
+  assert.deepEqual(calls.map(row=>row.operation),['browser.clipboard.writeText','browser.downloads.text']);
+  assert.throws(()=>sdk.downloads.text({text:'x',filename:'..\\escape.md'}),{code:'E_SCHEMA'});
+  assert.throws(()=>sdk.downloads.text({text:'x',filename:'x.txt'}),{code:'E_SCHEMA'});
+  assert.throws(()=>sdk.downloads.text({text:'x',filename:'x.md',tabId:9}),{code:'E_SCHEMA'});
+  assert.throws(()=>sdk.clipboard.writeText('中'.repeat(50001)),{code:'E_LIMIT'});
+  assert.equal(BROWSER_OPERATIONS['browser.downloads.text'].maxRequestBytes,170000);
+});
+test('menu discovery and idempotent unregister remain callable without site or Chrome menu grant',async()=>{
+  const sample=await readSample('selection-notes.opendesk-tool.json'),fake=makeChrome();
+  await fake.api.storage.local.set({'opendesk.sidebar-tools.installed.v1':[sample]});
+  const host=createContextMenuHost({api:fake.api,lockManager,logger:{warn(){}}});
+  for(const operation of ['browser.contextMenu.getStatus','browser.contextMenu.unregister']){
+    const status=await host.handleTool({operation:'browser.capabilities.getStatus',args:{operation},...hostContext},sender);
+    assert.equal(status.callableNow,true);
+    await host.handleTool({operation,args:{},...hostContext},sender);
+  }
+});
+test('unregister revokes both unbound and bound launches; re-register never revives them',async()=>{
+  for(const bound of [false,true]){
+    const f=await approvedLaunch();if(bound)await f.bind();
+    await f.ask('browser.contextMenu.unregister');
+    assert.equal(f.fake.sessionValues.get(BROWSER_MENU_LAUNCH_STORE)?.[f.sample.id],undefined);
+    await f.ask('browser.contextMenu.register',{actionIds:['capture-selection']});
+    await assert.rejects(f.bind(),{code:'E_LAUNCH_EXPIRED'});
+    await assert.rejects(f.ask('browser.launch.consume'),{code:'E_LAUNCH_EXPIRED'});
+  }
+});
+test('launch status rejects same-URL replacement documents before consume',async()=>{
+  const f=await approvedLaunch();await f.bind();
+  assert.equal((await f.ask('browser.capabilities.getStatus',{operation:'browser.launch.consume'})).callableNow,true);
+  f.fake.api.frame={...f.fake.api.frame,documentId:'replacement'};
+  assert.equal((await f.ask('browser.capabilities.getStatus',{operation:'browser.launch.consume'})).callableNow,false);
+  await assert.rejects(f.ask('browser.launch.consume'),{code:'E_DOCUMENT_CHANGED'});
+});
+test('queued Browser requests require the mounted package digest, even at unchanged version and epoch',async()=>{
+  const f=await approvedLaunch();
+  const replacement={...f.sample,js:f.sample.js+'\nvoid 0;'};
+  await f.fake.api.storage.local.set({'opendesk.sidebar-tools.installed.v1':[replacement]});
+  await assert.rejects(f.ask('browser.capabilities.list'),{code:'E_TOOL_CHANGED'});
+  await assert.rejects(f.host.handleTool({operation:'browser.capabilities.list',args:{},
+    ...hostContext,packageHash:undefined},sender),{code:'E_TOOL_CHANGED'});
+});
+test('expiry during document validation or confirmed consumption never delivers sensitive content',async t=>{
+  const original=Date.now;let now=original();Date.now=()=>now;t.after(()=>{Date.now=original;});
+  for(const phase of ['validation','confirmation']){
+    const f=await approvedLaunch();await f.bind();
+    const row=f.fake.sessionValues.get(BROWSER_MENU_LAUNCH_STORE)[f.sample.id];row.expiresAt=now+100;
+    if(phase==='validation')f.fake.api.webNavigation.getFrame=async()=>{now+=101;return f.fake.api.frame;};
+    else {
+      const set=f.fake.api.storage.session.set;
+      f.fake.api.storage.session.set=async value=>{await set(value);now+=101;};
+    }
+    await assert.rejects(f.ask('browser.launch.consume'),{code:'E_LAUNCH_EXPIRED'});
+    if(phase==='confirmation')assert.equal(f.fake.sessionValues.get(BROWSER_MENU_LAUNCH_STORE)[f.sample.id].selection,null);
+    await f.host.synchronize();
+    assert.equal(f.fake.sessionValues.get(BROWSER_MENU_LAUNCH_STORE)?.[f.sample.id],undefined);
+  }
+});
+test('BFCache suspends and restores source listeners without restoring pending requests or duplicating listeners',()=>{
+  const listeners=new Map(),calls=[];
+  const window={addEventListener(type,fn){if(!listeners.has(type))listeners.set(type,new Set());listeners.get(type).add(fn);},
+    removeEventListener(type,fn){listeners.get(type)?.delete(fn);},dispatchEvent(){}};
+  const relay=installPageRelay({window,api:{runtime:{sendMessage:message=>{calls.push(message);return Promise.resolve();}}}});
+  const emit=(type,event)=>{for(const fn of [...(listeners.get(type)||[])])fn(event);};
+  emit('contextmenu',{isTrusted:true});assert.equal(calls.length,1);
+  emit('pagehide',{persisted:true});emit('contextmenu',{isTrusted:true});assert.equal(calls.length,1);
+  assert.equal(relay.diagnostics().suspended,true);
+  emit('pageshow',{persisted:true});emit('pageshow',{persisted:true});
+  emit('contextmenu',{isTrusted:true});assert.equal(calls.length,2);
+  assert.equal(listeners.get('contextmenu').size,1);
+  relay.removeEventListeners();emit('pageshow',{persisted:true});emit('contextmenu',{isTrusted:true});
+  assert.equal(calls.length,2);assert.equal(relay.diagnostics().subscriptions,0);
 });

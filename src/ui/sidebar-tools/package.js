@@ -97,3 +97,9 @@ export function sidebarToolStorageKey(id) {
   if (typeof id!=='string' || !/^[a-z][a-z0-9-]{1,39}$/.test(id)) fail('工具 ID 无效');
   return SIDEBAR_TOOL_DATA_PREFIX+id;
 }
+
+export async function sidebarToolPackageHash(tool){
+  const bytes=new TextEncoder().encode(serializeSidebarToolPackage(tool));
+  return Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes)),
+    value=>value.toString(16).padStart(2,'0')).join('');
+}

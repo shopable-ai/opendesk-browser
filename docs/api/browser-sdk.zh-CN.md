@@ -1,6 +1,6 @@
 # OpenDeskSDK.browser API · R1.3 源码接口索引
 
-> 日期 2026-10-11；开发隔离分支 `agent/browser-sdk-r13-20261011`。本页按实际新增源文件和现存服务区分 **IMPLEMENTED（已有源码）/ HOST_ONLY / NOT_EXPOSED / PLANNED / UNSUPPORTED**。**IMPLEMENTED 不表示真实 Chrome 已验收**，当前原生完整菜单路径尚为 NOT_TESTED。运行环境最低按现有 `manifest.json` 的 Chrome 138 记录。
+> 当前核查：2026-10-12，main，Browser API 1.0.0。实施与测试分开记录；最新候选/包身份及原生状态见 [当前验收总表](../framework/workstreams/browser-sdk-r13-20261011.md) 和 [机器记录](../framework/workstreams/browser-sdk-r13-acceptance.json)。历史隔离分支已合入；IMPLEMENTED 仍不等于真实 Chrome PASS。Chrome 最低 138。
 
 ## 一、公开入口与运行环境
 
@@ -155,3 +155,18 @@ v1 `opendesk.sidebar-tool.v1` 继续使用原严格字段；不会暗中开放�
 5. Side Panel 当前工具实例、撤销代际、60 秒单次票据及原生文档校验均匹配。
 
 网站 Chrome 权限被撤销时，既有菜单权限缓存不能代替真实 `chrome.permissions.contains({origins:[...]})`；即使工具仍保留旧站点设置，菜单同步与敏感选区绑定/领取也都要保守拒绝。预点击来源文档观察仅对当前已有生效菜单的已批准 Origin 进行，绝不记录选区、正文或完整 URL。
+
+
+## 2026-10-12 主分支合同收敛
+
+能力目录有 **32 个操作**：IMPLEMENTED 10、HOST_ONLY 2、NOT_EXPOSED 2、PLANNED 18、UNSUPPORTED 0（未登记名称仍返回 UNSUPPORTED）。18 个功能域/74 个规划叶子不是 SDK 方法数量。每项的组件/原生测试状态在验收 JSON 独立记录。
+
+`OpenDeskSDK.browser.clipboard.writeText(text)` 与 `OpenDeskTool.request('browser.clipboard.writeText',{text})` 使用同一规范操作、同一 `user.export` 检查和旧安装锁；下载同理。旧 `clipboard.writeText` / `file.download` 保持可用。正文是 1–150000 UTF-8 字节；下载必须为不含路径/控制字符的 `.md` 文件名，最长 90 字符。Browser 规范操作拒绝额外字段；请求包预算为 170000 字节，其他规范请求 12000 字节。选区最大 16 KiB（JSON 编码后）、上下文最大 64 KiB，领取响应预算 65536 字节。
+
+`capabilities.getStatus/list` 在已安装工具的可信前台复核剪贴板/下载实际 API；SW 单独查询返回 `E_FRONTEND_CONTEXT_REQUIRED`。`page.getContext` 可成功返回 `status: unavailable`，其 `callableNow` 表示方法可调用，不能当作有可用网页。菜单状态读取与幂等注销无需网站批准；注册仍需要工具能力、Chrome `contextMenus` 与当前网站批准。领取状态需当前有效票据、同一 action、实例、安装代际、包摘要、获准 origin 和真实文档匹配。查询之后真正执行仍重查权限和身份。
+
+菜单注销清除旧票据；重新注册不复活旧选区。异步校验/确认存储跨过 60 秒截止时间不交付内容；同步时清理过期选区。SW 请求带挂载包 SHA-256，锁内拒绝同版本内容替换后的旧请求。页面 BFCache 暂停时取消旧 pending，恢复仅重建来源监听，不恢复旧请求或旧选区。
+
+剩余三项的本轮决策：`tabs.open`、`tabs.focus`、`sidePanel.openSelf` 继续 **PLANNED**，调用返回 `E_SERVICE_UNSUPPORTED`，没有便捷方法。现有 Tabs driver 只注入固定资源；未建立供第三方工具使用的不可伪造 tab 引用及网站授权/打开批准合同。`clicked:*` 是选区来源的描述性引用，不是控制标签页的凭据。Side Panel 的真实用户手势来自原生菜单，由既有可信 Host 执行；不能把沙箱 `postMessage` 当作 Chrome 原生手势。参照 [Chrome Side Panel open](https://developer.chrome.com/docs/extensions/reference/api/sidePanel#method-open)。本轮不扩大 v1/v2 工具能力白名单，不开放通知、截图、录屏或语音。
+
+错误码补充：`E_LIMIT`（UTF-8/数据超限）、`E_SCHEMA`（参数/文件名）、`E_TOOL_CHANGED`（包摘要/代际/版本变化）、`E_LAUNCH_EXPIRED`（已领取/注销/到期）、`E_DOCUMENT_CHANGED`（同 URL 换文档/导航）、`E_LAUNCH_UNAVAILABLE`（状态查询无有效上下文）、`E_OUTCOME_UNKNOWN`（存储写入未确认）。未知写入结果先核对存储，禁止自动重放。

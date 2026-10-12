@@ -11,9 +11,11 @@ export const BROWSER_MENU_ROOT='opendesk.browser.root';
 const shared={apiVersion:BROWSER_API_VERSION,platform:'chrome>=138',timeout:8000,maxRequestBytes:12000,maxResponseBytes:12000};
 function entry(operation,capability,contexts,chromePermissions,effect,risk,siteScope='none',state='IMPLEMENTED',lifecycle='request'){
   return Object.freeze({...shared,operation,namespace:operation.split('.').slice(0,-1).join('.'),
+    maxRequestBytes:['browser.clipboard.writeText','browser.downloads.text'].includes(operation)?170000:shared.maxRequestBytes,
+    maxResponseBytes:['browser.launch.consume','browser.page.getSelection'].includes(operation)?65536:shared.maxResponseBytes,
     implementation:state,supportedContexts:Object.freeze(contexts),requiredCapabilities:capability?[capability]:[],
     requiredChromePermissions:chromePermissions,effectClass:effect,riskLevel:risk,siteScope,
-    requiresUserGesture:false,lifecycle,
+    requiresUserGesture:operation==='browser.sidePanel.openSelf',lifecycle,
     inputSchema:'strict-operation-specific',outputSchema:'versioned-json'});
 }
 const tool=['sidebar-tool'],both=['sidebar-tool','page-sdk'];
@@ -82,6 +84,15 @@ export function normalizeBrowserOperation(operation,args={}){
          new Set(args.actionIds).size!==args.actionIds.length||
          !args.actionIds.every(id=>typeof id==='string'&&/^[a-z][a-z0-9-]{0,39}$/.test(id)))
          throw fail('E_SCHEMA','Invalid context menu action IDs');
+      break;
+    case 'browser.clipboard.writeText': case 'browser.downloads.text':
+      fields(args,operation==='browser.downloads.text'?['text','filename']:['text'],
+        operation==='browser.downloads.text'?['text','filename']:['text']);
+      if(typeof args.text!=='string'||!args.text||new TextEncoder().encode(args.text).length>150000)
+        throw fail('E_LIMIT','Export text must contain 1–150000 UTF-8 bytes');
+      if(operation==='browser.downloads.text'&&(typeof args.filename!=='string'||args.filename.length>90||
+         !/^[^/\\\x00-\x1f:?*"<>|]+\.md$/i.test(args.filename)||args.filename.startsWith('.')))
+        throw fail('E_SCHEMA','A safe Markdown .md filename of at most 90 characters is required');
       break;
     default: throw fail('E_SERVICE_UNSUPPORTED','This Browser SDK operation is not executable');
   }

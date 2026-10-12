@@ -7,8 +7,8 @@ import {projectFoundationError} from '../platform/protocol.js';
 
 export function installPageRelay({window = globalThis.window, api = globalThis.chrome, CustomEvent = globalThis.CustomEvent,
   clock = Date, setTimer = setTimeout, clearTimer = clearTimeout} = {}) {
-  const pending = new Map(); let disposed = false;
-  const counts = () => Object.freeze({pending: pending.size, timers: pending.size, subscriptions: disposed ? 0 : 6, ports: 0, workers: 0, blobs: 0});
+  const pending = new Map(); let disposed = false, suspended = false;
+  const counts = () => Object.freeze({pending: pending.size, timers: pending.size, subscriptions: disposed ? 0 : suspended ? 2 : 7, ports: 0, workers: 0, blobs: 0});
   const resourceDiagnostics = () => Object.freeze({scope: 'relay.window', counts: counts(), observationMissing: null});
   const projectError = projectFoundationError;
   const publish = (type, requestId, response, helloId) => {
@@ -29,7 +29,7 @@ export function installPageRelay({window = globalThis.window, api = globalThis.c
     } catch (error) { reject(fail('E_EFFECT_UNKNOWN', error.message)); }
   });
   async function messager(event) {
-    if (disposed) return;
+    if (disposed || suspended) return;
     let id, helloId, entry, digest, responseEvent = event.type === SDK_HELLO_EVENT ? SDK_READY_EVENT : SDK_RESULT_EVENT;
     try {
       if ([CHROME_PAGE_EXECUTE, CustomChromeEvt].includes(event.type)) {
@@ -71,7 +71,7 @@ export function installPageRelay({window = globalThis.window, api = globalThis.c
       // Every valid event reaches the sole broker's atomic admission/digest check.
       // Identity, namespace, host registration and grants are never synthesized here.
       const response = await nativeSend(message);
-      if (disposed) return;
+      if (disposed || suspended) return;
       if (response?.ok !== true) finish(entry, digest, {ok: false, error: projectError(response?.error)});
       else if (entry.hello) {
         if (response.data?.sdkVersion !== SDK_VERSION || response.data?.ready !== true) throw fail('E_VERSION', 'Broker Hello is not ready');
@@ -91,13 +91,28 @@ export function installPageRelay({window = globalThis.window, api = globalThis.c
   // observation. Never capture/send selection or page content at this stage.
   // The Side Panel may consume text only after a real Chrome menu selection.
   const onSourceContextMenu=event=>{
-    if(disposed||event?.isTrusted!==true||!api.runtime?.sendMessage)return;
+    if(disposed||suspended||event?.isTrusted!==true||!api.runtime?.sendMessage)return;
     try{
       const pending=api.runtime.sendMessage({protocol:BROWSER_MENU_SOURCE_PROTOCOL,kind:'contextmenu'});
       pending?.catch?.(()=>{}); // A worker suspension cannot turn this into a page error.
     }catch{/* Missing worker is fail-closed: no document proof will exist. */}
   };
   const events = [SDK_HELLO_EVENT, SDK_REQUEST_EVENT, CHROME_PAGE_EXECUTE, CustomChromeEvt];
+  const cancelPending = () => {
+    for (const [entry, digest] of pending) finish(entry, digest, {ok: false, error: {code: 'E_CANCELLED', message: 'Relay document closed'}});
+  };
+  const onPageHide = event => {
+    if(!event.persisted)return removeEventListeners();
+    suspended=true;cancelPending();
+    events.forEach(type=>window.removeEventListener(type,messager));
+    window.removeEventListener('contextmenu',onSourceContextMenu,true);
+  };
+  const onPageShow = event => {
+    if(disposed||!suspended||!event.persisted)return;
+    suspended=false;
+    events.forEach(type=>window.addEventListener(type,messager));
+    window.addEventListener('contextmenu',onSourceContextMenu,true);
+  };
   const removeEventListeners = () => {
     if (disposed) return;
     disposed = true;
@@ -105,13 +120,15 @@ export function installPageRelay({window = globalThis.window, api = globalThis.c
       {ok: false, error: {code: 'E_CANCELLED', message: 'Relay document closed'}});
     events.forEach(type => window.removeEventListener(type, messager));
     window.removeEventListener('contextmenu',onSourceContextMenu,true);
-    window.removeEventListener('pagehide', removeEventListeners);
+    window.removeEventListener('pagehide', onPageHide);
+    window.removeEventListener('pageshow', onPageShow);
   };
   events.forEach(type => window.addEventListener(type, messager));
   window.addEventListener('contextmenu',onSourceContextMenu,true);
-  window.addEventListener('pagehide', removeEventListeners, {once: true});
+  window.addEventListener('pagehide', onPageHide);
+  window.addEventListener('pageshow', onPageShow);
   return Object.freeze({messager, removeEventListeners,
-    diagnostics: () => ({scope: 'relay.window', pending: pending.size, subscriptions: disposed ? 0 : events.length + 2, disposed,
+    diagnostics: () => ({scope: 'relay.window', pending: pending.size, subscriptions: counts().subscriptions, disposed, suspended,
       counts: counts(), observationMissing: null, resources: [resourceDiagnostics()]}),
     resourceDiagnostics});
 }

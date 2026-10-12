@@ -1,7 +1,7 @@
 import {BROWSER_HOST_PROTOCOL,BROWSER_MENU_GRANTS_STORE,normalizeBrowserOperation} from '../framework/sdk/browser-contract.js';
 import {SIDEBAR_TOOL_ENABLE_STORE,requireToolEnableRecords,sidebarToolEnabled,assertSidebarToolEnabled} from './sidebar-tools/lifecycle.js';
 import {SIDEBAR_TOOL_PROTOCOL,SIDEBAR_TOOL_STORE,MAX_INSTALLED_TOOLS,SIDEBAR_TOOL_DATA_LIMITS,
-  sidebarToolStorageKey,validateSidebarToolPackage} from './sidebar-tools/package.js';
+  sidebarToolStorageKey,sidebarToolPackageHash,validateSidebarToolPackage} from './sidebar-tools/package.js';
 import {writeVerifiedLocalValue} from './sidebar-tools/storage-state.js';
 import {toolPageHref} from './sidebar-tools/navigation.js';
 import {loadOfficialCatalog,loadOfficialTool,verifyReviewedOfficialTool,officialToolStatus,matchesOfficialRelease} from '../sidebar-tools/official-catalog.js';
@@ -587,6 +587,11 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     // that would deadlock the host's existing per-tool Web Lock.
     if(operation.startsWith('browser.')){
       normalizeBrowserOperation(operation,payload);
+      // Canonical Browser exports reuse the existing installation-locked host
+      // services and user.export authority, including their confirmed results.
+      if(operation==='browser.clipboard.writeText'||operation==='browser.downloads.text')
+        return dispatch(operation==='browser.clipboard.writeText'?'clipboard.writeText':'file.download',
+          payload,tool,source,token,revocationEpoch);
       const isDiscovery=['browser.capabilities.list','browser.capabilities.getStatus'].includes(operation);
       if(!isDiscovery&&!tool.capabilities.includes(operation==='browser.page.getContext'?'currentPage.read':'browser.contextMenu'))
         throw Object.assign(new Error('此工具没有获准浏览器能力'),{code:'E_TOOL_CAPABILITY_REQUIRED'});
@@ -600,12 +605,30 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
         throw Object.assign(new Error('当前工具实例已撤销'),{code:'E_TOOL_CHANGED'});
       assertSession(source,token);
       const hostInstanceId=new URL(globalThis.location.href).searchParams.get('hostInstanceId');
+      const packageHash=await sidebarToolPackageHash(tool);
+      assertSession(source,token);
       const reply=await api.runtime.sendMessage({protocol:BROWSER_HOST_PROTOCOL,kind:'tool',
         operation,args:payload||{},toolId:tool.id,toolVersion:tool.version,installEpoch:revocationEpoch,
-        toolInstance:token,hostInstanceId});
+        packageHash,toolInstance:token,hostInstanceId});
       assertSession(source,token);
       if(!reply?.ok)throw Object.assign(new Error(reply?.error?.message||'浏览器操作失败'),{
         code:reply?.error?.code||'E_BROWSER'});
+      const frontendStatus=state=>{
+        if(state?.implementation!=='implemented'||state?.authorization?.tool!=='granted')return state;
+        const available=state.operation==='browser.clipboard.writeText'
+          ?Boolean(globalThis.navigator?.clipboard?.writeText)
+          :state.operation==='browser.downloads.text'?Boolean(api.downloads?.download)
+          :state.operation==='browser.page.getContext'?true:null;
+        if(available===null)return state;
+        return {...state,platform:available?'supported':'unsupported',callableNow:available,
+          reasonCode:available?null:'E_CHROME_UNSUPPORTED',nextAction:null};
+      };
+      if(operation==='browser.capabilities.getStatus')return frontendStatus(reply.data);
+      if(operation==='browser.capabilities.list')return reply.data.map(row=>{
+        const state=frontendStatus({operation:row.operation,implementation:row.implementation.toLowerCase(),
+          authorization:{tool:row.status.exposure==='allowed'?'granted':'missing'},...row.status});
+        return {...row,status:{...row.status,callableNow:state.callableNow,reasonCode:state.reasonCode}};
+      });
       return reply.data;
     }
     if(!tool.capabilities.includes(operation.startsWith('storage.')?'storage.local':
@@ -860,7 +883,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     const token=instance,source=event.source,tool=active,revocationEpoch=frameRevocationEpoch;
     let bytes;
     try{bytes=JSON.stringify(message).length;}catch{return;}
-    if(bytes>(['clipboard.writeText','file.download','knowledge.update','knowledge.create'].includes(message.operation)?170000:12000))return;
+    if(bytes>(['clipboard.writeText','file.download','browser.clipboard.writeText','browser.downloads.text','knowledge.update','knowledge.create'].includes(message.operation)?170000:12000))return;
     const reply=(ok,result,error)=>{
       if(sameInstance(source,token))source.postMessage({
         protocol:SIDEBAR_TOOL_PROTOCOL,kind:'response',instance:token,toolId:tool.id,
