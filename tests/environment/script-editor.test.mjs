@@ -25,7 +25,8 @@ class Element {
 globalThis.Option=class extends Element {constructor(text,value){super();this.textContent=text;this.value=value;}};
 const event=()=>{const e=new Element();return {addListener:fn=>e.addEventListener('event',fn),removeListener:fn=>e.removeEventListener('event',fn),emit:(...args)=>{for(const fn of e.listeners.get('event')||[])fn(...args);}};};
 const html=await readFile('src/ui/tool.html','utf8');
-async function fixture(persisted={scripts:[],runs:[],results:[]}, draftStorage, {contextTabId}={}) {
+async function fixture(persisted={scripts:[],runs:[],results:[]}, draftStorage,
+  {contextTabId,componentPreparerFactory,wrapTarget}={}) {
   const nodes=new Map([...html.matchAll(/id="([^"]+)"/g)].map(([,id])=>[id,new Element()]));
   const find=id=>nodes.get(id), view=new Element(), doc={getElementById:find,defaultView:view,createElement:()=>new Element()};
   find('script-id').value='my-script';find('script-source').value='return params.value;';find('script-params').value='{"value":1}';find('script-target-mode').value='current';
@@ -80,7 +81,9 @@ async function fixture(persisted={scripts:[],runs:[],results:[]}, draftStorage, 
       return {state:'preview-evaluated',resultText:'{"ok":true}',sourceHash:'a'.repeat(64)};
     }};
   const target=createCurrentPageTarget({api});await target.ready;
-  const editor=createScriptEditor({client,currentPageTarget:target,api,document:doc,hostFactory:options=>createRunHost({...options,controllerFactory:({context})=>({
+  const testedTarget=wrapTarget?wrapTarget(target):target;
+  const editor=createScriptEditor({client,currentPageTarget:testedTarget,api,document:doc,
+    ...(componentPreparerFactory?{componentPreparerFactory}:{}),hostFactory:options=>createRunHost({...options,controllerFactory:({context})=>({
     execute:async(source,params)=>{executions.push({source,params});context.signal.addEventListener('abort',()=>terminal.resolve({status:context.signal.reason.code==='E_HOST_CLOSED'?'host-closed':'stopped'}),{once:true});return terminal.promise;},
     retired:Promise.resolve({acknowledged:true}),stop(){traces.push('local-stop');},close(){traces.push('local-close');}
   })})});
@@ -594,6 +597,45 @@ test('Run silently checks Chrome permission; denied permission and invalid param
   f.find('script-run').fire('click',{isTrusted:true});assert.equal(f.permissions.length,0);assert.equal(f.starts.length,0);
   permission.resolve(false);await tick();await tick();assert.match(f.find('script-status').textContent,/E_PERMISSION/);assert.equal(f.starts.length,0);
   f.find('script-params').value='invalid json';await f.click('script-run');assert.equal(f.permissions.length,0);assert.equal(f.executions.length,0);
+});
+
+test('R24.3 final asynchronous document check refuses a React component edited before admission',async t=>{
+  const release=deferred(),entered=deferred();
+  let revalidationCount=0;
+  const f=await fixture(undefined,undefined,{
+    componentPreparerFactory:()=>({
+      async prepare({framework,projectId}){
+        return {sourceUtf8:'// @opendesk-lib '+framework+'\nasync function main(){}',
+          entryFormat:'async-main',sourceHash:'a'.repeat(64),framework,projectId,
+          compilerVersion:'7.29.9',cacheHit:false,prepareMs:1};
+      },
+      cancel(){},dispose(){}
+    }),
+    wrapTarget:original=>new Proxy(original,{get(target,key){
+      if(key==='revalidate')return async captured=>{
+        revalidationCount++;
+        if(revalidationCount===2){entered.resolve();await release.promise;}
+        return target.revalidate(captured);
+      };
+      return Reflect.get(target,key);
+    }})
+  });
+  t.after(()=>{release.resolve();f.dispose();});
+  const radio=f.find('page-component-react');
+  radio.checked=true;radio.fire('change');await tick();
+  const first=f.find('script-source').value;
+  assert.match(first,/from 'react'/);
+  f.find('page-preview-run').fire('click',{isTrusted:true});
+  await entered.promise;
+  f.find('script-source').value=first+'\n// user edited while Chrome checked the document';
+  f.find('script-source').fire('input');
+  release.resolve();
+  await tick();await tick();
+  assert.equal(revalidationCount,2);
+  assert.equal(f.previews.length,0,'stale compiled bytes must never reach the existing Page executor');
+  assert.equal(f.find('page-preview-status').dataset.state,'error');
+  assert.match(f.find('page-preview-status').textContent,/E_PAGE_COMPILER_STALE/);
+  assert.equal(f.find('page-preview-run').disabled,false,'new source can be explicitly run after stale admission rejected');
 });
 
 test('DOM preview binds frozen plain JavaScript and exact current document from trusted click',async t=>{

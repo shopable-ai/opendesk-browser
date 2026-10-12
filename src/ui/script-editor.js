@@ -30,7 +30,7 @@ function printable(value, depth = 0) {
 }
 
 export function createScriptEditor({client, currentPageTarget, development=false, api = globalThis.chrome, document: doc = globalThis.document,
-  hostFactory = createRunHost}) {
+  hostFactory = createRunHost,componentPreparerFactory=createBrowserPageComponentPreparer}) {
   const host = hostFactory({api, client, document: doc, templateModuleFactory: null});
   const find = id => doc.getElementById(id);
   const status = find('script-status'), output = find('script-result');
@@ -59,7 +59,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
     for(const [mode,node] of Object.entries(componentInputs))if(node)node.checked=mode===componentMode;
   };
   const componentDrafts={javascript:'',react:componentPresets.react,vue:componentPresets.vue};
-  const browserPreparer=createBrowserPageComponentPreparer({api});
+  const browserPreparer=componentPreparerFactory({api});
   const browserBinding='browser-v1-'+crypto.randomUUID().replaceAll('-','').slice(0,24);
   function componentMessage(state,message){
     if(!componentStatus)return;
