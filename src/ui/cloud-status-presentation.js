@@ -25,7 +25,7 @@ export function projectCloudStatus(raw, {version='未知', capturedAt=new Date()
     online:source.online===true,reconciled:source.reconciled===true,
     hostReady:source.hostReady===true,slotAvailable:source.slotAvailable===true,
     hostOccupied:Boolean(hostOccupied),approvedTasks:boundedCount(source.tasks?.length),
-    requests:{total:boundedCount(rows.length),sampled:boundedCount(sampled.length),states:counts,
+    requests:{total:boundedCount(source.requestTotal??rows.length),sampled:boundedCount(sampled.length),states:counts,
       receivedReceipts:boundedCount(receipts),releasedSlots:boundedCount(retired)}
   };
 }
