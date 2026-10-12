@@ -5,10 +5,45 @@ import {nextScheduleAt,recentMissedAt} from './schedule-time.js';
 
 export function createScheduleRepository({storage,clock,namespace,session}){
   const now=()=>clock.now();
-  const definitions=async tx=>(await tx.all('frameworkKV'))
+  // Existing v2 IndexedDB cursor reads by primary-key prefix; legacy unit
+  // shims retain the tx.all fallback. No new store or migration is introduced.
+  async function keyedRows(tx,store,prefix){
+    if(typeof tx.scan!=='function')return tx.all(store);
+    const rows=[];let offset=0;
+    for(;;){
+      const page=await tx.scan(store,{prefix,offset,limit:256});
+      rows.push(...page);offset+=page.length;
+      if(page.length<256)break;
+    }
+    return rows;
+  }
+  const definitions=async tx=>(await keyedRows(tx,'frameworkKV',SCHEDULE_DEFINITION_PREFIX))
     .filter(row=>row?.tag==='schedule-definition-v1'&&row.namespace===namespace&&!row.deleted);
-  const fires=async tx=>(await tx.all('frameworkKV'))
+  const fires=async tx=>(await keyedRows(tx,'frameworkKV',SCHEDULE_FIRE_PREFIX))
     .filter(row=>row?.tag==='schedule-fire-v1'&&row.namespace===namespace);
+  async function historySlice(tx,definition,offset=0,limit=20){
+    const prefix=SCHEDULE_FIRE_PREFIX+'sched:'+definition.scheduleId+':';
+    const rows=typeof tx.scan==='function'?
+      await tx.scan('frameworkKV',{prefix,direction:'prev',offset,limit:limit+1}):
+      (await fires(tx)).filter(row=>row.scheduleId===definition.scheduleId)
+        .sort((a,b)=>b.scheduledAt-a.scheduledAt).slice(offset,offset+limit+1);
+    return rows.filter(row=>row?.tag==='schedule-fire-v1'&&
+      row.namespace===namespace&&row.scheduleId===definition.scheduleId)
+      .sort((a,b)=>b.scheduledAt-a.scheduledAt);
+  }
+  async function hydrateHistory(tx,rows){
+    const hydrated=[];
+    for(const fire of rows){
+      const run=fire.runId?await tx.get('runs',fire.runId):null;
+      hydrated.push({...fire,status:run?
+        (run.state==='paused_unknown'?'UNKNOWN':run.retirementState==='released'?
+        (run.state==='completed'?'SUCCESS':run.state==='stopped'?'STOPPED':'FAILED'):
+        ['completed','failed','stopped','interrupted'].includes(run.state)?'SETTLING':'RUNNING'):
+        fire.status,resultId:run?.resultId??fire.resultId??null,
+        retirementState:run?.retirementState??null});
+    }
+    return hydrated;
+  }
   async function checkInstalled(tx,input){
     const install=await tx.get('frameworkKV',installedKey(namespace,input.taskId));
     invariant(install?.tag==='task-installed-v1'&&install.enabled&&
@@ -68,7 +103,7 @@ export function createScheduleRepository({storage,clock,namespace,session}){
     invariant(activeDocumentIds===undefined||activeDocumentIds===null||activeDocumentIds instanceof Set,'E_SCHEMA','Live host document set required');
     const time=now();
     return storage.transaction(['frameworkKV','commandJournal'],'readwrite',async tx=>{
-      const activeHost=(await tx.all('commandJournal')).some(row=>row?.tag==='host'&&
+      const activeHost=(await keyedRows(tx,'commandJournal','host:')).some(row=>row?.tag==='host'&&
         row.namespace===namespace&&row.active&&!row.revoked&&
         (session===undefined||row.browserSessionIncarnation===session)&&
         (activeDocumentIds==null||activeDocumentIds.has(row.hostDocumentId)));
@@ -110,30 +145,33 @@ export function createScheduleRepository({storage,clock,namespace,session}){
   }
   async function list(){
     return storage.transaction(['frameworkKV','runs'],'readonly',async tx=>{
-      const all=await definitions(tx),allFires=await fires(tx);
-      const installs=new Map();
-      for(const def of all)if(!installs.has(def.taskId))
-        installs.set(def.taskId,await tx.get('frameworkKV',installedKey(namespace,def.taskId)));
-      const scheduleRows=all.map(def=>{
-        const history=allFires.filter(f=>f.scheduleId===def.scheduleId)
-          .sort((a,b)=>b.scheduledAt-a.scheduledAt).slice(0,20);
+      const all=await definitions(tx),scheduleRows=[],installs=new Map();
+      for(const def of all){
+        if(!installs.has(def.taskId))
+          installs.set(def.taskId,await tx.get('frameworkKV',installedKey(namespace,def.taskId)));
         const installed=installs.get(def.taskId);
         const needsAttention=!installed||!installed.enabled||installed.version!==def.version||
           installed.manifestHash!==def.manifestHash||
           installed.authorization?.installationId!==def.installationId||
           installed.authorization?.generation!==def.taskGeneration;
-        return {...def,needsAttention,history};
-      });
-      const runIds=new Set(scheduleRows.flatMap(d=>d.history.map(f=>f.runId).filter(Boolean)));
-      const runs=new Map();
-      for(const id of runIds)runs.set(id,await tx.get('runs',id));
-      return scheduleRows.map(d=>({...d,history:d.history.map(f=>{
-        const run=runs.get(f.runId);
-        return {...f,status:run?(run.state==='paused_unknown'?'UNKNOWN':run.retirementState==='released'?
-          (run.state==='completed'?'SUCCESS':run.state==='stopped'?'STOPPED':'FAILED'):
-          ['completed','failed','stopped','interrupted'].includes(run.state)?'SETTLING':'RUNNING'):f.status,
-          resultId:run?.resultId??f.resultId??null,retirementState:run?.retirementState??null};
-      })}));
+        const history=await hydrateHistory(tx,(await historySlice(tx,def,0,20)).slice(0,20));
+        scheduleRows.push({...def,needsAttention,history});
+      }
+      return scheduleRows;
+    });
+  }
+  async function history({scheduleId,offset=0,limit=20}={}){
+    scheduleKey(scheduleId);
+    invariant(Number.isSafeInteger(offset)&&offset>=0&&offset<=100000&&
+      Number.isSafeInteger(limit)&&limit>=1&&limit<=50,
+      'E_SCHEMA','Invalid history pagination');
+    return storage.transaction(['frameworkKV','runs'],'readonly',async tx=>{
+      const def=await tx.get('frameworkKV',scheduleKey(scheduleId));
+      invariant(def?.tag==='schedule-definition-v1'&&def.namespace===namespace,
+        'E_SCHEMA','Unknown schedule');
+      const page=await historySlice(tx,def,offset,limit);
+      return {scheduleId,offset,limit,hasMore:page.length>limit,
+        history:await hydrateHistory(tx,page.slice(0,limit))};
     });
   }
   async function ready(){
@@ -181,6 +219,6 @@ export function createScheduleRepository({storage,clock,namespace,session}){
     await tx.put('frameworkKV',{...fire,status:'ADMITTED',runId:run.runId,
       resultId:run.resultId,admittedAt:now()},fireKey(fire.fireId));
   }
-  return {save,changeState,reconcile,list,ready,recordWait,admit,bind,
+  return {save,changeState,reconcile,list,history,ready,recordWait,admit,bind,
     definitions:()=>storage.transaction(['frameworkKV'],'readonly',definitions)};
 }

@@ -297,7 +297,7 @@ export function createRunAuthority({storage, api, session, entitlement, validate
   // All former Template operations are unusable without the trusted optional
   // consumer. Do not ship their handlers in the fixed worker; keep recovery,
   // controller/SDK/Task admission, target fencing and host ownership intact.
-  return {...sdk, ...controller, ...tasks, ...Object.fromEntries(['saveSchedule','changeSchedule','listSchedules','listDueSchedules','setScheduleFireState'].map(name=>[name,schedules[name]])), cloud, schedules,
+  return {...sdk, ...controller, ...tasks, ...Object.fromEntries(['saveSchedule','changeSchedule','listSchedules','listScheduleHistory','listDueSchedules','setScheduleFireState'].map(name=>[name,schedules[name]])), cloud, schedules,
     ...Object.fromEntries(['installTask','setInstalledTaskEnabled','uninstallTask'].map(name=>[name,async(request,sender)=>{cloud?.invalidate();const outcome=await tasks[name](request,sender);
       await notifyTaskChanged(request.taskId).catch(error=>console.warn('Installed task event',error));return outcome;} ])),
     ...Object.fromEntries((cloud?['cloudStatus','cloudPair','cloudApprove','cloudStop','cloudUnpair','cloudNext','cloudResolve']:[]).map(name=>[name,cloud[name]])),
