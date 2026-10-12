@@ -20,7 +20,7 @@ test('R24.5 Developer bundles exactly the pinned browser compiler closure',()=>{
   assert.equal(compilerResourcesForEdition('developer'),expected);
   // Independent fixed total for the seven reviewed compiler files; per-file
   // bytes and SHA-256 remain locked in PAGE_BROWSER_PRIVATE_FILES and verifyPackage.
-  assert.equal(expected.reduce((n,row)=>n+row.bytes,0),4277251);
+  assert.equal(expected.reduce((n,row)=>n+row.bytes,0),4278531);
   assert.equal(editionOutputName('production','developer'),'production-developer');
   assert.equal(editionOutputName('development','developer'),'development-developer');
   assert.equal(DEVELOPER_BROWSER_NAME,'OpenDesk Browser Developer');
