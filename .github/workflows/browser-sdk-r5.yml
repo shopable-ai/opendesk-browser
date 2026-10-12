@@ -13,6 +13,13 @@ on:
       - 'tests/environment/browser-*.test.mjs'
       - 'tests/environment/browser-sdk-*.test.mjs'
       - 'docs/framework/workstreams/browser-sdk-*'
+      - 'docs/framework/workstreams/browser-framework-four-layer-ledger.json'
+      - 'docs/framework/workstreams/browser-cookies-r6.md'
+      - 'docs/api/browser-framework-four-layer-ledger.zh-CN.md'
+      - 'docs/api/browser-sdk-full-interface-inventory.zh-CN.md'
+      - 'docs/api/browser-capability-universe.zh-CN.md'
+      - 'scripts/check-browser-framework-ledger.mjs'
+      - 'tests/environment/browser-framework-ledger.test.mjs'
       - '.github/workflows/browser-sdk-r5.yml'
   workflow_dispatch:
 permissions:
@@ -45,6 +52,10 @@ jobs:
             tests/environment/browser-sdk-r2-demo.test.mjs
       - name: Browser SDK exact registry and human acceptance ledger
         run: node scripts/check-browser-sdk-coverage.mjs --check
+      - name: Browser framework four-layer registry and Cookie priority ledger
+        run: |
+          node scripts/check-browser-framework-ledger.mjs --check
+          node --test tests/environment/browser-framework-ledger.test.mjs
       - name: Source checks
         run: npm run check
   sdk-product-bundles:

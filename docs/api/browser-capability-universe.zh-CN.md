@@ -1,5 +1,8 @@
 # Browser Capability Universe · OpenDesk Browser R1.3
 
+> **当前四层总账入口**：[OpenDesk 浏览器框架四层总账](browser-framework-four-layer-ledger.zh-CN.md)。本文 18 领域、74 能力叶子是历史审计范围，不等于当前正式 SDK 的 35 项或候选 114 项；不要把叶子统计提升为完成比例。
+
+
 **核查范围**：18 个浏览器功能域、74 个叶子能力；以本次目标仓库的 Chrome 138+ Manifest、当前源码及 R1.3 变更为依据。此矩阵是**审计和扩展规划**，不构成额外的权限批准名单，不能据此直接向工具沙箱开放 `chrome.*`。
 
 ## 状态与证据规则

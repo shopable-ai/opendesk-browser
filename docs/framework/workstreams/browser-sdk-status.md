@@ -1,5 +1,8 @@
 ## R5 已取得同候选 Node/Build 证据（2026-10-12）
 
+> **2026-10-13 四层总账入口**：[浏览器框架四层矩阵](../../api/browser-framework-four-layer-ledger.zh-CN.md) / [机器可读账本](browser-framework-four-layer-ledger.json) / [Cookie R6 框架优先任务](browser-cookies-r6.md)。原 35 项正式接口与验收账本保持权威，本轮只是把 Chrome 原生、Driver/Host、SDK 开放与 Native/CI 验收拆分追踪；Cookies 0/10 未登记。以下各轮原始记录仍保留。
+
+
 - **本次真实源码候选 Git SHA：** `90239cd4d2145f8055aa847854d252f3c93dae4a`。定向 CI：https://github.com/shopable-ai/opendesk-browser/actions/runs/38269129236（**SUCCESS**；Node Browser SDK 测试、真实 Host 模拟、来源校验、生产构建、开发构建、尺寸门槛及 Verify 均 PASS）。
 - **可调用源码合同**：35 项 = 原 32 项（23 IMPLEMENTED / 7 PLANNED / 2 NOT_EXPOSED）+ R5 三项正式新增 `browser.tabs.getOwned`、`listOwned`、`closeOwned`，共 26 SOURCE_WIRED、7 PLANNED、2 NOT_EXPOSED。R5+ 初始 114 候选剩 111 未批准。
 - **有组件级正向/拒绝证据**：本轮三项 Tabs 新接口的 Host、Schema、归属、导航和未知结果测试均获 Node CI PASS；证据文件：`docs/framework/evidence/browser-sdk-r5/r5-ci-90239cd4.json`（SHA-256 `191ba9eed5696ec6a44e61bdb0641dfeb5bf1182967527ce9252786188927b16`）。其余 23 个旧接口的逐项最新验收，不因一个集中 CI 自动提升。
