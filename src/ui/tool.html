@@ -236,6 +236,27 @@
           <div id="installed-page-tools-list" class="od-stack"></div>
           <p id="installed-page-tools-status" class="hint" role="status" aria-live="polite"></p>
         </section>
+        <details id="trusted-cookie-panel" class="trusted-cookie-panel od-surface" aria-label="当前网页 Cookie 管理">
+          <summary><strong>Cookie 管理</strong><span class="hint">受信浏览器界面 · 按需读取</span></summary>
+          <div class="trusted-cookie-content">
+            <p id="trusted-cookie-target" class="identity">尚未选择 HTTP(S) 网页</p>
+            <p class="hint">仅在本扩展受信界面操作。仅匹配当前网页 URL；不会读取或传递给已安装工具脚本。值默认隐藏，浏览器站点权限仍须独立批准。</p>
+            <button id="trusted-cookie-read" type="button" class="od-button">读取当前网页 Cookie</button>
+            <p id="trusted-cookie-status" role="status" aria-live="polite" class="hint">请主动点击读取；不会在打开界面时自动获取 Cookie。</p>
+            <div id="trusted-cookie-rows" class="trusted-cookie-list" aria-label="已读取的 Cookie"></div>
+            <details class="trusted-cookie-write">
+              <summary>创建或修改 Cookie</summary>
+              <label for="trusted-cookie-name">名称</label>
+              <input id="trusted-cookie-name" type="text" maxlength="256" autocomplete="off">
+              <label for="trusted-cookie-value">值（敏感）</label>
+              <input id="trusted-cookie-value" type="password" maxlength="4096" autocomplete="off" data-sensitive="true">
+              <label for="trusted-cookie-path">路径</label>
+              <input id="trusted-cookie-path" type="text" maxlength="512" value="/" autocomplete="off">
+              <button id="trusted-cookie-save" type="button" class="od-button">写入 Cookie</button>
+              <p class="hint">写入和删除需要再次点击确认，不会在未知结果后自动重试。</p>
+            </details>
+          </div>
+        </details>
         </section>
         <section id="sidebar-tool-discover-panel" class="sidebar-tool-discover-section" aria-label="可安装的官方工具" hidden>
           <div class="sidebar-tool-discovery-tools">
