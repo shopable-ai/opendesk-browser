@@ -145,3 +145,71 @@ for(const count of [100,1000,10000]){
     assert(Number.isFinite(durationMs)&&Number.isFinite(migrationMs));
   });
 }
+
+const legacyMetaKey='cloud:history:v1:meta:'+encodeURIComponent(namespace);
+async function seedLegacyIndex(storage,rows){
+  const states=Object.fromEntries(['waiting','prepared','permitted','finished','cancelled',
+    'cancellation-pending','OUTCOME_UNKNOWN','other'].map(state=>[state,0]));
+  await storage.transaction([KV],'readwrite',async tx=>{
+    for(const row of rows){
+      const projection={tag:'cloud-history-entry-v1',namespace,requestId:row.requestId,
+        createdAt:row.createdAt,state:row.state};
+      const suffix=String(row.createdAt).padStart(16,'0')+':'+row.requestId;
+      await tx.put(KV,projection,'cloud:history:v1:time:'+encodeURIComponent(namespace)+':'+suffix);
+      await tx.put(KV,projection,'cloud:history:v1:state:'+encodeURIComponent(namespace)+':'+row.state+':'+suffix);
+      states[row.state]++;
+    }
+    await tx.put(KV,{tag:'cloud-history-meta-v1',namespace,total:rows.length,states},legacyMetaKey);
+  });
+}
+const originalRequests=storage=>storage.dump().filter(([key])=>key.startsWith('cloud:request:'));
+const scopedEntry=(pair,state='waiting')=>({...entry(42,state),requestId:'cloud:shared-assignment',
+  storageKey:'cloud:request:'+pair.repeat(64),
+  identity:{pairing:{providerId:'provider',executorId:'executor',pairingId:pair,pairingGeneration:1},
+    jobId:'job-'+pair,claimId:'claim-'+pair,assignmentId:'shared-assignment',attemptEpoch:1}});
+
+test('equal requestId and timestamp across pairings retain distinct original keys and independent state indexes',async()=>{
+  const {storage,index}=fixture(),a=scopedEntry('a'),b=scopedEntry('b','permitted');
+  const legacy={...entry(42,'finished'),requestId:a.requestId};
+  await storage.transaction([KV],'readwrite',async tx=>{
+    await index.put(tx,a);await index.put(tx,b);await index.put(tx,legacy);
+  });
+  const originals=originalRequests(storage);
+  assert.equal(originals.length,3);
+  assert.deepEqual(await index.ensure(),{migrated:true,total:3});
+  assert.deepEqual(originalRequests(storage),originals);
+  const page=await storage.transaction([KV],'readonly',tx=>index.page(tx,{limit:20}));
+  assert.equal(page.total,3);
+  assert.deepEqual(new Set(page.rows.map(row=>row.storageKey||'cloud:request:'+row.requestId)),
+    new Set([a.storageKey,b.storageKey,'cloud:request:'+legacy.requestId]));
+  assert.equal(page.states.waiting,1);assert.equal(page.states.permitted,1);assert.equal(page.states.finished,1);
+  await storage.transaction([KV],'readwrite',tx=>index.put(tx,{...a,state:'finished'}));
+  const finished=await storage.transaction([KV],'readonly',tx=>index.page(tx,{limit:20,state:'finished'}));
+  assert.equal(finished.total,3);assert.equal(finished.matchingTotal,2);assert.equal(finished.states.waiting,0);
+  assert.deepEqual(storage.dump().find(([key])=>key===b.storageKey)[1],b);
+  assert.deepEqual(storage.dump().find(([key])=>key==='cloud:request:'+legacy.requestId)[1],legacy);
+  assert.equal(originalRequests(storage).length,3);
+});
+
+test('preexisting legacy index falls back read-only and upgrades atomically around scoped request mutations',async()=>{
+  const {storage,index}=fixture(2),legacyRows=[entry(0,'finished'),entry(1)];
+  await seedLegacyIndex(storage,legacyRows);
+  const oldMeta=storage.dump().find(([key])=>key===legacyMetaKey)[1];
+  const modern={...scopedEntry('a'),requestId:legacyRows[0].requestId,createdAt:legacyRows[0].createdAt};
+  await storage.transaction([KV],'readwrite',tx=>index.put(tx,modern));
+  assert.deepEqual(storage.dump().find(([key])=>key===legacyMetaKey)[1],oldMeta);
+  const before=storage.dump(),originals=originalRequests(storage);
+  assert.equal(await storage.transaction([KV],'readonly',tx=>index.page(tx,{limit:20})),null);
+  assert.deepEqual(storage.dump(),before,'Observer must not upgrade an old index');
+  assert.deepEqual(await index.ensure(),{migrated:true,total:3});
+  assert.deepEqual(originalRequests(storage),originals);
+  assert.equal(storage.countPrefix('cloud:history:v1:'),7,'replace private projections without duplicating old entries');
+  assert.equal(storage.dump().find(([key])=>key===legacyMetaKey)[1].keyVersion,2);
+  const page=await storage.transaction([KV],'readonly',tx=>index.page(tx,{limit:20}));
+  assert.equal(page.total,3);assert.equal(page.states.finished,1);assert.equal(page.states.waiting,2);
+  assert.deepEqual(await index.ensure(),{migrated:false,total:3});
+  await storage.transaction([KV],'readwrite',tx=>index.put(tx,{...legacyRows[1],state:'permitted'}));
+  const permitted=await storage.transaction([KV],'readonly',tx=>index.page(tx,{limit:20,state:'permitted'}));
+  assert.equal(permitted.matchingTotal,1);assert.equal(permitted.rows[0].storageKey,undefined);
+  assert.equal(originalRequests(storage).length,3);
+});
