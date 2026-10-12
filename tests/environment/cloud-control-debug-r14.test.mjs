@@ -48,7 +48,7 @@ test('late diagnostics after disposal are ignored',async()=>{
  const operation=debug.refresh();debug.dispose();resume(response);await operation;
  assert.equal(map.get('debug-snapshot').textContent,'');
 });
-test('production keeps hidden sixth tab and cannot navigate into it',async()=>{
+test('production Cloud tab is visible in Side Panel while Debug remains hidden',async()=>{
  const [entry,work,html,css,cloud,debug]=await Promise.all([
    read('src/entrypoints/tool-shell.js'),read('src/ui/task-workbench.js'),read('src/ui/tool.html'),
    read('src/ui/tool-shell.css'),read('src/ui/cloud-hosting.js'),read('src/ui/debug-workbench.js')]);
@@ -57,7 +57,7 @@ test('production keeps hidden sixth tab and cannot navigate into it',async()=>{
  assert.match(work,/if\(debugEnabled\)tabOrder\.push\(\['debug','tab-debug'\]\)/);
  assert.match(html,/<button[^>]*id="tab-debug"[^>]*hidden>调试<\/button>/);
  assert.match(html,/id="workbench-debug" role="tabpanel"[^>]*hidden>/);
- assert.match(css,/\.workbench-nav\[data-debug-enabled=true\]\{grid-template-columns:repeat\(6,minmax\(0,1fr\)\)/);
+ assert.match(css,/\.workbench-nav\{[^}]*display:flex;[^}]*overflow-x:auto;/);
  assert.ok(html.indexOf('id="task-installed-cards"')<html.indexOf('id="cloud-hosting"'), 'tasks first; cloud config below');
  assert.doesNotMatch(cloud,/JSON\.stringify\(s,null,2\)/);
  assert.doesNotMatch(debug,/cloudNext\s*\(|cloudResolve\s*\(|host\.start\s*\(/);

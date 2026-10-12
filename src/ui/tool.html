@@ -2,12 +2,13 @@
 <html lang="zh-CN">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="frame-src 'self'"><title>OpenDesk Browser</title><link rel="stylesheet" href="design-tokens.css"><link rel="stylesheet" href="design-system.css"><link rel="stylesheet" href="tool-shell.css"></head>
 <body>
-<nav class="workbench-nav" role="tablist" aria-label="工作台">
+<nav class="workbench-nav" role="tablist" aria-label="工作台" aria-description="较窄时可以横向滚动；左右方向键以及 Home、End 切换页签">
   <button type="button" id="tab-my-tasks" role="tab" tabindex="0" data-workbench-tab="tasks" aria-selected="true" aria-controls="workbench-tasks">我的</button>
   <button type="button" id="tab-discover" role="tab" tabindex="-1" data-workbench-tab="discover" aria-selected="false" aria-controls="workbench-local-discover">发现</button>
   <button type="button" id="tab-workflow" role="tab" tabindex="-1" data-workbench-tab="workflow" aria-selected="false" aria-controls="workbench-workflow">工作流</button>
   <button type="button" id="tab-develop" role="tab" tabindex="-1" data-workbench-tab="develop" aria-selected="false" aria-controls="workbench-develop">开发</button>
   <button type="button" id="tab-tools" role="tab" tabindex="-1" data-workbench-tab="tools" aria-selected="false" aria-controls="workbench-tools">工具</button>
+  <button type="button" id="tab-cloud" role="tab" tabindex="-1" data-workbench-tab="cloud" aria-selected="false" aria-controls="workbench-cloud" hidden>云控</button>
   <button type="button" id="tab-debug" role="tab" tabindex="-1" data-workbench-tab="debug" aria-selected="false" aria-controls="workbench-debug" hidden>调试</button>
 </nav>
 <main id="workspace-content">
@@ -45,20 +46,10 @@
       </details>
       </div>
     </section>
-    <details id="cloud-hosting" class="task-scope-panel"><summary>云端托管 · 已安装任务 <span id="cloud-brief" class="cloud-status-brief">未配对</span></summary>
-        <label>提供者地址 <input id="cloud-url" type="url" placeholder="https://可信提供者地址"></label>
-        <label>提供者身份 <input id="cloud-provider-id" autocomplete="off"></label>
-        <label>配对码 <input id="cloud-pairing-code" type="password" autocomplete="off"></label>
-        <label><input id="cloud-loopback" type="checkbox">明确允许固定本地测试提供者 HTTP/WS</label>
-        <p class="hint">云控框架已内置，无需在「工具」中导入。开发回环服务请输入 http://127.0.0.1:43112 并明确允许本地测试；普通服务器应使用 HTTPS。</p>
-        <button id="cloud-pair" type="button">配对提供者</button>
-        <p>先在下方安装并选择任务。托管授权固定当前安装版本、摘要、授权代次及该任务网站范围。</p>
-        <label><input id="cloud-consent" type="checkbox">批准所选固定任务和网站范围，在合法浏览器执行宿主可用时运行</label>
-        <label><input id="cloud-result-consent" type="checkbox">允许该固定任务结果回传</label>
-        <div><button id="cloud-approve" type="button">批准并启用托管</button><button id="cloud-stop" type="button">停止托管并请求取消</button><button id="cloud-unpair" type="button">解除配对</button><button id="cloud-refresh" type="button">核对状态</button></div>
-        <p class="hint">关闭 Side Panel 后不承诺无人值守执行。停止后保留取消处理中、退休待核对和未知结果；正常重连复用已有授权。</p>
-        <p id="cloud-status" role="status" aria-live="polite">尚未配对</p>
-      </details>
+    <section class="cloud-my-entry od-surface" aria-label="云控状态与入口">
+      <div class="cloud-my-copy"><strong>云控</strong><span id="cloud-my-state" role="status" aria-live="polite">正在检查云控状态…</span></div>
+      <button type="button" id="cloud-my-open" class="od-icon-button" title="进入云控" aria-label="进入云控选项卡" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></button>
+    </section>
   </div>
   <div id="workbench-tools" role="tabpanel" aria-labelledby="tab-tools" class="od-page" data-workbench-page="tools" hidden>
     <section id="sidebar-tools" class="sidebar-tools" aria-label="自定义工具">
@@ -181,6 +172,45 @@
           <button type="button" id="sidebar-tool-inline-remove-cancel" class="od-button od-button--secondary">取消</button>
         </div>
       </section>
+    </section>
+  </div>
+  <div id="workbench-cloud" role="tabpanel" aria-labelledby="tab-cloud" class="od-page" data-workbench-page="cloud" hidden>
+    <section class="cloud-panel od-stack" aria-label="云控管理">
+      <header class="cloud-panel-head od-toolbar">
+        <div class="cloud-panel-heading"><strong>云控</strong><p class="hint">与当前目标网页并排查看云任务及执行状态。</p></div>
+        <button type="button" id="cloud-overview-refresh" class="od-icon-button" title="刷新云控状态" aria-label="刷新云控状态"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 0 0-14-5L4 8m0-5v5h5M4 13a8 8 0 0 0 14 5l2-2m0 5v-5h-5"/></svg></button>
+      </header>
+      <section class="cloud-overview od-surface" aria-label="云控实时概览">
+        <p id="cloud-overview-state" role="status" aria-live="polite">正在读取云控状态…</p>
+        <div class="cloud-overview-metrics">
+          <div><span>提供者</span><strong id="cloud-overview-provider">检测中</strong></div>
+          <div><span>连接</span><strong id="cloud-overview-connection">检测中</strong></div>
+          <div><span>执行宿主</span><strong id="cloud-overview-host">检测中</strong></div>
+          <div><span>执行槽</span><strong id="cloud-overview-slot">检测中</strong></div>
+          <div><span>已批准任务</span><strong id="cloud-overview-tasks">—</strong></div>
+          <div><span>云请求数</span><strong id="cloud-overview-requests">—</strong></div>
+        </div>
+      </section>
+      <section class="cloud-requests od-surface" aria-label="云请求状态样本">
+        <div class="cloud-section-title od-toolbar"><strong>请求状态</strong><span class="hint">最多 5 条，脱敏显示</span></div>
+        <ol id="cloud-request-samples" class="cloud-request-samples"><li>暂无云请求</li></ol>
+      </section>
+    <details id="cloud-hosting" class="task-scope-panel"><summary>连接与授权 <span id="cloud-brief" class="cloud-status-brief">未配对</span></summary>
+        <label>提供者地址 <input id="cloud-url" type="url" placeholder="https://可信提供者地址"></label>
+        <label>提供者身份 <input id="cloud-provider-id" autocomplete="off"></label>
+        <label>配对码 <input id="cloud-pairing-code" type="password" autocomplete="off"></label>
+        <label><input id="cloud-loopback" type="checkbox">明确允许固定本地测试提供者 HTTP/WS</label>
+        <p class="hint">云控框架已内置，无需在「工具」中导入。开发回环服务请输入 http://127.0.0.1:43112 并明确允许本地测试；普通服务器应使用 HTTPS。</p>
+        <button id="cloud-pair" type="button">配对提供者</button>
+        <p>请先在「我的」安装并选择任务。托管授权固定当前安装版本、摘要、授权代次及该任务网站范围。</p>
+        <label><input id="cloud-consent" type="checkbox">批准所选固定任务和网站范围，在合法浏览器执行宿主可用时运行</label>
+        <label><input id="cloud-result-consent" type="checkbox">允许该固定任务结果回传</label>
+        <div><button id="cloud-approve" type="button">批准并启用托管</button><button id="cloud-stop" type="button">停止托管并请求取消</button><button id="cloud-unpair" type="button">解除配对</button><button id="cloud-refresh" type="button">核对状态</button></div>
+        <p class="hint">关闭 Side Panel 后不承诺无人值守执行。停止后保留取消处理中、退休待核对和未知结果；正常重连复用已有授权。</p>
+        <p id="cloud-status" role="status" aria-live="polite">尚未配对</p>
+      </details>
+
+      <p class="hint">云控复用「我的」已安装授权的任务和原 RunHost。切换选项卡不会启动第二个执行器；关闭 Side Panel 后不承诺任务继续运行。</p>
     </section>
   </div>
   <div id="workbench-local-discover" role="tabpanel" aria-labelledby="tab-discover" class="od-page" data-workbench-page="local-discover" hidden>

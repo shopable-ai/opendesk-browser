@@ -39,3 +39,16 @@ export function cloudHostingSummary(status){
   if(!status.slotAvailable)return '连接与对账已完成；执行槽占用中，等待原任务完成及资源释放。';
   return '托管已启用，连接和对账已完成；可等待已批准任务。';
 }
+
+const REQUEST_STATE_LABELS=Object.freeze({waiting:'等待执行',prepared:'已绑定任务',permitted:'已取得许可',finished:'已完成',cancelled:'已取消','cancellation-pending':'取消处理中',OUTCOME_UNKNOWN:'结果待核对'});
+const RUN_STATE_LABELS=Object.freeze({preparing:'准备中',running:'运行中',stopping:'停止中',settling:'结果结算中',completed:'已完成',failed:'失败',stopped:'已停止',interrupted:'已中断',paused_unknown:'结果待核对'});
+export function projectCloudRequestSamples(raw,limit=5){
+  const requests=Array.isArray(raw?.requests)?raw.requests:[];
+  const size=Number.isSafeInteger(limit)?Math.max(0,Math.min(limit,5)):5;
+  return requests.slice(-size).reverse().map(row=>({
+    state:REQUEST_STATE_LABELS[row?.state]||'状态未识别',
+    run:RUN_STATE_LABELS[row?.runState]||'尚无执行状态',
+    settlement:row?.retirementState==='released'?'资源已释放':'资源未确认释放',
+    receipt:row?.receipt!=null?'回执已确认':'回执未确认'
+  }));
+}

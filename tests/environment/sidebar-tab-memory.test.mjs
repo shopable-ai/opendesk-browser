@@ -28,7 +28,7 @@ function fixture({store=storage(),debugEnabled=false}={}){
 }
 
 test('Side Panel restores each previously selected product tab after reopening',async()=>{
-  for(const view of ['tasks','discover','workflow','develop','tools']){
+  for(const view of ['tasks','discover','workflow','develop','tools','cloud']){
     const f=fixture({store:storage({[KEY]:view})});
     await f.memory.restore();
     assert.equal(f.selected,view);

@@ -11,9 +11,9 @@
 #script-version{font-size:11px;overflow-wrap:anywhere}
 .row input,.row select{flex:1 1 120px;width:auto;max-width:100%}
 
-/* Chrome owns the extension identity; five Sidebar views share one trusted RunHost. */
-.workbench-nav{flex:none;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));padding:0 11px;border-bottom:1px solid var(--line);background:#fff}
-.workbench-nav button{min-width:0;min-height:40px;padding:10px 4px 9px;background:transparent;color:#63758e;border:0;border-bottom:2px solid transparent;border-radius:0;font-size:12px;font-weight:650}
+/* Six official tabs and development Debug share one trusted RunHost; only the tablist scrolls. */
+.workbench-nav{flex:none;display:flex;gap:0;min-width:0;max-width:100%;overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;scroll-snap-type:x proximity;scroll-padding-inline:var(--od-page-gutter);scrollbar-width:thin;padding:0 var(--od-page-gutter);border-bottom:1px solid var(--line);background:#fff}
+.workbench-nav button{flex:0 0 auto;min-width:50px;min-height:40px;padding:10px 7px 9px;white-space:nowrap;scroll-snap-align:start;background:transparent;color:#63758e;border:0;border-bottom:2px solid transparent;border-radius:0;font-size:12px;font-weight:650}
 .workbench-nav button[aria-selected=true]{color:#2852bb;border-bottom-color:var(--blue);background:transparent}
 #workspace-content{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scroll-padding-bottom:16px;max-width:980px;width:100%;padding:10px var(--od-page-gutter);margin:0 auto}
 #workspace-content>div[hidden]{display:none!important}
@@ -665,8 +665,7 @@
 #sidebar-tool-retired-draft[hidden]{display:none!important}
 #sidebar-tool-retired-draft-text{width:100%;box-sizing:border-box;min-height:140px;resize:vertical}
 
-/* Development-only Cloud Control observer. Production keeps the five-tab grid. */
-.workbench-nav[data-debug-enabled=true]{grid-template-columns:repeat(6,minmax(0,1fr))}
+/* Production Cloud is the sixth tab; development adds Debug as the seventh. */
 .workbench-nav button[hidden]{display:none!important}
 .cloud-hosting-panel{margin-top:8px}
 .cloud-status-brief{margin-left:5px;color:var(--sub);font-size:11px;font-weight:500}
@@ -687,3 +686,36 @@
 .debug-detail summary{cursor:pointer;font-size:12px;font-weight:650}
 #debug-snapshot{margin:8px 0 0;white-space:pre-wrap;word-break:break-word;overflow:auto;font-size:11px}
 @media(max-width:340px){.debug-metrics{grid-template-columns:1fr}.debug-heading{align-items:flex-start}}
+
+/* Cloud Side Panel, using R27 tokens without any page-wide horizontal scroll. */
+.cloud-my-entry{display:flex;align-items:center;gap:var(--space-2);padding:var(--space-3);min-width:0}
+.cloud-my-copy{display:grid;gap:var(--space-1);flex:1;min-width:0}
+.cloud-my-copy strong{font-size:12px}
+#cloud-my-state{color:var(--od-sub);font-size:11px;line-height:1.5;overflow-wrap:anywhere}
+#cloud-my-open,#cloud-overview-refresh{flex:0 0 var(--od-icon-size)}
+#cloud-my-open svg,#cloud-overview-refresh svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.cloud-panel{min-width:0;gap:var(--space-3)}
+.cloud-panel-head{display:flex;align-items:center;justify-content:space-between;gap:var(--space-2);min-width:0}
+.cloud-panel-heading{min-width:0}
+.cloud-panel-heading strong{font-size:14px}
+.cloud-panel-heading .hint{font-size:11px;line-height:1.5;margin:var(--space-1) 0 0;color:var(--od-sub)}
+.cloud-overview,.cloud-requests{min-width:0;padding:var(--space-3)}
+#cloud-overview-state{margin:0 0 var(--space-3);font-size:12px;line-height:1.5;overflow-wrap:anywhere}
+.cloud-overview-metrics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--space-3)}
+.cloud-overview-metrics>div{display:grid;gap:var(--space-1);min-width:0}
+.cloud-overview-metrics span{color:var(--od-sub);font-size:11px}
+.cloud-overview-metrics strong{font-size:12px;overflow-wrap:anywhere}
+.cloud-section-title{display:flex;align-items:center;justify-content:space-between;gap:var(--space-2)}
+.cloud-section-title strong{font-size:12px}
+.cloud-section-title .hint{min-width:0;margin:0;text-align:right;font-size:11px}
+.cloud-request-samples{display:grid;gap:0;list-style:none;padding:0;margin:var(--space-2) 0 0}
+.cloud-request-samples li{display:flex;align-items:center;justify-content:space-between;gap:var(--space-2);min-width:0;padding:var(--space-2) 0;border-top:1px solid var(--od-line);font-size:11px}
+.cloud-request-samples li span{min-width:0;overflow-wrap:anywhere}
+.cloud-request-samples li span:last-child{color:var(--od-sub);text-align:right}
+#workbench-cloud #cloud-hosting{min-width:0;padding:var(--space-3);margin:0}
+#workbench-cloud #cloud-hosting>summary{cursor:pointer;font-size:12px;font-weight:650}
+#workbench-cloud #cloud-hosting>label{display:block;margin-top:var(--space-2);font-size:12px}
+#workbench-cloud #cloud-hosting label>input:not([type=checkbox]){display:block;min-width:0;width:100%;margin-top:var(--space-1)}
+#workbench-cloud #cloud-hosting>div{display:flex;flex-wrap:wrap;gap:var(--space-2);margin-top:var(--space-2)}
+#workbench-cloud #cloud-hosting>div button{flex:1 1 130px;min-height:36px}
+@media(max-width:270px){.cloud-overview-metrics{grid-template-columns:1fr}}
