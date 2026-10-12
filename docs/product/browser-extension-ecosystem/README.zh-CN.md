@@ -69,6 +69,8 @@ OpenDesk Product Ecosystem
 - [商业实验台账](commercial-experiments.json) — 8 个 EXP、无虚构订单和访谈、不复制 84 个 OPP（R2）
 - [下一轮 GOAL](next-goals.zh-CN.md) — 当前电商验证 GOAL 与历史已废弃提案
 - [商业方向调整：电商优先](commercial-decision-ecommerce-20261012.zh-CN.md) — Page QA 已退出商业路线且实验源码已从 main 移除；先验证电商问题与付费方
+- [X 维度：高商业价值用户与创作者数据工作流](high-value-audience-creator-analytics-x-dimension-r2-20261012.zh-CN.md) — 新增跨行业用户价值轴，纠正“粉丝/流量=付费”假设，记录后台数据、合规导出、候选 MVP 和反证
+- [X 维度 R3 深入研究 GOAL](../../framework/prompts/goal-high-value-user-workflow-research-r3-20261012.zh-CN.md) — 下一轮验证高价值用户与创作者付费工作流
 - [电商工具宇宙](ecommerce-tool-universe.zh-CN.md) — 消费者/卖家/品牌/供应链/生态共 20 个研究领域
 - [电商研究 R1 历史 GOAL](../../framework/prompts/goal-ecommerce-tool-universe-r1.zh-CN.md) — 原始研究范围
 - [电商商业验证 R2 当前 GOAL](../../framework/prompts/goal-ecommerce-tool-universe-r2-commercial-validation.zh-CN.md) — 文档收敛、真实买方与三个 MVP 决策
