@@ -307,3 +307,11 @@ FIX8 将主动观察失败变成不可重试的结果并在外层立即抛出，
 原候选 `6d71854b` 的 Linux／macOS 16/16 与生产包原生回归已绑定原始制品。之后 Native Workspace 的 `workspace.html` 与样式变更曾触发旧候选的包拒绝，并由 `90732696` 在源文件和包审计中修正。R5 原工作流仅监听市场和部分共享构建脚本，**不监听这次实际变化的 Workspace 原始资源**，因此修复后不会自动产生完整新候选的 R5 Chrome 证据。
 
 本次仅给现有 `.github/workflows/app-market-r3.yml` 补精确的固定包输入路径：Workspace HTML、`workspace*.js`、`workspace*.css`、`settings.*`、共享 `design-*.css` 与 Workspace 固定 Tailwind 构建脚本；没有扩展到 `src/native-agent/**` 全目录，也没有建立第二套安装服务。新增一个组件断言持续检查这个 CI 输入闭包。变更工作流会触发一次最新 `main` 的双平台 HTTP + 生产 Chrome 验证，**结果必须由本次真实 run 的原件决定，不能预填 PASS**。未来仅当这些受影响的包输入变化时重跑对应原生链路；上游固定候选结果永久保留。
+
+
+## 共享 Developer 编译器资源基线与 R5 生产回归（2026-10-12）
+
+R5 新候选 `13373cc1` 的 Linux HTTP 安装原生 16/16 PASS；生产插件在 Chrome 原生生命周期中也为 `REAL_CHROME_FIXTURE_PASS`，但 `npm test` 有两项失败，不能称生产 Job PASS：旧 R24.5 测试把 Developer 专用离线编译器合集锁为 4,249,817 字节，而实际固定资源清单已增加到 4,261,533 字节；另一个固定资源统计测试以 Standard fixture 查找 Developer 才存在的 compiler group。后者已由并行 Browser SDK 工作流单独修复，保留其两种 edition 的验证。
+
+本次只更新 R24.5 的**独立合集大小基线**，仍通过 `PAGE_BROWSER_PRIVATE_FILES` 与 `verifyPackage` 验证每个固定编译器资源的大小、SHA-256、受控加载世界与单资源 4 MiB 上限。没有更改实际编译器、Market 安装器、权限或安全信任根。补充 R5 生产测试触发范围，对共有编译器合同／容量审计脚本及两个环境测试产生的新包级变更执行必要回归。最新候选是否完全通过，以后续同身份的真实 CI Job 和原始 artifact 判断；此前失败日志不可删除。
+

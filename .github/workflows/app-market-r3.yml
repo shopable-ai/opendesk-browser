@@ -38,6 +38,11 @@ on:
       - 'package.json'
       - 'tests/environment/app-market-r3.test.mjs'
       - 'tests/environment/app-market-r5.test.mjs'
+      # Shared Developer/Standard package closure and capacity regression tests.
+      - 'tests/environment/browser-editions-r245.test.mjs'
+      - 'tests/environment/fixed-entries-audit.test.mjs'
+      - 'src/libs/page-frameworks/contract.js'
+      - 'scripts/audit-fixed-entries.mjs'
       - 'tests/environment/market-site-client-r5.test.mjs'
       - 'tests/environment/market-site-media-r5.test.mjs'
       - 'tests/environment/market-cutpoint-observation-r5.test.mjs'

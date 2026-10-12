@@ -18,7 +18,9 @@ test('R24.5 Standard is the default and ships zero browser compiler assets',()=>
 test('R24.5 Developer bundles exactly the pinned browser compiler closure',()=>{
   const expected=PAGE_BROWSER_PRIVATE_FILES;
   assert.equal(compilerResourcesForEdition('developer'),expected);
-  assert.equal(expected.reduce((n,row)=>n+row.bytes,0),4249817);
+  // Independent fixed total for the six reviewed compiler files; per-file
+  // bytes and SHA-256 remain locked in PAGE_BROWSER_PRIVATE_FILES and verifyPackage.
+  assert.equal(expected.reduce((n,row)=>n+row.bytes,0),4261533);
   assert.equal(editionOutputName('production','developer'),'production-developer');
   assert.equal(editionOutputName('development','developer'),'development-developer');
   assert.equal(DEVELOPER_BROWSER_NAME,'OpenDesk Browser Developer');
