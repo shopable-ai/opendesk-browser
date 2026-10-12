@@ -17,6 +17,9 @@ function fixture(){
   downloads:{download:async options=>{calls.downloads.push(options);return 91}}
  };
  return {api,calls,stored,host:()=>createBrowserNetworkObserver({api,clock:{now:()=>now}}),
+  // A real MV3 restart drops all listener registrations from the old Worker.
+  // Recreate the listener set before booting the new Observer instance.
+  restart:()=>{calls.requests.length=0;calls.completed.length=0;calls.failed.length=0;},
   tick:ms=>now+=ms,
   emit:(name,extra={})=>{for(const fn of calls[name])fn({
    tabId:41,url:'https://example.org/private?token=SECRET',method:'GET',
@@ -59,6 +62,7 @@ test('Worker restart leaves a truthful observation gap, without silently resumin
  const f=fixture(),first=f.host();
  const {observationId}=await first.start(args,identity(),target);
  f.emit('requests');await first.flush();
+ f.restart();
  const restarted=f.host();
  const status=await restarted.getStatus({observationId},identity());
  assert.equal(status.state,'interrupted');

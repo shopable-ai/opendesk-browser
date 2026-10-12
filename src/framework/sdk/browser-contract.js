@@ -122,8 +122,11 @@ export function normalizeBrowserOperation(operation,args={}){
         throw fail('E_SCHEMA','Authorized tabRef required');
       if(!Array.isArray(args.origins)||args.origins.length!==1)
         throw fail('E_SCHEMA','Exactly one HTTP Origin is allowed');
-      const origin=approvedHttpUrl(args.origins[0]);
-      if(new URL(origin).origin!==origin)
+      const verified=approvedHttpUrl(args.origins[0]);
+      const origin=new URL(verified).origin;
+      // URL.href inserts a slash for bare origins. Compare against the true
+      // URL.origin, without permitting path, query or embedded credentials.
+      if(args.origins[0]!==origin)
         throw fail('E_SCHEMA','Only exact Origin, no path, query or credentials');
       for(const [key,min,max] of [['durationMs',1,30000],['maxEvents',1,500],
         ['maxBufferedBytes',1024,524288]]){
