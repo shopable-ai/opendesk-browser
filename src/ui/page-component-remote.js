@@ -3,8 +3,8 @@
 // approved immutable graph. No save, retry or Run path can fetch new code.
 import {createChromePermissionConsent} from '../platform/chrome/permission-gate.js';
 const error=(code,message)=>Object.assign(new Error(message),{code});
-const inputKey=input=>JSON.stringify({source:input.componentSource,framework:input.framework});
-const identity=(input,roots)=>({componentSource:input.componentSource,framework:input.framework,roots});
+const inputKey=input=>JSON.stringify({source:input.componentSource,framework:input.framework,programId:input.programId});
+const identity=(input,roots)=>({componentSource:input.componentSource,framework:input.framework,roots,...(input.framework==='controller'?{programId:input.programId}:{})});
 const pin=row=>({url:row.url,sha256:row.sha256,bytes:row.bytes});
 export function createPageComponentRemote({client,preparer,api,document:doc,getInput,isBlocked=()=>false,onState=()=>{}}){
   const get=id=>doc.getElementById(id),panel=get('page-component-remote'),status=get('page-component-remote-status'),
@@ -14,7 +14,7 @@ export function createPageComponentRemote({client,preparer,api,document:doc,getI
   let disposed=false,generation=0,busy=false,state=null;
   const selectedLocks=new Map();
   const permissions=createChromePermissionConsent({api});
-  const compatible=input=>input&&['react','vue'].includes(input.framework);
+  const compatible=input=>input&&['react','vue','controller'].includes(input.framework);
   function current(ticket,input){
     if(disposed||ticket!==generation||inputKey(getInput())!==inputKey(input))throw error('E_REMOTE_STALE','组件源码已更改或准备已取消；旧结果不会使用');
   }
@@ -23,9 +23,11 @@ export function createPageComponentRemote({client,preparer,api,document:doc,getI
     const input=getInput();panel.hidden=!compatible(input);
     if(panel.hidden)return;
     const stage=state?.stage||'idle';
-    status.textContent=state?.message||'首次使用 HTTPS 模块时，先检查来源并确认获取；固定版本可以离线运行。此源码入口最多 32 个模块、整图 256 KiB、链接结果 100 KB。';
+    status.textContent=state?.message||(input.framework==='controller'
+      ? 'Controller ESM：检查静态 import，明确确认来源和固定完整 SHA 图后，才可在受控 Worker 运行。Developer 版最多 32 个模块 / 256 KiB；大型依赖请使用本地项目。'
+      : '首次使用 HTTPS 模块时，先检查来源并确认获取；固定版本可以离线运行。此源码入口最多 32 个模块、整图 256 KiB、链接结果 100 KB。');
     status.dataset.state=stage;
-    button.textContent=stage==='download'?'确认获取所列模块':stage==='review'?'确认固定此版本':stage==='choose'?'使用所选固定版本':'检查依赖';
+    button.textContent=stage==='download'?(state?.cachedUrls?.length===state?.urls?.length?'确认复用缓存':'确认获取所列模块'):stage==='review'?'确认固定此版本':stage==='choose'?'使用所选固定版本':'检查依赖';
     button.disabled=busy||isBlocked()||stage==='choose'&&!selector?.value;
     cancelButton.hidden=!busy;cancelButton.disabled=false;
     sources.hidden=!(state?.urls?.length);sources.textContent=(state?.urls||[]).join('\n');
@@ -47,11 +49,14 @@ export function createPageComponentRemote({client,preparer,api,document:doc,getI
     if(typeof preparer.inspect!=='function')throw error('E_PAGE_COMPILER_WORKER','当前组件准备器不支持依赖检查');
     return preparer.inspect({...input,projectId:'browser-'+input.framework,remoteModules:modules});
   }
-  async function showDownload(ticket,input,analysis,review){
-    state={stage:'download',input,analysis,review,urls:analysis.missingUrls,entries:review?.entries||[],
-      message:'仅确认获取以下 HTTPS 模块。获取后还需审阅并固定完整版本；此操作不会运行网页。'};
-    const origins=[...new Set(analysis.missingUrls.map(url=>new URL(url).origin+'/*'))];
-    await permissions.prepare({origins});current(ticket,input);render();
+  async function showDownload(ticket,input,analysis,review,cachedUrls=[]){
+    const cached=analysis.missingUrls.filter(url=>cachedUrls.includes(url));
+    state={stage:'download',input,analysis,review,urls:analysis.missingUrls,cachedUrls:cached,entries:review?.entries||[],
+      message:cached.length===analysis.missingUrls.length
+        ? '已有批准来源的完全相同内容可复用；请确认本程序也需要这些来源。复用字节并不授权执行，仍须独立审核和固定。'
+        : '仅确认获取以下 HTTPS 模块。获取后还需审阅并固定完整版本；此操作不会自动执行。'};
+    const origins=[...new Set(analysis.missingUrls.filter(url=>!cached.includes(url)).map(url=>new URL(url).origin+'/*'))];
+    if(origins.length)await permissions.prepare({origins});current(ticket,input);render();
   }
   async function inspected(ticket,input){
     const analysis=await inspect(input);current(ticket,input);
@@ -71,7 +76,7 @@ export function createPageComponentRemote({client,preparer,api,document:doc,getI
       selector.replaceChildren(new Option('选择固定依赖版本',''),...report.locks.map(row=>new Option(row.lockId.slice(0,28)+'… · '+row.entries.length+' 个模块',row.lockId)));
       selector.value='';render();return;
     }
-    await showDownload(ticket,input,analysis,null);
+    await showDownload(ticket,input,analysis,null,report.cachedUrls||[]);
   }
   async function click(event){
     if(!event?.isTrusted||disposed||busy||isBlocked())return;
@@ -82,7 +87,8 @@ export function createPageComponentRemote({client,preparer,api,document:doc,getI
     let permission;
     if(previous?.stage==='download'){
       if(inputKey(previous.input)!==inputKey(input)){refresh();return;}
-      permission=permissions.confirm(event,{origins:[...new Set(previous.urls.map(url=>new URL(url).origin+'/*'))]});
+      const needNetwork=previous.urls.filter(url=>!previous.cachedUrls?.includes(url));
+      permission=needNetwork.length?permissions.confirm(event,{origins:[...new Set(needNetwork.map(url=>new URL(url).origin+'/*'))]}):Promise.resolve(true);
     }
     busy=true;render();
     try{

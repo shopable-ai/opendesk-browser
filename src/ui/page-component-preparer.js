@@ -48,7 +48,7 @@ export function createBrowserPageComponentPreparer({api=globalThis.chrome,
   async function job(action,input={}){
     if(disposed)throw typed('E_PAGE_COMPILER_CLOSED','Compiler client is closed');
     const {componentSource,framework,projectId,pageRules}=input;
-    if(typeof componentSource!=='string'||!componentSource.trim()||bytes(componentSource)>MAX_AUTHORING||!['react','vue'].includes(framework))
+    if(typeof componentSource!=='string'||!componentSource.trim()||bytes(componentSource)>MAX_AUTHORING||!['react','vue','controller'].includes(framework))
       throw typed('E_PAGE_COMPONENT_LIMIT','Invalid component source or framework');
     // Clone before any async work: callers cannot change a graph during hash
     // checks, Worker preparation or a compiled-cache lookup.
@@ -60,11 +60,15 @@ export function createBrowserPageComponentPreparer({api=globalThis.chrome,
       // Rehash BEFORE using a successful compilation cache. A corrupt/missing
       // source asset must never be hidden by an older compiled result.
       await verifiedModules(remoteModules,remoteLock);current();
+      const controller=framework==='controller';
       const key=JSON.stringify({componentSource,framework,projectId,pageRules,remoteLock,remoteModules,
-        entryMode:'component',conversion:'babel-cjs-classic-jsx-v1',generated:'page-component-entry-r243',
-        browserCompiler:compilerIdentity,frameworkRuntime:PAGE_FRAMEWORK_RUNTIMES[framework].sha256});
+        entryMode:controller?'controller-esm':'component',
+        conversion:controller?'babel-cjs-classic-controller-r4':'babel-cjs-classic-jsx-v1',
+        generated:controller?'controller-esm-linker-r4':'page-component-entry-r243',
+        browserCompiler:compilerIdentity,
+        frameworkRuntime:controller?null:PAGE_FRAMEWORK_RUNTIMES[framework].sha256});
       if(action==='prepare'&&cache?.key===key)return Object.freeze({...cache.value,cacheHit:true,prepareMs:0});
-      const helper=action==='prepare'?await loadHelper():undefined;current();
+      const helper=action==='prepare'&&!controller?await loadHelper():undefined;current();
       if(typeof WorkerClass!=='function')throw typed('E_PAGE_COMPILER_WORKER','Dedicated Worker unavailable');
       const worker=new WorkerClass(api.runtime.getURL('ui/page-component-compiler-worker.js'),{type:'classic',name:'OpenDeskPageCompilerR243'});
       let settled=false,stopTimer;
@@ -95,9 +99,12 @@ export function createBrowserPageComponentPreparer({api=globalThis.chrome,
         current();return Object.freeze(payload);
       }
       if(!payload||payload.framework!==framework||payload.projectId!==projectId||payload.entryFormat!=='async-main'||
-        typeof payload.sourceUtf8!=='string'||bytes(payload.sourceUtf8)>MAX_PAGE||
-        !payload.sourceUtf8.includes('// @opendesk-lib '+framework)||!payload.sourceUtf8.includes('async function main()'))
-        throw typed('E_PAGE_COMPILER_OUTPUT','Compiled source failed original Page constraints');
+        typeof payload.sourceUtf8!=='string'||bytes(payload.sourceUtf8)>(controller?48000:MAX_PAGE)||
+        !payload.sourceUtf8.includes('async function main()')||
+        (controller?payload.authoringSourceHash!==await digestUtf8(componentSource):
+          !payload.sourceUtf8.includes('// @opendesk-lib '+framework)))
+        throw typed(controller?'E_CONTROLLER_ESM_OUTPUT':'E_PAGE_COMPILER_OUTPUT',
+          'Compiled source failed its immutable execution-world constraints');
       const sourceHash=await digestUtf8(payload.sourceUtf8);current();
       const output=Object.freeze({...payload,sourceHash,cacheHit:false,prepareMs:Math.round((performance.now()-startedAt)*10)/10});
       cache={key,value:output};return output;

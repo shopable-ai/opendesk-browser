@@ -14,6 +14,15 @@ on:
       - 'scripts/verify-package.mjs'
       - 'wxt.config.mjs'
       - 'src/ui/script-editor.js'
+      - 'src/ui/controller-esm-source.js'
+      - 'src/ui/page-component-preparer.js'
+      - 'src/ui/page-component-remote.js'
+      - 'src/ui/page-component-compiler-worker.js'
+      - 'src/libs/page-frameworks/contract.js'
+      - 'src/libs/page-frameworks/controller-esm-linker-r4.mjs'
+      - 'src/scripting/user-scripts/page-component-dependencies.js'
+      - 'tests/environment/controller-esm-runtime-r4.test.mjs'
+      - 'tests/environment/page-component-dependencies.test.mjs'
       - 'tests/environment/browser-editions-r245.test.mjs'
       - 'tests/framework/browser-edition-package-r245.mjs'
       - 'package.json'
@@ -34,7 +43,7 @@ jobs:
       - run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Targeted edition contracts and source check
         run: |
-          node --test tests/environment/browser-editions-r245.test.mjs tests/environment/page-component-preparer-r243.test.mjs
+          node --test tests/environment/browser-editions-r245.test.mjs tests/environment/page-component-preparer-r243.test.mjs tests/environment/controller-esm-runtime-r4.test.mjs tests/environment/page-component-dependencies.test.mjs tests/environment/page-component-remote.test.mjs tests/environment/script-editor.test.mjs
           npm run check
       - name: Build the ordinary Standard package with NO JSX/SFC browser compiler
         run: npm run build

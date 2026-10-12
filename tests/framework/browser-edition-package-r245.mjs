@@ -47,7 +47,7 @@ for(const runtime of Object.values(PAGE_FRAMEWORK_RUNTIMES)){
   assert.equal(dev.get(runtime.output)?.sha256,runtime.sha256);
 }
 const expectedCompilerBytes=PAGE_BROWSER_PRIVATE_FILES.reduce((n,row)=>n+row.bytes,0);
-assert.equal(expectedCompilerBytes,4249817);
+assert.equal(expectedCompilerBytes,4277251);
 const stdPackageBytes=standard.files.reduce((n,row)=>n+row.bytes,0);
 const devPackageBytes=full.files.reduce((n,row)=>n+row.bytes,0);
 const record={

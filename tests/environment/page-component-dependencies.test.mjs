@@ -147,3 +147,36 @@ test('reading a fixed lock validates semantic fields independently of object key
   f.change('frameworkKV',componentKeys.lock(ns,lock.lockId),reverse);
   assert.equal((await load(f,lock)).modules.length,2);
 });
+
+test('R4 Controller programs share verified bytes but never another program source/world approval',async()=>{
+  const f=fixture();
+  const a={componentSource:`import twice from '${firstUrl}';export default async function main(){return twice(2)}`,
+    framework:'controller',programId:'csv.first',roots:[firstUrl]};
+  const b={...a,programId:'csv.second'};
+  const selected=rows=>rows.entries.map(pin);
+  const acquire=async spec=>{
+    const first=await f.manager.prepareComponentDependencies({...spec,approvedUrls:[firstUrl],explicitUserAction:true},{});
+    return f.manager.prepareComponentDependencies({...spec,reviewId:first.reviewId,reviewDigest:first.reviewDigest,
+      approvedUrls:[secondUrl],explicitUserAction:true},{});
+  };
+  const approveFor=async(spec,review)=>f.manager.approveComponentDependencies({...spec,reviewId:review.reviewId,
+    reviewDigest:review.reviewDigest,acceptedModules:selected(review),graph,explicitUserAction:true},{});
+  const firstApproval=await approveFor(a,await acquire(a));
+  assert.deepEqual(f.calls.map(row=>row.url),[firstUrl,secondUrl]);
+  const inspectSecond=await f.manager.inspectComponentDependencies(b,{});
+  assert.deepEqual(inspectSecond.locks,[]);
+  assert.deepEqual(inspectSecond.cachedUrls,[firstUrl]);
+  await assert.rejects(f.manager.loadComponentDependencies({...b,lockId:firstApproval.lockId},{}),
+    {code:'E_REMOTE_LOCK_STALE'});
+  f.offline=true;f.granted=false;
+  const secondApproval=await approveFor(b,await acquire(b));
+  assert.notEqual(firstApproval.lockId,secondApproval.lockId);
+  assert.equal(f.calls.length,2,'the second Controller script must reuse both pinned assets without any download');
+  const loaded=await f.manager.loadComponentDependencies({...b,lockId:secondApproval.lockId},{});
+  assert.deepEqual(loaded.modules.map(x=>x.code),[first,second]);
+  assert.deepEqual((await f.manager.inspectComponentDependencies({...b,componentSource:b.componentSource+' // revision changed'},{})).locks,[]);
+  await assert.rejects(f.manager.loadComponentDependencies({...b,componentSource:b.componentSource+' // revision changed',
+    lockId:secondApproval.lockId},{}),{code:'E_REMOTE_LOCK_STALE'});
+  await assert.rejects(f.managerForNamespace('tool:other').loadComponentDependencies({...b,lockId:secondApproval.lockId},{}),
+    {code:'E_REMOTE_LOCK'});
+});

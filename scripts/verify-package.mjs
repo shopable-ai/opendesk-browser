@@ -412,6 +412,7 @@ export async function verifyPackage(directory, {mode: requestedMode} = {}) {
       if(file==='ui/page-component-compiler-worker.js'){
         if(!code.includes("importScripts('../libs/page-frameworks/babel-7.29.9.min.js')")||
            !code.includes("import('../libs/page-frameworks/page-component-linker-r243.mjs')")||
+            !code.includes("import('../libs/page-frameworks/controller-esm-linker-r4.mjs')")||
            !code.includes("import('../libs/page-frameworks/vue-sfc-transform-r243.mjs')"))
           throw Error('Browser compiler Worker only accepts fixed packaged imports');
       }else if(/\b(?:eval|new\s+Function|AsyncFunction|importScripts)\s*\(/.test(code)
