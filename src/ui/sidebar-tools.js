@@ -743,9 +743,10 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
         if(!api.downloads?.download)throw new Error('下载服务不可用');
         const filename=payload?.filename;
         if(typeof filename!=='string'||filename.length>90||
-          !/^[^\/\x00-\x1f:?*"<>|]+\.md$/i.test(filename)||filename.startsWith('.'))
-          throw new Error('Markdown 下载文件名无效');
-        const url='data:text/markdown;charset=utf-8,'+encodeURIComponent(value);
+          !/^[^\/\x00-\x1f:?*"<>|]+\.(?:md|txt|json)$/i.test(filename)||filename.startsWith('.'))
+          throw new Error('仅允许安全的 Markdown / TXT / JSON 文件名');
+        const mime=/\.json$/i.test(filename)?'application/json':/\.txt$/i.test(filename)?'text/plain':'text/markdown';
+        const url='data:'+mime+';charset=utf-8,'+encodeURIComponent(value);
         const downloadId=await api.downloads.download({url,filename,saveAs:true,conflictAction:'uniquify'});
         assertSession(source,token);
         if(!Number.isInteger(downloadId))throw new Error('Chrome 未确认下载');
