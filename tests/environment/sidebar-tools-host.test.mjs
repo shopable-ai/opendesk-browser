@@ -1529,6 +1529,7 @@ test('R56 dirty tool enable/disable uses a cancellable inline review and cannot 
   editorState(true,false);
   f.elements['sidebar-tool-settings-open'].emit('click');
   f.elements['sidebar-tool-enable'].emit('click');
+  await settle(()=>f.elements['sidebar-tool-action-review'].hidden===false);
   assert.equal(f.elements['sidebar-tool-action-review'].hidden,false,'dirty stop must open inline review');
   assert.notEqual(store.get(SIDEBAR_TOOL_ENABLE_STORE)?.[sample.id],false,'opening review does not stop');
   f.elements['sidebar-tool-action-cancel'].emit('click');
@@ -1536,6 +1537,7 @@ test('R56 dirty tool enable/disable uses a cancellable inline review and cannot 
   assert.notEqual(store.get(SIDEBAR_TOOL_ENABLE_STORE)?.[sample.id],false);
 
   f.elements['sidebar-tool-enable'].emit('click');
+  await settle(()=>f.elements['sidebar-tool-action-review'].hidden===false);
   editorState(true,true);
   f.elements['sidebar-tool-action-continue'].emit('click');
   await pause();await pause();
@@ -1545,7 +1547,7 @@ test('R56 dirty tool enable/disable uses a cancellable inline review and cannot 
 
   editorState(true,false);
   f.elements['sidebar-tool-enable'].emit('click');
-  assert.equal(f.elements['sidebar-tool-action-review'].hidden,false);
+  await settle(()=>f.elements['sidebar-tool-action-review'].hidden===false);
   f.elements['sidebar-tool-action-continue'].emit('click');
   await settle(()=>store.get(SIDEBAR_TOOL_ENABLE_STORE)?.[sample.id]===false);
   assert.equal(f.elements['sidebar-tool-frame'].children.length,0,'confirmed stop retires the sandbox');
