@@ -44,3 +44,12 @@ R24.5 CI [38240441632](https://github.com/shopable-ai/opendesk-browser/actions/r
 后续 [38241095878](https://github.com/shopable-ai/opendesk-browser/actions/runs/38241095878) 新增**实际编译后 Side Panel 开关**检查并 PASS；从两份 ZIP 取出 `ui/tool-shell.js`，确认 WXT 产物虽然字节数相同但 SHA 不同，`browserCompilerEnabled` 分别被编译为 `false/true`。不是仅前端隐藏大功能而忘记移除资源。后一轮 [38241423476](https://github.com/shopable-ai/opendesk-browser/actions/runs/38241423476) 加入 Mac Chrome 标准 UI 与 Developer 完整交互正向验收，当前以各 Job 的实际结果为准。
 
 **分发建议及 Chrome Web Store 政策约束：**首选正式版单独上架，Developer ZIP 暂时通过 GitHub Actions artifact / 开发者侧载分发。若要另在商店发布测试/开发版本，必须标注为 Developer/Beta Build、在说明中指出测试用途并链接正式版；Chrome Web Store 的重复内容政策对高度相似的公开重复条目存在审查限制。开发分支通过 CI 并不授权发布或合并。
+
+## Mac Chrome 原生双版运行证据与成本决策（2026-10-12）
+
+- [双版本 macOS Chrome 工作流 38241423476](https://github.com/shopable-ai/opendesk-browser/actions/runs/38241423476) **整次 PASS**，提交 `cd57c10cdf12d849b6118a164cf46225701f1ffe`。独立构建的 Standard / Developer 分别通过源包身份、CSP 和真实 Chrome 用户脚本授权验证。与旧 R24.3 的历史回执严格分开。
+- **Standard：**实际 Chrome Side Panel 的 React JSX / Vue SFC 编译选择器已禁用、隐藏；JavaScript 入口保留。无 Native 环境下，所有浏览器编译器字节在安装包内物理缺失，原生回执 `PASS_STANDARD_BROWSER_NO_COMPILER`，截图位于该次工作流 `r245-standard-and-developer-native-...` artifact。最新增强测试另验证整个代码类型选择行隐藏、真实用户输入普通 JavaScript 后点击 Run 在获准网页写 DOM；该增强候选是 [38247467657](https://github.com/shopable-ai/opendesk-browser/actions/runs/38247467657)，独立结论以 CI 结果为准。
+- **Developer：**扩展 ID 与 Standard 本轮隔离测试不同。无 Native 真实 Chrome Worker 编译 JSX/SFC、React Hooks / Vue ref 点击更新、组件 Stop 清理、错误编辑不得重播旧版本、修复后重新 Run、Vue Teleport 外部 DOM 清理均 **PASS**。来源 `cd57c10...`，但只证明该固定测试候选；Chrome Web Store 的稳定扩展身份仍需要独立配置。
+- **包体实测：**`Standard.zip=923,772 B`，`Developer.zip=1,881,170 B`，少 `957,398 B`，相对完整版少约 **50.9%**。解压后的所有文件分别为 `2,705,843 B` 和 `6,956,776 B`。两版原有 React 193,163 B、Vue 118,131 B 固定 Runtime 保留。编译器原本按需 Worker 加载，删除这些文件**不意味着启动内存与打开速度也减少 50.9%**。
+- **运营决策：**节省不到 1 MB 压缩包本身不是必须拆成两款公开商店商品的充分理由。更重要的是绝大多数人不需要 JSX/SFC 编译器，默认安装包应最小化开发专用执行资源及供应链维护负担。推荐 **Standard 单一正式用户渠道 + 原有 Node CLI 本地编译 + Developer ZIP 仅高级用户/GitHub CI 按需提供**；不要维护第二个长期分叉源码仓库，也不急于创建第二个 Chrome Web Store 条目。
+- **仍未证明：**最新版增强 JavaScript E2E 的最终 CI、两版实际长期安装与版本更新、Go Native 的各扩展 ID 重新配对、全部 React/Vue Direct/Controller 兼容矩阵、F3/ZIP 正式交付身份。直到这些关闭，`R24.5 Final` 维持 **NOT_RELEASED / NOT_FULLY_TESTED**，不能以构建或单场景 Chrome PASS 抵消。

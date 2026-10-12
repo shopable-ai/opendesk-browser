@@ -69,3 +69,11 @@ npm run pack:developer
 **建议：**普通安装包不包含浏览器 JSX/SFC 编译器；开发者先使用现有 `opendesk browser dev .` 的 Node 编译；确实需要“无需 Native、Side Panel 中直接输入 JSX/SFC”的少数开发者，才下载独立 Developer Edition。**不要永久维护两套独立源码仓库**，也不要采用 CDN 脚本注入代替缺失编译器。
 
 证据与当前局限：[本工作流记录](../../framework/workstreams/browser-compiler-editions-r245-20261012.md)，[历史 Mac Chrome JSX/SFC 编辑 Run/Stop](https://github.com/shopable-ai/opendesk-browser/actions/runs/38225425847)（历史包，非本分支），[本地 Node CLI 四目录真实安装](https://github.com/shopable-ai/opendesk-browser/actions/runs/38231722128)。
+
+## 六、实测体积与发布取舍（2026-10-12）
+
+实际 [双版本 CI](https://github.com/shopable-ai/opendesk-browser/actions/runs/38240441632) 已经同时构建、校验并制作两个 ZIP，Standard 下载包 **923,772 B**（解压 **2,705,843 B**），Developer 下载包 **1,881,170 B**（解压 **6,956,776 B**），压缩包差 **957,398 B / 约 50.9%**。资源物理清单确认普通包不含 Babel、Vue SFC compiler、Page 编译 Worker 与链接器，保留 React/Vue 的固定 Runtime 供 Direct 工具使用。该结果是本轮分支固定构建的真实数值，不承诺未来扩展版本固定大小。
+
+[macOS Chrome 双版本回归](https://github.com/shopable-ai/opendesk-browser/actions/runs/38241423476) 同一源码身份通过：Standard 不展示不可用 JSX/SFC 编译入口；Developer 无 Native JSX/SFC Run、真实状态交互、Stop、Vue 出错后修复以及受管 Teleport 清理。
+
+**是否值得分版：**4.25 MB 未压缩资源约对应 0.96 MB ZIP 额外负担，它们本就按需读取，因此一般用户启动时间、RAM 的直接改善不能凭 ZIP 节省推断。分版的主要产品价值是**默认发行物的能力边界清晰、减少多数用户无用的开发环境资源和审计负担**。推荐继续保持一个公开正式渠道，Developer 包按需供高级开发者下载使用；如果 Developer 需求不大，可不做第二个商店商品。正式渠道在本分支验收闭环且获用户授权合入之前仍保持当前 main，不在文档中假报 Standard 已经正式发布。
