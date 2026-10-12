@@ -46,6 +46,11 @@ function importMappings(source){
 }
 function resolveImport(spec,base,mappings,entry=false){
   if(typeof spec!=='string')throw error('E_REMOTE_IMPORT','Only literal static import specifiers are supported');
+  // Node APIs cannot be supplied by browser ESM URL mapping.
+  if(spec.startsWith('node:')||/^(?:assert(?:\/strict)?|buffer|child_process|crypto|events|fs(?:\/promises)?|http|https|module|os|path(?:\/posix|\/win32)?|process|stream(?:\/promises|\/web)?|timers(?:\/promises)?|url|util|vm|worker_threads|zlib)$/.test(spec))
+    throw error('E_CONTROLLER_NODE_BUILTIN','Node built-in modules require the trusted local project builder: '+spec);
+  if(/\.(?:css|wasm)(?:[?#]|$)/i.test(spec))
+    throw error('E_CONTROLLER_ESM_ASSET_UNSUPPORTED','CSS and WASM imports are not supported by the Controller browser ESM linker: '+spec);
   if(spec.startsWith('https:'))return urlOf(spec);
   if((spec.startsWith('./')||spec.startsWith('../')||spec.startsWith('/'))&&!entry)return urlOf(new URL(spec,base).href);
   if(entry&&spec.startsWith('.'))throw error('E_CONTROLLER_LOCAL_PROJECT','Relative imports require the existing local multi-file project builder');
@@ -146,6 +151,18 @@ async function inspect(input){
   }
   if([...sources.keys()].some(url=>!visited.has(url)))throw error('E_REMOTE_GRAPH','An unreferenced dependency was supplied');
   if(!missing.size){
+    // This self-contained classic runtime does not implement ESM cycle TDZ or
+    // live bindings; reject cycles rather than producing silently wrong values.
+    const active=new Set(),finished=new Set(),trail=[];
+    function visit(url){
+      if(active.has(url))throw error('E_CONTROLLER_ESM_CYCLE',
+        'Cyclic ESM dependencies require the trusted local project builder: '+[...trail,url].join(' -> '),url);
+      if(finished.has(url))return;
+      active.add(url);trail.push(url);
+      for(const ref of sources.get(url).refs)visit(ref.url);
+      trail.pop();active.delete(url);finished.add(url);
+    }
+    for(const root of roots)visit(root);
     for(let n=0;n<=sources.size;n++){
       let modified=false;
       for(const row of sources.values())for(const ref of row.refs.filter(x=>x.star))

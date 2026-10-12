@@ -62,3 +62,9 @@ export default async function main() {
 - 验收驱动提交 `1470b0d40fc4ecbd1e909f149ab6b5c1f09b260d` 在现有 macOS CFT `page-browser-worker-r243-cft.mjs` 增加 Developer 版单文件源码真实键入、Controller RunHost/Worker 持久 Result、Save/Load 流程，使用真实 CDP 指针，不在 CDP 执行用户源码；该项以 job 原始产物为准。
 - 新真实第三方 ESM CSV 样例 `@vanillaes/csv@4.1.3`：上游 <https://github.com/vanillaes/csv/tree/v4.1.3> MIT，用户编写 `// @opendesk-import @vanillaes/csv https://raw.githubusercontent.com/vanillaes/csv/v4.1.3/src/index.js`、`import {parse} from '@vanillaes/csv'`，精确 3 模块 ESM 图 `index.js` + `parse.js` + `stringify.js`，按原始上游 SHA 验证，目标输出 `count=2,total=21`。文件和 MIT LICENSE 只存 `tests/fixtures/external-esm/vanillaes-csv-4.1.3` 用于离线测试，**不是新增内置 Catalog 库**。需要以新增 CI 结果独立确认真实上游函数通过，不沿用此前模拟 CSV PASS。
 - 某些库的源码会使用 `new Function`（例如所核查的 `d3-dsv@3.0.1` 的 `objectConverter`）；现有受控 Worker 静态准备明确禁止此类动态代码，不能为扩大包覆盖而悄悄关闭安全检查。
+
+## R4 依赖图安全诊断补充（2026-10-13）
+
+- Controller 浏览器 ESM 链接器明确拒绝循环模块图（`E_CONTROLLER_ESM_CYCLE`）：既有经典同步转换不提供完整 ESM live binding/TDZ，不能静默以不等价语义执行；建议改为无环小图或使用可信本地多文件构建器。
+- 裸包 `node:fs`/`fs` 等 Node 内置 API 拒绝为 `E_CONTROLLER_NODE_BUILTIN`；CSS、WASM 直接 import 拒绝为 `E_CONTROLLER_ESM_ASSET_UNSUPPORTED`，在下载/Run 前输出可操作的错误。
+- 固定 Developer linker 字节数与 SHA-256 同步更新 `src/libs/page-frameworks/contract.js`；新增真实固定 Babel 定向回归用例。记录状态：`SOURCE_SYNTAX_PASS / NODE_CI_PENDING / CHROME_NOT_TESTED / MAC_NATIVE_NOT_TESTED`，具体 CI 以修改提交对应的 run 身份判断。

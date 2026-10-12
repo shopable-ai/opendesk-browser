@@ -162,3 +162,25 @@ test('R4 authentic @vanillaes/csv@4.1.3 ESM exports and transitive modules parse
     remoteModules:[...files.slice(0,2),{...files[2],code:files[2].code+' '}],
     remoteLock:frozenLock(files)})),{code:'E_REMOTE_HASH'});
 });
+
+test('R4 refuses Node builtins, CSS/WASM assets and cyclic ESM graphs before Worker admission',async()=>{
+  for(const spec of ['node:fs','fs/promises','path','crypto']){
+    await assert.rejects(inspectBrowserControllerESM(setup({
+      componentSource:"import value from '"+spec+"'; export default async function main(){return value;}"
+    })),{code:'E_CONTROLLER_NODE_BUILTIN'},spec);
+  }
+  for(const spec of ['https://cdn.example.org/a@1.0.0/theme.css','https://cdn.example.org/a@1.0.0/chart.wasm']){
+    await assert.rejects(inspectBrowserControllerESM(setup({
+      componentSource:"import resource from '"+spec+"'; export default async function main(){return resource;}"
+    })),{code:'E_CONTROLLER_ESM_ASSET_UNSUPPORTED'},spec);
+  }
+  const a='https://cdn.example.org/a@1.0.0/a.mjs',b='https://cdn.example.org/a@1.0.0/b.mjs';
+  const graph=[
+    row(a,"import {b} from './b.mjs'; export const a=b+1;"),
+    row(b,"import {a} from './a.mjs'; export const b=a+1;")
+  ];
+  await assert.rejects(inspectBrowserControllerESM(setup({
+    componentSource:"import {a} from '"+a+"'; export default async function main(){return a;}",
+    remoteModules:graph
+  })),{code:'E_CONTROLLER_ESM_CYCLE'});
+});
