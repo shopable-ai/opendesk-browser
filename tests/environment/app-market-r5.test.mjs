@@ -239,7 +239,9 @@ test('R5 terminal settlement survives journal trimming and missing recovery resp
 test('R5 immutable archive conflicts reject same-version bytes and same-revision replacement',async()=>{
   const fixtures=await officialFixtures(),snapshots=await loadMarketSnapshots();
   const merged=mergeMarketReleases(snapshots,fixtures.catalog,OFFICIAL_COLLECTIONS);
-  assert.equal(merged.releases.length,12);assert.equal(merged.collections.length,3);
+  // The immutable historical releases remain twelve; Cookie Editor adds a new optional UI release.
+  const cookiePreview=fixtures.catalog.apps.filter(row=>row.toolId==='cookie-editor').length;
+  assert.equal(merged.releases.length,12+cookiePreview);assert.equal(merged.collections.length,3);
   const changed=structuredClone(fixtures.catalog);changed.apps[0].sha256='0'.repeat(64);
   assert.throws(()=>mergeMarketReleases(snapshots,changed,OFFICIAL_COLLECTIONS),/Immutable release conflict/);
   const sets=structuredClone(OFFICIAL_COLLECTIONS);sets.find(r=>r.revision===1).members[0].version='9.0.0';
