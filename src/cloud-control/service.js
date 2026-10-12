@@ -112,7 +112,7 @@ export function createCloudService({storage,api,clock={now:()=>Date.now()},asser
     const tasks=[];for(const approval of request.tasks){invariant(Object.keys(approval).every(k=>['taskId','resultAllowed'].includes(k))&&typeof approval.resultAllowed==='boolean','E_SCHEMA');tasks.push({...await resolveTask({taskId:approval.taskId},sender),resultAllowed:approval.resultAllowed});}
     for(const t of tasks)for(const origin of t.manifest.siteOrigins)await requireGrant(api,origin);
     await scoped(sender,async(tx,host)=>{const c=await tx.get(KV,CONFIG);invariant(c&&c.namespace===host.namespace&&!c.enabled,'E_PAIRING','Stop current hosting before changing approval');
-      c.tasks=tasks;c.grantId=newId();c.enabled=true;c.revokedAt=null;await tx.put(KV,c,CONFIG);},'readwrite');wake();return cloudStatus({},sender);
+      c.tasks=tasks;c.grantId=newId();c.claimId=null;c.enabled=true;c.revokedAt=null;await tx.put(KV,c,CONFIG);},'readwrite');wake();return cloudStatus({},sender);
   }
   async function fence(request,reason){
     const result=await transaction('readwrite',async tx=>{const r=await tx.get(KV,PREFIX+request.requestId);if(!r)return;const run=r.runId&&await tx.get('runs',r.runId);
@@ -131,7 +131,7 @@ export function createCloudService({storage,api,clock={now:()=>Date.now()},asser
       const c=await tx.get(KV,CONFIG);
       if(!c)return null;
       const owned={namespace:host.namespace,grantId:c.grantId};
-      c.enabled=false;c.revokedAt=clock.now();
+      c.enabled=false;c.revokedAt=clock.now();c.claimId=null;
       await tx.put(KV,c,CONFIG);
       return owned;
     },'readwrite');
@@ -147,7 +147,21 @@ export function createCloudService({storage,api,clock={now:()=>Date.now()},asser
   async function cloudNext(_,sender){if(nextPromise)return null;nextPromise=next(sender);try{return await nextPromise;}finally{nextPromise=null;}}
   async function next(sender){
     const host=await assertHost(sender),c=await read();if(!c?.enabled||!online||!reconciled||c.namespace!==host.namespace)return null;
-    const existing=(await rows()).find(r=>r.namespace===host.namespace&&!r.runId&&r.grantId===c.grantId&&r.state==='waiting');if(existing)return {requestId:existing.requestId};
+    const pending=(await rows()).filter(r=>r.namespace===host.namespace&&!r.runId&&r.grantId===c.grantId&&r.state==='waiting');
+    // Never offer an expired assignment to cloudResolve on every heartbeat.
+    // Only a still-leased, never-dispatched original request can be retried.
+    const existing=pending.find(r=>r.assignment?.leaseUntil>clock.now());
+    if(existing)return {requestId:existing.requestId};
+    const expired=pending[0];
+    if(expired)await scoped(sender,async(tx,current)=>{
+      const config=await tx.get(KV,CONFIG),row=await tx.get(KV,PREFIX+expired.requestId);
+      if(config?.enabled&&config.grantId===c.grantId&&row?.namespace===current.namespace&&
+        row.grantId===c.grantId&&row.state==='waiting'&&!row.runId&&
+        !(row.assignment?.leaseUntil>clock.now())){
+        row.state='cancelled';row.reason='E_LEASE';
+        await tx.put(KV,row,PREFIX+row.requestId);
+      }
+    },'readwrite');
     const claim=await scoped(sender,async tx=>{const slot=await tx.get('runs','@slot');if(slot?.currentRunId||slot?.preview)return null;const config=await tx.get(KV,CONFIG);if(!config?.enabled||config.grantId!==c.grantId)return null;
       config.claimId??=newId();await tx.put(KV,config,CONFIG);return {claimId:config.claimId,tasks:c.tasks.map(t=>({taskId:t.taskId,manifestHash:t.manifestHash,sourceHash:t.contentHash}))};},'readwrite');if(!claim)return null;
     const answer=await post(c,'claim',claim);
