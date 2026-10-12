@@ -14,6 +14,7 @@ const KEY='opendesk.time-review.v1';
 const OUT=path.resolve(process.env.OPENDESK_TIME_NATIVE_EVIDENCE||'artifacts/time-review-r13-native');
 const EXTENSION=path.resolve('dist/production');
 const BIN=process.env.CHROME_BIN;
+const NATIVE_REQUESTED=process.env.OPENDESK_TIME_REVIEW_NATIVE==='1';
 function cdp(url){
   const socket=new WebSocket(url),requests=new Map();let sequence=0,closed=false;
   const ready=new Promise((resolve,reject)=>{socket.onopen=resolve;socket.onerror=reject;});
@@ -69,7 +70,7 @@ async function screenshot(client,session,name){
   return {filename:name+'.png',bytes:bytes.length,sha256:createHash('sha256').update(bytes).digest('hex')};
 }
 
-test('Time Review R1.3 actual Mac Chrome install and trusted consent smoke',{timeout:225000},async t=>{
+test('Time Review R1.3 actual Mac Chrome install and trusted consent smoke',{skip:!NATIVE_REQUESTED,timeout:225000},async t=>{
   assert.equal(process.platform,'darwin','Real Mac Chrome required');
   assert.ok(BIN&&spawnSync(BIN,['--version'],{stdio:'ignore'}).status===0,'Pinned Chrome for Testing binary required');
   await mkdir(OUT,{recursive:true});
