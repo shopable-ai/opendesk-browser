@@ -20,6 +20,8 @@
   --radius-surface:12px;
   --radius-pill:999px;
   --od-icon-size:34px;
+  /* Host horizontal inset, used once; sandbox tool content owns its own inner inset. */
+  --od-page-gutter:11px;
   /* Dark-mode palette is registered here; shared primitives only reference tokens. */
   --od-dark-ink:#e9eef7;
   --od-dark-sub:#b3c1d3;

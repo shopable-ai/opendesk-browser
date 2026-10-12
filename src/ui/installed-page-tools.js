@@ -31,7 +31,12 @@ export function createInstalledPageTools({client,api,doc}){
       detail.textContent='匹配：'+installed.pageRules.matches.join('、')+
         '\n'+(!installed.enabled?'已停用':installed.authorization?.status==='suspended'?'访问受限':
           installed.nativeState==='registered'?'已安装 · 自动运行':'注册待核对')+
-        '\n源码 SHA-256：'+installed.sourceHash;
+        '';
+      const technical=doc.createElement('details');technical.className='installed-page-tool-technical';
+      const technicalTitle=doc.createElement('summary');technicalTitle.textContent='技术信息';
+      const fingerprint=doc.createElement('p');fingerprint.className='hint';
+      fingerprint.textContent='源码 SHA-256：'+installed.sourceHash;
+      technical.append(technicalTitle,fingerprint);
       const toggle=doc.createElement('button');toggle.type='button';
       toggle.textContent=installed.enabled?'停用自动运行':'启用自动运行';
       toggle.disabled=busy;
@@ -48,10 +53,9 @@ export function createInstalledPageTools({client,api,doc}){
         })().catch(error=>notice((error.code||'E_PAGE_INSTALLATION')+'：'+(error.message||error)))
           .finally(()=>{busy=false;if(!disposed)void refresh();});
       });
-      card.append(name,detail,toggle);list.append(card);
+      card.append(name,detail,toggle,technical);list.append(card);
     }
-    notice(rows.length?'网页工具直接使用原 Page Installed 记录；管理网站授权和冻结版本可在「开发 → 直接编辑 → 网页 JavaScript 试运行」查看。':
-      '尚无已安装的网页脚本。网页脚本不会复制到 Side Panel 工具安装库。');
+    notice(rows.length?'':'暂无已安装网页工具。可从「开发」中安装网页脚本。');
   }
   return {refresh,dispose(){disposed=true;sequence++;}};
 }

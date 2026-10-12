@@ -1,15 +1,22 @@
-# Side Panel 网页笔记（R18.1，v1.1.5）
+# Side Panel 网页笔记（R18.1 / R26 密度统一，v1.1.6）
 
 本项目是随扩展发行、默认未安装的官方可选工具。已加载新扩展时，可从 Side Panel「工具 → 网页笔记 → 安装」审核使用；本地文件导入须先运行下方打包命令。工具使用 `storage.local`、`currentPage.read`、`tasks.open` 三项能力，没有网络请求能力。正式资源由统一 [Catalog](../../../docs/api/official-tools-catalog.zh-CN.md) 从本项目源码生成。
 
 ## Mac Chrome 安装与验收
 
 1. 在本地仓库 `main` 执行 `npm ci --ignore-scripts` 和 `npm run build:dev`；在 `chrome://extensions` 确认真正加载的是该仓库的 `dist/development`，而不是旧版或其他 Profile 的同名扩展。重新加载扩展并关闭/重开 Side Panel。
-2. 打开「工具」：选择官方候选「网页笔记 → 安装」，或先打包再从「＋ 导入」选择 `artifacts/sidebar-tools/quick-notes/<version>/quick-notes.opendesk-tool.json`，核对名称、**v1.1.5**、权限与文件名。文件选择和安装不会执行代码；必须点击「确认安装」，再显式点击「打开」。
+2. 打开「工具」：选择官方候选「网页笔记 → 安装」，或先打包再从「＋ 导入」选择 `artifacts/sidebar-tools/quick-notes/<version>/quick-notes.opendesk-tool.json`，核对名称、**v1.1.6**、权限与文件名。文件选择和安装不会执行代码；必须点击「确认安装」，再显式点击「打开」。
 3. 新版网页笔记：查看 24px Logo、紧凑工具栏、图标按钮。悬停检查 Tooltip，用 Tab 检查焦点与操作名称。输入中文 → 点击保存图标（支持 macOS Cmd+S）→ 新建第二条 → 切换笔记编辑 → 删除并确认。返回、再次打开和 Chrome 完整重启后检查保存内容。切换「我的」「发现」「工作流」「开发」应销毁 iframe，重开须再次主动点击「打开」。
 4. 在 `http://127.0.0.1:43111/demo-form.html` 读取真实标题和地址。若本机未提供该服务，在项目根目录**确认端口未被其他任务占用**后执行 `python3 -m http.server 43111 --bind 127.0.0.1 --directory examples/tasks`。点击网页更新图标，勾选「关联当前网页」后再保存，检查记录关联信息。测试受限页面（如 `chrome://extensions`）时显示「当前页面暂不支持读取」，仍可离线编辑、保存和删除。
 5. 把 Side Panel 调到 320、360、400、600px（也可在独立测试窗口调节宽度），并分别检查 200% 缩放、长网址和长笔记，不应出现横向页面滚动或大量 iframe 留白。确认卸载是二次确认：**卸载会删除所有该工具数据**。测试删除前请备份有用内容。
-6. 对已经安装 v1.0.0 的用户：用 v1.1.5 JSON 走正常「导入 → 预览 → 确认更新」；同一工具 ID 的本地数据不会被更新动作删除。旧 `note` 字段会在新版界面恢复；再次「保存」后变为新 `notes` 数据。请勿卸载旧版后再安装，否则原数据会按安全合同清除。
+6. 对已经安装 v1.0.0 的用户：用 v1.1.6 JSON 走正常「导入 → 预览 → 确认更新」；同一工具 ID 的本地数据不会被更新动作删除。旧 `note` 字段会在新版界面恢复；再次「保存」后变为新 `notes` 数据。请勿卸载旧版后再安装，否则原数据会按安全合同清除。
+
+## R26 页面间距与宿主边界
+
+- Side Panel 自身左右保留一层 11px 内容边距（≤340px 为 9px）；工具 iframe 负向抵消宿主边距、不再叠加边框；`.notes-app` 自己负责 12px 统一内容留白，正文、编辑器外框与辅助说明保持对齐。
+- 不加载高权限宿主样式到工具沙箱。`src/style.css` 单独映射 4/8/12/16px、8/12px 圆角和 34px 图标按钮；编辑框文字的 8px 内边距属于控件内容区，不作为新一层页面留白。
+- 320/360/420/520px、125%/200% 缩放、长网址和长笔记标题需复核无页面级横向滚动。交互、权限及本地存储协议保持不变。
+- 规范详见 [Sidebar 设计系统](../../../docs/architecture/sidebar-design-system-r20.zh-CN.md)。已安装的旧版本需在「工具」中手动确认更新，保留相同工具 ID 数据。
 
 ## 从源码重新打包
 
@@ -17,7 +24,7 @@
 
 ```sh
 npm run build:sidebar-tool -- examples/sidebar-tools/quick-notes
-node --test tests/environment/sidebar-tools.test.mjs tests/environment/sidebar-tools-host.test.mjs tests/environment/sidebar-quick-notes.test.mjs
+node --test tests/environment/sidebar-tools.test.mjs tests/environment/sidebar-tools-host.test.mjs tests/environment/sidebar-quick-notes.test.mjs tests/environment/sidebar-tool-spacing-contract.test.mjs
 ```
 
 打包器默认输出到 `artifacts/sidebar-tools/quick-notes/<version>/`。正式扩展构建会生成 `dist/production/official-tools/quick-notes/quick-notes.opendesk-tool.json`，不在源码目录保存另一份生成包。审阅源码与生成内容，更新必须由用户明确确认；文件格式仍为 `.opendesk-tool.json`。

@@ -1,6 +1,6 @@
 {
   "id": "quick-notes",
-  "version": "1.1.5",
+  "version": "1.1.6",
   "title": "网页笔记",
   "description": "在侧栏离线管理多条本地笔记，可选择关联当前网页，不自动操作网站。",
   "capabilities": [

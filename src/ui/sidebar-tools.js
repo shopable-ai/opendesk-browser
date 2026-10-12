@@ -457,8 +457,8 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   function closeTool() {
     if(busy)return false;
     const previousId=active?.id;
-    if(!canLeave(()=>{setImportOpen(false);suspendTool();focusToolInList(previousId);}))return false;
-    setImportOpen(false);suspendTool();
+    if(!canLeave(()=>{setImportOpen(false);suspendTool();notice('');focusToolInList(previousId);}))return false;
+    setImportOpen(false);suspendTool();notice('');
     return true;
   }
   function canLeave(onApproved) {
