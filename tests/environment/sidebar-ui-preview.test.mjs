@@ -25,7 +25,9 @@ test('R4.9 Tools has one navigation tier and three accessible add/import/market 
   const [html,css,host]=await Promise.all([
     read('src/ui/tool.html'),read('src/ui/tool-shell.css'),read('src/ui/sidebar-tools.js')
   ]);
-  const start=html.indexOf('<section id="sidebar-tools"'),end=html.indexOf('id="workbench-local-discover"');
+  // The formal sixth Cloud pane now follows Tools, before Discover's full catalog.
+  // Bound the Tool DOM at the next top-level pane, not a historical fifth-page anchor.
+  const start=html.indexOf('<section id="sidebar-tools"'),end=html.indexOf('id="workbench-cloud"',start);
   assert.ok(start>=0&&end>start);
   const tools=html.slice(start,end);
   assert.doesNotMatch(tools,/role="tablist"|role="tab"|role="tabpanel"|我的工具|发现工具/);
@@ -42,13 +44,13 @@ test('R4.9 Tools has one navigation tier and three accessible add/import/market 
   assert.match(css,/\.sidebar-tool-view-head \.sidebar-tool-icon-action\{flex:0 0 var\(--od-icon-size\)/);
 });
 
-test('R15 official sidebar preserves five views, privileged controls, compact discovery and task history',async()=>{
+test('R15 official sidebar preserves six product views, privileged controls, compact discovery and task history',async()=>{
   const [html,css,work]=await Promise.all([
     read('src/ui/tool.html'),read('src/ui/tool-shell.css'),read('src/ui/task-workbench.js')
   ]);
   const ids=[...html.matchAll(/id="([^"]+)"/g)].map(match=>match[1]);
   assert.equal(ids.length,new Set(ids).size,'no duplicate DOM IDs');
-  for(const value of ['tab-my-tasks','tab-discover','tab-workflow','tab-develop','tab-tools','workbench-workflow','workbench-tools','workbench-local-discover',
+  for(const value of ['tab-my-tasks','tab-discover','tab-workflow','tab-develop','tab-tools','tab-cloud','workbench-workflow','workbench-tools','workbench-cloud','workbench-local-discover',
     'task-selected-workspace','task-history','task-params-form','task-run','task-stop',
     'workspace-dock','task-result-panel','task-history-panel','local-discover-open-catalog','script-source','script-run','script-save',
     'page-preview-run','sdk-install','task-install-feedback'])assert(ids.includes(value),'preserved '+value);
