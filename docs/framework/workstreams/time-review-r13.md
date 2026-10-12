@@ -48,3 +48,5 @@
 
 - Mac Actions 第二次运行 [38203931569](https://github.com/shopable-ai/opendesk-browser/actions/runs/38203931569) 的 CFT 155 已真正启动，并通过可信 `Input.dispatchMouseEvent` 打开真正的 `SIDE_PANEL`（`chrome.runtime.getContexts` 返回原生上下文）。随后出现 **FAIL**：测试驱动仍点击已删除的 `#sidebar-tool-discover-tab`，而当前生产 UI 已改用紧凑 `#sidebar-tool-discover-toggle`（该按钮位于 `src/ui/tool.html`）。属于测试选择器陈旧，尚未执行官方 Time Review 安装；保留原始失败回执 `time-review-r13-actual-macos-chrome-...`，不提升安装/授权/下载状态。
 - 新候选改用主分支存在的“添加工具”真实按钮，并等待 `#sidebar-tool-discover-panel` 可见。后续 Mac CI 需重新运行，不能将第二次 PARTIAL 视为完整 PASS。
+
+- Mac Actions 第三次运行 [38204197416](https://github.com/shopable-ai/opendesk-browser/actions/runs/38204197416) **已通过真正的官方 Catalog 安装并从存储读回版本 1.3.0**，且先前真正 SIDE_PANEL 上下文已通过。随后在沙箱页面 `#minute-canvas` 刚挂载时即断言四张分类卡片，异步 `time.status` 尚未回传，得到 `0 !== 4`，此为测试读取时序错误，**不等于分类数据缺失**。新增对四张分类卡片、额外两类及状态加载完成的显式等待；失败时保留真实 side/iframe 截图。权限、导出、重启仍 NOT_TESTED，等待下一次运行核实。

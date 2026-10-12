@@ -85,7 +85,7 @@ test('Time Review R1.3 actual Mac Chrome install and trusted consent smoke',{tim
     '--user-data-dir='+profile,'--disable-extensions-except='+EXTENSION,
     '--load-extension='+EXTENSION,'about:blank'];
   const proc=spawn(BIN,args,{stdio:['ignore','ignore','pipe']});
-  let stderr='',browser=null,complete=false;
+  let stderr='',browser=null,complete=false,sideSid=null,frameSid=null;
   const evidence={candidate:process.env.GITHUB_SHA||null,mode:'actual-headed-macos-CFT',
     package:{id:pkg.id,version:pkg.version,sha256:createHash('sha256').update(pkgBytes).digest('hex')},
     chromePid:proc.pid,profileOwned:true,install:'NOT_TESTED',realSidePanel:'NOT_TESTED',
@@ -94,6 +94,10 @@ test('Time Review R1.3 actual Mac Chrome install and trusted consent smoke',{tim
   const note=(name,data)=>{evidence.steps.push({name,...data});console.log('TIME_NATIVE '+name+' '+JSON.stringify(data));};
   proc.stderr.on('data',data=>{stderr=(stderr+String(data)).slice(-3500);});
   t.after(async()=>{
+    if(!complete&&browser)for(const [name,sid] of [['side',sideSid],['sandbox',frameSid]]){
+      if(sid)try{evidence.screenshots.push(await screenshot(browser,sid,'failure-'+name));}
+      catch(error){evidence.steps.push({name:'failure-screenshot-unavailable',target:name,error:String(error)});}
+    }
     if(browser)try{await browser.send('Browser.close');}catch{}
     browser?.close();
     if(proc.exitCode===null&&proc.signalCode===null){
@@ -146,6 +150,7 @@ test('Time Review R1.3 actual Mac Chrome install and trusted consent smoke',{tim
     return rows.find(x=>x.url===sideDocument.documentUrl);
   },'native Side Panel target');
   const side=(await browser.send('Target.attachToTarget',{targetId:sideTarget.targetId,flatten:true})).sessionId;
+  sideSid=side;
   await browser.send('Runtime.enable',{},side);await browser.send('Page.enable',{},side);
   evidence.realSidePanel='PASS';
   await nativeClick(browser,side,'#tab-tools');
@@ -172,8 +177,11 @@ test('Time Review R1.3 actual Mac Chrome install and trusted consent smoke',{tim
     return rows.find(x=>x.type==='iframe'&&x.url?.includes('/sidebar-tools/sandbox.html'));
   },'sandbox tool iframe');
   const frame=(await browser.send('Target.attachToTarget',{targetId:frameTarget.targetId,flatten:true})).sessionId;
+  frameSid=frame;
   await browser.send('Runtime.enable',{},frame);await browser.send('Page.enable',{},frame);
-  await until(()=>evaluate(browser,frame,'Boolean(document.querySelector("#minute-canvas"))'),'real R1.3 Canvas');
+  await until(()=>evaluate(browser,frame,
+    'document.querySelectorAll(".qcard").length===4 && document.querySelectorAll(".extra-card").length===2 && !document.querySelector("#status")?.textContent?.includes("正在读取")'),
+    'actual R1.3 data-bound Canvas and category cards');
   const visual=await evaluate(browser,frame,
     '(()=>({quadrants:document.querySelectorAll(".qcard").length,extras:document.querySelectorAll(".extra-card").length,day:document.querySelector("#today-total")?.textContent,timeline:document.querySelector("#timeline-state")?.textContent,horizontal:document.documentElement.scrollWidth<=innerWidth+1}))()');
   assert.equal(visual.quadrants,4);assert.equal(visual.extras,2);
