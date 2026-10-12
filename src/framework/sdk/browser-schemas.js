@@ -82,7 +82,7 @@ export function validateExportArguments(operation,value){
     throw fail('E_SCHEMA','Export text must be 1–150000 UTF-8 bytes');
   if(operation==='browser.downloads.text'){
     if(typeof value.filename!=='string'||value.filename.length>90||
-       !/^[^/\\\x00-\x1f:?*"<>|]+\\.md$/i.test(value.filename)||value.filename.startsWith('.'))
+       !/^[^/\\\x00-\x1f:?*"<>|]+\.md$/i.test(value.filename)||value.filename.startsWith('.'))
       throw fail('E_SCHEMA','Expected a safe Markdown filename');
   }
   return value;
