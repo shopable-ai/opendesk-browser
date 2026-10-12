@@ -199,7 +199,7 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
       card.dataset.scheduleId=plan.scheduleId;
       const head=element(doc,'div','schedule-card-head od-toolbar');
       head.append(element(doc,'strong',null,plan.title),element(doc,'span','schedule-state',
-        plan.paused?'已暂停':plan.needsAttention||plan.history?.[0]?.status==='NEEDS_ATTENTION'?'需要处理':'已启用'));
+        plan.paused?'已暂停':plan.needsAttention?'需要处理':'已启用'));
       const catalogEntry=catalog.find(item=>item.taskId===plan.taskId&&item.version===plan.version);
       const info=element(doc,'p','hint',`${catalogEntry?.manifest?.title||plan.taskId} · v${plan.version} · ${frequencyLabel(plan)} · ${plan.timezone}`);
       const next=element(doc,'p','hint','下次：'+describeTime(plan.nextDueAt,plan.timezone));
