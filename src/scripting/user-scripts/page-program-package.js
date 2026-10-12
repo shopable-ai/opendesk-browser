@@ -96,7 +96,7 @@ export async function prepareLegacyPageProgramRegistration({candidate, sourceUtf
 // specific verification. Producing this descriptor grants no installation state.
 // Legacy R3/JQ descriptors use the explicit function above; there is no automatic
 // reinterpretation of async-main-v1 or the Controller opendesk.task.v1 contract.
-export async function preparePageProgramRegistration({candidate,sourceUtf8,authority,dependencyResolution,jqueryCode,frameworkSource,optionalSource} = {}) {
+export async function preparePageProgramRegistration({candidate,sourceUtf8,authority,dependencyResolution,jqueryCode,frameworkSource,optionalSource,optionalSources} = {}) {
   ensure(candidate && typeof candidate === 'object' && typeof authority?.assertAvailable === 'function','E_AUTHORITY_REQUIRED');
   const snapshot = structuredClone(candidate), resolution = structuredClone(dependencyResolution);
   const {candidateId,namespace,manifestHash} = snapshot;
@@ -115,7 +115,7 @@ export async function preparePageProgramRegistration({candidate,sourceUtf8,autho
   const approvedRules = validatePageProgramRules(proof.approvedPageRules);
   ensure(canonical(approvedRules) === canonical(manifest.pageRules),'E_NOT_AVAILABLE');
   const compiled = await compileLockedPageSource({sourceUtf8,entryFormat:manifest.entryFormat,
-    entries:resolution.entries,importSourceUrl:manifest.sourceProfile.importSourceUrl,jqueryCode,frameworkSource,optionalSource,
+    entries:resolution.entries,importSourceUrl:manifest.sourceProfile.importSourceUrl,jqueryCode,frameworkSource,optionalSource,optionalSources,
     storeOwnerId:namespace+':'+manifest.programId});
   ensure(compiled.sourceHash === manifest.sourceHash && compiled.world === manifest.pageRules.world,'E_SOURCE_HASH');
   const identityHash = await digest({namespace,candidateId,manifestHash});

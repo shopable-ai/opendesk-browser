@@ -3,11 +3,11 @@ import {FoundationError, invariant} from '../../platform/protocol.js';
 import {JQUERY_371, sha256Utf8} from './page-program-package.js';
 import {loadPackagedJquery} from './packaged-dependencies.js';
 import {loadPackagedPageFramework} from '../../libs/page-frameworks/loader.js';
-import {loadBuiltinPageSource,loadPackagedOptionalPageLibrary} from '../../libs/loader.js';
+import {loadBuiltinPageSource,loadPackagedOptionalPageLibraries} from '../../libs/loader.js';
 import {BUILTIN_ABI} from '../../libs/runtime-contract.js';
 import {builtinIdentity,assertBuiltinIdentity} from '../../libs/identity.js';
 import {createDependencyManager} from './dependency-manager.js';
-import {compileLockedPageSource, builtinReadinessSource, pageWantsJquery, pageSelectedPackagedLibrary, pageOptionalLibraryId, pageConsumerSource, PAGE_PREVIEW_RECEIPT_FORMAT, PAGE_ENTRY_FORMATS} from './execution-source.js';
+import {compileLockedPageSource, builtinReadinessSource, pageWantsJquery, pageSelectedPackagedLibraries, pageOptionalLibraryId, pageConsumerSource, PAGE_PREVIEW_RECEIPT_FORMAT, PAGE_ENTRY_FORMATS} from './execution-source.js';
 import {inspectPageSource} from './page-bundle.js';
 import {createPreviewWorlds} from './preview-worlds.js';
 import {parseUserScriptDependencies, assertUserScriptExecutable} from './dependency-metadata.js';
@@ -132,7 +132,7 @@ export function createPageScriptPreview({api, storage, assertHost, dependencies,
     const owner=await assertHost(sender); // Existing authenticated packaged tool document.
     const frozen = frozenSource(request);
     await verifyTarget(frozen.target);
-    let jqueryCode, locked, script,frameworkSource,optionalSource;
+    let jqueryCode, locked, script,frameworkSource,optionalSources=[];
     const receiptNonce=crypto.randomUUID();
     const builtinSource=await loadBuiltin({runtime:api.runtime,fetchImpl});
     if (frozen.legacy && frozen.withJquery) {
@@ -141,17 +141,17 @@ export function createPageScriptPreview({api, storage, assertHost, dependencies,
     }
     if(!frozen.legacy&&pageWantsJquery(frozen.sourceUtf8))
       jqueryCode=(await loadPackagedJquery({runtime:api.runtime,fetchImpl})).code;
-    const selected=!frozen.legacy&&pageSelectedPackagedLibrary(frozen.sourceUtf8);
-    if(pageOptionalLibraryId(selected))
-      optionalSource=await loadPackagedOptionalPageLibrary(pageOptionalLibraryId(selected),{runtime:api.runtime,fetchImpl});
-    else if(selected&&selected!=='jquery')
-      frameworkSource=await loadPackagedPageFramework(selected,{runtime:api.runtime,fetchImpl});
+    const selected=frozen.legacy?[]:pageSelectedPackagedLibraries(frozen.sourceUtf8);
+    const ids=selected.map(pageOptionalLibraryId).filter(Boolean);
+    if(ids.length)optionalSources=await loadPackagedOptionalPageLibraries(ids,{runtime:api.runtime,fetchImpl});
+    const frameworkId=selected.find(id=>id==='react'||id==='vue');
+    if(frameworkId)frameworkSource=await loadPackagedPageFramework(frameworkId,{runtime:api.runtime,fetchImpl});
     if (frozen.legacy) script = await compilePageScriptPreview({...frozen,jqueryCode,receiptNonce,builtinSource});
     else {
       locked = await dependencyManager.loadForExecution({sourceUtf8:frozen.sourceUtf8,
         entryFormat:frozen.entryFormat,lockId:frozen.lockId,
         ...(frozen.importSourceUrl ? {importSourceUrl:frozen.importSourceUrl} : {})},sender);
-      script = await compileLockedPageSource({...frozen,entries:locked.entries,receiptNonce,builtinSource,jqueryCode,frameworkSource,optionalSource});
+      script = await compileLockedPageSource({...frozen,entries:locked.entries,receiptNonce,builtinSource,jqueryCode,frameworkSource,optionalSources});
     }
     const native=await nativeAPI();
     invariant(!frozen.managedUI||managed,'E_UI_LIFECYCLE','受管预览未加载');
@@ -191,6 +191,7 @@ export function createPageScriptPreview({api, storage, assertHost, dependencies,
         ...(script.packagedJquerySha256?{packagedJquerySha256:script.packagedJquerySha256}:{}),
         ...(script.packagedFrameworkId?{packagedFrameworkId:script.packagedFrameworkId,
           packagedFrameworkSha256:script.packagedFrameworkSha256}:{}),
+        ...(script.packagedOptionals?{packagedOptionals:script.packagedOptionals}:{}),
         ...(script.packagedOptionalId?{packagedOptionalId:script.packagedOptionalId,
           packagedOptionalSha256:script.packagedOptionalSha256}:{})};
       if(!completion.ok)throw Object.assign(new FoundationError('E_PAGE_SCRIPT_EXECUTION',completion.error || '页面脚本执行失败'),
@@ -266,15 +267,16 @@ export function createPageScriptPreview({api, storage, assertHost, dependencies,
       assertBuiltinIdentity(candidate.builtinIdentity,builtinIdentity(builtinSource));
       const jqueryCode=pageWantsJquery(candidate.sourceUtf8)
         ? (await loadPackagedJquery({runtime:api.runtime,fetchImpl})).code : undefined;
-      const selected=pageSelectedPackagedLibrary(candidate.sourceUtf8);
-      const optionalId=pageOptionalLibraryId(selected);
-      const frameworkSource=selected&&!optionalId&&selected!=='jquery'
-        ? await loadPackagedPageFramework(selected,{runtime:api.runtime,fetchImpl}):undefined;
-      const optionalSource=optionalId
-        ? await loadPackagedOptionalPageLibrary(optionalId,{runtime:api.runtime,fetchImpl}):undefined;
+      const selected=pageSelectedPackagedLibraries(candidate.sourceUtf8);
+      const ids=selected.map(pageOptionalLibraryId).filter(Boolean);
+      const frameworkId=selected.find(id=>id==='react'||id==='vue');
+      const frameworkSource=frameworkId
+        ? await loadPackagedPageFramework(frameworkId,{runtime:api.runtime,fetchImpl}):undefined;
+      const optionalSources=ids.length
+        ? await loadPackagedOptionalPageLibraries(ids,{runtime:api.runtime,fetchImpl}):[];
       const script=await compileLockedPageSource({sourceUtf8:candidate.sourceUtf8,
         entryFormat:candidate.manifest.entryFormat,entries:resolution.entries,
-        importSourceUrl:candidate.manifest.sourceProfile.importSourceUrl,receiptNonce,builtinSource,jqueryCode,frameworkSource,optionalSource});
+        importSourceUrl:candidate.manifest.sourceProfile.importSourceUrl,receiptNonce,builtinSource,jqueryCode,frameworkSource,optionalSources});
       const native=await nativeAPI(),worldId=await worlds.allocate(native,t);
       await admission.reserveInstalled({nonce:receiptNonce,tabId:t.tabId,documentId:t.documentId,
         sourceHash:script.sourceHash},installation);reserved=true;
@@ -308,6 +310,7 @@ export function createPageScriptPreview({api, storage, assertHost, dependencies,
         ...(script.packagedJquerySha256?{packagedJquerySha256:script.packagedJquerySha256}:{}),
         ...(script.packagedFrameworkId?{packagedFrameworkId:script.packagedFrameworkId,
           packagedFrameworkSha256:script.packagedFrameworkSha256}:{}),
+        ...(script.packagedOptionals?{packagedOptionals:script.packagedOptionals}:{}),
         ...(script.packagedOptionalId?{packagedOptionalId:script.packagedOptionalId,
           packagedOptionalSha256:script.packagedOptionalSha256}:{})};
     }catch(error){

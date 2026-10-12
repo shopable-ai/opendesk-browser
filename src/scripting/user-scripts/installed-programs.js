@@ -2,11 +2,11 @@ import {canonical,digest,digestUtf8,invariant,FoundationError} from '../../platf
 import {BUILTIN_ABI,BUILTIN_RUNTIME_CATALOG} from '../../libs/runtime-contract.js';
 import {preparePageProgramRegistration} from './page-program-package.js';
 import {httpUrl} from '../../environment.js';
-import {PAGE_WORLD_CSP,pageWantsJquery,pageSelectedPackagedLibrary,pageOptionalLibraryId} from './execution-source.js';
+import {PAGE_WORLD_CSP,pageWantsJquery,pageSelectedPackagedLibraries,pageOptionalLibraryId} from './execution-source.js';
 import {loadPackagedPageFramework} from '../../libs/page-frameworks/loader.js';
 import {PAGE_FRAMEWORK_RUNTIMES} from '../../libs/page-frameworks/contract.js';
 import {JQUERY_371,loadPackagedJquery} from './packaged-dependencies.js';
-import {loadBuiltinPageSource,loadPackagedOptionalPageLibrary} from '../../libs/loader.js';
+import {loadBuiltinPageSource,loadPackagedOptionalPageLibraries} from '../../libs/loader.js';
 import {builtinIdentity,assertBuiltinIdentity} from '../../libs/identity.js';
 import {pageInstallScope,pageInstallScopeDelta,assertPageInstallAuthorization,pageInstallAffectedByRemoval} from './page-install-authorization.js';
 import {pageProgramUrlMatches} from './page-program-rules.js';
@@ -50,13 +50,19 @@ async function verifiedEnvironment(candidate,receipt){
   // cannot approve a newly loaded library, even when user source is unchanged.
   invariant(!pageWantsJquery(candidate.sourceUtf8)||receipt.packagedJquerySha256===JQUERY_371.sha256,
     'E_PAGE_ENVIRONMENT','库环境已变化，请重新验证安装');
-  const selected=pageSelectedPackagedLibrary(candidate.sourceUtf8);
-  const optionalId=pageOptionalLibraryId(selected);
-  if(optionalId)invariant(receipt.packagedOptionalId===optionalId&&
-    /^[a-f0-9]{64}$/.test(receipt.packagedOptionalSha256),'E_PAGE_ENVIRONMENT');
-  else if(selected&&selected!=='jquery')invariant(receipt.packagedFrameworkId===selected&&
-    receipt.packagedFrameworkSha256===PAGE_FRAMEWORK_RUNTIMES[selected].sha256,
-    'E_PAGE_ENVIRONMENT','框架已更新，请重新验证');
+  const selected=pageSelectedPackagedLibraries(candidate.sourceUtf8);
+  const ids=selected.map(pageOptionalLibraryId).filter(Boolean),recorded=receipt.packagedOptionals;
+  if(ids.length){
+    if(recorded!==undefined)
+      invariant(Array.isArray(recorded)&&recorded.length===ids.length&&recorded.every((r,i)=>
+        r?.id===ids[i]&&/^[a-f0-9]{64}$/.test(r.sha256)),'E_PAGE_ENVIRONMENT');
+    else invariant(ids.length===1&&receipt.packagedOptionalId===ids[0]&&
+      /^[a-f0-9]{64}$/.test(receipt.packagedOptionalSha256),'E_PAGE_ENVIRONMENT',
+      '旧单库回执不能授权新增组合');
+  }else invariant(recorded===undefined&&receipt.packagedOptionalId===undefined,'E_PAGE_ENVIRONMENT');
+  const frameworkId=selected.find(id=>id==='react'||id==='vue');
+  if(frameworkId)invariant(receipt.packagedFrameworkId===frameworkId&&
+    receipt.packagedFrameworkSha256===PAGE_FRAMEWORK_RUNTIMES[frameworkId].sha256,'E_PAGE_ENVIRONMENT');
 }
 const publicInstall=row=>row?{programId:row.programId,revision:row.revision,manifestHash:row.manifestHash,
   sourceHash:row.sourceHash,pageRules:row.pageRules,enabled:row.enabled,nativeId:row.nativeId,nativeState:row.nativeState,
@@ -119,16 +125,19 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
     if(!legacy)assertPageInstallAuthorization(row);
     const jqueryCode=pageWantsJquery(candidate.sourceUtf8)
       ? (await loadPackagedJquery({runtime:api.runtime})).code : undefined;
-    const selected=pageSelectedPackagedLibrary(candidate.sourceUtf8);
-    const optionalId=pageOptionalLibraryId(selected);
-    const frameworkSource=selected&&!optionalId&&selected!=='jquery'
-      ?await loadPackagedPageFramework(selected,{runtime:api.runtime}):undefined;
-    const optionalSource=optionalId
-      ?await loadPackagedOptionalPageLibrary(optionalId,{runtime:api.runtime}):undefined;
-    // A verified native receipt must name the exact currently packaged byte hash.
-    if(optionalSource)invariant(proof.receipt.packagedOptionalSha256===optionalSource.sha256,'E_PAGE_ENVIRONMENT');
+    const selected=pageSelectedPackagedLibraries(candidate.sourceUtf8);
+    const ids=selected.map(pageOptionalLibraryId).filter(Boolean);
+    const frameworkId=selected.find(id=>id==='react'||id==='vue');
+    const frameworkSource=frameworkId?await loadPackagedPageFramework(frameworkId,{runtime:api.runtime}):undefined;
+    const optionalSources=ids.length?await loadPackagedOptionalPageLibraries(ids,{runtime:api.runtime}):[];
+    for(let i=0;i<optionalSources.length;i++){
+      const asset=optionalSources[i],record=proof.receipt.packagedOptionals?.[i];
+      invariant(record?record.id===asset.id&&record.sha256===asset.sha256:
+        optionalSources.length===1&&proof.receipt.packagedOptionalId===asset.id&&
+          proof.receipt.packagedOptionalSha256===asset.sha256,'E_PAGE_ENVIRONMENT');
+    }
     const compiled=await preparePageProgramRegistration({candidate,sourceUtf8:candidate.sourceUtf8,
-      dependencyResolution:resolution,jqueryCode,frameworkSource,optionalSource,authority:{assertAvailable:async()=>({...proof,installationEnabled:true})}});
+      dependencyResolution:resolution,jqueryCode,frameworkSource,optionalSources,authority:{assertAvailable:async()=>({...proof,installationEnabled:true})}});
     invariant(compiled.allFrames===false,'E_PAGE_FRAME_SCOPE','本轮正式安装只支持顶层文档；请添加 @noframes');
     invariant(compiled.runAt==='document_idle','E_PAGE_RUN_AT','正式安装仅支持 @run-at document-idle；早期时序尚未验收');
     const nativeId=PREFIX+(await digest([namespace,row.programId])).slice(0,48);
