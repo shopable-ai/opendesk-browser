@@ -1,0 +1,196 @@
+TAP version 13
+# Subtest: R5 production trust is disabled until all reviewed inputs exist; development cannot leak into it
+ok 1 - R5 production trust is disabled until all reviewed inputs exist; development cannot leak into it
+  ---
+  duration_ms: 2.941668
+  type: 'test'
+  ...
+# Subtest: R5 finite messages reject code, URLs, approval flags, protocol drift and unbounded fields
+ok 2 - R5 finite messages reject code, URLs, approval flags, protocol drift and unbounded fields
+  ---
+  duration_ms: 1.064556
+  type: 'test'
+  ...
+# Subtest: R5 validates browser sender, live top document and exact port before any handoff mutation
+ok 3 - R5 validates browser sender, live top document and exact port before any handoff mutation
+  ---
+  duration_ms: 2.086228
+  type: 'test'
+  ...
+# Subtest: R5 probe exposes no installed information; same intent resumes exact review after worker replacement
+ok 4 - R5 probe exposes no installed information; same intent resumes exact review after worker replacement
+  ---
+  duration_ms: 2.814646
+  type: 'test'
+  ...
+# Subtest: R5 prepared/opened persistence and committed-tab acknowledgement faults reconcile without duplicate pages
+ok 5 - R5 prepared/opened persistence and committed-tab acknowledgement faults reconcile without duplicate pages
+  ---
+  duration_ms: 2.440402
+  type: 'test'
+  ...
+# Subtest: R5 queue, global/origin rate and capacity are bounded across tabs and worker restarts
+ok 6 - R5 queue, global/origin rate and capacity are bounded across tabs and worker restarts
+  ---
+  duration_ms: 28.571434
+  type: 'test'
+  ...
+# Subtest: R5 expiry protects only the original unresolved operation/batch, without deleting installer journals
+ok 7 - R5 expiry protects only the original unresolved operation/batch, without deleting installer journals
+  ---
+  duration_ms: 2.286129
+  type: 'test'
+  ...
+# Subtest: R5 consumed handoff cannot replay when terminal installer or batch history is gone
+ok 8 - R5 consumed handoff cannot replay when terminal installer or batch history is gone
+  ---
+  duration_ms: 1.883181
+  type: 'test'
+  ...
+# Subtest: R5 shared consumption and external requests do not overwrite each other; expired approval is refused
+ok 9 - R5 shared consumption and external requests do not overwrite each other; expired approval is refused
+  ---
+  duration_ms: 6.543803
+  type: 'test'
+  ...
+# Subtest: R5 existing installer checks baseline and hash before consuming a handoff; consumption failure cannot install
+ok 10 - R5 existing installer checks baseline and hash before consuming a handoff; consumption failure cannot install
+  ---
+  duration_ms: 115.339235
+  type: 'test'
+  ...
+# Subtest: R5 consumed-without-journal survives TTL, and explicit locked recovery ends only the handoff
+ok 11 - R5 consumed-without-journal survives TTL, and explicit locked recovery ends only the handoff
+  ---
+  duration_ms: 4.50755
+  type: 'test'
+  ...
+# Subtest: R5 a lost consumption acknowledgement stops before installer writes, and two consumers never both succeed
+ok 12 - R5 a lost consumption acknowledgement stops before installer writes, and two consumers never both succeed
+  ---
+  duration_ms: 2.88355
+  type: 'test'
+  ...
+# Subtest: R5 terminal settlement survives journal trimming and missing recovery respects existing locks
+ok 13 - R5 terminal settlement survives journal trimming and missing recovery respects existing locks
+  ---
+  duration_ms: 2.705291
+  type: 'test'
+  ...
+# Subtest: R5 immutable archive conflicts reject same-version bytes and same-revision replacement
+ok 14 - R5 immutable archive conflicts reject same-version bytes and same-revision replacement
+  ---
+  duration_ms: 4.953979
+  type: 'test'
+  ...
+# Subtest: R5 independent website build is reproducible, self-contained and replaces only generated output
+ok 15 - R5 independent website build is reproducible, self-contained and replaces only generated output
+  ---
+  duration_ms: 257.568332
+  type: 'test'
+  ...
+# Subtest: R5 client never lets a late probe overwrite a successful handoff or claim installed
+ok 16 - R5 client never lets a late probe overwrite a successful handoff or claim installed
+  ---
+  duration_ms: 7.522579
+  type: 'test'
+  ...
+# Subtest: R5 client timeout and missing receiver say unable to connect, without guessing installation state
+ok 17 - R5 client timeout and missing receiver say unable to connect, without guessing installation state
+  ---
+  duration_ms: 4.750807
+  type: 'test'
+  ...
+# Subtest: R5 client rejects incompatible and malformed replies instead of showing false success
+ok 18 - R5 client rejects incompatible and malformed replies instead of showing false success
+  ---
+  duration_ms: 3.875216
+  type: 'test'
+  ...
+# Subtest: R5 channel network/JSON errors and wrong origin are understandable and never send an install request
+ok 19 - R5 channel network/JSON errors and wrong origin are understandable and never send an install request
+  ---
+  duration_ms: 5.895574
+  type: 'test'
+  ...
+# Subtest: old installed v1 tool and private data remain readable with unlimitedStorage active
+ok 20 - old installed v1 tool and private data remain readable with unlimitedStorage active
+  ---
+  duration_ms: 3.469153
+  type: 'test'
+  ...
+# Subtest: readBytesInUse counts all local keys and includes knowledge 4 MiB namespace, not an invented capacity
+ok 21 - readBytesInUse counts all local keys and includes knowledge 4 MiB namespace, not an invented capacity
+  ---
+  duration_ms: 129.934068
+  type: 'test'
+  ...
+# Subtest: quota refusal leaves existing data intact and unknown response never lies about persistence
+ok 22 - quota refusal leaves existing data intact and unknown response never lies about persistence
+  ---
+  duration_ms: 1.120311
+  type: 'test'
+  ...
+# Subtest: My Apps opens local installed package while official catalog is missing or offline
+ok 23 - My Apps opens local installed package while official catalog is missing or offline
+  ---
+  duration_ms: 7.237729
+  type: 'test'
+  ...
+# Subtest: a corrupt local install registry reports a storage failure, not an empty My Apps view
+ok 24 - a corrupt local install registry reports a storage failure, not an empty My Apps view
+  ---
+  duration_ms: 2.578039
+  type: 'test'
+  ...
+# Subtest: capacity usage includes unfinished uninstall namespaces without loading their private note content
+ok 25 - capacity usage includes unfinished uninstall namespaces without loading their private note content
+  ---
+  duration_ms: 0.571102
+  type: 'test'
+  ...
+# Subtest: stalled official package lookup never blocks local My Apps or Open after catalog loads
+ok 26 - stalled official package lookup never blocks local My Apps or Open after catalog loads
+  ---
+  duration_ms: 100.305645
+  type: 'test'
+  ...
+# Subtest: late local registry reads cannot replace a newer installed-app snapshot
+ok 27 - late local registry reads cannot replace a newer installed-app snapshot
+  ---
+  duration_ms: 2.004064
+  type: 'test'
+  ...
+# Subtest: My Apps shows unavailable rather than zero when actual Chrome byte counters fail
+ok 28 - My Apps shows unavailable rather than zero when actual Chrome byte counters fail
+  ---
+  duration_ms: 1.348825
+  type: 'test'
+  ...
+# Subtest: R5 trusted app page exposes missing-journal recovery immediately after consume ACK loss
+ok 29 - R5 trusted app page exposes missing-journal recovery immediately after consume ACK loss
+  ---
+  duration_ms: 10.457056
+  type: 'test'
+  ...
+# Subtest: R5 trusted collection page exposes missing-journal recovery immediately after consume ACK loss
+ok 30 - R5 trusted collection page exposes missing-journal recovery immediately after consume ACK loss
+  ---
+  duration_ms: 4.913733
+  type: 'test'
+  ...
+# Subtest: R5 a fixed collection review never displays or recovers another intent batch of the same revision
+ok 31 - R5 a fixed collection review never displays or recovers another intent batch of the same revision
+  ---
+  duration_ms: 7.038088
+  type: 'test'
+  ...
+1..31
+# tests 31
+# suites 0
+# pass 31
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 552.129937

@@ -1,92 +1,127 @@
-// Deployable static public catalogue. No extension bridge until official HTTPS
-// origin and production extension ID are configured and allowlisted.
-import {mkdir,writeFile} from 'node:fs/promises';
+// Deterministic inputs and a complete output tree; never reuse stale dist pages.
+import {mkdir,writeFile,readFile,rename,rm,readdir,lstat} from 'node:fs/promises';
 import {resolve,dirname} from 'node:path';
+import {pathToFileURL} from 'node:url';
+import {createHash,randomUUID} from 'node:crypto';
 import {OFFICIAL_COLLECTIONS,officialMarketApps} from '../src/marketplace/catalog.js';
-import {createOfficialToolResources} from './build-official-tools.mjs';
-const official=await createOfficialToolResources();
-const OFFICIAL_APPS=officialMarketApps(official.catalog);
-const getOfficialApp=id=>OFFICIAL_APPS.find(row=>row.id===id)||null;
-
-const dest=resolve(process.env.OPENDESK_MARKET_SITE_OUTPUT||'dist/app-market-public');
-const inputOrigin=process.env.OPENDESK_MARKET_SITE_ORIGIN||'';
-let origin='';
-if(inputOrigin){
-  const u=new URL(inputOrigin);
-  if(u.protocol!=='https:'||u.username||u.password||u.hash||u.search||u.pathname!=='/'||
-    u.origin!==inputOrigin.replace(/\/$/,''))throw Error('Expected a bare HTTPS origin');
-  origin=u.origin;
+import {createOfficialToolResources,officialToolInputs} from './build-official-tools.mjs';
+import {resolveMarketChannel,marketOrigin} from './market-channel.mjs';
+import {loadMarketSnapshots,mergeMarketReleases} from './market-release-snapshots.mjs';
+import {layout,home,appDetail,appPath,collectionPath,collectionList,collectionDetail,
+  installPage,installPath,helpPage,escapeHTML} from '../src/market-site/templates.mjs';
+const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
+async function filesAt(root,prefix=''){
+  const names=[];
+  for(const row of await readdir(resolve(root,prefix),{withFileTypes:true})){
+    const path=prefix?prefix+'/'+row.name:row.name;
+    if(row.isSymbolicLink())throw Error('Symlink forbidden in market input/output: '+path);
+    if(row.isDirectory())names.push(...await filesAt(root,path));
+    else if(row.isFile())names.push(path);else throw Error('Unexpected market resource: '+path);
+  }
+  return names.sort();
 }
-const esc=s=>String(s).replace(/[&<>"']/g,x=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[x]));
-const appUrl=app=>'/apps/'+app.id+'/versions/'+app.version+'/';
-const collectionUrl=col=>'/collections/'+col.id+'/revisions/'+col.revision+'/';
-const css='*{box-sizing:border-box}body{margin:0;background:#f7f9fc;color:#243047;font:15px/1.6 system-ui,sans-serif}a{color:#345fc8}nav{display:flex;gap:20px;flex-wrap:wrap;align-items:center}main{padding:24px 0}.shell{max-width:950px;margin:auto;padding:25px 20px}.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}.card{border:1px solid #dce5f0;background:#fff;border-radius:12px;padding:17px;margin:12px 0}h1{font-size:clamp(24px,4vw,38px)}h2{font-size:19px}.action{display:inline-block;background:#365eda;color:#fff;border-radius:9px;padding:9px 15px;text-decoration:none}footer{font-size:12px;color:#62738b;border-top:1px solid #dce5f0;padding-top:22px}@media(prefers-color-scheme:dark){body{background:#182130;color:#e9effd}.card{background:#263449;border-color:#435269}a{color:#b2c4ff}}';
-function html(title,description,body,path=''){
- const canonical=origin&&path?origin+path:null;
- return '<!doctype html><html lang="zh-CN"><head><meta charset="utf-8">'+
- '<meta name="viewport" content="width=device-width,initial-scale=1"><title>'+esc(title)+' · OpenDesk</title>'+
- '<meta name="description" content="'+esc(description)+'">'+
- '<meta property="og:title" content="'+esc(title)+'"><meta property="og:description" content="'+esc(description)+'">'+
- (canonical?'<link rel="canonical" href="'+esc(canonical)+'"><meta property="og:url" content="'+esc(canonical)+'">':'')+
- '<link rel="stylesheet" href="/market.css"></head><body><div class="shell"><nav><strong>OpenDesk 应用市场</strong> '+
- '<a href="/">应用</a><a href="'+collectionUrl(OFFICIAL_COLLECTIONS[0])+'">官方套装</a><a href="/how-to-install/">安装说明</a></nav>'+
- '<main>'+body+'</main><footer>本网站仅展示和分享，不安装或运行插件代码、不读取用户网站或个人数据。实际安装须在 OpenDesk 扩展内确认。</footer></div></body></html>';
+async function inputIdentity(){
+  const paths=[...await officialToolInputs()];
+  for(const dir of ['src/market-site','official-tools/releases'])paths.push(...(await filesAt(dir)).map(p=>dir+'/'+p));
+  paths.push('src/ui/design-tokens.css','src/marketplace/catalog.js','src/marketplace/channel-config.json',
+    'scripts/build-market-site.mjs','scripts/market-channel.mjs','scripts/market-release-snapshots.mjs','scripts/build-official-tools.mjs','package-lock.json');
+  return Promise.all([...new Set(paths)].sort().map(async path=>{const bytes=await readFile(path);return {path,bytes:bytes.length,sha256:hash(bytes)};}));
 }
-async function page(path,contents){
- if((path!=='/'&&!/^\/[a-z0-9/.-]*\/$/.test(path))||path.includes('..')||path.includes('//'))
-   throw Error('Invalid route '+path);
- const out=resolve(dest,'.'+path,'index.html');
- if(!out.startsWith(dest+'/'))throw Error('Output traversal');
- await mkdir(dirname(out),{recursive:true});await writeFile(out,contents);
+export const MARKET_HEADERS={
+  'Content-Security-Policy':"default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; connect-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; object-src 'none'",
+  'X-Content-Type-Options':'nosniff','Referrer-Policy':'no-referrer','X-Frame-Options':'DENY',
+  'Permissions-Policy':'camera=(), microphone=(), geolocation=()'
+};
+export async function buildMarketSite({env=process.env}={}){
+  const mode=env.OPENDESK_MARKET_BUILD_MODE||'development';
+  const channel=resolveMarketChannel({mode,env});
+  // Legacy deployment metadata never opens installation trust by itself.
+  const metadataOrigin=env.OPENDESK_MARKET_SITE_ORIGIN?marketOrigin(env.OPENDESK_MARKET_SITE_ORIGIN,'production'):null;
+  if(channel.enabled&&metadataOrigin&&metadataOrigin!==channel.origin)throw Error('Deployment metadata differs from the controlled installation origin');
+  const origin=metadataOrigin||channel.origin;
+  const dest=resolve(env.OPENDESK_MARKET_SITE_OUTPUT||'dist/app-market-public'),repo=resolve('.');
+  if(dest===repo||['src','scripts','official-tools','.git','dist/production','dist/development'].some(p=>dest===resolve(p)||dest.startsWith(resolve(p)+'/')))
+    throw Error('Market output may not replace source or extension packages');
+  const before=await inputIdentity(),official=await createOfficialToolResources();
+  const archived=mergeMarketReleases(await loadMarketSnapshots(),official.catalog,OFFICIAL_COLLECTIONS);
+  const current=officialMarketApps(official.catalog),releases=archived.releases.map(row=>{
+    const app=officialMarketApps({apps:[row]})[0];
+    return current.some(r=>r.id===row.id&&r.version===row.version)?app:{...app,summary:row.description};
+  });
+  const stage=dest+'.building-'+randomUUID(),outputFiles=[];
+  await mkdir(stage,{recursive:true});
+  const write=async(path,bytes)=>{
+    if(!/^[a-zA-Z0-9_./-]+$/.test(path)||path.startsWith('/')||path.includes('..')||path.includes('//'))throw Error('Invalid generated market path: '+path);
+    const target=resolve(stage,path);if(!target.startsWith(stage+'/'))throw Error('Output traversal');
+    await mkdir(dirname(target),{recursive:true});await writeFile(target,bytes);outputFiles.push({path,bytes:Buffer.byteLength(bytes),sha256:hash(bytes)});
+  };
+  const routes=[],page=async(path,title,description,body,section='apps')=>{
+    if(path!=='/'&&!/^\/[a-z0-9/.-]+\/$/.test(path))throw Error('Invalid market route');
+    if(routes.includes(path))throw Error('Duplicate market route '+path);
+    routes.push(path);await write(path.slice(1)+'index.html',layout({title,description,body,path,channel,origin,section}));
+  };
+  try{
+    for(const [input,path] of [['src/market-site/market.css','market.css'],['src/market-site/client.js','client.js'],['src/ui/design-tokens.css','design-tokens.css']])await write(path,await readFile(input));
+    await write('channel.json',JSON.stringify(channel,null,2)+'\n');
+    await write('catalog.json',JSON.stringify({format:'opendesk.market.public.v1',releases:archived.releases,
+      recommended:official.catalog.apps.map(({id,version})=>({id,version})),collections:archived.collections},null,2)+'\n');
+    const mediaFiles=before.filter(row=>row.path.startsWith('src/market-site/media/'));
+    for(const file of mediaFiles){if(!/^[a-z0-9.-]+\.png$/.test(file.path.split('/').at(-1)))throw Error('Only reviewed PNG screenshots are supported');await write(file.path.replace('src/market-site/',''),await readFile(file.path));}
+    await page('/','官方应用','发现 OpenDesk 官方应用，查看用途、运行位置与固定版本，在可信扩展页面审阅安装。',home(current));
+    for(const app of releases){
+      const live=current.find(row=>row.id===app.id),versions=releases.filter(row=>row.id===app.id).sort((a,b)=>b.version.localeCompare(a.version,undefined,{numeric:true}));
+      const media='/media/'+app.toolId+'-'+app.version+'.png';
+      const options={current:live,versions,media:mediaFiles.some(row=>row.path==='src/market-site'+media)?media:null};
+      await page(appPath(app),app.title+' v'+app.version,app.description,appDetail(app,options));
+      if(app.version===live?.version)await page(appPath(app,false),app.title,app.summary,appDetail(app,{...options,fixed:false}));
+      const subject={kind:'app',marketId:app.id,version:app.version};
+      await page(installPath(subject),'安装 '+app.title+' v'+app.version,'在 OpenDesk 中审阅此固定应用版本。',installPage(subject,app.title));
+    }
+    // A historically pinned collection can outlive available release evidence.
+    // Preserve its share route as an explicit missing-evidence page, never invent
+    // a package digest/description or substitute the current version.
+    const unresolved=new Map();
+    for(const col of archived.collections)for(const member of col.members)
+      if(!releases.some(row=>row.id===member.id&&row.version===member.version))unresolved.set(member.id+'@'+member.version,member);
+    for(const member of unresolved.values()){
+      const title=current.find(row=>row.id===member.id)?.title||member.id;
+      const subject={kind:'app',marketId:member.id,version:member.version};
+      await page(appPath(member),title+' v'+member.version+' · 发行记录待核对','此固定版本来自历史套装引用，缺少完整发行快照。',
+        '<section class="hero"><p class="eyebrow">历史套装引用 · 固定版本</p><h1>'+escapeHTML(title)+' v'+escapeHTML(member.version)+'</h1><p class="lead">此版本记录在官方固定套装中，但当前归档缺少可核验的完整发行快照。</p><p>不会用当前版本代替，也不会编造摘要或发行说明。扩展可信页会核对其实际包含的固定版本。</p><div class="actions"><a class="button primary" href="'+installPath(subject)+'">在扩展中核对此版本</a><a href="/collections/">查看套装记录</a></div></section>');
+      await page(installPath(subject),'核对 '+title+' v'+member.version,'核对历史套装引用中的固定版本；不保证当前扩展包含该包。',installPage(subject,title));
+    }
+    await page('/collections/','官方套装','固定应用组合与不可变 revision。',collectionList(archived.collections),'collections');
+    for(const col of archived.collections){
+      await page(collectionPath(col),col.title+' · revision '+col.revision,col.description,collectionDetail(col,{releases:archived.releases,current:official.catalog.apps}),'collections');
+      const subject={kind:'collection',collectionId:col.id,revision:col.revision};
+      await page(installPath(subject),'安装 '+col.title+' · revision '+col.revision,'逐项审阅固定版本套装。',installPage(subject,col.title),'collections');
+    }
+    await page('/how-to-install/','安装与连接帮助','获取 OpenDesk 主扩展、连接市场、审阅应用与处理安装异常。',helpPage(channel),'help');
+    await write('404.html',layout({title:'页面不存在',description:'请检查应用与固定版本地址。',body:'<section class="hero"><h1>找不到这个页面</h1><p class="lead">请检查链接。已有固定版本不会自动改为其他版本。</p><p><a href="/">返回应用市场</a></p></section>',path:'/404.html',channel,origin}));
+    await write('_headers','/*\n'+Object.entries({...MARKET_HEADERS,...(mode==='production'?{'Strict-Transport-Security':'max-age=31536000'}:{})}).map(([key,value])=>'  '+key+': '+value).join('\n')+'\n');
+    await write('robots.txt','User-agent: *\n'+(mode==='development'?'Disallow: /\n':'Allow: /\n')+(origin?'Sitemap: '+origin+'/sitemap.xml\n':''));
+    await write('sitemap.xml','<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'+(origin?routes.filter(p=>!p.startsWith('/install/')).map(p=>'<url><loc>'+escapeHTML(origin+p)+'</loc></url>').join(''):'')+'</urlset>\n');
+    const after=await inputIdentity();if(JSON.stringify(before)!==JSON.stringify(after))throw Error('Market inputs changed during build');
+    const manifest={schema:'opendesk.market.build.v1',mode,channel,origin,apps:current.length,archivedReleases:releases.length,unresolvedReleaseReferences:[...unresolved.values()],
+      externalInstall:channel.enabled?'CONFIGURED':'NOT_CONFIGURED',routes,sourceInputs:before,
+      sourceFingerprint:hash(JSON.stringify(before)),catalogSha256:hash(JSON.stringify(official.catalog)),
+      files:outputFiles.sort((a,b)=>a.path.localeCompare(b.path))};
+    manifest.buildId=hash(JSON.stringify(manifest));
+    await writeFile(resolve(stage,'site-build.json'),JSON.stringify(manifest,null,2)+'\n');
+    let old=null;
+    try{
+      const stat=await lstat(dest);if(!stat.isDirectory()||stat.isSymbolicLink())throw Error('Invalid existing market output');
+      const names=await readdir(dest);
+      if(names.length){
+        const marker=JSON.parse(await readFile(resolve(dest,'catalog.json'),'utf8'));
+        if(marker.format!=='opendesk.market.public.v1')throw Error('Refusing to replace an unrecognized directory');
+      }
+      old=dest+'.previous-'+randomUUID();await rename(dest,old);
+    }catch(error){if(error.code!=='ENOENT')throw error;}
+    try{await rename(stage,dest);}catch(error){if(old)await rename(old,dest);throw error;}
+    if(old)await rm(old,{recursive:true,force:true});
+    return {output:dest,buildId:manifest.buildId,apps:current.length,releases:releases.length,origin,mode,
+      extensionId:channel.extensionId,externalInstall:manifest.externalInstall};
+  }catch(error){await rm(stage,{recursive:true,force:true});throw error;}
 }
-await mkdir(dest,{recursive:true});
-await writeFile(resolve(dest,'market.css'),css+'\n');
-const releases=official.catalog.apps.map(({id,toolId,version,sha256})=>({id,toolId,version,sha256}));
-await writeFile(resolve(dest,'catalog.json'),JSON.stringify({format:'opendesk.market.public.v1',releases,
- collections:OFFICIAL_COLLECTIONS},null,2)+'\n');
-await page('/',html('官方应用','可浏览的 OpenDesk 官方应用目录',
- '<h1>让你的浏览器更好用</h1><p>固定版本、清晰权限、用户确认安装。</p><div class="cards">'+
- OFFICIAL_APPS.map(app=>'<article class="card"><small>'+esc(app.category)+'</small><h2><a href="'+appUrl(app)+'">'+
- esc(app.title)+'</a></h2><p>'+esc(app.summary)+'</p></article>').join('')+'</div>','/'));
-for(const app of OFFICIAL_APPS){
- const install='/install/'+app.id+'/versions/'+app.version+'/';
- const body='<h1>'+esc(app.title)+'</h1><p>'+esc(app.summary)+'</p><div class="card"><p>发布者：'+esc(app.author)+
- ' · 固定版本：'+esc(app.version)+'</p><p>适用范围：'+esc(app.sites)+'</p><p>运行位置：'+
- esc(app.surfaces.join('、'))+'</p><ul>'+app.features.map(f=>'<li>'+esc(f)+'</li>').join('')+
- '</ul></div><p><a class="action" href="'+install+'">在 OpenDesk 中安装</a></p>'+
- '<p>网页不能直接获取权限或执行安装；必须在扩展内审核。</p>';
- await page(appUrl(app),html(app.title,app.summary,body,appUrl(app)));
- await page('/apps/'+app.id+'/',html(app.title,app.summary,body,appUrl(app)));
- await page(install,html('安装 '+app.title,'安全安装固定发行版本',
- '<h1>安装 '+esc(app.title)+' · '+esc(app.version)+'</h1>'+
- '<div class="card"><p>公网安装交接尚未配置，不能判断扩展是否已安装。</p>'+
- '<p>请在 Chrome 中打开 OpenDesk →「工具」→「应用市场」→ 选择相同的名称和版本 → 审阅并确认安装。</p>'+
- '<p>安装不会自动运行或授予网站访问权。</p></div><a href="'+appUrl(app)+'">返回详情</a>'));
-}
-for(const col of OFFICIAL_COLLECTIONS){
- const path=collectionUrl(col),install='/install/collections/'+col.id+'/revisions/'+col.revision+'/';
- await page(path,html(col.title,col.description,
- '<h1>'+esc(col.title)+'</h1><p>'+esc(col.description)+'</p><ul>'+
- col.members.map(member=>{
-   const app=getOfficialApp(member.id),title=esc(app?.title||member.id);
-   return '<li>'+(app?.version===member.version?'<a href="'+appUrl(app)+'">'+title+'</a>':title)+
-     ' v'+esc(member.version)+(app?.version===member.version?'':'（当前扩展未提供此固定版本）')+'</li>';
- }).join('')+
- '</ul><p><a class="action" href="'+install+'">查看套装安装</a></p>',path));
- await page(install,html('安装 '+col.title,'固定 revision 套装安装',
- '<h1>'+esc(col.title)+' · revision '+col.revision+'</h1>'+
- '<p>请在扩展内打开官方套装，逐项预检、审阅并安装。公网不传输工具代码或网站授权。</p>'+
- '<p><a href="'+path+'">返回套装详情</a></p>'));
-}
-await page('/how-to-install/',html('如何安装','OpenDesk 安全安装说明',
- '<h1>如何安装</h1><ol><li>在 Chrome 中加载受信任的 OpenDesk 扩展。</li>'+
- '<li>进入 Side Panel「工具」→「应用市场」。</li>'+
- '<li>打开指定版本详情，检查来源与所需能力，确认安装；之后主动打开使用。</li></ol>'+
- '<p>公网 HTTPS → 扩展安装意图尚未启用，不能静默安装。</p>','/how-to-install/'));
-if(origin){
- const paths=['/','/how-to-install/',...OFFICIAL_APPS.map(appUrl),...OFFICIAL_COLLECTIONS.map(collectionUrl)];
- await writeFile(resolve(dest,'robots.txt'),'User-agent: *\nAllow: /\nSitemap: '+origin+'/sitemap.xml\n');
- await writeFile(resolve(dest,'sitemap.xml'),'<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'+
-  paths.map(path=>'<url><loc>'+esc(origin+path)+'</loc></url>').join('')+'</urlset>');
-}
-console.log(JSON.stringify({output:dest,apps:releases.length,origin:origin||null,externalInstall:'NOT_CONFIGURED'}));
+if(import.meta.url===pathToFileURL(process.argv[1]||'').href)console.log(JSON.stringify(await buildMarketSite()));

@@ -1,0 +1,90 @@
+{
+  "schema": "opendesk.market.r5.evidence-index.v1",
+  "sourceBaseCommit": "5045635377e3f30e90a6c2d644f249399af77cb2",
+  "status": "PRE_CI",
+  "files": [
+    {
+      "path": "build-development.json.gz",
+      "bytes": 57352,
+      "sha256": "0fc8c1c239be3528de7f10af662b4bc1137fe6d16872a26a01e0a2ecc3cc52c5"
+    },
+    {
+      "path": "build-production.json.gz",
+      "bytes": 52504,
+      "sha256": "94b758fbde7f295c8285cba32ebc6da95f331e17e093a1341eeb23f63f1d87ce"
+    },
+    {
+      "path": "check-current.log",
+      "bytes": 307,
+      "sha256": "e1a659f2d608e07ef307f03cc6d4d60bd982dd3b93686b7fadc48623a6bd8d83"
+    },
+    {
+      "path": "components-attempt-01.tap",
+      "bytes": 5413,
+      "sha256": "659a54a1bb46d40f74310227455612c12ad475a610782b051d0a8b1ccf466a60"
+    },
+    {
+      "path": "components-attempt-02.tap",
+      "bytes": 11260,
+      "sha256": "445594d27a8f9b58b0ac54356f767959b3d2e672acd7b8185edf6ab7e5144164"
+    },
+    {
+      "path": "components-final-local.tap",
+      "bytes": 20472,
+      "sha256": "f5d03267692accd9da3c3ae0c8da8be32ed95dc3626e6d532afcc6eb1f33127b"
+    },
+    {
+      "path": "components-review-fixes.tap",
+      "bytes": 8045,
+      "sha256": "bcea3be4ceb2f454b4264ad7706f1beaf57b9b9dc46b890ad01811957a284cb7"
+    },
+    {
+      "path": "dev-market-occupied-port.log",
+      "bytes": 675,
+      "sha256": "119c25600c472a78ad654719a547c157adc9e13ee032e8f249bc3e224a57741b"
+    },
+    {
+      "path": "dev-market-verified.log",
+      "bytes": 624,
+      "sha256": "e620d4953d90866af445747916cddd81d993454dc358fdab938f9da33796e35a"
+    },
+    {
+      "path": "http-services.json",
+      "bytes": 9918,
+      "sha256": "cf4b9fdfd145061872696b5b34805421796e3537ddc089397269dcbab8882218"
+    },
+    {
+      "path": "native-attempt-01/native-result.json",
+      "bytes": 8376,
+      "sha256": "8c1fcd1ffeb3f24aecb137b18f343c935eed92f542d56ddd4cbb322539f8e8a2"
+    },
+    {
+      "path": "native-attempt-01.tap",
+      "bytes": 3980,
+      "sha256": "08b1c3f1ebf86935d90c9a45f4d968a0e81c7bb9478bf3121f38c9cc3283b4ab"
+    },
+    {
+      "path": "python-http-verified.log",
+      "bytes": 1220,
+      "sha256": "f21627380e495fea465e41dbfa03656f5b3af7c8386d694f24e6f1aa9f5a9689"
+    },
+    {
+      "path": "python-http.log",
+      "bytes": 1220,
+      "sha256": "94c04e4ef23ab24a863d34cbd275b76c80e22f261f7b861c358526e1858cab34"
+    },
+    {
+      "path": "site-development.json",
+      "bytes": 17976,
+      "sha256": "9d02ad1005ae4fad0ffc3d8040c93fe1446ca6e33d8830a1ad2ade55c084f2f6"
+    },
+    {
+      "path": "site-production.json",
+      "bytes": 17908,
+      "sha256": "c71c487963452a0beb01fb5a1218326f89d12512c91418a5d45ec9653c5260f5"
+    }
+  ],
+  "note": "Raw build receipt gzip preserves exact original JSON bytes; component and HTTP static results do not prove real Chrome installation.",
+  "buildSourceBaseCommit": "50456353",
+  "laterMainIntegration": "9b629e68: independent Native Workspace UI files; no R5 source or official package bytes changed; CI must build that merged candidate."
+}

@@ -1,0 +1,156 @@
+{
+  "result": "FAILED",
+  "commit": "67fefdac3f5576cb7f3dc042149d95ca046810c7",
+  "extensionPath": "/workspace/scratch/58f5833cea67/opendesk-browser/dist/development",
+  "packageHash": "9c880ff12d7c7f721abedb4ff8eeaf6ba09fec0e87c20a629ea7373c79f55ab4",
+  "catalogSha256": "724a6e361b710e6af07a1f5fab3c73734e444340a3cffb8391a6f1d7837036a6",
+  "releases": [
+    {
+      "id": "opendesk/reading-toc",
+      "toolId": "reading-toc",
+      "kind": "sidebar-tool",
+      "installationPolicy": "preinstalled",
+      "version": "1.0.3",
+      "packageTitle": "阅读目录",
+      "description": "在侧边栏或授权网页中查看章节并精准跳转。",
+      "capabilities": [
+        "page.toc"
+      ],
+      "packagePath": "official-tools/reading-toc/reading-toc.opendesk-tool.json",
+      "bytes": 9391,
+      "sha256": "fe0014228befd1b4ab0c99b771f966d0f304ed55bf2de874855501250a5288eb"
+    },
+    {
+      "id": "opendesk/web-markdown-clipper",
+      "toolId": "web-markdown-clipper",
+      "kind": "sidebar-tool",
+      "installationPolicy": "optional",
+      "version": "1.0.0",
+      "packageTitle": "网页剪藏",
+      "description": "在授权的网站上主动剪藏文章、选区、引用和链接为 Markdown。",
+      "capabilities": [
+        "page.clip",
+        "user.export"
+      ],
+      "packagePath": "official-tools/web-markdown-clipper/web-markdown-clipper.opendesk-tool.json",
+      "bytes": 10209,
+      "sha256": "c4d1dc7b605e1d981840f3064a116a157d2ed6a01f720ec585278129d4c111a8"
+    },
+    {
+      "id": "opendesk/quick-notes",
+      "toolId": "quick-notes",
+      "kind": "sidebar-tool",
+      "installationPolicy": "preinstalled",
+      "version": "1.1.6",
+      "packageTitle": "网页笔记",
+      "description": "在侧栏离线管理多条本地笔记，可选择关联当前网页，不自动操作网站。",
+      "capabilities": [
+        "storage.local",
+        "currentPage.read",
+        "tasks.open"
+      ],
+      "packagePath": "official-tools/quick-notes/quick-notes.opendesk-tool.json",
+      "bytes": 22410,
+      "sha256": "a297bf3d2424069551d9851effb35bfcb01a776ed580f92e10b6a8e8868fdeef"
+    },
+    {
+      "id": "opendesk/markdown-workbench",
+      "toolId": "markdown-workbench",
+      "kind": "sidebar-tool",
+      "installationPolicy": "optional",
+      "version": "1.0.1",
+      "packageTitle": "Markdown 工作台",
+      "description": "离线编辑、预览、导入和导出 Markdown；无需网页权限。",
+      "capabilities": [
+        "user.export"
+      ],
+      "packagePath": "official-tools/markdown-workbench/markdown-workbench.opendesk-tool.json",
+      "bytes": 15089,
+      "sha256": "106df783a1d8eae5345c49288f0bc48ffdabb7ec85d98a8e8edaaeb79d7f0a91"
+    },
+    {
+      "id": "opendesk/knowledge-inbox",
+      "toolId": "knowledge-inbox",
+      "kind": "sidebar-tool",
+      "installationPolicy": "optional",
+      "version": "1.2.6",
+      "packageTitle": "知识收件箱",
+      "description": "保存 ChatGPT 回答，也可手动新建知识，整理标签、草稿并导出 Markdown。",
+      "capabilities": [
+        "page.capture",
+        "knowledge.store",
+        "user.export"
+      ],
+      "packagePath": "official-tools/knowledge-inbox/knowledge-inbox.opendesk-tool.json",
+      "bytes": 62327,
+      "sha256": "262157c730eebbe7b0cb4245fb436c1b3440c6971f63a2b50e06a5a92b022119"
+    },
+    {
+      "id": "opendesk/time-review",
+      "toolId": "time-review",
+      "kind": "sidebar-tool",
+      "installationPolicy": "optional",
+      "version": "1.3.0",
+      "packageTitle": "Time Review · 时间回顾",
+      "description": "明确开始后本机记录网站时长；六分类、日期回顾与自愿开启的真实分钟时间线，支持导出与暂停恢复。无登录、无上传。",
+      "capabilities": [
+        "time.review",
+        "user.export"
+      ],
+      "packagePath": "official-tools/time-review/time-review.opendesk-tool.json",
+      "bytes": 35131,
+      "sha256": "355449b333c84f7cca2cee823754d25686c9cd1783af2dc4b1c6a5e0cb7e1f88"
+    }
+  ],
+  "platform": "linux",
+  "nodeVersion": "v24.19.0",
+  "consoleErrors": [],
+  "runtimeExceptions": [],
+  "phases": [],
+  "dialogs": [],
+  "dialogErrors": [],
+  "chromeLifecycles": [
+    {
+      "generation": 1,
+      "pid": 26,
+      "profile": "/tmp/opendesk-market-r45-0gcfk7",
+      "argv": [
+        "--headless=new",
+        "--no-sandbox",
+        "--disable-gpu",
+        "--disable-dev-shm-usage",
+        "--no-first-run",
+        "--no-default-browser-check",
+        "--disable-background-networking",
+        "--window-size=1280,960",
+        "--remote-allow-origins=*",
+        "--remote-debugging-address=127.0.0.1",
+        "--remote-debugging-port=0",
+        "--user-data-dir=/tmp/opendesk-market-r45-0gcfk7",
+        "--disable-extensions-except=/workspace/scratch/58f5833cea67/opendesk-browser/dist/development",
+        "--load-extension=/workspace/scratch/58f5833cea67/opendesk-browser/dist/development",
+        "about:blank"
+      ],
+      "stderr": "[26:26:1012/000722.236173:FATAL:chrome/browser/process_singleton_posix.cc:297] Check failed: . socket() failed: Operation not permitted (1)\n[1012/000722.236400:ERROR:third_party/crashpad/crashpad/util/linux/scoped_ptrace_attach.cc:27] ptrace: Operation not permitted (1)\n[1012/000722.236510:ERROR:third_party/crashpad/crashpad/util/file/directory_reader_posix.cc:43] opendir /proc/26/task: No such file or directory (2)\nReceived signal 6\n#0 0x55ca4b8e7fc3 (/tmp/opendesk-r5-cft/chrome-linux64/chrome+0x6aecfc2)\n#1 0x55ca508b6174 (/tmp/opendesk-r5-cft/chrome-linux64/chrome+0xbabb173)\n#2 0x7f2bbfc27330 (/usr/lib/x86_64-linux-gnu/libc.so.6+0x4532f)\n#3 0x7f2bbfc2727e (/usr/lib/x86_64-linux-gnu/libc.so.6+0x4527d)\n#4 0x7f2bbfc0a8ff (/usr/lib/x86_64-linux-gnu/libc.so.6+0x288fe)\n#5 0x55ca508aced5 (/tmp/opendesk-r5-cft/chrome-linux64/chrome+0xbab1ed4)\n#6 0x55ca5086cb8d (/tmp/opendesk-r5-cft/chrome-linux64/chrome+0xba71b8c)\n#7 0x55ca5086cadd (/tmp/opendesk-r5-cft/chrome-linux64/chrome+0xba71adc)\n#8 0x55ca4b5b1c12 (/tmp/opendesk-r5-cft/chrome-linux64/chrome+0x67b6c11)\n#9 0x55ca49dc24e9 (/tmp/opendesk-r5-cft/chrome-linux64/chrome+0x4fc74e8)\n#10 0x55ca5086cd00 (/tmp/opendesk-r5-cft/chrome-linux64/chrome+0xba71cff)\n#11 0x55ca4b022539 (/tmp/opendesk-r5-cft/chrome-linux64/chrome+0x6227538)\n#12 0x55ca4b83bcd8 (/tmp/opendesk-r5-cft/chrome-linux64/chrome+0x6a40cd7)\n#13 0x55ca4b83a9d7 (/tmp/opendesk-r5-cft/chrome-linux64/chrome+0x6a3f9d6)\n#14 0x55ca4b83a7e1 (/tmp/opendesk-r5-cft/chrome-linux64/chrome+0x6a3f7e0)\n#15 0x55ca4b83a784 (/tmp/opendesk-r5-cft/chrome-linux64/chrome+0x6a3f783)\n#16 0x55ca4b8295c9 (/tmp/opendesk-r5-cft/chrome-linux64/chrome+0x6a2e5c8)\n#17 0x55ca4b829d73 (/tmp/opendesk-r5-cft/chrome-linux64/chrome+0x6a2ed72)\n#18 0x55ca4ad22230 (/tmp/opendesk-r5-cft/chrome-linux64/chrome+0x5f2722f)\n#19 0x55ca4ad21a2e (/tmp/opendesk-r5-cft/chrome-linux64/chrome+0x5f26a2d)\n#20 0x55ca4ad21060 (/tmp/opendesk-r5-cft/chrome-linux64/chrome+0x5f2605f)\n#21 0x7f2bbfc0c1ca (/usr/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9)\n#22 0x7f2bbfc0c28b (/usr/lib/x86_64-linux-gnu/libc.so.6+0x2a28a)\n#23 0x55ca4bba136a (/tmp/opendesk-r5-cft/chrome-linux64/chrome+0x6da6369)\n  r8: 000019680006850b  r9: 0000000000000001 r10: 0000000000000008 r11: 0000000000000246\n r12: 0000000000000006 r13: 0000196800068480 r14: 0000000000000016 r15: 00001968000d8500\n  di: 000000000000001a  si: 000000000000001a  bp: 00007fff67058d40  bx: 000000000000001a\n  dx: 0000000000000006  ax: 0000000000000000  cx: 00007f2bbfc80b2c  sp: 00007fff67058d00\n  ip: 00007f2bbfc80b2c efl: 0000000000000246 cgf: 002b000000000033 erf: 0000000000000000\n trp: 0000000000000000 msk: 0000000000000000 cr2: 0000000000000000\n[end of stack trace]\n",
+      "normalExit": false,
+      "exit": {
+        "code": null,
+        "signal": "SIGABRT"
+      }
+    }
+  ],
+  "sites": [
+    "http://127.0.0.1:40491",
+    "http://127.0.0.1:46653"
+  ],
+  "privateDataVia": "native input and save",
+  "protectedStorageWritesFromDriver": 0,
+  "publicWebsite": "NOT_TESTED",
+  "actualMacChrome": "NOT_TESTED",
+  "fullFrameworkF3": "NOT_TESTED",
+  "zipInstallation": "NOT_TESTED",
+  "publicMarket": "NOT_CONFIGURED",
+  "sidePanelCloseControl": "CDP closes actual SIDE_PANEL target; native toolbar close button NOT_TESTED",
+  "failedStage": "launch",
+  "failureSurfaces": []
+}

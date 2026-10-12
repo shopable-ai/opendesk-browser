@@ -1,0 +1,500 @@
+{
+  "schema": "opendesk.market.build.v1",
+  "mode": "production",
+  "channel": {
+    "schema": "opendesk.market.channel.v1",
+    "mode": "production",
+    "protocol": "opendesk.market.intent.v1",
+    "enabled": false,
+    "origin": null,
+    "extensionId": null,
+    "acquireUrl": null,
+    "verifiedAt": null
+  },
+  "origin": null,
+  "apps": 6,
+  "archivedReleases": 11,
+  "unresolvedReleaseReferences": [
+    {
+      "id": "opendesk/quick-notes",
+      "version": "1.1.1"
+    }
+  ],
+  "externalInstall": "NOT_CONFIGURED",
+  "routes": [
+    "/",
+    "/apps/opendesk/reading-toc/versions/1.0.2/",
+    "/install/opendesk/reading-toc/versions/1.0.2/",
+    "/apps/opendesk/web-markdown-clipper/versions/1.0.0/",
+    "/apps/opendesk/web-markdown-clipper/",
+    "/install/opendesk/web-markdown-clipper/versions/1.0.0/",
+    "/apps/opendesk/quick-notes/versions/1.1.5/",
+    "/install/opendesk/quick-notes/versions/1.1.5/",
+    "/apps/opendesk/markdown-workbench/versions/1.0.0/",
+    "/install/opendesk/markdown-workbench/versions/1.0.0/",
+    "/apps/opendesk/knowledge-inbox/versions/1.1.2/",
+    "/install/opendesk/knowledge-inbox/versions/1.1.2/",
+    "/apps/opendesk/reading-toc/versions/1.0.3/",
+    "/apps/opendesk/reading-toc/",
+    "/install/opendesk/reading-toc/versions/1.0.3/",
+    "/apps/opendesk/quick-notes/versions/1.1.6/",
+    "/apps/opendesk/quick-notes/",
+    "/install/opendesk/quick-notes/versions/1.1.6/",
+    "/apps/opendesk/markdown-workbench/versions/1.0.1/",
+    "/apps/opendesk/markdown-workbench/",
+    "/install/opendesk/markdown-workbench/versions/1.0.1/",
+    "/apps/opendesk/knowledge-inbox/versions/1.2.6/",
+    "/apps/opendesk/knowledge-inbox/",
+    "/install/opendesk/knowledge-inbox/versions/1.2.6/",
+    "/apps/opendesk/time-review/versions/1.3.1/",
+    "/apps/opendesk/time-review/",
+    "/install/opendesk/time-review/versions/1.3.1/",
+    "/apps/opendesk/time-review/versions/1.3.0/",
+    "/install/opendesk/time-review/versions/1.3.0/",
+    "/apps/opendesk/quick-notes/versions/1.1.1/",
+    "/install/opendesk/quick-notes/versions/1.1.1/",
+    "/collections/",
+    "/collections/reading-kit/revisions/2/",
+    "/install/collections/reading-kit/revisions/2/",
+    "/collections/reading-kit/revisions/1/",
+    "/install/collections/reading-kit/revisions/1/",
+    "/how-to-install/"
+  ],
+  "sourceInputs": [
+    {
+      "path": "examples/sidebar-tools/knowledge-inbox/src/index.html",
+      "bytes": 9893,
+      "sha256": "a07330d8beabd4802926f40f4b38b92b755e5dd754924fccaa68bec49588c7d1"
+    },
+    {
+      "path": "examples/sidebar-tools/knowledge-inbox/src/main.js",
+      "bytes": 33715,
+      "sha256": "16d5f371bef8688c047587d659f5c1a19d4962326ac521efcf957d6d1c665dff"
+    },
+    {
+      "path": "examples/sidebar-tools/knowledge-inbox/src/style.css",
+      "bytes": 16868,
+      "sha256": "a23d9965476aa49fc3db7e8a46ef0377f61cf54fe1643cf386b797f262d48172"
+    },
+    {
+      "path": "examples/sidebar-tools/knowledge-inbox/tool.config.json",
+      "bytes": 382,
+      "sha256": "4358f23674fecf0ef082d2c29f13dba06ff96fae6693f757d3d397bbe547581d"
+    },
+    {
+      "path": "examples/sidebar-tools/markdown-workbench/src/index.html",
+      "bytes": 2354,
+      "sha256": "99a3081937f827e01a4db72b7caad757e34e8d119f9133fd63befedbc5058b92"
+    },
+    {
+      "path": "examples/sidebar-tools/markdown-workbench/src/main.js",
+      "bytes": 7769,
+      "sha256": "ace254a9f9ef049b15619606a44c62fca8c38fd436e386c830babe554e8f787f"
+    },
+    {
+      "path": "examples/sidebar-tools/markdown-workbench/src/style.css",
+      "bytes": 4232,
+      "sha256": "04c3e14f863d2f8719e0f3325c1b6a6ff35ddee92004ed9859a1c8d54455db78"
+    },
+    {
+      "path": "examples/sidebar-tools/markdown-workbench/tool.config.json",
+      "bytes": 340,
+      "sha256": "32539398829625f39a58d286886b3b5f4ec6c3db8ae723550b5f3b8825a4e2e3"
+    },
+    {
+      "path": "examples/sidebar-tools/quick-notes/assets/mark.png",
+      "bytes": 623,
+      "sha256": "769a48c461d13a3f947b79cdb26b44d497f423675b608d2c807fd9184d611325"
+    },
+    {
+      "path": "examples/sidebar-tools/quick-notes/src/index.html",
+      "bytes": 3124,
+      "sha256": "d815302863f44624cefb0777779d7f119414343033cd59bfbed0f7a3a700d601"
+    },
+    {
+      "path": "examples/sidebar-tools/quick-notes/src/main.js",
+      "bytes": 12207,
+      "sha256": "4b11d3b9f9a153dce5757d6a2ef52a3097a798201fc46776dad07594212f9b34"
+    },
+    {
+      "path": "examples/sidebar-tools/quick-notes/src/style.css",
+      "bytes": 5358,
+      "sha256": "bfd4c6bc73f4c1ea809a5bd43f0c3cf07056d9b0b70b5c7d6787df04eabaa271"
+    },
+    {
+      "path": "examples/sidebar-tools/quick-notes/tool.config.json",
+      "bytes": 420,
+      "sha256": "51c68ab66f3aa6e546373965b728af98dfd36ca37198ca4613e3b647e2c7bfef"
+    },
+    {
+      "path": "examples/sidebar-tools/reading-toc/src/index.html",
+      "bytes": 1507,
+      "sha256": "f7ff307dfac1e568327ef6846e03b7612231a25072dcf7cc2f97e9e66b4605e8"
+    },
+    {
+      "path": "examples/sidebar-tools/reading-toc/src/main.js",
+      "bytes": 4602,
+      "sha256": "54ada30b61ffb28ded5ef2c287a154b6e8b8d23d1a9d95d4e25f12bb11bfad66"
+    },
+    {
+      "path": "examples/sidebar-tools/reading-toc/src/style.css",
+      "bytes": 2799,
+      "sha256": "8259534bbcdcec720ebdb4defef18ddd82b99c5f3736b2666a402d81152e850e"
+    },
+    {
+      "path": "examples/sidebar-tools/reading-toc/tool.config.json",
+      "bytes": 312,
+      "sha256": "371b2430f5b9de19b8b0b4ed113b0185109204908f19e0378aac4ae314893686"
+    },
+    {
+      "path": "examples/sidebar-tools/time-review/src/index.html",
+      "bytes": 5841,
+      "sha256": "827f196f645a259233981444337433782a42f66bcd92f527399ee625fd1989ac"
+    },
+    {
+      "path": "examples/sidebar-tools/time-review/src/main.js",
+      "bytes": 18957,
+      "sha256": "70fbd9d9851f56c9103323cebf0fbb4bceb904757962a1c063ad7111c7573a49"
+    },
+    {
+      "path": "examples/sidebar-tools/time-review/src/style.css",
+      "bytes": 10389,
+      "sha256": "68dcc7ff2023935ee4f6ae6cb2ab4beac004d80ec2f0cd8ba3d180ec0b9cac1c"
+    },
+    {
+      "path": "examples/sidebar-tools/time-review/tool.config.json",
+      "bytes": 451,
+      "sha256": "041dd4d11f250c9a07a22c8fb3e3bc2a613aa090f0ef05d61221c4f43b51719f"
+    },
+    {
+      "path": "examples/sidebar-tools/web-markdown-clipper/src/index.html",
+      "bytes": 1997,
+      "sha256": "6246fc020604bbe7b5138e50a968b1068beee3b19d9729e660689e5b6b9b9197"
+    },
+    {
+      "path": "examples/sidebar-tools/web-markdown-clipper/src/main.js",
+      "bytes": 4210,
+      "sha256": "37ea0d456025dd04af103cb49e83bf5781ad0ba30c5f4e97684ee35030daa74d"
+    },
+    {
+      "path": "examples/sidebar-tools/web-markdown-clipper/src/style.css",
+      "bytes": 3383,
+      "sha256": "b70a8716f2be69579e53a97e2b45862b2a879d75c311c5c4aefcc9109af1f6b5"
+    },
+    {
+      "path": "examples/sidebar-tools/web-markdown-clipper/tool.config.json",
+      "bytes": 362,
+      "sha256": "e029e5574816b90b0fe86919f58729680c6371a14c520f7733624d7502422619"
+    },
+    {
+      "path": "official-tools/catalog.json",
+      "bytes": 1175,
+      "sha256": "e4594d620a6a04e5f7e103848caf26eb76a1e22626d157be0c72c6775461b5d2"
+    },
+    {
+      "path": "official-tools/releases/mac-recorded-20261011.json",
+      "bytes": 3679,
+      "sha256": "b3f90a38ecd80c2cb12a2011778e1ebdbcafa745bb21a8e92047a593a5ef23aa"
+    },
+    {
+      "path": "official-tools/releases/r5-20261012-main-refresh.json",
+      "bytes": 5251,
+      "sha256": "e5f07cd597181b1c546f5c511ee72de8f896e97009b65f8da64e2cd8c38c0a70"
+    },
+    {
+      "path": "official-tools/releases/r5-20261012.json",
+      "bytes": 5251,
+      "sha256": "98c9d5128b02c7107e26b5e9c74ce234013ab312abeaa19ada6019f761b28a25"
+    },
+    {
+      "path": "package-lock.json",
+      "bytes": 196943,
+      "sha256": "63bd16ac21bb1c3c6653849af8946bcbc7fc8c4bbe7b0bee39087bb393c6146c"
+    },
+    {
+      "path": "scripts/build-market-site.mjs",
+      "bytes": 11680,
+      "sha256": "42fb0e36a21151c4fd42dcc45f48882b0c3e40d36410c3a8a93c6cff5b661624"
+    },
+    {
+      "path": "scripts/build-official-tools.mjs",
+      "bytes": 7545,
+      "sha256": "dd5b97b18e455fae6e4f6fb331ecf3c9475bb37c1d2a67a5e98fd5657820f491"
+    },
+    {
+      "path": "scripts/market-channel.mjs",
+      "bytes": 4288,
+      "sha256": "fd6130082074cb1f48cf6474d5b390e0cfe82553a8bed256b9f129f33874be2a"
+    },
+    {
+      "path": "scripts/market-release-snapshots.mjs",
+      "bytes": 3398,
+      "sha256": "e71ad82ab14f8594b9cc7d16dad4173cde03192df1174787660f1211951501ae"
+    },
+    {
+      "path": "src/market-site/client.js",
+      "bytes": 5611,
+      "sha256": "4664ad626185a95742f9d91de370b436fcd04cbe3d55a272779e5f94b21879da"
+    },
+    {
+      "path": "src/market-site/market.css",
+      "bytes": 7155,
+      "sha256": "14cadae2a4c60f0908dddf46f1d74ac0c24fdb6608d9157741d92d4f152b1bc6"
+    },
+    {
+      "path": "src/market-site/templates.mjs",
+      "bytes": 13467,
+      "sha256": "27d9fc4ddb4d09c78ecfa2a0321bd0b78c302307461f5dc021637d0a186e3407"
+    },
+    {
+      "path": "src/marketplace/catalog.js",
+      "bytes": 3788,
+      "sha256": "460d13785aff410882695f64679c264b767ae13da8036160b4405f2fffbc4a38"
+    },
+    {
+      "path": "src/marketplace/channel-config.json",
+      "bytes": 298,
+      "sha256": "a79ddff572d89506cd3a5b6e0ef078e0ca44b9f0ccd35b7863cf57f685bf0952"
+    },
+    {
+      "path": "src/ui/design-tokens.css",
+      "bytes": 1807,
+      "sha256": "87a1b976b94eeb997eeb7cab35d297357db3795936e6115088e2ab4d6b43805f"
+    }
+  ],
+  "sourceFingerprint": "81e588f343ab84f27e56c617fbcfea9fcbb4d9a0d082e0416bc82c250f96e29b",
+  "catalogSha256": "82f3870f02541eb5c5c568c444288208bce094ccb17dcc4b7ceb8449cbb6dea2",
+  "files": [
+    {
+      "path": "_headers",
+      "bytes": 400,
+      "sha256": "f950403d1ec94cfb4605e6065c2f439db3e188c2efc79279662c25fb44b0e565"
+    },
+    {
+      "path": "404.html",
+      "bytes": 1756,
+      "sha256": "39e8959d5ad64911318a8131616f6b57b7660f66c6e98c6ac3496da43ba6afdd"
+    },
+    {
+      "path": "apps/opendesk/knowledge-inbox/index.html",
+      "bytes": 4474,
+      "sha256": "8ff2a96573ddce6473c769fb2e68e725aeb2a3f8f4207dfca0b7978325077ee2"
+    },
+    {
+      "path": "apps/opendesk/knowledge-inbox/versions/1.1.2/index.html",
+      "bytes": 4714,
+      "sha256": "664f7bbef2f305baebadbf651b936867b61c2fc9796489880878f61ca7f5c6d9"
+    },
+    {
+      "path": "apps/opendesk/knowledge-inbox/versions/1.2.6/index.html",
+      "bytes": 4431,
+      "sha256": "56d38fcc5fcd88e1a476f75366734424bbb0431a445a1573deed651791573d9e"
+    },
+    {
+      "path": "apps/opendesk/markdown-workbench/index.html",
+      "bytes": 4393,
+      "sha256": "fcd7a6d9e89c85fb95c5762f1dacad1e320083315a581985f140e0c66c0e86f9"
+    },
+    {
+      "path": "apps/opendesk/markdown-workbench/versions/1.0.0/index.html",
+      "bytes": 4615,
+      "sha256": "ed3a6da614184c8dba6795710a05cf76e0242ff4970c82db2ca50de297209c49"
+    },
+    {
+      "path": "apps/opendesk/markdown-workbench/versions/1.0.1/index.html",
+      "bytes": 4356,
+      "sha256": "a96262db02e2fc4cc1000647568b26aedfad144b4c504ab0b69527697ac6a14a"
+    },
+    {
+      "path": "apps/opendesk/quick-notes/index.html",
+      "bytes": 4450,
+      "sha256": "94f4b2046a288a6e0d3e719e3b8ae1545a52c72ff699727e89a602e50699e969"
+    },
+    {
+      "path": "apps/opendesk/quick-notes/versions/1.1.1/index.html",
+      "bytes": 2231,
+      "sha256": "9536daa9e465da3f4771722a61976fd5dd7db705bfce6fe3b26c8cd1e55e2ac3"
+    },
+    {
+      "path": "apps/opendesk/quick-notes/versions/1.1.5/index.html",
+      "bytes": 4710,
+      "sha256": "89f75572826180aeed0fd935384bccf82442789b9592ecd9e658f6dca3b9725c"
+    },
+    {
+      "path": "apps/opendesk/quick-notes/versions/1.1.6/index.html",
+      "bytes": 4419,
+      "sha256": "91619b256e60a7c1d4e1ea2f8280e4fd2ca401fdd05397e94aee687c2dbc254d"
+    },
+    {
+      "path": "apps/opendesk/reading-toc/index.html",
+      "bytes": 4418,
+      "sha256": "5511c8593736d9c55302d600bf48099a772ad48df072783ce31df031efadf806"
+    },
+    {
+      "path": "apps/opendesk/reading-toc/versions/1.0.2/index.html",
+      "bytes": 4522,
+      "sha256": "fa019e803b41e61aa980b54ef3f8f25e441480628ababe50f9446a9a50f78b05"
+    },
+    {
+      "path": "apps/opendesk/reading-toc/versions/1.0.3/index.html",
+      "bytes": 4315,
+      "sha256": "cf38d2ebb4e342685376c9dac0a9f4a50f64a8d9006bfb38c03abdbca3f07f33"
+    },
+    {
+      "path": "apps/opendesk/time-review/index.html",
+      "bytes": 4585,
+      "sha256": "2ae0b39ee8fa21d9181831988bc9358721ee5e8ba765f7b892948135be110213"
+    },
+    {
+      "path": "apps/opendesk/time-review/versions/1.3.0/index.html",
+      "bytes": 5055,
+      "sha256": "304ab38eb5bbea8c9901f06e37b60b881bd6f8072f6186c1730d5a14ebcb2fc1"
+    },
+    {
+      "path": "apps/opendesk/time-review/versions/1.3.1/index.html",
+      "bytes": 4674,
+      "sha256": "3081e3f545b5d57f4b196ac30259fc458f06078177a8b3f300b8d66ca6eb4cdc"
+    },
+    {
+      "path": "apps/opendesk/web-markdown-clipper/index.html",
+      "bytes": 4325,
+      "sha256": "0aeeb424b88abeb0650192d13fb7f4f3cf77c7a7e9a27dc2e498696cbf665aa6"
+    },
+    {
+      "path": "apps/opendesk/web-markdown-clipper/versions/1.0.0/index.html",
+      "bytes": 4276,
+      "sha256": "c55ba5bb0278e890dc106d93b674d2a00e358b257447d0c881ed4a2befa9cada"
+    },
+    {
+      "path": "catalog.json",
+      "bytes": 8326,
+      "sha256": "b91ede10cdbdee66818cda882a123d2c96f71985265c61ae997f5ec11a8668c6"
+    },
+    {
+      "path": "channel.json",
+      "bytes": 217,
+      "sha256": "93191846920ecb9dac809162ad05542794a12628665eb8538784e35271dfc1b2"
+    },
+    {
+      "path": "client.js",
+      "bytes": 5611,
+      "sha256": "4664ad626185a95742f9d91de370b436fcd04cbe3d55a272779e5f94b21879da"
+    },
+    {
+      "path": "collections/index.html",
+      "bytes": 2126,
+      "sha256": "b63457ba7bc89600062fe33589295903cee3127f6c632f4112faff63c810490c"
+    },
+    {
+      "path": "collections/reading-kit/revisions/1/index.html",
+      "bytes": 3384,
+      "sha256": "498fbb02c58de264e0e5243540e056ca175619376b9c251e12e6496ebdc1bafd"
+    },
+    {
+      "path": "collections/reading-kit/revisions/2/index.html",
+      "bytes": 3472,
+      "sha256": "a9d43d6f98c3cb4fd7b2fbb2186698343db69cc2a220dc3b2cbee5ed134bfb8b"
+    },
+    {
+      "path": "design-tokens.css",
+      "bytes": 1807,
+      "sha256": "87a1b976b94eeb997eeb7cab35d297357db3795936e6115088e2ab4d6b43805f"
+    },
+    {
+      "path": "how-to-install/index.html",
+      "bytes": 3172,
+      "sha256": "2c9761f8462655b9e9108cbf895db454e42ae2bb7d5119ed4733d63deed779d9"
+    },
+    {
+      "path": "index.html",
+      "bytes": 6524,
+      "sha256": "681ecfb07f74ce649a8a47a5c1695357d49f4c2b11e1670bef6ce190f6395178"
+    },
+    {
+      "path": "install/collections/reading-kit/revisions/1/index.html",
+      "bytes": 2591,
+      "sha256": "79ea2fa23d6481137b2786f807945d9d2c7860ce8116c379f9bead2b5af7cbf9"
+    },
+    {
+      "path": "install/collections/reading-kit/revisions/2/index.html",
+      "bytes": 2591,
+      "sha256": "45eca213e69751a910c01df0e17eb44d10a359d4cede6562264f87143643b6fe"
+    },
+    {
+      "path": "install/opendesk/knowledge-inbox/versions/1.1.2/index.html",
+      "bytes": 2631,
+      "sha256": "478e4f1c58a8d0bb0275f46bba6fb753b75a1a743851cf3a2d4c97bf607298df"
+    },
+    {
+      "path": "install/opendesk/knowledge-inbox/versions/1.2.6/index.html",
+      "bytes": 2631,
+      "sha256": "ffe4f9ff6f3c1e95f6fb7d0179f98c444bb382266edbcb0b9c90d6d9dfa525f7"
+    },
+    {
+      "path": "install/opendesk/markdown-workbench/versions/1.0.0/index.html",
+      "bytes": 2646,
+      "sha256": "77359731935d3317f43f502c4e98d37f308bcb86bded0e2123a3d23e16e422ad"
+    },
+    {
+      "path": "install/opendesk/markdown-workbench/versions/1.0.1/index.html",
+      "bytes": 2646,
+      "sha256": "b4518445f7cb6ef69e71f24381b55b3e3ef791e2f3c857b59187b8bb311631e2"
+    },
+    {
+      "path": "install/opendesk/quick-notes/versions/1.1.1/index.html",
+      "bytes": 2684,
+      "sha256": "e10297211b8376a3d3dabbb8a835804545d2c5d216e004b9f1d6747b6ca78ab4"
+    },
+    {
+      "path": "install/opendesk/quick-notes/versions/1.1.5/index.html",
+      "bytes": 2614,
+      "sha256": "ec9ba3c79b272de59d8329b99ea7a4ad0e88718613a9c677a769a67259068d2e"
+    },
+    {
+      "path": "install/opendesk/quick-notes/versions/1.1.6/index.html",
+      "bytes": 2614,
+      "sha256": "70f55d04b1ffecb9c7b96706f36db14947211aa13c7163e098569c3605286dd1"
+    },
+    {
+      "path": "install/opendesk/reading-toc/versions/1.0.2/index.html",
+      "bytes": 2614,
+      "sha256": "8dba9690cbca4462dbe5b67b4d17c1e77b26888fec0fd9f9db183fe5b2831a34"
+    },
+    {
+      "path": "install/opendesk/reading-toc/versions/1.0.3/index.html",
+      "bytes": 2614,
+      "sha256": "730537568fc898296220d38dd412d721c75c2246d2d8231bc01cb2bcd3105d18"
+    },
+    {
+      "path": "install/opendesk/time-review/versions/1.3.0/index.html",
+      "bytes": 2659,
+      "sha256": "39894b5e0765a20df053959ede7b74e73cd21f1e17d647021aecb78b1ca14fc2"
+    },
+    {
+      "path": "install/opendesk/time-review/versions/1.3.1/index.html",
+      "bytes": 2659,
+      "sha256": "eb77ac9ffe1899feb10927ecdcf6dfceb6f114b77a048d70258c17314aa4da4a"
+    },
+    {
+      "path": "install/opendesk/web-markdown-clipper/versions/1.0.0/index.html",
+      "bytes": 2632,
+      "sha256": "dcb804e1a402efa142248f1fbd59589cca1ee56c3289bb28fa92f6d7df435969"
+    },
+    {
+      "path": "market.css",
+      "bytes": 7155,
+      "sha256": "14cadae2a4c60f0908dddf46f1d74ac0c24fdb6608d9157741d92d4f152b1bc6"
+    },
+    {
+      "path": "robots.txt",
+      "bytes": 23,
+      "sha256": "16ceb5ee3e0dc13aa9adf31a3ebbe45a1d965b8c2b9f72eaf84e5911e140ed95"
+    },
+    {
+      "path": "sitemap.xml",
+      "bytes": 108,
+      "sha256": "936547552a009cf9dda7789a289603a114daf4085cb65e6d4152a3ac205bd42b"
+    }
+  ],
+  "buildId": "d89b113837882090b9e02526fe70310f773c16f09e3c201f80f52e61764dc087"
+}

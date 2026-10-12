@@ -11,6 +11,7 @@ import {PAGE_FRAMEWORK_RUNTIMES,PAGE_FRAMEWORK_RESOURCE_LIMIT,PAGE_BROWSER_PRIVA
 import {inspectWorkspaceStyle} from './build-workspace-style.mjs';
 import {readOfficialSources,createOfficialToolResources} from './build-official-tools.mjs';
 import {OFFICIAL_CATALOG_PATH,officialPackagePath} from '../src/sidebar-tools/official-catalog.js';
+import {resolveMarketChannel,marketExternalConnectable,MARKET_CHANNEL_PATH} from './market-channel.mjs';
 const require = createRequire(import.meta.url);
 const {parse} = require('acorn');
 export {PACKAGE_ENTRIES, FIXED_OUTPUTS, BUILD_POLICY, SDK_RESOURCE_MANIFEST};
@@ -53,7 +54,7 @@ const frameworkLicenses=Object.values(PAGE_FRAMEWORK_RUNTIMES).map(row=>row.lice
 const expectedJS = [...generatedJS, ...vendorJS, ...frameworkJS, ...browserCompilerJS].sort();
 const officialSource=await readOfficialSources();
 const officialPaths=[OFFICIAL_CATALOG_PATH,...officialSource.tools.map(row=>officialPackagePath(row.id))];
-const required = ['manifest.json', SDK_RESOURCE_MANIFEST, BUILTIN_RESOURCE_MANIFEST,
+const required = ['manifest.json', MARKET_CHANNEL_PATH, SDK_RESOURCE_MANIFEST, BUILTIN_RESOURCE_MANIFEST,
   ...BUILTIN_RESOURCE_PATHS,...frameworkLicenses,...browserCompilerESM,PAGE_BROWSER_COMPILER.licensePath,
   ...Object.keys(HTML_REFERENCES), 'ui/design-tokens.css', 'ui/design-system.css', 'ui/tool-shell.css', 'native-agent/settings.css', 'native-agent/workspace.css', 'ui/marketplace.css', ...officialPaths, ...expectedJS, ...Object.keys(FIXED_ASSETS)].sort();
 const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
@@ -147,7 +148,7 @@ export async function verifyBuiltinResourceManifest(directory) {
   }
   return generated;
 }
-export function verifyManifest(manifest) {
+export function verifyManifest(manifest,{mode='production',source=false,channel=resolveMarketChannel({mode})}={}) {
   const fields = ['manifest_version', 'name', 'version', 'description', 'minimum_chrome_version', 'permissions', 'optional_permissions', 'host_permissions', 'background', 'action', 'side_panel', 'options_ui', 'content_security_policy', 'incognito', 'sandbox', 'web_accessible_resources', 'content_scripts'];
   if (manifest.manifest_version !== 3 || manifest.background?.type || manifest.action?.default_popup) throw new Error('Expected MV3 worker and action window entry');
   if (manifest.minimum_chrome_version !== '138') throw new Error('Expected independently qualified minimum Chrome 138');
@@ -164,8 +165,11 @@ export function verifyManifest(manifest) {
   if (!same(manifest.web_accessible_resources, SDK_MAIN_WAR)) throw new Error('Unexpected web accessible resources');
   if (!same(manifest.content_scripts, SDK_AUTOMATIC_CONTENT_SCRIPTS))
     throw new Error('SDK auto-install must use the two approved fixed scripts and distinct worlds');
-  if (manifest.optional_host_permissions || manifest.externally_connectable)
+  if (manifest.optional_host_permissions)
     throw new Error('Unapproved optional host or page exposure');
+  const external=source?undefined:marketExternalConnectable(channel);
+  if(!same(manifest.externally_connectable,external))throw new Error('Unapproved market external origin or build mode');
+  if(external)fields.push('externally_connectable');
   if (!same(Object.keys(manifest).sort(), fields.sort())) throw new Error('Unexpected manifest entry/exposure');
 }
 const property = node => node?.type === 'MemberExpression' ? node.computed ? node.property.value : node.property.name : undefined;
@@ -244,6 +248,7 @@ function assertClassicIIFE(text, file) {
 // additional arguments and non-SW importScripts remain forbidden.
 const REVIEWED_SW_IMPORTS=Object.freeze([
   'sidebar-tools/preinstall-intent.js','agents/health-host.js',
+  'marketplace/market-host.js',
   'cloud-control/cloud-host.js','native-agent/transport.js','knowledge/knowledge-host.js','time-review/time-review-host.js','platform/context-menus.js'
 ]);
 if(REVIEWED_SW_IMPORTS.some(file=>!Object.values(FIXED_OUTPUTS).includes(file)))
@@ -359,7 +364,6 @@ export async function verifyPackage(directory, {mode: requestedMode} = {}) {
   const root = resolve(directory);
   const expectedMode=requestedMode??(['production','development'].includes(basename(root))?basename(root):undefined);
   if(expectedMode!==undefined&&!['production','development'].includes(expectedMode))throw new Error('Invalid package mode');
-  const manifest = JSON.parse(await readFile(join(root, 'manifest.json'), 'utf8')); verifyManifest(manifest);
   const files = await filesAt(root);
   for (const file of required) if (!files.includes(file)) throw new Error(`Missing required resource: ${file}`);
   const js = files.filter(path => path.endsWith('.js'));
@@ -371,6 +375,10 @@ export async function verifyPackage(directory, {mode: requestedMode} = {}) {
   const mode=mapFiles.length?'development':'production';
   if(expectedMode!==undefined&&mode!==expectedMode)
     throw new Error(`Package mode mismatch: expected ${expectedMode}, found ${mode} source map policy`);
+  const marketChannel=resolveMarketChannel({mode});
+  const actualChannel=JSON.parse(await readFile(join(root,MARKET_CHANNEL_PATH),'utf8'));
+  if(!same(actualChannel,marketChannel))throw Error('Packaged market channel differs from reviewed build configuration');
+  const manifest = JSON.parse(await readFile(join(root, 'manifest.json'), 'utf8')); verifyManifest(manifest,{mode,channel:marketChannel});
   const boundaries = [];
   for (const file of js) {
     const bytes = await readFile(join(root, file));

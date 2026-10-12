@@ -7,6 +7,7 @@ import {PAGE_FRAMEWORK_RUNTIMES,PAGE_FRAMEWORK_RESOURCE_LIMIT,PAGE_BROWSER_PRIVA
 import {RESOURCE_LIMITS} from './build-contract.mjs';
 import {compileWorkspaceStyle} from './build-workspace-style.mjs';
 import {buildOfficialTools} from './build-official-tools.mjs';
+import {resolveMarketChannel,MARKET_CHANNEL_PATH} from './market-channel.mjs';
 
 const vendors=Object.values(BUILTIN_CATALOG.libraries).filter(row=>row.origin==='vendor');
 const pageFrameworks=Object.values(PAGE_FRAMEWORK_RUNTIMES);
@@ -63,6 +64,9 @@ export async function preparePublic() {
   const publicRoot=resolve('.wxt/public');
   await rm(publicRoot,{recursive:true,force:true});
   await mkdir(publicRoot,{recursive:true});
+  const marketChannel=resolveMarketChannel({mode:process.env.OPENDESK_BUILD_MODE||'development'});
+  await mkdir(dirname(resolve(publicRoot,MARKET_CHANNEL_PATH)),{recursive:true});
+  await writeFile(resolve(publicRoot,MARKET_CHANNEL_PATH),JSON.stringify(marketChannel,null,2)+'\n');
   for(const [src,dest] of Object.entries(STATIC_RESOURCES)){
     const target=resolve(publicRoot,dest);
     if(!target.startsWith(publicRoot+'/'))throw Error('Unsafe public asset output: '+dest);

@@ -7,6 +7,11 @@ import {readSidebarStorageUsage} from '../../src/ui/sidebar-tools/storage-usage.
 import {writeVerifiedLocalValue} from '../../src/ui/sidebar-tools/storage-state.js';
 import {initMarketplace} from '../../src/marketplace/page.js';
 import {officialFixtures} from '../helpers/official-tools.mjs';
+import {randomUUID} from 'node:crypto';
+import {MARKET_INTENTS_STORE,MARKET_INTENT_TTL} from '../../src/marketplace/intent.js';
+import {MARKET_OPERATIONS_STORE} from '../../src/ui/sidebar-tools/installation.js';
+import {MARKET_BATCH_STORE,createMarketBatch} from '../../src/marketplace/batch.js';
+import {getOfficialCollection,officialMarketApps} from '../../src/marketplace/catalog.js';
 
 const tool={format:SIDEBAR_TOOL_FORMAT,id:'quick-notes',version:'1.0.0',title:'离线笔记',
   description:'保存本机的草稿',capabilities:['storage.local'],html:'<main>note</main>',css:'',js:'void 0;'};
@@ -78,10 +83,16 @@ class Element {
   constructor(tag='div'){this.tag=tag;this.children=[];this.listeners=new Map();this.textContent='';
     this.style={};this.dataset={};this.hidden=false;this.disabled=false;}
   append(...nodes){this.children.push(...nodes);}
+  prepend(...nodes){this.children.unshift(...nodes);}
   replaceChildren(...nodes){this.children=[...nodes];}
   addEventListener(name,fn){this.listeners.set(name,fn);}
   removeEventListener(name){this.listeners.delete(name);}
   setAttribute(name,value){(this.attributes??=new Map()).set(name,value);}
+  getAttribute(name){return this.attributes?.get(name)??this[name]??null;}
+  removeAttribute(name){this.attributes?.delete(name);}
+  querySelector(selector){return walk(this).find(node=>selector==='.'+node.className||
+    selector==='.'+node.className?.split(' ').at(-1))||null;}
+  focus(){}
 }
 const walk=(root)=>[root,...root.children.flatMap(node=>walk(node))];
 const settle=async fn=>{for(let i=0;i<160;i++){if(fn())return;await new Promise(resolve=>setImmediate(resolve));}
@@ -226,4 +237,71 @@ test('My Apps shows unavailable rather than zero when actual Chrome byte counter
   assert.match(rendered,/counter temporarily unavailable/);
   assert.doesNotMatch(rendered,/扩展 local 总占用：0 B/);
   assert.deepEqual(f.values[sidebarToolStorageKey(tool.id)],{notes:'private'});
+});
+
+// Component evidence: real trusted-page module and installer, bounded DOM/storage
+// doubles. These fault-injection cases do not claim native sender or Chrome PASS.
+async function handoffPage(t,subject,{consumeAckLost=false,otherBatch=null}={}){
+  const official=await officialFixtures(),now=Date.now();
+  const row={intentId:randomUUID(),reviewId:randomUUID(),operationId:randomUUID(),subject,
+    origin:'http://127.0.0.1:43132',createdAt:now,expiresAt:now+MARKET_INTENT_TTL,
+    phase:'opened',tabId:7,consumedAt:otherBatch?now:null,settledAt:null,closureReason:null};
+  const f=fixture({[SIDEBAR_TOOL_STORE]:[],
+    [MARKET_INTENTS_STORE]:{schema:MARKET_INTENTS_STORE,intents:[row],requests:[]},
+    ...(otherBatch?{[MARKET_BATCH_STORE]:otherBatch}:{})});
+  const previous={document:globalThis.document,window:globalThis.window,location:globalThis.location,fetch:globalThis.fetch};
+  const root=new Element('root');
+  globalThis.document={createElement:tag=>new Element(tag),getElementById:()=>null};
+  globalThis.window={addEventListener(){},removeEventListener(){}};
+  globalThis.location={hash:'',search:'?intent='+row.reviewId};
+  globalThis.fetch=async url=>{
+    const path=new URL(url).pathname.slice(1);
+    const data=path==='official-tools/catalog.json'?Buffer.from(JSON.stringify(official.catalog)):official.resources.get(path);
+    return {ok:Boolean(data),arrayBuffer:async()=>Uint8Array.from(data).buffer};
+  };
+  const set=f.api.storage.local.set;let faulted=false;
+  f.api.storage.local.set=async values=>{
+    await set(values);
+    if(consumeAckLost&&!faulted&&values[MARKET_INTENTS_STORE]?.intents[0].consumedAt!==null){
+      faulted=true;throw Error('component consume acknowledgement lost after persistence');
+    }
+  };
+  const market=initMarketplace({api:f.api,root,lockManager:{request:(name,options,callback)=>(callback||options)({name})}});
+  t.after(()=>{market.dispose();Object.assign(globalThis,previous);});
+  return {...f,root,row,official,labels:()=>walk(root).map(node=>node.textContent).join(' ')};
+}
+for(const subject of [{kind:'app',marketId:'opendesk/markdown-workbench',version:'1.0.1'},
+  {kind:'collection',collectionId:'reading-kit',revision:2}]){
+  test('R5 trusted '+subject.kind+' page exposes missing-journal recovery immediately after consume ACK loss',async t=>{
+    const f=await handoffPage(t,subject,{consumeAckLost:true});
+    const action=subject.kind==='app'?'confirm-install':'confirm-batch';
+    await settle(()=>walk(f.root).some(node=>node.dataset.marketAction===action&&!node.disabled));
+    await walk(f.root).find(node=>node.dataset.marketAction===action).listeners.get('click')();
+    await settle(()=>walk(f.root).some(node=>node.dataset.marketAction==='close-unjournaled'&&!node.disabled));
+    assert.match(f.labels(),/E_HANDOFF_UNKNOWN/);
+    assert(f.values[MARKET_INTENTS_STORE].intents[0].consumedAt!==null);
+    assert.equal(f.values[MARKET_OPERATIONS_STORE],undefined);
+    assert.equal(f.values[MARKET_BATCH_STORE],undefined);
+    assert.deepEqual(f.values[SIDEBAR_TOOL_STORE],[]);
+    assert(!walk(f.root).some(node=>node.textContent==='恢复核对安装结果'),'missing journal must not offer the nonexistent operation');
+    await walk(f.root).find(node=>node.dataset.marketAction==='close-unjournaled').listeners.get('click')();
+    await settle(()=>f.labels().includes('已结束这次交接，原安装结果仍未知'));
+    assert.equal(f.values[MARKET_INTENTS_STORE].intents[0].closureReason,'unknown-without-journal');
+    assert(f.values[MARKET_INTENTS_STORE].intents[0].consumedAt!==null);
+    assert(f.calls.every(keys=>keys.every(key=>key===MARKET_INTENTS_STORE)),'recovery only writes handoff metadata');
+    assert(!walk(f.root).some(node=>node.dataset.marketAction===action));
+  });
+}
+test('R5 a fixed collection review never displays or recovers another intent batch of the same revision',async t=>{
+  const official=await officialFixtures(),collection=getOfficialCollection('reading-kit',2),apps=officialMarketApps(official.catalog);
+  const otherBatch=createMarketBatch(collection,collection.members.map(member=>({app:apps.find(app=>app.id===member.id),status:'ready',reason:'OTHER_BATCH_PRIVATE_REASON'})),{releases:apps});
+  otherBatch.items[0].status='outcome-unknown';otherBatch.items[0].reason='OTHER_BATCH_PRIVATE_REASON';
+  const f=await handoffPage(t,{kind:'collection',collectionId:collection.id,revision:collection.revision},{otherBatch});
+  await settle(()=>f.labels().includes('另一个安装请求的批次有待处理'));
+  assert.doesNotMatch(f.labels(),/OTHER_BATCH_PRIVATE_REASON/);
+  assert(!walk(f.root).some(node=>node.textContent==='恢复核对中断与未知结果'));
+  const close=walk(f.root).find(node=>node.dataset.marketAction==='close-unjournaled');
+  assert(close);await close.listeners.get('click')();
+  await settle(()=>f.labels().includes('E_REVIEW_PENDING'));
+  assert.deepEqual(f.values[MARKET_BATCH_STORE],otherBatch);assert.deepEqual(f.calls,[]);
 });

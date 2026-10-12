@@ -13,6 +13,7 @@ configureSidePanel(chrome).catch(error => console.error(`[side-panel ${error.cod
 const hostPorts=globalThis.__opendeskNativeHostPorts=new Map();
 if(development)globalThis.__opendeskDevelopment=development;
 try{importScripts('sidebar-tools/preinstall-intent.js')}catch(e){console.warn('E_BOOTSTRAP',e)}
+try{importScripts('marketplace/market-host.js')}catch(e){console.warn('E_MARKET_HOST_LOAD',e)}
 try{importScripts('agents/health-host.js')}catch(e){console.warn('E_HEALTH_HOST_LOAD',e)}
 try{importScripts('native-agent/transport.js');}catch(e){console.warn('E_NATIVE_TRANSPORT_LOAD',e);}
 try{importScripts('knowledge/knowledge-host.js');}catch(e){console.warn('E_KNOWLEDGE_HOST_LOAD',e);}

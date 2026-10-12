@@ -78,7 +78,12 @@ test('Time Review R1.3 actual Mac Chrome install and trusted consent smoke',{ski
   await mkdir(OUT,{recursive:true});
   const pkgFile=path.join(EXTENSION,'official-tools/time-review/time-review.opendesk-tool.json');
   const pkgBytes=await readFile(pkgFile),pkg=JSON.parse(pkgBytes);
-  assert.equal(pkg.id,'time-review');assert.equal(pkg.version,'1.3.0');
+  assert.equal(pkg.id,'time-review');
+  const sourceConfig=JSON.parse(await readFile('examples/sidebar-tools/time-review/tool.config.json','utf8'));
+  const releaseCatalog=JSON.parse(await readFile(path.join(EXTENSION,'official-tools/catalog.json'),'utf8'));
+  const release=releaseCatalog.apps.find(row=>row.toolId==='time-review');
+  assert.equal(pkg.version,sourceConfig.version);assert.equal(pkg.version,release.version);
+  assert.equal(createHash('sha256').update(pkgBytes).digest('hex'),release.sha256);
   const profile=await mkdtemp(path.join(tmpdir(),'opendesk-time-r13-'));
   const downloads=path.join(profile,'owned-downloads');await mkdir(downloads);
   // Configure the real Chrome profile before launch. Do not use CDP's
@@ -497,8 +502,7 @@ test('Time Review R1.3 actual Mac Chrome install and trusted consent smoke',{ski
       },'populated '+format+' download',20000);
       const file=path.resolve(done.filename||'');
       assert.equal(path.dirname(file),path.resolve(downloads),'never inspect outside owned directory');
-      assert.match(path.basename(file),new RegExp('^time-review \\(\\d+\\)\\.'+format+'
-));
+      assert.match(path.basename(file),new RegExp('^time-review \\(\\d+\\)\\.'+format+'$'));
       const contents=await readFile(file,'utf8');
       if(format==='json'){
         const parsed=JSON.parse(contents);
@@ -546,7 +550,7 @@ test('Time Review R1.3 actual Mac Chrome install and trusted consent smoke',{ski
     '(async()=>{const rows=(await chrome.storage.local.get("opendesk.sidebar-tools.installed.v1"))["opendesk.sidebar-tools.installed.v1"];const review=(await chrome.storage.local.get("opendesk.time-review.v1"))["opendesk.time-review.v1"];return {extensionId:chrome.runtime.id,version:rows?.find(t=>t.id==="time-review")?.version||null,review:review||null};})()'),
     'installed Time Review and durable data after whole Chrome restart',15000);
   assert.equal(persisted.extensionId,present,'same installed extension after restart');
-  assert.equal(persisted.version,'1.3.0','installed Time Review retained');
+  assert.equal(persisted.version,pkg.version,'installed Time Review retained');
   assert.ok(persisted.review?.paused,'paused state retained after restart');
   for(const key of ['days','categories','minuteDays'])
     assert.deepEqual(persisted.review[key],oldState[key],'durable '+key+' across Chrome restart');

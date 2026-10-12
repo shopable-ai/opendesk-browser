@@ -81,7 +81,7 @@ test('non-blocking Web Lock refuses overlapping browser market windows',async()=
 });
 
 test('fixed unavailable members retain their historical version and never enter the queue',()=>{
-  const collection=OFFICIAL_COLLECTIONS[0];
+  const collection=OFFICIAL_COLLECTIONS.find(row=>row.id==='reading-kit'&&row.revision===1);
   const plan=collection.members.map(member=>{
     const current=releases.find(app=>app.id===member.id);
     return {app:{...current,version:member.version},status:current?.version===member.version?'ready':'blocked',reason:'固定版本预检'};

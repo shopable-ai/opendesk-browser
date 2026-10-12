@@ -39,7 +39,7 @@ if (!Object.isFrozen(SDK_RESOURCE_PATHS) || JSON.stringify(SDK_RESOURCE_PATHS) !
 const aliases = ['assets/js/core/brige.js', 'assets/js/core/common.js', 'assets/js/core/axiosx.js', 'assets/js/core/appStorage.js', 'assets/js/core/appLocal.js', 'assets/js/core/utils.js', 'assets/js/Env.js'];
 if (!Object.isFrozen(SDK_RESOURCE_ALIASES) || JSON.stringify(Object.keys(SDK_RESOURCE_ALIASES).sort()) !== JSON.stringify([...aliases].sort()) || Object.values(SDK_RESOURCE_ALIASES).some(path => path !== SDK_FILES.main)) throw new Error('SDK resource legacy aliases changed');
 for (const source of Object.values(PACKAGE_ENTRIES)) if (!(await stat(source)).isFile()) throw new Error(`Missing fixed entry: ${source}`);
-verifyManifest(JSON.parse(await readFile('manifest.json', 'utf8')));
+verifyManifest(JSON.parse(await readFile('manifest.json', 'utf8')),{source:true});
 const sandboxHTML = await readFile(`src/${SANDBOX_HTML}`, 'utf8');
 if (!sandboxHTML.includes(`content="${SANDBOX_META_CSP}"`) || !sandboxHTML.includes('<script src="sandbox.js"></script>')) throw new Error('Source opaque sandbox resource/CSP contract changed');
 inspectScript(await readFile('src/scripting/sandbox/sandbox.js', 'utf8'), 'scripting/sandbox/sandbox.js', {sourceType: 'module'});

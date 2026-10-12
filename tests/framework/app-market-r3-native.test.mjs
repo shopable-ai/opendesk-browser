@@ -1,4 +1,5 @@
 import {runR261Acceptance} from '../helpers/sidebar-tool-r261-native.mjs';
+import {runMarketR5Acceptance} from '../helpers/app-market-r5-native.mjs';
 // Existing production CFT driver, extended for the R4.5 offline catalog lifecycle.
 // Every installation, permission, update and removal uses visible native input.
 // Storage reads are observations only. No storage writes arrange these tests.
@@ -11,10 +12,10 @@ import {join,resolve} from 'node:path';
 import {tmpdir} from 'node:os';
 import {randomUUID,createHash} from 'node:crypto';
 import {setTimeout as sleep} from 'node:timers/promises';
-import {packageFingerprint} from '../../scripts/verify-package.mjs';
+import {packageFingerprint,verifyManifest} from '../../scripts/verify-package.mjs';
 import {validateOfficialReleaseCatalog,OFFICIAL_CATALOG_PATH} from '../../src/sidebar-tools/official-catalog.js';
 import {SIDEBAR_TOOL_STORE,sidebarToolStorageKey,serializeSidebarToolPackage} from '../../src/ui/sidebar-tools/package.js';
-import {MARKET_PROVENANCE_STORE} from '../../src/ui/sidebar-tools/installation.js';
+import {MARKET_PROVENANCE_STORE,TOOL_CLEANUP_STORE} from '../../src/ui/sidebar-tools/installation.js';
 import {MARKET_BATCH_STORE} from '../../src/marketplace/batch.js';
 import {READING_TOC_SITE_STORE} from '../../src/reading-toc/policy.js';
 import {CLIP_SITE_STORE} from '../../src/page-clip/policy.js';
@@ -24,7 +25,7 @@ const chromeBinary=[process.env.CHROME_BIN,'google-chrome','chromium','google-ch
   .filter(Boolean).find(exe=>spawnSync(exe,['--version'],{stdio:'ignore'}).status===0);
 const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
 const controls={'reading-toc':'#toc-list','web-markdown-clipper':'#clip-fetch',
-  'knowledge-inbox':'#ki-records','quick-notes':'#note-text','markdown-workbench':'#mdw-source','r45-local-tool':'#mdw-source'};
+  'knowledge-inbox':'#ki-records','quick-notes':'#note-text','markdown-workbench':'#mdw-source','time-review':'#minute-canvas','r45-local-tool':'#mdw-source'};
 const grantKeys=[READING_TOC_SITE_STORE,CLIP_SITE_STORE,CAPTURE_SITE_STORE];
 function cdpSocket(url){
   const ws=new WebSocket(url),pending=new Map(),observers=new Set();let nextId=0;
@@ -93,7 +94,7 @@ async function fixtureServer(label){
   return {server,origin:'http://127.0.0.1:'+server.address().port};
 }
 
-test(process.env.OPENDESK_NATIVE_R261==='1'?'R26.1 real Chrome: tool detail management and lifecycle':'R4.8 production Chrome: two preinstalled tools, three reviewed tools, permissions, updates, restart and uninstall',{timeout:420000},async t=>{
+test(process.env.OPENDESK_NATIVE_MARKET_R5==='1'?'R5 real HTTP Chrome: finite external handoff, installation, use and recovery':process.env.OPENDESK_NATIVE_R261==='1'?'R26.1 real Chrome: tool detail management and lifecycle':'R4.8 production Chrome: preinstalled and optional tools, permissions, updates, restart and uninstall',{timeout:720000},async t=>{
   assert.ok(chromeBinary,'A real Chrome for Testing binary is required');
   const extension=await realpath(resolve(process.env.OPENDESK_NATIVE_EXTENSION_PATH||'dist/production'));
   const artifactDir=resolve(process.env.OPENDESK_NATIVE_ARTIFACT_DIR||'artifacts/app-market-r3');await mkdir(artifactDir,{recursive:true});
@@ -107,9 +108,10 @@ test(process.env.OPENDESK_NATIVE_R261==='1'?'R26.1 real Chrome: tool detail mana
   }
   assert.deepEqual([...packages.keys()].sort(),Object.keys(controls).filter(id=>id!=='r45-local-tool').sort());
   const manifest=JSON.parse(await readFile(join(extension,'manifest.json')));
-  assert.equal(manifest.name,'OpenDesk Browser');assert.equal(manifest.externally_connectable,undefined);
+  assert.equal(manifest.name,'OpenDesk Browser');
   const buildMode=process.env.OPENDESK_NATIVE_BUILD_MODE||'production';
   assert(['production','development'].includes(buildMode));
+  verifyManifest(manifest,{mode:buildMode});
   const buildReceipt=JSON.parse(await readFile(resolve(process.env.OPENDESK_BUILD_EVIDENCE_DIR||'docs/framework/evidence/wxt/builds','build-'+buildMode+'.json')));
   assert.equal(buildReceipt.status,'passed');
   const fingerprint=await packageFingerprint(extension);assert.equal(fingerprint.packageHash,buildReceipt.report.packageHash);
@@ -135,6 +137,7 @@ test(process.env.OPENDESK_NATIVE_R261==='1'?'R26.1 real Chrome: tool detail mana
   t.after(async()=>{
     if(evidence.result==='IN_PROGRESS'){
       evidence.result='FAILED';evidence.failedStage=stage;
+      if(evidence.r5){evidence.r5.result='FAILED';if(process.platform==='darwin')evidence.r5.macChrome='FAILED';}
       if(side){
         evidence.failedSidePanel=await evaluate(side,'({url:location.href,title:document.title,ready:document.readyState,status:document.querySelector("#sidebar-tool-status")?.textContent,importError:document.querySelector("#sidebar-tool-file-error")?.textContent,body:document.body.innerText.slice(0,2500)})').catch(error=>({error:error.message}));
       await screenshot(side,'r45-failure-side-panel.png').catch(()=>{});
@@ -258,7 +261,7 @@ test(process.env.OPENDESK_NATIVE_R261==='1'?'R26.1 real Chrome: tool detail mana
       await until(()=>evaluate(panel,'document.readyState==="complete"'),'Side Panel document ready');
       await visible(panel,'#tab-tools');await click(panel,'#tab-tools');
       await until(()=>evaluate(panel,'!document.querySelector("#workbench-tools").hidden'),'actual Tools tab selected');
-      await until(()=>evaluate(panel,'!!document.querySelector("#sidebar-tool-discover-tab") && !document.querySelector("#sidebar-tool-official-catalog").textContent.includes("正在读取内置工具")'),'official catalog settled');
+      await until(()=>evaluate(panel,'!!document.querySelector("#sidebar-tool-discover-toggle") && !document.querySelector("#sidebar-tool-official-catalog").textContent.includes("正在读取内置工具")'),'official catalog settled');
       return panel;
     }finally{
       attempt.openResult=await evaluate(launcher,'window.__r45OpenState').catch(error=>({error:error.message}));
@@ -300,14 +303,8 @@ test(process.env.OPENDESK_NATIVE_R261==='1'?'R26.1 real Chrome: tool detail mana
     return frame;
   }
   async function openMyTools(){
-    // Reviewed installs can leave this real Side Panel on Discover when another
-    // window wins the transaction. My Tools remains the only installed list.
-    await visible(side,'#sidebar-tool-my-tab');
-    if(await evaluate(side,'document.querySelector("#sidebar-tool-my-panel").hidden')){
-      await click(side,'#sidebar-tool-my-tab');
-      await until(()=>evaluate(side,'!document.querySelector("#sidebar-tool-my-panel").hidden'),
-        'genuine My Tools tab switch');
-    }
+    if(await evaluate(side,'document.querySelector("#sidebar-tool-list-view").hidden'))await back();
+    await visible(side,'#sidebar-tool-list');
   }
   async function openTool(id){
     await openMyTools();
@@ -342,12 +339,19 @@ test(process.env.OPENDESK_NATIVE_R261==='1'?'R26.1 real Chrome: tool detail mana
     // Foreground the real installed list, then use the current detail uninstall control.
     await activate(side);await openMyTools();await visible(side,action(id,'open'));
     await click(side,action(id,'open'));
-    await nativeDialogClick(side,'#sidebar-tool-remove',[{parts:['卸载','删除']}]);
+    const dialogsBefore=evidence.dialogs.length;
+    await click(side,'#sidebar-tool-remove');await visible(side,'#sidebar-tool-inline-remove-confirm');
+    await click(side,'#sidebar-tool-inline-remove-confirm');
     await until(async()=>!(await installed()).some(row=>row.id===id),'uninstall '+id);
     await until(()=>evaluate(side,'!document.querySelector('+JSON.stringify(action(id,'open'))+')'),'removed row '+id);
+    await until(()=>evaluate(side,'document.querySelector("#sidebar-tool-status").textContent.includes("本地数据已清理")'),'uninstall cleanup completed '+id);
+    assert.equal((await readStore(TOOL_CLEANUP_STORE))?.[id],undefined);
+    assert.equal((await readStore(MARKET_PROVENANCE_STORE))?.[id],undefined);
+    assert.equal(evidence.dialogs.length,dialogsBefore,'uninstall uses the existing inline review');
   }
   async function officialReview(id,target=side){
-    await visible(target,'#sidebar-tool-discover-tab');await click(target,'#sidebar-tool-discover-tab');
+    await visible(target,'#sidebar-tool-discover-toggle');
+    if(await evaluate(target,'document.querySelector("#sidebar-tool-discover-panel").hidden'))await click(target,'#sidebar-tool-discover-toggle');
     const release=catalog.apps.find(row=>row.toolId===id),before=await installed(target);
     if(before.some(row=>row.id===id))await click(target,'#sidebar-tool-filter-all');
     try{await visible(target,'[data-official-install="'+id+'"]');}
@@ -378,9 +382,13 @@ test(process.env.OPENDESK_NATIVE_R261==='1'?'R26.1 real Chrome: tool detail mana
     await until(()=>evaluate(side,'!document.querySelector("#sidebar-tool-preview").hidden'),'native local file review');
     assert.equal(await evaluate(side,'document.querySelector("#sidebar-tool-preview-version").textContent'),'v'+pkg.version);
     if(reviewOnly){assert.equal(await evaluate(side,'document.querySelector("#sidebar-tool-install").disabled'),true);await click(side,'#sidebar-tool-import-close');return;}
-    if(plans.length)await nativeDialogClick(side,'#sidebar-tool-install',plans);else await click(side,'#sidebar-tool-install');
+    const reviewText=await evaluate(side,'document.querySelector("#sidebar-tool-preview").textContent');
+    for(const plan of plans)for(const part of plan.parts)assert(reviewText.includes(part),'inline import review explains '+part);
+    const dialogsBefore=evidence.dialogs.length;
+    await click(side,'#sidebar-tool-install');
     await until(async()=>(await installed()).some(row=>row.id===pkg.id&&row.version===pkg.version),'local package committed');
     await until(()=>evaluate(side,'document.querySelector("#sidebar-tool-import").hidden'),'local review closed');
+    assert.equal(evidence.dialogs.length,dialogsBefore,'local import uses one visible review');
   }
   async function screenshot(target,name){
     const shot=await target.send('Page.captureScreenshot',{format:'png',captureBeyondViewport:false});
@@ -406,9 +414,9 @@ test(process.env.OPENDESK_NATIVE_R261==='1'?'R26.1 real Chrome: tool detail mana
   assert.deepEqual(defaultIds,['reading-toc','quick-notes']);await assertNoGrants();await assertNoFrames();
   assert.equal(await evaluate(side,'document.querySelectorAll("#sidebar-tool-list .sidebar-tool-row").length'),defaultIds.length);
   assert.equal(await evaluate(side,'document.querySelector("#sidebar-tool-my-panel").hidden'),false,'my tools is the default');
-  await click(side,'#sidebar-tool-discover-tab');
+  await click(side,'#sidebar-tool-discover-toggle');
   assert.equal(await evaluate(side,'document.querySelectorAll("[data-official-tool-id]").length'),catalog.apps.length-defaultIds.length);
-  await click(side,'#sidebar-tool-my-tab');
+  await click(side,'#sidebar-tool-discover-toggle');
   for(const release of catalog.apps){
     const raw=await evaluate(host,'fetch(chrome.runtime.getURL('+JSON.stringify(release.packagePath)+')).then(r=>{if(!r.ok)throw Error(r.status);return r.text()})');
     assert.equal(hash(Buffer.from(raw)),release.sha256);
@@ -417,14 +425,31 @@ test(process.env.OPENDESK_NATIVE_R261==='1'?'R26.1 real Chrome: tool detail mana
   for(const page of [pageA,pageB])assert.equal(await evaluate(page,'document.querySelectorAll("[data-opendesk-toc-root]").length'),0);
   await screenshot(side,'r48-fresh-preinstalled.png');
 
+  if(process.env.OPENDESK_NATIVE_MARKET_R5==='1'){
+    await runMarketR5Acceptance({t,extension,artifactDir,evidence,packages,catalog,buildMode,
+      getSide:()=>side,getHost:()=>host,getExtensionId:()=>extensionId,
+      sendBrowser:(...args)=>browser.send(...args),onBrowserEvent:fn=>browser.onEvent(fn),
+      attach,openTab,click,inputText,evaluate,until,visible,activate,installed,readStore,openTool,iframeWith,
+      back,uninstall,importPackage,screenshot,phase,save,assertNoFrames,assertNoGrants,
+      restartChrome:async()=>{await closeChrome();host=null;side=null;await launch();side=await openPanel();return {side,host};}});
+    assert.equal((await packageFingerprint(extension)).packageHash,fingerprint.packageHash);
+    evidence.buildMode=buildMode;evidence.finalRegistry=await installed();await closeChrome();
+    evidence.result='REAL_CHROME_MARKET_R5_PASS';evidence.r5.result='PASS';
+    evidence.publicWebsite='REAL_HTTP_CHROME_PASS';
+    evidence.r5.macChrome=process.platform==='darwin'?'PASS':'NOT_TESTED';
+    evidence.actualMacChrome=process.platform==='darwin'?'PASS':'NOT_TESTED';
+    await save();return;
+  }
+
   if(process.env.OPENDESK_NATIVE_R261==='1'){
     await runR261Acceptance({side,host,pageA,pageB,evidence,packages,catalog,extensionId,servers,
       phase,click,evaluate,until,activate,openTool,back,officialInstall,importPackage,nativeDialogClick,
       screenshot,readStore,installed,openTab,openPanel,assertNoFrames,
       sendBrowser:(...args)=>browser.send(...args)});
     assert.equal((await packageFingerprint(extension)).packageHash,fingerprint.packageHash);
-    evidence.result='REAL_CHROME_R261_PASS';evidence.buildMode=buildMode;evidence.actualMacChrome=process.platform==='darwin'?'PASS':'NOT_TESTED';
-    evidence.finalRegistry=await installed();await closeChrome();await save();return;
+    evidence.buildMode=buildMode;evidence.finalRegistry=await installed();await closeChrome();
+    evidence.result='REAL_CHROME_R261_PASS';evidence.actualMacChrome=process.platform==='darwin'?'PASS':'NOT_TESTED';
+    await save();return;
   }
 
   // Preserve and strengthen the upstream five-app market acceptance loop.
@@ -466,6 +491,8 @@ test(process.env.OPENDESK_NATIVE_R261==='1'?'R26.1 real Chrome: tool detail mana
   // revision stays immutable; a user-created revision pins current releases.
   await phase('market-fixed-unavailable-version-and-current-batch');
   await click(market,'#market-collection');
+  await until(()=>evaluate(market,'location.hash==="#/collections/reading-kit/revisions/2"'),'current recommended fixed collection is revision 2');
+  await market.send('Page.navigate',{url:'chrome-extension://'+extensionId+'/ui/marketplace.html#/collections/reading-kit/revisions/1'});
   await until(()=>evaluate(market,'location.hash==="#/collections/reading-kit/revisions/1"&&!!document.querySelector("#market-root .surface .actions button.primary")'),'fixed collection and preflight ready');
   await click(market,'#market-root .surface .actions button.primary');
   await visible(market,'.review .actions button:not(.primary)');
@@ -473,7 +500,7 @@ test(process.env.OPENDESK_NATIVE_R261==='1'?'R26.1 real Chrome: tool detail mana
   assert.equal((await installed()).length,catalog.apps.length,'preflight alone never installs');
   assert.match(await evaluate(market,'document.querySelector("#market-root").innerText'),/1\.1\.1/);
   const unavailableReview=await evaluate(market,'document.querySelector(".review").innerText');
-  assert.match(unavailableReview,/blocked/);
+  assert.match(unavailableReview,/需要处理/);
   assert.match(unavailableReview,/当前扩展不包含这个固定版本/);
   await click(market,'.review .actions button:not(.primary)');
   await click(market,'#market-my');
@@ -573,17 +600,18 @@ test(process.env.OPENDESK_NATIVE_R261==='1'?'R26.1 real Chrome: tool detail mana
   await officialReview('quick-notes');assert.equal(await evaluate(side,'document.querySelector("[data-official-tool-id=quick-notes]").dataset.installationState'),'update');
   await click(side,'#sidebar-tool-import-close');assert.equal((await installed()).find(row=>row.id==='quick-notes').version,'0.0.1');
   await officialReview('quick-notes');
-  await nativeDialogClick(side,'#sidebar-tool-install',[{parts:['来源']},{parts:['新增能力'],accept:false}]);
-  await until(()=>evaluate(side,'!document.querySelector("#sidebar-tool-install").disabled'),'cancelled added capability review');
+  const reviewedUpdate=await evaluate(side,'document.querySelector("#sidebar-tool-preview").textContent');
+  assert(reviewedUpdate.includes('来源')&&reviewedUpdate.includes('新增能力'));
+  await click(side,'#sidebar-tool-import-close');
   assert.equal((await installed()).find(row=>row.id==='quick-notes').version,'0.0.1');assert.deepEqual(await readStore(sidebarToolStorageKey('quick-notes')),noteData);
-  await nativeDialogClick(side,'#sidebar-tool-install',[{parts:['来源']},{parts:['新增能力']}]);
+  await officialReview('quick-notes');await click(side,'#sidebar-tool-install');
   await until(async()=>(await installed()).find(row=>row.id==='quick-notes')?.version===notes.version,'official notes upgraded after both consents');
   await until(()=>evaluate(side,'document.querySelector("#sidebar-tool-import").hidden'),'notes upgrade review closed');
   assert.deepEqual(await readStore(sidebarToolStorageKey('quick-notes')),noteData);
   frame=await openTool('quick-notes');await until(()=>evaluate(frame,'document.querySelector("#note-text").value==='+JSON.stringify(note)),'same private note after upgrade');await back();
   const toc=packages.get('reading-toc');await importPackage({...toc,version:'0.0.1'},'controlled-old-toc',[{parts:['版本回退']}]);
   await officialReview('reading-toc');assert.deepEqual(await readStore(READING_TOC_SITE_STORE),grantedBefore.toc);
-  await nativeDialogClick(side,'#sidebar-tool-install',[{parts:['来源']}]);
+  await click(side,'#sidebar-tool-install');
   await until(async()=>(await installed()).find(row=>row.id==='reading-toc')?.version===toc.version,'TOC reviewed upgrade');
   await until(()=>evaluate(side,'document.querySelector("#sidebar-tool-import").hidden'),'TOC review closed');
   assert.deepEqual(await readStore(READING_TOC_SITE_STORE),grantedBefore.toc);assert.deepEqual(await readStore(CLIP_SITE_STORE),grantedBefore.clip);
@@ -676,7 +704,7 @@ test(process.env.OPENDESK_NATIVE_R261==='1'?'R26.1 real Chrome: tool detail mana
   assert.deepEqual((await readStore(MARKET_PROVENANCE_STORE))||{},{});
   await phase('second-complete-chrome-restart-after-uninstall');await closeChrome();host=null;side=null;await launch();side=await openPanel();
   assert.deepEqual(await installed(),[]);await assertNoGrants();await assertNoFrames();
-  await click(side,'#sidebar-tool-discover-tab');
+  if(await evaluate(side,'document.querySelector("#sidebar-tool-discover-panel").hidden'))await click(side,'#sidebar-tool-discover-toggle');
   for(const release of catalog.apps){
     await visible(side,'[data-official-install="'+release.toolId+'"]');
     assert.equal(await evaluate(side,'document.querySelector("[data-official-tool-id='+release.toolId+']").dataset.installationState'),'available');
@@ -688,16 +716,19 @@ test(process.env.OPENDESK_NATIVE_R261==='1'?'R26.1 real Chrome: tool detail mana
   await phase('responsive-keyboard-and-real-browser-zoom');
   await responsiveCheck(side,'side-panel-tools');
   await click(side,'#tab-tools');evidence.keyboardFocus=[];
-  const keyboardControls=['sidebar-tool-market','sidebar-tool-import-trigger',
-    ...catalog.apps.map(row=>'sidebar-tool-official-'+row.toolId+'-install')];
-  for(const expectedId of keyboardControls){
+  const keyboardControls=['#sidebar-tool-discover-toggle','#sidebar-tool-market','#sidebar-tool-import-trigger',
+    '#installed-page-tools-refresh','#sidebar-tool-search','#sidebar-tool-filter-available','#sidebar-tool-filter-all',
+    ...catalog.apps.flatMap(row=>['[data-official-tool-id="'+row.toolId+'"] .sidebar-tool-official-title',
+      '#sidebar-tool-official-'+row.toolId+'-install'])];
+  for(const expectedSelector of keyboardControls){
     for(const type of ['keyDown','keyUp'])await side.send('Input.dispatchKeyEvent',{type,key:'Tab',code:'Tab',windowsVirtualKeyCode:9});
     const focus=await evaluate(side,'(()=>{const e=document.activeElement;return {tag:e.tagName,id:e.id,label:e.getAttribute("aria-label")||e.textContent.slice(0,80),visible:!!e.getClientRects().length,focusVisible:e.matches(":focus-visible")}})()');
-    evidence.keyboardFocus.push(focus);assert.equal(focus.id,expectedId,'native Tab follows official UI order');
+    evidence.keyboardFocus.push({...focus,expectedSelector});
+    assert(await evaluate(side,'document.activeElement.matches('+JSON.stringify(expectedSelector)+')'),'native Tab follows official UI order: '+expectedSelector);
     assert(focus.visible&&focus.focusVisible,'keyboard control focus must remain visible');
   }
   for(const type of ['keyDown','keyUp'])await side.send('Input.dispatchKeyEvent',{type,key:'Tab',code:'Tab',windowsVirtualKeyCode:9,modifiers:8});
-  assert.equal(await evaluate(side,'document.activeElement.id'),keyboardControls.at(-2),'native Shift+Tab returns to previous official app');
+  assert(await evaluate(side,'document.activeElement.matches('+JSON.stringify(keyboardControls.at(-2))+')'),'native Shift+Tab returns to previous official app title');
   await screenshot(side,'side-panel-keyboard-focus.png');
 
   await click(side,'#sidebar-tool-market');
@@ -714,11 +745,12 @@ test(process.env.OPENDESK_NATIVE_R261==='1'?'R26.1 real Chrome: tool detail mana
     await screenshot(finalMarket,'market-catalog-200-percent.png');
   }finally{await evaluate(finalMarket,'chrome.tabs.setZoom('+marketTabId+',1)');}
   await browser.send('Target.closeTarget',{targetId:finalMarket.targetId});
-  evidence.result='REAL_CHROME_FIXTURE_PASS';evidence.controlledOldVersions=['quick-notes@0.0.1','reading-toc@0.0.1'];
+  evidence.controlledOldVersions=['quick-notes@0.0.1','reading-toc@0.0.1'];
   evidence.controlledOldVersionsAreHistoricalReleases=false;evidence.confirmedOptionalTools=catalog.apps.filter(row=>row.installationPolicy==='optional').map(row=>row.toolId);
   evidence.defaultPreinstalledTools=defaultIds;
-  evidence.actualMacChrome=process.platform==='darwin'?'PASS':'NOT_TESTED';
   evidence.finalRegistry=await installed();
+  await closeChrome();evidence.result='REAL_CHROME_FIXTURE_PASS';
+  evidence.actualMacChrome=process.platform==='darwin'?'PASS':'NOT_TESTED';
   await save();console.log('R45_NATIVE_RESULT '+JSON.stringify({result:evidence.result,commit:evidence.commit,extensionId,packageHash:evidence.packageHash,
     phases:evidence.phases.length,normalChromeRestarts:2,dialogCount:evidence.dialogs.length}));
 });

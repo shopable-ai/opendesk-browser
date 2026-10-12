@@ -1,0 +1,22 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> opendesk-browser@0.1.0 dev:market
+> node scripts/serve-market-site.mjs
+
+node:net:2167
+    const ex = new UVExceptionWithHostPort(err, 'listen', address, port);
+               ^
+
+Error: listen EADDRINUSE: address already in use 127.0.0.1:43132
+    at Server.setupListenHandle [as _listen2] (node:net:2167:16)
+    at listenInCluster (node:net:2224:12)
+    at node:net:2448:7
+    at process.processTicksAndRejections (node:internal/process/task_queues:90:21) {
+  code: 'EADDRINUSE',
+  errno: -98,
+  syscall: 'listen',
+  address: '127.0.0.1',
+  port: 43132
+}
+
+Node.js v24.19.0
