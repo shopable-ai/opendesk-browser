@@ -9,7 +9,7 @@ const uid='01234567-89ab-4def-8123-456789abcdef';
 const pkg=validateSidebarToolPackage({
   format:'opendesk.sidebar-tool.v2',id:'browser-probe',version:'1.0.0',
   title:'Browser probe',description:'P0 acceptance probe',
-  capabilities:['browser.tabs','browser.sidePanel','network'],
+  capabilities:['browser.tabs','browser.sidePanel','network','browser.network.observe','browser.events'],
   html:'<div>Browser probe</div>',css:'',js:'console.log("browser probe");',
   requires:{browserSdk:'1.0.0'},contributes:{contextMenus:[]}
 });
@@ -22,6 +22,7 @@ const err=code=>error=>error?.code===code;
 function fixture({fetchImpl=async()=>new Response('{"ok":true}',{status:200,headers:{'content-type':'application/json'}})}={}){
   const local=new Map([['opendesk.sidebar-tools.installed.v1',[pkg]]]),session=new Map();
   const tabs=new Map(),created=[],updated=[],removed=[],listeners=[],storageListeners=[];
+  const webRequests={start:[],complete:[],error:[]},downloads=[];
   let permitted=true,chromeGranted=true;
   const store=map=>({
     get:async key=>Object.fromEntries((Array.isArray(key)?key:[key]).map(k=>[k,map.get(k)])),
@@ -35,7 +36,7 @@ function fixture({fetchImpl=async()=>new Response('{"ok":true}',{status:200,head
   });
   const api={
     runtime:{id:'ext-r2',getURL:path=>'chrome-extension://ext-r2/'+path,lastError:null},
-    permissions:{contains:async ({origins,permissions})=>origins?permitted:chromeGranted},
+    permissions:{contains:async ({origins,permissions})=>origins?permitted && origins.every(x=>x.startsWith('https://example.org/')):chromeGranted},
     storage:{local:store(local),session:store(session),onChanged:{addListener:fn=>storageListeners.push(fn)}},
     tabs:{
       onRemoved:{addListener:fn=>removed.push(fn)},
@@ -46,6 +47,14 @@ function fixture({fetchImpl=async()=>new Response('{"ok":true}',{status:200,head
       update:async (id,attrs)=>{const item={...tabs.get(id),...attrs};tabs.set(id,item);return item;}
     },
     windows:{update:async()=>true},
+    webNavigation:{getFrame:async({tabId})=>tabs.has(tabId)?{
+      url:tabs.get(tabId).url,documentId:'doc-'+tabId,documentLifecycle:'active'}:null},
+    webRequest:{
+      onBeforeRequest:{addListener:fn=>webRequests.start.push(fn)},
+      onCompleted:{addListener:fn=>webRequests.complete.push(fn)},
+      onErrorOccurred:{addListener:fn=>webRequests.error.push(fn)}
+    },
+    downloads:{download:async opts=>{downloads.push(opts);return 777}},
     sidePanel:{open:async()=>true}
   };
   const host=createContextMenuHost({api,fetchImpl,lockManager:locks,logger:{warn(){}}});
@@ -55,7 +64,8 @@ function fixture({fetchImpl=async()=>new Response('{"ok":true}',{status:200,head
   const call=(operation,args={},approvalRef)=>host.handleTool({
     operation,args,approvalRef,...identity
   },sender);
-  return {api,host,call,confirm,created,tabs,setSite:v=>{permitted=v;},
+  return {api,host,call,confirm,created,tabs,downloads,
+    observeEvent:(type,info)=>webRequests[type].forEach(fn=>fn(info)),setSite:v=>{permitted=v;},
     setChrome:v=>{chromeGranted=v;},
     navigate(id,url){tabs.set(id,{...tabs.get(id),url});for(const fn of updated)fn(id,{url});}
   };
@@ -151,4 +161,43 @@ test('R2 revocation aborts a request that already entered the trusted fetch driv
  await inFlight;
  f.host.revokeBrowserOperations();
  await assert.rejects(pending,err('E_CANCELLED'));
+});
+
+test('R2 observe/end-to-end Host only sees owned TabRef; pagination and export are bound',async()=>{
+ const f=fixture(),url={url:'https://example.org/page'};
+ const tabRef=(await f.call('browser.tabs.open',url,
+   (await f.confirm('browser.tabs.open',url)).approvalRef)).tabRef;
+ const args={tabRef,origins:['https://example.org'],durationMs:10000,maxEvents:10};
+ await assert.rejects(f.call('browser.network.observe.start',args),err('E_USER_GESTURE_REQUIRED'));
+ const started=await f.call('browser.network.observe.start',args,
+   (await f.confirm('browser.network.observe.start',args)).approvalRef);
+ assert.match(started.observationId,/^[a-f0-9-]{36}$/i);
+ f.observeEvent('start',{tabId:100,url:'https://example.org/data?token=SECRET',
+   timeStamp:1000,method:'GET',type:'xmlhttprequest',requestHeaders:{cookie:'SECRET'}});
+ f.observeEvent('complete',{tabId:100,url:'https://example.org/data?token=SECRET',
+   timeStamp:1001,method:'GET',type:'xmlhttprequest',statusCode:200});
+ const events=await f.call('browser.events.read',{sessionRef:started.observationId});
+ assert.equal(events.events.length,2);
+ assert(!JSON.stringify(events).includes('SECRET'));
+ assert.equal((await f.call('browser.network.observe.stop',
+   {observationId:started.observationId})).state,'stopped');
+ const exp={observationId:started.observationId,format:'json'};
+ await assert.rejects(f.call('browser.network.observe.export',exp),err('E_USER_GESTURE_REQUIRED'));
+ const result=await f.call('browser.network.observe.export',exp,
+   (await f.confirm('browser.network.observe.export',exp)).approvalRef);
+ assert.equal(result.downloadId,777);
+ assert.equal(f.downloads.length,1);
+ assert.equal((await f.call('browser.events.close',{sessionRef:started.observationId})).closed,true);
+});
+test('R2 observer rejects off-Origin, Chrome revocation and uninstalled tool',async()=>{
+ const f=fixture(),url={url:'https://example.org'};
+ const tabRef=(await f.call('browser.tabs.open',url,(await f.confirm('browser.tabs.open',url)).approvalRef)).tabRef;
+ const bad={tabRef,origins:['https://different.org']};
+ await assert.rejects(f.confirm('browser.network.observe.start',bad),err('E_SITE_PERMISSION_REVOKED'));
+ const exact={tabRef,origins:['https://example.org']};
+ f.setChrome(false);
+ await assert.rejects(f.confirm('browser.network.observe.start',exact),err('E_CHROME_PERMISSION_REQUIRED'));
+ f.setChrome(true);
+ await f.api.storage.local.set({'opendesk.sidebar-tools.installed.v1':[]});
+ await assert.rejects(f.confirm('browser.network.observe.start',exact),err('E_TOOL_CHANGED'));
 });

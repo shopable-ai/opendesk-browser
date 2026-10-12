@@ -1,6 +1,7 @@
 import {isToolSender,resolveToolSender,permissionPattern} from '../../environment.js';
 import {createBrowserTabHost} from './browser-tabs.js';
 import {createNetworkService} from './network.js';
+import {createBrowserNetworkObserver} from './browser-network-observe.js';
 import {SIDEBAR_TOOL_ENABLE_STORE,requireToolEnableRecords,sidebarToolEnabled} from '../../ui/sidebar-tools/lifecycle.js';
 // Trusted Chrome MV3 context-menu driver. No third-party code executes here.
 // Listener registration is synchronous; storage and install checks are async.
@@ -135,7 +136,10 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
   const browserIntents=new Map(),INTENT_TTL=15000;
   // A permission or installed-package change must fence requests that are already in fetch().
   const activeNetworkRequests=new Set();
-  const intentOperations=new Set(['browser.tabs.open','browser.tabs.focus','browser.network.request']);
+  const intentOperations=new Set(['browser.tabs.open','browser.tabs.focus','browser.network.request',
+    'browser.network.observe.start','browser.network.observe.export']);
+  const observationOperations=new Set(['browser.network.observe.getStatus','browser.network.observe.stop',
+    'browser.events.read','browser.events.close']);
   async function verifyBrowserOwner(identity,operation,origin=null){
     const owned=await readSources(api),tool=admittedTool(owned.tools,identity.toolId);
     if(!sidebarToolEnabled(owned.enabled,tool.id))throw failure('E_TOOL_DISABLED');
@@ -165,7 +169,9 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
       if(origin!==context.approvedOrigin)throw failure('E_SITE_GRANT_REQUIRED','HTTP request Origin changed');
       await verifyBrowserOwner(context,'browser.network.request',origin);
     }});
+  const networkObserver=createBrowserNetworkObserver({api});
   function revokeBrowserOperations(){
+    networkObserver.revokeAll();
     browserIntents.clear();
     for(const controller of activeNetworkRequests)
       controller.abort(failure('E_GRANT_REVOKED','Installed tool authority changed during HTTP request'));
@@ -239,6 +245,7 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
   }
   const epochKey=(tabId,frameId)=>String(tabId)+':'+String(frameId);
   function noteNavigation(tabId,frameId=0){
+    if(frameId===0)networkObserver.invalidateTab(tabId);
     const key=epochKey(tabId,frameId);
     documentEpochs.set(key,(documentEpochs.get(key)||0)+1);
     if(frameId===0){
@@ -320,7 +327,8 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
       operation==='browser.tabs.open'?Boolean(api.tabs?.create):
       operation==='browser.tabs.focus'?Boolean(api.tabs?.get&&api.tabs?.update):
       operation==='browser.sidePanel.openSelf'?Boolean(api.sidePanel?.open):
-      operation==='browser.network.request'?typeof fetchImpl==='function':true);
+      operation==='browser.network.request'?typeof fetchImpl==='function':
+      operation.startsWith('browser.network.observe.')?Boolean(api.webRequest?.onBeforeRequest?.addListener):true);
     const hasToolCap=op.requiredCapabilities.every(cap=>tool.capabilities.includes(cap));
     const chromium=menuApiAvailable&&await permissionGranted(api);
     const requiredBrowser=(await Promise.all(op.requiredChromePermissions.map(async id=>
@@ -390,12 +398,28 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
            intent.toolInstance!==toolInstance||intent.hostInstanceId!==hostInstanceId||
            intent.args!==canonicalJSON(checked))
           throw failure('E_USER_GESTURE_REQUIRED','New explicit approval required for this exact action');
-        const approvedOrigin=['browser.tabs.open','browser.network.request'].includes(operation)
-          ?new URL(checked.url).origin:null;
+        const approvedOrigin=operation==='browser.network.observe.start'?checked.origins[0]:
+          ['browser.tabs.open','browser.network.request'].includes(operation)
+            ?new URL(checked.url).origin:null;
         const context={...owner,approvedOrigin};
         await verifyBrowserOwner(context,operation,approvedOrigin);
         if(operation==='browser.tabs.open')return tabHost.open(checked,context);
         if(operation==='browser.tabs.focus')return tabHost.focus(checked,context);
+        if(operation==='browser.network.observe.start'){
+          const target=await tabHost.resolve(checked.tabRef,context);
+          if(target.origin!==approvedOrigin)
+            throw failure('E_SITE_GRANT_REQUIRED','Only the owned tab Origin is observable');
+          await verifyBrowserOwner(context,operation,target.origin);
+          const result=await networkObserver.start(checked,context,target);
+          try{await verifyBrowserOwner(context,operation,target.origin)}
+          catch(error){networkObserver.revokeAll();throw error}
+          return result;
+        }
+        if(operation==='browser.network.observe.export'){
+          const saved=await networkObserver.inspect(checked.observationId,context);
+          await verifyBrowserOwner(context,operation,saved.origin);
+          return networkObserver.exportJson(checked,context);
+        }
         const controller=new AbortController();
         activeNetworkRequests.add(controller);
         try{
@@ -405,6 +429,24 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
           if(jsonBytes(result)>12000)throw failure('E_LIMIT','HTTP response exceeds IPC budget');
           return result;
         }finally{activeNetworkRequests.delete(controller)}
+      }
+      if(observationOperations.has(operation)){
+        const checked=normalizeBrowserOperation(operation,args),packageHash=await digestTool(tool);
+        const context={toolId,toolVersion,packageHash,epoch:installEpoch??null,
+          installEpoch:String(installEpoch??'initial-install'),approvedOrigin:null};
+        const ref=checked.observationId??checked.sessionRef;
+        const saved=await networkObserver.inspect(ref,context);
+        await verifyBrowserOwner(context,operation,saved.origin);
+        if(operation==='browser.network.observe.getStatus')
+          return networkObserver.getStatus(checked,context);
+        if(operation==='browser.network.observe.stop')
+          return networkObserver.stop(checked,context);
+        if(operation==='browser.events.read'){
+          const result=await networkObserver.read(checked,context);
+          if(jsonBytes(result)>12000)throw failure('E_LIMIT','Event page exceeds IPC budget');
+          return result;
+        }
+        return networkObserver.close(checked,context);
       }
       if(operation==='browser.capabilities.list'){
         normalizeBrowserOperation(operation,args);
@@ -491,8 +533,9 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
         if(tool.version!==toolVersion||(source.epochs[toolId]??null)!==(installEpoch??null))
           throw failure('E_TOOL_CHANGED','Tool updated during approval');
         const packageHash=await digestTool(tool);
-        const origin=['browser.tabs.open','browser.network.request'].includes(targetOperation)
-          ?new URL(args.url).origin:null;
+        const origin=targetOperation==='browser.network.observe.start'?args.origins[0]:
+          ['browser.tabs.open','browser.network.request'].includes(targetOperation)
+            ?new URL(args.url).origin:null;
         await verifyBrowserOwner({toolId,toolVersion,packageHash,epoch:installEpoch??null},targetOperation,origin);
         for(const [ref,intent] of browserIntents)if(Date.now()>=intent.expiresAt)browserIntents.delete(ref);
         if(browserIntents.size>=16)throw failure('E_LIMIT','Too many pending approvals');

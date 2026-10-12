@@ -13,7 +13,7 @@ const shared={apiVersion:BROWSER_API_VERSION,platform:'chrome>=138',timeout:8000
 const USER_GESTURE_OPERATIONS=new Set([
   'browser.clipboard.writeText','browser.downloads.text','browser.tabs.open',
   'browser.tabs.focus','browser.sidePanel.openSelf','browser.network.request','browser.network.observe.start',
-  'browser.screenshot.captureVisible','browser.media.recording.prepare'
+  'browser.network.observe.export','browser.screenshot.captureVisible','browser.media.recording.prepare'
 ]);
 function entry(operation,capability,contexts,chromePermissions,effect,risk,siteScope='none',state='IMPLEMENTED',lifecycle='request'){
   return Object.freeze({...shared,
@@ -41,12 +41,12 @@ export const BROWSER_OPERATIONS=Object.freeze({
   'browser.tabs.focus':entry('browser.tabs.focus','browser.tabs',tool,['tabs'],'write','medium','tab-ref','IMPLEMENTED'),
   'browser.sidePanel.openSelf':entry('browser.sidePanel.openSelf','browser.sidePanel',tool,['sidePanel'],'write','medium','user-gesture','IMPLEMENTED'),
   'browser.network.request':entry('browser.network.request','network',tool,[],'write','high','target-origin','IMPLEMENTED'),
-  'browser.network.observe.start':entry('browser.network.observe.start','browser.network.observe',tool,['webRequest'],'read','high','approved-tab','PLANNED','bounded-session'),
-  'browser.network.observe.getStatus':entry('browser.network.observe.getStatus','browser.network.observe',tool,['webRequest'],'read','medium','approved-tab','PLANNED','bounded-session'),
-  'browser.network.observe.stop':entry('browser.network.observe.stop','browser.network.observe',tool,['webRequest'],'write','medium','approved-tab','PLANNED','bounded-session'),
-  'browser.network.observe.export':entry('browser.network.observe.export','browser.network.observe',tool,['webRequest'],'read','high','approved-tab','PLANNED','bounded-session'),
-  'browser.events.read':entry('browser.events.read','browser.events',tool,[],'read','medium','owned-session','PLANNED'),
-  'browser.events.close':entry('browser.events.close','browser.events',tool,[],'write','low','owned-session','PLANNED'),
+  'browser.network.observe.start':entry('browser.network.observe.start','browser.network.observe',tool,['webRequest'],'read','high','approved-tab','IMPLEMENTED','bounded-session'),
+  'browser.network.observe.getStatus':entry('browser.network.observe.getStatus','browser.network.observe',tool,['webRequest'],'read','medium','approved-tab','IMPLEMENTED','bounded-session'),
+  'browser.network.observe.stop':entry('browser.network.observe.stop','browser.network.observe',tool,['webRequest'],'write','medium','approved-tab','IMPLEMENTED','bounded-session'),
+  'browser.network.observe.export':entry('browser.network.observe.export','browser.network.observe',tool,['webRequest','downloads'],'write','high','approved-tab','IMPLEMENTED','bounded-session'),
+  'browser.events.read':entry('browser.events.read','browser.events',tool,[],'read','medium','owned-session','IMPLEMENTED'),
+  'browser.events.close':entry('browser.events.close','browser.events',tool,[],'write','low','owned-session','IMPLEMENTED'),
   'browser.screenshot.captureVisible':entry('browser.screenshot.captureVisible','browser.screenshot',tool,['activeTab'],'read','high','selected-tab','HOST_ONLY'),
   'browser.media.recording.prepare':entry('browser.media.recording.prepare','browser.media.recording',tool,[],'write','high','visible-user-consent','PLANNED'),
   'browser.media.recording.getStatus':entry('browser.media.recording.getStatus','browser.media.recording',tool,[],'read','medium','owned-session','PLANNED'),
@@ -116,6 +116,46 @@ export function normalizeBrowserOperation(operation,args={}){
       if(new TextEncoder().encode(JSON.stringify(normalized)).length>12000)throw fail('E_LIMIT','HTTP payload budget exceeded');
       return normalized;
     }
+    case 'browser.network.observe.start':{
+      fields(args,['tabRef','origins','durationMs','maxEvents','maxBufferedBytes'],['tabRef','origins']);
+      if(typeof args.tabRef!=='string'||!/^[A-Za-z0-9_-]{16,160}$/.test(args.tabRef))
+        throw fail('E_SCHEMA','Authorized tabRef required');
+      if(!Array.isArray(args.origins)||args.origins.length!==1)
+        throw fail('E_SCHEMA','Exactly one HTTP Origin is allowed');
+      const origin=approvedHttpUrl(args.origins[0]);
+      if(new URL(origin).origin!==origin)
+        throw fail('E_SCHEMA','Only exact Origin, no path, query or credentials');
+      for(const [key,min,max] of [['durationMs',1,30000],['maxEvents',1,500],
+        ['maxBufferedBytes',1024,524288]]){
+        if(args[key]!==undefined&&(!Number.isSafeInteger(args[key])||args[key]<min||args[key]>max))
+          throw fail('E_SCHEMA','Invalid '+key);
+      }
+      return {tabRef:args.tabRef,origins:[origin],durationMs:args.durationMs??30000,
+        maxEvents:args.maxEvents??500,maxBufferedBytes:args.maxBufferedBytes??524288};
+    }
+    case 'browser.network.observe.getStatus':
+    case 'browser.network.observe.stop':
+      fields(args,['observationId'],['observationId']);
+      if(typeof args.observationId!=='string'||!/^[A-Za-z0-9_-]{16,160}$/.test(args.observationId))
+        throw fail('E_SCHEMA','Invalid observation reference');
+      break;
+    case 'browser.network.observe.export':
+      fields(args,['observationId','format'],['observationId','format']);
+      if(typeof args.observationId!=='string'||!/^[A-Za-z0-9_-]{16,160}$/.test(args.observationId)||
+        args.format!=='json')throw fail('E_SCHEMA','Only owned JSON export allowed');
+      break;
+    case 'browser.events.read':
+      fields(args,['sessionRef','cursor','limit'],['sessionRef']);
+      if(typeof args.sessionRef!=='string'||!/^[A-Za-z0-9_-]{16,160}$/.test(args.sessionRef)||
+         (args.cursor!==undefined&&(typeof args.cursor!=='string'||!/^\d{1,10}$/.test(args.cursor)))||
+         (args.limit!==undefined&&(!Number.isSafeInteger(args.limit)||args.limit<1||args.limit>100)))
+         throw fail('E_SCHEMA','Invalid event cursor or limit');
+      return {sessionRef:args.sessionRef,cursor:args.cursor??'0',limit:args.limit??50};
+    case 'browser.events.close':
+      fields(args,['sessionRef'],['sessionRef']);
+      if(typeof args.sessionRef!=='string'||!/^[A-Za-z0-9_-]{16,160}$/.test(args.sessionRef))
+        throw fail('E_SCHEMA','Invalid event session reference');
+      break;
     case 'browser.contextMenu.register':
       fields(args,['actionIds'],['actionIds']);
       if(!Array.isArray(args.actionIds)||!args.actionIds.length||args.actionIds.length>3||

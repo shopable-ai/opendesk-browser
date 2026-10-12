@@ -3,7 +3,7 @@
   "sourceOfTruth": "src/framework/sdk/browser-contract.js",
   "repository": "shopable-ai/opendesk-browser",
   "branch": "main",
-  "auditedMainSha": "9a0a5b3a977969bf8d37978a116769972562cbc5",
+  "auditedMainSha": "faffbc67e9cd067ca288aacc0197e4cd93b41868",
   "auditedDate": "2026-10-12",
   "apiVersion": "1.0.0",
   "capacityUniverse": {
@@ -14,8 +14,8 @@
   "summary": {
     "operationCount": 32,
     "implementationCounts": {
-      "IMPLEMENTED": 14,
-      "PLANNED": 15,
+      "IMPLEMENTED": 20,
+      "PLANNED": 9,
       "HOST_ONLY": 1,
       "NOT_EXPOSED": 2
     },
@@ -62,7 +62,7 @@
     },
     "R2": {
       "status": "NOT_TESTED",
-      "reason": "Tabs, Side Panel and bounded network observation still lack approved tool Host wiring"
+      "reason": "P0 Host routes plus 6 bounded network-observation/event routes implemented in code; native Chrome user-click, permission revoke and Worker restart acceptance pending"
     },
     "R3": {
       "status": "NOT_TESTED",
@@ -674,11 +674,11 @@
       "api": "browser.network.observe.start",
       "module": "browser.network.observe",
       "apiVersion": "1.0.0",
-      "implementation": "PLANNED",
+      "implementation": "IMPLEMENTED",
       "executionContexts": [
         "sidebar-tool"
       ],
-      "exposure": "DECLARED_NON_EXECUTABLE",
+      "exposure": "APPROVED_TOOL",
       "inputSchema": "src/framework/sdk/browser-contract.js#browser.network.observe.start",
       "outputSchema": "src/framework/sdk/browser-contract.js#browser.network.observe.start",
       "chromePermissions": [
@@ -691,8 +691,8 @@
       "riskLevel": "high",
       "siteScope": "approved-tab",
       "lifecycle": "bounded-session",
-      "hostImplementation": null,
-      "sdkEntry": null,
+      "hostImplementation": "src/platform/chrome/browser-network-observe.js",
+      "sdkEntry": "src/framework/sdk/browser.js",
       "positiveTest": {
         "status": "NOT_TESTED",
         "evidence": []
@@ -707,9 +707,9 @@
       },
       "callableNowVerification": "NOT_TESTED",
       "blockers": [
-        "Install capability, trusted Host RPC, permission revocation and native verification not completed"
+        "Same-candidate Chrome native HTTP observation, real permission, navigation and Worker restart acceptance pending"
       ],
-      "nextTask": "Connect verified Host, install grants and user consent; test or remain PLANNED",
+      "nextTask": "Pass targeted source/Node/build CI; run same-candidate Chrome positive/denial/navigation/worker-restart evidence",
       "commits": [],
       "evidence": []
     },
@@ -717,11 +717,11 @@
       "api": "browser.network.observe.getStatus",
       "module": "browser.network.observe",
       "apiVersion": "1.0.0",
-      "implementation": "PLANNED",
+      "implementation": "IMPLEMENTED",
       "executionContexts": [
         "sidebar-tool"
       ],
-      "exposure": "DECLARED_NON_EXECUTABLE",
+      "exposure": "APPROVED_TOOL",
       "inputSchema": "src/framework/sdk/browser-contract.js#browser.network.observe.getStatus",
       "outputSchema": "src/framework/sdk/browser-contract.js#browser.network.observe.getStatus",
       "chromePermissions": [
@@ -734,8 +734,8 @@
       "riskLevel": "medium",
       "siteScope": "approved-tab",
       "lifecycle": "bounded-session",
-      "hostImplementation": null,
-      "sdkEntry": null,
+      "hostImplementation": "src/platform/chrome/browser-network-observe.js",
+      "sdkEntry": "src/framework/sdk/browser.js",
       "positiveTest": {
         "status": "NOT_TESTED",
         "evidence": []
@@ -750,9 +750,9 @@
       },
       "callableNowVerification": "NOT_TESTED",
       "blockers": [
-        "Install capability, trusted Host RPC, permission revocation and native verification not completed"
+        "Same-candidate Chrome native HTTP observation, real permission, navigation and Worker restart acceptance pending"
       ],
-      "nextTask": "Connect verified Host, install grants and user consent; test or remain PLANNED",
+      "nextTask": "Pass targeted source/Node/build CI; run same-candidate Chrome positive/denial/navigation/worker-restart evidence",
       "commits": [],
       "evidence": []
     },
@@ -760,11 +760,11 @@
       "api": "browser.network.observe.stop",
       "module": "browser.network.observe",
       "apiVersion": "1.0.0",
-      "implementation": "PLANNED",
+      "implementation": "IMPLEMENTED",
       "executionContexts": [
         "sidebar-tool"
       ],
-      "exposure": "DECLARED_NON_EXECUTABLE",
+      "exposure": "APPROVED_TOOL",
       "inputSchema": "src/framework/sdk/browser-contract.js#browser.network.observe.stop",
       "outputSchema": "src/framework/sdk/browser-contract.js#browser.network.observe.stop",
       "chromePermissions": [
@@ -777,8 +777,8 @@
       "riskLevel": "medium",
       "siteScope": "approved-tab",
       "lifecycle": "bounded-session",
-      "hostImplementation": null,
-      "sdkEntry": null,
+      "hostImplementation": "src/platform/chrome/browser-network-observe.js",
+      "sdkEntry": "src/framework/sdk/browser.js",
       "positiveTest": {
         "status": "NOT_TESTED",
         "evidence": []
@@ -793,9 +793,9 @@
       },
       "callableNowVerification": "NOT_TESTED",
       "blockers": [
-        "Install capability, trusted Host RPC, permission revocation and native verification not completed"
+        "Same-candidate Chrome native HTTP observation, real permission, navigation and Worker restart acceptance pending"
       ],
-      "nextTask": "Connect verified Host, install grants and user consent; test or remain PLANNED",
+      "nextTask": "Pass targeted source/Node/build CI; run same-candidate Chrome positive/denial/navigation/worker-restart evidence",
       "commits": [],
       "evidence": []
     },
@@ -803,25 +803,26 @@
       "api": "browser.network.observe.export",
       "module": "browser.network.observe",
       "apiVersion": "1.0.0",
-      "implementation": "PLANNED",
+      "implementation": "IMPLEMENTED",
       "executionContexts": [
         "sidebar-tool"
       ],
-      "exposure": "DECLARED_NON_EXECUTABLE",
+      "exposure": "APPROVED_TOOL",
       "inputSchema": "src/framework/sdk/browser-contract.js#browser.network.observe.export",
       "outputSchema": "src/framework/sdk/browser-contract.js#browser.network.observe.export",
       "chromePermissions": [
-        "webRequest"
+        "webRequest",
+        "downloads"
       ],
       "toolCapabilities": [
         "browser.network.observe"
       ],
-      "effectClass": "read",
+      "effectClass": "write",
       "riskLevel": "high",
       "siteScope": "approved-tab",
       "lifecycle": "bounded-session",
-      "hostImplementation": null,
-      "sdkEntry": null,
+      "hostImplementation": "src/platform/chrome/browser-network-observe.js",
+      "sdkEntry": "src/framework/sdk/browser.js",
       "positiveTest": {
         "status": "NOT_TESTED",
         "evidence": []
@@ -836,9 +837,9 @@
       },
       "callableNowVerification": "NOT_TESTED",
       "blockers": [
-        "Install capability, trusted Host RPC, permission revocation and native verification not completed"
+        "Same-candidate Chrome native HTTP observation, real permission, navigation and Worker restart acceptance pending"
       ],
-      "nextTask": "Connect verified Host, install grants and user consent; test or remain PLANNED",
+      "nextTask": "Pass targeted source/Node/build CI; run same-candidate Chrome positive/denial/navigation/worker-restart evidence",
       "commits": [],
       "evidence": []
     },
@@ -846,11 +847,11 @@
       "api": "browser.events.read",
       "module": "browser.events",
       "apiVersion": "1.0.0",
-      "implementation": "PLANNED",
+      "implementation": "IMPLEMENTED",
       "executionContexts": [
         "sidebar-tool"
       ],
-      "exposure": "DECLARED_NON_EXECUTABLE",
+      "exposure": "APPROVED_TOOL",
       "inputSchema": "src/framework/sdk/browser-contract.js#browser.events.read",
       "outputSchema": "src/framework/sdk/browser-contract.js#browser.events.read",
       "chromePermissions": [],
@@ -861,8 +862,8 @@
       "riskLevel": "medium",
       "siteScope": "owned-session",
       "lifecycle": "request",
-      "hostImplementation": null,
-      "sdkEntry": null,
+      "hostImplementation": "src/platform/chrome/browser-network-observe.js",
+      "sdkEntry": "src/framework/sdk/browser.js",
       "positiveTest": {
         "status": "NOT_TESTED",
         "evidence": []
@@ -877,9 +878,9 @@
       },
       "callableNowVerification": "NOT_TESTED",
       "blockers": [
-        "Install capability, trusted Host RPC, permission revocation and native verification not completed"
+        "Same-candidate Chrome native HTTP observation, real permission, navigation and Worker restart acceptance pending"
       ],
-      "nextTask": "Connect verified Host, install grants and user consent; test or remain PLANNED",
+      "nextTask": "Pass targeted source/Node/build CI; run same-candidate Chrome positive/denial/navigation/worker-restart evidence",
       "commits": [],
       "evidence": []
     },
@@ -887,11 +888,11 @@
       "api": "browser.events.close",
       "module": "browser.events",
       "apiVersion": "1.0.0",
-      "implementation": "PLANNED",
+      "implementation": "IMPLEMENTED",
       "executionContexts": [
         "sidebar-tool"
       ],
-      "exposure": "DECLARED_NON_EXECUTABLE",
+      "exposure": "APPROVED_TOOL",
       "inputSchema": "src/framework/sdk/browser-contract.js#browser.events.close",
       "outputSchema": "src/framework/sdk/browser-contract.js#browser.events.close",
       "chromePermissions": [],
@@ -902,8 +903,8 @@
       "riskLevel": "low",
       "siteScope": "owned-session",
       "lifecycle": "request",
-      "hostImplementation": null,
-      "sdkEntry": null,
+      "hostImplementation": "src/platform/chrome/browser-network-observe.js",
+      "sdkEntry": "src/framework/sdk/browser.js",
       "positiveTest": {
         "status": "NOT_TESTED",
         "evidence": []
@@ -918,9 +919,9 @@
       },
       "callableNowVerification": "NOT_TESTED",
       "blockers": [
-        "Install capability, trusted Host RPC, permission revocation and native verification not completed"
+        "Same-candidate Chrome native HTTP observation, real permission, navigation and Worker restart acceptance pending"
       ],
-      "nextTask": "Connect verified Host, install grants and user consent; test or remain PLANNED",
+      "nextTask": "Pass targeted source/Node/build CI; run same-candidate Chrome positive/denial/navigation/worker-restart evidence",
       "commits": [],
       "evidence": []
     },

@@ -108,6 +108,8 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     'browser.tabs':'经用户单次批准打开或聚焦自己获准的标签页',
     'browser.sidePanel':'经真实点击打开 OpenDesk 自己的侧边栏',
     'network':'经用户单次批准向指定 Origin 发送受控 HTTP 请求',
+    'browser.network.observe':'经用户授权观察自己打开的网页 HTTP 元数据（最多30秒）',
+    'browser.events':'读取和关闭此工具持有的有界网络观察会话',
   });
   const timePermissions=settingsView?createTimeReviewPermissionControls({api,doc,container:settingsView,notice,runOperation:runTrustedTimeReviewOperation}):null;
   const versionOrder=compareToolVersions;
@@ -649,14 +651,24 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
           button:'打开侧边栏',run:event=>coordinator.confirm(prepared.requestRef,event)});
         }finally{coordinator.dispose();}
       }
-      if(['browser.tabs.open','browser.tabs.focus','browser.network.request'].includes(operation)){
+      if(['browser.tabs.open','browser.tabs.focus','browser.network.request',
+        'browser.network.observe.start','browser.network.observe.export'].includes(operation)){
         const target=operation==='browser.tabs.focus'?'聚焦此工具此前打开的标签页':
           operation==='browser.tabs.open'?'打开网页 '+new URL(payload.url).origin:
+          operation==='browser.network.observe.start'?'观察已打开标签页内 '+payload.origins[0]+' 的 HTTP 元数据':
+          operation==='browser.network.observe.export'?'导出本工具已停止的网络观察为 JSON 文件':
             '向 '+new URL(payload.url).origin+' 发送 '+payload.method+' HTTP 请求';
         const approvalRef=await requestBrowserClick({toolId:tool.id,
           message:'「'+tool.title+'」请求'+target+'；确认仅批准这一次操作。',
-          button:'允许本次操作',run:async()=>{
+          button:'允许本次操作',run:async event=>{
             assertSession(source,token);
+            // Optional Chrome permission prompts must run in this real trusted click,
+            // before any await or Host RPC. Missing site grants remain Host-denied.
+            if(operation==='browser.network.observe.start'){
+              if(!event?.isTrusted)throw Object.assign(new Error('需要用户点击'),{code:'E_USER_GESTURE_REQUIRED'});
+              const request=api.permissions.request({permissions:['webRequest']});
+              if(await request!==true)throw Object.assign(new Error('未获 webRequest 权限'),{code:'E_CHROME_PERMISSION_REQUIRED'});
+            }
             const approval=await api.runtime.sendMessage({protocol:BROWSER_HOST_PROTOCOL,kind:'host',
               operation:'browser.intent.confirm',toolId:tool.id,toolVersion:tool.version,
               installEpoch:revocationEpoch,toolInstance:token,hostInstanceId,

@@ -1,9 +1,19 @@
+## 本候选接口优先状态（2026-10-12）
+
+- **业务目标**：已安装工具通过 `OpenDeskSDK.browser` 执行获准浏览器能力，无需重编译扩展。
+- **源码调用链**：**20 / 32（62.5%）**；仅计完整 SDK/Host/工具能力/Chrome 驱动路径。**20 项待同候选原生验收**；原生验收 **0 / 32**。另有 PLANNED 9、HOST_ONLY 1、NOT_EXPOSED 2。
+- **功能簇**：R1.3 原有10项已接线，原生证据待补；P0 Tabs 2、Side Panel 1、HTTP 1 已接线且 faffbc67 定向 CI PASS；P1 Network Observe 与 Events 6 已接线但新候选 CI/Chrome 验证待做；Screenshot 尚无正式 SDK Host 路由；Operations/Recording 未接线。
+- **下一条最优先源码/验证任务**：首先修复当前候选 CI 的定向失败及 SW 大小；随后执行真实 Mac Chrome user gesture、webRequest 精确 Origin、撤权、Worker 重启，并补充原始 receipt；不能把 Node PASS 当成原生 PASS。
+- **提交证据**：P0 `faffbc67`，CI https://github.com/shopable-ai/opendesk-browser/actions/runs/38240840545 通过；P1 本次变更仍待实际 push 与 CI。
+- **权限防线**：URL 必须是 HTTP(S)，TabRef 为 opaque、工具+包 hash+install epoch 绑定；网络观察只收集 HTTP 元数据，不采集 URL 路径/Query、Cookie/Token、header 或 Body，单会话上限30秒、500项、512KiB，响应强制分页；导出经真实 Chrome 下载而非向沙箱传完整图片或正文。
+- **本候选 CI/Chrome 等级**：新增六项 Node、Build、native Chrome 暂为 NOT_TESTED；无本候选 Mac Chrome 真实调用证据。其它过往 CI 不升级为本候选通过。
+
 ## R2 P0 实际接线记录（2026-10-12）
 
 - **真实源码路径**：用户工具 OpenDeskSDK.browser → 工具 capability、已安装包、Epoch 校验 → 可信 Side Panel 显式单次确认 → Worker 一次性操作凭证 → Chrome Tabs / Side Panel / Network Driver → 受限响应。
 - **安全保护**：没有公开原始 tabId；TabRef 按包 hash 与生命周期绑定；停用、卸载、Chrome 权限撤销使旧批准无效；HTTP 无凭据、禁止重定向及严格响应限制。
-- **下一步最优先源码任务**：CI 定向正向、拒绝和构建修复，随后同 SHA Mac Chrome 真实用户点击、导航、Worker 重启。其后优先实现 Network Observe。
-- **最新 P0 功能源码提交**：9a0a5b3a977969bf8d37978a116769972562cbc5。尚无本候选测试证据，Node / Build / Mac Chrome 维持 NOT_TESTED。
+- **下一步最优先源码任务**：先验证本候选 Network Observe 的 Node 正反向、SW 体积、构建与真实 webRequest；再以同一 SHA 执行 Mac Chrome 用户点击、导航、撤权、Worker 重启验收；之后接入 Screenshot。
+- **最近已完成验证的 P0 提交**：faffbc67e9cd067ca288aacc0197e4cd93b41868；定向 Node / Check / Build / Build:dev / Verify CI PASS，证据：https://github.com/shopable-ai/opendesk-browser/actions/runs/38240840545；原生 Mac Chrome 尚未验收。本次新增 Network Observe 的提交及测试待 CI 确认。
 
 # Browser SDK R1.3 / R2 / R3 / R4 统一进度账本
 
@@ -14,9 +24,9 @@
 
 **最终需求：已安装的工具开发者可以直接使用 `OpenDeskSDK.browser` 完成浏览器操作，不必重新编译 Chrome 扩展。首先接通 SDK → 工具安装能力 → 可信 Host → Chrome API → 返回值/错误码，然后再完成示例、美化和全面验收。**
 
-**核心接口已接线：14 / 32（43.75%）。已登记实现但未通过当前候选原生验收：14 项；同候选 Mac Chrome 验收：0 / 32。** 新增 Tabs 两项、Side Panel 一项、Network Request 一项的公开方法与 Host 调用。源码状态不等于原生测试 PASS。
+**核心接口已接线：20 / 32（62.5%）。已登记实现但未通过当前候选原生验收：20 项；同候选 Mac Chrome 验收：0 / 32。** 新增 Tabs 两项、Side Panel 一项、Network Request 一项的公开方法与 Host 调用。源码状态不等于原生测试 PASS。
 
-**已复用并接线：Tabs、Side Panel 和原有 HTTP Driver。** Screenshot 仍是 1 项未接线 HOST_ONLY，另有 PLANNED 15、NOT_EXPOSED 2。用户必须对每项敏感操作单次确认，普通工具不能自动继承 Chrome 扩展权限。
+**已复用并接线：Tabs、Side Panel、HTTP Driver 与单 Tab/Origin webRequest 观察 Driver、分页/停止/JSON 文件导出。** Screenshot 仍是 1 项未接线 HOST_ONLY，另有 PLANNED 9、NOT_EXPOSED 2。用户必须对每项敏感操作单次确认，普通工具不能自动继承 Chrome 扩展权限。
 
 | 开发优先级 | 用户要实现的功能（语义需求） | 接口范围 | 当前真正的缺口 |
 | --- | --- | --- | --- |
@@ -24,7 +34,7 @@
 | P0 · 标签页操作 | 工具经用户批准打开 HTTP(S) 网页，只能重新聚焦自己仍有权限的标签页 | `tabs.open`、`tabs.focus` | 独立驱动已写；缺工具 capability、安装审查、Host RPC 接线及原生测试 |
 | P0 · 侧边栏操作 | 用户真实点击工具中的按钮，打开 OpenDesk 自己的 Side Panel，而非任意扩展页面 | `sidePanel.openSelf` | 手势协调器已写；缺前台/Host 真实调用和 Chrome 点击证据 |
 | P0 · 受控 HTTP 请求 | 工具向用户批准的 Origin 发送有界网络请求，得到 JSON/文本或稳定拒绝错误 | `network.request` | 旧 Host HTTP Driver 可复用，但未安全接到第三方工具 |
-| P1 · 网络观察 | 在指定 Tab、指定 Origin 内开始/分页读取/停止/导出脱敏 HTTP 元数据，不包含 Cookie/Token/正文 | `network.observe.*`、`events.*` | 缺正式授权会话、真实 webRequest、Worker gap、资源导出与清理的闭环 |
+| P1 · 网络观察 | 对本工具打开的 Tab 单个精确 Origin 开始/分页读取/停止/JSON 下载 HTTP 元数据，不包含 Cookie/Token/正文 | `network.observe.*`、`events.*` | Host、持久有界队列与 Worker gap 接线完成；真实 Chrome 验收、完整导出资产策略尚待验证 |
 | P1 · 截图 | 用户主动对获准的当前可见标签页截图，仅获得可控资源引用 | `screenshot.captureVisible` | 已有受控驱动和 Controller 能力，缺实际授权资源交付及原生测试 |
 | P2 · 操作管理与录制 | 检查任务真实状态、执行有结果的取消；录制需要用户明确媒体源选择和停止控制 | `operations.*`、`media.recording.*` | 尚缺正式会话、Host 生命周期、真实媒体控制与验收 |
 | 维持权限边界 | 普通工具不得静默获得通知、语音控制或其他网站的隐私权限 | `notifications.*`、`speech.*` | 遵守 NOT_EXPOSED 和语音范围限制，不能为增加完成率强行开放 |
@@ -42,12 +52,12 @@
 
 > `IMPLEMENTED` 是合同登记状态，**不等于真实 Chrome PASS**。本账本只记录可追溯事实，不授予额外权限。
 
-- 本轮账本更新前 main HEAD：9a0a5b3a977969bf8d37978a116769972562cbc5；最新提交见 GitHub main 历史。Mac 本地目录未挂载，原生验证尚未执行。
+- 本轮 Network Observe 变更的准备基线 main HEAD：faffbc67e9cd067ca288aacc0197e4cd93b41868；最新提交以 GitHub main 为准。Mac 本地目录未挂载，原生验证尚未执行。
 - Browser SDK 版本：`1.0.0`
-- 操作总数：**32**；已登记接线 IMPLEMENTED：**14 / 32（43.75%）**；其中**14 项尚无同候选原生验收**；原生实测通过：**0**
-- PLANNED：**15**；HOST_ONLY：**1**；NOT_EXPOSED：**2**
+- 操作总数：**32**；已登记接线 IMPLEMENTED：**20 / 32（62.5%）**；其中**20 项尚无同候选原生验收**；原生实测通过：**0**
+- PLANNED：**9**；HOST_ONLY：**1**；NOT_EXPOSED：**2**
 - 生态审计：**18 个领域、74 个叶子**（不代表开放全部 74 项特权 API）
-- Node / Check / Build / Build:dev / Build:size / Verify：**NOT_TESTED（当前候选）**
+- Node / Check / Build / Build:dev / Build:size / Verify：**NOT_TESTED（新增 Network Observe 候选；此前 faffbc67 的 Node/Check/Build/Verify CI PASS）**
 - 真实 Mac Chrome GUI / Worker：**NOT_TESTED（当前候选）**
 - 阶段 R1.3：**BLOCKED**；R2：**NOT_TESTED**；R3：**NOT_TESTED**；R4：**NOT_TESTED**
 
@@ -77,12 +87,12 @@
 | `browser.tabs.focus` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
 | `browser.sidePanel.openSelf` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
 | `browser.network.request` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
-| `browser.network.observe.start` | PLANNED | DECLARED_NON_EXECUTABLE | NOT_TESTED | NOT_TESTED | NOT_TESTED |
-| `browser.network.observe.getStatus` | PLANNED | DECLARED_NON_EXECUTABLE | NOT_TESTED | NOT_TESTED | NOT_TESTED |
-| `browser.network.observe.stop` | PLANNED | DECLARED_NON_EXECUTABLE | NOT_TESTED | NOT_TESTED | NOT_TESTED |
-| `browser.network.observe.export` | PLANNED | DECLARED_NON_EXECUTABLE | NOT_TESTED | NOT_TESTED | NOT_TESTED |
-| `browser.events.read` | PLANNED | DECLARED_NON_EXECUTABLE | NOT_TESTED | NOT_TESTED | NOT_TESTED |
-| `browser.events.close` | PLANNED | DECLARED_NON_EXECUTABLE | NOT_TESTED | NOT_TESTED | NOT_TESTED |
+| `browser.network.observe.start` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
+| `browser.network.observe.getStatus` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
+| `browser.network.observe.stop` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
+| `browser.network.observe.export` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
+| `browser.events.read` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
+| `browser.events.close` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
 | `browser.screenshot.captureVisible` | HOST_ONLY | HOST_ONLY | NOT_TESTED | NOT_TESTED | NOT_TESTED |
 | `browser.media.recording.prepare` | PLANNED | DECLARED_NON_EXECUTABLE | NOT_TESTED | NOT_TESTED | NOT_TESTED |
 | `browser.media.recording.getStatus` | PLANNED | DECLARED_NON_EXECUTABLE | NOT_TESTED | NOT_TESTED | NOT_TESTED |
@@ -99,7 +109,7 @@
 ## 阶段验收
 
 - **R1.3**：BLOCKED，Native GUI right-click + one-time selection and revoke acceptance still missing
-- **R2**：NOT_TESTED，Tabs, Side Panel and bounded network observation still lack approved tool Host wiring
+- **R2**：NOT_TESTED，P0 和网络观察 Host 代码已接线；同候选 Chrome 原生权限/用户交互/WebRequest/Worker 证据尚未关闭
 - **R3**：NOT_TESTED，Screenshot HOST_ONLY, Recording/Operations not wired and Speech scoped out
 - **R4**：NOT_TESTED，No same-candidate full CI, package and Mac Chrome proof
 

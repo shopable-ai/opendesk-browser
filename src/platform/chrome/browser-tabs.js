@@ -91,8 +91,30 @@ export function createBrowserTabHost({api=globalThis.chrome,authorize,clock=Date
   if(moved?.id!==row.tabId)throw fail('E_OUTCOME_UNKNOWN','Chrome did not confirm focus');
   return {focused:true};
  }
+ // Internal resolution: only Host receives a tabId, never untrusted callers.
+ async function resolve(tabRef,context){
+  const owned=owner(context),row=refs.get(tabRef);
+  if(!row||row.owner!==owned||clock.now()>=row.expiresAt){
+   if(row&&clock.now()>=row.expiresAt)purge(tabRef);
+   throw fail('E_TAB_REF_INVALID','Tab reference expired or belongs to another tool');
+  }
+  const tab=await api.tabs.get(row.tabId).catch(()=>null);
+  let origin;
+  try{origin=browserTabUrl(tab?.url).origin}catch{}
+  if(!tab||tab.id!==row.tabId||origin!==row.origin||tab.incognito)
+   throw fail('E_TAB_REF_INVALID','Tab closed or navigated');
+  if(typeof api.webNavigation?.getFrame!=='function')
+   throw fail('E_CHROME_UNSUPPORTED','Document identity unavailable');
+  const frame=await api.webNavigation.getFrame({tabId:row.tabId,frameId:0});
+  if(!frame?.documentId||frame.errorOccurred||
+     (frame.documentLifecycle&&frame.documentLifecycle!=='active')||
+     frame.url!==tab.url)
+   throw fail('E_DOCUMENT_STALE','Owned tab document not active');
+  return {tabId:row.tabId,windowId:tab.windowId,documentId:frame.documentId,
+   url:frame.url,incognito:false,origin};
+ }
  const revokeTool=id=>{for(const [ref,row] of refs)if(row.owner.startsWith(id+':'))purge(ref)};
- return Object.freeze({open,focus,invalidateTab,revokeTool,
+ return Object.freeze({open,focus,resolve,invalidateTab,revokeTool,
   dispose:()=>{refs.clear();byTool.clear()},
   diagnostics:()=>({references:refs.size})});
 }
