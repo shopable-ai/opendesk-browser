@@ -8,6 +8,7 @@ import {createScriptEditor} from './script-editor.js';
 import {createSdkApproval, snapshotSdkApproval, sdkHttpLabPreset} from './sdk-approval.js';
 import {snapshotToolResources} from './resource-diagnostics.js';
 import {createCurrentPageTarget} from './current-page-target.js';
+import {createTrustedCookieWorkbench} from './trusted-cookie-workbench.js';
 import {createTaskWorkbench} from './task-workbench.js';
 import {createScheduledTaskWorkbench} from './scheduled-task-workbench.js';
 import {createScheduledTaskHost} from './scheduled-task-host.js';
@@ -64,6 +65,8 @@ export function initToolShell(installDevelopment=null,{debugEnabled=false}={}) {
   }
   const foundationClient = createHostClient(chrome, {hostInstanceId});
 const currentPageTarget = createCurrentPageTarget({api:chrome});
+const trustedCookieWorkbench=createTrustedCookieWorkbench({api:chrome,currentPageTarget,doc:document,hostInstanceId});
+window.addEventListener('pagehide',()=>trustedCookieWorkbench.dispose(),{once:true});
 const scriptEditor = createScriptEditor({client:foundationClient,currentPageTarget,development:Boolean(installDevelopment)});
 let debugWorkbench=null;
 // The full-size tool/catalog page must never overwrite the Side Panel's last tab.
