@@ -134,3 +134,16 @@ python3 -m http.server 43111 --bind 127.0.0.1 --directory examples/tasks
 ```
 
 用与最终候选 SHA 绑定的 `dist/production` 或 `dist/development` 在受控 Mac Chrome 加载 OpenDesk；打开 `http://127.0.0.1:43111/demo-form.html`。验证真实 Controller Task 的**原生网页成功回执→固定版本安装/授权→保存短期一次计划→Chrome Alarm→可见 Host 领取→真实 DOM 动作→原 RunId/ResultId→retirement released**，再测试上述 Host 生命周期、重复 Alarm/双 Host、停止、撤权、未知效果与 UI 宽度。原始证据应保留候选 SHA、包 hash、Profile 身份、目标 Tab/Document、截图/视频、Run/Result、Alarm/FireId、Worker 释放和原生日志；只读 Mock/组件/截图不能替代完整 Native 成功。
+
+
+## R1.3 — 可执行宿主识别修复与 Mac Chrome 原生专项（2026-10-12）
+
+**明确需求：** Side Panel 和带 `scheduledRunner=1` 的可见扩展标签才是定时领取 Host。普通完整 Task Catalog、工具标签、隐藏页/冻结文档虽然可能已经注册 Controller Host，却不运行定时轮询，**不能**被计入 `activeHost`，否则 Side Panel 关闭时会错误显示“有运行宿主”。
+
+- `src/platform/tasks/schedule-service.js` 以 Chrome `runtime.getContexts({})`、可信 `toolDocumentIdentity`、确切 `documentId`、`SIDE_PANEL` 或 `TAB+scheduledRunner=1` 共同识别可执行宿主，拒绝普通 Catalog / 工具 / 混合 URL / OFFSCREEN / cached 文档。Chrome API 失败时不假定存在宿主；确定性旧测试环境没有该 API 时保留兼容输入。
+- `src/platform/tasks/schedule-repository.js` 的原 IDB 事务仍负责 Fire 状态，但 `WAITING_HOST` 由已核实的可执行宿主集合决定；宿主恢复时用**原 FireId**转回 `READY`，不重生成 occurrence、不重复分配执行槽。
+- `tests/environment/scheduled-tasks-r1.test.mjs` 补充恶意/非执行 Host 排除、Catalog 留存、可见 Runner 恢复后原 FireId 不变的定向回归。
+- 新增 `tests/framework/scheduled-tasks-r1-native-mac.test.mjs` 和 `.github/workflows/scheduled-tasks-r1-native.yml`，由独立 macOS runner 的 Chrome for Testing 加载**真实 WXT production 包**，通过 CDP 原生鼠标、键盘及 Chrome 文件选择器走原产品 UI：Task JSON 导入→同源码网页 Native 试运行→可信 Run/Result 回执→Candidate Verified→Available→安装→创建每分钟计划→保留可见运行页并关闭 Side Panel→Alarm→正式受控 Controller Run→网页 `#done` 与姓名变化→原 `runId/resultId`/retirement released→暂停。
+- Native 读浏览器真实 IndexedDB 仅使用 `readonly` 事务用于身份与效果交叉核对，不直接注入 JS 执行任务、不伪造 FireId、Chrome 权限或 Native ACK。原始截图和结果即使失败也写入专属 artifact。
+
+**验收证据：当前状态 `SOURCE_PREPARED / NOT_TESTED`。** 必须等这一 SHA 在 `Scheduled Tasks R1 component and package` 和 `Scheduled Tasks R1 installed Task real macOS Chrome` 两条工作流产生真实 Job 结果后才可升级。Mac CI 通过仍是独立 CI CFT 环境，不能伪称用户 Mac Chrome Profile 的最终人工/正式 F3 验收。

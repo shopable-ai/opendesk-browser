@@ -1,7 +1,27 @@
 import {invariant} from '../protocol.js';
 import {permissionPattern} from '../../environment.js';
 import {createScheduleRepository} from './schedule-repository.js';
+import {toolDocumentIdentity} from '../../tool-document-url.js';
 import {SCHEDULE_ALARM_PREFIX,scheduleKey} from './schedule-contract.js';
+
+// Only document contexts that actually run createScheduledTaskHost may
+// advertise scheduler availability. A regular Task catalog is a registered
+// Controller Host, but does not claim scheduled occurrences.
+export async function scheduledHostDocumentIds(api){
+  if(typeof api?.runtime?.getContexts!=='function')return null; // legacy deterministic test shim
+  const contexts=await api.runtime.getContexts({}).catch(()=>[]);
+  const base=api.runtime.getURL('ui/tool.html'),ids=new Set();
+  for(const row of contexts||[]){
+    if(typeof row.documentId!=='string'||!row.documentId||typeof row.documentUrl!=='string')continue;
+    if(row.documentLifecycle&&row.documentLifecycle!=='active')continue;
+    const route=toolDocumentIdentity(base,row.documentUrl);
+    if(!route?.hostInstanceId)continue;
+    if(row.contextType==='SIDE_PANEL'&&!route.hasLocator ||
+       row.contextType==='TAB'&&route.scheduledRunner===true)
+      ids.add(row.documentId);
+  }
+  return ids;
+}
 
 export function createScheduleService({storage,api,clock,session,assertHost,emitToHost}){
   const namespace=`tool:${api.runtime.id}`;
@@ -30,7 +50,8 @@ export function createScheduleService({storage,api,clock,session,assertHost,emit
       if(!actual.some(a=>a.name===name))await api.alarms.create(name,{when});
   }
   async function reconcile(){
-    const changed=await repo.reconcile();
+    const activeDocumentIds=await scheduledHostDocumentIds(api);
+    const changed=await repo.reconcile({activeDocumentIds});
     await syncAlarms();
     if(changed.length)await signal();
     return changed;

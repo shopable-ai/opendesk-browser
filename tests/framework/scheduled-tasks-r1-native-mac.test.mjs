@@ -1,0 +1,326 @@
+// Scheduled Tasks R1: real macOS Chrome installed MV3 native acceptance.
+// No synthetic DOM events, permission/storage writes, arbitrary extension RPC,
+// hidden Host, manually forged FireId, or direct browser-page effects.
+// CDP is used for genuine pointer/keyboard/file-chooser input and read-only facts.
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {spawn,spawnSync} from 'node:child_process';
+import {createServer} from 'node:http';
+import {readFile,writeFile,mkdir,mkdtemp,rm} from 'node:fs/promises';
+import {tmpdir} from 'node:os';
+import path from 'node:path';
+import {randomUUID,createHash} from 'node:crypto';
+import {setTimeout as sleep} from 'node:timers/promises';
+import {connect,evaluate} from './sidebar-native-session.mjs';
+import {packageFingerprint} from '../../scripts/verify-package.mjs';
+
+const ENABLED=process.env.OPENDESK_SCHEDULED_NATIVE==='1';
+const BIN=process.env.CHROME_BIN;
+const OUT=path.resolve(process.env.SCHEDULE_NATIVE_OUT||'artifacts/scheduled-tasks-r1-mac');
+const EXT=path.resolve('dist/production');
+const URL='http://127.0.0.1:43111/demo-form.html';
+const deadline=async(fn,name,ms=20000)=>{
+  const until=Date.now()+ms;let last='';
+  while(Date.now()<until){
+    try{const actual=await fn();if(actual)return actual;}catch(error){last=String(error.message||error);}
+    await sleep(160);
+  }
+  throw Error(name+' NOT OBSERVED'+(last?' · '+last:''));
+};
+const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
+const expr=selector=>'document.querySelector('+JSON.stringify(selector)+')';
+async function visible(client,session,selector){
+  return evaluate(client,expr(selector)+'&&!('+expr(selector)+').disabled&&('+expr(selector)+').getClientRects().length>0',session);
+}
+async function click(client,session,selector){
+  await deadline(()=>visible(client,session,selector),'visible clickable '+selector);
+  const node=await client.send('Runtime.evaluate',{expression:expr(selector),returnByValue:false},session);
+  assert(node.result?.objectId,'native target object is required: '+selector);
+  try{
+    await client.send('DOM.scrollIntoViewIfNeeded',{objectId:node.result.objectId},session);
+    await sleep(65);
+    const rect=await evaluate(client,'(()=>{const n='+expr(selector)+';const r=n.getBoundingClientRect();return {x:r.x+r.width/2,y:r.y+r.height/2,w:r.width,h:r.height}})()',session);
+    assert(rect.w>7&&rect.h>7&&rect.x>0&&rect.y>0,'actual screen geometry '+selector);
+    for(const type of ['mousePressed','mouseReleased'])
+      await client.send('Input.dispatchMouseEvent',{type,x:rect.x,y:rect.y,button:'left',clickCount:1},session);
+  }finally{await client.send('Runtime.releaseObject',{objectId:node.result.objectId},session).catch(()=>{});}
+}
+async function key(client,session,name,code,keyCode,modifiers=0){
+  for(const type of ['rawKeyDown','keyUp'])
+    await client.send('Input.dispatchKeyEvent',{type,key:name,code,windowsVirtualKeyCode:keyCode,modifiers},session);
+}
+async function type(client,session,selector,value){
+  assert.equal(typeof value,'string');
+  await click(client,session,selector);
+  await key(client,session,'a','KeyA',65,4); // macOS Command-A on the focused actual input
+  if(value)await client.send('Input.insertText',{text:value},session);
+  else await key(client,session,'Backspace','Backspace',8);
+  await deadline(()=>evaluate(client,expr(selector)+'.value==='+JSON.stringify(value),session),
+    'trusted typed field '+selector,7000);
+}
+async function select(client,session,selector,index){
+  const expected=await evaluate(client,expr(selector)+'.options['+index+']?.value',session);
+  assert.equal(typeof expected,'string','real option '+selector+' '+index);
+  await click(client,session,selector);
+  await key(client,session,'Home','Home',36);
+  for(let i=0;i<index;i++)await key(client,session,'ArrowDown','ArrowDown',40);
+  await key(client,session,'Enter','Enter',13);
+  await deadline(()=>evaluate(client,expr(selector)+'.value==='+JSON.stringify(expected),session),
+    'native select '+selector+' '+expected,7000);
+}
+async function details(client,session,selector){
+  if(!await evaluate(client,expr(selector)+'.open',session))
+    await click(client,session,selector+' > summary');
+  assert.equal(await evaluate(client,expr(selector)+'.open',session),true);
+}
+async function screenshot(client,session,name){
+  const response=await client.send('Page.captureScreenshot',{format:'png',captureBeyondViewport:false},session);
+  const bytes=Buffer.from(response.data,'base64');
+  await writeFile(path.join(OUT,name+'.png'),bytes);
+  return {file:name+'.png',bytes:bytes.length,sha256:sha(bytes)};
+}
+async function contexts(client,session){
+  return evaluate(client,'chrome.runtime.getContexts({})',session);
+}
+async function attach(client,targetId){
+  const {sessionId}=await client.send('Target.attachToTarget',{targetId,flatten:true});
+  await client.send('Runtime.enable',{},sessionId);
+  await client.send('Page.enable',{},sessionId);
+  return sessionId;
+}
+async function fileChooser(client,session,filename,events){
+  let offset=events.length;
+  await client.send('Page.setInterceptFileChooserDialog',{enabled:true},session);
+  try{
+    await click(client,session,'#task-package-file');
+    const row=await deadline(()=>events.slice(offset).find(e=>e.method==='Page.fileChooserOpened'&&
+      (!e.sessionId||e.sessionId===session)),'genuine Chrome file chooser');
+    assert.equal(row.params.mode,'selectSingle');
+    assert(Number.isSafeInteger(row.params.backendNodeId),'Chrome must provide input identity');
+    await client.send('DOM.setFileInputFiles',{files:[filename],
+      backendNodeId:row.params.backendNodeId},session);
+  }finally{await client.send('Page.setInterceptFileChooserDialog',{enabled:false},session).catch(()=>{});}
+}
+async function durable(client,session){
+  // Read the SAME extension IndexedDB as Authority/RunHost, only readonly.
+  const script='(async()=>{const db=await new Promise((res,rej)=>{const r=indexedDB.open("opendesk-browser");r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)});'+
+    'try{const tx=db.transaction(["frameworkKV","runs","results","commandJournal"],"readonly");'+
+    'const read=name=>new Promise((res,rej)=>{const r=tx.objectStore(name).getAll();r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)});'+
+    'const [kv,runs,results,journal]=await Promise.all(["frameworkKV","runs","results","commandJournal"].map(read));'+
+    'const plans=kv.filter(x=>x.tag==="schedule-definition-v1");const fires=kv.filter(x=>x.tag==="schedule-fire-v1");'+
+    'const chosen=runs.filter(x=>x.tag==="controller-run").map(r=>({runId:r.runId,resultId:r.resultId,scriptId:r.scriptId,'+
+    'scheduledFireId:r.scheduledFireId||null,state:r.state,retirementState:r.retirementState,workerRetired:r.workerRetired,'+
+    'sourceHash:r.revision?.sourceHash,documentId:r.target?.documentId}));'+
+    'return {plans:plans.map(x=>({scheduleId:x.scheduleId,generation:x.generation,paused:x.paused,nextDueAt:x.nextDueAt,'+
+    'taskId:x.taskId,triggerKind:x.triggerKind,installationId:x.installationId})),fires:fires.map(x=>({fireId:x.fireId,runId:x.runId,'+
+    'resultId:x.resultId,status:x.status,scheduledAt:x.scheduledAt})),runs:chosen,'+
+    'results:results.filter(x=>x.tag==="controller-result").map(x=>({runId:x.runId,resultId:x.resultId,state:x.state,'+
+    'ok:x.outcome?.ok===true,sourceHash:x.revision?.sourceHash})),'+
+    'native:journal.filter(x=>x.tag==="controller-operation").map(x=>({runId:x.runId,state:x.state,'+
+    'receipts:(x.nativeReceipts||[]).filter(y=>y.stage==="result").length})),slot:runs.find(x=>x.tag==="slot")||null};'+
+    '}finally{db.close()}})()';
+  return evaluate(client,script,session);
+}
+async function stopChrome(proc){
+  if(!proc||proc.exitCode!==null||proc.signalCode!==null)return;
+  await new Promise(resolve=>{
+    const timer=setTimeout(()=>{proc.kill('SIGKILL');resolve();},4500);
+    proc.once('close',()=>{clearTimeout(timer);resolve();});
+    proc.kill('SIGTERM');
+  });
+}
+test('real macOS Chrome: verified installed Task via Alarms -> original RunHost -> page effect -> released',
+  {skip:!ENABLED,timeout:450000},async t=>{
+  assert.equal(process.platform,'darwin','Native Mac Chromium test cannot be simulated by Linux');
+  assert(BIN&&path.isAbsolute(BIN)&&spawnSync(BIN,['--version'],{stdio:'ignore'}).status===0,
+    'Pinned real Chrome for Testing required');
+  await mkdir(OUT,{recursive:true});
+  const sourceHash=sha(await readFile('src/platform/tasks/schedule-service.js'));
+  const packageInfo=await packageFingerprint(EXT);
+  const task=JSON.parse(await readFile('examples/tasks/form-fill.v1.opendesk-task.json','utf8'));
+  assert.equal(task.manifest.siteOrigins[0],'http://127.0.0.1:43111');
+  const profile=await mkdtemp(path.join(tmpdir(),'opendesk-scheduled-r1-'));
+  const sourceFile=path.join(profile,'sample.form-fill.js');
+  await writeFile(sourceFile,task.sourceUtf8);
+  const report={status:'RUNNING',startedAt:new Date().toISOString(),gitSha:process.env.GITHUB_SHA||null,
+    chromeBinary:BIN,package:packageInfo,sourceHash,taskSourceHash:sha(task.sourceUtf8),
+    fixture:URL,native:true,steps:[],screenshots:[],tests:{},limitations:[]};
+  const note=(name,result)=>{report.steps.push({name,at:new Date().toISOString(),result});console.log('SCHEDULE_NATIVE '+name+' '+JSON.stringify(result));};
+  let server,proc,client,chromeStderr='',completed=false,sideId=null,runnerId=null,siteId=null;
+  t.after(async()=>{
+    report.completedAt=new Date().toISOString();
+    report.status=completed?'PASS':'FAIL_OR_BLOCKED';
+    report.chromeStderr=chromeStderr.slice(-2200);
+    if(client)try{await client.send('Browser.close');}catch{}
+    client?.close();
+    await stopChrome(proc);
+    if(server)await new Promise(resolve=>server.close(()=>resolve()));
+    assert.equal(path.basename(profile).startsWith('opendesk-scheduled-r1-'),true,'owned profile only');
+    await rm(profile,{recursive:true,force:true,maxRetries:5,retryDelay:150});
+    await writeFile(path.join(OUT,'native-report.json'),JSON.stringify(report,null,2)+'\n');
+  });
+  const html=await readFile('examples/tasks/demo-form.html');
+  server=createServer((req,res)=>{
+    if(!req.url?.startsWith('/demo-form.html')){res.writeHead(404);res.end('Not found');return;}
+    res.writeHead(200,{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store'});
+    res.end(html);
+  });
+  await new Promise((resolve,reject)=>{
+    server.once('error',reject);
+    server.listen(43111,'127.0.0.1',resolve);
+  });
+  const args=['--use-mock-keychain','--password-store=basic','--disable-gpu','--disable-dev-shm-usage',
+    '--no-first-run','--no-default-browser-check','--disable-background-networking',
+    '--remote-allow-origins=*','--remote-debugging-address=127.0.0.1','--remote-debugging-port=0',
+    '--user-data-dir='+profile,'--disable-extensions-except='+EXT,'--load-extension='+EXT,'about:blank'];
+  proc=spawn(BIN,args,{stdio:['ignore','ignore','pipe']});
+  proc.stderr.on('data',bytes=>{chromeStderr=(chromeStderr+String(bytes)).slice(-7000);});
+  report.profileOwned=true;report.chromePid=proc.pid;
+  const port=await deadline(async()=>{
+    const rows=(await readFile(path.join(profile,'DevToolsActivePort'),'utf8').catch(()=>'' )).split('\n');
+    const number=Number(rows[0]);return Number.isInteger(number)&&number>0?number:null;
+  },'owned native CFT DevTools port',30000);
+  const version=await(await fetch('http://127.0.0.1:'+port+'/json/version')).json();
+  report.chrome=version.Browser;
+  const events=[];
+  client=await connect(version.webSocketDebuggerUrl,{onEvent:value=>events.push(value)});
+  const extensionId=await deadline(async()=>{
+    const rows=(await client.send('Target.getTargets')).targetInfos;
+    return rows.find(x=>x.type==='service_worker'&&x.url?.endsWith('/sw.js'))?.url?.split('/')[2];
+  },'real loaded WXT MV3 Service Worker',30000);
+  assert(/^[a-p]{32}$/.test(extensionId));
+  report.extensionId=extensionId;
+  const site=await client.send('Target.createTarget',{url:URL});
+  siteId=site.targetId;
+  const siteSid=await attach(client,site.targetId);
+  await deadline(()=>evaluate(client,'document.readyState==="complete"&&!!document.querySelector("#submit")',siteSid),
+    'real HTTP demo form ready');
+  const catalog=await client.send('Target.createTarget',{url:'chrome-extension://'+extensionId+'/ui/tool.html'});
+  const catalogSid=await attach(client,catalog.targetId);
+  await deadline(()=>evaluate(client,'!!document.querySelector("#catalog-open-dev-sidebar")',catalogSid),
+    'installed complete Task catalog');
+  await client.send('Target.activateTarget',{targetId:catalog.targetId});
+  await click(client,catalogSid,'#catalog-open-dev-sidebar');
+  const sideContext=await deadline(async()=>{
+    const rows=await contexts(client,catalogSid);
+    return rows.find(x=>x.contextType==='SIDE_PANEL'&&x.documentUrl?.includes('/ui/tool.html'));
+  },'real Chrome SIDE_PANEL document context',18000);
+  const sideTarget=await deadline(async()=>{
+    const rows=(await client.send('Target.getTargets')).targetInfos;
+    return rows.find(x=>x.url===sideContext.documentUrl);
+  },'real Side Panel DevTools target');
+  sideId=sideTarget.targetId;
+  const sideSid=await attach(client,sideId);
+  assert.equal(await evaluate(client,'chrome.permissions.contains({origins:["http://127.0.0.1:43111/*"]})',sideSid),
+    true,'Actual Chrome website grant must already exist; no permission preference injection');
+  note('native-install-context',{extensionId,documentId:sideContext.documentId,sideContextType:sideContext.contextType});
+  await client.send('Target.activateTarget',{targetId:catalog.targetId});
+  await fileChooser(client,catalogSid,path.resolve('examples/tasks/form-fill.v1.opendesk-task.json'),events);
+  await deadline(()=>evaluate(client,expr('#task-catalog-status')+'.textContent.includes("已导入待验证任务")',catalogSid),
+    'original signed-hash Task JSON imported as unverified candidate');
+  await fileChooser(client,catalogSid,sourceFile,events);
+  await deadline(()=>evaluate(client,expr('#script-source')+'.value==='+JSON.stringify(task.sourceUtf8),sideSid),
+    'same immutable source bytes imported into original Developer');
+  await client.send('Target.activateTarget',{targetId:site.targetId});
+  await deadline(()=>evaluate(client,expr('#script-current-page-url')+'.textContent==='+JSON.stringify(URL),sideSid),
+    'Side Panel current exact website document',20000);
+  await details(client,sideSid,'#manual-project-params-tools');
+  await type(client,sideSid,'#script-params',JSON.stringify({name:'Native Draft'}));
+  await click(client,sideSid,'#script-run');
+  const verifiedRunId=await deadline(()=>evaluate(client,expr('#script-run-id')+'.value',sideSid),
+    'original manual Controller RunId',35000);
+  await deadline(()=>evaluate(client,'!!document.querySelector("#done")&&document.querySelector("#name").value==="Native Draft"',siteSid),
+    'real original Controller native form entry and submit',30000);
+  const original=await deadline(async()=>{
+    const snapshot=await durable(client,sideSid),r=snapshot.runs.find(x=>x.runId===verifiedRunId);
+    const result=snapshot.results.find(x=>x.runId===verifiedRunId);
+    return r?.state==='completed'&&r.retirementState==='released'&&result?.ok===true &&
+      snapshot.native.some(x=>x.runId===verifiedRunId&&x.receipts>0)?{run:r,result}:null;
+  },'same-source native receipt, original durable Result and released retirement',35000);
+  report.tests.manualTaskVerification='PASS';note('manual-native-receipt',{verifiedRunId,documentId:original.run.documentId});
+  await client.send('Target.activateTarget',{targetId:catalog.targetId});
+  await details(client,catalogSid,'#catalog-verification');
+  await type(client,catalogSid,'#task-verify-run',verifiedRunId);
+  await click(client,catalogSid,'#task-verify');
+  await deadline(()=>evaluate(client,expr('#task-catalog-status')+'.textContent.includes("已核对本机持久运行")',catalogSid),
+    'real Task Candidate verification');
+  await click(client,catalogSid,'#task-publish');
+  await deadline(()=>evaluate(client,expr('#task-catalog-status')+'.textContent.includes("已成为本地可安装版本")',catalogSid),
+    'Available Task candidate exact version');
+  await click(client,catalogSid,'#task-install');
+  await deadline(()=>evaluate(client,expr('#task-install-feedback')+'.textContent.includes("已安装")',catalogSid),
+    'real fixed Task install and Chrome origin authorization');
+  report.tests.verifiedInstallation='PASS';
+  note('installed-trusted-task',{taskId:task.manifest.taskId,version:task.manifest.version});
+  // Reset the website BEFORE scheduling, so only the scheduled user script
+  // can produce the next #done element and exact parameter value.
+  await client.send('Page.navigate',{url:URL},siteSid);
+  await deadline(()=>evaluate(client,'document.readyState==="complete"&&!document.querySelector("#done")',siteSid),
+    'fresh untouched website document after manual run');
+  await click(client,sideSid,'#tab-my-tasks');
+  await click(client,sideSid,'#schedule-open');
+  await deadline(()=>evaluate(client,'!'+expr('#scheduled-panel')+'.hidden',sideSid),
+    'real nested My schedules view');
+  report.screenshots.push(await screenshot(client,sideSid,'schedule-list-original-sidepanel'));
+  await click(client,sideSid,'#schedule-create');
+  await type(client,sideSid,'#schedule-title','Mac 原生定时表单');
+  await select(client,sideSid,'#schedule-task-select',1);
+  await type(client,sideSid,'#schedule-target',URL);
+  await type(client,sideSid,'#schedule-params',JSON.stringify({name:'Scheduled Native'}));
+  await select(client,sideSid,'#schedule-kind',3); // every interval
+  await type(client,sideSid,'#schedule-minutes','1');
+  assert.equal(await evaluate(client,expr('#schedule-kind')+'.value',sideSid),'interval');
+  await click(client,sideSid,'#schedule-save');
+  await deadline(()=>evaluate(client,'!!document.querySelector("#schedule-plan-list .schedule-card")',sideSid),
+    'persisted approved schedule visible in My',18000);
+  report.tests.nativeScheduleCreation='PASS';
+  report.screenshots.push(await screenshot(client,sideSid,'schedule-created-original-sidepanel'));
+  await click(client,sideSid,'#schedule-open-runner');
+  const runnerTarget=await deadline(async()=>{
+    const rows=(await client.send('Target.getTargets')).targetInfos;
+    return rows.find(x=>x.url?.includes('/ui/tool.html?')&&x.url.includes('scheduledRunner=1'));
+  },'user-opened visible scheduled RunHost tab',18000);
+  runnerId=runnerTarget.targetId;
+  const runnerSid=await attach(client,runnerId);
+  const runnerContext=await deadline(async()=>{
+    const rows=await contexts(client,runnerSid);
+    return rows.find(x=>x.documentId&&x.documentUrl?.includes('scheduledRunner=1')&&x.contextType==='TAB');
+  },'actual registered visible runner TAB context');
+  note('visible-runner',{documentId:runnerContext.documentId,url:runnerContext.documentUrl});
+  // Verify unique Host with native actual lifecycle, not an injected mock.
+  await client.send('Target.closeTarget',{targetId:sideId});
+  await deadline(async()=>{
+    const rows=await contexts(client,runnerSid);
+    return !rows.some(x=>x.contextType==='SIDE_PANEL'&&x.documentUrl?.includes('/ui/tool.html'));
+  },'real Side Panel fully closed while runner remains',15000);
+  report.tests.sidePanelClosedRunnerLive='PASS';
+  const due=await deadline(async()=>{
+    const snapshot=await durable(client,runnerSid);
+    const fire=snapshot.fires.find(x=>x.runId&&x.fireId.startsWith('sched:')&&
+      snapshot.runs.some(r=>r.runId===x.runId&&r.scriptId==='task:sample.form-fill:1.0.0'));
+    if(!fire)return null;
+    const run=snapshot.runs.find(x=>x.runId===fire.runId);
+    const result=snapshot.results.find(x=>x.runId===fire.runId&&x.resultId===fire.resultId);
+    if(run?.state!=='completed'||run.retirementState!=='released'||result?.ok!==true)return null;
+    if(!snapshot.native.some(x=>x.runId===fire.runId&&x.receipts>0))return null;
+    return {fire,run,result,occurrences:snapshot.fires.filter(x=>x.fireId===fire.fireId).length};
+  },'actual Chrome Alarm -> visible scheduled RunHost -> native effect -> released Result',145000);
+  const webEffect=await evaluate(client,'(()=>({name:document.querySelector("#name")?.value,done:!!document.querySelector("#done")}))()',siteSid);
+  assert.deepEqual(webEffect,{name:'Scheduled Native',done:true},'scheduled installed script changed the real HTTP document');
+  assert.equal(due.occurrences,1,'one stable FireId per scheduled occurrence');
+  assert.equal(due.run.scheduledFireId,due.fire.fireId,'original Controller Run is bound to the scheduled FireId');
+  assert.equal(due.run.workerRetired,true,'Worker retired before success');
+  report.tests.actualScheduledNativeEffect='PASS';
+  note('native-scheduled-result',{fireId:due.fire.fireId,runId:due.run.runId,resultId:due.result.resultId,
+    documentId:due.run.documentId,retirement:due.run.retirementState,webEffect});
+  report.screenshots.push(await screenshot(client,runnerSid,'visible-runner-after-native-schedule'));
+  report.screenshots.push(await screenshot(client,siteSid,'actual-scheduled-form-effect'));
+  // End future repeats using the REAL plan's visible pause control.
+  await click(client,runnerSid,'#schedule-plan-list .schedule-card .schedule-actions button:nth-child(2)');
+  await deadline(async()=>{
+    const state=await durable(client,runnerSid);
+    return state.plans.length===1&&state.plans[0].paused===true&&state.plans[0].nextDueAt===null;
+  },'original UI pauses future occurrences');
+  report.tests.nativePause='PASS';
+  completed=true;
+});

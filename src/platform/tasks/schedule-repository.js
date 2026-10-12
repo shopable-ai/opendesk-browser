@@ -64,12 +64,14 @@ export function createScheduleRepository({storage,clock,namespace,session}){
       return structuredClone(row);
     });
   }
-  async function reconcile(){
+  async function reconcile({activeDocumentIds}={}){
+    invariant(activeDocumentIds===undefined||activeDocumentIds===null||activeDocumentIds instanceof Set,'E_SCHEMA','Live host document set required');
     const time=now();
     return storage.transaction(['frameworkKV','commandJournal'],'readwrite',async tx=>{
       const activeHost=(await tx.all('commandJournal')).some(row=>row?.tag==='host'&&
         row.namespace===namespace&&row.active&&!row.revoked&&
-        (session===undefined||row.browserSessionIncarnation===session));
+        (session===undefined||row.browserSessionIncarnation===session)&&
+        (activeDocumentIds==null||activeDocumentIds.has(row.hostDocumentId)));
       const changed=[];
       for(const def of await definitions(tx)){
         if(def.paused||def.nextDueAt===null||def.nextDueAt>time)continue;
@@ -96,7 +98,8 @@ export function createScheduleRepository({storage,clock,namespace,session}){
         if(fire.status!=='READY'&&fire.status!=='WAITING_HOST'&&fire.status!=='WAITING_SLOT'&&fire.status!=='WAITING_TARGET')continue;
         const def=await tx.get('frameworkKV',scheduleKey(fire.scheduleId));
         const state=def?.generation!==fire.generation||def.paused||def.deleted?'CANCELLED':
-          fire.deadlineAt<time?'MISSED':!activeHost?'WAITING_HOST':fire.status;
+          fire.deadlineAt<time?'MISSED':!activeHost?'WAITING_HOST':
+          fire.status==='WAITING_HOST'?'READY':fire.status;
         if(state!==fire.status)await tx.put('frameworkKV',{...fire,status:state},fireKey(fire.fireId));
       }
       return changed;

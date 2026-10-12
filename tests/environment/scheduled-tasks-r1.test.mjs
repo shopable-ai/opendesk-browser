@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {nextScheduleAt,parseWallScheduleTime,formatWallScheduleTime,recentMissedAt} from '../../src/platform/tasks/schedule-time.js';
 import {scheduleFireId,fireKey,validateScheduleInput} from '../../src/platform/tasks/schedule-contract.js';
 import {createScheduleRepository} from '../../src/platform/tasks/schedule-repository.js';
+import {createScheduleService,scheduledHostDocumentIds} from '../../src/platform/tasks/schedule-service.js';
 import {createTaskPackage,installedKey,taskKey,taskScriptId} from '../../src/platform/tasks/contract.js';
 import {digestUtf8} from '../../src/platform/protocol.js';
 
@@ -168,4 +169,50 @@ test('completed Controller Run is not displayed SUCCESS before resource release'
   f.db.put('runs','scheduled-test-run',{tag:'controller-run',state:'completed',retirementState:'released',
     runId:'scheduled-test-run',resultId:'scheduled-test-result'});
   assert.equal((await f.repo.list())[0].history[0].status,'SUCCESS');
+});
+
+test('only actual Side Panel and explicit visible scheduled-runner TAB are scheduler hosts',async()=>{
+  const ext='chrome-extension://abcdefghijklmnopabcdefghijklmnop';
+  const base=ext+'/ui/tool.html',host='12345678-1234-4123-8123-123456789abc';
+  const contexts=[
+    {contextType:'TAB',documentId:'catalog',documentUrl:base+'?hostInstanceId='+host},
+    {contextType:'TAB',documentId:'ordinary-tool',documentUrl:base+'?hostInstanceId='+host+'&toolId=quick-notes'},
+    {contextType:'OFFSCREEN_DOCUMENT',documentId:'hidden',documentUrl:base+'?hostInstanceId='+host+'&scheduledRunner=1'},
+    {contextType:'TAB',documentId:'spoofed',documentUrl:base+'?hostInstanceId='+host+'&scheduledRunner=1&toolId=quick-notes'},
+    {contextType:'TAB',documentId:'frozen',documentLifecycle:'cached',documentUrl:base+'?hostInstanceId='+host+'&scheduledRunner=1'},
+    {contextType:'SIDE_PANEL',documentId:'side',documentUrl:base+'?hostInstanceId='+host},
+    {contextType:'TAB',documentId:'runner',documentUrl:base+'?hostInstanceId='+host+'&scheduledRunner=1'}
+  ];
+  const api={runtime:{id:'schedule-test',getURL:()=>base,getContexts:async()=>contexts}};
+  assert.deepEqual([...await scheduledHostDocumentIds(api)].sort(),['runner','side']);
+  assert.equal((await scheduledHostDocumentIds({runtime:{getURL:()=>base}})),null,'test-only missing Chrome API is explicit');
+});
+test('registered catalog alone cannot claim Host presence; live runner restores READY without replay',async()=>{
+  const f=await fixture(),plan=await f.repo.save(f.input);
+  const base='chrome-extension://abcdefghijklmnopabcdefghijklmnop/ui/tool.html';
+  const host='12345678-1234-4123-8123-123456789abc';
+  await f.db.transaction(['commandJournal'],'readwrite',async tx=>{
+    const row=await tx.get('commandJournal','host:test');
+    await tx.put('commandJournal',{...row,hostDocumentId:'doc-catalog',hostUrl:base+'?hostInstanceId='+host},'host:test');
+  });
+  const contexts=[{contextType:'TAB',documentId:'doc-catalog',documentUrl:base+'?hostInstanceId='+host}];
+  const api={runtime:{id:'schedule-test',getURL:()=>base,getContexts:async()=>contexts},
+    alarms:{getAll:async()=>[],create:async()=>{},clear:async()=>{}},
+    permissions:{contains:async()=>true}};
+  const service=createScheduleService({storage:f.db,api,clock:{now:f.getTime},assertHost:async()=>({}),
+    emitToHost:async()=>{}});
+  f.setTime(plan.nextDueAt+1000);
+  const waiting=await service.listDueSchedules({},{});
+  assert.equal(waiting.fires.length,1);
+  assert.equal(waiting.fires[0].status,'WAITING_HOST');
+  contexts.push({contextType:'TAB',documentId:'doc-runner',documentUrl:base+'?hostInstanceId='+host+'&scheduledRunner=1'});
+  await f.db.transaction(['commandJournal'],'readwrite',tx=>tx.put('commandJournal',{
+    tag:'host',namespace:f.namespace,active:true,revoked:false,hostDocumentId:'doc-runner',
+    hostUrl:base+'?hostInstanceId='+host+'&scheduledRunner=1'
+  },'host:runner'));
+  const resumed=await service.listDueSchedules({},{});
+  assert.equal(resumed.fires.length,1);
+  assert.equal(resumed.fires[0].status,'READY');
+  assert.equal(resumed.fires[0].fireId,waiting.fires[0].fireId,'recovery cannot mint a second occurrence');
+  assert.equal((await f.repo.list())[0].history.length,1);
 });
