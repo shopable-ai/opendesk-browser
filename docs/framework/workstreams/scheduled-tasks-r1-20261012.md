@@ -165,3 +165,10 @@ python3 -m http.server 43111 --bind 127.0.0.1 --directory examples/tasks
 - Linux CI 改为 `xvfb-run` 真实桌面显示服务，并延长失败 Chrome stderr/退出码留档。保留 Mac 与 Linux 单独 CI 结果与原始失败，修复前后的源码、包和浏览器证据不可混算。
 
 新 Chrome 作业实际通过前，`scheduled-native-macos`、`scheduled-cft-linux` 都保持 `NOT_PASSED`。
+
+
+### R1.5 Linux CFT 原始失败根因与受限兼容
+
+在 GitHub Actions [#38250058359](https://github.com/shopable-ai/opendesk-browser/actions/runs/38250058359) 中，Linux 已使用独立 `xvfb-run`，但真实 `native-report.json` 记录 Chrome 155 在读取 DevTools 端口前以 `SIGTRAP` 退出，stderr 明确为 `zygote_host_impl_linux.cc:130 No usable sandbox!`。这是 Ubuntu GitHub runner 的 AppArmor/user namespace 限制，**没有形成任何可验证的网页或定时执行证据**。不是通过注入数据或放宽 OpenDesk CSP 能解决的问题。
+
+为了获得浏览器执行预检，Linux 流水线现在**仅在**实际 `linux`、`CI=true`、`GITHUB_ACTIONS=true` 和显式 `SCHEDULE_NATIVE_CI_NO_SANDBOX=1` 同时成立时，对该单次隔离 Chrome for Testing 进程追加 `--no-sandbox`。非 CI / Mac 环境不接受这一开关；正常扩展权限、CSP、Authority 和 MV3 都未改变。**该 Linux 结果不评价 Chrome OS sandbox 安全性，更不能代替 Mac 真实 Chrome 验收。** 原失败 artifact 仍保留，不改写为通过。

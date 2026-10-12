@@ -52,6 +52,8 @@ jobs:
         env:
           OPENDESK_SCHEDULED_NATIVE: '1'
           SCHEDULE_NATIVE_PLATFORM: linux
+          # GitHub Ubuntu AppArmor blocks userns sandbox; never use outside this ephemeral CFT job.
+          SCHEDULE_NATIVE_CI_NO_SANDBOX: '1'
           CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
           SCHEDULE_NATIVE_OUT: artifacts/scheduled-tasks-r1-linux
         run: |

@@ -17,6 +17,10 @@ import {packageFingerprint} from '../../scripts/verify-package.mjs';
 const ENABLED=process.env.OPENDESK_SCHEDULED_NATIVE==='1';
 const EXPECTED_PLATFORM=process.env.SCHEDULE_NATIVE_PLATFORM||'darwin';
 const CONTROL_MODIFIER=process.platform==='darwin'?4:2;
+const CI_UNSANDBOXED_LINUX=process.platform==='linux' &&
+  EXPECTED_PLATFORM==='linux' && process.env.CI==='true' &&
+  process.env.GITHUB_ACTIONS==='true' &&
+  process.env.SCHEDULE_NATIVE_CI_NO_SANDBOX==='1';
 const BIN=process.env.CHROME_BIN;
 const OUT=path.resolve(process.env.SCHEDULE_NATIVE_OUT||'artifacts/scheduled-tasks-r1-mac');
 const EXT=path.resolve('dist/production');
@@ -159,6 +163,8 @@ test('real installed Chrome: verified Task via Alarms -> original RunHost -> pag
   assert.equal(process.platform,EXPECTED_PLATFORM,'Use an explicit native platform for this isolated CFT test');
   assert(BIN&&path.isAbsolute(BIN)&&spawnSync(BIN,['--version'],{stdio:'ignore'}).status===0,
     'Pinned real Chrome for Testing required');
+  if(process.env.SCHEDULE_NATIVE_CI_NO_SANDBOX==='1')
+    assert(CI_UNSANDBOXED_LINUX,'--no-sandbox may only be used in the named ephemeral GitHub Linux CFT runner');
   await mkdir(OUT,{recursive:true});
   const sourceHash=sha(await readFile('src/platform/tasks/schedule-service.js'));
   const packageInfo=await packageFingerprint(EXT);
@@ -168,7 +174,9 @@ test('real installed Chrome: verified Task via Alarms -> original RunHost -> pag
   const sourceFile=path.join(profile,'sample.form-fill.js');
   await writeFile(sourceFile,task.sourceUtf8);
   const report={status:'RUNNING',startedAt:new Date().toISOString(),gitSha:process.env.GITHUB_SHA||null,
-    chromeBinary:BIN,platform:process.platform,package:packageInfo,sourceHash,taskSourceHash:sha(task.sourceUtf8),
+    chromeBinary:BIN,platform:process.platform,
+    sandboxPolicy:CI_UNSANDBOXED_LINUX?'explicit isolated Linux CI --no-sandbox; NOT a sandbox-security PASS':'Chrome OS sandbox unchanged',
+    package:packageInfo,sourceHash,taskSourceHash:sha(task.sourceUtf8),
     fixture:URL,native:true,steps:[],screenshots:[],tests:{},limitations:[]};
   const note=(name,result)=>{report.steps.push({name,at:new Date().toISOString(),result});console.log('SCHEDULE_NATIVE '+name+' '+JSON.stringify(result));};
   let server,proc,client,chromeStderr='',completed=false,sideId=null,runnerId=null,siteId=null;
@@ -199,7 +207,7 @@ test('real installed Chrome: verified Task via Alarms -> original RunHost -> pag
     '--no-first-run','--no-default-browser-check','--disable-background-networking',
     '--remote-allow-origins=*','--remote-debugging-address=127.0.0.1','--remote-debugging-port=0',
     '--user-data-dir='+profile,'--disable-extensions-except='+EXT,'--load-extension='+EXT,
-    'about:blank'];
+    ...(CI_UNSANDBOXED_LINUX?['--no-sandbox']:[]),'about:blank'];
   proc=spawn(BIN,args,{stdio:['ignore','ignore','pipe']});
   proc.stderr.on('data',bytes=>{chromeStderr=(chromeStderr+String(bytes)).slice(-7000);});
   report.profileOwned=true;report.chromePid=proc.pid;
