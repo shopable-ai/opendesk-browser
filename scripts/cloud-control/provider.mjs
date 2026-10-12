@@ -3,9 +3,10 @@ import {randomUUID,randomBytes,createHash,timingSafeEqual} from 'node:crypto';
 import {mkdir,readFile,writeFile,rename,open,unlink} from 'node:fs/promises';
 import {resolve} from 'node:path';
 import {WebSocketServer} from 'ws';
-import {validateTaskParams,verifyTaskPackage} from '../../src/platform/tasks/contract.js';
+import {validateTaskParams} from '../../src/platform/tasks/contract.js';
+import {registeredPackage,registeredTask,taskRegistryKey,taskPin,validateCloudTarget} from './task-registry.mjs';
 import {canonical} from '../../src/platform/protocol.js';
-const fixedPackage=JSON.parse(await readFile(new URL('../../examples/tasks/form-fill.v1.opendesk-task.json',import.meta.url),'utf8'));
+const builtinTask=await registeredPackage(JSON.parse(await readFile(new URL('../../examples/tasks/form-fill.v1.opendesk-task.json',import.meta.url),'utf8')));
 const token=()=>randomBytes(32).toString('hex');
 const hash=v=>createHash('sha256').update(canonical(v)).digest('hex');
 const fail=(code,message=code)=>{throw Object.assign(new Error(message),{code});};
@@ -19,6 +20,17 @@ export async function openProvider({directory='.local/cloud-control',port=43112,
   const file=resolve(directory,'state.json'),credentialFile=resolve(directory,'admin.json');
   let state,credentials;
   try{state=JSON.parse(await readFile(file,'utf8'));}catch(e){if(e.code!=='ENOENT')throw e;state={version:1,providerId:randomUUID(),executors:{},pairs:{},jobs:{},requests:{},faults:{}};}
+  // Migrate legacy R1-R4 state without changing old jobs, requests or receipts.
+  state.taskRegistry??={};
+  if(!state.taskRegistry||typeof state.taskRegistry!=='object'||Array.isArray(state.taskRegistry))fail('E_REGISTRY');
+  for(const [key,row] of Object.entries(state.taskRegistry)){
+    const validated=registeredTask(row.manifest,row.manifestHash);
+    if(key!==taskRegistryKey(validated)||canonical(row)!==canonical(validated))fail('E_REGISTRY','Stored task identity is invalid');
+  }
+  const builtinKey=taskRegistryKey(builtinTask);
+  if(state.taskRegistry[builtinKey]&&canonical(state.taskRegistry[builtinKey])!==canonical(builtinTask))
+    fail('E_TASK_CONFLICT','Built-in task identity changed');
+  state.taskRegistry[builtinKey]=builtinTask;
   try{credentials=JSON.parse(await readFile(credentialFile,'utf8'));}catch(e){if(e.code!=='ENOENT')throw e;credentials={adminToken:token(),pairingCode:token()};await writeFile(credentialFile,JSON.stringify(credentials),{mode:0o600});}
   let tail=Promise.resolve();
   async function save(){const h=await open(file+'.tmp','w',0o600);try{await h.writeFile(JSON.stringify(state,null,2));await h.sync();}finally{await h.close();}await rename(file+'.tmp',file);}
@@ -50,7 +62,7 @@ export async function openProvider({directory='.local/cloud-control',port=43112,
           case '/v1/claim':{
             exact(b,['claimId','tasks']);out=once(executorId+':claim',b.claimId,b,()=>{
               if(![...sockets.values()].includes(executorId))fail('E_CONNECTION');
-              const j=Object.values(state.jobs).find(j=>j.state==='queued'&&!j.cancelled&&b.tasks.some(t=>t.taskId===j.task.taskId&&t.manifestHash===j.task.manifestHash&&t.sourceHash===j.task.sourceHash));
+              const j=Object.values(state.jobs).find(j=>j.state==='queued'&&!j.cancelled&&b.tasks.some(t=>t.taskId===j.task.taskId&&t.manifestHash===j.task.manifestHash&&t.sourceHash===j.task.sourceHash)&&canonical(taskPin(state.taskRegistry[taskRegistryKey(j.task)]??{}))===canonical(j.task));
               if(!j)return {assignment:null};j.state='assigned';j.assignment={assignmentId:randomUUID(),executorId,claimId:b.claimId,leaseUntil:clock()+90000};return {assignment:{...j.assignment,jobId:j.jobId,task:j.task,params:j.params,target:j.target}};});break;}
           case '/v1/admission':{
             exact(b,['assignmentId','runRef']);const j=owned(b,executorId);exact(b.runRef,['runId','resultId','requestId','sourceHash','manifestHash','grantId']);
@@ -64,9 +76,37 @@ export async function openProvider({directory='.local/cloud-control',port=43112,
             exact(b,['assignmentId','receiptKey','runRef','result']);const j=owned(b,executorId);if(canonical(j.runRef)!==canonical(b.runRef))fail('E_RUN_REF');
             out=once('receipt',b.receiptKey,b,()=>{j.receipt={receiptId:randomUUID(),receivedAt:clock(),digest:hash(b),result:b.result};j.state='received';return {receiptId:j.receipt.receiptId,digest:j.receipt.digest};});break;}
           case '/v1/reconcile':exact(b,[]);out={providerId:state.providerId,assignments:Object.values(state.jobs).filter(j=>j.assignment?.executorId===executorId).map(j=>({assignmentId:j.assignment.assignmentId,runRef:j.runRef??null,permit:j.permit??null,cancelled:!!j.cancelled,leaseUntil:j.assignment.leaseUntil,receipt:j.receipt?{receiptId:j.receipt.receiptId,digest:j.receipt.digest}:null}))};break;
+          case '/admin/register':{
+            // Only a local administrator can register a verified fixed manifest.
+            // The route deliberately rejects sourceUtf8, JS, shell and CDP input.
+            exact(b,['manifest','manifestHash']);const task=registeredTask(b.manifest,b.manifestHash),
+              key=taskRegistryKey(task),existing=state.taskRegistry[key];
+            if(existing&&canonical(existing)!==canonical(task))fail('E_TASK_CONFLICT','Version already bound to another digest');
+            state.taskRegistry[key]=task;out={task:taskPin(task),siteOrigins:task.manifest.siteOrigins};break;}
+          case '/admin/tasks':{
+            exact(b,[]);out={tasks:Object.values(state.taskRegistry).map(task=>({...taskPin(task),
+              title:task.manifest.title,siteOrigins:task.manifest.siteOrigins}))};break;}
           case '/admin/seed':{
-            exact(b,['requestKey','params','target']);const pkg=await verifyTaskPackage(fixedPackage);if(b.target?.mode!=='owned'||new URL(b.target.url).origin!=='http://127.0.0.1:43111'||new URL(b.target.url).pathname!=='/demo-form.html')fail('E_TARGET');
-            const params=validateTaskParams(pkg.manifest.paramsSchema,b.params??{});out=once('seed',b.requestKey,b,()=>{const jobId=randomUUID();state.jobs[jobId]={jobId,state:'queued',createdAt:clock(),task:{taskId:pkg.manifest.taskId,version:pkg.manifest.version,manifestHash:pkg.manifestHash,sourceHash:pkg.manifest.program.sourceHash},params,target:b.target};return {jobId};});break;}
+            // Old seed:form requests retain their original requestKey/digest
+            // so pre-R5 provider restarts remain strictly idempotent.
+            const legacy=!Object.hasOwn(b,'taskId');
+            exact(b,legacy?['requestKey','params','target']:
+              ['requestKey','taskId','version','manifestHash','sourceHash','params','target']);
+            if(!legacy&&(!Object.hasOwn(b,'version')||!Object.hasOwn(b,'manifestHash')||
+              !Object.hasOwn(b,'sourceHash')))fail('E_SCHEMA','Provide the entire immutable task identity');
+            const task=legacy?builtinTask:state.taskRegistry[String(b.taskId)+'@'+String(b.version)];
+            if(!task||!legacy&&canonical(taskPin(task))!==canonical({
+              taskId:b.taskId,version:b.version,manifestHash:b.manifestHash,sourceHash:b.sourceHash}))
+              fail('E_TASK','Task is not in the local immutable registry');
+            const target=validateCloudTarget(b.target,task.manifest.siteOrigins);
+            if(legacy&&(new URL(target.url).origin!=='http://127.0.0.1:43111'||
+              new URL(target.url).pathname!=='/demo-form.html'))fail('E_TARGET');
+            const params=validateTaskParams(task.manifest.paramsSchema,b.params??{}),
+              pin=taskPin(task);
+            out=once('seed',b.requestKey,legacy?b:{task:pin,params,target},()=>{
+              const jobId=randomUUID();
+              state.jobs[jobId]={jobId,state:'queued',createdAt:clock(),task:pin,params,target};
+              return {jobId};});break;}
           case '/admin/cancel':exact(b,['jobId']);if(!state.jobs[b.jobId])fail('E_JOB');state.jobs[b.jobId].cancelled=true;out={cancelled:true};break;
           case '/admin/fault':exact(b,['path','count']);if(!['/v1/admission','/v1/claim','/v1/receipt'].includes(b.path)||!Number.isSafeInteger(b.count)||b.count<0||b.count>10)fail('E_SCHEMA');state.faults[b.path]=b.count;out={set:true};break;
           case '/admin/state':exact(b,[]);out={providerId:state.providerId,jobs:state.jobs,executors:Object.fromEntries(Object.entries(state.executors).map(([id,e])=>[id,{pairedAt:e.pairedAt,connected:[...sockets.values()].includes(id),capabilities:e.capabilities}]))};break;
