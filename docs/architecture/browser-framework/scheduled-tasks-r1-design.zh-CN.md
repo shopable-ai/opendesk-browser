@@ -149,3 +149,16 @@ Side Panel 保留「我的 / 发现 / 工作流 / 开发 / 工具」现有一级
 - 结果：持久 Fire 的 `ADMITTED` 状态只意味着获得唯一 Run 准入，不意味着网页副作用成功；列表始终从原 `runs` 查询 state、`resultId` 和 `retirementState`，若存在未知副作用则保持 `UNKNOWN`，决不盲目重派。
 
 **已取得的原生证明：** Linux Chrome 的完整基础与双 Host / 无 Host 恢复，以及 Mac Chrome 的基础真实页面执行，均有固定候选 GitHub Actions 证据；剩余是用户 Mac Profile、真实完整浏览器重启/升级、版本和权限变更、Mac 双 Host、320/360/420 与真实 200% 视觉验收，缺证据部分仍为 `NOT_TESTED`。追踪见 `docs/framework/workstreams/scheduled-tasks-r1-20261012.md`。
+
+## R2 增量架构决议（2026-10-13）
+
+R2 复用原有 Controller Authority、RunHost、Task 安装授权、唯一 `runs/@slot`、`frameworkKV` 和 Chrome Alarms；未增加第二个调度器、独立数据库或后台隐形运行宿主。
+
+- `tool.html` 同时容纳原「我的 → 定时计划」和条件展示的独立 `scheduledRunner=1` 概览；数据来自同一份 `scheduled-task-workbench.js`，操作重用同一个 Host 及已存在的请求方法。
+- 用户提交前经客户端内联校验和确认页，最终仍由服务端 `validateScheduleInput`、原安装身份、权限检查再次核验。只读展示的权限状态**不**构成新的授权。
+- `schedule-repository.js` 使用已有 v2 IndexedDB 游标接口 `tx.scan` 对 `schedule:def:v1:`、`schedule:fire:v1:` 主键前缀扫描；按计划 ID 分页读取历史，并从原 `runs` 精确查询 Run/Result 的投影。无新 IndexedDB Schema 或迁移。确定性 Node shim 仍可回退 `tx.all`。
+- 新增 `listScheduleHistory` 由原 `createScheduleService` 的 `assertHost` 保护，`authority` 和 `broker` 仅扩展现有 RPC 路由。
+- `UNKNOWN` 或已经 `ADMITTED` 的 Fire 不允许为了重试而重新发放。**尚未设置历史自动删除策略**：对数据增长的优先缓解是按计划分页及 UI 限制，任何未来压缩必须先解决身份、审计与未结算记录的保留边界。
+- 新增独立完整 Chrome 进程退出/同一受控 Profile 重启测试工作流，不修改 R1 baseline/lifecycle 的触发逻辑和证据语义；通过与否仅由对应 CI Run 的真实日志决定。
+
+完整进度和可验证的 PASS / NOT_TESTED：`docs/framework/workstreams/scheduled-tasks-r2-20261013.md`。
