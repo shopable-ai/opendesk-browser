@@ -146,18 +146,55 @@ async function verifyBrowserUI({browser,page,catalogTabId,base,extensionId,outpu
         'const hint=document.querySelector("#page-component-hint");'+
         'return {jsChecked:js?.checked,reactDisabled:react?.disabled,vueDisabled:vue?.disabled,'+
         'reactHidden:react?.parentElement?.hidden,vueHidden:vue?.parentElement?.hidden,'+
+        'modeRowHidden:document.querySelector("#page-component-editor-tools")?.hidden,'+
+        'modeRowDisplay:getComputedStyle(document.querySelector("#page-component-editor-tools")).display,'+
+        'sourceLabel:document.querySelector("label[for=script-source]")?.textContent,'+
         'hint:hint?.textContent}})()');
       assert.equal(state.jsChecked,true);
       assert.equal(state.reactDisabled,true);
       assert.equal(state.vueDisabled,true);
       assert.equal(state.reactHidden,true);
       assert.equal(state.vueHidden,true);
+      assert.equal(state.modeRowHidden,true);
+      assert.equal(state.modeRowDisplay,'none','The Standard editor must not display a one-choice mode picker');
+      assert.equal(state.sourceLabel,'JavaScript 源码编辑器');
       assert.match(state.hint,/标准版/);
       report.tests.push({name:'r245-standard-real-chrome-no-browser-compiler-ui',
         status:'PASS',edition:marker.edition,noNative:true,compilerChoicesHidden:true,
         javascriptChoiceRetained:true});
       const screenshot=await sidebar.call('Page.captureScreenshot',{format:'png'});
       fs.writeFileSync(path.join(output,'r245-standard-sidepanel.png'),Buffer.from(screenshot.data,'base64'));
+      // Run plain JavaScript from a trusted Chrome textarea/Run click to prove
+      // removing JSX/SFC compilers did not disable the ordinary Page executor.
+      const standardJS='async function main(){'+
+        'const node=document.createElement("div");node.id="r245-standard-js-proof";'+
+        'node.textContent="Standard JavaScript executed";document.body.append(node);'+
+        'return "r245-standard-js-ok";}';
+      const typed=await sidebar.read('(()=>{const editor=document.querySelector("#script-source");'+
+        'if(!editor||editor.readOnly)return false;editor.focus();editor.select();return true})()');
+      assert.equal(typed,true,'Standard JavaScript source textarea must be editable');
+      await sidebar.call('Input.insertText',{text:standardJS});
+      await until(()=>sidebar.read('document.querySelector("#script-source").value==='+
+        JSON.stringify(standardJS)),'genuine Standard editor input',10000);
+      if(!await sidebar.read('document.querySelector("#page-preview-tools").open'))
+        await clickReal(sidebar,'document.querySelector("#page-preview-tools > summary")');
+      await until(()=>sidebar.read('!document.querySelector("#page-preview-run").disabled'),
+        'Standard JavaScript run enabled',20000);
+      await clickReal(sidebar,'document.querySelector("#page-preview-run")');
+      const ran=await until(()=>sidebar.read('(()=>{const node=document.querySelector("#page-preview-status");'+
+        'return ["completed","error"].includes(node?.dataset.state)?{state:node.dataset.state,text:node.textContent}:null})()'),
+        'real Standard JavaScript admission',60000);
+      assert.equal(ran.state,'completed','Standard JavaScript run failed: '+ran.text);
+      assert.equal(await website.session.read('document.querySelector("#r245-standard-js-proof")?.textContent'),
+        'Standard JavaScript executed');
+      const ordinaryReceipt=JSON.parse(await sidebar.read(
+        'document.querySelector("#page-preview-technical").textContent'));
+      assert.equal(ordinaryReceipt.state,'preview-evaluated');
+      assert(/^[a-f0-9]{64}$/.test(ordinaryReceipt.sourceHash));
+      report.tests.push({name:'r245-standard-real-chrome-javascript-execution',
+        status:'PASS',sourceHash:ordinaryReceipt.sourceHash,
+        documentId:ordinaryReceipt.documentId,actualPointerInput:true,
+        pageDOMUpdated:true,noNative:true,noBrowserCompiler:true});
       return;
     }
     for(const framework of ['react','vue']){
