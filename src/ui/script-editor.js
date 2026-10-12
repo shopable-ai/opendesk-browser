@@ -30,7 +30,9 @@ function printable(value, depth = 0) {
 }
 
 export function createScriptEditor({client, currentPageTarget, development=false, api = globalThis.chrome, document: doc = globalThis.document,
-  hostFactory = createRunHost,componentPreparerFactory=createBrowserPageComponentPreparer}) {
+  hostFactory = createRunHost,componentPreparerFactory=createBrowserPageComponentPreparer,
+  browserCompilerEnabled=typeof __OPENDESK_BROWSER_COMPILER_ENABLED__==='undefined'||
+    __OPENDESK_BROWSER_COMPILER_ENABLED__!==false}) {
   const host = hostFactory({api, client, document: doc, templateModuleFactory: null});
   const find = id => doc.getElementById(id);
   const status = find('script-status'), output = find('script-result');
@@ -50,6 +52,14 @@ export function createScriptEditor({client, currentPageTarget, development=false
   const componentSelector=find('page-component-framework'),componentStatus=find('page-component-status');
   const componentInputs=Object.freeze(Object.fromEntries(
     ['javascript','react','vue'].map(mode=>[mode,find('page-component-'+mode)])));
+  // In Standard Edition the browser compiler is physically absent from the
+  // package, so do not present JSX/SFC radio choices as usable actions.
+  if(!browserCompilerEnabled){
+    for(const mode of ['react','vue']){
+      const choice=componentInputs[mode];
+      if(choice){choice.disabled=true;if(choice.parentElement)choice.parentElement.hidden=true;}
+    }
+  }
   const componentPresets=Object.freeze({
     react:"import {useState} from 'react';\n\nexport default function App(){\n  const [count,setCount]=useState(0);\n  return <button type=\"button\" onClick={()=>setCount(n=>n+1)}>已点击 {count} 次</button>;\n}",
     vue:"<script setup>\nimport {ref} from 'vue';\nconst count=ref(0);\n</script>\n<template>\n  <button type=\"button\" @click=\"count++\">已点击 {{ count }} 次</button>\n</template>\n<style scoped>\nbutton{padding:8px 14px;cursor:pointer}\n</style>"
@@ -210,7 +220,8 @@ export function createScriptEditor({client, currentPageTarget, development=false
         '使用官方 Vue script setup、template 与 scoped CSS。系统按需编译并受管挂载；无需 main() 或手动 Vite。仅获授权网页可运行。':
         '直接使用上方 JavaScript 源码操作当前网页 DOM；可写 async function main() 返回结果，也可直接编写顶层语句。运行前仍需网站授权。';
     if(modeHint)modeHint.textContent=componentMode==='javascript'?
-      '保存草稿不会运行网页':
+      (browserCompilerEnabled?'保存草稿不会运行网页':
+        '标准版支持直接运行 JavaScript。JSX/Vue SFC 请使用本地 opendesk browser dev . 或 Developer Edition。'):
       '组件草稿保留在当前窗口会话；只有明确点击运行才操作网页，安装须另外授权。';
     find('script-save').disabled = editingBusy||componentMode!=='javascript'; find('script-load').disabled = editingBusy;
     find('script-list-refresh').disabled = editingBusy; find('script-list-load').disabled = editingBusy || !scriptList.value;
@@ -703,6 +714,8 @@ export function createScriptEditor({client, currentPageTarget, development=false
       captured=currentPageTarget.capture();
       if (programSource.kind() === 'controller') throw {code:'E_PROGRAM_KIND',message:'这是 Controller 项目，请使用运行草稿'};
       if(componentMode!=='javascript'&&!programSource.snapshot()){
+        if(!browserCompilerEnabled)throw {code:'E_PAGE_COMPILER_UNAVAILABLE',
+          message:'标准版不附带浏览器 JSX/SFC 编译器；请使用本地开发工具或独立 Developer Edition'};
         componentSnapshot={framework:componentMode,source:programSource.source()};
         if(browserEffectUnknown)throw {code:'E_EFFECT_UNKNOWN',message:'上次受管运行效果未知；请打开新网页文档'};
         if(!componentSnapshot.source.trim())throw {code:'E_SOURCE',message:'请输入组件源码'};
@@ -884,6 +897,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
   // The fieldset disables all choices during preparation or an active project.
   for(const [next,input] of Object.entries(componentInputs))if(input)listen(input,'change',()=>{
     if(!input.checked)return;
+    if(next!=='javascript'&&!browserCompilerEnabled){syncComponentInputs();return;}
     if(previewBusy||browserManagedPreview||browserEffectUnknown||localProject?.active()||programSource.snapshot()){
       syncComponentInputs();
       componentMessage('error','请先停止旧组件或打开新网页，再切换框架');
@@ -1012,7 +1026,10 @@ export function createScriptEditor({client, currentPageTarget, development=false
             if(typeof item==='string'&&new TextEncoder().encode(item).length<=128*1024)
               componentDrafts[modeName]=item;
           }
-          componentMode=saved.componentMode;
+          if(!browserCompilerEnabled&&saved.componentMode!=='javascript'){
+            componentMode='javascript';
+            programSource.replaceSource(componentDrafts.javascript||'async function main(){return document.title;}');
+          }else componentMode=saved.componentMode;
           syncComponentInputs();
         }
         for(const [name,id] of Object.entries(draftFields))if(name!=='source')find(id).value=saved[name]??'';
