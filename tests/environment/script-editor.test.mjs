@@ -626,7 +626,11 @@ test('R24.3 final asynchronous document check refuses a React component edited b
   const first=f.find('script-source').value;
   assert.match(first,/from 'react'/);
   f.find('page-preview-run').fire('click',{isTrusted:true});
-  await entered.promise;
+  const reached=await Promise.race([entered.promise.then(()=>true),
+    new Promise(resolve=>setTimeout(()=>resolve(false),1200))]);
+  assert.equal(reached,true,'Component did not reach the final async document fence; checks='+
+    revalidationCount+' previewStatus='+f.find('page-preview-status').textContent+
+    ' componentStatus='+f.find('page-component-status').textContent);
   f.find('script-source').value=first+'\n// user edited while Chrome checked the document';
   f.find('script-source').fire('input');
   release.resolve();
