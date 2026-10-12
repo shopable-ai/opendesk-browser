@@ -301,3 +301,9 @@ FIX8 将主动观察失败变成不可重试的结果并在外层立即抛出，
 
 本轮本会话没有撤销、删除或覆盖 Workspace 并行成果，也没有为了获取测试绿色而放松 `inspectHTML`、禁用危险标签/CSP 校验或直接操作 `dist`。正式 HTTPS 和原生 ACK 故障注入仍维持本工作流前述 **BLOCKED / NOT_TESTED**。
 
+
+## R5 最新 main 打包闭包触发修正（2026-10-12）
+
+原候选 `6d71854b` 的 Linux／macOS 16/16 与生产包原生回归已绑定原始制品。之后 Native Workspace 的 `workspace.html` 与样式变更曾触发旧候选的包拒绝，并由 `90732696` 在源文件和包审计中修正。R5 原工作流仅监听市场和部分共享构建脚本，**不监听这次实际变化的 Workspace 原始资源**，因此修复后不会自动产生完整新候选的 R5 Chrome 证据。
+
+本次仅给现有 `.github/workflows/app-market-r3.yml` 补精确的固定包输入路径：Workspace HTML、`workspace*.js`、`workspace*.css`、`settings.*`、共享 `design-*.css` 与 Workspace 固定 Tailwind 构建脚本；没有扩展到 `src/native-agent/**` 全目录，也没有建立第二套安装服务。新增一个组件断言持续检查这个 CI 输入闭包。变更工作流会触发一次最新 `main` 的双平台 HTTP + 生产 Chrome 验证，**结果必须由本次真实 run 的原件决定，不能预填 PASS**。未来仅当这些受影响的包输入变化时重跑对应原生链路；上游固定候选结果永久保留。

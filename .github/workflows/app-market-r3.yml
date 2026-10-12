@@ -17,6 +17,15 @@ on:
       - 'src/ui/tool-shell.js'
       - 'src/ui/tool-shell.css'
       - 'src/sidebar-tools/**'
+      # R5 builds package ALL fixed extension HTML/CSS/JS. Keep the native
+      # Workspace shared output closure in the market CI trigger even though
+      # its UI does not participate in website/installer execution.
+      - 'src/native-agent/workspace.html'
+      - 'src/native-agent/workspace*.js'
+      - 'src/native-agent/workspace*.css'
+      - 'src/native-agent/settings.*'
+      - 'src/ui/design-*.css'
+      - 'scripts/build-workspace-style.mjs'
       - 'scripts/prepare-public.mjs'
       - 'scripts/verify-package.mjs'
       - 'scripts/build-contract.mjs'
