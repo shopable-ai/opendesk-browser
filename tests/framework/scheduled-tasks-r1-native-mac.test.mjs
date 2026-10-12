@@ -87,15 +87,48 @@ async function type(client,session,selector,value){
       ' expected='+JSON.stringify(value.slice(0,180))+' focus='+result.focus);
   }finally{await client.send('Runtime.releaseObject',{objectId:node.result.objectId},session).catch(()=>{});}
 }
+// Native macOS popup controls may consume CDP keys after a mouse click.
+ // Drive the CLOSED select through keyboard focus and real keyboard input.
+ // Runtime.evaluate is read-only; no element.value assignment or synthetic change.
 async function select(client,session,selector,index){
-  const expected=await evaluate(client,expr(selector)+'.options['+index+']?.value',session);
+  const expression=expr(selector);
+  const original=await evaluate(client,'(()=>{const s='+expression+';return s?{options:[...s.options].map(x=>({value:x.value,label:x.label,disabled:x.disabled})),index:s.selectedIndex,disabled:s.disabled}:null})()',session);
+  assert(original&&!original.disabled&&index>=0&&index<original.options.length,'real enabled select '+selector);
+  const expected=original.options[index]?.value;
   assert.equal(typeof expected,'string','real option '+selector+' '+index);
-  await click(client,session,selector);
-  await key(client,session,'Home','Home',36);
-  for(let i=0;i<index;i++)await key(client,session,'ArrowDown','ArrowDown',40);
-  await key(client,session,'Enter','Enter',13);
-  await deadline(()=>evaluate(client,expr(selector)+'.value==='+JSON.stringify(expected),session),
-    'native select '+selector+' '+expected,7000);
+  assert.equal(original.options[index].disabled,false,'scheduled Task option must be selectable');
+  const focused=()=>evaluate(client,'document.activeElement==='+expression,session);
+  // The verified caller has focus in the preceding form input or textarea.
+  // Tab navigation reaches the next genuine, Chrome-visible control without
+  // opening the macOS native selection popup.
+  for(let step=0;step<12&&!await focused();step++)
+    await key(client,session,'Tab','Tab',9);
+  if(!await focused()){
+    // DOM.focus affects only keyboard targeting; selection and its change
+    // event still require the real native Chrome keyboard below.
+    const node=await client.send('Runtime.evaluate',{expression,returnByValue:false},session);
+    assert(node.result?.objectId,'Native select node unavailable: '+selector);
+    try{await client.send('DOM.focus',{objectId:node.result.objectId},session);}
+    finally{await client.send('Runtime.releaseObject',{objectId:node.result.objectId},session).catch(()=>{});}
+  }
+  assert.equal(await focused(),true,'Chrome must focus the real select: '+selector);
+  const nativeKey=async(name,code,vkey,down='rawKeyDown')=>{
+    await client.send('Input.dispatchKeyEvent',{type:down,key:name,code,windowsVirtualKeyCode:vkey},session);
+    await client.send('Input.dispatchKeyEvent',{type:'keyUp',key:name,code,windowsVirtualKeyCode:vkey},session);
+  };
+  if(original.index===index)return;
+  // Chrome on macOS can consume rawKeyDown and keyDown differently. Each
+  // attempt starts at the first option, so a partially handled attempt cannot
+  // overstep the requested native choice.
+  for(const mode of ['rawKeyDown','keyDown']){
+    await nativeKey('Home','Home',36,mode);
+    for(let i=0;i<index;i++)await nativeKey('ArrowDown','ArrowDown',40,mode);
+    await nativeKey('Enter','Enter',13,mode);
+    if(await evaluate(client,expression+'.value==='+JSON.stringify(expected),session))return;
+  }
+  const observed=await evaluate(client,'(()=>{const s='+expression+';return {value:s.value,selectedIndex:s.selectedIndex,focused:document.activeElement===s,options:s.options.length}})()',session);
+  throw Error('Native keyboard select refused '+selector+
+    '; expected='+JSON.stringify(expected)+'; actual='+JSON.stringify(observed));
 }
 async function details(client,session,selector){
   if(!await evaluate(client,expr(selector)+'.open',session))
