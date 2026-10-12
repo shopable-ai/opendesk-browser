@@ -1,0 +1,561 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>OpenDesk Browser · 定时计划 R1 交互原型</title>
+<style>
+:root{
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+  font-synthesis:none;color:#1e293b;background:#f3f6fb;line-height:1.48;font-size:14px;
+  --primary:#365fcd;--primary-hover:#274eac;--ink:#1e293b;--muted:#69778b;--line:#dde5f0;--panel:#fff;
+  --surface:#f7f9fc;--success:#12755b;--success-bg:#e8f6f0;--warn:#9b6115;--warn-bg:#fff4e2;
+  --radius:12px;--shadow:0 18px 65px #24385215
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-width:320px}
+button,input,select,textarea{font:inherit}
+button{cursor:pointer;transition:background .12s,border-color .12s;color:inherit}
+button:disabled{opacity:.42;cursor:not-allowed}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,a:focus-visible{
+  outline:3px solid #9bb8ff;outline-offset:2px
+}
+button,select,input,textarea{min-width:0}
+[hidden]{display:none!important}
+.preview-top{max-width:1100px;margin:15px auto 10px;padding:0 12px;display:flex;gap:12px;align-items:center;justify-content:space-between}
+.preview-label{color:#60708b;font-size:12px}
+.preview-label strong{color:#3b4e6e;font-weight:750}
+.width-buttons{display:flex;align-items:center;gap:4px;padding:3px;border:1px solid #d9e2ee;background:#fff;border-radius:10px}
+.width-buttons button{font-size:12px;background:transparent;border:0;border-radius:7px;padding:6px 11px;color:#64738b}
+.width-buttons button[aria-pressed="true"]{background:#eaf0ff;color:#284ea9;font-weight:700}
+.frame{width:calc(100% - 24px);max-width:1064px;min-height:690px;height:min(82dvh,820px);margin:0 auto 20px;background:#fff;border:1px solid #d4dfed;border-radius:17px;box-shadow:var(--shadow);overflow:hidden;display:flex;transition:max-width .15s}
+.frame.is-side{max-width:420px}
+.sidebar{width:199px;flex:none;border-right:1px solid var(--line);background:#fafbfe;padding:20px 12px;display:flex;flex-direction:column}
+.frame.is-side .sidebar{display:none}
+.brand{display:flex;gap:10px;align-items:center;padding:3px 7px 19px;border-bottom:1px solid #e7edf6;margin-bottom:17px}
+.brandmark{display:grid;place-items:center;width:32px;height:32px;background:#dfe9ff;border-radius:9px;color:#3158bd;font-weight:850;font-size:17px}
+.brand strong{font-size:14px;letter-spacing:-.03em}
+.brand small{display:block;font-size:10px;color:var(--muted)}
+.side-label{font-size:11px;font-weight:650;letter-spacing:.06em;color:#8794a7;margin:4px 9px 9px}
+.nav{width:100%;text-align:left;padding:10px 11px;margin-bottom:4px;border:0;border-radius:9px;background:none;color:#52627c;font-size:13px;display:flex;align-items:center;gap:10px}
+.nav svg{width:17px;height:17px;flex:none}
+.nav[aria-current="page"]{background:#e9f0ff;color:#284fa7;font-weight:740}
+.nav:hover{background:#eff3fa}
+.side-bottom{margin-top:auto;font-size:11px;color:#8290a5;padding:12px 9px}
+.main{flex:1;min-width:0;overflow-y:auto;scrollbar-width:thin;background:#fff}
+.topline{position:sticky;top:0;background:#fffefef5;z-index:4;min-height:49px;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:11px 28px;border-bottom:1px solid #e8edf5;backdrop-filter:blur(10px)}
+.crumb{font-size:12px;color:#718098;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.preview-note{font-size:10px;white-space:nowrap;padding:4px 7px;background:#eff3fa;border:1px solid #e3eaf4;border-radius:6px;color:#60728e}
+.view{padding:24px 28px 42px}
+.view-head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;margin-bottom:20px}
+h1,h2,h3,p{margin-top:0}
+h1{font-size:21px;line-height:1.28;letter-spacing:-.035em;margin-bottom:5px;font-weight:770}
+h2{font-size:14px;margin-bottom:13px;font-weight:740}
+h3{font-size:14px;margin-bottom:2px}
+.subtitle{font-size:12px;color:var(--muted);margin-bottom:0;line-height:1.6}
+.subtle{font-size:11px;color:var(--muted)}
+.btn{border:1px solid #d4dfed;border-radius:9px;background:#fff;padding:8px 12px;display:inline-flex;justify-content:center;align-items:center;gap:6px;font-size:12px;font-weight:650;white-space:nowrap;min-height:34px;text-decoration:none}
+.btn:hover{background:#f1f5fd}
+.btn-primary{background:var(--primary);border-color:var(--primary);color:#fff}
+.btn-primary:hover{background:var(--primary-hover)}
+.btn-ghost{border-color:transparent;background:transparent;color:#345aa9}
+.btn-ghost:hover{background:#eef3ff}
+.btn-icon{min-width:34px;padding:7px}
+.btn svg,.small-icon{width:15px;height:15px}
+a{text-decoration:none;color:#3059b9}
+.text-action{border:0;background:transparent;color:#315bb5;font-weight:630;font-size:12px;padding:6px 0}
+.text-action:hover{text-decoration:underline}
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin-bottom:19px}
+.stat{background:#f8faff;border:1px solid #e7edf8;border-radius:11px;padding:12px 14px}
+.stat b{display:block;font-size:18px;line-height:1.3;color:#273d65;font-variant-numeric:tabular-nums}
+.stat span{font-size:11px;color:#65768e}
+.list{display:flex;flex-direction:column;gap:10px}
+.plan{border:1px solid var(--line);background:#fff;border-radius:12px;padding:13px 15px;box-shadow:0 2px 5px #253e5c05}
+.plan-top{display:flex;gap:10px;align-items:center;justify-content:space-between}
+.plan-name{background:none;border:none;text-align:left;padding:0;color:#253a59;font-weight:760;font-size:14px;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.plan-name:hover{color:#2e5cc7}
+.plan-meta{margin:7px 0 10px;display:flex;gap:7px;flex-wrap:wrap;color:#607087;font-size:11px}
+.dotsep::before{content:"·";margin-right:7px;color:#b6bfcb}
+.plan-foot{border-top:1px solid #edf1f6;padding-top:10px;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.plan-foot .actions{display:flex;gap:5px;flex-wrap:wrap}
+.pill{font-size:10px;font-weight:680;padding:3px 7px;border-radius:999px;background:#eff3f8;color:#68788f;white-space:nowrap}
+.pill.good{background:var(--success-bg);color:var(--success)}
+.pill.warn{background:var(--warn-bg);color:var(--warn)}
+.switch{display:inline-flex;align-items:center;gap:7px;cursor:pointer}
+.switch input{position:absolute;opacity:0;width:1px;height:1px}
+.track{display:block;width:33px;height:19px;border-radius:20px;background:#becbdc;padding:3px;transition:.2s}
+.track::after{content:"";display:block;width:13px;height:13px;background:#fff;box-shadow:0 1px 3px #2236;border-radius:50%;transition:transform .18s}
+.switch input:checked+.track{background:#416bd3}
+.switch input:checked+.track::after{transform:translateX(14px)}
+.switch input:focus-visible+.track{outline:3px solid #98b8ff;outline-offset:3px}
+.empty{border:1px dashed #c8d5e6;border-radius:12px;color:#667993;background:#f8faff;padding:27px;text-align:center}
+.info{background:#f7faff;border:1px solid #e3ebfa;border-radius:10px;padding:11px 13px;color:#506785;font-size:12px;line-height:1.65}
+.info strong{color:#354d74}
+.info.warning{background:#fffaf1;border-color:#f4e5c8;color:#8b651e}
+.editor-block{border:1px solid var(--line);border-radius:12px;padding:17px 18px;margin-bottom:14px;background:#fff}
+.label{display:block;font-size:12px;font-weight:670;color:#3d4e67;margin-bottom:7px}
+.required{color:#c15959}
+.field{border:1px solid #ccd8e8;background:#fff;color:#26344b;border-radius:9px;min-height:37px;width:100%;padding:8px 11px;font-size:13px}
+.field:focus{border-color:#7292e4}
+.field.invalid{border-color:#d88b74;background:#fff9f5}
+.field-help{display:block;font-size:11px;color:#78869a;margin-top:6px;line-height:1.5}
+.form-row{margin-bottom:16px}
+.form-row:last-child{margin-bottom:0}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.source-row{display:flex;gap:7px;align-items:center}
+.source-row .field{flex:1}
+.source-actions{display:flex;justify-content:space-between;align-items:center;gap:9px;margin-top:4px;flex-wrap:wrap}
+.source-detail{font-size:11px;background:#f6f8fc;border:1px solid #e6edf5;border-radius:9px;margin-top:10px;padding:10px;color:#566882}
+.source-detail b{color:#304361}
+.weekdays{display:flex;flex-wrap:wrap;gap:7px}
+.daychip{cursor:pointer;position:relative}
+.daychip input{position:absolute;opacity:0;width:1px;height:1px}
+.daychip span{display:grid;place-items:center;border:1px solid #cfdbee;border-radius:8px;width:35px;height:32px;color:#67778d;font-size:12px}
+.daychip input:checked+span{border-color:#5e81dc;background:#edf2ff;color:#2e57bd;font-weight:720}
+.daychip input:focus-visible+span{outline:3px solid #9bb8ff;outline-offset:2px}
+.preview-next{margin-top:12px;font-size:12px;padding:10px 12px;background:#edf7f4;border:1px solid #d4eae4;color:#246d56;border-radius:9px}
+.preview-next b{font-variant-numeric:tabular-nums}
+.checkline{display:flex;gap:8px;align-items:flex-start;color:#52647d;font-size:12px;line-height:1.5}
+.checkline input{accent-color:#416bd3;margin-top:3px}
+details.advanced{background:#fafbfe;border:1px solid #e2eaf3;border-radius:10px;padding:11px 14px}
+details.advanced summary{font-weight:690;font-size:12px;color:#465b79;cursor:pointer}
+details.advanced[open] summary{margin-bottom:14px}
+.inline-error{color:#af473d;font-size:12px;margin:10px 0}
+.editor-footer{position:sticky;bottom:-42px;background:#fffc;padding:12px 0;border-top:1px solid #e5eaf2;display:flex;gap:8px;justify-content:flex-end;align-items:center;z-index:3;backdrop-filter:blur(10px)}
+.back{border:0;background:transparent;padding:3px 0;color:#4d6aa0;font-size:12px;margin-bottom:10px}
+.back:hover{text-decoration:underline}
+.steps{display:flex;gap:9px;margin-bottom:16px;flex-wrap:wrap;font-size:11px;color:#7a8da5}
+.steps span{border-radius:100px;padding:4px 8px;background:#f2f5fa}
+.steps span.active{color:#3258af;background:#eaf0ff;font-weight:750}
+.code{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;min-height:140px;resize:vertical;font-size:12px;line-height:1.55}
+.manager{display:flex;gap:9px;align-items:center;justify-content:space-between;border:1px solid var(--line);padding:12px;border-radius:10px;margin-bottom:9px}
+.manager-main{min-width:0}
+.manager-main b{font-size:13px;color:#31445f}
+.manager-main span{display:block;font-size:11px;color:#74849b;margin-top:3px;overflow-wrap:anywhere}
+.manager-side{display:flex;gap:7px;align-items:center}
+.history-item{border-bottom:1px solid #e9eef6;padding:13px 2px;display:flex;justify-content:space-between;gap:12px}
+.history-item:last-child{border-bottom:0}
+.toast{position:sticky;bottom:10px;margin:0 20px 12px auto;max-width:480px;border-radius:10px;background:#223a60;color:#fff;padding:10px 14px;box-shadow:0 7px 20px #1e325a32;font-size:12px;z-index:9}
+.footnote{margin:20px 0 0;color:#8390a2;font-size:11px;line-height:1.65}
+@media(max-width:720px){
+ .frame{max-width:430px}.sidebar{display:none}
+ .view{padding:19px 16px 30px}.topline{padding:11px 16px}
+ .view-head{gap:8px}.editor-block{padding:14px}.stat{padding:9px 11px}
+}
+@media(max-width:390px){
+ .view-head{flex-direction:column}.stats{gap:6px}.source-row{align-items:stretch;flex-wrap:wrap}.source-row .field{flex-basis:100%}
+ .form-grid{grid-template-columns:1fr}.plan-foot{align-items:flex-start}
+}
+</style>
+</head>
+<body>
+<div class="preview-top">
+  <div class="preview-label"><strong>OpenDesk Browser</strong> · 定时计划 R1 交互原型（仅演示）</div>
+  <div class="width-buttons" role="group" aria-label="预览宽度">
+    <button id="modeWide" type="button" aria-pressed="true">宽屏</button>
+    <button id="modeSide" type="button" aria-pressed="false">侧栏</button>
+  </div>
+</div>
+<div class="frame" id="frame">
+<aside class="sidebar" aria-label="示例导航">
+  <div class="brand"><span class="brandmark">O</span><div><strong>OpenDesk Browser</strong><small>个人自动化工作台</small></div></div>
+  <div class="side-label">我的</div>
+  <button type="button" class="nav" id="navTasks" aria-current="false">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M8 10h8M8 14h5"/></svg>我的任务
+  </button>
+  <button type="button" class="nav" id="navPlans" aria-current="page">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>定时计划
+  </button>
+  <button type="button" class="nav" id="navDev" aria-current="false">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="m8 8-4 4 4 4m8-8 4 4-4 4M14 4l-4 16"/></svg>开发脚本
+  </button>
+  <div class="side-bottom">设计草案 · 此页面不连接扩展</div>
+</aside>
+<main class="main">
+  <header class="topline"><span class="crumb" id="crumb">我的 / 定时计划</span><span class="preview-note">交互模拟 · 不运行脚本</span></header>
+  <section class="view" id="viewPlans">
+    <div class="view-head">
+      <div><h1>定时计划</h1><p class="subtitle">让已安装任务按预定时间运行，执行结果统一保留在「我的任务」。</p></div>
+      <button type="button" id="addPlan" class="btn btn-primary">＋ 新建计划</button>
+    </div>
+    <div class="stats">
+      <div class="stat"><b id="countEnabled">2</b><span>已启用</span></div>
+      <div class="stat"><b id="countPaused">1</b><span>已暂停</span></div>
+      <div class="stat"><b id="countPlanned">3</b><span>计划总数</span></div>
+    </div>
+    <div id="planList" class="list" aria-label="定时计划列表"></div>
+    <p class="footnote">计划只规定何时触发，真正执行仍需浏览器、授权、运行宿主和目标网页就绪。关闭浏览器时不会继续执行。</p>
+  </section>
+  <section class="view" id="viewEdit" hidden>
+    <button class="back" type="button" data-back="plans">← 返回定时计划</button>
+    <div class="view-head"><div><h1 id="editorHeading">新建定时计划</h1><p class="subtitle">先选择要运行的任务，再设置时间与目标网页。</p></div></div>
+    <form id="planForm" novalidate>
+      <section class="editor-block" aria-label="任务选择">
+        <h2>1 · 执行哪个任务</h2>
+        <div class="form-row">
+          <label class="label" for="planTitle">计划名称 <span class="required">*</span></label>
+          <input class="field" type="text" id="planTitle" maxlength="60" placeholder="例如：每天检查工作台状态" required>
+        </div>
+        <div class="form-row">
+          <label class="label" for="sourceSelect">执行任务 <span class="required">*</span></label>
+          <div class="source-row">
+            <select class="field" id="sourceSelect" required aria-describedby="sourceHelp"></select>
+            <button class="btn" type="button" id="newScriptFromForm">＋ 新建脚本</button>
+          </div>
+          <div class="source-actions">
+            <span class="field-help" id="sourceHelp">只显示已安装且可定时执行的任务；草稿不能直接排程。</span>
+            <button type="button" class="text-action" id="manageFromForm">管理任务与脚本 ↗</button>
+          </div>
+          <div class="source-detail" id="sourceMeta" aria-live="polite"></div>
+        </div>
+      </section>
+      <section class="editor-block" aria-label="时间安排">
+        <h2>2 · 什么时候运行</h2>
+        <div class="form-grid">
+          <div class="form-row">
+            <label class="label" for="scheduleType">重复方式</label>
+            <select class="field" id="scheduleType">
+              <option value="daily">每天</option><option value="weekly">每周</option>
+              <option value="interval">每隔一段时间</option><option value="once">执行一次</option>
+            </select>
+          </div>
+          <div class="form-row" data-rule="daily weekly once">
+            <label class="label" for="runTime">执行时间</label>
+            <input class="field" type="time" id="runTime" value="09:00">
+          </div>
+        </div>
+        <div class="form-row" data-rule="weekly" hidden>
+          <label class="label">选择星期</label>
+          <div class="weekdays" id="weekDays">
+            <label class="daychip"><input type="checkbox" value="1" checked><span>一</span></label>
+            <label class="daychip"><input type="checkbox" value="2"><span>二</span></label>
+            <label class="daychip"><input type="checkbox" value="3" checked><span>三</span></label>
+            <label class="daychip"><input type="checkbox" value="4"><span>四</span></label>
+            <label class="daychip"><input type="checkbox" value="5" checked><span>五</span></label>
+            <label class="daychip"><input type="checkbox" value="6"><span>六</span></label>
+            <label class="daychip"><input type="checkbox" value="0"><span>日</span></label>
+          </div>
+        </div>
+        <div class="form-row" data-rule="interval" hidden>
+          <label class="label" for="runInterval">时间间隔</label>
+          <select class="field" id="runInterval">
+            <option value="5">每 5 分钟</option><option value="15">每 15 分钟</option><option value="30" selected>每 30 分钟</option>
+            <option value="60">每 1 小时</option><option value="120">每 2 小时</option>
+          </select>
+        </div>
+        <div class="form-row" data-rule="once" hidden>
+          <label class="label" for="runDate">日期</label><input class="field" type="date" id="runDate">
+        </div>
+        <div class="subtle" id="timezoneInfo">按本机时区安排时间</div>
+        <div class="preview-next" id="nextPreview" role="status">预计下次触发：—</div>
+      </section>
+      <section class="editor-block" aria-label="执行目标">
+        <h2>3 · 在哪里运行</h2>
+        <div class="form-row">
+          <label class="label" for="targetUrl">目标网页 URL <span class="required">*</span></label>
+          <input class="field" id="targetUrl" type="url" inputmode="url" placeholder="https://example.com/dashboard">
+          <span class="field-help">首版仅允许所选任务已授权的 HTTP(S) 网站，不自动改用当前活动标签页。</span>
+        </div>
+        <label class="checkline"><input id="autoOpen" type="checkbox">未找到符合条件的页面时，允许打开指定 URL 的新标签页</label>
+      </section>
+      <details class="advanced" id="advancedSettings">
+        <summary>高级选项 · 错过执行与超时</summary>
+        <div class="form-grid">
+          <div class="form-row">
+            <label class="label" for="misfire">错过计划时间</label>
+            <select class="field" id="misfire"><option value="skip">跳过，不补跑（默认）</option><option value="one">恢复后最多补最近一次</option></select>
+          </div>
+          <div class="form-row">
+            <label class="label" for="maxWait">等待运行条件</label>
+            <select class="field" id="maxWait"><option value="5">最长 5 分钟</option><option value="10">最长 10 分钟</option></select>
+          </div>
+        </div>
+        <p class="field-help">补跑仅限恢复后 1 小时内的最近一次；同一计划不并发。执行结果未知时，不自动重复可能产生副作用的操作。</p>
+      </details>
+      <p class="inline-error" id="formError" role="alert" hidden></p>
+      <div class="editor-footer">
+        <button class="btn" type="button" data-back="plans">取消</button>
+        <button class="btn btn-primary" type="submit" id="savePlan" disabled>保存并启用（模拟）</button>
+      </div>
+    </form>
+    <p class="footnote">保存操作只更新此页面的模拟列表；不申请权限、不安装脚本、也不会创建真实 Chrome 闹钟。</p>
+  </section>
+  <section class="view" id="viewScript" hidden>
+    <button class="back" type="button" data-back="edit">← 返回计划设置</button>
+    <div class="view-head"><div><h1>新建脚本</h1><p class="subtitle">这里演示现有「开发」入口的交接流程，不在定时配置中直接运行任意代码。</p></div></div>
+    <div class="steps" aria-label="新建脚本流程"><span class="active">1 编写</span><span>2 验证并安装</span><span>3 返回设置计划</span></div>
+    <section class="editor-block">
+      <div class="form-row"><label class="label" for="scriptName">脚本名称</label><input class="field" type="text" id="scriptName" maxlength="60" value="我的每日检查"></div>
+      <div class="form-row"><label class="label" for="scriptOrigin">目标网站</label><input class="field" type="url" id="scriptOrigin" value="https://example.com" placeholder="https://example.com"></div>
+      <div class="form-row"><label class="label" for="scriptCode">脚本内容 · async main()</label>
+        <textarea class="field code" id="scriptCode" spellcheck="false">async function main() {
+  // 这里编写经过授权的任务逻辑
+  return { message: "检查完成" };
+}</textarea>
+        <span class="field-help">真实项目应进入现有「开发」页面完成保存、运行验证和安装，不能将代码直接塞入调度器。</span>
+      </div>
+      <div class="info"><strong>安全边界：</strong>此演示不会执行文本中的代码。「模拟验证并安装」只是将它加入当前页面的测试下拉列表，并非真实验证结果。</div>
+      <p class="inline-error" id="scriptError" role="alert" hidden></p>
+      <div class="editor-footer">
+        <button type="button" class="btn" data-back="edit">取消</button>
+        <button type="button" class="btn btn-primary" id="mockInstall">模拟验证并安装 → 返回计划</button>
+      </div>
+    </section>
+  </section>
+  <section class="view" id="viewManage" hidden>
+    <button class="back" type="button" id="returnFromManage">← 返回</button>
+    <div class="view-head">
+      <div><h1>任务与脚本管理</h1><p class="subtitle">管理已有安装版本，脚本编辑应在现有「开发」入口完成。</p></div>
+      <button class="btn btn-primary" type="button" id="newFromManage">＋ 新建脚本</button>
+    </div>
+    <div id="manageList" aria-label="已安装任务目录"></div>
+    <p class="footnote">这里是模拟目录。真实产品应复用现有的「我的任务」与「开发」入口，不另建一套脚本数据库或安装器。</p>
+  </section>
+  <section class="view" id="viewHistory" hidden>
+    <button class="back" type="button" data-back="plans">← 返回定时计划</button>
+    <div class="view-head"><div><h1 id="historyHeading">运行记录</h1><p class="subtitle">每次计划触发关联原 Run/Result；下方记录均为演示数据。</p></div></div>
+    <div id="historyRows" class="editor-block"></div>
+  </section>
+  <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+</main>
+</div>
+<script>
+(function(){
+  "use strict";
+  var $=function(id){return document.getElementById(id);};
+  var esc=function(s){return String(s==null?"":s).replace(/[&<>"']/g,function(ch){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch];});};
+  var sources=[
+    {id:"check",title:"每日站点检查",version:"1.0.0",origin:"https://example.com",type:"Controller Task"},
+    {id:"orders",title:"订单状态检查",version:"1.2.0",origin:"https://shop.example.org",type:"Controller Task"},
+    {id:"note",title:"阅读笔记整理",version:"1.0.0",origin:"https://notes.example.org",type:"Controller Task"}
+  ];
+  var plans=[
+    {id:"p1",name:"每日站点巡检",sourceId:"check",rule:"daily",time:"09:00",interval:"30",date:"",days:[1,3,5],target:"https://example.com/dashboard",enabled:true,autoOpen:false,misfire:"skip",wait:"5",last:"模拟成功 · 今天 09:00",history:[{state:"成功（模拟）",when:"今天 09:00",detail:"返回结果已记录 · 原型演示"}]},
+    {id:"p2",name:"订单状态检查",sourceId:"orders",rule:"interval",time:"09:00",interval:"30",date:"",days:[1,3,5],target:"https://shop.example.org/orders",enabled:true,autoOpen:false,misfire:"skip",wait:"5",last:"模拟成功 · 30 分钟前",history:[{state:"成功（模拟）",when:"30 分钟前",detail:"无新增订单 · 原型演示"}]},
+    {id:"p3",name:"阅读笔记整理",sourceId:"note",rule:"weekly",time:"18:00",interval:"30",date:"",days:[1,3,5],target:"https://notes.example.org",enabled:false,autoOpen:false,misfire:"skip",wait:"5",last:"尚未运行",history:[]}
+  ];
+  var editing=null,lastView="plans",counter=4,toastTimeout;
+  var timezone=Intl.DateTimeFormat().resolvedOptions().timeZone||"本机";
+  $("timezoneInfo").textContent="执行时区：" + timezone + " · 真实调度需保存 IANA 时区";
+  function getSource(id){return sources.find(function(x){return x.id===id;});}
+  function ruleLabel(plan){
+    if(plan.rule==="daily")return "每天 "+plan.time;
+    if(plan.rule==="weekly")return "每周 "+(plan.days||[]).map(function(d){return ["日","一","二","三","四","五","六"][d];}).join("、")+" "+plan.time;
+    if(plan.rule==="once")return "一次 · "+(plan.date||"未指定")+" "+plan.time;
+    return "每 "+(Number(plan.interval)>=60?(Number(plan.interval)/60)+" 小时":plan.interval+" 分钟");
+  }
+  function computeNext(p){
+    var now=new Date(),next=new Date(now.getTime());
+    if(p.rule==="interval")next=new Date(now.getTime()+Math.max(1,Number(p.interval)||30)*60000);
+    else if(p.rule==="once"){next=new Date((p.date||"2000-01-01")+"T"+(p.time||"09:00")+":00");if(next<=now)return null;}
+    else{
+      var bits=(p.time||"09:00").split(":");next.setHours(+bits[0],+bits[1],0,0);
+      if(p.rule==="daily"){if(next<=now)next.setDate(next.getDate()+1);}
+      else{
+        var found=false,days=p.days||[];
+        for(var i=0;i<8;i++){
+          var d=new Date(next.getTime());d.setDate(d.getDate()+i);
+          if(days.includes(d.getDay())&&d>now){next=d;found=true;break;}
+        }
+        if(!found)return null;
+      }
+    }
+    return isNaN(next.getTime())?null:next;
+  }
+  function nextLabel(p){
+    var d=computeNext(p);return d?new Intl.DateTimeFormat("zh-CN",{month:"2-digit",day:"2-digit",weekday:"short",hour:"2-digit",minute:"2-digit",hour12:false}).format(d):"暂无下次触发";
+  }
+  function notify(message){
+    clearTimeout(toastTimeout);$("toast").textContent=message;$("toast").hidden=false;
+    toastTimeout=setTimeout(function(){$("toast").hidden=true;},3900);
+  }
+  function show(name){
+    ["Plans","Edit","Script","Manage","History"].forEach(function(key){$("view"+key).hidden=key.toLowerCase()!==name;});
+    var crumbs={plans:"我的 / 定时计划",edit:"我的 / 定时计划 / 设置",script:"开发 / 新建脚本",manage:"我的 / 任务与脚本",history:"我的 / 运行记录"};
+    $("crumb").textContent=crumbs[name]||"我的 / 定时计划";
+    $("navPlans").setAttribute("aria-current",["plans","edit","history"].includes(name)?"page":"false");
+    $("navTasks").setAttribute("aria-current",name==="manage"?"page":"false");
+    $("navDev").setAttribute("aria-current",name==="script"?"page":"false");
+    $("frame").querySelector(".main").scrollTop=0;
+    lastView=name;
+    if(name==="plans")renderPlans();
+    if(name==="manage")renderManage();
+  }
+  function renderPlans(){
+    var enabled=plans.filter(function(p){return p.enabled;}).length;
+    $("countEnabled").textContent=enabled;
+    $("countPaused").textContent=plans.length-enabled;
+    $("countPlanned").textContent=plans.length;
+    if(!plans.length){$("planList").innerHTML='<div class="empty">还没有定时计划。点击「＋ 新建计划」选择任务和执行时间。</div>';return;}
+    $("planList").innerHTML=plans.map(function(p){
+      var source=getSource(p.sourceId),next=p.enabled?nextLabel(p):"暂停中";
+      return '<article class="plan"><div class="plan-top">'+
+        '<button class="plan-name" type="button" data-edit="'+esc(p.id)+'" title="编辑计划">'+esc(p.name)+'</button>'+
+        '<label class="switch" title="'+(p.enabled?"暂停计划":"启用计划")+'">'+
+        '<input type="checkbox" role="switch" aria-label="'+esc(p.name)+' 定时启用" data-toggle="'+esc(p.id)+'" '+(p.enabled?"checked":"")+'>'+
+        '<span class="track"></span></label></div>'+
+        '<div class="plan-meta"><span>'+esc(source?source.title:"任务已不可用")+'</span>'+
+        '<span class="dotsep">'+esc(ruleLabel(p))+'</span></div>'+
+        '<div class="plan-meta"><span>'+ (p.enabled?"预计下次："+esc(next):"暂停期间不会触发") +'</span></div>'+
+        '<div class="plan-foot"><span class="pill '+(p.enabled?"good":"")+'">'+(p.enabled?"已启用":"已暂停")+'</span>'+
+        '<div class="actions"><button type="button" class="btn btn-ghost" data-history="'+esc(p.id)+'">记录</button>'+
+        '<button type="button" class="btn btn-ghost" data-demo="'+esc(p.id)+'" '+(p.enabled?"":"disabled")+'>模拟运行</button>'+
+        '<button type="button" class="btn btn-ghost" data-edit="'+esc(p.id)+'">编辑</button></div></div>'+
+        '<div class="field-help" style="margin-top:5px">'+esc(p.last)+'</div></article>';
+    }).join("");
+  }
+  function populateSources(selected){
+    $("sourceSelect").innerHTML='<option value="">请选择已安装任务</option>'+sources.map(function(s){
+      return '<option value="'+esc(s.id)+'" '+(s.id===selected?"selected":"")+'>'+esc(s.title+" · v"+s.version)+'</option>';
+    }).join("");
+    updateSource();
+  }
+  function updateSource(){
+    var s=getSource($("sourceSelect").value);
+    $("sourceMeta").hidden=!s;
+    $("sourceMeta").innerHTML=s?'<b>已安装 · '+esc(s.type)+'</b>　v'+esc(s.version)+'<br>批准的网站：'+esc(s.origin):"";
+    if(s&&!$("targetUrl").value){$("targetUrl").value=s.origin+"/";}
+    validate();
+  }
+  function openEditor(id){
+    editing=id||null;
+    var p=plans.find(function(row){return row.id===editing;});
+    $("editorHeading").textContent=p?"编辑定时计划":"新建定时计划";
+    $("planTitle").value=p?p.name:"";
+    $("targetUrl").value=p?p.target:"";
+    $("scheduleType").value=p?p.rule:"daily";
+    $("runTime").value=p?p.time:"09:00";
+    $("runInterval").value=p?p.interval:"30";
+    $("runDate").value=p?p.date:"";
+    $("autoOpen").checked=!!(p&&p.autoOpen);
+    $("misfire").value=p?p.misfire:"skip";
+    $("maxWait").value=p?p.wait:"5";
+    $("advancedSettings").open=false;
+    var days=p?p.days:[1,3,5];
+    document.querySelectorAll("#weekDays input").forEach(function(input){input.checked=days.includes(Number(input.value));});
+    populateSources(p?p.sourceId:"");
+    setRuleVisibility();validate();show("edit");
+  }
+  function setRuleVisibility(){
+    var rule=$("scheduleType").value;
+    document.querySelectorAll("[data-rule]").forEach(function(el){el.hidden=!el.dataset.rule.split(" ").includes(rule);});
+    validate();
+  }
+  function draft(){
+    return {name:$("planTitle").value.trim(),sourceId:$("sourceSelect").value,
+      rule:$("scheduleType").value,time:$("runTime").value,interval:$("runInterval").value,date:$("runDate").value,
+      days:[].slice.call(document.querySelectorAll("#weekDays input:checked")).map(function(x){return Number(x.value);}),
+      target:$("targetUrl").value.trim(),autoOpen:$("autoOpen").checked,misfire:$("misfire").value,wait:$("maxWait").value};
+  }
+  function validationError(d){
+    if(!d.name)return "请输入计划名称";
+    var s=getSource(d.sourceId);if(!s)return "请从已安装任务中选择一个执行任务，或先新建脚本";
+    var url;
+    try{url=new URL(d.target);}catch{return "请输入完整的 HTTP(S) 目标网页 URL";}
+    if(!["http:","https:"].includes(url.protocol)||url.username||url.password)return "只允许普通 HTTP(S) 网页，不能包含账号密码";
+    if(url.origin!==s.origin)return "目标网页不在任务已批准的网站范围（"+s.origin+"）";
+    if(!d.time&&d.rule!=="interval")return "请选择执行时间";
+    if(d.rule==="weekly"&&!d.days.length)return "每周任务至少选择一天";
+    if(d.rule==="once"&&!computeNext(d))return "请选择未来的有效执行日期与时间";
+    return "";
+  }
+  function validate(){
+    var d=draft(),err=validationError(d),preview=computeNext(d);
+    $("savePlan").disabled=!!err;
+    $("formError").textContent=err;$("formError").hidden=!err;
+    $("nextPreview").innerHTML=err?'预计下次触发：—':'预计下次触发：<b>'+esc(preview?nextLabel(d):"暂无")+'</b> <span class="subtle">（仅界面预估）</span>';
+    $("targetUrl").classList.toggle("invalid",!!d.target&&!!err&&err.includes("目标网页"));
+  }
+  function savePlan(e){
+    e.preventDefault();var d=draft(),error=validationError(d);
+    if(error){$("formError").textContent=error;$("formError").hidden=false;return;}
+    if(editing){
+      var old=plans.find(function(x){return x.id===editing;});
+      if(old)Object.assign(old,d,{enabled:true});
+    }else plans.unshift(Object.assign({id:"p"+(counter++),history:[],last:"尚未运行",enabled:true},d));
+    show("plans");notify("计划已保存（原型模拟），未创建真实浏览器闹钟。");
+  }
+  function openScript(copy){
+    $("scriptError").hidden=true;
+    $("scriptName").value=copy?copy.title+" 副本":"我的每日检查";
+    $("scriptOrigin").value=copy?copy.origin:"https://example.com";
+    $("scriptCode").value=copy&&copy.source?copy.source:'async function main() {\n  // 这里编写经过授权的任务逻辑\n  return { message: "检查完成" };\n}';
+    show("script");
+  }
+  function mockInstall(){
+    var title=$("scriptName").value.trim(),origin=$("scriptOrigin").value.trim(),code=$("scriptCode").value;
+    var error="";
+    try{var u=new URL(origin);if(!["http:","https:"].includes(u.protocol)||u.origin!==u.href.replace(/\/$/,""))error="请填写精确 HTTP(S) 网站 origin（例如 https://example.com）";}catch{error="网站地址无效";}
+    if(!title)error="请输入脚本名称";
+    if(!/\basync\s+function\s+main\s*\(/.test(code))error="演示要求包含 async function main() 入口";
+    if(error){$("scriptError").textContent=error;$("scriptError").hidden=false;return;}
+    var id="demo"+(counter++),s={id:id,title:title,version:"0.1.0",origin:new URL(origin).origin,type:"Controller Task",source:code};
+    sources.push(s);show("edit");populateSources(id);$("planTitle").value=$("planTitle").value.trim()||title+" · 定时运行";
+    $("targetUrl").value=s.origin+"/";validate();
+    notify("已加入模拟已安装列表并自动选中。真实产品必须经过保存、验证和安装。");
+  }
+  function renderManage(){
+    $("manageList").innerHTML=sources.map(function(s){
+      return '<div class="manager"><div class="manager-main"><b>'+esc(s.title)+'</b><span>'+esc(s.type)+" · v"+esc(s.version)+'</span><span>'+esc(s.origin)+'</span></div>'+
+      '<div class="manager-side"><button class="btn" type="button" data-copy="'+esc(s.id)+'">复制到开发</button></div></div>';
+    }).join("");
+  }
+  function openHistory(id){
+    var p=plans.find(function(x){return x.id===id;});
+    if(!p)return;
+    $("historyHeading").textContent=p.name+" · 运行记录";
+    $("historyRows").innerHTML=p.history.length?p.history.map(function(r){
+      return '<div class="history-item"><div><b>'+esc(r.state)+'</b><div class="subtle">'+esc(r.detail)+'</div></div><span class="subtle">'+esc(r.when)+'</span></div>';
+    }).join(""):'<div class="subtle">暂无运行记录。</div>';
+    show("history");
+  }
+  function demoRun(id){
+    var p=plans.find(function(x){return x.id===id;});if(!p||!p.enabled)return;
+    p.history.unshift({state:"成功（模拟）",when:"刚刚",detail:"仅演示显示效果 · 未运行任何代码"});
+    p.last="模拟成功 · 刚刚";renderPlans();notify("已生成模拟运行记录，实际脚本没有执行。");
+  }
+  document.addEventListener("click",function(event){
+    var b=event.target.closest("button");if(!b)return;
+    if(b.id==="addPlan")openEditor();
+    else if(b.dataset.edit)openEditor(b.dataset.edit);
+    else if(b.dataset.history)openHistory(b.dataset.history);
+    else if(b.dataset.demo)demoRun(b.dataset.demo);
+    else if(b.dataset.copy)openScript(getSource(b.dataset.copy));
+    else if(b.dataset.back)show(b.dataset.back);
+  });
+  document.addEventListener("change",function(event){
+    if(event.target.matches("[data-toggle]")){
+      var p=plans.find(function(x){return x.id===event.target.dataset.toggle;});
+      if(p){p.enabled=event.target.checked;renderPlans();notify(p.enabled?"已模拟启用计划。":"已模拟暂停后续触发，已有运行另行停止。");}
+    }
+  });
+  $("modeSide").addEventListener("click",function(){$("frame").classList.add("is-side");$("modeSide").setAttribute("aria-pressed","true");$("modeWide").setAttribute("aria-pressed","false");});
+  $("modeWide").addEventListener("click",function(){$("frame").classList.remove("is-side");$("modeSide").setAttribute("aria-pressed","false");$("modeWide").setAttribute("aria-pressed","true");});
+  $("newScriptFromForm").addEventListener("click",function(){openScript();});
+  $("manageFromForm").addEventListener("click",function(){show("manage");$("returnFromManage").dataset.back="edit";});
+  $("newFromManage").addEventListener("click",function(){openScript();});
+  $("returnFromManage").addEventListener("click",function(){show($("returnFromManage").dataset.back||"plans");});
+  $("navPlans").addEventListener("click",function(){show("plans");});
+  $("navTasks").addEventListener("click",function(){show("manage");$("returnFromManage").dataset.back="plans";});
+  $("navDev").addEventListener("click",function(){openScript();});
+  $("mockInstall").addEventListener("click",mockInstall);
+  $("scheduleType").addEventListener("change",setRuleVisibility);
+  ["planTitle","sourceSelect","runTime","runInterval","runDate","targetUrl","autoOpen","misfire","maxWait"].forEach(function(id){
+    $(id).addEventListener("input",function(){
+      if(id==="sourceSelect"){
+        var selected=getSource($("sourceSelect").value);
+        if(selected)$("targetUrl").value=selected.origin+"/";
+        updateSource();
+      }else validate();
+    });
+    $(id).addEventListener("change",validate);
+  });
+  $("weekDays").addEventListener("change",validate);
+  $("planForm").addEventListener("submit",savePlan);
+  var minDate=new Date();$("runDate").min=[minDate.getFullYear(),String(minDate.getMonth()+1).padStart(2,"0"),String(minDate.getDate()).padStart(2,"0")].join("-");
+  $("runDate").value=$("runDate").min;
+  show("plans");setRuleVisibility();
+})();
+</script>
+</body>
+</html>
