@@ -1,4 +1,4 @@
-# 本地云控表单示例
+# 本地云控表单示例（历史兼容入口）
 
 需要 Node >=22.12、已安装仓库依赖和受控 Chrome >=138。固定任务 sample.form-fill@1.0.0，不修改示例摘要。
 
@@ -81,3 +81,25 @@ R4 架构与验收清单：
 和 `docs/framework/workstreams/cloud-control-r4-20261012.md`。
 
 后续新增专项 CI：`.github/workflows/cloud-control-r4-idb.yml`，以独立 Linux Chrome for Testing 对**真实 IDB 引擎和 R4 游标代码**进行数据量与回滚微基准。此验证不安装完整扩展、不运行 Task、不替代 Mac Chrome Gate 4。
+
+
+## R5.1 通用 Controller Task 投递（覆盖上文固定表单示例限制）
+
+本节为最新合同；以上 /admin/seed 只能调用固定表单的叙述仅适用于旧版 seed:form 兼容模式。R5.1 Provider 允许管理员从本地已校验 Task Package 登记多个不可变任务 manifest；**不上传、保存或下发源码**。必须先在浏览器独立完成验证、发布、安装、启用，Provider 登记不能代替这些本地授权。
+
+保持原本的 Provider 运行，在本机受控终端输入：
+
+    node scripts/cloud-control/cli.mjs register --package examples/tasks/form-fill.v1.opendesk-task.json
+    node scripts/cloud-control/cli.mjs register --package examples/tasks/modern-search.v1.opendesk-task.json
+    node scripts/cloud-control/cli.mjs tasks
+
+在 Side Panel「云控」→「连接与授权」选择多个已安装任务，逐项核对 taskId、固定 version、manifestHash、sourceHash、网站 origin、安装代际及结果回传许可。新增任务和升级版本默认不批准。点击批准前必须确认总授权；任一 Task 允许结果回传还必须再次明确勾选。修改现有授权前先停止托管。
+
+在两个不同 Task 已在浏览器完成真实安装及许可、并且**未与另一个 Agent 的 43111/43112 或 Chrome Profile 争用**时，可使用通用投递：
+
+    node scripts/cloud-control/cli.mjs seed --package examples/tasks/form-fill.v1.opendesk-task.json --target http://127.0.0.1:43111/demo-form.html --params '{"name":"Alice"}' --key r51-form-001
+    node scripts/cloud-control/cli.mjs seed --package examples/tasks/modern-search.v1.opendesk-task.json --target http://127.0.0.1:43111/demo-form.html --params '{"keyword":"OpenDesk"}' --key r51-search-001
+
+还可显式提供 --task、--version、--manifest-hash、--source-hash 取代 --package。传入目标必须是包 manifest 已批准网站 origin 内的规范化 HTTP(S) URL；参数必须通过该 Task 的闭合 Schema，同一 requestKey 同规范化内容返回原 Job，不同内容返回 E_REQUEST_CONFLICT。管理员 API 现在包含 /admin/register 和 /admin/tasks，原 /admin/seed 同时兼容固定表单和通用身份；Executor 不可通过 /v1 路由登记、上传或传递脚本。
+
+遗留原 Run/Result、retirement、Provider admission/receipt 和 OUTCOME_UNKNOWN 保护不变。Node HTTP/WebSocket 组件通过不等于真实 Chrome 已执行。对应 R5.1 工作流见 docs/framework/workstreams/cloud-control-r5-01-generic-task.md 和同名 JSON；必须获得两个不同 Controller Task 的真实 Worker 与 Run/Result 回执才可标记 NATIVE_PASS。
