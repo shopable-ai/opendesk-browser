@@ -1,0 +1,49 @@
+name: R24.3 browser React Vue editor Run Stop without Native
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/page-browser-ui-r243-cft.yml'
+      - 'tests/framework/page-browser-worker-r243-cft.mjs'
+      - 'src/ui/page-component-preparer.js'
+      - 'src/ui/page-component-compiler-worker.js'
+      - 'src/ui/script-editor.js'
+      - 'src/ui/tool.html'
+      - 'src/native-agent/managed-preview.js'
+      - 'src/libs/page-frameworks/**'
+      - 'scripts/verify-package.mjs'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  native-free-real-webpage:
+    runs-on: macos-15
+    timeout-minutes: 19
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Verify and build real MV3 package
+        run: |
+          npm run check
+          npm run build
+      - uses: browser-actions/setup-chrome@v2
+        id: chrome
+        with:
+          chrome-version: '155.0.8059.39'
+      - name: Genuine Chrome editor JSX Vue Run pointer update and managed Stop; Native absent
+        env:
+          CHROME_FOR_TESTING_BIN: ${{ steps.chrome.outputs.chrome-path }}
+          OPENDESK_R243_BROWSER_FULL_UI: '1'
+          OPENDESK_DEV_EVIDENCE: .runtime/tests/page-browser-ui-r243
+          OPENDESK_DEV_CFT_LAUNCHER: ${{ github.workspace }}/tests/framework/cft-isolated-launcher.py
+        run: node tests/framework/page-browser-worker-r243-cft.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: r243-browser-ui-native-free-${{ github.sha }}
+          path: .runtime/tests/page-browser-ui-r243
+          if-no-files-found: warn
