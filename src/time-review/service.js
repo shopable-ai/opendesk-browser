@@ -2,7 +2,7 @@ import {SIDEBAR_TOOL_STORE,validateSidebarToolPackage} from '../ui/sidebar-tools
 import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE,sidebarToolEnabled} from '../ui/sidebar-tools/lifecycle.js';
 import {writeVerifiedLocalValue} from '../ui/sidebar-tools/storage-state.js';
 import {isReadingTocToolSender} from '../reading-toc/page.js';
-import {TIME_REVIEW_KEY,readReview,reviewHost,reviewSettings,settleReview,reviewSummary,reviewExport,MAX_OBSERVATION_GAP} from './model.js';
+import {TIME_REVIEW_KEY,readReview,reviewHost,reviewSettings,reviewClassify,reviewDay,localDay,settleReview,reviewSummary,reviewExport,MAX_OBSERVATION_GAP} from './model.js';
 import {TIME_REVIEW_ID,TIME_REVIEW_PROTOCOL,TIME_REVIEW_CAPABILITY,TIME_REVIEW_ALARM,TIME_REVIEW_SESSION,TIME_REVIEW_OPERATIONS,timeReviewPackageHash} from './policy.js';
 const error=(message,code='E_TIME_AUTHORITY')=>Object.assign(new Error(message),{code});
 
@@ -78,9 +78,17 @@ export function createTimeReviewService({api=globalThis.chrome,lockManager=globa
     else if(operation==='time.revoke'){state.paused=true;state.authorizedHash=null;state.authorizedEpoch=null;}
     else if(operation==='time.settings'){
       state.settings=reviewSettings(payload);observation=await observe(state);
+    }else if(operation==='time.classify'){
+      if(!payload||Object.keys(payload).sort().join(',')!=='category,host')throw error('分类请求参数无效','E_TIME_DATA');
+      reviewClassify(state,payload);
+    }else if(operation==='time.minuteConsent'){
+      if(!payload||Object.keys(payload).join(',')!=='enabled'||typeof payload.enabled!=='boolean')
+        throw error('分钟记录授权请求无效','E_TIME_DATA');
+      state.minuteConsent=payload.enabled;
+      if(!payload.enabled)state.minuteDays={};
     }else if(operation==='time.clear'){
       if(payload?.confirm!==true)throw error('请明确确认清空本机时间记录','E_TIME_CONFIRM');
-      state.days={};state.discardedMs=0;
+      state.days={};state.discardedMs=0;state.minuteDays={};state.categories={};
     }
     const checkpointAt=Math.max(at,now());
     if(!state.paused&&state.authorizedHash===hash&&auth.enabled&&observation.current&&checkpointAt>=state.highWater){
@@ -130,6 +138,17 @@ export function createTimeReviewService({api=globalThis.chrome,lockManager=globa
       const result=await reconcileLocked({operation:message.operation,payload:message.payload,auth,validateHost:()=>hostDocument(sender,documentId)});
       if(!result)throw error('工具已卸载');
       try{await hostDocument(sender,documentId);}catch(cause){throw error('宿主在提交期间变化；请恢复核对本机记录，不要盲目重试','E_OUTCOME_UNKNOWN');}
+      if(message.operation==='time.day'){
+        const date=message.payload?.date;
+        if(!message.payload||Object.keys(message.payload).join(',')!=='date')
+          throw error('按日期查询参数无效','E_TIME_DATA');
+        const day=reviewDay(result.state,date);
+        const end=new Date(result.summary.today+'T12:00:00'),earliest=new Date(end);
+        earliest.setDate(earliest.getDate()-result.state.settings.retentionDays+1);
+        if(date<localDay(earliest.getTime())||date>result.summary.today)
+          throw error('查询日期超出本机保留范围','E_TIME_DATA');
+        return day;
+      }
       if(message.operation==='time.export'){
         if(!auth.tool.capabilities.includes('user.export'))throw error('工具没有导出权限');
         const file=reviewExport(result.state,message.payload?.format||'json');

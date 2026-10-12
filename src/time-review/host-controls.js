@@ -3,7 +3,7 @@
 import {TIME_REVIEW_ID,TIME_REVIEW_CAPABILITY} from './policy.js';
 
 export function createTimeReviewPermissionControls({api,doc,container,notice,runOperation}){
-  let section=null,clearReview=null,busy=false,buttons=[];
+  let section=null,clearReview=null,minuteReview=null,busy=false,buttons=[];
   const say=(message,problem=false)=>notice(message,problem);
   const button=(id,label,action)=>{
     const node=doc.createElement('button');node.type='button';node.id=id;
@@ -18,6 +18,8 @@ export function createTimeReviewPermissionControls({api,doc,container,notice,run
     Promise.resolve().then(()=>runOperation(operation,payload,event))
       .then(()=>say(operation==='time.start'
         ?'已确认开始／恢复后台记录；统计仅保留在本机。'
+        :operation==='time.minuteConsent'?(payload?.enabled
+          ?'已开启未来有效活动的本机分钟明细。':'已关闭分钟明细并清除已保存的明细。')
         :'已清空本机时间统计。'))
       .catch(error=>say((error?.code||'E_TIME_REVIEW')+'：'+String(error?.message||error),true))
       .finally(()=>setBusy(false));
@@ -27,6 +29,7 @@ export function createTimeReviewPermissionControls({api,doc,container,notice,run
     if(!visible){
       if(section)section.hidden=true;
       if(clearReview)clearReview.hidden=true;
+      if(minuteReview)minuteReview.hidden=true;
       return;
     }
     if(!section){
@@ -74,7 +77,31 @@ export function createTimeReviewPermissionControls({api,doc,container,notice,run
         clear.focus?.({preventScroll:true});
       });
       clearReview.append(warning,approve,cancel);
-      section.append(hint,grant,revoke,start,clear,clearReview);
+      const minuteNotice=doc.createElement('p');
+      minuteNotice.textContent='可选分钟明细：开启后只保存未来已经确认的活动日期、域名、分钟序号及毫秒；不保存标题、路径或网页内容。不根据历史日汇总补造分钟数据。';
+      const minuteEnable=button('time-review-minute-enable','开启分钟明细',event=>{
+        operate('time.minuteConsent',{enabled:true},event);
+      });
+      const minuteDisable=button('time-review-minute-disable','关闭并删除分钟明细…',event=>{
+        if(event?.isTrusted!==true||busy)return;
+        minuteReview.hidden=false;minuteReview.scrollIntoView?.({block:'nearest'});
+      });
+      minuteReview=doc.createElement('section');
+      minuteReview.id='time-review-minute-delete-review';
+      minuteReview.className='time-review-inline-clear-review';minuteReview.hidden=true;
+      const minuteWarning=doc.createElement('p');
+      minuteWarning.textContent='确认关闭未来分钟采集并永久删除已有分钟明细？网站日汇总与分类不受影响。';
+      const minuteApprove=button('time-review-minute-delete-approve','确认关闭并删除',event=>{
+        if(event?.isTrusted!==true||busy)return;
+        minuteReview.hidden=true;
+        operate('time.minuteConsent',{enabled:false},event);
+      });
+      const minuteCancel=button('time-review-minute-delete-cancel','取消',()=>{
+        minuteReview.hidden=true;minuteDisable.focus?.({preventScroll:true});
+      });
+      minuteReview.append(minuteWarning,minuteApprove,minuteCancel);
+      section.append(hint,grant,revoke,start,clear,clearReview,
+        minuteNotice,minuteEnable,minuteDisable,minuteReview);
       container.append(section);
     }
     section.hidden=false;

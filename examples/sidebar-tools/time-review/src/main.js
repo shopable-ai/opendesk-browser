@@ -1,48 +1,310 @@
 (() => {
   'use strict';
   const {root,request}=globalThis.OpenDeskTool;
-  const get=id=>root.querySelector('#'+id);
-  let state=null,scope='today',busy=false,settingsLoaded=false;
-  const duration=ms=>{const seconds=Math.floor(ms/1000),minutes=Math.floor(seconds/60),hours=Math.floor(minutes/60);return hours?hours+'小时 '+minutes%60+'分':minutes?minutes+'分 '+seconds%60+'秒':seconds+'秒';};
-  const message=(text,error=false)=>{get('status').textContent=text;get('status').dataset.error=String(error);};
-  function rows(container,values){
-    container.replaceChildren();
-    if(!values.length){const empty=document.createElement('li');empty.textContent='暂无记录，开始后浏览普通网页即可。';container.append(empty);return;}
-    for(const [label,ms] of values){const row=document.createElement('li'),name=document.createElement('span'),value=document.createElement('span');name.textContent=label;value.textContent=duration(ms);row.append(name,value);container.append(row);}
+  const $=id=>root.querySelector('#'+id);
+  const C=[
+    {name:'未分类',short:'未分类',color:'#788494'},
+    {name:'工作/生产',short:'重要且紧急',color:'#1976d2'},
+    {name:'阅读学习',short:'重要不紧急',color:'#3b8ad9'},
+    {name:'聊天/新闻',short:'紧急不重要',color:'#b64f4f'},
+    {name:'娱乐',short:'不重要不紧急',color:'#ec5d5d'},
+    {name:'生活',short:'生活',color:'#c8992d'}
+  ];
+  let state=null,day=null,selectedDate=null,scope='today',busy=false,settingsLoaded=false,selectedMinute=null,filter=null,editing=false,daySerial=0;
+  let canvasGeometry=null;
+  const formatMs=ms=>{
+    if(!Number.isFinite(ms)||ms<0)return '—';
+    const sec=Math.floor(ms/1000),min=Math.floor(sec/60),hr=Math.floor(min/60);
+    return hr?hr+'小时'+(min%60?min%60+'分':''):min?min+'分':sec+'秒';
+  };
+  const percent=(n,total)=>total?Math.round(n/total*100)+'%':'—';
+  const minuteLabel=m=>String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0');
+  const newNode=(tag,cls,text)=>{
+    const element=document.createElement(tag);
+    if(cls)element.className=cls;
+    if(text!==undefined)element.textContent=text;
+    return element;
+  };
+  const showMessage=(message,error=false)=>{$('status').textContent=message;$('status').dataset.error=String(error);};
+  const safeDate=date=>new Date(date+'T12:00:00');
+  const shiftDate=(date,offset)=>{
+    const d=safeDate(date);d.setDate(d.getDate()+offset);
+    return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+  };
+  const earliest=()=>{
+    if(!state)return null;
+    return shiftDate(state.today,-state.settings.retentionDays+1);
+  };
+  function dayData(){
+    if(day?.date===selectedDate)return day;
+    if(state?.today===selectedDate){
+      return {date:state.today,totalMs:state.todayMs,importantMs:state.todayImportantMs,
+        categoryMs:state.todayCategoryMs||[0,0,0,0,0,0],classifiedMs:state.todayClassifiedMs||0,
+        productivityPct:state.todayProductivityPct??null,sites:state.todaySites||[],
+        minuteSlots:[],timelineStatus:'unavailable',minuteCoveredMs:0,minuteConsent:state.minuteConsent};
+    }
+    return null;
+  }
+  function renderCategories(data){
+    const counts=data?.categoryMs||[0,0,0,0,0,0],total=data?.totalMs||0;
+    $('category-total').textContent=total?'合计 '+formatMs(total):'暂无记录';
+    const dist=$('distribution');dist.replaceChildren();
+    for(const cat of [1,2,0,3,4,5]){
+      const track=newNode('i');
+      track.style.background=C[cat].color;
+      track.style.width=(total?100*counts[cat]/total:0)+'%';
+      track.title=C[cat].name+' · '+formatMs(counts[cat]);
+      dist.append(track);
+    }
+    const quad=$('quadrants');quad.replaceChildren();
+    for(const cat of [1,2,3,4]){
+      const card=newNode('button','qcard');card.type='button';card.dataset.cat=String(cat);
+      card.style.setProperty('--cat',C[cat].color);
+      const name=newNode('span','q-name',C[cat].short);
+      const description=newNode('span','q-desc',C[cat].name);
+      const bottom=newNode('span','q-bottom');
+      bottom.append(newNode('b','',total?formatMs(counts[cat]):'—'),newNode('small','',percent(counts[cat],total)));
+      const meter=newNode('span','q-meter'),fill=newNode('i');
+      fill.style.width=(total?counts[cat]/total*100:0)+'%';meter.append(fill);
+      card.append(name,description,bottom,meter);
+      card.addEventListener('click',()=>{filter=cat;scope='today';$('sites').scrollIntoView({block:'nearest'});renderRecords();});
+      quad.append(card);
+    }
+    const extras=$('extra-categories');extras.replaceChildren();
+    for(const cat of [5,0]){
+      const card=newNode('button','extra-card');card.type='button';card.dataset.cat=String(cat);
+      card.style.setProperty('--cat',C[cat].color);
+      const name=newNode('span','extra-name'),dot=newNode('i','dot');
+      name.append(dot,document.createTextNode(C[cat].name));
+      card.append(name,newNode('span','extra-min',total?formatMs(counts[cat]):'—'));
+      card.addEventListener('click',()=>{filter=cat;scope='today';renderRecords();$('sites').scrollIntoView({block:'nearest'});});
+      extras.append(card);
+    }
+  }
+  function renderCanvas(data){
+    const canvas=$('minute-canvas'),rect=canvas.getBoundingClientRect(),w=Math.max(1,rect.width||canvas.clientWidth||250);
+    const h=54,dpr=Math.min(window.devicePixelRatio||1,3);
+    const pw=Math.round(w*dpr),ph=Math.round(h*dpr);
+    if(canvas.width!==pw||canvas.height!==ph){canvas.width=pw;canvas.height=ph;}
+    const ctx=canvas.getContext('2d');if(!ctx)return;
+    ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,w,h);
+    const barY=7,barH=18,bins=Array(1440).fill(null);
+    for(const entry of data?.minuteSlots||[]){
+      if(Array.isArray(entry)&&Number.isInteger(entry[0])&&entry[0]>=0&&entry[0]<1440&&Number.isInteger(entry[1])&&entry[1]>=0&&entry[1]<=5)
+        bins[entry[0]]=entry;
+    }
+    canvasGeometry={w,bins,barY,barH,complete:data?.timelineStatus==='complete'};
+    ctx.save();ctx.beginPath();
+    if(typeof ctx.roundRect==='function')ctx.roundRect(0,barY,w,barH,5);else ctx.rect(0,barY,w,barH);
+    ctx.clip();ctx.fillStyle='#eef2f8';ctx.fillRect(0,barY,w,barH);
+    for(let minute=0;minute<1440;){
+      const current=bins[minute],cat=current?.[1],begin=minute;
+      while(minute<1440&&bins[minute]?.[1]===cat)minute++;
+      if(current){ctx.fillStyle=C[cat].color;ctx.fillRect(begin/1440*w,barY,(minute-begin)/1440*w,barH);}
+    }
+    ctx.restore();
+    ctx.font='10px -apple-system,system-ui,sans-serif';ctx.fillStyle='#798ba3';ctx.textBaseline='middle';
+    const step=w<110?4:w<230?2:1;
+    for(let q=0;q<=4;q+=step){
+      const x=q*w/4;ctx.textAlign=q===0?'left':q===4?'right':'center';
+      ctx.fillText(minuteLabel(q*360),x,barY+barH+14);
+    }
+    if(selectedMinute!==null){
+      const x=Math.max(0,Math.min(w-1,selectedMinute/1440*w));
+      ctx.fillStyle='#203047';ctx.fillRect(x,barY-3,1.5,barH+6);
+    }
+    renderReadout();
+  }
+  function renderReadout(){
+    const minute=selectedMinute;
+    if(minute===null){$('timeline-text').textContent='选择时间查看对应分钟';$('timeline-swatch').style.background='#b3c0d0';return;}
+    const data=dayData(),item=canvasGeometry?.bins[minute];
+    let info='暂无可验证的分钟数据',color='#b3c0d0';
+    if(item){info=C[item[1]].name+' · '+item[3]+' · '+formatMs(item[2]);color=C[item[1]].color;}
+    else if(data?.timelineStatus==='complete')info='未记录';
+    else if(data?.timelineStatus==='partial')info='未保存分钟明细';
+    $('timeline-text').textContent=minuteLabel(minute)+' · '+info;
+    $('timeline-swatch').style.background=color;
+    $('minute-canvas').setAttribute('aria-valuenow',String(minute));
+    $('minute-canvas').setAttribute('aria-valuetext',minuteLabel(minute)+' · '+info);
+  }
+  function renderTimeline(data){
+    const status=data?.timelineStatus||'unavailable';
+    const labels={complete:'分钟明细完整',partial:'部分分钟明细',unavailable:'尚无分钟明细',dst:'夏令时日期',timezone:'时区数据不确定'};
+    $('timeline-state').textContent=labels[status];
+    $('timeline-note').hidden=status==='complete';
+    $('timeline-note').textContent=status==='partial'?'仅显示已保存的真实分钟；空白位置不代表未访问。':
+      status==='dst'||status==='timezone'?'该日期的本地 24 小时刻度无法可靠定位，保留真实日汇总。':
+      data?.totalMs?'此日期有汇总记录，但没有可验证的分钟位置。旧历史不会自动补造。':
+      state?.minuteConsent?'还没有产生分钟记录。':'可在设置中自愿开启未来的分钟明细。';
+    renderCanvas(data);
+  }
+  function renderCurrent(data){
+    const host=state?.paused?null:state?.trackingHost||null;
+    $('site-host').textContent=host||'当前没有正在记录的网站';
+    $('site-hint').textContent=host?'仅记录域名，不读取网页正文':'暂停、失焦、空闲或未授权时不记录';
+    // The live-site card always reflects today, even while reviewing an earlier date.
+    const site=(state?.todaySites||[]).find(row=>row.host===host);
+    $('site-time').textContent=site?formatMs(site.ms):'—';
+    const cat=host?(state?.siteCategories?.[host]??0):undefined;
+    $('site-category').textContent=host&&cat!==undefined?C[cat].name:'—';
+    $('tracking-state').textContent=host?'正在记录':'未记录';
+    $('edit-category').disabled=busy||!host||!site;
+    $('inline-edit').hidden=!editing||!host||!site;
+    if(site&&!editing)$('type-select').value=String(site.category??0);
+  }
+  function renderRecords(){
+    if(!state)return;
+    $('today').setAttribute('aria-pressed',String(scope==='today'));
+    $('week').setAttribute('aria-pressed',String(scope==='week'));
+    $('daily-section').hidden=scope!=='week';
+    $('week-total').textContent='七天 '+formatMs(state.weekMs);
+    const daily=$('daily');daily.replaceChildren();
+    for(const item of state.days||[]){
+      const row=newNode('li','detail-item');
+      row.append(newNode('b','',item.date),newNode('strong','',formatMs(item.ms)));
+      daily.append(row);
+    }
+    const selected=dayData();
+    const items=scope==='week'?state.sites||[]:selected?.sites||[];
+    const shown=items.filter(item=>scope==='week'||filter===null||(item.category??0)===filter).slice(0,50);
+    const list=$('sites');list.replaceChildren();
+    if(!shown.length){
+      const item=newNode('li','detail-item',filter!==null?'该分类暂无网站记录':'暂无记录');
+      list.append(item);return;
+    }
+    for(const item of shown){
+      const row=newNode('li','detail-item'),entry=newNode('div','entry');
+      const currentCat=scope==='today'?item.category??0:state.siteCategories?.[item.host]??0;
+      entry.append(newNode('b','',item.host),newNode('small','',C[currentCat].name+(scope==='week'?' · 近七天':'')));
+
+      const value=newNode('strong','',formatMs(item.ms));
+      row.append(entry,value);
+      {
+        const edit=newNode('button','','分类');edit.type='button';edit.disabled=busy;
+        edit.setAttribute('aria-label','修改 '+item.host+' 的分类');
+        edit.addEventListener('click',()=>{
+          if(row.querySelector('select')){row.querySelector('.row-edit').remove();return;}
+          const area=newNode('div','row-edit'),sel=newNode('select'),save=newNode('button','primary','保存');
+          for(let id=0;id<C.length;id++){const option=document.createElement('option');option.value=String(id);option.textContent=C[id].name;sel.append(option);}
+          sel.value=String(currentCat);sel.setAttribute('aria-label',item.host+' 的分类');save.type='button';
+          save.addEventListener('click',()=>void act('time.classify',{host:item.host,category:Number(sel.value)}));
+          area.append(sel,save);entry.append(area);sel.focus();
+        });
+        row.append(edit);
+      }
+      list.append(row);
+    }
   }
   function render(){
-    for(const button of root.querySelectorAll('button'))button.disabled=busy;
+    for(const button of root.querySelectorAll('button'))button.disabled=busy||!state;
     if(!state)return;
-    get('start').disabled=busy||!state.paused;get('start').textContent=state.authorized?'恢复记录':'开始记录';get('pause').disabled=busy||state.paused;
-    get('today-total').textContent=duration(state.todayMs);get('week-total').textContent=duration(state.weekMs);
-    get('today').setAttribute('aria-pressed',String(scope==='today'));get('week').setAttribute('aria-pressed',String(scope==='week'));
-    get('daily-section').hidden=scope!=='week';rows(get('daily'),state.days.map(row=>[row.date,row.ms]));
-    rows(get('sites'),(scope==='today'?state.todaySites:state.sites).slice(0,50).map(row=>[row.host,row.ms]));
-    get('gap').hidden=!state.discardedMs;get('gap').textContent='有 '+duration(state.discardedMs)+' 无法确认活动的间隔（例如休眠或重启），已保守排除。';
-    if(!settingsLoaded){get('idle').value=String(state.settings.idleSeconds);get('retention').value=String(state.settings.retentionDays);get('excluded').value=state.settings.excludedHosts.join('\n');settingsLoaded=true;}
+    const data=dayData();
+    $('start').disabled=busy||!state.paused;
+    $('start').textContent=state.authorized?'恢复记录':'开始记录';
+    $('pause').disabled=busy||state.paused;
+    $('next-date').disabled=busy||selectedDate>=state.today;
+    $('prev-date').disabled=busy||selectedDate<=earliest();
+    $('date-label').textContent=safeDate(selectedDate).toLocaleDateString('zh-CN',{month:'long',day:'numeric',weekday:'short'});
+    $('date-subtitle').textContent=selectedDate===state.today?'今天 · 本机统计':selectedDate;
+    $('today-total').textContent=data?formatMs(data.totalMs):'—';
+    $('important-time').textContent=data?formatMs(data.importantMs):'—';
+    $('productivity').textContent=data?.productivityPct===null||!data?'—':data.productivityPct+'%';
+    $('coverage').textContent=data?.totalMs?'已分类 '+percent(data.classifiedMs,data.totalMs):'暂无分类统计';
+    $('eff-fill').style.width=(data?.productivityPct??0)+'%';
+    const yesterday=selectedDate===state.today?state.yesterdayMs:null;
+    $('yesterday-compare').textContent=yesterday===null?'暂无昨日比较':
+      '较昨日 '+(state.todayMs-yesterday>=0?'+':'−')+formatMs(Math.abs(state.todayMs-yesterday));
+    $('minute-consent').textContent=state.minuteConsent?'关闭并删除':'开启';
+    if(!settingsLoaded){
+      $('idle').value=String(state.settings.idleSeconds);
+      $('retention').value=String(state.settings.retentionDays);
+      $('excluded').value=state.settings.excludedHosts.join('\n');settingsLoaded=true;
+    }
+    $('gap').hidden=!state.discardedMs;
+    $('gap').textContent=state.discardedMs?'无法确认的活动间隔 '+formatMs(state.discardedMs)+'，已排除。':'';
+    renderCategories(data);renderTimeline(data);renderCurrent(data);renderRecords();
+  }
+  async function readDay(){
+    if(!state)return;
+    const serial=++daySerial,requested=selectedDate;
+    try{
+      const result=await request('time.day',{date:requested});
+      if(serial!==daySerial||selectedDate!==requested)return;
+      day=result;render();
+    }catch(err){if(serial!==daySerial)return;day=null;showMessage((err.code||'E_TIME_DAY')+'：'+err.message,true);render();}
   }
   async function act(operation,payload={}){
-    if(busy)return;busy=true;render();
+    if(busy)return;
+    busy=true;render();
     try{
       const result=await request(operation,payload);
-      if(operation==='time.export')message('已请求下载 '+result.name+'；请在浏览器下载记录中确认完成。');
-      else{state=result;message(!state.idlePermission?'请在工具详情设置中授权空闲检测；当前未记录。':state.paused?'已暂停，历史记录保留。':state.trackingHost?'正在记录 '+state.trackingHost:'后台已开启，等待聚焦的普通网页。');}
-    }catch(error){message((error.code||'E_TIME_REVIEW')+'：'+error.message,true);}
+      if(operation==='time.export'){
+        showMessage('已请求下载 '+result.name+'；请在 Chrome 下载记录中核对文件。');
+      }else{
+        state=result;
+        if(!selectedDate||selectedDate>state.today||selectedDate<earliest())selectedDate=state.today;
+        if(operation==='time.clear'){day=null;filter=null;editing=false;}
+        showMessage(!state.idlePermission?'未授权空闲检测；请在工具详情设置中授权。':
+          state.paused?'已暂停 · 历史数据保留':state.trackingHost?'正在记录 '+state.trackingHost:'记录已开启 · 等待可访问网页');
+        await readDay();
+      }
+    }catch(err){
+      if(err?.code==='E_TIME_TRUSTED_CLICK')showMessage('已打开工具详情设置，请在那里明确执行操作。');
+      else showMessage((err.code||'E_TIME_REVIEW')+'：'+err.message,true);
+    }
     finally{busy=false;render();}
   }
-  get('start').addEventListener('click',()=>act('time.start'));
-  get('pause').addEventListener('click',()=>act('time.pause'));
-  get('refresh').addEventListener('click',()=>act('time.status'));
-  for(const id of ['today','week'])get(id).addEventListener('click',()=>{scope=id;render();});
-  get('save-settings').addEventListener('click',()=>act('time.settings',{idleSeconds:Number(get('idle').value),retentionDays:Number(get('retention').value),excludedHosts:get('excluded').value.split(/\s+/).filter(Boolean).map(value=>value.toLowerCase())}));
-  get('export-json').addEventListener('click',()=>act('time.export',{format:'json'}));
-  get('export-csv').addEventListener('click',()=>act('time.export',{format:'csv'}));
-  get('revoke').addEventListener('click',()=>act('time.revoke'));
-  get('clear').addEventListener('click',()=>{get('clear-confirm').hidden=false;get('clear-yes').focus();});
-  get('clear-no').addEventListener('click',()=>{get('clear-confirm').hidden=true;get('clear').focus();});
-  get('clear-yes').addEventListener('click',()=>{get('clear-confirm').hidden=true;void act('time.clear',{confirm:true});});
-  // This timer refreshes presentation only; alarms and SW own all tracking.
-  const timer=setInterval(()=>{if(!busy&&!document.hidden&&!get('settings').open)void act('time.status');},15000);
-  window.addEventListener('pagehide',()=>clearInterval(timer),{once:true});
+  function chooseMinute(minute){
+    selectedMinute=Math.max(0,Math.min(1439,minute));
+    renderCanvas(dayData());
+  }
+  const canvas=$('minute-canvas');
+  function onPointer(event){
+    const rect=canvas.getBoundingClientRect(),w=rect.width;
+    if(!w)return;
+    chooseMinute(Math.min(1439,Math.floor(Math.max(0,Math.min(w,event.clientX-rect.left))/w*1440)));
+  }
+  canvas.addEventListener('pointerdown',onPointer);
+  canvas.addEventListener('pointermove',event=>{if(event.pointerType==='mouse')onPointer(event);});
+  canvas.addEventListener('keydown',event=>{
+    const key=event.key;
+    if(!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Home','End'].includes(key))return;
+    event.preventDefault();
+    if(key==='Home')chooseMinute(0);else if(key==='End')chooseMinute(1439);
+    else chooseMinute((selectedMinute??0)+({ArrowLeft:-1,ArrowRight:1,ArrowUp:60,ArrowDown:-60}[key]||0)*(event.shiftKey?10:1));
+  });
+  $('prev-date').addEventListener('click',()=>{if(selectedDate>earliest()){selectedDate=shiftDate(selectedDate,-1);day=null;selectedMinute=null;editing=false;filter=null;render();void readDay();}});
+  $('next-date').addEventListener('click',()=>{if(selectedDate<state.today){selectedDate=shiftDate(selectedDate,1);day=null;selectedMinute=null;editing=false;filter=null;render();void readDay();}});
+  $('today').addEventListener('click',()=>{scope='today';filter=null;renderRecords();});
+  $('week').addEventListener('click',()=>{scope='week';filter=null;renderRecords();});
+  $('start').addEventListener('click',()=>void act('time.start'));
+  $('pause').addEventListener('click',()=>void act('time.pause'));
+  $('refresh').addEventListener('click',()=>void act('time.status'));
+  $('settings-shortcut').addEventListener('click',()=>{$('settings').open=true;$('settings').scrollIntoView({block:'nearest'});});
+  $('edit-category').addEventListener('click',()=>{editing=!editing;renderCurrent(dayData());if(editing)$('type-select').focus();});
+  $('cancel-category').addEventListener('click',()=>{editing=false;renderCurrent(dayData());});
+  $('save-category').addEventListener('click',()=>{
+    const host=state.trackingHost;
+    if(host){editing=false;void act('time.classify',{host,category:Number($('type-select').value)});}
+  });
+  $('minute-consent').addEventListener('click',()=>void act('time.minuteConsent',{enabled:!state.minuteConsent}));
+  $('save-settings').addEventListener('click',()=>void act('time.settings',{
+    idleSeconds:Number($('idle').value),retentionDays:Number($('retention').value),
+    excludedHosts:$('excluded').value.split(/\s+/).filter(Boolean).map(x=>x.toLowerCase())
+  }));
+  $('export-json').addEventListener('click',()=>void act('time.export',{format:'json'}));
+  $('export-csv').addEventListener('click',()=>void act('time.export',{format:'csv'}));
+  $('revoke').addEventListener('click',()=>void act('time.revoke'));
+  // The trusted extension host owns the irreversible-operation confirmation.
+  $('clear').addEventListener('click',()=>void act('time.clear',{confirm:true}));
+  const resize=typeof ResizeObserver==='function'?new ResizeObserver(()=>renderCanvas(dayData())):null;
+  resize?.observe(canvas);
+  const onResize=()=>renderCanvas(dayData());
+  if(!resize)window.addEventListener('resize',onResize);
+  const timer=window.setInterval(()=>{
+    if(!busy&&!document.hidden&&!$('settings').open)void act('time.status');
+  },15000);
+  window.addEventListener('pagehide',()=>{window.clearInterval(timer);resize?.disconnect();if(!resize)window.removeEventListener('resize',onResize);},{once:true});
   void act('time.status');
 })();

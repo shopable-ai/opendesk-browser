@@ -1,21 +1,76 @@
 <main class="review">
-  <header><h1>时间回顾</h1><p>看见时间去了哪里</p></header>
-  <p id="status" class="status" role="status" aria-live="polite">正在读取本机统计…</p>
-  <div class="actions"><button id="start" type="button">开始记录</button><button id="pause" type="button">暂停</button><button id="refresh" type="button">刷新</button></div>
-  <p class="hint">只记录聚焦且非空闲网页的域名与时长。关闭工具后后台继续；浏览器关闭、休眠、隐身窗口和受限页面不计时。</p>
-  <div class="totals"><section><span>今日</span><strong id="today-total">—</strong></section><section><span>最近七天</span><strong id="week-total">—</strong></section></div>
-  <nav aria-label="统计范围"><button id="today" type="button" aria-pressed="true">今日</button><button id="week" type="button" aria-pressed="false">七天</button></nav>
-  <section id="daily-section" hidden><h2>每日时长</h2><ol id="daily"></ol></section>
-  <section><h2>网站排行</h2><ol id="sites"></ol></section>
-  <p id="gap" class="hint" hidden></p>
-  <details id="settings"><summary>设置与数据</summary>
-    <p class="hint">先在工具详情「设置」授权空闲检测，再点击开始。授权本身不启动记录。</p>
-    <label for="idle">空闲阈值（秒）</label><input id="idle" type="number" min="15" max="3600" value="60">
-    <label for="retention">保留天数</label><input id="retention" type="number" min="7" max="365" value="90">
-    <label for="excluded">排除域名（每行一个，包含其子域）</label><textarea id="excluded" rows="3" placeholder="example.com"></textarea>
-    <button id="save-settings" type="button">保存设置</button>
-    <div class="actions"><button id="export-json" type="button">导出 JSON</button><button id="export-csv" type="button">导出 CSV</button></div>
-    <button id="revoke" type="button">停止并撤销时间授权</button>
-    <div id="clear-area"><button id="clear" type="button" class="danger">清空记录…</button><div id="clear-confirm" hidden><p>清空所有本机时间统计？此操作不可撤回。</p><button id="clear-yes" type="button" class="danger">确认清空</button><button id="clear-no" type="button">取消</button></div></div>
+  <header class="review-top">
+    <div class="review-heading"><span class="eyebrow">今日回顾</span><p id="status" class="status" role="status" aria-live="polite">正在读取本机统计…</p></div>
+    <div class="top-actions"><button id="refresh" type="button" title="刷新统计" aria-label="刷新统计">↻</button><button id="settings-shortcut" type="button">设置</button></div>
+  </header>
+  <div class="datebar" aria-label="查看日期">
+    <button id="prev-date" type="button" title="前一天" aria-label="前一天">‹</button>
+    <div class="date-center"><strong id="date-label">—</strong><small id="date-subtitle">本机记录</small></div>
+    <button id="next-date" type="button" title="后一天" aria-label="后一天">›</button>
+  </div>
+
+  <section class="hero" aria-label="日期概览">
+    <div class="hero-metrics">
+      <div class="hero-metric main"><small>已记录</small><b id="today-total">—</b></div>
+      <div class="hero-metric important"><small>重要时间</small><b id="important-time">—</b></div>
+    </div>
+    <div class="hero-footer"><div class="rate"><strong id="productivity">—</strong><small>生产率</small></div><div class="compare"><span id="yesterday-compare">暂无昨日比较</span><small id="coverage">尚未分类</small></div></div>
+    <div class="eff-track" aria-hidden="true"><i id="eff-fill"></i></div>
+  </section>
+
+  <section aria-label="时间分类">
+    <div class="sectionbar"><h2>时间分类</h2><span id="category-total">—</span></div>
+    <div class="surface">
+      <div class="distribution" id="distribution" aria-label="各分类占比"></div>
+      <div class="quadrants" id="quadrants"></div>
+      <div class="extra-categories" id="extra-categories"></div>
+    </div>
+  </section>
+
+  <section aria-label="今日时间线">
+    <div class="sectionbar"><h2>24 小时时间线</h2><span id="timeline-state">尚无分钟明细</span></div>
+    <div class="timeline-card">
+      <canvas id="minute-canvas" class="timeline-canvas" tabindex="0" role="slider" aria-label="分钟时间线" aria-valuemin="0" aria-valuemax="1439" aria-valuenow="0" aria-valuetext="00:00 · 暂无分钟明细"></canvas>
+      <p class="timeline-readout" id="timeline-readout" role="status" aria-live="off"><i id="timeline-swatch"></i><span id="timeline-text">点击色带查看时间</span></p>
+      <p id="timeline-note" class="subtle" hidden></p>
+    </div>
+  </section>
+
+  <section aria-label="当前记录网站">
+    <div class="sectionbar"><h2>当前网站</h2><span id="tracking-state">—</span></div>
+    <div class="current-card">
+      <div class="site-first"><div><b id="site-host">尚未开始记录</b><small id="site-hint">打开普通网页后可查看当前网站</small></div><strong id="site-time">—</strong></div>
+      <div class="site-category"><span>网站分类</span><b id="site-category">—</b><button id="edit-category" type="button" class="text-link">修改</button></div>
+      <div class="inline-edit" id="inline-edit" hidden>
+        <label class="sr-only" for="type-select">选择当前网站分类</label>
+        <select id="type-select"><option value="0">未分类</option><option value="1">工作/生产</option><option value="2">阅读学习</option><option value="3">聊天/新闻</option><option value="4">娱乐</option><option value="5">生活</option></select>
+        <button id="save-category" type="button" class="primary">保存</button><button id="cancel-category" type="button">取消</button>
+      </div>
+    </div>
+  </section>
+
+  <div class="actions" aria-label="计时操作"><button id="start" class="primary" type="button">开始记录</button><button id="pause" type="button">暂停</button></div>
+  <p id="gap" class="subtle" hidden></p>
+
+  <section class="records-section" aria-label="详细记录">
+    <div class="sectionbar"><h2>详细记录</h2><span id="week-total">七天 —</span></div>
+    <nav class="tabs" aria-label="记录范围"><button id="today" type="button" aria-pressed="true">所选日期</button><button id="week" type="button" aria-pressed="false">近七天</button></nav>
+    <section id="daily-section" hidden><h3>每日统计</h3><ol id="daily" class="detail-list"></ol></section>
+    <h3>网站排行</h3><ol id="sites" class="detail-list"></ol>
+  </section>
+
+  <details id="settings" class="settings">
+    <summary>设置、分钟明细与数据管理</summary>
+    <div class="settings-body">
+      <p class="subtle">记录仅在明确开始后进行；浏览器空闲检测权限请在本工具详情的「设置」中授权。</p>
+      <div class="setting-row"><div><b>保存分钟明细</b><small>仅在工具详情受信任的设置区明确同意后，才保存未来分钟明细；关闭时清除已存明细，不补造旧记录。</small></div><button id="minute-consent" type="button">开启</button></div>
+      <label for="idle">空闲阈值（秒）</label><input id="idle" type="number" min="15" max="3600" value="60">
+      <label for="retention">汇总保留天数（7–365；分钟明细最多 90 天）</label><input id="retention" type="number" min="7" max="365" value="90">
+      <label for="excluded">排除域名（每行一个，包含子域名）</label><textarea id="excluded" rows="3" placeholder="example.com"></textarea>
+      <button id="save-settings" type="button" class="primary">保存设置</button>
+      <div class="actions"><button id="export-json" type="button">导出 JSON</button><button id="export-csv" type="button">导出 CSV</button></div>
+      <button id="revoke" type="button">停止并撤销时间授权</button>
+      <div id="clear-area"><button id="clear" type="button" class="danger">清空本机记录…</button></div>
+    </div>
   </details>
 </main>

@@ -168,10 +168,12 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   // Only a genuine click on the trusted extension host can start background
   // tracking or authorize destructive clearing. Sandbox requests cannot forge it.
   async function runTrustedTimeReviewOperation(operation,payload,event){
-    if(event?.isTrusted!==true||!['time.start','time.clear'].includes(operation))
+    if(event?.isTrusted!==true||!['time.start','time.clear','time.minuteConsent'].includes(operation))
       throw Object.assign(new Error('请在工具详情中主动点击操作'),{code:'E_TIME_TRUSTED_CLICK'});
     if(operation==='time.clear'&&payload?.confirm!==true)
       throw Object.assign(new Error('请明确选择清空本机时间记录'),{code:'E_TIME_CONFIRM'});
+    if(operation==='time.minuteConsent'&&(typeof payload?.enabled!=='boolean'||Object.keys(payload).join(',')!=='enabled'))
+      throw Object.assign(new Error('请明确选择是否开启分钟明细'),{code:'E_TIME_CONSENT'});
     const tool=active;
     if(disposed||busy||readOnlyPreview||tool?.id!==TIME_REVIEW_ID||
        !tool.capabilities.includes(TIME_REVIEW_CAPABILITY))
@@ -189,7 +191,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       throw Object.assign(new Error('时间回顾详情已变化'),{code:'E_TOOL_CHANGED'});
     const response=await api.runtime.sendMessage({
       protocol:TIME_REVIEW_PROTOCOL,toolId:tool.id,operation,
-      payload:operation==='time.clear'?{confirm:true}:{},
+      payload:operation==='time.clear'?{confirm:true}:operation==='time.minuteConsent'?{enabled:payload.enabled}:{},
       packageHash,installEpoch:epoch
     });
     if(!response?.ok)throw Object.assign(
@@ -619,10 +621,11 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       if(tool.id!==TIME_REVIEW_ID)throw new Error('时间回顾工具身份无效');
       // Neither the sandbox's script nor a synthetic DOM event is a trusted
       // browser gesture. Use the explicit non-modal controls in host settings.
-      if(operation==='time.start'||operation==='time.clear'){
+      if(operation==='time.start'||operation==='time.clear'||operation==='time.minuteConsent'){
         tocSettingsOpen=true;render();
         throw Object.assign(new Error(operation==='time.start'
           ?'请在工具设置中点击「开始／恢复记录」'
+          :operation==='time.minuteConsent'?'请在工具详情设置中明确选择开启或关闭分钟明细'
           :'请在工具设置中审阅并明确选择「清空全部记录」'),
         {code:'E_TIME_TRUSTED_CLICK'});
       }
