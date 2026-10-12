@@ -95,7 +95,21 @@ export function createTrustedCookieHost({api=globalThis.chrome,now=Date.now}={})
        frame.documentLifecycle&&frame.documentLifecycle!=='active')
       throw error('E_DOCUMENT_CHANGED');
   }
-  const existing=createCookieService({api,authorize:async(_request,context)=>guard(context.target)});
+  // One shared Cookie Driver, including the R8 readback and unknown-effect logic.
+  // The Controller's original methods are reused unchanged for trusted raw read.
+  const existing=createCookieService({api,
+    authorize:async ({url},context)=>{
+      await guard(context.target);
+      if(new URL(url).origin!==context.target.origin)throw error('E_COOKIE_SCOPE');
+      return true;
+    },
+    resolveTarget:async ({url},context)=>{
+      await guard(context.target);
+      if(new URL(url).origin!==context.target.origin)throw error('E_COOKIE_SCOPE');
+      return {tabId:context.target.tabId,frameId:0,documentId:context.target.documentId,
+        origin:context.target.origin};
+    }
+  });
   async function storeId(target){
     const all=await chromeCall(api,api.cookies,'getAllCookieStores');
     if(!Array.isArray(all))throw error('E_CHROME');
@@ -135,20 +149,17 @@ export function createTrustedCookieHost({api=globalThis.chrome,now=Date.now}={})
     const cookie=rows[0],url=new URL(target.url);
     url.pathname=cookie.path||'/';url.search='';url.hash='';
     await guard(target);
-    const receipt=await chromeCall(api,api.cookies,'remove',{url:url.href,name:cookie.name,
-      storeId:cookie.storeId,...(cookie.partitionKey?{partitionKey:cookie.partitionKey}:{})});
-    if(!receipt)throw error('E_OUTCOME_UNKNOWN','Remove receipt absent; do not replay');
-    return {removed:true};
+    const receipt=await existing.remove({url:url.href,name:cookie.name,
+      storeId:cookie.storeId,...(cookie.partitionKey?{partitionKey:cookie.partitionKey}:{})},{target});
+    return {removed:receipt.removed};
   }
   async function operate(op,args,target){
     if(op==='browser.cookies.getAll')return {cookies:await read(target,args),scope:'CURRENT_URL_MATCHES'};
     if(op==='browser.cookies.get')
       return {cookie:(await read(target,args)).find(row=>row.name===args.name)??null};
-    if(op==='browser.cookies.getStores')return {stores:[{storeId:await storeId(target)}]};
-    if(op==='browser.cookies.getPartitionKey'){
-      const partitionKey=await chromeCall(api,api.cookies,'getPartitionKey',{tabId:target.tabId,frameId:0});
-      return {partitionKey};
-    }
+    if(op==='browser.cookies.getStores')return {stores:[await existing.getStores({url:target.url},{target})]};
+    if(op==='browser.cookies.getPartitionKey')
+      return existing.getPartitionKey({url:target.url},{target});
     if(op==='browser.cookies.set'){
       const c=args.cookie,host=new URL(target.url).hostname;
       if(c.domain!==undefined&&c.domain.replace(/^\./,'')!==host)
@@ -159,14 +170,8 @@ export function createTrustedCookieHost({api=globalThis.chrome,now=Date.now}={})
       if(c.name.startsWith('__Secure-')&&(new URL(target.url).protocol!=='https:'||c.secure!==true))
         throw error('E_SCHEMA','Invalid __Secure- Cookie');
       if(c.sameSite==='no_restriction'&&c.secure!==true)throw error('E_SCHEMA','SameSite=None requires Secure');
-      const targetStore=await scope(target,c),cookie={url:target.url,...c,storeId:targetStore.storeId};
-      if(c.partitionKey){
-        delete cookie.session;delete cookie.hostOnly;
-        const receipt=await chromeCall(api,api.cookies,'set',cookie);
-        if(!receipt)throw error('E_OUTCOME_UNKNOWN','Set receipt absent; do not replay');
-      }else{
-        await existing.setCookies([cookie],{target});
-      }
+      const targetStore=await scope(target,c);
+      await existing.set({url:target.url,...c,storeId:targetStore.storeId},{target});
       return {written:true};
     }
     if(op==='browser.cookies.remove')return remove(target,args);
