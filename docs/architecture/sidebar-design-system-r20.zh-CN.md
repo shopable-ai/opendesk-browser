@@ -4,7 +4,7 @@
 
 ## 为什么本轮不引入 Tailwind
 
-本项目实际使用 Chrome MV3、原生 HTML/JavaScript 和 WXT 固定输出，`tool-shell.css` 先前将全局 reset、按钮、输入框、视图布局混在一份约 50KB 的文件里。Tailwind 的主要作用是提供 utility classes 和编译时样式生成；不建立统一语义组件、不规范使用方式，照样可以出现五个页面五套间距。仓库目前严格审核所有 HTML 资源引用，禁止 CSS 运行时 import/URL，且 SW 有固定体积限制。直接加入 Tailwind 插件和依赖锁可能扩大影响面，不是这次调整的必要条件。
+本项目实际使用 Chrome MV3、原生 HTML/JavaScript 和 WXT 固定输出，`tool-shell.css` 先前将全局 reset、按钮、输入框、视图布局混在一份约 50KB 的文件里。Tailwind 的主要作用是提供 utility classes 和编译时样式生成；不建立统一语义组件、不规范使用方式，照样可以出现五个页面五套间距。仓库已经为 Native Agent Workspace 引入 Tailwind 构建依赖，但 Side Panel 继续使用审核通过的静态 CSS 和语义 token；沙箱中禁止 CSS 运行时 import/外部 URL。无需再把 Side Panel 或 Vue/React 工具全部迁到 Tailwind/Quasar，避免打乱既有打包和权限边界。
 
 **选定：一个本地、静态、零新依赖的 Design System + 各视图专属 CSS**。以后独立 Vue/React 工具可按同样变量映射使用 Tailwind，但不得加载浏览器 CDN 或在受控页面执行外部样式运行时。
 
@@ -35,7 +35,7 @@
 ### 留白所有权和使用原则
 
 - **已安装工具列表**：`#workspace-content` 负责一层 gutter；工具卡片内部仅使用自己的 12px 内边距。列表条目统一以标题为主，说明最多一行，升级状态跟随标题，而不是平铺数个操作按钮。
-- **工具详情**：宿主返回按钮/标题继续对齐 `#workspace-content`；`#sidebar-tool-frame` 横向向两边扩展，抵消宿主 gutter；iframe 不绘制第二层边框和 padding。各个沙箱工具自行用其 `.notes-app` 等顶层容器设置 12px 内容留白，工具内容与上方宿主标题保持约 1px 以内的视觉对齐。
+- **工具详情**：`#workbench-tools` 作为完整内容画布宽度，重新加一层内部 gutter 来对齐上方可信按钮/标题；`#sidebar-tool-frame` 横向抵消该内部 gutter，iframe 不绘制第二层边框和 padding。这既避免重复左右缩进，也保证框架**不超过工具面板本身的滚动宽度**。各个沙箱工具自行用 `.notes-app` 等顶层容器设置 12px 内容留白，工具内容与上方宿主标题保持约 1px 以内的视觉对齐。
 - **区域内布局**：一行控件以 `gap:var(--space-2)` 为主；控件组垂直间隔用 8px、独立章节用 16px；卡片内部 pad 12px；辅助文案与正文用 4px。不要为了修视觉问题多次覆写同一处 `padding`，不要叠加父级和子级两个“页面 gutter”。
 - **窄屏与长文本**：所有弹性子项 `min-width:0`，标题/URL 按需换行；标签列表可局部横向滚动，但 `#workspace-content` 不得因 iframe 额外产生横向滚动。输入框正文的 8px 内边距属于控件自身，并不计入页面的第二层 gutter。
 - **显示状态与低频技术信息**：空列表一句话说明下一步；技术摘要（如源代码 SHA）放在“技术信息”折叠区域；从详情返回工具列表后不保留“已隐藏悬浮目录”等过期操作反馈。
@@ -52,7 +52,7 @@
 
 ## 安全与构建闭环
 
-`src/ui/tool.html` 顺序链接 `design-system.css` 然后 `tool-shell.css`，随后原有 JS。通过 `scripts/prepare-public.mjs` 的静态资源白名单复制为 `ui/design-system.css`；`scripts/verify-package.mjs` 同时要求两份 CSS，逐份拒绝 `@import`、`url(` 和 `expression(`，不改变 Chrome 权限/CSP、不增加运行时脚本，也不提高单个 JS 构建体积上限。既有开发源文件 watcher 派生自相同的静态映射，新 CSS 也会被监测并安全发布。
+`src/ui/tool.html` 顺序链接 `design-tokens.css`、`design-system.css`、`tool-shell.css`，随后原有 JS。通过 `scripts/prepare-public.mjs` 的静态资源白名单发布宿主 CSS；`scripts/verify-package.mjs` 核查对应的 CSS，逐份拒绝 `@import`、`url(` 和 `expression(`，不改变 Chrome 权限/CSP、不增加运行时脚本，也不提高单个 JS 构建体积上限。既有开发源文件 watcher 派生自相同的静态映射，新 CSS 也会被监测并安全发布。
 
 R19 的真实 HTML/CSS 静态 Chrome 检查扩展为加载两份本地样式后再执行 300／360／420／520px 的 28 个组合、测量控件/间距和截图。测试只切换显示与示例内容，`STATIC_MARKUP_CHROME` 不代表原生扩展/授权回执。
 

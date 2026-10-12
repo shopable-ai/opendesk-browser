@@ -17,6 +17,9 @@
 .workbench-nav button[aria-selected=true]{color:#2852bb;border-bottom-color:var(--blue);background:transparent}
 #workspace-content{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scroll-padding-bottom:16px;max-width:980px;width:100%;padding:10px var(--od-page-gutter);margin:0 auto}
 #workspace-content>div[hidden]{display:none!important}
+/* The Tools panel is itself full-canvas; its inner inset matches trusted headers.
+ * This keeps the outdented sandbox within the panel's measured scroll bounds. */
+#workbench-tools{width:calc(100% + var(--od-page-gutter) + var(--od-page-gutter));margin-inline:calc(0px - var(--od-page-gutter));padding-inline:var(--od-page-gutter)}
 #workspace-content>.od-page:not([hidden]):not(#workbench-workflow):not(#workbench-discover){display:grid;gap:var(--space-2);align-content:start}
 #workspace-content .tasks-surface,#workspace-content .local-discovery-section,#workspace-content .developer-target,#workspace-content .developer-editor{padding:0;border:0;box-shadow:none;background:transparent;margin:0 0 8px}
 .workspace-dock{flex:none;background:#fff;border-top:1px solid var(--line);padding:8px 11px 10px}

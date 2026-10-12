@@ -9,6 +9,7 @@ test('Sidebar owns one horizontal inset and tool iframes use a full-width canvas
   assert.match(tokens,/--od-page-gutter:11px/);
   assert.match(shell,/#workspace-content\{[^}]*padding:10px var\(--od-page-gutter\)/);
   assert.match(shell,/#workspace-content\{--od-page-gutter:9px;padding:8px var\(--od-page-gutter\)/);
+  assert.match(shell,/#workbench-tools\{width:calc\(100% \+ var\(--od-page-gutter\) \+ var\(--od-page-gutter\)\);margin-inline:calc\(0px - var\(--od-page-gutter\)\);padding-inline:var\(--od-page-gutter\)\}/);
   assert.match(shell,/\.sidebar-tool-frame\{[^}]*width:calc\(100% \+ var\(--od-page-gutter\) \+ var\(--od-page-gutter\)\)/);
   assert.match(shell,/\.sidebar-tool-frame\{[^}]*margin-inline:calc\(0px - var\(--od-page-gutter\)\)/);
   assert.match(shell,/\.sidebar-tool-iframe\{[^}]*border:0;border-radius:0/);
