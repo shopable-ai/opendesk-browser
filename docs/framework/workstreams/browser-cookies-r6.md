@@ -6,8 +6,9 @@
 
 ## 当前状态
 - Chrome Manifest 已声明 `cookies`，最低 Chrome 138；站点级 Host/用户授权仍须单独确认。
-- 部分 Driver：`src/platform/chrome/cookies.js` 的 `getCookies/setCookies/deleteCookiesByUrl`。
-- 正式 Browser SDK **0/10**，Node/Chrome 未取得 Cookie SDK 端到端同候选证据；不能标记完成。
+- Driver（R8 已扩展）：`src/platform/chrome/cookies.js` 保留 Controller 原 `getCookies/setCookies/deleteCookiesByUrl`，同时新增 `get/getAll/set/remove/clearSite/getStores/getPartitionKey` 的受信驱动与回读验证。R7 通过既有 Browser Host 接线，仍需 Chrome 原生验收。
+- 正式公开 Browser SDK **0/10**：R7 已将十项候选接入 **Host-only 私有调用路径**，但未向任意已安装工具公开，原 35 项 Registry 不变。R7 单元测试只证明逻辑接线，尚未取得相同候选的真实 Chrome 端到端证据；不能标记完成。
+- 受信 UI 入口在 `src/ui/tool.html` 的「工具 → Cookie 管理」中，`src/ui/trusted-cookie-workbench.js` 与 `browser-cookie-host.js` 使用原有 `context-menus.js` Browser Host，通过 Chrome Sender、真实点击、活动 Document 与 Cookie/站点权限复核，**不向沙箱传 Cookie 值**。
 
 ## 真正需要实现的 10 项接口
 
