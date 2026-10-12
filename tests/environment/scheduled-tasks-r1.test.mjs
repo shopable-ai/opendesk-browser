@@ -12,7 +12,9 @@ const millis=value=>Date.parse(value);
 function storageFake(){
   const buckets=new Map([['frameworkKV',new Map()],['commandJournal',new Map()],['runs',new Map()]]);
   let queue=Promise.resolve();
+  const scanPrefixes=[];
   return {
+    scanPrefixes,
     put(store,key,value){buckets.get(store).set(key,structuredClone(value));},
     transaction(names,mode,callback){
       const work=()=>callback({
@@ -20,6 +22,7 @@ function storageFake(){
         put:async(store,row,key)=>{buckets.get(store).set(key,structuredClone(row));},
         all:async store=>structuredClone([...buckets.get(store).values()]),
         scan:async(store,{prefix,direction='next',offset=0,limit=50})=>{
+          scanPrefixes.push(prefix);
           const rows=[...buckets.get(store).entries()].filter(([key])=>String(key).startsWith(prefix))
             .sort(([a],[b])=>a<b?-1:a>b?1:0);
           if(direction==='prev')rows.reverse();
@@ -418,4 +421,49 @@ test('R2 lost completion after admitted Run never becomes WAITING_TARGET or mint
     assert.match(scheduled.status,/回执丢失|禁止自动重试/);
     assert.equal(statuses.some(s=>s.startsWith('等待目标或运行环境')),false);
   }finally{scheduled.dispose();}
+});
+
+test('R2 pending-fire index migrates R1 history once and avoids repeated full Fire scans',async()=>{
+  const f=await fixture(),plan=await f.repo.save({...f.input,triggerKind:'interval',
+    triggerSpec:{anchorAt:f.getTime()+60000,everyMinutes:1}});
+  for(let i=0;i<1000;i++){
+    const at=millis('2026-09-01T00:00:00Z')+i*60000,fireId=scheduleFireId(plan.scheduleId,1,at);
+    f.db.put('frameworkKV',fireKey(fireId),{
+      tag:'schedule-fire-v1',namespace:f.namespace,fireId,scheduleId:plan.scheduleId,
+      generation:1,scheduledAt:at,deadlineAt:at+60000,
+      status:'MISSED',runId:null,resultId:null,createdAt:at});
+  }
+  await f.repo.reconcile(); // First call seeds the derived index from historical R1 rows.
+  const key='schedule:pending-index:v1:'+f.namespace;
+  const marker=await f.db.transaction(['frameworkKV'],'readonly',tx=>tx.get('frameworkKV',key));
+  assert.equal(marker.tag,'schedule-pending-index-v1');
+  f.db.scanPrefixes.length=0;
+  await f.repo.reconcile();
+  assert.equal((await f.repo.ready()).length,0);
+  assert.equal(f.db.scanPrefixes.some(p=>p.startsWith('schedule:fire:v1:')),false,
+    'steady-state scheduler must not scan the complete audit history');
+  assert.equal(f.db.scanPrefixes.some(p=>p.startsWith('schedule:pending:v1:')),true);
+  assert.equal((await f.repo.list())[0].history.length,20,'auditable history stays intact');
+});
+test('R2 pending-fire index migrates legacy WAITING_HOST and removes it on ADMITTED',async()=>{
+  const f=await fixture(),def=await f.repo.save(f.input),at=def.nextDueAt;
+  const fireId=scheduleFireId(def.scheduleId,def.generation,at);
+  f.db.put('frameworkKV',fireKey(fireId),{
+    tag:'schedule-fire-v1',namespace:f.namespace,fireId,scheduleId:def.scheduleId,
+    generation:def.generation,scheduledAt:at,deadlineAt:at+300000,
+    status:'WAITING_HOST',runId:null,resultId:null,createdAt:at});
+  f.setTime(at+100);
+  await f.repo.reconcile();
+  assert.equal((await f.repo.ready()).length,1);
+  const request={source:{kind:'saved',scriptId:taskScriptId('demo.form','1.0.0'),contentHash:f.input.sourceHash},
+    paramsDecoded:{},target:{mode:'borrowed',expectedUrl:f.input.targetUrl},requestId:fireId,
+    expectedTaskGeneration:1,expectedTaskInstallationId:f.input.installationId};
+  await f.db.transaction(['frameworkKV'],'readwrite',async tx=>{
+    const fire=await f.repo.admit(tx,fireId,request,'https://example.com',f.getTime());
+    await f.repo.bind(tx,fire,{runId:'once',resultId:'original'});
+  });
+  assert.equal((await f.repo.ready()).length,0);
+  const stored=(await f.repo.list())[0].history[0];
+  assert.equal(stored.runId,'once');
+  assert.equal(stored.resultId,'original');
 });

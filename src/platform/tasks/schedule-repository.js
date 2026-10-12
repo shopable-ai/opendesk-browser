@@ -5,6 +5,11 @@ import {nextScheduleAt,recentMissedAt} from './schedule-time.js';
 
 export function createScheduleRepository({storage,clock,namespace,session}){
   const now=()=>clock.now();
+  const pendingStates=new Set(['READY','WAITING_HOST','WAITING_SLOT','WAITING_TARGET']);
+  const pendingPrefix='schedule:pending:v1:';
+  const pendingIndexKey='schedule:pending-index:v1:'+namespace;
+  const pendingKey=fireId=>pendingPrefix+fireKey(fireId).slice(SCHEDULE_FIRE_PREFIX.length);
+  const pendingRow=fireId=>({tag:'schedule-pending-fire-v1',namespace,fireId});
   // Existing v2 IndexedDB cursor reads by primary-key prefix; legacy unit
   // shims retain the tx.all fallback. No new store or migration is introduced.
   async function keyedRows(tx,store,prefix){
@@ -21,6 +26,20 @@ export function createScheduleRepository({storage,clock,namespace,session}){
     .filter(row=>row?.tag==='schedule-definition-v1'&&row.namespace===namespace&&!row.deleted);
   const fires=async tx=>(await keyedRows(tx,'frameworkKV',SCHEDULE_FIRE_PREFIX))
     .filter(row=>row?.tag==='schedule-fire-v1'&&row.namespace===namespace);
+  const pendingRefs=async tx=>(await keyedRows(tx,'frameworkKV',pendingPrefix))
+    .filter(row=>row?.tag==='schedule-pending-fire-v1'&&row.namespace===namespace);
+  async function ensurePendingIndex(tx){
+    const marker=await tx.get('frameworkKV',pendingIndexKey);
+    if(marker?.tag==='schedule-pending-index-v1'&&marker.namespace===namespace)return;
+    // One-time upgrade of existing R1/R2 Fire rows into a derived cursor
+    // index. This stays in the original frameworkKV transaction/schema.
+    // ADMITTED, UNKNOWN and audit records are never scheduled for replay.
+    for(const fire of await fires(tx))
+      if(pendingStates.has(fire.status))
+        await tx.put('frameworkKV',pendingRow(fire.fireId),pendingKey(fire.fireId));
+    await tx.put('frameworkKV',{tag:'schedule-pending-index-v1',namespace,
+      builtAt:now()},pendingIndexKey);
+  }
   async function historySlice(tx,definition,offset=0,limit=20){
     // Fire primary keys contain a variable-length generation before the time.
     // One reverse scan over "sched:<id>:" would put generation 9 ahead
@@ -115,6 +134,7 @@ export function createScheduleRepository({storage,clock,namespace,session}){
     invariant(activeDocumentIds===undefined||activeDocumentIds===null||activeDocumentIds instanceof Set,'E_SCHEMA','Live host document set required');
     const time=now();
     return storage.transaction(['frameworkKV','commandJournal'],'readwrite',async tx=>{
+      await ensurePendingIndex(tx);
       const activeHost=(await keyedRows(tx,'commandJournal','host:')).some(row=>row?.tag==='host'&&
         row.namespace===namespace&&row.active&&!row.revoked&&
         (session===undefined||row.browserSessionIncarnation===session)&&
@@ -138,19 +158,27 @@ export function createScheduleRepository({storage,clock,namespace,session}){
           await tx.put('frameworkKV',{tag:'schedule-fire-v1',namespace,fireId,scheduleId:def.scheduleId,
             generation:def.generation,scheduledAt:due,deadlineAt,status,createdAt:time,
             runId:null,resultId:null},key);
+          if(pendingStates.has(status))
+            await tx.put('frameworkKV',pendingRow(fireId),pendingKey(fireId));
           changed.push(fireId);
         }
         def.nextDueAt=nextScheduleAt(def.triggerKind,def.triggerSpec,def.timezone,time);
         def.updatedAt=time;
         await tx.put('frameworkKV',def,scheduleKey(def.scheduleId));
       }
-      for(const fire of await fires(tx)){
-        if(fire.status!=='READY'&&fire.status!=='WAITING_HOST'&&fire.status!=='WAITING_SLOT'&&fire.status!=='WAITING_TARGET')continue;
+      for(const ref of await pendingRefs(tx)){
+        const fire=await tx.get('frameworkKV',fireKey(ref.fireId));
+        if(fire?.tag!=='schedule-fire-v1'||fire.namespace!==namespace||
+          !pendingStates.has(fire.status)){
+          await tx.delete('frameworkKV',pendingKey(ref.fireId));
+          continue;
+        }
         const def=await tx.get('frameworkKV',scheduleKey(fire.scheduleId));
         const state=def?.generation!==fire.generation||def.paused||def.deleted?'CANCELLED':
           fire.deadlineAt<time?'MISSED':!activeHost?'WAITING_HOST':
           fire.status==='WAITING_HOST'?'READY':fire.status;
         if(state!==fire.status)await tx.put('frameworkKV',{...fire,status:state},fireKey(fire.fireId));
+        if(!pendingStates.has(state))await tx.delete('frameworkKV',pendingKey(fire.fireId));
       }
       return changed;
     });
@@ -188,11 +216,16 @@ export function createScheduleRepository({storage,clock,namespace,session}){
   }
   async function ready(){
     return storage.transaction(['frameworkKV'],'readonly',async tx=>{
-      const all=await definitions(tx),map=new Map(all.map(row=>[row.scheduleId,row]));
-      return (await fires(tx)).filter(f=>['READY','WAITING_HOST','WAITING_SLOT','WAITING_TARGET'].includes(f.status)&&
-        f.deadlineAt>=now()&&map.get(f.scheduleId)?.generation===f.generation&&
-        !map.get(f.scheduleId)?.paused).sort((a,b)=>a.scheduledAt-b.scheduledAt).slice(0,12)
-        .map(f=>({...f,definition:structuredClone(map.get(f.scheduleId))}));
+      const all=await definitions(tx),map=new Map(all.map(row=>[row.scheduleId,row])),rows=[];
+      for(const ref of await pendingRefs(tx)){
+        const fire=await tx.get('frameworkKV',fireKey(ref.fireId));
+        const def=fire&&map.get(fire.scheduleId);
+        if(fire?.tag==='schedule-fire-v1'&&fire.namespace===namespace&&
+          pendingStates.has(fire.status)&&fire.deadlineAt>=now()&&
+          def?.generation===fire.generation&&!def.paused)
+          rows.push({...fire,definition:structuredClone(def)});
+      }
+      return rows.sort((a,b)=>a.scheduledAt-b.scheduledAt).slice(0,12);
     });
   }
   async function recordWait(fireId,status){
@@ -203,6 +236,7 @@ export function createScheduleRepository({storage,clock,namespace,session}){
       if(fire.status==='ADMITTED'||fire.status==='UNKNOWN'||fire.status==='MISSED'||fire.status==='CANCELLED')return fire;
       const next={...fire,status,updatedAt:now()};
       await tx.put('frameworkKV',next,key);
+      if(!pendingStates.has(status))await tx.delete('frameworkKV',pendingKey(fireId));
       return next;
     });
   }
@@ -230,6 +264,8 @@ export function createScheduleRepository({storage,clock,namespace,session}){
   async function bind(tx,fire,run){
     await tx.put('frameworkKV',{...fire,status:'ADMITTED',runId:run.runId,
       resultId:run.resultId,admittedAt:now()},fireKey(fire.fireId));
+    // A committed original RunId is never a pending execution candidate.
+    await tx.delete('frameworkKV',pendingKey(fire.fireId));
   }
   return {save,changeState,reconcile,list,history,ready,recordWait,admit,bind,
     definitions:()=>storage.transaction(['frameworkKV'],'readonly',definitions)};
