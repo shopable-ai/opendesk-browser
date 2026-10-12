@@ -136,7 +136,7 @@ export function createCloudService({storage,api,clock={now:()=>Date.now()},asser
       config.claimId=null;await tx.put(KV,config,CONFIG);return null;
     },'readwrite');
   }
-  async function cloudResolve(request,sender){const initial=(await rows()).find(r=>r.requestId===request.requestId);invariant(initial,'E_TASK');const t=await resolveTask({taskId:initial.task.taskId},sender);return scoped(sender,async(tx,host)=>{const r=await tx.get(KV,PREFIX+request.requestId),c=await tx.get(KV,CONFIG);invariant(c?.enabled&&r?.namespace===host.namespace&&r.grantId===c.grantId&&!r.runId&&r.state==='waiting'&&r.assignment.leaseUntil>clock.now(),'E_CLOUD_REVOKED');
+  async function cloudResolve(request,sender){invariant(typeof request?.requestId==='string'&&request.requestId.startsWith('cloud:'),'E_SCHEMA');const initial=await transaction('readonly',tx=>tx.get(KV,PREFIX+request.requestId),[KV]);invariant(initial?.tag==='cloud-request-v1','E_TASK');const t=await resolveTask({taskId:initial.task.taskId},sender);return scoped(sender,async(tx,host)=>{const r=await tx.get(KV,PREFIX+request.requestId),c=await tx.get(KV,CONFIG);invariant(c?.enabled&&r?.namespace===host.namespace&&r.grantId===c.grantId&&!r.runId&&r.state==='waiting'&&r.assignment.leaseUntil>clock.now(),'E_CLOUD_REVOKED');
     invariant(t.installationId===r.task.installationId&&t.generation===r.task.generation&&t.manifestHash===r.task.manifestHash,'E_PERMISSION');return {scriptId:t.scriptId,revision:t.revision,contentHash:t.contentHash,params:r.params,target:r.assignment.target,expectedTaskGeneration:t.generation,expectedTaskInstallationId:t.installationId,requestId:r.requestId,cloudRequestId:r.requestId,deadlineAt:Math.min(clock.now()+60000,r.assignment.leaseUntil)};});}
   async function bind(tx,run,request,host){
     const r=await tx.get(KV,PREFIX+request.cloudRequestId),c=await tx.get(KV,CONFIG);invariant(c?.enabled&&r?.namespace===host.namespace&&r.grantId===c.grantId&&r.state==='waiting'&&!r.runId&&r.assignment.leaseUntil>clock.now(),'E_CLOUD_REVOKED');
@@ -144,7 +144,7 @@ export function createCloudService({storage,api,clock={now:()=>Date.now()},asser
     run.cloudRequestId=r.requestId;r.runId=run.runId;r.runRef={runId:run.runId,resultId:run.resultId,requestId:r.requestId,sourceHash:run.contentHash,manifestHash:r.task.manifestHash,grantId:r.grantId};r.state='prepared';await tx.put(KV,r,PREFIX+r.requestId);
   }
   async function permit(run){
-    const r=(await rows()).find(r=>r.requestId===run.cloudRequestId),c=await read();invariant(c?.enabled&&c.grantId===r?.grantId,'E_CLOUD_REVOKED');let p;
+    const r=await transaction('readonly',tx=>tx.get(KV,PREFIX+run.cloudRequestId),[KV]),c=await read();invariant(c?.enabled&&c.grantId===r?.grantId,'E_CLOUD_REVOKED');let p;
     for(let attempt=0;attempt<2;attempt++){try{p=await post(c,'admission',{assignmentId:r.assignment.assignmentId,runRef:r.runRef});break;}catch(e){if(attempt||e.code)throw e;}}
     await transaction('readwrite',async tx=>{const current=await tx.get(KV,PREFIX+r.requestId),config=await tx.get(KV,CONFIG),stored=await tx.get('runs',run.runId);invariant(config?.enabled&&config.grantId===r.grantId&&stored?.state==='preparing'&&!stored.cancelSeq&&current?.runId===run.runId&&p.providerId===config.providerId&&p.assignmentId===r.assignment.assignmentId&&canonical(p.runRef)===canonical(r.runRef)&&p.leaseUntil>clock.now(),'E_PERMIT');await assertRunTaskAuthorization(tx,stored);current.permit=p;current.state='permitted';await tx.put(KV,current,PREFIX+r.requestId);});
   }
