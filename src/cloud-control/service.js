@@ -4,6 +4,7 @@ import {assertRunTaskAuthorization} from '../platform/tasks/service.js';
 import {requireGrant} from '../platform/target/index.js';
 import {decodeValue} from '../platform/page-port/codec.js';
 import {createCloudHistoryIndex} from './history-index.js';
+import {isDurableCloudResult} from './durable-outcome.js';
 const KV='frameworkKV',CONFIG='cloud:config',IDENTITY='cloud:executor',PREFIX='cloud:request:';
 export function providerUrl(value,allowLoopback=false){
   const u=new URL(value);invariant(!u.username&&!u.password&&!u.search&&!u.hash&&u.pathname==='/'&&
@@ -147,7 +148,20 @@ export function createCloudService({storage,api,clock={now:()=>Date.now()},asser
   }
   async function fence(request,reason){
     const result=await transaction('readwrite',async tx=>{const r=await tx.get(KV,PREFIX+request.requestId);if(!r)return;const run=r.runId&&await tx.get('runs',r.runId);
-      // Original released Run + confirmed receipt is immutable history.
+      // A real terminal Result + released original Run stays settled even if
+      // the Provider receipt acknowledgement was lost or the lease expired.
+      const durableResult=run?.retirementState==='released'&&run.resultId?
+        await tx.get('results',run.resultId):null;
+      if(isDurableCloudResult(r,run,durableResult)){
+        if(r.state!=='finished'||run.state==='completed'&&r.reason==='E_CLOUD_CANCELLED'){
+          r.state='finished';
+          if(run.state==='completed'&&r.reason==='E_CLOUD_CANCELLED')delete r.reason;
+          await history.put(tx,r);
+        }
+        return null;
+      }
+      // Legacy acknowledged history also remains immutable if its old Result
+      // record cannot be inspected. Never infer completion from a slot alone.
       if(r.receipt&&run?.retirementState==='released'&&
         (r.state==='finished'||r.delivery?.state==='confirmed'))return null;
       r.reason=reason;if(!run){r.state='cancelled';await history.put(tx,r);return;}
@@ -263,7 +277,13 @@ export function createCloudService({storage,api,clock={now:()=>Date.now()},asser
       const run=r.runId?await transaction('readonly',tx=>tx.get('runs',r.runId)):null;
       // Remote expiry, cancellation or pruning cannot cancel confirmed completion.
       if(r.receipt&&run?.retirementState==='released'&&
-        (r.state==='finished'||r.delivery?.state==='confirmed'))continue;
+        (r.state==='finished'||r.delivery?.state==='confirmed')){
+        // Correct historical late-cancellation labels without touching the
+        // original Result, retirement or already-confirmed receipt.
+        if(r.reason==='E_CLOUD_CANCELLED'&&run.state==='completed')
+          await fence(r,'E_CLOUD_CANCELLED');
+        continue;
+      }
       const a=remote.assignments.find(a=>a.assignmentId===r.assignment.assignmentId);
       if(!a||a.runRef&&r.runRef&&canonical(a.runRef)!==canonical(r.runRef)){await fence(r,'E_RUN_REF');continue;}
       if(run?.state==='paused_unknown'){
