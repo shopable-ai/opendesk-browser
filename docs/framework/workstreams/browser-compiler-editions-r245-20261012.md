@@ -24,7 +24,7 @@
 
 - 原本的 R24.3/24.4 本地编译、Mac 浏览器编辑 Run/Stop 及四目录 CLI 安装的历史原始 PASS 保留，不能直接归属为新分版。
 - 新分支双版本 CI：**以 Actions 实际结果为准**；编译器文件实测差额不等于 ZIP 差值或运行时内存。
-- **正式发布 BLOCKED**：需 Developer 真 Chrome 的 JSX/SFC 编辑、交互、Stop、无 Native 输入；Standard 真 Chrome 的普通 JavaScript/React/Vue Direct、旧草稿与本地 Native 链；分别安装/更新、扩展 ID 和对应 Go 授权；以及生产包与 ZIP 的同身份证据。
+- **正式发布 BLOCKED**：R24.5 同一候选已有 Developer 真 Chrome JSX/SFC 编译、交互、Stop，以及 Standard 普通 JavaScript DOM 实际执行通过；仍需 Standard 的 React/Vue Direct、Controller、旧草稿、Go/Node Native 项目及固定程序安装更新的完整产品回归，以及分别部署时的稳定扩展 ID、Go 配对和最终 F3/ZIP 一致性。
 - 同一开发分支验证未完成前，不给独立 95 分；不创建 PR，不发布、不合入 `main`。
 
 ## 双包真实构建报告（已验证）
@@ -53,3 +53,25 @@ R24.5 CI [38240441632](https://github.com/shopable-ai/opendesk-browser/actions/r
 - **包体实测：**`Standard.zip=923,772 B`，`Developer.zip=1,881,170 B`，少 `957,398 B`，相对完整版少约 **50.9%**。解压后的所有文件分别为 `2,705,843 B` 和 `6,956,776 B`。两版原有 React 193,163 B、Vue 118,131 B 固定 Runtime 保留。编译器原本按需 Worker 加载，删除这些文件**不意味着启动内存与打开速度也减少 50.9%**。
 - **运营决策：**节省不到 1 MB 压缩包本身不是必须拆成两款公开商店商品的充分理由。更重要的是绝大多数人不需要 JSX/SFC 编译器，默认安装包应最小化开发专用执行资源及供应链维护负担。推荐 **Standard 单一正式用户渠道 + 原有 Node CLI 本地编译 + Developer ZIP 仅高级用户/GitHub CI 按需提供**；不要维护第二个长期分叉源码仓库，也不急于创建第二个 Chrome Web Store 条目。
 - **仍未证明：**最新版增强 JavaScript E2E 的最终 CI、两版实际长期安装与版本更新、Go Native 的各扩展 ID 重新配对、全部 React/Vue Direct/Controller 兼容矩阵、F3/ZIP 正式交付身份。直到这些关闭，`R24.5 Final` 维持 **NOT_RELEASED / NOT_FULLY_TESTED**，不能以构建或单场景 Chrome PASS 抵消。
+
+## 最新增强候选：Mac Chrome 双版真实运行与最终制品哈希（已 PASS）
+
+[GitHub Actions 38247467657](https://github.com/shopable-ai/opendesk-browser/actions/runs/38247467657) 为固定提交 `176bb1916006ad98bb3d1b10c1b2f2d93a06d122` 的完整 **PASS**，`dual-edition-package` 与 `browser-editions-real-chrome` 两个 Job 均成功；Chrome for Testing 155、macOS 独立 Profile、无 Native 配置。它替代早先 `38247373382` 中由于 CDP `Inspected target navigated or closed` 而失败的旧 UI 驱动候选；保留旧失败记录，不声称其 PASS。
+
+**Standard 实际原生回执：**`PASS_STANDARD_BROWSER_NO_COMPILER`，真实 Chrome 用户脚本开关、整个不必要的代码类型选择区隐藏、可用 JavaScript 输入框、原生鼠标点击 Run、目标网页 DOM 更新均通过。`r245-standard-real-chrome-javascript-execution` 的 `sourceHash=9a627b1c92f77a9ab7b5c910b386393d25f89ed18675a8e7bd428447aaed78b5`，`documentId=A3EB62F33A76C976C58E42D5F821FF84`，扩展测试 ID `pnhiokdnhhpbidgojhbjknpldipijdfa`。没有把普通 JS 无受管挂载误记为 React/Vue Stop 成功。
+
+**Developer 实际原生回执：**`PASS_BROWSER_UI_NO_NATIVE_REACT_VUE_RUN_STOP`，扩展测试 ID `legmfblcmgcbdnclkiapbfbieamfjnok`。React `previewId=3bdc7f85-40e1-4c28-b51d-942ffbff1c2a`、Vue `previewId=1ce6e742-a117-4724-a7e1-9dda933eabb4`，同一页面 `documentId=7B9C4F0AB13DFE902B22CD662DE9CB7A`，真实指针点击、Hooks/ref 响应、受管 Stop 清理。还覆盖了 Vue 语法错误拒绝、不重播旧回执、编辑修复后的明确新 Run、Teleport 外部 DOM 受管清理；准确回执及截图在 run Artifact `r245-standard-and-developer-native-176bb...`。
+
+同一源码候选的生产包及 ZIP 均有独立、严格验收（[两个制品 Artifact](https://github.com/shopable-ai/opendesk-browser/actions/runs/38247467657)）：
+
+| 项目 | Standard | Developer |
+| --- | ---: | ---: |
+| 生产 ZIP 大小 | 923,809 B | 1,881,207 B |
+| 解压大小 | 2,706,005 B | 6,956,938 B |
+| 资源文件数量 | 83 | 90 |
+| packageHash | `7911abc1f8b55cf5ed47510247ce005d4c112f502f2a02b1d888b0f94fa3274b` | `d04814681630f3aba176a93402051942bd8307fe767d68650235132b78c0202e` |
+| ZIP SHA-256 | `eec66a63cacaffdf62071a9387566070bd0ebb7f87674b4494e2e235ddc50daf` | `f03193a2124609ebfc9f5b939772e57f791db2064ef7228bedb36285c4e3956b` |
+
+压缩节省仍为 **957,398 B（约 50.9%）**，构建对比确认 React/Vue Runtime 仍在 Standard 中，只有可选浏览器编译器闭包和其许可证被剔除。此结论不是浏览器启动时间/RAM 降幅测量。
+
+**产品放行状态：**「双版打包+代表性真 Chrome 正向链」PASS；「完整既有工具矩阵、正式安装更新、Native 重新配对、Stable Extension ID、F3/发行 ZIP 同包」尚未闭环。Developer 仍建议仅保留为高级用户/GitHub CI 可下载的预览版；没有发布正式 Release、Chrome Web Store，也没有将实验分支合入 `main`。

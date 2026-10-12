@@ -77,3 +77,10 @@ npm run pack:developer
 [macOS Chrome 双版本回归](https://github.com/shopable-ai/opendesk-browser/actions/runs/38241423476) 同一源码身份通过：Standard 不展示不可用 JSX/SFC 编译入口；Developer 无 Native JSX/SFC Run、真实状态交互、Stop、Vue 出错后修复以及受管 Teleport 清理。
 
 **是否值得分版：**4.25 MB 未压缩资源约对应 0.96 MB ZIP 额外负担，它们本就按需读取，因此一般用户启动时间、RAM 的直接改善不能凭 ZIP 节省推断。分版的主要产品价值是**默认发行物的能力边界清晰、减少多数用户无用的开发环境资源和审计负担**。推荐继续保持一个公开正式渠道，Developer 包按需供高级开发者下载使用；如果 Developer 需求不大，可不做第二个商店商品。正式渠道在本分支验收闭环且获用户授权合入之前仍保持当前 main，不在文档中假报 Standard 已经正式发布。
+
+## 七、R24.5 专项 Mac Chrome 验收状态
+
+双版本同源码候选 `176bb1916006ad98bb3d1b10c1b2f2d93a06d122` 的 [CI 38247467657](https://github.com/shopable-ai/opendesk-browser/actions/runs/38247467657) 完整 **PASS**：Standard 真实侧栏只呈现普通 JavaScript 源码编辑（不会显示无用的 JSX/SFC 模式选项），用户输入并主动点击 Run 后获准网页 DOM 真实更新；Developer 仍能无 Native 编译 React JSX/Vue SFC、交互、Stop、语法错误恢复和受管 Teleport 清理。最新 ZIP 分别 **923,809 B / 1,881,207 B**，前者不含任何浏览器 JSX/SFC 编译器资源。完整哈希、截图、sourceHash 和未测边界见 [工作记录](../../framework/workstreams/browser-compiler-editions-r245-20261012.md)。
+
+**后续发行仍 BLOCKED**：Standard 的 React Direct / Vue Direct、Controller、本地 JSX/SFC Native 交接、正式已安装工具更新及稳定扩展 ID 尚未在两个分版下完成全矩阵验收。不要把成功的局部 Chrome Run/Stop 当成可直接替换已上架扩展的发布许可。
+
