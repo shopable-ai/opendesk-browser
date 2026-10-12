@@ -42,6 +42,7 @@ export function createBrowserSdk({request,context='sidebar-tool'}={}){
         getStatus:method('browser.network.observe.getStatus'),
         stop:method('browser.network.observe.stop'),export:method('browser.network.observe.export')})}),
     events:Object.freeze({read:method('browser.events.read'),close:method('browser.events.close')}),
+    screenshot:Object.freeze({captureVisible:method('browser.screenshot.captureVisible')}),
     operations:Object.freeze({getStatus:method('browser.operations.getStatus'),
       cancel:method('browser.operations.cancel')})
   });

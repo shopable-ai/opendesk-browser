@@ -54,7 +54,7 @@ const ops=Object.freeze({
    ['events','droppedCount','gapCount'])],
  'browser.events.close':[eid,obj({closed:bool},['closed'])],
  'browser.screenshot.captureVisible':[obj({tabRef:ref},['tabRef']),
-   obj({resourceRef:ref,bytes:num(0,16777216)},['resourceRef','bytes'])],
+   obj({resourceRef:ref,downloadId:num(0,2147483647),bytes:num(1,8388608),width:num(1,4096),height:num(1,4096)},['resourceRef','downloadId','bytes','width','height'])],
  'browser.media.recording.prepare':[obj({source:{enum:['tab','window','desktop']},durationMs:num(1,300000)},['source']),
    obj({recordingId:ref,state:str(40)},['recordingId','state'])],
  'browser.media.recording.getStatus':[rid,state],

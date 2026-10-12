@@ -47,7 +47,7 @@ export const BROWSER_OPERATIONS=Object.freeze({
   'browser.network.observe.export':entry('browser.network.observe.export','browser.network.observe',tool,['webRequest','downloads'],'write','high','approved-tab','IMPLEMENTED','bounded-session'),
   'browser.events.read':entry('browser.events.read','browser.events',tool,[],'read','medium','owned-session','IMPLEMENTED'),
   'browser.events.close':entry('browser.events.close','browser.events',tool,[],'write','low','owned-session','IMPLEMENTED'),
-  'browser.screenshot.captureVisible':entry('browser.screenshot.captureVisible','browser.screenshot',tool,['activeTab'],'read','high','selected-tab','HOST_ONLY'),
+  'browser.screenshot.captureVisible':entry('browser.screenshot.captureVisible','browser.screenshot',tool,['activeTab','downloads'],'write','high','selected-tab','IMPLEMENTED'),
   'browser.media.recording.prepare':entry('browser.media.recording.prepare','browser.media.recording',tool,[],'write','high','visible-user-consent','PLANNED'),
   'browser.media.recording.getStatus':entry('browser.media.recording.getStatus','browser.media.recording',tool,[],'read','medium','owned-session','PLANNED'),
   'browser.media.recording.stop':entry('browser.media.recording.stop','browser.media.recording',tool,[],'write','medium','owned-session','PLANNED'),
@@ -116,6 +116,11 @@ export function normalizeBrowserOperation(operation,args={}){
       if(new TextEncoder().encode(JSON.stringify(normalized)).length>12000)throw fail('E_LIMIT','HTTP payload budget exceeded');
       return normalized;
     }
+    case 'browser.screenshot.captureVisible':
+      fields(args,['tabRef'],['tabRef']);
+      if(typeof args.tabRef!=='string'||!/^[A-Za-z0-9_-]{16,160}$/.test(args.tabRef))
+        throw fail('E_SCHEMA','Authorized exact TabRef required');
+      break;
     case 'browser.network.observe.start':{
       fields(args,['tabRef','origins','durationMs','maxEvents','maxBufferedBytes'],['tabRef','origins']);
       if(typeof args.tabRef!=='string'||!/^[A-Za-z0-9_-]{16,160}$/.test(args.tabRef))

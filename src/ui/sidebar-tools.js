@@ -111,6 +111,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     'browser.network.observe':'经用户授权观察自己打开的网页 HTTP 元数据（最多30秒）',
     'browser.events':'读取和关闭此工具持有的有界网络观察会话',
     'browser.operations':'查询和取消本工具持有的网络观察操作',
+    'browser.screenshot':'用户主动截取本工具获准的可见网页并下载 PNG',
   });
   const timePermissions=settingsView?createTimeReviewPermissionControls({api,doc,container:settingsView,notice,runOperation:runTrustedTimeReviewOperation}):null;
   const versionOrder=compareToolVersions;
@@ -653,11 +654,13 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
         }finally{coordinator.dispose();}
       }
       if(['browser.tabs.open','browser.tabs.focus','browser.network.request',
-        'browser.network.observe.start','browser.network.observe.export'].includes(operation)){
+        'browser.network.observe.start','browser.network.observe.export',
+        'browser.screenshot.captureVisible'].includes(operation)){
         const target=operation==='browser.tabs.focus'?'聚焦此工具此前打开的标签页':
           operation==='browser.tabs.open'?'打开网页 '+new URL(payload.url).origin:
           operation==='browser.network.observe.start'?'观察已打开标签页内 '+payload.origins[0]+' 的 HTTP 元数据':
           operation==='browser.network.observe.export'?'导出本工具已停止的网络观察为 JSON 文件':
+          operation==='browser.screenshot.captureVisible'?'截取当前可见且已授权的网页，并打开 PNG 保存对话框':
             '向 '+new URL(payload.url).origin+' 发送 '+payload.method+' HTTP 请求';
         const approvalRef=await requestBrowserClick({toolId:tool.id,
           message:'「'+tool.title+'」请求'+target+'；确认仅批准这一次操作。',

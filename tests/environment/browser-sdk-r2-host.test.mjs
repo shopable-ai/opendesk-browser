@@ -9,7 +9,7 @@ const uid='01234567-89ab-4def-8123-456789abcdef';
 const pkg=validateSidebarToolPackage({
   format:'opendesk.sidebar-tool.v2',id:'browser-probe',version:'1.0.0',
   title:'Browser probe',description:'P0 acceptance probe',
-  capabilities:['browser.tabs','browser.sidePanel','network','browser.network.observe','browser.events','browser.operations'],
+  capabilities:['browser.tabs','browser.sidePanel','network','browser.network.observe','browser.events','browser.operations','browser.screenshot'],
   html:'<div>Browser probe</div>',css:'',js:'console.log("browser probe");',
   requires:{browserSdk:'1.0.0'},contributes:{contextMenus:[]}
 });
@@ -44,7 +44,11 @@ function fixture({fetchImpl=async()=>new Response('{"ok":true}',{status:200,head
       create:async ({url})=>{const item={id:100+created.length,windowId:9,url};tabs.set(item.id,item);created.push(item);return item;},
       remove:async id=>{tabs.delete(id);for(const fn of removed)fn(id);},
       get:async id=>{if(!tabs.has(id))throw Error('Tab missing');return tabs.get(id);},
-      update:async (id,attrs)=>{const item={...tabs.get(id),...attrs};tabs.set(id,item);return item;}
+      update:async (id,attrs)=>{const item={...tabs.get(id),...attrs};tabs.set(id,item);return item;},
+      query:async ({active,windowId})=>[...tabs.values()].filter(x=>x.windowId===windowId).slice(-1),
+      captureVisibleTab:async()=>(
+        'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAVs7gNYAAAAASUVORK5CYII='
+      )
     },
     windows:{update:async()=>true},
     webNavigation:{getFrame:async({tabId})=>tabs.has(tabId)?{
@@ -221,4 +225,42 @@ test('R4 owned operation status/cancel refers to a real network observation and 
  f.setSite(false);
  await assert.rejects(f.call('browser.operations.getStatus',
    {operationId:started.operationId}),err('E_SITE_PERMISSION_REVOKED'));
+});
+
+test('P1 screenshot: exact owned visible tab, one-use user approval and private PNG Save As receipt',async()=>{
+ const f=fixture(),args={url:'https://example.org/screenshot'};
+ const tabRef=(await f.call('browser.tabs.open',args,
+   (await f.confirm('browser.tabs.open',args)).approvalRef)).tabRef;
+ const capture={tabRef};
+ await assert.rejects(f.call('browser.screenshot.captureVisible',capture),err('E_USER_GESTURE_REQUIRED'));
+ await assert.rejects(f.confirm('browser.screenshot.captureVisible',{tabId:100}),err('E_SCHEMA'));
+ const approval=(await f.confirm('browser.screenshot.captureVisible',capture)).approvalRef;
+ const result=await f.call('browser.screenshot.captureVisible',capture,approval);
+ assert.equal(result.downloadId,777);
+ assert.equal(result.width,1);
+ assert.equal(result.height,1);
+ assert(result.resourceRef.length>=16);
+ assert(!JSON.stringify(result).includes('base64'));
+ assert(!Object.hasOwn(result,'tabId'));
+ assert.equal(f.downloads.length,1);
+ assert.equal(f.downloads[0].saveAs,true);
+ assert.equal(f.downloads[0].url.startsWith('data:image/png;base64,'),true);
+ await assert.rejects(f.call('browser.screenshot.captureVisible',capture,approval),err('E_USER_GESTURE_REQUIRED'));
+});
+test('P1 screenshot revocation and wrong visible tab prevent a Chrome capture side effect',async()=>{
+ const f=fixture(),args={url:'https://example.org/screenshot'};
+ const tabRef=(await f.call('browser.tabs.open',args,
+   (await f.confirm('browser.tabs.open',args)).approvalRef)).tabRef;
+ f.setSite(false);
+ const deniedRef=(await f.confirm('browser.screenshot.captureVisible',{tabRef})).approvalRef;
+ await assert.rejects(f.call('browser.screenshot.captureVisible',{tabRef},deniedRef),
+   err('E_SITE_PERMISSION_REVOKED'));
+ assert.equal(f.downloads.length,0);
+ f.setSite(true);
+ const second={url:'https://example.org/another'};
+ await f.call('browser.tabs.open',second,(await f.confirm('browser.tabs.open',second)).approvalRef);
+ const approval=(await f.confirm('browser.screenshot.captureVisible',{tabRef})).approvalRef;
+ await assert.rejects(f.call('browser.screenshot.captureVisible',{tabRef},approval),
+   err('E_TARGET_CHANGED'));
+ assert.equal(f.downloads.length,0);
 });

@@ -14,9 +14,9 @@
   "summary": {
     "operationCount": 32,
     "implementationCounts": {
-      "IMPLEMENTED": 22,
+      "IMPLEMENTED": 23,
       "PLANNED": 7,
-      "HOST_ONLY": 1,
+      "HOST_ONLY": 0,
       "NOT_EXPOSED": 2
     },
     "callableVerified": 0
@@ -66,7 +66,7 @@
     },
     "R3": {
       "status": "NOT_TESTED",
-      "reason": "Screenshot HOST_ONLY, Recording/Operations not wired and Speech scoped out"
+      "reason": "The existing screenshot driver is now connected to installed-tool Host and bounded private PNG/Chrome Save As receipt; recording and native Chrome acceptance remain pending"
     },
     "R4": {
       "status": "NOT_TESTED",
@@ -929,25 +929,26 @@
       "api": "browser.screenshot.captureVisible",
       "module": "browser.screenshot",
       "apiVersion": "1.0.0",
-      "implementation": "HOST_ONLY",
+      "implementation": "IMPLEMENTED",
       "executionContexts": [
         "sidebar-tool"
       ],
-      "exposure": "HOST_ONLY",
+      "exposure": "APPROVED_TOOL",
       "inputSchema": "src/framework/sdk/browser-contract.js#browser.screenshot.captureVisible",
       "outputSchema": "src/framework/sdk/browser-contract.js#browser.screenshot.captureVisible",
       "chromePermissions": [
-        "activeTab"
+        "activeTab",
+        "downloads"
       ],
       "toolCapabilities": [
         "browser.screenshot"
       ],
-      "effectClass": "read",
+      "effectClass": "write",
       "riskLevel": "high",
       "siteScope": "selected-tab",
       "lifecycle": "request",
-      "hostImplementation": "src/platform/host/controller-methods.js",
-      "sdkEntry": null,
+      "hostImplementation": "src/platform/chrome/context-menus.js#handleTool + src/platform/chrome/browser-screenshot.js",
+      "sdkEntry": "src/framework/sdk/browser.js",
       "positiveTest": {
         "status": "NOT_TESTED",
         "evidence": []
@@ -962,9 +963,9 @@
       },
       "callableNowVerification": "NOT_TESTED",
       "blockers": [
-        "Host available but ordinary tools not authorized"
+        "Native Mac Chrome visible-tab permission, real click, Save As file delivery and Worker/permission revocation acceptance pending"
       ],
-      "nextTask": "Maintain restricted status with denial tests",
+      "nextTask": "Execute same-candidate Chrome screenshot (PNG download) positive, wrong-active-tab, revoke, and never-leak-Base64 cases",
       "commits": [],
       "evidence": []
     },

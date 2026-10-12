@@ -2,6 +2,8 @@ import {isToolSender,resolveToolSender,permissionPattern} from '../../environmen
 import {createBrowserTabHost} from './browser-tabs.js';
 import {createNetworkService} from './network.js';
 import {createBrowserNetworkObserver} from './browser-network-observe.js';
+import {createBrowserScreenshotHost} from './browser-screenshot.js';
+import {createBrowserScreenshotResources} from './browser-screenshot-resources.js';
 import {SIDEBAR_TOOL_ENABLE_STORE,requireToolEnableRecords,sidebarToolEnabled} from '../../ui/sidebar-tools/lifecycle.js';
 // Trusted Chrome MV3 context-menu driver. No third-party code executes here.
 // Listener registration is synchronous; storage and install checks are async.
@@ -137,7 +139,7 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
   // A permission or installed-package change must fence requests that are already in fetch().
   const activeNetworkRequests=new Set();
   const intentOperations=new Set(['browser.tabs.open','browser.tabs.focus','browser.network.request',
-    'browser.network.observe.start','browser.network.observe.export']);
+    'browser.network.observe.start','browser.network.observe.export','browser.screenshot.captureVisible']);
   const observationOperations=new Set(['browser.network.observe.getStatus','browser.network.observe.stop',
     'browser.events.read','browser.events.close']);
   const ownedOperationMethods=new Set(['browser.operations.getStatus','browser.operations.cancel']);
@@ -174,8 +176,19 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
       await verifyBrowserOwner(context,'browser.network.request',origin);
     }});
   const networkObserver=createBrowserNetworkObserver({api});
+  const screenshotResources=createBrowserScreenshotResources({api});
+  const screenshotHost=createBrowserScreenshotHost({api,
+    resolveTarget:(ref,context)=>tabHost.resolve(ref,context),
+    authorize:async({origin,context})=>{
+      await verifyBrowserOwner(context,'browser.screenshot.captureVisible',origin);
+      return true;
+    },
+    createResource:row=>screenshotResources.createResource(row),
+    discardResource:ref=>screenshotResources.discardResource(ref)
+  });
   function revokeBrowserOperations(){
     networkObserver.revokeAll();
+    screenshotResources.revokeAll();
     browserIntents.clear();
     for(const controller of activeNetworkRequests)
       controller.abort(failure('E_GRANT_REVOKED','Installed tool authority changed during HTTP request'));
@@ -249,7 +262,7 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
   }
   const epochKey=(tabId,frameId)=>String(tabId)+':'+String(frameId);
   function noteNavigation(tabId,frameId=0){
-    if(frameId===0)networkObserver.invalidateTab(tabId);
+    if(frameId===0){networkObserver.invalidateTab(tabId);screenshotResources.revokeTab(tabId);}
     const key=epochKey(tabId,frameId);
     documentEpochs.set(key,(documentEpochs.get(key)||0)+1);
     if(frameId===0){
@@ -332,7 +345,9 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
       operation==='browser.tabs.focus'?Boolean(api.tabs?.get&&api.tabs?.update):
       operation==='browser.sidePanel.openSelf'?Boolean(api.sidePanel?.open):
       operation==='browser.network.request'?typeof fetchImpl==='function':
-      operation.startsWith('browser.network.observe.')?Boolean(api.webRequest?.onBeforeRequest?.addListener):true);
+      operation.startsWith('browser.network.observe.')?Boolean(api.webRequest?.onBeforeRequest?.addListener):
+      operation==='browser.screenshot.captureVisible'?
+        Boolean(api.tabs?.query&&api.tabs?.captureVisibleTab&&api.downloads?.download):true);
     const hasToolCap=op.requiredCapabilities.every(cap=>tool.capabilities.includes(cap));
     const chromium=menuApiAvailable&&await permissionGranted(api);
     const requiredBrowser=(await Promise.all(op.requiredChromePermissions.map(async id=>
@@ -409,6 +424,27 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
         await verifyBrowserOwner(context,operation,approvedOrigin);
         if(operation==='browser.tabs.open')return tabHost.open(checked,context);
         if(operation==='browser.tabs.focus')return tabHost.focus(checked,context);
+        if(operation==='browser.screenshot.captureVisible'){
+          // One-use approval was spent above; only the trusted Host may assert
+          // that it came from the visible extension UI's verified click.
+          const selected=await tabHost.resolve(checked.tabRef,context);
+          await verifyBrowserOwner(context,operation,selected.origin);
+          const photo=await screenshotHost.captureVisible(checked,{
+            ...context,trustedUserActivation:true});
+          try{
+            // The private PNG remains in SW memory only until final identity and
+            // Chrome site permission are rechecked, then a Save As begins.
+            const delivery=await screenshotResources.deliver(photo.resourceRef,context,async stored=>{
+              const latest=await tabHost.resolve(checked.tabRef,context).catch(()=>null);
+              if(!latest||latest.tabId!==stored.tabId||
+                 latest.documentId!==stored.documentId||latest.url!==stored.url)
+                return false;
+              await verifyBrowserOwner(context,operation,latest.origin);
+              return true;
+            });
+            return {...photo,...delivery};
+          }finally{await screenshotResources.discardResource(photo.resourceRef)}
+        }
         if(operation==='browser.network.observe.start'){
           const target=await tabHost.resolve(checked.tabRef,context);
           if(target.origin!==approvedOrigin)
