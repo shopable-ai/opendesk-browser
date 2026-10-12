@@ -1,5 +1,28 @@
 # Browser SDK R2–R4 已安装工具真实调用示例
 
+## 推荐：短写法（不需手动管理三个不同的 ID）
+
+```js
+const {browser} = OpenDeskSDK;
+
+// tabRef 必须是本工具此前获准打开并仍然拥有的标签页引用。
+const watch = await browser.network.watch({
+  tabRef,
+  origin: 'https://example.org'
+});
+const {events} = await watch.read({limit:25});
+const status = await watch.status();
+await watch.stop();
+await watch.export(); // 停止后，可信宿主会再次要求用户确认 JSON 保存
+await watch.close();
+```
+
+`watch` 只是沙箱 SDK 内存中的便捷会话对象，**不是新的 Host RPC，也不是可跨工具传递的永久凭据**。它将原有 `network.observe.start/getStatus/stop/export`、`events.read/close` 委托给同一套受控 Host 操作；`watch.cancel()` 复用 `operations.cancel`。原有长接口继续兼容。每次调用都执行原有包身份、站点、Chrome 权限、所有权和生命周期复核。
+
+调用 `watch()` 必须明确传入 *本工具的* `tabRef` 与**精确 Origin**，不自动监听全部网页；还要在工具包中声明 `browser.network.observe`、`browser.events`（如使用 `cancel()` 则需 `browser.operations`）。Chrome 可选 `webRequest` 权限与首次用户确认规则保持不变；导出仍须用户再次确认。
+
+**注意：** `watch.read()` 是有界分页，`watch.export()` 仅支持停止后的 JSON 下载。Worker 恢复期间观察缺口不能自动补造；关闭或卸载工具之后的原引用不能恢复授权。组件与构建通过不等于 Mac Chrome 原生验收。
+
 本目录是独立 JSON 安装工具，**不需要修改、重新编译 OpenDesk 扩展，也不需要任何外部 npm/CDN**。其源码直接调用沙箱中已有的 `OpenDeskSDK.browser`。
 
 ## 本地使用
