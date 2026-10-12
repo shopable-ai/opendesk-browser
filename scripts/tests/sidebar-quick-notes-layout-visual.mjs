@@ -92,7 +92,7 @@ function measure(){
     text:box('#note-text'),actions:box('.editor-actions'),attach:box('.page-attach'),
     delete:box('#delete-note'),save:box('#save-note'),details:box('.task-shortcut'),
     noteList:box('#note-list'),noteAttachment:box('#note-attachment'),status:box('#note-status'),
-    confirmation:box('#note-confirm'),buttons:[...document.querySelectorAll('.icon-button')].map(x=>{
+    confirmation:box('#note-confirm'),confirmButtons:[...document.querySelectorAll('#note-confirm .confirm-actions button')].map(x=>{const r=x.getBoundingClientRect();return {x:r.x,right:r.right,y:r.y,width:r.width,height:r.height};}),buttons:[...document.querySelectorAll('.icon-button')].map(x=>{
       const r=x.getBoundingClientRect();return {id:x.id,width:r.width,height:r.height};
     })
   };
@@ -111,7 +111,14 @@ function validate(width,state,m){
     eq(m.text.x,m.noteAttachment.x,'Attachment left edge');
     eq(m.text.x,m.status.x,'Status left edge');
   }
-  if(state==='confirm')eq(m.text.x,m.confirmation.x,'Inline confirmation left edge');
+  if(state==='confirm'){
+    eq(m.text.x,m.confirmation.x,'Inline confirmation left edge');
+    assert.equal(m.confirmButtons.length,2,'Inline confirmation contains two buttons');
+    eq(m.confirmButtons[0].y,m.confirmButtons[1].y,'Confirmation buttons stay on the same row');
+    eq(m.confirmButtons[1].x-m.confirmButtons[0].right,8,'Confirmation button gap');
+    eq(m.confirmButtons[1].right,m.confirmation.right-13,'Confirmation buttons align to card inner edge');
+    for(const button of m.confirmButtons)assert.ok(button.height>=34&&button.height<=44,'Confirmation text must not wrap');
+  }
   assert.ok(m.attach.height<=35,'Attach label wraps into multiple lines at '+width+'/'+state);
   assert.ok(m.save.right<=m.text.right+1&&m.delete.x>=m.text.x-1,'Editor actions out of content bounds');
   eq(m.save.right,m.text.right,'Save is anchored to the right edge');

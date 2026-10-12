@@ -44,3 +44,9 @@
 - 新增 `scripts/tests/sidebar-quick-notes-layout-visual.mjs` 并接入 `.github/workflows/sidebar-r19-layout-visual.yml`：使用实际 Quick Notes HTML/CSS/Logo 在真实 Chrome 渲染，不加载扩展也不运行工具 JS；12 宽度 × 4 状态检查布局与控件边界，保留截图/metrics。有效 160/180/210px 仅覆盖缩放等效布局宽度；不将其算作真实 Chrome 200% zoom 证明。
 - 同步修改 `tests/environment/sidebar-tool-spacing-contract.test.mjs` 与工具 README。不得把 Node/CSS/静态 Chrome PASS 冒充实际 Side Panel 安装、版本更新和数据读写验收；这些应另外标识。首轮候选与 CI 结果在跑完对应 Actions 后填写真实身份，不预先标 PASS。
 
+## R26.3 确认按钮超窄宽度（同日补充）
+
+- 静态浏览器复核发现，旧 `.confirm-actions button` 在有效 160 CSS px 时，取消/确定中文字符可被挤成竖向两行。补充 `white-space:nowrap`、`flex:none`、标准 8px 内边距，以及按钮组 `flex-wrap:wrap`；160 CSS px 下按钮保持同一水平行，极端更窄时允许整按钮换行。
+- 因样式字节发生变化，官方包版本继续由 1.1.7 提升为 **1.1.8**。存储身份、已存数据、权限及运行 JS 不变；既有用户需执行显式更新，不可卸载旧工具后重新安装。
+- 源码 Chrome 的 `confirm` 状态新增两个真实按钮的矩形测量，检查同一行、8px 间距、按钮右侧对齐及文本未折行；视觉等级仍为 `STATIC_SOURCE_CHROME`，与真实扩展 E2E 明确区分。
+
