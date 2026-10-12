@@ -1,8 +1,8 @@
 {
   "id": "react-notes-starter",
-  "version": "1.0.0",
-  "title": "React 笔记",
-  "description": "预编译的单 IIFE 工具 UI；仅点击保存时执行写入。",
+  "version": "1.1.0",
+  "title": "React 笔记与图表",
+  "description": "本地打包 React 和第三方趋势图库；笔记只在点击保存时写入。",
   "capabilities": [
     "storage.local"
   ],

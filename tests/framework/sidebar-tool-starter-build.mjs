@@ -25,6 +25,13 @@ for(const kind of ['react','vue']){
   const tool=validateSidebarToolPackage(JSON.parse(bytes.toString('utf8')));
   assert.equal(tool.id,kind+'-notes-starter');
   assert.deepEqual(tool.capabilities,['storage.local']);
+  if(kind==='react'){
+    assert.equal(tool.version,'1.1.0');
+    assert.match(tool.js,/sparkline--line/,'third-party rendering code must be bundled');
+    assert.doesNotMatch(tool.js,/https?:\/\/(?:cdn\.jsdelivr\.net|unpkg\.com|cdnjs\.cloudflare\.com)/i,
+      'installed tool cannot require a runtime script CDN');
+    assert.match(tool.css,/sparkline--line/,'chart appearance must be packaged locally');
+  }
   assert.ok(tool.js.length>50000,'bundle must include local runtime dependencies');
   assert.ok(tool.js.length<=220000,'classic JS stays under the existing schema limit');
   assert.ok(bytes.length<=320000,'overall tool package must fit current validator budget');
