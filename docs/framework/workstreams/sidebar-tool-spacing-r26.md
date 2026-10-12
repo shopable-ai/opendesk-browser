@@ -26,3 +26,13 @@
 - 源码候选需按 `docs/framework/testing-guide.md` 做增量影响核对，运行 `npm run check`、必要的生产/开发构建及 `npm run verify`；不能把历史候选 PASS 直接移植到新候选。
 - Mac Chrome：320/360/420/520px，125%/200% 缩放，长标题/长 URL，Side Panel 工具列表→网页笔记→返回以及技术信息折叠、安装更新。**无当前源码绑定的原生证据；状态 `NOT_TESTED`。**
 - 本轮未接触任何本地 Mac Chrome profile、固定端口、dist/ZIP、历史回执或全局 owner 账本。
+
+## CI 实际回执（源码候选 `8e44f6eb2bfbb51482b903c290133618582ed270`）
+
+以下链接对应固定候选，不把后续文档更新推定为再次完成 native 验收。
+
+- [R21 integrated UI quality](https://github.com/shopable-ai/opendesk-browser/actions/runs/38210110516)：**PASS**。新间距合同测试和现有 Side Panel/Tools/Workflow 组件测试通过；源码检查、生产/开发构建与 verify、严格 CSS/package 回归通过。
+- [R19 real-markup static Chrome audit](https://github.com/shopable-ai/opendesk-browser/actions/runs/38210110499)：**STATIC_MARKUP_CHROME PASS**。300/360/420/520px 的 Tools 列表和工具详情 `documentOverflow:false`、`contentOverflow:false`、`panelOverflow:false`，34px 图标控件及原有圆角检查通过。**这是静态模拟页面，不代表实际已安装 Chrome 扩展。**
+- [Sidebar user tools package](https://github.com/shopable-ai/opendesk-browser/actions/runs/38210110488)：**PASS**，工具构建/包约束通过。
+- [官方工具目录 R4.5 Native](https://github.com/shopable-ai/opendesk-browser/actions/runs/38210110438)：**FAIL（独立遗留差异）**，`tests/framework/app-market-r3-native.test.mjs:108` 仍预期旧的五个官方工具，当前 catalog 已加入 `time-review`（六个）。失败发生在 Chrome 生命周期测试开始前的 catalog 断言；另有工作流负责目录/原生合同，不能在本轮用修改布局脚本的方式掩盖该失败。
+- 真实用户 Mac Chrome Side Panel 交互、125%/200% 缩放、版本更新与本地长期数据：`NOT_TESTED`。用户侧需加载本轮构建实际包，再验证上述流程。无法将这一缺项算作 UI 全面 95+。
