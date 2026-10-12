@@ -37,3 +37,12 @@
 - Mac Native [workflow 38206940811](https://github.com/shopable-ai/opendesk-browser/actions/runs/38206940811) **FAIL**；该轮 Controller 已通过真实运行，随后在 Page UI R2.2 native case `pageVersion(1)` 断言失败，`'点击计数' !== 'Local v1'`。失败原始 run 不删除、不提升为 PASS。
 - 与既有 native 断言核对后保留 `src/model.js` 原 `Local v1`，恢复受管计数按钮的 CSS 初始颜色 `rgb(31,102,178)`（测试会替换为 v2 色彩），恢复关闭按钮的 `data-action=close`。同时保留扩展的网页范围、Shadow DOM 悬浮、窄屏和运行身份诊断。Node 定向测试补充对约定数据属性/颜色的断言。
 - 这次代码/测试更改构成新的明确输入，需在新的 CI 候选重新执行受影响 Native 检查；保留失败记录及 SHA。
+
+## 修复后 CI 验收（保留侧栏阶段未通过）
+
+- 产品改动候选 `2fd312863a2f46e6beb2a066f91177087b720d7c`；PR #74 测试 checkout 的合成 sourceHead `c9b56c56cc59eae2b4c8d31c97c4fc2272b9469b`。仅本次改动范围，文档更新不修改业务输入。
+- 新 CI：[网站授权 38207262037](https://github.com/shopable-ai/opendesk-browser/actions/runs/38207262037) PASS；[多文件源码 38207261986](https://github.com/shopable-ai/opendesk-browser/actions/runs/38207261986) PASS；[Page 用户脚本与包 38207262010](https://github.com/shopable-ai/opendesk-browser/actions/runs/38207262010) PASS。
+- [macOS CFT/Native 38207261990](https://github.com/shopable-ai/opendesk-browser/actions/runs/38207261990) **FAIL**（保留日志/原始 artifact）。已通过的分段真实测试包含 Controller v1/v2/v7、Page v1/v2/v3/v4、typed Stop、热替换等待异步清理、错误清理拒绝、PNG/Shadow DOM/实际点击、原生 Socket 丢 ACK 只读恢复，共 18 条报告 PASS。
+- 阻断发生在后续 `sidebarVersion(3)`：打开 Side Panel、选中已连接的 Controller 项目后，`Sidebar Controller runId timed out`；不属于本轮更改的 `examples/programs/local-page-ui` 浮层源码。尚不能确定是环境、并行主干变更还是现有侧栏入口缺陷，不能声称整个真实验收通过。禁止无变化盲目重复；由 Side Panel/Native 工作流所有者检查原始 run 的状态、UI 和 CFT identity。
+- 本轮至少已证明 **原标准 HTTP 测试页的 Page UI 真实行为**。**不同远程 HTTP/HTTPS 站点、拒权、受限网站、跨站导航、窄屏/200% 缩放的真实 Chrome 场景仍 NOT_TESTED**，Node URL 匹配断言不能代替它们。
+- 合入阻断：PR 保持 Draft，跨站原生验收和后续 Sidebar/Native 故障定位待正式集成负责人；不作远端 main 直推、版本发布或 F3/ZIP 完成声明。
