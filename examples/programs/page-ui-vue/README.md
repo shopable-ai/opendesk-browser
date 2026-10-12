@@ -1,5 +1,12 @@
 # Vue SFC · OpenDesk Browser R24.3
 
+## 自动编译状态（2026-10-12）
+
+**状态：已实现、历史候选真实 Chrome PASS；R24.4 最终验收未完成。** `src/App.vue` 是原始 Vue SFC，Chrome 不能直接当普通 JavaScript 运行。OpenDesk 会自动转换：本地 `opendesk browser dev .` 在保存后准备；无 Native 浏览器「直接编辑 → Vue SFC」在明确 Run 时用受信 Worker 编译 `<script setup>`、`<template>` 与 `<style scoped>`。用户无须每次手动 Vite/npm build，**保存、编译并不自动运行**。
+
+证据：[本地 Vue 20 次真实 Chrome Run/Stop](https://github.com/shopable-ai/opendesk-browser/actions/runs/38155034890)、[浏览器 Vue `ref` 交互与 Stop](https://github.com/shopable-ai/opendesk-browser/actions/runs/38225425847)、[浏览器 Vue 语法错误拒绝与修复恢复](https://github.com/shopable-ai/opendesk-browser/actions/runs/38230083408)、[独立安装 CLI SFC 编译](https://github.com/shopable-ai/opendesk-browser/actions/runs/38231722128)。这些是历史候选 PASS；最新 `main` 浏览器 20 次循环、SPA/BFCache、撤权、完整 scoped CSS、缩放/主题与最终交付 **NOT_TESTED**。[完整状态表](../../../docs/api/page-ui-frameworks.zh-CN.md)。
+
+
 **当前默认入口：`src/App.vue`**，用户直接使用官方 `<script setup>`、`<template>` 和 `<style scoped>`，标准 `import {ref} from 'vue'`，无需写内部挂载样板、`main()` 或手工 Vite。系统使用固定 `@vue/compiler-sfc@3.5.22` 数据转换器、扩展内置 Vue runtime 和原项目编译器，生成 `createApp`、`app.unmount`、受管 CSS 清理。
 
 ## 使用方法
