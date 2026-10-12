@@ -106,6 +106,8 @@ jobs:
             // Explicit no-PR closeout: only delete an unchanged head after main contains its entire history.
             // This ref was retained after PR #55 joined its exact commit into main.
             const completedNoPrBranches = [
+              // R24.5 no-PR closeout: delete only after exact commit becomes an ancestor of main.
+              {name:'feature/r245-optional-browser-compiler',sha:'8e3f3a2517a157133c388214d679365432955b4c'},
               {name:'agent/local-ai-r1-final-01a12158',sha:'2921401fbfa45321f89aaca5fac39a5a1d00defa'}
             ];
             const activePRs = await github.paginate(github.rest.pulls.list, {owner, repo, state:'open', per_page:100});

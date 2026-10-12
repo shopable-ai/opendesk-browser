@@ -1,5 +1,7 @@
 # Page UI · React/Vue 官方组件开发（R24.3）
 
+> **R24.5 分版说明：** 默认 **Standard** 不打包 4.25 MB 浏览器 JSX/SFC 编译资源，但保留 React/Vue Direct、固定运行时、现有工具和 `opendesk browser dev .` 的 Node 本地 JSX/SFC 自动准备。只有单独安装的 **Developer Edition** 才支持在浏览器 Side Panel 中直接输入原始 JSX/Vue SFC 并即时编译。请查看 [R24.5 双版本架构与构建命令](../architecture/browser-framework/browser-compiler-editions-r245.zh-CN.md)。该分支尚未正式发布。
+
 2026-10-12 核查：**四个本地目录的 JSX/SFC 自动准备和 40 次 Chrome Run/Stop 有历史原生证据；浏览器无需 Native 的 Side Panel JSX/SFC → Worker 编译 → USER_SCRIPT 网页交互 → Stop 也在固定候选上通过真实 Chrome 验收。** 这不代表 R24.4 的全部异常路径、20 次浏览器编辑循环及最终 ZIP 已验收。
 
 [Page USER_SCRIPT](page-userscript.zh-CN.md) · [本地项目](local-projects.zh-CN.md) · [受管 UI 生命周期](../framework/ui-api.zh-CN.md) · [架构](../architecture/browser-framework/page-framework-authoring-r243.zh-CN.md)
@@ -47,9 +49,9 @@ Chrome 可打开 `http://127.0.0.1:43111/demo-form.html` 进行回归；**React 
 
 维护者/离线导出如需显式构建，`npm run build:program` 直接调用 `scripts/build-program-project.mjs`，**不再隐式执行 Vite**。`build:framework` 与 `src/runtime-entry.js` 仅保留为维护者预装固定运行时来源，不是用户日常 Run 操作。
 
-## 三、浏览器内直接开发：无需 Native
+## 三、Developer Edition：浏览器内直接开发（无需 Native）
 
-进入 Side Panel → 开发 → 直接编辑，选择「React JSX」或「Vue SFC」，输入原始组件源码并明确点击「运行 React/Vue 组件」。扩展自身的按需 Dedicated Worker 编译受信固定版本的 Babel/Vue SFC；生成的普通 JS 由原有 Page USER_SCRIPT 在当前已授权文档中运行。点击「停止受管 UI」卸载 root/app 和受管样式。**编辑、保存与编译均不会自动执行网页业务。** 此路径无需本机 Go/Node/npm/Vite/Native 编译服务，但仍需 Chrome「允许用户脚本」、当前网站访问授权和可运行的 HTTP(S) 页面。
+仅 Developer Edition 提供：进入 Side Panel → 开发 → 直接编辑，选择「React JSX」或「Vue SFC」，输入原始组件源码并明确点击「运行 React/Vue 组件」。扩展自身的按需 Dedicated Worker 编译受信固定版本的 Babel/Vue SFC；生成的普通 JS 由原有 Page USER_SCRIPT 在当前已授权文档中运行。点击「停止受管 UI」卸载 root/app 和受管样式。**编辑、保存与编译均不会自动执行网页业务。** 此路径无需本机 Go/Node/npm/Vite/Native 编译服务，但仍需 Chrome「允许用户脚本」、当前网站访问授权和可运行的 HTTP(S) 页面。
 
 [真实 macOS Chrome 无 Native 编译、交互与 Stop](https://github.com/shopable-ai/opendesk-browser/actions/runs/38225425847) 已在候选 `9cdb3bf98fe410b88c456801855e2635f6b1a7b0` 验证 React Hooks 状态更新与 Vue `ref` 更新；它不是此后任意代码变动的自动通过证明。浏览器目前面向单组件和受信固定框架导入，不提供任意 npm 包、跨文件相对导入、动态导入、远程 CDN、TypeScript/TSX 及自定义 Vite 插件。转换错误应以侧栏错误/位置诊断为准，不会回退执行旧版本。
 

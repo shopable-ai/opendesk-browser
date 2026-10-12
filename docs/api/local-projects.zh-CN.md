@@ -1,5 +1,7 @@
 # 本地 JS 与项目格式
 
+[R24.5 Standard / Developer 分版架构](../architecture/browser-framework/browser-compiler-editions-r245.zh-CN.md)：**Standard 不带浏览器侧 JSX/SFC 编译器；本地 Node/Native 自动编译仍然保留。** 浏览器直接编辑原始 JSX/SFC 只在 Developer Edition 中提供。
+
 [返回总入口](README.md)。短脚本用单文件；需要相对模块、CSS/图片、npm 或 HTTPS 时使用目录项目。保存只改变下次明确运行的输入，已入场运行和旧结果保持冻结。
 
 ## Go 原生单文件 Provider（无需 Node Host）
@@ -141,6 +143,6 @@ Page 项目可选设置 `"framework":"react"` 或 `"framework":"vue"`，而无�
 ## R24.4 React JSX/Vue SFC 两种日常入口（2026-10-12）
 
 - **本地多文件项目：**已安装并配对 Native/Go，且当前文件夹经过授权时，在四个 `examples/programs/page-ui-*` 目录分别运行 `opendesk browser dev .`。VS Code/Codex 保存 JSX/SFC 后自动准备并缓存；Side Panel 明确点击「运行本地项目」才执行，Stop 使用原受管 UI 清理。无需每次手工 `vite build`、`build:program` 或导入 JSON。CLI 真正打包的 `@shopable/opendesk-dev` 需要锁定的 `esbuild` 与 `source-map` 完整依赖，不能依赖源码仓库的 node_modules 偶然提升。
-- **浏览器直接编辑：**Side Panel → 开发 → 直接编辑 → React JSX/Vue SFC → 输入源码 → 点击运行；受信 Worker 只做转换，原 USER_SCRIPT 运行网页业务，显式 Stop；无需 Native/本机编译工具，但需目标站点授权与 Chrome 用户脚本能力。 [真实 Chrome 历史候选证据](https://github.com/shopable-ai/opendesk-browser/actions/runs/38225425847)。
+- **Developer Edition 浏览器直接编辑：**Side Panel → 开发 → 直接编辑 → React JSX/Vue SFC → 输入源码 → 点击运行；受信 Worker 只做转换，原 USER_SCRIPT 运行网页业务，显式 Stop；无需 Native/本机编译工具，但需目标站点授权与 Chrome 用户脚本能力。 [真实 Chrome 历史候选证据](https://github.com/shopable-ai/opendesk-browser/actions/runs/38225425847)。
 
 如果页面显示「已连接」但不能 Run，检查源码准备是否处于 `ready`、`updating`、`merging` 或 `source-error`；连接不等于编译成功。处理错误后再次明确 Run，不会自动回退旧成功版本。本地项目可静态导入受信、已锁定依赖；浏览器内单组件不接受任意 npm、URL 或动态导入。

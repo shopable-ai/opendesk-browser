@@ -9,7 +9,9 @@ import {FIXED_OUTPUTS, entryByteBudget} from './scripts/build-contract.mjs';
 import {configureDevelopment,closeDevelopment,publishDevelopment,waitDevelopmentPublication} from './scripts/wxt-development.mjs';
 import {outputGuardPort} from './scripts/development-lock.mjs';
 import {resolveMarketChannel,marketExternalConnectable} from './scripts/market-channel.mjs';
+import {resolveBrowserEdition,DEVELOPER_BROWSER_NAME} from './scripts/browser-editions-r245.mjs';
 
+const browserEdition=resolveBrowserEdition();
 const schemaSpecializer=createSchemaSpecializer(protocolSchema);
 const manifest = JSON.parse(readFileSync(new URL('./manifest.json', import.meta.url), 'utf8'));
 delete manifest.manifest_version;
@@ -19,17 +21,18 @@ export default defineConfig({
   srcDir: 'src',
   publicDir: '.wxt/public',
   outDir: 'dist',
-  outDirTemplate: '{{mode}}',
+  outDirTemplate: '{{mode}}'+(browserEdition==='developer'?'-developer':''),
   manifestVersion: 3,
   imports: false,
   webExt: {disabled: true},
   dev: {reloadCommand: false, server: {host:'127.0.0.1',port:outputGuardPort(process.env.OPENDESK_DEV_PORT??43119)}},
   manifest: structuredClone(manifest),
-  vite: () => ({optimizeDeps:{noDiscovery:true,include:[],entries:[]},build: {minify: 'terser', terserOptions: {ecma:2022, compress:{passes:3}, format: {comments: false}},
+  vite: () => ({define:{__OPENDESK_BROWSER_COMPILER_ENABLED__:JSON.stringify(browserEdition==='developer')},optimizeDeps:{noDiscovery:true,include:[],entries:[]},build: {minify: 'terser', terserOptions: {ecma:2022, compress:{passes:3}, format: {comments: false}},
     sourcemap: process.env.OPENDESK_BUILD_MODE === 'development', target: 'es2022'}}),
   hooks: {
     'build:publicAssets'(wxt){if(wxt.config.command==='serve')return waitDevelopmentPublication(wxt);},
     'build:manifestGenerated'(wxt,output){
+      if(browserEdition==='developer')output.name=DEVELOPER_BROWSER_NAME;
       const channel=resolveMarketChannel({mode:process.env.OPENDESK_BUILD_MODE||wxt.config.mode||'production'});
       const external=marketExternalConnectable(channel);
       if(external)output.externally_connectable=external;
