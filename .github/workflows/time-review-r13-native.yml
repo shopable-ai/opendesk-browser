@@ -5,8 +5,9 @@ on:
     branches: [main]
     paths:
       - 'tests/framework/time-review-r13-native.test.mjs'
-      - 'src/time-review/service.js'
-      - 'tests/environment/time-review-r12.test.mjs'
+      - 'src/time-review/**'
+      - 'examples/sidebar-tools/time-review/**'
+      - 'tests/environment/time-review-*.test.mjs'
       - '.github/workflows/time-review-r13-native.yml'
   pull_request:
     branches: [main]
@@ -35,7 +36,7 @@ jobs:
         run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Real R1.3 model and consent regression
         run: |
-          node --test tests/environment/time-review-r12.test.mjs tests/environment/time-review-r13.test.mjs tests/environment/time-review-r13-service.test.mjs tests/environment/time-review-r13-consent.test.mjs tests/environment/time-review-host-controls-r51.test.mjs
+          node --test tests/environment/time-review-r12.test.mjs tests/environment/time-review-r13.test.mjs tests/environment/time-review-r13-service.test.mjs tests/environment/time-review-r13-consent.test.mjs tests/environment/time-review-r13-downloads.test.mjs tests/environment/time-review-host-controls-r51.test.mjs
       - name: Build exact Production Chrome MV3 package
         run: |
           npm run check

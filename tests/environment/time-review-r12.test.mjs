@@ -110,12 +110,12 @@ test('forged sender, document, package, install generation and arbitrary operati
 test('date totals and export use explicit clear confirmation and actual download request',async()=>{
   const f=await fixture();await f.call('time.start');f.advance(1000);await f.call('time.pause');
   await assert.rejects(f.call('time.clear'),{code:'E_TIME_CONFIRM'});const result=await f.call('time.export',{format:'csv'});assert.equal(result.downloadId,1);assert.match(decodeURIComponent(f.downloads[0].url),/example.com/);
-  assert.match(f.downloads[0].url,/^data:text\/csv;name=time-review\.csv;charset=utf-8,/);
+  assert.match(f.downloads[0].url,/^data:text\/csv;name=time-review\.csv;od-export-id=[0-9a-f-]{36};charset=utf-8,/);
   assert.equal(f.downloads[0].filename,'time-review.csv');
   assert.equal(f.downloads[0].saveAs,false);
   assert.equal(f.downloads[0].conflictAction,'uniquify');
   await f.call('time.export',{format:'json'});
-  assert.match(f.downloads[1].url,/^data:application\/json;name=time-review\.json;charset=utf-8,/);
+  assert.match(f.downloads[1].url,/^data:application\/json;name=time-review\.json;od-export-id=[0-9a-f-]{36};charset=utf-8,/);
   assert.equal(f.downloads[1].filename,'time-review.json');
   assert.equal((await f.call('time.clear',{confirm:true})).todayMs,0);assert.equal(f.local[TIME_REVIEW_KEY].paused,true);
 });

@@ -8,6 +8,7 @@ import {mkdtemp,mkdir,readFile,writeFile,rm,stat} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import path from 'node:path';
 import {randomUUID,createHash} from 'node:crypto';
+import {reviewExport} from '../../src/time-review/model.js';
 import {setTimeout as sleep} from 'node:timers/promises';
 
 const KEY='opendesk.time-review.v1';
@@ -245,42 +246,74 @@ test('Time Review R1.3 actual Mac Chrome install and trusted consent smoke',{ski
   // Observe REAL Chrome download state before declaring disk success; never
   // read or copy a file outside this run's independently owned profile.
   const readDownloads=()=>evaluate(browser,side,
-    'chrome.downloads.search({}).then(rows=>rows.map(({id,state,error,filename,bytesReceived,totalBytes})=>({id,state,error,filename,bytesReceived,totalBytes})))');
-  const existingDownloadIds=new Set((await readDownloads()).map(row=>row.id));
+    'chrome.downloads.search({}).then(rows=>rows.map(({id,state,error,filename,bytesReceived,totalBytes,byExtensionId})=>({id,state,error,filename,bytesReceived,totalBytes,ownedByExtension:byExtensionId===chrome.runtime.id})))');
+  const expectedState=await readTime(),issues=[],downloadChecks=[];
   await browser.send('Browser.setDownloadBehavior',{behavior:'allow',downloadPath:downloads,eventsEnabled:true});
-  await nativeClick(browser,frame,'#export-json');
-  await until(()=>evaluate(browser,frame,
-    'document.querySelector("#status")?.textContent?.includes("已请求下载")'),
-    'download requested by trusted Time Review host',9000);
-  const downloadRecord=await until(async()=>{
-    const rows=await readDownloads();
-    return rows.find(row=>!existingDownloadIds.has(row.id))||null;
-  },'new Chrome downloads API record',12000);
-  note('download-created',{id:downloadRecord.id,state:downloadRecord.state,
-    basename:path.basename(downloadRecord.filename||''),error:downloadRecord.error||null});
-  const finished=await until(async()=>{
-    const rows=await readDownloads(),entry=rows.find(row=>row.id===downloadRecord.id);
-    return entry&&['complete','interrupted'].includes(entry.state)?entry:null;
-  },'real Chrome download terminal state',25000);
-  const actualFile=path.resolve(finished.filename||'');
-  const insideOwned=path.dirname(actualFile)===path.resolve(downloads);
-  note('download-finished',{id:finished.id,state:finished.state,error:finished.error||null,
-    basename:path.basename(actualFile),insideOwned,received:finished.bytesReceived,total:finished.totalBytes});
-  assert.equal(finished.state,'complete','Chrome did not complete download: '+(finished.error||'unknown'));
-  assert.equal(insideOwned,true,'Chrome saved outside isolated owned download directory; refuse to read external files');
-  assert.match(path.basename(actualFile),/^time-review(?: \(\d+\))?\.json$/,'Expected actual Time Review JSON filename');
-  const actualBytes=await readFile(actualFile);
-  assert.ok(actualBytes.length>0,'Completed download must have real disk bytes');
-  const exported=JSON.parse(actualBytes);
-  assert.equal(exported.format,'opendesk.time-review.export.v1');
-  assert.equal(exported.minuteConsent,false);
-  evidence.download='PASS';
-  note('actual-export-landed',{bytes:actualBytes.length,sha256:createHash('sha256').update(actualBytes).digest('hex')});
+  for(const [format,selector] of [['json','#export-json'],['csv','#export-csv']]){
+    const result={format,created:'NOT_TESTED',complete:'NOT_TESTED',ownedDirectory:'NOT_TESTED',
+      disk:'NOT_TESTED',content:'NOT_TESTED',filename:'NOT_TESTED'};
+    downloadChecks.push(result);
+    const previous=new Set((await readDownloads()).map(row=>row.id));
+    await nativeClick(browser,frame,selector);
+    await until(()=>evaluate(browser,frame,
+      'document.querySelector("#status")?.textContent?.includes("已请求下载")'),
+      format+' download requested by trusted Time Review host',9000);
+    const created=await until(async()=>{
+      const rows=await readDownloads();return rows.find(row=>!previous.has(row.id))||null;
+    },format+' Chrome download record',12000);
+    result.created='PASS';result.id=created.id;
+    const finished=await until(async()=>{
+      const rows=await readDownloads(),entry=rows.find(row=>row.id===created.id);
+      return entry&&['complete','interrupted'].includes(entry.state)?entry:null;
+    },format+' Chrome terminal download state',25000);
+    result.complete=finished.state==='complete'?'PASS':'FAIL';
+    if(result.complete==='FAIL')issues.push(format+' Chrome interrupted: '+(finished.error||'unknown'));
+    const actualFile=path.resolve(finished.filename||'');
+    const insideOwned=path.dirname(actualFile)===path.resolve(downloads);
+    result.ownedDirectory=insideOwned?'PASS':'FAIL';
+    if(!insideOwned)issues.push(format+' saved outside the dedicated profile directory');
+    result.basename=path.basename(actualFile);
+    result.received=finished.bytesReceived;
+    result.ownedByExtension=finished.ownedByExtension;
+    if(insideOwned){
+      try{
+        const actualBytes=await readFile(actualFile);
+        result.disk=actualBytes.length>0?'PASS':'FAIL';
+        result.bytes=actualBytes.length;
+        result.sha256=createHash('sha256').update(actualBytes).digest('hex');
+        if(!actualBytes.length)issues.push(format+' disk file is empty');
+        else try{
+          const text=actualBytes.toString('utf8');
+          if(format==='json'){
+            const parsed=JSON.parse(text);
+            assert.equal(parsed.format,'opendesk.time-review.export.v1');
+            for(const key of ['days','settings','categories','minuteDays'])
+              assert.deepEqual(parsed[key],expectedState[key],format+' '+key+' differs from Chrome storage');
+            assert.equal(parsed.minuteConsent,expectedState.minuteConsent);
+            assert.equal(parsed.discardedMs,expectedState.discardedMs);
+          }else{
+            assert.ok(text.startsWith('date,website,milliseconds,seconds,category\r\n'));
+            assert.equal(text,reviewExport(expectedState,'csv').text);
+          }
+          result.content='PASS';
+        }catch(e){result.content='FAIL';issues.push(format+' content invalid: '+String(e.message));}
+      }catch(e){result.disk='FAIL';issues.push(format+' no readable disk file: '+String(e.message));}
+    }
+    const expectedFilename=new RegExp('^time-review(?: \\(\\d+\\))?\\.'+format+'$');
+    result.filename=expectedFilename.test(result.basename)?'PASS':'FAIL';
+    if(result.filename==='FAIL')issues.push(format+' filename mismatch: '+result.basename);
+    // Each result is saved independently: a filename mismatch must not hide
+    // successful disk bytes or failed content validation for either format.
+    note('download-'+format,result);
+  }
+  evidence.downloadChecks=downloadChecks;
+  evidence.download=issues.length?'FAIL':'PASS';
+  if(issues.length)assert.deepEqual(issues,[],'Actual JSON/CSV export failures');
   state=await readTime();assert.equal(state.paused,true,'no idle prompt or start should be bypassed');
   complete=true;
   await writeFile(path.join(OUT,'state-summary.json'),JSON.stringify({
     minuteConsent:state.minuteConsent,paused:state.paused,days:Object.keys(state.days||{}).length,
-    nativeInstall:true,downloadBytes:actualBytes.length,
+    nativeInstall:true,downloadChecks,
     currentSourceHash:process.env.GITHUB_SHA||null,actualSidePanelDocumentId:sideDocument.documentId
   },null,2)+'\n');
 });

@@ -68,3 +68,11 @@
 - MIME/名称参数调整后 [Actions 38207101247](https://github.com/shopable-ai/opendesk-browser/actions/runs/38207101247)：真实 Chrome 155 仍为 `state=complete`、`error=null`、241 字节和正确的隔离目录，文件名变为 `download.json`，而非 `time-review.json`。因此仅可声明落盘 PASS、Chrome 正确命名 **FAIL**；本轮没有读回并断言真实 JSON 字节内容，继续 `NOT_TESTED`。保留原始失败及 Artifacts。
 - 后续严格流程：先修改原生观察器，让其在受控 Profile 内读回实际文件并校验 `opendesk.time-review.export.v1` / minuteConsent / 分类数据，命名仍单独作为失败；再审计 Chrome 155 是否忽略 `chrome.downloads.download().filename`。若确需 `downloads.onDeterminingFilename` 覆盖，必须避免永久安装影响**其他**工具导出命名的通用监听器，要求只有精确工具身份和精确待下载标识可以命名，补跨工具并发、SW 恢复与负向测试后再动可信后台。不能仅为使 CI 绿而将 `download.json` 当作通过。
 - 下一优先级：真实网页的有效活动计时、域名分类持久化、暂停恢复/空闲/跨日/整浏览器重启、更新撤权与卸载；最后做真实 Side Panel 320/360/400/600px 和 Chrome 200% 缩放及长内容双滚动排版。未由匹配候选绑定的原生证据支撑时保持 `NOT_TESTED`；此处仍无法查看用户 Mac 本地 `git status`。
+
+## R1.3 Final · P0 导出文件名修复候选（2026-10-12）
+
+- 基于真实 Mac [Actions 38207101247](https://github.com/shopable-ai/opendesk-browser/actions/runs/38207101247) 明确区分：`downloadCreated=PASS`、`complete=PASS`、`ownedDisk=PASS`、`filename=FAIL (download.json)`、`content=NOT_TESTED`（历史测试先断言文件名）。历史结论不能改写成 PASS。
+- 直接修改 `src/time-review/service.js` 并增加 Time Review 范围内 `src/time-review/download-naming.js`：每次 JSON/CSV 先写短期 `chrome.storage.session` 授权的随机导出令牌，然后调用原有 `chrome.downloads.download({filename,saveAs:false,conflictAction:'uniquify'})`。唯一 `onDeterminingFilename` 监听器在 SW 初始化注册，但**只有**下载记录的 `byExtensionId` 是当前扩展、数据 URL 媒体类型、固定文件名与会话令牌同时匹配才建议文件名；所有普通下载、其他扩展及其他 OpenDesk 工具均保持原始默认命名。失去会话、过期或读取失败只建议不修改，不阻塞浏览器。短期表不存网站和导出内容，最多保留 64 条。
+- 增加 `tests/environment/time-review-r13-downloads.test.mjs` 覆盖作用域、并发调用的串行登记、SW 监听重载、过期、异常和其他工具隔离；更新 R1.2 参数约定；`tests/framework/time-review-r13-native.test.mjs` 逐个验收 JSON/CSV 创建/终态/独占目录/磁盘可读/内容/实际文件名，并且先做内容检测后做文件名检测；CI 绑定 SHA 上传失败证据。
+- 开发与权限边界：未扩大 host permissions、无浏览器保存弹窗、仍只返回 `requested` 而非下载成功；没有改变 v1 持久化键或 `time-review` ID，也不创建新的时间数据服务。
+- 验证状态：本次远端直接提交之前未在用户 Mac 运行；需等待绑定**本次提交 SHA** 的 GitHub Actions 原生 macOS Chrome 155 结果。本机真实活动时间、重启、撤权、200% 缩放维持 NOT_TESTED；组件验证以 Actions 结果为准。

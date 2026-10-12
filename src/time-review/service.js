@@ -1,3 +1,4 @@
+import {prepareTimeReviewDownload,registerTimeReviewFilenameResolver} from './download-naming.js';
 import {SIDEBAR_TOOL_STORE,validateSidebarToolPackage} from '../ui/sidebar-tools/package.js';
 import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE,sidebarToolEnabled} from '../ui/sidebar-tools/lifecycle.js';
 import {writeVerifiedLocalValue} from '../ui/sidebar-tools/storage-state.js';
@@ -153,12 +154,10 @@ export function createTimeReviewService({api=globalThis.chrome,lockManager=globa
         if(!auth.tool.capabilities.includes('user.export'))throw error('工具没有导出权限');
         const file=reviewExport(result.state,message.payload?.format||'json');
         await hostDocument(sender,documentId);
-        // Supply an exact safe filename in both the Chrome downloads API and
-        // the data URL media-type parameters. Older Chrome builds can ignore
-        // a downloads.download filename for generic application/octet-stream.
-        const mime=file.name.endsWith('.json')?'application/json':'text/csv';
-        const url='data:'+mime+';name='+file.name+';charset=utf-8,'+encodeURIComponent(file.text);
-        const downloadId=await api.downloads.download({url,filename:file.name,saveAs:false,conflictAction:'uniquify'});
+        // Stage a short-lived, session-only intent before Chrome determines
+        // the actual filename. Only this export may receive the filename hint.
+        const options=await prepareTimeReviewDownload(api,file);
+        const downloadId=await api.downloads.download(options);
         if(!Number.isInteger(downloadId))throw error('下载结果未知，请核对浏览器下载记录','E_OUTCOME_UNKNOWN');
         return {downloadId,name:file.name,state:'requested'};
       }
@@ -170,6 +169,7 @@ export function createTimeReviewService({api=globalThis.chrome,lockManager=globa
 export function installTimeReviewService({api=globalThis.chrome,...options}={}){
   const service=createTimeReviewService({api,...options}),removers=[];
   const listen=(event,fn)=>{event?.addListener(fn);removers.push(()=>event?.removeListener(fn));};
+  removers.push(registerTimeReviewFilenameResolver(api));
   const run=options=>{void service.tick(options).catch(cause=>console.warn('E_TIME_REVIEW',cause.code||'E_TIME_DATA',cause.message));};
   listen(api.runtime.onMessage,(message,sender,reply)=>{
     if(message?.protocol!==TIME_REVIEW_PROTOCOL)return false;
