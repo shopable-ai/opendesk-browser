@@ -38,6 +38,7 @@ export const FIXED_ASSETS = Object.freeze({
 });
 const HTML_REFERENCES = Object.freeze({
   'ui/tool.html': ['design-tokens.css', 'design-system.css', 'tool-shell.css', 'tool-shell.js'],
+  'ui/cloud-control.html': ['design-tokens.css', 'design-system.css', 'cloud-control-console.css', 'cloud-console.js'],
   'ui/marketplace.html': ['design-tokens.css', 'marketplace.css', 'marketplace.js'],
   'native-agent/settings.html': ['../ui/design-tokens.css', 'settings.css', 'settings.js'],
   'native-agent/workspace.html': ['workspace.css','settings.js'],
@@ -56,7 +57,7 @@ const officialSource=await readOfficialSources();
 const officialPaths=[OFFICIAL_CATALOG_PATH,...officialSource.tools.map(row=>officialPackagePath(row.id))];
 const required = ['manifest.json', MARKET_CHANNEL_PATH, SDK_RESOURCE_MANIFEST, BUILTIN_RESOURCE_MANIFEST,
   ...BUILTIN_RESOURCE_PATHS,...frameworkLicenses,...browserCompilerESM,PAGE_BROWSER_COMPILER.licensePath,
-  ...Object.keys(HTML_REFERENCES), 'ui/design-tokens.css', 'ui/design-system.css', 'ui/tool-shell.css', 'native-agent/settings.css', 'native-agent/workspace.css', 'ui/marketplace.css', ...officialPaths, ...expectedJS, ...Object.keys(FIXED_ASSETS)].sort();
+  ...Object.keys(HTML_REFERENCES), 'ui/design-tokens.css', 'ui/design-system.css', 'ui/tool-shell.css', 'ui/cloud-control-console.css', 'native-agent/settings.css', 'native-agent/workspace.css', 'ui/marketplace.css', ...officialPaths, ...expectedJS, ...Object.keys(FIXED_ASSETS)].sort();
 const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 const digest = bytes => createHash('sha256').update(bytes).digest('hex');
 // SW shipping cap: 1 MiB (512 KiB review); development SW: 1.5 MiB.
