@@ -2,6 +2,26 @@
 
 > **更新：2026-10-12。** 对安装工具的开发者，优先使用易理解的高层写法；下方保留的 R1.3 `PLANNED` / `HOST_ONLY` 表是 **2026-10-11 历史快照，不能当作当前进度**。当前真实合同为 [32 项操作注册表](../../src/framework/sdk/browser-contract.js)，状态与原生证据见 [Browser SDK 工作流](../framework/workstreams/browser-sdk-status.md)。
 
+## R5：查询、列出并关闭本工具的标签页
+
+此处 R5 正式新增 **3 项源码接线接口**。原 32 项历史接口合同仍保留，按 R5 增量记账为 35 项，其中 26 项已接线。源码接线不等于 Mac Chrome 原生验收；当前新增功能原生仍 NOT_TESTED。
+
+```js
+const {browser} = OpenDeskSDK;
+const {tabRef} = await browser.tabs.open({url:'https://example.org/page'});
+const owned = await browser.tabs.getOwned({tabRef});
+const {tabs} = await browser.tabs.listOwned();
+await browser.tabs.closeOwned({tabRef});
+```
+
+- `getOwned({tabRef})` 返回本工具已打开、目前仍合法的 URL、Origin、引用到期时间及 TabRef。
+- `listOwned()` 只列本工具最多 8 个当前合法引用与 Origin，不查询所有 Chrome 标签页。
+- `closeOwned({tabRef})` 必须经受信侧边栏的明确单次点击，通过真实 Host 后才能关闭；原生结果未知时不重复执行。
+- 工具包仍需声明 `browser.tabs` capability，且必须安装、启用并保持相同包 Hash / Install Epoch、Chrome 权限与网站授权。不能把原生 tabId 传入任何一个方法。
+- 已导航、关闭、停用、卸载、更新及 Worker 重启后的旧引用不再有效；旧 `tabs.open/focus` 保持原来的方法签名。
+
+实现包括 `src/framework/sdk/browser-contract.js`、`browser.js`、`browser-schemas.js`、`src/platform/chrome/browser-tabs.js`、`context-menus.js`、`src/ui/sidebar-tools.js` 与 `src/sidebar-tools/bridge.js`。验收见 [状态与测试账本](../framework/workstreams/browser-sdk-status.md)。
+
 ## 开发者优先：`browser.network.watch()`
 
 ```js

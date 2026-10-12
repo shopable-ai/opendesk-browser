@@ -1,6 +1,6 @@
 # Browser SDK 全接口扩展候选目录（R5+ / 2026-10-12）
 
-> **定位：产品功能防遗漏清单，不是可调用 API 注册表，也不是新增权限许可。** 唯一已经批准的 Browser SDK 操作事实来源仍为 `src/framework/sdk/browser-contract.js`，其现有 32 项不得直接以本目录覆盖。本文所有候选均为 `PROPOSED_NOT_REGISTERED`，尚未实现/正式开放；不得计入 R1.3–R4 实现率。
+> **定位：产品功能防遗漏清单，不是可调用 API 注册表，也不是新增权限许可。** 唯一已经批准的 Browser SDK 操作事实来源仍为 `src/framework/sdk/browser-contract.js`，其现有 32 项不得直接以本目录覆盖。本文初版共 114 项 R5+ 候选；当前 3 个自有 Tabs 方法已晋级并 SOURCE_WIRED，其余 111 项仍为 `PROPOSED_NOT_REGISTERED`。不改变此前 R1.3–R4 冻结 32 项的统计分母。
 
 ## 一、首先明确用户最终需要的能力
 
@@ -78,9 +78,9 @@
 ### 标签页扩展操作 · P0 · APPROVED_TOOL
 
 - `OpenDeskSDK.browser.tabs.getActive()`
-- `OpenDeskSDK.browser.tabs.getOwned()`
-- `OpenDeskSDK.browser.tabs.listOwned()`
-- `OpenDeskSDK.browser.tabs.closeOwned()`
+- `OpenDeskSDK.browser.tabs.getOwned()` — **R5 APPROVED / SOURCE_WIRED；原生 Chrome NOT_TESTED**
+- `OpenDeskSDK.browser.tabs.listOwned()` — **R5 APPROVED / SOURCE_WIRED；原生 Chrome NOT_TESTED**
+- `OpenDeskSDK.browser.tabs.closeOwned()` — **R5 APPROVED / SOURCE_WIRED；原生 Chrome NOT_TESTED**
 - `OpenDeskSDK.browser.tabs.reloadOwned()`
 - `OpenDeskSDK.browser.tabs.navigateOwned()`
 - `OpenDeskSDK.browser.tabs.duplicateOwned()`
@@ -300,6 +300,6 @@
 ## 九、审计核查快照
 
 - 当前现有注册接口数量：32。
-- 本候选额外建议方法数：114（仅目录候选，不是已批准开发分母）。
+- R5 初始 114 项候选，已批准并实现真实接线 3 个自有 Tabs 方法，剩余 111 项仍未登记；不会因 Schema 而自动成为实施功能。
 - 候选曝光分类计数：BUILTIN_TRUSTED=57、APPROVED_TOOL=34、REUSE_EXISTING=16、CONTROLLER_ONLY=7。
 - 此清单下一次修改必须检查 Chrome 官方 API 变更及本仓最新代码，避免重叠已有 API 或构造第二套权限存储。
