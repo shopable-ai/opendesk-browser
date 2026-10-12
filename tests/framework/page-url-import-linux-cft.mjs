@@ -1,6 +1,6 @@
 // One targeted Linux CFT UI acceptance of the original React TOC example.
 // It imports its frozen JSON, draws actual ECharts, updates website headings,
-// resizes the real Chrome window, Stops and optionally installs for a new page.
+// resizes the real container with Chrome window/zoom controls, Stops and installs.
 // User source enters ONLY through the real product file-input / Run controls.
 // CDP is used for trusted pointer/key/file input, read-only evidence and screenshots.
 // No permissions preference edits, dependency execution in privileged pages,
@@ -127,6 +127,33 @@ async function clickReal(session,expression,{beforeRelease}={}){
 async function key(session,keyValue,code,keyCode,modifiers=0){
   for(const type of ['rawKeyDown','keyUp'])
     await session.call('Input.dispatchKeyEvent',{type,key:keyValue,code,windowsVirtualKeyCode:keyCode,modifiers});
+}
+let x11ZoomWindowId;
+function x11BrowserKey(chord){
+  // Target only this driver's headed Chrome on its private Xvfb display.
+  // Separate processes are intentional: key --window, or a search/key command
+  // chain with a window stack, uses XSendEvent instead of real XTest input.
+  assert(options.headed&&process.env.DISPLAY,'Native browser zoom needs headed X11 Chrome');
+  assert(['ctrl+plus','ctrl+0'].includes(chord),'Only actual browser zoom controls are allowed');
+  const run=args=>execFileSync('xdotool',args,{encoding:'utf8',timeout:5000}).trim();
+  if(!x11ZoomWindowId){
+    const windows=run(['search','--onlyvisible','--all','--pid',String(chrome.pid),'--class','[Cc]hrome'])
+      .split(/\s+/).filter(Boolean);
+    assert.equal(windows.length,1,'Native zoom begins with exactly one visible owned Chrome window');
+    x11ZoomWindowId=windows[0];
+  }
+  // Keep that original window if Chrome later opens its native zoom bubble.
+  const windowId=x11ZoomWindowId;
+  assert.equal(Number(run(['getwindowpid',windowId])),chrome.pid,'X11 window belongs to the launched Chrome PID');
+  run(['windowfocus','--sync',windowId]);
+  const focused=run(['getwindowfocus']);
+  assert.equal(focused,windowId,'The original Chrome window receives the native input');
+  assert.equal(Number(run(['getwindowpid',focused])),chrome.pid,'The focused native window belongs to this Chrome');
+  const identity={windowId,focused,pid:chrome.pid,title:run(['getwindowname',windowId]),
+    display:process.env.DISPLAY,chord,input:'XTest without a target window or window stack'};
+  record('native-browser-zoom-key',identity);
+  run(['key','--clearmodifiers',chord]);
+  return identity;
 }
 async function typeReal(session,selector,value){
   const expr='document.querySelector('+JSON.stringify(selector)+')';
@@ -791,28 +818,78 @@ async function main(){
 
   const nativeWindow=await browser.call('Browser.getWindowForTarget',{targetId:website.id});
   const originalBounds=await browser.call('Browser.getWindowBounds',{windowId:nativeWindow.windowId});
-  await browser.call('Browser.setWindowBounds',{windowId:nativeWindow.windowId,bounds:{width:640,height:1000}});
-  const resizedChart=await until(async()=>{
-    const value=await chartSnapshot(website.session,host);
-    return value?.state==='ready'&&Math.abs(value.svg.width-initialChart.svg.width)>5?value:null;
-  },'Real native window resize changes the ECharts SVG width');
-  const resizedBounds=await browser.call('Browser.getWindowBounds',{windowId:nativeWindow.windowId});
-  assertChart(resizedChart,baselineCounts);
-  assert.equal(resizedChart.instanceId,initialChart.instanceId,'Resize preserves the original ECharts instance');
-  const resizedSVGHandle=await nodeHandle(website.session,chartExpression(host)+'?.querySelector("svg")');
-  assert.equal(resizedSVGHandle.backendNodeId,initialSVGHandle.backendNodeId);
-  await releaseHandle(website.session,resizedSVGHandle);
-  write('echarts-resized.json',{before:originalBounds,after:resizedBounds,chart:resizedChart});
-  await screenshot(website.session,'echarts-resized.png');
-  await browser.call('Browser.setWindowBounds',{windowId:nativeWindow.windowId,bounds:{
-    width:originalBounds.bounds.width,height:originalBounds.bounds.height}});
-  await until(async()=>{
-    const value=await chartSnapshot(website.session,host);
-    return value?.state==='ready'&&Math.abs(value.svg.width-initialChart.svg.width)<2;
-  },'Original native window size restored');
-  report.tests.push({name:'real-native-window-resize-updates-existing-ECharts-SVG',status:'PASS',
+  const getZoom=()=>sidebar.read('chrome.tabs.getZoom('+receipt.tabId+')');
+  const originalZoom=await getZoom();
+  assert.equal(originalZoom,1,'This fresh Chrome profile starts at its original 100% zoom');
+  const resizeEvidence={before:{bounds:originalBounds,zoom:originalZoom,chart:initialChart},
+    requestedBounds:{width:640,height:1000},attempts:[]};
+  let resizedChart,resizedBounds,resizedZoom;
+  write('echarts-resize-observations.json',resizeEvidence);
+  try{
+    await browser.call('Target.activateTarget',{targetId:website.id});
+    await browser.call('Browser.setWindowBounds',{windowId:nativeWindow.windowId,bounds:resizeEvidence.requestedBounds});
+    await pause(200);
+    const observe=async input=>{
+      const value={input,bounds:await browser.call('Browser.getWindowBounds',{windowId:nativeWindow.windowId}),
+        zoom:await getZoom(),chart:await chartSnapshot(website.session,host)};
+      resizeEvidence.attempts.push(value);write('echarts-resize-observations.json',resizeEvidence);
+      record('actual-browser-resize-observation',{bounds:value.bounds,zoom:value.zoom,
+        viewport:value.chart?.viewport,container:value.chart?.container,svg:value.chart?.svg});
+      return value;
+    };
+    let actual=await observe({operation:'Browser.setWindowBounds',requested:resizeEvidence.requestedBounds});
+    // Chrome's native minimum window leaves a 402px website viewport with
+    // Sidebar open, above the card's 332px breakpoint. That correctly keeps
+    // its 300px card unchanged. Use Chrome's real Zoom In accelerator until
+    // the actual container changes; never assign CSS or emulate a viewport.
+    for(let step=0;step<3&&Math.abs((actual.chart?.container.width??0)-initialChart.container.width)<=5;step++){
+      await clickReal(website.session,'document.querySelector("main h1")');
+      const input=x11BrowserKey('ctrl+plus'),beforeZoom=actual.zoom,beforeWidth=actual.chart.viewport.width;
+      await until(async()=>await getZoom()>beforeZoom,'Native Chrome Zoom In changes the actual tab zoom',5000);
+      await until(async()=>{
+        const value=await chartSnapshot(website.session,host);
+        return value?.viewport.width<beforeWidth;
+      },'The real website layout follows the native zoom change',5000);
+      actual=await observe(input);
+    }
+    assert(actual.chart&&Math.abs(actual.chart.container.width-initialChart.container.width)>5,
+      'Resize assertion requires a real change in the existing container width');
+    resizedChart=await until(async()=>{
+      const value=await chartSnapshot(website.session,host);
+      return value?.state==='ready'&&Math.abs(value.svg.width-initialChart.svg.width)>5&&
+        Math.abs(value.svg.width-value.container.width)<2?value:null;
+    },'Actual container resize updates the existing ECharts SVG width');
+    resizedBounds=await browser.call('Browser.getWindowBounds',{windowId:nativeWindow.windowId});
+    resizedZoom=await getZoom();
+    assertChart(resizedChart,baselineCounts);
+    assert.equal(resizedChart.instanceId,initialChart.instanceId,'Resize preserves the original ECharts instance');
+    const resizedSVGHandle=await nodeHandle(website.session,chartExpression(host)+'?.querySelector("svg")');
+    assert.equal(resizedSVGHandle.backendNodeId,initialSVGHandle.backendNodeId);
+    await releaseHandle(website.session,resizedSVGHandle);
+    write('echarts-resized.json',{...resizeEvidence,after:{bounds:resizedBounds,zoom:resizedZoom,chart:resizedChart}});
+    await screenshot(website.session,'echarts-resized.png');
+  }finally{
+    if(await getZoom()!==originalZoom){
+      await browser.call('Target.activateTarget',{targetId:website.id});
+      x11BrowserKey('ctrl+0');
+      await until(async()=>await getZoom()===originalZoom,'Original native Chrome zoom restored',5000);
+    }
+    await browser.call('Browser.setWindowBounds',{windowId:nativeWindow.windowId,bounds:{
+      width:originalBounds.bounds.width,height:originalBounds.bounds.height}});
+    const restored=await until(async()=>{
+      const value=await chartSnapshot(website.session,host),bounds=await browser.call('Browser.getWindowBounds',{windowId:nativeWindow.windowId});
+      return value?.state==='ready'&&Math.abs(value.svg.width-initialChart.svg.width)<2&&
+        value.viewport.width===initialChart.viewport.width&&bounds.bounds.width===originalBounds.bounds.width&&
+        bounds.bounds.height===originalBounds.bounds.height?value:null;
+    },'Original native window and chart size restored');
+    resizeEvidence.restored={bounds:await browser.call('Browser.getWindowBounds',{windowId:nativeWindow.windowId}),
+      zoom:await getZoom(),chart:restored};
+    write('echarts-resize-observations.json',resizeEvidence);
+  }
+  report.tests.push({name:'real-Chrome-window-and-native-zoom-resize-existing-ECharts-SVG',status:'PASS',
     ...report.preview,instanceId:initialChart.instanceId,
-    windowBefore:originalBounds,windowAfter:resizedBounds,
+    windowBefore:originalBounds,windowAfter:resizedBounds,zoomBefore:originalZoom,zoomAfter:resizedZoom,
+    containerBefore:initialChart.container,containerAfter:resizedChart.container,
     svgBefore:initialChart.svg,svgAfter:resizedChart.svg,
     viewportBefore:initialChart.viewport,viewportAfter:resizedChart.viewport});
 
@@ -932,6 +1009,7 @@ async function main(){
     await website.session.call('Page.navigate',{url:next});
     await until(()=>website.session.read('location.href==='+JSON.stringify(next)+'&&document.readyState==="complete"'),'Fresh installed document');
     await until(()=>website.session.read('!!('+host+')?.shadowRoot'),'Installed frozen component on new document');
+    await until(()=>sidebar.read('!document.querySelector("#page-program-refresh").disabled'),'Original library refresh is ready after installation');
     await clickReal(sidebar,'document.querySelector("#page-program-refresh")');
     const executed=await until(async()=>{
       const rows=await readInstalled(sidebar,programId);

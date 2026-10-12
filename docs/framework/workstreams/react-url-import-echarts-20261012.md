@@ -125,3 +125,19 @@ Git CLI 写入缺少凭据，改用已有授权的 GitHub 连接逐一核验 356
 因此驱动的“元素存在”与旧 context 不足以证明最终宿主初始化完毕；原证据没有点击瞬间坐标，不能进一步断言具体丢失时刻。新观察门槛要求最终 canonical URL、readyState complete、原工作台已写入的 opendeskTab、可见按钮、实际 Sidebar 初始化后的 Cloud tab，以及完整 URL 匹配的 fresh SIDE_PANEL documentId；切回网站后复查仍为同一 Sidebar 文档，再发送一次原生点击。新增只读输入坐标/URL 记录，不修改产品导航、不重放 Run，不延长原超时。
 
 保留的明确边界：用户 Mac 未访问；正式 Go Host 分块和主动 MCP 大源码路径未完成；浏览器单文件仅小型 ESM 图；作者缓存按原持久规则保留，尚无明确删除/GC 入口；多版本/下载中 Stop/导航等全部真实异常组合、独立 F3/ZIP 仍需各自原生证据。Page 自包含执行源的版本/更新/卸载走原记录，并不等于清空作者原始缓存。
+
+### 第三次真实 Chrome：ECharts 绘制和数据更新已通过
+
+提交 [`6f55d6a0b44eed9f19f87b033d30c6628c9dfcd3`](https://github.com/shopable-ai/opendesk-browser/commit/6f55d6a0b44eed9f19f87b033d30c6628c9dfcd3) 的 [run 38249322911](https://github.com/shopable-ai/opendesk-browser/actions/runs/38249322911)、job `114811217054` 已完成六个真实阶段：原测试页、实际固定扩展包、Chrome userScripts 可信开关、冻结 JSON 导入不运行、明确 Run 后实际 ECharts SVG、网页增删 H3 后同实例更新图表。整体结论仍为 failure，不把后续尚未执行的 Stop/Install/浏览器源码准备登记为 PASS。
+
+本次 production packageHash 为 `e14999103d090de93c3a540ce1109501b9070061dd6320093f4d6a31e1751a98`；原 previewId `9c45ae62-fbdf-48af-b04b-dab7258f921b`、documentId `325E11AB775F054B4D08CCAB5CCE1D0F`，world 为 USER_SCRIPT。原 sourceHash 与前述 482,082 B 离线产物完全一致；固定 React SHA 为 `d1eec2e96ed42046ad543a10af7de992aee633ac06017f44f6b917e36451c758`。
+
+实际 ECharts instance `ec_1791808252013` 和 SVG backendNodeId `268` 保持不变；真实正文数据从 `[1,7,5,0,0,0]` 变为 `[1,7,6,0,0,0]` 后恢复，路径哈希从 `794b95d09b0b6bfd4c04a38dce90d3d4a999f01a5ece8ec12aa96d8c3a9092fd` 变为 `daf2b202d4c390104b4570c2032612e1f6d4a2d616cf51bede1a2b18dbb64e2a` 后恢复。全程没有 D3/jsDelivr 依赖网络请求。
+
+失败点为窗口缩小后 SVG 宽度未改变。原 PNG 显示网页宽度确实由 1054px 降为 402px，但示例的 `min(300px, calc(100vw - 32px))` 卡片在 402px 视口仍为 300px，SVG 合理地保持 268px。原驱动没有记录失败时的实际窗口 bounds/容器，不能据此认定 ECharts.resize 失效。
+
+后续只改验证前置：记录每次真实窗口、缩放率、视口、容器和 SVG 尺寸；若原生最小窗口仍未改变容器，向此独立 Xvfb 内唯一、经 PID 校验的 Chrome 窗口发送 XTest Zoom In 按键，读取真正 `tabs.getZoom` 后才验证容器变化及同实例 SVG resize，最后原生 Ctrl+0 和窗口恢复。没有 DOM/CSS 赋值、设备视口模拟或虚构 zoom。另等待原安装界面的 refresh 按钮 ready，避免在其既有异步刷新期间误判输入。
+
+原 artifact `11747242331` 共 2,666,659 B，SHA-256 `3de17c5976c4882316d4da2163a1ce617f989b7b02e72e26c9bd595e1e64711f`；原 receipt JSON SHA `b6d66f10cc84d8a4c1e4f215fc1b4de119832e2ff8b2cbe1df1d2846bdec5660`，初图 PNG SHA `2760ac45d6d4effaad5ae49f720e854f6285326d9dc6004ec9d88f9b169a3253`，完整 job log SHA `665630bd35cd1b6916fc7c7bcff4f5484451ed87c65ea7aebe49ec71943d8a81`。
+
+并行 main 的 `e3d5721a`/`0d9b5351` 修改了多库执行链；已完整读取相关 diff 并保留，未覆写其实现。`0d9b5351` 将新增 512 KiB 组合限制仅用于多库 opt-in，原单 React 加本例大 linked resource 路径保留。新 CFT 将记录实际重新构建的包身份，不能沿用本节 packageHash。

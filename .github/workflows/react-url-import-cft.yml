@@ -69,10 +69,10 @@ jobs:
         id: chrome
         with:
           chrome-version: '155.0.8059.39'
-      - name: Install CJK fonts for readable Chinese browser evidence
+      - name: Install CJK fonts and native X11 keyboard input
         run: |
           sudo apt-get update -qq
-          sudo apt-get install -y fonts-noto-cjk
+          sudo apt-get install -y fonts-noto-cjk xdotool
       - name: Real Chrome JSON, ECharts, Stop, install and browser source HTTPS preparation
         env:
           CHROME_FOR_TESTING_BIN: ${{ steps.chrome.outputs.chrome-path }}
