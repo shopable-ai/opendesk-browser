@@ -9,6 +9,7 @@ import {createSdkApproval, snapshotSdkApproval, sdkHttpLabPreset} from './sdk-ap
 import {snapshotToolResources} from './resource-diagnostics.js';
 import {createCurrentPageTarget} from './current-page-target.js';
 import {createTaskWorkbench} from './task-workbench.js';
+import {createSidebarTabMemory} from './sidebar-tab-memory.js';
 import {createWorkflowView} from './workflow/workflow-view.js';
 import {createSidebarTools} from './sidebar-tools.js';
 import {createInstalledPageTools} from './installed-page-tools.js';
@@ -47,9 +48,18 @@ export function initToolShell(installDevelopment=null,{debugEnabled=false}={}) {
 const currentPageTarget = createCurrentPageTarget({api:chrome});
 const scriptEditor = createScriptEditor({client:foundationClient,currentPageTarget,development:Boolean(installDevelopment)});
 let debugWorkbench=null;
+// The full-size tool/catalog page must never overwrite the Side Panel's last tab.
+const tabMemory=createSidebarTabMemory({
+  storage:chrome.storage.local,
+  debugEnabled,
+  getActiveTab:()=>document.documentElement.dataset.opendeskTab,
+  selectTab:view=>taskWorkbench.navigate(view),
+  onError:error=>console.warn('Sidebar tab preference unavailable',error)
+});
 const taskWorkbench = createTaskWorkbench({client:foundationClient,host:scriptEditor.host,currentPageTarget,
   importDraft:sourceUtf8=>scriptEditor.importDraft(sourceUtf8),executionSource:scriptEditor.executionSource,
-  debugEnabled,onNavigate:view=>{if(view==='debug')void debugWorkbench?.refresh();}});
+  debugEnabled,onNavigate:view=>{if(view==='debug')void debugWorkbench?.refresh();},
+  onTabSelected:(view,options)=>tabMemory.record(view,options)});
 const workflowView=createWorkflowView({api:chrome,client:foundationClient,host:scriptEditor.host,currentPageTarget,
   onRunOwner:id=>taskWorkbench.setWorkflowRunOwner(id),
   openDeveloper:sourceUtf8=>taskWorkbench.receiveDraft(sourceUtf8),
@@ -91,7 +101,11 @@ chrome.runtime.onMessage.addListener(draftImportListener);draftImportAttached=tr
  * No new document allowlist, authority, or storage instance is introduced.
  */
 Promise.resolve(chrome.tabs.getCurrent?.()).then(async tab => {
-  if(!tab?.id){sidebarSurface=true;return;}
+  if(!tab?.id){
+    sidebarSurface=true;
+    void tabMemory.restore().catch(error=>console.warn('Sidebar tab restoration unavailable',error));
+    return;
+  }
   const toolId=requestedToolId(hostUrl.href),previewId=requestedPreviewId(hostUrl.href);
   if(!toolId&&!previewId){taskWorkbench.showCatalogPage();return;}
   document.documentElement.dataset.opendeskSurface='tool-page';
@@ -383,7 +397,7 @@ listen(window, 'pagehide', () => {
   browserListenersAttached = false;
   for (const {element, event, listener, options} of listeners) element.removeEventListener(event, listener, options);
   listeners.length = 0;
-  debugWorkbench?.dispose(); workflowView.dispose(); installedPageTools.dispose(); sidebarTools.dispose(); nativeAgentHost.dispose(); siteAccess.dispose(); taskWorkbench.dispose(); scriptEditor.dispose(); currentPageTarget.dispose(); foundationClient.dispose();
+  tabMemory.dispose(); debugWorkbench?.dispose(); workflowView.dispose(); installedPageTools.dispose(); sidebarTools.dispose(); nativeAgentHost.dispose(); siteAccess.dispose(); taskWorkbench.dispose(); scriptEditor.dispose(); currentPageTarget.dispose(); foundationClient.dispose();
 }, {once: true});
 
 }

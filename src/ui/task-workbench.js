@@ -14,7 +14,7 @@ const runStateNames={preparing:'正在准备',running:'运行中',stopping:'正�
 const textValue=formatTaskValue;
 
 export function createTaskWorkbench({client,host,currentPageTarget,api=globalThis.chrome,
-  document:doc=globalThis.document,importDraft,executionSource,debugEnabled=false,onNavigate}) {
+  document:doc=globalThis.document,importDraft,executionSource,debugEnabled=false,onNavigate,onTabSelected}) {
   const get=id=>doc.getElementById(id);
   if(debugEnabled){
     get('tab-debug').hidden=false;
@@ -104,7 +104,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     get('task-dev-status').textContent=message;
   };
   const option=(name,value)=>new Option(name,value);
-  function navigate(name) {
+  function navigate(name,{initial=false}={}) {
     if(name==='debug'&&!debugEnabled)return false;
     if(!['tasks','discover','workflow','develop','tools','catalog','debug'].includes(name))return;
     if(name==='catalog'&&!catalogSurface) {
@@ -127,6 +127,8 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     if(doc.documentElement?.dataset)doc.documentElement.dataset.opendeskTab=name;
     if(name==='discover')renderLocalDiscovery();
     if(name==='debug')onNavigate?.('debug');
+    // Only an accepted top-level navigation may update the Sidebar preference.
+    onTabSelected?.(name,{initial});
   }
   // Keep the owning Stop control visible across Sidebar tab changes;
   // do not move or restart the run when the user enters Discover/Developer.
@@ -855,7 +857,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     await restoreParams().catch(error=>console.warn('Task parameter drafts could not be restored',error));
     if(!disposed)return refresh();
   }).catch(fail);
-  navigate('tasks');update();
+  navigate('tasks',{initial:true});update();
   return {navigate,showCatalogPage,refresh,setWorkflowRunOwner(runId) {
     workflowClaimPending=runId==='pending';
     workflowRunId=runId && runId!=='pending'?runId:null;
