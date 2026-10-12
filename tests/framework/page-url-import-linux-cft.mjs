@@ -530,7 +530,17 @@ async function main(){
     const row={method:'CONNECT',authority:String(req.url).slice(0,240),allowed,
       phase:downloadPhase,at:new Date().toISOString()};
     report.network.push(row);
-    if(!allowed){socket.end('HTTP/1.1 451 Unavailable For Legal Reasons\r\nConnection: close\r\nContent-Length: 0\r\n\r\n');return;}
+    if(!allowed){
+      // CONNECT sockets are owned by this handler, not by Node's normal HTTP
+      // request/error lifecycle. Chrome may reset its rejected tunnel before
+      // the 451 write drains; observe the reset without bypassing the denial.
+      socket.on('error',error=>{
+        row.clientError=error.code||error.message;
+        record('denied-proxy-connect-socket-error',row);
+      });
+      socket.end('HTTP/1.1 451 Unavailable For Legal Reasons\r\nConnection: close\r\nContent-Length: 0\r\n\r\n');
+      return;
+    }
     // End-to-end TLS remains between Chrome and the actual public origin.
     // Do not terminate TLS, forge certificates, replace bytes or serve pins.
     const upstream=net.connect({host:'raw.githubusercontent.com',port:443});
