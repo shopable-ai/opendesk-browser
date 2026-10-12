@@ -11,9 +11,9 @@ const root='examples/programs/page-ui-react-direct';
 test('React direct uses the existing floating host on unrelated HTTP(S) documents',async()=>{
   const checked=await validateProgramProject(root);
   assert.equal(checked.entryMode,'component');
-  assert.equal(checked.framework,'react');
   assert.equal(checked.entry,'src/main.js');
   const pkg=JSON.parse(await readFile(root+'/package.json','utf8'));
+  assert.equal(pkg.opendesk.framework,'react');
   const rules=pkg.opendesk.pageRules;
   assert.deepEqual(rules.matches,['*://*/*']);
   assert.deepEqual(rules.excludeMatches,[]);
