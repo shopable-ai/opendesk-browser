@@ -188,3 +188,14 @@ python3 -m http.server 43111 --bind 127.0.0.1 --directory examples/tasks
 - 按固定源码实际执行的原生测试 **1/1 PASS**。该结果不是 Node 模拟、只触发 Alarm 回调或访问静态原型。
 
 **仍需核对：** macOS CFT 工作流在 runner 队列中，不能把 Linux CFT 提升为 `MAC_CHROME_NATIVE_VERIFIED`；多 Host 同时竞争、Host 全部消失及恢复、Chrome 整浏览器重启、真实撤权/版本变更/未知后效、Side Panel 真实 200% 缩放均没有此候选的正式原生证据。Linux 截图缺 CJK 字体，不能据此进行中文视觉 95 分评分。新增功能与旧稳定候选不得混同为系统最终 F3/ZIP 验收。
+
+
+### R1.7 定时视图所有权与独立真实 Linux 回归（2026-10-12）
+
+- [macOS Chrome CI #38250781643](https://github.com/shopable-ai/opendesk-browser/actions/runs/38250781643) 的实际失败已经进一步定位：同一原生 SIDE_PANEL 完成真实 Task 运行、Native 回执、Verified、Available 与固定版本安装，随后由于 macOS 原生 `<select>` 弹出菜单吞掉 CDP 键盘事件，`#schedule-task-select` 未选择成功。此候选**尚无 macOS Alarm→Run/Result 原生通过证据**。
+- 提交 [`0ef8f175e163`](https://github.com/shopable-ai/opendesk-browser/commit/0ef8f175e1635a30a468c8367ff59126e78f88a6) 已改为真实键盘 Tab 聚焦关闭状态的下拉框，然后 Home/ArrowDown/Enter，回读实际 selectedIndex/value；绝不写入 `element.value`、调用模拟 `change` 或直接触发执行。
+- 读取此前 [macOS CI 截图](https://github.com/shopable-ai/opendesk-browser/actions/runs/38250781643) 发现「定时计划」页面保留了无关的手动「运行任务」固定底栏。提交 [`b842a2e873`](https://github.com/shopable-ai/opendesk-browser/commit/b842a2e873f321947e993184f87092bf21ade57b) 增加 `setScheduledSurfaceActive` 和 `setScheduledRunOwner`；定时页面空闲时隐藏无关底栏，正在进行的真正手动 Task 仍保留自己的 Stop，定时 Run 不冒充 Developer/Workflow 所有者。
+- **与上述 UI 修复同 SHA 的 GitHub Actions [Linux CFT #38255899212](https://github.com/shopable-ai/opendesk-browser/actions/runs/38255899212) 已完成 success**，原始 `native-report.json` 包含 `manualTaskVerification`、`verifiedInstallation`、`scheduledDockIsolation`、`nativeScheduleCreation`、`sidePanelClosedRunnerLive`、`actualScheduledNativeEffect`、`nativePause` 均为 `PASS`。浏览器真实页面出现 `#done`，姓名为 `Scheduled Native`，FireId/RunId/ResultId 精确关联，`retirementState=released`，且截图已证实无多余手动底栏。
+- 同 SHA 的 [Scheduled Tasks R1 组件和包 CI #38255898825](https://github.com/shopable-ai/opendesk-browser/actions/runs/38255898825) 中：11+5+8+42+5+8+111 = **190/190 定向/共享组件 PASS**；`scheduled-package` job 已 `completed/success`，生产/开发构建与包校验通过。
+- **macOS 未自动升级结论**：本次最新 [Mac CI #38255899093](https://github.com/shopable-ai/opendesk-browser/actions/runs/38255899093) 尚未取得终态原生回执；它独立于 Linux，必须读取 job 日志、真实截图、候选 SHA 与持久 Run/Result 后才能标记通过。
+- Linux GitHub CI-only `--no-sandbox` 和缺失 CJK 字体仍不能用于评价 macOS Chrome OS sandbox 或中文视觉 95 分。多 Host、无宿主后恢复、浏览器整进程重启、网站撤权/版本变更及 200% 缩放仍为专项未验证项。
