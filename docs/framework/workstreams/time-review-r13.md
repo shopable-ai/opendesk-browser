@@ -80,3 +80,6 @@
 - P0 首次绑定 `e4a128582b86420abe19707b6629ee751813e26f` 的 [Mac 专项 Actions 38213480341](https://github.com/shopable-ai/opendesk-browser/actions/runs/38213480341)：R1.3 组件 **41 PASS / 1 FAIL**，失败点为未知 ticket 仍需要在 `onDeterminingFilename` 回调里异步 `suggest()` 无参数，但测试错误地要求返回同步 false。修正该断言并保留实际“不更名”语义，旧 run 仍标记 FAIL；其真实 Chrome 阶段未执行。
 
 - [Actions 38213643444](https://github.com/shopable-ai/opendesk-browser/actions/runs/38213643444)，候选 `34ad1dcdc268b141f79bd3d022e474094afb2a0e`：R1.2/R1.3 组件 53/53 PASS，真实 Mac CFT 的 JSON/CSV **创建、完成、独占文件夹、文件存在和内容解析均 PASS**，但最终文件名分别 `download.json`/`download.csv`，故 P0 原生仍 FAIL。进一步检查 native driver：此前使用 CDP `Browser.setDownloadBehavior` 介入浏览器下载决策，本次调整为**启动前配置独占 Chrome Profile 的默认下载目录**，不在下载期间通过 CDP 覆盖下载行为。需以新 SHA 的真实 run 证明是否属于测试环境干预，未通过前不得关闭 P0。
+
+- **诊断收敛**：[Actions 38214014564](https://github.com/shopable-ai/opendesk-browser/actions/runs/38214014564)，候选 `357fe92057729995f2d4a5c578623fff7b61c311`，原生 Mac CFT 155 JSON/CSV 的创建、完成、受控目录、真实磁盘、内容完整性、实际预期文件名 **全部 PASS**。旧 Mac 失败驱动的 `Browser.setDownloadBehavior` 在下载启动前覆盖了文件名决定；改为预先写入专用 Chrome Profile 的 `Default/Preferences` 下载目录后恢复正确。
+- **最小化消除副作用（待新候选验证）**：因文件名在正常浏览器下载条件下正确，移除实验性的 `src/time-review/download-naming.js` 以及其全局下载事件处理、会话令牌表和配套测试；保留原 `downloads.download({filename,saveAs:false,conflictAction:'uniquify'})` 的生产调用，并补充并发和请求受理非完成语义测试。之前阶段记录属于历史诊断方案，并非当前产品行为。若新候选 Mac 回归通过，P0 方可正式关闭。

@@ -110,14 +110,24 @@ test('forged sender, document, package, install generation and arbitrary operati
 test('date totals and export use explicit clear confirmation and actual download request',async()=>{
   const f=await fixture();await f.call('time.start');f.advance(1000);await f.call('time.pause');
   await assert.rejects(f.call('time.clear'),{code:'E_TIME_CONFIRM'});const result=await f.call('time.export',{format:'csv'});assert.equal(result.downloadId,1);assert.match(decodeURIComponent(f.downloads[0].url),/example.com/);
-  assert.match(f.downloads[0].url,/^data:text\/csv;name=time-review\.csv;od-export-id=[0-9a-f-]{36};charset=utf-8,/);
+  assert.match(f.downloads[0].url,/^data:text\/csv;name=time-review\.csv;charset=utf-8,/);
   assert.equal(f.downloads[0].filename,'time-review.csv');
   assert.equal(f.downloads[0].saveAs,false);
   assert.equal(f.downloads[0].conflictAction,'uniquify');
   await f.call('time.export',{format:'json'});
-  assert.match(f.downloads[1].url,/^data:application\/json;name=time-review\.json;od-export-id=[0-9a-f-]{36};charset=utf-8,/);
+  assert.match(f.downloads[1].url,/^data:application\/json;name=time-review\.json;charset=utf-8,/);
   assert.equal(f.downloads[1].filename,'time-review.json');
   assert.equal((await f.call('time.clear',{confirm:true})).todayMs,0);assert.equal(f.local[TIME_REVIEW_KEY].paused,true);
+});
+test('concurrent export requests stay serialized, use safe filenames and never claim a completed disk download',async()=>{
+  const f=await fixture();const requests=await Promise.all([
+    f.call('time.export',{format:'json'}),f.call('time.export',{format:'csv'})
+  ]);
+  assert.deepEqual(requests.map(row=>row.state),['requested','requested']);
+  assert.deepEqual(f.downloads.map(row=>row.filename),['time-review.json','time-review.csv']);
+  assert.ok(f.downloads.every(row=>row.saveAs===false&&row.conflictAction==='uniquify'));
+  f.api.downloads.download=async()=>{throw Error('browser rejected download');};
+  await assert.rejects(f.call('time.export',{format:'json'}),/browser rejected download/);
 });
 test('excluded domains include subdomains and settings change settlement preserves prior time',async()=>{
   const f=await fixture();await f.call('time.start');f.advance(5000);await f.call('time.settings',{idleSeconds:15,retentionDays:7,excludedHosts:['example.com']});f.set({tab:{url:'https://sub.example.com'}});await f.tick();f.advance(5000);assert.equal((await f.call('time.status')).todayMs,5000);
