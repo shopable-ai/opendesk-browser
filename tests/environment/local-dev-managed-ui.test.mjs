@@ -212,3 +212,32 @@ test('Native adapter maps uncoded transport rejection to unknown for preview and
   await subscriptions[0]({method:'page.dispose',requestId:'dispose',params:{previewId:row.previewId}});
   assert.equal(replies[0].error.code,'E_EFFECT_UNKNOWN');assert.equal(replies[0].error.outcome,'OUTCOME_UNKNOWN');
 });
+
+test('browser-only component binding cannot silently adopt or overlap an older editor root',async()=>{
+  const firstBinding='browser-v1-'+'a'.repeat(24);
+  const f=previewFixture(firstBinding),service=f.make();
+  const first=f.request('return 1;');
+  const accepted=await service.preview(first,sender);
+  assert.equal(accepted.state,'preview-evaluated');
+  const calls=f.calls.length;
+  const foreign=f.request('return 2;');
+  foreign.managedUI.bindingId='browser-v1-'+'b'.repeat(24);
+  await assert.rejects(service.preview(foreign,sender),{code:'E_UI_OWNER'});
+  assert.equal(f.calls.length,calls,'foreign browser host must never inject a new script');
+  const second=await service.preview(f.request('return 3;'),sender);
+  assert.equal(second.state,'preview-evaluated');
+  assert.equal(second.previousCleanup.previewId,first.managedUI.previewId);
+  const retired=await service.retire({previewId:second.managedPreviewId},sender);
+  assert.equal(retired.receipt.ok,true);
+  assert.equal(f.doc.querySelectorAll().length,0);
+});
+test('browser component managed binding is strict and cannot spoof arbitrary project identity',async()=>{
+  for(const value of ['browser-v1-'+ 'z'.repeat(24),'browser-v1-'+'a'.repeat(23),
+    'browser-v1-'+'a'.repeat(25),'browser-v1-../../foo']){
+    const f=previewFixture();
+    const request=f.request('return 1;');
+    request.managedUI.bindingId=value;
+    await assert.rejects(f.make().preview(request,sender),{code:'E_SCHEMA'});
+    assert.equal(f.calls.length,0);
+  }
+});
