@@ -1,0 +1,63 @@
+{
+  "state": "PASS",
+  "incomingCommit": "957cb0917abb06043d77563728d56aee4bf28156",
+  "baseIntegrationCommit": "df936486bdf10d65a48fc5800731bd7c7ecb1e85",
+  "firstPush": "rejected: remote advanced; no force push used",
+  "productInputsUnchanged": true,
+  "reusedProductFingerprint": "78abee8d2429f73b8ddb61c3ed9ff8b9cfdcfdcf8d896efd6bfec0c3e79fc450",
+  "runs": [
+    {
+      "file": "incoming-script-editor.tap",
+      "sha256": "0bbe9425657d29923d1bcb9ece0b91c3a95e453e4e9d49d9d8e2aea6aff765f6",
+      "summary": {
+        "tests": 56,
+        "pass": 55,
+        "fail": 1,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    {
+      "file": "incoming-script-editor-final.tap",
+      "sha256": "b89f46ced3db0ab69561dc200faf67b7da2c63a6abf10b9258fcc29941875b8b",
+      "summary": {
+        "tests": 56,
+        "pass": 56,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    }
+  ],
+  "testInput": {
+    "path": "tests/environment/script-editor.test.mjs",
+    "sha256": "da70d9493a39f8612fab911ab27b79995bf815545d0b3e820db85f764e42790b"
+  },
+  "fixtureResolution": "Retain independent React/Vue drafts; primary run follows page-preview availability and a trusted component run must not start Controller RunHost. Prior disabled-button assertion contradicted the merged component-run route.",
+  "driverChecks": {
+    "javascriptSyntax": [
+      "tests/framework/page-browser-worker-r243-cft.mjs",
+      "tests/framework/time-review-r13-native.test.mjs",
+      "tests/environment/script-editor.test.mjs"
+    ],
+    "swiftTypecheck": {
+      "command": [
+        "xcrun",
+        "swiftc",
+        "-typecheck",
+        "-module-cache-path",
+        ".runtime/git-main-sync-20261012-01a12f15/swift-module-cache",
+        "tests/framework/time-review-native-input.swift"
+      ],
+      "exitCode": 0
+    },
+    "nativeExecution": "NOT_TESTED"
+  },
+  "unrelatedChangesPreserved": [
+    "AGENTS.md",
+    "docs/framework/parallel-development.md",
+    "docs/framework/workstreams/parallel-write-policy-20261012-01a12f2c.md"
+  ]
+}

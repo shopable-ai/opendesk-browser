@@ -124,3 +124,13 @@
 - 本轮移除工作流里写死的 `1.3.0` 工具包 SHA 路径，改为读取现有 `tool.config.json` 的版本号；在任何耗时构建之前执行 `node --check tests/framework/time-review-r13-native.test.mjs`，防止语法错误到 Mac Chrome 阶段才暴露。**不改变产品版本、ID、权限、模型或数据键**。之后 GitHub Actions 的成功状态以本提交 SHA 为准。
 
 - [Mac CI 38221941200](https://github.com/shopable-ai/opendesk-browser/actions/runs/38221941200)（`490e1232085b3be7c2ed98f9240e03eb9b627f05`）已通过 54 项组件测试、独立 1.3.1 工具构建与 SHA、生产/开发 MV3 构建/verify、原生测试语法检测和 320/360/400/600px 合成视觉。**真实 Mac Native FAIL**：官方工具完成安装并读回真实版本 `1.3.1`，原生测试第 212 行仍要求旧 `1.3.0`。本次修复唯一遗漏的固定安装版本断言，改与 `pkg.version` 比较，并继续要求构建配置、官方发布目录哈希一致。不降低真实安装验收门槛。
+
+## R1.3 Final · 六分类与可信工具生命周期原生验收（2026-10-12）
+
+- 当前 `1.3.1` 真实主分支候选 `f4719da31a876fc4f82b6b0658176fd2693c4a26` 已在 [Mac Actions 38222319502](https://github.com/shopable-ai/opendesk-browser/actions/runs/38222319502) 取得完整 **SUCCESS**：54/54 组件，生产/开发包、浏览器侧栏与视觉，非空真实网站 JSON/CSV 二次导出文件 `time-review (1).json`、`time-review (1).csv` 分别落盘且不覆盖，真实 Chrome 关闭原 OS PID 并以相同临时 Profile 启动新 PID，扩展版号、日统计、分钟同意、暂停与浏览器会话变更均 PASS。该候选的整进程重启是**暂停状态**，不能宣称活动期间崩溃恢复已完成。
+- 本阶段继续在**真实已安装工具**的 Side Panel 完成：鼠标打开记录行分类编辑、原生键盘选择 `重要不紧急`（分类编码 2）、点击保存并读回持久分类，保证原网站时长不变、UI 显示一致，随后带分类导出与整 Chrome 重启。
+- 在整个浏览器重启后通过真实扩展工具管理入口「停用 → 重新启用 → 卸载确认」测试：撤销 epoch 持久变化、历史总时长保留、重新启用不会未经用户重新开始、卸载清除 Time Review 业务记录和待清理标记，同时保留其他工具，稍后读回确保后台事件不会复活已卸载数据。仍不向 storage 注入/模拟任何时间数据。此验收不等于扩展自身的卸载（扩展卸载行为仍 NOT_TESTED）。
+- 新原生覆盖需以提交本轮对应 SHA 的 Mac Actions 证实；当前仅为已写入源码的新增真实场景，未经过原生测试前不得称 PASS。Chrome 真正 200% 页面缩放、跨站有效计时与系统长期空闲仍需独立验收。
+
+- [Mac CI 38223058106](https://github.com/shopable-ai/opendesk-browser/actions/runs/38223058106) 在 `27e9f06d74ce6bd37679cfd81a40aebddee8fae3`：Time Review 54/54 组件、独立工具和双包构建、真正原生网站计时/暂停/SW 重启此前步骤通过；原生分类编辑阶段 **FAIL**，因为 Chrome 155 macOS 原生 `<select>` 菜单不响应 OOPIF 的 CDP 箭头键命令，UI 值仍是 0 而非 2。根因是测试键盘输入作用域，不是用户分类业务数据断言失败。保留该 run FAIL，卸载/重启尾段尚未执行。
+- 修复：在现有 `tests/framework/time-review-native-input.swift` 的真实本机 CFT 专用键盘输入中补 Home/Down/Up/End；它继续检查实际 PID、CFT Bundle、Accessibility 授权和前台所有权。分类测试通过**真正 macOS 系统按键**选择下拉选项并确认，绝不使用 `select.value=`、`dispatchEvent` 或直接修改 Chrome Storage 来伪造通过。后续仍须以新 SHA 的 Mac run 判定保存、持久化和工具停用/卸载是否通过。

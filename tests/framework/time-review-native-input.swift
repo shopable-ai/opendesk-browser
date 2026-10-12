@@ -28,7 +28,17 @@ if command == "key" || command == "text" {
     RunLoop.current.run(until:Date().addingTimeInterval(0.12))
   }
   if command == "key" {
-    switch input {case "tab":key(48);case "shift-tab":key(48,.maskShift);case "return":key(36);case "escape":key(53);default:exit(5)}
+    switch input {
+    case "tab":key(48)
+    case "shift-tab":key(48,.maskShift)
+    case "return":key(36)
+    case "escape":key(53)
+    case "home":key(115)
+    case "down":key(125)
+    case "up":key(126)
+    case "end":key(119)
+    default:exit(5)
+    }
   } else {
     key(0,.maskCommand)
     let characters=Array(input.utf16)

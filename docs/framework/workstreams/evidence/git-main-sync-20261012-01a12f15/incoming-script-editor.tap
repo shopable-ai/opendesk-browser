@@ -1,0 +1,362 @@
+TAP version 13
+# Subtest: Developer shows one terminal status line and hides it for unrelated feedback
+ok 1 - Developer shows one terminal status line and hides it for unrelated feedback
+  ---
+  duration_ms: 15.3045
+  type: 'test'
+  ...
+# Subtest: react primary Run compiles a managed Page preview and shows its result
+ok 2 - react primary Run compiles a managed Page preview and shows its result
+  ---
+  duration_ms: 9.430792
+  type: 'test'
+  ...
+# Subtest: vue primary Run compiles a managed Page preview and shows its result
+ok 3 - vue primary Run compiles a managed Page preview and shows its result
+  ---
+  duration_ms: 7.56875
+  type: 'test'
+  ...
+# Subtest: component primary Run preserves permission protection and visible feedback
+ok 4 - component primary Run preserves permission protection and visible feedback
+  ---
+  duration_ms: 4.28375
+  type: 'test'
+  ...
+# Subtest: component primary Run preserves document protection and visible feedback
+ok 5 - component primary Run preserves document protection and visible feedback
+  ---
+  duration_ms: 6.883416
+  type: 'test'
+  ...
+# Subtest: component primary Run preserves compiler protection and visible feedback
+ok 6 - component primary Run preserves compiler protection and visible feedback
+  ---
+  duration_ms: 5.721667
+  type: 'test'
+  ...
+# Subtest: component primary Run preserves unknown protection and visible feedback
+ok 7 - component primary Run preserves unknown protection and visible feedback
+  ---
+  duration_ms: 7.211834
+  type: 'test'
+  ...
+# Subtest: component primary Run retains the shared execution slot gate
+ok 8 - component primary Run retains the shared execution slot gate
+  ---
+  duration_ms: 6.087875
+  type: 'test'
+  ...
+# Subtest: component primary Run refuses source changes during compilation
+ok 9 - component primary Run refuses source changes during compilation
+  ---
+  duration_ms: 5.072
+  type: 'test'
+  ...
+# Subtest: component primary Run refuses document changes during compilation
+ok 10 - component primary Run refuses document changes during compilation
+  ---
+  duration_ms: 7.075166
+  type: 'test'
+  ...
+# Subtest: Dev Run has no per-Origin axiosx form or prompt; backend discovers HTTP targets at request time
+ok 11 - Dev Run has no per-Origin axiosx form or prompt; backend discovers HTTP targets at request time
+  ---
+  duration_ms: 3.329541
+  type: 'test'
+  ...
+# Subtest: twenty Controller runs and twenty Page previews reuse Chrome grants with zero request calls
+ok 12 - twenty Controller runs and twenty Page previews reuse Chrome grants with zero request calls
+  ---
+  duration_ms: 124.881166
+  type: 'test'
+  ...
+# Subtest: developer source switch hides local controls until enabled and reports a missing local connection
+ok 13 - developer source switch hides local controls until enabled and reports a missing local connection
+  ---
+  duration_ms: 3.562792
+  type: 'test'
+  ...
+# Subtest: local project can open the packaged native connection settings only by a trusted click
+ok 14 - local project can open the packaged native connection settings only by a trusted click
+  ---
+  duration_ms: 4.239542
+  type: 'test'
+  ...
+# Subtest: local project setup guide opens only after a trusted user click in local mode
+ok 15 - local project setup guide opens only after a trusted user click in local mode
+  ---
+  duration_ms: 7.712541
+  type: 'test'
+  ...
+# Subtest: developer current-page summary follows the actual tab without exposing document internals
+ok 16 - developer current-page summary follows the actual tab without exposing document internals
+  ---
+  duration_ms: 1.755375
+  type: 'test'
+  ...
+# Subtest: one authorized local project is selected automatically without starting execution
+ok 17 - one authorized local project is selected automatically without starting execution
+  ---
+  duration_ms: 4.134875
+  type: 'test'
+  ...
+# Subtest: a remembered project is never silently replaced by a different sole authorized project
+ok 18 - a remembered project is never silently replaced by a different sole authorized project
+  ---
+  duration_ms: 5.548542
+  type: 'test'
+  ...
+# Subtest: preparation-only same-epoch updates preserve pending resolve; catalog changes still invalidate it
+ok 19 - preparation-only same-epoch updates preserve pending resolve; catalog changes still invalidate it
+  ---
+  duration_ms: 490.145708
+  type: 'test'
+  ...
+# Subtest: local project mode preserves manual draft and params while running fresh bytes through the same Host
+ok 20 - local project mode preserves manual draft and params while running fresh bytes through the same Host
+  ---
+  duration_ms: 67.954791
+  type: 'test'
+  ...
+# Subtest: local source response after mode switch is rejected before Host admission
+ok 21 - local source response after mode switch is rejected before Host admission
+  ---
+  duration_ms: 5.719667
+  type: 'test'
+  ...
+# Subtest: local managed Page Stop owns a confirmed failing main, survives provider disconnect and blocks overlapping Run
+ok 22 - local managed Page Stop owns a confirmed failing main, survives provider disconnect and blocks overlapping Run
+  ---
+  duration_ms: 415.483208
+  type: 'test'
+  ...
+# Subtest: reopening the editor restores window-scoped source and params without starting or saving
+ok 23 - reopening the editor restores window-scoped source and params without starting or saving
+  ---
+  duration_ms: 3.503167
+  type: 'test'
+  ...
+# Subtest: another window draft and the catalog editor never replace the Sidebar draft
+ok 24 - another window draft and the catalog editor never replace the Sidebar draft
+  ---
+  duration_ms: 4.394375
+  type: 'test'
+  ...
+# Subtest: reopening a project draft preserves the source view and compiled execution bytes
+ok 25 - reopening a project draft preserves the source view and compiled execution bytes
+  ---
+  duration_ms: 6.95925
+  type: 'test'
+  ...
+# Subtest: a delayed draft restore never overwrites newly imported source
+ok 26 - a delayed draft restore never overwrites newly imported source
+  ---
+  duration_ms: 4.05875
+  type: 'test'
+  ...
+# Subtest: importing a JS draft leaves saved versions and running source independent
+ok 27 - importing a JS draft leaves saved versions and running source independent
+  ---
+  duration_ms: 5.617375
+  type: 'test'
+  ...
+# Subtest: draft import rejects empty/oversized sources and active saves without overwriting the editor
+ok 28 - draft import rejects empty/oversized sources and active saves without overwriting the editor
+  ---
+  duration_ms: 4.180584
+  type: 'test'
+  ...
+# Subtest: imported legacy @require only reads previously approved versions and never adds a form or downloads code
+ok 29 - imported legacy @require only reads previously approved versions and never adds a form or downloads code
+  ---
+  duration_ms: 5.897333
+  type: 'test'
+  ...
+# Subtest: Save persists revision/hash without requesting permission, creating a Run, or executing code
+ok 30 - Save persists revision/hash without requesting permission, creating a Run, or executing code
+  ---
+  duration_ms: 2.986125
+  type: 'test'
+  ...
+# Subtest: reopened editor lists saved scripts without running and loads the selected latest head explicitly
+ok 31 - reopened editor lists saved scripts without running and loads the selected latest head explicitly
+  ---
+  duration_ms: 4.0195
+  type: 'test'
+  ...
+# Subtest: loading a historical revision does not turn it into the latest Save CAS head
+ok 32 - loading a historical revision does not turn it into the latest Save CAS head
+  ---
+  duration_ms: 5.215917
+  type: 'test'
+  ...
+# Subtest: Delete tombstones the latest head and refreshes the saved-script selector
+ok 33 - Delete tombstones the latest head and refreshes the saved-script selector
+  ---
+  duration_ms: 5.222542
+  type: 'test'
+  ...
+# Subtest: saved A stays immutable; Run freezes unsaved B/params/page A; editing C and Save do not replace B
+ok 34 - saved A stays immutable; Run freezes unsaved B/params/page A; editing C and Save do not replace B
+  ---
+  duration_ms: 8.054042
+  type: 'test'
+  ...
+# Subtest: a brand-new unsaved draft runs with an empty script ID and never creates a saved revision
+ok 35 - a brand-new unsaved draft runs with an empty script ID and never creates a saved revision
+  ---
+  duration_ms: 4.221625
+  type: 'test'
+  ...
+# Subtest: permission preparation rejects a switched page; closing the editor during permission never admits a run
+ok 36 - permission preparation rejects a switched page; closing the editor during permission never admits a run
+  ---
+  duration_ms: 13.739416
+  type: 'test'
+  ...
+# Subtest: shared RunHost completion or Stop restores the draft Run button after another consumer settles
+ok 37 - shared RunHost completion or Stop restores the draft Run button after another consumer settles
+  ---
+  duration_ms: 8.3095
+  type: 'test'
+  ...
+# Subtest: Stop uses the formal RunHost abort/retirement path and persists stopped with the original pin
+ok 38 - Stop uses the formal RunHost abort/retirement path and persists stopped with the original pin
+  ---
+  duration_ms: 6.748959
+  type: 'test'
+  ...
+# Subtest: pagehide invokes RunHost host-close; reopened editor only reads the durable interrupted Result
+ok 39 - pagehide invokes RunHost host-close; reopened editor only reads the durable interrupted Result
+  ---
+  duration_ms: 5.711375
+  type: 'test'
+  ...
+# Subtest: late Save/Load replies do not overwrite another script selection or edits made during loading
+ok 40 - late Save/Load replies do not overwrite another script selection or edits made during loading
+  ---
+  duration_ms: 6.767625
+  type: 'test'
+  ...
+# Subtest: late saved-script selector load cannot overwrite edits made during loading
+ok 41 - late saved-script selector load cannot overwrite edits made during loading
+  ---
+  duration_ms: 4.053458
+  type: 'test'
+  ...
+# Subtest: an older snapshot reply cannot disable Run after a newer durable observation
+ok 42 - an older snapshot reply cannot disable Run after a newer durable observation
+  ---
+  duration_ms: 6.276917
+  type: 'test'
+  ...
+# Subtest: an older snapshot error cannot overwrite a newer successful durable view
+ok 43 - an older snapshot error cannot overwrite a newer successful durable view
+  ---
+  duration_ms: 5.338084
+  type: 'test'
+  ...
+# Subtest: Run silently checks Chrome permission; denied permission and invalid params never request or execute
+ok 44 - Run silently checks Chrome permission; denied permission and invalid params never request or execute
+  ---
+  duration_ms: 6.503375
+  type: 'test'
+  ...
+# Subtest: DOM preview binds frozen plain JavaScript and exact current document from trusted click
+ok 45 - DOM preview binds frozen plain JavaScript and exact current document from trusted click
+  ---
+  duration_ms: 4.053292
+  type: 'test'
+  ...
+# Subtest: DOM preview refuses to inject when the active document changes while permission is pending
+ok 46 - DOM preview refuses to inject when the active document changes while permission is pending
+  ---
+  duration_ms: 5.111667
+  type: 'test'
+  ...
+# Subtest: Developer Stop cannot cancel the formal Task or another view using the shared RunHost
+ok 47 - Developer Stop cannot cancel the formal Task or another view using the shared RunHost
+  ---
+  duration_ms: 4.1415
+  type: 'test'
+  ...
+# Subtest: project import displays source while Save and Run freeze compiled bytes and the original hash
+ok 48 - project import displays source while Save and Run freeze compiled bytes and the original hash
+  ---
+  duration_ms: 7.1595
+  type: 'test'
+  ...
+# Subtest: invalid project envelope leaves the previous editor source and no execution or saved revision
+ok 49 - invalid project envelope leaves the previous editor source and no execution or saved revision
+  ---
+  duration_ms: 2.067584
+  type: 'test'
+  ...
+# Subtest: R12: real Page preview gates explicit immutable Candidate import, never auto installs
+ok 50 - R12: real Page preview gates explicit immutable Candidate import, never auto installs
+  ---
+  duration_ms: 10.854292
+  type: 'test'
+  ...
+# Subtest: R12: navigating the actual page or a rejected preview cannot save a Page Candidate
+ok 51 - R12: navigating the actual page or a rejected preview cannot save a Page Candidate
+  ---
+  duration_ms: 9.110959
+  type: 'test'
+  ...
+# Subtest: denied results never populate visible values, technical history or download choices
+ok 52 - denied results never populate visible values, technical history or download choices
+  ---
+  duration_ms: 1.841083
+  type: 'test'
+  ...
+# Subtest: failed HTML content read displays actionable advice, not the internal controller envelope
+ok 53 - failed HTML content read displays actionable advice, not the internal controller envelope
+  ---
+  duration_ms: 1.819125
+  type: 'test'
+  ...
+# Subtest: a failed evaluate surfaces Chrome settings and read-only recovery without replaying a run
+ok 54 - a failed evaluate surfaces Chrome settings and read-only recovery without replaying a run
+  ---
+  duration_ms: 10.009333
+  type: 'test'
+  ...
+# Subtest: R17 accepts 32 scoped sources with same-name directories but rejects an unbounded catalog
+ok 55 - R17 accepts 32 scoped sources with same-name directories but rejects an unbounded catalog
+  ---
+  duration_ms: 4.391041
+  type: 'test'
+  ...
+# Subtest: R24.3 React and Vue modes keep independent official source drafts without Native
+not ok 56 - R24.3 React and Vue modes keep independent official source drafts without Native
+  ---
+  duration_ms: 7.005291
+  type: 'test'
+  location: '/Users/shopme/Documents/workspace/opendesk-browser/tests/environment/script-editor.test.mjs:943:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Component source cannot enter Controller RunHost
+    
+    false !== true
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/environment/script-editor.test.mjs:965:10)
+    async Test.run (node:internal/test_runner/test:1313:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:897:7)
+  ...
+1..56
+# tests 56
+# suites 0
+# pass 55
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1470.820209
