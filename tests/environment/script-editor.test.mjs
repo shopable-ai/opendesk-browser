@@ -929,3 +929,79 @@ test('R24.3 React and Vue modes keep independent official source drafts without 
   assert.equal(f.find('script-run').disabled,true,'Component source cannot enter Controller RunHost');
   assert.equal(f.find('page-preview-run').textContent,'运行 React 组件');
 });
+
+async function waitForComponentUI(check,label){
+  for(let i=0;i<80;i++){
+    if(check())return;
+    await tick();
+  }
+  assert.fail(label);
+}
+function browserComponentFixture(){
+  return {prepare:async({framework,projectId})=>({
+    framework,projectId,entryFormat:'async-main',
+    sourceUtf8:'// @opendesk-lib '+framework+'\nasync function main(){}',
+    sourceHash:'a'.repeat(64)
+  }),cancel(){},dispose(){}};
+}
+async function selectBrowserReact(f){
+  const input=f.find('page-component-react');
+  input.checked=true;input.fire('change');await tick();
+  assert.equal(input.checked,true);
+  assert.equal(f.find('page-preview-run').textContent,'运行 React 组件');
+}
+test('R24.3 an outcome-unknown browser component blocks the SAME document, but a genuinely new document permits explicit Run',async t=>{
+  const f=await fixture(undefined,undefined,{componentPreparerFactory:browserComponentFixture});
+  t.after(()=>f.dispose());
+  let dispatched=0;
+  const original=f.client.request.bind(f.client);
+  f.client.request=async(method,payload)=>{
+    if(method==='previewPageScript'){
+      dispatched++;
+      throw Object.assign(new Error('Browser receipt was lost'),{code:'E_EFFECT_UNKNOWN'});
+    }
+    return original(method,payload);
+  };
+  await selectBrowserReact(f);
+  await f.click('page-preview-run');
+  await waitForComponentUI(()=>f.find('page-preview-status').dataset.state==='error',
+    'unknown page effect must be reported');
+  assert.match(f.find('page-preview-status').textContent,/E_EFFECT_UNKNOWN/);
+  assert.equal(f.find('page-preview-run').disabled,true,'unknown effect fences additional Run');
+  f.find('page-component-vue').checked=true;f.find('page-component-vue').fire('change');await tick();
+  assert.equal(f.find('page-component-react').checked,true,'framework switch cannot bypass uncertain execution');
+  assert.equal(dispatched,1,'no duplicate dispatch after unknown receipt');
+  await f.switchTab(); // new actual available document: tabId and documentId both change.
+  await waitForComponentUI(()=>f.find('page-preview-run').disabled===false,
+    'verified new document must release the old effect-unknown fence');
+  assert.match(f.find('page-component-status').textContent,/新网页文档/);
+  assert.equal(dispatched,1,'navigation alone must never replay user code');
+  await f.click('page-preview-run');
+  await waitForComponentUI(()=>dispatched===2,'new document requires a NEW explicit Run');
+});
+test('R24.3 malformed Page receipt is quarantined and cannot be retried in the same document',async t=>{
+  const f=await fixture(undefined,undefined,{componentPreparerFactory:browserComponentFixture});
+  t.after(()=>f.dispose());
+  let dispatches=0;
+  const original=f.client.request.bind(f.client);
+  f.client.request=async(method,payload)=>{
+    if(method==='previewPageScript'){
+      dispatches++;
+      return {state:'preview-evaluated',sourceHash:'b'.repeat(64),
+        documentId:payload.target.documentId,managedUI:false,
+        managedPreviewId:payload.managedUI.previewId};
+    }
+    return original(method,payload);
+  };
+  await selectBrowserReact(f);
+  await f.click('page-preview-run');
+  await waitForComponentUI(()=>f.find('page-preview-status').dataset.state==='error',
+    'untrusted Page receipt must be rejected');
+  assert.match(f.find('page-preview-status').textContent,/E_PAGE_COMPILER_RECEIPT/);
+  assert.equal(f.find('page-preview-run').disabled,true);
+  assert.equal(dispatches,1);
+  await f.switchTab();
+  await waitForComponentUI(()=>f.find('page-preview-run').disabled===false,
+    'only a new document can release a mismatched Page receipt');
+  assert.equal(dispatches,1,'new document must not auto-run');
+});
