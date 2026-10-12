@@ -39,7 +39,21 @@
  <section class="cc-card od-surface" aria-label="分页请求历史">
   <div class="cc-heading">
    <h2>最近任务与已确认结果</h2>
-   <button type="button" id="cc-refresh" class="od-button od-button--secondary">刷新状态</button>
+   <div class="cc-history-actions">
+    <label for="cc-filter">任务状态
+     <select id="cc-filter">
+      <option value="all">全部状态</option>
+      <option value="waiting">等待领取</option>
+      <option value="prepared">已绑定任务</option>
+      <option value="permitted">已取得许可</option>
+      <option value="finished">已完成</option>
+      <option value="cancellation-pending">取消处理中</option>
+      <option value="cancelled">已取消</option>
+      <option value="OUTCOME_UNKNOWN">结果待核对</option>
+     </select>
+    </label>
+    <button type="button" id="cc-refresh" class="od-button od-button--secondary">刷新状态</button>
+   </div>
   </div>
   <ol id="cc-request-list" class="cc-list" aria-live="polite"><li>正在读取…</li></ol>
   <nav class="cc-pagination" aria-label="历史分页">
