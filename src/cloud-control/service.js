@@ -164,13 +164,25 @@ export function createCloudService({storage,api,clock={now:()=>Date.now()},asser
       // record cannot be inspected. Never infer completion from a slot alone.
       if(r.receipt&&run?.retirementState==='released'&&
         (r.state==='finished'||r.delivery?.state==='confirmed'))return null;
-      r.reason=reason;if(!run){r.state='cancelled';await history.put(tx,r);return;}
+      r.reason=reason;
+      if(!run){
+        // An admitted Run may have performed native side effects even when
+        // its durable row is absent. Never mislabel it as an unused claim.
+        r.state=r.runId?'OUTCOME_UNKNOWN':'cancelled';
+        if(r.runId)r.reason='E_EFFECT_UNKNOWN';
+        await history.put(tx,r);return;
+      }
       // A run already stopping has an original durable cancellation fence.
       // Repeated cloudStop/reconnect notifications must not advance its owner
       // epoch or cancellation sequence and invalidate its pending settlement.
       const newlyFenced=['preparing','running'].includes(run.state)&&!run.cancelSeq;
       if(newlyFenced){run.cancelSeq++;run.ownerEpoch++;run.runRevision++;run.eventSeq++;run.state='stopping';run.terminalReason=reason;await tx.put('runs',run,run.runId);const k='controller-pin:'+run.runId,l=await tx.get('commandJournal',k);if(l)await tx.put('commandJournal',{...l,state:run.state,cancelSeq:run.cancelSeq},k);}
-      r.state=run.retirementState==='released'?'finished':'cancellation-pending';await history.put(tx,r);
+      // Released alone does not prove outcome: only the matching original
+      // durable Result above can establish the terminal finished state.
+      if(run.retirementState==='released'||run.state==='paused_unknown'||r.state==='OUTCOME_UNKNOWN'){
+        r.state='OUTCOME_UNKNOWN';r.reason='E_EFFECT_UNKNOWN';
+      }else r.state='cancellation-pending';
+      await history.put(tx,r);
       return newlyFenced?run:null;});
     if(result)await emitToHost(result.registrationId,{type:'controller-fenced',runId:result.runId,reasonCode:reason});
   }

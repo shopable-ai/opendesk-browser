@@ -110,3 +110,60 @@ test('missing Result still fences original running Worker instead of fabricating
   assert.equal(f.read('results',ref.resultId),undefined);
   assert.equal(f.messages.length,1);
 });
+
+
+test('orphaned cloud request retains OUTCOME_UNKNOWN if original Run row is missing',async()=>{
+  const f=fixture({run:null,result:null});
+  await f.service.cloudStop({},{});
+  const row=f.read('frameworkKV','cloud:request:'+requestId);
+  assert.equal(row.runId,ref.runId);
+  assert.equal(row.state,'OUTCOME_UNKNOWN');
+  assert.equal(row.reason,'E_EFFECT_UNKNOWN');
+  assert.equal(f.read('frameworkKV','cloud:config').enabled,false);
+  assert.deepEqual(f.messages,[]);
+  await f.service.cloudStop({},{});
+  assert.equal(f.read('frameworkKV','cloud:request:'+requestId).state,'OUTCOME_UNKNOWN');
+});
+
+test('released original Run without a durable Result cannot be projected as finished',async()=>{
+  const f=fixture({result:null});
+  await f.service.reconcile();
+  const row=f.read('frameworkKV','cloud:request:'+requestId);
+  assert.equal(row.state,'OUTCOME_UNKNOWN');
+  assert.equal(row.reason,'E_EFFECT_UNKNOWN');
+  assert.equal(f.read('runs',ref.runId).retirementState,'released');
+  assert.equal(f.read('results',ref.resultId),undefined);
+  assert.equal(f.posts.length,1);
+  assert.deepEqual(f.messages,[]);
+});
+
+test('wrong immutable Result source identity also remains unknown after Stop',async()=>{
+  const f=fixture({result:{...baseResult,revision:{sourceHash:'different-source'}}});
+  await f.service.cloudStop({},{});
+  const row=f.read('frameworkKV','cloud:request:'+requestId);
+  assert.equal(row.state,'OUTCOME_UNKNOWN');
+  assert.equal(row.reason,'E_EFFECT_UNKNOWN');
+  assert.equal(f.read('results',ref.resultId).revision.sourceHash,'different-source');
+  assert.deepEqual(f.messages,[]);
+});
+
+test('post-crash paused_unknown Run cannot become cancelled on hosting Stop',async()=>{
+  const f=fixture({run:{...baseRun,state:'paused_unknown',retirementState:'not-started'},
+    result:null,request:{...baseRequest,state:'OUTCOME_UNKNOWN',reason:'worker-restart'}});
+  await f.service.cloudStop({},{});
+  const row=f.read('frameworkKV','cloud:request:'+requestId);
+  assert.equal(row.state,'OUTCOME_UNKNOWN');
+  assert.equal(row.reason,'E_EFFECT_UNKNOWN');
+  assert.equal(f.read('runs',ref.runId).state,'paused_unknown');
+  assert.deepEqual(f.messages,[]);
+});
+
+test('unadmitted waiting claim with no Run association may still be cancelled',async()=>{
+  const f=fixture({run:null,result:null,
+    request:{...baseRequest,runId:undefined,runRef:undefined,state:'waiting'}});
+  await f.service.cloudStop({},{});
+  const row=f.read('frameworkKV','cloud:request:'+requestId);
+  assert.equal(row.state,'cancelled');
+  assert.equal(row.reason,'E_CLOUD_REVOKED');
+  assert.deepEqual(f.messages,[]);
+});

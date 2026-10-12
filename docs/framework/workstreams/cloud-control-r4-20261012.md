@@ -69,3 +69,10 @@
 - 以上仅证明当时打包源码、组件和构建；不证明 IndexedDB 真正 Chrome 原生分页或用户 Mac Gate 4。
 
 下一步新增只跑隔离 Linux Chrome for Testing 的 `.github/workflows/cloud-control-r4-idb.yml` 与 `tests/cloud-control/native-idb-index-r4.mjs`：实际 IndexedDB v2 游标、三种数据量、事务中断回滚、耗时与响应字节。该测试使用临时合成记录，只能作为 **NATIVE_IDB_COMPONENT**，不能提升为用户 Mac 的正式 Chrome 云控执行验收。此段添加时该工作流还未产生实际结果，保持 `NATIVE_PENDING`。
+
+## R4.2 · 原结果缺失与历史恢复补充（2026-10-12）
+
+- [提交 a565b1b9](https://github.com/shopable-ai/opendesk-browser/commit/a565b1b9f0c485ee1e1e3125bf168445b8868128) 首次把原 Run、Result、源码摘要和资源释放身份联合核验接入 Cloud fence。该 SHA 的 [CI #38263397120](https://github.com/shopable-ai/opendesk-browser/actions/runs/38263397120) Cloud 组件 **217 PASS / 0 FAIL**；production build **FAIL**：`native-agent/workspace.html` 的 Unsafe HTML attributes；development build 和 verify 跳过。其父提交同一构建门禁也失败；不把代码组件 PASS 升级为包验收。
+- [真实 Linux Chrome IndexedDB CI #38260781397](https://github.com/shopable-ai/opendesk-browser/actions/runs/38260781397)，固定源码 `658269e38ad20b879d2f7efccbfab8de901aebb9`，Chrome 155，IDB v2。原生 100/1,000/10,000 条迁移耗时依次 93.5/470.3/5103.2ms；分页 12.5/5/5.2ms；每页 20 条、2.1 KiB 左右；原生 scan 调用各一次、全量 clone 调用均为 0，真实事务回滚均 PASS。仅 `NATIVE_IDB_COMPONENT_VERIFIED`，不是已安装扩展 Gate 4，不代表 Mac Chrome 或 24/72h 挂机 PASS。
+- 第二次 P0 增量：`fence` 的原 cloud request 具有 runId 但原 Run 缺失，或已释放 Run 无匹配 Result 时，统一保留 `OUTCOME_UNKNOWN`；旧的 `paused_unknown` 不被 Stop 降级；只有没有 Run 关联的 waiting 请求可以取消。保留原 requestId/RunId，不重放任何副作用。对应新增 5 个组件测试，最终测试等级须等固定提交的 CI 核实。
+- `HostOwnerLease` 仍 dormant；可见云 Runner、Cloud/local 计划跨来源 FireId 单源持久 CAS、原生 Stop/撤权/副作用后恢复和 1h/24h/72h 验收仍 `NOT_IMPLEMENTED` 或 `NATIVE_PENDING`，不得开放持续云控开关。

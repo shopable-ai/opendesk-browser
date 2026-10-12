@@ -108,8 +108,54 @@
     "scope": "npm run test:cloud only"
   },
   "nativeIdbChrome": {
-    "status": "NATIVE_PENDING",
+    "status": "NATIVE_IDB_COMPONENT_VERIFIED",
     "workflow": ".github/workflows/cloud-control-r4-idb.yml",
-    "method": "real Linux Chrome CFT IDB; synthetic ephemeral history; not installed extension"
+    "method": "real Linux Chrome CFT IDB; synthetic ephemeral history; not installed extension",
+    "sourceSha": "658269e38ad20b879d2f7efccbfab8de901aebb9",
+    "ci": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38260781397",
+    "chrome": "Chrome/155.0.8059.39 on Linux",
+    "measurements": [
+      {
+        "count": 100,
+        "migrateMs": 93.5,
+        "queryMs": 12.5,
+        "returnedRows": 20,
+        "responseBytes": 2135,
+        "scanCalls": 1,
+        "clonedAllCalls": 0,
+        "rollbackVerified": true
+      },
+      {
+        "count": 1000,
+        "migrateMs": 470.3,
+        "queryMs": 5,
+        "returnedRows": 20,
+        "responseBytes": 2139,
+        "scanCalls": 1,
+        "clonedAllCalls": 0,
+        "rollbackVerified": true
+      },
+      {
+        "count": 10000,
+        "migrateMs": 5103.2,
+        "queryMs": 5.2,
+        "returnedRows": 20,
+        "responseBytes": 2143,
+        "scanCalls": 1,
+        "clonedAllCalls": 0,
+        "rollbackVerified": true
+      }
+    ],
+    "qualification": "Real isolated Linux CFT IndexedDB only; no installed extension, no Mac Chrome Gate 4 or long-runner validation"
+  },
+  "p0DurableOutcome": {
+    "previousSha": "a565b1b9f0c485ee1e1e3125bf168445b8868128",
+    "componentCI": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38263397120",
+    "componentPass": 217,
+    "componentFail": 0,
+    "packageBuild": "FAIL_NATIVE_WORKSPACE_UNSAFE_HTML_ATTRIBUTES",
+    "nextCodeScope": "Original Run absent, released without matching Result, paused_unknown and unadmitted waiting cancellation",
+    "nextEvidence": "SOURCE_PREPARED; CI_PENDING",
+    "nativeStatus": "NATIVE_PENDING"
   }
 }
