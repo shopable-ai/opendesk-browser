@@ -1,3 +1,5 @@
+import {permissionPattern} from '../environment.js';
+
 // The visible trusted tool.html Host is the only execution realm.
 // The SW emits wake hints; this module never creates hidden documents.
 export function createScheduledTaskHost({client,host,api=globalThis.chrome,clock=()=>Date.now(),
@@ -28,6 +30,16 @@ export function createScheduledTaskHost({client,host,api=globalThis.chrome,clock
       resolved.generation!==definition.taskGeneration){
       await client.request('setScheduleFireState',{fireId:fire.fireId,status:'NEEDS_ATTENTION'});
       status('安装的任务或权限已经变更；需要处理');return;
+    }
+    // Chrome may hide tab URL/document details immediately after an origin
+    // grant is revoked. Classify that as a permission issue before mistaking
+    // the invisible target for an ordinary WAITING_TARGET condition.
+    const origin=new URL(definition.targetUrl).origin;
+    const granted=typeof api.permissions?.contains==='function'&&
+      await api.permissions.contains({origins:[permissionPattern(origin)]}).catch(()=>false);
+    if(!granted){
+      await client.request('setScheduleFireState',{fireId:fire.fireId,status:'NEEDS_ATTENTION'});
+      status('目标网站权限不足；请在 Chrome 中明确重新授权');return;
     }
     const borrowed=await observeTarget(definition.targetUrl);
     if(!borrowed&&!definition.openIfMissing){

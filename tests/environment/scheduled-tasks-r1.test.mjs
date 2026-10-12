@@ -408,7 +408,7 @@ test('R2 lost completion after admitted Run never becomes WAITING_TARGET or mint
     return {runId:'run-accepted-once'};
   },get completion(){return Promise.reject(Error('Lost native completion acknowledgement'));}};
   const scheduled=createScheduledTaskHost({client,host,
-    api:{tabs:{query:async()=>[]}},clock:()=>1791819300000,pollMs:600000,
+    api:{tabs:{query:async()=>[]},permissions:{contains:async()=>true}},clock:()=>1791819300000,pollMs:600000,
     onRun:id=>owners.push(id),onStatus:value=>statuses.push(value)});
   try{
     await scheduled.poll();
@@ -466,4 +466,33 @@ test('R2 pending-fire index migrates legacy WAITING_HOST and removes it on ADMIT
   const stored=(await f.repo.list())[0].history[0];
   assert.equal(stored.runId,'once');
   assert.equal(stored.resultId,'original');
+});
+
+test('R2 revoked Chrome site access is NEEDS_ATTENTION before target browsing or Controller admission',async()=>{
+  const definition={taskId:'demo.form',version:'1.0.0',manifestHash:'a'.repeat(64),
+    sourceHash:'b'.repeat(64),installationId:'approved-install',taskGeneration:7,
+    targetUrl:'https://example.com/form',openIfMissing:true,params:{}};
+  const fire={fireId:'sched:revoked:7:1791819235665',deadlineAt:1791819535665,definition};
+  let admitted=0,lookedUpTabs=0;
+  const updates=[],statuses=[],permissions=[];
+  const client={ready:new Promise(()=>{}),request:async(name,body)=>{
+    if(name==='listDueSchedules')return {fires:[fire]};
+    if(name==='resolveInstalledTask')return {...definition,contentHash:definition.sourceHash,
+      generation:definition.taskGeneration,revision:1,scriptId:'task:demo.form:1.0.0'};
+    if(name==='setScheduleFireState'){updates.push(body);return body;}
+    throw Error('Unexpected operation '+name);
+  }};
+  const scheduled=createScheduledTaskHost({client,
+    host:{executionPending:false,start:async()=>{admitted++;return {runId:'unsafe'};}},
+    api:{tabs:{query:async()=>{lookedUpTabs++;return [];}},
+      permissions:{contains:async value=>{permissions.push(value);return false;}}},
+    pollMs:600000,onStatus:value=>statuses.push(value)});
+  try{
+    await scheduled.poll();
+    assert.equal(admitted,0,'Controller cannot start after website grant is revoked');
+    assert.equal(lookedUpTabs,0,'tab URL discovery must not mask the revoked grant');
+    assert.deepEqual(updates,[{fireId:fire.fireId,status:'NEEDS_ATTENTION'}]);
+    assert.deepEqual(permissions,[{origins:['https://example.com/*']}]);
+    assert.match(statuses.at(-1),/权限不足/);
+  }finally{scheduled.dispose();}
 });
