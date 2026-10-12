@@ -15,6 +15,8 @@
 | 已安装侧栏工具（网页笔记、知识收件箱、阅读目录等） | `examples/sidebar-tools/*/src/style.css` | 独立 opaque-origin sandbox，每个工具自己的 CSS，只做数值和语义映射 | 不授予宿主 CSS/JS 或扩展权限，不动态引入远程 Tailwind/Quasar |
 | 注入网页的 Page UI | `src/scripting/user-scripts/page-ui-mount.js` 等 | 明确的实例容器/ShadowRoot 或受控目标网页样式通道 | 不全局覆盖网站 reset；ShadowRoot 不是 JavaScript 安全沙箱 |
 
+**隔离工具的特殊规则：**沙箱仍然使用自己的 CSS 文件，只映射与宿主一致的尺寸和视觉语义，绝不加载宿主 Preflight、特权脚本或完整应用设计系统。
+
 **原则：统一视觉契约，不强制统一框架。** Quasar/Vue 的统一间距思想可以借鉴，但本仓库不是 Quasar 运行时；已使用 Tailwind 的页面只负责自己的隔离构建产物，不能要求所有原生小工具先编译才能使用。
 
 ## 2. 尺寸、间距、字体、色彩
