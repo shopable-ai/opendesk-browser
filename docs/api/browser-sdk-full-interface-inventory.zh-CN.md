@@ -1,6 +1,6 @@
 # Browser SDK 全接口扩展候选目录（R5+ / 2026-10-12）
 
-> **定位：产品功能防遗漏清单，不是可调用 API 注册表，也不是新增权限许可。** 唯一已经批准的 Browser SDK 操作事实来源仍为 `src/framework/sdk/browser-contract.js`，其现有 32 项不得直接以本目录覆盖。本文初版共 114 项 R5+ 候选；当前 3 个自有 Tabs 方法已晋级并 SOURCE_WIRED，其余 111 项仍为 `PROPOSED_NOT_REGISTERED`。不改变此前 R1.3–R4 冻结 32 项的统计分母。
+> **定位：产品功能防遗漏清单，不是可调用 API 注册表，也不是新增权限许可。** 唯一已经批准的 Browser SDK 操作事实来源仍为 `src/framework/sdk/browser-contract.js`，其原 R1.3–R4 冻结 32 项不能被候选覆盖；正式注册表现含独立 R5 增量三项，共 35 项。本文初版共 114 项 R5+ 候选；当前 3 个自有 Tabs 方法已晋级并 SOURCE_WIRED，其余 111 项仍为 `PROPOSED_NOT_REGISTERED`。不改变此前 R1.3–R4 冻结 32 项的统计分母。
 
 ## 一、首先明确用户最终需要的能力
 
@@ -8,7 +8,7 @@
 
 ### 当前源码事实（本次核对）
 
-- Browser SDK 正式操作：**32**，10 IMPLEMENTED、18 PLANNED、2 HOST_ONLY、2 NOT_EXPOSED（该统计应实时以主仓最新源码校验）。
+- Browser SDK 当前正式登记操作：**35**（26 IMPLEMENTED、7 PLANNED、0 HOST_ONLY、2 NOT_EXPOSED），其中原冻结 32 项是 23/7/0/2，新增 R5 已接线三项独立计数。IMPLEMENTED 只是源码状态，不表示同候选原生 Mac Chrome 通过。
 - 原能力生态审计：18 域、74 叶子；能力叶子不是接口数量。例如单一 Cookie 叶子包含 get/getAll/set/remove/getStores/partitionKey/事件等多个方法。
 - `src/platform/chrome/cookies.js` 已有 Controller Cookie 驱动：getCookies/setCookies/deleteCookiesByUrl。**不等于普通工具拥有 cookies API**。
 - `examples/sidebar-tools/cookie-editor/README.zh-CN.md` 表示 Cookie Editor 只支持临时内存 UI、JSON/Header/Netscape 导入导出，真实浏览器 Cookie 读写没有接入。
@@ -18,7 +18,7 @@
 
 | 目录状态 | 意义 |
 | --- | --- |
-| `EXISTING_CONTRACT` | 已在 `browser-contract.js` 的32项。仍须按运行权限、Host 接线、测试判断实际可调用 |
+| `EXISTING_CONTRACT` | 原冻结 32 项 + 本轮单列 R5 正式新增 3 项都以 `browser-contract.js` 为依据；仍须按 Host、授权、组件及原生测试分别验收 |
 | `PROPOSED_NOT_REGISTERED` | 下表候选名称，不能调用，不属于目前的 PLANNED 分母 |
 | `APPROVED_TOOL` | 未来满足用户安装能力审查、Origin、身份/代际和具体动作后才可能开放的候选 |
 | `BUILTIN_TRUSTED` | 原则上只能由可信内置扩展 UI / Host 使用，不应直接向任意第三方沙箱开放 |
@@ -26,7 +26,7 @@
 | `CONTROLLER_ONLY` | 高特权 Page/Controller 范围，普通 Side Panel 工具不可跨越 |
 | `NOT_EXPOSED` / `OUT_OF_SCOPE` | 设计明确不对普通工具开放，且不要求为了数字而实现 |
 
-## 三、建议新增的接口候选（全部未登记）
+## 三、R5+ 候选（3 项已晋级正式合同，111 项仍未登记）
 
 **以下是面向当前 OpenDesk 产品的覆盖性候选，不承诺穷尽 Chrome 未来新增 API。正式 R5 接口清单须经过逐项 Owner、安全和兼容审批。**
 
