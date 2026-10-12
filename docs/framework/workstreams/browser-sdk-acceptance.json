@@ -1,0 +1,1426 @@
+{
+  "schemaVersion": "opendesk.browser-sdk.acceptance.v1",
+  "sourceOfTruth": "src/framework/sdk/browser-contract.js",
+  "repository": "shopable-ai/opendesk-browser",
+  "branch": "main",
+  "auditedMainSha": "510fa81894e13f57df0c791d141bfe91960e0632",
+  "auditedDate": "2026-10-12",
+  "apiVersion": "1.0.0",
+  "capacityUniverse": {
+    "domains": 18,
+    "leaves": 74,
+    "auditOnly": true
+  },
+  "summary": {
+    "operationCount": 32,
+    "implementationCounts": {
+      "IMPLEMENTED": 10,
+      "PLANNED": 18,
+      "HOST_ONLY": 2,
+      "NOT_EXPOSED": 2
+    },
+    "callableVerified": 0
+  },
+  "candidateChecks": {
+    "nodeTests": {
+      "status": "NOT_TESTED",
+      "evidence": []
+    },
+    "check": {
+      "status": "NOT_TESTED",
+      "evidence": []
+    },
+    "buildProduction": {
+      "status": "NOT_TESTED",
+      "evidence": []
+    },
+    "buildDevelopment": {
+      "status": "NOT_TESTED",
+      "evidence": []
+    },
+    "buildSize": {
+      "status": "NOT_TESTED",
+      "evidence": []
+    },
+    "verify": {
+      "status": "NOT_TESTED",
+      "evidence": []
+    },
+    "nativeChromeGui": {
+      "status": "NOT_TESTED",
+      "evidence": []
+    },
+    "nativeChromeWorker": {
+      "status": "NOT_TESTED",
+      "evidence": []
+    }
+  },
+  "phases": {
+    "R1.3": {
+      "status": "BLOCKED",
+      "reason": "Native GUI right-click + one-time selection and revoke acceptance still missing"
+    },
+    "R2": {
+      "status": "NOT_TESTED",
+      "reason": "Tabs, Side Panel and bounded network observation still lack approved tool Host wiring"
+    },
+    "R3": {
+      "status": "NOT_TESTED",
+      "reason": "Screenshot HOST_ONLY, Recording/Operations not wired and Speech scoped out"
+    },
+    "R4": {
+      "status": "NOT_TESTED",
+      "reason": "No same-candidate full CI, package and Mac Chrome proof"
+    }
+  },
+  "previousVerifiedEvidence": [
+    {
+      "sha": "437898353c6535050a3c0c816ea54f6f4a02caa8",
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38155035118",
+      "scope": "Old candidate contracts/builds/macOS worker; not complete GUI acceptance"
+    }
+  ],
+  "currentLimitations": [
+    "User Mac workspace not mounted in this execution environment",
+    "Remote main is concurrently updated by other agents; conditional fast-forward only",
+    "Standalone 37 Node tests + 7 ledger tests from earlier isolated candidate are not native Chrome evidence"
+  ],
+  "operations": [
+    {
+      "api": "browser.capabilities.list",
+      "module": "browser.capabilities",
+      "apiVersion": "1.0.0",
+      "implementation": "IMPLEMENTED",
+      "executionContexts": [
+        "sidebar-tool",
+        "page-sdk"
+      ],
+      "exposure": "APPROVED_TOOL",
+      "inputSchema": "src/framework/sdk/browser-contract.js#browser.capabilities.list",
+      "outputSchema": "src/framework/sdk/browser-contract.js#browser.capabilities.list",
+      "chromePermissions": [],
+      "toolCapabilities": [],
+      "effectClass": "read",
+      "riskLevel": "low",
+      "siteScope": "none",
+      "lifecycle": "request",
+      "hostImplementation": "src/platform/chrome/context-menus.js",
+      "sdkEntry": "src/framework/sdk/browser.js",
+      "positiveTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "denialTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "nativeChrome": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "callableNowVerification": "NOT_TESTED",
+      "blockers": [
+        "Same-candidate native GUI and denial evidence missing"
+      ],
+      "nextTask": "Capture current-candidate positive, rejection and native Chrome evidence",
+      "commits": [],
+      "evidence": []
+    },
+    {
+      "api": "browser.capabilities.getStatus",
+      "module": "browser.capabilities",
+      "apiVersion": "1.0.0",
+      "implementation": "IMPLEMENTED",
+      "executionContexts": [
+        "sidebar-tool",
+        "page-sdk"
+      ],
+      "exposure": "APPROVED_TOOL",
+      "inputSchema": "src/framework/sdk/browser-contract.js#browser.capabilities.getStatus",
+      "outputSchema": "src/framework/sdk/browser-contract.js#browser.capabilities.getStatus",
+      "chromePermissions": [],
+      "toolCapabilities": [],
+      "effectClass": "read",
+      "riskLevel": "low",
+      "siteScope": "none",
+      "lifecycle": "request",
+      "hostImplementation": "src/platform/chrome/context-menus.js",
+      "sdkEntry": "src/framework/sdk/browser.js",
+      "positiveTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "denialTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "nativeChrome": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "callableNowVerification": "NOT_TESTED",
+      "blockers": [
+        "Same-candidate native GUI and denial evidence missing"
+      ],
+      "nextTask": "Capture current-candidate positive, rejection and native Chrome evidence",
+      "commits": [],
+      "evidence": []
+    },
+    {
+      "api": "browser.contextMenu.getStatus",
+      "module": "browser.contextMenu",
+      "apiVersion": "1.0.0",
+      "implementation": "IMPLEMENTED",
+      "executionContexts": [
+        "sidebar-tool"
+      ],
+      "exposure": "APPROVED_TOOL",
+      "inputSchema": "src/framework/sdk/browser-contract.js#browser.contextMenu.getStatus",
+      "outputSchema": "src/framework/sdk/browser-contract.js#browser.contextMenu.getStatus",
+      "chromePermissions": [
+        "contextMenus"
+      ],
+      "toolCapabilities": [
+        "browser.contextMenu"
+      ],
+      "effectClass": "read",
+      "riskLevel": "low",
+      "siteScope": "approved-origin",
+      "lifecycle": "request",
+      "hostImplementation": "src/platform/chrome/context-menus.js",
+      "sdkEntry": "src/framework/sdk/browser.js",
+      "positiveTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "denialTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "nativeChrome": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "callableNowVerification": "NOT_TESTED",
+      "blockers": [
+        "Same-candidate native GUI and denial evidence missing"
+      ],
+      "nextTask": "Capture current-candidate positive, rejection and native Chrome evidence",
+      "commits": [],
+      "evidence": []
+    },
+    {
+      "api": "browser.contextMenu.register",
+      "module": "browser.contextMenu",
+      "apiVersion": "1.0.0",
+      "implementation": "IMPLEMENTED",
+      "executionContexts": [
+        "sidebar-tool"
+      ],
+      "exposure": "APPROVED_TOOL",
+      "inputSchema": "src/framework/sdk/browser-contract.js#browser.contextMenu.register",
+      "outputSchema": "src/framework/sdk/browser-contract.js#browser.contextMenu.register",
+      "chromePermissions": [
+        "contextMenus"
+      ],
+      "toolCapabilities": [
+        "browser.contextMenu"
+      ],
+      "effectClass": "write",
+      "riskLevel": "medium",
+      "siteScope": "approved-origin",
+      "lifecycle": "tool-install",
+      "hostImplementation": "src/platform/chrome/context-menus.js",
+      "sdkEntry": "src/framework/sdk/browser.js",
+      "positiveTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "denialTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "nativeChrome": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "callableNowVerification": "NOT_TESTED",
+      "blockers": [
+        "Same-candidate native GUI and denial evidence missing"
+      ],
+      "nextTask": "Capture current-candidate positive, rejection and native Chrome evidence",
+      "commits": [],
+      "evidence": []
+    },
+    {
+      "api": "browser.contextMenu.unregister",
+      "module": "browser.contextMenu",
+      "apiVersion": "1.0.0",
+      "implementation": "IMPLEMENTED",
+      "executionContexts": [
+        "sidebar-tool"
+      ],
+      "exposure": "APPROVED_TOOL",
+      "inputSchema": "src/framework/sdk/browser-contract.js#browser.contextMenu.unregister",
+      "outputSchema": "src/framework/sdk/browser-contract.js#browser.contextMenu.unregister",
+      "chromePermissions": [],
+      "toolCapabilities": [
+        "browser.contextMenu"
+      ],
+      "effectClass": "write",
+      "riskLevel": "low",
+      "siteScope": "approved-origin",
+      "lifecycle": "tool-install",
+      "hostImplementation": "src/platform/chrome/context-menus.js",
+      "sdkEntry": "src/framework/sdk/browser.js",
+      "positiveTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "denialTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "nativeChrome": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "callableNowVerification": "NOT_TESTED",
+      "blockers": [
+        "Same-candidate native GUI and denial evidence missing"
+      ],
+      "nextTask": "Capture current-candidate positive, rejection and native Chrome evidence",
+      "commits": [],
+      "evidence": []
+    },
+    {
+      "api": "browser.launch.consume",
+      "module": "browser.launch",
+      "apiVersion": "1.0.0",
+      "implementation": "IMPLEMENTED",
+      "executionContexts": [
+        "sidebar-tool"
+      ],
+      "exposure": "APPROVED_TOOL",
+      "inputSchema": "src/framework/sdk/browser-contract.js#browser.launch.consume",
+      "outputSchema": "src/framework/sdk/browser-contract.js#browser.launch.consume",
+      "chromePermissions": [],
+      "toolCapabilities": [
+        "browser.contextMenu"
+      ],
+      "effectClass": "read",
+      "riskLevel": "high",
+      "siteScope": "clicked-document",
+      "lifecycle": "single-use-60s",
+      "hostImplementation": "src/platform/chrome/context-menus.js",
+      "sdkEntry": "src/framework/sdk/browser.js",
+      "positiveTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "denialTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "nativeChrome": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "callableNowVerification": "NOT_TESTED",
+      "blockers": [
+        "Same-candidate native GUI and denial evidence missing"
+      ],
+      "nextTask": "Capture current-candidate positive, rejection and native Chrome evidence",
+      "commits": [],
+      "evidence": []
+    },
+    {
+      "api": "browser.page.getContext",
+      "module": "browser.page",
+      "apiVersion": "1.0.0",
+      "implementation": "IMPLEMENTED",
+      "executionContexts": [
+        "sidebar-tool"
+      ],
+      "exposure": "APPROVED_TOOL",
+      "inputSchema": "src/framework/sdk/browser-contract.js#browser.page.getContext",
+      "outputSchema": "src/framework/sdk/browser-contract.js#browser.page.getContext",
+      "chromePermissions": [],
+      "toolCapabilities": [
+        "currentPage.read"
+      ],
+      "effectClass": "read",
+      "riskLevel": "low",
+      "siteScope": "current-page",
+      "lifecycle": "request",
+      "hostImplementation": "src/ui/sidebar-tools.js",
+      "sdkEntry": "src/framework/sdk/browser.js",
+      "positiveTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "denialTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "nativeChrome": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "callableNowVerification": "NOT_TESTED",
+      "blockers": [
+        "Same-candidate native GUI and denial evidence missing"
+      ],
+      "nextTask": "Capture current-candidate positive, rejection and native Chrome evidence",
+      "commits": [],
+      "evidence": []
+    },
+    {
+      "api": "browser.page.getSelection",
+      "module": "browser.page",
+      "apiVersion": "1.0.0",
+      "implementation": "IMPLEMENTED",
+      "executionContexts": [
+        "sidebar-tool"
+      ],
+      "exposure": "APPROVED_TOOL",
+      "inputSchema": "src/framework/sdk/browser-contract.js#browser.page.getSelection",
+      "outputSchema": "src/framework/sdk/browser-contract.js#browser.page.getSelection",
+      "chromePermissions": [],
+      "toolCapabilities": [
+        "browser.contextMenu"
+      ],
+      "effectClass": "read",
+      "riskLevel": "high",
+      "siteScope": "clicked-document",
+      "lifecycle": "request",
+      "hostImplementation": "src/platform/chrome/context-menus.js",
+      "sdkEntry": "src/framework/sdk/browser.js",
+      "positiveTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "denialTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "nativeChrome": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "callableNowVerification": "NOT_TESTED",
+      "blockers": [
+        "Same-candidate native GUI and denial evidence missing"
+      ],
+      "nextTask": "Capture current-candidate positive, rejection and native Chrome evidence",
+      "commits": [],
+      "evidence": []
+    },
+    {
+      "api": "browser.clipboard.writeText",
+      "module": "browser.clipboard",
+      "apiVersion": "1.0.0",
+      "implementation": "IMPLEMENTED",
+      "executionContexts": [
+        "sidebar-tool"
+      ],
+      "exposure": "APPROVED_TOOL",
+      "inputSchema": "src/framework/sdk/browser-contract.js#browser.clipboard.writeText",
+      "outputSchema": "src/framework/sdk/browser-contract.js#browser.clipboard.writeText",
+      "chromePermissions": [],
+      "toolCapabilities": [
+        "user.export"
+      ],
+      "effectClass": "write",
+      "riskLevel": "medium",
+      "siteScope": "none",
+      "lifecycle": "request",
+      "hostImplementation": "src/ui/sidebar-tools.js",
+      "sdkEntry": "src/framework/sdk/browser.js",
+      "positiveTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "denialTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "nativeChrome": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "callableNowVerification": "NOT_TESTED",
+      "blockers": [
+        "Same-candidate native GUI and denial evidence missing"
+      ],
+      "nextTask": "Capture current-candidate positive, rejection and native Chrome evidence",
+      "commits": [],
+      "evidence": []
+    },
+    {
+      "api": "browser.downloads.text",
+      "module": "browser.downloads",
+      "apiVersion": "1.0.0",
+      "implementation": "IMPLEMENTED",
+      "executionContexts": [
+        "sidebar-tool"
+      ],
+      "exposure": "APPROVED_TOOL",
+      "inputSchema": "src/framework/sdk/browser-contract.js#browser.downloads.text",
+      "outputSchema": "src/framework/sdk/browser-contract.js#browser.downloads.text",
+      "chromePermissions": [
+        "downloads"
+      ],
+      "toolCapabilities": [
+        "user.export"
+      ],
+      "effectClass": "write",
+      "riskLevel": "medium",
+      "siteScope": "none",
+      "lifecycle": "request",
+      "hostImplementation": "src/ui/sidebar-tools.js",
+      "sdkEntry": "src/framework/sdk/browser.js",
+      "positiveTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "denialTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "nativeChrome": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "callableNowVerification": "NOT_TESTED",
+      "blockers": [
+        "Same-candidate native GUI and denial evidence missing"
+      ],
+      "nextTask": "Capture current-candidate positive, rejection and native Chrome evidence",
+      "commits": [],
+      "evidence": []
+    },
+    {
+      "api": "browser.tabs.open",
+      "module": "browser.tabs",
+      "apiVersion": "1.0.0",
+      "implementation": "PLANNED",
+      "executionContexts": [
+        "sidebar-tool"
+      ],
+      "exposure": "DECLARED_NON_EXECUTABLE",
+      "inputSchema": "src/framework/sdk/browser-contract.js#browser.tabs.open",
+      "outputSchema": "src/framework/sdk/browser-contract.js#browser.tabs.open",
+      "chromePermissions": [
+        "tabs"
+      ],
+      "toolCapabilities": [
+        "browser.tabs"
+      ],
+      "effectClass": "write",
+      "riskLevel": "medium",
+      "siteScope": "explicit-url",
+      "lifecycle": "request",
+      "hostImplementation": null,
+      "sdkEntry": null,
+      "positiveTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "denialTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "nativeChrome": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "callableNowVerification": "NOT_TESTED",
+      "blockers": [
+        "Install capability, trusted Host RPC, permission revocation and native verification not completed"
+      ],
+      "nextTask": "Connect verified Host, install grants and user consent; test or remain PLANNED",
+      "commits": [],
+      "evidence": []
+    },
+    {
+      "api": "browser.tabs.focus",
+      "module": "browser.tabs",
+      "apiVersion": "1.0.0",
+      "implementation": "PLANNED",
+      "executionContexts": [
+        "sidebar-tool"
+      ],
+      "exposure": "DECLARED_NON_EXECUTABLE",
+      "inputSchema": "src/framework/sdk/browser-contract.js#browser.tabs.focus",
+      "outputSchema": "src/framework/sdk/browser-contract.js#browser.tabs.focus",
+      "chromePermissions": [
+        "tabs"
+      ],
+      "toolCapabilities": [
+        "browser.tabs"
+      ],
+      "effectClass": "write",
+      "riskLevel": "medium",
+      "siteScope": "tab-ref",
+      "lifecycle": "request",
+      "hostImplementation": null,
+      "sdkEntry": null,
+      "positiveTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "denialTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "nativeChrome": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "callableNowVerification": "NOT_TESTED",
+      "blockers": [
+        "Install capability, trusted Host RPC, permission revocation and native verification not completed"
+      ],
+      "nextTask": "Connect verified Host, install grants and user consent; test or remain PLANNED",
+      "commits": [],
+      "evidence": []
+    },
+    {
+      "api": "browser.sidePanel.openSelf",
+      "module": "browser.sidePanel",
+      "apiVersion": "1.0.0",
+      "implementation": "PLANNED",
+      "executionContexts": [
+        "sidebar-tool"
+      ],
+      "exposure": "DECLARED_NON_EXECUTABLE",
+      "inputSchema": "src/framework/sdk/browser-contract.js#browser.sidePanel.openSelf",
+      "outputSchema": "src/framework/sdk/browser-contract.js#browser.sidePanel.openSelf",
+      "chromePermissions": [
+        "sidePanel"
+      ],
+      "toolCapabilities": [
+        "browser.sidePanel"
+      ],
+      "effectClass": "write",
+      "riskLevel": "medium",
+      "siteScope": "user-gesture",
+      "lifecycle": "request",
+      "hostImplementation": null,
+      "sdkEntry": null,
+      "positiveTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "denialTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "nativeChrome": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "callableNowVerification": "NOT_TESTED",
+      "blockers": [
+        "Install capability, trusted Host RPC, permission revocation and native verification not completed"
+      ],
+      "nextTask": "Connect verified Host, install grants and user consent; test or remain PLANNED",
+      "commits": [],
+      "evidence": []
+    },
+    {
+      "api": "browser.network.request",
+      "module": "browser.network",
+      "apiVersion": "1.0.0",
+      "implementation": "HOST_ONLY",
+      "executionContexts": [
+        "sidebar-tool"
+      ],
+      "exposure": "HOST_ONLY",
+      "inputSchema": "src/framework/sdk/browser-contract.js#browser.network.request",
+      "outputSchema": "src/framework/sdk/browser-contract.js#browser.network.request",
+      "chromePermissions": [],
+      "toolCapabilities": [
+        "network"
+      ],
+      "effectClass": "write",
+      "riskLevel": "high",
+      "siteScope": "target-origin",
+      "lifecycle": "request",
+      "hostImplementation": "src/platform/chrome/network.js",
+      "sdkEntry": null,
+      "positiveTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "denialTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "nativeChrome": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "callableNowVerification": "NOT_TESTED",
+      "blockers": [
+        "Host available but ordinary tools not authorized"
+      ],
+      "nextTask": "Maintain restricted status with denial tests",
+      "commits": [],
+      "evidence": []
+    },
+    {
+      "api": "browser.network.observe.start",
+      "module": "browser.network.observe",
+      "apiVersion": "1.0.0",
+      "implementation": "PLANNED",
+      "executionContexts": [
+        "sidebar-tool"
+      ],
+      "exposure": "DECLARED_NON_EXECUTABLE",
+      "inputSchema": "src/framework/sdk/browser-contract.js#browser.network.observe.start",
+      "outputSchema": "src/framework/sdk/browser-contract.js#browser.network.observe.start",
+      "chromePermissions": [
+        "webRequest"
+      ],
+      "toolCapabilities": [
+        "browser.network.observe"
+      ],
+      "effectClass": "read",
+      "riskLevel": "high",
+      "siteScope": "approved-tab",
+      "lifecycle": "bounded-session",
+      "hostImplementation": null,
+      "sdkEntry": null,
+      "positiveTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "denialTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "nativeChrome": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "callableNowVerification": "NOT_TESTED",
+      "blockers": [
+        "Install capability, trusted Host RPC, permission revocation and native verification not completed"
+      ],
+      "nextTask": "Connect verified Host, install grants and user consent; test or remain PLANNED",
+      "commits": [],
+      "evidence": []
+    },
+    {
+      "api": "browser.network.observe.getStatus",
+      "module": "browser.network.observe",
+      "apiVersion": "1.0.0",
+      "implementation": "PLANNED",
+      "executionContexts": [
+        "sidebar-tool"
+      ],
+      "exposure": "DECLARED_NON_EXECUTABLE",
+      "inputSchema": "src/framework/sdk/browser-contract.js#browser.network.observe.getStatus",
+      "outputSchema": "src/framework/sdk/browser-contract.js#browser.network.observe.getStatus",
+      "chromePermissions": [
+        "webRequest"
+      ],
+      "toolCapabilities": [
+        "browser.network.observe"
+      ],
+      "effectClass": "read",
+      "riskLevel": "medium",
+      "siteScope": "approved-tab",
+      "lifecycle": "bounded-session",
+      "hostImplementation": null,
+      "sdkEntry": null,
+      "positiveTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "denialTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "nativeChrome": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "callableNowVerification": "NOT_TESTED",
+      "blockers": [
+        "Install capability, trusted Host RPC, permission revocation and native verification not completed"
+      ],
+      "nextTask": "Connect verified Host, install grants and user consent; test or remain PLANNED",
+      "commits": [],
+      "evidence": []
+    },
+    {
+      "api": "browser.network.observe.stop",
+      "module": "browser.network.observe",
+      "apiVersion": "1.0.0",
+      "implementation": "PLANNED",
+      "executionContexts": [
+        "sidebar-tool"
+      ],
+      "exposure": "DECLARED_NON_EXECUTABLE",
+      "inputSchema": "src/framework/sdk/browser-contract.js#browser.network.observe.stop",
+      "outputSchema": "src/framework/sdk/browser-contract.js#browser.network.observe.stop",
+      "chromePermissions": [
+        "webRequest"
+      ],
+      "toolCapabilities": [
+        "browser.network.observe"
+      ],
+      "effectClass": "write",
+      "riskLevel": "medium",
+      "siteScope": "approved-tab",
+      "lifecycle": "bounded-session",
+      "hostImplementation": null,
+      "sdkEntry": null,
+      "positiveTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "denialTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "nativeChrome": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "callableNowVerification": "NOT_TESTED",
+      "blockers": [
+        "Install capability, trusted Host RPC, permission revocation and native verification not completed"
+      ],
+      "nextTask": "Connect verified Host, install grants and user consent; test or remain PLANNED",
+      "commits": [],
+      "evidence": []
+    },
+    {
+      "api": "browser.network.observe.export",
+      "module": "browser.network.observe",
+      "apiVersion": "1.0.0",
+      "implementation": "PLANNED",
+      "executionContexts": [
+        "sidebar-tool"
+      ],
+      "exposure": "DECLARED_NON_EXECUTABLE",
+      "inputSchema": "src/framework/sdk/browser-contract.js#browser.network.observe.export",
+      "outputSchema": "src/framework/sdk/browser-contract.js#browser.network.observe.export",
+      "chromePermissions": [
+        "webRequest"
+      ],
+      "toolCapabilities": [
+        "browser.network.observe"
+      ],
+      "effectClass": "read",
+      "riskLevel": "high",
+      "siteScope": "approved-tab",
+      "lifecycle": "bounded-session",
+      "hostImplementation": null,
+      "sdkEntry": null,
+      "positiveTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "denialTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "nativeChrome": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "callableNowVerification": "NOT_TESTED",
+      "blockers": [
+        "Install capability, trusted Host RPC, permission revocation and native verification not completed"
+      ],
+      "nextTask": "Connect verified Host, install grants and user consent; test or remain PLANNED",
+      "commits": [],
+      "evidence": []
+    },
+    {
+      "api": "browser.events.read",
+      "module": "browser.events",
+      "apiVersion": "1.0.0",
+      "implementation": "PLANNED",
+      "executionContexts": [
+        "sidebar-tool"
+      ],
+      "exposure": "DECLARED_NON_EXECUTABLE",
+      "inputSchema": "src/framework/sdk/browser-contract.js#browser.events.read",
+      "outputSchema": "src/framework/sdk/browser-contract.js#browser.events.read",
+      "chromePermissions": [],
+      "toolCapabilities": [
+        "browser.events"
+      ],
+      "effectClass": "read",
+      "riskLevel": "medium",
+      "siteScope": "owned-session",
+      "lifecycle": "request",
+      "hostImplementation": null,
+      "sdkEntry": null,
+      "positiveTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "denialTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "nativeChrome": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "callableNowVerification": "NOT_TESTED",
+      "blockers": [
+        "Install capability, trusted Host RPC, permission revocation and native verification not completed"
+      ],
+      "nextTask": "Connect verified Host, install grants and user consent; test or remain PLANNED",
+      "commits": [],
+      "evidence": []
+    },
+    {
+      "api": "browser.events.close",
+      "module": "browser.events",
+      "apiVersion": "1.0.0",
+      "implementation": "PLANNED",
+      "executionContexts": [
+        "sidebar-tool"
+      ],
+      "exposure": "DECLARED_NON_EXECUTABLE",
+      "inputSchema": "src/framework/sdk/browser-contract.js#browser.events.close",
+      "outputSchema": "src/framework/sdk/browser-contract.js#browser.events.close",
+      "chromePermissions": [],
+      "toolCapabilities": [
+        "browser.events"
+      ],
+      "effectClass": "write",
+      "riskLevel": "low",
+      "siteScope": "owned-session",
+      "lifecycle": "request",
+      "hostImplementation": null,
+      "sdkEntry": null,
+      "positiveTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "denialTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "nativeChrome": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "callableNowVerification": "NOT_TESTED",
+      "blockers": [
+        "Install capability, trusted Host RPC, permission revocation and native verification not completed"
+      ],
+      "nextTask": "Connect verified Host, install grants and user consent; test or remain PLANNED",
+      "commits": [],
+      "evidence": []
+    },
+    {
+      "api": "browser.screenshot.captureVisible",
+      "module": "browser.screenshot",
+      "apiVersion": "1.0.0",
+      "implementation": "HOST_ONLY",
+      "executionContexts": [
+        "sidebar-tool"
+      ],
+      "exposure": "HOST_ONLY",
+      "inputSchema": "src/framework/sdk/browser-contract.js#browser.screenshot.captureVisible",
+      "outputSchema": "src/framework/sdk/browser-contract.js#browser.screenshot.captureVisible",
+      "chromePermissions": [
+        "activeTab"
+      ],
+      "toolCapabilities": [
+        "browser.screenshot"
+      ],
+      "effectClass": "read",
+      "riskLevel": "high",
+      "siteScope": "selected-tab",
+      "lifecycle": "request",
+      "hostImplementation": "src/platform/host/controller-methods.js",
+      "sdkEntry": null,
+      "positiveTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "denialTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "nativeChrome": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "callableNowVerification": "NOT_TESTED",
+      "blockers": [
+        "Host available but ordinary tools not authorized"
+      ],
+      "nextTask": "Maintain restricted status with denial tests",
+      "commits": [],
+      "evidence": []
+    },
+    {
+      "api": "browser.media.recording.prepare",
+      "module": "browser.media.recording",
+      "apiVersion": "1.0.0",
+      "implementation": "PLANNED",
+      "executionContexts": [
+        "sidebar-tool"
+      ],
+      "exposure": "DECLARED_NON_EXECUTABLE",
+      "inputSchema": "src/framework/sdk/browser-contract.js#browser.media.recording.prepare",
+      "outputSchema": "src/framework/sdk/browser-contract.js#browser.media.recording.prepare",
+      "chromePermissions": [],
+      "toolCapabilities": [
+        "browser.media.recording"
+      ],
+      "effectClass": "write",
+      "riskLevel": "high",
+      "siteScope": "visible-user-consent",
+      "lifecycle": "request",
+      "hostImplementation": null,
+      "sdkEntry": null,
+      "positiveTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "denialTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "nativeChrome": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "callableNowVerification": "NOT_TESTED",
+      "blockers": [
+        "Install capability, trusted Host RPC, permission revocation and native verification not completed"
+      ],
+      "nextTask": "Connect verified Host, install grants and user consent; test or remain PLANNED",
+      "commits": [],
+      "evidence": []
+    },
+    {
+      "api": "browser.media.recording.getStatus",
+      "module": "browser.media.recording",
+      "apiVersion": "1.0.0",
+      "implementation": "PLANNED",
+      "executionContexts": [
+        "sidebar-tool"
+      ],
+      "exposure": "DECLARED_NON_EXECUTABLE",
+      "inputSchema": "src/framework/sdk/browser-contract.js#browser.media.recording.getStatus",
+      "outputSchema": "src/framework/sdk/browser-contract.js#browser.media.recording.getStatus",
+      "chromePermissions": [],
+      "toolCapabilities": [
+        "browser.media.recording"
+      ],
+      "effectClass": "read",
+      "riskLevel": "medium",
+      "siteScope": "owned-session",
+      "lifecycle": "request",
+      "hostImplementation": null,
+      "sdkEntry": null,
+      "positiveTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "denialTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "nativeChrome": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "callableNowVerification": "NOT_TESTED",
+      "blockers": [
+        "Install capability, trusted Host RPC, permission revocation and native verification not completed"
+      ],
+      "nextTask": "Connect verified Host, install grants and user consent; test or remain PLANNED",
+      "commits": [],
+      "evidence": []
+    },
+    {
+      "api": "browser.media.recording.stop",
+      "module": "browser.media.recording",
+      "apiVersion": "1.0.0",
+      "implementation": "PLANNED",
+      "executionContexts": [
+        "sidebar-tool"
+      ],
+      "exposure": "DECLARED_NON_EXECUTABLE",
+      "inputSchema": "src/framework/sdk/browser-contract.js#browser.media.recording.stop",
+      "outputSchema": "src/framework/sdk/browser-contract.js#browser.media.recording.stop",
+      "chromePermissions": [],
+      "toolCapabilities": [
+        "browser.media.recording"
+      ],
+      "effectClass": "write",
+      "riskLevel": "medium",
+      "siteScope": "owned-session",
+      "lifecycle": "request",
+      "hostImplementation": null,
+      "sdkEntry": null,
+      "positiveTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "denialTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "nativeChrome": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "callableNowVerification": "NOT_TESTED",
+      "blockers": [
+        "Install capability, trusted Host RPC, permission revocation and native verification not completed"
+      ],
+      "nextTask": "Connect verified Host, install grants and user consent; test or remain PLANNED",
+      "commits": [],
+      "evidence": []
+    },
+    {
+      "api": "browser.media.recording.discard",
+      "module": "browser.media.recording",
+      "apiVersion": "1.0.0",
+      "implementation": "PLANNED",
+      "executionContexts": [
+        "sidebar-tool"
+      ],
+      "exposure": "DECLARED_NON_EXECUTABLE",
+      "inputSchema": "src/framework/sdk/browser-contract.js#browser.media.recording.discard",
+      "outputSchema": "src/framework/sdk/browser-contract.js#browser.media.recording.discard",
+      "chromePermissions": [],
+      "toolCapabilities": [
+        "browser.media.recording"
+      ],
+      "effectClass": "write",
+      "riskLevel": "medium",
+      "siteScope": "owned-session",
+      "lifecycle": "request",
+      "hostImplementation": null,
+      "sdkEntry": null,
+      "positiveTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "denialTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "nativeChrome": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "callableNowVerification": "NOT_TESTED",
+      "blockers": [
+        "Install capability, trusted Host RPC, permission revocation and native verification not completed"
+      ],
+      "nextTask": "Connect verified Host, install grants and user consent; test or remain PLANNED",
+      "commits": [],
+      "evidence": []
+    },
+    {
+      "api": "browser.speech.transcribe",
+      "module": "browser.speech",
+      "apiVersion": "1.0.0",
+      "implementation": "PLANNED",
+      "executionContexts": [
+        "sidebar-tool"
+      ],
+      "exposure": "DECLARED_NON_EXECUTABLE",
+      "inputSchema": "src/framework/sdk/browser-contract.js#browser.speech.transcribe",
+      "outputSchema": "src/framework/sdk/browser-contract.js#browser.speech.transcribe",
+      "chromePermissions": [],
+      "toolCapabilities": [
+        "browser.speech"
+      ],
+      "effectClass": "read",
+      "riskLevel": "high",
+      "siteScope": "explicit-audio",
+      "lifecycle": "request",
+      "hostImplementation": null,
+      "sdkEntry": null,
+      "positiveTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "denialTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "nativeChrome": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "callableNowVerification": "NOT_TESTED",
+      "blockers": [
+        "Out of current voice-control scope; explicit approval required"
+      ],
+      "nextTask": "Connect verified Host, install grants and user consent; test or remain PLANNED",
+      "commits": [],
+      "evidence": []
+    },
+    {
+      "api": "browser.speech.speak",
+      "module": "browser.speech",
+      "apiVersion": "1.0.0",
+      "implementation": "PLANNED",
+      "executionContexts": [
+        "sidebar-tool"
+      ],
+      "exposure": "DECLARED_NON_EXECUTABLE",
+      "inputSchema": "src/framework/sdk/browser-contract.js#browser.speech.speak",
+      "outputSchema": "src/framework/sdk/browser-contract.js#browser.speech.speak",
+      "chromePermissions": [],
+      "toolCapabilities": [
+        "browser.speech"
+      ],
+      "effectClass": "write",
+      "riskLevel": "medium",
+      "siteScope": "user-output",
+      "lifecycle": "request",
+      "hostImplementation": null,
+      "sdkEntry": null,
+      "positiveTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "denialTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "nativeChrome": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "callableNowVerification": "NOT_TESTED",
+      "blockers": [
+        "Out of current voice-control scope; explicit approval required"
+      ],
+      "nextTask": "Connect verified Host, install grants and user consent; test or remain PLANNED",
+      "commits": [],
+      "evidence": []
+    },
+    {
+      "api": "browser.speech.stop",
+      "module": "browser.speech",
+      "apiVersion": "1.0.0",
+      "implementation": "PLANNED",
+      "executionContexts": [
+        "sidebar-tool"
+      ],
+      "exposure": "DECLARED_NON_EXECUTABLE",
+      "inputSchema": "src/framework/sdk/browser-contract.js#browser.speech.stop",
+      "outputSchema": "src/framework/sdk/browser-contract.js#browser.speech.stop",
+      "chromePermissions": [],
+      "toolCapabilities": [
+        "browser.speech"
+      ],
+      "effectClass": "write",
+      "riskLevel": "low",
+      "siteScope": "owned-session",
+      "lifecycle": "request",
+      "hostImplementation": null,
+      "sdkEntry": null,
+      "positiveTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "denialTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "nativeChrome": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "callableNowVerification": "NOT_TESTED",
+      "blockers": [
+        "Out of current voice-control scope; explicit approval required"
+      ],
+      "nextTask": "Connect verified Host, install grants and user consent; test or remain PLANNED",
+      "commits": [],
+      "evidence": []
+    },
+    {
+      "api": "browser.notifications.create",
+      "module": "browser.notifications",
+      "apiVersion": "1.0.0",
+      "implementation": "NOT_EXPOSED",
+      "executionContexts": [
+        "sidebar-tool"
+      ],
+      "exposure": "NOT_EXPOSED",
+      "inputSchema": "src/framework/sdk/browser-contract.js#browser.notifications.create",
+      "outputSchema": "src/framework/sdk/browser-contract.js#browser.notifications.create",
+      "chromePermissions": [
+        "notifications"
+      ],
+      "toolCapabilities": [
+        "browser.notifications"
+      ],
+      "effectClass": "write",
+      "riskLevel": "medium",
+      "siteScope": "none",
+      "lifecycle": "request",
+      "hostImplementation": null,
+      "sdkEntry": null,
+      "positiveTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "denialTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "nativeChrome": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "callableNowVerification": "NOT_TESTED",
+      "blockers": [
+        "Product security boundary: no ordinary tool exposure"
+      ],
+      "nextTask": "Maintain restricted status with denial tests",
+      "commits": [],
+      "evidence": []
+    },
+    {
+      "api": "browser.notifications.clear",
+      "module": "browser.notifications",
+      "apiVersion": "1.0.0",
+      "implementation": "NOT_EXPOSED",
+      "executionContexts": [
+        "sidebar-tool"
+      ],
+      "exposure": "NOT_EXPOSED",
+      "inputSchema": "src/framework/sdk/browser-contract.js#browser.notifications.clear",
+      "outputSchema": "src/framework/sdk/browser-contract.js#browser.notifications.clear",
+      "chromePermissions": [
+        "notifications"
+      ],
+      "toolCapabilities": [
+        "browser.notifications"
+      ],
+      "effectClass": "write",
+      "riskLevel": "low",
+      "siteScope": "none",
+      "lifecycle": "request",
+      "hostImplementation": null,
+      "sdkEntry": null,
+      "positiveTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "denialTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "nativeChrome": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "callableNowVerification": "NOT_TESTED",
+      "blockers": [
+        "Product security boundary: no ordinary tool exposure"
+      ],
+      "nextTask": "Maintain restricted status with denial tests",
+      "commits": [],
+      "evidence": []
+    },
+    {
+      "api": "browser.operations.getStatus",
+      "module": "browser.operations",
+      "apiVersion": "1.0.0",
+      "implementation": "PLANNED",
+      "executionContexts": [
+        "sidebar-tool"
+      ],
+      "exposure": "DECLARED_NON_EXECUTABLE",
+      "inputSchema": "src/framework/sdk/browser-contract.js#browser.operations.getStatus",
+      "outputSchema": "src/framework/sdk/browser-contract.js#browser.operations.getStatus",
+      "chromePermissions": [],
+      "toolCapabilities": [
+        "browser.operations"
+      ],
+      "effectClass": "read",
+      "riskLevel": "low",
+      "siteScope": "owned-operation",
+      "lifecycle": "request",
+      "hostImplementation": null,
+      "sdkEntry": null,
+      "positiveTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "denialTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "nativeChrome": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "callableNowVerification": "NOT_TESTED",
+      "blockers": [
+        "Install capability, trusted Host RPC, permission revocation and native verification not completed"
+      ],
+      "nextTask": "Connect verified Host, install grants and user consent; test or remain PLANNED",
+      "commits": [],
+      "evidence": []
+    },
+    {
+      "api": "browser.operations.cancel",
+      "module": "browser.operations",
+      "apiVersion": "1.0.0",
+      "implementation": "PLANNED",
+      "executionContexts": [
+        "sidebar-tool"
+      ],
+      "exposure": "DECLARED_NON_EXECUTABLE",
+      "inputSchema": "src/framework/sdk/browser-contract.js#browser.operations.cancel",
+      "outputSchema": "src/framework/sdk/browser-contract.js#browser.operations.cancel",
+      "chromePermissions": [],
+      "toolCapabilities": [
+        "browser.operations"
+      ],
+      "effectClass": "write",
+      "riskLevel": "medium",
+      "siteScope": "owned-operation",
+      "lifecycle": "request",
+      "hostImplementation": null,
+      "sdkEntry": null,
+      "positiveTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "denialTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "nativeChrome": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "callableNowVerification": "NOT_TESTED",
+      "blockers": [
+        "Install capability, trusted Host RPC, permission revocation and native verification not completed"
+      ],
+      "nextTask": "Connect verified Host, install grants and user consent; test or remain PLANNED",
+      "commits": [],
+      "evidence": []
+    }
+  ]
+}
