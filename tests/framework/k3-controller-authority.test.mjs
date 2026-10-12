@@ -1594,6 +1594,26 @@ async function admittedCloud(t){
   return {...f,run};
 }
 const remoteCloud=async f=>({providerId:'provider',assignments:[{assignmentId:'assignment',runRef:(await f.rows('frameworkKV')).find(r=>r.tag==='cloud-request-v1').runRef,leaseUntil:Date.now()+90000,cancelled:false}]});
+test('repeated Cloud stop never advances an already durable original Run cancellation fence',async t=>{
+  const f=await admittedCloud(t);
+  await f.cloud.cloudStop({},f.sender);
+  const snapshot=async()=>(await f.rows('runs')).find(row=>row.runId===f.run.runId);
+  const once=await snapshot();
+  assert.equal(once.state,'stopping');
+  assert.ok(once.cancelSeq>0);
+  const firstRequest=(await f.rows('frameworkKV')).find(row=>row.requestId===f.requestId);
+  assert.equal(firstRequest.state,'cancellation-pending');
+  await f.cloud.cloudStop({},f.sender);
+  const repeated=await snapshot();
+  for(const field of ['state','cancelSeq','ownerEpoch','runRevision','eventSeq','terminalReason'])
+    assert.equal(repeated[field],once[field],field+' must not change on repeated Stop');
+  assert.equal((await f.rows('frameworkKV')).find(row=>row.requestId===f.requestId).state,'cancellation-pending');
+  await f.finish(f.run,'stopped');
+  await f.authority.retireControllerTarget({runId:f.run.runId},f.sender);
+  const settled=await snapshot();
+  assert.equal(settled.retirementState,'released');
+});
+
 test('expired local cloud permit is permanently fenced despite a live provider lease',async t=>{
   const f=await admittedCloud(t);let renewed=0;
   await f.storage.transaction(['frameworkKV'],'readwrite',async tx=>{const r=await tx.get('frameworkKV','cloud:request:'+f.requestId);r.permit.leaseUntil=Date.now()-1;await tx.put('frameworkKV',r,'cloud:request:'+f.requestId);});
