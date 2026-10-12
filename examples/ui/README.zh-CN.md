@@ -25,3 +25,11 @@
 - 任务验证/安装约束仍在 `src/platform/tasks/*` 及既有 Authority/Controller，不以界面“已验证”提示代替原生回执。
 
 真实产品在 Chrome 中是否显示正确、站点权限手势是否可用、关闭/重开后的运行生命周期是否正常，仍需**本地原生验收**。Node/component、打包、离线预览不能冒充此证明。
+
+## 定时计划 R1 · 已提交的交互原型（2026-10-12）
+
+- [scheduled-tasks-r1-preview.html](./scheduled-tasks-r1-preview.html)：自包含 HTML/CSS/JavaScript，可直接在普通浏览器中打开。支持宽屏与 420px 侧栏切换、计划列表/启停、创建/编辑、一次/每天/每周/间隔设置、目标 URL 与安装授权范围校验、可折叠补跑规则、模拟运行记录。
+- 在「执行任务」下拉框**只展示已安装、可执行的任务版本**；表单旁有独立 **「＋ 新建脚本」**，表单下方有 **「管理任务与脚本 ↗」**。不在下拉选项内混入创建/管理命令，不使用 Switch 来选择数据来源。
+- 「新建脚本」页面只演示已有 **开发 → 保存/验证/安装 → 返回并选中任务** 的工作流；不允许未经验证的源码直接成为定时任务。页面内「模拟验证并安装」只更新当前预览的内存选项。
+- **本页不属于插件正式执行入口**：所有安装、定时、暂停和试运行都是模拟，没有权限请求、存储、网络副作用、Chrome alarms、真实任务执行或运行结果。刷新后演示数据重置。
+- 对应产品与技术约束：[scheduled-tasks-r1-design.zh-CN.md](../../docs/architecture/browser-framework/scheduled-tasks-r1-design.zh-CN.md)。正式接线必须复用原 Authority/RunHost/Worker/ChromePage/Run/Result/IDB，不建立第二套执行器。
