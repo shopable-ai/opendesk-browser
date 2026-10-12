@@ -86,7 +86,10 @@ export function createBrowserPageComponentPreparer({api=globalThis.chrome,
        !payload.sourceUtf8.includes('// @opendesk-lib '+framework)||
        !payload.sourceUtf8.includes('async function main()'))
       throw typed('E_PAGE_COMPILER_OUTPUT','Compiled source failed original Page constraints');
-    return Object.freeze({...payload,sourceHash:await digestUtf8(payload.sourceUtf8)});
+    const sourceHash=await digestUtf8(payload.sourceUtf8);
+    if(disposed||ticket!==revision)
+      throw typed('E_PAGE_COMPILER_STALE','Digest completed after the editor changed');
+    return Object.freeze({...payload,sourceHash});
   }
   return Object.freeze({prepare,cancel,dispose(){if(disposed)return;disposed=true;cancel();},
     get busy(){return !!active;}});

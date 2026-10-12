@@ -60,3 +60,21 @@ test('R24.3 stale worker result is rejected and Worker terminated on component e
   assert.equal(worker.terminated,true);
   compiler.dispose();
 });
+
+test('R24.3 Worker compilation failure terminates worker and never returns stale code',async()=>{
+  const {readFile}=await import('node:fs/promises');
+  const real=await readFile(PAGE_BROWSER_UI_HELPER.source,'utf8');
+  class RejectedWorker extends FakeWorker {
+    postMessage(payload){
+      this.payload=payload;
+      queueMicrotask(()=>this.onmessage?.({data:{requestId:payload.requestId,ok:false,
+        error:{code:'E_PAGE_COMPONENT_SYNTAX',message:'App.jsx: unknown component'}}}));
+    }
+  }
+  const compiler=createBrowserPageComponentPreparer({api,WorkerClass:RejectedWorker,
+    fetchImpl:async()=>({ok:true,redirected:false,
+      url:api.runtime.getURL(PAGE_BROWSER_UI_HELPER.output),text:async()=>real})});
+  await assert.rejects(compiler.prepare(fixtures),{code:'E_PAGE_COMPONENT_SYNTAX'});
+  assert.equal(FakeWorker.latest.terminated,true);
+  compiler.dispose();
+});
