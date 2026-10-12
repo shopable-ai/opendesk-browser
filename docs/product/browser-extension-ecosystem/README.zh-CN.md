@@ -89,3 +89,7 @@ OpenDesk Product Ecosystem
 `RESEARCH` / `HYPOTHESIS` ≠ `SOURCE_IMPLEMENTED` ≠ `COMPONENT_TESTED` ≠ `BUILD_VERIFIED` ≠ `CHROME_NATIVE_VERIFIED` ≠ `CWS_APPROVED`。产品机会的“高频”只是待验证假设；本轮**没有完成用户访谈、授权页面真实使用、Mac 浏览器商店审核或支付转化测量**。
 
 安全/隐私、合规、真实可运行性为独立硬门，不因其他评分高而豁免。
+
+## 高价值用户 X 维度 R3 增量
+
+- **[高价值用户跨行业机会 R3（2026-10-12，研究排序与证据）](high-value-user-opportunities-r3-20261012.zh-CN.md)**：12 类用户、8 平台数据边界、TOP30 微任务、TOP10 概念与三个 CSV/合同工作流；不新增 OPP/EXP，不等于付费或产品通过验收。

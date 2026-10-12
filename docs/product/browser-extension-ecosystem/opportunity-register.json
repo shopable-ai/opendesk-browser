@@ -6079,6 +6079,29 @@
     ],
     "pageQa": "ARCHIVED_STOP_COMMERCIAL_DEVELOPMENT_TECH_FIXTURE_ONLY",
     "evidenceStatus": "NOT_VALIDATED",
-    "note": "OPP-004 research rank #1 does not reactivate Page QA or imply business first-product status. Stable OPP IDs and historic ranks preserved."
+    "note": "OPP-004 research rank #1 does not reactivate Page QA or imply business first-product status. Stable OPP IDs and historic ranks preserved.",
+    "crossIndustryXDimensionR3": {
+      "reviewedAt": "2026-10-12",
+      "status": "RESEARCH_RANK_ONLY_NO_USER_OR_PAYMENT_EVIDENCE",
+      "report": "docs/product/browser-extension-ecosystem/high-value-user-opportunities-r3-20261012.zh-CN.md",
+      "firstToValidate": "Seller Payout Exception Auditor (OPP-016/018/078/081); comparative research, not existing EXP-005 scope change",
+      "parallelHypotheses": [
+        "Creator Commission Exceptions",
+        "Sponsored Content Proof Pack",
+        "B2B Purchase/Invoice Exceptions"
+      ],
+      "freeReplacementWarnings": [
+        "TikTok Shop US 2026-09 Earnings paid-order GMV unified; 15000-row download",
+        "Shopify Finance payout CSV and reports",
+        "Metricool client reports and Shopify Collabs"
+      ],
+      "evidenceStatus": "OFFICIAL_PUBLIC_CAPABILITIES_VERIFIED; MARKET_USER_COUNT_PAYMENT_AND_REPEAT_USE_NOT_MEASURED",
+      "hardGates": [
+        "LEGAL_DATA_RIGHTS",
+        "FINANCIAL_ACCURACY",
+        "BUYER_PAYMENT_EVIDENCE",
+        "PRIVACY_MINIMUM"
+      ]
+    }
   }
 }

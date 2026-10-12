@@ -354,5 +354,19 @@
     "rationale": "Page QA business-first selection was incorrect; preserve code for manual technical history, prioritize EXP-005 and EXP-007 only for commerce opportunity research.",
     "pageQaCommercialStatus": "ARCHIVED_STOP",
     "nextResearchGoal": "docs/framework/prompts/goal-ecommerce-tool-universe-r2-commercial-validation.zh-CN.md"
+  },
+  "crossIndustryR3Research": {
+    "reviewedAt": "2026-10-12",
+    "status": "COMPARATIVE_RESEARCH_ONLY_NO_NEW_EXPERIMENT",
+    "report": "docs/product/browser-extension-ecosystem/high-value-user-opportunities-r3-20261012.zh-CN.md",
+    "comparison": [
+      "EXP-005 seller Listing QA remains PROPOSED; compare seller payout exception task without altering its identity",
+      "Creator commission and sponsored evidence remain unexecuted alternatives",
+      "EXP-007 consumer price remains baseline, not newly validated"
+    ],
+    "interviewCount": null,
+    "pilotUsers": null,
+    "paidOrders": null,
+    "revenue": null
   }
 }
