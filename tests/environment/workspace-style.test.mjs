@@ -20,8 +20,9 @@ test('R22 production and development publish the same generated Tailwind CSS',as
   }
   for(const marker of ['.file-entry.selected','.connection.ready','data-view','.workspace-status.error','--space-2:','--od-brand:'])
     assert.ok(css.includes(marker),'Missing state selector '+marker);
-  assert.match(css,/\.file-entry span:first-child\{[^}]*white-space:nowrap/,
+  assert.match(css,/\.file-entry \.file-kind\{[^}]*white-space:nowrap/,
     'DIR/TXT file badges must remain on one line');
+  assert.ok(css.includes('.file-entry .tree-caret'));
   assert.match(css,/\.file-rail:not\(\[open\]\)>\.rail-toggle\{[^}]*display:block/,
     'A directory collapsed on a narrow viewport must remain reopenable on desktop');
 });
@@ -31,8 +32,9 @@ test('R22 workspace HTML retains critical controls and collapses secondary panel
   assert.ok(html.includes('<details class="chat-edit-panel">'));
   assert.ok(html.includes('<details class="workspace-tool-preview"'));
   assert.ok(html.includes('<details class="file-rail" open'));
+  assert.match(html,/id="file-list"[^>]*role="tree"/);
   for(const id of ['file-editor','file-list','save-file','discard-file-draft','save-as','edit-answer','edit-review',
-    'conflict-panel','file-surface','app-surface','chat-request-path','chat-file-result-panel','edit-receipt-panel'])
+    'conflict-panel','file-surface','app-surface','chat-request-path','chat-file-result-panel','edit-receipt-panel','tree-message'])
     assert.equal((html.match(new RegExp('id="'+id+'"','g'))||[]).length,1,'Missing/duplicate '+id);
   assert.deepEqual([...html.matchAll(/data-view="([^"]+)" aria-pressed=/g)].map(m=>m[1]),['preview','source','split','app']);
 });

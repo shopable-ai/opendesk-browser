@@ -89,14 +89,31 @@
   .rail-title strong {@apply text-xs font-semibold}
   .directory-line {@apply mt-3 mb-2 flex min-w-0 items-center gap-2 text-xs;color:var(--od-sub)}
   #directory-name {@apply min-w-0 break-all}
-  .file-list {@apply grid gap-1}
-  #file-workspace .file-entry {@apply flex w-full min-w-0 justify-start gap-2 whitespace-normal px-2 py-2 text-left text-xs;
-    overflow-wrap:anywhere;background:transparent;border-color:transparent;color:var(--od-sub)}
-  #file-workspace .file-entry.selected {background:#eaf0ff;color:#3156bc;font-weight:700}
-  .file-entry span:first-child {@apply inline-flex h-6 w-7 shrink-0 items-center justify-center rounded border bg-white text-[10px] font-semibold;
-    white-space:nowrap;border-color:#d8e2f0;color:#667b9c}
-  .file-entry span:last-child {min-width:0;overflow-wrap:anywhere}
-  .rail-note {@apply mt-6 px-1 text-[11px] leading-relaxed;color:var(--od-sub)}
+  .file-list {
+    display:block;min-width:0;max-height:min(68vh,760px);overflow-x:hidden;overflow-y:auto;
+    scrollbar-gutter:stable;padding-block:4px;
+  }
+  #file-workspace .file-entry {
+    display:flex;width:100%;min-width:0;min-height:34px;align-items:center;justify-content:flex-start;
+    gap:5px;padding:5px 8px 5px var(--tree-indent,8px);text-align:left;font-size:12px;line-height:1.35;
+    overflow-wrap:anywhere;background:transparent;border-color:transparent;color:var(--od-sub);
+    border-radius:var(--radius-control);
+  }
+  #file-workspace .file-entry:hover:not(:disabled) {background:#f1f5ff}
+  #file-workspace .file-entry.selected,#file-workspace .file-entry[aria-selected="true"] {
+    background:#eaf0ff;color:#3156bc;font-weight:700;
+  }
+  #file-workspace .file-entry[aria-expanded="true"] {color:var(--od-ink)}
+  .file-entry .tree-caret {display:inline-flex;width:12px;flex:0 0 12px;align-items:center;justify-content:center;color:#75859c;font-size:13px}
+  .file-entry .file-kind {
+    display:inline-flex;min-height:21px;min-width:29px;flex:0 0 29px;align-items:center;justify-content:center;
+    padding:1px 3px;border:1px solid #d8e2f0;border-radius:5px;background:#fff;
+    color:#667b9c;font-size:9px;font-weight:700;white-space:nowrap;
+  }
+  .file-entry .file-name {min-width:0;flex:1;overflow-wrap:anywhere;word-break:break-word}
+  .file-entry .tree-truncated {flex:0 0 auto;color:#91612b;font-size:10px}
+  .tree-message {margin:6px 4px 0;color:var(--od-sub);font-size:11px;line-height:1.5}
+  .rail-note {@apply mt-4 px-1 text-[11px] leading-relaxed;color:var(--od-sub)}
   .workstage {@apply flex min-w-0 flex-col}
   .file-heading {@apply flex min-w-0 flex-wrap items-center justify-between gap-3 px-4 py-3 lg:px-5}
   .file-heading>div:first-child {@apply min-w-0 flex-[1_1_240px]}
@@ -186,8 +203,8 @@
   .file-rail {border-right:0;border-bottom:1px solid var(--od-line)}
   .rail-toggle {display:block;padding:4px 2px 9px;font-size:12px;font-weight:700}
   .file-rail:not([open])>*:not(summary) {display:none}
-  .file-list {display:flex;flex-wrap:wrap;gap:4px;max-height:190px;overflow:auto}
-  #file-workspace .file-entry {width:auto;max-width:100%;padding:6px 9px}
+  .file-list {display:block;max-height:clamp(180px,33vh,320px);overflow-y:auto;overflow-x:hidden}
+  #file-workspace .file-entry {width:100%;max-width:100%}
   .rail-note {display:none}
   .file-heading {padding:12px}
   .view-toolbar,.page-disclosure,.file-footer {padding-left:12px;padding-right:12px}

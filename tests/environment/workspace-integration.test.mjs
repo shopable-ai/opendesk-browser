@@ -31,7 +31,7 @@ function documentFixture(){
     get isConnected(){return true;}
     getClientRects(){return this.hidden?[]:[{}];}
     focus(){doc.activeElement=this;doc.dispatchEvent(new Event('focusin'));}
-    setAttribute(key,value){this.attrs[key]=value;}removeAttribute(key){delete this.attrs[key];}
+    setAttribute(key,value){this.attrs[key]=value;}getAttribute(key){return this.attrs[key]??null;}removeAttribute(key){delete this.attrs[key];}
     append(...values){this.children.push(...values);}replaceChildren(...values){this.children=[...values];}
     addEventListener(type,fn){this.events.set(type,fn);}
     removeEventListener(type,fn){if(this.events.get(type)===fn)this.events.delete(type);}
@@ -54,7 +54,7 @@ function documentFixture(){
   doc.activeElement=doc.body;
   return {doc,nodes,Option:function(text,value){const el=new Element('option');el.textContent=text;el.value=value;return el;}};
 }
-async function fixture(t,{noLease=false,knowledgeDraft=false}={}){
+async function fixture(t,{noLease=false,knowledgeDraft=false,tree=false,invalidTree=false}={}){
   const {doc,nodes,Option}=documentFixture(),prior={Option:globalThis.Option,location:globalThis.location,addEventListener:globalThis.addEventListener};
   globalThis.Option=Option;
   globalThis.location={href:'chrome-extension://'+'a'.repeat(32)+'/native-agent/workspace.html?workspaceId='+A};
@@ -94,8 +94,17 @@ async function fixture(t,{noLease=false,knowledgeDraft=false}={}){
     const grant=rows.find(r=>r.workspaceId===params.workspaceId);
     if(!grant)throw {code:'E_FILES_ACCESS'};
     if(params.leaseEpoch!==(grant.leaseEpoch||''))throw {code:'E_FILES_SESSION'};
-    if(method==='files.list')return {workspaceId:grant.workspaceId,path:params.path,entries:[{path:'README.md',name:'README.md',kind:'file'}],truncated:false};
-    if(method==='files.read'){const content=created.get(grant.workspaceId+'\0'+params.path)??files.get(grant.workspaceId);return {workspaceId:grant.workspaceId,path:params.path,content,sha256:hash(content),bytes:Buffer.byteLength(content)};}
+    if(method==='files.list'){
+      const entry=(name,path,kind)=>({name,path,kind});
+      const entries=tree?(params.path===''?[
+        entry('README.md','README.md','file'),entry('src','src','directory'),entry('docs','docs','directory')
+      ]:params.path==='src'?[entry('app','src/app','directory'),entry('index.ts','src/index.ts','file')]:
+        params.path==='src/app'?[entry('page.tsx','src/app/page.tsx','file')]:[]):[
+        entry('README.md','README.md','file')];
+      if(invalidTree&&params.path==='')entries.push(entry('outside.md','../outside.md','file'));
+      return {workspaceId:grant.workspaceId,path:params.path,entries,truncated:false};
+    }
+    if(method==='files.read'){const content=created.get(grant.workspaceId+'\0'+params.path)??(tree&&params.path==='src/app/page.tsx'?'export default function Page() { return null; }\n':files.get(grant.workspaceId));return {workspaceId:grant.workspaceId,path:params.path,content,sha256:hash(content),bytes:Buffer.byteLength(content)}}
     if(method==='files.create'){
       const key=grant.workspaceId+'\0'+params.path;if(created.has(key)||params.path==='README.md')throw {code:'E_FILES_EXISTS'};
       created.set(key,params.content);return {saved:true,created:true,workspaceId:grant.workspaceId,path:params.path,sha256:hash(params.content)};
@@ -267,4 +276,48 @@ test('R50 native workspace has an in-page decision and no browser confirm on uns
   await attempt;
   assert.equal(h.get('workspace-picker').value,A);
   assert.match(h.get('file-editor').value,/来自收件箱/);
+});
+
+test('Workspace file tree keeps parents visible, loads branches on demand and preserves draft on refresh',async t=>{
+  const h=await fixture(t,{tree:true});
+  const rows=()=>h.get('file-list').children.filter(node=>node.tagName==='BUTTON');
+  const find=path=>rows().find(node=>node.dataset.path===path);
+  assert.ok(find('README.md'));assert.ok(find('src'));assert.ok(find('docs'));
+  assert.equal(find('src').getAttribute('aria-expanded'),'false');
+  assert.equal(h.calls.filter(call=>call.method==='files.list'&&call.params.path==='src').length,0);
+  find('src').events.get('click')();await h.settle();
+  assert.ok(find('README.md'),'root files stay visible while subdirectories expand');
+  assert.ok(find('src/app'));assert.ok(find('src/index.ts'));
+  assert.equal(find('src').getAttribute('aria-expanded'),'true');
+  const listsBefore=h.calls.filter(call=>call.method==='files.list'&&call.params.path==='src').length;
+  find('src').events.get('click')();await h.settle();
+  assert.equal(find('src/app'),undefined);assert.ok(find('README.md'));
+  find('src').events.get('click')();await h.settle();
+  assert.equal(h.calls.filter(call=>call.method==='files.list'&&call.params.path==='src').length,listsBefore);
+  find('src/app').events.get('click')();await h.settle();
+  assert.ok(find('src/app/page.tsx'));assert.ok(find('README.md'));
+  find('src/app/page.tsx').events.get('click')();await h.settle();
+  assert.match(h.get('file-editor').value,/export default/);
+  h.edit('locally edited, not saved');
+  await h.click('refresh-files');
+  assert.ok(find('src/app/page.tsx'));assert.equal(h.get('file-editor').value,'locally edited, not saved');
+  assert.ok(h.calls.some(call=>call.method==='files.list'&&call.params.path==='src/app'));
+  assert.equal(h.calls.filter(call=>call.method==='files.write').length,0);
+  await h.click('parent-directory');assert.equal(find('src/app'),undefined);
+  assert.ok(find('src'));assert.ok(find('README.md'));
+});
+test('Workspace file tree never renders mismatched Native paths',async t=>{
+  const h=await fixture(t,{tree:true,invalidTree:true});
+  assert.match(h.get('workspace-status').textContent,/E_FILES_PROTOCOL/);
+  assert.equal(h.get('file-list').children.length,0);
+  assert.equal(h.calls.filter(call=>call.method==='files.read').length,0);
+});
+test('Workspace file tree separates expansion state on workspace switch',async t=>{
+  const h=await fixture(t,{tree:true});
+  const find=path=>h.get('file-list').children.find(node=>node.dataset.path===path);
+  find('src').events.get('click')();await h.settle();
+  assert.ok(find('src/app'));
+  await h.select(B);
+  assert.ok(find('src'));assert.equal(find('src/app'),undefined);
+  assert.equal(find('src').getAttribute('aria-expanded'),'false');
 });
