@@ -47,7 +47,7 @@ await watch.export();  // JSON Save As；需要另一次用户确认
 await watch.close();
 ```
 
-**为什么不再推荐把 `network.observe.start` 写进普通示例？** 因为 `network.observe.start`、`events.read`、`operations.cancel` 属于内部按能力领域拆分的**精确 Host 操作合同**，用户不应为一次短时观察自行维护 `observationId/sessionRef/operationId`。推荐 `watch` 作为**仅存在于工具沙箱的轻量便捷句柄**；其 `read/status/stop/export/close/cancel` 仍分别调用原已批准的 Host RPC，没有第二套权限、Driver 或持久观察系统。旧写法完全保留兼容，不改变 32 项合同分母、错误码和能力体系。
+**为什么不再推荐把 `network.observe.start` 写进普通示例？** 因为 `network.observe.start`、`events.read`、`operations.cancel` 属于内部按能力领域拆分的**精确 Host 操作合同**，用户不应为一次短时观察自行维护 `observationId/sessionRef/operationId`。推荐 `watch` 作为**仅存在于工具沙箱的轻量便捷句柄**；其 `read/status/stop/export/close/cancel` 仍分别调用原已批准的 Host RPC，没有第二套权限、Driver 或持久观察系统。旧写法完全保留兼容；`watch` 不属于新的正式 RPC 操作：既不改写 R1.3–R4 历史 32 项分母，也不改变当前包含 R5 增量的 35 项正式合同、错误码或能力体系。
 
 | 用户操作 | 推荐方式 | 复用的可信底层操作 |
 | --- | --- | --- |

@@ -15,7 +15,7 @@
 - **PLANNED**：只冻结命名/责任/合同，**不能实际调用**。
 - **UNSUPPORTED**：当前模型明确不支持这种越权模式。
 
-**证据编码**：表中标记“既有”的叶子来自可定位源码，尚未作为本轮真实浏览器重新验收；标记“R1.3”的叶子仅为当前开发实现，需要 `tests/environment/browser-sdk-r13.test.mjs` 的定向结果以及独立 Mac Chrome 验收；“R2/R3”尚无可运行代码。最终每项原生 PASS 需在工作流记录中绑定 HEAD、dist 哈希、Chrome 版本和原始操作记录。即使 Controller 有截图/HTTP/Cookie，也不能将其计入普通工具公开接口。
+**证据编码**：表中标记“既有”的叶子来自可定位源码，尚未作为本轮真实浏览器重新验收；标记“R1.3”的叶子仅为当前开发实现，需要 `tests/environment/browser-sdk-r13.test.mjs` 的定向结果以及独立 Mac Chrome 验收；“R2/R3”是当时规划阶段的标签；其中部分功能已在后续版本实际接线，必须以当前源码和逐项验收账本为准。最终每项原生 PASS 需在工作流记录中绑定 HEAD、dist 哈希、Chrome 版本和原始操作记录。即使 Controller 有截图/HTTP/Cookie，也不能将其计入普通工具公开接口。
 
 ## 18 个领域功能树与状态矩阵
 
