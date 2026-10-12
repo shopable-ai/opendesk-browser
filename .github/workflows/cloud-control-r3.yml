@@ -16,6 +16,7 @@ on:
       - 'scripts/build-contract.mjs'
       - 'scripts/prepare-public.mjs'
       - 'scripts/verify-package.mjs'
+      - 'tests/cloud-control/**'
       - 'tests/environment/cloud-control-*.test.mjs'
       - 'tests/environment/sidebar-tab-memory.test.mjs'
       - 'tests/framework/k3-controller-authority.test.mjs'
