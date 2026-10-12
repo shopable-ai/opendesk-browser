@@ -1100,3 +1100,72 @@ test('R24.3 confirmed closure of the owning tab retires the editor ownership wit
     'actual tab removal proves the previous document cannot still own the UI');
   assert.equal(count,1,'removal must never auto-dispatch user source');
 });
+
+test('R24.3 a confirmed failed component retains exact managed Stop rights',async t=>{
+  const f=await fixture(undefined,undefined,{componentPreparerFactory:browserComponentFixture});
+  t.after(()=>f.dispose());
+  const original=f.client.request.bind(f.client),retired=[];
+  let admittedId;
+  f.client.request=async(method,payload)=>{
+    if(method==='previewPageScript'){
+      admittedId=payload.managedUI.previewId;
+      throw Object.assign(new Error('Component threw after mount'),{
+        code:'E_PAGE_SCRIPT_EXECUTION',response:{
+          state:'preview-failed',managedUI:true,managedPreviewId:admittedId,
+          sourceHash:'a'.repeat(64),tabId:payload.target.tabId,
+          documentId:payload.target.documentId
+        }
+      });
+    }
+    if(method==='retirePagePreview'){
+      retired.push(payload.previewId);
+      return {state:'preview-retired',previewId:payload.previewId,
+        sourceHash:'a'.repeat(64),receipt:{ok:true,scope:'managed-ui-only',instances:1}};
+    }
+    return original(method,payload);
+  };
+  await selectBrowserReact(f);
+  await f.click('page-preview-run');
+  await waitForComponentUI(()=>f.find('page-preview-status').dataset.state==='error',
+    'confirmed failed component must be reported');
+  assert.match(f.find('page-preview-status').textContent,/E_PAGE_SCRIPT_EXECUTION/);
+  assert.equal(f.find('script-stop').disabled,false,
+    'confirmed managed failure must expose Stop for a partially mounted UI');
+  await f.click('script-stop');
+  await waitForComponentUI(()=>f.find('page-component-status').textContent.includes('已停止'),
+    'failed component must be removable by original Stop');
+  assert.deepEqual(retired,[admittedId]);
+});
+test('R24.3 missing or forged browser results never allow a second same-document dispatch',async t=>{
+  for(const malformed of ['null-success','forged-managed-failure']){
+    const f=await fixture(undefined,undefined,{componentPreparerFactory:browserComponentFixture});
+    t.after(()=>f.dispose());
+    let calls=0;
+    const original=f.client.request.bind(f.client);
+    f.client.request=async(method,payload)=>{
+      if(method!=='previewPageScript')return original(method,payload);
+      calls++;
+      if(malformed==='null-success')return null;
+      throw Object.assign(new Error('Bad failed receipt'),{code:'E_PAGE_SCRIPT_EXECUTION',
+        response:{state:'preview-failed',managedUI:true,
+          managedPreviewId:payload.managedUI.previewId,sourceHash:'b'.repeat(64),
+          tabId:payload.target.tabId,documentId:payload.target.documentId}});
+    };
+    await selectBrowserReact(f);
+    await f.click('page-preview-run');
+    await waitForComponentUI(()=>f.find('page-preview-status').dataset.state==='error',
+      'invalid receipt must not complete');
+    assert.equal(f.find('page-preview-run').disabled,true);
+    assert.equal(f.find('script-stop').disabled,true,
+      'untrusted response cannot authorize a Stop in an unknown world');
+    await f.switchTab();
+    assert.equal(f.find('page-preview-run').disabled,true,
+      'new tab is not proof the original document was retired');
+    await f.activateTab(11);
+    assert.equal(f.find('page-preview-run').disabled,true);
+    assert.equal(calls,1,'no replay after invalid result');
+    await f.navigateTab(11);
+    await waitForComponentUI(()=>f.find('page-preview-run').disabled===false,
+      'only the original document changing can release the quarantine');
+  }
+});

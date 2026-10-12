@@ -748,12 +748,17 @@ export function createScriptEditor({client, currentPageTarget, development=false
             managedUI,target:{tabId:captured.tabId,frameId:0,documentId:captured.documentId,
               expectedUrl:captured.url,expectedWindowId:captured.windowId}});
         }catch(error){
-          if(error.response?.managedUI===true&&error.response?.managedPreviewId===previewId)
-            browserManagedPreview=identity;
+          const response=error?.response;
+          if(response?.managedUI===true){
+            if(response.managedPreviewId===previewId&&response.sourceHash===built.sourceHash&&
+               response.tabId===captured.tabId&&response.documentId===captured.documentId)
+              browserManagedPreview=identity;
+            else quarantineBrowserEffect(captured); // An untrusted failed receipt cannot own Stop.
+          }
           if(error.code==='E_EFFECT_UNKNOWN')quarantineBrowserEffect(captured);
           throw error;
         }
-        if(result.state!=='preview-evaluated'||result.sourceHash!==built.sourceHash||
+        if(!result||result.state!=='preview-evaluated'||result.sourceHash!==built.sourceHash||
           result.documentId!==captured.documentId||result.managedUI!==true||
           result.managedPreviewId!==previewId){
           quarantineBrowserEffect(captured);
