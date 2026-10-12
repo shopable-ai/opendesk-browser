@@ -199,3 +199,12 @@ python3 -m http.server 43111 --bind 127.0.0.1 --directory examples/tasks
 - 同 SHA 的 [Scheduled Tasks R1 组件和包 CI #38255898825](https://github.com/shopable-ai/opendesk-browser/actions/runs/38255898825) 中：11+5+8+42+5+8+111 = **190/190 定向/共享组件 PASS**；`scheduled-package` job 已 `completed/success`，生产/开发构建与包校验通过。
 - **macOS 未自动升级结论**：本次最新 [Mac CI #38255899093](https://github.com/shopable-ai/opendesk-browser/actions/runs/38255899093) 尚未取得终态原生回执；它独立于 Linux，必须读取 job 日志、真实截图、候选 SHA 与持久 Run/Result 后才能标记通过。
 - Linux GitHub CI-only `--no-sandbox` 和缺失 CJK 字体仍不能用于评价 macOS Chrome OS sandbox 或中文视觉 95 分。多 Host、无宿主后恢复、浏览器整进程重启、网站撤权/版本变更及 200% 缩放仍为专项未验证项。
+
+
+### R1.8 多 Agent 主分支排队隔离与补跑语义修复
+
+- [macOS #38250781643](https://github.com/shopable-ai/opendesk-browser/actions/runs/38250781643) 完成了真实安装但在原生 `<select>` 卡住；驱动已改为真实键盘聚焦、选择及回读。之后 [Mac #38255899093](https://github.com/shopable-ai/opendesk-browser/actions/runs/38255899093) 曾以 `cancelled` 结束，**没有任何原生完成证据可升级**。
+- 审计发现 `.github/workflows/scheduled-tasks-r1-native.yml` 和 Linux 预检原先使用 `github.ref` 作为 `concurrency.group`。GitHub 对同一组只保留一个 pending，即使 `cancel-in-progress: false`，较新运行仍会替换较早 pending，主分支持续并行提交会导致 macOS 真实验收一直排队被覆盖。现在两个原生工作流改为 **`github.sha` 隔离组**，每次候选 SHA 的真实 Chrome 回执独立，不能把别的 SHA 的成功移植到新候选。
+- [`b842a2e873` Linux CFT #38255899212](https://github.com/shopable-ai/opendesk-browser/actions/runs/38255899212) 已以正式 WXT 包通过完整 Task→Alarm→RunHost→Native DOM→released E2E，并新增 `scheduledDockIsolation=PASS`。此次成功仅证明 Linux CFT 且 GitHub CI 沙盒受限情形；Mac 仍单独等待。
+- 发现 `latest-within-hour` 错过策略短时间恢复时原逻辑只在最早 Fire 超过 `startDeadlineMs` 才选择最新发生点；例如一分钟间隔、宿主缺席三分钟而截止窗口为五分钟时，可能错误地补第一次而不是最后一次。修复为**只要选择 latest 策略，每次对账都取窗口内最后一次 occurrence**；`skip` 仍保留原首次到期点和截止规则，并新增按相同 FireId 防重复的短缺席回归。严格禁止按策略补跑未知副作用或已 ADMITTED 的 Fire。
+- 这一轮源码和队列改变后的组件、包、macOS Chrome 终态回执必须继续按**各自提交 SHA**记录；除已具备上述 Linux 真实证据外，新候选不得预先标记 Native PASS。

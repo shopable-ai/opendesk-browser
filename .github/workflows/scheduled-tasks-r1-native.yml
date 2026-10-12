@@ -27,7 +27,10 @@ permissions:
   contents: read
 
 concurrency:
-  group: scheduled-tasks-r1-native-${{ github.ref }}
+  # GitHub concurrency permits only one pending run per group; with a busy
+  # main, ref-scoping silently replaces earlier pending native evidence.
+  # SHA isolation preserves each immutable candidate's actual Chrome result.
+  group: scheduled-tasks-r1-native-${{ github.sha }}
   cancel-in-progress: false
 
 jobs:
