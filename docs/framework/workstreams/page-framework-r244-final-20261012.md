@@ -44,3 +44,10 @@
 | page-ui-vue-direct | 18608 | `f83a08b3e2d9952cf5729276b01388b1fca8a5334ea683b5df00ad4e372618f5` |
 
 只把这四项标为 **PASS_EXISTING_ARTIFACT_SHA256**，不将冻结产物重新分类成新 CLI 构建测试、Run/Stop 或最终 Chrome 验收。
+
+## R24.4 Mac 实际全局 tarball 四目录编译证据（2026-10-12）
+
+- [本轮独立安装与日志 run 38231722128](https://github.com/shopable-ai/opendesk-browser/actions/runs/38231722128) 的 `macos-latest` Job `114752556619` 为 **PASS**，来源 commit `8fe99dc853961b434c238bc68c1d25c3a8062b08`。它从真实 `npm pack` 安装全局 `@shopable/opendesk-dev@0.1.0-r17.1` 到 Git checkout 之外，使用安装包内 Resolver 针对四项目真实编译、命中缓存、保存后重新构建。用 `Buffer.byteLength` 和 SHA-256 重新复核，全部等于上表 18592 / 18873 / 20944 / 18608 B 及完整 `sourceHash`，无虚拟/Node Mock 假产物。
+- 四份独立 `originalInputHash` 在源码注释保存后均变化为新 `modifiedInputHash`；`cacheHit:true` 与 `editedRebuilt:true` 为四项实际断言结果，CI stdout 保留各自哈希。
+- 同一作业 95/95 CLI/Workspace 组件测试、5/5 Native access 兼容测试及 WXT 生产构建通过；`ui/tool-shell.js=429029 B`，硬上限 `524288 B`，尚有 `95259 B` 空间，但超出既有软审查阈值，不作为体积维度 95+ 的充分证据。
+- 此次运行 Ubuntu job 的状态以该 run 的最新实时结果为准；macOS 实际全局 CLI 编译 **不是** 同一 SHA 的真实浏览器 Native `opendesk browser dev .` 四目录 Run/Stop，更不能代替浏览器无需 Native 的 20× 独立 Run/Stop。
