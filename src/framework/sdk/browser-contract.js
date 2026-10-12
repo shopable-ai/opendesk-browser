@@ -1,6 +1,7 @@
 // Public contract and discovery metadata, not a grant store or an RPC router.
 // Actual admission remains in the trusted Side Panel / Chrome host.
 import {fields,fail} from './registry.js';
+import {operationSchemas,assertBrowserSchemaCoverage,validateExportArguments} from './browser-schemas.js';
 export const BROWSER_API_VERSION='1.0.0';
 export const BROWSER_HOST_PROTOCOL='opendesk.browser.v1';
 export const BROWSER_MENU_SOURCE_PROTOCOL='opendesk.browser.source-context.v1';
@@ -9,12 +10,20 @@ export const BROWSER_MENU_MATERIALIZED_STORE='opendesk.browser.context-menu-ids.
 export const BROWSER_MENU_LAUNCH_STORE='opendesk.browser.menu-launch.v1';
 export const BROWSER_MENU_ROOT='opendesk.browser.root';
 const shared={apiVersion:BROWSER_API_VERSION,platform:'chrome>=138',timeout:8000,maxRequestBytes:12000,maxResponseBytes:12000};
+const USER_GESTURE_OPERATIONS=new Set([
+  'browser.clipboard.writeText','browser.downloads.text','browser.tabs.open',
+  'browser.tabs.focus','browser.sidePanel.openSelf','browser.network.observe.start',
+  'browser.screenshot.captureVisible','browser.media.recording.prepare'
+]);
 function entry(operation,capability,contexts,chromePermissions,effect,risk,siteScope='none',state='IMPLEMENTED',lifecycle='request'){
-  return Object.freeze({...shared,operation,namespace:operation.split('.').slice(0,-1).join('.'),
+  return Object.freeze({...shared,
+    maxRequestBytes:['browser.clipboard.writeText','browser.downloads.text'].includes(operation)?150100:12000,
+    maxResponseBytes:['browser.launch.consume','browser.page.getSelection'].includes(operation)?20000:12000,
+    operation,namespace:operation.split('.').slice(0,-1).join('.'),
     implementation:state,supportedContexts:Object.freeze(contexts),requiredCapabilities:capability?[capability]:[],
     requiredChromePermissions:chromePermissions,effectClass:effect,riskLevel:risk,siteScope,
-    requiresUserGesture:false,lifecycle,
-    inputSchema:'strict-operation-specific',outputSchema:'versioned-json'});
+    requiresUserGesture:USER_GESTURE_OPERATIONS.has(operation),lifecycle,
+    inputSchema:operationSchemas(operation)?.input,outputSchema:operationSchemas(operation)?.output});
 }
 const tool=['sidebar-tool'],both=['sidebar-tool','page-sdk'];
 export const BROWSER_OPERATIONS=Object.freeze({
@@ -51,10 +60,14 @@ export const BROWSER_OPERATIONS=Object.freeze({
   'browser.operations.getStatus':entry('browser.operations.getStatus','browser.operations',tool,[],'read','low','owned-operation','PLANNED'),
   'browser.operations.cancel':entry('browser.operations.cancel','browser.operations',tool,[],'write','medium','owned-operation','PLANNED')
 });
+assertBrowserSchemaCoverage(BROWSER_OPERATIONS);
 export function browserOperation(name){return Object.hasOwn(BROWSER_OPERATIONS,name)?BROWSER_OPERATIONS[name]:null;}
 export function browserCapabilityList(context='sidebar-tool'){
   return Object.values(BROWSER_OPERATIONS).map(op=>({
-    ...op,implementation:op.implementation,exposure:op.supportedContexts.includes(context)?'declared':'not-exposed'
+    ...op,implementation:op.implementation,
+    exposure:!op.supportedContexts.includes(context)||op.implementation==='NOT_EXPOSED'?'not-exposed':
+      op.implementation==='HOST_ONLY'?'host-only':
+      op.implementation==='PLANNED'?'planned':'declared'
   }));
 }
 export function deniedBrowserStatus(operation,context='page-sdk'){
@@ -68,6 +81,8 @@ export function deniedBrowserStatus(operation,context='page-sdk'){
 export function normalizeBrowserOperation(operation,args={}){
   if(!browserOperation(operation))throw fail('E_SERVICE_UNSUPPORTED','Unknown Browser SDK operation');
   switch(operation){
+    case 'browser.clipboard.writeText':
+    case 'browser.downloads.text': return validateExportArguments(operation,args);
     case 'browser.capabilities.list': case 'browser.contextMenu.getStatus':
     case 'browser.contextMenu.unregister': case 'browser.launch.consume':
     case 'browser.page.getContext': case 'browser.page.getSelection':
