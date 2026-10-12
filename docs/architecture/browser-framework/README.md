@@ -1,5 +1,7 @@
 # OpenDesk Browser：浏览器自动化与网页用户脚本框架
 
+> **2026-10-13 当前框架总览入口**：[四层框架功能树与进度树](framework-feature-progress-tree-20261013.zh-CN.md) · [可机器读取的子系统与任务进度 JSON](../../framework/workstreams/framework-feature-progress-20261013.json)。按 Controller / Page / Browser SDK / Cookies / Scheduled / Cloud / Native / 市场区分“源码、组件、包、原生和最终放行”；本页后面的早期阶段快照不应当作当前全局完成率。
+
 > **跨端云控归档入口（2026-10-11）**：Browser 只是 OpenDesk 多端 Execution Control 的一个 Executor。先读 [OpenDesk R0.2 Browser / Desktop / Mobile 总纲](https://github.com/shopable-ai/opendesk/blob/master/docs/architecture/execution-control-r02.zh-CN.md)，再读 [Browser Cloud Control R1 实施基线](cloud-control-r1.zh-CN.md)。[多端 HTML 静态原型](https://github.com/shopable-ai/opendesk/blob/master/apps/opendesk/prototypes/cloud-control/index.html) 存放于 OpenDesk 主仓库，不能当作已连通的 Socket 或运行证据。不要把 Browser Task v1/RunHost 直接提升为 Desktop 或 Mobile 的通用运行时。
 
 

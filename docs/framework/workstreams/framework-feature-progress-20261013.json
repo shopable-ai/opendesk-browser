@@ -1,0 +1,1079 @@
+{
+  "schemaVersion": "opendesk.framework.feature-progress.v1",
+  "scope": "FRAMEWORK_AGGREGATE_NOT_REPLACING_AUTHORITATIVE_LEDGERS",
+  "auditDate": "2026-10-13",
+  "auditedMainSha": "e5b7c26145235e16372301ce2cddb574990a153e",
+  "branch": "main",
+  "evidencePolicy": {
+    "implementation": "SOURCE_CONFIRMED 表示可定位实现而非可发布；PARTIAL/NOT_CONNECTED/NOT_IMPLEMENTED 必须保持缺口",
+    "verification": "COMPONENT_TESTED 与 BUILD_VERIFIED 独立；NATIVE_CHROME_VERIFIED_SCOPED 仅绑定原候选/案例，绝不升级为当前全量 PASS",
+    "final": "未冻结同一包最终 F3/ZIP 和必需用户/原生场景时，整框架 FINAL_ACCEPTED=false",
+    "percentages": "Do not calculate a global completion percentage from modules, APIs, or test counts",
+    "ratings": "Independent expert scores are NOT_VERIFIED until evidence exists"
+  },
+  "originalRegisters": {
+    "research": {
+      "path": "docs/product/browser-automation-feature-catalog-r8.zh-CN.md",
+      "domains": 14,
+      "items": 188,
+      "kind": "PRODUCT_RESEARCH"
+    },
+    "browserUniverse": {
+      "path": "docs/api/browser-capability-universe.zh-CN.md",
+      "domains": 18,
+      "leaves": 74,
+      "kind": "BROWSER_CAPABILITY_AUDIT"
+    },
+    "sdk": {
+      "path": "src/framework/sdk/browser-contract.js",
+      "formalOperations": 35,
+      "implemented": 26,
+      "planned": 7,
+      "notExposed": 2,
+      "kind": "CURRENT_PUBLIC_CONTRACT_AT_AUDIT"
+    },
+    "migration": {
+      "path": "docs/framework/source-compatibility-ledger.json",
+      "primaryNativeCases": 603,
+      "supplementalCases": 19,
+      "kind": "HISTORICAL_FORMAL_ACCEPTANCE"
+    }
+  },
+  "layers": [
+    {
+      "level": 1,
+      "name": "产品运行路径",
+      "note": "Controller / Page UserScript / Installed Tool / Scheduled / Cloud / Native 与发行"
+    },
+    {
+      "level": 2,
+      "name": "框架子系统",
+      "note": "本文件 F01-F18，稳定导航 ID，不形成第二份细粒度 API 名单"
+    },
+    {
+      "level": 3,
+      "name": "能力叶子与接口",
+      "note": "子项状态是概览，实际 API 以 browser-contract.js、74/188 原账本为准"
+    },
+    {
+      "level": 4,
+      "name": "源代码→组件→构建→真实 Chrome→正式发布",
+      "note": "证据必须绑定精确提交、包 hash、Chrome、场景和原始回执"
+    }
+  ],
+  "groups": [
+    "可信运行底座",
+    "浏览器与脚本能力",
+    "任务与协调",
+    "桌面与产品承载",
+    "验收与发布"
+  ],
+  "modules": [
+    {
+      "id": "F01",
+      "group": "可信运行底座",
+      "name": "MV3 / WXT / 固定构建入口",
+      "source": "SOURCE_CONFIRMED",
+      "evidence": "BUILD_VERIFIED_SCOPED",
+      "priority": "P0",
+      "refs": [
+        "src/entrypoints/background.js",
+        "scripts/build.mjs",
+        "scripts/verify-package.mjs"
+      ],
+      "docs": [
+        "docs/framework/testing-guide.md",
+        "docs/framework/workstreams/browser-compiler-editions-r245-20261012.md"
+      ],
+      "scope": "Standard/Developer 独立打包与部分真实 Chrome 已有固定候选证据",
+      "gap": "最终同包 F3/ZIP/商店发布、升级及资源预算全局关闭未完成",
+      "next": "固定发布输入与版本身份，按依赖重测而非每次 main 更新全量重跑",
+      "leaves": [
+        {
+          "id": "F01.1",
+          "name": "WXT 与 MV3 SW 固定入口",
+          "status": "SOURCE_CONFIRMED"
+        },
+        {
+          "id": "F01.2",
+          "name": "Standard / Developer 双版包",
+          "status": "SOURCE_CONFIRMED"
+        },
+        {
+          "id": "F01.3",
+          "name": "CSP / 依赖预算 / verify",
+          "status": "COMPONENT_TESTED"
+        },
+        {
+          "id": "F01.4",
+          "name": "同一最终包发布验收",
+          "status": "NOT_VERIFIED"
+        }
+      ]
+    },
+    {
+      "id": "F02",
+      "group": "可信运行底座",
+      "name": "Authority / Broker / IDB / 权限",
+      "source": "SOURCE_CONFIRMED",
+      "evidence": "COMPONENT_TESTED;NATIVE_SCOPED",
+      "priority": "P0",
+      "refs": [
+        "src/platform/host/authority.js",
+        "src/platform/host/broker.js",
+        "src/platform/storage/idb.js"
+      ],
+      "docs": [
+        "docs/framework/testing-guide.md",
+        "docs/framework/workstreams/install-once-authorization-r31.md"
+      ],
+      "scope": "唯一 Broker、IDB v2、Run/Result/slot、安装与站点许可已有真实实现和历史回归",
+      "gap": "取消、撤权、Quota、重启等跨子系统同候选全量证明未关闭",
+      "next": "维护统一身份与原子事务，不允许新建第二套 Authority、Run/Result DB",
+      "leaves": [
+        {
+          "id": "F02.1",
+          "name": "唯一 Host / Sender 身份",
+          "status": "SOURCE_CONFIRMED"
+        },
+        {
+          "id": "F02.2",
+          "name": "持久 Run/Result/commandJournal/slot",
+          "status": "SOURCE_CONFIRMED"
+        },
+        {
+          "id": "F02.3",
+          "name": "安装与网站授权/撤销",
+          "status": "SOURCE_CONFIRMED"
+        },
+        {
+          "id": "F02.4",
+          "name": "跨执行环境全量故障证据",
+          "status": "NATIVE_PENDING"
+        }
+      ]
+    },
+    {
+      "id": "F03",
+      "group": "浏览器与脚本能力",
+      "name": "Controller / ChromePage / RunHost / Worker",
+      "source": "SOURCE_CONFIRMED",
+      "evidence": "NATIVE_CHROME_VERIFIED_SCOPED",
+      "priority": "P0",
+      "refs": [
+        "src/run-host.js",
+        "src/framework/ChromePage.js",
+        "src/platform/host/controller-methods.js"
+      ],
+      "docs": [
+        "docs/framework/workstreams/r5-2-modern-page-api-acceptance.md",
+        "docs/framework/modern-page-api.zh-CN.md"
+      ],
+      "scope": "真实定位、填写、点击、等待、Stop、持久 Result 与释放已在固定候选验证",
+      "gap": "不是完整 Puppeteer/Playwright 等价物，旧全接口同包迁移 F3 尚未证明",
+      "next": "优先验证受影响的未知副作用、跨文档、重启和权限回收",
+      "leaves": [
+        {
+          "id": "F03.1",
+          "name": "Controller 零参数 main / 受限 Worker",
+          "status": "SOURCE_CONFIRMED"
+        },
+        {
+          "id": "F03.2",
+          "name": "现代 Locator/observe/fill 与历史兼容",
+          "status": "SOURCE_CONFIRMED"
+        },
+        {
+          "id": "F03.3",
+          "name": "Run/Stop/Result/retirement",
+          "status": "NATIVE_CHROME_VERIFIED_SCOPED"
+        },
+        {
+          "id": "F03.4",
+          "name": "旧全部接口与最终 F3",
+          "status": "NOT_VERIFIED"
+        }
+      ]
+    },
+    {
+      "id": "F04",
+      "group": "浏览器与脚本能力",
+      "name": "Page USER_SCRIPT / Page UI 生命周期",
+      "source": "SOURCE_CONFIRMED",
+      "evidence": "NATIVE_CHROME_VERIFIED_SCOPED",
+      "priority": "P1",
+      "refs": [
+        "src/scripting/user-scripts/installed-programs.js",
+        "src/scripting/user-scripts/page-ui-mount.js",
+        "src/scripting/user-scripts/dependency-manager.js"
+      ],
+      "docs": [
+        "docs/framework/workstreams/page-ui-r131-mac-01a11ff7.md",
+        "docs/product/browser-automation-feature-catalog-r8.zh-CN.md"
+      ],
+      "scope": "安装与 Page UI 部分真实运行、SPA/BFCache/撤载受管清理有固定候选证据",
+      "gap": "GM 全面兼容、全部 @grant/@match/@run-at、跨站点升级与正式发行尚未完成",
+      "next": "逐项检查安装、页面匹配、frame、生命周期及 GM 兼容矩阵",
+      "leaves": [
+        {
+          "id": "F04.1",
+          "name": "Page Candidate/安装/可用与运行",
+          "status": "SOURCE_CONFIRMED"
+        },
+        {
+          "id": "F04.2",
+          "name": "受管 UI、SPA/BFCache 清理",
+          "status": "NATIVE_CHROME_VERIFIED_SCOPED"
+        },
+        {
+          "id": "F04.3",
+          "name": "匹配与 GM 全量兼容",
+          "status": "PARTIAL"
+        },
+        {
+          "id": "F04.4",
+          "name": "同候选全生命周期验收",
+          "status": "NOT_VERIFIED"
+        }
+      ]
+    },
+    {
+      "id": "F05",
+      "group": "浏览器与脚本能力",
+      "name": "Browser SDK 正式合同",
+      "source": "PARTIAL",
+      "evidence": "COMPONENT_TESTED;NATIVE_PENDING",
+      "priority": "P0",
+      "refs": [
+        "src/framework/sdk/browser-contract.js",
+        "src/framework/sdk/browser.js",
+        "src/platform/host/broker.js"
+      ],
+      "docs": [
+        "docs/framework/workstreams/browser-sdk-acceptance.json",
+        "docs/api/browser-sdk-full-interface-inventory.zh-CN.md"
+      ],
+      "scope": "本快照注册 35 项：26 IMPLEMENTED / 7 PLANNED / 2 NOT_EXPOSED；接口登记不等于逐项可用/原生通过",
+      "gap": "正式 Cookie、更多 Tabs/Windows/Downloads、按权限环境分层原生测试不足",
+      "next": "优先 Cookie P0；固定每方法 caller→Host→Chrome→Result→拒绝证据",
+      "leaves": [
+        {
+          "id": "F05.1",
+          "name": "正式 35 项接口及权限模型",
+          "status": "SOURCE_CONFIRMED"
+        },
+        {
+          "id": "F05.2",
+          "name": "26 个源代码登记 IMPLEMENTED",
+          "status": "SOURCE_CONFIRMED"
+        },
+        {
+          "id": "F05.3",
+          "name": "7 个规划 / 2 个明确禁用",
+          "status": "PLANNED_OR_NOT_EXPOSED"
+        },
+        {
+          "id": "F05.4",
+          "name": "35 项独立 Mac Chrome GUI 验收",
+          "status": "NATIVE_PENDING"
+        }
+      ]
+    },
+    {
+      "id": "F06",
+      "group": "浏览器与脚本能力",
+      "name": "Cookies 可信 Browser SDK 与 Cookie Editor",
+      "source": "PARTIAL",
+      "evidence": "SOURCE_CONFIRMED_CONTROLLER_ONLY;NATIVE_PENDING",
+      "priority": "P0_FIRST",
+      "refs": [
+        "src/platform/chrome/cookies.js",
+        "src/framework/sdk/browser-contract.js",
+        "examples/sidebar-tools/cookie-editor"
+      ],
+      "docs": [
+        "docs/api/browser-sdk-full-interface-inventory.zh-CN.md",
+        "docs/framework/workstreams/cookie-editor-r1.md"
+      ],
+      "scope": "现有 Controller getCookies/setCookies/deleteCookiesByUrl；Cookie Editor 目前仍为内存 UI",
+      "gap": "未注册并接通 browser.cookies.*；store/partition/onChanged/clearSite/Host 权限及真实 Chrome 写入缺失",
+      "next": "先做 get/getAll/set/remove/clearSite/getStores，再分区与事件、撤权和导入导出原生验收",
+      "leaves": [
+        {
+          "id": "F06.1",
+          "name": "Controller 原 Cookie 驱动读写",
+          "status": "SOURCE_CONFIRMED"
+        },
+        {
+          "id": "F06.2",
+          "name": "Browser SDK cookies 核心 CRUD",
+          "status": "NOT_IMPLEMENTED"
+        },
+        {
+          "id": "F06.3",
+          "name": "store/partition/变更事件观察",
+          "status": "NOT_IMPLEMENTED"
+        },
+        {
+          "id": "F06.4",
+          "name": "Cookie Editor 真实站点读写闭环",
+          "status": "NOT_IMPLEMENTED"
+        }
+      ]
+    },
+    {
+      "id": "F07",
+      "group": "浏览器与脚本能力",
+      "name": "Tabs / Network / Downloads / 其它 Chrome 能力",
+      "source": "PARTIAL",
+      "evidence": "COMPONENT_TESTED;NATIVE_PENDING",
+      "priority": "P1",
+      "refs": [
+        "src/platform/chrome/browser-tabs.js",
+        "src/platform/chrome/browser-network-observe.js",
+        "src/platform/downloads/index.js"
+      ],
+      "docs": [
+        "docs/api/browser-capability-universe.zh-CN.md",
+        "docs/framework/workstreams/browser-sdk-status.md"
+      ],
+      "scope": "自有 TabRef、请求与有界网络观察、截图/下载基础已有部分 Host 接线",
+      "gap": "Window/Group/History/Bookmarks/DNR/录制/录屏等有候选或刻意不开放，不是现成正式接口",
+      "next": "按 18 领域 74 叶子逐项区分内置 Host、工具可授权、故意不开放",
+      "leaves": [
+        {
+          "id": "F07.1",
+          "name": "自有 Tabs Open/Focus/Get/List/Close",
+          "status": "SOURCE_CONFIRMED"
+        },
+        {
+          "id": "F07.2",
+          "name": "主动 HTTP 与有界 Observe/截图",
+          "status": "PARTIAL"
+        },
+        {
+          "id": "F07.3",
+          "name": "下载与浏览器附加能力",
+          "status": "PARTIAL"
+        },
+        {
+          "id": "F07.4",
+          "name": "Window/Group/Bookmarks/History/DNR 等",
+          "status": "PLANNED_OR_NOT_EXPOSED"
+        }
+      ]
+    },
+    {
+      "id": "F08",
+      "group": "浏览器与脚本能力",
+      "name": "预置库 / 多文件 / 外部依赖运行",
+      "source": "PARTIAL",
+      "evidence": "COMPONENT_TESTED;NATIVE_SCOPED",
+      "priority": "P1",
+      "refs": [
+        "src/libs/loader.js",
+        "src/libs/catalog.js",
+        "src/scripting/user-scripts/dependency-manager.js"
+      ],
+      "docs": [
+        "docs/api/runtime-globals-and-preinstalled-libraries.zh-CN.md",
+        "docs/framework/workstreams/public-libraries-r168-real-usage-20261012.md"
+      ],
+      "scope": "零参数 main、固定预置库、按需资源及 JSX/SFC/ESM 多文件已有实际源码与部分浏览器证据",
+      "gap": "未覆盖第三方任意包；外部获取、哈希授权、缓存及每个 USER_SCRIPT 世界的稳定使用矩阵仍需验证",
+      "next": "建立预装→已授权缓存→外部获取三级路径的代表性可运行示例",
+      "leaves": [
+        {
+          "id": "F08.1",
+          "name": "Controller 预置 _/dayjs/OpenDeskLibs",
+          "status": "SOURCE_CONFIRMED"
+        },
+        {
+          "id": "F08.2",
+          "name": "多文件 JS / React / Vue 受控构建",
+          "status": "NATIVE_CHROME_VERIFIED_SCOPED"
+        },
+        {
+          "id": "F08.3",
+          "name": "按需依赖与固定哈希",
+          "status": "PARTIAL"
+        },
+        {
+          "id": "F08.4",
+          "name": "未预装包的外部获取与可复用缓存",
+          "status": "NOT_VERIFIED"
+        }
+      ]
+    },
+    {
+      "id": "F09",
+      "group": "任务与协调",
+      "name": "Scheduled Tasks R1 可见计划执行",
+      "source": "SOURCE_CONFIRMED",
+      "evidence": "NATIVE_CHROME_VERIFIED_SCOPED_MAC_CFT",
+      "priority": "P1",
+      "refs": [
+        "src/platform/tasks/schedule-service.js",
+        "src/platform/tasks/schedule-repository.js",
+        "src/ui/scheduled-task-host.js"
+      ],
+      "docs": [
+        "docs/framework/workstreams/scheduled-tasks-r1-20261012.md"
+      ],
+      "scope": "固定 7bd7352 候选 Linux/macOS CFT：Task 安装、Alarms、可见 Runner、FireId→原 Run/Result PASS",
+      "gap": "Mac 双 Host/重启/升级/撤权/未知效果、长时运行与缩放未全部验证；非用户本人 Mac",
+      "next": "继续 R2 真实浏览器恢复与权限生命周期，不重建定时调度器",
+      "leaves": [
+        {
+          "id": "F09.1",
+          "name": "ScheduleDefinition / FireId / Alarms",
+          "status": "SOURCE_CONFIRMED"
+        },
+        {
+          "id": "F09.2",
+          "name": "可见 scheduledRunner=1 执行宿主",
+          "status": "NATIVE_CHROME_VERIFIED_SCOPED"
+        },
+        {
+          "id": "F09.3",
+          "name": "Mac CFT 基础页面真实 Run/Result",
+          "status": "NATIVE_CHROME_VERIFIED_SCOPED"
+        },
+        {
+          "id": "F09.4",
+          "name": "重启/版本更新/撤权/多宿主完整矩阵",
+          "status": "NATIVE_PENDING"
+        }
+      ]
+    },
+    {
+      "id": "F10",
+      "group": "任务与协调",
+      "name": "Cloud Control R4 Provider 与原执行链",
+      "source": "SOURCE_CONFIRMED",
+      "evidence": "COMPONENT_TESTED;BUILD_VERIFIED;NATIVE_IDB_COMPONENT",
+      "priority": "P0",
+      "refs": [
+        "src/cloud-control/service.js",
+        "src/cloud-control/history-index.js",
+        "src/ui/cloud-control-console.js"
+      ],
+      "docs": [
+        "docs/framework/workstreams/cloud-control-r4-20261012.md"
+      ],
+      "scope": "222/222 CI + 双包构建（7e38eec）；Linux CFT 真实 IndexedDB 100/1000/10000 游标；旧 R1–R3 原生链另有候选证据",
+      "gap": "真实 Gate4 运行中 Stop、撤权、未知副作用的原 profile 恢复、Provider 1/24/72h 与长期 Runner 未关闭",
+      "next": "先关闭 P0 Gate4，再扩展 reconciliation 有界批处理与运营面板",
+      "leaves": [
+        {
+          "id": "F10.1",
+          "name": "Provider 配对、指派、许可、回执",
+          "status": "SOURCE_CONFIRMED"
+        },
+        {
+          "id": "F10.2",
+          "name": "Cloud→原 Run/Result/Authority",
+          "status": "SOURCE_CONFIRMED"
+        },
+        {
+          "id": "F10.3",
+          "name": "原 IDB 游标分页与回滚",
+          "status": "NATIVE_IDB_COMPONENT_VERIFIED"
+        },
+        {
+          "id": "F10.4",
+          "name": "完整 Gate4 原生恢复和持续运行",
+          "status": "NATIVE_PENDING"
+        }
+      ]
+    },
+    {
+      "id": "F11",
+      "group": "任务与协调",
+      "name": "统一可见 Host Owner Lease",
+      "source": "NOT_CONNECTED",
+      "evidence": "COMPONENT_TESTED_ONLY",
+      "priority": "P0_AFTER_GATE4",
+      "refs": [
+        "src/cloud-control/host-owner-lease.js",
+        "src/ui/scheduled-task-host.js",
+        "src/platform/host/broker.js"
+      ],
+      "docs": [
+        "docs/architecture/browser-framework/cloud-control-r4.zh-CN.md"
+      ],
+      "scope": "原 IDB CAS Lease 的 claim/renew/release/assertDispatch 基础及 Node 测试存在，但未在实际 Cloud 领取链使用",
+      "gap": "可见 Runner sender、ownerKind/documentId/generation/fencingEpoch 与 claim/admission/Worker fence 未接",
+      "next": "复用 scheduledRunner=1 的合法可见 TAB，严格最小执行 RPC；未通过安全证据维持禁用",
+      "leaves": [
+        {
+          "id": "F11.1",
+          "name": "CAS Lease 基础源码",
+          "status": "SOURCE_CONFIRMED"
+        },
+        {
+          "id": "F11.2",
+          "name": "可信 TAB/documentId 注册和 Runner 身份",
+          "status": "NOT_IMPLEMENTED"
+        },
+        {
+          "id": "F11.3",
+          "name": "Cloud claim/admission/Worker 三处 fence",
+          "status": "NOT_IMPLEMENTED"
+        },
+        {
+          "id": "F11.4",
+          "name": "双 Host 争用和旧 owner 拒绝原生验证",
+          "status": "NATIVE_PENDING"
+        }
+      ]
+    },
+    {
+      "id": "F12",
+      "group": "任务与协调",
+      "name": "Cloud / Local 定时计划单源幂等",
+      "source": "NOT_IMPLEMENTED",
+      "evidence": "NOT_TESTED",
+      "priority": "P1_AFTER_OWNER",
+      "refs": [
+        "src/platform/tasks/schedule-repository.js",
+        "src/cloud-control/service.js"
+      ],
+      "docs": [
+        "docs/architecture/browser-framework/scheduled-tasks-r1-design.zh-CN.md"
+      ],
+      "scope": "本地 FireId 已独立持久，但 Cloud 不具备同一计划 source/generation 单源 CAS",
+      "gap": "local alarm 和 cloud notice 同时到达可能存在未来双派发风险，尚未安全开放云源",
+      "next": "在原 frameworkKV 保存 source/generation/FireId 的同事务切换及已准入不可重放规则",
+      "leaves": [
+        {
+          "id": "F12.1",
+          "name": "本地 FireId 唯一准入",
+          "status": "SOURCE_CONFIRMED"
+        },
+        {
+          "id": "F12.2",
+          "name": "Cloud/local source 所有权定义",
+          "status": "NOT_IMPLEMENTED"
+        },
+        {
+          "id": "F12.3",
+          "name": "来源切换原子 generation",
+          "status": "NOT_IMPLEMENTED"
+        },
+        {
+          "id": "F12.4",
+          "name": "云+本地并发原生拒绝重复",
+          "status": "NATIVE_PENDING"
+        }
+      ]
+    },
+    {
+      "id": "F13",
+      "group": "桌面与产品承载",
+      "name": "Native Host / Go / Local Workspace",
+      "source": "PARTIAL",
+      "evidence": "COMPONENT_TESTED;NATIVE_SCOPED",
+      "priority": "P1",
+      "refs": [
+        "src/native-agent/host-adapter.js",
+        "src/native-agent/local-project-service.js",
+        "src/native-agent/workspace-ai-proposal.js"
+      ],
+      "docs": [
+        "docs/framework/workstreams/native-go-host-r5-1-delivery-gates-20261010.zh-CN.md",
+        "docs/architecture/browser-framework/native-agent-bridge-r1.zh-CN.md"
+      ],
+      "scope": "Native 桥、本地文件与 Workspace UI 已有源码；Go 入口和多平台部分原生候选证据",
+      "gap": "真实 Chrome 配对/Go 安装升级与回滚、用户 Mac 日常环境及跨 profile/Windows 未全验",
+      "next": "按固定身份在独立 Mac Chrome 完成 Go Host→实际 Run/Result 与升级撤销",
+      "leaves": [
+        {
+          "id": "F13.1",
+          "name": "Native 消息桥和本地源码读取",
+          "status": "SOURCE_CONFIRMED"
+        },
+        {
+          "id": "F13.2",
+          "name": "工作区文件树/预览/授权保存",
+          "status": "PARTIAL"
+        },
+        {
+          "id": "F13.3",
+          "name": "Go Host 无 Node 安装路径",
+          "status": "PARTIAL"
+        },
+        {
+          "id": "F13.4",
+          "name": "真实 Chrome 升级/回滚/用户 Mac",
+          "status": "NATIVE_PENDING"
+        }
+      ]
+    },
+    {
+      "id": "F14",
+      "group": "桌面与产品承载",
+      "name": "开发工作台 / 多文件脚本 / AI 流程",
+      "source": "SOURCE_CONFIRMED",
+      "evidence": "NATIVE_CHROME_VERIFIED_SCOPED",
+      "priority": "P1",
+      "refs": [
+        "src/ui/script-editor.js",
+        "src/ui/task-workbench.js",
+        "src/framework/workflow"
+      ],
+      "docs": [
+        "docs/framework/workstreams/browser-compiler-editions-r245-20261012.md",
+        "docs/api/local-projects.zh-CN.md"
+      ],
+      "scope": "Developer JSX/SFC、Standard 普通 JS、运行/Stop/本地 CLI 在固定 Chrome 候选有代表性实测",
+      "gap": "全量 AI→Task 授权、跨环境回滚、项目外部依赖大矩阵和正式发布未全部通过",
+      "next": "覆盖代表性真实用户脚本入口与 AI 生成→验证→保存→运行闭环",
+      "leaves": [
+        {
+          "id": "F14.1",
+          "name": "开发 Tab 草稿与 Controller 执行",
+          "status": "SOURCE_CONFIRMED"
+        },
+        {
+          "id": "F14.2",
+          "name": "多文件和 React/Vue 运行",
+          "status": "NATIVE_CHROME_VERIFIED_SCOPED"
+        },
+        {
+          "id": "F14.3",
+          "name": "AI/Workflow 生成 Task 与授权",
+          "status": "PARTIAL"
+        },
+        {
+          "id": "F14.4",
+          "name": "真实终态/版本/重启完整矩阵",
+          "status": "NATIVE_PENDING"
+        }
+      ]
+    },
+    {
+      "id": "F15",
+      "group": "桌面与产品承载",
+      "name": "Side Panel / 控制台 / R27 UI 系统",
+      "source": "SOURCE_CONFIRMED",
+      "evidence": "COMPONENT_TESTED;NATIVE_SCOPED",
+      "priority": "P1",
+      "refs": [
+        "src/ui/tool-shell.js",
+        "src/ui/design-tokens.css",
+        "src/ui/cloud-control.html"
+      ],
+      "docs": [
+        "docs/architecture/ui-layout-conventions-r27.zh-CN.md",
+        "docs/framework/workstreams/cloud-control-r4-20261012.md"
+      ],
+      "scope": "正式 Side Panel 导航、云控只读控制台、共享 CSS tokens 已有真实源码",
+      "gap": "300/360/420/520px、125%/200%、ARIA、暗色及完整错误态没有全局同包闭环",
+      "next": "针对核心工作流做窄屏/高缩放真实 Chrome 截图和键盘验收",
+      "leaves": [
+        {
+          "id": "F15.1",
+          "name": "Side Panel 6/7 Tab + 开发/我的/云控",
+          "status": "SOURCE_CONFIRMED"
+        },
+        {
+          "id": "F15.2",
+          "name": "共享 R27 tokens / layout",
+          "status": "SOURCE_CONFIRMED"
+        },
+        {
+          "id": "F15.3",
+          "name": "独立 Cloud Observer-only 控制台",
+          "status": "SOURCE_CONFIRMED"
+        },
+        {
+          "id": "F15.4",
+          "name": "无障碍/响应式/200% 验收",
+          "status": "NATIVE_PENDING"
+        }
+      ]
+    },
+    {
+      "id": "F16",
+      "group": "桌面与产品承载",
+      "name": "已安装工具 / Official Tools 生命周期",
+      "source": "SOURCE_CONFIRMED",
+      "evidence": "COMPONENT_TESTED;NATIVE_SCOPED",
+      "priority": "P1",
+      "refs": [
+        "src/ui/sidebar-tools.js",
+        "src/ui/installed-page-tools.js",
+        "examples/sidebar-tools/cookie-editor"
+      ],
+      "docs": [
+        "docs/framework/workstreams/official-tools-catalog-r45-20261011.md",
+        "docs/framework/workstreams/cookie-editor-r1.md"
+      ],
+      "scope": "工具隔离、包身份、安装更新撤销、若干官方工具已有测试和历史原生证据",
+      "gap": "Cookie Editor 真实 Cookie 写入尚未完成；部分工具 UI/恢复候选未通过最终包门槛",
+      "next": "待 F06 Cookies 正式 Host 接线后打通 Cookie Editor，其他工具避免重建沙箱/授权",
+      "leaves": [
+        {
+          "id": "F16.1",
+          "name": "第三方 Side Panel 工具沙箱/通信",
+          "status": "SOURCE_CONFIRMED"
+        },
+        {
+          "id": "F16.2",
+          "name": "官方工具安装/更新/禁用/卸载",
+          "status": "SOURCE_CONFIRMED"
+        },
+        {
+          "id": "F16.3",
+          "name": "Cookie Editor UI 导入导出",
+          "status": "SOURCE_CONFIRMED"
+        },
+        {
+          "id": "F16.4",
+          "name": "Cookie Editor 真实浏览器 Cookie",
+          "status": "NOT_IMPLEMENTED"
+        }
+      ]
+    },
+    {
+      "id": "F17",
+      "group": "桌面与产品承载",
+      "name": "应用市场 / 安装更新发布渠道",
+      "source": "SOURCE_CONFIRMED",
+      "evidence": "NATIVE_CHROME_VERIFIED_SCOPED_MAC_LINUX",
+      "priority": "P1",
+      "refs": [
+        "src/marketplace/catalog.js",
+        "src/marketplace/intent.js",
+        "src/market-site/client.js"
+      ],
+      "docs": [
+        "docs/framework/workstreams/app-market-r5.md"
+      ],
+      "scope": "Linux/macOS CFT 有真实下载安装/升级/卸载及一定故障恢复证据；固定候选 16/16 安装例",
+      "gap": "正式公网 HTTPS、CWS、长期生产 ID、API ACK 真实丢失/Quota/TTL 等最终门禁未完成",
+      "next": "先发布前认证 HTTPS/扩展 ID/包一致性，再做故障矩阵",
+      "leaves": [
+        {
+          "id": "F17.1",
+          "name": "目录/不可变包与安装意图",
+          "status": "SOURCE_CONFIRMED"
+        },
+        {
+          "id": "F17.2",
+          "name": "安装更新卸载及权限",
+          "status": "NATIVE_CHROME_VERIFIED_SCOPED"
+        },
+        {
+          "id": "F17.3",
+          "name": "多平台实际 Chrome 市场测试",
+          "status": "NATIVE_CHROME_VERIFIED_SCOPED"
+        },
+        {
+          "id": "F17.4",
+          "name": "正式 HTTPS 和 CWS 放行",
+          "status": "BLOCKED"
+        }
+      ]
+    },
+    {
+      "id": "F18",
+      "group": "验收与发布",
+      "name": "证据治理 / F3 / ZIP / 长稳",
+      "source": "PARTIAL",
+      "evidence": "HISTORICAL_SCOPED_ONLY",
+      "priority": "P0_RELEASE_GATE",
+      "refs": [
+        "docs/framework/testing-guide.md",
+        "docs/framework/source-compatibility-ledger.json",
+        "scripts/verify-package.mjs"
+      ],
+      "docs": [
+        "docs/framework/testing-guide.md",
+        "docs/framework/product-acceptance-workflow-20261003.md"
+      ],
+      "scope": "逐专项已有很多真实 Node、构建、Linux/macOS Chrome 证据并保留了原始失败",
+      "gap": "完整原 603+19 合同、独立 B05、1000 mixed / 10 reconnect / 2禁插件、资源 baseline、最终同包 F3 ZIP 未闭环",
+      "next": "基于冻结 final SHA、packageHash 与真实 GUI 原始证据统一验收，不估算 95 分",
+      "leaves": [
+        {
+          "id": "F18.1",
+          "name": "CI 流水线与按 SHA 证据复用",
+          "status": "SOURCE_CONFIRMED"
+        },
+        {
+          "id": "F18.2",
+          "name": "历史定向 Node/真实 CFT 证据",
+          "status": "SOURCE_CONFIRMED"
+        },
+        {
+          "id": "F18.3",
+          "name": "完整同包 F3 / 正式 ZIP 安装",
+          "status": "NOT_VERIFIED"
+        },
+        {
+          "id": "F18.4",
+          "name": "跨功能 1h/24h/72h 长稳",
+          "status": "NOT_TESTED"
+        }
+      ]
+    }
+  ],
+  "progress": [
+    {
+      "id": "T00",
+      "group": "已完成：建总账",
+      "priority": "P0",
+      "status": "DOCUMENTED",
+      "dependsOn": [],
+      "requires": [
+        "功能树 L1-L4、进度树、索引、证据等级与稳定 ID"
+      ],
+      "accept": "所有节点具备稳定 ID、源码指针、历史证据与下一动作；不改旧188/74/35/603分母"
+    },
+    {
+      "id": "T01",
+      "group": "安全核心并行 A",
+      "priority": "P0",
+      "status": "TODO",
+      "dependsOn": [
+        "T00"
+      ],
+      "moduleIds": [
+        "F05",
+        "F06",
+        "F16"
+      ],
+      "requires": [
+        "可信内置 Cookie Editor 只能操作用户批准的网站、存储区与分区键",
+        "get/getAll/set/remove/clearSite/getStores 与 onChanged 分层开放",
+        "契约→Host→真实 Chrome cookies→返回/拒绝/撤权/持久日志"
+      ],
+      "accept": "真实 Mac/CFT Cookie 正反向 CRUD、HttpOnly、SameSite、Partition、Store 与撤权；原生原始收据"
+    },
+    {
+      "id": "T02",
+      "group": "安全核心并行 B",
+      "priority": "P0",
+      "status": "TODO",
+      "dependsOn": [
+        "T00"
+      ],
+      "moduleIds": [
+        "F02",
+        "F10"
+      ],
+      "requires": [
+        "Cloud Gate4 原 Run/Result/receipt/commandJournal 不重跑",
+        "运行中的 Stop、grant/site revoke、Provider lease 丢失与未知效果",
+        "配额/回滚及服务端对账正确"
+      ],
+      "accept": "原 RunId 关联不变、停止后的 Worker/slot released、缺失证明时 OUTCOME_UNKNOWN、无副作用重放"
+    },
+    {
+      "id": "T03",
+      "group": "安全核心并行 C",
+      "priority": "P0",
+      "status": "TODO",
+      "dependsOn": [
+        "T00"
+      ],
+      "moduleIds": [
+        "F05",
+        "F07"
+      ],
+      "requires": [
+        "35 正式 Browser SDK 每项 Host/权限/失败路径审计",
+        "Tabs owned ref + observe/screenshot/download 用户手势",
+        "规划项和 NOT_EXPOSED 不默认为已实现"
+      ],
+      "accept": "逐项源代码、组件、完整 Chrome 权限和 GUI 证据，不变更既有统计口径"
+    },
+    {
+      "id": "T04",
+      "group": "规模与恢复",
+      "priority": "P1",
+      "status": "TODO",
+      "dependsOn": [
+        "T02"
+      ],
+      "moduleIds": [
+        "F09",
+        "F10"
+      ],
+      "requires": [
+        "Cloud reconcile/Stop 和 Scheduled list/reconcile 的 tx.all 大历史扫描审查",
+        "按原 IDB 索引、游标/有界批量修复，优先读写同库",
+        "100/1000/10000 和升级/Quota 性能"
+      ],
+      "accept": "量化扫描、内存、响应、主线程阻塞与回滚，不能只截断 JSON 输出"
+    },
+    {
+      "id": "T05",
+      "group": "单宿主执行",
+      "priority": "P0",
+      "status": "BLOCKED_UNTIL_GATE4",
+      "dependsOn": [
+        "T02"
+      ],
+      "moduleIds": [
+        "F09",
+        "F10",
+        "F11"
+      ],
+      "requires": [
+        "只复用 tool.html?scheduledRunner=1 可见运行页",
+        "真实 TAB/documentId/registrationId 与 CAS HostOwnerLease",
+        "cloudNext/Resolve 精确受限 RPC + claim/admission/Worker 全链路 fence"
+      ],
+      "accept": "Side Panel 与 Runner 竞争唯一 owner；旧 generation/epoch 不得派发；缺原生证据仍禁用云持续运行"
+    },
+    {
+      "id": "T06",
+      "group": "单源派发",
+      "priority": "P1",
+      "status": "BLOCKED_UNTIL_OWNER",
+      "dependsOn": [
+        "T05"
+      ],
+      "moduleIds": [
+        "F09",
+        "F10",
+        "F12"
+      ],
+      "requires": [
+        "共享 source/generation/FireId 原事务",
+        "Local alarm 与 Cloud notify 并发至多一次准入",
+        "切换来源需用户授权；已知/未知原 Run 禁重放"
+      ],
+      "accept": "多 Host 并发/重启/断网真实持久反向测试证明没有重复副作用"
+    },
+    {
+      "id": "T07",
+      "group": "开发体验",
+      "priority": "P1",
+      "status": "TODO",
+      "dependsOn": [
+        "T00"
+      ],
+      "moduleIds": [
+        "F04",
+        "F08",
+        "F14"
+      ],
+      "requires": [
+        "预置库/已缓存/外部未收录依赖三级策略",
+        "Controller/Page/工具四环境隔离与多文件/React/Vue 示例",
+        "包锁、版本哈希、授权、离线和 ESM 错误"
+      ],
+      "accept": "标准案例真实 Run/Stop/结果及权限拒绝；缓存复用时间与网络请求数可观察"
+    },
+    {
+      "id": "T08",
+      "group": "产品体验",
+      "priority": "P1",
+      "status": "TODO",
+      "dependsOn": [
+        "T01",
+        "T05"
+      ],
+      "moduleIds": [
+        "F15",
+        "F16",
+        "F10"
+      ],
+      "requires": [
+        "Cookie Editor 真实接入、Cloud 控制台故障态",
+        "300/360/420/520px、125/200% 缩放与键盘焦点",
+        "统一 R27 tokens，无新 UI 框架"
+      ],
+      "accept": "真实窄窗口、Mac CFT 原生指针/键盘截图及实际用户可操作闭环"
+    },
+    {
+      "id": "T09",
+      "group": "发行与原生验收",
+      "priority": "P0",
+      "status": "BLOCKED_DEPENDENCIES",
+      "dependsOn": [
+        "T01",
+        "T02",
+        "T03",
+        "T04",
+        "T05",
+        "T06",
+        "T07",
+        "T08"
+      ],
+      "moduleIds": [
+        "F01",
+        "F02",
+        "F13",
+        "F17",
+        "F18"
+      ],
+      "requires": [
+        "1h/24h/72h 真实持续执行与恢复",
+        "最终唯一生产包/开发包签名及散列/标准权限",
+        "F3/ZIP/603+19 与服务/市场真实发布准入"
+      ],
+      "accept": "完整独立证据和反向失败记录；十项分数只针对实际全部验收通过的范围打分"
+    }
+  ],
+  "excludedNotDelivered": [
+    {
+      "name": "完整 GM / Puppeteer / Playwright 兼容",
+      "reason": "兼容候选不等于实现，无原生同包全量证明"
+    },
+    {
+      "name": "录屏/语音/系统代理与任意 debugger",
+      "reason": "部分规划或刻意不开放，不能为了覆盖率默认提升权限"
+    },
+    {
+      "name": "网页采集业务与语音控制",
+      "reason": "AGENTS.md 明确不属于本阶段框架迁移范围"
+    },
+    {
+      "name": "Page QA Inspector",
+      "reason": "DEPRECATED / SOURCE_REMOVED_FROM_MAIN，不能作为正式首发产品能力"
+    }
+  ],
+  "crossPlatformNativeEvidence": [
+    {
+      "module": "F09",
+      "sha": "7bd735259379478200b896223ecd5212b72ee163",
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38269870147",
+      "level": "NATIVE_MAC_CFT_SCOPED",
+      "scope": "Scheduled Tasks R1 install/alarm/visible runner/fire→Run/Result basic flow"
+    },
+    {
+      "module": "F10",
+      "sha": "7e38eecd6cff4f480b4f2d128f51238ed744a093",
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38265004633",
+      "level": "COMPONENT_AND_BUILD",
+      "scope": "222 PASS, 0 FAIL, production/development builds verify"
+    },
+    {
+      "module": "F10",
+      "sha": "658269e38ad20b879d2f7efccbfab8de901aebb9",
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38260781397",
+      "level": "NATIVE_IDB_COMPONENT",
+      "scope": "Linux Chrome 155, 100/1000/10000 indexed rows; not full Cloud E2E"
+    },
+    {
+      "module": "F17",
+      "sha": null,
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38269315702",
+      "level": "NATIVE_MAC_LINUX_CFT_SCOPED",
+      "scope": "Market 16/16 installation scenarios, see app-market-r5 for exact per-platform package identity"
+    },
+    {
+      "module": "F14",
+      "sha": "176bb1916006ad98bb3d1b10c1b2f2d93a06d122",
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38247467657",
+      "level": "NATIVE_MAC_CFT_SCOPED",
+      "scope": "Standard plain JS + Developer React/Vue representative Run/Stop"
+    }
+  ],
+  "finalAccepted": false
+}
