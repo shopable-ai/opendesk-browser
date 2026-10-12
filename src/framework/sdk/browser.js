@@ -70,7 +70,7 @@ export function createBrowserSdk({request,context='sidebar-tool'}={}){
     clipboard:Object.freeze({writeText:text=>legacy('browser.clipboard.writeText','clipboard.writeText')({text})}),
     downloads:Object.freeze({text:legacy('browser.downloads.text','file.download')}),
     tabs:Object.freeze({open:method('browser.tabs.open'),focus:method('browser.tabs.focus'),
-      getOwned:method('browser.tabs.getOwned'),listOwned:()=>ask('browser.tabs.listOwned'),
+      getOwned:method('browser.tabs.getOwned'),listOwned:method('browser.tabs.listOwned'),
       closeOwned:method('browser.tabs.closeOwned')}),
     sidePanel:Object.freeze({openSelf:()=>ask('browser.sidePanel.openSelf')}),
     network:Object.freeze({request:method('browser.network.request'),watch,

@@ -19,5 +19,5 @@ test('a phase cannot be accepted with untested candidate checks',()=>{
  assert(inspectBrowserSdkLedger(bad).some(x=>x.includes('premature phase')));
 });
 test('current source and human readable matrix can be compared',async()=>{
- assert.equal((await checkBrowserSdk()).operations,32);
+ assert.equal((await checkBrowserSdk()).operations,35);
 });
