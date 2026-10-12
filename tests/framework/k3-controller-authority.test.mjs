@@ -1389,7 +1389,22 @@ test('observer projection is fixed-namespace, paged and excludes all executable 
   assert.equal(view.requestTotal,1);assert.equal(view.rows.length,1);
   assert.equal(view.rows[0].state,'waiting');
   assert.doesNotMatch(JSON.stringify(view),/foreign-secret|assignmentId|runId|providerId|credential|siteOrigins|params|target/);
+  const finished={...f.row,requestId:'cloud:finished-for-filter',state:'finished',
+    createdAt:Date.now()};
+  await f.storage.transaction(['frameworkKV'],'readwrite',
+    tx=>tx.put('frameworkKV',finished,'cloud:request:'+finished.requestId));
+  const filtered=await f.cloud.cloudObserve({limit:5,state:'finished'});
+  assert.equal(filtered.filter,'finished');
+  assert.equal(filtered.requestTotal,2);
+  assert.equal(filtered.matchingTotal,1);
+  assert.equal(filtered.rows.length,1);
+  assert.equal(filtered.rows[0].state,'finished');
+  assert.equal(filtered.page.nextOffset,null);
+  const empty=await f.cloud.cloudObserve({limit:5,state:'cancelled'});
+  assert.equal(empty.requestTotal,2);assert.equal(empty.matchingTotal,0);
+  assert.deepEqual(empty.rows,[]);
   await assert.rejects(f.cloud.cloudObserve({limit:51}),code('E_SCHEMA'));
+  await assert.rejects(f.cloud.cloudObserve({state:'anything-else'}),code('E_SCHEMA'));
   await assert.rejects(f.cloud.cloudObserve({namespace:'foreign'}),code('E_SCHEMA'));
 });
 test('cloudResolve uses a durable direct request key and rejects non-cloud identifiers',async()=>{
