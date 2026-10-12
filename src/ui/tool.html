@@ -449,13 +449,15 @@
       <select id="program-source-files" hidden></select>
       <button type="button" id="program-new-script" title="创建可编辑的 JavaScript 草稿（退出当前只读源码视图）" aria-label="新建 JavaScript 草稿" hidden>新建</button>
     </div>
-    <div id="page-component-editor-tools" class="row" role="group" aria-label="网页组件开发方式">
-      <label for="page-component-framework">代码类型</label>
-      <select id="page-component-framework" aria-describedby="page-component-hint">
-        <option value="javascript">普通 JavaScript</option>
-        <option value="react">React · JSX</option>
-        <option value="vue">Vue · SFC</option>
-      </select>
+    <div id="page-component-editor-tools" class="row">
+      <fieldset id="page-component-framework" aria-describedby="page-component-hint">
+        <legend>代码类型</legend>
+        <div class="page-component-choices">
+          <label for="page-component-javascript"><input id="page-component-javascript" type="radio" name="page-component-choice" value="javascript" checked><span>JavaScript</span></label>
+          <label for="page-component-react"><input id="page-component-react" type="radio" name="page-component-choice" value="react"><span>React · JSX</span></label>
+          <label for="page-component-vue"><input id="page-component-vue" type="radio" name="page-component-choice" value="vue"><span>Vue · SFC</span></label>
+        </div>
+      </fieldset>
       <span id="page-component-hint" class="hint">保存草稿不会运行网页</span>
     </div>
     <label for="script-source" class="visually-hidden">JavaScript、React JSX 或 Vue SFC 源码编辑器</label><textarea id="script-source" rows="6" spellcheck="false">async function main() {
