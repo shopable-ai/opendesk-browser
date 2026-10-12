@@ -237,3 +237,7 @@
 - 保留 Page QA Inspector 从商业首发退出的决定，Browser SDK、Controller、原生 Cloud/任务基础设施状态由其各自 workstream 决定。
 
 **当前研究结论：首个应验证而不是首个应开发的产品 = Seller Payout Exception Auditor。下一步不是造功能，而是找到拥有真实结算 CSV、确实需要 Excel/人工核账的店主及财务负责人，并用两期数据证明它解决了官方没有解决的异常。**
+
+## R4 研究转为源码工程（2026-10-13）
+
+从本页跨行业研究已形成 [R4 首款卖家结算异常核对工作流完整开发计划](commercial-mvp-workflow-r4-20261013.zh-CN.md)，保留原 OPP/EXP 和未验证状态，首版只依赖用户自己合法导出的 Shopify Payments CSV；并行比较 SKU/毛利、创作者佣金与商单交付。EXP-005 仍是 Listing QA，并不是本结算核对的已执行商业实验。

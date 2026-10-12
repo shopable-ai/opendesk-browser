@@ -93,3 +93,8 @@ OpenDesk Product Ecosystem
 ## 高价值用户 X 维度 R3 增量
 
 - **[高价值用户跨行业机会 R3（2026-10-12，研究排序与证据）](high-value-user-opportunities-r3-20261012.zh-CN.md)**：12 类用户、8 平台数据边界、TOP30 微任务、TOP10 概念与三个 CSV/合同工作流；不新增 OPP/EXP，不等于付费或产品通过验收。
+
+## R4 商业工作流 MVP 工程入口（2026-10-13）
+
+- [R4 Seller Payout 商业闭环、功能规划、用户流程、代码任务树、验收](commercial-mvp-workflow-r4-20261013.zh-CN.md)：现有工具 Tab → 官方 CSV 导入 → 本地差异对账 → CSV/JSON 证据；研究计划，非已完成产品。
+- [R4 真实源码开发完整 GOAL](../../framework/prompts/goal-commercial-mvp-seller-payout-r4-20261013.zh-CN.md)。

@@ -101,3 +101,10 @@ CWS 单一用途、重复内容、白标、最小权限和合法数据来源为�
 交付 GO/PIVOT/STOP、真实/缺失证据、各项 Gate 结果和下一轮产品建议；
 仅在安全无并行冲突时将研究文档保存 main。
 ~~~
+
+## 新增：R4 商业闭环 MVP 实施入口（2026-10-13）
+
+- [一个真正在浏览器插件内可用的卖家结算审计 MVP 工作流和任务树](commercial-mvp-workflow-r4-20261013.zh-CN.md)
+- [复制到下一源码对话的 R4 完整 GOAL](../../framework/prompts/goal-commercial-mvp-seller-payout-r4-20261013.zh-CN.md)
+
+仅 P0 使用手动 CSV 和本地解释规则，不重建 SDK/Task/工具市场，不提前创造支付/用户统计。Page QA Inspector 仍 DEPRECATED。
