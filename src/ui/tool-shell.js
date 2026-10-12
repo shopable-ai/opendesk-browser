@@ -66,9 +66,11 @@ const workflowView=createWorkflowView({api:chrome,client:foundationClient,host:s
   openCatalog:()=>taskWorkbench.navigate('catalog')});
 const sidebarTools=createSidebarTools({api:chrome,currentPageTarget,taskWorkbench});
 const installedPageTools=createInstalledPageTools({client:foundationClient,api:chrome,doc:document});
-const cloudHosting=createCloudHosting({client:foundationClient,host:scriptEditor.host});
+// A full catalog/tool tab also loads tool.html. It must never become a second
+// cloud-claiming Host merely because the extension's trusted UI is open.
+let cloudHosting=null;
 debugWorkbench=debugEnabled?createDebugWorkbench({client:foundationClient,host:scriptEditor.host}):null;
-window.addEventListener('pagehide',()=>cloudHosting.dispose(),{once:true});
+window.addEventListener('pagehide',()=>cloudHosting?.dispose(),{once:true});
 taskWorkbench.connectToolsView((visible,destination)=>{
   const accepted=sidebarTools.setVisible(visible,destination);
   if(visible)void installedPageTools.refresh();
@@ -103,6 +105,7 @@ chrome.runtime.onMessage.addListener(draftImportListener);draftImportAttached=tr
 Promise.resolve(chrome.tabs.getCurrent?.()).then(async tab => {
   if(!tab?.id){
     sidebarSurface=true;
+    cloudHosting=createCloudHosting({client:foundationClient,host:scriptEditor.host});
     void tabMemory.restore().catch(error=>console.warn('Sidebar tab restoration unavailable',error));
     return;
   }
