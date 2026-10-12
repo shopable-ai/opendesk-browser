@@ -8,6 +8,8 @@ on:
       - 'src/platform/chrome/context-menus.js'
       - 'src/ui/sidebar-tools.js'
       - 'src/ui/sidebar-tools/**'
+      - 'src/sidebar-tools/bridge.js'
+      - 'tests/environment/browser-sdk-approval-timeout.test.mjs'
       - 'tests/environment/browser-*.test.mjs'
       - 'scripts/check-browser-sdk-coverage.mjs'
       - 'docs/framework/workstreams/browser-sdk-*'
@@ -38,7 +40,7 @@ jobs:
           node --test --test-reporter=spec tests/environment/browser-sdk-r13.test.mjs tests/environment/sidebar-tools.test.mjs tests/environment/sidebar-tools-host.test.mjs tests/environment/official-tools-catalog-r45.test.mjs tests/environment/fixed-entries-audit.test.mjs tests/framework/k4-sdk-reinjection.test.mjs tests/framework/k4-sdk.test.mjs tests/framework/k2-sdk-relay-races.test.mjs tests/environment/boundaries.test.mjs
       - name: Browser SDK schema and evidence guards
         run: |
-          node --test tests/environment/browser-sdk-contract-compat.test.mjs tests/environment/browser-sdk-coverage.test.mjs tests/environment/browser-tabs-host.test.mjs tests/environment/browser-sidepanel-host.test.mjs tests/environment/browser-sdk-r2-host.test.mjs tests/environment/browser-network-observe-host.test.mjs tests/environment/browser-screenshot-host.test.mjs tests/environment/browser-screenshot-resources.test.mjs
+          node --test tests/environment/browser-sdk-contract-compat.test.mjs tests/environment/browser-sdk-coverage.test.mjs tests/environment/browser-tabs-host.test.mjs tests/environment/browser-sidepanel-host.test.mjs tests/environment/browser-sdk-r2-host.test.mjs tests/environment/browser-network-observe-host.test.mjs tests/environment/browser-screenshot-host.test.mjs tests/environment/browser-screenshot-resources.test.mjs tests/environment/browser-sdk-approval-timeout.test.mjs
           node scripts/check-browser-sdk-coverage.mjs --check
       - name: Source and fixed entry guard
         run: npm run check

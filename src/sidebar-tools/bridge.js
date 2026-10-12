@@ -1,6 +1,16 @@
 // Runs only as an opaque-origin Chrome MV3 sandbox document, never in the privileged Side Panel.
 import {SIDEBAR_TOOL_PROTOCOL} from '../ui/sidebar-tools/package.js';
 import {createBrowserSdk} from '../framework/sdk/browser.js';
+// The sandbox waits for a separate real Side Panel click; ordinary tool RPCs
+// remain 8 seconds. This duration is UX only, never an authorization or grant.
+const TOOL_CONSENT_OPS=new Set(['browser.tabs.open','browser.tabs.focus',
+ 'browser.network.request','browser.sidePanel.openSelf',
+ 'browser.network.observe.start','browser.network.observe.export',
+ 'browser.screenshot.captureVisible']);
+export function sidebarToolRequestTimeout(operation,toolId){
+ return (toolId==='time-review'&&['time.start','time.clear'].includes(operation))||
+   TOOL_CONSENT_OPS.has(operation)?120000:8000;
+}
 export function initSidebarToolSandbox() {
   const root=document.getElementById('tool-root');
   const status=document.getElementById('tool-status');
@@ -48,9 +58,7 @@ export function initSidebarToolSandbox() {
     return new Promise((resolve,reject)=>{
       // Time Review start/clear await a real trusted-host confirmation dialog.
       // Keep ordinary reads/writes short while allowing time to read that dialog.
-      const timeoutMs=(toolId==='time-review'&&['time.start','time.clear'].includes(operation))||
-        ['browser.tabs.open','browser.tabs.focus','browser.network.request','browser.sidePanel.openSelf'].includes(operation)
-          ?120000:8000;
+      const timeoutMs=sidebarToolRequestTimeout(operation,toolId);
       const timeout=setTimeout(()=>{waiting.delete(requestId);reject(new Error('工具请求超时'));},timeoutMs);
       waiting.set(requestId,{resolve,reject,timeout});
       parent.postMessage({protocol:SIDEBAR_TOOL_PROTOCOL,kind:'request',instance,toolId,requestId,operation,payload},'*');

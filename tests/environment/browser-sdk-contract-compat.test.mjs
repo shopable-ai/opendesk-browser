@@ -6,8 +6,8 @@ const isCode=expected=>e=>e?.code===expected;
 test('Browser SDK 32 operations each have typed input/output schema metadata',()=>{
   const rows=Object.values(BROWSER_OPERATIONS);
   assert.equal(rows.length,32);
-  assert.deepEqual(Object.fromEntries(Object.entries(Object.groupBy(rows,x=>x.implementation))
-    .map(([key,values])=>[key,values.length])),{IMPLEMENTED:23,PLANNED:7,HOST_ONLY:0,NOT_EXPOSED:2});
+  assert.deepEqual(Object.assign({HOST_ONLY:0},Object.fromEntries(Object.entries(Object.groupBy(rows,x=>x.implementation))
+    .map(([key,values])=>[key,values.length]))),{IMPLEMENTED:23,PLANNED:7,HOST_ONLY:0,NOT_EXPOSED:2});
   for(const op of rows){
     assert.equal(op.inputSchema?.type,'object',op.operation);
     assert.equal(op.inputSchema.additionalProperties,false,op.operation);
