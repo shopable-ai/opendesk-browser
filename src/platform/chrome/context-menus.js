@@ -140,6 +140,10 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
     'browser.network.observe.start','browser.network.observe.export']);
   const observationOperations=new Set(['browser.network.observe.getStatus','browser.network.observe.stop',
     'browser.events.read','browser.events.close']);
+  const ownedOperationMethods=new Set(['browser.operations.getStatus','browser.operations.cancel']);
+  const operationState=state=>({
+    running:'running',stopped:'completed',cancelled:'cancelled',
+    interrupted:'failed',revoked:'cancelled'})[state]??'unknown';
   async function verifyBrowserOwner(identity,operation,origin=null){
     const owned=await readSources(api),tool=admittedTool(owned.tools,identity.toolId);
     if(!sidebarToolEnabled(owned.enabled,tool.id))throw failure('E_TOOL_DISABLED');
@@ -430,13 +434,21 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
           return result;
         }finally{activeNetworkRequests.delete(controller)}
       }
-      if(observationOperations.has(operation)){
+      if(observationOperations.has(operation)||ownedOperationMethods.has(operation)){
         const checked=normalizeBrowserOperation(operation,args),packageHash=await digestTool(tool);
         const context={toolId,toolVersion,packageHash,epoch:installEpoch??null,
           installEpoch:String(installEpoch??'initial-install'),approvedOrigin:null};
-        const ref=checked.observationId??checked.sessionRef;
+        const ref=checked.observationId??checked.sessionRef??checked.operationId;
         const saved=await networkObserver.inspect(ref,context);
         await verifyBrowserOwner(context,operation,saved.origin);
+        if(operation==='browser.operations.getStatus'){
+          const result=await networkObserver.getStatus({observationId:ref},context);
+          return {state:operationState(result.state)};
+        }
+        if(operation==='browser.operations.cancel'){
+          const result=await networkObserver.cancel({observationId:ref},context);
+          return {state:operationState(result.state),cancelRequested:result.cancelRequested};
+        }
         if(operation==='browser.network.observe.getStatus')
           return networkObserver.getStatus(checked,context);
         if(operation==='browser.network.observe.stop')

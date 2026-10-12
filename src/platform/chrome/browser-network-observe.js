@@ -124,7 +124,7 @@ export function createBrowserNetworkObserver({api=globalThis.chrome,clock=Date,
    maxEvents:args.maxEvents??MAX_EVENTS,maxBufferedBytes:args.maxBufferedBytes??MAX_BYTES,events:[]};
   sessions.set(id,row);
   try{await persist()}catch(error){sessions.delete(id);throw fail('E_STORAGE','Observation not durably admitted')}
-  return {observationId:id,expiresAt:row.expiresAt,status:'running'};
+  return {observationId:id,operationId:id,expiresAt:row.expiresAt,status:'running'};
  }
  async function getStatus({observationId},context){
   const row=await load(observationId,context);
@@ -135,6 +135,12 @@ export function createBrowserNetworkObserver({api=globalThis.chrome,clock=Date,
   const row=await load(observationId,context);
   stopRow(row);await persist();
   return {state:row.state,stoppedAt:row.stoppedAt??now()};
+ }
+ async function cancel({observationId},context){
+  const row=await load(observationId,context),cancelRequested=row.state==='running';
+  if(cancelRequested)stopRow(row,'cancelled');
+  await persist();
+  return {state:row.state,cancelRequested};
  }
  async function read({sessionRef,cursor='0',limit=50},context){
   const row=await load(sessionRef,context);
@@ -180,6 +186,6 @@ export function createBrowserNetworkObserver({api=globalThis.chrome,clock=Date,
   }
   changed();
  }
- return Object.freeze({start,getStatus,stop,read,close,exportJson,inspect,invalidateTab,revokeAll,
+ return Object.freeze({start,getStatus,stop,cancel,read,close,exportJson,inspect,invalidateTab,revokeAll,
   flush:()=>writes});
 }

@@ -3,7 +3,7 @@
   "sourceOfTruth": "src/framework/sdk/browser-contract.js",
   "repository": "shopable-ai/opendesk-browser",
   "branch": "main",
-  "auditedMainSha": "faffbc67e9cd067ca288aacc0197e4cd93b41868",
+  "auditedMainSha": "e3d5721acfe41e7c2ffbc2dfe61c9be616120237",
   "auditedDate": "2026-10-12",
   "apiVersion": "1.0.0",
   "capacityUniverse": {
@@ -14,8 +14,8 @@
   "summary": {
     "operationCount": 32,
     "implementationCounts": {
-      "IMPLEMENTED": 20,
-      "PLANNED": 9,
+      "IMPLEMENTED": 22,
+      "PLANNED": 7,
       "HOST_ONLY": 1,
       "NOT_EXPOSED": 2
     },
@@ -70,7 +70,7 @@
     },
     "R4": {
       "status": "NOT_TESTED",
-      "reason": "No same-candidate full CI, package and Mac Chrome proof"
+      "reason": "Owned network-observation operation getStatus/cancel routes implemented; native Chrome and complete R4 scope still unverified"
     }
   },
   "previousVerifiedEvidence": [
@@ -1345,11 +1345,11 @@
       "api": "browser.operations.getStatus",
       "module": "browser.operations",
       "apiVersion": "1.0.0",
-      "implementation": "PLANNED",
+      "implementation": "IMPLEMENTED",
       "executionContexts": [
         "sidebar-tool"
       ],
-      "exposure": "DECLARED_NON_EXECUTABLE",
+      "exposure": "APPROVED_TOOL",
       "inputSchema": "src/framework/sdk/browser-contract.js#browser.operations.getStatus",
       "outputSchema": "src/framework/sdk/browser-contract.js#browser.operations.getStatus",
       "chromePermissions": [],
@@ -1360,8 +1360,8 @@
       "riskLevel": "low",
       "siteScope": "owned-operation",
       "lifecycle": "request",
-      "hostImplementation": null,
-      "sdkEntry": null,
+      "hostImplementation": "src/platform/chrome/context-menus.js#handleTool",
+      "sdkEntry": "src/framework/sdk/browser.js",
       "positiveTest": {
         "status": "NOT_TESTED",
         "evidence": []
@@ -1376,9 +1376,9 @@
       },
       "callableNowVerification": "NOT_TESTED",
       "blockers": [
-        "Install capability, trusted Host RPC, permission revocation and native verification not completed"
+        "Only this installed tool's network-observation operation is manageable. Same-candidate Mac Chrome proof pending."
       ],
-      "nextTask": "Connect verified Host, install grants and user consent; test or remain PLANNED",
+      "nextTask": "Verify actual Host owner/epoch/site permission and state or cancellation across Worker restart",
       "commits": [],
       "evidence": []
     },
@@ -1386,11 +1386,11 @@
       "api": "browser.operations.cancel",
       "module": "browser.operations",
       "apiVersion": "1.0.0",
-      "implementation": "PLANNED",
+      "implementation": "IMPLEMENTED",
       "executionContexts": [
         "sidebar-tool"
       ],
-      "exposure": "DECLARED_NON_EXECUTABLE",
+      "exposure": "APPROVED_TOOL",
       "inputSchema": "src/framework/sdk/browser-contract.js#browser.operations.cancel",
       "outputSchema": "src/framework/sdk/browser-contract.js#browser.operations.cancel",
       "chromePermissions": [],
@@ -1401,8 +1401,8 @@
       "riskLevel": "medium",
       "siteScope": "owned-operation",
       "lifecycle": "request",
-      "hostImplementation": null,
-      "sdkEntry": null,
+      "hostImplementation": "src/platform/chrome/context-menus.js#handleTool",
+      "sdkEntry": "src/framework/sdk/browser.js",
       "positiveTest": {
         "status": "NOT_TESTED",
         "evidence": []
@@ -1417,9 +1417,9 @@
       },
       "callableNowVerification": "NOT_TESTED",
       "blockers": [
-        "Install capability, trusted Host RPC, permission revocation and native verification not completed"
+        "Only this installed tool's network-observation operation is manageable. Same-candidate Mac Chrome proof pending."
       ],
-      "nextTask": "Connect verified Host, install grants and user consent; test or remain PLANNED",
+      "nextTask": "Verify actual Host owner/epoch/site permission and state or cancellation across Worker restart",
       "commits": [],
       "evidence": []
     }

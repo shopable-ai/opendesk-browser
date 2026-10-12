@@ -110,6 +110,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     'network':'经用户单次批准向指定 Origin 发送受控 HTTP 请求',
     'browser.network.observe':'经用户授权观察自己打开的网页 HTTP 元数据（最多30秒）',
     'browser.events':'读取和关闭此工具持有的有界网络观察会话',
+    'browser.operations':'查询和取消本工具持有的网络观察操作',
   });
   const timePermissions=settingsView?createTimeReviewPermissionControls({api,doc,container:settingsView,notice,runOperation:runTrustedTimeReviewOperation}):null;
   const versionOrder=compareToolVersions;

@@ -57,8 +57,8 @@ export const BROWSER_OPERATIONS=Object.freeze({
   'browser.speech.stop':entry('browser.speech.stop','browser.speech',tool,[],'write','low','owned-session','PLANNED'),
   'browser.notifications.create':entry('browser.notifications.create','browser.notifications',tool,['notifications'],'write','medium','none','NOT_EXPOSED'),
   'browser.notifications.clear':entry('browser.notifications.clear','browser.notifications',tool,['notifications'],'write','low','none','NOT_EXPOSED'),
-  'browser.operations.getStatus':entry('browser.operations.getStatus','browser.operations',tool,[],'read','low','owned-operation','PLANNED'),
-  'browser.operations.cancel':entry('browser.operations.cancel','browser.operations',tool,[],'write','medium','owned-operation','PLANNED')
+  'browser.operations.getStatus':entry('browser.operations.getStatus','browser.operations',tool,[],'read','low','owned-operation','IMPLEMENTED'),
+  'browser.operations.cancel':entry('browser.operations.cancel','browser.operations',tool,[],'write','medium','owned-operation','IMPLEMENTED')
 });
 assertBrowserSchemaCoverage(BROWSER_OPERATIONS);
 export function browserOperation(name){return Object.hasOwn(BROWSER_OPERATIONS,name)?BROWSER_OPERATIONS[name]:null;}
@@ -154,6 +154,12 @@ export function normalizeBrowserOperation(operation,args={}){
          (args.limit!==undefined&&(!Number.isSafeInteger(args.limit)||args.limit<1||args.limit>100)))
          throw fail('E_SCHEMA','Invalid event cursor or limit');
       return {sessionRef:args.sessionRef,cursor:args.cursor??'0',limit:args.limit??50};
+    case 'browser.operations.getStatus':
+    case 'browser.operations.cancel':
+      fields(args,['operationId'],['operationId']);
+      if(typeof args.operationId!=='string'||!/^[A-Za-z0-9_-]{16,160}$/.test(args.operationId))
+        throw fail('E_SCHEMA','Owned operation reference required');
+      break;
     case 'browser.events.close':
       fields(args,['sessionRef'],['sessionRef']);
       if(typeof args.sessionRef!=='string'||!/^[A-Za-z0-9_-]{16,160}$/.test(args.sessionRef))

@@ -41,6 +41,8 @@ export function createBrowserSdk({request,context='sidebar-tool'}={}){
       observe:Object.freeze({start:method('browser.network.observe.start'),
         getStatus:method('browser.network.observe.getStatus'),
         stop:method('browser.network.observe.stop'),export:method('browser.network.observe.export')})}),
-    events:Object.freeze({read:method('browser.events.read'),close:method('browser.events.close')})
+    events:Object.freeze({read:method('browser.events.read'),close:method('browser.events.close')}),
+    operations:Object.freeze({getStatus:method('browser.operations.getStatus'),
+      cancel:method('browser.operations.cancel')})
   });
 }

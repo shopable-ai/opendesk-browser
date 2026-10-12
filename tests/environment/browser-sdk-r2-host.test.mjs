@@ -9,7 +9,7 @@ const uid='01234567-89ab-4def-8123-456789abcdef';
 const pkg=validateSidebarToolPackage({
   format:'opendesk.sidebar-tool.v2',id:'browser-probe',version:'1.0.0',
   title:'Browser probe',description:'P0 acceptance probe',
-  capabilities:['browser.tabs','browser.sidePanel','network','browser.network.observe','browser.events'],
+  capabilities:['browser.tabs','browser.sidePanel','network','browser.network.observe','browser.events','browser.operations'],
   html:'<div>Browser probe</div>',css:'',js:'console.log("browser probe");',
   requires:{browserSdk:'1.0.0'},contributes:{contextMenus:[]}
 });
@@ -200,4 +200,25 @@ test('R2 observer rejects off-Origin, Chrome revocation and uninstalled tool',as
  f.setChrome(true);
  await f.api.storage.local.set({'opendesk.sidebar-tools.installed.v1':[]});
  await assert.rejects(f.confirm('browser.network.observe.start',exact),err('E_TOOL_CHANGED'));
+});
+
+test('R4 owned operation status/cancel refers to a real network observation and never controls other tabs',async()=>{
+ const f=fixture(),url={url:'https://example.org/observe'};
+ const tabRef=(await f.call('browser.tabs.open',url,
+   (await f.confirm('browser.tabs.open',url)).approvalRef)).tabRef;
+ const params={tabRef,origins:['https://example.org'],durationMs:30000};
+ const started=await f.call('browser.network.observe.start',params,
+   (await f.confirm('browser.network.observe.start',params)).approvalRef);
+ assert.equal(started.operationId,started.observationId);
+ assert.deepEqual(await f.call('browser.operations.getStatus',
+   {operationId:started.operationId}),{state:'running'});
+ assert.deepEqual(await f.call('browser.operations.cancel',
+   {operationId:started.operationId}),{state:'cancelled',cancelRequested:true});
+ assert.deepEqual(await f.call('browser.operations.cancel',
+   {operationId:started.operationId}),{state:'cancelled',cancelRequested:false});
+ await assert.rejects(f.call('browser.operations.cancel',{operationId:'x'.repeat(32)}),
+   err('E_OBSERVATION_UNKNOWN'));
+ f.setSite(false);
+ await assert.rejects(f.call('browser.operations.getStatus',
+   {operationId:started.operationId}),err('E_SITE_PERMISSION_REVOKED'));
 });

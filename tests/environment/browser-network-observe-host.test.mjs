@@ -95,3 +95,15 @@ test('explicit JSON export uses a bounded real Chrome download, never returns ra
  await host.close({sessionRef:observationId},identity());
  await assert.rejects(host.exportJson({observationId},identity()),code('E_OBSERVATION_UNKNOWN'));
 });
+
+test('owned cancellation changes observable session state and remains idempotent',async()=>{
+ const f=fixture(),host=f.host(),id=identity();
+ const {observationId,operationId}=await host.start(args,id,target);
+ assert.equal(operationId,observationId);
+ assert.deepEqual(await host.cancel({observationId},id),
+   {state:'cancelled',cancelRequested:true});
+ assert.deepEqual(await host.cancel({observationId},id),
+   {state:'cancelled',cancelRequested:false});
+ assert.equal((await host.getStatus({observationId},id)).state,'cancelled');
+ await assert.rejects(host.cancel({observationId},identity('foreign')),code('E_OWNER'));
+});

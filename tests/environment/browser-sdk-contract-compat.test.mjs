@@ -7,7 +7,7 @@ test('Browser SDK 32 operations each have typed input/output schema metadata',()
   const rows=Object.values(BROWSER_OPERATIONS);
   assert.equal(rows.length,32);
   assert.deepEqual(Object.fromEntries(Object.entries(Object.groupBy(rows,x=>x.implementation))
-    .map(([key,values])=>[key,values.length])),{IMPLEMENTED:20,PLANNED:9,HOST_ONLY:1,NOT_EXPOSED:2});
+    .map(([key,values])=>[key,values.length])),{IMPLEMENTED:22,PLANNED:7,HOST_ONLY:1,NOT_EXPOSED:2});
   for(const op of rows){
     assert.equal(op.inputSchema?.type,'object',op.operation);
     assert.equal(op.inputSchema.additionalProperties,false,op.operation);

@@ -81,7 +81,9 @@ export async function checkBrowserSdk({root=ROOT}={}){
   ()=>sdk.network.observe.stop({observationId:'r'.repeat(32)}),
   ()=>sdk.network.observe.export({observationId:'r'.repeat(32),format:'json'}),
   ()=>sdk.events.read({sessionRef:'r'.repeat(32)}),
-  ()=>sdk.events.close({sessionRef:'r'.repeat(32)})
+  ()=>sdk.events.close({sessionRef:'r'.repeat(32)}),
+  ()=>sdk.operations.getStatus({operationId:'r'.repeat(32)}),
+  ()=>sdk.operations.cancel({operationId:'r'.repeat(32)})
  ];
  for(const probe of probes)try{await probe()}catch(e){errors.push('wrapper probe: '+(e.code||e.message))}
  const evidence=[];

@@ -41,7 +41,7 @@ const ops=Object.freeze({
    obj({status:num(100,599),data:{}},['status'])],
  'browser.network.observe.start':[obj({tabRef:ref,origins:arr(http,8),durationMs:num(1,30000),
    maxEvents:num(1,500),maxBufferedBytes:num(1024,524288)},['tabRef','origins']),
-   obj({observationId:ref,expiresAt:num(),status:str(40)},['observationId','expiresAt','status'])],
+   obj({observationId:ref,operationId:ref,expiresAt:num(),status:str(40)},['observationId','operationId','expiresAt','status'])],
  'browser.network.observe.getStatus':[sid,counter],
  'browser.network.observe.stop':[sid,obj({state:str(40),stoppedAt:num()},['state','stoppedAt'])],
  'browser.network.observe.export':[obj({observationId:ref,format:{enum:['json']}},['observationId','format']),
