@@ -228,6 +228,43 @@ async function fileChooser(client,session,filename,events){
       JSON.stringify(observations));
   }finally{await client.send('Page.setInterceptFileChooserDialog',{enabled:false},session).catch(()=>{});}
 }
+// Chrome Site Access is changed by real native user input on Chrome WebUI.
+// CDP Runtime.evaluate only reads state, never changes select.value/permissions.
+async function setNativeChromeSiteAccess(client,session,targetId,mode){
+  const select='document.querySelector("extensions-manager")?.shadowRoot?.querySelector("extensions-detail-view")?.shadowRoot?.querySelector("extensions-runtime-host-permissions")?.shadowRoot?.querySelector("#newHostAccess")';
+  const choices=await deadline(()=>evaluate(client,'(()=>{const n='+select+';return n?.options?.length?{value:n.value,options:[...n.options].map(o=>({value:o.value,text:o.textContent.trim()}))}:null})()',session),
+    'Chrome Site Access actual WebUI selector',25000);
+  const index=choices.options.findIndex(x=>x.value===mode);
+  assert(index>=0,'Site Access option is available: '+mode);
+  if(choices.value===mode)return choices;
+  await client.send('Target.activateTarget',{targetId});
+  if(process.platform==='darwin'){
+    assert.equal(typeof nativeOwnedMacInput,'function');
+    nativeOwnedMacInput('activate');
+  }
+  const node=await client.send('Runtime.evaluate',{expression:select,returnByValue:false},session);
+  assert(node.result?.objectId,'Chrome site-access select must exist');
+  try{
+    await client.send('DOM.scrollIntoViewIfNeeded',{objectId:node.result.objectId},session);
+    const box=await evaluate(client,'(()=>{const r=('+select+').getBoundingClientRect();return {x:r.x+r.width/2,y:r.y+r.height/2,w:r.width,h:r.height}})()',session);
+    assert(box.w>7&&box.h>7);
+    for(const type of ['mousePressed','mouseReleased'])
+      await client.send('Input.dispatchMouseEvent',{type,x:box.x,y:box.y,button:'left',clickCount:1},session);
+    if(process.platform==='darwin'){
+      nativeOwnedMacInput('key','home');
+      for(let i=0;i<index;i++)nativeOwnedMacInput('key','down');
+      nativeOwnedMacInput('key','return');
+    }else{
+      await key(client,session,'Home','Home',36);
+      for(let i=0;i<index;i++)await key(client,session,'ArrowDown','ArrowDown',40);
+      await key(client,session,'Enter','Enter',13);
+    }
+  }finally{await client.send('Runtime.releaseObject',{objectId:node.result.objectId},session).catch(()=>{});}
+  await deadline(()=>evaluate(client,select+'.value==='+JSON.stringify(mode),session),
+    'native Chrome site access updated to '+mode,16000);
+  return {oldMode:choices.value,newMode:mode,options:choices.options};
+}
+
 async function durable(client,session){
   // Read the SAME extension IndexedDB as Authority/RunHost, only readonly.
   const script='(async()=>{const db=await new Promise((res,rej)=>{const r=indexedDB.open("opendesk-browser");r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)});'+
@@ -622,6 +659,66 @@ test('real installed Chrome: verified Task via Alarms -> original RunHost -> pag
       return state.plans.length===1&&state.plans[0].paused===true&&state.plans[0].nextDueAt===null;
     },'real restored Side Panel pauses future occurrences');
     report.tests.restoredHostPause='PASS';
+  }
+  if(process.env.SCHEDULE_NATIVE_PERMISSIONS==='1'){
+    assert.equal(LIFECYCLE,false,'Native site permission scenario is isolated');
+    await client.send('Page.navigate',{url:URL},siteSid);
+    await deadline(()=>evaluate(client,
+      'document.readyState==="complete"&&!document.querySelector("#done")',siteSid),
+      'untouched page before real website permission revocation');
+    await click(client,runnerSid,'#schedule-plan-list .schedule-card .schedule-actions button:nth-child(2)');
+    const resumed=await deadline(async()=>{
+      const state=await durable(client,runnerSid),plan=state.plans[0];
+      return plan&&!plan.paused&&plan.generation>=2&&Number.isSafeInteger(plan.nextDueAt)?plan:null;
+    },'genuine user resume of approved schedule');
+    const settings=await client.send('Target.createTarget',{url:'about:blank'});
+    const settingsSid=await attach(client,settings.targetId);
+    await client.send('Page.navigate',{url:'chrome://extensions/?id='+extensionId},settingsSid);
+    assert.equal(await evaluate(client,
+      'chrome.permissions.contains({origins:["http://127.0.0.1:43111/*"]})',runnerSid),true);
+    const revoked=await setNativeChromeSiteAccess(client,settingsSid,settings.targetId,'ON_CLICK');
+    note('real-chrome-site-access-revoked',{extensionId,revoked});
+    await deadline(()=>evaluate(client,
+      'chrome.permissions.contains({origins:["http://127.0.0.1:43111/*"]}).then(x=>!x)',runnerSid),
+      'Chrome revoked actual host website access',20000);
+    report.tests.actualChromePermissionRevoked='PASS';
+    await client.send('Target.activateTarget',{targetId:runnerId});
+    await click(client,runnerSid,'#schedule-back');
+    await click(client,runnerSid,'#schedule-runner-refresh');
+    await click(client,runnerSid,'#schedule-runner-manage');
+    await deadline(()=>evaluate(client,
+      'document.querySelector("#schedule-plan-list .schedule-card .schedule-state")?.textContent?.includes("需要处理")',
+      runnerSid),'revoked plan displays requires-attention status');
+    report.tests.revokedPlanUI='PASS';
+    const denied=await deadline(async()=>{
+      const state=await durable(client,runnerSid);
+      const fire=state.fires.find(x=>x.fireId.startsWith(
+        'sched:'+resumed.scheduleId+':'+resumed.generation+':')&&
+        x.status==='NEEDS_ATTENTION'&&!x.runId);
+      return fire?{fire,runCount:state.runs.filter(x=>x.scheduledFireId===fire.fireId).length,
+        originalRunCount:state.runs.filter(x=>x.scheduledFireId===due.fire.fireId).length}:null;
+    },'revoked Chrome origin blocks next scheduled Controller admission',145000);
+    assert.equal(denied.runCount,0);
+    assert.equal(denied.originalRunCount,1,'historical original result must remain intact');
+    assert.equal(await evaluate(client,'!!document.querySelector("#done")',siteSid),false,
+      'scheduled execution cannot modify revoked real web page');
+    report.tests.revokedNativeRunBlocked='PASS';
+    note('real-chrome-revoked-fire',{...denied,webEffect:false});
+    report.screenshots.push(await screenshot(client,runnerSid,'r2-revoked-plan-needs-attention'));
+    const restored=await setNativeChromeSiteAccess(client,settingsSid,settings.targetId,'ON_ALL_SITES');
+    await deadline(()=>evaluate(client,
+      'chrome.permissions.contains({origins:["http://127.0.0.1:43111/*"]})',runnerSid),
+      'Chrome restored actual host website access',20000);
+    const after=await durable(client,runnerSid);
+    assert.equal(after.runs.filter(x=>x.scheduledFireId===denied.fire.fireId).length,0,
+      'permission restoration never replays old denied FireId');
+    report.tests.actualChromePermissionRestored='PASS';
+    note('real-chrome-site-access-restored',{restored,fireId:denied.fire.fireId});
+    await click(client,runnerSid,'#schedule-plan-list .schedule-card .schedule-actions button:nth-child(2)');
+    await deadline(async()=>{
+      const state=await durable(client,runnerSid);
+      return state.plans[0]?.paused===true&&state.plans[0]?.nextDueAt===null;
+    },'pause restored plan through original visible UI');
   }
   if(process.env.SCHEDULE_NATIVE_RESTART==='1'){
     assert.equal(LIFECYCLE,false,'Full Chrome restart has its own isolated native test phase');
