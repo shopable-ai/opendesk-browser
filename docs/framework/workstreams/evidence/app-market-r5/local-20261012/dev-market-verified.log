@@ -1,0 +1,6 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> opendesk-browser@0.1.0 dev:market
+> node scripts/serve-market-site.mjs
+
+{"output":"/workspace/scratch/58f5833cea67/opendesk-browser/dist/app-market-public","buildId":"aa21d6953b5070b3edb75c37847241b497372e93e81bbb11e7283cfd7dc72a9d","apps":6,"releases":11,"origin":"http://127.0.0.1:43132","mode":"development","extensionId":"efpjgcbjdididgpjfpbnkfinpeggggdf","externalInstall":"CONFIGURED","url":"http://127.0.0.1:43132","extension":"dist/development","note":"先构建并加载开发扩展；Ctrl+C 停止本服务。"}

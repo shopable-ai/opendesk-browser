@@ -10,7 +10,7 @@
 
 迁移格式：opendesk.market.transfer.v1，字段严格限定为 format 和 apps，每项只能有 marketId、version，版本须与扩展内官方发行一致。未知字段、网络脚本、Token、Cookie、站点授权、Note 正文、Native 配对和路径都拒绝。导入仅选择待审阅应用。
 
-公网到扩展的 onMessageExternal 仍为 NOT_IMPLEMENTED，未配置明确 Origin 时不得通过 ANY URL 接受安装意图。
+R5 已实现受限 `onMessageExternal` 交接：只接受连接探测和固定 app/version、collection/revision 的打开审阅请求。开发仅允许配置的 loopback Origin；生产四项核验输入未配置时保持禁用。它不是安装／执行公网 API。具体字段、sender、限流及恢复见 [R5 网站合同](../architecture/browser-framework/app-market-website-r5.zh-CN.md)，真实 Chrome／正式 HTTPS 状态见 [R5 工作流](../framework/workstreams/app-market-r5.md)。
 
 ## 批次协调 API（R3.1）
 

@@ -1,0 +1,100 @@
+TAP version 13
+# Subtest: R5 production trust is disabled until all reviewed inputs exist; development cannot leak into it
+ok 1 - R5 production trust is disabled until all reviewed inputs exist; development cannot leak into it
+  ---
+  duration_ms: 1.302209
+  type: 'test'
+  ...
+# Subtest: R5 finite messages reject code, URLs, approval flags, protocol drift and unbounded fields
+ok 2 - R5 finite messages reject code, URLs, approval flags, protocol drift and unbounded fields
+  ---
+  duration_ms: 0.748167
+  type: 'test'
+  ...
+# Subtest: R5 validates browser sender, live top document and exact port before any handoff mutation
+ok 3 - R5 validates browser sender, live top document and exact port before any handoff mutation
+  ---
+  duration_ms: 1.432625
+  type: 'test'
+  ...
+# Subtest: R5 probe exposes no installed information; same intent resumes exact review after worker replacement
+ok 4 - R5 probe exposes no installed information; same intent resumes exact review after worker replacement
+  ---
+  duration_ms: 1.30475
+  type: 'test'
+  ...
+# Subtest: R5 prepared/opened persistence and committed-tab acknowledgement faults reconcile without duplicate pages
+ok 5 - R5 prepared/opened persistence and committed-tab acknowledgement faults reconcile without duplicate pages
+  ---
+  duration_ms: 1.474292
+  type: 'test'
+  ...
+# Subtest: R5 queue, global/origin rate and capacity are bounded across tabs and worker restarts
+ok 6 - R5 queue, global/origin rate and capacity are bounded across tabs and worker restarts
+  ---
+  duration_ms: 15.019667
+  type: 'test'
+  ...
+# Subtest: R5 expiry protects only the original unresolved operation/batch, without deleting installer journals
+ok 7 - R5 expiry protects only the original unresolved operation/batch, without deleting installer journals
+  ---
+  duration_ms: 1.111417
+  type: 'test'
+  ...
+# Subtest: R5 consumed handoff cannot replay when terminal installer or batch history is gone
+ok 8 - R5 consumed handoff cannot replay when terminal installer or batch history is gone
+  ---
+  duration_ms: 1.338416
+  type: 'test'
+  ...
+# Subtest: R5 shared consumption and external requests do not overwrite each other; expired approval is refused
+ok 9 - R5 shared consumption and external requests do not overwrite each other; expired approval is refused
+  ---
+  duration_ms: 0.689959
+  type: 'test'
+  ...
+# Subtest: R5 existing installer checks baseline and hash before consuming a handoff; consumption failure cannot install
+ok 10 - R5 existing installer checks baseline and hash before consuming a handoff; consumption failure cannot install
+  ---
+  duration_ms: 53.022791
+  type: 'test'
+  ...
+# Subtest: R5 consumed-without-journal survives TTL, and explicit locked recovery ends only the handoff
+ok 11 - R5 consumed-without-journal survives TTL, and explicit locked recovery ends only the handoff
+  ---
+  duration_ms: 1.83875
+  type: 'test'
+  ...
+# Subtest: R5 a lost consumption acknowledgement stops before installer writes, and two consumers never both succeed
+ok 12 - R5 a lost consumption acknowledgement stops before installer writes, and two consumers never both succeed
+  ---
+  duration_ms: 1.425958
+  type: 'test'
+  ...
+# Subtest: R5 terminal settlement survives journal trimming and missing recovery respects existing locks
+ok 13 - R5 terminal settlement survives journal trimming and missing recovery respects existing locks
+  ---
+  duration_ms: 0.850458
+  type: 'test'
+  ...
+# Subtest: R5 immutable archive conflicts reject same-version bytes and same-revision replacement
+ok 14 - R5 immutable archive conflicts reject same-version bytes and same-revision replacement
+  ---
+  duration_ms: 2.670334
+  type: 'test'
+  ...
+# Subtest: R5 independent website build is reproducible, self-contained and replaces only generated output
+ok 15 - R5 independent website build is reproducible, self-contained and replaces only generated output
+  ---
+  duration_ms: 129.924833
+  type: 'test'
+  ...
+1..15
+# tests 15
+# suites 0
+# pass 15
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 272.33575

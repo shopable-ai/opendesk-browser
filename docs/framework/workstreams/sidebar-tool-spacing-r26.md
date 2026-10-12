@@ -36,3 +36,26 @@
 - [Sidebar user tools package](https://github.com/shopable-ai/opendesk-browser/actions/runs/38210110488)：**PASS**，工具构建/包约束通过。
 - [官方工具目录 R4.5 Native](https://github.com/shopable-ai/opendesk-browser/actions/runs/38210110438)：**FAIL（独立遗留差异）**，`tests/framework/app-market-r3-native.test.mjs:108` 仍预期旧的五个官方工具，当前 catalog 已加入 `time-review`（六个）。失败发生在 Chrome 生命周期测试开始前的 catalog 断言；另有工作流负责目录/原生合同，不能在本轮用修改布局脚本的方式掩盖该失败。
 - 真实用户 Mac Chrome Side Panel 交互、125%/200% 缩放、版本更新与本地长期数据：`NOT_TESTED`。用户侧需加载本轮构建实际包，再验证上述流程。无法将这一缺项算作 UI 全面 95+。
+
+## R26.2 源码布局与窄屏回归补充（2026-10-12）
+
+- 历史 R26 已将 iframe 和宿主 gutter 归一化；针对本轮实际复核发现的有效内容宽度 160 CSS px 问题，网页笔记此前的 `.page-attach` 会被保存/删除按钮挤窄并折成多行。R26.2 在 `max-width:220px` 下将附页复选框安排为独立一行，两个操作图标另占一行、右对齐，普通 Side Panel 宽度不改变。
+- 独立大标签页原编辑器缺少最大宽度，补充 `min-width:800px` 的 760px 内容限制。工具 CSS 改动引起的发行身份变化：版本 `quick-notes 1.1.6 → 1.1.7`，沿用 `quick-notes` 原有 ID、权限及 storage local 数据模型；升级须用户主动确认。官方 `official-tools/catalog.json` 本来将 `quick-notes` 设为 `preinstalled`，本次仅修正文档对「默认未安装」的不准确描述，没有修改预装策略。
+- 新增 `scripts/tests/sidebar-quick-notes-layout-visual.mjs` 并接入 `.github/workflows/sidebar-r19-layout-visual.yml`：使用实际 Quick Notes HTML/CSS/Logo 在真实 Chrome 渲染，不加载扩展也不运行工具 JS；12 宽度 × 4 状态检查布局与控件边界，保留截图/metrics。有效 160/180/210px 仅覆盖缩放等效布局宽度；不将其算作真实 Chrome 200% zoom 证明。
+- 同步修改 `tests/environment/sidebar-tool-spacing-contract.test.mjs` 与工具 README。不得把 Node/CSS/静态 Chrome PASS 冒充实际 Side Panel 安装、版本更新和数据读写验收；这些应另外标识。首轮候选与 CI 结果在跑完对应 Actions 后填写真实身份，不预先标 PASS。
+
+## R26.3 确认按钮超窄宽度（同日补充）
+
+- 静态浏览器复核发现，旧 `.confirm-actions button` 在有效 160 CSS px 时，取消/确定中文字符可被挤成竖向两行。补充 `white-space:nowrap`、`flex:none`、标准 8px 内边距，以及按钮组 `flex-wrap:wrap`；160 CSS px 下按钮保持同一水平行，极端更窄时允许整按钮换行。
+- 因样式字节发生变化，官方包版本继续由 1.1.7 提升为 **1.1.8**。存储身份、已存数据、权限及运行 JS 不变；既有用户需执行显式更新，不可卸载旧工具后重新安装。
+- 源码 Chrome 的 `confirm` 状态新增两个真实按钮的矩形测量，检查同一行、8px 间距、按钮右侧对齐及文本未折行；视觉等级仍为 `STATIC_SOURCE_CHROME`，与真实扩展 E2E 明确区分。
+
+## R26.3 固定候选 CI 回执
+
+本节所有 PASS 均严格绑定 **源码候选 [b16426f1093e12c762ddc108d368089650013906](https://github.com/shopable-ai/opendesk-browser/commit/b16426f1093e12c762ddc108d368089650013906)**。文档后续单独提交不改变已验收产品输入。
+
+- [R19 Static Chrome layout #38220416505](https://github.com/shopable-ai/opendesk-browser/actions/runs/38220416505)：**SUCCESS**。已有宿主 R19 共 96 个静态 UI 状态；新增直接读取官方 Quick Notes 源码的 `STATIC_SOURCE_CHROME` 覆盖 **12 CSS 宽度 × 4 状态 = 48 条**，包括 160/180/210/220px 等效窄宽、300/320/360/420/520px Sidebar、760/1100px 独立窗口。真实浏览器计算几何确认页面无横向溢出，编辑区/详情/状态/附注边距相同，保存/删除均 34px 与 8px 间隔，确认按钮内容不竖排且水平对齐。保存截图及 `metrics.json` 属于**静态源码渲染**，无扩展 JS、权限或真实数据写入。
+- [Sidebar R21 integrated UI quality #38220416510](https://github.com/shopable-ai/opendesk-browser/actions/runs/38220416510)：**SUCCESS**，147/147 组件合同通过；`npm run check` 核查 508 源码/测试/构建文件，生产及开发 WXT 构建、包资源 `verify` 通过，CSS/包安全回归 14/14。
+- [Sidebar user tools R1 #38220416548](https://github.com/shopable-ai/opendesk-browser/actions/runs/38220416548)：**SUCCESS**，181/181 组件/工具合同通过；`SIDEBAR_TOOL_BUILT_AND_VALIDATED quick-notes 1.1.8`；独立 `build:sidebar-tool` 的 JSON 与 `dist/production/official-tools/quick-notes/quick-notes.opendesk-tool.json` 经 `cmp` 核对完全一致；生产/开发生成包均包含版本 1.1.8（约 23.14 kB）。权限与 CSP 未放宽。
+- [应用市场 R4.5/R5 独立流水线 #38220416459](https://github.com/shopable-ai/opendesk-browser/actions/runs/38220416459)：**FAIL**，在 `tests/environment/app-market-r5.test.mjs:233` 出现当前与预期数量 `12 !== 11`。属于另一个工作流的市场目录/夹具数量核对差异，不能以本轮网页笔记布局 PASS 覆盖其失败。
+- **仍需实际用户 Mac Chrome 手工确认**：更新已安装的旧网页笔记为 1.1.8，核对原笔记仍在、保存/删除真实生效以及浏览器实际 125%/200% 缩放后 CSS 宽度/焦点/滚动。当前该证据记为 `NOT_TESTED`，不能将 `STATIC_SOURCE_CHROME` 提升成原生扩展最终 PASS。

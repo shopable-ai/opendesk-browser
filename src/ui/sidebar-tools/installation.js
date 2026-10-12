@@ -252,7 +252,7 @@ export async function recoverMarketOperation({api,lockManager,operationId,expect
     }));
 }
 export async function installReviewedSidebarTool({api,lockManager,candidate,baseline=null,
-  market=null,reviewApproved=false,approveUpdate=()=>true,approveSourceChange=null}){
+  market=null,reviewApproved=false,approveUpdate=()=>true,approveSourceChange=null,commitIntent=null}){
   if(reviewApproved!==true)throw error('必须先经过用户明确安装审阅','E_REVIEW_REQUIRED');
   const tool=validateSidebarToolPackage(candidate);
   const identity=marketIdentity(market,tool);
@@ -291,6 +291,9 @@ export async function installReviewedSidebarTool({api,lockManager,candidate,base
     const ops=identity?recoverableOperations((await api.storage.local.get(MARKET_OPERATIONS_STORE))[MARKET_OPERATIONS_STORE]):null;
     if(identity&&ops[identity.operationId])
       throw error('事务已存在，请先恢复核对，不能再次提交','E_OUTCOME_UNKNOWN');
+    // An external review consumes its bounded handoff only after all preflight
+    // checks, under the existing install locks and before the first journal write.
+    if(identity&&commitIntent)await commitIntent();
     const prior=provenance[tool.id];
     const previousProvenance=identity&&existing&&prior?.marketId===identity.marketId&&
       prior.version===existing.version&&shaPattern.test(prior.sha256)&&Object.keys(prior).length===3&&

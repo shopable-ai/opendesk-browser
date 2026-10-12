@@ -1,0 +1,238 @@
+{
+  "schema": "opendesk.market.r5.http-services.v1",
+  "results": [
+    {
+      "command": [
+        "python3",
+        "-m",
+        "http.server",
+        "43132",
+        "--bind",
+        "127.0.0.1",
+        "--directory",
+        "dist/app-market-public"
+      ],
+      "cwd": "/workspace/scratch/58f5833cea67/opendesk-browser",
+      "pid": 6,
+      "at": "2026-10-12T07:35:35.169529+00:00",
+      "origin": "http://127.0.0.1:43132",
+      "evidenceLevel": "REAL_HTTP_STATIC_SERVICE",
+      "installation": "NOT_TESTED",
+      "responses": [
+        {
+          "path": "/",
+          "status": 200,
+          "bytes": 6736,
+          "sha256": "81501968b02a081745d795d25353d803203d2caae1871dc95efdf006687659ba",
+          "contentType": "text/html",
+          "csp": null
+        },
+        {
+          "path": "/apps/opendesk/markdown-workbench/",
+          "status": 200,
+          "bytes": 4671,
+          "sha256": "cc8d7c68f578c540f6cab0162f22a5c4a6444d072679336b650df325594134c9",
+          "contentType": "text/html",
+          "csp": null
+        },
+        {
+          "path": "/apps/opendesk/markdown-workbench/versions/1.0.1/",
+          "status": 200,
+          "bytes": 4664,
+          "sha256": "c73d657020cf842b807907674bc7f8e4490c0e518f0dd18c791657fb55e36fc9",
+          "contentType": "text/html",
+          "csp": null
+        },
+        {
+          "path": "/apps/opendesk/quick-notes/versions/1.1.1/",
+          "status": 200,
+          "bytes": 2525,
+          "sha256": "97521c464cd57ba3be496dcf9986c421378b4dd42c9c8737cd9a400f1f7439a5",
+          "contentType": "text/html",
+          "csp": null
+        },
+        {
+          "path": "/collections/",
+          "status": 200,
+          "bytes": 2362,
+          "sha256": "1f6f1e9cf0fa07f37d1c3d975eb9e0ad247ad537854a4fd9f8f1ded0848ab110",
+          "contentType": "text/html",
+          "csp": null
+        },
+        {
+          "path": "/collections/reading-kit/revisions/1/",
+          "status": 200,
+          "bytes": 3668,
+          "sha256": "fefe1f15b95e3504715173e4df76bca7bda3a6b20c8636a0d83c9df8fe5c6b10",
+          "contentType": "text/html",
+          "csp": null
+        },
+        {
+          "path": "/collections/reading-kit/revisions/2/",
+          "status": 200,
+          "bytes": 3756,
+          "sha256": "50e7791ab06c8418a216af50937b6de41f45ad08c193ad2fbbcc1519d3545963",
+          "contentType": "text/html",
+          "csp": null
+        },
+        {
+          "path": "/install/opendesk/markdown-workbench/versions/1.0.1/",
+          "status": 200,
+          "bytes": 2960,
+          "sha256": "1ac22c1b9c04a3716a341b036d214cde6f141680e11e97f7b40ee06d20d2d56c",
+          "contentType": "text/html",
+          "csp": null
+        },
+        {
+          "path": "/how-to-install/",
+          "status": 200,
+          "bytes": 3548,
+          "sha256": "f6b39663efc3137c90826a95641e1563476cadae6c9baff7ba18c492eac11e68",
+          "contentType": "text/html",
+          "csp": null
+        },
+        {
+          "path": "/missing-r5-route/",
+          "status": 404,
+          "bytes": 335,
+          "sha256": "860b53ed6ea6a0cf602fae632cfcd28dbcf637f85a8bee28d2ee9c6cc9081669",
+          "contentType": "text/html;charset=utf-8",
+          "csp": null
+        },
+        {
+          "path": "/client.js",
+          "status": 200,
+          "bytes": 5611,
+          "sha256": "4664ad626185a95742f9d91de370b436fcd04cbe3d55a272779e5f94b21879da",
+          "contentType": "text/javascript",
+          "csp": null
+        },
+        {
+          "path": "/channel.json",
+          "status": 200,
+          "bytes": 267,
+          "sha256": "995925b4162b2031081fcb06d9e5ba9edd90d9c9bb0a6bd57a360e5b1bb420ef",
+          "contentType": "application/json",
+          "csp": null
+        }
+      ],
+      "result": "PASS",
+      "ownedProcessReleased": true
+    },
+    {
+      "command": [
+        "npm",
+        "run",
+        "dev:market"
+      ],
+      "cwd": "/workspace/scratch/58f5833cea67/opendesk-browser",
+      "pid": 21,
+      "at": "2026-10-12T07:35:35.299329+00:00",
+      "origin": "http://127.0.0.1:43132",
+      "evidenceLevel": "REAL_HTTP_STATIC_SERVICE",
+      "installation": "NOT_TESTED",
+      "responses": [
+        {
+          "path": "/",
+          "status": 200,
+          "bytes": 6736,
+          "sha256": "81501968b02a081745d795d25353d803203d2caae1871dc95efdf006687659ba",
+          "contentType": "text/html; charset=utf-8",
+          "csp": "default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; connect-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; object-src 'none'"
+        },
+        {
+          "path": "/apps/opendesk/markdown-workbench/",
+          "status": 200,
+          "bytes": 4671,
+          "sha256": "cc8d7c68f578c540f6cab0162f22a5c4a6444d072679336b650df325594134c9",
+          "contentType": "text/html; charset=utf-8",
+          "csp": "default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; connect-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; object-src 'none'"
+        },
+        {
+          "path": "/apps/opendesk/markdown-workbench/versions/1.0.1/",
+          "status": 200,
+          "bytes": 4664,
+          "sha256": "c73d657020cf842b807907674bc7f8e4490c0e518f0dd18c791657fb55e36fc9",
+          "contentType": "text/html; charset=utf-8",
+          "csp": "default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; connect-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; object-src 'none'"
+        },
+        {
+          "path": "/apps/opendesk/quick-notes/versions/1.1.1/",
+          "status": 200,
+          "bytes": 2525,
+          "sha256": "97521c464cd57ba3be496dcf9986c421378b4dd42c9c8737cd9a400f1f7439a5",
+          "contentType": "text/html; charset=utf-8",
+          "csp": "default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; connect-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; object-src 'none'"
+        },
+        {
+          "path": "/collections/",
+          "status": 200,
+          "bytes": 2362,
+          "sha256": "1f6f1e9cf0fa07f37d1c3d975eb9e0ad247ad537854a4fd9f8f1ded0848ab110",
+          "contentType": "text/html; charset=utf-8",
+          "csp": "default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; connect-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; object-src 'none'"
+        },
+        {
+          "path": "/collections/reading-kit/revisions/1/",
+          "status": 200,
+          "bytes": 3668,
+          "sha256": "fefe1f15b95e3504715173e4df76bca7bda3a6b20c8636a0d83c9df8fe5c6b10",
+          "contentType": "text/html; charset=utf-8",
+          "csp": "default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; connect-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; object-src 'none'"
+        },
+        {
+          "path": "/collections/reading-kit/revisions/2/",
+          "status": 200,
+          "bytes": 3756,
+          "sha256": "50e7791ab06c8418a216af50937b6de41f45ad08c193ad2fbbcc1519d3545963",
+          "contentType": "text/html; charset=utf-8",
+          "csp": "default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; connect-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; object-src 'none'"
+        },
+        {
+          "path": "/install/opendesk/markdown-workbench/versions/1.0.1/",
+          "status": 200,
+          "bytes": 2960,
+          "sha256": "1ac22c1b9c04a3716a341b036d214cde6f141680e11e97f7b40ee06d20d2d56c",
+          "contentType": "text/html; charset=utf-8",
+          "csp": "default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; connect-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; object-src 'none'"
+        },
+        {
+          "path": "/how-to-install/",
+          "status": 200,
+          "bytes": 3548,
+          "sha256": "f6b39663efc3137c90826a95641e1563476cadae6c9baff7ba18c492eac11e68",
+          "contentType": "text/html; charset=utf-8",
+          "csp": "default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; connect-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; object-src 'none'"
+        },
+        {
+          "path": "/missing-r5-route/",
+          "status": 404,
+          "bytes": 1984,
+          "sha256": "409d9190e1693ff94144580ff7ba0ba42582b406af7928b71ebfe1fc1ab2b904",
+          "contentType": "text/html; charset=utf-8",
+          "csp": "default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; connect-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; object-src 'none'"
+        },
+        {
+          "path": "/client.js",
+          "status": 200,
+          "bytes": 5611,
+          "sha256": "4664ad626185a95742f9d91de370b436fcd04cbe3d55a272779e5f94b21879da",
+          "contentType": "text/javascript; charset=utf-8",
+          "csp": "default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; connect-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; object-src 'none'"
+        },
+        {
+          "path": "/channel.json",
+          "status": 200,
+          "bytes": 267,
+          "sha256": "995925b4162b2031081fcb06d9e5ba9edd90d9c9bb0a6bd57a360e5b1bb420ef",
+          "contentType": "application/json; charset=utf-8",
+          "csp": "default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; connect-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; object-src 'none'"
+        }
+      ],
+      "occupiedPort": "second own startup refused with EADDRINUSE; first owned server unaffected",
+      "result": "PASS",
+      "ownedProcessReleased": true
+    }
+  ],
+  "scope": "Real TCP HTTP static pages only; no Chrome or installation claim"
+}

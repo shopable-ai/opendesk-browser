@@ -1,0 +1,66 @@
+✔ batch record uses one immutable revision, bounded official members and real transaction identifiers (2.38608ms)
+✔ already installed, denied permissions, missing release are represented without launching (0.477781ms)
+✔ recovery never replays queued members and preserves committed and unknown results (0.555408ms)
+✔ malformed or contaminated durable records fail closed rather than being overwritten (0.696461ms)
+✔ stale review order and unapproved members cannot create a batch (0.697142ms)
+✔ non-blocking Web Lock refuses overlapping browser market windows (0.40418ms)
+✔ fixed unavailable members retain their historical version and never enter the queue (0.599715ms)
+✔ market catalog uses pinned immutable member identity and all six tool versions (1.586674ms)
+✔ every official release is the exact packaged tool ID, version and title (0.55665ms)
+✔ manual tool replacement clears stale official publisher identity (8.107331ms)
+✔ never installs without explicit review or runs tool code (1.364749ms)
+✔ same release is idempotent; stale baseline and author conflicts fail closed (1.931875ms)
+✔ 12-tool capacity rejects excess without deleting existing installations (0.542479ms)
+✔ a lost registry acknowledgement requires explicit finalization even after exact readback (4.410725ms)
+✔ an unreadable registry after a lost acknowledgement requires local finalization without another install write (2.055331ms)
+✔ recovery rejects a changed transaction identity before writing any provenance (0.879126ms)
+✔ data-only transfer rejects script, site grants, tokens, duplicates and unknown versions (0.631913ms)
+✔ R4.5 legacy source adoption requires explicit confirmation and preserves the original private data (1.912505ms)
+✔ R4.5 capability additions cannot activate orphan site grants and retained capabilities preserve existing sites (1.630529ms)
+✔ R4.5 old unknown operations cannot be reconciled using a newer release or different bytes (1.512692ms)
+✔ fresh or newly capable tools never publish a registry entry while orphan site grants remain (1.644341ms)
+✔ orphan-grant cleanup failure cannot activate a fresh package; registry failure retains existing valid grants and data (0.949112ms)
+✔ uninstall recovery accepts a real package version and never deletes a newly reinstalled tool (1.254613ms)
+✔ host quota refusal before registry commit retains the previous package and its private data (0.440505ms)
+✔ offline recovery uses only local package digest and durable operation journal (2.153368ms)
+✔ partially failed uninstall keeps recovery journal and never deletes reinstalled same-ID data (0.709089ms)
+✔ an acknowledged official baseline can finalize an upgrade with a lost registry acknowledgement without replay (11.599519ms)
+✔ reviewed market hash must actually match the candidate even if ID and version look valid (0.691163ms)
+✔ orphaned notes are retained when new same-ID installation cannot safely commit (0.37769ms)
+✔ installer fails closed on malformed, duplicated or overflowed local registries without erasing any rows (0.62968ms)
+✔ R5 production trust is disabled until all reviewed inputs exist; development cannot leak into it (2.559892ms)
+✔ R5 finite messages reject code, URLs, approval flags, protocol drift and unbounded fields (1.711227ms)
+✔ R5 validates browser sender, live top document and exact port before any handoff mutation (2.367882ms)
+✔ R5 probe exposes no installed information; same intent resumes exact review after worker replacement (3.32743ms)
+✔ R5 prepared/opened persistence and committed-tab acknowledgement faults reconcile without duplicate pages (2.577478ms)
+✔ R5 queue, global/origin rate and capacity are bounded across tabs and worker restarts (25.699247ms)
+✔ R5 expiry protects only the original unresolved operation/batch, without deleting installer journals (1.539573ms)
+✔ R5 consumed handoff cannot replay when terminal installer or batch history is gone (1.679504ms)
+✔ R5 shared consumption and external requests do not overwrite each other; expired approval is refused (1.232339ms)
+✔ R5 existing installer checks baseline and hash before consuming a handoff; consumption failure cannot install (128.617503ms)
+✔ R5 immutable archive conflicts reject same-version bytes and same-revision replacement (6.974432ms)
+✖ R5 independent website build is reproducible, self-contained and replaces only generated output (293.630642ms)
+ℹ tests 42
+ℹ suites 0
+ℹ pass 41
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 597.894229
+
+✖ failing tests:
+
+test at tests/environment/app-market-r5.test.mjs:186:1
+✖ R5 independent website build is reproducible, self-contained and replaces only generated output (293.630642ms)
+  Error: ENOENT: no such file or directory, open '/tmp/opendesk-r5-site-test-UgQkLR/site/help/index.html'
+      at async open (node:internal/fs/promises:697:25)
+      at async readFile (node:internal/fs/promises:1348:14)
+      at async TestContext.<anonymous> (file:///workspace/scratch/58f5833cea67/opendesk-browser/tests/environment/app-market-r5.test.mjs:194:20)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    errno: -2,
+    code: 'ENOENT',
+    syscall: 'open',
+    path: '/tmp/opendesk-r5-site-test-UgQkLR/site/help/index.html'
+  }

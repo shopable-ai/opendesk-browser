@@ -8,6 +8,7 @@ import {resolve, dirname} from 'node:path';
 import {FIXED_OUTPUTS, entryByteBudget} from './scripts/build-contract.mjs';
 import {configureDevelopment,closeDevelopment,publishDevelopment,waitDevelopmentPublication} from './scripts/wxt-development.mjs';
 import {outputGuardPort} from './scripts/development-lock.mjs';
+import {resolveMarketChannel,marketExternalConnectable} from './scripts/market-channel.mjs';
 
 const schemaSpecializer=createSchemaSpecializer(protocolSchema);
 const manifest = JSON.parse(readFileSync(new URL('./manifest.json', import.meta.url), 'utf8'));
@@ -29,6 +30,10 @@ export default defineConfig({
   hooks: {
     'build:publicAssets'(wxt){if(wxt.config.command==='serve')return waitDevelopmentPublication(wxt);},
     'build:manifestGenerated'(wxt,output){
+      const channel=resolveMarketChannel({mode:process.env.OPENDESK_BUILD_MODE||wxt.config.mode||'production'});
+      const external=marketExternalConnectable(channel);
+      if(external)output.externally_connectable=external;
+      else delete output.externally_connectable;
       if(wxt.config.command==='serve'){
         // All fixed classic files run from the extension; no remote script
         // execution or extra host permission is needed by this development path.

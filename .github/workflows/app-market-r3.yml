@@ -4,6 +4,8 @@ on:
     branches: [main]
     paths:
       - 'src/marketplace/**'
+      - 'src/market-site/**'
+      - 'src/entrypoints/market-host.js'
       - 'src/entrypoints/marketplace.js'
       - 'src/ui/sidebar-tools/**'
       - 'src/ui/sidebar-tools.js'
@@ -14,9 +16,18 @@ on:
       - 'scripts/verify-package.mjs'
       - 'scripts/build-contract.mjs'
       - 'scripts/build-market-site.mjs'
+      - 'scripts/market-channel.mjs'
+      - 'scripts/market-release-snapshots.mjs'
+      - 'scripts/snapshot-market-release.mjs'
+      - 'scripts/serve-market-site.mjs'
       - 'wxt.config.mjs'
       - 'package.json'
       - 'tests/environment/app-market-r3.test.mjs'
+      - 'tests/environment/app-market-r5.test.mjs'
+      - 'tests/environment/market-site-client-r5.test.mjs'
+      - 'tests/helpers/app-market-r5-native.mjs'
+      - 'tests/helpers/app-market-r5-observers.mjs'
+      - 'tests/helpers/app-market-r5-ui.mjs'
       - 'tests/environment/sidebar-storage-unlimited.test.mjs'
       - 'tests/environment/app-market-batch-r3.test.mjs'
 
@@ -40,6 +51,66 @@ on:
 permissions:
   contents: read
 jobs:
+  market-r5-http-native:
+    defaults:
+      run:
+        shell: bash
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-15]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: R5 handoff, installer, immutable archive and client state components
+        run: |
+          mkdir -p artifacts/app-market-r5
+          node --test --test-reporter=tap tests/environment/app-market-r5.test.mjs tests/environment/market-site-client-r5.test.mjs tests/environment/app-market-r3.test.mjs tests/environment/app-market-batch-r3.test.mjs tests/environment/sidebar-storage-unlimited.test.mjs | tee artifacts/app-market-r5/components.tap
+      - name: Build exact development extension and independent HTTP site
+        run: |
+          npm run build:dev
+          npm run build:market-site
+      - name: Linux Chinese fonts
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y fonts-noto-cjk
+      - uses: browser-actions/setup-chrome@v2
+        id: chrome
+        with:
+          chrome-version: '155.0.8059.39'
+      - name: Actual HTTP website to trusted extension review, installation and use
+        env:
+          CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
+          OPENDESK_NATIVE_HEADED: '1'
+          OPENDESK_NATIVE_MARKET_R5: '1'
+          OPENDESK_NATIVE_EXTENSION_PATH: dist/development
+          OPENDESK_NATIVE_BUILD_MODE: development
+          OPENDESK_NATIVE_ARTIFACT_DIR: artifacts/app-market-r5/native
+        run: |
+          if [ "${{ runner.os }}" = "Linux" ]; then
+            xvfb-run -a node --test --test-reporter=tap tests/framework/app-market-r3-native.test.mjs | tee artifacts/app-market-r5/native.tap
+          else
+            node --test --test-reporter=tap tests/framework/app-market-r3-native.test.mjs | tee artifacts/app-market-r5/native.tap
+          fi
+          node --input-type=module -e "import {readFile} from 'node:fs/promises';import assert from 'node:assert/strict';const result=JSON.parse(await readFile('artifacts/app-market-r5/native/native-result.json'));assert.equal(result.result,'REAL_CHROME_MARKET_R5_PASS');assert.equal(result.r5.result,'PASS');assert.equal(result.publicWebsite,'REAL_HTTP_CHROME_PASS');assert(result.chromeLifecycles.every(row=>row.normalExit));"
+      - name: Preserve exact receipts, failures and screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: market-r5-http-${{ matrix.os }}-${{ github.sha }}
+          retention-days: 14
+          if-no-files-found: warn
+          path: |
+            artifacts/app-market-r5/
+            dist/app-market-public/
+            docs/framework/evidence/wxt/builds/build-development.json
   market-production-native:
     runs-on: ubuntu-latest
     timeout-minutes: 25

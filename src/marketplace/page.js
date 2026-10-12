@@ -7,6 +7,7 @@ import {admittedSidebarToolPackages,sameSidebarToolPackage,compareToolVersions,
   requireCompleteInstalledSidebarTools,
   TOOL_CLEANUP_STORE,MARKET_OPERATIONS_STORE,MARKET_PROVENANCE_STORE} from '../ui/sidebar-tools/installation.js';
 import {toolPageHref} from '../ui/sidebar-tools/navigation.js';
+import {MARKET_INTENTS_STORE,loadReviewIntent,marketSubjectRoute,consumeReviewIntent,settleReviewIntent,closeUnjournaledReview} from './intent.js';
 import {MARKET_BATCH_STORE,readMarketBatch,createMarketBatch,marketBatchUnresolved,
   reconcileQueuedAfterInterruption,withMarketBatchLock} from './batch.js';
 
@@ -21,6 +22,10 @@ const CAPABILITY_NAMES={
   'knowledge.store':'管理本机知识收件箱',
   'time.review':'明确开始后在后台记录聚焦、非空闲网站的域名与时长（仅本机）'
 };
+const capabilityNames=values=>values.map(value=>CAPABILITY_NAMES[value]||value).join('；')||'无';
+const BATCH_STATUS_NAMES={ready:'可安装',skip:'已安装，跳过',blocked:'需要处理',queued:'等待安装',
+  committing:'正在提交',succeeded:'安装完成',failed:'安装失败',cancelled:'已取消',
+  interrupted:'已中断，未重新提交','outcome-unknown':'结果未知，需核对','already-installed':'相同发行已安装'};
 const elem=(tag,cls='',label='')=>{
   const node=document.createElement(tag);if(cls)node.className=cls;if(label)node.textContent=label;return node;
 };
@@ -38,8 +43,8 @@ const copy=async value=>{
   if(!navigator.clipboard?.writeText)throw fail('当前浏览器不支持写入剪贴板');
   await navigator.clipboard.writeText(value);
 };
-function route() {
-  let raw=location.hash.slice(1)||'/';
+function route(hash=location.hash) {
+  let raw=hash.slice(1)||'/';
   try{raw=decodeURI(raw);}catch{return {kind:'missing'};}
   if(raw==='/'||raw==='')return {kind:'home'};
   if(raw==='/my')return {kind:'my'};
@@ -72,13 +77,17 @@ export function initMarketplace({api=globalThis.chrome,root=globalThis.document?
   lockManager=globalThis.navigator?.locks}={}){
   if(!api?.runtime?.getURL||!root)throw fail('请在已安装的 OpenDesk 扩展内使用应用市场');
   let matchGeneration=0,localReadGeneration=0,disposed=false;
+  const reviewId=new URLSearchParams(location.search||'').get('intent');
   const state={installed:[],catalog:null,apps:[],notice:'',error:false,review:null,busy:false,batchPlan:null,batch:null,
     batchRunning:false,batchRecovering:false,cancel:false,selected:new Set(),matched:new Set(),personalCollections:{},transfer:'',
     localStatus:'loading',localError:'',catalogStatus:'loading',catalogError:'',
-    usageStatus:'loading',usage:null,usageError:'',cleanups:{},operations:{}};
+    usageStatus:'loading',usage:null,usageError:'',cleanups:{},operations:{},
+    handoff:null,handoffStatus:reviewId?'loading':'none',handoffError:'',handoffCancelled:false};
+  const currentRoute=()=>route(state.handoff?marketSubjectRoute(state.handoff.subject):location.hash);
   const getOfficialApp=id=>state.apps.find(row=>row.id===id)||null;
   const say=(message='',isError=false)=>{state.notice=message;state.error=isError;render();};
   const installedTool=app=>state.installed.find(tool=>tool.id===app.toolId)||null;
+  const settleHandoff=()=>state.handoff?settleReviewIntent({api,lockManager,reviewId:state.handoff.reviewId}).catch(()=>{}):Promise.resolve();
   const installedStatus=app=>{
     const current=installedTool(app);
     if(!current)return '未安装';
@@ -92,9 +101,26 @@ export function initMarketplace({api=globalThis.chrome,root=globalThis.document?
   }
   async function reloadInstalled(){
     const generation=++localReadGeneration;
-    const stored=await api.storage.local.get([SIDEBAR_TOOL_STORE,MARKET_BATCH_STORE,MY_COLLECTIONS_STORE,
-      TOOL_CLEANUP_STORE,MARKET_OPERATIONS_STORE]);
+    const fixed=state.handoff;
+    const [stored,handoff]=await Promise.all([
+      api.storage.local.get([SIDEBAR_TOOL_STORE,MARKET_BATCH_STORE,MY_COLLECTIONS_STORE,
+        TOOL_CLEANUP_STORE,MARKET_OPERATIONS_STORE]),
+      fixed?loadReviewIntent(api,fixed.reviewId).then(value=>({value}),error=>({error})):null
+    ]);
     if(disposed||generation!==localReadGeneration)return false;
+    // A write may commit even when its acknowledgement is lost. Read the durable
+    // intent with the local journals so recovery appears in this page immediately.
+    // Storage changes can update status, never the user's fixed candidate.
+    if(handoff){
+      const next=handoff.value;
+      const changed=next&&(next.intentId!==fixed.intentId||next.operationId!==fixed.operationId||
+        next.origin!==fixed.origin||marketSubjectRoute(next.subject)!==marketSubjectRoute(fixed.subject));
+      if(handoff.error||changed){
+        const error=handoff.error||fail('本机交接身份与当前固定审阅不一致','E_INTENT_CONFLICT');
+        state.handoffStatus='error';state.handoffError=(error.code||'E_HANDOFF')+'：'+error.message;
+        state.review=null;state.batchPlan=null;
+      }else{state.handoff=next;state.handoffStatus='ready';state.handoffError='';}
+    }
     const raw=stored[SIDEBAR_TOOL_STORE];
     const admitted=requireCompleteInstalledSidebarTools(raw);
     state.installed=admitted;
@@ -302,25 +328,78 @@ export function initMarketplace({api=globalThis.chrome,root=globalThis.document?
     if(state.review?.app.id===app.id)content.append(renderReview(state.review));
     return content;
   }
+  function handoffDetail(app){
+    const content=container('OPENDESK · 可信安装审阅',app.title,'固定版本 v'+app.version+' · '+app.surfaces.join('、'));
+    content.append(para('来自 '+state.handoff.origin+' 的安装请求。此候选不会被其他网页请求替换。','minor'));
+    if(state.review)content.append(renderReview(state.review));
+    else if(state.matched.has(app.id)){
+      content.append(para('已核对本机安装：v'+app.version+'。安装不会自动运行。'));
+      const open=button('打开使用',()=>api.tabs.create({url:toolPageHref(api.runtime,app.toolId)}),true);
+      open.dataset.marketAction='open-installed';content.append(add(elem('div','actions'),open));
+    }else if(state.handoffCancelled){
+      content.append(para('已取消本次审阅，未提交安装。'));
+      if(!state.operations[state.handoff.operationId]&&!state.handoff.recoveryOnly&&state.handoff.consumedAt===null)
+        content.append(button('重新核对此固定版本',()=>reviewApp(app)));
+    }
+    else if(!state.busy&&!state.operations[state.handoff.operationId]&&!state.handoff.recoveryOnly&&state.handoff.consumedAt===null){
+      content.append(button('重新核对固定候选',()=>reviewApp(app)));
+    }
+    const pending=pendingPanel();if(pending)content.append(pending);
+    return content;
+  }
+  function handoffNavigation(){
+    const controls=elem('div','actions');
+    for(const [label,hash] of [['打开本机应用管理','#/my'],['打开扩展内市场','#/'],
+      ...(state.handoff?.settledAt?[['重新选择此固定版本',marketSubjectRoute(state.handoff.subject)]]:[])]){
+      const item=link(label,api.runtime.getURL('ui/marketplace.html')+hash);
+      item.target='_blank';item.rel='noopener';controls.append(item);
+    }
+    return controls;
+  }
+  function missingHandoffRecovery(){
+    if(!state.handoff||state.handoff.consumedAt===null||state.handoff.settledAt!==null||
+      state.operations[state.handoff.operationId]||state.batch?.batchId===state.handoff.operationId)return null;
+    const box=elem('section','surface');box.append(elem('h2','','原事务日志不可用'),
+      para('无法据此判定安装成功或失败。下方操作会在原安装锁下核对当前本机状态，并结束此次交接；不会再次安装或清除原批准标记。','minor'));
+    const action=button('核对本机状态并结束此交接',async()=>{
+      if(state.busy)return;state.busy=true;render();
+      try{
+        const result=await closeUnjournaledReview({api,lockManager,reviewId:state.handoff.reviewId,
+          operationId:state.handoff.operationId,subject:state.handoff.subject,approved:true});
+        state.handoff=result.handoff;state.review=null;state.batchPlan=null;
+        const observed=result.observed.map(row=>row.id+' v'+row.version+'（'+row.source+'）').join('；')||'未发现对应的本机安装';
+        say('已结束这次交接，原安装结果仍未知。当前核对：'+observed+'。再次安装请重新选择固定版本并进行新的审阅。');
+      }catch(error){say((error.code||'E_RECOVER')+'：'+error.message,true);}
+      finally{state.busy=false;render();}
+    });action.dataset.marketAction='close-unjournaled';action.disabled=state.busy;box.append(action);return box;
+  }
   async function reviewApp(app) {
     if(state.busy)return;
     state.busy=true;say('正在核对随扩展发行的固定版本包…');
     try{
       await reloadInstalled();
       const candidate=await packageFor(app);
-      state.review={app,...candidate,baseline:installedTool(app),operationId:crypto.randomUUID(),unknown:false};
+      const operationId=state.handoff?.operationId||crypto.randomUUID();
+      const prior=state.operations[operationId];
+      state.handoffCancelled=false;
+      if(state.handoff&&(!prior||prior.state==='succeeded')&&sameSidebarToolPackage(installedTool(app),candidate.tool)){
+        state.review=null;state.matched.add(app.id);state.notice='相同官方发行已经安装，可以主动打开。';state.error=false;return;
+      }
+      state.review={app,...candidate,baseline:installedTool(app),operationId,
+        unknown:Boolean(state.handoff&&(prior||state.handoff.recoveryOnly||state.handoff.consumedAt!==null))};
       state.notice='安装前请检查版本、所需能力与站点授权说明。';state.error=false;
     }catch(e){state.review=null;state.notice=(e.code||'E_PACKAGE')+'：'+e.message;state.error=true;}
     finally{state.busy=false;render();}
   }
   function renderReview(review){
-    const parent=elem('section','surface review');parent.append(elem('h2','','安装审阅 · '+review.app.title));
+    const parent=elem('section','surface review');parent.tabIndex=-1;parent.append(elem('h2','','安装审阅 · '+review.app.title));
     const current=review.baseline,tool=review.tool;
+    parent.append(para('发布者：OpenDesk · 制品来源：当前扩展内的官方发行包。网站只负责提出安装请求。','minor'));
     parent.append(para('当前：'+(current?'v'+current.version:'未安装')+' → 发行：v'+tool.version));
-    parent.append(para('申请能力：'+(tool.capabilities.map(v=>CAPABILITY_NAMES[v]||v).join('；')||'无额外能力')));
+    parent.append(para('申请能力：'+capabilityNames(tool.capabilities)));
     if(current){
       const added=tool.capabilities.filter(v=>!current.capabilities.includes(v));
-      parent.append(para('新增能力：'+(added.join('、')||'无')+'；原工具数据保留。','minor'));
+      parent.append(para('新增能力：'+capabilityNames(added)+'；原工具数据保留。','minor'));
       parent.append(para('将替换此 ID 已安装的代码，可能变更来源。请核对发行者与能力后点击下方确认；不会再二次弹窗。','minor'));
       if(compareToolVersions(tool.version,current.version)<=0){
         parent.append(para('市场不允许用同版本不同内容或旧版本覆盖现有工具。','minor'));
@@ -328,13 +407,27 @@ export function initMarketplace({api=globalThis.chrome,root=globalThis.document?
     }
     parent.append(para(review.app.toolId==='reading-toc'?'内置阅读目录启用后默认可用于普通网页，可在工具设置中管理网站和页面例外。':
       '网站授权需在工具列表另行确认；安装完成后不会自动打开工具。','minor'));
+    const identity=elem('details');identity.append(elem('summary','','固定发行信息'),
+      para(review.app.id+' · v'+tool.version,'minor'),para('SHA-256：'+review.release.sha256,'minor'));
+    parent.append(identity);
     if(review.unknown){
-      parent.append(button('恢复核对安装结果',()=>recover(review)));return parent;
+      if(state.operations[review.operationId]){
+        parent.append(para('此请求已有持久安装事务。先核对原结果，不创建新操作或自动重试。','minor'));
+        parent.append(button('恢复核对安装结果',()=>recover(review)));
+      }else parent.append(para('原事务日志暂不可用。请使用下方的本机状态核对入口；不会自动重试安装。','minor'));
+      return parent;
+    }
+    if(review.stale){
+      parent.append(para('本机安装状态已变化，本次尚未提交。请重新核对此固定版本及当前状态，再决定安装。','minor'));
+      const retry=button('重新核对此固定版本',()=>reviewApp(review.app),true);
+      retry.dataset.marketAction='review-again';retry.disabled=state.busy;parent.append(retry);return parent;
     }
     const controls=elem('div','actions');
     const install=button('确认安装此固定版本',()=>commitApp(review),true);
+    install.dataset.marketAction='confirm-install';
     install.disabled=state.busy||Boolean(current&&compareToolVersions(tool.version,current.version)<=0);
-    const cancel=button('取消',()=>{if(state.busy)return;state.review=null;say('已取消本次安装。');});
+    const cancel=button('取消',()=>{if(state.busy)return;state.review=null;state.handoffCancelled=true;say('已取消本次安装。');});
+    cancel.dataset.marketAction='cancel-install';
     cancel.disabled=state.busy;controls.append(install,cancel);
     parent.append(controls);return parent;
   }
@@ -349,7 +442,7 @@ export function initMarketplace({api=globalThis.chrome,root=globalThis.document?
         state.review=null;say('经实际安装记录核对：已安装 v'+review.tool.version+'；尚未运行。');
       }else say('事务状态：'+result.state+'。不自动重试；请核对我的应用与本机日志。',true);
     }catch(e){say(e.message,true);}
-    finally{state.busy=false;render();}
+    finally{await settleHandoff();state.busy=false;render();}
   }
   async function commitApp(review){
     if(state.busy||state.review!==review)return;
@@ -358,6 +451,8 @@ export function initMarketplace({api=globalThis.chrome,root=globalThis.document?
       await verifyReviewedOfficialTool(review.release,review.tool,{api});
       const result=await installReviewedSidebarTool({api,lockManager,candidate:review.tool,baseline:review.baseline,
         reviewApproved:true,market:{marketId:review.app.id,sha256:review.release.sha256,operationId:review.operationId},
+        commitIntent:state.handoff?async()=>{state.handoff=await consumeReviewIntent({api,lockManager,
+          reviewId:state.handoff.reviewId,operationId:review.operationId,subject:state.handoff.subject});}:null,
         approveSourceChange:()=>true,
         approveUpdate:()=>true});
       await reloadInstalled();
@@ -369,10 +464,11 @@ export function initMarketplace({api=globalThis.chrome,root=globalThis.document?
         review.app.toolId==='reading-toc'?'安装完成。阅读目录默认可用于 HTTP(S) 网页；请从我的应用点击打开。':
         '安装完成。请从我的应用主动点击打开；网站访问还需独立授权。';state.error=false;
     }catch(e){
-      if(e.code==='E_OUTCOME_UNKNOWN')review.unknown=true;
+      if(['E_OUTCOME_UNKNOWN','E_HANDOFF_UNKNOWN','E_INTENT_CONSUMED'].includes(e.code))review.unknown=true;
+      if(e.code==='E_TOOL_CHANGED')review.stale=true;
       state.notice=(e.code||'E_INSTALL')+'：'+e.message;state.error=true;
       await reloadInstalled().catch(()=>{});
-    }finally{state.busy=false;render();}
+    }finally{await settleHandoff();state.busy=false;render();}
   }
   function selectedTransfer(){
     return strictTransfer({format:TRANSFER_FORMAT,
@@ -455,7 +551,7 @@ export function initMarketplace({api=globalThis.chrome,root=globalThis.document?
   }
   function collectionPage(collection){
     const content=container('COLLECTION · REVISION '+collection.revision,collection.title,collection.description);
-    content.prepend(link('← 返回探索','#/','back-link'));
+    if(!state.handoff)content.prepend(link('← 返回探索','#/','back-link'));
     const table=elem('table'),head=elem('thead'),row=elem('tr');
     for(const title of ['固定成员','发行版本','实际状态'])row.append(elem('th','',title));
     head.append(row);table.append(head);
@@ -463,18 +559,25 @@ export function initMarketplace({api=globalThis.chrome,root=globalThis.document?
     for(const item of collection.members){
       const app=getOfficialApp(item.id);
       const line=elem('tr');
-      line.append(add(elem('td'),link(app?.title||item.id,app?'#/apps/'+app.id+'/versions/'+item.version:'#/')),elem('td','','v'+item.version),elem('td','',!app||app.version!==item.version?'当前扩展未提供此固定版本':installedStatus(app)));
+      const memberLink=link(app?.title||item.id,app?'#/apps/'+app.id+'/versions/'+item.version:'#/');
+      if(state.handoff){memberLink.href=api.runtime.getURL('ui/marketplace.html')+memberLink.getAttribute('href');memberLink.target='_blank';memberLink.rel='noopener';}
+      line.append(add(elem('td'),memberLink),elem('td','','v'+item.version),elem('td','',!app||app.version!==item.version?'当前扩展未提供此固定版本':installedStatus(app)));
       body.append(line);
     }table.append(body);
     const section=elem('section','surface');section.append(add(elem('div','market-table-scroll'),table));
     section.append(para('预检会逐一核对包、固定版本、容量与权限；明确确认后才逐项安装。成功的项目不会因其他失败被卸载。','minor'));
     const controls=elem('div','actions');
-    controls.append(button('预检全部成员',()=>preflightCollection(collection),true));
-    controls.append(button('复制套装详情链接',()=>copy(location.href).then(()=>say('已复制当前扩展内部链接；跨设备请导出清单或部署公网市场。')).catch(e=>say(e.message,true))));
+    const consumed=state.handoff&&state.handoff.consumedAt!==null;
+    if(!state.handoff?.recoveryOnly&&!consumed)controls.append(button('预检全部成员',()=>preflightCollection(collection),true));
+    if(consumed)content.append(para('此网站请求已经开始过批次。下方只核对现有结果；旧批次归档后也不会用同一请求重新安装。','minor'));
+    controls.append(button('复制套装详情链接',()=>copy(api.runtime.getURL('ui/marketplace.html')+collectionHref(collection)).then(()=>say('已复制固定套装的扩展内详情链接；不包含临时安装意图。跨设备分享请使用市场网站。')).catch(e=>say(e.message,true))));
     section.append(controls);content.append(section);
-    if(state.batchPlan?.collection.id===collection.id)content.append(renderBatchPlan());
-    if(state.batch?.collectionId===collection.id&&state.batch.revision===collection.revision)
+    if(!consumed&&state.batchPlan?.collection.id===collection.id&&state.batchPlan.collection.revision===collection.revision)content.append(renderBatchPlan());
+    if(state.batch?.collectionId===collection.id&&state.batch.revision===collection.revision&&
+      (!state.handoff||state.batch.batchId===state.handoff.operationId))
       content.append(renderBatchProgress());
+    else if(state.handoff&&marketBatchUnresolved(state.batch))content.append(para(
+      '另一个安装请求的批次有待处理。本页不会把它作为当前请求的结果，也不会在此恢复它。请在下方独立应用管理入口核对。','minor'));
     return content;
   }
   async function preflightCollection(collection){
@@ -493,10 +596,11 @@ export function initMarketplace({api=globalThis.chrome,root=globalThis.document?
           else if(row.baseline){
             if(provenance[tool.id]?.marketId!==app.id||compareToolVersions(tool.version,row.baseline.version)<=0){
               row.status='blocked';row.reason='来源或版本差异，需要先单独审阅';
-            }else row.reason='将保留原工具数据；申请权限：'+tool.capabilities.join('、');
+            }else row.reason='将保留原工具数据；申请能力：'+capabilityNames(tool.capabilities)+
+              '；新增能力：'+capabilityNames(tool.capabilities.filter(value=>!row.baseline.capabilities.includes(value)));
           }else if(state.installed.length+count>=MAX_INSTALLED_TOOLS){
             row.status='blocked';row.reason='超过本机 12 个工具上限';
-          }else{count++;row.reason='申请权限：'+(tool.capabilities.join('、')||'无');}
+          }else{count++;row.reason='申请能力：'+capabilityNames(tool.capabilities);}
         }catch(e){row.status='blocked';row.reason=(e.code||'E_PACKAGE')+' '+e.message;}
         rows.push(row);
       }
@@ -506,9 +610,12 @@ export function initMarketplace({api=globalThis.chrome,root=globalThis.document?
   }
   function renderBatchPlan(){
     const plan=state.batchPlan,box=elem('section','surface review');
-    box.append(elem('h2','','批量安装审阅'));
-    for(const row of plan.rows)box.append(para(row.app.title+' · '+row.status+' · '+row.reason));
+    box.append(elem('h2','','批量安装审阅'),
+      para('发布者：OpenDesk · 制品来源：当前扩展内的官方发行包。安装保留已有工具数据，不自动运行，也不授予网站权限。','minor'));
+    for(const row of plan.rows)box.append(para(row.app.title+' · v'+row.app.version+' · '+
+      (BATCH_STATUS_NAMES[row.status]||row.status)+' · '+row.reason));
     const actions=elem('div','actions'),start=button('确认逐项安装',()=>runBatch(plan),true);
+    start.dataset.marketAction='confirm-batch';
     start.disabled=state.busy||!plan.rows.some(r=>r.status==='ready');
     const cancel=button('取消预检',()=>{if(state.busy)return;state.batchPlan=null;render();});
     cancel.disabled=state.busy;
@@ -522,9 +629,15 @@ export function initMarketplace({api=globalThis.chrome,root=globalThis.document?
     try{
       await withMarketBatchLock(lockManager,async()=>{
         const prior=readMarketBatch((await api.storage.local.get(MARKET_BATCH_STORE))[MARKET_BATCH_STORE]);
+        if(state.handoff&&prior?.batchId===state.handoff.operationId)
+          throw fail('此网站请求已经创建过批次，请核对原批次结果；不能重复提交','E_BATCH_REPLAY');
         if(marketBatchUnresolved(prior))
           throw fail('已有未结清的批次，请先恢复核对；不能覆盖其操作 ID','E_BATCH_UNRESOLVED');
-        const batch=createMarketBatch(plan.collection,plan.rows,{releases:state.apps});
+        let firstIdentity=true;
+        const batch=createMarketBatch(plan.collection,plan.rows,{releases:state.apps,
+          idFactory:()=>{if(firstIdentity&&state.handoff){firstIdentity=false;return state.handoff.operationId;}firstIdentity=false;return crypto.randomUUID();}});
+        if(state.handoff)state.handoff=await consumeReviewIntent({api,lockManager,
+          reviewId:state.handoff.reviewId,operationId:state.handoff.operationId,subject:state.handoff.subject});
         const save=async()=>{
           batch.updatedAt=Date.now();
           // A rejected storage write can still have committed. Never retry a
@@ -569,17 +682,25 @@ export function initMarketplace({api=globalThis.chrome,root=globalThis.document?
       // journal for explicit recovery, not an automatic second attempt.
     }finally{
       state.batchRunning=false;state.busy=false;
+      await settleHandoff();
       await reloadInstalled().catch(e=>{state.notice='批次状态读取失败：'+e.message;state.error=true;});
       render();
     }
   }
   async function recoverBatch(){
     if(state.busy||!state.batch)return;
+    const expectedBatchId=state.batch.batchId;
+    if(state.handoff&&expectedBatchId!==state.handoff.operationId)
+      return say('E_BATCH_IDENTITY：此批次属于另一个请求，请在独立应用管理中核对。',true);
     state.busy=true;state.batchRecovering=true;render();
     try{
       await withMarketBatchLock(lockManager,async()=>{
         const original=readMarketBatch((await api.storage.local.get(MARKET_BATCH_STORE))[MARKET_BATCH_STORE]);
         if(!original)throw fail('批次记录已不存在；没有需要重放的项目','E_BATCH_MISSING');
+        if(original.batchId!==expectedBatchId||state.handoff&&
+          (original.batchId!==state.handoff.operationId||original.collectionId!==state.handoff.subject.collectionId||
+           original.revision!==state.handoff.subject.revision))
+          throw fail('批次身份已变化，请重新核对原请求；未恢复其他批次','E_BATCH_IDENTITY');
         const batch=reconcileQueuedAfterInterruption(original);
         for(const item of batch.items){
           if(!['committing','outcome-unknown'].includes(item.status))continue;
@@ -604,6 +725,7 @@ export function initMarketplace({api=globalThis.chrome,root=globalThis.document?
       state.error=true;
     }finally{
       state.batchRecovering=false;state.busy=false;
+      await settleHandoff();
       await reloadInstalled().catch(e=>{state.notice='批次状态读取失败：'+e.message;state.error=true;});
       render();
     }
@@ -612,7 +734,7 @@ export function initMarketplace({api=globalThis.chrome,root=globalThis.document?
     const box=elem('section','surface');box.append(elem('h2','','批量安装与恢复'));
     for(const item of state.batch.items){
       const app=getOfficialApp(item.id);
-      box.append(para((app?.title||item.id)+'：'+item.status+' · '+item.reason));
+      box.append(para((app?.title||item.id)+'：'+(BATCH_STATUS_NAMES[item.status]||item.status)+' · '+item.reason));
     }
     const controls=elem('div','actions');
     if(state.batchRunning)controls.append(button(state.cancel?'已申请停止剩余项目':'停止剩余项目',()=>{
@@ -628,43 +750,47 @@ export function initMarketplace({api=globalThis.chrome,root=globalThis.document?
   }
   function render(){
     if(!root)return;
-    const page=route();let content;
+    const page=currentRoute();let content;
     const activeNav=page.kind==='my'?'market-my':page.kind==='collection'?'market-collection':'market-home';
     for(const id of ['market-home','market-collection','market-my']){
       const control=document.getElementById(id);
       if(!control)continue;
+      control.hidden=Boolean(reviewId);
       if(id===activeNav)control.setAttribute('aria-current','page');
       else control.removeAttribute('aria-current');
     }
-    if(page.kind==='my')content=myApps();
+    if(state.handoffStatus==='loading')content=container('INSTALL HANDOFF','正在核对安装请求','正在读取本机保存的固定候选…');
+    else if(state.handoffStatus==='error')content=container('INSTALL HANDOFF','无法继续此安装请求',state.handoffError);
+    else if(page.kind==='my')content=myApps();
     else if(state.catalogStatus==='error'){
       content=container('CATALOG UNAVAILABLE','官方市场目录暂时不可用',
         state.catalogError+'。已安装本地工具可以继续使用。');
-      content.append(add(elem('div','actions'),button('重试官方目录',refreshCatalog),
-        link('打开我的应用 →','#/my')));
+      content.append(add(elem('div','actions'),button('重试官方目录',refreshCatalog)));
+      if(!reviewId)content.append(link('打开我的应用 →','#/my'));
     }else if(!state.catalog)content=container('APPLICATIONS','官方应用市场','正在读取扩展离线目录…');
     else if(page.kind==='home')content=home();
     else if(page.kind==='app'){
       const app=getOfficialApp(page.id);
-      content=app&&(!page.version||page.version===app.version)?detail(app):
-        container('RELEASE UNAVAILABLE','固定版本不可用','此版本当前未发行，不能新安装；本机已有版本仍可以从「我的应用」打开。');
+      content=app&&(!page.version||page.version===app.version)?(state.handoff?handoffDetail(app):detail(app)):
+        container('RELEASE UNAVAILABLE','固定版本不可用','当前扩展不包含此固定版本，不能新安装。请更新主扩展或在市场选择当前版本；本机已有版本仍可使用。');
     }else if(page.kind==='collection'){
       const collection=getOfficialCollection(page.id,page.revision)||
         (page.id==='my-selection'&&state.personalCollections[page.revision]?.revision===page.revision?state.personalCollections[page.revision]:null);
       content=collection?collectionPage(collection):container('NOT FOUND','套装版本不存在','旧 revision 不得默默替换成最新版本。');
     }else content=container('NOT FOUND','找不到该页面','检查链接中的应用身份与固定版本。');
     toolbar(content);
+    if(reviewId){const stranded=missingHandoffRecovery();if(stranded)content.append(stranded);content.append(handoffNavigation());}
     root.replaceChildren(content);
   }
-  const onHash=()=>{state.review=null;state.batchPlan=null;state.notice='';render();
+  const onHash=()=>{if(reviewId){render();return;}state.review=null;state.batchPlan=null;state.notice='';render();
     root.focus?.({preventScroll:true});window.scrollTo?.(0,0);
-    if(route().kind==='my'&&state.localStatus==='ready')void refreshUsage();};
+    if(currentRoute().kind==='my'&&state.localStatus==='ready')void refreshUsage();};
   const onStorage=(changes,area)=>{
     if(area!=='local')return;
     const keys=Object.keys(changes||{});
-    if(keys.some(key=>[SIDEBAR_TOOL_STORE,MARKET_BATCH_STORE,TOOL_CLEANUP_STORE,
+    if(keys.some(key=>[SIDEBAR_TOOL_STORE,MARKET_BATCH_STORE,TOOL_CLEANUP_STORE,MARKET_INTENTS_STORE,
       MARKET_OPERATIONS_STORE].includes(key))){void refreshLocal();return;}
-    if(keys.some(key=>key.startsWith(SIDEBAR_TOOL_DATA_PREFIX))&&route().kind==='my')
+    if(keys.some(key=>key.startsWith(SIDEBAR_TOOL_DATA_PREFIX))&&currentRoute().kind==='my')
       void refreshUsage();
   };
   for(const [id,href] of [['market-home','#/'],['market-collection',collectionHref(OFFICIAL_COLLECTIONS[0])],['market-my','#/my']]){
@@ -673,7 +799,21 @@ export function initMarketplace({api=globalThis.chrome,root=globalThis.document?
   }
   window.addEventListener('hashchange',onHash);
   api.storage.onChanged.addListener(onStorage);
-  void refreshLocal();void refreshCatalog();
+  const ready=Promise.all([refreshLocal(),refreshCatalog()]);
+  if(reviewId)void ready.then(async()=>{
+    state.handoff=await loadReviewIntent(api,reviewId);state.handoffStatus='ready';
+    if(state.localStatus!=='ready'||state.catalogStatus!=='ready')return render();
+    const subject=state.handoff.subject;
+    if(subject.kind==='app'){
+      const app=getOfficialApp(subject.marketId);
+      if(app?.version===subject.version)await reviewApp(app);else render();
+    }else{
+      const collection=getOfficialCollection(subject.collectionId,subject.revision);
+      if(collection&&!state.handoff.recoveryOnly&&state.handoff.consumedAt===null&&state.batch?.batchId!==state.handoff.operationId&&!marketBatchUnresolved(state.batch))await preflightCollection(collection);
+      else render();
+    }
+    root.querySelector('.review')?.focus({preventScroll:true});
+  }).catch(error=>{state.handoffStatus='error';state.handoffError=(error.code||'E_HANDOFF')+'：'+error.message;render();});
   render();
   return {dispose(){
     disposed=true;matchGeneration++;localReadGeneration++;

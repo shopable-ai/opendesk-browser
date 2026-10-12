@@ -27,8 +27,16 @@ test('Quick notes uses a matching 4-step density without loading trusted host CS
   assert.match(css,/\.notes-app\{[^}]*width:100%;min-width:0;margin:0;padding:var\(--space-3\)/);
   assert.match(css,/#note-text\{[^}]*padding:var\(--space-3\) var\(--space-2\)/);
   assert.match(css,/\.task-shortcut\{[^}]*margin-top:var\(--space-4\)/);
+  assert.match(css,/@media\(max-width:220px\)\{\.editor-actions\{display:grid;/,'200%-equivalent narrow layout');
+  assert.match(css,/\.editor-actions \.page-attach\{grid-column:1\/-1;justify-self:start;white-space:nowrap\}/);
+  assert.match(css,/\.editor-actions \.icon-button\.danger\{grid-column:2\}/);
+  assert.match(css,/\.editor-actions \.icon-button\.primary\{grid-column:3\}/);
+  assert.match(css,/@media\(min-width:800px\)\{\.notes-app\{max-width:760px;margin-inline:auto\}\}/);
+  assert.match(css,/\.confirm-actions\{[^}]*flex-wrap:wrap/,'inline confirmation can wrap entire buttons');
+  assert.match(css,/\.confirm-actions button\{[^}]*white-space:nowrap;flex:none;padding:var\(--space-2\)/,
+    'buttons keep complete labels without narrow-CSS-wrap');
   assert.doesNotMatch(css,/@import\b|url\(\s*['"]?\s*https?:/);
-  assert.equal(JSON.parse(config).version,'1.1.6');
+  assert.equal(JSON.parse(config).version,'1.1.8');
   assert.match(html,/id="note-text"/);
 });
 

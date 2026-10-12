@@ -1,0 +1,502 @@
+TAP version 13
+# Subtest: batch record uses one immutable revision, bounded official members and real transaction identifiers
+ok 1 - batch record uses one immutable revision, bounded official members and real transaction identifiers
+  ---
+  duration_ms: 2.383195
+  type: 'test'
+  ...
+# Subtest: already installed, denied permissions, missing release are represented without launching
+ok 2 - already installed, denied permissions, missing release are represented without launching
+  ---
+  duration_ms: 0.403449
+  type: 'test'
+  ...
+# Subtest: recovery never replays queued members and preserves committed and unknown results
+ok 3 - recovery never replays queued members and preserves committed and unknown results
+  ---
+  duration_ms: 0.475488
+  type: 'test'
+  ...
+# Subtest: malformed or contaminated durable records fail closed rather than being overwritten
+ok 4 - malformed or contaminated durable records fail closed rather than being overwritten
+  ---
+  duration_ms: 0.736512
+  type: 'test'
+  ...
+# Subtest: stale review order and unapproved members cannot create a batch
+ok 5 - stale review order and unapproved members cannot create a batch
+  ---
+  duration_ms: 0.329026
+  type: 'test'
+  ...
+# Subtest: non-blocking Web Lock refuses overlapping browser market windows
+ok 6 - non-blocking Web Lock refuses overlapping browser market windows
+  ---
+  duration_ms: 0.451762
+  type: 'test'
+  ...
+# Subtest: fixed unavailable members retain their historical version and never enter the queue
+ok 7 - fixed unavailable members retain their historical version and never enter the queue
+  ---
+  duration_ms: 1.336386
+  type: 'test'
+  ...
+# Subtest: market catalog uses pinned immutable member identity and all six tool versions
+ok 8 - market catalog uses pinned immutable member identity and all six tool versions
+  ---
+  duration_ms: 2.22681
+  type: 'test'
+  ...
+# Subtest: every official release is the exact packaged tool ID, version and title
+ok 9 - every official release is the exact packaged tool ID, version and title
+  ---
+  duration_ms: 0.712926
+  type: 'test'
+  ...
+# Subtest: manual tool replacement clears stale official publisher identity
+ok 10 - manual tool replacement clears stale official publisher identity
+  ---
+  duration_ms: 11.728968
+  type: 'test'
+  ...
+# Subtest: never installs without explicit review or runs tool code
+ok 11 - never installs without explicit review or runs tool code
+  ---
+  duration_ms: 2.719197
+  type: 'test'
+  ...
+# Subtest: same release is idempotent; stale baseline and author conflicts fail closed
+ok 12 - same release is idempotent; stale baseline and author conflicts fail closed
+  ---
+  duration_ms: 2.827066
+  type: 'test'
+  ...
+# Subtest: 12-tool capacity rejects excess without deleting existing installations
+ok 13 - 12-tool capacity rejects excess without deleting existing installations
+  ---
+  duration_ms: 1.022222
+  type: 'test'
+  ...
+# Subtest: a lost registry acknowledgement requires explicit finalization even after exact readback
+ok 14 - a lost registry acknowledgement requires explicit finalization even after exact readback
+  ---
+  duration_ms: 6.385332
+  type: 'test'
+  ...
+# Subtest: an unreadable registry after a lost acknowledgement requires local finalization without another install write
+ok 15 - an unreadable registry after a lost acknowledgement requires local finalization without another install write
+  ---
+  duration_ms: 2.740193
+  type: 'test'
+  ...
+# Subtest: recovery rejects a changed transaction identity before writing any provenance
+ok 16 - recovery rejects a changed transaction identity before writing any provenance
+  ---
+  duration_ms: 0.958917
+  type: 'test'
+  ...
+# Subtest: data-only transfer rejects script, site grants, tokens, duplicates and unknown versions
+ok 17 - data-only transfer rejects script, site grants, tokens, duplicates and unknown versions
+  ---
+  duration_ms: 0.638283
+  type: 'test'
+  ...
+# Subtest: R4.5 legacy source adoption requires explicit confirmation and preserves the original private data
+ok 18 - R4.5 legacy source adoption requires explicit confirmation and preserves the original private data
+  ---
+  duration_ms: 3.879848
+  type: 'test'
+  ...
+# Subtest: R4.5 capability additions cannot activate orphan site grants and retained capabilities preserve existing sites
+ok 19 - R4.5 capability additions cannot activate orphan site grants and retained capabilities preserve existing sites
+  ---
+  duration_ms: 2.398609
+  type: 'test'
+  ...
+# Subtest: R4.5 old unknown operations cannot be reconciled using a newer release or different bytes
+ok 20 - R4.5 old unknown operations cannot be reconciled using a newer release or different bytes
+  ---
+  duration_ms: 2.390451
+  type: 'test'
+  ...
+# Subtest: fresh or newly capable tools never publish a registry entry while orphan site grants remain
+ok 21 - fresh or newly capable tools never publish a registry entry while orphan site grants remain
+  ---
+  duration_ms: 1.317908
+  type: 'test'
+  ...
+# Subtest: orphan-grant cleanup failure cannot activate a fresh package; registry failure retains existing valid grants and data
+ok 22 - orphan-grant cleanup failure cannot activate a fresh package; registry failure retains existing valid grants and data
+  ---
+  duration_ms: 3.250874
+  type: 'test'
+  ...
+# Subtest: uninstall recovery accepts a real package version and never deletes a newly reinstalled tool
+ok 23 - uninstall recovery accepts a real package version and never deletes a newly reinstalled tool
+  ---
+  duration_ms: 1.796661
+  type: 'test'
+  ...
+# Subtest: host quota refusal before registry commit retains the previous package and its private data
+ok 24 - host quota refusal before registry commit retains the previous package and its private data
+  ---
+  duration_ms: 0.363218
+  type: 'test'
+  ...
+# Subtest: offline recovery uses only local package digest and durable operation journal
+ok 25 - offline recovery uses only local package digest and durable operation journal
+  ---
+  duration_ms: 2.821687
+  type: 'test'
+  ...
+# Subtest: partially failed uninstall keeps recovery journal and never deletes reinstalled same-ID data
+ok 26 - partially failed uninstall keeps recovery journal and never deletes reinstalled same-ID data
+  ---
+  duration_ms: 1.053829
+  type: 'test'
+  ...
+# Subtest: an acknowledged official baseline can finalize an upgrade with a lost registry acknowledgement without replay
+ok 27 - an acknowledged official baseline can finalize an upgrade with a lost registry acknowledgement without replay
+  ---
+  duration_ms: 16.165577
+  type: 'test'
+  ...
+# Subtest: reviewed market hash must actually match the candidate even if ID and version look valid
+ok 28 - reviewed market hash must actually match the candidate even if ID and version look valid
+  ---
+  duration_ms: 0.630501
+  type: 'test'
+  ...
+# Subtest: orphaned notes are retained when new same-ID installation cannot safely commit
+ok 29 - orphaned notes are retained when new same-ID installation cannot safely commit
+  ---
+  duration_ms: 0.30504
+  type: 'test'
+  ...
+# Subtest: installer fails closed on malformed, duplicated or overflowed local registries without erasing any rows
+ok 30 - installer fails closed on malformed, duplicated or overflowed local registries without erasing any rows
+  ---
+  duration_ms: 4.666945
+  type: 'test'
+  ...
+# Subtest: R5 production trust is disabled until all reviewed inputs exist; development cannot leak into it
+ok 31 - R5 production trust is disabled until all reviewed inputs exist; development cannot leak into it
+  ---
+  duration_ms: 3.896328
+  type: 'test'
+  ...
+# Subtest: R5 finite messages reject code, URLs, approval flags, protocol drift and unbounded fields
+ok 32 - R5 finite messages reject code, URLs, approval flags, protocol drift and unbounded fields
+  ---
+  duration_ms: 1.278959
+  type: 'test'
+  ...
+# Subtest: R5 validates browser sender, live top document and exact port before any handoff mutation
+ok 33 - R5 validates browser sender, live top document and exact port before any handoff mutation
+  ---
+  duration_ms: 2.354242
+  type: 'test'
+  ...
+# Subtest: R5 probe exposes no installed information; same intent resumes exact review after worker replacement
+ok 34 - R5 probe exposes no installed information; same intent resumes exact review after worker replacement
+  ---
+  duration_ms: 9.953295
+  type: 'test'
+  ...
+# Subtest: R5 prepared/opened persistence and committed-tab acknowledgement faults reconcile without duplicate pages
+ok 35 - R5 prepared/opened persistence and committed-tab acknowledgement faults reconcile without duplicate pages
+  ---
+  duration_ms: 8.489757
+  type: 'test'
+  ...
+# Subtest: R5 queue, global/origin rate and capacity are bounded across tabs and worker restarts
+ok 36 - R5 queue, global/origin rate and capacity are bounded across tabs and worker restarts
+  ---
+  duration_ms: 44.873556
+  type: 'test'
+  ...
+# Subtest: R5 expiry protects only the original unresolved operation/batch, without deleting installer journals
+ok 37 - R5 expiry protects only the original unresolved operation/batch, without deleting installer journals
+  ---
+  duration_ms: 2.04137
+  type: 'test'
+  ...
+# Subtest: R5 consumed handoff cannot replay when terminal installer or batch history is gone
+ok 38 - R5 consumed handoff cannot replay when terminal installer or batch history is gone
+  ---
+  duration_ms: 2.255242
+  type: 'test'
+  ...
+# Subtest: R5 shared consumption and external requests do not overwrite each other; expired approval is refused
+ok 39 - R5 shared consumption and external requests do not overwrite each other; expired approval is refused
+  ---
+  duration_ms: 3.226026
+  type: 'test'
+  ...
+# Subtest: R5 existing installer checks baseline and hash before consuming a handoff; consumption failure cannot install
+ok 40 - R5 existing installer checks baseline and hash before consuming a handoff; consumption failure cannot install
+  ---
+  duration_ms: 185.66894
+  type: 'test'
+  ...
+# Subtest: R5 consumed-without-journal survives TTL, and explicit locked recovery ends only the handoff
+ok 41 - R5 consumed-without-journal survives TTL, and explicit locked recovery ends only the handoff
+  ---
+  duration_ms: 10.170057
+  type: 'test'
+  ...
+# Subtest: R5 a lost consumption acknowledgement stops before installer writes, and two consumers never both succeed
+ok 42 - R5 a lost consumption acknowledgement stops before installer writes, and two consumers never both succeed
+  ---
+  duration_ms: 3.842127
+  type: 'test'
+  ...
+# Subtest: R5 terminal settlement survives journal trimming and missing recovery respects existing locks
+ok 43 - R5 terminal settlement survives journal trimming and missing recovery respects existing locks
+  ---
+  duration_ms: 4.515291
+  type: 'test'
+  ...
+# Subtest: R5 immutable archive conflicts reject same-version bytes and same-revision replacement
+ok 44 - R5 immutable archive conflicts reject same-version bytes and same-revision replacement
+  ---
+  duration_ms: 4.538967
+  type: 'test'
+  ...
+# Subtest: R5 independent website build is reproducible, self-contained and replaces only generated output
+ok 45 - R5 independent website build is reproducible, self-contained and replaces only generated output
+  ---
+  duration_ms: 518.987466
+  type: 'test'
+  ...
+# Subtest: R5 client never lets a late probe overwrite a successful handoff or claim installed
+ok 46 - R5 client never lets a late probe overwrite a successful handoff or claim installed
+  ---
+  duration_ms: 9.2072
+  type: 'test'
+  ...
+# Subtest: R5 client timeout and missing receiver say unable to connect, without guessing installation state
+ok 47 - R5 client timeout and missing receiver say unable to connect, without guessing installation state
+  ---
+  duration_ms: 6.84774
+  type: 'test'
+  ...
+# Subtest: R5 client rejects incompatible and malformed replies instead of showing false success
+ok 48 - R5 client rejects incompatible and malformed replies instead of showing false success
+  ---
+  duration_ms: 4.337253
+  type: 'test'
+  ...
+# Subtest: R5 channel network/JSON errors and wrong origin are understandable and never send an install request
+ok 49 - R5 channel network/JSON errors and wrong origin are understandable and never send an install request
+  ---
+  duration_ms: 6.497732
+  type: 'test'
+  ...
+# Subtest: Native remains optional after merging the current permission catalog
+ok 50 - Native remains optional after merging the current permission catalog
+  ---
+  duration_ms: 5.924027
+  type: 'test'
+  ...
+# Subtest: independent SW budget and fixed packaged Native transport entry
+ok 51 - independent SW budget and fixed packaged Native transport entry
+  ---
+  duration_ms: 1.368325
+  type: 'test'
+  ...
+# Subtest: single exact same-extension static import allowed in SW only
+ok 52 - single exact same-extension static import allowed in SW only
+  ---
+  duration_ms: 11.4145
+  type: 'test'
+  ...
+# Subtest: fixed transport registers listeners on the original SW APIs; default-off does not connect
+ok 53 - fixed transport registers listeners on the original SW APIs; default-off does not connect
+  ---
+  duration_ms: 1.439752
+  type: 'test'
+  ...
+# Subtest: CryptoJS CommonJS new.target helper is narrowly reviewed, not a scanner bypass
+ok 54 - CryptoJS CommonJS new.target helper is narrowly reviewed, not a scanner bypass
+  ---
+  duration_ms: 5.064871
+  type: 'test'
+  ...
+# Subtest: R4.8 authored catalog has exactly two default tools and three optional projects
+ok 55 - R4.8 authored catalog has exactly two default tools and three optional projects
+  ---
+  duration_ms: 24.515794
+  type: 'test'
+  ...
+# Subtest: R4.8 only trusted source and exact release policy can authorize preinstalled descriptor
+ok 56 - R4.8 only trusted source and exact release policy can authorize preinstalled descriptor
+  ---
+  duration_ms: 236.997994
+  type: 'test'
+  ...
+# Subtest: R4.8 first-install intent uses fixed classic WXT resource without bundling the installer into SW
+ok 57 - R4.8 first-install intent uses fixed classic WXT resource without bundling the installer into SW
+  ---
+  duration_ms: 6.263979
+  type: 'test'
+  ...
+# Subtest: R4.5 exact bytes, versions and capabilities are reproducible from the existing packer
+ok 58 - R4.5 exact bytes, versions and capabilities are reproducible from the existing packer
+  ---
+  duration_ms: 213.031889
+  type: 'test'
+  ...
+# Subtest: R4.5 adding a source catalog entry supplies release and marketplace without new UI mappings
+ok 59 - R4.5 adding a source catalog entry supplies release and marketplace without new UI mappings
+  ---
+  duration_ms: 33.414393
+  type: 'test'
+  ...
+# Subtest: R4.5 source change updates only its release bytes and catalog, with declared input identity
+ok 60 - R4.5 source change updates only its release bytes and catalog, with declared input identity
+  ---
+  duration_ms: 56.679816
+  type: 'test'
+  ...
+# Subtest: R4.5 catalog rejects automatic install, duplicate identity, arbitrary paths and foreign sources
+ok 61 - R4.5 catalog rejects automatic install, duplicate identity, arbitrary paths and foreign sources
+  ---
+  duration_ms: 3.437805
+  type: 'test'
+  ...
+# Subtest: R4.5 package config identity mismatch, missing source and invalid JavaScript fail before publication
+ok 62 - R4.5 package config identity mismatch, missing source and invalid JavaScript fail before publication
+  ---
+  duration_ms: 94.545889
+  type: 'test'
+  ...
+# Subtest: R4.5 official source and output symlinks cannot escape or write outside the selected root
+ok 63 - R4.5 official source and output symlinks cannot escape or write outside the selected root
+  ---
+  duration_ms: 51.011575
+  type: 'test'
+  ...
+# Subtest: R4.5 source project and catalog symlinks, oversized catalog and unresolved assets are rejected
+ok 64 - R4.5 source project and catalog symlinks, oversized catalog and unresolved assets are rejected
+  ---
+  duration_ms: 55.988382
+  type: 'test'
+  ...
+# Subtest: R4.5 removing an optional candidate removes only previously generated resource files
+ok 65 - R4.5 removing an optional candidate removes only previously generated resource files
+  ---
+  duration_ms: 49.102581
+  type: 'test'
+  ...
+# Subtest: R4.5 runtime fetches only extension-owned bytes; catalog alone has no install or execution effects
+ok 66 - R4.5 runtime fetches only extension-owned bytes; catalog alone has no install or execution effects
+  ---
+  duration_ms: 28.429222
+  type: 'test'
+  ...
+# Subtest: R4.5 corrupt, missing, redirected and over-limit resources cannot be reviewed as official
+ok 67 - R4.5 corrupt, missing, redirected and over-limit resources cannot be reviewed as official
+  ---
+  duration_ms: 7.099941
+  type: 'test'
+  ...
+# Subtest: R4.5 generated catalog rejects forged paths, duplicate releases, persisted user state and policies
+ok 68 - R4.5 generated catalog rejects forged paths, duplicate releases, persisted user state and policies
+  ---
+  duration_ms: 0.443649
+  type: 'test'
+  ...
+# Subtest: R4.5 all official tools derive availability, update and installed states from the same versions
+ok 69 - R4.5 all official tools derive availability, update and installed states from the same versions
+  ---
+  duration_ms: 0.66998
+  type: 'test'
+  ...
+# Subtest: R4.5 knowledge lifecycle correction is an upgrade from the shipped 1.1.0
+ok 70 - R4.5 knowledge lifecycle correction is an upgrade from the shipped 1.1.0
+  ---
+  duration_ms: 0.217128
+  type: 'test'
+  ...
+# Subtest: old installed v1 tool and private data remain readable with unlimitedStorage active
+ok 71 - old installed v1 tool and private data remain readable with unlimitedStorage active
+  ---
+  duration_ms: 3.579139
+  type: 'test'
+  ...
+# Subtest: readBytesInUse counts all local keys and includes knowledge 4 MiB namespace, not an invented capacity
+ok 72 - readBytesInUse counts all local keys and includes knowledge 4 MiB namespace, not an invented capacity
+  ---
+  duration_ms: 159.722908
+  type: 'test'
+  ...
+# Subtest: quota refusal leaves existing data intact and unknown response never lies about persistence
+ok 73 - quota refusal leaves existing data intact and unknown response never lies about persistence
+  ---
+  duration_ms: 1.303857
+  type: 'test'
+  ...
+# Subtest: My Apps opens local installed package while official catalog is missing or offline
+ok 74 - My Apps opens local installed package while official catalog is missing or offline
+  ---
+  duration_ms: 10.541213
+  type: 'test'
+  ...
+# Subtest: a corrupt local install registry reports a storage failure, not an empty My Apps view
+ok 75 - a corrupt local install registry reports a storage failure, not an empty My Apps view
+  ---
+  duration_ms: 1.945745
+  type: 'test'
+  ...
+# Subtest: capacity usage includes unfinished uninstall namespaces without loading their private note content
+ok 76 - capacity usage includes unfinished uninstall namespaces without loading their private note content
+  ---
+  duration_ms: 0.685323
+  type: 'test'
+  ...
+# Subtest: stalled official package lookup never blocks local My Apps or Open after catalog loads
+ok 77 - stalled official package lookup never blocks local My Apps or Open after catalog loads
+  ---
+  duration_ms: 161.899507
+  type: 'test'
+  ...
+# Subtest: late local registry reads cannot replace a newer installed-app snapshot
+ok 78 - late local registry reads cannot replace a newer installed-app snapshot
+  ---
+  duration_ms: 5.303791
+  type: 'test'
+  ...
+# Subtest: My Apps shows unavailable rather than zero when actual Chrome byte counters fail
+ok 79 - My Apps shows unavailable rather than zero when actual Chrome byte counters fail
+  ---
+  duration_ms: 2.004824
+  type: 'test'
+  ...
+# Subtest: R5 trusted app page exposes missing-journal recovery immediately after consume ACK loss
+ok 80 - R5 trusted app page exposes missing-journal recovery immediately after consume ACK loss
+  ---
+  duration_ms: 13.529521
+  type: 'test'
+  ...
+# Subtest: R5 trusted collection page exposes missing-journal recovery immediately after consume ACK loss
+ok 81 - R5 trusted collection page exposes missing-journal recovery immediately after consume ACK loss
+  ---
+  duration_ms: 9.6517
+  type: 'test'
+  ...
+# Subtest: R5 a fixed collection review never displays or recovers another intent batch of the same revision
+ok 82 - R5 a fixed collection review never displays or recovers another intent batch of the same revision
+  ---
+  duration_ms: 13.517878
+  type: 'test'
+  ...
+1..82
+# tests 82
+# suites 0
+# pass 82
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1016.642004

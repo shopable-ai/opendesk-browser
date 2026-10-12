@@ -78,7 +78,12 @@ test('Time Review R1.3 actual Mac Chrome install and trusted consent smoke',{ski
   await mkdir(OUT,{recursive:true});
   const pkgFile=path.join(EXTENSION,'official-tools/time-review/time-review.opendesk-tool.json');
   const pkgBytes=await readFile(pkgFile),pkg=JSON.parse(pkgBytes);
-  assert.equal(pkg.id,'time-review');assert.equal(pkg.version,'1.3.0');
+  assert.equal(pkg.id,'time-review');
+  const sourceConfig=JSON.parse(await readFile('examples/sidebar-tools/time-review/tool.config.json','utf8'));
+  const releaseCatalog=JSON.parse(await readFile(path.join(EXTENSION,'official-tools/catalog.json'),'utf8'));
+  const release=releaseCatalog.apps.find(row=>row.toolId==='time-review');
+  assert.equal(pkg.version,sourceConfig.version);assert.equal(pkg.version,release.version);
+  assert.equal(createHash('sha256').update(pkgBytes).digest('hex'),release.sha256);
   const profile=await mkdtemp(path.join(tmpdir(),'opendesk-time-r13-'));
   const downloads=path.join(profile,'owned-downloads');await mkdir(downloads);
   // Configure the real Chrome profile before launch. Do not use CDP's
@@ -94,7 +99,7 @@ test('Time Review R1.3 actual Mac Chrome install and trusted consent smoke',{ski
     '--user-data-dir='+profile,'--disable-extensions-except='+EXTENSION,
     '--load-extension='+EXTENSION,'about:blank'];
   const proc=spawn(BIN,args,{stdio:['ignore','ignore','pipe']});
-  let stderr='',browser=null,complete=false,sideSid=null,frameSid=null;
+  let stderr='',browser=null,complete=false,sideSid=null,frameSid=null,restartProc=null;
   const evidence={candidate:process.env.GITHUB_SHA||null,mode:'actual-headed-macos-CFT',
     package:{id:pkg.id,version:pkg.version,sha256:createHash('sha256').update(pkgBytes).digest('hex')},
     chromePid:proc.pid,profileOwned:true,install:'NOT_TESTED',realSidePanel:'NOT_TESTED',
@@ -135,7 +140,15 @@ test('Time Review R1.3 actual Mac Chrome install and trusted consent smoke',{ski
         proc.kill('SIGTERM');
       });
     }
-    const terminated=proc.exitCode!==null||proc.signalCode!==null;
+    if(restartProc&&restartProc.exitCode===null&&restartProc.signalCode===null){
+      await new Promise(resolve=>{
+        const timer=setTimeout(()=>{restartProc.kill('SIGKILL');resolve();},2600);
+        restartProc.once('close',()=>{clearTimeout(timer);resolve();});
+        restartProc.kill('SIGTERM');
+      });
+    }
+    const terminated=(proc.exitCode!==null||proc.signalCode!==null)&&
+      (!restartProc||restartProc.exitCode!==null||restartProc.signalCode!==null);
     const owned=path.basename(profile).startsWith('opendesk-time-r13-')&&path.dirname(profile)===tmpdir();
     assert.ok(owned,'Only the unique owned temp profile may be removed');
     await rm(profile,{recursive:true,force:true,maxRetries:6,retryDelay:200});
@@ -196,7 +209,7 @@ test('Time Review R1.3 actual Mac Chrome install and trusted consent smoke',{ski
   await until(()=>evaluate(browser,side,'Boolean(document.querySelector('+JSON.stringify(installed)+'))'),'official Time Review installed');
   const saved=await evaluate(browser,side,
     'chrome.storage.local.get("opendesk.sidebar-tools.installed.v1").then(v=>v["opendesk.sidebar-tools.installed.v1"]?.find(x=>x.id==="time-review")?.version)');
-  assert.equal(saved,'1.3.0','real installed package persisted');
+  assert.equal(saved,pkg.version,'real installed package persisted with exact built tool version');
   evidence.install='PASS';note('install',{version:saved});
   await nativeClick(browser,side,installed);
   await until(()=>evaluate(browser,side,'!document.querySelector("#sidebar-tool-display").hidden'),'tool opened');
@@ -348,11 +361,59 @@ test('Time Review R1.3 actual Mac Chrome install and trusted consent smoke',{ski
       const active=await evaluate(browser,side,'chrome.tabs.query({active:true,lastFocusedWindow:true})');
       return active.some(tab=>tab.url===siteUrl);
     },'real HTTP(S) Chrome active tab',10000);
-    await until(async()=>{const s=await readTime();return s.checkpoint?.host==='127.0.0.1'?s:null;},
-      'website checkpoint from live Chrome tab',10000);
-    await sleep(1600);
-    await nativeClick(browser,side,'#sidebar-tool-settings-open');
-    await nativeClick(browser,frame,'#refresh');
+    const readActivityGates=()=>evaluate(browser,side,
+      '(async()=>{const w=await chrome.windows.getLastFocused();const t=(await chrome.tabs.query({active:true,windowId:w.id}))[0];return {focused:w.focused,windowType:w.type,idle:await chrome.idle.queryState(60),isLoopbackTab:t?.url?.startsWith("http://127.0.0.1:"),hasHostPermission:await chrome.permissions.contains({origins:["http://127.0.0.1/*"]})};})()');
+    let observationGates=await readActivityGates();
+    note('native-observation-gates-before-input',observationGates);
+    if(observationGates.idle!=='active'){
+      // CDP mouse dispatch is a browser renderer event and is NOT proof of
+      // operating-system activity. Use the existing macOS-owned CFT helper:
+      // it checks the actual process and emits a real macOS CGEvent, without
+      // injecting Chrome idle responses, permissions, or Time Review storage.
+      const helper=path.join(profile,'time-review-native-activity');
+      const compile=spawnSync('swiftc',[
+        path.resolve('tests/framework/time-review-native-input.swift'),'-o',helper
+      ],{encoding:'utf8',timeout:80000});
+      let delivered=false,reason='';
+      if(compile.status===0){
+        const input=spawnSync(helper,[String(proc.pid),'activity'],{encoding:'utf8',timeout:10000});
+        delivered=input.status===0&&String(input.stdout).includes('OWNED_NATIVE_MOUSE_MOVED');
+        reason=delivered?'macOS owned CGEvent sent':
+          'macOS Accessibility/CGEvent permission unavailable (status '+input.status+')';
+      }else reason='macOS Swift helper unavailable (status '+compile.status+')';
+      note('native-os-activity-attempt',{delivered,reason});
+      if(delivered)observationGates=await until(async()=>{
+        const gates=await readActivityGates();
+        return gates.idle==='active'?gates:null;
+      },'macOS real input transitions chrome.idle to active',3000).catch(()=>observationGates);
+    }
+    note('native-observation-gates-final',observationGates);
+    const canProveActivity=observationGates.idle==='active'&&observationGates.focused===true&&
+      observationGates.windowType==='normal'&&observationGates.isLoopbackTab===true&&
+      observationGates.hasHostPermission===true;
+    if(!canProveActivity){
+      evidence.beginAndActiveCollection='BLOCKED';
+      note('activity-native-blocked',{
+        reason:'Real system activity and focused, authorized HTTP(S) tab are required',
+        gates:observationGates
+      });
+      // A CI host that is physically idle is not a product defect. Never
+      // weaken observe(), simulate chrome.idle, or count this as native PASS.
+    }else{
+      // A genuine OS activity transition does not force an immediate SW wake:
+      // the heartbeat may legitimately arrive up to 30 seconds later. Use
+      // the actual Side Panel refresh button to request a normal status tick.
+      // No Chrome storage/business data or privileged API response is forged.
+      await nativeClick(browser,side,'#sidebar-tool-settings-open');
+      await nativeClick(browser,frame,'#refresh');
+      const checkpoint=await until(async()=>{
+        const s=await readTime();
+        return s?.checkpoint?.host==='127.0.0.1'?s:null;
+      },'website checkpoint after visible Time Review refresh',10000);
+      note('real-web-checkpoint',{host:checkpoint.checkpoint.host,paused:checkpoint.paused,
+        startedAt:checkpoint.checkpoint.at,hasPermission:true});
+      await sleep(1600);
+      await nativeClick(browser,frame,'#refresh');
     const settled=await until(async()=>{
       const s=await readTime();
       return Object.values(s.days||{}).some(sites=>(sites['127.0.0.1']||0)>=750)?s:null;
@@ -366,26 +427,150 @@ test('Time Review R1.3 actual Mac Chrome install and trusted consent smoke',{ski
     assert.equal(total(await readTime()),total(paused),'paused time never accumulates');
     evidence.pauseResume='PARTIAL';
     note('real-pause',{ms:total(paused)});
-    await browser.send('ServiceWorker.enable');
-    await browser.send('ServiceWorker.stopAllWorkers');
-    await nativeClick(browser,frame,'#refresh');
-    const recovered=await until(async()=>{const s=await readTime();return s?.paused?s:null;},
-      'SW wake after real stop',12000);
-    assert.equal(total(recovered),total(paused),'worker restarts preserve durable totals');
-    evidence.swRestart='PASS';note('real-service-worker-restart',{ms:total(recovered)});
+    // In Chrome 155 the ServiceWorker CDP domain is not exposed on the
+    // root Browser connection. First close the one observed extension worker
+    // target; fall back to the page-session domain only in this owned profile.
+    // A plain CDP detach is NOT a restart and cannot be reported as PASS.
+    const swBefore=(await browser.send('Target.getTargets')).targetInfos.filter(x=>
+      x.type==='service_worker'&&x.url?.endsWith('/sw.js'));
+    const oldSw=swBefore.length===1?swBefore[0]:null;
+    let stopConfirmed=false,stopMethod=null;
+    const stopErrors=[];
+    if(oldSw)try{
+      const response=await browser.send('Target.closeTarget',{targetId:oldSw.targetId});
+      stopConfirmed=response?.success===true;
+      if(stopConfirmed)stopMethod='Target.closeTarget';
+    }catch(e){stopErrors.push('Target.closeTarget: '+String(e).slice(0,180));}
+    if(oldSw&&!stopConfirmed)for(const session of [side,uiTarget.sessionId])try{
+      await browser.send('ServiceWorker.enable',{},session);
+      await browser.send('ServiceWorker.stopAllWorkers',{},session);
+      stopConfirmed=true;stopMethod='ServiceWorker.stopAllWorkers in page session';break;
+    }catch(e){stopErrors.push('ServiceWorker page session: '+String(e).slice(0,180));}
+    if(!stopConfirmed){
+      evidence.swRestart='BLOCKED';
+      note('worker-stop-blocked',{reason:'CFT did not expose a supported isolated worker termination method',
+        count:swBefore.length,errors:stopErrors});
+    }else{
+      await nativeClick(browser,frame,'#refresh');
+      const swAfter=await until(async()=>{
+        const rows=(await browser.send('Target.getTargets')).targetInfos;
+        return rows.find(row=>row.type==='service_worker'&&row.url?.endsWith('/sw.js')&&row.targetId!==oldSw.targetId)||null;
+      },'real replacement extension service worker target',12000).catch(()=>null);
+      if(!swAfter){
+        evidence.swRestart='BLOCKED';
+        note('worker-restart-not-confirmed',{method:stopMethod,oldTarget:oldSw.targetId});
+      }else{
+        const recovered=await until(async()=>{const s=await readTime();return s?.paused?s:null;},
+          'durable paused state after actual worker replacement',12000);
+        assert.equal(total(recovered),total(paused),'worker restart must preserve durable website totals');
+        evidence.swRestart='PASS';
+        note('real-service-worker-restart',{ms:total(recovered),method:stopMethod,
+          targetChanged:swAfter.targetId!==oldSw.targetId});
+      }
+    }
     await nativeClick(browser,side,'#sidebar-tool-settings-open');
     await nativeClick(browser,side,'#time-review-trusted-start');
     const resumed=await until(async()=>{const s=await readTime();return s&&!s.paused?s:null;},'trusted resume',10000);
     evidence.pauseResume='PASS';note('real-resume',{paused:resumed.paused});
     await nativeClick(browser,side,'#sidebar-tool-settings-open');
+    // The sandbox has been hidden while the trusted host resumed collection.
+    // Request a normal status refresh before acting on its formerly disabled
+    // Pause button; do not synthesize a click on disabled UI.
+    await nativeClick(browser,frame,'#refresh');
+    await until(()=>evaluate(browser,frame,
+      'Boolean(document.querySelector("#pause")&&!document.querySelector("#pause").disabled)'),
+      'resumed Pause button ready after genuine status refresh',9000);
     await nativeClick(browser,frame,'#pause');
     await until(async()=>{const s=await readTime();return s.paused?s:null;},'final trusted stop');
+    }
     await browser.send('Target.closeTarget',{targetId:site.targetId});
   }
+  state=await readTime();
+  // The initial exports were intentionally empty. Check actual subsequent
+  // JSON/CSV after a trusted real website session, including name uniquify.
+  if(evidence.beginAndActiveCollection==='PASS'){
+    assert.ok(state.paused);
+    assert.ok(Object.values(state.days).some(sites=>(sites['127.0.0.1']||0)>0));
+    if(!await evaluate(browser,frame,'document.querySelector("#settings").open'))
+      await nativeClick(browser,frame,'#settings summary');
+    for(const [format,selector] of [['json','#export-json'],['csv','#export-csv']]){
+      const previous=new Set((await readDownloads()).map(row=>row.id));
+      await nativeClick(browser,frame,selector);
+      const done=await until(async()=>{
+        const rows=await readDownloads();
+        return rows.find(row=>!previous.has(row.id)&&row.state==='complete')||null;
+      },'populated '+format+' download',20000);
+      const file=path.resolve(done.filename||'');
+      assert.equal(path.dirname(file),path.resolve(downloads),'never inspect outside owned directory');
+      assert.match(path.basename(file),new RegExp('^time-review \\(\\d+\\)\\.'+format+'$'));
+      const contents=await readFile(file,'utf8');
+      if(format==='json'){
+        const parsed=JSON.parse(contents);
+        assert.equal(parsed.format,'opendesk.time-review.export.v1');
+        for(const key of ['days','categories','minuteDays','settings'])
+          assert.deepEqual(parsed[key],state[key],'populated '+format+' '+key);
+        assert.equal(parsed.minuteConsent,state.minuteConsent);
+        assert.equal(parsed.discardedMs,state.discardedMs);
+      }else assert.equal(contents,reviewExport(state,'csv').text);
+      note('populated-export',{format,filename:path.basename(file),bytes:Buffer.byteLength(contents),
+        sha256:createHash('sha256').update(contents).digest('hex'),actualWebsiteTime:true});
+    }
+    evidence.populatedExport='PASS';
+  }else evidence.populatedExport='NOT_TESTED';
+
+  // Test a truly new browser PROCESS on the same uniquely owned profile.
+  // All writes to Time Review storage remain exclusively product-initiated.
+  const oldState=structuredClone(state);
+  const oldSession=await evaluate(browser,side,
+    'chrome.storage.session.get("opendesk.time-review.session.v1").then(v=>v["opendesk.time-review.session.v1"]||null)');
+  const portPath=path.join(profile,'DevToolsActivePort');
+  const oldPort=await readFile(portPath,'utf8').catch(()=>null);
+  const oldBrowser=browser;
+  await oldBrowser.send('Browser.close').catch(()=>{});
+  oldBrowser.close();browser=null;sideSid=null;frameSid=null;
+  await until(()=>proc.exitCode!==null||proc.signalCode!==null,
+    'original Chrome PID exit before reusing Profile',15000);
+  await sleep(350);
+  restartProc=spawn(BIN,args,{stdio:['ignore','ignore','pipe']});
+  restartProc.stderr.on('data',data=>{stderr=(stderr+String(data)).slice(-3500);});
+  const port=await until(async()=>{
+    const raw=await readFile(portPath,'utf8').catch(()=>null);
+    if(!raw||raw===oldPort)return null;
+    const number=Number(raw.split('\n')[0]);return number>0?number:null;
+  },'new CFT CDP port on same Profile',30000);
+  const nextVersion=await(await fetch('http://127.0.0.1:'+port+'/json/version')).json();
+  assert.equal(nextVersion.Browser,version.Browser,'same pinned CFT binary');
+  browser=cdp(nextVersion.webSocketDebuggerUrl);await browser.ready;
+  const reopened=await browser.send('Target.createTarget',{
+    url:'chrome-extension://'+present+'/ui/tool.html?hostInstanceId='+randomUUID()});
+  const newSide=(await browser.send('Target.attachToTarget',{
+    targetId:reopened.targetId,flatten:true})).sessionId;
+  await browser.send('Runtime.enable',{},newSide);await browser.send('Page.enable',{},newSide);
+  const persisted=await until(async()=>evaluate(browser,newSide,
+    '(async()=>{const rows=(await chrome.storage.local.get("opendesk.sidebar-tools.installed.v1"))["opendesk.sidebar-tools.installed.v1"];const review=(await chrome.storage.local.get("opendesk.time-review.v1"))["opendesk.time-review.v1"];return {extensionId:chrome.runtime.id,version:rows?.find(t=>t.id==="time-review")?.version||null,review:review||null};})()'),
+    'installed Time Review and durable data after whole Chrome restart',15000);
+  assert.equal(persisted.extensionId,present,'same installed extension after restart');
+  assert.equal(persisted.version,pkg.version,'installed Time Review retained');
+  assert.ok(persisted.review?.paused,'paused state retained after restart');
+  for(const key of ['days','categories','minuteDays'])
+    assert.deepEqual(persisted.review[key],oldState[key],'durable '+key+' across Chrome restart');
+  assert.equal(persisted.review.minuteConsent,oldState.minuteConsent);
+  const newSession=await until(()=>evaluate(browser,newSide,
+    'chrome.storage.session.get("opendesk.time-review.session.v1").then(v=>v["opendesk.time-review.session.v1"]||null)'),
+    'new browser session identity after Chrome restart',15000);
+  assert.ok(oldSession&&newSession&&oldSession!==newSession,
+    'entire Chrome restart must replace the per-browser session UUID');
+  evidence.browserRestart=evidence.beginAndActiveCollection==='PASS'?'PASS':'PARTIAL';
+  evidence.browserRestartScope='paused genuine website totals, same owned Profile';
+  note('real-chrome-restart',{previousPid:proc.pid,newPid:restartProc.pid,
+    sameProfile:true,sessionChanged:true,toolVersion:persisted.version,
+    days:Object.keys(persisted.review.days).length,paused:persisted.review.paused});
+  state=persisted.review;
   complete=true;
   await writeFile(path.join(OUT,'state-summary.json'),JSON.stringify({
     minuteConsent:state.minuteConsent,paused:state.paused,days:Object.keys(state.days||{}).length,
-    nativeInstall:true,downloadChecks,
+    nativeInstall:true,downloadChecks,browserRestart:evidence.browserRestart,
+    populatedExport:evidence.populatedExport,
     currentSourceHash:process.env.GITHUB_SHA||null,actualSidePanelDocumentId:sideDocument.documentId
   },null,2)+'\n');
 });

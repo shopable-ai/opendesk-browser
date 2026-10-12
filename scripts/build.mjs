@@ -24,6 +24,7 @@ try {
 await mkdir(evidence,{recursive:true});
 await writeFile(`${evidence}/build-${mode}-latest.json`,JSON.stringify({status:'in_progress',mode,attemptId,startedAt:new Date().toISOString()})+'\n');
 inputsBefore = await sourceInputs();
+process.env.OPENDESK_BUILD_MODE=mode;
 await preparePublic();
 moduleEvidence = await mkdtemp(resolve('.wxt/module-evidence-'));
 process.env.OPENDESK_BUILD_MODE=mode;process.env.OPENDESK_MODULE_EVIDENCE_DIR=moduleEvidence;

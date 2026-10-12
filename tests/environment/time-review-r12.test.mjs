@@ -67,6 +67,27 @@ test('30 second checkpoints track the selected website without storing URLs',asy
   const result=await f.call('time.status');assert.equal(result.todayMs,31234);assert.equal(result.trackingHost,'example.com');
   assert.equal(f.alarms.get(TIME_REVIEW_ALARM).periodInMinutes,0.5);assert(!JSON.stringify(f.local[TIME_REVIEW_KEY]).includes('secret'));
 });
+test('non-default HTTP(S) ports use Chrome valid host patterns with no wildcard-origin expansion',async()=>{
+  for(const url of ['http://127.0.0.1:43111/activity','https://example.com:8443/path']){
+    const f=await fixture(),seen=[],realContains=f.api.permissions.contains;
+    f.set({tab:{url}});
+    f.api.permissions.contains=async query=>{
+      if(query.origins){
+        seen.push(query.origins[0]);
+        if(/:(?:43111|8443)\//.test(query.origins[0]))throw Error('Invalid Chrome host match pattern with port');
+      }
+      return realContains(query);
+    };
+    await f.call('time.start');
+    f.advance(900);
+    const state=await f.call('time.status');
+    assert.equal(state.todayMs,900,'actual port must not lose activity');
+    assert.ok(seen.length>0);
+    assert.deepEqual([...new Set(seen)],[new URL(url).protocol+'//'+new URL(url).hostname+'/*']);
+    assert(!seen[0].includes('*://*'),'never permit a broader all-host pattern');
+  }
+});
+
 test('tab switches and same-tab navigation settle previous domains exactly once',async()=>{
   const f=await fixture();await f.call('time.start');f.advance(10000);f.set({tab:{id:12,url:'https://other.example/'}});await f.tick();f.advance(20000);f.set({tab:{url:'https://third.example/'}});await f.tick();
   const result=await f.call('time.status');assert.deepEqual(result.todaySites,[{host:'other.example',ms:20000},{host:'example.com',ms:10000}]);

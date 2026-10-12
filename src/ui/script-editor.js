@@ -153,7 +153,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
       : `已保存 r${currentRevision.revision} · 可运行草稿；不自动创建新 revision`;
   }
   function canStopManaged(){
-    if(browserManagedPreview&&!localProject?.active()&&!running&&!stopping&&!previewBusy&&!host.currentRun&&
+    if(browserManagedPreview&&!browserEffectUnknown&&!localProject?.active()&&!running&&!stopping&&!previewBusy&&!host.currentRun&&
       currentPageState?.status==='available'&&currentPageState.documentId===browserManagedPreview.target.documentId&&
       currentPageState.tabId===browserManagedPreview.target.tabId)return true;
     if(!ownedManagedPreview||!localProject?.active()||running||previewBusy||host.currentRun||!projection?.slotAvailable)return false;
@@ -731,7 +731,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
         pageTechnicalPanel.hidden=false;pageTechnicalPanel.open=false;
         pageTechnical.textContent=JSON.stringify({...result,authoring:{
           framework:built.framework,compilerVersion:built.compilerVersion,
-          sourceHash:built.sourceHash}},null,2);
+          sourceHash:built.sourceHash,cacheHit:built.cacheHit,prepareMs:built.prepareMs}},null,2);
         return;
       }
       const result=await client.request('previewPageScript',{
@@ -822,7 +822,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
   on('script-download','click',downloadResult); on('script-download-result','change',update);
   on('script-refresh','click',refreshTabs); on('script-tab','change',refreshDocuments);
   if(componentSelector)listen(componentSelector,'change',()=>{
-    if(previewBusy||browserManagedPreview||browserEffectUnknown){
+    if(previewBusy||browserManagedPreview||browserEffectUnknown||localProject?.active()||programSource.snapshot()){
       componentSelector.value=componentMode;
       componentMessage('error','请先停止旧组件或打开新网页，再切换框架');
       return;
@@ -891,7 +891,12 @@ export function createScriptEditor({client, currentPageTarget, development=false
         pageTechnicalPanel.hidden=false;pageTechnicalPanel.open=false;
         pageTechnical.textContent=JSON.stringify({stop:result,framework:owned.framework},null,2);
         display('completed','受管组件已清理；网页业务效果不会回滚。');
-      }catch(error){componentMessage('error',error.code+'：'+error.message);throw error;}
+      }catch(error){
+        browserEffectUnknown=true; // Fail closed; the trusted lifecycle refuses retry after uncertain Stop.
+        componentMessage('error',(error.code||'E_UI_CLEANUP')+'：'+error.message+
+          '；无法确认组件已清理，请重新加载目标网页');
+        throw error;
+      }
       finally{stopping=false;update();}
       return;
     }

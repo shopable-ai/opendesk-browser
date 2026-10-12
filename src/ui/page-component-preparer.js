@@ -2,8 +2,11 @@
 // One job owns one dedicated Worker. Edits, cancellation and failures cannot
 // reuse stale successful code. Only exact immutable extension resources load.
 import {digestUtf8} from '../platform/protocol.js';
-import {PAGE_BROWSER_UI_HELPER} from '../libs/page-frameworks/contract.js';
+import {PAGE_BROWSER_UI_HELPER,PAGE_BROWSER_PRIVATE_FILES,PAGE_FRAMEWORK_RUNTIMES} from '../libs/page-frameworks/contract.js';
 const MAX_AUTHORING=128*1024,MAX_PAGE=100000;
+// Cache identities include all frozen browser compiler resources and the
+// selected pinned Page framework; never assume URL or framework aliases equal.
+const compilerIdentity=PAGE_BROWSER_PRIVATE_FILES.map(row=>row.id+':'+row.version+':'+row.sha256).join('|');
 const typed=(code,message)=>Object.assign(new Error(message),{code});
 const bytes=s=>new TextEncoder().encode(s).length;
 export function createBrowserPageComponentPreparer({api=globalThis.chrome,
@@ -11,7 +14,7 @@ export function createBrowserPageComponentPreparer({api=globalThis.chrome,
   timeoutMs=25000}={}){
   if(typeof timeoutMs!=='number'||timeoutMs<1000||timeoutMs>60000)
     throw typed('E_PAGE_COMPILER_CONFIG','Invalid compiler timeout');
-  let revision=0,active=null,helperTask=null,disposed=false;
+  let revision=0,active=null,helperTask=null,cache=null,disposed=false;
   function cancel(){
     ++revision;
     if(active){
@@ -43,7 +46,17 @@ export function createBrowserPageComponentPreparer({api=globalThis.chrome,
        bytes(componentSource)>MAX_AUTHORING||!['react','vue'].includes(framework))
       throw typed('E_PAGE_COMPONENT_LIMIT','Invalid component source or framework');
     cancel();
-    const ticket=revision;
+    const ticket=revision,startedAt=performance.now();
+    const key=JSON.stringify({componentSource,framework,projectId,pageRules,
+      entryMode:'component',conversion:'babel-cjs-classic-jsx-v1',
+      generated:'page-component-entry-r243',
+      browserCompiler:compilerIdentity,
+      frameworkRuntime:PAGE_FRAMEWORK_RUNTIMES[framework].sha256});
+    if(cache?.key===key){
+      // The verified extension and source closure is unchanged. This is
+      // NOT a fall-back after a failed/new compilation: only exact input hits.
+      return Object.freeze({...cache.value,cacheHit:true,prepareMs:0});
+    }
     const helper=await loadHelper();
     if(ticket!==revision||disposed)throw typed('E_PAGE_COMPILER_STALE','Newer compiler input superseded this request');
     if(typeof WorkerClass!=='function')throw typed('E_PAGE_COMPILER_WORKER','Dedicated Worker unavailable');
@@ -86,8 +99,16 @@ export function createBrowserPageComponentPreparer({api=globalThis.chrome,
        !payload.sourceUtf8.includes('// @opendesk-lib '+framework)||
        !payload.sourceUtf8.includes('async function main()'))
       throw typed('E_PAGE_COMPILER_OUTPUT','Compiled source failed original Page constraints');
-    return Object.freeze({...payload,sourceHash:await digestUtf8(payload.sourceUtf8)});
+    const sourceHash=await digestUtf8(payload.sourceUtf8);
+    if(disposed||ticket!==revision)
+      throw typed('E_PAGE_COMPILER_STALE','Digest completed after the editor changed');
+    const output=Object.freeze({...payload,sourceHash,cacheHit:false,
+      prepareMs:Math.round((performance.now()-startedAt)*10)/10});
+    if(disposed||ticket!==revision)
+      throw typed('E_PAGE_COMPILER_STALE','Stale compiler output cannot populate the cache');
+    cache={key,value:output};
+    return output;
   }
-  return Object.freeze({prepare,cancel,dispose(){if(disposed)return;disposed=true;cancel();},
+  return Object.freeze({prepare,cancel,dispose(){if(disposed)return;disposed=true;cancel();cache=null;helperTask=null;},
     get busy(){return !!active;}});
 }

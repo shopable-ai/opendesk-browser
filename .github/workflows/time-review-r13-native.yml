@@ -38,12 +38,21 @@ jobs:
         run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Real R1.3 model and consent regression
         run: |
+          node --check tests/framework/time-review-r13-native.test.mjs
           node --test tests/environment/time-review-r12.test.mjs tests/environment/time-review-r13.test.mjs tests/environment/time-review-r13-service.test.mjs tests/environment/time-review-r13-consent.test.mjs tests/environment/time-review-host-controls-r51.test.mjs
-      - name: Build exact Production Chrome MV3 package
+      - name: Build standalone Time Review package and verify source/pack limits
+        run: |
+          npm run build:sidebar-tool -- examples/sidebar-tools/time-review
+          TOOL_VERSION="$(node -p 'require("./examples/sidebar-tools/time-review/tool.config.json").version')"
+          shasum -a 256 "artifacts/sidebar-tools/time-review/$TOOL_VERSION/time-review.opendesk-tool.json"
+      - name: Build and verify both Production and Development Chrome MV3 packages
         run: |
           npm run check
           npm run build
-          node scripts/verify-package.mjs dist/production
+          npm run build:dev
+          npm run verify
+          shasum -a 256 dist/production/official-tools/time-review/time-review.opendesk-tool.json
+          shasum -a 256 dist/production/sw.js
       - uses: browser-actions/setup-chrome@v2
         id: chrome
         with:

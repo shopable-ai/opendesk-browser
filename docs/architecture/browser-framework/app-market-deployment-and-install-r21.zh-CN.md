@@ -2,6 +2,8 @@
 
 日期：2026-10-11。状态：**已确认设计与文档，不代表公网市场、跨页面安装桥或正式市场安装代码已经上线**。
 
+2026-10-12 后续实施索引：[R5 网站与可信安装交接](app-market-website-r5.zh-CN.md) 已补独立源码、受限消息和开发／生产合同；[R5 工作流](../../framework/workstreams/app-market-r5.md) 分别记录代码、组件、真实 Chrome 与正式 HTTPS。下文保留 R21 当时的设计／原型事实，不能把历史 `P0/P1` 阶段名或示例域名当成现在的上线结论。
+
 本决策延续 [R2 市场需求](../../product/app-market-r2.zh-CN.md)、[R2 交互原型](../../../prototypes/marketplace/app-market-r2.html)及现有 [工具市场安装合同](../../product/sidebar-tool-market-compat-r41.zh-CN.md)。实施前以最新 main 源码、AGENTS.md、testing-guide 和相关工作流为准；原有 Sidebar 工具、Page Program、Task、RunHost 与权限边界均保留。
 
 ## 1. 结论：双入口市场，不增加用户常驻本地服务器

@@ -1,0 +1,14 @@
+{
+  "schema": "opendesk.market.r5.ci-evidence.v1",
+  "runId": 38221688395,
+  "sourceCommit": "b392b7f00b1c04b378afdd4b79d6b00eb3b59900",
+  "result": "COMPONENT_FAILED_NATIVE_NOT_STARTED",
+  "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38221688395",
+  "artifactId": 11734885599,
+  "artifactZipSha256": "ae4e06665ca833ebd41a678e6db251c55cdefa97141a54c65b60e0476aac2321",
+  "rawTAP": "linux-components-failed.tap",
+  "rawSha256": "58ac8fc8b209e518598fea6091e1aefba94c2933626fe4d1567164d56045ade7",
+  "failure": "Fixture used current quick-notes 1.1.8 for immutable reading-kit r2 member 1.1.6; createMarketBatch correctly rejected E_BATCH_PLAN",
+  "repair": "Use fixed r3 and match both application ID and version; retain r1/r2 missing-version cases",
+  "localRepairEvidence": "components-current-r3-fixtures.tap"
+}

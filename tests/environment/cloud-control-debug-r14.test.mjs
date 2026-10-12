@@ -64,3 +64,18 @@ test('production keeps hidden sixth tab and cannot navigate into it',async()=>{
  const ids=[...html.matchAll(/id="([^"]+)"/g)].map(m=>m[1]);
  assert.equal(new Set(ids).size,ids.length);
 });
+
+
+test('cloud status refresh is read-only and full tool/catalog tabs cannot claim cloud tasks',async()=>{
+ const [hosting,shell]=await Promise.all([read('src/ui/cloud-hosting.js'),read('src/ui/tool-shell.js')]);
+ assert.match(hosting,/async function refresh\(\)\{/);
+ const start=hosting.indexOf('async function refresh()'),end=hosting.indexOf('async function dispatchNext(');
+ assert.ok(start>=0&&end>start);
+ assert.doesNotMatch(hosting.slice(start,end),/cloudNext|cloudResolve|host\.start/);
+ assert.match(hosting,/click\('cloud-refresh',async\(\)=>\{\}\)/);
+ assert.match(hosting,/if\(!busy&&!disposed\)await dispatchNext\(s\)/);
+ assert.match(shell,/let cloudHosting=null;/);
+ assert.match(shell,/if\(!tab\?\.id\)\{[\s\S]*?cloudHosting=createCloudHosting\(/);
+ const remainder=shell.slice(shell.indexOf('if(!tab?.id){')+10,shell.indexOf('const toolId=requestedToolId'));
+ assert.equal((remainder.match(/createCloudHosting\(/g)||[]).length,1);
+});

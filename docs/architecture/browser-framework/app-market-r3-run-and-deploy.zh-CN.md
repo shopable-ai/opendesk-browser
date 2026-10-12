@@ -19,9 +19,9 @@ python3 -m http.server 43132 --bind 127.0.0.1 --directory dist/app-market-public
 
 可访问 /、/apps/opendesk/reading-toc/、/apps/opendesk/reading-toc/versions/1.0.2/、/install/opendesk/reading-toc/versions/1.0.2/、/collections/reading-kit/revisions/1/ 等路径。每个目录独立拥有 index.html，支持 HTTPS CDN/静态站直接访问与刷新，网站不需要常驻本地服务器。
 
-域名确定后，使用环境变量 OPENDESK_MARKET_SITE_ORIGIN=https://<正式域名> 执行 npm run build:market-site，将产生 canonical/OG URL 与 sitemap。此变量只属于展示部署配置，不会自动修改扩展 manifest、开放信任 Origin 或创建已上线链接。域名、证书与正式 Chrome Web Store 地址尚未提供，不能编造。
+域名确定后，在生产网站构建中使用 `OPENDESK_MARKET_BUILD_MODE=production OPENDESK_MARKET_SITE_ORIGIN=https://<正式域名> npm run build:market-site`，将产生 canonical/OG URL 与 sitemap。此变量只属于展示部署配置，不会自动修改扩展 manifest、开放信任 Origin 或创建已上线链接。已启用的正式安装 Origin 必须与它完全一致。域名、证书与正式 Chrome Web Store 地址尚未提供，不能编造。
 
-公网安装按钮目前转到明确的扩展内安装指导，不会通过网页直接触发安装。要实现外部意图必须经过受信任 HTTPS Origin、正式扩展 ID、manifest allowlist、sender 验证、严格定长数据协议、仅打开扩展自己的审核页以及已有安装器。域名未定时有意不添加 externally_connectable。
+上述为 R3 展示阶段。R5 已把网站模板、CSS 和客户端拆入 `src/market-site/`，详情和套装主按钮经有限外部消息打开扩展可信审阅；安装仍需在该页确认。默认网站构建是 `http://127.0.0.1:43132` 开发通道，须加载同配置的 `dist/development`；生产渠道未配置时不添加 externally_connectable。生产网站用 `OPENDESK_MARKET_BUILD_MODE=production npm run build:market-site`；仅设置展示 Origin 不会开放信任。完整启动、配置、安全头和证据说明见 [R5 网站架构](app-market-website-r5.zh-CN.md) 与 [R5 工作流](../../framework/workstreams/app-market-r5.md)。
 
 本任务不抢占 Mac Chrome Profile/固定端口/原生设备。新候选需定向验收正常和坏包、重复/版本差异、更新数据、卸载/权限撤销、批量部分失败、丢回执恢复，并记录 source SHA、packageHash、Chrome 版本/ID。
 

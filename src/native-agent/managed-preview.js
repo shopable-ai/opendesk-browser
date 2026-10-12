@@ -28,7 +28,18 @@ export function createManagedUIPreview({worlds,assertHost,verifyTarget}){
       (value.enabled===undefined||typeof value.enabled==='boolean')&&
       /^[a-f0-9-]{36}$/.test(value.previewId)&&
       (agentProjectBinding(value.bindingId)||/^browser-v1-[a-f0-9]{24}$/.test(value.bindingId)),'E_SCHEMA','Invalid managed preview identity');
-    const prior=(await worlds.records()).filter(row=>row.documentId===frozen.target.documentId&&row.managed?.bindingId===value.bindingId&&!['retired','discarded'].includes(row.managed.state));
+    // Browser-authored components do not have a persistent Native project ID.
+    // A different Sidebar host in the same document must not create a second
+    // unmanaged root after the first host goes away. Require fresh navigation
+    // rather than adopting a foreign owner or silently overlapping UI.
+    const browserBinding=/^browser-v1-[a-f0-9]{24}$/.test(value.bindingId);
+    const prior=(await worlds.records()).filter(row=>
+      row.documentId===frozen.target.documentId&&
+      !['retired','discarded'].includes(row.managed?.state)&&
+      (row.managed?.bindingId===value.bindingId||
+        browserBinding&&/^browser-v1-[a-f0-9]{24}$/.test(row.managed?.bindingId||'')));
+    invariant(!browserBinding||prior.every(row=>row.managed.bindingId===value.bindingId),
+      'E_UI_OWNER','其他 OpenDesk 编辑器仍拥有此网页中的受管组件；请刷新网页后重试');
     if(value.enabled===false){invariant(!prior.length,'E_UI_MODE_CONFLICT','移除 UI SDK 前请先停止旧受管预览，或重新加载目标网页');return null;}
     invariant(prior.length<=1,'E_UI_OWNER','旧受管预览仍需原工作台确认清理');
     const previous=prior.length?await read(prior[0].managed.previewId,host):null;

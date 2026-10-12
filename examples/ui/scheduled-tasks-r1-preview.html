@@ -102,9 +102,12 @@ a{text-decoration:none;color:#3059b9}
 .form-row{margin-bottom:16px}
 .form-row:last-child{margin-bottom:0}
 .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.source-row{display:flex;gap:7px;align-items:center}
-.source-row .field{flex:1}
-.source-actions{display:flex;justify-content:space-between;align-items:center;gap:9px;margin-top:4px;flex-wrap:wrap}
+.source-row{display:flex;gap:6px;align-items:center;min-width:0}
+.source-row select.field{flex:1 1 0;width:1%;min-width:0;height:38px}
+.source-icon{flex:0 0 38px;width:38px;height:38px;min-height:38px;padding:0;display:inline-grid;place-items:center;border:1px solid #d1dced;border-radius:9px;background:#fff;color:#365bb0}
+.source-icon:hover{border-color:#a8bce9;background:#eff4ff}
+.source-icon svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.source-icon:disabled{opacity:.45}
 .source-detail{font-size:11px;background:#f6f8fc;border:1px solid #e6edf5;border-radius:9px;margin-top:10px;padding:10px;color:#566882}
 .source-detail b{color:#304361}
 .weekdays{display:flex;flex-wrap:wrap;gap:7px}
@@ -128,11 +131,27 @@ details.advanced[open] summary{margin-bottom:14px}
 .steps span{border-radius:100px;padding:4px 8px;background:#f2f5fa}
 .steps span.active{color:#3258af;background:#eaf0ff;font-weight:750}
 .code{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;min-height:140px;resize:vertical;font-size:12px;line-height:1.55}
-.manager{display:flex;gap:9px;align-items:center;justify-content:space-between;border:1px solid var(--line);padding:12px;border-radius:10px;margin-bottom:9px}
-.manager-main{min-width:0}
-.manager-main b{font-size:13px;color:#31445f}
-.manager-main span{display:block;font-size:11px;color:#74849b;margin-top:3px;overflow-wrap:anywhere}
-.manager-side{display:flex;gap:7px;align-items:center}
+.manager{border:1px solid var(--line);background:#fff;padding:13px 14px;border-radius:11px;margin-bottom:10px}
+.manager-line{display:flex;gap:9px;align-items:center;justify-content:space-between}
+.manager-main{min-width:0;flex:1}
+.manager-main b{font-size:13px;color:#31445f;overflow-wrap:anywhere}
+.manager-main .source-line{font-size:11px;color:#718099;margin-top:4px;overflow-wrap:anywhere}
+.manager-switch{flex:none}
+.manager-tools{display:flex;gap:5px;flex-wrap:wrap;margin-top:12px}
+.manager-tools .btn{font-size:11px;padding:6px 9px;min-height:31px}
+.manager-details{border-top:1px solid #eef2f8;margin-top:11px;padding-top:10px;color:#63738a;font-size:11px}
+.manager-details summary{cursor:pointer;color:#47639a}
+.manager-details p{margin:8px 0 0;overflow-wrap:anywhere}
+.manager-controlbar{display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap}
+.manager-controlbar .field{flex:1 1 190px;width:100%}
+.manager-filter{display:flex;align-items:center;gap:3px;border:1px solid #e0e8f3;border-radius:9px;padding:3px;background:#f8faff}
+.manager-filter button{border:0;background:transparent;border-radius:6px;padding:5px 8px;color:#677b94;font-size:11px}
+.manager-filter button[aria-pressed="true"]{background:#e7efff;color:#2b56b3;font-weight:750}
+.manager-brief{color:#74839a;font-size:11px;margin-bottom:12px}
+.manager-inline-confirm{margin-top:10px;padding:11px;border:1px solid #f0dabc;border-radius:9px;background:#fff9ed;color:#7e571c;font-size:12px}
+.manager-inline-confirm .actions{display:flex;gap:6px;margin-top:9px;flex-wrap:wrap}
+.btn-danger{border-color:#e2b4b0;background:#fff6f4;color:#aa423b}
+.btn-danger:hover{background:#ffece8}
 .history-item{border-bottom:1px solid #e9eef6;padding:13px 2px;display:flex;justify-content:space-between;gap:12px}
 .history-item:last-child{border-bottom:0}
 .toast{position:sticky;bottom:10px;margin:0 20px 12px auto;max-width:480px;border-radius:10px;background:#223a60;color:#fff;padding:10px 14px;box-shadow:0 7px 20px #1e325a32;font-size:12px;z-index:9}
@@ -143,7 +162,7 @@ details.advanced[open] summary{margin-bottom:14px}
  .view-head{gap:8px}.editor-block{padding:14px}.stat{padding:9px 11px}
 }
 @media(max-width:390px){
- .view-head{flex-direction:column}.stats{gap:6px}.source-row{align-items:stretch;flex-wrap:wrap}.source-row .field{flex-basis:100%}
+ .view-head{flex-direction:column}.stats{gap:6px}.source-row{align-items:center;flex-wrap:nowrap}.source-row select.field{flex:1 1 0;min-width:0;width:1%}.source-icon{width:36px;height:36px;min-height:36px;flex-basis:36px}
  .form-grid{grid-template-columns:1fr}.plan-foot{align-items:flex-start}
 }
 </style>
@@ -198,13 +217,14 @@ details.advanced[open] summary{margin-bottom:14px}
         </div>
         <div class="form-row">
           <label class="label" for="sourceSelect">执行任务 <span class="required">*</span></label>
-          <div class="source-row">
-            <select class="field" id="sourceSelect" required aria-describedby="sourceHelp"></select>
-            <button class="btn" type="button" id="newScriptFromForm">＋ 新建脚本</button>
-          </div>
-          <div class="source-actions">
-            <span class="field-help" id="sourceHelp">只显示已安装且可定时执行的任务；草稿不能直接排程。</span>
-            <button type="button" class="text-action" id="manageFromForm">管理任务与脚本 ↗</button>
+          <div class="source-row" role="group" aria-label="任务来源操作">
+            <select class="field" id="sourceSelect" required></select>
+            <button class="source-icon" type="button" id="newScriptFromForm" aria-label="新建脚本" title="新建脚本 · 打开开发编辑器">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7M14 3l6 6M14 3v6h6M13 15h6m-3-3v6"/></svg>
+            </button>
+            <button class="source-icon" type="button" id="manageFromForm" aria-label="管理已安装任务" title="管理任务 · 查看、停用、复制编辑或卸载">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11M3 6l1 1 2-2M3 12l1 1 2-2M3 18l1 1 2-2"/></svg>
+            </button>
           </div>
           <div class="source-detail" id="sourceMeta" aria-live="polite"></div>
         </div>
@@ -303,13 +323,29 @@ details.advanced[open] summary{margin-bottom:14px}
     </section>
   </section>
   <section class="view" id="viewManage" hidden>
-    <button class="back" type="button" id="returnFromManage">← 返回</button>
+    <button class="back" type="button" id="returnFromManage">← 返回定时计划</button>
     <div class="view-head">
-      <div><h1>任务与脚本管理</h1><p class="subtitle">管理已有安装版本，脚本编辑应在现有「开发」入口完成。</p></div>
+      <div>
+        <h1>任务管理</h1>
+        <p class="subtitle">管理已安装任务；源码修改通过「复制到开发」创建新版本，不直接覆盖正在使用的版本。</p>
+      </div>
       <button class="btn btn-primary" type="button" id="newFromManage">＋ 新建脚本</button>
     </div>
-    <div id="manageList" aria-label="已安装任务目录"></div>
-    <p class="footnote">这里是模拟目录。真实产品应复用现有的「我的任务」与「开发」入口，不另建一套脚本数据库或安装器。</p>
+    <div class="info" style="margin-bottom:14px" role="note">
+      <strong>对应现有插件中的哪里？</strong> 「我的」里的已安装任务可管理启停和卸载；「开发」编辑脚本并重新验证；完整任务目录用于导入与安装。
+      这里把这三个已有入口的相关操作集中演示，<strong>不是第二套任务管理系统</strong>。
+    </div>
+    <div class="manager-controlbar">
+      <input class="field" type="search" id="manageSearch" autocomplete="off" placeholder="搜索已安装任务..." aria-label="搜索已安装任务">
+      <div class="manager-filter" id="manageFilters" role="group" aria-label="任务状态筛选">
+        <button type="button" data-manage-filter="all" aria-pressed="true">全部</button>
+        <button type="button" data-manage-filter="enabled" aria-pressed="false">已启用</button>
+        <button type="button" data-manage-filter="disabled" aria-pressed="false">已停用</button>
+      </div>
+    </div>
+    <p class="manager-brief" id="manageSummary" role="status"></p>
+    <div id="manageList" aria-label="已安装任务列表"></div>
+    <p class="footnote">这是独立原型：停用、启用、卸载、复制编辑及安装均只修改页面内存。已有计划引用已停用或已卸载任务时，会显示需要处理；真实产品必须复用原任务安装与授权 API。</p>
   </section>
   <section class="view" id="viewHistory" hidden>
     <button class="back" type="button" data-back="plans">← 返回定时计划</button>
@@ -334,10 +370,11 @@ details.advanced[open] summary{margin-bottom:14px}
     {id:"p2",name:"订单状态检查",sourceId:"orders",rule:"interval",time:"09:00",interval:"30",date:"",days:[1,3,5],target:"https://shop.example.org/orders",enabled:true,autoOpen:false,misfire:"skip",wait:"5",last:"模拟成功 · 30 分钟前",history:[{state:"成功（模拟）",when:"30 分钟前",detail:"无新增订单 · 原型演示"}]},
     {id:"p3",name:"阅读笔记整理",sourceId:"note",rule:"weekly",time:"18:00",interval:"30",date:"",days:[1,3,5],target:"https://notes.example.org",enabled:false,autoOpen:false,misfire:"skip",wait:"5",last:"尚未运行",history:[]}
   ];
-  var editing=null,lastView="plans",counter=4,toastTimeout;
+  var editing=null,lastView="plans",scriptBack="edit",manageBack="plans",manageFilter="all",pendingUninstall=null,counter=4,toastTimeout;
   var timezone=Intl.DateTimeFormat().resolvedOptions().timeZone||"本机";
   $("timezoneInfo").textContent="执行时区：" + timezone + " · 真实调度需保存 IANA 时区";
   function getSource(id){return sources.find(function(x){return x.id===id;});}
+  function sourceAvailable(id){var s=getSource(id);return !!s&&s.enabled!==false;}
   function ruleLabel(plan){
     if(plan.rule==="daily")return "每天 "+plan.time;
     if(plan.rule==="weekly")return "每周 "+(plan.days||[]).map(function(d){return ["日","一","二","三","四","五","六"][d];}).join("、")+" "+plan.time;
@@ -371,7 +408,7 @@ details.advanced[open] summary{margin-bottom:14px}
   }
   function show(name){
     ["Plans","Edit","Script","Manage","History"].forEach(function(key){$("view"+key).hidden=key.toLowerCase()!==name;});
-    var crumbs={plans:"我的 / 定时计划",edit:"我的 / 定时计划 / 设置",script:"开发 / 新建脚本",manage:"我的 / 任务与脚本",history:"我的 / 运行记录"};
+    var crumbs={plans:"我的 / 定时计划",edit:"我的 / 定时计划 / 设置",script:"开发 / 新建脚本",manage:"我的 / 任务管理 / 已安装任务",history:"我的 / 运行记录"};
     $("crumb").textContent=crumbs[name]||"我的 / 定时计划";
     $("navPlans").setAttribute("aria-current",["plans","edit","history"].includes(name)?"page":"false");
     $("navTasks").setAttribute("aria-current",name==="manage"?"page":"false");
@@ -388,7 +425,9 @@ details.advanced[open] summary{margin-bottom:14px}
     $("countPlanned").textContent=plans.length;
     if(!plans.length){$("planList").innerHTML='<div class="empty">还没有定时计划。点击「＋ 新建计划」选择任务和执行时间。</div>';return;}
     $("planList").innerHTML=plans.map(function(p){
-      var source=getSource(p.sourceId),next=p.enabled?nextLabel(p):"暂停中";
+      var source=getSource(p.sourceId),available=sourceAvailable(p.sourceId),next=p.enabled?nextLabel(p):"暂停中";
+      var problem=!source?"任务已卸载":!available?"任务已停用":"";
+      var displayState=!p.enabled?"已暂停":problem?"需要处理":"已启用";
       return '<article class="plan"><div class="plan-top">'+
         '<button class="plan-name" type="button" data-edit="'+esc(p.id)+'" title="编辑计划">'+esc(p.name)+'</button>'+
         '<label class="switch" title="'+(p.enabled?"暂停计划":"启用计划")+'">'+
@@ -396,24 +435,29 @@ details.advanced[open] summary{margin-bottom:14px}
         '<span class="track"></span></label></div>'+
         '<div class="plan-meta"><span>'+esc(source?source.title:"任务已不可用")+'</span>'+
         '<span class="dotsep">'+esc(ruleLabel(p))+'</span></div>'+
-        '<div class="plan-meta"><span>'+ (p.enabled?"预计下次："+esc(next):"暂停期间不会触发") +'</span></div>'+
-        '<div class="plan-foot"><span class="pill '+(p.enabled?"good":"")+'">'+(p.enabled?"已启用":"已暂停")+'</span>'+
+        '<div class="plan-meta"><span>'+ (p.enabled?(problem?esc(problem)+" · 请到任务管理修复":"预计下次："+esc(next)):"暂停期间不会触发") +'</span></div>'+
+        '<div class="plan-foot"><span class="pill '+(p.enabled?(problem?"warn":"good"):"")+'">'+displayState+'</span>'+
         '<div class="actions"><button type="button" class="btn btn-ghost" data-history="'+esc(p.id)+'">记录</button>'+
-        '<button type="button" class="btn btn-ghost" data-demo="'+esc(p.id)+'" '+(p.enabled?"":"disabled")+'>模拟运行</button>'+
-        '<button type="button" class="btn btn-ghost" data-edit="'+esc(p.id)+'">编辑</button></div></div>'+
+        '<button type="button" class="btn btn-ghost" data-demo="'+esc(p.id)+'" '+(p.enabled&&available?"":"disabled")+'>模拟运行</button>'+
+        '<button type="button" class="btn btn-ghost" data-edit="'+esc(p.id)+'">编辑</button>'+ (problem?'<button type="button" class="btn btn-ghost" data-open-manage="1">修复</button>':'')+'</div></div>'+
         '<div class="field-help" style="margin-top:5px">'+esc(p.last)+'</div></article>';
     }).join("");
   }
   function populateSources(selected){
-    $("sourceSelect").innerHTML='<option value="">请选择已安装任务</option>'+sources.map(function(s){
+    var available=sources.filter(function(s){return s.enabled!==false;});
+    var chosen=getSource(selected);
+    var extra=selected&&!sourceAvailable(selected)
+      ?'<option value="'+esc(selected)+'" selected disabled>'+esc(chosen?chosen.title+" · 已停用":"原任务已卸载 · 请重新选择")+'</option>':"";
+    $("sourceSelect").innerHTML='<option value="">请选择已安装任务</option>'+available.map(function(s){
       return '<option value="'+esc(s.id)+'" '+(s.id===selected?"selected":"")+'>'+esc(s.title+" · v"+s.version)+'</option>';
-    }).join("");
+    }).join("")+extra;
+    $("sourceSelect").value=selected||"";
     updateSource();
   }
   function updateSource(){
     var s=getSource($("sourceSelect").value);
     $("sourceMeta").hidden=!s;
-    $("sourceMeta").innerHTML=s?'<b>已安装 · '+esc(s.type)+'</b>　v'+esc(s.version)+'<br>批准的网站：'+esc(s.origin):"";
+    $("sourceMeta").innerHTML=s?'<b>'+esc(s.enabled===false?"已停用 · 请到任务管理启用":"已安装 · "+s.type)+'</b>　v'+esc(s.version)+'<br>批准的网站：'+esc(s.origin):"";
     if(s&&!$("targetUrl").value){$("targetUrl").value=s.origin+"/";}
     validate();
   }
@@ -421,6 +465,7 @@ details.advanced[open] summary{margin-bottom:14px}
     editing=id||null;
     var p=plans.find(function(row){return row.id===editing;});
     $("editorHeading").textContent=p?"编辑定时计划":"新建定时计划";
+    $("savePlan").textContent=p?"保存修改（模拟）":"保存并启用（模拟）";
     $("planTitle").value=p?p.name:"";
     $("targetUrl").value=p?p.target:"";
     $("scheduleType").value=p?p.rule:"daily";
@@ -449,7 +494,9 @@ details.advanced[open] summary{margin-bottom:14px}
   }
   function validationError(d){
     if(!d.name)return "请输入计划名称";
-    var s=getSource(d.sourceId);if(!s)return "请从已安装任务中选择一个执行任务，或先新建脚本";
+    var s=getSource(d.sourceId);
+    if(!s)return d.sourceId?"原任务已卸载，请到任务管理修复或重新选择":"请选择已安装任务，或先新建脚本";
+    if(s.enabled===false)return "任务已停用，请点击右侧管理图标启用后再保存";
     var url;
     try{url=new URL(d.target);}catch{return "请输入完整的 HTTP(S) 目标网页 URL";}
     if(!["http:","https:"].includes(url.protocol)||url.username||url.password)return "只允许普通 HTTP(S) 网页，不能包含账号密码";
@@ -471,11 +518,12 @@ details.advanced[open] summary{margin-bottom:14px}
     if(error){$("formError").textContent=error;$("formError").hidden=false;return;}
     if(editing){
       var old=plans.find(function(x){return x.id===editing;});
-      if(old)Object.assign(old,d,{enabled:true});
+      if(old)Object.assign(old,d); // Editing a paused plan must never silently enable it.
     }else plans.unshift(Object.assign({id:"p"+(counter++),history:[],last:"尚未运行",enabled:true},d));
     show("plans");notify("计划已保存（原型模拟），未创建真实浏览器闹钟。");
   }
   function openScript(copy){
+    scriptBack=lastView==="manage"?"manage":lastView==="plans"?"plans":"edit";
     $("scriptError").hidden=true;
     $("scriptName").value=copy?copy.title+" 副本":"我的每日检查";
     $("scriptOrigin").value=copy?copy.origin:"https://example.com";
@@ -489,16 +537,73 @@ details.advanced[open] summary{margin-bottom:14px}
     if(!title)error="请输入脚本名称";
     if(!/\basync\s+function\s+main\s*\(/.test(code))error="演示要求包含 async function main() 入口";
     if(error){$("scriptError").textContent=error;$("scriptError").hidden=false;return;}
-    var id="demo"+(counter++),s={id:id,title:title,version:"0.1.0",origin:new URL(origin).origin,type:"Controller Task",source:code};
-    sources.push(s);show("edit");populateSources(id);$("planTitle").value=$("planTitle").value.trim()||title+" · 定时运行";
-    $("targetUrl").value=s.origin+"/";validate();
-    notify("已加入模拟已安装列表并自动选中。真实产品必须经过保存、验证和安装。");
+    var id="demo"+(counter++),s={id:id,title:title,version:"0.1.0",origin:new URL(origin).origin,type:"Controller Task",enabled:true,source:code};
+    sources.push(s);
+    if(scriptBack==="edit"||scriptBack==="plans"){
+      if(scriptBack==="plans")openEditor();
+      else show("edit");
+      populateSources(id);$("planTitle").value=$("planTitle").value.trim()||title+" · 定时运行";
+      $("targetUrl").value=s.origin+"/";validate();
+    }else show("manage");
+    notify("已加入模拟已安装任务；真实项目仍需保存、验证及安装，不会执行此代码。");
+  }
+  function openManage(back){
+    manageBack=back==="edit"?"edit":"plans";
+    pendingUninstall=null;
+    $("returnFromManage").textContent=manageBack==="edit"?"← 返回计划设置":"← 返回定时计划";
+    $("returnFromManage").dataset.back=manageBack;
+    show("manage");
   }
   function renderManage(){
-    $("manageList").innerHTML=sources.map(function(s){
-      return '<div class="manager"><div class="manager-main"><b>'+esc(s.title)+'</b><span>'+esc(s.type)+" · v"+esc(s.version)+'</span><span>'+esc(s.origin)+'</span></div>'+
-      '<div class="manager-side"><button class="btn" type="button" data-copy="'+esc(s.id)+'">复制到开发</button></div></div>';
+    var filter=manageFilter,query=$("manageSearch").value.trim().toLocaleLowerCase();
+    document.querySelectorAll("[data-manage-filter]").forEach(function(node){
+      node.setAttribute("aria-pressed",String(node.dataset.manageFilter===filter));
+    });
+    $("manageSummary").textContent=sources.length+" 个已安装任务 · "+sources.filter(function(x){return x.enabled!==false;}).length+" 个已启用；编辑源码将生成新版本";
+    var rows=sources.filter(function(s){
+      return (filter==="all"||(filter==="enabled"&&s.enabled!==false)||(filter==="disabled"&&s.enabled===false))&&
+        (!query||[s.title,s.origin,s.version,s.type].join(" ").toLocaleLowerCase().includes(query));
+    });
+    if(!rows.length){$("manageList").innerHTML='<div class="empty">未找到符合条件的任务。可以调整筛选，或点击右上角「新建脚本」。</div>';return;}
+    $("manageList").innerHTML=rows.map(function(s){
+      var enabled=s.enabled!==false,linked=plans.filter(function(p){return p.sourceId===s.id;});
+      var pending=pendingUninstall===s.id;
+      return '<article class="manager" data-source-card="'+esc(s.id)+'">'+
+        '<div class="manager-line"><div class="manager-main"><b>'+esc(s.title)+'</b> <span class="pill '+(enabled?"good":"")+'">'+(enabled?"已启用":"已停用")+'</span>'+
+        '<div class="source-line">已安装 · '+esc(s.type)+' · v'+esc(s.version)+'</div></div>'+
+        '<label class="switch manager-switch" title="'+(enabled?"停用该任务":"启用该任务")+'">'+
+        '<input type="checkbox" role="switch" data-source-enabled="'+esc(s.id)+'" aria-label="'+esc(s.title)+' 任务启用" '+(enabled?"checked":"")+'><span class="track"></span></label></div>'+
+        '<div class="manager-tools">'+
+        '<button class="btn" type="button" data-create-for="'+esc(s.id)+'" '+(enabled?"":"disabled")+' title="使用当前安装版本创建定时计划">设置定时</button>'+
+        '<button class="btn" type="button" data-copy="'+esc(s.id)+'" title="复制代码到现有开发流程，不修改已安装版本">复制到开发</button>'+
+        '<button class="btn btn-ghost" type="button" data-request-uninstall="'+esc(s.id)+'" title="卸载此任务（仅模拟）">卸载</button></div>'+
+        '<details class="manager-details"><summary>版本、授权网站与关联计划</summary>'+
+        '<p><b>固定版本：</b>v'+esc(s.version)+'<br><b>授权网站：</b>'+esc(s.origin)+
+        '<br><b>关联计划：</b>'+linked.length+' 项（任务停用/卸载不会删除历史记录）</p></details>'+
+        (pending?'<div class="manager-inline-confirm" role="group" aria-label="确认卸载任务">'+
+          '确认卸载「'+esc(s.title)+'」？已有计划会标记为需要处理；不会清空其历史运行记录。'+
+          '<div class="actions"><button class="btn btn-danger" type="button" data-confirm-uninstall="'+esc(s.id)+'">确认卸载（模拟）</button>'+
+          '<button class="btn" type="button" data-cancel-uninstall="1">取消</button></div></div>':"")+
+        '</article>';
     }).join("");
+  }
+  function beginPlanFromSource(id){
+    var s=getSource(id);
+    if(!s||s.enabled===false){notify("该任务不可用于定时。请先启用或重新安装。");return;}
+    openEditor();
+    $("sourceSelect").value=id;$("planTitle").value=s.title+" · 定时运行";
+    $("targetUrl").value=s.origin+"/";updateSource();validate();
+  }
+  function toggleSource(id,enabled){
+    var s=getSource(id);if(!s)return;
+    s.enabled=enabled;pendingUninstall=null;renderManage();
+    notify(enabled?"任务已模拟启用，可重新选择定时。":"任务已模拟停用；关联计划仍保留但不能执行。");
+  }
+  function uninstallSource(id){
+    var s=getSource(id);if(!s||pendingUninstall!==id)return;
+    sources=sources.filter(function(row){return row.id!==id;});
+    pendingUninstall=null;renderManage();
+    notify("任务已模拟卸载；已有定时计划保留并显示需要处理。");
   }
   function openHistory(id){
     var p=plans.find(function(x){return x.id===id;});
@@ -510,7 +615,7 @@ details.advanced[open] summary{margin-bottom:14px}
     show("history");
   }
   function demoRun(id){
-    var p=plans.find(function(x){return x.id===id;});if(!p||!p.enabled)return;
+    var p=plans.find(function(x){return x.id===id;});if(!p||!p.enabled||!sourceAvailable(p.sourceId))return;
     p.history.unshift({state:"成功（模拟）",when:"刚刚",detail:"仅演示显示效果 · 未运行任何代码"});
     p.last="模拟成功 · 刚刚";renderPlans();notify("已生成模拟运行记录，实际脚本没有执行。");
   }
@@ -521,25 +626,42 @@ details.advanced[open] summary{margin-bottom:14px}
     else if(b.dataset.history)openHistory(b.dataset.history);
     else if(b.dataset.demo)demoRun(b.dataset.demo);
     else if(b.dataset.copy)openScript(getSource(b.dataset.copy));
-    else if(b.dataset.back)show(b.dataset.back);
+    else if(b.dataset.createFor)beginPlanFromSource(b.dataset.createFor);
+    else if(b.dataset.openManage)openManage("plans");
+    else if(b.dataset.manageFilter){manageFilter=b.dataset.manageFilter;pendingUninstall=null;renderManage();}
+    else if(b.dataset.requestUninstall){pendingUninstall=b.dataset.requestUninstall;renderManage();}
+    else if(b.dataset.confirmUninstall)uninstallSource(b.dataset.confirmUninstall);
+    else if(b.dataset.cancelUninstall){pendingUninstall=null;renderManage();}
+    else if(b.dataset.back)show(b.closest("#viewScript")?scriptBack:b.dataset.back);
   });
   document.addEventListener("change",function(event){
-    if(event.target.matches("[data-toggle]")){
-      var p=plans.find(function(x){return x.id===event.target.dataset.toggle;});
-      if(p){p.enabled=event.target.checked;renderPlans();notify(p.enabled?"已模拟启用计划。":"已模拟暂停后续触发，已有运行另行停止。");}
+    var t=event.target;
+    if(t.matches("[data-source-enabled]")){toggleSource(t.dataset.sourceEnabled,t.checked);return;}
+    if(t.matches("[data-toggle]")){
+      var p=plans.find(function(x){return x.id===t.dataset.toggle;});
+      if(p){p.enabled=t.checked;renderPlans();notify(p.enabled?"已模拟启用计划。":"已模拟暂停后续触发，已有运行另行停止。");}
     }
   });
   $("modeSide").addEventListener("click",function(){$("frame").classList.add("is-side");$("modeSide").setAttribute("aria-pressed","true");$("modeWide").setAttribute("aria-pressed","false");});
   $("modeWide").addEventListener("click",function(){$("frame").classList.remove("is-side");$("modeSide").setAttribute("aria-pressed","false");$("modeWide").setAttribute("aria-pressed","true");});
   $("newScriptFromForm").addEventListener("click",function(){openScript();});
-  $("manageFromForm").addEventListener("click",function(){show("manage");$("returnFromManage").dataset.back="edit";});
+  $("manageFromForm").addEventListener("click",function(){openManage("edit");});
   $("newFromManage").addEventListener("click",function(){openScript();});
-  $("returnFromManage").addEventListener("click",function(){show($("returnFromManage").dataset.back||"plans");});
+  $("returnFromManage").addEventListener("click",function(){show(manageBack);if(manageBack==="edit")populateSources($("sourceSelect").value);});
   $("navPlans").addEventListener("click",function(){show("plans");});
-  $("navTasks").addEventListener("click",function(){show("manage");$("returnFromManage").dataset.back="plans";});
+  $("navTasks").addEventListener("click",function(){openManage("plans");});
   $("navDev").addEventListener("click",function(){openScript();});
   $("mockInstall").addEventListener("click",mockInstall);
-  $("scheduleType").addEventListener("change",setRuleVisibility);
+  $("manageSearch").addEventListener("input",renderManage);
+  $("scheduleType").addEventListener("change",function(){
+    if(this.value==="once"){
+      var d=new Date(),hm=($("runTime").value||"09:00").split(":");
+      d.setHours(Number(hm[0]),Number(hm[1]),0,0);
+      if(d<=new Date())d.setDate(d.getDate()+1);
+      $("runDate").value=[d.getFullYear(),String(d.getMonth()+1).padStart(2,"0"),String(d.getDate()).padStart(2,"0")].join("-");
+    }
+    setRuleVisibility();
+  });
   ["planTitle","sourceSelect","runTime","runInterval","runDate","targetUrl","autoOpen","misfire","maxWait"].forEach(function(id){
     $(id).addEventListener("input",function(){
       if(id==="sourceSelect"){

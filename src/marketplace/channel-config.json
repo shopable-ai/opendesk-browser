@@ -1,0 +1,14 @@
+{
+  "schema": "opendesk.market.channel-source.v1",
+  "protocol": "opendesk.market.intent.v1",
+  "production": {
+    "origin": null,
+    "extensionId": null,
+    "acquireUrl": null,
+    "verifiedAt": null
+  },
+  "development": {
+    "origin": "http://127.0.0.1:43132",
+    "extensionId": null
+  }
+}

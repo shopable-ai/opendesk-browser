@@ -1,0 +1,94 @@
+{
+  "schema": "opendesk.market.release-snapshot.v1",
+  "source": {
+    "kind": "recorded-release-evidence",
+    "identity": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/delivery-candidate/mac-accepted/native-result.json#sha256=1ad0bb8d083c8df34643ec48aad0a14dadf3a0edaa64fc4572605223948e38dc"
+  },
+  "catalog": {
+    "schema": "opendesk.official-tools.releases.v1",
+    "sourceRepository": "https://github.com/shopable-ai/opendesk-browser",
+    "apps": [
+      {
+        "id": "opendesk/reading-toc",
+        "toolId": "reading-toc",
+        "kind": "sidebar-tool",
+        "installationPolicy": "optional",
+        "version": "1.0.2",
+        "packageTitle": "阅读目录",
+        "description": "在侧边栏或授权网页中查看章节并精准跳转。",
+        "capabilities": [
+          "page.toc"
+        ],
+        "packagePath": "official-tools/reading-toc/reading-toc.opendesk-tool.json",
+        "bytes": 9374,
+        "sha256": "ba7329fb33ea8da2d125e9152998730eaab6f8e9261b2597fa5191e9c2996dd9"
+      },
+      {
+        "id": "opendesk/web-markdown-clipper",
+        "toolId": "web-markdown-clipper",
+        "kind": "sidebar-tool",
+        "installationPolicy": "optional",
+        "version": "1.0.0",
+        "packageTitle": "网页剪藏",
+        "description": "在授权的网站上主动剪藏文章、选区、引用和链接为 Markdown。",
+        "capabilities": [
+          "page.clip",
+          "user.export"
+        ],
+        "packagePath": "official-tools/web-markdown-clipper/web-markdown-clipper.opendesk-tool.json",
+        "bytes": 10209,
+        "sha256": "c4d1dc7b605e1d981840f3064a116a157d2ed6a01f720ec585278129d4c111a8"
+      },
+      {
+        "id": "opendesk/quick-notes",
+        "toolId": "quick-notes",
+        "kind": "sidebar-tool",
+        "installationPolicy": "optional",
+        "version": "1.1.5",
+        "packageTitle": "网页笔记",
+        "description": "在侧栏离线管理多条本地笔记，可选择关联当前网页，不自动操作网站。",
+        "capabilities": [
+          "storage.local",
+          "currentPage.read",
+          "tasks.open"
+        ],
+        "packagePath": "official-tools/quick-notes/quick-notes.opendesk-tool.json",
+        "bytes": 21798,
+        "sha256": "1de25dfcf8f129f7a9fe97bf2d7b3a499240248d134bbfd01961515886bf40de"
+      },
+      {
+        "id": "opendesk/markdown-workbench",
+        "toolId": "markdown-workbench",
+        "kind": "sidebar-tool",
+        "installationPolicy": "optional",
+        "version": "1.0.0",
+        "packageTitle": "Markdown 工作台",
+        "description": "离线编辑、预览、导入和导出 Markdown；无需网页权限。",
+        "capabilities": [
+          "user.export"
+        ],
+        "packagePath": "official-tools/markdown-workbench/markdown-workbench.opendesk-tool.json",
+        "bytes": 13016,
+        "sha256": "6479beaf3d38ad6ef14d9d0b8bd6164cc52876c0d8f15d0330a1dc07dac64606"
+      },
+      {
+        "id": "opendesk/knowledge-inbox",
+        "toolId": "knowledge-inbox",
+        "kind": "sidebar-tool",
+        "installationPolicy": "optional",
+        "version": "1.1.2",
+        "packageTitle": "知识收件箱",
+        "description": "保存 ChatGPT 回答和灵感，整理草稿、标签与备注，导出自己的 Markdown。",
+        "capabilities": [
+          "page.capture",
+          "knowledge.store",
+          "user.export"
+        ],
+        "packagePath": "official-tools/knowledge-inbox/knowledge-inbox.opendesk-tool.json",
+        "bytes": 42854,
+        "sha256": "6c465b74f626c63ba25f816c68f20984b8d1db5bea7b23e000687c41aa7cd3c2"
+      }
+    ]
+  },
+  "collections": []
+}

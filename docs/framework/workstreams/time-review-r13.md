@@ -96,3 +96,31 @@
 - `src/time-review/model.js`：载入时如果 `minuteConsent=false` 但历史 / 异常写入留有分钟明细，只保留合法日汇总，绝不向 Side Panel / JSON 导出暴露陈旧明细；下一次经验证的写入清除残留。`readReview` 不会直接修改外部传入对象。
 - `tests/framework/time-review-r13-native.test.mjs`：在 P0 原生下载之后，以用户真实信任操作尝试可选 idle 授权；获准才继续真实 localhost HTTP 标签打开、有效计时、暂停、SW 真实终止/恢复与恢复记录，不向 Chrome Storage 填充模拟计时。如果 Chrome 未授权则记录 `BLOCKED`，而非编造授权 / 活动 PASS。
 - `time-review-r13-native.yml`：增加使用真实 Time Review 源码、仅请求数据由 Fixture 提供的 320/360/400/600、鼠标键盘触屏与 DPR2 视觉回归；**不把 DPR=2 等同 Chrome 真正 200% 缩放**。完整 Chrome 重启、空闲阈值、跨网站导航仍待独立验证。
+
+- [Actions 38215717554](https://github.com/shopable-ai/opendesk-browser/actions/runs/38215717554) 在 `ee6c109019d84409424c52e07812faacfe3b0cdb`：P0 JSON/CSV 与真实 Side Panel、合成状态的 Chromium 320/360/400/600/DPR2/鼠标/键盘/触摸全部 PASS；P1 **FAIL**：真实授权和 HTTP loopback tab 创建成功，但检查点 10 秒未出现。检视 `src/time-review/service.js` 发现对 `chrome.permissions.contains(origins)` 传递 `new URL(tab.url).origin+'/*'`，非标准端口产生 `http://127.0.0.1:43111/*`，这不是应传递的 Chrome host match pattern。改为明确的 scheme + hostname + /*，仍逐网站验证，不加入 broad host grants。新候选应记录 window focus、真实 idle 状态和 host grant，只能通过真实 Mac 同 SHA 数据决定是否已修复。
+- P3 CI 补充正式 `npm run build:sidebar-tool -- examples/sidebar-tools/time-review`、`npm run build:dev`、`npm run verify`，输出独立工具包及 sw.js 的 SHA-256；不增加第三方库、权限、版本号和存储 key。
+
+## R1.3 Final · P1 原生 macOS 空闲输入核验（2026-10-12）
+
+- [Actions 38216276174](https://github.com/shopable-ai/opendesk-browser/actions/runs/38216276174)（候选 `8b00de31c7ce1304c29e793b04c3bd718d02842f`）：R1.3 组件 **54 PASS / 0 FAIL**；真实 Chrome P0 JSON/CSV 内容和命名仍 PASS；真实网页活动阶段 FAIL，原生只读证据明确 `window.focused=true`、`window.type=normal`、`localhost HTTP tab active=true`、`host permission=true`，但 `chrome.idle.queryState(60)=idle`。这证明本轮拒绝累加是空闲安全策略生效，不能解除空闲检查来令 CI 通过。
+- 原生测试驱动仅在 macOS Runner 的 idle 不为 active 时调用**仓库已有** `tests/framework/time-review-native-input.swift` 系统级输入辅助程序；辅助程序校验 Chrome for Testing 的运行进程、Accessibility 权限后发送真实 macOS 鼠标移动事件。然后读取真正的 Chrome `idle.queryState`、焦点、授权和活动网站。若平台无法产生可验证真实活动，则独立记录 `beginAndActiveCollection=BLOCKED` 并保留原始 gate，而非假造 PASS、存储造数据或让原生用例错误失败；只有读回实际非零统计及暂停数据不再增长才为活动 PASS。生产 `service.js`、`model.js`、授权与隐私策略未更改。
+- 仍需在允许 OS 真实输入的用户 Mac Profile/CFT 验证 P1 活动、空闲切换、跨网站、整个 Chrome 重启；Blocked 与 Pass 分级必须保留。后续 CI 绑定新 SHA 后再记录结果。
+
+- [Actions 38216871429](https://github.com/shopable-ai/opendesk-browser/actions/runs/38216871429)，候选 `bae975a733c0325fb3ebb20dfb79ea919007b448`：macOS 原生 `time-review-native-input.swift` 已以真实 CFT PID 发出系统鼠标事件，`chrome.idle` 从 `idle` 真实回到 `active`，窗口焦点/活动 HTTP 标签/host 权限都为 true；但 10 秒内无检查点而 FAIL。现确认当时仍在宿主设置视图，沙箱界面不活动，测试没有发起新的 `time.status`，且定时 heartbeat 30 秒，上述 10 秒等待不足以证明服务错误。新候选通过真实 Side Panel「返回工具 → 刷新」按钮发起状态读取，观察实际存储检查点，随后才判定时间统计；不会通过改 storage / mock idle 等手段硬凑 PASS。
+
+- [Actions 38217283829](https://github.com/shopable-ai/opendesk-browser/actions/runs/38217283829)（`b599c4215d9838b3eb94705d47746a8bb68040c7`）真实 CFT 已确认：系统级鼠标输入后由真正 Side Panel `time.status` 建立 HTTP 活动检查点，**真实计时 1,827ms PASS、用户暂停后不累加 PASS**；随后原生 driver 使用 browser-root `ServiceWorker.enable` 报 `-32601`，故 SW 重启为 FAIL，未继续测试恢复。与功能性真实计时缺陷不同，这一失败来自 Chrome 155 不支持 root ServiceWorker CDP 方法。新候选改为先对本次独占 Profile 中唯一真实扩展 `service_worker` target 执行 `Target.closeTarget`；不支持时尝试 Page session 的 ServiceWorker CDP 操作，并核验新旧 targetId 必须不同、业务数据不增长、仍 paused。若平台无法实际终止/替换，则仅记 `swRestart=BLOCKED`；绝不将 CDP detach 或无证据 status 读回升级为原生 SW PASS。
+
+- [Actions 38217769635](https://github.com/shopable-ai/opendesk-browser/actions/runs/38217769635)（`2b35d1fb1a7157d62d01144ac1f84c99533d4344`）真实 Mac CFT：P0 与浏览器布局及组件均 PASS；有真实活动网站记录、用户暂停后不继续累计；通过 `Target.closeTarget` **确实终止旧 MV3 Worker 并观察到新 Target ID**，2,123ms 原始业务数据保持不变；受信任宿主恢复记录且 `paused=false` 也 PASS。原生尾部 FAIL 为测试对隐藏时保持旧状态的沙箱 iframe 直接寻找启用的暂停按钮（`actionable #pause timed out`）。新候选先返回工具，通过真实「刷新」获取当前状态，确认按钮启用后才进行最终暂停，不绕过受信任点击和沙箱状态更新。旧 CI 保留 FAIL，证据中的 SW/P1 单项 PASS 不等于旧 run 整体 PASS。
+
+## R1.3 Final · 真正 Chrome 整进程重启与非空导出候选（2026-10-12）
+
+- [Actions 38218213760](https://github.com/shopable-ai/opendesk-browser/actions/runs/38218213760) 在 `31db41a34addb5dfcb69f3bed3db17c1b50dcf99`：54/54 组件通过，原生 macOS CFT 155 JSON/CSV 文件名和内容、安装、权限隔离、Canvas、真实活动计时、停止计时、实际 SW target 终止/更换和宿主恢复 **全部 PASS**。未测整进程重启和非空统计实际导出。
+- 本候选原生扩展测试增加：在真实有效网站活动停止后再次点击正式工具导出 JSON/CSV，读取隔离目录中 Chrome 实际产生的 **uniquify** 新文件，分别核对非空原始站点时长、完整 JSON 字段和既有 CSV 协议；随后关闭并等待原 CFT OS 进程终止，在**同一个唯一拥有的临时 Profile** 中启动新的 CFT 进程，读取扩展真实存储，验证工具安装版本、原始 days/categories/minuteDays、paused 状态无伪增长，浏览器会话 UUID 必须改变。没有向 Chrome Storage 注入数据，也没有新增数据服务或新的分支。该范围验证的是**暂停后的完整浏览器重启**，不等同活跃期间的异常关机。尚待新的 main SHA 对应 Actions。
+
+## R1.3 Final · 动态包版本、原生测试语法与 CI 修复（2026-10-12）
+
+- [Mac CI 38219113994](https://github.com/shopable-ai/opendesk-browser/actions/runs/38219113994) 的 `a181b0a4b7af37194e7353af4004d93a7d518447`：组件、两种 Chrome MV3 构建、四宽度合成 UI 均通过，但原生测试因非空二次下载文件名断言的字符串未闭合产生 `SyntaxError`，整个真实 Mac native **FAIL / NOT_RUN**。并行市场 R5 提交 `5d1d87431188d74a7d23900ff7477ddef3b585a4` 已修复该行，并让原生安装版号从当前工具配置/生产 catalog 读取，不应回滚并行修复。
+- [Mac CI 38219728343](https://github.com/shopable-ai/opendesk-browser/actions/runs/38219728343) 在 `5d1d87431188d74a7d23900ff7477ddef3b585a4`：Time Review 真正配置版本已是 `1.3.1`，构建成功写入 `artifacts/sidebar-tools/time-review/1.3.1/...`，但 CI `shasum` 仍指向旧 `1.3.0`，故工作流在构建校验阶段失败，原生测试未运行。此为 CI 脚本候选版本硬编码，而非工具包编译失败。
+- 本轮移除工作流里写死的 `1.3.0` 工具包 SHA 路径，改为读取现有 `tool.config.json` 的版本号；在任何耗时构建之前执行 `node --check tests/framework/time-review-r13-native.test.mjs`，防止语法错误到 Mac Chrome 阶段才暴露。**不改变产品版本、ID、权限、模型或数据键**。之后 GitHub Actions 的成功状态以本提交 SHA 为准。
+
+- [Mac CI 38221941200](https://github.com/shopable-ai/opendesk-browser/actions/runs/38221941200)（`490e1232085b3be7c2ed98f9240e03eb9b627f05`）已通过 54 项组件测试、独立 1.3.1 工具构建与 SHA、生产/开发 MV3 构建/verify、原生测试语法检测和 320/360/400/600px 合成视觉。**真实 Mac Native FAIL**：官方工具完成安装并读回真实版本 `1.3.1`，原生测试第 212 行仍要求旧 `1.3.0`。本次修复唯一遗漏的固定安装版本断言，改与 `pkg.version` 比较，并继续要求构建配置、官方发布目录哈希一致。不降低真实安装验收门槛。
