@@ -1,0 +1,39 @@
+{
+  "schema": "opendesk.market.r5.local-evidence.v1",
+  "candidateBase": "7aac9968adc67eb2db4740f3884240dcd585f297",
+  "scope": "FIX8 source-bound observer rejection components; not native Chrome evidence",
+  "sourceFiles": {
+    "tests/helpers/app-market-r5-observers.mjs": "debf45c48e8e98ee6cbc96389d596c1306c783ab00cbea01360aae25dd8c2251",
+    "tests/helpers/app-market-r5-native.mjs": "af2ffec42648cb883b531dd576cdf29f33bab57f83d426d1b7da7818153a09eb",
+    "tests/environment/market-cutpoint-observation-r5.test.mjs": "70a74de38b69a132e012ee9e14c863ee6a96afae5761117b98c07e159f8810fa"
+  },
+  "sourceDiffSha256": "023bbe423a8f784335a340e27e5161e42cb217a70e4fe5bc5c4ae74ef6c3a84d",
+  "results": {
+    "components": {
+      "pass": 97,
+      "fail": 0,
+      "skip": 0
+    },
+    "sourceCheck": {
+      "files": 533,
+      "status": "PASS"
+    },
+    "native": "NOT_TESTED"
+  },
+  "originals": [
+    {
+      "path": "fix8-components.tap.gz",
+      "originalBytes": 23678,
+      "originalSha256": "2e55645934aedbea0c5eaabd74ee93cae67c8ebe302b43953a30a6c7a40efe8f",
+      "gzipBytes": 5269,
+      "gzipSha256": "9552ad44d881f8bb1cca7d1fe3af16db7944f88223370f951c87d55e5d7ff322"
+    },
+    {
+      "path": "fix8-source-check.txt.gz",
+      "originalBytes": 208,
+      "originalSha256": "737682a98c2c489719750531e9a235e7851816640e07c5c209f7ae9cf3e25874",
+      "gzipBytes": 171,
+      "gzipSha256": "a7e88c831a77b122b1b82cb6e8dbdc164cf3346a6f35393a0090a1d428858a75"
+    }
+  ]
+}

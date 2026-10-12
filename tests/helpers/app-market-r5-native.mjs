@@ -13,7 +13,7 @@ import {MARKET_BATCH_STORE,marketBatchUnresolved} from '../../src/marketplace/ba
 import {OFFICIAL_COLLECTIONS} from '../../src/marketplace/catalog.js';
 import {sidebarToolStorageKey,SIDEBAR_TOOL_STORE} from '../../src/ui/sidebar-tools/package.js';
 import {READING_TOC_SITE_STORE} from '../../src/reading-toc/policy.js';
-import {observeMarketSender,armMarketCut} from './app-market-r5-observers.mjs';
+import {observeMarketSender,armMarketCut,assertObservedMarketConnection} from './app-market-r5-observers.mjs';
 import {marketUIAudit} from './app-market-r5-ui.mjs';
 const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
 const mime={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.json':'application/json','.png':'image/png','.xml':'application/xml','.txt':'text/plain'};
@@ -89,8 +89,49 @@ export async function runMarketR5Acceptance(d){
     const initialState=await storedCutState();
     const beforeTargets=(await targets()).map(row=>({targetId:row.targetId,url:row.url}));
     const wakeAfterContextDestroyed=async()=>{
-      await click(page,'#connect-button');
-      return {url:await evaluate(page,'location.href'),selector:'#connect-button',clickedAt:Date.now()};
+      const url=await evaluate(page,'location.href');
+      // client.js is an ES module. Observe the real trusted click and its DOM
+      // transition instead of inventing access to module-local probeGeneration.
+      const watch=await page.send('Runtime.evaluate',{expression:`(()=>{
+        const button=document.querySelector('#connect-button'),state=document.querySelector('#connection-state');
+        let finish;const promise=new Promise(resolve=>{
+          const events=[];let settled=false,trustedClick=false,pending=false;
+          const observer=new MutationObserver(()=>snapshot('mutation'));
+          const timer=setTimeout(()=>finish({status:'TIMEOUT'}),12000);
+          finish=result=>{if(settled)return;settled=true;clearTimeout(timer);observer.disconnect();
+            button?.removeEventListener('click',onClick,true);resolve({...result,url:location.href,events});};
+          function snapshot(kind){
+            const row={kind,at:Date.now(),disabled:button.disabled,text:state.textContent};events.push(row);
+            if(!trustedClick)return;
+            if(row.disabled&&row.text==='正在连接 OpenDesk…')pending=true;
+            if(pending&&!row.disabled)finish({status:row.text.startsWith('已连接 OpenDesk')?'CONNECTED':'FAILED',response:row});
+          }
+          function onClick(event){
+            events.push({kind:'click',at:Date.now(),isTrusted:event.isTrusted});
+            if(!event.isTrusted||trustedClick)return finish({status:'INVALID_CLICK'});
+            trustedClick=true;snapshot('before-handler');
+          }
+          if(!button||!state||button.disabled)return finish({status:'NOT_READY'});
+          button.addEventListener('click',onClick,true);
+          observer.observe(button,{attributes:true,attributeFilter:['disabled']});
+          observer.observe(state,{childList:true,subtree:true,characterData:true});
+        });
+        Object.defineProperty(promise,'cancel',{value:()=>finish({status:'CANCELLED'})});return promise;
+      })()`,returnByValue:false,awaitPromise:false});
+      assert.equal(watch.exceptionDetails,undefined);assert.equal(watch.result?.subtype,'promise');
+      const objectId=watch.result.objectId;
+      try{
+        await click(page,'#connect-button');
+        const observed=await page.send('Runtime.awaitPromise',{promiseObjectId:objectId,returnByValue:true},15000);
+        assert.equal(observed.exceptionDetails,undefined);const result=observed.result?.value;
+        try{assertObservedMarketConnection(result,url);}catch(error){
+          error.marketConnectionObservation={expectedURL:url,result,rawResponse:observed};throw error;
+        }
+        return {selector:'#connect-button',...result};
+      }finally{
+        await page.send('Runtime.callFunctionOn',{objectId,functionDeclaration:'function(){this.cancel();}',returnByValue:true}).catch(()=>{});
+        await page.send('Runtime.releaseObject',{objectId}).catch(()=>{});
+      }
     };
     const a1=await armMarketCut(d,'A1',{wakeAfterContextDestroyed});
     await click(page,'#open-review');const hit1=await a1.wait();
@@ -101,7 +142,7 @@ export async function runMarketR5Acceptance(d){
     assert.deepEqual(after1.operations,initialState.operations);assert.deepEqual(after1.registry,initialState.registry);
     Object.assign(a1.record,{beforeTargets,afterTermination:after1});
     await until(()=>evaluate(page,'document.querySelector("#handoff-state").dataset.state==="error"'),'interrupted handoff returns unknown/transport error');
-    if(!a1.record.termination.webProbeWake)await click(page,'#connect-button');
+    if(!a1.record.termination.webProbeWake?.initiated)await click(page,'#connect-button');
     await until(()=>evaluate(page,'document.querySelector("#connection-state").textContent.includes("已连接 OpenDesk")'),'HTTP probe wakes worker after prepared interruption');
     if(a1.record.termination.webProbeWake)Object.assign(a1.record.termination.webProbeWake,
       {connectedObservedAt:Date.now(),responseText:await evaluate(page,'document.querySelector("#connection-state").textContent')});
@@ -118,7 +159,7 @@ export async function runMarketR5Acceptance(d){
     assert.deepEqual(after2.operations,initialState.operations);assert.deepEqual(after2.registry,initialState.registry);
     Object.assign(a2.record,{afterTermination:after2,createdReview:created[0]});
     await until(()=>evaluate(page,'document.querySelector("#handoff-state").dataset.state==="error"'),'created-before-persist interruption becomes unknown');
-    if(!a2.record.termination.webProbeWake)await click(page,'#connect-button');
+    if(!a2.record.termination.webProbeWake?.initiated)await click(page,'#connect-button');
     await until(()=>evaluate(page,'document.querySelector("#connection-state").textContent.includes("已连接 OpenDesk")'),'HTTP probe wakes worker after create interruption');
     if(a2.record.termination.webProbeWake)Object.assign(a2.record.termination.webProbeWake,
       {connectedObservedAt:Date.now(),responseText:await evaluate(page,'document.querySelector("#connection-state").textContent')});

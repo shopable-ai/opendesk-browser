@@ -1,6 +1,31 @@
 // Readonly, source-bound native observations. No API replacement, fake sender,
 // return-value override, installation write or product test hook is used here.
 import assert from 'node:assert/strict';
+
+export function assertObservedMarketConnection(result,url){
+  assert.equal(result?.status,'CONNECTED','one actual trusted click must complete a new PROBE');
+  assert.equal(result.url,url,'the observed website document must not navigate');
+  assert(Array.isArray(result.events)&&result.events.length>=3&&result.events.length<=32);
+  const events=result.events,clicks=events.filter(row=>row.kind==='click');
+  assert.equal(clicks.length,1);assert.equal(clicks[0].isTrusted,true);
+  assert(events.every((row,i)=>Number.isFinite(row.at)&&(!i||row.at>=events[i-1].at)));
+  const click=events.indexOf(clicks[0]),pending=events.findIndex((row,i)=>i>click&&row.disabled===true&&row.text==='正在连接 OpenDesk…');
+  assert(pending>click,'old CONNECTED text cannot replace a new pending transition');
+  const response=events.at(-1);
+  assert.deepEqual(result.response,response);assert.equal(response.kind,'mutation');
+  assert.equal(response.disabled,false);assert.match(response.text,/^已连接 OpenDesk/);
+  assert(events.length-1>pending&&response.at>=events[pending].at);
+}
+export async function waitForMarketCutOutcome(until,observe,label){
+  // The shared polling helper retries thrown errors. An active wake or an
+  // identity assertion failure must end this observation, even if a later
+  // snapshot could otherwise look successful.
+  const outcome=await until(async()=>{
+    try{return await observe();}catch(error){return {observationFailure:error};}
+  },label);
+  if(outcome?.observationFailure)throw outcome.observationFailure;
+  return outcome;
+}
 import {parse} from 'acorn';
 import {readFile} from 'node:fs/promises';
 import {join} from 'node:path';
@@ -231,7 +256,7 @@ export async function armMarketCut(d,name,{targetId=null,observeRegistryWrites=f
       // Some Chrome builds keep an inspector target while stopping the V8
       // execution, then remove it later. Observe actual snapshots throughout
       // this wait; a first still-present snapshot is not proof of target reuse.
-      const afterStop=await d.until(async()=>{
+      const afterStop=await waitForMarketCutOutcome(d.until,async()=>{
         const snapshot=await d.sendBrowser('Target.getTargets');
         termination.targetsAfterStop=snapshot;termination.targetSnapshots.push({at:Date.now(),snapshot});
         const remaining=snapshot.targetInfos.find(row=>row.targetId===target.targetId);
@@ -250,8 +275,16 @@ export async function armMarketCut(d,name,{targetId=null,observeRegistryWrites=f
           // The supported website button may wake a stopped execution. It is
           // not an install/recovery action, and cannot replace the identity
           // checks below. PROBE can update its normal request-limit metadata.
-          termination.webProbeWake={requestedAt:Date.now(),action:'PROBE',via:'real HTTP connect button'};
-          termination.webProbeWake.result=await wakeAfterContextDestroyed();
+          termination.webProbeWake={requestedAt:Date.now(),action:'PROBE',via:'real HTTP connect button',initiated:false};
+          try{
+            termination.webProbeWake.result=await wakeAfterContextDestroyed();
+            termination.webProbeWake.initiated=true;
+          }catch(error){
+            termination.webProbeWake.failure={at:Date.now(),message:error.message,
+              ...(error.marketConnectionObservation?{observation:error.marketConnectionObservation}:{})};
+            record.status='NOT_OBSERVED';record.errors.push({stage:'website-probe-wake',...termination.webProbeWake.failure});
+            throw error;
+          }
         }
         return contextDestroyed&&next?{targetAbsent:false,contextDestroyed,next}:null;
       },'actual stopped target absence or replacement execution '+name);

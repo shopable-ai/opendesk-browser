@@ -2,7 +2,38 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {discoverMarketCutPoints,marketCallLocation} from '../helpers/app-market-r5-cutpoints.mjs';
-import {marketSenderPoints} from '../helpers/app-market-r5-observers.mjs';
+import {marketSenderPoints,assertObservedMarketConnection,waitForMarketCutOutcome} from '../helpers/app-market-r5-observers.mjs';
+
+test('a failed active wake cannot be swallowed by polling and replaced with later success',async()=>{
+  const failure=Error('actual website wake failed');let calls=0;
+  const retryingUntil=async observe=>{
+    for(let i=0;i<3;i++)try{const result=await observe();if(result)return result;}catch{}
+    throw Error('observation timed out');
+  };
+  await assert.rejects(waitForMarketCutOutcome(retryingUntil,async()=>{
+    if(++calls===1)throw failure;return {targetAbsent:true};
+  },'worker termination'),error=>error===failure);
+  assert.equal(calls,1,'the later replacement must never be observed after a failed wake');
+  calls=0;
+  assert.deepEqual(await waitForMarketCutOutcome(retryingUntil,async()=>++calls===1?null:{targetAbsent:true},'worker termination'),{targetAbsent:true});
+  assert.equal(calls,2,'ordinary missing evidence may still be observed again');
+});
+
+test('a native reconnect receipt requires its own trusted click, pending transition and completed response',()=>{
+  const url='http://127.0.0.1:43132/help/';
+  const events=[{kind:'click',at:1,isTrusted:true},
+    {kind:'before-handler',at:2,disabled:false,text:'已连接 OpenDesk'},
+    {kind:'mutation',at:3,disabled:true,text:'正在连接 OpenDesk…'},
+    {kind:'mutation',at:4,disabled:false,text:'已连接 OpenDesk · 安装在扩展内确认'}];
+  const good={status:'CONNECTED',url,events,response:events.at(-1)};
+  assert.doesNotThrow(()=>assertObservedMarketConnection(good,url));
+  for(const change of [
+    row=>row.status='FAILED',row=>row.url+='navigated/',row=>row.events[0].isTrusted=false,
+    row=>row.events.splice(2,1),row=>row.events[2].disabled=false,
+    row=>row.events[2].text='已连接 OpenDesk',row=>row.events[3].at=0,
+    row=>row.events.unshift({...row.events[0]}),row=>row.response={...row.response,disabled:true}
+  ]){const value=structuredClone(good);change(value);assert.throws(()=>assertObservedMarketConnection(value,url));}
+});
 
 test('held PROBE observation can read a request only in the exact two-parameter sender handler',async()=>{
   const source=await readFile('src/marketplace/external.js','utf8');
