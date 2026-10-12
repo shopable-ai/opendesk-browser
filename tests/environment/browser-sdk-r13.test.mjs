@@ -501,3 +501,13 @@ test('BFCache suspends and restores source listeners without restoring pending r
   relay.removeEventListeners();emit('pageshow',{persisted:true});emit('contextmenu',{isTrusted:true});
   assert.equal(calls.length,2);assert.equal(relay.diagnostics().subscriptions,0);
 });
+
+test('unregister with zero approved origins clears authority before later site reapproval',async()=>{
+  const f=await approvedLaunch();await f.bind();
+  const toggle=enabled=>f.host.handleHost({operation:'browser.contextMenu.userToggle',toolId:f.sample.id,enabled,
+    origin:'https://example.com',document:{tabId:9,documentId:'document-A',url:'https://example.com/post'},hostInstanceId:uid},sender);
+  await toggle(false);await f.ask('browser.contextMenu.unregister');
+  assert.equal(f.fake.sessionValues.get(BROWSER_MENU_LAUNCH_STORE)?.[f.sample.id],undefined);
+  assert.deepEqual(f.fake.values.get(BROWSER_MENU_GRANTS_STORE)[f.sample.id].activeActions,[]);
+  await toggle(true);await assert.rejects(f.ask('browser.launch.consume'),{code:'E_LAUNCH_EXPIRED'});
+});

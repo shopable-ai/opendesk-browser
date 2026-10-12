@@ -907,7 +907,11 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
         const epochs=(await api.storage.local.get(TOOL_REVOCATION_EPOCHS_STORE))[TOOL_REVOCATION_EPOCHS_STORE];
         if((epochs?.[tool.id]??null)!==revocationEpoch)throw new Error('工具请求已撤销，请核对实际结果');
       }
-      assertSession(source,token);reply(true,result);
+      assertSession(source,token);
+      if(['browser.launch.consume','browser.page.getSelection'].includes(message.operation)&&
+         (!Number.isFinite(result?.expiresAt)||Date.now()>=result.expiresAt))
+        throw Object.assign(new Error('选区在交付前已过期；不能重放旧领取'),{code:'E_LAUNCH_EXPIRED'});
+      reply(true,result);
     }).catch(error=>reply(false,null,error));
     work.finally(()=>{if(queued.get(tool.id)===work)queued.delete(tool.id);}).catch(()=>{});
   }

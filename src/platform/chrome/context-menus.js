@@ -375,24 +375,25 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
         ensureToolActions(tool,args);
         const current=owned.grants[toolId];
         const origins=await permittedOrigins(api,await approvedOrigins(owned.grants,tool));
-        // An explicit unregister is idempotent even after the user revoked
-        // website scope. It must never recreate a stale grant row.
-        if(operation==='browser.contextMenu.unregister'&&!origins.length)
-          return {registered:false,actionIds:[]};
-        if(!origins.length)
-          throw failure('E_SITE_GRANT_REQUIRED','Enable this tool on a specific site in its details first');
-        if(operation==='browser.contextMenu.register'&&!await permissionGranted(api))
-          throw failure('E_CHROME_PERMISSION_REQUIRED','Chrome context menu permission was revoked');
-        const activeActions=operation.endsWith('unregister')?[]:args.actionIds;
-        const next={...owned.grants,[toolId]:{...current,activeActions}};
-        await confirmedWrite(api.storage.local,BROWSER_MENU_GRANTS_STORE,next);
         if(operation==='browser.contextMenu.unregister'){
+          // Zero-site unregister still retires old authority. Clear actions first
+          // so a ticket deletion with an unknown outcome cannot revive selection.
+          if(current)await confirmedWrite(api.storage.local,BROWSER_MENU_GRANTS_STORE,
+            {...owned.grants,[toolId]:{...current,activeActions:[]}});
           const launches=(await api.storage.session.get(BROWSER_MENU_LAUNCH_STORE))[BROWSER_MENU_LAUNCH_STORE]||{};
           if(Object.hasOwn(launches,toolId)){
             const cleared={...launches};delete cleared[toolId];
             await confirmedWrite(api.storage.session,BROWSER_MENU_LAUNCH_STORE,cleared);
           }
+          await synchronize();return {registered:false,actionIds:[]};
         }
+        if(!origins.length)
+          throw failure('E_SITE_GRANT_REQUIRED','Enable this tool on a specific site in its details first');
+        if(!await permissionGranted(api))
+          throw failure('E_CHROME_PERMISSION_REQUIRED','Chrome context menu permission was revoked');
+        const activeActions=args.actionIds;
+        const next={...owned.grants,[toolId]:{...current,activeActions}};
+        await confirmedWrite(api.storage.local,BROWSER_MENU_GRANTS_STORE,next);
         await synchronize();
         return {registered:activeActions.length>0,actionIds:activeActions};
       }

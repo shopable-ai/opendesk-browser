@@ -1613,3 +1613,19 @@ test('R1.3 frontend status and list reflect callable export services and include
   assert((await ask('browser.capabilities.list',{},'list')).every(row=>row.status.callableNow));
   assert.equal(new Set(calls.map(row=>row.packageHash)).size,1);
 });
+
+test('R1.3 final sandbox delivery rejects selection that expires during frontend authority recheck',async t=>{
+  const tool=JSON.parse(await readFile(new URL('../../examples/sidebar-tools/browser-sdk-r13/selection-notes.opendesk-tool.json',import.meta.url),'utf8'));
+  const originalNow=Date.now,oldLocation=globalThis.location;let now=originalNow(),returned=false;
+  Date.now=()=>now;globalThis.location={href:'chrome-extension://test/ui/tool.html?hostInstanceId=01234567-89ab-4def-8123-456789abcdef'};
+  t.after(()=>{Date.now=originalNow;globalThis.location=oldLocation;});
+  const f=await hostFixture(t,{tool,store:new Map([[SIDEBAR_TOOL_STORE,[tool]]]),getHook:async key=>{
+    if(returned&&key===TOOL_REVOCATION_EPOCHS_STORE)now+=11;
+  }});
+  f.api.runtime.sendMessage=async()=>{returned=true;return {ok:true,data:{selection:'private',expiresAt:now+10}};};
+  f.ask('browser.launch.consume',{},'expired-delivery');
+  await settle(()=>f.frame.contentWindow.sent.some(row=>row.requestId==='expired-delivery'));
+  const response=f.frame.contentWindow.sent.find(row=>row.requestId==='expired-delivery');
+  assert.equal(response.ok,false);assert.equal(response.error.code,'E_LAUNCH_EXPIRED');
+  assert.equal(response.result,undefined);
+});
