@@ -76,3 +76,10 @@
 - [真实 Linux Chrome IndexedDB CI #38260781397](https://github.com/shopable-ai/opendesk-browser/actions/runs/38260781397)，固定源码 `658269e38ad20b879d2f7efccbfab8de901aebb9`，Chrome 155，IDB v2。原生 100/1,000/10,000 条迁移耗时依次 93.5/470.3/5103.2ms；分页 12.5/5/5.2ms；每页 20 条、2.1 KiB 左右；原生 scan 调用各一次、全量 clone 调用均为 0，真实事务回滚均 PASS。仅 `NATIVE_IDB_COMPONENT_VERIFIED`，不是已安装扩展 Gate 4，不代表 Mac Chrome 或 24/72h 挂机 PASS。
 - 第二次 P0 增量：`fence` 的原 cloud request 具有 runId 但原 Run 缺失，或已释放 Run 无匹配 Result 时，统一保留 `OUTCOME_UNKNOWN`；旧的 `paused_unknown` 不被 Stop 降级；只有没有 Run 关联的 waiting 请求可以取消。保留原 requestId/RunId，不重放任何副作用。对应新增 5 个组件测试，最终测试等级须等固定提交的 CI 核实。
 - `HostOwnerLease` 仍 dormant；可见云 Runner、Cloud/local 计划跨来源 FireId 单源持久 CAS、原生 Stop/撤权/副作用后恢复和 1h/24h/72h 验收仍 `NOT_IMPLEMENTED` 或 `NATIVE_PENDING`，不得开放持续云控开关。
+
+## R4.3 · 第二批 P0 源码的同 SHA 组件与包验收
+
+- 源码提交：[`7e38eecd6cff4f480b4f2d128f51238ed744a093`](https://github.com/shopable-ai/opendesk-browser/commit/7e38eecd6cff4f480b4f2d128f51238ed744a093)，本地 Mac 资源未被访问。
+- [GitHub Actions #38265004633](https://github.com/shopable-ai/opendesk-browser/actions/runs/38265004633)：Cloud Component 测试分组共 **222 PASS / 0 FAIL**；生产打包、开发打包、`npm run check` 与 `npm run verify` 均 PASS。生产包 packageHash：`5e6c3da82091f405ef32fde8ec8fb0bab57bde64381ae127b99e5de9e6c19e0b`；开发包 packageHash：`fc92a2e99c93ecacf96e6190e5fec33b7dd217ea7ffb2f1ce42703162a744353`。
+- 新增 5 项测试覆盖：丢失原 Run、释放后原 Result 缺失、Result 源哈希不匹配、崩溃后的 `paused_unknown` 与正常未准入等待任务取消；原先 5 项结果身份与回执保护测试继续通过。
+- 证据等级严格为 `SOURCE_CONFIRMED / COMPONENT_TESTED / BUILD_VERIFIED`。上述 CI 未安装扩展在用户 Mac 执行真实 Cloud Gate 4；Mac 运行中 Stop/撤权/历史中断原 Profile 恢复、统一 visible Runner 与 1/24/72h 仍 `NATIVE_PENDING / NOT_IMPLEMENTED`。旧 FAIL、旧包 packageHash 与 R1 pendingUnknownCase 均保持不变。

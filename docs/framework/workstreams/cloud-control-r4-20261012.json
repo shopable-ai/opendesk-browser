@@ -150,12 +150,29 @@
   },
   "p0DurableOutcome": {
     "previousSha": "a565b1b9f0c485ee1e1e3125bf168445b8868128",
-    "componentCI": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38263397120",
-    "componentPass": 217,
+    "componentCI": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38265004633",
+    "componentPass": 222,
     "componentFail": 0,
-    "packageBuild": "FAIL_NATIVE_WORKSPACE_UNSAFE_HTML_ATTRIBUTES",
+    "packageBuild": "PASS_PRODUCTION_DEVELOPMENT_VERIFY",
     "nextCodeScope": "Original Run absent, released without matching Result, paused_unknown and unadmitted waiting cancellation",
-    "nextEvidence": "SOURCE_PREPARED; CI_PENDING",
-    "nativeStatus": "NATIVE_PENDING"
+    "nextEvidence": "COMPONENT_TESTED",
+    "nativeStatus": "NATIVE_PENDING",
+    "newCommitSha": "7e38eecd6cff4f480b4f2d128f51238ed744a093",
+    "verification": "BUILD_VERIFIED",
+    "productionPackageHash": "5e6c3da82091f405ef32fde8ec8fb0bab57bde64381ae127b99e5de9e6c19e0b",
+    "developmentPackageHash": "fc92a2e99c93ecacf96e6190e5fec33b7dd217ea7ffb2f1ce42703162a744353"
+  },
+  "latestShaBoundComponentAndBuild": {
+    "verifiedSourceSha": "7e38eecd6cff4f480b4f2d128f51238ed744a093",
+    "ci": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38265004633",
+    "testsPassed": 222,
+    "testsFailed": 0,
+    "check": "PASS",
+    "productionBuild": "PASS",
+    "developmentBuild": "PASS",
+    "verify": "PASS",
+    "productionPackageHash": "5e6c3da82091f405ef32fde8ec8fb0bab57bde64381ae127b99e5de9e6c19e0b",
+    "developmentPackageHash": "fc92a2e99c93ecacf96e6190e5fec33b7dd217ea7ffb2f1ce42703162a744353",
+    "macNative": "NATIVE_PENDING"
   }
 }
