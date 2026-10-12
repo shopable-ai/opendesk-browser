@@ -435,7 +435,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
       if(disposed)return;
       if(scriptId()===id)remember(row);
       await refreshScripts({silent:true});
-      display('saved',`${id} · r${row.revision} 已保存固定${esm?' ESM ':''}版本；保存不会执行，下一次运行依然使用当前草稿。`);
+      display('saved',`${id} · r${row.revision} 已持久保存固定${esm?' ESM ':''}版本；保存不会执行，下一次运行依然使用当前草稿。`);
     }finally{if(esm){browserPreparing=false;editingBusy=false;update();}}
   }
   async function load() {
@@ -632,15 +632,18 @@ export function createScriptEditor({client, currentPageTarget, development=false
       if (chosen.candidate) await currentPageTarget.revalidate(chosen.candidate);
       else if (chosen.target.mode === 'borrowed' && version !== selectionVersion)
         throw {code:'E_DOCUMENT_STALE',message:'选定文档已变化，请重新选择'};
-      let executable=sourceUtf8;
+      // Preserve the original trusted-click author snapshot while compiling.
+      // Authority still receives the exact `sourceUtf8` that will execute, via
+      // the same draft admission, immutable revision hash and original RunHost.
+      const authorSourceUtf8=sourceUtf8;
       if(esm){
-        const check=()=>{if(disposed||ticket!==browserPrepareGeneration||programSource.source()!==sourceUtf8||scriptId()!==id)
+        const check=()=>{if(disposed||ticket!==browserPrepareGeneration||programSource.source()!==authorSourceUtf8||scriptId()!==id)
           throw {code:'E_CONTROLLER_ESM_STALE',message:'源码已变化或准备已取消；不会启动过期代码'};};
-        const prepared=await prepareControllerESM(sourceUtf8,id,check);check();
-        executable=prepared.built.sourceUtf8;
+        const prepared=await prepareControllerESM(authorSourceUtf8,id,check);check();
+        sourceUtf8=prepared.built.sourceUtf8;
         browserPreparing=false;update();
       }
-      const claim = await host.start({source:{kind:'draft',sourceUtf8:executable},
+      const claim = await host.start({source:{kind:'draft',sourceUtf8},
         params, target:chosen.target, deadlineAt:Date.now() + 30000});
       admittedRunId = claim.runId;
       ownedDraftRunId = claim.runId;
