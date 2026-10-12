@@ -2,7 +2,7 @@
 
 > TOP30 为**人工推断的研究顺序**，不是商店流量排名，也不是已验证需求排名。每个 `OPP-xxx` 的详细证据和验证法见 [JSON 机会库](opportunity-register.json)。无真实用户访谈，用户频率与商业意愿均不可视为已证明。
 
-> **商业方向复审（2026-10-12，新决策优先）：**下方 R1 TOP30、TOP5、MVP 1 是历史研究提议，**不再将 Page QA Inspector 作为首款商业重点或默认 CWS 上架对象**；已开发的 Page QA 可继续作为 Extension Factory 技术验证样品。下一轮商业优先研究电商工具宇宙（B2B 卖家与 B2C 消费者），真实用户任务、竞品免费替代、付费证据和数据合法性之后才可重排商业名次。详情：[商业决策](commercial-decision-ecommerce-20261012.zh-CN.md)、[电商工具宇宙](ecommerce-tool-universe.zh-CN.md)。
+> **商业方向复审（2026-10-12，新决策优先）：**下方 R1 TOP30、TOP5、MVP 1 是历史研究提议，**不再将 Page QA Inspector 作为首款商业重点或默认 CWS 上架对象**；旧 Page QA 实验源码已从 main 清理（Git 历史可追溯）。下一轮商业优先研究电商工具宇宙（B2B 卖家与 B2C 消费者），真实用户任务、竞品免费替代、付费证据和数据合法性之后才可重排商业名次。详情：[商业决策](commercial-decision-ecommerce-20261012.zh-CN.md)、[电商工具宇宙](ecommerce-tool-universe.zh-CN.md)。
 
 ## 当前商业研究重点（不代表产品已经开发或付费验证）
 
@@ -11,7 +11,7 @@
 | 卖家 Listing/SKU/毛利辅助 | OPP-015/016、EXP-005 | 合法数据、真实任务频次、买方与维护成本 | 优先研究，NOT_VALIDATED |
 | 购物实际到手价/规格决策 | OPP-010/013、EXP-007 | 价格数据准确、自然使用与商业渠道 | 优先研究，NOT_VALIDATED |
 | 企业受控工作流（平行备选） | OPP-057/059、EXP-001 | 企业采购主体和明确授权 | 保留研究，NOT_VALIDATED |
-| Page QA Inspector（历史） | EXP-002 | 不再商业立项；仅保留技术样品 | ARCHIVED / NO_RELEASE |
+| Page QA Inspector（历史） | EXP-002 | 不再商业立项；历史源码已移出 main | ARCHIVED / NO_RELEASE |
 
 下面的 TOP30、TOP10、TOP5 **全部是 R1 当时的研究排名，不是现行产品开发顺序**。保留稳定 OPP ID 和原始分数以便追溯；没有真实调研前不凭主观意愿编造新 TOP30。
 
@@ -73,7 +73,7 @@
 
 | 概念 | 单一主用途/用户 | 5–7 个模块组合 | 商业假设 | 主要阻断 |
 | --- | --- | --- | --- | --- |
-| ~~Page QA Inspector~~（已废弃的旧商业首选） | 历史 QA 产品设想，不再主推 | 基础 DOM/a11y 技术样品 | **旧收费假设撤销** | 成熟替代广泛；缺真实差异化/用户付款证据；仅保留专用手动构建样品 |
+| ~~Page QA Inspector~~（已废弃的旧商业首选） | 历史 QA 产品设想，不再主推 | 基础 DOM/a11y 技术样品 | **旧收费假设撤销** | 成熟替代广泛；缺真实差异化/付费证据；历史源码已移出 main |
 | Research Clip & Cite（A+C） | 研究人员：把网页来源可靠保存成有出处的笔记 | 选区引用 / 网页剪藏 / 来源时间 / 标签 / 会话 / diff / 本地导出 | 高级同步和团队知识整理 | 用户愿付费和隐私同意未验证 |
 | Website SEO QA（B 或 C） | SEO 顾问：在当前网页做技术 SEO 健检 | meta / canonical / JSON-LD / 重定向 / 内链 / SERP 说明 / 快照 | 团队导出与专项报告 | SEO 竞争强，排名历史须付费数据 |
 | Seller Listing Assistant（B） | 卖家：商品上架前完成准确性检查 | 完整性 / SKU 导出 / 毛利 / 属性 QA / 回复模板 / 版本 diff / 报告 | 卖家团队席位 | 平台条款、账号许可、网站维护 |
@@ -83,7 +83,7 @@
 
 ### 历史 MVP 1（DEPRECATED / 已停止）— Page QA Inspector
 
-> 2026-10-12 产品结论：停止以 Page QA 作为首款商业插件或当前独立验收任务；已有源码只保留内部技术样例。尚无独立用户留存、付费或相对竞品差异化证据。
+> 2026-10-12 产品结论：停止以 Page QA 作为首款商业插件或当前独立验收任务；专属源码已从 main 清理，历史 Git 提交保留。尚无独立用户留存、付费或相对竞品差异化证据。
 **故事**：“作为测试工程师，我访问测试站，点击扩展后，得到当前页面 DOM/可访问性问题列表，点击问题定位页面元素；不浏览其他标签、更不读取 Cookie。”  
 - 最小范围：当前标签的 Locator 提示、标题/aria 标记检查、只读 JSON 报告和开关；其余能力不预置。复用 `src/framework/locator.js`、`src/platform/chrome`、`src/ui/design-tokens.css`，但 Browser SDK 未开放部分要通过自有可信 Host 重新验证。
 - 合法权限：`activeTab`、`scripting` 和本地设置所需 `storage`；无 `<all_urls>` / `cookies` / `nativeMessaging`。

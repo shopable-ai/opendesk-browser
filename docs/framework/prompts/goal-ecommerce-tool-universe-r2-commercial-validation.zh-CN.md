@@ -40,9 +40,9 @@ R8 的 188 项能力和 E01–E40 不重编号。84 条 OPP 与 8 个 EXP 均有
 
 ### 三、必须执行的错误纠偏
 
-Page QA Inspector 已不再是首款商业产品。现有源码 products/page-qa-inspector/、packages/features/page-qa/、scripts/product-build.mjs 和 product-pack.mjs 说明**只有一个硬编码 Page QA 的历史 Factory 样品**，不是通用产品工厂。其商业状态为 STOP / ARCHIVED / NO_RELEASE，历史工程样品状态为 DEPRECATED / MANUAL_FIXTURE_ONLY。
+Page QA Inspector 已不再是首款商业产品。**历史** `products/page-qa-inspector/`、`packages/features/page-qa/`、`scripts/product-build.mjs` / `product-pack.mjs` 只组成硬编码 Page QA 的旧实验工厂，**这些源码、专用测试和 CI 已从当前 main 实际移除**（旧 Git 提交可追溯），并非当前可构建的通用工厂。状态：STOP / ARCHIVED / NO_RELEASE / SOURCE_REMOVED_FROM_MAIN。
 
-原 TOP5/MVP1、历史 GOAL 中推荐 Page QA 商业首发是错误选择：技术容易实现不代表存在与 Lighthouse/DevTools/axe/WAVE 不同的真实需求、买方、留存和付费。保留旧记录与源码证据，不删除其他 Agent 的工作；不重启 Page QA 研发、Mac 20 次验收、定价、获客或 CWS 上架。继续推进它须未来单独拿出全新证据与明确批准。本轮要扫描并纠正任何残留的“Page QA 是当前首款产品”表述。
+原 TOP5/MVP1、历史 GOAL 中推荐 Page QA 商业首发是错误选择：技术容易实现不代表存在与 Lighthouse/DevTools/axe/WAVE 不同的真实需求、买方、留存和付费。保留旧记录与 Git 提交证据，避免覆盖其他 Agent 的独立工作；不重启 Page QA 研发、Mac 20 次验收、定价、获客或 CWS 上架。继续推进它须未来单独拿出全新证据与明确批准。本轮要扫描并纠正任何残留的“Page QA 是当前首款产品”表述。
 
 ### 四、重点研究整个电商工具宇宙，不只优惠券
 

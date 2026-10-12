@@ -2,7 +2,7 @@
 
 > 仅供下一轮执行，当前 R1 **不实现**以下代码、不新增分支/Worktree/PR。开始时必须重新阅读最新 `AGENTS.md` 和 main HEAD；若发现并行写入冲突，保持只读并提醒，不强推、不修改其他 Agent 的工作。
 
-> **2026-10-12 商业方向调整：**原 GOAL 1 Page QA / GOAL 3 EXP-002 的“首款商业产品”建议属于历史计划，**仅保留工厂技术验证参考，不能直接作为新的商业优先级**。现在应先执行 [电商工具宇宙唯一研究 GOAL](../../framework/prompts/goal-ecommerce-tool-universe-r1.zh-CN.md)；其他研发任务需按各自原有授权执行，勿因此删除已有 QA 源码或影响其他 Agent 验收。
+> **2026-10-12 商业方向调整：**原 GOAL 1 Page QA / GOAL 3 EXP-002 的“首款商业产品”建议属于历史计划，**仅保留工厂技术验证参考，不能直接作为新的商业优先级**。现在应先执行 [电商工具宇宙唯一研究 GOAL](../../framework/prompts/goal-ecommerce-tool-universe-r1.zh-CN.md)；其他研发任务需按各自原有授权执行，Page QA 相关实验源码现已从 main 安全移除，保留历史记录；勿影响其他 Agent 的独立任务。
 
 ## 当前推荐：电商需求与商业验证 R2
 
