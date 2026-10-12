@@ -16,6 +16,7 @@ import {packageFingerprint} from '../../scripts/verify-package.mjs';
 
 const ENABLED=process.env.OPENDESK_SCHEDULED_NATIVE==='1';
 const LIFECYCLE=process.env.SCHEDULE_NATIVE_LIFECYCLE==='1';
+const VIEWPORT=process.env.SCHEDULE_NATIVE_VIEWPORT==='1';
 const EXPECTED_PLATFORM=process.env.SCHEDULE_NATIVE_PLATFORM||'darwin';
 const CONTROL_MODIFIER=process.platform==='darwin'?4:2;
 let nativeOwnedMacInput=null; // Set after the uniquely owned Chrome PID is observed.
@@ -155,6 +156,38 @@ async function screenshot(client,session,name){
   const bytes=Buffer.from(response.data,'base64');
   await writeFile(path.join(OUT,name+'.png'),bytes);
   return {file:name+'.png',bytes:bytes.length,sha256:sha(bytes)};
+}
+// Genuine Chrome renderer viewport emulation; NOT a physical Side Panel
+// resize and NOT Chrome's 200% browser zoom. This probe never writes page DOM.
+async function viewportEvidence(client,session,surface,report){
+  const widths=surface==='sidepanel'?[320,360,420]:[320,360,420,760];
+  const snapshots=[];
+  try{
+    for(const width of widths){
+      await client.send('Emulation.setDeviceMetricsOverride',{
+        width,height:780,deviceScaleFactor:1,mobile:false},session);
+      await sleep(100);
+      const actual=await evaluate(client,
+        '(()=>{const root=document.documentElement;return {'+
+        'viewport:innerWidth,scrollWidth:root.scrollWidth,'+
+        'bodyScrollWidth:document.body.scrollWidth,'+
+        'hasHorizontalOverflow:root.scrollWidth>innerWidth+1,'+
+        'panelVisible:!document.querySelector("#scheduled-panel").hidden}})()',session);
+      assert.equal(actual.viewport,width,'Native renderer must honor emulated viewport');
+      assert.equal(actual.panelVisible,true,'Schedule remains visible at narrow viewport');
+      assert.equal(actual.hasHorizontalOverflow,false,
+        'No horizontal page overflow in '+surface+' at '+width+'px');
+      snapshots.push({surface,width,...actual,
+        screenshot:await screenshot(client,session,'r2-'+surface+'-viewport-'+width)});
+    }
+  }finally{
+    await client.send('Emulation.clearDeviceMetricsOverride',{},session).catch(()=>{});
+  }
+  report.tests['r2Viewport'+surface]=
+    'PASS (actual Chrome rendering, DevTools viewport emulation; physical resize/200% zoom NOT_TESTED)';
+  report.steps.push({name:'r2-'+surface+'-viewport-geometry',
+    at:new Date().toISOString(),result:snapshots});
+  return snapshots;
 }
 async function contexts(client,session){
   return evaluate(client,'chrome.runtime.getContexts({})',session);
@@ -413,6 +446,10 @@ test('real installed Chrome: verified Task via Alarms -> original RunHost -> pag
   report.tests.chromeAlarmRegistered='PASS';
   note('native-chrome-alarm-registered',registeredAlarm);
   report.screenshots.push(await screenshot(client,sideSid,'schedule-created-original-sidepanel'));
+  if(VIEWPORT){
+    const evidence=await viewportEvidence(client,sideSid,'sidepanel',report);
+    report.screenshots.push(...evidence.map(x=>x.screenshot));
+  }
   await click(client,sideSid,'#schedule-open-runner');
   const runnerTarget=await deadline(async()=>{
     const rows=(await client.send('Target.getTargets')).targetInfos;
@@ -446,6 +483,10 @@ test('real installed Chrome: verified Task via Alarms -> original RunHost -> pag
     true,'dedicated tab must open the operational overview instead of an enlarged Side Panel');
   report.tests.dedicatedRunnerLayout='PASS';
   note('dedicated-runner-layout',runnerPresentation);
+  if(VIEWPORT){
+    const evidence=await viewportEvidence(client,runnerSid,'runner',report);
+    report.screenshots.push(...evidence.map(x=>x.screenshot));
+  }
   // User opens the original manager from the dedicated operational dashboard.
   await click(client,runnerSid,'#schedule-runner-manage');
   let secondRunnerId=null;
