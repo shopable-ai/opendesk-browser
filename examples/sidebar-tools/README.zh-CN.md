@@ -34,3 +34,7 @@ Time Review 的安装、空闲权限和启停步骤见 [时间回顾说明](time
 ## Browser SDK v2（R1.3）
 
 [Browser SDK 示例](browser-sdk-r13/README.zh-CN.md) 包含可直接导入的 v2 选区笔记、v1 能力查询工具和普通网页拒绝特权的 HTTP 测试页。v2 菜单内容须先在当前网站完成可信用户授权；R1.3 原生 Chrome 验收另行记录。
+
+## Browser SDK R2–R4：可安装真实接口验证工具
+
+[Tabs、Side Panel、HTTP、网络观察、截图与操作管理验证工具](browser-sdk-r2/README.zh-CN.md) 提供一个直接导入的独立 v2 JSON 安装包。它使用 `OpenDeskSDK.browser`，不需要修改或重新构建扩展。安装前需审阅其 capability，执行敏感操作时还要在可信 Side Panel 点击单次确认。该示例不等于 Mac Chrome 原生验收 PASS。
