@@ -1,0 +1,73 @@
+name: Scheduled Tasks R2 entire Chrome process restart
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/scheduled-tasks-r2.yml'
+      - 'tests/framework/scheduled-tasks-r1-native-mac.test.mjs'
+      - 'src/platform/tasks/schedule-*.js'
+      - 'src/platform/host/authority.js'
+      - 'src/platform/host/broker.js'
+      - 'src/ui/scheduled-task-*.js'
+      - 'src/ui/tool-shell.*'
+      - 'src/ui/tool.html'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: scheduled-tasks-r2-native-${{ github.sha }}
+  cancel-in-progress: false
+
+jobs:
+  entire-chrome-restart:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: linux
+            image: ubuntu-latest
+          - platform: macos
+            image: macos-15
+    runs-on: ${{ matrix.image }}
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Build actual WXT MV3 extension and verify package
+        run: |
+          npm run build
+          node scripts/verify-package.mjs dist/production
+      - uses: browser-actions/setup-chrome@v2
+        id: chrome
+        with:
+          chrome-version: '155.0.8059.39'
+      - name: Real Chrome process exit, same-Profile restore, Alarm, DOM effect and Run/Result
+        env:
+          OPENDESK_SCHEDULED_NATIVE: '1'
+          SCHEDULE_NATIVE_RESTART: '1'
+          SCHEDULE_NATIVE_PLATFORM: ${{ matrix.platform == 'linux' && 'linux' || 'darwin' }}
+          SCHEDULE_NATIVE_CI_NO_SANDBOX: ${{ matrix.platform == 'linux' && '1' || '0' }}
+          CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
+          SCHEDULE_NATIVE_OUT: artifacts/scheduled-tasks-r2-restart-${{ matrix.platform }}
+        run: |
+          if [ "${{ matrix.platform }}" = "linux" ]; then
+            xvfb-run -a --server-args="-screen 0 1440x900x24" node --test tests/framework/scheduled-tasks-r1-native-mac.test.mjs
+          else
+            node --test tests/framework/scheduled-tasks-r1-native-mac.test.mjs
+          fi
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: scheduled-tasks-r2-restart-${{ matrix.platform }}-${{ github.sha }}
+          path: artifacts/scheduled-tasks-r2-restart-${{ matrix.platform }}/
+          if-no-files-found: warn
+          retention-days: 14

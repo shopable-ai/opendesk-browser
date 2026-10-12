@@ -582,5 +582,128 @@ test('real installed Chrome: verified Task via Alarms -> original RunHost -> pag
     },'real restored Side Panel pauses future occurrences');
     report.tests.restoredHostPause='PASS';
   }
+  if(process.env.SCHEDULE_NATIVE_RESTART==='1'){
+    assert.equal(LIFECYCLE,false,'Full Chrome restart has its own isolated native test phase');
+    // Resume through real UI before shutting down Chrome, preserving the
+    // original Fire / Run / Result and the authorized immutable installation.
+    await deadline(()=>evaluate(client,
+      'document.querySelector("#schedule-plan-list .schedule-card .schedule-actions button:nth-child(2)")?.textContent?.includes("恢复")',
+      runnerSid),'visible resume before full Chrome exit');
+    await click(client,runnerSid,'#schedule-plan-list .schedule-card .schedule-actions button:nth-child(2)');
+    const before=await deadline(async()=>{
+      const state=await durable(client,runnerSid),plan=state.plans[0];
+      return plan?.generation>=2&&!plan.paused&&Number.isSafeInteger(plan.nextDueAt)?{plan,state}:null;
+    },'durable schedule active before entire browser process stops');
+    const stableScheduleId=before.plan.scheduleId,expectedGeneration=before.plan.generation;
+    const stableOldFire=due.fire.fireId,stableOldRun=due.run.runId;
+    const oldPid=proc.pid;
+    // Browser.close ends the entire owned Chrome process. Neither an MV3
+    // Worker wake-up nor a Side Panel closure substitutes for this transition.
+    await client.send('Browser.close');
+    client.close();client=null;
+    await stopChrome(proc);
+    assert(proc.exitCode!==null||proc.signalCode!==null,'Original Chrome process must exit');
+    report.tests.wholeChromeProcessExited='PASS';
+    note('whole-chrome-exited',{oldPid,exitCode:proc.exitCode,signalCode:proc.signalCode,
+      scheduleId:stableScheduleId,generation:expectedGeneration});
+    // This DevToolsActivePort file belongs exclusively to this fresh profile.
+    await rm(path.join(profile,'DevToolsActivePort'),{force:true});
+    proc=spawn(BIN,args,{stdio:['ignore','ignore','pipe']});
+    proc.stderr.on('data',bytes=>{chromeStderr=(chromeStderr+String(bytes)).slice(-7000);});
+    assert.notEqual(proc.pid,oldPid,'New full Chrome process must be distinct');
+    report.restartChromePid=proc.pid;
+    const restartPort=await deadline(async()=>{
+      const lines=(await readFile(path.join(profile,'DevToolsActivePort'),'utf8').catch(()=>'')).split('\n');
+      const n=Number(lines[0]);return Number.isSafeInteger(n)&&n>0?n:null;
+    },'restarted Chrome DevTools port in SAME user-data-dir',30000);
+    const restartedVersion=await(await fetch('http://127.0.0.1:'+restartPort+'/json/version')).json();
+    assert.equal(restartedVersion.Browser,version.Browser,'Restart must use the same CFT browser version');
+    client=await connect(restartedVersion.webSocketDebuggerUrl,{onEvent:value=>events.push(value)});
+    report.tests.sameControlledProfileRestarted='PASS';
+    note('same-profile-chrome-restarted',{oldPid,newPid:proc.pid,chrome:restartedVersion.Browser});
+    // No fake plan reinsertion or DOM write: inspect the same persisted IDB.
+    const freshSite=await client.send('Target.createTarget',{url:URL});
+    const freshSiteSid=await attach(client,freshSite.targetId);
+    await deadline(()=>evaluate(client,
+      'document.readyState==="complete"&&!document.querySelector("#done")',freshSiteSid),
+      'new Chrome process opens an untouched REAL webpage');
+    const catalogAgain=await client.send('Target.createTarget',{
+      url:'chrome-extension://'+extensionId+'/ui/tool.html'});
+    const catAgainSid=await attach(client,catalogAgain.targetId);
+    await deadline(()=>evaluate(client,
+      '!!document.querySelector("#catalog-open-dev-sidebar")',catAgainSid),'restarted trusted catalog');
+    const recovered=await durable(client,catAgainSid);
+    assert.equal(recovered.plans.length,1,'Original plan persisted through entire Chrome process exit');
+    assert.equal(recovered.plans[0].scheduleId,stableScheduleId);
+    assert.equal(recovered.plans[0].generation,expectedGeneration);
+    assert.equal(recovered.plans[0].paused,false);
+    assert.equal(recovered.runs.filter(x=>x.scheduledFireId===stableOldFire).length,1,
+      'Already admitted original FireId must never replay after browser startup');
+    assert.equal(recovered.runs.find(x=>x.runId===stableOldRun)?.retirementState,'released');
+    const restoredAlarms=await deadline(async()=>{
+      const alarms=await evaluate(client,'chrome.alarms.getAll()',catAgainSid);
+      return alarms.find(x=>x.name==='opendesk.schedule.v1:'+stableScheduleId)||null;
+    },'original chrome.alarms reconstructed after full process restart',25000);
+    report.tests.scheduleStateAndAlarmRecovered='PASS';
+    note('chrome-restart-persisted-plan-and-alarm',{scheduleId:stableScheduleId,
+      generation:expectedGeneration,restoredAlarm:restoredAlarms});
+    // Re-enter exclusively through the original user-facing actions.
+    await client.send('Target.activateTarget',{targetId:catalogAgain.targetId});
+    await click(client,catAgainSid,'#catalog-open-dev-sidebar');
+    const sideAgain=await deadline(async()=>{
+      const list=await contexts(client,catAgainSid);
+      return list.find(x=>x.contextType==='SIDE_PANEL'&&x.documentId&&
+        x.documentUrl?.includes('/ui/tool.html'));
+    },'fresh genuine Side Panel in the restarted Chrome process',23000);
+    const sideTargetAgain=await deadline(async()=>{
+      const targets=(await client.send('Target.getTargets')).targetInfos;
+      return targets.find(x=>x.url===sideAgain.documentUrl);
+    },'restarted real Side Panel target');
+    const sideAgainSid=await attach(client,sideTargetAgain.targetId);
+    await click(client,sideAgainSid,'#schedule-open');
+    await deadline(()=>evaluate(client,'!!document.querySelector("#schedule-plan-list .schedule-card")',sideAgainSid),
+      'recovered plan visible in original My > Schedules');
+    await click(client,sideAgainSid,'#schedule-open-runner');
+    const runnerAgain=await deadline(async()=>{
+      const targets=(await client.send('Target.getTargets')).targetInfos;
+      return targets.find(x=>x.url?.includes('/ui/tool.html?')&&x.url.includes('scheduledRunner=1'));
+    },'new user-opened visible RunHost after full Chrome restart',18000);
+    const runnerAgainSid=await attach(client,runnerAgain.targetId);
+    await deadline(()=>evaluate(client,
+      'document.documentElement.dataset.opendeskSurface==="scheduled-runner" && !document.querySelector("#schedule-runner-view").hidden',
+      runnerAgainSid),'new running overview after restart');
+    const after=await deadline(async()=>{
+      const state=await durable(client,runnerAgainSid);
+      const matches=state.fires.filter(x=>x.fireId!==stableOldFire&&
+        x.fireId.startsWith('sched:'+stableScheduleId+':'+expectedGeneration+':')&&x.runId);
+      for(const fire of matches){
+        const run=state.runs.find(x=>x.runId===fire.runId);
+        const result=state.results.find(x=>x.resultId===fire.resultId&&x.runId===fire.runId);
+        if(run?.state==='completed'&&run.retirementState==='released'&&result?.ok===true&&
+          state.native.some(x=>x.runId===fire.runId&&x.receipts>0))
+          return {fire,run,result,oldRunCount:state.runs.filter(x=>x.scheduledFireId===stableOldFire).length,
+            thisRunCount:state.runs.filter(x=>x.scheduledFireId===fire.fireId).length};
+      }
+      return null;
+    },'new approved occurrence operates REAL webpage after full Chrome restart',180000);
+    const restartedEffect=await evaluate(client,
+      '(()=>({name:document.querySelector("#name")?.value,done:!!document.querySelector("#done")}))()',freshSiteSid);
+    assert.deepEqual(restartedEffect,{name:'Scheduled Native',done:true});
+    assert.equal(after.oldRunCount,1,'Chrome startup never replays a consumed FireId');
+    assert.equal(after.thisRunCount,1,'New occurrence is admitted only once');
+    assert.notEqual(after.run.runId,stableOldRun,'Restarted execution is a different occurrence');
+    report.tests.newActualNativeEffectAfterRestart='PASS';
+    note('chrome-restart-real-result',{fireId:after.fire.fireId,runId:after.run.runId,
+      resultId:after.result.resultId,documentId:after.run.documentId,
+      retirementState:after.run.retirementState,webEffect:restartedEffect});
+    report.screenshots.push(await screenshot(client,runnerAgainSid,'r2-restarted-visible-runner'));
+    report.screenshots.push(await screenshot(client,freshSiteSid,'r2-restarted-real-web-effect'));
+    await click(client,runnerAgainSid,'#schedule-runner-manage');
+    await click(client,runnerAgainSid,'#schedule-plan-list .schedule-card .schedule-actions button:nth-child(2)');
+    await deadline(async()=>{
+      const state=await durable(client,runnerAgainSid);
+      return state.plans[0]?.paused===true&&state.plans[0]?.nextDueAt===null;
+    },'pause recovered plan from original UI after second native result');
+  }
   completed=true;
 });
