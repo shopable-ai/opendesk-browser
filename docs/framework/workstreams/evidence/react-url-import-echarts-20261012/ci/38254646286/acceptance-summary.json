@@ -1,0 +1,131 @@
+{
+  "kind": "derived-verified-actions-summary-not-raw-receipt",
+  "checkedAt": "2026-10-12",
+  "source": {
+    "runId": 38254646286,
+    "jobId": 114829452737,
+    "runUrl": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38254646286",
+    "head": "93878f441d87e0813546fc37a5298f905bace72c",
+    "sourceHash": "8d3eedccdf62d90ddafcad3752e184ccd975479b51f649cb0b12595028ab2146",
+    "packageHash": "292a348d80e0b9e446296a12a31941d7718b5088162eb63c755442320e14df3b",
+    "frameworkSha256": "d1eec2e96ed42046ad543a10af7de992aee633ac06017f44f6b917e36451c758",
+    "world": "USER_SCRIPT",
+    "previewId": "27c14494-7a40-4f4b-89bd-0cc897da6f29",
+    "documentId": "C39C98A500E0405378E40546F6483477"
+  },
+  "artifact": {
+    "id": 11750315323,
+    "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38254646286/artifacts/11750315323",
+    "sha256": "b839c5272f0adbce48bc955b8bbb0ee72725f3b206983cfd41d30130f90b996e",
+    "bytes": 3514521,
+    "acceptanceJsonSha256": "63d54b145d5e33274ecdb929ce0d5ebdd4b76b60072a9e358b7be9e95282786e",
+    "previewReceiptJsonSha256": "55af1b0264caa097f78ac5050354dd3595a223912054ce403500a22686e10972",
+    "browserSourcePreviewReceiptSha256": "4ea2b13a8236174c31855baa52617343afe9d7027d22c6c03d16dca464e0d684",
+    "browserSourceApprovedLockSha256": "48de45b5969e44c7f54f8b7059a3ee997dd425d58e75d614df7a41cf0c011090"
+  },
+  "result": {
+    "status": "PASS_REAL_LINUX_JSON_RUN_STOP_INSTALL_BROWSER_SOURCE",
+    "jobConclusion": "success",
+    "cases": [
+      {
+        "name": "real-cft-and-original-http-fixture",
+        "status": "PASS"
+      },
+      {
+        "name": "actual-verified-extension-package-loaded",
+        "status": "PASS"
+      },
+      {
+        "name": "real-Chrome-userScripts-permission-toggle",
+        "status": "PASS"
+      },
+      {
+        "name": "frozen-JSON-import-original-UI-no-auto-run",
+        "status": "PASS"
+      },
+      {
+        "name": "real-frozen-React-ECharts-URL-import-SVG-render",
+        "status": "PASS"
+      },
+      {
+        "name": "real-website-heading-data-updates-existing-ECharts-SVG",
+        "status": "PASS"
+      },
+      {
+        "name": "real-Chrome-window-and-tab-zoom-resize-existing-ECharts-SVG",
+        "status": "PASS"
+      },
+      {
+        "name": "real-React-effect-view-cleanup-clears-ECharts-instance-and-SVG",
+        "status": "PASS"
+      },
+      {
+        "name": "real-TOC-chapter-jump-retained",
+        "status": "PASS"
+      },
+      {
+        "name": "real-Save-preserves-frozen-source-and-running-chart-without-install",
+        "status": "PASS"
+      },
+      {
+        "name": "real-managed-Stop-disposes-ECharts-and-root-no-late-remount",
+        "status": "PASS"
+      },
+      {
+        "name": "real-Verify-and-explicit-Install-preserve-frozen-identity-no-current-page-replay",
+        "status": "PASS"
+      },
+      {
+        "name": "frozen-JSON-verified-installed-offline-new-document",
+        "status": "PASS"
+      },
+      {
+        "name": "real-disable-auto-run-and-navigation-cleanup-preserve-original-receipt",
+        "status": "PASS"
+      },
+      {
+        "name": "frozen-URL-dependency-no-CDN-runtime-requests",
+        "status": "PASS"
+      },
+      {
+        "name": "browser-source-native-input-and-source-inspection-without-download-or-run",
+        "status": "PASS"
+      },
+      {
+        "name": "browser-source-real-HTTPS-download-hash-review-and-explicit-fixed-lock",
+        "status": "PASS"
+      },
+      {
+        "name": "browser-source-Save-only-prepares-fixed-Candidate-no-DOM-or-install",
+        "status": "PASS"
+      },
+      {
+        "name": "browser-source-direct-D3-URL-renders-real-max-in-fixed-React-USER_SCRIPT",
+        "status": "PASS"
+      },
+      {
+        "name": "browser-source-fixed-D3-offline-Run-and-managed-Stop",
+        "status": "PASS"
+      }
+    ],
+    "total": 20,
+    "passed": 20
+  },
+  "browserSource": {
+    "testUrl": "https://raw.githubusercontent.com/d3/d3-array/v3.2.4/src/max.js",
+    "downloadSha256": "691945a453633d9e204846af8ea4e299821b924f82b15eaf7906aba642979b1d",
+    "downloadBytes": 502,
+    "downloadStatus": 200,
+    "fromDiskCache": false,
+    "fromServiceWorker": false
+  },
+  "scope": {
+    "chromium": "155.0.8059.39",
+    "platform": "Linux CI Ubuntu 22.04",
+    "mac": "NOT_TESTED",
+    "externalGoHostChunked": "NOT_TESTED",
+    "arbitraryLargeESMFromBrowserEditor": "NOT_TESTED",
+    "f3zip": "NOT_TESTED"
+  },
+  "notes": "The 20 case states and production hashes came from the completed GitHub Actions job; do not use this derived index as a replacement for the original log, receipts, screenshots or artifact."
+}

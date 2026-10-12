@@ -141,3 +141,37 @@ Git CLI 写入缺少凭据，改用已有授权的 GitHub 连接逐一核验 356
 原 artifact `11747242331` 共 2,666,659 B，SHA-256 `3de17c5976c4882316d4da2163a1ce617f989b7b02e72e26c9bd595e1e64711f`；原 receipt JSON SHA `b6d66f10cc84d8a4c1e4f215fc1b4de119832e2ff8b2cbe1df1d2846bdec5660`，初图 PNG SHA `2760ac45d6d4effaad5ae49f720e854f6285326d9dc6004ec9d88f9b169a3253`，完整 job log SHA `665630bd35cd1b6916fc7c7bcff4f5484451ed87c65ea7aebe49ec71943d8a81`。
 
 并行 main 的 `e3d5721a`/`0d9b5351` 修改了多库执行链；已完整读取相关 diff 并保留，未覆写其实现。`0d9b5351` 将新增 512 KiB 组合限制仅用于多库 opt-in，原单 React 加本例大 linked resource 路径保留。新 CFT 将记录实际重新构建的包身份，不能沿用本节 packageHash。
+
+### 第四次及最终定向 Chrome CI：20/20 全部通过（本轮正式证据）
+
+继 [run 38253069295](https://github.com/shopable-ai/opendesk-browser/actions/runs/38253069295) 首次完成冻结 JSON 绘制、真实尺寸变化、Stop、Verify、Install 与安装后新文档离线执行之后，浏览器编辑器开始从公共 HTTPS 下载 D3。该轮的旧错误 `0 !== 502` 并非丢失依赖：原 `Network.responseReceived` 为 HTTP 200、无浏览器/Service Worker 缓存，Sidebar 显示并保存正确的 502 字节固定 SHA；**只是旧 CFT 观察器错误地用 `Array.from(ArrayBuffer)` 读取原始持久字节**。后续只将读取改为 `Array.from(new Uint8Array(...))`，不修改依赖管理器和用户组件。中间错误及原始 ZIP 继续保留为旧候选 failure，不能改报 PASS。
+
+[run 38254100852](https://github.com/shopable-ai/opendesk-browser/actions/runs/38254100852)、job `114827561962` 已真实完成所需功能，但机器结果中一项 `status:'PASS'` 被后置对象展开 `...report.browserSource.status='IN_PROGRESS'` 覆写。该测试实际执行通过；新提交仅修正记录顺序，并新增 **20 个项目且每项必须为 PASS** 的最终强断言，不变更产品和用户代码。
+
+最终定向候选是提交 [`93878f441d87e0813546fc37a5298f905bace72c`](https://github.com/shopable-ai/opendesk-browser/commit/93878f441d87e0813546fc37a5298f905bace72c)，[**真实 Chrome CI run 38254646286**](https://github.com/shopable-ai/opendesk-browser/actions/runs/38254646286)、job `114829452737`，GitHub job conclusion **success**，原始 `acceptance.json` **20/20 PASS**，状态 `PASS_REAL_LINUX_JSON_RUN_STOP_INSTALL_BROWSER_SOURCE`。Linux Ubuntu 22.04、Chrome for Testing 155.0.8059.39、独立 profile、headed Xvfb、正常 Chrome sandbox；无 Native Host 安装和权限。原 Chrome PID 退出状态 0，未强制停止，独立 profile 已删除。源码/窗口当前 main 后续的无关提交不能冒充此包的身份。
+
+| 可复验身份 | 真实值 |
+| --- | --- |
+| 最终 source HEAD | `93878f441d87e0813546fc37a5298f905bace72c` |
+| 生产扩展 packageHash | `292a348d80e0b9e446296a12a31941d7718b5088162eb63c755442320e14df3b` |
+| ECharts TOC sourceHash | `8d3eedccdf62d90ddafcad3752e184ccd975479b51f649cb0b12595028ab2146` |
+| 实际程序 | 482,082 B；235 个固定远端模块 / 1,744,686 B；冻结 JSON 558,789 B |
+| 固定 React SHA-256 | `d1eec2e96ed42046ad543a10af7de992aee633ac06017f44f6b917e36451c758` |
+| ECharts Run previewId | `27c14494-7a40-4f4b-89bd-0cc897da6f29` |
+| ECharts Run documentId | `C39C98A500E0405378E40546F6483477` |
+| browser author D3 sourceHash | `ae134b1b4a3fdbe34ab875fcb699ed8806241123a71d612069e4d46f98dd1e6b` |
+| browser author D3 previewId | `a499ca37-58cb-4e2b-85d7-63bfd948b824` |
+| browser author D3 documentId | `B9EDD2DD221ECAA38409993DBC0D7D95` |
+| 执行世界 | `USER_SCRIPT`，原固定 React，而非目标网站 MAIN / window.echarts |
+| 原始 artifact | [11750315323](https://github.com/shopable-ai/opendesk-browser/actions/runs/38254646286/artifacts/11750315323)，3,514,521 B，ZIP SHA-256 `b839c5272f0adbce48bc955b8bbb0ee72725f3b206983cfd41d30130f90b996e` |
+| 原 `acceptance.json` SHA-256 | `63d54b145d5e33274ecdb929ce0d5ebdd4b76b60072a9e358b7be9e95282786e` |
+| 原 ECharts `preview-receipt.json` SHA-256 | `55af1b0264caa097f78ac5050354dd3595a223912054ce403500a22686e10972` |
+
+实测结果：真实 Side Panel JSON 导入不自动运行；明确 Run 后 SVG 柱状图数据 `[1,7,5,0,0,0]`，增删标题引起 SVG bar path 更新、实例不变；真实 Chrome 窗口与 `chrome.tabs.setZoom` 引起容器、SVG 宽度由 268px 到 258px 后恢复；React effect 视图切换 `dispose`；章节跳转；独立 Save 不装/不重跑；受管 Stop 清除节点、实例与迟到回调；Verify 与明确 Install 不重放当前网页；新 documentId 的已安装冻结 JSON 离线执行 ECharts；关闭自动运行后导航不重新挂载并保留旧回执；固定程序没有 CDN 运行时下载请求。
+
+浏览器**仅源码编辑**：在新建 React JSX 组件中顶部可见 `import max from 'https://raw.githubusercontent.com/d3/d3-array/v3.2.4/src/max.js'`；首次“检查依赖”只列来源不下载；第二次明确点击“确认获取”才经真实公共 TLS 请求取得 HTTP 200、502 字节，验证 SHA-256 `691945a453633d9e204846af8ea4e299821b924f82b15eaf7906aba642979b1d`，且 `fromDiskCache=false`、`fromServiceWorker=false`；必须单独“确认固定此版本”。原审核锁、原始 IndexedDB ArrayBuffer、锁身份和无安装前提已实测。此后 Save 只创建 Candidate，不运行/不安装；明确 Run 真正在获准网站显示 `D3 max([2,5,3]) = 5`，Stop 清理，固定版本重跑无新网络。原 `browser-source-approved-lock.json` SHA-256 `48de45b5969e44c7f54f8b7059a3ee997dd425d58e75d614df7a41cf0c011090`，原 `browser-source-preview-receipt.json` SHA-256 `4ea2b13a8236174c31855baa52617343afe9d7027d22c6c03d16dca464e0d684`。
+
+**机器复核索引：** [最终 20/20 机器摘要](evidence/react-url-import-echarts-20261012/ci/38254646286/acceptance-summary.json)，是从已完成的原 GitHub job 日志派生，原始接收数据与截图仍以 CI artifact 为准。旧 run 失败与早期包 hash 保持原样，不当作最新结果覆盖。
+
+**明确剩余/验收边界（不冒充 PASS）**：本次未连接用户 Mac；外部正式 Go Native Host 的分块能力及 MCP 主动大源码通道仍需单独验证；浏览器源码编辑仅用固定 502 B D3 单模块完成真实验收，不等于可编辑任意大型 ECharts 依赖图（完整 ECharts 优先冻结 JSON）；加载中 Stop、navigation 竞态、源码/版本切换、渲染器错误注入、卸载、作者缓存 GC 的所有组合未完成同级原生验证；全仓所有 CI、整体 F3/ZIP、CWS 审核没有因此宣称通过。用户能在 `examples/programs/page-ui-toc-react-direct` 查源码，在“开发”浏览器端按“检查依赖→确认获取→确认固定→Save→Run→Stop”测试小图；JSON 是直接通过原目录窗口导入的冻结程序文件，不是 package.json。
+
