@@ -276,7 +276,7 @@ async function durable(client,session){
     'scheduledFireId:r.scheduledFireId||null,state:r.state,retirementState:r.retirementState,workerRetired:r.workerRetired,'+
     'sourceHash:r.revision?.sourceHash,documentId:r.target?.documentId}));'+
     'return {plans:plans.map(x=>({scheduleId:x.scheduleId,generation:x.generation,paused:x.paused,nextDueAt:x.nextDueAt,'+
-    'taskId:x.taskId,triggerKind:x.triggerKind,installationId:x.installationId})),fires:fires.map(x=>({fireId:x.fireId,runId:x.runId,'+
+    'taskId:x.taskId,triggerKind:x.triggerKind,installationId:x.installationId,taskGeneration:x.taskGeneration,version:x.version,manifestHash:x.manifestHash})),installs:kv.filter(x=>x.tag==="task-installed-v1").map(x=>({taskId:x.taskId,version:x.version,enabled:x.enabled,generation:x.authorization?.generation,installationId:x.authorization?.installationId})),fires:fires.map(x=>({fireId:x.fireId,runId:x.runId,'+
     'resultId:x.resultId,status:x.status,scheduledAt:x.scheduledAt})),runs:chosen,'+
     'results:results.filter(x=>x.tag==="controller-result").map(x=>({runId:x.runId,resultId:x.resultId,state:x.state,'+
     'ok:x.outcome?.ok===true,sourceHash:x.revision?.sourceHash})),'+
@@ -659,6 +659,105 @@ test('real installed Chrome: verified Task via Alarms -> original RunHost -> pag
       return state.plans.length===1&&state.plans[0].paused===true&&state.plans[0].nextDueAt===null;
     },'real restored Side Panel pauses future occurrences');
     report.tests.restoredHostPause='PASS';
+  }
+  if(process.env.SCHEDULE_NATIVE_TASK_IDENTITY==='1'){
+    assert.equal(LIFECYCLE,false,'Task identity native case has its own isolated phase');
+    await client.send('Page.navigate',{url:URL},siteSid);
+    await deadline(()=>evaluate(client,
+      'document.readyState==="complete"&&!document.querySelector("#done")',siteSid),
+      'clean genuine page before task authorization change');
+    await click(client,runnerSid,'#schedule-plan-list .schedule-card .schedule-actions button:nth-child(2)');
+    const before=await deadline(async()=>{
+      const state=await durable(client,runnerSid),plan=state.plans[0];
+      return plan&&!plan.paused&&Number.isSafeInteger(plan.nextDueAt)?{
+        plan,installed:state.installs.find(x=>x.taskId===plan.taskId)}:null;
+    },'resume original immutable installed Task');
+    assert.equal(before.installed.enabled,true);
+    assert.equal(before.installed.generation,before.plan.taskGeneration);
+    await click(client,runnerSid,'#schedule-create');
+    await click(client,runnerSid,'#schedule-manage-tasks');
+    await deadline(()=>evaluate(client,
+      'document.querySelector("#schedule-manager-list .schedule-manager-card .schedule-actions button:nth-child(2)")?.textContent==="停用"',
+      runnerSid),'real installed Task manager exposes Disable');
+    await click(client,runnerSid,'#schedule-manager-list .schedule-manager-card .schedule-actions button:nth-child(2)');
+    const disabled=await deadline(async()=>{
+      const state=await durable(client,runnerSid);
+      return state.installs.find(x=>x.taskId===before.plan.taskId)?.enabled===false?state:null;
+    },'real UI disables installed immutable Task');
+    const disabledInstall=disabled.installs.find(x=>x.taskId===before.plan.taskId);
+    assert(disabledInstall.generation>before.plan.taskGeneration,
+      'disabling increments original installed authorization generation');
+    report.tests.taskDisabledViaRealUI='PASS';
+    note('real-task-disabled',{taskId:before.plan.taskId,originalGeneration:before.plan.taskGeneration,
+      newGeneration:disabledInstall.generation});
+    await click(client,runnerSid,'#schedule-manager-back');
+    await click(client,runnerSid,'#schedule-cancel');
+    await click(client,runnerSid,'#schedule-runner-manage');
+    await deadline(()=>evaluate(client,
+      'document.querySelector("#schedule-plan-list .schedule-card .schedule-state")?.textContent?.includes("需要处理")',
+      runnerSid),'old plan shows requires-attention when Task disabled');
+    const rejected=await deadline(async()=>{
+      const state=await durable(client,runnerSid);
+      const fire=state.fires.find(x=>x.fireId.startsWith(
+        'sched:'+before.plan.scheduleId+':'+before.plan.generation+':')&&
+        x.status==='NEEDS_ATTENTION'&&!x.runId);
+      return fire?{fire,runCount:state.runs.filter(x=>x.scheduledFireId===fire.fireId).length}:null;
+    },'disabled Task cannot become a real Controller Run',145000);
+    assert.equal(rejected.runCount,0);
+    assert.equal(await evaluate(client,'!!document.querySelector("#done")',siteSid),false);
+    report.tests.disabledTaskScheduledFireDenied='PASS';
+    note('disabled-task-fire',{...rejected});
+    await click(client,runnerSid,'#schedule-create');
+    await click(client,runnerSid,'#schedule-manage-tasks');
+    await deadline(()=>evaluate(client,
+      'document.querySelector("#schedule-manager-list .schedule-manager-card .schedule-actions button:nth-child(2)")?.textContent==="启用"',
+      runnerSid),'Task can be reenabled from real management interface');
+    await click(client,runnerSid,'#schedule-manager-list .schedule-manager-card .schedule-actions button:nth-child(2)');
+    const restored=await deadline(async()=>{
+      const state=await durable(client,runnerSid),inst=state.installs.find(x=>x.taskId===before.plan.taskId);
+      return inst?.enabled&&inst.generation>disabledInstall.generation?{state,inst}:null;
+    },'reenabling Task rotates installed generation without replacing saved plan');
+    assert.equal(restored.state.plans[0].taskGeneration,before.plan.taskGeneration,
+      'old schedule must stay bound to its previous immutable generation');
+    assert.equal(restored.state.plans[0].manifestHash,before.plan.manifestHash);
+    assert.equal(restored.state.plans[0].version,before.plan.version);
+    report.tests.installedTaskReenableDoesNotRebindSchedule='PASS';
+    note('restored-task-identity-fenced',{originalScheduleTaskGeneration:before.plan.taskGeneration,
+      newInstalledGeneration:restored.inst.generation,oldFireId:rejected.fire.fireId});
+    const second=await deadline(async()=>{
+      const state=await durable(client,runnerSid);
+      const fire=state.fires.find(x=>x.fireId!==rejected.fire.fireId&&x.fireId.startsWith(
+        'sched:'+before.plan.scheduleId+':'+before.plan.generation+':')&&
+        x.status==='NEEDS_ATTENTION'&&!x.runId);
+      return fire?{fire,runCount:state.runs.filter(x=>x.scheduledFireId===fire.fireId).length}:null;
+    },'rotated Task installation cannot run the old scheduled generation',145000);
+    assert.equal(second.runCount,0);
+    assert.equal(await evaluate(client,'!!document.querySelector("#done")',siteSid),false);
+    report.tests.rotatedGenerationDeniedNativeRun='PASS';
+    note('rotated-generation-fire',{...second});
+    await click(client,runnerSid,'#schedule-manager-list .schedule-manager-card .schedule-actions button:nth-child(4)');
+    await deadline(()=>evaluate(client,
+      '!document.querySelector("#schedule-uninstall-confirm").hidden',runnerSid),
+      'visible inline uninstall confirmation');
+    await click(client,runnerSid,'#schedule-uninstall-yes');
+    const afterUninstall=await deadline(async()=>{
+      const state=await durable(client,runnerSid);
+      return !state.installs.some(x=>x.taskId===before.plan.taskId)?state:null;
+    },'real UI uninstalls original installed Task');
+    assert.equal(afterUninstall.plans[0].taskGeneration,before.plan.taskGeneration);
+    assert.equal(afterUninstall.runs.filter(x=>x.scheduledFireId===due.fire.fireId).length,1);
+    report.tests.uninstallKeepsOriginalScheduleAndRunAudit='PASS';
+    note('native-task-uninstalled-audit-kept',{scheduleId:before.plan.scheduleId,
+      oldTaskGeneration:before.plan.taskGeneration,originalRunId:due.run.runId});
+    await click(client,runnerSid,'#schedule-manager-back');
+    await click(client,runnerSid,'#schedule-cancel');
+    await click(client,runnerSid,'#schedule-runner-manage');
+    await click(client,runnerSid,'#schedule-plan-list .schedule-card .schedule-actions button:nth-child(2)');
+    await deadline(async()=>{
+      const state=await durable(client,runnerSid);
+      return state.plans[0]?.paused===true&&state.plans[0]?.nextDueAt===null;
+    },'user pauses old immutable plan after Task uninstall');
+    report.screenshots.push(await screenshot(client,runnerSid,'r2-uninstalled-task-plan'));
   }
   if(process.env.SCHEDULE_NATIVE_PERMISSIONS==='1'){
     assert.equal(LIFECYCLE,false,'Native site permission scenario is isolated');
