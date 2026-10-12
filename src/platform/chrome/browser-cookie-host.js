@@ -121,7 +121,8 @@ export function createTrustedCookieHost({api=globalThis.chrome,now=Date.now}={})
     const id=await storeId(target);
     if(args.storeId!==undefined&&args.storeId!==id)throw error('E_COOKIE_STORE');
     if(args.partitionKey){
-      const partition=await chromeCall(api,api.cookies,'getPartitionKey',{tabId:target.tabId,frameId:0});
+      const receipt=await chromeCall(api,api.cookies,'getPartitionKey',{tabId:target.tabId,frameId:0});
+      const partition=receipt?.partitionKey;
       if(partition?.topLevelSite!==args.partitionKey.topLevelSite||
          args.partitionKey.hasCrossSiteAncestor!==undefined&&
          partition.hasCrossSiteAncestor!==args.partitionKey.hasCrossSiteAncestor)
