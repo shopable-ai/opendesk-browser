@@ -78,7 +78,7 @@
 
 ## 6. 浏览器提供的发送者验证
 
-必须同时满足：实际 runtime ID 与配置一致；sender 没有扩展／Native 来源身份；`frameId === 0`；有效非隐身 tab；浏览器 document UUID 和 `documentLifecycle === active`；精确 sender Origin、URL、端口。URL 拒绝凭据及过长值。
+必须同时满足：实际 runtime ID 与配置一致；sender 没有扩展／Native 来源身份；`frameId === 0`；有效非隐身 tab；浏览器提供的非零 32 位十六进制 `documentId` 和 `documentLifecycle === active`；精确 sender Origin、URL、端口。URL 拒绝凭据及过长值。Chrome 的 `documentId` 是浏览器 `UnguessableToken` 的表示，与本协议 intent／review UUID 和 Chrome `contextId` UUID 不同，不共用 UUID 正则。
 
 随后使用 `tabs.get` 和 `webNavigation.getFrame({tabId, documentId})` 核对实际 tab 当前／待导航 URL、活跃顶层 document、`parentFrameId === -1`、document ID 与 URL。请求正文不提供 sender，无法以自报字段替代这些检查。缺字段或浏览器条件不支持时拒绝，并返回可理解的错误。跨来源、错误端口、iframe、扩展来源和隐身请求不进入开页及安装逻辑。
 
@@ -114,7 +114,7 @@
 
 `official-tools/releases/*.json` 是原发行生产者／已绑定原始证据的发布快照，不是另一份源码登记。`npm run snapshot:market -- <新文件名.json>` 只追加新文件；同版本但不同摘要／字节／元数据、同 revision 不同成员都会拒绝构建，必须发新版本／revision。
 
-本轮保存开始候选及整合后候选，历史 Mac 记录中的五个发行描述保留原来源身份。reading-kit r1 不变；r2 固定为 reading-toc 1.0.3、web-markdown-clipper 1.0.0、quick-notes 1.1.6。历史 r1 的 quick-notes 1.1.1 仅有固定套装引用、没有完整发行快照，因此其 URL 显示“发行记录待核对”，不编造 hash，也不替换为当前笔记。
+本轮保存开始候选及整合后候选，历史 Mac 记录中的五个发行描述保留原来源身份。reading-kit r1 不变；r2 固定为 reading-toc 1.0.3、web-markdown-clipper 1.0.0、quick-notes 1.1.6。整合 `3134e2b1` 的网页笔记 1.1.8 后，新增推荐 r3，只将新组合的笔记固定为 1.1.8；r2 原成员和 1.1.6 发行仍留在历史快照。历史 r1 的 quick-notes 1.1.1 仅有固定套装引用、没有完整发行快照，因此其 URL 显示“发行记录待核对”，不编造 hash，也不替换为当前笔记。
 
 并行 main 将 time-review 1.3.0 的代码继续修改后，本轮保留此前 1.3.0 快照，将整合后的制品发布为 1.3.1；功能修改保留。归档存在只表示可解释旧链接，不保证用户当前扩展包含该包，也不是签名／审核状态。摘要、包来源、发布者和审核状态分别表达。
 

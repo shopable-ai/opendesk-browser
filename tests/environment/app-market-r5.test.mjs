@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import {readFile,mkdtemp,writeFile,rm,access} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
-import {randomUUID,createHash} from 'node:crypto';
+import {randomUUID,randomBytes,createHash} from 'node:crypto';
 import {resolveMarketChannel,marketExternalConnectable,marketOrigin} from '../../scripts/market-channel.mjs';
 import {createMarketHandoff,validateMarketSender} from '../../src/marketplace/external.js';
 import {MARKET_INTENT_PROTOCOL as protocol,MARKET_INTENTS_STORE,MARKET_INTENT_TTL,
@@ -27,7 +27,7 @@ const shuffled=value=>Array.isArray(value)?value.map(shuffled):value&&typeof val
 function harness(){
   const values={},writes=[],tabs=new Map(),updates=[],locks=new Map();let time=1000000,created=0;
   const sender={url:channel.origin+'/install/',origin:channel.origin,frameId:0,
-    documentId:randomUUID(),documentLifecycle:'active',tab:{id:1,incognito:false}};
+    documentId:randomBytes(16).toString('hex').toUpperCase(),documentLifecycle:'active',tab:{id:1,incognito:false}};
   tabs.set(1,{id:1,windowId:1,url:sender.url,incognito:false});
   const api={runtime:{id:channel.extensionId,getURL:p=>'chrome-extension://'+channel.extensionId+'/'+p},
     storage:{local:{async get(keys){return Object.fromEntries((typeof keys==='string'?[keys]:keys).map(k=>[k,shuffled(structuredClone(values[k]))]));},
@@ -72,10 +72,19 @@ test('R5 finite messages reject code, URLs, approval flags, protocol drift and u
 });
 test('R5 validates browser sender, live top document and exact port before any handoff mutation',async()=>{
   const h=harness();await validateMarketSender(h.api,h.sender,channel);
+  for(const documentId of ['0'.repeat(16)+'1'.repeat(16),'a'.repeat(16)+'0'.repeat(16)])
+    await validateMarketSender(h.api,{...h.sender,documentId},channel);
   for(const bad of [{...h.sender,origin:'https://untrusted.invalid'},{...h.sender,url:'http://127.0.0.1:43133/'},
-    {...h.sender,frameId:1},{...h.sender,documentId:undefined},{...h.sender,documentLifecycle:'prerender'},
+    {...h.sender,frameId:1},{...h.sender,documentId:undefined},{...h.sender,documentId:randomUUID()},
+    {...h.sender,documentId:'0'.repeat(32)},{...h.sender,documentId:'Z'.repeat(32)},
+    {...h.sender,documentId:'a'.repeat(31)},{...h.sender,documentId:'a'.repeat(33)},
+    {...h.sender,documentLifecycle:'prerender'},
     {...h.sender,id:'a'.repeat(32)},{...h.sender,tab:{id:1,incognito:true}}])
     await assert.rejects(h.host().handle(message(),bad));
+  const getFrame=h.api.webNavigation.getFrame;
+  h.api.webNavigation.getFrame=async()=>({...h.sender,documentId:randomBytes(16).toString('hex'),parentFrameId:-1});
+  await assert.rejects(h.host().handle(message(),h.sender),{code:'E_DOCUMENT'});
+  h.api.webNavigation.getFrame=getFrame;
   h.tabs.get(1).pendingUrl='https://untrusted.invalid/';
   await assert.rejects(h.host().handle(message(),h.sender),{code:'E_DOCUMENT'});
   delete h.tabs.get(1).pendingUrl;h.api.webNavigation.getFrame=async()=>({...h.sender,parentFrameId:0});
@@ -230,7 +239,7 @@ test('R5 terminal settlement survives journal trimming and missing recovery resp
 test('R5 immutable archive conflicts reject same-version bytes and same-revision replacement',async()=>{
   const fixtures=await officialFixtures(),snapshots=await loadMarketSnapshots();
   const merged=mergeMarketReleases(snapshots,fixtures.catalog,OFFICIAL_COLLECTIONS);
-  assert.equal(merged.releases.length,11);assert.equal(merged.collections.length,2);
+  assert.equal(merged.releases.length,12);assert.equal(merged.collections.length,3);
   const changed=structuredClone(fixtures.catalog);changed.apps[0].sha256='0'.repeat(64);
   assert.throws(()=>mergeMarketReleases(snapshots,changed,OFFICIAL_COLLECTIONS),/Immutable release conflict/);
   const sets=structuredClone(OFFICIAL_COLLECTIONS);sets.find(r=>r.revision===1).members[0].version='9.0.0';

@@ -4,7 +4,7 @@
 
 ## 固定范围与执行状态
 
-`IN_PROGRESS`，代码及组件整改完成，真实 CI 验收待执行。开始基线 `67fefdac3f5576cb7f3dc042149d95ca046810c7`，检出目录 `/workspace/scratch/58f5833cea67/opendesk-browser`，开始时无未提交差异。期间先后安全快进到 `df1ce25a`、`50456353`，保留 R27、Workspace、Page、Cloud Control、Time Review 与计划任务的并行修改。用户已授权在 main 修改、测试、提交与正常推送；不创建分支/worktree，不公网发布。
+`IN_PROGRESS`，首个 main 实施提交已推送，真实 Linux／Mac CI 已发现兼容性及驱动问题，正在修复并补测。开始基线 `67fefdac3f5576cb7f3dc042149d95ca046810c7`，检出目录 `/workspace/scratch/58f5833cea67/opendesk-browser`，开始时无未提交差异。期间先后安全快进到 `df1ce25a`、`50456353`，保留 R27、Workspace、Page、Cloud Control、Time Review 与计划任务的并行修改。用户已授权在 main 修改、测试、提交与正常推送；不创建分支/worktree，不公网发布。
 
 本轮固定交付：独立网站源码/完整构建、官方固定发行的可信安装交接、开发/生产隔离、本地 HTTP 真实安装/使用及必要恢复、历史版本输入、正式渠道配置合同、逐项证据与独立审阅。安装/更新/卸载/权限/RunHost 继续复用原服务。远程 Page/sandbox/Task 仅定义后续各自准入边界。
 
@@ -96,6 +96,18 @@
 
 ## 提交与后续核对
 
-Git CLI 无 GitHub 推送凭据；将通过已连接 GitHub 接口使用期望父 SHA 的非强制 main 更新，随后本地正常快进同步。提交号、推送和 CI 原件回填到机器索引，不在未发生前写“已推送”。没有公网部署或正式 release 动作。
+首个实施提交 `5d1d87431188d74a7d23900ff7477ddef3b585a4` 已通过带期望父 SHA 的非强制 main 更新推送，本地已正常快进。随后保留并整合 main 到 `3134e2b1` 的网页笔记 1.1.8 和计划任务 UI 修改，没有创建分支/worktree或覆盖并行文件。后续修复提交与实际 CI 原件继续回填；没有公网部署或正式 release 动作。
 
 操作和配置说明见 [R5 架构](../../architecture/browser-framework/app-market-website-r5.zh-CN.md)；原授权范围保存在 [实施 GOAL](../prompts/goal-app-market-r5-implementation.zh-CN.md)。后续远程整包信任根、发布者、轮换、撤回和各类型准入是独立任务，不能替代本轮仍要求的实际 HTTP 和恢复验收。
+
+## 首次真实 CI 失败与纠正（2026-10-12）
+
+[run 38219728571](https://github.com/shopable-ai/opendesk-browser/actions/runs/38219728571) 绑定已推送 `5d1d8743`，Linux R5、macOS 15 R5 与原生产包三个 job 均为 **FAILED**。Linux／Mac 已实际加载扩展、打开真实 Side Panel 并核对默认预安装；两者的首个 HTTP PROBE 被 `E_SENDER` 拒绝，尚无网站安装成功。完整原始 receipt（无改写 gzip）及下载归档摘要见 [失败证据索引](evidence/app-market-r5/ci-38219728571/index.json)。
+
+根因：将 Chrome `documentId` 与意图 UUID 共用正则。真实 Chrome 的 documentId 为 32 位十六进制；[Chromium 原始解析代码](https://github.com/chromium/chromium/blob/main/extensions/browser/extension_api_frame_id_map.cc)使用 `UnguessableToken`，而 contextId 另用 UUID。已修正浏览器标识类型，保留所有实时 tab/frame/origin/getFrame 核对；组件 sender 形态也纠正，添加半零合法、全零/错长/非HEX/UUID拒绝及另一document返回不匹配。先前组件和审阅采用UUID的假设错误，原组件通过不能覆盖这个真实失败。
+
+新增 source-bound 原生观察在实际 validator 调用前只读投影真实 sender，要求实际加载脚本 hash、精确断点和原 context 绑定；不替换API、不伪 sender、不修改运行值。后续只有 OBSERVED＋实际 CONNECTED 才关闭此兼容性项。生产包失败时卸载确认框未关闭，安装表未变；驱动增加真实工具就绪及确认消耗核对，禁止盲点重试。
+
+UI 审阅指出 R5 分支没有执行旧分支键盘／缩放用例。已补网站详情和可信审阅 320/1280、深色、真实 Chrome 125%/200% tab zoom、Tab/Shift+Tab/Enter；首页增加跳转主内容与 Space 分类操作，套装/历史/帮助增加窄屏检查，等待实际截图审阅。不是将旧证据直接算作 R5 通过。
+
+整合网页笔记 1.1.8 后追加官方生产者快照与 reading-kit r3，保留 r1/r2 原成员，当前归档为 12 个完整发行描述、3 个套装revision；不把原 r2 的1.1.6换成1.1.8。当前相关组件修复重新验证见本目录 TAP；开页/写入窗口与安装未知结果原生恢复仍待补测，十一维实现评分继续待评。

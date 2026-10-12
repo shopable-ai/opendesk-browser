@@ -1,0 +1,69 @@
+{
+  "schema": "opendesk.market.r5.ci-evidence.v1",
+  "runId": 38219728571,
+  "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38219728571",
+  "sourceCommit": "5d1d87431188d74a7d23900ff7477ddef3b585a4",
+  "result": "FAILED",
+  "attempts": [
+    {
+      "label": "linux",
+      "jobId": 114712798667,
+      "artifactId": 11734320058,
+      "artifactZipSha256": "de4d16ff0624bc6f0cd60c7f475da1f5833f1e225f2689f4ad52e8431e268d2c",
+      "rawReceipt": "linux-native-result.json.gz",
+      "rawReceiptSha256": "a42f82f2b815455d0685e26fa88e6c6b4b4a3f2a9a9286c9b529446d88dd628b",
+      "compressedSha256": "880fc39323d5b66066b7c349d5b685963adff94d546679a96b8512f8f43df483",
+      "result": "FAILED",
+      "platform": "linux",
+      "packageHash": "967cc9478f43f6adc3b6aa49a90a812d670e20be8e85de0140b0489870416c54",
+      "catalogSha256": "8344e5713ffbb6c820de6798cfe53be6a65bd8e8b1b44801e241fcb857bc40c6",
+      "actualExtensionId": "nmeilgnolfnnlopgjoijdafbkelekcbj",
+      "siteBuildId": "aa32aeda178b0bc647a7ff61198c965d1f4c74e169ab964b2ca1d08324f86ec8",
+      "failedStage": "r5-public-pages-and-responsive-layout",
+      "chrome": [
+        "Chrome/155.0.8059.39"
+      ],
+      "diagnosis": "External E_SENDER before first installation: browser documentId incorrectly shared request UUID format"
+    },
+    {
+      "label": "macos",
+      "jobId": 114712798358,
+      "artifactId": 11733598816,
+      "artifactZipSha256": "bd61fe48bac492978bc4cbdd73f6b76e1cbacdf81c776a8124707849e85d2c35",
+      "rawReceipt": "macos-native-result.json.gz",
+      "rawReceiptSha256": "284ff521b73657d67153a0d9e40b8df78b3d5b48cb92d2233453da7709bd3b9f",
+      "compressedSha256": "5cd81693932cf44ef0281b24ce3d03e698059214a7ce8bdce591f7793bf1e5fb",
+      "result": "FAILED",
+      "platform": "darwin",
+      "packageHash": "d41d1dffbea7d813b6db8fc4e8a340125dbf0b077f3f636724176b5dc96bb39e",
+      "catalogSha256": "8344e5713ffbb6c820de6798cfe53be6a65bd8e8b1b44801e241fcb857bc40c6",
+      "actualExtensionId": "oibdecbpklpnlljpiolnkgpohmpflnmj",
+      "siteBuildId": "d332f576a6ff88fd3ff7bab966cd7602dbd3ad558b6a0e3feb279d8fbcfde273",
+      "failedStage": "r5-public-pages-and-responsive-layout",
+      "chrome": [
+        "Chrome/155.0.8059.39"
+      ],
+      "diagnosis": "External E_SENDER before first installation: browser documentId incorrectly shared request UUID format"
+    },
+    {
+      "label": "production",
+      "jobId": 114712798805,
+      "artifactId": 11734080416,
+      "artifactZipSha256": "8217268969e31488a148012a9574a88ca6e74e743d18f7eddec6283c5c609efe",
+      "rawReceipt": "production-native-result.json.gz",
+      "rawReceiptSha256": "4b6033193d93657cd7033abed371949ca3fab3b63cc6470014a1eb8dfbc8680b",
+      "compressedSha256": "b07b6787fb7b10b3f6f919970896574933a1ec6829932c90372bc8f9e9b5301c",
+      "result": "FAILED",
+      "platform": "linux",
+      "packageHash": "b6bedfb3bd0de0e3826e087a764d9f48f32a02d9e0016b313d3d7a9bb925f3fa",
+      "catalogSha256": "8344e5713ffbb6c820de6798cfe53be6a65bd8e8b1b44801e241fcb857bc40c6",
+      "actualExtensionId": "jhajepcnohiplmafaiokjlcagcfjgaap",
+      "siteBuildId": null,
+      "failedStage": "market-fixed-unavailable-version-and-current-batch",
+      "chrome": [
+        "Chrome/155.0.8059.39"
+      ],
+      "diagnosis": "Uninstall confirmation remained open and registry unchanged; inspect actual control readiness/gesture consumption"
+    }
+  ]
+}

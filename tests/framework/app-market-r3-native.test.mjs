@@ -17,6 +17,7 @@ import {validateOfficialReleaseCatalog,OFFICIAL_CATALOG_PATH} from '../../src/si
 import {SIDEBAR_TOOL_STORE,sidebarToolStorageKey,serializeSidebarToolPackage} from '../../src/ui/sidebar-tools/package.js';
 import {MARKET_PROVENANCE_STORE,TOOL_CLEANUP_STORE} from '../../src/ui/sidebar-tools/installation.js';
 import {MARKET_BATCH_STORE} from '../../src/marketplace/batch.js';
+import {OFFICIAL_COLLECTIONS} from '../../src/marketplace/catalog.js';
 import {READING_TOC_SITE_STORE} from '../../src/reading-toc/policy.js';
 import {CLIP_SITE_STORE} from '../../src/page-clip/policy.js';
 import {CAPTURE_SITE_STORE} from '../../src/knowledge/policy.js';
@@ -339,9 +340,14 @@ test(process.env.OPENDESK_NATIVE_MARKET_R5==='1'?'R5 real HTTP Chrome: finite ex
     // Foreground the real installed list, then use the current detail uninstall control.
     await activate(side);await openMyTools();await visible(side,action(id,'open'));
     await click(side,action(id,'open'));
+    // The sandbox finishes its initial layout before the inline review is opened.
+    // Waiting on the actual tool control avoids clicking through a loading layout.
+    await iframeWith(id);
     const dialogsBefore=evidence.dialogs.length;
     await click(side,'#sidebar-tool-remove');await visible(side,'#sidebar-tool-inline-remove-confirm');
     await click(side,'#sidebar-tool-inline-remove-confirm');
+    await until(()=>evaluate(side,'document.querySelector("#sidebar-tool-inline-remove").hidden'),
+      'native uninstall confirmation consumed '+id);
     await until(async()=>!(await installed()).some(row=>row.id===id),'uninstall '+id);
     await until(()=>evaluate(side,'!document.querySelector('+JSON.stringify(action(id,'open'))+')'),'removed row '+id);
     await until(()=>evaluate(side,'document.querySelector("#sidebar-tool-status").textContent.includes("本地数据已清理")'),'uninstall cleanup completed '+id);
@@ -484,14 +490,18 @@ test(process.env.OPENDESK_NATIVE_MARKET_R5==='1'?'R5 real HTTP Chrome: finite ex
     const index=(await installed()).findIndex(row=>row.id===release.toolId)+1;
     const open='#market-root .surface .action-row:nth-child('+index+') button';await visible(market,open);await click(market,open);
     const opened=await until(async()=>(await browser.send('Target.getTargets')).targetInfos.find(row=>row.type==='page'&&row.url?.includes('/ui/tool.html')&&new URL(row.url).searchParams.get('toolId')===release.toolId),'explicit market tool open');
-    await iframeWith(release.toolId);assert.equal((await browser.send('Target.closeTarget',{targetId:opened.targetId})).success,true);
+    await iframeWith(release.toolId);
+    const toolPage=await attach(opened.targetId);
+    await screenshot(toolPage,'app-ui-'+release.toolId+'-'+release.version+'.png');
+    assert.equal((await browser.send('Target.closeTarget',{targetId:opened.targetId})).success,true);
     await until(async()=>(await browser.send('Target.getTargets')).targetInfos.every(row=>row.type!=='iframe'||!row.url?.includes('/sidebar-tools/sandbox.html')),'market tool sandbox destroyed');
   }
   // Preserve the upstream R3.1 real batch/reload acceptance. The old official
   // revision stays immutable; a user-created revision pins current releases.
   await phase('market-fixed-unavailable-version-and-current-batch');
   await click(market,'#market-collection');
-  await until(()=>evaluate(market,'location.hash==="#/collections/reading-kit/revisions/2"'),'current recommended fixed collection is revision 2');
+  await until(()=>evaluate(market,'location.hash==='+JSON.stringify('#/collections/reading-kit/revisions/'+OFFICIAL_COLLECTIONS[0].revision)),
+    'current recommended fixed collection matches source revision');
   await market.send('Page.navigate',{url:'chrome-extension://'+extensionId+'/ui/marketplace.html#/collections/reading-kit/revisions/1'});
   await until(()=>evaluate(market,'location.hash==="#/collections/reading-kit/revisions/1"&&!!document.querySelector("#market-root .surface .actions button.primary")'),'fixed collection and preflight ready');
   await click(market,'#market-root .surface .actions button.primary');

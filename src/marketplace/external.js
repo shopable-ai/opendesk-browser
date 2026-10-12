@@ -1,15 +1,19 @@
 import {MARKET_INTENT_PROTOCOL,MARKET_INTENTS_STORE,MARKET_INTENT_TTL,MARKET_INTENT_CAPACITY,
-  UUID,marketError,validateMarketMessage,readMarketIntentStore,marketReviewURL,withMarketIntentLock,validateMarketSubject,marketIntentUnresolved} from './intent.js';
+  marketError,validateMarketMessage,readMarketIntentStore,marketReviewURL,withMarketIntentLock,validateMarketSubject,marketIntentUnresolved} from './intent.js';
 import {MARKET_OPERATIONS_STORE} from '../ui/sidebar-tools/installation.js';
 import {MARKET_BATCH_STORE,marketBatchUnresolved,readMarketBatch} from './batch.js';
 import {sameStorageValue} from '../ui/sidebar-tools/storage-state.js';
 
+// Chrome serializes its browser-owned DocumentId (UnguessableToken) as 32 hex
+// characters. It is distinct from our request/review UUIDs and contextId UUIDs.
+// The live webNavigation lookup below remains the authority for its identity.
+const CHROME_DOCUMENT_ID=/^(?!0{32}$)[0-9a-f]{32}$/i;
 function validateSenderEnvelope(api,sender,channel){
   if(!channel?.enabled)throw marketError('E_CHANNEL_DISABLED','此版本尚未启用网站安装交接。');
   if(api.runtime.id!==channel.extensionId)throw marketError('E_EXTENSION_ID','网站配置的扩展 ID 与此安装不一致。');
   if(sender?.id!==undefined||sender?.nativeApplication!==undefined||sender?.frameId!==0||
     !Number.isSafeInteger(sender?.tab?.id)||sender.tab.id<0||sender.tab.incognito||
-    typeof sender.documentId!=='string'||!UUID.test(sender.documentId)||sender.documentLifecycle!=='active')
+    typeof sender.documentId!=='string'||!CHROME_DOCUMENT_ID.test(sender.documentId)||sender.documentLifecycle!=='active')
     throw marketError('E_SENDER','请在受信任市场的顶层 Chrome 网页中发起安装。');
   let url;try{url=new URL(sender.url);}catch{throw marketError('E_ORIGIN','无法核对安装请求的网页来源。');}
   if(typeof sender.url!=='string'||sender.url.length>2048||url.username||url.password||

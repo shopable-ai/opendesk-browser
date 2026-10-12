@@ -108,7 +108,7 @@ Side Panel 官方候选和扩展内市场都通过 `official-catalog.js` 读取�
 
 ### R5 固定发行归档
 
-`official-tools/releases/*.json` 从已有官方生产者或已绑定历史原始证据派生。构建合并归档和当前目录，拒绝同版本不同字节／元数据及同 revision 不同成员。追加发布使用 `npm run snapshot:market -- <新文件名.json>`，不能改写历史文件来使校验通过。当前推荐和固定历史路径分开；有历史页面不保证当前扩展包含其包。reading-kit r1 原成员不变，r2 固定当前三项；缺完整发行证据的 quick-notes 1.1.1 只显示历史套装引用，不编造摘要。详见 [R5 网站架构](../architecture/browser-framework/app-market-website-r5.zh-CN.md)。
+`official-tools/releases/*.json` 从已有官方生产者或已绑定历史原始证据派生。构建合并归档和当前目录，拒绝同版本不同字节／元数据及同 revision 不同成员。追加发布使用 `npm run snapshot:market -- <新文件名.json>`，不能改写历史文件来使校验通过。当前推荐和固定历史路径分开；有历史页面不保证当前扩展包含其包。reading-kit r1、r2 原成员不变；网页笔记升级 1.1.8 后新增推荐 r3。缺完整发行证据的 quick-notes 1.1.1 只显示历史套装引用，不编造摘要。详见 [R5 网站架构](../architecture/browser-framework/app-market-website-r5.zh-CN.md)。
 
 未来默认安装型系统功能的边界、一次性迁移标记和用户选择优先规则见 [市场兼容合同](../product/sidebar-tool-market-compat-r41.zh-CN.md#未来默认系统功能设计合同尚未实施)。本轮五工具仍全部 `optional`，没有为未来假设实现第二套初始化安装器。
 

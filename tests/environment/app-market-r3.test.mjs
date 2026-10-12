@@ -48,10 +48,13 @@ test('market catalog uses pinned immutable member identity and all six tool vers
   assert.deepEqual(kit.members,[{id:'opendesk/reading-toc',version:'1.0.2'},
     {id:'opendesk/web-markdown-clipper',version:'1.0.0'},{id:'opendesk/quick-notes',version:'1.1.1'}],
     'published collection revisions do not silently track newer tool.config versions');
-  const current=getOfficialCollection('reading-kit',2);
+  const previous=getOfficialCollection('reading-kit',2);
+  assert.deepEqual(previous.members,[{id:'opendesk/reading-toc',version:'1.0.3'},
+    {id:'opendesk/web-markdown-clipper',version:'1.0.0'},{id:'opendesk/quick-notes',version:'1.1.6'}]);
+  const current=getOfficialCollection('reading-kit',3);
   assert.equal(current,OFFICIAL_COLLECTIONS[0]);
   assert.deepEqual(current.members,[{id:'opendesk/reading-toc',version:'1.0.3'},
-    {id:'opendesk/web-markdown-clipper',version:'1.0.0'},{id:'opendesk/quick-notes',version:'1.1.6'}]);
+    {id:'opendesk/web-markdown-clipper',version:'1.0.0'},{id:'opendesk/quick-notes',version:'1.1.8'}]);
 });
 test('every official release is the exact packaged tool ID, version and title',async()=>{
   for(const app of OFFICIAL_APPS){

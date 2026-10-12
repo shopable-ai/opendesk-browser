@@ -26,6 +26,8 @@ on:
       - 'tests/environment/app-market-r5.test.mjs'
       - 'tests/environment/market-site-client-r5.test.mjs'
       - 'tests/helpers/app-market-r5-native.mjs'
+      - 'tests/helpers/app-market-r5-observers.mjs'
+      - 'tests/helpers/app-market-r5-ui.mjs'
       - 'tests/environment/sidebar-storage-unlimited.test.mjs'
       - 'tests/environment/app-market-batch-r3.test.mjs'
 

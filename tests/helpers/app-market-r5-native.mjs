@@ -10,8 +10,11 @@ import {MARKET_HEADERS} from '../../scripts/build-market-site.mjs';
 import {MARKET_INTENTS_STORE,MARKET_INTENT_PROTOCOL as protocol} from '../../src/marketplace/intent.js';
 import {MARKET_OPERATIONS_STORE} from '../../src/ui/sidebar-tools/installation.js';
 import {MARKET_BATCH_STORE,marketBatchUnresolved} from '../../src/marketplace/batch.js';
+import {OFFICIAL_COLLECTIONS} from '../../src/marketplace/catalog.js';
 import {sidebarToolStorageKey} from '../../src/ui/sidebar-tools/package.js';
 import {READING_TOC_SITE_STORE} from '../../src/reading-toc/policy.js';
+import {observeMarketSender} from './app-market-r5-observers.mjs';
+import {marketUIAudit} from './app-market-r5-ui.mjs';
 const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
 const mime={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.json':'application/json','.png':'image/png','.xml':'application/xml','.txt':'text/plain'};
 async function serverAt(port,handler){
@@ -23,6 +26,7 @@ export async function runMarketR5Acceptance(d){
   const {evidence,click,inputText,evaluate,until,visible,activate,openTab,attach,readStore,installed,
     screenshot,phase,packages,openTool,back,importPackage,uninstall}=d;
   const side=()=>d.getSide(),host=()=>d.getHost(),id=d.getExtensionId();
+  const currentKit=OFFICIAL_COLLECTIONS.find(row=>row.id==='reading-kit');
   assert.equal(d.buildMode,'development','R5 HTTP acceptance requires the dev-only trust channel');
   const root=resolve('dist/app-market-public'),siteBytes=await readFile(join(root,'site-build.json'));
   const site=JSON.parse(siteBytes),channel=JSON.parse(await readFile(join(d.extension,'marketplace/channel.json')));
@@ -37,6 +41,7 @@ export async function runMarketR5Acceptance(d){
     notTested:['formal-https-and-web-store-channel','user-local-mac-profile','handoff-create-persist-window-interruption',
       'native-install-acknowledgement-loss','native-capacity-and-artifact-corruption-faults']};
   const check=(name,detail={})=>{evidence.r5.checks.push({name,status:'PASS',...detail});};
+  const ui=marketUIAudit(d);
   const mark=(name,detail={})=>phase('r5-'+name,detail);
   const targets=async()=>(await d.sendBrowser('Target.getTargets')).targetInfos;
   const navigate=async(target,url)=>{await target.send('Page.navigate',{url});await until(()=>evaluate(target,'document.readyState==="complete"&&location.href==='+JSON.stringify(url)),'actual page navigation '+url);};
@@ -75,14 +80,16 @@ export async function runMarketR5Acceptance(d){
     }
     throw Error('Real intent rate window did not expire');
   }
-  async function websiteSubjectReview(subject,{existingPage=null,details=false}={}){
+  async function websiteSubjectReview(subject,{existingPage=null,details=false,keyboard=false,audit=false}={}){
     await newIntentBudget();
     const route=subject.kind==='app'?subject.marketId+'/versions/'+subject.version+'/':
       'collections/'+subject.collectionId+'/revisions/'+subject.revision+'/';
     const url=channel.origin+(details?(subject.kind==='app'?'/apps/':'/'):'/install/')+route;
     const page=existingPage||await openTab(url);await visible(page,'#open-review');
     await until(()=>evaluate(page,'document.querySelector("#connection-state").textContent.includes("已连接 OpenDesk")'),'real page script and external probe ready');
-    await click(page,'#open-review');
+    if(audit)await ui.detail(page,'r5-web-detail','#open-review');
+    if(keyboard)await ui.enter(page,'#open-review','r5-first-website-handoff');
+    else await click(page,'#open-review');
     await until(async()=>{const state=await evaluate(page,'document.querySelector("#handoff-state").dataset.state');
       if(state==='error')throw Error(await evaluate(page,'document.querySelector("#handoff-state").textContent'));return state==='success';},'HTTP website opened trusted review');
     const intent=await evaluate(page,'JSON.parse(sessionStorage.getItem('+JSON.stringify('opendesk.market.intent:'+JSON.stringify(subject))+')).id');
@@ -90,12 +97,27 @@ export async function runMarketR5Acceptance(d){
     const reviewURL='chrome-extension://'+id+'/ui/marketplace.html?intent='+row.reviewId;
     const info=await until(async()=>(await targets()).find(target=>target.url===reviewURL),'fixed trusted review tab');
     const review=await attach(info.targetId);await until(()=>evaluate(review,'document.body.innerText.includes("固定版本")||document.body.innerText.includes("固定成员")'),'trusted review loaded');
+    if(audit){await visible(review,'[data-market-action="confirm-install"]');await ui.detail(review,'r5-trusted-review','[data-market-action="confirm-install"]');}
     return {page,review,row,reviewURL};
   }
   const websiteReview=(toolId,version,options)=>websiteSubjectReview({kind:'app',marketId:'opendesk/'+toolId,version},options);
   await mark('public-pages-and-responsive-layout');
+  const senderObserver=await observeMarketSender(d);
   let website=await openTab(channel.origin+'/');await visible(website,'#app-search');
   await until(()=>evaluate(website,'document.querySelector("#connection-state").textContent.includes("已连接 OpenDesk")'),'real external probe');
+  await senderObserver.dispose();
+  assert.equal(senderObserver.record.status,'OBSERVED');assert.deepEqual(senderObserver.record.errors,[]);
+  assert(senderObserver.record.observations.length>0);
+  for(const {value} of senderObserver.record.observations){
+    assert.match(value.sender.documentId.value,/^[0-9A-F]{32}$/i);
+    assert.equal(value.sender.frameId.value,0);assert.equal(value.sender.documentLifecycle.value,'active');
+    assert.equal(value.sender.origin.value,channel.origin);assert.equal(value.sender.url.value,channel.origin+'/');
+    assert.equal(value.sender.id.type,'undefined');assert.equal(value.sender.nativeApplication.type,'undefined');
+    assert.equal(value.tab.incognito.value,false);assert(Number.isSafeInteger(value.tab.id.value)&&value.tab.id.value>=0);
+  }
+  check('real-browser-sender-and-live-document-verification',{observations:senderObserver.record.observations.length});
+  await ui.reach(website,'.skip-link','r5-home-skip-link');await ui.key(website,'Enter','Enter',13);
+  assert.equal(await evaluate(website,'document.activeElement.id'),'content');
   assert.equal(await evaluate(website,'document.querySelectorAll(".app-card").length'),6);
   await inputText(website,'#app-search','Markdown');
   assert.equal(await evaluate(website,'[...document.querySelectorAll(".app-card")].filter(row=>!row.hidden).length'),1);
@@ -103,6 +125,9 @@ export async function runMarketR5Acceptance(d){
   assert.equal(await evaluate(website,'document.querySelector("#no-results").hidden'),false);
   await inputText(website,'#app-search','');await click(website,'button[data-filter="阅读"]');
   assert(await evaluate(website,'[...document.querySelectorAll(".app-card")].filter(row=>!row.hidden).every(row=>row.dataset.category==="阅读")'));
+  await click(website,'button[data-filter="全部"]');
+  await ui.reach(website,'button[data-filter="阅读"]','r5-home-category-space');await ui.key(website,' ','Space',32);
+  assert.equal(await evaluate(website,'document.querySelector("button[data-filter=阅读]").getAttribute("aria-pressed")'),'true');
   await click(website,'button[data-filter="全部"]');
   for(const width of [320,360,520,1280]){
     await website.send('Emulation.setDeviceMetricsOverride',{width,height:900,deviceScaleFactor:1,mobile:false});
@@ -115,10 +140,14 @@ export async function runMarketR5Acceptance(d){
   await website.send('Emulation.setEmulatedMedia',{features:[{name:'prefers-color-scheme',value:'dark'}]});await screenshot(website,'r5-home-dark.png');
   await website.send('Emulation.setEmulatedMedia',{features:[{name:'prefers-color-scheme',value:'light'}]});
   for(const path of ['/apps/opendesk/markdown-workbench/','/apps/opendesk/markdown-workbench/versions/1.0.1/',
-    '/apps/opendesk/quick-notes/versions/1.1.1/','/collections/','/collections/reading-kit/revisions/1/','/collections/reading-kit/revisions/2/','/how-to-install/']){
+    '/apps/opendesk/quick-notes/versions/1.1.1/','/collections/','/collections/reading-kit/revisions/1/','/collections/reading-kit/revisions/2/',
+    '/collections/reading-kit/revisions/'+currentKit.revision+'/','/how-to-install/']){
     const response=await fetch(channel.origin+path);assert.equal(response.status,200);assert.match(response.headers.get('content-security-policy'),/frame-ancestors 'none'/);
     await navigate(website,channel.origin+path);assert((await evaluate(website,'document.title')).includes('OpenDesk'));
     await website.send('Page.reload');await until(()=>evaluate(website,'document.readyState==="complete"'),'share route refresh');
+    if(path==='/collections/reading-kit/revisions/'+currentKit.revision+'/')await ui.narrow(website,'r5-web-collection','#open-review');
+    if(path==='/how-to-install/')await ui.narrow(website,'r5-web-help','h1');
+    if(path==='/apps/opendesk/quick-notes/versions/1.1.1/')await ui.narrow(website,'r5-web-historical-release','h1');
   }
   assert.equal((await fetch(channel.origin+'/missing-r5-route/')).status,404);
   await navigate(website,channel.origin+'/missing-r5-route/');assert.match(await evaluate(website,'document.querySelector("h1").textContent'),/找不到/);
@@ -126,7 +155,7 @@ export async function runMarketR5Acceptance(d){
 
   await mark('http-first-install-fixed-review-and-use');
   const initial=await installed();assert(!initial.some(row=>row.id==='markdown-workbench'));
-  let first=await websiteReview('markdown-workbench',packages.get('markdown-workbench').version,{details:true});
+  let first=await websiteReview('markdown-workbench',packages.get('markdown-workbench').version,{details:true,keyboard:true,audit:true});
   await visible(first.review,'[data-market-action="confirm-install"]');
   assert.deepEqual(await installed(),initial,'website handoff cannot install');await d.assertNoFrames();await d.assertNoGrants();
   assert.match(await evaluate(first.review,'document.body.innerText'),/发布者：OpenDesk/);
@@ -183,6 +212,7 @@ export async function runMarketR5Acceptance(d){
     ['iframe',channel.origin+'/_r5/frame.html','#frame','E_SENDER']]){
     const page=await openTab(url);await visible(page,selector);
     if(name==='iframe'){
+      await until(()=>evaluate(page,'document.readyState==="complete"'),'parent real iframe listener loaded');
       await page.send('Page.bringToFront');
       const point=await until(()=>evaluate(page,'(()=>{const f=document.querySelector("#frame"),b=f?.contentDocument?.querySelector("#send");if(!b||b.disabled||!b.getClientRects().length)return false;const a=f.getBoundingClientRect(),r=b.getBoundingClientRect();return {x:a.x+r.x+r.width/2,y:a.y+r.y+r.height/2};})()'),'real iframe button position');
       for(const type of ['mousePressed','mouseReleased'])await page.send('Input.dispatchMouseEvent',{type,...point,button:'left',clickCount:1});
@@ -230,14 +260,15 @@ export async function runMarketR5Acceptance(d){
   check('real-worker-stop-observed-and-http-wakeup-preserves-identity');
 
   await mark('website-fixed-collection-batch-and-reload');
-  const kit=await websiteSubjectReview({kind:'collection',collectionId:'reading-kit',revision:2},{details:true});
+  const kit=await websiteSubjectReview({kind:'collection',collectionId:'reading-kit',revision:currentKit.revision},{details:true});
   await visible(kit.review,'[data-market-action="confirm-batch"]');
   const preflight=await evaluate(kit.review,'document.querySelector(".review").textContent');
   assert.match(preflight,/发布者：OpenDesk/);assert.match(preflight,/按网站授权读取正文或选区/);
   assert(!(await installed()).some(row=>row.id==='web-markdown-clipper'));
+  await ui.narrow(kit.review,'r5-trusted-collection','[data-market-action="confirm-batch"]');
   await screenshot(kit.review,'r5-collection-review.png');await click(kit.review,'[data-market-action="confirm-batch"]');
   const completedBatch=await until(async()=>{const batch=await readStore(MARKET_BATCH_STORE,host());return batch?.batchId===kit.row.operationId&&!marketBatchUnresolved(batch)&&batch;},'real website fixed batch completed');
-  assert.equal(completedBatch.collectionId,'reading-kit');assert.equal(completedBatch.revision,2);
+  assert.equal(completedBatch.collectionId,'reading-kit');assert.equal(completedBatch.revision,currentKit.revision);
   assert.deepEqual(completedBatch.items.map(row=>row.status),['skip','succeeded','skip']);
   const settledKit=await until(async()=>(await intentRows()).find(row=>row.intentId===kit.row.intentId&&row.settledAt!==null),'website collection handoff settled');
   const previousTime=await evaluate(kit.review,'performance.timeOrigin');await kit.review.send('Page.reload');
