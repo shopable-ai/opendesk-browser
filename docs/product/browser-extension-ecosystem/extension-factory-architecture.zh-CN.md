@@ -1,5 +1,7 @@
 # Extension Factory：技术复用审计与增量架构
 
+> **2026-10-12 纠偏：Page QA Inspector = `DEPRECATED / NO_RELEASE`。** 下文 Page QA 产品目录与配置示例只是 R1/R2 历史技术样例，**不是仍然有效的首款商业产品选择**。R2 构建脚本仍硬编码该产品，因此尚不是任意产品可用的通用工厂；保留最少权限/Manifest/ZIP 技术路线，但应先验证电商等真实用户需求和付费可能性，再选产品并实现通用构建。参见 [商业决策](commercial-decision-ecommerce-20261012.zh-CN.md)。
+
 > R1 为**设计研究**，没有创建产品打包器或运行第二套执行框架。本文件所称“现有”仅指在 2026-10-12 远端 `main` 抽样读取的代码，CI/原生证据另见对应 workstream。
 
 ## 一、现有源码真实能力与缺口
@@ -107,7 +109,7 @@ export default {
 
 ## 六、最小实施节奏
 
-R2 先独立抽象 `ProductConfig`、两个无敏感权限的示例产品、Manifest/Diff/静态模块选择、产品级测试；**不改变原 OpenDesk 默认 build 行为**。R3 才考虑多产品 CI/版本治理。第一次上架只验证 **一款有差异的 Page QA Inspector**；各类截图/营销物料和隐私披露人工过关再发布。CWS API 只能辅助上传和提交审核，不承诺自动批准，见[官方发布 API](https://developer.chrome.com/docs/webstore/using-api)。
+R2 先独立抽象 `ProductConfig`、两个无敏感权限的示例产品、Manifest/Diff/静态模块选择、产品级测试；**不改变原 OpenDesk 默认 build 行为**。R3 才考虑多产品 CI/版本治理。过去将 Page QA 设为首款上架产品的提议**已经停止**；新的独立产品必须先完成真实用户价值、差异化、权限和持续维护评估，再申请 CWS 人工审核。CWS API 只能辅助上传和提交审核，不承诺自动批准，见[官方发布 API](https://developer.chrome.com/docs/webstore/using-api)。
 
 ## 七、如何避免维护成本失控？
 
