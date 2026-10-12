@@ -119,7 +119,14 @@ export function summarizePackageResources(receipt,measuredFiles) {
   const browserCompilerAssets=new Map(PAGE_BROWSER_PRIVATE_FILES.map(row=>[row.output,row]));
   const resources=files.map(file=>{
     const kind=resourceKind(file.path),generated=byPath.get(file.path);
-    const budget=generated?.budgetBytes??(browserCompilerAssets.has(file.path)?PAGE_BROWSER_COMPILER_RESOURCE_LIMIT:
+    const privateCompiler=browserCompilerAssets.get(file.path);
+    // This is a frozen *data-only* offline compiler asset, not another
+    // runtime package. Its dedicated 4 MiB read limit is never inherited
+    // by third-party modules or Service Worker bundles. The release verifier
+    // also checks these bytes, but preserve identity in the size oracle.
+    if(privateCompiler&&(file.bytes!==privateCompiler.bytes||file.sha256!==privateCompiler.sha256))
+      throw Error('Private browser compiler size/hash mismatch: '+file.path);
+    const budget=generated?.budgetBytes??(privateCompiler?PAGE_BROWSER_COMPILER_RESOURCE_LIMIT:
       kind==='raw-vendor-js'?RESOURCE_LIMITS.vendorBytes:
       kind==='raw-runtime-js'?(frameworkPaths.has(file.path)?PAGE_FRAMEWORK_RESOURCE_LIMIT:BUILD_POLICY.productionBytes):kind==='license'?RESOURCE_LIMITS.licenseBytes:
       ['libs/manifest.json','framework/sdk-resources.json'].includes(file.path)?RESOURCE_LIMITS.manifestBytes:null);

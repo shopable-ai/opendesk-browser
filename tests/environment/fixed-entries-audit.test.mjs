@@ -7,7 +7,7 @@ import {createHash} from 'node:crypto';
 import {BUILD_POLICY} from '../../scripts/build-contract.mjs';
 import {FIXED_ENTRY_PATHS,summarizeFixedEntries,summarizePackageResources,measureFixedEntries,measurePackageResources} from '../../scripts/audit-fixed-entries.mjs';
 import {BUILTIN_CATALOG} from '../../src/libs/catalog.js';
-import {PAGE_FRAMEWORK_RUNTIMES,PAGE_FRAMEWORK_RESOURCE_LIMIT} from '../../src/libs/page-frameworks/contract.js';
+import {PAGE_FRAMEWORK_RUNTIMES,PAGE_FRAMEWORK_RESOURCE_LIMIT,PAGE_BROWSER_PRIVATE_FILES,PAGE_BROWSER_COMPILER_RESOURCE_LIMIT} from '../../src/libs/page-frameworks/contract.js';
 const digest = 'a'.repeat(64);
 const fixture = () => {
   const measured = {},bundleModules = [],files = [];
@@ -42,6 +42,13 @@ function packageFixture(){
     ...Object.values(PAGE_FRAMEWORK_RUNTIMES).map(row=>row.output),
     'ui/tool.html','ui/tool-shell.css','native-agent/workspace.html','native-agent/workspace.css']){
     f.measured[path]={bytes:1000,sha256:digest};f.receipt.report.files.push({path,...f.measured[path]});
+  }
+  // Independent private browser compiler inputs are never ordinary 512 KiB
+  // third-party WXT entries; the published contract pins exact bytes/SHA.
+  for(const row of PAGE_BROWSER_PRIVATE_FILES){
+    assert.equal(f.measured[row.output],undefined,'duplicate private compiler asset');
+    f.measured[row.output]={bytes:row.bytes,sha256:row.sha256};
+    f.receipt.report.files.push({path:row.output,...f.measured[row.output]});
   }
   return f;
 }
@@ -79,6 +86,16 @@ test('full inventory includes raw and static assets and sums the actual runtime 
       opt.id==='jquery'?128*1024:BUILD_POLICY.productionBytes);
   }
   assert.equal(plan.onDemandPageAssetBytes,plan.onDemandPageAssets.reduce((n,row)=>n+row.bytes,0));
+  const compilerPaths=PAGE_BROWSER_PRIVATE_FILES.map(row=>row.output);
+  for(const path of compilerPaths)assert.equal(startup.has(path),false,'offline compilers must never load in SW');
+  const babel=report.resources.find(row=>row.path==='libs/page-frameworks/babel-7.29.9.min.js');
+  const vueSfc=report.resources.find(row=>row.path==='libs/page-frameworks/vue-sfc-compiler-3.5.22.mjs');
+  assert.equal(babel.budgetBytes,PAGE_BROWSER_COMPILER_RESOURCE_LIMIT);
+  assert.equal(vueSfc.budgetBytes,PAGE_BROWSER_COMPILER_RESOURCE_LIMIT);
+  assert(babel.bytes>BUILD_POLICY.productionBytes);
+  assert(vueSfc.bytes>BUILD_POLICY.productionBytes);
+  assert.equal(report.loadingGroups.find(row=>row.id==='browser-vue-compiler-on-demand').resources.length,
+    PAGE_BROWSER_PRIVATE_FILES.length);
 
 });
 test('full inventory catches oversize raw code and missing or mismatched resources',()=>{
@@ -91,6 +108,21 @@ test('full inventory catches oversize raw code and missing or mismatched resourc
   assert.throws(()=>summarizePackageResources(frameworkOver.receipt,frameworkOver.measured),
     /Package resource exceeds byte budget: libs\/page-frameworks\/react/,
     'raw framework runtime cannot pass the generic 512 KiB budget while failing its 256 KiB loader');
+  // The 4 MiB compiler-only budget must never silently generalize to normal
+  // optional JS, nor excuse any change to the reviewed source byte identity.
+  const pinned=PAGE_BROWSER_PRIVATE_FILES.find(row=>row.id==='babel-standalone');
+  assert(pinned);
+  const tooLargeCompiler=packageFixture();
+  tooLargeCompiler.measured[pinned.output].bytes=PAGE_BROWSER_COMPILER_RESOURCE_LIMIT+1;
+  tooLargeCompiler.receipt.report.files.find(row=>row.path===pinned.output).bytes=
+    PAGE_BROWSER_COMPILER_RESOURCE_LIMIT+1;
+  assert.throws(()=>summarizePackageResources(tooLargeCompiler.receipt,tooLargeCompiler.measured),
+    /Private browser compiler size\/hash mismatch|exceeds byte budget/);
+  const tamperedCompiler=packageFixture();
+  tamperedCompiler.measured[pinned.output].sha256='b'.repeat(64);
+  tamperedCompiler.receipt.report.files.find(row=>row.path===pinned.output).sha256='b'.repeat(64);
+  assert.throws(()=>summarizePackageResources(tamperedCompiler.receipt,tamperedCompiler.measured),
+    /Private browser compiler size\/hash mismatch/);
   const missing=packageFixture();delete missing.measured['ui/tool.html'];
   assert.throws(()=>summarizePackageResources(missing.receipt,missing.measured),/physically measured/);
   const mismatch=packageFixture();mismatch.measured['ui/tool.html'].sha256='b'.repeat(64);
