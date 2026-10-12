@@ -1,0 +1,36 @@
+name: R24.3 browser JSX SFC compiler linker qualification
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/page-component-browser-build-r243.yml'
+      - 'scripts/build-page-component-browser-r243.mjs'
+      - 'src/ui/page-component-compiler-worker.js'
+      - 'src/libs/page-frameworks/page-component-browser-linker.js'
+      - 'src/libs/page-frameworks/vue-sfc-transform.js'
+      - 'scripts/page-component-entry.mjs'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  audited-compiler-linker:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Compile static ESM modules without loading user source
+        run: node scripts/build-page-component-browser-r243.mjs --emit-base64
+      - name: Validate original component compiler rules and worker syntax
+        run: |
+          node --test tests/environment/page-component-browser-linker-r243.test.mjs
+          node --check src/ui/page-component-compiler-worker.js
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r243-browser-compiler-linker-${{ github.sha }}
+          if-no-files-found: error
+          path: artifacts/r243-browser-linker
