@@ -2,6 +2,7 @@ import {BUILTIN_CATALOG} from '../src/libs/catalog.js';
 export const PACKAGE_ENTRIES = Object.freeze({
   sw: './src/sw.js',
   'ui/tool-shell': './src/ui/tool-shell.js',
+  'ui/cloud-console': './src/ui/cloud-control-console.js',
   'ui/marketplace': './src/marketplace/page.js',
   'marketplace/market-host': './src/marketplace/external.js',
   'native-agent/settings': './src/native-agent/settings.js',
