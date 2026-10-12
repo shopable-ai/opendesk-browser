@@ -356,9 +356,13 @@
         <label><input id="cloud-loopback" type="checkbox">明确允许固定本地测试提供者 HTTP/WS</label>
         <p class="hint">云控框架已内置，无需在「工具」中导入。开发回环服务请输入 http://127.0.0.1:43112 并明确允许本地测试；普通服务器应使用 HTTPS。</p>
         <button id="cloud-pair" type="button">配对提供者</button>
-        <p>请先在「我的」安装并选择任务。托管授权固定当前安装版本、摘要、授权代次及该任务网站范围。</p>
-        <label><input id="cloud-consent" type="checkbox">批准所选固定任务和网站范围，在合法浏览器执行宿主可用时运行</label>
-        <label><input id="cloud-result-consent" type="checkbox">允许该固定任务结果回传</label>
+        <p>仅能选择本地已验证、已安装且启用的任务；升级、停用或更改摘要必须重新批准。</p>
+        <fieldset class="cloud-task-approvals"><legend>选择 Controller Task（最多 32 项）</legend>
+          <div id="cloud-task-list" role="group" aria-label="逐任务确认固定版本、网站和回传许可"><p class="hint">正在读取已安装任务…</p></div>
+          <p id="cloud-approval-summary" role="status" aria-live="polite" class="hint">默认不批准新任务或升级版本。</p>
+        </fieldset>
+        <label><input id="cloud-consent" type="checkbox">我已明确核对并批准所选任务的固定版本、网站范围与安装代际</label>
+        <label><input id="cloud-result-consent" type="checkbox">再次确认允许逐项勾选的任务回传执行结果</label>
         <div><button id="cloud-approve" type="button">批准并启用托管</button><button id="cloud-stop" type="button">停止托管并请求取消</button><button id="cloud-unpair" type="button">解除配对</button><button id="cloud-refresh" type="button">核对状态</button></div>
         <p class="hint">关闭 Side Panel 后不承诺无人值守执行。停止后保留取消处理中、退休待核对和未知结果；正常重连复用已有授权。</p>
         <p id="cloud-status" role="status" aria-live="polite">尚未配对</p>

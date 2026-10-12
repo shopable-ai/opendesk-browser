@@ -872,3 +872,12 @@
 .trusted-cookie-write input{margin-top:0}
 .trusted-cookie-write>.hint{line-height:1.6}
 @media(max-width:350px){.trusted-cookie-item-actions{width:100%}}
+
+#workbench-cloud .cloud-task-approvals{border:1px solid var(--od-line);border-radius:var(--radius-surface);padding:var(--space-2);margin:var(--space-3) 0 0;min-width:0}
+#workbench-cloud .cloud-task-approvals legend{font-size:12px;font-weight:650;padding:0 var(--space-1)}
+#workbench-cloud #cloud-task-list{display:grid;gap:var(--space-2);min-width:0}
+#workbench-cloud .cloud-task-choice{display:grid;gap:var(--space-1);min-width:0;border-top:1px solid var(--od-line);padding-top:var(--space-2);font-size:11px}
+#workbench-cloud .cloud-task-choice label{display:flex;align-items:baseline;gap:var(--space-2);min-width:0;overflow-wrap:anywhere}
+#workbench-cloud .cloud-task-choice input{flex:0 0 auto}
+#workbench-cloud .cloud-task-scope{font-size:10px;line-height:1.5;color:var(--od-sub);margin:0;overflow-wrap:anywhere}
+#workbench-cloud #cloud-approval-summary{font-size:11px;line-height:1.4;overflow-wrap:anywhere}

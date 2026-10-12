@@ -1,10 +1,90 @@
 // Hosting shares the visible document's existing RunHost and Authority slot.
 import {projectCloudStatus,cloudHostingSummary,projectCloudRequestSamples} from './cloud-status-presentation.js';
+// Advisory projection only: the Browser Host uses the original Task resolver
+// again before granting authority, binding a Run, or admitting a Worker.
+export function projectCloudInstalledTasks(data,approved=[]){
+  const catalog=Array.isArray(data?.catalog)?data.catalog:[],
+    installed=Array.isArray(data?.installed)?data.installed:[],
+    grants=Array.isArray(approved)?approved:[];
+  return installed.map(row=>{
+    const item=catalog.find(candidate=>candidate.taskId===row.taskId&&
+      candidate.version===row.version&&candidate.manifestHash===row.manifestHash);
+    const manifest=item?.manifest,sourceHash=manifest?.program?.sourceHash??null,
+      siteOrigins=Array.isArray(manifest?.siteOrigins)?manifest.siteOrigins:[],
+      eligible=!!(row.enabled&&item?.stage==='available'&&
+        item?.verification?.manifestHash===row.manifestHash&&
+        item?.verification?.sourceHash===sourceHash&&sourceHash&&siteOrigins.length);
+    const authorized=grants.find(grant=>grant.taskId===row.taskId&&
+      grant.version===row.version&&grant.manifestHash===row.manifestHash&&grant.sourceHash===sourceHash);
+    return {taskId:row.taskId,version:row.version,manifestHash:row.manifestHash,
+      sourceHash,installationId:row.installationId??null,generation:row.generation??null,
+      title:manifest?.title||row.taskId,siteOrigins,enabled:row.enabled===true,
+      eligible,approved:!!authorized,resultAllowed:authorized?.resultAllowed===true};
+  });
+}
+const cloudChoiceKey=task=>[task.taskId,task.version,task.manifestHash,task.sourceHash,
+  task.installationId,task.generation].join('|');
+
 export function createCloudHosting({client,host,document:doc=globalThis.document,api=globalThis.chrome}){
   const get=id=>doc.getElementById(id),cloud=client.cloud;let disposed=false,busy=false,starting=false,timer;
   const status=get('cloud-status'),brief=get('cloud-brief'),myState=get('cloud-my-state');
   const overview=get('cloud-overview-state'),sampleList=get('cloud-request-samples');
-  let lastSamples='',lastFullRefresh=0;
+  let lastSamples='',lastFullRefresh=0,lastCatalogAt=0,lastCatalogStamp='';
+  let taskChoices=[];const selections=new Map();
+  const selectedTasks=()=>taskChoices.filter(task=>
+    task.eligible&&selections.get(cloudChoiceKey(task))?.selected);
+  function renderApprovalSummary(){
+    const selected=selectedTasks(),uploaded=selected.filter(task=>
+      selections.get(cloudChoiceKey(task))?.resultAllowed).length;
+    put('cloud-approval-summary',selected.length+' 项待批准 · '+uploaded+
+      ' 项允许回传结果。授权将绑定固定版本、网站范围与安装代际。');
+    const button=get('cloud-approve');
+    if(button)button.disabled=!selected.length||!button.cloudCanApprove;
+  }
+  async function refreshTaskChoices(cloudState){
+    if(typeof client.request!=='function'||Date.now()-lastCatalogAt<5000)return;
+    lastCatalogAt=Date.now();
+    let data;
+    try{data=await client.request('listTaskCatalog',{});}
+    catch{taskChoices=[];const list=get('cloud-task-list');
+      list.textContent='任务目录不可读取；请先检查本地安装与授权';renderApprovalSummary();return;}
+    if(disposed)return;
+    const projected=projectCloudInstalledTasks(data,cloudState.tasks),
+      stamp=JSON.stringify([projected,!!cloudState.enabled]);
+    if(stamp===lastCatalogStamp)return;
+    lastCatalogStamp=stamp;taskChoices=projected;
+    const keys=new Set(taskChoices.map(cloudChoiceKey));
+    for(const key of selections.keys())if(!keys.has(key))selections.delete(key);
+    const parent=get('cloud-task-list');parent.replaceChildren();
+    if(!taskChoices.length){
+      const empty=doc.createElement('p');empty.textContent='暂无已安装任务。请先在「我的」验证并安装 Controller Task。';
+      empty.className='hint';parent.append(empty);
+    }
+    for(const task of taskChoices){
+      const key=cloudChoiceKey(task),selection=selections.get(key)||{selected:false,resultAllowed:false};
+      const section=doc.createElement('section');section.className='cloud-task-choice';
+      const header=doc.createElement('label'),check=doc.createElement('input'),title=doc.createElement('span');
+      check.type='checkbox';check.dataset.cloudTaskKey=key;check.checked=selection.selected;
+      check.disabled=!task.eligible||cloudState.enabled;
+      title.textContent=task.title+' · '+task.taskId+' @ '+task.version+
+        (task.eligible?'':task.enabled?'（版本未验证）':'（已停用）')+
+        (task.approved?' · 当前已批准':'');
+      header.append(check,title);section.append(header);
+      const scope=doc.createElement('p');scope.className='cloud-task-scope';
+      scope.textContent='网站：'+(task.siteOrigins.join('、')||'未验证')+
+        ' · Manifest SHA-256：'+(task.manifestHash||'缺失')+
+        ' · Source SHA-256：'+(task.sourceHash||'缺失')+
+        ' · 安装代际：'+(task.generation??'未知');
+      section.append(scope);
+      const label=doc.createElement('label'),result=doc.createElement('input'),copy=doc.createElement('span');
+      result.type='checkbox';result.dataset.cloudResultKey=key;result.checked=selection.resultAllowed;
+      result.disabled=!task.eligible||cloudState.enabled;
+      copy.textContent='允许此任务执行结果回传已配对 Provider'+
+        (task.resultAllowed?'（当前已批准）':'（当前未批准）');
+      label.append(result,copy);section.append(label);parent.append(section);
+    }
+    renderApprovalSummary();
+  }
   function sampleView(s){
     const samples=projectCloudRequestSamples(s),serial=JSON.stringify(samples);
     if(serial===lastSamples)return;lastSamples=serial;sampleList.replaceChildren();
@@ -30,8 +110,8 @@ export function createCloudHosting({client,host,document:doc=globalThis.document
     put('cloud-overview-slot',projected.slotAvailable?'空闲':'占用／未就绪');
     put('cloud-overview-tasks',String(projected.approvedTasks));
     put('cloud-overview-requests',String(projected.requests.total));
-    sampleView(s);lastFullRefresh=Date.now();
-    get('cloud-pair').disabled=!!s.provider;get('cloud-approve').disabled=!s.provider||s.enabled;get('cloud-stop').disabled=!s.provider;get('cloud-unpair').disabled=!s.provider;
+    sampleView(s);lastFullRefresh=Date.now();await refreshTaskChoices(s);
+    get('cloud-pair').disabled=!!s.provider;get('cloud-approve').cloudCanApprove=!!s.provider&&!s.enabled;renderApprovalSummary();get('cloud-stop').disabled=!s.provider;get('cloud-unpair').disabled=!s.provider;
     return s;
   }
   async function dispatchNext(s){
@@ -42,7 +122,32 @@ export function createCloudHosting({client,host,document:doc=globalThis.document
   async function action(fn){if(busy)return;busy=true;try{await fn();await refresh();}catch(e){fail(e);}finally{busy=false;}}
   const listeners=[];function click(id,fn){const handler=()=>void action(fn);get(id).addEventListener('click',handler);listeners.push([id,handler]);}
   click('cloud-pair',()=>cloud.cloudPair({url:get('cloud-url').value,providerId:get('cloud-provider-id').value.trim(),pairingCode:get('cloud-pairing-code').value.trim(),allowLoopback:get('cloud-loopback').checked}).then(()=>{get('cloud-pairing-code').value='';}));
-  click('cloud-approve',async()=>{if(!get('cloud-consent').checked)throw Error('请先批准所选固定任务、网站范围和结果回传');const taskId=get('task-installed-list').value;if(!taskId)throw Error('请先安装并选择任务');return cloud.cloudApprove({tasks:[{taskId,resultAllowed:get('cloud-result-consent').checked}]});});
+  const onChoiceChange=event=>{
+    const input=event?.target,key=input?.dataset?.cloudTaskKey||input?.dataset?.cloudResultKey;
+    if(!key)return;
+    const row=taskChoices.find(task=>cloudChoiceKey(task)===key);
+    if(!row?.eligible)return;
+    const selection=selections.get(key)||{selected:false,resultAllowed:false};
+    if(input.dataset.cloudTaskKey)selection.selected=!!input.checked;
+    else selection.resultAllowed=!!input.checked;
+    selections.set(key,selection);renderApprovalSummary();
+  };
+  get('cloud-task-list').addEventListener('change',onChoiceChange);
+  listeners.push(['cloud-task-list',onChoiceChange,'change']);
+  click('cloud-approve',async()=>{
+    if(!get('cloud-consent').checked)throw Error('请先核对所选任务的固定版本、网站范围与安装代际');
+    const selected=selectedTasks();
+    if(!selected.length||selected.length>32)throw Error('请选择 1–32 项已验证且启用的 Controller Task');
+    if(selected.some(task=>selections.get(cloudChoiceKey(task)).resultAllowed)&&
+      !get('cloud-result-consent').checked)throw Error('请确认允许所选任务的结果回传范围');
+    await cloud.cloudApprove({tasks:selected.map(task=>({
+      taskId:task.taskId,version:task.version,manifestHash:task.manifestHash,
+      sourceHash:task.sourceHash,siteOrigins:task.siteOrigins,
+      installationId:task.installationId,generation:task.generation,
+      resultAllowed:selections.get(cloudChoiceKey(task)).resultAllowed===true
+    }))});
+    get('cloud-consent').checked=false;get('cloud-result-consent').checked=false;
+  });
   click('cloud-stop',()=>cloud.cloudStop({}));click('cloud-unpair',()=>cloud.cloudUnpair({}));
   // The user's “核对状态” gesture must never itself claim or run a cloud task.
   click('cloud-refresh',async()=>{});
@@ -56,5 +161,5 @@ export function createCloudHosting({client,host,document:doc=globalThis.document
     const cloudVisible=doc.documentElement?.dataset?.opendeskTab==='cloud';
     if(!busy&&!disposed&&Date.now()-lastFullRefresh>=(cloudVisible?5000:15000))await refresh();
   }}catch(e){if(!disposed)fail(e);}finally{if(!disposed)timer=setTimeout(poll,2000);}}
-  void poll();return {refresh,dispose(){disposed=true;clearTimeout(timer);for(const[id,fn]of listeners)get(id).removeEventListener('click',fn);}};
+  void poll();return {refresh,dispose(){disposed=true;clearTimeout(timer);for(const[id,fn,event='click']of listeners)get(id).removeEventListener(event,fn);}};
 }
