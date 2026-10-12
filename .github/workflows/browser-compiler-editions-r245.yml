@@ -101,6 +101,7 @@ jobs:
         env:
           CHROME_FOR_TESTING_BIN: ${{ steps.chrome.outputs.chrome-path }}
           OPENDESK_R243_BROWSER_FULL_UI: '1'
+          OPENDESK_R4_CONTROLLER_ESM_NATIVE_SMOKE: '1'
           OPENDESK_DEV_PACKAGE_DIR: dist/production-developer
           OPENDESK_DEV_EVIDENCE: .runtime/tests/r245-developer-chrome
           OPENDESK_DEV_CFT_LAUNCHER: ${{ github.workspace }}/tests/framework/cft-isolated-launcher.py

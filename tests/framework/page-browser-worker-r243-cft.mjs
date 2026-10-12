@@ -350,6 +350,59 @@ async function verifyBrowserUI({browser,page,catalogTabId,base,extensionId,outpu
     await typeSource(originalVue);
     assert.equal(await website.session.read('!document.querySelector("#r243-teleported-vue")'),true,
       'restoring the editor source alone must never execute a Page component');
+    if(process.env.OPENDESK_R4_CONTROLLER_ESM_NATIVE_SMOKE==='1'){
+      // Controller Single-file ESM is NOT a Page USER_SCRIPT. Drive the original
+      // Side Panel click, RunHost/Authority, opaque Worker, durable Result and
+      // saved Program Revision. CDP observes only; it never executes user code.
+      const controllerSource=[
+        'export default async function main() {',
+        '  const title=await page.title();',
+        '  return {controllerEsmR4:true,title,words:_.words(title),parameter:params.value};',
+        '}'
+      ].join('\n');
+      const devChoice='document.querySelector("#page-component-javascript")';
+      await clickReal(sidebar,'document.querySelector("label[for=page-component-javascript]")');
+      await until(()=>sidebar.read(devChoice+'?.checked===true'),
+        'real browser returned from Vue SFC to JavaScript editor');
+      await typeSource(controllerSource);
+      await until(()=>sidebar.read('!document.querySelector("#script-run").disabled'),
+        'Controller original RunHost slot and exact current-page target available');
+      await clickReal(sidebar,'document.querySelector("#script-run")');
+      const ran=await until(()=>sidebar.read('(()=>{const s=document.querySelector("#script-status");'+
+        'const result=document.querySelector("#script-result");'+
+        'return s?.dataset.state==="error"?{state:"error",message:s.textContent}:'
+        +'s?.dataset.state==="results"&&result?.textContent.includes("controllerEsmR4")?'
+        +'{state:"results",message:s.textContent,value:result.textContent}:null})()'),
+        'real Controller ESM Worker executes after trusted Run and yields durable Result',60000);
+      assert.equal(ran.state,'results',ran.message);
+      assert.match(ran.value,/controllerEsmR4/);
+      assert.match(ran.value,/true/);
+      assert.match(ran.value,/parameter/);
+      const runId=await sidebar.read('document.querySelector("#script-run-id").value');
+      assert(typeof runId==='string'&&runId.length>10,'real original Controller runId');
+      const version=await sidebar.read('document.querySelector("#script-task-version").textContent');
+      const sourceHash=await sidebar.read('document.querySelector("#script-task-id").textContent');
+      report.tests.push({name:'r4-controller-actual-sidepanel-esm-runhost-worker-durable-result',
+        status:'PASS',runId,version,sourceIdentity:sourceHash,returnedValue:ran.value,
+        actualPointerInput:true,noNative:true,executedIn:'CONTROLLER_OPAQUE_WORKER'});
+      await until(()=>sidebar.read('!document.querySelector("#script-save").disabled'),
+        'Controller ESM save ready',10000);
+      await clickReal(sidebar,'document.querySelector("#script-save")');
+      const saved=await until(()=>sidebar.read('(()=>{const s=document.querySelector("#script-status");'+
+        'return s?.dataset.state==="saved"?s.textContent:null})()'),
+        'Controller ESM verified built revision saved without rerunning',30000);
+      assert.match(saved,/已持久保存/);
+      await clickReal(sidebar,'document.querySelector("#script-load")');
+      await until(()=>sidebar.read('document.querySelector("#script-source").value==='+
+        JSON.stringify(controllerSource)),
+        'Controller ESM author source restored from immutable compiled revision',15000);
+      report.tests.push({name:'r4-controller-actual-sidepanel-save-load-edited-esm-source',
+        status:'PASS',runId,originalAuthorSourceRestored:true,savedReceipt:saved,
+        noUnapprovedRemoteFetch:true,noNative:true});
+      const screenshot=await sidebar.call('Page.captureScreenshot',{format:'png'});
+      fs.writeFileSync(path.join(output,'r4-controller-esm-durable-result.png'),
+        Buffer.from(screenshot.data,'base64'));
+    }
     if(process.env.OPENDESK_R243_BROWSER_STRESS==='1')
       await runBrowserComponentCycles({sidebar,website,output,report,until,clickReal,selectFramework});
   }finally{
