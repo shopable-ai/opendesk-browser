@@ -10,6 +10,18 @@ if(require('esbuild/package.json').version!=='0.28.2')
   throw Error('E_BROWSER_LINKER_TOOLCHAIN');
 const out=resolve('artifacts/r243-browser-linker');
 await mkdir(out,{recursive:true});
+const workerSource='src/ui/page-component-compiler-worker.js';
+const workerBytes=await readFile(resolve(workerSource));
+parse(workerBytes.toString('utf8'),{ecmaVersion:'latest',sourceType:'script'});
+if(workerBytes.length>8192||!workerBytes.toString('utf8').includes("importScripts('../libs/page-frameworks/babel-7.29.9.min.js')"))
+ throw Error('E_BROWSER_LINKER_WORKER');
+const workerReport={id:'worker',source:workerSource,
+  output:'page-component-compiler-worker.js',bytes:workerBytes.length,
+  sha256:createHash('sha256').update(workerBytes).digest('hex'),
+  sourceFiles:[workerSource]};
+console.log('R243_BROWSER_LINKER_META '+JSON.stringify(workerReport));
+await writeFile(resolve(out,'page-component-compiler-worker.js'),workerBytes);
+
 for(const [id,input,output] of [
   ['component','src/libs/page-frameworks/page-component-browser-linker.js','page-component-linker-r243.mjs'],
   ['vue-transform','src/libs/page-frameworks/vue-sfc-transform.js','vue-sfc-transform-r243.mjs']
