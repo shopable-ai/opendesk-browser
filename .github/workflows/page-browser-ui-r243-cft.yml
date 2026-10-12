@@ -9,6 +9,7 @@ on:
       - 'src/ui/page-component-compiler-worker.js'
       - 'src/ui/script-editor.js'
       - 'src/ui/tool.html'
+      - 'src/ui/tool-shell.js'
       - 'src/native-agent/managed-preview.js'
       - 'src/libs/page-frameworks/**'
       - 'scripts/verify-package.mjs'

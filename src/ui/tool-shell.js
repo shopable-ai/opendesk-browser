@@ -110,7 +110,29 @@ Promise.resolve(chrome.tabs.getCurrent?.()).then(async tab => {
     return;
   }
   const toolId=requestedToolId(hostUrl.href),previewId=requestedPreviewId(hostUrl.href);
-  if(!toolId&&!previewId){taskWorkbench.showCatalogPage();return;}
+  if(!toolId&&!previewId){
+    taskWorkbench.showCatalogPage();
+    const opener=document.getElementById('catalog-open-dev-sidebar');
+    const status=document.getElementById('catalog-dev-sidebar-status');
+    if(opener)listen(opener,'click',event=>{
+      if(!event.isTrusted||opener.disabled)return;
+      // An actual user gesture opens the ORIGINAL Side Panel in this window.
+      // No new host authority, tab permission or extension page is created.
+      const windowId=currentPageTarget.windowId;
+      if(!Number.isSafeInteger(windowId)||typeof chrome.sidePanel?.open!=='function'){
+        status.textContent='无法打开侧栏，请从 Chrome 扩展按钮打开 OpenDesk';
+        return;
+      }
+      opener.disabled=true;status.textContent='正在打开侧栏…';
+      let request;
+      try{request=chrome.sidePanel.open({windowId});}
+      catch(error){status.textContent='侧栏不可用：'+(error.message||error);opener.disabled=false;return;}
+      Promise.resolve(request).then(()=>{status.textContent='已打开侧栏，请选择「开发」';},
+        error=>{status.textContent='侧栏不可用：'+(error.message||error);})
+        .finally(()=>{opener.disabled=false;});
+    });
+    return;
+  }
   document.documentElement.dataset.opendeskSurface='tool-page';
   taskWorkbench.navigate('tools');
   if(previewId){

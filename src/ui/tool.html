@@ -204,7 +204,9 @@
   <div id="workbench-discover" class="od-page" data-workbench-page="catalog" hidden>
     <section aria-labelledby="discover-heading" class="catalog-section">
       <div class="catalog-intro"><p class="eyebrow">LOCAL TASK CATALOG</p><h2 id="discover-heading">发现本地任务</h2>
-      <p class="hint">在完整页面搜索、筛选、查看说明并明确安装；不是云端 Marketplace。</p></div>
+      <p class="hint">在完整页面搜索、筛选、查看说明并明确安装；不是云端 Marketplace。</p>
+      <div class="row"><button id="catalog-open-dev-sidebar" class="od-button od-button--secondary" type="button">打开开发侧栏</button>
+      <span id="catalog-dev-sidebar-status" class="hint" role="status" aria-live="polite"></span></div></div>
       <label for="task-search" class="visually-hidden">搜索任务</label><input type="search" id="task-search" placeholder="搜索任务名称、用途、作者或网站…" autocomplete="off">
       <div class="category-chips" id="task-categories" aria-label="任务分类">
         <button type="button" class="category-chip selected" data-catalog-filter="all">全部</button>

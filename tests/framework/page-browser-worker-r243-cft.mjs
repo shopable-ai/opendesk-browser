@@ -74,9 +74,9 @@ async function selectFramework(session,framework){
   await until(()=>session.read(el+'.value==='+JSON.stringify(framework)),
     'trusted browser selection of '+framework,12000);
 }
-async function verifyBrowserUI({browser,page,base,extensionId,output,report}){
+async function verifyBrowserUI({browser,page,catalogTabId,base,extensionId,output,report}){
   const sample=fs.readFileSync(path.join(root,'examples/tasks/demo-form.html'));
-  let site,settings,website;
+  let site,settings,website,sidebar;
   const createTab=async url=>{
     const res=await fetch(base+'/json/new?about%3Ablank',{method:'PUT'});
     assert.equal(res.status,200);
@@ -106,30 +106,44 @@ async function verifyBrowserUI({browser,page,base,extensionId,output,report}){
     website=await createTab('http://127.0.0.1:43111/demo-form.html');
     await browser.call('Target.activateTarget',{targetId:website.info.id});
     await until(()=>website.session.read('document.readyState==="complete"'),'real website ready');
-    await until(()=>page.read('document.querySelector("#script-source")!=null'),'developer view script loaded');
-    await clickReal(page,'document.querySelector("#tab-develop")');
-    const permission=await page.read('chrome.permissions.contains({origins:["http://127.0.0.1:43111/*"]})');
+    await until(()=>page.read('document.querySelector("#catalog-open-dev-sidebar")!=null'),
+      'real full-catalog sidebar entry');
+    await browser.call('Target.activateTarget',{targetId:catalogTabId});
+    await clickReal(page,'document.querySelector("#catalog-open-dev-sidebar")');
+    await until(()=>page.read('document.querySelector("#catalog-dev-sidebar-status").textContent.includes("已打开侧栏")'),
+      'explicit Chrome Side Panel open acknowledgement',15000);
+    const sidebarTarget=await until(async()=>{
+      const list=await (await fetch(base+'/json/list')).json();
+      return list.find(t=>t.url?.startsWith('chrome-extension://'+extensionId+'/ui/tool.html')&&
+        t.id!==catalogTabId&&t.webSocketDebuggerUrl);
+    },'actual Chrome Side Panel CDP target',20000);
+    sidebar=await cdp(sidebarTarget.webSocketDebuggerUrl);
+    await until(()=>sidebar.read('document.querySelector("#tab-develop")!=null'),
+      'Side Panel workbench available');
+    await browser.call('Target.activateTarget',{targetId:website.info.id});
+    await clickReal(sidebar,'document.querySelector("#tab-develop")');
+    const permission=await sidebar.read('chrome.permissions.contains({origins:["http://127.0.0.1:43111/*"]})');
     assert.equal(permission,true,'original Chrome website permission must be granted');
     for(const framework of ['react','vue']){
-      await selectFramework(page,framework);
-      await until(()=>page.read('document.querySelector("#page-component-framework").value==='+JSON.stringify(framework)),
+      await selectFramework(sidebar,framework);
+      await until(()=>sidebar.read('document.querySelector("#page-component-framework").value==='+JSON.stringify(framework)),
         'official '+framework+' selected');
-      const editor=await page.read('document.querySelector("#script-source").value');
+      const editor=await sidebar.read('document.querySelector("#script-source").value');
       assert(editor.includes(framework==='react'?"from 'react'":'<script setup>'));
-      const active=await page.read('chrome.tabs.query({active:true,currentWindow:true})');
+      const active=await sidebar.read('chrome.tabs.query({active:true,currentWindow:true})');
       assert.equal(active.length,1);
       assert.equal(active[0].url,'http://127.0.0.1:43111/demo-form.html',
         'the existing current-tab identity must remain the website');
-      const expanded=await page.read('document.querySelector("#page-preview-tools").open');
-      if(!expanded)await clickReal(page,'document.querySelector("#page-preview-tools > summary")');
-      await until(()=>page.read('!document.querySelector("#page-preview-run").disabled'),
+      const expanded=await sidebar.read('document.querySelector("#page-preview-tools").open');
+      if(!expanded)await clickReal(sidebar,'document.querySelector("#page-preview-tools > summary")');
+      await until(()=>sidebar.read('!document.querySelector("#page-preview-run").disabled'),
         framework+' Page run enabled',20000);
-      await clickReal(page,'document.querySelector("#page-preview-run")');
-      const state=await until(()=>page.read('(()=>{const node=document.querySelector("#page-preview-status");'+
+      await clickReal(sidebar,'document.querySelector("#page-preview-run")');
+      const state=await until(()=>sidebar.read('(()=>{const node=document.querySelector("#page-preview-status");'+
         'return ["completed","error"].includes(node?.dataset.state)?{state:node.dataset.state,text:node.textContent}:null})()'),
       framework+' exact Page run completion',60000);
       assert.equal(state.state,'completed',framework+' run error: '+state.text);
-      const receipt=JSON.parse(await page.read('document.querySelector("#page-preview-technical").textContent'));
+      const receipt=JSON.parse(await sidebar.read('document.querySelector("#page-preview-technical").textContent'));
       assert.equal(receipt.state,'preview-evaluated');
       assert.equal(receipt.packagedFrameworkId,framework);
       assert.equal(receipt.managedUI,true);
@@ -143,23 +157,23 @@ async function verifyBrowserUI({browser,page,base,extensionId,output,report}){
       await clickReal(website.session,'('+rootExpr+')?.shadowRoot?.querySelector("button")');
       await until(()=>website.session.read('('+rootExpr+')?.shadowRoot?.querySelector("button")?.textContent?.includes("已点击 1 次")'),
         framework+' native pointer updated component state',15000);
-      await clickReal(page,'document.querySelector("#script-stop")');
+      await clickReal(sidebar,'document.querySelector("#script-stop")');
       await until(()=>website.session.read('!('+rootExpr+')'),
         framework+' native managed stop removed DOM',15000);
-      const status=await page.read('document.querySelector("#page-component-status").textContent');
+      const status=await sidebar.read('document.querySelector("#page-component-status").textContent');
       assert(status.includes('已停止'),'UI must acknowledge original Stop receipt');
       const proof={name:'r243-browser-'+framework+'-no-native-real-run-stop',
         status:'PASS',sourceHash:receipt.sourceHash,previewId:receipt.managedPreviewId,
         documentId:receipt.documentId,frameworkSha256:receipt.packagedFrameworkSha256,
         actualPointerInput:true,domClean:true,noNative:true,packageVerified:true};
       report.tests.push(proof);
-      await page.call('Page.captureScreenshot',{format:'png'}).then(async image=>
+      await sidebar.call('Page.captureScreenshot',{format:'png'}).then(async image=>
         fs.writeFileSync(path.join(output,'r243-browser-'+framework+'-editor.png'),Buffer.from(image.data,'base64')));
       const image=await website.session.call('Page.captureScreenshot',{format:'png'});
       fs.writeFileSync(path.join(output,'r243-browser-'+framework+'-stopped.png'),Buffer.from(image.data,'base64'));
     }
   }finally{
-    settings?.session.close();website?.session.close();
+    settings?.session.close();website?.session.close();sidebar?.close();
     if(site)await new Promise(resolve=>site.close(resolve));
   }
 }
@@ -224,7 +238,7 @@ async function main(){
       report.tests.push(proof);
     }
     if(process.env.OPENDESK_R243_BROWSER_FULL_UI==='1'){
-      await verifyBrowserUI({browser,page,base,extensionId,output,report});
+      await verifyBrowserUI({browser,page,catalogTabId:tab.id,base,extensionId,output,report});
       report.status='PASS_BROWSER_UI_NO_NATIVE_REACT_VUE_RUN_STOP';
     }else report.status='PASS_BROWSER_WORKER_NO_NATIVE';
   }catch(error){report.status='FAIL';report.error={code:error.code||'E_BROWSER_WORKER_TEST',message:error.message,
