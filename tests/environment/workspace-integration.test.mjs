@@ -174,7 +174,10 @@ test('Workspace selection A is carried to the file sidebar by verified ID, and s
   assert.equal(write.params.workspaceId,A);assert.equal(write.params.leaseEpoch,epoch);
   assert.equal(write.params.expectedSha256,initialHash);assert.equal(write.expected.sessionId,h.state.sessionId);
   assert.equal(h.calls.at(-1).method,'files.read','success requires a second file-service read');
-  await h.select(B);await h.openFile();assert.equal(h.get('file-editor').value,originalB);
+  await h.select(B);
+  assert.match(h.get('file-meta').textContent,/选择左侧文件/,'old workspace file metadata must be cleared on switch');
+  assert.equal(h.get('directory-name').textContent,'根目录');
+  await h.openFile();assert.equal(h.get('file-editor').value,originalB);
 });
 test('A to no online directories to B preserves A identity, label and draft until explicit selection',async t=>{
   const h=await fixture(t);h.edit('unsaved A');

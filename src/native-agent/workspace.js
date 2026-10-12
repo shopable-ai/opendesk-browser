@@ -145,6 +145,8 @@ export function initFileWorkspace({api=globalThis.chrome,doc=globalThis.document
       const ownedBy=demo?'内存演示目录':owner?sourceLabel(owner,{duplicate:sameName}):'目录身份待连接核验';
       byId('file-meta').textContent=ownedBy+' / '+current.path+' · '+count.toLocaleString()+' bytes · '+
         (current.sha256?.slice(0,10)||'')+(recordOnline?' · 已核验目录':' · 离线草稿')+(!writable()?' · 只读':'');
+    }else{
+      byId('file-meta').textContent='选择左侧文件，以查看预览或源码。';
     }
     byId('open-sidebar').disabled=byId('open-sidebar').disabled||!connected||!workspaceAccess.has(workspaceId);
     byId('file-title').title=current?.path||'打开一个文件';
@@ -245,6 +247,7 @@ export function initFileWorkspace({api=globalThis.chrome,doc=globalThis.document
   function resetFileTree(){
     treeFolders=new Map();treeIdentity='';treeRevision++;
     byId('file-list').replaceChildren();byId('directory-name').textContent='根目录';
+    byId('directory-name').title='当前路径：根目录';
     byId('tree-message').textContent='';
   }
   const folderState=()=>({expanded:false,entries:null,truncated:false});
