@@ -362,6 +362,7 @@ export async function validateProgramProject(input,{readProjectFile}={}){
     version:pkg.version,
     runtimeKind:p.runtimeKind,
     entry:p.entry,
+    ...(p.framework?{framework:p.framework}:{}),
     ...(p.entryMode?{entryMode:p.entryMode}:{}),
     sourceFormat:'esm',
     sources,
