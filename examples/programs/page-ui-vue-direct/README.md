@@ -1,5 +1,8 @@
 # Vue 普通 JavaScript · R24.3 标准组件入口
 
+> **R24.5 Standard 可用。** 本示例是普通 JavaScript `import` + 官方 React/Vue Runtime，不依赖浏览器内 JSX/SFC 编译器。本地项目仍需已授权 Native/Node 工具。[双版本说明](../../../docs/architecture/browser-framework/browser-compiler-editions-r245.zh-CN.md)。
+
+
 ## 自动编译状态（2026-10-12）
 
 **状态：已验证的普通 JavaScript Vue 示例，不是 SFC 示例。** 默认入口 `src/main.js` 使用 Vue `h/ref`，**无需 `.vue` SFC 语法转换**；系统仍自动准备、链接固定 Vue Runtime、生成受管挂载/Stop。真实独立 npm 安装包四目录编译在 [macOS/Ubuntu CI PASS](https://github.com/shopable-ai/opendesk-browser/actions/runs/38231722128)，但最新完整 Chrome 生命周期仍有未测矩阵。使用本地项目需已授权 Native；浏览器 Vue SFC 单组件直接编辑是另一种入口。**保存不自动 Run。** [状态表](../../../docs/api/page-ui-frameworks.zh-CN.md)。
