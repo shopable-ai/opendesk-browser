@@ -76,3 +76,5 @@
 - 增加 `tests/environment/time-review-r13-downloads.test.mjs` 覆盖作用域、并发调用的串行登记、SW 监听重载、过期、异常和其他工具隔离；更新 R1.2 参数约定；`tests/framework/time-review-r13-native.test.mjs` 逐个验收 JSON/CSV 创建/终态/独占目录/磁盘可读/内容/实际文件名，并且先做内容检测后做文件名检测；CI 绑定 SHA 上传失败证据。
 - 开发与权限边界：未扩大 host permissions、无浏览器保存弹窗、仍只返回 `requested` 而非下载成功；没有改变 v1 持久化键或 `time-review` ID，也不创建新的时间数据服务。
 - 验证状态：本次远端直接提交之前未在用户 Mac 运行；需等待绑定**本次提交 SHA** 的 GitHub Actions 原生 macOS Chrome 155 结果。本机真实活动时间、重启、撤权、200% 缩放维持 NOT_TESTED；组件验证以 Actions 结果为准。
+
+- P0 首次绑定 `e4a128582b86420abe19707b6629ee751813e26f` 的 [Mac 专项 Actions 38213480341](https://github.com/shopable-ai/opendesk-browser/actions/runs/38213480341)：R1.3 组件 **41 PASS / 1 FAIL**，失败点为未知 ticket 仍需要在 `onDeterminingFilename` 回调里异步 `suggest()` 无参数，但测试错误地要求返回同步 false。修正该断言并保留实际“不更名”语义，旧 run 仍标记 FAIL；其真实 Chrome 阶段未执行。

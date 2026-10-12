@@ -35,11 +35,13 @@ test('other tools, browser downloads, other extensions and forged intent never c
     {byExtensionId:'other-extension',url:options.url},
     {byExtensionId:'our-extension',url:'data:application/json;name=knowledge-inbox.json,abc'},
     {byExtensionId:'our-extension',url:options.url.replace('application/json','text/csv')},
-    {byExtensionId:'our-extension',url:options.url.replace(/od-export-id=[0-9a-f-]{36}/,'od-export-id=aaaaaaaa-aaaa-4aaa-aaaa-aaaaaaaaaaaa')},
     {url:options.url}
   ]){
     const result=await f.suggest(item);assert.equal(result.asyncResult,false);assert.deepEqual(result.calls,[]);
   }
+  const forged=await f.suggest({byExtensionId:'our-extension',url:options.url.replace(/od-export-id=[0-9a-f-]{36}/,'od-export-id=aaaaaaaa-aaaa-4aaa-aaaa-aaaaaaaaaaaa')});
+  assert.equal(forged.asyncResult,true);
+  assert.deepEqual(forged.calls,[undefined],'unknown ticket must not rename, even when URL shape matches');
   const missing=await prepareTimeReviewDownload(f.api,{name:'time-review.csv',text:'a,b\r\n'},{at:1000});
   delete f.entries[TIME_REVIEW_DOWNLOAD_HINTS][missing.url.match(/od-export-id=([0-9a-f-]{36})/)[1]];
   const invalid=await f.suggest({byExtensionId:'our-extension',url:missing.url});
