@@ -1,0 +1,63 @@
+{
+  "schemaVersion": "opendesk.browser-sdk.r8.execution.v1",
+  "status": "IN_PROGRESS",
+  "branch": "main",
+  "reviewedBaseSha": "a6f68e04bf9788d7f287385a1081ca973a9a4990",
+  "resultCommitSha": null,
+  "phase": "B_PARTIAL_NATIVE_CATALOG",
+  "scope": "Single Host/Authority; no additional permissions",
+  "modifiedFiles": [
+    "scripts/sync-chrome-api-catalog.mjs",
+    "docs/api/chrome-native-api-sources.json",
+    "docs/api/chrome-native-api-catalog.json",
+    "docs/api/browser-sdk-compatibility-map.json",
+    "docs/api/browser-sdk-architecture-r8.zh-CN.md",
+    "docs/api/browser-sdk-open-source-reuse.zh-CN.md",
+    "tests/environment/browser-sdk-r8-catalog.test.mjs",
+    ".github/workflows/browser-sdk-r5.yml",
+    "vendor/chromium-extension-api/bookmarks.json",
+    "vendor/chromium-extension-api/context_menus.json",
+    "vendor/chromium-extension-api/history.json",
+    "vendor/chromium-extension-api/sessions.json",
+    "vendor/chromium-extension-api/tabs.json",
+    "vendor/chromium-extension-api/web_navigation.json",
+    "vendor/chromium-extension-api/windows.json",
+    "vendor/chromium-extension-api/cookies.json"
+  ],
+  "sdkOperationCountBefore": 35,
+  "sdkOperationCountAfter": 35,
+  "newSdkMethods": [],
+  "reusedModules": [
+    "browser-contract.js",
+    "browser.js",
+    "src/platform/chrome/context-menus.js",
+    "Authority/Permission Gate",
+    "WXT 0.21.4"
+  ],
+  "catalogCoverage": {
+    "namespaces": 8,
+    "methods": 70,
+    "events": 38,
+    "properties": 11
+  },
+  "verification": {
+    "node": "NOT_TESTED",
+    "check": "NOT_TESTED",
+    "build": "NOT_TESTED",
+    "buildDev": "NOT_TESTED",
+    "verify": "NOT_TESTED",
+    "nativeChrome": "NOT_TESTED"
+  },
+  "blocked": [
+    "No mounted Mac workspace/Chrome in current execution environment",
+    "Cookie Editor is sandboxed, not a trusted native UI",
+    "Pinned JSON schemas cover only 8 namespaces; IDL and other namespaces pending"
+  ],
+  "next": [
+    "Run R8 catalog check and Node tests on committed SHA",
+    "Extend existing CookieService behind trusted Sender/Origin and user click; do not grant sandbox trust",
+    "Complete Chromium IDL conversion using upstream chrome-types tools; no regex .d.ts parsing",
+    "Tabs/Downloads/Permissions/Storage/Scheduler bounded additions; run builds and native Chrome acceptance"
+  ],
+  "conflictStatus": "REMOTE_MAIN_MOVES; conditional expected-SHA commit; no Mac local uncommitted status accessible"
+}

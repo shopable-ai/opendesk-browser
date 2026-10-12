@@ -1,0 +1,689 @@
+{
+  "schemaVersion": "opendesk.browser-sdk.compatibility.v1",
+  "sourceOfTruth": "src/framework/sdk/browser-contract.js",
+  "baselineOperationCount": 35,
+  "operations": [
+    {
+      "legacyOperation": "browser.capabilities.list",
+      "currentPublicOperation": "browser.capabilities.list",
+      "nativeApis": [],
+      "mappingKind": "EXISTING_SERVICE",
+      "existingHost": "existing Browser SDK service or non-exposed",
+      "existingDriver": null,
+      "inputCompatibility": "UNCHANGED",
+      "outputCompatibility": "UNCHANGED",
+      "errorCompatibility": "UNCHANGED",
+      "exposure": "EXISTING_CONTRACT",
+      "deprecationState": "ACTIVE",
+      "removalEligibility": false,
+      "testEvidence": {
+        "nativeChrome": "NOT_TESTED",
+        "reference": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      }
+    },
+    {
+      "legacyOperation": "browser.capabilities.getStatus",
+      "currentPublicOperation": "browser.capabilities.getStatus",
+      "nativeApis": [],
+      "mappingKind": "EXISTING_SERVICE",
+      "existingHost": "existing Browser SDK service or non-exposed",
+      "existingDriver": null,
+      "inputCompatibility": "UNCHANGED",
+      "outputCompatibility": "UNCHANGED",
+      "errorCompatibility": "UNCHANGED",
+      "exposure": "EXISTING_CONTRACT",
+      "deprecationState": "ACTIVE",
+      "removalEligibility": false,
+      "testEvidence": {
+        "nativeChrome": "NOT_TESTED",
+        "reference": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      }
+    },
+    {
+      "legacyOperation": "browser.contextMenu.getStatus",
+      "currentPublicOperation": "browser.contextMenu.getStatus",
+      "nativeApis": [
+        "chrome.contextMenus.onClicked"
+      ],
+      "mappingKind": "EXISTING_SERVICE",
+      "existingHost": "src/platform/chrome/context-menus.js",
+      "existingDriver": null,
+      "inputCompatibility": "UNCHANGED",
+      "outputCompatibility": "UNCHANGED",
+      "errorCompatibility": "UNCHANGED",
+      "exposure": "EXISTING_CONTRACT",
+      "deprecationState": "ACTIVE",
+      "removalEligibility": false,
+      "testEvidence": {
+        "nativeChrome": "NOT_TESTED",
+        "reference": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      }
+    },
+    {
+      "legacyOperation": "browser.contextMenu.register",
+      "currentPublicOperation": "browser.contextMenu.register",
+      "nativeApis": [
+        "chrome.contextMenus.create",
+        "chrome.contextMenus.update"
+      ],
+      "mappingKind": "EXISTING_SERVICE",
+      "existingHost": "src/platform/chrome/context-menus.js",
+      "existingDriver": null,
+      "inputCompatibility": "UNCHANGED",
+      "outputCompatibility": "UNCHANGED",
+      "errorCompatibility": "UNCHANGED",
+      "exposure": "EXISTING_CONTRACT",
+      "deprecationState": "ACTIVE",
+      "removalEligibility": false,
+      "testEvidence": {
+        "nativeChrome": "NOT_TESTED",
+        "reference": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      }
+    },
+    {
+      "legacyOperation": "browser.contextMenu.unregister",
+      "currentPublicOperation": "browser.contextMenu.unregister",
+      "nativeApis": [
+        "chrome.contextMenus.remove"
+      ],
+      "mappingKind": "EXISTING_SERVICE",
+      "existingHost": "src/platform/chrome/context-menus.js",
+      "existingDriver": null,
+      "inputCompatibility": "UNCHANGED",
+      "outputCompatibility": "UNCHANGED",
+      "errorCompatibility": "UNCHANGED",
+      "exposure": "EXISTING_CONTRACT",
+      "deprecationState": "ACTIVE",
+      "removalEligibility": false,
+      "testEvidence": {
+        "nativeChrome": "NOT_TESTED",
+        "reference": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      }
+    },
+    {
+      "legacyOperation": "browser.launch.consume",
+      "currentPublicOperation": "browser.launch.consume",
+      "nativeApis": [
+        "chrome.contextMenus.onClicked",
+        "chrome.webNavigation.getFrame"
+      ],
+      "mappingKind": "EXISTING_SERVICE",
+      "existingHost": "existing Browser SDK service or non-exposed",
+      "existingDriver": null,
+      "inputCompatibility": "UNCHANGED",
+      "outputCompatibility": "UNCHANGED",
+      "errorCompatibility": "UNCHANGED",
+      "exposure": "EXISTING_CONTRACT",
+      "deprecationState": "ACTIVE",
+      "removalEligibility": false,
+      "testEvidence": {
+        "nativeChrome": "NOT_TESTED",
+        "reference": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      }
+    },
+    {
+      "legacyOperation": "browser.page.getContext",
+      "currentPublicOperation": "browser.page.getContext",
+      "nativeApis": [],
+      "mappingKind": "EXISTING_SERVICE",
+      "existingHost": "existing Browser SDK service or non-exposed",
+      "existingDriver": null,
+      "inputCompatibility": "UNCHANGED",
+      "outputCompatibility": "UNCHANGED",
+      "errorCompatibility": "UNCHANGED",
+      "exposure": "EXISTING_CONTRACT",
+      "deprecationState": "ACTIVE",
+      "removalEligibility": false,
+      "testEvidence": {
+        "nativeChrome": "NOT_TESTED",
+        "reference": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      }
+    },
+    {
+      "legacyOperation": "browser.page.getSelection",
+      "currentPublicOperation": "browser.page.getSelection",
+      "nativeApis": [
+        "chrome.contextMenus.onClicked"
+      ],
+      "mappingKind": "EXISTING_SERVICE",
+      "existingHost": "existing Browser SDK service or non-exposed",
+      "existingDriver": null,
+      "inputCompatibility": "UNCHANGED",
+      "outputCompatibility": "UNCHANGED",
+      "errorCompatibility": "UNCHANGED",
+      "exposure": "EXISTING_CONTRACT",
+      "deprecationState": "ACTIVE",
+      "removalEligibility": false,
+      "testEvidence": {
+        "nativeChrome": "NOT_TESTED",
+        "reference": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      }
+    },
+    {
+      "legacyOperation": "browser.clipboard.writeText",
+      "currentPublicOperation": "browser.clipboard.writeText",
+      "nativeApis": [],
+      "mappingKind": "EXISTING_SERVICE",
+      "existingHost": "src/ui/sidebar-tools.js",
+      "existingDriver": null,
+      "inputCompatibility": "UNCHANGED",
+      "outputCompatibility": "UNCHANGED",
+      "errorCompatibility": "UNCHANGED",
+      "exposure": "EXISTING_CONTRACT",
+      "deprecationState": "ACTIVE",
+      "removalEligibility": false,
+      "testEvidence": {
+        "nativeChrome": "NOT_TESTED",
+        "reference": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      }
+    },
+    {
+      "legacyOperation": "browser.downloads.text",
+      "currentPublicOperation": "browser.downloads.text",
+      "nativeApis": [
+        "chrome.downloads.download"
+      ],
+      "mappingKind": "EXISTING_SERVICE",
+      "existingHost": "src/ui/sidebar-tools.js",
+      "existingDriver": null,
+      "inputCompatibility": "UNCHANGED",
+      "outputCompatibility": "UNCHANGED",
+      "errorCompatibility": "UNCHANGED",
+      "exposure": "EXISTING_CONTRACT",
+      "deprecationState": "ACTIVE",
+      "removalEligibility": false,
+      "testEvidence": {
+        "nativeChrome": "NOT_TESTED",
+        "reference": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      }
+    },
+    {
+      "legacyOperation": "browser.tabs.open",
+      "currentPublicOperation": "browser.tabs.open",
+      "nativeApis": [
+        "chrome.tabs.create"
+      ],
+      "mappingKind": "SCOPED",
+      "existingHost": "src/platform/chrome/context-menus.js",
+      "existingDriver": "src/platform/chrome/browser-tabs.js",
+      "inputCompatibility": "UNCHANGED",
+      "outputCompatibility": "UNCHANGED",
+      "errorCompatibility": "UNCHANGED",
+      "exposure": "EXISTING_CONTRACT",
+      "deprecationState": "ACTIVE",
+      "removalEligibility": false,
+      "testEvidence": {
+        "nativeChrome": "NOT_TESTED",
+        "reference": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      }
+    },
+    {
+      "legacyOperation": "browser.tabs.focus",
+      "currentPublicOperation": "browser.tabs.focus",
+      "nativeApis": [
+        "chrome.tabs.get",
+        "chrome.tabs.update",
+        "chrome.windows.update"
+      ],
+      "mappingKind": "SCOPED",
+      "existingHost": "src/platform/chrome/context-menus.js",
+      "existingDriver": "src/platform/chrome/browser-tabs.js",
+      "inputCompatibility": "UNCHANGED",
+      "outputCompatibility": "UNCHANGED",
+      "errorCompatibility": "UNCHANGED",
+      "exposure": "EXISTING_CONTRACT",
+      "deprecationState": "ACTIVE",
+      "removalEligibility": false,
+      "testEvidence": {
+        "nativeChrome": "NOT_TESTED",
+        "reference": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      }
+    },
+    {
+      "legacyOperation": "browser.tabs.getOwned",
+      "currentPublicOperation": "browser.tabs.getOwned",
+      "nativeApis": [
+        "chrome.tabs.get",
+        "chrome.webNavigation.getFrame"
+      ],
+      "mappingKind": "SCOPED",
+      "existingHost": "src/platform/chrome/context-menus.js",
+      "existingDriver": "src/platform/chrome/browser-tabs.js",
+      "inputCompatibility": "UNCHANGED",
+      "outputCompatibility": "UNCHANGED",
+      "errorCompatibility": "UNCHANGED",
+      "exposure": "EXISTING_CONTRACT",
+      "deprecationState": "ACTIVE",
+      "removalEligibility": false,
+      "testEvidence": {
+        "nativeChrome": "NOT_TESTED",
+        "reference": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      }
+    },
+    {
+      "legacyOperation": "browser.tabs.listOwned",
+      "currentPublicOperation": "browser.tabs.listOwned",
+      "nativeApis": [
+        "chrome.tabs.get",
+        "chrome.webNavigation.getFrame"
+      ],
+      "mappingKind": "SCOPED",
+      "existingHost": "src/platform/chrome/context-menus.js",
+      "existingDriver": "src/platform/chrome/browser-tabs.js",
+      "inputCompatibility": "UNCHANGED",
+      "outputCompatibility": "UNCHANGED",
+      "errorCompatibility": "UNCHANGED",
+      "exposure": "EXISTING_CONTRACT",
+      "deprecationState": "ACTIVE",
+      "removalEligibility": false,
+      "testEvidence": {
+        "nativeChrome": "NOT_TESTED",
+        "reference": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      }
+    },
+    {
+      "legacyOperation": "browser.tabs.closeOwned",
+      "currentPublicOperation": "browser.tabs.closeOwned",
+      "nativeApis": [
+        "chrome.tabs.get",
+        "chrome.tabs.remove",
+        "chrome.webNavigation.getFrame"
+      ],
+      "mappingKind": "SCOPED",
+      "existingHost": "src/platform/chrome/context-menus.js",
+      "existingDriver": "src/platform/chrome/browser-tabs.js",
+      "inputCompatibility": "UNCHANGED",
+      "outputCompatibility": "UNCHANGED",
+      "errorCompatibility": "UNCHANGED",
+      "exposure": "EXISTING_CONTRACT",
+      "deprecationState": "ACTIVE",
+      "removalEligibility": false,
+      "testEvidence": {
+        "nativeChrome": "NOT_TESTED",
+        "reference": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      }
+    },
+    {
+      "legacyOperation": "browser.sidePanel.openSelf",
+      "currentPublicOperation": "browser.sidePanel.openSelf",
+      "nativeApis": [
+        "chrome.sidePanel.open"
+      ],
+      "mappingKind": "EXISTING_SERVICE",
+      "existingHost": "existing Browser SDK service or non-exposed",
+      "existingDriver": null,
+      "inputCompatibility": "UNCHANGED",
+      "outputCompatibility": "UNCHANGED",
+      "errorCompatibility": "UNCHANGED",
+      "exposure": "EXISTING_CONTRACT",
+      "deprecationState": "ACTIVE",
+      "removalEligibility": false,
+      "testEvidence": {
+        "nativeChrome": "NOT_TESTED",
+        "reference": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      }
+    },
+    {
+      "legacyOperation": "browser.network.request",
+      "currentPublicOperation": "browser.network.request",
+      "nativeApis": [],
+      "mappingKind": "SCOPED",
+      "existingHost": "src/platform/chrome/context-menus.js",
+      "existingDriver": null,
+      "inputCompatibility": "UNCHANGED",
+      "outputCompatibility": "UNCHANGED",
+      "errorCompatibility": "UNCHANGED",
+      "exposure": "EXISTING_CONTRACT",
+      "deprecationState": "ACTIVE",
+      "removalEligibility": false,
+      "testEvidence": {
+        "nativeChrome": "NOT_TESTED",
+        "reference": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      }
+    },
+    {
+      "legacyOperation": "browser.network.observe.start",
+      "currentPublicOperation": "browser.network.observe.start",
+      "nativeApis": [
+        "chrome.webRequest.onBeforeRequest",
+        "chrome.webRequest.onCompleted"
+      ],
+      "mappingKind": "EXISTING_SERVICE",
+      "existingHost": "src/platform/chrome/context-menus.js",
+      "existingDriver": "src/platform/chrome/browser-network-observe.js",
+      "inputCompatibility": "UNCHANGED",
+      "outputCompatibility": "UNCHANGED",
+      "errorCompatibility": "UNCHANGED",
+      "exposure": "EXISTING_CONTRACT",
+      "deprecationState": "ACTIVE",
+      "removalEligibility": false,
+      "testEvidence": {
+        "nativeChrome": "NOT_TESTED",
+        "reference": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      }
+    },
+    {
+      "legacyOperation": "browser.network.observe.getStatus",
+      "currentPublicOperation": "browser.network.observe.getStatus",
+      "nativeApis": [
+        "chrome.webRequest.onBeforeRequest"
+      ],
+      "mappingKind": "EXISTING_SERVICE",
+      "existingHost": "src/platform/chrome/context-menus.js",
+      "existingDriver": "src/platform/chrome/browser-network-observe.js",
+      "inputCompatibility": "UNCHANGED",
+      "outputCompatibility": "UNCHANGED",
+      "errorCompatibility": "UNCHANGED",
+      "exposure": "EXISTING_CONTRACT",
+      "deprecationState": "ACTIVE",
+      "removalEligibility": false,
+      "testEvidence": {
+        "nativeChrome": "NOT_TESTED",
+        "reference": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      }
+    },
+    {
+      "legacyOperation": "browser.network.observe.stop",
+      "currentPublicOperation": "browser.network.observe.stop",
+      "nativeApis": [
+        "chrome.webRequest.onBeforeRequest"
+      ],
+      "mappingKind": "EXISTING_SERVICE",
+      "existingHost": "src/platform/chrome/context-menus.js",
+      "existingDriver": "src/platform/chrome/browser-network-observe.js",
+      "inputCompatibility": "UNCHANGED",
+      "outputCompatibility": "UNCHANGED",
+      "errorCompatibility": "UNCHANGED",
+      "exposure": "EXISTING_CONTRACT",
+      "deprecationState": "ACTIVE",
+      "removalEligibility": false,
+      "testEvidence": {
+        "nativeChrome": "NOT_TESTED",
+        "reference": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      }
+    },
+    {
+      "legacyOperation": "browser.network.observe.export",
+      "currentPublicOperation": "browser.network.observe.export",
+      "nativeApis": [
+        "chrome.downloads.download"
+      ],
+      "mappingKind": "EXISTING_SERVICE",
+      "existingHost": "src/platform/chrome/context-menus.js",
+      "existingDriver": "src/platform/chrome/browser-network-observe.js",
+      "inputCompatibility": "UNCHANGED",
+      "outputCompatibility": "UNCHANGED",
+      "errorCompatibility": "UNCHANGED",
+      "exposure": "EXISTING_CONTRACT",
+      "deprecationState": "ACTIVE",
+      "removalEligibility": false,
+      "testEvidence": {
+        "nativeChrome": "NOT_TESTED",
+        "reference": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      }
+    },
+    {
+      "legacyOperation": "browser.events.read",
+      "currentPublicOperation": "browser.events.read",
+      "nativeApis": [
+        "chrome.webRequest.onBeforeRequest"
+      ],
+      "mappingKind": "EXISTING_SERVICE",
+      "existingHost": "existing Browser SDK service or non-exposed",
+      "existingDriver": null,
+      "inputCompatibility": "UNCHANGED",
+      "outputCompatibility": "UNCHANGED",
+      "errorCompatibility": "UNCHANGED",
+      "exposure": "EXISTING_CONTRACT",
+      "deprecationState": "ACTIVE",
+      "removalEligibility": false,
+      "testEvidence": {
+        "nativeChrome": "NOT_TESTED",
+        "reference": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      }
+    },
+    {
+      "legacyOperation": "browser.events.close",
+      "currentPublicOperation": "browser.events.close",
+      "nativeApis": [
+        "chrome.webRequest.onBeforeRequest"
+      ],
+      "mappingKind": "EXISTING_SERVICE",
+      "existingHost": "existing Browser SDK service or non-exposed",
+      "existingDriver": null,
+      "inputCompatibility": "UNCHANGED",
+      "outputCompatibility": "UNCHANGED",
+      "errorCompatibility": "UNCHANGED",
+      "exposure": "EXISTING_CONTRACT",
+      "deprecationState": "ACTIVE",
+      "removalEligibility": false,
+      "testEvidence": {
+        "nativeChrome": "NOT_TESTED",
+        "reference": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      }
+    },
+    {
+      "legacyOperation": "browser.screenshot.captureVisible",
+      "currentPublicOperation": "browser.screenshot.captureVisible",
+      "nativeApis": [
+        "chrome.tabs.captureVisibleTab",
+        "chrome.downloads.download"
+      ],
+      "mappingKind": "COMPOSED",
+      "existingHost": "src/platform/chrome/context-menus.js",
+      "existingDriver": "src/platform/chrome/browser-screenshot.js",
+      "inputCompatibility": "UNCHANGED",
+      "outputCompatibility": "UNCHANGED",
+      "errorCompatibility": "UNCHANGED",
+      "exposure": "EXISTING_CONTRACT",
+      "deprecationState": "ACTIVE",
+      "removalEligibility": false,
+      "testEvidence": {
+        "nativeChrome": "NOT_TESTED",
+        "reference": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      }
+    },
+    {
+      "legacyOperation": "browser.media.recording.prepare",
+      "currentPublicOperation": "browser.media.recording.prepare",
+      "nativeApis": [],
+      "mappingKind": "COMPOSED",
+      "existingHost": "existing Browser SDK service or non-exposed",
+      "existingDriver": null,
+      "inputCompatibility": "UNCHANGED",
+      "outputCompatibility": "UNCHANGED",
+      "errorCompatibility": "UNCHANGED",
+      "exposure": "PLANNED",
+      "deprecationState": "ACTIVE",
+      "removalEligibility": false,
+      "testEvidence": {
+        "nativeChrome": "NOT_TESTED",
+        "reference": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      }
+    },
+    {
+      "legacyOperation": "browser.media.recording.getStatus",
+      "currentPublicOperation": "browser.media.recording.getStatus",
+      "nativeApis": [],
+      "mappingKind": "COMPOSED",
+      "existingHost": "existing Browser SDK service or non-exposed",
+      "existingDriver": null,
+      "inputCompatibility": "UNCHANGED",
+      "outputCompatibility": "UNCHANGED",
+      "errorCompatibility": "UNCHANGED",
+      "exposure": "PLANNED",
+      "deprecationState": "ACTIVE",
+      "removalEligibility": false,
+      "testEvidence": {
+        "nativeChrome": "NOT_TESTED",
+        "reference": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      }
+    },
+    {
+      "legacyOperation": "browser.media.recording.stop",
+      "currentPublicOperation": "browser.media.recording.stop",
+      "nativeApis": [],
+      "mappingKind": "COMPOSED",
+      "existingHost": "existing Browser SDK service or non-exposed",
+      "existingDriver": null,
+      "inputCompatibility": "UNCHANGED",
+      "outputCompatibility": "UNCHANGED",
+      "errorCompatibility": "UNCHANGED",
+      "exposure": "PLANNED",
+      "deprecationState": "ACTIVE",
+      "removalEligibility": false,
+      "testEvidence": {
+        "nativeChrome": "NOT_TESTED",
+        "reference": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      }
+    },
+    {
+      "legacyOperation": "browser.media.recording.discard",
+      "currentPublicOperation": "browser.media.recording.discard",
+      "nativeApis": [],
+      "mappingKind": "COMPOSED",
+      "existingHost": "existing Browser SDK service or non-exposed",
+      "existingDriver": null,
+      "inputCompatibility": "UNCHANGED",
+      "outputCompatibility": "UNCHANGED",
+      "errorCompatibility": "UNCHANGED",
+      "exposure": "PLANNED",
+      "deprecationState": "ACTIVE",
+      "removalEligibility": false,
+      "testEvidence": {
+        "nativeChrome": "NOT_TESTED",
+        "reference": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      }
+    },
+    {
+      "legacyOperation": "browser.speech.transcribe",
+      "currentPublicOperation": "browser.speech.transcribe",
+      "nativeApis": [],
+      "mappingKind": "EXISTING_SERVICE",
+      "existingHost": "existing Browser SDK service or non-exposed",
+      "existingDriver": null,
+      "inputCompatibility": "UNCHANGED",
+      "outputCompatibility": "UNCHANGED",
+      "errorCompatibility": "UNCHANGED",
+      "exposure": "PLANNED",
+      "deprecationState": "ACTIVE",
+      "removalEligibility": false,
+      "testEvidence": {
+        "nativeChrome": "NOT_TESTED",
+        "reference": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      }
+    },
+    {
+      "legacyOperation": "browser.speech.speak",
+      "currentPublicOperation": "browser.speech.speak",
+      "nativeApis": [],
+      "mappingKind": "EXISTING_SERVICE",
+      "existingHost": "existing Browser SDK service or non-exposed",
+      "existingDriver": null,
+      "inputCompatibility": "UNCHANGED",
+      "outputCompatibility": "UNCHANGED",
+      "errorCompatibility": "UNCHANGED",
+      "exposure": "PLANNED",
+      "deprecationState": "ACTIVE",
+      "removalEligibility": false,
+      "testEvidence": {
+        "nativeChrome": "NOT_TESTED",
+        "reference": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      }
+    },
+    {
+      "legacyOperation": "browser.speech.stop",
+      "currentPublicOperation": "browser.speech.stop",
+      "nativeApis": [],
+      "mappingKind": "EXISTING_SERVICE",
+      "existingHost": "existing Browser SDK service or non-exposed",
+      "existingDriver": null,
+      "inputCompatibility": "UNCHANGED",
+      "outputCompatibility": "UNCHANGED",
+      "errorCompatibility": "UNCHANGED",
+      "exposure": "PLANNED",
+      "deprecationState": "ACTIVE",
+      "removalEligibility": false,
+      "testEvidence": {
+        "nativeChrome": "NOT_TESTED",
+        "reference": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      }
+    },
+    {
+      "legacyOperation": "browser.notifications.create",
+      "currentPublicOperation": "browser.notifications.create",
+      "nativeApis": [
+        "chrome.notifications.create"
+      ],
+      "mappingKind": "HOST_ONLY",
+      "existingHost": "existing Browser SDK service or non-exposed",
+      "existingDriver": null,
+      "inputCompatibility": "UNCHANGED",
+      "outputCompatibility": "UNCHANGED",
+      "errorCompatibility": "UNCHANGED",
+      "exposure": "NOT_EXPOSED",
+      "deprecationState": "ACTIVE",
+      "removalEligibility": false,
+      "testEvidence": {
+        "nativeChrome": "NOT_TESTED",
+        "reference": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      }
+    },
+    {
+      "legacyOperation": "browser.notifications.clear",
+      "currentPublicOperation": "browser.notifications.clear",
+      "nativeApis": [
+        "chrome.notifications.clear"
+      ],
+      "mappingKind": "HOST_ONLY",
+      "existingHost": "existing Browser SDK service or non-exposed",
+      "existingDriver": null,
+      "inputCompatibility": "UNCHANGED",
+      "outputCompatibility": "UNCHANGED",
+      "errorCompatibility": "UNCHANGED",
+      "exposure": "NOT_EXPOSED",
+      "deprecationState": "ACTIVE",
+      "removalEligibility": false,
+      "testEvidence": {
+        "nativeChrome": "NOT_TESTED",
+        "reference": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      }
+    },
+    {
+      "legacyOperation": "browser.operations.getStatus",
+      "currentPublicOperation": "browser.operations.getStatus",
+      "nativeApis": [],
+      "mappingKind": "EXISTING_SERVICE",
+      "existingHost": "existing Browser SDK service or non-exposed",
+      "existingDriver": null,
+      "inputCompatibility": "UNCHANGED",
+      "outputCompatibility": "UNCHANGED",
+      "errorCompatibility": "UNCHANGED",
+      "exposure": "EXISTING_CONTRACT",
+      "deprecationState": "ACTIVE",
+      "removalEligibility": false,
+      "testEvidence": {
+        "nativeChrome": "NOT_TESTED",
+        "reference": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      }
+    },
+    {
+      "legacyOperation": "browser.operations.cancel",
+      "currentPublicOperation": "browser.operations.cancel",
+      "nativeApis": [],
+      "mappingKind": "EXISTING_SERVICE",
+      "existingHost": "existing Browser SDK service or non-exposed",
+      "existingDriver": null,
+      "inputCompatibility": "UNCHANGED",
+      "outputCompatibility": "UNCHANGED",
+      "errorCompatibility": "UNCHANGED",
+      "exposure": "EXISTING_CONTRACT",
+      "deprecationState": "ACTIVE",
+      "removalEligibility": false,
+      "testEvidence": {
+        "nativeChrome": "NOT_TESTED",
+        "reference": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      }
+    }
+  ]
+}

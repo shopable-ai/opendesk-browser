@@ -1,0 +1,57 @@
+{
+  "schemaVersion": "opendesk.chromium.schema.sources.v1",
+  "upstream": "https://github.com/chromium/chromium",
+  "chromiumCommit": "b5485910372708cd11d9a814a3e382fe8da57df3",
+  "minimumChrome": 138,
+  "coverage": "PINNED_PARTIAL_JSON_SCHEMAS",
+  "files": [
+    {
+      "upstreamPath": "chrome/common/extensions/api/bookmarks.json",
+      "localPath": "vendor/chromium-extension-api/bookmarks.json",
+      "gitBlobSha": "1103be61f271c2410da601c5116360296951e28f",
+      "format": "chromium-json-schema"
+    },
+    {
+      "upstreamPath": "chrome/common/extensions/api/context_menus.json",
+      "localPath": "vendor/chromium-extension-api/context_menus.json",
+      "gitBlobSha": "c42347861ac2873c2647ee156a7e72e9f92976c9",
+      "format": "chromium-json-schema"
+    },
+    {
+      "upstreamPath": "chrome/common/extensions/api/history.json",
+      "localPath": "vendor/chromium-extension-api/history.json",
+      "gitBlobSha": "94633ddbd586a9f971f19b4c735ee5a5ea40ad4e",
+      "format": "chromium-json-schema"
+    },
+    {
+      "upstreamPath": "chrome/common/extensions/api/sessions.json",
+      "localPath": "vendor/chromium-extension-api/sessions.json",
+      "gitBlobSha": "d58cd9c40c285d9bf89e090108b6b7523fb373a6",
+      "format": "chromium-json-schema"
+    },
+    {
+      "upstreamPath": "chrome/common/extensions/api/tabs.json",
+      "localPath": "vendor/chromium-extension-api/tabs.json",
+      "gitBlobSha": "dbd3c252a3039cb10014518b05037151be7a1ce2",
+      "format": "chromium-json-schema"
+    },
+    {
+      "upstreamPath": "chrome/common/extensions/api/web_navigation.json",
+      "localPath": "vendor/chromium-extension-api/web_navigation.json",
+      "gitBlobSha": "d28dd5dfbcf9493c7e6b04aa44b9ed0ed4fff05b",
+      "format": "chromium-json-schema"
+    },
+    {
+      "upstreamPath": "chrome/common/extensions/api/windows.json",
+      "localPath": "vendor/chromium-extension-api/windows.json",
+      "gitBlobSha": "f890145286aef2d0a912d1fe5e2bda082a4e5347",
+      "format": "chromium-json-schema"
+    },
+    {
+      "upstreamPath": "extensions/common/api/cookies.json",
+      "localPath": "vendor/chromium-extension-api/cookies.json",
+      "gitBlobSha": "1a3fe52a71da6c17ce6a5f64c0ec3a51078cd7fd",
+      "format": "chromium-json-schema"
+    }
+  ]
+}
