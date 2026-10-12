@@ -27,6 +27,8 @@ jobs:
           node-version: '22'
           cache: npm
       - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Verify exact Side Panel versus catalog classification
+        run: node --test tests/environment/page-sidebar-context-r243.test.mjs
       - name: Verify and build real MV3 package
         run: |
           npm run check
