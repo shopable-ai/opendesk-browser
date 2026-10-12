@@ -1,5 +1,10 @@
 # React 普通 JavaScript · 通用跨站悬浮组件（R24.3）
 
+## 自动编译状态（2026-10-12）
+
+**状态：已验证的普通 JavaScript React 示例，不是 JSX 示例。** 默认入口 `src/main.js` 使用官方 React `createElement` 和 Hooks，**不需要 JSX 语法转换**；系统仍自动准备、链接固定 React Runtime、生成受管挂载/Stop。真实独立 npm 安装包四目录编译已在 [macOS/Ubuntu CI PASS](https://github.com/shopable-ai/opendesk-browser/actions/runs/38231722128)，但最新完整 Chrome 生命周期仍有未测矩阵。本项目 `opendesk browser dev .` 需要 Native；浏览器无 Native 的 JSX 单组件编辑是另一个入口，不读取本地目录。**保存不自动 Run。** [状态表](../../../docs/api/page-ui-frameworks.zh-CN.md)。
+
+
 本目录演示**在不同普通网页中运行的 React 悬浮 UI**，不是阅读目录、网页采集或 Side Panel 小工具。保留项目 ID、标准 `react` 导入和 `entryMode: "component"`。开发者只编辑 `src/main.js`，不必自行调用 `createPageUI`、创建 React root、运行 Vite 或在本项目安装 React。
 
 ## 第三方依赖与 JSON：本项目不以油猴声明为主入口
