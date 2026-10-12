@@ -60,19 +60,43 @@ async function selectFramework(session,framework){
   const index={react:1,vue:2}[framework];
   assert(Number.isSafeInteger(index));
   const el='document.querySelector("#page-component-framework")';
-  if(await session.read(el+'.selectedIndex')===index)return;
+  const matches=()=>session.read(el+'.value==='+JSON.stringify(framework));
+  if(await matches())return;
+  // Browser-native CDP events only: NEVER set select.value, dispatch a
+  // synthetic change or fabricate a gesture. macOS Chromium can route keys
+  // into an open native menu, so also test closed-select keyboard navigation.
+  const press=async (key,code,windowsVirtualKeyCode)=>{
+    for(const type of ['rawKeyDown','keyUp'])
+      await session.call('Input.dispatchKeyEvent',{type,key,code,windowsVirtualKeyCode});
+  };
+  const snapshot=()=>session.read('(()=>{const e='+el+';return {'+
+    'value:e?.value,index:e?.selectedIndex,disabled:e?.disabled,'+
+    'focused:document.activeElement?.id,selectedTab:document.querySelector("#tab-develop")?.getAttribute("aria-selected"),'+
+    'status:document.querySelector("#page-component-status")?.textContent,'+
+    'draftReadOnly:document.querySelector("#script-source")?.readOnly}})()');
   await clickReal(session,el);
-  // CDP key dispatch is browser-native keyboard input, not JS dispatchEvent.
-  await session.call('Input.dispatchKeyEvent',{type:'rawKeyDown',key:'Home',code:'Home',windowsVirtualKeyCode:36});
-  await session.call('Input.dispatchKeyEvent',{type:'keyUp',key:'Home',code:'Home',windowsVirtualKeyCode:36});
-  for(let n=0;n<index;n++){
-    await session.call('Input.dispatchKeyEvent',{type:'rawKeyDown',key:'ArrowDown',code:'ArrowDown',windowsVirtualKeyCode:40});
-    await session.call('Input.dispatchKeyEvent',{type:'keyUp',key:'ArrowDown',code:'ArrowDown',windowsVirtualKeyCode:40});
-  }
-  await session.call('Input.dispatchKeyEvent',{type:'rawKeyDown',key:'Enter',code:'Enter',windowsVirtualKeyCode:13});
-  await session.call('Input.dispatchKeyEvent',{type:'keyUp',key:'Enter',code:'Enter',windowsVirtualKeyCode:13});
-  await until(()=>session.read(el+'.value==='+JSON.stringify(framework)),
-    'trusted browser selection of '+framework,12000);
+  await press('Home','Home',36);
+  for(let n=0;n<index;n++)await press('ArrowDown','ArrowDown',40);
+  await press('Enter','Enter',13);
+  if(await matches())return;
+  console.log('R243_SELECTOR_NATIVE_MENU '+JSON.stringify(await snapshot()));
+  // Close the system popup and use focused HTMLSelectElement keyboard
+  // navigation; Tab commits the user's real keyboard selection in Chromium.
+  await press('Escape','Escape',27);
+  await clickReal(session,el);
+  await press('Escape','Escape',27);
+  await press('Home','Home',36);
+  for(let n=0;n<index;n++)await press('ArrowDown','ArrowDown',40);
+  await press('Tab','Tab',9);
+  if(await matches())return;
+  console.log('R243_SELECTOR_CLOSED_MENU '+JSON.stringify(await snapshot()));
+  // A native letter key is an accessible alternative to OS menu arrows.
+  await clickReal(session,el);
+  await press('Escape','Escape',27);
+  await session.call('Input.insertText',{text:framework==='react'?'React':'Vue'});
+  await press('Tab','Tab',9);
+  console.log('R243_SELECTOR_FINAL '+JSON.stringify(await snapshot()));
+  await until(matches,'trusted browser selection of '+framework,2500);
 }
 async function verifyBrowserUI({browser,page,catalogTabId,base,extensionId,output,report}){
   const sample=fs.readFileSync(path.join(root,'examples/tasks/demo-form.html'));
