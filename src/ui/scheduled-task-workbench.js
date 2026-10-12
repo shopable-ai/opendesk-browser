@@ -51,7 +51,7 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
   let disposed=false,shown=false,busy=false,editing=null,managerReturn='list';
   let pendingCreate=false,pendingTask=null,confirmUninstall=null,allPlans=[],catalog=[],installed=[];
   let selectedFire=null,lastRefresh=0,activeView='list',runnerFocusId=null;
-  let permissionSeq=0,awaitingSave=null;
+  let permissionSeq=0,awaitingSave=null,editRevision=0;
   const touched=new Set();
   const formFields={title:'schedule-title',task:'schedule-task-select',
     target:'schedule-target',params:'schedule-params',time:'schedule-timezone'};
@@ -347,6 +347,7 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
   async function save(event){
     event.preventDefault();if(busy)return;
     clearConfirmation();
+    const revision=editRevision;
     const local=validateLocal(true);
     if(!local){message('请先修正上方标记的字段',true);return;}
     busy=true;get('schedule-save').disabled=true;
@@ -367,6 +368,7 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
         params:local.params,targetUrl:local.url.href,openIfMissing:get('schedule-open-target').checked,
         timezone:zone,triggerKind:kind,triggerSpec:spec,misfirePolicy:get('schedule-misfire').value,
         startDeadlineMs:Number(get('schedule-deadline').value)*60000,paused:get('schedule-paused').checked};
+      if(revision!==editRevision)throw Error('表单在核对过程中被修改，请重新检查并确认');
       awaitingSave={input};
       const timing=frequencyLabel(input)+' · '+describeTime(nextScheduleAt(kind,spec,zone,Date.now()),zone);
       text(get('schedule-save-summary'),
@@ -477,12 +479,12 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
     ['schedule-once','time'],['schedule-clock','time'],['schedule-minutes','time'],
     ['schedule-weekdays-field','time'],['schedule-deadline','time']]){
     bind(id,'input',()=>{
-      touched.add(name);clearConfirmation();validateLocal(false);
+      touched.add(name);editRevision++;clearConfirmation();validateLocal(false);
       if(name==='time')preview();
     });
   }
   for(const id of ['schedule-open-target','schedule-misfire','schedule-paused'])
-    bind(id,'change',clearConfirmation);
+    bind(id,'change',()=>{editRevision++;clearConfirmation();});
   bind('schedule-form','submit',save);
   bind('schedule-task-select','change',showTaskVersion);
   bind('schedule-new-script','click',enterDeveloper);
