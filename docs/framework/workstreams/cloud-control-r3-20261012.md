@@ -143,3 +143,29 @@ NOT_VERIFIED，不将书面设计自动评为 95。
 
 任何专家评分涉及真实网页执行、视觉缩放、Host 转交或最终安全性时，
 缺少对应原始证据必须标记 **NOT_VERIFIED**，不能根据 CI 通过填 95 分。
+
+
+## F. 跨底座变化后的最新完整候选 CI（2026-10-12）
+
+针对同一 main 在 Browser SDK、Extension Factory 等并行工作变化后的实际源码，
+Cloud R3 专项 workflow 已扩大触发到共享 Host/Task/Storage/RunHost/Manifest、
+构建配置和包依赖。CI 按 `github.sha` 独立保留候选，不再被后续 main
+提交自动取消。
+
+- **已验证候选**：`210d44311ed96954ddc1b125f6b45f6902fc18d7`。
+- **GitHub Actions**：https://github.com/shopable-ai/opendesk-browser/actions/runs/38250711041
+- `cloud-r3-component`：**completed/success**，10 组 4+6+4+2+11+41+7+7+110+9，
+  合计 **201 PASS，0 FAIL**。
+- `cloud-r3-package`：**completed/success**；`npm run check`、
+  `npm run build`、`npm run build:dev`、`npm run verify` 全部通过。
+  - 本候选生产 packageHash：
+    `645486f79e3638577f0810b0e797726039776c1bd7af61580af42b72ceb5a9db`。
+  - 本候选开发 packageHash：
+    `1f5228ea2d7470369089201aa3eb8cf85b4337dba3d32f1fe70c8a96dc1af87e`。
+- `docs/framework/prompts/cloud-control-r3-final-mac-chrome-acceptance.zh-CN.md`
+  已绑定本候选作为 Mac Native 验收参照。
+
+此记录不会将老的 e9e4fd51 包哈希覆盖成新值；
+不同源码/工具链/其他 Agent 后续修改需重新核对影响与包身份。
+**Mac Chrome Gate4、窗口切换、真实显示、CSP 安装行为和 Runner
+所有权仍 NATIVE_PENDING / NOT_IMPLEMENTED，绝不由该 CI 晋升。**
