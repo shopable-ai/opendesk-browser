@@ -1,3 +1,11 @@
+## R5 P0 实际安全修复：TabRef 完整 URL 与撤权竞态（2026-10-12）
+
+- **不增加空接口**：原正式 32 项中仍有 23 项 SOURCE_WIRED、7 项 PLANNED、2 项 NOT_EXPOSED；原生完整 Mac Chrome 验收仍 **0/32 / NOT_TESTED**。R5+ 114 项尚未晋级正式合同。
+- **源码修复**：`src/platform/chrome/browser-tabs.js` 的 `resolve()` 必须比较原始获准完整 URL，而不只比较 Origin；检查 Chrome 当前 document 与 URL 一致，异步 `webNavigation.getFrame` 返回后再检查本工具 TabRef 未被撤销或过期。聚焦前额外检查撤权竞态。
+- **回归测试**：`tests/environment/browser-tabs-host.test.mjs` 新增同源不同路径但漏接 `onUpdated`、异步 frame 读取期间撤权、`tabs.get` 期间撤权三类拒绝测试。
+- **验证等级**：源码补丁及测试文件已准备，GitHub 远端 CI 结果须对应最终 commit；本环境无 Mac 本地源码/Chrome，不能称原生 PASS。
+- **下一步**：优先确认本候选 Node/Check/Build/Verify；再完善 tabs 自有查询、列表、关闭的 SDK→Host→Chrome 真实接线与单次点击，并完成 Mac Chrome 同候选验收。
+
 ## R4 开发体验：网络观察短 API（2026-10-12）
 
 - **用户提出的问题**：`OpenDeskSDK.browser.network.observe.start()` 把内部操作分类和 `start` 生命周期动词叠加在公开入口上，普通工具编写不便。以 `const {browser}=OpenDeskSDK; const watch=await browser.network.watch({tabRef,origin})` 作为推荐方式，随后 `watch.read()/status()/stop()/export()/cancel()/close()`。

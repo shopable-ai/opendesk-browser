@@ -93,6 +93,7 @@ export function createBrowserTabHost({api=globalThis.chrome,authorize,clock=Date
   try{matches=Number.isSafeInteger(tab?.id)&&tab.id===row.tabId&&
       browserTabUrl(tab.url).href===row.url}catch{}
   if(!matches){purge(args.tabRef);throw fail('E_TAB_REF_INVALID','Tab changed or closed')}
+  if(refs.get(args.tabRef)!==row)throw fail('E_TAB_REF_INVALID','Tab authority was revoked');
   if(tab?.status==='complete')row.initialNavigation=false;
   const moved=await api.tabs.update(row.tabId,{active:true});
   if(Number.isSafeInteger(moved?.windowId)&&typeof api?.windows?.update==='function')
@@ -110,19 +111,23 @@ export function createBrowserTabHost({api=globalThis.chrome,authorize,clock=Date
    throw fail('E_TAB_REF_INVALID','Tab reference expired or belongs to another tool');
   }
   const tab=await api.tabs.get(row.tabId).catch(()=>null);
-  let origin;
-  try{origin=browserTabUrl(tab?.url).origin}catch{}
-  if(!tab||tab.id!==row.tabId||origin!==row.origin||tab.incognito)
-   throw fail('E_TAB_REF_INVALID','Tab closed or navigated');
+  let currentUrl;
+  try{currentUrl=browserTabUrl(tab?.url)}catch{}
+  // Same-Origin path changes are not safe if Chrome's onUpdated event was missed.
+  if(!tab||tab.id!==row.tabId||currentUrl?.href!==row.url||tab.incognito){
+   purge(tabRef);throw fail('E_TAB_REF_INVALID','Tab closed or navigated');
+  }
   if(typeof api.webNavigation?.getFrame!=='function')
    throw fail('E_CHROME_UNSUPPORTED','Document identity unavailable');
   const frame=await api.webNavigation.getFrame({tabId:row.tabId,frameId:0});
   if(!frame?.documentId||frame.errorOccurred||
      (frame.documentLifecycle&&frame.documentLifecycle!=='active')||
-     frame.url!==tab.url)
+     frame.url!==row.url)
    throw fail('E_DOCUMENT_STALE','Owned tab document not active');
+  if(refs.get(tabRef)!==row||clock.now()>=row.expiresAt)
+   throw fail('E_TAB_REF_INVALID','Tab reference was revoked during Chrome lookup');
   return {tabId:row.tabId,windowId:tab.windowId,documentId:frame.documentId,
-   url:frame.url,incognito:false,origin};
+   url:frame.url,incognito:false,origin:row.origin};
  }
  const revokeTool=id=>{for(const [ref,row] of refs)if(row.owner.startsWith(id+':'))purge(ref)};
  return Object.freeze({open,focus,resolve,invalidateTab,revokeTool,

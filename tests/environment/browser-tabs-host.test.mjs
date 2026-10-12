@@ -84,3 +84,36 @@ test('first real Chrome loading event preserves a newly opened ref but later rel
  f.emitUpdated(299,{status:'loading'});
  await assert.rejects(host.focus({tabRef},owner()),code('E_TAB_REF_INVALID'));
 });
+
+test('R5 security: missed Chrome onUpdated cannot reuse owned TabRef after same-Origin path navigation',async()=>{
+ const f=fixture();
+ f.api.webNavigation={getFrame:async({tabId})=>({
+   documentId:'doc-'+tabId,url:f.items.get(tabId)?.url,documentLifecycle:'active'})};
+ const host=createBrowserTabHost({api:f.api,createRef:()=>ref,authorize:async()=>true});
+ const {tabRef}=await host.open({url:'https://example.org/initial'},owner());
+ // Navigation is real in Chrome state, but this fixture deliberately drops onUpdated.
+ f.items.set(200,{...f.items.get(200),url:'https://example.org/other-document'});
+ await assert.rejects(host.resolve(tabRef,owner()),code('E_TAB_REF_INVALID'));
+ await assert.rejects(host.focus({tabRef},owner()),code('E_TAB_REF_INVALID'));
+});
+test('R5 security: revoke during asynchronous Chrome document lookup invalidates TabRef',async()=>{
+ const f=fixture();let enter,release;
+ const entered=new Promise(resolve=>{enter=resolve});
+ const blocked=new Promise(resolve=>{release=resolve});
+ f.api.webNavigation={getFrame:async({tabId})=>{
+   enter();await blocked;return {documentId:'doc-'+tabId,url:f.items.get(tabId)?.url,documentLifecycle:'active'};
+ }};
+ const host=createBrowserTabHost({api:f.api,createRef:()=>ref,authorize:async()=>true});
+ const {tabRef}=await host.open({url:'https://example.org/initial'},owner());
+ const pending=host.resolve(tabRef,owner());
+ await entered;host.revokeTool('tool-a');release();
+ await assert.rejects(pending,code('E_TAB_REF_INVALID'));
+});
+test('R5 security: revoke during Chrome tabs.get cannot focus a stale owned tab',async()=>{
+ const f=fixture();let host;
+ f.api.tabs.get=async id=>{host.revokeTool('tool-a');return f.items.get(id)};
+ host=createBrowserTabHost({api:f.api,createRef:()=>ref,authorize:async()=>true});
+ const {tabRef}=await host.open({url:'https://example.org/initial'},owner());
+ await assert.rejects(host.focus({tabRef},owner()),code('E_TAB_REF_INVALID'));
+ assert(!f.operations.includes('focus'),'No Chrome focus after authority was revoked');
+});
