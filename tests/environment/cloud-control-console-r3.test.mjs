@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
-import {requireCloudConsoleSender} from '../../src/platform/host/cloud-observer.js';
+import {requireCloudConsoleSender,requireCloudSidePanelSender} from '../../src/platform/host/cloud-observer.js';
 import {initCloudControlConsole} from '../../src/ui/cloud-control-console.js';
 
 const URL='chrome-extension://trusted/ui/cloud-control.html';
@@ -28,6 +28,21 @@ test('console Observer requires exact Chrome-confirmed extension document identi
   const a=api();a.runtime.getContexts=async()=>[];
   await assert.rejects(requireCloudConsoleSender(a,sender()),{code:'E_OWNER'});
 });
+test('only native Side Panel documents can invoke cloud management and claim routes',async()=>{
+  const url='chrome-extension://trusted/ui/tool.html?hostInstanceId=real';
+  const a=api(),s={...sender(),url,documentId:'side-panel-document',tab:undefined};
+  a.runtime.getContexts=async()=>[{
+    contextType:'SIDE_PANEL',documentUrl:url,documentId:'side-panel-document',
+    frameId:0,incognito:false
+  }];
+  await assert.doesNotReject(requireCloudSidePanelSender(a,s));
+  const b=api();b.runtime.getContexts=async()=>[{
+    contextType:'TAB',documentUrl:url,documentId:'side-panel-document',frameId:0,incognito:false
+  }];
+  await assert.rejects(requireCloudSidePanelSender(b,s),{code:'E_OWNER'});
+  await assert.rejects(requireCloudSidePanelSender(a,{...s,id:'foreign'}),{code:'E_OWNER'});
+  await assert.rejects(requireCloudSidePanelSender(a,{...s,documentId:'forged'}),{code:'E_OWNER'});
+});
 test('console is a fixed registered page and never constructs an executable Host',async()=>{
   const [html,js,broker,build,prepare,verify,side]=await Promise.all([
     readFile('src/ui/cloud-control.html','utf8'),readFile('src/ui/cloud-control-console.js','utf8'),
@@ -40,6 +55,7 @@ test('console is a fixed registered page and never constructs an executable Host
   assert.match(prepare,/'src\/ui\/cloud-control\.html':'ui\/cloud-control\.html'/);
   assert.match(verify,/'ui\/cloud-control\.html': \['design-tokens\.css'/);
   assert.match(broker,/await requireCloudConsoleSender\(api,sender\)/);
+  assert.match(broker,/await requireCloudSidePanelSender\(api,sender\)/);
   assert.match(broker,/return authority\.cloud\.cloudObserve\(message\.payload \?\? \{\}\)/);
   assert.doesNotMatch(js,/createHostClient|registerHost|cloudNext|cloudResolve|cloudPair|host\.start/);
   assert.match(side,/api\.tabs\.create\(\{url:api\.runtime\.getURL\('ui\/cloud-control\.html'\)\}\)/);
