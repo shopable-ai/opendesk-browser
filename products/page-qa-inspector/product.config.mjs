@@ -1,3 +1,7 @@
+// @deprecated 2026-10-12: Page QA Inspector is not an active commercial product.
+// DEPRECATED / NO_RELEASE / MANUAL_FIXTURE_ONLY.
+// Historical Extension Factory R2 fixture only. Do not publish or use as default.
+// See products/page-qa-inspector/README.zh-CN.md.
 import {PAGE_QA_PRODUCT_ID,PAGE_QA_VERSION} from '../../packages/features/page-qa/identity.js';
 import {PRODUCT_SCHEMA} from '../../packages/extension-factory/resolve-product.mjs';
 
