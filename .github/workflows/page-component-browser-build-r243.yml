@@ -25,6 +25,8 @@ jobs:
       - run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Compile static ESM modules without loading user source
         run: node scripts/build-page-component-browser-r243.mjs --emit-base64
+      - name: Install exact standalone Babel test dependencies without scripts
+        run: npm ci --prefix scripts/page-browser-babel --ignore-scripts --no-audit --no-fund
       - name: Validate original component compiler rules and worker syntax
         run: |
           node --test tests/environment/page-component-browser-linker-r243.test.mjs
