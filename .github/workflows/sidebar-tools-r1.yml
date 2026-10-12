@@ -27,6 +27,8 @@ on:
       - 'wxt.config.mjs'
       - 'package.json'
       - 'examples/sidebar-tools/**'
+      - 'examples/libs/trusted-imports/**'
+      - 'tests/environment/runtime-libs-trusted-worlds.test.mjs'
       - 'tests/environment/sidebar-tools.test.mjs'
       - 'tests/environment/sidebar-tools-host.test.mjs'
       - 'tests/environment/tool-stage.test.mjs'
