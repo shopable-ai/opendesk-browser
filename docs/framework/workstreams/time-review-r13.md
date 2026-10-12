@@ -116,3 +116,9 @@
 
 - [Actions 38218213760](https://github.com/shopable-ai/opendesk-browser/actions/runs/38218213760) 在 `31db41a34addb5dfcb69f3bed3db17c1b50dcf99`：54/54 组件通过，原生 macOS CFT 155 JSON/CSV 文件名和内容、安装、权限隔离、Canvas、真实活动计时、停止计时、实际 SW target 终止/更换和宿主恢复 **全部 PASS**。未测整进程重启和非空统计实际导出。
 - 本候选原生扩展测试增加：在真实有效网站活动停止后再次点击正式工具导出 JSON/CSV，读取隔离目录中 Chrome 实际产生的 **uniquify** 新文件，分别核对非空原始站点时长、完整 JSON 字段和既有 CSV 协议；随后关闭并等待原 CFT OS 进程终止，在**同一个唯一拥有的临时 Profile** 中启动新的 CFT 进程，读取扩展真实存储，验证工具安装版本、原始 days/categories/minuteDays、paused 状态无伪增长，浏览器会话 UUID 必须改变。没有向 Chrome Storage 注入数据，也没有新增数据服务或新的分支。该范围验证的是**暂停后的完整浏览器重启**，不等同活跃期间的异常关机。尚待新的 main SHA 对应 Actions。
+
+## R1.3 Final · 动态包版本、原生测试语法与 CI 修复（2026-10-12）
+
+- [Mac CI 38219113994](https://github.com/shopable-ai/opendesk-browser/actions/runs/38219113994) 的 `a181b0a4b7af37194e7353af4004d93a7d518447`：组件、两种 Chrome MV3 构建、四宽度合成 UI 均通过，但原生测试因非空二次下载文件名断言的字符串未闭合产生 `SyntaxError`，整个真实 Mac native **FAIL / NOT_RUN**。并行市场 R5 提交 `5d1d87431188d74a7d23900ff7477ddef3b585a4` 已修复该行，并让原生安装版号从当前工具配置/生产 catalog 读取，不应回滚并行修复。
+- [Mac CI 38219728343](https://github.com/shopable-ai/opendesk-browser/actions/runs/38219728343) 在 `5d1d87431188d74a7d23900ff7477ddef3b585a4`：Time Review 真正配置版本已是 `1.3.1`，构建成功写入 `artifacts/sidebar-tools/time-review/1.3.1/...`，但 CI `shasum` 仍指向旧 `1.3.0`，故工作流在构建校验阶段失败，原生测试未运行。此为 CI 脚本候选版本硬编码，而非工具包编译失败。
+- 本轮移除工作流里写死的 `1.3.0` 工具包 SHA 路径，改为读取现有 `tool.config.json` 的版本号；在任何耗时构建之前执行 `node --check tests/framework/time-review-r13-native.test.mjs`，防止语法错误到 Mac Chrome 阶段才暴露。**不改变产品版本、ID、权限、模型或数据键**。之后 GitHub Actions 的成功状态以本提交 SHA 为准。
