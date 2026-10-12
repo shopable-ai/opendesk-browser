@@ -677,10 +677,18 @@ test('real installed Chrome: verified Task via Alarms -> original RunHost -> pag
     const catAgainSid=await attach(client,catalogAgain.targetId);
     await client.send('Page.navigate',{
       url:'chrome-extension://'+extensionId+'/ui/tool.html'},catAgainSid);
+    // tool.html without hostInstanceId performs a genuine extension-owned
+    // location.replace() into its canonical sender URL. Wait for that real
+    // navigation to settle before opening IndexedDB or the old CDP context
+    // may return "Inspected target navigated or closed".
     await deadline(()=>evaluate(client,
-      '!!document.querySelector("#catalog-open-dev-sidebar")',catAgainSid),'restarted trusted catalog');
+      'document.readyState==="complete"&&new URL(location.href).searchParams.has("hostInstanceId")&&!!document.querySelector("#catalog-open-dev-sidebar")',
+      catAgainSid),'restarted canonical trusted catalog URL',25000);
     note('restarted-catalog-observed',{targetId:catalogAgain.targetId});
-    const recovered=await durable(client,catAgainSid);
+    const recovered=await deadline(async()=>{
+      const state=await durable(client,catAgainSid);
+      return state?.plans?.length===1?state:null;
+    },'original IndexedDB plans after stable extension navigation',25000);
     assert.equal(recovered.plans.length,1,'Original plan persisted through entire Chrome process exit');
     assert.equal(recovered.plans[0].scheduleId,stableScheduleId);
     assert.equal(recovered.plans[0].generation,expectedGeneration);
