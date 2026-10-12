@@ -758,3 +758,21 @@ test('tool editor navigation veto retains visible panel, selected tab and keyboa
   assert.equal(f.get('workbench-tools').hidden,true);
   assert.equal(f.doc.documentElement.dataset.opendeskTab,'tasks');
 });
+
+test('Scheduled Tasks hides idle manual Run dock and never borrows scheduled Run as Developer Stop',async t=>{
+  const f=make();t.after(()=>f.ui.dispose());await tick();await tick();
+  assert.equal(f.get('task-dock').hidden,false,'ordinary My remains unchanged');
+  f.ui.setScheduledSurfaceActive(true);
+  assert.equal(f.get('task-dock').hidden,true,'scheduled form must not display unrelated manual Run');
+  assert.equal(f.get('workspace-dock').hidden,true,'no empty fixed action bar on scheduled plans');
+  const admitted=await f.host.start({source:{kind:'saved'}});
+  f.ui.setScheduledRunOwner(admitted.runId);
+  f.ui.navigate('develop');
+  assert.equal(f.get('develop-dock').hidden,true,'scheduled run is not a developer draft');
+  assert.equal(f.get('workflow-dock').hidden,true,'scheduled run is not a workflow');
+  assert.equal(f.get('workspace-dock').hidden,true,'only scheduled owner Stop may control its Run');
+  f.host.complete(true);await f.host.completion;
+  f.ui.setScheduledRunOwner(null);f.ui.setScheduledSurfaceActive(false);
+  f.ui.navigate('tasks');
+  assert.equal(f.get('task-dock').hidden,false,'ordinary My Run dock is restored');
+});

@@ -41,12 +41,14 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
   };
   const showPanel=()=>{
     shown=true;get('scheduled-panel').hidden=false;
+    taskWorkbench.setScheduledSurfaceActive?.(true);
     doc.querySelector('#workbench-tasks .tasks-surface').hidden=true;
     doc.querySelector('#workbench-tasks .cloud-my-entry').hidden=true;
     onOpen();
   };
   function hidePanel(){
     shown=false;get('scheduled-panel').hidden=true;
+    taskWorkbench.setScheduledSurfaceActive?.(false);
     doc.querySelector('#workbench-tasks .tasks-surface').hidden=false;
     doc.querySelector('#workbench-tasks .cloud-my-entry').hidden=false;
     onClose();
@@ -327,6 +329,7 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
   }
   return {open,hidePanel,refresh,setRun(runId){
     selectedFire=runId;
+    taskWorkbench.setScheduledRunOwner?.(runId);
     get('schedule-stop').hidden=!runId;
   },onInstalled:onInstalledTask,get shown(){return shown;},dispose(){
     disposed=true;for(const remove of listeners)remove();unsubscribe?.();installedUpdates?.();hidePanel();

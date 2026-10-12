@@ -329,6 +329,9 @@ test('real installed Chrome: verified Task via Alarms -> original RunHost -> pag
   await click(client,sideSid,'#schedule-open');
   await deadline(()=>evaluate(client,'!'+expr('#scheduled-panel')+'.hidden',sideSid),
     'real nested My schedules view');
+  assert.equal(await evaluate(client,expr('#workspace-dock')+'.hidden',sideSid),true,
+    'the nested schedule view must not retain an unrelated manual Run footer');
+  report.tests.scheduledDockIsolation='PASS';
   report.screenshots.push(await screenshot(client,sideSid,'schedule-list-original-sidepanel'));
   await click(client,sideSid,'#schedule-create');
   await type(client,sideSid,'#schedule-title','Mac 原生定时表单');

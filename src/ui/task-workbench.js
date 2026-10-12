@@ -24,6 +24,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
   const editorSource=executionSource || (() => get('script-source').value);
   let disposed=false, working=false, running=false, activeRunId=null, catalog=[], installed=[], renderKey=null;
   let toolActive=false, toolsViewListener=null, workflowRunId=null, workflowClaimPending=false;
+  let scheduledSurfaceActive=false, scheduledRunId=null;
   let catalogSequence=0, historySequence=0, currentPage=currentPageTarget?.snapshot;
   let permissionSequence=0,candidatePermission=null;
   const permissionRequest=row=>({origins:row.manifest.siteOrigins.map(origin=>permissionPattern(origin))});
@@ -141,14 +142,18 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     // Task admission may claim RunHost before start() returns its exact runId.
     // That pending task is never a Developer draft with a borrowed Stop control.
     const workflowOwns=Boolean(workflowClaimPending || workflowRunId && host.currentRun===workflowRunId);
-    const draftOwns=Boolean(host.currentRun && !taskOwns && !workflowOwns && !running);
-    get('task-dock').hidden=catalogSurface || (taskOwns?false:draftOwns || workflowOwns || view!=='tasks' || toolActive);
-    get('develop-dock').hidden=catalogSurface || (draftOwns?false:taskOwns || workflowOwns || view!=='develop');
-    get('workflow-dock').hidden=catalogSurface || (workflowOwns?false:taskOwns || draftOwns || view!=='workflow');
+    const scheduledOwns=Boolean(scheduledRunId && host.currentRun===scheduledRunId);
+    // Scheduled runs are owned by the visible plan's Stop, never the Developer draft dock.
+    const draftOwns=Boolean(host.currentRun && !taskOwns && !workflowOwns && !scheduledOwns && !running);
+    // Idle scheduled plans have no ordinary manual Run. If a manual Task is
+    // already running, keep its original Stop control visible across views.
+    get('task-dock').hidden=catalogSurface || (taskOwns?false:scheduledSurfaceActive || scheduledOwns || draftOwns || workflowOwns || view!=='tasks' || toolActive);
+    get('develop-dock').hidden=catalogSurface || (draftOwns?false:taskOwns || workflowOwns || scheduledOwns || view!=='develop');
+    get('workflow-dock').hidden=catalogSurface || (workflowOwns?false:taskOwns || draftOwns || scheduledOwns || view!=='workflow');
     // The dock follows the real RunHost owner, not the selected task or visible tab.
     // On another view (or another task), expose only that owner's Stop control.
     const selected=installedRow();
-    const stopOnly=taskOwns && (view!=='tasks' || toolActive || runOwnerKey!== (selected && identity(selected))) ||
+    const stopOnly=taskOwns && (scheduledSurfaceActive || view!=='tasks' || toolActive || runOwnerKey!== (selected && identity(selected))) ||
       draftOwns && view!=='develop' || workflowOwns && view!=='workflow';
     get('workspace-dock').dataset.stopOnly=String(Boolean(stopOnly));
     get('task-stop').setAttribute('aria-label',taskOwns
@@ -881,6 +886,12 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     listener?.(doc.documentElement?.dataset?.opendeskTab==='tools' && !catalogSurface);
   },setToolActive(value) {
     toolActive=Boolean(value);
+    if(!disposed)syncRunDock();
+  },setScheduledSurfaceActive(value) {
+    scheduledSurfaceActive=Boolean(value);
+    if(!disposed)syncRunDock();
+  },setScheduledRunOwner(runId) {
+    scheduledRunId=typeof runId==='string'&&runId?runId:null;
     if(!disposed)syncRunDock();
   },focusInstalledTask(taskId) {
     // Selecting an installed task for management is safe even when it is disabled.
