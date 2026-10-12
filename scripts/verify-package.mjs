@@ -8,6 +8,7 @@ import {REQUIRED_BROWSER_API_PERMISSIONS, OPTIONAL_PLUGIN_API_PERMISSIONS, REQUI
 import {SDK_RESOURCE_PATHS, SDK_RESOURCE_MANIFEST} from '../src/framework/sdk/resource-contract.js';
 import {BUILTIN_CATALOG,BUILTIN_RESOURCE_PATHS,BUILTIN_RUNTIME_CATALOG} from '../src/libs/catalog.js';
 import {PAGE_FRAMEWORK_RUNTIMES,PAGE_FRAMEWORK_RESOURCE_LIMIT,PAGE_BROWSER_PRIVATE_FILES,PAGE_BROWSER_COMPILER,PAGE_BROWSER_COMPILER_RESOURCE_LIMIT} from '../src/libs/page-frameworks/contract.js';
+import {BROWSER_EDITION_RECORD,DEVELOPER_BROWSER_NAME,compilerResourcesForEdition,readEditionRecord} from './browser-editions-r245.mjs';
 import {inspectWorkspaceStyle} from './build-workspace-style.mjs';
 import {readOfficialSources,createOfficialToolResources} from './build-official-tools.mjs';
 import {OFFICIAL_CATALOG_PATH,officialPackagePath} from '../src/sidebar-tools/official-catalog.js';
@@ -49,15 +50,22 @@ const HTML_REFERENCES = Object.freeze({
 const generatedJS = ['sw.js', ...Object.values(FIXED_OUTPUTS)].sort();
 const vendorJS = [BUILTIN_CATALOG.bootstrap,...Object.values(PINNED_USER_SCRIPT_LIBRARIES).map(row => row.output)];
 const frameworkJS=Object.values(PAGE_FRAMEWORK_RUNTIMES).map(row=>row.output);
-const browserCompilerJS=PAGE_BROWSER_PRIVATE_FILES.map(row=>row.output).filter(path=>path.endsWith('.js'));
-const browserCompilerESM=PAGE_BROWSER_PRIVATE_FILES.map(row=>row.output).filter(path=>path.endsWith('.mjs'));
 const frameworkLicenses=Object.values(PAGE_FRAMEWORK_RUNTIMES).map(row=>row.licensePath);
-const expectedJS = [...generatedJS, ...vendorJS, ...frameworkJS, ...browserCompilerJS].sort();
 const officialSource=await readOfficialSources();
 const officialPaths=[OFFICIAL_CATALOG_PATH,...officialSource.tools.map(row=>officialPackagePath(row.id))];
-const required = ['manifest.json', MARKET_CHANNEL_PATH, SDK_RESOURCE_MANIFEST, BUILTIN_RESOURCE_MANIFEST,
-  ...BUILTIN_RESOURCE_PATHS,...frameworkLicenses,...browserCompilerESM,PAGE_BROWSER_COMPILER.licensePath,
-  ...Object.keys(HTML_REFERENCES), 'ui/design-tokens.css', 'ui/design-system.css', 'ui/tool-shell.css', 'ui/cloud-control-console.css', 'native-agent/settings.css', 'native-agent/workspace.css', 'ui/marketplace.css', ...officialPaths, ...expectedJS, ...Object.keys(FIXED_ASSETS)].sort();
+// A "standard" package cannot smuggle a dormant compiler: the verifier
+// rejects ANY unlisted file, including both ESM assets and MIT notices.
+function editionFiles(edition){
+  const compilerFiles=compilerResourcesForEdition(edition);
+  const browserCompilerJS=compilerFiles.map(row=>row.output).filter(path=>path.endsWith('.js'));
+  const browserCompilerESM=compilerFiles.map(row=>row.output).filter(path=>path.endsWith('.mjs'));
+  const expectedJS=[...generatedJS,...vendorJS,...frameworkJS,...browserCompilerJS].sort();
+  const required=['manifest.json',BROWSER_EDITION_RECORD,MARKET_CHANNEL_PATH,SDK_RESOURCE_MANIFEST,BUILTIN_RESOURCE_MANIFEST,
+    ...BUILTIN_RESOURCE_PATHS,...frameworkLicenses,...browserCompilerESM,
+    ...(edition==='developer'?[PAGE_BROWSER_COMPILER.licensePath]:[]),
+    ...Object.keys(HTML_REFERENCES),'ui/design-tokens.css','ui/design-system.css','ui/tool-shell.css','ui/cloud-control-console.css','native-agent/settings.css','native-agent/workspace.css','ui/marketplace.css',...officialPaths,...expectedJS,...Object.keys(FIXED_ASSETS)].sort();
+  return {compilerFiles,expectedJS,required};
+}
 const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 const digest = bytes => createHash('sha256').update(bytes).digest('hex');
 // SW shipping cap: 1 MiB (512 KiB review); development SW: 1.5 MiB.
@@ -149,7 +157,9 @@ export async function verifyBuiltinResourceManifest(directory) {
   }
   return generated;
 }
-export function verifyManifest(manifest,{mode='production',source=false,channel=resolveMarketChannel({mode})}={}) {
+export function verifyManifest(manifest,{mode='production',source=false,edition='standard',channel=resolveMarketChannel({mode})}={}) {
+  if(manifest.name!==(edition==='developer'?DEVELOPER_BROWSER_NAME:'OpenDesk Browser'))
+    throw Error('Extension manifest name differs from reviewed browser edition');
   const fields = ['manifest_version', 'name', 'version', 'description', 'minimum_chrome_version', 'permissions', 'optional_permissions', 'host_permissions', 'background', 'action', 'side_panel', 'options_ui', 'content_security_policy', 'incognito', 'sandbox', 'web_accessible_resources', 'content_scripts'];
   if (manifest.manifest_version !== 3 || manifest.background?.type || manifest.action?.default_popup) throw new Error('Expected MV3 worker and action window entry');
   if (manifest.minimum_chrome_version !== '138') throw new Error('Expected independently qualified minimum Chrome 138');
@@ -365,6 +375,8 @@ export async function verifyPackage(directory, {mode: requestedMode} = {}) {
   const root = resolve(directory);
   const expectedMode=requestedMode??(['production','development'].includes(basename(root))?basename(root):undefined);
   if(expectedMode!==undefined&&!['production','development'].includes(expectedMode))throw new Error('Invalid package mode');
+  const edition=readEditionRecord(await readFile(join(root,BROWSER_EDITION_RECORD),'utf8'));
+  const {compilerFiles,expectedJS,required}=editionFiles(edition);
   const files = await filesAt(root);
   for (const file of required) if (!files.includes(file)) throw new Error(`Missing required resource: ${file}`);
   const js = files.filter(path => path.endsWith('.js'));
@@ -379,7 +391,7 @@ export async function verifyPackage(directory, {mode: requestedMode} = {}) {
   const marketChannel=resolveMarketChannel({mode});
   const actualChannel=JSON.parse(await readFile(join(root,MARKET_CHANNEL_PATH),'utf8'));
   if(!same(actualChannel,marketChannel))throw Error('Packaged market channel differs from reviewed build configuration');
-  const manifest = JSON.parse(await readFile(join(root, 'manifest.json'), 'utf8')); verifyManifest(manifest,{mode,channel:marketChannel});
+  const manifest = JSON.parse(await readFile(join(root, 'manifest.json'), 'utf8')); verifyManifest(manifest,{mode,edition,channel:marketChannel});
   const boundaries = [];
   for (const file of js) {
     const bytes = await readFile(join(root, file));
@@ -439,16 +451,18 @@ export async function verifyPackage(directory, {mode: requestedMode} = {}) {
   }
   // Browser-only ESM modules are private extension resources, not runtime
   // dynamically generated JS entries. Validate all bytes and MIME-ready paths.
-  for(const row of PAGE_BROWSER_PRIVATE_FILES.filter(row=>row.output.endsWith('.mjs'))){
+  for(const row of compilerFiles.filter(row=>row.output.endsWith('.mjs'))){
     const bytes=await readFile(join(root,row.output));
     if(bytes.length!==row.bytes||bytes.length>PAGE_BROWSER_COMPILER_RESOURCE_LIMIT||
        digest(bytes)!==row.sha256)throw Error('Browser compiler ESM resource drift: '+row.output);
     const code=bytes.toString('utf8');
     parse(code,{ecmaVersion:'latest',sourceType:'module'});
   }
-  const babelLicense=await readFile(join(root,PAGE_BROWSER_COMPILER.licensePath));
-  if(digest(babelLicense)!==PAGE_BROWSER_COMPILER.licenseSha256)
-    throw Error('Browser compiler license mismatch');
+  if(edition==='developer'){
+    const babelLicense=await readFile(join(root,PAGE_BROWSER_COMPILER.licensePath));
+    if(digest(babelLicense)!==PAGE_BROWSER_COMPILER.licenseSha256)
+      throw Error('Browser compiler license mismatch');
+  }
   for (const file of Object.keys(HTML_REFERENCES)) await inspectHTML(root, file);
   for(const cssPath of ['ui/design-tokens.css','ui/design-system.css','ui/tool-shell.css','ui/cloud-control-console.css','native-agent/settings.css','native-agent/workspace.css']) {
     const css = await readFile(join(root,cssPath),'utf8');
@@ -478,7 +492,7 @@ export async function verifyPackage(directory, {mode: requestedMode} = {}) {
   }
   const sdkResources = await verifySdkResourceManifest(root);
   const builtinResources = await verifyBuiltinResourceManifest(root);
-  return {status: 'passed', mode, manifestVersion: 3, classicEntries: js, htmlChecked: Object.keys(HTML_REFERENCES), assetsChecked: [...Object.keys(FIXED_ASSETS), SDK_RESOURCE_MANIFEST,BUILTIN_RESOURCE_MANIFEST], sdkResources,builtinResources,
+  return {status: 'passed', mode, edition, manifestVersion: 3, classicEntries: js, htmlChecked: Object.keys(HTML_REFERENCES), assetsChecked: [...Object.keys(FIXED_ASSETS), SDK_RESOURCE_MANIFEST,BUILTIN_RESOURCE_MANIFEST], sdkResources,builtinResources,
     sdkEntries: {MAIN: 'framework/sdk-main.js', ISOLATED: 'agents/page-relay.js'}, privilegedDynamicExecutionFound: false,
     approvedDynamicExecution: boundaries, sandbox: {pages: [SANDBOX_HTML, TOOL_SANDBOX_HTML], csp: SANDBOX_CSP}, ...await packageFingerprint(root)};
 }

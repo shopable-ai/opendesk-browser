@@ -5,13 +5,15 @@ import {SANDBOX_HTML} from './verify-package.mjs';
 import {BUILTIN_CATALOG} from '../src/libs/catalog.js';
 import {PAGE_FRAMEWORK_RUNTIMES,PAGE_FRAMEWORK_RESOURCE_LIMIT,PAGE_BROWSER_PRIVATE_FILES,PAGE_BROWSER_COMPILER_RESOURCE_LIMIT,PAGE_BROWSER_COMPILER} from '../src/libs/page-frameworks/contract.js';
 import {RESOURCE_LIMITS} from './build-contract.mjs';
+import {resolveBrowserEdition,compilerResourcesForEdition,BROWSER_EDITION_RECORD,editionRecordText} from './browser-editions-r245.mjs';
 import {compileWorkspaceStyle} from './build-workspace-style.mjs';
 import {buildOfficialTools} from './build-official-tools.mjs';
 import {resolveMarketChannel,MARKET_CHANNEL_PATH} from './market-channel.mjs';
 
 const vendors=Object.values(BUILTIN_CATALOG.libraries).filter(row=>row.origin==='vendor');
 const pageFrameworks=Object.values(PAGE_FRAMEWORK_RUNTIMES);
-const browserCompilerFiles=PAGE_BROWSER_PRIVATE_FILES;
+const edition=resolveBrowserEdition();
+const browserCompilerFiles=compilerResourcesForEdition(edition);
 export const STATIC_RESOURCES=Object.freeze({
   'src/ui/tool.html':'ui/tool.html',
   'src/ui/cloud-control.html':'ui/cloud-control.html',
@@ -32,7 +34,7 @@ export const STATIC_RESOURCES=Object.freeze({
   ...Object.fromEntries(vendors.flatMap(row=>[[row.source,row.output],[row.licenseSource,row.licensePath]])),
   ...Object.fromEntries(pageFrameworks.flatMap(row=>[[row.source,row.output],[row.licenseSource,row.licensePath]])),
   ...Object.fromEntries(browserCompilerFiles.map(row=>[row.source,row.output])),
-  [PAGE_BROWSER_COMPILER.licenseSource]:PAGE_BROWSER_COMPILER.licensePath
+  ...(edition==='developer'?{[PAGE_BROWSER_COMPILER.licenseSource]:PAGE_BROWSER_COMPILER.licensePath}:{})
 });
 
 function digest(bytes){return createHash('sha256').update(bytes).digest('hex');}
@@ -62,10 +64,12 @@ export async function preparePublic() {
       throw Error('Oversized optional browser compiler resource: '+row.id);
     await assertBytes(row.source,row.bytes,row.sha256);
   }
-  await assertBytes(PAGE_BROWSER_COMPILER.licenseSource,undefined,PAGE_BROWSER_COMPILER.licenseSha256);
+  if(edition==='developer')await assertBytes(PAGE_BROWSER_COMPILER.licenseSource,undefined,PAGE_BROWSER_COMPILER.licenseSha256);
   const publicRoot=resolve('.wxt/public');
   await rm(publicRoot,{recursive:true,force:true});
   await mkdir(publicRoot,{recursive:true});
+  await mkdir(dirname(resolve(publicRoot,BROWSER_EDITION_RECORD)),{recursive:true});
+  await writeFile(resolve(publicRoot,BROWSER_EDITION_RECORD),editionRecordText(edition));
   const marketChannel=resolveMarketChannel({mode:process.env.OPENDESK_BUILD_MODE||'development'});
   await mkdir(dirname(resolve(publicRoot,MARKET_CHANNEL_PATH)),{recursive:true});
   await writeFile(resolve(publicRoot,MARKET_CHANNEL_PATH),JSON.stringify(marketChannel,null,2)+'\n');
