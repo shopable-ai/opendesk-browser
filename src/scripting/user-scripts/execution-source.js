@@ -177,7 +177,10 @@ export async function compileLockedPageSource({sourceUtf8, entryFormat, entries 
   // in one lexical block; prior runtime approvals require revalidation.
   const code = (builtinSource?sources.shift()+'\n;\n':'')+
     builtinReadinessSource(sources.join('\n;\n'),builtinSource,receiptNonce);
-  invariant(new TextEncoder().encode(code).length<=PAGE_COMPILED_SOURCE_LIMIT,
+  // Only newly introduced multi-library combinations use this bounded single
+  // compiled text budget. Do not retrofit it onto existing large, already
+  // reviewed external ESM/JSON programs with zero or one packaged library.
+  invariant(selected.length<=1||new TextEncoder().encode(code).length<=PAGE_COMPILED_SOURCE_LIMIT,
     'E_PAGE_SOURCE_LIMIT','多库编译文本超过 512 KiB；请减少依赖');
   return Object.freeze({sourceHash, entryFormat,
     world:'USER_SCRIPT', js:Object.freeze([{code}]), warnings:admission.warnings,receiptNonce,
