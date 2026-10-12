@@ -5,7 +5,7 @@
 // bound as build-contract's productionBytes. This is a runtime read limit,
 // independent of the 1 MiB Service Worker budget or React/Vue's 256 KiB cap.
 export const BUILTIN_PACKAGE_RESOURCE_LIMIT=512*1024;
-export const BUILTIN_ABI='opendesk-builtins.v9';
+export const BUILTIN_ABI='opendesk-builtins.v10';
 export const BUILTIN_RUNTIME_CATALOG=Object.freeze({
   abi:BUILTIN_ABI,
   bootstrap:'libs/runtime/bootstrap.js',
@@ -36,6 +36,8 @@ export const BUILTIN_RUNTIME_CATALOG=Object.freeze({
       worlds:Object.freeze(['USER_SCRIPT']),default:false}),
     cheerio:Object.freeze({id:'cheerio',version:'1.2.0',output:'libs/packages/cheerio.js',
       worlds:Object.freeze(['USER_SCRIPT']),default:false}),
+    fingerprintjs:Object.freeze({id:'fingerprintjs',version:'5.3.0',output:'libs/packages/fingerprintjs.js',
+      worlds:Object.freeze(['USER_SCRIPT']),default:false}),
     jquery:Object.freeze({id:'jquery',version:'3.7.1',license:'MIT',
       output:'libs/vendor/jquery/3.7.1/jquery.min.js',
       sha256:'fc9a93dd241f6b045cbff0481cf4e1901becd0e12fb45166a8f17f95823f0b1a',bytes:87533,
@@ -48,5 +50,5 @@ export const BUILTIN_RESOURCE_PATHS=Object.freeze([
   BUILTIN_RUNTIME_CATALOG.pageCore,BUILTIN_RUNTIME_CATALOG.controllerCore,
   'licenses/lodash-es-MIT.txt','licenses/dayjs-MIT.txt',
   'licenses/my-utils-MIT.txt','licenses/jquery-MIT.txt',
-  'licenses/js-cookie-MIT.txt','licenses/crypto-js-MIT.txt','licenses/file-saver-MIT.txt','licenses/query-string-MIT.txt','licenses/axios-MIT.txt','licenses/store-MIT.txt','licenses/cheerio-MIT.txt'
+  'licenses/js-cookie-MIT.txt','licenses/crypto-js-MIT.txt','licenses/file-saver-MIT.txt','licenses/query-string-MIT.txt','licenses/axios-MIT.txt','licenses/store-MIT.txt','licenses/cheerio-MIT.txt','licenses/fingerprintjs-MIT.txt'
 ]);

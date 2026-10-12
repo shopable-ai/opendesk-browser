@@ -30,7 +30,8 @@ export const PACKAGE_ENTRIES = Object.freeze({
   'libs/packages/query-string': './src/entrypoints/query-string.js',
   'libs/packages/axios': './src/entrypoints/axios.js',
   'libs/packages/store': './src/entrypoints/store.js',
-  'libs/packages/cheerio': './src/entrypoints/cheerio.js'
+  'libs/packages/cheerio': './src/entrypoints/cheerio.js',
+  'libs/packages/fingerprintjs': './src/entrypoints/fingerprintjs.js'
 });
 
 // These are project-owned engineering budgets, not Chrome MV3 size limits.

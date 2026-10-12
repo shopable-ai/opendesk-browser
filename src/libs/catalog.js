@@ -33,6 +33,8 @@ const author=Object.freeze({
     licensePath:'licenses/store-MIT.txt',methods:Object.freeze(['get','set','remove','clearAll','each'])}),
   cheerio:Object.freeze({origin:'npm',npm:'cheerio',license:'MIT',
     licensePath:'licenses/cheerio-MIT.txt',methods:Object.freeze(['load'])}),
+  fingerprintjs:Object.freeze({origin:'npm',npm:'@fingerprintjs/fingerprintjs',license:'MIT',
+    licensePath:'licenses/fingerprintjs-MIT.txt',methods:Object.freeze(['load','hashComponents','componentsToDebugString'])}),
   jquery:Object.freeze({origin:'vendor',
     source:'src/libs/vendor/jquery/3.7.1/jquery.min.js',
     licenseSource:'src/libs/vendor/jquery/3.7.1/LICENSE.txt',

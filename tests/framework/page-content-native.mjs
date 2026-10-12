@@ -133,7 +133,7 @@ try{
   config.entry['libs/packages/dayjs']='./tests/framework/page-content-native-dayjs.js';
   // Keep the native Webpack fixture's optional assets in sync with the one
   // approved Catalog: missing entries must fail the real resource manifest.
-  for(const id of ['jsCookie','cryptoJs','fileSaver','queryString','axios','store','cheerio']){
+  for(const id of ['jsCookie','cryptoJs','fileSaver','queryString','axios','store','cheerio','fingerprintjs']){
     const row=BUILTIN_CATALOG.libraries[id];
     if(!row||row.origin!=='npm'||row.default||row.worlds.join(',')!=='USER_SCRIPT')
       throw Error('Native optional library contract changed: '+id);
@@ -154,7 +154,8 @@ try{
     ['node_modules/query-string/license','licenses/query-string-MIT.txt'],
     ['node_modules/axios/LICENSE','licenses/axios-MIT.txt'],
     ['node_modules/store/LICENSE','licenses/store-MIT.txt'],
-    ['node_modules/cheerio/LICENSE','licenses/cheerio-MIT.txt']
+    ['node_modules/cheerio/LICENSE','licenses/cheerio-MIT.txt'],
+    ['node_modules/@fingerprintjs/fingerprintjs/LICENSE','licenses/fingerprintjs-MIT.txt']
   ])await copyFile(path.join(root,source),path.join(extension,destination));
   for(const [source,destination] of [
     ['src/libs/runtime/bootstrap.js','libs/runtime/bootstrap.js'],

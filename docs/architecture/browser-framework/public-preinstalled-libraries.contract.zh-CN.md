@@ -226,3 +226,7 @@ Axios 1.20.0 已按 npm 锁和完整传递来源集成到 `packages/axios.js` �
 当前源码使用 `src/libs/loader.js` 和 `src/libs/page-frameworks/loader.js` 对 extension:// 自有路径及 SHA 做校验；`scripts/bundle-provenance.mjs` 拒绝将公共库的 npm/包装器错误打进 SW。R16 审计工具 `npm run build:size` 新增 `runtimeResourcePlan` 和每个按需库单选的 `page-with-<id>` 估算，覆盖独立 React/ReactDOM 和 Vue 资源。它展示**构建发行容量 vs 各执行世界加载量**，不把场景组合相加来冒充实际内存。继续使用同一 Catalog/WXT/manifest，不另建注册表。
 
 实际 Cheerio slim、CryptoJS、Axios 在已有同候选成功预算审计中分别约 122 KB、66 KB、52 KB，尚远低于目前每 JS 固定入口 512 KiB 上限，故**本轮不再盲目增加硬限**。若后续确有实测越线，记录准确物理产物与模块图，必要时对具体按需资源单独评审体积/读取/manifest 边界，不把例外延伸到 SW、网站 MAIN 或所有库。保留 React/ReactDOM 一套运行资源、禁止后台预装全部类库及用户脚本未声明时隐式加载。验收需同候选 WXT/ZIP、显式 opt-in 正反例与真实 Chrome 回执。
+
+## R16.3 FingerprintJS npm 隐私回写（2026-10-12）
+
+真实上游 `@fingerprintjs/fingerprintjs@5.3.0`（MIT）按原有 npm 锁、WXT 固定资源、manifest SHA 与 USER_SCRIPT 单项声明接入。官方 `src/agent.ts` 明确 npm 默认 `monitoring=true`，可能对服务器发送使用统计，因此 OpenDesk Facade 只在用户程序显式调用 `FingerprintJS.load()` 时初始化，并强制 `monitoring:false`、`debug:false`；任何 `monitoring:true` 直接拒绝。`Agent.get()` 必须由用户代码进一步主动执行。没有调用就不能采集、生成或保存访问者识别码，不向 SW、云控或网站 MAIN 自动注入。具体代码、来源/许可和分层验收见 `docs/framework/workstreams/public-libraries-r163-fingerprintjs-20261012.md`；提交状态不等于生产、原生或安装包验收已通过。其他公共库缺口不因该增量删除。

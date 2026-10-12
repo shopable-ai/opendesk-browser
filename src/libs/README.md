@@ -21,6 +21,7 @@ src/libs/
     axios.js                   R15.9 已接线，真实上游 Axios 1.20.0（Page opt-in，待验收）
     store.js                   R16.0 已接线，真实 store 2.0.12 按程序持久前缀（待验收）
     cheerio.js                 R16.1 已接线，真实 Cheerio 1.2.0 的 browser slim（待验收）
+    fingerprintjs.js           R16.3 已接线，真实 FP v5.3.0，强制关闭 npm monitoring（待验收）
   adapters/
     axios-transport.js         已实现纯协议组件；还没有与 Controller 的真实 Axios/取消传播接通
   page-frameworks/
@@ -45,7 +46,7 @@ src/libs/
 
 真实体积报告运行 `npm run build:size`，结果位于 `artifacts/package-size-production.json`。其中 `totalPackageBytes` 是 **dist 文件原始字节数之和，不等于压缩 ZIP 大小**（开发包还含 source map），`loadingGroups` 是彼此**重叠、不能相加**的典型资源集合；`runtimeResourcePlan` 明列 SW 启动、Page/Controller 默认资源及每项按需资源的独立字节数、真实加载器允许的上限和剩余空间。React/Vue 独立固定资源当前按其 **256 KiB** 运行时读取限制计，不得错误当成普通 JS 的 512 KiB 上限。报告不是内存峰值或性能基准；若需得到真正的运行开销，应使用实际 Chrome 内存和网络记录。
 
-`npm run libs:list` 当前登记 Lodash、Day.js、my-utils、jQuery、js-cookie、CryptoJS、FileSaver、query-string、Axios、store.js、Cheerio，React/Vue 通过已有独立 `page-frameworks/contract.js` 而非另一个 WXT/npm wrapper 注册。不要重复新增 `packages/react.js`、`packages/react-dom.js`、`packages/vue.js`，造成双份运行时。
+`npm run libs:list` 当前登记 Lodash、Day.js、my-utils、jQuery、js-cookie、CryptoJS、FileSaver、query-string、Axios、store.js、Cheerio、FingerprintJS，React/Vue 通过已有独立 `page-frameworks/contract.js` 而非另一个 WXT/npm wrapper 注册。不要重复新增 `packages/react.js`、`packages/react-dom.js`、`packages/vue.js`，造成双份运行时。
 
 ## 2. 目前用户代码怎么用
 
@@ -90,6 +91,25 @@ async function main() {
 ```
 
 同一正式安装程序跨页面的存储作用域按 namespace + programId 保持稳定；临时预览按源码哈希隔离。没有网站 localStorage 就报 `E_STORAGE_UNAVAILABLE`，**不会降级成易失内存**。这些键仍保存在**网站 origin 的 localStorage**，网站可以读取，不能用于密码、令牌或敏感内容；扩展私有存储继续使用 AppStorage。封装的 `clearAll` 只删除当前工具前缀，不调用整个网站的 `localStorage.clear()`。用户脚本自身仍能直接访问网站存储，封装不是权限边界，也不支持 Controller 的同步私有存储。
+
+FingerprintJS 的 npm 版上游默认允许少量使用统计监测。OpenDesk
+**始终强制关闭 upstream monitoring**，并且不在声明或加载库文件时执行
+指纹采集。用户需要显式 opt-in，再自主调用 `load()` 和 `agent.get()`：
+
+```js
+// @opendesk-lib fingerprintjs
+async function main() {
+  const agent = await FingerprintJS.load();
+  const result = await agent.get();
+  // 指纹属于敏感浏览器识别数据，由你的程序自行处理。
+  return { available: typeof result.visitorId === 'string' };
+}
+```
+
+`FingerprintJS.load({monitoring:true})`、`debug:true` 均明确拒绝，
+不自动上传任何数据、不在网页 MAIN 公开，也不缓存或持久化 visitorId。
+这不等于网页隐私沙箱：工具代码自己的网络请求仍受原有用户授权、
+目标页 CORS/CSP 和浏览器行为约束。
 
 Cheerio slim 只做本地 HTML 文本解析，明确 opt-in：
 
@@ -157,7 +177,7 @@ async function main() {
 | store.js | packages/store.js | R16.0 已接入真实 store@2.0.12 的 Page 同步适配，仅网站 localStorage、由编译器给程序分配前缀，clearAll 不影响其他程序/网站；Controller 尚缺、同候选验收待检查 |
 | FileSaver | packages/file-saver.js | R15.8 已接入真实 file-saver@2.0.5，仅允许 Blob/File 与显式 Page 声明；下载用户手势及落盘回执仍待 Chrome 验收 |
 | Cheerio | packages/cheerio.js | R16.1 真实 Cheerio 1.2.0 browser slim 入口，仅 Page USER_SCRIPT `cheerio.load(html)`，无网络抓取/HTML 清洗功能；同候选工程与 Chrome 验收待核查 |
-| FingerprintJS | packages/fingerprintjs.js | **不存在**；须逐版本许可证审查、用户明确选择、不自动采集/上报 |
+| FingerprintJS | packages/fingerprintjs.js | R16.3 已接入 MIT 的真实 @fingerprintjs/fingerprintjs@5.3.0，仅显式 Page opt-in；导入时不执行 load/get、任何 load 都强制 monitoring:false，debug:true 拒绝；正式 CI 与实际 Chrome 待验收，不宣称自动授权上报 |
 | Socket.IO Client | packages/socket-io.js | **不存在**；须用户明确连接、授权/断开/停止/重连生命周期 |
 | Tailwind 用户 UI 样式 | styles/ | **不存在**；当前根工程有 Tailwind 构建工具不代表已向用户提供类名预编译 CSS |
 
