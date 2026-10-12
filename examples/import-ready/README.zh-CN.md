@@ -1,6 +1,6 @@
 # Page React/Vue 导入草稿 · R24.3 当前组件与 R24.2 历史兼容
 
-**R24.3 当前可用：**四个现有示例目录（React JSX、Vue SFC、React 普通 JS、Vue 普通 JS）的 Page 草稿都已由实际项目构建器生成，分别保留官方组件源码的只读快照。导入不需要 Native 或项目 `node_modules`，但导入时执行的是已经生成、SHA-256 固定的 `program.js`，**浏览器直接编辑 JSX/SFC 并即时转换仍待完成**。来源：GitHub Actions [R24.3 JSX/SFC](https://github.com/shopable-ai/opendesk-browser/actions/runs/38153296137) 、[R24.3 direct 初版构建](https://github.com/shopable-ai/opendesk-browser/actions/runs/38154353845) 与 [React Direct 跨站悬浮更新](https://github.com/shopable-ai/opendesk-browser/actions/runs/38210525378)。
+**R24.3 当前可用：**四个现有示例目录（React JSX、Vue SFC、React 普通 JS、Vue 普通 JS）的 Page 草稿都已由实际项目构建器生成，分别保留官方组件源码的只读快照。导入不需要 Native 或项目 `node_modules`，但导入时执行的是已经生成、SHA-256 固定的 `program.js`，**导入 JSON 本身不会重新编译源码**。如需直接编辑原始 JSX/SFC，请另用 Side Panel「开发 → 直接编辑 → React JSX / Vue SFC」；该入口现已有[无 Native 原生 Chrome 验收](https://github.com/shopable-ai/opendesk-browser/actions/runs/38225425847)，只支持所批准的单组件子集。来源：GitHub Actions [R24.3 JSX/SFC](https://github.com/shopable-ai/opendesk-browser/actions/runs/38153296137) 、[R24.3 direct 初版构建](https://github.com/shopable-ai/opendesk-browser/actions/runs/38154353845) 与 [React Direct 跨站悬浮更新](https://github.com/shopable-ai/opendesk-browser/actions/runs/38210525378)。
 
 | R24.3 当前 JSON | 固定 Page `sourceHash` | 文件 SHA-256 |
 | --- | --- | --- |
@@ -30,7 +30,7 @@
 5. 返回开发 → 直接编辑，而不是本地项目；核对 Page 快照，点击“在当前网页试运行”。
 6. R24.3 四个当前组件显示计数按钮，真实点击后计数递增；使用原 previewId 停止受管 UI，检查组件、样式和 DOM 清理。仅 `history/` 下的 R24.2 示例是高亮/撤销测试；两种行为不能混作同一回执。
 
-导入、试运行和看到组件都不等于已安装或下次自动执行。当前文件是固定快照，不跟随磁盘源码变化。持续开发应使用 [React 普通 JS 项目](../programs/page-ui-react-direct/README.md)或 [Vue 普通 JS 项目](../programs/page-ui-vue-direct/README.md)。
+导入、试运行和看到组件都不等于已安装或下次自动执行。当前文件是固定快照，不跟随磁盘源码变化。持续进行本地多文件开发可选择 [React JSX 项目](../programs/page-ui-react/README.md)、[Vue SFC 项目](../programs/page-ui-vue/README.md)、[React 普通 JS 项目](../programs/page-ui-react-direct/README.md)或 [Vue 普通 JS 项目](../programs/page-ui-vue-direct/README.md)。不连接 Native 的浏览器内单组件开发参见 [Page UI API](../../docs/api/page-ui-frameworks.zh-CN.md)。
 
 **当前 React Direct** 示例的 `*://*/*` 可匹配普通 HTTP(S) 网页，但并不授予全站权限，跨站时需要独立 Chrome Site Access 和明确运行；不支持浏览器内部页及其他受限制页面。其他示例仍有各自独立的测试页规则，不因 React Direct 跨站化而改变。匹配范围也不取代正式安装授权。
 

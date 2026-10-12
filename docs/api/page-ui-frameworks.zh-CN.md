@@ -57,3 +57,7 @@ Chrome 可打开 `http://127.0.0.1:43111/demo-form.html` 进行回归；**React 
 **R24.3 原生新增证据：**[无 Native Side Panel React/Vue 真实编辑/Run/指针交互/Stop](https://github.com/shopable-ai/opendesk-browser/actions/runs/38225425847) 已在所绑定的 macOS Chrome 候选 PASS；早期只有 Worker 编译的记录继续保留但不再代表唯一验收。**R24.4 仍未关闭：**浏览器内 20×React/20×Vue 独立编辑-运行-停止矩阵、编译错误恢复与重复运行保护、SPA/BFCache、撤权、CSS scoped 全面样式验证、200% 缩放/窄屏/暗色/键盘、性能与完整新候选安装/更新/F3/ZIP。未取得原生证据的项目依然 NOT_TESTED，不得自评 ≥95。浏览器编译器候选的供应链审查见 [工作流](../framework/workstreams/page-browser-compiler-r243-20261012.md)。这些缺口禁止用设计分或已有本地 Chrome PASS 抵消。
 
 实测、评分和待办持续更新到 [R24.3 工作流](../framework/workstreams/page-framework-authoring-r243-20261011.md)。
+
+## 六、本地 Codex 当前源码验收入口
+
+可复制执行的逐项验收 GOAL（包含四示例目录、受信框架依赖、浏览器无 Native、真实 Mac Chrome、独立 20 次循环、失败回退、证据绑定及主分支并行保护）：[R24.4 本地 Codex 验收任务](../framework/prompts/goal-r244-page-ui-local-codex-acceptance.zh-CN.md)。开始前先核对最新 `main` 和已存在的工作流证据，避免重复启动受占用的 CFT Profile 或重新打包无关资产。
