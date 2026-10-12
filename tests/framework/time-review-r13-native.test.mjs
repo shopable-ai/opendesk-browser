@@ -80,6 +80,12 @@ test('Time Review R1.3 actual Mac Chrome install and trusted consent smoke',{ski
   assert.equal(pkg.id,'time-review');assert.equal(pkg.version,'1.3.0');
   const profile=await mkdtemp(path.join(tmpdir(),'opendesk-time-r13-'));
   const downloads=path.join(profile,'owned-downloads');await mkdir(downloads);
+  // Configure the real Chrome profile before launch. Do not use CDP's
+  // Browser.setDownloadBehavior: it can replace native filename decisions.
+  await mkdir(path.join(profile,'Default'),{recursive:true});
+  await writeFile(path.join(profile,'Default','Preferences'),JSON.stringify({
+    download:{default_directory:downloads,prompt_for_download:false,directory_upgrade:true}
+  }));
   const args=['--use-mock-keychain','--password-store=basic','--no-sandbox','--disable-gpu',
     '--disable-dev-shm-usage','--no-first-run','--no-default-browser-check',
     '--disable-background-networking','--remote-allow-origins=*',
@@ -248,7 +254,7 @@ test('Time Review R1.3 actual Mac Chrome install and trusted consent smoke',{ski
   const readDownloads=()=>evaluate(browser,side,
     'chrome.downloads.search({}).then(rows=>rows.map(({id,state,error,filename,bytesReceived,totalBytes,byExtensionId})=>({id,state,error,filename,bytesReceived,totalBytes,ownedByExtension:byExtensionId===chrome.runtime.id})))');
   const expectedState=await readTime(),issues=[],downloadChecks=[];
-  await browser.send('Browser.setDownloadBehavior',{behavior:'allow',downloadPath:downloads,eventsEnabled:true});
+  // The owned Chrome profile routes real downloads; no CDP interception.
   for(const [format,selector] of [['json','#export-json'],['csv','#export-csv']]){
     const result={format,created:'NOT_TESTED',complete:'NOT_TESTED',ownedDirectory:'NOT_TESTED',
       disk:'NOT_TESTED',content:'NOT_TESTED',filename:'NOT_TESTED'};

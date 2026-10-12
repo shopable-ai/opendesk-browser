@@ -78,3 +78,5 @@
 - 验证状态：本次远端直接提交之前未在用户 Mac 运行；需等待绑定**本次提交 SHA** 的 GitHub Actions 原生 macOS Chrome 155 结果。本机真实活动时间、重启、撤权、200% 缩放维持 NOT_TESTED；组件验证以 Actions 结果为准。
 
 - P0 首次绑定 `e4a128582b86420abe19707b6629ee751813e26f` 的 [Mac 专项 Actions 38213480341](https://github.com/shopable-ai/opendesk-browser/actions/runs/38213480341)：R1.3 组件 **41 PASS / 1 FAIL**，失败点为未知 ticket 仍需要在 `onDeterminingFilename` 回调里异步 `suggest()` 无参数，但测试错误地要求返回同步 false。修正该断言并保留实际“不更名”语义，旧 run 仍标记 FAIL；其真实 Chrome 阶段未执行。
+
+- [Actions 38213643444](https://github.com/shopable-ai/opendesk-browser/actions/runs/38213643444)，候选 `34ad1dcdc268b141f79bd3d022e474094afb2a0e`：R1.2/R1.3 组件 53/53 PASS，真实 Mac CFT 的 JSON/CSV **创建、完成、独占文件夹、文件存在和内容解析均 PASS**，但最终文件名分别 `download.json`/`download.csv`，故 P0 原生仍 FAIL。进一步检查 native driver：此前使用 CDP `Browser.setDownloadBehavior` 介入浏览器下载决策，本次调整为**启动前配置独占 Chrome Profile 的默认下载目录**，不在下载期间通过 CDP 覆盖下载行为。需以新 SHA 的真实 run 证明是否属于测试环境干预，未通过前不得关闭 P0。
