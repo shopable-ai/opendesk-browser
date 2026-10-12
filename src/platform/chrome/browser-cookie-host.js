@@ -191,6 +191,7 @@ export function createTrustedCookieHost({api=globalThis.chrome,now=Date.now}={})
     }
     if(op==='browser.cookies.observe.start'){
       if(!api.cookies?.onChanged?.addListener)throw error('E_CAPABILITY');
+      for(const [ref,row] of sessions)if(now()>=row.expiresAt)sessions.delete(ref);
       if(sessions.size>=8)throw error('E_LIMIT');
       const ownStore=await storeId(target);
       const partition=(await chromeCall(api,api.cookies,'getPartitionKey',{
@@ -231,6 +232,7 @@ export function createTrustedCookieHost({api=globalThis.chrome,now=Date.now}={})
       const target=targetOf(document),args=normalized(targetOperation,targetArgs??{});
       if(!caller?.documentId||caller.hostInstanceId!==hostInstanceId)throw error('E_OWNER');
       await guard(target);
+      for(const [ref,row] of approvals)if(now()>=row.expiresAt)approvals.delete(ref);
       if(approvals.size>=16)throw error('E_LIMIT');
       const approvalRef=crypto.randomUUID(),expiresAt=now()+15000;
       approvals.set(approvalRef,{target,args,op:targetOperation,hostInstanceId,
