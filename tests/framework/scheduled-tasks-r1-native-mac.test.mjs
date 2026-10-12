@@ -151,16 +151,33 @@ async function attach(client,targetId){
   return sessionId;
 }
 async function fileChooser(client,session,filename,events){
-  let offset=events.length;
   await client.send('Page.setInterceptFileChooserDialog',{enabled:true},session);
+  const observations=[];
   try{
-    await click(client,session,'#task-package-file');
-    const row=await deadline(()=>events.slice(offset).find(e=>e.method==='Page.fileChooserOpened'&&
-      (!e.sessionId||e.sessionId===session)),'genuine Chrome file chooser');
-    assert.equal(row.params.mode,'selectSingle');
-    assert(Number.isSafeInteger(row.params.backendNodeId),'Chrome must provide input identity');
-    await client.send('DOM.setFileInputFiles',{files:[filename],
-      backendNodeId:row.params.backendNodeId},session);
+    for(let attempt=1;attempt<=2;attempt++){
+      // Some Xvfb/Chrome UI focus transitions drop the first native chooser
+      // gesture. Retry only the genuine pointer input, never emulate change,
+      // assign input.files or supply package data via a privileged RPC.
+      if(attempt>1)await client.send('Page.bringToFront',{},session);
+      const offset=events.length;
+      await click(client,session,'#task-package-file');
+      const row=await deadline(()=>events.slice(offset).find(e=>e.method==='Page.fileChooserOpened'&&
+        (!e.sessionId||e.sessionId===session)),'genuine Chrome file chooser',attempt===1?5000:8000)
+        .catch(()=>null);
+      if(row){
+        assert.equal(row.params.mode,'selectSingle');
+        assert(Number.isSafeInteger(row.params.backendNodeId),'Chrome must provide input identity');
+        await client.send('DOM.setFileInputFiles',{files:[filename],
+          backendNodeId:row.params.backendNodeId},session);
+        return;
+      }
+      observations.push({attempt,
+        activeElement:await evaluate(client,'document.activeElement?.id||null',session).catch(()=>null),
+        browserEvents:events.slice(offset).filter(e=>e.method==='Page.fileChooserOpened')
+          .map(e=>({sessionMatches:!e.sessionId||e.sessionId===session,mode:e.params?.mode}))});
+    }
+    throw Error('genuine Chrome file chooser not delivered after two native gestures: '+
+      JSON.stringify(observations));
   }finally{await client.send('Page.setInterceptFileChooserDialog',{enabled:false},session).catch(()=>{});}
 }
 async function durable(client,session){
