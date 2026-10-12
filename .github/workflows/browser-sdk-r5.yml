@@ -1,0 +1,72 @@
+name: Browser SDK R5 implementation contracts
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/framework/sdk/browser*.js'
+      - 'src/platform/chrome/browser-tabs.js'
+      - 'src/platform/chrome/browser-screenshot*.js'
+      - 'src/platform/chrome/browser-network-observe.js'
+      - 'src/platform/chrome/context-menus.js'
+      - 'src/ui/sidebar-tools.js'
+      - 'src/sidebar-tools/bridge.js'
+      - 'tests/environment/browser-*.test.mjs'
+      - 'tests/environment/browser-sdk-*.test.mjs'
+      - 'docs/framework/workstreams/browser-sdk-*'
+      - '.github/workflows/browser-sdk-r5.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  sdk-host-contracts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+          clean: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '22'
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Explicit Browser SDK contracts, Host, native API mocks and denial paths
+        run: |
+          node --test --test-reporter=spec \
+            tests/environment/browser-sdk-contract-compat.test.mjs \
+            tests/environment/browser-sdk-coverage.test.mjs \
+            tests/environment/browser-tabs-host.test.mjs \
+            tests/environment/browser-sidepanel-host.test.mjs \
+            tests/environment/browser-sdk-r2-host.test.mjs \
+            tests/environment/browser-screenshot-host.test.mjs \
+            tests/environment/browser-screenshot-resources.test.mjs \
+            tests/environment/browser-network-observe-host.test.mjs \
+            tests/environment/browser-sdk-approval-timeout.test.mjs \
+            tests/environment/browser-sdk-r2-demo.test.mjs
+      - name: Browser SDK exact registry and human acceptance ledger
+        run: node scripts/check-browser-sdk-coverage.mjs --check
+      - name: Source checks
+        run: npm run check
+  sdk-product-bundles:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+          clean: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '22'
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - run: npm run build
+      - run: npm run build:dev
+      - run: npm run verify
+      - name: Save exact production candidate for manual Chrome acceptance
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: browser-sdk-r5-unpacked-${{ github.sha }}
+          retention-days: 7
+          if-no-files-found: error
+          path: dist/production/
