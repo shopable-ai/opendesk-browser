@@ -1472,6 +1472,51 @@ test('cloud stop fences its current grant without rewriting prior or foreign ass
   assert.deepEqual(repeated.find(row=>row.requestId===prior.requestId),prior);
   assert.deepEqual(repeated.find(row=>row.requestId===foreign.requestId),foreign);
 });
+test('legacy pending request migrates once; repeated 2s claims use durable direct KV key',async t=>{
+  const f=await cloudTaskFixture();
+  f.cloud.connection('authenticated');f.cloud.setReconciled(true);
+  t.mock.method(globalThis,'fetch',async()=>{throw Error('Existing lease must not claim another job');});
+  const original=await f.cloud.cloudNext({},f.sender);
+  assert.deepEqual(original,{requestId:f.requestId});
+  let config=(await f.rows('frameworkKV')).find(r=>r?.providerId==='provider'&&Array.isArray(r.tasks));
+  assert.equal(config.pendingRequestId,f.requestId);
+  const transaction=f.storage.transaction.bind(f.storage);
+  f.storage.transaction=(names,mode,work)=>transaction(names,mode,tx=>work({
+    ...tx,
+    all:store=>{
+      if(store==='frameworkKV')throw Error('2s Cloud claim must not scan full KV after migration');
+      return tx.all(store);
+    }
+  }));
+  assert.deepEqual(await f.cloud.cloudNext({},f.sender),original);
+  assert.deepEqual(await f.cloud.cloudNext({},f.sender),original);
+  // The source document may later close, but the durable pointer remains and
+  // can be reconciled by a new service instance without redoing cloud effects.
+  assert.equal(f.calls.filter(x=>x.method==='create').length,0);
+});
+
+test('original Run admission clears a waiting pointer in the same durable bind',async t=>{
+  const f=await cloudTaskFixture();
+  await f.storage.transaction(['frameworkKV'],'readwrite',async tx=>{
+    const c=await tx.get('frameworkKV','cloud:config');
+    c.pendingRequestId=f.requestId;
+    await tx.put('frameworkKV',c,'cloud:config');
+  });
+  t.mock.method(globalThis,'fetch',async(url,options)=>{
+    assert.match(url,/\/v1\/admission$/);
+    const b=JSON.parse(options.body);
+    const c=(await f.rows('frameworkKV')).find(r=>r?.providerId==='provider'&&Array.isArray(r.tasks));
+    assert.equal(c.pendingRequestId,null,'original slot+Run bind retires the waiting pointer before permit');
+    return new Response(JSON.stringify({permitId:'permit',providerId:'provider',
+      assignmentId:'assignment',runRef:b.runRef,leaseUntil:Date.now()+90000}));
+  });
+  const run=await f.authority.startControllerRun(f.request,f.sender);
+  const c=(await f.rows('frameworkKV')).find(r=>r?.providerId==='provider'&&Array.isArray(r.tasks));
+  assert.equal(c.pendingRequestId,null);
+  await f.authority.stopControllerRun({runId:run.runId,requestId:'stop-pointer-test',reason:'E_CANCELLED'},f.sender);
+  await f.finish(run,'stopped');
+  await f.authority.retireControllerTarget({runId:run.runId},f.sender);
+});
 test('expired unstarted cloud assignment is retired once before a fresh provider claim',async t=>{
   const f=await cloudTaskFixture();let claims=0;
   await f.storage.transaction(['frameworkKV'],'readwrite',async tx=>{
