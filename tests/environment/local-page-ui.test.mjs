@@ -51,7 +51,7 @@ test('local-page-ui remains a top-frame, on-demand USER_SCRIPT with standard HTT
     assert.equal(pageProgramUrlMatches(meta.pageRules,url),false,url);
 });
 
-test('floating view works without host-page headings or special DOM; actions affect only its own nodes',()=>{
+test('floating view works without host-page headings or special DOM; actions affect only its own nodes',async()=>{
   assert.match(await readFile(project+'/assets/ui.css','utf8'),/background:rgb\(31,102,178\)/);
   const h=harness('shop.example.test:8443');
   render(h.ui,{label:'测试点击',step:3});
