@@ -15,6 +15,10 @@ export async function packProduct(id) {
   const source=resolve('dist/products',id,'production');
   const report=await verifyProduct(source,plan);
   const directory=resolve('artifacts/products',id);
+  const previous=JSON.parse(await readFile(resolve(directory,'build-receipt.json'),'utf8'));
+  if(previous.status!=='BUILD_VERIFIED'||previous.productId!==id||
+     previous.version!==plan.version||previous.packageHash!==report.packageHash)
+    throw Error('Pack candidate does not match verified product build receipt');
   const filename=id+'-'+plan.version+'-production.zip';
   const zipPath=resolve(directory,filename);
   await mkdir(directory,{recursive:true});
