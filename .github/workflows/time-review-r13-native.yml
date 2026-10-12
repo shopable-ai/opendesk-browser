@@ -5,6 +5,8 @@ on:
     branches: [main]
     paths:
       - 'tests/framework/time-review-r13-native.test.mjs'
+      - 'src/time-review/service.js'
+      - 'tests/environment/time-review-r12.test.mjs'
       - '.github/workflows/time-review-r13-native.yml'
   pull_request:
     branches: [main]

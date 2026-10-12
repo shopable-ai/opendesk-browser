@@ -57,3 +57,6 @@
 - 该次运行尝试 JSON 导出时，界面提示“已请求下载”，但测试只轮询固定的 `<isolated profile>/owned-downloads/time-review.json`，30 秒无文件，故实际文件落盘 **NOT_TESTED / FAILED_TO_CONFIRM**；不能从下载请求回执推断成功，也不能因其他 PASS 消除该失败。原生证据包括 `native-report.json`、受信任设置截图和最终失败截图。
 - 后续只在 `main` 修改测试和工作流。新增 Chrome `downloads.search()` 只读观察：先验证新 downloadId，再判断 `complete/interrupted`，核对实际 `filename`、是否位于专属 Profile 文件夹和真正的 JSON 磁盘字节。失败记录只包含状态、文件基名及是否落入本次隔离路径，不读取/复制任何用户下载目录。生产下载代码暂不更改；取得 interrupted 错误码或实际路径证据后再决定是否需要修复。
 - 真实网站开始/暂停/恢复、浏览器及 SW 重启、分类持久化、撤权卸载和真正 Chrome 200% 缩放仍 `NOT_TESTED`，各项另列证据。新增 main-only 原生定向 CI `push` 入口，以后本模块测试改动可在主分支进行，不创建 PR 或额外分支。用户 Mac 本机工作区状态此会话不可检查。
+
+- [Actions 38206716855](https://github.com/shopable-ai/opendesk-browser/actions/runs/38206716855) 的 main 版原生下载诊断表明：`chrome.downloads.search()` 在隔离 Profile 内得到新记录 `id=1`、`state=complete`、`error=null`、`bytesReceived=241`，实际保存路径也属于本轮专属文件夹，但文件基名为 `download`，并非请求的 `time-review.json`。这证明实际磁盘下载**已发生**，同时原始格式/文件名约定**未满足**。测试保持 FAIL，不凭受理回执虚报 JSON 导出全部成功。
+- 按最小修复对 JSON/CSV 增加精确媒体类型和 `name=...` 参数，并继续显式设置 `downloads.download.filename`；保留 `saveAs:false` 避免额外浏览器弹窗，`conflictAction:'uniquify'` 避免覆盖旧文件。新增 Node 固定接口回归，仍要求原生文件名和真实 JSON 内容双验证；这项更改经主分支定向 Mac CI 后才可判断是否成功。
