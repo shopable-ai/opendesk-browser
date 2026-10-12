@@ -1,3 +1,10 @@
+## R2 P0 实际接线记录（2026-10-12）
+
+- **真实源码路径**：用户工具 OpenDeskSDK.browser → 工具 capability、已安装包、Epoch 校验 → 可信 Side Panel 显式单次确认 → Worker 一次性操作凭证 → Chrome Tabs / Side Panel / Network Driver → 受限响应。
+- **安全保护**：没有公开原始 tabId；TabRef 按包 hash 与生命周期绑定；停用、卸载、Chrome 权限撤销使旧批准无效；HTTP 无凭据、禁止重定向及严格响应限制。
+- **下一步最优先源码任务**：CI 定向正向、拒绝和构建修复，随后同 SHA Mac Chrome 真实用户点击、导航、Worker 重启。其后优先实现 Network Observe。
+- **最新 P0 功能源码提交**：9a0a5b3a977969bf8d37978a116769972562cbc5。尚无本候选测试证据，Node / Build / Mac Chrome 维持 NOT_TESTED。
+
 # Browser SDK R1.3 / R2 / R3 / R4 统一进度账本
 
 > **接口范围提醒（2026-10-12）**：本页的 **32 项**仅为当前 Browser SDK 正式合同，**不是所有浏览器能力**。另见 [全接口扩展候选目录](../../api/browser-sdk-full-interface-inventory.zh-CN.md)：27 个功能组、114 个尚未登记的候选方法（包括 Cookie、Bookmarks、History、Storage、Downloads、Windows 等）。候选接口不计入已实现分母；Cookie Editor 目前仍是模拟 UI，真实 Chrome Cookie 读写尚未接线。
@@ -7,9 +14,9 @@
 
 **最终需求：已安装的工具开发者可以直接使用 `OpenDeskSDK.browser` 完成浏览器操作，不必重新编译 Chrome 扩展。首先接通 SDK → 工具安装能力 → 可信 Host → Chrome API → 返回值/错误码，然后再完成示例、美化和全面验收。**
 
-**代码实现登记：10 / 32（31.25%）；当前候选逐项原生验收：0 / 32。** 这两个数不能混为一个百分比。10 项已有实现登记，但不代表同一候选完整 Mac Chrome 验收通过；32 项包含产品明确限制的能力，不要求全部开放。
+**核心接口已接线：14 / 32（43.75%）。已登记实现但未通过当前候选原生验收：14 项；同候选 Mac Chrome 验收：0 / 32。** 新增 Tabs 两项、Side Panel 一项、Network Request 一项的公开方法与 Host 调用。源码状态不等于原生测试 PASS。
 
-**已开发但未接线的独立驱动：3 个**（Tabs、Side Panel、Screenshot）。这些已有源码与部分组件测试，但工具安装权限、Host RPC 与真实点击链路尚未闭合，因此不能追加计入 10 项 IMPLEMENTED。另有 2 项 HOST_ONLY、2 项 NOT_EXPOSED。
+**已复用并接线：Tabs、Side Panel 和原有 HTTP Driver。** Screenshot 仍是 1 项未接线 HOST_ONLY，另有 PLANNED 15、NOT_EXPOSED 2。用户必须对每项敏感操作单次确认，普通工具不能自动继承 Chrome 扩展权限。
 
 | 开发优先级 | 用户要实现的功能（语义需求） | 接口范围 | 当前真正的缺口 |
 | --- | --- | --- | --- |
@@ -35,10 +42,10 @@
 
 > `IMPLEMENTED` 是合同登记状态，**不等于真实 Chrome PASS**。本账本只记录可追溯事实，不授予额外权限。
 
-- 最近核对的 `main` SHA：`510fa81894e13f57df0c791d141bfe91960e0632`（这是本提交前的核对基线；当前最新请运行 `git rev-parse HEAD`）
+- 本轮账本更新前 main HEAD：9a0a5b3a977969bf8d37978a116769972562cbc5；最新提交见 GitHub main 历史。Mac 本地目录未挂载，原生验证尚未执行。
 - Browser SDK 版本：`1.0.0`
-- 操作总数：**32**；已登记 IMPLEMENTED：**10**；同候选实测可调用：**0 项已验证**
-- PLANNED：**18**；HOST_ONLY：**2**；NOT_EXPOSED：**2**
+- 操作总数：**32**；已登记接线 IMPLEMENTED：**14 / 32（43.75%）**；其中**14 项尚无同候选原生验收**；原生实测通过：**0**
+- PLANNED：**15**；HOST_ONLY：**1**；NOT_EXPOSED：**2**
 - 生态审计：**18 个领域、74 个叶子**（不代表开放全部 74 项特权 API）
 - Node / Check / Build / Build:dev / Build:size / Verify：**NOT_TESTED（当前候选）**
 - 真实 Mac Chrome GUI / Worker：**NOT_TESTED（当前候选）**
@@ -66,10 +73,10 @@
 | `browser.page.getSelection` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
 | `browser.clipboard.writeText` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
 | `browser.downloads.text` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
-| `browser.tabs.open` | PLANNED | DECLARED_NON_EXECUTABLE | NOT_TESTED | NOT_TESTED | NOT_TESTED |
-| `browser.tabs.focus` | PLANNED | DECLARED_NON_EXECUTABLE | NOT_TESTED | NOT_TESTED | NOT_TESTED |
-| `browser.sidePanel.openSelf` | PLANNED | DECLARED_NON_EXECUTABLE | NOT_TESTED | NOT_TESTED | NOT_TESTED |
-| `browser.network.request` | HOST_ONLY | HOST_ONLY | NOT_TESTED | NOT_TESTED | NOT_TESTED |
+| `browser.tabs.open` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
+| `browser.tabs.focus` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
+| `browser.sidePanel.openSelf` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
+| `browser.network.request` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
 | `browser.network.observe.start` | PLANNED | DECLARED_NON_EXECUTABLE | NOT_TESTED | NOT_TESTED | NOT_TESTED |
 | `browser.network.observe.getStatus` | PLANNED | DECLARED_NON_EXECUTABLE | NOT_TESTED | NOT_TESTED | NOT_TESTED |
 | `browser.network.observe.stop` | PLANNED | DECLARED_NON_EXECUTABLE | NOT_TESTED | NOT_TESTED | NOT_TESTED |

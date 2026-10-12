@@ -73,7 +73,9 @@ export async function checkBrowserSdk({root=ROOT}={}){
   ()=>sdk.contextMenu.getStatus(),()=>sdk.contextMenu.register({actionIds:['approved-action']}),
   ()=>sdk.contextMenu.unregister(),()=>sdk.launch.consume(),()=>sdk.page.getContext(),
   ()=>sdk.page.getSelection(),()=>sdk.clipboard.writeText('note'),
-  ()=>sdk.downloads.text({text:'note',filename:'note.md'})
+  ()=>sdk.downloads.text({text:'note',filename:'note.md'}),
+  ()=>sdk.tabs.open({url:'https://example.org'}),()=>sdk.tabs.focus({tabRef:'r'.repeat(32)}),
+  ()=>sdk.sidePanel.openSelf(),()=>sdk.network.request({method:'GET',url:'https://example.org'})
  ];
  for(const probe of probes)try{await probe()}catch(e){errors.push('wrapper probe: '+(e.code||e.message))}
  const evidence=[];

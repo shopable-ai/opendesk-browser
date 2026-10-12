@@ -3,7 +3,7 @@
   "sourceOfTruth": "src/framework/sdk/browser-contract.js",
   "repository": "shopable-ai/opendesk-browser",
   "branch": "main",
-  "auditedMainSha": "510fa81894e13f57df0c791d141bfe91960e0632",
+  "auditedMainSha": "9a0a5b3a977969bf8d37978a116769972562cbc5",
   "auditedDate": "2026-10-12",
   "apiVersion": "1.0.0",
   "capacityUniverse": {
@@ -14,9 +14,9 @@
   "summary": {
     "operationCount": 32,
     "implementationCounts": {
-      "IMPLEMENTED": 10,
-      "PLANNED": 18,
-      "HOST_ONLY": 2,
+      "IMPLEMENTED": 14,
+      "PLANNED": 15,
+      "HOST_ONLY": 1,
       "NOT_EXPOSED": 2
     },
     "callableVerified": 0
@@ -504,11 +504,11 @@
       "api": "browser.tabs.open",
       "module": "browser.tabs",
       "apiVersion": "1.0.0",
-      "implementation": "PLANNED",
+      "implementation": "IMPLEMENTED",
       "executionContexts": [
         "sidebar-tool"
       ],
-      "exposure": "DECLARED_NON_EXECUTABLE",
+      "exposure": "APPROVED_TOOL",
       "inputSchema": "src/framework/sdk/browser-contract.js#browser.tabs.open",
       "outputSchema": "src/framework/sdk/browser-contract.js#browser.tabs.open",
       "chromePermissions": [
@@ -521,8 +521,8 @@
       "riskLevel": "medium",
       "siteScope": "explicit-url",
       "lifecycle": "request",
-      "hostImplementation": null,
-      "sdkEntry": null,
+      "hostImplementation": "src/platform/chrome/context-menus.js",
+      "sdkEntry": "src/framework/sdk/browser.js",
       "positiveTest": {
         "status": "NOT_TESTED",
         "evidence": []
@@ -537,9 +537,9 @@
       },
       "callableNowVerification": "NOT_TESTED",
       "blockers": [
-        "Install capability, trusted Host RPC, permission revocation and native verification not completed"
+        "Integrated code; positive, denial, same-candidate native Chrome acceptance outstanding"
       ],
-      "nextTask": "Connect verified Host, install grants and user consent; test or remain PLANNED",
+      "nextTask": "Execute and repair targeted CI then real user click, denial, revocation and Worker restart",
       "commits": [],
       "evidence": []
     },
@@ -547,11 +547,11 @@
       "api": "browser.tabs.focus",
       "module": "browser.tabs",
       "apiVersion": "1.0.0",
-      "implementation": "PLANNED",
+      "implementation": "IMPLEMENTED",
       "executionContexts": [
         "sidebar-tool"
       ],
-      "exposure": "DECLARED_NON_EXECUTABLE",
+      "exposure": "APPROVED_TOOL",
       "inputSchema": "src/framework/sdk/browser-contract.js#browser.tabs.focus",
       "outputSchema": "src/framework/sdk/browser-contract.js#browser.tabs.focus",
       "chromePermissions": [
@@ -564,8 +564,8 @@
       "riskLevel": "medium",
       "siteScope": "tab-ref",
       "lifecycle": "request",
-      "hostImplementation": null,
-      "sdkEntry": null,
+      "hostImplementation": "src/platform/chrome/context-menus.js",
+      "sdkEntry": "src/framework/sdk/browser.js",
       "positiveTest": {
         "status": "NOT_TESTED",
         "evidence": []
@@ -580,9 +580,9 @@
       },
       "callableNowVerification": "NOT_TESTED",
       "blockers": [
-        "Install capability, trusted Host RPC, permission revocation and native verification not completed"
+        "Integrated code; positive, denial, same-candidate native Chrome acceptance outstanding"
       ],
-      "nextTask": "Connect verified Host, install grants and user consent; test or remain PLANNED",
+      "nextTask": "Execute and repair targeted CI then real user click, denial, revocation and Worker restart",
       "commits": [],
       "evidence": []
     },
@@ -590,11 +590,11 @@
       "api": "browser.sidePanel.openSelf",
       "module": "browser.sidePanel",
       "apiVersion": "1.0.0",
-      "implementation": "PLANNED",
+      "implementation": "IMPLEMENTED",
       "executionContexts": [
         "sidebar-tool"
       ],
-      "exposure": "DECLARED_NON_EXECUTABLE",
+      "exposure": "APPROVED_TOOL",
       "inputSchema": "src/framework/sdk/browser-contract.js#browser.sidePanel.openSelf",
       "outputSchema": "src/framework/sdk/browser-contract.js#browser.sidePanel.openSelf",
       "chromePermissions": [
@@ -607,8 +607,8 @@
       "riskLevel": "medium",
       "siteScope": "user-gesture",
       "lifecycle": "request",
-      "hostImplementation": null,
-      "sdkEntry": null,
+      "hostImplementation": "src/ui/sidebar-tools.js",
+      "sdkEntry": "src/framework/sdk/browser.js",
       "positiveTest": {
         "status": "NOT_TESTED",
         "evidence": []
@@ -623,9 +623,9 @@
       },
       "callableNowVerification": "NOT_TESTED",
       "blockers": [
-        "Install capability, trusted Host RPC, permission revocation and native verification not completed"
+        "Integrated code; positive, denial, same-candidate native Chrome acceptance outstanding"
       ],
-      "nextTask": "Connect verified Host, install grants and user consent; test or remain PLANNED",
+      "nextTask": "Execute and repair targeted CI then real user click, denial, revocation and Worker restart",
       "commits": [],
       "evidence": []
     },
@@ -633,11 +633,11 @@
       "api": "browser.network.request",
       "module": "browser.network",
       "apiVersion": "1.0.0",
-      "implementation": "HOST_ONLY",
+      "implementation": "IMPLEMENTED",
       "executionContexts": [
         "sidebar-tool"
       ],
-      "exposure": "HOST_ONLY",
+      "exposure": "APPROVED_TOOL",
       "inputSchema": "src/framework/sdk/browser-contract.js#browser.network.request",
       "outputSchema": "src/framework/sdk/browser-contract.js#browser.network.request",
       "chromePermissions": [],
@@ -648,8 +648,8 @@
       "riskLevel": "high",
       "siteScope": "target-origin",
       "lifecycle": "request",
-      "hostImplementation": "src/platform/chrome/network.js",
-      "sdkEntry": null,
+      "hostImplementation": "src/platform/chrome/context-menus.js",
+      "sdkEntry": "src/framework/sdk/browser.js",
       "positiveTest": {
         "status": "NOT_TESTED",
         "evidence": []
@@ -664,9 +664,9 @@
       },
       "callableNowVerification": "NOT_TESTED",
       "blockers": [
-        "Host available but ordinary tools not authorized"
+        "Integrated code; positive, denial, same-candidate native Chrome acceptance outstanding"
       ],
-      "nextTask": "Maintain restricted status with denial tests",
+      "nextTask": "Execute and repair targeted CI then real user click, denial, revocation and Worker restart",
       "commits": [],
       "evidence": []
     },
