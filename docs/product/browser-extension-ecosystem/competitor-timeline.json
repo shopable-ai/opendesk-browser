@@ -1,0 +1,369 @@
+{
+  "schemaVersion": "opendesk.competitor-timeline.v1",
+  "researchedAt": "2026-10-13",
+  "product": "OpenDesk Browser",
+  "purpose": "Time-aware competitive intelligence for candidate niche-first marketing; not a product ranking.",
+  "fieldSemantics": {
+    "firstReleasedAt": "First public release date of product (unknown unless individually researched); NOT a claim of first feature.",
+    "latestStableAt": "Publication date of independently confirmed stable release; null if not confirmed.",
+    "latestPreviewAt": "Publication date of independently confirmed beta/pre-release; never silently promote to stable.",
+    "lastSourceActivityAt": "GitHub pushed_at from repository API (UTC); not release date or evidence of feature readiness.",
+    "lastStoreUpdatedAt": "Independent browser-store timestamp; not filled from GitHub release or source activity.",
+    "lastVerifiedAt": "Date of checking referenced sources; evidence can expire.",
+    "maintenanceAssessment": "ACTIVE_SOURCE / ACTIVE_RELEASE / SLOW_RELEASE_CYCLE / UNKNOWN; not a conclusion that a project is dead."
+  },
+  "reviewRules": {
+    "requireDateAndChannelForFeatureFirst": true,
+    "after180DaysWithoutKnownStableRelease": "FOLLOWUP_VERIFY—check store, docs, beta, and product activity; do not assume abandoned.",
+    "after365DaysWithoutEvidence": "PRIORITY_REVIEW—still do not mark DEAD without authoritative evidence.",
+    "comparisonsMustCheck": "same browser, channel (stable/beta), published package, functionality, permission, and reproducible task",
+    "recheckCadence": "monthly for core rivals; within 7 days before marketing launch; immediately when disproving counterexample appears"
+  },
+  "competitors": [
+    {
+      "id": "tampermonkey",
+      "name": "Tampermonkey",
+      "category": "userscript-manager",
+      "repository": null,
+      "firstReleasedAt": null,
+      "latestStableAt": null,
+      "latestStableVersion": null,
+      "latestPreviewAt": null,
+      "latestPreviewVersion": null,
+      "lastSourceActivityAt": null,
+      "lastStoreUpdatedAt": null,
+      "lastVerifiedAt": "2026-10-13",
+      "sourceActivityBasis": "NOT_RETRIEVED",
+      "maintenanceAssessment": "ACTIVE_RELEASE_REPORTED_NEEDS_DATED_RECHECK",
+      "productCapabilityStage": "MATURE_STABLE",
+      "verifiedSources": [
+        "https://www.tampermonkey.net/changelog.php",
+        "https://www.tampermonkey.net/documentation.php"
+      ],
+      "note": "Stable and beta variants exist; current publication timestamp deliberately left null pending direct changelog/store extraction; well-established metadata/GM benchmark."
+    },
+    {
+      "id": "scriptcat",
+      "name": "ScriptCat",
+      "category": "userscript-manager",
+      "repository": "https://github.com/scriptscat/scriptcat",
+      "firstReleasedAt": null,
+      "latestStableAt": "2026-06-26",
+      "latestStableVersion": "v1.4.0 (dated in R8 repository research)",
+      "latestPreviewAt": "2026-09-18",
+      "latestPreviewVersion": "v1.5.0-beta.4",
+      "lastSourceActivityAt": "2026-10-11T00:27:21Z",
+      "lastStoreUpdatedAt": null,
+      "lastVerifiedAt": "2026-10-13",
+      "sourceActivityBasis": "GitHub pushed_at (UTC; not release date)",
+      "maintenanceAssessment": "ACTIVE_SOURCE",
+      "productCapabilityStage": "STABLE_PLUS_AGENT_BETA",
+      "verifiedSources": [
+        "https://github.com/scriptscat/scriptcat/releases/tag/v1.5.0-beta.4",
+        "https://github.com/scriptscat/scriptcat/releases",
+        "https://github.com/scriptscat/scriptcat"
+      ],
+      "note": "Beta install-permission diff and Agent/MCP claims cannot be represented as stable-v1.4 features; stable date is reported by 2026-10-09 R8 research and should be reconfirmed before external use."
+    },
+    {
+      "id": "violentmonkey",
+      "name": "Violentmonkey",
+      "category": "userscript-manager",
+      "repository": "https://github.com/violentmonkey/violentmonkey",
+      "firstReleasedAt": null,
+      "latestStableAt": null,
+      "latestStableVersion": null,
+      "latestPreviewAt": "2026-10-10",
+      "latestPreviewVersion": "v2.49.5 beta",
+      "lastSourceActivityAt": "2026-10-12T06:10:38Z",
+      "lastStoreUpdatedAt": null,
+      "lastVerifiedAt": "2026-10-13",
+      "sourceActivityBasis": "GitHub pushed_at (UTC; not release date)",
+      "maintenanceAssessment": "ACTIVE_SOURCE",
+      "productCapabilityStage": "BETA_MCP_AVAILABLE",
+      "verifiedSources": [
+        "https://github.com/violentmonkey/violentmonkey/releases/tag/v2.49.5",
+        "https://violentmonkey.github.io/guide/ai-agent-access/"
+      ],
+      "note": "v2.49.5 prerelease explicitly states MCP integration and twice-a-day cron correction; not a stable release claim."
+    },
+    {
+      "id": "greasemonkey",
+      "name": "Greasemonkey",
+      "category": "firefox-userscript-manager",
+      "repository": "https://github.com/greasemonkey/greasemonkey",
+      "firstReleasedAt": null,
+      "latestStableAt": null,
+      "latestStableVersion": null,
+      "latestPreviewAt": null,
+      "latestPreviewVersion": null,
+      "lastSourceActivityAt": "2026-06-03T15:19:53Z",
+      "lastStoreUpdatedAt": null,
+      "lastVerifiedAt": "2026-10-13",
+      "sourceActivityBasis": "GitHub pushed_at (UTC; not release date)",
+      "maintenanceAssessment": "SLOW_RELEASE_CYCLE_TO_VERIFY",
+      "productCapabilityStage": "FIREFOX_SPECIFIC",
+      "verifiedSources": [
+        "https://addons.mozilla.org/en-US/firefox/addon/greasemonkey/versions/",
+        "https://github.com/greasemonkey/greasemonkey"
+      ],
+      "note": "Firefox-only comparator; GitHub releases endpoint empty, so stable version needs AMO check; not classified as abandoned."
+    },
+    {
+      "id": "firemonkey",
+      "name": "FireMonkey",
+      "category": "firefox-userscript-and-css",
+      "repository": "https://github.com/erosman/firemonkey",
+      "firstReleasedAt": null,
+      "latestStableAt": "2026-09-25",
+      "latestStableVersion": "v3.9",
+      "latestPreviewAt": null,
+      "latestPreviewVersion": null,
+      "lastSourceActivityAt": "2026-09-28T13:15:01Z",
+      "lastStoreUpdatedAt": null,
+      "lastVerifiedAt": "2026-10-13",
+      "sourceActivityBasis": "GitHub pushed_at (UTC; not release date)",
+      "maintenanceAssessment": "ACTIVE_RELEASE",
+      "productCapabilityStage": "FIREFOX_SPECIFIC",
+      "verifiedSources": [
+        "https://github.com/erosman/firemonkey/releases/tag/v3.9"
+      ],
+      "note": "No feature-by-feature same-version Chrome native acceptance was performed."
+    },
+    {
+      "id": "orangemonkey",
+      "name": "OrangeMonkey",
+      "category": "chromium-userscript-manager",
+      "repository": null,
+      "firstReleasedAt": null,
+      "latestStableAt": null,
+      "latestStableVersion": null,
+      "latestPreviewAt": null,
+      "latestPreviewVersion": null,
+      "lastSourceActivityAt": null,
+      "lastStoreUpdatedAt": null,
+      "lastVerifiedAt": "2026-10-13",
+      "sourceActivityBasis": "NOT_RETRIEVED",
+      "maintenanceAssessment": "STORE_ACTIVITY_REVIEW",
+      "productCapabilityStage": "REVIEW_BY_CHANNEL",
+      "verifiedSources": [
+        "https://chromewebstore.google.com/detail/orangemonkey/ekmeppjgajofkpiofbebgcbohbmfldaf"
+      ],
+      "note": "Earlier R8 research recorded a 2026-08-08 store update; independent current store scrape not repeated; lastStoreUpdatedAt intentionally null."
+    },
+    {
+      "id": "safari-userscripts",
+      "name": "Userscripts for Safari",
+      "category": "safari-userscript-manager",
+      "repository": "https://github.com/quoid/userscripts",
+      "firstReleasedAt": null,
+      "latestStableAt": null,
+      "latestStableVersion": null,
+      "latestPreviewAt": "2026-07-27",
+      "latestPreviewVersion": "v5.0.0-beta.23+20260727",
+      "lastSourceActivityAt": "2026-07-27T22:23:28Z",
+      "lastStoreUpdatedAt": null,
+      "lastVerifiedAt": "2026-10-13",
+      "sourceActivityBasis": "GitHub pushed_at (UTC; not release date)",
+      "maintenanceAssessment": "ACTIVE_RELEASE_PREVIEW",
+      "productCapabilityStage": "SAFARI",
+      "verifiedSources": [
+        "https://github.com/quoid/userscripts/releases/tag/v5.0.0-beta.23%2B20260727"
+      ],
+      "note": "No feature-by-feature same-version Chrome native acceptance was performed."
+    },
+    {
+      "id": "stylus",
+      "name": "Stylus",
+      "category": "usercss",
+      "repository": "https://github.com/openstyles/stylus",
+      "firstReleasedAt": null,
+      "latestStableAt": "2026-09-20",
+      "latestStableVersion": "v2.4.14",
+      "latestPreviewAt": null,
+      "latestPreviewVersion": null,
+      "lastSourceActivityAt": "2026-10-07T13:59:27Z",
+      "lastStoreUpdatedAt": null,
+      "lastVerifiedAt": "2026-10-13",
+      "sourceActivityBasis": "GitHub pushed_at (UTC; not release date)",
+      "maintenanceAssessment": "ACTIVE_RELEASE",
+      "productCapabilityStage": "CSS_NOT_JAVASCRIPT",
+      "verifiedSources": [
+        "https://github.com/openstyles/stylus/releases/tag/v2.4.14"
+      ],
+      "note": "No feature-by-feature same-version Chrome native acceptance was performed."
+    },
+    {
+      "id": "automa",
+      "name": "Automa",
+      "category": "visual-browser-automation",
+      "repository": "https://github.com/AutomaApp/automa",
+      "firstReleasedAt": null,
+      "latestStableAt": "2025-08-11",
+      "latestStableVersion": "v1.29.12",
+      "latestPreviewAt": null,
+      "latestPreviewVersion": null,
+      "lastSourceActivityAt": "2026-03-02T11:56:23Z",
+      "lastStoreUpdatedAt": null,
+      "lastVerifiedAt": "2026-10-13",
+      "sourceActivityBasis": "GitHub pushed_at (UTC; not release date)",
+      "maintenanceAssessment": "SLOW_RELEASE_CYCLE_TO_VERIFY",
+      "productCapabilityStage": "AUTOMATION",
+      "verifiedSources": [
+        "https://github.com/AutomaApp/automa/releases/tag/v1.29.12",
+        "https://chromewebstore.google.com/detail/automa/infppggnoaenmfagbfknfkancpbljcca"
+      ],
+      "note": "Last verified public GitHub stable release is dated 2025-08-11; code push in 2026; Web Store channel could differ."
+    },
+    {
+      "id": "uivision",
+      "name": "UI.Vision RPA",
+      "category": "visual-browser-desktop-automation",
+      "repository": null,
+      "firstReleasedAt": null,
+      "latestStableAt": null,
+      "latestStableVersion": null,
+      "latestPreviewAt": null,
+      "latestPreviewVersion": null,
+      "lastSourceActivityAt": null,
+      "lastStoreUpdatedAt": null,
+      "lastVerifiedAt": "2026-10-13",
+      "sourceActivityBasis": "NOT_RETRIEVED",
+      "maintenanceAssessment": "STORE_ACTIVITY_REVIEW",
+      "productCapabilityStage": "RPA",
+      "verifiedSources": [
+        "https://ui.vision/rpa/docs",
+        "https://chromewebstore.google.com/detail/uivision/gcbalfbdmfieckjlnblleoemohcganoc"
+      ],
+      "note": "Prior research reports a 2026-10 store update; independent current timestamp not rechecked here; do not use as a world-first exclusion without testing."
+    },
+    {
+      "id": "browserflow",
+      "name": "Browserflow",
+      "category": "no-code-automation",
+      "repository": null,
+      "firstReleasedAt": null,
+      "latestStableAt": null,
+      "latestStableVersion": null,
+      "latestPreviewAt": null,
+      "latestPreviewVersion": null,
+      "lastSourceActivityAt": null,
+      "lastStoreUpdatedAt": null,
+      "lastVerifiedAt": "2026-10-13",
+      "sourceActivityBasis": "NOT_RETRIEVED",
+      "maintenanceAssessment": "FOLLOWUP_VERIFY",
+      "productCapabilityStage": "RPA",
+      "verifiedSources": [
+        "https://docs.browserflow.app/",
+        "https://chromewebstore.google.com/detail/browserflow-web-scraping/hfjnppljknigdnnpocjjgdcfmnodoafe"
+      ],
+      "note": "Earlier store evidence suggested 2025-09; no GitHub/source benchmark and no independent maintenance conclusion."
+    },
+    {
+      "id": "vite-plugin-monkey",
+      "name": "vite-plugin-monkey",
+      "category": "modern-userscript-development",
+      "repository": "https://github.com/lisonge/vite-plugin-monkey",
+      "firstReleasedAt": null,
+      "latestStableAt": "2026-08-30",
+      "latestStableVersion": "v8.1.1",
+      "latestPreviewAt": null,
+      "latestPreviewVersion": null,
+      "lastSourceActivityAt": "2026-09-16T01:39:27Z",
+      "lastStoreUpdatedAt": null,
+      "lastVerifiedAt": "2026-10-13",
+      "sourceActivityBasis": "GitHub pushed_at (UTC; not release date)",
+      "maintenanceAssessment": "ACTIVE_RELEASE",
+      "productCapabilityStage": "VITE_DEV_TOOLCHAIN",
+      "verifiedSources": [
+        "https://github.com/lisonge/vite-plugin-monkey/releases/tag/v8.1.1"
+      ],
+      "note": "Important counterexample to standalone claims of React/Vue, TypeScript, Vite or multifile userscript novelty."
+    },
+    {
+      "id": "wxt",
+      "name": "WXT",
+      "category": "extension-development-framework",
+      "repository": "https://github.com/wxt-dev/wxt",
+      "firstReleasedAt": null,
+      "latestStableAt": null,
+      "latestStableVersion": null,
+      "latestPreviewAt": null,
+      "latestPreviewVersion": null,
+      "lastSourceActivityAt": "2026-10-12T04:10:09Z",
+      "lastStoreUpdatedAt": null,
+      "lastVerifiedAt": "2026-10-13",
+      "sourceActivityBasis": "GitHub pushed_at (UTC; not release date)",
+      "maintenanceAssessment": "ACTIVE_SOURCE",
+      "productCapabilityStage": "EXTENSION_FRAMEWORK",
+      "verifiedSources": [
+        "https://github.com/wxt-dev/wxt",
+        "https://wxt.dev/"
+      ],
+      "note": "Recent monorepo package releases; do not use last package release as a blanket framework version."
+    },
+    {
+      "id": "plasmo",
+      "name": "Plasmo",
+      "category": "extension-development-framework",
+      "repository": "https://github.com/plasmohq/plasmo",
+      "firstReleasedAt": null,
+      "latestStableAt": "2025-05-17",
+      "latestStableVersion": "v0.90.5",
+      "latestPreviewAt": null,
+      "latestPreviewVersion": null,
+      "lastSourceActivityAt": "2026-10-12T10:55:50Z",
+      "lastStoreUpdatedAt": null,
+      "lastVerifiedAt": "2026-10-13",
+      "sourceActivityBasis": "GitHub pushed_at (UTC; not release date)",
+      "maintenanceAssessment": "ACTIVE_SOURCE_SLOW_RELEASE",
+      "productCapabilityStage": "EXTENSION_FRAMEWORK",
+      "verifiedSources": [
+        "https://github.com/PlasmoHQ/plasmo/releases/tag/v0.90.5"
+      ],
+      "note": "Stable package release older than recent source activity. Not classified abandoned."
+    },
+    {
+      "id": "playwright-mcp",
+      "name": "Playwright MCP",
+      "category": "agent-browser-tooling",
+      "repository": "https://github.com/microsoft/playwright-mcp",
+      "firstReleasedAt": null,
+      "latestStableAt": "2026-09-28",
+      "latestStableVersion": "v0.0.83",
+      "latestPreviewAt": null,
+      "latestPreviewVersion": null,
+      "lastSourceActivityAt": "2026-10-08T17:51:59Z",
+      "lastStoreUpdatedAt": null,
+      "lastVerifiedAt": "2026-10-13",
+      "sourceActivityBasis": "GitHub pushed_at (UTC; not release date)",
+      "maintenanceAssessment": "ACTIVE_RELEASE",
+      "productCapabilityStage": "MCP_AGENT_FRAMEWORK",
+      "verifiedSources": [
+        "https://github.com/microsoft/playwright-mcp/releases/tag/v0.0.83"
+      ],
+      "note": "No feature-by-feature same-version Chrome native acceptance was performed."
+    },
+    {
+      "id": "browser-use",
+      "name": "Browser Use",
+      "category": "ai-browser-agent",
+      "repository": "https://github.com/browser-use/browser-use",
+      "firstReleasedAt": null,
+      "latestStableAt": "2026-10-07",
+      "latestStableVersion": "0.13.11",
+      "latestPreviewAt": null,
+      "latestPreviewVersion": null,
+      "lastSourceActivityAt": "2026-10-09T17:36:28Z",
+      "lastStoreUpdatedAt": null,
+      "lastVerifiedAt": "2026-10-13",
+      "sourceActivityBasis": "GitHub pushed_at (UTC; not release date)",
+      "maintenanceAssessment": "ACTIVE_RELEASE",
+      "productCapabilityStage": "AI_BROWSER_AGENT",
+      "verifiedSources": [
+        "https://github.com/browser-use/browser-use/releases/tag/0.13.11"
+      ],
+      "note": "No feature-by-feature same-version Chrome native acceptance was performed."
+    }
+  ]
+}
