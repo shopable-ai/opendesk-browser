@@ -497,15 +497,24 @@ test('Time Review R1.3 actual Mac Chrome install and trusted consent smoke',{ski
     await nativeClick(browser,frame,'#sites .detail-item button[aria-label^="修改"]');
     const selector='#sites .detail-item .row-edit select';
     await nativeClick(browser,frame,selector);
-    const press=async(key,vk)=>{
-      for(const type of ['keyDown','keyUp'])
-        await browser.send('Input.dispatchKeyEvent',{type,key,code:key,windowsVirtualKeyCode:vk},frame);
-    };
-    await press('Home',36);
-    await press('ArrowDown',40);
-    await press('ArrowDown',40);
-    assert.equal(await evaluate(browser,frame,'document.querySelector("#sites .row-edit select")?.value'),
-      '2','native keyboard selected the canonical important-not-urgent category');
+    // macOS select popovers consume OS-level key events, not OOPIF CDP
+    // Input.dispatchKeyEvent. Use the existing owned/AX-authorized CFT helper:
+    // genuine keyboard input, never a synthetic DOM value assignment.
+    const nativeKeyboard=path.join(profile,'time-review-native-activity');
+    if(!await stat(nativeKeyboard).catch(()=>null)){
+      const compile=spawnSync('swiftc',[
+        path.resolve('tests/framework/time-review-native-input.swift'),'-o',nativeKeyboard
+      ],{encoding:'utf8',timeout:80000});
+      assert.equal(compile.status,0,'owned macOS keyboard helper compile: '+String(compile.stderr).slice(-400));
+    }
+    for(const key of ['home','down','down','return']){
+      const input=spawnSync(nativeKeyboard,[String(proc.pid),'key',key],{
+        encoding:'utf8',timeout:10000});
+      assert.equal(input.status,0,'real Mac CFT key '+key+': '+String(input.stdout||input.stderr).slice(-300));
+    }
+    await until(()=>evaluate(browser,frame,
+      'document.querySelector("#sites .row-edit select")?.value==="2"'),
+      'native OS keyboard selected important-not-urgent category',6000);
     await nativeClick(browser,frame,'#sites .row-edit button.primary');
     const afterCategory=await until(async()=>{
       const s=await readTime();

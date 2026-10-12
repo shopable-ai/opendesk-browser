@@ -131,3 +131,6 @@
 - 本阶段继续在**真实已安装工具**的 Side Panel 完成：鼠标打开记录行分类编辑、原生键盘选择 `重要不紧急`（分类编码 2）、点击保存并读回持久分类，保证原网站时长不变、UI 显示一致，随后带分类导出与整 Chrome 重启。
 - 在整个浏览器重启后通过真实扩展工具管理入口「停用 → 重新启用 → 卸载确认」测试：撤销 epoch 持久变化、历史总时长保留、重新启用不会未经用户重新开始、卸载清除 Time Review 业务记录和待清理标记，同时保留其他工具，稍后读回确保后台事件不会复活已卸载数据。仍不向 storage 注入/模拟任何时间数据。此验收不等于扩展自身的卸载（扩展卸载行为仍 NOT_TESTED）。
 - 新原生覆盖需以提交本轮对应 SHA 的 Mac Actions 证实；当前仅为已写入源码的新增真实场景，未经过原生测试前不得称 PASS。Chrome 真正 200% 页面缩放、跨站有效计时与系统长期空闲仍需独立验收。
+
+- [Mac CI 38223058106](https://github.com/shopable-ai/opendesk-browser/actions/runs/38223058106) 在 `27e9f06d74ce6bd37679cfd81a40aebddee8fae3`：Time Review 54/54 组件、独立工具和双包构建、真正原生网站计时/暂停/SW 重启此前步骤通过；原生分类编辑阶段 **FAIL**，因为 Chrome 155 macOS 原生 `<select>` 菜单不响应 OOPIF 的 CDP 箭头键命令，UI 值仍是 0 而非 2。根因是测试键盘输入作用域，不是用户分类业务数据断言失败。保留该 run FAIL，卸载/重启尾段尚未执行。
+- 修复：在现有 `tests/framework/time-review-native-input.swift` 的真实本机 CFT 专用键盘输入中补 Home/Down/Up/End；它继续检查实际 PID、CFT Bundle、Accessibility 授权和前台所有权。分类测试通过**真正 macOS 系统按键**选择下拉选项并确认，绝不使用 `select.value=`、`dispatchEvent` 或直接修改 Chrome Storage 来伪造通过。后续仍须以新 SHA 的 Mac run 判定保存、持久化和工具停用/卸载是否通过。
