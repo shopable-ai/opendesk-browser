@@ -1395,11 +1395,24 @@ test('observer projection is fixed-namespace, paged and excludes all executable 
 test('cloudResolve uses a durable direct request key and rejects non-cloud identifiers',async()=>{
   const f=await cloudTaskFixture();
   const native=f.storage.transaction.bind(f.storage);
+  const cloudKVReads=[];
   f.storage.transaction=(names,mode,callback)=>native(names,mode,tx=>callback({
-    ...tx,all:store=>{if(store==='frameworkKV')throw Error('Unbounded Cloud KV scan');return tx.all(store);}
+    ...tx,
+    get:(store,key)=>{
+      if(store==='frameworkKV')cloudKVReads.push({op:'get',key});
+      return tx.get(store,key);
+    },
+    all:store=>{
+      if(store==='frameworkKV')cloudKVReads.push({op:'all'});
+      return tx.all(store);
+    }
   }));
   const direct=await f.cloud.cloudResolve({requestId:f.requestId},f.sender);
   assert.equal(direct.cloudRequestId,f.requestId);
+  // The first cloud request lookup must be an indexed primary-key read.
+  // Task installation validation has its own legacy full-store scan; it does
+  // not belong to this cloud request lookup and must not be masked.
+  assert.deepEqual(cloudKVReads[0],{op:'get',key:'cloud:request:'+f.requestId});
   await assert.rejects(f.cloud.cloudResolve({requestId:'foreign'},f.sender),code('E_SCHEMA'));
 });
 test('cloud binds original run and slot before permit; no target or worker before durable permission',async t=>{
