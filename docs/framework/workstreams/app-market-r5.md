@@ -267,3 +267,26 @@ FIX8 将主动观察失败变成不可重试的结果并在外层立即抛出，
 
 本轮对 `tests/helpers/app-market-r5-native.mjs` 的冷重连验证作最小重构：Chrome 的 `ServiceWorker.stopWorker` 只能指定当前真实 running version ID；成功后必须观察同 registration/script 的真实 `stopped` 事件，再核对原 target 确实消失，或同一 session 下旧 V8 uniqueContextId 已销毁且 `Runtime.evaluate` 返回精确 `-32602 uniqueContextId not found`。同时保证 HTTP PROBE 之前没有新的 running 版本；随后官网真实连接按钮动作唤起 Worker，验证新旧 uniqueContextId 不同、原 intent/review/operation 身份一致。保存 stopped event、上下文和 target 快照；不自行替换 browser sender、模拟 Worker 响应、直接写安装库或忽略失败。此修改必须由**下一次真实 Linux/macOS Chrome CI**确认，在取得完整原生收据前不能改写为 PASS。
 
+
+## 新 main 对 Worker 与 SDK 修改的 R5 影响复验（2026-10-12）
+
+受验候选 `6d71854b49fc2fcbace0047b8703b9c2c154211b`，原始 [Actions run #38262192082](https://github.com/shopable-ai/opendesk-browser/actions/runs/38262192082)。与首次 R5 成功候选 `3744be08` 分开记录，绝不跨包混用哈希。新候选继承定时任务 Chrome Alarms 与 Browser SDK 扩展等并行改动，R5 此轮不是重新建立市场安装服务。
+
+| 执行 | 当前结论 | 受验输入和明确证据 |
+| --- | --- | --- |
+| Linux CFT 155，官网到扩展真实安装 | **PASS**，16/16 原生专项、98/98 组件；来源拒绝 8 项、四个中断点 A1/A2/B/C、笔记更新数据保留、固定套装、网站单独授权、卸载和两次正常 Chrome 退出 | job `114855249892`；开发扩展 ID `nmeilgnolfnnlopgjoijdafbkelekcbj`、包 hash `23ed7262d092e29c903e175c837d669ced84aa0be06ac55780131549d35d3e0b`；`native-result.json` SHA-256 `8c3c0c88cc22d72c11d92fc7f2961af924154c50f218399adc117ad742646fc2` |
+| 本轮 Worker 真实停止再连接 | **PASS**。原生 `ServiceWorker.stopWorker`，匹配 running-version ID、stopped 事件和原 target 消失或原 uniqueContextId 实际失效，随后官网真实 PROBE 恢复；没有伪造 sender 或重复写安装表 | 该 Linux 原件 `r5.workerRestart`：本次走 `physical-target-absent`；目标 ID 不消失时仅接受严格上下文身份反证；相关修复 `52b7c9b3` |
+| 生产包 Chrome 安装、权限、两次重启、卸载和环境回归 | **PASS**，`REAL_CHROME_FIXTURE_PASS`，原生生命周期 13 阶段、正常 Chrome 退出 3 次、环境测试 1634 PASS／0 FAIL／7 SKIP | job `114855249452`；扩展 ID `jhajepcnohiplmafaiokjlcagcfjgaap`、包 hash `3d2f3031376e1fc7c136bb4e60182824b377f933b395a4f412f73fe5b239fdfd`；原始结果 SHA-256 `ce5fc5828b201b6ff5d813004bce647584456b620a76f334c60228f178c4d36d` |
+| macOS 15 CFT 155，官网到扩展真实安装 | **PASS**，16/16 原生专项、8 项负面拒绝、A1/A2/B/C 四个中断恢复与 Worker 真实停止后重连；0 次安装表重提交、2 次正常 Chrome 退出 | job `114855249827`；实际扩展 ID `oibdecbpklpnlljpiolnkgpohmpflnmj`、包 hash `c7ed813e6412f4ebb2976694c5798f9089ee7303b2e161adcffb6ddff3896bea`、站点 build ID `ba4c16d2de8ddea656e0bde112e2f4aea009218f8c5c3e79f052ee67542ccec8`；原始 `native-result.json` SHA-256 `f236b360effb8bbdfe54c6550d5b8eccd8122850b00419b32651f3331267c86b` |
+| 正式 HTTPS 实际安装 | **BLOCKED**，生产默认关闭外部通道 | 缺正式域名/Origin、Chrome Web Store 发行扩展 ID、经核验的官方获取 URL、部署访问权限；必须以真实线上 Chrome 验收 |
+
+这批 Linux/macOS 原生页面均源于 `http://127.0.0.1:43132`，受控目录 SHA-256 `80bd653266e4c378ffd8b372fd12dc0f5c9a9d53f8617296c99e7e9bd98f302c`；网站 build ID `0526637ef3accd46a6c150e0d3f4d6eeefbbec36941a06700b161af6a80025f5`、59 个产物。真实恢复期间观察到 **0 次工具安装注册表重新提交**、未解释 runtime exception 和 console error 均为 0。**两平台分别**有 23 项布局、4 次真实浏览器缩放、101 条键盘操作记录；真实用户网站按 Chrome 浏览器提供的扩展 ID 而非固定开发包 ID 连接。
+
+上一轮生产全环境的 jQuery 声明与多库错误码失败，已经通过其对应公共库工作流修复与本候选绿色结果关闭；市场没有另造依赖解析器、破坏多库 API 或删除失败测试。原失败仍留在旧 run。较早 Linux CI 因 Chrome 保留 Worker target ID 而失败，修复后现在以真实 version、V8 context 和 HTTP 网站现有 PROBE 实测。
+
+[机器可读原始证据索引](evidence/app-market-r5/ci-38262192082/index.json) 同步绑定 commit／job／原件路径与 SHA-256／包／网站 ID／原生检查／未测试项，Actions Artifact 原始 ZIP 有 GitHub 保留期限，索引不假装 ZIP 永久可获取。
+
+**复用限制与单项评分：** 当前候选已执行的定位架构、UI、UX、安装、来源安全、隐私、固定发行、开发 HTTP 部分沿用上文有来源的设计/实现评分（分别 ≥95）；兼容性能维护仍是设计 96／实现 94，恢复与真实验收完整性仍是设计 97／实现 93，正式 HTTPS 是设计 95／实现待评 BLOCKED。不得用本次 Linux/macOS 或生产包 PASS 自动把这三项改为 ≥95。新的 `main` 如修改 Service Worker、工具包准入、权限、官方目录或测试观察器，先按测试指南核对具体变化，再判 `AFFECTED_INPUTS` 并只对受影响路径补验。
+
+仍须原生验证：浏览器 `tabs.create` / `storage.local.set` API **本身 ACK 丢失**（区别于已测调用者中断）、真实配额不足与损坏包、完整 30 分钟 TTL、Worker 自然空闲关闭、用户自己的 Mac Profile 与正式 HTTPS。远程 Page、sandbox、Task 整包分发另需签名信任根/撤回/密钥轮换/各类型准入，不在 R5 扩大网站消息能力。
+

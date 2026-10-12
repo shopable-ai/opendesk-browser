@@ -1,0 +1,171 @@
+{
+  "schema": "opendesk.market.r5.native-regression-evidence.v1",
+  "date": "2026-10-12",
+  "repository": "shopable-ai/opendesk-browser",
+  "branch": "main",
+  "candidate": {
+    "sha": "6d71854b49fc2fcbace0047b8703b9c2c154211b",
+    "evidenceScope": "candidate identity only; non-market later commits may reuse with impact review"
+  },
+  "ci": {
+    "runId": 38262192082,
+    "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38262192082",
+    "jobs": {
+      "linux": {
+        "jobId": 114855249892,
+        "status": "completed",
+        "conclusion": "success"
+      },
+      "macos": {
+        "jobId": 114855249827,
+        "status": "completed",
+        "conclusion": "success"
+      },
+      "production": {
+        "jobId": 114855249452,
+        "status": "completed",
+        "conclusion": "success"
+      }
+    }
+  },
+  "website": {
+    "origin": "http://127.0.0.1:43132",
+    "buildId": "0526637ef3accd46a6c150e0d3f4d6eeefbbec36941a06700b161af6a80025f5",
+    "fileCount": 59
+  },
+  "catalog": {
+    "sha256": "80bd653266e4c378ffd8b372fd12dc0f5c9a9d53f8617296c99e7e9bd98f302c",
+    "apps": 7
+  },
+  "linux": {
+    "result": "REAL_CHROME_MARKET_R5_PASS",
+    "chrome": "155.0.8059.39",
+    "extensionId": "nmeilgnolfnnlopgjoijdafbkelekcbj",
+    "packageHash": "23ed7262d092e29c903e175c837d669ced84aa0be06ac55780131549d35d3e0b",
+    "originalResultPath": "artifacts/app-market-r5/native/native-result.json",
+    "originalResultSha256": "8c3c0c88cc22d72c11d92fc7f2961af924154c50f218399adc117ad742646fc2",
+    "artifact": {
+      "id": 11752723138,
+      "name": "market-r5-http-ubuntu-latest-6d71854b49fc2fcbace0047b8703b9c2c154211b",
+      "bytes": 3902288
+    },
+    "realChecks": {
+      "pass": 16,
+      "fail": 0
+    },
+    "componentChecks": {
+      "pass": 98,
+      "fail": 0
+    },
+    "externalNegativeCases": 8,
+    "interruptCases": {
+      "A1": "PASS",
+      "A2": "PASS",
+      "B": "PASS",
+      "C": "PASS"
+    },
+    "registryResubmissionsDuringRecovery": 0,
+    "workerStop": {
+      "method": "ServiceWorker.stopWorker",
+      "proof": "same-version-stopped-event+physical-target-absence",
+      "httpWake": "real website PROBE",
+      "result": "PASS"
+    },
+    "visualAudit": {
+      "layouts": 23,
+      "realTabZoom": 4,
+      "keyboard": 101
+    },
+    "normalChromeExits": 2,
+    "unexplainedRuntimeExceptions": 0,
+    "consoleErrors": 0
+  },
+  "production": {
+    "result": "REAL_CHROME_FIXTURE_PASS",
+    "extensionId": "jhajepcnohiplmafaiokjlcagcfjgaap",
+    "packageHash": "3d2f3031376e1fc7c136bb4e60182824b377f933b395a4f412f73fe5b239fdfd",
+    "originalResultPath": "artifacts/app-market-r3/native-result.json",
+    "originalResultSha256": "ce5fc5828b201b6ff5d813004bce647584456b620a76f334c60228f178c4d36d",
+    "artifact": {
+      "id": 11753436280,
+      "name": "market-r3-production-native",
+      "bytes": 2181051
+    },
+    "environment": {
+      "pass": 1634,
+      "fail": 0,
+      "skipped": 7
+    },
+    "normalChromeExits": 3,
+    "unexplainedRuntimeExceptions": 0,
+    "consoleErrors": 0
+  },
+  "evidence": [
+    "GitHub job success alone does not establish installation; original native-result.json and result/checks were inspected from downloaded artifacts",
+    "No direct installation-registry writes or fake browser sender were used in R5 native driver",
+    "The same candidate 6d71854b has native HTTP PASS on Linux and macOS 15, with each platform's separate extension ID/package/site build identity; the latest main still requires an input diff review."
+  ],
+  "currentMainReuse": {
+    "state": "AFFECTED_INPUTS_REVIEW",
+    "rule": "compare tested candidate with current HEAD; recheck product/runtime dependencies and tests rather than inheriting blindly"
+  },
+  "remaining": {
+    "formalHttps": "BLOCKED",
+    "userLocalMac": "NOT_TESTED (CI macOS Chrome is not the user's private Mac profile)",
+    "nativeAckLoss": "NOT_TESTED",
+    "actualQuotaFault": "NOT_TESTED",
+    "natural30MinTTL": "NOT_TESTED",
+    "naturalIdleWorker": "NOT_TESTED",
+    "remotePackageDistribution": "OUT_OF_SCOPE"
+  },
+  "incidentHistory": {
+    "olderFails": [
+      "38250188841",
+      "38250231218"
+    ],
+    "resolvedWorkerTestBy": "52b7c9b3e0bb43dc33a3d3f6e454016caeabf342",
+    "scope": "worker target ID may persist across stopped worker version; strict stopped version and unique context identity are required"
+  },
+  "macos": {
+    "result": "REAL_CHROME_MARKET_R5_PASS",
+    "chrome": "155.0.8059.39",
+    "extensionId": "oibdecbpklpnlljpiolnkgpohmpflnmj",
+    "packageHash": "c7ed813e6412f4ebb2976694c5798f9089ee7303b2e161adcffb6ddff3896bea",
+    "websiteOrigin": "http://127.0.0.1:43132",
+    "siteBuildId": "ba4c16d2de8ddea656e0bde112e2f4aea009218f8c5c3e79f052ee67542ccec8",
+    "originalResultPath": "artifacts/app-market-r5/native/native-result.json",
+    "originalResultSha256": "f236b360effb8bbdfe54c6550d5b8eccd8122850b00419b32651f3331267c86b",
+    "artifact": {
+      "id": 11752784919,
+      "name": "market-r5-http-macos-15-6d71854b49fc2fcbace0047b8703b9c2c154211b",
+      "bytes": 3305672
+    },
+    "realChecks": {
+      "pass": 16,
+      "fail": 0
+    },
+    "externalNegativeCases": 8,
+    "interruptCases": {
+      "A1": "PASS",
+      "A2": "PASS",
+      "B": "PASS",
+      "C": "PASS"
+    },
+    "recoveryRegistryResubmissions": 0,
+    "workerStop": {
+      "method": "ServiceWorker.stopWorker",
+      "proof": "same-version-stopped-event+physical-target-absence",
+      "httpWake": "real website PROBE",
+      "result": "PASS"
+    },
+    "visualAudit": {
+      "layouts": 23,
+      "realTabZoom": 4,
+      "keyboard": 101
+    },
+    "normalChromeExits": 2,
+    "unexplainedRuntimeExceptions": 0,
+    "consoleErrors": 0,
+    "resultEvidence": "Native JSON read from unmodified GitHub Actions ZIP; actualMacChrome=PASS"
+  }
+}
