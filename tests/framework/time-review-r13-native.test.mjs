@@ -96,6 +96,16 @@ test('Time Review R1.3 actual Mac Chrome install and trusted consent smoke',{ski
   proc.stderr.on('data',data=>{stderr=(stderr+String(data)).slice(-3500);});
   t.after(async()=>{
     if(!complete&&browser){
+      if(sideSid)try{
+        const downloaded=await evaluate(browser,sideSid,
+          'chrome.downloads.search({}).then(rows=>rows.map(({id,state,error,filename,bytesReceived,totalBytes})=>({id,state,error,filename,bytesReceived,totalBytes})))');
+        evidence.downloadObservation=downloaded.map(row=>({
+          id:row.id,state:row.state,error:row.error||null,
+          basename:path.basename(row.filename||''),
+          insideOwned:path.dirname(path.resolve(row.filename||''))===path.resolve(downloads),
+          received:row.bytesReceived,total:row.totalBytes
+        }));
+      }catch(error){evidence.steps.push({name:'download-observation-unavailable',error:String(error)});}
       // CDP Page.captureScreenshot only supports a top-level Page/Side Panel.
       // Its image already composites the sandbox iframe; never screenshot an
       // OOPIF directly (Chrome rejects that command).
@@ -231,11 +241,36 @@ test('Time Review R1.3 actual Mac Chrome install and trusted consent smoke',{ski
   await until(()=>evaluate(browser,side,'document.querySelector("#sidebar-tool-settings-view").hidden'),'return tool from host settings');
   const exportDetails=await evaluate(browser,side,'Boolean(document.querySelector("#sidebar-tool-frame iframe"))');
   assert.equal(exportDetails,true);
-  // Configure an owned download destination; never write to user's Downloads.
+  // The browser API may accept a download that subsequently gets interrupted.
+  // Observe REAL Chrome download state before declaring disk success; never
+  // read or copy a file outside this run's independently owned profile.
+  const readDownloads=()=>evaluate(browser,side,
+    'chrome.downloads.search({}).then(rows=>rows.map(({id,state,error,filename,bytesReceived,totalBytes})=>({id,state,error,filename,bytesReceived,totalBytes})))');
+  const existingDownloadIds=new Set((await readDownloads()).map(row=>row.id));
   await browser.send('Browser.setDownloadBehavior',{behavior:'allow',downloadPath:downloads,eventsEnabled:true});
   await nativeClick(browser,frame,'#export-json');
-  const actualFile=path.join(downloads,'time-review.json');
-  const actualBytes=await until(async()=>{const b=await readFile(actualFile).catch(()=>null);return b&&b.length>0?b:null;},'real downloaded JSON file',30000);
+  await until(()=>evaluate(browser,frame,
+    'document.querySelector("#status")?.textContent?.includes("已请求下载")'),
+    'download requested by trusted Time Review host',9000);
+  const downloadRecord=await until(async()=>{
+    const rows=await readDownloads();
+    return rows.find(row=>!existingDownloadIds.has(row.id))||null;
+  },'new Chrome downloads API record',12000);
+  note('download-created',{id:downloadRecord.id,state:downloadRecord.state,
+    basename:path.basename(downloadRecord.filename||''),error:downloadRecord.error||null});
+  const finished=await until(async()=>{
+    const rows=await readDownloads(),entry=rows.find(row=>row.id===downloadRecord.id);
+    return entry&&['complete','interrupted'].includes(entry.state)?entry:null;
+  },'real Chrome download terminal state',25000);
+  const actualFile=path.resolve(finished.filename||'');
+  const insideOwned=path.dirname(actualFile)===path.resolve(downloads);
+  note('download-finished',{id:finished.id,state:finished.state,error:finished.error||null,
+    basename:path.basename(actualFile),insideOwned,received:finished.bytesReceived,total:finished.totalBytes});
+  assert.equal(finished.state,'complete','Chrome did not complete download: '+(finished.error||'unknown'));
+  assert.equal(insideOwned,true,'Chrome saved outside isolated owned download directory; refuse to read external files');
+  assert.match(path.basename(actualFile),/^time-review(?: \(\d+\))?\.json$/,'Expected actual Time Review JSON filename');
+  const actualBytes=await readFile(actualFile);
+  assert.ok(actualBytes.length>0,'Completed download must have real disk bytes');
   const exported=JSON.parse(actualBytes);
   assert.equal(exported.format,'opendesk.time-review.export.v1');
   assert.equal(exported.minuteConsent,false);

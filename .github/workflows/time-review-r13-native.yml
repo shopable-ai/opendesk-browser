@@ -1,6 +1,11 @@
 name: Time Review R1.3 - native macOS Chrome Side Panel
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - 'tests/framework/time-review-r13-native.test.mjs'
+      - '.github/workflows/time-review-r13-native.yml'
   pull_request:
     branches: [main]
     paths:

@@ -50,3 +50,10 @@
 - 新候选改用主分支存在的“添加工具”真实按钮，并等待 `#sidebar-tool-discover-panel` 可见。后续 Mac CI 需重新运行，不能将第二次 PARTIAL 视为完整 PASS。
 
 - Mac Actions 第三次运行 [38204197416](https://github.com/shopable-ai/opendesk-browser/actions/runs/38204197416) **已通过真正的官方 Catalog 安装并从存储读回版本 1.3.0**，且先前真正 SIDE_PANEL 上下文已通过。随后在沙箱页面 `#minute-canvas` 刚挂载时即断言四张分类卡片，异步 `time.status` 尚未回传，得到 `0 !== 4`，此为测试读取时序错误，**不等于分类数据缺失**。新增对四张分类卡片、额外两类及状态加载完成的显式等待；失败时保留真实 side/iframe 截图。权限、导出、重启仍 NOT_TESTED，等待下一次运行核实。
+
+## R1.3 Mac 下载诊断与主分支收敛（2026-10-12）
+
+- Actions [38204821069](https://github.com/shopable-ai/opendesk-browser/actions/runs/38204821069) 的真实 macOS Chrome 155，在正式扩展下完成官方安装/受信任 Side Panel/Canvas 六分类和分钟明细开启、取消关闭、确认删除。原生记录为 `install=PASS`、`realSidePanel=PASS`、`minuteConsent=PASS`，归属于其记录的候选和包哈希，不是用户个人 Mac Profile 验收。
+- 该次运行尝试 JSON 导出时，界面提示“已请求下载”，但测试只轮询固定的 `<isolated profile>/owned-downloads/time-review.json`，30 秒无文件，故实际文件落盘 **NOT_TESTED / FAILED_TO_CONFIRM**；不能从下载请求回执推断成功，也不能因其他 PASS 消除该失败。原生证据包括 `native-report.json`、受信任设置截图和最终失败截图。
+- 后续只在 `main` 修改测试和工作流。新增 Chrome `downloads.search()` 只读观察：先验证新 downloadId，再判断 `complete/interrupted`，核对实际 `filename`、是否位于专属 Profile 文件夹和真正的 JSON 磁盘字节。失败记录只包含状态、文件基名及是否落入本次隔离路径，不读取/复制任何用户下载目录。生产下载代码暂不更改；取得 interrupted 错误码或实际路径证据后再决定是否需要修复。
+- 真实网站开始/暂停/恢复、浏览器及 SW 重启、分类持久化、撤权卸载和真正 Chrome 200% 缩放仍 `NOT_TESTED`，各项另列证据。新增 main-only 原生定向 CI `push` 入口，以后本模块测试改动可在主分支进行，不创建 PR 或额外分支。用户 Mac 本机工作区状态此会话不可检查。
