@@ -78,3 +78,31 @@ test('R24.3 Worker compilation failure terminates worker and never returns stale
   assert.equal(FakeWorker.latest.terminated,true);
   compiler.dispose();
 });
+
+test('R24.3 exact input and compiler identities reuse only an immutable successful artifact',async()=>{
+  const {readFile}=await import('node:fs/promises');
+  const trusted=await readFile(PAGE_BROWSER_UI_HELPER.source,'utf8');
+  const originalCount=FakeWorker.count;
+  const compiler=createBrowserPageComponentPreparer({api,WorkerClass:FakeWorker,
+    fetchImpl:async()=>({ok:true,redirected:false,
+      url:api.runtime.getURL(PAGE_BROWSER_UI_HELPER.output),text:async()=>trusted})});
+  const first=await compiler.prepare(fixtures);
+  assert.equal(first.cacheHit,false);
+  assert.equal(FakeWorker.count,originalCount+1);
+  const hit=await compiler.prepare({...fixtures,pageRules:{...fixtures.pageRules}});
+  assert.equal(hit.cacheHit,true);
+  assert.equal(hit.sourceHash,first.sourceHash);
+  assert.equal(FakeWorker.count,originalCount+1);
+  const change=await compiler.prepare({...fixtures,componentSource:fixtures.componentSource+'\n// changed'});
+  assert.equal(change.cacheHit,false);
+  assert.equal(FakeWorker.count,originalCount+2,'changed source must construct a fresh worker');
+  const differentFramework=await compiler.prepare({...fixtures,framework:'vue'});
+  assert.equal(differentFramework.cacheHit,false);
+  assert.equal(FakeWorker.count,originalCount+3,'framework switch must not reuse React output');
+  const changedRule=await compiler.prepare({...fixtures,pageRules:{
+    ...fixtures.pageRules,matches:['https://example.test/*']
+  }});
+  assert.equal(changedRule.cacheHit,false);
+  assert.equal(FakeWorker.count,originalCount+4,'website scope change invalidates preparation');
+  compiler.dispose();
+});

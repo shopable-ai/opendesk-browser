@@ -714,7 +714,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
         pageTechnicalPanel.hidden=false;pageTechnicalPanel.open=false;
         pageTechnical.textContent=JSON.stringify({...result,authoring:{
           framework:built.framework,compilerVersion:built.compilerVersion,
-          sourceHash:built.sourceHash}},null,2);
+          sourceHash:built.sourceHash,cacheHit:built.cacheHit,prepareMs:built.prepareMs}},null,2);
         return;
       }
       const result=await client.request('previewPageScript',{
