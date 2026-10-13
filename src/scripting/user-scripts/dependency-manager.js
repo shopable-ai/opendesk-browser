@@ -5,6 +5,8 @@ import {loadBuiltinPageSource} from '../../libs/loader.js';
 import {builtinIdentity,assertBuiltinIdentity} from '../../libs/identity.js';
 import {resolvePageProgramRules} from './page-program-rules.js';
 import {createPageComponentDependencyMethods} from './page-component-dependencies.js';
+import {parseControllerClassicDependencies} from './controller-classic.js';
+
 import {inspectPageSource,validatePageSource,PAGE_BUNDLE_PREFIX} from './page-bundle.js';
 
 // Assets contain bytes only. Source identity and approval belong to namespace
@@ -516,10 +518,130 @@ export function createDependencyManager({api,storage,assertHost,fetchImpl=global
       row.manifest.dependencyScope==='program'?programNamespace(namespace,programId):namespace,read);
     return {candidate:row,resolution};
   }
+  // R7.3: Classic bytes use the ONE existing manager, SHA asset store and
+  // authenticated Host. Only the already-audited opaque Controller Worker runs
+  // the assembled source. Never eval/importScripts here or in the service worker.
+  const controllerClassicKey=(ns,programId,sourceHash)=>
+    'controller-classic-lock:v1:'+canonical([ns,programId,sourceHash]);
+  function assembleControllerClassic(author,lock,codes,downloadCount){
+    const prefix='/* opendesk.controller-classic-runtime.v1 lock='+lock.lockId+
+      ' author='+lock.authorSourceHash+' */\n';
+    const raw=codes.map(code=>';(function(){\n'+code+'\n}).call(globalThis);\n').join('\n');
+    const sourceUtf8=prefix+raw+'\n'+author;
+    ensure(encoder.encode(sourceUtf8).byteLength<=48000,'E_CONTROLLER_CLASSIC_LIMIT',
+      'Controller Classic executable source exceeds 48 KB; use a smaller UMD build or local project');
+    return {world:'CONTROLLER',programId:lock.programId,authorSourceHash:lock.authorSourceHash,
+      lockId:lock.lockId,sourceUtf8,entries:clone(lock.entries),downloadCount};
+  }
+  async function prepareControllerClassic(request,sender){
+    fields(request,['programId','sourceUtf8','explicitUserAction','allowDownload']);
+    ensure(request.explicitUserAction===true,'E_GESTURE','Only an explicit Run or Save may prepare Controller Classic');
+    ensure(typeof request.programId==='string'&&/^[A-Za-z0-9][A-Za-z0-9_.-]{0,127}$/.test(request.programId),
+      'E_DEPENDENCY_PROGRAM','Controller Classic requires a program ID');
+    const requires=parseControllerClassicDependencies(request.sourceUtf8);
+    ensure(requires.length>0,'E_DEPENDENCY_EMPTY','Controller source has no @opendesk-classic declaration');
+    ensure(!/^\s*(?:import\s+(?!\()|export\s+)/m.test(request.sourceUtf8),
+      'E_CONTROLLER_CLASSIC_FORMAT','Use the ESM compiler for import/export sources');
+    const host=await hostFor(sender),ns=host.namespace+'|controller-program:'+JSON.stringify(request.programId),
+      sourceHash=await hashBytes(encoder.encode(request.sourceUtf8)),
+      storageKey=controllerClassicKey(ns,request.programId,sourceHash);
+    const readExisting=async tx=>{
+      const lock=await tx.get(DEPENDENCY_STORE,storageKey);
+      if(!lock)return null;
+      ensure(lock.tag==='controller-classic-lock-v1'&&lock.world==='CONTROLLER'&&
+        lock.namespace===ns&&lock.programId===request.programId&&
+        lock.authorSourceHash===sourceHash&&lock.entries?.length===requires.length,
+        'E_CONTROLLER_CLASSIC_LOCK','Controller program identity or lock corrupted');
+      const core={namespace:ns,programId:request.programId,world:'CONTROLLER',
+        authorSourceHash:sourceHash,entries:lock.entries};
+      ensure(lock.lockId==='controller-classic-'+await hashObject(core),'E_CONTROLLER_CLASSIC_LOCK');
+      let total=0;const codes=[];
+      for(const [i,entry] of lock.entries.entries()){
+        ensure(entry.order===i&&entry.url===requires[i].url&&
+          (!requires[i].sha256||requires[i].sha256===entry.sha256),
+          'E_CONTROLLER_CLASSIC_LOCK','Controller frozen dependency graph mismatch');
+        const {asset,code}=await verifiedAsset(await tx.get(DEPENDENCY_STORE,key.asset(entry.sha256)),
+          entry.sha256,entry.byteLength);
+        total+=asset.byteLength;ensure(total<=45000,'E_CONTROLLER_CLASSIC_LIMIT');
+        codes.push(code);
+      }
+      return assembleControllerClassic(request.sourceUtf8,lock,codes,0);
+    };
+    const existing=await inTransaction(host,'readonly',readExisting);
+    if(existing){await hostFor(sender,host);return existing;}
+    ensure(request.allowDownload===true,'E_CONTROLLER_CLASSIC_RUN_REQUIRED',
+      'Run the Controller once to pin and verify its Classic dependencies before saving');
+    let total=0,downloadCount=0;
+    const entries=[],codes=[],newAssets=new Map();
+    for(const row of requires){
+      let choice=await inTransaction(host,'readonly',tx=>sharedChoices(tx,row.url));
+      if(row.sha256)choice=choice.filter(v=>v.sha256===row.sha256);
+      ensure(choice.length<=1,'E_DEPENDENCY_LOCK_AMBIGUOUS',
+        'Multiple cached SHAs for this URL; declare an explicit sha256 pin');
+      let obtained;
+      if(choice.length){
+        obtained=await inTransaction(host,'readonly',async tx=>{
+          const {asset,code}=await verifiedAsset(await tx.get(DEPENDENCY_STORE,key.asset(choice[0].sha256)),
+            choice[0].sha256,choice[0].byteLength);
+          return {bytes:asset.bytes,code,sha256:choice[0].sha256,mime:choice[0].mime,
+            acquisition:'shared-content-cache'};
+        });
+      }else{
+        obtained=await httpsAsset({url:row.url,integrity:row.sha256?
+          [{algorithm:'sha256',digestHex:row.sha256}]:[]},45000-total);
+        obtained.code=decodeCode(obtained.bytes);
+        obtained.sha256=await hashBytes(obtained.bytes);
+        obtained.acquisition='download';downloadCount++;
+      }
+      total+=obtained.bytes.byteLength;
+      ensure(total<=45000,'E_CONTROLLER_CLASSIC_LIMIT','Classic Worker byte budget exceeded');
+      ensure(!row.sha256||row.sha256===obtained.sha256,'E_DEPENDENCY_INTEGRITY');
+      const meta=sourceSummary(row.url);
+      entries.push({order:row.order,url:row.url,originalUrl:row.url,sourceKind:'https',
+        resolvedUrl:row.url,acquisition:obtained.acquisition,sha256:obtained.sha256,
+        byteLength:obtained.bytes.byteLength,world:'CONTROLLER',mime:obtained.mime,
+        license:unknownLicense(),name:meta.name,version:meta.version});
+      codes.push(obtained.code);
+      newAssets.set(obtained.sha256,{tag:'userscript-asset-v1',sha256:obtained.sha256,
+        bytes:obtained.bytes,byteLength:obtained.bytes.byteLength,integrityStatus:'verified',
+        createdAt:timestamp()});
+    }
+    const core={namespace:ns,programId:request.programId,world:'CONTROLLER',
+      authorSourceHash:sourceHash,entries};
+    const lock={tag:'controller-classic-lock-v1',...core,
+      lockId:'controller-classic-'+await hashObject(core),createdAt:timestamp()};
+    const result=assembleControllerClassic(request.sourceUtf8,lock,codes,downloadCount);
+    await hostFor(sender,host);
+    const committed=await inTransaction(host,'readwrite',async tx=>{
+      const prior=await readExisting(tx);
+      if(prior)return prior; // A concurrent Run already fixed this exact Program.
+      for(const [sha,asset] of newAssets){
+        const old=await tx.get(DEPENDENCY_STORE,key.asset(sha));
+        if(old)await verifiedAsset(old,sha,asset.byteLength);
+        else await tx.put(DEPENDENCY_STORE,asset,key.asset(sha));
+      }
+      await tx.put(DEPENDENCY_STORE,lock,storageKey);
+      await tx.put(DEPENDENCY_STORE,{tag:'userscript-reference-v1',namespace:ns,
+        ownerType:'controller-classic-lock',ownerId:lock.lockId,
+        assetHashes:[...new Set(entries.map(e=>e.sha256))]},
+        key.reference(ns,'controller-classic-lock',lock.lockId));
+      for(const entry of entries.filter(e=>e.acquisition==='download')){
+        const sharedKey=key.sharedSource(entry.url),old=await tx.get(DEPENDENCY_STORE,sharedKey);
+        if(old)await sharedChoices(tx,entry.url);
+        const choice={sha256:entry.sha256,byteLength:entry.byteLength,sourceKind:'https',
+          resolvedUrl:entry.url,mime:entry.mime,license:unknownLicense(),approvedAt:lock.createdAt};
+        await tx.put(DEPENDENCY_STORE,{tag:'userscript-shared-source-index-v1',url:entry.url,
+          choices:[choice,...(old?.choices||[]).filter(e=>e.sha256!==entry.sha256)].slice(0,16)},sharedKey);
+      }
+      return result;
+    });
+    await hostFor(sender,host);
+    return committed;
+  }
   // References are durable and no automatic GC runs. A future collector must
   // trace revisions, installations and historical runs in addition to these
   // review/lock references; deleting an editor draft cannot delete asset bytes.
   const components=createPageComponentDependencyMethods({hostFor,inTransaction,httpsAsset,verifiedAsset,
     timestamp,hashObject,hashBytes,ensure,fields,clone,assetKey:key.asset,referenceKey:key.reference,risk});
-  return Object.freeze({inspect,prepare,approve,loadForExecution,importPageCandidate,getPageCandidate,readStoredPageCandidate,...components});
+  return Object.freeze({inspect,prepare,approve,loadForExecution,prepareControllerClassic,importPageCandidate,getPageCandidate,readStoredPageCandidate,...components});
 }
