@@ -88,6 +88,39 @@ test('quota spends foreground Chrome time; real rule readback and existing tab r
   assert.equal(response.ruleReceipt.verified,true);
   assert.equal(f.nativeOps.length,1,'rule reconciliation does not rewrite an unchanged DNR set');
 });
+test('queued blur/tab events invalidate stale checkpoints even after focus returns',async()=>{
+  const f=fixture();
+  await f.focus.dispatch(await f.msg('focus.site.put',{site:mkSite('example.com')}),f.sender);
+  await f.focus.dispatch(await f.msg('focus.enable'),f.sender);
+  await f.focus.tick(); // starts first observed interval
+  f.setTime(at+30000);
+  // A switch away and back to the same tab can be processed after the
+  // original tab is active again. The old interval is no longer trustworthy.
+  f.focus.invalidate();
+  await f.focus.tick();
+  let state=(await f.api.storage.local.get(FOCUS_STORE))[FOCUS_STORE];
+  assert.equal(state.usage['s:example.com'],undefined,
+    'event invalidation must not bill a stale foreground interval');
+  f.setTime(at+60000);
+  await f.focus.tick();
+  state=(await f.api.storage.local.get(FOCUS_STORE))[FOCUS_STORE];
+  assert.equal(state.usage['s:example.com'],30000,
+    'the following uninterrupted foreground checkpoint is still billable');
+  f.setTime(at+80000);
+  f.setIdle('idle');f.focus.invalidate();
+  await f.focus.tick();
+  state=(await f.api.storage.local.get(FOCUS_STORE))[FOCUS_STORE];
+  assert.equal(state.usage['s:example.com'],30000,
+    'idle transition cannot charge the previous checkpoint');
+  f.setTime(at+90000);
+  f.setIdle('active');f.focus.invalidate();
+  await f.focus.tick();
+  f.setTime(at+110000);
+  await f.focus.tick();
+  state=(await f.api.storage.local.get(FOCUS_STORE))[FOCUS_STORE];
+  assert.equal(state.usage['s:example.com'],50000,
+    'billing must resume from a fresh active observation only');
+});
 test('removal, tool disable, permission revoke and uninstall reconcile only reserved DNR rule IDs',async()=>{
   const f=fixture();
   await f.focus.dispatch(await f.msg('focus.site.put',{site:mkSite('example.com','always')}),f.sender);
