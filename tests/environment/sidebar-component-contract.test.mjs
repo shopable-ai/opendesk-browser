@@ -91,6 +91,8 @@ test('Shared components own normal visual appearance; business CSS retains only 
   assert.doesNotMatch(shell, /#workbench-develop\s+\.developer-editor>details>summary/);
   assert.match(components, /\.od-disclosure--flat\{border:0/);
   assert.match(components, /\.od-alert--warning\{background:var\(--od-warning-bg\)/);
+  assert.doesNotMatch(shell, /\.schedule-form \.schedule-source-row\{gap:var\(--space-1\)\}/,
+    'Narrow scheduled-task actions must preserve the 8px shared gap');
 });
 
 test('Developer disclosure headers share the Run Result surface; nested diagnostics remain lightweight', () => {

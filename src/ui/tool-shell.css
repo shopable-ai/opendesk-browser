@@ -1032,7 +1032,7 @@
 @media(max-width:340px){
   .schedule-timezone-selected{grid-template-columns:minmax(0,1fr)}
   .schedule-timezone-selected>.od-button{justify-self:start}
-  .schedule-form .schedule-source-row{gap:var(--space-1)}
+  /* Keep icon actions at the shared 8px gutter even at 300px. */
   .schedule-form .schedule-source-row .od-icon-button{min-width:34px}
   .schedule-form>.schedule-actions>.od-button{flex:1 1 100%}
 }

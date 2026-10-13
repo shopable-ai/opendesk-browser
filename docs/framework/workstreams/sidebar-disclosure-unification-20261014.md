@@ -19,3 +19,7 @@
 - 全局回归：`npm run check`、`npm test`、`npm run build`、`npm run build:dev`、`npm run verify`。以上必须以实际运行结果登记；仅修改源码不视为 PASS。
 - 后续必须在用户 Mac 上核对 `dist/development` 的真实扩展身份与已安装 Side Panel，开发页手动/本地项目两种状态下折叠与展开、300–520px、125%/200% 缩放、暗色/键盘、运行/停止反馈。没有同候选原生证据时为 `NOT_TESTED`；不宣称整站或专家 95+ 已完成。
 - 其他 Tab 的历史专用 `summary` 样式（任务、定时计划、工作流、云控、工具、Debug）需要按 R27/R30 分区域迁移，不能把本次公共基类的修复冒充全部已迁移。宽泛删除其局部 CSS 会破坏已有状态布局，须按实际渲染逐项验证。
+
+## CI 真实失败核对（后续修复）
+
+2026-10-14 `075a1ab` 的 Sidebar R19 静态 Chrome 工作流 [38433080226](https://github.com/shopable-ai/opendesk-browser/actions/runs/38433080226) FAIL：`schedule-form` 场景宽度 300px，`.schedule-source-row` 实测间距 4px，违反原有 8px 动作组合同。根因是 `tool-shell.css` 的 `@media(max-width:340px)` 覆写共享 gap。这是「我的 → 定时计划」原有问题，不是开发页折叠交互的回归。删除窄屏覆写、保留既有按钮大小与排布，并在源码合同中增加防回归断言。修复后的静态 Chrome / 用户 Mac 证据按新候选单独记录，未执行前保持 `NOT_TESTED`。
