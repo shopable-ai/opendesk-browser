@@ -84,3 +84,5 @@
 - 共享 `site-access` / `sidebar-r1-p0` 等其他 GitHub 工作流有失败，部分与旧 `89c3b298...` 候选相同；**不得把定向 Workflow CI 的 PASS 记为全仓库 CI PASS**。需按各工作流的实际失败记录由所属负责人分开修复。
 - 用户 Mac 工作目录 `/Users/shopme/Documents/workspace/opendesk-browser` 在本执行环境不可访问；未读取 Mac git status，未控制 Mac 已加载 `dist/development` 扩展、profile、Native Host 和 Codex Session/Turn。因此 Scenario A/B/C 真正 Send 后的观察/推理/RunHost/网页副作用、原生授权与撤销、Stop/Unknown、保存工作流再运行、原生扩展 ID、Run ID/Result ID/Source Hash、Worker retirement 与原生结果验证 **全部 NOT_TESTED**。未产生此类原生回执，也未宣称真实浏览器 PASS。
 - 写入文件占用、GitHub 远端原子写入事务已经完成并释放；未占用任何用户 Mac 的进程或共享资源。源代码改动已经提交在远端 `main`，不是本地 Mac Git 同步或真实 Chrome 交付的替代物。
+
+- 同一源码候选 `cc49dc222dc46177d2f528ed3909ce994d4a1625` 的另一个完整 GitHub Actions **[38440556223](https://github.com/shopable-ai/opendesk-browser/actions/runs/38440556223)** / job `115445708186`：production WXT/固定入口审计 PASS，dev resources + SW allowance PASS，末段构建合同测试 **11/11 PASS**；生产与开发实际 `ui/tool-shell.js` 固定入口均记录 **524180/524288 B**。这是 GitHub Ubuntu runner 上的构建／打包验证，不是用户 Mac 原生 Chrome，剩余预算仍仅 108 B。
