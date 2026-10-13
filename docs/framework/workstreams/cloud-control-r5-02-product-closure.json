@@ -171,7 +171,11 @@
     "browserScopedClientManagement": "SOURCE_IMPLEMENTED",
     "externalClientRevocationRaceFence": "SOURCE_IMPLEMENTED",
     "r524CurrentComponentCI": "NOT_VERIFIED",
-    "r524CurrentPackageBuild": "NOT_VERIFIED"
+    "r524CurrentPackageBuild": "NOT_VERIFIED",
+    "uiPreviewSource": "SOURCE_IMPLEMENTED",
+    "uiPreviewContractTest": "SOURCE_IMPLEMENTED",
+    "uiPreviewToProduction": "NOT_IMPLEMENTED",
+    "uiPreviewNative": "NATIVE_PENDING"
   },
   "priorEvidence": {
     "r51": {
@@ -324,6 +328,8 @@
     "noRewriteKnownFailures": true
   },
   "remaining": [
+    "After reviewing the single HTML, map its Index/Connect/Manage/Review/History subviews into existing Side Panel; do not create another Cloud Product",
+    "Run existing Cloud and Controller Authority regressions plus 300–520px/125%/200% genuine installed Chrome UI acceptance",
     "Verify 91cd8c39352b exact-candidate Cloud and shared production CI after GitHub Actions queue clears; do not infer success from 24994880",
     "Mac Chrome dual independently installed Task Worker/Run/Result/Provider receipts still absent",
     "Independent real Chrome 300/320/360/420/520px + 125/200% keyboard/screenshots still absent",
@@ -469,5 +475,53 @@
       },
       "note": "Shared fixed-entry workflow was cancelled amid concurrent main pushes; no PASS, FAIL, PackageHash or budget receipt for this code candidate."
     }
+  },
+  "uiPreviewR52": {
+    "html": "examples/ui/cloud-control-r5.2-preview.html",
+    "designContract": "docs/architecture/browser-framework/cloud-control-r5.2-ui-preview-contract.zh-CN.md",
+    "regression": "tests/cloud-control/r52-ui-preview-contract.test.mjs",
+    "clusters": 6,
+    "traceableUiFunctions": 39,
+    "canonicalProductionTab": "src/ui/tool.html#workbench-cloud",
+    "sourceStatus": "SOURCE_IMPLEMENTED",
+    "previewOnly": true,
+    "noRealProviderOrChrome": true,
+    "previewValidation": {
+      "environment": "Isolated Chromium headless, page.set_content on standalone HTML, not installed extension",
+      "scenarios": [
+        "first",
+        "paired",
+        "active",
+        "running",
+        "offline",
+        "stale"
+      ],
+      "cssWidths": [
+        300,
+        320,
+        360,
+        420,
+        520
+      ],
+      "layoutsChecked": 30,
+      "horizontalOverflowFailures": 0,
+      "jsPageErrors": 0,
+      "focusRestoredOnTaskAndResultConsent": true,
+      "scenarioFlows": [
+        "pair",
+        "task selection",
+        "per-task result consent",
+        "review",
+        "approve",
+        "history/unknown",
+        "offline Stop",
+        "unpair fail closed"
+      ],
+      "nativeChromeEquivalent": false
+    },
+    "productionMigration": "NOT_IMPLEMENTED",
+    "nativePanelScreenshot": "NATIVE_PENDING",
+    "chromeZoom125And200": "NATIVE_PENDING",
+    "note": "Preview does not grant Task/Provider authority or execute Worker. Production migration must reuse existing Host, Installer, SDK and R27/R28 tokens."
   }
 }
