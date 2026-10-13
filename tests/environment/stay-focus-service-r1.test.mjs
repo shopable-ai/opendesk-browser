@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createStayFocusService} from '../../src/stay-focus/service.js';
-import {FOCUS_PROTOCOL,FOCUS_STORE,focusPackageHash} from '../../src/stay-focus/policy.js';
+import {FOCUS_PROTOCOL,FOCUS_STORE,FOCUS_PAGE_NOTICE_PROTOCOL,focusPackageHash} from '../../src/stay-focus/policy.js';
 import {SIDEBAR_TOOL_STORE} from '../../src/ui/sidebar-tools/package.js';
 import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE} from '../../src/ui/sidebar-tools/lifecycle.js';
 
@@ -18,7 +18,7 @@ function fixture(){
     [TOOL_REVOCATION_EPOCHS_STORE,{['stay-focus']:'epoch-1'}]]);
   const session=new Map(),alarms=new Map();
   let clock=at,allowed=true,idle='active',focused=true,tabUrl='https://example.com/watch';
-  const rules=[],tabUpdates=[],nativeOps=[];
+  const rules=[],tabUpdates=[],nativeOps=[],pageMessages=[];
   const chromeStorage=map=>({
     async get(arg){const keys=Array.isArray(arg)?arg:arg===null?[...map.keys()]:[arg];
       return Object.fromEntries(keys.filter(key=>map.has(key)).map(key=>[key,structuredClone(map.get(key))]));},
@@ -36,6 +36,8 @@ function fixture(){
     windows:{getLastFocused:async()=>({id:1,focused,type:'normal',incognito:false})},
     tabs:{query:async filter=>filter?.active===true?[{id:42,windowId:1,url:tabUrl,incognito:false}]:
       [{id:42,windowId:1,url:tabUrl,incognito:false}],
+      get:async id=>({id,windowId:1,active:true,url:tabUrl,incognito:false}),
+      sendMessage:async(id,message,options)=>{pageMessages.push({id,message,options});return {displayed:true};},
       update:async(id,options)=>{tabUpdates.push({id,...options});tabUrl=options.url;return {id,url:tabUrl};}},
     alarms:{get:async name=>alarms.get(name),create:async(name,options)=>{alarms.set(name,options);},
       clear:async name=>{alarms.delete(name);return true;}},
@@ -50,7 +52,7 @@ function fixture(){
   const focus=createStayFocusService({api,lockManager,now:()=>clock});
   const msg=async(operation,payload={})=>({protocol:FOCUS_PROTOCOL,toolId:'stay-focus',operation,payload,
     packageHash:await focusPackageHash(tool),installEpoch:'epoch-1'});
-  return {tool,sender,stored,session,alarms,rules,tabUpdates,nativeOps,api,focus,msg,
+  return {tool,sender,stored,session,alarms,rules,tabUpdates,nativeOps,pageMessages,api,focus,msg,
     get clock(){return clock;},setTime:value=>{clock=value;},
     setAllowed:value=>{allowed=value;},setIdle:value=>{idle=value;},
     setFocused:value=>{focused=value;},
@@ -244,4 +246,36 @@ test('R1.4 first true enable seeds shared entertainment, existing explicit polic
   assert.equal(old.sites.length,1,'existing explicit single-site policy is not widened');
   assert.equal(old.sites[0].group,'');
   assert.equal(old.groups.entertainment,undefined);
+});
+
+test('R1.4 page threshold is sent from settled Host time, retired on disable and uninstall',async()=>{
+  const f=fixture();
+  f.setUrl('https://youtube.com/watch');
+  await f.focus.dispatch(await f.msg('focus.enable'),f.sender);
+  await f.focus.dispatch(await f.msg('focus.group.put',{id:'entertainment',minutes:2}),f.sender);
+  await f.focus.tick();
+  f.setTime(at+30000);await f.focus.tick();
+  assert.equal(f.pageMessages.filter(x=>x.message.kind==='threshold').length,0,
+    'one and a half minutes remaining must not trigger a one-minute alert');
+  f.setTime(at+60000);await f.focus.tick();
+  const notices=f.pageMessages.filter(x=>x.message.kind==='threshold');
+  assert.equal(notices.length,1);
+  assert.equal(notices[0].id,42);
+  assert.equal(notices[0].message.protocol,FOCUS_PAGE_NOTICE_PROTOCOL);
+  assert.equal(notices[0].message.minutes,1);
+  assert.deepEqual(notices[0].options,{frameId:0});
+  let saved=(await f.api.storage.local.get(FOCUS_STORE))[FOCUS_STORE];
+  assert.deepEqual(saved.notices.thresholds,[1],'dedupe must be in durable storage before delivery');
+  await f.focus.tick({boot:true});
+  assert.equal(f.pageMessages.filter(x=>x.message.kind==='threshold').length,1,
+    'worker wake cannot redispatch the same threshold');
+  await f.focus.dispatch(await f.msg('focus.disable'),f.sender);
+  assert.ok(f.pageMessages.some(x=>x.message.kind==='clear'),
+    'trusted disable removes the in-page card');
+  f.pageMessages.length=0;
+  f.stored.set(SIDEBAR_TOOL_STORE,[]);
+  await f.focus.tick({boot:true});
+  assert.ok(f.pageMessages.some(x=>x.message.kind==='clear'),
+    'full uninstall boot must retire a lingering in-page card');
+  assert.equal(f.rules.length,0,'uninstall also retires Stay Focus DNR only');
 });
