@@ -26,8 +26,8 @@
     },
     {
       "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/candidate-delivery.json",
-      "bytes": 91935,
-      "sha256": "87fc72639fae3b1db40a3b1aa4d96e42bacb52234e671b0652f6b9d7ef592e02"
+      "bytes": 91282,
+      "sha256": "e2c56adcc3f859506c6b5318288207773818df41958fe9599d448bba895f6b74"
     },
     {
       "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/candidate-delivery-586f979b.json",
@@ -1673,6 +1673,346 @@
       "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/bookmarks-get-platform-probe/receipt.json",
       "bytes": 10065,
       "sha256": "b36153db19d1e9e33b450e3cd023669ad6661ab31a297c64a4d5b8593a663f37"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/candidate-delivery-d8ae71c2.json",
+      "bytes": 91935,
+      "sha256": "87fc72639fae3b1db40a3b1aa4d96e42bacb52234e671b0652f6b9d7ef592e02"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/actions-final-delivery.json",
+      "bytes": 124546,
+      "sha256": "47069c801270799fd4d2ca2d4c9a38e327c7583b34c5b6b56586ca339efb3942"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/checks-final-delivery.json",
+      "bytes": 6770,
+      "sha256": "6d7693675090ebc29d2db5c69251e2b317844d7c8b3af765b15685c22df2d90b"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/node-whole-final-delivery-bound.json",
+      "bytes": 665,
+      "sha256": "79b42178dd2789cfce2256e3b1158a47fdb9205ed803ca11f05b95dc45dc2d4b"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/node-whole-final-delivery-bound.log",
+      "bytes": 244234,
+      "sha256": "2440887b8adf780586e0ecff8810d452f767785bdfbcdb74b35e9cb7b54eb6e5"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/node-whole-bookmark-title-final.json",
+      "bytes": 497,
+      "sha256": "ea075d7d023ecc397ad4dfe97b2a278eaad26341b94f0da3d8b8ed1e00ab5b94"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/node-whole-bookmark-title-final.log",
+      "bytes": 261795,
+      "sha256": "820f25d92d8e3315547c6be35a8af172f9239040e134ace43e76b96d28095cc6"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/actions-bookmark-error-completed.json",
+      "bytes": 142455,
+      "sha256": "6b2c1cf9757cfc8e9bddab9d5f215cee5f5a28cb5d6be36ea8a0a3d247783efb"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/main-push-bookmark-title.json",
+      "bytes": 204,
+      "sha256": "c5f756380aed5541a6ad43202d650a5424a8fa2c8694b76ca19359f8cb3598bc"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/main-push-final-delivery-source.json",
+      "bytes": 188,
+      "sha256": "be077e7e3955625c5c7f04891b2f96926d03577ccc7212dfd7243282c6c4688f"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/node-site-access-auto-details.log",
+      "bytes": 815,
+      "sha256": "102c89027c3edcd5ef0f3471aeaca14cc3b52d47ae7b08c7bb6fcc9827504d77"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/run-bookmark-title-final.py",
+      "bytes": 2284,
+      "sha256": "3d1de4d8df4c92fe00cdca19760e9a3aa979acf022fd44519b57ee3fc763eba6"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/finalize-bookmark-title-evidence.py",
+      "bytes": 10428,
+      "sha256": "88a0ed6c28391a4a53b385fee8d23fe77103b1c7cd76d187d41c92b2602e306a"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/nodeTests-final-delivery.log",
+      "bytes": 28044,
+      "sha256": "6b933f203d554a8147f7cdec0102ea2077dcd417dfd31c5fdb3bd10a15492d9e"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/matrix-final-delivery.log",
+      "bytes": 187,
+      "sha256": "3c7068b5bfa647f2f45dabe6491007c3f53703328d2f11df0086b07f8147bca8"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/catalog-final-delivery.log",
+      "bytes": 98,
+      "sha256": "8e5d6ca0c24ba6f14e36e93930c11ddd994e1623026e831a8a4d6ca2a8fdd123"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/coverage-final-delivery.log",
+      "bytes": 98,
+      "sha256": "432f3cdd896265ed971d69d44ef3aa444b0a62cac92106dd48c96393b58d1efe"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/ledger-final-delivery.log",
+      "bytes": 260,
+      "sha256": "1395bab75824af803b4966f1790afd50d315e6ed82f102b7a87a73c598d4330b"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/freeze-final-delivery.log",
+      "bytes": 453,
+      "sha256": "0b2cccef956fff1f093c7363137bb83f1bcc45b084410c8458789dc23ad1f218"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/check-final-delivery.log",
+      "bytes": 208,
+      "sha256": "5a3df4fe18df36d0ec280ae65b3a25bc003379937991759117f164f10d6b865b"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/buildProduction-final-delivery.log",
+      "bytes": 18131,
+      "sha256": "7b9dc79b233f3236a6d4b9ef457108bbef6837d149373d3d0246cf18d6c65944"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/buildDevelopment-final-delivery.log",
+      "bytes": 22668,
+      "sha256": "61ffa24ea972688091da2e22a887ab448bdc2e949a114ac9e513af0a0b4d1aeb"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/buildSize-final-delivery.log",
+      "bytes": 12245,
+      "sha256": "af0d429e444313c3b1440d0b6340a96aac65a94f55498d1fd947edddf7ee3f65"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/verify-final-delivery.log",
+      "bytes": 42815,
+      "sha256": "71689c18e41058c21ca89edb79b8f1dfb20f1ff261a5c12cd322948bd9e1a1eb"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/targetedMainRegressions-final-delivery.log",
+      "bytes": 20365,
+      "sha256": "b70a403ef3f73011b8b3e4a4d0718139837aae8912d4563526e5aca9e2fcd77b"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/builds-final-delivery/build-development.json",
+      "bytes": 487913,
+      "sha256": "1bcb5fd2ce80fb15ffb897c6503c45710b720069582d8df1c1b5120ff90b1c28"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/builds-final-delivery/build-production.json",
+      "bytes": 465952,
+      "sha256": "6784986eb4a7c27ce0287ef211777fa1c44138142773481d12e69829c92ed184"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/builds-final-delivery/build-development-latest.json",
+      "bytes": 208,
+      "sha256": "78085dee0b530f46411868243b5fe05068a3299f6471acc9d5aee3517f45af92"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/builds-final-delivery/build-production-latest.json",
+      "bytes": 206,
+      "sha256": "66bc8590ee7765632c2ac828ffd821996d046943f810826de4f70d7b623ba638"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/checks-bookmark-error-final.json",
+      "bytes": 10599,
+      "sha256": "b5aabcdfa0fe6f7a1ac9b5a0881e60c8470b8ee7fedfd31533a82968ac25a62e"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/builds-bookmark-error-final/build-development.json",
+      "bytes": 487917,
+      "sha256": "379f91bfb6b743941e03fc7802e0d5a5b2d12c376f290ec98584dde275c5ebca"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/builds-bookmark-error-final/build-production.json",
+      "bytes": 465957,
+      "sha256": "bb37a6b3d648f343634d72a0ad3b0e37c501e0dab79de87d3c60ffaa21d31120"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/builds-bookmark-error-final/build-development-latest.json",
+      "bytes": 208,
+      "sha256": "09889b821ce8a9bf7e38a988563fda7f1f87a74fe1fcf1176d382ec72c4eb332"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/builds-bookmark-error-final/build-production-latest.json",
+      "bytes": 206,
+      "sha256": "f4d382a1363e360cc6d6a27ea34f6e3a109a2f07a78cb1355e3b915a1f1776a6"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/checks-bookmark-title-final.json",
+      "bytes": 6848,
+      "sha256": "c3b5b0b50492d1c6306270ff6e27c1de03911ee519b4a1786eb602faabbe1101"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/nodeTests-bookmark-title-final.log",
+      "bytes": 28064,
+      "sha256": "e92aac7d3b88735cc41d7b27f0bebccb44c26dee9e32ca473fef67ecbc3cadf0"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/matrix-bookmark-title-final.log",
+      "bytes": 187,
+      "sha256": "3c7068b5bfa647f2f45dabe6491007c3f53703328d2f11df0086b07f8147bca8"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/catalog-bookmark-title-final.log",
+      "bytes": 98,
+      "sha256": "8e5d6ca0c24ba6f14e36e93930c11ddd994e1623026e831a8a4d6ca2a8fdd123"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/coverage-bookmark-title-final.log",
+      "bytes": 98,
+      "sha256": "432f3cdd896265ed971d69d44ef3aa444b0a62cac92106dd48c96393b58d1efe"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/ledger-bookmark-title-final.log",
+      "bytes": 260,
+      "sha256": "1395bab75824af803b4966f1790afd50d315e6ed82f102b7a87a73c598d4330b"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/freeze-bookmark-title-final.log",
+      "bytes": 453,
+      "sha256": "0b2cccef956fff1f093c7363137bb83f1bcc45b084410c8458789dc23ad1f218"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/check-bookmark-title-final.log",
+      "bytes": 208,
+      "sha256": "5a3df4fe18df36d0ec280ae65b3a25bc003379937991759117f164f10d6b865b"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/buildProduction-bookmark-title-final.log",
+      "bytes": 18449,
+      "sha256": "b945fae42229fd8e60cf563d40f15e698b6b0105c7ded3297cc86a919a15cf1e"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/buildDevelopment-bookmark-title-final.log",
+      "bytes": 23171,
+      "sha256": "fbc27239dbb20ab43bd39b7e5f5d34d84b6c81aa906a4e8c62900edc297cfc48"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/buildSize-bookmark-title-final.log",
+      "bytes": 12245,
+      "sha256": "dbbd70d7a2227476cbd836a21a3fc53e93e4142204fecf9cb29a874f415251be"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/verify-bookmark-title-final.log",
+      "bytes": 42815,
+      "sha256": "50656427e495d1bdee6f585d505450fa49a4979dd8599cb5a87cd60b98b2aca9"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/targetedMainRegressions-bookmark-title-final.log",
+      "bytes": 20350,
+      "sha256": "9ff5ba25e6a11a17a9da36a44a2e576e57f9180b609234cc3c3f105013512000"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/builds-bookmark-title-final/build-development.json",
+      "bytes": 487918,
+      "sha256": "7b5d74ba34d362e56d53f15a682592708a97d5c88a3c466ba29dd0a739c6a18d"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/builds-bookmark-title-final/build-production.json",
+      "bytes": 465957,
+      "sha256": "66c07e1a9fe889fcd9fceb279e28f063c8337ddad179f7f81d2f5b29511fc998"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/builds-bookmark-title-final/build-development-latest.json",
+      "bytes": 208,
+      "sha256": "9261a5e109b7e4ac1459b1d73e5e7806a7745ebd3d3be4a9e0c68fcd10a6b0f3"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/builds-bookmark-title-final/build-production-latest.json",
+      "bytes": 206,
+      "sha256": "b9dce6e935094a0bb3ccc716ec18880c1ea43f32c82ea278f4fed0d7c60d91d7"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/actions-bookmark-title.json",
+      "bytes": 140835,
+      "sha256": "5e115dc68a396f889ada548f1d993081f0feedc606883afefcdefed473efe022"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/node-whole-bookmark-title-bound.json",
+      "bytes": 778,
+      "sha256": "29113eb7a44451065cc45bbf37995fea81434e79d1f0b43f8ea01e923cd6b258"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/node-whole-bookmark-title-bound.log",
+      "bytes": 259631,
+      "sha256": "39ec2b29a6907a67aa486df3a199c7e0b8ea5325d7467b799d8018d689bf7e71"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/committed-candidate-bookmark-error-final.json",
+      "bytes": 438,
+      "sha256": "96673ed420f187086eda3261d606b65fe834aaa91bd5bf99f4103e5df4aff174"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/nodeTests-bookmark-error-final.log",
+      "bytes": 27758,
+      "sha256": "48b6ce82e47653332ae1b73a4cd5227bf1cbbed35f365d9a7d0f4fc5c2f99722"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/matrix-bookmark-error-final.log",
+      "bytes": 187,
+      "sha256": "3c7068b5bfa647f2f45dabe6491007c3f53703328d2f11df0086b07f8147bca8"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/catalog-bookmark-error-final.log",
+      "bytes": 98,
+      "sha256": "8e5d6ca0c24ba6f14e36e93930c11ddd994e1623026e831a8a4d6ca2a8fdd123"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/coverage-bookmark-error-final.log",
+      "bytes": 98,
+      "sha256": "432f3cdd896265ed971d69d44ef3aa444b0a62cac92106dd48c96393b58d1efe"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/ledger-bookmark-error-final.log",
+      "bytes": 260,
+      "sha256": "1395bab75824af803b4966f1790afd50d315e6ed82f102b7a87a73c598d4330b"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/freeze-bookmark-error-final.log",
+      "bytes": 453,
+      "sha256": "0b2cccef956fff1f093c7363137bb83f1bcc45b084410c8458789dc23ad1f218"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/check-bookmark-error-final.log",
+      "bytes": 208,
+      "sha256": "5a3df4fe18df36d0ec280ae65b3a25bc003379937991759117f164f10d6b865b"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/buildProduction-bookmark-error-final.log",
+      "bytes": 18344,
+      "sha256": "36564000fda28dd3c78f782adcd323464c919a4ad38c8484a1093f07cb1cd945"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/buildDevelopment-bookmark-error-final.log",
+      "bytes": 23010,
+      "sha256": "deb845c482b7e9f4f58d022cb92f932fae882f73d4c32388f1b7f62b704c01ac"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/buildSize-bookmark-error-final.log",
+      "bytes": 12245,
+      "sha256": "509f0d214c4c331d3e443d8da2c7e147f85272ac0c8f25abe489c78ad3b2b86b"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/verify-bookmark-error-final.log",
+      "bytes": 42815,
+      "sha256": "f1688aff02cad86676176ea411649c02bface559773bc40a5e1ce6c4d209bcf3"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/targetedMainRegressions-bookmark-error-final.log",
+      "bytes": 20367,
+      "sha256": "fb30a9272e5527757f0005ced928baee507e0ee4ec2af2bea4ba23b7ebe67d31"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/node-final-evidence-metadata.log",
+      "bytes": 2669,
+      "sha256": "8b1623916fa59aa943a2c13d1ed41742df85d4ecd5efb3a4671e7743204a6285"
     }
   ],
   "limitations": [
@@ -1688,10 +2028,39 @@
     "Live watcher log continues changing; not immutable acceptance proof"
   ],
   "ciRecoverySupplement": "ci-recovery-followup.json",
-  "latestSupplementAgainstHead": "d0da6299b9bb2c45055d34e6ded52fc7c679e8d0",
+  "latestSupplementAgainstHead": "238e279c2f3f07174d640a91e464ad1fbfa12291",
   "platformBookmarkProbe": {
     "scope": "READ_ONLY_CHROME_PLATFORM_BEHAVIOR_NOT_SDK_ACCEPTANCE",
     "nativeSdkPass": 0,
     "chromeVersion": "155.0.8059.39"
+  },
+  "bookmarkTitleCandidate": {
+    "candidateSha": "238e279c2f3f07174d640a91e464ad1fbfa12291",
+    "sourceInputFingerprint": "ded723f187ea6b40b2023a82f8e39cf39f648f16542f8f7a30c48594c194bde8",
+    "formalNativePass": 0,
+    "nodeTests": 292,
+    "targetedTests": 211,
+    "wholeRepoNode": {
+      "tests": 2286,
+      "pass": 2276,
+      "fail": 8,
+      "skipped": 2
+    },
+    "ci": [
+      {
+        "name": "Browser SDK R5 implementation contracts",
+        "id": 38472741256,
+        "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38472741256",
+        "candidateSha": "238e279c2f3f07174d640a91e464ad1fbfa12291",
+        "status": "PASS"
+      },
+      {
+        "name": "Browser SDK targeted main verification",
+        "id": 38472741294,
+        "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38472741294",
+        "candidateSha": "238e279c2f3f07174d640a91e464ad1fbfa12291",
+        "status": "PASS"
+      }
+    ]
   }
 }

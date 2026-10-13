@@ -1,8 +1,8 @@
 {
   "schemaVersion": "opendesk.browser-sdk.r106-candidate.v1",
-  "candidateSha": "d8ae71c285a8c1aaf9eac1c122ec2ac1630bad68",
-  "gitTree": "96d5c00e63dec9e14822df525212a5ab3ce70ccd",
-  "sourceInputFingerprint": "872bdd6f1206864696f42144e7659906cce8fe33cf1af993735924e928ebde86",
+  "candidateSha": "238e279c2f3f07174d640a91e464ad1fbfa12291",
+  "gitTree": "ddd96ed8ff89656c71d7da0575e77cb2528b9f6c",
+  "sourceInputFingerprint": "ded723f187ea6b40b2023a82f8e39cf39f648f16542f8f7a30c48594c194bde8",
   "sourceInputs": [
     {
       "path": "docs/contracts/licenses/todo-user-vue-MIT.txt",
@@ -1466,8 +1466,8 @@
     },
     {
       "path": "src/platform/chrome/bookmarks.js",
-      "bytes": 8647,
-      "sha256": "ffd286d4f87fe6952a2f6b790b33d3db2792e78aee8dc156c949c6e2d516a36a"
+      "bytes": 9660,
+      "sha256": "d2b0c392b5e6d438a95e4af8be4eab710e1205477abe8071caefbb0b31162dc1"
     },
     {
       "path": "src/platform/chrome/browser-cookie-host.js",
@@ -2131,8 +2131,8 @@
     },
     {
       "path": "src/ui/page-component-remote.js",
-      "bytes": 20336,
-      "sha256": "651e2cafe62657a73ed0504eb020276f75253c049f84fbf0d950d5e50e7f4f1b"
+      "bytes": 20402,
+      "sha256": "e7624567e0b6fb1e44f96411ec82968f4c1ef6ae61057c9257c4aec56655c1ca"
     },
     {
       "path": "src/ui/page-dependencies.js",
@@ -2186,8 +2186,8 @@
     },
     {
       "path": "src/ui/script-editor.js",
-      "bytes": 98494,
-      "sha256": "66a1d4e8fd286e293e690dd9ba52613a24aa37f738b2f00a3a1fd78a6f1e829a"
+      "bytes": 100206,
+      "sha256": "3993e809a8dd5af038a901c1b3c502c969e46a9505de498f5579545bf35d04fb"
     },
     {
       "path": "src/ui/sdk-approval.js",
@@ -2355,20 +2355,20 @@
       "sha256": "6d7d80e3ebb145ab4b8e84b1773e90684b2b9c61f973ded1493b64285779ba7c"
     }
   ],
-  "productionPackageHash": "8c0be923642df6313ae89334b66c4be2e8a0ad9ebf5cd2c947b296a537a0e6b9",
-  "developmentPackageHash": "6992fc369eb886028b8283f7b2d102c5895117d237ec95477770f703122ccd88",
+  "productionPackageHash": "1e44683212832fa740704c0b36869085e8f572c0292903136632539d51ed786b",
+  "developmentPackageHash": "003f268de9be3d677403febb9687fa0d17d3efd15fbedde867300ef2605f376f",
   "candidateKind": "untouched committed Git archive; independent dist; no branch/worktree; no source edits",
   "checks": {
     "nodeTests": {
       "status": "PASS",
       "evidence": [
         {
-          "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/nodeTests-ci-recovery-final.log",
-          "sha256": "85f049c07cb06e453300d33422a80275c6fffcbaedac285ae290704dd7b3ba4f",
-          "candidateSha": "d8ae71c285a8c1aaf9eac1c122ec2ac1630bad68",
+          "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/nodeTests-final-delivery.log",
+          "sha256": "6b933f203d554a8147f7cdec0102ea2077dcd417dfd31c5fdb3bd10a15492d9e",
+          "candidateSha": "238e279c2f3f07174d640a91e464ad1fbfa12291",
           "caseId": "R10.6-nodeTests",
           "command": "node --test --test-reporter=spec tests/environment/browser-sdk-r8-catalog.test.mjs tests/environment/browser-sdk-r8-cookies.test.mjs tests/environment/browser-sdk-r7-trusted-cookies.test.mjs tests/environment/browser-sdk-r7-mapping.test.mjs tests/environment/browser-sdk-contract-compat.test.mjs tests/environment/browser-sdk-coverage.test.mjs tests/environment/browser-tabs-host.test.mjs tests/environment/browser-sidepanel-host.test.mjs tests/environment/browser-sdk-r2-host.test.mjs tests/environment/browser-screenshot-host.test.mjs tests/environment/browser-screenshot-resources.test.mjs tests/environment/browser-network-observe-host.test.mjs tests/environment/browser-sdk-approval-timeout.test.mjs tests/environment/browser-sdk-r2-demo.test.mjs tests/environment/browser-sdk-p3-implementation.test.mjs tests/environment/browser-sdk-p3-bookmarks.test.mjs tests/environment/browser-sdk-p4-implementation.test.mjs tests/environment/browser-sdk-r9-installed-cookies.test.mjs tests/environment/browser-sdk-r9-installed-host.test.mjs tests/environment/browser-sdk-p5-scheduler.test.mjs tests/environment/browser-sdk-r106-trusted.test.mjs tests/environment/browser-sdk-r106-history-ui.test.mjs tests/environment/browser-sdk-r106-host.test.mjs tests/environment/scheduled-tasks-r1.test.mjs tests/environment/scheduled-task-timezone-r25.test.mjs tests/environment/browser-sdk-freeze.test.mjs tests/environment/browser-sdk-interface-matrix.test.mjs tests/environment/browser-framework-ledger.test.mjs tests/environment/cookie-editor-ui.test.mjs tests/environment/sidebar-tool-enable-r26.test.mjs tests/environment/official-tools-catalog-r45.test.mjs",
-          "environment": "Immutable Git archive on macOS arm64, fixed locked dependencies, private dist/guard 43127, v24.16.0; sourceInputs 872bdd6f1206864696f42144e7659906cce8fe33cf1af993735924e928ebde86"
+          "environment": "v24.16.0; macOS; immutable Git archive; independent dist and output guard 43127"
         }
       ]
     },
@@ -2376,12 +2376,12 @@
       "status": "PASS",
       "evidence": [
         {
-          "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/check-ci-recovery-final.log",
+          "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/check-final-delivery.log",
           "sha256": "5a3df4fe18df36d0ec280ae65b3a25bc003379937991759117f164f10d6b865b",
-          "candidateSha": "d8ae71c285a8c1aaf9eac1c122ec2ac1630bad68",
+          "candidateSha": "238e279c2f3f07174d640a91e464ad1fbfa12291",
           "caseId": "R10.6-check",
           "command": "npm run check",
-          "environment": "Immutable Git archive on macOS arm64, fixed locked dependencies, private dist/guard 43127, v24.16.0; sourceInputs 872bdd6f1206864696f42144e7659906cce8fe33cf1af993735924e928ebde86"
+          "environment": "v24.16.0; macOS; immutable Git archive; independent dist and output guard 43127"
         }
       ]
     },
@@ -2389,12 +2389,12 @@
       "status": "PASS",
       "evidence": [
         {
-          "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/buildProduction-ci-recovery-final.log",
-          "sha256": "4bbb7c4605758190efd6ba28ad2f93b1a3d682e030105951b2662eeaa52d6483",
-          "candidateSha": "d8ae71c285a8c1aaf9eac1c122ec2ac1630bad68",
+          "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/buildProduction-final-delivery.log",
+          "sha256": "7b9dc79b233f3236a6d4b9ef457108bbef6837d149373d3d0246cf18d6c65944",
+          "candidateSha": "238e279c2f3f07174d640a91e464ad1fbfa12291",
           "caseId": "R10.6-buildProduction",
           "command": "npm run build",
-          "environment": "Immutable Git archive on macOS arm64, fixed locked dependencies, private dist/guard 43127, v24.16.0; sourceInputs 872bdd6f1206864696f42144e7659906cce8fe33cf1af993735924e928ebde86"
+          "environment": "v24.16.0; macOS; immutable Git archive; independent dist and output guard 43127"
         }
       ]
     },
@@ -2402,12 +2402,12 @@
       "status": "PASS",
       "evidence": [
         {
-          "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/buildDevelopment-ci-recovery-final.log",
-          "sha256": "d048727d3b753e8d89b6d596e0acbb9b0b500b9992594388b6386661e76eea12",
-          "candidateSha": "d8ae71c285a8c1aaf9eac1c122ec2ac1630bad68",
+          "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/buildDevelopment-final-delivery.log",
+          "sha256": "61ffa24ea972688091da2e22a887ab448bdc2e949a114ac9e513af0a0b4d1aeb",
+          "candidateSha": "238e279c2f3f07174d640a91e464ad1fbfa12291",
           "caseId": "R10.6-buildDevelopment",
           "command": "npm run build:dev",
-          "environment": "Immutable Git archive on macOS arm64, fixed locked dependencies, private dist/guard 43127, v24.16.0; sourceInputs 872bdd6f1206864696f42144e7659906cce8fe33cf1af993735924e928ebde86"
+          "environment": "v24.16.0; macOS; immutable Git archive; independent dist and output guard 43127"
         }
       ]
     },
@@ -2415,12 +2415,12 @@
       "status": "PASS",
       "evidence": [
         {
-          "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/buildSize-ci-recovery-final.log",
-          "sha256": "a9dada7051032efbb81cc4cb3492fe238ea4f8deff8abde8bfd4b080bc089cf4",
-          "candidateSha": "d8ae71c285a8c1aaf9eac1c122ec2ac1630bad68",
+          "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/buildSize-final-delivery.log",
+          "sha256": "af0d429e444313c3b1440d0b6340a96aac65a94f55498d1fd947edddf7ee3f65",
+          "candidateSha": "238e279c2f3f07174d640a91e464ad1fbfa12291",
           "caseId": "R10.6-buildSize",
           "command": "npm run build:size",
-          "environment": "Immutable Git archive on macOS arm64, fixed locked dependencies, private dist/guard 43127, v24.16.0; sourceInputs 872bdd6f1206864696f42144e7659906cce8fe33cf1af993735924e928ebde86"
+          "environment": "v24.16.0; macOS; immutable Git archive; independent dist and output guard 43127"
         }
       ]
     },
@@ -2428,12 +2428,12 @@
       "status": "PASS",
       "evidence": [
         {
-          "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/verify-ci-recovery-final.log",
-          "sha256": "b8f936e34a60d44f18ce824a7757841a026be7de258a2414f422d8c6b6b6d566",
-          "candidateSha": "d8ae71c285a8c1aaf9eac1c122ec2ac1630bad68",
+          "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/verify-final-delivery.log",
+          "sha256": "71689c18e41058c21ca89edb79b8f1dfb20f1ff261a5c12cd322948bd9e1a1eb",
+          "candidateSha": "238e279c2f3f07174d640a91e464ad1fbfa12291",
           "caseId": "R10.6-verify",
           "command": "npm run verify",
-          "environment": "Immutable Git archive on macOS arm64, fixed locked dependencies, private dist/guard 43127, v24.16.0; sourceInputs 872bdd6f1206864696f42144e7659906cce8fe33cf1af993735924e928ebde86"
+          "environment": "v24.16.0; macOS; immutable Git archive; independent dist and output guard 43127"
         }
       ]
     },
@@ -2441,12 +2441,12 @@
       "status": "PASS",
       "evidence": [
         {
-          "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/targetedMainRegressions-ci-recovery-final.log",
-          "sha256": "d46df9374875c53b9a5135e3af36af15825ceb81415a5a338a544edcd48dfeea",
-          "candidateSha": "d8ae71c285a8c1aaf9eac1c122ec2ac1630bad68",
+          "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/targetedMainRegressions-final-delivery.log",
+          "sha256": "b70a403ef3f73011b8b3e4a4d0718139837aae8912d4563526e5aca9e2fcd77b",
+          "candidateSha": "238e279c2f3f07174d640a91e464ad1fbfa12291",
           "caseId": "R10.6-targetedMainRegressions",
           "command": "node --test --test-reporter=spec tests/environment/browser-sdk-r13.test.mjs tests/environment/sidebar-tools.test.mjs tests/environment/sidebar-tools-host.test.mjs tests/environment/official-tools-catalog-r45.test.mjs tests/environment/fixed-entries-audit.test.mjs tests/framework/k4-sdk-reinjection.test.mjs tests/framework/k4-sdk.test.mjs tests/framework/k2-sdk-relay-races.test.mjs tests/environment/boundaries.test.mjs tests/framework/k4-sdk-hello-races.test.mjs tests/framework/k4-sdk-bundle-reinjection.test.mjs",
-          "environment": "Immutable Git archive on macOS arm64, fixed locked dependencies, private dist/guard 43127, v24.16.0; sourceInputs 872bdd6f1206864696f42144e7659906cce8fe33cf1af993735924e928ebde86"
+          "environment": "v24.16.0; macOS; immutable Git archive; independent dist and output guard 43127"
         }
       ]
     },
@@ -2462,13 +2462,13 @@
       "status": "PASS",
       "evidence": [
         {
-          "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/actions-ci-recovery-final.json",
-          "sha256": "1cdfbfd454d5aaad800f14c2726bf5ccc24f1265cf9a2ee26650bf5de29b739c",
-          "candidateSha": "d8ae71c285a8c1aaf9eac1c122ec2ac1630bad68",
+          "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/actions-final-delivery.json",
+          "sha256": "47069c801270799fd4d2ca2d4c9a38e327c7583b34c5b6b56586ca339efb3942",
+          "candidateSha": "238e279c2f3f07174d640a91e464ad1fbfa12291",
           "caseId": "R10.6-targetedMainCI",
           "command": "GitHub Actions: Browser SDK targeted main verification",
-          "environment": "Completed exact-candidate GitHub Actions run; raw run metadata retained",
-          "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38464868337"
+          "environment": "GitHub Actions; exact runner details in linked job",
+          "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38472741294"
         }
       ]
     },
@@ -2476,34 +2476,25 @@
       "status": "PASS",
       "evidence": [
         {
-          "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/actions-ci-recovery-final.json",
-          "sha256": "1cdfbfd454d5aaad800f14c2726bf5ccc24f1265cf9a2ee26650bf5de29b739c",
-          "candidateSha": "d8ae71c285a8c1aaf9eac1c122ec2ac1630bad68",
+          "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/actions-final-delivery.json",
+          "sha256": "47069c801270799fd4d2ca2d4c9a38e327c7583b34c5b6b56586ca339efb3942",
+          "candidateSha": "238e279c2f3f07174d640a91e464ad1fbfa12291",
           "caseId": "R10.6-r5CI",
           "command": "GitHub Actions: Browser SDK R5 implementation contracts",
-          "environment": "Completed exact-candidate GitHub Actions run; raw run metadata retained",
-          "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38464868496"
+          "environment": "GitHub Actions; exact runner details in linked job",
+          "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38472741256"
         }
       ]
     },
     "cookieEditorCI": {
-      "status": "FAIL",
-      "evidence": [
-        {
-          "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/actions-ci-recovery-final.json",
-          "sha256": "1cdfbfd454d5aaad800f14c2726bf5ccc24f1265cf9a2ee26650bf5de29b739c",
-          "candidateSha": "d8ae71c285a8c1aaf9eac1c122ec2ac1630bad68",
-          "caseId": "R10.6-cookieEditorCI",
-          "command": "GitHub Actions: Cookie Editor R3.3 real SDK and package verification",
-          "environment": "Completed exact-candidate GitHub Actions run; raw run metadata retained",
-          "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38464868316"
-        }
-      ]
+      "status": "NOT_TESTED",
+      "evidence": [],
+      "reason": "This source-only candidate did not trigger the Cookie workflow; the earlier whole-CI failure is preserved in docs/framework/workstreams/evidence/browser-sdk-r106-20261014/candidate-delivery-d8ae71c2.json"
     },
     "packageBudgetsCI": {
       "status": "NOT_TESTED",
       "evidence": [],
-      "reason": "Workflow not triggered on this metadata/workflow-only SHA; local same-candidate build:size and both verified packages PASS. Earlier CI retains its actual SHA."
+      "reason": "The test-only commit did not trigger this workflow; same-candidate npm run build:size passed locally. Earlier CI success is retained separately."
     }
   },
   "public": {
@@ -2535,37 +2526,57 @@
     "Prepared Scheduler fixed Task/Alarm/RunHost Run×2 driver has no actual Chrome PASS",
     "Historical Cookie native fragments have distinct physical package hashes and are supplemental"
   ],
-  "actions": {
-    "initialR106": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38452455322",
-    "ciFix": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38453502609",
-    "r5Final": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38454580392",
-    "packageBudgetsFinal": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38454580421",
-    "targetedMainFinal": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38454580175",
-    "targetedMainCI": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38464868337",
-    "r5CI": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38464868496",
-    "packageBudgetsCI": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38458527650",
-    "cookieEditorCI": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38464868316"
-  },
+  "actions": [
+    {
+      "name": "Browser SDK R5 implementation contracts",
+      "id": 38472741256,
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38472741256",
+      "candidateSha": "238e279c2f3f07174d640a91e464ad1fbfa12291",
+      "status": "PASS"
+    },
+    {
+      "name": "Browser SDK targeted main verification",
+      "id": 38472741294,
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38472741294",
+      "candidateSha": "238e279c2f3f07174d640a91e464ad1fbfa12291",
+      "status": "PASS"
+    }
+  ],
   "sameCandidateWholeRepoNode": {
+    "candidateSha": "238e279c2f3f07174d640a91e464ad1fbfa12291",
+    "command": "npm test",
+    "cwd": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/evidence/browser-sdk-r106-20261014/committed-candidate-final-delivery",
+    "environment": {
+      "OPENDESK_BUILD_EVIDENCE_DIR": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/evidence/browser-sdk-r106-20261014/builds-final-delivery",
+      "OPENDESK_OUTPUT_GUARD_PORT": "43127"
+    },
+    "exitCode": 1,
     "status": "FAIL",
-    "tests": 2275,
-    "pass": 2245,
-    "fail": 28,
-    "skipped": 2,
-    "log": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/node-whole-ci-recovery-final.log",
-    "sha256": "d4136c7a8f4040ef1a08c79ddc9bf89f1a6d118845a52c4860226ee8144477de",
-    "scope": "Immutable source archive after verified same-candidate builds; no test gate removed."
+    "durationSeconds": 31.786,
+    "log": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/node-whole-final-delivery-bound.log",
+    "counts": {
+      "tests": 2286,
+      "pass": 2276,
+      "fail": 8,
+      "skipped": 2
+    },
+    "sha256": "2440887b8adf780586e0ecff8810d452f767785bdfbcdb74b35e9cb7b54eb6e5",
+    "scope": "Full repository; preserve failures independently from the 292 passing SDK contracts"
   },
   "sameCandidateCookieCI": {
-    "status": "FAIL",
-    "sdkTests": 134,
-    "sdkPass": 134,
-    "fullSuiteTests": 2275,
-    "fullSuitePass": 2235,
-    "fullSuiteFail": 33,
-    "fullSuiteSkipped": 7,
-    "log": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/ci-cookie-recovery-final-job.log",
-    "sha256": "ca2913e0efa596bf8cfe2fe8f9f995409fc79e95dbb5ebd72684f7dfc65b6b9a",
-    "note": "Original completed Node22 GitHub job log; later fixture changes do not alter this run."
+    "status": "NOT_TESTED",
+    "candidateSha": "238e279c2f3f07174d640a91e464ad1fbfa12291",
+    "previousEvidence": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/candidate-delivery-d8ae71c2.json"
+  },
+  "previousCandidate": {
+    "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/candidate-delivery-d8ae71c2.json",
+    "sha256": "87fc72639fae3b1db40a3b1aa4d96e42bacb52234e671b0652f6b9d7ef592e02",
+    "candidateSha": "d8ae71c285a8c1aaf9eac1c122ec2ac1630bad68"
+  },
+  "bookmarksTitleFolderProtection": {
+    "status": "SOURCE_WIRED",
+    "node": "PASS",
+    "native": "NOT_TESTED",
+    "migration": "Legacy records without original title and parentId cannot delete native bookmarks"
   }
 }

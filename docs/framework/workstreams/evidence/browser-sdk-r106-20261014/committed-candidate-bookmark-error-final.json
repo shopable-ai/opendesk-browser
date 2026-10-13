@@ -1,0 +1,9 @@
+{
+  "candidateSha": "097de119d486d89986a7a2b04fc306e08404addb",
+  "gitTree": "819642fa9667d390ebc328608449aa49ca93ab34",
+  "method": "immutable Git archive, no checkout or worktree",
+  "cwd": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/evidence/browser-sdk-r106-20261014/committed-candidate-bookmark-error-final",
+  "nodeVersion": "v24.16.0",
+  "dailyDistUntouched": true,
+  "privateGuardPort": 43127
+}

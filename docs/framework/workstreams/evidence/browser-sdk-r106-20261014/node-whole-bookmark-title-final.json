@@ -1,0 +1,10 @@
+{
+  "candidateSha": "1cec481638bb58d193b8f8cda609c12219ad1b97",
+  "command": "npm test",
+  "cwd": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/evidence/browser-sdk-r106-20261014/committed-candidate-bookmark-title-final",
+  "exitCode": 1,
+  "status": "FAIL",
+  "durationSeconds": 37.396,
+  "scope": "whole repository; SDK scope independently recorded",
+  "log": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/node-whole-bookmark-title-final.log"
+}

@@ -1,0 +1,33 @@
+{"ok":true,"sourceFiles":191,"nativeDiscovered":1830,"approved":55,"callableRegistry":53,"sourceHashMetadataChecked":true,"upstreamSourceBytesReparsed":false,"nativeChrome":"NOT_TESTED"}
+{"ok":true,"namespaces":8,"methods":70,"events":38,"properties":11,"scope":"PINNED_PARTIAL_JSON"}
+{"ok":true,"operations":53,"states":{"IMPLEMENTED":53,"PLANNED":0,"HOST_ONLY":0,"NOT_EXPOSED":0}}
+{"ok":true,"formal":53,"implemented":53,"planned":0,"notExposed":0,"candidateGroups":27,"originalCandidates":114,"promoted":17,"pending":97,"uniqueNamedMethods":150,"cookieSdkFormal":11,"cookieCandidates":10,"formalNativePass":0,"supplementalAuditDomains":32}
+✔ four-layer browser ledger reconciles current Registry, candidate list, Cookie priority and acceptance (44.994375ms)
+✔ four-layer check rejects a missing operation and forged native acceptance without mutating evidence (84.243667ms)
+✔ supplemental reference domains stay audit-only and Cookie is first priority (0.953166ms)
+✔ R9 Browser SDK exposes only real implemented operations and typed metadata (1.114125ms)
+✔ Capability discovery schemas represent Host authorization and failure receipts (0.430917ms)
+✔ Browser wrapper requests use canonical authenticated operation names (0.974042ms)
+✔ Page discovery validates inputs and does not expose privileged browser methods (0.372667ms)
+✔ Browser exports reject unsafe values before canonical dispatch (0.608834ms)
+✔ Removed prelaunch placeholder operations cannot be invoked or discovered (0.200625ms)
+✔ R5 public Tabs wrappers route through original Host with no raw native tabId (0.295334ms)
+✔ resource export schemas never advertise Chrome-global download IDs (0.073416ms)
+✔ Browser SDK current ledger derives its denominator from the implemented registry (0.953292ms)
+✔ a status cannot be changed to PASS without real evidence (0.759917ms)
+✔ a phase cannot be accepted with untested candidate checks (0.8605ms)
+✔ current source and human readable matrix can be compared (17.323541ms)
+✔ a renamed operation cannot pass with a legacy Schema source (0.729792ms)
+✔ pinned Chromium matrix and registered Browser SDK agree, without granting native APIs (10.306583ms)
+✔ unapproved runtime operation is never accepted as a harmless catalog difference (1.252875ms)
+✔ public Cookies cannot be demoted to Host-only by a catalog metadata edit (7.443792ms)
+✔ Chromium source hash and reciprocal native mappings are mandatory (12.625333ms)
+✔ native and tool grants cannot drift from active Browser Host metadata (11.879375ms)
+ℹ tests 21
+ℹ suites 0
+ℹ pass 21
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 177.261375

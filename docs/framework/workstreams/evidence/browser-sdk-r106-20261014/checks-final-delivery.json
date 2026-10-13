@@ -1,0 +1,196 @@
+{
+  "candidateSha": "238e279c2f3f07174d640a91e464ad1fbfa12291",
+  "gitTree": "ddd96ed8ff89656c71d7da0575e77cb2528b9f6c",
+  "method": "immutable Git archive, no checkout or worktree",
+  "cwd": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/evidence/browser-sdk-r106-20261014/committed-candidate-final-delivery",
+  "nodeVersion": "v24.16.0",
+  "dailyDistUntouched": true,
+  "privateGuardPort": 43127,
+  "steps": [
+    {
+      "key": "nodeTests",
+      "argv": [
+        "node",
+        "--test",
+        "--test-reporter=spec",
+        "tests/environment/browser-sdk-r8-catalog.test.mjs",
+        "tests/environment/browser-sdk-r8-cookies.test.mjs",
+        "tests/environment/browser-sdk-r7-trusted-cookies.test.mjs",
+        "tests/environment/browser-sdk-r7-mapping.test.mjs",
+        "tests/environment/browser-sdk-contract-compat.test.mjs",
+        "tests/environment/browser-sdk-coverage.test.mjs",
+        "tests/environment/browser-tabs-host.test.mjs",
+        "tests/environment/browser-sidepanel-host.test.mjs",
+        "tests/environment/browser-sdk-r2-host.test.mjs",
+        "tests/environment/browser-screenshot-host.test.mjs",
+        "tests/environment/browser-screenshot-resources.test.mjs",
+        "tests/environment/browser-network-observe-host.test.mjs",
+        "tests/environment/browser-sdk-approval-timeout.test.mjs",
+        "tests/environment/browser-sdk-r2-demo.test.mjs",
+        "tests/environment/browser-sdk-p3-implementation.test.mjs",
+        "tests/environment/browser-sdk-p3-bookmarks.test.mjs",
+        "tests/environment/browser-sdk-p4-implementation.test.mjs",
+        "tests/environment/browser-sdk-r9-installed-cookies.test.mjs",
+        "tests/environment/browser-sdk-r9-installed-host.test.mjs",
+        "tests/environment/browser-sdk-p5-scheduler.test.mjs",
+        "tests/environment/browser-sdk-r106-trusted.test.mjs",
+        "tests/environment/browser-sdk-r106-history-ui.test.mjs",
+        "tests/environment/browser-sdk-r106-host.test.mjs",
+        "tests/environment/scheduled-tasks-r1.test.mjs",
+        "tests/environment/scheduled-task-timezone-r25.test.mjs",
+        "tests/environment/browser-sdk-freeze.test.mjs",
+        "tests/environment/browser-sdk-interface-matrix.test.mjs",
+        "tests/environment/browser-framework-ledger.test.mjs",
+        "tests/environment/cookie-editor-ui.test.mjs",
+        "tests/environment/sidebar-tool-enable-r26.test.mjs",
+        "tests/environment/official-tools-catalog-r45.test.mjs"
+      ],
+      "status": "PASS",
+      "exitCode": 0,
+      "durationSeconds": 0.674,
+      "log": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/nodeTests-final-delivery.log"
+    },
+    {
+      "key": "matrix",
+      "argv": [
+        "node",
+        "scripts/check-browser-sdk-interface-matrix.mjs",
+        "--check"
+      ],
+      "status": "PASS",
+      "exitCode": 0,
+      "durationSeconds": 0.045,
+      "log": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/matrix-final-delivery.log"
+    },
+    {
+      "key": "catalog",
+      "argv": [
+        "node",
+        "scripts/sync-chrome-api-catalog.mjs",
+        "--check"
+      ],
+      "status": "PASS",
+      "exitCode": 0,
+      "durationSeconds": 0.052,
+      "log": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/catalog-final-delivery.log"
+    },
+    {
+      "key": "coverage",
+      "argv": [
+        "node",
+        "scripts/check-browser-sdk-coverage.mjs",
+        "--check"
+      ],
+      "status": "PASS",
+      "exitCode": 0,
+      "durationSeconds": 0.054,
+      "log": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/coverage-final-delivery.log"
+    },
+    {
+      "key": "ledger",
+      "argv": [
+        "node",
+        "scripts/check-browser-framework-ledger.mjs",
+        "--check"
+      ],
+      "status": "PASS",
+      "exitCode": 0,
+      "durationSeconds": 0.046,
+      "log": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/ledger-final-delivery.log"
+    },
+    {
+      "key": "freeze",
+      "argv": [
+        "node",
+        "scripts/check-browser-sdk-freeze.mjs"
+      ],
+      "status": "PASS",
+      "exitCode": 0,
+      "durationSeconds": 0.058,
+      "log": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/freeze-final-delivery.log"
+    },
+    {
+      "key": "check",
+      "argv": [
+        "npm",
+        "run",
+        "check"
+      ],
+      "status": "PASS",
+      "exitCode": 0,
+      "durationSeconds": 18.446,
+      "log": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/check-final-delivery.log"
+    },
+    {
+      "key": "buildProduction",
+      "argv": [
+        "npm",
+        "run",
+        "build"
+      ],
+      "status": "PASS",
+      "exitCode": 0,
+      "durationSeconds": 24.579,
+      "log": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/buildProduction-final-delivery.log"
+    },
+    {
+      "key": "buildDevelopment",
+      "argv": [
+        "npm",
+        "run",
+        "build:dev"
+      ],
+      "status": "PASS",
+      "exitCode": 0,
+      "durationSeconds": 23.702,
+      "log": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/buildDevelopment-final-delivery.log"
+    },
+    {
+      "key": "buildSize",
+      "argv": [
+        "npm",
+        "run",
+        "build:size"
+      ],
+      "status": "PASS",
+      "exitCode": 0,
+      "durationSeconds": 1.052,
+      "log": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/buildSize-final-delivery.log"
+    },
+    {
+      "key": "verify",
+      "argv": [
+        "npm",
+        "run",
+        "verify"
+      ],
+      "status": "PASS",
+      "exitCode": 0,
+      "durationSeconds": 2.159,
+      "log": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/verify-final-delivery.log"
+    },
+    {
+      "key": "targetedMainRegressions",
+      "argv": [
+        "node",
+        "--test",
+        "--test-reporter=spec",
+        "tests/environment/browser-sdk-r13.test.mjs",
+        "tests/environment/sidebar-tools.test.mjs",
+        "tests/environment/sidebar-tools-host.test.mjs",
+        "tests/environment/official-tools-catalog-r45.test.mjs",
+        "tests/environment/fixed-entries-audit.test.mjs",
+        "tests/framework/k4-sdk-reinjection.test.mjs",
+        "tests/framework/k4-sdk.test.mjs",
+        "tests/framework/k2-sdk-relay-races.test.mjs",
+        "tests/environment/boundaries.test.mjs",
+        "tests/framework/k4-sdk-hello-races.test.mjs",
+        "tests/framework/k4-sdk-bundle-reinjection.test.mjs"
+      ],
+      "status": "PASS",
+      "exitCode": 0,
+      "durationSeconds": 1.336,
+      "log": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/targetedMainRegressions-final-delivery.log"
+    }
+  ]
+}
