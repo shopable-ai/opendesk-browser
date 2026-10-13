@@ -1,4 +1,4 @@
-name: Global First R4 claims and source evidence
+name: Global First R5 claims and installed Task component proof
 
 on:
   push:
@@ -39,9 +39,31 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Verify existing GF ledger, competing previews, truthful SEO limits
-        run: node --test tests/environment/global-first-r4-claims.test.mjs tests/environment/global-first-r5-product-evidence.test.mjs tests/environment/global-first-r5-benchmark.test.mjs tests/environment/global-first-r5-historical-timeline.test.mjs
-      - name: Existing Task verification and local install (Node component, not Chrome)
+      - name: Capture source identity and no-claim evidence contract
         run: |
-          node --test tests/environment/agent-to-task-contract.test.mjs tests/environment/task-package-flow.test.mjs
-          node --test tests/environment/workflow-r15.test.mjs tests/environment/local-project-install-r251.test.mjs
+          mkdir -p artifacts/global-first-r5
+          git rev-parse HEAD > artifacts/global-first-r5/head.txt
+          sha256sum \
+            docs/product/browser-extension-ecosystem/competitor-timeline.json \
+            docs/product/browser-extension-ecosystem/first-claims-ledger.json \
+            docs/product/browser-extension-ecosystem/opportunity-register.json \
+            docs/framework/workstreams/evidence/global-first-r5-20261013/benchmark-contract.json \
+            scripts/global-first-r5-benchmark.mjs \
+            examples/tasks/agent-modern-search.v1.opendesk-task.json \
+            .github/workflows/global-first-r4-claims.yml \
+            > artifacts/global-first-r5/source-input-sha256.txt
+      - name: Verify claims, dated competition and benchmark fail-closed rules
+        run: |
+          node --test tests/environment/global-first-r4-claims.test.mjs tests/environment/global-first-r5-product-evidence.test.mjs tests/environment/global-first-r5-benchmark.test.mjs tests/environment/global-first-r5-historical-timeline.test.mjs | tee artifacts/global-first-r5/claims-and-evidence.tap
+      - name: Existing Task verify/install and workflow compiler (Node component only)
+        run: |
+          node --test tests/environment/agent-to-task-contract.test.mjs tests/environment/task-package-flow.test.mjs | tee artifacts/global-first-r5/task-package-component.tap
+          node --test tests/environment/workflow-r15.test.mjs tests/environment/local-project-install-r251.test.mjs | tee artifacts/global-first-r5/workflow-install-component.tap
+      - name: Preserve SHA-bound evidence, not a native Chrome receipt
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: global-first-r5-node-${{ github.sha }}-${{ github.run_attempt }}
+          path: artifacts/global-first-r5/
+          retention-days: 14
+          if-no-files-found: warn
