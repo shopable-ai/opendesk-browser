@@ -26,8 +26,8 @@ permissions:
   contents: read
 
 concurrency:
-  group: global-first-r4-claims-${{ github.ref }}
-  cancel-in-progress: true
+  group: global-first-r5-evidence-${{ github.sha }}
+  cancel-in-progress: false
 
 jobs:
   claim-evidence-contract:
