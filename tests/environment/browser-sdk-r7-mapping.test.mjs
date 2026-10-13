@@ -8,14 +8,17 @@ import {createBrowserSdk} from '../../src/framework/sdk/browser.js';
 const json=path=>readFile(new URL('../../'+path,import.meta.url),'utf8').then(JSON.parse);
 const read=path=>readFile(new URL('../../'+path,import.meta.url),'utf8');
 
-test('R7 mapping references existing R8 35 rows and exactly ten unexposed Host-only Cookie operations',async()=>{
+test('R7 35-operation map remains historic and Cookie host exposes no sandbox methods',async()=>{
   const [r7,r8]=await Promise.all([
     json('docs/api/browser-sdk-native-mapping.json'),
     json('docs/api/browser-sdk-compatibility-map.json')
   ]);
   assert.equal(r7.legacyOperations.count,35);
   assert.equal(r7.legacyOperations.canonicalMapping,'docs/api/browser-sdk-compatibility-map.json');
-  assert.deepEqual(new Set(r8.operations.map(row=>row.legacyOperation)),new Set(Object.keys(BROWSER_OPERATIONS)));
+  assert.equal(r7.legacyOperations.archiveOnly,true);
+  assert.equal(r8.archiveOnly,true);
+  assert(Object.keys(BROWSER_OPERATIONS).every(op=>r8.operations.some(row=>row.legacyOperation===op)));
+  assert(r8.operations.some(row=>!Object.hasOwn(BROWSER_OPERATIONS,row.legacyOperation)),'Historical map must not dictate current runtime');
   assert.equal(r7.entries.length,10);
   assert(r7.entries.every(row=>TRUSTED_COOKIE_OPERATIONS.includes(row.openDeskOperationId)));
   assert(TRUSTED_COOKIE_OPERATIONS.includes('browser.cookies.observe.read')); // R9 additional lifecycle, frozen R7 map is historical
