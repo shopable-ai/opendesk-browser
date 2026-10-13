@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
-import {getScheduleDeviceTimeZone,listScheduleTimeZoneGroups} from '../../src/ui/scheduled-task-workbench.js';
+import {getScheduleDeviceTimeZone,listScheduleTimeZoneGroups,filterScheduleTimeZoneGroups} from '../../src/ui/scheduled-task-workbench.js';
 
 const flatten=groups=>groups.flatMap(g=>g.options);
 test('R2.5 timezone choices detect the browser zone but persist a concrete IANA value',()=>{
@@ -58,4 +58,36 @@ test('R2.5 production form is a scoped four-part layout with native dropdown and
   assert.match(ui,/await client\.request\('saveSchedule',pending\.input\)/);
   assert.match(preview,/id="field-zone" data-field="zone"/);
   assert.match(preview,/timeZoneChoices\(d\.zone\)/);
+});
+
+test('R2.6 IANA search filters choices without changing the saved zone, including no matches',()=>{
+  const groups=listScheduleTimeZoneGroups(Intl,'Europe/London');
+  const tokyo=filterScheduleTimeZoneGroups(groups,'东京','Europe/London');
+  const values=flatten(tokyo).map(option=>option.value);
+  assert.ok(values.includes('Asia/Tokyo'),'Chinese label search locates Tokyo');
+  assert.ok(values.includes('Europe/London'),'editing keeps the original fixed zone visible');
+  assert.equal(new Set(values).size,values.length,'filter must not duplicate a time zone');
+  const newYork=flatten(filterScheduleTimeZoneGroups(groups,'New_York','Europe/London'));
+  assert.ok(newYork.some(option=>option.value==='America/New_York'),'IANA name remains searchable');
+  const empty=flatten(filterScheduleTimeZoneGroups(groups,'not-a-real-city-92831','Europe/London'));
+  assert.deepEqual(empty.map(option=>option.value),['Europe/London'],
+    'an empty search result must not erase the existing selection');
+  assert.equal(filterScheduleTimeZoneGroups(groups,'', 'Europe/London'),groups,
+    'clearing search returns original choices without a new time algorithm');
+});
+test('R2.6 production IANA search and save-confirmation retain the original authority flow',async()=>{
+  const [html,ui,css,preview]=await Promise.all([
+    readFile('src/ui/tool.html','utf8'),readFile('src/ui/scheduled-task-workbench.js','utf8'),
+    readFile('src/ui/tool-shell.css','utf8'),readFile('examples/ui/scheduled-tasks-r2.5-preview.html','utf8')
+  ]);
+  assert.match(html,/id="schedule-timezone-search"[^>]+type="search"/);
+  assert.match(html,/id="schedule-timezone-match"[^>]+aria-live="polite"/);
+  assert.match(ui,/filterScheduleTimeZoneGroups\(all,search,selected\)/);
+  assert.match(ui,/populateTimeZoneSelect\(plan\.timezone\)/);
+  assert.match(ui,/时区：\$\{zone\}（保存后固定）/);
+  assert.match(ui,/await client\.request\('saveSchedule',pending\.input\)/);
+  assert.match(ui,/expectedGeneration:editing\.generation/);
+  assert.match(css,/\.schedule-form-section\{display:grid;gap:var\(--space-3\)/);
+  assert.match(preview,/id="zone-query"[^>]+type="search"|type="search" id="zone-query"/);
+  assert.match(preview,/timeZoneChoices\(selected,el\.value\)/);
 });
