@@ -1,3 +1,7 @@
+## R9 自有 Tab 固定与取消固定（2026-10-13）
+
+正式接线 `browser.tabs.pinOwned({tabRef,pinned})`，Host 使用 `chrome.tabs.update({pinned})`，要求安装身份、精确网页文档、用户单次点击批准及原生回执确认。不确定效果不会自动重试；Node、Mac Chrome 验收独立保持 NOT_TESTED。
+
 ## R9 Tabs 命名迁移（2026-10-13）
 
 现行可调用：`browser.tabs.create({url})`、`browser.tabs.activateOwned({tabRef})`、`browser.tabs.getOwned({tabRef})`、`browser.tabs.listOwned()`、`browser.tabs.removeOwned({tabRef})`。旧开发期 `open/focus/closeOwned` 已从实际 SDK → Host/Driver 删除，不保留别名；后四项不等同于能访问任意 Chrome Tab ID。Node 和 Mac Chrome 验收须按更名后的源码重新执行，下方 R5 章节仅保留历史。
@@ -156,7 +160,8 @@
 | `browser.tabs.activateOwned` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
 | `browser.tabs.getOwned` | IMPLEMENTED | APPROVED_TOOL | PASS | PASS | NOT_TESTED |
 | `browser.tabs.listOwned` | IMPLEMENTED | APPROVED_TOOL | PASS | PASS | NOT_TESTED |
-| `browser.tabs.removeOwned` | IMPLEMENTED | APPROVED_TOOL | PASS | PASS | NOT_TESTED |
+| `browser.tabs.pinOwned` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
+| `browser.tabs.removeOwned` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
 | `browser.sidePanel.openSelf` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
 | `browser.network.request` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
 | `browser.network.observe.start` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
