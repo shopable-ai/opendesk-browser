@@ -27,3 +27,11 @@
 5. 经有效测试证据才能将 `UI-08` 从 `NOT_VERIFIED` 提升，15 项专家评分保持独立 `NOT_VERIFIED`。
 
 状态：**源码实施候选，测试与原生均未在本对话执行；未满足 PRODUCT_CLOSED。**
+
+## 已核实的 GitHub 集成身份与 CI
+
+- 正式源码提交：[21c5a0dacb7ae0dfea18ea85d414ac157b09b34a](https://github.com/shopable-ai/opendesk-browser/commit/21c5a0dacb7ae0dfea18ea85d414ac157b09b34a)；已确认当时为 `main` HEAD。
+- GitHub Cloud R5.2 专项 Actions：[38413468963](https://github.com/shopable-ai/opendesk-browser/actions/runs/38413468963)，提交 SHA 与源码提交一致；2026-10-13T14:27:10Z 观测状态为 `queued`，无通过/失败结论，不能记 `COMPONENT_TESTED`。
+- 已提交新的 UI-08 脱敏详情/分页/回原始 Run 的测试用例，`npm run test:cloud` 包含 `tests/cloud-control/*.test.mjs`；尚无本轮实际 Node 测试输出。旧 45 PASS / K3 OOM FAIL 保留。
+- 相关源码 Blob：Cloud Service `66163178693a7adbef84ce53820b3da24f73378b`；Side Panel 控制 `5bab57784785e60fc319ed782a49693f7602b1a9`；生产 HTML `a772687e4a47bebf34230a007bd1ae7d3df40bd8`；CSS `ca839abb27e3c33aad63552a7074edf66413c8be`；UI 回归测试 `fd7ef5d2ed33d62bafe67e38153c27ed01e9ff8c`。
+- R5.3 原生 Task A/B、完整 Worker/Run/Result/Receipt、截图及生产/开发 PackageHash 尚无证据，不作虚构补录；专家评分维持 `NOT_VERIFIED`。
