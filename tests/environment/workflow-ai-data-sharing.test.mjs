@@ -83,12 +83,23 @@ test('trusted workflow UI keeps explicit web approval and real Chrome user gestu
   const [html,view,css]=await Promise.all([
     'src/ui/tool.html','src/ui/workflow/workflow-view.js','src/ui/tool-shell.css'
   ].map(path=>readFile(path,'utf8')));
-  assert.match(html,/id="workflow-ai-disclosure"/);
-  assert.match(html,/id="workflow-ai-plan-label"/);
+  assert.match(html,/id="workflow-ai-disclosure" class="workflow-ai-data-review"[^>]*hidden/);
+  assert.match(html,/id="workflow-ai-review-title" tabindex="-1"/);
+  assert.match(html,/id="workflow-ai-review-approve"/);
+  assert.match(html,/id="workflow-ai-review-cancel"/);
+  assert.match(html,/id="workflow-ai-plan"[^>]*aria-controls="workflow-ai-disclosure"/);
   assert.match(html,/id="workflow-ai-revoke"/);
+  assert.doesNotMatch(html,/class="workflow-ai-data-notice"|id="workflow-ai-plan-label"/);
   assert.doesNotMatch(html,/id="workflow-ai-consent"|id="workflow-ai-observe-consent"/);
   assert.match(view,/modelConsent\.approve\(frozen\.scope\)/);
   assert.match(view,/api\.permissions\.request\(\{origins:\[permissionPattern\(row\.captured\.url\)\]\}\)/);
   assert.match(view,/currentPageTarget\.revalidate\(row\.captured\)/);
-  assert.match(css,/workflow-send-button\[data-first-use="true"\]/);
+  assert.match(view,/if\(!modelConsent\.has\(frozen\.scope\)\)/);
+  assert.match(view,/if\(event\.currentTarget!==get\('workflow-ai-review-approve'\)\)/);
+  assert.match(view,/showModelReview\(frozen\)/);
+  assert.match(view,/pendingModelReview!==modelReviewSignature\(\)/);
+  assert.match(view,/listen\(get\('workflow-ai-review-cancel'\),'click'/);
+  assert.match(view,/listen\(get\('workflow-ai-request'\),'input'/);
+  assert.match(css,/\.workflow-ai-data-review\{/);
+  assert.doesNotMatch(css,/\.workflow-ai-data-notice\{/);
 });
