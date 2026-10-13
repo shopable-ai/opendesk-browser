@@ -65,6 +65,16 @@ async function nativeClick(client,session,selector){
     await client.send('Input.dispatchMouseEvent',{type,x:point.x,y:point.y,button:'left',clickCount:1},session);
   return {selector,x:point.x,y:point.y};
 }
+// The new inline consent card auto-closes after a trusted start. Avoid
+// blind toggles that could mistake the correct UI for a missing permission.
+async function setTimeReviewSettingsVisible(client,side,visible){
+  const shown=await evaluate(client,side,
+    '(()=>{const n=document.querySelector("#sidebar-tool-settings-view");return !!n&&!n.hidden;})()');
+  if(shown!==visible)await nativeClick(client,side,'#sidebar-tool-settings-open');
+  await until(()=>evaluate(client,side,
+    '(()=>{const n=document.querySelector("#sidebar-tool-settings-view");return !!n&&n.hidden==='+String(!visible)+';})()'),
+    visible?'trusted Time Review settings visible':'trusted Time Review settings closed');
+}
 async function screenshot(client,session,name){
   const data=await client.send('Page.captureScreenshot',{format:'png',captureBeyondViewport:false},session);
   const bytes=Buffer.from(data.data,'base64'),filename=path.join(OUT,name+'.png');
@@ -318,7 +328,7 @@ test('Time Review R1.3 actual Mac Chrome install and trusted consent smoke',{ski
   evidence.minuteConsent='PASS';
   evidence.screenshots.push(await screenshot(browser,side,'trusted-permission-settings'));
   note('trusted-minute-withdrawal',{minuteConsent:false});
-  await nativeClick(browser,side,'#sidebar-tool-settings-open');
+  await setTimeReviewSettingsVisible(browser,side,false);
   await until(()=>evaluate(browser,side,'document.querySelector("#sidebar-tool-settings-view").hidden'),'return tool from host settings');
   const exportDetails=await evaluate(browser,side,'Boolean(document.querySelector("#sidebar-tool-frame iframe"))');
   assert.equal(exportDetails,true);
@@ -390,9 +400,24 @@ test('Time Review R1.3 actual Mac Chrome install and trusted consent smoke',{ski
   evidence.download=issues.length?'FAIL':'PASS';
   if(issues.length)assert.deepEqual(issues,[],'Actual JSON/CSV export failures');
   state=await readTime();assert.equal(state.paused,true,'no idle prompt or start should be bypassed');
+  // First-run sandbox Start may REVEAL the existing trusted consent only.
+  // No site consent, idle grant or active tracker may be forged by iframe code.
+  await nativeClick(browser,frame,'#start');
+  await until(()=>evaluate(browser,side,`(()=>{
+    const d=document.querySelector("#sidebar-tool-display");
+    const s=document.querySelector("#sidebar-tool-settings-view");
+    const f=document.querySelector("#sidebar-tool-frame");
+    return d?.dataset.timeReviewInline==="true"&&!s.hidden&&!f.hidden&&s.nextElementSibling===f;
+  })()`),'real first-run inline consent with visible statistics and DOM tab order',12000);
+  state=await readTime();
+  assert.ok(state.paused&&state.siteGrants?.origins?.length===0&&state.siteGrants?.allSites===false,
+    'sandbox Start must not grant site access or begin recording');
+  evidence.inlineEnrollment='PASS';
+  evidence.screenshots.push(await screenshot(browser,side,'first-run-inline-time-review-consent'));
+  note('native-inline-enrollment',{trustedExistingControls:true,frameVisible:true,domFocusOrder:true,siteGrantUntouched:true});
   // Native activity is driven by real Chrome permission UI and active tabs.
   // Never pre-seed business storage or replace the idle API in this test.
-  await nativeClick(browser,side,'#sidebar-tool-settings-open');
+  await setTimeReviewSettingsVisible(browser,side,true);
   await nativeClick(browser,side,'#time-review-grant-idle');
   const granted=await until(()=>evaluate(browser,side,
     'chrome.permissions.contains({permissions:["idle"]})'),'genuine idle permission',5000).catch(()=>false);
@@ -471,7 +496,7 @@ test('Time Review R1.3 actual Mac Chrome install and trusted consent smoke',{ski
       // the heartbeat may legitimately arrive up to 30 seconds later. Use
       // the actual Side Panel refresh button to request a normal status tick.
       // No Chrome storage/business data or privileged API response is forged.
-      await nativeClick(browser,side,'#sidebar-tool-settings-open');
+      await setTimeReviewSettingsVisible(browser,side,false);
       await nativeClick(browser,frame,'#refresh');
       const checkpoint=await until(async()=>{
         const s=await readTime();
@@ -625,7 +650,7 @@ test('Time Review R1.3 actual Mac Chrome install and trusted consent smoke',{ski
           targetChanged:swAfter.targetId!==oldSw.targetId});
       }
     }
-    await nativeClick(browser,side,'#sidebar-tool-settings-open');
+    await setTimeReviewSettingsVisible(browser,side,true);
     await nativeClick(browser,side,'#time-review-trusted-start');
     const resumed=await until(async()=>{const s=await readTime();return s&&!s.paused?s:null;},'trusted resume',10000);
     evidence.pauseResume='PASS';note('real-resume',{paused:resumed.paused});
@@ -633,6 +658,7 @@ test('Time Review R1.3 actual Mac Chrome install and trusted consent smoke',{ski
     // R1.5: remove the *tool's own* site grant while Chrome idle permission
     // remains intact. The trusted button is clicked by actual Chrome input.
     // This must retire the live interval without deleting already earned time.
+    await setTimeReviewSettingsVisible(browser,side,true);
     const beforeSiteRevocation=await readTime();
     await nativeClick(browser,side,'#time-review-site-all-revoke');
     const siteWithdrawn=await until(async()=>{
@@ -672,6 +698,7 @@ test('Time Review R1.3 actual Mac Chrome install and trusted consent smoke',{ski
     // Revoke the actual optional Chrome idle permission during an authorized
     // running session through the trusted Side Panel UI, never through a
     // synthetic permissions event or direct storage mutation.
+    await setTimeReviewSettingsVisible(browser,side,true);
     await nativeClick(browser,side,'#time-review-revoke-idle');
     const revoked=await until(async()=>{
       const allowed=await evaluate(browser,side,'chrome.permissions.contains({permissions:["idle"]})');
@@ -690,7 +717,7 @@ test('Time Review R1.3 actual Mac Chrome install and trusted consent smoke',{ski
     await until(()=>evaluate(browser,side,
       'document.querySelector("#sidebar-tool-status")?.textContent?.includes("E_TIME_PERMISSION")'),
       'trusted start rejected while idle permission is revoked',10000);
-    await nativeClick(browser,side,'#sidebar-tool-settings-open');
+    await setTimeReviewSettingsVisible(browser,side,false);
     await nativeClick(browser,frame,'#refresh');
     await sleep(1500);
     const stillRevoked=await readTime();
@@ -866,7 +893,7 @@ test('Time Review R1.3 actual Mac Chrome install and trusted consent smoke',{ski
   await nativeClick(browser,manager,installed);
   await until(()=>evaluate(browser,manager,
     '!document.querySelector("#sidebar-tool-display").hidden'),'reopened installed tool');
-  await nativeClick(browser,manager,'#sidebar-tool-settings-open');
+  await setTimeReviewSettingsVisible(browser,manager,true);
   await until(()=>evaluate(browser,manager,
     '!document.querySelector("#sidebar-tool-settings-view").hidden'),'trusted tool management');
   const epoch=()=>evaluate(browser,manager,

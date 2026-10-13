@@ -111,3 +111,10 @@ npm run verify
 - 缺少真实 macOS Chrome 和 320/360/400/600px、200% 缩放同候选截图，`95/100 UI` 尚不能给出。CI 结果须绑定本次提交 SHA 后再判断；仓库源码级检查不等于原生验收。
 
 - 无障碍收敛：原位授权卡不只用 CSS `order` 提前显示，还在真实 DOM 中将既有可信 `settingsView` 移至 `frameRoot` 前，使键盘 Tab 顺序与视觉一致；收起时还原为 `retiredDraft` 后的默认位置。整个过程不移动或重新挂载 iframe，保护工具运行实例。原生键盘与屏幕阅读器验收仍 `NOT_TESTED`。
+
+
+## R1.5.1 · 原生 macOS Chrome 测试更新（2026-10-13）
+
+- 既有 `tests/framework/time-review-r13-native.test.mjs` 使用真实 CDP 鼠标点击内容页「开始记录」，验证首次没有网站范围时只展开原位可信授权卡：原 iframe 可见、授权卡实际 DOM 顺序与键盘焦点一致、存储仍未授权且计时未启动；截图名 `first-run-inline-time-review-consent.png`。
+- 已启用后原位授权卡会自动收起。为保证此前真实暂停、恢复、网站撤权、idle 撤权、重启用例不误判交互，替换盲目切换设置按钮为幂等 `setTimeReviewSettingsVisible`，只在必要时发送真正 CDP 点击。没有替换 CDP 驱动、没有伪造浏览器或存储写入。
+- 当前验证：源文件语法检查 `PASS`；真实 macOS Chrome 执行和同候选截图仍 `NOT_TESTED`，必须等待绑定提交 SHA 的工作流证据。
