@@ -1,9 +1,9 @@
 // Trusted, short-lived screenshot handoff. PNG bytes never leave this service worker
-// through tool IPC. A completed ref is a scoped Chrome download receipt, not a URL
-// or permission to read another tab's pixels. No persistent image cache is created.
+// through tool IPC. An internal pending Ref is consumed before sending a
+// download-start acknowledgement. No publicly readable ResourceRef exists.
 const fail=(code,message=code)=>Object.assign(new Error(message),{code});
 const TOKEN=/^[A-Za-z0-9_-]{16,160}$/,MAX_BYTES=8*1024*1024;
-const MAX_PENDING=2,MAX_RECEIPTS=32,PENDING_TTL=30000,RECEIPT_TTL=600000;
+const MAX_PENDING=2,PENDING_TTL=30000;
 const owner=ctx=>{
  if(!ctx||typeof ctx.toolId!=='string'||!/^[a-z][a-z0-9-]{1,39}$/.test(ctx.toolId)||
     !/^[a-f0-9]{64}$/.test(ctx.packageHash||'')||
@@ -17,16 +17,15 @@ const page=value=>{
 };
 export function createBrowserScreenshotResources({api=globalThis.chrome,clock=Date,
  createRef=()=>crypto.randomUUID()}={}){
- const pending=new Map(),receipts=new Map();
+ const pending=new Map();
  let generation=0;
  const now=()=>clock.now();
  function cleanup(){
   for(const [id,row] of pending)if(now()>=row.expiresAt)pending.delete(id);
-  for(const [id,row] of receipts)if(now()>=row.expiresAt)receipts.delete(id);
  }
  function ref(){
   const value=createRef();
-  if(typeof value!=='string'||!TOKEN.test(value)||pending.has(value)||receipts.has(value))
+  if(typeof value!=='string'||!TOKEN.test(value)||pending.has(value))
     throw fail('E_CONTEXT','Unique screenshot reference unavailable');
   return value;
  }
@@ -78,20 +77,14 @@ export function createBrowserScreenshotResources({api=globalThis.chrome,clock=Da
     throw fail('E_OUTCOME_UNKNOWN','Chrome did not confirm screenshot download');
   if(row.generation!==generation)
     throw fail('E_OUTCOME_UNKNOWN','Authority changed after download was requested; inspect Chrome downloads');
-  receipts.set(resourceRef,{owned:row.owned,downloadId,bytes:row.bytes,
-    createdAt:now(),expiresAt:now()+RECEIPT_TTL});
-  if(receipts.size>MAX_RECEIPTS)receipts.delete(receipts.keys().next().value);
-  return {resourceRef,downloadId,bytes:row.bytes};
- }
- function inspect(resourceRef,context){
-  cleanup();const row=receipts.get(resourceRef);
-  assertOwned(row,context);
-  return {downloadId:row.downloadId,bytes:row.bytes,expiresAt:row.expiresAt};
+  // Save As may be cancelled later, so do not claim a durable resource exists.
+  // Internal handoff is consumed and cannot replay a possibly completed effect.
+  return {status:'started',bytes:row.bytes};
  }
  function revokeTab(tabId){
   for(const [id,row] of pending)if(row.tabId===tabId)pending.delete(id);
  }
- function revokeAll(){generation++;pending.clear();receipts.clear()}
- return Object.freeze({createResource,discardResource,deliver,inspect,revokeTab,revokeAll,
-  diagnostics:()=>({pending:pending.size,receipts:receipts.size})});
+ function revokeAll(){generation++;pending.clear()}
+ return Object.freeze({createResource,discardResource,deliver,revokeTab,revokeAll,
+  diagnostics:()=>({pending:pending.size})});
 }

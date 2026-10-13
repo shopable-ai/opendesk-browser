@@ -582,7 +582,8 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
               await verifyBrowserOwner(context,operation,latest.origin);
               return true;
             });
-            return {...photo,...delivery};
+            // The screenshot resourceRef is an internal, consumed handoff token.
+            return {status:delivery.status,bytes:photo.bytes,width:photo.width,height:photo.height};
           }finally{await screenshotResources.discardResource(photo.resourceRef)}
         }
         if(operation==='browser.network.observe.start'){
@@ -598,7 +599,11 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
         if(operation==='browser.network.observe.export'){
           const saved=await networkObserver.inspect(checked.observationId,context);
           await verifyBrowserOwner(context,operation,saved.origin);
-          return networkObserver.exportJson(checked,context);
+          const result=await networkObserver.exportJson(checked,context);
+          // The native download may have started before an Origin grant changed.
+          try{await verifyBrowserOwner(context,operation,saved.origin)}
+          catch{throw failure('E_OUTCOME_UNKNOWN','Download may have started before authority changed; do not retry')}
+          return result;
         }
         const controller=new AbortController();
         activeNetworkRequests.add(controller);

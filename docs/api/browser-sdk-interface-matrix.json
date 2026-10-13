@@ -4170,7 +4170,7 @@
       "migrationDecision": "KEEP",
       "sourceRegistry": "src/framework/sdk/browser-contract.js#BROWSER_OPERATIONS",
       "callSignature": "OpenDeskSDK.browser.network.observe.export({observationId,format:'json'})",
-      "returnSignature": "Promise<{resourceRef,bytes,truncated}>",
+      "returnSignature": "Promise<{status:'started',bytes,truncated}>",
       "inputSchema": {
         "sourceRef": "src/framework/sdk/browser-schemas.js#browser.network.observe.export:input"
       },
@@ -4270,7 +4270,8 @@
         "src/platform/chrome/browser-network-observe.js / src/platform/chrome/network.js"
       ],
       "currentSchemaAuthority": "src/framework/sdk/browser-schemas.js#operationSchemas ('browser.network.observe.export')",
-      "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA; do not duplicate or create inconsistent new schema definition"
+      "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA; do not duplicate or create inconsistent new schema definition",
+      "receiptSemantics": "A Chrome JSON Save As download was started; no file-read ResourceRef or raw downloadId is available; unknown native effects are not replayed."
     },
     {
       "id": "browser.events.read",
@@ -4484,7 +4485,7 @@
       "migrationDecision": "KEEP",
       "sourceRegistry": "src/framework/sdk/browser-contract.js#BROWSER_OPERATIONS",
       "callSignature": "OpenDeskSDK.browser.screenshot.captureVisible({tabRef})",
-      "returnSignature": "Promise<{resourceRef,bytes,width,height}>",
+      "returnSignature": "Promise<{status:'started',bytes,width,height}>",
       "inputSchema": {
         "sourceRef": "src/framework/sdk/browser-schemas.js#browser.screenshot.captureVisible:input"
       },
@@ -4587,7 +4588,8 @@
         "src/platform/chrome/browser-screenshot.js"
       ],
       "currentSchemaAuthority": "src/framework/sdk/browser-schemas.js#operationSchemas ('browser.screenshot.captureVisible')",
-      "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA; do not duplicate or create inconsistent new schema definition"
+      "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA; do not duplicate or create inconsistent new schema definition",
+      "receiptSemantics": "A Chrome PNG Save As download was started; private PNG handoff is consumed and no file-read ResourceRef or raw downloadId is available."
     },
     {
       "id": "browser.operations.getStatus",
@@ -56479,7 +56481,7 @@
     "completeness": "Known source consumers identified; exhaustive consumer path enumeration cannot be verified without full repository grep. Phase P1 must enumerate and migrate all current consumers before deleting active alias."
   },
   "currentRegistrySourceSha": "3eccbf8c7c16e05eaeff6d7b81aec5754880f614",
-  "currentSchemaSourceSha": "795157bd5d8ada258d27f79b964b7c9ca283d3e1",
+  "currentSchemaSourceSha": "6e0c65627218203a042d0e4ccb1e8e6366157264",
   "contractRevisions": [
     {
       "date": "2026-10-13",
@@ -56528,6 +56530,15 @@
       "id": "R10.1-hide-native-text-download-id",
       "reason": "Prelaunch safety contract prohibits exposing Chrome native download IDs in untrusted tool IPC",
       "change": "browser.downloads.text now returns bounded {started:true}; Chrome download ID remains trusted-only; total registered 44 and planned 11 unchanged",
+      "node": "NOT_TESTED",
+      "build": "NOT_TESTED",
+      "nativeChrome": "NOT_TESTED"
+    },
+    {
+      "date": "2026-10-13",
+      "id": "R10.5-real-chrome-start-receipt",
+      "reason": "Remove phantom ResourceRefs and native screenshot download ID leak",
+      "change": "Network and Screenshot expose typed status started, bounded metadata only; Registry 48 / approved 55 unchanged",
       "node": "NOT_TESTED",
       "build": "NOT_TESTED",
       "nativeChrome": "NOT_TESTED"

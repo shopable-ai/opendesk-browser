@@ -17,7 +17,7 @@ const owner=ctx=>{
 export function createBrowserNetworkObserver({api=globalThis.chrome,clock=Date,
  createRef=()=>crypto.randomUUID()}={}){
  const sessions=new Map();
- let writes=Promise.resolve();
+ let writes=Promise.resolve(),revokeEpoch=0;
  const now=()=>clock.now();
  const snapshot=()=>Object.fromEntries([...sessions].map(([id,row])=>[id,{
    owner:row.owner,tabId:row.tabId,documentId:row.documentId,origin:row.origin,
@@ -158,6 +158,8 @@ export function createBrowserNetworkObserver({api=globalThis.chrome,clock=Date,
  async function exportJson({observationId},context){
   const row=await load(observationId,context);
   if(row.state==='running')throw fail('E_OBSERVATION_ACTIVE','Stop observation before exporting');
+  if(row.state==='revoked')throw fail('E_GRANT_REVOKED','Observation authority was revoked');
+  const epoch=revokeEpoch;
   if(typeof api?.downloads?.download!=='function')throw fail('E_CHROME_UNSUPPORTED','Chrome downloads unavailable');
   const value={format:'opendesk.browser.http-metadata.v1',origin:row.origin,
    startedAt:row.startedAt,stoppedAt:row.stoppedAt,observedCount:row.observedCount,
@@ -167,14 +169,17 @@ export function createBrowserNetworkObserver({api=globalThis.chrome,clock=Date,
   let base64='';
   for(let offset=0;offset<bytes.length;offset+=32766)
    base64+=btoa(String.fromCharCode(...bytes.subarray(offset,offset+32766)));
-  const downloadId=await api.downloads.download({
+  let downloadId;
+  try{downloadId=await api.downloads.download({
    url:'data:application/json;base64,'+base64,
-   filename:'opendesk-network-observation-'+row.startedAt+'.json',saveAs:true});
+   filename:'opendesk-network-observation-'+row.startedAt+'.json',saveAs:true});}
+  catch{throw fail('E_OUTCOME_UNKNOWN','Download outcome unknown; inspect Chrome downloads before retrying')}
   if(!Number.isSafeInteger(downloadId)||downloadId<0)
    throw fail('E_OUTCOME_UNKNOWN','Chrome did not confirm the download');
-  // Keep the native download ID only in this trusted Driver. Installed tools
-  // receive an opaque export receipt, never the browser-global download ID.
-  return {resourceRef:createRef(),bytes:bytes.length,
+  // Chrome confirmed one download request, not a saved file or readable resource.
+  // Native downloadId stays in trusted code and an unknown effect is never replayed.
+  if(epoch!==revokeEpoch)throw fail('E_OUTCOME_UNKNOWN','Authority changed during native export');
+  return {status:'started',bytes:bytes.length,
    truncated:row.droppedCount>0||row.gapCount>0};
  }
  function invalidateTab(tabId){
@@ -182,6 +187,7 @@ export function createBrowserNetworkObserver({api=globalThis.chrome,clock=Date,
    stopRow(row,'interrupted');
  }
  function revokeAll(){
+  revokeEpoch++;
   for(const row of sessions.values()){
    if(row.state==='running'){row.state='revoked';row.stoppedAt=now();}
    row.events=[];row.droppedCount=row.observedCount;
