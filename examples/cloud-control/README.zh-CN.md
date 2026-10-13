@@ -125,6 +125,8 @@ node scripts/cloud-control/cli.mjs seed --executor EXECUTOR_UUID \
   --params '{"keyword":"OpenDesk"}' --key r52-search-001
 ```
 
+**实际外部 HTTPS/WSS**：以下真实网络示例使用**自己的 HTTPS 网站 Task Package**，其 manifest 必须确实允许 `https://approved.example`；不能拿仅允许 `127.0.0.1` 的内置演示包投递任意网站。
+
 **实际外部 HTTPS/WSS**：Provider 可选在第二个 TLS listener 对外发布 `/v1/pair`、`/v1/auth`、`/v1/events`、`/v1/submit`、`/v1/job-status` 等受保护协议。管理接口始终限制于其本机 `127.0.0.1` 的 `/admin/*`；不能通过反向代理把 Admin 转发到公网。部署需要用户明确授权的可信 HTTPS 服务器、有效证书、网络 ACL、速率限制和凭据保管；仓库中的 Linux 本机 TLS 组件测试**不是公网原生 Chrome 验收**。
 
 ```bash
@@ -134,10 +136,11 @@ node scripts/cloud-control/cli.mjs provider --directory .local/cloud-control \
   --tls-key /secure/provider.key --tls-cert /secure/provider.crt
 
 # 只在 Provider 本机管理终端创建受限外部客户端：
-# 明确指定目标 Executor、可投递的固定 Task Package、是否允许读取结果正文。
+# 先登记用户已验证的 HTTPS 网站 Task，然后为指定 Executor 建立客户端授权。
 # 凭据直接保存为模式 0600 的独立文件，不输出到普通终端日志。
+node scripts/cloud-control/cli.mjs register --package /secure/approved-https-task.opendesk-task.json
 node scripts/cloud-control/cli.mjs client:grant --executor EXECUTOR_UUID \
-  --package examples/tasks/form-fill.v1.opendesk-task.json \
+  --package /secure/approved-https-task.opendesk-task.json \
   --allow-result false --token-out /secure/external-client.token
 
 # 如需为同一可信客户端授权两份 Task，可改用：
@@ -146,7 +149,7 @@ node scripts/cloud-control/cli.mjs client:grant --executor EXECUTOR_UUID \
 # 在获批准的外部系统中执行；目标必须是已安装 Task 所允许的网站。
 node scripts/cloud-control/cli.mjs submit:remote --url https://provider.example/ \
   --token-file /secure/external-client.token \
-  --package examples/tasks/form-fill.v1.opendesk-task.json \
+  --package /secure/approved-https-task.opendesk-task.json \
   --params '{"name":"Alice"}' \
   --target https://approved.example/form --key remote-user-action-001
 
