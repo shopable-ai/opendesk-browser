@@ -352,10 +352,11 @@ test('R7.3 Controller Classic: program-scoped SHA locks reuse Page assets offlin
   assert.equal(f.rows().filter(row=>row.tag==='userscript-asset-v1').length,1);
   // Synthetic ONLY: test the returned classic bytes with Worker-equivalent
   // lexical parameters; real CFT independently proves actual opaque Worker.
-  const AsyncBody=Object.getPrototypeOf(async function(){}).constructor;
-  const run=new AsyncBody('page','params','axiosx','AppStorage','AppLocal','storage',
-    second.sourceUtf8+'\n; return await main();');
-  assert.equal(await run(null,{},null,null,null,null),21);
+  const {runInNewContext}=await import('node:vm');
+  const isolatedGlobal=Object.create(null);
+  const run=runInNewContext('(async function(page,params){'+second.sourceUtf8+
+    '\n; return await main();})',isolatedGlobal);
+  assert.equal(await run(null,{}),21);
   assert.equal(globalThis.fixtureClassic,undefined);
 });
 test('R7.3 Controller Classic: bad SHA, revoked origin and tampered cached bytes fail closed',async()=>{
