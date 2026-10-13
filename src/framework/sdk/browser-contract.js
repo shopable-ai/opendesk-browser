@@ -13,7 +13,7 @@ const shared={apiVersion:BROWSER_API_VERSION,platform:'chrome>=138',timeout:8000
 const USER_GESTURE_OPERATIONS=new Set([
   'browser.clipboard.writeText','browser.downloads.text','browser.tabs.open',
   'browser.tabs.focus','browser.tabs.closeOwned','browser.sidePanel.openSelf','browser.network.request','browser.network.observe.start',
-  'browser.network.observe.export','browser.screenshot.captureVisible','browser.media.recording.prepare'
+  'browser.network.observe.export','browser.screenshot.captureVisible'
 ]);
 function entry(operation,capability,contexts,chromePermissions,effect,risk,siteScope='none',state='IMPLEMENTED',lifecycle='request'){
   return Object.freeze({...shared,
@@ -51,15 +51,6 @@ export const BROWSER_OPERATIONS=Object.freeze({
   'browser.events.read':entry('browser.events.read','browser.events',tool,[],'read','medium','owned-session','IMPLEMENTED'),
   'browser.events.close':entry('browser.events.close','browser.events',tool,[],'write','low','owned-session','IMPLEMENTED'),
   'browser.screenshot.captureVisible':entry('browser.screenshot.captureVisible','browser.screenshot',tool,['activeTab','downloads'],'write','high','selected-tab','IMPLEMENTED'),
-  'browser.media.recording.prepare':entry('browser.media.recording.prepare','browser.media.recording',tool,[],'write','high','visible-user-consent','PLANNED'),
-  'browser.media.recording.getStatus':entry('browser.media.recording.getStatus','browser.media.recording',tool,[],'read','medium','owned-session','PLANNED'),
-  'browser.media.recording.stop':entry('browser.media.recording.stop','browser.media.recording',tool,[],'write','medium','owned-session','PLANNED'),
-  'browser.media.recording.discard':entry('browser.media.recording.discard','browser.media.recording',tool,[],'write','medium','owned-session','PLANNED'),
-  'browser.speech.transcribe':entry('browser.speech.transcribe','browser.speech',tool,[],'read','high','explicit-audio','PLANNED'),
-  'browser.speech.speak':entry('browser.speech.speak','browser.speech',tool,[],'write','medium','user-output','PLANNED'),
-  'browser.speech.stop':entry('browser.speech.stop','browser.speech',tool,[],'write','low','owned-session','PLANNED'),
-  'browser.notifications.create':entry('browser.notifications.create','browser.notifications',tool,['notifications'],'write','medium','none','NOT_EXPOSED'),
-  'browser.notifications.clear':entry('browser.notifications.clear','browser.notifications',tool,['notifications'],'write','low','none','NOT_EXPOSED'),
   'browser.operations.getStatus':entry('browser.operations.getStatus','browser.operations',tool,[],'read','low','owned-operation','IMPLEMENTED'),
   'browser.operations.cancel':entry('browser.operations.cancel','browser.operations',tool,[],'write','medium','owned-operation','IMPLEMENTED')
 });
