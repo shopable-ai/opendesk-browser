@@ -126,7 +126,23 @@
     "fadff7695ebd7ca1adaa5406cbb906dcf17052a1",
     "8f944aebd0301f37d1b40cc325f4cf7953a80f01",
     "e2e3821b3397a5ac19293cc7d4387b08595c43b7",
-    "91cd8c39352b7fd705e3b987c8428ff98e3a7106"
+    "91cd8c39352b7fd705e3b987c8428ff98e3a7106",
+    "996f305f35c1cdb9fbc45edc9653b4ef8b1dc0d3",
+    "0cd96638b060932dbef1116230c004cba1f7ae27",
+    "aa21f13cdf68c1efe115a517c4d2b31a01c9950e",
+    "2c4692e406dd48872329cbfc31a1d6aeb732b2ea",
+    "498fb0d4b7213376e292323bf6309cb0e1ea9567",
+    "e7c099627b59992df2268f2e3be76d07e982360e",
+    "7558ebac9f7e1f1ccd332829d60e67e3a2ba1619",
+    "2120c2eeca71c44e2a6f18b4d53ba911f6ab3638",
+    "af0727f1c7e5094e523a4ebff715d3eff151581a",
+    "5e05bc43db78248d46ff46f46977043d33ff26d8",
+    "9da132b07d4cdfa8938ea379f20f3e78d8f01316",
+    "861a79cb60c1a9ce0359ff7e48012b0871e1a2a2",
+    "4cb1d7b6128a9d9be34c3c9fcc90abf37b68e487",
+    "33c6e4a821830c4fa5db7b64c7f463cdc061c00d",
+    "738fdc1e28c3a6758d853acea20011b295e56207",
+    "7aff8bd27e258022cdf186019409dcc07fdee719"
   ],
   "statuses": {
     "jobExecutorIsolation": "COMPONENT_TESTED",
@@ -150,7 +166,12 @@
     "stoppedNewAdmissionIdempotency": "SOURCE_IMPLEMENTED",
     "providerReadonlyPersistence": "SOURCE_IMPLEMENTED",
     "cloudEmptyStateMyNavigation": "SOURCE_IMPLEMENTED",
-    "cloudLocalErrorExplanation": "SOURCE_IMPLEMENTED"
+    "cloudLocalErrorExplanation": "SOURCE_IMPLEMENTED",
+    "externalClientSelfService": "SOURCE_IMPLEMENTED",
+    "browserScopedClientManagement": "SOURCE_IMPLEMENTED",
+    "externalClientRevocationRaceFence": "SOURCE_IMPLEMENTED",
+    "r524CurrentComponentCI": "NOT_VERIFIED",
+    "r524CurrentPackageBuild": "NOT_VERIFIED"
   },
   "priorEvidence": {
     "r51": {
@@ -315,7 +336,9 @@
     "Deploy only with approved trusted HTTPS/WSS server/account; run external Chrome end-to-end; otherwise REMOTE_NATIVE_PENDING",
     "Continue stop/upgrade/restart/network loss/unknown effect native negative gates",
     "Verify approval generation rebind race and revoke-after-partial-result in original Chrome",
-    "External client credentials must be audited and rotated by Provider operator; dedicated user-visible per-client UI is not yet verified"
+    "External client credentials must be audited and rotated by Provider operator; dedicated user-visible per-client UI is not yet verified",
+    "R5.2.4 self-service scoped client grants and UI code committed on main; latest SHA 7aff8bd27e... Cloud CI #38379208965 queued, matching build CI #38379209138 pending; no new test PASS or PackageHash.",
+    "Verify external client credential rotation/revoke and Chrome A/B isolation in real native Chrome; only TLS Node tests added. Do not use fabricated RunRef."
   ],
   "currentComponentEvidence": {
     "candidateSha": "24994880c48e70241174727d65c3165e4f0dc35d",
@@ -351,14 +374,83 @@
     "tests/cloud-control/provider.test.mjs"
   ],
   "pendingExactCandidate": {
-    "sha": "91cd8c39352b7fd705e3b987c8428ff98e3a7106",
-    "ciUrl": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38373957070",
-    "observed": "queued",
+    "sha": "7aff8bd27e258022cdf186019409dcc07fdee719",
+    "ciUrl": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38379208965",
+    "ciStatus": "queued",
+    "packageCiUrl": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38379209138",
+    "packageCiStatus": "pending",
+    "observedAt": "2026-10-13",
     "componentTests": "NOT_VERIFIED",
     "check": "NOT_VERIFIED",
     "productionBuild": "NOT_VERIFIED",
     "developmentBuild": "NOT_VERIFIED",
     "verify": "NOT_VERIFIED",
-    "packageHash": null
+    "packageHash": null,
+    "realMacChrome": "NATIVE_PENDING",
+    "internetRemote": "REMOTE_NATIVE_PENDING"
+  },
+  "priorPendingExactCandidates": [
+    {
+      "sha": "91cd8c39352b7fd705e3b987c8428ff98e3a7106",
+      "ciUrl": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38373957070",
+      "observed": "queued",
+      "componentTests": "NOT_VERIFIED",
+      "check": "NOT_VERIFIED",
+      "productionBuild": "NOT_VERIFIED",
+      "developmentBuild": "NOT_VERIFIED",
+      "verify": "NOT_VERIFIED",
+      "packageHash": null
+    }
+  ],
+  "r524SelfService": {
+    "date": "2026-10-13",
+    "status": "SOURCE_IMPLEMENTED",
+    "files": [
+      "scripts/cloud-control/provider.mjs",
+      "src/cloud-control/service.js",
+      "src/platform/host/authority.js",
+      "src/platform/host/broker.js",
+      "src/platform/host/client.js",
+      "src/ui/tool.html",
+      "src/ui/cloud-hosting.js",
+      "src/ui/tool-shell.css"
+    ],
+    "validationTests": [
+      "tests/cloud-control/remote-https-r52.test.mjs",
+      "tests/cloud-control/r52-product-ui.test.mjs"
+    ],
+    "endpointMethods": [
+      "/v1/client-list",
+      "/v1/client-grant",
+      "/v1/client-revoke"
+    ],
+    "controlScope": "Executor credential + current Pairing + current Grant + pinned approved Task; exact local installed manifest/content hash, installation and generation; browser-side resultAllowed cannot be increased",
+    "clientSecret": "one-time-only 256-bit response, never persisted in Chrome KV or exposed to observer",
+    "adminInterfacePublic": false,
+    "priorKnownCIRegression": {
+      "runId": 38370589040,
+      "sha": "9ad75dde80d2b79bcbd26b5276ebd2d606be2f47",
+      "status": "failure",
+      "reason": "remote-cli-r52.test.mjs execFileSync blocked local Provider HTTP loop; subsequent asynchronous CLI test fix requires fresh CI"
+    },
+    "componentCi": {
+      "runId": 38379208965,
+      "sha": "7aff8bd27e258022cdf186019409dcc07fdee719",
+      "status": "queued",
+      "result": "NOT_VERIFIED"
+    },
+    "packageCi": {
+      "runId": 38379209138,
+      "sha": "7aff8bd27e258022cdf186019409dcc07fdee719",
+      "status": "pending",
+      "result": "NOT_VERIFIED",
+      "productionBudgetBytes": 524288,
+      "packageHash": null
+    },
+    "realChromeTwoTasks": "NATIVE_PENDING",
+    "realUiScreenshots": [],
+    "remotePublicProvider": "REMOTE_NATIVE_PENDING",
+    "nativeEvidenceAdded": 0,
+    "quality95Plus": false
   }
 }
