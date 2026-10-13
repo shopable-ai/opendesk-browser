@@ -162,9 +162,9 @@ test('R20/R23 five-tab design system has one token source and a strict trusted a
   assert.doesNotMatch(design,/@import\b|url\s*\(|expression\s*\(/i);
   assert.match(prepare,/'src\/ui\/design-tokens\.css':'ui\/design-tokens\.css'/);
   assert.match(prepare,/'src\/ui\/design-system\.css':'ui\/design-system\.css'/);
-   assert.ok(verify.includes("'ui/tool.html': ['design-tokens.css', 'design-system.css', 'tool-shell.css', 'stay-focus-controls.js', 'trusted-cookie-ui.js', 'tool-shell.js']"),
+   assert.ok(verify.includes("'ui/tool.html': ['design-tokens.css', 'design-system.css', 'tool-shell.css', 'sidebar-tool-host.js', 'stay-focus-controls.js', 'trusted-cookie-ui.js', 'tool-shell.js']"),
      'the fixed asset verifier must require the precise trusted sidecars before the main shell');
-   assert.match(html, /<script src="stay-focus-controls\.js"><\/script>\s*<script src="trusted-cookie-ui\.js"><\/script>\s*<script src="tool-shell\.js"><\/script>/,
+   assert.match(html, /<script src="sidebar-tool-host\.js"><\/script>\s*<script src="stay-focus-controls\.js"><\/script>\s*<script src="trusted-cookie-ui\.js"><\/script>\s*<script src="tool-shell\.js"><\/script>/,
      'the native Cookie/Stay Focus controls load in a verified order before the Side Panel shell');
   // Resource auditors may add newly trusted CSS (for example Cloud Console)
   // without weakening the original token, shell and workspace audit closure.
