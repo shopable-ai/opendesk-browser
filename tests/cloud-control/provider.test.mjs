@@ -57,7 +57,24 @@ test('real HTTP/native WebSocket provider: durable claim, empty retry, permit re
     assert.deepEqual(await post('/v1/claim',claim),{assignment:a});assert.deepEqual(await post('/v1/receipt',receipt),ack);
     const reconciled=await post('/v1/reconcile',{});assert.deepEqual(reconciled.assignments[0].runRef,runRef);assert.equal(reconciled.assignments[0].receipt.receiptId,ack.receiptId);
     const state=await post('/admin/state',{},admin.adminToken);assert.equal(Object.keys(state.jobs).length,2);assert.equal(state.jobs[cancelled.jobId].assignment,undefined);assert.equal(state.jobs[job.jobId].runRef.runId,runRef.runId);
-    await post('/admin/cancel',{jobId:job.jobId},admin.adminToken);await assert.rejects(post('/v1/renew',{assignmentId:a.assignmentId,permitId:permit.permitId}),{code:'E_LEASE'});
+    const suspended=await post('/v1/suspend',{grantId});
+    assert.deepEqual(suspended,{suspended:true,grantId});
+    assert.deepEqual(await post('/v1/suspend',{grantId}),suspended,'Stop acknowledgement must be idempotent');
+    assert.deepEqual(await post('/v1/receipt',receipt),ack,'Confirmed receipt remains durable after Stop');
+    await assert.rejects(post('/admin/seed',{...seed,requestKey:'stopped-new-job'},admin.adminToken),
+      {code:'E_CLOUD_STOPPED'},'Stop must reject new external work even before Browser reconnects');
+    await assert.rejects(post('/v1/claim',{claimId:'stopped-claim',grantId,tasks}),
+      {code:'E_CLOUD_STOPPED'});
+    await post('/v1/capabilities',{grantId,tasks});
+    await assert.rejects(post('/admin/seed',{...seed,requestKey:'delayed-old-capabilities'},admin.adminToken),
+      {code:'E_CLOUD_STOPPED'},'A late same-generation sync cannot resume stopped hosting');
+    await post('/admin/cancel',{jobId:job.jobId},admin.adminToken);
+    await assert.rejects(post('/v1/renew',{assignmentId:a.assignmentId,permitId:permit.permitId}),
+      {code:'E_LEASE'});
+    const resumedGrant=randomUUID();
+    await post('/v1/capabilities',{grantId:resumedGrant,tasks});
+    assert.ok((await post('/admin/seed',{...seed,requestKey:'explicit-new-grant'},admin.adminToken)).jobId);
+    await assert.rejects(post('/v1/capabilities',{grantId,tasks}),{code:'E_GRANT_STALE'});
     await assert.rejects(post('/admin/seed',{...seed,requestKey:'evil',sourceUtf8:'return 1'},admin.adminToken),{code:'E_SCHEMA'});
   }finally{ws?.terminate();await p.close();await rm(directory,{recursive:true,force:true});}
 });
