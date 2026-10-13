@@ -1,0 +1,72 @@
+name: Global First R5 real Linux Chrome installed Task baseline
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/global-first-r5-linux-chrome-task-baseline.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: global-first-r5-linux-task-${{ github.sha }}
+  cancel-in-progress: false
+
+jobs:
+  baseline-native-installed-task:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Locked build tools
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Create genuine production extension
+        run: npm run build
+        env:
+          OPENDESK_BUILD_EVIDENCE_DIR: artifacts/global-first-r5-linux-build
+      - name: Freeze physical extension input
+        run: node scripts/verify-package.mjs dist/production
+      - uses: browser-actions/setup-chrome@v2
+        id: chrome
+        with:
+          chrome-version: '155.0.8059.39'
+      - name: Existing real Chrome original Task verify-install-run and native result
+        env:
+          OPENDESK_SCHEDULED_NATIVE: '1'
+          SCHEDULE_NATIVE_PLATFORM: linux
+          SCHEDULE_NATIVE_LIFECYCLE: '0'
+          SCHEDULE_NATIVE_CI_NO_SANDBOX: '1'
+          CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
+          SCHEDULE_NATIVE_OUT: artifacts/global-first-r5-linux-chrome
+        run: |
+          command -v xvfb-run
+          mkdir -p artifacts/global-first-r5-linux-chrome
+          git rev-parse HEAD > artifacts/global-first-r5-linux-chrome/head.txt
+          sha256sum \
+            tests/framework/scheduled-tasks-r1-native-mac.test.mjs \
+            examples/tasks/form-fill.v1.opendesk-task.json \
+            src/platform/tasks/service.js \
+            src/ui/workflow/workflow-view.js \
+            > artifacts/global-first-r5-linux-chrome/inputs.sha256
+          set -o pipefail
+          xvfb-run -a --server-args="-screen 0 1440x900x24" \
+            node --test tests/framework/scheduled-tasks-r1-native-mac.test.mjs \
+            | tee artifacts/global-first-r5-linux-chrome/native-test.tap
+      - name: Retain authentic Chrome evidence and failed receipts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: global-first-r5-linux-chrome-${{ github.sha }}-${{ github.run_attempt }}
+          path: |
+            artifacts/global-first-r5-linux-chrome/
+            artifacts/global-first-r5-linux-build/
+          retention-days: 14
+          if-no-files-found: warn
