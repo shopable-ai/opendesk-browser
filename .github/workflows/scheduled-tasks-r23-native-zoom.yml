@@ -6,6 +6,9 @@ on:
     paths:
       - '.github/workflows/scheduled-tasks-r23-native-zoom.yml'
       - 'tests/framework/scheduled-tasks-r23-native-zoom.test.mjs'
+      - 'tests/environment/scheduled-task-timezone-r25.test.mjs'
+      - 'tests/environment/scheduled-task-ui-r1.test.mjs'
+      - 'examples/ui/scheduled-tasks-r2.5-preview.html'
       - 'src/ui/scheduled-task-workbench.js'
       - 'src/ui/tool-shell.css'
       - 'src/ui/tool.html'
