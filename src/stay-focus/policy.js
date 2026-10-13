@@ -28,6 +28,21 @@ export function focusHost(value){
 export function hostnameMatches(host,site,includeSubdomains=false){
   return host===site||Boolean(includeSubdomains&&host.endsWith('.'+site));
 }
+// Convert Chrome's permission-removal match patterns to the exact site
+// policies they may cover. Unknown patterns never revoke unrelated sites.
+export function focusRemovedOriginAffectsSite(pattern,site){
+  if(typeof pattern!=='string'||!site||typeof site.host!=='string')return false;
+  if(pattern==='<all_urls>'||/^(?:\*|https?)\:\/\/\*\/\*$/.test(pattern))return true;
+  const match=/^(?:https?|\*):\/\/(\*\.)?([a-z0-9.-]+)\/\*$/i.exec(pattern);
+  if(!match)return false;
+  const removedHost=focusHost('https://'+match[2]);
+  if(!removedHost)return false;
+  // Removed exact host intersects a site that explicitly includes its children.
+  if(hostnameMatches(removedHost,site.host,site.subdomains===true))return true;
+  // A removed wildcard covers the site's base domain or its subdomains.
+  if(match[1]&&hostnameMatches(site.host,removedHost,true))return true;
+  return false;
+}
 export function focusLocalDay(at){
   const date=new Date(at);
   return [date.getFullYear(),String(date.getMonth()+1).padStart(2,'0'),String(date.getDate()).padStart(2,'0')].join('-');
