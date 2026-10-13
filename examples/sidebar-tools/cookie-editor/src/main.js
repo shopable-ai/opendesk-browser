@@ -2,13 +2,41 @@
 'use strict';
 const {root,request,setState}=globalThis.OpenDeskTool;
 const E=id=>root.querySelector('#'+id),editor=E('editor-panel'),importer=E('import-panel'),confirm=E('confirm-panel');
-// Local-only editing model. No chrome.cookies access is requested until the
-// Browser SDK gains a reviewed, site-scoped Cookie authority.
+// The browser panel and local workspace intentionally have separate data owners.
+// Never substitute local cookies for Chrome reads or let a sandbox request grant access.
 let data=null,epoch=0,dirty=false,busy=false,editing=null,pending=null,returnFocus=null;
+let mode='browser',targetOverride='',liveTarget=null,liveRows=[],liveState='idle',liveMessage='';
+const browserSdk=()=>globalThis.OpenDeskSDK?.browser||null;
+function parseTarget(input){
+  if(typeof input!=='string'||input.length>2048||input.trim()!==input)throw new Error('请输入不超过 2048 字符的 HTTP(S) 网页地址');
+  let url;try{url=new URL(input);}catch{throw new Error('请输入有效的 HTTP(S) 网页地址');}
+  if(!['http:','https:'].includes(url.protocol)||url.username||url.password||
+      !/^[a-z0-9.-]{1,253}$/i.test(url.hostname)||url.hostname.startsWith('.')||url.hostname.endsWith('.'))
+    throw new Error('仅支持不含账号密码的普通 HTTP(S) 网站');
+  // A path matters for native Cookie matching; never carry query/fragment tokens.
+  return {hostname:url.hostname,origin:url.origin,url:url.origin+url.pathname};
+}
+function redactMetadata(rows){
+  if(!Array.isArray(rows)||rows.length>500)throw new Error('SDK 返回了超出范围的 Cookie 列表');
+  return rows.map(row=>{
+    if(!row||typeof row!=='object'||Array.isArray(row)||
+       typeof row.name!=='string'||typeof row.domain!=='string'||
+       typeof row.path!=='string')throw new Error('SDK 返回的 Cookie 元数据无效');
+    // Even if a faulty host returns value, discard it. A separate values grant
+    // and a confirmed public result contract are prerequisites for disclosure.
+    const {name,domain,path}=row;
+    return {name,domain,path,hostOnly:row.hostOnly===true,secure:row.secure===true,
+      httpOnly:row.httpOnly===true,sameSite:typeof row.sameSite==='string'?row.sameSite:'unspecified',
+      session:row.session===true,expirationDate:Number.isFinite(row.expirationDate)?row.expirationDate:undefined,
+      storeId:typeof row.storeId==='string'?row.storeId:undefined,
+      partitionKey:row.partitionKey&&typeof row.partitionKey.topLevelSite==='string'?
+        {topLevelSite:row.partitionKey.topLevelSite}:undefined,valueRedacted:true};
+  });
+}
 const MAX_COOKIES=200,MAX_IMPORT=100,MAX_TEXT_BYTES=150000;
 const shown=new Set();
 const safeHost=value=>typeof value==='string'&&/^[a-z0-9.-]{1,253}$/i.test(value)&&!value.startsWith('.')&&!value.endsWith('.');
-const stale=()=>new Error('此 Cookie 已改变，请刷新本地列表后重新操作。');
+const stale=()=>new Error('此 Cookie 已改变，请刷新离线列表后重新操作。');
 const key=row=>JSON.stringify([row.name,row.domain,row.path,row.hostOnly,row.storeId,row.partitionKey||null]);
 const status=(msg,type='info')=>{E('status').textContent=msg;E('status').dataset.state=type;E('status').hidden=!msg;};
 const notify=()=>setState?.({dirty,busy});
@@ -42,7 +70,64 @@ function guarded(action){
   if(!dirty){action();return;}
   ask('当前有未保存的 Cookie 编辑或导入内容，确定放弃？','放弃修改',()=>{clean();action();});
 }
+function renderBrowser(){
+  const sdk=browserSdk(),available=!!liveTarget&&typeof sdk?.cookies?.getAll==='function';
+  const hasRead=liveState==='ready';
+  E('browser-panel').hidden=mode!=='browser';
+  E('mode-browser').setAttribute('aria-pressed',String(mode==='browser'));
+  E('mode-offline').setAttribute('aria-pressed',String(mode==='offline'));
+  for(const [id,active] of [['mode-browser',mode==='browser'],['mode-offline',mode==='offline']]){
+    if(active)E(id).classList.add('active');else E(id).classList.remove('active');
+  }
+  E('cookie-content').hidden=mode!=='offline';E('preview-banner').hidden=mode!=='offline';
+  const heading=E('browser-state-heading'),detail=E('browser-state-detail');
+  if(!liveTarget){
+    heading.textContent='请选择网页';detail.textContent='打开普通网页并点击「当前页」，或输入指定 HTTP(S) 地址。';
+  }else if(!available){
+    heading.textContent='浏览器 Cookie SDK 尚未开放';
+    detail.textContent='当前扩展尚未向已安装工具公开 browser.cookies.getAll 和对应网站授权。这里不会使用演示数据、私有 Host 或 chrome.cookies 冒充结果。可切换到离线工作区。';
+  }else if(liveState==='ready'){
+    heading.textContent='已读取当前地址匹配的 Cookie 元数据';
+    detail.textContent='数据来自正式 SDK；Cookie 值仍被隐藏。独立值授权和写入操作尚未接通，不能在此修改浏览器 Cookie。';
+  }else if(liveState==='error'||liveState==='blocked'){
+    heading.textContent=liveState==='blocked'?'需要浏览器 Cookie 授权':'浏览器读取失败';
+    detail.textContent=liveMessage||'请在工具详情中检查能力与指定网站授权，然后重试。';
+  }else{
+    heading.textContent='需要单独授权';detail.textContent='请先在工具详情中批准 Cookie 读取与目标网站，再点击「读取 Cookie」。仅选择网站不会自动授权。';
+  }
+  E('target-help').textContent=targetOverride?
+    '已选择指定网址；读取权限由正式 SDK 按网站和 Cookie Store 判断，不要求与当前活动标签页相同。':
+    '使用当前网页地址；切换网页后重新核对授权。选择网站不会自动批准权限。';
+  E('read-live').disabled=busy||!available;
+  E('live-count').textContent=hasRead?liveRows.length+' 条 URL 匹配的 Cookie':'尚未读取';
+  E('live-filters').hidden=!hasRead;
+  const term=E('live-search').value.trim().toLocaleLowerCase(),filter=E('live-filter').value||'all';
+  const visible=liveRows.filter(row=>
+    [row.name,row.domain,row.path].some(value=>value.toLocaleLowerCase().includes(term))&&
+    (filter==='all'||(filter==='secure'&&row.secure)||(filter==='httpOnly'&&row.httpOnly)||
+     (filter==='session'&&row.session)||(filter==='partitioned'&&row.partitionKey)));
+  const list=E('live-cookie-list');list.replaceChildren();
+  E('live-empty').hidden=visible.length>0;
+  E('live-empty').textContent=hasRead?
+    (liveRows.length?'没有匹配的 Cookie':'当前 URL 没有匹配的 Cookie。'):available?
+    '尚未读取真实 Cookie。':'等待公开 SDK 和授权，不显示虚构 Cookie。';
+  const doc=root.ownerDocument;
+  for(const row of visible){
+    const item=doc.createElement('div');item.className='cookie-row';item.setAttribute('role','listitem');
+    const name=doc.createElement('strong');name.className='cookie-row-name';name.textContent=row.name||'（空名称）';
+    const meta=doc.createElement('span');meta.className='cookie-row-meta';
+    meta.textContent=row.domain+row.path+(row.hostOnly?' · Host-only':' · Domain')+
+      (row.session?' · 会话':' · 持久')+(row.secure?' · Secure':'')+
+      (row.httpOnly?' · HttpOnly':'')+(row.sameSite?' · SameSite '+row.sameSite:'')+
+      (row.storeId?' · Store '+row.storeId:'')+
+      (row.partitionKey?' · 分区 '+row.partitionKey.topLevelSite:'');
+    const value=doc.createElement('div');value.className='cookie-row-value';
+    value.textContent='•••••••• · 敏感值未读取';
+    item.append(name,meta,value);list.append(item);
+  }
+}
 function render(){
+  renderBrowser();
   const list=E('cookie-list');list.replaceChildren();
   E('cookie-count').textContent=(data?.cookies?.length||0)+' 条 Cookie';
   E('site-host').textContent=data?.hostname||'本地 Cookie 工作区';
@@ -51,7 +136,7 @@ function render(){
   const rows=(data?.cookies||[]).filter(row=>[row.name,row.domain,row.path].some(v=>String(v||'').toLocaleLowerCase().includes(term)));
   E('empty-message').hidden=rows.length!==0;
   E('empty-message').textContent=!data?'正在准备本地工作区':
-    term?'没有匹配的 Cookie':'当前网站尚无 Cookie，点击「新建」添加。';
+    term?'没有匹配的 Cookie':'离线工作区没有 Cookie，点击「新建」添加。';
   const doc=root.ownerDocument;
   for(const row of rows){
     const item=doc.createElement('div');item.className='cookie-row';item.setAttribute('role','listitem');
@@ -72,7 +157,7 @@ function render(){
     };
     button(shown.has(key(row))?'隐藏值':'显示值',()=>{if(shown.has(key(row)))shown.delete(key(row));else shown.add(key(row));render();});
     button('编辑',()=>guarded(()=>openEditor(row)));
-    button('删除',()=>guarded(()=>ask('确定删除 Cookie「'+row.name+'」？可能使网站退出登录。','删除',()=>mutate('cookies.remove',{cookie:row},'已删除 Cookie。'))),true);
+    button('删除',()=>guarded(()=>ask('仅删除离线工作区的 Cookie「'+row.name+'」，不会影响浏览器或网站登录。确认删除？','删除',()=>mutate('cookies.remove',{cookie:row},'已删除 Cookie。'))),true);
     item.append(head,value,actions);list.append(item);
   }
   for(const id of ['add','import-toggle','copy','download'])E(id).disabled=busy||!data;
@@ -169,23 +254,54 @@ function saveToList(list,row,previous=null){
 }
 async function refresh(){
   const id=++epoch,prior=data;
-  shown.clear();setBusy(true);
+  shown.clear();liveRows=[];liveState='idle';liveMessage='';setBusy(true);
   try{
-    let host='example.test',origin='',url='',hint='当前浏览器目标不可用，已进入 example.test 离线工作区。';
-    try{
-      const page=await request('currentPage.info');
-      if(page?.status==='available'){
-        const parsed=new URL(page.url);
-        if(['http:','https:'].includes(parsed.protocol)&&safeHost(parsed.hostname)){
-          host=parsed.hostname;origin=parsed.origin;url=parsed.href;
-          hint='已识别当前网页，但没有读取浏览器 Cookie。下面的改动只保存在此工具的临时内存中。';
-        }
-      }
-    }catch{/* Purely local preview remains functional without page access. */}
+    let target=null;
+    if(targetOverride)target=parseTarget(targetOverride);
+    else{
+      try{
+        const page=await request('currentPage.info');
+        if(page?.status==='available')target=parseTarget(page.url);
+      }catch{/* No current-page permission is not Cookie authorization. */}
+    }
     if(id!==epoch)return;
-    data={hostname:host,origin,url,cookies:prior?.hostname===host?prior.cookies:[]};
-    E('preview-banner').textContent='本地演示模式 · 不读取、不修改真实浏览器 Cookie。'+hint;
-    status('可新增、导入、编辑、删除并导出本地临时数据；关闭工具后不会保留。');
+    liveTarget=target;
+    const host=target?.hostname||'example.test';
+    data={hostname:host,origin:target?.origin||'',url:target?.url||'',
+      cookies:prior?.hostname===host?prior.cookies:[]};
+    E('site-host').textContent=target?.hostname||'尚未选择网站';
+    E('site-url').textContent=target?.url||'';E('site-url').hidden=!target;
+    if(!targetOverride)E('target-url').value=target?.url||'';
+    E('preview-banner').textContent='离线工作区 · '+(target?
+      '仅用 '+host+' 作为临时数据校验范围，不读取或修改浏览器 Cookie。':
+      '没有可用网页，使用 example.test 本地演示域名。')+' 关闭工具后数据不保留。';
+    status(mode==='offline'?'正在使用离线工作区；所有修改仅保存在临时内存。':'');
+  }catch(error){if(id===epoch){liveState='error';liveMessage=String(error.message||error);status(liveMessage,'error');}}
+  finally{if(id===epoch){setBusy(false);render();}}
+}
+async function readBrowserMetadata(){
+  if(busy||pending||!liveTarget)return;
+  const sdk=browserSdk(),target=liveTarget,id=epoch;
+  if(typeof sdk?.cookies?.getAll!=='function'){
+    liveState='blocked';liveMessage='公开 Cookie SDK 尚未实现';render();return;
+  }
+  setBusy(true);liveRows=[];liveState='idle';render();
+  try{
+    const permission=await sdk.capabilities.getStatus({operation:'browser.cookies.getAll'});
+    if(!permission?.callableNow){
+      if(id===epoch){liveState='blocked';liveMessage='尚未获得该网站的读取能力（'+
+        String(permission?.reasonCode||'E_PERMISSION_REQUIRED').slice(0,80)+'）。请在工具详情中审阅网站授权。';}
+      return;
+    }
+    // Only public tool SDK: never invoke chrome.cookies or private approve/execute.
+    const result=await sdk.cookies.getAll({url:target.url});
+    const rows=redactMetadata(result);
+    if(id!==epoch||liveTarget?.url!==target.url||mode!=='browser')return;
+    liveRows=rows;liveState='ready';liveMessage='';
+  }catch(error){
+    if(id===epoch){liveRows=[];liveState='error';
+      liveMessage='读取被拒绝或结果不确定（'+String(error.code||'E_COOKIE_READ').slice(0,60)+
+        '）。检查安装、网站、Store 与授权后手动刷新，不会自动重试。';}
   }finally{if(id===epoch){setBusy(false);render();}}
 }
 async function mutate(operation,payload,okText){
@@ -300,7 +416,34 @@ function prepareImport(){
     });
   }catch(error){status('导入检查失败：'+String(error.message||error),'error');}
 }
-E('refresh').addEventListener('click',()=>guarded(()=>{dismiss();void refresh();}));
+function scrubEditors(){
+  E('cookie-value').value='';E('import-text').value='';E('import-file').value='';
+  editing=null;dirty=false;editor.hidden=true;importer.hidden=true;shown.clear();notify();
+}
+function changeMode(next){
+  if(busy||pending||mode===next)return;
+  guarded(()=>{
+    scrubEditors();mode=next;
+    if(next==='browser')status('');
+    else status('离线工作区：新增、编辑、导入和清空均不影响真实 Chrome Cookie。');
+    render();
+  });
+}
+E('mode-browser').addEventListener('click',()=>changeMode('browser'));
+E('mode-offline').addEventListener('click',()=>changeMode('offline'));
+E('apply-target').addEventListener('click',()=>guarded(()=>{
+  try{
+    const target=parseTarget(E('target-url').value);
+    scrubEditors();targetOverride=target.url;E('target-url').value=target.url;data=null;void refresh();
+  }catch(error){status('选择网站失败：'+String(error.message||error),'error');}
+}));
+E('use-current').addEventListener('click',()=>guarded(()=>{
+  scrubEditors();targetOverride='';data=null;void refresh();
+}));
+E('read-live').addEventListener('click',()=>{void readBrowserMetadata();});
+E('live-search').addEventListener('input',render);
+E('live-filter').addEventListener('change',render);
+E('refresh').addEventListener('click',()=>guarded(()=>{scrubEditors();void refresh();}));
 E('search').addEventListener('input',render);
 E('add').addEventListener('click',()=>guarded(()=>openEditor()));
 E('import-toggle').addEventListener('click',()=>guarded(()=>{
@@ -317,7 +460,7 @@ E('editor-form').addEventListener('submit',event=>{
     ...(editing?{previous:editing}:{})},'Cookie 已保存。');
 });
 E('clear').addEventListener('click',()=>guarded(()=>ask(
-  '即将清空当前网站 '+data.cookies.length+' 条 Cookie，可能退出登录且不可撤销。','清空',
+  '仅清空离线工作区的 '+data.cookies.length+' 条临时 Cookie，不会影响浏览器或网站登录。','清空离线数据',
   ()=>mutate('cookies.clear',{confirm:'DELETE_PREVIEW'},'已清空本地工作区。'))));
 E('confirm-cancel').addEventListener('click',cancelConfirmation);
 E('confirm-accept').addEventListener('click',()=>{const fn=pending;cancelConfirmation();if(fn)void fn();});
@@ -379,8 +522,12 @@ root.addEventListener('keydown',event=>{
   }
 });
 root.addEventListener('opendesk-page-changed',()=>{
-  epoch++;data=null;busy=false;dirty=false;shown.clear();editor.hidden=true;importer.hidden=true;
-  confirm.hidden=true;pending=null;blockBehindConfirmation(false);notify();render();void refresh();
+  epoch++;data=null;liveRows=[];busy=false;dirty=false;liveState='idle';shown.clear();
+  scrubEditors();confirm.hidden=true;pending=null;blockBehindConfirmation(false);
+  notify();render();void refresh();
 });
+root.ownerDocument.defaultView?.addEventListener?.('pagehide',()=>{
+  epoch++;liveRows=[];data=null;liveTarget=null;shown.clear();scrubEditors();
+},{once:true});
 void refresh();
 })();

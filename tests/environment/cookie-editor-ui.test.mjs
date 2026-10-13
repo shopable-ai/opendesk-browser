@@ -26,7 +26,7 @@ async function harness(){
   // Test-only instrumentation: production bytes never publish internal helpers.
   const instrument=source.replace(marker,
     'globalThis.__cookieTest={normalizeCookie,parseImport,exportText,saveToList,mergeImport,'+
-    'sortCookies,setSite:host=>{data={hostname:host,origin:"https://"+host,cookies:[]}},'+
+    'sortCookies,parseTarget,redactMetadata,setSite:host=>{data={hostname:host,origin:"https://"+host,cookies:[]}},'+
     'setRows:rows=>{data={...data,cookies:rows}}};\n})();');
   const context={
     OpenDeskTool:{root,request:async()=>({status:'unavailable'}),setState(){}},
@@ -38,11 +38,20 @@ async function harness(){
 const expectError=(fn,pattern)=>{
   assert.throws(fn,error=>{assert.match(String(error?.message||error),pattern);return true;});
 };
-test('Cookie Editor is an official-compatible optional UI, with no premature cookies API',async()=>{
+test('Cookie Editor is an optional two-mode tool without private cookies API',async()=>{
   const s=await harness();
   assert.equal(s.config.id,'cookie-editor');
   assert.deepEqual([...s.config.capabilities],['currentPage.read','user.export']);
   assert(!/request\(\s*['"]cookies\./.test(s.source));
+  assert(!/browser\.cookies\.(?:approve|execute)/.test(s.source));
+  assert(s.source.includes('sdk.cookies.getAll({url:target.url})'));
+  assert(s.source.includes("permission?.callableNow"));
+  assert(s.html.includes('id="mode-browser"')&&s.html.includes('id="mode-offline"'));
+  assert(s.html.includes('id="read-live"')&&s.html.includes('id="target-url" data-sensitive="true"'));
+  assert(s.html.includes('id="browser-panel"')&&s.html.includes('id="cookie-content"'));
+  assert(s.html.includes('id="live-search"')&&s.html.includes('id="live-filter"'));
+  assert(s.source.includes("E('live-filters').hidden=!hasRead"));
+  assert.match(s.config.version,/^1\.1\./);
   assert(!/\b(?:window|globalThis|chrome)\.cookies\./.test(s.source));
   assert(!/<script\b/i.test(s.html));
   assert(!/@import\b|url\(\s*https?:/i.test(s.css));
@@ -133,4 +142,42 @@ test('Only reviewed user.export files support non-executable .md/.txt/.json type
   assert(host.includes('application/json'));
   assert(bridge.includes("node.hasAttribute?.('data-sensitive')"),
     'host draft recovery must never retain cookie secrets');
+});
+
+test('Browser target is explicit HTTP(S), strips secret query, and allows a separately selected URL',async()=>{
+  const s=await harness();
+  const selected=s.parseTarget('https://shop.example.com/orders?id=secret#token');
+  assert.equal(selected.hostname,'shop.example.com');
+  assert.equal(selected.origin,'https://shop.example.com');
+  assert.equal(selected.url,'https://shop.example.com/orders');
+  for(const url of ['file:///tmp/a','chrome://settings','https://u:p@example.com/','http://[::1]/'])
+    expectError(()=>s.parseTarget(url),/HTTP\(S\)|普通/);
+  expectError(()=>s.parseTarget('https://example.com/?'+ 'x'.repeat(2100)),/2048/);
+});
+
+test('Browser metadata adapter never retains or reveals native Cookie values',async()=>{
+  const s=await harness();
+  const native=[{name:'sid',value:'secret-that-must-not-survive',domain:'.example.com',path:'/login',
+    hostOnly:false,secure:true,httpOnly:true,session:true,storeId:'1',
+    partitionKey:{topLevelSite:'https://example.com'},valueRedacted:false}];
+  const rows=s.redactMetadata(native);
+  assert.equal(rows.length,1);
+  assert.equal(rows[0].valueRedacted,true);
+  assert.equal(Object.hasOwn(rows[0],'value'),false);
+  assert.equal(rows[0].path,'/login');
+  assert.equal(rows[0].storeId,'1');
+  assert.equal(rows[0].partitionKey.topLevelSite,'https://example.com');
+  assert.equal(native[0].value,'secret-that-must-not-survive','native reply remains unmodified');
+  expectError(()=>s.redactMetadata([null]),/元数据/);
+  expectError(()=>s.redactMetadata(Array.from({length:501},()=>native[0])),/超出范围/);
+});
+
+test('Offline workspace remains isolated and browser writes or clears are not performed',async()=>{
+  const s=await harness();
+  assert(s.source.includes("mode='browser'"),'real mode opens first');
+  assert(!/sdk\.cookies\.(?:set|remove|clearSite)\s*\(/.test(s.source),
+    'write/clear must wait for final SDK and exact authorization contract');
+  assert(s.source.includes("status('本地导入完成"));
+  assert(s.source.includes("（仅本地预览）"));
+  assert(s.html.includes('离线工作区'));
 });
