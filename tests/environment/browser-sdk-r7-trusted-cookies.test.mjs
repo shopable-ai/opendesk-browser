@@ -66,9 +66,9 @@ function fixture(){
   const run=async(op,args={})=>execute((await approve(op,args)).approvalRef);
   return {api,state,document,cookieHost,caller,approve,execute,run};
 }
-test('R7 parallel R8 contract: unchanged 35 public SDK operations, Cookie Host-only, Page blocked',()=>{
+test('R9 prelaunch registry removes undeployed placeholders while Cookie stays Host-only and Page blocked',()=>{
   assert.equal(TRUSTED_COOKIE_OPERATIONS.length,11);
-  assert.equal(Object.keys(BROWSER_OPERATIONS).length,35);
+  assert.equal(Object.keys(BROWSER_OPERATIONS).length,26);
   assert.equal(createBrowserSdk({context:'page-sdk'}).cookies,undefined);
   assert.equal(createBrowserSdk({request:()=>{}}).cookies,undefined);
   assert.throws(()=>normalizeBrowserOperation('browser.cookies.getAll',{}),reject('E_SERVICE_UNSUPPORTED'));
