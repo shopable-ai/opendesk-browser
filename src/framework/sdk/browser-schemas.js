@@ -40,7 +40,7 @@ const ops=Object.freeze({
  'browser.page.getSelection':[empty,obj({ticketId:str(36),selection:str(16384)},['ticketId','selection'])],
  'browser.clipboard.writeText':[obj({text},['text']),obj({copied:bool},['copied'])],
  'browser.downloads.text':[obj({text,filename:str(90)},['text','filename']),
-   obj({downloadId:num(0,2147483647)},['downloadId'])],
+   obj({started:bool},['started'])],
  'browser.downloads.download':[obj({url:http,filename:str(150),saveAs:bool},['url']),
    obj({downloadRef:ref,status:{const:'started'}},['downloadRef','status'])],
  'browser.downloads.getOwned':[obj({downloadRef:ref},['downloadRef']),
