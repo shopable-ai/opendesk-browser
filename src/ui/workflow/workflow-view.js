@@ -10,6 +10,7 @@ import {requestWorkflowPlan} from './ai-plan.js';
 import {deriveWorkflowViewState} from './view-state.js';
 import {createLocalCodexPlanner,describeLocalCodex} from './local-codex.js';
 import {createWorkflowObservation} from './observation.js';
+import {createTaskReviewHandoff,taskReviewHandoffKey} from './task-review-handoff.js';
 
 const STORAGE_PREFIX = 'opendesk.sidebar.workflow.v1:';
 const SESSION_PREFIX = 'opendesk.sidebar.workflow-draft.v1:';
@@ -60,6 +61,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   const session=()=>Number.isSafeInteger(currentPageTarget?.windowId)
     ? SESSION_PREFIX + currentPageTarget.windowId:null;
   let disposed=false,busy=false,runId=null,revision=null,compileToken=0,compiled=null;
+  let lastTrustedRun=null; // UI hint only, original Task Verify must validate the real receipt.
   let proposal=null,proposalBase=null,proposalSerial=null,touched=false,saveList=[],draftWrites=Promise.resolve();
   let phase='idle',lastRun='none',hasError=false,newReviewSignature=null;
   let planningGeneration=0,planningAbort=null,pendingApproval=null,localChecking=false;
@@ -351,7 +353,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       record.sourceHash!==compile.sourceHash)
       throw err('E_WORKFLOW_HASH','语义定义与持久 JavaScript 版本不一致，拒绝运行');
     void stopPlanning({close:true}).catch(()=>{});clearSendConsent();
-    workflow=clean;
+    workflow=clean;lastTrustedRun=null;
     revision=record;touched=true;proposal=null;proposalBase=null;proposalSerial=null;lastRun='none';hasError=false;
     get('workflow-ai-proposal').hidden=true;
     render();persistDraft();
@@ -421,6 +423,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       status(format(error),true);return;
     }
     get('workflow-confirm-run').checked=false;
+    lastTrustedRun=null; // Failed or unknown new attempts must not reuse an old success hint.
     onRunOwner('pending');
     busy=true;phase='running';lastRun='running';hasError=false;
     get('workflow-output').textContent='尚无本次持久结果';
@@ -451,6 +454,14 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
         const result=view?.results?.find(row=>row.runId===claim.runId);
         lastRun=completed?.state==='paused_unknown'||completed?.pendingSettlement||!result?.outcome?.ok||!decoded
           ?'failed':'success';
+        if(lastRun==='success' && view?.run?.state==='completed' && view.run.workerRetired===true &&
+          view.run.retirementState==='released' && view.run.runId===claim.runId &&
+          view.run.target?.documentId===captured.documentId &&
+          view.run.target?.allowedOrigin===captured.origin &&
+          view.run.revision?.sourceHash===freeze.sourceHash &&
+          result.revision?.sourceHash===freeze.sourceHash && result.runId===claim.runId) {
+          lastTrustedRun={runId:claim.runId,sourceHash:freeze.sourceHash,siteOrigin:captured.origin};
+        }
         if(lastRun==='failed' && !hasError)
           status('运行未成功或结果无法确认，请检查真实结果及页面效果；不会自动重试。',true);
       }
@@ -483,8 +494,24 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       program:{revision:frozen.revision,sourceHash:frozen.sourceHash},paramsSchema:workflow.paramsSchema};
     const pkg=await createTaskPackage(manifest,compiled.sourceUtf8);
     if(!matchesRevision())throw err('E_WORKFLOW_STALE','创建候选期间工作流发生变化');
-    await client.request('importTaskPackage',{package:pkg});
-    status('已提交待验证 Task Candidate；必须在目录中用真实 runId 验证后才可安装');
+    const imported=await client.request('importTaskPackage',{package:pkg});
+    if(imported?.taskId!==manifest.taskId || imported.version!==manifest.version ||
+      imported.manifestHash!==pkg.manifestHash)
+      throw err('E_TASK_IMPORT_IDENTITY','候选导入回执与刚才提交的固定版本不一致');
+    // The one-shot session record is only a preselection hint. The full catalog
+    // re-reads the Task registry and demands real Verify/Available/Install clicks.
+    const key=taskReviewHandoffKey(currentPageTarget?.windowId);
+    if(key && api.storage?.session){
+      try {
+        const handoff=createTaskReviewHandoff({windowId:currentPageTarget.windowId,
+          taskId:manifest.taskId,version:manifest.version,manifestHash:pkg.manifestHash,
+          sourceHash:frozen.sourceHash,siteOrigin:workflow.siteOrigin,
+          runId:lastTrustedRun?.sourceHash===frozen.sourceHash &&
+            lastTrustedRun.siteOrigin===workflow.siteOrigin?lastTrustedRun.runId:null});
+        await api.storage.session.set({[key]:handoff});
+      }catch(error){console.warn('Task review shortcut unavailable; manual review remains available',error);}
+    }
+    status('候选已提交。任务目录会按固定身份定位版本；有同版真实成功记录时预填运行 ID，仍须手动核对、设为可用并确认安装。');
     openCatalog();
   }
   function renderProposal(result) {
