@@ -80,3 +80,11 @@ Node mock 组件测试只能标为 **COMPONENT**，不能证明真实 Chrome 导
 - **1 分钟真实前台额度消耗**：保留真实活动/idle/浏览器窗口的连续证据；缩短额度的真实验收不能伪造 `usage`。
 - **Worker/Chrome 重启、隔离和卸载**：比较同一 Chrome profile 内的规则 ID、恢复时间、其他工具不受影响等，原生证据未齐前保持 `NOT_ACCEPTED`。
 - **UI 质量评分**：没有真实 Side Panel 尺寸和键盘/缩放截图，任何单维 95+ 都不能自认。
+
+### 域名暂停与父/子域名模型修复（当前代码）
+
+- `src/stay-focus/model.js` 的 `focusReason` 现在必须同时满足**全局启用 + 网站启用**才生成阻断原因；防止“暂停后仍保持 DNR 规则”。
+- `focusMatchingSite` 先匹配最长的明确网站规则，再决定该网站是否被暂停。被暂停的具体子域名不会回落到父域名的限制规则。
+- `src/stay-focus/rule-host.js` 对覆盖子域名的父规则添加 `excludedRequestDomains`，由更具体子网站的规则独立决定是否阻断。无效的“父域名覆盖子域名 + 子网站仅精确域名”组合拒绝持久保存，以避免 Chrome DNR 宽范围排除造成静默放行。
+- `tests/environment/stay-focus-r1.test.mjs` 与 `stay-focus-service-r1.test.mjs` 新增模型、真实受信任 Host 请求和 DNR readback 对账组件用例。还必须完成当前候选上的完整 CI 与真实 Chrome 页面导航，不能将这些新写入测试当成已通过。
+- [CI 当前排队候选 #38370141918](https://github.com/shopable-ai/opendesk-browser/actions/runs/38370141918) 源码修复提交 `3b4a157555bc`；本条记录撰写时状态 `QUEUED`，不代表失败或成功。上述新增文档不修改其源码候选。
