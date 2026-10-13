@@ -45,7 +45,8 @@ test('R21 Chrome fixture adds full-width states without changing its native evid
     'tools-installed','tools-open','tools-error']){
     assert.ok(visual.includes("name:'"+name+"'"),'missing static state '+name);
   }
-  assert.match(visual,/const widths=\[300,360,420,520\]/);
+  assert.match(visual,/const widths=\[300,320,360,420,520\]/,
+    'R27 static layout includes the extra 320px narrow-sidebar breakpoint');
   assert.match(visual,/dockOverlap/);
   assert.match(visual,/iconButtons/);
   assert.match(visual,/evidence:'STATIC_MARKUP_CHROME',nativeExtension:false,nativeControlEvents:false/);

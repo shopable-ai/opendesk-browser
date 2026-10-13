@@ -195,7 +195,7 @@
 #script-status[data-state=results],#script-task-status{white-space:normal}
 #script-status:empty,#script-task-status:empty{display:none}
 .developer-run-technical{margin:0}
-.developer-run-technical p{font-size:11px;margin:var(--space-1) 0}
+.developer-run-technical p{font-size:var(--od-meta-size);overflow-wrap:anywhere}
 .developer-results{margin:0}
 .developer-results-body{display:grid;gap:var(--space-2)}
 #script-result{max-height:250px}

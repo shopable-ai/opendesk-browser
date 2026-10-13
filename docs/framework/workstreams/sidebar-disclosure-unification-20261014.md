@@ -29,3 +29,11 @@
 `da6cb667` 的 R19 [38433689576](https://github.com/shopable-ai/opendesk-browser/actions/runs/38433689576) 已通过原先失败的 `schedule-form 300px`，随后在 `develop 300px` 遇到 **旧验收规则**：编辑器圆角要求 12px，而 R30 `od-field` 的控制圆角为 8px。同步修订 R19 脚本为 8px 控件圆角，并根据 R27 `--space-3` 校正开发大区块 12px 布局间距（原脚本仍要求 8px）。保留溢出、折叠标题高度/字号/字重、操作组和状态覆盖。
 
 R21 [38433689575](https://github.com/shopable-ai/opendesk-browser/actions/runs/38433689575) 则因原测试 `sidebar-develop-layout-r29.test.mjs` 用严格 `class="单一类"` 判断历史子折叠、并要求 R30 已删除的独立外观 CSS 而 FAIL。更新测试，改为核对包含共享类的组件语义、`design-system.css` 唯一外观、现有历史 RunHost 和触控 / 可访问性约束；不恢复旧版重复 CSS。下一候选的全部定向、静态 Chrome、用户 Mac 原生结果须继续单独核对，未运行不得写 PASS。
+
+## 第三轮几何收敛与 R21 过时合同清理
+
+`1f04bf3` 的 R19 [38434280184](https://github.com/shopable-ai/opendesk-browser/actions/runs/38434280184) 在 `develop 300px` 报实际间距向量 `[8,12,12,12,12,12,12,12,12,12]`。上层宿主 Tab 和编辑器内部为不同 gutter owner，分别按 8px/12px 检查，不改变产品以迁就旧断言。修复 `.developer-run-technical p` 直接覆盖水平 margin，使展开正文继承共享卡片左右 12px 留白。
+
+R21 [38434280150](https://github.com/shopable-ai/opendesk-browser/actions/runs/38434280150) 的历史 Development R29 测试现已 4/4 PASS；集成套件其余旧断言仍认为 320px 额外静态 Chrome 场景不允许、源码新建按钮一定要业务 CSS 明写 12px、工作流卡片/警告与代码编辑器必须各自定义圆角，以及 stylesheet 数量永远等于3。这些与 R27/R30 公共视觉合同和既有 5 个宿主可信 CSS 资源不符。调整这几项断言以核对 **同一权威公共 CSS、真实 class 及动态资源数量**；没有删除组件真实断言。
+
+另一个 `sidebar-tools-host.test.mjs` 的 `host state did not settle` 仍是与折叠外观无直接关联的业务运行时 FAIL，须单独复现和修复，不能通过提高评分或修改断言掩盖。新候选原生 Mac Chrome 仍 `NOT_TESTED`。

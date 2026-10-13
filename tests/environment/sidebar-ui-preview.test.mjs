@@ -78,8 +78,8 @@ test('R5 keeps one derived interactive prototype with installed-only compact dis
 });
 
 test('Developer source selector and new-script action use one narrow Sidebar toolbar',async()=>{
-  const [html,css,source]=await Promise.all([
-    read('src/ui/tool.html'),read('src/ui/tool-shell.css'),read('src/ui/program-source.js')
+  const [html,css,design,source]=await Promise.all([
+    read('src/ui/tool.html'),read('src/ui/tool-shell.css'),read('src/ui/design-system.css'),read('src/ui/program-source.js')
   ]);
   const toolbar=html.match(/<div id="program-source-toolbar"[\s\S]*?<\/div>/)?.[0];
   assert.ok(toolbar,'one shared toolbar exists');
@@ -90,7 +90,10 @@ test('Developer source selector and new-script action use one narrow Sidebar too
   assert.match(css,/\.program-source-toolbar\{display:flex;flex-wrap:nowrap;/);
   assert.match(css,/\.program-source-toolbar #program-source-files\{[^}]*flex:1 1 0;min-width:0;/);
   assert.match(css,/\.program-source-toolbar #program-new-script\{[^}]*flex:0 0 auto;[^}]*white-space:nowrap;/);
-  assert.match(css,/\.program-source-toolbar #program-new-script\{[^}]*font-size:12px;/,'new action remains legible in a narrow Sidebar');
+  assert.match(design,/\.od-button\{[^}]*font:inherit;/,
+    'new action inherits a readable font from the shared button component');
+  assert.match(design,/:root\{[^}]*font-size:13px;/,
+    'Side Panel default text remains readable at narrow widths');
   assert.match(source,/get\('program-source-toolbar'\)\.hidden = !value/);
 });
 
@@ -120,13 +123,23 @@ test('R19 Sidebar spacing and corner system is consistent across all five tabs',
   assert.match(body('.local-discovery-import'),/border-radius:var\(--radius-control\)/);
   assert.match(body('#local-discover-status:empty'),/display:none/,'empty discovery message consumes no vertical space');
   assert.match(body('#local-project-status:empty'),/display:none/,'empty local project message consumes no vertical space');
-  for(const selector of ['.task-card-group','.local-discovery-list','.sidebar-tool-row','.sidebar-tool-official','.workflow-card','.workflow-composer'])
+  for(const selector of ['.task-card-group','.local-discovery-list','.sidebar-tool-row','.sidebar-tool-official','.workflow-composer'])
     assert.match(body(selector),/border-radius:var\(--radius-surface\)/,'consistent card corners: '+selector);
+  assert.match(body('.od-surface',design),/border-radius:var\(--radius-surface\)/,
+    'shared surface owns the card radius');
+  assert.ok(load(html)('.workflow-card').toArray().every(card=>load(html)(card).hasClass('od-surface')),
+    'workflow card must use shared od-surface instead of redefining radius');
   for(const selector of ['.task-card-state,.local-discovery-state','.local-project-switch-track','.workflow-pill','.catalog-card-state'])
     assert.match(body(selector),/border-radius:var\(--radius-pill\)/,'semantic pill corners: '+selector);
-  for(const selector of ['.workflow-chat-entry','.workflow-ai-approval','.sidebar-tool-capabilities','.workflow-target-warning'])
+  for(const selector of ['.workflow-chat-entry','.sidebar-tool-capabilities'])
     assert.match(body(selector),/border-radius:var\(--radius-control\)/,'shared inside-control radius: '+selector);
-  assert.match(body('#script-source'),/border-radius:var\(--radius-surface\)/,'editor is a code surface');
+  assert.match(body('.od-alert',design),/border-radius:var\(--radius-control\)/,
+    'warning components obtain radius from the public alert');
+  for(const id of ['workflow-ai-approval','workflow-target-warning'])
+    assert.ok(load(html)('#'+id).hasClass('od-alert'),'warning owns shared alert appearance: '+id);
+  assert.match(body(':is(input,select,textarea).od-field',design),/border-radius:var\(--radius-control\)/,
+    'code editor is a shared field control with the standard control radius');
+  assert.ok(load(html)('#script-source').hasClass('od-field'),'editor retains shared field style');
   assert.match(body('.catalog-reader-note'),/border-radius:var\(--radius-control\)/,'catalog hints share control radius');
   assert.match(body('.workbench-nav button'),/border-radius:0/,'tab underline remains square intentionally');
   assert.match(body('.local-discovery-card'),/border-radius:0!important/,'list rows stay flush intentionally');
@@ -175,5 +188,8 @@ test('R20/R23 six-tab design system has one token source and a strict trusted as
     'ui/cloud-control-console.css','native-agent/settings.css','native-agent/workspace.css'])
     assert(auditedCSS.includes(path),'CSS build verification audits '+path);
   assert.match(verify,/if\(cssPath==='native-agent\/workspace\.css'\)inspectWorkspaceStyle\(css\)/,'Workspace CSS extends the original closed asset audit');
-  assert.match(visual,/document\.styleSheets\.length===3/);
+  assert.ok(visual.includes('document.styleSheets.length===document.querySelectorAll("link[rel=stylesheet]").length'),
+    'static Chrome verifies all linked trusted stylesheets, not a hardcoded count');
+  assert.ok(visual.includes('].every(link=>link.sheet)'),
+    'static Chrome waits until every required stylesheet loads');
 });

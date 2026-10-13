@@ -384,7 +384,7 @@ function validate(scene,width,m){
   for(const [key,value] of Object.entries(expected[scene.tab])){
     if(m.corners[key]!==value)throw Error('Radius mismatch '+scene.name+' '+key+': '+m.corners[key]+' expected '+value);
   }
-  if(scene.tab==='develop'&&m.developGaps.some(v=>Math.abs(v-12)>1))throw Error('Developer gap mismatch '+scene.name+' '+width+'px '+JSON.stringify(m.developGaps));
+  if(scene.tab==='develop'&&m.developGaps.some((gap,index)=>Math.abs(gap-(index===0?8:12))>1))throw Error('Developer gap mismatch '+scene.name+' '+width+'px '+JSON.stringify(m.developGaps));
   if(scene.tab==='develop'){
     const height=m.coarsePointer?44:40;
     for(const item of m.developerDisclosureHeaders){

@@ -129,6 +129,8 @@ test('Developer disclosure headers share the Run Result surface; nested diagnost
   ]) assert.ok(!shell.includes(obsolete), 'Obsolete disclosure override: ' + obsolete);
   assert.ok(!/\.developer-results-body\{[^}]*padding-top/.test(shell), 'Result has double vertical inset');
   assert.ok(!/\.developer-history-content\{[^}]*padding-top/.test(shell), 'History has double inset');
+  assert.doesNotMatch(shell, /\.developer-run-technical p\{[^}]*margin:/,
+    'Run identity paragraphs must inherit shared horizontal body inset');
 });
 
 test('Other formal tabs reuse shared actions without restyling their unique filters', () => {
