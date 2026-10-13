@@ -337,8 +337,12 @@ export function createTrustedCookieHost({api=globalThis.chrome,now=Date.now}={})
       for(const [ref,row] of sessions)if(now()>=row.expiresAt)sessions.delete(ref);
       if(sessions.size>=8)throw error('E_LIMIT');
       const sessionRef=crypto.randomUUID(),expiresAt=now()+(args.durationMs??15000);
+      // Installed observe.start has no partitionKey parameter. Keep its default
+      // event scope identical to getAll({url}) without a partitionKey: only
+      // unpartitioned Cookies. A site grant's partition receipt is NOT a
+      // request to expose that partition's onChanged metadata.
       sessions.set(sessionRef,{kind:'installed',ownerKey,target:{url:args.url,origin},storeId,
-        partitionKey,expiresAt,events:[],maxEvents:args.maxEvents??40,dropped:0,nextSeq:1});
+        partitionKey:null,expiresAt,events:[],maxEvents:args.maxEvents??40,dropped:0,nextSeq:1});
       result={sessionRef,expiresAt,status:'running'};
     }else if(op.startsWith('browser.cookies.observe.')){
       const session=sessions.get(args.sessionRef);
