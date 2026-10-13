@@ -163,6 +163,40 @@ test('R9 pinOwned unknown native outcome is never reported successful or automat
   host.revokeTool('tool-a');
   await assert.rejects(host.pinOwned({tabRef,pinned:true},owner()),code('E_TAB_REF_INVALID'));
 });
+test('R9 reloadOwned acknowledges only a native request and consumes the old TabRef',async()=>{
+ const f=fixture();
+ f.api.webNavigation={getFrame:async({tabId})=>{
+   const tab=f.items.get(tabId);
+   return tab?{url:tab.url,documentId:'doc-'+tabId,documentLifecycle:'active'}:null;
+ }};
+ const native=[];f.api.tabs.reload=async(...args)=>{native.push(args)};
+ const host=createBrowserTabHost({api:f.api,createRef:()=>ref,authorize:async()=>true});
+ const {tabRef}=await host.create({url:'https://example.org/reload'},owner());
+ await assert.rejects(host.reloadOwned({tabRef},owner('tool-b')),code('E_TAB_REF_INVALID'));
+ await assert.rejects(host.reloadOwned({tabId:200},owner()),code('E_SCHEMA'));
+ assert.deepEqual(await host.reloadOwned({tabRef},owner()),
+   {reloadRequested:true,tabRefRevoked:true});
+ assert.deepEqual(native,[[200,{bypassCache:false}]]);
+ await assert.rejects(host.getOwned({tabRef},owner()),code('E_TAB_REF_INVALID'));
+ await assert.rejects(host.reloadOwned({tabRef},owner()),code('E_TAB_REF_INVALID'));
+});
+test('R9 reloadOwned cannot replay unknown Chrome effects or use a revoked site grant',async()=>{
+ const f=fixture();let authorized=true,native=0;
+ f.api.webNavigation={getFrame:async({tabId})=>({
+   url:f.items.get(tabId).url,documentId:'doc-'+tabId,documentLifecycle:'active'
+ })};
+ f.api.tabs.reload=async()=>{native++;throw Error('Chrome native receipt lost')};
+ const host=createBrowserTabHost({api:f.api,createRef:()=>ref,
+   authorize:async()=>authorized});
+ const {tabRef}=await host.create({url:'https://example.org/reload'},owner());
+ authorized=false;
+ await assert.rejects(host.reloadOwned({tabRef},owner()),code('E_SITE_GRANT_REQUIRED'));
+ assert.equal(native,0);
+ authorized=true;
+ await assert.rejects(host.reloadOwned({tabRef},owner()),code('E_OUTCOME_UNKNOWN'));
+ await assert.rejects(host.reloadOwned({tabRef},owner()),code('E_TAB_REF_INVALID'));
+ assert.equal(native,1,'an unknown native effect cannot be retried with old credentials');
+});
 test('R5 owned close consumes TabRef, with unknown native outcome never retried',async()=>{
  const f=fixture();
  f.api.webNavigation={getFrame:async({tabId})=>{
