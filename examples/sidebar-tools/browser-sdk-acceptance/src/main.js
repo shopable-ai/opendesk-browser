@@ -12,6 +12,7 @@ const setBusy=value=>{
   for(const button of root.querySelectorAll('button'))button.disabled=value;
   $('bookmark-remove').disabled=value||!bookmarkRef;
   $('download-status').disabled=value||!downloadRef;
+    $('download-cancel').disabled=value||!downloadRef;
   $('schedule-cancel').disabled=value||!scheduleRef;
 };
 const safeUrl=()=>{
@@ -88,6 +89,9 @@ $('download-start').addEventListener('click',()=>run('Download demo','download-o
 $('download-status').addEventListener('click',()=>run('Download status','download-output',async sdk=>{
   return sdk.downloads.getOwned({downloadRef});
 }));
+  $('download-cancel').addEventListener('click',()=>run('Download cancel','download-output',async sdk=>{
+    return sdk.downloads.cancelOwned({downloadRef});
+  }));
 $('schedule-create').addEventListener('click',()=>run('Schedule create','scheduler-output',async sdk=>{
   const taskId=$('task-id').value.trim(),revision=$('task-revision').value.trim();
   const result=await sdk.scheduler.create({taskId,revision,schedule:{kind:'interval',expression:'1m'}});

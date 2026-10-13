@@ -6,7 +6,7 @@
 
 - `bookmarks.create/removeOwned`：创建并移除本工具拥有的书签 Ref。
 - `storage.local.set/get/remove`：验证已安装工具命名空间内的隔离持久存储。
-- `downloads.download/getOwned`：请求下载 `http://127.0.0.1:43111/demo-form.html`，只使用 opaque `downloadRef`。
+- `downloads.download/getOwned/cancelOwned`：请求下载 `http://127.0.0.1:43111/demo-form.html`，只使用 opaque `downloadRef`；未完成时可显式取消，完成和中断分别记录。
 - `scheduler.create/listOwn/cancelOwn`：为已安装固定 Task Revision 创建、列出并取消本工具自有 schedule。
 
 所有需要真实用户意图或高风险写入的操作都应由正式 Side Panel Host 弹出可信审批；工具沙箱只显示按钮和回执，不写授权、不灌 storage、不伪造 sender。
@@ -30,9 +30,11 @@ node tests/framework/browser-sdk-r106-native.mjs --prepare
 ```bash
 OPENDESK_R106_NATIVE=1 \
 OPENDESK_R106_EXTENSION=/absolute/path/to/candidate-extension \
+OPENDESK_R106_CANDIDATE_SHA=<exact-40-character-source-commit> \
+OPENDESK_R106_BUILD_RECEIPT=/absolute/path/to/build-production.json \
 OPENDESK_R106_CHROME_BIN=/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google\ Chrome\ for\ Testing.app/Contents/MacOS/Google\ Chrome\ for\ Testing \
 OPENDESK_R106_EVIDENCE=/absolute/path/to/evidence \
 node tests/framework/browser-sdk-r106-native.mjs --native
 ```
 
-当前文件只准备最小 driver；未执行真实 Chrome 时必须保持 `NOT_TESTED`，不能把源码、打包或截图计划升级为 Native PASS。
+驱动核对实际包与成功构建收据，并逐一核对声明源码提交的构建输入。执行日志中的部分通过不能代替完整 55 项验收；未执行的 Native 合同继续保持 `NOT_TESTED`。

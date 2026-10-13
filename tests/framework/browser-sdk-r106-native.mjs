@@ -180,8 +180,17 @@ async function runNative(){
     constraints:['No Runtime.evaluate business SDK calls','No storage writes/grants outside formal Host UI','No DOM value assignment or synthetic DOM events','No forged sender']};
   const save=()=>writeFile(path.join(runDir,'native-report.json'),json(report));
   let launched,client,side,tool,control,toolTarget,website,sideTarget,nativeKeyboard;
+  function requireNativeResource(){
+    const active=execFileSync('ps',['-axo','pid=,ppid=,comm='],{encoding:'utf8'}).split('\n')
+      .map(line=>line.trim().match(/^(\d+)\s+(\d+)\s+(.+)$/)).filter(Boolean)
+      .filter(([,pid,parent,command])=>command.includes('Chrome for Testing')&&
+        !command.includes('/Helpers/')&&parent!=='1'&&Number(pid)!==launched?.metadata?.pid)
+      .map(([,pid,parent])=>({pid:Number(pid),parent:Number(parent)}));
+    assert.equal(active.length,0,'E_NATIVE_RESOURCE_BUSY '+JSON.stringify(active));
+  }
   async function native(command,value){
     assert(launched&&nativeKeyboard,'Owned Mac input is required');
+    requireNativeResource();
     const output=execFileSync(nativeKeyboard,[String(launched.metadata.pid),command,...(value?[value]:[])],
       {encoding:'utf8',timeout:12000});
     report.trace.push({at:now(),kind:'owned-macos-input',command,value,output});return output;
@@ -219,6 +228,7 @@ async function runNative(){
     toolTarget=target;tool=await attach(client,target.targetId);return frame;
   }
   async function toolClick(selector){
+    requireNativeResource();
     await deadline(async()=>{
       const p=await read(client,tool,`(()=>{const n=document.querySelector(${quote(selector)});if(!n||n.disabled)return null;const r=n.getBoundingClientRect();return {x:r.x+r.width/2,y:r.y+r.height/2,h:r.height}})()`);
       if(!p)return null;
@@ -272,6 +282,7 @@ async function runNative(){
     console.log('R106_NATIVE_START '+id);
     report.cases[id]={status:'RUNNING',startedAt:now()};await save();
     try{
+      requireNativeResource();
       const result=await fn();
       report.cases[id]={status:'PASS',result,finishedAt:now()};
       if(side)report.screenshots.push(await screenshot(client,side,runDir,id));
@@ -289,6 +300,22 @@ async function runNative(){
     assert(fixture.ok,'Canonical demo server must already be available');
     report.candidate={extensionPackage:await packageFingerprint(extension),
       extensionFiles:await treeHashes(extension),toolSourceFiles:await treeHashes(toolRoot)};
+    const sourceCommit=assertEnv('OPENDESK_R106_CANDIDATE_SHA');
+    assert(/^[0-9a-f]{40}$/.test(sourceCommit),'Exact extension source commit is required');
+    const receiptFile=path.resolve(assertEnv('OPENDESK_R106_BUILD_RECEIPT'));
+    const receipt=JSON.parse(await readFile(receiptFile,'utf8'));
+    assert.equal(receipt.status,'passed');
+    assert.deepEqual(receipt.sourceDriftDuringBuild,[]);
+    assert.equal(receipt.report.packageHash,report.candidate.extensionPackage.packageHash,'Native package must match the successful build');
+    assert(receipt.sourceInputs.length>0);
+    for(const input of receipt.sourceInputs){
+      const source=execFileSync('git',['show',sourceCommit+':'+input.path],{cwd:root,maxBuffer:32*1024*1024});
+      assert.equal(sha256(source),input.sha256,'Build input must belong to the declared source commit: '+input.path);
+      assert.equal(source.length,input.bytes);
+    }
+    report.candidate.sourceCommit=sourceCommit;
+    report.candidate.buildReceipt=await fileHash(receiptFile);
+    report.candidate.buildInputCount=receipt.sourceInputs.length;
     await recordCase('launch-owned-cft',async()=>{
       launched=await launchChrome({root,binary,extension,headed:true,directory:runDir,label:'r106'});
       client=await connect(launched.endpoint,{onCommand:event=>report.trace.push({at:now(),...event})});
@@ -325,7 +352,7 @@ async function runNative(){
       await click(client,side,'#sidebar-tool-import-trigger',report.trace);
       await chooseFile(side,'#sidebar-tool-file',file);
       await deadline(()=>read(client,side,'document.querySelector("#sidebar-tool-file").files[0]?.name==="browser-sdk-acceptance.opendesk-tool.json"'),'native selected exact file');
-      await deadline(()=>read(client,side,'!document.querySelector("#sidebar-tool-preview").hidden&&document.querySelector("#sidebar-tool-preview-title").textContent.includes("Browser SDK Acceptance")&&document.querySelector("#sidebar-tool-preview-version").textContent.includes("10.6.0")'),'formal exact package review');
+      await deadline(()=>read(client,side,`!document.querySelector("#sidebar-tool-preview").hidden&&document.querySelector("#sidebar-tool-preview-title").textContent.includes(${quote(pkg.title)})&&document.querySelector("#sidebar-tool-preview-version").textContent.includes(${quote(pkg.version)})`),'formal exact package review');
       report.review=await read(client,side,'({title:document.querySelector("#sidebar-tool-preview-title").textContent,capabilities:document.querySelector("#sidebar-tool-preview-capabilities").textContent})');
       await click(client,side,'#sidebar-tool-install',report.trace);
       const open='[data-sidebar-tool-action="open"][data-sidebar-tool-id="browser-sdk-acceptance"]';
@@ -363,18 +390,31 @@ async function runNative(){
       const result=await output('bookmarks-output');assert.equal(result.removed,true);
       const rows=await read(client,control,'chrome.bookmarks.search({title:"OpenDesk R10.6 demo"})');assert.equal(rows.length,0);return {summary,result,nativeReceipt:rows};
     });
-    await recordCase('download-start-and-complete',async()=>{
+    await recordCase('download-start-and-terminal-state',async()=>{
       await toolClick('#download-start');const summary=await approve();const start=await output('download-output');
       assert(start.downloadRef&&!start.downloadId);
-      const states=[];
-      const result=await deadline(async()=>{
+      const states=[];let result,cancellation;
+      const observe=async()=>{
         await toolClick('#download-status');const state=await output('download-output');states.push(state);
         assert.equal(state.downloadRef,start.downloadRef,'status must belong to the same started download');
         assert(!state.downloadId&&!state.id,'native IDs must stay private');
-        if(state.state==='interrupted')throw Error('Native download interrupted: '+JSON.stringify(state));
-        return state.state==='complete'?state:null;
-      },'same owned native download complete',30000);
-      return {summary,start,states,result};
+        assert(['in_progress','complete','interrupted'].includes(state.state),'actual download state is required');
+        return state.state==='in_progress'?null:state;
+      };
+      const end=Date.now()+30000;
+      while(Date.now()<end&&!result){result=await observe();if(!result)await sleep(300);}
+      const nativeBeforeCancel=await read(client,control,`chrome.downloads.search({url:${quote(demoUrl)}})`);
+      if(!result){
+        await toolClick('#download-cancel');const consent=await approve();const reply=await output('download-output');
+        assert.equal(typeof reply.cancelled,'boolean','owned cancellation requires a real acknowledgement');
+        cancellation={consent,reply};
+        result=await deadline(observe,'same owned download terminal state after one cancellation',30000);
+      }
+      const nativeReceipt=await read(client,control,`chrome.downloads.search({url:${quote(demoUrl)}})`);
+      assert.equal(nativeReceipt.length,1,'only the same native download may be observed');
+      assert.equal(nativeReceipt[0].state,result.state,'SDK terminal state must match the native item');
+      return {summary,start,states,cancellation,nativeBeforeCancel,nativeReceipt,result,
+        completion:result.state==='complete'?'COMPLETED':'INTERRUPTED'};
     });
     let installedTask;
     await recordCase('scheduler-fixed-task-install',async()=>{
