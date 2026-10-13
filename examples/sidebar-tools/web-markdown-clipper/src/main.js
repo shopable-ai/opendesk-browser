@@ -64,14 +64,14 @@ q('clip-show-preview').addEventListener('click',()=>{
 });
 q('clip-copy').addEventListener('click',async()=>{
  if(!markdown)return say('请先剪藏',true);
- try{const response=await request('clipboard.writeText',{text:markdown});
+ try{const response=await globalThis.OpenDeskSDK.browser.clipboard.writeText(markdown);
   if(!response?.copied)throw Error('复制未确认');say('已复制 Markdown');
  }catch{input.hidden=false;display.hidden=true;input.focus();input.select();say('自动复制失败，请按 Ctrl/Cmd+C',true);}
 });
 q('clip-download').addEventListener('click',async()=>{
  if(!markdown)return say('请先剪藏',true);
  const filename=(clean(record?.title).replace(/[\/\\:*?"<>|]/g,'-').slice(0,60)||'web-clip')+'.md';
- try{const done=await request('file.download',{text:markdown,filename});
+ try{const done=await globalThis.OpenDeskSDK.browser.downloads.text({text:markdown,filename});
   if(!Number.isInteger(done?.downloadId))throw Error('下载未确认');
   say('已请求下载，请在 Chrome 确认保存');
  }catch(e){say('下载失败：'+String(e.message||e),true);}
