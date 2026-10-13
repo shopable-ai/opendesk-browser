@@ -130,6 +130,67 @@ export function createPageComponentRemote({client,preparer,api,document:doc,getI
       state={stage:'error',message:(cause.code||'E_REMOTE_PREPARE')+'：'+(cause.message||cause)};render();
     }finally{if(ticket===generation){busy=false;render();}}
   }
+  // Native/File-first R7.2: the Run/Save click is the single author intent.
+  // Keep the old manual review UI for advanced forensics, but the normal path
+  // automatically fixes the complete statically discoverable ESM graph.
+  // Third-party code is handled only as bytes by the existing Broker Manager
+  // and by the fixed compiler Worker; no downloaded code runs in this UI.
+  async function autoLoadForRun(input,assertRunCurrent=()=>{}){
+    if(busy)throw error('E_REMOTE_PENDING','当前已有依赖操作；请先结束或取消');
+    const ticket=++generation;busy=true;render();
+    const verify=()=>{assertRunCurrent();current(ticket,input);};
+    try{
+      let analysis=await inspect(input);verify();
+      if(!analysis.remoteRoots.length)return undefined;
+      const request=identity(input,analysis.remoteRoots);
+      const report=await client.request('inspectPageComponentDependencies',request);verify();
+      const available=Array.isArray(report?.locks)?report.locks:[];
+      let selected=available.find(row=>row.lockId===selectedLocks.get(report.manifestDigest))||
+        (available.length===1?available[0]:null);
+      if(!selected&&available.length>1)throw error('E_REMOTE_LOCK_AMBIGUOUS',
+        '此源码存在多份不同 SHA 的固定模块图；请在高级详情指定版本');
+      let lockId;
+      if(selected)lockId=selected.lockId;
+      else{
+        let review=null;
+        for(let i=0;i<32&&!analysis.complete;i++){
+          const next=analysis.missingUrls.find(url=>!review?.entries?.some(entry=>entry.url===url));
+          if(!next)throw error('E_REMOTE_GRAPH','静态依赖图不完整，无法确定下一模块');
+          const prior=review?.entries?.length||0;
+          // A review is just a temporary byte transaction, not user approval.
+          review=await client.request('preparePageComponentDependencies',{
+            ...request,...(review?{reviewId:review.reviewId,reviewDigest:review.reviewDigest}:{}),
+            approvedUrls:[next],explicitUserAction:true});
+          verify();
+          if(!Array.isArray(review?.entries)||!Array.isArray(review.modules)||
+            review.entries.length!==prior+1||review.entries.some(row=>!row.url||!/^[a-f0-9]{64}$/.test(row.sha256)))
+            throw error('E_REMOTE_REVIEW','新模块的 SHA 或完整性清单不可信');
+          analysis=await inspect(input,review.modules);verify();
+        }
+        if(!analysis.complete||!review)
+          throw error('E_REMOTE_GRAPH','模块图超出 32 项或仍有未固定的 import');
+        const approved=await client.request('approvePageComponentDependencies',{
+          ...request,reviewId:review.reviewId,reviewDigest:review.reviewDigest,
+          acceptedModules:review.entries.map(pin),
+          graph:analysis.modules.map(row=>({url:row.url,children:row.children})),
+          explicitUserAction:true});
+        verify();
+        if(approved?.manifestDigest!==report.manifestDigest||
+          !/^component-lock-[a-f0-9]{64}$/.test(approved.lockId))
+          throw error('E_REMOTE_LOCK','固定模块锁未通过身份校验');
+        lockId=approved.lockId;selectedLocks.set(report.manifestDigest,lockId);
+      }
+      const loaded=await client.request('loadPageComponentDependencies',{...request,lockId});verify();
+      const checked=await inspect(input,loaded.modules);verify();
+      if(!checked.complete)throw error('E_REMOTE_GRAPH','固定模块图与源码不匹配；拒绝运行');
+      state={stage:'ready',entries:loaded.modules,
+        message:'已自动固定 '+loaded.modules.length+' 个 ESM 模块；Run 使用受控执行世界，不会在宿主执行库代码'};
+      return loaded;
+    }catch(cause){
+      if(!disposed&&ticket===generation)state={stage:'error',message:(cause.code||'E_REMOTE_PREPARE')+'：'+(cause.message||cause)};
+      throw cause;
+    }finally{if(!disposed&&ticket===generation){busy=false;render();}}
+  }
   async function loadForRun(input){
     if(busy)throw error('E_REMOTE_PENDING','请先完成或取消当前依赖准备');
     // Older injected compiler test doubles lack inspect(); the production
@@ -147,7 +208,7 @@ export function createPageComponentRemote({client,preparer,api,document:doc,getI
   }
   const onCancel=event=>{if(event?.isTrusted)cancel();},onSelection=()=>render();
   button?.addEventListener('click',click);cancelButton?.addEventListener('click',onCancel);selector?.addEventListener('change',onSelection);
-  return Object.freeze({loadForRun,refresh,cancel,update:()=>render(false),get busy(){return busy;},
+  return Object.freeze({loadForRun,autoLoadForRun,refresh,cancel,update:()=>render(false),get busy(){return busy;},
     dispose(){if(disposed)return;disposed=true;generation++;permissions.dispose();
       button?.removeEventListener('click',click);cancelButton?.removeEventListener('click',onCancel);selector?.removeEventListener('change',onSelection);}});
 }
