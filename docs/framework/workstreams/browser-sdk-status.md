@@ -1,3 +1,14 @@
+## R10.5 · Bookmarks 50-API 正式 Registry（2026-10-13）
+
+现行 55 项批准设计：公开 SDK Registry **50**，其中已新增 `browser.bookmarks.create/removeOwned`；仍有 **3 项 Scheduler** 及 **2 项仅可信 Host-only** 待完整实施。绝不把 History / Permissions 可信接口登记到普通工具 SDK。Bookmarks 通过真实 Side Panel 一次性确认、Chrome bookmarks 可选权限、私有持久 BookmarkRef 及原 Host Owner/Origin 校验。Worker 重启可读回自有映射，卸载删掉 ID 映射但不擅自删除用户书签。下面数值 44/40 为历史快照。
+
+| API | Registry | Exposure | Node 正向 | Node 拒绝 | Chrome 原生 |
+| --- | --- | --- | --- | --- | --- |
+| `browser.bookmarks.create` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
+| `browser.bookmarks.removeOwned` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
+
+Node/Build/Verify/真实 Chrome 回执仍需在同一源码候选独立验收，不可将 SOURCE_WIRED 解释为 PASS。
+
 ## R10.3 P4 · Browser SDK 已安装工具隔离 Storage（2026-10-13）
 
 已将四项 `browser.storage.local.get/set/remove/clear` 接入唯一 Registry/Host，复用 Side Panel 工具存储命名空间、Chrome local、原有工具 Web Lock 和写入回读确认；每工具 32 键 / 32 KB，每值 8 KB，读取 IPC 12 KB。只有已安装且获 `browser.storage` 能力和 Chrome `storage` 权限的工具可用；clear 必须通过受信 UI 一次性真实点击 Intent，只清本工具键值。此处只记 SOURCE_WIRED、Node/Build/Chrome 原生均 NOT_TESTED。

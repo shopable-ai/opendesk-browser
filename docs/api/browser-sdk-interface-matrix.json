@@ -1918,9 +1918,9 @@
       "VERSION_GATED": 1
     },
     "approvedOperations": 55,
-    "approvedRegistered": 48,
+    "approvedRegistered": 50,
     "approvedCookieHostOnly": 0,
-    "approvedPlannedNew": 7,
+    "approvedPlannedNew": 5,
     "nativeMappedApproved": 36,
     "approvedWithInputAndOutputSchemas": 55
   },
@@ -7466,9 +7466,9 @@
     },
     {
       "id": "browser.bookmarks.create",
-      "visibility": "APPROVED_TOOL_PLANNED",
+      "visibility": "APPROVED_TOOL_REGISTERED",
       "migrationDecision": "NEW",
-      "sourceRegistry": "src/framework/sdk/browser-contract.js (TARGET NOT YET PRESENT)",
+      "sourceRegistry": "src/framework/sdk/browser-contract.js#BROWSER_OPERATIONS",
       "callSignature": "OpenDeskSDK.browser.bookmarks.create({url:HTTP_URL,title?:string,parentRef?:opaque})",
       "returnSignature": "Promise<{bookmarkRef:opaque}>",
       "inputSchema": {
@@ -7536,12 +7536,12 @@
       "sdkFile": "src/framework/sdk/browser.js",
       "registryFile": "src/framework/sdk/browser-contract.js",
       "schemaFile": "src/framework/sdk/browser-schemas.js",
-      "hostDispatcher": "src/platform/chrome/context-menus.js#createContextMenuHost (REUSE)",
+      "hostDispatcher": "src/platform/chrome/context-menus.js#createContextMenuHost",
       "authority": "src/ui/sidebar-tools.js + src/platform/chrome/context-menus.js (REUSE)",
-      "driverFile": "src/platform/chrome/bookmarks.js (NEW adapter in existing host)",
+      "driverFile": "src/platform/chrome/bookmarks.js",
       "lifecycle": "request / owned opaque Ref; fail closed after revoke/restart when applicable",
       "phase": "P3",
-      "status": "DESIGN_APPROVED_NOT_IMPLEMENTED",
+      "status": "SOURCE_WIRED_NATIVE_NOT_TESTED",
       "verification": {
         "node": "NOT_TESTED",
         "build": "NOT_TESTED",
@@ -7595,13 +7595,13 @@
         "src/platform/chrome/context-menus.js#createContextMenuHost (REUSE)",
         "src/platform/chrome/bookmarks.js (NEW adapter in existing host)"
       ],
-      "schemaStrategy": "INLINE_FROZEN_DESIGN_SCHEMA; implementation MUST copy/adapt into strict runtime validator and test"
+      "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA"
     },
     {
       "id": "browser.bookmarks.removeOwned",
-      "visibility": "APPROVED_TOOL_PLANNED",
+      "visibility": "APPROVED_TOOL_REGISTERED",
       "migrationDecision": "NEW",
-      "sourceRegistry": "src/framework/sdk/browser-contract.js (TARGET NOT YET PRESENT)",
+      "sourceRegistry": "src/framework/sdk/browser-contract.js#BROWSER_OPERATIONS",
       "callSignature": "OpenDeskSDK.browser.bookmarks.removeOwned({bookmarkRef:opaque})",
       "returnSignature": "Promise<{removed:boolean}>",
       "inputSchema": {
@@ -7658,12 +7658,12 @@
       "sdkFile": "src/framework/sdk/browser.js",
       "registryFile": "src/framework/sdk/browser-contract.js",
       "schemaFile": "src/framework/sdk/browser-schemas.js",
-      "hostDispatcher": "src/platform/chrome/context-menus.js#createContextMenuHost (REUSE)",
+      "hostDispatcher": "src/platform/chrome/context-menus.js#createContextMenuHost",
       "authority": "src/ui/sidebar-tools.js + src/platform/chrome/context-menus.js (REUSE)",
-      "driverFile": "src/platform/chrome/bookmarks.js (NEW adapter in existing host)",
+      "driverFile": "src/platform/chrome/bookmarks.js",
       "lifecycle": "request / owned opaque Ref; fail closed after revoke/restart when applicable",
       "phase": "P3",
-      "status": "DESIGN_APPROVED_NOT_IMPLEMENTED",
+      "status": "SOURCE_WIRED_NATIVE_NOT_TESTED",
       "verification": {
         "node": "NOT_TESTED",
         "build": "NOT_TESTED",
@@ -7717,7 +7717,7 @@
         "src/platform/chrome/context-menus.js#createContextMenuHost (REUSE)",
         "src/platform/chrome/bookmarks.js (NEW adapter in existing host)"
       ],
-      "schemaStrategy": "INLINE_FROZEN_DESIGN_SCHEMA; implementation MUST copy/adapt into strict runtime validator and test"
+      "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA"
     },
     {
       "id": "browser.history.searchTrusted",
@@ -56366,9 +56366,9 @@
   "coverageAudit": {
     "seedNativeCatalogEntries": 119,
     "seedNativeCatalogMissing": 0,
-    "registeredOperations": 48,
+    "registeredOperations": 50,
     "trustedCookieHostOperations": 0,
-    "approvedNewDesignOperations": 7,
+    "approvedNewDesignOperations": 5,
     "approvedTotal": 55,
     "orphanNativeMappings": [],
     "parseErrors": [],

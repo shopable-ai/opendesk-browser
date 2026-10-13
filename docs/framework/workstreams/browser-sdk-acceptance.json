@@ -12,9 +12,9 @@
     "auditOnly": true
   },
   "summary": {
-    "operationCount": 48,
+    "operationCount": 50,
     "implementationCounts": {
-      "IMPLEMENTED": 48,
+      "IMPLEMENTED": 50,
       "PLANNED": 0,
       "HOST_ONLY": 0,
       "NOT_EXPOSED": 0
@@ -2182,6 +2182,92 @@
         "Same-candidate Node, Build and real Chrome acceptance pending"
       ],
       "nextTask": "Run browser-sdk-p4-implementation.test.mjs and native storage/clear/permission revocation",
+      "commits": [],
+      "evidence": []
+    },
+    {
+      "api": "browser.bookmarks.create",
+      "module": "browser.bookmarks",
+      "apiVersion": "1.0.0",
+      "implementation": "IMPLEMENTED",
+      "executionContexts": [
+        "sidebar-tool"
+      ],
+      "exposure": "APPROVED_TOOL",
+      "inputSchema": "src/framework/sdk/browser-schemas.js#browser.bookmarks.create:input",
+      "outputSchema": "src/framework/sdk/browser-schemas.js#browser.bookmarks.create:output",
+      "chromePermissions": [
+        "bookmarks"
+      ],
+      "toolCapabilities": [
+        "browser.bookmarks"
+      ],
+      "effectClass": "write",
+      "riskLevel": "high",
+      "siteScope": "exact-url",
+      "lifecycle": "request",
+      "hostImplementation": "src/platform/chrome/context-menus.js#handleTool → src/platform/chrome/bookmarks.js",
+      "sdkEntry": "src/framework/sdk/browser.js",
+      "positiveTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "denialTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "nativeChrome": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "callableNowVerification": "NOT_TESTED",
+      "blockers": [
+        "Same-candidate Node/Build/Chrome genuine bookmarks permission and Worker-restart evidence missing"
+      ],
+      "nextTask": "Run browser-sdk-p3-bookmarks.test.mjs and native Chrome installed-tool consent + owned bookmark denial",
+      "commits": [],
+      "evidence": []
+    },
+    {
+      "api": "browser.bookmarks.removeOwned",
+      "module": "browser.bookmarks",
+      "apiVersion": "1.0.0",
+      "implementation": "IMPLEMENTED",
+      "executionContexts": [
+        "sidebar-tool"
+      ],
+      "exposure": "APPROVED_TOOL",
+      "inputSchema": "src/framework/sdk/browser-schemas.js#browser.bookmarks.removeOwned:input",
+      "outputSchema": "src/framework/sdk/browser-schemas.js#browser.bookmarks.removeOwned:output",
+      "chromePermissions": [
+        "bookmarks"
+      ],
+      "toolCapabilities": [
+        "browser.bookmarks"
+      ],
+      "effectClass": "write",
+      "riskLevel": "high",
+      "siteScope": "owned-bookmark",
+      "lifecycle": "request",
+      "hostImplementation": "src/platform/chrome/context-menus.js#handleTool → src/platform/chrome/bookmarks.js",
+      "sdkEntry": "src/framework/sdk/browser.js",
+      "positiveTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "denialTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "nativeChrome": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "callableNowVerification": "NOT_TESTED",
+      "blockers": [
+        "Same-candidate Node/Build/Chrome genuine bookmarks permission and Worker-restart evidence missing"
+      ],
+      "nextTask": "Run browser-sdk-p3-bookmarks.test.mjs and native Chrome installed-tool consent + owned bookmark denial",
       "commits": [],
       "evidence": []
     }
