@@ -56,19 +56,13 @@ export function createBrowserSdk({request,context='sidebar-tool'}={}){
       close:()=>ask('browser.events.close',{sessionRef:observationId})
     });
   };
-  // These two existing methods use approved legacy UI operations, not Browser Host RPC.
-  const legacy=(name,alias)=>args=>{
-    normalizeBrowserOperation(name,args);
-    if(typeof request!=='function')return Promise.reject(fail('E_CONTEXT','This browser operation needs an installed tool'));
-    return request(alias,args);
-  };
   return Object.freeze({apiVersion:'1.0.0',capabilities,
     contextMenu:Object.freeze({getStatus:()=>ask('browser.contextMenu.getStatus'),
       register:method('browser.contextMenu.register'),unregister:()=>ask('browser.contextMenu.unregister')}),
     launch:Object.freeze({consume:()=>ask('browser.launch.consume')}),
     page:Object.freeze({getContext:()=>ask('browser.page.getContext'),getSelection:()=>ask('browser.page.getSelection')}),
-    clipboard:Object.freeze({writeText:text=>legacy('browser.clipboard.writeText','clipboard.writeText')({text})}),
-    downloads:Object.freeze({text:legacy('browser.downloads.text','file.download')}),
+    clipboard:Object.freeze({writeText:text=>ask('browser.clipboard.writeText',{text})}),
+    downloads:Object.freeze({text:method('browser.downloads.text')}),
     tabs:Object.freeze({create:method('browser.tabs.create'),activateOwned:method('browser.tabs.activateOwned'),
       getOwned:method('browser.tabs.getOwned'),listOwned:method('browser.tabs.listOwned'),
       pinOwned:method('browser.tabs.pinOwned'),
