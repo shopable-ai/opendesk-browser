@@ -116,3 +116,11 @@ Chrome 验收路径：使用相同源文件和 `programId=marked-a`，检查→�
 | Browser SDK R8 / Cookies | OUT_OF_SCOPE；未修改 |
 
 **验收边界**：源码提交和模拟测试不是用户体验全链路关闭；只有受信 Chrome 回执、同包身份与实际网络/执行结果闭环后才能标记产品 PASS。
+
+## R7.2 D02/D03 Chrome 真正用户操作验收驱动（2026-10-13）
+
+- `tests/framework/page-dependency-r72-cft-cycle.mjs` 通过现有 CFT Runner 的真实 Chrome Side Panel 鼠标、键盘触发获取/审核/运行/保存，不伪造 Broker 审核与 Preview。
+- `.github/workflows/r72-dependency-native-cft.yml` 使用 macos-15 Chrome for Testing 155.0.8059.39，Standard 和 Developer 分别构建/验证，运行 Node D02/D03 测试并保留原生 acceptance.json。
+- 使用固定新库 `marked@15.0.12` Classic UMD，核对真实 CDN 来源、下载 SHA、真实导出返回值、Program A/B 不同批准锁、B SHA 复用和第二程序零新下载、两个 Page Candidate 的保存。
+- 本提交仅为 **IMPLEMENTED_DRIVER**；后续根据每次 CI/job/acceptance.json 实际结果分别记 `CHROME_PASS`/`CHROME_FAIL`，CI 未验证之前不能写 PASS。整 Chrome 重启断网 D09、Controller 新 Classic D05、工具多库 D07、定时和云控 D10 仍未正式关闭。
+- 用户 Mac 本地环境无法访问：`MAC_NATIVE_NOT_TESTED`。不能把 GitHub macOS CI 代替用户原生 Mac 验收。
