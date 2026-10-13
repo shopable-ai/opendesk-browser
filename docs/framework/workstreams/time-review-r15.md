@@ -124,3 +124,11 @@ npm run verify
 - 源码工具版本从 `1.5.0` 升为 `1.5.1`，否则官方市场现有安装器的 `compareToolVersions` 会拒绝同版本内容更新；继续复用单一安装器、目录和清理事务。
 - `TIME_REVIEW_HOST_API` 仍为 `time.review/1.5.0`，这与独立工具包发行版本不同。包 SHA 改变必须要求用户再点击可信开始；站点同意保持原有效范围，历史计时保留，禁止暗中扩大。
 - 已增加 Node 合同断言版本与 Host API。实际升级旧 1.5.0→1.5.1 的真实 Chrome 流程仍需 macOS CI 另行证据，不得宣称 PASS。
+
+## Time Review R1.5.2 · 原位启动后即时刷新与 iframe 解释（2026-10-13）
+
+- 用户问题：`iframe` 是 Side Panel 中 `src/ui/sidebar-tools.js:mountTool` 创建的`sidebar-tools/sandbox.html` **沙箱内嵌内容区域**，不是另一个页面、插件或授权应用。可信外壳在 `src/ui/tool.html`，时间业务持续运行在已存在的 SW `src/time-review/service.js`，授权 UI 留在宿主的预编译 DOM；用户关闭 Side Panel 不等于停用计时。
+- 缺陷：之前可信宿主开始／网站授权成功后，Time Review 内容页可能直到 15 秒轮询才更新暂停／记录状态。修复：成功的受信任操作只向同一沙箱实例发带 `instance/toolId` 的 `state-changed` UI 提示；`src/sidebar-tools/bridge.js` 校验发件者是直接父宿主和实例 ID 后投递内部事件；工具仅通过既有 `time.status` RPC 读取实际状态，**不传递原始记录、Token、授权或 Chrome API**。没有新增 Authority / 安装器 / 第二个 Time Review。
+- 首次缺权限的 `E_TIME_PERMISSION_SETUP` 改为普通指引，不展示红色内部错误码。真正授权仍需要可信 DOM 上的真实 Chrome 用户点击。
+- 因为已安装工具包的 JS 改变，发行 `time-review` 从 `1.5.1` 升级至 `1.5.2`，避免正式市场同版本覆盖；`TIME_REVIEW_HOST_API` 仍为 `time.review/1.5.0`。已有历史合法统计和用户独立网站范围保留，更新包必须再明确开始。
+- 受影响测试：`time-review-host-controls-r51.test.mjs` 新静态信号安全合同、`time-review-r15-site-grants.test.mjs` 版本断言、现有 macOS 原生用例增加 8 秒内可见暂停按钮断言。真实 Mac Chrome、200% 缩放及新的同候选包 hashes 尚未通过，保留 `NOT_TESTED`。

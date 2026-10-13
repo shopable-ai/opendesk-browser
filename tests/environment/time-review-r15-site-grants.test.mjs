@@ -248,6 +248,6 @@ test('R1.5 unrelated Chrome origin removal does not revoke Time Review site cons
 
 test('R1.5.1 official tool package version advances without changing the trusted Host API',async()=>{
   const pkg=await createSidebarToolPackage('examples/sidebar-tools/time-review');
-  assert.equal(pkg.version,'1.5.1');
+  assert.equal(pkg.version,'1.5.2');
   assert.equal(TIME_REVIEW_HOST_API,'time.review/1.5.0');
 });

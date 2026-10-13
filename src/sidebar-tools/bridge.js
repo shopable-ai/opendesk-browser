@@ -110,6 +110,12 @@ export function initSidebarToolSandbox() {
         root.dispatchEvent(new Event('opendesk-page-changed'));
       return;
     }
+    // No privileged data or authorization crosses the sandbox boundary.
+    if (message.kind==='state-changed') {
+      if(message.instance===instance&&message.toolId===toolId)
+        root.dispatchEvent(new Event('opendesk-tool-state-changed'));
+      return;
+    }
     if (message.kind!=='load' || instance || typeof message.instance!=='string' ||
         message.instance.length>90 || !message.tool || typeof message.tool!=='object')return;
     const tool=message.tool;

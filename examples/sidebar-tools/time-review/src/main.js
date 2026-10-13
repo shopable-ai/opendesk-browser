@@ -293,7 +293,10 @@
         await readDay();
       }
     }catch(err){
-      if(err?.code==='E_TIME_TRUSTED_CLICK')showMessage('已打开工具详情设置，请在那里明确执行操作。');
+      if(err?.code==='E_TIME_PERMISSION_SETUP')
+        showMessage('请在上方授权卡确认网站范围和空闲检测权限，然后开始记录。');
+      else if(err?.code==='E_TIME_TRUSTED_CLICK')
+        showMessage('请在上方工具设置中确认所选操作。');
       else showMessage((err.code||'E_TIME_REVIEW')+'：'+err.message,true);
     }
     finally{busy=false;render();}
@@ -345,11 +348,22 @@
   resize?.observe(canvas);
   const onResize=()=>renderCanvas(dayData());
   if(!resize)window.addEventListener('resize',onResize);
+  // Trusted Host changes are reflected without waiting for the 15s poll.
+  // The event itself carries no state: we re-read via the existing authority.
+  const onTrustedStateChanged=()=>{
+    if(!busy&&!document.hidden&&!editing&&!root.querySelector('.row-edit'))
+      void act('time.status');
+  };
+  root.addEventListener('opendesk-tool-state-changed',onTrustedStateChanged);
   const timer=window.setInterval(()=>{
     // A background refresh must not destroy a user's unsaved classification
     // editor (record rows are re-rendered from the current summary).
     if(!busy&&!document.hidden&&!$('settings').open&&!editing&&!root.querySelector('.row-edit'))void act('time.status');
   },15000);
-  window.addEventListener('pagehide',()=>{window.clearInterval(timer);resize?.disconnect();if(!resize)window.removeEventListener('resize',onResize);},{once:true});
+  window.addEventListener('pagehide',()=>{
+    window.clearInterval(timer);resize?.disconnect();
+    root.removeEventListener('opendesk-tool-state-changed',onTrustedStateChanged);
+    if(!resize)window.removeEventListener('resize',onResize);
+  },{once:true});
   void act('time.status');
 })();
