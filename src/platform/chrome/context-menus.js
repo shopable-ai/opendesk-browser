@@ -4,6 +4,7 @@ import {createNetworkService} from './network.js';
 import {createBrowserNetworkObserver} from './browser-network-observe.js';
 import {createBrowserScreenshotHost} from './browser-screenshot.js';
 import {createBrowserScreenshotResources} from './browser-screenshot-resources.js';
+import {createBrowserDownloadsHost} from './browser-downloads.js';
 import {createTrustedCookieHost} from './browser-cookie-host.js';
 import {chromeCall} from './tabs.js';
 import {SIDEBAR_TOOL_ENABLE_STORE,requireToolEnableRecords,sidebarToolEnabled} from '../../ui/sidebar-tools/lifecycle.js';
@@ -146,7 +147,8 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
   const intentOperations=new Set(['browser.tabs.create','browser.tabs.activateOwned','browser.tabs.pinOwned','browser.tabs.reloadOwned','browser.tabs.navigateOwned','browser.tabs.removeOwned','browser.network.request',
     'browser.network.observe.start','browser.network.observe.export','browser.screenshot.captureVisible',
     'browser.cookies.set','browser.cookies.remove','browser.cookies.clearSite','browser.cookies.observe.start',
-    'browser.clipboard.writeText','browser.downloads.text']);
+    'browser.clipboard.writeText','browser.downloads.text',
+    'browser.downloads.download','browser.downloads.cancelOwned']);
   const observationOperations=new Set(['browser.network.observe.getStatus','browser.network.observe.stop',
     'browser.events.read','browser.events.close']);
   const ownedOperationMethods=new Set(['browser.operations.getStatus','browser.operations.cancel']);
@@ -215,6 +217,12 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
     }});
   const networkObserver=createBrowserNetworkObserver({api});
   const screenshotResources=createBrowserScreenshotResources({api});
+  const downloadHost=createBrowserDownloadsHost({api,authorize:async({operation,context,origin})=>{
+    if(context.approvedOrigin!==null&&context.approvedOrigin!==origin)
+      throw failure('E_SITE_GRANT_REQUIRED','Downloaded URL changed Origin');
+    await verifyBrowserOwner(context,operation,origin);
+    return true;
+  }});
   const trustedCookies=createTrustedCookieHost({api});
   const screenshotHost=createBrowserScreenshotHost({api,
     resolveTarget:(ref,context)=>tabHost.resolve(ref,context),
@@ -229,6 +237,7 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
     trustedCookies.revoke();
     networkObserver.revokeAll();
     screenshotResources.revokeAll();
+    downloadHost.revokeAll();
     browserIntents.clear();
     for(const controller of activeNetworkRequests)
       controller.abort(failure('E_GRANT_REVOKED','Installed tool authority changed during HTTP request'));
@@ -394,6 +403,9 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
       operation==='browser.tabs.navigateOwned'?Boolean(api.tabs?.get&&api.tabs?.update&&api.webNavigation?.getFrame):
       operation==='browser.tabs.removeOwned'?Boolean(api.tabs?.get&&api.tabs?.remove&&api.webNavigation?.getFrame):
       operation==='browser.sidePanel.openSelf'?Boolean(api.sidePanel?.open):
+      operation==='browser.downloads.download'?Boolean(api.downloads?.download):
+      operation==='browser.downloads.getOwned'||operation==='browser.downloads.listOwned'?Boolean(api.downloads?.search):
+      operation==='browser.downloads.cancelOwned'?Boolean(api.downloads?.search&&api.downloads?.cancel):
       operation.startsWith('browser.cookies.')?Boolean(api.cookies?.getAll&&api.cookies?.getAllCookieStores&&api.permissions?.contains):
       operation==='browser.network.request'?typeof fetchImpl==='function':
       operation==='browser.network.observe.start'?Boolean(api.webRequest?.onBeforeRequest?.addListener&&api.tabs?.get&&api.webNavigation?.getFrame):
@@ -522,7 +534,7 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
            intent.args!==canonicalJSON(checked))
           throw failure('E_USER_GESTURE_REQUIRED','New explicit approval required for this exact action');
         const approvedOrigin=operation==='browser.network.observe.start'?checked.origins[0]:
-          ['browser.tabs.create','browser.tabs.navigateOwned','browser.network.request'].includes(operation)
+          ['browser.tabs.create','browser.tabs.navigateOwned','browser.network.request','browser.downloads.download'].includes(operation)
             ?new URL(checked.url).origin:null;
         const context={...owner,approvedOrigin};
         await verifyBrowserOwner(context,operation,approvedOrigin);
@@ -533,6 +545,8 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
         // in the untrusted iframe or in this approval-only Host branch.
         if(operation==='browser.clipboard.writeText'||operation==='browser.downloads.text')
           return {authorized:true};
+        if(operation==='browser.downloads.download')return downloadHost.download(checked,context);
+        if(operation==='browser.downloads.cancelOwned')return downloadHost.cancelOwned(checked,context);
         if(operation==='browser.tabs.create')return tabHost.create(checked,context);
         if(operation==='browser.tabs.activateOwned')return tabHost.activateOwned(checked,context);
         if(operation==='browser.tabs.pinOwned')return tabHost.pinOwned(checked,context);
@@ -584,6 +598,14 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
           if(jsonBytes(result)>12000)throw failure('E_LIMIT','HTTP response exceeds IPC budget');
           return result;
         }finally{activeNetworkRequests.delete(controller)}
+      }
+      if(operation==='browser.downloads.getOwned'||operation==='browser.downloads.listOwned'){
+        const checked=normalizeBrowserOperation(operation,args),hash=await digestTool(tool);
+        const context={toolId,toolVersion,packageHash:hash,epoch:installEpoch??null,
+          installEpoch:String(installEpoch??'initial-install'),approvedOrigin:null};
+        await verifyBrowserOwner(context,operation);
+        return operation==='browser.downloads.getOwned'
+          ?downloadHost.getOwned(checked,context):downloadHost.listOwned(checked,context);
       }
       if(operation==='browser.tabs.getOwned'||operation==='browser.tabs.listOwned'){
         const checked=normalizeBrowserOperation(operation,args),packageHash=await digestTool(tool);
@@ -803,7 +825,7 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
         const packageHash=await digestTool(tool);
         const origin=cookieCapabilities[targetOperation]?new URL(args.url).origin:
           targetOperation==='browser.network.observe.start'?args.origins[0]:
-          ['browser.tabs.create','browser.tabs.navigateOwned','browser.network.request'].includes(targetOperation)
+          ['browser.tabs.create','browser.tabs.navigateOwned','browser.network.request','browser.downloads.download'].includes(targetOperation)
             ?new URL(args.url).origin:null;
         const identity={toolId,toolVersion,packageHash,epoch:installEpoch??null,
           installEpoch:String(installEpoch??'initial-install'),approvedOrigin:null};
