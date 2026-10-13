@@ -290,15 +290,6 @@ export function normalizeBrowserOperation(operation,args={}){
          !args.actionIds.every(id=>typeof id==='string'&&/^[a-z][a-z0-9-]{0,39}$/.test(id)))
          throw fail('E_SCHEMA','Invalid context menu action IDs');
       break;
-    case 'browser.clipboard.writeText': case 'browser.downloads.text':
-      fields(args,operation==='browser.downloads.text'?['text','filename']:['text'],
-        operation==='browser.downloads.text'?['text','filename']:['text']);
-      if(typeof args.text!=='string'||!args.text||new TextEncoder().encode(args.text).length>150000)
-        throw fail('E_LIMIT','Export text must contain 1–150000 UTF-8 bytes');
-      if(operation==='browser.downloads.text'&&(typeof args.filename!=='string'||args.filename.length>90||
-         !/^[^/\\\x00-\x1f:?*"<>|]+\.md$/i.test(args.filename)||args.filename.startsWith('.')))
-        throw fail('E_SCHEMA','A safe Markdown .md filename of at most 90 characters is required');
-      break;
     default: throw fail('E_SERVICE_UNSUPPORTED','This Browser SDK operation is not executable');
   }
   return args;
