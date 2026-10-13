@@ -1,4 +1,4 @@
-name: R7.3 Page Classic A/B, Controller D04 ESM and D05 Classic CFT
+name: R7.4 Page Classic, Controller D04 ESM, D05 Classic and pinned npm import CFT
 on:
   push:
     branches: [main]
@@ -7,6 +7,10 @@ on:
       - 'tests/framework/page-dependency-r72-cft-cycle.mjs'
       - 'tests/framework/controller-dependency-r72-cft-cycle.mjs'
       - 'tests/framework/controller-classic-r73-cft-cycle.mjs'
+      - 'tests/framework/controller-pinned-npm-r74-cft-cycle.mjs'
+      - 'src/libs/page-frameworks/contract.js'
+      - 'src/libs/page-frameworks/controller-esm-linker-r4.mjs'
+      - 'src/ui/page-component-remote.js'
       - 'tests/environment/dependency-manager.test.mjs'
       - 'src/scripting/user-scripts/controller-classic.js'
       - 'src/ui/controller-esm-source.js'
@@ -54,7 +58,7 @@ jobs:
         id: chrome
         with:
           chrome-version: '155.0.8059.39'
-      - name: True Chrome Page A/B, D05 Controller Classic Worker and D04 Developer CSV
+      - name: True Chrome Page A/B, D05 Classic, D04 CSV and normal pinned npm import
         env:
           CHROME_FOR_TESTING_BIN: '${{ steps.chrome.outputs.chrome-path }}'
           OPENDESK_R72_DEPENDENCY_NATIVE_SMOKE: '1'
