@@ -41,3 +41,7 @@ jobs:
           node-version: '22'
       - name: Verify existing GF ledger, competing previews, truthful SEO limits
         run: node --test tests/environment/global-first-r4-claims.test.mjs tests/environment/global-first-r5-product-evidence.test.mjs tests/environment/global-first-r5-benchmark.test.mjs tests/environment/global-first-r5-historical-timeline.test.mjs
+      - name: Existing Task verification and local install (Node component, not Chrome)
+        run: |
+          node --test tests/environment/agent-to-task-contract.test.mjs tests/environment/task-package-flow.test.mjs
+          node --test tests/environment/workflow-r15.test.mjs tests/environment/local-project-install-r251.test.mjs
