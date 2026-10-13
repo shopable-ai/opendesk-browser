@@ -14,7 +14,9 @@
     "c3356edd26092aac2470594076e42dd4ef63befc",
     "ae5e765fe743ee7396f752702880ed0a26de5d32",
     "c814449e08d45baef40bee5439017551b42408a5",
-    "d5712897adf7b8471227fb2b40d132af5363505c"
+    "d5712897adf7b8471227fb2b40d132af5363505c",
+    "ac92a35418a2ea69e9970e64d0579579005f76a1",
+    "93c78341271032cb3c641f2b818e9636fb6b88e9"
   ],
   "taskExamples": [
     {
@@ -39,23 +41,31 @@
     "longRunningRunner": "NOT_IMPLEMENTED"
   },
   "ci": {
-    "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38350592138",
-    "headSha": "d5712897adf7b8471227fb2b40d132af5363505c",
+    "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38351008157",
+    "headSha": "93c78341271032cb3c641f2b818e9636fb6b88e9",
     "status": "completed",
     "conclusion": "success",
-    "passed": 225,
+    "passed": 226,
     "failed": 0,
     "cloudProviderTests": {
-      "passed": 29,
+      "passed": 30,
       "failed": 0
     },
     "authorityTests": {
       "passed": 113,
       "failed": 0
     },
-    "productionPackageHash": "819c0bf67a86ccfbe6e98b8f99c5e08e6a50186caee524c976054f55a13c9e49",
-    "developmentPackageHash": "5abadfc2d3cb310ea20a7fc20576ecff6736ff63a00fc97c1a950f2300725a1a",
-    "qualification": "Same SHA CI component and build validation only; no native two-task Chrome Worker runs"
+    "otherComponents": {
+      "passed": 83,
+      "failed": 0
+    },
+    "check": "PASS",
+    "productionBuild": "PASS",
+    "developmentBuild": "PASS",
+    "verify": "PASS",
+    "productionPackageHash": "9efaded0997d1182bdd0b058f017a6c025563aa1b7ac5162012957ada8faf839",
+    "developmentPackageHash": "8cdbbf5663130d6b78c68c831ccee4650699d90f26efc8666ebaf8f4e0cd0e8e",
+    "qualification": "CI component+package only; actual two-task Chrome Worker run evidence pending"
   },
   "originalRunEvidence": {
     "runIds": [],
@@ -74,7 +84,8 @@
   },
   "exposure": {
     "taskSchemaReview": "names, required fields and full manifest paramsSchema disclosure",
-    "authorizationGenerationReview": "strict display matching on installationId and generation"
+    "authorizationGenerationReview": "strict display matching on installationId and generation",
+    "approvalPin": "complete fixed identity mandatory and verified by browser resolver"
   },
   "previousFailedCi": {
     "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38291915410",
@@ -107,5 +118,24 @@
       "status": "OWNED_ELSEWHERE",
       "suggestedNextStep": "Obtain explicit resource handoff or postpone native execution; keep CI isolated"
     }
-  ]
+  ],
+  "previousSuccessfulCi": {
+    "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38350592138",
+    "headSha": "d5712897adf7b8471227fb2b40d132af5363505c",
+    "status": "completed",
+    "conclusion": "success",
+    "passed": 225,
+    "failed": 0,
+    "cloudProviderTests": {
+      "passed": 29,
+      "failed": 0
+    },
+    "authorityTests": {
+      "passed": 113,
+      "failed": 0
+    },
+    "productionPackageHash": "819c0bf67a86ccfbe6e98b8f99c5e08e6a50186caee524c976054f55a13c9e49",
+    "developmentPackageHash": "5abadfc2d3cb310ea20a7fc20576ecff6736ff63a00fc97c1a950f2300725a1a",
+    "qualification": "Same SHA CI component and build validation only; no native two-task Chrome Worker runs"
+  }
 }

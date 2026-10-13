@@ -87,3 +87,12 @@ GitHub main 在本轮由其他 Agent 并行提交更新。修改只针对 Cloud 
 - Gate B：先在隔离环境完成两个任务的本地安装和 Provider claim/admission/Worker/Run/Result/receipt 原生路径，逐条保存身份。
 - Gate C：核对无结果许可时的最小回执语义与严格不泄漏；验证升级/撤权/停止/重启故障矩阵。
 - Gate D：只有 Gate B/C 的真实证据完整后，才可更新 `NATIVE_PASS`。跨任务 FireId 和关闭 Side Panel 长期 Runner 仍归其他工作流，严禁重复造第二套。
+
+## R5.1.4 · 完整安装身份强制审批与同候选 CI（2026-10-13）
+
+- `ac92a35418a2ea69e9970e64d0579579005f76a1`：`src/cloud-control/service.js` 强制审批包含 `taskId/version/manifestHash/sourceHash/installationId/generation/siteOrigins/resultAllowed` 全字段，缺失/非法字段在 Task resolver、网站授权和 DB 写入之前失败；不可静默授权新版本或安装代际。
+- `93c78341271032cb3c641f2b818e9636fb6b88e9`：新增独立 `approval-pin-contract.test.mjs` 拒绝性用例；既有 Authority 测试传入完整固定身份。复用原 Host/RunHost/Worker，没有第二套执行系统。
+- [受影响的 Cloud R5.1 CI #38351008157](https://github.com/shopable-ai/opendesk-browser/actions/runs/38351008157) 绑定源码 SHA `93c78341271032cb3c641f2b818e9636fb6b88e9`，**completed/success**：Cloud `30/30`、Controller Authority `113/113`、其余相关组件 `83/83`，共 **226 PASS / 0 FAIL**；`npm run check`、`npm run build`、`npm run build:dev`、`npm run verify` 均 PASS。
+- CI 生产包 packageHash `9efaded0997d1182bdd0b058f017a6c025563aa1b7ac5162012957ada8faf839`；开发包 packageHash `8cdbbf5663130d6b78c68c831ccee4650699d90f26efc8666ebaf8f4e0cd0e8e`。
+- **SOURCE_IMPLEMENTED / COMPONENT_TESTED / BUILD_VERIFIED；NATIVE_PENDING**。尚无两个不同已安装 Task 通过真实 Chrome Worker 的原始 RunId、ResultId、Result.revision.sourceHash、retirement released、Provider receiptId；原始 native 证据数组保持为空。Provider HTTP/WebSocket 测试里的手工 runRef 不能算实际 Chrome Run。
+- `resultAllowed=false` 下是否允许无结果正文的最小状态回执，保留 `NEEDS_PRODUCT_AND_SECURITY_DECISION`；不擅自扩大隐私授权。继续避让 R4/Scheduled R2 的 Profile、端口、Provider 和 dist。
