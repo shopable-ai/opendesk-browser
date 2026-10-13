@@ -1,5 +1,30 @@
 # Stay Focus R1.0 · 独立工具交付账本
 
+## R1.3 核心产品状态（2026-10-13 · 最新源码候选：`95f23ce3014fdd36c6e9c48580e320688e465be7`）
+
+**产品结论：尚不能签收为正式可用（NO-GO）。** 核心代码已存在并完成 R1.3 定向修复，但本候选 GitHub Actions 尚未执行完，真实 Chrome 计时、拦截、整浏览器重启与卸载需要取得同候选原生证据。不要把下表 `DONE` 解释为 `NATIVE_PASS`。
+
+| 核心功能 | 源码实现 | 当前候选组件测试 | 当前候选 Chrome 验收 | 当前缺口 |
+|---|---|---|---|---|
+| F1 安装与生命周期 | DONE | NOT_TESTED | NOT_TESTED | 真实发现、安装、启停、卸载脚本已覆盖，但本候选未运行 |
+| F2 每日娱乐时间额度 | DONE | NOT_TESTED | NOT_TESTED | 1 分钟真实前台使用以及 YouTube 15 分钟配置尚待同候选验证 |
+| F3 Chrome 网站拦截 | DONE | NOT_TESTED | NOT_TESTED | 读回现检查额外规则条件；动态 DNR 与 HTTP 导航尚待真实 Chrome |
+| F4 网站策略与专注模式 | DONE | NOT_TESTED | NOT_TESTED | 暂停/精确子域/白名单/共享额度/时段/会话已有代码；原生未逐项签收 |
+| F5 浏览器可靠性及恢复 | DONE | NOT_TESTED | NOT_TESTED | 已补同 Profile 整个 Chrome 重启、额度与 DNR 持久验证；等待执行 |
+| F6 授权、撤权、清理 | DONE | NOT_TESTED | NOT_TESTED | 验证真实授权弹窗、停用/卸载清理与未授权状态的 DNR 规则范围 |
+| F7 独立工具与主要 UI | DONE | NOT_TESTED | NOT_TESTED | 已隔离 Time Review；未取得本候选完整 Side Panel 用户操作证据 |
+
+**R1.3 实际写入文件与变更：**
+
+- `src/stay-focus/rule-ownership.js`：DNR readback 除原有 ID / priority / regex / resourceTypes / excludedRequestDomains 外，检查额外 condition/action/redirect 字段；仅把显式的 `isUrlFilterCaseSensitive:false` 视为 Chrome 默认值，避免被错误收窄或改写的规则虚假通过。
+- `tests/environment/stay-focus-r1.test.mjs`：针对多余 `requestDomains`、额外 redirect URL、大小写匹配变化补 1 组必要组件断言。
+- `tests/framework/stay-focus-r1-native.test.mjs`：原有真实 1 分钟额度/停用/重新启用/卸载链路中，新增整 Chrome 退出→同 Profile 重启→持久额度与 DNR 对账→真实 HTTP 导航再次阻断→可信 Side Panel 继续卸载。没有直接改用量、权限或规则。
+- `docs/framework/workstreams/stay-focus-r1.md`：本表放在历史长日志之前；历史候选证据和失败记录原样保留。
+
+**本候选验证进度：** [Stay Focus Actions #38390117463](https://github.com/shopable-ai/opendesk-browser/actions/runs/38390117463) 创建时为 `QUEUED`，并非 PASS。仅做了源码阅读与 V8 语法解析（`tests/framework/stay-focus-r1-native.test.mjs`、`src/stay-focus/rule-ownership.js`），它不能代替 `node --test`、`npm run check/build/build:dev/verify` 或 Mac Chrome。用户 Mac 工作区对当前连接不可访问，也未把未运行命令标为通过。待 Actions 完成后依据原始 job log 填写 component/build/native、独立包 SHA-256、SW 字节数与 SHA；**目前均为 NOT_TESTED/未生成当前候选证据**。无依据的 95 分禁止登记。
+
+**验证资源与所有权：** 只使用 GitHub Actions 自有 macOS Chrome for Testing 独立 Profile；不操作用户日常 `dist/development`、其 Mac Chrome Profile 或其他 Agent 的工作树。额外的浏览器重启验收沿用原本 1 分钟额度测试一次，不再跑第二次 15 分钟实耗；不测试配色、缩放、断点或无关 UI。
+
 **日期：**2026-10-13。目标 `shopable-ai/opendesk-browser` `main`。与 Time Review R1.5 并行存在代码冲突风险：集成时以仓库 HEAD/提交 SHA 的原子校验为准，禁止覆盖并行 Agent 的 Mac 工作目录。
 
 ## 用户闭环与责任边界
