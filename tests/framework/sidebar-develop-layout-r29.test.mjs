@@ -62,6 +62,8 @@ test('Develop styles follow R27 tokens and reflow actions below 380 CSS px',()=>
     'Shared accordion must not overflow a narrow parent');
   assert(components.includes('.od-disclosure>summary>*{min-width:0}'),
     'Summary children must shrink before overflowing');
+  assert(components.includes('max-width:calc(100% - var(--space-3) - var(--space-3))'),
+    '100%-width fields must fit inside both disclosure body margins');
   assert(css.includes('#workbench-develop .developer-history-disclosure>pre{max-height:240px;overflow:auto'),
     'Large JSON histories must scroll locally');
 });

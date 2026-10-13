@@ -69,14 +69,16 @@ details>section{margin-top:var(--space-3)}
 .od-disclosure[open]>summary::before{transform:rotate(45deg)}
 .od-disclosure>summary>*{min-width:0}
 .od-disclosure[open]>summary{border-bottom:1px solid var(--od-line)}
-.od-disclosure>:not(summary){min-width:0;margin:var(--space-2) var(--space-3) 0}
+/** Allow 100%-width form fields inside a disclosure without their 12px margins
+ * pushing their right edge outside a narrow Side Panel. */
+.od-disclosure>:not(summary){min-width:0;max-width:calc(100% - var(--space-3) - var(--space-3));margin:var(--space-2) var(--space-3) 0}
 .od-disclosure>:last-child:not(summary){margin-bottom:var(--space-3)}
 .od-disclosure--info>summary{color:var(--od-brand)}
 .od-disclosure--info[open]>summary{background:var(--od-muted)}
 .od-disclosure--flat{border:0;border-radius:0;background:transparent}
 .od-disclosure--flat>summary{min-height:36px;padding:var(--space-2) 0;font-size:var(--od-note-size);color:var(--od-sub)}
 .od-disclosure--flat[open]>summary{border-bottom:1px solid var(--od-line);background:transparent}
-.od-disclosure--flat>:not(summary){margin:var(--space-2) 0 0}
+.od-disclosure--flat>:not(summary){max-width:100%;margin:var(--space-2) 0 0}
 .od-disclosure--flat>:last-child:not(summary){margin-bottom:0}
 .od-segmented{display:flex;width:max-content;max-width:100%;gap:2px;padding:3px;background:var(--od-muted);border:1px solid var(--od-input-border);border-radius:var(--radius-surface)}
 .od-segmented>button{min-height:32px;border-radius:var(--radius-control)}

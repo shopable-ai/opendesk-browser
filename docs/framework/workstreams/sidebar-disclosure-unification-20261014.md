@@ -41,3 +41,7 @@ R21 [38434280150](https://github.com/shopable-ai/opendesk-browser/actions/runs/3
 ## 真实溢出定位
 
 R19 [38434969667](https://github.com/shopable-ai/opendesk-browser/actions/runs/38434969667) 已通过 `develop` 和 `develop-local` 在 300px 下的统一标题尺寸/间距检查，但 `develop-details`（展开运行结果、网页 JS 试运行、版本管理）出现真实 `contentOverflow/panelOverflow=true`。不允许忽略溢出或调低断言；增强同一 Chrome 测试，报告超出面板右边界的可见 DOM 元素及 computed overflow 诊断，以便下一修复针对真实来源。
+
+## 300px 展开场景真实 CSS 根因与修复
+
+诊断版 Chrome R19 [38435389431](https://github.com/shopable-ai/opendesk-browser/actions/runs/38435389431) 明确报告 `develop-details 300px` 中五个直接子控件溢出：`#script-params`、`#page-program-list`、`#script-id`、`#script-owned-url`、`#script-document`，每项边界均为 `left=22,right=302,width=280`（面板右边界约 291）。**根因不是需要新增 Tailwind，而是 `.od-disclosure>:not(summary)` 的左右 12px margin 与控件自身 `width:100%` 相加，导致真实溢出**。在框架公共 CSS 的 disclosure 内容规则中增加 `max-width:calc(100% - var(--space-3) - var(--space-3))`，嵌套 `--flat` 无侧边 inset 时单独恢复 `max-width:100%`。新增双重 Node 合同和保留真实 Chrome 300px 展开溢出阻断。未重新实测的新候选仍标记 `NOT_TESTED`。

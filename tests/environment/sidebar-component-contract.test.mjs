@@ -131,6 +131,10 @@ test('Developer disclosure headers share the Run Result surface; nested diagnost
   assert.ok(!/\.developer-history-content\{[^}]*padding-top/.test(shell), 'History has double inset');
   assert.doesNotMatch(shell, /\.developer-run-technical p\{[^}]*margin:/,
     'Run identity paragraphs must inherit shared horizontal body inset');
+  assert.match(components, /\.od-disclosure>:not\(summary\)\{[^}]*max-width:calc\(100% - var\(--space-3\) - var\(--space-3\)\)/,
+    'Shared disclosure body must account for its horizontal insets at 300px');
+  assert.match(components, /\.od-disclosure--flat>:not\(summary\)\{max-width:100%;/,
+    'Unindented nested disclosure body must not inherit the card inset');
 });
 
 test('Other formal tabs reuse shared actions without restyling their unique filters', () => {
