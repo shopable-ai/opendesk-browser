@@ -12,6 +12,7 @@ export function createPageComponentRemote({client,preparer,api,document:doc,getI
     sources=get('page-component-remote-sources'),details=get('page-component-remote-details'),
     detailBody=get('page-component-remote-detail-body'),selector=get('page-component-remote-lock');
   let disposed=false,generation=0,busy=false,state=null;
+  let warmEpoch=0,warmTimer=null,warmed=null,warmError=null;
   const selectedLocks=new Map();
   const permissions=createChromePermissionConsent({api});
   const compatible=input=>input&&['react','vue','controller'].includes(input.framework);
@@ -44,7 +45,47 @@ export function createPageComponentRemote({client,preparer,api,document:doc,getI
     generation++;busy=false;preparer.cancel();
     state={stage:'idle',message:'准备已取消；迟到结果不会运行或安装。已明确确认的固定版本可保留。'};render();
   }
-  function refresh(){generation++;busy=false;state=null;render();}
+  // The compiler inspects STATIC import roots in its trusted fixed Worker.
+  // Prime Chrome's read-only permission observation after typing, before a
+  // trusted Run click. The click itself owns the native request; we never
+  // call permissions.request from an async dependency download callback.
+  function scheduleRunPermissionWarm(){
+    warmEpoch++;if(warmTimer){clearTimeout(warmTimer);warmTimer=null;}
+    warmed=null;warmError=null;
+    const input={...getInput()},epoch=warmEpoch;
+    if(!compatible(input)||typeof input.componentSource!=='string'||
+      !input.componentSource.includes('https://')||typeof preparer.inspect!=='function')return;
+    warmTimer=setTimeout(async()=>{
+      warmTimer=null;
+      const valid=()=>!disposed&&epoch===warmEpoch&&inputKey(input)===inputKey(getInput());
+      try{
+        const analysis=await inspect(input);
+        if(!valid())return;
+        const origins=[...new Set((analysis.remoteRoots||[]).map(url=>new URL(url).origin+'/*'))];
+        if(origins.length)await permissions.prepare({origins});
+        if(valid())warmed={key:inputKey(input),origins};
+      }catch(cause){
+        // Syntax errors are reported by the normal fixed compiler on Run,
+        // not hidden behind a permanent disabled button.
+        if(valid())warmError={key:inputKey(input),code:cause.code||'E_REMOTE_INSPECT'};
+      }finally{if(valid())render();}
+    },200);
+  }
+  function readyForRun(){
+    const input=getInput();
+    return !compatible(input)||!input.componentSource?.includes('https://')||
+      warmed?.key===inputKey(input)||warmError?.key===inputKey(input);
+  }
+  function confirmRun(event,input){
+    if(!event?.isTrusted)return Promise.reject(error('E_GESTURE','请主动点击 Run'));
+    if(disposed)return Promise.reject(error('E_HOST_CLOSED','开发面板已关闭'));
+    if(!compatible(input)||!input.componentSource?.includes('https://'))return Promise.resolve(true);
+    if(warmError?.key===inputKey(input))return Promise.resolve(true); // Compiler explains syntax.
+    if(warmed?.key!==inputKey(input))return Promise.reject(error('E_REMOTE_PERMISSION_PENDING',
+      '正在只读检查静态模块的 Chrome 来源权限；准备完成后请点击 Run'));
+    return warmed.origins.length?permissions.confirm(event,{origins:warmed.origins}):Promise.resolve(true);
+  }
+  function refresh(){generation++;busy=false;state=null;scheduleRunPermissionWarm();render();}
   async function inspect(input,modules=[]){
     if(typeof preparer.inspect!=='function')throw error('E_PAGE_COMPILER_WORKER','当前组件准备器不支持依赖检查');
     return preparer.inspect({...input,projectId:'browser-'+input.framework,remoteModules:modules});
@@ -139,8 +180,9 @@ export function createPageComponentRemote({client,preparer,api,document:doc,getI
     if(busy)throw error('E_REMOTE_PENDING','当前已有依赖操作；请先结束或取消');
     const ticket=++generation;busy=true;render();
     const verify=()=>{assertRunCurrent();current(ticket,input);};
+    let analysis;
     try{
-      let analysis=await inspect(input);verify();
+      analysis=await inspect(input);verify();
       if(!analysis.remoteRoots.length)return undefined;
       const request=identity(input,analysis.remoteRoots);
       const report=await client.request('inspectPageComponentDependencies',request);verify();
@@ -187,6 +229,19 @@ export function createPageComponentRemote({client,preparer,api,document:doc,getI
         message:'已自动固定 '+loaded.modules.length+' 个 ESM 模块；Run 使用受控执行世界，不会在宿主执行库代码'};
       return loaded;
     }catch(cause){
+      if(!disposed&&ticket===generation&&cause?.code==='E_DEPENDENCY_PERMISSION'&&
+        Array.isArray(analysis?.missingUrls)&&analysis.missingUrls.length){
+        // A transitive origin is learned only after its parent module has been
+        // fetched. The original gesture has expired. Prepare the *next* native
+        // Run click, but never silently request a new grant or replay effects.
+        const origins=[...new Set([...(warmed?.key===inputKey(input)?warmed.origins:[]),
+          ...analysis.missingUrls.map(url=>new URL(url).origin+'/*')])];
+        try{
+          await permissions.prepare({origins});
+          if(!disposed&&ticket===generation)warmed={key:inputKey(input),origins};
+        }catch{} // Preserve the original permission failure.
+        if(!disposed&&ticket===generation)cause.message+='；请再次点击 Run，由 Chrome 决定是否授予新发现的来源';
+      }
       if(!disposed&&ticket===generation)state={stage:'error',message:(cause.code||'E_REMOTE_PREPARE')+'：'+(cause.message||cause)};
       throw cause;
     }finally{if(!disposed&&ticket===generation){busy=false;render();}}
@@ -208,7 +263,9 @@ export function createPageComponentRemote({client,preparer,api,document:doc,getI
   }
   const onCancel=event=>{if(event?.isTrusted)cancel();},onSelection=()=>render();
   button?.addEventListener('click',click);cancelButton?.addEventListener('click',onCancel);selector?.addEventListener('change',onSelection);
-  return Object.freeze({loadForRun,autoLoadForRun,refresh,cancel,update:()=>render(false),get busy(){return busy;},
-    dispose(){if(disposed)return;disposed=true;generation++;permissions.dispose();
+  scheduleRunPermissionWarm();
+  return Object.freeze({loadForRun,autoLoadForRun,confirmRun,refresh,cancel,update:()=>render(false),
+    get readyForRun(){return readyForRun();},get busy(){return busy;},
+    dispose(){if(disposed)return;disposed=true;generation++;warmEpoch++;if(warmTimer)clearTimeout(warmTimer);permissions.dispose();
       button?.removeEventListener('click',click);cancelButton?.removeEventListener('click',onCancel);selector?.removeEventListener('change',onSelection);}});
 }

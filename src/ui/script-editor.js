@@ -246,7 +246,9 @@ export function createScriptEditor({client, currentPageTarget, development=false
     find('script-list-refresh').disabled = editingBusy; find('script-list-load').disabled = editingBusy || !scriptList.value;
     find('script-delete').disabled = editingBusy || !revisions.has(scriptId());
     find('script-run').disabled = stopping || editingBusy || previewBusy || running || !projection?.slotAvailable || !!host.currentRun ||
-      (componentMode!=='javascript'||!programSource.source().trim()) || programSource.kind() === 'page-userscript' || mode.value === 'current' && currentPageState?.status !== 'available';
+      (componentMode!=='javascript'||!programSource.source().trim()) || programSource.kind() === 'page-userscript' ||
+      (browserCompilerEnabled&&hasUnbuiltESM(programSource.source())&&!componentRemote?.readyForRun) ||
+      mode.value === 'current' && currentPageState?.status !== 'available';
     find('script-stop').disabled = stopping || !browserPreparing&&!componentRemote?.busy&&!canStopManaged()&&(!ownedDraftRunId || host.currentRun !== ownedDraftRunId);
     find('script-stop').textContent=browserPreparing||componentRemote?.busy?'取消准备':canStopManaged()?'停止受管 UI':'停止';
     if(componentSelector)componentSelector.disabled=!!localProject?.active()||editingBusy||previewBusy||running||stopping||componentRemote?.busy||!!programSource.snapshot();
@@ -254,6 +256,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
     find('page-preview-run').disabled = stopping||browserEffectUnknown||browserManagedPreview?.recoveredOnly||otherTabOwnsBrowserUI()||previewBusy||componentRemote?.busy||dependencyInstaller?.busy ||
       (componentMode==='javascript'&&(dependencyResolver?.busy||!dependencyInstaller?.readyForRun))||editingBusy||running||!!host.currentRun||
       !programSource.source().trim()||programSource.kind()==='controller'||
+      (componentMode!=='javascript'&&!componentRemote?.readyForRun)||
       currentPageState?.status!=='available';
     find('page-preview-run').textContent=componentMode==='javascript'?'在当前网页试运行':'运行'+(componentMode==='react'?' React':' Vue')+' 组件';
     const pageCandidateButton=find('page-candidate-save');
@@ -610,7 +613,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
   function start(event) {
     if (!event.isTrusted || disposed || stopping || running || previewBusy || editingBusy || host.currentRun) return;
     if(localProject?.active()){startLocal(event);return;}
-    let chosen, params, permission, sourceUtf8;
+    let chosen, params, permission, sourceUtf8, esm;
     try {
       // Freeze exact editor bytes, params and target inside the trusted click
       // before any asynchronous permission check or other work.
@@ -620,13 +623,18 @@ export function createScriptEditor({client, currentPageTarget, development=false
       if (!sourceUtf8.trim()) throw {code:'E_SCHEMA',message:'请先输入草稿源码'};
       if (parseUserScriptDependencies(sourceUtf8).hasHeader) throw {code:'E_PROGRAM_KIND',
         message:'当前源码含兼容性脚本声明，请使用“网页 JavaScript 试运行”；自动化任务运行不解析旧格式声明。'};
-      permission = requireChromePermissions({api,request:{origins:[permissionPattern(chosen.url)],
-        ...(find('script-allow-cookies').checked ? {permissions:['cookies']} : {})}});
+      esm=hasUnbuiltESM(sourceUtf8);
+      permission=Promise.all([
+        requireChromePermissions({api,request:{origins:[permissionPattern(chosen.url)],
+          ...(find('script-allow-cookies').checked?{permissions:['cookies']}:{} )}}),
+        esm&&browserCompilerEnabled?
+          componentRemote.confirmRun(event,controllerESMInput(sourceUtf8,scriptId())):Promise.resolve(true)
+      ]);
     } catch (error) { fail(error); return; }
     hideUserScriptsRecovery();
     const version = selectionVersion;
     let startError, admittedRunId;
-    const esm=hasUnbuiltESM(sourceUtf8),id=scriptId(),ticket=++browserPrepareGeneration;
+    const id=scriptId(),ticket=++browserPrepareGeneration;
     ownedDraftRunId=null;running=true;browserPreparing=esm;renderTask(null);update();beginResult();
     display('checking',esm?'正在校验固定 ESM 依赖并编译 Controller 源码…':`正在检查访问权限并验证网页：${chosen.url}`);
     (async () => {
@@ -804,7 +812,9 @@ export function createScriptEditor({client, currentPageTarget, development=false
       // Website permission remains independently read-only/Authority gated.
       permission=Promise.all([
         requireChromePermissions({api,request:{origins:[permissionPattern(captured.url)]}}),
-        componentMode==='javascript'?dependencyInstaller.confirmRun(event):Promise.resolve(true)
+        componentMode==='javascript'?dependencyInstaller.confirmRun(event):
+          componentSnapshot?componentRemote.confirmRun(event,{
+            componentSource:componentSnapshot.source,framework:componentSnapshot.framework}):Promise.resolve(true)
       ]);
     } catch(error) {displayPreview('error',(error.code||'E_SOURCE')+'：'+(error.message||error));return;}
     const managedInput=componentSnapshot||frozenComponent;
