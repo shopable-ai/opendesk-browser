@@ -468,14 +468,10 @@
 .workflow-head-copy{flex:1;min-width:0}
 .workflow-head h2{font-size:13px;line-height:1.35;font-weight:730;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .workflow-head-actions{display:flex;align-items:center;justify-content:flex-end;gap:5px;flex-shrink:0}
-.workflow-head-actions button{border-radius:var(--radius-control);background:transparent;color:#627792;min-height:36px;white-space:nowrap}
+.workflow-head-actions button{white-space:nowrap}
 .workflow-pill{border:1px solid #dfe7f1;background:#f9fbff;color:#607391;border-radius:var(--radius-pill);padding:4px 7px;max-width:97px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:10px}
-.workflow-icon-button{display:inline-flex;align-items:center;justify-content:center;flex:none;width:36px;height:36px;padding:0!important;min-height:36px;border:1px solid transparent!important;border-radius:var(--radius-control)!important;color:#5a7190!important;background:transparent!important}
-.workflow-icon-button svg,.workflow-send-button svg{display:block;width:18px;height:18px;flex:none;pointer-events:none}
-.workflow-icon-button:hover:not(:disabled){background:#eaf0fa!important;color:#2d57ad!important}
-.workflow-icon-button:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.workflow-icon-button{flex:none}
 .workflow-target-warning{margin:9px 0 0;padding:9px 10px;border:1px solid #efdcb1;border-radius:var(--radius-control);background:#fff8e9;color:#8d6629;font-size:11px;line-height:1.5}
-#workflow-manage-close{border:1px solid #dce3ed!important;background:#fff!important}
 .workflow-scroll{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;display:flex;flex-direction:column;gap:10px;padding:8px 1px 13px}
 .workflow-card{min-width:0;background:#fff;border:1px solid #e1e7f0;border-radius:var(--radius-surface);padding:12px}
 .workflow-card h3,.workflow-management h3{font-size:12px;color:#2b4162}
@@ -512,22 +508,17 @@
 .workflow-ai-step-preview li:before{content:counter(workflow-steps);position:absolute;left:0;top:9px;border-radius:var(--radius-control);width:21px;height:21px;display:grid;place-items:center;background:#eaf0fc;color:#4167b4;font-size:10px;font-weight:760}
 .workflow-ai-step-preview li strong{display:block;font-size:12px;font-weight:700}
 .workflow-ai-step-preview li span{display:block;color:var(--od-sub);font-size:11px;line-height:1.45;margin-top:3px}
-.workflow-primary{font-size:12px;min-height:35px;background:var(--blue);color:white;border:1px solid var(--blue);border-radius:var(--radius-control);font-weight:700;padding:7px 12px}
 .workflow-composer{flex:none;background:#fff;border:1px solid #dce4ef;border-radius:var(--radius-surface);padding:9px 10px 8px;margin:4px 1px 8px;box-shadow:0 2px 7px #1c35600b}
 .workflow-composer textarea{display:block;border:0;background:transparent;outline:none;padding:2px 1px;width:100%;font:12px/1.55 -apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;resize:vertical;min-height:47px;max-height:122px;margin:0 0 7px}
 .workflow-composer-actions{display:flex;justify-content:flex-end;align-items:center;gap:5px;flex-wrap:nowrap}
-.workflow-composer .workflow-settings-button{border-color:transparent!important}
-.workflow-composer .workflow-send-button{display:inline-flex;align-items:center;justify-content:center;flex:none;width:36px;height:36px;min-height:36px;padding:0;border-radius:var(--radius-control)}
-/* R16: first-use model data approval, using the shared R27 spacing/tokens. */
-.workflow-composer .workflow-send-button[data-first-use="true"]{width:auto;max-width:100%;min-width:112px;gap:var(--space-2);padding:0 var(--space-3);white-space:nowrap}
-.workflow-send-label{font-size:12px;font-weight:650;line-height:1.4;white-space:nowrap}
-.workflow-ai-data-notice{min-width:0;margin:var(--space-2) 0 0;font-size:12px;line-height:1.55;color:var(--od-sub);overflow-wrap:anywhere}
+/* Send, stop and settings always keep the public 34px icon footprint, including first use. */
+.workflow-composer .workflow-send-button{flex:none}
+.workflow-ai-data-notice{min-width:0;margin:var(--space-2) 0 0;font-size:var(--od-note-size);line-height:1.55;color:var(--od-sub);overflow-wrap:anywhere}
 .workflow-ai-data-notice[data-consent="required"]{color:var(--od-ink)}
 .workflow-ai-data-details{margin:var(--space-3) 0 0;padding-top:var(--space-2);border-top:1px solid var(--od-line)}
 .workflow-ai-data-details summary{min-height:28px;cursor:pointer;font-size:12px;font-weight:650;color:var(--od-sub)}
 .workflow-ai-data-details p{overflow-wrap:anywhere}
 .workflow-ai-revoke{margin-top:var(--space-2);min-height:36px;font-size:12px;white-space:normal;text-align:left}
-@media(max-width:280px){.workflow-composer .workflow-send-button[data-first-use="true"]{min-width:0}}
 
 #workflow-provider-settings:not([open]){display:none}
 #workflow-provider-settings>summary{display:none}
@@ -558,7 +549,6 @@
 .workflow-management>.workflow-section-header{margin-bottom:0}
 .workflow-management .workflow-card{padding:11px}
 .workflow-library .workflow-actions button:not(.workflow-icon-button){flex:1 1 auto}
-.workflow-library .workflow-actions .workflow-icon-button{border:1px solid #dce5ef!important;background:#f9fbff!important}
 .workflow-manage-details[open] .workflow-icon-button{flex:none}
 .workflow-manage-details{margin:0}
 .workflow-manage-details>summary{color:#425c7c;font-size:11.5px;font-weight:650}
@@ -603,7 +593,6 @@
 .workflow-local-status[data-state=READY_FOR_TURN]{background:#edf7f1;color:#236346}
 .workflow-session-actions{border-top:1px solid #e5ebf4;padding-top:8px}
 .workflow-provider .workflow-minor-note{color:#5d708a}
-.workflow-ai-cancel{background:#fff0f1!important;border:1px solid #ebc9ce!important;color:#a33d4a!important}
 .workflow-ai-progress{margin:8px 0;padding:0;list-style:none;display:grid;gap:5px}
 .workflow-ai-progress li{position:relative;padding:5px 7px 5px 23px;background:#f4f7fc;border-radius:var(--radius-control);color:#526783;font-size:11px;line-height:1.5;overflow-wrap:anywhere}
 .workflow-ai-progress li::before{content:'•';position:absolute;left:9px;color:#8394ac}
@@ -613,7 +602,7 @@
 .workflow-ai-approval p{font-size:11px;color:#755b30;line-height:1.55}
 .workflow-ai-approval .workflow-actions{align-items:stretch}
 .workflow-ai-approval button{flex:1 1 100px;min-height:36px}
-.workflow-ai-approval #workflow-ai-approve{background:#365eda;color:#fff;border-color:#365eda}
+.workflow-ai-approval #workflow-ai-approve{background:var(--od-brand);color:var(--od-on-brand);border-color:var(--od-brand)}
 @media(max-width:280px){.workflow-provider{max-height:45vh}.workflow-ai-approval button{flex-basis:100%}}
 
 /* Compact optional official catalog entries and trusted site controls. */
