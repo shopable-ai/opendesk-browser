@@ -32,7 +32,7 @@ jobs:
       - run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Dependency review and isolation contract tests
         run: |
-          node --test tests/environment/page-dependency-r71-ui.test.mjs tests/environment/dependency-manager.test.mjs tests/environment/page-dependencies-ui.test.mjs
+          node --test tests/environment/page-dependency-r71-ui.test.mjs tests/environment/page-dependency-one-click-r72.test.mjs tests/environment/dependency-manager.test.mjs tests/environment/page-dependencies-ui.test.mjs tests/environment/page-component-remote.test.mjs tests/environment/controller-esm-runtime-r4.test.mjs
           npm run check
       - name: Build and verify selected extension edition
         shell: bash
@@ -48,7 +48,7 @@ jobs:
         id: chrome
         with:
           chrome-version: '155.0.8059.39'
-      - name: True Chrome Side Panel new Marked UMD and B independent SHA approval
+      - name: True Chrome Side Panel Marked UMD one-click Run and program B SHA reuse
         env:
           CHROME_FOR_TESTING_BIN: '${{ steps.chrome.outputs.chrome-path }}'
           OPENDESK_R72_DEPENDENCY_NATIVE_SMOKE: '1'
