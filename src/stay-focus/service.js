@@ -163,7 +163,16 @@ export function createStayFocusService({api=globalThis.chrome,lockManager=global
       return null;
     }
     const hash=await focusPackageHash(auth.tool),raw=auth.saved[FOCUS_STORE];
-    let state=readFocus(raw,at);
+    let state;
+    try{state=readFocus(raw,at);}
+    catch(cause){
+      // Invalid durable data is preserved, but cannot keep websites blocked.
+      // Retire only our reserved DNR rules; never mutate another tool's policy.
+      await api.alarms.clear(FOCUS_ALARM);
+      if(await api.permissions.contains({permissions:['declarativeNetRequestWithHostAccess']}))
+        await clearFocusRules(api);
+      throw cause;
+    }
     let permissions;
     try{permissions=await permissionStatus();}
     catch{permissions={idle:false,dnr:false,ready:false};}
