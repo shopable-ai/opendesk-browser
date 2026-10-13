@@ -67,8 +67,8 @@
         </div>
         <div class="schedule-runner-metrics" aria-label="运行概况">
           <div class="schedule-runner-metric od-surface"><span>运行宿主</span><strong id="schedule-runner-host-status" role="status">正在连接…</strong></div>
-          <div class="schedule-runner-metric od-surface"><span>下次执行</span><strong id="schedule-runner-next">暂无计划</strong><small id="schedule-runner-next-detail"></small></div>
-          <div class="schedule-runner-metric od-surface"><span>当前任务</span><strong id="schedule-runner-current">暂无任务运行</strong><small id="schedule-runner-current-detail"></small></div>
+          <div class="schedule-runner-metric schedule-runner-metric--detail od-surface"><span>下次执行</span><strong id="schedule-runner-next">暂无计划</strong><small id="schedule-runner-next-detail"></small></div>
+          <div class="schedule-runner-metric schedule-runner-metric--detail od-surface"><span>当前任务</span><strong id="schedule-runner-current">暂无任务运行</strong><small id="schedule-runner-current-detail"></small></div>
           <div class="schedule-runner-metric od-surface"><span>最近结果</span><strong id="schedule-runner-result">尚无记录</strong><small id="schedule-runner-result-detail"></small></div>
         </div>
         <section class="schedule-runner-focus od-surface" aria-labelledby="schedule-runner-focus-title">
@@ -76,7 +76,8 @@
             <div><strong id="schedule-runner-focus-title">下一个计划</strong><p id="schedule-runner-focus-detail" class="hint">暂无已安装计划</p></div>
             <button id="schedule-runner-toggle" type="button" class="od-button od-button--secondary" disabled>暂停计划</button>
           </div>
-          <p id="schedule-runner-explain" class="hint">到期时将检查目标网页、固定任务身份和执行槽。</p>
+          <p id="schedule-runner-focus-time" class="schedule-runner-focus-time" aria-live="polite">等待计划</p>
+           <p id="schedule-runner-explain" class="hint">到期时将检查目标网页、固定任务身份和执行槽。</p>
           <button id="schedule-runner-history" type="button" class="od-button od-button--secondary">查看计划及运行记录</button>
         </section>
       </section>
@@ -109,13 +110,19 @@
           </div>
           <p id="schedule-task-version" class="hint" aria-live="polite"></p>
           <p id="schedule-task-error" class="schedule-field-error" role="alert"></p>
+          <div id="schedule-task-empty" class="schedule-task-empty od-alert od-alert--warning" hidden>
+            <strong>还没有可用于定时执行的任务</strong>
+            <p>请先在「开发」中验证并安装 Controller Task，启用任务并确认网站权限。</p>
+            <button id="schedule-task-empty-create" type="button" class="od-button od-button--secondary">前往开发并创建任务</button>
+          </div>
         </div>
         </section>
         <section class="schedule-form-section" aria-labelledby="schedule-target-section-title">
-          <h3 id="schedule-target-section-title" class="schedule-section-title"><span aria-hidden="true">2</span>目标网页与参数</h3>
+          <h3 id="schedule-target-section-title" class="schedule-section-title"><span aria-hidden="true">2</span>目标网页与可选参数</h3>
         <label class="od-field" for="schedule-target">目标网页 URL
           <input id="schedule-target" type="url" inputmode="url" maxlength="2048" required aria-describedby="schedule-target-error" placeholder="https://example.com/path" class="od-field">
         </label>
+        <p class="schedule-field-help">仅支持任务已批准的 HTTP(S) 网页，不包含账号密码或 # 片段。</p>
         <p id="schedule-target-error" class="schedule-field-error" role="alert"></p>
         <label class="od-field" for="schedule-params">任务参数（JSON 对象）
           <textarea id="schedule-params" rows="2" spellcheck="false" aria-describedby="schedule-params-error" class="od-field">{}</textarea>
@@ -130,11 +137,20 @@
               <select id="schedule-kind" aria-describedby="schedule-time-error" class="od-field"><option value="once">执行一次</option><option value="daily">每天</option><option value="weekly">每周</option><option value="interval">每隔一段时间</option></select>
             </div>
             <div class="schedule-rule-field">
-              <label for="schedule-timezone">执行时区</label>
-              <input id="schedule-timezone-search" type="search" autocomplete="off" spellcheck="false" aria-label="搜索城市、地区或 IANA 时区（只筛选，不更改时区）" aria-controls="schedule-timezone" placeholder="搜索城市或 IANA 时区" class="od-field">
-              <select id="schedule-timezone" required aria-describedby="schedule-timezone-help schedule-time-error" class="od-field"><option value="">正在识别当前时区…</option></select>
-              <p class="hint schedule-timezone-help" id="schedule-timezone-help">新建时自动识别，编辑时保留原时区；只有选择下拉项才更改。保存后固定所选 IANA 时区。</p>
-              <p class="hint schedule-timezone-match" id="schedule-timezone-match" role="status" aria-live="polite"></p>
+              <label id="schedule-timezone-label" for="schedule-timezone">执行时区</label>
+               <div class="schedule-timezone-picker">
+                 <div class="schedule-timezone-selected">
+                   <strong id="schedule-timezone-summary" aria-live="polite">正在识别设备时区…</strong>
+                   <button id="schedule-timezone-edit" type="button" class="od-button od-button--secondary" aria-expanded="false" aria-controls="schedule-timezone-controls">更改</button>
+                 </div>
+                 <div id="schedule-timezone-controls" class="schedule-timezone-controls" hidden>
+                   <input id="schedule-timezone-search" type="search" autocomplete="off" spellcheck="false" aria-label="搜索城市、地区或 IANA 时区（只筛选，不更改时区）" aria-controls="schedule-timezone" placeholder="搜索城市或 IANA 时区" class="od-field">
+                   <select id="schedule-timezone" required aria-describedby="schedule-timezone-help schedule-time-error" class="od-field"><option value="">正在识别当前时区…</option></select>
+                   <p class="hint schedule-timezone-help" id="schedule-timezone-help">搜索只会筛选地区；选择下拉项才会更改。编辑现有计划时保留原时区。</p>
+                   <p class="hint schedule-timezone-match" id="schedule-timezone-match" role="status" aria-live="polite"></p>
+                   <button id="schedule-timezone-done" type="button" class="od-button od-button--quiet">完成时区选择</button>
+                 </div>
+               </div>
             </div>
           </div>
           <label id="schedule-once-field" class="od-field" for="schedule-once">执行日期和时间
@@ -151,7 +167,11 @@
           <label id="schedule-interval-field" class="od-field" for="schedule-minutes" hidden>间隔分钟（1–10080）
             <input id="schedule-minutes" type="number" aria-describedby="schedule-time-error" min="1" max="10080" step="1" value="60" class="od-field">
           </label>
-          <p id="schedule-next" class="hint" aria-live="polite">选择规则后显示下一次触发时间。</p>
+          <div id="schedule-next" class="schedule-next-preview" role="status" aria-live="polite">
+             <span>预计下次执行</span>
+             <strong id="schedule-next-time">选择规则后显示时间</strong>
+             <small id="schedule-next-zone">执行时间使用所选时区；Chrome 关闭期间不会唤醒电脑。</small>
+           </div>
           <p id="schedule-time-error" class="schedule-field-error" role="alert"></p>
         </fieldset>
         <section class="schedule-form-section schedule-form-advanced" aria-labelledby="schedule-advanced-section-title">
@@ -167,7 +187,8 @@
         </details>
         <label class="schedule-check"><input type="checkbox" id="schedule-paused">创建后先暂停</label>
         </section>
-        <div id="schedule-save-confirm" class="schedule-save-confirm od-surface" role="group" aria-label="确认定时计划" hidden>
+        <h3 class="schedule-section-title schedule-review-title"><span aria-hidden="true">5</span>检查并保存</h3>
+         <div id="schedule-save-confirm" class="schedule-save-confirm od-surface" role="group" aria-label="确认定时计划" hidden>
           <strong>确认计划及固定任务授权</strong>
           <p id="schedule-save-summary"></p>
           <p class="hint">保存后仅在已授权网页及合法可见运行宿主内按时尝试执行。浏览器关闭时不会自动操作网页。</p>
