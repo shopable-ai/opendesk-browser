@@ -21,8 +21,14 @@ export async function openProvider({directory='.local/cloud-control',port=43112,
       !Number.isSafeInteger(publicTls.port)||publicTls.port<0||publicTls.port>65535||
       (publicTls.port===0&&!['127.0.0.1','::1'].includes(publicTls.host))||
       typeof publicTls.host!=='string'||!['127.0.0.1','::1','0.0.0.0','::'].includes(publicTls.host)||
-      publicTls.port===port)fail('E_TLS_CONFIG');
+      (publicTls.port!==0&&publicTls.port===port))fail('E_TLS_CONFIG');
   }
+  // Validate TLS input before taking the durable Provider lock. A missing
+  // certificate must not strand the existing state and refuse future starts.
+  const tlsOptions=publicTls?{
+    key:await readFile(resolve(publicTls.keyFile)),
+    cert:await readFile(resolve(publicTls.certFile))
+  }:null;
   directory=resolve(directory);await mkdir(directory,{recursive:true,mode:0o700});
   const lock=resolve(directory,'provider.lock');
   let handle;try{handle=await open(lock,'wx',0o600);await handle.writeFile(String(process.pid));}
@@ -238,10 +244,7 @@ export async function openProvider({directory='.local/cloud-control',port=43112,
     }catch(e){res.writeHead(e.code==='E_AUTH'?401:e.code==='E_REQUEST_CONFLICT'?409:400,{'Content-Type':'application/json'});res.end(JSON.stringify({error:{code:e.code||'E_SCHEMA',message:e.message}}));}
   };
   const server=http.createServer((req,res)=>handler(req,res,false));
-  const secureServer=publicTls?https.createServer({
-    key:await readFile(resolve(publicTls.keyFile)),
-    cert:await readFile(resolve(publicTls.certFile))
-  },(req,res)=>handler(req,res,true)):null;
+  const secureServer=publicTls?https.createServer(tlsOptions,(req,res)=>handler(req,res,true)):null;
   const wss=new WebSocketServer({noServer:true,maxPayload:8192});
   const upgrade=(req,socket,head)=>{
     if(req.url!=='/v1/events'||req.headers.origin&&!req.headers.origin.startsWith('chrome-extension://')){
