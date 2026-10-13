@@ -1,0 +1,9 @@
+{
+  "ownCommit": "dd5b80a4122e94f76dc5e65eda977c1264da641b",
+  "localAtPush": "dd5b80a4122e94f76dc5e65eda977c1264da641b",
+  "remoteBeforePush": "d27006593e149964a57edb2d0db4923a04ef829d",
+  "remoteObservedAfterPush": "dd5b80a4122e94f76dc5e65eda977c1264da641b",
+  "ordinaryPush": true,
+  "ownCommitOnRemoteMain": true,
+  "dirtyOtherOwnerChangesPreserved": true
+}

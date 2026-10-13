@@ -1,0 +1,137 @@
+{
+  "total_count": 1,
+  "jobs": [
+    {
+      "id": 115526354180,
+      "run_id": 38464070565,
+      "workflow_name": "Cookie Editor R3.3 real SDK and package verification",
+      "head_branch": "main",
+      "run_url": "https://api.github.com/repos/shopable-ai/opendesk-browser/actions/runs/38464070565",
+      "run_attempt": 1,
+      "node_id": "CR_kwDOU7N2Cc8AAAAa5ehFBA",
+      "head_sha": "dd5b80a4122e94f76dc5e65eda977c1264da641b",
+      "url": "https://api.github.com/repos/shopable-ai/opendesk-browser/actions/jobs/115526354180",
+      "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38464070565/job/115526354180",
+      "status": "completed",
+      "conclusion": "failure",
+      "created_at": "2026-10-13T20:35:48Z",
+      "started_at": "2026-10-13T20:35:50Z",
+      "completed_at": "2026-10-13T20:36:09Z",
+      "name": "node-and-build",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1,
+          "started_at": "2026-10-13T20:35:50Z",
+          "completed_at": "2026-10-13T20:35:51Z"
+        },
+        {
+          "name": "Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2,
+          "started_at": "2026-10-13T20:35:51Z",
+          "completed_at": "2026-10-13T20:36:00Z"
+        },
+        {
+          "name": "Run actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3,
+          "started_at": "2026-10-13T20:36:00Z",
+          "completed_at": "2026-10-13T20:36:00Z"
+        },
+        {
+          "name": "Candidate identity",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4,
+          "started_at": "2026-10-13T20:36:00Z",
+          "completed_at": "2026-10-13T20:36:01Z"
+        },
+        {
+          "name": "Install locked dependencies",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5,
+          "started_at": "2026-10-13T20:36:01Z",
+          "completed_at": "2026-10-13T20:36:06Z"
+        },
+        {
+          "name": "Execute Cookie Editor and installed SDK positive/negative Node tests",
+          "status": "completed",
+          "conclusion": "failure",
+          "number": 6,
+          "started_at": "2026-10-13T20:36:06Z",
+          "completed_at": "2026-10-13T20:36:07Z"
+        },
+        {
+          "name": "Pack Cookie Editor 2.0.4 and official reviewed tools independently",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 7,
+          "started_at": "2026-10-13T20:36:07Z",
+          "completed_at": "2026-10-13T20:36:07Z"
+        },
+        {
+          "name": "Source guard and two production/development builds",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 8,
+          "started_at": "2026-10-13T20:36:07Z",
+          "completed_at": "2026-10-13T20:36:07Z"
+        },
+        {
+          "name": "Full repository regression against verified candidate builds",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 9,
+          "started_at": "2026-10-13T20:36:07Z",
+          "completed_at": "2026-10-13T20:36:07Z"
+        },
+        {
+          "name": "Retain exact installable Node/Build candidate (NOT native Chrome acceptance)",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 10,
+          "started_at": "2026-10-13T20:36:07Z",
+          "completed_at": "2026-10-13T20:36:07Z"
+        },
+        {
+          "name": "Post Run actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 19,
+          "started_at": "2026-10-13T20:36:07Z",
+          "completed_at": "2026-10-13T20:36:07Z"
+        },
+        {
+          "name": "Post Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 20,
+          "started_at": "2026-10-13T20:36:07Z",
+          "completed_at": "2026-10-13T20:36:07Z"
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 21,
+          "started_at": "2026-10-13T20:36:07Z",
+          "completed_at": "2026-10-13T20:36:07Z"
+        }
+      ],
+      "check_run_url": "https://api.github.com/repos/shopable-ai/opendesk-browser/check-runs/115526354180",
+      "labels": [
+        "ubuntu-latest"
+      ],
+      "runner_id": 1000041022,
+      "runner_name": "GitHub Actions 1000041022",
+      "runner_group_id": 0,
+      "runner_group_name": "GitHub Actions"
+    }
+  ]
+}

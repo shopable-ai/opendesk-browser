@@ -1,0 +1,9 @@
+{
+  "candidateSha": "dd5b80a4122e94f76dc5e65eda977c1264da641b",
+  "gitTree": "9a2751f0e8331b16d9c1947de1741cc6329b4115",
+  "method": "immutable Git archive, no Git checkout or worktree",
+  "cwd": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/evidence/browser-sdk-r106-20261014/committed-candidate-ci-recovery",
+  "dependencySource": "APFS byte-identical clone of existing locked local node_modules",
+  "outputGuard": 43127,
+  "dailyDistUntouched": true
+}

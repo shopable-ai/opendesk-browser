@@ -26,8 +26,8 @@
     },
     {
       "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/candidate-delivery.json",
-      "bytes": 91220,
-      "sha256": "3f3280587a1c136425aaf067142e52d86ba44335ab8220977dda23f73fe5257a"
+      "bytes": 92219,
+      "sha256": "c15528b388b78950d567e5424e200801e6552678581ff3924f98813bf7979d8f"
     },
     {
       "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/candidate-delivery-586f979b.json",
@@ -1428,6 +1428,41 @@
       "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/ci-recovery-followup.json",
       "bytes": 3468,
       "sha256": "79d450fdf05095a00315df383fc416f299e5c04dd774d0f09f983da6f5d6343f"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/committed-candidate-ci-recovery.json",
+      "bytes": 488,
+      "sha256": "ff35552bc5a8a8e4137c99de74d6c905c8ecbc07dc9d776680d7929efabebd44"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/nodeTests-ci-recovery.log",
+      "bytes": 28507,
+      "sha256": "764ce4f523f14f1d3aba8348b2a251e457dfae25794c2c081c1d77dda848f238"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/nodeTests-ci-recovery.json",
+      "bytes": 3926,
+      "sha256": "b6e90359ecc0fc4e21be64bde15c60c7f002f69beaf26069d986027a2d1ba335"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/actions-ci-recovery-initial.json",
+      "bytes": 157550,
+      "sha256": "73ef97b856853e2f4394f20c161492601a6959c345bf5691eec720c2f81b51fa"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/actions-ci-recovery-38464070565-jobs.json",
+      "bytes": 4876,
+      "sha256": "d8a05643322f4adc941046fc97fd602b580874476e8b7387996d3d786b4d0ecc"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/actions-ci-recovery-115526354180-annotations.json",
+      "bytes": 1558,
+      "sha256": "35f5e55eb4798349a267ab7e5a60f5ca8848d63f5c82d354ec96e9d14961eee1"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/main-push-ci-recovery.json",
+      "bytes": 362,
+      "sha256": "e9e0edd2f8b51f6d8bee19aca4bb07475884fa9ebf5f4e9b6bc8a064880376ac"
     }
   ],
   "limitations": [

@@ -115,7 +115,10 @@
           "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/actions-cookie-integrated.json",
           "sha256": "4c0eb9f6ea2cb50e31bf5790b3098482eb60670fe5f1d2f62d6f24418d4d0c06",
           "candidateSha": "3763a70eed4855be91d597336938611ba9c86352",
-          "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38458527681"
+          "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38458527681",
+          "caseId": "R10.6-targetedMainCI",
+          "command": "GitHub Actions: Browser SDK targeted main verification",
+          "environment": "GitHub Actions completed successful run for the exact 3763a70eed4855be91d597336938611ba9c86352 commit; raw run metadata and workflow jobs retained in actions-cookie-integrated.json"
         }
       ]
     },
@@ -139,7 +142,10 @@
           "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/actions-cookie-integrated.json",
           "sha256": "4c0eb9f6ea2cb50e31bf5790b3098482eb60670fe5f1d2f62d6f24418d4d0c06",
           "candidateSha": "3763a70eed4855be91d597336938611ba9c86352",
-          "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38458527603"
+          "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38458527603",
+          "caseId": "R10.6-r5CI",
+          "command": "GitHub Actions: Browser SDK R5 implementation contracts",
+          "environment": "GitHub Actions completed successful run for the exact 3763a70eed4855be91d597336938611ba9c86352 commit; raw run metadata and workflow jobs retained in actions-cookie-integrated.json"
         }
       ]
     },
@@ -150,7 +156,10 @@
           "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/actions-cookie-integrated.json",
           "sha256": "4c0eb9f6ea2cb50e31bf5790b3098482eb60670fe5f1d2f62d6f24418d4d0c06",
           "candidateSha": "3763a70eed4855be91d597336938611ba9c86352",
-          "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38458527650"
+          "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38458527650",
+          "caseId": "R10.6-packageBudgetsCI",
+          "command": "GitHub Actions: Extension package budgets and library boundaries",
+          "environment": "GitHub Actions completed successful run for the exact 3763a70eed4855be91d597336938611ba9c86352 commit; raw run metadata and workflow jobs retained in actions-cookie-integrated.json"
         }
       ]
     },
