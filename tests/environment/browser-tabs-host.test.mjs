@@ -12,6 +12,9 @@ function fixture(){
   get:async id=>{if(!items.has(id))throw Error('missing');return items.get(id)},
   update:async(id,val)=>{operations.push('focus');items.set(id,{...items.get(id),...val});return items.get(id)},
   remove:async id=>{operations.push('remove');items.delete(id)}
+ },webNavigation:{
+  getFrame:async({tabId})=>{const tab=items.get(tabId);
+   return tab?{url:tab.url,documentId:'doc-'+tabId,documentLifecycle:'active'}:null}
  }};
  return {api,items,operations,navigate:(id,url)=>{items.set(id,{...items.get(id),url});updated.forEach(fn=>fn(id,{url}))},
   close:id=>removed.forEach(fn=>fn(id)),
@@ -95,6 +98,20 @@ test('R5 security: missed Chrome onUpdated cannot reuse owned TabRef after same-
  f.items.set(200,{...f.items.get(200),url:'https://example.org/other-document'});
  await assert.rejects(host.resolve(tabRef,owner()),code('E_TAB_REF_INVALID'));
  await assert.rejects(host.activateOwned({tabRef},owner()),code('E_TAB_REF_INVALID'));
+});
+test('R9 owned TabRef refuses same-URL replacement document without onUpdated',async()=>{
+ const f=fixture();let documentId='document-A';
+ f.api.webNavigation.getFrame=async({tabId})=>({
+   documentId,url:f.items.get(tabId)?.url,documentLifecycle:'active'
+ });
+ const host=createBrowserTabHost({api:f.api,authorize:async()=>true,createRef:()=>ref});
+ const {tabRef}=await host.create({url:'https://example.org/unchanged'},owner());
+ await host.getOwned({tabRef},owner()); // pin document-A
+ documentId='document-B'; // tabId and URL unchanged; Chrome event lost
+ await assert.rejects(host.activateOwned({tabRef},owner()),code('E_TAB_REF_INVALID'));
+ assert(!f.operations.includes('focus'),'No Chrome focus for a replaced document');
+ assert.deepEqual((await host.listOwned({},owner())).tabs,[]);
+ await assert.rejects(host.getOwned({tabRef},owner()),code('E_TAB_REF_INVALID'));
 });
 test('R5 security: revoke during asynchronous Chrome document lookup invalidates TabRef',async()=>{
  const f=fixture();let enter,release;
