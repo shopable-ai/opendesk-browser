@@ -79,10 +79,13 @@ jobs:
       - name: Source guard and two production/development builds
         run: |
           npm run check
-          npm test
           npm run build
           npm run build:dev
           npm run verify
+      - name: Full repository regression against verified candidate builds
+        # Compiler, resource, CSS and provenance tests inspect these actual
+        # outputs and their default receipts. Keep the complete regression gate.
+        run: npm test
       - name: Retain exact installable Node/Build candidate (NOT native Chrome acceptance)
         if: success()
         uses: actions/upload-artifact@v4

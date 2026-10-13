@@ -1,0 +1,98 @@
+{
+  "schemaVersion": "opendesk.browser-sdk.r106-ci-recovery.v1",
+  "observedHead": "d27006593e149964a57edb2d0db4923a04ef829d",
+  "packageCandidateSha": "3763a70eed4855be91d597336938611ba9c86352",
+  "testInputs": [
+    {
+      "path": "tests/environment/bundle-package-provenance.test.mjs",
+      "bytes": 4244,
+      "sha256": "ef0bfd2944874317cf317f3fa5f0e8782ba5a2626bdfdac11b9dbc5fb45a995b"
+    },
+    {
+      "path": "tests/environment/bundle-provenance.test.mjs",
+      "bytes": 9494,
+      "sha256": "f824a782eed4284b42fa2fc2dd43dcfd271de4f47bd40c8ab0347acfee654583"
+    },
+    {
+      "path": ".github/workflows/cookie-editor-r32.yml",
+      "bytes": 4668,
+      "sha256": "38ad1649d7197d44bf13d794fc471ce47f788269591234f0156e10bf839b91bb"
+    }
+  ],
+  "tests": {
+    "actualProductionDevelopmentModules": {
+      "status": "PASS",
+      "pass": 2,
+      "command": "OPENDESK_BUILD_EVIDENCE_DIR=<own immutable 3763 build receipts> node --test <working-tree absolute bundle-package-provenance.test.mjs>",
+      "cwd": "immutable Git archive of 3763; revised test input is separately SHA-bound, not mislabeled as source from that commit"
+    },
+    "boundary": {
+      "status": "PASS",
+      "pass": 9,
+      "command": "node --test tests/environment/bundle-provenance.test.mjs"
+    },
+    "workflowOrder": {
+      "status": "PASS",
+      "completeGlobalGatePreserved": true
+    }
+  },
+  "preservedFailures": {
+    "alignedOldBlanketAssertion": {
+      "status": "FAIL",
+      "fail": 2
+    },
+    "cookieCI": {
+      "status": "FAIL",
+      "tests": 2271,
+      "pass": 2192,
+      "fail": 72,
+      "skipped": 7,
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38458527790",
+      "node": "22.23.3"
+    },
+    "archiveWholeSuite": {
+      "status": "FAIL",
+      "tests": 2271,
+      "pass": 2238,
+      "fail": 31,
+      "skipped": 2
+    }
+  },
+  "remainingGlobalFailures": [
+    "immutable market release byte conflicts",
+    "historical market media package identities",
+    "stale compiler budget and Global First fixtures",
+    "parallel-owned Script Editor/Workflow fixtures",
+    "site-access advanced dependency UI fixture",
+    "native Chrome profile prerequisite"
+  ],
+  "nativeStatus": "NOT_TESTED",
+  "formalNativePass": 0,
+  "artifacts": [
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/node-provenance-aligned-cookie-integrated.log",
+      "bytes": 2117,
+      "sha256": "3a711db407e8a8c9d75eae5dc9bc7664663f545b9073e477aea9189ae421e61e"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/node-provenance-reviewed-cookie-integrated.log",
+      "bytes": 289,
+      "sha256": "eed7faad7286135bf090a32814d017f71b4713a4e12359b06c7044b6a0c6f360"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/node-provenance-boundary-fixed.log",
+      "bytes": 1012,
+      "sha256": "5ae126b4da532da588b9c93e292645f1d72c80d318e7d98e1b8f40ff81160fb4"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/workflow-prerequisite-order.log",
+      "bytes": 131,
+      "sha256": "22724001b52935eb5e648bbb499515348e87bf7b6f45d6a7bba340c88729e99a"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/ci-cookie-integrated-full-job.log",
+      "bytes": 1109443,
+      "sha256": "cd69cd2dd80d86e6adcf875107c96faf7455cf0ea2323aaca6631c96b622baa1"
+    }
+  ]
+}

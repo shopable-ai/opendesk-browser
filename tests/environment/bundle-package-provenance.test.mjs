@@ -2,6 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
+import {resolve} from 'node:path';
+import {describeBundle} from '../../scripts/bundle-provenance.mjs';
 import {PACKAGE_ENTRIES,PINNED_USER_SCRIPT_LIBRARIES,BUILD_POLICY} from '../../scripts/build-contract.mjs';
 import {BUILTIN_CATALOG} from '../../src/libs/catalog.js';
 import {BUILTIN_PACKAGE_RESOURCE_LIMIT} from '../../src/libs/runtime-contract.js';
@@ -15,7 +17,15 @@ for(const mode of ['production','development'])test(mode+' actual fixed bundle m
     const bytes=await readFile('dist/'+mode+'/'+row.target);
     assert.equal(row.bytes,bytes.length);
     assert.equal(row.sha256,createHash('sha256').update(bytes).digest('hex'));
-    assert.ok(row.modules.every(module=>!/^(docs\/contracts\/source-snapshots\/|examples\/|src\/vendor\/)/.test(module.path)));
+    for(const module of row.modules.filter(module=>/^(docs\/contracts\/source-snapshots\/|examples\/|src\/vendor\/)/.test(module.path))){
+      // Reuse the build boundary's exact target, source-blob and symlink checks.
+      // Its only permitted inputs are the two reviewed Time Review UI files.
+      const reviewed=describeBundle({chunk:{fileName:row.target,modules:{
+        [resolve(module.path)]:{renderedLength:module.renderedLength,originalLength:module.originalLength}
+      }},lock:{packages:{}}}).modules[0];
+      assert.equal(module.reviewedFirstPartyBlob,reviewed.reviewedFirstPartyBlob,
+        'receipt must retain the reviewed source identity: '+module.path);
+    }
   }
   const sw=receipt.bundleModules.find(row=>row.target==='sw.js');
   for(const path of ['src/sw.js','src/environment.js','src/platform/protocol.js','src/platform/host/broker.js'])

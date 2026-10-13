@@ -1398,6 +1398,36 @@
       "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/builds-cookie-integrated/build-production-latest.json",
       "bytes": 206,
       "sha256": "b4e1cc0ee001c99cb32781e679c1453c593423af5522e4d82e479828ecbd0534"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/node-provenance-aligned-cookie-integrated.log",
+      "bytes": 2117,
+      "sha256": "3a711db407e8a8c9d75eae5dc9bc7664663f545b9073e477aea9189ae421e61e"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/node-provenance-reviewed-cookie-integrated.log",
+      "bytes": 289,
+      "sha256": "eed7faad7286135bf090a32814d017f71b4713a4e12359b06c7044b6a0c6f360"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/node-provenance-boundary-fixed.log",
+      "bytes": 1012,
+      "sha256": "5ae126b4da532da588b9c93e292645f1d72c80d318e7d98e1b8f40ff81160fb4"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/workflow-prerequisite-order.log",
+      "bytes": 131,
+      "sha256": "22724001b52935eb5e648bbb499515348e87bf7b6f45d6a7bba340c88729e99a"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/ci-cookie-integrated-full-job.log",
+      "bytes": 1109443,
+      "sha256": "cd69cd2dd80d86e6adcf875107c96faf7455cf0ea2323aaca6631c96b622baa1"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/ci-recovery-followup.json",
+      "bytes": 3468,
+      "sha256": "79d450fdf05095a00315df383fc416f299e5c04dd774d0f09f983da6f5d6343f"
     }
   ],
   "limitations": [
@@ -1411,5 +1441,6 @@
     "Private immutable extension output directories",
     "Compiled native input executables; recorded source and hash retained",
     "Live watcher log continues changing; not immutable acceptance proof"
-  ]
+  ],
+  "ciRecoverySupplement": "ci-recovery-followup.json"
 }

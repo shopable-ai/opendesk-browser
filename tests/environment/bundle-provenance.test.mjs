@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {mkdtemp,writeFile,readFile,rm,mkdir} from 'node:fs/promises';
+import {mkdtemp,writeFile,readFile,rm,mkdir,realpath,symlink} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join,resolve} from 'node:path';
 import {describeBundle,collectBundleEvidence,assertLibraryModuleBoundary,recordBuildFailure} from '../../scripts/bundle-provenance.mjs';
@@ -110,7 +110,7 @@ test('reviewed Time Review markup and logic can enter only the pinned existing s
 });
 
 test('a modified Time Review source must not enter privileged fixed output under the old pin',async t=>{
-  const project=await mkdtemp(join(tmpdir(),'opendesk-compiled-review-'));
+  const project=await realpath(await mkdtemp(join(tmpdir(),'opendesk-compiled-review-')));
   t.after(()=>rm(project,{recursive:true,force:true}));
   const path='examples/sidebar-tools/time-review/src/index.html';
   const file=join(project,path);
@@ -120,4 +120,15 @@ test('a modified Time Review source must not enter privileged fixed output under
     fileName:'ui/sidebar-tool-host.js',modules:{[file]:{}}},root:project,lock:{packages:{}}}),
     /Trusted Time Review source changed/,
     'a native HTML/JS revision requires explicit source-blob re-review before build');
+});
+test('a symlink cannot substitute a pinned Time Review source in privileged output',async t=>{
+  const project=await realpath(await mkdtemp(join(tmpdir(),'opendesk-compiled-symlink-')));
+  t.after(()=>rm(project,{recursive:true,force:true}));
+  const path='examples/sidebar-tools/time-review/src/index.html';
+  const file=join(project,path);
+  await mkdir(join(project,'examples/sidebar-tools/time-review/src'),{recursive:true});
+  await symlink(resolve(path),file);
+  assert.throws(()=>describeBundle({chunk:{
+    fileName:'ui/sidebar-tool-host.js',modules:{[file]:{}}
+  },root:project,lock:{packages:{}}}),/Trusted Time Review source must not be a symlink/);
 });

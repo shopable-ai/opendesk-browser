@@ -1,0 +1,17 @@
+✔ actual Rollup modules retain separate npm identity and zero-rendered evidence (7.928709ms)
+✔ independent npm implementations stay in their own outputs and raw libraries are never bundled (1.757667ms)
+✔ a failed oversized build preserves the offending graph separately from the last success (6.062666ms)
+✔ partial diagnostic JSON and circular causes cannot leave a stale success marker (1.982166ms)
+✔ privileged entries reject historical, user project and standalone vendor modules (0.21725ms)
+✔ receipt collection requires every fixed output and binds final verified hashes (1.19775ms)
+✔ reviewed Time Review markup and logic can enter only the pinned existing sidebar host (1.264ms)
+✔ a modified Time Review source must not enter privileged fixed output under the old pin (2.261834ms)
+✔ a symlink cannot substitute a pinned Time Review source in privileged output (1.638709ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 9
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 74.563166
