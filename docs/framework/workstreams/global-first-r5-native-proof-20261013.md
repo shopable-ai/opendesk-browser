@@ -27,6 +27,12 @@
 - 禁止为了凑 R5 native PASS 降低 `assertClassicIIFE`、放宽 CSP/权限、跳过 `npm run build` 或用 `dist` 旧包冒充新 Candidate；正确修复路径应在源构建侧恢复仍符合原严格固定 IIFE 合约且通过 512KiB 预算的 WXT 产物。该路径属于并行 Side Panel/构建工作流，不由 Global First Agent 抢写共享 `wxt.config.mjs` 或 `verify-package.mjs`。
 - **重新触发前提**：负责人确实修改和测试相关构建输入后，获取新的源码 SHA，重新执行定向 build/verify，然后再验本轮真实 Chrome Task；无变化时本轮不循环重试。旧 macOS 任务绑定修正之前的候选，不能被借用为最新主线成功。
 
+### 后续并行代码修复与第三次合法重测条件
+
+- 原 Side Panel/构建负责人于 [a7c7f209](https://github.com/shopable-ai/opendesk-browser/commit/a7c7f209684b99360362d776b14440b02240648861)（请以仓库实际完整 SHA 为准，前述短号为定位）修改 `scripts/verify-package.mjs`，严格只对固定 `ui/tool-shell.js` 接受单一、同步、零参数的 `!function(){...}()` Terser 表达式形式。一般非经典入口、额外顶层语句、其它文件和带参数执行仍继续拒绝；后续另有针对错误 IIFE 的拒绝性测试。**这是一条由构建负责人确定的狭义受控构建格式，而非本 R5 通过关闭验证器放行。**
+- 因共享校验器输入确有明确变更，按既有 testing-guide 允许重新跑受影响的 `npm run build / verify / CFT`。第三次 [Linux 真实 Chrome CFT #38368328878](https://github.com/shopable-ai/opendesk-browser/actions/runs/38368328878) 绑定 `5f2c2c229cf065d4fe70dd9ed852086bfcff6f1c`；**在原始报告完成前保留 QUEUED/RUNNING，不提前认定 PASS**。
+- 与前两次不一样的是测试输入变更有 GitHub 证据，因此这不是没有代码变化的循环重试；若再次失败必须记录新失败点及受影响输入，不能借 Node green 或旧发行包代替。
+
 ## 这两种测试还缺哪一道连接？
 
 `WorkflowCompiler` 组件验收生成的 `wf-*` 固定源码，与 scheduled Task Native 测试加载的 `sample.form-fill` **不是同一个源码候选**，即使两个单独 PASS 也只能说两个独立切片存在。真正关闭 GF-007 的完整证明必须让**同一个真实模型生成的同一源码 hash**经过用户当前 Mac 的真实审阅 → Run/Result → Candidate/Verify/Available/Installed → 明确关闭模型/Native Provider → 在当前账号合法目标文档重复用户 Run 两次；其中模型调用计数不可臆写 0，必须具备真实可观察回执。
