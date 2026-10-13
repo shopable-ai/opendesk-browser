@@ -503,7 +503,7 @@
       "evidence": []
     },
     {
-      "api": "browser.tabs.open",
+      "api": "browser.tabs.create",
       "module": "browser.tabs",
       "apiVersion": "1.0.0",
       "implementation": "IMPLEMENTED",
@@ -539,14 +539,15 @@
       },
       "callableNowVerification": "NOT_TESTED",
       "blockers": [
-        "Integrated code; positive, denial, same-candidate native Chrome acceptance outstanding"
+        "Integrated code; positive, denial, same-candidate native Chrome acceptance outstanding",
+        "R9 renamed method: reverify latest Node and native Chrome candidate"
       ],
       "nextTask": "Execute and repair targeted CI then real user click, denial, revocation and Worker restart",
       "commits": [],
       "evidence": []
     },
     {
-      "api": "browser.tabs.focus",
+      "api": "browser.tabs.activateOwned",
       "module": "browser.tabs",
       "apiVersion": "1.0.0",
       "implementation": "IMPLEMENTED",
@@ -582,7 +583,8 @@
       },
       "callableNowVerification": "NOT_TESTED",
       "blockers": [
-        "Integrated code; positive, denial, same-candidate native Chrome acceptance outstanding"
+        "Integrated code; positive, denial, same-candidate native Chrome acceptance outstanding",
+        "R9 renamed method: reverify latest Node and native Chrome candidate"
       ],
       "nextTask": "Execute and repair targeted CI then real user click, denial, revocation and Worker restart",
       "commits": [],
@@ -719,7 +721,7 @@
       "evidence": []
     },
     {
-      "api": "browser.tabs.closeOwned",
+      "api": "browser.tabs.removeOwned",
       "module": "browser.tabs",
       "apiVersion": "1.0.0",
       "implementation": "IMPLEMENTED",
@@ -743,30 +745,12 @@
       "hostImplementation": "src/platform/chrome/context-menus.js",
       "sdkEntry": "src/framework/sdk/browser.js",
       "positiveTest": {
-        "status": "PASS",
-        "evidence": [
-          {
-            "path": "docs/framework/evidence/browser-sdk-r5/r5-ci-90239cd4.json",
-            "sha256": "191ba9eed5696ec6a44e61bdb0641dfeb5bf1182967527ce9252786188927b16",
-            "candidateSha": "90239cd4d2145f8055aa847854d252f3c93dae4a",
-            "caseId": "browser.tabs.closeOwned-positive",
-            "command": "node --test --test-reporter=spec tests/environment/browser-sdk-r2-host.test.mjs tests/environment/browser-tabs-host.test.mjs",
-            "environment": "GitHub Actions ubuntu-latest, Node.js 22"
-          }
-        ]
+        "status": "NOT_TESTED",
+        "evidence": []
       },
       "denialTest": {
-        "status": "PASS",
-        "evidence": [
-          {
-            "path": "docs/framework/evidence/browser-sdk-r5/r5-ci-90239cd4.json",
-            "sha256": "191ba9eed5696ec6a44e61bdb0641dfeb5bf1182967527ce9252786188927b16",
-            "candidateSha": "90239cd4d2145f8055aa847854d252f3c93dae4a",
-            "caseId": "browser.tabs.closeOwned-denial",
-            "command": "node --test --test-reporter=spec tests/environment/browser-sdk-r2-host.test.mjs tests/environment/browser-tabs-host.test.mjs",
-            "environment": "GitHub Actions ubuntu-latest, Node.js 22"
-          }
-        ]
+        "status": "NOT_TESTED",
+        "evidence": []
       },
       "nativeChrome": {
         "status": "NOT_TESTED",
@@ -775,7 +759,8 @@
       "callableNowVerification": "NOT_TESTED",
       "blockers": [
         "Node Host positive/denial PASS in CI 90239cd4d2145f8055aa847854d252f3c93dae4a",
-        "Mac Chrome installed tool click, navigation and Worker restart NOT_TESTED"
+        "Mac Chrome installed tool click, navigation and Worker restart NOT_TESTED",
+        "R9 renamed method: reverify latest Node and native Chrome candidate"
       ],
       "nextTask": "Test one-use close, foreign/stale tabs, permission revocation and Worker restart in real Chrome",
       "commits": [
@@ -1286,7 +1271,81 @@
     ],
     "history": "Old R5 counts remain historical only",
     "implementationEvidence": "NOT_TESTED_AGAINST_CURRENT_CANDIDATE",
-    "nativeChrome": "NOT_TESTED"
+    "nativeChrome": "NOT_TESTED",
+    "tabsRenamed": {
+      "browser.tabs.open": "browser.tabs.create",
+      "browser.tabs.focus": "browser.tabs.activateOwned",
+      "browser.tabs.closeOwned": "browser.tabs.removeOwned"
+    },
+    "tabsHistoricalEvidence": [
+      {
+        "oldOperation": "browser.tabs.open",
+        "newOperation": "browser.tabs.create",
+        "previousPositive": {
+          "status": "NOT_TESTED",
+          "evidence": []
+        },
+        "previousDenial": {
+          "status": "NOT_TESTED",
+          "evidence": []
+        },
+        "previousNative": {
+          "status": "NOT_TESTED",
+          "evidence": []
+        }
+      },
+      {
+        "oldOperation": "browser.tabs.focus",
+        "newOperation": "browser.tabs.activateOwned",
+        "previousPositive": {
+          "status": "NOT_TESTED",
+          "evidence": []
+        },
+        "previousDenial": {
+          "status": "NOT_TESTED",
+          "evidence": []
+        },
+        "previousNative": {
+          "status": "NOT_TESTED",
+          "evidence": []
+        }
+      },
+      {
+        "oldOperation": "browser.tabs.closeOwned",
+        "newOperation": "browser.tabs.removeOwned",
+        "previousPositive": {
+          "status": "PASS",
+          "evidence": [
+            {
+              "path": "docs/framework/evidence/browser-sdk-r5/r5-ci-90239cd4.json",
+              "sha256": "191ba9eed5696ec6a44e61bdb0641dfeb5bf1182967527ce9252786188927b16",
+              "candidateSha": "90239cd4d2145f8055aa847854d252f3c93dae4a",
+              "caseId": "browser.tabs.closeOwned-positive",
+              "command": "node --test --test-reporter=spec tests/environment/browser-sdk-r2-host.test.mjs tests/environment/browser-tabs-host.test.mjs",
+              "environment": "GitHub Actions ubuntu-latest, Node.js 22"
+            }
+          ]
+        },
+        "previousDenial": {
+          "status": "PASS",
+          "evidence": [
+            {
+              "path": "docs/framework/evidence/browser-sdk-r5/r5-ci-90239cd4.json",
+              "sha256": "191ba9eed5696ec6a44e61bdb0641dfeb5bf1182967527ce9252786188927b16",
+              "candidateSha": "90239cd4d2145f8055aa847854d252f3c93dae4a",
+              "caseId": "browser.tabs.closeOwned-denial",
+              "command": "node --test --test-reporter=spec tests/environment/browser-sdk-r2-host.test.mjs tests/environment/browser-tabs-host.test.mjs",
+              "environment": "GitHub Actions ubuntu-latest, Node.js 22"
+            }
+          ]
+        },
+        "previousNative": {
+          "status": "NOT_TESTED",
+          "evidence": []
+        }
+      }
+    ],
+    "renamedNativeChrome": "NOT_TESTED"
   },
   "legacyCandidateChecks": {
     "nodeTests": {
