@@ -7,8 +7,9 @@
     "canonicalMapping": "docs/api/browser-sdk-compatibility-map.json",
     "schemas": "src/framework/sdk/browser-schemas.js",
     "canonicalHost": "src/platform/chrome/context-menus.js",
-    "compatibility": "UNCHANGED",
-    "comment": "Inherit the R8 mapping; do not fork 35 canonical public methods into a second registry."
+    "compatibility": "HISTORICAL_NO_RUNTIME_CONSTRAINT",
+    "comment": "R7 mapping is historical, never an R9 SDK count or alias mandate.",
+    "archiveOnly": true
   },
   "discoveryOnly": "docs/api/chrome-native-api-catalog.json",
   "localScope": "New HOST_ONLY Cookie operations not registered in public SDK and not admitted by installed-tool sandbox.",
