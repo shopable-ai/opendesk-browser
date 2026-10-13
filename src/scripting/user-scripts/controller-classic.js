@@ -1,5 +1,5 @@
-// Pure Controller Classic declaration parser. No network, storage or execution.
-// This is an authoring directive, not a second dependency manager or runner.
+// Controller Classic reuses the standard userscript @require source declaration.
+// No custom OpenDesk syntax, network, storage or code execution in this parser.
 const err=(code,message)=>Object.assign(new Error(message||code),{code});
 const SHA=/^[a-f0-9]{64}$/;
 const FIXED=/(?:^|[\/@._-])v?\d+\.\d+\.\d+(?:[-+][a-z0-9.-]+)?(?=\/|[._-]|$)|(?:^|\/)[a-f0-9]{40}(?=\/|$)/i;
@@ -8,9 +8,11 @@ export function parseControllerClassicDependencies(sourceUtf8){
     throw err('E_CONTROLLER_CLASSIC_SOURCE','Controller source must be UTF-8 text of at most 128 KiB');
   const requires=[],seen=new Set();
   for(const [lineIndex,line] of sourceUtf8.split(/\r?\n/).entries()){
-    if(!/^\s*\/\/\s*@opendesk-classic(?:\s|$)/.test(line))continue;
-    const match=/^\s*\/\/\s*@opendesk-classic\s+(https:\/\/\S+?)(?:\s+sha256:([a-f0-9]{64}))?\s*$/.exec(line);
-    if(!match)throw err('E_CONTROLLER_CLASSIC_DIRECTIVE','Invalid @opendesk-classic declaration at line '+(lineIndex+1));
+    if(/^\s*\/\/\s*@opendesk-classic\b/.test(line))
+      throw err('E_CONTROLLER_CLASSIC_DIRECTIVE','Use the standard // @require URL declaration instead of @opendesk-classic');
+    if(!/^\s*\/\/\s*@require(?:\s|$)/.test(line))continue;
+    const match=/^\s*\/\/\s*@require\s+(https:\/\/\S+?)(?:\s+sha256:([a-f0-9]{64}))?\s*$/.exec(line);
+    if(!match)throw err('E_CONTROLLER_CLASSIC_DIRECTIVE','Invalid @require URL declaration at line '+(lineIndex+1));
     if(requires.length>=4)throw err('E_CONTROLLER_CLASSIC_LIMIT','At most four Classic libraries per Controller');
     let url;try{url=new URL(match[1]);}catch{throw err('E_DEPENDENCY_URL','Invalid Classic URL');}
     const hostname=url.hostname.toLowerCase();
