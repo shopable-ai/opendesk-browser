@@ -1,4 +1,3 @@
-import {createCloudHosting} from './cloud-hosting.js';
 import {createDebugWorkbench} from './debug-workbench.js';
 import {PROTOCOL, permissionPattern} from '../environment.js';
 import {BROWSER_HOST_PROTOCOL,BROWSER_MENU_LAUNCH_STORE} from '../framework/sdk/browser-contract.js';
@@ -66,6 +65,8 @@ const currentPageTarget = createCurrentPageTarget({api:chrome});
 const historyUI=globalThis.__opendeskTrustedHistoryUI;
 if(!historyUI?.createScheduledTaskHost)throw new Error('E_TRUSTED_SCHEDULE_HOST_MISSING');
 const createScheduledTaskHost=historyUI.createScheduledTaskHost;
+if(!historyUI?.createCloudHosting)throw new Error('E_TRUSTED_CLOUD_UI_MISSING');
+const createCloudHosting=historyUI.createCloudHosting;
 historyUI?.mount(document);
 const trustedHistoryWorkbench=historyUI?.create({api:chrome,doc:document,hostInstanceId})??Object.freeze({dispose(){}});
 window.addEventListener('pagehide',()=>trustedHistoryWorkbench.dispose(),{once:true});
