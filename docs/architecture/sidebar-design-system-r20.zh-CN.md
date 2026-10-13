@@ -96,7 +96,7 @@ Native Agent 全页 Workspace 和 Settings 具有自己的大屏结构与本地�
 | 提醒 | `od-alert`、`od-alert--warning`、`od-alert--error` | 状态色由公共 token 提供；普通正文不染蓝或染红 |
 | 布局 | `od-toolbar`、`od-stack`、`od-segmented` | 页面负责组间距与 flex/grid，公共组件负责自身留白 |
 
-实际 HTML 直接引入原有三份 CSS，并选择角色，不复制一套演示皮肤：
+实际 HTML 继续使用既有静态样式入口（公共三份 CSS 加云控业务 CSS），通过选择角色复用组件，不复制演示皮肤：
 
 ```html
 <div class="od-stack">
