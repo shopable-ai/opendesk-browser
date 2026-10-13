@@ -1621,7 +1621,12 @@ test('stopping and reapproving a Cloud grant invalidates its old claim ID',async
   await f.cloud.cloudStop({},f.sender);
   const stopped=(await f.rows('frameworkKV')).find(r=>r.grantId==='grant'&&r.providerId==='provider'&&Array.isArray(r.tasks));
   assert.equal(stopped.enabled,false);assert.equal(stopped.claimId,null);
-  await f.cloud.cloudApprove({tasks:[{taskId:f.resolved.taskId,resultAllowed:true}]},f.sender);
+  await f.cloud.cloudApprove({tasks:[{
+    taskId:f.resolved.taskId,version:f.resolved.version,
+    manifestHash:f.resolved.manifestHash,sourceHash:f.resolved.contentHash,
+    installationId:f.resolved.installationId,generation:f.resolved.generation,
+    siteOrigins:f.resolved.manifest.siteOrigins,resultAllowed:true
+  }]},f.sender);
   const nextConfig=(await f.rows('frameworkKV')).find(r=>r?.providerId==='provider'&&Array.isArray(r.tasks));
   assert.equal(nextConfig.claimId,null);
   assert.notEqual(nextConfig.grantId,'grant');

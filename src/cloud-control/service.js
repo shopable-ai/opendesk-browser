@@ -6,6 +6,7 @@ import {decodeValue} from '../platform/page-port/codec.js';
 import {createCloudHistoryIndex} from './history-index.js';
 import {isDurableCloudResult} from './durable-outcome.js';
 const KV='frameworkKV',CONFIG='cloud:config',IDENTITY='cloud:executor',PREFIX='cloud:request:';
+const APPROVAL_FIELDS=['taskId','version','manifestHash','sourceHash','installationId','generation','siteOrigins','resultAllowed'];
 function acceptedCloudTarget(target,origins){
   if(!target||typeof target!=='object'||Array.isArray(target)||
     Object.keys(target).some(k=>!['mode','url'].includes(k))||
@@ -151,13 +152,25 @@ export function createCloudService({storage,api,clock={now:()=>Date.now()},asser
     await scoped(sender,async tx=>{invariant(!(await tx.get(KV,CONFIG)),'E_PAIRING');await tx.put(KV,{url,providerId:pair.providerId,credential:pair.credential,executorId,namespace:host.namespace,enabled:false,tasks:[],pendingRequestId:null},CONFIG);},'readwrite');return cloudStatus({},sender);
   }
   async function cloudApprove(request,sender){
-    invariant(Object.keys(request).every(k=>k==='tasks')&&Array.isArray(request.tasks)&&request.tasks.length>0&&request.tasks.length<=32,'E_SCHEMA');
+    invariant(request&&typeof request==='object'&&!Array.isArray(request)&&
+      Object.keys(request).length===1&&Object.hasOwn(request,'tasks')&&
+      Array.isArray(request.tasks)&&request.tasks.length>0&&request.tasks.length<=32,'E_SCHEMA');
     const tasks=[],seen=new Set();
     for(const approval of request.tasks){
+      // Every consent must explicitly pin the entire installed identity.
+      // Never infer a version, site scope or authorization generation.
       invariant(approval&&typeof approval==='object'&&!Array.isArray(approval)&&
-        Object.keys(approval).every(k=>['taskId','version','manifestHash','sourceHash','installationId','generation','siteOrigins','resultAllowed'].includes(k))&&
-        typeof approval.taskId==='string'&&typeof approval.resultAllowed==='boolean'&&
-        !seen.has(approval.taskId),'E_SCHEMA','Invalid or duplicate task approval');
+        Object.keys(approval).length===APPROVAL_FIELDS.length&&
+        APPROVAL_FIELDS.every(k=>Object.hasOwn(approval,k))&&
+        typeof approval.taskId==='string'&&approval.taskId.length>0&&
+        typeof approval.version==='string'&&approval.version.length>0&&
+        /^[a-f0-9]{64}$/.test(approval.manifestHash)&&
+        /^[a-f0-9]{64}$/.test(approval.sourceHash)&&
+        typeof approval.installationId==='string'&&approval.installationId.length>0&&
+        Number.isSafeInteger(approval.generation)&&approval.generation>=0&&
+        Array.isArray(approval.siteOrigins)&&approval.siteOrigins.every(origin=>typeof origin==='string')&&
+        typeof approval.resultAllowed==='boolean'&&!seen.has(approval.taskId),
+        'E_SCHEMA','Cloud approval requires a complete fixed Task identity');
       seen.add(approval.taskId);
       const installed=await resolveTask({taskId:approval.taskId},sender);
       // An explicit UI consent must still name the exact installed identity
@@ -165,11 +178,10 @@ export function createCloudService({storage,api,clock={now:()=>Date.now()},asser
       for(const [key,value] of [['version',installed.version],['manifestHash',installed.manifestHash],
         ['sourceHash',installed.contentHash],['installationId',installed.installationId],
         ['generation',installed.generation]])
-        if(Object.hasOwn(approval,key))invariant(approval[key]===value,'E_REVISION',
+        invariant(approval[key]===value,'E_REVISION',
           'Task version or installation changed during approval');
-      if(Object.hasOwn(approval,'siteOrigins'))
-        invariant(canonical(approval.siteOrigins)===canonical(installed.manifest.siteOrigins),
-          'E_REVISION','Task website scope changed during approval');
+      invariant(canonical(approval.siteOrigins)===canonical(installed.manifest.siteOrigins),
+        'E_REVISION','Task website scope changed during approval');
       tasks.push({...installed,resultAllowed:approval.resultAllowed});
     }
     for(const t of tasks)for(const origin of t.manifest.siteOrigins)await requireGrant(api,origin);
