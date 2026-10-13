@@ -539,7 +539,7 @@ export function createDependencyManager({api,storage,assertHost,fetchImpl=global
     ensure(typeof request.programId==='string'&&/^[A-Za-z0-9][A-Za-z0-9_.-]{0,127}$/.test(request.programId),
       'E_DEPENDENCY_PROGRAM','Controller Classic requires a program ID');
     const requires=parseControllerClassicDependencies(request.sourceUtf8);
-    ensure(requires.length>0,'E_DEPENDENCY_EMPTY','Controller source has no @opendesk-classic declaration');
+    ensure(requires.length>0,'E_DEPENDENCY_EMPTY','Controller source has no standard @require declaration');
     ensure(!/^\s*(?:import\s+(?!\()|export\s+)/m.test(request.sourceUtf8),
       'E_CONTROLLER_CLASSIC_FORMAT','Use the ESM compiler for import/export sources');
     const host=await hostFor(sender),ns=host.namespace+'|controller-program:'+JSON.stringify(request.programId),
