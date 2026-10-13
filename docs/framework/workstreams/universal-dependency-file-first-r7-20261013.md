@@ -106,8 +106,10 @@ Chrome 验收路径：使用相同源文件和 `programId=marked-a`，检查→�
 
 | 验收项 | 当前证据 |
 | --- | --- |
-| GitHub main 改动 | 本轮提交后单独核实 commit SHA，禁止引用未写入的暂存 blob 作为已交付 |
-| Node 定向测试 / source check / production 与 development build / libs:doctor | 需要绑定提交后的 CI 原始日志；未取证前记 NOT_TESTED |
+| GitHub main 改动 | 实现提交 `bc6dc46aa17f56006010ac27af8484a6eaf96f70`；测试/CI 补丁 `d61eea4889dcc5835f89b536760c0d71e02249e6`；均已在 `main`，未改 R8 |
+| 定向 Node / 已有依赖资产 / 源码检查 | [Page userscript dependencies and package · 38352293156](https://github.com/shopable-ai/opendesk-browser/actions/runs/38352293156) **PASS**：D1/UI 186/186、冻结 Candidate 10/10、网页 fixture 11/11、R8 backlog 3/3；`npm run check` PASS |
+| 页面安装组件回归 | [Native Page program source and authorization boundaries · 38352293233](https://github.com/shopable-ai/opendesk-browser/actions/runs/38352293233) **PASS**：162/162 Node 合同与模拟，`npm run check`、`npm run build:dev` PASS；此工作流的 Native 一词不等同于真实 Chrome |
+| 生产/开发包与固定资源 | 上述 38352293156 **PASS**：生产 83 个文件、packageHash `6f3b1e71ed996638fe3631bd956baf04cc040ccb6614cc866b7908c188a3ab89`；开发 117 个文件、packageHash `ac64773912f7235e0af37915c28b387d3aa07e696f292f7388de6f93e9510d46`；`npm run verify` 与 ZIP=dist 字节一致性 **PASS**。ZIP SHA256 分别为 `54be995b4e5a05c5b365828b3e6ce3c592d047793dafcd208aea0f46d38a8390`、`93855cf1cb813d95b54a86ccc2b2d67894601b5a538f8a2a7f4bc38bf7f5810c` |
 | 全新第三方库真实 CDN 字节及 SHA / MIME / 许可证 | NOT_TESTED；未从真实 Chrome 下载，不填臆造值 |
 | 程序 A/B 真正运行、授权、缓存次数、离线及回调结果 | NOT_TESTED；Node mock/VM 仅能证明局部逻辑 |
 | Chrome/macOS 原生，包括 Stop、导航、撤权、破坏测试 | NOT_TESTED；没有 Mac 同包原生回执 |
