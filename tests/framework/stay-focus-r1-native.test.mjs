@@ -76,12 +76,25 @@ test('Real Chrome default sharing, live page reminder, DNR and uninstall',{skip:
   assert.equal(pkg.id,'stay-focus');assert.equal(pkg.version,'1.0.0');
   await mkdir(OUT,{recursive:true});
   const profile=await mkdtemp(path.join(tmpdir(),'opendesk-stay-focus-r1-'));
-  const http=createServer((_req,res)=>{
+  const serve=(_req,res)=>{
     res.writeHead(200,{'content-type':'text/html; charset=utf-8','cache-control':'no-store'});
     res.end('<!doctype html><title>Stay Focus native HTTP test</title><h1>Allowed site before rules</h1>');
+  };
+  // Two different loopback hostnames, two real Chrome HTTP tabs, ONE trusted
+  // entertainment budget. Do not depend on live third-party network access.
+  const http=createServer(serve),localHttp=createServer(serve);
+  await new Promise((resolve,reject)=>{
+    http.once('error',reject);
+    http.listen(0,'127.0.0.1',()=>{http.removeListener('error',reject);resolve();});
   });
-  await new Promise(resolve=>http.listen(0,'127.0.0.1',resolve));
+  await new Promise((resolve,reject)=>{
+    // Fail explicitly if this macOS runner unexpectedly lacks IPv6 loopback.
+    // Do not leave a pending Promise or misreport a website DNR failure.
+    localHttp.once('error',reject);
+    localHttp.listen(0,'::1',()=>{localHttp.removeListener('error',reject);resolve();});
+  });
   const page='http://127.0.0.1:'+http.address().port+'/real-navigation';
+  const secondPage='http://localhost:'+localHttp.address().port+'/real-navigation';
   const chromeArgs=['--use-mock-keychain','--password-store=basic','--no-sandbox',
     '--disable-gpu','--disable-dev-shm-usage','--no-first-run','--no-default-browser-check',
     '--disable-background-networking','--remote-allow-origins=*',
@@ -93,7 +106,8 @@ test('Real Chrome default sharing, live page reminder, DNR and uninstall',{skip:
   const report={candidate:process.env.GITHUB_SHA||null,
     pkgSHA256:createHash('sha256').update(bytes).digest('hex'),
     nativeChrome:'NOT_TESTED',approval:'NOT_TESTED',actualNavigation:'NOT_TESTED',
-    quota:'NATIVE_NOT_TESTED',zeroConfig:'NOT_TESTED',pageReminder:'NOT_TESTED',quotaTrace:[],screenshots:[],
+    quota:'NATIVE_NOT_TESTED',zeroConfig:'NOT_TESTED',pageReminder:'NOT_TESTED',
+    realSharedTwoHosts:'NOT_TESTED',quotaTrace:[],screenshots:[],
     disabled:'NOT_TESTED',reenabled:'NOT_TESTED',restart:'NOT_TESTED',
     unregister:'NOT_TESTED',uninstall:'NOT_TESTED',steps:[]};
   const note=(name,details)=>{report.steps.push({name,...details});console.log('STAY_FOCUS_NATIVE '+name+' '+JSON.stringify(details));};
@@ -108,7 +122,7 @@ test('Real Chrome default sharing, live page reminder, DNR and uninstall',{skip:
       await new Promise(resolve=>{const timer=setTimeout(()=>{chrome.kill('SIGKILL');resolve();},2000);
         chrome.once('close',()=>{clearTimeout(timer);resolve();});chrome.kill('SIGTERM');});
     }
-    await new Promise(resolve=>http.close(resolve));
+    await Promise.all([http,localHttp].map(server=>new Promise(resolve=>server.close(resolve))));
     assert.ok(path.basename(profile).startsWith('opendesk-stay-focus-r1-')&&path.dirname(profile)===tmpdir());
     await rm(profile,{recursive:true,force:true,maxRetries:4,retryDelay:200});
     if(report.quota==='IN_PROGRESS')report.quota='FAIL';
@@ -249,7 +263,7 @@ test('Real Chrome default sharing, live page reminder, DNR and uninstall',{skip:
   assert.equal(await evalRead(client,frame,'document.querySelector("#site-minutes").value'),'2');
   await click(client,frame,'#site-form button[type=submit]');
   await until(()=>evalRead(client,sid,'!document.querySelector("#sidebar-tool-action-review").hidden'),
-    'trusted one-minute quota review');
+    'trusted two-minute shared quota review');
   await click(client,sid,'#sidebar-tool-action-continue');
   await until(async()=>{
     const result=await evalRead(client,sid,'(async()=>{const x=await chrome.storage.local.get("'+store+'");'+
@@ -258,8 +272,21 @@ test('Real Chrome default sharing, live page reminder, DNR and uninstall',{skip:
     return result.site?.mode==='limit'&&result.site.minutes===2&&
       result.site.group==='entertainment'&&result.owned===0;
   },'real UI changed from always block to unused two-minute shared quota');
+  // Configure another LOCAL host through the same reviewed sandbox UI.
+  // Its time contributes to the existing g:entertainment ledger.
+  await replaceField(client,frame,'#site-host','localhost');
+  await click(client,frame,'#site-form button[type=submit]');
+  await until(()=>evalRead(client,sid,
+    '!document.querySelector("#sidebar-tool-action-review").hidden'),
+    'second loopback domain shares the trusted budget');
+  await click(client,sid,'#sidebar-tool-action-continue');
+  await until(()=>evalRead(client,sid,
+    'chrome.storage.local.get("'+store+'").then(x=>x["'+store+'"]?.sites?.some('+
+    's=>s.host==="localhost"&&s.group==="entertainment"&&s.mode==="limit"))'),
+    'second actual site joins the same shared group');
   report.quota='IN_PROGRESS';
-  note('real-ui-two-minute-shared-quota',{minutes:2,storageUsageWasNotModified:true});
+  note('real-ui-two-minute-shared-quota',{minutes:2,
+    domains:['127.0.0.1','localhost'],storageUsageWasNotModified:true});
 
   // This creates a real HTTP tab and makes it the focused, active Chrome tab.
   // Browser tabs/window activation and CDP mouse events are actual browser
@@ -270,7 +297,7 @@ test('Real Chrome default sharing, live page reminder, DNR and uninstall',{skip:
     return targets.find(row=>row.targetId===live.targetId)?.url===page;
   },'HTTP page allowed before quota',15000);
   await client.send('Target.activateTarget',{targetId:live.targetId});
-  const liveSession=(await client.send('Target.attachToTarget',
+  let liveSession=(await client.send('Target.attachToTarget',
     {targetId:live.targetId,flatten:true})).sessionId;
   await client.send('Runtime.enable',{},liveSession);
   await client.send('Page.enable',{},liveSession);
@@ -292,8 +319,8 @@ test('Real Chrome default sharing, live page reminder, DNR and uninstall',{skip:
     'idle:await chrome.idle.queryState(60),focused:win.focused,'+
     'activeUrl:tabs[0]?.url||null,tabId:tabs[0]?.id||null};})()';
   const quotaStart=Date.now();
-  let reached=null;
-  while(Date.now()-quotaStart<200000){
+  let reached=null,secondTarget=null,usedAtSwitch=null,secondTabId=null;
+  while(Date.now()-quotaStart<240000){
     // Keep performing real interaction with the opened Chrome page during
     // the quota window; the idle API is still independently read and recorded.
     await client.send('Input.dispatchMouseEvent',{type:'mouseMoved',
@@ -303,6 +330,30 @@ test('Real Chrome default sharing, live page reminder, DNR and uninstall',{skip:
     const notice=await evalRead(client,liveSession,
       '!!document.querySelector("[data-opendesk-focus-notice]")').catch(()=>false);
     report.quotaTrace.push({elapsedMs,...snapshot,pageNotice:notice});
+    // Spend the first chargeable interval on the first host and the remaining
+    // quota on the other. Switching tabs MUST invalidate the old checkpoint;
+    // neither tab can double-charge the one global ledger.
+    if(!secondTarget&&snapshot.usedMs>=30000&&snapshot.usedMs<120000){
+      usedAtSwitch=snapshot.usedMs;
+      secondTarget=await client.send('Target.createTarget',{url:secondPage});
+      await until(async()=>{
+        const targets=(await client.send('Target.getTargets')).targetInfos;
+        return targets.find(row=>row.targetId===secondTarget.targetId)?.url===secondPage;
+      },'second real localhost HTTP page loads before shared quota',15000);
+      await client.send('Target.activateTarget',{targetId:secondTarget.targetId});
+      liveSession=(await client.send('Target.attachToTarget',
+        {targetId:secondTarget.targetId,flatten:true})).sessionId;
+      await client.send('Runtime.enable',{},liveSession);
+      await client.send('Page.enable',{},liveSession);
+      secondTabId=await evalRead(client,sid,'(async()=>{'+
+        'const tabs=await chrome.tabs.query({url:'+JSON.stringify(secondPage)+'});'+
+        'const tab=tabs.at(-1);if(!tab)return null;'+
+        'await chrome.windows.update(tab.windowId,{focused:true});'+
+        'await chrome.tabs.update(tab.id,{active:true});return tab.id;})()');
+      assert.ok(Number.isInteger(secondTabId),'second loopback page must be a native Chrome tab');
+      note('real-active-site-switch',{firstHost:'127.0.0.1',secondHost:'localhost',
+        usedMs:usedAtSwitch,secondTabId});
+    }
     if(notice&&report.pageReminder!=='PASS'){
       report.pageReminder='PASS';
       report.screenshots.push(await screenshot(client,liveSession,'real-one-minute-page-reminder'));
@@ -321,7 +372,15 @@ test('Real Chrome default sharing, live page reminder, DNR and uninstall',{skip:
   assert.ok(report.quotaTrace.some(x=>x.usedMs<120000),
     'quota trace needs actual pre-threshold foreground observations');
   assert.ok(report.quotaTrace.some(x=>x.focused&&x.idle==='active'&&x.tabId===focusedTab.tabId),
-    'real browser must observe focused active non-idle target tab');
+    'first actual website must have focused non-idle time');
+  assert.ok(Number.isInteger(secondTabId)&&usedAtSwitch>=30000&&reached.usedMs-usedAtSwitch>=45000,
+    'second actual website must contribute substantial positive time to the same pool');
+  assert.ok(report.quotaTrace.some(x=>x.focused&&x.idle==='active'&&x.tabId===secondTabId&&
+    x.activeUrl===secondPage),'real foreground observation must include the second host');
+  report.realSharedTwoHosts='PASS';
+  note('native-shared-two-sites',{hosts:['127.0.0.1','localhost'],
+    firstSiteUsedMs:usedAtSwitch,secondSiteUsedMs:reached.usedMs-usedAtSwitch,
+    totalUsedMs:reached.usedMs,storageUsageWasNotModified:true});
   assert.equal(report.pageReminder,'PASS','1-minute remaining notice must render in the actual isolated content script');
   report.quotaEnforcedElapsedMs=reached.elapsedMs;
   report.quotaOvershootMs=reached.elapsedMs-120000;
@@ -330,8 +389,10 @@ test('Real Chrome default sharing, live page reminder, DNR and uninstall',{skip:
     actualDnrRules:reached.rules,traceRecords:report.quotaTrace.length});
   await until(async()=>{
     const targets=(await client.send('Target.getTargets')).targetInfos;
-    return targets.find(row=>row.targetId===live.targetId)?.url?.includes('/stay-focus/blocked-quota.html');
-  },'previously open site navigated to actual quota block page',15000);
+    const blocked=targetId=>targets.find(row=>row.targetId===targetId)?.url?.includes(
+      '/stay-focus/blocked-quota.html');
+    return blocked(live.targetId)&&blocked(secondTarget.targetId);
+  },'both previously open sites redirected by actual Chrome quota DNR',15000);
   report.screenshots.push(await screenshot(client,liveSession,'existing-tab-quota-blocked'));
   const quotaVisit=await client.send('Target.createTarget',{url:page});
   const quotaRedirect=await until(async()=>{
@@ -339,9 +400,31 @@ test('Real Chrome default sharing, live page reminder, DNR and uninstall',{skip:
     return targets.find(row=>row.targetId===quotaVisit.targetId)?.url?.includes('/stay-focus/blocked-quota.html');
   },'new real HTTP main-frame navigation denied by quota DNR',15000);
   assert.ok(quotaRedirect.startsWith('chrome-extension://'+id+'/stay-focus/blocked-quota.html'));
+  const visitSecond=await client.send('Target.createTarget',{url:secondPage});
+  await until(async()=>{
+    const targets=(await client.send('Target.getTargets')).targetInfos;
+    return targets.find(row=>row.targetId===visitSecond.targetId)?.url?.includes(
+      '/stay-focus/blocked-quota.html');
+  },'second real HTTP hostname blocked by the same quota',15000);
   report.actualQuotaNavigation='PASS';
   report.quota='PASS';
   note('quota-real-http-navigation',{status:'PASS',urlPath:'/stay-focus/blocked-quota.html'});
+  // The same ledger exhausts every auto-enrolled entertainment domain.
+  // These are real Chrome HTTPS main-frame navigations (not DNR mocks); no
+  // external site request is necessary because Chrome must redirect first.
+  report.defaultDomainDnr=[];
+  for(const hostname of ['www.youtube.com','www.tiktok.com']){
+    const visitDomain=await client.send('Target.createTarget',{url:'https://'+hostname+'/'});
+    const result=await until(async()=>{
+      const targets=(await client.send('Target.getTargets')).targetInfos;
+      return targets.find(row=>row.targetId===visitDomain.targetId)?.url?.includes(
+        '/stay-focus/blocked-quota.html')||false;
+    },'real shared-pool HTTPS DNR for '+hostname,15000);
+    assert.equal(result,true,'default enrolled '+hostname+' must be blocked at shared quota');
+    report.defaultDomainDnr.push({hostname,redirect:'/stay-focus/blocked-quota.html'});
+  }
+  note('real-default-domain-shared-dnr',{domains:report.defaultDomainDnr,
+    usageWasNotFabricated:true});
 
   // Native lifecycle: the user can stop enforcement without uninstalling and
   // re-enable with the original daily quota still exhausted. Never write

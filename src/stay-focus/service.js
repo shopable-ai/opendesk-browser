@@ -176,19 +176,26 @@ export function createStayFocusService({api=globalThis.chrome,lockManager=global
     auth??=await authority();
     if(!auth.tool){
       await api.alarms.clear(FOCUS_ALARM);
+      // A removed tool must not leave an orphan in-page reminder. On every
+      // lifecycle boot/revocation, clear displays without touching other tools.
+      if(boot||wasRevoked)await clearPageNotices(api);
       // A never-installed tool must not require the optional DNR permission.
       // Chrome removes associated rules on a native permission revocation.
       if(await api.permissions.contains({permissions:['declarativeNetRequestWithHostAccess']}))
         await clearFocusRules(api);
+      // A retired tool should not broadcast a clear to every tab forever.
+      // Retire this observation epoch after the lifecycle cleanup succeeded.
+      if(startGeneration===generation){revoked=false;settledGeneration=startGeneration;}
       return null;
     }
     const hash=await focusPackageHash(auth.tool),raw=auth.saved[FOCUS_STORE];
     let state;
     try{state=readFocus(raw,at);}
     catch(cause){
-      // Invalid durable data is preserved, but cannot keep websites blocked.
-      // Retire only our reserved DNR rules; never mutate another tool's policy.
+      // Invalid durable data is preserved, but cannot keep websites blocked
+      // or retain an outdated in-page reminder.
       await api.alarms.clear(FOCUS_ALARM);
+      await clearPageNotices(api);
       if(await api.permissions.contains({permissions:['declarativeNetRequestWithHostAccess']}))
         await clearFocusRules(api);
       throw cause;

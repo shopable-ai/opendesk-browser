@@ -1,5 +1,26 @@
 # Stay Focus R1.4 — zero-config shared entertainment (2026-10-13)
 
+## R1.4 最终源码续接（2026-10-13）
+
+**当前已提交源码候选：** `4a379700c8171c259e5737c7a66c75c7ce5c1f20`（之后若有 main 更新必须重新核对）。本轮直接修改 Stay Focus 现有可信服务、唯一娱乐分类表、共享额度 UI、已有 ISOLATED Page Relay 提醒与 CFT 验收驱动；未新建第二套执行 Runtime、权限或 DNR 引擎。
+
+- **已写入原生验收驱动但尚未通过：** 首次真实授权后默认共享 30 分钟、可信 UI 改为 2 分钟；通过同一个本机额度池，分别在 `127.0.0.1` 和 `localhost` 两个真实 HTTP 主机中累计前台时间；确认 1 分钟网页提醒、已有双标签与新导航的 DNR，以及默认 YouTube 和 TikTok HTTPS 导航限制。旧的停用、重新开启、同 Chrome Profile 整浏览器重启、卸载流程仍保留。没有直接写入模拟 usage、规则或权限。
+- **已修复安全收尾：** 未安装/卸载时清除残余网页提示，发生策略损坏时清理，避免卸载后每次标签切换重复广播清理消息；相关组件断言源码已加入。
+- **本会话确实执行的有限检查：** 当前 12 个受影响 JS 文件经 V8 语法解析 **12/12 PASS**（仅编译检查；import 语法在隔离检查中作中性去除）；此前从实际仓库源码执行的共享 30m、11 默认站点 DNR、10/5/1 去重等 10 项 V8 逻辑 Smoke PASS。两者均**不得当作 Node 组件 PASS 或真实 Chrome PASS**。
+- **同源码 GitHub Actions：** [Stay Focus #38419875206](https://github.com/shopable-ai/opendesk-browser/actions/runs/38419875206)，最后检查为 `QUEUED`，无同候选 Node / npm 双构建 / ZIP / SW 体积哈希 / macOS CFT 原始完成日志。继续记作 `COMPONENT_NOT_TESTED / BUILD_NOT_TESTED / NATIVE_NOT_TESTED`，产品 95+ `NOT_ACCEPTED`。
+- **执行环境：** GitHub main 可写，但连接不能直接执行用户 Mac 目录的 Node 或 Chrome；不可把 GitHub 排队运行认定为成功。不重复 30 分钟真实使用，CFT 采用可信 UI 的 2 分钟测试额度。
+
+
+## R1.4 code-integrated evidence note — 2026-10-13
+
+- **Latest candidate with affected source and native driver:** `cbf84e01839768d3ad842860b819884c693c09fa`. The doc-only tracking commit following this note is not an unrelated product candidate.
+- **Confirmed main source writes:** `2780b317` Host classification/persistent reminder, `a2ba84da` one-screen shared budget, `5ac462b6` real Chrome driver, `f1bd9ed2` legacy quick-preset test correction, `ddc35d7f` orphan notice cleanup and service regression, `cbf84e01` YouTube/TikTok native DNR assertions.
+- **Verification actually executed in this conversation:** 12 edited JavaScript files passed standalone V8 parsing after neutral import stripping (syntax-only); 10 focused checks of the GitHub-pulled policy/catalog/model/rule-host passed in an isolated V8 harness with minimal URL/structuredClone replacements. This is explicitly `V8_SMOKE`, **not Node COMPONENT, not npm build, not Chrome Native**.
+- **Current strict candidate CI:** [Stay Focus Actions #38418376821](https://github.com/shopable-ai/opendesk-browser/actions/runs/38418376821) was **QUEUED** at last query, with `source-and-build` also `QUEUED`. No source/build/ZIP/Chrome result, artifact hash or 95+ acceptance is claimed until original job logs are available.
+- **Native scope:** actual install/permission, default 30m, trusted edit to 2m, real HTTP foreground billing, 1m in-page reminder screenshot, quota DNR, YouTube and TikTok cross-domain Chrome navigations, pause/re-enable/Chrome restart/uninstall have test **source**. Two different entertainment sites each consuming time in the same native session, independent Side Panel-closed checks, and actual completed macOS job logs remain specifically **NOT_TESTED**; Node model tests include cross-site shared pooling but cannot replace those native receipts.
+- **Known environment boundary:** this remote-only connection cannot read `/Users/shopme/Documents/workspace/opendesk-browser`, cannot run the user's Chrome, and the container has no external GitHub/npm network. Avoid reporting `npm run check/build/build:dev/verify` as executed locally; use exact GitHub Actions receipts when they exist.
+
+
 **Implementation candidate:** backend `2780b3178e74`, UI `a2ba84da346e`, native driver `5ac462b64440`. Subsequent R1.4 maintenance commits and unrelated main changes must be checked against final source identity. These are SOURCE changes, not native PASS receipts.
 
 | Product scenario | Source | Current component evidence | Current macOS Chrome evidence |
