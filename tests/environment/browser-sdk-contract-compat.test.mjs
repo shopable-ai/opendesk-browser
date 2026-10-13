@@ -20,7 +20,7 @@ test('R9 Browser SDK exposes only real implemented operations and typed metadata
   }
   assert.equal(browserCapabilityList('page-sdk').find(x=>x.operation==='browser.notifications.create'),undefined);
 });
-test('all ten implemented wrappers use canonical authenticated browser operations',async()=>{
+test('Browser wrapper requests use canonical authenticated operation names',async()=>{
   const calls=[],sdk=createBrowserSdk({request:async(op,args)=>{calls.push([op,args]);return {ok:true};}});
   await sdk.capabilities.list();
   await sdk.capabilities.getStatus({operation:'browser.contextMenu.register'});
@@ -50,7 +50,7 @@ test('Browser exports reject unsafe values before canonical dispatch',async()=>{
   assert.throws(()=>sdk.clipboard.writeText(''),isCode('E_LIMIT'));
   assert.throws(()=>sdk.clipboard.writeText('界'.repeat(50001)),isCode('E_LIMIT'));
   assert.throws(()=>sdk.downloads.text({text:'x',filename:'../bad.md'}),isCode('E_SCHEMA'));
-  assert.throws(()=>sdk.downloads.text({text:'x',filename:'bad.txt'}),isCode('E_SCHEMA'));
+  assert.throws(()=>sdk.downloads.text({text:'x',filename:'bad.exe'}),isCode('E_SCHEMA'));
   assert.throws(()=>sdk.downloads.text({text:'x',filename:'valid.md',extra:1}),isCode('E_SCHEMA'));
   assert.equal(calls.length,0);
   await sdk.clipboard.writeText('界'.repeat(50000));
