@@ -136,11 +136,17 @@ export function createCloudHosting({client,host,document:doc=globalThis.document
   async function refresh(){
     const s=await cloud.cloudStatus({limit:5});if(disposed)return null;
     const projected=projectCloudStatus(s),summary=cloudHostingSummary(projected);
-    brief.textContent=!projected.paired?'未配对':!projected.enabled?'已关闭':!projected.online?'连接中':!projected.reconciled?'对账中':!projected.hostReady?'等待宿主':!projected.slotAvailable?'执行槽繁忙':'可用';
+    brief.textContent=!projected.paired?'未配对':
+      !projected.enabled?(s.remoteSuspension==='pending'?'本地已停 · 远端待确认':'已关闭'):
+      !projected.online?'连接中':!projected.reconciled?'对账中':!projected.hostReady?'等待宿主':!projected.slotAvailable?'执行槽繁忙':'可用';
     status.textContent=summary+`\n已批准任务 ${projected.approvedTasks} 项 · 历史云请求 ${projected.requests.total} 条 · 已确认回执 ${projected.requests.receivedReceipts} 条（最近 ${projected.requests.sampled} 条统计）`;
     myState.textContent=brief.textContent+' · 已批准 '+projected.approvedTasks+' 项任务';
     overview.textContent=!projected.paired?'还未配对：连接可信提供者后再批准任务。':
-      !projected.enabled?'已配对，但未启用任务授权；现在不会接收云端任务。':
+      !projected.enabled?(s.remoteSuspension==='pending'?
+        '本地已停止执行，但提供者尚未确认暂停；外部请求可能继续排队，重新配对前请确认连接。':
+        s.remoteSuspension==='confirmed'?
+        '已停止远程执行，提供者也确认不再接收该授权的新任务。':
+        '已配对，但未启用任务授权；现在不会接收云端任务。') :
       !projected.online?'云控已启用，正在等待提供者连接。':
       !projected.reconciled?'已连接，正在核对上次运行结果。':
       !projected.slotAvailable?'执行任务中；新的请求会排队。':
