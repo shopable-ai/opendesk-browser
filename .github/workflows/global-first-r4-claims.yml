@@ -19,6 +19,7 @@ on:
       - 'tests/environment/global-first-r4-claims.test.mjs'
       - 'tests/environment/global-first-r5-product-evidence.test.mjs'
       - 'tests/environment/global-first-r5-benchmark.test.mjs'
+      - 'tests/environment/global-first-r5-historical-timeline.test.mjs'
       - '.github/workflows/global-first-r4-claims.yml'
   workflow_dispatch:
 
@@ -39,4 +40,4 @@ jobs:
         with:
           node-version: '22'
       - name: Verify existing GF ledger, competing previews, truthful SEO limits
-        run: node --test tests/environment/global-first-r4-claims.test.mjs tests/environment/global-first-r5-product-evidence.test.mjs tests/environment/global-first-r5-benchmark.test.mjs
+        run: node --test tests/environment/global-first-r4-claims.test.mjs tests/environment/global-first-r5-product-evidence.test.mjs tests/environment/global-first-r5-benchmark.test.mjs tests/environment/global-first-r5-historical-timeline.test.mjs
