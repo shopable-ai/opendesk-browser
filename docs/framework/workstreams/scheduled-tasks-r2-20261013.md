@@ -359,3 +359,22 @@
 - Node 计数范围说明：本轮指定四文件为66条；先前 main27 的71条还包含5条 multiscript 异步SHA回归，不是定时表单删除了5项测试。R7 原生缩放与360px实体观察可单独引用，但 R7/R8/R9 整轮都不能登记表单最终PASS。全部十维仍 NOT_SCORED；最终产品 closure 和95+资格未达成。
 
 - 最后只读核对：Native doctor仍连接同一日常ID `ccfcjegpkdlgbclopjmadlcjedelidmf`，enabled/nativeConnected=true、allowed_origins一致；但当前注册Host为 `5dda2a58-6017-4e0c-b785-428af581f53f`，不是此前资源导出的Host。当前磁盘 tool-shell为500155 bytes、SHA256 `1b57481f227c0188a1ebe85072ee9572fc330073d429a03e65948b4421462d53`，已保存旧执行资源500130 bytes导出仍保留。此前匹配只能证明当时的观察，不能据此判定当前Host正在用旧资源或当前main整包一致；新Host需重新实际取证。原始doctor与派生核对见 `doctor-final-readonly.json`、`final-resource-parity-audit.json`。共享前台仍等待协调，未发送日常Chrome操作。
+
+
+### R2.9 第三轮目标续接：当前 main 独立双包与剩余关闭审计
+
+- 上轮分类为 PROGRESS：源码减重、原生驱动修复、实际 Mac 观察和限定提交已改变权威状态。本轮磁盘已恢复5.7GiB，未重启失败构建，重新从当前 main `858126d5`取得全新只读 git-archive 快照；无新分支/worktree、无依赖安装、不覆盖日常 dist，guard55129。`npm run check`664文件、指定四文件66+异步SHA5合计71条（0FAIL/0SKIP）、`npm run build`、`build:dev`、`verify`均 PASS。
+- 当前本地生产：tool-shell **495305/524288 bytes，余量28983**，packageHash=`4b7cd19714984a74042be9f90b41ccf9cd36bac8bbfc3ca6f19f32bb3b81eba2`；开发：**495545/524288，余量28743**，packageHash=`c8b70d2ce8974cd1d11f04cf3b4ce3c9fef4781888b0285c2bb3ffc89b36eae8`。两包470声明产品输入均与 main快照Git字节一致，buildSourceDrift=[]，没有提高预算或删安全检查。原始receipt及日志：`local-main858-build-proof.json`、`build-main858-production/development.json`。
+- 本轮新独立 Mac CFT149.0.7827.55 **headless**原生 TAB 缩放回归 PASS，实际ID `jbjdfgajljlnhbnlmaadiomobbdfdnng`，候选858126d5正式生产包；保留100/125/150/200真实tabs.setZoom、独立viewport模拟、空Task表单、时区非破坏搜索、未保存内容保护、焦点/长文字及media主题证据。`native-main858-headless-tab-zoom/native-zoom-report.json`。不是实体 Side Panel、Mac硬件键盘、Mac系统主题或真实Run/Result验收；没有替换日常扩展。
+- 并行 main 已继续推进；通过 Git cat-file逐项核对，470个receipt声明产品输入与当时 HEAD `15a10465`全部相同（drift=[]），依据 `main858-source-input-reuse-proof.json`。因此复用本轮同输入构建，不因无关提交重复构建；不会把相同源码升级为相同Chrome安装身份。
+- 按原目标逐条审计：当前双包和 scoped Tab回归已证明；日常整体执行资源/SW/正式UI同一候选仍未证明；URL TypeError中文错误仍为真实缺陷、同一文件R32交接未确认；headed当前候选完整表单/最终删除断言、实体320/420、真实多页历史/轮询及非法Runner停止等仍未全部关闭。原生历史/Node/旧候选不跨级提升。十维仍NOT_SCORED，详见 `completion-audit-third-goal-turn.json`。
+- 同一关闭阻塞已在连续三轮目标中核查：日常输出仍有live PID25173 watcher；R19受控Profile仍有live Chrome PID54774，本轮只读前台观察为Finder，不谎称正在前台；先前两次真实CFT重启抢前台的guard失败仍成立，稳定前台时段未获协调。同文件负责人交接问题尚无答复。剩余工作需要明确交接/共享资源协调或外部状态变化，不能以等待超时、进程短暂退出、强制抢前台、擦除effect_unknown或降低验证范围闭合。
+
+### R2.9 同候选 headed Mac 表单最终断言已通过
+
+- 上述 PID54774 随后实际退出，复查没有替代 CFT 进程；因此在真实外部状态变化后，用本轮 main `858126d5d99dc0376abccedb6a386ce81e5e45f6` 正式生产候选运行 R10。guard55129、独立 Profile、原生 PID/前台身份保护均保留；没有操作日常扩展或修改配对。`native-main858-headed-form-matrix-r10/native-report.json` **PASS**，17项阶段断言全部通过。Chrome149.0.7827.55、实际ID `jbjdfgajljlnhbnlmaadiomobbdfdnng`、packageHash=`4b7cd19714984a74042be9f90b41ccf9cd36bac8bbfc3ca6f19f32bb3b81eba2`。
+- 真实通过：审阅固定Task并安装、创建/确认计划、Alarm注册、已有独立运行页、关闭Side Panel后的合法Runner、网页实际效果、暂停、未保存草稿保护、JSON焦点错误修复、每天/每周多天/间隔/一次规则、时区搜索与显式纽约选择、编辑后保留原真实历史、两计划及删除确认。原计划 `cac08c93-90fc-4957-82d8-f71defd70384` 保留；删除隔离计划 `27c6963c-48fd-484b-9101-638da450b09a` 的墓碑 deleted=true、generation=2、paused=true、nextDueAt=null，UI卡片移除。取消删除保持完整投影一致，确认删除没有新增 Run/Result/Fire/native effect，也没有改变原计划、原网页效果或审计。
+- 本次真实 scheduled Run=`4ecde8f2-e6fb-4f28-a54f-ed82c15e0df9`、Result=`9eba57a5-b53e-4bd4-a747-89c532fa6800`，completed/released、workerRetired=true，目标tab1227095463/document `1DD3F8373A34BCC06248DE620383BA91`；实际网页name=`Scheduled Native`、done=true。不是 DOM赋值、伪造原生回执或清除UNKNOWN。R7/R8/R9失败证据不改写。
+- 10张真实截图已核查并绑定Git/package/Chrome/ID/URL/几何及PNG SHA256：`native-main858-headed-form-matrix-r10/screenshot-index.json`。真实SIDE_PANEL CSS宽360、高815、DPR2、viewport scale1；R10没有读取独立Chrome原生百分比，也没有执行实体320/420调整，不能据此宣布这些矩阵PASS。原生同源Tab菜单与实际Side Panel缩放的main27独立证据继续单列。
+- 后续main `1198d608` 的470输入核对仅3项变化：`src/sidebar-tools/bridge.js`、`src/ui/sidebar-tools.js`、`src/ui/tool-shell.css`；Scheduled Tasks源码/调度/Authority输入未变。公共CSS变化为工具列表身份及工具iframe在239px以下的网格规则，仍保留整包身份差异，不把858原始receipt改成最新HEAD。当前main新增样式后的指定四文件回归 **66PASS/0FAIL/0SKIP**，日志 `artifacts/scheduled-tasks-r29-mac-20261014/node-after-ccee-shared-css.log`。
+- 日常Chrome仅作只读AX观察：PID73139仍为原扩展ID，实际现有面板URL的Host为 `04b9e8a8-ab75-4905-8cc5-a33d8dfbba98`；当前doctor注册Host不能代替每个打开面板的执行资源身份。R32最新工作记录明确占用该日常Chrome/Side Panel/DevTools，并找到原生手柄键盘控制的新路径；本轮没有争抢其前台或覆盖PID25173的dist。URL文案同文件交接、日常SW/完整运行资源同候选、实体320/420、原生多页历史/轮询焦点、合法及非法停止请求的完整当前矩阵仍未关闭。十维仍 **NOT_SCORED**，本轮完整目标不登记完成或95+。
