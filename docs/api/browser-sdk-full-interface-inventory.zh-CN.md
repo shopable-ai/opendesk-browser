@@ -1,3 +1,5 @@
+> **R9 当前执行事实（2026-10-13）**：正式注册表 28 项源码已接线（不等于原生验收）；原 114 个候选中，已晋级 5 项、仍为候选 109 项。含 `tabs.pinOwned`、`tabs.reloadOwned`。本页下方 R5 的固定 35/114/111 是保留的**历史快照**，不强制 SDK 兼容。
+
 > **R9 当前命名**：`tabs.create({url})`、`tabs.activateOwned({tabRef})`、`tabs.removeOwned({tabRef})`。后两项是仅操作自己 TabRef 的受限 API；本页 R5 兼容叙述仅为历史，不再约束开发期新接口。
 
 # Browser SDK 全接口扩展候选目录（R5+ / 2026-10-12）
@@ -88,7 +90,7 @@
 - `OpenDeskSDK.browser.tabs.getOwned()` — **R5 APPROVED / SOURCE_WIRED；原生 Chrome NOT_TESTED**
 - `OpenDeskSDK.browser.tabs.listOwned()` — **R5 APPROVED / SOURCE_WIRED；原生 Chrome NOT_TESTED**
 - `OpenDeskSDK.browser.tabs.removeOwned()` — **R5 APPROVED / SOURCE_WIRED；原生 Chrome NOT_TESTED**
-- `OpenDeskSDK.browser.tabs.reloadOwned()`
+- `OpenDeskSDK.browser.tabs.reloadOwned()` — **R9 APPROVED / SOURCE_WIRED；原生 Chrome NOT_TESTED**
 - `OpenDeskSDK.browser.tabs.navigateOwned()`
 - `OpenDeskSDK.browser.tabs.duplicateOwned()`
 - `OpenDeskSDK.browser.tabs.pinOwned()`
