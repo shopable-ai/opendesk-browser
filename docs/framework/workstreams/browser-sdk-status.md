@@ -1,3 +1,9 @@
+## R10.1 P3 · 自有下载接口（2026-10-13，当前源码）
+
+现行正式 Registry **44 项**：Cookies 11 项仍按逐网站授权；新增四项 browser.downloads.download/getOwned/listOwned/cancelOwned。自有下载通过唯一 Browser Host 维护短时不可猜的 downloadRef，不公开 Chrome 原生 ID、所有下载历史或任意本机文件路径，只允许已授权 HTTP(S) 来源。下载和取消需受信 Side Panel 真点击后，Host 校验 packageHash、Install Epoch、Capability、Chrome 下载与站点权限及一次性 Intent。读取仅限拥有该下载的工具；Worker 重启令内存 Ref 失效，未知原生结果不自动重试。
+
+新增源码测试 tests/environment/browser-sdk-p3-implementation.test.mjs，**当前只记 SOURCE_WIRED**，Node/Build/Native Chrome 仍 **NOT_TESTED**；设计批准总量 55，余下 11 项尚待实施；191 Schema / 1830 条原生发现目录不变。
+
 ## R9 Cookies SDK × Cookie Editor R3 · 当前状态（2026-10-13）
 
 - 用户授权将 11 项 Cookie 功能从仅受信 Host 开放为 `OpenDeskSDK.browser.cookies.*`，正式 Registry **40 项**。两层安全边界仍保留：已安装工具的 `Browser SDK` 与可信 Host 内部一次性批准。
