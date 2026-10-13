@@ -30,14 +30,14 @@
     }
   ],
   "counts": {
-    "formal": 28,
-    "implemented": 28,
+    "formal": 29,
+    "implemented": 29,
     "planned": 0,
     "notExposed": 0,
     "candidateGroups": 27,
     "originalCandidates": 114,
-    "promoted": 5,
-    "pending": 109,
+    "promoted": 6,
+    "pending": 108,
     "uniqueNamedMethods": 137,
     "cookieSdkFormal": 0,
     "cookieCandidates": 10,
@@ -577,6 +577,46 @@
       },
       "candidateOrigin": {
         "id": "browser.tabs.reloadOwned",
+        "group": "标签页扩展操作",
+        "priority": "P0",
+        "trust": "APPROVED_TOOL"
+      }
+    },
+    {
+      "id": "browser.tabs.navigateOwned",
+      "inventory": "FORMAL",
+      "layer1": {
+        "api": "chrome.tabs.update({url}) + chrome.tabs.get + chrome.webNavigation.getFrame",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "SOURCE_WIRED",
+        "files": [
+          "src/platform/chrome/browser-tabs.js",
+          "src/platform/chrome/context-menus.js"
+        ]
+      },
+      "layer3": {
+        "status": "IMPLEMENTED",
+        "exposure": "APPROVED_TOOL",
+        "capabilities": [
+          "browser.tabs"
+        ],
+        "chromePermissions": [
+          "tabs",
+          "webNavigation"
+        ],
+        "siteScope": "same-origin-owned-tab"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED",
+        "callableNow": "NOT_TESTED",
+        "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      },
+      "candidateOrigin": {
+        "id": "browser.tabs.navigateOwned",
         "group": "标签页扩展操作",
         "priority": "P0",
         "trust": "APPROVED_TOOL"
@@ -1364,17 +1404,18 @@
       "priority": "P0",
       "trust": "APPROVED_TOOL",
       "layer1": {
-        "api": "chrome.tabs + chrome.webNavigation",
+        "api": "chrome.tabs.update({url}) + chrome.tabs.get + chrome.webNavigation.getFrame",
         "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
       },
       "layer2": {
-        "status": "REUSE_EXISTING_NEEDS_AUDIT",
+        "status": "SOURCE_WIRED",
         "files": [
-          "src/platform/chrome/browser-tabs.js"
+          "src/platform/chrome/browser-tabs.js",
+          "src/platform/chrome/context-menus.js"
         ]
       },
       "layer3": {
-        "status": "PROPOSED_NOT_REGISTERED",
+        "status": "PROMOTED_TO_FORMAL",
         "trust": "APPROVED_TOOL"
       },
       "layer4": {
@@ -3800,8 +3841,8 @@
       "priority": "P0",
       "trust": "APPROVED_TOOL",
       "original": 8,
-      "promoted": 5,
-      "pending": 3,
+      "promoted": 6,
+      "pending": 2,
       "frameworkPaths": [
         "src/platform/chrome/browser-tabs.js"
       ]
@@ -5000,7 +5041,8 @@
     },
     "tabsNativeChrome": "NOT_TESTED",
     "pinOwned": "SOURCE_WIRED_NODE_AND_CHROME_NOT_TESTED",
-    "latestApprovedTabOperation": "browser.tabs.reloadOwned",
-    "reloadNativeChrome": "NOT_TESTED"
+    "latestApprovedTabOperation": "browser.tabs.navigateOwned",
+    "reloadNativeChrome": "NOT_TESTED",
+    "navigationChrome": "NOT_TESTED"
   }
 }
