@@ -196,8 +196,16 @@ export function createCookieService({api = globalThis.chrome, authorize, resolve
     const scan=async()=>{
       const rows=await native('getAll',query);
       if(!Array.isArray(rows)||rows.length>10000)throw fail('E_CHROME');
-      return rows.filter(row=>row.hostOnly===true&&row.domain?.replace(/^\./,'').toLowerCase()===host&&
-        (!row.secure||details.url.startsWith('https:'))&&(details.partitionKey||!row.partitionKey));
+      const exactPartition=row=>details.partitionKey?
+        row.partitionKey?.topLevelSite===details.partitionKey.topLevelSite&&
+          Boolean(row.partitionKey?.hasCrossSiteAncestor)===
+            Boolean(details.partitionKey.hasCrossSiteAncestor):!row.partitionKey;
+      // Verify the actual returned Store/Partition even if Chrome's native
+      // filter was ignored or the callback returned unexpected wider data.
+      return rows.filter(row=>row.hostOnly===true&&
+        (!details.storeId||row.storeId===details.storeId)&&exactPartition(row)&&
+        row.domain?.replace(/^\./,'').toLowerCase()===host&&
+        (!row.secure||details.url.startsWith('https:')));
     };
     const candidates=await scan();
     if(candidates.length>(args.maxCookies??50))throw fail('E_LIMIT');
