@@ -551,7 +551,7 @@
         </div>
       </section>
       <div class="workflow-scroll">
-        <section class="workflow-card workflow-chat od-surface" aria-labelledby="workflow-ai-title">
+        <section class="workflow-card od-surface--padded workflow-chat od-surface" aria-labelledby="workflow-ai-title">
           <div id="workflow-chat-intro" class="workflow-chat-intro">
             <div class="workflow-chat-mark" aria-hidden="true">✦</div>
             <h3 id="workflow-ai-title">想自动完成什么操作？</h3>
@@ -572,19 +572,19 @@
             <button type="button" id="workflow-ai-apply" class="workflow-primary od-button">采用这份计划</button>
           </div>
         </section>
-        <section id="workflow-plan-panel" class="workflow-card workflow-plan od-surface" aria-label="可编辑语义步骤" hidden>
+        <section id="workflow-plan-panel" class="workflow-card od-surface--padded workflow-plan od-surface" aria-label="可编辑语义步骤" hidden>
           <div class="workflow-section-header od-toolbar"><h3>执行步骤</h3><span id="workflow-step-count">0 步</span></div>
           <div id="workflow-steps" class="workflow-steps" aria-label="工作流步骤列表"></div>
           <button type="button" id="workflow-add-step" class="workflow-add od-button od-button--secondary">＋ 添加步骤</button>
           <p id="workflow-target-warning" class="workflow-target-warning od-alert od-alert--warning" role="status" hidden></p>
         </section>
-        <section id="workflow-params-panel" class="workflow-card workflow-run-settings od-surface" aria-label="工作流运行参数" hidden>
+        <section id="workflow-params-panel" class="workflow-card od-surface--padded workflow-run-settings od-surface" aria-label="工作流运行参数" hidden>
           <div class="workflow-section-header od-toolbar"><h3>运行前确认</h3><span>只影响本次运行</span></div>
           <div id="workflow-params"></div>
           <p class="hint" id="workflow-params-empty" hidden></p>
           <label class="workflow-consent" id="workflow-run-consent"><input type="checkbox" id="workflow-confirm-run">我已检查本次填写和点击操作，允许运行</label>
         </section>
-        <section id="workflow-result-panel" class="workflow-card workflow-result od-surface" aria-label="工作流运行结果" hidden>
+        <section id="workflow-result-panel" class="workflow-card od-surface--padded workflow-result od-surface" aria-label="工作流运行结果" hidden>
           <div class="workflow-section-header od-toolbar"><h3>运行结果</h3></div>
           <pre id="workflow-output" aria-label="本次持久运行结果">尚未运行</pre>
           <details id="workflow-result-raw" hidden><summary>查看完整原值（可能包含敏感信息）</summary><pre id="workflow-raw"></pre></details>
@@ -592,19 +592,19 @@
         </section>
         <section id="workflow-manage-panel" class="workflow-management od-surface" aria-label="历史版本和高级设置" hidden>
           <div class="workflow-section-header od-toolbar"><h3>版本与设置</h3><button type="button" id="workflow-manage-close" class="workflow-icon-button od-icon-button" aria-label="收起版本与设置" title="收起"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M18 6 6 18M6 6l12 12"></path></svg></button></div>
-          <div class="workflow-card workflow-library od-surface">
+          <div class="workflow-card od-surface--padded workflow-library od-surface">
             <label for="workflow-saved-list" class="od-field-label">选择版本</label>
             <select id="workflow-saved-list" class="od-field"><option value="">读取已保存版本…</option></select>
             <div class="workflow-actions"><button type="button" id="workflow-load" class="od-button od-button--secondary">打开版本</button><button type="button" id="workflow-refresh" class="workflow-icon-button od-icon-button" aria-label="刷新已保存版本" title="刷新列表"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M20 11a8 8 0 0 0-14.5-4.5L3 9"></path><path d="M3 4v5h5"></path><path d="M4 13a8 8 0 0 0 14.5 4.5L21 15"></path><path d="M21 20v-5h-5"></path></svg></button></div>
           </div>
-          <details class="workflow-card workflow-manage-details od-surface">
+          <details class="workflow-card od-surface--padded workflow-manage-details od-surface">
             <summary>名称、用途和当前网站</summary>
             <label for="workflow-title" class="od-field-label">名称</label><input id="workflow-title" maxlength="100" autocomplete="off" placeholder="例如：填写表单并读取结果" class="od-field">
             <label for="workflow-description" class="od-field-label">用途（可选）</label><textarea id="workflow-description" rows="2" maxlength="800" placeholder="这个工作流要完成什么？" class="od-field"></textarea>
             <label for="workflow-site" class="od-field-label">执行网站（精确 origin）</label><input id="workflow-site" readonly aria-describedby="workflow-site-note" class="od-field">
             <p id="workflow-site-note" class="hint"></p>
           </details>
-          <details class="workflow-card workflow-manage-details od-surface">
+          <details class="workflow-card od-surface--padded workflow-manage-details od-surface">
             <summary>参数定义和高级编辑</summary>
             <div class="workflow-param-create"><input id="workflow-new-param-name" type="text" maxlength="40" placeholder="参数名称，例如 keyword" aria-label="新参数英文名称" class="od-field"><button type="button" id="workflow-add-param" class="od-button od-button--secondary">＋ 添加文本参数</button></div>
             <details><summary>参数 JSON Schema</summary>
@@ -612,7 +612,7 @@
               <textarea id="workflow-schema" rows="6" spellcheck="false" class="od-field"></textarea>
             </details>
           </details>
-          <details class="workflow-card workflow-manage-details od-surface">
+          <details class="workflow-card od-surface--padded workflow-manage-details od-surface">
             <summary>生成源码、校验与发布</summary>
             <details class="workflow-advanced"><summary>JavaScript 与源码哈希</summary>
               <p id="workflow-code-hash" class="hint"></p><pre id="workflow-code" aria-label="工作流生成的 JavaScript"></pre>
