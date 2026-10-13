@@ -18,7 +18,8 @@ export async function openProvider({directory='.local/cloud-control',port=43112,
     exact(publicTls,['keyFile','certFile','host','port']);
     if(typeof publicTls.keyFile!=='string'||!publicTls.keyFile||
       typeof publicTls.certFile!=='string'||!publicTls.certFile||
-      !Number.isSafeInteger(publicTls.port)||publicTls.port<1||publicTls.port>65535||
+      !Number.isSafeInteger(publicTls.port)||publicTls.port<0||publicTls.port>65535||
+      (publicTls.port===0&&!['127.0.0.1','::1'].includes(publicTls.host))||
       typeof publicTls.host!=='string'||!['127.0.0.1','::1','0.0.0.0','::'].includes(publicTls.host)||
       publicTls.port===port)fail('E_TLS_CONFIG');
   }
