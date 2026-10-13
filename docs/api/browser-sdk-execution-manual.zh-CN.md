@@ -92,6 +92,9 @@ docs/api/browser-sdk-interface-matrix.json#approvedOperations 是唯一逐接口
 
 R7 的 getStores、10 项 native-mapping 文件属于历史，不再作为当前 Cookie 名称/数量的真相；R9 实际 11 项以本手册、矩阵与真实 Host 源码一致为准。
 
+### R9 Cookie 事件元数据作用域收紧（2026-10-13）
+`chrome.cookies.onChanged` 是扩展级事件，不是当前网页独享事件。可信 Host 在缓冲任何名称/域名/路径等**脱敏元数据之前**，新增所选网页 URL 的 RFC6265 Path 匹配、HostOnly 域名匹配、StoreId 和真实 PartitionKey 属性比较。不允许其它路径、别的 HostOnly 域或其它 topLevelSite/hasCrossSiteAncestor 的事件混入；比较分区键不依赖 JSON 键的排列顺序。未分区 Cookie 仅在同一 URL/Store 规则满足时可匹配。Cookie value 依旧不进入任何事件回执。Node 和真实 Chrome 的候选验收独立，Native Chrome 仍 NOT_TESTED。
+
 ## 5. 旧架构迁移：KEEP / RENAME / MERGE / DELETE / NEW
 
 - KEEP：当前 Registry 的正常操作与业务安全效果，保留权限与生命周期语义，但逐一复查正确 Host 和 SDK 入口。
