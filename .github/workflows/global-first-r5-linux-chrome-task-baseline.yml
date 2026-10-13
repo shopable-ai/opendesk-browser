@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - '.github/workflows/global-first-r5-linux-chrome-task-baseline.yml'
+      - 'scripts/build-contract.mjs'
   workflow_dispatch:
 
 permissions:
@@ -28,6 +29,7 @@ jobs:
           cache: npm
       - name: Locked build tools
         run: npm ci --ignore-scripts --no-audit --no-fund
+      # A 2026-10-13 WXT entry allowlist fix changed this native input.
       - name: Create genuine production extension
         run: npm run build
         env:
