@@ -88,8 +88,12 @@ function r17PermissionFixture(){
     return nodes.get(id);
   };
   let siteGrants={allSites:false,origins:[]},idlePermission=false,requests=0,removals=0;
+  let pendingRead=null;
   const api={
-    storage:{local:{async get(){return {[TIME_REVIEW_KEY]:{siteGrants}};}}},
+    storage:{local:{async get(){
+      const pending=pendingRead;pendingRead=null;
+      return pending||{[TIME_REVIEW_KEY]:{siteGrants}};
+    }}},
     permissions:{
       async contains(){return idlePermission;},
       request(){requests++;idlePermission=true;return Promise.resolve(true);},
@@ -100,13 +104,22 @@ function r17PermissionFixture(){
   };
   const doc={getElementById:get,createElement:tag=>node(tag)};
   const controls=createTimeReviewPermissionControls({api,doc,notice(){},
-    async runOperation(){return {siteGrants};}});
+    async runOperation(name,payload){
+      if(name==='time.siteGrant'&&payload.mode==='all')
+        siteGrants={allSites:payload.enabled,origins:[]};
+      return {siteGrants};
+    }});
   const installed={id:'time-review',capabilities:['time.review']};
   const flush=async()=>{await new Promise(resolve=>setImmediate(resolve));};
   const click=(id,isTrusted=true)=>get(id).handlers.get('click')({isTrusted});
   return {get,controls,installed,click,flush,
     setIdle:value=>{idlePermission=value;},
     setGrants:value=>{siteGrants=value;},
+    deferNextRead(){
+      let resolve;
+      pendingRead=new Promise(done=>{resolve=done;});
+      return oldSiteGrants=>resolve({[TIME_REVIEW_KEY]:{siteGrants:oldSiteGrants}});
+    },
     counters:()=>({requests,removals})};
 }
 
@@ -153,4 +166,22 @@ test('R1.7 whole-site grant cannot show redundant or ineffective per-origin enro
   f.setGrants({allSites:false,origins:[]});
   f.controls.render(f.installed);await f.flush();
   assert.equal(f.get('time-review-site-all-revoke').hidden,true);
+});
+
+
+test('R1.7 late site-grant storage read never repaints revoked/obsolete consent',async()=>{
+  const f=r17PermissionFixture();
+  const resolveOldRead=f.deferNextRead();
+  f.controls.render(f.installed); // old read deliberately stays in flight
+  f.click('time-review-site-all-open');
+  f.click('time-review-site-all-approve');
+  await f.flush();await f.flush();
+  assert.equal(f.get('time-review-site-all-open').hidden,true);
+  assert.equal(f.get('time-review-site-all-revoke').hidden,false);
+  resolveOldRead({allSites:false,origins:[]});
+  await f.flush();await f.flush();
+  assert.equal(f.get('time-review-site-all-open').hidden,true,
+    'stale response must not re-enable a duplicate grant');
+  assert.equal(f.get('time-review-site-all-revoke').hidden,false,
+    'latest durable all-site grant must remain displayed');
 });
