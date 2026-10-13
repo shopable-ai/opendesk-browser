@@ -1,3 +1,5 @@
+> **R9 当前四层合同（2026-10-13）**：本页及下方旧表保留 R6/R8 原始审计快照，原 35/26/7/2 不再是当前接口分母。R9 正式注册表保留 **26 项正式已接线操作**（原 9 项占位已删除，旧记录位于 JSON 的 `legacyR8RemovedFormal`）；Cookie 可信 Host 与安装工具公开 SDK 的能力继续分开。当前原生 Chrome 验收仍 NOT_TESTED；正式机读状态请以当前 `browser-contract.js` + `browser-sdk-acceptance.json` + 四层 JSON `formal` 为准。
+
 # 浏览器框架四层总账（R6，2026-10-13）
 
 > **R8 新阶段提示（保留 R6 快照）**：本页及原四层 JSON 记录旧候选与正式合同，**不是 Chromium 原生 API 的自动全量目录**；35/26/7/2、原 114 项与 Cookie 0/10 均是原账本历史范围，不因 R8 自动目录出现而改变。新的 [R8 单一 SDK/Host 架构](browser-sdk-architecture-r8.zh-CN.md)、[35 项迁移映射](browser-sdk-compatibility-map.json) 和 [首批部分官方 Native Catalog](chrome-native-api-catalog.json) 分别承担新职责。Cookie 额外事件读取候选不改变下方“Cookies 全部 10 项”历史统计。
