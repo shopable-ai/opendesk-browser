@@ -10,12 +10,23 @@
       <button type="button" id="focus-stop" class="sf-secondary" hidden>结束专注</button></div>
   </section>
   <div id="message" class="sf-message" role="status" aria-live="polite"></div>
+  <section class="sf-section sf-quick" aria-label="快速添加网站限额">
+    <div class="sf-headrow"><h3>快速开始</h3><span class="sf-hint">本机智能推荐</span></div>
+    <div id="quick-current" class="sf-quick-current" hidden>
+      <strong id="quick-site"></strong>
+      <p id="quick-explanation" class="sf-hint"></p>
+      <div class="sf-actions"><button type="button" id="quick-add" class="sf-primary">添加推荐限额</button>
+        <button type="button" id="quick-refresh" class="sf-secondary">重新识别</button></div>
+    </div>
+    <p id="quick-empty" class="sf-hint">正在识别当前网站，或直接选择下方常用网站。</p>
+    <div id="quick-presets" class="sf-quick-presets" aria-label="常用网站默认额度"></div>
+  </section>
   <section class="sf-section">
     <div class="sf-headrow"><h3>限制的网站</h3><span id="site-count" class="sf-hint">0 个网站</span></div>
     <div id="sites" class="sf-list" aria-live="polite"><p class="sf-empty">还没有添加需要减少使用的网站。</p></div>
   </section>
+  <details class="sf-settings sf-manual" id="manual-site"><summary>手动添加或调整网站 <span>自定义额度 · 域名范围 · 限制方式</span></summary>
   <section class="sf-section sf-add">
-    <h3>添加 / 编辑网站</h3>
     <form id="site-form">
       <label>网站域名 <input id="site-host" type="text" maxlength="253" required placeholder="例如 youtube.com" autocomplete="off"></label>
       <div class="sf-two"><label>每天最多（分钟）<input id="site-minutes" type="number" min="1" max="1440" value="15" required></label>
@@ -26,6 +37,7 @@
         <button class="sf-secondary" type="button" id="add-current">使用当前网站</button></div>
     </form>
   </section>
+  </details>
   <details class="sf-settings" id="advanced"><summary>更多设置 <span>共享额度 · 工作时段 · 白名单</span></summary>
     <section class="sf-panel"><h3>共享每日额度</h3>
       <p class="sf-hint">多个网站共用一个额度，不能重复扣除同一份浏览时间。</p>
