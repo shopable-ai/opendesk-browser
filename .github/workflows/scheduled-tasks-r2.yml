@@ -46,6 +46,12 @@ jobs:
         run: |
           npm run build
           node scripts/verify-package.mjs dist/production
+      - name: Install Chinese glyphs for genuine Chrome UI evidence (Linux)
+        if: matrix.platform == 'linux'
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq fonts-noto-cjk
+          fc-match -f '%{family}\\n' 'sans:lang=zh-cn' | grep -F 'Noto Sans CJK'
       - uses: browser-actions/setup-chrome@v2
         id: chrome
         with:
