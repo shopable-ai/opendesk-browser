@@ -163,6 +163,9 @@ test('Real Chrome always-block and live one-minute quota, Side Panel approval an
   assert.ok(dimensions.scrollWidth<=dimensions.width+2,'native tool must not overflow its iframe horizontally');
   report.toolGeometry=dimensions;
   report.screenshots.push(await screenshot(client,sid,'installed-stay-focus-native-panel'));
+  // Advanced controls are intentionally collapsed by default; the quick
+  // recommendations remain visible to ordinary users.
+  await click(client,frame,'#manual-site > summary');
   await fill(client,frame,'#site-host','127.0.0.1');
   await click(client,frame,'#site-mode');await press(client,frame,'ArrowDown','ArrowDown',40);
   await press(client,frame,'Enter','Enter',13);
