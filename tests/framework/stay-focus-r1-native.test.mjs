@@ -108,11 +108,9 @@ test('Real Chrome DNR navigation, registry, sidebar approval and uninstall',{ski
   const uid=(await client.send('Target.attachToTarget',{targetId:ui.targetId,flatten:true})).sessionId;
   await client.send('Runtime.enable',{},uid);await client.send('Page.enable',{},uid);
   await until(()=>evalRead(client,uid,'!!document.querySelector("#sidebar-tool-official-stay-focus-install")'),'official release in catalogue');
-  const windowId=await evalRead(client,uid,'chrome.windows.getCurrent().then(x=>x.id)');
-  // The harness may mount one visible launcher, but only actual pointer input
-  // may invoke sidePanel.open. It cannot fabricate business storage or clicks.
-  await evalRead(client,uid,'(()=>{const b=document.createElement("button");b.id="open-owned-focus-side";b.textContent="Open Side";b.style.cssText="position:fixed;left:20px;top:50px;min-width:180px;min-height:58px;z-index:999999";b.addEventListener("click",()=>chrome.sidePanel.open({windowId:'+windowId+'}));document.body.append(b);return true;})()');
-  await click(client,uid,'#open-owned-focus-side');
+  // Use the actual shipped catalog launcher, not a CDP-injected test button.
+  // It checks isTrusted and invokes sidePanel.open in the real user gesture.
+  await click(client,uid,'#catalog-open-dev-sidebar');
   const context=await until(async()=>{const found=await evalRead(client,uid,
     'chrome.runtime.getContexts({contextTypes:["SIDE_PANEL"]})');
     return found.find(x=>x.documentUrl?.includes('/ui/tool.html')&&x.documentId);
