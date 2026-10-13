@@ -86,4 +86,4 @@
 
 - `BROWSER_OPERATIONS` 当前共有 **40 项**，其中 **Cookies 11 项**已由 `OpenDeskSDK.browser.cookies.*` 正式公开给**具备真实安装身份、精确站点/Store/PartitionKey/Chrome 权限和 Side Panel Cookie 用户授权**的安装工具。Page SDK 仍拒绝特权 Cookie 调用；明文单独要求 values 权限。内置受信 Cookie UI 使用已有 Host-only approve/execute；两种 Caller 身份不可混用，底层仍共用唯一 Host 和 Cookie Driver。
 - Clipboard / Downloads 不再从 Browser SDK Wrapper 转成 `clipboard.writeText` / `file.download` 旧 UI 消息。正式 `browser.clipboard.writeText` / `browser.downloads.text` 由受信 Side Panel 真点击、Host 一次性 Intent、原 Side Panel 系统复制/下载服务共同完成，具体原生效果仍待同候选验收。
-- 此处与唯一执行手册均为**按当前源码的局部修订**。接口矩阵中原 Cookie HOST_ONLY 可见性标记仍须与真实 Registry/Host 逐项同步；不能借由文档先验宣称矩阵或全部 Node/Build/Native 门禁已关闭。
+- 此处与唯一执行手册均为**按当前源码的局部修订**。最新接口矩阵已经记录 40 项已注册接口、11 项 Cookies 的 `APPROVED_TOOL_REGISTERED` 可见性、0 项旧 Cookies Host-only 设计；仍不得把矩阵同步等同于全部 Node/Build/Native 门禁完成。
