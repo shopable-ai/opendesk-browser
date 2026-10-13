@@ -10,7 +10,8 @@ test('R9 Browser SDK exposes only real implemented operations and typed metadata
   assert.equal(rows.length,new Set(rows.map(row=>row.operation)).size,'Duplicate public operation');
   assert(rows.every(row=>row.implementation==='IMPLEMENTED'),'No planned/hidden APIs in public registry');
   for(const operation of ['browser.tabs.create','browser.tabs.activateOwned',
-    'browser.tabs.getOwned','browser.tabs.listOwned','browser.tabs.pinOwned','browser.tabs.removeOwned'])
+    'browser.tabs.getOwned','browser.tabs.listOwned','browser.tabs.pinOwned',
+    'browser.tabs.reloadOwned','browser.tabs.removeOwned'])
     assert.equal(BROWSER_OPERATIONS[operation]?.implementation,'IMPLEMENTED',operation);
   for(const op of rows){
     assert.equal(op.inputSchema?.type,'object',op.operation);
@@ -70,8 +71,8 @@ test('Removed prelaunch placeholder operations cannot be invoked or discovered',
 test('R5 public Tabs wrappers route through original Host with no raw native tabId',async()=>{
  const calls=[],sdk=createBrowserSdk({request:async(op,args)=>{calls.push(op);return {ok:true}}});
  const tabRef='r'.repeat(32);
- await sdk.tabs.getOwned({tabRef});await sdk.tabs.listOwned();await sdk.tabs.removeOwned({tabRef});
- assert.deepEqual(calls,['browser.tabs.getOwned','browser.tabs.listOwned','browser.tabs.removeOwned']);
+ await sdk.tabs.getOwned({tabRef});await sdk.tabs.listOwned();await sdk.tabs.reloadOwned({tabRef});await sdk.tabs.removeOwned({tabRef});
+ assert.deepEqual(calls,['browser.tabs.getOwned','browser.tabs.listOwned','browser.tabs.reloadOwned','browser.tabs.removeOwned']);
  assert.throws(()=>sdk.tabs.getOwned({tabId:1}),isCode('E_SCHEMA'));
  assert.throws(()=>sdk.tabs.removeOwned({tabId:1}),isCode('E_SCHEMA'));
  assert.throws(()=>sdk.tabs.listOwned({all:true}),isCode('E_SCHEMA'));
