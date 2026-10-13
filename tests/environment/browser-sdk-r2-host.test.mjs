@@ -299,6 +299,16 @@ test('R9 Host cannot mint a one-use intent for revoked or foreign owned TabRefs'
       err('E_TAB_REF_INVALID'),operation+' must reject a foreign resource before approval');
   }
 });
+test('R9 capability status fails closed when an owned-TabRef Chrome document driver is absent',async()=>{
+  const f=fixture();
+  f.api.webNavigation.getFrame=undefined;
+  for(const operation of ['browser.tabs.activateOwned','browser.tabs.pinOwned',
+    'browser.screenshot.captureVisible','browser.network.observe.start']){
+    const status=await f.call('browser.capabilities.getStatus',{operation});
+    assert.equal(status.callableNow,false,operation);
+    assert.equal(status.reasonCode,'E_CHROME_UNSUPPORTED',operation);
+  }
+});
 test('compact network.watch() returns an owned session handle and uses only existing trusted Host operations',async()=>{
  const f=fixture(),routed=[];
  const needsApproval=new Set(['browser.tabs.create','browser.network.observe.start','browser.network.observe.export']);
