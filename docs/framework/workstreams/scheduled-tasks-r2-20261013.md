@@ -169,3 +169,46 @@
 - **视觉截图 NOT_VERIFIED**：本轮未取得同场景“修改前真实 Chrome”“修改后原型”和“修改后真实 Mac Chrome 扩展”三套可核对的截图；若 CI 上传 `scheduled-r23-real-zoom` 也必须检查 SHA、Chrome version、包 fingerprint 与报告，不能只凭 artifact 名称写 PASS。
 - **质量评分：NOT_SCORED**：没有完整实际浏览器视觉、可访问性、权限和安全回归证据之前，视觉设计、排版间距、信息层级、交互效率、表单体验、功能完整性、响应式、可访问性、安全正确性、Chrome 原生交付均不得填充人为的 95+ 分。
 - **原底层安全不变**：没有触碰 `Chrome Alarms`、ScheduleService、FireId、Controller Authority、RunHost、共享槽、Run/Result、授权生命周期、历史存储与 `UNKNOWN` 不重放规则。
+
+## R2.8 实际实施与分级验收（2026-10-13）
+
+> **本节是本轮真实写入 GitHub `main` 的新增记录，不替换 R2.7 的结果，也不把源码合同测试等同于 Chrome Side Panel 视觉验收。** 多 Agent 正在写入同一分支；以下提交是本轮连续增量，最终 HEAD 必须另行核对。
+
+### 直接修改的生产文件及回归
+
+- [`acb114c`](https://github.com/shopable-ai/opendesk-browser/commit/acb114cb3c47bf9f81c12bc07d7969c7cbc41f17)：`src/ui/scheduled-task-workbench.js`，解决定时 Host 轮询期间计划列表反复整体重建导致已展开历史、手动分页、当前焦点与删除确认重置的问题。仅在计划/目录数据真的改变时更新卡片；按原 `FireId` 保留已加载分页、用新快照覆盖旧状态；恢复详情展开和键盘焦点；不创建其他 Run/Result。
+- [`9039555`](https://github.com/shopable-ai/opendesk-browser/commit/9039555bbd0c57984b321abf9074ecf6d124e5cb)：`tests/environment/scheduled-task-ui-r1.test.mjs`，新增缓存 Fire 合并、状态更新、焦点与展开/分页回归，原期望无条件重渲染的旧断言被替换为刷新条件的严格断言。
+- [`c6bc9db`](https://github.com/shopable-ai/opendesk-browser/commit/c6bc9dbc132b6c0182c09b587b78a365ecc17b44)：扩展历史加载的安全性；如果第一页与已缓存历史没有任何共同 Fire，认定出现翻页空洞并重置分页基线，禁止跳过中间记录。定时轮询不得清除当前的表单保存/权限错误。
+- [`9da7516`](https://github.com/shopable-ai/opendesk-browser/commit/9da75164ae0ffc271aa9027e8257b69e8c28776d)：对应非重叠历史与持续可见表单错误的回归断言。
+- [`025c951`](https://github.com/shopable-ai/opendesk-browser/commit/025c951651c72039ef9dd71cb1fc023b1c68e921) 和 [`f12ad4b`](https://github.com/shopable-ai/opendesk-browser/commit/f12ad4b93457fd0ecafdbea4528ec1aefc979e86)：`scripts/bundle-provenance.mjs` 针对实际上被 Time Review Native 静态源码使用的**仅两个**已审核第一方源码，限制其**仅能**进入现有 `ui/sidebar-tool-host.js`；同时用 Git Blob SHA-1 冻结 HTML 与 JS，源码变化、其他 examples/vendor 目录或其他目标 Bundle 仍拒绝，未禁用 WXT 模块扫描、npm 归属或固定 Bundle 大小限制。
+- [`7b29f5f`](https://github.com/shopable-ai/opendesk-browser/commit/7b29f5f36398bf9f9872515919ce831635e62d5c)：`tests/environment/bundle-provenance.test.mjs` 新增严格固定来源的正反向安全测试。
+
+冻结 Git Blob：`examples/sidebar-tools/time-review/src/index.html` = `fcaec7808b606c8f4484e20bd4c82a7d66e66fa5`；`examples/sidebar-tools/time-review/src/main.js` = `c0d8dc0ce6d42a0ff08ce8012dec3e66a2840ed0`。**这两个是 Git 对象哈希，不是 R2.8 最终构建产物的 SHA-256，也不是已加载 Chrome 扩展的 ID。** 变更这些源码时必须重新做受信任代码审核与显式更新 Pin；官方发布版本和运行时身份检查仍独立必需。
+
+### 源码到正式 UI 的核对矩阵
+
+| 功能 | R2.7 生产基线 | R2.8 验证或修复 | 原生 Chrome 实测 |
+| --- | --- | --- | --- |
+| 创建计划 5 段表单、R27/R20 间距、任务选择与 Icon 管理 | 有生产 HTML/CSS/JS 实现 | 读取最新主分支并确认代码存在；未重新制造原型 | `NATIVE_PENDING` |
+| 设备时区摘要、更改后展开、搜索不自动变更、编辑保持原值 | 有生产实现 | 保留单一 IANA 调度函数及原授权保存链 | `NATIVE_PENDING` |
+| 次执行预览、确认保存、错误定位及取消保护 | 有生产实现 | 修复周期性刷新清掉可见表单错误 | `NATIVE_PENDING` |
+| 计划列表及历史分页 | 有原始分页、状态与更多操作 | 修复轮询丢失已展开页面、历史记录和焦点；无重叠分页不跳页 | `NATIVE_PENDING` |
+| 独立运行页、当前/下次单焦点、合法 RunId 停止 | 有正式单一 Host | 原 Host、停止接口、Fire/Run/Result 均未修改 | `NATIVE_PENDING` |
+| 正式 Bundle 来源 | R2.7 后跨工作流 Time Review 源码导致旧 CI 构建 FAIL | 精确两文件、唯一目标与源 Blob SHA 限定的来源修复 | `BUILD_PENDING` |
+| 唯一原型 R2.5 与正式页面对照 | 唯一 `examples/ui/scheduled-tasks-r2.5-preview.html` | 本轮未制造第二份原型，不能用其截图代替正式 UI | `NOT_SCORED` |
+
+### 真实 CI 与本地环境证据边界
+
+- [`9039555` 的 Scheduled Tasks CI 38427348223](https://github.com/shopable-ai/opendesk-browser/actions/runs/38427348223)：`scheduled-components` 的 **Schedule UTC/DST 单元测试 PASS**、**定时计划与宿主 UI 源码合同 PASS**；`scheduled-package` 的 `npm ci`、`npm run check` **PASS**。但其完整工作流为 **FAIL**：跨产品 `task-workbench.test.mjs` 的 R6 read-only source 案例失败；当时 `npm run build` 因固定 Bundle 来源检查失败、`build:dev` 和 `verify` 未运行。
+- 历史 CI [38414821298](https://github.com/shopable-ai/opendesk-browser/actions/runs/38414821298)、[38414821888](https://github.com/shopable-ai/opendesk-browser/actions/runs/38414821888)、[38414821739](https://github.com/shopable-ai/opendesk-browser/actions/runs/38414821739) 不能以之前 QUEUED 状态代替实际运行结果；已有 Linux Job 均被真实构建失败阻断。必须按 SHA 再核对最新 CFT 重试及时间缩放工作流。
+- 本会话通过 GitHub 连接器提交源文件，**无法访问用户 Mac 本地目录、`dist/development`、本机 Chrome Profile、实际扩展 ID 与 Side Panel 实体窗口**，因此本机 `npm run build`、`npm run build:dev`、`npm run verify` 不能标记已运行。CI 是另一隔离机器，不能代表用户机器的扩展加载身份。
+- 320/360/420 CSS px、100/125/150/200% **真实 Chrome 页面缩放**、浅/深主题、真实焦点序列与长 URL/JSON 溢出矩阵、Chrome/截图版本及正式界面截图：`NATIVE_PENDING`。旧 R2.5 HTML 原型不能充当这些证据，CDP viewport 也不等于 Chrome 原生缩放。
+- **专家十维评分：`NOT_SCORED`。** 本轮没有足够真实 Chrome、构建 hash 和生产 Profile 截图，不能填写或宣称 95/100。
+
+### 尚未关闭的闸门
+
+1. 以最新 `main` 的**同一 Git SHA**再跑 `npm run check`、`npm run build`、`npm run build:dev`、`npm run verify` 和 Scheduled Tasks 完整组件回归；如果仍失败必须保留真实日志并定位其归属。
+2. 让最新真实 CFT Chrome 测试跑到页面交互及真正 `tabs.setZoom`，逐项核对视频/截图、`manifest`、产物 SHA 与运行环境，并确保原生 Case 没被旧构建掩盖。
+3. 在用户 Mac 本地通过项目受控流程核验 `dist/development` 的新旧哈希、`chrome://extensions` 扩展 ID 和路径、`runtime.id` 与 Side Panel 身份，不覆盖用户 Profile、旧配对或其他 Agent watcher。
+4. 创建/编辑/取消/安全权限、空状态、长输入、暗色与 320/360/420 × 真正缩放 100/125/150/200% 均需实际 Chrome 截图，才能对视觉与 Chrome Native 交付判定 95+。
+
