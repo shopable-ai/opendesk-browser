@@ -274,8 +274,13 @@ test('R1.4 page threshold is sent from settled Host time, retired on disable and
     'trusted disable removes the in-page card');
   f.pageMessages.length=0;
   f.stored.set(SIDEBAR_TOOL_STORE,[]);
+  f.focus.invalidate({revoke:true});
   await f.focus.tick({boot:true});
   assert.ok(f.pageMessages.some(x=>x.message.kind==='clear'),
     'full uninstall boot must retire a lingering in-page card');
+  const clears=f.pageMessages.filter(x=>x.message.kind==='clear').length;
+  await f.focus.tick();
+  assert.equal(f.pageMessages.filter(x=>x.message.kind==='clear').length,clears,
+    'after uninstall, normal tab events must not spam every site with another clear');
   assert.equal(f.rules.length,0,'uninstall also retires Stay Focus DNR only');
 });

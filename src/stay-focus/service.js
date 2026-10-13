@@ -183,6 +183,9 @@ export function createStayFocusService({api=globalThis.chrome,lockManager=global
       // Chrome removes associated rules on a native permission revocation.
       if(await api.permissions.contains({permissions:['declarativeNetRequestWithHostAccess']}))
         await clearFocusRules(api);
+      // A retired tool should not broadcast a clear to every tab forever.
+      // Retire this observation epoch after the lifecycle cleanup succeeded.
+      if(startGeneration===generation){revoked=false;settledGeneration=startGeneration;}
       return null;
     }
     const hash=await focusPackageHash(auth.tool),raw=auth.saved[FOCUS_STORE];
