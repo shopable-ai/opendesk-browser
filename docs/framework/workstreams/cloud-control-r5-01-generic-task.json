@@ -13,7 +13,8 @@
     "539bb35c05bc44aabdd501dadb18bc4fcef56fec",
     "c3356edd26092aac2470594076e42dd4ef63befc",
     "ae5e765fe743ee7396f752702880ed0a26de5d32",
-    "c814449e08d45baef40bee5439017551b42408a5"
+    "c814449e08d45baef40bee5439017551b42408a5",
+    "d5712897adf7b8471227fb2b40d132af5363505c"
   ],
   "taskExamples": [
     {
@@ -31,20 +32,30 @@
   ],
   "status": {
     "source": "SOURCE_IMPLEMENTED",
-    "components": "CI_QUEUED",
-    "build": "CI_QUEUED",
+    "components": "COMPONENT_TESTED",
+    "build": "BUILD_VERIFIED",
     "nativeTwoTasks": "NATIVE_PENDING",
     "nativeMac": "NATIVE_PENDING",
     "longRunningRunner": "NOT_IMPLEMENTED"
   },
   "ci": {
-    "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38291915410",
-    "headSha": "c814449e08d45baef40bee5439017551b42408a5",
-    "status": "queued",
-    "passed": null,
-    "failed": null,
-    "productionPackageHash": null,
-    "developmentPackageHash": null
+    "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38350592138",
+    "headSha": "d5712897adf7b8471227fb2b40d132af5363505c",
+    "status": "completed",
+    "conclusion": "success",
+    "passed": 225,
+    "failed": 0,
+    "cloudProviderTests": {
+      "passed": 29,
+      "failed": 0
+    },
+    "authorityTests": {
+      "passed": 113,
+      "failed": 0
+    },
+    "productionPackageHash": "819c0bf67a86ccfbe6e98b8f99c5e08e6a50186caee524c976054f55a13c9e49",
+    "developmentPackageHash": "5abadfc2d3cb310ea20a7fc20576ecff6736ff63a00fc97c1a950f2300725a1a",
+    "qualification": "Same SHA CI component and build validation only; no native two-task Chrome Worker runs"
   },
   "originalRunEvidence": {
     "runIds": [],
@@ -64,5 +75,37 @@
   "exposure": {
     "taskSchemaReview": "names, required fields and full manifest paramsSchema disclosure",
     "authorizationGenerationReview": "strict display matching on installationId and generation"
-  }
+  },
+  "previousFailedCi": {
+    "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38291915410",
+    "headSha": "c814449e08d45baef40bee5439017551b42408a5",
+    "status": "completed",
+    "conclusion": "failure",
+    "componentTests": {
+      "passed": 28,
+      "failed": 1
+    },
+    "failedCase": "generic-approval-ui.test.mjs test fixture created no cloud-consent control",
+    "resolutionCommit": "d5712897adf7b8471227fb2b40d132af5363505c",
+    "productionPackageHash": "1b8816eee032d7a0f26930a8bf17435cf8a8148fce5aac8bccf1fc49c164c293",
+    "developmentPackageHash": "b141119021a5b07a665835adcc86f5a9a2f4d2325f98911129e5b6f991fd2416"
+  },
+  "openQuestions": [
+    {
+      "issue": "resultAllowed=false prevents reconcile from delivering any Provider receipt",
+      "status": "NEEDS_PRODUCT_AND_SECURITY_DECISION",
+      "evidence": "src/cloud-control/service.js reconcile projection returns null when !r.task.resultAllowed",
+      "suggestedNextStep": "Define whether metadata-only completion acknowledgements are authorized, verify no result body leaks, and test exact consent outcomes"
+    },
+    {
+      "issue": "No two independently installed, verified Controller Tasks executed through actual Chrome Worker under one approved cloud grant",
+      "status": "NATIVE_PENDING",
+      "suggestedNextStep": "Isolated Chrome actual Side Panel with owned test profile, original Run/Result/retirement and Provider receipts"
+    },
+    {
+      "issue": "Mac R4 and Scheduled Tasks R2 share fixed provider port 43112 and browser profile",
+      "status": "OWNED_ELSEWHERE",
+      "suggestedNextStep": "Obtain explicit resource handoff or postpone native execution; keep CI isolated"
+    }
+  ]
 }
