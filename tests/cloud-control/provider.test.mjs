@@ -14,18 +14,21 @@ test('real HTTP/native WebSocket provider: durable claim, empty retry, permit re
     const post=async(path,body,auth=credential)=>{const response=await fetch(`http://127.0.0.1:${p.port}${path}`,{method:'POST',headers:{'Content-Type':'application/json',...(auth?{Authorization:'Bearer '+auth}:{})},body:JSON.stringify(body)});const value=await response.json();if(!response.ok)throw Object.assign(Error(value.error.message),value.error);return value;};
     await assert.rejects(post('/admin/state',{}),{code:'E_AUTH'});
     credential=(await post('/v1/pair',{executorId,pairingCode:admin.pairingCode})).credential;
+    const grantId=randomUUID();
+    const tasks=[{taskId:pkg.manifest.taskId,manifestHash:pkg.manifestHash,
+      sourceHash:pkg.manifest.program.sourceHash}];
+    await post('/v1/capabilities',{grantId,tasks});
     const auth=await post('/v1/auth',{});ws=new WebSocket(`ws://127.0.0.1:${p.port}/v1/events`);
     await new Promise((ok,no)=>{ws.once('open',()=>ws.send(JSON.stringify({type:'authenticate',ticket:auth.ticket})));ws.once('message',d=>{assert.equal(JSON.parse(String(d)).type,'authenticated');ok();});ws.once('error',no);});
-    const tasks=[{taskId:pkg.manifest.taskId,manifestHash:pkg.manifestHash,sourceHash:pkg.manifest.program.sourceHash}];
-    const empty={claimId:'empty',tasks};assert.deepEqual(await post('/v1/claim',empty),{assignment:null});
+    const empty={claimId:'empty',grantId,tasks};assert.deepEqual(await post('/v1/claim',empty),{assignment:null});
     const seed={requestKey:'seed',targetExecutorId:executorId,params:{},target:{mode:'owned',url:'http://127.0.0.1:43111/demo-form.html'}};
     const cancelled=await post('/admin/seed',{...seed,requestKey:'cancelled-before-claim'},admin.adminToken);
     await post('/admin/cancel',{jobId:cancelled.jobId},admin.adminToken);
-    assert.deepEqual(await post('/v1/claim',{claimId:'cancelled-only',tasks}),{assignment:null});
+    assert.deepEqual(await post('/v1/claim',{claimId:'cancelled-only',grantId,tasks}),{assignment:null});
     const job=await post('/admin/seed',seed,admin.adminToken);assert.deepEqual(await post('/admin/seed',seed,admin.adminToken),job);
     assert.deepEqual(await post('/v1/claim',empty),{assignment:null});
     await assert.rejects(post('/admin/seed',{...seed,params:{name:'different'}},admin.adminToken),{code:'E_REQUEST_CONFLICT'});
-    const claim={claimId:'real',tasks},a=(await post('/v1/claim',claim)).assignment;assert.equal(a.params.name,'Alice');assert.deepEqual((await post('/v1/claim',claim)).assignment,a);
+    const claim={claimId:'real',grantId,tasks},a=(await post('/v1/claim',claim)).assignment;assert.equal(a.params.name,'Alice');assert.deepEqual((await post('/v1/claim',claim)).assignment,a);
     await assert.rejects(post('/v1/claim',{...claim,tasks:[]}),{code:'E_REQUEST_CONFLICT'});
     const runRef={runId:randomUUID(),resultId:randomUUID(),requestId:'cloud:'+a.assignmentId,sourceHash:pkg.manifest.program.sourceHash,manifestHash:pkg.manifestHash,grantId:randomUUID()},admission={assignmentId:a.assignmentId,runRef,resultAllowed:false};
     await post('/admin/fault',{path:'/v1/admission',count:1},admin.adminToken);await assert.rejects(post('/v1/admission',admission));
@@ -50,6 +53,13 @@ test('provider persistence failure rolls back memory before a retry can publish 
     await fetch(`http://127.0.0.1:${p.port}/v1/pair`,{method:'POST',
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify({executorId,pairingCode:admin.pairingCode})});
+    const grantId=randomUUID();
+    const advertised=[{taskId:pkg.manifest.taskId,
+      manifestHash:pkg.manifestHash,sourceHash:pkg.manifest.program.sourceHash}];
+    await fetch(`http://127.0.0.1:${p.port}/v1/capabilities`,{method:'POST',
+      headers:{'Content-Type':'application/json',Authorization:'Bearer '+
+        (JSON.parse(await readFile(join(directory,'state.json'),'utf8')).executors[executorId].credential)},
+      body:JSON.stringify({grantId,tasks:advertised})});
     const seed={requestKey:'disk-failure',targetExecutorId:executorId,params:{},target:{mode:'owned',url:'http://127.0.0.1:43111/demo-form.html'}};
     const post=async(path,body)=>{const r=await fetch(`http://127.0.0.1:${p.port}${path}`,{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+admin.adminToken},body:JSON.stringify(body)});return {ok:r.ok,value:await r.json()};};
     await mkdir(join(directory,'state.json.tmp'));assert.equal((await post('/admin/seed',seed)).ok,false);
