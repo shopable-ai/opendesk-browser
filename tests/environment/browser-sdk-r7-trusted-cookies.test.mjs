@@ -97,6 +97,17 @@ test('R7 current-document read, single store and validated partition',async()=>{
   await assert.rejects(f.run('browser.cookies.getAll',{partitionKey:{topLevelSite:'https://wrong.test'}}),
     reject('E_COOKIE_PARTITION'));
 });
+test('R9 same-name Cookies on different paths or partitions are never selected by array order',async()=>{
+  const f=fixture();
+  f.state.cookies.push({...f.state.cookies[0],value:'ANOTHER_SECRET',
+    path:'/account',partitionKey:{topLevelSite:'https://shop.example.test',hasCrossSiteAncestor:false}});
+  assert.equal((await f.run('browser.cookies.getAll')).cookies.length,2);
+  await assert.rejects(f.run('browser.cookies.get',{name:'sid'}),reject('E_COOKIE_AMBIGUOUS'));
+  assert.equal((await f.run('browser.cookies.get',{name:'sid',partitionKey:{
+    topLevelSite:'https://shop.example.test',hasCrossSiteAncestor:false
+  }})).cookie.value,'ANOTHER_SECRET');
+  assert.equal((await f.run('browser.cookies.get',{name:'missing'})).cookie,null);
+});
 test('R7 denied Chrome permission, changed document, and untrusted identity cannot reach Cookie value',async()=>{
   const f=fixture(),approval=await f.approve('browser.cookies.getAll');
   f.state.site=false;
