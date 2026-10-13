@@ -299,7 +299,7 @@ async function durable(client,session){
     'const plans=kv.filter(x=>x.tag==="schedule-definition-v1");const fires=kv.filter(x=>x.tag==="schedule-fire-v1");'+
     'const chosen=runs.filter(x=>x.tag==="controller-run").map(r=>({runId:r.runId,resultId:r.resultId,scriptId:r.scriptId,'+
     'scheduledFireId:r.scheduledFireId||null,state:r.state,retirementState:r.retirementState,workerRetired:r.workerRetired,'+
-    'sourceHash:r.revision?.sourceHash,documentId:r.target?.documentId}));'+
+    'sourceHash:r.revision?.sourceHash,tabId:r.target?.tabId,documentId:r.target?.documentId}));'+
     'return {plans:plans.map(x=>({scheduleId:x.scheduleId,generation:x.generation,paused:x.paused,nextDueAt:x.nextDueAt,'+
     'taskId:x.taskId,triggerKind:x.triggerKind,installationId:x.installationId,taskGeneration:x.taskGeneration,version:x.version,manifestHash:x.manifestHash})),installs:kv.filter(x=>x.tag==="task-installed-v1").map(x=>({taskId:x.taskId,version:x.version,enabled:x.enabled,generation:x.authorization?.generation,installationId:x.authorization?.installationId})),fires:fires.map(x=>({fireId:x.fireId,runId:x.runId,'+
     'resultId:x.resultId,status:x.status,scheduledAt:x.scheduledAt})),runs:chosen,'+
@@ -903,7 +903,13 @@ test('real installed Chrome: verified Task via Alarms -> original RunHost -> pag
     // On macOS a new target may still be navigating as DevTools attaches.
     // Create a stable blank tab, attach first, then navigate using Chrome.
     // This is only a harness race fix, not a synthetic page effect.
-    const freshSite=await client.send('Target.createTarget',{url:'about:blank'});
+    // Chrome can restore the original fixture tab. Reset that real document
+    // through navigation instead of adding a second identical URL: the Host
+    // deliberately borrows the first exact URL, not the newest DevTools tab.
+    const restoredSites=(await client.send('Target.getTargets')).targetInfos
+      .filter(target=>target.type==='page'&&target.url===URL);
+    assert(restoredSites.length<=1,'Owned restart profile has at most one canonical fixture tab');
+    const freshSite=restoredSites[0]??await client.send('Target.createTarget',{url:'about:blank'});
     const freshSiteSid=await attach(client,freshSite.targetId);
     await client.send('Page.navigate',{url:URL},freshSiteSid);
     await deadline(()=>evaluate(client,
@@ -937,6 +943,9 @@ test('real installed Chrome: verified Task via Alarms -> original RunHost -> pag
       const alarms=await evaluate(client,'chrome.alarms.getAll()',catAgainSid);
       return alarms.find(x=>x.name==='opendesk.schedule.v1:'+stableScheduleId)||null;
     },'original chrome.alarms reconstructed after full process restart',25000);
+    const restartedTarget=await deadline(()=>evaluate(client,
+      '(async()=>{const tabs=(await chrome.tabs.query({})).filter(tab=>tab.url==='+JSON.stringify(URL)+'&&tab.status==="complete"&&!tab.pendingUrl);if(tabs.length!==1)return null;const frame=(await chrome.webNavigation.getAllFrames({tabId:tabs[0].id})).find(frame=>frame.frameId===0&&frame.url==='+JSON.stringify(URL)+'&&frame.documentId);return frame?{tabId:tabs[0].id,documentId:frame.documentId,url:frame.url}:null})()',catAgainSid),
+      'unique restarted real fixture tab and document identity');
     report.tests.scheduleStateAndAlarmRecovered='PASS';
     note('chrome-restart-persisted-plan-and-alarm',{scheduleId:stableScheduleId,
       generation:expectedGeneration,restoredAlarm:restoredAlarms});
@@ -953,9 +962,42 @@ test('real installed Chrome: verified Task via Alarms -> original RunHost -> pag
       return targets.find(x=>x.url===sideAgain.documentUrl);
     },'restarted real Side Panel target');
     const sideAgainSid=await attach(client,sideTargetAgain.targetId);
-    await click(client,sideAgainSid,'#schedule-open');
-    await deadline(()=>evaluate(client,'!!document.querySelector("#schedule-plan-list .schedule-card")',sideAgainSid),
-      'recovered plan visible in original My > Schedules');
+    let restartSideDocumentId=null;
+    try{
+      // Context discovery precedes script initialization. Wait for the real
+      // canonical document, then navigate through the original trusted UI.
+      // A dispatched click is never retried after an uncertain effect.
+      await deadline(()=>evaluate(client,
+        'document.readyState==="complete"&&new URL(location.href).searchParams.has("hostInstanceId")&&typeof globalThis.__opendeskTrustedHistoryUI?.createScheduledTaskHost==="function"',
+        sideAgainSid),'restarted canonical Side Panel initialized',25000);
+      const canonicalSideUrl=await evaluate(client,'location.href',sideAgainSid);
+      const canonicalSideContext=await deadline(async()=>
+        (await contexts(client,catAgainSid)).find(context=>context.contextType==='SIDE_PANEL'&&
+          context.documentId&&context.documentUrl===canonicalSideUrl),
+        'restarted canonical Side Panel document identity');
+      restartSideDocumentId=canonicalSideContext.documentId;
+      note('restarted-sidepanel-initialized',{documentId:restartSideDocumentId,url:canonicalSideUrl});
+      await click(client,sideAgainSid,'#tab-my-tasks');
+      await deadline(()=>evaluate(client,
+        'document.querySelector("#tab-my-tasks")?.getAttribute("aria-selected")==="true"&&!document.querySelector("#workbench-tasks").hidden',
+        sideAgainSid),'restarted original My tab selected');
+      await click(client,sideAgainSid,'#schedule-open');
+      await deadline(()=>evaluate(client,
+        '!!document.querySelector("#scheduled-panel")&&!document.querySelector("#scheduled-panel").hidden',
+        sideAgainSid),'restarted original schedule panel opened');
+      await deadline(()=>evaluate(client,
+        '[...document.querySelectorAll("#schedule-plan-list .schedule-card")].some(card=>card.dataset.scheduleId==='+JSON.stringify(stableScheduleId)+')',
+        sideAgainSid),'recovered original plan visible in My > Schedules');
+    }catch(error){
+      const state=await evaluate(client,
+        '(()=>({url:location.href,readyState:document.readyState,activeTab:document.documentElement.dataset.opendeskTab,panelHidden:document.querySelector("#scheduled-panel")?.hidden,planIds:[...document.querySelectorAll("#schedule-plan-list .schedule-card")].map(card=>card.dataset.scheduleId),message:document.querySelector("#schedule-message")?.textContent,hostStatus:document.querySelector("#schedule-host-status")?.textContent}))()',
+        sideAgainSid).catch(failure=>({observationError:String(failure?.message||failure)}));
+      report.restartUIFailure={documentId:restartSideDocumentId,initialDocumentId:sideAgain.documentId,...state};
+      note('chrome-restart-sidepanel-ui-failure',report.restartUIFailure);
+      const capture=await screenshot(client,sideAgainSid,'chrome-restart-ui-failure').catch(()=>null);
+      if(capture)report.screenshots.push(capture);
+      throw error;
+    }
     await click(client,sideAgainSid,'#schedule-open-runner');
     const runnerAgain=await deadline(async()=>{
       const targets=(await client.send('Target.getTargets')).targetInfos;
@@ -979,6 +1021,10 @@ test('real installed Chrome: verified Task via Alarms -> original RunHost -> pag
       }
       return null;
     },'new approved occurrence operates REAL webpage after full Chrome restart',180000);
+    note('chrome-restart-result-target',{runId:after.run.runId,target:restartedTarget,
+      runTabId:after.run.tabId,runDocumentId:after.run.documentId});
+    assert.equal(after.run.tabId,restartedTarget.tabId,'New Run uses the observed genuine fixture tab');
+    assert.equal(after.run.documentId,restartedTarget.documentId,'New Run uses the observed fresh document');
     const restartedEffect=await evaluate(client,
       '(()=>({name:document.querySelector("#name")?.value,done:!!document.querySelector("#done")}))()',freshSiteSid);
     assert.deepEqual(restartedEffect,{name:'Scheduled Native',done:true});
