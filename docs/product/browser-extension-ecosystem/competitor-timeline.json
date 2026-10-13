@@ -727,7 +727,14 @@
         "https://axiom.ai/build-in-claude/",
         "https://axiom.ai/build-with-no-code/claude/"
       ],
-      "note": "Claude Skill can create importable Chrome bots and schedule cloud/desktop; no official dated earliest availability established."
+      "note": "Claude Skill can create importable Chrome bots and schedule cloud/desktop; no official dated earliest availability established.",
+      "r5AgainstGF007": {
+        "repeatsWork": true,
+        "modelFreeRerun": "UNKNOWN_NOT_MEASURED",
+        "fixedCodeOwnedByUser": "UNKNOWN_NOT_MEASURED",
+        "sameLoggedInChrome": "UNKNOWN_OR_MODE_DEPENDENT",
+        "independentBenchmark": "NOT_TESTED"
+      }
     },
     {
       "firstReleasedAt": null,
@@ -821,6 +828,13 @@
         "feature": "Reusable schedulable routine with approval/governance",
         "date": "2026-08-25",
         "channel": "official-public-preview"
+      },
+      "r5AgainstGF007": {
+        "repeatsWork": true,
+        "modelFreeRerun": "UNKNOWN_NOT_MEASURED",
+        "fixedCodeOwnedByUser": "UNKNOWN_NOT_MEASURED",
+        "sameLoggedInChrome": "UNKNOWN_OR_MODE_DEPENDENT",
+        "independentBenchmark": "NOT_TESTED"
       }
     },
     {
@@ -892,7 +906,9 @@
       "r5FeatureProof": {
         "feature": "Save/reuse AI prompt Skills",
         "date": "2026-04-14",
-        "channel": "google-official-release-post"
+        "channel": "google-official-release-post",
+        "rolloutScope": "Desktop Mac/Windows/ChromeOS Chrome language en-US; actual eligible region/account must be checked",
+        "modelIndependentRerunNotProven": true
       },
       "r5AgainstGF007": {
         "repeatsWork": true,
@@ -927,7 +943,8 @@
       "r5FeatureProof": {
         "feature": "Record a workflow and repeat",
         "date": "2026-07-24",
-        "channel": "anthropic-official-release-notes-beta"
+        "channel": "anthropic-official-release-notes-beta",
+        "note": "2026-07-24 release notes record-a-workflow beta; no model-free fixed-source promise"
       },
       "r5AgainstGF007": {
         "repeatsWork": true,
