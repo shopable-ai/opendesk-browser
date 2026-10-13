@@ -1,55 +1,50 @@
-# Cookie Editor R2 · 正式 SDK 接入前的独立工具界面
+# Cookie Editor R3 · 正式 Cookies SDK 安装工具
 
-**产品身份：** Side Panel → 工具 → 发现工具 → Cookie Editor。官方目录中仍是 `optional`，使用已有安装器、停用/启用和卸载机制，不是另一款 Chrome 扩展。
+**入口：** Side Panel → 工具 → 发现工具 → Cookie Editor。官方目录仍为 `installationPolicy: optional`；工具包 **2.0.0 / opendesk.sidebar-tool.v2**，不是另建 Chrome 扩展。正式 SDK、Host 和真实 UI 的源码已有接线，但**当前候选尚无 Node/Build/Chrome Native 通过证据，不能宣称 95+ 正式交付**。
 
-> **本版本 1.1.1：真实 Cookie 操作仍为 BLOCKED。** 截至审计时的仓库 `main`，`OpenDeskSDK.browser` 尚无 `cookies` 命名空间，安装包 Capability 白名单也不接受 `browser.cookies.*`。因此 **不会读取、查看真实敏感值、创建、修改、删除或清除 Chrome Cookie**。代码不会调用私有 `browser.cookies.approve/execute` 或直接访问 `chrome.cookies`。
+## 用户能完成什么（SOURCE_WIRED，未原生验收）
 
-## 用户能做什么
+1. 在实际 Chrome 打开要授权的网站 → 已安装工具「设置」→ 按网站分别授权 `browser.cookies.read / values / write / observe / clear`。安装或选择网址不自动授权；第一次授权需该站点处于活动标签页。授权后普通读取可以在其他网站仍活跃时重复使用。
+2. `OpenDeskSDK.browser.cookies.getAll({url})` 读取真实 Chrome Cookie 元数据，显示 Cookie 名称、Domain/Path、Secure/HttpOnly/SameSite、Session/Expiration、Store/Partition。真实值默认隐藏；独立 `values` 网站授权后才可按需显示或导出。
+3. `cookies.set/remove` 实际新增、编辑、精确删除；受信 Side Panel 每次要求用户明确确认。原生回读和结果未知不自动重试。编辑只有脱敏元数据的旧 Cookie 时必须主动输入新值，避免误将隐藏旧值写成空字符串。
+4. `clearSite` 只清理选定主机的 Host-only Cookie、批准的 Store/Partition、最多 50 条。先生成含 **60 秒、一次性 `previewRef`** 的预览；清理前核对精确 Cookie 身份集合，数量相同而内容改变也拒绝。实际删除仍需可信点击；Worker 重启、撤权会使旧预览不可用。
+5. `observe.start/getStatus/read/stop` 手动启动最长 15 秒的有界脱敏变化观察，携带 cursor/gap。事件不传 Cookie 值。
+6. 「离线工作区」仍支持 JSON、Cookie Header、Netscape 读取/编辑/导出，绝不冒充真实 Chrome；真实导入每批至多 10 条，预览并逐条经 Chrome SDK 与用户确认。真实含值导出需要主动触发本地保存和额外敏感值授权。
 
-1. 安装后默认打开「浏览器 Cookie」模式，看到当前 HTTP(S) 站点，或输入指定地址并点击「选择」。当前网站 **不被自动授权**；手动指定地址不要求匹配活动标签页。
-2. 页面显示正式 SDK 就绪/不可用状态。只有未来正式 SDK 暴露 `browser.cookies.getAll` 且能力状态 `callableNow=true` 时，点击「读取 Cookie」才会尝试公开 SDK 的按 URL 读取。返回数据只渲染元数据，任何 `value` 都被主动丢弃；**尚不代表公开 R9 合同已验收**。
-3. 切换到「离线工作区」，可新增、编辑、删除本地 Cookie、载入虚构示例、搜索、单条/清空确认、JSON / Cookie Header / Netscape 导入和复制/下载导出；关闭工具会失去内存工作区。它绝不操作真实 Chrome Cookie。
-4. 选择其他网站时清除旧网站临时编辑内容与已渲染的浏览器元数据；网页变化时取消本次读取上下文，显式区分离线与真实结果。
+## 唯一架构及授权边界
 
-**安全注意：** Cookie 值可能是登录凭据。离线值和导入文件有 `data-sensitive` 标识，不进入宿主草稿恢复。主动复制或导出仍会产生明文，请避免输入或分享生产登录凭据。
-
-## 当前接口分工与明确阻塞
-
-| 功能 | 本工具现状 | 需要 Browser SDK R9 提供 |
-| --- | --- | --- |
-| 站点选择、模式切换、离线编辑与导入导出 | 源码已接线，Node/Chrome 仍需执行 | 无 |
-| 真实 Cookie 元数据 | 仅有受控适配入口；未接通 | 公开的 `cookies.getAll`、URL/Domain/Store/Partition 合同，工具元数据读取授权 |
-| Cookie 值 | 永远默认脱敏，无明文展示入口 | 独立 values 授权及可信 Host 脱敏语义 |
-| 新建、编辑、删除 | 目前仅离线工作区可用 | 公开 `cookies.set/remove`、精确 Cookie 身份、原生回执及未知效果语义 |
-| 批量清理 | 目前仅离线清空 | 公开 `clearSite` 精确 Host/Store/Partition 预览与确认（≤50 条） |
-| 观察变化 | 未接通 | 公开 `observe.start/getStatus/read/stop` 与脱敏事件 |
-| 安装与权限 | 继承普通工具安装/启停/卸载，保持旧包白名单 | `browser.cookies.read/values/write/observe/clear` 登记、逐站授权和撤权、包摘要/安装代际绑定 |
-
-**禁止做的事：** 不因 `optional` 或官方来源授予特殊权限；不自行增加第二个 Cookie Service/Host/权限数据库；不因 SDK 缺失退回私有调用；不以工具中的示例行模拟已读取的 Chrome Cookie。
-
-### 正式 SDK 集成检查单
-
-R9 完成后，先更新 Capability 包声明（当前只声明 `currentPage.read`、`user.export`），核对真实方法签名、授权状态/网站与 Store/Partition 范围、值脱敏/删除身份、观察与清理回执。**不可仅因 `getAll` 名称存在就宣称 R2 完成。** 所有副作用成功后重新读取，结果未知时提示核对而不自动重试。更新后执行全套负向权限和 Mac Chrome for Testing 验收。
-
-## 本地测试（必须在真实开发目录执行）
-
-```sh
-node scripts/build-sidebar-tool.mjs examples/sidebar-tools/cookie-editor
-node --test tests/environment/cookie-editor-ui.test.mjs tests/environment/official-tools-catalog-r45.test.mjs
-node scripts/build-official-tools.mjs --out artifacts/official-tools-release
-npm run check
-npm test
-npm run build
-npm run build:dev
-npm run verify
+```text
+已安装的普通 Sidebar Tool (不可信 sandbox)
+  → OpenDeskSDK.browser.cookies.*
+  → 原 Sidebar Tool Bridge
+  → Side Panel 真实安装身份/包摘要/Install Epoch/用户逐站授权
+  → 原 Browser Dispatcher / Host
+  → 原 createTrustedCookieHost / createCookieService
+  → Chrome Native Cookies API
 ```
 
-本次通过 GitHub 远端仓库读取和条件式写入，**没有访问用户 Mac 工作区**。上面的 Node/Build/Verify/Chrome 命令均不能标记为已运行；证据等级单独见 `docs/framework/workstreams/cookie-editor-r2.{md,json}`。绝不把静态源码检查当作真实 Chrome 验收。
+任何声明 Cookie Capability 的普通已安装工具都使用同一受信工具设置入口，不因 Cookie Editor 官方来源获得 BUILTIN_TRUSTED 特权。Host 校验真实 Sender、Chrome Cookies + Host Permission、明确 Origin、Store、Partition、Capability、版本/包摘要/Epoch；Page SDK、开发预览和跨工具不得继承授权。敏感值只在当前用户请求中临时显示，不自动写入工具 Storage、草稿、遥测或云端。
 
-## R2.1：正式 SDK 接入核查
+**旧内置可信 Cookie 管理 UI 尚保留。** `browser.cookies.approve/execute` 只供历史可信 UI 内部防重放使用，不是工具 SDK；正式 Cookie Editor 在真实 Chrome 通过正反向与生命周期验收后再迁移和去除重复产品入口，避免现有原生 Cookie 功能倒退。
 
-最新 main 的真实 Cookie 路径是：受信 Side Panel 的 `trusted-cookie-workbench.js` → 私有 `browser.cookies.approve/execute` → `browser-cookie-host.js` → 现有 `cookies.js` → Chrome。该路径仅对受信界面开放，不是普通可选安装工具的 `OpenDeskSDK.browser.cookies`，也不构成 Cookie Editor 的授权。
+## 验收（真实结果与缺口）
 
-R9 需要将既有底层 Service 纳入唯一正式 SDK/Host/Capability 调用链，按工具安装身份、网站、Store 和 Partition 授权，强制在受信 Host 对无 `browser.cookies.values` 授权的响应脱敏。现有可信 Host 的 `getAll` 返回 `{cookies,scope}`，而 Cookie Editor 为 Chrome 风格 `getAll({url})` 预留数组结果；必须在 R9 确定唯一正式输出格式后同步接入，不得新增兼容 API 或让 Cookie Editor 调用私有 approve/execute。现有 `clearSite` 仅是当前 URL 匹配范围，不可直接冒充精准 Host-only 预览清理。
+| 项目 | 当前等级 |
+| --- | --- |
+| 11 项公开 SDK、Schema、Host 与 Tool Capability | SOURCE_WIRED |
+| 真实读/值/写/删/清理/观察的 UI 调用 | SOURCE_WIRED |
+| V8 JavaScript 语法检查 | PASS（仅语法，不是功能或 Chrome） |
+| Node 专项测试、官方工具打包、Check、Build、Build:dev、Verify | NOT_TESTED（已补测试源码，当前执行环境未运行） |
+| Mac Chrome 安装、真实授权、原生操作/撤权/升级及截图 | NOT_TESTED |
+| 八项产品级专家评分 | NOT_SCORED |
 
-本版本修复模式对应网站标题、手动刷新授权后重新读取、编辑目标地址时丢弃异步旧结果、分区祖先元数据、首屏文案。Cookie Editor 的真实读写与独立敏感值权限仍是 `BLOCKED`；隔离 V8 检查不能替代 Node、构建或真实 Mac Chrome 验收。
+可在真实 Mac 工作区运行：
+
+```bash
+node --test tests/environment/browser-sdk-r9-installed-cookies.test.mjs tests/environment/browser-sdk-r7-trusted-cookies.test.mjs tests/environment/browser-sdk-r8-cookies.test.mjs tests/environment/cookie-editor-ui.test.mjs
+node scripts/build-sidebar-tool.mjs examples/sidebar-tools/cookie-editor
+node scripts/build-official-tools.mjs --out artifacts/official-tools-release
+npm run check && npm test && npm run build && npm run build:dev && npm run verify
+```
+
+测试只使用虚构 Cookie。运行命令及真实 Chrome GUI/CFT 证据必须绑定同一 Git SHA、工具包 SHA-256 和扩展构建 Hash；不能用 DevTools 直接调用 `chrome.cookies` 冒充用户安装路径验收。R2/R2.1 历史阻塞与组件冒烟保留在原工作流中；不升级为 R3 Native PASS。
