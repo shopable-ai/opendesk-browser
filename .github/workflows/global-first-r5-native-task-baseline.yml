@@ -1,0 +1,69 @@
+name: Global First R5 baseline real macOS Chrome installed Task
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/global-first-r5-native-task-baseline.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: global-first-r5-native-task-${{ github.sha }}
+  cancel-in-progress: false
+
+jobs:
+  real-installed-task-baseline:
+    runs-on: macos-15
+    timeout-minutes: 22
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install repository-locked build tools
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Run source check before building native test candidate
+        run: npm run check
+      - name: Build actual extension under test
+        run: npm run build
+        env:
+          OPENDESK_BUILD_EVIDENCE_DIR: artifacts/global-first-r5-native-build
+      - name: Verify exact production package identity
+        run: node scripts/verify-package.mjs dist/production
+      - uses: browser-actions/setup-chrome@v2
+        id: chrome
+        with:
+          chrome-version: '155.0.8059.39'
+      - name: Genuine Chrome Task verify/install/repeated Run/Result/restart
+        env:
+          OPENDESK_SCHEDULED_NATIVE: '1'
+          CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
+          SCHEDULE_NATIVE_OUT: artifacts/global-first-r5-task-native
+        run: |
+          mkdir -p artifacts/global-first-r5-task-native
+          git rev-parse HEAD > artifacts/global-first-r5-task-native/source-head.txt
+          shasum -a 256 \
+            tests/framework/scheduled-tasks-r1-native-mac.test.mjs \
+            examples/tasks/form-fill.v1.opendesk-task.json \
+            src/platform/tasks/service.js \
+            src/framework/workflow/compiler.js \
+            > artifacts/global-first-r5-task-native/inputs.sha256
+          set -o pipefail
+          node --test tests/framework/scheduled-tasks-r1-native-mac.test.mjs \
+            | tee artifacts/global-first-r5-task-native/native-test.tap
+      - name: Preserve raw real Chrome evidence, including failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: global-first-r5-task-native-${{ github.sha }}-${{ github.run_attempt }}
+          retention-days: 14
+          path: |
+            artifacts/global-first-r5-task-native/
+            artifacts/global-first-r5-native-build/
+          if-no-files-found: warn
