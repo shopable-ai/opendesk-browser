@@ -8,10 +8,10 @@ const http=str(2048,'^https?://');
 const num=(min=0,max=Number.MAX_SAFE_INTEGER)=>({type:'integer',minimum:min,maximum:max});
 const arr=(items,maxItems=100)=>({type:'array',items,maxItems});
 const bool={type:'boolean'},nullableString={anyOf:[str(160),{type:'null'}]};
-const empty=obj(),state=obj({state:str(40)},['state']),ok=obj({ok:bool},['ok']);
-const sid=obj({observationId:ref},['observationId']),rid=obj({recordingId:ref},['recordingId']);
+const empty=obj();
+const sid=obj({observationId:ref},['observationId']);
 const oid=obj({operationId:ref},['operationId']),eid=obj({sessionRef:ref},['sessionRef']);
-const title=str(120),text=str(150000);
+const text=str(150000);
 const menuIds={type:'array',minItems:1,maxItems:3,uniqueItems:true,items:str(40,'^[a-z][a-z0-9-]{0,39}$')};
 const resultIds=obj({registered:bool,actionIds:arr(str(40),3)},['registered','actionIds']);
 const counter=obj({state:str(40),observedCount:num(),droppedCount:num(),gapCount:num(),expiresAt:num()},
@@ -59,16 +59,6 @@ const ops=Object.freeze({
  'browser.events.close':[eid,obj({closed:bool},['closed'])],
  'browser.screenshot.captureVisible':[obj({tabRef:ref},['tabRef']),
    obj({resourceRef:ref,downloadId:num(0,2147483647),bytes:num(1,8388608),width:num(1,4096),height:num(1,4096)},['resourceRef','downloadId','bytes','width','height'])],
- 'browser.media.recording.prepare':[obj({source:{enum:['tab','window','desktop']},durationMs:num(1,300000)},['source']),
-   obj({recordingId:ref,state:str(40)},['recordingId','state'])],
- 'browser.media.recording.getStatus':[rid,state],
- 'browser.media.recording.stop':[rid,state],
- 'browser.media.recording.discard':[rid,ok],
- 'browser.speech.transcribe':[obj({audioRef:ref},['audioRef']),obj({text:str(8192)},['text'])],
- 'browser.speech.speak':[obj({text:str(8192),voiceRef:ref},['text']),obj({sessionRef:ref},['sessionRef'])],
- 'browser.speech.stop':[eid,ok],
- 'browser.notifications.create':[obj({title,message:str(500)},['title','message']),obj({notificationRef:ref},['notificationRef'])],
- 'browser.notifications.clear':[obj({notificationRef:ref},['notificationRef']),ok],
  'browser.operations.getStatus':[oid,obj({state:{enum:['running','completed','failed','cancelled','unknown']}},['state'])],
  'browser.operations.cancel':[oid,obj({state:{enum:['running','completed','failed','cancelled','unknown']},cancelRequested:bool},['state'])]
 });
