@@ -1,0 +1,51 @@
+name: Cloud Control R5.2 safety and privacy contract
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/cloud-control-r52-contract.yml'
+      - 'scripts/cloud-control/**'
+      - 'src/cloud-control/**'
+      - 'src/platform/tasks/**'
+      - 'src/ui/cloud-hosting.js'
+      - 'src/ui/cloud-status-presentation.js'
+      - 'src/ui/tool.html'
+      - 'src/ui/tool-shell.css'
+      - 'tests/cloud-control/**'
+      - 'tests/environment/cloud-hosting-r3.test.mjs'
+      - 'tests/environment/cloud-control-sidebar-r28.test.mjs'
+      - 'tests/environment/cloud-control-console-r3.test.mjs'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cloud-r52-contract-${{ github.sha }}
+  cancel-in-progress: false
+
+jobs:
+  cloud-contract:
+    name: cloud-r52-native-protocol-and-authority-components
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install exact pinned dependencies
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Provider HTTP/WebSocket/TLS, multi-Executor, consent and recovery
+        run: npm run test:cloud
+      - name: Controller Authority and real Run/Result component contracts
+        run: node --test tests/framework/k3-controller-authority.test.mjs
+      - name: Trusted Side Panel Cloud presentation and no extra RunHost
+        run: |
+          node --test tests/environment/cloud-hosting-r3.test.mjs
+          node --test tests/environment/cloud-control-sidebar-r28.test.mjs
+          node --test tests/environment/cloud-control-console-r3.test.mjs
