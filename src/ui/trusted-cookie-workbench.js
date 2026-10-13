@@ -16,9 +16,17 @@ export function createTrustedCookieWorkbench({
   const valueNode=doc?.getElementById?.('trusted-cookie-value');
   const pathNode=doc?.getElementById?.('trusted-cookie-path');
   const saveButton=doc?.getElementById?.('trusted-cookie-save');
-  if(!panel||!readButton||!rowsNode||!statusNode||!targetNode||!nameNode||!valueNode||!pathNode||!saveButton)
+  const watchStart=doc?.getElementById?.('trusted-cookie-watch-start');
+  const watchStatusButton=doc?.getElementById?.('trusted-cookie-watch-status-button');
+  const watchRead=doc?.getElementById?.('trusted-cookie-watch-read');
+  const watchStop=doc?.getElementById?.('trusted-cookie-watch-stop');
+  const watchStatusNode=doc?.getElementById?.('trusted-cookie-watch-status');
+  const watchEventsNode=doc?.getElementById?.('trusted-cookie-watch-events');
+  if(!panel||!readButton||!rowsNode||!statusNode||!targetNode||!nameNode||!valueNode||!pathNode||!saveButton||
+     !watchStart||!watchStatusButton||!watchRead||!watchStop||!watchStatusNode||!watchEventsNode)
     return Object.freeze({dispose(){}});
   let disposed=false,busy=false,rows=[],documentRef=null,lastKnownTarget=null,pending=null,generation=0;
+  let watchSession=null;
   const listeners=[],rowListeners=[],subscriptions=[];
   const listenRow=(node,name,fn)=>{node.addEventListener(name,fn);rowListeners.push(()=>node.removeEventListener?.(name,fn));};
   const listen=(node,name,fn)=>{node.addEventListener(name,fn);listeners.push(()=>node.removeEventListener?.(name,fn));};
@@ -28,8 +36,21 @@ export function createTrustedCookieWorkbench({
     rows=[];rowsNode.replaceChildren();
   };
   const clearPending=()=>{pending=null;saveButton.textContent='写入 Cookie';};
+  const syncWatchControls=()=>{
+    const active=Boolean(watchSession);
+    watchStart.disabled=busy||active;
+    watchStatusButton.disabled=busy||!active;
+    watchRead.disabled=busy||!active;
+    watchStop.disabled=busy||!active;
+  };
+  const clearWatch=(message='未监听。')=>{
+    watchSession=null;
+    watchEventsNode.replaceChildren();
+    watchStatusNode.textContent=message;
+    syncWatchControls();
+  };
   const reset=(message='选择已打开的网页并点击读取；默认隐藏 Cookie 值。')=>{
-    documentRef=null;generation++;clearPending();clearList();valueNode.value='';setStatus(message);
+    documentRef=null;generation++;clearPending();clearList();clearWatch();valueNode.value='';setStatus(message);
   };
   const targetShape=target=>Object.freeze({
     tabId:target.tabId,windowId:target.windowId,
@@ -69,6 +90,7 @@ export function createTrustedCookieWorkbench({
       E_CHROME_PERMISSION_REQUIRED:'Chrome Cookie 或当前网站权限不足；请先在网站权限中恢复访问',
       E_OUTCOME_UNKNOWN:'结果未知，未自动重试；请手动重新读取核对',
       E_COOKIE_NOT_FOUND:'Cookie 已不存在，请重新读取',
+      E_COOKIE_AMBIGUOUS:'存在同名但 Path 或分区不同的 Cookie；请先读取完整列表，选择精确条目',
       E_COOKIE_STORE:'当前网页没有可确认的唯一 Cookie 存储区',
       E_LIMIT:'匹配 Cookie 太多，已拒绝超量读取',
       E_USER_GESTURE_REQUIRED:'操作批准已过期；请重新点击操作',
@@ -150,6 +172,69 @@ export function createTrustedCookieWorkbench({
     }catch(err){if(!disposed&&started===generation){reset(codeMessage(err));}}
     finally{busy=false;readButton.disabled=false;saveButton.disabled=false;}
   }
+  // An installed tool never sees these Host-only observation handles or events.
+  // The trusted Side Panel requires an explicit user click for every action.
+  async function watchAction(kind){
+    if(disposed||busy||!visible())return;
+    busy=true;
+    readButton.disabled=true;saveButton.disabled=true;syncWatchControls();
+    const started=++generation;
+    try{
+      const target=await page();
+      if(disposed||started!==generation)return;
+      const previous=watchSession;
+      if(kind!=='start'&&(!previous||!same(previous.target,target)))
+        throw error('E_SESSION_EXPIRED','Cookie observation is no longer bound to this document');
+      const op='browser.cookies.observe.'+kind;
+      const args=kind==='start'?{durationMs:15000,maxEvents:40}:
+        kind==='read'?{sessionRef:previous.sessionRef,cursor:previous.cursor,limit:40}:
+          {sessionRef:previous.sessionRef};
+      const receipt=await trusted(op,args,target);
+      if(disposed||started!==generation)return;
+      if(kind==='start'){
+        if(typeof receipt?.sessionRef!=='string'||!Number.isFinite(receipt.expiresAt)||
+           receipt.status!=='running')throw error('E_BROWSER','Invalid Cookie observer receipt');
+        watchSession={sessionRef:receipt.sessionRef,target,cursor:'0',expiresAt:receipt.expiresAt};
+        watchEventsNode.replaceChildren();
+        watchStatusNode.textContent='已开始监听当前网页 Cookie 变化，最多 15 秒。';
+      }else if(kind==='getStatus'){
+        if(receipt?.sessionRef!==previous.sessionRef||receipt.status!=='running')
+          throw error('E_SESSION_EXPIRED');
+        watchStatusNode.textContent='监听中 · 缓存 '+receipt.bufferedCount+' 条 · 丢弃 '+
+          receipt.droppedCount+' 条（尚未读取事件）。';
+      }else if(kind==='read'){
+        if(receipt?.sessionRef!==previous.sessionRef||!Array.isArray(receipt.events)||
+           receipt.events.length>40||typeof receipt.nextCursor!=='string')
+          throw error('E_BROWSER','Invalid bounded Cookie event read');
+        previous.cursor=receipt.nextCursor;
+        for(const item of receipt.events){
+          // Never render event.value, Cookie payloads, arbitrary JSON or HTML.
+          const row=doc.createElement('div');
+          row.className='trusted-cookie-watch-event';
+          row.textContent=(item.removed?'删除':'更新')+' · '+
+            String(item.name||'').slice(0,256)+' · '+
+            String(item.domain||'').slice(0,256)+
+            String(item.path||'').slice(0,512)+' · '+
+            String(item.cause||'').slice(0,40);
+          watchEventsNode.append(row);
+        }
+        while(watchEventsNode.children?.length>40)watchEventsNode.firstElementChild?.remove();
+        watchStatusNode.textContent='读取 '+receipt.events.length+' 条变化；'+
+          '累计丢弃 '+receipt.droppedCount+' 条，游标缺口 '+receipt.gapCount+
+          ' 条。事件不含 Cookie 值。';
+      }else if(kind==='stop'){
+        if(receipt?.stopped!==true)throw error('E_BROWSER','Cookie observer stop not confirmed');
+        clearWatch('已停止监听，会话和已显示事件已从此界面清除。');
+      }
+    }catch(cause){
+      if(!disposed&&started===generation)clearWatch('监听未继续：'+codeMessage(cause));
+    }finally{
+      busy=false;readButton.disabled=false;saveButton.disabled=false;syncWatchControls();
+    }
+  }
+  for(const [node,kind] of [[watchStart,'start'],[watchStatusButton,'getStatus'],
+    [watchRead,'read'],[watchStop,'stop']])
+    listen(node,'click',event=>{if(event.isTrusted&&!busy)void watchAction(kind);});
   listen(readButton,'click',event=>{
     if(!event.isTrusted||busy)return;
     clearPending();void execute('browser.cookies.getAll',{},'');
@@ -176,7 +261,7 @@ export function createTrustedCookieWorkbench({
     if(!panel.open)reset('已关闭 Cookie 管理；敏感值已从此界面清除。');
   });
   return Object.freeze({dispose(){
-    if(disposed)return;disposed=true;generation++;clearPending();clearList();valueNode.value='';
+    if(disposed)return;disposed=true;generation++;clearPending();clearList();clearWatch();valueNode.value='';
     for(const unsubscribe of subscriptions)unsubscribe();
     for(const off of listeners)off();
   }});
