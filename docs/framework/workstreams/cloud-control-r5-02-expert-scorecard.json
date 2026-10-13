@@ -1,0 +1,264 @@
+{
+  "schema": "opendesk.cloud-control.r5.2.expert-static-scorecard.v1",
+  "asOf": "2026-10-13",
+  "purpose": "Expert-style SOURCE/DESIGN STATIC assessment for planning, not a certified independent third-party review or passed product release",
+  "targetPerDimension": 95,
+  "rubric": {
+    "max": 100,
+    "source": [
+      {
+        "criteria": "用户场景覆盖与价值",
+        "max": 20
+      },
+      {
+        "criteria": "已有系统复用与职责清晰",
+        "max": 20
+      },
+      {
+        "criteria": "授权/隔离/隐私的设计完整度",
+        "max": 20
+      },
+      {
+        "criteria": "可实施性、测试合同与异常场景",
+        "max": 20
+      },
+      {
+        "criteria": "日常 UX、文案、可访问性与部署操作",
+        "max": 20
+      }
+    ],
+    "application": "静态技术方案的主观专家式评估，不是对运行速度、用户研究或已发生原生效果的测量"
+  },
+  "staticSolutionDesignScore": {
+    "score": 86,
+    "outOf": 100,
+    "status": "ASSISTANT_PRELIMINARY_STATIC_REVIEW",
+    "why": "明确 AI Task 安装一次复用、唯一 Host/Provider/Worker、Client/Executor/Grant 身份、双重结果许可与严格 UNKNOWN；但 HTML 与生产 UI 脱节、缺原生双 Task、公网未部署、CI OOM 仍阻断"
+  },
+  "dimensions": [
+    {
+      "name": "产品定位与用户价值",
+      "staticDesignEstimate": 89,
+      "outOf": 100,
+      "estimateBasis": "源码及设计文档的静态初评（非用户实测或外部独立专家评分）",
+      "designScore": "NOT_VERIFIED",
+      "implementationScore": "NOT_VERIFIED",
+      "verificationScore": "NOT_VERIFIED",
+      "whyNot95": "AI 协助创建→安装一次→外部复用已明确；缺真实非技术用户价值验证",
+      "requiredEvidence": "真实用户任务完成访谈与端到端成本/效率测试",
+      "gateStatus": "OPEN"
+    },
+    {
+      "name": "用户完整流程",
+      "staticDesignEstimate": 82,
+      "outOf": 100,
+      "estimateBasis": "源码及设计文档的静态初评（非用户实测或外部独立专家评分）",
+      "designScore": "NOT_VERIFIED",
+      "implementationScore": "NOT_VERIFIED",
+      "verificationScore": "NOT_VERIFIED",
+      "whyNot95": "Task 安装/配对/批准/投递/停用的角色清晰，但生产 UI 二级审批流程未迁移",
+      "requiredEvidence": "两 Task 从安装到撤销的真实 Chrome 录像和点击路径",
+      "gateStatus": "OPEN"
+    },
+    {
+      "name": "功能完整性",
+      "staticDesignEstimate": 78,
+      "outOf": 100,
+      "estimateBasis": "源码及设计文档的静态初评（非用户实测或外部独立专家评分）",
+      "designScore": "NOT_VERIFIED",
+      "implementationScore": "NOT_VERIFIED",
+      "verificationScore": "NOT_VERIFIED",
+      "whyNot95": "Node Provider/Task/Result 链路已有，但两个不同 Worker 真实网页效果为空",
+      "requiredEvidence": "双 Task 真实 Run/Result/receipt 与升级撤权后行为",
+      "gateStatus": "OPEN"
+    },
+    {
+      "name": "云端可用性",
+      "staticDesignEstimate": 73,
+      "outOf": 100,
+      "estimateBasis": "源码及设计文档的静态初评（非用户实测或外部独立专家评分）",
+      "designScore": "NOT_VERIFIED",
+      "implementationScore": "NOT_VERIFIED",
+      "verificationScore": "NOT_VERIFIED",
+      "whyNot95": "TLS/WSS 可配置并有组件测试，没有已批准公网服务部署",
+      "requiredEvidence": "两台独立设备 HTTPS/WSS 真实跨网身份、TLS 和稳定性",
+      "gateStatus": "OPEN"
+    },
+    {
+      "name": "多用户/Executor 隔离",
+      "staticDesignEstimate": 90,
+      "outOf": 100,
+      "estimateBasis": "源码及设计文档的静态初评（非用户实测或外部独立专家评分）",
+      "designScore": "NOT_VERIFIED",
+      "implementationScore": "NOT_VERIFIED",
+      "verificationScore": "NOT_VERIFIED",
+      "whyNot95": "目标 Executor、pairing、grant、client、Task Pin 和拒绝测试合同清楚",
+      "requiredEvidence": "真实两个 Chrome Profile 同 Task A/B 完整拒绝性证据",
+      "gateStatus": "OPEN"
+    },
+    {
+      "name": "权限安全",
+      "staticDesignEstimate": 88,
+      "outOf": 100,
+      "estimateBasis": "源码及设计文档的静态初评（非用户实测或外部独立专家评分）",
+      "designScore": "NOT_VERIFIED",
+      "implementationScore": "NOT_VERIFIED",
+      "verificationScore": "NOT_VERIFIED",
+      "whyNot95": "本地 Task/安装代际/Chrome Origin/Cloud permit 复用，无重复 Authority",
+      "requiredEvidence": "安装升级撤权原生测试和外部 token race 现场核查",
+      "gateStatus": "OPEN"
+    },
+    {
+      "name": "结果隐私",
+      "staticDesignEstimate": 89,
+      "outOf": 100,
+      "estimateBasis": "源码及设计文档的静态初评（非用户实测或外部独立专家评分）",
+      "designScore": "NOT_VERIFIED",
+      "implementationScore": "NOT_VERIFIED",
+      "verificationScore": "NOT_VERIFIED",
+      "whyNot95": "状态-only 与正文需 Browser/Client 双重许可；Provider 校验 ResultId",
+      "requiredEvidence": "禁正文时真实敏感网页数据不泄漏与错误详情脱敏",
+      "gateStatus": "OPEN"
+    },
+    {
+      "name": "UI 视觉设计",
+      "staticDesignEstimate": 80,
+      "outOf": 100,
+      "estimateBasis": "源码及设计文档的静态初评（非用户实测或外部独立专家评分）",
+      "designScore": "NOT_VERIFIED",
+      "implementationScore": "NOT_VERIFIED",
+      "verificationScore": "NOT_VERIFIED",
+      "whyNot95": "39 项 UI 预览、30 个静态布局样本，但尚未迁移到正式 Side Panel 全部二级视图",
+      "requiredEvidence": "生产 Chrome 300–520px/125%/200% 截图及 UI 评审",
+      "gateStatus": "OPEN"
+    },
+    {
+      "name": "UI 信息与文案",
+      "staticDesignEstimate": 83,
+      "outOf": 100,
+      "estimateBasis": "源码及设计文档的静态初评（非用户实测或外部独立专家评分）",
+      "designScore": "NOT_VERIFIED",
+      "implementationScore": "NOT_VERIFIED",
+      "verificationScore": "NOT_VERIFIED",
+      "whyNot95": "用户可读状态/任务名已有，未知副作用文案明确；Review 与错误引导仍需真实用户验证",
+      "requiredEvidence": "典型新手/错误/Unknown/撤权场景可理解性审查",
+      "gateStatus": "OPEN"
+    },
+    {
+      "name": "UI 操作效率",
+      "staticDesignEstimate": 76,
+      "outOf": 100,
+      "estimateBasis": "源码及设计文档的静态初评（非用户实测或外部独立专家评分）",
+      "designScore": "NOT_VERIFIED",
+      "implementationScore": "NOT_VERIFIED",
+      "verificationScore": "NOT_VERIFIED",
+      "whyNot95": "现有多选和自助 Client 凭据具备，但 Connect→Review→管理仍有原型生产差距",
+      "requiredEvidence": "真实 1/2/10 Task 流程点击次数及任务成功率",
+      "gateStatus": "OPEN"
+    },
+    {
+      "name": "可访问性与响应式",
+      "staticDesignEstimate": 69,
+      "outOf": 100,
+      "estimateBasis": "源码及设计文档的静态初评（非用户实测或外部独立专家评分）",
+      "designScore": "NOT_VERIFIED",
+      "implementationScore": "NOT_VERIFIED",
+      "verificationScore": "NOT_VERIFIED",
+      "whyNot95": "R27/R28 有约束；静态 HTML 不等于 Chrome 放大、键盘和辅助技术通过",
+      "requiredEvidence": "真实键盘/focus/AX、WCAG 对比度与无横向溢出记录",
+      "gateStatus": "OPEN"
+    },
+    {
+      "name": "运行可靠性",
+      "staticDesignEstimate": 76,
+      "outOf": 100,
+      "estimateBasis": "源码及设计文档的静态初评（非用户实测或外部独立专家评分）",
+      "designScore": "NOT_VERIFIED",
+      "implementationScore": "NOT_VERIFIED",
+      "verificationScore": "NOT_VERIFIED",
+      "whyNot95": "OUTCOME_UNKNOWN 与幂等思想完备；R5.2.4 Authority CI 遭 OOM 且故障原生矩阵缺失",
+      "requiredEvidence": "修复 CI 后 Provider/Chrome/WS 重启、回执丢失与副作用未知测试",
+      "gateStatus": "OPEN"
+    },
+    {
+      "name": "框架复用与可维护性",
+      "staticDesignEstimate": 90,
+      "outOf": 100,
+      "estimateBasis": "源码及设计文档的静态初评（非用户实测或外部独立专家评分）",
+      "designScore": "NOT_VERIFIED",
+      "implementationScore": "NOT_VERIFIED",
+      "verificationScore": "NOT_VERIFIED",
+      "whyNot95": "坚持唯一 Provider/Installer/Authority/RunHost/Worker；接口职责明确",
+      "requiredEvidence": "共享接口依赖、复杂状态迁移与源码评审",
+      "gateStatus": "OPEN"
+    },
+    {
+      "name": "自动化测试完整性",
+      "staticDesignEstimate": 68,
+      "outOf": 100,
+      "estimateBasis": "源码及设计文档的静态初评（非用户实测或外部独立专家评分）",
+      "designScore": "NOT_VERIFIED",
+      "implementationScore": "NOT_VERIFIED",
+      "verificationScore": "NOT_VERIFIED",
+      "whyNot95": "Cloud 45 项组件通过旧候选，但 Authority OOM 阻断完整专项验收",
+      "requiredEvidence": "最新 SHA Cloud/Authority/UI CI 全绿 + check/build/build:dev/verify",
+      "gateStatus": "OPEN"
+    },
+    {
+      "name": "真实 Chrome 验收可信度",
+      "staticDesignEstimate": 71,
+      "outOf": 100,
+      "estimateBasis": "源码及设计文档的静态初评（非用户实测或外部独立专家评分）",
+      "designScore": "NOT_VERIFIED",
+      "implementationScore": "NOT_VERIFIED",
+      "verificationScore": "NOT_VERIFIED",
+      "whyNot95": "验收字段设计严谨且禁止伪造；尚无 R5.2 双 Task 原生身份数据",
+      "requiredEvidence": "固定 Chrome/PID/Profile/PackageHash/双 Task 原 Run/Result/receipt/网页副作用证据",
+      "gateStatus": "OPEN"
+    }
+  ],
+  "productReadinessScore": "NOT_VERIFIED",
+  "implementationScore": "NOT_VERIFIED",
+  "verificationScore": "NOT_VERIFIED",
+  "overall95Plus": false,
+  "perDimensionGoalReached": false,
+  "observedFailures": {
+    "ci": {
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38379208965",
+      "headSha": "7aff8bd27e258022cdf186019409dcc07fdee719",
+      "cloud": {
+        "passed": 45,
+        "failed": 0
+      },
+      "authority": {
+        "passedBeforeOOM": 105,
+        "result": "SIGABRT_OOM",
+        "memory": "~4GB"
+      },
+      "overall": "FAIL"
+    },
+    "package": {
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38379209138",
+      "conclusion": "CANCELLED",
+      "packageHash": null
+    },
+    "updatedTestMock": {
+      "commit": "90e1651eeb2ad364e4ced4fc44e9d155ddcfc708",
+      "effect": "Separate /v1/admission and /v1/suspend in original K3 test; exact-SHA CI still required"
+    },
+    "native": {
+      "twoDistinctTaskChromeRuns": 0,
+      "receiptIds": 0,
+      "realSidePanelScreenshots": 0,
+      "publicInternetChromeRuns": 0
+    }
+  },
+  "scoringRules": [
+    "Do not average dimensions to hide a P0 or any score under 95",
+    "DESIGN_SCORE formal requires explicit independent design review, not this preliminary numeric estimate",
+    "IMPLEMENTATION_SCORE requires current source reviewed and test results for its contract; no invented number",
+    "VERIFICATION_SCORE requires exact candidate CI, package hash, installed Chrome original evidence and remote test where relevant",
+    "Any P0 authorization leak/cross-browser claim/duplicate unknown side effect yields block; cannot score 95",
+    "Unverified must remain NOT_VERIFIED, not a cosmetically assigned passing numeric score"
+  ]
+}
