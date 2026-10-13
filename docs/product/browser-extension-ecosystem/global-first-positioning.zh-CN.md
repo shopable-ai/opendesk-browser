@@ -1,5 +1,7 @@
 # OpenDesk Browser：全球第一细分赛道定位 R1
 
+> **R2 决策入口（2026-10-13）**：时间有限时**只读 [Global First R2 产品决策](global-first-r2-decision.zh-CN.md)**。结论：F01（双框架侧栏开发）→ F02（多文件改动后 Run）→ F04（可验证运行链）；全球第一已批准 **0**。R1 下文保留研究背景，版本时效与 GF 审批以两份 JSON 为准。
+
 > 研究基准：2026-10-13（Asia/Shanghai）；范围：产品定位、全球竞品、双因素/三因素组合创新、可验证的第一称号。**这是营销研究，不是已经取得的世界纪录、商店上市、用户规模或原生验收证明。**
 >
 > 本文不更改 R8 188 项能力账本、Browser SDK 逐项验收、商品实验 EXP 或产品工程状态。优先读取：[竞品证据](competitor-research.zh-CN.md)、[UserScript 生态](userscript-ecosystem.zh-CN.md)、[Browser SDK 状态](../../framework/workstreams/browser-sdk-status.md)、[React/Vue 使用与证据](../../api/page-ui-frameworks.zh-CN.md)、[AI 生态 R6](../../architecture/browser-framework/ai-browser-agent-ecosystem-r6-20261008.zh-CN.md)。

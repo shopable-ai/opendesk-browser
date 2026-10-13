@@ -1,5 +1,19 @@
 # OpenDesk Browser：细分赛道第一营销执行手册 R1
 
+## R2 · 今天可用与绝对禁止的文案（先看这里）
+
+**主要对外定位**：**Build Browser Apps, Not Just Userscripts.** / **不只是运行用户脚本，更是在浏览器中开发工具。** 这是产品方向描述，不是已经全球第一。
+
+- **通用入口（安全范围）**：JavaScript 草稿在用户授权的网页中明确运行。
+- **Developer Edition 的限定展示**：在标明实际**历史或当前经过验收**的版本、包身份后，展示 Side Panel React JSX/Vue SFC 编写、网页真实交互和 Stop；不要说 Standard 已内置原始 JSX/SFC 编译器。
+- **Native 本地开发的限定展示**：配对 Native Host 与 Node、授权本地项目后，保存可自动准备、用户明确 Run；不要说所有用户都“零配置”。
+- **视频标题（未宣称排名）**：「把 React 和 Vue 写进正在浏览的网页：OpenDesk 开发者版真实 Run/Stop」 / “React & Vue on Live Pages: An OpenDesk Developer Workflow”。
+- **禁止**：「全球首个侧栏双框架」「全球最快」「零安装多文件」「最安全」「首个 AI/MCP 用户脚本管理器」；后一项已被竞品反例直接否定。只有 first-claims-ledger.json 相应 claim 晋级 CLAIM_APPROVED 后，才可另行制定有范围的排名声明。
+
+下一步传播只做**一个核心视频**：打开 Side Panel → 选择 React → 真网页按钮交互 → 同页 Vue → 修改再运行 → Stop。同步展示版本、网站授权、真实结果，不剪掉权限/安装成本。先证明让用户第一次成功，再做 CWS/社区/视频扩大传播。详见 [R2 产品决策](global-first-r2-decision.zh-CN.md) 和 [R2 独立验收](../../framework/workstreams/global-first-r2-20261013.md)。
+
+---
+
 > 2026-10-13。与 [定位策略](global-first-positioning.zh-CN.md)、[时间化竞品账本](competitor-timeline.json)、[宣传声明审批台账](first-claims-ledger.json) 配套。**本手册为研究与拟定文案，并非对外宣传的审批结论；目前没有任何“全球首个/全球第一”声明获准。**
 >
 > 不替代代码正式交付、Chrome 原生验收、Chrome Web Store 政策审核或商业实验。必须跟随最新源码和真实发布包校正所能展示的功能。

@@ -53,7 +53,18 @@
       "lastCheckedAt": "2026-10-13",
       "nextReviewBy": "2026-11-13",
       "notes": "Developer edition browser editor is currently single component; no general arbitrary import. Word 'first' is unapproved.",
-      "invalidatedBy": []
+      "invalidatedBy": [],
+      "r2Review": {
+        "checkedAt": "2026-10-13",
+        "track": "F01",
+        "priority": "P0",
+        "userTaskOrValueHypothesis": "JSX/SFC 源码直接编写、网页真实交互及受管 Stop",
+        "strongestKnownAlternative": "ScriptCat 编辑器、Tampermonkey+Editors、Web Dev Kit、vite-plugin-monkey 组合",
+        "nextRequiredProof": "Developer 公众可获得发行身份 + 当前版 Chrome 验证 + 全球首次公开等价实现排他性审查",
+        "currentEvidenceLevel": "HISTORICAL_NATIVE_ONLY",
+        "numericScore": "NOT_SCORED",
+        "scopeNote": "Reviewer has not independently tested all relevant global alternatives or measured comparable users; no claimed world-first, fastest or safety rank."
+      }
     },
     {
       "id": "GF-002",
@@ -88,7 +99,18 @@
       "lastCheckedAt": "2026-10-13",
       "nextReviewBy": "2026-11-13",
       "notes": "Do not omit native pairing or Node build steps from measured setup time.",
-      "invalidatedBy": []
+      "invalidatedBy": [],
+      "r2Review": {
+        "checkedAt": "2026-10-13",
+        "track": "F02",
+        "priority": "P0",
+        "userTaskOrValueHypothesis": "编辑本地多文件后无需重打包主扩展即可在授权网页明确运行",
+        "strongestKnownAlternative": "vite-plugin-monkey+Tampermonkey/ScriptCat、WXT",
+        "nextRequiredProof": "四组工作流冷启动、热修改、错误恢复的原始计时含 Native/Node 成本",
+        "currentEvidenceLevel": "HISTORICAL_NATIVE_ONLY",
+        "numericScore": "NOT_SCORED",
+        "scopeNote": "Reviewer has not independently tested all relevant global alternatives or measured comparable users; no claimed world-first, fastest or safety rank."
+      }
     },
     {
       "id": "GF-003",
@@ -123,7 +145,18 @@
       "lastCheckedAt": "2026-10-13",
       "nextReviewBy": "2026-11-13",
       "notes": "Controller and USER_SCRIPT live in separate worlds; do not imply full sharing of chrome.*.",
-      "invalidatedBy": []
+      "invalidatedBy": [],
+      "r2Review": {
+        "checkedAt": "2026-10-13",
+        "track": "F03",
+        "priority": "P1",
+        "userTaskOrValueHypothesis": "JS、受管 Page UI 与 Controller 统一项目管理",
+        "strongestKnownAlternative": "ScriptCat background/Agent、Automa",
+        "nextRequiredProof": "同一候选三运行世界的保存→运行→停止→安装升级证据",
+        "currentEvidenceLevel": "PARTIAL_SOURCE",
+        "numericScore": "NOT_SCORED",
+        "scopeNote": "Reviewer has not independently tested all relevant global alternatives or measured comparable users; no claimed world-first, fastest or safety rank."
+      }
     },
     {
       "id": "GF-004",
@@ -158,7 +191,18 @@
       "lastCheckedAt": "2026-10-13",
       "nextReviewBy": "2026-11-13",
       "notes": "Do not claim uniquely secure or superior safety without independent benchmark.",
-      "invalidatedBy": []
+      "invalidatedBy": [],
+      "r2Review": {
+        "checkedAt": "2026-10-13",
+        "track": "F04",
+        "priority": "P0",
+        "userTaskOrValueHypothesis": "清楚看到授权范围、冻结源 SHA/依赖、运行回执与受管清理",
+        "strongestKnownAlternative": "传统签名扩展、依赖锁工具链",
+        "nextRequiredProof": "同包签名/来源/运行/撤权/升级端到端真实 Chrome 与对照",
+        "currentEvidenceLevel": "PARTIAL_SOURCE",
+        "numericScore": "NOT_SCORED",
+        "scopeNote": "Reviewer has not independently tested all relevant global alternatives or measured comparable users; no claimed world-first, fastest or safety rank."
+      }
     },
     {
       "id": "GF-005",
@@ -192,7 +236,18 @@
       "lastCheckedAt": "2026-10-13",
       "nextReviewBy": "2026-11-13",
       "notes": "Mac scheduled case exists, not a 24/7 reliability warranty.",
-      "invalidatedBy": []
+      "invalidatedBy": [],
+      "r2Review": {
+        "checkedAt": "2026-10-13",
+        "track": "F05",
+        "priority": "P2",
+        "userTaskOrValueHypothesis": "已授权计划任务可靠恢复",
+        "strongestKnownAlternative": "ScriptCat @crontab、Automa 定时",
+        "nextRequiredProof": "Chrome 重启/撤权/无 Runner 场景的完整原生恢复",
+        "currentEvidenceLevel": "PARTIAL_SOURCE",
+        "numericScore": "NOT_SCORED",
+        "scopeNote": "Reviewer has not independently tested all relevant global alternatives or measured comparable users; no claimed world-first, fastest or safety rank."
+      }
     },
     {
       "id": "GF-006",
@@ -226,7 +281,18 @@
       "lastCheckedAt": "2026-10-13",
       "nextReviewBy": "2026-11-13",
       "notes": "Marketplace installation intent is not complete author signing/release governance.",
-      "invalidatedBy": []
+      "invalidatedBy": [],
+      "r2Review": {
+        "checkedAt": "2026-10-13",
+        "track": "F06",
+        "priority": "P1",
+        "userTaskOrValueHypothesis": "React/Vue 工具可验证版本后安装、更新和卸载",
+        "strongestKnownAlternative": "ScriptCat 脚本商店、现有扩展管理",
+        "nextRequiredProof": "同版作者→安装→更新/撤销的真实可获取产品路径",
+        "currentEvidenceLevel": "PARTIAL_SOURCE",
+        "numericScore": "NOT_SCORED",
+        "scopeNote": "Reviewer has not independently tested all relevant global alternatives or measured comparable users; no claimed world-first, fastest or safety rank."
+      }
     },
     {
       "id": "GF-007",
@@ -262,7 +328,18 @@
       "lastCheckedAt": "2026-10-13",
       "nextReviewBy": "2026-11-13",
       "notes": "AI/model tooling chain is not fully shipped; no current world-first claim.",
-      "invalidatedBy": []
+      "invalidatedBy": [],
+      "r2Review": {
+        "checkedAt": "2026-10-13",
+        "track": "F07",
+        "priority": "P3",
+        "userTaskOrValueHypothesis": "AI 创作转成用户审查批准的确定性任务",
+        "strongestKnownAlternative": "ScriptCat Beta Agent、Violentmonkey Beta MCP、Browser Use/Stagehand/Midscene",
+        "nextRequiredProof": "外部真实模型→人工审核→固定任务→结果完整正向链",
+        "currentEvidenceLevel": "FUTURE",
+        "numericScore": "NOT_SCORED",
+        "scopeNote": "Reviewer has not independently tested all relevant global alternatives or measured comparable users; no claimed world-first, fastest or safety rank."
+      }
     },
     {
       "id": "GF-008",
@@ -296,7 +373,18 @@
       "lastCheckedAt": "2026-10-13",
       "nextReviewBy": "2026-11-13",
       "notes": "Not authorized by fan/traffic scale alone; separate from engineering.",
-      "invalidatedBy": []
+      "invalidatedBy": [],
+      "r2Review": {
+        "checkedAt": "2026-10-13",
+        "track": "F08",
+        "priority": "P3",
+        "userTaskOrValueHypothesis": "创作者后台合法数据辅助与可视报告",
+        "strongestKnownAlternative": "创作者原生后台、第三方分析套件",
+        "nextRequiredProof": "真实客户任务访谈、可行数据权限及留存付费",
+        "currentEvidenceLevel": "MARKET_HYPOTHESIS",
+        "numericScore": "NOT_SCORED",
+        "scopeNote": "Reviewer has not independently tested all relevant global alternatives or measured comparable users; no claimed world-first, fastest or safety rank."
+      }
     },
     {
       "id": "GF-009",
@@ -330,7 +418,18 @@
       "lastCheckedAt": "2026-10-13",
       "nextReviewBy": "2026-11-13",
       "notes": "Follow existing EXP-005/EXP-007 ownership; do not create a new commercial experiment.",
-      "invalidatedBy": []
+      "invalidatedBy": [],
+      "r2Review": {
+        "checkedAt": "2026-10-13",
+        "track": "F09",
+        "priority": "P3",
+        "userTaskOrValueHypothesis": "卖家后台定制操作和复用工作流",
+        "strongestKnownAlternative": "电商 ERP/RPA/浏览器工具",
+        "nextRequiredProof": "沿用现有 EXP-005 商业实验，真实店铺场景及付费数据",
+        "currentEvidenceLevel": "MARKET_HYPOTHESIS",
+        "numericScore": "NOT_SCORED",
+        "scopeNote": "Reviewer has not independently tested all relevant global alternatives or measured comparable users; no claimed world-first, fastest or safety rank."
+      }
     },
     {
       "id": "GF-010",
@@ -365,7 +464,18 @@
       "lastCheckedAt": "2026-10-13",
       "nextReviewBy": "2026-11-13",
       "notes": "Compatibility and current SDK native validation have major gaps.",
-      "invalidatedBy": []
+      "invalidatedBy": [],
+      "r2Review": {
+        "checkedAt": "2026-10-13",
+        "track": "F10",
+        "priority": "P2",
+        "userTaskOrValueHypothesis": "旧 GM 用户脚本迁移到现代组件/SDK",
+        "strongestKnownAlternative": "Tampermonkey、ScriptCat、Violentmonkey",
+        "nextRequiredProof": "GM 逐 API 兼容与 35+ SDK 相关浏览器原生矩阵",
+        "currentEvidenceLevel": "PARTIAL_SOURCE",
+        "numericScore": "NOT_SCORED",
+        "scopeNote": "Reviewer has not independently tested all relevant global alternatives or measured comparable users; no claimed world-first, fastest or safety rank."
+      }
     },
     {
       "id": "GF-011",
@@ -400,7 +510,18 @@
       "lastCheckedAt": "2026-10-13",
       "nextReviewBy": "2026-11-13",
       "notes": "Could only become a qualified dated benchmark statement; no currently measured global ranking.",
-      "invalidatedBy": []
+      "invalidatedBy": [],
+      "r2Review": {
+        "checkedAt": "2026-10-13",
+        "track": "F01/F02",
+        "priority": "P2",
+        "userTaskOrValueHypothesis": "指定实际任务耗时更短",
+        "strongestKnownAlternative": "vite-plugin-monkey、WXT、用户脚本编辑器",
+        "nextRequiredProof": "可复现同机同任务原始时间分布",
+        "currentEvidenceLevel": "NOT_MEASURED",
+        "numericScore": "NOT_SCORED",
+        "scopeNote": "Reviewer has not independently tested all relevant global alternatives or measured comparable users; no claimed world-first, fastest or safety rank."
+      }
     },
     {
       "id": "GF-012",
@@ -435,7 +556,18 @@
       "lastCheckedAt": "2026-10-13",
       "nextReviewBy": "2026-11-13",
       "notes": "Avoid blanket 'most secure' even after limited-scope tests.",
-      "invalidatedBy": []
+      "invalidatedBy": [],
+      "r2Review": {
+        "checkedAt": "2026-10-13",
+        "track": "F04",
+        "priority": "P3",
+        "userTaskOrValueHypothesis": "更可靠的可审核运行链",
+        "strongestKnownAlternative": "现役用户脚本管理器与企业安全工具",
+        "nextRequiredProof": "独立安全审计、真实失败率、撤权/恢复与对手同范围结果",
+        "currentEvidenceLevel": "NOT_MEASURED",
+        "numericScore": "NOT_SCORED",
+        "scopeNote": "Reviewer has not independently tested all relevant global alternatives or measured comparable users; no claimed world-first, fastest or safety rank."
+      }
     },
     {
       "id": "GF-013",
@@ -466,7 +598,18 @@
       "scope": "Userscript managers; beta releases count as publicly available preview evidence",
       "lastCheckedAt": "2026-10-13",
       "nextReviewBy": null,
-      "notes": "Do not use; competitors explicitly reported similar capabilities."
+      "notes": "Do not use; competitors explicitly reported similar capabilities.",
+      "r2Review": {
+        "checkedAt": "2026-10-13",
+        "track": "STOP",
+        "priority": "STOP",
+        "userTaskOrValueHypothesis": "AI/MCP 用户脚本管理器单独首创没有独家价值",
+        "strongestKnownAlternative": "ScriptCat/Violentmonkey Beta、Tampermonkey Editors MCP",
+        "nextRequiredProof": "DISPROVED：保留反例，禁止换词复活",
+        "currentEvidenceLevel": "DISPROVED",
+        "numericScore": "NOT_SCORED",
+        "scopeNote": "Reviewer has not independently tested all relevant global alternatives or measured comparable users; no claimed world-first, fastest or safety rank."
+      }
     },
     {
       "id": "GF-014",
@@ -495,7 +638,18 @@
       "scope": "All development workflows including Vite + userscript manager",
       "lastCheckedAt": "2026-10-13",
       "nextReviewBy": null,
-      "notes": "Existing toolchain already supports modern framework development; seek workflow integration advantages instead."
+      "notes": "Existing toolchain already supports modern framework development; seek workflow integration advantages instead.",
+      "r2Review": {
+        "checkedAt": "2026-10-13",
+        "track": "STOP",
+        "priority": "STOP",
+        "userTaskOrValueHypothesis": "多文件 React/Vue 支持不是独家",
+        "strongestKnownAlternative": "vite-plugin-monkey React/Vue + 用户脚本管理器、WXT",
+        "nextRequiredProof": "DISPROVED：保留反例，禁止换词复活",
+        "currentEvidenceLevel": "DISPROVED",
+        "numericScore": "NOT_SCORED",
+        "scopeNote": "Reviewer has not independently tested all relevant global alternatives or measured comparable users; no claimed world-first, fastest or safety rank."
+      }
     }
   ],
   "approvedClaimIds": [],
@@ -507,5 +661,44 @@
     "firstRequiresPublicRelease": true,
     "rankRequiresBenchmark": true,
     "avoidArtificiallyNarrowCategory": true
-  }
+  },
+  "r2DecisionRef": "docs/product/browser-extension-ecosystem/global-first-r2-decision.zh-CN.md",
+  "r2Priorities": {
+    "asOf": "2026-10-13",
+    "tracks": [
+      "F01",
+      "F02",
+      "F04"
+    ],
+    "topTen": [
+      "GF-001",
+      "GF-002",
+      "GF-004",
+      "GF-006",
+      "GF-003",
+      "GF-011",
+      "GF-010",
+      "GF-005",
+      "GF-007",
+      "GF-012"
+    ],
+    "excluded": [
+      "GF-013",
+      "GF-014"
+    ],
+    "globallyApproved": 0,
+    "scores": "NOT_SCORED",
+    "basis": "Current candidate identity/availability, real user tasks, historical evidence and strongest alternatives. Not measured user performance."
+  },
+  "r2EvaluationDimensions": [
+    "userValue",
+    "differentiation",
+    "productMaturity",
+    "measurability",
+    "globalExclusivity",
+    "firstUseFriction",
+    "commercialOpportunity",
+    "marketingClarity",
+    "legalRisk"
+  ]
 }
