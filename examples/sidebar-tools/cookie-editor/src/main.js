@@ -482,7 +482,7 @@ async function exportBrowserCookies(){
       throw new Error('Host 未确认全部 Cookie 敏感值权限');
     const format=E('live-export-format').value,text=exportText(format,rows);
     if(new Blob([text]).size>MAX_TEXT_BYTES)throw new Error('导出超过 150 KB 安全预算');
-    await request('file.download',{text,filename:target.hostname.slice(0,60)+
+    await browserSdk().downloads.text({text,filename:target.hostname.slice(0,60)+
       '-chrome-cookies.'+(format==='json'?'json':'txt')});
     if(stillCurrent(id,target))status('已主动导出真实 Chrome Cookie（可能包含登录凭据），请妥善保管。','success');
   }catch(error){if(stillCurrent(id,target))status('真实导出被拒绝：'+(error.code||'E_COOKIE_EXPORT')+
@@ -731,7 +731,7 @@ E('copy').addEventListener('click',async()=>{
   try{
     text=exportText(E('export-format').value);
     if(!text.trim()||new Blob([text]).size>150000)throw new Error('导出为空或超过 150 KB');
-    setBusy(true);await request('clipboard.writeText',{text});
+    setBusy(true);await browserSdk().clipboard.writeText(text);
     if(actionEpoch===epoch)status('已复制；Cookie 可能包含登录凭据，请勿在不可信网站粘贴。','success');
   }catch(error){if(actionEpoch===epoch)status('复制失败：'+String(error.message||error),'error');}
   finally{if(actionEpoch===epoch)setBusy(false);text='';}
@@ -743,7 +743,7 @@ E('download').addEventListener('click',async()=>{
     if(new Blob([text]).size>MAX_TEXT_BYTES)throw new Error('导出文件超过 150 KB');
     const host=data.hostname.replace(/[^a-z0-9.-]/gi,'_').slice(0,60);
     const filename=host+'-cookies.'+(format==='json'?'json':'txt');
-    await request('file.download',{text,filename});
+    await browserSdk().downloads.text({text,filename});
     if(actionEpoch===epoch)status('已导出本地临时数据，请妥善保管。真实浏览器 Cookie 未被读取。','success');
   }catch(error){if(actionEpoch===epoch)status('导出失败：'+String(error.message||error),'error');}
   finally{if(actionEpoch===epoch)setBusy(false);}
