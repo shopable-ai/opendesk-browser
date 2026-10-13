@@ -2,7 +2,7 @@
   "schema": "opendesk.cloud-control.r5.2.complete-function-matrix.v1",
   "date": "2026-10-13",
   "branch": "main",
-  "observedHead": "c49b404e3e6546460f330a2abc9bcc49612a01ec",
+  "observedHead": "c6e082e1ba5fdb17259b36fad9dbaf9bfd5fd7a8",
   "statusPolicy": "Implementation field records source presence only. Verification is NOT_VERIFIED until exact-SHA CI/native evidence. Counts are coverage inventory, never a product completion percentage.",
   "uiOverlay": {
     "uiContract": "docs/architecture/browser-framework/cloud-control-r5.2-ui-preview-contract.zh-CN.md",
@@ -32,8 +32,8 @@
       "OPS": 12
     },
     "source": {
-      "SOURCE_IMPLEMENTED": 106,
-      "NOT_IMPLEMENTED": 4
+      "SOURCE_IMPLEMENTED": 107,
+      "NOT_IMPLEMENTED": 3
     },
     "verification": {
       "NOT_VERIFIED": 101,
@@ -1271,12 +1271,13 @@
       "description": "批准前用户可读 Review 确认",
       "acceptance": "显示网站/参数/版本和正文二次确认",
       "owner": "src/ui/{tool.html,tool-shell.css,cloud-hosting.js,cloud-status-presentation.js}",
-      "tests": "tests/cloud-control/{r52-product-ui,r52-ui-preview-contract}.test.mjs",
+      "tests": "tests/cloud-control/{generic-approval-ui,r52-product-ui}.test.mjs",
       "gate": "G3",
       "priority": "P1",
-      "implementation": "NOT_IMPLEMENTED",
+      "implementation": "SOURCE_IMPLEMENTED",
       "verification": "NOT_VERIFIED",
-      "ui39Overlay": "UI A01–F06 mapping, not additive"
+      "ui39Overlay": "UI A01–F06 mapping, not additive",
+      "sourceNote": "2026-10-13: production cloud-approval-review lists selected title/version/Origin/parameter/return-body permission; selection or catalog identity change clears prior consent; component/native CI for candidate pending"
     },
     {
       "id": "UI-07",
@@ -1500,5 +1501,17 @@
       "verification": "NOT_VERIFIED",
       "ui39Overlay": null
     }
-  ]
+  ],
+  "r526InlineConsentReview": {
+    "sourceCommit": "67ec7d1fdb0be66d774c30783740768ecb34535d",
+    "markupCommit": "8917e33b47211ab5a107da89237827fc45d82329",
+    "cssCommit": "991336677d67a68ce394a5e5edb46bf9e30f3d1c",
+    "testsCommit": "c6e082e1ba5fdb17259b36fad9dbaf9bfd5fd7a8",
+    "contractIds": [
+      "UI-06"
+    ],
+    "implementation": "SOURCE_IMPLEMENTED",
+    "verification": "NOT_VERIFIED",
+    "notes": "Selected fixed versions, origins, params and body-return scope reviewed in the existing Cloud Tab; changing task selection or catalog resets approvals; active Cloud tab 5s refresh. No second authority or new execution route."
+  }
 }
