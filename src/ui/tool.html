@@ -48,9 +48,9 @@
     </section>
     <section id="scheduled-panel" class="schedule-panel od-stack" aria-label="定时计划" hidden>
       <header class="schedule-header od-toolbar">
-        <div><strong id="schedule-panel-title">定时计划</strong><p id="schedule-panel-subtitle" class="hint">安排已验证安装的自动化任务</p></div>
-        <button id="schedule-stop" type="button" class="od-button od-button--secondary" hidden>停止本次</button>
         <button id="schedule-back" class="od-icon-button" type="button" title="返回我的任务" aria-label="返回我的任务"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5m7-7-7 7 7 7"></path></svg></button>
+        <div class="schedule-header-heading"><strong id="schedule-panel-title">定时计划</strong><p id="schedule-panel-subtitle" class="hint">安排已验证安装的自动化任务</p></div>
+        <button id="schedule-stop" type="button" class="od-button od-button--secondary" hidden>停止本次</button>
       </header>
       <p id="schedule-message" role="status" aria-live="polite" class="hint"></p>
       <section id="schedule-runner-view" class="schedule-runner-view od-stack" aria-label="定时任务运行概览" hidden>
@@ -86,6 +86,7 @@
           <button id="schedule-open-runner" type="button" class="od-button od-button--secondary" title="打开可以在 Side Panel 关闭时运行的可见扩展页面">打开运行页 ↗</button>
         </div>
         <p id="schedule-host-status" class="hint" role="status">正在检查可用运行宿主…</p>
+        <p id="schedule-list-summary" class="schedule-list-summary" role="status" aria-live="polite">正在读取定时计划…</p>
         <div id="schedule-plan-list" class="od-stack" aria-label="已保存的定时计划"></div>
         <details class="schedule-storage-details">
           <summary>本地运行记录与存储</summary>
@@ -126,12 +127,14 @@
           <div class="schedule-rule-row">
             <div class="schedule-rule-field">
               <label for="schedule-kind">重复规则</label>
-              <select id="schedule-kind"><option value="once">执行一次</option><option value="daily">每天</option><option value="weekly">每周</option><option value="interval">每隔一段时间</option></select>
+              <select id="schedule-kind" aria-describedby="schedule-time-error"><option value="once">执行一次</option><option value="daily">每天</option><option value="weekly">每周</option><option value="interval">每隔一段时间</option></select>
             </div>
             <div class="schedule-rule-field">
               <label for="schedule-timezone">执行时区</label>
+              <input id="schedule-timezone-search" type="search" autocomplete="off" spellcheck="false" aria-label="搜索城市、地区或 IANA 时区（只筛选，不更改时区）" aria-controls="schedule-timezone" placeholder="搜索城市或 IANA 时区">
               <select id="schedule-timezone" required aria-describedby="schedule-timezone-help schedule-time-error"><option value="">正在识别当前时区…</option></select>
-              <p class="hint schedule-timezone-help" id="schedule-timezone-help">默认识别当前设备，可选其他地区；保存后固定所选时区，不会随系统变化自动改写。</p>
+              <p class="hint schedule-timezone-help" id="schedule-timezone-help">新建时自动识别，编辑时保留原时区；只有选择下拉项才更改。保存后固定所选 IANA 时区。</p>
+              <p class="hint schedule-timezone-match" id="schedule-timezone-match" role="status" aria-live="polite"></p>
             </div>
           </div>
           <label id="schedule-once-field" class="od-field" for="schedule-once">执行日期和时间
@@ -152,14 +155,14 @@
           <p id="schedule-time-error" class="schedule-field-error" role="alert"></p>
         </fieldset>
         <section class="schedule-form-section schedule-form-advanced" aria-labelledby="schedule-advanced-section-title">
-          <h3 id="schedule-advanced-section-title" class="schedule-section-title"><span aria-hidden="true">4</span>执行条件</h3>
+          <h3 id="schedule-advanced-section-title" class="schedule-section-title"><span aria-hidden="true">4</span>高级执行条件</h3>
         <details class="schedule-advanced"><summary>高级选项</summary>
           <label class="schedule-check"><input type="checkbox" id="schedule-open-target">找不到已打开的目标网页时，允许为本次执行新开标签页</label>
           <label class="od-field" for="schedule-misfire">错过触发
             <select id="schedule-misfire"><option value="skip">跳过错过的执行</option><option value="latest-within-hour">只补最近 1 小时内的一次</option></select>
           </label>
           <label class="od-field" for="schedule-deadline">最长等待执行条件（分钟）
-            <input id="schedule-deadline" type="number" min="1" max="60" value="5" step="1">
+            <input id="schedule-deadline" type="number" aria-describedby="schedule-time-error" min="1" max="60" value="5" step="1">
           </label>
         </details>
         <label class="schedule-check"><input type="checkbox" id="schedule-paused">创建后先暂停</label>
