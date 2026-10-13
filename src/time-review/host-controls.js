@@ -19,7 +19,7 @@ export function createTimeReviewPermissionControls({api,doc,notice,runOperation}
   const idleGrant=get('time-review-grant-idle'),idleRevoke=get('time-review-revoke-idle');
   const currentGrant=get('time-review-site-current-open'),allGrant=get('time-review-site-all-open');
   const revokeAll=get('time-review-site-all-revoke'),trustedStart=get('time-review-trusted-start');
-  let busy=false,pendingSite=null,readGeneration=0;
+  let busy=false,pendingSite=null,readGeneration=0,activeOrigin=null;
   const setBusy=value=>{
     busy=value;
     for(const button of section.querySelectorAll('button'))button.disabled=value;
@@ -48,7 +48,7 @@ export function createTimeReviewPermissionControls({api,doc,notice,runOperation}
       grants.origins.length?'已授权 '+grants.origins.length+' 个网站':'尚未授权网站，不会记录时间';
     // Full-site consent and exact-Origin consent are mutually exclusive.
     // Never offer a second grant that cannot take effect while allSites is on.
-    currentGrant.hidden=grants.allSites;
+    currentGrant.hidden=grants.allSites||grants.origins.includes(activeOrigin);
     allGrant.hidden=grants.allSites;
     revokeAll.hidden=!grants.allSites&&!grants.origins.length;
     siteList.replaceChildren();
@@ -64,14 +64,16 @@ export function createTimeReviewPermissionControls({api,doc,notice,runOperation}
   }
   async function refresh(){
     const generation=++readGeneration;
-    const [stored,idle]=await Promise.allSettled([
+    const [stored,idle,site]=await Promise.allSettled([
       // Evaluate each Chrome API call inside a Promise. A temporarily
       // unavailable API must be rejected by allSettled, not leak an
       // unhandled rejection from this fire-and-forget refresh.
       Promise.resolve().then(()=>api.storage.local.get(TIME_REVIEW_KEY)),
-      Promise.resolve().then(()=>api.permissions.contains({permissions:['idle']}))
+      Promise.resolve().then(()=>api.permissions.contains({permissions:['idle']})),
+      Promise.resolve().then(()=>currentOrigin())
     ]);
     if(section.hidden||generation!==readGeneration)return;
+    activeOrigin=site.status==='fulfilled'?site.value:null;
     if(stored.status==='fulfilled'){
       try{renderGrants(stored.value[TIME_REVIEW_KEY]?.siteGrants);}
       catch{siteStatus.textContent='网站授权数据无效；请核查后重新授权';}
@@ -173,7 +175,7 @@ export function createTimeReviewPermissionControls({api,doc,notice,runOperation}
     // Retain this host button only for the untrusted iframe fallback.
     trustedStart.hidden=Boolean(get('sidebar-tool-frame')?.dataset?.timeReviewNative==='true');
     if(!enabled){
-      readGeneration++;pendingSite=null;
+      readGeneration++;pendingSite=null;activeOrigin=null;
       review.hidden=true;all.hidden=true;clear.hidden=true;minute.hidden=true;
     }else void refresh();
   }};
