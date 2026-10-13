@@ -27,6 +27,11 @@ export function createPageComponentRemote({client,preparer,api,document:doc,getI
   const selectedLocks=new Map();
   const permissions=createChromePermissionConsent({api});
   const compatible=input=>input&&['react','vue','controller'].includes(input.framework);
+  // A normal, exact-version npm import is also a remote ESM root. Obtain
+  // the same genuine Chrome origin gesture even without a literal HTTPS URL.
+  const needsSourceConsent=input=>compatible(input)&&typeof input.componentSource==='string'&&
+    (input.componentSource.includes('https://')||
+      input.framework==='controller'&&/^\s*(?:import\s+(?!\()|export\s+(?:\*|\{)[^\n]*\s+from\s+['"])/m.test(input.componentSource));
   function current(ticket,input){
     if(disposed||ticket!==generation||inputKey(getInput())!==inputKey(input))throw error('E_REMOTE_STALE','组件源码已更改或准备已取消；旧结果不会使用');
   }
@@ -64,8 +69,7 @@ export function createPageComponentRemote({client,preparer,api,document:doc,getI
     warmEpoch++;if(warmTimer){clearTimeout(warmTimer);warmTimer=null;}
     warmed=null;warmError=null;
     const input={...getInput()},epoch=warmEpoch;
-    if(!compatible(input)||typeof input.componentSource!=='string'||
-      !input.componentSource.includes('https://')||typeof preparer.inspect!=='function')return;
+    if(!needsSourceConsent(input)||typeof preparer.inspect!=='function')return;
     warmTimer=setTimeout(async()=>{
       warmTimer=null;
       const valid=()=>!disposed&&epoch===warmEpoch&&inputKey(input)===inputKey(getInput());
@@ -84,13 +88,13 @@ export function createPageComponentRemote({client,preparer,api,document:doc,getI
   }
   function readyForRun(){
     const input=getInput();
-    return !compatible(input)||!input.componentSource?.includes('https://')||
+    return !needsSourceConsent(input)||
       warmed?.key===inputKey(input)||warmError?.key===inputKey(input);
   }
   function confirmRun(event,input){
     if(!event?.isTrusted)return Promise.reject(error('E_GESTURE','请主动点击 Run'));
     if(disposed)return Promise.reject(error('E_HOST_CLOSED','开发面板已关闭'));
-    if(!compatible(input)||!input.componentSource?.includes('https://'))return Promise.resolve(true);
+    if(!needsSourceConsent(input))return Promise.resolve(true);
     if(warmError?.key===inputKey(input))return Promise.resolve(true); // Compiler explains syntax.
     if(warmed?.key!==inputKey(input))return Promise.reject(error('E_REMOTE_PERMISSION_PENDING',
       '正在只读检查静态模块的 Chrome 来源权限；准备完成后请点击 Run'));
