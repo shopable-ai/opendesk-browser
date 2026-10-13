@@ -85,6 +85,10 @@ Native Workspace 独立编译 Tailwind 时，同等关系可写为：
 
 以上是布局约定示例，不是可直接塞进第三方 sandbox 的完整可执行工具。正式程序保留原 JS 生命周期、DOM ID、受信触发和已有数据写入语义。Vue/React 可选择对应组件封装，但仍需满足同样尺寸和作用域规则。
 
+### Side Panel 多功能区 Tab 的组合规范
+
+当一个现有 Tab 包含多个列表、独立功能区、创建表单、详情或设置，不要仅凭 `od-page/od-stack` 随意堆叠卡片；继承 [R28 多功能区 Tab 布局契约](sidebar-multi-section-tab-contract-r28.zh-CN.md)，以「工具」Tab 真实 Index → Detail/Management 切换为参照，统一主次区域、返回、内联确认、信息密度与首屏优先级。该契约**从属本 R27**，不重定义共享 Tokens 或扩展沙箱权限；首个完整改造目标为「我的 → 定时计划」及独立运行页。
+
 ## 4. 响应式、状态与无障碍验收
 
 - Side Panel 宽度 300/320/360/420/520 CSS px；大 Workspace 至少 360/390/768/1024/1280/1440/1920px；所有相关界面覆盖 125% 和 200% 浏览器缩放。
