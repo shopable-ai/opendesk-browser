@@ -64,3 +64,26 @@ GitHub main 在本轮由其他 Agent 并行提交更新。修改只针对 Cloud 
 - `ae5e765fe743ee7396f752702880ed0a26de5d32`：云控任务卡增加可展开的完整参数 Schema（含默认值、enum、长度及数值范围），避免只显示参数名称导致审批内容不透明。
 - `c814449e08d45baef40bee5439017551b42408a5`：沿用现有设计变量，为窄 Side Panel 提供自动换行、限制高度和滚动容器。
 - [最新受影响源码专项 CI #38291915410](https://github.com/shopable-ai/opendesk-browser/actions/runs/38291915410)，对应 SHA `c814449e08d45baef40bee5439017551b42408a5`；查询时 queued，组件/双构建结果均 **CI_PENDING**，不能填写 PASS 数字或原生证据。
+
+
+## R5.1.3 · 真实 CI 结论和后续验收阻断（2026-10-13）
+
+- 上文 `CI_PENDING` / `queued` 均为当时的历史状态，**现已更新为实际回执**，不再作为最新结论。
+- 旧候选 `c814449e08d45baef40bee5439017551b42408a5`：[CI #38291915410](https://github.com/shopable-ai/opendesk-browser/actions/runs/38291915410) 组件 **28 PASS / 1 FAIL**，失败来自 `generic-approval-ui.test.mjs` 测试替身中没有初始化 `cloud-consent` 控件，非真实 Provider 失败；该候选生产/开发双构建与 verify PASS。保留失败事实。
+- 修复提交 `d5712897adf7b8471227fb2b40d132af5363505c`：仅改 `tests/cloud-control/generic-approval-ui.test.mjs` 中的模拟控件获取方式，避免读取不存在的 `nodes.get`。
+- [CI #38350592138](https://github.com/shopable-ai/opendesk-browser/actions/runs/38350592138) — 同一候选 `d5712897...`：**component success，225 PASS / 0 FAIL**（其中 Cloud **29/29**、Authority **113/113**）；**package success**，`npm run check`、`npm run build`、`npm run build:dev`、`npm run verify` 均成功。
+- 生产包 `packageHash=819c0bf67a86ccfbe6e98b8f99c5e08e6a50186caee524c976054f55a13c9e49`，开发包 `packageHash=5abadfc2d3cb310ea20a7fc20576ecff6736ff63a00fc97c1a950f2300725a1a`。此为固定源码/构建测试结果，不含真实 Mac Chrome 的两个 Task Worker/Run/Result 验收。
+
+### 需优先解决的实际缺口
+
+1. **真实执行闭环**：两份不同 Task Package 还没有在隔离 Chrome 中通过已验证→已安装→已批准→真实云投递→Worker 网页操作→原 Run/Result/retirement→Provider receipt 的完整证据。保持 `NATIVE_PENDING`。
+2. **默认不允许结果回传的任务**：现有 `src/cloud-control/service.js` 的 `reconcile` 在 `!r.task.resultAllowed` 时直接跳过上传，包括 Provider 完成回执。这意味着 Provider 可能无法区分“执行完成但禁止返回结果”与“任务未完成”。下一轮先明确是否允许**最小状态型 receipt**，然后做权限边界测试；不得擅自把页面数据、valueWire 或错误正文传回。
+3. **原生故障矩阵**：禁用、撤权、版本或安装代际变化、Provider 重启、receipt 丢失和副作用未知，至少两个不同 Task 的核心场景仍需原生证明。
+4. **资源隔离**：真实 Browser 配对受既有 loopback `127.0.0.1:43112` 约束，R4/Scheduled Tasks R2 未交接时不能抢固定端口或对方 Chrome Profile；等待独占资源再执行对应原生项目，组件继续复用成功证据。
+
+### 下一步 Gate
+
+- Gate A：同 SHA CI 已完成，`COMPONENT_TESTED` + `BUILD_VERIFIED`。
+- Gate B：先在隔离环境完成两个任务的本地安装和 Provider claim/admission/Worker/Run/Result/receipt 原生路径，逐条保存身份。
+- Gate C：核对无结果许可时的最小回执语义与严格不泄漏；验证升级/撤权/停止/重启故障矩阵。
+- Gate D：只有 Gate B/C 的真实证据完整后，才可更新 `NATIVE_PASS`。跨任务 FireId 和关闭 Side Panel 长期 Runner 仍归其他工作流，严禁重复造第二套。
