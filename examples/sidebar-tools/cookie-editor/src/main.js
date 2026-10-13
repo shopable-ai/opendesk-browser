@@ -431,6 +431,110 @@ async function clearBrowserSite(){
     if(stillCurrent(id,target))void readBrowserMetadata();
   });
 }
+
+async function observeBrowser(action){
+  if(busy||!liveTarget||mode!=='browser'||targetPending)return;
+  const id=epoch,target=liveTarget;setBusy(true);
+  try{
+    if(action==='start'){
+      const state=await browserSdk().cookies.observe.start({url:target.url,durationMs:15000,maxEvents:40});
+      if(!stillCurrent(id,target))return;
+      observing=state;observeCursor='0';E('live-observe-events').replaceChildren();
+      E('live-observe-status').textContent='Cookie 元数据观察已启动，最长 15 秒；无敏感值。';
+    }else if(observing){
+      const args={url:target.url,sessionRef:observing.sessionRef};
+      if(action==='stop'){
+        await browserSdk().cookies.observe.stop(args);
+        if(!stillCurrent(id,target))return;
+        observing=null;E('live-observe-status').textContent='已停止观察。';
+      }else if(action==='read'){
+        const response=await browserSdk().cookies.observe.read({...args,cursor:observeCursor,limit:40});
+        if(!stillCurrent(id,target))return;
+        observeCursor=response.nextCursor;
+        const doc=root.ownerDocument;
+        for(const event of response.events||[]){
+          const row=doc.createElement('div');row.className='cookie-row';row.setAttribute('role','listitem');
+          row.textContent=(event.removed?'删除':'变更')+' · '+event.name+' · '+event.domain+event.path;
+          E('live-observe-events').append(row);
+        }
+        E('live-observe-status').textContent='本次读取 '+(response.events?.length??0)+
+          ' 个变化，缺口 '+response.gapCount+'，缓冲丢弃 '+response.droppedCount+'；无 Cookie 值。';
+      }
+    }
+  }catch(error){
+    if(stillCurrent(id,target)){
+      if(['E_SESSION_EXPIRED','E_GRANT_REVOKED','E_SITE_GRANT_REQUIRED'].includes(error.code))observing=null;
+      E('live-observe-status').textContent='观察被拒绝或结束（'+(error.code||'E_COOKIE_OBSERVE')+
+        '）：'+error.message;
+    }
+  }finally{if(id===epoch){setBusy(false);render();}}
+}
+async function exportBrowserCookies(){
+  if(busy||pending||!liveTarget||liveState!=='ready'||targetPending)return;
+  const id=epoch,target=liveTarget;setBusy(true);
+  try{
+    // No sensitive value enters Chrome Storage, draft state, logging or telemetry.
+    // Browser Host returns values only with a separate site permission.
+    const rows=await browserSdk().cookies.getAll({url:target.url,includeValues:true});
+    if(!stillCurrent(id,target))return;
+    if(!Array.isArray(rows)||!rows.length)throw new Error('当前网站没有可导出 Cookie');
+    if(rows.some(row=>row.valueRedacted!==false||typeof row.value!=='string'))
+      throw new Error('Host 未确认全部 Cookie 敏感值权限');
+    const format=E('live-export-format').value,text=exportText(format,rows);
+    if(new Blob([text]).size>MAX_TEXT_BYTES)throw new Error('导出超过 150 KB 安全预算');
+    await request('file.download',{text,filename:target.hostname.slice(0,60)+
+      '-chrome-cookies.'+(format==='json'?'json':'txt')});
+    if(stillCurrent(id,target))status('已主动导出真实 Chrome Cookie（可能包含登录凭据），请妥善保管。','success');
+  }catch(error){if(stillCurrent(id,target))status('真实导出被拒绝：'+(error.code||'E_COOKIE_EXPORT')+
+    ' '+error.message,'error');}
+  finally{if(id===epoch){setBusy(false);render();}}
+}
+async function prepareLiveImport(){
+  if(busy||pending||!liveTarget||liveState!=='ready'||targetPending)return;
+  const target=liveTarget,id=epoch;let rows,created,replaced;
+  setBusy(true);
+  try{
+    rows=parseImport(E('import-text').value,E('import-format').value);
+    if(rows.length>10)throw new Error('真实浏览器每批最多 10 条（需逐条确认）；可分批导入，或使用离线模式处理更多记录');
+    const scope=await browserSdk().cookies.getCurrentStore({url:target.url});
+    if(!stillCurrent(id,target))return;
+    rows=rows.map(row=>({...row,storeId:row.storeId??scope.storeId}));
+    const known=new Set(liveRows.map(key));
+    created=rows.filter(row=>!known.has(key(row))).length;
+    replaced=rows.length-created;
+  }catch(error){if(stillCurrent(id,target))status('真实导入预检失败：'+(error.code||'E_COOKIE_IMPORT')+
+    ' '+error.message,'error');return;}
+  finally{if(id===epoch){setBusy(false);render();}}
+  if(!stillCurrent(id,target))return;
+  ask('导入真实 Chrome · '+target.hostname+'；新增 '+created+' 条，可能覆盖 '+replaced+
+    ' 条。每条写入单独请求确认；失败/未知结果不会重试。继续？','确认导入真实浏览器',async()=>{
+    if(!stillCurrent(id,target))return;
+    let succeeded=0,failed=null;setBusy(true);
+    try{
+      for(const row of rows){
+        if(!stillCurrent(id,target))break;
+        let options;
+        try{options=nativeInput(row);}
+        catch(error){failed=error;break;}
+        try{
+          const receipt=await browserSdk().cookies.set(options);
+          if(!stillCurrent(id,target))break;
+          if(receipt?.saved!==true||receipt.verified!==true)
+            throw Object.assign(new Error('Native receipt not verified'),{code:'E_OUTCOME_UNKNOWN'});
+          succeeded++;
+        }catch(error){failed=error;break;}
+      }
+      if(stillCurrent(id,target)){
+        if(!failed&&succeeded===rows.length){
+          scrubEditors();status('已由 Chrome 确认导入 '+succeeded+' 条。正在刷新实际列表。','success');
+        }else status('真实导入已确认 '+succeeded+'/'+rows.length+' 条，接下来的操作已停止（'+
+          (failed?.code||'E_COOKIE_IMPORT')+'）：'+String(failed?.message||'网站已切换')+
+          '。请先检查 Chrome 实际状态，不能盲目重试。','error');
+      }
+    }finally{if(id===epoch){setBusy(false);render();}}
+    if(stillCurrent(id,target))void readBrowserMetadata();
+  });
+}
 async function mutate(operation,payload,okText){
   if(!data||busy)return;
   const id=epoch;setBusy(true);
@@ -452,9 +556,9 @@ async function mutate(operation,payload,okText){
   }catch(error){if(id===epoch)status('本地操作未执行：'+String(error.message||error),'error');}
   finally{if(id===epoch)setBusy(false);}
 }
-function exportText(format){
-  if(!data?.cookies?.length)throw new Error('当前工作区没有可以导出的 Cookie');
-  const rows=data.cookies;
+function exportText(format,source=null){
+  const rows=source??data?.cookies;
+  if(!Array.isArray(rows)||!rows.length)throw new Error('当前没有可导出的 Cookie');
   if(format==='json')return JSON.stringify(rows,null,2)+'\n';
   if(format==='header')return rows.map(row=>row.name+'='+row.value).join('; ')+'\n';
   if(format==='netscape'){
@@ -529,6 +633,7 @@ function mergeImport(rows,original){
 }
 function prepareImport(){
   if(!data||busy)return;
+  if(mode==='browser'){void prepareLiveImport();return;}
   try{
     const rows=parseImport(E('import-text').value,E('import-format').value);
     const plan=mergeImport(rows,data.cookies),boundEpoch=epoch,host=data.hostname;
@@ -550,7 +655,7 @@ function scrubEditors(){
 function changeMode(next){
   if(busy||pending||mode===next)return;
   guarded(()=>{
-    scrubEditors();mode=next;
+    scrubEditors();mode=next;liveSecrets.clear();observing=null;
     if(next==='browser')status('');
     else status('离线工作区：新增、编辑、导入和清空均不影响真实 Chrome Cookie。');
     render();
@@ -574,6 +679,16 @@ E('use-current').addEventListener('click',()=>guarded(()=>{
 E('read-live').addEventListener('click',()=>{void readBrowserMetadata();});
 E('live-new').addEventListener('click',()=>guarded(()=>openEditor()));
 E('live-clear').addEventListener('click',()=>{void clearBrowserSite();});
+E('live-export').addEventListener('click',()=>{void exportBrowserCookies();});
+E('live-observe-start').addEventListener('click',()=>{void observeBrowser('start');});
+E('live-observe-read').addEventListener('click',()=>{void observeBrowser('read');});
+E('live-observe-stop').addEventListener('click',()=>{void observeBrowser('stop');});
+E('live-import').addEventListener('click',()=>guarded(()=>{
+  editor.hidden=true;editing=null;importer.hidden=false;clean();
+  E('import-heading').textContent='导入真实 Chrome Cookie';
+  E('import-help').textContent='先预览新增/覆盖。最多 10 条且逐条真实确认，失败或未知结果绝不自动重试。';
+  E('import-text').focus();
+}));
 E('live-search').addEventListener('input',render);
 E('live-filter').addEventListener('change',render);
 E('refresh').addEventListener('click',()=>guarded(()=>{
@@ -589,7 +704,10 @@ E('refresh').addEventListener('click',()=>guarded(()=>{
 E('search').addEventListener('input',render);
 E('add').addEventListener('click',()=>guarded(()=>openEditor()));
 E('import-toggle').addEventListener('click',()=>guarded(()=>{
-  editor.hidden=true;editing=null;importer.hidden=false;clean();E('import-text').focus();
+  editor.hidden=true;editing=null;importer.hidden=false;clean();
+  E('import-heading').textContent='导入离线工作区';
+  E('import-help').textContent='仅更改临时内存，最多 100 条；不会写入 Chrome。';
+  E('import-text').focus();
 }));
 for(const id of ['editor-cancel','editor-close','import-cancel','import-close'])
   E(id).addEventListener('click',()=>guarded(dismiss));
