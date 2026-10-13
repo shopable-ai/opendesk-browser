@@ -9,7 +9,7 @@ const owner={toolId:'download-test',toolVersion:'1.0.0',packageHash:SHA,installE
   approvedOrigin:null};
 const error=code=>e=>e?.code===code;
 function fixture(){
-  let allowed=true,now=1000,nextId=40,nextRef=0,throwDownload=false,revokeOnEffect=false;
+  let allowed=true,now=1000,nextId=40,nextRef=0,throwDownload=false,throwCancel=false,revokeOnEffect=false;
   const downloads=new Map(),called=[],auth=[];
   const api={downloads:{
     async download(options){
@@ -21,7 +21,8 @@ function fixture(){
     },
     async search(query){called.push(['search',structuredClone(query)]);
       const value=downloads.get(query.id);return value?[{...value}]:[];},
-    async cancel(id){called.push(['cancel',id]);if(!downloads.has(id))throw Error('missing');
+    async cancel(id){called.push(['cancel',id]);if(throwCancel)throw Error('Chrome cancel reply uncertain');
+      if(!downloads.has(id))throw Error('missing');
       downloads.get(id).state='interrupted'}
   }};
   const host=createBrowserDownloadsHost({api,clock:{now:()=>now},
@@ -36,7 +37,7 @@ function fixture(){
     }});
   return {host,api,downloads,called,auth,
     revoke(){allowed=false},grant(){allowed=true},
-    tick(ms){now+=ms},breakDownload(){throwDownload=true},
+    tick(ms){now+=ms},breakDownload(){throwDownload=true},breakCancel(){throwCancel=true},
     revokeOnEffect(){revokeOnEffect=true}};
 }
 const request={url:'https://files.example/releases/archive.txt',filename:'exports/archive.txt'};
@@ -57,6 +58,8 @@ test('P3 downloads registry, SDK methods and strict schema are canonical',async(
   assert.throws(()=>normalizeBrowserOperation('browser.downloads.download',{url:'file:///etc/passwd'}),error('E_SCHEMA'));
   assert.throws(()=>normalizeBrowserOperation('browser.downloads.download',{url:request.url,filename:'../escape.txt'}),error('E_SCHEMA'));
   assert.throws(()=>normalizeBrowserOperation('browser.downloads.download',{url:request.url,filename:'\\temp.exe'}),error('E_SCHEMA'));
+  assert.throws(()=>normalizeBrowserOperation('browser.downloads.download',{url:request.url,filename:'reports\\run.txt'}),error('E_SCHEMA'));
+  assert.equal(normalizeBrowserOperation('browser.downloads.download',{url:request.url,filename:'reports/run.txt'}).filename,'reports/run.txt');
   assert.throws(()=>normalizeBrowserOperation('browser.downloads.download',{url:request.url,secret:true}),error('E_SCHEMA'));
   assert.throws(()=>normalizeBrowserOperation('browser.downloads.cancelOwned',{downloadRef:'x'}),error('E_SCHEMA'));
   assert.throws(()=>normalizeBrowserOperation('browser.downloads.listOwned',{limit:51}),error('E_SCHEMA'));
@@ -113,6 +116,15 @@ test('P3 unknown native outcome and post-effect revocation must not claim succes
   await assert.rejects(g.host.download(request,owner),error('E_OUTCOME_UNKNOWN'));
   assert.equal(g.host.diagnostics().count,0);
   assert.equal(g.called.filter(([method])=>method==='download').length,1);
+});
+test('P3 uncertain native cancel is never silently retried and is not reported as success',async()=>{
+  const f=fixture(),started=await f.host.download(request,owner);
+  f.breakCancel();
+  await assert.rejects(f.host.cancelOwned({downloadRef:started.downloadRef},owner),
+    error('E_OUTCOME_UNKNOWN'));
+  assert.equal(f.called.filter(([kind])=>kind==='cancel').length,1);
+  // The reference remains scoped to its owner for explicit manual reconciliation.
+  assert.equal((await f.host.getOwned({downloadRef:started.downloadRef},owner)).state,'in_progress');
 });
 test('P3 own-only cursor pagination never fetches global Chrome download history',async()=>{
   const f=fixture(),refs=[];
