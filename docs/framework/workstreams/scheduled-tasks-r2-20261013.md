@@ -219,3 +219,11 @@
 - 该 Linux Job 随后在 Chrome 阶段之前失败，**不是构建失败**，而是工作流调用不存在的 `npm run verify:package`。本轮 [`e259747`](https://github.com/shopable-ai/opendesk-browser/commit/e2597478c4d94bf8bfddf9b5d1b7a914d55440f5) 已将 `.github/workflows/scheduled-tasks-r23-native-zoom.yml` 的单生产包校验改为项目现有真实命令 `node scripts/verify-package.mjs dist/production`；Linux 之后的 `build:dev` 和双包 `verify` 保持原样。
 - 修复后同 SHA 的**真实 Chrome** 与 macOS Matrix 尚需看完成结论及截图证据；上面成功的生产 `packageHash` 仅证明该 GitHub Linux 工作目录的生产包，**不是用户 Mac `dist/development` 的 hash，也不是实际 `chrome://extensions` 加载 ID**。
 
+### R2.8 首次真实 Chrome 运行页失败定位（证据不代表通过）
+
+- [真实 Chrome CI 38429089170](https://github.com/shopable-ai/opendesk-browser/actions/runs/38429089170) 在 `e2597478c4d94bf8bfddf9b5d1b7a914d55440f5`：Linux 的生产构建/单包校验 **PASS**、R2.6 源码与时区/布局 34/34 **PASS**、开发构建 **PASS**、`npm run verify` **PASS**。
+- 随后的 **真正 Chrome 运行页初始化测试 FAIL**：`actual dedicated scheduled runner displays its product dashboard not observed`，35 秒内未观察到 `data-opendesk-surface="scheduled-runner"` 与可见 `#scheduled-panel/#schedule-runner-view` 同时成立。由于初始化失败，未进行缩放和交互断言，**不得标记 Chrome 原生验收通过**。
+- 本次 Linux CFT 真正启动的是 Chrome **155.0.8059.39**，独立临时 Profile 的扩展 ID **`jhajepcnohiplmafaiokjlcagcfjgaap`**；其生产包 `packageHash` **`b444f34994855c10abaa086d797249165a64c316301717ca1a9e0ae960155e26`**。这些身份来自 [CI 诊断 Artifact 11829643574](https://github.com/shopable-ai/opendesk-browser/actions/runs/38429089170/artifacts/11829643574)，不能冒充用户 Mac 正在加载的扩展 ID 或 `dist/development`。
+- 失败 Artifact 中 **`screenshots=[]`、`zoom=[]`**，只有真实运行头信息和构建文件指纹；因此不存在可展示的“修改后 Chrome UI 截图”。
+- [`ce51639`](https://github.com/shopable-ai/opendesk-browser/commit/ce51639f3c242284a9b51b6ab1dfdf09abfeb85b) 已为原始 Chrome 验收脚本追加**失败时的 CDP Console/异常、最终文档状态、真实截图**采集，不放宽最终断言、不用 DOM 注入点击代替用户操作。需读取后续 CI Artifact 明确故障是渲染入口、Tab/Side Panel 识别、Host 初始化还是浏览器环境；未取得诊断前不推测根因。
+
