@@ -628,26 +628,17 @@
         <textarea id="workflow-ai-request" rows="2" maxlength="4000" placeholder="描述要自动完成的任务…"></textarea>
         <div class="workflow-composer-actions">
           <button type="button" id="workflow-provider-toggle" class="workflow-icon-button workflow-settings-button od-icon-button" aria-label="配置 AI 模型与数据授权" aria-expanded="false" aria-controls="workflow-provider-settings" title="AI 设置"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 7h9m6 0h1M4 17h1m6 0h9"></path><circle cx="16" cy="7" r="3"></circle><circle cx="8" cy="17" r="3"></circle></svg></button>
-          <button id="workflow-ai-plan" type="button" class="workflow-send-button od-icon-button od-icon-button--primary" aria-label="生成工作流步骤" aria-controls="workflow-ai-disclosure" aria-expanded="false" title="生成步骤"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 19V5m-7 7 7-7 7 7"></path></svg></button>
+          <button id="workflow-ai-plan" type="button" class="workflow-send-button od-icon-button od-icon-button--primary" aria-label="生成工作流步骤" title="生成步骤"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 19V5m-7 7 7-7 7 7"></path></svg></button>
           <button id="workflow-ai-cancel" type="button" class="workflow-send-button workflow-ai-cancel od-icon-button od-icon-button--danger" aria-label="停止 AI 规划" title="停止 AI 规划" hidden><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><rect x="6" y="6" width="12" height="12" rx="2"></rect></svg></button>
         </div>
-        <section id="workflow-ai-disclosure" class="workflow-ai-data-review" aria-labelledby="workflow-ai-review-title" hidden>
-          <h3 id="workflow-ai-review-title" tabindex="-1">确认发送到所选模型</h3>
-          <p id="workflow-ai-review-scope">仅发送需求、工作流网站、步骤及参数结构；网页正文需单独确认。</p>
-          <div class="workflow-ai-review-actions">
-            <button type="button" id="workflow-ai-review-cancel" class="od-button od-button--secondary">取消</button>
-            <button type="button" id="workflow-ai-review-approve" class="od-button">同意并生成</button>
-          </div>
-        </section>
         <details id="workflow-provider-settings" class="workflow-provider">
           <summary>模型连接与数据发送授权</summary>
           <label for="workflow-ai-provider" class="od-field-label">AI 来源</label>
           <select id="workflow-ai-provider" class="od-field"><option value="local_codex">本机 Codex</option><option value="custom_https">自定义 HTTPS 模型接口</option><option value="opendesk_cloud" disabled>OpenDesk 官方 AI（尚未开放）</option><option value="manual">手动创建，不使用 AI</option></select>
-          <p id="workflow-provider-scope" class="workflow-minor-note">本机 OpenDesk 管理 Codex Agent，模型推理可能联网，已同意的内容可能保存在 Codex 本机对话中。复用官方 CLI 登录，请勿填写 Codex 登录凭据。</p>
+          <p id="workflow-provider-scope" class="workflow-minor-note">使用已连接的 Codex 生成步骤。</p>
           <div id="workflow-local-settings">
             <p id="workflow-local-status" class="workflow-local-status" role="status" aria-live="polite">打开设置后检查本机状态。</p>
             <div class="workflow-actions"><button type="button" id="workflow-local-connect" class="od-button od-button--secondary">连接 OpenDesk</button><button type="button" id="workflow-local-refresh" class="od-button od-button--secondary">重新检查</button><button type="button" id="workflow-local-help" class="od-button od-button--secondary">本机连接设置 ↗</button></div>
-            <p class="workflow-minor-note">Codex 可以提出读取网页摘要的请求，但不会自动读取或发送。每次读取仍需确认，还需满足真实 Chrome 网站授权。</p>
             <div class="workflow-actions workflow-session-actions"><button type="button" id="workflow-ai-new-session" title="结束当前 AI 会话，下次发送开始新对话" hidden class="od-button od-button--secondary">新对话</button><button type="button" id="workflow-ai-resume" hidden class="od-button od-button--secondary">恢复上次对话</button></div>
           </div>
           <div id="workflow-custom-settings" hidden>
@@ -656,12 +647,6 @@
             <label for="workflow-ai-key" class="od-field-label">API Key（不保存）</label><input id="workflow-ai-key" type="password" autocomplete="off" spellcheck="false" placeholder="仅本次会话使用" class="od-field">
             <p class="workflow-minor-note">此来源生成一次步骤提议，不使用本机工具；密钥只在本窗口内使用。</p>
           </div>
-          <details class="workflow-ai-data-details"><summary>数据范围与各方责任</summary>
-            <p id="workflow-ai-data-details-text" class="workflow-minor-note"></p>
-            <p class="workflow-minor-note">不要在任务需求或选择器中输入密码、API Key。原填写值、参数默认值、导航网址的查询参数不会自动发送；网页摘要需要另行确认。</p>
-          </details>
-          <button id="workflow-ai-revoke" type="button" class="workflow-secondary workflow-ai-revoke od-button od-button--secondary" hidden>撤回当前模型的数据发送许可</button>
-          <p class="workflow-minor-note">由你选择 Codex 或 HTTPS 模型，服务方负责其服务端处理；OpenDesk 仍对本扩展的权限及数据发送安全负责。官方 AI 服务尚未开放。</p>
         </details>
       </div>
       <p id="workflow-status" class="workflow-status" role="status" aria-live="polite" hidden></p>
