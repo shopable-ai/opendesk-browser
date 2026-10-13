@@ -72,7 +72,7 @@ async function main(){
  if(ledger.firstPriority.name!=='Cookies'||ledger.firstPriority.items.length!==c.cookieCandidates)fail('Cookie priority');
  if(new Set(ledger.supplementalAudits.map(x=>x.id)).size!==ledger.supplementalAudits.length||
    ledger.supplementalAudits.some(x=>x.layer3.status!=='AUDIT_ONLY_NOT_REGISTERED'))fail('supplemental rights');
- if(!human.includes('Cookies 全部 10 项')||!human.includes('35 项正式')||
+ if(!human.includes('Cookies 全部 10 项')||!human.includes(String(c.formal)+' 项正式')||
   !human.includes('原始 27 组'))fail('human-readable sections');
  console.log(JSON.stringify({ok:true,...c}));
 }
