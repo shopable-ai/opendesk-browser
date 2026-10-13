@@ -39,7 +39,7 @@ jobs:
         run: |
           npm ci --no-audit --no-fund
           npm run build
-          npm run verify:package
+          node scripts/verify-package.mjs dist/production
       - name: R2.6 source, timezone, UI and both WXT package modes
         if: matrix.platform == 'linux'
         run: |
