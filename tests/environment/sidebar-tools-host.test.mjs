@@ -1687,6 +1687,15 @@ test('R1.3 frontend status and list reflect callable export services and include
   assert.equal((await ask('browser.capabilities.getStatus',{operation:'browser.clipboard.writeText'},'clipboard')).callableNow,true);
   assert((await ask('browser.capabilities.list',{},'list')).every(row=>row.status.callableNow));
   assert.equal(new Set(calls.map(row=>row.packageHash)).size,1);
+  // The native API function existing in the Side Panel does not prove Chrome
+  // permission or installed-tool authority. Never overrule a Host denial.
+  f.api.runtime.sendMessage=async message=>({ok:true,data:{
+    operation:message.args.operation,implementation:'implemented',
+    authorization:{tool:'granted',browser:'missing'},callableNow:false,
+    reasonCode:'E_CHROME_PERMISSION_REQUIRED'
+  }});
+  assert.equal((await ask('browser.capabilities.getStatus',
+    {operation:'browser.downloads.text'},'download-permission-denied')).callableNow,false);
 });
 
 test('R1.3 final sandbox delivery rejects selection that expires during frontend authority recheck',async t=>{
