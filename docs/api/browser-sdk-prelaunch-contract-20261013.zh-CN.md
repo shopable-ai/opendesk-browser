@@ -33,3 +33,9 @@
 - `browser.cookies.observe.read({sessionRef,cursor,limit})` 使用只读游标读取有界脱敏事件。事件提供 `seq`，读取返回 `nextCursor`、`gapCount` 和 `droppedCount`，每次最多 50 条。
 - `observe.getStatus` 仅返回运行状态、缓存数量、丢弃数量与到期时间，不再消费事件；`stop`、导航、撤权和 Worker 重启仍使旧会话失效。
 - 这一阶段仍是可信内置 UI 的 Host-only 能力，不意味着第三方工具获得 Cookie 权限，不等于正式 SDK 全量实现或原生 Chrome PASS。
+
+## R9 SDK 开发期占位清理（已提交源码，未声称原生验收）
+
+当前 `BROWSER_OPERATIONS` 不再登记未实现的 `browser.media.recording.*`（4 项）、`browser.speech.*`（3 项）和 `browser.notifications.*`（2 项），剩余 26 项均为旧有源码已接线项目（不等于全部具有原生 Chrome 验收）。删除仅限运行时正式注册表与相关 Schema、CI 活跃基准、验收表；R5 35 项原始证据与历史映射依然只读保存。
+
+后续必须继续对保留的 26 项做用户调用方式/Host 权限语义收敛，尤其 Tabs Native 命名和 Cookies 可信调用；不得把这一步视为 R9 最终交付。
