@@ -1,0 +1,23 @@
+{
+  "owner": "Time Review R1.9 local 01a1364f",
+  "candidate": "3f95e4b8d2dc1170042d46c347cc9799eda1549a",
+  "buildCandidate": "ccee890cb84f55ca3d70c0a08e9d121ddddde3a6",
+  "iteration": 2,
+  "verdict": "PASS_BOUNDED",
+  "scope": "Only the two previously observed UI defects, not overall native acceptance",
+  "score": "NOT_SCORED",
+  "resolved": [
+    "actual 200% narrow native category labels stay on one line",
+    "both same-title actual installed IDs are in viewport, uncropped and included in button ARIA"
+  ],
+  "limitations": [
+    "200% requires vertical scrolling",
+    "overall native52 remains PARTIAL: two Worker observations BLOCKED"
+  ],
+  "evidence": [
+    "native-run-52/real-chrome-200-percent-zoom.png",
+    "native-run-52/same-title-installed-identities.png",
+    "native-run-52/native-report.json"
+  ],
+  "reviewer": "Codex actual screenshot inspection plus native geometry/ARIA assertions; expert scoring remains pending"
+}

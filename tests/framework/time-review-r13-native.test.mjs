@@ -868,7 +868,15 @@ test('Time Review R1.9 actual Mac Chrome native product acceptance',{skip:!NATIV
         const snapshot={elapsedMs:Math.round(performance.now()-quietAt),targets:rows.map(({targetId,attached})=>({targetId,attached}))};
         if(JSON.stringify(snapshot.targets)!==JSON.stringify(workerSnapshots.at(-1)?.targets))workerSnapshots.push(snapshot);
         if(performance.now()-lastActivity>30000){
-          assert.equal(spawnSync(zoomInput,[String(proc.pid),'activity'],{encoding:'utf8',timeout:10000}).status,0,'real OS activity during passive background observation');
+          let activity=spawnSync(zoomInput,[String(proc.pid),'activity'],{encoding:'utf8',timeout:10000});
+          if(activity.status===4){
+            note('native-foreground-interruption',{phase:'panel-closed-passive-observation',status:activity.status,output:String(activity.stdout||activity.stderr),noActivityDispatched:true});
+            assert.equal(spawnSync(zoomInput,[String(proc.pid),'activate'],{encoding:'utf8',timeout:10000}).status,0,'restore only owned actual CFT foreground');
+            await browser.send('Target.activateTarget',{targetId:site.targetId});
+            await until(()=>evaluate(browser,websiteSession,'document.hasFocus()'),'owned actual website focused after interruption');
+            activity=spawnSync(zoomInput,[String(proc.pid),'activity'],{encoding:'utf8',timeout:10000});
+          }
+          assert.equal(activity.status,0,'real OS activity during passive background observation: '+String(activity.stdout||activity.stderr));
           lastActivity=performance.now();
         }
         await sleep(250);

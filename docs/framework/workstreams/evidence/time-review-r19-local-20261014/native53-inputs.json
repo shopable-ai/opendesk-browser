@@ -1,0 +1,9 @@
+{
+  "nativeCandidate": "9df1aaed83e658498bf4d82d0855d13570a07cdb",
+  "buildCandidate": "ccee890cb84f55ca3d70c0a08e9d121ddddde3a6",
+  "productionChanges": [],
+  "driverSha256": "cf74e8b7ecbac9fc25657505ba190a0fad34dc11fba12ab119e2f425769ea676",
+  "priorDriverPreserved": "native-run-52-executed-driver.mjs",
+  "priorNative": "3f95e4b8d2dc1170042d46c347cc9799eda1549a",
+  "methodChange": "Await actual manager target destruction before all-UI closure and quiet observation."
+}

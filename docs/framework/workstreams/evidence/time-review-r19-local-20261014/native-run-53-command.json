@@ -1,0 +1,18 @@
+{
+  "cwd": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/time-review-r19-local-01a1364f/source-r19-ui-final",
+  "command": [
+    "node",
+    "--test",
+    "--test-reporter=tap",
+    "tests/framework/time-review-r13-native.test.mjs"
+  ],
+  "env": {
+    "GITHUB_SHA": "9df1aaed83e658498bf4d82d0855d13570a07cdb",
+    "OPENDESK_TIME_REVIEW_NATIVE": "1",
+    "CHROME_BIN": "/Users/shopme/Documents/workspace/opendesk-browser/.runtime/time-review-r19-local-01a1364f/OpenDesk Time Review R19 CFT.app/Contents/MacOS/Google Chrome for Testing",
+    "OPENDESK_TIME_NATIVE_EVIDENCE": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/time-review-r19-local-01a1364f/native-run-53",
+    "OPENDESK_TIME_NATIVE_SCOPE": "full"
+  },
+  "node": "v24.16.0",
+  "reason": "Wait for actual manager target destruction before passive full-UI-closed and active recovery observation. Same verified production bytes as ccee."
+}

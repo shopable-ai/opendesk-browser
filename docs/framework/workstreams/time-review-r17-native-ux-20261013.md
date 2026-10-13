@@ -116,3 +116,5 @@
 R1.9 补充观察安全边界：同一 worker 在 confirmedStop 与真实失焦后 stopped 快照之间出现任何 running，则 activeSwRecovery 必须 BLOCKED，禁止拼接第二次停机。仅驱动变更，不重建相同生产输入；构建候选 ccee890c 与后续原生候选按生产文件/产物逐项比对。独立副本六项 Node/工具包/check/Production/Development/Verify 均退出 0，Node 206 PASS，无预算或 CSP 放宽。
 
 R1.9 原生 52：验收源码 3f95e4b8，生产构建输入同 ccee890c；真实 Mac/CFT 完整结束，36/38 PASS，2 BLOCKED，整体 PARTIAL/退出 1，Chrome/Profile 自动清理成功，0 Worker error/crash。原 35 项全部 PASS，加其他三工具实际升级隔离 PASS；新实际 200% 单列标签与同名安装 ID/ARIA 均 PASS，13 张原始图保留。自然试验的 remainingExtensionPages 仍包含刚请求关闭的 manager，不能声明全 UI 已关闭；补等待 Target.getTargets 真实消失后才取 quiet 起点。主动恢复实际 stopped/running 已观察，真实失焦后没有仍停止的快照，保持 BLOCKED。Cloud Recovery 闹钟存在只是关联线索，未删闹钟、关闭服务或篡改任何数据以制造休眠。后续同生产候选仅更新观察边界，复用已验证的 Node/构建字节，继续实际 CFT。
+
+R1.9 原生 53：同生产输入 9df1aaed，157.5 秒测试/160.1 秒进程退出 1；17 PASS / 21 NOT_TESTED，complete=false/FAIL，Profile 与 Chrome 自动清理成功。真实 OS activity 助手退出 4，按 helper 合同表示前台 owner 已变化，原驱动只保留状态码、未记录具体 owner 输出；不能推断是哪个应用，不能伪造后续 PASS。仅修复 passive 观察维护输入：保存真实 helper stdout、确认本次未发送活动事件，通过既有 owned PID 原生 activate + 已有网站 target + document.hasFocus 恢复真实焦点，再重试一次受控原生 activity；仍失败即保留错误，不改任何 Chrome API/数据/时间。前台间隙不宣称为连续活跃时间。生产源码及 Node/构建输入未变，不重复构建；下一回合验证实际 UI 销毁边界及其余完整链。

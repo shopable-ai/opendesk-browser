@@ -1,0 +1,13 @@
+{
+  "format": "opendesk.time-review.export.v1",
+  "days": {},
+  "settings": {
+    "excludedHosts": [],
+    "idleSeconds": 60,
+    "retentionDays": 90
+  },
+  "discardedMs": 0,
+  "categories": {},
+  "minuteConsent": false,
+  "minuteDays": {}
+}
