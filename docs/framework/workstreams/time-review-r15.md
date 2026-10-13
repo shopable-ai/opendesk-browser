@@ -74,3 +74,9 @@ npm run verify
 - 修复设计：不调整 512 KiB 硬门槛、不允许动态 import 绕过自包含 WXT IIFE。把 Time Review 可信操作按钮和确认面板的**静态标记**直接移入现有 `src/ui/tool.html` 的工具设置区；`src/time-review/host-controls.js` 仅负责真实点击、Chrome 空闲权限、Origin 审阅、受限 Host 调用和安全渲染。原工具 UI 沙箱仍不可调用网站授权。
 - UI 权责：通用“TOC/Clip/Capture 网站授权”只对真的声明这类能力的工具可见；Time Review 与 Stay Focus 使用各自的独立授权控制，禁止显示“此工具不需要网站授权”的误导性状态。
 - 回归：更新 R5.1 / R1.3 / R1.5 组件夹具，直接校验所有静态受信任控件 ID；带真实事件 `isTrusted` 的接口测试保持拒绝伪造权限、跨 Origin 审阅状态失效、取消确认不会改变范围。之后按新 SHA 重跑 Node、工具包构建和 WXT 检查；即使构建通过也不升级旧浏览器 PASS。
+
+## CI 定向回归发现：旧通用工具测试夹具未包含预编译控件
+
+- d888903 的 [Sidebar user tools CI 38360670244](https://github.com/shopable-ai/opendesk-browser/actions/runs/38360670244) **FAIL：117 PASS、70 FAIL**，失败均出现在共享假宿主初始化，提示 `Time Review trusted controls are missing`，未进入实际业务行为测试。已归因：`tests/environment/sidebar-tools-host.test.mjs` 仍假设工具设置动态生成，没有实例化 `tool.html` 的静态授权 ID。
+- 修复必须同时保留生产安全：`host-controls.js` 允许与 Time Review 无关的轻量宿主夹具没有该控件，但当实际选择已授权的 Time Review 时，缺静态控件仍抛出并**拒绝受信任权限动作**；共享测试夹具显式加入静态 ID，新增负向测试确保不能以“安全降级”隐藏缺失。
+- 修复后按新 SHA 做隔离回归；Mac 原生和包大小不能因以上原因提前标记 PASS。

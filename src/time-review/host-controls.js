@@ -5,7 +5,12 @@ import {TIME_REVIEW_KEY} from './model.js';
 
 export function createTimeReviewPermissionControls({api,doc,notice,runOperation}){
   const get=id=>doc.getElementById(id),section=get('time-review-permission-settings');
-  if(!section)throw Error('Time Review trusted controls are missing');
+  // Unrelated tools may render in minimal hosts. Fail closed only if the
+  // privileged Time Review itself is selected without its precompiled controls.
+  if(!section)return {render(tool,readOnly=false){
+    if(!readOnly&&tool?.id===TIME_REVIEW_ID&&tool.capabilities?.includes(TIME_REVIEW_CAPABILITY))
+      throw Error('Time Review trusted controls are missing');
+  }};
   const say=(message,error=false)=>notice(message,error);
   const click=(id,fn)=>get(id).addEventListener('click',fn);
   const review=get('time-review-site-confirm'),all=get('time-review-site-all-confirm');

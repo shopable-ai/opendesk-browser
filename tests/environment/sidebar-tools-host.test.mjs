@@ -14,6 +14,19 @@ import {MARKET_PROVENANCE_STORE,MARKET_OPERATIONS_STORE,reconcileMarketOperation
 import {CLIP_SITE_STORE} from '../../src/page-clip/policy.js';
 import {CAPTURE_SITE_STORE} from '../../src/knowledge/policy.js';
 import {READING_TOC_SITE_STORE,READING_TOC_VISIBILITY_STORE,READING_TOC_PAGE_RULES_STORE,changeReadingTocVisibility} from '../../src/reading-toc/policy.js';
+import {TIME_CONTROL_IDS} from './time-review-host-controls-fixture.mjs';
+
+// The real Side Panel declares these once in ui/tool.html. Host fixtures must
+// model those fixed nodes rather than re-creating Time Review UI at runtime.
+const TRUSTED_STATIC_IDS=[
+  ...TIME_CONTROL_IDS,
+  'time-review-permission-settings','time-review-site-confirm','time-review-site-confirm-text',
+  'time-review-site-all-confirm','time-review-site-grants-status','time-review-site-grants-list',
+  'time-review-inline-clear-review','time-review-minute-delete-review',
+  'sidebar-tool-generic-site-scope','sidebar-tool-generic-site-binary',
+  'sidebar-tool-generic-site-advanced'
+];
+
 
 test('R26 stopped details remain manageable and enabling waits for an explicit Open',async t=>{
   const key=sidebarToolStorageKey(sample.id),grants={[sample.id]:['https://example.com']};
@@ -161,7 +174,7 @@ test('trusted tool host installs only by explicit click, scopes messages and rem
     'sidebar-tool-update','sidebar-tool-update-versions','sidebar-tool-update-capabilities','sidebar-tool-update-warning',
     'sidebar-tool-official-catalog','sidebar-tool-my-panel','sidebar-tool-discover-panel',
     'sidebar-tool-discover-toggle','sidebar-tool-search',
-    'sidebar-tool-filter-available','sidebar-tool-filter-all'];
+    'sidebar-tool-filter-available','sidebar-tool-filter-all',...TRUSTED_STATIC_IDS];
   const elements=Object.fromEntries(ids.map(id=>[id,new Node()]));
   const taskSurface=new Node();
   const doc={documentElement:{dataset:{}},getElementById(id){return elements[id];},
@@ -360,7 +373,7 @@ async function hostFixture(t,{store=new Map([[SIDEBAR_TOOL_STORE,[sample]]]),loc
     'sidebar-tool-update','sidebar-tool-update-versions','sidebar-tool-update-capabilities','sidebar-tool-update-warning',
     'sidebar-tool-official-catalog','sidebar-tool-my-panel','sidebar-tool-discover-panel',
     'sidebar-tool-discover-toggle','sidebar-tool-search',
-    'sidebar-tool-filter-available','sidebar-tool-filter-all'];
+    'sidebar-tool-filter-available','sidebar-tool-filter-all',...TRUSTED_STATIC_IDS];
   const elements=Object.fromEntries(ids.map(id=>[id,new Node()]));
   const doc={documentElement:{dataset:{}},getElementById:id=>elements[id],querySelector:()=>new Node(),
     createElement:tag=>{const node=new Node(tag);node.ownerDocument=doc;return node;}};

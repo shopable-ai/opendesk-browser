@@ -430,9 +430,10 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     // Only tools with the generic TOC/Clip/Capture site capability use
     // these controls. Time Review and Stay Focus have independent trust scopes.
     const capabilityOnly=Boolean(siteCapability(active));
-    get('sidebar-tool-generic-site-scope').hidden=!capabilityOnly;
-    get('sidebar-tool-generic-site-binary').hidden=!capabilityOnly;
-    get('sidebar-tool-generic-site-advanced').hidden=!capabilityOnly;
+    for(const id of ['sidebar-tool-generic-site-scope','sidebar-tool-generic-site-binary',
+      'sidebar-tool-generic-site-advanced']){
+      const node=get(id);if(node)node.hidden=!capabilityOnly;
+    }
     settingsHint.hidden=!capabilityOnly;
     settingsScopeLabel.textContent='当前网站授权';settingsTarget.textContent=capability?(origin||'请选择适用网页'):'此工具不需要网站授权';
     settingsScopeButton.hidden=true;

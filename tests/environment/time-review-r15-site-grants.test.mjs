@@ -202,3 +202,13 @@ test('R1.5 static trusted permission elements are part of the real tool host HTM
   const css=await readFile('src/ui/tool-shell.css','utf8');
   assert.match(css,/\.time-review-trusted-actions\[hidden\]\{display:none!important\}/);
 });
+
+test('R1.5 missing trusted HTML fails closed only for Time Review, not unrelated tools',()=>{
+  const controls=createTimeReviewPermissionControls({
+    api:{},doc:{getElementById:()=>null},container:null,
+    notice:()=>{},runOperation:async()=>{throw Error('should not run');}
+  });
+  assert.doesNotThrow(()=>controls.render({id:'quick-notes',capabilities:[]}));
+  assert.throws(()=>controls.render({id:'time-review',capabilities:['time.review']}),
+    /trusted controls are missing/);
+});
