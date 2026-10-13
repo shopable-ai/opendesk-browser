@@ -61,6 +61,50 @@
 6. **AI-first / Run-first**：AI 或用户写代码→点击 Run→系统自动解析、获取/复用、校验并固定库→返回真实结果→按需保存或授权安装。**不增加人工逐库审核向导**，技术图/SHA/许可证放在可选详情。程序能力/站点/安装/定时/云控才是授权对象，不是 JS 文件。
 7. **安全合规**：Chrome 来源/网站权限、程序可调用的敏感能力、安装身份互不替代；开发时免人工库审查不会扩大任何一个权限。对 Chrome MV3/Chrome Web Store 的适用远程代码政策做单独证据核查；Worker/沙箱本身不等于发布合规。Node/CJS/WASM/CSS/dynamic import/循环图/顶层 await 按真实支持程度拒绝或转受信构建；已支持的不要误拒绝。
 
+## 3.1 最终技术取舍：原生执行优先、File-First、按需编译（冻结）
+
+**采用 C 方案，不采用统一远程 `script.src`，也不把 Classic JS 统统送 Babel。** 这是本文件第 3 节的细化，不创建第二个 Dependency Manager 或新 Host。
+
+| 方案 | 结论 | 关键理由 |
+| --- | --- | --- |
+| A. 在目标网页 `document.createElement('script').src = CDN` | **不作 OpenDesk 默认依赖加载方式** | 默认进入网站 MAIN 世界，可能被页面 CSP/网站代码干扰；与受控 USER_SCRIPT 的 JS 全局隔离，难以保证离线固定版本；普通远程脚本注入也有 CWS 远程代码合规风险 |
+| B. 每个 JS 都下载、打包和 Babel 编译 | **不一刀切** | Classic 通常无需编译，大型编译器及重复转换不应成为普通 Run 的成本 |
+| C. 原生 API + 直接执行合适的固定 Classic 字节 + SHA 复用 + ESM 必要编译 | **唯一默认执行方向** | 复用 Chrome、现有 SHA 资产库、Authority、RunHost、Tool 沙箱；按世界确定加载方式，兼顾简单与可重复使用 |
+
+此前 62/83/96 分属于**未实测方案估计**，不能写为产品验收结果。“95+”是有条件的目标，只有与指定源码及原生证据绑定后才能评分。
+
+### 执行世界与装载方式（每个场景唯一宿主）
+
+| 场景 | 推荐加载方式 | 禁止误用 |
+| --- | --- | --- |
+| 扩展预装 Classic | `src/libs/runtime-contract.js` 唯一 Catalog、固定扩展资源文件和 `loader.js` SHA 校验；Chrome `userScripts.js.file` 只指向扩展包根目录下真实资源文件 | 不能把 IndexedDB 缓存 key 伪装成 `file`，不联网重复获取内置包 |
+| Page 新 Classic JS / `@require` | Run 自动通过现有 `dependency-manager.js` 获取/复用并验证原字节，绑定 program/world 技术锁；使用原 `chrome.userScripts.execute` 的 `USER_SCRIPT` 世界及受控 `js:[{code}]`，保持当前原子 fail-stop；**不经过 Babel** | 不使用网站 `document.head.appendChild(<script src=CDN>)` 作为默认路径；不要把 MAIN `window` 和 USER_SCRIPT `globalThis` 混用 |
+| Page React/Vue 与 ESM | 继续使用现有 Developer 固定 Babel/linker 和受管 UI/Stop；Standard 不加浏览器编译器，大项目使用既有受信本地构建器 | 不运行未经固定的动态 ESM 图 |
+| Controller Classic / ESM | 复用 RunHost → Authority → 当前受控 Worker；Classic 仅在库无需 window/document/eval 且执行环境、CWS 边界允许时使用原固定代码；ESM 走已有 linker，维持零参 `main()`、词法 `page/params` | 不把用户下载 JS 放进特权 SW/Host；Worker 不是自动获得 CWS 豁免 |
+| Side Panel 独立工具 | 原 opaque sandbox iframe；工具的多份固定 Classic 资源可从已验证本地字节创建 Blob URL，按声明顺序加载并等待 `onload/onerror`；ESM 先可信构建为固定资产 | `bridge.js` 已存在的本地 Blob `script.src` **不是**允许远程 CDN `script.src`；不开放宿主 chrome.* |
+| 后台 SW、Content | 只保留可信静态打包入口 | 不动态运行用户下载的远程库 |
+| 已安装、定时、云控 | 原已安装固定 Program Revision、依赖闭包和 Authority；从经过核验的本地 SHA 资产离线运行 | 不在调度时从 CDN 重新获取、重新编译或静默升级 |
+
+**边界**：普通网页的 `script.src` 是可用的浏览器原生下载方式，但其目标 MAIN 世界、CSP、网站脚本及 CWS 条件与受控 USER_SCRIPT/Worker/Tool 不同；“标签加载成功”不等于 OpenDesk 指定世界返回了真实执行回执。只有明确需求与独立风险评审后才可考虑显式 MAIN 兼容模式，绝不作为默认绕行。
+
+### 用户一次 Run / 安装 / 离线的执行合同
+
+1. 草稿 Run 是用户的执行意图；按**预装资源 → 本程序已固定 SHA → 同来源已验证共享 SHA → 必要的首次受控获取**优先级解析。Classic 原字节直用，静态 ESM 才按需编译；保存首次实际 URL、响应 MIME、原始 byteLength、SHA-256、版本和依赖图。自动生成属于当前 programId、world、Revision 的技术锁，**不出现逐库人工审核向导**。
+2. Run 无合法 Chrome 源/目标网站权限时，仍必须从**真实用户手势的同步调用栈**调用 `permissions.request()`；可事先只读预热。若检查晚到而手势已失效，只允许显示明确的必要权限操作，不虚构“单击就授予”、不暗中重新播放业务代码。
+3. A/B 可以共享完整 SHA 字节，但绝不复用站点、能力、安装或云控授权；B 允许系统自动固定独立技术锁，不能凭借 A 的授信获得执行权。缺失或冲突的精确版本不得静默选 `latest`。
+4. 保存/安装冻结 Author Source、执行字节/图、SHA/lock、Program Revision；正式安装需确认站点、数据、能力、定时或云控范围。整个 Chrome 退出重启、断网后的已安装重复运行不得重新联网、重新编译或变更旧锁。HTTP 缓存不能替代内容寻址的固定版本资产。
+5. 多库同步顺序、运行异常传播和 Stop 保留现有原子保障；没有同一扩展包的真实 Chrome 证明，不因 File-First 就把多个 ScriptSource 设为默认。坏 SHA/缺字节/撤权/重定向/私网/未知 Native effect 失败时必须阻断，不隐式重新下载或重放。
+6. 按执行世界分别审查 Chrome MV3/CWS 远程代码规则：User Scripts API 的特定例外只适用于按文档目的提供的用户脚本，不扩展至特权 Host/SW/普通远程 `<script>`；sandbox/Worker 不自动等于可上架。必须保存真实合规判断与阻塞项。
+
+官方参考：
+- https://developer.chrome.com/docs/extensions/reference/api/userScripts （`execute`、`USER_SCRIPT/MAIN`、`ScriptSource.code/file`）
+- https://developer.chrome.com/docs/webstore/program-policies/mv3-requirements （远程代码限制及 User Scripts 特定用途）
+- https://developer.chrome.com/docs/extensions/develop/migrate/remote-hosted-code （普通远程脚本与特殊 API 的区别）
+
+### 八维 95+ 评分所需证据
+
+逐项衡量：易用性（Run 与 Chrome 真正权限点击次数）、库覆盖（真实 Classic/ESM 原函数）、执行场景（Page/Controller/Tool/安装/定时/云控）、缓存效率（原始网络次数与 SHA 字节）、安全（分权和撤销）、诊断（准确错误码与恢复）、真实测试充分性（Node/包/Chrome/Mac 分级）、架构复用（唯一 Manager/Host）。D01–D12 的 sourceHash、lockId、runId/resultId、packageHash、Chrome 版本、下载次数和重启离线回执必须真实保存。无证据不能自评 95。
+
 ## 4. 最小用户闭环和测试分母
 
 | Case | 用户真实操作/输入 | 通过条件 | 必须保留的证据 |
