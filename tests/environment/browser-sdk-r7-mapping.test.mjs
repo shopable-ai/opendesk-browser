@@ -58,10 +58,10 @@ test('R7 trusted native workbench is outside installed sandbox bridge; no additi
   for(const id of ['trusted-cookie-watch-start','trusted-cookie-watch-status-button',
     'trusted-cookie-watch-read','trusted-cookie-watch-stop','trusted-cookie-watch-events'])
     assert(ui.includes('id="'+id+'"'),'missing actual UI control '+id);
-  assert.match(workbench,/browser\\.cookies\\.observe\\.['"]\\+kind/);
-  assert.match(workbench,/event\\.isTrusted&&\\!busy/);
-  assert.match(workbench,/watchEventsNode\\.replaceChildren\\(\\)/);
-  assert.match(workbench,/String\\(item\\.name/);
+  assert(workbench.includes("const op='browser.cookies.observe.'+kind"),'Host-only observation operation is invoked');
+  assert(workbench.includes('event.isTrusted&&!busy'),'Every observer control requires a trusted click');
+  assert(workbench.includes('watchEventsNode.replaceChildren()'),'Observation events are cleared');
+  assert(workbench.includes('String(item.name'),'Cookie event name is formatted without secret values');
   assert(!workbench.includes('item.value'),'redacted Cookie event UI must never render a value');
   assert(!workbench.includes('storage.local.set('));
 });
