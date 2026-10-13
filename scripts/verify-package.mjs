@@ -46,7 +46,7 @@ export const FIXED_ASSETS = Object.freeze({
   'licenses/jquery-MIT.txt': {bytes: 1097, sha256: 'd4db9ebe6f29f5168eac45ad713f055623ac5d0dcd5ba92da23d650ae012020d'}
 });
 const HTML_REFERENCES = Object.freeze({
-  'ui/tool.html': ['design-tokens.css', 'design-system.css', 'tool-shell.css', 'stay-focus-controls.js', 'trusted-cookie-ui.js', 'tool-shell.js'],
+  'ui/tool.html': ['design-tokens.css', 'design-system.css', 'tool-shell.css', 'sidebar-tool-host.js', 'stay-focus-controls.js', 'trusted-cookie-ui.js', 'tool-shell.js'],
   'ui/cloud-control.html': ['design-tokens.css', 'design-system.css', 'cloud-control-console.css', 'cloud-console.js'],
   'ui/marketplace.html': ['design-tokens.css', 'marketplace.css', 'marketplace.js'],
   'native-agent/settings.html': ['../ui/design-tokens.css', 'settings.css', 'settings.js'],
