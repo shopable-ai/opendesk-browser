@@ -85,6 +85,25 @@
 | 后台 SW、Content | 只保留可信静态打包入口 | 不动态运行用户下载的远程库 |
 | 已安装、定时、云控 | 原已安装固定 Program Revision、依赖闭包和 Authority；从经过核验的本地 SHA 资产离线运行 | 不在调度时从 CDN 重新获取、重新编译或静默升级 |
 
+### R7.3 Controller 新 Classic 作者用法（已实现源码，真实 Chrome 待验证）
+
+Controller 普通 JavaScript 草稿可以使用下述固定版本的 Worker 兼容 Classic UMD，点击现有 Run 自动获取或复用 SHA 字节、生成当前 Program 独立技术锁，再进入原 RunHost → Authority → Worker。无需 npm、单独编译或逐库勾选。
+
+```javascript
+// @opendesk-classic https://cdn.jsdelivr.net/npm/mitt@3.0.1/dist/mitt.umd.js
+async function main() {
+  const bus = globalThis.mitt();
+  const result = [];
+  bus.on('item', x => result.push(x));
+  bus.emit('item', 'OpenDesk:21');
+  return result;
+}
+```
+
+此示例是 D05 真实 Chrome 驱动候选，尚不能宣称已通过 Chrome。系统优先已锁 Program、共享且已验证的 URL/SHA 缓存，必要时才下载 HTTPS；缺失权限只在真实 Run 点击时请求 Chrome 原生许可，拒绝即安全失败。Classic 原始代码只在现有受控 Worker 运行，不进入特权 SW；当前限制为最多四份、新增库共 45 KiB、执行体 48 KiB、保存体 52 KiB。只导出到 window 的浏览器 UMD、CommonJS require 或纯 ESM 不能假定支持，必要时使用 Developer 的 ESM 编译器。
+
+Save 不联网：必须先 Run 建立对应 Program/sourceHash 技术锁，才能固化原作者源码、真正执行字节、依赖 URL/SHA 和锁；重新加载可恢复原作者源码。已保存执行体若原始缓存被删除、旧锁被撤销，其运行时再校验仍需补齐，D08/D09/D11 不能据此宣称完整关闭。Worker 隔离不自动等于 CWS 合规，正式远程代码政策和数据处理边界仍需审查（COMPLIANCE_NOT_CLOSED）。
+
 **边界**：普通网页的 `script.src` 是可用的浏览器原生下载方式，但其目标 MAIN 世界、CSP、网站脚本及 CWS 条件与受控 USER_SCRIPT/Worker/Tool 不同；“标签加载成功”不等于 OpenDesk 指定世界返回了真实执行回执。只有明确需求与独立风险评审后才可考虑显式 MAIN 兼容模式，绝不作为默认绕行。
 
 ### 用户一次 Run / 安装 / 离线的执行合同
