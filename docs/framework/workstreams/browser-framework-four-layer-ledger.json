@@ -30,15 +30,15 @@
     }
   ],
   "counts": {
-    "formal": 35,
+    "formal": 26,
     "implemented": 26,
-    "planned": 7,
-    "notExposed": 2,
+    "planned": 0,
+    "notExposed": 0,
     "candidateGroups": 27,
     "originalCandidates": 114,
     "promoted": 3,
     "pending": 111,
-    "uniqueNamedMethods": 146,
+    "uniqueNamedMethods": 137,
     "cookieSdkFormal": 0,
     "cookieCandidates": 10,
     "formalNativePass": 0,
@@ -823,271 +823,6 @@
           "downloads"
         ],
         "siteScope": "selected-tab"
-      },
-      "layer4": {
-        "positive": "NOT_TESTED",
-        "denial": "NOT_TESTED",
-        "macChrome": "NOT_TESTED",
-        "callableNow": "NOT_TESTED",
-        "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
-      },
-      "candidateOrigin": null
-    },
-    {
-      "id": "browser.media.recording.prepare",
-      "inventory": "FORMAL",
-      "layer1": {
-        "api": "MediaRecorder / chrome.tabCapture",
-        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
-      },
-      "layer2": {
-        "status": "NOT_IMPLEMENTED",
-        "files": []
-      },
-      "layer3": {
-        "status": "PLANNED",
-        "exposure": "DECLARED_NON_EXECUTABLE",
-        "capabilities": [
-          "browser.media.recording"
-        ],
-        "chromePermissions": [],
-        "siteScope": "visible-user-consent"
-      },
-      "layer4": {
-        "positive": "NOT_TESTED",
-        "denial": "NOT_TESTED",
-        "macChrome": "NOT_TESTED",
-        "callableNow": "NOT_TESTED",
-        "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
-      },
-      "candidateOrigin": null
-    },
-    {
-      "id": "browser.media.recording.getStatus",
-      "inventory": "FORMAL",
-      "layer1": {
-        "api": "MediaRecorder / chrome.tabCapture",
-        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
-      },
-      "layer2": {
-        "status": "NOT_IMPLEMENTED",
-        "files": []
-      },
-      "layer3": {
-        "status": "PLANNED",
-        "exposure": "DECLARED_NON_EXECUTABLE",
-        "capabilities": [
-          "browser.media.recording"
-        ],
-        "chromePermissions": [],
-        "siteScope": "owned-session"
-      },
-      "layer4": {
-        "positive": "NOT_TESTED",
-        "denial": "NOT_TESTED",
-        "macChrome": "NOT_TESTED",
-        "callableNow": "NOT_TESTED",
-        "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
-      },
-      "candidateOrigin": null
-    },
-    {
-      "id": "browser.media.recording.stop",
-      "inventory": "FORMAL",
-      "layer1": {
-        "api": "MediaRecorder / chrome.tabCapture",
-        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
-      },
-      "layer2": {
-        "status": "NOT_IMPLEMENTED",
-        "files": []
-      },
-      "layer3": {
-        "status": "PLANNED",
-        "exposure": "DECLARED_NON_EXECUTABLE",
-        "capabilities": [
-          "browser.media.recording"
-        ],
-        "chromePermissions": [],
-        "siteScope": "owned-session"
-      },
-      "layer4": {
-        "positive": "NOT_TESTED",
-        "denial": "NOT_TESTED",
-        "macChrome": "NOT_TESTED",
-        "callableNow": "NOT_TESTED",
-        "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
-      },
-      "candidateOrigin": null
-    },
-    {
-      "id": "browser.media.recording.discard",
-      "inventory": "FORMAL",
-      "layer1": {
-        "api": "MediaRecorder / chrome.tabCapture",
-        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
-      },
-      "layer2": {
-        "status": "NOT_IMPLEMENTED",
-        "files": []
-      },
-      "layer3": {
-        "status": "PLANNED",
-        "exposure": "DECLARED_NON_EXECUTABLE",
-        "capabilities": [
-          "browser.media.recording"
-        ],
-        "chromePermissions": [],
-        "siteScope": "owned-session"
-      },
-      "layer4": {
-        "positive": "NOT_TESTED",
-        "denial": "NOT_TESTED",
-        "macChrome": "NOT_TESTED",
-        "callableNow": "NOT_TESTED",
-        "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
-      },
-      "candidateOrigin": null
-    },
-    {
-      "id": "browser.speech.transcribe",
-      "inventory": "FORMAL",
-      "layer1": {
-        "api": "Web Speech API",
-        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
-      },
-      "layer2": {
-        "status": "NOT_IMPLEMENTED",
-        "files": []
-      },
-      "layer3": {
-        "status": "PLANNED",
-        "exposure": "DECLARED_NON_EXECUTABLE",
-        "capabilities": [
-          "browser.speech"
-        ],
-        "chromePermissions": [],
-        "siteScope": "explicit-audio"
-      },
-      "layer4": {
-        "positive": "NOT_TESTED",
-        "denial": "NOT_TESTED",
-        "macChrome": "NOT_TESTED",
-        "callableNow": "NOT_TESTED",
-        "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
-      },
-      "candidateOrigin": null
-    },
-    {
-      "id": "browser.speech.speak",
-      "inventory": "FORMAL",
-      "layer1": {
-        "api": "Web Speech API",
-        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
-      },
-      "layer2": {
-        "status": "NOT_IMPLEMENTED",
-        "files": []
-      },
-      "layer3": {
-        "status": "PLANNED",
-        "exposure": "DECLARED_NON_EXECUTABLE",
-        "capabilities": [
-          "browser.speech"
-        ],
-        "chromePermissions": [],
-        "siteScope": "user-output"
-      },
-      "layer4": {
-        "positive": "NOT_TESTED",
-        "denial": "NOT_TESTED",
-        "macChrome": "NOT_TESTED",
-        "callableNow": "NOT_TESTED",
-        "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
-      },
-      "candidateOrigin": null
-    },
-    {
-      "id": "browser.speech.stop",
-      "inventory": "FORMAL",
-      "layer1": {
-        "api": "Web Speech API",
-        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
-      },
-      "layer2": {
-        "status": "NOT_IMPLEMENTED",
-        "files": []
-      },
-      "layer3": {
-        "status": "PLANNED",
-        "exposure": "DECLARED_NON_EXECUTABLE",
-        "capabilities": [
-          "browser.speech"
-        ],
-        "chromePermissions": [],
-        "siteScope": "owned-session"
-      },
-      "layer4": {
-        "positive": "NOT_TESTED",
-        "denial": "NOT_TESTED",
-        "macChrome": "NOT_TESTED",
-        "callableNow": "NOT_TESTED",
-        "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
-      },
-      "candidateOrigin": null
-    },
-    {
-      "id": "browser.notifications.create",
-      "inventory": "FORMAL",
-      "layer1": {
-        "api": "chrome.notifications",
-        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
-      },
-      "layer2": {
-        "status": "RESTRICTED_EXPOSURE",
-        "files": []
-      },
-      "layer3": {
-        "status": "NOT_EXPOSED",
-        "exposure": "NOT_EXPOSED",
-        "capabilities": [
-          "browser.notifications"
-        ],
-        "chromePermissions": [
-          "notifications"
-        ],
-        "siteScope": "none"
-      },
-      "layer4": {
-        "positive": "NOT_TESTED",
-        "denial": "NOT_TESTED",
-        "macChrome": "NOT_TESTED",
-        "callableNow": "NOT_TESTED",
-        "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
-      },
-      "candidateOrigin": null
-    },
-    {
-      "id": "browser.notifications.clear",
-      "inventory": "FORMAL",
-      "layer1": {
-        "api": "chrome.notifications",
-        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
-      },
-      "layer2": {
-        "status": "RESTRICTED_EXPOSURE",
-        "files": []
-      },
-      "layer3": {
-        "status": "NOT_EXPOSED",
-        "exposure": "NOT_EXPOSED",
-        "capabilities": [
-          "browser.notifications"
-        ],
-        "chromePermissions": [
-          "notifications"
-        ],
-        "siteScope": "none"
       },
       "layer4": {
         "positive": "NOT_TESTED",
@@ -4897,5 +4632,279 @@
     "original 114 candidate names",
     "603+19, B05, F3 and ZIP contracts",
     "existing native evidence"
-  ]
+  ],
+  "legacyR8RemovedFormal": [
+    {
+      "id": "browser.media.recording.prepare",
+      "inventory": "FORMAL",
+      "layer1": {
+        "api": "MediaRecorder / chrome.tabCapture",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "NOT_IMPLEMENTED",
+        "files": []
+      },
+      "layer3": {
+        "status": "PLANNED",
+        "exposure": "DECLARED_NON_EXECUTABLE",
+        "capabilities": [
+          "browser.media.recording"
+        ],
+        "chromePermissions": [],
+        "siteScope": "visible-user-consent"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED",
+        "callableNow": "NOT_TESTED",
+        "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      },
+      "candidateOrigin": null
+    },
+    {
+      "id": "browser.media.recording.getStatus",
+      "inventory": "FORMAL",
+      "layer1": {
+        "api": "MediaRecorder / chrome.tabCapture",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "NOT_IMPLEMENTED",
+        "files": []
+      },
+      "layer3": {
+        "status": "PLANNED",
+        "exposure": "DECLARED_NON_EXECUTABLE",
+        "capabilities": [
+          "browser.media.recording"
+        ],
+        "chromePermissions": [],
+        "siteScope": "owned-session"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED",
+        "callableNow": "NOT_TESTED",
+        "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      },
+      "candidateOrigin": null
+    },
+    {
+      "id": "browser.media.recording.stop",
+      "inventory": "FORMAL",
+      "layer1": {
+        "api": "MediaRecorder / chrome.tabCapture",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "NOT_IMPLEMENTED",
+        "files": []
+      },
+      "layer3": {
+        "status": "PLANNED",
+        "exposure": "DECLARED_NON_EXECUTABLE",
+        "capabilities": [
+          "browser.media.recording"
+        ],
+        "chromePermissions": [],
+        "siteScope": "owned-session"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED",
+        "callableNow": "NOT_TESTED",
+        "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      },
+      "candidateOrigin": null
+    },
+    {
+      "id": "browser.media.recording.discard",
+      "inventory": "FORMAL",
+      "layer1": {
+        "api": "MediaRecorder / chrome.tabCapture",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "NOT_IMPLEMENTED",
+        "files": []
+      },
+      "layer3": {
+        "status": "PLANNED",
+        "exposure": "DECLARED_NON_EXECUTABLE",
+        "capabilities": [
+          "browser.media.recording"
+        ],
+        "chromePermissions": [],
+        "siteScope": "owned-session"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED",
+        "callableNow": "NOT_TESTED",
+        "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      },
+      "candidateOrigin": null
+    },
+    {
+      "id": "browser.speech.transcribe",
+      "inventory": "FORMAL",
+      "layer1": {
+        "api": "Web Speech API",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "NOT_IMPLEMENTED",
+        "files": []
+      },
+      "layer3": {
+        "status": "PLANNED",
+        "exposure": "DECLARED_NON_EXECUTABLE",
+        "capabilities": [
+          "browser.speech"
+        ],
+        "chromePermissions": [],
+        "siteScope": "explicit-audio"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED",
+        "callableNow": "NOT_TESTED",
+        "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      },
+      "candidateOrigin": null
+    },
+    {
+      "id": "browser.speech.speak",
+      "inventory": "FORMAL",
+      "layer1": {
+        "api": "Web Speech API",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "NOT_IMPLEMENTED",
+        "files": []
+      },
+      "layer3": {
+        "status": "PLANNED",
+        "exposure": "DECLARED_NON_EXECUTABLE",
+        "capabilities": [
+          "browser.speech"
+        ],
+        "chromePermissions": [],
+        "siteScope": "user-output"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED",
+        "callableNow": "NOT_TESTED",
+        "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      },
+      "candidateOrigin": null
+    },
+    {
+      "id": "browser.speech.stop",
+      "inventory": "FORMAL",
+      "layer1": {
+        "api": "Web Speech API",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "NOT_IMPLEMENTED",
+        "files": []
+      },
+      "layer3": {
+        "status": "PLANNED",
+        "exposure": "DECLARED_NON_EXECUTABLE",
+        "capabilities": [
+          "browser.speech"
+        ],
+        "chromePermissions": [],
+        "siteScope": "owned-session"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED",
+        "callableNow": "NOT_TESTED",
+        "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      },
+      "candidateOrigin": null
+    },
+    {
+      "id": "browser.notifications.create",
+      "inventory": "FORMAL",
+      "layer1": {
+        "api": "chrome.notifications",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "RESTRICTED_EXPOSURE",
+        "files": []
+      },
+      "layer3": {
+        "status": "NOT_EXPOSED",
+        "exposure": "NOT_EXPOSED",
+        "capabilities": [
+          "browser.notifications"
+        ],
+        "chromePermissions": [
+          "notifications"
+        ],
+        "siteScope": "none"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED",
+        "callableNow": "NOT_TESTED",
+        "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      },
+      "candidateOrigin": null
+    },
+    {
+      "id": "browser.notifications.clear",
+      "inventory": "FORMAL",
+      "layer1": {
+        "api": "chrome.notifications",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "RESTRICTED_EXPOSURE",
+        "files": []
+      },
+      "layer3": {
+        "status": "NOT_EXPOSED",
+        "exposure": "NOT_EXPOSED",
+        "capabilities": [
+          "browser.notifications"
+        ],
+        "chromePermissions": [
+          "notifications"
+        ],
+        "siteScope": "none"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED",
+        "callableNow": "NOT_TESTED",
+        "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      },
+      "candidateOrigin": null
+    }
+  ],
+  "prelaunchR9": {
+    "policy": "LATEST_PRELAUNCH_API_CONTRACT_OVERRIDES_R8_LEGACY",
+    "oldFormalCount": 35,
+    "newFormalCount": 26,
+    "legacyR8RemovedFormalStored": true,
+    "nativeChrome": "NOT_TESTED"
+  }
 }
