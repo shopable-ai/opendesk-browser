@@ -342,6 +342,22 @@ test('Real Chrome default sharing, live page reminder, DNR and uninstall',{skip:
   report.actualQuotaNavigation='PASS';
   report.quota='PASS';
   note('quota-real-http-navigation',{status:'PASS',urlPath:'/stay-focus/blocked-quota.html'});
+  // The same ledger exhausts every auto-enrolled entertainment domain.
+  // These are real Chrome HTTPS main-frame navigations (not DNR mocks); no
+  // external site request is necessary because Chrome must redirect first.
+  report.defaultDomainDnr=[];
+  for(const hostname of ['www.youtube.com','www.tiktok.com']){
+    const visitDomain=await client.send('Target.createTarget',{url:'https://'+hostname+'/'});
+    const result=await until(async()=>{
+      const targets=(await client.send('Target.getTargets')).targetInfos;
+      return targets.find(row=>row.targetId===visitDomain.targetId)?.url?.includes(
+        '/stay-focus/blocked-quota.html')||false;
+    },'real shared-pool HTTPS DNR for '+hostname,15000);
+    assert.equal(result,true,'default enrolled '+hostname+' must be blocked at shared quota');
+    report.defaultDomainDnr.push({hostname,redirect:'/stay-focus/blocked-quota.html'});
+  }
+  note('real-default-domain-shared-dnr',{domains:report.defaultDomainDnr,
+    usageWasNotFabricated:true});
 
   // Native lifecycle: the user can stop enforcement without uninstalling and
   // re-enable with the original daily quota still exhausted. Never write
