@@ -20,13 +20,14 @@ import {CAPTURE_SITE_STORE,CAPTURE_CAPABILITY,KNOWLEDGE_TOOL_ID,KNOWLEDGE_CAPABI
   KNOWLEDGE_OPERATIONS,KNOWLEDGE_WORKSPACE_PREFIX,changeCaptureGrant,chatCaptureOrigin,knowledgePackageHash} from '../knowledge/policy.js';
 import {TIME_REVIEW_ID,TIME_REVIEW_CAPABILITY,TIME_REVIEW_PROTOCOL,TIME_REVIEW_OPERATIONS,timeReviewPackageHash} from '../time-review/policy.js';
 import {createTimeReviewPermissionControls} from '../time-review/host-controls.js';
-import {FOCUS_ID,FOCUS_CAPABILITY,FOCUS_PROTOCOL,FOCUS_OPERATIONS,focusPackageHash} from '../stay-focus/policy.js';
-import {createStayFocusPermissionControls} from '../stay-focus/host-controls.js';
 
 // Trusted Side Panel shell for untrusted, opaque-origin UI documents.
 // No user code, markup, or CSS is ever inserted into this extension document.
 export function createSidebarTools({api=globalThis.chrome,doc=globalThis.document,
   currentPageTarget,taskWorkbench,lockManager=globalThis.navigator?.locks,fetcher=globalThis.fetch}) {
+  // Native focus controls load from an audited extension-only classic WXT entry.
+  // A missing sidecar fails closed; user-owned opaque sandbox cannot supply it.
+  const focus=globalThis.__opendeskStayFocusTrustedUI||null;
   const get=id=>doc.getElementById(id);
   const list=get('sidebar-tool-list'), listView=get('sidebar-tool-list-view');
   const empty=get('sidebar-tool-empty'), backButton=get('sidebar-tool-back');
@@ -117,7 +118,8 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     'browser.screenshot':'用户主动截取本工具获准的可见网页并下载 PNG',
   });
   const timePermissions=settingsView?createTimeReviewPermissionControls({api,doc,container:settingsView,notice,runOperation:runTrustedTimeReviewOperation}):null;
-  const focusPermissions=settingsView?createStayFocusPermissionControls({api,doc,container:settingsView,notice,runOperation:runTrustedFocusOperation}):null;
+  const focusPermissions=settingsView&&focus?.createPermissionControls
+    ?focus.createPermissionControls({api,doc,container:settingsView,notice,runOperation:runTrustedFocusOperation}):null;
   const versionOrder=compareToolVersions;
   const readableCapability=id=>capabilities[id]||id;
   const addedCapabilities=(next,prior)=>next.capabilities.filter(id=>!prior.capabilities.includes(id));
@@ -239,8 +241,8 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     if(event?.isTrusted!==true||!['focus.enable','focus.disable','focus.clear'].includes(operation))
       throw Object.assign(new Error('请在工具详情中主动点击专注权限操作'),{code:'E_FOCUS_TRUSTED_CLICK'});
     const tool=active;
-    if(disposed||busy||readOnlyPreview||tool?.id!==FOCUS_ID||
-      !tool.capabilities.includes(FOCUS_CAPABILITY))
+    if(disposed||busy||readOnlyPreview||tool?.id!==focus?.id||
+      !tool.capabilities.includes(focus.capability))
       throw Object.assign(new Error('专注工具未安装或页面已关闭'),{code:'E_TOOL_CHANGED'});
     await assertSidebarToolEnabled(api,tool.id);
     const [owned,epochs]=await Promise.all([api.storage.local.get(SIDEBAR_TOOL_STORE),
@@ -248,10 +250,10 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     if(!requireCompleteInstalledSidebarTools(owned[SIDEBAR_TOOL_STORE]).some(row=>samePackage(row,tool)))
       throw Object.assign(new Error('工具已更新或卸载'),{code:'E_TOOL_CHANGED'});
     const installEpoch=epochs[TOOL_REVOCATION_EPOCHS_STORE]?.[tool.id]??null;
-    const packageHash=await focusPackageHash(tool);
+    const packageHash=await focus.packageHash(tool);
     if(disposed||!active||!samePackage(active,tool)||readOnlyPreview)
       throw Object.assign(new Error('专注工具实例已变化'),{code:'E_TOOL_CHANGED'});
-    const result=await api.runtime.sendMessage({protocol:FOCUS_PROTOCOL,
+    const result=await api.runtime.sendMessage({protocol:focus.protocol,
       toolId:tool.id,operation,payload,packageHash,installEpoch});
     if(!result?.ok)throw Object.assign(new Error(result?.error?.message||'专注 Host 未确认'),
       {code:result?.error?.code||'E_FOCUS'});
@@ -737,7 +739,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
         CLIP_OPERATIONS.includes(operation)?CLIP_CAPABILITY:
       knowledgeOperation(operation)?KNOWLEDGE_CAPABILITY:
       TIME_REVIEW_OPERATIONS.includes(operation)?TIME_REVIEW_CAPABILITY:
-      FOCUS_OPERATIONS.includes(operation)?FOCUS_CAPABILITY:
+      focus?.operations?.includes(operation)?focus.capability:
         ['clipboard.writeText','file.download'].includes(operation)?'user.export':'__unapproved__'))
       throw new Error('此工具没有被批准使用该能力');
     if(TIME_REVIEW_OPERATIONS.includes(operation)){
@@ -761,8 +763,8 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       if(!response?.ok)throw Object.assign(new Error(response?.error?.message||'时间回顾请求失败'),{code:response?.error?.code||'E_TIME_REVIEW'});
       assertSession(source,token);return response.data;
     }
-    if(FOCUS_OPERATIONS.includes(operation)){
-      if(tool.id!==FOCUS_ID)throw new Error('Stay Focus 工具身份不正确');
+    if(focus?.operations?.includes(operation)){
+      if(tool.id!==focus.id)throw new Error('Stay Focus 工具身份不正确');
       if(['focus.enable','focus.disable','focus.clear'].includes(operation)){
         tocSettingsOpen=true;render();
         throw Object.assign(new Error('请从工具详情中的受信任授权与清空按钮操作'),
@@ -775,9 +777,9 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
         if(!requireCompleteInstalledSidebarTools(owned[SIDEBAR_TOOL_STORE]).some(row=>samePackage(row,tool))||
           (epochs[TOOL_REVOCATION_EPOCHS_STORE]?.[tool.id]??null)!==revocationEpoch)
           throw Object.assign(new Error('工具身份或授权版本已变化'),{code:'E_TOOL_CHANGED'});
-        const hash=await focusPackageHash(tool);
+        const hash=await focus.packageHash(tool);
         assertSession(source,token);
-        const response=await api.runtime.sendMessage({protocol:FOCUS_PROTOCOL,toolId:tool.id,
+        const response=await api.runtime.sendMessage({protocol:focus.protocol,toolId:tool.id,
           operation,payload,packageHash:hash,installEpoch:revocationEpoch});
         if(!response?.ok)throw Object.assign(new Error(response?.error?.message||'专注操作未确认'),
           {code:response?.error?.code||'E_FOCUS'});
