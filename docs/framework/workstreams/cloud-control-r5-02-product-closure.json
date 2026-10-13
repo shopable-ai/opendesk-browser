@@ -122,7 +122,11 @@
     "bc82f2c1420fbe114cc77e4eeba2616ee4570965",
     "e8e9ed5da7dfdc56060216f8681dec5a3fc38afe",
     "c39650027c7c5cd5cf01b5ee16f5aaae25e361d8",
-    "9337d5a44af3acdd866c0e8578f737f8e34c5349"
+    "9337d5a44af3acdd866c0e8578f737f8e34c5349",
+    "fadff7695ebd7ca1adaa5406cbb906dcf17052a1",
+    "8f944aebd0301f37d1b40cc325f4cf7953a80f01",
+    "e2e3821b3397a5ac19293cc7d4387b08595c43b7",
+    "91cd8c39352b7fd705e3b987c8428ff98e3a7106"
   ],
   "statuses": {
     "jobExecutorIsolation": "COMPONENT_TESTED",
@@ -144,7 +148,9 @@
     "sidebarR52ProductUXTests": "SOURCE_IMPLEMENTED",
     "authenticatedHistoryTaskName": "SOURCE_IMPLEMENTED",
     "stoppedNewAdmissionIdempotency": "SOURCE_IMPLEMENTED",
-    "providerReadonlyPersistence": "SOURCE_IMPLEMENTED"
+    "providerReadonlyPersistence": "SOURCE_IMPLEMENTED",
+    "cloudEmptyStateMyNavigation": "SOURCE_IMPLEMENTED",
+    "cloudLocalErrorExplanation": "SOURCE_IMPLEMENTED"
   },
   "priorEvidence": {
     "r51": {
@@ -297,6 +303,9 @@
     "noRewriteKnownFailures": true
   },
   "remaining": [
+    "Verify 91cd8c39352b exact-candidate Cloud and shared production CI after GitHub Actions queue clears; do not infer success from 24994880",
+    "Mac Chrome dual independently installed Task Worker/Run/Result/Provider receipts still absent",
+    "Independent real Chrome 300/320/360/420/520px + 125/200% keyboard/screenshots still absent",
     "Wait for and inspect exact current R5.2 CI; do not label new code COMPONENT_TESTED until new SHA passes",
     "New async CLI test, Task-labelled history, Stop idempotency, and readonly status have new unverified changes",
     "R5.2 scoped-client candidate Cloud component CI 157/157 passed, but final moving main requires fresh build evidence and native Chrome",
@@ -342,8 +351,8 @@
     "tests/cloud-control/provider.test.mjs"
   ],
   "pendingExactCandidate": {
-    "sha": "9337d5a44af3acdd866c0e8578f737f8e34c5349",
-    "ciUrl": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38373122306",
+    "sha": "91cd8c39352b7fd705e3b987c8428ff98e3a7106",
+    "ciUrl": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38373957070",
     "observed": "queued",
     "componentTests": "NOT_VERIFIED",
     "check": "NOT_VERIFIED",
