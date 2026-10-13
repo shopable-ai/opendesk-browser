@@ -1,3 +1,32 @@
+# Global First R5 · 用户价值驱动的竞争定位（2026-10-13）
+
+> **战略结论已升级**：[原 OPP 84 个机会 → 20 个有明确任务/退出规则的候选](global-first-r5-portfolio.zh-CN.md)；45 个竞品含 Gemini Chrome Skills、Claude Chrome 录制、UiPath Delegate、Axiom/ScriptCat 和成熟 RPA/Actor。**已证实全球/区域/具体任务第一仍 0，独立专家评分 NOT_SCORED。** 历史侧栏人工 JSX/React/Vue “第一优先”仍仅作技术副能力。
+
+## 用户一看就懂的三层产品定位
+
+**最主要的产品方向**：AI 帮你创建浏览器工具；你审阅源码/网站授权、测试并固定版本，随后在合法页面重复使用。同一包真实 AI→Installed→断开模型后的独立重复运行，目前尚无最终 Mac Chrome 本轮证据。完整体验是**待达到的产品门**，不是已经正式发行/上线的功能宣称。
+
+**第一层：面向普通人** —— “让 AI 做一次工具，以后在任务需要时直接使用它。” 不宣传“永远免费/零模型费用”；首次生成、工具维护、权限检查有真实成本，部分工作流仍需在线模型和本机 Codex/Native/Node。
+
+**第二层：面向重复工作的职业用户** —— “固定版本、明确授权、可追溯结果，比每次重新向 AI 解释网页任务更可控。” 与 Google Chrome Skills 保存 prompt、Claude Chrome 录制、Axiom 导入 bot、UiPath Routines 对比；这些竞品真实功能已经存在，不能笼统说独创。
+
+**第三层：面向行业/企业** —— “在合法登录的专属后台，将经过批准的单项重复操作做成可审阅、可撤权、可维护的工具。” 更适合从内部表单 EXP-001、卖家 Listing QA EXP-005 开始；必须能证明它解决现有 ERP/浏览器插件没有更低成本解决的真实反复工作。
+
+## 地区“第一”的机会并不是翻译按钮
+
+- **中国/中文**：需实际可获得的受支持版本、用户许可/网站与中国的现役 ScriptCat/本土 ERP/RPA 完整比较；ScriptCat Agent/MCP Beta 是现实反例。
+- **日本/日语**：需真实日本 Chrome Web Store/官方发布、日语可用性及当地重复网页任务访谈；Google 已在日本等亚太地区部署 Gemini in Chrome 能力（部分具体功能/平台受限），不能以日语支持直接称日本首个。
+- **欧美/英语**：Chrome Skills 英美英语渠道、Claude in Chrome、Axiom/UiPath 等成熟替代尤其强；应以有权网站上的固定版无模型运行/总成本/审阅性做可重放对照，而非英语通用 AI 自动化市场。
+- **地区可测试榜单**：先确定合法产品可售/可用渠道与实际需求，再预注册当地至少合理代表性对手及组合；最后才允许指定日期/指标/样本的排名。未知产品的 Stable/Beta 不能被自动淘汰。
+
+## 唯一近期工程证据目标
+
+所有 GF-007/004 的战略表述，都必须回到实际现有 `workflow-view.js`、`local-project-install.js`、Task Candidate/Verify/Available/Install、Authority/RunHost、依赖锁和真实 Chrome 原回执。先运行单一 `demo-form.html` AI→正式安装→断开 AI 后至少 Run 两次，同时记录初次模型费和20次复用成本，之后才拓展同一产品对其它真实站点/行业的复用。共享 SDK/Native/Cloud 不再重复造。
+
+**营销级别**：M0 方向陈述、M1 同版真实功能、M2 指定样本真实基准、M3 GF Ledger CLAIM_APPROVED。代码存在≠真实 Mac 同包原生验收≠公众上架≠全球第一；没有独立证据绝不写 95 分已通过。
+
+---
+
 # AI-first Global First R4 定位纠偏（2026-10-13）
 
 **首要价值不是要求人手动在浏览器侧栏编写 React/Vue。** OpenDesk 要竞争的是：让 AI 协助产生浏览器网站工具，经用户审阅源码/网站权限/固定版本后，在能够正式安装的版本和适用站点重复使用；以后执行确定性逻辑时可以不再次调用 AI。
