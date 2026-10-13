@@ -20,7 +20,8 @@ export function projectCloudInstalledTasks(data,approved=[]){
       grant.generation===row.generation);
     return {taskId:row.taskId,version:row.version,manifestHash:row.manifestHash,
       sourceHash,installationId:row.installationId??null,generation:row.generation??null,
-      title:manifest?.title||row.taskId,siteOrigins,paramsSchema:manifest?.paramsSchema??null,
+      title:manifest?.title||row.taskId,description:manifest?.description||'',
+      siteOrigins,paramsSchema:manifest?.paramsSchema??null,
       enabled:row.enabled===true,
       eligible,approved:!!authorized,resultAllowed:authorized?.resultAllowed===true};
   });
@@ -39,8 +40,8 @@ export function createCloudHosting({client,host,document:doc=globalThis.document
   function renderApprovalSummary(){
     const selected=selectedTasks(),uploaded=selected.filter(task=>
       selections.get(cloudChoiceKey(task))?.resultAllowed).length;
-    put('cloud-approval-summary',selected.length+' 项待批准 · '+uploaded+
-      ' 项允许回传结果。授权将绑定固定版本、网站范围与安装代际。');
+    put('cloud-approval-summary',selected.length+' 项已选 · '+uploaded+
+      ' 项允许回传结果正文；未勾选的任务仅回传最小执行状态。');
     const button=get('cloud-approve');
     if(button)button.disabled=!selected.length||!button.cloudCanApprove;
   }
@@ -62,6 +63,9 @@ export function createCloudHosting({client,host,document:doc=globalThis.document
     if(!taskChoices.length){
       const empty=doc.createElement('p');empty.textContent='暂无已安装任务。请先在「我的」验证并安装 Controller Task。';
       empty.className='hint';parent.append(empty);
+      const manage=doc.createElement('button');manage.type='button';manage.className='od-button od-button--secondary';
+      manage.textContent='前往「我的」安装任务';manage.addEventListener('click',()=>get('tab-tasks')?.click?.());
+      parent.append(manage);
     }
     for(const task of taskChoices){
       const key=cloudChoiceKey(task),selection=selections.get(key)||{selected:false,resultAllowed:false};
@@ -69,17 +73,17 @@ export function createCloudHosting({client,host,document:doc=globalThis.document
       const header=doc.createElement('label'),check=doc.createElement('input'),title=doc.createElement('span');
       check.type='checkbox';check.dataset.cloudTaskKey=key;check.checked=selection.selected;
       check.disabled=!task.eligible||cloudState.enabled;
-      title.textContent=task.title+' · '+task.taskId+' @ '+task.version+
-        (task.eligible?'':task.enabled?'（版本未验证）':'（已停用）')+
-        (task.approved?' · 当前已批准':'');
+      title.textContent=task.title+' · v'+task.version+
+        (task.eligible?'':task.enabled?' · 需要重新验证':' · 已停用')+
+        (task.approved?' · 已授权':'');
       header.append(check,title);section.append(header);
+      if(task.description){const description=doc.createElement('p');
+        description.className='cloud-task-description';description.textContent=task.description;
+        section.append(description);}
       const scope=doc.createElement('p');scope.className='cloud-task-scope';
-      scope.textContent='网站：'+(task.siteOrigins.join('、')||'未验证')+
-        ' · Manifest SHA-256：'+(task.manifestHash||'缺失')+
-        ' · Source SHA-256：'+(task.sourceHash||'缺失')+
-        ' · 安装代际：'+(task.generation??'未知');
+      scope.textContent='允许访问：'+(task.siteOrigins.join('、')||'网站范围尚未验证');
       section.append(scope);
-      const params=doc.createElement('p');params.className='cloud-task-scope';
+      const params=doc.createElement('p');params.className='cloud-task-params';
       const schema=task.paramsSchema;
       params.textContent='参数许可（固定 Schema）：'+(schema?.properties
         ?Object.entries(schema.properties).map(([name,rule])=>
@@ -90,14 +94,22 @@ export function createCloudHosting({client,host,document:doc=globalThis.document
       const label=doc.createElement('label'),result=doc.createElement('input'),copy=doc.createElement('span');
       result.type='checkbox';result.dataset.cloudResultKey=key;result.checked=selection.resultAllowed;
       result.disabled=!task.eligible||cloudState.enabled;
-      copy.textContent='允许此任务执行结果回传已配对 Provider'+
-        (task.resultAllowed?'（当前已批准）':'（当前未批准）');
+      copy.textContent='允许回传结果正文（网页数据、返回值与错误详情）'+
+        (task.resultAllowed?' · 当前已授权':' · 默认关闭');
       label.append(result,copy);section.append(label);
       const constraints=doc.createElement('details'),open=doc.createElement('summary'),
         values=doc.createElement('pre');
-      open.textContent='查看完整参数约束（默认值、长度与数值范围）';
+      open.textContent='查看参数约束';
       values.textContent=JSON.stringify(task.paramsSchema??{},null,2);
-      constraints.append(open,values);section.append(constraints);parent.append(section);
+      constraints.append(open,values);section.append(constraints);
+      const technical=doc.createElement('details'),technicalLabel=doc.createElement('summary'),
+        technicalValue=doc.createElement('pre');
+      technicalLabel.textContent='高级：固定版本与安装身份';
+      technicalValue.textContent=JSON.stringify({
+        taskId:task.taskId,version:task.version,manifestHash:task.manifestHash,
+        sourceHash:task.sourceHash,installationId:task.installationId,generation:task.generation
+      },null,2);
+      technical.append(technicalLabel,technicalValue);section.append(technical);parent.append(section);
     }
     renderApprovalSummary();
   }
@@ -110,8 +122,16 @@ export function createCloudHosting({client,host,document:doc=globalThis.document
   }
   const put=(id,text)=>{const el=get(id);if(el)el.textContent=text;};
   const fail=e=>{const code=/^E_[A-Z0-9_]{1,60}$/.test(String(e?.code))?e.code:'E_CLOUD';
-    brief.textContent='状态异常';status.textContent=`${code}：云控状态不可用。请查看开发诊断或日志。`;
-    myState.textContent='状态不可读取';overview.textContent='云端托管状态暂不可读取';};
+    const help={E_AUTH:'提供者拒绝凭据，请核对配对状态',
+      E_PAIRING:'连接尚未完成配对，或需要先解除已有配对',
+      E_PAIR_ACTIVE:'此浏览器已在提供者配对，请先撤销旧配对',
+      E_EXECUTOR_TARGET:'外部请求没有指向已配对的浏览器',
+      E_REVISION:'任务版本或安装授权已变化，请停止后重新批准',
+      E_CLOUD_REVOKED:'云控授权已停止，任务不能继续执行',
+      E_PERMISSION:'网站或本地 Task 授权已失效，请重新审核',
+      E_PROVIDER:'提供者连接异常，请核对 HTTPS 地址和网络'};
+    brief.textContent='需要处理';status.textContent=(help[code]||'操作未完成，请检查连接与授权')+'（'+code+'）';
+    myState.textContent='需要处理 · '+code;overview.textContent=status.textContent;};
   // Refresh is deliberately read-only. Cloud claim/dispatch belongs only to poll().
   async function refresh(){
     const s=await cloud.cloudStatus({limit:5});if(disposed)return null;
@@ -119,7 +139,15 @@ export function createCloudHosting({client,host,document:doc=globalThis.document
     brief.textContent=!projected.paired?'未配对':!projected.enabled?'已关闭':!projected.online?'连接中':!projected.reconciled?'对账中':!projected.hostReady?'等待宿主':!projected.slotAvailable?'执行槽繁忙':'可用';
     status.textContent=summary+`\n已批准任务 ${projected.approvedTasks} 项 · 历史云请求 ${projected.requests.total} 条 · 已确认回执 ${projected.requests.receivedReceipts} 条（最近 ${projected.requests.sampled} 条统计）`;
     myState.textContent=brief.textContent+' · 已批准 '+projected.approvedTasks+' 项任务';
-    overview.textContent=summary;
+    overview.textContent=!projected.paired?'还未配对：连接可信提供者后再批准任务。':
+      !projected.enabled?'已配对，但未启用任务授权；现在不会接收云端任务。':
+      !projected.online?'云控已启用，正在等待提供者连接。':
+      !projected.reconciled?'已连接，正在核对上次运行结果。':
+      !projected.slotAvailable?'执行任务中；新的请求会排队。':
+      '已连接，等待已授权的任务请求。';
+    get('cloud-first-run').hidden=!!s.provider;
+    get('cloud-approval-section').hidden=!s.provider;
+    put('cloud-next-step','先安装或验证任务，再连接可信提供者并选择允许远程调用的任务。');
     put('cloud-overview-provider',projected.paired?'已配对':'未配对');
     put('cloud-overview-connection',projected.online?'已连接':projected.connection==='backoff'?'重连中':'未连接');
     put('cloud-overview-host',projected.hostReady?'已就绪':'不可用');
@@ -127,7 +155,7 @@ export function createCloudHosting({client,host,document:doc=globalThis.document
     put('cloud-overview-tasks',String(projected.approvedTasks));
     put('cloud-overview-requests',String(projected.requests.total));
     sampleView(s);lastFullRefresh=Date.now();await refreshTaskChoices(s);
-    get('cloud-pair').disabled=!!s.provider;get('cloud-approve').cloudCanApprove=!!s.provider&&!s.enabled;renderApprovalSummary();get('cloud-stop').disabled=!s.provider;get('cloud-unpair').disabled=!s.provider;
+    get('cloud-pair').disabled=!!s.provider;get('cloud-approve').cloudCanApprove=!!s.provider&&!s.enabled;renderApprovalSummary();get('cloud-stop').disabled=!s.provider||!s.enabled;get('cloud-unpair').disabled=!s.provider;
     return s;
   }
   async function dispatchNext(s){
@@ -137,6 +165,7 @@ export function createCloudHosting({client,host,document:doc=globalThis.document
   }
   async function action(fn){if(busy)return;busy=true;try{await fn();await refresh();}catch(e){fail(e);}finally{busy=false;}}
   const listeners=[];function click(id,fn){const handler=()=>void action(fn);get(id).addEventListener('click',handler);listeners.push([id,handler]);}
+  click('cloud-configure',async()=>{get('cloud-hosting').open=true;get('cloud-url').focus?.();});
   click('cloud-pair',()=>cloud.cloudPair({url:get('cloud-url').value,providerId:get('cloud-provider-id').value.trim(),pairingCode:get('cloud-pairing-code').value.trim(),allowLoopback:get('cloud-loopback').checked}).then(()=>{get('cloud-pairing-code').value='';}));
   const onChoiceChange=event=>{
     const input=event?.target,key=input?.dataset?.cloudTaskKey||input?.dataset?.cloudResultKey;
