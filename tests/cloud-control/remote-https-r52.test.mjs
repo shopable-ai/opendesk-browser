@@ -214,6 +214,19 @@ test('one Provider serves authenticated HTTPS/WSS and target-scoped client submi
       .assignments[0].receipt.receiptId,accepted.receiptId);
     assert.equal((await retry('/v1/job-status',{jobId:contentJob.jobId},
       permittedResultClient.credential)).result.valueWire.text,'RESULT-BODY-CONSENT-ONLY');
+    const stopped=await retry('/v1/suspend',{grantId},executor.credential);
+    assert.deepEqual(stopped,{suspended:true,grantId});
+    await assert.rejects(retry('/v1/submit',{...seed,requestKey:'after-user-stop'},
+      permittedResultClient.credential),{code:'E_CLOUD_STOPPED'});
+    assert.equal((await retry('/v1/job-status',{jobId:contentJob.jobId},
+      permittedResultClient.credential)).state,'completed',
+      'Stopping new work must preserve previously confirmed receipts');
+    await retry('/v1/capabilities',{grantId,tasks:[...taskAdvertised,{
+      taskId:searchPin.taskId,manifestHash:searchPin.manifestHash,
+      sourceHash:searchPin.sourceHash}]},executor.credential);
+    await assert.rejects(retry('/v1/submit',{...seed,requestKey:'same-grant-replay'},
+      permittedResultClient.credential),{code:'E_CLOUD_STOPPED'},
+      'Delayed old capabilities must not reactivate a stopped browser');
     await localPost(provider.port,'/admin/client-revoke',{clientId:grant.clientId},
       admin.adminToken);
     await assert.rejects(retry('/v1/submit',{...seed,requestKey:'after-revoke'},
