@@ -5713,7 +5713,7 @@
       "visibility": "APPROVED_TOOL_REGISTERED",
       "migrationDecision": "NEW_PUBLIC_SCOPED_FROM_EXISTING_HOST",
       "sourceRegistry": "src/framework/sdk/browser-contract.js#BROWSER_OPERATIONS",
-      "callSignature": "OpenDeskSDK.browser.cookies.clearSite(options)",
+      "callSignature": "OpenDeskSDK.browser.cookies.clearSite({url,preview:true,maxCookies?}) -> {matched,previewRef,scope}; after actual user confirmation clearSite({url,previewRef,expectedCount,maxCookies?})",
       "returnSignature": "Promise<SDK-defined scoped Cookie receipt>",
       "inputSchema": {
         "type": "object",
@@ -5757,6 +5757,11 @@
             "type": "integer",
             "minimum": 1,
             "maximum": 50
+          },
+          "previewRef": {
+            "type": "string",
+            "maxLength": 36,
+            "pattern": "^[0-9a-f-]{36}$"
           }
         },
         "required": [
@@ -5788,6 +5793,11 @@
           "scope": {
             "type": "string",
             "maxLength": 80
+          },
+          "previewRef": {
+            "type": "string",
+            "maxLength": 36,
+            "pattern": "^[0-9a-f-]{36}$"
           }
         },
         "required": [
@@ -5837,7 +5847,7 @@
       "hostDispatcher": "src/platform/chrome/context-menus.js#createContextMenuHost",
       "authority": "existing Side Panel installed-tool user grant + Chrome Host revalidation",
       "driverFile": "src/platform/chrome/browser-cookie-host.js -> src/platform/chrome/cookies.js",
-      "lifecycle": "request",
+      "lifecycle": "one-use bounded previewRef (60s) plus fresh trusted confirmation for mutation",
       "phase": "P2",
       "status": "SOURCE_WIRED_NATIVE_NOT_TESTED",
       "verification": {
@@ -5851,7 +5861,7 @@
           "tests/environment/browser-sdk-r8-cookies.test.mjs"
         ],
         "positive": "installed & enabled exact tool + per-Origin/capability grant, current approved Store/Partition, typed redacted receipt",
-        "negative": "Page and Preview remain denied; foreign tools/Origin/Store/Partition, missing values, stale package/epoch, forged sender rejected",
+        "negative": "Page and Preview remain denied; foreign tools/Origin/Store/Partition, missing values, stale package/epoch, forged sender rejected; expired, reused, revoked or changed-identity clear preview rejected even if count matches",
         "native": "Same SHA Chrome installed Cookie Editor actual get/list/set/remove/clear/observe and revocation"
       },
       "maxRequestBytes": 12000,
@@ -56437,8 +56447,8 @@
     ],
     "completeness": "Known source consumers identified; exhaustive consumer path enumeration cannot be verified without full repository grep. Phase P1 must enumerate and migrate all current consumers before deleting active alias."
   },
-  "currentRegistrySourceSha": "03e348d453dd4c0ad1984e04c059c96496125a89",
-  "currentSchemaSourceSha": "60f1786c6fd046b078e36515af2574aa52f812e4",
+  "currentRegistrySourceSha": "d09f52061812352064ae3d2b85697ac7269bff20",
+  "currentSchemaSourceSha": "428bed4376b5ed8d275e2961c5438ea7b885cf22",
   "contractRevisions": [
     {
       "date": "2026-10-13",
@@ -56463,6 +56473,14 @@
       "change": "Registered 29->40, Host-only-design 11->0, approved 55 unchanged, source discovery 191/1830 unchanged",
       "node": "NOT_TESTED",
       "build": "NOT_TESTED",
+      "nativeChrome": "NOT_TESTED"
+    },
+    {
+      "date": "2026-10-13",
+      "id": "R9-exact-Cookie-clear-preview",
+      "reason": "Count-only preview can delete replacement cookies when the cookie set changes but count remains equal",
+      "change": "Bind exact sorted Cookie identity fingerprint to opaque one-use in-memory previewRef, tool instance/epoch/site/store/partition, expiry 60s; no extra Registry/Service",
+      "node": "NOT_TESTED",
       "nativeChrome": "NOT_TESTED"
     }
   ]
