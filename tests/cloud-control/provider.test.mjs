@@ -61,6 +61,8 @@ test('real HTTP/native WebSocket provider: durable claim, empty retry, permit re
     assert.deepEqual(suspended,{suspended:true,grantId});
     assert.deepEqual(await post('/v1/suspend',{grantId}),suspended,'Stop acknowledgement must be idempotent');
     assert.deepEqual(await post('/v1/receipt',receipt),ack,'Confirmed receipt remains durable after Stop');
+    assert.deepEqual(await post('/admin/seed',seed,admin.adminToken),job,
+      'A previously accepted requestKey still returns its original JobId after Stop');
     await assert.rejects(post('/admin/seed',{...seed,requestKey:'stopped-new-job'},admin.adminToken),
       {code:'E_CLOUD_STOPPED'},'Stop must reject new external work even before Browser reconnects');
     await assert.rejects(post('/v1/claim',{claimId:'stopped-claim',grantId,tasks}),
