@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import {createHash,webcrypto} from 'node:crypto';
 import {readFile} from 'node:fs/promises';
 import {createDependencyManager,DEPENDENCY_STORAGE_KEYS as keys,DEPENDENCY_LIMITS} from '../../src/scripting/user-scripts/dependency-manager.js';
+import {createControllerClassicSavedSource,verifiedControllerClassicAuthorSource} from '../../src/ui/controller-esm-source.js';
 
 globalThis.crypto ||= webcrypto;
 const ns='tool:fixture';
@@ -396,4 +397,24 @@ test('R7.3 Controller Classic rejects moving versions, private hosts, ESM and ar
   await assert.rejects(call('// @opendesk-classic https://cdn.example.org/pkg@1.2.3/a.js\n'+
     "import a from 'something';"),failCode('E_CONTROLLER_CLASSIC_FORMAT'));
   assert.equal(f.calls.length,0);
+});
+
+
+test('R7.3 Controller Classic saved Revision cryptographically binds author, Worker bytes and dependency lock',async()=>{
+  const f=fixture(),url='https://libraries.example.org/widget@1.2.3/dist/widget.js';
+  const library='globalThis.widget={value:21};';
+  const original='// @opendesk-classic '+url+'\nasync function main(){return widget.value;}';
+  f.routes.set(url,{bytes:library});
+  const prepared=await f.manager.prepareControllerClassic({
+    programId:'widget',sourceUtf8:original,explicitUserAction:true,allowDownload:true},{});
+  const stored=await createControllerClassicSavedSource({authorSourceUtf8:original,programId:'widget',prepared});
+  const recovered=await verifiedControllerClassicAuthorSource(stored);
+  assert.equal(recovered.authorSourceUtf8,original);
+  assert.equal(recovered.compiledSourceUtf8,prepared.sourceUtf8);
+  assert.equal(recovered.dependencyLockId,prepared.lockId);
+  assert.equal(recovered.dependencies[0].sha256,sha(library));
+  await assert.rejects(verifiedControllerClassicAuthorSource(stored+'// byte corruption'),
+    failCode('E_CONTROLLER_CLASSIC_HASH'));
+  await assert.rejects(createControllerClassicSavedSource({authorSourceUtf8:original+' ',
+    programId:'widget',prepared}),failCode('E_CONTROLLER_CLASSIC_SOURCE'));
 });
