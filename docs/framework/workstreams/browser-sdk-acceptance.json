@@ -12,9 +12,9 @@
     "auditOnly": true
   },
   "summary": {
-    "operationCount": 27,
+    "operationCount": 28,
     "implementationCounts": {
-      "IMPLEMENTED": 27,
+      "IMPLEMENTED": 28,
       "PLANNED": 0,
       "HOST_ONLY": 0,
       "NOT_EXPOSED": 0
@@ -730,8 +730,8 @@
         "sidebar-tool"
       ],
       "exposure": "APPROVED_TOOL",
-      "inputSchema": "src/framework/sdk/browser-contract.js#browser.tabs.closeOwned",
-      "outputSchema": "src/framework/sdk/browser-contract.js#browser.tabs.closeOwned",
+      "inputSchema": "src/framework/sdk/browser-contract.js#browser.tabs.pinOwned",
+      "outputSchema": "src/framework/sdk/browser-contract.js#browser.tabs.pinOwned",
       "chromePermissions": [
         "tabs",
         "webNavigation"
@@ -762,6 +762,50 @@
         "Native Chrome pin/unpin receipt, revoke during effect and current candidate Node/Build acceptance pending"
       ],
       "nextTask": "Validate real installed tool pinOwned true/false via Chrome tabs.update, one-use consent, and owner/document fencing",
+      "commits": [],
+      "evidence": []
+    },
+    {
+      "api": "browser.tabs.reloadOwned",
+      "module": "browser.tabs",
+      "apiVersion": "1.0.0",
+      "implementation": "IMPLEMENTED",
+      "executionContexts": [
+        "sidebar-tool"
+      ],
+      "exposure": "APPROVED_TOOL",
+      "inputSchema": "src/framework/sdk/browser-contract.js#browser.tabs.reloadOwned",
+      "outputSchema": "src/framework/sdk/browser-contract.js#browser.tabs.reloadOwned",
+      "chromePermissions": [
+        "tabs",
+        "webNavigation"
+      ],
+      "toolCapabilities": [
+        "browser.tabs"
+      ],
+      "effectClass": "write",
+      "riskLevel": "high",
+      "siteScope": "tab-ref",
+      "lifecycle": "request",
+      "hostImplementation": "src/platform/chrome/context-menus.js",
+      "sdkEntry": "src/framework/sdk/browser.js",
+      "positiveTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "denialTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "nativeChrome": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "callableNowVerification": "NOT_TESTED",
+      "blockers": [
+        "Same-candidate Node test/build/real Chrome reload acknowledgement and document-revocation receipt pending"
+      ],
+      "nextTask": "Verify installed tool reloadOwned, Chrome tabs.reload request, revalidation and irreversible TabRef retirement after unknown effects",
       "commits": [],
       "evidence": []
     },
@@ -1400,6 +1444,13 @@
       "source": "src/platform/chrome/browser-tabs.js",
       "host": "src/platform/chrome/context-menus.js",
       "node": "NOT_TESTED",
+      "nativeChrome": "NOT_TESTED"
+    },
+    "reloadOwned": {
+      "api": "browser.tabs.reloadOwned",
+      "implementation": "SOURCE_WIRED",
+      "receipt": "reloadRequested_not_loadCompleted",
+      "retirement": "TabRef consumed before native effect",
       "nativeChrome": "NOT_TESTED"
     }
   },
