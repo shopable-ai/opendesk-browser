@@ -1,3 +1,5 @@
+> **R9 预发布优先级（2026-10-13）**：本文件为 R8 历史架构记录。现行接口以 `browser-sdk-prelaunch-contract-20261013.zh-CN.md` 和 `src/framework/sdk/browser-contract.js` 为准；原 35 项不能再强制兼容。R9 已移除 7 项未实现 Media/Speech 与 2 项未开放 Notifications，完整消费者迁移、统一 Cookies SDK、原生 Chrome 验收仍是独立待办。
+
 # Browser SDK R8 · 统一架构与第一批真实提交
 
 > 实施基线：远端 main `a6f68e04bf9788d7f287385a1081ca973a9a4990`；R8 是增量、分阶段交付。现阶段不得宣称 Chrome API 全量覆盖或 Cookie Editor 原生打通。
