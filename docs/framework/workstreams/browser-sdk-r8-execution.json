@@ -42,21 +42,24 @@
     "properties": 11
   },
   "verification": {
-    "node": "NOT_TESTED",
-    "check": "NOT_TESTED",
-    "build": "NOT_TESTED",
-    "buildDev": "NOT_TESTED",
-    "verify": "NOT_TESTED",
+    "node": "PASS",
+    "check": "PASS",
+    "build": "PASS",
+    "buildDev": "PASS",
+    "verify": "PASS",
     "nativeChrome": "NOT_TESTED",
-    "reason": "Latest candidate CI pending; historical independent PASS/FAIL retained in evidenceHistory"
+    "evidenceCandidateSha": "96e691f735d660cb299d2adda825b8effeb47ee6",
+    "evidenceRuns": [
+      38350576715,
+      38350576755
+    ],
+    "evidencePolicy": "All PASS apply to exact candidate source inputs; later unrelated documentation or product changes do not automatically upgrade/downgrade native evidence"
   },
   "blocked": [
-    "Chromium Native Catalog is only 8 pinned JSON namespaces (70 methods, 38 events, 11 properties); IDL and remaining namespaces are pending",
     "Cookie 10 HOST_ONLY operations are not formal OpenDeskSDK.browser cookies methods; sandbox remains disallowed",
     "Cookie observe.getStatus currently drains event data; new observe.read and stable event semantics remain unapproved",
     "No same-candidate real Chrome 138+/Mac native Cookie acceptance, worker restart, UI disclosure, or mutation reconciliation evidence",
-    "User Mac workspace unmounted here; live local Git status and Chrome UI/native tests cannot be verified",
-    "R7 Cookie test correction candidate CI at 96e691f is pending"
+    "User Mac workspace unmounted here; live local Git status and Chrome UI/native tests cannot be verified"
   ],
   "next": [
     "Finish R7 Cookie test-fix CI for SHA 96e691f; record precise PASS/FAIL evidence and fix any actual failures",
@@ -77,7 +80,7 @@
     "getStores",
     "getPartitionKey"
   ],
-  "lastReviewedMainSha": "d5712897adf7b8471227fb2b40d132af5363505c",
+  "lastReviewedMainSha": "9260b8cecb442d37a35b61256323f6c8e7552662",
   "verifiedScope": "R7 private HOST-only 10 Cookie operations; original 35 public operations unchanged",
   "crossWorkstream": {
     "name": "Browser SDK R7.0 trusted Cookies",
@@ -135,8 +138,34 @@
         38350576755
       ],
       "level": "NODE_BUILD_VERIFY",
-      "status": "PENDING"
+      "status": "PASS",
+      "testEvidence": [
+        {
+          "runId": 38350576715,
+          "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38350576715",
+          "conclusion": "success",
+          "includes": [
+            "Browser SDK R7/R8/legacy contract tests",
+            "Chromium offline drift check",
+            "SDK acceptance guards",
+            "npm run check",
+            "npm run build",
+            "npm run build:dev",
+            "npm run verify"
+          ]
+        },
+        {
+          "runId": 38350576755,
+          "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38350576755",
+          "conclusion": "success",
+          "includes": [
+            "Browser SDK targeted main verification",
+            "Source/package check and builds"
+          ]
+        }
+      ]
     }
   ],
-  "lastWritePurpose": "R8 status reconciliation with completed R7 HOST_ONLY Cookie work and CI diagnostic; no new public SDK permissions"
+  "lastWritePurpose": "R8 status reconciliation with completed R7 HOST_ONLY Cookie work and CI diagnostic; no new public SDK permissions",
+  "latestCiReconciliation": "2026-10-13: fixed stale-document test CI 38350576715 and 38350576755 both completed success at 96e691f; same-candidate native Chrome still NOT_TESTED."
 }
