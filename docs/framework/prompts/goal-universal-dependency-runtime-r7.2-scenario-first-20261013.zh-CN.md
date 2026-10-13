@@ -32,6 +32,24 @@ GitHub：`https://github.com/shopable-ai/opendesk-browser`
 - **源码现实与目标严格分离**：R7.1 的 `page-dependency-install.js`、R4 的 `page-component-remote.js` 仍存在强制人工审批路径。先改造现有 UI/状态机/Manager 的调用方式，维持原子校验与锁，并补新单元 + 实际 Chrome 用户交互，不能宣称已经符合本目标。
 - **优先验收**：无新增库和预装库均一次 Run；新 Classic 或 ESM 只 Run 一次（若 Chrome 需权限则仅原生弹窗），程序自动获取、校验、固定并运行真正第三方函数；B 同库无需新审批且 CDN 下载 0 次；保存/重启/离线成功，缺权限/坏 SHA/不兼容时安全阻断。
 
+## P0.2 唯一实施路线：直接加载优先，不能误做 CDN script.src
+
+本轮以 `docs/framework/universal-dependency-runtime-usage-contract.zh-CN.md` **第 3.1 节**为固定技术决策：Native / File-First、按执行世界装载固定原始字节、仅 ESM 必要编译。此前对 A（网页 CDN script.src）、B（所有库重新编译）、C（混合原生方案）的分数只是方案估计，**不代表源码已实现或 95+ 验收**。
+
+**产品体验门槛：用户只点 Run。** 系统自动解析与复用预装、当前程序固定 SHA、跨程序相同字节或首次网络资源；自动生成每个 Program/Revision/world 技术锁，不再要求每个库单独“检查→下载→勾选 SHA→批准”。这不免除真正的 Chrome 权限、网站/敏感能力及安装/定时/云控授权。
+
+**技术边界：** Page Classic 优先原 `chrome.userScripts.execute` + `USER_SCRIPT` + 已校验 `js:[{code}]`，Classic 不经 Babel；扩展包内真正存在的文件才可用 `js.file`。普通 `document.createElement('script')` + 远程 `script.src` 不能替代 USER_SCRIPT，不能默认注入 MAIN；Tool 的本地 Blob script.src 属既有 opaque sandbox，按序加载需要真实 onload/error 证据。Controller 继续受控 Worker，不能把远程第三方 JS 注入特权 SW；ESM 继续 Developer 固定 linker，Standard 不放大型编译器。对 CWS/MV3 必须按世界单独核查，不认定 Worker/Blob 自然豁免。
+
+### 按用户目标实施的五道连续关卡（不能只写测试驱动）
+
+1. **修复真正阻塞验证的环境问题。** 从当前 HEAD 和现有工作流复用证据开始：历史 R7.2 CFT `38359159942` 的 27/27 Node 通过，但当时 `scripts/verify-package.mjs` 报 `Unexpected web accessible resources`，**Chrome 被跳过**；最新 main 已可能修正，先核查文件/当前 CI 而非复写 Browser SDK 其他 Agent 修改。保留失败原件，对当前候选运行必要的 `npm run check`、定向 Node 和 Standard/Developer build/verify，再进入真正 CFT。
+2. **先交付 D02/D03 Page 的真正“唯一 Run”。** 先改现有 `script-editor.js`、`page-dependencies.js`、`page-dependency-install.js` 的 UI/手势状态，再重用原 `dependency-manager.js`、`preview.js`、`execution-source.js` 和 SHA 资产库；禁止给项目加第二个依赖服务。缺 Chrome 来源权限时，`permissions.request()` 必须在真实 Run 点击的同步手势内发起；只读检查可预热。若因动态来源无法及时确认手势，则明确要求一次必要的权限操作，不能伪造或滥用该手势。新固定 Classic UMD 真实运行其原函数；B 自动用 A 的 SHA，CDN 新下载=0，但未获网站权限时 B 仍拒绝运行。**现存 `tests/framework/page-dependency-r72-cft-cycle.mjs` 是 R7.1 旧“人工审核”驱动，必须重写或新增 Run-First 断言，不允许复用其手工审批 PASS 当 D02/D03 成果**。
+3. **Controller D04/D05 及保存语义。** 新 Classic 在原受控 Worker 运行，无网站 window/document 时才视为兼容；`@vanillaes/csv@4.1.3` 必须用真实上游三模块 ESM 返回 `count=2,total=21`，经过原 RunHost/Authority 得真实 Result；保存 Author Source/固定可执行资产/锁/Revision，区别草稿 Run 和已保存版本，检查 Stop/取消、重启离线及不同 Program 锁；CWS 适用性不确定时单列阻断。
+4. **独立 Tool 多库 + React/Vue 额外依赖。** 仅扩展 `tool.config.json`、`scripts/build-sidebar-tool.mjs`、`src/ui/sidebar-tools/package.js`、`src/sidebar-tools/bridge.js` 与已有安装工具，不造新 Tool Host。验证两份固定 Classic 的 onload/error 加载顺序、实际界面交互、持久保存、卸载/停用/重启；React/Vue 用已有固定框架和审核图按需编译，受管 Stop 完整清理。
+5. **正式安装、定时/云控及 D01–D12 验收。** 安装一次后只消费不可变 Program Revision，调度时禁止新 CDN 下载、依赖版本静默升级及重编译；检查整 Chrome 关闭重启/断网、坏 SHA、撤权、引用 GC、不同版本不串锁、unknown effect 不重放。输出 sourceHash、URL/版本/MIME/字节/SHA、A/B 锁、执行世界、下载与编译真实次数、runId/resultId、packageHash、Chrome 版本和原始结果。Node、CFT、用户 Mac Chrome、CWS 合规逐级标注，不能跨级。
+
+**每关通过标准**是“用户实际怎样操作 → 真实源代码路径 → 程序结果 → 原始受信验证和精确候选 SHA → 剩余缺口”，不是新增演示 HTML、只增加 mock 测试、只写另一份 GOAL 或把实现提交等同完整交付。无同包证据标 `NOT_TESTED`；Mac 不可访问标 `MAC_NATIVE_NOT_TESTED`。仅在文件无并行冲突且必要测试成功时安全提交/推送 `main`，不创建工作树或其他分支。结尾按易用性、库覆盖、执行场景、缓存、安全、诊断、真实测试、架构复用八维给出**有证据的**分数，没有证据不得宣布 95+。
+
 ## P1 第一门槛：完成 R7.1 已实施 Page Classic 的真实 Chrome 闭环（先于新功能）
 
 R7.1 的 `Page @require` 首次检查、获取、手工审核、锁、跨程序共享 SHA UI 已有源码与 Node CI；**这是历史接线，额外人工批准是要修复的 UX 缺陷**。严禁重建 Manager，优先打通 Run 自动准备。必须用真实 Standard/Developer 扩展 Side Panel 和官网/实际固定分发，证明：
