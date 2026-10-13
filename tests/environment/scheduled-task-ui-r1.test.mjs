@@ -387,3 +387,19 @@ test('R2.8 true host refresh retains keyboard focus, open details and inline con
     'periodic refresh must not clear the active form error');
   assert.doesNotMatch(source,/chrome\.alarms\.create|new Worker\(/);
 });
+
+test('R2.8 production create form keeps 36px controls and a distinct field label layout',async()=>{
+  const [html,css]=await Promise.all([load('src/ui/tool.html'),load('src/ui/tool-shell.css')]);
+  for(const id of ['schedule-source-section-title','schedule-target-section-title',
+    'schedule-timezone-summary','schedule-timezone-edit','schedule-timezone-controls',
+    'schedule-next-time','schedule-next-zone','schedule-confirm-yes'])
+    assert.match(html,new RegExp('id="'+id+'"'));
+  assert.match(html,/id="schedule-timezone-controls"[^>]*hidden/);
+  assert.match(css,/\.schedule-form label\.od-field,#schedule-task-manager label\.od-field\{display:grid;gap:var\(--space-2\)/);
+  assert.match(css,/#schedule-task-manager input,#schedule-task-manager select\{max-width:100%;width:100%;min-width:0;min-height:36px/);
+  assert.match(css,/\.schedule-source-row\{display:grid;grid-template-columns:minmax\(0,1fr\) var\(--od-icon-size\) var\(--od-icon-size\)/);
+  assert.match(css,/\.schedule-form-section input\.od-field,\.schedule-form-section textarea\.od-field,/);
+  assert.match(css,/\.schedule-next-preview>strong\{font-size:17px/);
+  assert.match(css,/#scheduled-panel\[hidden\],#scheduled-panel \[hidden\]\{display:none!important\}/,
+    'collapsed native controls must remain hidden instead of taking space');
+});
