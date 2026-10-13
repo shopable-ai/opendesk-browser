@@ -233,7 +233,10 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
     shown=true;get('scheduled-panel').hidden=false;
     taskWorkbench.setScheduledSurfaceActive?.(true);
     doc.querySelector('#workbench-tasks .tasks-surface').hidden=true;
-    doc.querySelector('#workbench-tasks .cloud-my-entry').hidden=true;
+    // The optional Cloud quick entry was retired from current tool.html.
+    // Keep both the old optional entry and the official Tasks surface safe.
+    const cloudEntry=doc.querySelector('#workbench-tasks .cloud-my-entry');
+    if(cloudEntry)cloudEntry.hidden=true;
     if(cloudPanel)cloudPanel.hidden=true;
     onOpen();
   };
@@ -241,7 +244,8 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
     shown=false;get('scheduled-panel').hidden=true;
     taskWorkbench.setScheduledSurfaceActive?.(false);
     doc.querySelector('#workbench-tasks .tasks-surface').hidden=false;
-    doc.querySelector('#workbench-tasks .cloud-my-entry').hidden=false;
+    const cloudEntry=doc.querySelector('#workbench-tasks .cloud-my-entry');
+    if(cloudEntry)cloudEntry.hidden=false;
     const cloudPanel=doc.querySelector('#workbench-tasks .cloud-panel');
     if(cloudPanel&&cloudPanelVisibility!==undefined)cloudPanel.hidden=cloudPanelVisibility;
     cloudPanelVisibility=undefined;
