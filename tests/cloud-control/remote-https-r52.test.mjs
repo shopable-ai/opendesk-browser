@@ -216,6 +216,8 @@ test('one Provider serves authenticated HTTPS/WSS and target-scoped client submi
       permittedResultClient.credential)).result.valueWire.text,'RESULT-BODY-CONSENT-ONLY');
     const stopped=await retry('/v1/suspend',{grantId},executor.credential);
     assert.deepEqual(stopped,{suspended:true,grantId});
+    assert.deepEqual(await retry('/v1/submit',seed,grant.credential),created,
+      'A stopped browser must not lose the durable result of a prior accepted requestKey');
     await assert.rejects(localPost(provider.port,'/admin/client-grant',
       {executorId,tasks:[pin],allowResult:false},admin.adminToken),
       {code:'E_EXECUTOR_TARGET'},'Paused hosting cannot authorize another external client');
