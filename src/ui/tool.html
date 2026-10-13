@@ -706,7 +706,7 @@
   </div>
   <div id="workbench-develop" role="tabpanel" aria-labelledby="tab-develop" class="od-page" data-workbench-page="develop" hidden>
   <section aria-label="当前网页" class="developer-target">
-    <details id="developer-target-detail">
+    <details id="developer-target-detail" class="od-disclosure">
       <summary class="developer-page-summary">
         <span class="developer-page-label">当前网页</span>
         <span id="script-current-page-host" title="当前活动网页">正在识别…</span>
@@ -857,7 +857,7 @@
       </div>
     </details>
   </div></details>
-  <details id="developer-run-technical" class="developer-run-technical od-disclosure od-disclosure--flat"><summary>运行目标与版本</summary>
+  <details id="developer-run-technical" class="developer-run-technical od-disclosure"><summary>运行目标与版本</summary>
     <p id="script-task-id" class="identity">尚未运行</p>
     <p id="script-running-target" class="identity" data-state="idle">运行目标：尚未建立</p>
     <p id="script-task-version" class="identity"></p>
@@ -917,7 +917,7 @@
       <details class="od-disclosure od-disclosure--flat"><summary>当前网页精确身份</summary><pre id="script-current-page-debug" aria-label="当前网页精确目标"></pre></details>
     </details>
   </section>
-  <details id="tool-diagnostics"><summary>Advanced / Diagnostics</summary>
+  <details id="tool-diagnostics" class="od-disclosure"><summary>Advanced / Diagnostics</summary>
   <section id="scraping-panel" aria-label="采集模块"></section>
   <section aria-labelledby="sdk-title"><h2 id="sdk-title">独立网页 SDK</h2>
     <p>SDK 与 axiosx 会自动加载到允许访问的 HTTP(S) 网页。默认同源 HTTP 与固定本地实验测试 Origin 无需逐页审批；本区域只用于<strong>额外跨站 Origin 或高级能力</strong>的显式授权、检查和撤销。后台仍按真实网页身份核查每次请求。</p>

@@ -93,6 +93,42 @@ test('Shared components own normal visual appearance; business CSS retains only 
   assert.match(components, /\.od-alert--warning\{background:var\(--od-warning-bg\)/);
 });
 
+test('Developer disclosure headers share the Run Result surface; nested diagnostics remain lightweight', () => {
+  const dev = section('workbench-develop', 'workbench-debug');
+  for (const id of [
+    'developer-target-detail', 'manual-project-params-tools', 'developer-results-panel',
+    'developer-run-technical', 'page-preview-tools', 'script-library-tools',
+    'script-advanced', 'tool-diagnostics'
+  ]) {
+    const tag = element(dev, 'details', id);
+    assert.ok(has(tag, 'od-disclosure'), 'Missing shared disclosure: ' + id);
+    assert.ok(!has(tag, 'od-disclosure--flat'), 'Top-level disclosure must match Run Result: ' + id);
+  }
+  for (const id of [
+    'page-dependency-panel', 'script-history-panel', 'page-preview-technical-panel',
+    'task-package-dev', 'site-access'
+  ])
+    assert.ok(has(element(dev, 'details', id), 'od-disclosure--flat'),
+      'Nested technical disclosure should not create another card: ' + id);
+  const summary = components.match(/\.od-disclosure>summary\{([^}]*)\}/)?.[1] || '';
+  for (const rule of [
+    'display:flex', 'align-items:center', 'flex-wrap:wrap',
+    'gap:var(--space-2)', 'min-height:40px',
+    'padding:var(--space-2) var(--space-3)',
+    'font-size:var(--od-body-size)', 'font-weight:650',
+    'color:var(--od-ink)'
+  ]) assert.ok(summary.includes(rule), 'Missing shared header rule: ' + rule);
+  assert.match(components, /\.od-disclosure>summary::before\{[^}]*transform:rotate\(-45deg\)/);
+  assert.match(components, /@media\(pointer:coarse\)\{\.od-disclosure>summary\{min-height:44px\}/);
+  for (const obsolete of [
+    '.developer-params summary', '.developer-results summary', '.result-history>summary',
+    '#workbench-develop .result-history{', '#tool-diagnostics>summary',
+    '.developer-page-summary::after'
+  ]) assert.ok(!shell.includes(obsolete), 'Obsolete disclosure override: ' + obsolete);
+  assert.ok(!/\.developer-results-body\{[^}]*padding-top/.test(shell), 'Result has double vertical inset');
+  assert.ok(!/\.developer-history-content\{[^}]*padding-top/.test(shell), 'History has double inset');
+});
+
 test('Other formal tabs reuse shared actions without restyling their unique filters', () => {
   for (const [id,variant] of [
     ['task-refresh','secondary'], ['task-uninstall','danger'],

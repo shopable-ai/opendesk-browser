@@ -279,6 +279,7 @@ function measureScene(scene){
   const panel=get('[data-workbench-page="'+scene.tab+'"]');
   const metrics={
     viewport:{width:innerWidth,height:innerHeight},
+    coarsePointer:matchMedia('(pointer:coarse)').matches,
     documentOverflow:document.documentElement.scrollWidth>innerWidth+1,
     contentOverflow:content.scrollWidth>content.clientWidth+1,
     panelOverflow:panel.scrollWidth>panel.clientWidth+1,
@@ -329,7 +330,7 @@ function measureScene(scene){
     metrics.corners.detail=radius('.debug-detail');
   }
   if(scene.tab==='develop'){
-    metrics.corners.page=radius('.developer-page-summary');
+    metrics.corners.page=radius('#developer-target-detail');
     metrics.corners.editor=radius('#script-source');
     const target=box('.developer-target');
     const switchBox=box('.developer-source-switch');
@@ -338,6 +339,19 @@ function measureScene(scene){
     const children=[...get('.developer-editor').children].filter(e=>!e.hidden&&getComputedStyle(e).display!=='none'&&getComputedStyle(e).position!=='absolute');
     const layout=children.map(e=>e.getBoundingClientRect());
     metrics.developGaps.push(...layout.slice(1).map((r,i)=>Math.round(r.top-layout[i].bottom)));
+    metrics.developerDisclosureHeaders=[
+      'developer-target-detail', 'manual-project-params-tools', 'developer-results-panel',
+      'developer-run-technical', 'page-preview-tools', 'script-library-tools',
+      'script-advanced', 'tool-diagnostics'
+    ].map(id=>{
+      const details=get('#'+id);
+      const summary=details?.querySelector(':scope > summary');
+      if(!summary?.getClientRects().length)return null;
+      const style=getComputedStyle(summary);
+      return {id,open:details.open,height:summary.getBoundingClientRect().height,
+        fontSize:parseFloat(style.fontSize),fontWeight:parseInt(style.fontWeight,10),
+        paddingTop:parseFloat(style.paddingTop),paddingBottom:parseFloat(style.paddingBottom)};
+    }).filter(Boolean);
     if(!scene.local){
       const label=box('.page-component-label'),choices=box('.page-component-choices');
       metrics.codeType={
@@ -364,13 +378,23 @@ function validate(scene,width,m){
     throw Error('Code type label/choices must share a readable, accessible row '+scene.name+' '+width+'px');
   if(scene.tab==='tools'&&m.iconButtons.some(b=>b.width<33.5||b.height<33.5||b.radius!=='8px'||!b.label||!b.title))
     throw Error('Icon action is not 34px accessible control '+scene.name+' '+width+'px '+JSON.stringify(m.iconButtons));
-  const expected={tasks:{taskCard:'12px'},'local-discover':{import:'8px',filter:'8px',filterGroup:'12px',list:'12px'},workflow:{card:'12px',icon:'8px'},develop:{page:'8px',editor:'12px'},tools:{card:'12px',install:'8px'},debug:{card:'12px',detail:'12px'}};
+  const expected={tasks:{taskCard:'12px'},'local-discover':{import:'8px',filter:'8px',filterGroup:'12px',list:'12px'},workflow:{card:'12px',icon:'8px'},develop:{page:'12px',editor:'12px'},tools:{card:'12px',install:'8px'},debug:{card:'12px',detail:'12px'}};
   // An empty task list intentionally has no card whose radius could be measured.
   if(scene.tab==='tasks'&&scene.state==='empty')delete expected.tasks.taskCard;
   for(const [key,value] of Object.entries(expected[scene.tab])){
     if(m.corners[key]!==value)throw Error('Radius mismatch '+scene.name+' '+key+': '+m.corners[key]+' expected '+value);
   }
   if(scene.tab==='develop'&&m.developGaps.some(v=>Math.abs(v-8)>1))throw Error('Developer gap mismatch '+scene.name+' '+width+'px '+JSON.stringify(m.developGaps));
+  if(scene.tab==='develop'){
+    const height=m.coarsePointer?44:40;
+    for(const item of m.developerDisclosureHeaders){
+      if(item.height<height-.5||item.fontSize!==13||item.fontWeight!==650||
+        item.paddingTop!==8||item.paddingBottom!==8)
+        throw Error('Developer disclosure header mismatch '+scene.name+' '+width+'px '+JSON.stringify(item));
+      if(!item.open&&item.id!=='developer-target-detail'&&Math.abs(item.height-height)>1)
+        throw Error('Closed Developer header has extra vertical spacing '+scene.name+' '+width+'px '+JSON.stringify(item));
+    }
+  }
 }
 try{
   await mkdir(out,{recursive:true});

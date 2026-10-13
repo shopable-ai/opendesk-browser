@@ -61,7 +61,13 @@ details>section{margin-top:var(--space-3)}
 .od-alert--warning{background:var(--od-warning-bg);border-color:var(--od-warning-border);color:var(--od-warning-ink)}
 .od-alert--error{background:var(--od-negative-bg);border-color:var(--od-negative);color:var(--od-negative)}
 .od-disclosure{min-width:0;margin:0;border:1px solid var(--od-line);border-radius:var(--radius-surface);background:var(--od-paper);color:var(--od-ink)}
-.od-disclosure>summary{min-height:40px;padding:var(--space-2) var(--space-3);font-size:var(--od-body-size);line-height:1.5;font-weight:650;color:var(--od-ink);overflow-wrap:anywhere}
+/* All trusted disclosures use the same centered header, marker and type scale.
+ * Keep the lighter --flat and emphasis-only --info variants on this one component. */
+.od-disclosure>summary{display:flex;align-items:center;flex-wrap:wrap;gap:var(--space-2);min-height:40px;padding:var(--space-2) var(--space-3);list-style:none;cursor:pointer;font-size:var(--od-body-size);line-height:1.5;font-weight:650;color:var(--od-ink);overflow-wrap:anywhere}
+.od-disclosure>summary::-webkit-details-marker{display:none}
+.od-disclosure>summary::before{content:"";flex:none;width:7px;height:7px;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:rotate(-45deg)}
+.od-disclosure[open]>summary::before{transform:rotate(45deg)}
+.od-disclosure>summary>*{min-width:0}
 .od-disclosure[open]>summary{border-bottom:1px solid var(--od-line)}
 .od-disclosure>:not(summary){min-width:0;margin:var(--space-2) var(--space-3) 0}
 .od-disclosure>:last-child:not(summary){margin-bottom:var(--space-3)}
@@ -74,6 +80,9 @@ details>section{margin-top:var(--space-3)}
 .od-disclosure--flat>:last-child:not(summary){margin-bottom:0}
 .od-segmented{display:flex;width:max-content;max-width:100%;gap:2px;padding:3px;background:var(--od-muted);border:1px solid var(--od-input-border);border-radius:var(--radius-surface)}
 .od-segmented>button{min-height:32px;border-radius:var(--radius-control)}
+
+/* Collapsible rows are interactive controls, including nested technical details. */
+@media(pointer:coarse){.od-disclosure>summary{min-height:44px}}
 
 /* Keep the trusted tool host aligned with tools that follow the OS theme. */
 @media(prefers-color-scheme:dark){
