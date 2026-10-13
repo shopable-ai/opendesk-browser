@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {getScheduleDeviceTimeZone,listScheduleTimeZoneGroups,filterScheduleTimeZoneGroups} from '../../src/ui/scheduled-task-workbench.js';
+import {nextScheduleAt,parseWallScheduleTime,formatWallScheduleTime} from '../../src/platform/tasks/schedule-time.js';
 
 const flatten=groups=>groups.flatMap(g=>g.options);
 test('R2.5 timezone choices detect the browser zone but persist a concrete IANA value',()=>{
@@ -90,4 +91,19 @@ test('R2.6 production IANA search and save-confirmation retain the original auth
   assert.match(css,/\.schedule-form-section\{display:grid;gap:var\(--space-3\)/);
   assert.match(preview,/id="zone-query"[^>]+type="search"|type="search" id="zone-query"/);
   assert.match(preview,/timeZoneChoices\(selected,el\.value\)/);
+});
+
+test('R2.6 DST gaps/folds and timezone crossings use only the canonical scheduler',()=>{
+  const spring=parseWallScheduleTime('America/New_York','2026-03-08T02:30');
+  assert.equal(new Date(spring).toISOString(),'2026-03-08T07:00:00.000Z',
+    'the nonexistent spring hour advances to the first real wall-time minute');
+  assert.equal(formatWallScheduleTime('America/New_York',spring),'2026-03-08T03:00');
+  const fold=parseWallScheduleTime('America/New_York','2026-11-01T01:30');
+  assert.equal(new Date(fold).toISOString(),'2026-11-01T05:30:00.000Z',
+    'the first physical instant wins the duplicated autumn wall-time minute');
+  assert.equal(nextScheduleAt('daily',{hour:9,minute:0},'Asia/Tokyo',
+    Date.parse('2026-10-13T00:30:00Z')),Date.parse('2026-10-14T00:00:00Z'));
+  assert.equal(nextScheduleAt('daily',{hour:9,minute:0},'Asia/Shanghai',
+    Date.parse('2026-10-13T00:30:00Z')),Date.parse('2026-10-13T01:00:00Z'));
+  assert.throws(()=>parseWallScheduleTime('Bad/Zone','2026-10-13T09:00'));
 });
