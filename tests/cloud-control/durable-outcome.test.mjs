@@ -52,6 +52,12 @@ function fixture({request=baseRequest,run=baseRun,result=baseResult}={}){
         providerId:'provider-one',assignments:[{assignmentId:'assignment-one',
           runRef:ref,cancelled:true,leaseUntil:200}]
       }),{status:200,headers:{'Content-Type':'application/json'}});
+      if(url.endsWith('/v1/receipt')){
+        assert.deepEqual(posts.at(-1).body.result,{visibility:'status-only',
+          state:'completed',retirementState:'released'});
+        return new Response(JSON.stringify({receiptId:'status-receipt',digest:'status-digest'}),
+          {status:200,headers:{'Content-Type':'application/json'}});
+      }
       throw Error('Unexpected Provider call '+url);
     }
   });
@@ -87,7 +93,8 @@ test('Provider cancellation after real retirement does not relabel completed tas
   assert.equal(row.state,'finished');assert.equal(row.reason,undefined);
   assert.equal(f.read('runs',ref.runId).state,'completed');
   assert.equal(f.read('results',ref.resultId).state,'completed');
-  assert.equal(f.posts.length,1);
+  assert.equal(f.posts.length,2,'Durable terminal completion may acknowledge status despite Provider cancellation');
+  assert.equal(f.read('frameworkKV','cloud:request:'+requestId).receipt.receiptId,'status-receipt');
   assert.deepEqual(f.messages,[]);
 });
 
