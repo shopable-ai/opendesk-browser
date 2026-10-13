@@ -35,8 +35,9 @@ export function providerUrl(value,allowLoopback=false){
 }
 export function createCloudService({storage,api,clock={now:()=>Date.now()},assertHost,currentHost,resolveTask,emitToHost,fetcher=(...args)=>globalThis.fetch(...args)}){
   let online=false,reconciled=false,connectionState='offline',wake=()=>{},close=()=>{},revocationEpoch=0,connectionEpoch=0;
-  const deliveries=new Set();let knownRemoteRuns=new Map();
-  function invalidate(){revocationEpoch++;connectionEpoch++;knownRemoteRuns=new Map();for(const abort of deliveries)abort.abort();}
+  const deliveries=new Map();let knownRemoteRuns=new Map();
+  function abortDeliveries(requestIds){for(const [abort,requestId]of deliveries)if(!requestIds||requestIds.has(requestId))abort.abort();}
+  function invalidate(){revocationEpoch++;connectionEpoch++;knownRemoteRuns=new Map();abortDeliveries();}
   const transaction=(mode,fn,names=[KV,'runs','commandJournal','results'])=>storage.transaction(names,mode,fn);
   const read=()=>transaction('readonly',tx=>tx.get(KV,CONFIG),[KV]);
   const history=createCloudHistoryIndex({storage,namespace:'tool:'+api.runtime.id});
@@ -100,7 +101,7 @@ export function createCloudService({storage,api,clock={now:()=>Date.now()},asser
   };
   async function post(config,path,body,{isCurrent=()=>true,timeoutMs=10000}={}){
     invariant(config?.credential,'E_PAIRING');
-    invariant(isCurrent(),'E_CLOUD_REVOKED');const abort=new AbortController();if(path==='receipt')deliveries.add(abort);
+    invariant(isCurrent(),'E_CLOUD_REVOKED');const abort=new AbortController();if(path==='receipt')deliveries.set(abort,body.runRef?.requestId);
     try{const response=await fetcher(config.url+'/v1/'+path,{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+config.credential},body:JSON.stringify(body),signal:AbortSignal.any([abort.signal,AbortSignal.timeout(timeoutMs)]),redirect:'error'});
       const value=await response.json();invariant(response.ok,value.error?.code||'E_PROVIDER',value.error?.message);return value;
     }finally{deliveries.delete(abort);}
@@ -279,6 +280,36 @@ export function createCloudService({storage,api,clock={now:()=>Date.now()},asser
     for(const t of tasks)for(const origin of t.manifest.siteOrigins)await requireGrant(api,origin);
     await scoped(sender,async(tx,host)=>{const c=await tx.get(KV,CONFIG);invariant(c&&!c.unpairing&&c.namespace===host.namespace&&!c.enabled,'E_PAIRING','Stop current hosting before changing approval');
       c.tasks=tasks;c.grantId=newId();c.claimId=null;c.pendingRequestId=null;c.enabled=true;c.revokedAt=null;c.remoteSuspension=null;await tx.put(KV,c,CONFIG);},'readwrite');wake();return cloudStatus({},sender);
+  }
+  async function cloudRevokeResults(request,sender){
+    invariant(request&&typeof request==='object'&&!Array.isArray(request)&&
+      Object.keys(request).every(k=>k==='taskId')&&nonempty(request.taskId),'E_SCHEMA');
+    const requestIds=new Set();
+    const revoked=await scoped(sender,async(tx,host)=>{
+      const c=await tx.get(KV,CONFIG);
+      invariant(c?.enabled&&!c.unpairing&&c.namespace===host.namespace,'E_CLOUD_REVOKED');
+      const task=c.tasks.find(row=>row.taskId===request.taskId);
+      invariant(task,'E_TASK');
+      task.resultAllowed=false;await tx.put(KV,c,CONFIG);
+      let rowsChanged=0,runsChanged=0,receiptsPreserved=0;
+      for(const row of await tx.all(KV)){
+        if(row?.tag!=='cloud-request-v1'||row.namespace!==host.namespace||row.grantId!==c.grantId||
+          !samePairing(row,c)||row.task?.taskId!==request.taskId)continue;
+        row.task.resultAllowed=false;rowsChanged++;requestIds.add(row.requestId);
+        if(row.delivery?.state==='pending'&&!row.receipt)row.delivery={...row.delivery,state:'aborted',reason:'E_CLOUD_REVOKED'};
+        if(row.receipt)receiptsPreserved++;
+        if(row.runId){
+          const run=await tx.get('runs',row.runId);
+          if(run?.tag==='controller-run'&&run.cloudRequestId===row.requestId&&!run.resultDeliveryRevoked){
+            run.resultDeliveryRevoked=true;runsChanged++;await tx.put('runs',run,run.runId);
+          }
+        }
+        await history.put(tx,row);
+      }
+      return {revoked:true,taskId:request.taskId,resultAllowed:false,rowsChanged,runsChanged,receiptsPreserved};
+    },'readwrite');
+    abortDeliveries(requestIds);wake();
+    return revoked;
   }
   async function fence(request,reason){
     const result=await transaction('readwrite',async tx=>{const r=await tx.get(KV,rowKey(request));if(!r)return;const run=r.runId&&await tx.get('runs',r.runId);
@@ -549,29 +580,29 @@ export function createCloudService({storage,api,clock={now:()=>Date.now()},asser
       if(!projection||r.receipt||projection.run.retirementState!=='released')continue;
       for(const origin of r.task.manifest.siteOrigins)await requireGrant(api,origin);
       const allowed=await transaction('readwrite',async tx=>{
-        const row=await tx.get(KV,rowKey(r)),config=await tx.get(KV,CONFIG),stored=await tx.get('runs',r.runId);await assertRunTaskAuthorization(tx,stored);
-        if(!current()||stored.resultDeliveryRevoked||!config?.enabled||config.grantId!==r.grantId||canonical(row.runRef)!==canonical(r.runRef))return false;
+        const row=await tx.get(KV,rowKey(r)),config=await tx.get(KV,CONFIG),stored=await tx.get('runs',r.runId),approved=config?.tasks?.find(t=>t.taskId===row?.task?.taskId&&t.version===row.task.version&&t.manifestHash===row.task.manifestHash&&t.contentHash===row.task.contentHash);await assertRunTaskAuthorization(tx,stored);
+        if(!current()||stored.resultDeliveryRevoked||!config?.enabled||config.grantId!==r.grantId||!row?.task.resultAllowed||approved?.resultAllowed!==true||canonical(row.runRef)!==canonical(r.runRef))return false;
         row.delivery={state:'pending',receiptKey:r.runRef.resultId,grantId:r.grantId,runRef:r.runRef};await history.put(tx,row);return true;
       });if(!allowed||!current())continue;
       // The durable delivery intent is not permission to send after an asynchronous
       // boundary. Recheck website and installed/output authorization at submission.
       for(const origin of r.task.manifest.siteOrigins)await requireGrant(api,origin);
       const stillAllowed=await transaction('readonly',async tx=>{
-        const config=await tx.get(KV,CONFIG),stored=await tx.get('runs',r.runId),row=await tx.get(KV,rowKey(r));
-        if(!current()||!config?.enabled||config.revokedAt||config.grantId!==r.grantId||stored?.resultDeliveryRevoked||canonical(row.runRef)!==canonical(r.runRef))return false;
+        const config=await tx.get(KV,CONFIG),stored=await tx.get('runs',r.runId),row=await tx.get(KV,rowKey(r)),approved=config?.tasks?.find(t=>t.taskId===row?.task?.taskId&&t.version===row.task.version&&t.manifestHash===row.task.manifestHash&&t.contentHash===row.task.contentHash);
+        if(!current()||!config?.enabled||config.revokedAt||config.grantId!==r.grantId||stored?.resultDeliveryRevoked||!row?.task.resultAllowed||approved?.resultAllowed!==true||canonical(row.runRef)!==canonical(r.runRef))return false;
         await assertRunTaskAuthorization(tx,stored);return true;
       });if(!stillAllowed||!current())continue;
       const result=projection.result,limited=r.task.resultAllowed===true?{visibility:'full',runId:result.runId,resultId:result.resultId,revision:result.revision,state:result.state,sourceHash:r.runRef.sourceHash,retirementState:projection.run.retirementState,...(result.outcome?.valueWire!==undefined?{valueWire:result.outcome.valueWire}:{}),...(result.outcome?.error?{error:result.outcome.error}:{})}:{visibility:'status-only',state:['completed','failed','stopped','interrupted'].includes(result.state)?result.state:'interrupted',retirementState:'released'};
       const receipt=await post(c,'receipt',{assignmentId:r.assignment.assignmentId,receiptKey:r.runRef.resultId,runRef:r.runRef,result:limited,...requestBinding(r)},{isCurrent:current});
       invariant(nonempty(receipt?.receiptId)&&nonempty(receipt.digest),'E_RECEIPT');
       await transaction('readwrite',async tx=>{
-        const row=await tx.get(KV,rowKey(r)),config=await tx.get(KV,CONFIG),stored=await tx.get('runs',r.runId);
-        if(!current()||!config?.enabled||config.grantId!==r.grantId||stored.resultDeliveryRevoked||canonical(row.runRef)!==canonical(r.runRef))return;
+        const row=await tx.get(KV,rowKey(r)),config=await tx.get(KV,CONFIG),stored=await tx.get('runs',r.runId),approved=config?.tasks?.find(t=>t.taskId===row?.task?.taskId&&t.version===row.task.version&&t.manifestHash===row.task.manifestHash&&t.contentHash===row.task.contentHash);
+        if(!current()||!config?.enabled||config.grantId!==r.grantId||stored.resultDeliveryRevoked||!row?.task.resultAllowed||approved?.resultAllowed!==true||canonical(row.runRef)!==canonical(r.runRef))return;
         await assertRunTaskAuthorization(tx,stored);row.receipt=receipt;row.delivery.state='confirmed';row.state='finished';await history.put(tx,row);
       });
     }
   }
-  return {cloudStatus,cloudObserve,cloudPair,cloudApprove,cloudStop,cloudUnpair,cloudClients,cloudClientGrant,cloudClientRevoke,cloudNext,cloudResolve,bind,permit,assertActive,read,post,reconcile,invalidate,retryRevocation,adoptPairing,
+  return {cloudStatus,cloudObserve,cloudPair,cloudApprove,cloudRevokeResults,cloudStop,cloudUnpair,cloudClients,cloudClientGrant,cloudClientRevoke,cloudNext,cloudResolve,bind,permit,assertActive,read,post,reconcile,invalidate,retryRevocation,adoptPairing,
     captureAuthentication(){const epoch=connectionEpoch;return ()=>epoch===connectionEpoch;},
     attachConnection({start,stop}){wake=start;close=stop;},connection(state){if(state!=='authenticated')connectionEpoch++;connectionState=state;online=state==='authenticated';if(!online)reconciled=false;},setReconciled(value){reconciled=value;}};
 }

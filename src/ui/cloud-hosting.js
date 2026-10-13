@@ -38,6 +38,8 @@ export function createCloudHosting({client,host,document:doc=globalThis.document
   let lastSamples='',lastFullRefresh=0,lastCatalogAt=0,lastCatalogStamp='';
   let requestOffset=0,requestNextOffset=null,selectedRequestIndex=null,selectedOriginalRunId=null;
   let taskChoices=[];const selections=new Map();
+  let hostingEnabled=false;
+  const updateResultConsent=()=>{get('cloud-result-consent').disabled=busy||hostingEnabled;};
   let statusText=status.textContent,operationFeedback='';
   let activeClientTasks=[],lastClientTasksStamp='',clientNextOffset=null,oneTimeToken='';
   const put=(id,text)=>{const el=get(id);if(el)el.textContent=text;};
@@ -122,8 +124,8 @@ export function createCloudHosting({client,host,document:doc=globalThis.document
         :'不可读取');
       section.append(params);
       const label=doc.createElement('label'),result=doc.createElement('input'),copy=doc.createElement('span');
-      result.type='checkbox';result.dataset.cloudResultKey=key;result.checked=selection.resultAllowed;
-      result.disabled=!task.eligible||cloudState.enabled;
+      result.type='checkbox';result.dataset.cloudResultKey=key;result.checked=cloudState.enabled?task.resultAllowed===true:selection.resultAllowed;
+      result.disabled=!task.eligible||(cloudState.enabled&&(!task.approved||task.resultAllowed!==true));
       copy.textContent='允许回传结果正文（网页数据、返回值与错误详情）'+
         (task.resultAllowed?' · 当前已授权':' · 默认关闭');
       label.append(result,copy);section.append(label);
@@ -346,6 +348,7 @@ export function createCloudHosting({client,host,document:doc=globalThis.document
     put('cloud-overview-slot',cloudSlotStateLabel(projected.slotState));
     put('cloud-overview-tasks',String(projected.approvedTasks));
     put('cloud-overview-requests',String(projected.requests.total));
+    hostingEnabled=s.enabled===true;updateResultConsent();
     requestNextOffset=Number.isSafeInteger(s.requestPage?.nextOffset)?s.requestPage.nextOffset:null;
     get('cloud-request-prev').disabled=requestOffset===0;
     get('cloud-request-next').disabled=requestNextOffset===null;
@@ -368,12 +371,12 @@ export function createCloudHosting({client,host,document:doc=globalThis.document
     const next=await cloud.cloudNext({});if(!next||disposed)return;
     starting=true;try{const request=await cloud.cloudResolve(next);await host.start(request);host.completion.catch(operationFail).finally(()=>{starting=false;});}catch(e){starting=false;throw e;}
   }
-  async function action(fn,readOnly){if(busy)return;busy=true;
+  async function action(fn,readOnly){if(busy)return;busy=true;updateResultConsent();
     operationFeedback='';updateStatus();
     try{
       if(!readOnly){try{await fn();}catch(error){operationFail(error);return;}}
       try{await refresh();}catch{fail();}
-    }finally{busy=false;}
+    }finally{busy=false;updateResultConsent();}
   }
   const listeners=[];function click(id,fn){
     const readOnly=id==='cloud-refresh'||id==='cloud-overview-refresh';
@@ -385,6 +388,7 @@ export function createCloudHosting({client,host,document:doc=globalThis.document
     if(!key)return;
     const row=taskChoices.find(task=>cloudChoiceKey(task)===key);
     if(!row?.eligible)return;
+    if(hostingEnabled){if(!input.dataset.cloudResultKey||input.checked||!row.approved||!row.resultAllowed)return;void action(async()=>{try{const result=await cloud.cloudRevokeResults({taskId:row.taskId});lastCatalogAt=0;operationFeedback='所选任务的结果回传授权已撤销；托管状态保持不变。';return result;}catch(error){lastCatalogAt=0;await refresh().catch(()=>fail());throw error;}},false);return;}
     const selection=selections.get(key)||{selected:false,resultAllowed:false};
     if(input.dataset.cloudTaskKey)selection.selected=!!input.checked;
     else selection.resultAllowed=!!input.checked;

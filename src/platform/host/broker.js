@@ -161,7 +161,7 @@ export async function createFoundationBroker({api = chrome, ports = new Map(), c
   await authority.schedules.reconcile();
   const authenticate = (request,sender) => authority.assertHost(sender, request.registrationId);
   const routes = {
-    ...createMethodRoutes(authority,['cloudStatus','cloudPair','cloudApprove','cloudStop','cloudUnpair','cloudClients','cloudClientGrant','cloudClientRevoke','cloudNext','cloudResolve','commitControllerScript','getControllerScript','listControllerScripts','startControllerRun','controllerOperation','stopControllerRun','finishControllerRun','snapshotControllerRun','retireControllerTarget','tombstoneControllerScript','garbageCollectControllerScript','importTaskPackage','listTaskCatalog','getTaskCandidate','verifyTaskCandidate','makeTaskAvailable','installTask','setInstalledTaskEnabled','uninstallTask','resolveInstalledTask','saveSchedule','changeSchedule','listSchedules','listScheduleHistory','listDueSchedules','setScheduleFireState','grantSdk','inspectSdkGrant','revokeSdkGrant','registerHost']),
+    ...createMethodRoutes(authority,['cloudStatus','cloudPair','cloudApprove','cloudRevokeResults','cloudStop','cloudUnpair','cloudClients','cloudClientGrant','cloudClientRevoke','cloudNext','cloudResolve','commitControllerScript','getControllerScript','listControllerScripts','startControllerRun','controllerOperation','stopControllerRun','finishControllerRun','snapshotControllerRun','retireControllerTarget','tombstoneControllerScript','garbageCollectControllerScript','importTaskPackage','listTaskCatalog','getTaskCandidate','verifyTaskCandidate','makeTaskAvailable','installTask','setInstalledTaskEnabled','uninstallTask','resolveInstalledTask','saveSchedule','changeSchedule','listSchedules','listScheduleHistory','listDueSchedules','setScheduleFireState','grantSdk','inspectSdkGrant','revokeSdkGrant','registerHost']),
     ...createMethodRoutes(pageDependencies,['importPageCandidate','getPageCandidate']),
     ...createMethodRoutes(installedPages,['listPagePrograms','verifyPageCandidate','makePageAvailable','installPageProgram','setInstalledPageEnabled']),
     ...createMethodRoutes(downloads,['prepareArtifact','prepareAttempt','retirePreparedArtifact','dispatchDownload','reconcileDownload','recordResourceRelease']),
@@ -217,7 +217,7 @@ export async function createFoundationBroker({api = chrome, ports = new Map(), c
     }
     sender = await resolveToolSender(api, sender);
     invariant(isToolSender(api,sender),'E_OWNER','Only actual packaged tool documents may invoke foundation services');
-    if(['cloudStatus','cloudPair','cloudApprove','cloudStop','cloudUnpair','cloudClients','cloudClientGrant','cloudClientRevoke','cloudNext','cloudResolve'].includes(message.type))
+    if(['cloudStatus','cloudPair','cloudApprove','cloudRevokeResults','cloudStop','cloudUnpair','cloudClients','cloudClientGrant','cloudClientRevoke','cloudNext','cloudResolve'].includes(message.type))
       await requireCloudSidePanelSender(api,sender);
     if (!consumer && templateOperations.has(message.type)) unavailable();
     const route = Object.hasOwn(routes, message.type) ? routes[message.type] : undefined;
