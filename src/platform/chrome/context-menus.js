@@ -720,13 +720,16 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
     return serial(()=>runLocked(toolId,async()=>{
 
       if(operation==='browser.cookies.userGrant'){
-        if(!['read','values','write','observe','clear'].includes(siteCapability)||
-           typeof enabled!=='boolean')throw failure('E_SCHEMA','Unsupported Cookie capability decision');
+        if(!['read','values','write','observe','clear','all'].includes(siteCapability)||
+           typeof enabled!=='boolean'||(siteCapability==='all'&&enabled))
+          throw failure('E_SCHEMA','Unsupported Cookie capability decision');
         const source=await readSources(api),tool=admittedTool(source.tools,toolId);
         if(!sidebarToolEnabled(source.enabled,toolId)||tool.version!==toolVersion||
            (source.epochs[toolId]??null)!==(installEpoch??null))
           throw failure('E_TOOL_CHANGED');
-        if(!tool.capabilities.includes('browser.cookies.'+siteCapability))
+        if(siteCapability==='all'
+          ?!tool.capabilities.some(name=>name.startsWith('browser.cookies.'))
+          :!tool.capabilities.includes('browser.cookies.'+siteCapability))
           throw failure('E_TOOL_CAPABILITY_REQUIRED');
         const site=enabled?parsedHttp(document?.url)?.origin:parsedHttp(origin)?.origin;
         if(!site||!enabled&&site!==origin)throw failure('E_SCHEMA','Exact Cookie site Origin required');
@@ -767,11 +770,20 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
           throw failure('E_LIMIT','Maximum 20 Cookie websites per tool');
         if(enabled&&siteCapability==='values'&&prior.read!==true)
           throw failure('E_SITE_GRANT_REQUIRED','Read permission is required before granting sensitive values');
-        // A fresh generation prevents old observation sessions and approvals
-        // from reviving after revoke -> regrant, even with identical package bytes.
-        const next=enabled?{...prior,storeId,partitionKey,[siteCapability]:true,
-          grantEpoch:crypto.randomUUID()}:
-          {...prior,[siteCapability]:false,grantEpoch:crypto.randomUUID()};
+        // Enabling a second permission must not silently rebind the earlier
+        // permission from one Cookie Store or partition to another.
+        const earlier=['read','values','write','observe','clear'].some(cap=>prior[cap]===true);
+        if(enabled&&earlier&&(prior.storeId!==storeId||
+          canonicalJSON(prior.partitionKey??null)!==canonicalJSON(partitionKey??null)))
+          throw failure('E_COOKIE_SCOPE','Site rights are bound to another Cookie Store/Partition; revoke all first');
+        // Atomic all-site revocation: never leave values/write/observe active
+        // after a partially failed sequence of five independent revocations.
+        const next=siteCapability==='all'
+          ?{...prior,read:false,values:false,write:false,observe:false,clear:false,
+            grantEpoch:crypto.randomUUID()}
+          :enabled?{...prior,storeId,partitionKey,[siteCapability]:true,
+            grantEpoch:crypto.randomUUID()}
+            :{...prior,[siteCapability]:false,grantEpoch:crypto.randomUUID()};
         if(!enabled&&siteCapability==='read')next.values=false;
         sites[site]=next;
         await confirmedWrite(api.storage.local,BROWSER_MENU_GRANTS_STORE,{

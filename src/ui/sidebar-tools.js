@@ -196,7 +196,9 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     const current=site||websiteOrigin(currentPageTarget?.snapshot?.url);
     if(!current)throw Object.assign(new Error('请选择 HTTP(S) 网站'),{code:'E_SITE_GRANT_REQUIRED'});
     const granted=cookieSiteRecord(tool,current)||{};
-    const capabilities=all?cookieCaps.map(([cap])=>cap).filter(cap=>granted[cap]===true):[capability];
+    // One trusted Host transaction revokes every Cookie capability for a site.
+    // Multiple sequential calls could leave lingering grants on partial failure.
+    const capabilities=all?['all']:[capability];
     for(const cap of capabilities){
       const enabled=all?false:granted[cap]!==true;
       const snapshot=enabled?currentPageTarget?.capture?.():null;

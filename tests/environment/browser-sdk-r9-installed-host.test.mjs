@@ -28,6 +28,7 @@ function fixture(){
   const tab={id:10,windowId:3,url,active:true,incognito:false,status:'complete'};
   const document={tabId:tab.id,windowId:tab.windowId,documentId:'website-document',url,origin};
   const state={hostAllowed:true,cookiesAllowed:true,activeTab:true,
+    partition:{...partitionKey},
     records:[{name:'sid',value:'SECRET_TEST_ONLY',domain:'shop.example.test',path:'/',
       storeId:'0',hostOnly:true,session:true,secure:true,httpOnly:true,sameSite:'lax'}]};
   const storage=(map,area)=>({
@@ -60,7 +61,7 @@ function fixture(){
     cookies:{
       onChanged:{addListener:fn=>listeners.push(fn)},
       getAllCookieStores:callback=>{native.push('getAllCookieStores');callback([{id:'0',tabIds:[10],incognito:false}]);},
-      getPartitionKey:(_args,callback)=>{native.push('getPartitionKey');callback({partitionKey});},
+      getPartitionKey:(_args,callback)=>{native.push('getPartitionKey');callback({partitionKey:state.partition});},
       getAll:(args,callback)=>{native.push('getAll');callback(candidates(args).map(x=>({...x})));},
       get:(args,callback)=>{native.push('get');callback(candidates(args)[0]??null);},
       set:(args,callback)=>{
@@ -147,4 +148,29 @@ test('R9 uninstalled and disabled Cookie tools cannot reuse previously granted s
   await f.grant('read');
   await f.api.storage.local.set({'opendesk.sidebar-tools.installed.v1':[]});
   await assert.rejects(f.call('browser.cookies.getAll',{url}),reject('E_TOOL_CHANGED'));
+});
+
+
+test('R9 revoking an entire Cookie website is atomic even without the tab open',async()=>{
+  const f=fixture();
+  await f.grant('read');await f.grant('write');await f.grant('values');
+  f.state.activeTab=false;
+  await f.grant('all',false);
+  for(const cap of ['read','values','write','observe','clear']){
+    const grant=f.local.get('opendesk.browser.context-menu-grants.v1')?.[f.identity.toolId]?.cookieSites?.[origin];
+    assert.equal(grant?.[cap],false,cap);
+  }
+  await assert.rejects(f.call('browser.cookies.getAll',{url}),reject('E_SITE_GRANT_REQUIRED'));
+  await assert.rejects(f.call('browser.cookies.set',{url,name:'x',value:'x'}),
+    reject('E_USER_GESTURE_REQUIRED'));
+  await assert.rejects(f.grant('all',true),reject('E_SCHEMA'),
+    'A sandbox or trusted UI must never bulk-enable all Cookie permissions');
+});
+test('R9 a later values/write grant cannot silently move an earlier read grant to another partition',async()=>{
+  const f=fixture();
+  await f.grant('read');
+  f.state.partition={topLevelSite:'https://other.example.test',hasCrossSiteAncestor:false};
+  await assert.rejects(f.grant('values'),reject('E_COOKIE_SCOPE'));
+  await assert.rejects(f.grant('write'),reject('E_COOKIE_SCOPE'));
+  assert.notEqual(f.local.get('opendesk.browser.context-menu-grants.v1')?.[f.identity.toolId]?.cookieSites?.[origin]?.write,true);
 });
