@@ -4,6 +4,10 @@
 
 ## 0. 设计产物及验收身份
 
+**全局索引已补齐：** 本文件只管 6 组 39 项 UI 检查。整个 Cloud Control 产品的 **10 域 110 项**请看 [完整产品功能树](cloud-control-r5.2-complete-function-tree.zh-CN.md) 与 [机器矩阵](../../framework/workstreams/cloud-control-r5-02-function-matrix.json)；项目执行顺序请看 [7 Gate / 30 包唯一执行手册](../../framework/cloud-control-r5.2-execution-manual.zh-CN.md)。**UI 39 与产品 110 项交叉映射，不得相加为 149 项产品独立功能。**
+
+
+
 - **唯一 R5.2 可交互 HTML**：`examples/ui/cloud-control-r5.2-preview.html`，不新建第二个 Side Panel/Cloud Product。
 - **功能和工程既有账本**：`docs/framework/workstreams/cloud-control-r5-02-product-closure.{md,json}`。历史 R1–R5.1 及失败证据不可覆盖。
 - **用户操作手册**：`examples/cloud-control/README.zh-CN.md`，其中 R5.2 小节优先于旧版未指定 Executor 的 CLI 示例。
