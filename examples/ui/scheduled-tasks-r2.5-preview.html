@@ -325,20 +325,22 @@ h1,h2,h3,p{margin-top:0}
       ?Intl.supportedValuesOf('timeZone'):COMMON_ZONES.map(([zone])=>zone);
     const supported=new Set([device,selected,...COMMON_ZONES.map(([zone])=>zone),...available].filter(isTimeZone));
     const needle=query.trim().toLocaleLowerCase('zh-CN');
-    const option=(zone,label)=>needle&&zone!==selected&&
-      !(zone+' '+label).toLocaleLowerCase('zh-CN').includes(needle)?'':
+    const option=(zone,label,groupLabel='')=>needle&&zone!==selected&&
+      !(zone+' '+label+' '+groupLabel).toLocaleLowerCase('zh-CN').includes(needle)?'':
       `<option value="${safe(zone)}" ${zone===selected?'selected':''}>${safe(label)}</option>`;
     const seen=new Set([device]);
-    let html=`<optgroup label="当前设备 · 默认"><option value="${safe(device)}" ${device===selected?'selected':''}>自动识别 · ${safe(COMMON_LABELS.get(device)||device)} (${safe(device)})</option></optgroup>`;
+    const detectedLabel=`自动识别 · ${COMMON_LABELS.get(device)||device} (${device})`;
+    const deviceOption=option(device,detectedLabel,'当前设备 · 默认');
+    let html=deviceOption?`<optgroup label="当前设备 · 默认">${deviceOption}</optgroup>`:'';
     let common='';
-    for(const [zone,name] of COMMON_ZONES){if(zone!==device&&supported.has(zone)){seen.add(zone);common+=option(zone,`${name} (${zone})`)}}
+    for(const [zone,name] of COMMON_ZONES){if(zone!==device&&supported.has(zone)){seen.add(zone);common+=option(zone,`${name} (${zone})`,'常用地区')}}
     if(common)html+=`<optgroup label="常用地区">${common}</optgroup>`;
     const labels={Africa:'非洲',America:'美洲',Antarctica:'南极地区',Asia:'亚洲',Atlantic:'大西洋地区',Australia:'澳大利亚',Europe:'欧洲',Indian:'印度洋地区',Pacific:'太平洋地区',Etc:'其他'};
     const groups=new Map();
     for(const zone of [...supported].sort()){if(seen.has(zone))continue;const region=zone.split('/')[0];if(!groups.has(region))groups.set(region,[]);groups.get(region).push(zone);seen.add(zone)}
     for(const [region,name] of Object.entries(labels)){
       const list=groups.get(region)||[];
-      const matches=list.map(z=>option(z,COMMON_LABELS.get(z)||z.replaceAll('_',' '))).join('');
+      const matches=list.map(z=>option(z,COMMON_LABELS.get(z)||z.replaceAll('_',' '),name)).join('');
       if(matches)html+=`<optgroup label="${name}">${matches}</optgroup>`;
     }
     return html;
@@ -389,7 +391,7 @@ h1,h2,h3,p{margin-top:0}
     if(scenario==='error'){load='error';plans=[];}
     return {tasks,plans,active,host,load,message};
   }
-  const makeDraft=(p=null)=>p?{title:p.title,taskId:p.taskId,target:p.target,params:p.params,kind:p.kind,zone:p.zone,once:p.kind==='once'?(()=>{const t=civil(p.zone,p.spec.at);return `${t.year}-${pad(t.month)}-${pad(t.day)}T${pad(t.hour)}:${pad(t.minute)}`})():'2026-10-13T09:30',clock:`${pad(p.spec.hour??9)}:${pad(p.spec.minute??0)}`,days:[...(p.spec.days||[1,3,5])],minutes:p.spec.everyMinutes||60,misfire:p.misfire,openTarget:p.openTarget,deadline:p.deadline,paused:p.paused,intervalAnchor:p.spec.anchorAt}: {title:'',taskId:'',target:'',params:'{}',kind:'daily',zone:deviceTimeZone(),once:'2026-10-13T09:30',clock:'09:00',days:[1,3,5],minutes:60,misfire:'skip',openTarget:false,deadline:5,paused:false,intervalAnchor:null};
+  const makeDraft=(p=null)=>p?{title:p.title,taskId:p.taskId,target:p.target,params:p.params,kind:p.kind,zone:p.zone,once:p.kind==='once'?(()=>{const t=civil(p.zone,p.spec.at);return `${t.year}-${pad(t.month)}-${pad(t.day)}T${pad(t.hour)}:${pad(t.minute)}`})():'2026-10-13T09:30',clock:`${pad(p.spec.hour??9)}:${pad(p.spec.minute??0)}`,days:[...(p.spec.days||[1,3,5])],minutes:p.spec.everyMinutes||60,misfire:p.misfire,openTarget:p.openTarget,deadline:p.deadline,paused:p.paused,intervalAnchor:p.spec.anchorAt}: {title:'',taskId:'',target:'',params:'{}',kind:'once',zone:deviceTimeZone(),once:'2026-10-13T09:30',clock:'09:00',days:[1,3,5],minutes:60,misfire:'skip',openTarget:false,deadline:5,paused:false,intervalAnchor:null};
   const s={env:'side',width:360,scenario:'trio',theme:'light',view:'list',...seed('trio'),menu:null,deleteId:null,confirm:false,cancelConfirm:false,uninstallId:null,managerFilter:'all',managerSearch:'',managerBack:'list',historyId:null,historyLimit:20,draft:makeDraft(),editing:null,dirty:false,errors:{},toast:'',toastError:false,advanced:false};
   function updateScenario(name){Object.assign(s,seed(name));s.scenario=name;s.view=s.env==='runner'?'runner':'list';s.menu=null;s.deleteId=null;s.confirm=false;s.cancelConfirm=false;s.uninstallId=null;s.historyId=null;s.historyLimit=20;s.draft=makeDraft();s.editing=null;s.dirty=false;s.errors={};s.toast='';s.toastError=false;render();}
   const nextPlan=p=>{if(!p||p.paused||p.attention)return null;try{return nextAt(p.kind,p.spec,p.zone)}catch{return null}};
