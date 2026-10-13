@@ -1,0 +1,74 @@
+name: Stay Focus R1 - independent Chrome restrictions and native evidence
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/stay-focus/**'
+      - 'examples/sidebar-tools/stay-focus/**'
+      - 'src/ui/sidebar-tools.js'
+      - 'src/ui/sidebar-tools/**'
+      - 'src/sw.js'
+      - 'src/sidebar-tools/bridge.js'
+      - 'scripts/prepare-public.mjs'
+      - 'manifest.json'
+      - 'official-tools/catalog.json'
+      - 'tests/environment/stay-focus-r1.test.mjs'
+      - 'tests/framework/stay-focus-r1-native.test.mjs'
+      - '.github/workflows/stay-focus-r1.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+jobs:
+  source-and-native-chrome:
+    runs-on: macos-15
+    timeout-minutes: 24
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install pinned packages
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Strict policy, time, DNR and component assertions
+        run: |
+          node --test tests/environment/stay-focus-r1.test.mjs
+          node --check tests/framework/stay-focus-r1-native.test.mjs
+      - name: Build independent user-installable Stay Focus release
+        run: |
+          npm run build:sidebar-tool -- examples/sidebar-tools/stay-focus
+          test -s artifacts/sidebar-tools/stay-focus/1.0.0/stay-focus.opendesk-tool.json
+          shasum -a 256 artifacts/sidebar-tools/stay-focus/1.0.0/stay-focus.opendesk-tool.json
+      - name: Full source security, production and development WXT verification
+        run: |
+          npm run check
+          npm run build
+          npm run build:dev
+          npm run verify
+          shasum -a 256 dist/production/sw.js
+          wc -c dist/production/sw.js
+          shasum -a 256 dist/production/official-tools/stay-focus/stay-focus.opendesk-tool.json
+      - uses: browser-actions/setup-chrome@v2
+        id: chrome
+        with:
+          chrome-version: '155.0.8059.39'
+      - name: Real macOS Chrome installed tool and HTTP site DNR navigation
+        env:
+          OPENDESK_STAY_FOCUS_NATIVE: '1'
+          CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
+          OPENDESK_FOCUS_NATIVE_EVIDENCE: artifacts/stay-focus-r1-native
+        run: node --test tests/framework/stay-focus-r1-native.test.mjs
+      - name: Preserve raw Chrome evidence on success and failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: stay-focus-r1-native-chrome-${{ github.sha }}
+          retention-days: 14
+          if-no-files-found: warn
+          path: |
+            artifacts/stay-focus-r1-native/
+            artifacts/sidebar-tools/stay-focus/1.0.0/
+            docs/framework/evidence/wxt/builds/build-production.json
+            docs/framework/evidence/wxt/builds/build-development.json
