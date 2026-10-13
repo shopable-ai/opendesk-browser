@@ -9,7 +9,7 @@ const ID_A='r73-controller-mitt-a',ID_B='r73-controller-mitt-b';
 const SOURCE=[
   '// @require '+CLASSIC_URL,
   'async function main(){',
-  '  const bus=globalThis.mitt();',
+  '  const bus=mitt();',
   '  const values=[];',
   '  bus.on("message",value=>values.push(value));',
   '  bus.emit("message","OpenDesk:21");',
