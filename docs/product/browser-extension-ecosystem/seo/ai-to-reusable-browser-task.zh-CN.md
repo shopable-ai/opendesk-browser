@@ -40,6 +40,7 @@ Axiom 官方 Claude Skill 已提供可保存的 No-code Automation 与 Node 代�
 - [TOP 5、26 任务机会与最强反例](../global-first-r2-decision.zh-CN.md)
 - [原唯一 GF 声明账本](../first-claims-ledger.json) · [竞品时间线](../competitor-timeline.json)
 - [R6 首次成功实现与真实验收边界](https://github.com/shopable-ai/opendesk-browser/blob/main/docs/framework/workstreams/global-first-r6-ai-first-product-proof-20261013.md)，同时公开 Task 目录当前只读源码审阅的实现来源。首选合法表单 [demo-form.html](https://github.com/shopable-ai/opendesk-browser/blob/main/examples/tasks/demo-form.html)。
+- **可用下载入口核查（2026-10-13）**：该仓库 [GitHub Releases](https://github.com/shopable-ai/opendesk-browser/releases) 对应公开 API 返回 **0 个 Release**，仓库未设置主页 URL，也未启用 GitHub Pages；不能提供或宣称已上线的正式安装入口。不排除尚未核查的其它分发渠道。
 - 最新可独立下载并覆盖上述全部场景的 Chrome 发行包/真实模型关闭后运行录像：**本轮 NOT_TESTED**。GitHub 源码可见不等于已在商店发行或可从官网直接安装。
 
 ## 可以使用的非排名定位 / Bilingual M0 wording

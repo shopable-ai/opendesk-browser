@@ -65,3 +65,11 @@
 - **Axiom.ai**：[官方 Claude Skill 指南](https://axiom.ai/docs/claude-skill/) 已支持从自然语言生成可保存的无代码自动化，或使用 `@axiom_ai/api` 的 Node 脚本，依赖账户、运行方式和费用需按真实模式公平比较。
 
 这些是来源核查，不是我们亲测：全部竞品 `independentBenchmark=NOT_TESTED`；OpenDesk 的 `GF-007` 仍 `NOT_APPROVED`。只有“真实同一源码包、无模型重复执行、公开/可审核版本、可撤权、具体成本与故障恢复”在双方同任务、真实样本下获证据，才可讲限定竞争优势。
+
+## 已核实 GitHub 交付入口和精确提交
+
+- [`ec42e068`：代码/UI/测试/定向 CI](https://github.com/shopable-ai/opendesk-browser/commit/ec42e068c749285e39e0f5690e970295bdd3927b)
+- [`8d2b262`：TOP20 实施优先级与事实页](https://github.com/shopable-ai/opendesk-browser/commit/8d2b26237d8d2c444feb51a00425361ec8f2cf13)
+- [`23f704d`：UiPath/Claude GA 与 ScriptCat Beta 竞品校正](https://github.com/shopable-ai/opendesk-browser/commit/23f704da2b73206e9b833c0c3de2a647fc9052e1)
+- [R6 原定向 Node CI #38398698063](https://github.com/shopable-ai/opendesk-browser/actions/runs/38398698063) 和 [竞争证据守卫 CI #38399659541](https://github.com/shopable-ai/opendesk-browser/actions/runs/38399659541) 已被推送触发，记录时任务处于 `queued`；**不把排队当 PASS**，完成结论以各自源 SHA 的原始 TAP/Job 为准。
+- 经 GitHub Repo API 于 2026-10-13 检查：该仓库 **GitHub Releases 列表为空**；仓库元数据 `homepage=null`、`has_pages=false`。因此没有可核实的公开 GitHub Release 安装包或 GitHub Pages 官网入口；这不构成其它未知发布渠道不存在的证明。正式下载/安装转化漏斗 `NOT_TESTED`。
