@@ -81,26 +81,30 @@ export function createBrowserTabHost({api=globalThis.chrome,authorize,clock=Date
   return {tabRef};
  }
  async function activateOwned(args,context){
-  input(args,'tabRef');const owned=owner(context);
-  if(typeof args.tabRef!=='string'||!tokenPattern.test(args.tabRef))throw fail('E_SCHEMA');
-  const row=refs.get(args.tabRef);
-  if(!row||row.owner!==owned)throw fail('E_TAB_REF_INVALID');
-  if(clock.now()>=row.expiresAt){purge(args.tabRef);throw fail('E_TAB_REF_INVALID')}
+  input(args,'tabRef');
+  if(typeof args.tabRef!=='string'||!tokenPattern.test(args.tabRef))
+    throw fail('E_SCHEMA','Only an owned TabRef is accepted');
   if(!api?.tabs?.get||!api?.tabs?.update)throw fail('E_CHROME_UNSUPPORTED');
-  await approved('browser.tabs.activateOwned',row.origin,context);
-  const tab=await api.tabs.get(row.tabId).catch(()=>null);
-  let matches=false;
-  try{matches=Number.isSafeInteger(tab?.id)&&tab.id===row.tabId&&
-      browserTabUrl(tab.url).href===row.url}catch{}
-  if(!matches){purge(args.tabRef);throw fail('E_TAB_REF_INVALID','Tab changed or closed')}
-  if(refs.get(args.tabRef)!==row)throw fail('E_TAB_REF_INVALID','Tab authority was revoked');
-  if(tab?.status==='complete')row.initialNavigation=false;
-  const moved=await api.tabs.update(row.tabId,{active:true});
-  if(Number.isSafeInteger(moved?.windowId)&&typeof api?.windows?.update==='function')
-   await api.windows.update(moved.windowId,{focused:true});
-  try{await approved('browser.tabs.activateOwned',row.origin,context)}
-  catch{throw fail('E_OUTCOME_UNKNOWN','Grant revoked after focus')}
-  if(moved?.id!==row.tabId)throw fail('E_OUTCOME_UNKNOWN','Chrome did not confirm focus');
+  // Focusing may look harmless but must be bound to the SAME DOCUMENT,
+  // not merely a tab with the same URL following an unseen reload.
+  const before=await resolve(args.tabRef,context);
+  await approved('browser.tabs.activateOwned',before.origin,context);
+  const target=await resolve(args.tabRef,context);
+  if(target.tabId!==before.tabId||target.documentId!==before.documentId)
+    throw fail('E_DOCUMENT_STALE','Owned tab document changed before focus');
+  let moved;
+  try{
+    moved=await api.tabs.update(target.tabId,{active:true});
+    if(Number.isSafeInteger(moved?.windowId)&&typeof api?.windows?.update==='function')
+      await api.windows.update(moved.windowId,{focused:true});
+  }catch{throw fail('E_OUTCOME_UNKNOWN','Chrome focus may have happened; do not replay')}
+  if(moved?.id!==target.tabId)
+    throw fail('E_OUTCOME_UNKNOWN','Chrome did not confirm the target tab');
+  try{
+    const after=await resolve(args.tabRef,context);
+    if(after.documentId!==before.documentId)throw fail('E_DOCUMENT_STALE');
+    await approved('browser.tabs.activateOwned',before.origin,context);
+  }catch{throw fail('E_OUTCOME_UNKNOWN','Document or authority changed after focus')}
   return {focused:true};
  }
  // Internal resolution: only Host receives a tabId, never untrusted callers.
@@ -126,6 +130,14 @@ export function createBrowserTabHost({api=globalThis.chrome,authorize,clock=Date
    throw fail('E_DOCUMENT_STALE','Owned tab document not active');
   if(refs.get(tabRef)!==row||clock.now()>=row.expiresAt)
    throw fail('E_TAB_REF_INVALID','Tab reference was revoked during Chrome lookup');
+  // Pin the first verified active document to this ephemeral TabRef.
+  // Missed onUpdated/loading events must not let the same URL on a NEW
+  // document silently inherit the prior tool authority.
+  if(row.documentId!==undefined&&row.documentId!==frame.documentId){
+    purge(tabRef);
+    throw fail('E_TAB_REF_INVALID','Owned tab document replaced at the same URL');
+  }
+  if(row.documentId===undefined)row.documentId=frame.documentId;
   return {tabId:row.tabId,windowId:tab.windowId,documentId:frame.documentId,
    url:frame.url,incognito:false,origin:row.origin};
  }
