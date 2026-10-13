@@ -31,11 +31,28 @@ test('real HTTP/native WebSocket provider: durable claim, empty retry, permit re
     const claim={claimId:'real',grantId,tasks},a=(await post('/v1/claim',claim)).assignment;assert.equal(a.params.name,'Alice');assert.deepEqual((await post('/v1/claim',claim)).assignment,a);
     await assert.rejects(post('/v1/claim',{...claim,tasks:[]}),{code:'E_REQUEST_CONFLICT'});
     const runRef={runId:randomUUID(),resultId:randomUUID(),requestId:'cloud:'+a.assignmentId,sourceHash:pkg.manifest.program.sourceHash,manifestHash:pkg.manifestHash,grantId},admission={assignmentId:a.assignmentId,runRef,resultAllowed:false};
+    await assert.rejects(post('/v1/admission',{...admission,
+      runRef:{...runRef,grantId:randomUUID()}}),{code:'E_RUN_REF'},
+      'Task identity is not a substitute for the installed Cloud approval generation');
+    await assert.rejects(post('/v1/admission',{...admission,
+      runRef:{...runRef,requestId:'cloud:'+randomUUID()}}),{code:'E_RUN_REF'},
+      'RunRef must belong to the exact Provider assignment');
     await post('/admin/fault',{path:'/v1/admission',count:1},admin.adminToken);await assert.rejects(post('/v1/admission',admission));
     const permit=await post('/v1/admission',admission);assert.deepEqual(await post('/v1/admission',admission),permit);
     await assert.rejects(post('/v1/admission',{...admission,runRef:{...runRef,runId:randomUUID()}}),{code:'E_REQUEST_CONFLICT'});
-    const receipt={assignmentId:a.assignmentId,receiptKey:runRef.resultId,runRef,result:{visibility:'status-only',state:'completed',retirementState:'released'}};
-    await post('/admin/fault',{path:'/v1/receipt',count:1},admin.adminToken);await assert.rejects(post('/v1/receipt',receipt));const ack=await post('/v1/receipt',receipt);
+    const receipt={assignmentId:a.assignmentId,receiptKey:runRef.resultId,runRef,
+      result:{visibility:'status-only',state:'completed',retirementState:'released'}};
+    await assert.rejects(post('/v1/receipt',{...receipt,receiptKey:randomUUID()}),
+      {code:'E_RECEIPT_KEY'},'Receipt key is the original immutable ResultId');
+    await post('/admin/fault',{path:'/v1/receipt',count:1},admin.adminToken);await assert.rejects(post('/v1/receipt',receipt));
+    const ack=await post('/v1/receipt',receipt);
+    await assert.rejects(post('/v1/receipt',{...receipt,receiptKey:randomUUID(),
+      result:{visibility:'status-only',state:'failed',retirementState:'released'}}),
+      {code:'E_RECEIPT_KEY'});
+    await assert.rejects(post('/v1/receipt',{...receipt,
+      result:{visibility:'status-only',state:'failed',retirementState:'released'}}),
+      {code:'E_REQUEST_CONFLICT'},'Same ResultId cannot replace confirmed completion');
+    assert.deepEqual(await post('/v1/receipt',receipt),ack);
     ws.terminate();await p.close();p=await openProvider({directory,port:0});
     assert.deepEqual(await post('/v1/claim',claim),{assignment:a});assert.deepEqual(await post('/v1/receipt',receipt),ack);
     const reconciled=await post('/v1/reconcile',{});assert.deepEqual(reconciled.assignments[0].runRef,runRef);assert.equal(reconciled.assignments[0].receipt.receiptId,ack.receiptId);
