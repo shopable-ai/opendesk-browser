@@ -52,12 +52,14 @@ test('actual CLI registers two Task packages, writes restricted token, submits a
     const admin=JSON.parse(await readFile(provider.credentialFile,'utf8'));
     const paired=await local(provider.port,'/v1/pair',
       {executorId,pairingCode:admin.pairingCode});
+    const hostArgs=['--directory',directory,'--port',String(provider.port)];
+    // Register the verified fixed manifest before advertising it to this
+    // Provider. An unregistered descriptor must never be implicitly trusted.
+    const registered=await run('register',[...hostArgs,'--package',searchPath]);
+    assert.equal(registered.task.taskId,search.manifest.taskId);
     const grantId=randomUUID();
     await local(provider.port,'/v1/capabilities',{grantId,
       tasks:[advertised(form),advertised(search)]},paired.credential);
-    const hostArgs=['--directory',directory,'--port',String(provider.port)];
-    const registered=await run('register',[...hostArgs,'--package',searchPath]);
-    assert.equal(registered.task.taskId,search.manifest.taskId);
     const granted=await run('client:grant',[...hostArgs,'--executor',executorId,
       '--packages',formPath+','+searchPath,
       '--allow-result','false','--token-out',tokenFile]);

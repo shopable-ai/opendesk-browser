@@ -200,13 +200,23 @@ test('revoke is durable before ticket/socket retirement, retryable only by the s
   assert.equal((await h.disk()).jobs[a.jobId].assignment.pairingId,pair.pairingId);
 });
 
-test('active re-pair rotates credential and invalidates both connected sockets and unused tickets',async t=>{
-  const h=await fixture(t),first=await h.pair(),{ws}=await h.connect(),ticket=await h.post('/v1/auth'),a=await h.assignment();
-  await mkdir(join(h.directory,'state.json.tmp'));await assert.rejects(h.pair(first.executorId));await pong(ws);await h.socket(ticket.ticket);await rm(join(h.directory,'state.json.tmp'),{recursive:true});
-  const held=await h.post('/v1/auth'),closed=new Promise(ok=>ws.once('close',ok)),next=await h.pair(first.executorId);await closed;
-  assert.equal(next.pairingGeneration,first.pairingGeneration+1);await h.socket(held.ticket,{rejected:true});
-  await assert.rejects(h.post('/v1/auth',{},first.credential),{code:'E_AUTH'});await assert.rejects(h.post('/v1/cancellation',{assignmentId:a.assignmentId}),{code:'E_PAIRING'});
-  await h.restart();const auth=await h.post('/v1/auth');assert.equal(auth.pairingId,next.pairingId);assert.equal(auth.pairingGeneration,next.pairingGeneration);
+test('active re-pair cannot silently steal an already paired Executor',async t=>{
+  const h=await fixture(t),first=await h.pair(),{ws}=await h.connect(),
+    ticket=await h.post('/v1/auth'),a=await h.assignment();
+  await mkdir(join(h.directory,'state.json.tmp'));
+  await assert.rejects(h.pair(first.executorId),{code:'E_PAIR_ACTIVE'});
+  await pong(ws);await h.socket(ticket.ticket);
+  await rm(join(h.directory,'state.json.tmp'),{recursive:true});
+  const held=await h.post('/v1/auth');
+  await assert.rejects(h.pair(first.executorId),{code:'E_PAIR_ACTIVE'});
+  assert.equal((await h.disk()).executors[first.executorId].pairingGeneration,
+    first.pairingGeneration,'Rejected takeover must not increment the durable generation');
+  await h.socket(held.ticket);await pong(ws);
+  assert.equal((await h.post('/v1/cancellation',
+    {assignmentId:a.assignmentId})).cancelled,false);
+  await h.restart();const auth=await h.post('/v1/auth');
+  assert.equal(auth.pairingId,first.pairingId);
+  assert.equal(auth.pairingGeneration,first.pairingGeneration);
 });
 
 test('legacy migration retains credential, jobs and idempotent history only for the original pairing',async t=>{

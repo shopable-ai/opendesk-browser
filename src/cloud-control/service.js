@@ -185,7 +185,7 @@ export function createCloudService({storage,api,clock={now:()=>Date.now()},asser
       }
       return {executorId:await tx.get(KV,IDENTITY),provider:c&&!c.unpairing?{url:c.url,providerId:c.providerId}:null,
         revocation:c?.unpairing?{state:'pending'}:revocation?{state:'confirmed'}:null,
-        enabled:!!c?.enabled,connection:connectionState,online,reconciled,hostReady:true,
+        enabled:!!c?.enabled,remoteSuspension:c?.remoteSuspension??null,connection:connectionState,online,reconciled,hostReady:true,
         slotAvailable:nativeSlot.slotState==='available',...nativeSlot,
         siteAuthorization:canonical(c??null)===canonical(permissionConfig??null)?sites:'unknown',
         tasks:c?.tasks?.map(t=>({taskId:t.taskId,version:t.version,manifestHash:t.manifestHash,

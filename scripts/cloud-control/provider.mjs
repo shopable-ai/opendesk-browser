@@ -140,7 +140,11 @@ function currentPermit(j){if(!j.permit||!nonempty(j.permit.permitId))fail('E_LEA
         switch(path){
           case '/v1/pair':{
             exact(b,['executorId','pairingCode']);if(!secureEqual(b.pairingCode,credentials.pairingCode)||!/^[-a-f0-9]{36}$/.test(b.executorId))fail('E_AUTH');
-            const old=state.executors[b.executorId];if(old&&(!Number.isSafeInteger(old.pairingGeneration)||old.pairingGeneration<1||old.pairingGeneration>=Number.MAX_SAFE_INTEGER))fail('E_PAIRING');
+            const old=state.executors[b.executorId];
+            // A shared pairing code must not silently replace an active browser.
+            // Explicit revoke/unpair is required before issuing a new pairing generation.
+            if(old&&!old.revokedAt&&!old.revocation)fail('E_PAIR_ACTIVE');
+            if(old&&(!Number.isSafeInteger(old.pairingGeneration)||old.pairingGeneration<1||old.pairingGeneration>=Number.MAX_SAFE_INTEGER))fail('E_PAIRING');
             const row={...old,credential:token(),pairedAt:clock(),pairingId:randomUUID(),pairingGeneration:(old?.pairingGeneration??0)+1,revokedAt:null};delete row.revocation;delete row.suspendedAt;state.executors[b.executorId]=row;
             out={...pairing(b.executorId),credential:row.credential};afterCommit=()=>retire(b.executorId);break;}
           case '/v1/revoke':{
@@ -201,7 +205,7 @@ function currentPermit(j){if(!j.permit||!nonempty(j.permit.permitId))fail('E_LEA
             out={suspended:true,grantId:b.grantId};break;
           }
           case '/v1/claim':{
-            exact(b,['claimId','tasks'],['grantId']);if(!Array.isArray(b.tasks)||b.tasks.length>32)fail('E_SCHEMA');for(const t of b.tasks){exact(t,['taskId','manifestHash','sourceHash']);if(Object.values(t).some(v=>!nonempty(v)))fail('E_SCHEMA');}
+            exact(b,['claimId','tasks'],['grantId']);if(!Array.isArray(b.tasks)||b.tasks.length>32)fail('E_SCHEMA');for(const t of b.tasks){exact(t,['taskId','manifestHash','sourceHash'],['version']);if(Object.values(t).some(v=>!nonempty(v)))fail('E_SCHEMA');}
             const e=state.executors[executorId];if(Object.hasOwn(b,'grantId')&&(!e.grantId||b.grantId!==e.grantId))fail('E_GRANT');if(e.suspendedAt)fail('E_CLOUD_STOPPED');
             const legacy=e.pairingId===e.legacyPairingId&&e.pairingGeneration===e.legacyPairingGeneration;
             const scope=legacy&&state.requests[executorId+':claim:'+b.claimId]?executorId+':claim':executorId+':'+e.pairingId+':'+e.pairingGeneration+':claim';
@@ -210,7 +214,7 @@ function currentPermit(j){if(!j.permit||!nonempty(j.permit.permitId))fail('E_LEA
               const j=Object.values(state.jobs).find(j=>j.state==='queued'&&!j.assignment&&!Object.hasOwn(j,'attemptEpoch')&&!j.cancelled&&
                 j.targetExecutorId===executorId&&(!j.targetPairingId||j.targetPairingId===e.pairingId)&&
                 (!j.targetGrantId||(Object.hasOwn(b,'grantId')&&j.targetGrantId===b.grantId&&j.targetGrantId===e.grantId))&&
-                b.tasks.some(t=>t.taskId===j.task.taskId&&t.manifestHash===j.task.manifestHash&&t.sourceHash===j.task.sourceHash)&&
+                b.tasks.some(t=>t.taskId===j.task.taskId&&t.manifestHash===j.task.manifestHash&&t.sourceHash===j.task.sourceHash&&(!Object.hasOwn(t,'version')||t.version===j.task.version))&&
                 canonical(taskPin(state.taskRegistry[taskRegistryKey(j.task)]??j.task))===canonical(j.task));
               if(!j)return {assignment:null};j.state='assigned';j.attemptEpoch=1;j.assignment={...pairing(executorId),assignmentId:randomUUID(),attemptEpoch:1,jobId:j.jobId,claimId:b.claimId,leaseUntil:clock()+90000};return {assignment:{...j.assignment,task:j.task,params:j.params,target:j.target}};});
             if(out.assignment){const j=owned(out.assignment,executorId);out.assignment={...out.assignment,...identity(j)};}break;}
@@ -248,7 +252,7 @@ function currentPermit(j){if(!j.permit||!nonempty(j.permit.permitId))fail('E_LEA
               executorId:id,pairedAt:row.pairedAt,revoked:!!row.revokedAt,
               connected:[...sockets.values()].some(p=>(p.executorId??p)===id)}))};break;}
           case '/v1/client-list':{
-            exact(b,['offset','limit']);
+            exact(b,[],['offset','limit']);
             const offset=b.offset??0,limit=b.limit??50;
             if(!Number.isSafeInteger(offset)||offset<0||offset>1000000||
               !Number.isSafeInteger(limit)||limit<1||limit>50)fail('E_SCHEMA');
