@@ -22,7 +22,10 @@ test('R7 35-operation map remains historic and Cookie host exposes no sandbox me
     'R9 active methods must not be bound to the R8 names');
   assert(r8.operations.some(row=>!Object.hasOwn(BROWSER_OPERATIONS,row.legacyOperation)),'Historical map must not dictate current runtime');
   assert.equal(r7.entries.length,10);
-  assert(r7.entries.every(row=>TRUSTED_COOKIE_OPERATIONS.includes(row.openDeskOperationId)));
+  assert(r7.entries.every(row=>TRUSTED_COOKIE_OPERATIONS.includes(
+    row.openDeskOperationId==='browser.cookies.getStores'
+      ?'browser.cookies.getCurrentStore':row.openDeskOperationId)));
+  assert(TRUSTED_COOKIE_OPERATIONS.includes('browser.cookies.getCurrentStore'));
   assert(TRUSTED_COOKIE_OPERATIONS.includes('browser.cookies.observe.read')); // R9 additional lifecycle, frozen R7 map is historical
   assert.equal(BROWSER_HOST_PROTOCOL,'opendesk.browser.v1');
   for(const row of r7.entries){
