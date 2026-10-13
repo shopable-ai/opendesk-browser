@@ -1,0 +1,13 @@
+{
+  "reviewer": "Poincare",
+  "agentId": "01a13744-ea89-7441-ad4b-4ba42a237839",
+  "status": "CLEAR",
+  "kind": "limited static review only",
+  "confirmed": [
+    "session/registration/version binding and unfiltered error evidence",
+    "unproven stopped/focus/running ordering is BLOCKED",
+    "all day/host buckets preserved; only active host bounded increment",
+    "until waits actual committed post-recovery increment"
+  ],
+  "native": "pending full 49; static review never counts as Chrome PASS"
+}

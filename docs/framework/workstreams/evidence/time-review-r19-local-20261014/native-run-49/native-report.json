@@ -1,0 +1,1777 @@
+{
+  "candidate": "ac7d7aa191c131bf28eb2fae3c505c5a6ef30d46",
+  "mode": "actual-headed-macos-CFT",
+  "scope": "full",
+  "nodeVersion": "v24.16.0",
+  "macVersion": "ProductName:\t\tmacOS\nProductVersion:\t\t26.5.1\nBuildVersion:\t\t25F80",
+  "package": {
+    "id": "time-review",
+    "version": "1.6.0",
+    "sha256": "90f5029049ed4b2cadd69fa91c4efaefb45f031bd94c07e708c9f78d5f2776f6"
+  },
+  "chromePid": 45540,
+  "profileOwned": true,
+  "install": "PASS",
+  "realSidePanel": "PASS",
+  "minuteConsent": "PASS",
+  "browserRestart": "PASS",
+  "download": "PASS",
+  "beginAndActiveCollection": "PASS",
+  "pauseResume": "PASS",
+  "websiteGrantRevocation": "PASS",
+  "idlePermissionRevocation": "PASS",
+  "swRestart": "PASS",
+  "hostedCI": false,
+  "extensionPath": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/time-review-r19-local-01a1364f/source-r19-closure/dist/production",
+  "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-time-r13-ud5u09",
+  "driverSha256": "f7b3d13267a07e3dfb6fb479a197c5b63921ea98d84b8d60395f409c248dc8d9",
+  "chromeBinaryVersion": "Google Chrome for Testing 155.0.8059.39",
+  "screenshots": [
+    {
+      "filename": "installed-native-side-panel.png",
+      "bytes": 105981,
+      "sha256": "dce703a6942144d17d0382226bf43828b60440adc063dd1b3184065a69207071"
+    },
+    {
+      "filename": "installed-native-320.png",
+      "bytes": 59432,
+      "sha256": "e01df45fb293cf4ee9c89779200978b8a4189e7c36ad938d0c1d43281fcfb026"
+    },
+    {
+      "filename": "installed-native-360.png",
+      "bytes": 58713,
+      "sha256": "f2070628ac95756152960e5244588b31c05497ec962011aae9e14a7f138ec14c"
+    },
+    {
+      "filename": "installed-native-400.png",
+      "bytes": 59055,
+      "sha256": "dafbe41f502cfc564290619f5f6b6beee22344074a0a80b27ebb1b6c509333e1"
+    },
+    {
+      "filename": "installed-native-600.png",
+      "bytes": 60718,
+      "sha256": "8e9cd5ccbffb9f2bbc670ef0f0b8023cefd9aec3e47a87fdd5d9ca86f8f3cd86"
+    },
+    {
+      "filename": "real-chrome-200-percent-zoom.png",
+      "bytes": 68907,
+      "sha256": "5c272525231757618d39ef05b8e9b4b3cd661488fdaa882e78c78c13e7160563"
+    },
+    {
+      "filename": "trusted-permission-settings.png",
+      "bytes": 146334,
+      "sha256": "a2675b9c8d6b21ad999cfc53fc8bf3e3de761359967672b58d193a79297e2c8f"
+    },
+    {
+      "filename": "first-run-inline-time-review-consent.png",
+      "bytes": 185550,
+      "sha256": "2e2c20665cdd953dd8bfbd3dc6c7b4cad8c155d2b5fbe865c6826a66d8cee973"
+    },
+    {
+      "filename": "real-recorded-minute-canvas.png",
+      "bytes": 118617,
+      "sha256": "0acf7766388619f9fa1bdecd6f622d2eaa208021403e145c962f91eae34b8397"
+    },
+    {
+      "filename": "real-long-domain-native.png",
+      "bytes": 114283,
+      "sha256": "5bcdda613ae411d4c70ebe2f17450191a56f1b1636f0777e6d35f3b847aa452b"
+    },
+    {
+      "filename": "official-native-retired-after-local-replacement.png",
+      "bytes": 169720,
+      "sha256": "18f39c53622f4b2fa9d242f4499a79aba8079c2bd37f180c2943e4a77a291661"
+    },
+    {
+      "filename": "official-upgrade-native-1.6.0.png",
+      "bytes": 124978,
+      "sha256": "a158dae731fe637c0bb1f5fe33a8345b0621d50fc3faf70bab9d09069b0eafa0"
+    }
+  ],
+  "steps": [
+    {
+      "name": "trusted-open",
+      "selector": "#catalog-open-dev-sidebar",
+      "x": 89.25,
+      "y": 135.1484375
+    },
+    {
+      "name": "install",
+      "version": "1.6.0"
+    },
+    {
+      "name": "native-canvas",
+      "quadrants": 4,
+      "extras": 2,
+      "day": "0秒",
+      "timeline": "尚无分钟明细",
+      "horizontal": true,
+      "frameGeometry": {
+        "viewportHeight": 815,
+        "documentHeight": 815,
+        "rootHeight": 1109.828125
+      },
+      "outerGeometry": {
+        "viewportHeight": 815,
+        "nativeHeight": 1109.828125,
+        "iframeCount": 0,
+        "hostScrollHeight": 815
+      }
+    },
+    {
+      "name": "installed-native-widths",
+      "verdict": "PASS",
+      "method": "installed SIDE_PANEL CSS viewport override",
+      "widths": [
+        320,
+        360,
+        400,
+        600
+      ]
+    },
+    {
+      "name": "real-chrome-zoom",
+      "verdict": "PASS",
+      "source": "macOS CGEvent Command+Plus",
+      "steps": 5,
+      "baseline": {
+        "cssWidth": 360,
+        "cssScrollWidth": 360,
+        "cssHeight": 815,
+        "contentHeight": 815,
+        "dpr": 2,
+        "canvasWidth": 312
+      },
+      "observed": {
+        "cssWidth": 180,
+        "cssScrollWidth": 180,
+        "cssHeight": 407,
+        "contentHeight": 407,
+        "dpr": 4,
+        "canvasWidth": 142
+      },
+      "reason": null,
+      "browser200PercentVerified": true
+    },
+    {
+      "name": "native-permission-actions",
+      "initiallyIdleGranted": false,
+      "duplicateStartHidden": true
+    },
+    {
+      "name": "trusted-native-consent-unmodified",
+      "minuteConsent": false
+    },
+    {
+      "name": "trusted-minute-optin",
+      "minuteConsent": true
+    },
+    {
+      "name": "trusted-minute-withdrawal",
+      "minuteConsent": false
+    },
+    {
+      "name": "download-json",
+      "format": "json",
+      "created": "PASS",
+      "complete": "PASS",
+      "ownedDirectory": "PASS",
+      "disk": "PASS",
+      "content": "PASS",
+      "filename": "PASS",
+      "id": 1,
+      "basename": "time-review.json",
+      "received": 241,
+      "ownedByExtension": true,
+      "bytes": 241,
+      "sha256": "3cc02c23b9d8f1b0b52ee5bf6b4d49ba8119e76b22f03c92bab2d5c6008c7385"
+    },
+    {
+      "name": "download-csv",
+      "format": "csv",
+      "created": "PASS",
+      "complete": "PASS",
+      "ownedDirectory": "PASS",
+      "disk": "PASS",
+      "content": "PASS",
+      "filename": "PASS",
+      "id": 2,
+      "basename": "time-review.csv",
+      "received": 44,
+      "ownedByExtension": true,
+      "bytes": 44,
+      "sha256": "55c24b7f5c3e5ccbc3b7fe3915cb7e73720188c2fd93dff8f84c393035dd63d6"
+    },
+    {
+      "name": "native-inline-enrollment",
+      "trustedExistingControls": true,
+      "nativeUIVisible": true,
+      "iframeRemoved": true,
+      "domFocusOrder": true,
+      "siteGrantUntouched": true
+    },
+    {
+      "name": "native-idle-ui-reflects-grant",
+      "granted": true,
+      "duplicateGrantHidden": true
+    },
+    {
+      "name": "site-grant",
+      "origin": "http://127.0.0.1:54677",
+      "source": "native trusted click"
+    },
+    {
+      "name": "trusted-start-immediate-ui",
+      "pauseVisible": true,
+      "noIframe": true,
+      "noSecondConfirmation": true
+    },
+    {
+      "name": "native-observation-gates-before-input",
+      "focused": true,
+      "windowType": "normal",
+      "idle": "active",
+      "isLoopbackTab": true,
+      "hasHostPermission": true
+    },
+    {
+      "name": "native-observation-gates-final",
+      "focused": true,
+      "windowType": "normal",
+      "idle": "active",
+      "isLoopbackTab": true,
+      "hasHostPermission": true
+    },
+    {
+      "name": "real-web-checkpoint",
+      "host": "127.0.0.1",
+      "paused": false,
+      "startedAt": 1791929538344,
+      "hasPermission": true
+    },
+    {
+      "name": "real-http-activity",
+      "host": "127.0.0.1",
+      "ms": 1424,
+      "from": "real active browser tab"
+    },
+    {
+      "name": "actual-canvas-keyboard-focus",
+      "focused": [
+        {
+          "description": "",
+          "enabled": true,
+          "focused": true,
+          "position": {
+            "x": 22,
+            "y": 101
+          },
+          "role": "AXGroup",
+          "size": {
+            "height": 34,
+            "width": 112
+          },
+          "subrole": "",
+          "title": "",
+          "value": ""
+        },
+        {
+          "description": "",
+          "enabled": true,
+          "focused": true,
+          "position": {
+            "x": 30,
+            "y": 198
+          },
+          "role": "AXWebArea",
+          "size": {
+            "height": 799,
+            "width": 814
+          },
+          "subrole": "",
+          "title": "Time Review native",
+          "value": ""
+        },
+        {
+          "description": "分钟时间线",
+          "enabled": true,
+          "focused": true,
+          "position": {
+            "x": 877,
+            "y": 574
+          },
+          "role": "AXSlider",
+          "size": {
+            "height": 54,
+            "width": 312
+          },
+          "subrole": "",
+          "title": "分钟时间线",
+          "value": ""
+        }
+      ]
+    },
+    {
+      "name": "real-minute-canvas",
+      "realEntries": true,
+      "keyboard": true,
+      "ariaMinute": 60
+    },
+    {
+      "name": "unrelated-official-install",
+      "toolId": "reading-toc",
+      "previouslyInstalled": true,
+      "disableEnable": true,
+      "nativeStillMounted": true,
+      "authorizationUnchanged": true,
+      "paused": false
+    },
+    {
+      "name": "native-file-review-install",
+      "id": "reading-toc",
+      "version": "0.0.0",
+      "file": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/time-review-r19-local-01a1364f/native-run-49/older-reading-toc.opendesk-tool.json",
+      "sha256": "b69bf45e13705a6debcdbd30766548ebaaf9e95f60faf446b45951e614fc0126"
+    },
+    {
+      "name": "unrelated-official-upgrade",
+      "toolId": "reading-toc",
+      "fromVersion": "0.0.0",
+      "fromSource": "reviewed-local-older-version-fixture",
+      "toVersion": "1.0.4",
+      "toSource": "actual-official-catalog",
+      "nativeRootUnchanged": true,
+      "authorizationUnchanged": true,
+      "paused": false
+    },
+    {
+      "name": "unrelated-official-install",
+      "toolId": "cookie-editor",
+      "previouslyInstalled": false,
+      "disableEnable": true,
+      "nativeStillMounted": true,
+      "authorizationUnchanged": true,
+      "paused": false
+    },
+    {
+      "name": "native-file-review-install",
+      "id": "cookie-editor",
+      "version": "0.0.0",
+      "file": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/time-review-r19-local-01a1364f/native-run-49/older-cookie-editor.opendesk-tool.json",
+      "sha256": "bf72886c105b5aa886060565bff8e2f7e9794a84478f7ce3c373398c2e14e56e"
+    },
+    {
+      "name": "unrelated-official-upgrade",
+      "toolId": "cookie-editor",
+      "fromVersion": "0.0.0",
+      "fromSource": "reviewed-local-older-version-fixture",
+      "toVersion": "2.0.4",
+      "toSource": "actual-official-catalog",
+      "nativeRootUnchanged": true,
+      "authorizationUnchanged": true,
+      "paused": false
+    },
+    {
+      "name": "unrelated-official-install",
+      "toolId": "stay-focus",
+      "previouslyInstalled": false,
+      "disableEnable": true,
+      "nativeStillMounted": true,
+      "authorizationUnchanged": true,
+      "paused": false
+    },
+    {
+      "name": "native-file-review-install",
+      "id": "stay-focus",
+      "version": "0.0.0",
+      "file": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/time-review-r19-local-01a1364f/native-run-49/older-stay-focus.opendesk-tool.json",
+      "sha256": "e4b94ef63bd867f4489f71fe2590c02aef7fdba75ef81bed3b2ada4fcd666338"
+    },
+    {
+      "name": "unrelated-official-upgrade",
+      "toolId": "stay-focus",
+      "fromVersion": "0.0.0",
+      "fromSource": "reviewed-local-older-version-fixture",
+      "toVersion": "1.0.0",
+      "toSource": "actual-official-catalog",
+      "nativeRootUnchanged": true,
+      "authorizationUnchanged": true,
+      "paused": false
+    },
+    {
+      "name": "focus-retirement-measurement",
+      "observedDelta": 183,
+      "permittedDelta": 1169,
+      "blurAt": 1791929643358,
+      "checkpointAt": 1791929643189
+    },
+    {
+      "name": "real-window-focus",
+      "foreground": false,
+      "totalsFrozen": true
+    },
+    {
+      "name": "passive-natural-worker-observation",
+      "observerReady": true,
+      "initialWorkerState": {
+        "at": 123931.833625,
+        "sessionId": "C21EE81BFBB9A47997F92E465AEC685F",
+        "versionId": "2",
+        "registrationId": "2",
+        "scriptURL": "chrome-extension://nfgjhajcnbnmgnlifhbmknljhjekdile/sw.js",
+        "runningStatus": "running",
+        "status": "running",
+        "scriptLastModified": 1791929437,
+        "scriptResponseTime": 0,
+        "controlledClients": [],
+        "targetId": "582AADA1B64FB51447F81C1713834160"
+      },
+      "quietMs": 75193,
+      "trace": [],
+      "workerSnapshots": [
+        {
+          "elapsedMs": 1,
+          "targets": [
+            {
+              "targetId": "582AADA1B64FB51447F81C1713834160",
+              "attached": false
+            }
+          ]
+        }
+      ],
+      "newWorkerErrors": [],
+      "crashes": [],
+      "registrationDeleted": false,
+      "versionChanged": false,
+      "noTimeRpcFromDriver": true,
+      "noWorkerDebugger": true,
+      "noForcedStop": true,
+      "heartbeatPeriodMinutes": 0.5,
+      "recoveryTrigger": "not independently attributed",
+      "verdict": "BLOCKED",
+      "reason": "No proven error-free natural stopped/recovered trace; waiting or target snapshots alone are insufficient"
+    },
+    {
+      "name": "panel-closed-observation",
+      "window": {
+        "alwaysOnTop": false,
+        "focused": true,
+        "height": 950,
+        "id": 1913536111,
+        "incognito": false,
+        "left": 22,
+        "state": "normal",
+        "top": 55,
+        "type": "normal",
+        "width": 1200
+      },
+      "idle": "active",
+      "alarm": {
+        "name": "opendesk.time-review.heartbeat.v1",
+        "periodInMinutes": 0.5,
+        "persistAcrossSessions": true,
+        "scheduledTime": 1791929747608.64
+      },
+      "state": {
+        "authorizedEpoch": null,
+        "authorizedHash": "9ca3c190a5ff96da5b146ce5ed66d74586b28f9359588f37bb505208de6a08f1",
+        "categories": {},
+        "checkpoint": {
+          "at": 1791929717618,
+          "host": "127.0.0.1",
+          "offset": -480,
+          "origin": "http://127.0.0.1:54677",
+          "session": "d5204696-93f2-4b59-b168-b5f4647128f6",
+          "tabId": 1913536114,
+          "windowId": 1913536111
+        },
+        "days": {
+          "2026-10-14": {
+            "127.0.0.1": 75752
+          }
+        },
+        "discardedMs": 2358,
+        "highWater": 1791929717611,
+        "minuteConsent": true,
+        "minuteDays": {
+          "2026-10-14": {
+            "ambiguous": false,
+            "entries": [
+              [
+                372,
+                "127.0.0.1",
+                2414
+              ],
+              [
+                374,
+                "127.0.0.1",
+                55018
+              ],
+              [
+                375,
+                "127.0.0.1",
+                17611
+              ]
+            ],
+            "offset": -480,
+            "truncated": false
+          }
+        },
+        "paused": false,
+        "settings": {
+          "excludedHosts": [],
+          "idleSeconds": 60,
+          "retentionDays": 90
+        },
+        "siteGrants": {
+          "allSites": false,
+          "origins": [
+            "http://127.0.0.1:54677"
+          ]
+        },
+        "version": 1
+      }
+    },
+    {
+      "name": "real-panel-closed-collection",
+      "noSidePanel": true,
+      "noTimeRpc": true,
+      "ms": 72004
+    },
+    {
+      "name": "real-site-switch",
+      "firstHost": "127.0.0.1",
+      "firstMs": 75766,
+      "secondHost": "localhost",
+      "secondMs": 1847,
+      "separateTotals": true
+    },
+    {
+      "name": "real-long-domain-layout",
+      "width": 320,
+      "scroll": 320,
+      "host": "very-long-actual-time-review-domain-abcdefghijklmnopqrstuvwxyz.localhost",
+      "canvas": 282,
+      "method": "installed native CSS viewport"
+    },
+    {
+      "name": "real-long-domain-layout",
+      "width": 360,
+      "scroll": 360,
+      "host": "very-long-actual-time-review-domain-abcdefghijklmnopqrstuvwxyz.localhost",
+      "canvas": 312,
+      "method": "installed native CSS viewport"
+    },
+    {
+      "name": "real-long-domain-layout",
+      "width": 400,
+      "scroll": 400,
+      "host": "very-long-actual-time-review-domain-abcdefghijklmnopqrstuvwxyz.localhost",
+      "canvas": 352,
+      "method": "installed native CSS viewport"
+    },
+    {
+      "name": "real-long-domain-layout",
+      "width": 600,
+      "scroll": 600,
+      "host": "very-long-actual-time-review-domain-abcdefghijklmnopqrstuvwxyz.localhost",
+      "canvas": 552,
+      "method": "installed native CSS viewport"
+    },
+    {
+      "name": "real-idle-transition",
+      "enteredIdle": true,
+      "idleTotalsFrozen": true,
+      "resumedHost": "localhost",
+      "postIdleMs": 1688
+    },
+    {
+      "name": "real-pause",
+      "ms": 75854
+    },
+    {
+      "name": "real-service-worker-restart",
+      "ms": 75854,
+      "method": "Target.closeTarget",
+      "targetChanged": true
+    },
+    {
+      "name": "real-resume",
+      "paused": false
+    },
+    {
+      "name": "real-active-worker-recovery",
+      "method": "Target.closeTarget",
+      "natural": false,
+      "activeVersion": {
+        "at": 282379.155833,
+        "sessionId": "C21EE81BFBB9A47997F92E465AEC685F",
+        "versionId": "2",
+        "registrationId": "2",
+        "scriptURL": "chrome-extension://nfgjhajcnbnmgnlifhbmknljhjekdile/sw.js",
+        "runningStatus": "running",
+        "status": "running",
+        "scriptLastModified": 1791929437,
+        "scriptResponseTime": 0,
+        "controlledClients": [],
+        "targetId": "5EC7AEFBBD777C62BBB734DD21FE2C3C"
+      },
+      "confirmedStop": {
+        "at": 284477.525291,
+        "sessionId": "C21EE81BFBB9A47997F92E465AEC685F",
+        "versionId": "2",
+        "registrationId": "2",
+        "scriptURL": "chrome-extension://nfgjhajcnbnmgnlifhbmknljhjekdile/sw.js",
+        "runningStatus": "stopped",
+        "status": "stopped",
+        "scriptLastModified": 1791929437,
+        "scriptResponseTime": 0,
+        "controlledClients": []
+      },
+      "confirmedBlurAt": 284724.145875,
+      "confirmedRecovery": {
+        "at": 284490.466125,
+        "sessionId": "C21EE81BFBB9A47997F92E465AEC685F",
+        "versionId": "2",
+        "registrationId": "2",
+        "scriptURL": "chrome-extension://nfgjhajcnbnmgnlifhbmknljhjekdile/sw.js",
+        "runningStatus": "running",
+        "status": "running",
+        "scriptLastModified": 1791929437,
+        "scriptResponseTime": 0,
+        "controlledClients": [],
+        "targetId": "A5A802B4DACFA1DD9C453F5C0A14991D"
+      },
+      "authorizationPreserved": true,
+      "allHistoryBucketsPreserved": true,
+      "unfocusedHistoryFrozen": true,
+      "observedDelta": 1664,
+      "permittedDelta": 2758,
+      "freshObservation": true,
+      "verdict": "BLOCKED",
+      "reason": "Recovery ordering scenario not proven; target ID change alone is insufficient"
+    },
+    {
+      "name": "real-site-authorization-revocation",
+      "chromeIdleRetained": true,
+      "checkpointRetired": true,
+      "unauthorizedRestartDenied": true,
+      "historyPreserved": true,
+      "regrantExplicit": true
+    },
+    {
+      "name": "real-idle-permission-revocation",
+      "chromePermissionRemoved": true,
+      "revokedHash": true,
+      "checkpointRetired": true,
+      "heartbeatRetired": true,
+      "unauthorizedRestartDenied": true,
+      "daysPreserved": true
+    },
+    {
+      "name": "real-classification",
+      "host": "127.0.0.1",
+      "category": 2,
+      "unchangedTime": true,
+      "visible": true
+    },
+    {
+      "name": "real-history-navigation",
+      "previousEmptyDay": true,
+      "currentDayRestored": true,
+      "weekRecords": true,
+      "ranking": true
+    },
+    {
+      "name": "populated-export",
+      "format": "json",
+      "filename": "time-review (1).json",
+      "bytes": 1148,
+      "sha256": "415be2963075e318583f5b56a1d8f2ab7a51118a7556f08f4abc073455b51290",
+      "actualWebsiteTime": true
+    },
+    {
+      "name": "populated-export",
+      "format": "csv",
+      "filename": "time-review (1).csv",
+      "bytes": 222,
+      "sha256": "475718cdf14d20883d70f95f1d5d7bf0e5718236c520e1ef05a4ddd2ac15b24d",
+      "actualWebsiteTime": true
+    },
+    {
+      "name": "real-chrome-restart",
+      "previousPid": 45540,
+      "newPid": 46933,
+      "sameProfile": true,
+      "sessionChanged": true,
+      "toolVersion": "1.6.0",
+      "days": 1,
+      "paused": true
+    },
+    {
+      "name": "real-sidepanel-reopened-after-chrome-restart",
+      "ownSidePanel": true,
+      "documentId": "91FCC66553F05D10983B35517DCC95FF",
+      "targetId": "BF205E4AF8328F8AE597456897CF7CAC"
+    },
+    {
+      "name": "real-tool-disable-reenable",
+      "rotatedEpoch": true,
+      "daysPreserved": true,
+      "noAutoStart": true
+    },
+    {
+      "name": "real-tool-uninstall",
+      "selective": true,
+      "recordDeleted": true,
+      "othersIntact": true,
+      "noResurrection": true
+    },
+    {
+      "name": "real-tool-reinstall",
+      "version": "1.6.0",
+      "newConsentRequired": true,
+      "oldDataNotResurrected": true,
+      "noIframe": true
+    },
+    {
+      "name": "native-file-review-install",
+      "id": "time-review-lookalike",
+      "version": "1.6.0",
+      "file": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/time-review-r19-local-01a1364f/native-run-49/time-review-lookalike.opendesk-tool.json",
+      "sha256": "09809030242e8993be461e0167dc67749c05b3ba38f780c22839e9a1a9a215e6"
+    },
+    {
+      "name": "same-name-real-sandbox",
+      "sameTitle": true,
+      "sameCapability": true,
+      "differentId": true,
+      "iframe": true
+    },
+    {
+      "name": "native-file-review-install",
+      "id": "time-review",
+      "version": "1.6.1",
+      "file": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/time-review-r19-local-01a1364f/native-run-49/time-review-local-replacement.opendesk-tool.json",
+      "sha256": "1aa222fd0a222f727e192dd25b532466366a27890f9e2404bfab310ecd81a8b5"
+    },
+    {
+      "name": "own-reviewed-replacement-retirement",
+      "version": "1.6.1",
+      "bytesChanged": true,
+      "officialProvenanceRemoved": true,
+      "epochPreserved": true,
+      "packageHashChanged": true,
+      "oldNativeRootRetired": true,
+      "noAutoStart": true
+    },
+    {
+      "name": "native-file-review-install",
+      "id": "time-review",
+      "version": "1.5.0",
+      "file": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/time-review-r19-local-01a1364f/native-run-49/time-review-reviewed-older-version.opendesk-tool.json",
+      "sha256": "3396798d9ad9717cef454476b7267ac03e01ace800f725edfd9e03ae8ba6bc63"
+    },
+    {
+      "name": "actual-official-upgrade",
+      "fromVersion": "1.5.0",
+      "fromSource": "reviewed-local-older-version-fixture",
+      "toVersion": "1.6.0",
+      "toSource": "actual-official-catalog",
+      "exactPackage": true,
+      "officialProvenance": true,
+      "historyPreserved": true,
+      "oldSandboxRetired": true,
+      "noAutoStart": true
+    }
+  ],
+  "chrome": "Chrome/155.0.8059.39",
+  "extensionId": "nfgjhajcnbnmgnlifhbmknljhjekdile",
+  "workerObserver": {
+    "events": [
+      {
+        "at": 1243.130083,
+        "sessionId": "C21EE81BFBB9A47997F92E465AEC685F",
+        "method": "workerRegistrationUpdated",
+        "params": {
+          "registrations": [
+            {
+              "registrationId": "2",
+              "scopeURL": "chrome-extension://nfgjhajcnbnmgnlifhbmknljhjekdile/",
+              "isDeleted": false
+            },
+            {
+              "registrationId": "0",
+              "scopeURL": "chrome-extension://nkeimhogjdpnpccoofpliimaahmaaome/",
+              "isDeleted": false
+            },
+            {
+              "registrationId": "1",
+              "scopeURL": "chrome-extension://glbjnfimcajjenihimblfaponejbkoph/",
+              "isDeleted": false
+            }
+          ]
+        }
+      },
+      {
+        "at": 1243.411291,
+        "sessionId": "C21EE81BFBB9A47997F92E465AEC685F",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://nfgjhajcnbnmgnlifhbmknljhjekdile/sw.js",
+              "runningStatus": "starting",
+              "status": "new",
+              "scriptLastModified": 1791929437,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "582AADA1B64FB51447F81C1713834160"
+            },
+            {
+              "versionId": "0",
+              "registrationId": "0",
+              "scriptURL": "chrome-extension://nkeimhogjdpnpccoofpliimaahmaaome/thunk.js",
+              "runningStatus": "running",
+              "status": "activated",
+              "scriptLastModified": 0,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "9DDF2CC97930B3D92C0DFB3EE4577F12"
+            },
+            {
+              "versionId": "1",
+              "registrationId": "1",
+              "scriptURL": "chrome-extension://glbjnfimcajjenihimblfaponejbkoph/background.js",
+              "runningStatus": "running",
+              "status": "activated",
+              "scriptLastModified": 0,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "6C7D385B2356C90A1FF46551E1EA8166"
+            }
+          ]
+        }
+      },
+      {
+        "at": 1304.224916,
+        "sessionId": "C21EE81BFBB9A47997F92E465AEC685F",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://nfgjhajcnbnmgnlifhbmknljhjekdile/sw.js",
+              "runningStatus": "starting",
+              "status": "installing",
+              "scriptLastModified": 1791929437,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "582AADA1B64FB51447F81C1713834160"
+            }
+          ]
+        }
+      },
+      {
+        "at": 1304.372541,
+        "sessionId": "C21EE81BFBB9A47997F92E465AEC685F",
+        "method": "workerRegistrationUpdated",
+        "params": {
+          "registrations": [
+            {
+              "registrationId": "2",
+              "scopeURL": "chrome-extension://nfgjhajcnbnmgnlifhbmknljhjekdile/",
+              "isDeleted": false
+            }
+          ]
+        }
+      },
+      {
+        "at": 1304.47875,
+        "sessionId": "C21EE81BFBB9A47997F92E465AEC685F",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://nfgjhajcnbnmgnlifhbmknljhjekdile/sw.js",
+              "runningStatus": "running",
+              "status": "installing",
+              "scriptLastModified": 1791929437,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "582AADA1B64FB51447F81C1713834160"
+            }
+          ]
+        }
+      },
+      {
+        "at": 1315.577125,
+        "sessionId": "C21EE81BFBB9A47997F92E465AEC685F",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://nfgjhajcnbnmgnlifhbmknljhjekdile/sw.js",
+              "runningStatus": "running",
+              "status": "installed",
+              "scriptLastModified": 1791929437,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "582AADA1B64FB51447F81C1713834160"
+            }
+          ]
+        }
+      },
+      {
+        "at": 1315.7095,
+        "sessionId": "C21EE81BFBB9A47997F92E465AEC685F",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://nfgjhajcnbnmgnlifhbmknljhjekdile/sw.js",
+              "runningStatus": "running",
+              "status": "activating",
+              "scriptLastModified": 1791929437,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "582AADA1B64FB51447F81C1713834160"
+            }
+          ]
+        }
+      },
+      {
+        "at": 1317.1885,
+        "sessionId": "C21EE81BFBB9A47997F92E465AEC685F",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://nfgjhajcnbnmgnlifhbmknljhjekdile/sw.js",
+              "runningStatus": "running",
+              "status": "activated",
+              "scriptLastModified": 1791929437,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "582AADA1B64FB51447F81C1713834160"
+            }
+          ]
+        }
+      },
+      {
+        "at": 1554.70275,
+        "sessionId": "C21EE81BFBB9A47997F92E465AEC685F",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://nfgjhajcnbnmgnlifhbmknljhjekdile/sw.js",
+              "runningStatus": "running",
+              "status": "activated",
+              "scriptLastModified": 1791929437,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "582AADA1B64FB51447F81C1713834160"
+            }
+          ]
+        }
+      },
+      {
+        "at": 1587.343166,
+        "sessionId": "C21EE81BFBB9A47997F92E465AEC685F",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://nfgjhajcnbnmgnlifhbmknljhjekdile/sw.js",
+              "runningStatus": "running",
+              "status": "activated",
+              "scriptLastModified": 1791929437,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "582AADA1B64FB51447F81C1713834160"
+            }
+          ]
+        }
+      },
+      {
+        "at": 1599.903916,
+        "sessionId": "C21EE81BFBB9A47997F92E465AEC685F",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://nfgjhajcnbnmgnlifhbmknljhjekdile/sw.js",
+              "runningStatus": "running",
+              "status": "activated",
+              "scriptLastModified": 1791929437,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "582AADA1B64FB51447F81C1713834160"
+            }
+          ]
+        }
+      },
+      {
+        "at": 20962.8965,
+        "sessionId": "C21EE81BFBB9A47997F92E465AEC685F",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://nfgjhajcnbnmgnlifhbmknljhjekdile/sw.js",
+              "runningStatus": "running",
+              "status": "activated",
+              "scriptLastModified": 1791929437,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "582AADA1B64FB51447F81C1713834160"
+            }
+          ]
+        }
+      },
+      {
+        "at": 21004.093916,
+        "sessionId": "C21EE81BFBB9A47997F92E465AEC685F",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://nfgjhajcnbnmgnlifhbmknljhjekdile/sw.js",
+              "runningStatus": "running",
+              "status": "activated",
+              "scriptLastModified": 1791929437,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "582AADA1B64FB51447F81C1713834160"
+            }
+          ]
+        }
+      },
+      {
+        "at": 21006.759916,
+        "sessionId": "C21EE81BFBB9A47997F92E465AEC685F",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://nfgjhajcnbnmgnlifhbmknljhjekdile/sw.js",
+              "runningStatus": "running",
+              "status": "activated",
+              "scriptLastModified": 1791929437,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "582AADA1B64FB51447F81C1713834160"
+            }
+          ]
+        }
+      },
+      {
+        "at": 21494.115041,
+        "sessionId": "C21EE81BFBB9A47997F92E465AEC685F",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://nfgjhajcnbnmgnlifhbmknljhjekdile/sw.js",
+              "runningStatus": "running",
+              "status": "activated",
+              "scriptLastModified": 1791929437,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "582AADA1B64FB51447F81C1713834160"
+            }
+          ]
+        }
+      },
+      {
+        "at": 21497.649208,
+        "sessionId": "C21EE81BFBB9A47997F92E465AEC685F",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://nfgjhajcnbnmgnlifhbmknljhjekdile/sw.js",
+              "runningStatus": "running",
+              "status": "activated",
+              "scriptLastModified": 1791929437,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "582AADA1B64FB51447F81C1713834160"
+            }
+          ]
+        }
+      },
+      {
+        "at": 40149.794625,
+        "sessionId": "C21EE81BFBB9A47997F92E465AEC685F",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "1",
+              "registrationId": "1",
+              "scriptURL": "chrome-extension://glbjnfimcajjenihimblfaponejbkoph/background.js",
+              "runningStatus": "stopping",
+              "status": "activated",
+              "scriptLastModified": 0,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "6C7D385B2356C90A1FF46551E1EA8166"
+            }
+          ]
+        }
+      },
+      {
+        "at": 40150.01275,
+        "sessionId": "C21EE81BFBB9A47997F92E465AEC685F",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "0",
+              "registrationId": "0",
+              "scriptURL": "chrome-extension://nkeimhogjdpnpccoofpliimaahmaaome/thunk.js",
+              "runningStatus": "stopping",
+              "status": "activated",
+              "scriptLastModified": 0,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "9DDF2CC97930B3D92C0DFB3EE4577F12"
+            }
+          ]
+        }
+      },
+      {
+        "at": 40150.7585,
+        "sessionId": "C21EE81BFBB9A47997F92E465AEC685F",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "1",
+              "registrationId": "1",
+              "scriptURL": "chrome-extension://glbjnfimcajjenihimblfaponejbkoph/background.js",
+              "runningStatus": "stopped",
+              "status": "activated",
+              "scriptLastModified": 0,
+              "scriptResponseTime": 0,
+              "controlledClients": []
+            }
+          ]
+        }
+      },
+      {
+        "at": 40150.872666,
+        "sessionId": "C21EE81BFBB9A47997F92E465AEC685F",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "0",
+              "registrationId": "0",
+              "scriptURL": "chrome-extension://nkeimhogjdpnpccoofpliimaahmaaome/thunk.js",
+              "runningStatus": "stopped",
+              "status": "activated",
+              "scriptLastModified": 0,
+              "scriptResponseTime": 0,
+              "controlledClients": []
+            }
+          ]
+        }
+      },
+      {
+        "at": 41732.793666,
+        "sessionId": "C21EE81BFBB9A47997F92E465AEC685F",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://nfgjhajcnbnmgnlifhbmknljhjekdile/sw.js",
+              "runningStatus": "running",
+              "status": "activated",
+              "scriptLastModified": 1791929437,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "582AADA1B64FB51447F81C1713834160"
+            }
+          ]
+        }
+      },
+      {
+        "at": 41736.789041,
+        "sessionId": "C21EE81BFBB9A47997F92E465AEC685F",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://nfgjhajcnbnmgnlifhbmknljhjekdile/sw.js",
+              "runningStatus": "running",
+              "status": "activated",
+              "scriptLastModified": 1791929437,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "582AADA1B64FB51447F81C1713834160"
+            }
+          ]
+        }
+      },
+      {
+        "at": 82682.361416,
+        "sessionId": "C21EE81BFBB9A47997F92E465AEC685F",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://nfgjhajcnbnmgnlifhbmknljhjekdile/sw.js",
+              "runningStatus": "running",
+              "status": "activated",
+              "scriptLastModified": 1791929437,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "582AADA1B64FB51447F81C1713834160"
+            }
+          ]
+        }
+      },
+      {
+        "at": 82686.680666,
+        "sessionId": "C21EE81BFBB9A47997F92E465AEC685F",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://nfgjhajcnbnmgnlifhbmknljhjekdile/sw.js",
+              "runningStatus": "running",
+              "status": "activated",
+              "scriptLastModified": 1791929437,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "582AADA1B64FB51447F81C1713834160"
+            }
+          ]
+        }
+      },
+      {
+        "at": 121234.32375,
+        "sessionId": "C21EE81BFBB9A47997F92E465AEC685F",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://nfgjhajcnbnmgnlifhbmknljhjekdile/sw.js",
+              "runningStatus": "running",
+              "status": "activated",
+              "scriptLastModified": 1791929437,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "582AADA1B64FB51447F81C1713834160"
+            }
+          ]
+        }
+      },
+      {
+        "at": 123931.829416,
+        "sessionId": "C21EE81BFBB9A47997F92E465AEC685F",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://nfgjhajcnbnmgnlifhbmknljhjekdile/sw.js",
+              "runningStatus": "running",
+              "status": "activated",
+              "scriptLastModified": 1791929437,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "582AADA1B64FB51447F81C1713834160"
+            }
+          ]
+        }
+      },
+      {
+        "at": 200824.233333,
+        "sessionId": "C21EE81BFBB9A47997F92E465AEC685F",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://nfgjhajcnbnmgnlifhbmknljhjekdile/sw.js",
+              "runningStatus": "running",
+              "status": "activated",
+              "scriptLastModified": 1791929437,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "582AADA1B64FB51447F81C1713834160"
+            }
+          ]
+        }
+      },
+      {
+        "at": 200845.618416,
+        "sessionId": "C21EE81BFBB9A47997F92E465AEC685F",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://nfgjhajcnbnmgnlifhbmknljhjekdile/sw.js",
+              "runningStatus": "running",
+              "status": "activated",
+              "scriptLastModified": 1791929437,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "582AADA1B64FB51447F81C1713834160"
+            }
+          ]
+        }
+      },
+      {
+        "at": 200848.222083,
+        "sessionId": "C21EE81BFBB9A47997F92E465AEC685F",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://nfgjhajcnbnmgnlifhbmknljhjekdile/sw.js",
+              "runningStatus": "running",
+              "status": "activated",
+              "scriptLastModified": 1791929437,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "582AADA1B64FB51447F81C1713834160"
+            }
+          ]
+        }
+      },
+      {
+        "at": 282356.310041,
+        "sessionId": "C21EE81BFBB9A47997F92E465AEC685F",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://nfgjhajcnbnmgnlifhbmknljhjekdile/sw.js",
+              "runningStatus": "stopping",
+              "status": "activated",
+              "scriptLastModified": 1791929437,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "582AADA1B64FB51447F81C1713834160"
+            }
+          ]
+        }
+      },
+      {
+        "at": 282361.668291,
+        "sessionId": "C21EE81BFBB9A47997F92E465AEC685F",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://nfgjhajcnbnmgnlifhbmknljhjekdile/sw.js",
+              "runningStatus": "stopped",
+              "status": "activated",
+              "scriptLastModified": 1791929437,
+              "scriptResponseTime": 0,
+              "controlledClients": []
+            }
+          ]
+        }
+      },
+      {
+        "at": 282361.766625,
+        "sessionId": "C21EE81BFBB9A47997F92E465AEC685F",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://nfgjhajcnbnmgnlifhbmknljhjekdile/sw.js",
+              "runningStatus": "starting",
+              "status": "activated",
+              "scriptLastModified": 1791929437,
+              "scriptResponseTime": 0,
+              "controlledClients": []
+            }
+          ]
+        }
+      },
+      {
+        "at": 282361.855083,
+        "sessionId": "C21EE81BFBB9A47997F92E465AEC685F",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://nfgjhajcnbnmgnlifhbmknljhjekdile/sw.js",
+              "runningStatus": "starting",
+              "status": "activated",
+              "scriptLastModified": 1791929437,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "5EC7AEFBBD777C62BBB734DD21FE2C3C"
+            }
+          ]
+        }
+      },
+      {
+        "at": 282362.793,
+        "sessionId": "C21EE81BFBB9A47997F92E465AEC685F",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://nfgjhajcnbnmgnlifhbmknljhjekdile/sw.js",
+              "runningStatus": "starting",
+              "status": "activated",
+              "scriptLastModified": 1791929437,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "5EC7AEFBBD777C62BBB734DD21FE2C3C"
+            }
+          ]
+        }
+      },
+      {
+        "at": 282379.152666,
+        "sessionId": "C21EE81BFBB9A47997F92E465AEC685F",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://nfgjhajcnbnmgnlifhbmknljhjekdile/sw.js",
+              "runningStatus": "running",
+              "status": "activated",
+              "scriptLastModified": 1791929437,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "5EC7AEFBBD777C62BBB734DD21FE2C3C"
+            }
+          ]
+        }
+      },
+      {
+        "at": 284474.963791,
+        "sessionId": "C21EE81BFBB9A47997F92E465AEC685F",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://nfgjhajcnbnmgnlifhbmknljhjekdile/sw.js",
+              "runningStatus": "stopping",
+              "status": "activated",
+              "scriptLastModified": 1791929437,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "5EC7AEFBBD777C62BBB734DD21FE2C3C"
+            }
+          ]
+        }
+      },
+      {
+        "at": 284477.523666,
+        "sessionId": "C21EE81BFBB9A47997F92E465AEC685F",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://nfgjhajcnbnmgnlifhbmknljhjekdile/sw.js",
+              "runningStatus": "stopped",
+              "status": "activated",
+              "scriptLastModified": 1791929437,
+              "scriptResponseTime": 0,
+              "controlledClients": []
+            }
+          ]
+        }
+      },
+      {
+        "at": 284477.60025,
+        "sessionId": "C21EE81BFBB9A47997F92E465AEC685F",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://nfgjhajcnbnmgnlifhbmknljhjekdile/sw.js",
+              "runningStatus": "starting",
+              "status": "activated",
+              "scriptLastModified": 1791929437,
+              "scriptResponseTime": 0,
+              "controlledClients": []
+            }
+          ]
+        }
+      },
+      {
+        "at": 284477.713958,
+        "sessionId": "C21EE81BFBB9A47997F92E465AEC685F",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://nfgjhajcnbnmgnlifhbmknljhjekdile/sw.js",
+              "runningStatus": "starting",
+              "status": "activated",
+              "scriptLastModified": 1791929437,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "A5A802B4DACFA1DD9C453F5C0A14991D"
+            }
+          ]
+        }
+      },
+      {
+        "at": 284478.193375,
+        "sessionId": "C21EE81BFBB9A47997F92E465AEC685F",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://nfgjhajcnbnmgnlifhbmknljhjekdile/sw.js",
+              "runningStatus": "starting",
+              "status": "activated",
+              "scriptLastModified": 1791929437,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "A5A802B4DACFA1DD9C453F5C0A14991D"
+            }
+          ]
+        }
+      },
+      {
+        "at": 284490.4625,
+        "sessionId": "C21EE81BFBB9A47997F92E465AEC685F",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://nfgjhajcnbnmgnlifhbmknljhjekdile/sw.js",
+              "runningStatus": "running",
+              "status": "activated",
+              "scriptLastModified": 1791929437,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "A5A802B4DACFA1DD9C453F5C0A14991D"
+            }
+          ]
+        }
+      }
+    ],
+    "errors": [],
+    "crashes": []
+  },
+  "nativeTrustedUI": "PASS",
+  "timeReviewIframeRemoved": "PASS",
+  "installedViewportWidths": [
+    {
+      "width": 320,
+      "scroll": 320,
+      "canvas": 282,
+      "reviews": 1,
+      "iframes": 0,
+      "label": "分钟时间线",
+      "method": "CDP viewport on installed native UI"
+    },
+    {
+      "width": 360,
+      "scroll": 360,
+      "canvas": 312,
+      "reviews": 1,
+      "iframes": 0,
+      "label": "分钟时间线",
+      "method": "CDP viewport on installed native UI"
+    },
+    {
+      "width": 400,
+      "scroll": 400,
+      "canvas": 352,
+      "reviews": 1,
+      "iframes": 0,
+      "label": "分钟时间线",
+      "method": "CDP viewport on installed native UI"
+    },
+    {
+      "width": 600,
+      "scroll": 600,
+      "canvas": 552,
+      "reviews": 1,
+      "iframes": 0,
+      "label": "分钟时间线",
+      "method": "CDP viewport on installed native UI"
+    }
+  ],
+  "layoutWidths": "PASS",
+  "realBrowserZoom": "PASS",
+  "nativePermissionControls": "PASS",
+  "downloadChecks": [
+    {
+      "format": "json",
+      "created": "PASS",
+      "complete": "PASS",
+      "ownedDirectory": "PASS",
+      "disk": "PASS",
+      "content": "PASS",
+      "filename": "PASS",
+      "id": 1,
+      "basename": "time-review.json",
+      "received": 241,
+      "ownedByExtension": true,
+      "bytes": 241,
+      "sha256": "3cc02c23b9d8f1b0b52ee5bf6b4d49ba8119e76b22f03c92bab2d5c6008c7385"
+    },
+    {
+      "format": "csv",
+      "created": "PASS",
+      "complete": "PASS",
+      "ownedDirectory": "PASS",
+      "disk": "PASS",
+      "content": "PASS",
+      "filename": "PASS",
+      "id": 2,
+      "basename": "time-review.csv",
+      "received": 44,
+      "ownedByExtension": true,
+      "bytes": 44,
+      "sha256": "55c24b7f5c3e5ccbc3b7fe3915cb7e73720188c2fd93dff8f84c393035dd63d6"
+    }
+  ],
+  "inlineEnrollment": "PASS",
+  "minuteCanvas": "PASS",
+  "canvasKeyboard": "PASS",
+  "unrelatedToolInstall": "PASS",
+  "unrelatedToolLifecycle": "PASS",
+  "unrelatedToolUpgrade": "PASS",
+  "windowFocus": "PASS",
+  "naturalSwSleep": "BLOCKED",
+  "panelClosedCollection": "PASS",
+  "multiSite": "PASS",
+  "longDomainLayout": "PASS",
+  "idleTransition": "PASS",
+  "activeSwRecovery": "BLOCKED",
+  "classification": "PASS",
+  "historyNavigation": "PASS",
+  "populatedExport": "PASS",
+  "browserRestartScope": "paused genuine website totals, same owned Profile",
+  "realSidePanelReopened": "PASS",
+  "disableEnable": "PASS",
+  "uninstall": "PASS",
+  "reinstall": "PASS",
+  "sameNameSandbox": "PASS",
+  "replacementRetirement": "PASS",
+  "officialUpgrade": "PASS",
+  "cleanup": {
+    "terminated": true,
+    "profileRemoved": true,
+    "owned": true
+  },
+  "complete": true,
+  "acceptance": "PARTIAL",
+  "requiredResults": {
+    "install": "PASS",
+    "realSidePanel": "PASS",
+    "nativeTrustedUI": "PASS",
+    "minuteConsent": "PASS",
+    "download": "PASS",
+    "multiSite": "PASS",
+    "idleTransition": "PASS",
+    "beginAndActiveCollection": "PASS",
+    "pauseResume": "PASS",
+    "websiteGrantRevocation": "PASS",
+    "idlePermissionRevocation": "PASS",
+    "swRestart": "PASS",
+    "browserRestart": "PASS",
+    "disableEnable": "PASS",
+    "uninstall": "PASS",
+    "realBrowserZoom": "PASS",
+    "windowFocus": "PASS",
+    "panelClosedCollection": "PASS",
+    "unrelatedToolInstall": "PASS",
+    "unrelatedToolLifecycle": "PASS",
+    "minuteCanvas": "PASS",
+    "canvasKeyboard": "PASS",
+    "classification": "PASS",
+    "populatedExport": "PASS",
+    "reinstall": "PASS",
+    "realSidePanelReopened": "PASS",
+    "nativePermissionControls": "PASS",
+    "inlineEnrollment": "PASS",
+    "timeReviewIframeRemoved": "PASS",
+    "layoutWidths": "PASS",
+    "historyNavigation": "PASS",
+    "longDomainLayout": "PASS",
+    "sameNameSandbox": "PASS",
+    "replacementRetirement": "PASS",
+    "officialUpgrade": "PASS",
+    "unrelatedToolUpgrade": "PASS",
+    "activeSwRecovery": "BLOCKED",
+    "naturalSwSleep": "BLOCKED"
+  },
+  "chromeStderr": "291] Registration response error message: DEPRECATED_ENDPOINT\n[45540:74123810:1014/061229.291168:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT\n[45540:74123810:1014/061320.844875:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT\n[45540:74123810:1014/061457.753515:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT\n[45540:74123810:1014/061527.687949:ERROR:google_apis/gcm/engine/connection_factory_impl.cc:474] ConnectionHandler failed with net error: -2\n\nDevTools listening on ws://127.0.0.1:56794/devtools/browser/258c8bde-8a6d-4105-936f-ff01ebf18ba5\n[46933:74137837:1014/061704.899283:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT\n[46933:74137837:1014/061733.240564:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT\n[46933:74137837:1014/061829.859341:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT\n"
+}

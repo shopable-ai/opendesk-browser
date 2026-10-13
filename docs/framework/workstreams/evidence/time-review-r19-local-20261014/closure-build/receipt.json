@@ -1,0 +1,13 @@
+{
+  "candidate": "ac7d7aa191c131bf28eb2fae3c505c5a6ef30d46",
+  "node": "v24.16.0",
+  "nodeResult": {
+    "tests": 205,
+    "pass": 205,
+    "fail": 0,
+    "skip": 0
+  },
+  "buildResults": "official package/check/production/development/verify all exit 0",
+  "native": "full run 49 in progress; no PASS promoted",
+  "staticReview": "Poincare follow-up CLEAR; only static, all four requested fixes checked"
+}

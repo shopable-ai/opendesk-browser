@@ -1,0 +1,42 @@
+{
+  "candidate": "ac7d7aa191c131bf28eb2fae3c505c5a6ef30d46",
+  "node": "v24.16.0",
+  "snapshot": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/time-review-r19-local-01a1364f/source-r19-closure",
+  "files": [
+    {
+      "path": "dist/production/sw.js",
+      "bytes": 592119,
+      "sha256": "9d85e1370c1dc5c1e896764e6c3bb367d2a94a4d32efc93760d78c313cb56e9f"
+    },
+    {
+      "path": "dist/development/sw.js",
+      "bytes": 592285,
+      "sha256": "e49d69652a5713f4c61a75c50d301ef9269290b0df86aa188b62ecdd1321256b"
+    },
+    {
+      "path": "dist/production/ui/tool-shell.js",
+      "bytes": 495305,
+      "sha256": "5b6b25c522b780544753359e96432cdc145718a639aba7e5492d71db3d4d630e"
+    },
+    {
+      "path": "dist/development/ui/tool-shell.js",
+      "bytes": 495545,
+      "sha256": "955fda13835c636bef378c44b22ee625652f65a359e04d95aab110f1d9225f8f"
+    },
+    {
+      "path": "tests/framework/time-review-r13-native.test.mjs",
+      "bytes": 125425,
+      "sha256": "f7b3d13267a07e3dfb6fb479a197c5b63921ea98d84b8d60395f409c248dc8d9"
+    },
+    {
+      "path": "tests/framework/time-review-native-input.swift",
+      "bytes": 9079,
+      "sha256": "a7180392f2cba814a45541681a8bffef1f02490dd7c7dc36e5c808eb5c3a05b2"
+    },
+    {
+      "path": "artifacts/sidebar-tools/time-review/1.6.0/time-review.opendesk-tool.json",
+      "bytes": 41548,
+      "sha256": "90f5029049ed4b2cadd69fa91c4efaefb45f031bd94c07e708c9f78d5f2776f6"
+    }
+  ]
+}

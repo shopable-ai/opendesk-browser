@@ -1,0 +1,9 @@
+{
+  "at": "2026-10-13T22:21:52.780290+00:00",
+  "ownedTestChildPid": 45538,
+  "command": "/Users/shopme/.nvm/versions/node/v24.16.0/bin/node --test-concurrency=0 --heap-prof-interval=524288 --test-timeout=0 --stack-trace-limit=10 --report-signal=SIGUSR2 --max-http-header-size=16384 --heapsnapshot-near-heap-limit=0 --tls-cipher-list=TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256:TLS_AES_128_GCM_SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-SHA256:DHE-RSA-AES128-SHA256:ECDHE-RSA-AES256-SHA384:DHE-RSA-AES256-SHA384:ECDHE-RSA-AES256-SHA256:DHE-RSA-AES256-SHA256:HIGH:!aNULL:!eNULL:!EXPORT:!DES:!RC4:!MD5:!PSK:!SRP:!CAMELLIA --watch-kill-signal=SIGTERM --inspect-publish-uid=stderr,http --cpu-prof-interval=1000 --test-coverage-functions=0 --test-coverage-lines=0 --inspect-port=127.0.0.1:9229 --test-coverage-branches=0 --test-isolation=process --use-largepages=off --network-family-autoselection-attempt-timeout=250 --secure-heap-min=2 --v8-pool-size=4 --node-snapshot --trace-event-file-pattern=node_trace.${rotation}.log --secure-heap=0 tests/framework/time-review-r13-native.test.mjs",
+  "cwdEvidence": "p45538\nfcwd\nn/Users/shopme/Documents/workspace/opendesk-browser/artifacts/time-review-r19-local-01a1364f/source-r19-closure\n",
+  "reason": "Full acceptance assertion inside first after-hook failed; later HTTP fixture after-hook was skipped, leaving port 54677 open after report and CFT cleanup",
+  "action": "SIGTERM only to verified owned Node child; original TAP/report preserved",
+  "nativeVerdict": "PARTIAL"
+}

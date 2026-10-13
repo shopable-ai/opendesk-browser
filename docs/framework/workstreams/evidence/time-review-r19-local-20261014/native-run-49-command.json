@@ -1,0 +1,17 @@
+{
+  "cwd": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/time-review-r19-local-01a1364f/source-r19-closure",
+  "command": [
+    "node",
+    "--test",
+    "--test-reporter=tap",
+    "tests/framework/time-review-r13-native.test.mjs"
+  ],
+  "env": {
+    "GITHUB_SHA": "ac7d7aa191c131bf28eb2fae3c505c5a6ef30d46",
+    "OPENDESK_TIME_REVIEW_NATIVE": "1",
+    "CHROME_BIN": "/Users/shopme/Documents/workspace/opendesk-browser/.runtime/time-review-r19-local-01a1364f/OpenDesk Time Review R19 CFT.app/Contents/MacOS/Google Chrome for Testing",
+    "OPENDESK_TIME_NATIVE_EVIDENCE": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/time-review-r19-local-01a1364f/native-run-49",
+    "OPENDESK_TIME_NATIVE_SCOPE": "full"
+  },
+  "node": "v24.16.0"
+}

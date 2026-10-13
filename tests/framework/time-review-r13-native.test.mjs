@@ -3,7 +3,7 @@
 // evaluations only read UI/browser state. No injected grants/storage/fake ACK.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {spawn,spawnSync} from 'node:child_process';
+import {spawn,spawnSync,execFile} from 'node:child_process';
 import {createServer} from 'node:http';
 import {mkdtemp,mkdir,readFile,writeFile,rm,stat} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
@@ -21,6 +21,14 @@ const NATIVE_REQUESTED=process.env.OPENDESK_TIME_REVIEW_NATIVE==='1';
 // A bounded identity rerun reuses separately retained same-artifact activity
 // evidence. Omitted cases remain NOT_TESTED in this report, never PASS/SKIP.
 const NATIVE_SCOPE=process.env.OPENDESK_TIME_NATIVE_SCOPE||'full';
+const REQUIRED_NATIVE=['install','realSidePanel','nativeTrustedUI','minuteConsent','download','multiSite','idleTransition',
+  'beginAndActiveCollection','pauseResume','websiteGrantRevocation','idlePermissionRevocation',
+  'swRestart','browserRestart','disableEnable','uninstall','realBrowserZoom',
+  'windowFocus','panelClosedCollection','unrelatedToolInstall','unrelatedToolLifecycle',
+  'minuteCanvas','canvasKeyboard','classification','populatedExport','reinstall',
+  'realSidePanelReopened','nativePermissionControls','inlineEnrollment','timeReviewIframeRemoved',
+  'layoutWidths','historyNavigation','longDomainLayout','sameNameSandbox','replacementRetirement','officialUpgrade',
+  'unrelatedToolUpgrade','activeSwRecovery','naturalSwSleep'];
 function cdp(url){
   const socket=new WebSocket(url),requests=new Map(),listeners=new Map();let sequence=0,closed=false;
   const ready=new Promise((resolve,reject)=>{socket.onopen=resolve;socket.onerror=reject;});
@@ -260,20 +268,10 @@ test('Time Review R1.9 actual Mac Chrome native product acceptance',{skip:!NATIV
     await rm(profile,{recursive:true,force:true,maxRetries:6,retryDelay:200});
     evidence.cleanup={terminated,profileRemoved:true,owned};
     evidence.complete=complete;
-    const required=['install','realSidePanel','nativeTrustedUI','minuteConsent','download','multiSite','idleTransition',
-      'beginAndActiveCollection','pauseResume','websiteGrantRevocation','idlePermissionRevocation',
-      'swRestart','browserRestart','disableEnable','uninstall','realBrowserZoom',
-      'windowFocus','panelClosedCollection','unrelatedToolInstall','unrelatedToolLifecycle',
-      'minuteCanvas','canvasKeyboard','classification','populatedExport','reinstall',
-      'realSidePanelReopened','nativePermissionControls','inlineEnrollment','timeReviewIframeRemoved',
-      'layoutWidths','historyNavigation','longDomainLayout','sameNameSandbox','replacementRetirement','officialUpgrade',
-      'unrelatedToolUpgrade','activeSwRecovery','naturalSwSleep'];
-    evidence.acceptance=complete?(required.every(key=>evidence[key]==='PASS')?'PASS':'PARTIAL'):'FAIL';
-    evidence.requiredResults=Object.fromEntries(required.map(key=>[key,evidence[key]||'NOT_TESTED']));
+    evidence.acceptance=complete?(REQUIRED_NATIVE.every(key=>evidence[key]==='PASS')?'PASS':'PARTIAL'):'FAIL';
+    evidence.requiredResults=Object.fromEntries(REQUIRED_NATIVE.map(key=>[key,evidence[key]||'NOT_TESTED']));
     evidence.chromeStderr=stderr.slice(-1200);
     await writeFile(path.join(OUT,'native-report.json'),JSON.stringify(evidence,null,2)+'\n');
-    if(complete&&NATIVE_SCOPE==='full')
-      assert.equal(evidence.acceptance,'PASS','Full native acceptance requires every recorded case to pass');
   });
   const info=await until(async()=>{
     const source=await readFile(path.join(profile,'DevToolsActivePort'),'utf8').catch(()=>null);
@@ -1043,6 +1041,55 @@ test('Time Review R1.9 actual Mac Chrome native product acceptance',{skip:!NATIV
     assert.equal(total(await readTime()),total(paused),'paused time never accumulates');
     evidence.pauseResume='PARTIAL';
     note('real-pause',{ms:total(paused)});
+    const reopenTimePanel=async()=>{
+      await browser.send('Target.activateTarget',{targetId:ui.targetId});
+      await nativeClick(browser,uiTarget.sessionId,'#catalog-open-dev-sidebar');
+      const context=await until(()=>evaluate(browser,uiTarget.sessionId,'chrome.runtime.getContexts({contextTypes:["SIDE_PANEL"]}).then(c=>c.find(x=>x.documentUrl.includes("/ui/tool.html")))'),'actual Side Panel context after lifecycle observation');
+      const target=await until(async()=>(await browser.send('Target.getTargets')).targetInfos.find(row=>row.url===context.documentUrl),'actual reopened Side Panel target');
+      side=(await browser.send('Target.attachToTarget',{targetId:target.targetId,flatten:true})).sessionId;
+      sideSid=side;frame=side;
+      await browser.send('Runtime.enable',{},side);await browser.send('Page.enable',{},side);
+      await until(()=>evaluate(browser,side,'!!document.querySelector('+JSON.stringify(installed)+')'),'Time Review installed row after reopen');
+      await nativeClick(browser,side,installed);
+      await until(()=>evaluate(browser,side,'!!document.querySelector("main.review")&&!document.querySelector("#sidebar-tool-frame iframe")'),'same official native Time Review after lifecycle observation');
+    };
+    // A running 30s heartbeat need not permit idle shutdown. Exercise natural
+    // sleep through genuine pause and panel closure, without disabling alarms
+    // or touching the durable data. Keep only the passive manager observer.
+    const pausedVersion=workerStates.at(-1),pausedQuietAt=performance.now();
+    const pausedSide=(await browser.send('Target.getTargetInfo',{},side)).targetInfo;
+    assert.equal((await browser.send('Target.closeTarget',{targetId:pausedSide.targetId})).success,true);
+    sideSid=null;
+    await until(()=>evaluate(browser,uiTarget.sessionId,'chrome.runtime.getContexts({contextTypes:["SIDE_PANEL"]}).then(c=>c.length===0)'),'paused Side Panel really closed');
+    await browser.send('Target.activateTarget',{targetId:site.targetId});
+    await nativeOSClick(browser,websiteSession,'h1',zoomInput,proc.pid);
+    const samePausedWorker=row=>row.sessionId===pausedVersion?.sessionId&&row.registrationId===pausedVersion?.registrationId&&row.versionId===pausedVersion?.versionId;
+    const pausedSnapshots=[];
+    const pausedWaitAt=performance.now();
+    while(performance.now()-pausedWaitAt<45000){
+      const rows=(await browser.send('Target.getTargets')).targetInfos.filter(row=>row.type==='service_worker'&&row.url==='chrome-extension://'+present+'/sw.js');
+      assert.ok(rows.every(row=>row.attached===false),'paused natural observation may not attach its debugger');
+      const targets=rows.map(({targetId,attached})=>({targetId,attached}));
+      if(JSON.stringify(targets)!==JSON.stringify(pausedSnapshots.at(-1)?.targets))pausedSnapshots.push({at:performance.now(),targets});
+      await sleep(250);
+    }
+    const pausedStop=workerStates.find(row=>row.at>=pausedQuietAt&&samePausedWorker(row)&&row.status==='stopped');
+    await reopenTimePanel();
+    const pausedRunning=await until(()=>workerStates.find(row=>row.at>(pausedStop?.at??Infinity)&&samePausedWorker(row)&&row.status==='running'),
+      'actual same paused worker runs after natural stop',3000).catch(()=>null);
+    const afterNaturalPause=await readTime();
+    for(const key of ['days','minuteDays','categories','settings','siteGrants','minuteConsent','authorizedHash','authorizedEpoch'])
+      assert.deepEqual(afterNaturalPause[key],paused[key],'natural paused recovery preserves '+key);
+    assert.equal(afterNaturalPause.paused,true);assert.equal(afterNaturalPause.checkpoint,null);
+    const pausedErrors=workerErrors.filter(row=>row.at>=pausedQuietAt&&samePausedWorker(row));
+    const pausedCrashes=workerCrashes.filter(row=>row.at>=pausedQuietAt);
+    const pausedVersionChanged=workerStates.some(row=>row.at>=pausedQuietAt&&row.versionId!==pausedVersion?.versionId);
+    const pausedRegistrationDeleted=workerEvents.some(row=>row.at>=pausedQuietAt&&row.method==='workerRegistrationUpdated'&&row.params.registrations?.some(reg=>reg.registrationId===pausedVersion?.registrationId&&reg.isDeleted));
+    const pausedNatural=workerObserverReady&&pausedVersion?.status==='running'&&pausedStop&&pausedRunning&&!pausedErrors.length&&!pausedCrashes.length&&!pausedVersionChanged&&!pausedRegistrationDeleted;
+    if(pausedNatural)evidence.naturalSwSleep='PASS';
+    note('paused-natural-worker-observation',{initialVersion:pausedVersion,pausedStop,pausedRunning,pausedSnapshots,pausedErrors,pausedCrashes,pausedVersionChanged,pausedRegistrationDeleted,
+      genuinePause:true,panelClosed:true,noTimeRpcInWait:true,noForcedStop:true,noWorkerDebugger:true,recoveryTrigger:'not independently attributed',historyAndAuthorityPreserved:true,pausedAndCheckpointNull:true,
+      verdict:pausedNatural?'PASS':'BLOCKED',reason:pausedNatural?'Same worker genuinely stopped and recovered with unchanged paused history':'No independently proven error-free stopped/running chain while genuinely paused'});
     // In Chrome 155 the ServiceWorker CDP domain is not exposed on the
     // root Browser connection. First close the one observed extension worker
     // target; fall back to the page-session domain only in this owned profile.
@@ -1096,6 +1143,10 @@ test('Time Review R1.9 actual Mac Chrome native product acceptance',{skip:!NATIV
     const liveBeforeStop=await until(async()=>{const s=await readTime();return s?.checkpoint?.origin===approvedOrigin&&!s.paused?s:null;},'active checkpoint before real SW stop');
     const activeHost=new URL(approvedOrigin).hostname;
     assert.equal(liveBeforeStop.checkpoint.host,activeHost,'checkpoint host must match the actual approved Origin');
+    const pollingSide=(await browser.send('Target.getTargetInfo',{},side)).targetInfo;
+    assert.equal((await browser.send('Target.closeTarget',{targetId:pollingSide.targetId})).success,true,'close polling tool UI before active recovery observation');
+    sideSid=null;
+    await until(()=>evaluate(browser,uiTarget.sessionId,'chrome.runtime.getContexts({contextTypes:["SIDE_PANEL"]}).then(c=>c.length===0)'),'active tool polling document retired');
     const activeWorker=(await browser.send('Target.getTargets')).targetInfos.find(row=>row.type==='service_worker'&&row.url==='chrome-extension://'+present+'/sw.js');
     assert.ok(activeWorker,'actual owned active SW target');
     const activeVersion=workerStates.at(-1),stopAt=performance.now();
@@ -1104,8 +1155,8 @@ test('Time Review R1.9 actual Mac Chrome native product acceptance',{skip:!NATIV
     const confirmedStop=await until(()=>workerStates.find(row=>row.at>=stopAt&&sameActiveWorker(row)&&row.status==='stopped'),
       'passive confirmation of real active SW stop',3000).catch(()=>null);
     const activeBlurAt=Date.now();
-    assert.equal(spawnSync('osascript',['-e','tell application "Finder" to activate'],{encoding:'utf8',timeout:10000}).status,0,'real focus loss across active worker recovery');
-    await until(()=>evaluate(browser,side,'chrome.windows.getLastFocused().then(w=>!w.focused)'),'owned Chrome truly unfocused during active recovery');
+    await new Promise((resolve,reject)=>execFile('osascript',['-e','tell application "Finder" to activate'],{encoding:'utf8',timeout:10000},error=>error?reject(error):resolve()));
+    await until(()=>evaluate(browser,uiTarget.sessionId,'chrome.windows.getLastFocused().then(w=>!w.focused)'),'owned Chrome truly unfocused during active recovery');
     const confirmedBlurAt=performance.now();
     const confirmedRecovery=await until(()=>workerStates.find(row=>row.at>=stopAt&&sameActiveWorker(row)&&row.status==='running'),
       'passive confirmation of actual active worker recovery',12000).catch(()=>null);
@@ -1124,6 +1175,7 @@ test('Time Review R1.9 actual Mac Chrome native product acceptance',{skip:!NATIV
     await sleep(1500);assert.deepEqual((await readTime()).days,recoveredActive.days,'unfocused recovered worker keeps history frozen');
     assert.equal(spawnSync(zoomInput,[String(proc.pid),'activate'],{encoding:'utf8',timeout:10000}).status,0,'owned foreground after active SW recovery');
     assert.equal(spawnSync(zoomInput,[String(proc.pid),'activity'],{encoding:'utf8',timeout:10000}).status,0,'genuine activity after active SW recovery');
+    await reopenTimePanel();
     await browser.send('Target.activateTarget',{targetId:site.targetId});await nativeClick(browser,frame,'#refresh');
     const freshActive=await until(async()=>{const s=await readTime();return s?.checkpoint?.origin===approvedOrigin&&!s.paused?s:null;},'active recovery begins a fresh legal observation');
     assert.equal(freshActive.authorizedHash,liveBeforeStop.authorizedHash);
@@ -1577,4 +1629,6 @@ test('Time Review R1.9 actual Mac Chrome native product acceptance',{skip:!NATIV
     disableEnable:evidence.disableEnable,uninstall:evidence.uninstall,
     currentSourceHash:process.env.GITHUB_SHA||null,actualSidePanelDocumentId:sideDocument.documentId
   },null,2)+'\n');
+  if(NATIVE_SCOPE==='full')assert.ok(REQUIRED_NATIVE.every(key=>evidence[key]==='PASS'),
+    'Full native acceptance requires every recorded case to pass: '+REQUIRED_NATIVE.filter(key=>evidence[key]!=='PASS').join(', '));
 });

@@ -1,0 +1,27 @@
+{
+  "candidate": "ac7d7aa191c131bf28eb2fae3c505c5a6ef30d46",
+  "runs": [
+    {
+      "id": 38475900669,
+      "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38475900669",
+      "status": "queued",
+      "head_sha": "ac7d7aa191c131bf28eb2fae3c505c5a6ef30d46"
+    }
+  ],
+  "jobs": [
+    {
+      "id": 115566385153,
+      "name": "node-linux-time-review",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38475900669/job/115566385153"
+    },
+    {
+      "id": 115566385687,
+      "name": "native-mac-time-review",
+      "status": "queued",
+      "conclusion": null,
+      "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38475900669/job/115566385687"
+    }
+  ]
+}
