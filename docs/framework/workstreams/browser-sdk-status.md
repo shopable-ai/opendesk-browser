@@ -1,3 +1,7 @@
+## R9 受控网页重载（2026-10-13，新增源码接线）
+
+正式操作 `browser.tabs.reloadOwned({tabRef})` 只对本工具当前拥有的 Chrome TabRef 工作。真正的 Side Panel 用户批准及 Host 对当前网页/权限检查后调用 `chrome.tabs.reload`，**在发起原生请求前先撤销旧 TabRef**；未知效果不会重试。返回 `{reloadRequested:true,tabRefRevoked:true}` 仅表示 Chrome 已接受重载请求，不代表新文档完成加载。该接口的 Node、Build、Mac Chrome 验收仍按当次候选单独登记 `NOT_TESTED`，不能继承旧 R5 收据。
+
 ## R9 自有 Tab 固定与取消固定（2026-10-13）
 
 正式接线 `browser.tabs.pinOwned({tabRef,pinned})`，Host 使用 `chrome.tabs.update({pinned})`，要求安装身份、精确网页文档、用户单次点击批准及原生回执确认。不确定效果不会自动重试；Node、Mac Chrome 验收独立保持 NOT_TESTED。
@@ -8,7 +12,7 @@
 
 ## R9 预发布接口清理（2026-10-13，现行合同）
 
-**当前正式注册表仅保留 26 项实际实现的开发期接口；七项未实现 Media/Speech 和两项未开放 Notifications 占位已删除。** 旧 35 项只是历史快照，不再强制兼容。Cookie 可信 Host-only 实现与正式 SDK 接线继续独立统计；Cookie observe.read 目前不向普通安装工具开放。新代码候选的 Node / Build / Chrome 验收不得继承旧 R5 PASS。下方 R1–R8 记录属于**历史证据**，并非 R9 当前数量。
+**当前正式注册表登记 28 项已有实际 SDK/Host 运行路径的接口；七项未实现 Media/Speech 和两项未开放 Notifications 占位已删除。** 旧 35 项只是历史快照，不再强制兼容。Cookie 可信 Host-only 实现与正式 SDK 接线继续独立统计；Cookie observe.read 目前不向普通安装工具开放。新代码候选的 Node / Build / Chrome 验收不得继承旧 R5 PASS。下方 R1–R8 记录属于**历史证据**，并非 R9 当前数量。
 
 ## R5 已取得同候选 Node/Build 证据（2026-10-12）
 
@@ -161,6 +165,7 @@
 | `browser.tabs.getOwned` | IMPLEMENTED | APPROVED_TOOL | PASS | PASS | NOT_TESTED |
 | `browser.tabs.listOwned` | IMPLEMENTED | APPROVED_TOOL | PASS | PASS | NOT_TESTED |
 | `browser.tabs.pinOwned` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
+| `browser.tabs.reloadOwned` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
 | `browser.tabs.removeOwned` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
 | `browser.sidePanel.openSelf` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
 | `browser.network.request` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
