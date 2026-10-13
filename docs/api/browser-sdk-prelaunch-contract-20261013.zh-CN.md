@@ -53,3 +53,7 @@
 - 原开发期 `browser.tabs.open/focus/closeOwned` 已从 SDK、Host、Driver、已安装工具示例和测试调用入口删除；不保留别名。仅自己拥有的标签页可聚焦/删除，原生数字 tabId 不出可信 Host。
 - Native Catalog 与四层账本已同步新名称，历史 R8 兼容映射仍为归档证据，不再强制运行时签名。
 - 接线状态是 SOURCE_WIRED，属于源码层事实；CI/Build 与同候选真实 Mac Chrome 验收须分别读取实际结果，无法进行原生验证时为 `NOT_TESTED`。
+
+## Cookie Store 范围收敛
+
+可信 Host 当前只允许查询已选择网页所在的非无痕 Cookie Store，操作命名为 `browser.cookies.getCurrentStore`，不会伪装为 Chrome 原生全局 `getAllCookieStores` 或枚举其他站点/窗口 Store。R7 旧 `getStores` 属于归档快照，现行可信 Host 不保留别名。
