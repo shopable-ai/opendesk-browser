@@ -13,7 +13,7 @@ export const BROWSER_MENU_LAUNCH_STORE='opendesk.browser.menu-launch.v1';
 export const BROWSER_MENU_ROOT='opendesk.browser.root';
 const shared={apiVersion:BROWSER_API_VERSION,platform:'chrome>=138',timeout:8000,maxRequestBytes:12000,maxResponseBytes:12000};
 const USER_GESTURE_OPERATIONS=new Set([
-  'browser.clipboard.writeText','browser.downloads.text','browser.downloads.download','browser.downloads.cancelOwned','browser.storage.local.clear','browser.tabs.create',
+  'browser.clipboard.writeText','browser.downloads.text','browser.downloads.download','browser.downloads.cancelOwned','browser.bookmarks.create','browser.bookmarks.removeOwned','browser.storage.local.clear','browser.tabs.create',
   'browser.tabs.activateOwned','browser.tabs.pinOwned','browser.tabs.reloadOwned','browser.tabs.navigateOwned','browser.tabs.removeOwned','browser.sidePanel.openSelf','browser.network.request','browser.network.observe.start',
   'browser.network.observe.export','browser.screenshot.captureVisible',
   'browser.cookies.set','browser.cookies.remove','browser.cookies.clearSite','browser.cookies.observe.start'
@@ -44,6 +44,8 @@ export const BROWSER_OPERATIONS=Object.freeze({
   'browser.downloads.getOwned':entry('browser.downloads.getOwned','user.export',tool,['downloads'],'read','medium','download-ref'),
   'browser.downloads.listOwned':entry('browser.downloads.listOwned','user.export',tool,['downloads'],'read','medium','owned-downloads'),
   'browser.downloads.cancelOwned':entry('browser.downloads.cancelOwned','user.export',tool,['downloads'],'write','high','download-ref'),
+  'browser.bookmarks.create':entry('browser.bookmarks.create','browser.bookmarks',tool,['bookmarks'],'write','high','exact-url'),
+  'browser.bookmarks.removeOwned':entry('browser.bookmarks.removeOwned','browser.bookmarks',tool,['bookmarks'],'write','high','owned-bookmark'),
   'browser.storage.local.get':entry('browser.storage.local.get','browser.storage',tool,['storage'],'read','low','owned-storage'),
   'browser.storage.local.set':entry('browser.storage.local.set','browser.storage',tool,['storage'],'write','medium','owned-storage'),
   'browser.storage.local.remove':entry('browser.storage.local.remove','browser.storage',tool,['storage'],'write','medium','owned-storage'),
@@ -135,6 +137,23 @@ export function normalizeBrowserOperation(operation,args={}){
          args.limit!==undefined&&(!Number.isSafeInteger(args.limit)||args.limit<1||args.limit>50))
         throw fail('E_SCHEMA','Invalid owned download cursor or limit');
       return {cursor:args.cursor,limit:args.limit??20};
+    case 'browser.bookmarks.create':{
+      fields(args,['url','title','parentRef'],['url']);
+      const url=approvedHttpUrl(args.url);
+      if(args.title!==undefined&&(typeof args.title!=='string'||!args.title.trim()||
+        args.title.length>256||/[\u0000-\u001f\u007f]/.test(args.title)))
+        throw fail('E_SCHEMA','Invalid bookmark title');
+      if(args.parentRef!==undefined&&(typeof args.parentRef!=='string'||
+        !/^[A-Za-z0-9_-]{16,160}$/.test(args.parentRef)))
+        throw fail('E_SCHEMA','Invalid opaque parent BookmarkRef');
+      return {url,...(args.title!==undefined?{title:args.title}:{}),
+        ...(args.parentRef!==undefined?{parentRef:args.parentRef}:{})};
+    }
+    case 'browser.bookmarks.removeOwned':
+      fields(args,['bookmarkRef'],['bookmarkRef']);
+      if(typeof args.bookmarkRef!=='string'||!/^[A-Za-z0-9_-]{16,160}$/.test(args.bookmarkRef))
+        throw fail('E_SCHEMA','Invalid owned BookmarkRef');
+      return {bookmarkRef:args.bookmarkRef};
     case 'browser.storage.local.get':
     case 'browser.storage.local.remove':{
       fields(args,['keys'],operation==='browser.storage.local.remove'?['keys']:[]);
