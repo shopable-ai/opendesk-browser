@@ -11,7 +11,7 @@ export const BROWSER_MENU_LAUNCH_STORE='opendesk.browser.menu-launch.v1';
 export const BROWSER_MENU_ROOT='opendesk.browser.root';
 const shared={apiVersion:BROWSER_API_VERSION,platform:'chrome>=138',timeout:8000,maxRequestBytes:12000,maxResponseBytes:12000};
 const USER_GESTURE_OPERATIONS=new Set([
-  'browser.clipboard.writeText','browser.downloads.text','browser.tabs.create',
+  'browser.clipboard.writeText','browser.downloads.text','browser.downloads.download','browser.downloads.cancelOwned','browser.tabs.create',
   'browser.tabs.activateOwned','browser.tabs.pinOwned','browser.tabs.reloadOwned','browser.tabs.navigateOwned','browser.tabs.removeOwned','browser.sidePanel.openSelf','browser.network.request','browser.network.observe.start',
   'browser.network.observe.export','browser.screenshot.captureVisible',
   'browser.cookies.set','browser.cookies.remove','browser.cookies.clearSite','browser.cookies.observe.start'
@@ -37,6 +37,10 @@ export const BROWSER_OPERATIONS=Object.freeze({
   'browser.page.getSelection':entry('browser.page.getSelection','browser.contextMenu',tool,[],'read','high','clicked-document'),
   'browser.clipboard.writeText':entry('browser.clipboard.writeText','user.export',tool,[],'write','medium'),
   'browser.downloads.text':entry('browser.downloads.text','user.export',tool,['downloads'],'write','medium'),
+  'browser.downloads.download':entry('browser.downloads.download','user.export',tool,['downloads'],'write','high','explicit-url'),
+  'browser.downloads.getOwned':entry('browser.downloads.getOwned','user.export',tool,['downloads'],'read','medium','download-ref'),
+  'browser.downloads.listOwned':entry('browser.downloads.listOwned','user.export',tool,['downloads'],'read','medium','owned-downloads'),
+  'browser.downloads.cancelOwned':entry('browser.downloads.cancelOwned','user.export',tool,['downloads'],'write','high','download-ref'),
   'browser.tabs.create':entry('browser.tabs.create','browser.tabs',tool,['tabs'],'write','medium','explicit-url','IMPLEMENTED'),
   'browser.tabs.activateOwned':entry('browser.tabs.activateOwned','browser.tabs',tool,['tabs','webNavigation'],'write','medium','tab-ref','IMPLEMENTED'),
   'browser.tabs.getOwned':entry('browser.tabs.getOwned','browser.tabs',tool,['tabs','webNavigation'],'read','medium','tab-ref','IMPLEMENTED'),
@@ -97,6 +101,33 @@ export function normalizeBrowserOperation(operation,args={}){
   switch(operation){
     case 'browser.clipboard.writeText':
     case 'browser.downloads.text': return validateExportArguments(operation,args);
+    case 'browser.downloads.download':{
+      fields(args,['url','filename','saveAs'],['url']);
+      const url=approvedHttpUrl(args.url);
+      if(args.filename!==undefined){
+        if(typeof args.filename!=='string'||args.filename.length<1||args.filename.length>150||
+           args.filename.startsWith('.')||args.filename.startsWith('/')||args.filename.includes('\\\\')||
+           args.filename.split('/').some(part=>!part||part==='.'||part==='..'||part.startsWith('.'))||
+           /[\\u0000-\\u001f\\u007f:*?"<>|]/.test(args.filename))
+          throw fail('E_SCHEMA','Unsafe relative download filename');
+      }
+      if(args.saveAs!==undefined&&typeof args.saveAs!=='boolean')throw fail('E_SCHEMA');
+      return {url,...(args.filename!==undefined?{filename:args.filename}:{}),
+        ...(args.saveAs!==undefined?{saveAs:args.saveAs}:{})};
+    }
+    case 'browser.downloads.getOwned':
+    case 'browser.downloads.cancelOwned':
+      fields(args,['downloadRef'],['downloadRef']);
+      if(typeof args.downloadRef!=='string'||!/^[A-Za-z0-9_-]{16,160}$/.test(args.downloadRef))
+        throw fail('E_SCHEMA','Owned downloadRef required');
+      return {downloadRef:args.downloadRef};
+    case 'browser.downloads.listOwned':
+      fields(args,['cursor','limit']);
+      if(args.cursor!==undefined&&(typeof args.cursor!=='string'||
+          !/^[A-Za-z0-9_-]{16,160}$/.test(args.cursor))||
+         args.limit!==undefined&&(!Number.isSafeInteger(args.limit)||args.limit<1||args.limit>50))
+        throw fail('E_SCHEMA','Invalid owned download cursor or limit');
+      return {cursor:args.cursor,limit:args.limit??20};
     case 'browser.capabilities.list': case 'browser.contextMenu.getStatus':
     case 'browser.contextMenu.unregister': case 'browser.launch.consume':
     case 'browser.page.getContext': case 'browser.page.getSelection':
