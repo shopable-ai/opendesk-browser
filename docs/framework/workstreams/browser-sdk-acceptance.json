@@ -12,9 +12,9 @@
     "auditOnly": true
   },
   "summary": {
-    "operationCount": 28,
+    "operationCount": 29,
     "implementationCounts": {
-      "IMPLEMENTED": 28,
+      "IMPLEMENTED": 29,
       "PLANNED": 0,
       "HOST_ONLY": 0,
       "NOT_EXPOSED": 0
@@ -810,6 +810,50 @@
       "evidence": []
     },
     {
+      "api": "browser.tabs.navigateOwned",
+      "module": "browser.tabs",
+      "apiVersion": "1.0.0",
+      "implementation": "IMPLEMENTED",
+      "executionContexts": [
+        "sidebar-tool"
+      ],
+      "exposure": "APPROVED_TOOL",
+      "inputSchema": "src/framework/sdk/browser-contract.js#browser.tabs.navigateOwned",
+      "outputSchema": "src/framework/sdk/browser-contract.js#browser.tabs.navigateOwned",
+      "chromePermissions": [
+        "tabs",
+        "webNavigation"
+      ],
+      "toolCapabilities": [
+        "browser.tabs"
+      ],
+      "effectClass": "write",
+      "riskLevel": "high",
+      "siteScope": "same-origin-owned-tab",
+      "lifecycle": "request",
+      "hostImplementation": "src/platform/chrome/context-menus.js",
+      "sdkEntry": "src/framework/sdk/browser.js",
+      "positiveTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "denialTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "nativeChrome": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "callableNowVerification": "NOT_TESTED",
+      "blockers": [
+        "Same-candidate Node/Build and native Chrome same-Origin navigation acceptance not yet proven"
+      ],
+      "nextTask": "Verify installed-tool navigation to same Origin, deny cross-site/foreign TabRefs, consume stale ref before Chrome.tabs.update",
+      "commits": [],
+      "evidence": []
+    },
+    {
       "api": "browser.tabs.removeOwned",
       "module": "browser.tabs",
       "apiVersion": "1.0.0",
@@ -1451,6 +1495,14 @@
       "implementation": "SOURCE_WIRED",
       "receipt": "reloadRequested_not_loadCompleted",
       "retirement": "TabRef consumed before native effect",
+      "nativeChrome": "NOT_TESTED"
+    },
+    "navigateOwned": {
+      "api": "browser.tabs.navigateOwned",
+      "implementation": "SOURCE_WIRED",
+      "allowedScope": "SAME_ORIGIN_OWNED_TAB_ONLY",
+      "receipt": "navigationRequested_not_documentLoaded",
+      "oldTabRef": "REVOKED_BEFORE_NATIVE_EFFECT",
       "nativeChrome": "NOT_TESTED"
     }
   },
