@@ -97,6 +97,8 @@ test('DNR rule uses exact regex main_frame and extension-owned block page',()=>{
   assert.match(exact.condition.regexFilter,/example\\\.com/);
   assert.ok(new RegExp(exact.condition.regexFilter).test('https://example.com/path'));
   assert.ok(!new RegExp(exact.condition.regexFilter).test('https://example.com.evil.test/'));
+  assert.ok(new RegExp(exact.condition.regexFilter).test('https://example.com./'),
+    'canonical equivalent trailing-dot hostname must not bypass a restriction');
   assert.ok(!new RegExp(exact.condition.regexFilter).test('https://sub.example.com/'));
   const sub=focusRuleForSite(mkSite('example.com'),730001,'schedule',['docs.example.com']);
   assert.ok(new RegExp(sub.condition.regexFilter).test('https://sub.example.com/'));
