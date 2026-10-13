@@ -1,0 +1,41 @@
+✔ R10.6 trusted History workbench is optional when DOM is absent (0.674375ms)
+✔ R10.6 trusted History query requires explicit text, date range and bounded limit (1.224458ms)
+✔ R10.6 real click synchronously requests optional history permission then calls Host route (13.337708ms)
+✔ R10.6 synthetic click and invalid ranges never request permission or reach Host (0.609583ms)
+✔ R10.6 trusted History UI is not exposed through ordinary Browser SDK tool operations (0.855458ms)
+✔ R10.6 static 320/360/460 component contract uses od primitives without fixed widths (0.885792ms)
+✔ Cloud Side Panel heartbeat claims once but manual read-only refresh cannot claim/resolve/start (4.074958ms)
+✔ Cloud console opens a fixed extension tab and cannot register a second execution Host (1.207625ms)
+✔ official scheduled plan is nested inside 我的 and keeps icon-only task actions (3.165666ms)
+✔ source UI provides four triggers and a strictly typed local time rule (0.761125ms)
+✔ no native JS alert/confirm/prompt and no unapproved background execution realm (0.943917ms)
+✔ visible scheduled runner uses trusted tool.html URL without widening sender admission (0.583459ms)
+✔ existing preview asset remains committed separately from production runtime (0.942625ms)
+✔ R1.12 real runner focuses the scheduled page and keeps human-readable plan labels (1.083083ms)
+✔ R2 standalone running tab shows a focused operational dashboard and retains the single trusted Host (0.6285ms)
+✔ R2 history keeps technical run identity behind expandable detail (0.260083ms)
+✔ R2 create form validates URL, JSON and wall-time inline and requires an explicit product confirmation (0.728125ms)
+✔ R2 history pagination is authorized and preserves original Run/Result audit identity (0.630334ms)
+✔ R2 current authorization controls plan badge without hiding historical needs-attention failure (0.607542ms)
+✔ R2.3 explains audit retention and shows native Chrome origin-wide storage without deleting records (0.562958ms)
+✔ R2.6 plan list keeps next run prominent and destructive actions behind explicit review (0.642208ms)
+✔ R2.6 runner separates running Fire from waiting history and preserves original Stop contract (0.475083ms)
+✔ R2.6 unsaved editor Back/cancel must review changes while task manager preserves the draft (0.663625ms)
+✔ R2.6 locked editing Task identity survives uninstall and script-install roundtrip (0.728917ms)
+✔ R2.6 real runner never labels SETTLING or stale terminal Run as running (0.447375ms)
+✔ R2.7 compact pinned timezone and important next-run callout match the canonical preview (1.25325ms)
+✔ R2.7 unavailable Controller task has an actionable, truthful empty state (0.501542ms)
+✔ R2.7 runner presents focus before compact summary and defers details (0.618416ms)
+✔ R2.8 host polling preserves paginated FireId history while a newer result arrives (0.492708ms)
+✔ R2.8 true host refresh retains keyboard focus, open details and inline confirmation (0.516ms)
+✔ R2.8 production create form keeps 36px controls and a distinct field label layout (0.594042ms)
+✔ R2.8 native runner does not dereference a retired Cloud quick entry (0.504292ms)
+✔ R2.8 subview navigation clears old editor errors without hiding current form errors on Host refresh (0.336084ms)
+ℹ tests 33
+ℹ suites 0
+ℹ pass 33
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 68.355334

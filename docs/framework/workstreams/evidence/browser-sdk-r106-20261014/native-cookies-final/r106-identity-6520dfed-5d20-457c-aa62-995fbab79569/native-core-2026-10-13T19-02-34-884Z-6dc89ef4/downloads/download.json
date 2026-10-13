@@ -1,0 +1,67 @@
+[
+  {
+    "name": "od_original",
+    "domain": "127.0.0.1",
+    "path": "/",
+    "hostOnly": true,
+    "secure": false,
+    "httpOnly": false,
+    "sameSite": "unspecified",
+    "session": true,
+    "storeId": "0",
+    "value": "invented-original",
+    "valueRedacted": false
+  },
+  {
+    "name": "od_taken",
+    "domain": "127.0.0.1",
+    "path": "/",
+    "hostOnly": true,
+    "secure": false,
+    "httpOnly": false,
+    "sameSite": "unspecified",
+    "session": true,
+    "storeId": "0",
+    "value": "invented-protected",
+    "valueRedacted": false
+  },
+  {
+    "name": "od_path",
+    "domain": "127.0.0.1",
+    "path": "/",
+    "hostOnly": true,
+    "secure": false,
+    "httpOnly": false,
+    "sameSite": "unspecified",
+    "session": true,
+    "storeId": "0",
+    "value": "invented-root",
+    "valueRedacted": false
+  },
+  {
+    "name": "od_import_a",
+    "domain": "127.0.0.1",
+    "path": "/",
+    "hostOnly": true,
+    "secure": false,
+    "httpOnly": false,
+    "sameSite": "unspecified",
+    "session": true,
+    "storeId": "0",
+    "value": "invented-import-a",
+    "valueRedacted": false
+  },
+  {
+    "name": "od_import_b",
+    "domain": "127.0.0.1",
+    "path": "/",
+    "hostOnly": true,
+    "secure": false,
+    "httpOnly": false,
+    "sameSite": "unspecified",
+    "session": true,
+    "storeId": "0",
+    "value": "invented-import-b",
+    "valueRedacted": false
+  }
+]

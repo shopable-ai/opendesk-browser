@@ -1,0 +1,280 @@
+{
+  "total_count": 3,
+  "jobs": [
+    {
+      "id": 115493893898,
+      "run_id": 38454580175,
+      "workflow_name": "Browser SDK targeted main verification",
+      "head_branch": "main",
+      "run_url": "https://api.github.com/repos/shopable-ai/opendesk-browser/actions/runs/38454580175",
+      "run_attempt": 1,
+      "node_id": "CR_kwDOU7N2Cc8AAAAa4_j3Cg",
+      "head_sha": "fef1f9e14834087f1dd8a627d328b9f110c40297",
+      "url": "https://api.github.com/repos/shopable-ai/opendesk-browser/actions/jobs/115493893898",
+      "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38454580175/job/115493893898",
+      "status": "completed",
+      "conclusion": "success",
+      "created_at": "2026-10-13T19:24:28Z",
+      "started_at": "2026-10-13T19:24:30Z",
+      "completed_at": "2026-10-13T19:26:13Z",
+      "name": "browser-bundles",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1,
+          "started_at": "2026-10-13T19:24:31Z",
+          "completed_at": "2026-10-13T19:24:32Z"
+        },
+        {
+          "name": "Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2,
+          "started_at": "2026-10-13T19:24:32Z",
+          "completed_at": "2026-10-13T19:24:40Z"
+        },
+        {
+          "name": "Run actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3,
+          "started_at": "2026-10-13T19:24:40Z",
+          "completed_at": "2026-10-13T19:24:43Z"
+        },
+        {
+          "name": "Run npm ci --ignore-scripts --no-audit --no-fund",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4,
+          "started_at": "2026-10-13T19:24:43Z",
+          "completed_at": "2026-10-13T19:24:47Z"
+        },
+        {
+          "name": "Production WXT build (strict SW gate)",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5,
+          "started_at": "2026-10-13T19:24:47Z",
+          "completed_at": "2026-10-13T19:25:22Z"
+        },
+        {
+          "name": "Development WXT build",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 6,
+          "started_at": "2026-10-13T19:25:22Z",
+          "completed_at": "2026-10-13T19:26:00Z"
+        },
+        {
+          "name": "Verify both builds (cannot pass without valid production)",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 7,
+          "started_at": "2026-10-13T19:26:00Z",
+          "completed_at": "2026-10-13T19:26:03Z"
+        },
+        {
+          "name": "Validate actual production and development fixed MAIN/ISOLATED bundles",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 8,
+          "started_at": "2026-10-13T19:26:03Z",
+          "completed_at": "2026-10-13T19:26:03Z"
+        },
+        {
+          "name": "Retain exact unpacked production candidate for isolated Chrome acceptance",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 9,
+          "started_at": "2026-10-13T19:26:03Z",
+          "completed_at": "2026-10-13T19:26:05Z"
+        },
+        {
+          "name": "Retain candidate build receipt only",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 10,
+          "started_at": "2026-10-13T19:26:05Z",
+          "completed_at": "2026-10-13T19:26:06Z"
+        },
+        {
+          "name": "Post Run actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 19,
+          "started_at": "2026-10-13T19:26:06Z",
+          "completed_at": "2026-10-13T19:26:06Z"
+        },
+        {
+          "name": "Post Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 20,
+          "started_at": "2026-10-13T19:26:06Z",
+          "completed_at": "2026-10-13T19:26:06Z"
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 21,
+          "started_at": "2026-10-13T19:26:06Z",
+          "completed_at": "2026-10-13T19:26:06Z"
+        }
+      ],
+      "check_run_url": "https://api.github.com/repos/shopable-ai/opendesk-browser/check-runs/115493893898",
+      "labels": [
+        "ubuntu-latest"
+      ],
+      "runner_id": 1000040678,
+      "runner_name": "GitHub Actions 1000040678",
+      "runner_group_id": 0,
+      "runner_group_name": "GitHub Actions"
+    },
+    {
+      "id": 115493894221,
+      "run_id": 38454580175,
+      "workflow_name": "Browser SDK targeted main verification",
+      "head_branch": "main",
+      "run_url": "https://api.github.com/repos/shopable-ai/opendesk-browser/actions/runs/38454580175",
+      "run_attempt": 1,
+      "node_id": "CR_kwDOU7N2Cc8AAAAa4_j4TQ",
+      "head_sha": "fef1f9e14834087f1dd8a627d328b9f110c40297",
+      "url": "https://api.github.com/repos/shopable-ai/opendesk-browser/actions/jobs/115493894221",
+      "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38454580175/job/115493894221",
+      "status": "completed",
+      "conclusion": "failure",
+      "created_at": "2026-10-13T19:24:28Z",
+      "started_at": "2026-10-13T19:24:30Z",
+      "completed_at": "2026-10-13T19:24:54Z",
+      "name": "browser-contracts",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1,
+          "started_at": "2026-10-13T19:24:31Z",
+          "completed_at": "2026-10-13T19:24:33Z"
+        },
+        {
+          "name": "Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2,
+          "started_at": "2026-10-13T19:24:33Z",
+          "completed_at": "2026-10-13T19:24:40Z"
+        },
+        {
+          "name": "Run actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3,
+          "started_at": "2026-10-13T19:24:40Z",
+          "completed_at": "2026-10-13T19:24:41Z"
+        },
+        {
+          "name": "Candidate identity",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4,
+          "started_at": "2026-10-13T19:24:41Z",
+          "completed_at": "2026-10-13T19:24:42Z"
+        },
+        {
+          "name": "Run npm ci --ignore-scripts --no-audit --no-fund",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5,
+          "started_at": "2026-10-13T19:24:42Z",
+          "completed_at": "2026-10-13T19:24:48Z"
+        },
+        {
+          "name": "Browser SDK R1.3 and existing tool install regressions",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 6,
+          "started_at": "2026-10-13T19:24:48Z",
+          "completed_at": "2026-10-13T19:24:50Z"
+        },
+        {
+          "name": "Browser SDK schema and evidence guards",
+          "status": "completed",
+          "conclusion": "failure",
+          "number": 7,
+          "started_at": "2026-10-13T19:24:50Z",
+          "completed_at": "2026-10-13T19:24:51Z"
+        },
+        {
+          "name": "Source and fixed entry guard",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 8,
+          "started_at": "2026-10-13T19:24:51Z",
+          "completed_at": "2026-10-13T19:24:51Z"
+        },
+        {
+          "name": "Post Run actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 15,
+          "started_at": "2026-10-13T19:24:51Z",
+          "completed_at": "2026-10-13T19:24:51Z"
+        },
+        {
+          "name": "Post Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 16,
+          "started_at": "2026-10-13T19:24:51Z",
+          "completed_at": "2026-10-13T19:24:52Z"
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 17,
+          "started_at": "2026-10-13T19:24:52Z",
+          "completed_at": "2026-10-13T19:24:52Z"
+        }
+      ],
+      "check_run_url": "https://api.github.com/repos/shopable-ai/opendesk-browser/check-runs/115493894221",
+      "labels": [
+        "ubuntu-latest"
+      ],
+      "runner_id": 1000040679,
+      "runner_name": "GitHub Actions 1000040679",
+      "runner_group_id": 0,
+      "runner_group_name": "GitHub Actions"
+    },
+    {
+      "id": 115494677833,
+      "run_id": 38454580175,
+      "workflow_name": "Browser SDK targeted main verification",
+      "head_branch": "main",
+      "run_url": "https://api.github.com/repos/shopable-ai/opendesk-browser/actions/runs/38454580175",
+      "run_attempt": 1,
+      "node_id": "CR_kwDOU7N2Cc8AAAAa5ATtSQ",
+      "head_sha": "fef1f9e14834087f1dd8a627d328b9f110c40297",
+      "url": "https://api.github.com/repos/shopable-ai/opendesk-browser/actions/jobs/115494677833",
+      "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38454580175/job/115494677833",
+      "status": "completed",
+      "conclusion": "skipped",
+      "created_at": "2026-10-13T19:26:13Z",
+      "started_at": "2026-10-13T19:26:13Z",
+      "completed_at": "2026-10-13T19:26:13Z",
+      "name": "browser-native-restart",
+      "steps": [],
+      "check_run_url": "https://api.github.com/repos/shopable-ai/opendesk-browser/check-runs/115494677833",
+      "labels": [
+        "macos-15"
+      ],
+      "runner_id": null,
+      "runner_name": null,
+      "runner_group_id": null,
+      "runner_group_name": null
+    }
+  ]
+}

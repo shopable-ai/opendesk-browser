@@ -13,8 +13,12 @@ import {createSidebarToolPackage} from '../../scripts/build-sidebar-tool.mjs';
 import {launchChrome} from './k5-sdk-native-launcher.mjs';
 import {connect,evaluate} from './sidebar-native-session.mjs';
 import {packageFingerprint} from '../../scripts/verify-package.mjs';
+import {canonical,digest} from '../../src/platform/protocol.js';
+import {taskScriptId} from '../../src/platform/tasks/contract.js';
+import {sidebarToolPackageHash} from '../../src/ui/sidebar-tools/package.js';
 
 const root=fileURLToPath(new URL('../../',import.meta.url));
+const driverFile=fileURLToPath(import.meta.url);
 const toolRoot=path.join(root,'examples/sidebar-tools/browser-sdk-acceptance');
 const defaultEvidence=path.join(root,'docs/framework/workstreams/evidence/browser-sdk-r106-native-driver');
 const evidenceRoot=path.resolve(process.env.OPENDESK_R106_EVIDENCE||defaultEvidence);
@@ -55,6 +59,7 @@ async function prepareReceipt(){
   const files=await treeHashes(toolRoot);
   const receipt={schema:'opendesk.browser-sdk-r106-native.prepare.v1',status:'PREPARED_NOT_NATIVE_PASS',
     createdAt:now(),gitHead:gitHead(),toolRoot:path.relative(root,toolRoot),
+    driver:await fileHash(driverFile),
     toolConfig:await fileHash(path.join(toolRoot,'tool.config.json')),
     sourceFiles:files,toolPackage:{id:toolPackage.id,version:toolPackage.version,
       sha256:sha256(toolBytes),bytes:toolBytes.length},
@@ -93,6 +98,47 @@ async function attach(client,targetId){
   await client.send('Page.enable',{},session);
   return session;
 }
+async function durableSchedules(client,session){
+  // Read only the existing Authority/RunHost database. Never seed a Task,
+  // schedule, native receipt, grant or Result from the acceptance observer.
+  return read(client,session,`(async()=>{
+    if(!(await indexedDB.databases()).some(x=>x.name==='opendesk-browser'))
+      throw Error('Existing Authority database is required');
+    const db=await new Promise((resolve,reject)=>{const r=indexedDB.open('opendesk-browser');
+      r.onupgradeneeded=()=>{r.transaction.abort();reject(Error('Observer may not create or upgrade the Authority database'));};
+      r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);});
+    try{
+      const tx=db.transaction(['frameworkKV','runs','results','commandJournal'],'readonly');
+      const get=name=>new Promise((resolve,reject)=>{const r=tx.objectStore(name).getAll();
+        r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);});
+      const [kv,runs,results,journal]=await Promise.all(['frameworkKV','runs','results','commandJournal'].map(get));
+      return {plans:kv.filter(x=>x.tag==='schedule-definition-v1'),
+        installs:kv.filter(x=>x.tag==='task-installed-v1'),
+        fires:kv.filter(x=>x.tag==='schedule-fire-v1'),
+        runs:runs.filter(x=>x.tag==='controller-run'),
+        results:results.filter(x=>x.tag==='controller-result'),
+        native:journal.filter(x=>x.tag==='controller-operation')};
+    }finally{db.close();}
+  })()`);
+}
+async function successfulNativeEffects(state,run,manifest){
+  const hash=manifest.program.sourceHash,effects=[];
+  for(const value of state.native){
+    const envelope=value.envelope,identity=envelope?.identity;
+    if(value.runId!==run.runId||value.state!=='durable'||value.reply?.error||
+      value.reply?.requestId!==envelope?.requestId||
+      !['packaged','browser','user-script'].includes(envelope?.operation?.kind)||
+      identity?.tag!=='controller-run'||identity.runId!==run.runId||
+      identity.scriptId!==run.scriptId||identity.contentHash!==hash||
+      identity.hostInstanceId!==run.hostInstanceId||identity.hostDocumentId!==run.hostDocumentId||
+      envelope.revision?.sourceHash!==hash||envelope.target?.allowedOrigin!==manifest.siteOrigins[0])continue;
+    const receipt=value.nativeReceipts?.find(x=>x.stage==='result'&&x.requestId===envelope.requestId&&
+      x.receipt?.requestId===envelope.requestId);
+    if(receipt&&value.requestDigest===await digest(envelope,{maxDepth:48})&&
+      canonical(value.reply,{maxDepth:48})===canonical(receipt.receipt,{maxDepth:48}))effects.push(value);
+  }
+  return effects;
+}
 async function click(client,session,selector,trace){
   const point=await deadline(async()=>{
     const value=await read(client,session,`(()=>{const n=document.querySelector(${quote(selector)});
@@ -129,6 +175,7 @@ async function runNative(){
   await mkdir(runDir,{recursive:true});
   const report={schema:'opendesk.browser-sdk-r106-native.v1',status:'RUNNING',startedAt:now(),
     gitHead:gitHead(),workingChanges:execFileSync('git',['status','--porcelain'],{cwd:root,encoding:'utf8'}),
+    driver:await fileHash(driverFile),
     runDir,extension,binary,demoUrl,cases:{},screenshots:[],trace:[],
     constraints:['No Runtime.evaluate business SDK calls','No storage writes/grants outside formal Host UI','No DOM value assignment or synthetic DOM events','No forged sender']};
   const save=()=>writeFile(path.join(runDir,'native-report.json'),json(report));
@@ -180,6 +227,19 @@ async function runNative(){
       for(const type of ['mousePressed','mouseReleased'])await client.send('Input.dispatchMouseEvent',{type,x,y,button:'left',clickCount:1},side);
       report.trace.push({at:now(),kind:'trusted-tool-input',selector,x,y});return true;
     },'tool control '+selector);
+  }
+  async function toolType(selector,value){
+    await toolClick(selector);
+    await client.send('Input.dispatchKeyEvent',{type:'keyDown',key:'a',code:'KeyA',modifiers:4,commands:['selectAll']},side);
+    await client.send('Input.dispatchKeyEvent',{type:'keyUp',key:'a',code:'KeyA',modifiers:4},side);
+    await client.send('Input.insertText',{text:value},side);
+    assert.equal(await read(client,tool,`document.querySelector(${quote(selector)}).value`),value);
+    report.trace.push({at:now(),kind:'trusted-tool-text',selector,chars:value.length});
+  }
+  async function openDetails(session,selector){
+    if(!await read(client,session,`document.querySelector(${quote(selector)}).open`))
+      await click(client,session,selector+' > summary',report.trace);
+    assert.equal(await read(client,session,`document.querySelector(${quote(selector)}).open`),true);
   }
   async function output(id){return deadline(async()=>{
     const state=await read(client,tool,'document.querySelector("#status").dataset.state');
@@ -274,6 +334,7 @@ async function runNative(){
       report.installed=await read(client,control,'chrome.storage.local.get(["opendesk.sidebar-tools.installed.v1","opendesk.sidebar-tools.revocation-epochs.v1"]).then(r=>({tool:r["opendesk.sidebar-tools.installed.v1"].find(t=>t.id==="browser-sdk-acceptance"),epoch:r["opendesk.sidebar-tools.revocation-epochs.v1"]?.["browser-sdk-acceptance"]??null}))');
       assert.equal(report.installed.tool.version,pkg.version);
       report.installed.fileSha256=sha256(await readFile(file));
+      report.installed.canonicalPackageHash=await sidebarToolPackageHash(report.installed.tool);
       await click(client,side,open,report.trace);return {frame:await bindTool(),review:report.review,epoch:report.installed.epoch};
     });
     await recordCase('active-demo',async()=>{
@@ -308,8 +369,161 @@ async function runNative(){
       assert(start.downloadRef&&!start.downloadId);await sleep(800);await toolClick('#download-status');
       const result=await output('download-output');assert.equal(result.state,'complete');return {summary,start,result};
     });
+    let installedTask;
+    await recordCase('scheduler-fixed-task-install',async()=>{
+      const file=path.join(root,'examples/tasks/form-fill.v1.opendesk-task.json');
+      const task=JSON.parse(await readFile(file,'utf8'));
+      assert.equal(sha256(Buffer.from(task.sourceUtf8)),task.manifest.program.sourceHash);
+      assert.deepEqual(task.manifest.siteOrigins,[new URL(demoUrl).origin]);
+      await client.send('Target.activateTarget',{targetId:report.cases['side-panel-contexts'].result.shellTarget});
+      await chooseFile(control,'#task-package-file',file);
+      await deadline(()=>read(client,control,'document.querySelector("#task-catalog-status").textContent.includes("已导入待验证任务")'),'Task candidate imported');
+      await click(client,side,'#tab-develop',report.trace);
+      const sourceFile=path.join(runDir,'r106-fixed-controller.js');
+      await writeFile(sourceFile,task.sourceUtf8);
+      // Import the identical Controller bytes through the normal catalog.
+      await chooseFile(control,'#task-package-file',sourceFile);
+      await deadline(()=>read(client,side,`document.querySelector('#script-source').value===${quote(task.sourceUtf8)}`),'fixed source in Developer');
+      await client.send('Target.activateTarget',{targetId:report.cases['active-demo'].result.page.targetId});
+      await deadline(()=>read(client,side,`document.querySelector('#script-current-page-url').textContent===${quote(demoUrl)}`),'exact demo target before Controller run');
+      await openDetails(side,'#manual-project-params-tools');
+      await typeText(client,side,'#script-params',JSON.stringify({name:'R106 Native Fixed Task'}),report.trace);
+      const priorRunId=await read(client,side,'document.querySelector("#script-run-id").value');
+      await click(client,side,'#script-run',report.trace);
+      const runId=await deadline(async()=>{const value=await read(client,side,'document.querySelector("#script-run-id").value');
+        return value&&value!==priorRunId?value:null;},'new verification Controller RunId',35000);
+      const verified=await deadline(async()=>{
+        const state=await durableSchedules(client,side),run=state.runs.find(x=>x.runId===runId);
+        const result=state.results.find(x=>x.runId===runId&&x.resultId===run?.resultId);
+        if(run?.state!=='completed'||run.retirementState!=='released'||run.workerRetired!==true||
+          result?.state!=='completed'||result.outcome?.ok!==true||
+          run.revision?.sourceHash!==task.manifest.program.sourceHash||result.revision?.sourceHash!==task.manifest.program.sourceHash)return null;
+        const effects=await successfulNativeEffects(state,run,task.manifest);
+        return effects.length?{run,result,effects}:null;
+      },'same-source native verification Result and retirement',45000);
+      await client.send('Target.activateTarget',{targetId:report.cases['side-panel-contexts'].result.shellTarget});
+      await openDetails(control,'#catalog-verification');
+      await typeText(client,control,'#task-verify-run',runId,report.trace);
+      await click(client,control,'#task-verify',report.trace);
+      await deadline(()=>read(client,control,'document.querySelector("#task-catalog-status").textContent.includes("已核对本机持久运行")'),'verified native candidate');
+      await click(client,control,'#task-publish',report.trace);
+      await deadline(()=>read(client,control,'document.querySelector("#task-catalog-status").textContent.includes("已成为本地可安装版本")'),'local available fixed Task');
+      await click(client,control,'#task-install',report.trace);
+      installedTask=await deadline(async()=>{
+        const state=await durableSchedules(client,side);
+        return state.installs.find(x=>x.taskId===task.manifest.taskId&&x.enabled===true&&x.version===task.manifest.version);
+      },'installed fixed Task identity');
+      assert.equal(installedTask.scriptId,taskScriptId(task.manifest.taskId,task.manifest.version));
+      assert.equal(installedTask.manifestHash,task.manifestHash);
+      assert(installedTask.authorization?.installationId&&Number.isSafeInteger(installedTask.authorization?.generation));
+      return {taskPackageSha256:sha256(await readFile(file)),manifest:task.manifest,installedTask,verified};
+    });
+    let scheduleRef,runnerTarget,runner,runnerContext;
+    await recordCase('scheduler-open-existing-runhost',async()=>{
+      await click(client,side,'#tab-my-tasks',report.trace);
+      await click(client,side,'#schedule-open',report.trace);
+      const prior=(await client.send('Target.getTargets')).targetInfos.map(x=>x.targetId);
+      await click(client,side,'#schedule-open-runner',report.trace);
+      runnerTarget=await deadline(async()=> (await client.send('Target.getTargets')).targetInfos.find(x=>{
+        if(prior.includes(x.targetId))return false;
+        try{const url=new URL(x.url);return url.protocol==='chrome-extension:'&&url.hostname===report.extensionId&&
+          url.pathname==='/ui/tool.html'&&url.searchParams.get('scheduledRunner')==='1'&&
+          /^[0-9a-f-]{36}$/i.test(url.searchParams.get('hostInstanceId')||'');}catch{return false;}
+      }),'newly user-opened exact canonical Schedule RunHost');
+      runner=await attach(client,runnerTarget.targetId);
+      runnerContext=await deadline(async()=> (await read(client,runner,'chrome.runtime.getContexts({contextTypes:["TAB"]})'))
+        .find(x=>x.documentId&&x.documentUrl===runnerTarget.url),'registered actual runner TAB document');
+      await deadline(()=>read(client,runner,'document.documentElement.dataset.opendeskSurface==="scheduled-runner"&&!document.querySelector("#scheduled-panel").hidden'),'real RunHost surface ready');
+      await click(client,side,'#schedule-back',report.trace);
+      await click(client,side,'#tab-tools',report.trace);
+      await click(client,side,'[data-sidebar-tool-action="open"][data-sidebar-tool-id="browser-sdk-acceptance"]',report.trace);
+      await bindTool();
+      await client.send('Page.navigate',{url:demoUrl},website);
+      await deadline(()=>read(client,website,'document.readyState==="complete"&&!document.querySelector("#done")'),'fresh untouched demo before scheduling');
+      await client.send('Target.activateTarget',{targetId:report.cases['active-demo'].result.page.targetId});
+      await deadline(()=>read(client,side,`document.querySelector('#script-current-page-url').textContent===${quote(demoUrl)}`),'exact demo target for Scheduler approval');
+      return {runnerTarget,runnerContext};
+    });
+    await recordCase('storage-independent-tool-reopen',async()=>{
+      await toolClick('#storage-read');const result=await output('storage-output');
+      assert.equal(result.items.R106Proof.value,'first-run');
+      return {result,withoutAI:true,frame:toolTarget};
+    });
+    await recordCase('scheduler-create-owned-alarm',async()=>{
+      await toolType('#task-id',installedTask.taskId);
+      await toolType('#task-revision','1');
+      await toolClick('#schedule-create');const summary=await approve();const result=await output('scheduler-output');
+      assert.equal(result.status,'active');assert(result.scheduleRef);scheduleRef=result.scheduleRef;
+      const persisted=await deadline(async()=>{
+        const state=await durableSchedules(client,side),plan=state.plans.find(x=>x.scheduleId===scheduleRef);
+        const alarms=await read(client,side,'chrome.alarms.getAll()');
+        const alarm=alarms.find(x=>x.name==='opendesk.schedule.v1:'+scheduleRef);
+        return plan&&alarm&&Math.abs(alarm.scheduledTime-plan.nextDueAt)<2000?{plan,alarm}:null;
+      },'owned persisted schedule and native Chrome Alarm');
+      assert.equal(persisted.plan.taskId,installedTask.taskId);
+      const manifest=report.cases['scheduler-fixed-task-install'].result.manifest;
+      assert.equal(persisted.plan.version,installedTask.version);
+      assert.equal(persisted.plan.manifestHash,installedTask.manifestHash);
+      assert.equal(persisted.plan.sourceHash,manifest.program.sourceHash);
+      assert.equal(persisted.plan.revision,manifest.program.revision);
+      assert.equal(persisted.plan.installationId,installedTask.authorization.installationId);
+      assert.equal(persisted.plan.taskGeneration,installedTask.authorization.generation);
+      assert.equal(persisted.plan.owner?.kind,'installed-tool-owned');
+      assert.equal(persisted.plan.owner.toolId,report.installed.tool.id);
+      assert.equal(persisted.plan.owner.toolVersion,report.installed.tool.version);
+      assert.equal(persisted.plan.owner.packageHash,report.installed.canonicalPackageHash);
+      assert.equal(persisted.plan.owner.epoch,report.installed.epoch);
+      await toolClick('#schedule-list');const list=await output('scheduler-output');
+      assert.equal(list.schedules.filter(x=>x.scheduleRef===scheduleRef).length,1);
+      return {summary,result,persisted,list};
+    });
+    await recordCase('scheduler-two-independent-runhost-results',async()=>{
+      console.log('R106_NATIVE_WAIT actual 1-minute Alarm/RunHost twice; no AI or fire injection');
+      let firstEffect;
+      const results=await deadline(async()=>{
+        const state=await durableSchedules(client,runner),fires=state.fires.filter(x=>x.scheduleId===scheduleRef);
+        const complete=[];
+        const contexts=await read(client,runner,'chrome.runtime.getContexts({contextTypes:["TAB","SIDE_PANEL"]})');
+        for(const fire of fires){
+          const runs=state.runs.filter(x=>x.scheduledFireId===fire.fireId);
+          const run=runs[0],result=state.results.find(x=>x.runId===fire.runId&&x.resultId===fire.resultId);
+          assert(runs.length<=1,'One original Run per FireId');
+          const manifest=report.cases['scheduler-fixed-task-install'].result.manifest;
+          if(run?.state!=='completed'||run.retirementState!=='released'||run.workerRetired!==true||
+            result?.state!=='completed'||result.outcome?.ok!==true||run.revision?.sourceHash!==manifest.program.sourceHash||
+            result.revision?.sourceHash!==manifest.program.sourceHash)continue;
+          assert.equal(fire.runId,run.runId);assert.equal(fire.resultId,run.resultId);assert.equal(run.resultId,result.resultId);
+          assert(contexts.some(x=>x.documentId===run.hostDocumentId),'Actual registered original RunHost document');
+          const effects=await successfulNativeEffects(state,run,manifest);
+          if(effects.length)complete.push({fire,run,result,effects,contexts});
+        }
+        if(complete.length===1&&!firstEffect){
+          firstEffect=await read(client,website,'({done:!!document.querySelector("#done"),name:document.querySelector("#name").value})');
+          assert.equal(firstEffect.done,true);assert.equal(firstEffect.name,'Alice');
+          await client.send('Page.navigate',{url:demoUrl},website);
+          await deadline(()=>read(client,website,'document.readyState==="complete"&&!document.querySelector("#done")'),'fresh document before second real Alarm');
+        }
+        return complete.length>=2?complete.slice(0,2):null;
+      },'two actual durable scheduled Results without AI',185000);
+      assert.notEqual(results[0].fire.fireId,results[1].fire.fireId);
+      assert.notEqual(results[0].run.runId,results[1].run.runId);
+      assert.notEqual(results[0].result.resultId,results[1].result.resultId);
+      assert(firstEffect,'First scheduled effect must be observed before second execution');
+      const secondEffect=await read(client,website,'({url:location.href,done:!!document.querySelector("#done"),name:document.querySelector("#name").value})');
+      assert.equal(secondEffect.done,true);assert.equal(secondEffect.name,'Alice');
+      return {runnerTarget,runnerContext,results,firstEffect,secondEffect,
+        causality:'Registered Chrome Alarms and actual Scheduler/RunHost results; existing Host polling remains active, exclusive onAlarm causality not asserted'};
+    });
+    await recordCase('scheduler-cancel-owned',async()=>{
+      await toolClick('#schedule-cancel');const result=await output('scheduler-output');
+      assert.equal(result.cancelled,true);
+      await toolClick('#schedule-list');const list=await output('scheduler-output');
+      assert(!list.schedules.some(x=>x.scheduleRef===scheduleRef));
+      assert(!(await read(client,side,'chrome.alarms.getAll()')).some(x=>x.name==='opendesk.schedule.v1:'+scheduleRef));
+      return {result,list};
+    });
     report.status='CORE_PASS_MORE_CONTRACTS_NOT_TESTED';
-    report.remaining=['Scheduler installed fixed Task + two Alarm/RunHost results','Worker restart','cross-tool isolation','History real trusted query','Origin revoke','upgrade/uninstall'];
+    report.remaining=['Worker restart','cross-tool isolation','History real trusted query','Origin revoke','upgrade/uninstall'];
     return report;
   }finally{
     if(client)client.close();
@@ -317,8 +531,17 @@ async function runNative(){
       await launched.copyLog().catch(()=>{});
       report.cleanup=await launched.stop();
     }
+    report.driverUnchanged=(await fileHash(driverFile)).sha256===report.driver.sha256;
+    if(report.candidate){
+      report.candidateUnchanged=JSON.stringify(await packageFingerprint(extension))===JSON.stringify(report.candidate.extensionPackage)&&
+        JSON.stringify(await treeHashes(extension))===JSON.stringify(report.candidate.extensionFiles)&&
+        JSON.stringify(await treeHashes(toolRoot))===JSON.stringify(report.candidate.toolSourceFiles);
+    }
+    const drift=report.driverUnchanged===false||report.candidateUnchanged===false;
+    if(drift)report.status='FAIL_CANDIDATE_OR_DRIVER_DRIFT';
     report.finishedAt=now();
     await save();
+    if(drift)throw Error('Native evidence input changed; original receipts retained, candidate PASS rejected');
   }
 }
 function assertEnv(name){

@@ -1,0 +1,21 @@
+/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native/native-2026-10-13T18-34-57-654Z-13169eb1/owned-native-input.swift:16:223: warning: 'activateIgnoringOtherApps' was deprecated in macOS 14.0: ignoringOtherApps is deprecated in macOS 14 and will have no effect. [#DeprecatedDeclaration]
+14 | var nodes:[AXUIElement]=[],budget=10000
+15 | func visit(_ node:AXUIElement,_ depth:Int){budget-=1;guard depth<40,budget>0 else{return};if nodes.contains(where:{CFEqual($0,node)}){return};nodes.append(node);for key in [kAXChildrenAttribute,"AXSheets"]{for child in value(node,key) as? [AXUIElement] ?? []{visit(child,depth+1)}}}
+16 | if command == "activate" {if let windows=value(app,kAXWindowsAttribute) as? [AXUIElement],let window=windows.first {AXUIElementPerformAction(window,kAXRaiseAction as CFString)};owned.activate(options:[.activateAllWindows,.activateIgnoringOtherApps]);let activationDeadline=Date().addingTimeInterval(3);while NSWorkspace.shared.frontmostApplication?.processIdentifier != pid && Date()<activationDeadline {RunLoop.current.run(until:Date().addingTimeInterval(0.1))};guard NSWorkspace.shared.frontmostApplication?.processIdentifier == pid else{exit(4)};print("OWNED_FRONTMOST");exit(0)}
+   |                                                                                                                                                                                                                               `- warning: 'activateIgnoringOtherApps' was deprecated in macOS 14.0: ignoringOtherApps is deprecated in macOS 14 and will have no effect. [#DeprecatedDeclaration]
+17 | visit(app,0)
+18 | if command == "dump" {
+
+[#DeprecatedDeclaration]: <https://docs.swift.org/compiler/documentation/diagnostics/deprecated-declaration>
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+Error: installed tool NOT_OBSERVED
+    at deadline (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/browser-sdk-r106-native.mjs:88:9)
+    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/browser-sdk-r106-native.mjs:246:7
+    at async recordCase (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/browser-sdk-r106-native.mjs:189:20)
+    at async runNative (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/browser-sdk-r106-native.mjs:237:5)
+    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/browser-sdk-r106-native.mjs:303:3
+
+Node.js v24.16.0

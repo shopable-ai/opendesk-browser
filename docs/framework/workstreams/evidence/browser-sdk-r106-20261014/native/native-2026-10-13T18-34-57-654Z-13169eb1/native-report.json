@@ -1,0 +1,3729 @@
+{
+  "schema": "opendesk.browser-sdk-r106-native.v1",
+  "status": "RUNNING",
+  "startedAt": "2026-10-13T18:34:57.655Z",
+  "runDir": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native/native-2026-10-13T18-34-57-654Z-13169eb1",
+  "extension": "/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+  "binary": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+  "demoUrl": "http://127.0.0.1:43111/demo-form.html",
+  "cases": {
+    "launch-owned-cft": {
+      "status": "PASS",
+      "result": {
+        "version": {
+          "protocolVersion": "1.3",
+          "product": "Chrome/155.0.8059.39",
+          "revision": "@3ff7ac5a9224be9156d7f8703a06e22890aafd34",
+          "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36",
+          "jsVersion": "15.5.35.20"
+        },
+        "extensionId": "efhcmggbgamacpfhhmooelgdkepdcghh",
+        "pid": 72070,
+        "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-zagi8grv"
+      },
+      "finishedAt": "2026-10-13T18:34:59.305Z"
+    },
+    "side-panel-contexts": {
+      "status": "PASS",
+      "result": {
+        "shellTarget": "4B8A0ED3EBFFD314FE9E894558F5720D",
+        "context": {
+          "contextId": "7858c7f6-6fdc-4f74-96ff-77a79e8486d5",
+          "contextType": "SIDE_PANEL",
+          "documentId": "7A9C6D2BF3C0D09B964FFBEBBB1248A1",
+          "documentOrigin": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh",
+          "documentUrl": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/ui/tool.html?hostInstanceId=48026591-e4e6-4c2b-9875-ac7063a0aeaa",
+          "frameId": 0,
+          "incognito": false,
+          "tabId": -1,
+          "windowId": -1
+        },
+        "sideTarget": {
+          "targetId": "0E58FA7A04E857375E7D2C94DD20DD11",
+          "type": "page",
+          "title": "OpenDesk Browser",
+          "url": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/ui/tool.html?hostInstanceId=48026591-e4e6-4c2b-9875-ac7063a0aeaa",
+          "attached": false,
+          "canAccessOpener": false,
+          "browserContextId": "74B8A5BA282F53109F4B5D418B22AC00"
+        }
+      },
+      "finishedAt": "2026-10-13T18:34:59.730Z"
+    },
+    "install-open-tool": {
+      "status": "FAIL",
+      "error": "Error: installed tool NOT_OBSERVED\n    at deadline (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/browser-sdk-r106-native.mjs:88:9)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/browser-sdk-r106-native.mjs:246:7\n    at async recordCase (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/browser-sdk-r106-native.mjs:189:20)\n    at async runNative (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/browser-sdk-r106-native.mjs:237:5)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/browser-sdk-r106-native.mjs:303:3",
+      "finishedAt": "2026-10-13T18:35:25.607Z"
+    }
+  },
+  "screenshots": [
+    {
+      "file": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native/native-2026-10-13T18-34-57-654Z-13169eb1/side-panel-contexts.png",
+      "bytes": 82507,
+      "sha256": "ecabdb1ac3f753cb1593dfb171f7a1738e03ec8311950450d5cd317beee85973"
+    },
+    {
+      "file": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native/native-2026-10-13T18-34-57-654Z-13169eb1/install-open-tool-failure.png",
+      "bytes": 111258,
+      "sha256": "d9737aeb17a2db96c1f7d6de73fa8addd3aa817141e0cb3aff5cd4429feecb9b"
+    }
+  ],
+  "trace": [
+    {
+      "at": "2026-10-13T18:34:58.528Z",
+      "phase": "send",
+      "id": 1,
+      "method": "Browser.getVersion",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:34:58.548Z",
+      "phase": "reply",
+      "id": 1,
+      "method": "Browser.getVersion"
+    },
+    {
+      "at": "2026-10-13T18:34:58.548Z",
+      "phase": "send",
+      "id": 2,
+      "method": "Target.getTargets",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:34:58.560Z",
+      "phase": "reply",
+      "id": 2,
+      "method": "Target.getTargets"
+    },
+    {
+      "at": "2026-10-13T18:34:58.711Z",
+      "phase": "send",
+      "id": 3,
+      "method": "Target.getTargets",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:34:58.712Z",
+      "phase": "reply",
+      "id": 3,
+      "method": "Target.getTargets"
+    },
+    {
+      "at": "2026-10-13T18:34:59.306Z",
+      "phase": "send",
+      "id": 4,
+      "method": "Target.createTarget",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:34:59.332Z",
+      "phase": "reply",
+      "id": 4,
+      "method": "Target.createTarget"
+    },
+    {
+      "at": "2026-10-13T18:34:59.332Z",
+      "phase": "send",
+      "id": 5,
+      "method": "Target.attachToTarget",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:34:59.337Z",
+      "phase": "reply",
+      "id": 5,
+      "method": "Target.attachToTarget"
+    },
+    {
+      "at": "2026-10-13T18:34:59.337Z",
+      "phase": "send",
+      "id": 6,
+      "method": "Runtime.enable",
+      "sessionId": "019BE7DCD45D6343AF04A4C13D4A1128",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:34:59.340Z",
+      "phase": "reply",
+      "id": 6,
+      "method": "Runtime.enable",
+      "sessionId": "019BE7DCD45D6343AF04A4C13D4A1128"
+    },
+    {
+      "at": "2026-10-13T18:34:59.340Z",
+      "phase": "send",
+      "id": 7,
+      "method": "Page.enable",
+      "sessionId": "019BE7DCD45D6343AF04A4C13D4A1128",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:34:59.348Z",
+      "phase": "reply",
+      "id": 7,
+      "method": "Page.enable",
+      "sessionId": "019BE7DCD45D6343AF04A4C13D4A1128"
+    },
+    {
+      "at": "2026-10-13T18:34:59.349Z",
+      "phase": "send",
+      "id": 8,
+      "method": "Runtime.evaluate",
+      "sessionId": "019BE7DCD45D6343AF04A4C13D4A1128",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:34:59.365Z",
+      "phase": "reply",
+      "id": 8,
+      "method": "Runtime.evaluate",
+      "sessionId": "019BE7DCD45D6343AF04A4C13D4A1128"
+    },
+    {
+      "at": "2026-10-13T18:34:59.516Z",
+      "phase": "send",
+      "id": 9,
+      "method": "Runtime.evaluate",
+      "sessionId": "019BE7DCD45D6343AF04A4C13D4A1128",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:34:59.517Z",
+      "phase": "reply",
+      "id": 9,
+      "method": "Runtime.evaluate",
+      "sessionId": "019BE7DCD45D6343AF04A4C13D4A1128"
+    },
+    {
+      "at": "2026-10-13T18:34:59.517Z",
+      "phase": "send",
+      "id": 10,
+      "method": "Input.dispatchMouseEvent",
+      "sessionId": "019BE7DCD45D6343AF04A4C13D4A1128",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:34:59.518Z",
+      "phase": "reply",
+      "id": 10,
+      "method": "Input.dispatchMouseEvent",
+      "sessionId": "019BE7DCD45D6343AF04A4C13D4A1128"
+    },
+    {
+      "at": "2026-10-13T18:34:59.518Z",
+      "phase": "send",
+      "id": 11,
+      "method": "Input.dispatchMouseEvent",
+      "sessionId": "019BE7DCD45D6343AF04A4C13D4A1128",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:34:59.534Z",
+      "phase": "reply",
+      "id": 11,
+      "method": "Input.dispatchMouseEvent",
+      "sessionId": "019BE7DCD45D6343AF04A4C13D4A1128"
+    },
+    {
+      "at": "2026-10-13T18:34:59.534Z",
+      "kind": "trusted-cdp-input",
+      "selector": "#catalog-open-dev-sidebar",
+      "x": 89.25,
+      "y": 135.1484375
+    },
+    {
+      "at": "2026-10-13T18:34:59.534Z",
+      "phase": "send",
+      "id": 12,
+      "method": "Runtime.evaluate",
+      "sessionId": "019BE7DCD45D6343AF04A4C13D4A1128",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:34:59.539Z",
+      "phase": "reply",
+      "id": 12,
+      "method": "Runtime.evaluate",
+      "sessionId": "019BE7DCD45D6343AF04A4C13D4A1128"
+    },
+    {
+      "at": "2026-10-13T18:34:59.690Z",
+      "phase": "send",
+      "id": 13,
+      "method": "Runtime.evaluate",
+      "sessionId": "019BE7DCD45D6343AF04A4C13D4A1128",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:34:59.694Z",
+      "phase": "reply",
+      "id": 13,
+      "method": "Runtime.evaluate",
+      "sessionId": "019BE7DCD45D6343AF04A4C13D4A1128"
+    },
+    {
+      "at": "2026-10-13T18:34:59.695Z",
+      "phase": "send",
+      "id": 14,
+      "method": "Target.getTargets",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:34:59.698Z",
+      "phase": "reply",
+      "id": 14,
+      "method": "Target.getTargets"
+    },
+    {
+      "at": "2026-10-13T18:34:59.698Z",
+      "phase": "send",
+      "id": 15,
+      "method": "Target.attachToTarget",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:34:59.698Z",
+      "phase": "reply",
+      "id": 15,
+      "method": "Target.attachToTarget"
+    },
+    {
+      "at": "2026-10-13T18:34:59.698Z",
+      "phase": "send",
+      "id": 16,
+      "method": "Runtime.enable",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:34:59.699Z",
+      "phase": "reply",
+      "id": 16,
+      "method": "Runtime.enable",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:34:59.699Z",
+      "phase": "send",
+      "id": 17,
+      "method": "Page.enable",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:34:59.699Z",
+      "phase": "reply",
+      "id": 17,
+      "method": "Page.enable",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:34:59.699Z",
+      "phase": "send",
+      "id": 18,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:34:59.722Z",
+      "phase": "reply",
+      "id": 18,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:34:59.722Z",
+      "phase": "send",
+      "id": 19,
+      "method": "Input.dispatchMouseEvent",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:34:59.723Z",
+      "phase": "reply",
+      "id": 19,
+      "method": "Input.dispatchMouseEvent",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:34:59.723Z",
+      "phase": "send",
+      "id": 20,
+      "method": "Input.dispatchMouseEvent",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:34:59.730Z",
+      "phase": "reply",
+      "id": 20,
+      "method": "Input.dispatchMouseEvent",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:34:59.730Z",
+      "kind": "trusted-cdp-input",
+      "selector": "#tab-tools",
+      "x": 236,
+      "y": 20
+    },
+    {
+      "at": "2026-10-13T18:34:59.730Z",
+      "phase": "send",
+      "id": 21,
+      "method": "Page.captureScreenshot",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:34:59.791Z",
+      "phase": "reply",
+      "id": 21,
+      "method": "Page.captureScreenshot",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:34:59.800Z",
+      "phase": "send",
+      "id": 22,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:34:59.801Z",
+      "phase": "reply",
+      "id": 22,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:34:59.801Z",
+      "phase": "send",
+      "id": 23,
+      "method": "Input.dispatchMouseEvent",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:34:59.802Z",
+      "phase": "reply",
+      "id": 23,
+      "method": "Input.dispatchMouseEvent",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:34:59.802Z",
+      "phase": "send",
+      "id": 24,
+      "method": "Input.dispatchMouseEvent",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:34:59.813Z",
+      "phase": "reply",
+      "id": 24,
+      "method": "Input.dispatchMouseEvent",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:34:59.813Z",
+      "kind": "trusted-cdp-input",
+      "selector": "#sidebar-tool-import-trigger",
+      "x": 332,
+      "y": 68
+    },
+    {
+      "at": "2026-10-13T18:35:00.887Z",
+      "kind": "owned-macos-input",
+      "command": "activate",
+      "output": "OWNED_FRONTMOST\n"
+    },
+    {
+      "at": "2026-10-13T18:35:00.887Z",
+      "phase": "send",
+      "id": 25,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:00.888Z",
+      "phase": "reply",
+      "id": 25,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:00.888Z",
+      "phase": "send",
+      "id": 26,
+      "method": "Input.dispatchMouseEvent",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:00.889Z",
+      "phase": "reply",
+      "id": 26,
+      "method": "Input.dispatchMouseEvent",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:00.889Z",
+      "phase": "send",
+      "id": 27,
+      "method": "Input.dispatchMouseEvent",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:00.899Z",
+      "phase": "reply",
+      "id": 27,
+      "method": "Input.dispatchMouseEvent",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:00.899Z",
+      "kind": "trusted-cdp-input",
+      "selector": "#sidebar-tool-file",
+      "x": 180,
+      "y": 190.3984375
+    },
+    {
+      "at": "2026-10-13T18:35:02.345Z",
+      "kind": "owned-macos-input",
+      "command": "key",
+      "value": "go-to-folder",
+      "output": "OWNED_NATIVE_KEY go-to-folder\n"
+    },
+    {
+      "at": "2026-10-13T18:35:03.149Z",
+      "kind": "owned-macos-input",
+      "command": "text",
+      "value": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native/native-2026-10-13T18-34-57-654Z-13169eb1/browser-sdk-acceptance.opendesk-tool.json",
+      "output": "OWNED_NATIVE_TEXT /Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native/native-2026-10-13T18-34-57-654Z-13169eb1/browser-sdk-acceptance.opendesk-tool.json\n"
+    },
+    {
+      "at": "2026-10-13T18:35:03.610Z",
+      "kind": "owned-macos-input",
+      "command": "key",
+      "value": "return",
+      "output": "OWNED_NATIVE_KEY return\n"
+    },
+    {
+      "at": "2026-10-13T18:35:05.227Z",
+      "kind": "owned-macos-input",
+      "command": "key",
+      "value": "return",
+      "output": "OWNED_NATIVE_KEY return\n"
+    },
+    {
+      "at": "2026-10-13T18:35:05.227Z",
+      "kind": "native-file-choice",
+      "file": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native/native-2026-10-13T18-34-57-654Z-13169eb1/browser-sdk-acceptance.opendesk-tool.json",
+      "sha256": "06a3c8ae0c77ed6628acf667c38fb5bd28af540dc19ad76dcd0f9f39b36db438"
+    },
+    {
+      "at": "2026-10-13T18:35:05.227Z",
+      "phase": "send",
+      "id": 28,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:05.399Z",
+      "phase": "reply",
+      "id": 28,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:05.550Z",
+      "phase": "send",
+      "id": 29,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:05.551Z",
+      "phase": "reply",
+      "id": 29,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:05.551Z",
+      "phase": "send",
+      "id": 30,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:05.551Z",
+      "phase": "reply",
+      "id": 30,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:05.551Z",
+      "phase": "send",
+      "id": 31,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:05.552Z",
+      "phase": "reply",
+      "id": 31,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:05.552Z",
+      "phase": "send",
+      "id": 32,
+      "method": "Input.dispatchMouseEvent",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:05.552Z",
+      "phase": "reply",
+      "id": 32,
+      "method": "Input.dispatchMouseEvent",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:05.552Z",
+      "phase": "send",
+      "id": 33,
+      "method": "Input.dispatchMouseEvent",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:05.555Z",
+      "phase": "reply",
+      "id": 33,
+      "method": "Input.dispatchMouseEvent",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:05.555Z",
+      "kind": "trusted-cdp-input",
+      "selector": "#sidebar-tool-install",
+      "x": 303,
+      "y": 529.72265625
+    },
+    {
+      "at": "2026-10-13T18:35:05.555Z",
+      "phase": "send",
+      "id": 34,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:05.555Z",
+      "phase": "reply",
+      "id": 34,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:05.706Z",
+      "phase": "send",
+      "id": 35,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:05.707Z",
+      "phase": "reply",
+      "id": 35,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:05.858Z",
+      "phase": "send",
+      "id": 36,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:05.859Z",
+      "phase": "reply",
+      "id": 36,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:06.010Z",
+      "phase": "send",
+      "id": 37,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:06.010Z",
+      "phase": "reply",
+      "id": 37,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:06.161Z",
+      "phase": "send",
+      "id": 38,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:06.161Z",
+      "phase": "reply",
+      "id": 38,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:06.312Z",
+      "phase": "send",
+      "id": 39,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:06.313Z",
+      "phase": "reply",
+      "id": 39,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:06.464Z",
+      "phase": "send",
+      "id": 40,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:06.465Z",
+      "phase": "reply",
+      "id": 40,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:06.616Z",
+      "phase": "send",
+      "id": 41,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:06.617Z",
+      "phase": "reply",
+      "id": 41,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:06.768Z",
+      "phase": "send",
+      "id": 42,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:06.769Z",
+      "phase": "reply",
+      "id": 42,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:06.920Z",
+      "phase": "send",
+      "id": 43,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:06.920Z",
+      "phase": "reply",
+      "id": 43,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:07.072Z",
+      "phase": "send",
+      "id": 44,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:07.072Z",
+      "phase": "reply",
+      "id": 44,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:07.223Z",
+      "phase": "send",
+      "id": 45,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:07.224Z",
+      "phase": "reply",
+      "id": 45,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:07.375Z",
+      "phase": "send",
+      "id": 46,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:07.376Z",
+      "phase": "reply",
+      "id": 46,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:07.527Z",
+      "phase": "send",
+      "id": 47,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:07.528Z",
+      "phase": "reply",
+      "id": 47,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:07.679Z",
+      "phase": "send",
+      "id": 48,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:07.680Z",
+      "phase": "reply",
+      "id": 48,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:07.831Z",
+      "phase": "send",
+      "id": 49,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:07.832Z",
+      "phase": "reply",
+      "id": 49,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:07.983Z",
+      "phase": "send",
+      "id": 50,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:07.984Z",
+      "phase": "reply",
+      "id": 50,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:08.135Z",
+      "phase": "send",
+      "id": 51,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:08.135Z",
+      "phase": "reply",
+      "id": 51,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:08.286Z",
+      "phase": "send",
+      "id": 52,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:08.287Z",
+      "phase": "reply",
+      "id": 52,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:08.438Z",
+      "phase": "send",
+      "id": 53,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:08.440Z",
+      "phase": "reply",
+      "id": 53,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:08.591Z",
+      "phase": "send",
+      "id": 54,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:08.592Z",
+      "phase": "reply",
+      "id": 54,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:08.743Z",
+      "phase": "send",
+      "id": 55,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:08.744Z",
+      "phase": "reply",
+      "id": 55,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:08.895Z",
+      "phase": "send",
+      "id": 56,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:08.896Z",
+      "phase": "reply",
+      "id": 56,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:09.047Z",
+      "phase": "send",
+      "id": 57,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:09.047Z",
+      "phase": "reply",
+      "id": 57,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:09.199Z",
+      "phase": "send",
+      "id": 58,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:09.200Z",
+      "phase": "reply",
+      "id": 58,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:09.351Z",
+      "phase": "send",
+      "id": 59,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:09.351Z",
+      "phase": "reply",
+      "id": 59,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:09.503Z",
+      "phase": "send",
+      "id": 60,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:09.503Z",
+      "phase": "reply",
+      "id": 60,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:09.654Z",
+      "phase": "send",
+      "id": 61,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:09.655Z",
+      "phase": "reply",
+      "id": 61,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:09.806Z",
+      "phase": "send",
+      "id": 62,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:09.807Z",
+      "phase": "reply",
+      "id": 62,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:09.958Z",
+      "phase": "send",
+      "id": 63,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:09.959Z",
+      "phase": "reply",
+      "id": 63,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:10.110Z",
+      "phase": "send",
+      "id": 64,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:10.111Z",
+      "phase": "reply",
+      "id": 64,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:10.262Z",
+      "phase": "send",
+      "id": 65,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:10.262Z",
+      "phase": "reply",
+      "id": 65,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:10.413Z",
+      "phase": "send",
+      "id": 66,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:10.414Z",
+      "phase": "reply",
+      "id": 66,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:10.565Z",
+      "phase": "send",
+      "id": 67,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:10.566Z",
+      "phase": "reply",
+      "id": 67,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:10.717Z",
+      "phase": "send",
+      "id": 68,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:10.720Z",
+      "phase": "reply",
+      "id": 68,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:10.871Z",
+      "phase": "send",
+      "id": 69,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:10.872Z",
+      "phase": "reply",
+      "id": 69,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:11.023Z",
+      "phase": "send",
+      "id": 70,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:11.024Z",
+      "phase": "reply",
+      "id": 70,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:11.175Z",
+      "phase": "send",
+      "id": 71,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:11.175Z",
+      "phase": "reply",
+      "id": 71,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:11.326Z",
+      "phase": "send",
+      "id": 72,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:11.327Z",
+      "phase": "reply",
+      "id": 72,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:11.478Z",
+      "phase": "send",
+      "id": 73,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:11.479Z",
+      "phase": "reply",
+      "id": 73,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:11.629Z",
+      "phase": "send",
+      "id": 74,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:11.630Z",
+      "phase": "reply",
+      "id": 74,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:11.781Z",
+      "phase": "send",
+      "id": 75,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:11.782Z",
+      "phase": "reply",
+      "id": 75,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:11.933Z",
+      "phase": "send",
+      "id": 76,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:11.934Z",
+      "phase": "reply",
+      "id": 76,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:12.085Z",
+      "phase": "send",
+      "id": 77,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:12.085Z",
+      "phase": "reply",
+      "id": 77,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:12.236Z",
+      "phase": "send",
+      "id": 78,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:12.237Z",
+      "phase": "reply",
+      "id": 78,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:12.388Z",
+      "phase": "send",
+      "id": 79,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:12.389Z",
+      "phase": "reply",
+      "id": 79,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:12.540Z",
+      "phase": "send",
+      "id": 80,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:12.540Z",
+      "phase": "reply",
+      "id": 80,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:12.691Z",
+      "phase": "send",
+      "id": 81,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:12.692Z",
+      "phase": "reply",
+      "id": 81,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:12.843Z",
+      "phase": "send",
+      "id": 82,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:12.844Z",
+      "phase": "reply",
+      "id": 82,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:12.995Z",
+      "phase": "send",
+      "id": 83,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:12.996Z",
+      "phase": "reply",
+      "id": 83,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:13.147Z",
+      "phase": "send",
+      "id": 84,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:13.148Z",
+      "phase": "reply",
+      "id": 84,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:13.299Z",
+      "phase": "send",
+      "id": 85,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:13.299Z",
+      "phase": "reply",
+      "id": 85,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:13.451Z",
+      "phase": "send",
+      "id": 86,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:13.451Z",
+      "phase": "reply",
+      "id": 86,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:13.602Z",
+      "phase": "send",
+      "id": 87,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:13.603Z",
+      "phase": "reply",
+      "id": 87,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:13.754Z",
+      "phase": "send",
+      "id": 88,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:13.755Z",
+      "phase": "reply",
+      "id": 88,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:13.906Z",
+      "phase": "send",
+      "id": 89,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:13.907Z",
+      "phase": "reply",
+      "id": 89,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:14.058Z",
+      "phase": "send",
+      "id": 90,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:14.059Z",
+      "phase": "reply",
+      "id": 90,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:14.210Z",
+      "phase": "send",
+      "id": 91,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:14.211Z",
+      "phase": "reply",
+      "id": 91,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:14.362Z",
+      "phase": "send",
+      "id": 92,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:14.362Z",
+      "phase": "reply",
+      "id": 92,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:14.513Z",
+      "phase": "send",
+      "id": 93,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:14.514Z",
+      "phase": "reply",
+      "id": 93,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:14.665Z",
+      "phase": "send",
+      "id": 94,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:14.666Z",
+      "phase": "reply",
+      "id": 94,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:14.817Z",
+      "phase": "send",
+      "id": 95,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:14.818Z",
+      "phase": "reply",
+      "id": 95,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:14.969Z",
+      "phase": "send",
+      "id": 96,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:14.969Z",
+      "phase": "reply",
+      "id": 96,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:15.120Z",
+      "phase": "send",
+      "id": 97,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:15.121Z",
+      "phase": "reply",
+      "id": 97,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:15.272Z",
+      "phase": "send",
+      "id": 98,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:15.272Z",
+      "phase": "reply",
+      "id": 98,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:15.423Z",
+      "phase": "send",
+      "id": 99,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:15.424Z",
+      "phase": "reply",
+      "id": 99,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:15.575Z",
+      "phase": "send",
+      "id": 100,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:15.576Z",
+      "phase": "reply",
+      "id": 100,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:15.727Z",
+      "phase": "send",
+      "id": 101,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:15.728Z",
+      "phase": "reply",
+      "id": 101,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:15.879Z",
+      "phase": "send",
+      "id": 102,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:15.880Z",
+      "phase": "reply",
+      "id": 102,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:16.031Z",
+      "phase": "send",
+      "id": 103,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:16.032Z",
+      "phase": "reply",
+      "id": 103,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:16.183Z",
+      "phase": "send",
+      "id": 104,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:16.184Z",
+      "phase": "reply",
+      "id": 104,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:16.334Z",
+      "phase": "send",
+      "id": 105,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:16.335Z",
+      "phase": "reply",
+      "id": 105,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:16.485Z",
+      "phase": "send",
+      "id": 106,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:16.486Z",
+      "phase": "reply",
+      "id": 106,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:16.636Z",
+      "phase": "send",
+      "id": 107,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:16.637Z",
+      "phase": "reply",
+      "id": 107,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:16.788Z",
+      "phase": "send",
+      "id": 108,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:16.789Z",
+      "phase": "reply",
+      "id": 108,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:16.940Z",
+      "phase": "send",
+      "id": 109,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:16.940Z",
+      "phase": "reply",
+      "id": 109,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:17.091Z",
+      "phase": "send",
+      "id": 110,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:17.091Z",
+      "phase": "reply",
+      "id": 110,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:17.242Z",
+      "phase": "send",
+      "id": 111,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:17.243Z",
+      "phase": "reply",
+      "id": 111,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:17.394Z",
+      "phase": "send",
+      "id": 112,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:17.395Z",
+      "phase": "reply",
+      "id": 112,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:17.546Z",
+      "phase": "send",
+      "id": 113,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:17.547Z",
+      "phase": "reply",
+      "id": 113,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:17.698Z",
+      "phase": "send",
+      "id": 114,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:17.699Z",
+      "phase": "reply",
+      "id": 114,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:17.850Z",
+      "phase": "send",
+      "id": 115,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:17.851Z",
+      "phase": "reply",
+      "id": 115,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:18.001Z",
+      "phase": "send",
+      "id": 116,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:18.002Z",
+      "phase": "reply",
+      "id": 116,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:18.153Z",
+      "phase": "send",
+      "id": 117,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:18.154Z",
+      "phase": "reply",
+      "id": 117,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:18.305Z",
+      "phase": "send",
+      "id": 118,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:18.306Z",
+      "phase": "reply",
+      "id": 118,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:18.457Z",
+      "phase": "send",
+      "id": 119,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:18.458Z",
+      "phase": "reply",
+      "id": 119,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:18.617Z",
+      "phase": "send",
+      "id": 120,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:18.626Z",
+      "phase": "reply",
+      "id": 120,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:18.777Z",
+      "phase": "send",
+      "id": 121,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:18.778Z",
+      "phase": "reply",
+      "id": 121,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:18.928Z",
+      "phase": "send",
+      "id": 122,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:18.929Z",
+      "phase": "reply",
+      "id": 122,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:19.080Z",
+      "phase": "send",
+      "id": 123,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:19.080Z",
+      "phase": "reply",
+      "id": 123,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:19.232Z",
+      "phase": "send",
+      "id": 124,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:19.232Z",
+      "phase": "reply",
+      "id": 124,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:19.383Z",
+      "phase": "send",
+      "id": 125,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:19.384Z",
+      "phase": "reply",
+      "id": 125,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:19.535Z",
+      "phase": "send",
+      "id": 126,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:19.536Z",
+      "phase": "reply",
+      "id": 126,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:19.687Z",
+      "phase": "send",
+      "id": 127,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:19.688Z",
+      "phase": "reply",
+      "id": 127,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:19.839Z",
+      "phase": "send",
+      "id": 128,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:19.840Z",
+      "phase": "reply",
+      "id": 128,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:19.991Z",
+      "phase": "send",
+      "id": 129,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:19.991Z",
+      "phase": "reply",
+      "id": 129,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:20.143Z",
+      "phase": "send",
+      "id": 130,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:20.143Z",
+      "phase": "reply",
+      "id": 130,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:20.294Z",
+      "phase": "send",
+      "id": 131,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:20.294Z",
+      "phase": "reply",
+      "id": 131,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:20.445Z",
+      "phase": "send",
+      "id": 132,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:20.446Z",
+      "phase": "reply",
+      "id": 132,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:20.597Z",
+      "phase": "send",
+      "id": 133,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:20.598Z",
+      "phase": "reply",
+      "id": 133,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:20.749Z",
+      "phase": "send",
+      "id": 134,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:20.750Z",
+      "phase": "reply",
+      "id": 134,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:20.901Z",
+      "phase": "send",
+      "id": 135,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:20.902Z",
+      "phase": "reply",
+      "id": 135,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:21.053Z",
+      "phase": "send",
+      "id": 136,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:21.054Z",
+      "phase": "reply",
+      "id": 136,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:21.204Z",
+      "phase": "send",
+      "id": 137,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:21.205Z",
+      "phase": "reply",
+      "id": 137,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:21.356Z",
+      "phase": "send",
+      "id": 138,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:21.357Z",
+      "phase": "reply",
+      "id": 138,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:21.507Z",
+      "phase": "send",
+      "id": 139,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:21.508Z",
+      "phase": "reply",
+      "id": 139,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:21.659Z",
+      "phase": "send",
+      "id": 140,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:21.660Z",
+      "phase": "reply",
+      "id": 140,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:21.811Z",
+      "phase": "send",
+      "id": 141,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:21.811Z",
+      "phase": "reply",
+      "id": 141,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:21.962Z",
+      "phase": "send",
+      "id": 142,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:21.963Z",
+      "phase": "reply",
+      "id": 142,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:22.114Z",
+      "phase": "send",
+      "id": 143,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:22.115Z",
+      "phase": "reply",
+      "id": 143,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:22.266Z",
+      "phase": "send",
+      "id": 144,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:22.266Z",
+      "phase": "reply",
+      "id": 144,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:22.418Z",
+      "phase": "send",
+      "id": 145,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:22.418Z",
+      "phase": "reply",
+      "id": 145,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:22.569Z",
+      "phase": "send",
+      "id": 146,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:22.570Z",
+      "phase": "reply",
+      "id": 146,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:22.721Z",
+      "phase": "send",
+      "id": 147,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:22.722Z",
+      "phase": "reply",
+      "id": 147,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:22.873Z",
+      "phase": "send",
+      "id": 148,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:22.873Z",
+      "phase": "reply",
+      "id": 148,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:23.024Z",
+      "phase": "send",
+      "id": 149,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:23.025Z",
+      "phase": "reply",
+      "id": 149,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:23.176Z",
+      "phase": "send",
+      "id": 150,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:23.177Z",
+      "phase": "reply",
+      "id": 150,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:23.327Z",
+      "phase": "send",
+      "id": 151,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:23.328Z",
+      "phase": "reply",
+      "id": 151,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:23.479Z",
+      "phase": "send",
+      "id": 152,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:23.480Z",
+      "phase": "reply",
+      "id": 152,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:23.631Z",
+      "phase": "send",
+      "id": 153,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:23.631Z",
+      "phase": "reply",
+      "id": 153,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:23.783Z",
+      "phase": "send",
+      "id": 154,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:23.783Z",
+      "phase": "reply",
+      "id": 154,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:23.935Z",
+      "phase": "send",
+      "id": 155,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:23.938Z",
+      "phase": "reply",
+      "id": 155,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:24.089Z",
+      "phase": "send",
+      "id": 156,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:24.089Z",
+      "phase": "reply",
+      "id": 156,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:24.240Z",
+      "phase": "send",
+      "id": 157,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:24.241Z",
+      "phase": "reply",
+      "id": 157,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:24.392Z",
+      "phase": "send",
+      "id": 158,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:24.393Z",
+      "phase": "reply",
+      "id": 158,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:24.544Z",
+      "phase": "send",
+      "id": 159,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:24.545Z",
+      "phase": "reply",
+      "id": 159,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:24.696Z",
+      "phase": "send",
+      "id": 160,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:24.697Z",
+      "phase": "reply",
+      "id": 160,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:24.848Z",
+      "phase": "send",
+      "id": 161,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:24.848Z",
+      "phase": "reply",
+      "id": 161,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:25.000Z",
+      "phase": "send",
+      "id": 162,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:25.000Z",
+      "phase": "reply",
+      "id": 162,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:25.151Z",
+      "phase": "send",
+      "id": 163,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:25.152Z",
+      "phase": "reply",
+      "id": 163,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:25.303Z",
+      "phase": "send",
+      "id": 164,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:25.304Z",
+      "phase": "reply",
+      "id": 164,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:25.455Z",
+      "phase": "send",
+      "id": 165,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:25.456Z",
+      "phase": "reply",
+      "id": 165,
+      "method": "Runtime.evaluate",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    },
+    {
+      "at": "2026-10-13T18:35:25.607Z",
+      "phase": "send",
+      "id": 166,
+      "method": "Page.captureScreenshot",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-13T18:35:25.644Z",
+      "phase": "reply",
+      "id": 166,
+      "method": "Page.captureScreenshot",
+      "sessionId": "DBE9C1552EB958C4432909D099CFE2BF"
+    }
+  ],
+  "constraints": [
+    "No Runtime.evaluate business SDK calls",
+    "No storage writes/grants outside formal Host UI",
+    "No DOM value assignment or synthetic DOM events",
+    "No forged sender"
+  ],
+  "candidate": {
+    "extensionPackage": {
+      "packageHash": "6df33e2cdb85a9f8aa60f5d7166649d0e55183a9638f4e09a96152cac1e9ee4b",
+      "hashRecipe": "SHA256 UTF-8 JSON.stringify(path-sorted [{path,bytes,sha256}]); exact file bytes",
+      "files": [
+        {
+          "path": "agents/bootstrap.js",
+          "bytes": 931,
+          "sha256": "fed852b03982bd12fc78b7f688dd376b8cb15a8380da8e5b61db8845da8e3ae9"
+        },
+        {
+          "path": "agents/health-host.js",
+          "bytes": 8505,
+          "sha256": "b31e197f3ed4d5b817a875a2c37b721e876ac857ddbe199c7d20094bbc1a2cd0"
+        },
+        {
+          "path": "agents/health.js",
+          "bytes": 828,
+          "sha256": "48b43e028694d4fcc376d32539ab2d55ebd58359fce01219cff250fd4b5a6f65"
+        },
+        {
+          "path": "agents/page-agent.js",
+          "bytes": 34423,
+          "sha256": "bcdf07c2bda52f40c36ddb2a2a1b5a72e9156b4e507e7c16a4a54cd4bf901b00"
+        },
+        {
+          "path": "agents/page-relay.js",
+          "bytes": 89598,
+          "sha256": "5031b4ab6a9908482c3d52e88d2e21f254b09795f18ba6080bb37bf281a29496"
+        },
+        {
+          "path": "agents/selection-entry.js",
+          "bytes": 383,
+          "sha256": "0265146d80cd448c28ecd1231574d0bd6ba9f20d6991b09250478decc3e89fbb"
+        },
+        {
+          "path": "cloud-control/cloud-host.js",
+          "bytes": 54386,
+          "sha256": "94b1232fa0a6ee5f646b1ea1c9b662d8027685e919e612e06710dc15711973e0"
+        },
+        {
+          "path": "framework/browser-edition.json",
+          "bytes": 108,
+          "sha256": "de42ca5db9d5e2fc8098654789fe1fb65fea8e105fcaeda84641cfc566b053ef"
+        },
+        {
+          "path": "framework/sdk-main.js",
+          "bytes": 68303,
+          "sha256": "404f3417304d51410b5eb0502e9853cbcb98f7ea592dddb4f00fabbb195c21f2"
+        },
+        {
+          "path": "framework/sdk-resources.json",
+          "bytes": 359,
+          "sha256": "bac9bcd8a98a9fa5af7b6c145f34fe8baa9a6a7533bef42692c8e39eee8a65b0"
+        },
+        {
+          "path": "icons/notification.png",
+          "bytes": 595,
+          "sha256": "efb5caddc95697204e98f9e7319119095ea195fa02448904bc985e90e96d4de6"
+        },
+        {
+          "path": "knowledge/knowledge-host.js",
+          "bytes": 47295,
+          "sha256": "7067ffaed0ed95cb8cc8d7e5923c44685aaad5f8942a233128ed8ef7525e67c1"
+        },
+        {
+          "path": "libs/manifest.json",
+          "bytes": 4553,
+          "sha256": "1284ed4cbd4cb98ebe725c2c32e6a68169d62e59b26ebf691e23d5e97bc16fbf"
+        },
+        {
+          "path": "libs/packages/axios.js",
+          "bytes": 56622,
+          "sha256": "0789da5611b9fba153cf268d1406852cf4e68f7b9ba6bbfef6d26000cf8dd7ff"
+        },
+        {
+          "path": "libs/packages/cheerio.js",
+          "bytes": 121600,
+          "sha256": "448707180f9463ccdf7552a70bca57c6211a95099758db7867c4460b4267a628"
+        },
+        {
+          "path": "libs/packages/crypto-js.js",
+          "bytes": 66438,
+          "sha256": "e5e6be74bd2d7e18983813a79facbe0b917d9dabb243e01bcbd3f3d839625320"
+        },
+        {
+          "path": "libs/packages/dayjs.js",
+          "bytes": 20304,
+          "sha256": "9b406af291725ac2b47409930c6d0ffba7545ece163e6579230c21fbccf40164"
+        },
+        {
+          "path": "libs/packages/file-saver.js",
+          "bytes": 4131,
+          "sha256": "629ad9f9c34e1d9db94c8eac7afdd5c373974f956e3be590491be4d7353ae57c"
+        },
+        {
+          "path": "libs/packages/fingerprintjs.js",
+          "bytes": 36317,
+          "sha256": "4fc094ce804c3101b778148b3c401daca79cd14b9a08c8a75bf963eef918430f"
+        },
+        {
+          "path": "libs/packages/js-cookie.js",
+          "bytes": 2236,
+          "sha256": "f6704cba3d28fc26e0db56c73bb0e46d8de9ca43c47ef7953c5bbf07a4f5ef53"
+        },
+        {
+          "path": "libs/packages/lodash.js",
+          "bytes": 12832,
+          "sha256": "40d8258a2333573064f7173010cf6aa4eb07fb7d95a7a9c753a65fc23b9bfc18"
+        },
+        {
+          "path": "libs/packages/query-string.js",
+          "bytes": 9274,
+          "sha256": "ca7c9ac5ad77c09acdf98d231524e8958a00df084c2e6a2a051d10301f6095a9"
+        },
+        {
+          "path": "libs/packages/store.js",
+          "bytes": 8689,
+          "sha256": "280cb61b9c5530f57538767a5927a64901b2be57137cf0632fefc2aac954ffc6"
+        },
+        {
+          "path": "libs/page-frameworks/react-19.2.0.js",
+          "bytes": 193163,
+          "sha256": "d1eec2e96ed42046ad543a10af7de992aee633ac06017f44f6b917e36451c758"
+        },
+        {
+          "path": "libs/page-frameworks/vue-3.5.22.js",
+          "bytes": 118131,
+          "sha256": "2af9ee5acf9bf1cb05c5a871b6d99fd2af11fe1e6f372cfd8acb8b543b95d174"
+        },
+        {
+          "path": "libs/runtime/bootstrap.js",
+          "bytes": 876,
+          "sha256": "d8b6ff3a7a6a58a3ede0f630cd906f0af134307eeaa8a7db1f096ed24687868d"
+        },
+        {
+          "path": "libs/runtime/page-core.js",
+          "bytes": 8147,
+          "sha256": "98609597268a0d9e778354c11e4b5af3a8191d97c6ce61bd730fd94e79ad5a02"
+        },
+        {
+          "path": "libs/vendor/jquery/3.7.1/jquery.min.js",
+          "bytes": 87533,
+          "sha256": "fc9a93dd241f6b045cbff0481cf4e1901becd0e12fb45166a8f17f95823f0b1a"
+        },
+        {
+          "path": "libs/vendor/my-utils/1.0.0/index.js",
+          "bytes": 291,
+          "sha256": "948e074af991e89df08091e28f8c7f42981dc213ae089da013772e755e54c461"
+        },
+        {
+          "path": "licenses/axios-MIT.txt",
+          "bytes": 1084,
+          "sha256": "82761059eaedacb3356803aea8a170d8298609f91b14fc32ee1bfb40d690183c"
+        },
+        {
+          "path": "licenses/cheerio-MIT.txt",
+          "bytes": 1081,
+          "sha256": "61c1e21d3a8ff20f9b69abe15104a75584688080febc22f60a4cbf3854becf4e"
+        },
+        {
+          "path": "licenses/crypto-js-MIT.txt",
+          "bytes": 1169,
+          "sha256": "f729d14b7e1bf8adca0dcc38b93b929d14d53fcd5db56c3d1c9b2daa7aa69396"
+        },
+        {
+          "path": "licenses/dayjs-MIT.txt",
+          "bytes": 1072,
+          "sha256": "5faab7526d055651be3aab769d58897be6bd91f3d39d137f25f12dba1b31d5dc"
+        },
+        {
+          "path": "licenses/file-saver-MIT.txt",
+          "bytes": 1101,
+          "sha256": "2d1d7a93b46e4274355ac2904428707c4ee47ee8c6029fa394ebf405648d3f63"
+        },
+        {
+          "path": "licenses/fingerprintjs-MIT.txt",
+          "bytes": 1074,
+          "sha256": "b7eeaf845cbd307fbabdde266a01c632ab9ca30d08355dbfc7acc463b5ea8ee9"
+        },
+        {
+          "path": "licenses/jquery-MIT.txt",
+          "bytes": 1097,
+          "sha256": "d4db9ebe6f29f5168eac45ad713f055623ac5d0dcd5ba92da23d650ae012020d"
+        },
+        {
+          "path": "licenses/js-cookie-MIT.txt",
+          "bytes": 1118,
+          "sha256": "eff040f4184445a6d1f7f76d918101d631402436ff12256b924fb68e4df28a94"
+        },
+        {
+          "path": "licenses/lodash-es-MIT.txt",
+          "bytes": 1952,
+          "sha256": "f71e8ed126b46346494aad5486874cd8f0aafe95092ed67d2e3cb6110f939abc"
+        },
+        {
+          "path": "licenses/my-utils-MIT.txt",
+          "bytes": 1078,
+          "sha256": "8bda717ea4cf7fa207cb97d1a80a1d12aaedbb95eb4bafe56956ef7f9dc2579c"
+        },
+        {
+          "path": "licenses/page-framework-react-MIT.txt",
+          "bytes": 1088,
+          "sha256": "27bc22031f14eda178853577406320a91bd2e6933a5b98bd6b2e39c7dafc0394"
+        },
+        {
+          "path": "licenses/page-framework-vue-MIT.txt",
+          "bytes": 1112,
+          "sha256": "e81b972159df4e7ebdf1f081849579f5cad5c51fa310b99e86070926eb768cf1"
+        },
+        {
+          "path": "licenses/query-string-MIT.txt",
+          "bytes": 1117,
+          "sha256": "5c932d88256b4ab958f64a856fa48e8bd1f55bc1d96b8149c65689e0c61789d3"
+        },
+        {
+          "path": "licenses/store-MIT.txt",
+          "bytes": 1085,
+          "sha256": "af4a0aa33e3a61cf96a6ffa912f9e13a6981e3161c6ea352eb84902af357c271"
+        },
+        {
+          "path": "licenses/todo-user-vue-MIT.txt",
+          "bytes": 1096,
+          "sha256": "e301f131f52747f87193c4a41d3d5c09e6c021cc664a6a3101a2213635f03f29"
+        },
+        {
+          "path": "manifest.json",
+          "bytes": 1773,
+          "sha256": "0a1c0bbb926676de97bcc9861c4508b34e93644a259164dd930e6b85cffe3230"
+        },
+        {
+          "path": "marketplace/channel.json",
+          "bytes": 217,
+          "sha256": "93191846920ecb9dac809162ad05542794a12628665eb8538784e35271dfc1b2"
+        },
+        {
+          "path": "marketplace/market-host.js",
+          "bytes": 37014,
+          "sha256": "89489b56083816552a74fe506193b88a2f9f78408a90927616303847d3931813"
+        },
+        {
+          "path": "native-agent/settings.css",
+          "bytes": 2166,
+          "sha256": "6498ee021d1ce8e50d3498714f2869a084c50a355b38a3ed5de3c8f58a03b6d1"
+        },
+        {
+          "path": "native-agent/settings.html",
+          "bytes": 2226,
+          "sha256": "6aec8bfa8ad9e542d2793efee34ebfc91546c6cc528639d0ef54d9e9b4b82571"
+        },
+        {
+          "path": "native-agent/settings.js",
+          "bytes": 100079,
+          "sha256": "9c82f6ac1c57003f8cd6caa86c3385d0740ec8133a60f4f471be766b36b78866"
+        },
+        {
+          "path": "native-agent/transport.js",
+          "bytes": 42744,
+          "sha256": "69edecc9fa5279062bd2e62b4be7e64e98bce6bdb307a67c4374d55d3d4d2529"
+        },
+        {
+          "path": "native-agent/workspace.css",
+          "bytes": 33484,
+          "sha256": "0825f158407cc1e1d19f2480e9dfd60f08e3097b31956777fc30cc8dcbef0cbe"
+        },
+        {
+          "path": "native-agent/workspace.html",
+          "bytes": 15793,
+          "sha256": "d6b3111a717a397c21785ae1aec260231e61d4a19f42ef9adb6926a510347eba"
+        },
+        {
+          "path": "official-tools/catalog.json",
+          "bytes": 5427,
+          "sha256": "420c48249d3b060ea70e6c25fff0db34eb293345ed03d25d89f2dc9fbd92908a"
+        },
+        {
+          "path": "official-tools/cookie-editor/cookie-editor.opendesk-tool.json",
+          "bytes": 82437,
+          "sha256": "00034592e094d5a6f513a58bc04233a9793573f1d165a0e990489aead508fa9c"
+        },
+        {
+          "path": "official-tools/knowledge-inbox/knowledge-inbox.opendesk-tool.json",
+          "bytes": 62341,
+          "sha256": "baf3d7575d22d3e609229bc8d5ea2e7aa73207cd4d386ad50bd24543b187d7b2"
+        },
+        {
+          "path": "official-tools/markdown-workbench/markdown-workbench.opendesk-tool.json",
+          "bytes": 15125,
+          "sha256": "b5b88f90e8a86028dcaebfc65963260fe2cec31ee6f44e08514ef07b360678cf"
+        },
+        {
+          "path": "official-tools/quick-notes/quick-notes.opendesk-tool.json",
+          "bytes": 23135,
+          "sha256": "99c42ea8573446fc8842f48be6f0567d0242b4d127ee6e96e22b650e9b2f99a7"
+        },
+        {
+          "path": "official-tools/reading-toc/reading-toc.opendesk-tool.json",
+          "bytes": 9388,
+          "sha256": "85f3f48557d7b4970507066a5389fe830b23bec3ec2d6f145c1535b48ba4df52"
+        },
+        {
+          "path": "official-tools/stay-focus/stay-focus.opendesk-tool.json",
+          "bytes": 33024,
+          "sha256": "afb91cfb1fecf65544ed2864c08e7eb678e864b2b6b5d2cd0e65ce7fb31413af"
+        },
+        {
+          "path": "official-tools/time-review/time-review.opendesk-tool.json",
+          "bytes": 41548,
+          "sha256": "90f5029049ed4b2cadd69fa91c4efaefb45f031bd94c07e708c9f78d5f2776f6"
+        },
+        {
+          "path": "official-tools/web-markdown-clipper/web-markdown-clipper.opendesk-tool.json",
+          "bytes": 10230,
+          "sha256": "075d39d2aa573cd4437ad81aa80e1f7601509790e4bc26a3d66ff3e58da3e23e"
+        },
+        {
+          "path": "platform/context-menus.js",
+          "bytes": 174671,
+          "sha256": "99ebf3a1a538a56b8a2ea92b2b09f09e6a91c7476f93c14015703c6175edf6c2"
+        },
+        {
+          "path": "scripting/packaged/page-session.js",
+          "bytes": 39480,
+          "sha256": "2b38d8458f4cab592f451c1353ec618b709793a8b237f7215d8b966c538893c3"
+        },
+        {
+          "path": "scripting/sandbox/sandbox.html",
+          "bytes": 385,
+          "sha256": "aa7362ce87a270f45005dde0e9cf14bf1d86bd4bd15fce37f14515638ef3b536"
+        },
+        {
+          "path": "scripting/sandbox/sandbox.js",
+          "bytes": 4010,
+          "sha256": "4b735c3d8d6d6059a549b59122d4d1d56811c121c6ad1b7eeadca6cf3e15640e"
+        },
+        {
+          "path": "scripting/sandbox/worker-runtime.js",
+          "bytes": 40104,
+          "sha256": "6646f3f01facae0a5d52304fa5d3bf4d0a09e04b43a47ce3ecf104009b6949cf"
+        },
+        {
+          "path": "sidebar-tools/bridge.js",
+          "bytes": 51828,
+          "sha256": "7d7a991dd10b0b1398cd8eff8946d5fea2627aec6dd40ecfc4393c1017404b3f"
+        },
+        {
+          "path": "sidebar-tools/preinstall-intent.js",
+          "bytes": 49738,
+          "sha256": "efd94e27ed8df207bc43cdebcfd581adddd26c57f4a49ca7df66896a43a115f4"
+        },
+        {
+          "path": "sidebar-tools/sandbox.html",
+          "bytes": 560,
+          "sha256": "5b1b0a17190f423e6861048a6607019606faa4b9241e81c5ffe044324831fe1b"
+        },
+        {
+          "path": "stay-focus/blocked-always.html",
+          "bytes": 617,
+          "sha256": "e5d6b5c1d528cf9d8a929c67abc423b398f74417d0e0053f7140f320b366c524"
+        },
+        {
+          "path": "stay-focus/blocked-quota.html",
+          "bytes": 617,
+          "sha256": "e5d6b5c1d528cf9d8a929c67abc423b398f74417d0e0053f7140f320b366c524"
+        },
+        {
+          "path": "stay-focus/blocked-schedule.html",
+          "bytes": 617,
+          "sha256": "e5d6b5c1d528cf9d8a929c67abc423b398f74417d0e0053f7140f320b366c524"
+        },
+        {
+          "path": "stay-focus/blocked-session.html",
+          "bytes": 617,
+          "sha256": "e5d6b5c1d528cf9d8a929c67abc423b398f74417d0e0053f7140f320b366c524"
+        },
+        {
+          "path": "stay-focus/blocked.css",
+          "bytes": 969,
+          "sha256": "eb54ba4dcd77e50c07e34eaa8f78f629749623e4e167c1e18dcce759d468aff1"
+        },
+        {
+          "path": "stay-focus/blocked.js",
+          "bytes": 1726,
+          "sha256": "fad70d6fb1a7cd1b4337c191507fc2924d30d484971fa5a05f74710a256b2f93"
+        },
+        {
+          "path": "sw.js",
+          "bytes": 591994,
+          "sha256": "1f11d52d2eb62f9d0907cdd53ab30852f6637209349ff2a8091bd7ec0af7a23b"
+        },
+        {
+          "path": "time-review/time-review-host.js",
+          "bytes": 30859,
+          "sha256": "6de6cdbb118d87a0c081e3c3325e91413a5313eeee7f640a03f0b3b7b9682c98"
+        },
+        {
+          "path": "ui/cloud-console.js",
+          "bytes": 3942,
+          "sha256": "40bbf3a4d3fcd7047daa8d02152aba9635b0866da744a8c8f3908f4f5910e8df"
+        },
+        {
+          "path": "ui/cloud-control-console.css",
+          "bytes": 2846,
+          "sha256": "0e1e66a4bdf1ec5605f51b3065f04affff7223270fb565fca5540fe0e63c6adb"
+        },
+        {
+          "path": "ui/cloud-control.html",
+          "bytes": 3513,
+          "sha256": "ffd3650fe65dd08fd6bd8ca45a982372e2230af90375dfa0b509a41d30594e50"
+        },
+        {
+          "path": "ui/cloud-hosting.css",
+          "bytes": 491,
+          "sha256": "9eeb6ff44477bade32fd49514f4f4778e6f1d2fe409835dc772fa95e2368debb"
+        },
+        {
+          "path": "ui/design-system.css",
+          "bytes": 9076,
+          "sha256": "3ce3c51c8116181fc4d01490c7686d7c51275663a2302490e023846b96045e85"
+        },
+        {
+          "path": "ui/design-tokens.css",
+          "bytes": 2590,
+          "sha256": "a1a7c2059cb09a27986dca580443deb3fc28aae2a76d03ccc9d8f95fa34f1b5b"
+        },
+        {
+          "path": "ui/marketplace.css",
+          "bytes": 9046,
+          "sha256": "f3b085498111ad17fe9933507fc09272dfd5857913c6a9f8e1d0f2e8d8eeb642"
+        },
+        {
+          "path": "ui/marketplace.html",
+          "bytes": 931,
+          "sha256": "9f1ee3d70829f5e746617cecfe87e8ac24388cd67f29acca8f753b8a931bd24c"
+        },
+        {
+          "path": "ui/marketplace.js",
+          "bytes": 98851,
+          "sha256": "6e5f0caa5987f43712080f1769aaed726eddd7dc30d209f47fd3bb49553aae5f"
+        },
+        {
+          "path": "ui/sidebar-tool-host.js",
+          "bytes": 189961,
+          "sha256": "8e9168a802c7fca6873b96026d54dbac74fd6a8ce28e2bbe0008417791219750"
+        },
+        {
+          "path": "ui/stay-focus-controls.js",
+          "bytes": 3655,
+          "sha256": "123e406170e0b7f948fb2ad46f360fbe658b4aae2859bdbfef13debeb4a6cf78"
+        },
+        {
+          "path": "ui/target-bootstrap.html",
+          "bytes": 200,
+          "sha256": "b52748e3bf14e6931924843c0b8bc626ad8929b3b1bb6b63524b39238dc5d13c"
+        },
+        {
+          "path": "ui/time-review.css",
+          "bytes": 11538,
+          "sha256": "ed1bc3424fa5dc934c7fd01b8a5bfa570c1b2cc1c2b919ccb08ffae4a9e86151"
+        },
+        {
+          "path": "ui/tool-shell.css",
+          "bytes": 101764,
+          "sha256": "2490a27f86074f093deb2584fe8014e4453f884e560c9488a266ef5ad2cb3a0b"
+        },
+        {
+          "path": "ui/tool-shell.js",
+          "bytes": 522262,
+          "sha256": "356082d54ddcb466c0692623d5fc51f12cf30c5e9deb0e70597da7264c1e46c8"
+        },
+        {
+          "path": "ui/tool.html",
+          "bytes": 102285,
+          "sha256": "d6cea74965fda3f9e965630601d3b07c79952c417ab69df61c4b74eb666fbd5a"
+        },
+        {
+          "path": "ui/trusted-cookie-ui.js",
+          "bytes": 43684,
+          "sha256": "7986d2233d87abe690d552f4c37add130ca4fe9ee195c25aace1fb0e1ae557ea"
+        }
+      ]
+    },
+    "extensionFiles": [
+      {
+        "path": "dist/production/agents/bootstrap.js",
+        "bytes": 931,
+        "sha256": "fed852b03982bd12fc78b7f688dd376b8cb15a8380da8e5b61db8845da8e3ae9"
+      },
+      {
+        "path": "dist/production/agents/health-host.js",
+        "bytes": 8505,
+        "sha256": "b31e197f3ed4d5b817a875a2c37b721e876ac857ddbe199c7d20094bbc1a2cd0"
+      },
+      {
+        "path": "dist/production/agents/health.js",
+        "bytes": 828,
+        "sha256": "48b43e028694d4fcc376d32539ab2d55ebd58359fce01219cff250fd4b5a6f65"
+      },
+      {
+        "path": "dist/production/agents/page-agent.js",
+        "bytes": 34423,
+        "sha256": "bcdf07c2bda52f40c36ddb2a2a1b5a72e9156b4e507e7c16a4a54cd4bf901b00"
+      },
+      {
+        "path": "dist/production/agents/page-relay.js",
+        "bytes": 89598,
+        "sha256": "5031b4ab6a9908482c3d52e88d2e21f254b09795f18ba6080bb37bf281a29496"
+      },
+      {
+        "path": "dist/production/agents/selection-entry.js",
+        "bytes": 383,
+        "sha256": "0265146d80cd448c28ecd1231574d0bd6ba9f20d6991b09250478decc3e89fbb"
+      },
+      {
+        "path": "dist/production/cloud-control/cloud-host.js",
+        "bytes": 54386,
+        "sha256": "94b1232fa0a6ee5f646b1ea1c9b662d8027685e919e612e06710dc15711973e0"
+      },
+      {
+        "path": "dist/production/framework/browser-edition.json",
+        "bytes": 108,
+        "sha256": "de42ca5db9d5e2fc8098654789fe1fb65fea8e105fcaeda84641cfc566b053ef"
+      },
+      {
+        "path": "dist/production/framework/sdk-main.js",
+        "bytes": 68303,
+        "sha256": "404f3417304d51410b5eb0502e9853cbcb98f7ea592dddb4f00fabbb195c21f2"
+      },
+      {
+        "path": "dist/production/framework/sdk-resources.json",
+        "bytes": 359,
+        "sha256": "bac9bcd8a98a9fa5af7b6c145f34fe8baa9a6a7533bef42692c8e39eee8a65b0"
+      },
+      {
+        "path": "dist/production/icons/notification.png",
+        "bytes": 595,
+        "sha256": "efb5caddc95697204e98f9e7319119095ea195fa02448904bc985e90e96d4de6"
+      },
+      {
+        "path": "dist/production/knowledge/knowledge-host.js",
+        "bytes": 47295,
+        "sha256": "7067ffaed0ed95cb8cc8d7e5923c44685aaad5f8942a233128ed8ef7525e67c1"
+      },
+      {
+        "path": "dist/production/libs/manifest.json",
+        "bytes": 4553,
+        "sha256": "1284ed4cbd4cb98ebe725c2c32e6a68169d62e59b26ebf691e23d5e97bc16fbf"
+      },
+      {
+        "path": "dist/production/libs/packages/axios.js",
+        "bytes": 56622,
+        "sha256": "0789da5611b9fba153cf268d1406852cf4e68f7b9ba6bbfef6d26000cf8dd7ff"
+      },
+      {
+        "path": "dist/production/libs/packages/cheerio.js",
+        "bytes": 121600,
+        "sha256": "448707180f9463ccdf7552a70bca57c6211a95099758db7867c4460b4267a628"
+      },
+      {
+        "path": "dist/production/libs/packages/crypto-js.js",
+        "bytes": 66438,
+        "sha256": "e5e6be74bd2d7e18983813a79facbe0b917d9dabb243e01bcbd3f3d839625320"
+      },
+      {
+        "path": "dist/production/libs/packages/dayjs.js",
+        "bytes": 20304,
+        "sha256": "9b406af291725ac2b47409930c6d0ffba7545ece163e6579230c21fbccf40164"
+      },
+      {
+        "path": "dist/production/libs/packages/file-saver.js",
+        "bytes": 4131,
+        "sha256": "629ad9f9c34e1d9db94c8eac7afdd5c373974f956e3be590491be4d7353ae57c"
+      },
+      {
+        "path": "dist/production/libs/packages/fingerprintjs.js",
+        "bytes": 36317,
+        "sha256": "4fc094ce804c3101b778148b3c401daca79cd14b9a08c8a75bf963eef918430f"
+      },
+      {
+        "path": "dist/production/libs/packages/js-cookie.js",
+        "bytes": 2236,
+        "sha256": "f6704cba3d28fc26e0db56c73bb0e46d8de9ca43c47ef7953c5bbf07a4f5ef53"
+      },
+      {
+        "path": "dist/production/libs/packages/lodash.js",
+        "bytes": 12832,
+        "sha256": "40d8258a2333573064f7173010cf6aa4eb07fb7d95a7a9c753a65fc23b9bfc18"
+      },
+      {
+        "path": "dist/production/libs/packages/query-string.js",
+        "bytes": 9274,
+        "sha256": "ca7c9ac5ad77c09acdf98d231524e8958a00df084c2e6a2a051d10301f6095a9"
+      },
+      {
+        "path": "dist/production/libs/packages/store.js",
+        "bytes": 8689,
+        "sha256": "280cb61b9c5530f57538767a5927a64901b2be57137cf0632fefc2aac954ffc6"
+      },
+      {
+        "path": "dist/production/libs/page-frameworks/react-19.2.0.js",
+        "bytes": 193163,
+        "sha256": "d1eec2e96ed42046ad543a10af7de992aee633ac06017f44f6b917e36451c758"
+      },
+      {
+        "path": "dist/production/libs/page-frameworks/vue-3.5.22.js",
+        "bytes": 118131,
+        "sha256": "2af9ee5acf9bf1cb05c5a871b6d99fd2af11fe1e6f372cfd8acb8b543b95d174"
+      },
+      {
+        "path": "dist/production/libs/runtime/bootstrap.js",
+        "bytes": 876,
+        "sha256": "d8b6ff3a7a6a58a3ede0f630cd906f0af134307eeaa8a7db1f096ed24687868d"
+      },
+      {
+        "path": "dist/production/libs/runtime/page-core.js",
+        "bytes": 8147,
+        "sha256": "98609597268a0d9e778354c11e4b5af3a8191d97c6ce61bd730fd94e79ad5a02"
+      },
+      {
+        "path": "dist/production/libs/vendor/jquery/3.7.1/jquery.min.js",
+        "bytes": 87533,
+        "sha256": "fc9a93dd241f6b045cbff0481cf4e1901becd0e12fb45166a8f17f95823f0b1a"
+      },
+      {
+        "path": "dist/production/libs/vendor/my-utils/1.0.0/index.js",
+        "bytes": 291,
+        "sha256": "948e074af991e89df08091e28f8c7f42981dc213ae089da013772e755e54c461"
+      },
+      {
+        "path": "dist/production/licenses/axios-MIT.txt",
+        "bytes": 1084,
+        "sha256": "82761059eaedacb3356803aea8a170d8298609f91b14fc32ee1bfb40d690183c"
+      },
+      {
+        "path": "dist/production/licenses/cheerio-MIT.txt",
+        "bytes": 1081,
+        "sha256": "61c1e21d3a8ff20f9b69abe15104a75584688080febc22f60a4cbf3854becf4e"
+      },
+      {
+        "path": "dist/production/licenses/crypto-js-MIT.txt",
+        "bytes": 1169,
+        "sha256": "f729d14b7e1bf8adca0dcc38b93b929d14d53fcd5db56c3d1c9b2daa7aa69396"
+      },
+      {
+        "path": "dist/production/licenses/dayjs-MIT.txt",
+        "bytes": 1072,
+        "sha256": "5faab7526d055651be3aab769d58897be6bd91f3d39d137f25f12dba1b31d5dc"
+      },
+      {
+        "path": "dist/production/licenses/file-saver-MIT.txt",
+        "bytes": 1101,
+        "sha256": "2d1d7a93b46e4274355ac2904428707c4ee47ee8c6029fa394ebf405648d3f63"
+      },
+      {
+        "path": "dist/production/licenses/fingerprintjs-MIT.txt",
+        "bytes": 1074,
+        "sha256": "b7eeaf845cbd307fbabdde266a01c632ab9ca30d08355dbfc7acc463b5ea8ee9"
+      },
+      {
+        "path": "dist/production/licenses/jquery-MIT.txt",
+        "bytes": 1097,
+        "sha256": "d4db9ebe6f29f5168eac45ad713f055623ac5d0dcd5ba92da23d650ae012020d"
+      },
+      {
+        "path": "dist/production/licenses/js-cookie-MIT.txt",
+        "bytes": 1118,
+        "sha256": "eff040f4184445a6d1f7f76d918101d631402436ff12256b924fb68e4df28a94"
+      },
+      {
+        "path": "dist/production/licenses/lodash-es-MIT.txt",
+        "bytes": 1952,
+        "sha256": "f71e8ed126b46346494aad5486874cd8f0aafe95092ed67d2e3cb6110f939abc"
+      },
+      {
+        "path": "dist/production/licenses/my-utils-MIT.txt",
+        "bytes": 1078,
+        "sha256": "8bda717ea4cf7fa207cb97d1a80a1d12aaedbb95eb4bafe56956ef7f9dc2579c"
+      },
+      {
+        "path": "dist/production/licenses/page-framework-react-MIT.txt",
+        "bytes": 1088,
+        "sha256": "27bc22031f14eda178853577406320a91bd2e6933a5b98bd6b2e39c7dafc0394"
+      },
+      {
+        "path": "dist/production/licenses/page-framework-vue-MIT.txt",
+        "bytes": 1112,
+        "sha256": "e81b972159df4e7ebdf1f081849579f5cad5c51fa310b99e86070926eb768cf1"
+      },
+      {
+        "path": "dist/production/licenses/query-string-MIT.txt",
+        "bytes": 1117,
+        "sha256": "5c932d88256b4ab958f64a856fa48e8bd1f55bc1d96b8149c65689e0c61789d3"
+      },
+      {
+        "path": "dist/production/licenses/store-MIT.txt",
+        "bytes": 1085,
+        "sha256": "af4a0aa33e3a61cf96a6ffa912f9e13a6981e3161c6ea352eb84902af357c271"
+      },
+      {
+        "path": "dist/production/licenses/todo-user-vue-MIT.txt",
+        "bytes": 1096,
+        "sha256": "e301f131f52747f87193c4a41d3d5c09e6c021cc664a6a3101a2213635f03f29"
+      },
+      {
+        "path": "dist/production/manifest.json",
+        "bytes": 1773,
+        "sha256": "0a1c0bbb926676de97bcc9861c4508b34e93644a259164dd930e6b85cffe3230"
+      },
+      {
+        "path": "dist/production/marketplace/channel.json",
+        "bytes": 217,
+        "sha256": "93191846920ecb9dac809162ad05542794a12628665eb8538784e35271dfc1b2"
+      },
+      {
+        "path": "dist/production/marketplace/market-host.js",
+        "bytes": 37014,
+        "sha256": "89489b56083816552a74fe506193b88a2f9f78408a90927616303847d3931813"
+      },
+      {
+        "path": "dist/production/native-agent/settings.css",
+        "bytes": 2166,
+        "sha256": "6498ee021d1ce8e50d3498714f2869a084c50a355b38a3ed5de3c8f58a03b6d1"
+      },
+      {
+        "path": "dist/production/native-agent/settings.html",
+        "bytes": 2226,
+        "sha256": "6aec8bfa8ad9e542d2793efee34ebfc91546c6cc528639d0ef54d9e9b4b82571"
+      },
+      {
+        "path": "dist/production/native-agent/settings.js",
+        "bytes": 100079,
+        "sha256": "9c82f6ac1c57003f8cd6caa86c3385d0740ec8133a60f4f471be766b36b78866"
+      },
+      {
+        "path": "dist/production/native-agent/transport.js",
+        "bytes": 42744,
+        "sha256": "69edecc9fa5279062bd2e62b4be7e64e98bce6bdb307a67c4374d55d3d4d2529"
+      },
+      {
+        "path": "dist/production/native-agent/workspace.css",
+        "bytes": 33484,
+        "sha256": "0825f158407cc1e1d19f2480e9dfd60f08e3097b31956777fc30cc8dcbef0cbe"
+      },
+      {
+        "path": "dist/production/native-agent/workspace.html",
+        "bytes": 15793,
+        "sha256": "d6b3111a717a397c21785ae1aec260231e61d4a19f42ef9adb6926a510347eba"
+      },
+      {
+        "path": "dist/production/official-tools/catalog.json",
+        "bytes": 5427,
+        "sha256": "420c48249d3b060ea70e6c25fff0db34eb293345ed03d25d89f2dc9fbd92908a"
+      },
+      {
+        "path": "dist/production/official-tools/cookie-editor/cookie-editor.opendesk-tool.json",
+        "bytes": 82437,
+        "sha256": "00034592e094d5a6f513a58bc04233a9793573f1d165a0e990489aead508fa9c"
+      },
+      {
+        "path": "dist/production/official-tools/knowledge-inbox/knowledge-inbox.opendesk-tool.json",
+        "bytes": 62341,
+        "sha256": "baf3d7575d22d3e609229bc8d5ea2e7aa73207cd4d386ad50bd24543b187d7b2"
+      },
+      {
+        "path": "dist/production/official-tools/markdown-workbench/markdown-workbench.opendesk-tool.json",
+        "bytes": 15125,
+        "sha256": "b5b88f90e8a86028dcaebfc65963260fe2cec31ee6f44e08514ef07b360678cf"
+      },
+      {
+        "path": "dist/production/official-tools/quick-notes/quick-notes.opendesk-tool.json",
+        "bytes": 23135,
+        "sha256": "99c42ea8573446fc8842f48be6f0567d0242b4d127ee6e96e22b650e9b2f99a7"
+      },
+      {
+        "path": "dist/production/official-tools/reading-toc/reading-toc.opendesk-tool.json",
+        "bytes": 9388,
+        "sha256": "85f3f48557d7b4970507066a5389fe830b23bec3ec2d6f145c1535b48ba4df52"
+      },
+      {
+        "path": "dist/production/official-tools/stay-focus/stay-focus.opendesk-tool.json",
+        "bytes": 33024,
+        "sha256": "afb91cfb1fecf65544ed2864c08e7eb678e864b2b6b5d2cd0e65ce7fb31413af"
+      },
+      {
+        "path": "dist/production/official-tools/time-review/time-review.opendesk-tool.json",
+        "bytes": 41548,
+        "sha256": "90f5029049ed4b2cadd69fa91c4efaefb45f031bd94c07e708c9f78d5f2776f6"
+      },
+      {
+        "path": "dist/production/official-tools/web-markdown-clipper/web-markdown-clipper.opendesk-tool.json",
+        "bytes": 10230,
+        "sha256": "075d39d2aa573cd4437ad81aa80e1f7601509790e4bc26a3d66ff3e58da3e23e"
+      },
+      {
+        "path": "dist/production/platform/context-menus.js",
+        "bytes": 174671,
+        "sha256": "99ebf3a1a538a56b8a2ea92b2b09f09e6a91c7476f93c14015703c6175edf6c2"
+      },
+      {
+        "path": "dist/production/scripting/packaged/page-session.js",
+        "bytes": 39480,
+        "sha256": "2b38d8458f4cab592f451c1353ec618b709793a8b237f7215d8b966c538893c3"
+      },
+      {
+        "path": "dist/production/scripting/sandbox/sandbox.html",
+        "bytes": 385,
+        "sha256": "aa7362ce87a270f45005dde0e9cf14bf1d86bd4bd15fce37f14515638ef3b536"
+      },
+      {
+        "path": "dist/production/scripting/sandbox/sandbox.js",
+        "bytes": 4010,
+        "sha256": "4b735c3d8d6d6059a549b59122d4d1d56811c121c6ad1b7eeadca6cf3e15640e"
+      },
+      {
+        "path": "dist/production/scripting/sandbox/worker-runtime.js",
+        "bytes": 40104,
+        "sha256": "6646f3f01facae0a5d52304fa5d3bf4d0a09e04b43a47ce3ecf104009b6949cf"
+      },
+      {
+        "path": "dist/production/sidebar-tools/bridge.js",
+        "bytes": 51828,
+        "sha256": "7d7a991dd10b0b1398cd8eff8946d5fea2627aec6dd40ecfc4393c1017404b3f"
+      },
+      {
+        "path": "dist/production/sidebar-tools/preinstall-intent.js",
+        "bytes": 49738,
+        "sha256": "efd94e27ed8df207bc43cdebcfd581adddd26c57f4a49ca7df66896a43a115f4"
+      },
+      {
+        "path": "dist/production/sidebar-tools/sandbox.html",
+        "bytes": 560,
+        "sha256": "5b1b0a17190f423e6861048a6607019606faa4b9241e81c5ffe044324831fe1b"
+      },
+      {
+        "path": "dist/production/stay-focus/blocked-always.html",
+        "bytes": 617,
+        "sha256": "e5d6b5c1d528cf9d8a929c67abc423b398f74417d0e0053f7140f320b366c524"
+      },
+      {
+        "path": "dist/production/stay-focus/blocked-quota.html",
+        "bytes": 617,
+        "sha256": "e5d6b5c1d528cf9d8a929c67abc423b398f74417d0e0053f7140f320b366c524"
+      },
+      {
+        "path": "dist/production/stay-focus/blocked-schedule.html",
+        "bytes": 617,
+        "sha256": "e5d6b5c1d528cf9d8a929c67abc423b398f74417d0e0053f7140f320b366c524"
+      },
+      {
+        "path": "dist/production/stay-focus/blocked-session.html",
+        "bytes": 617,
+        "sha256": "e5d6b5c1d528cf9d8a929c67abc423b398f74417d0e0053f7140f320b366c524"
+      },
+      {
+        "path": "dist/production/stay-focus/blocked.css",
+        "bytes": 969,
+        "sha256": "eb54ba4dcd77e50c07e34eaa8f78f629749623e4e167c1e18dcce759d468aff1"
+      },
+      {
+        "path": "dist/production/stay-focus/blocked.js",
+        "bytes": 1726,
+        "sha256": "fad70d6fb1a7cd1b4337c191507fc2924d30d484971fa5a05f74710a256b2f93"
+      },
+      {
+        "path": "dist/production/sw.js",
+        "bytes": 591994,
+        "sha256": "1f11d52d2eb62f9d0907cdd53ab30852f6637209349ff2a8091bd7ec0af7a23b"
+      },
+      {
+        "path": "dist/production/time-review/time-review-host.js",
+        "bytes": 30859,
+        "sha256": "6de6cdbb118d87a0c081e3c3325e91413a5313eeee7f640a03f0b3b7b9682c98"
+      },
+      {
+        "path": "dist/production/ui/cloud-console.js",
+        "bytes": 3942,
+        "sha256": "40bbf3a4d3fcd7047daa8d02152aba9635b0866da744a8c8f3908f4f5910e8df"
+      },
+      {
+        "path": "dist/production/ui/cloud-control-console.css",
+        "bytes": 2846,
+        "sha256": "0e1e66a4bdf1ec5605f51b3065f04affff7223270fb565fca5540fe0e63c6adb"
+      },
+      {
+        "path": "dist/production/ui/cloud-control.html",
+        "bytes": 3513,
+        "sha256": "ffd3650fe65dd08fd6bd8ca45a982372e2230af90375dfa0b509a41d30594e50"
+      },
+      {
+        "path": "dist/production/ui/cloud-hosting.css",
+        "bytes": 491,
+        "sha256": "9eeb6ff44477bade32fd49514f4f4778e6f1d2fe409835dc772fa95e2368debb"
+      },
+      {
+        "path": "dist/production/ui/design-system.css",
+        "bytes": 9076,
+        "sha256": "3ce3c51c8116181fc4d01490c7686d7c51275663a2302490e023846b96045e85"
+      },
+      {
+        "path": "dist/production/ui/design-tokens.css",
+        "bytes": 2590,
+        "sha256": "a1a7c2059cb09a27986dca580443deb3fc28aae2a76d03ccc9d8f95fa34f1b5b"
+      },
+      {
+        "path": "dist/production/ui/marketplace.css",
+        "bytes": 9046,
+        "sha256": "f3b085498111ad17fe9933507fc09272dfd5857913c6a9f8e1d0f2e8d8eeb642"
+      },
+      {
+        "path": "dist/production/ui/marketplace.html",
+        "bytes": 931,
+        "sha256": "9f1ee3d70829f5e746617cecfe87e8ac24388cd67f29acca8f753b8a931bd24c"
+      },
+      {
+        "path": "dist/production/ui/marketplace.js",
+        "bytes": 98851,
+        "sha256": "6e5f0caa5987f43712080f1769aaed726eddd7dc30d209f47fd3bb49553aae5f"
+      },
+      {
+        "path": "dist/production/ui/sidebar-tool-host.js",
+        "bytes": 189961,
+        "sha256": "8e9168a802c7fca6873b96026d54dbac74fd6a8ce28e2bbe0008417791219750"
+      },
+      {
+        "path": "dist/production/ui/stay-focus-controls.js",
+        "bytes": 3655,
+        "sha256": "123e406170e0b7f948fb2ad46f360fbe658b4aae2859bdbfef13debeb4a6cf78"
+      },
+      {
+        "path": "dist/production/ui/target-bootstrap.html",
+        "bytes": 200,
+        "sha256": "b52748e3bf14e6931924843c0b8bc626ad8929b3b1bb6b63524b39238dc5d13c"
+      },
+      {
+        "path": "dist/production/ui/time-review.css",
+        "bytes": 11538,
+        "sha256": "ed1bc3424fa5dc934c7fd01b8a5bfa570c1b2cc1c2b919ccb08ffae4a9e86151"
+      },
+      {
+        "path": "dist/production/ui/tool-shell.css",
+        "bytes": 101764,
+        "sha256": "2490a27f86074f093deb2584fe8014e4453f884e560c9488a266ef5ad2cb3a0b"
+      },
+      {
+        "path": "dist/production/ui/tool-shell.js",
+        "bytes": 522262,
+        "sha256": "356082d54ddcb466c0692623d5fc51f12cf30c5e9deb0e70597da7264c1e46c8"
+      },
+      {
+        "path": "dist/production/ui/tool.html",
+        "bytes": 102285,
+        "sha256": "d6cea74965fda3f9e965630601d3b07c79952c417ab69df61c4b74eb666fbd5a"
+      },
+      {
+        "path": "dist/production/ui/trusted-cookie-ui.js",
+        "bytes": 43684,
+        "sha256": "7986d2233d87abe690d552f4c37add130ca4fe9ee195c25aace1fb0e1ae557ea"
+      }
+    ],
+    "toolSourceFiles": [
+      {
+        "path": "examples/sidebar-tools/browser-sdk-acceptance/README.zh-CN.md",
+        "bytes": 2001,
+        "sha256": "d06dfc9308ff651e5490feb9de0dad4aa37b9527a029a001895ff5c4457cc7e2"
+      },
+      {
+        "path": "examples/sidebar-tools/browser-sdk-acceptance/src/index.html",
+        "bytes": 3649,
+        "sha256": "27ddfb1dbf73d04c13dc54d554f51f8f26861af044df17b67fb353c0c5c5f4ec"
+      },
+      {
+        "path": "examples/sidebar-tools/browser-sdk-acceptance/src/main.js",
+        "bytes": 5775,
+        "sha256": "6c8d54d3f89a5b78ac764c24681d58a1ef4eccf585b0a4df68ff1887a5979887"
+      },
+      {
+        "path": "examples/sidebar-tools/browser-sdk-acceptance/src/style.css",
+        "bytes": 2669,
+        "sha256": "045ae8de7bb68b15f48a1c6b433f85e87a10296c914223e7c3ef02bdb8d10d6f"
+      },
+      {
+        "path": "examples/sidebar-tools/browser-sdk-acceptance/tool.config.json",
+        "bytes": 683,
+        "sha256": "157cd2d2b62973d5ce1e4053b80ce991e46e6b2232deb5092b25486eebed7408"
+      }
+    ]
+  },
+  "launch": {
+    "pid": 72070,
+    "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-zagi8grv",
+    "executable": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+    "args": [
+      "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+      "--use-mock-keychain",
+      "--password-store=basic",
+      "--no-first-run",
+      "--no-default-browser-check",
+      "--disable-background-networking",
+      "--remote-debugging-address=127.0.0.1",
+      "--user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-zagi8grv",
+      "--remote-debugging-port=0",
+      "--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+      "--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+      "about:blank"
+    ],
+    "log": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-zagi8grv/chrome.log",
+    "launcherPid": 72069,
+    "python": "/usr/bin/python3",
+    "launcher": "/Users/shopme/.codex/browser-testing/launch.py",
+    "launcherSha256": "e9dfee561b6280eef106bd514f0835d0d5f9251919881c1d3cd15394430d8b74",
+    "launcherArgs": [
+      "/Users/shopme/.codex/browser-testing/launch.py",
+      "--executable",
+      "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+      "--report",
+      "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native/native-2026-10-13T18-34-57-654Z-13169eb1/launcher-r106.json",
+      "--remote-debugging-port=0",
+      "--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+      "--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+      "about:blank"
+    ],
+    "actualMainProcess": "72070 72069 /Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing --use-mock-keychain --password-store=basic --no-first-run --no-default-browser-check --disable-background-networking --remote-debugging-address=127.0.0.1 --user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-zagi8grv --remote-debugging-port=0 --load-extension=/Users/shopme/Documents/workspace/opendesk-browser/dist/production --disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/dist/production about:blank",
+    "freshProfileObserved": {
+      "path": "/private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-zagi8grv",
+      "birthtimeMs": 1791916497816.0725,
+      "previouslyPresent": false,
+      "mode": "0700"
+    },
+    "endpoint": "ws://127.0.0.1:62441/devtools/browser/4243e780-fa9c-4f59-9efc-46605862f987"
+  },
+  "extensionId": "efhcmggbgamacpfhhmooelgdkepdcghh",
+  "nativeHelper": {
+    "sourceSha256": "6ab6ca73bb34e9efdc533a854dd08e14d474924014e440d8fca83acf1118b9f6",
+    "baseSha256": "be4f2a03662decf22599b31589f4da4c17ee6b5ca9c3b4a637448a1828c8ef0f"
+  },
+  "sidePanelContext": {
+    "contextId": "7858c7f6-6fdc-4f74-96ff-77a79e8486d5",
+    "contextType": "SIDE_PANEL",
+    "documentId": "7A9C6D2BF3C0D09B964FFBEBBB1248A1",
+    "documentOrigin": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh",
+    "documentUrl": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/ui/tool.html?hostInstanceId=48026591-e4e6-4c2b-9875-ac7063a0aeaa",
+    "frameId": 0,
+    "incognito": false,
+    "tabId": -1,
+    "windowId": -1
+  },
+  "review": {
+    "title": "Cookie Editor · Cookie 管理",
+    "capabilities": "读取当前网页标题和地址、复制文本或请求文件下载、browser.cookies.read、browser.cookies.values、browser.cookies.write、browser.cookies.observe、browser.cookies.clear"
+  },
+  "cleanup": {
+    "exit": {
+      "code": 0,
+      "signal": null,
+      "observedEvent": "exit"
+    },
+    "pidAliveAfterExit": false,
+    "profileRemoved": true,
+    "profileState": "path-absent",
+    "cleanupOwner": "/Users/shopme/.codex/browser-testing/launch.py",
+    "cleanupStatus": "PASS",
+    "lifecycle": [],
+    "originalErrors": [],
+    "cleanupErrors": [],
+    "residual": [],
+    "attempts": [
+      {
+        "number": 1,
+        "errors": [],
+        "raw": {
+          "stdout": "{\"pid\": 72070, \"profile\": \"/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-zagi8grv\", \"executable\": \"/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing\", \"args\": [\"/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing\", \"--use-mock-keychain\", \"--password-store=basic\", \"--no-first-run\", \"--no-default-browser-check\", \"--disable-background-networking\", \"--remote-debugging-address=127.0.0.1\", \"--user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-zagi8grv\", \"--remote-debugging-port=0\", \"--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/dist/production\", \"--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/dist/production\", \"about:blank\"], \"log\": \"/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-zagi8grv/chrome.log\"}\n",
+          "stderr": ""
+        }
+      }
+    ],
+    "candidates": [
+      {
+        "pid": 72070,
+        "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-zagi8grv",
+        "executable": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+        "args": [
+          "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+          "--use-mock-keychain",
+          "--password-store=basic",
+          "--no-first-run",
+          "--no-default-browser-check",
+          "--disable-background-networking",
+          "--remote-debugging-address=127.0.0.1",
+          "--user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-zagi8grv",
+          "--remote-debugging-port=0",
+          "--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+          "--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+          "about:blank"
+        ],
+        "log": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-zagi8grv/chrome.log"
+      }
+    ]
+  },
+  "finishedAt": "2026-10-13T18:35:25.721Z"
+}

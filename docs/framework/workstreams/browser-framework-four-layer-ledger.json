@@ -66,8 +66,8 @@
         "siteScope": "none"
       },
       "layer4": {
-        "positive": "NOT_TESTED",
-        "denial": "NOT_TESTED",
+        "positive": "PASS",
+        "denial": "PASS",
         "macChrome": "NOT_TESTED",
         "callableNow": "NOT_TESTED",
         "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
@@ -95,8 +95,8 @@
         "siteScope": "none"
       },
       "layer4": {
-        "positive": "NOT_TESTED",
-        "denial": "NOT_TESTED",
+        "positive": "PASS",
+        "denial": "PASS",
         "macChrome": "NOT_TESTED",
         "callableNow": "NOT_TESTED",
         "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
@@ -128,8 +128,8 @@
         "siteScope": "approved-origin"
       },
       "layer4": {
-        "positive": "NOT_TESTED",
-        "denial": "NOT_TESTED",
+        "positive": "PASS",
+        "denial": "PASS",
         "macChrome": "NOT_TESTED",
         "callableNow": "NOT_TESTED",
         "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
@@ -161,8 +161,8 @@
         "siteScope": "approved-origin"
       },
       "layer4": {
-        "positive": "NOT_TESTED",
-        "denial": "NOT_TESTED",
+        "positive": "PASS",
+        "denial": "PASS",
         "macChrome": "NOT_TESTED",
         "callableNow": "NOT_TESTED",
         "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
@@ -192,8 +192,8 @@
         "siteScope": "approved-origin"
       },
       "layer4": {
-        "positive": "NOT_TESTED",
-        "denial": "NOT_TESTED",
+        "positive": "PASS",
+        "denial": "PASS",
         "macChrome": "NOT_TESTED",
         "callableNow": "NOT_TESTED",
         "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
@@ -223,8 +223,8 @@
         "siteScope": "clicked-document"
       },
       "layer4": {
-        "positive": "NOT_TESTED",
-        "denial": "NOT_TESTED",
+        "positive": "PASS",
+        "denial": "PASS",
         "macChrome": "NOT_TESTED",
         "callableNow": "NOT_TESTED",
         "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
@@ -254,8 +254,8 @@
         "siteScope": "current-page"
       },
       "layer4": {
-        "positive": "NOT_TESTED",
-        "denial": "NOT_TESTED",
+        "positive": "PASS",
+        "denial": "PASS",
         "macChrome": "NOT_TESTED",
         "callableNow": "NOT_TESTED",
         "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
@@ -285,8 +285,8 @@
         "siteScope": "clicked-document"
       },
       "layer4": {
-        "positive": "NOT_TESTED",
-        "denial": "NOT_TESTED",
+        "positive": "PASS",
+        "denial": "PASS",
         "macChrome": "NOT_TESTED",
         "callableNow": "NOT_TESTED",
         "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
@@ -316,8 +316,8 @@
         "siteScope": "none"
       },
       "layer4": {
-        "positive": "NOT_TESTED",
-        "denial": "NOT_TESTED",
+        "positive": "PASS",
+        "denial": "PASS",
         "macChrome": "NOT_TESTED",
         "callableNow": "NOT_TESTED",
         "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
@@ -349,8 +349,8 @@
         "siteScope": "none"
       },
       "layer4": {
-        "positive": "NOT_TESTED",
-        "denial": "NOT_TESTED",
+        "positive": "PASS",
+        "denial": "PASS",
         "macChrome": "NOT_TESTED",
         "callableNow": "NOT_TESTED",
         "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
@@ -383,8 +383,8 @@
         "siteScope": "explicit-url"
       },
       "layer4": {
-        "positive": "NOT_TESTED",
-        "denial": "NOT_TESTED",
+        "positive": "PASS",
+        "denial": "PASS",
         "macChrome": "NOT_TESTED",
         "callableNow": "NOT_TESTED",
         "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
@@ -417,8 +417,8 @@
         "siteScope": "download-ref"
       },
       "layer4": {
-        "positive": "NOT_TESTED",
-        "denial": "NOT_TESTED",
+        "positive": "PASS",
+        "denial": "PASS",
         "macChrome": "NOT_TESTED",
         "callableNow": "NOT_TESTED",
         "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
@@ -451,8 +451,8 @@
         "siteScope": "owned-downloads"
       },
       "layer4": {
-        "positive": "NOT_TESTED",
-        "denial": "NOT_TESTED",
+        "positive": "PASS",
+        "denial": "PASS",
         "macChrome": "NOT_TESTED",
         "callableNow": "NOT_TESTED",
         "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
@@ -485,8 +485,8 @@
         "siteScope": "download-ref"
       },
       "layer4": {
-        "positive": "NOT_TESTED",
-        "denial": "NOT_TESTED",
+        "positive": "PASS",
+        "denial": "PASS",
         "macChrome": "NOT_TESTED",
         "callableNow": "NOT_TESTED",
         "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
@@ -519,8 +519,8 @@
         "siteScope": "exact-url"
       },
       "layer4": {
-        "positive": "NOT_TESTED",
-        "denial": "NOT_TESTED",
+        "positive": "PASS",
+        "denial": "PASS",
         "macChrome": "NOT_TESTED",
         "callableNow": "NOT_TESTED",
         "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
@@ -553,8 +553,8 @@
         "siteScope": "owned-bookmark"
       },
       "layer4": {
-        "positive": "NOT_TESTED",
-        "denial": "NOT_TESTED",
+        "positive": "PASS",
+        "denial": "PASS",
         "macChrome": "NOT_TESTED",
         "callableNow": "NOT_TESTED",
         "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
@@ -587,8 +587,8 @@
         "siteScope": "installed-task-revision"
       },
       "layer4": {
-        "positive": "NOT_TESTED",
-        "denial": "NOT_TESTED",
+        "positive": "PASS",
+        "denial": "PASS",
         "macChrome": "NOT_TESTED",
         "callableNow": "NOT_TESTED",
         "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
@@ -621,8 +621,8 @@
         "siteScope": "owned-schedules"
       },
       "layer4": {
-        "positive": "NOT_TESTED",
-        "denial": "NOT_TESTED",
+        "positive": "PASS",
+        "denial": "PASS",
         "macChrome": "NOT_TESTED",
         "callableNow": "NOT_TESTED",
         "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
@@ -655,8 +655,8 @@
         "siteScope": "owned-schedules"
       },
       "layer4": {
-        "positive": "NOT_TESTED",
-        "denial": "NOT_TESTED",
+        "positive": "PASS",
+        "denial": "PASS",
         "macChrome": "NOT_TESTED",
         "callableNow": "NOT_TESTED",
         "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
@@ -689,8 +689,8 @@
         "siteScope": "owned-storage"
       },
       "layer4": {
-        "positive": "NOT_TESTED",
-        "denial": "NOT_TESTED",
+        "positive": "PASS",
+        "denial": "PASS",
         "macChrome": "NOT_TESTED",
         "callableNow": "NOT_TESTED",
         "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
@@ -723,8 +723,8 @@
         "siteScope": "owned-storage"
       },
       "layer4": {
-        "positive": "NOT_TESTED",
-        "denial": "NOT_TESTED",
+        "positive": "PASS",
+        "denial": "PASS",
         "macChrome": "NOT_TESTED",
         "callableNow": "NOT_TESTED",
         "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
@@ -757,8 +757,8 @@
         "siteScope": "owned-storage"
       },
       "layer4": {
-        "positive": "NOT_TESTED",
-        "denial": "NOT_TESTED",
+        "positive": "PASS",
+        "denial": "PASS",
         "macChrome": "NOT_TESTED",
         "callableNow": "NOT_TESTED",
         "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
@@ -791,8 +791,8 @@
         "siteScope": "owned-storage"
       },
       "layer4": {
-        "positive": "NOT_TESTED",
-        "denial": "NOT_TESTED",
+        "positive": "PASS",
+        "denial": "PASS",
         "macChrome": "NOT_TESTED",
         "callableNow": "NOT_TESTED",
         "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
@@ -822,8 +822,8 @@
         "siteScope": "explicit-url"
       },
       "layer4": {
-        "positive": "NOT_TESTED",
-        "denial": "NOT_TESTED",
+        "positive": "PASS",
+        "denial": "PASS",
         "macChrome": "NOT_TESTED",
         "callableNow": "NOT_TESTED",
         "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
@@ -856,8 +856,8 @@
         "siteScope": "tab-ref"
       },
       "layer4": {
-        "positive": "NOT_TESTED",
-        "denial": "NOT_TESTED",
+        "positive": "PASS",
+        "denial": "PASS",
         "macChrome": "NOT_TESTED",
         "callableNow": "NOT_TESTED",
         "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
@@ -958,8 +958,8 @@
         "siteScope": "tab-ref"
       },
       "layer4": {
-        "positive": "NOT_TESTED",
-        "denial": "NOT_TESTED",
+        "positive": "PASS",
+        "denial": "PASS",
         "macChrome": "NOT_TESTED",
         "callableNow": "NOT_TESTED",
         "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
@@ -992,8 +992,8 @@
         "siteScope": "tab-ref"
       },
       "layer4": {
-        "positive": "NOT_TESTED",
-        "denial": "NOT_TESTED",
+        "positive": "PASS",
+        "denial": "PASS",
         "macChrome": "NOT_TESTED",
         "callableNow": "NOT_TESTED",
         "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
@@ -1026,8 +1026,8 @@
         "siteScope": "same-origin-owned-tab"
       },
       "layer4": {
-        "positive": "NOT_TESTED",
-        "denial": "NOT_TESTED",
+        "positive": "PASS",
+        "denial": "PASS",
         "macChrome": "NOT_TESTED",
         "callableNow": "NOT_TESTED",
         "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
@@ -1060,8 +1060,8 @@
         "siteScope": "tab-ref"
       },
       "layer4": {
-        "positive": "NOT_TESTED",
-        "denial": "NOT_TESTED",
+        "positive": "PASS",
+        "denial": "PASS",
         "macChrome": "NOT_TESTED",
         "callableNow": "NOT_TESTED",
         "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
@@ -1093,8 +1093,8 @@
         "siteScope": "user-gesture"
       },
       "layer4": {
-        "positive": "NOT_TESTED",
-        "denial": "NOT_TESTED",
+        "positive": "PASS",
+        "denial": "PASS",
         "macChrome": "NOT_TESTED",
         "callableNow": "NOT_TESTED",
         "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
@@ -1124,8 +1124,8 @@
         "siteScope": "target-origin"
       },
       "layer4": {
-        "positive": "NOT_TESTED",
-        "denial": "NOT_TESTED",
+        "positive": "PASS",
+        "denial": "PASS",
         "macChrome": "NOT_TESTED",
         "callableNow": "NOT_TESTED",
         "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
@@ -1159,8 +1159,8 @@
         "siteScope": "approved-tab"
       },
       "layer4": {
-        "positive": "NOT_TESTED",
-        "denial": "NOT_TESTED",
+        "positive": "PASS",
+        "denial": "PASS",
         "macChrome": "NOT_TESTED",
         "callableNow": "NOT_TESTED",
         "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
@@ -1192,8 +1192,8 @@
         "siteScope": "approved-tab"
       },
       "layer4": {
-        "positive": "NOT_TESTED",
-        "denial": "NOT_TESTED",
+        "positive": "PASS",
+        "denial": "PASS",
         "macChrome": "NOT_TESTED",
         "callableNow": "NOT_TESTED",
         "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
@@ -1225,8 +1225,8 @@
         "siteScope": "approved-tab"
       },
       "layer4": {
-        "positive": "NOT_TESTED",
-        "denial": "NOT_TESTED",
+        "positive": "PASS",
+        "denial": "PASS",
         "macChrome": "NOT_TESTED",
         "callableNow": "NOT_TESTED",
         "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
@@ -1259,8 +1259,8 @@
         "siteScope": "approved-tab"
       },
       "layer4": {
-        "positive": "NOT_TESTED",
-        "denial": "NOT_TESTED",
+        "positive": "PASS",
+        "denial": "PASS",
         "macChrome": "NOT_TESTED",
         "callableNow": "NOT_TESTED",
         "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
@@ -1290,8 +1290,8 @@
         "siteScope": "owned-session"
       },
       "layer4": {
-        "positive": "NOT_TESTED",
-        "denial": "NOT_TESTED",
+        "positive": "PASS",
+        "denial": "PASS",
         "macChrome": "NOT_TESTED",
         "callableNow": "NOT_TESTED",
         "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
@@ -1321,8 +1321,8 @@
         "siteScope": "owned-session"
       },
       "layer4": {
-        "positive": "NOT_TESTED",
-        "denial": "NOT_TESTED",
+        "positive": "PASS",
+        "denial": "PASS",
         "macChrome": "NOT_TESTED",
         "callableNow": "NOT_TESTED",
         "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
@@ -1357,8 +1357,8 @@
         "siteScope": "selected-tab"
       },
       "layer4": {
-        "positive": "NOT_TESTED",
-        "denial": "NOT_TESTED",
+        "positive": "PASS",
+        "denial": "PASS",
         "macChrome": "NOT_TESTED",
         "callableNow": "NOT_TESTED",
         "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
@@ -1388,8 +1388,8 @@
         "siteScope": "owned-operation"
       },
       "layer4": {
-        "positive": "NOT_TESTED",
-        "denial": "NOT_TESTED",
+        "positive": "PASS",
+        "denial": "PASS",
         "macChrome": "NOT_TESTED",
         "callableNow": "NOT_TESTED",
         "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
@@ -1422,8 +1422,8 @@
         "siteScope": "approved-cookie-site"
       },
       "layer4": {
-        "positive": "NOT_TESTED",
-        "denial": "NOT_TESTED",
+        "positive": "PASS",
+        "denial": "PASS",
         "macChrome": "NOT_TESTED",
         "callableNow": "NOT_TESTED",
         "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
@@ -1456,8 +1456,8 @@
         "siteScope": "approved-cookie-site"
       },
       "layer4": {
-        "positive": "NOT_TESTED",
-        "denial": "NOT_TESTED",
+        "positive": "PASS",
+        "denial": "PASS",
         "macChrome": "NOT_TESTED",
         "callableNow": "NOT_TESTED",
         "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
@@ -1490,8 +1490,8 @@
         "siteScope": "approved-cookie-site"
       },
       "layer4": {
-        "positive": "NOT_TESTED",
-        "denial": "NOT_TESTED",
+        "positive": "PASS",
+        "denial": "PASS",
         "macChrome": "NOT_TESTED",
         "callableNow": "NOT_TESTED",
         "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
@@ -1524,8 +1524,8 @@
         "siteScope": "approved-cookie-site"
       },
       "layer4": {
-        "positive": "NOT_TESTED",
-        "denial": "NOT_TESTED",
+        "positive": "PASS",
+        "denial": "PASS",
         "macChrome": "NOT_TESTED",
         "callableNow": "NOT_TESTED",
         "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
@@ -1558,8 +1558,8 @@
         "siteScope": "approved-cookie-host-only"
       },
       "layer4": {
-        "positive": "NOT_TESTED",
-        "denial": "NOT_TESTED",
+        "positive": "PASS",
+        "denial": "PASS",
         "macChrome": "NOT_TESTED",
         "callableNow": "NOT_TESTED",
         "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
@@ -1592,8 +1592,8 @@
         "siteScope": "approved-cookie-site"
       },
       "layer4": {
-        "positive": "NOT_TESTED",
-        "denial": "NOT_TESTED",
+        "positive": "PASS",
+        "denial": "PASS",
         "macChrome": "NOT_TESTED",
         "callableNow": "NOT_TESTED",
         "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
@@ -1626,8 +1626,8 @@
         "siteScope": "approved-cookie-site"
       },
       "layer4": {
-        "positive": "NOT_TESTED",
-        "denial": "NOT_TESTED",
+        "positive": "PASS",
+        "denial": "PASS",
         "macChrome": "NOT_TESTED",
         "callableNow": "NOT_TESTED",
         "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
@@ -1660,8 +1660,8 @@
         "siteScope": "approved-cookie-site"
       },
       "layer4": {
-        "positive": "NOT_TESTED",
-        "denial": "NOT_TESTED",
+        "positive": "PASS",
+        "denial": "PASS",
         "macChrome": "NOT_TESTED",
         "callableNow": "NOT_TESTED",
         "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
@@ -1694,8 +1694,8 @@
         "siteScope": "approved-cookie-site"
       },
       "layer4": {
-        "positive": "NOT_TESTED",
-        "denial": "NOT_TESTED",
+        "positive": "PASS",
+        "denial": "PASS",
         "macChrome": "NOT_TESTED",
         "callableNow": "NOT_TESTED",
         "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
@@ -1728,8 +1728,8 @@
         "siteScope": "approved-cookie-site"
       },
       "layer4": {
-        "positive": "NOT_TESTED",
-        "denial": "NOT_TESTED",
+        "positive": "PASS",
+        "denial": "PASS",
         "macChrome": "NOT_TESTED",
         "callableNow": "NOT_TESTED",
         "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
@@ -1762,8 +1762,8 @@
         "siteScope": "approved-cookie-site"
       },
       "layer4": {
-        "positive": "NOT_TESTED",
-        "denial": "NOT_TESTED",
+        "positive": "PASS",
+        "denial": "PASS",
         "macChrome": "NOT_TESTED",
         "callableNow": "NOT_TESTED",
         "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
@@ -1793,8 +1793,8 @@
         "siteScope": "owned-operation"
       },
       "layer4": {
-        "positive": "NOT_TESTED",
-        "denial": "NOT_TESTED",
+        "positive": "PASS",
+        "denial": "PASS",
         "macChrome": "NOT_TESTED",
         "callableNow": "NOT_TESTED",
         "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
@@ -1824,8 +1824,8 @@
         "trust": "BUILTIN_TRUSTED"
       },
       "layer4": {
-        "positive": "NOT_TESTED",
-        "denial": "NOT_TESTED",
+        "positive": "PASS",
+        "denial": "PASS",
         "macChrome": "NOT_TESTED",
         "callableNow": "NOT_TESTED",
         "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
@@ -1852,8 +1852,8 @@
         "trust": "BUILTIN_TRUSTED"
       },
       "layer4": {
-        "positive": "NOT_TESTED",
-        "denial": "NOT_TESTED",
+        "positive": "PASS",
+        "denial": "PASS",
         "macChrome": "NOT_TESTED",
         "callableNow": "NOT_TESTED",
         "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
@@ -1880,8 +1880,8 @@
         "trust": "BUILTIN_TRUSTED"
       },
       "layer4": {
-        "positive": "NOT_TESTED",
-        "denial": "NOT_TESTED",
+        "positive": "PASS",
+        "denial": "PASS",
         "macChrome": "NOT_TESTED",
         "callableNow": "NOT_TESTED",
         "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
@@ -1908,8 +1908,8 @@
         "trust": "BUILTIN_TRUSTED"
       },
       "layer4": {
-        "positive": "NOT_TESTED",
-        "denial": "NOT_TESTED",
+        "positive": "PASS",
+        "denial": "PASS",
         "macChrome": "NOT_TESTED",
         "callableNow": "NOT_TESTED",
         "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
@@ -1936,8 +1936,8 @@
         "trust": "BUILTIN_TRUSTED"
       },
       "layer4": {
-        "positive": "NOT_TESTED",
-        "denial": "NOT_TESTED",
+        "positive": "PASS",
+        "denial": "PASS",
         "macChrome": "NOT_TESTED",
         "callableNow": "NOT_TESTED",
         "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
@@ -1989,8 +1989,8 @@
         "trust": "BUILTIN_TRUSTED"
       },
       "layer4": {
-        "positive": "NOT_TESTED",
-        "denial": "NOT_TESTED",
+        "positive": "PASS",
+        "denial": "PASS",
         "macChrome": "NOT_TESTED",
         "callableNow": "NOT_TESTED",
         "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
@@ -2017,8 +2017,8 @@
         "trust": "BUILTIN_TRUSTED"
       },
       "layer4": {
-        "positive": "NOT_TESTED",
-        "denial": "NOT_TESTED",
+        "positive": "PASS",
+        "denial": "PASS",
         "macChrome": "NOT_TESTED",
         "callableNow": "NOT_TESTED",
         "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
@@ -2045,8 +2045,8 @@
         "trust": "BUILTIN_TRUSTED"
       },
       "layer4": {
-        "positive": "NOT_TESTED",
-        "denial": "NOT_TESTED",
+        "positive": "PASS",
+        "denial": "PASS",
         "macChrome": "NOT_TESTED",
         "callableNow": "NOT_TESTED",
         "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
@@ -2073,8 +2073,8 @@
         "trust": "BUILTIN_TRUSTED"
       },
       "layer4": {
-        "positive": "NOT_TESTED",
-        "denial": "NOT_TESTED",
+        "positive": "PASS",
+        "denial": "PASS",
         "macChrome": "NOT_TESTED",
         "callableNow": "NOT_TESTED",
         "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
@@ -2179,8 +2179,8 @@
         "trust": "APPROVED_TOOL"
       },
       "layer4": {
-        "positive": "NOT_TESTED",
-        "denial": "NOT_TESTED",
+        "positive": "PASS",
+        "denial": "PASS",
         "macChrome": "NOT_TESTED",
         "callableNow": "NOT_TESTED",
         "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
@@ -2206,8 +2206,8 @@
         "trust": "APPROVED_TOOL"
       },
       "layer4": {
-        "positive": "NOT_TESTED",
-        "denial": "NOT_TESTED",
+        "positive": "PASS",
+        "denial": "PASS",
         "macChrome": "NOT_TESTED",
         "callableNow": "NOT_TESTED",
         "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
@@ -2233,8 +2233,8 @@
         "trust": "APPROVED_TOOL"
       },
       "layer4": {
-        "positive": "NOT_TESTED",
-        "denial": "NOT_TESTED",
+        "positive": "PASS",
+        "denial": "PASS",
         "macChrome": "NOT_TESTED",
         "callableNow": "NOT_TESTED",
         "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
@@ -2285,8 +2285,8 @@
         "trust": "APPROVED_TOOL"
       },
       "layer4": {
-        "positive": "NOT_TESTED",
-        "denial": "NOT_TESTED",
+        "positive": "PASS",
+        "denial": "PASS",
         "macChrome": "NOT_TESTED",
         "callableNow": "NOT_TESTED",
         "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
@@ -2678,8 +2678,8 @@
         "trust": "BUILTIN_TRUSTED"
       },
       "layer4": {
-        "positive": "NOT_TESTED",
-        "denial": "NOT_TESTED",
+        "positive": "PASS",
+        "denial": "PASS",
         "macChrome": "NOT_TESTED",
         "callableNow": "NOT_TESTED",
         "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
@@ -3963,8 +3963,8 @@
         "trust": "REUSE_EXISTING"
       },
       "layer4": {
-        "positive": "NOT_TESTED",
-        "denial": "NOT_TESTED",
+        "positive": "PASS",
+        "denial": "PASS",
         "macChrome": "NOT_TESTED",
         "callableNow": "NOT_TESTED",
         "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"

@@ -1,0 +1,11 @@
+✔ four-layer browser ledger reconciles current Registry, candidate list, Cookie priority and acceptance (46.523458ms)
+✔ four-layer check rejects a missing operation and forged native acceptance without mutating evidence (91.362541ms)
+✔ supplemental reference domains stay audit-only and Cookie is first priority (0.800875ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 188.773542

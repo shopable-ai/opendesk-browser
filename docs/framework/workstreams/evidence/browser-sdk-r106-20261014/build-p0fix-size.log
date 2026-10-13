@@ -1,0 +1,159 @@
+
+> opendesk-browser@0.1.0 build:size
+> node scripts/audit-fixed-entries.mjs --all
+
+FIXED_ENTRY NORMAL sw.js: 591798/1048576 bytes; remaining=456778; modules=87
+FIXED_ENTRY CRITICAL ui/tool-shell.js: 521508/524288 bytes; remaining=2780; modules=93
+FIXED_ENTRY NORMAL ui/sidebar-tool-host.js: 189975/524288 bytes; remaining=334313; modules=34
+FIXED_ENTRY NORMAL platform/context-menus.js: 174475/524288 bytes; remaining=349813; modules=29
+FIXED_ENTRY NORMAL libs/packages/cheerio.js: 121600/524288 bytes; remaining=402688; modules=62
+FIXED_ENTRY NORMAL native-agent/settings.js: 100079/524288 bytes; remaining=424209; modules=26
+FIXED_ENTRY NORMAL ui/marketplace.js: 98851/524288 bytes; remaining=425437; modules=26
+FIXED_ENTRY NORMAL agents/page-relay.js: 89598/524288 bytes; remaining=434690; modules=26
+FIXED_ENTRY NORMAL framework/sdk-main.js: 68303/524288 bytes; remaining=455985; modules=22
+FIXED_ENTRY NORMAL libs/packages/crypto-js.js: 66438/524288 bytes; remaining=457850; modules=82
+FIXED_ENTRY NORMAL libs/packages/axios.js: 56622/524288 bytes; remaining=467666; modules=61
+FIXED_ENTRY NORMAL cloud-control/cloud-host.js: 54386/524288 bytes; remaining=469902; modules=16
+FIXED_ENTRY NORMAL sidebar-tools/bridge.js: 51828/524288 bytes; remaining=472460; modules=11
+FIXED_ENTRY NORMAL sidebar-tools/preinstall-intent.js: 49738/524288 bytes; remaining=474550; modules=19
+FIXED_ENTRY NORMAL knowledge/knowledge-host.js: 47295/524288 bytes; remaining=476993; modules=17
+FIXED_ENTRY NORMAL ui/trusted-cookie-ui.js: 43684/524288 bytes; remaining=480604; modules=12
+FIXED_ENTRY NORMAL native-agent/transport.js: 42744/524288 bytes; remaining=481544; modules=17
+FIXED_ENTRY NORMAL scripting/sandbox/worker-runtime.js: 40104/524288 bytes; remaining=484184; modules=19
+FIXED_ENTRY NORMAL scripting/packaged/page-session.js: 39480/524288 bytes; remaining=484808; modules=12
+FIXED_ENTRY NORMAL marketplace/market-host.js: 37014/524288 bytes; remaining=487274; modules=16
+FIXED_ENTRY NORMAL libs/packages/fingerprintjs.js: 36317/524288 bytes; remaining=487971; modules=6
+FIXED_ENTRY NORMAL agents/page-agent.js: 34423/524288 bytes; remaining=489865; modules=8
+FIXED_ENTRY NORMAL time-review/time-review-host.js: 30859/524288 bytes; remaining=493429; modules=12
+FIXED_ENTRY NORMAL libs/packages/dayjs.js: 20304/524288 bytes; remaining=503984; modules=21
+FIXED_ENTRY NORMAL libs/packages/lodash.js: 12832/524288 bytes; remaining=511456; modules=112
+FIXED_ENTRY NORMAL libs/packages/query-string.js: 9274/524288 bytes; remaining=515014; modules=10
+FIXED_ENTRY NORMAL libs/packages/store.js: 8689/524288 bytes; remaining=515599; modules=14
+FIXED_ENTRY NORMAL agents/health-host.js: 8505/524288 bytes; remaining=515783; modules=6
+FIXED_ENTRY NORMAL libs/runtime/page-core.js: 8147/524288 bytes; remaining=516141; modules=7
+FIXED_ENTRY NORMAL libs/packages/file-saver.js: 4131/524288 bytes; remaining=520157; modules=9
+FIXED_ENTRY NORMAL scripting/sandbox/sandbox.js: 4010/524288 bytes; remaining=520278; modules=5
+FIXED_ENTRY NORMAL ui/cloud-console.js: 3942/524288 bytes; remaining=520346; modules=6
+FIXED_ENTRY NORMAL ui/stay-focus-controls.js: 3655/524288 bytes; remaining=520633; modules=6
+FIXED_ENTRY NORMAL libs/packages/js-cookie.js: 2236/524288 bytes; remaining=522052; modules=6
+FIXED_ENTRY NORMAL stay-focus/blocked.js: 1726/524288 bytes; remaining=522562; modules=5
+FIXED_ENTRY NORMAL agents/bootstrap.js: 931/524288 bytes; remaining=523357; modules=6
+FIXED_ENTRY NORMAL agents/health.js: 828/524288 bytes; remaining=523460; modules=6
+FIXED_ENTRY NORMAL agents/selection-entry.js: 383/524288 bytes; remaining=523905; modules=5
+FIXED_ENTRIES_VERIFIED=38 PACKAGE_HASH=955af535ce16b3c3a15b0a1f28a1ccaeae45298c537b2c8bd34cb89d2e0e7d64
+ARCHITECTURE_DEBT critical entries: ui/tool-shell.js
+SIZE_REVIEW_REQUIRED sw.js: 591798 >= 524288 bytes; still below hard cap 1048576 bytes
+SIZE_REVIEW_REQUIRED ui/tool-shell.js: 521508 >= 327680 bytes; still below hard cap 524288 bytes
+RESOURCE generated-js sw.js: 591798 bytes; remaining=456778
+RESOURCE generated-js ui/tool-shell.js: 521508 bytes; remaining=2780
+RESOURCE raw-runtime-js libs/page-frameworks/react-19.2.0.js: 193163 bytes; remaining=68981
+RESOURCE generated-js ui/sidebar-tool-host.js: 189975 bytes; remaining=334313
+RESOURCE generated-js platform/context-menus.js: 174475 bytes; remaining=349813
+RESOURCE generated-js libs/packages/cheerio.js: 121600 bytes; remaining=402688
+RESOURCE raw-runtime-js libs/page-frameworks/vue-3.5.22.js: 118131 bytes; remaining=144013
+RESOURCE css ui/tool-shell.css: 106598 bytes; no hard budget
+RESOURCE html ui/tool.html: 101746 bytes; no hard budget
+RESOURCE generated-js native-agent/settings.js: 100079 bytes; remaining=424209
+RESOURCE generated-js ui/marketplace.js: 98851 bytes; remaining=425437
+RESOURCE generated-js agents/page-relay.js: 89598 bytes; remaining=434690
+RESOURCE raw-vendor-js libs/vendor/jquery/3.7.1/jquery.min.js: 87533 bytes; remaining=43539
+RESOURCE static-resource official-tools/cookie-editor/cookie-editor.opendesk-tool.json: 82173 bytes; no hard budget
+RESOURCE generated-js framework/sdk-main.js: 68303 bytes; remaining=455985
+RESOURCE generated-js libs/packages/crypto-js.js: 66438 bytes; remaining=457850
+RESOURCE static-resource official-tools/knowledge-inbox/knowledge-inbox.opendesk-tool.json: 62341 bytes; no hard budget
+RESOURCE generated-js libs/packages/axios.js: 56622 bytes; remaining=467666
+RESOURCE generated-js cloud-control/cloud-host.js: 54386 bytes; remaining=469902
+RESOURCE generated-js sidebar-tools/bridge.js: 51828 bytes; remaining=472460
+RESOURCE generated-js sidebar-tools/preinstall-intent.js: 49738 bytes; remaining=474550
+RESOURCE generated-js knowledge/knowledge-host.js: 47295 bytes; remaining=476993
+RESOURCE generated-js ui/trusted-cookie-ui.js: 43684 bytes; remaining=480604
+RESOURCE generated-js native-agent/transport.js: 42744 bytes; remaining=481544
+RESOURCE static-resource official-tools/time-review/time-review.opendesk-tool.json: 41548 bytes; no hard budget
+RESOURCE generated-js scripting/sandbox/worker-runtime.js: 40104 bytes; remaining=484184
+RESOURCE generated-js scripting/packaged/page-session.js: 39480 bytes; remaining=484808
+RESOURCE generated-js marketplace/market-host.js: 37014 bytes; remaining=487274
+RESOURCE generated-js libs/packages/fingerprintjs.js: 36317 bytes; remaining=487971
+RESOURCE generated-js agents/page-agent.js: 34423 bytes; remaining=489865
+RESOURCE css native-agent/workspace.css: 33484 bytes; no hard budget
+RESOURCE static-resource official-tools/stay-focus/stay-focus.opendesk-tool.json: 33024 bytes; no hard budget
+RESOURCE generated-js time-review/time-review-host.js: 30859 bytes; remaining=493429
+RESOURCE static-resource official-tools/quick-notes/quick-notes.opendesk-tool.json: 23135 bytes; no hard budget
+RESOURCE generated-js libs/packages/dayjs.js: 20304 bytes; remaining=503984
+RESOURCE html native-agent/workspace.html: 15793 bytes; no hard budget
+RESOURCE static-resource official-tools/markdown-workbench/markdown-workbench.opendesk-tool.json: 15125 bytes; no hard budget
+RESOURCE generated-js libs/packages/lodash.js: 12832 bytes; remaining=511456
+RESOURCE css ui/time-review.css: 11538 bytes; no hard budget
+RESOURCE static-resource official-tools/web-markdown-clipper/web-markdown-clipper.opendesk-tool.json: 10230 bytes; no hard budget
+RESOURCE static-resource official-tools/reading-toc/reading-toc.opendesk-tool.json: 9388 bytes; no hard budget
+RESOURCE generated-js libs/packages/query-string.js: 9274 bytes; remaining=515014
+RESOURCE css ui/marketplace.css: 9046 bytes; no hard budget
+RESOURCE css ui/design-system.css: 8986 bytes; no hard budget
+RESOURCE generated-js libs/packages/store.js: 8689 bytes; remaining=515599
+RESOURCE generated-js agents/health-host.js: 8505 bytes; remaining=515783
+RESOURCE generated-js libs/runtime/page-core.js: 8147 bytes; remaining=516141
+RESOURCE static-resource official-tools/catalog.json: 5427 bytes; no hard budget
+RESOURCE static-resource libs/manifest.json: 4553 bytes; remaining=3639
+RESOURCE generated-js libs/packages/file-saver.js: 4131 bytes; remaining=520157
+RESOURCE generated-js scripting/sandbox/sandbox.js: 4010 bytes; remaining=520278
+RESOURCE generated-js ui/cloud-console.js: 3942 bytes; remaining=520346
+RESOURCE generated-js ui/stay-focus-controls.js: 3655 bytes; remaining=520633
+RESOURCE html ui/cloud-control.html: 3513 bytes; no hard budget
+RESOURCE css ui/cloud-control-console.css: 2846 bytes; no hard budget
+RESOURCE css ui/design-tokens.css: 2590 bytes; no hard budget
+RESOURCE generated-js libs/packages/js-cookie.js: 2236 bytes; remaining=522052
+RESOURCE html native-agent/settings.html: 2226 bytes; no hard budget
+RESOURCE css native-agent/settings.css: 2166 bytes; no hard budget
+RESOURCE license licenses/lodash-es-MIT.txt: 1952 bytes; remaining=6240
+RESOURCE static-resource manifest.json: 1773 bytes; no hard budget
+RESOURCE generated-js stay-focus/blocked.js: 1726 bytes; remaining=522562
+RESOURCE license licenses/crypto-js-MIT.txt: 1169 bytes; remaining=7023
+RESOURCE license licenses/js-cookie-MIT.txt: 1118 bytes; remaining=7074
+RESOURCE license licenses/query-string-MIT.txt: 1117 bytes; remaining=7075
+RESOURCE license licenses/page-framework-vue-MIT.txt: 1112 bytes; remaining=7080
+RESOURCE license licenses/file-saver-MIT.txt: 1101 bytes; remaining=7091
+RESOURCE license licenses/jquery-MIT.txt: 1097 bytes; remaining=7095
+RESOURCE license licenses/todo-user-vue-MIT.txt: 1096 bytes; remaining=7096
+RESOURCE license licenses/page-framework-react-MIT.txt: 1088 bytes; remaining=7104
+RESOURCE license licenses/store-MIT.txt: 1085 bytes; remaining=7107
+RESOURCE license licenses/axios-MIT.txt: 1084 bytes; remaining=7108
+RESOURCE license licenses/cheerio-MIT.txt: 1081 bytes; remaining=7111
+RESOURCE license licenses/my-utils-MIT.txt: 1078 bytes; remaining=7114
+RESOURCE license licenses/fingerprintjs-MIT.txt: 1074 bytes; remaining=7118
+RESOURCE license licenses/dayjs-MIT.txt: 1072 bytes; remaining=7120
+RESOURCE css stay-focus/blocked.css: 969 bytes; no hard budget
+RESOURCE generated-js agents/bootstrap.js: 931 bytes; remaining=523357
+RESOURCE html ui/marketplace.html: 931 bytes; no hard budget
+RESOURCE raw-runtime-js libs/runtime/bootstrap.js: 876 bytes; remaining=523412
+RESOURCE generated-js agents/health.js: 828 bytes; remaining=523460
+RESOURCE css ui/cloud-hosting.css: 655 bytes; no hard budget
+RESOURCE html stay-focus/blocked-always.html: 617 bytes; no hard budget
+RESOURCE html stay-focus/blocked-quota.html: 617 bytes; no hard budget
+RESOURCE html stay-focus/blocked-schedule.html: 617 bytes; no hard budget
+RESOURCE html stay-focus/blocked-session.html: 617 bytes; no hard budget
+RESOURCE static-resource icons/notification.png: 595 bytes; no hard budget
+RESOURCE html sidebar-tools/sandbox.html: 560 bytes; no hard budget
+RESOURCE html scripting/sandbox/sandbox.html: 385 bytes; no hard budget
+RESOURCE generated-js agents/selection-entry.js: 383 bytes; remaining=523905
+RESOURCE static-resource framework/sdk-resources.json: 359 bytes; remaining=7833
+RESOURCE raw-vendor-js libs/vendor/my-utils/1.0.0/index.js: 291 bytes; remaining=130781
+RESOURCE static-resource marketplace/channel.json: 217 bytes; no hard budget
+RESOURCE html ui/target-bootstrap.html: 200 bytes; no hard budget
+RESOURCE static-resource framework/browser-edition.json: 108 bytes; no hard budget
+LOADING_GROUP background-startup: 999800 bytes
+LOADING_GROUP controller-default-libraries: 74407 bytes
+LOADING_GROUP page-default-libraries: 42450 bytes
+LOADING_GROUP page-with-jquery: 129983 bytes
+LOADING_GROUP automatic-page-injection: 157901 bytes
+LOADING_GROUP sidebar-shell: 730507 bytes
+LOADING_GROUP workspace-shell: 149356 bytes
+LOADING_GROUP page-with-jsCookie: 44686 bytes
+LOADING_GROUP page-with-cryptoJs: 108888 bytes
+LOADING_GROUP page-with-fileSaver: 46581 bytes
+LOADING_GROUP page-with-queryString: 51724 bytes
+LOADING_GROUP page-with-axios: 99072 bytes
+LOADING_GROUP page-with-store: 51139 bytes
+LOADING_GROUP page-with-cheerio: 164050 bytes
+LOADING_GROUP page-with-fingerprintjs: 78767 bytes
+LOADING_GROUP page-with-react: 235613 bytes
+LOADING_GROUP page-with-vue: 160581 bytes
+PACKAGE_BYTES=3690726 EXECUTABLE_JS_BYTES=3076706 SOURCE_MAP_BYTES=0

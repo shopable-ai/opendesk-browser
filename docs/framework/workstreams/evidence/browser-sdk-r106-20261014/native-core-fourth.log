@@ -1,0 +1,26 @@
+R106_NATIVE_START launch-owned-cft
+/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native/native-2026-10-13T18-41-34-265Z-09fa9777/owned-native-input.swift:16:223: warning: 'activateIgnoringOtherApps' was deprecated in macOS 14.0: ignoringOtherApps is deprecated in macOS 14 and will have no effect. [#DeprecatedDeclaration]
+14 | var nodes:[AXUIElement]=[],budget=10000
+15 | func visit(_ node:AXUIElement,_ depth:Int){budget-=1;guard depth<40,budget>0 else{return};if nodes.contains(where:{CFEqual($0,node)}){return};nodes.append(node);for key in [kAXChildrenAttribute,"AXSheets"]{for child in value(node,key) as? [AXUIElement] ?? []{visit(child,depth+1)}}}
+16 | if command == "activate" {if let windows=value(app,kAXWindowsAttribute) as? [AXUIElement],let window=windows.first {AXUIElementPerformAction(window,kAXRaiseAction as CFString)};owned.activate(options:[.activateAllWindows,.activateIgnoringOtherApps]);let activationDeadline=Date().addingTimeInterval(3);while NSWorkspace.shared.frontmostApplication?.processIdentifier != pid && Date()<activationDeadline {RunLoop.current.run(until:Date().addingTimeInterval(0.1))};guard NSWorkspace.shared.frontmostApplication?.processIdentifier == pid else{exit(4)};print("OWNED_FRONTMOST");exit(0)}
+   |                                                                                                                                                                                                                               `- warning: 'activateIgnoringOtherApps' was deprecated in macOS 14.0: ignoringOtherApps is deprecated in macOS 14 and will have no effect. [#DeprecatedDeclaration]
+17 | visit(app,0)
+18 | if command == "dump" {
+
+[#DeprecatedDeclaration]: <https://docs.swift.org/compiler/documentation/diagnostics/deprecated-declaration>
+R106_NATIVE_PASS launch-owned-cft
+R106_NATIVE_START side-panel-contexts
+R106_NATIVE_PASS side-panel-contexts
+R106_NATIVE_START install-open-tool
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+Error: native selected exact file NOT_OBSERVED
+    at deadline (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/browser-sdk-r106-native.mjs:88:9)
+    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/browser-sdk-r106-native.mjs:261:7
+    at async recordCase (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/browser-sdk-r106-native.mjs:205:20)
+    at async runNative (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/browser-sdk-r106-native.mjs:256:5)
+    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/browser-sdk-r106-native.mjs:323:3
+
+Node.js v24.16.0

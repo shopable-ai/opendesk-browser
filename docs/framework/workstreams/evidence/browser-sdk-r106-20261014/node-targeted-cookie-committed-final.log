@@ -1,0 +1,206 @@
+✔ R9 installed getAll returns a Chrome-shaped array, redacts values and isolates Store/Partition (4.318917ms)
+✔ R9 sensitive value requires separate permission and exact identity avoids ambiguous name (0.344042ms)
+✔ R9 native set/readback and precise removal never target another path or Cookie Store (1.744791ms)
+✔ R9 host-only site cleanup is previewed, count-fenced and preserves domain/other store (8.274625ms)
+✔ R9 clear preview refuses replacement cookies even when the count is unchanged (0.529125ms)
+✔ R10 clear preview rejects a changed value with an identical Cookie identity (0.374792ms)
+✔ R10 clear preview rejects same-identity security attribute changes (0.337375ms)
+✔ R9 installed Cookie observer does not inherit the partition grant without an explicit partition selector (0.280208ms)
+✔ R9 observation sessions are tool-owned, bounded, redacted and revoked (0.253209ms)
+✔ R9 revocation after native effect returns outcome unknown and never performs a second set (0.273417ms)
+✖ Cookie Editor is an optional two-mode tool without private cookies API (7.284541ms)
+✔ Cookie Header, JSON object, JSON array and Netscape import (2.273375ms)
+✔ JSON and Netscape round trip; Header explicitly carries name=value only (1.037708ms)
+✔ Import merge previews counts, deduplicates, and does not mutate source (9.410583ms)
+✔ Reject bad fields, foreign domains, insecure prefixes, expired and oversized imports (1.322792ms)
+✖ Offline rename changes Name without changing scope or overwriting another Cookie (1.715917ms)
+✔ Cookie identity ignores partition key object order and missing/false ancestor (1.186292ms)
+✖ Only reviewed user.export files support non-executable .md/.txt/.json types (0.503459ms)
+✔ Browser target is explicit HTTP(S), strips secret query, and allows a separately selected URL (1.492292ms)
+✔ Browser metadata adapter never retains or reveals native Cookie values (1.080875ms)
+✔ Offline workspace remains isolated and browser writes or clears are not performed (1.26525ms)
+✖ Public browser reader refuses missing site grant and always drops native values (1.902125ms)
+✔ Site changes during asynchronous authorization stop an obsolete Cookie read (1.641166ms)
+✔ An edited target must be confirmed before a live Cookie read (1.648209ms)
+✔ Browser header never identifies the offline fallback as a real website (0.939917ms)
+✔ Cookie partition metadata keeps cross-site ancestor and discards native values (0.744625ms)
+✔ An in-flight Cookie read cannot repopulate metadata after target URL was edited (0.794666ms)
+✖ Live Chrome opens with automatic approved read, while denied sites stay unread (0.851ms)
+✖ Browser metadata includes only the approved unpartitioned and partitioned Cookie scopes (1.6855ms)
+✔ Unknown approved partition fails closed without displaying partial native data (1.612916ms)
+✖ Real rename writes the new name first, verifies it, then removes only the old identity (1.537042ms)
+✖ Real rename blocks collisions and does not mutate Chrome without authorization to preserve a hidden value (1.121666ms)
+✖ Partial rename failure reports both Cookie names possibly remaining and never retries (1.042667ms)
+✖ Grant event auto-reads new site authority and revocation never looks empty (1.381542ms)
+✖ Target selection is locked until outstanding Cookie read completes (1.067834ms)
+ℹ tests 35
+ℹ suites 0
+ℹ pass 24
+ℹ fail 11
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 172.80725
+
+✖ failing tests:
+
+test at tests/environment/cookie-editor-ui.test.mjs:66:1
+✖ Cookie Editor is an optional two-mode tool without private cookies API (7.284541ms)
+  AssertionError [ERR_ASSERTION]: no fictitious website may silently stand in for an unavailable browser page
+      at TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/evidence/browser-sdk-r106-20261014/committed-candidate-final/tests/environment/cookie-editor-ui.test.mjs:81:3)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests/environment/cookie-editor-ui.test.mjs:163:1
+✖ Offline rename changes Name without changing scope or overwriting another Cookie (1.715917ms)
+  AssertionError [ERR_ASSERTION]: Missing expected exception.
+      at expectError (file:///Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/evidence/browser-sdk-r106-20261014/committed-candidate-final/tests/environment/cookie-editor-ui.test.mjs:64:10)
+      at TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/evidence/browser-sdk-r106-20261014/committed-candidate-final/tests/environment/cookie-editor-ui.test.mjs:174:3)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    operator: 'throws',
+    diff: 'simple'
+  }
+
+test at tests/environment/cookie-editor-ui.test.mjs:191:1
+✖ Only reviewed user.export files support non-executable .md/.txt/.json types (0.503459ms)
+  AssertionError [ERR_ASSERTION]: native file exporter must allow JSON and text
+      at TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/evidence/browser-sdk-r106-20261014/committed-candidate-final/tests/environment/cookie-editor-ui.test.mjs:195:3)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests/environment/cookie-editor-ui.test.mjs:253:1
+✖ Public browser reader refuses missing site grant and always drops native values (1.902125ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  'error' !== 'ready'
+  
+      at TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/evidence/browser-sdk-r106-20261014/committed-candidate-final/tests/environment/cookie-editor-ui.test.mjs:266:10)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'error',
+    expected: 'ready',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/environment/cookie-editor-ui.test.mjs:331:1
+✖ Live Chrome opens with automatic approved read, while denied sites stay unread (0.851ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + undefined
+  - 'example.com'
+  
+      at TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/evidence/browser-sdk-r106-20261014/committed-candidate-final/tests/environment/cookie-editor-ui.test.mjs:338:10)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: 'example.com',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/environment/cookie-editor-ui.test.mjs:354:1
+✖ Browser metadata includes only the approved unpartitioned and partitioned Cookie scopes (1.6855ms)
+  AssertionError [ERR_ASSERTION]: Values have same structure but are not reference-equal:
+  
+  [
+    'base',
+    'chips'
+  ]
+  
+      at TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/evidence/browser-sdk-r106-20261014/committed-candidate-final/tests/environment/cookie-editor-ui.test.mjs:370:10)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ 'base', 'chips' ],
+    expected: [ 'base', 'chips' ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at tests/environment/cookie-editor-ui.test.mjs:388:1
+✖ Real rename writes the new name first, verifies it, then removes only the old identity (1.537042ms)
+  TypeError: Cannot set properties of undefined (setting 'state')
+      at status (cookie-editor-main.js:63:87)
+      at Object.saveBrowserCookie (cookie-editor-main.js:535:7)
+      at async TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/evidence/browser-sdk-r106-20261014/committed-candidate-final/tests/environment/cookie-editor-ui.test.mjs:418:3)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7)
+
+test at tests/environment/cookie-editor-ui.test.mjs:430:1
+✖ Real rename blocks collisions and does not mutate Chrome without authorization to preserve a hidden value (1.121666ms)
+  TypeError: Cannot set properties of undefined (setting 'state')
+      at status (cookie-editor-main.js:63:87)
+      at Object.saveBrowserCookie (cookie-editor-main.js:538:11)
+      at async TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/evidence/browser-sdk-r106-20261014/committed-candidate-final/tests/environment/cookie-editor-ui.test.mjs:447:3)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7)
+
+test at tests/environment/cookie-editor-ui.test.mjs:458:1
+✖ Partial rename failure reports both Cookie names possibly remaining and never retries (1.042667ms)
+  TypeError: Cannot set properties of undefined (setting 'state')
+      at status (cookie-editor-main.js:63:87)
+      at Object.saveBrowserCookie (cookie-editor-main.js:535:7)
+      at async TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/evidence/browser-sdk-r106-20261014/committed-candidate-final/tests/environment/cookie-editor-ui.test.mjs:473:3)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7)
+
+test at tests/environment/cookie-editor-ui.test.mjs:479:1
+✖ Grant event auto-reads new site authority and revocation never looks empty (1.381542ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  'idle' !== 'blocked'
+  
+      at TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/evidence/browser-sdk-r106-20261014/committed-candidate-final/tests/environment/cookie-editor-ui.test.mjs:490:10)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'idle',
+    expected: 'blocked',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/environment/cookie-editor-ui.test.mjs:504:1
+✖ Target selection is locked until outstanding Cookie read completes (1.067834ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'undefined'
+  - 'function'
+  
+      at TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/evidence/browser-sdk-r106-20261014/committed-candidate-final/tests/environment/cookie-editor-ui.test.mjs:514:10)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'undefined',
+    expected: 'function',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

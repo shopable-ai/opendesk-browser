@@ -1,0 +1,4671 @@
+[
+  {
+    "at": "2026-10-13T18:47:52.679Z",
+    "phase": "send",
+    "id": 1,
+    "method": "Browser.getVersion",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:52.695Z",
+    "phase": "reply",
+    "id": 1,
+    "method": "Browser.getVersion"
+  },
+  {
+    "at": "2026-10-13T18:47:52.695Z",
+    "phase": "send",
+    "id": 2,
+    "method": "Target.getTargets",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:52.702Z",
+    "phase": "reply",
+    "id": 2,
+    "method": "Target.getTargets"
+  },
+  {
+    "at": "2026-10-13T18:47:52.854Z",
+    "phase": "send",
+    "id": 3,
+    "method": "Target.getTargets",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:52.855Z",
+    "phase": "reply",
+    "id": 3,
+    "method": "Target.getTargets"
+  },
+  {
+    "at": "2026-10-13T18:47:52.856Z",
+    "phase": "send",
+    "id": 4,
+    "method": "Target.createTarget",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:52.880Z",
+    "phase": "reply",
+    "id": 4,
+    "method": "Target.createTarget"
+  },
+  {
+    "at": "2026-10-13T18:47:52.880Z",
+    "phase": "send",
+    "id": 5,
+    "method": "Target.attachToTarget",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:52.885Z",
+    "phase": "reply",
+    "id": 5,
+    "method": "Target.attachToTarget"
+  },
+  {
+    "at": "2026-10-13T18:47:52.885Z",
+    "phase": "send",
+    "id": 6,
+    "method": "Runtime.enable",
+    "sessionId": "87AE7CE7476344E688A727A2C5926B13",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:52.887Z",
+    "phase": "reply",
+    "id": 6,
+    "method": "Runtime.enable",
+    "sessionId": "87AE7CE7476344E688A727A2C5926B13"
+  },
+  {
+    "at": "2026-10-13T18:47:52.887Z",
+    "phase": "send",
+    "id": 7,
+    "method": "Page.enable",
+    "sessionId": "87AE7CE7476344E688A727A2C5926B13",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:52.894Z",
+    "phase": "reply",
+    "id": 7,
+    "method": "Page.enable",
+    "sessionId": "87AE7CE7476344E688A727A2C5926B13"
+  },
+  {
+    "at": "2026-10-13T18:47:52.901Z",
+    "phase": "send",
+    "id": 8,
+    "method": "Runtime.evaluate",
+    "sessionId": "87AE7CE7476344E688A727A2C5926B13",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:52.918Z",
+    "phase": "reply",
+    "id": 8,
+    "method": "Runtime.evaluate",
+    "sessionId": "87AE7CE7476344E688A727A2C5926B13"
+  },
+  {
+    "at": "2026-10-13T18:47:53.073Z",
+    "phase": "send",
+    "id": 9,
+    "method": "Runtime.evaluate",
+    "sessionId": "87AE7CE7476344E688A727A2C5926B13",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:53.074Z",
+    "phase": "reply",
+    "id": 9,
+    "method": "Runtime.evaluate",
+    "sessionId": "87AE7CE7476344E688A727A2C5926B13"
+  },
+  {
+    "at": "2026-10-13T18:47:53.076Z",
+    "phase": "send",
+    "id": 10,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "87AE7CE7476344E688A727A2C5926B13",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:53.077Z",
+    "phase": "reply",
+    "id": 10,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "87AE7CE7476344E688A727A2C5926B13"
+  },
+  {
+    "at": "2026-10-13T18:47:53.077Z",
+    "phase": "send",
+    "id": 11,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "87AE7CE7476344E688A727A2C5926B13",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:53.093Z",
+    "phase": "reply",
+    "id": 11,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "87AE7CE7476344E688A727A2C5926B13"
+  },
+  {
+    "at": "2026-10-13T18:47:53.099Z",
+    "phase": "send",
+    "id": 12,
+    "method": "Runtime.evaluate",
+    "sessionId": "87AE7CE7476344E688A727A2C5926B13",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:53.105Z",
+    "phase": "reply",
+    "id": 12,
+    "method": "Runtime.evaluate",
+    "sessionId": "87AE7CE7476344E688A727A2C5926B13"
+  },
+  {
+    "at": "2026-10-13T18:47:53.105Z",
+    "phase": "send",
+    "id": 13,
+    "method": "Target.getTargets",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:53.105Z",
+    "phase": "reply",
+    "id": 13,
+    "method": "Target.getTargets"
+  },
+  {
+    "at": "2026-10-13T18:47:53.106Z",
+    "phase": "send",
+    "id": 14,
+    "method": "Target.attachToTarget",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:53.106Z",
+    "phase": "reply",
+    "id": 14,
+    "method": "Target.attachToTarget"
+  },
+  {
+    "at": "2026-10-13T18:47:53.106Z",
+    "phase": "send",
+    "id": 15,
+    "method": "Runtime.enable",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:53.109Z",
+    "phase": "reply",
+    "id": 15,
+    "method": "Runtime.enable",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:53.109Z",
+    "phase": "send",
+    "id": 16,
+    "method": "Page.enable",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:53.109Z",
+    "phase": "reply",
+    "id": 16,
+    "method": "Page.enable",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:53.113Z",
+    "phase": "send",
+    "id": 17,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:53.118Z",
+    "phase": "reply",
+    "id": 17,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:53.118Z",
+    "phase": "send",
+    "id": 18,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:53.154Z",
+    "phase": "reply",
+    "id": 18,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:53.306Z",
+    "phase": "send",
+    "id": 19,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:53.307Z",
+    "phase": "reply",
+    "id": 19,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:53.309Z",
+    "phase": "send",
+    "id": 20,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:53.311Z",
+    "phase": "reply",
+    "id": 20,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:53.311Z",
+    "phase": "send",
+    "id": 21,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:53.314Z",
+    "phase": "reply",
+    "id": 21,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:53.317Z",
+    "phase": "send",
+    "id": 22,
+    "method": "Page.captureScreenshot",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:53.366Z",
+    "phase": "reply",
+    "id": 22,
+    "method": "Page.captureScreenshot",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:53.370Z",
+    "phase": "send",
+    "id": 23,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:53.371Z",
+    "phase": "reply",
+    "id": 23,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:53.374Z",
+    "phase": "send",
+    "id": 24,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:53.376Z",
+    "phase": "reply",
+    "id": 24,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:53.376Z",
+    "phase": "send",
+    "id": 25,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:53.378Z",
+    "phase": "reply",
+    "id": 25,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:53.381Z",
+    "phase": "send",
+    "id": 26,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:53.383Z",
+    "phase": "reply",
+    "id": 26,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:53.386Z",
+    "phase": "send",
+    "id": 27,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:53.387Z",
+    "phase": "reply",
+    "id": 27,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:53.387Z",
+    "phase": "send",
+    "id": 28,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:53.388Z",
+    "phase": "reply",
+    "id": 28,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:53.392Z",
+    "phase": "send",
+    "id": 29,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:53.395Z",
+    "phase": "reply",
+    "id": 29,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:53.398Z",
+    "phase": "send",
+    "id": 30,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:53.401Z",
+    "phase": "reply",
+    "id": 30,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:53.406Z",
+    "phase": "send",
+    "id": 31,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:53.408Z",
+    "phase": "reply",
+    "id": 31,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:53.413Z",
+    "phase": "send",
+    "id": 32,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:53.414Z",
+    "phase": "reply",
+    "id": 32,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:53.414Z",
+    "phase": "send",
+    "id": 33,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:53.417Z",
+    "phase": "reply",
+    "id": 33,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:53.421Z",
+    "phase": "send",
+    "id": 34,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:53.422Z",
+    "phase": "reply",
+    "id": 34,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:53.575Z",
+    "phase": "send",
+    "id": 35,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:53.576Z",
+    "phase": "reply",
+    "id": 35,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:53.578Z",
+    "phase": "send",
+    "id": 36,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:53.579Z",
+    "phase": "reply",
+    "id": 36,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:53.581Z",
+    "phase": "send",
+    "id": 37,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:53.582Z",
+    "phase": "reply",
+    "id": 37,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:53.584Z",
+    "phase": "send",
+    "id": 38,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:53.584Z",
+    "phase": "reply",
+    "id": 38,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:53.584Z",
+    "phase": "send",
+    "id": 39,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:53.587Z",
+    "phase": "reply",
+    "id": 39,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:53.590Z",
+    "phase": "send",
+    "id": 40,
+    "method": "Page.captureScreenshot",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:53.621Z",
+    "phase": "reply",
+    "id": 40,
+    "method": "Page.captureScreenshot",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:53.623Z",
+    "phase": "send",
+    "id": 41,
+    "method": "Target.createTarget",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:53.638Z",
+    "phase": "reply",
+    "id": 41,
+    "method": "Target.createTarget"
+  },
+  {
+    "at": "2026-10-13T18:47:53.638Z",
+    "phase": "send",
+    "id": 42,
+    "method": "Target.attachToTarget",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:53.646Z",
+    "phase": "reply",
+    "id": 42,
+    "method": "Target.attachToTarget"
+  },
+  {
+    "at": "2026-10-13T18:47:53.646Z",
+    "phase": "send",
+    "id": 43,
+    "method": "Runtime.enable",
+    "sessionId": "4D87B11B1E96C5D5667489B9EB7529CA",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:53.697Z",
+    "phase": "reply",
+    "id": 43,
+    "method": "Runtime.enable",
+    "sessionId": "4D87B11B1E96C5D5667489B9EB7529CA"
+  },
+  {
+    "at": "2026-10-13T18:47:53.697Z",
+    "phase": "send",
+    "id": 44,
+    "method": "Page.enable",
+    "sessionId": "4D87B11B1E96C5D5667489B9EB7529CA",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:53.717Z",
+    "phase": "reply",
+    "id": 44,
+    "method": "Page.enable",
+    "sessionId": "4D87B11B1E96C5D5667489B9EB7529CA"
+  },
+  {
+    "at": "2026-10-13T18:47:53.717Z",
+    "phase": "send",
+    "id": 45,
+    "method": "Target.activateTarget",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:53.719Z",
+    "phase": "reply",
+    "id": 45,
+    "method": "Target.activateTarget"
+  },
+  {
+    "at": "2026-10-13T18:47:53.723Z",
+    "phase": "send",
+    "id": 46,
+    "method": "Runtime.evaluate",
+    "sessionId": "4D87B11B1E96C5D5667489B9EB7529CA",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:53.724Z",
+    "phase": "reply",
+    "id": 46,
+    "method": "Runtime.evaluate",
+    "sessionId": "4D87B11B1E96C5D5667489B9EB7529CA"
+  },
+  {
+    "at": "2026-10-13T18:47:53.727Z",
+    "phase": "send",
+    "id": 47,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:53.730Z",
+    "phase": "reply",
+    "id": 47,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:53.732Z",
+    "phase": "send",
+    "id": 48,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:53.733Z",
+    "phase": "reply",
+    "id": 48,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:53.733Z",
+    "phase": "send",
+    "id": 49,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:53.741Z",
+    "phase": "reply",
+    "id": 49,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:53.744Z",
+    "phase": "send",
+    "id": 50,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:53.745Z",
+    "phase": "reply",
+    "id": 50,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:53.748Z",
+    "phase": "send",
+    "id": 51,
+    "method": "Runtime.evaluate",
+    "sessionId": "4D87B11B1E96C5D5667489B9EB7529CA",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:53.749Z",
+    "phase": "reply",
+    "id": 51,
+    "method": "Runtime.evaluate",
+    "sessionId": "4D87B11B1E96C5D5667489B9EB7529CA"
+  },
+  {
+    "at": "2026-10-13T18:47:53.752Z",
+    "phase": "send",
+    "id": 52,
+    "method": "Page.captureScreenshot",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:53.795Z",
+    "phase": "reply",
+    "id": 52,
+    "method": "Page.captureScreenshot",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:53.800Z",
+    "phase": "send",
+    "id": 53,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:53.801Z",
+    "phase": "reply",
+    "id": 53,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:53.803Z",
+    "phase": "send",
+    "id": 54,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:53.804Z",
+    "phase": "reply",
+    "id": 54,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:53.807Z",
+    "phase": "send",
+    "id": 55,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:53.808Z",
+    "phase": "reply",
+    "id": 55,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:53.808Z",
+    "phase": "send",
+    "id": 56,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:53.809Z",
+    "phase": "reply",
+    "id": 56,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:53.812Z",
+    "phase": "send",
+    "id": 57,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:53.813Z",
+    "phase": "reply",
+    "id": 57,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:53.972Z",
+    "phase": "send",
+    "id": 58,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:53.974Z",
+    "phase": "reply",
+    "id": 58,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:53.978Z",
+    "phase": "send",
+    "id": 59,
+    "method": "Page.captureScreenshot",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:54.012Z",
+    "phase": "reply",
+    "id": 59,
+    "method": "Page.captureScreenshot",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:54.038Z",
+    "phase": "send",
+    "id": 60,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:54.039Z",
+    "phase": "reply",
+    "id": 60,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:54.045Z",
+    "phase": "send",
+    "id": 61,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:54.046Z",
+    "phase": "reply",
+    "id": 61,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:54.046Z",
+    "phase": "send",
+    "id": 62,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:54.052Z",
+    "phase": "reply",
+    "id": 62,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:54.052Z",
+    "phase": "send",
+    "id": 63,
+    "method": "Target.getTargets",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:54.053Z",
+    "phase": "reply",
+    "id": 63,
+    "method": "Target.getTargets"
+  },
+  {
+    "at": "2026-10-13T18:47:54.053Z",
+    "phase": "send",
+    "id": 64,
+    "method": "Target.attachToTarget",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:54.054Z",
+    "phase": "reply",
+    "id": 64,
+    "method": "Target.attachToTarget"
+  },
+  {
+    "at": "2026-10-13T18:47:54.054Z",
+    "phase": "send",
+    "id": 65,
+    "method": "Runtime.enable",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:54.055Z",
+    "phase": "reply",
+    "id": 65,
+    "method": "Runtime.enable",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2"
+  },
+  {
+    "at": "2026-10-13T18:47:54.055Z",
+    "phase": "send",
+    "id": 66,
+    "method": "Page.enable",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:54.063Z",
+    "phase": "reply",
+    "id": 66,
+    "method": "Page.enable",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2"
+  },
+  {
+    "at": "2026-10-13T18:47:54.072Z",
+    "phase": "send",
+    "id": 67,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:54.075Z",
+    "phase": "reply",
+    "id": 67,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2"
+  },
+  {
+    "at": "2026-10-13T18:47:54.081Z",
+    "phase": "send",
+    "id": 68,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:54.081Z",
+    "phase": "reply",
+    "id": 68,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2"
+  },
+  {
+    "at": "2026-10-13T18:47:54.087Z",
+    "phase": "send",
+    "id": 69,
+    "method": "Page.captureScreenshot",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:54.118Z",
+    "phase": "reply",
+    "id": 69,
+    "method": "Page.captureScreenshot",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:54.129Z",
+    "phase": "send",
+    "id": 70,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:54.131Z",
+    "phase": "reply",
+    "id": 70,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:54.135Z",
+    "phase": "send",
+    "id": 71,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:54.136Z",
+    "phase": "reply",
+    "id": 71,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:54.136Z",
+    "phase": "send",
+    "id": 72,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:54.138Z",
+    "phase": "reply",
+    "id": 72,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:54.147Z",
+    "phase": "send",
+    "id": 73,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:54.148Z",
+    "phase": "reply",
+    "id": 73,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:54.156Z",
+    "phase": "send",
+    "id": 74,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:54.157Z",
+    "phase": "reply",
+    "id": 74,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:54.157Z",
+    "phase": "send",
+    "id": 75,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:54.158Z",
+    "phase": "reply",
+    "id": 75,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:54.163Z",
+    "phase": "send",
+    "id": 76,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:54.164Z",
+    "phase": "reply",
+    "id": 76,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:54.319Z",
+    "phase": "send",
+    "id": 77,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:54.320Z",
+    "phase": "reply",
+    "id": 77,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:54.325Z",
+    "phase": "send",
+    "id": 78,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:54.326Z",
+    "phase": "reply",
+    "id": 78,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:54.331Z",
+    "phase": "send",
+    "id": 79,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:54.333Z",
+    "phase": "reply",
+    "id": 79,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:54.333Z",
+    "phase": "send",
+    "id": 80,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:54.335Z",
+    "phase": "reply",
+    "id": 80,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:54.339Z",
+    "phase": "send",
+    "id": 81,
+    "method": "Runtime.evaluate",
+    "sessionId": "87AE7CE7476344E688A727A2C5926B13",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:54.340Z",
+    "phase": "reply",
+    "id": 81,
+    "method": "Runtime.evaluate",
+    "sessionId": "87AE7CE7476344E688A727A2C5926B13"
+  },
+  {
+    "at": "2026-10-13T18:47:54.343Z",
+    "phase": "send",
+    "id": 82,
+    "method": "Page.captureScreenshot",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:54.384Z",
+    "phase": "reply",
+    "id": 82,
+    "method": "Page.captureScreenshot",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:54.391Z",
+    "phase": "send",
+    "id": 83,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:54.392Z",
+    "phase": "reply",
+    "id": 83,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2"
+  },
+  {
+    "at": "2026-10-13T18:47:54.396Z",
+    "phase": "send",
+    "id": 84,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:54.397Z",
+    "phase": "reply",
+    "id": 84,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:54.401Z",
+    "phase": "send",
+    "id": 85,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:54.402Z",
+    "phase": "reply",
+    "id": 85,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:54.402Z",
+    "phase": "send",
+    "id": 86,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:54.405Z",
+    "phase": "reply",
+    "id": 86,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:54.413Z",
+    "phase": "send",
+    "id": 87,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:54.414Z",
+    "phase": "reply",
+    "id": 87,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2"
+  },
+  {
+    "at": "2026-10-13T18:47:54.421Z",
+    "phase": "send",
+    "id": 88,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:54.422Z",
+    "phase": "reply",
+    "id": 88,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2"
+  },
+  {
+    "at": "2026-10-13T18:47:54.428Z",
+    "phase": "send",
+    "id": 89,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:54.430Z",
+    "phase": "reply",
+    "id": 89,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:54.435Z",
+    "phase": "send",
+    "id": 90,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:54.437Z",
+    "phase": "reply",
+    "id": 90,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:54.437Z",
+    "phase": "send",
+    "id": 91,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:54.437Z",
+    "phase": "reply",
+    "id": 91,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:54.440Z",
+    "phase": "send",
+    "id": 92,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:54.441Z",
+    "phase": "reply",
+    "id": 92,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2"
+  },
+  {
+    "at": "2026-10-13T18:47:54.444Z",
+    "phase": "send",
+    "id": 93,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:54.444Z",
+    "phase": "reply",
+    "id": 93,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2"
+  },
+  {
+    "at": "2026-10-13T18:47:54.444Z",
+    "phase": "send",
+    "id": 94,
+    "method": "Input.dispatchKeyEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:54.445Z",
+    "phase": "reply",
+    "id": 94,
+    "method": "Input.dispatchKeyEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:54.445Z",
+    "phase": "send",
+    "id": 95,
+    "method": "Input.dispatchKeyEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:54.445Z",
+    "phase": "reply",
+    "id": 95,
+    "method": "Input.dispatchKeyEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:54.445Z",
+    "phase": "send",
+    "id": 96,
+    "method": "Input.insertText",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:54.446Z",
+    "phase": "reply",
+    "id": 96,
+    "method": "Input.insertText",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:54.449Z",
+    "phase": "send",
+    "id": 97,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:54.450Z",
+    "phase": "reply",
+    "id": 97,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2"
+  },
+  {
+    "at": "2026-10-13T18:47:54.452Z",
+    "phase": "send",
+    "id": 98,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:54.453Z",
+    "phase": "reply",
+    "id": 98,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2"
+  },
+  {
+    "at": "2026-10-13T18:47:54.455Z",
+    "phase": "send",
+    "id": 99,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:54.456Z",
+    "phase": "reply",
+    "id": 99,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:54.459Z",
+    "phase": "send",
+    "id": 100,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:54.460Z",
+    "phase": "reply",
+    "id": 100,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:54.460Z",
+    "phase": "send",
+    "id": 101,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:54.461Z",
+    "phase": "reply",
+    "id": 101,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:54.464Z",
+    "phase": "send",
+    "id": 102,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:54.465Z",
+    "phase": "reply",
+    "id": 102,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2"
+  },
+  {
+    "at": "2026-10-13T18:47:54.467Z",
+    "phase": "send",
+    "id": 103,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:54.468Z",
+    "phase": "reply",
+    "id": 103,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2"
+  },
+  {
+    "at": "2026-10-13T18:47:54.468Z",
+    "phase": "send",
+    "id": 104,
+    "method": "Input.dispatchKeyEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:54.468Z",
+    "phase": "reply",
+    "id": 104,
+    "method": "Input.dispatchKeyEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:54.468Z",
+    "phase": "send",
+    "id": 105,
+    "method": "Input.dispatchKeyEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:54.469Z",
+    "phase": "reply",
+    "id": 105,
+    "method": "Input.dispatchKeyEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:54.469Z",
+    "phase": "send",
+    "id": 106,
+    "method": "Input.insertText",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:54.470Z",
+    "phase": "reply",
+    "id": 106,
+    "method": "Input.insertText",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:54.472Z",
+    "phase": "send",
+    "id": 107,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:54.473Z",
+    "phase": "reply",
+    "id": 107,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2"
+  },
+  {
+    "at": "2026-10-13T18:47:54.476Z",
+    "phase": "send",
+    "id": 108,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:54.476Z",
+    "phase": "reply",
+    "id": 108,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2"
+  },
+  {
+    "at": "2026-10-13T18:47:54.482Z",
+    "phase": "send",
+    "id": 109,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:54.483Z",
+    "phase": "reply",
+    "id": 109,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:54.483Z",
+    "phase": "send",
+    "id": 110,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:54.492Z",
+    "phase": "reply",
+    "id": 110,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:54.896Z",
+    "phase": "send",
+    "id": 111,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:54.897Z",
+    "phase": "reply",
+    "id": 111,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2"
+  },
+  {
+    "at": "2026-10-13T18:47:54.899Z",
+    "phase": "send",
+    "id": 112,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:54.900Z",
+    "phase": "reply",
+    "id": 112,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:54.900Z",
+    "phase": "send",
+    "id": 113,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:54.901Z",
+    "phase": "reply",
+    "id": 113,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:55.310Z",
+    "phase": "send",
+    "id": 114,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:55.311Z",
+    "phase": "reply",
+    "id": 114,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2"
+  },
+  {
+    "at": "2026-10-13T18:47:55.316Z",
+    "phase": "send",
+    "id": 115,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:55.317Z",
+    "phase": "reply",
+    "id": 115,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:55.317Z",
+    "phase": "send",
+    "id": 116,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:55.318Z",
+    "phase": "reply",
+    "id": 116,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:55.724Z",
+    "phase": "send",
+    "id": 117,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:55.724Z",
+    "phase": "reply",
+    "id": 117,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2"
+  },
+  {
+    "at": "2026-10-13T18:47:55.727Z",
+    "phase": "send",
+    "id": 118,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:55.727Z",
+    "phase": "reply",
+    "id": 118,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:55.730Z",
+    "phase": "send",
+    "id": 119,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:55.731Z",
+    "phase": "reply",
+    "id": 119,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:55.731Z",
+    "phase": "send",
+    "id": 120,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:55.733Z",
+    "phase": "reply",
+    "id": 120,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:55.735Z",
+    "phase": "send",
+    "id": 121,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:55.736Z",
+    "phase": "reply",
+    "id": 121,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2"
+  },
+  {
+    "at": "2026-10-13T18:47:55.738Z",
+    "phase": "send",
+    "id": 122,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:55.739Z",
+    "phase": "reply",
+    "id": 122,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:55.741Z",
+    "phase": "send",
+    "id": 123,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:55.742Z",
+    "phase": "reply",
+    "id": 123,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:55.745Z",
+    "phase": "send",
+    "id": 124,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:55.745Z",
+    "phase": "reply",
+    "id": 124,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:55.747Z",
+    "phase": "send",
+    "id": 125,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:55.748Z",
+    "phase": "reply",
+    "id": 125,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:55.748Z",
+    "phase": "send",
+    "id": 126,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:55.749Z",
+    "phase": "reply",
+    "id": 126,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:55.752Z",
+    "phase": "send",
+    "id": 127,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:55.752Z",
+    "phase": "reply",
+    "id": 127,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2"
+  },
+  {
+    "at": "2026-10-13T18:47:55.906Z",
+    "phase": "send",
+    "id": 128,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:55.906Z",
+    "phase": "reply",
+    "id": 128,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2"
+  },
+  {
+    "at": "2026-10-13T18:47:55.909Z",
+    "phase": "send",
+    "id": 129,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:55.909Z",
+    "phase": "reply",
+    "id": 129,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2"
+  },
+  {
+    "at": "2026-10-13T18:47:55.911Z",
+    "phase": "send",
+    "id": 130,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:55.912Z",
+    "phase": "reply",
+    "id": 130,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2"
+  },
+  {
+    "at": "2026-10-13T18:47:55.914Z",
+    "phase": "send",
+    "id": 131,
+    "method": "Runtime.evaluate",
+    "sessionId": "87AE7CE7476344E688A727A2C5926B13",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:55.915Z",
+    "phase": "reply",
+    "id": 131,
+    "method": "Runtime.evaluate",
+    "sessionId": "87AE7CE7476344E688A727A2C5926B13"
+  },
+  {
+    "at": "2026-10-13T18:47:55.918Z",
+    "phase": "send",
+    "id": 132,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:55.918Z",
+    "phase": "reply",
+    "id": 132,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2"
+  },
+  {
+    "at": "2026-10-13T18:47:55.921Z",
+    "phase": "send",
+    "id": 133,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:55.922Z",
+    "phase": "reply",
+    "id": 133,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2"
+  },
+  {
+    "at": "2026-10-13T18:47:55.924Z",
+    "phase": "send",
+    "id": 134,
+    "method": "Page.captureScreenshot",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:55.957Z",
+    "phase": "reply",
+    "id": 134,
+    "method": "Page.captureScreenshot",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:55.961Z",
+    "phase": "send",
+    "id": 135,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:55.961Z",
+    "phase": "reply",
+    "id": 135,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2"
+  },
+  {
+    "at": "2026-10-13T18:47:55.964Z",
+    "phase": "send",
+    "id": 136,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:55.964Z",
+    "phase": "reply",
+    "id": 136,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:55.966Z",
+    "phase": "send",
+    "id": 137,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:55.968Z",
+    "phase": "reply",
+    "id": 137,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:55.968Z",
+    "phase": "send",
+    "id": 138,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:55.970Z",
+    "phase": "reply",
+    "id": 138,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:55.972Z",
+    "phase": "send",
+    "id": 139,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:55.974Z",
+    "phase": "reply",
+    "id": 139,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2"
+  },
+  {
+    "at": "2026-10-13T18:47:55.977Z",
+    "phase": "send",
+    "id": 140,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:55.979Z",
+    "phase": "reply",
+    "id": 140,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2"
+  },
+  {
+    "at": "2026-10-13T18:47:55.983Z",
+    "phase": "send",
+    "id": 141,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:55.984Z",
+    "phase": "reply",
+    "id": 141,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:55.986Z",
+    "phase": "send",
+    "id": 142,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:55.987Z",
+    "phase": "reply",
+    "id": 142,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:55.987Z",
+    "phase": "send",
+    "id": 143,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:55.988Z",
+    "phase": "reply",
+    "id": 143,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:55.991Z",
+    "phase": "send",
+    "id": 144,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:55.991Z",
+    "phase": "reply",
+    "id": 144,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2"
+  },
+  {
+    "at": "2026-10-13T18:47:55.994Z",
+    "phase": "send",
+    "id": 145,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:55.994Z",
+    "phase": "reply",
+    "id": 145,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2"
+  },
+  {
+    "at": "2026-10-13T18:47:55.994Z",
+    "phase": "send",
+    "id": 146,
+    "method": "Input.dispatchKeyEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:55.995Z",
+    "phase": "reply",
+    "id": 146,
+    "method": "Input.dispatchKeyEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:55.995Z",
+    "phase": "send",
+    "id": 147,
+    "method": "Input.dispatchKeyEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:55.995Z",
+    "phase": "reply",
+    "id": 147,
+    "method": "Input.dispatchKeyEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:55.995Z",
+    "phase": "send",
+    "id": 148,
+    "method": "Input.insertText",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:55.996Z",
+    "phase": "reply",
+    "id": 148,
+    "method": "Input.insertText",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:55.998Z",
+    "phase": "send",
+    "id": 149,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:55.998Z",
+    "phase": "reply",
+    "id": 149,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2"
+  },
+  {
+    "at": "2026-10-13T18:47:56.001Z",
+    "phase": "send",
+    "id": 150,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:56.002Z",
+    "phase": "reply",
+    "id": 150,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2"
+  },
+  {
+    "at": "2026-10-13T18:47:56.004Z",
+    "phase": "send",
+    "id": 151,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:56.004Z",
+    "phase": "reply",
+    "id": 151,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:56.004Z",
+    "phase": "send",
+    "id": 152,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:56.016Z",
+    "phase": "reply",
+    "id": 152,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:56.421Z",
+    "phase": "send",
+    "id": 153,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:56.421Z",
+    "phase": "reply",
+    "id": 153,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2"
+  },
+  {
+    "at": "2026-10-13T18:47:56.424Z",
+    "phase": "send",
+    "id": 154,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:56.424Z",
+    "phase": "reply",
+    "id": 154,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:56.424Z",
+    "phase": "send",
+    "id": 155,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:56.425Z",
+    "phase": "reply",
+    "id": 155,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:56.834Z",
+    "phase": "send",
+    "id": 156,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:56.835Z",
+    "phase": "reply",
+    "id": 156,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2"
+  },
+  {
+    "at": "2026-10-13T18:47:56.840Z",
+    "phase": "send",
+    "id": 157,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:56.840Z",
+    "phase": "reply",
+    "id": 157,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:56.840Z",
+    "phase": "send",
+    "id": 158,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:56.842Z",
+    "phase": "reply",
+    "id": 158,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:57.251Z",
+    "phase": "send",
+    "id": 159,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:57.253Z",
+    "phase": "reply",
+    "id": 159,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2"
+  },
+  {
+    "at": "2026-10-13T18:47:57.256Z",
+    "phase": "send",
+    "id": 160,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:57.257Z",
+    "phase": "reply",
+    "id": 160,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:57.261Z",
+    "phase": "send",
+    "id": 161,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:57.263Z",
+    "phase": "reply",
+    "id": 161,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:57.263Z",
+    "phase": "send",
+    "id": 162,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:57.266Z",
+    "phase": "reply",
+    "id": 162,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:57.270Z",
+    "phase": "send",
+    "id": 163,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:57.271Z",
+    "phase": "reply",
+    "id": 163,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2"
+  },
+  {
+    "at": "2026-10-13T18:47:57.274Z",
+    "phase": "send",
+    "id": 164,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:57.275Z",
+    "phase": "reply",
+    "id": 164,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:57.428Z",
+    "phase": "send",
+    "id": 165,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:57.429Z",
+    "phase": "reply",
+    "id": 165,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:57.431Z",
+    "phase": "send",
+    "id": 166,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:57.431Z",
+    "phase": "reply",
+    "id": 166,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:57.433Z",
+    "phase": "send",
+    "id": 167,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:57.433Z",
+    "phase": "reply",
+    "id": 167,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:57.435Z",
+    "phase": "send",
+    "id": 168,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:57.436Z",
+    "phase": "reply",
+    "id": 168,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:57.436Z",
+    "phase": "send",
+    "id": 169,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:57.436Z",
+    "phase": "reply",
+    "id": 169,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:57.439Z",
+    "phase": "send",
+    "id": 170,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:57.439Z",
+    "phase": "reply",
+    "id": 170,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2"
+  },
+  {
+    "at": "2026-10-13T18:47:57.592Z",
+    "phase": "send",
+    "id": 171,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:57.593Z",
+    "phase": "reply",
+    "id": 171,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2"
+  },
+  {
+    "at": "2026-10-13T18:47:57.595Z",
+    "phase": "send",
+    "id": 172,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:57.595Z",
+    "phase": "reply",
+    "id": 172,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2"
+  },
+  {
+    "at": "2026-10-13T18:47:57.597Z",
+    "phase": "send",
+    "id": 173,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:57.598Z",
+    "phase": "reply",
+    "id": 173,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2"
+  },
+  {
+    "at": "2026-10-13T18:47:57.599Z",
+    "phase": "send",
+    "id": 174,
+    "method": "Runtime.evaluate",
+    "sessionId": "87AE7CE7476344E688A727A2C5926B13",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:57.600Z",
+    "phase": "reply",
+    "id": 174,
+    "method": "Runtime.evaluate",
+    "sessionId": "87AE7CE7476344E688A727A2C5926B13"
+  },
+  {
+    "at": "2026-10-13T18:47:57.602Z",
+    "phase": "send",
+    "id": 175,
+    "method": "Page.captureScreenshot",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:57.631Z",
+    "phase": "reply",
+    "id": 175,
+    "method": "Page.captureScreenshot",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:57.636Z",
+    "phase": "send",
+    "id": 176,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:57.636Z",
+    "phase": "reply",
+    "id": 176,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2"
+  },
+  {
+    "at": "2026-10-13T18:47:57.639Z",
+    "phase": "send",
+    "id": 177,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:57.639Z",
+    "phase": "reply",
+    "id": 177,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:57.641Z",
+    "phase": "send",
+    "id": 178,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:57.642Z",
+    "phase": "reply",
+    "id": 178,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:57.642Z",
+    "phase": "send",
+    "id": 179,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:57.643Z",
+    "phase": "reply",
+    "id": 179,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:57.646Z",
+    "phase": "send",
+    "id": 180,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:57.646Z",
+    "phase": "reply",
+    "id": 180,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2"
+  },
+  {
+    "at": "2026-10-13T18:47:57.648Z",
+    "phase": "send",
+    "id": 181,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:57.649Z",
+    "phase": "reply",
+    "id": 181,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2"
+  },
+  {
+    "at": "2026-10-13T18:47:57.651Z",
+    "phase": "send",
+    "id": 182,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:57.652Z",
+    "phase": "reply",
+    "id": 182,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:57.654Z",
+    "phase": "send",
+    "id": 183,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:57.654Z",
+    "phase": "reply",
+    "id": 183,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:57.654Z",
+    "phase": "send",
+    "id": 184,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:57.655Z",
+    "phase": "reply",
+    "id": 184,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:57.657Z",
+    "phase": "send",
+    "id": 185,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:57.658Z",
+    "phase": "reply",
+    "id": 185,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2"
+  },
+  {
+    "at": "2026-10-13T18:47:57.660Z",
+    "phase": "send",
+    "id": 186,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:57.661Z",
+    "phase": "reply",
+    "id": 186,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2"
+  },
+  {
+    "at": "2026-10-13T18:47:57.661Z",
+    "phase": "send",
+    "id": 187,
+    "method": "Input.dispatchKeyEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:57.661Z",
+    "phase": "reply",
+    "id": 187,
+    "method": "Input.dispatchKeyEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:57.661Z",
+    "phase": "send",
+    "id": 188,
+    "method": "Input.dispatchKeyEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:57.661Z",
+    "phase": "reply",
+    "id": 188,
+    "method": "Input.dispatchKeyEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:57.661Z",
+    "phase": "send",
+    "id": 189,
+    "method": "Input.insertText",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:57.662Z",
+    "phase": "reply",
+    "id": 189,
+    "method": "Input.insertText",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:57.664Z",
+    "phase": "send",
+    "id": 190,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:57.665Z",
+    "phase": "reply",
+    "id": 190,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2"
+  },
+  {
+    "at": "2026-10-13T18:47:57.667Z",
+    "phase": "send",
+    "id": 191,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:57.668Z",
+    "phase": "reply",
+    "id": 191,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2"
+  },
+  {
+    "at": "2026-10-13T18:47:57.671Z",
+    "phase": "send",
+    "id": 192,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:57.671Z",
+    "phase": "reply",
+    "id": 192,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:57.673Z",
+    "phase": "send",
+    "id": 193,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:57.675Z",
+    "phase": "reply",
+    "id": 193,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:57.675Z",
+    "phase": "send",
+    "id": 194,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:57.675Z",
+    "phase": "reply",
+    "id": 194,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:57.677Z",
+    "phase": "send",
+    "id": 195,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:57.678Z",
+    "phase": "reply",
+    "id": 195,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2"
+  },
+  {
+    "at": "2026-10-13T18:47:57.680Z",
+    "phase": "send",
+    "id": 196,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:57.680Z",
+    "phase": "reply",
+    "id": 196,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2"
+  },
+  {
+    "at": "2026-10-13T18:47:57.680Z",
+    "phase": "send",
+    "id": 197,
+    "method": "Input.dispatchKeyEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:57.681Z",
+    "phase": "reply",
+    "id": 197,
+    "method": "Input.dispatchKeyEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:57.681Z",
+    "phase": "send",
+    "id": 198,
+    "method": "Input.dispatchKeyEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:57.681Z",
+    "phase": "reply",
+    "id": 198,
+    "method": "Input.dispatchKeyEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:57.681Z",
+    "phase": "send",
+    "id": 199,
+    "method": "Input.insertText",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:57.682Z",
+    "phase": "reply",
+    "id": 199,
+    "method": "Input.insertText",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:57.684Z",
+    "phase": "send",
+    "id": 200,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:57.685Z",
+    "phase": "reply",
+    "id": 200,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2"
+  },
+  {
+    "at": "2026-10-13T18:47:57.687Z",
+    "phase": "send",
+    "id": 201,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:57.688Z",
+    "phase": "reply",
+    "id": 201,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2"
+  },
+  {
+    "at": "2026-10-13T18:47:57.690Z",
+    "phase": "send",
+    "id": 202,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:57.691Z",
+    "phase": "reply",
+    "id": 202,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:57.691Z",
+    "phase": "send",
+    "id": 203,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:57.708Z",
+    "phase": "reply",
+    "id": 203,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:58.115Z",
+    "phase": "send",
+    "id": 204,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:58.116Z",
+    "phase": "reply",
+    "id": 204,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2"
+  },
+  {
+    "at": "2026-10-13T18:47:58.120Z",
+    "phase": "send",
+    "id": 205,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:58.120Z",
+    "phase": "reply",
+    "id": 205,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:58.120Z",
+    "phase": "send",
+    "id": 206,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:58.122Z",
+    "phase": "reply",
+    "id": 206,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:58.527Z",
+    "phase": "send",
+    "id": 207,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:58.528Z",
+    "phase": "reply",
+    "id": 207,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2"
+  },
+  {
+    "at": "2026-10-13T18:47:58.530Z",
+    "phase": "send",
+    "id": 208,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:58.530Z",
+    "phase": "reply",
+    "id": 208,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:58.530Z",
+    "phase": "send",
+    "id": 209,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:58.531Z",
+    "phase": "reply",
+    "id": 209,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:58.936Z",
+    "phase": "send",
+    "id": 210,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:58.937Z",
+    "phase": "reply",
+    "id": 210,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2"
+  },
+  {
+    "at": "2026-10-13T18:47:58.939Z",
+    "phase": "send",
+    "id": 211,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:58.940Z",
+    "phase": "reply",
+    "id": 211,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:58.942Z",
+    "phase": "send",
+    "id": 212,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:58.943Z",
+    "phase": "reply",
+    "id": 212,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:58.943Z",
+    "phase": "send",
+    "id": 213,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:58.944Z",
+    "phase": "reply",
+    "id": 213,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:58.946Z",
+    "phase": "send",
+    "id": 214,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:58.947Z",
+    "phase": "reply",
+    "id": 214,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2"
+  },
+  {
+    "at": "2026-10-13T18:47:58.949Z",
+    "phase": "send",
+    "id": 215,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:58.949Z",
+    "phase": "reply",
+    "id": 215,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:59.104Z",
+    "phase": "send",
+    "id": 216,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:59.104Z",
+    "phase": "reply",
+    "id": 216,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:59.106Z",
+    "phase": "send",
+    "id": 217,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:59.107Z",
+    "phase": "reply",
+    "id": 217,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:59.109Z",
+    "phase": "send",
+    "id": 218,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:59.109Z",
+    "phase": "reply",
+    "id": 218,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:59.111Z",
+    "phase": "send",
+    "id": 219,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:59.112Z",
+    "phase": "reply",
+    "id": 219,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:59.112Z",
+    "phase": "send",
+    "id": 220,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:59.115Z",
+    "phase": "reply",
+    "id": 220,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:59.118Z",
+    "phase": "send",
+    "id": 221,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:59.118Z",
+    "phase": "reply",
+    "id": 221,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:59.273Z",
+    "phase": "send",
+    "id": 222,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:59.273Z",
+    "phase": "reply",
+    "id": 222,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:59.276Z",
+    "phase": "send",
+    "id": 223,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:59.276Z",
+    "phase": "reply",
+    "id": 223,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:59.278Z",
+    "phase": "send",
+    "id": 224,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:59.279Z",
+    "phase": "reply",
+    "id": 224,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:59.281Z",
+    "phase": "send",
+    "id": 225,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:59.281Z",
+    "phase": "reply",
+    "id": 225,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:59.281Z",
+    "phase": "send",
+    "id": 226,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:59.282Z",
+    "phase": "reply",
+    "id": 226,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:59.284Z",
+    "phase": "send",
+    "id": 227,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:59.285Z",
+    "phase": "reply",
+    "id": 227,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2"
+  },
+  {
+    "at": "2026-10-13T18:47:59.439Z",
+    "phase": "send",
+    "id": 228,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:59.439Z",
+    "phase": "reply",
+    "id": 228,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2"
+  },
+  {
+    "at": "2026-10-13T18:47:59.442Z",
+    "phase": "send",
+    "id": 229,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:59.442Z",
+    "phase": "reply",
+    "id": 229,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2"
+  },
+  {
+    "at": "2026-10-13T18:47:59.444Z",
+    "phase": "send",
+    "id": 230,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:59.445Z",
+    "phase": "reply",
+    "id": 230,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2"
+  },
+  {
+    "at": "2026-10-13T18:47:59.447Z",
+    "phase": "send",
+    "id": 231,
+    "method": "Runtime.evaluate",
+    "sessionId": "87AE7CE7476344E688A727A2C5926B13",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:59.447Z",
+    "phase": "reply",
+    "id": 231,
+    "method": "Runtime.evaluate",
+    "sessionId": "87AE7CE7476344E688A727A2C5926B13"
+  },
+  {
+    "at": "2026-10-13T18:47:59.449Z",
+    "phase": "send",
+    "id": 232,
+    "method": "Page.captureScreenshot",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:59.481Z",
+    "phase": "reply",
+    "id": 232,
+    "method": "Page.captureScreenshot",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:59.486Z",
+    "phase": "send",
+    "id": 233,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:59.486Z",
+    "phase": "reply",
+    "id": 233,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:59.488Z",
+    "phase": "send",
+    "id": 234,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:59.489Z",
+    "phase": "reply",
+    "id": 234,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:59.489Z",
+    "phase": "send",
+    "id": 235,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:59.490Z",
+    "phase": "reply",
+    "id": 235,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:59.493Z",
+    "phase": "send",
+    "id": 236,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:59.493Z",
+    "phase": "reply",
+    "id": 236,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:59.495Z",
+    "phase": "send",
+    "id": 237,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:59.499Z",
+    "phase": "reply",
+    "id": 237,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:59.499Z",
+    "phase": "send",
+    "id": 238,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:59.507Z",
+    "phase": "reply",
+    "id": 238,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:59.511Z",
+    "phase": "send",
+    "id": 239,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:59.512Z",
+    "phase": "reply",
+    "id": 239,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:59.667Z",
+    "phase": "send",
+    "id": 240,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:59.667Z",
+    "phase": "reply",
+    "id": 240,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:59.670Z",
+    "phase": "send",
+    "id": 241,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:59.670Z",
+    "phase": "reply",
+    "id": 241,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:59.673Z",
+    "phase": "send",
+    "id": 242,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:59.674Z",
+    "phase": "reply",
+    "id": 242,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:59.674Z",
+    "phase": "send",
+    "id": 243,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:59.675Z",
+    "phase": "reply",
+    "id": 243,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:59.678Z",
+    "phase": "send",
+    "id": 244,
+    "method": "Page.captureScreenshot",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:59.726Z",
+    "phase": "reply",
+    "id": 244,
+    "method": "Page.captureScreenshot",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:59.731Z",
+    "phase": "send",
+    "id": 245,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:59.731Z",
+    "phase": "reply",
+    "id": 245,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2"
+  },
+  {
+    "at": "2026-10-13T18:47:59.734Z",
+    "phase": "send",
+    "id": 246,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:59.734Z",
+    "phase": "reply",
+    "id": 246,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:59.736Z",
+    "phase": "send",
+    "id": 247,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:59.737Z",
+    "phase": "reply",
+    "id": 247,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:59.737Z",
+    "phase": "send",
+    "id": 248,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:59.738Z",
+    "phase": "reply",
+    "id": 248,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:59.741Z",
+    "phase": "send",
+    "id": 249,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:59.741Z",
+    "phase": "reply",
+    "id": 249,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2"
+  },
+  {
+    "at": "2026-10-13T18:47:59.744Z",
+    "phase": "send",
+    "id": 250,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:59.744Z",
+    "phase": "reply",
+    "id": 250,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2"
+  },
+  {
+    "at": "2026-10-13T18:47:59.746Z",
+    "phase": "send",
+    "id": 251,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:59.746Z",
+    "phase": "reply",
+    "id": 251,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2"
+  },
+  {
+    "at": "2026-10-13T18:47:59.749Z",
+    "phase": "send",
+    "id": 252,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:59.749Z",
+    "phase": "reply",
+    "id": 252,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:59.751Z",
+    "phase": "send",
+    "id": 253,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:59.752Z",
+    "phase": "reply",
+    "id": 253,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:59.752Z",
+    "phase": "send",
+    "id": 254,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:59.753Z",
+    "phase": "reply",
+    "id": 254,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:59.755Z",
+    "phase": "send",
+    "id": 255,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:59.755Z",
+    "phase": "reply",
+    "id": 255,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2"
+  },
+  {
+    "at": "2026-10-13T18:47:59.757Z",
+    "phase": "send",
+    "id": 256,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:59.758Z",
+    "phase": "reply",
+    "id": 256,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2"
+  },
+  {
+    "at": "2026-10-13T18:47:59.758Z",
+    "phase": "send",
+    "id": 257,
+    "method": "Input.dispatchKeyEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:59.758Z",
+    "phase": "reply",
+    "id": 257,
+    "method": "Input.dispatchKeyEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:59.758Z",
+    "phase": "send",
+    "id": 258,
+    "method": "Input.dispatchKeyEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:59.758Z",
+    "phase": "reply",
+    "id": 258,
+    "method": "Input.dispatchKeyEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:59.758Z",
+    "phase": "send",
+    "id": 259,
+    "method": "Input.insertText",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:59.759Z",
+    "phase": "reply",
+    "id": 259,
+    "method": "Input.insertText",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:59.761Z",
+    "phase": "send",
+    "id": 260,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:59.761Z",
+    "phase": "reply",
+    "id": 260,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2"
+  },
+  {
+    "at": "2026-10-13T18:47:59.763Z",
+    "phase": "send",
+    "id": 261,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:59.764Z",
+    "phase": "reply",
+    "id": 261,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2"
+  },
+  {
+    "at": "2026-10-13T18:47:59.766Z",
+    "phase": "send",
+    "id": 262,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:59.766Z",
+    "phase": "reply",
+    "id": 262,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:47:59.767Z",
+    "phase": "send",
+    "id": 263,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:47:59.783Z",
+    "phase": "reply",
+    "id": 263,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:48:00.190Z",
+    "phase": "send",
+    "id": 264,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:48:00.192Z",
+    "phase": "reply",
+    "id": 264,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2"
+  },
+  {
+    "at": "2026-10-13T18:48:00.196Z",
+    "phase": "send",
+    "id": 265,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:48:00.197Z",
+    "phase": "reply",
+    "id": 265,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:48:00.197Z",
+    "phase": "send",
+    "id": 266,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:48:00.198Z",
+    "phase": "reply",
+    "id": 266,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:48:00.603Z",
+    "phase": "send",
+    "id": 267,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:48:00.604Z",
+    "phase": "reply",
+    "id": 267,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2"
+  },
+  {
+    "at": "2026-10-13T18:48:00.605Z",
+    "phase": "send",
+    "id": 268,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:48:00.606Z",
+    "phase": "reply",
+    "id": 268,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:48:00.606Z",
+    "phase": "send",
+    "id": 269,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:48:00.606Z",
+    "phase": "reply",
+    "id": 269,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:48:01.015Z",
+    "phase": "send",
+    "id": 270,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:48:01.016Z",
+    "phase": "reply",
+    "id": 270,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2"
+  },
+  {
+    "at": "2026-10-13T18:48:01.019Z",
+    "phase": "send",
+    "id": 271,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:48:01.020Z",
+    "phase": "reply",
+    "id": 271,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:48:01.024Z",
+    "phase": "send",
+    "id": 272,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:48:01.025Z",
+    "phase": "reply",
+    "id": 272,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:48:01.025Z",
+    "phase": "send",
+    "id": 273,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:48:01.026Z",
+    "phase": "reply",
+    "id": 273,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:48:01.029Z",
+    "phase": "send",
+    "id": 274,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:48:01.030Z",
+    "phase": "reply",
+    "id": 274,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2"
+  },
+  {
+    "at": "2026-10-13T18:48:01.033Z",
+    "phase": "send",
+    "id": 275,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:48:01.033Z",
+    "phase": "reply",
+    "id": 275,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:48:01.187Z",
+    "phase": "send",
+    "id": 276,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:48:01.187Z",
+    "phase": "reply",
+    "id": 276,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:48:01.189Z",
+    "phase": "send",
+    "id": 277,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:48:01.190Z",
+    "phase": "reply",
+    "id": 277,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:48:01.192Z",
+    "phase": "send",
+    "id": 278,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:48:01.193Z",
+    "phase": "reply",
+    "id": 278,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:48:01.195Z",
+    "phase": "send",
+    "id": 279,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:48:01.196Z",
+    "phase": "reply",
+    "id": 279,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:48:01.196Z",
+    "phase": "send",
+    "id": 280,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:48:01.199Z",
+    "phase": "reply",
+    "id": 280,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:48:01.202Z",
+    "phase": "send",
+    "id": 281,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:48:01.203Z",
+    "phase": "reply",
+    "id": 281,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:48:01.358Z",
+    "phase": "send",
+    "id": 282,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:48:01.359Z",
+    "phase": "reply",
+    "id": 282,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:48:01.363Z",
+    "phase": "send",
+    "id": 283,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:48:01.364Z",
+    "phase": "reply",
+    "id": 283,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:48:01.367Z",
+    "phase": "send",
+    "id": 284,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:48:01.367Z",
+    "phase": "reply",
+    "id": 284,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:48:01.371Z",
+    "phase": "send",
+    "id": 285,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:48:01.372Z",
+    "phase": "reply",
+    "id": 285,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:48:01.372Z",
+    "phase": "send",
+    "id": 286,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:48:01.374Z",
+    "phase": "reply",
+    "id": 286,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:48:01.378Z",
+    "phase": "send",
+    "id": 287,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:48:01.378Z",
+    "phase": "reply",
+    "id": 287,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2"
+  },
+  {
+    "at": "2026-10-13T18:48:01.533Z",
+    "phase": "send",
+    "id": 288,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:48:01.533Z",
+    "phase": "reply",
+    "id": 288,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2"
+  },
+  {
+    "at": "2026-10-13T18:48:01.536Z",
+    "phase": "send",
+    "id": 289,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:48:01.536Z",
+    "phase": "reply",
+    "id": 289,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2"
+  },
+  {
+    "at": "2026-10-13T18:48:01.538Z",
+    "phase": "send",
+    "id": 290,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:48:01.539Z",
+    "phase": "reply",
+    "id": 290,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2"
+  },
+  {
+    "at": "2026-10-13T18:48:01.541Z",
+    "phase": "send",
+    "id": 291,
+    "method": "Runtime.evaluate",
+    "sessionId": "87AE7CE7476344E688A727A2C5926B13",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:48:01.542Z",
+    "phase": "reply",
+    "id": 291,
+    "method": "Runtime.evaluate",
+    "sessionId": "87AE7CE7476344E688A727A2C5926B13"
+  },
+  {
+    "at": "2026-10-13T18:48:01.544Z",
+    "phase": "send",
+    "id": 292,
+    "method": "Page.captureScreenshot",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:48:01.574Z",
+    "phase": "reply",
+    "id": 292,
+    "method": "Page.captureScreenshot",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:48:01.578Z",
+    "phase": "send",
+    "id": 293,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:48:01.579Z",
+    "phase": "reply",
+    "id": 293,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2"
+  },
+  {
+    "at": "2026-10-13T18:48:01.581Z",
+    "phase": "send",
+    "id": 294,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:48:01.581Z",
+    "phase": "reply",
+    "id": 294,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:48:01.583Z",
+    "phase": "send",
+    "id": 295,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:48:01.584Z",
+    "phase": "reply",
+    "id": 295,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:48:01.584Z",
+    "phase": "send",
+    "id": 296,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:48:01.586Z",
+    "phase": "reply",
+    "id": 296,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:48:01.588Z",
+    "phase": "send",
+    "id": 297,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:48:01.589Z",
+    "phase": "reply",
+    "id": 297,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2"
+  },
+  {
+    "at": "2026-10-13T18:48:01.591Z",
+    "phase": "send",
+    "id": 298,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:48:01.591Z",
+    "phase": "reply",
+    "id": 298,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2"
+  },
+  {
+    "at": "2026-10-13T18:48:01.594Z",
+    "phase": "send",
+    "id": 299,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:48:01.594Z",
+    "phase": "reply",
+    "id": 299,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:48:01.596Z",
+    "phase": "send",
+    "id": 300,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:48:01.597Z",
+    "phase": "reply",
+    "id": 300,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:48:01.597Z",
+    "phase": "send",
+    "id": 301,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:48:01.598Z",
+    "phase": "reply",
+    "id": 301,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:48:01.601Z",
+    "phase": "send",
+    "id": 302,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:48:01.601Z",
+    "phase": "reply",
+    "id": 302,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2"
+  },
+  {
+    "at": "2026-10-13T18:48:01.604Z",
+    "phase": "send",
+    "id": 303,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:48:01.604Z",
+    "phase": "reply",
+    "id": 303,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:48:01.606Z",
+    "phase": "send",
+    "id": 304,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:48:01.607Z",
+    "phase": "reply",
+    "id": 304,
+    "method": "Runtime.evaluate",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:48:01.609Z",
+    "phase": "send",
+    "id": 305,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:48:01.610Z",
+    "phase": "reply",
+    "id": 305,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:48:01.610Z",
+    "phase": "send",
+    "id": 306,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:48:01.615Z",
+    "phase": "reply",
+    "id": 306,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:48:01.618Z",
+    "phase": "send",
+    "id": 307,
+    "method": "Runtime.evaluate",
+    "sessionId": "87AE7CE7476344E688A727A2C5926B13",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:48:01.619Z",
+    "phase": "reply",
+    "id": 307,
+    "method": "Runtime.evaluate",
+    "sessionId": "87AE7CE7476344E688A727A2C5926B13"
+  },
+  {
+    "at": "2026-10-13T18:48:01.773Z",
+    "phase": "send",
+    "id": 308,
+    "method": "Runtime.evaluate",
+    "sessionId": "87AE7CE7476344E688A727A2C5926B13",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:48:01.774Z",
+    "phase": "reply",
+    "id": 308,
+    "method": "Runtime.evaluate",
+    "sessionId": "87AE7CE7476344E688A727A2C5926B13"
+  },
+  {
+    "at": "2026-10-13T18:48:01.776Z",
+    "phase": "send",
+    "id": 309,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:48:01.776Z",
+    "phase": "reply",
+    "id": 309,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2"
+  },
+  {
+    "at": "2026-10-13T18:48:01.778Z",
+    "phase": "send",
+    "id": 310,
+    "method": "Runtime.evaluate",
+    "sessionId": "87AE7CE7476344E688A727A2C5926B13",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:48:01.778Z",
+    "phase": "reply",
+    "id": 310,
+    "method": "Runtime.evaluate",
+    "sessionId": "87AE7CE7476344E688A727A2C5926B13"
+  },
+  {
+    "at": "2026-10-13T18:48:01.780Z",
+    "phase": "send",
+    "id": 311,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:48:01.780Z",
+    "phase": "reply",
+    "id": 311,
+    "method": "Runtime.evaluate",
+    "sessionId": "F083A56F449F09A2D7469244BA7A5FC2"
+  },
+  {
+    "at": "2026-10-13T18:48:01.783Z",
+    "phase": "send",
+    "id": 312,
+    "method": "Page.captureScreenshot",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:48:01.812Z",
+    "phase": "reply",
+    "id": 312,
+    "method": "Page.captureScreenshot",
+    "sessionId": "EFE6C4A3B83F631A9DBA49813D46B83F"
+  },
+  {
+    "at": "2026-10-13T18:48:01.827Z",
+    "phase": "send",
+    "id": 313,
+    "method": "Browser.close",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-13T18:48:01.827Z",
+    "phase": "reply",
+    "id": 313,
+    "method": "Browser.close"
+  }
+]

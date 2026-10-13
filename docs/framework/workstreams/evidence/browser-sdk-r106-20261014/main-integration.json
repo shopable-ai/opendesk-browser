@@ -1,0 +1,28 @@
+{
+  "at": "2026-10-13T18:47:53.385696+00:00",
+  "oldHead": "19cc1c313cb34b1f511f2169197d5af2374ddaf1",
+  "originMain": "ddbadf6dd0277a00dfe51a6025b601c0bce1fdc6",
+  "mergeTree": "5a98825ecc830ef3d21b105f5b84cc54b308a3c1",
+  "newHead": "fea2b5d8e0644aea4eea52a8f3dba988eb9ae178",
+  "paths": [
+    "docs/framework/workstreams/conversation-direct-r1-20261013.md",
+    "src/ui/workflow/local-codex.js",
+    "src/ui/workflow/observation.js",
+    "src/ui/workflow/workflow-view.js"
+  ],
+  "workingBytesBefore": {
+    "docs/framework/workstreams/conversation-direct-r1-20261013.md": "0bdc5b4207a3b219d869fa968828631a678e46d718fc05b5cec6e9ac56fa8adf",
+    "src/ui/workflow/local-codex.js": "e68d9ae153c09e5263b65496e3b06e77f3c04a7e021d2655200a92f8f59e3ad9",
+    "src/ui/workflow/observation.js": "622a55ed0d9c547ec83ed8ebf0cf881acc5bf0aaad23d7cba25179ee53914d04",
+    "src/ui/workflow/workflow-view.js": "5856878a4594290fa9dec33d7fe6068d01dc0cc5e191f00cf343feb008bf3752"
+  },
+  "workingBytesAfter": {
+    "docs/framework/workstreams/conversation-direct-r1-20261013.md": "0bdc5b4207a3b219d869fa968828631a678e46d718fc05b5cec6e9ac56fa8adf",
+    "src/ui/workflow/local-codex.js": "e68d9ae153c09e5263b65496e3b06e77f3c04a7e021d2655200a92f8f59e3ad9",
+    "src/ui/workflow/observation.js": "622a55ed0d9c547ec83ed8ebf0cf881acc5bf0aaad23d7cba25179ee53914d04",
+    "src/ui/workflow/workflow-view.js": "5856878a4594290fa9dec33d7fe6068d01dc0cc5e191f00cf343feb008bf3752"
+  },
+  "stagedBefore": [],
+  "stagedAfter": [],
+  "workingFilesWritten": false
+}

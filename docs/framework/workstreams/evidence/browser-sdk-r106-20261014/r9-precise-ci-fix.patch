@@ -1,0 +1,11 @@
+--- a/tests/environment/browser-sdk-r9-installed-host.test.mjs
++++ b/tests/environment/browser-sdk-r9-installed-host.test.mjs
+@@ -139,7 +139,7 @@
+   const pending=(await f.confirm('browser.cookies.set',{...args,value:'new'})).approvalRef;
+   await f.grant('write',false);
+   await assert.rejects(f.call('browser.cookies.set',{...args,value:'new'},pending),
+-    reject('E_GRANT_REVOKED'));
++    reject('E_SITE_GRANT_REQUIRED'));
+   assert.equal(f.native.filter(x=>x==='set').length,1);
+ });
+ 

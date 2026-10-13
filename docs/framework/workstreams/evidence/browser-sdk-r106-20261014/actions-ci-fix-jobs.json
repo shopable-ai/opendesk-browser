@@ -1,0 +1,261 @@
+{
+  "total_count": 2,
+  "jobs": [
+    {
+      "id": 115490152029,
+      "run_id": 38453502609,
+      "workflow_name": "Browser SDK R5 implementation contracts",
+      "head_branch": "main",
+      "run_url": "https://api.github.com/repos/shopable-ai/opendesk-browser/actions/runs/38453502609",
+      "run_attempt": 1,
+      "node_id": "CR_kwDOU7N2Cc8AAAAa47_eXQ",
+      "head_sha": "586f979b7c097b00ec631f64fc8c98fbb3ce008b",
+      "url": "https://api.github.com/repos/shopable-ai/opendesk-browser/actions/jobs/115490152029",
+      "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38453502609/job/115490152029",
+      "status": "completed",
+      "conclusion": "success",
+      "created_at": "2026-10-13T19:16:15Z",
+      "started_at": "2026-10-13T19:16:17Z",
+      "completed_at": "2026-10-13T19:18:20Z",
+      "name": "sdk-product-bundles",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1,
+          "started_at": "2026-10-13T19:16:18Z",
+          "completed_at": "2026-10-13T19:16:19Z"
+        },
+        {
+          "name": "Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2,
+          "started_at": "2026-10-13T19:16:19Z",
+          "completed_at": "2026-10-13T19:16:27Z"
+        },
+        {
+          "name": "Run actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3,
+          "started_at": "2026-10-13T19:16:27Z",
+          "completed_at": "2026-10-13T19:16:29Z"
+        },
+        {
+          "name": "Run npm ci --ignore-scripts --no-audit --no-fund",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4,
+          "started_at": "2026-10-13T19:16:29Z",
+          "completed_at": "2026-10-13T19:16:36Z"
+        },
+        {
+          "name": "Run npm run build",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5,
+          "started_at": "2026-10-13T19:16:36Z",
+          "completed_at": "2026-10-13T19:17:24Z"
+        },
+        {
+          "name": "Run npm run build:dev",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 6,
+          "started_at": "2026-10-13T19:17:24Z",
+          "completed_at": "2026-10-13T19:18:11Z"
+        },
+        {
+          "name": "Run npm run build:size",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 7,
+          "started_at": "2026-10-13T19:18:11Z",
+          "completed_at": "2026-10-13T19:18:12Z"
+        },
+        {
+          "name": "Run npm run verify",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 8,
+          "started_at": "2026-10-13T19:18:12Z",
+          "completed_at": "2026-10-13T19:18:15Z"
+        },
+        {
+          "name": "Save exact production candidate for manual Chrome acceptance",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 9,
+          "started_at": "2026-10-13T19:18:15Z",
+          "completed_at": "2026-10-13T19:18:17Z"
+        },
+        {
+          "name": "Post Run actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 17,
+          "started_at": "2026-10-13T19:18:17Z",
+          "completed_at": "2026-10-13T19:18:17Z"
+        },
+        {
+          "name": "Post Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 18,
+          "started_at": "2026-10-13T19:18:17Z",
+          "completed_at": "2026-10-13T19:18:17Z"
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 19,
+          "started_at": "2026-10-13T19:18:17Z",
+          "completed_at": "2026-10-13T19:18:17Z"
+        }
+      ],
+      "check_run_url": "https://api.github.com/repos/shopable-ai/opendesk-browser/check-runs/115490152029",
+      "labels": [
+        "ubuntu-latest"
+      ],
+      "runner_id": 1000040644,
+      "runner_name": "GitHub Actions 1000040644",
+      "runner_group_id": 0,
+      "runner_group_name": "GitHub Actions"
+    },
+    {
+      "id": 115490152051,
+      "run_id": 38453502609,
+      "workflow_name": "Browser SDK R5 implementation contracts",
+      "head_branch": "main",
+      "run_url": "https://api.github.com/repos/shopable-ai/opendesk-browser/actions/runs/38453502609",
+      "run_attempt": 1,
+      "node_id": "CR_kwDOU7N2Cc8AAAAa47_ecw",
+      "head_sha": "586f979b7c097b00ec631f64fc8c98fbb3ce008b",
+      "url": "https://api.github.com/repos/shopable-ai/opendesk-browser/actions/jobs/115490152051",
+      "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38453502609/job/115490152051",
+      "status": "completed",
+      "conclusion": "success",
+      "created_at": "2026-10-13T19:16:15Z",
+      "started_at": "2026-10-13T19:16:16Z",
+      "completed_at": "2026-10-13T19:16:52Z",
+      "name": "sdk-host-contracts",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1,
+          "started_at": "2026-10-13T19:16:17Z",
+          "completed_at": "2026-10-13T19:16:18Z"
+        },
+        {
+          "name": "Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2,
+          "started_at": "2026-10-13T19:16:18Z",
+          "completed_at": "2026-10-13T19:16:26Z"
+        },
+        {
+          "name": "Run actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3,
+          "started_at": "2026-10-13T19:16:26Z",
+          "completed_at": "2026-10-13T19:16:26Z"
+        },
+        {
+          "name": "Run npm ci --ignore-scripts --no-audit --no-fund",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4,
+          "started_at": "2026-10-13T19:16:26Z",
+          "completed_at": "2026-10-13T19:16:30Z"
+        },
+        {
+          "name": "Explicit Browser SDK contracts, Host, native API mocks and denial paths",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5,
+          "started_at": "2026-10-13T19:16:30Z",
+          "completed_at": "2026-10-13T19:16:32Z"
+        },
+        {
+          "name": "R8 pinned Chromium schema offline drift check",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 6,
+          "started_at": "2026-10-13T19:16:32Z",
+          "completed_at": "2026-10-13T19:16:32Z"
+        },
+        {
+          "name": "R9 frozen full Chromium matrix structural and approved-operation check",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 7,
+          "started_at": "2026-10-13T19:16:32Z",
+          "completed_at": "2026-10-13T19:16:33Z"
+        },
+        {
+          "name": "Browser SDK exact registry and human acceptance ledger",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 8,
+          "started_at": "2026-10-13T19:16:33Z",
+          "completed_at": "2026-10-13T19:16:33Z"
+        },
+        {
+          "name": "Browser framework four-layer registry and Cookie priority ledger",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 9,
+          "started_at": "2026-10-13T19:16:33Z",
+          "completed_at": "2026-10-13T19:16:33Z"
+        },
+        {
+          "name": "Source checks",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 10,
+          "started_at": "2026-10-13T19:16:33Z",
+          "completed_at": "2026-10-13T19:16:50Z"
+        },
+        {
+          "name": "Post Run actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 19,
+          "started_at": "2026-10-13T19:16:50Z",
+          "completed_at": "2026-10-13T19:16:50Z"
+        },
+        {
+          "name": "Post Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 20,
+          "started_at": "2026-10-13T19:16:50Z",
+          "completed_at": "2026-10-13T19:16:50Z"
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 21,
+          "started_at": "2026-10-13T19:16:50Z",
+          "completed_at": "2026-10-13T19:16:50Z"
+        }
+      ],
+      "check_run_url": "https://api.github.com/repos/shopable-ai/opendesk-browser/check-runs/115490152051",
+      "labels": [
+        "ubuntu-latest"
+      ],
+      "runner_id": 1000040643,
+      "runner_name": "GitHub Actions 1000040643",
+      "runner_group_id": 0,
+      "runner_group_name": "GitHub Actions"
+    }
+  ]
+}

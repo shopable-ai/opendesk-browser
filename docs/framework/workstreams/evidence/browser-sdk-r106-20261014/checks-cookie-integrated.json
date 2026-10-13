@@ -1,0 +1,215 @@
+{
+  "candidateSha": "3763a70eed4855be91d597336938611ba9c86352",
+  "gitTree": "74fd9685077db51cfa1d7fda00fe68cd5b9df9a6",
+  "nodeVersion": "v24.16.0",
+  "environment": "Clean committed-source Git archive on macOS arm64 with fixed local dependency bytes; independent dist/guard 43127",
+  "steps": [
+    {
+      "key": "nodeTests",
+      "command": "node --test --test-reporter=spec tests/environment/browser-sdk-r8-catalog.test.mjs tests/environment/browser-sdk-r8-cookies.test.mjs tests/environment/browser-sdk-r7-trusted-cookies.test.mjs tests/environment/browser-sdk-r7-mapping.test.mjs tests/environment/browser-sdk-contract-compat.test.mjs tests/environment/browser-sdk-coverage.test.mjs tests/environment/browser-tabs-host.test.mjs tests/environment/browser-sidepanel-host.test.mjs tests/environment/browser-sdk-r2-host.test.mjs tests/environment/browser-screenshot-host.test.mjs tests/environment/browser-screenshot-resources.test.mjs tests/environment/browser-network-observe-host.test.mjs tests/environment/browser-sdk-approval-timeout.test.mjs tests/environment/browser-sdk-r2-demo.test.mjs tests/environment/browser-sdk-p3-implementation.test.mjs tests/environment/browser-sdk-p3-bookmarks.test.mjs tests/environment/browser-sdk-p4-implementation.test.mjs tests/environment/browser-sdk-r9-installed-cookies.test.mjs tests/environment/browser-sdk-r9-installed-host.test.mjs tests/environment/browser-sdk-p5-scheduler.test.mjs tests/environment/browser-sdk-r106-trusted.test.mjs tests/environment/browser-sdk-r106-history-ui.test.mjs tests/environment/browser-sdk-r106-host.test.mjs tests/environment/scheduled-tasks-r1.test.mjs tests/environment/scheduled-task-timezone-r25.test.mjs tests/environment/browser-sdk-freeze.test.mjs tests/environment/browser-sdk-interface-matrix.test.mjs tests/environment/browser-framework-ledger.test.mjs tests/environment/cookie-editor-ui.test.mjs tests/environment/sidebar-tool-enable-r26.test.mjs",
+      "argv": [
+        "node",
+        "--test",
+        "--test-reporter=spec",
+        "tests/environment/browser-sdk-r8-catalog.test.mjs",
+        "tests/environment/browser-sdk-r8-cookies.test.mjs",
+        "tests/environment/browser-sdk-r7-trusted-cookies.test.mjs",
+        "tests/environment/browser-sdk-r7-mapping.test.mjs",
+        "tests/environment/browser-sdk-contract-compat.test.mjs",
+        "tests/environment/browser-sdk-coverage.test.mjs",
+        "tests/environment/browser-tabs-host.test.mjs",
+        "tests/environment/browser-sidepanel-host.test.mjs",
+        "tests/environment/browser-sdk-r2-host.test.mjs",
+        "tests/environment/browser-screenshot-host.test.mjs",
+        "tests/environment/browser-screenshot-resources.test.mjs",
+        "tests/environment/browser-network-observe-host.test.mjs",
+        "tests/environment/browser-sdk-approval-timeout.test.mjs",
+        "tests/environment/browser-sdk-r2-demo.test.mjs",
+        "tests/environment/browser-sdk-p3-implementation.test.mjs",
+        "tests/environment/browser-sdk-p3-bookmarks.test.mjs",
+        "tests/environment/browser-sdk-p4-implementation.test.mjs",
+        "tests/environment/browser-sdk-r9-installed-cookies.test.mjs",
+        "tests/environment/browser-sdk-r9-installed-host.test.mjs",
+        "tests/environment/browser-sdk-p5-scheduler.test.mjs",
+        "tests/environment/browser-sdk-r106-trusted.test.mjs",
+        "tests/environment/browser-sdk-r106-history-ui.test.mjs",
+        "tests/environment/browser-sdk-r106-host.test.mjs",
+        "tests/environment/scheduled-tasks-r1.test.mjs",
+        "tests/environment/scheduled-task-timezone-r25.test.mjs",
+        "tests/environment/browser-sdk-freeze.test.mjs",
+        "tests/environment/browser-sdk-interface-matrix.test.mjs",
+        "tests/environment/browser-framework-ledger.test.mjs",
+        "tests/environment/cookie-editor-ui.test.mjs",
+        "tests/environment/sidebar-tool-enable-r26.test.mjs"
+      ],
+      "exitCode": 0,
+      "status": "PASS",
+      "elapsedSeconds": 0.441,
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/nodeTests-cookie-integrated.log",
+      "sha256": "f6c03d6539e9c30525feab6c056c39e6bbedcb3102c61c27913cfaa0d04f2dda"
+    },
+    {
+      "key": "matrix",
+      "command": "node scripts/check-browser-sdk-interface-matrix.mjs --check",
+      "argv": [
+        "node",
+        "scripts/check-browser-sdk-interface-matrix.mjs",
+        "--check"
+      ],
+      "exitCode": 0,
+      "status": "PASS",
+      "elapsedSeconds": 0.046,
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/matrix-cookie-integrated.log",
+      "sha256": "3c7068b5bfa647f2f45dabe6491007c3f53703328d2f11df0086b07f8147bca8"
+    },
+    {
+      "key": "catalog",
+      "command": "node scripts/sync-chrome-api-catalog.mjs --check",
+      "argv": [
+        "node",
+        "scripts/sync-chrome-api-catalog.mjs",
+        "--check"
+      ],
+      "exitCode": 0,
+      "status": "PASS",
+      "elapsedSeconds": 0.047,
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/catalog-cookie-integrated.log",
+      "sha256": "8e5d6ca0c24ba6f14e36e93930c11ddd994e1623026e831a8a4d6ca2a8fdd123"
+    },
+    {
+      "key": "coverage",
+      "command": "node scripts/check-browser-sdk-coverage.mjs --check",
+      "argv": [
+        "node",
+        "scripts/check-browser-sdk-coverage.mjs",
+        "--check"
+      ],
+      "exitCode": 0,
+      "status": "PASS",
+      "elapsedSeconds": 0.044,
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/coverage-cookie-integrated.log",
+      "sha256": "432f3cdd896265ed971d69d44ef3aa444b0a62cac92106dd48c96393b58d1efe"
+    },
+    {
+      "key": "ledger",
+      "command": "node scripts/check-browser-framework-ledger.mjs --check",
+      "argv": [
+        "node",
+        "scripts/check-browser-framework-ledger.mjs",
+        "--check"
+      ],
+      "exitCode": 0,
+      "status": "PASS",
+      "elapsedSeconds": 0.044,
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/ledger-cookie-integrated.log",
+      "sha256": "1395bab75824af803b4966f1790afd50d315e6ed82f102b7a87a73c598d4330b"
+    },
+    {
+      "key": "freeze",
+      "command": "node scripts/check-browser-sdk-freeze.mjs",
+      "argv": [
+        "node",
+        "scripts/check-browser-sdk-freeze.mjs"
+      ],
+      "exitCode": 0,
+      "status": "PASS",
+      "elapsedSeconds": 0.057,
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/freeze-cookie-integrated.log",
+      "sha256": "0b2cccef956fff1f093c7363137bb83f1bcc45b084410c8458789dc23ad1f218"
+    },
+    {
+      "key": "check",
+      "command": "npm run check",
+      "argv": [
+        "npm",
+        "run",
+        "check"
+      ],
+      "exitCode": 0,
+      "status": "PASS",
+      "elapsedSeconds": 19.364,
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/check-cookie-integrated.log",
+      "sha256": "5a3df4fe18df36d0ec280ae65b3a25bc003379937991759117f164f10d6b865b"
+    },
+    {
+      "key": "buildProduction",
+      "command": "npm run build",
+      "argv": [
+        "npm",
+        "run",
+        "build"
+      ],
+      "exitCode": 0,
+      "status": "PASS",
+      "elapsedSeconds": 26.936,
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/buildProduction-cookie-integrated.log",
+      "sha256": "08f2afc07564e4c1ec66efd8a97aa0ce6107a699b5c38e78e17861d58a521ca8"
+    },
+    {
+      "key": "buildDevelopment",
+      "command": "npm run build:dev",
+      "argv": [
+        "npm",
+        "run",
+        "build:dev"
+      ],
+      "exitCode": 0,
+      "status": "PASS",
+      "elapsedSeconds": 24.595,
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/buildDevelopment-cookie-integrated.log",
+      "sha256": "3d7dd3a2c2192c9e274cae0800dbee192d9395188fe884971992e0ffcc46e2e8"
+    },
+    {
+      "key": "buildSize",
+      "command": "npm run build:size",
+      "argv": [
+        "npm",
+        "run",
+        "build:size"
+      ],
+      "exitCode": 0,
+      "status": "PASS",
+      "elapsedSeconds": 1.3,
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/buildSize-cookie-integrated.log",
+      "sha256": "d869a638a8da1acec22fe03b7b6ceb78b24f54bf9f6c4d12b65f83c386f08177"
+    },
+    {
+      "key": "verify",
+      "command": "npm run verify",
+      "argv": [
+        "npm",
+        "run",
+        "verify"
+      ],
+      "exitCode": 0,
+      "status": "PASS",
+      "elapsedSeconds": 3.134,
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/verify-cookie-integrated.log",
+      "sha256": "fc7632aff95349f5c23dec18a3516f07f3c60129d828996d7fd823e190fc956e"
+    },
+    {
+      "key": "targetedMainRegressions",
+      "command": "node --test --test-reporter=spec tests/environment/browser-sdk-r13.test.mjs tests/environment/sidebar-tools.test.mjs tests/environment/sidebar-tools-host.test.mjs tests/environment/official-tools-catalog-r45.test.mjs tests/environment/fixed-entries-audit.test.mjs tests/framework/k4-sdk-reinjection.test.mjs tests/framework/k4-sdk.test.mjs tests/framework/k2-sdk-relay-races.test.mjs tests/environment/boundaries.test.mjs tests/framework/k4-sdk-hello-races.test.mjs tests/framework/k4-sdk-bundle-reinjection.test.mjs",
+      "argv": [
+        "node",
+        "--test",
+        "--test-reporter=spec",
+        "tests/environment/browser-sdk-r13.test.mjs",
+        "tests/environment/sidebar-tools.test.mjs",
+        "tests/environment/sidebar-tools-host.test.mjs",
+        "tests/environment/official-tools-catalog-r45.test.mjs",
+        "tests/environment/fixed-entries-audit.test.mjs",
+        "tests/framework/k4-sdk-reinjection.test.mjs",
+        "tests/framework/k4-sdk.test.mjs",
+        "tests/framework/k2-sdk-relay-races.test.mjs",
+        "tests/environment/boundaries.test.mjs",
+        "tests/framework/k4-sdk-hello-races.test.mjs",
+        "tests/framework/k4-sdk-bundle-reinjection.test.mjs"
+      ],
+      "exitCode": 0,
+      "status": "PASS",
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/node-targeted-complete-cookie-integrated.log",
+      "sha256": "400384fc7633b6f4d99bc00b8552f584365b99e25608b7b6838e26ffa6289870"
+    }
+  ]
+}
