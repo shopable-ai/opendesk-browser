@@ -30,10 +30,10 @@ export function createCloudService({storage,api,clock={now:()=>Date.now()},asser
   const history=createCloudHistoryIndex({storage,namespace:'tool:'+api.runtime.id});
   let historyReady=false,historyMigrationBlocked=null;
   const rows=()=>transaction('readonly',async tx=>(await tx.all(KV)).filter(r=>r.tag==='cloud-request-v1'),[KV]);
-  async function post(config,path,body,{isCurrent=()=>true}={}){
+  async function post(config,path,body,{isCurrent=()=>true,timeoutMs=10000}={}){
     invariant(config?.credential,'E_PAIRING');
     invariant(isCurrent(),'E_CLOUD_REVOKED');const abort=new AbortController();if(path==='receipt')deliveries.add(abort);
-    try{const response=await fetcher(config.url+'/v1/'+path,{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+config.credential},body:JSON.stringify(body),signal:AbortSignal.any([abort.signal,AbortSignal.timeout(10000)]),redirect:'error'});
+    try{const response=await fetcher(config.url+'/v1/'+path,{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+config.credential},body:JSON.stringify(body),signal:AbortSignal.any([abort.signal,AbortSignal.timeout(timeoutMs)]),redirect:'error'});
       const value=await response.json();invariant(response.ok,value.error?.code||'E_PROVIDER',value.error?.message);return value;
     }finally{deliveries.delete(abort);}
   }
@@ -85,7 +85,8 @@ export function createCloudService({storage,api,clock={now:()=>Date.now()},asser
         projected.reverse(); // Existing Side Panel shows the newest sample first.
       }
       return {executorId:await tx.get(KV,IDENTITY),provider:c?{url:c.url,providerId:c.providerId}:null,
-        enabled:!!c?.enabled,connection:connectionState,online,reconciled,hostReady:true,
+        enabled:!!c?.enabled,remoteSuspension:c?.remoteSuspension??null,
+        connection:connectionState,online,reconciled,hostReady:true,
         slotAvailable:!slot?.currentRunId&&!slot?.preview,
         tasks:c?.tasks?.map(t=>({taskId:t.taskId,version:t.version,manifestHash:t.manifestHash,
           sourceHash:t.contentHash,siteOrigins:t.manifest.siteOrigins,resultAllowed:t.resultAllowed,
@@ -186,7 +187,8 @@ export function createCloudService({storage,api,clock={now:()=>Date.now()},asser
     }
     for(const t of tasks)for(const origin of t.manifest.siteOrigins)await requireGrant(api,origin);
     await scoped(sender,async(tx,host)=>{const c=await tx.get(KV,CONFIG);invariant(c&&c.namespace===host.namespace&&!c.enabled,'E_PAIRING','Stop current hosting before changing approval');
-      c.tasks=tasks;c.grantId=newId();c.claimId=null;c.pendingRequestId=null;c.enabled=true;c.revokedAt=null;await tx.put(KV,c,CONFIG);},'readwrite');wake();return cloudStatus({},sender);
+      c.tasks=tasks;c.grantId=newId();c.claimId=null;c.pendingRequestId=null;
+      c.enabled=true;c.revokedAt=null;c.remoteSuspension=null;await tx.put(KV,c,CONFIG);},'readwrite');wake();return cloudStatus({},sender);
   }
   async function fence(request,reason){
     const result=await transaction('readwrite',async tx=>{const r=await tx.get(KV,PREFIX+request.requestId);if(!r)return;const run=r.runId&&await tx.get('runs',r.runId);
@@ -237,13 +239,37 @@ export function createCloudService({storage,api,clock={now:()=>Date.now()},asser
       if(!c)return null;
       const owned={namespace:host.namespace,grantId:c.grantId};
       c.enabled=false;c.revokedAt=clock.now();c.claimId=null;c.pendingRequestId=null;
+      c.remoteSuspension=c.grantId?'pending':null;
       await tx.put(KV,c,CONFIG);
       return owned;
     },'readwrite');
     invalidate();close();
-    if(scope?.grantId)for(const r of await rows()){
-      if(r.namespace===scope.namespace&&r.grantId===scope.grantId)
-        await fence(r,'E_CLOUD_REVOKED');
+    if(scope?.grantId){
+      for(const r of await rows()){
+        if(r.namespace===scope.namespace&&r.grantId===scope.grantId)
+          await fence(r,'E_CLOUD_REVOKED');
+      }
+      // Local revocation wins immediately. Provider acknowledgement is
+      // best-effort and bounded; offline does not roll back the local Stop.
+      // Do not claim external queuing stopped until Provider confirms.
+      const c=await read();
+      if(c?.grantId===scope.grantId)try{
+        const acknowledgement=await post(c,'suspend',{grantId:scope.grantId},
+          {timeoutMs:1800});
+        if(acknowledgement.suspended===true&&
+          acknowledgement.grantId===scope.grantId){
+          await scoped(sender,async tx=>{
+            const current=await tx.get(KV,CONFIG);
+            if(current&&!current.enabled&&current.grantId===scope.grantId){
+              current.remoteSuspension='confirmed';
+              await tx.put(KV,current,CONFIG);
+            }
+          },'readwrite');
+        }
+      }catch{
+        // Keep durable pending state. A later new approval has a new Grant
+        // and cannot resurrect old queued jobs; no false remote-Stop claim.
+      }
     }
     return cloudStatus({},sender);
   }
