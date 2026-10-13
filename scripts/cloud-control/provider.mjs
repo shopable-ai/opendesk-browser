@@ -60,13 +60,29 @@ export async function openProvider({directory='.local/cloud-control',port=43112,
   await save();
   // State snapshots and fsync are only required for real mutations. Pure
   // observations remain serialized with writes but never touch the .tmp file.
-  const readonlyRoutes=new Set(['/v1/job-status','/v1/reconcile','/v1/cancellation',
+  const readonlyRoutes=new Set(['/v1/job-status','/v1/reconcile','/v1/cancellation','/v1/client-list',
     '/admin/state','/admin/tasks','/admin/executors','/admin/clients']);
   const serial=(fn,readOnly=false)=>{const next=tail.then(async()=>{
     const before=readOnly?null:structuredClone(state);
     try{return await fn();}catch(error){if(!readOnly)state=before;throw error;}
   });tail=next.catch(()=>{});return next;};
   function once(scope,key,body,fn){if(typeof key!=='string'||key.length>150)fail('E_SCHEMA');const k=scope+':'+key,d=hash(body),old=state.requests[k];if(old){if(old.digest!==d)fail('E_REQUEST_CONFLICT');return structuredClone(old.answer);}const answer=fn();state.requests[k]={digest:d,answer:structuredClone(answer)};return answer;}
+  // The trusted local admin and the paired Browser share one immutable pin check.
+  function pinnedClientTasks(row,tasks){
+    if(!Array.isArray(tasks)||tasks.length<1||tasks.length>32)fail('E_CLIENT_SCOPE');
+    const pinned=[],seen=new Set();
+    for(const pin of tasks){
+      exact(pin,['taskId','version','manifestHash','sourceHash']);
+      if(Object.keys(pin).length!==4||Object.values(pin).some(v=>typeof v!=='string'))
+        fail('E_CLIENT_SCOPE');
+      const registered=state.taskRegistry[taskRegistryKey(pin)];
+      if(!registered||canonical(taskPin(registered))!==canonical(pin)||
+        !row.capabilities?.some(t=>t.taskId===pin.taskId&&t.manifestHash===pin.manifestHash&&
+          t.sourceHash===pin.sourceHash)||seen.has(pin.taskId))fail('E_CLIENT_SCOPE');
+      seen.add(pin.taskId);pinned.push(structuredClone(pin));
+    }
+    return pinned;
+  }
   const sockets=new Map(),tickets=new Map();
   const notify=executorId=>{for(const [ws,id]of sockets)if(!executorId||id===executorId)ws.send(JSON.stringify({type:'notify'}));};
   const owned=(b,id)=>{const j=Object.values(state.jobs).find(j=>
@@ -100,6 +116,15 @@ export async function openProvider({directory='.local/cloud-control',port=43112,
         if(!executorId)fail('E_AUTH');}
       const readOnly=readonlyRoutes.has(path);
       const answer=await serial(async()=>{
+        // Close the race between an authenticated queued request and client
+        // revocation by checking the current grant within the serial queue.
+        if(client){
+          const live=state.clients[client.clientId];
+          if(!live||live.revokedAt||live.credential!==client.credential||
+            live.executorId!==client.executorId||live.pairingId!==client.pairingId||
+            live.grantId!==client.grantId||
+            state.executors[live.executorId]?.grantId!==live.grantId)fail('E_AUTH');
+        }
         let out;
         switch(path){
           case '/v1/pair':{
@@ -229,24 +254,55 @@ export async function openProvider({directory='.local/cloud-control',port=43112,
             exact(b,[]);out={executors:Object.entries(state.executors).map(([id,row])=>({
               executorId:id,pairedAt:row.pairedAt,revoked:!!row.revokedAt,
               connected:[...sockets.values()].includes(id)}))};break;}
+          case '/v1/client-list':{
+            exact(b,['offset','limit']);
+            const offset=b.offset??0,limit=b.limit??50;
+            if(!Number.isSafeInteger(offset)||offset<0||offset>1000000||
+              !Number.isSafeInteger(limit)||limit<1||limit>50)fail('E_SCHEMA');
+            const owner=state.executors[executorId];
+            const clients=Object.entries(state.clients).filter(([,c])=>
+              !c.revokedAt&&c.executorId===executorId&&
+              c.pairingId===owner.pairingId&&c.grantId===owner.grantId)
+              .sort((a,b)=>b[1].createdAt-a[1].createdAt||a[0].localeCompare(b[0]));
+            const visible=clients.slice(offset,offset+limit);
+            out={total:clients.length,offset,nextOffset:offset+visible.length<clients.length?
+              offset+visible.length:null,clients:visible.map(([clientId,c])=>({
+                clientId,label:c.label||'外部客户端',createdAt:c.createdAt,
+                tasks:c.tasks.map(pin=>({taskId:pin.taskId,version:pin.version})),
+                allowResult:c.allowResult===true
+              }))};break;
+          }
+          case '/v1/client-grant':{
+            exact(b,['grantId','tasks','allowResult','label']);
+            const owner=state.executors[executorId];
+            if(!owner.grantId||owner.grantId!==b.grantId||owner.suspendedAt)
+              fail('E_CLOUD_STOPPED');
+            if(typeof b.label!=='string'||!b.label.trim()||b.label.trim().length>60||
+              /[\\x00-\\x1f\\x7f]/.test(b.label)||typeof b.allowResult!=='boolean')
+              fail('E_CLIENT_SCOPE');
+            const pinned=pinnedClientTasks(owner,b.tasks);
+            if(Object.values(state.clients).filter(c=>!c.revokedAt&&
+              c.executorId===executorId&&c.pairingId===owner.pairingId&&
+              c.grantId===owner.grantId).length>=100)fail('E_CLIENT_LIMIT');
+            const clientId=randomUUID(),credential=token();
+            state.clients[clientId]={executorId,pairingId:owner.pairingId,grantId:owner.grantId,
+              label:b.label.trim(),tasks:pinned,allowResult:b.allowResult,credential,
+              createdAt:clock(),revokedAt:null};
+            out={clientId,credential};break;
+          }
+          case '/v1/client-revoke':{
+            exact(b,['clientId']);
+            const owner=state.executors[executorId],c=state.clients[b.clientId];
+            if(typeof b.clientId!=='string'||!c||c.executorId!==executorId||
+              c.pairingId!==owner.pairingId||c.grantId!==owner.grantId)fail('E_CLIENT');
+            c.revokedAt??=clock()||1;out={revoked:true};break;
+          }
           case '/admin/client-grant':{
             exact(b,['executorId','tasks','allowResult']);
             const row=state.executors[b.executorId];
             if(!row||row.revokedAt||!row.grantId||row.suspendedAt)fail('E_EXECUTOR_TARGET');
-            if(!Array.isArray(b.tasks)||b.tasks.length<1||b.tasks.length>32||
-              typeof b.allowResult!=='boolean')fail('E_CLIENT_SCOPE');
-            const pinned=[],seen=new Set();
-            for(const pin of b.tasks){
-              exact(pin,['taskId','version','manifestHash','sourceHash']);
-              if(Object.keys(pin).length!==4||Object.values(pin).some(v=>typeof v!=='string'))
-                fail('E_CLIENT_SCOPE');
-              const registered=state.taskRegistry[taskRegistryKey(pin)];
-              if(!registered||canonical(taskPin(registered))!==canonical(pin)||
-                !row.capabilities?.some(t=>t.taskId===pin.taskId&&
-                  t.manifestHash===pin.manifestHash&&t.sourceHash===pin.sourceHash)||
-                seen.has(pin.taskId))fail('E_CLIENT_SCOPE');
-              seen.add(pin.taskId);pinned.push(structuredClone(pin));
-            }
+            if(typeof b.allowResult!=='boolean')fail('E_CLIENT_SCOPE');
+            const pinned=pinnedClientTasks(row,b.tasks);
             const clientId=randomUUID(),credential=token();
             state.clients[clientId]={executorId:b.executorId,pairingId:row.pairingId,
               grantId:row.grantId,tasks:pinned,allowResult:b.allowResult,
