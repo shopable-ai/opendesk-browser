@@ -1,5 +1,7 @@
 # GOAL：OpenDesk Browser R8 续接实施 — 完整 Chrome API 与统一 Browser SDK
 
+> **历史任务，核心 API 兼容约束已被 2026-10-13 最新用户决定取代：** OpenDesk 尚未正式发布。原有“35 项必须兼容”、不可直接删除旧 SDK 接口的描述仅属 R8 历史方案；现允许一次性重定接口并同步迁移仓内消费者、示例和测试，禁止为历史 35 项建立永久别名与第二套框架。详见 [`Browser SDK 预发布收敛合同`](../../api/browser-sdk-prelaunch-contract-20261013.zh-CN.md) 及仓库 `AGENTS.md`。旧安全和验收证据合同不受此修订影响。
+
 日期：2026-10-13。默认中文。
 
 ## 目标与执行约束
