@@ -108,7 +108,7 @@ export function normalizeBrowserOperation(operation,args={}){
         if(typeof args.filename!=='string'||args.filename.length<1||args.filename.length>150||
            args.filename.startsWith('.')||args.filename.startsWith('/')||args.filename.includes('\\\\')||
            args.filename.split('/').some(part=>!part||part==='.'||part==='..'||part.startsWith('.'))||
-           /[\\u0000-\\u001f\\u007f:*?"<>|]/.test(args.filename))
+           /[\u0000-\u001f\u007f:*?"<>|]/.test(args.filename))
           throw fail('E_SCHEMA','Unsafe relative download filename');
       }
       if(args.saveAs!==undefined&&typeof args.saveAs!=='boolean')throw fail('E_SCHEMA');
