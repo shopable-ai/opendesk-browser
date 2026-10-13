@@ -48,9 +48,10 @@ test('Cloud controls exist once in the Cloud tab; My retains a compact entry',as
 test('cloud request previews project whitelisted states rather than IDs or result data',()=>{
   const samples=projectCloudRequestSamples({requests:[{
     requestId:'REQUEST_SECRET',runId:'RUN_SECRET',provider:{url:'https://secret.example'},
-    state:'permitted',runState:'running',retirementState:'released',receipt:{token:'HIDDEN'}
+    taskTitle:'用户安装的表单任务',state:'permitted',runState:'running',retirementState:'released',receipt:{token:'HIDDEN'}
   }]});
   assert.equal(samples.length,1);
+  assert.equal(samples[0].title,'用户安装的表单任务');
   assert.equal(samples[0].state,'已取得许可');assert.equal(samples[0].run,'运行中');
   assert.equal(samples[0].receipt,'回执已确认');
   assert.doesNotMatch(JSON.stringify(samples),/SECRET|HIDDEN|https?:\/\//);
