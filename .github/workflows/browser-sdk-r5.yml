@@ -9,6 +9,7 @@ on:
       - 'scripts/check-browser-sdk-interface-matrix.mjs'
       - 'tests/environment/browser-sdk-interface-matrix.test.mjs'
       - 'src/platform/chrome/browser-tabs.js'
+      - 'src/platform/chrome/browser-downloads.js'
       - 'src/platform/chrome/cookies.js'
       - 'src/platform/chrome/browser-screenshot*.js'
       - 'src/platform/chrome/browser-network-observe.js'
