@@ -9,6 +9,7 @@ import {createPageComponentEntry} from '../../scripts/page-component-entry.mjs';
 import {prepareRemoteModules} from '../../scripts/remote-esm-modules.mjs';
 import {validatePageSource} from '../../src/scripting/user-scripts/page-bundle.js';
 import {validateProgramDraft} from '../../src/ui/program-source.js';
+import {pageProgramUrlMatches} from '../../src/scripting/user-scripts/page-program-rules.js';
 
 const path = 'examples/programs/page-ui-toc-react-direct';
 const remoteURL = 'https://raw.githubusercontent.com/d3/d3-array/v3.2.4/src/max.js';
@@ -50,7 +51,9 @@ test('default TOC directly imports reviewed HTTPS ESM alongside packaged React',
   assert.deepEqual(project.sources.map(file => file.path).sort(), [
     'src/heading-chart.js', 'src/heading-stats.js', 'src/main.js', 'src/toc-model.js'
   ]);
-  assert.deepEqual(manifest.opendesk.pageRules.matches, ['http://127.0.0.1:43111/*']);
+  assert.deepEqual(manifest.opendesk.pageRules.matches, [
+    'http://127.0.0.1:43111/*', 'http://192.168.30.8:8000/*'
+  ]);
   const source = await readFile(path + '/src/main.js', 'utf8');
   assert.ok(source.includes("import max from '" + remoteURL + "';"));
   assert.match(source, /summarizeHeadingLevels\(items, max\)/);
@@ -119,4 +122,20 @@ test('changing a URL requires a new pin rather than silently reusing another ver
   const source = await readFile(entry, 'utf8');
   await writeFile(entry, source.replace(remoteURL, remoteURL.replace('v3.2.4', 'v3.2.3')));
   await assert.rejects(buildProgramProjectInMemory(root, {fetchImpl:noNetwork}), {code:'E_REMOTE_UNLOCKED'});
+});
+
+test('TOC demo allows the configured LAN page and retains website exclusions', async () => {
+  const {opendesk: {pageRules}} = JSON.parse(await readFile(path + '/package.json', 'utf8'));
+  for (const url of [
+    'http://127.0.0.1:43111/demo-form.html',
+    'http://192.168.30.8:8000/',
+    'http://192.168.30.8:8000/article.html'
+  ]) assert.equal(pageProgramUrlMatches(pageRules, url), true, url);
+  for (const url of [
+    'http://127.0.0.1:43111/private/notes.html',
+    'http://192.168.30.8:8000/private/notes.html',
+    'http://localhost:43111/demo-form.html',
+    'http://192.168.30.9:8000/',
+    'https://example.com/'
+  ]) assert.equal(pageProgramUrlMatches(pageRules, url), false, url);
 });

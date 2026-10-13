@@ -85,6 +85,13 @@ test('the compatibility adapter uses the same URL while the project keeps its or
   assert.equal(pkg.opendesk.entryMode, 'component');
   assert.equal(pkg.opendesk.framework, 'react');
   assert.equal(pkg.opendesk.pageRules.world, 'USER_SCRIPT');
-  assert.deepEqual(pkg.opendesk.pageRules.matches, ['http://127.0.0.1:43111/*']);
+  assert.deepEqual(pkg.opendesk.pageRules.matches, [
+    'http://127.0.0.1:43111/*',
+    'http://192.168.30.8:8000/*'
+  ]);
+  assert.deepEqual(pkg.opendesk.pageRules.excludeMatches, [
+    'http://127.0.0.1:43111/private/*',
+    'http://192.168.30.8:8000/private/*'
+  ]);
   assert.equal(pkg.dependencies, undefined, 'a locked HTTPS import needs no duplicate npm declaration');
 });
