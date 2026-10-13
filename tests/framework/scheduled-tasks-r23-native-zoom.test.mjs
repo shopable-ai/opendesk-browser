@@ -58,10 +58,11 @@ test('actual installed Chrome runner zooms at 125%, 150%, 200% with keyboard and
     sourceSha256:sha(await readFile('src/ui/scheduled-task-workbench.js')),
     package:pkg,platform:process.platform,chromeBinary:binary,
     kind:'Actual Chrome tab zoom through chrome.tabs.setZoom, not CDP viewport emulation',
-    zoom:[],screenshots:[],
+    zoom:[],cssViewportSimulations:[],screenshots:[],
     limitations:['Standalone scheduled-runner TAB, NOT physical Side Panel width resize',
       'No installed scheduled Task, Fire, Run or Result is fabricated',
-      'Keyboard focus/long text is a targeted check, not a full accessibility audit']};
+      'Keyboard focus/long text is a targeted check, not a full accessibility audit',
+      'CSS widths below use CDP device metrics on the genuine runner TAB, never physical Side Panel width']};
   let proc,client,passed=false,stderr='';
   await mkdir(OUT,{recursive:true});
   t.after(async()=>{
@@ -161,5 +162,56 @@ test('actual installed Chrome runner zooms at 125%, 150%, 200% with keyboard and
   assert(tabFocus&&tabFocus!=='schedule-title','native Tab must advance actual focus at 200%');
   report.keyboardFocus={from:'schedule-title',to:tabFocus,tabTrustedInput:true};
   await evaluate(client,'chrome.tabs.setZoom('+tabId+',1)',session);
+  // Browser-installed extension markup at simulated CSS widths is a separate
+  // evidence tier from the genuine tabs.setZoom measurements above. Never call
+  // these actual Chrome Side Panel physical-width results.
+  for(const width of [220,300,320,360,420,520]){
+    await client.send('Emulation.setDeviceMetricsOverride',{
+      width,height:820,deviceScaleFactor:1,mobile:false},session);
+    await sleep(120);
+    const layout=await evaluate(client,'(()=>{'+
+      'const q=s=>document.querySelector(s);const box=s=>{const n=q(s);if(!n)return null;'+
+      'const r=n.getBoundingClientRect();return {left:r.left,right:r.right,top:r.top,bottom:r.bottom,width:r.width,height:r.height}};};'+
+      'const label=q("label[for=schedule-title]");const range=document.createRange();'+
+      'range.selectNodeContents(label.firstChild);'+
+      'const fieldLabelGap=box("#schedule-title").top-range.getBoundingClientRect().bottom;'+
+      'const titleToFieldGap=box("#schedule-title").top-box("#schedule-source-section-title").bottom;'+
+      'const select=box("#schedule-task-select"),newScript=box("#schedule-new-script"),manage=box("#schedule-manage-tasks");'+
+      'const search=box("#schedule-timezone-search"),zone=box("#schedule-timezone");'+
+      'const doc=document.documentElement;return {width:innerWidth,scrollWidth:doc.scrollWidth,'+
+      'formVisible:!q("#schedule-form").hidden,source:{select,newScript,manage},search,zone,'+
+      'fieldLabelGap,titleToFieldGap,title:q("#schedule-title").value};})()',session);
+    assert.equal(layout.formVisible,true);
+    assert.equal(layout.title,longTitle,'preserve unsubmitted form draft at '+width+'px');
+    assert(layout.scrollWidth<=layout.width+1,
+      'no page horizontal scrolling in genuine extension TAB CSS viewport '+width);
+    assert(layout.source.select.right<=layout.source.newScript.left+1,
+      'source and create icon cannot overlap at '+width);
+    assert(layout.source.newScript.right<=layout.source.manage.left+1,
+      'both source actions must remain independent click regions at '+width);
+    assert(layout.source.newScript.width>=33&&layout.source.manage.width>=33,
+      'source action hit targets remain at least 34 CSS px at '+width);
+    assert(layout.search&&layout.zone,'IANA search and native select remain present at '+width);
+    assert(layout.fieldLabelGap>=6,
+      'real label/control computed gap must be visible at '+width);
+    const picture=await snapshot(client,session,'runner-css-viewport-'+width);
+    report.screenshots.push(picture);
+    report.cssViewportSimulations.push({...layout,viewportMethod:'CDP emulation on actual WXT runner tab',
+      screenshot:picture});
+  }
+  // A real pointer navigation to installed Task management cannot drop the
+  // form draft on return, even without a task already installed in this Profile.
+  await client.send('Emulation.setDeviceMetricsOverride',{
+    width:320,height:820,deviceScaleFactor:1,mobile:false},session);
+  await click(client,session,'#schedule-manage-tasks');
+  const managerShown=await evaluate(client,
+    '!document.querySelector("#schedule-task-manager").hidden',session);
+  assert.equal(managerShown,true,'native pointer opened the real installed Task manager');
+  await click(client,session,'#schedule-manager-back');
+  assert.equal(await evaluate(client,expr('#schedule-title')+'.value',session),longTitle,
+    'installed Task manager roundtrip must preserve the unsaved title');
+  report.managerReturn={cssViewport:320,source:'actual Chrome pointer',
+    preservedDraft:true};
+  await client.send('Emulation.clearDeviceMetricsOverride',{},session);
   passed=true;
 });
