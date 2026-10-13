@@ -134,3 +134,38 @@
 - **第一次压力工作流 FAIL（保留记录）：** `86311c39` 的 [CI 38356321392](https://github.com/shopable-ai/opendesk-browser/actions/runs/38356321392)，Linux/macOS 在测试加载前因缺少 native launcher 依赖 `acorn` 失败；不能用于评价 IDB 性能。随后 `6b7bbb1a` 补充锁定依赖 `npm ci --ignore-scripts --no-audit --no-fund`，候选 [CI 38356507738](https://github.com/shopable-ai/opendesk-browser/actions/runs/38356507738) 需以实际结果核查。
 - **回归：** `5a497985` 的 [Scheduled Tasks 组件/构建 CI 38355091731](https://github.com/shopable-ai/opendesk-browser/actions/runs/38355091731) PASS、[Linux Chrome 基础/生命周期 38355091653](https://github.com/shopable-ai/opendesk-browser/actions/runs/38355091653) PASS、[Cloud Control 组件与包 CI 38355091660](https://github.com/shopable-ai/opendesk-browser/actions/runs/38355091660) PASS；其他双平台及高倍率视觉以原生专项单独判定。
 - **R2 Final 闸门：** 未验证用户 Mac Profile、Chrome 真正 125/150/200% 缩放、真实 Worker/Host 副作用竞态故障注入全矩阵和十项质量维度独立 ≥95；不得标记 Final。
+
+## R2.7 正式 UI 生产同步（2026-10-13）
+
+### 目标和实际变更
+
+本轮直接更改 `main` 生产文件，不另建页面/调度器/Runner。参考唯一原型 `examples/ui/scheduled-tasks-r2.5-preview.html`，处理先前 R2.5 视觉预览与真正 `src/ui/tool.html` 页面不一致的问题。原设计中已存在的四部分表单、Task 固定身份、IANA 时区、内联字段错误、二阶段保存、计划列表/历史分页、已有可见 Host 都保留。发现 R1/R2.5/R2.6 在同一 `tool-shell.css` 叠加：原 `.schedule-form .od-field` 同时命中作为输入组件的 `input.od-field` / `select.od-field`，导致字体、布局和垂直排列相互干扰。修复为仅作用于 `label.od-field` 的容器布局，并恢复使用 R27/R20 的颜色及输入边框 Token。
+
+真实更改：
+- `src/ui/tool.html`：计划列表标题旁的唯一主操作「新建」，运行页为次要入口；创建表单增加目标 URL 帮助、没有可用安装任务时可执行的开发入口、执行时区摘要及按需展开的搜索/选择、醒目的下次执行区域、第五步检查提示；独立运行页将重点任务/时间提前，宿主与最近结果压缩为两项摘要，完整当前/下次状态折叠。
+- `src/ui/scheduled-task-workbench.js`：运行视图和新建按钮随二级页面联动；在不修改已固定时区和任务身份的前提下，支持搜索折叠、时区名称摘要、编辑时保留原选择、下次执行时间动态提示、异常焦点定位、Escape 退回及无可用 Task 提示；`NEEDS_ATTENTION` 提供真实任务管理入口，原 `host.stop` / `saveSchedule` / `changeSchedule` 继续复用。
+- `src/ui/tool-shell.css`：表单字段、输入/标签节奏、任务选择栏和 320px 窄宽度、时区摘要、时间重点框、运行页主次布局及折叠详情，全部作用域限定到原 Scheduled Tasks 页面，不新增第二套 Token。
+- `examples/ui/scheduled-tasks-r2.5-preview.html`：**只更新原来的唯一 HTML**，同步可折叠时区选择和交互；该文件仍是固定样例/模拟，不是真正的安装或执行。
+- `tests/environment/scheduled-task-ui-r1.test.mjs` 与 `tests/framework/scheduled-tasks-r23-native-zoom.test.mjs`：增加生产/原型一致性断言，并让现有 Chrome 真正 `tabs.setZoom` 测试通过真实点击展开时区再输入搜索，验证收起后值不变；不将 CDP viewport 误报为真实 Side Panel 宽度。
+
+### R2.5 原型 / R2.7 生产 / 真正 Chrome 验收矩阵
+
+| 页面或交互 | R2.5/R2.7 唯一原型 | R2.7 生产源码 | 最新提交真实 Chrome |
+| --- | --- | --- | --- |
+| 计划列表与主操作 | UI 模拟 | SOURCE_UPDATED：列表主动作移至标题，运行页次要化 | NATIVE_PENDING |
+| 创建计划 | UI 模拟 | SOURCE_UPDATED：五段阅读节奏、字段与下一次执行卡 | NATIVE_PENDING |
+| 编辑计划 | UI 模拟 | SOURCE_PRESERVED：原固定任务、时区、离开确认 | NATIVE_PENDING |
+| 时区选择 | UI 模拟 | SOURCE_UPDATED：设备默认摘要、更改后才展开搜索与选择 | NATIVE_PENDING |
+| 检查确认保存 | UI 模拟 | SOURCE_PRESERVED：两阶段、固定位置信息与修正焦点 | NATIVE_PENDING |
+| 已安装任务管理 | UI 模拟 | SOURCE_UPDATED：无任务入口、NEEDS_ATTENTION 恢复入口 | NATIVE_PENDING |
+| 历史记录 | UI 模拟 | SOURCE_PRESERVED：按需展开，每次20条分页与审计身份 | NATIVE_PENDING |
+| 独立运行页 | UI 模拟 | SOURCE_UPDATED：单焦点优先，两项摘要、其他状态可展开 | NATIVE_PENDING |
+
+### 本轮验证等级及明确未完成项
+
+- **SOURCE_UPDATED**：代码经 GitHub 连接器直接写入 `main`，每次使用目标文件当前 blob SHA 写入；并行 Agent 的其他文件改动未重置、覆盖或强推。HTML 的 ID 唯一性、预览与生产 JavaScript 语法已在连接器返回源码中逐项检查通过；**语法检查不是 Node/Build/Chrome 验收。**
+- **CI_PENDING / NATIVE_PENDING**：应基于最新固定 SHA 的 `Scheduled Tasks R1 component and package` 与 `Scheduled Tasks R2.3 genuine Chrome zoom & focus` GitHub Actions 检查 `npm run check` / `build` / `build:dev` / `verify`、R2.7 新断言以及 linux+macOS 浏览器执行。不能继承旧 SHA 的 PASS 来替代新修改。
+- **用户 Mac Profile NOT_TESTED**：本会话无权访问用户本地 `/Users/shopme/Documents/workspace/opendesk-browser`，亦不能检查正在加载的扩展目录、旧缓存/重新加载状态；用户本机 Side Panel 320/360/420 CSS px、物理 Side Panel 与 125/150/200% Chrome 缩放矩阵仍须单独验收。真实 runner TAB `tabs.setZoom` 不等于实体 Side Panel 证据。
+- **视觉截图 NOT_VERIFIED**：本轮未取得同场景“修改前真实 Chrome”“修改后原型”和“修改后真实 Mac Chrome 扩展”三套可核对的截图；若 CI 上传 `scheduled-r23-real-zoom` 也必须检查 SHA、Chrome version、包 fingerprint 与报告，不能只凭 artifact 名称写 PASS。
+- **质量评分：NOT_SCORED**：没有完整实际浏览器视觉、可访问性、权限和安全回归证据之前，视觉设计、排版间距、信息层级、交互效率、表单体验、功能完整性、响应式、可访问性、安全正确性、Chrome 原生交付均不得填充人为的 95+ 分。
+- **原底层安全不变**：没有触碰 `Chrome Alarms`、ScheduleService、FireId、Controller Authority、RunHost、共享槽、Run/Result、授权生命周期、历史存储与 `UNKNOWN` 不重放规则。
