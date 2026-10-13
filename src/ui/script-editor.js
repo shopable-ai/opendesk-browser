@@ -799,7 +799,13 @@ export function createScriptEditor({client, currentPageTarget, development=false
       }
       if((componentSnapshot||frozenComponent)&&(browserEffectUnknown||browserManagedPreview?.recoveredOnly))
         throw {code:'E_EFFECT_UNKNOWN',message:'上次受管运行仍需清理；已查询到的原回执只用于停止，不会自动重新运行'};
-      permission=requireChromePermissions({api,request:{origins:[permissionPattern(captured.url)]}});
+      // Source permission is requested synchronously from this trusted Run
+      // gesture if the editor has already observed a missing Chrome grant.
+      // Website permission remains independently read-only/Authority gated.
+      permission=Promise.all([
+        requireChromePermissions({api,request:{origins:[permissionPattern(captured.url)]}}),
+        componentMode==='javascript'?dependencyInstaller.confirmRun(event):Promise.resolve(true)
+      ]);
     } catch(error) {displayPreview('error',(error.code||'E_SOURCE')+'：'+(error.message||error));return;}
     const managedInput=componentSnapshot||frozenComponent;
     prepareTicket=++browserPrepareGeneration;

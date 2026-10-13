@@ -12,7 +12,7 @@ export function createPageDependencyInstaller({client,api,document:doc,resolver,
     list=get('page-dependency-list'),prepareButton=get('page-dependency-prepare'),
     reviewPanel=get('page-dependency-review'),reviewList=get('page-dependency-review-list'),
     approveButton=get('page-dependency-approve'),lockSelector=get('page-dependency-lock');
-  if(!panel)return Object.freeze({update(){},refresh(){},dispose(){}});
+  if(!panel)return Object.freeze({update(){},refresh(){},confirmRun(){return Promise.resolve(true);},dispose(){}});
   const listeners=[];
   function listen(node,type,fn){node.addEventListener(type,fn);listeners.push([node,type,fn]);}
   const permissions=createChromePermissionConsent({api,onChange(){
@@ -33,10 +33,12 @@ export function createPageDependencyInstaller({client,api,document:doc,resolver,
        currentReport()?.manifestDigest!==digest)
       throw Object.assign(new Error('源码、程序 ID 或依赖清单已变化；迟到下载/审核结果不会使用'),{code:'E_DEPENDENCY_STALE'});
   };
+  const preferred=row=>row.sourceKind==='packaged'?'packaged':
+    row.cacheChoices?.length===1?'cache:'+row.cacheChoices[0].sha256:
+    row.sharedCacheChoices?.length===1?'shared:'+row.sharedCacheChoices[0].sha256:'download';
   const choices=()=>{
     if(!report)return [];
-    return report.requires.map(row=>({row,value:selected.get(row.order)||
-      (row.sourceKind==='packaged'?'packaged':'download')}));
+    return report.requires.map(row=>({row,value:selected.get(row.order)||preferred(row)}));
   };
   const networkOrigins=()=>[...new Set(choices()
     .filter(({row,value})=>row.sourceKind==='https'&&value==='download'&&!row.downloadError)
@@ -63,7 +65,7 @@ export function createPageDependencyInstaller({client,api,document:doc,resolver,
           picker.append(option('shared:'+choice.sha256,'跨程序复用字节 · SHA '+choice.sha256.slice(0,16)+'…（需本程序独立审核）'));
       }
       picker.disabled=!!row.downloadError;
-      picker.value=selected.get(row.order)||(row.sourceKind==='packaged'?'packaged':'download');
+      picker.value=selected.get(row.order)||preferred(row);
       container.append(picker);
       if(row.downloadError)paragraph(container,row.downloadError.code+'：'+row.downloadError.message);
       fragments.push(container);
@@ -148,6 +150,18 @@ export function createPageDependencyInstaller({client,api,document:doc,resolver,
       messageState='error';render(false);
     }
   }
+  // Called synchronously from the real Run click. A prepared missing-origin
+  // observation may show Chrome's native grant prompt; no async follow-up
+  // is allowed to manufacture a user gesture. The Broker independently checks
+  // actual permissions when it needs to fetch new bytes.
+  function confirmRun(event){
+    if(!event?.isTrusted)return Promise.reject(Object.assign(new Error('请主动点击运行'),{code:'E_GESTURE'}));
+    if(disposed)return Promise.reject(Object.assign(new Error('编辑器已关闭'),{code:'E_HOST_CLOSED'}));
+    if(!report||currentReport()!==report)return Promise.resolve(true);
+    const origins=networkOrigins();
+    if(!origins.length||!readyForPermission)return Promise.resolve(true);
+    return permissions.confirm(event,{origins});
+  }
   function refresh(){
     generation++;permissionGeneration++;busy=false;review=null;reviewSource=null;reviewProgramId=null;
     message='';messageState='idle';redrawReview();render(false);
@@ -220,7 +234,7 @@ export function createPageDependencyInstaller({client,api,document:doc,resolver,
   listen(reviewList,'change',()=>render());
   listen(lockSelector,'change',event=>{if(!busy){resolver.chooseLock(event.target.value);render();}});
   render(false);
-  return Object.freeze({update:()=>render(false),refresh, get busy(){return busy;},dispose(){
+  return Object.freeze({update:()=>render(false),refresh,confirmRun,get busy(){return busy;},dispose(){
     if(disposed)return;disposed=true;generation++;permissionGeneration++;permissions.dispose();
     for(const [node,type,fn] of listeners)node.removeEventListener(type,fn);
   }});

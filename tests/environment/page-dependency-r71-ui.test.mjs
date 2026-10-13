@@ -68,6 +68,7 @@ function fixture(){
     getProgramId:()=>programId});
   const click=id=>{inClick=true;nodes.get(id).emit('click');inClick=false;};
   return {nodes,resolver,installer,click,sha,locks,prepared,approvals,inspected,
+    runClick:()=>{inClick=true;const p=installer.confirmRun({isTrusted:true});inClick=false;return p;},
     get requests(){return requests;},get fetches(){return fetches;},
     setProgram:id=>{programId=id;resolver.refresh();installer.refresh();},
     dispose:()=>{installer.dispose();resolver.dispose();}};
@@ -124,4 +125,14 @@ test('R7.1 second program visibly chooses shared SHA, reviews independently, and
   assert.equal(f.approvals.at(-1).programId,'beta');
   assert.notEqual(f.locks.get('alpha'),f.locks.get('beta'));
   assert.equal(f.resolver.capture().lockId,f.locks.get('beta'));
+});
+
+test('R7.2 direct Run uses the real synchronous Chrome source-permission gesture, without manual SHA approval',async t=>{
+  const f=fixture();t.after(f.dispose);await settle();
+  await assert.rejects(f.installer.confirmRun({isTrusted:false}),{code:'E_GESTURE'});
+  assert.equal(f.requests,0);
+  await f.runClick();
+  assert.equal(f.requests,1,'first Run must request missing CDN source permission during the click');
+  assert.equal(f.prepared.length,0,'permission alone cannot download');
+  assert.equal(f.approvals.length,0,'permission cannot establish a script lock');
 });
