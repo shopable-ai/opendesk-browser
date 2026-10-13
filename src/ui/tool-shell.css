@@ -510,8 +510,13 @@
 .workflow-composer-actions{display:flex;justify-content:flex-end;align-items:center;gap:var(--space-2);flex-wrap:nowrap}
 /* Send, stop and settings always keep the public 34px icon footprint, including first use. */
 .workflow-composer .workflow-send-button{flex:none}
-.workflow-ai-data-notice{min-width:0;margin:var(--space-2) 0 0;font-size:var(--od-note-size);line-height:1.55;color:var(--od-sub);overflow-wrap:anywhere}
-.workflow-ai-data-notice[data-consent="required"]{color:var(--od-ink)}
+/* First-use consent stays completely out of the normal compact composer. */
+.workflow-ai-data-review{display:grid;gap:var(--space-2);min-width:0;margin-top:var(--space-3);padding-top:var(--space-3);border-top:1px solid var(--od-line)}
+.workflow-ai-data-review h3{margin:0;color:var(--od-ink);font-size:var(--od-body-size);line-height:1.45;font-weight:700;overflow-wrap:anywhere}
+.workflow-ai-data-review p{margin:0;color:var(--od-sub);font-size:var(--od-note-size);line-height:1.55;overflow-wrap:anywhere}
+.workflow-ai-review-actions{display:flex;justify-content:flex-end;align-items:center;gap:var(--space-2);flex-wrap:wrap}
+.workflow-ai-review-actions button{min-height:34px;padding:var(--space-2) var(--space-3);font-size:var(--od-note-size)}
+@media(max-width:280px){.workflow-ai-review-actions button{flex:1 1 90px}}
 .workflow-ai-data-details{margin:var(--space-3) 0 0;padding-top:var(--space-2);border-top:1px solid var(--od-line)}
 .workflow-ai-data-details summary{min-height:28px;cursor:pointer;font-size:12px;font-weight:650;color:var(--od-sub)}
 .workflow-ai-data-details p{overflow-wrap:anywhere}
