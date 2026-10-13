@@ -139,7 +139,7 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
   const browserIntents=new Map(),INTENT_TTL=15000;
   // A permission or installed-package change must fence requests that are already in fetch().
   const activeNetworkRequests=new Set();
-  const intentOperations=new Set(['browser.tabs.create','browser.tabs.activateOwned','browser.tabs.pinOwned','browser.tabs.removeOwned','browser.network.request',
+  const intentOperations=new Set(['browser.tabs.create','browser.tabs.activateOwned','browser.tabs.pinOwned','browser.tabs.reloadOwned','browser.tabs.removeOwned','browser.network.request',
     'browser.network.observe.start','browser.network.observe.export','browser.screenshot.captureVisible']);
   const observationOperations=new Set(['browser.network.observe.getStatus','browser.network.observe.stop',
     'browser.events.read','browser.events.close']);
@@ -348,6 +348,7 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
       operation==='browser.tabs.activateOwned'?Boolean(api.tabs?.get&&api.tabs?.update&&api.webNavigation?.getFrame):
       operation==='browser.tabs.getOwned'||operation==='browser.tabs.listOwned'?Boolean(api.tabs?.get&&api.webNavigation?.getFrame):
       operation==='browser.tabs.pinOwned'?Boolean(api.tabs?.get&&api.tabs?.update&&api.webNavigation?.getFrame):
+      operation==='browser.tabs.reloadOwned'?Boolean(api.tabs?.get&&api.tabs?.reload&&api.webNavigation?.getFrame):
       operation==='browser.tabs.removeOwned'?Boolean(api.tabs?.get&&api.tabs?.remove&&api.webNavigation?.getFrame):
       operation==='browser.sidePanel.openSelf'?Boolean(api.sidePanel?.open):
       operation==='browser.network.request'?typeof fetchImpl==='function':
@@ -432,6 +433,7 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
         if(operation==='browser.tabs.create')return tabHost.create(checked,context);
         if(operation==='browser.tabs.activateOwned')return tabHost.activateOwned(checked,context);
         if(operation==='browser.tabs.pinOwned')return tabHost.pinOwned(checked,context);
+        if(operation==='browser.tabs.reloadOwned')return tabHost.reloadOwned(checked,context);
         if(operation==='browser.tabs.removeOwned')return tabHost.removeOwned(checked,context);
         if(operation==='browser.screenshot.captureVisible'){
           // One-use approval was spent above; only the trusted Host may assert

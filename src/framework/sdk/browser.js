@@ -72,6 +72,7 @@ export function createBrowserSdk({request,context='sidebar-tool'}={}){
     tabs:Object.freeze({create:method('browser.tabs.create'),activateOwned:method('browser.tabs.activateOwned'),
       getOwned:method('browser.tabs.getOwned'),listOwned:method('browser.tabs.listOwned'),
       pinOwned:method('browser.tabs.pinOwned'),
+      reloadOwned:method('browser.tabs.reloadOwned'),
       removeOwned:method('browser.tabs.removeOwned')}),
     sidePanel:Object.freeze({openSelf:()=>ask('browser.sidePanel.openSelf')}),
     network:Object.freeze({request:method('browser.network.request'),watch,

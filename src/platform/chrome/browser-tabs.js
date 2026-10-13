@@ -180,6 +180,26 @@ export function createBrowserTabHost({api=globalThis.chrome,authorize,clock=Date
   }catch{throw fail('E_OUTCOME_UNKNOWN','Authority or document changed after native pinning')}
   return {pinned:args.pinned};
  }
+ async function reloadOwned(args,context){
+  input(args,'tabRef');
+  if(typeof args.tabRef!=='string'||!tokenPattern.test(args.tabRef))
+    throw fail('E_SCHEMA','Only an owned TabRef is accepted');
+  if(typeof api.tabs?.reload!=='function')throw fail('E_CHROME_UNSUPPORTED');
+  const before=await resolve(args.tabRef,context);
+  await approved('browser.tabs.reloadOwned',before.origin,context);
+  const target=await resolve(args.tabRef,context);
+  if(target.tabId!==before.tabId||target.documentId!==before.documentId)
+    throw fail('E_DOCUMENT_STALE','Tab document changed before reload');
+  // Reload replaces the document, so consume the old TabRef BEFORE Chrome can
+  // apply any side effect. Unknown native outcome is never blindly retried.
+  purge(args.tabRef);
+  try{await api.tabs.reload(before.tabId,{bypassCache:false})}
+  catch{throw fail('E_OUTCOME_UNKNOWN','Chrome reload may have occurred; do not replay')}
+  try{await approved('browser.tabs.reloadOwned',before.origin,context)}
+  catch{throw fail('E_OUTCOME_UNKNOWN','Grant changed after Chrome accepted reload')}
+  // Chrome acknowledges the request, not the new document's load completion.
+  return {reloadRequested:true,tabRefRevoked:true};
+ }
  async function removeOwned(args,context){
   input(args,'tabRef');
   if(typeof api?.tabs?.remove!=='function')throw fail('E_CHROME_UNSUPPORTED');
@@ -197,7 +217,7 @@ export function createBrowserTabHost({api=globalThis.chrome,authorize,clock=Date
   return {closed:true};
  }
  const revokeTool=id=>{for(const [ref,row] of refs)if(row.owner.startsWith(id+':'))purge(ref)};
- return Object.freeze({create,activateOwned,resolve,getOwned,listOwned,pinOwned,removeOwned,invalidateTab,revokeTool,
+ return Object.freeze({create,activateOwned,resolve,getOwned,listOwned,pinOwned,reloadOwned,removeOwned,invalidateTab,revokeTool,
   dispose:()=>{refs.clear();byTool.clear()},
   diagnostics:()=>({references:refs.size})});
 }
