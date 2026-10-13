@@ -212,7 +212,7 @@ export function normalizeBrowserOperation(operation,args={}){
         tail==='observe.start'?['url','durationMs','maxEvents']:
         tail==='set'?['url','name','value','domain','path','secure','httpOnly','sameSite','expirationDate','storeId','partitionKey']:
         tail==='remove'?['url','name','domain','path','storeId','partitionKey']:
-        tail==='clearSite'?['url','storeId','partitionKey','preview','expectedCount','maxCookies']:
+        tail==='clearSite'?['url','storeId','partitionKey','preview','previewRef','expectedCount','maxCookies']:
         tail==='get'?['url','name','domain','path','storeId','partitionKey','includeValues']:
         tail==='getAll'?['url','name','storeId','partitionKey','includeValues']:
           ['url','storeId','partitionKey'];
@@ -263,12 +263,17 @@ export function normalizeBrowserOperation(operation,args={}){
       }
       if(tail==='clearSite'){
         if(args.preview!==undefined&&typeof args.preview!=='boolean')throw fail('E_SCHEMA');
+        if(args.previewRef!==undefined&&
+          (typeof args.previewRef!=='string'||!/^[0-9a-f-]{36}$/i.test(args.previewRef)))
+          throw fail('E_SCHEMA','Clear previewRef must be an opaque Host receipt');
         if(args.expectedCount!==undefined&&(!Number.isSafeInteger(args.expectedCount)||args.expectedCount<0||args.expectedCount>50))
           throw fail('E_SCHEMA');
         if(args.maxCookies!==undefined&&(!Number.isSafeInteger(args.maxCookies)||args.maxCookies<1||args.maxCookies>50))
           throw fail('E_SCHEMA');
-        if(args.preview!==true&&args.expectedCount===undefined)
-          throw fail('E_SCHEMA','Clear requires a fresh reviewed expectedCount');
+        if(args.preview!==true&&(args.expectedCount===undefined||args.previewRef===undefined))
+          throw fail('E_SCHEMA','Clear requires the exact unexpired previewRef and expectedCount');
+        if(args.preview===true&&(args.expectedCount!==undefined||args.previewRef!==undefined))
+          throw fail('E_SCHEMA','Preview cannot import a previous approval');
       }
       if(tail==='observe.start'){
         if(args.durationMs!==undefined&&(!Number.isSafeInteger(args.durationMs)||args.durationMs<1000||args.durationMs>30000)||

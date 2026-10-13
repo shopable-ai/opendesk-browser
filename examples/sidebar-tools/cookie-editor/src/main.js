@@ -412,12 +412,14 @@ async function deleteBrowserCookie(row){
 }
 async function clearBrowserSite(){
   if(busy||pending||!liveTarget||targetPending)return;
-  const id=epoch,target=liveTarget;setBusy(true);let count;
+  const id=epoch,target=liveTarget;setBusy(true);let count,previewRef;
   try{
     const preview=await browserSdk().cookies.clearSite({url:target.url,preview:true,maxCookies:50});
     if(!stillCurrent(id,target))return;
-    count=preview?.matched;
-    if(!Number.isSafeInteger(count)||count<0||count>50)throw new Error('无效的 Host-only 清理范围');
+    count=preview?.matched;previewRef=preview?.previewRef;
+    if(!Number.isSafeInteger(count)||count<0||count>50||
+       typeof previewRef!=='string'||!/^[0-9a-f-]{36}$/i.test(previewRef))
+      throw new Error('Host 未返回可绑定的真实 Cookie 清理预览回执');
     if(!count){status('所选 Store/Partition 下没有本主机 Host-only Cookie。');return;}
   }catch(e){if(stillCurrent(id,target))status('清理预览被拒绝：'+(e.code||'E_COOKIE_CLEAR')+' '+e.message,'error');return;}
   finally{if(id===epoch){setBusy(false);render();}}
@@ -427,7 +429,7 @@ async function clearBrowserSite(){
     if(!stillCurrent(id,target))return;
     setBusy(true);
     try{
-      const result=await browserSdk().cookies.clearSite({url:target.url,expectedCount:count,maxCookies:50});
+      const result=await browserSdk().cookies.clearSite({url:target.url,previewRef,expectedCount:count,maxCookies:50});
       if(stillCurrent(id,target))status('Chrome 清理完成：删除 '+result.removed+
         ' 条，剩余 '+result.remaining+' 条。','success');
     }catch(e){if(stillCurrent(id,target))status('清理部分生效或失败（'+(e.code||'E_COOKIE_CLEAR')+

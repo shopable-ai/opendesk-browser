@@ -128,15 +128,29 @@ test('R9 host-only site cleanup is previewed, count-fenced and preserves domain/
   assert.equal(preview.preview,true);
   assert.equal(preview.matched,2);
   assert.equal(f.state.records.length,5);
-  await assert.rejects(f.run('clearSite',{expectedCount:1,maxCookies:50}),reject('E_COOKIE_STALE'));
-  const receipt=await f.run('clearSite',{expectedCount:2,maxCookies:50});
+  assert.match(preview.previewRef,/^[0-9a-f-]{36}$/i);
+  await assert.rejects(f.run('clearSite',{expectedCount:1,previewRef:preview.previewRef,maxCookies:50}),reject('E_COOKIE_STALE'));
+  const refreshed=await f.run('clearSite',{preview:true,maxCookies:50});
+  const receipt=await f.run('clearSite',{expectedCount:2,previewRef:refreshed.previewRef,maxCookies:50});
   assert.equal(receipt.preview,false);
   assert.equal(receipt.removed,2);
   assert.equal(receipt.remaining,0);
   assert(f.state.records.some(row=>row.name==='parent'&&!row.hostOnly));
   assert(f.state.records.some(row=>row.name==='foreign'&&row.storeId==='1'));
   assert(f.state.records.some(row=>row.name==='chips'&&row.partitionKey));
+  await assert.rejects(f.run('clearSite',{expectedCount:2,previewRef:refreshed.previewRef,maxCookies:50}),
+    reject('E_COOKIE_STALE'),'A consumed preview must not permit a second deletion');
 });
+test('R9 clear preview refuses replacement cookies even when the count is unchanged',async()=>{
+  const f=fixture(),preview=await f.run('clearSite',{preview:true,maxCookies:50});
+  f.state.records=f.state.records.filter(row=>!(row.name==='sid'&&row.path==='/account'));
+  f.state.records.push({name:'new-cookie',value:'NOT_APPROVED',domain:'shop.example.test',
+    path:'/',hostOnly:true,secure:true,storeId:'0',session:true});
+  await assert.rejects(f.run('clearSite',{expectedCount:preview.matched,
+    previewRef:preview.previewRef,maxCookies:50}),reject('E_COOKIE_STALE'));
+  assert(f.state.records.some(row=>row.name==='new-cookie'));
+});
+
 
 test('R9 observation sessions are tool-owned, bounded, redacted and revoked',async()=>{
   const f=fixture();
