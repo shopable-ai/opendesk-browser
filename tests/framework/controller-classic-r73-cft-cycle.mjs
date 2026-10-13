@@ -7,7 +7,7 @@ import {createHash} from 'node:crypto';
 export const CLASSIC_URL='https://cdn.jsdelivr.net/npm/mitt@3.0.1/dist/mitt.umd.js';
 const ID_A='r73-controller-mitt-a',ID_B='r73-controller-mitt-b';
 const SOURCE=[
-  '// @opendesk-classic '+CLASSIC_URL,
+  '// @require '+CLASSIC_URL,
   'async function main(){',
   '  const bus=globalThis.mitt();',
   '  const values=[];',
