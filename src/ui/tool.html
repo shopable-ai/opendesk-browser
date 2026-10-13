@@ -334,44 +334,58 @@
   <div id="workbench-cloud" role="tabpanel" aria-labelledby="tab-cloud" class="od-page" data-workbench-page="cloud" hidden>
     <section class="cloud-panel od-stack" aria-label="云控管理">
       <header class="cloud-panel-head od-toolbar">
-        <div class="cloud-panel-heading"><strong>云控</strong><p class="hint">与当前目标网页并排查看云任务及执行状态。</p></div>
+        <div class="cloud-panel-heading"><strong>云控</strong><p class="hint">授权一次，可信外部服务即可重复调用已安装任务</p></div>
         <button type="button" id="cloud-open-console" class="od-icon-button" title="在大页面打开云控控制台" aria-label="在新标签页打开只读云控控制台"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 5h5v5m0-5-9 9M19 14v5H5V5h5"></path></svg></button>
         <button type="button" id="cloud-overview-refresh" class="od-icon-button" title="刷新云控状态" aria-label="刷新云控状态"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 0 0-14-5L4 8m0-5v5h5M4 13a8 8 0 0 0 14 5l2-2m0 5v-5h-5"></path></svg></button>
       </header>
-      <section class="cloud-overview od-surface" aria-label="云控实时概览">
-        <p id="cloud-overview-state" role="status" aria-live="polite">正在读取云控状态…</p>
+      <section class="cloud-overview od-surface" aria-label="云控连接状态">
+        <p id="cloud-overview-state" role="status" aria-live="polite">正在检查连接与授权…</p>
         <div class="cloud-overview-metrics">
-          <div><span>提供者</span><strong id="cloud-overview-provider">检测中</strong></div>
           <div><span>连接</span><strong id="cloud-overview-connection">检测中</strong></div>
-          <div><span>执行宿主</span><strong id="cloud-overview-host">检测中</strong></div>
-          <div><span>执行槽</span><strong id="cloud-overview-slot">检测中</strong></div>
-          <div><span>已批准任务</span><strong id="cloud-overview-tasks">—</strong></div>
-          <div><span>云请求数</span><strong id="cloud-overview-requests">—</strong></div>
+          <div><span>已授权任务</span><strong id="cloud-overview-tasks">—</strong></div>
         </div>
+        <details class="cloud-diagnostics"><summary>运行环境与历史统计</summary>
+          <div class="cloud-overview-secondary">
+            <div>提供者 <strong id="cloud-overview-provider">检测中</strong></div>
+            <div>执行宿主 <strong id="cloud-overview-host">检测中</strong></div>
+            <div>执行槽 <strong id="cloud-overview-slot">检测中</strong></div>
+            <div>云请求 <strong id="cloud-overview-requests">—</strong></div>
+          </div>
+        </details>
       </section>
-      <section class="cloud-requests od-surface" aria-label="云请求状态样本">
-        <div class="cloud-section-title od-toolbar"><strong>请求状态</strong><span class="hint">最多 5 条，脱敏显示</span></div>
+      <div id="cloud-first-run" class="cloud-first-run od-surface" hidden>
+        <p id="cloud-next-step">请先连接可信提供者。</p>
+        <button type="button" id="cloud-configure" class="od-button">连接提供者</button>
+      </div>
+      <section id="cloud-approval-section" class="cloud-approval-section od-surface" aria-label="已安装任务的远程授权" hidden>
+        <div class="cloud-section-title od-toolbar"><strong>允许远程调用的任务</strong><span class="hint">按任务独立批准</span></div>
+        <p class="cloud-privacy-note">执行完成或失败的最小状态会回传；网页数据和结果正文默认不回传。</p>
+        <fieldset class="cloud-task-approvals"><legend class="visually-hidden">选择任务，最多 32 项</legend>
+          <div id="cloud-task-list" role="group" aria-label="逐任务确认版本、网站及结果权限"><p class="hint">正在读取已安装任务…</p></div>
+          <p id="cloud-approval-summary" role="status" aria-live="polite" class="hint">请选择要允许远程调用的任务。</p>
+        </fieldset>
+        <label class="cloud-approval-confirm"><input id="cloud-consent" type="checkbox"> 我已核对所选任务的网站和固定安装版本</label>
+        <label class="cloud-approval-confirm"><input id="cloud-result-consent" type="checkbox"> 我另外同意所勾选任务向 Provider 回传结果正文</label>
+        <div class="cloud-action-row"><button id="cloud-approve" type="button" class="od-button">批准并启用</button>
+          <button id="cloud-stop" type="button" class="od-button od-button--secondary">停止远程调用</button></div>
+      </section>
+      <section class="cloud-requests od-surface" aria-label="最近的云请求">
+        <div class="cloud-section-title od-toolbar"><strong>最近请求</strong><span class="hint">最近 5 条，仅显示状态</span></div>
         <ol id="cloud-request-samples" class="cloud-request-samples"><li>暂无云请求</li></ol>
       </section>
-    <details id="cloud-hosting" class="task-scope-panel"><summary>连接与授权 <span id="cloud-brief" class="cloud-status-brief">未配对</span></summary>
-        <label>提供者地址 <input id="cloud-url" type="url" placeholder="https://可信提供者地址"></label>
+      <details id="cloud-hosting" class="task-scope-panel"><summary>连接设置与解除配对 <span id="cloud-brief" class="cloud-status-brief">未配对</span></summary>
+        <p class="hint">连接只用于经过批准的已安装任务，不能远程投递任意脚本。</p>
+        <label>可信提供者 HTTPS 地址 <input id="cloud-url" type="url" placeholder="https://provider.example"></label>
         <label>提供者身份 <input id="cloud-provider-id" autocomplete="off"></label>
-        <label>配对码 <input id="cloud-pairing-code" type="password" autocomplete="off"></label>
-        <label><input id="cloud-loopback" type="checkbox">明确允许固定本地测试提供者 HTTP/WS</label>
-        <p class="hint">云控框架已内置，无需在「工具」中导入。开发回环服务请输入 http://127.0.0.1:43112 并明确允许本地测试；普通服务器应使用 HTTPS。</p>
-        <button id="cloud-pair" type="button">配对提供者</button>
-        <p>仅能选择本地已验证、已安装且启用的任务；升级、停用或更改摘要必须重新批准。</p>
-        <fieldset class="cloud-task-approvals"><legend>选择 Controller Task（最多 32 项）</legend>
-          <div id="cloud-task-list" role="group" aria-label="逐任务确认固定版本、网站和回传许可"><p class="hint">正在读取已安装任务…</p></div>
-          <p id="cloud-approval-summary" role="status" aria-live="polite" class="hint">默认不批准新任务或升级版本。</p>
-        </fieldset>
-        <label><input id="cloud-consent" type="checkbox">我已明确核对并批准所选任务的固定版本、网站范围与安装代际</label>
-        <label><input id="cloud-result-consent" type="checkbox">再次确认允许逐项勾选的任务回传执行结果</label>
-        <div><button id="cloud-approve" type="button">批准并启用托管</button><button id="cloud-stop" type="button">停止托管并请求取消</button><button id="cloud-unpair" type="button">解除配对</button><button id="cloud-refresh" type="button">核对状态</button></div>
-        <p class="hint">关闭 Side Panel 后不承诺无人值守执行。停止后保留取消处理中、退休待核对和未知结果；正常重连复用已有授权。</p>
+        <label>一次性配对码 <input id="cloud-pairing-code" type="password" autocomplete="off"></label>
+        <label><input id="cloud-loopback" type="checkbox"> 使用本机演示连接（固定 127.0.0.1:43112）</label>
+        <p class="hint">本机 Provider 为 HTTP/WS 演示。实际远程连接必须使用可信 HTTPS/WSS。</p>
+        <button id="cloud-pair" type="button" class="od-button">完成配对</button>
+        <div class="cloud-action-row"><button id="cloud-unpair" type="button" class="od-button od-button--secondary">解除配对并撤销凭据</button>
+          <button id="cloud-refresh" type="button" class="od-button od-button--secondary">核对状态</button></div>
+        <p class="hint">停止仅暂停云控并保留配对；解除配对还会请求 Provider 撤销本机凭据。连接中断时先停止，待 Provider 可达后再解除配对。</p>
         <p id="cloud-status" role="status" aria-live="polite">尚未配对</p>
       </details>
-
       <p class="hint">云控复用「我的」已安装授权的任务和原 RunHost。切换选项卡不会启动第二个执行器；关闭 Side Panel 后不承诺任务继续运行。</p>
     </section>
   </div>
