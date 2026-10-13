@@ -136,12 +136,25 @@ export async function openProvider({directory='.local/cloud-control',port=43112,
                   job.targetPairingId===owner.pairingId&&job.targetGrantId!==b.grantId)
                   job.cancelled=true;
             }
+            if(owner.grantId!==b.grantId)owner.suspendedAt=null;
             owner.grantId=b.grantId;owner.capabilities=b.tasks;
             out={accepted:true};break;
+          }
+          case '/v1/suspend':{
+            exact(b,['grantId']);
+            const owner=state.executors[executorId];
+            if(!owner.grantId||owner.grantId!==b.grantId)fail('E_GRANT');
+            owner.suspendedAt??=clock()||1;
+            for(const j of Object.values(state.jobs))
+              if(j.state==='queued'&&j.targetExecutorId===executorId&&
+                j.targetPairingId===owner.pairingId&&j.targetGrantId===b.grantId)
+                j.cancelled=true;
+            out={suspended:true,grantId:b.grantId};break;
           }
           case '/v1/claim':{
             exact(b,['claimId','tasks','grantId']);
             if(b.grantId!==state.executors[executorId].grantId)fail('E_GRANT');
+            if(state.executors[executorId].suspendedAt)fail('E_CLOUD_STOPPED');
             out=once(executorId+':claim',b.claimId,b,()=>{
               if(![...sockets.values()].includes(executorId))fail('E_CONNECTION');
               const j=Object.values(state.jobs).find(j=>j.state==='queued'&&!j.cancelled&&
@@ -152,7 +165,9 @@ export async function openProvider({directory='.local/cloud-control',port=43112,
           case '/v1/admission':{
             exact(b,['assignmentId','runRef','resultAllowed']);const j=owned(b,executorId);
             if(typeof b.resultAllowed!=='boolean')fail('E_SCHEMA');
-            if(j.targetGrantId!==state.executors[executorId].grantId)fail('E_GRANT');exact(b.runRef,['runId','resultId','requestId','sourceHash','manifestHash','grantId']);
+            if(j.targetGrantId!==state.executors[executorId].grantId)fail('E_GRANT');
+            if(state.executors[executorId].suspendedAt)fail('E_CLOUD_STOPPED');
+            exact(b.runRef,['runId','resultId','requestId','sourceHash','manifestHash','grantId']);
             if(j.cancelled||j.assignment.leaseUntil<=clock())fail('E_LEASE');
             if(b.runRef.sourceHash!==j.task.sourceHash||
               b.runRef.manifestHash!==j.task.manifestHash)fail('E_TASK');
@@ -166,7 +181,8 @@ export async function openProvider({directory='.local/cloud-control',port=43112,
             out=once('admission',b.assignmentId,b,()=>{j.runRef=b.runRef;j.resultAllowed=b.resultAllowed;j.state='admitted';j.permit={permitId:randomUUID(),assignmentId:b.assignmentId,runRef:b.runRef,leaseUntil:j.assignment.leaseUntil,providerId:state.providerId};return j.permit;});break;}
           case '/v1/renew':{
             exact(b,['assignmentId','permitId']);const j=owned(b,executorId);if(j.cancelled||j.assignment.leaseUntil<=clock()||j.permit?.permitId!==b.permitId||
-              j.targetGrantId!==state.executors[executorId].grantId)fail('E_LEASE');j.assignment.leaseUntil=clock()+90000;out={leaseUntil:j.assignment.leaseUntil};break;}
+              j.targetGrantId!==state.executors[executorId].grantId||
+              state.executors[executorId].suspendedAt)fail('E_LEASE');j.assignment.leaseUntil=clock()+90000;out={leaseUntil:j.assignment.leaseUntil};break;}
           case '/v1/cancellation':{
             exact(b,['assignmentId']);const j=owned(b,executorId);out={cancelled:Boolean(j.cancelled),leaseUntil:j.assignment.leaseUntil};break;}
           case '/v1/receipt':{
@@ -274,6 +290,7 @@ export async function openProvider({directory='.local/cloud-control',port=43112,
             if(!owner.grantId||!owner.capabilities?.some(t=>
               t.taskId===pin.taskId&&t.manifestHash===pin.manifestHash&&t.sourceHash===pin.sourceHash))
               fail('E_GRANT','Target Executor has not approved this Task');
+            if(owner.suspendedAt)fail('E_CLOUD_STOPPED');
             out=once('seed:'+b.targetExecutorId+':'+owner.pairingId,b.requestKey,
               {task:pin,params,target,targetExecutorId:b.targetExecutorId},()=>{
               const jobId=randomUUID();
@@ -296,6 +313,7 @@ export async function openProvider({directory='.local/cloud-control',port=43112,
             if(!owner.grantId||!owner.capabilities?.some(t=>
               t.taskId===pin.taskId&&t.manifestHash===pin.manifestHash&&t.sourceHash===pin.sourceHash))
               fail('E_GRANT','Target Executor has not approved this Task');
+            if(owner.suspendedAt)fail('E_CLOUD_STOPPED');
             out=once('external:'+client.clientId+':'+client.pairingId,b.requestKey,
               {task:pin,params,target,executorId:client.executorId},()=>{
                 // Persisted limits survive restart. Check only inside the
