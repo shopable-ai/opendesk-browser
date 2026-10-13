@@ -135,6 +135,29 @@ test('unrelated Chrome site revocation never turns off Stay Focus or Time Review
     'Chrome host permission regrant must not silently reenable revoked restrictions');
 });
 
+test('trusted nested site pause retires its rule and cannot break a parent exclusion',async()=>{
+  const f=fixture();
+  const parent=mkSite('example.com','always'),child=mkSite('docs.example.com','always');
+  await f.focus.dispatch(await f.msg('focus.site.put',{site:parent}),f.sender);
+  await f.focus.dispatch(await f.msg('focus.site.put',{site:child}),f.sender);
+  await f.focus.dispatch(await f.msg('focus.enable'),f.sender);
+  assert.equal(f.rules.length,2,'parent and more specific child have separate active rules');
+  assert.equal(f.rules.find(x=>x.condition.regexFilter.includes('example\\.com')&&
+    !x.condition.regexFilter.includes('docs'))?.condition.excludedRequestDomains?.[0],
+    'docs.example.com');
+  await f.focus.dispatch(await f.msg('focus.site.put',{site:{...child,enabled:false}}),f.sender);
+  assert.equal(f.rules.length,1,'paused child must remove its own DNR rule');
+  assert.deepEqual(f.rules[0].condition.excludedRequestDomains,['docs.example.com'],
+    'parent must not leak a restriction back onto a paused child');
+  await assert.rejects(
+    f.focus.dispatch(await f.msg('focus.site.put',{site:{...child,enabled:true,subdomains:false}}),f.sender),
+    error=>error.code==='E_FOCUS_SCOPE_OVERLAP');
+  const saved=(await f.api.storage.local.get(FOCUS_STORE))[FOCUS_STORE];
+  assert.equal(saved.sites.find(s=>s.host==='docs.example.com').enabled,false,
+    'failed overlapping edit must not change committed policy');
+  assert.equal(f.rules.length,1);
+});
+
 test('DNR write failures reject mutations instead of reporting a false active block',async()=>{
   const f=fixture();
   await f.focus.dispatch(await f.msg('focus.site.put',{site:mkSite('example.com','always')}),f.sender);
