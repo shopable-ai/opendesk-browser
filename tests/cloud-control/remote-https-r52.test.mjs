@@ -14,6 +14,10 @@ const pkg=JSON.parse(await readFile(
   new URL('../../examples/tasks/form-fill.v1.opendesk-task.json',import.meta.url),'utf8'));
 const pin={taskId:pkg.manifest.taskId,version:pkg.manifest.version,
   manifestHash:pkg.manifestHash,sourceHash:pkg.manifest.program.sourceHash};
+const searchPkg=JSON.parse(await readFile(
+  new URL('../../examples/tasks/modern-search.v1.opendesk-task.json',import.meta.url),'utf8'));
+const searchPin={taskId:searchPkg.manifest.taskId,version:searchPkg.manifest.version,
+  manifestHash:searchPkg.manifestHash,sourceHash:searchPkg.manifest.program.sourceHash};
 const target={mode:'owned',url:'http://127.0.0.1:43111/demo-form.html'};
 const taskAdvertised=[{taskId:pin.taskId,
   manifestHash:pin.manifestHash,sourceHash:pin.sourceHash}];
@@ -65,14 +69,27 @@ test('one Provider serves authenticated HTTPS/WSS and target-scoped client submi
     await assert.rejects(local('/v1/submit',{},admin.adminToken),{code:'E_TLS_REQUIRED'});
     const executor=await p('/v1/pair',{executorId,pairingCode:admin.pairingCode});
     const grantId=randomUUID();
-    await p('/v1/capabilities',{grantId,tasks:taskAdvertised},executor.credential);
-    const grant=await local('/admin/client-grant',{executorId},admin.adminToken);
+    await local('/admin/register',{manifest:searchPkg.manifest,
+      manifestHash:searchPkg.manifestHash},admin.adminToken);
+    await p('/v1/capabilities',{grantId,tasks:[...taskAdvertised,{
+      taskId:searchPin.taskId,manifestHash:searchPin.manifestHash,
+      sourceHash:searchPin.sourceHash}]},executor.credential);
+    await assert.rejects(local('/admin/client-grant',
+      {executorId,tasks:[],allowResult:false},admin.adminToken),{code:'E_CLIENT_SCOPE'});
+    const grant=await local('/admin/client-grant',
+      {executorId,tasks:[pin],allowResult:false},admin.adminToken);
+    const permittedResultClient=await local('/admin/client-grant',
+      {executorId,tasks:[pin],allowResult:true},admin.adminToken);
     assert.equal(grant.executorId,executorId);
     assert.match(grant.credential,/^[a-f0-9]{64}$/);
     await assert.rejects(p('/v1/submit',{},executor.credential),{code:'E_AUTH'});
     await assert.rejects(p('/v1/submit',{},admin.adminToken),{code:'E_AUTH'});
     const seed={requestKey:'external-request-one',...pin,
       params:{name:'Remote TLS Test'},target};
+    await assert.rejects(p('/v1/submit',{
+      requestKey:'different-fixed-task',...searchPin,
+      params:{keyword:'Search not in client grant'},target},grant.credential),
+      {code:'E_CLIENT_SCOPE'});
     await assert.rejects(p('/v1/submit',{...seed,sourceUtf8:'evil()'},grant.credential),
       {code:'E_SCHEMA'});
     await assert.rejects(p('/v1/submit',{...seed,requestKey:'wrong-origin',
@@ -81,6 +98,12 @@ test('one Provider serves authenticated HTTPS/WSS and target-scoped client submi
       params:{name:123}},grant.credential),{code:'E_PARAMS'});
     const created=await p('/v1/submit',seed,grant.credential);
     assert.deepEqual(await p('/v1/submit',seed,grant.credential),created);
+    assert.deepEqual(await p('/v1/job-status',{jobId:created.jobId},grant.credential),
+      {jobId:created.jobId,state:'queued',receiptConfirmed:false});
+    await assert.rejects(p('/v1/job-status',{jobId:created.jobId},
+      permittedResultClient.credential),{code:'E_JOB'});
+    await assert.rejects(local('/v1/job-status',{jobId:created.jobId},grant.credential),
+      {code:'E_TLS_REQUIRED'});
     await assert.rejects(p('/v1/submit',{...seed,params:{name:'Changed'}},grant.credential),
       {code:'E_REQUEST_CONFLICT'});
     const auth=await p('/v1/auth',{},executor.credential);
@@ -98,17 +121,48 @@ test('one Provider serves authenticated HTTPS/WSS and target-scoped client submi
       grantId,tasks:taskAdvertised},executor.credential)).assignment;
     assert.equal(assignment.jobId,created.jobId);
     assert.equal(assignment.executorId,executorId);
+    assert.equal((await p('/v1/job-status',{jobId:created.jobId},
+      grant.credential)).state,'assigned');
     const runRef={runId:randomUUID(),resultId:randomUUID(),
       requestId:'cloud:'+assignment.assignmentId,
       sourceHash:pin.sourceHash,manifestHash:pin.manifestHash,grantId:randomUUID()};
     await p('/v1/admission',{assignmentId:assignment.assignmentId,runRef,
       resultAllowed:false},executor.credential);
+    assert.equal((await p('/v1/job-status',{jobId:created.jobId},
+      grant.credential)).state,'admitted');
     const receipt={assignmentId:assignment.assignmentId,receiptKey:runRef.resultId,runRef,
       result:{visibility:'status-only',state:'completed',retirementState:'released'}};
     const accepted=await p('/v1/receipt',receipt,executor.credential);
     assert.equal(typeof accepted.receiptId,'string');
     assert.equal((await p('/v1/reconcile',{},executor.credential))
       .assignments[0].receipt.receiptId,accepted.receiptId);
+    assert.deepEqual(await p('/v1/job-status',{jobId:created.jobId},grant.credential),
+      {jobId:created.jobId,state:'completed',receiptConfirmed:true},
+      'A status-only receipt cannot expose raw Run metadata or page body');
+
+    const contentJob=await p('/v1/submit',{...seed,requestKey:'second-client-full',
+      params:{name:'Explicitly approved text'}},permittedResultClient.credential);
+    const contentAssignment=(await p('/v1/claim',{claimId:'claim-with-content',
+      grantId,tasks:taskAdvertised},executor.credential)).assignment;
+    assert.equal(contentAssignment.jobId,contentJob.jobId);
+    const contentRef={runId:randomUUID(),resultId:randomUUID(),
+      requestId:'cloud:'+contentAssignment.assignmentId,
+      sourceHash:pin.sourceHash,manifestHash:pin.manifestHash,grantId:randomUUID()};
+    await p('/v1/admission',{assignmentId:contentAssignment.assignmentId,
+      runRef:contentRef,resultAllowed:true},executor.credential);
+    await p('/v1/receipt',{assignmentId:contentAssignment.assignmentId,
+      receiptKey:contentRef.resultId,runRef:contentRef,
+      result:{visibility:'full',runId:contentRef.runId,resultId:contentRef.resultId,
+        sourceHash:pin.sourceHash,revision:{sourceHash:pin.sourceHash},
+        retirementState:'released',state:'completed',
+        valueWire:{text:'RESULT-BODY-CONSENT-ONLY'}}},executor.credential);
+    await assert.rejects(p('/v1/job-status',{jobId:contentJob.jobId},
+      grant.credential),{code:'E_JOB'},'Other client must not read a job it did not submit');
+    assert.deepEqual(await p('/v1/job-status',{jobId:contentJob.jobId},
+      permittedResultClient.credential),{
+        jobId:contentJob.jobId,state:'completed',receiptConfirmed:true,
+        result:{state:'completed',valueWire:{text:'RESULT-BODY-CONSENT-ONLY'}}
+      },'Full result needs both Browser consent and client read authorization');
     ws.terminate();ws=null;
     await provider.close();
     provider=await openProvider({directory,port:0,publicTls});
@@ -118,12 +172,14 @@ test('one Provider serves authenticated HTTPS/WSS and target-scoped client submi
     assert.deepEqual(await retry('/v1/receipt',receipt,executor.credential),accepted);
     assert.equal((await retry('/v1/reconcile',{},executor.credential))
       .assignments[0].receipt.receiptId,accepted.receiptId);
+    assert.equal((await retry('/v1/job-status',{jobId:contentJob.jobId},
+      permittedResultClient.credential)).result.valueWire.text,'RESULT-BODY-CONSENT-ONLY');
     await localPost(provider.port,'/admin/client-revoke',{clientId:grant.clientId},
       admin.adminToken);
     await assert.rejects(retry('/v1/submit',{...seed,requestKey:'after-revoke'},
       grant.credential),{code:'E_AUTH'});
     const state=JSON.parse(await readFile(join(directory,'state.json'),'utf8'));
-    assert.equal(Object.keys(state.jobs).length,1);
+    assert.equal(Object.keys(state.jobs).length,2);
     assert.equal(state.jobs[created.jobId].targetExecutorId,executorId);
     assert.equal(JSON.stringify(state).includes(pkg.sourceUtf8),false);
   }finally{ws?.terminate();await provider.close();await rm(directory,{force:true,recursive:true});}
