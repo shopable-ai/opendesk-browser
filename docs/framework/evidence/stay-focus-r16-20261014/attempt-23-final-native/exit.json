@@ -1,0 +1,5 @@
+{
+  "sourceCommit": "85de6add728a45167583b0308a8e31da7503d044",
+  "command": "node --test tests/framework/stay-focus-r1-native.test.mjs",
+  "exitCode": 1
+}

@@ -1,0 +1,24 @@
+{
+  "productAccepted": false,
+  "sourceFixCommit": "f831f5d3f906fca9171e2c9cd662484a07c95ef3",
+  "latestComponentBuildSource": "3763a70eed4855be91d597336938611ba9c86352",
+  "latestNode": {
+    "pass": 62,
+    "fail": 0
+  },
+  "nativeSource": "85de6add728a45167583b0308a8e31da7503d044",
+  "nativeAttempts": {
+    "23": "NATIVE_BLOCKED_REAL_IDLE_OR_FOCUS plus host toolbar locator timeout",
+    "24": "qualified lifecycle data/state proofs; quota NOT_TESTED_LIFECYCLE_ONLY; overall exit 1"
+  },
+  "reminderNativeSource": "f831f5d3f906fca9171e2c9cd662484a07c95ef3",
+  "notTested": [
+    "latest rebuilt SW native acceptance",
+    "full real two-host quota exhaustion and existing/new HTTP or YouTube/TikTok HTTPS DNR",
+    "exhausted DNR restoration or removal",
+    "native permission revocation",
+    "Time Review/other tools live isolation baseline"
+  ],
+  "rawArtifacts": "artifacts/stay-focus-r1-native/20261014-r16",
+  "dailyProfileChangedByThisTask": false
+}

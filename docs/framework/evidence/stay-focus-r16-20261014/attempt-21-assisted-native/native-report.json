@@ -1,0 +1,2656 @@
+{
+  "candidate": "f831f5d3f906fca9171e2c9cd662484a07c95ef3",
+  "loadedRoot": "/Users/shopme/Documents/workspace/opendesk-browser/.runtime/tests/stay-focus-r16-20261014/candidate-01/dist/production",
+  "profileDir": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-stay-focus-r1-T2NKx6",
+  "localhostAddresses": [
+    {
+      "address": "::1",
+      "family": 6
+    },
+    {
+      "address": "127.0.0.1",
+      "family": 4
+    }
+  ],
+  "httpListeners": [
+    {
+      "address": "127.0.0.1",
+      "family": "IPv4",
+      "port": 51283
+    },
+    {
+      "address": "::1",
+      "family": "IPv6",
+      "port": 51284
+    }
+  ],
+  "chromeBin": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+  "swBytes": 559499,
+  "swSHA256": "2b98b4bf2d10d4661951f1fbc434c77aebacecf6e539ba7d3344a9c49974c114",
+  "pkgSHA256": "afb91cfb1fecf65544ed2864c08e7eb678e864b2b6b5d2cd0e65ce7fb31413af",
+  "nativeChrome": "Chrome/155.0.8059.39",
+  "approval": "PASS",
+  "actualNavigation": "NOT_TESTED",
+  "quota": "NATIVE_FAIL",
+  "zeroConfig": "PASS",
+  "pageReminder": "NOT_TESTED",
+  "realSharedTwoHosts": "NOT_TESTED",
+  "quotaTrace": [
+    {
+      "elapsedMs": 9,
+      "usedMs": 3,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "active",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 3011,
+      "usedMs": 3,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "active",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 6017,
+      "usedMs": 3,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "active",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 9024,
+      "usedMs": 3,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "active",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 12028,
+      "usedMs": 3,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "active",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 15031,
+      "usedMs": 3,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "active",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 18035,
+      "usedMs": 3,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 21040,
+      "usedMs": 3,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 24044,
+      "usedMs": 3,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 27048,
+      "usedMs": 3,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 30054,
+      "usedMs": 3,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 33058,
+      "usedMs": 3,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 36061,
+      "usedMs": 3,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 39064,
+      "usedMs": 3,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 42071,
+      "usedMs": 3,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 45077,
+      "usedMs": 3,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 48081,
+      "usedMs": 3,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 51089,
+      "usedMs": 3,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 54172,
+      "usedMs": 3,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 57221,
+      "usedMs": 3,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 60277,
+      "usedMs": 3,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 63317,
+      "usedMs": 3,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 66370,
+      "usedMs": 3,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 69384,
+      "usedMs": 3,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 72388,
+      "usedMs": 3,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 75391,
+      "usedMs": 3,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 78395,
+      "usedMs": 3,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 81439,
+      "usedMs": 3,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 84445,
+      "usedMs": 3,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 87454,
+      "usedMs": 3,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 90463,
+      "usedMs": 3,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 93469,
+      "usedMs": 3,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 96473,
+      "usedMs": 3,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 99484,
+      "usedMs": 3,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 102492,
+      "usedMs": 3,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 105502,
+      "usedMs": 3,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 108507,
+      "usedMs": 3,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 111510,
+      "usedMs": 3,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 114542,
+      "usedMs": 3,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 117588,
+      "usedMs": 3,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 120627,
+      "usedMs": 3,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "active",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 123668,
+      "usedMs": 3,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "active",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 126706,
+      "usedMs": 3,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "active",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 129783,
+      "usedMs": 3,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "active",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 132787,
+      "usedMs": 3,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "active",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 135862,
+      "usedMs": 3,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "active",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 138925,
+      "usedMs": 3,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "active",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 141988,
+      "usedMs": 3,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "active",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 145033,
+      "usedMs": 1079,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "active",
+      "focused": false,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 148077,
+      "usedMs": 1079,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "active",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 151081,
+      "usedMs": 1079,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "active",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 154215,
+      "usedMs": 1079,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "active",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 157272,
+      "usedMs": 1079,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "active",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 160373,
+      "usedMs": 1079,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "active",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 163388,
+      "usedMs": 1079,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "active",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 166392,
+      "usedMs": 1079,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "active",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 169396,
+      "usedMs": 1079,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "active",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 172400,
+      "usedMs": 1079,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "active",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 175407,
+      "usedMs": 13808,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "active",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 178411,
+      "usedMs": 13808,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "active",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 181416,
+      "usedMs": 13808,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "active",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 184610,
+      "usedMs": 13808,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "active",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 187616,
+      "usedMs": 13808,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "active",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 190620,
+      "usedMs": 13808,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 193624,
+      "usedMs": 13808,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 196633,
+      "usedMs": 13808,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 199637,
+      "usedMs": 13808,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 202642,
+      "usedMs": 13808,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 205647,
+      "usedMs": 13808,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 208935,
+      "usedMs": 13808,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 211970,
+      "usedMs": 13808,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 214975,
+      "usedMs": 13808,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 217980,
+      "usedMs": 13808,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 220990,
+      "usedMs": 13808,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 223996,
+      "usedMs": 13808,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 227000,
+      "usedMs": 13808,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 230004,
+      "usedMs": 13808,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 233009,
+      "usedMs": 13808,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 236013,
+      "usedMs": 13808,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 239017,
+      "usedMs": 13808,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 242021,
+      "usedMs": 13808,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 245024,
+      "usedMs": 13808,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 248031,
+      "usedMs": 13808,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 251037,
+      "usedMs": 13808,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 254042,
+      "usedMs": 13808,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 257048,
+      "usedMs": 13808,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 260053,
+      "usedMs": 13808,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 263059,
+      "usedMs": 13808,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 266068,
+      "usedMs": 13808,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 269075,
+      "usedMs": 13808,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 272079,
+      "usedMs": 13808,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 275086,
+      "usedMs": 13808,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 278092,
+      "usedMs": 13808,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 281097,
+      "usedMs": 13808,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 284106,
+      "usedMs": 13808,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 287112,
+      "usedMs": 13808,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 290117,
+      "usedMs": 13808,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 293123,
+      "usedMs": 13808,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 296130,
+      "usedMs": 13808,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 299137,
+      "usedMs": 13808,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 302142,
+      "usedMs": 13808,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 305147,
+      "usedMs": 13808,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 308154,
+      "usedMs": 13808,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 311157,
+      "usedMs": 13808,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 314160,
+      "usedMs": 13808,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 317220,
+      "usedMs": 13808,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 320248,
+      "usedMs": 13808,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 323253,
+      "usedMs": 13808,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 326257,
+      "usedMs": 13808,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 329261,
+      "usedMs": 13808,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 332265,
+      "usedMs": 13808,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 335270,
+      "usedMs": 13808,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 338274,
+      "usedMs": 13808,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 341278,
+      "usedMs": 13808,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 344282,
+      "usedMs": 13808,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 347286,
+      "usedMs": 13808,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 350290,
+      "usedMs": 13808,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 353294,
+      "usedMs": 13808,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 356298,
+      "usedMs": 13808,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 359302,
+      "usedMs": 13808,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    }
+  ],
+  "screenshots": [
+    {
+      "file": "installed-stay-focus-native-panel.png",
+      "bytes": 168293,
+      "sha256": "e18ed0d20b80d841879a711ddc380b34a80e44d169fec9696700483fffa3bbc9"
+    },
+    {
+      "file": "zero-config-30-minute-pool.png",
+      "bytes": 118542,
+      "sha256": "6d3bd715dd1701dfc25baf19d293a0d5b705dc89d44607abe2f18a8111614c3f"
+    },
+    {
+      "file": "quota-active-http-before-limit.png",
+      "bytes": 36067,
+      "sha256": "3078dadb39dbc29be85f639777666c65b68ed086467998a5255b73a43f29a594"
+    }
+  ],
+  "background": "PASS",
+  "closedSidePanel": "NOT_TESTED_QUOTA_FAILED",
+  "workerRestart": "PASS_DATA_ONLY_DNR_NOT_TESTED",
+  "permissionRevocation": "NOT_TESTED",
+  "otherTools": "NOT_TESTED",
+  "disabled": "PASS_STATE_ONLY_NO_ACTIVE_DNR",
+  "reenabled": "PASS_STATE_ONLY_QUOTA_NOT_TESTED",
+  "restart": "PASS_DATA_ONLY_EXHAUSTED_DNR_NOT_TESTED",
+  "unregister": "PASS",
+  "uninstall": "PASS_DATA_ONLY_ACTIVE_DNR_NOTICE_NOT_TESTED",
+  "steps": [
+    {
+      "name": "native-zero-config",
+      "managed": 11,
+      "minutes": 30,
+      "used": {},
+      "sites": [
+        {
+          "enabled": true,
+          "group": "entertainment",
+          "host": "youtube.com",
+          "minutes": 30,
+          "mode": "limit",
+          "subdomains": true
+        },
+        {
+          "enabled": true,
+          "group": "entertainment",
+          "host": "bilibili.com",
+          "minutes": 30,
+          "mode": "limit",
+          "subdomains": true
+        },
+        {
+          "enabled": true,
+          "group": "entertainment",
+          "host": "tiktok.com",
+          "minutes": 30,
+          "mode": "limit",
+          "subdomains": true
+        },
+        {
+          "enabled": true,
+          "group": "entertainment",
+          "host": "douyin.com",
+          "minutes": 30,
+          "mode": "limit",
+          "subdomains": true
+        },
+        {
+          "enabled": true,
+          "group": "entertainment",
+          "host": "instagram.com",
+          "minutes": 30,
+          "mode": "limit",
+          "subdomains": true
+        },
+        {
+          "enabled": true,
+          "group": "entertainment",
+          "host": "reddit.com",
+          "minutes": 30,
+          "mode": "limit",
+          "subdomains": true
+        },
+        {
+          "enabled": true,
+          "group": "entertainment",
+          "host": "x.com",
+          "minutes": 30,
+          "mode": "limit",
+          "subdomains": true
+        },
+        {
+          "enabled": true,
+          "group": "entertainment",
+          "host": "weibo.com",
+          "minutes": 30,
+          "mode": "limit",
+          "subdomains": true
+        },
+        {
+          "enabled": true,
+          "group": "entertainment",
+          "host": "netflix.com",
+          "minutes": 30,
+          "mode": "limit",
+          "subdomains": true
+        },
+        {
+          "enabled": true,
+          "group": "entertainment",
+          "host": "twitch.tv",
+          "minutes": 30,
+          "mode": "limit",
+          "subdomains": true
+        },
+        {
+          "enabled": true,
+          "group": "entertainment",
+          "host": "roblox.com",
+          "minutes": 30,
+          "mode": "limit",
+          "subdomains": true
+        }
+      ]
+    },
+    {
+      "name": "native-shared-budget-edited",
+      "minutes": 2,
+      "approvedViaUI": true
+    },
+    {
+      "name": "await-native-site-entry",
+      "hosts": [
+        "127.0.0.1",
+        "localhost"
+      ],
+      "group": "entertainment",
+      "minutes": 2
+    },
+    {
+      "name": "real-ui-two-minute-shared-quota",
+      "minutes": 2,
+      "domains": [
+        "127.0.0.1",
+        "localhost"
+      ],
+      "storageUsageWasNotModified": true
+    },
+    {
+      "name": "background-does-not-charge",
+      "before": {
+        "usedMs": 3,
+        "rules": [],
+        "notices": {
+          "budgetMs": 120000,
+          "day": "2026-10-14",
+          "revision": 3,
+          "thresholds": []
+        },
+        "idle": "active",
+        "focused": true,
+        "activeUrl": "about:blank",
+        "tabId": 1180738859
+      },
+      "after": {
+        "usedMs": 3,
+        "rules": [],
+        "notices": {
+          "budgetMs": 120000,
+          "day": "2026-10-14",
+          "revision": 3,
+          "thresholds": []
+        },
+        "idle": "active",
+        "focused": true,
+        "activeUrl": "about:blank",
+        "tabId": 1180738859
+      }
+    },
+    {
+      "name": "foreground-quota-observation",
+      "elapsedMs": 12028,
+      "usedMs": 3,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "active",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "name": "foreground-quota-observation",
+      "elapsedMs": 27048,
+      "usedMs": 3,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "name": "foreground-quota-observation",
+      "elapsedMs": 42071,
+      "usedMs": 3,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "name": "foreground-quota-observation",
+      "elapsedMs": 57221,
+      "usedMs": 3,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "name": "foreground-quota-observation",
+      "elapsedMs": 72388,
+      "usedMs": 3,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "name": "foreground-quota-observation",
+      "elapsedMs": 87454,
+      "usedMs": 3,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "name": "foreground-quota-observation",
+      "elapsedMs": 102492,
+      "usedMs": 3,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "name": "foreground-quota-observation",
+      "elapsedMs": 117588,
+      "usedMs": 3,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "name": "foreground-quota-observation",
+      "elapsedMs": 132787,
+      "usedMs": 3,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "active",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "name": "foreground-quota-observation",
+      "elapsedMs": 148077,
+      "usedMs": 1079,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "active",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "name": "foreground-quota-observation",
+      "elapsedMs": 163388,
+      "usedMs": 1079,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "active",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "name": "foreground-quota-observation",
+      "elapsedMs": 178411,
+      "usedMs": 13808,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "active",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "name": "foreground-quota-observation",
+      "elapsedMs": 193624,
+      "usedMs": 13808,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "name": "foreground-quota-observation",
+      "elapsedMs": 208935,
+      "usedMs": 13808,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "name": "foreground-quota-observation",
+      "elapsedMs": 223996,
+      "usedMs": 13808,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "name": "foreground-quota-observation",
+      "elapsedMs": 239017,
+      "usedMs": 13808,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "name": "foreground-quota-observation",
+      "elapsedMs": 254042,
+      "usedMs": 13808,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "name": "foreground-quota-observation",
+      "elapsedMs": 269075,
+      "usedMs": 13808,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "name": "foreground-quota-observation",
+      "elapsedMs": 284106,
+      "usedMs": 13808,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "name": "foreground-quota-observation",
+      "elapsedMs": 299137,
+      "usedMs": 13808,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "name": "foreground-quota-observation",
+      "elapsedMs": 314160,
+      "usedMs": 13808,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "name": "foreground-quota-observation",
+      "elapsedMs": 329261,
+      "usedMs": 13808,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "name": "foreground-quota-observation",
+      "elapsedMs": 344282,
+      "usedMs": 13808,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "name": "foreground-quota-observation",
+      "elapsedMs": 359302,
+      "usedMs": 13808,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:51283/real-navigation",
+      "tabId": 1180738858,
+      "pageNotice": false
+    },
+    {
+      "name": "quota-incomplete",
+      "status": "NATIVE_FAIL",
+      "last": [
+        {
+          "elapsedMs": 353294,
+          "usedMs": 13808,
+          "rules": [],
+          "notices": {
+            "budgetMs": 120000,
+            "day": "2026-10-14",
+            "revision": 3,
+            "thresholds": []
+          },
+          "idle": "idle",
+          "focused": true,
+          "activeUrl": "http://127.0.0.1:51283/real-navigation",
+          "tabId": 1180738858,
+          "pageNotice": false
+        },
+        {
+          "elapsedMs": 356298,
+          "usedMs": 13808,
+          "rules": [],
+          "notices": {
+            "budgetMs": 120000,
+            "day": "2026-10-14",
+            "revision": 3,
+            "thresholds": []
+          },
+          "idle": "idle",
+          "focused": true,
+          "activeUrl": "http://127.0.0.1:51283/real-navigation",
+          "tabId": 1180738858,
+          "pageNotice": false
+        },
+        {
+          "elapsedMs": 359302,
+          "usedMs": 13808,
+          "rules": [],
+          "notices": {
+            "budgetMs": 120000,
+            "day": "2026-10-14",
+            "revision": 3,
+            "thresholds": []
+          },
+          "idle": "idle",
+          "focused": true,
+          "activeUrl": "http://127.0.0.1:51283/real-navigation",
+          "tabId": 1180738858,
+          "pageNotice": false
+        }
+      ]
+    },
+    {
+      "name": "real-worker-restart",
+      "old": "AA18BFE4927F6C072FE8A377E658FE31",
+      "current": "C806D95BA468A051077FBF6FEFBD8D6E",
+      "quota": {
+        "usedMs": 13808,
+        "rules": [],
+        "notices": {
+          "budgetMs": 120000,
+          "day": "2026-10-14",
+          "revision": 3,
+          "thresholds": []
+        },
+        "idle": "idle",
+        "focused": false,
+        "activeUrl": "chrome-extension://oapmdikgnncbedlhnolbfecdfdlcdjpm/ui/tool.html?hostInstanceId=bf6a3712-89eb-470d-b3f0-29027b5abbe5",
+        "tabId": 1180738856
+      }
+    },
+    {
+      "name": "trusted-disable-restores-access",
+      "url": "http://127.0.0.1:51283/real-navigation",
+      "ownedRules": 0
+    },
+    {
+      "name": "reenable-restores-quota-restriction",
+      "quotaPersisted": true,
+      "ruleOwned": true
+    },
+    {
+      "name": "chrome-restart-restores-quota-and-navigation",
+      "sameProfile": true,
+      "extensionId": "oapmdikgnncbedlhnolbfecdfdlcdjpm",
+      "usageMs": 13808,
+      "quotaRules": 0
+    },
+    {
+      "name": "uninstall-restores-access",
+      "realHTTP": true,
+      "ownedRules": 0,
+      "hadActiveDnr": false
+    }
+  ],
+  "debugPort": 51287,
+  "extensionId": "oapmdikgnncbedlhnolbfecdfdlcdjpm",
+  "toolGeometry": {
+    "width": 360,
+    "scrollWidth": 360,
+    "visible": true
+  },
+  "nativePermissionBefore": false,
+  "siteEntryDriver": "ASSISTED_NATIVE_UI",
+  "sitePause": "PASS_UI_STATE_ONLY",
+  "failureUI": [],
+  "passed": false,
+  "chromeErrorTail": ":73257690] error messaging the mach port for IMKCFRunLoopWakeUpReliable\n[25038:73257767:1014/032446.931929:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT\n[25038:73257767:1014/032520.016050:ERROR:google_apis/gcm/engine/connection_factory_impl.cc:474] ConnectionHandler failed with net error: -2\n[25038:73257767:1014/032743.275533:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT\n[25038:73257767:1014/032840.555892:ERROR:google_apis/gcm/engine/connection_factory_impl.cc:474] ConnectionHandler failed with net error: -2\n\nDevTools listening on ws://127.0.0.1:54754/devtools/browser/07a1dab4-5ffe-46aa-bc4c-797911da57cd\n[38669:73332220:1014/033012.847488:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT\n"
+}

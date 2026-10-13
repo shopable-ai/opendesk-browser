@@ -1,0 +1,17 @@
+{
+  "comparedMain": "400b3ec1dec2aefc64cbdd37404845320f1a6176",
+  "buildSourceCommit": "3763a70eed4855be91d597336938611ba9c86352",
+  "comparisons": [
+    {
+      "mode": "production",
+      "inputs": 470,
+      "mismatches": []
+    },
+    {
+      "mode": "development",
+      "inputs": 470,
+      "mismatches": []
+    }
+  ],
+  "nativeInherited": false
+}

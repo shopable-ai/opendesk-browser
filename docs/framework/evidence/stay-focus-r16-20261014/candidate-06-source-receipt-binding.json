@@ -1,0 +1,23 @@
+{
+  "buildAndNativeSourceCommit": "85de6add728a45167583b0308a8e31da7503d044",
+  "committedMainCompared": "22abce369312e385f35dc240bd93b8635d125464",
+  "comparisons": [
+    {
+      "mode": "production",
+      "sourceInputsCompared": 470,
+      "mismatches": [
+        "wxt.config.mjs"
+      ],
+      "receiptSHA256": "6eb365d6b935723ec8f9ab19aff68744bf70f52634f16d095a884e078782e0e0"
+    },
+    {
+      "mode": "development",
+      "sourceInputsCompared": 470,
+      "mismatches": [
+        "wxt.config.mjs"
+      ],
+      "receiptSHA256": "3de47bf3e0b092ed53860c732af62f085cbcf23d2bb9b9c31abef573e580226c"
+    }
+  ],
+  "note": "Documentation and test-only commits do not upgrade evidence; only unchanged exact product inputs are reusable."
+}

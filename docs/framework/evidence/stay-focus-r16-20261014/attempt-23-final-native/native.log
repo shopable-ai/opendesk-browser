@@ -1,0 +1,30 @@
+STAY_FOCUS_NATIVE native-zero-config {"managed":11,"minutes":30,"used":{},"sites":[{"enabled":true,"group":"entertainment","host":"youtube.com","minutes":30,"mode":"limit","subdomains":true},{"enabled":true,"group":"entertainment","host":"bilibili.com","minutes":30,"mode":"limit","subdomains":true},{"enabled":true,"group":"entertainment","host":"tiktok.com","minutes":30,"mode":"limit","subdomains":true},{"enabled":true,"group":"entertainment","host":"douyin.com","minutes":30,"mode":"limit","subdomains":true},{"enabled":true,"group":"entertainment","host":"instagram.com","minutes":30,"mode":"limit","subdomains":true},{"enabled":true,"group":"entertainment","host":"reddit.com","minutes":30,"mode":"limit","subdomains":true},{"enabled":true,"group":"entertainment","host":"x.com","minutes":30,"mode":"limit","subdomains":true},{"enabled":true,"group":"entertainment","host":"weibo.com","minutes":30,"mode":"limit","subdomains":true},{"enabled":true,"group":"entertainment","host":"netflix.com","minutes":30,"mode":"limit","subdomains":true},{"enabled":true,"group":"entertainment","host":"twitch.tv","minutes":30,"mode":"limit","subdomains":true},{"enabled":true,"group":"entertainment","host":"roblox.com","minutes":30,"mode":"limit","subdomains":true}]}
+STAY_FOCUS_NATIVE native-shared-budget-edited {"minutes":2,"approvedViaUI":true}
+STAY_FOCUS_NATIVE await-native-site-entry {"hosts":["127.0.0.1","localhost"],"group":"entertainment","minutes":2}
+STAY_FOCUS_NATIVE real-ui-two-minute-shared-quota {"minutes":2,"domains":["127.0.0.1","localhost"],"storageUsageWasNotModified":true}
+STAY_FOCUS_NATIVE background-does-not-charge {"before":{"usedMs":0,"rules":[],"notices":{"budgetMs":null,"day":"2026-10-14","revision":3,"thresholds":[]},"idle":"idle","focused":true,"activeUrl":"about:blank","tabId":1405205166},"after":{"usedMs":0,"rules":[],"notices":{"budgetMs":null,"day":"2026-10-14","revision":3,"thresholds":[]},"idle":"idle","focused":true,"activeUrl":"about:blank","tabId":1405205166}}
+STAY_FOCUS_NATIVE foreground-quota-observation {"elapsedMs":12047,"usedMs":0,"rules":[],"notices":{"budgetMs":null,"day":"2026-10-14","revision":3,"thresholds":[]},"idle":"idle","focused":true,"activeUrl":"http://127.0.0.1:59806/real-navigation","tabId":1405205165,"pageNotice":false}
+STAY_FOCUS_NATIVE foreground-quota-observation {"elapsedMs":27076,"usedMs":0,"rules":[],"notices":{"budgetMs":null,"day":"2026-10-14","revision":3,"thresholds":[]},"idle":"idle","focused":true,"activeUrl":"http://127.0.0.1:59806/real-navigation","tabId":1405205165,"pageNotice":false}
+STAY_FOCUS_NATIVE foreground-quota-observation {"elapsedMs":42113,"usedMs":0,"rules":[],"notices":{"budgetMs":null,"day":"2026-10-14","revision":3,"thresholds":[]},"idle":"idle","focused":true,"activeUrl":"http://127.0.0.1:59806/real-navigation","tabId":1405205165,"pageNotice":false}
+STAY_FOCUS_NATIVE quota-incomplete {"status":"NATIVE_BLOCKED_REAL_IDLE_OR_FOCUS","last":[{"elapsedMs":39107,"usedMs":0,"rules":[],"notices":{"budgetMs":null,"day":"2026-10-14","revision":3,"thresholds":[]},"idle":"idle","focused":true,"activeUrl":"http://127.0.0.1:59806/real-navigation","tabId":1405205165,"pageNotice":false},{"elapsedMs":42113,"usedMs":0,"rules":[],"notices":{"budgetMs":null,"day":"2026-10-14","revision":3,"thresholds":[]},"idle":"idle","focused":true,"activeUrl":"http://127.0.0.1:59806/real-navigation","tabId":1405205165,"pageNotice":false},{"elapsedMs":45119,"usedMs":0,"rules":[],"notices":{"budgetMs":null,"day":"2026-10-14","revision":3,"thresholds":[]},"idle":"idle","focused":true,"activeUrl":"http://127.0.0.1:59806/real-navigation","tabId":1405205165,"pageNotice":false}]}
+STAY_FOCUS_NATIVE real-worker-restart {"old":"34B151890B655EFAF2ABBF267DB3F43D","current":"B97CCB6128E47B709D58055B0CAE8B80","quota":{"usedMs":0,"rules":[],"notices":{"budgetMs":null,"day":"2026-10-14","revision":3,"thresholds":[]},"idle":"idle","focused":true,"activeUrl":"chrome-extension://mohemamkpnbkhgeoiahoealmkomamhbo/ui/tool.html?hostInstanceId=02a8da2a-b44e-4649-b435-0bf42f6ac5d5","tabId":1405205163}}
+✖ Real Chrome default sharing, live page reminder, DNR and uninstall (271921.359291ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 272003.03375
+
+✖ failing tests:
+
+test at tests/framework/stay-focus-r1-native.test.mjs:114:1
+✖ Real Chrome default sharing, live page reminder, DNR and uninstall (271921.359291ms)
+  Error: Visible real control #sidebar-tool-settings-open timed out
+      at until (file:///Users/shopme/Documents/workspace/opendesk-browser/.runtime/tests/stay-focus-r16-20261014/candidate-02/tests/framework/stay-focus-r1-native.test.mjs:42:9)
+      at async click (file:///Users/shopme/Documents/workspace/opendesk-browser/.runtime/tests/stay-focus-r16-20261014/candidate-02/tests/framework/stay-focus-r1-native.test.mjs:52:15)
+      at async TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/.runtime/tests/stay-focus-r16-20261014/candidate-02/tests/framework/stay-focus-r1-native.test.mjs:583:19)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3)

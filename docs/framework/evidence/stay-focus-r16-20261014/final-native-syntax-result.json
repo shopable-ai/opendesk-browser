@@ -1,0 +1,9 @@
+{
+  "command": [
+    "node",
+    "--check",
+    "tests/framework/stay-focus-r1-native.test.mjs"
+  ],
+  "cwd": "/Users/shopme/Documents/workspace/opendesk-browser",
+  "exitCode": 0
+}

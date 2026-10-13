@@ -1,0 +1,16 @@
+
+> opendesk-browser@0.1.0 build:sidebar-tool
+> node scripts/build-sidebar-tool.mjs examples/sidebar-tools/stay-focus
+
+{
+  "output": "/Users/shopme/Documents/workspace/opendesk-browser/.runtime/tests/stay-focus-r16-20261014/candidate-02/artifacts/sidebar-tools/stay-focus/1.0.0/stay-focus.opendesk-tool.json",
+  "bytes": 33024,
+  "id": "stay-focus",
+  "version": "1.0.0",
+  "capabilities": [
+    "focus.control",
+    "currentPage.read"
+  ],
+  "validated": true,
+  "installed": false
+}

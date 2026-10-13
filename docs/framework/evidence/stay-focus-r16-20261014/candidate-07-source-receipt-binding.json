@@ -1,0 +1,18 @@
+{
+  "buildSourceCommit": "3763a70eed4855be91d597336938611ba9c86352",
+  "committedMainCompared": "8321bc8e0a98d4066f8464f1b23b81b113593f8b",
+  "comparisons": [
+    {
+      "mode": "production",
+      "mismatches": [],
+      "sourceInputsCompared": 470,
+      "receiptSHA256": "b0305803d7d2105b0165b8dddc6a4dbcb553b15be977aa7afca7bbef5140eb42"
+    },
+    {
+      "mode": "development",
+      "mismatches": [],
+      "sourceInputsCompared": 470,
+      "receiptSHA256": "69ff43c33de7594173a65d38039b3a53074de8e2c44254bc02a7f907bfb7fc88"
+    }
+  ]
+}

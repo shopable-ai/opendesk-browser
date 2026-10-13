@@ -1,0 +1,59 @@
+STAY_FOCUS_NATIVE native-zero-config {"managed":11,"minutes":30,"used":{},"sites":[{"enabled":true,"group":"entertainment","host":"youtube.com","minutes":30,"mode":"limit","subdomains":true},{"enabled":true,"group":"entertainment","host":"bilibili.com","minutes":30,"mode":"limit","subdomains":true},{"enabled":true,"group":"entertainment","host":"tiktok.com","minutes":30,"mode":"limit","subdomains":true},{"enabled":true,"group":"entertainment","host":"douyin.com","minutes":30,"mode":"limit","subdomains":true},{"enabled":true,"group":"entertainment","host":"instagram.com","minutes":30,"mode":"limit","subdomains":true},{"enabled":true,"group":"entertainment","host":"reddit.com","minutes":30,"mode":"limit","subdomains":true},{"enabled":true,"group":"entertainment","host":"x.com","minutes":30,"mode":"limit","subdomains":true},{"enabled":true,"group":"entertainment","host":"weibo.com","minutes":30,"mode":"limit","subdomains":true},{"enabled":true,"group":"entertainment","host":"netflix.com","minutes":30,"mode":"limit","subdomains":true},{"enabled":true,"group":"entertainment","host":"twitch.tv","minutes":30,"mode":"limit","subdomains":true},{"enabled":true,"group":"entertainment","host":"roblox.com","minutes":30,"mode":"limit","subdomains":true}]}
+STAY_FOCUS_NATIVE native-shared-budget-edited {"minutes":2,"approvedViaUI":true}
+STAY_FOCUS_NATIVE await-native-site-entry {"hosts":["127.0.0.1","localhost"],"group":"entertainment","minutes":2}
+STAY_FOCUS_NATIVE real-ui-two-minute-shared-quota {"minutes":2,"domains":["127.0.0.1","localhost"],"storageUsageWasNotModified":true}
+STAY_FOCUS_NATIVE background-does-not-charge {"before":{"usedMs":0,"rules":[],"notices":{"budgetMs":null,"day":"2026-10-14","revision":3,"thresholds":[]},"idle":"idle","focused":true,"activeUrl":"about:blank","tabId":1179090599},"after":{"usedMs":0,"rules":[],"notices":{"budgetMs":null,"day":"2026-10-14","revision":3,"thresholds":[]},"idle":"idle","focused":false,"activeUrl":"about:blank","tabId":1179090599}}
+STAY_FOCUS_NATIVE foreground-quota-observation {"elapsedMs":12055,"usedMs":81,"rules":[],"notices":{"budgetMs":120000,"day":"2026-10-14","revision":3,"thresholds":[]},"idle":"active","focused":true,"activeUrl":"http://127.0.0.1:64222/real-navigation","tabId":1179090598,"pageNotice":false}
+STAY_FOCUS_NATIVE foreground-quota-observation {"elapsedMs":27113,"usedMs":26180,"rules":[],"notices":{"budgetMs":120000,"day":"2026-10-14","revision":3,"thresholds":[]},"idle":"active","focused":true,"activeUrl":"http://127.0.0.1:64222/real-navigation","tabId":1179090598,"pageNotice":false}
+STAY_FOCUS_NATIVE foreground-quota-observation {"elapsedMs":42163,"usedMs":26180,"rules":[],"notices":{"budgetMs":120000,"day":"2026-10-14","revision":3,"thresholds":[]},"idle":"active","focused":true,"activeUrl":"http://127.0.0.1:64222/real-navigation","tabId":1179090598,"pageNotice":false}
+STAY_FOCUS_NATIVE foreground-quota-observation {"elapsedMs":57214,"usedMs":56180,"rules":[],"notices":{"budgetMs":120000,"day":"2026-10-14","revision":3,"thresholds":[]},"idle":"active","focused":true,"activeUrl":"http://127.0.0.1:64222/real-navigation","tabId":1179090598,"pageNotice":false}
+STAY_FOCUS_NATIVE real-active-site-switch {"firstHost":"127.0.0.1","secondHost":"localhost","usedMs":56180,"secondTabId":1179090600}
+STAY_FOCUS_NATIVE foreground-quota-observation {"elapsedMs":72330,"usedMs":56180,"rules":[],"notices":{"budgetMs":120000,"day":"2026-10-14","revision":3,"thresholds":[]},"idle":"idle","focused":true,"activeUrl":"http://localhost:64223/real-navigation","tabId":1179090600,"pageNotice":false}
+STAY_FOCUS_NATIVE foreground-quota-observation {"elapsedMs":87380,"usedMs":56180,"rules":[],"notices":{"budgetMs":120000,"day":"2026-10-14","revision":3,"thresholds":[]},"idle":"idle","focused":true,"activeUrl":"http://localhost:64223/real-navigation","tabId":1179090600,"pageNotice":false}
+STAY_FOCUS_NATIVE foreground-quota-observation {"elapsedMs":102580,"usedMs":56180,"rules":[],"notices":{"budgetMs":120000,"day":"2026-10-14","revision":3,"thresholds":[]},"idle":"idle","focused":true,"activeUrl":"http://localhost:64223/real-navigation","tabId":1179090600,"pageNotice":false}
+STAY_FOCUS_NATIVE foreground-quota-observation {"elapsedMs":117888,"usedMs":56180,"rules":[],"notices":{"budgetMs":120000,"day":"2026-10-14","revision":3,"thresholds":[]},"idle":"active","focused":true,"activeUrl":"http://localhost:64223/real-navigation","tabId":1179090600,"pageNotice":false}
+STAY_FOCUS_NATIVE foreground-quota-observation {"elapsedMs":133014,"usedMs":56180,"rules":[],"notices":{"budgetMs":120000,"day":"2026-10-14","revision":3,"thresholds":[]},"idle":"active","focused":true,"activeUrl":"http://localhost:64223/real-navigation","tabId":1179090600,"pageNotice":false}
+STAY_FOCUS_NATIVE foreground-quota-observation {"elapsedMs":148069,"usedMs":75331,"rules":[],"notices":{"budgetMs":120000,"day":"2026-10-14","revision":3,"thresholds":[1]},"idle":"active","focused":true,"activeUrl":"http://localhost:64223/real-navigation","tabId":1179090600,"pageNotice":true}
+STAY_FOCUS_NATIVE native-in-page-remaining-reminder {"minutes":1,"actualContentScript":true}
+STAY_FOCUS_NATIVE foreground-quota-observation {"elapsedMs":163199,"usedMs":75331,"rules":[],"notices":{"budgetMs":120000,"day":"2026-10-14","revision":3,"thresholds":[1]},"idle":"active","focused":true,"activeUrl":"http://localhost:64223/real-navigation","tabId":1179090600,"pageNotice":false}
+STAY_FOCUS_NATIVE foreground-quota-observation {"elapsedMs":178255,"usedMs":105331,"rules":[],"notices":{"budgetMs":120000,"day":"2026-10-14","revision":3,"thresholds":[1]},"idle":"active","focused":true,"activeUrl":"http://localhost:64223/real-navigation","tabId":1179090600,"pageNotice":false}
+STAY_FOCUS_NATIVE foreground-quota-observation {"elapsedMs":193305,"usedMs":105331,"rules":[],"notices":{"budgetMs":120000,"day":"2026-10-14","revision":3,"thresholds":[1]},"idle":"idle","focused":true,"activeUrl":"http://localhost:64223/real-navigation","tabId":1179090600,"pageNotice":false}
+STAY_FOCUS_NATIVE foreground-quota-observation {"elapsedMs":208341,"usedMs":105331,"rules":[],"notices":{"budgetMs":120000,"day":"2026-10-14","revision":3,"thresholds":[1]},"idle":"idle","focused":true,"activeUrl":"http://localhost:64223/real-navigation","tabId":1179090600,"pageNotice":false}
+STAY_FOCUS_NATIVE foreground-quota-observation {"elapsedMs":223382,"usedMs":105331,"rules":[],"notices":{"budgetMs":120000,"day":"2026-10-14","revision":3,"thresholds":[1]},"idle":"idle","focused":true,"activeUrl":"http://localhost:64223/real-navigation","tabId":1179090600,"pageNotice":false}
+STAY_FOCUS_NATIVE foreground-quota-observation {"elapsedMs":238418,"usedMs":105331,"rules":[],"notices":{"budgetMs":120000,"day":"2026-10-14","revision":3,"thresholds":[1]},"idle":"idle","focused":true,"activeUrl":"http://localhost:64223/real-navigation","tabId":1179090600,"pageNotice":false}
+STAY_FOCUS_NATIVE quota-incomplete {"status":"NATIVE_FAIL","last":[{"elapsedMs":232401,"usedMs":105331,"rules":[],"notices":{"budgetMs":120000,"day":"2026-10-14","revision":3,"thresholds":[1]},"idle":"idle","focused":true,"activeUrl":"http://localhost:64223/real-navigation","tabId":1179090600,"pageNotice":false},{"elapsedMs":235408,"usedMs":105331,"rules":[],"notices":{"budgetMs":120000,"day":"2026-10-14","revision":3,"thresholds":[1]},"idle":"idle","focused":true,"activeUrl":"http://localhost:64223/real-navigation","tabId":1179090600,"pageNotice":false},{"elapsedMs":238418,"usedMs":105331,"rules":[],"notices":{"budgetMs":120000,"day":"2026-10-14","revision":3,"thresholds":[1]},"idle":"idle","focused":true,"activeUrl":"http://localhost:64223/real-navigation","tabId":1179090600,"pageNotice":false}]}
+STAY_FOCUS_NATIVE real-worker-restart {"old":"D9C15CBF881A12C6EAC3FF4A424E171F","current":"9959B5450D99238005FA58CF1D7D6F68","quota":{"usedMs":105331,"rules":[],"notices":{"budgetMs":120000,"day":"2026-10-14","revision":3,"thresholds":[1]},"idle":"idle","focused":true,"activeUrl":"chrome-extension://oapmdikgnncbedlhnolbfecdfdlcdjpm/ui/tool.html?hostInstanceId=bc586db5-b6b0-4610-ba4e-1e903bbacb91","tabId":1179090596}}
+STAY_FOCUS_NATIVE trusted-disable-restores-access {"url":"http://127.0.0.1:64222/real-navigation","ownedRules":0}
+STAY_FOCUS_NATIVE reenable-restores-quota-restriction {"quotaPersisted":true,"ruleOwned":true}
+STAY_FOCUS_NATIVE chrome-restart-restores-quota-and-navigation {"sameProfile":true,"extensionId":"oapmdikgnncbedlhnolbfecdfdlcdjpm","usageMs":105331,"quotaRules":0}
+STAY_FOCUS_NATIVE uninstall-restores-access {"realHTTP":true,"ownedRules":0,"hadActiveDnr":false}
+✖ Real Chrome default sharing, live page reminder, DNR and uninstall (436906.718084ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 437058.809959
+
+✖ failing tests:
+
+test at tests/framework/stay-focus-r1-native.test.mjs:114:1
+✖ Real Chrome default sharing, live page reminder, DNR and uninstall (436906.718084ms)
+  AssertionError [ERR_ASSERTION]: native shared quota must pass; independent lifecycle evidence does not replace it
+  + actual - expected
+  
+  + 'NATIVE_FAIL'
+  - 'PASS'
+  
+      at TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/.runtime/tests/stay-focus-r16-20261014/candidate-01/tests/framework/stay-focus-r1-native.test.mjs:695:10)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'NATIVE_FAIL',
+    expected: 'PASS',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

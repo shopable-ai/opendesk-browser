@@ -1,0 +1,27 @@
+✖ R1.6 settings save through button clicks when sandbox denies form submission (2.138375ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 58.926625
+
+✖ failing tests:
+
+test at tests/environment/stay-focus-r1.test.mjs:455:1
+✖ R1.6 settings save through button clicks when sandbox denies form submission (2.138375ms)
+  AssertionError [ERR_ASSERTION]: daily-budget must not depend on sandbox-blocked submit
+      at TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/environment/stay-focus-r1.test.mjs:476:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.start (node:internal/test_runner/test:1177:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:385:17) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }

@@ -1,0 +1,12 @@
+{
+  "sourceCommit": "3763a70eed4855be91d597336938611ba9c86352",
+  "command": [
+    "node",
+    "--test",
+    "tests/environment/stay-focus-r1.test.mjs",
+    "tests/environment/stay-focus-service-r1.test.mjs",
+    "tests/environment/official-tools-catalog-r45.test.mjs",
+    "tests/environment/fixed-entries-audit.test.mjs"
+  ],
+  "exitCode": 0
+}

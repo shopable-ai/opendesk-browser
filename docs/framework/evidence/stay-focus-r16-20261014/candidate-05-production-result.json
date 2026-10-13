@@ -1,0 +1,9 @@
+{
+  "sourceCommit": "fef1f9e14834087f1dd8a627d328b9f110c40297",
+  "command": [
+    "npm",
+    "run",
+    "build"
+  ],
+  "exitCode": 0
+}

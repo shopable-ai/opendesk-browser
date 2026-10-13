@@ -1,0 +1,22 @@
+STAY_FOCUS_NATIVE native-zero-config {"managed":11,"minutes":30,"used":{},"sites":[{"enabled":true,"group":"entertainment","host":"youtube.com","minutes":30,"mode":"limit","subdomains":true},{"enabled":true,"group":"entertainment","host":"bilibili.com","minutes":30,"mode":"limit","subdomains":true},{"enabled":true,"group":"entertainment","host":"tiktok.com","minutes":30,"mode":"limit","subdomains":true},{"enabled":true,"group":"entertainment","host":"douyin.com","minutes":30,"mode":"limit","subdomains":true},{"enabled":true,"group":"entertainment","host":"instagram.com","minutes":30,"mode":"limit","subdomains":true},{"enabled":true,"group":"entertainment","host":"reddit.com","minutes":30,"mode":"limit","subdomains":true},{"enabled":true,"group":"entertainment","host":"x.com","minutes":30,"mode":"limit","subdomains":true},{"enabled":true,"group":"entertainment","host":"weibo.com","minutes":30,"mode":"limit","subdomains":true},{"enabled":true,"group":"entertainment","host":"netflix.com","minutes":30,"mode":"limit","subdomains":true},{"enabled":true,"group":"entertainment","host":"twitch.tv","minutes":30,"mode":"limit","subdomains":true},{"enabled":true,"group":"entertainment","host":"roblox.com","minutes":30,"mode":"limit","subdomains":true}]}
+STAY_FOCUS_NATIVE native-shared-budget-edited {"minutes":2,"approvedViaUI":true}
+STAY_FOCUS_NATIVE await-native-site-entry {"hosts":["127.0.0.1","localhost"],"group":"entertainment","minutes":2}
+✖ Real Chrome default sharing, live page reminder, DNR and uninstall (393212.139584ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 393274.311917
+
+✖ failing tests:
+
+test at tests/framework/stay-focus-r1-native.test.mjs:114:1
+✖ Real Chrome default sharing, live page reminder, DNR and uninstall (393212.139584ms)
+  Error: two hosts saved via assisted native UI timed out
+      at until (file:///Users/shopme/Documents/workspace/opendesk-browser/.runtime/tests/stay-focus-r16-20261014/candidate-02/tests/framework/stay-focus-r1-native.test.mjs:42:9)
+      at async TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/.runtime/tests/stay-focus-r16-20261014/candidate-02/tests/framework/stay-focus-r1-native.test.mjs:301:5)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3)

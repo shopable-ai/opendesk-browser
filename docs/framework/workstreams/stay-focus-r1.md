@@ -1,5 +1,60 @@
 # Stay Focus R1.4 — zero-config shared entertainment (2026-10-13)
 
+## R1.6 本机原生验收与源码交付（2026-10-14）
+
+**结论：工具可以从正式 UI 安装，保存设置缺陷已修复；产品仍为 `NOT_ACCEPTED`。** 没有完整的同候选双站 2 分钟耗尽、HTTPS DNR、撤权及跨工具隔离证据。真实失败退出码、旧候选和环境阻断均保留，不能以数据恢复通过代替耗尽规则恢复。
+
+- 负责人：Codex 会话 `01a1364d-3c43-76a0-83d6-25d8c20b38ee`。起始 main/origin：`89c3b298dc3cf8927b227b041b101770780ce58a`；全部正式修改及提交都在 main，没有创建分支、worktree 或 PR。
+- 本任务源码修复提交：`f831f5d3f906fca9171e2c9cd662484a07c95ef3`。写入文件：`examples/sidebar-tools/stay-focus/src/index.html`、`examples/sidebar-tools/stay-focus/src/main.js`、`tests/environment/stay-focus-r1.test.mjs`、现有 `tests/framework/stay-focus-r1-native.test.mjs`。追加写入本记录和 `docs/framework/evidence/stay-focus-r16-20261014/`；子 Agent 仅只读审阅。
+- 最后实际原生候选源码：`85de6add728a45167583b0308a8e31da7503d044`（candidate-06）；最新实际组件/双构建/verify 源码：`3763a70eed4855be91d597336938611ba9c86352`（candidate-07）。并行负责人之后修改了 WXT 输出格式及 Cookie 安装安全路径，已补跑受影响构建，不能把 candidate-06 的原生结果提升到新字节。最后逐项比较的 main `8321bc8e0a98d4066f8464f1b23b81b113593f8b` 与 candidate-07 的 470 项产品输入一致。候选身份以 receipt 的逐文件 SHA 为准，不能用变化中的 HEAD 标签替代。candidate-04/05、旧 CI 及 MIXED_DIAGNOSTIC 结果均不升级为 candidate-06 PASS。
+- 日常开发 watcher 初始 PID 67794 由原负责人持有，后由其他工作流替换为 PID 25149；本任务没有启停 watcher，也没有写入日常 `dist/development`、切换日常 Chrome 扩展 ID 或修改 Native 配对。所有构建仅在 `.runtime/tests/stay-focus-r16-20261014/candidate-01/` 与 `candidate-02/` 的独立快照输出；快照不是 Git worktree。CFT Profile、调试端口与 IPv4/IPv6 HTTP 端口均由原生驱动独立申请并清理。
+
+**真实缺陷及修复。** 工具沙箱只允许脚本，禁止表单提交。原有五个保存入口监听 `submit`，浏览器在监听器执行之前拦截提交，额度修改无法进入可信宿主审阅。五个入口改为明确的 `type="button"` 与 `click`，继续使用原字段校验及 Host 确认，不添加 `allow-forms`、权限、运行器、计时器或 DNR 引擎。新增回归先失败后通过，覆盖额度、网站、共享组、时段和白名单，以及非法额度不得发送操作。真实 Chrome 已经确认保存 2 分钟及两个本机网站。
+
+现有原生驱动补足：正确路由 opaque iframe 的真实输入、检查输入焦点和实际字段值、真实 Side Panel 关闭、实际 Worker 停止/唤醒、同 Profile 完整 Chrome 重启、先收集独立生命周期再保留整体失败。`OPENDESK_FOCUS_NATIVE_MANUAL_SITES=1` 仅等待真实键鼠录入两个域名，不能写 usage、DNR 或权限。原生 idle 连续阻断时停止计时分支并继续独立生命周期；不伪造 active。条件性恢复前台避免重复激活污染观察。测试窗口延长只涉及测试时限，不改变每日额度或固定构建上限。
+
+构建诊断曾临时试验 `wxt.config.mjs`，没有解决固定入口超限，已完全恢复；最终复用其他负责人已经合入 main 的预算修复。本任务不提交该配置或其他工具源码，不放宽 524288 B 固定入口上限。
+
+**实际命令与退出码。** Node `v24.16.0` 满足仓库 `>=22.12.0`。四个指定组件文件原始 61 PASS；增加保存回归后最终 **62 PASS / 0 FAIL**。`node --check tests/framework/stay-focus-r1-native.test.mjs`、独立工具包构建、`npm run check`、`npm run build`、`npm run build:dev`、`npm run verify` 均实际执行并退出 0。最后组件/check/双构建/verify 日志为证据目录的 `candidate-07-*.log` 与相应 `*-result.json`；独立工具包构建为 `candidate-05-tool-build.log`，Focus 输入和生成包 SHA 完全相同，按测试复用规则保留其证据。初次入口超限及不完整包 verify 失败日志仍在原始 artifacts 中，没有删除或登记为成功。
+
+| 最新 candidate-07 产物 | 字节数 | SHA-256 |
+| --- | ---: | --- |
+| Stay Focus 工具包 | 33024 | `afb91cfb1fecf65544ed2864c08e7eb678e864b2b6b5d2cd0e65ce7fb31413af` |
+| production SW | 592119 | `9d85e1370c1dc5c1e896764e6c3bb367d2a94a4d32efc93760d78c313cb56e9f` |
+| development SW | 592285 | `e49d69652a5713f4c61a75c50d301ef9269290b0df86aa188b62ecdd1321256b` |
+
+production packageHash：`8de5cf8ca372796d35079ec4cd5f1dc4542571b1716b02ec45ef6593add04294`；development：`87ae7633a6198f6462fc6a4ad2bcbf4c45b5fe9af8124dbc0c91c4e9e73d434a`。工具壳 production 494692 B、development 494932 B，均小于 524288 B；SW 小于 1048576 B 硬上限。原始 receipt 的 `sourceDriftDuringBuild=[]`。source-receipt binding 另存为派生证据，绝不回写原 receipt。
+
+**真实 Chrome 证据及分级。** 下表的原生事实只属于注明的 candidate-04 或 candidate-06，不能升级为 candidate-07 原生通过。 CFT `155.0.8059.39`，可执行文件在 `tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing`。candidate-06 实际加载 `.runtime/tests/stay-focus-r16-20261014/candidate-02/dist/production`，扩展 ID `mohemamkpnbkhgeoiahoealmkomamhbo`；candidate-04 为 `oapmdikgnncbedlhnolbfecdfdlcdjpm`，加载 candidate-01/dist/production，其旧 SW 字节与 SHA 已分别记录。candidate-06 原生 SW 为 591798 B / `e324aa5cf9ad7157effc0967408f3e5aec330555112230c1c8e24534846b61ae`，而最新 candidate-07 已重建，原生 NOT_TESTED；相同加载路径和 ID 不能提升不同 SW 的证明。没有混用不同原生身份。
+
+| 功能 | 源码 / 组件 / 构建 | 原生事实与限制 | 产品 |
+| --- | --- | --- | --- |
+| 首次安装、主动授权、11 站共享 30 分钟，GitHub 排除 | SOURCE_DONE / COMPONENT_PASS / BUILD_PASS | NATIVE_PASS：真实首次状态读回；未授权前无有效自有 DNR，实际 HTTP 可达 | NOT_ACCEPTED |
+| 保存额度、两个本机网站进入同一娱乐组 | SOURCE_DONE / COMPONENT_PASS / BUILD_PASS | NATIVE_PASS：原生键鼠及可信 Host 确认，2 分钟实际保存 | NOT_ACCEPTED |
+| 双站前台累计、后台/idle 不计费、多标签不重复计费 | SOURCE_DONE / COMPONENT_PASS / BUILD_PASS | candidate-04 原生累计 105331 ms，后台 32 秒不计费；完整 120000 ms 耗尽及多标签整段核验 NATIVE_BLOCKED | NOT_ACCEPTED |
+| 10 / 5 分钟提醒 | SOURCE_DONE / COMPONENT_PASS / BUILD_PASS | 使用既有可控时间模型测试；30 分钟实耗原生 NOT_TESTED，未重复制造长耗时场景 | NOT_ACCEPTED |
+| 1 分钟提醒 | SOURCE_DONE / COMPONENT_PASS / BUILD_PASS | candidate-04 NATIVE_PASS：实耗 75331 ms、阈值 `[1]`、网页提醒数 1、真实截图；candidate-06 不提升旧候选结果 | NOT_ACCEPTED |
+| 耗尽后现有标签、新 HTTP、YouTube/TikTok HTTPS DNR | SOURCE_DONE / COMPONENT_PASS / BUILD_PASS | NATIVE_BLOCKED：未达到真实耗尽，绝不把网络错误或自行写入规则算 PASS | NOT_ACCEPTED |
+| 关闭侧栏继续计时与限制 | SOURCE_DONE / COMPONENT_PASS / BUILD_PASS | candidate-04 关闭上下文后真实计时有证据；耗尽限制 NATIVE_BLOCKED | NOT_ACCEPTED |
+| Worker 重启与完整 Chrome 同 Profile 重启 | SOURCE_DONE / COMPONENT_PASS / BUILD_PASS | candidate-06 数据恢复子项 NATIVE_PASS；已耗尽 DNR 恢复 NOT_TESTED | NOT_ACCEPTED |
+| 逐站暂停/恢复、停用/重新开启 | SOURCE_DONE / COMPONENT_PASS / BUILD_PASS | candidate-06 UI 与持久状态子项 NATIVE_PASS；已有生效限制的即时移除及重开恢复 NATIVE_BLOCKED | NOT_ACCEPTED |
+| 卸载 | SOURCE_DONE / COMPONENT_PASS / BUILD_PASS | candidate-06 安装记录/自有数据清除 NATIVE_PASS；活跃 DNR 与活跃提醒清除 NOT_TESTED | NOT_ACCEPTED |
+| 撤销 Chrome 权限、Time Review/其他工具数据与规则隔离 | SOURCE_DONE / COMPONENT_PASS / BUILD_PASS | NOT_TESTED：未通过真实 Chrome 权限管理入口撤权，也没有真安装并运行另一工具作为隔离基线 | NOT_ACCEPTED |
+| 普通 UI 首屏、折叠高级项、保存与逐站暂停、宽度 | SOURCE_DONE / COMPONENT_PASS / BUILD_PASS | 已实测 360 px iframe，scrollWidth=360；首次开启/停用入口真实使用，无正式全宽度评分 | NOT_ACCEPTED |
+
+原始 `attempt-20-assisted-native` 整体 0 PASS / 1 FAIL / exit 1：末段 Chrome 原生 idle，使用量停在 105331 ms，尽管独立生命周期通过，整体仍要求 quota PASS。`attempt-21` 延长观察与条件恢复前台后仍因真实 idle 未达到额度，exit 1；`attempt-22` 在更新的 Host 候选通过默认池和额度保存，随后另一个相同 CFT 应用的 Profile 占用原生窗口绑定，域名录入等待超时，exit 1。没有停止或修改其他测试 Profile。资源释放后最后 candidate-06 的 `attempt-23-final-native` 再补同候选原生验证，最终状态见其原始 JSON/退出码及下方收尾记录。
+
+**最后同候选收尾。** candidate-06 `attempt-23-final-native`（0 PASS / 1 FAIL，exit 1）实际保存两个本机网站；IPv4 127.0.0.1 与 IPv6 ::1 服务器真实内容核对成功，localhost 两种解析均记录。后台 32 秒不计费；关侧栏后原生 idle 持续，使用量保持 0，quota=`NATIVE_BLOCKED_REAL_IDLE_OR_FOCUS`。Worker 新 target 的数据读回、逐站暂停/恢复通过，随后驱动滚轮滚在 iframe 内，外层设置按钮定位超时，未把该超时当成产品停用失败。
+
+只修正现有驱动的外层滚轮目标，复用同一 candidate-06 / Chrome / SW / 工具包，启用 `OPENDESK_FOCUS_NATIVE_LIFECYCLE_ONLY=1` 做受影响的定向补验。`attempt-24-lifecycle-only` 的 Worker 数据、逐站暂停、停用/重开状态、同 Profile 完整 Chrome 重启、安装记录及自有数据清除均实际通过；report 字段分别为 `PASS_DATA_ONLY_DNR_NOT_TESTED`、`PASS_UI_STATE_ONLY`、`PASS_STATE_ONLY_NO_ACTIVE_DNR`、`PASS_STATE_ONLY_QUOTA_NOT_TESTED`、`PASS_DATA_ONLY_EXHAUSTED_DNR_NOT_TESTED`、`PASS_DATA_ONLY_ACTIVE_DNR_NOTICE_NOT_TESTED`。本次明确不重跑已阻断的额度分支，quota=`NOT_TESTED_LIFECYCLE_ONLY`，整体仍 0 PASS / 1 FAIL / exit 1，绝不登记全套 NATIVE_PASS。原始 log 中旧 step 名称/布尔项不能替代这些限定事实；最终驱动已把重开日志改为读回实际 ownedQuotaRules 计数及 exhaustedQuotaTested，日志改动通过最终语法检查，未再发起新 Chrome 全量复测。
+
+1 分钟实际截图：[真实网页提醒](../evidence/stay-focus-r16-20261014/attempt-20-assisted-native/real-one-minute-page-reminder.png)。账本及一次性去重在同目录 `native-report.json` 的 `reminderProof`，不可升级为另一 SW 候选的证明。
+
+**证据与 CI。** 原始完整日志/失败/截图保存在 `artifacts/stay-focus-r1-native/20261014-r16/`；可随 main 审阅的核心副本在 [本轮证据目录](../evidence/stay-focus-r16-20261014/manifest.json)。目录保存原退出码、两种源码身份、receipt、报告及截图，manifest 逐文件列 SHA-256；旧 artifacts、CI receipt 和 profile 身份没有被覆写。复测基础与缺口保留为 `NATIVE_PASS / NATIVE_FAIL / NATIVE_BLOCKED / NOT_TESTED`，整工具不登记 `PRODUCT_ACCEPTED`。
+
+旧 CI Run [38428256016](https://github.com/shopable-ai/opendesk-browser/actions/runs/38428256016)：source-and-build 115403285041 成功、native-mac-chrome 115404593802 在本轮查询时仍 queued；只属于 b39be6ab，不替代本机候选。本任务修复提交 f831f5d3 的 workflow_runs 查询为空；最终 main 推送后的 CI 状态另行记录，未完成不能登记 CI PASS。
+
+交付前复核 main `400b3ec1dec2aefc64cbdd37404845320f1a6176`：candidate-07 的 production/development 各 470 个 product inputs 与该提交逐项 SHA 一致、差异 0；详见 `final-main-product-binding.json`。该比对只证明构建输入一致，不提升原生验收等级。
 
 ## R1.5 真实 CI 验证记录（2026-10-14）
 

@@ -1,0 +1,1075 @@
+{
+  "candidate": "85de6add728a45167583b0308a8e31da7503d044",
+  "loadedRoot": "/Users/shopme/Documents/workspace/opendesk-browser/.runtime/tests/stay-focus-r16-20261014/candidate-02/dist/production",
+  "profileDir": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-stay-focus-r1-YWlwe3",
+  "localhostAddresses": [
+    {
+      "address": "::1",
+      "family": 6
+    },
+    {
+      "address": "127.0.0.1",
+      "family": 4
+    }
+  ],
+  "httpListeners": [
+    {
+      "address": "127.0.0.1",
+      "family": "IPv4",
+      "port": 59806
+    },
+    {
+      "address": "::1",
+      "family": "IPv6",
+      "port": 59807
+    }
+  ],
+  "chromeBin": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+  "swBytes": 591798,
+  "swSHA256": "e324aa5cf9ad7157effc0967408f3e5aec330555112230c1c8e24534846b61ae",
+  "pkgSHA256": "afb91cfb1fecf65544ed2864c08e7eb678e864b2b6b5d2cd0e65ce7fb31413af",
+  "nativeChrome": "Chrome/155.0.8059.39",
+  "approval": "PASS",
+  "actualNavigation": "NOT_TESTED",
+  "quota": "NATIVE_BLOCKED_REAL_IDLE_OR_FOCUS",
+  "zeroConfig": "PASS",
+  "pageReminder": "NOT_TESTED",
+  "realSharedTwoHosts": "NOT_TESTED",
+  "quotaTrace": [
+    {
+      "elapsedMs": 28,
+      "usedMs": 0,
+      "rules": [],
+      "notices": {
+        "budgetMs": null,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:59806/real-navigation",
+      "tabId": 1405205165,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 3031,
+      "usedMs": 0,
+      "rules": [],
+      "notices": {
+        "budgetMs": null,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:59806/real-navigation",
+      "tabId": 1405205165,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 6040,
+      "usedMs": 0,
+      "rules": [],
+      "notices": {
+        "budgetMs": null,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:59806/real-navigation",
+      "tabId": 1405205165,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 9044,
+      "usedMs": 0,
+      "rules": [],
+      "notices": {
+        "budgetMs": null,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:59806/real-navigation",
+      "tabId": 1405205165,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 12047,
+      "usedMs": 0,
+      "rules": [],
+      "notices": {
+        "budgetMs": null,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:59806/real-navigation",
+      "tabId": 1405205165,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 15053,
+      "usedMs": 0,
+      "rules": [],
+      "notices": {
+        "budgetMs": null,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:59806/real-navigation",
+      "tabId": 1405205165,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 18058,
+      "usedMs": 0,
+      "rules": [],
+      "notices": {
+        "budgetMs": null,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:59806/real-navigation",
+      "tabId": 1405205165,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 21063,
+      "usedMs": 0,
+      "rules": [],
+      "notices": {
+        "budgetMs": null,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:59806/real-navigation",
+      "tabId": 1405205165,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 24067,
+      "usedMs": 0,
+      "rules": [],
+      "notices": {
+        "budgetMs": null,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:59806/real-navigation",
+      "tabId": 1405205165,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 27076,
+      "usedMs": 0,
+      "rules": [],
+      "notices": {
+        "budgetMs": null,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:59806/real-navigation",
+      "tabId": 1405205165,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 30084,
+      "usedMs": 0,
+      "rules": [],
+      "notices": {
+        "budgetMs": null,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:59806/real-navigation",
+      "tabId": 1405205165,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 33093,
+      "usedMs": 0,
+      "rules": [],
+      "notices": {
+        "budgetMs": null,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:59806/real-navigation",
+      "tabId": 1405205165,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 36099,
+      "usedMs": 0,
+      "rules": [],
+      "notices": {
+        "budgetMs": null,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:59806/real-navigation",
+      "tabId": 1405205165,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 39107,
+      "usedMs": 0,
+      "rules": [],
+      "notices": {
+        "budgetMs": null,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:59806/real-navigation",
+      "tabId": 1405205165,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 42113,
+      "usedMs": 0,
+      "rules": [],
+      "notices": {
+        "budgetMs": null,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:59806/real-navigation",
+      "tabId": 1405205165,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 45119,
+      "usedMs": 0,
+      "rules": [],
+      "notices": {
+        "budgetMs": null,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:59806/real-navigation",
+      "tabId": 1405205165,
+      "pageNotice": false
+    }
+  ],
+  "screenshots": [
+    {
+      "file": "installed-stay-focus-native-panel.png",
+      "bytes": 168293,
+      "sha256": "e18ed0d20b80d841879a711ddc380b34a80e44d169fec9696700483fffa3bbc9"
+    },
+    {
+      "file": "zero-config-30-minute-pool.png",
+      "bytes": 122538,
+      "sha256": "88bac69ca6f6a80b9d8297445dca33a4421de85cbe1cbb570f38173411572230"
+    },
+    {
+      "file": "quota-active-http-before-limit.png",
+      "bytes": 36067,
+      "sha256": "3078dadb39dbc29be85f639777666c65b68ed086467998a5255b73a43f29a594"
+    },
+    {
+      "file": "failure-side-panel.png",
+      "bytes": 159376,
+      "sha256": "1ee5190320d21e242de0d2d0141cffc3eb6cbc9fc75832ae6828d8753f55e6d4"
+    }
+  ],
+  "background": "PASS",
+  "closedSidePanel": "NATIVE_BLOCKED_REAL_IDLE_OR_FOCUS",
+  "workerRestart": "PASS_DATA_ONLY_DNR_NOT_TESTED",
+  "permissionRevocation": "NOT_TESTED",
+  "otherTools": "NOT_TESTED",
+  "disabled": "NOT_TESTED",
+  "reenabled": "NOT_TESTED",
+  "restart": "NOT_TESTED",
+  "unregister": "NOT_TESTED",
+  "uninstall": "NOT_TESTED",
+  "steps": [
+    {
+      "name": "native-zero-config",
+      "managed": 11,
+      "minutes": 30,
+      "used": {},
+      "sites": [
+        {
+          "enabled": true,
+          "group": "entertainment",
+          "host": "youtube.com",
+          "minutes": 30,
+          "mode": "limit",
+          "subdomains": true
+        },
+        {
+          "enabled": true,
+          "group": "entertainment",
+          "host": "bilibili.com",
+          "minutes": 30,
+          "mode": "limit",
+          "subdomains": true
+        },
+        {
+          "enabled": true,
+          "group": "entertainment",
+          "host": "tiktok.com",
+          "minutes": 30,
+          "mode": "limit",
+          "subdomains": true
+        },
+        {
+          "enabled": true,
+          "group": "entertainment",
+          "host": "douyin.com",
+          "minutes": 30,
+          "mode": "limit",
+          "subdomains": true
+        },
+        {
+          "enabled": true,
+          "group": "entertainment",
+          "host": "instagram.com",
+          "minutes": 30,
+          "mode": "limit",
+          "subdomains": true
+        },
+        {
+          "enabled": true,
+          "group": "entertainment",
+          "host": "reddit.com",
+          "minutes": 30,
+          "mode": "limit",
+          "subdomains": true
+        },
+        {
+          "enabled": true,
+          "group": "entertainment",
+          "host": "x.com",
+          "minutes": 30,
+          "mode": "limit",
+          "subdomains": true
+        },
+        {
+          "enabled": true,
+          "group": "entertainment",
+          "host": "weibo.com",
+          "minutes": 30,
+          "mode": "limit",
+          "subdomains": true
+        },
+        {
+          "enabled": true,
+          "group": "entertainment",
+          "host": "netflix.com",
+          "minutes": 30,
+          "mode": "limit",
+          "subdomains": true
+        },
+        {
+          "enabled": true,
+          "group": "entertainment",
+          "host": "twitch.tv",
+          "minutes": 30,
+          "mode": "limit",
+          "subdomains": true
+        },
+        {
+          "enabled": true,
+          "group": "entertainment",
+          "host": "roblox.com",
+          "minutes": 30,
+          "mode": "limit",
+          "subdomains": true
+        }
+      ]
+    },
+    {
+      "name": "native-shared-budget-edited",
+      "minutes": 2,
+      "approvedViaUI": true
+    },
+    {
+      "name": "await-native-site-entry",
+      "hosts": [
+        "127.0.0.1",
+        "localhost"
+      ],
+      "group": "entertainment",
+      "minutes": 2
+    },
+    {
+      "name": "real-ui-two-minute-shared-quota",
+      "minutes": 2,
+      "domains": [
+        "127.0.0.1",
+        "localhost"
+      ],
+      "storageUsageWasNotModified": true
+    },
+    {
+      "name": "background-does-not-charge",
+      "before": {
+        "usedMs": 0,
+        "rules": [],
+        "notices": {
+          "budgetMs": null,
+          "day": "2026-10-14",
+          "revision": 3,
+          "thresholds": []
+        },
+        "idle": "idle",
+        "focused": true,
+        "activeUrl": "about:blank",
+        "tabId": 1405205166
+      },
+      "after": {
+        "usedMs": 0,
+        "rules": [],
+        "notices": {
+          "budgetMs": null,
+          "day": "2026-10-14",
+          "revision": 3,
+          "thresholds": []
+        },
+        "idle": "idle",
+        "focused": true,
+        "activeUrl": "about:blank",
+        "tabId": 1405205166
+      }
+    },
+    {
+      "name": "foreground-quota-observation",
+      "elapsedMs": 12047,
+      "usedMs": 0,
+      "rules": [],
+      "notices": {
+        "budgetMs": null,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:59806/real-navigation",
+      "tabId": 1405205165,
+      "pageNotice": false
+    },
+    {
+      "name": "foreground-quota-observation",
+      "elapsedMs": 27076,
+      "usedMs": 0,
+      "rules": [],
+      "notices": {
+        "budgetMs": null,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:59806/real-navigation",
+      "tabId": 1405205165,
+      "pageNotice": false
+    },
+    {
+      "name": "foreground-quota-observation",
+      "elapsedMs": 42113,
+      "usedMs": 0,
+      "rules": [],
+      "notices": {
+        "budgetMs": null,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:59806/real-navigation",
+      "tabId": 1405205165,
+      "pageNotice": false
+    },
+    {
+      "name": "quota-incomplete",
+      "status": "NATIVE_BLOCKED_REAL_IDLE_OR_FOCUS",
+      "last": [
+        {
+          "elapsedMs": 39107,
+          "usedMs": 0,
+          "rules": [],
+          "notices": {
+            "budgetMs": null,
+            "day": "2026-10-14",
+            "revision": 3,
+            "thresholds": []
+          },
+          "idle": "idle",
+          "focused": true,
+          "activeUrl": "http://127.0.0.1:59806/real-navigation",
+          "tabId": 1405205165,
+          "pageNotice": false
+        },
+        {
+          "elapsedMs": 42113,
+          "usedMs": 0,
+          "rules": [],
+          "notices": {
+            "budgetMs": null,
+            "day": "2026-10-14",
+            "revision": 3,
+            "thresholds": []
+          },
+          "idle": "idle",
+          "focused": true,
+          "activeUrl": "http://127.0.0.1:59806/real-navigation",
+          "tabId": 1405205165,
+          "pageNotice": false
+        },
+        {
+          "elapsedMs": 45119,
+          "usedMs": 0,
+          "rules": [],
+          "notices": {
+            "budgetMs": null,
+            "day": "2026-10-14",
+            "revision": 3,
+            "thresholds": []
+          },
+          "idle": "idle",
+          "focused": true,
+          "activeUrl": "http://127.0.0.1:59806/real-navigation",
+          "tabId": 1405205165,
+          "pageNotice": false
+        }
+      ]
+    },
+    {
+      "name": "real-worker-restart",
+      "old": "34B151890B655EFAF2ABBF267DB3F43D",
+      "current": "B97CCB6128E47B709D58055B0CAE8B80",
+      "quota": {
+        "usedMs": 0,
+        "rules": [],
+        "notices": {
+          "budgetMs": null,
+          "day": "2026-10-14",
+          "revision": 3,
+          "thresholds": []
+        },
+        "idle": "idle",
+        "focused": true,
+        "activeUrl": "chrome-extension://mohemamkpnbkhgeoiahoealmkomamhbo/ui/tool.html?hostInstanceId=02a8da2a-b44e-4649-b435-0bf42f6ac5d5",
+        "tabId": 1405205163
+      }
+    }
+  ],
+  "debugPort": 59810,
+  "extensionId": "mohemamkpnbkhgeoiahoealmkomamhbo",
+  "toolGeometry": {
+    "width": 360,
+    "scrollWidth": 360,
+    "visible": true
+  },
+  "nativePermissionBefore": false,
+  "siteEntryDriver": "ASSISTED_NATIVE_UI",
+  "sitePause": "PASS_UI_STATE_ONLY",
+  "failureUI": [
+    {
+      "name": "side-panel",
+      "text": "我的\n发现\n工作流\n开发\n工具\n云控\nStay Focus · 保持专注\n历史记录查询",
+      "fields": [
+        {
+          "id": "schedule-title",
+          "value": "",
+          "valid": false
+        },
+        {
+          "id": "schedule-target",
+          "value": "",
+          "valid": false
+        },
+        {
+          "id": "schedule-timezone-search",
+          "value": "",
+          "valid": true
+        },
+        {
+          "id": "schedule-once",
+          "value": "",
+          "valid": true
+        },
+        {
+          "id": "schedule-clock",
+          "value": "09:00",
+          "valid": true
+        },
+        {
+          "id": "",
+          "value": "1",
+          "valid": true
+        },
+        {
+          "id": "",
+          "value": "2",
+          "valid": true
+        },
+        {
+          "id": "",
+          "value": "3",
+          "valid": true
+        },
+        {
+          "id": "",
+          "value": "4",
+          "valid": true
+        },
+        {
+          "id": "",
+          "value": "5",
+          "valid": true
+        },
+        {
+          "id": "",
+          "value": "6",
+          "valid": true
+        },
+        {
+          "id": "",
+          "value": "0",
+          "valid": true
+        },
+        {
+          "id": "schedule-minutes",
+          "value": "60",
+          "valid": true
+        },
+        {
+          "id": "schedule-open-target",
+          "value": "on",
+          "valid": true
+        },
+        {
+          "id": "schedule-deadline",
+          "value": "5",
+          "valid": true
+        },
+        {
+          "id": "schedule-paused",
+          "value": "on",
+          "valid": true
+        },
+        {
+          "id": "schedule-manager-search",
+          "value": "",
+          "valid": true
+        },
+        {
+          "id": "sidebar-tool-file",
+          "value": "",
+          "valid": true
+        },
+        {
+          "id": "trusted-cookie-name",
+          "value": "",
+          "valid": true
+        },
+        {
+          "id": "trusted-cookie-value",
+          "value": "",
+          "valid": true
+        },
+        {
+          "id": "trusted-cookie-path",
+          "value": "/",
+          "valid": true
+        },
+        {
+          "id": "sidebar-tool-search",
+          "value": "",
+          "valid": true
+        },
+        {
+          "id": "trusted-history-text",
+          "value": "",
+          "valid": true
+        },
+        {
+          "id": "trusted-history-start",
+          "value": "",
+          "valid": true
+        },
+        {
+          "id": "trusted-history-end",
+          "value": "",
+          "valid": true
+        },
+        {
+          "id": "trusted-history-limit",
+          "value": "25",
+          "valid": true
+        },
+        {
+          "id": "cloud-consent",
+          "value": "on",
+          "valid": true
+        },
+        {
+          "id": "cloud-result-consent",
+          "value": "on",
+          "valid": true
+        },
+        {
+          "id": "cloud-client-name",
+          "value": "",
+          "valid": true
+        },
+        {
+          "id": "cloud-client-result",
+          "value": "on",
+          "valid": true
+        },
+        {
+          "id": "cloud-client-token",
+          "value": "",
+          "valid": true
+        },
+        {
+          "id": "cloud-url",
+          "value": "",
+          "valid": true
+        },
+        {
+          "id": "cloud-provider-id",
+          "value": "",
+          "valid": true
+        },
+        {
+          "id": "cloud-pairing-code",
+          "value": "",
+          "valid": true
+        },
+        {
+          "id": "cloud-loopback",
+          "value": "on",
+          "valid": true
+        },
+        {
+          "id": "local-discover-search",
+          "value": "",
+          "valid": true
+        },
+        {
+          "id": "task-search",
+          "value": "",
+          "valid": true
+        },
+        {
+          "id": "task-verify-run",
+          "value": "",
+          "valid": true
+        },
+        {
+          "id": "task-package-file",
+          "value": "",
+          "valid": true
+        },
+        {
+          "id": "workflow-confirm-run",
+          "value": "on",
+          "valid": true
+        },
+        {
+          "id": "workflow-title",
+          "value": "新工作流",
+          "valid": true
+        },
+        {
+          "id": "workflow-site",
+          "value": "http://127.0.0.1:59806",
+          "valid": true
+        },
+        {
+          "id": "workflow-new-param-name",
+          "value": "",
+          "valid": true
+        },
+        {
+          "id": "workflow-ai-endpoint",
+          "value": "https://api.openai.com/v1/chat/completions",
+          "valid": true
+        },
+        {
+          "id": "workflow-ai-model",
+          "value": "gpt-4o-mini",
+          "valid": true
+        },
+        {
+          "id": "workflow-ai-key",
+          "value": "",
+          "valid": true
+        },
+        {
+          "id": "local-project-mode",
+          "value": "on",
+          "valid": true
+        },
+        {
+          "id": "local-install-title",
+          "value": "",
+          "valid": true
+        },
+        {
+          "id": "local-install-version",
+          "value": "",
+          "valid": true
+        },
+        {
+          "id": "page-component-javascript",
+          "value": "javascript",
+          "valid": true
+        },
+        {
+          "id": "page-component-react",
+          "value": "react",
+          "valid": true
+        },
+        {
+          "id": "page-component-vue",
+          "value": "vue",
+          "valid": true
+        },
+        {
+          "id": "network-js-consent",
+          "value": "on",
+          "valid": true
+        },
+        {
+          "id": "script-run-id",
+          "value": "",
+          "valid": true
+        },
+        {
+          "id": "script-id",
+          "value": "my-script",
+          "valid": true
+        },
+        {
+          "id": "script-revision",
+          "value": "",
+          "valid": true
+        },
+        {
+          "id": "task-dev-id",
+          "value": "my-first-task",
+          "valid": true
+        },
+        {
+          "id": "task-dev-version",
+          "value": "1.0.0",
+          "valid": true
+        },
+        {
+          "id": "task-dev-title",
+          "value": "我的第一个任务",
+          "valid": true
+        },
+        {
+          "id": "task-dev-description",
+          "value": "运行当前网页的自动化脚本",
+          "valid": true
+        },
+        {
+          "id": "task-dev-author",
+          "value": "local-developer",
+          "valid": true
+        },
+        {
+          "id": "script-owned-url",
+          "value": "",
+          "valid": true
+        },
+        {
+          "id": "script-allow-cookies",
+          "value": "on",
+          "valid": true
+        },
+        {
+          "id": "",
+          "value": "network",
+          "valid": true
+        },
+        {
+          "id": "",
+          "value": "storage.persistent",
+          "valid": true
+        },
+        {
+          "id": "",
+          "value": "storage.session",
+          "valid": true
+        },
+        {
+          "id": "",
+          "value": "notifications",
+          "valid": true
+        },
+        {
+          "id": "",
+          "value": "device.id",
+          "valid": true
+        },
+        {
+          "id": "",
+          "value": "network.info",
+          "valid": true
+        },
+        {
+          "id": "",
+          "value": "service.log",
+          "valid": true
+        },
+        {
+          "id": "",
+          "value": "service.time",
+          "valid": true
+        },
+        {
+          "id": "",
+          "value": "resources.packaged",
+          "valid": true
+        },
+        {
+          "id": "target-url",
+          "value": "",
+          "valid": true
+        }
+      ]
+    },
+    {
+      "name": "sandbox",
+      "text": "STAY FOCUS\n\n为重要的事留时间\n\n轻量的网站限额与专注限制 · 本机运行\n\n运行中\n每日娱乐总额度\n2026-10-14\n2 分钟\n所有受管理娱乐网站共享\n今日已使用\n0 分钟\n今天还剩\n2 分钟\n\n今日所有受管娱乐网站共享同一份额度 · 13 个网站\n\n修改每日共享额度（分钟）\n保存额度\n暂时停用限制\n临时专注模式\n高级功能 · 25 分钟专注\n规则已保存，并完成 Chrome DNR 规则读回核对。\n自动识别与推荐\n离线域名分类\n\n正在识别当前网站。已知娱乐网站会在首次开启时自动纳入共享额度。\n\n管理的网站\n13 个网站\n\nyoutube.com · bilibili.com · tiktok.com · douyin.com 等 · 可逐站暂停或排除\n\n查看网站与一键排除\nyoutube.com\n2 分钟 剩余 / 2 分钟 · entertainment · 含子域名\n编辑\n暂停\n移除\nbilibili.com\n2 分钟 剩余 / 2 分钟 · entertainment · 含子域名\n编辑\n暂停\n移除\ntiktok.com\n2 分钟 剩余 / 2 分钟 · entertainment · 含子域名\n编辑\n暂停\n移除\ndouyin.com\n2 分钟 剩余 / 2 分钟 · entertainment · 含子域名\n编辑\n暂停\n移除\ninstagram.com\n2 分钟 剩余 / 2 分钟 · entertainment · 含子域名\n编辑\n暂停\n移除\nreddit.com\n2 分钟 剩余 / 2 分钟 · entertainment · 含子域名\n编辑\n暂停\n移除\nx.com\n2 分钟 剩余 / 2 分钟 · entertainment · 含子域名\n编辑\n暂停\n移除\nweibo.com\n2 分钟 剩余 / 2 分钟 · entertainment · 含子域名\n编辑\n暂停\n移除\nnetflix.com\n2 分钟 剩余 / 2 分钟 · entertainment · 含子域名\n编辑\n暂停\n移除\ntwitch.tv\n2 分钟 剩余 / 2 分钟 · entertainment · 含子域名\n编辑\n暂停\n移除\nroblox.com\n2 分钟 剩余 / 2 分钟 · entertainment · 含子域名\n编辑\n暂停\n移除\n127.0.0.1\n2 分钟 剩余 / 2 分钟 · entertainment · 含子域名\n编辑\n暂停\n移除\nlocalhost\n2 分钟 剩余 / 2 分钟 · entertainment · 含子域名\n编辑\n暂停\n移除\n高级：手动添加网站\n域名范围 · 独立规则 · 限制方式\n高级设置\n自定义共享组 · 工作时段 · 白名单",
+      "fields": [
+        {
+          "id": "daily-budget-minutes",
+          "value": "2",
+          "valid": true
+        },
+        {
+          "id": "site-host",
+          "value": "",
+          "valid": false
+        },
+        {
+          "id": "site-minutes",
+          "value": "15",
+          "valid": true
+        },
+        {
+          "id": "site-subdomains",
+          "value": "on",
+          "valid": true
+        },
+        {
+          "id": "group-name",
+          "value": "",
+          "valid": false
+        },
+        {
+          "id": "group-minutes",
+          "value": "30",
+          "valid": true
+        },
+        {
+          "id": "schedule-enabled",
+          "value": "on",
+          "valid": true
+        },
+        {
+          "id": "",
+          "value": "1",
+          "valid": true
+        },
+        {
+          "id": "",
+          "value": "2",
+          "valid": true
+        },
+        {
+          "id": "",
+          "value": "3",
+          "valid": true
+        },
+        {
+          "id": "",
+          "value": "4",
+          "valid": true
+        },
+        {
+          "id": "",
+          "value": "5",
+          "valid": true
+        },
+        {
+          "id": "",
+          "value": "6",
+          "valid": true
+        },
+        {
+          "id": "",
+          "value": "0",
+          "valid": true
+        },
+        {
+          "id": "schedule-from",
+          "value": "09:00",
+          "valid": true
+        },
+        {
+          "id": "schedule-to",
+          "value": "17:00",
+          "valid": true
+        }
+      ]
+    }
+  ],
+  "passed": false,
+  "chromeErrorTail": "\nDevTools listening on ws://127.0.0.1:59810/devtools/browser/d93bfad8-430e-4016-aabb-0717b13a889b\n[52088:73413490:1014/034045.971317:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: PHONE_REGISTRATION_ERROR\n[52088:73413490:1014/034045.973066:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: PHONE_REGISTRATION_ERROR\n[52088:73413490:1014/034045.994874:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: PHONE_REGISTRATION_ERROR\n[52088:73413490:1014/034110.699790:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: QUOTA_EXCEEDED\n[52088:73413490:1014/034406.325518:ERROR:google_apis/gcm/engine/connection_factory_impl.cc:474] ConnectionHandler failed with net error: -2\n"
+}

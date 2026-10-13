@@ -1,0 +1,5 @@
+{
+  "sourceCommit": "3763a70eed4855be91d597336938611ba9c86352",
+  "root": "/Users/shopme/Documents/workspace/opendesk-browser/.runtime/tests/stay-focus-r16-20261014/candidate-02",
+  "note": "Other owner changed WXT output formatting after final native candidate 85de6add; native result is not promoted to these rebuilt bytes."
+}

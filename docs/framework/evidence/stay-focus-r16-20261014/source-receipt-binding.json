@@ -1,0 +1,24 @@
+{
+  "productSourceCommit": "f831f5d3f906fca9171e2c9cd662484a07c95ef3",
+  "note": "Immutable original receipts are preserved. Candidate labeling from intervening HEAD changes is not used to bind product bytes; each receipt input is compared to the exact source commit. Driver-only changes after this commit do not change built product inputs.",
+  "comparisons": [
+    {
+      "mode": "production",
+      "status": "passed",
+      "sourceInputsCompared": 468,
+      "mismatches": [],
+      "sourceDriftDuringBuild": [],
+      "receiptPath": "artifacts/stay-focus-r1-native/20261014-r16/candidate-04-build-receipts/build-production.json",
+      "receiptSHA256": "70a0c3f1ece144014826a703b9106d2408f01b97c6d347231068c32abd6f05c8"
+    },
+    {
+      "mode": "development",
+      "status": "passed",
+      "sourceInputsCompared": 468,
+      "mismatches": [],
+      "sourceDriftDuringBuild": [],
+      "receiptPath": "artifacts/stay-focus-r1-native/20261014-r16/candidate-04-build-receipts/build-development.json",
+      "receiptSHA256": "15ec2af4464d749bb83f2e3d38756cc655b71bef4a7fe56a393ac906cbf7b737"
+    }
+  ]
+}

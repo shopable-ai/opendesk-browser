@@ -1,0 +1,278 @@
+{
+  "candidate": "85de6add728a45167583b0308a8e31da7503d044",
+  "loadedRoot": "/Users/shopme/Documents/workspace/opendesk-browser/.runtime/tests/stay-focus-r16-20261014/candidate-02/dist/production",
+  "profileDir": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-stay-focus-r1-Men4zG",
+  "localhostAddresses": [
+    {
+      "address": "::1",
+      "family": 6
+    },
+    {
+      "address": "127.0.0.1",
+      "family": 4
+    }
+  ],
+  "httpListeners": [
+    {
+      "address": "127.0.0.1",
+      "family": "IPv4",
+      "port": 63941
+    },
+    {
+      "address": "::1",
+      "family": "IPv6",
+      "port": 63942
+    }
+  ],
+  "chromeBin": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+  "swBytes": 591798,
+  "swSHA256": "e324aa5cf9ad7157effc0967408f3e5aec330555112230c1c8e24534846b61ae",
+  "pkgSHA256": "afb91cfb1fecf65544ed2864c08e7eb678e864b2b6b5d2cd0e65ce7fb31413af",
+  "nativeChrome": "Chrome/155.0.8059.39",
+  "approval": "PASS",
+  "actualNavigation": "NOT_TESTED",
+  "quota": "NOT_TESTED_LIFECYCLE_ONLY",
+  "zeroConfig": "PASS",
+  "pageReminder": "NOT_TESTED",
+  "realSharedTwoHosts": "NOT_TESTED",
+  "quotaTrace": [],
+  "screenshots": [
+    {
+      "file": "installed-stay-focus-native-panel.png",
+      "bytes": 168293,
+      "sha256": "e18ed0d20b80d841879a711ddc380b34a80e44d169fec9696700483fffa3bbc9"
+    },
+    {
+      "file": "zero-config-30-minute-pool.png",
+      "bytes": 122538,
+      "sha256": "88bac69ca6f6a80b9d8297445dca33a4421de85cbe1cbb570f38173411572230"
+    },
+    {
+      "file": "quota-active-http-before-limit.png",
+      "bytes": 36067,
+      "sha256": "3078dadb39dbc29be85f639777666c65b68ed086467998a5255b73a43f29a594"
+    }
+  ],
+  "background": "PASS",
+  "closedSidePanel": "NOT_TESTED_LIFECYCLE_ONLY",
+  "workerRestart": "PASS_DATA_ONLY_DNR_NOT_TESTED",
+  "permissionRevocation": "NOT_TESTED",
+  "otherTools": "NOT_TESTED",
+  "disabled": "PASS_STATE_ONLY_NO_ACTIVE_DNR",
+  "reenabled": "PASS_STATE_ONLY_QUOTA_NOT_TESTED",
+  "restart": "PASS_DATA_ONLY_EXHAUSTED_DNR_NOT_TESTED",
+  "unregister": "PASS",
+  "uninstall": "PASS_DATA_ONLY_ACTIVE_DNR_NOTICE_NOT_TESTED",
+  "steps": [
+    {
+      "name": "native-zero-config",
+      "managed": 11,
+      "minutes": 30,
+      "used": {},
+      "sites": [
+        {
+          "enabled": true,
+          "group": "entertainment",
+          "host": "youtube.com",
+          "minutes": 30,
+          "mode": "limit",
+          "subdomains": true
+        },
+        {
+          "enabled": true,
+          "group": "entertainment",
+          "host": "bilibili.com",
+          "minutes": 30,
+          "mode": "limit",
+          "subdomains": true
+        },
+        {
+          "enabled": true,
+          "group": "entertainment",
+          "host": "tiktok.com",
+          "minutes": 30,
+          "mode": "limit",
+          "subdomains": true
+        },
+        {
+          "enabled": true,
+          "group": "entertainment",
+          "host": "douyin.com",
+          "minutes": 30,
+          "mode": "limit",
+          "subdomains": true
+        },
+        {
+          "enabled": true,
+          "group": "entertainment",
+          "host": "instagram.com",
+          "minutes": 30,
+          "mode": "limit",
+          "subdomains": true
+        },
+        {
+          "enabled": true,
+          "group": "entertainment",
+          "host": "reddit.com",
+          "minutes": 30,
+          "mode": "limit",
+          "subdomains": true
+        },
+        {
+          "enabled": true,
+          "group": "entertainment",
+          "host": "x.com",
+          "minutes": 30,
+          "mode": "limit",
+          "subdomains": true
+        },
+        {
+          "enabled": true,
+          "group": "entertainment",
+          "host": "weibo.com",
+          "minutes": 30,
+          "mode": "limit",
+          "subdomains": true
+        },
+        {
+          "enabled": true,
+          "group": "entertainment",
+          "host": "netflix.com",
+          "minutes": 30,
+          "mode": "limit",
+          "subdomains": true
+        },
+        {
+          "enabled": true,
+          "group": "entertainment",
+          "host": "twitch.tv",
+          "minutes": 30,
+          "mode": "limit",
+          "subdomains": true
+        },
+        {
+          "enabled": true,
+          "group": "entertainment",
+          "host": "roblox.com",
+          "minutes": 30,
+          "mode": "limit",
+          "subdomains": true
+        }
+      ]
+    },
+    {
+      "name": "native-shared-budget-edited",
+      "minutes": 2,
+      "approvedViaUI": true
+    },
+    {
+      "name": "await-native-site-entry",
+      "hosts": [
+        "127.0.0.1",
+        "localhost"
+      ],
+      "group": "entertainment",
+      "minutes": 2
+    },
+    {
+      "name": "real-ui-two-minute-shared-quota",
+      "minutes": 2,
+      "domains": [
+        "127.0.0.1",
+        "localhost"
+      ],
+      "storageUsageWasNotModified": true
+    },
+    {
+      "name": "background-does-not-charge",
+      "before": {
+        "usedMs": 0,
+        "rules": [],
+        "notices": {
+          "budgetMs": null,
+          "day": "2026-10-14",
+          "revision": 3,
+          "thresholds": []
+        },
+        "idle": "idle",
+        "focused": true,
+        "activeUrl": "about:blank",
+        "tabId": 2004315943
+      },
+      "after": {
+        "usedMs": 0,
+        "rules": [],
+        "notices": {
+          "budgetMs": null,
+          "day": "2026-10-14",
+          "revision": 3,
+          "thresholds": []
+        },
+        "idle": "idle",
+        "focused": true,
+        "activeUrl": "about:blank",
+        "tabId": 2004315943
+      }
+    },
+    {
+      "name": "quota-incomplete",
+      "status": "NOT_TESTED_LIFECYCLE_ONLY",
+      "last": []
+    },
+    {
+      "name": "real-worker-restart",
+      "old": "E82E383D501BC184CF6F06A06D53C6C1",
+      "current": "04BFD42A5CED95534CBB572826E2968D",
+      "quota": {
+        "usedMs": 0,
+        "rules": [],
+        "notices": {
+          "budgetMs": null,
+          "day": "2026-10-14",
+          "revision": 3,
+          "thresholds": []
+        },
+        "idle": "idle",
+        "focused": true,
+        "activeUrl": "chrome-extension://mohemamkpnbkhgeoiahoealmkomamhbo/ui/tool.html?hostInstanceId=86527590-6c57-4fef-9eaf-72683b1c8f7c",
+        "tabId": 2004315940
+      }
+    },
+    {
+      "name": "trusted-disable-restores-access",
+      "url": "http://127.0.0.1:63941/real-navigation",
+      "ownedRules": 0
+    },
+    {
+      "name": "reenable-restores-quota-restriction",
+      "quotaPersisted": true,
+      "ruleOwned": true
+    },
+    {
+      "name": "chrome-restart-restores-quota-and-navigation",
+      "sameProfile": true,
+      "extensionId": "mohemamkpnbkhgeoiahoealmkomamhbo",
+      "usageMs": 0,
+      "quotaRules": 0
+    },
+    {
+      "name": "uninstall-restores-access",
+      "realHTTP": true,
+      "ownedRules": 0,
+      "hadActiveDnr": false
+    }
+  ],
+  "debugPort": 63946,
+  "extensionId": "mohemamkpnbkhgeoiahoealmkomamhbo",
+  "toolGeometry": {
+    "width": 360,
+    "scrollWidth": 360,
+    "visible": true
+  },
+  "nativePermissionBefore": false,
+  "siteEntryDriver": "ASSISTED_NATIVE_UI",
+  "sitePause": "PASS_UI_STATE_ONLY",
+  "failureUI": [],
+  "passed": false,
+  "chromeErrorTail": "est.cc:291] Registration response error message: PHONE_REGISTRATION_ERROR\n[56661:73455878:1014/035001.816862:ERROR:google_apis/gcm/engine/mcs_client.cc:702]   Error code: 401  Error message: Authentication Failed: wrong_secret\n[56661:73455878:1014/035001.816877:ERROR:google_apis/gcm/engine/mcs_client.cc:704] Failed to log in to GCM, resetting connection.\n[56661:73455878:1014/035027.467480:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT\n[56661:73455878:1014/035115.885173:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: QUOTA_EXCEEDED\n\nDevTools listening on ws://127.0.0.1:65113/devtools/browser/5190c525-e4e9-40b2-9f8d-a138eb73fbec\n[59345:73482551:1014/035248.504941:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT\n"
+}

@@ -14,6 +14,7 @@ import {setTimeout as sleep} from 'node:timers/promises';
 const BIN=process.env.CHROME_BIN,ROOT=path.resolve('dist/production');
 const OUT=path.resolve(process.env.OPENDESK_FOCUS_NATIVE_EVIDENCE||'artifacts/stay-focus-r1-native');
 const ENABLED=process.env.OPENDESK_STAY_FOCUS_NATIVE==='1';
+const LIFECYCLE_ONLY=process.env.OPENDESK_FOCUS_NATIVE_LIFECYCLE_ONLY==='1';
 const protocol='opendesk.stay-focus.v1',store='opendesk.stay-focus.state.v1';
 const inputParents=new Map();
 function connect(url){
@@ -73,22 +74,34 @@ async function click(c,session,selector){
     }
     if(p.y<0||p.y>=p.height){
       const frame=Boolean(parent)?await evalRead(c,parent,'(()=>{const r=document.querySelector("#sidebar-tool-frame iframe").getBoundingClientRect();return {x:r.x,y:r.y};})()'):{x:0,y:0};
-      await c.send('Input.dispatchMouseEvent',{type:'mouseWheel',x:frame.x+Math.max(8,Math.min(p.width-8,p.x)),
+      // Host toolbar controls can scroll above a long sandbox. Wheel in the
+      // host gutter, otherwise Chrome scrolls the iframe instead of the host.
+      await c.send('Input.dispatchMouseEvent',{type:'mouseWheel',x:parent?frame.x+Math.max(8,Math.min(p.width-8,p.x)):8,
         y:frame.y+Math.max(8,Math.min(p.height-8,p.height/2)),deltaX:0,deltaY:p.y<0?-250:250},Boolean(parent)?parent:session);
     }
     return false;
   },'Visible real control '+selector);
+  await c.send('Input.dispatchMouseEvent',{type:'mouseMoved',x:point.x,y:point.y},parent||session);
   for(const type of ['mousePressed','mouseReleased'])await c.send('Input.dispatchMouseEvent',
     {type,x:point.x,y:point.y,button:'left',clickCount:1},Boolean(parent)?parent:session);
 
 }
 async function fill(c,session,selector,value){
-  await click(c,session,selector);
+  await focusField(c,session,selector);
   await c.send('Input.insertText',{text:value},inputParents.get(session)||session);
+  assert.equal(await evalRead(c,session,'document.querySelector('+JSON.stringify(selector)+').value'),value);
+}
+async function focusField(c,session,selector){
+  // A native macOS select popup may consume the first click merely to close.
+  // Verify focus before typing; repeated focus clicks cannot save any policy.
+  await until(async()=>{
+    await click(c,session,selector);
+    return evalRead(c,session,'document.activeElement===document.querySelector('+JSON.stringify(selector)+')');
+  },'native field focus '+selector);
 }
 // Real CDP keyboard input, not changing DOM values or local usage via evaluate.
 async function replaceField(c,session,selector,value){
-  await click(c,session,selector);
+  await focusField(c,session,selector);
   await c.send('Input.dispatchKeyEvent',{type:'keyDown',key:'a',code:'KeyA',
     modifiers:4,commands:['selectAll']},inputParents.get(session)||session);
   await c.send('Input.dispatchKeyEvent',{type:'keyUp',key:'a',code:'KeyA',
@@ -101,7 +114,7 @@ async function press(c,session,key,code,virtualKey){
   await c.send('Input.dispatchKeyEvent',{type:'keyDown',key,code,windowsVirtualKeyCode:virtualKey},inputParents.get(session)||session);
   await c.send('Input.dispatchKeyEvent',{type:'keyUp',key,code,windowsVirtualKeyCode:virtualKey},inputParents.get(session)||session);
 }
-test('Real Chrome default sharing, live page reminder, DNR and uninstall',{skip:!ENABLED,timeout:540000},async t=>{
+test('Real Chrome default sharing, live page reminder, DNR and uninstall',{skip:!ENABLED,timeout:720000},async t=>{
   assert.equal(process.platform,'darwin','Native CI must be macOS');
   assert.ok(BIN&&spawnSync(BIN,['--version'],{stdio:'ignore'}).status===0);
   const packageFile=path.join(ROOT,'official-tools/stay-focus/stay-focus.opendesk-tool.json');
@@ -284,6 +297,15 @@ test('Real Chrome default sharing, live page reminder, DNR and uninstall',{skip:
     'chrome.storage.local.get("'+store+'").then(x=>x["'+store+'"]?.groups?.entertainment===2)'),
     'trusted two-minute shared quota',15000);
   note('native-shared-budget-edited',{minutes:2,approvedViaUI:true});
+  if(process.env.OPENDESK_FOCUS_NATIVE_MANUAL_SITES==='1'){
+    report.siteEntryDriver='ASSISTED_NATIVE_UI';
+    await click(client,frame,'#manual-site > summary');
+    note('await-native-site-entry',{hosts:['127.0.0.1','localhost'],group:'entertainment',minutes:2});
+    await until(()=>evalRead(client,sid,'chrome.storage.local.get("'+store+'")'+
+      '.then(x=>["127.0.0.1","localhost"].every(host=>x["'+store+'"]?.sites?.some('+
+      's=>s.host===host&&s.enabled&&s.group==="entertainment"&&s.mode==="limit")))'),
+      'two hosts saved via assisted native UI',360000);
+  }else{
   await click(client,frame,'#manual-site > summary');
   await click(client,frame,'#site-group');
   await press(client,frame,'End','End',35);
@@ -318,6 +340,7 @@ test('Real Chrome default sharing, live page reminder, DNR and uninstall',{skip:
     'chrome.storage.local.get("'+store+'").then(x=>x["'+store+'"]?.sites?.some('+
     's=>s.host==="localhost"&&s.group==="entertainment"&&s.mode==="limit"))'),
     'second actual site joins the same shared group');
+  }
   report.quota='IN_PROGRESS';
   note('real-ui-two-minute-shared-quota',{minutes:2,
     domains:['127.0.0.1','localhost'],storageUsageWasNotModified:true});
@@ -364,7 +387,9 @@ test('Real Chrome default sharing, live page reminder, DNR and uninstall',{skip:
   assert.equal(backgroundAfter.activeUrl,'about:blank');
   assert.equal(backgroundAfter.usedMs,backgroundBefore.usedMs,'background entertainment must not charge');
   report.background='PASS';note('background-does-not-charge',{before:backgroundBefore,after:backgroundAfter});
-  await client.send('Target.closeTarget',{targetId:sideTargetId});
+  // Use Chrome's own close operation so its Side Panel lifecycle retires the
+  // view correctly; killing only its CDP target can leave a dangling view.
+  await evalRead(client,uid,'chrome.sidePanel.close({windowId:'+focusedTab.windowId+'})');
   await until(()=>evalRead(client,uid,'chrome.runtime.getContexts({contextTypes:["SIDE_PANEL"]}).then(x=>x.length===0)'),
     'Side Panel document really closed');
   diagnosticSessions=[{name:'catalog',session:uid}];
@@ -374,11 +399,14 @@ test('Real Chrome default sharing, live page reminder, DNR and uninstall',{skip:
     'await chrome.tabs.update(rows.at(-1).id,{active:true});})()');
   const quotaStart=Date.now();
   let reached=null,secondTarget=null,usedAtSwitch=null,secondTabId=null;
-  while(Date.now()-quotaStart<240000){
+  while(!LIFECYCLE_ONLY&&Date.now()-quotaStart<360000){
     // Keep this isolated test window genuinely foreground while other CFT
     // profiles may exist on the Mac. queryState still supplies native idle.
-    await client.send('Target.activateTarget',{targetId:secondTarget?.targetId||live.targetId});
-    await evalRead(client,uid,'chrome.windows.update('+focusedTab.windowId+',{focused:true})');
+    const foreground=await evalRead(client,uid,quotaObservation);
+    if(!foreground.focused||foreground.tabId!==(secondTabId||focusedTab.tabId)){
+      await client.send('Target.activateTarget',{targetId:secondTarget?.targetId||live.targetId});
+      await evalRead(client,uid,'chrome.windows.update('+focusedTab.windowId+',{focused:true})');
+    }
     // Keep performing real interaction with the opened Chrome page during
     // the quota window; the idle API is still independently read and recorded.
     await client.send('Input.dispatchMouseEvent',{type:'mouseMoved',
@@ -389,7 +417,10 @@ test('Real Chrome default sharing, live page reminder, DNR and uninstall',{skip:
       '!!document.querySelector("[data-opendesk-focus-notice]")').catch(()=>false);
     report.quotaTrace.push({elapsedMs,...snapshot,pageNotice:notice});
     if(report.quotaTrace.length%5===0)note('foreground-quota-observation',{elapsedMs,...snapshot,pageNotice:notice});
-    if(elapsedMs>=45000&&report.quotaTrace.every(x=>!x.focused||x.idle!=='active'))break;
+    // A sustained native idle/blur interval needs actual Mac activity. Stop
+    // that blocked branch while still collecting independent lifecycle proof.
+    if(elapsedMs>=45000&&report.quotaTrace.slice(-10).length===10&&
+       report.quotaTrace.slice(-10).every(x=>!x.focused||x.idle!=='active'))break;
     // Spend the first chargeable interval on the first host and the remaining
     // quota on the other. Switching tabs MUST invalidate the old checkpoint;
     // neither tab can double-charge the one global ledger.
@@ -431,9 +462,9 @@ test('Real Chrome default sharing, live page reminder, DNR and uninstall',{skip:
     await sleep(3000);
   }
   if(!reached){
-    const chargeable=report.quotaTrace.some(x=>x.focused&&x.idle==='active');
-    report.quota=chargeable?'NATIVE_FAIL':'NATIVE_BLOCKED_REAL_IDLE_OR_FOCUS';
-    report.closedSidePanel=chargeable?'NOT_TESTED_QUOTA_FAILED':'NATIVE_BLOCKED_REAL_IDLE_OR_FOCUS';
+    const blocked=report.quotaTrace.slice(-10).every(x=>!x.focused||x.idle!=='active');
+    report.quota=LIFECYCLE_ONLY?'NOT_TESTED_LIFECYCLE_ONLY':blocked?'NATIVE_BLOCKED_REAL_IDLE_OR_FOCUS':'NATIVE_FAIL';
+    report.closedSidePanel=LIFECYCLE_ONLY?'NOT_TESTED_LIFECYCLE_ONLY':blocked?'NATIVE_BLOCKED_REAL_IDLE_OR_FOCUS':'NOT_TESTED_QUOTA_FAILED';
     note('quota-incomplete',{status:report.quota,last:report.quotaTrace.slice(-3)});
   }
   if(reached){
@@ -513,7 +544,10 @@ test('Real Chrome default sharing, live page reminder, DNR and uninstall',{skip:
   await click(client,uid,'#catalog-open-dev-sidebar');
   const nextContext=await until(()=>evalRead(client,uid,
     'chrome.runtime.getContexts({contextTypes:["SIDE_PANEL"]}).then(x=>x[0]||null)'), 'Side Panel reopen');
-  sid=await until(async()=>{const target=(await client.send('Target.getTargets')).targetInfos.find(x=>x.url===nextContext.documentUrl);
+  sid=await until(async()=>{const targets=(await client.send('Target.getTargets')).targetInfos;
+    const candidates=targets.filter(x=>x.targetId!==ui.targetId&&x.type!=='iframe'&&
+      x.url.startsWith('chrome-extension://'+id+'/ui/tool.html'));
+    const target=targets.find(x=>x.url===nextContext.documentUrl)||(candidates.length===1?candidates[0]:null);
     if(!target)return null;sideTargetId=target.targetId;
     return (await client.send('Target.attachToTarget',{targetId:target.targetId,flatten:true})).sessionId;},'reopened panel target');
   await client.send('Runtime.enable',{},sid);await client.send('Page.enable',{},sid);
@@ -566,13 +600,13 @@ test('Real Chrome default sharing, live page reminder, DNR and uninstall',{skip:
   note('trusted-disable-restores-access',{url:page,ownedRules:0});
 
   await click(client,sid,'#stay-focus-enable-native');
-  await until(async()=>{
+  const reenableProof=await until(async()=>{
     const state=await evalRead(client,sid,'(async()=>{const x=await chrome.storage.local.get("'+store+'");'+
       'const rules=await chrome.declarativeNetRequest.getDynamicRules();return {enabled:x["'+store+'"]?.enabled,'+
       'owned:rules.filter(r=>r.id>=730000&&r.id<=730199&&'+
       'r.action?.redirect?.extensionPath==="/stay-focus/blocked-quota.html").length}})()');
     return state.enabled===true&&(reached?state.owned>=2:state.owned===0)?state:null;
-  },'real reenable restores exhausted quota rule',15000);
+  },'trusted reenable state and rule readback',15000);
   const reblocked=await client.send('Target.createTarget',{url:page});
   await until(async()=>{
     const targets=(await client.send('Target.getTargets')).targetInfos;
@@ -580,7 +614,8 @@ test('Real Chrome default sharing, live page reminder, DNR and uninstall',{skip:
     return reached?url?.includes('/stay-focus/blocked-quota.html'):url===page;
   },'real HTTP restriction resumes when Stay Focus is reenabled',15000);
   report.reenabled=reached?'PASS':'PASS_STATE_ONLY_QUOTA_NOT_TESTED';
-  note('reenable-restores-quota-restriction',{quotaPersisted:true,ruleOwned:true});
+  note('reenable-state-and-rule-readback',{enabled:reenableProof.enabled,
+    ownedQuotaRules:reenableProof.owned,exhaustedQuotaTested:Boolean(reached)});
 
   // Actual full Chrome restart with the SAME profile, not only an MV3 worker
   // restart or a storage/permission fixture. Do not seed rules or usage.

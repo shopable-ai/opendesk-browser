@@ -1,0 +1,12 @@
+{
+  "command": [
+    "node",
+    "--test",
+    "tests/environment/stay-focus-r1.test.mjs",
+    "tests/environment/stay-focus-service-r1.test.mjs",
+    "tests/environment/official-tools-catalog-r45.test.mjs",
+    "tests/environment/fixed-entries-audit.test.mjs"
+  ],
+  "cwd": "/Users/shopme/Documents/workspace/opendesk-browser/.runtime/tests/stay-focus-r16-20261014/candidate-02",
+  "exitCode": 0
+}

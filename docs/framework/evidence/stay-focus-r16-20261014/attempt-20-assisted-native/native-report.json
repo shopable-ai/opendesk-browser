@@ -1,0 +1,1991 @@
+{
+  "candidate": "f831f5d3f906fca9171e2c9cd662484a07c95ef3",
+  "loadedRoot": "/Users/shopme/Documents/workspace/opendesk-browser/.runtime/tests/stay-focus-r16-20261014/candidate-01/dist/production",
+  "profileDir": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-stay-focus-r1-8b9P3C",
+  "localhostAddresses": [
+    {
+      "address": "::1",
+      "family": 6
+    },
+    {
+      "address": "127.0.0.1",
+      "family": 4
+    }
+  ],
+  "httpListeners": [
+    {
+      "address": "127.0.0.1",
+      "family": "IPv4",
+      "port": 64222
+    },
+    {
+      "address": "::1",
+      "family": "IPv6",
+      "port": 64223
+    }
+  ],
+  "chromeBin": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+  "swBytes": 559499,
+  "swSHA256": "2b98b4bf2d10d4661951f1fbc434c77aebacecf6e539ba7d3344a9c49974c114",
+  "pkgSHA256": "afb91cfb1fecf65544ed2864c08e7eb678e864b2b6b5d2cd0e65ce7fb31413af",
+  "nativeChrome": "Chrome/155.0.8059.39",
+  "approval": "PASS",
+  "actualNavigation": "NOT_TESTED",
+  "quota": "NATIVE_FAIL",
+  "zeroConfig": "PASS",
+  "pageReminder": "PASS",
+  "realSharedTwoHosts": "NOT_TESTED",
+  "quotaTrace": [
+    {
+      "elapsedMs": 20,
+      "usedMs": 81,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "active",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:64222/real-navigation",
+      "tabId": 1179090598,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 3032,
+      "usedMs": 81,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "active",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:64222/real-navigation",
+      "tabId": 1179090598,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 6041,
+      "usedMs": 81,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "active",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:64222/real-navigation",
+      "tabId": 1179090598,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 9049,
+      "usedMs": 81,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "active",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:64222/real-navigation",
+      "tabId": 1179090598,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 12055,
+      "usedMs": 81,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "active",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:64222/real-navigation",
+      "tabId": 1179090598,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 15066,
+      "usedMs": 81,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "active",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:64222/real-navigation",
+      "tabId": 1179090598,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 18082,
+      "usedMs": 81,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "active",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:64222/real-navigation",
+      "tabId": 1179090598,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 21100,
+      "usedMs": 81,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "active",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:64222/real-navigation",
+      "tabId": 1179090598,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 24106,
+      "usedMs": 81,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "active",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:64222/real-navigation",
+      "tabId": 1179090598,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 27113,
+      "usedMs": 26180,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "active",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:64222/real-navigation",
+      "tabId": 1179090598,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 30125,
+      "usedMs": 26180,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "active",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:64222/real-navigation",
+      "tabId": 1179090598,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 33141,
+      "usedMs": 26180,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "active",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:64222/real-navigation",
+      "tabId": 1179090598,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 36149,
+      "usedMs": 26180,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "active",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:64222/real-navigation",
+      "tabId": 1179090598,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 39157,
+      "usedMs": 26180,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "active",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:64222/real-navigation",
+      "tabId": 1179090598,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 42163,
+      "usedMs": 26180,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "active",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:64222/real-navigation",
+      "tabId": 1179090598,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 45171,
+      "usedMs": 26180,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "active",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:64222/real-navigation",
+      "tabId": 1179090598,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 48177,
+      "usedMs": 26180,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "active",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:64222/real-navigation",
+      "tabId": 1179090598,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 51190,
+      "usedMs": 26180,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "active",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:64222/real-navigation",
+      "tabId": 1179090598,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 54207,
+      "usedMs": 26180,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "active",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:64222/real-navigation",
+      "tabId": 1179090598,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 57214,
+      "usedMs": 56180,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "active",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:64222/real-navigation",
+      "tabId": 1179090598,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 60290,
+      "usedMs": 56180,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://localhost:64223/real-navigation",
+      "tabId": 1179090600,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 63295,
+      "usedMs": 56180,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://localhost:64223/real-navigation",
+      "tabId": 1179090600,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 66307,
+      "usedMs": 56180,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://localhost:64223/real-navigation",
+      "tabId": 1179090600,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 69319,
+      "usedMs": 56180,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://localhost:64223/real-navigation",
+      "tabId": 1179090600,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 72330,
+      "usedMs": 56180,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://localhost:64223/real-navigation",
+      "tabId": 1179090600,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 75340,
+      "usedMs": 56180,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://localhost:64223/real-navigation",
+      "tabId": 1179090600,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 78358,
+      "usedMs": 56180,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://localhost:64223/real-navigation",
+      "tabId": 1179090600,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 81365,
+      "usedMs": 56180,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://localhost:64223/real-navigation",
+      "tabId": 1179090600,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 84374,
+      "usedMs": 56180,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://localhost:64223/real-navigation",
+      "tabId": 1179090600,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 87380,
+      "usedMs": 56180,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://localhost:64223/real-navigation",
+      "tabId": 1179090600,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 90400,
+      "usedMs": 56180,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://localhost:64223/real-navigation",
+      "tabId": 1179090600,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 93415,
+      "usedMs": 56180,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://localhost:64223/real-navigation",
+      "tabId": 1179090600,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 96424,
+      "usedMs": 56180,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://localhost:64223/real-navigation",
+      "tabId": 1179090600,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 99573,
+      "usedMs": 56180,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://localhost:64223/real-navigation",
+      "tabId": 1179090600,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 102580,
+      "usedMs": 56180,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://localhost:64223/real-navigation",
+      "tabId": 1179090600,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 105655,
+      "usedMs": 56180,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "active",
+      "focused": true,
+      "activeUrl": "http://localhost:64223/real-navigation",
+      "tabId": 1179090600,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 108721,
+      "usedMs": 56180,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "active",
+      "focused": true,
+      "activeUrl": "http://localhost:64223/real-navigation",
+      "tabId": 1179090600,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 111743,
+      "usedMs": 56180,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "active",
+      "focused": true,
+      "activeUrl": "http://localhost:64223/real-navigation",
+      "tabId": 1179090600,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 114827,
+      "usedMs": 56180,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "active",
+      "focused": true,
+      "activeUrl": "http://localhost:64223/real-navigation",
+      "tabId": 1179090600,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 117888,
+      "usedMs": 56180,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "active",
+      "focused": true,
+      "activeUrl": "http://localhost:64223/real-navigation",
+      "tabId": 1179090600,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 120901,
+      "usedMs": 56180,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "active",
+      "focused": true,
+      "activeUrl": "http://localhost:64223/real-navigation",
+      "tabId": 1179090600,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 123957,
+      "usedMs": 56180,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "active",
+      "focused": true,
+      "activeUrl": "http://localhost:64223/real-navigation",
+      "tabId": 1179090600,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 126992,
+      "usedMs": 56180,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "active",
+      "focused": true,
+      "activeUrl": "http://localhost:64223/real-navigation",
+      "tabId": 1179090600,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 130001,
+      "usedMs": 56180,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "active",
+      "focused": true,
+      "activeUrl": "http://localhost:64223/real-navigation",
+      "tabId": 1179090600,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 133014,
+      "usedMs": 56180,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "active",
+      "focused": true,
+      "activeUrl": "http://localhost:64223/real-navigation",
+      "tabId": 1179090600,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 136025,
+      "usedMs": 56180,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "active",
+      "focused": true,
+      "activeUrl": "http://localhost:64223/real-navigation",
+      "tabId": 1179090600,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 139035,
+      "usedMs": 56180,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "active",
+      "focused": true,
+      "activeUrl": "http://localhost:64223/real-navigation",
+      "tabId": 1179090600,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 142044,
+      "usedMs": 56180,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "active",
+      "focused": true,
+      "activeUrl": "http://localhost:64223/real-navigation",
+      "tabId": 1179090600,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 145054,
+      "usedMs": 56180,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "active",
+      "focused": true,
+      "activeUrl": "http://localhost:64223/real-navigation",
+      "tabId": 1179090600,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 148069,
+      "usedMs": 75331,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": [
+          1
+        ]
+      },
+      "idle": "active",
+      "focused": true,
+      "activeUrl": "http://localhost:64223/real-navigation",
+      "tabId": 1179090600,
+      "pageNotice": true
+    },
+    {
+      "elapsedMs": 151170,
+      "usedMs": 75331,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": [
+          1
+        ]
+      },
+      "idle": "active",
+      "focused": true,
+      "activeUrl": "http://localhost:64223/real-navigation",
+      "tabId": 1179090600,
+      "pageNotice": true
+    },
+    {
+      "elapsedMs": 154177,
+      "usedMs": 75331,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": [
+          1
+        ]
+      },
+      "idle": "active",
+      "focused": true,
+      "activeUrl": "http://localhost:64223/real-navigation",
+      "tabId": 1179090600,
+      "pageNotice": true
+    },
+    {
+      "elapsedMs": 157185,
+      "usedMs": 75331,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": [
+          1
+        ]
+      },
+      "idle": "active",
+      "focused": true,
+      "activeUrl": "http://localhost:64223/real-navigation",
+      "tabId": 1179090600,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 160192,
+      "usedMs": 75331,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": [
+          1
+        ]
+      },
+      "idle": "active",
+      "focused": true,
+      "activeUrl": "http://localhost:64223/real-navigation",
+      "tabId": 1179090600,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 163199,
+      "usedMs": 75331,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": [
+          1
+        ]
+      },
+      "idle": "active",
+      "focused": true,
+      "activeUrl": "http://localhost:64223/real-navigation",
+      "tabId": 1179090600,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 166207,
+      "usedMs": 75331,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": [
+          1
+        ]
+      },
+      "idle": "active",
+      "focused": true,
+      "activeUrl": "http://localhost:64223/real-navigation",
+      "tabId": 1179090600,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 169217,
+      "usedMs": 75331,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": [
+          1
+        ]
+      },
+      "idle": "active",
+      "focused": true,
+      "activeUrl": "http://localhost:64223/real-navigation",
+      "tabId": 1179090600,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 172226,
+      "usedMs": 75331,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": [
+          1
+        ]
+      },
+      "idle": "active",
+      "focused": true,
+      "activeUrl": "http://localhost:64223/real-navigation",
+      "tabId": 1179090600,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 175239,
+      "usedMs": 75331,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": [
+          1
+        ]
+      },
+      "idle": "active",
+      "focused": true,
+      "activeUrl": "http://localhost:64223/real-navigation",
+      "tabId": 1179090600,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 178255,
+      "usedMs": 105331,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": [
+          1
+        ]
+      },
+      "idle": "active",
+      "focused": true,
+      "activeUrl": "http://localhost:64223/real-navigation",
+      "tabId": 1179090600,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 181267,
+      "usedMs": 105331,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": [
+          1
+        ]
+      },
+      "idle": "active",
+      "focused": true,
+      "activeUrl": "http://localhost:64223/real-navigation",
+      "tabId": 1179090600,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 184275,
+      "usedMs": 105331,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": [
+          1
+        ]
+      },
+      "idle": "active",
+      "focused": true,
+      "activeUrl": "http://localhost:64223/real-navigation",
+      "tabId": 1179090600,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 187288,
+      "usedMs": 105331,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": [
+          1
+        ]
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://localhost:64223/real-navigation",
+      "tabId": 1179090600,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 190294,
+      "usedMs": 105331,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": [
+          1
+        ]
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://localhost:64223/real-navigation",
+      "tabId": 1179090600,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 193305,
+      "usedMs": 105331,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": [
+          1
+        ]
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://localhost:64223/real-navigation",
+      "tabId": 1179090600,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 196310,
+      "usedMs": 105331,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": [
+          1
+        ]
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://localhost:64223/real-navigation",
+      "tabId": 1179090600,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 199316,
+      "usedMs": 105331,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": [
+          1
+        ]
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://localhost:64223/real-navigation",
+      "tabId": 1179090600,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 202327,
+      "usedMs": 105331,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": [
+          1
+        ]
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://localhost:64223/real-navigation",
+      "tabId": 1179090600,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 205335,
+      "usedMs": 105331,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": [
+          1
+        ]
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://localhost:64223/real-navigation",
+      "tabId": 1179090600,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 208341,
+      "usedMs": 105331,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": [
+          1
+        ]
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://localhost:64223/real-navigation",
+      "tabId": 1179090600,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 211349,
+      "usedMs": 105331,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": [
+          1
+        ]
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://localhost:64223/real-navigation",
+      "tabId": 1179090600,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 214356,
+      "usedMs": 105331,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": [
+          1
+        ]
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://localhost:64223/real-navigation",
+      "tabId": 1179090600,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 217367,
+      "usedMs": 105331,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": [
+          1
+        ]
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://localhost:64223/real-navigation",
+      "tabId": 1179090600,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 220374,
+      "usedMs": 105331,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": [
+          1
+        ]
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://localhost:64223/real-navigation",
+      "tabId": 1179090600,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 223382,
+      "usedMs": 105331,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": [
+          1
+        ]
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://localhost:64223/real-navigation",
+      "tabId": 1179090600,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 226387,
+      "usedMs": 105331,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": [
+          1
+        ]
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://localhost:64223/real-navigation",
+      "tabId": 1179090600,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 229394,
+      "usedMs": 105331,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": [
+          1
+        ]
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://localhost:64223/real-navigation",
+      "tabId": 1179090600,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 232401,
+      "usedMs": 105331,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": [
+          1
+        ]
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://localhost:64223/real-navigation",
+      "tabId": 1179090600,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 235408,
+      "usedMs": 105331,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": [
+          1
+        ]
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://localhost:64223/real-navigation",
+      "tabId": 1179090600,
+      "pageNotice": false
+    },
+    {
+      "elapsedMs": 238418,
+      "usedMs": 105331,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": [
+          1
+        ]
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://localhost:64223/real-navigation",
+      "tabId": 1179090600,
+      "pageNotice": false
+    }
+  ],
+  "screenshots": [
+    {
+      "file": "installed-stay-focus-native-panel.png",
+      "bytes": 168293,
+      "sha256": "e18ed0d20b80d841879a711ddc380b34a80e44d169fec9696700483fffa3bbc9"
+    },
+    {
+      "file": "zero-config-30-minute-pool.png",
+      "bytes": 118548,
+      "sha256": "95ae73fa988d67e361c48adb2cb99c25693bc66e3c74d3e685a17fd182d36dca"
+    },
+    {
+      "file": "quota-active-http-before-limit.png",
+      "bytes": 36067,
+      "sha256": "3078dadb39dbc29be85f639777666c65b68ed086467998a5255b73a43f29a594"
+    },
+    {
+      "file": "real-one-minute-page-reminder.png",
+      "bytes": 71230,
+      "sha256": "ac5a4a8a7e25a10519acfeb57169fbf5318cf3faa08500df64247a3456a16071"
+    }
+  ],
+  "background": "PASS",
+  "closedSidePanel": "NOT_TESTED_QUOTA_FAILED",
+  "workerRestart": "PASS_DATA_ONLY_DNR_NOT_TESTED",
+  "permissionRevocation": "NOT_TESTED",
+  "otherTools": "NOT_TESTED",
+  "disabled": "PASS_STATE_ONLY_NO_ACTIVE_DNR",
+  "reenabled": "PASS_STATE_ONLY_QUOTA_NOT_TESTED",
+  "restart": "PASS_DATA_ONLY_EXHAUSTED_DNR_NOT_TESTED",
+  "unregister": "PASS",
+  "uninstall": "PASS_DATA_ONLY_ACTIVE_DNR_NOTICE_NOT_TESTED",
+  "steps": [
+    {
+      "name": "native-zero-config",
+      "managed": 11,
+      "minutes": 30,
+      "used": {},
+      "sites": [
+        {
+          "enabled": true,
+          "group": "entertainment",
+          "host": "youtube.com",
+          "minutes": 30,
+          "mode": "limit",
+          "subdomains": true
+        },
+        {
+          "enabled": true,
+          "group": "entertainment",
+          "host": "bilibili.com",
+          "minutes": 30,
+          "mode": "limit",
+          "subdomains": true
+        },
+        {
+          "enabled": true,
+          "group": "entertainment",
+          "host": "tiktok.com",
+          "minutes": 30,
+          "mode": "limit",
+          "subdomains": true
+        },
+        {
+          "enabled": true,
+          "group": "entertainment",
+          "host": "douyin.com",
+          "minutes": 30,
+          "mode": "limit",
+          "subdomains": true
+        },
+        {
+          "enabled": true,
+          "group": "entertainment",
+          "host": "instagram.com",
+          "minutes": 30,
+          "mode": "limit",
+          "subdomains": true
+        },
+        {
+          "enabled": true,
+          "group": "entertainment",
+          "host": "reddit.com",
+          "minutes": 30,
+          "mode": "limit",
+          "subdomains": true
+        },
+        {
+          "enabled": true,
+          "group": "entertainment",
+          "host": "x.com",
+          "minutes": 30,
+          "mode": "limit",
+          "subdomains": true
+        },
+        {
+          "enabled": true,
+          "group": "entertainment",
+          "host": "weibo.com",
+          "minutes": 30,
+          "mode": "limit",
+          "subdomains": true
+        },
+        {
+          "enabled": true,
+          "group": "entertainment",
+          "host": "netflix.com",
+          "minutes": 30,
+          "mode": "limit",
+          "subdomains": true
+        },
+        {
+          "enabled": true,
+          "group": "entertainment",
+          "host": "twitch.tv",
+          "minutes": 30,
+          "mode": "limit",
+          "subdomains": true
+        },
+        {
+          "enabled": true,
+          "group": "entertainment",
+          "host": "roblox.com",
+          "minutes": 30,
+          "mode": "limit",
+          "subdomains": true
+        }
+      ]
+    },
+    {
+      "name": "native-shared-budget-edited",
+      "minutes": 2,
+      "approvedViaUI": true
+    },
+    {
+      "name": "await-native-site-entry",
+      "hosts": [
+        "127.0.0.1",
+        "localhost"
+      ],
+      "group": "entertainment",
+      "minutes": 2
+    },
+    {
+      "name": "real-ui-two-minute-shared-quota",
+      "minutes": 2,
+      "domains": [
+        "127.0.0.1",
+        "localhost"
+      ],
+      "storageUsageWasNotModified": true
+    },
+    {
+      "name": "background-does-not-charge",
+      "before": {
+        "usedMs": 0,
+        "rules": [],
+        "notices": {
+          "budgetMs": null,
+          "day": "2026-10-14",
+          "revision": 3,
+          "thresholds": []
+        },
+        "idle": "idle",
+        "focused": true,
+        "activeUrl": "about:blank",
+        "tabId": 1179090599
+      },
+      "after": {
+        "usedMs": 0,
+        "rules": [],
+        "notices": {
+          "budgetMs": null,
+          "day": "2026-10-14",
+          "revision": 3,
+          "thresholds": []
+        },
+        "idle": "idle",
+        "focused": false,
+        "activeUrl": "about:blank",
+        "tabId": 1179090599
+      }
+    },
+    {
+      "name": "foreground-quota-observation",
+      "elapsedMs": 12055,
+      "usedMs": 81,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "active",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:64222/real-navigation",
+      "tabId": 1179090598,
+      "pageNotice": false
+    },
+    {
+      "name": "foreground-quota-observation",
+      "elapsedMs": 27113,
+      "usedMs": 26180,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "active",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:64222/real-navigation",
+      "tabId": 1179090598,
+      "pageNotice": false
+    },
+    {
+      "name": "foreground-quota-observation",
+      "elapsedMs": 42163,
+      "usedMs": 26180,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "active",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:64222/real-navigation",
+      "tabId": 1179090598,
+      "pageNotice": false
+    },
+    {
+      "name": "foreground-quota-observation",
+      "elapsedMs": 57214,
+      "usedMs": 56180,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "active",
+      "focused": true,
+      "activeUrl": "http://127.0.0.1:64222/real-navigation",
+      "tabId": 1179090598,
+      "pageNotice": false
+    },
+    {
+      "name": "real-active-site-switch",
+      "firstHost": "127.0.0.1",
+      "secondHost": "localhost",
+      "usedMs": 56180,
+      "secondTabId": 1179090600
+    },
+    {
+      "name": "foreground-quota-observation",
+      "elapsedMs": 72330,
+      "usedMs": 56180,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://localhost:64223/real-navigation",
+      "tabId": 1179090600,
+      "pageNotice": false
+    },
+    {
+      "name": "foreground-quota-observation",
+      "elapsedMs": 87380,
+      "usedMs": 56180,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://localhost:64223/real-navigation",
+      "tabId": 1179090600,
+      "pageNotice": false
+    },
+    {
+      "name": "foreground-quota-observation",
+      "elapsedMs": 102580,
+      "usedMs": 56180,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://localhost:64223/real-navigation",
+      "tabId": 1179090600,
+      "pageNotice": false
+    },
+    {
+      "name": "foreground-quota-observation",
+      "elapsedMs": 117888,
+      "usedMs": 56180,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "active",
+      "focused": true,
+      "activeUrl": "http://localhost:64223/real-navigation",
+      "tabId": 1179090600,
+      "pageNotice": false
+    },
+    {
+      "name": "foreground-quota-observation",
+      "elapsedMs": 133014,
+      "usedMs": 56180,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": []
+      },
+      "idle": "active",
+      "focused": true,
+      "activeUrl": "http://localhost:64223/real-navigation",
+      "tabId": 1179090600,
+      "pageNotice": false
+    },
+    {
+      "name": "foreground-quota-observation",
+      "elapsedMs": 148069,
+      "usedMs": 75331,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": [
+          1
+        ]
+      },
+      "idle": "active",
+      "focused": true,
+      "activeUrl": "http://localhost:64223/real-navigation",
+      "tabId": 1179090600,
+      "pageNotice": true
+    },
+    {
+      "name": "native-in-page-remaining-reminder",
+      "minutes": 1,
+      "actualContentScript": true
+    },
+    {
+      "name": "foreground-quota-observation",
+      "elapsedMs": 163199,
+      "usedMs": 75331,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": [
+          1
+        ]
+      },
+      "idle": "active",
+      "focused": true,
+      "activeUrl": "http://localhost:64223/real-navigation",
+      "tabId": 1179090600,
+      "pageNotice": false
+    },
+    {
+      "name": "foreground-quota-observation",
+      "elapsedMs": 178255,
+      "usedMs": 105331,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": [
+          1
+        ]
+      },
+      "idle": "active",
+      "focused": true,
+      "activeUrl": "http://localhost:64223/real-navigation",
+      "tabId": 1179090600,
+      "pageNotice": false
+    },
+    {
+      "name": "foreground-quota-observation",
+      "elapsedMs": 193305,
+      "usedMs": 105331,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": [
+          1
+        ]
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://localhost:64223/real-navigation",
+      "tabId": 1179090600,
+      "pageNotice": false
+    },
+    {
+      "name": "foreground-quota-observation",
+      "elapsedMs": 208341,
+      "usedMs": 105331,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": [
+          1
+        ]
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://localhost:64223/real-navigation",
+      "tabId": 1179090600,
+      "pageNotice": false
+    },
+    {
+      "name": "foreground-quota-observation",
+      "elapsedMs": 223382,
+      "usedMs": 105331,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": [
+          1
+        ]
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://localhost:64223/real-navigation",
+      "tabId": 1179090600,
+      "pageNotice": false
+    },
+    {
+      "name": "foreground-quota-observation",
+      "elapsedMs": 238418,
+      "usedMs": 105331,
+      "rules": [],
+      "notices": {
+        "budgetMs": 120000,
+        "day": "2026-10-14",
+        "revision": 3,
+        "thresholds": [
+          1
+        ]
+      },
+      "idle": "idle",
+      "focused": true,
+      "activeUrl": "http://localhost:64223/real-navigation",
+      "tabId": 1179090600,
+      "pageNotice": false
+    },
+    {
+      "name": "quota-incomplete",
+      "status": "NATIVE_FAIL",
+      "last": [
+        {
+          "elapsedMs": 232401,
+          "usedMs": 105331,
+          "rules": [],
+          "notices": {
+            "budgetMs": 120000,
+            "day": "2026-10-14",
+            "revision": 3,
+            "thresholds": [
+              1
+            ]
+          },
+          "idle": "idle",
+          "focused": true,
+          "activeUrl": "http://localhost:64223/real-navigation",
+          "tabId": 1179090600,
+          "pageNotice": false
+        },
+        {
+          "elapsedMs": 235408,
+          "usedMs": 105331,
+          "rules": [],
+          "notices": {
+            "budgetMs": 120000,
+            "day": "2026-10-14",
+            "revision": 3,
+            "thresholds": [
+              1
+            ]
+          },
+          "idle": "idle",
+          "focused": true,
+          "activeUrl": "http://localhost:64223/real-navigation",
+          "tabId": 1179090600,
+          "pageNotice": false
+        },
+        {
+          "elapsedMs": 238418,
+          "usedMs": 105331,
+          "rules": [],
+          "notices": {
+            "budgetMs": 120000,
+            "day": "2026-10-14",
+            "revision": 3,
+            "thresholds": [
+              1
+            ]
+          },
+          "idle": "idle",
+          "focused": true,
+          "activeUrl": "http://localhost:64223/real-navigation",
+          "tabId": 1179090600,
+          "pageNotice": false
+        }
+      ]
+    },
+    {
+      "name": "real-worker-restart",
+      "old": "D9C15CBF881A12C6EAC3FF4A424E171F",
+      "current": "9959B5450D99238005FA58CF1D7D6F68",
+      "quota": {
+        "usedMs": 105331,
+        "rules": [],
+        "notices": {
+          "budgetMs": 120000,
+          "day": "2026-10-14",
+          "revision": 3,
+          "thresholds": [
+            1
+          ]
+        },
+        "idle": "idle",
+        "focused": true,
+        "activeUrl": "chrome-extension://oapmdikgnncbedlhnolbfecdfdlcdjpm/ui/tool.html?hostInstanceId=bc586db5-b6b0-4610-ba4e-1e903bbacb91",
+        "tabId": 1179090596
+      }
+    },
+    {
+      "name": "trusted-disable-restores-access",
+      "url": "http://127.0.0.1:64222/real-navigation",
+      "ownedRules": 0
+    },
+    {
+      "name": "reenable-restores-quota-restriction",
+      "quotaPersisted": true,
+      "ruleOwned": true
+    },
+    {
+      "name": "chrome-restart-restores-quota-and-navigation",
+      "sameProfile": true,
+      "extensionId": "oapmdikgnncbedlhnolbfecdfdlcdjpm",
+      "usageMs": 105331,
+      "quotaRules": 0
+    },
+    {
+      "name": "uninstall-restores-access",
+      "realHTTP": true,
+      "ownedRules": 0,
+      "hadActiveDnr": false
+    }
+  ],
+  "debugPort": 64227,
+  "extensionId": "oapmdikgnncbedlhnolbfecdfdlcdjpm",
+  "toolGeometry": {
+    "width": 360,
+    "scrollWidth": 360,
+    "visible": true
+  },
+  "nativePermissionBefore": false,
+  "siteEntryDriver": "ASSISTED_NATIVE_UI",
+  "reminderProof": {
+    "budgetMs": 120000,
+    "day": "2026-10-14",
+    "revision": 3,
+    "thresholds": [
+      1
+    ],
+    "usedMs": 75331,
+    "count": 1
+  },
+  "sitePause": "PASS_UI_STATE_ONLY",
+  "failureUI": [],
+  "passed": false,
+  "chromeErrorTail": "equest.cc:291] Registration response error message: DEPRECATED_ENDPOINT\n[18809:73201424:1014/031554.103468:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT\n[18809:73201424:1014/031559.803066:ERROR:google_apis/gcm/engine/connection_factory_impl.cc:474] ConnectionHandler failed with net error: -2\n[18809:73201424:1014/031848.759090:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT\n[18809:73201424:1014/031920.396338:ERROR:google_apis/gcm/engine/connection_factory_impl.cc:474] ConnectionHandler failed with net error: -2\n\nDevTools listening on ws://127.0.0.1:50423/devtools/browser/d5b0f87a-cdc7-461b-9ba9-df2ac4718c2f\n[24496:73250407:1014/031949.155981:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT\n"
+}

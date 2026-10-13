@@ -1,0 +1,11 @@
+{
+  "sourceCommit": "fef1f9e14834087f1dd8a627d328b9f110c40297",
+  "command": [
+    "npm",
+    "run",
+    "build:sidebar-tool",
+    "--",
+    "examples/sidebar-tools/stay-focus"
+  ],
+  "exitCode": 0
+}

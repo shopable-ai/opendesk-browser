@@ -1,0 +1,4 @@
+{
+  "command": "node --test tests/framework/stay-focus-r1-native.test.mjs",
+  "exitCode": 1
+}
