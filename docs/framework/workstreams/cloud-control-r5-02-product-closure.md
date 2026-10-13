@@ -277,3 +277,14 @@ node scripts/cloud-control/cli.mjs client:revoke --client CLIENT_UUID --director
 - 真实 Chrome 中两份独立安装/授权的 Task A 和 B 的 `RunId/ResultId/retirement/receiptId` 原生证据仍为空。真实 UI 300–520 CSS px 和 125/200% Zoom 没有与当前候选绑定的已安装扩展截图。公网 Provider 没有获授权部署环境。维持 `NATIVE_PENDING` / `REMOTE_NATIVE_PENDING`，总体 95+ 不能宣布。
 
 **下一实际工作优先级**：照 [唯一执行手册](../cloud-control-r5.2-execution-manual.zh-CN.md) Gate G0（新 SHA CI + 双构建）→ G1（安全拒绝测试）→ G2（A/B 真实双 Task）→ G3（生产 UI）→ G4（可信远程）→ G5（副作用与断线）→ G6（十五维各自 ≥95 的真实证据）。必须保留所有历史失败和旧收据。
+
+## R5.3 · UI-08 已提交（源码完成不等于最终验收）
+
+- [正式代码提交 21c5a0dacb7ae0dfea18ea85d414ac157b09b34a](https://github.com/shopable-ai/opendesk-browser/commit/21c5a0dacb7ae0dfea18ea85d414ac157b09b34a) 已合入唯一 `main`。原 Cloud Tab 增加请求详情、只读历史翻页、从经验证的原始 Run 指针跳转到已有 Controller 运行结果；保持 cloudObserve 对外无 ID/正文、原始 RunHost 与权限不变。
+- 110 功能矩阵源码账目更新为 **109 SOURCE_IMPLEMENTED / 1 NOT_IMPLEMENTED（OPS-05）**。其中 UI-08 = `SOURCE_IMPLEMENTED` / `NOT_VERIFIED`，Node 测试、真 Chrome、构建都不计通过。
+- [该代码 SHA 的 Cloud CI #38413468963](https://github.com/shopable-ai/opendesk-browser/actions/runs/38413468963) 本次观测为 **queued**，K3 旧 [#38379208965](https://github.com/shopable-ai/opendesk-browser/actions/runs/38379208965) 失败/OOM 继续保留且不可复用作 PASS；新生产/开发 PackageHash 暂无。
+- 当前 7 Gate/30 工程包的唯一增量状态索引写在本文件 JSON 的 `masterPlan.r53GatesAndPackages`，以原实施手册为包定义，不新增重复任务书。全部 30 包还没有完整证据关闭；G3-02 本次仅源码入库，G2 A/B 原生、G3 生产缩放/键盘、G4 公网远端均保持 Pending。
+- 本轮不能访问用户 Mac 独占 Chrome/Provider/工作区或经授权公网环境，不伪造 Task A/B 的 `RunId/ResultId/receiptId`，不填写尚不存在的截图与 PackageHash。
+- [增量工作记录](cloud-control-r5-03-g3-ui08-incremental.md) 含变更文件 Blob SHA 和实际 CI 入口；静态设计旧评分 86 与独立十五维 `NOT_VERIFIED` 原样保留。
+
+当前判断：**PARTIALLY_VERIFIED（已有源码及历史组件证据，但 G0/G2/G3/G4/G5/G6 的真实产品验收未闭环）**。

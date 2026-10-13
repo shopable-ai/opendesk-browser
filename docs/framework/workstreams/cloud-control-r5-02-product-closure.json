@@ -142,7 +142,8 @@
     "4cb1d7b6128a9d9be34c3c9fcc90abf37b68e487",
     "33c6e4a821830c4fa5db7b64c7f463cdc061c00d",
     "738fdc1e28c3a6758d853acea20011b295e56207",
-    "7aff8bd27e258022cdf186019409dcc07fdee719"
+    "7aff8bd27e258022cdf186019409dcc07fdee719",
+    "21c5a0dacb7ae0dfea18ea85d414ac157b09b34a"
   ],
   "statuses": {
     "jobExecutorIsolation": "COMPONENT_TESTED",
@@ -180,7 +181,8 @@
     "cloudConsentInvalidation": "SOURCE_IMPLEMENTED",
     "cloudActiveRefreshCadence": "SOURCE_IMPLEMENTED",
     "cloudProductionTaskDetail": "SOURCE_IMPLEMENTED",
-    "cloudTaskReapprovalGuidance": "SOURCE_IMPLEMENTED"
+    "cloudTaskReapprovalGuidance": "SOURCE_IMPLEMENTED",
+    "cloudRequestHistoryDetail": "SOURCE_IMPLEMENTED"
   },
   "priorEvidence": {
     "r51": {
@@ -385,11 +387,11 @@
     "tests/cloud-control/provider.test.mjs"
   ],
   "pendingExactCandidate": {
-    "sha": "81596b4f39300f4cc8b692153ca471b1be0beb2a",
-    "ciUrl": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38406786768",
-    "ciStatus": "queued",
-    "packageCiUrl": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38406786831",
-    "packageCiStatus": "queued",
+    "sha": "21c5a0dacb7ae0dfea18ea85d414ac157b09b34a",
+    "ciUrl": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38413468963",
+    "ciStatus": "queued_checked_2026-10-13T14:27:10Z",
+    "packageCiUrl": null,
+    "packageCiStatus": "NOT_VERIFIED",
     "componentTests": "NOT_VERIFIED",
     "build": "NOT_VERIFIED",
     "packageHash": null,
@@ -407,6 +409,18 @@
       "developmentBuild": "NOT_VERIFIED",
       "verify": "NOT_VERIFIED",
       "packageHash": null
+    },
+    {
+      "sha": "81596b4f39300f4cc8b692153ca471b1be0beb2a",
+      "ciUrl": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38406786768",
+      "ciStatus": "queued",
+      "packageCiUrl": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38406786831",
+      "packageCiStatus": "queued",
+      "componentTests": "NOT_VERIFIED",
+      "build": "NOT_VERIFIED",
+      "packageHash": null,
+      "nativeTwoTask": "NATIVE_PENDING",
+      "publicDeployment": "REMOTE_NATIVE_PENDING"
     }
   ],
   "r524SelfService": {
@@ -586,14 +600,14 @@
     },
     "sourceInventoryAsOf": {
       "totalTraceable": 110,
-      "sourceImplemented": 108,
-      "notImplemented": 2,
+      "sourceImplemented": 109,
+      "notImplemented": 1,
       "notImplementedIds": [
-        "UI-08",
         "OPS-05"
       ],
-      "note": "Only implemented-source inventory; not a quality/verification percentage.",
-      "canonicalMatrix": "docs/framework/workstreams/cloud-control-r5-02-function-matrix.json"
+      "note": "Current UI-08 source commit only; tests queued and cannot be promoted from NOT_VERIFIED",
+      "canonicalMatrix": "docs/framework/workstreams/cloud-control-r5-02-function-matrix.json",
+      "sourceCommit": "21c5a0dacb7ae0dfea18ea85d414ac157b09b34a"
     },
     "productionConsentReview": {
       "ids": [
@@ -653,6 +667,131 @@
       "ciUrl": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38406786768",
       "buildCiUrl": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38406786831",
       "ciStatus": "queued_at_last_check"
+    },
+    "productionRequestDetail": {
+      "id": "UI-08",
+      "status": "SOURCE_IMPLEMENTED",
+      "verification": "NOT_VERIFIED",
+      "sourceCommit": "21c5a0dacb7ae0dfea18ea85d414ac157b09b34a",
+      "ciRunId": 38413468963,
+      "ciState": "queued",
+      "dataStore": "existing Run/Result only",
+      "permissions": "Original Controller snapshot RPC",
+      "onScreen": "Production Cloud Tab read-only paging/detail; original Result opened in existing Developer tab",
+      "test": "tests/cloud-control/r52-product-ui.test.mjs",
+      "chromeNative": "NATIVE_PENDING"
+    },
+    "r53GatesAndPackages": {
+      "schema": "opendesk.cloud-control.r53.gate-evidence-v1",
+      "codeCandidate": "21c5a0dacb7ae0dfea18ea85d414ac157b09b34a",
+      "manual": "docs/framework/cloud-control-r5.2-execution-manual.zh-CN.md",
+      "gates": {
+        "G0": {
+          "ids": [
+            "G0-01",
+            "G0-02",
+            "G0-03",
+            "G0-04"
+          ],
+          "statusById": {
+            "G0-01": "IN_PROGRESS_REMOTE_ONLY",
+            "G0-02": "IN_PROGRESS_FIX_IN_SOURCE",
+            "G0-03": "CI_QUEUED",
+            "G0-04": "BUILD_NOT_VERIFIED"
+          }
+        },
+        "G1": {
+          "ids": [
+            "G1-01",
+            "G1-02",
+            "G1-03",
+            "G1-04"
+          ],
+          "statusById": {
+            "G1-01": "NATIVE_PENDING",
+            "G1-02": "NATIVE_PENDING",
+            "G1-03": "NATIVE_PENDING",
+            "G1-04": "NATIVE_PENDING"
+          }
+        },
+        "G2": {
+          "ids": [
+            "G2-01",
+            "G2-02",
+            "G2-03",
+            "G2-04",
+            "G2-05"
+          ],
+          "statusById": {
+            "G2-01": "NATIVE_PENDING",
+            "G2-02": "NATIVE_PENDING",
+            "G2-03": "NATIVE_PENDING",
+            "G2-04": "NATIVE_PENDING",
+            "G2-05": "NATIVE_PENDING"
+          }
+        },
+        "G3": {
+          "ids": [
+            "G3-01",
+            "G3-02",
+            "G3-03",
+            "G3-04",
+            "G3-05"
+          ],
+          "statusById": {
+            "G3-01": "IN_PROGRESS_SOURCE_REVIEW",
+            "G3-02": "IN_PROGRESS_SOURCE_IMPLEMENTED_CI_QUEUED",
+            "G3-03": "NATIVE_PENDING",
+            "G3-04": "NATIVE_PENDING",
+            "G3-05": "NATIVE_PENDING"
+          }
+        },
+        "G4": {
+          "ids": [
+            "G4-01",
+            "G4-02",
+            "G4-03"
+          ],
+          "statusById": {
+            "G4-01": "CI_QUEUED",
+            "G4-02": "REMOTE_NATIVE_PENDING",
+            "G4-03": "REMOTE_NATIVE_PENDING"
+          }
+        },
+        "G5": {
+          "ids": [
+            "G5-01",
+            "G5-02",
+            "G5-03",
+            "G5-04",
+            "G5-05"
+          ],
+          "statusById": {
+            "G5-01": "NOT_VERIFIED",
+            "G5-02": "NOT_VERIFIED",
+            "G5-03": "NOT_VERIFIED",
+            "G5-04": "NOT_VERIFIED",
+            "G5-05": "NOT_VERIFIED"
+          }
+        },
+        "G6": {
+          "ids": [
+            "G6-01",
+            "G6-02",
+            "G6-03",
+            "G6-04"
+          ],
+          "statusById": {
+            "G6-01": "NOT_VERIFIED",
+            "G6-02": "NOT_VERIFIED",
+            "G6-03": "NOT_VERIFIED",
+            "G6-04": "NOT_VERIFIED"
+          }
+        }
+      },
+      "count": 30,
+      "fullyVerifiedComplete": 0,
+      "notes": "Progress, not a second work-package definition. Existing 7 Gate/30 task descriptions remain authoritative. Native and CI results are pending."
     }
   }
 }
