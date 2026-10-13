@@ -8,7 +8,8 @@ import {fields,fail,httpUrl} from '../../framework/sdk/registry.js';
 export const TRUSTED_COOKIE_OPERATIONS=Object.freeze([
   'browser.cookies.get','browser.cookies.getAll','browser.cookies.set','browser.cookies.remove',
   'browser.cookies.clearSite','browser.cookies.getStores','browser.cookies.getPartitionKey',
-  'browser.cookies.observe.start','browser.cookies.observe.getStatus','browser.cookies.observe.stop'
+  'browser.cookies.observe.start','browser.cookies.observe.getStatus',
+  'browser.cookies.observe.read','browser.cookies.observe.stop'
 ]);
 const MUTATIONS=new Set(['browser.cookies.set','browser.cookies.remove','browser.cookies.clearSite']);
 const error=(code,message=code)=>fail(code,message);
@@ -68,8 +69,13 @@ function normalized(op,input={}){
       break;
     case 'browser.cookies.observe.getStatus':
     case 'browser.cookies.observe.stop':
-      fields(input,['sessionRef'],['sessionRef']);
+    case 'browser.cookies.observe.read':
+      fields(input,op==='browser.cookies.observe.read'?['sessionRef','cursor','limit']:['sessionRef'],['sessionRef']);
       if(typeof input.sessionRef!=='string'||!/^[0-9a-f-]{36}$/i.test(input.sessionRef))throw error('E_SCHEMA');
+      if(op==='browser.cookies.observe.read'){
+        if(input.cursor!==undefined&&(typeof input.cursor!=='string'||!/^(0|[1-9][0-9]{0,9})$/.test(input.cursor)))throw error('E_SCHEMA','Invalid Cookie event cursor');
+        if(input.limit!==undefined&&(!Number.isSafeInteger(input.limit)||input.limit<1||input.limit>50))throw error('E_SCHEMA','Invalid Cookie event limit');
+      }
       break;
     default:fields(input,[]);
   }
@@ -199,7 +205,7 @@ export function createTrustedCookieHost({api=globalThis.chrome,now=Date.now}={})
       if(!partition?.topLevelSite)throw error('E_COOKIE_PARTITION');
       const sessionRef=crypto.randomUUID(),expiresAt=now()+(args.durationMs??15000);
       sessions.set(sessionRef,{target,storeId:ownStore,partitionKey:partition,expiresAt,
-        events:[],maxEvents:args.maxEvents??40,dropped:0});
+        events:[],maxEvents:args.maxEvents??40,dropped:0,nextSeq:1});
       return {sessionRef,expiresAt,status:'running'};
     }
     const session=sessions.get(args.sessionRef);
@@ -209,8 +215,19 @@ export function createTrustedCookieHost({api=globalThis.chrome,now=Date.now}={})
     if(op==='browser.cookies.observe.stop'){
       sessions.delete(args.sessionRef);return {stopped:true};
     }
-    return {sessionRef:args.sessionRef,events:session.events.splice(0),
-      droppedCount:session.dropped,expiresAt:session.expiresAt};
+    if(op==='browser.cookies.observe.getStatus')
+      return {sessionRef:args.sessionRef,status:'running',bufferedCount:session.events.length,
+        droppedCount:session.dropped,expiresAt:session.expiresAt};
+    if(op==='browser.cookies.observe.read'){
+      const cursor=Number(args.cursor??'0');
+      const events=session.events.filter(event=>event.seq>cursor).slice(0,args.limit??50);
+      const earliest=session.events[0]?.seq??session.nextSeq;
+      return {sessionRef:args.sessionRef,events,
+        nextCursor:String(events.length?events.at(-1).seq:Math.max(cursor,session.nextSeq-1)),
+        gapCount:Math.max(0,earliest-cursor-1),droppedCount:session.dropped,
+        expiresAt:session.expiresAt};
+    }
+    throw error('E_SERVICE_UNSUPPORTED','Unsupported Cookie session operation');
   }
   api.cookies?.onChanged?.addListener?.(event=>{
     const cookie=event?.cookie;
@@ -223,7 +240,7 @@ export function createTrustedCookieHost({api=globalThis.chrome,now=Date.now}={})
       if(!domain||host!==domain&&!host.endsWith('.'+domain))continue;
       if(s.events.length>=s.maxEvents){s.events.shift();s.dropped++;}
       // Events contain NO Cookie value and never use the generic network event schema.
-      s.events.push({name:String(cookie.name||'').slice(0,256),domain,path:String(cookie.path||'').slice(0,512),
+      s.events.push({seq:s.nextSeq++,name:String(cookie.name||'').slice(0,256),domain,path:String(cookie.path||'').slice(0,512),
         removed:Boolean(event.removed),cause:String(event.cause||'').slice(0,40),at:now()});
     }
   });
