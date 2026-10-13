@@ -30,7 +30,8 @@
     "Complete actual panel widths 300/320/420/520 and panel-self Zoom; Chrome page zoom leaves Side Panel unchanged",
     "Native cross-Store/Partition and public methods not exercised by the installed UI remain NOT_TESTED",
     "Shared-main full npm test still FAIL (21); preserve unrelated work",
-    "Independent final F3, identical ZIP install and CWS/publication not performed"
+    "Independent final F3, identical ZIP install and CWS/publication not performed",
+    "Committed main CI full npm test FAIL: 2192/2271 pass, 72 failed, 7 skipped; CI builds and artifact upload not run"
   ],
   "testsRun": [
     "GitHub source inspection",
@@ -174,7 +175,7 @@
   "r33Local": {
     "date": "2026-10-14",
     "owner": "Codex App Cookie core journey 01a13647",
-    "status": "CORE_NATIVE_SCOPED_PASS_WITH_REMAINING_GAPS",
+    "status": "CORE_NATIVE_SCOPED_PASS_CODE_PUSHED_CI_GLOBAL_FAIL",
     "startHead": "349a64be5a36419a78770a1154a30db16a871fb0",
     "writeScope": [
       "examples/sidebar-tools/cookie-editor/src/main.js",
@@ -214,7 +215,8 @@
       "Complete actual panel widths 300/320/420/520 and panel-self Zoom; Chrome page zoom leaves Side Panel unchanged",
       "Native cross-Store/Partition and public methods not exercised by the installed UI remain NOT_TESTED",
       "Shared-main full npm test still FAIL (21); preserve unrelated work",
-      "Independent final F3, identical ZIP install and CWS/publication not performed"
+      "Independent final F3, identical ZIP install and CWS/publication not performed",
+      "Committed main CI full npm test FAIL: 2192/2271 pass, 72 failed, 7 skipped; CI builds and artifact upload not run"
     ],
     "progress": {
       "check": "PASS",
@@ -429,8 +431,8 @@
       ]
     },
     "handoff": {
-      "ownerReleased": false,
-      "currentStatus": "Exact identity guard tested; current core/path/partial Native PASS_SCOPED; all owned CFT closed; Git/CI pending",
+      "ownerReleased": true,
+      "currentStatus": "Core/affected Native scoped pass; code pushed main; actual Cookie/SDK CI134 pass, global CI FAIL blocks builds; final F3/ZIP and native matrix remain open; profiles closed",
       "preserve": {
         "prompt": "docs/framework/prompts/cookie-editor-r33l-core-first-handoff-20261014.zh-CN.txt",
         "head": "349a64be5a36419a78770a1154a30db16a871fb0",
@@ -446,7 +448,7 @@
         "ownerReleased": true
       }
     },
-    "latestMainHead": "8ac000384699f7c77106a6b896bc462e37072b6c",
+    "latestMainHead": "3763a70eed4855be91d597336938611ba9c86352",
     "nativeUi": {
       "browser": {
         "protocolVersion": "1.3",
@@ -1506,8 +1508,41 @@
       "branch": "main",
       "preCommitHead": "22abce369312e385f35dc240bd93b8635d125464",
       "originMain": "bdceadc05e6aecbc2be725ebbe1ae90f90d992f0",
-      "status": "COMMIT_PUSH_PENDING",
-      "scope": "Only task-owned explicit paths; shared index empty before serial operation"
+      "status": "CODE_COMMIT_PUSHED_MAIN",
+      "scope": "Only task-owned explicit paths; shared index empty before serial operation",
+      "implementationCommit": "3763a70eed4855be91d597336938611ba9c86352",
+      "pushedTo": "origin/main",
+      "forcePush": false,
+      "otherAgentChangesPreserved": true
+    },
+    "ci": {
+      "implementationCommit": "3763a70eed4855be91d597336938611ba9c86352",
+      "workflow": ".github/workflows/cookie-editor-r32.yml",
+      "runId": 38458527790,
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38458527790",
+      "status": "FAIL",
+      "nodeCookieSdk": {
+        "passed": 134,
+        "failed": 0,
+        "skipped": 0
+      },
+      "toolPack": "PASS",
+      "check": "PASS",
+      "fullNpmTest": {
+        "status": "FAIL",
+        "tests": 2271,
+        "passed": 2192,
+        "failed": 72,
+        "skipped": 7
+      },
+      "build": "NOT_RUN_FULL_TEST_GATE_FAILED",
+      "buildDev": "NOT_RUN_FULL_TEST_GATE_FAILED",
+      "verify": "NOT_RUN_FULL_TEST_GATE_FAILED",
+      "rawJobLog": "artifacts/cookie-editor-local-acceptance/20261014/ci-3763a70eed4855be91d597336938611ba9c86352-job.log",
+      "jobs": "artifacts/cookie-editor-local-acceptance/20261014/ci-3763a70eed4855be91d597336938611ba9c86352-jobs.json",
+      "note": "Clean committed main, Node 20; differs from local Node 24 shared working-tree integration. Full test gate retained; isolated local build receipts remain scoped.",
+      "finalRun": "artifacts/cookie-editor-local-acceptance/20261014/ci-3763a70eed4855be91d597336938611ba9c86352-final-run.json",
+      "conclusion": "failure"
     }
   },
   "historicalLocalRuns": [

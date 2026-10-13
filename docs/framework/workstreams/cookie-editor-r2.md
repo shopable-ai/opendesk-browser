@@ -20,7 +20,9 @@
 
 工具版本 `2.0.4`，工具文件 SHA-256 `00034592e094d5a6f513a58bc04233a9793573f1d165a0e990489aead508fa9c`；当前 production Verify Hash `6650cb095517c0f0f3d77421a3efe513ebd3f5b19c9127eba2a9eacf06ec6f68`；development Verify Hash `468e117719f2fec775f7596b9aea664b7afd778700c55c80f9309be854befe73`。当前 Native 扩展 ID `igpeopfnlionaohinofebijkhfliljfp`，原生扩展目录指纹 `edb1e04566f0e3022233c99a6408bd92500fcaada783104345a3b8920ebc73e0`，CFT `155.0.8059.39`。这些 Hash 使用各自的算法，不互相替代。
 
-候选来自既有隔离源码快照加本任务修复，**不是全部当前并行 main 改动的构建**。当前 core / conflictAndPath / partialRename 三组报告记录 `candidateUnchanged` 及 cleanup PASS；未受影响的导入导出、观察、生命周期和布局输入未变，其前一候选证据保留原身份限定复用，不能合写为全部同候选 PASS。详情、截图 SHA、原始报告及前一候选身份写在原 JSON `r33Local.nativeUi` / `priorNativeCandidate`。日常 `dist/development`、真实用户 Chrome 和其他 Agent 工作均未被替换。当前正串行复核本任务提交范围；Git/CI 结果在本账本追加。
+候选来自既有隔离源码快照加本任务修复，**不是全部当前并行 main 改动的构建**。当前 core / conflictAndPath / partialRename 三组报告记录 `candidateUnchanged` 及 cleanup PASS；未受影响的导入导出、观察、生命周期和布局输入未变，其前一候选证据保留原身份限定复用，不能合写为全部同候选 PASS。详情、截图 SHA、原始报告及前一候选身份写在原 JSON `r33Local.nativeUi` / `priorNativeCandidate`。日常 `dist/development`、真实用户 Chrome 和其他 Agent 工作均未被替换。
+
+**提交及 CI：** 仅暂存本任务 17 个文件，Lore 提交 [`3763a70e`](https://github.com/shopable-ai/opendesk-browser/commit/3763a70eed4855be91d597336938611ba9c86352) 已正常推送 `origin/main`，其他 Agent 工作保留。[实际 Cookie Editor CI](https://github.com/shopable-ai/opendesk-browser/actions/runs/38458527790) 专项 **134/134 PASS**、2.0.4 官方工具打包及 Check PASS；其全仓 npm test **FAIL**（2271 项、2192 通过、72 失败、7 跳过），因此 CI Build / Build:dev / Verify 和候选上传 **未运行**。本地隔离 Build PASS 不能替代这次 CI。CI 使用干净提交与 Node 20，与本地 Node 24 并行工作区 2292 项结果范围不同；原始 job 日志和 jobs JSON 按提交 SHA 追加保留，未放宽全仓门槛。原生资源已释放，剩余任务见上表及原 JSON `r33Local.pending`。
 
 ## 核心功能优先交接基线（2026-10-14，历史）
 
