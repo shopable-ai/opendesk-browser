@@ -50,6 +50,11 @@ YOU ARE AN AUTONOMOUS CODING AGENT. EXECUTE AUTHORIZED TASKS TO COMPLETION WITHO
 
 **R7.1/R4 现有「检查→下载→人工审阅→批准→运行」是历史实现，不能作为最终正确 UX；需要继续修复源码与测试。** 长期规则：[依赖使用场景合同](docs/framework/universal-dependency-runtime-usage-contract.zh-CN.md)；执行入口：[R7.2 GOAL](docs/framework/prompts/goal-universal-dependency-runtime-r7.2-scenario-first-20261013.zh-CN.md)。本条优先于历史 R4–R7 的逐库人工审核要求，不影响 Browser SDK 与安装安全合同。
 
+## 第三方库用户语法优先普通 JavaScript（2026-10-13）
+
+用户最新明确：AI/用户写 Controller 代码不应出现私有 `// @opendesk-classic` 或无谓的 `globalThis.mitt()`。**首选** Developer 标准版本化 ESM：`import mitt from 'mitt@3.0.1'`，后续直接 `mitt()`，用户点击 Run 后由现有 Compiler/Dependency Manager/SHA/RunHost/Authority 完成精确源码锁定。绝不静默使用 `latest` 或将 `import mitt from 'mitt'` 当成已固定版本，当前未解析的裸包名要明确拒绝。Standard 无 Babel：确实需要 Classic 时仅保留通用 `// @require https://.../versioned.umd.js`，按库在受控 Worker 中真实导出的符号直接调用，不默认注入网站 MAIN。
+
+不要新建 npm Runner、Manager、Host 或第二编译器；用户无需逐库勾选 SHA 或为第二个程序再次人工审核。普通 `import` 在 Developer 是必要时的 ESM 编译，不表示 Classic 全量改 Babel。已冻结/安装 Revision 的字节与 SHA/版本/授权不可静默更新。用户接口权威示例见 `docs/framework/universal-dependency-runtime-usage-contract.zh-CN.md` 及 `examples/programs/single-file/controller-mitt-pinned-esm.js`。新语法当前仅有 SOURCE_WIRED 与测试驱动，独立真实 Chrome/CWS PASS 不可凭空宣称。
 ## Controller/Page 零参数用户入口及 src/libs 环境合同（2026-10-12）
 
 用户当前明确要求：**推荐示例、AI 生成代码与多文件 ESM Controller 入口使用 `export default async function main()`，Side Panel「开发」直接编辑 Controller 草稿使用 `async function main()`，直接引用受控 Worker 词法 `page`、`params` 及默认 `_`、`dayjs`、`OpenDeskLibs`，不让用户给 `main` 传能力对象、重复 npm 安装或写 CDN。** 历史 `main({page})` ESM 入口只保留兼容，不得再宣传为唯一/推荐格式。
