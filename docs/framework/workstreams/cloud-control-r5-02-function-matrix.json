@@ -32,8 +32,8 @@
       "OPS": 12
     },
     "source": {
-      "SOURCE_IMPLEMENTED": 107,
-      "NOT_IMPLEMENTED": 3
+      "SOURCE_IMPLEMENTED": 106,
+      "NOT_IMPLEMENTED": 4
     },
     "verification": {
       "NOT_VERIFIED": 101,
@@ -1404,9 +1404,10 @@
       "tests": "tests/cloud-control/*.test.mjs;tests/framework/k3-controller-authority.test.mjs",
       "gate": "G0-G6",
       "priority": "P0-P2",
-      "implementation": "SOURCE_IMPLEMENTED",
+      "implementation": "NOT_IMPLEMENTED",
       "verification": "REMOTE_NATIVE_PENDING",
-      "ui39Overlay": null
+      "ui39Overlay": null,
+      "sourceNote": "Optional HTTPS listener is SOURCE_IMPLEMENTED, but actual user-approved external server/account/public cross-network deployment is not performed."
     },
     {
       "id": "OPS-06",
