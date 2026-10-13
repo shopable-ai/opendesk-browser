@@ -7,12 +7,13 @@ import {validatePageProgramRules} from '../scripting/user-scripts/page-program-r
 const ID = /^[A-Za-z0-9][A-Za-z0-9_.-]{0,127}$/;
 const fail = (code,message) => {throw Object.assign(new Error(message),{code});};
 
-export function preparePageCandidateDraft({sourceUtf8,entryFormat,lockId,importSourceUrl = null,
+export function preparePageCandidateDraft({sourceUtf8,entryFormat,lockId,importSourceUrl = null,dependencyScope,
   programId,revision,previewUrl,pageRules} = {}) {
   if(typeof sourceUtf8!=='string'||!sourceUtf8.trim())fail('E_SOURCE','请先在当前网页成功试运行非空 JavaScript');
   if(!['classic-userscript','async-main'].includes(entryFormat))fail('E_ENTRY_FORMAT','不支持的页面程序入口');
   if(typeof programId!=='string'||!ID.test(programId)||
      !Number.isSafeInteger(revision)||revision<1)fail('E_REVISION','请填写有效的脚本 ID 和正整数版本');
+  if(dependencyScope!==undefined&&dependencyScope!=='program')fail('E_DEPENDENCY_PROGRAM','依赖审核范围无效');
   let url;
   try{url=new URL(previewUrl);}catch{fail('E_PAGE_MATCH','需要有效的当前网页地址');}
   if(!['https:','http:'].includes(url.protocol)||!url.hostname||url.username||url.password||
@@ -27,7 +28,8 @@ export function preparePageCandidateDraft({sourceUtf8,entryFormat,lockId,importS
   inspectPageSource(sourceUtf8);
   return Object.freeze({
     request:Object.freeze({programId,revision,sourceUtf8,entryFormat,
-      importSourceUrl,lockId:lockId??null,...(rules ? {pageRules:rules} : {})}),
+      importSourceUrl,lockId:lockId??null,
+       ...(dependencyScope==='program'?{dependencyScope:'program'}:{}),...(rules ? {pageRules:rules} : {})}),
     generatedMatch,match:generatedMatch?match:null,sourceChanged:false,
     summary:parsed.hasHeader
       ? (parsed.matches.length

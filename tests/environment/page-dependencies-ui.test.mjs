@@ -25,13 +25,18 @@ function fixture(sourceUtf8,{getLocks=()=>[],waitForInspect}={}) {
   return {resolver,requests,get updates(){return updates;},edit(value){source=value;resolver.refresh();}};
 }
 
-test('development UI keeps one editor without @require insertion, lock dropdown or legacy jQuery controls',async()=>{
+test('development UI exposes explicit Classic @require prepare/review without legacy manual injection controls',async()=>{
   const html=await readFile('src/ui/tool.html','utf8');
   assert.match(html,/id="script-source"/);
   assert.match(html,/<summary id="page-preview-mode-title">网页 JavaScript 试运行<\/summary>/);
-  for(const id of ['page-dependency-panel','page-dependency-url','page-dependency-add','page-dependency-lock',
-    'page-dependency-prepare','page-dependency-approve','page-dependency-review','page-preview-jquery','page-preview-entry'])
+  for(const id of ['page-dependency-panel','page-dependency-list','page-dependency-prepare',
+    'page-dependency-review','page-dependency-approve','page-dependency-lock'])
+    assert.match(html,new RegExp('id="'+id+'"'),id+' must be in the existing developer page');
+  for(const id of ['page-dependency-url','page-dependency-add','page-preview-jquery','page-preview-entry'])
     assert.doesNotMatch(html,new RegExp('id="'+id+'"'),id+' is an obsolete UI control');
+  const editor=await readFile('src/ui/script-editor.js','utf8');
+  assert.match(editor,/createPageDependencyInstaller/);
+  assert.match(editor,/getProgramId:\(\)=>scriptId\(\)/);
 });
 
 test('plain top-level JavaScript and main() JavaScript need no metadata or dependency inspection',async t=>{
@@ -58,7 +63,7 @@ test('legacy @require without a prior lock stays blocked; no download, approval 
   assert.deepEqual(f.requests.map(row=>row.method),['inspectPageDependencies']);
   assert.deepEqual(f.requests[0].input,{sourceUtf8:source,entryFormat:'async-main'});
   assert.throws(()=>f.resolver.capture(),error=>error.code==='E_DEPENDENCY_UNLOCKED'&&
-    /本地项目|打包/.test(error.message));
+    /第三方 JS 依赖|手动获取/.test(error.message));
 });
 
 test('one approved lock is reused across body edits but never across changed dependency declarations',async t=>{
@@ -153,4 +158,24 @@ test('classic source ignores comments, regex, strings and template text',()=>{
     assert.equal(hasUnbuiltESM(source),false,source);
     assert.doesNotThrow(()=>assertPageSourceReadyToRun(source),source);
   }
+});
+
+test('program IDs partition inspected locks, preventing cross-program capture',async t=>{
+  const source=withRequire(firstUrl),seen=[];
+  let programId='alpha',lockId='dep-lock-'+('c'.repeat(64));
+  const client={ready:Promise.resolve(),async request(method,payload){
+    assert.equal(method,'inspectPageDependencies');
+    seen.push(payload.programId);
+    return {manifestDigest:'f'.repeat(64),requires:[{order:0,url:firstUrl,status:'needs-review',cacheChoices:[],sharedCacheChoices:[]}],
+      locks:payload.programId==='alpha'?[{lockId}]:[]};
+  }};
+  const resolver=createPageDependencyResolver({client,getSource:()=>source,getProgramId:()=>programId});
+  t.after(()=>resolver.dispose());await settle();
+  assert.equal(resolver.capture().lockId,lockId);
+  assert.equal(resolver.capture().programId,'alpha');
+  programId='beta';resolver.refresh();await settle();
+  assert.throws(()=>resolver.capture(),error=>error.code==='E_DEPENDENCY_UNLOCKED');
+  assert.deepEqual(seen,['alpha','beta']);
+  resolver.approved('dep-lock-'+('d'.repeat(64)));await settle();
+  assert.throws(()=>resolver.capture(),error=>error.code==='E_DEPENDENCY_UNLOCKED');
 });

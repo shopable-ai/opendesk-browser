@@ -789,6 +789,15 @@
 
 /* Component source review stays inside the existing editor; long public URLs
    wrap locally and do not create a second page gutter. */
+#page-dependency-panel{min-width:0;padding:var(--space-2);margin:var(--space-2) 0;border:1px solid var(--line);border-radius:var(--radius-surface)}
+#page-dependency-panel>summary{font-size:12px;font-weight:650;cursor:pointer}
+#page-dependency-panel p{font-size:12px;line-height:1.5;margin:0;overflow-wrap:anywhere}
+#page-dependency-panel .identity{white-space:pre-wrap;overflow-wrap:anywhere}
+#page-dependency-panel select{max-width:100%;min-width:0;width:100%}
+#page-dependency-panel .od-surface{padding:var(--space-2)}
+#page-dependency-panel #page-dependency-review-list{margin:var(--space-2) 0}
+#page-dependency-status[data-state="error"]{color:var(--od-negative)}
+#page-dependency-panel .od-toolbar{flex-wrap:wrap;gap:var(--space-2)}
 #page-component-remote{min-width:0;gap:var(--space-2);padding-block:var(--space-2)}
 #page-component-remote p{margin:0;font-size:13px;line-height:1.5;color:var(--od-ink)}
 #page-component-remote pre{white-space:pre-wrap;overflow-wrap:anywhere;min-width:0;max-height:16rem;overflow:auto;font-size:12px;line-height:1.5;margin:0}

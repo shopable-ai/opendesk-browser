@@ -70,3 +70,47 @@
 ## Standard / Developer 打包诊断修正（2026-10-13）
 
 R15 `libs:doctor --strict` 错把六个 Developer-only `PAGE_BROWSER_PRIVATE_FILES` 当成 Standard 物理打包必备，真实生产与开发 Standard 包因此报告 `PACKAGE_FAIL missing`。本轮改为直接复用 `scripts/browser-editions-r245.mjs` 的 `compilerResourcesForEdition` 与物理 `browser-edition.json`，按照版本校验：Standard 不得有这六项、Developer 必须全有，其他固定库和 SHA 校验不放宽。独立 Node 测试覆盖反向负例；不触碰 R8 Browser SDK 映射。
+
+
+## R7.1 — Side Panel「开发」Classic JS 首次安装与程序独立锁（2026-10-13）
+
+### 目标与实现边界
+
+- R7.1 仅扩展已有 Dependency Manager 的 UI 接线和程序级锁归属；保留 IndexedDB SHA 字节存储、既有 Host/Authority、Page USER_SCRIPT 单份原子 JS、Controller ESM 编译器及 R8 Browser SDK。
+- 原有 Host namespace 覆盖同一个 Side Panel 的所有脚本，因此本轮对通过「开发」编写的 Page `@require` 脚本，在既有 namespace 下派生固定 `programId` 身份；资产跨程序共享，锁和审核绝不共享。既有不含 `programId` 的运行合同保留兼容，不重写旧 Candidate。
+- `src/ui/page-dependency-install.js`（新）显示预装 / 本程序已审核缓存 / 跨程序 SHA 字节 / HTTPS 新下载，必须先检查、真实点击后下载，再逐项查看完整 SHA、原始 URL、MIME、许可证状态和风险，逐条勾选后显式批准。Chrome 来源权限申请保持真实点击的同步权限请求，网页执行许可仍由既有 Page 入口另行验证。
+- `src/ui/page-dependencies.js`、`src/ui/script-editor.js`、`src/ui/tool.html`、`src/ui/tool-shell.css`：复用原有开发界面和 Broker RPC，展示可选固定锁；更改程序 ID、来源、源码或取消后不复用未批准的旧审核。
+- `src/scripting/user-scripts/dependency-manager.js`、`preview.js`、`page-program-contract.js`、`src/ui/page-candidate-source.js`：可选程序级锁身份贯穿 inspect → prepare → approve → preview → frozen Candidate → installed read，仍由 Authority 负责页面许可和运行。
+- 测试：`tests/environment/page-dependencies-ui.test.mjs`、`tests/environment/page-dependency-r71-ui.test.mjs`、`tests/environment/dependency-manager.test.mjs`，覆盖真实点击语义的组件模拟、B 未批准拒绝、SHA 复用不联网、不同锁、篡改拒绝、旧 API 兼容。组件模拟不是原生 Chrome PASS。
+
+### 真人浏览器待核对示例
+
+此案例选择此前未预装的 Classic UMD 库；以下下载地址、许可证、SHA 和函数结果均须通过网络实测重新确认，不能把样例当作验收回执。
+
+```javascript
+// ==UserScript==
+// @name R7.1 Classic dependency smoke
+// @require https://cdn.jsdelivr.net/npm/marked@15.0.12/lib/marked.umd.js
+// ==/UserScript==
+async function main() {
+  return {type: typeof globalThis.marked?.parse,
+    html: globalThis.marked?.parse('**OpenDesk**')};
+}
+```
+
+Chrome 验收路径：使用相同源文件和 `programId=marked-a`，检查→确认下载来源权限→获取→记录真实字节 SHA → 审核→独立点击试运行；保存冻结 Page Candidate。再创建 `programId=marked-b`，不能直接继承 A 的锁，选择相同来源下共享 SHA，在离线状态建立 pending review，独立批准后试运行，并确认 B 不发起新的网络下载。两程序使用同一资产 SHA 但锁必须不同。
+
+另需测试：重复运行与浏览器重启后的离线成功、SHA 修改和资产缺失拒绝、撤销权限安全失败、页面刷新/导航/Stop 无重复执行，Standard 与 Developer 在同一具体候选 SHA 下分别通过真实 Chrome。留存 `sourceHash`、下载 URL/MIME/SHA/次数、各 programId 锁 ID、实际函数返回值、tab/document/preview 回执、package SHA、Chrome/OS 版本、CI URL 和真实 Mac Chrome 证据。
+
+### 证据状态与未完成限制
+
+| 验收项 | 当前证据 |
+| --- | --- |
+| GitHub main 改动 | 本轮提交后单独核实 commit SHA，禁止引用未写入的暂存 blob 作为已交付 |
+| Node 定向测试 / source check / production 与 development build / libs:doctor | 需要绑定提交后的 CI 原始日志；未取证前记 NOT_TESTED |
+| 全新第三方库真实 CDN 字节及 SHA / MIME / 许可证 | NOT_TESTED；未从真实 Chrome 下载，不填臆造值 |
+| 程序 A/B 真正运行、授权、缓存次数、离线及回调结果 | NOT_TESTED；Node mock/VM 仅能证明局部逻辑 |
+| Chrome/macOS 原生，包括 Stop、导航、撤权、破坏测试 | NOT_TESTED；没有 Mac 同包原生回执 |
+| Browser SDK R8 / Cookies | OUT_OF_SCOPE；未修改 |
+
+**验收边界**：源码提交和模拟测试不是用户体验全链路关闭；只有受信 Chrome 回执、同包身份与实际网络/执行结果闭环后才能标记产品 PASS。

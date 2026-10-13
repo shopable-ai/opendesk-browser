@@ -26,30 +26,35 @@ export function assertPageSourceReadyToRun(sourceUtf8) {
 
 // Only reuse previously approved @require locks. Dependencies from new URLs
 // must be bundled by the author; no UI insertion, CDN fetch or silent approval.
-export function createPageDependencyResolver({client,getSource,onState=()=>{}}) {
-  let disposed=false,sequence=0,sourceKey=null,pending=false,locks=[],lookupError=null;
+export function createPageDependencyResolver({client,getSource,getProgramId=()=>undefined,onState=()=>{}}) {
+  let disposed=false,sequence=0,sourceKey=null,pending=false,locks=[],lookupError=null,inspection=null;
+  let selectedLockId=null;
   const current=()=>{
     const sourceUtf8=getSource(),parsed=parseUserScriptDependencies(sourceUtf8);
     const entryFormat=inferPageEntryFormat(sourceUtf8);
-    const key=JSON.stringify({entryFormat,importSourceUrl:parsed.importSourceUrl,
+    const programId=parsed.requires.length?getProgramId():undefined;
+    const key=JSON.stringify({entryFormat,programId,importSourceUrl:parsed.importSourceUrl,
       requires:parsed.requires.map(row=>({order:row.order,raw:row.raw,url:row.url,integrity:row.integrity}))});
-    return {sourceUtf8,parsed,entryFormat,key};
+    return {sourceUtf8,parsed,entryFormat,programId,key};
   };
-  function refresh() {
+  function refresh(force=false) {
     if(disposed)return;
     const candidate=current();
-    if(candidate.key===sourceKey)return;
+    if(candidate.key===sourceKey&&!force)return;
     const version=++sequence;
-    sourceKey=candidate.key;locks=[];lookupError=null;pending=Boolean(candidate.parsed.requires.length);
+    sourceKey=candidate.key;locks=[];inspection=null;lookupError=null;pending=Boolean(candidate.parsed.requires.length);
     onState();
     if(!pending)return;
     Promise.resolve(client.ready).then(()=>{
       if(disposed||version!==sequence)return null;
       return client.request('inspectPageDependencies',
-        {sourceUtf8:candidate.sourceUtf8,entryFormat:candidate.entryFormat});
+        {sourceUtf8:candidate.sourceUtf8,entryFormat:candidate.entryFormat,
+          ...(candidate.programId!==undefined?{programId:candidate.programId}:{})});
     }).then(report=>{
       if(disposed||version!==sequence||!report)return;
+      inspection=report;
       locks=Array.isArray(report.locks)?report.locks.filter(row=>typeof row?.lockId==='string'):[];
+      if(!locks.some(row=>row.lockId===selectedLockId))selectedLockId=locks.length===1?locks[0].lockId:null;
     }).catch(error=>{
       if(!disposed&&version===sequence)lookupError=error;
     }).finally(()=>{
@@ -69,16 +74,25 @@ export function createPageDependencyResolver({client,getSource,onState=()=>{}}) 
     if(candidate.parsed.requires.length) {
       if(pending)throw {code:'E_DEPENDENCY_PENDING',message:'正在读取已有依赖版本，请稍后重试'};
       if(lookupError)throw {code:'E_DEPENDENCY_INSPECT',message:'读取已有依赖版本失败：'+(lookupError.message||lookupError)};
-      if(locks.length>1)throw {code:'E_DEPENDENCY_LOCK_AMBIGUOUS',
-        message:'发现多份已批准的第三方资源版本。请在本地 JavaScript 项目中固定依赖并重新构建，避免自动选择不同代码'};
+      if(locks.length>1&&!locks.some(row=>row.lockId===selectedLockId))throw {code:'E_DEPENDENCY_LOCK_AMBIGUOUS',
+        message:'发现多份已批准的第三方资源版本。请在「开发 → 第三方 JS 依赖」明确选择本次运行的 SHA 锁；不会自动选择新代码'};
       if(locks.length===0)throw {code:'E_DEPENDENCY_UNLOCKED',
-        message:'源码含旧格式 @require，但没有已批准的本地版本。请在本地项目用 import / package.json 固定并打包依赖，再导入构建结果；不会自动下载执行远程 JavaScript'};
-      lockId=locks[0].lockId;
+        message:'本程序尚未批准 @require 的固定字节。请在「开发 → 第三方 JS 依赖」先检查来源，再手动获取、审核 SHA 并批准；试运行不会自动下载'};
+      lockId=locks.find(row=>row.lockId===selectedLockId)?.lockId||locks[0].lockId;
     }
-    return {sourceUtf8:candidate.sourceUtf8,entryFormat:candidate.entryFormat,lockId};
+    return {sourceUtf8:candidate.sourceUtf8,entryFormat:candidate.entryFormat,lockId,
+      ...(candidate.programId!==undefined?{programId:candidate.programId}:{})};
   }
   refresh();
-  return {capture,refresh,get busy(){return pending;},dispose(){disposed=true;sequence++;}};
+  return {capture,refresh,chooseLock(id){
+    if(id&& !locks.some(row=>row.lockId===id))throw {code:'E_DEPENDENCY_LOCK',message:'所选依赖锁不属于当前程序'};
+    selectedLockId=id||null;onState();
+  },approved(id){
+    if(!/^dep-lock-[a-f0-9]{64}$/.test(id))throw {code:'E_DEPENDENCY_LOCK'};
+    selectedLockId=id;refresh(true);
+  },get inspection(){return inspection;},get inspectError(){return lookupError;},
+  get selectedLockId(){return selectedLockId;},get busy(){return pending;},
+  dispose(){disposed=true;sequence++;}};
 }
 
 export const dependencyMessage = item => (item?.code ? item.code+'：' : '')+
