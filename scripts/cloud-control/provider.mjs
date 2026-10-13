@@ -268,7 +268,7 @@ export async function openProvider({directory='.local/cloud-control',port=43112,
             out={total:clients.length,offset,nextOffset:offset+visible.length<clients.length?
               offset+visible.length:null,clients:visible.map(([clientId,c])=>({
                 clientId,label:c.label||'外部客户端',createdAt:c.createdAt,
-                tasks:c.tasks.map(pin=>({taskId:pin.taskId,version:pin.version})),
+                tasks:(Array.isArray(c.tasks)?c.tasks:[]).map(pin=>({taskId:pin.taskId,version:pin.version})),
                 allowResult:c.allowResult===true
               }))};break;
           }
@@ -278,7 +278,7 @@ export async function openProvider({directory='.local/cloud-control',port=43112,
             if(!owner.grantId||owner.grantId!==b.grantId||owner.suspendedAt)
               fail('E_CLOUD_STOPPED');
             if(typeof b.label!=='string'||!b.label.trim()||b.label.trim().length>60||
-              /[\\x00-\\x1f\\x7f]/.test(b.label)||typeof b.allowResult!=='boolean')
+              /[\x00-\x1f\x7f]/.test(b.label)||typeof b.allowResult!=='boolean')
               fail('E_CLIENT_SCOPE');
             const pinned=pinnedClientTasks(owner,b.tasks);
             if(Object.values(state.clients).filter(c=>!c.revokedAt&&
