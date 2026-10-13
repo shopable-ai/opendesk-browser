@@ -273,7 +273,9 @@ export function createTrustedCookieHost({api=globalThis.chrome,now=Date.now}={})
     if(op==='browser.cookies.get'||op==='browser.cookies.getAll'){
       const rows=await scan({url:args.url,...key,...(args.name?{name:args.name}:{})});
       if(op==='browser.cookies.get'){
-        const matches=rows.filter(row=>row.name===args.name);
+        const matches=rows.filter(row=>row.name===args.name&&
+          (args.domain===undefined||row.domain===args.domain)&&
+          (args.path===undefined||row.path===args.path));
         if(matches.length>1)throw error('E_COOKIE_AMBIGUOUS');
         result={cookie:redact(matches[0]??null,args.includeValues===true),scope:'APPROVED_URL'};
       }else{
