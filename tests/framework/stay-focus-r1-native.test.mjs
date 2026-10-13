@@ -28,6 +28,12 @@ function connect(url){
     waiting.set(id,{resolve,reject,timer});socket.send(JSON.stringify({id,method,params,...(sessionId?{sessionId}:{})}));
   });},close(){socket.close();}};
 }
+async function screenshot(c,session,name){
+  const image=await c.send('Page.captureScreenshot',{format:'png',captureBeyondViewport:false},session);
+  const bytes=Buffer.from(image.data,'base64');
+  await writeFile(path.join(OUT,name+'.png'),bytes);
+  return {file:name+'.png',bytes:bytes.length,sha256:createHash('sha256').update(bytes).digest('hex')};
+}
 async function until(run,label,limit=18000){
   const end=Date.now()+limit;let last;
   while(Date.now()<end){try{const value=await run();if(value)return value;}catch(e){last=String(e);}await sleep(150);}
@@ -77,6 +83,7 @@ test('Real Chrome DNR navigation, registry, sidebar approval and uninstall',{ski
   const report={candidate:process.env.GITHUB_SHA||null,
     pkgSHA256:createHash('sha256').update(bytes).digest('hex'),
     nativeChrome:'NOT_TESTED',approval:'NOT_TESTED',actualNavigation:'NOT_TESTED',
+    screenshots:[],
     unregister:'NOT_TESTED',uninstall:'NOT_TESTED',steps:[]};
   const note=(name,details)=>{report.steps.push({name,...details});console.log('STAY_FOCUS_NATIVE '+name+' '+JSON.stringify(details));};
   chrome.stderr.on('data',x=>{errors=(errors+String(x)).slice(-2200);});
@@ -135,6 +142,11 @@ test('Real Chrome DNR navigation, registry, sidebar approval and uninstall',{ski
   },'sandbox iframe');
   await client.send('Runtime.enable',{},frame);await client.send('Page.enable',{},frame);
   await until(()=>evalRead(client,frame,'!!document.querySelector("#site-host")'),'real Stay Focus UI');
+  const dimensions=await evalRead(client,frame,
+    '(()=>({width:innerWidth,scrollWidth:document.documentElement.scrollWidth,visible:!!document.querySelector("#site-host")}))()');
+  assert.ok(dimensions.scrollWidth<=dimensions.width+2,'native tool must not overflow its iframe horizontally');
+  report.toolGeometry=dimensions;
+  report.screenshots.push(await screenshot(client,sid,'installed-stay-focus-native-panel'));
   await fill(client,frame,'#site-host','127.0.0.1');
   await click(client,frame,'#site-mode');await press(client,frame,'ArrowDown','ArrowDown',40);
   await press(client,frame,'Enter','Enter',13);
@@ -167,7 +179,16 @@ test('Real Chrome DNR navigation, registry, sidebar approval and uninstall',{ski
     return target?.url?.includes('/stay-focus/blocked-always.html')?target.url:null;
   },'actual HTTP main-frame blocked via Chrome DNR',16000);
   assert.ok(navigated.startsWith('chrome-extension://'+id+'/stay-focus/blocked-always.html'));
-  report.actualNavigation='PASS';note('real-http-navigation',{status:'PASS',urlPath:'/stay-focus/blocked-always.html'});
+  const blockedSession=(await client.send('Target.attachToTarget',{targetId:visit.targetId,flatten:true})).sessionId;
+  await client.send('Runtime.enable',{},blockedSession);await client.send('Page.enable',{},blockedSession);
+  const blockedText=await until(async()=>{
+    const value=await evalRead(client,blockedSession,'document.querySelector("#reason")?.textContent||""');
+    return value.includes('始终限制')?value:null;
+  },'real local extension block page rendered with correct reason');
+  assert.ok(blockedText.includes('始终限制'),'rule redirect must deliver the actual block page UI');
+  report.screenshots.push(await screenshot(client,blockedSession,'actual-dnr-blocked-page'));
+  report.actualNavigation='PASS';note('real-http-navigation',{status:'PASS',
+    urlPath:'/stay-focus/blocked-always.html',renderedReason:blockedText});
   await click(client,sid,'#sidebar-tool-remove');
   await click(client,sid,'#sidebar-tool-inline-remove-confirm');
   await until(async()=>{
