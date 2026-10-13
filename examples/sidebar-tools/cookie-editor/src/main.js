@@ -153,12 +153,22 @@ function renderBrowser(){
     const addAction=(label,fn,danger=false)=>{
       const b=doc.createElement('button');b.type='button';b.className='row-action'+(danger?' delete':'');
       b.textContent=label;b.disabled=busy;b.setAttribute('aria-label',label+' '+row.name);
-      b.addEventListener('click',fn);actions.append(b);
+      b.addEventListener('click',fn);actions.append(b);return b;
     };
     addAction(liveSecrets.has(key(row))?'隐藏值':'显示值',()=>{void revealBrowserValue(row);});
-    addAction('编辑',()=>guarded(()=>openEditor(row)));
-    addAction('删除',()=>guarded(()=>ask('真实删除「'+row.name+'」 · '+row.domain+row.path+
+    // Parent-domain cookies may legitimately match this URL, but modifying
+    // them affects sibling subdomains and requires the parent's own grant.
+    const writableHere=row.domain.replace(/^\./,'').toLowerCase()===liveTarget.hostname;
+    const editAction=addAction('编辑',()=>guarded(()=>openEditor(row)));
+    const deleteAction=addAction('删除',()=>guarded(()=>ask('真实删除「'+row.name+'」 · '+row.domain+row.path+
       '？仅处理其精确身份。','确认删除',()=>deleteBrowserCookie(row))),true);
+    if(!writableHere){
+      for(const action of [editAction,deleteAction]){
+        action.disabled=true;
+        action.title='此 Cookie 属于 '+row.domain+
+          '；若需修改或删除，请选择该域名并先取得独立网站写入授权';
+      }
+    }
     item.append(name,meta,value,actions);list.append(item);
   }
 }
