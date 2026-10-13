@@ -85,24 +85,38 @@
 | 后台 SW、Content | 只保留可信静态打包入口 | 不动态运行用户下载的远程库 |
 | 已安装、定时、云控 | 原已安装固定 Program Revision、依赖闭包和 Authority；从经过核验的本地 SHA 资产离线运行 | 不在调度时从 CDN 重新获取、重新编译或静默升级 |
 
-### R7.3 Controller 新 Classic 作者用法（已实现源码，真实 Chrome 待验证）
+### R7.4 标准 JS 导入（推荐入口）与 Standard Classic 限定用法
 
-Controller 普通 JavaScript 草稿可以使用下述固定版本的 Worker 兼容 Classic UMD，点击现有 Run 自动获取或复用 SHA 字节、生成当前 Program 独立技术锁，再进入原 RunHost → Authority → Worker。无需 npm、单独编译或逐库勾选。
+**默认用户 / AI 生成代码用标准 JavaScript 模块语法，而不是 OpenDesk 私有注释和 `globalThis`。** 版本用原生包标识固定，不要求手写 CDN 源或提交 SHA。现有可信 Developer Controller ESM Linker 将 `mitt@3.0.1` 解析为明确的 `https://cdn.jsdelivr.net/npm/mitt@3.0.1/+esm`，经旧 Component Dependencies Manager 获取原始响应字节、SHA 锁图、固定 Babel 编译并交原 RunHost → Authority → opaque Worker。无额外人工逐库批准。下面是**源码支持、待 Chrome 回执的标准示例**：
 
 ```javascript
-// @opendesk-classic https://cdn.jsdelivr.net/npm/mitt@3.0.1/dist/mitt.umd.js
-async function main() {
-  const bus = globalThis.mitt();
-  const result = [];
-  bus.on('item', x => result.push(x));
-  bus.emit('item', 'OpenDesk:21');
-  return result;
+import mitt from 'mitt@3.0.1';
+
+export default async function main() {
+  const bus = mitt();
+  const events = [];
+  bus.on('message', value => events.push(value));
+  bus.emit('message', 'OpenDesk');
+  return events;
 }
 ```
 
-此示例是 D05 真实 Chrome 驱动候选，尚不能宣称已通过 Chrome。系统优先已锁 Program、共享且已验证的 URL/SHA 缓存，必要时才下载 HTTPS；缺失权限只在真实 Run 点击时请求 Chrome 原生许可，拒绝即安全失败。Classic 原始代码只在现有受控 Worker 运行，不进入特权 SW；当前限制为最多四份、新增库共 45 KiB、执行体 48 KiB、保存体 52 KiB。只导出到 window 的浏览器 UMD、CommonJS require 或纯 ESM 不能假定支持，必要时使用 Developer 的 ESM 编译器。
+这个语法只在**Developer（含受信固定 ESM 编译器）**开放；Standard 包不因新增 `import` 而偷偷附带 Babel。`mitt`、`mitt@latest` 等未固定版本的裸导入在当前自动解析路径必须安全拒绝；精确版本才可以自动解析。如果使用自有静态 HTTPS ESM 源，仍可使用标准 `import x from 'https://.../file@1.2.3.mjs'`，但最终响应与所有上游传递依赖都必须固定真实 SHA。
 
-Save 不联网：必须先 Run 建立对应 Program/sourceHash 技术锁，才能固化原作者源码、真正执行字节、依赖 URL/SHA 和锁；重新加载可恢复原作者源码。已保存执行体若原始缓存被删除、旧锁被撤销，其运行时再校验仍需补齐，D08/D09/D11 不能据此宣称完整关闭。Worker 隔离不自动等于 CWS 合规，正式远程代码政策和数据处理边界仍需审查（COMPLIANCE_NOT_CLOSED）。
+**Standard 的非 ESM Classic 小脚本**采用通用 UserScript 声明 `// @require URL`，不再增加 `@opendesk-classic`，也无需 `globalThis.mitt()`；但真实导出符号取决于上游 UMD 对 Worker 全局的适配，不保证所有网页专用库都可用：
+
+```javascript
+// @require https://cdn.jsdelivr.net/npm/mitt@3.0.1/dist/mitt.umd.js
+async function main() {
+  const bus = mitt();
+  bus.on('message', value => console.log(value));
+  bus.emit('message', 'OpenDesk');
+}
+```
+
+Standard Classic 的原始字节经既有 Dependency Manager 内容寻址、按 Program/sourceHash/world 自动固定；缺来源权限只在真实 Run 点击中请求，不授予程序以外网站和敏感能力；不经无谓 Babel、不在特权 SW 执行。保存时先要有该程序技术锁，Save 从缓存冻结原作者源码、执行字节、准确依赖 URL/SHA。当前最多四份 Classic、总计 45 KiB、Worker 执行体 48 KiB，保存版本 52 KiB。
+
+**当前证据界限**：以上是源码接线和新增 CI 驱动，而不是 Developer/Standard 原生成功回执；CI 输出对应真实外部库函数、Network 计数、lockId、sourceHash、runId/resultId 之前均标为 `CHROME_PENDING`。旧已保存源码的无网重跑、坏缓存/撤权即时阻断及定时/云控同版本仍需 D08–D11 原生验收。Worker 隔离不代表 Chrome Web Store 远程代码自动合规，正式合规审查仍为 `COMPLIANCE_NOT_CLOSED`。
 
 **边界**：普通网页的 `script.src` 是可用的浏览器原生下载方式，但其目标 MAIN 世界、CSP、网站脚本及 CWS 条件与受控 USER_SCRIPT/Worker/Tool 不同；“标签加载成功”不等于 OpenDesk 指定世界返回了真实执行回执。只有明确需求与独立风险评审后才可考虑显式 MAIN 兼容模式，绝不作为默认绕行。
 
