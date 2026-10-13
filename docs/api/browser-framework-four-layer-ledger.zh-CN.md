@@ -1,3 +1,5 @@
+> **现行废止公告（2026-10-13）**：旧「35 项 API 名称/签名/数量必须长期兼容」政策已正式 **ABOLISHED**。本文件下方 35/26/7/2、Cookie 0/10 与旧 114 候选是 R6 历史审计快照，既非当前公开 Registry，也非验收事实。当前逐接口合同以 [唯一执行手册](browser-sdk-execution-manual.zh-CN.md)、[唯一接口矩阵](browser-sdk-interface-matrix.json) 和实际 `src/framework/sdk/browser-contract.js` 为准；历史兼容映射中 ACTIVE 标记不再生效。
+
 > **R9 当前四层合同（2026-10-13）**：本页及下方旧表保留 R6/R8 原始审计快照，原 35/26/7/2 不再是当前接口分母。R9 正式注册表保留 **29 项正式已接线操作**（原 9 项占位已删除，旧记录位于 JSON 的 `legacyR8RemovedFormal`）；Cookie 可信 Host 与安装工具公开 SDK 的能力继续分开。当前原生 Chrome 验收仍 NOT_TESTED；正式机读状态请以当前 `browser-contract.js` + `browser-sdk-acceptance.json` + 四层 JSON `formal` 为准。
 
 # 浏览器框架四层总账（R6，2026-10-13）
@@ -15,7 +17,7 @@
 | ③ Browser SDK 开放 | 可调用方法、执行环境、权限、拒绝路径 | **`src/framework/sdk/browser-contract.js`** | 候选 Schema ≠ 注册接口 |
 | ④ 验收证据 | Node 正反测试、Worker、Chrome 原生能否验证 | **`browser-sdk-acceptance.json`**、原始日志 | CI PASS ≠ Mac 原生 PASS |
 
-## 当前数字
+## R6 历史数字（兼容政策已废止；非当前接口总数）
 
 - **35** 个正式接口，26 已源码接线、7 规划、2 不开放；冻结的 R1.3–R4 32 项 + R5 Tabs 3 项。
 - **27 组 114 个原始候选**，其中 3 晋级、111 未登记；与正式合同去重后共 146 个已命名方法。
@@ -23,7 +25,7 @@
 - **0/35** 同候选 Mac Chrome 正式 Native PASS；不把任意组件验证升级为原生。
 - 另有 **32 个增补 Chrome Namespace/事件域**需要审计，**不是**新 SDK 已实现或新授予的权限。
 
-## P0 优先 Cookies 全部 10 项
+## R6 历史 Cookie 10 项计划（已被后续设计迭代替代）
 
 `src/platform/chrome/cookies.js` 已有 `getCookies`、`setCookies`、`deleteCookiesByUrl`，但 `browser.cookies.*` 正式合同 0 项、真实调用链尚未形成。它不是 Cookie Editor UI 任务。
 
@@ -44,7 +46,7 @@
 PartitionKey Chrome 119+、`hasCrossSiteAncestor` 130+、`getPartitionKey` 132+，`publicSuffix` 153+（必须兼容本项目 Chrome 138）。同名不同 Path、HostOnly/Domain/StoreId/Partition、权限撤销、Worker 中断、部分失败和未知原生回执都必须单独测试。
 Cookie 详细实施与验收任务：[browser-cookies-r6.md](../framework/workstreams/browser-cookies-r6.md)。
 
-## 已登记 35 项正式 Browser SDK
+## R6 历史 35 项接口快照（已废止为兼容基准）
 
 | # | 操作 | SDK 状态 | 框架层 | Node 正向 / 拒绝 | Mac Chrome |
 | ---: | --- | --- | --- | --- | --- |
