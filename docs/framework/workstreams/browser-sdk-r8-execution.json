@@ -3,8 +3,8 @@
   "status": "IN_PROGRESS",
   "branch": "main",
   "reviewedBaseSha": "a6f68e04bf9788d7f287385a1081ca973a9a4990",
-  "resultCommitSha": null,
-  "phase": "C_COOKIE_DRIVER_IMPLEMENTED_HOST_UI_PENDING",
+  "resultCommitSha": "96e691f735d660cb299d2adda825b8effeb47ee6",
+  "phase": "C_COOKIE_HOST_PRIVATE_WIRED_PUBLIC_SDK_NATIVE_PENDING",
   "scope": "Single Host/Authority; no additional permissions",
   "modifiedFiles": [
     "scripts/sync-chrome-api-catalog.mjs",
@@ -47,20 +47,25 @@
     "build": "NOT_TESTED",
     "buildDev": "NOT_TESTED",
     "verify": "NOT_TESTED",
-    "nativeChrome": "NOT_TESTED"
+    "nativeChrome": "NOT_TESTED",
+    "reason": "Latest candidate CI pending; historical independent PASS/FAIL retained in evidenceHistory"
   },
   "blocked": [
-    "No mounted Mac workspace/Chrome in current execution environment",
-    "Cookie Editor is sandboxed, not a trusted native UI",
-    "Pinned JSON schemas cover only 8 namespaces; IDL and other namespaces pending",
-    "Cookie driver is Host-only but current trusted UI and Browser SDK formal RPC routes remain unimplemented"
+    "Chromium Native Catalog is only 8 pinned JSON namespaces (70 methods, 38 events, 11 properties); IDL and remaining namespaces are pending",
+    "Cookie 10 HOST_ONLY operations are not formal OpenDeskSDK.browser cookies methods; sandbox remains disallowed",
+    "Cookie observe.getStatus currently drains event data; new observe.read and stable event semantics remain unapproved",
+    "No same-candidate real Chrome 138+/Mac native Cookie acceptance, worker restart, UI disclosure, or mutation reconciliation evidence",
+    "User Mac workspace unmounted here; live local Git status and Chrome UI/native tests cannot be verified",
+    "R7 Cookie test correction candidate CI at 96e691f is pending"
   ],
   "next": [
-    "Add Cookie driver Node tests and wire into R8 CI",
-    "Implement trusted first-party Cookie UI actions via current Browser Host without sandbox upgrade",
-    "Implement Cookie observe via bounded events and Origin/Document lifecycle fences",
-    "Expand official Chromium catalog to IDL/all namespaces",
-    "Continue Tabs/Downloads/Permission/Storage/Scheduler"
+    "Finish R7 Cookie test-fix CI for SHA 96e691f; record precise PASS/FAIL evidence and fix any actual failures",
+    "Approve trusted-host-only cookie contract; register and wire via same OpenDeskSDK.browser implementation without exposing to installed-tool sandbox",
+    "Separate Cookie observe.getStatus from bounded observe.read; preserve event metadata redaction, document and grant lifetime fences",
+    "Use Chrome for Testing/real sender to validate trusted UI read/write, site revoke, navigation, partition, Chrome 138, worker restart, unknown-effect receipt",
+    "Advance Tabs owned reload/navigate/duplicate/pin and Downloads own-history through existing Host; retain exact Tool/TabRef authority",
+    "Expand offline Chromium schema discovery to pinned JSON and IDL all namespaces with stable hashes and drift tests, no runtime dynamic proxy",
+    "Update four-layer ledger and final acceptance with per-candidate evidence and exact code status; avoid global percentage claims"
   ],
   "conflictStatus": "REMOTE_MAIN_MOVES; conditional expected-SHA commit; no Mac local uncommitted status accessible",
   "internalCookieDriverMethods": [
@@ -71,5 +76,67 @@
     "clearSite",
     "getStores",
     "getPartitionKey"
-  ]
+  ],
+  "lastReviewedMainSha": "d5712897adf7b8471227fb2b40d132af5363505c",
+  "verifiedScope": "R7 private HOST-only 10 Cookie operations; original 35 public operations unchanged",
+  "crossWorkstream": {
+    "name": "Browser SDK R7.0 trusted Cookies",
+    "completedSourceWiring": [
+      "src/platform/chrome/browser-cookie-host.js",
+      "src/platform/chrome/context-menus.js",
+      "src/ui/trusted-cookie-workbench.js",
+      "src/ui/tool.html",
+      "src/ui/tool-shell.js"
+    ],
+    "sourceEvidenceCommit": "6283b0518224",
+    "mapping": "docs/api/browser-sdk-native-mapping.json",
+    "architecture": "docs/architecture/browser-sdk-r7-architecture-contract.zh-CN.md",
+    "cookieHostOnlyOperations": 10,
+    "cookiePublicSdkOperations": 0,
+    "trust": "TRUSTED_PACKAGED_UI_AND_AUTHENTICATED_HOST_ONLY",
+    "nativeAcceptance": "NOT_TESTED",
+    "note": "R7 Host/UI source work belongs to the other R7 workstream. R8 must reuse it, not reimplement it."
+  },
+  "evidenceHistory": [
+    {
+      "candidateSha": "2456d809472f05bef540dbd397a4b5186e57595a",
+      "scope": "pinned Chromium 8-namespace discovery + legacy compatibility",
+      "ciRunId": 38286714036,
+      "level": "NODE_BUILD_VERIFY",
+      "status": "PASS"
+    },
+    {
+      "candidateSha": "de52893a69d5107b4d60f837c9e570d7298ac588",
+      "scope": "R8 Cookie Driver and pinned Schema/browser SDK tests",
+      "ciRunId": 38288676763,
+      "level": "NODE_BUILD_VERIFY",
+      "status": "PASS"
+    },
+    {
+      "candidateSha": "8849c104ad72617fccd14e91297997959c604b07",
+      "scope": "R7 Browser SDK targeted source and build",
+      "ciRunId": 38291544965,
+      "level": "NODE_BUILD_VERIFY",
+      "status": "PASS"
+    },
+    {
+      "candidateSha": "07a07abb05cc5e7b28c6760e2c8c83e6e27a1fcf",
+      "scope": "R7 Browser SDK R5 CI stale-document test incorrectly obtained fresh approval",
+      "ciRunId": 38291748427,
+      "level": "NODE",
+      "status": "FAIL",
+      "failure": "Expected stale approval rejection but test created a fresh approval after document mutation"
+    },
+    {
+      "candidateSha": "96e691f735d660cb299d2adda825b8effeb47ee6",
+      "scope": "R7 Cookie test corrected to use original one-shot approval during document/URL mutation",
+      "ciRunIds": [
+        38350576715,
+        38350576755
+      ],
+      "level": "NODE_BUILD_VERIFY",
+      "status": "PENDING"
+    }
+  ],
+  "lastWritePurpose": "R8 status reconciliation with completed R7 HOST_ONLY Cookie work and CI diagnostic; no new public SDK permissions"
 }
