@@ -1,0 +1,21 @@
+{
+  "package": "d3-array",
+  "version": "3.2.4",
+  "license": "ISC",
+  "retrievedOn": "2026-10-14",
+  "files": [
+    {
+      "path": "d3-array-3.2.4/max.js",
+      "url": "https://raw.githubusercontent.com/d3/d3-array/v3.2.4/src/max.js",
+      "bytes": 502,
+      "sha256": "691945a453633d9e204846af8ea4e299821b924f82b15eaf7906aba642979b1d"
+    },
+    {
+      "path": "d3-array-3.2.4/LICENSE",
+      "url": "https://raw.githubusercontent.com/d3/d3-array/v3.2.4/LICENSE",
+      "bytes": 731,
+      "sha256": "3e6849627f74ff73c257a3ae1efb574015d94fc1035c05ec3c15805165efcbc4"
+    }
+  ],
+  "policy": "Original upstream UTF-8 bytes retained; rebuild is offline and checks both hashes. No full D3 distribution or npm dependency added."
+}

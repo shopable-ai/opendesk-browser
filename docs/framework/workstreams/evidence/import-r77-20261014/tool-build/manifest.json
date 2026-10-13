@@ -1,0 +1,297 @@
+{
+  "sourceHead": "c29f35fa4ea1a465b144e0a1f7751d774bd1ab24",
+  "branch": "main",
+  "status": {
+    "build": "BUILD_PASS",
+    "node": "NODE_PASS",
+    "chrome": "NOT_TESTED",
+    "negativeNative": "NOT_TESTED",
+    "installed": false
+  },
+  "files": [
+    {
+      "path": "examples/sidebar-tools/import-max-probe/README.zh-CN.md",
+      "bytes": 5894,
+      "sha256": "c8592c22a5e842abb211ffdd72fd4e162426e59bca17c05103fe388570fc4de6"
+    },
+    {
+      "path": "examples/sidebar-tools/import-max-probe/build/tool.js",
+      "bytes": 1940,
+      "sha256": "9ce4bc1690f4d9c137613f19b7c319cf4aa95d5d8b31460ffacf3a4a830c11d4"
+    },
+    {
+      "path": "examples/sidebar-tools/import-max-probe/build.mjs",
+      "bytes": 1373,
+      "sha256": "5369d6682b92bc98b9985f02be16684ad8fdb305b041368aeabccc496f858ea2"
+    },
+    {
+      "path": "examples/sidebar-tools/import-max-probe/classic/build/main.js",
+      "bytes": 2108,
+      "sha256": "7b9a57b5308d73f3e32e528aa58b0554d2b080d742c001d4fac73303b7852e86"
+    },
+    {
+      "path": "examples/sidebar-tools/import-max-probe/classic/build.mjs",
+      "bytes": 1024,
+      "sha256": "9b9d23b3f950ddc83e2914a86d923dc3bcbc1c509f6fc7bcc878cba73f4da767"
+    },
+    {
+      "path": "examples/sidebar-tools/import-max-probe/classic/src/index.html",
+      "bytes": 323,
+      "sha256": "aeb627b3d999ef7c3757871ad4e662e73b14c3df9976e570dff79b4c1a0c69c3"
+    },
+    {
+      "path": "examples/sidebar-tools/import-max-probe/classic/src/main.js",
+      "bytes": 1013,
+      "sha256": "40fab279efeb40ad3c62221d8e2dfb70f8c376aec0f134e7cb4db42f51e61744"
+    },
+    {
+      "path": "examples/sidebar-tools/import-max-probe/classic/src/second.js",
+      "bytes": 213,
+      "sha256": "cae10f60e4c94293b920963e11fa685becc501ec983e0f03b2a82df3941378d4"
+    },
+    {
+      "path": "examples/sidebar-tools/import-max-probe/classic/src/style.css",
+      "bytes": 479,
+      "sha256": "54a1e2d8ee6ee0b6407572fafd35f497d2356e3362befb410ff1d26d4917b671"
+    },
+    {
+      "path": "examples/sidebar-tools/import-max-probe/classic/tool.config.json",
+      "bytes": 512,
+      "sha256": "4b632082a8e833e1e8198bebf766d12d376340d1368372139edd98f19a312728"
+    },
+    {
+      "path": "examples/sidebar-tools/import-max-probe/classic/validate.mjs",
+      "bytes": 2174,
+      "sha256": "3e5b823e68782475e00bce3d31b64adfec04eb32c9d85663611cc337204ab9b6"
+    },
+    {
+      "path": "examples/sidebar-tools/import-max-probe/classic/vendor/mitt-3.0.1/LICENSE",
+      "bytes": 1069,
+      "sha256": "1cab22f196264195a4caec8ca5630170fdde76ee8f43346e47021d087332d3b0"
+    },
+    {
+      "path": "examples/sidebar-tools/import-max-probe/classic/vendor/mitt-3.0.1/mitt.umd.js",
+      "bytes": 520,
+      "sha256": "1b48d419d5c66d6c39a8a2e2cb69e797989c8cd934f17122abc35d766650a82f"
+    },
+    {
+      "path": "examples/sidebar-tools/import-max-probe/classic/vendor/provenance.json",
+      "bytes": 574,
+      "sha256": "2a0e974be3f118d8f99f9cf3d39b0e552130e62601b71aa8ffc6b2a7f3c72f71"
+    },
+    {
+      "path": "examples/sidebar-tools/import-max-probe/src/index.html",
+      "bytes": 310,
+      "sha256": "31fd30f04e5a67f940c32ee7424f5ab1c50a14bb8881addcfa1a9c40546efa9c"
+    },
+    {
+      "path": "examples/sidebar-tools/import-max-probe/src/main.js",
+      "bytes": 575,
+      "sha256": "47f27a1432b6c03d4eaaa6c4dd7c10cd22cc17a7d3b2589d78127d91ed83b2f2"
+    },
+    {
+      "path": "examples/sidebar-tools/import-max-probe/src/style.css",
+      "bytes": 514,
+      "sha256": "598f92ff6bcfadf182f8b83ff5af2eb42a2aaf434110f771739bf1e0ad5e2e08"
+    },
+    {
+      "path": "examples/sidebar-tools/import-max-probe/tool.config.json",
+      "bytes": 303,
+      "sha256": "db04cddbef43363b4ecc4fbb2ffe262a4912920fc0759cc50f8ec812278d1d20"
+    },
+    {
+      "path": "examples/sidebar-tools/import-max-probe/validate.mjs",
+      "bytes": 3863,
+      "sha256": "cdeb8627dc2e038f3685b94fb79c0cbef82d2242246b1031df08ec3dc5b6bc2a"
+    },
+    {
+      "path": "examples/sidebar-tools/import-max-probe/vendor/d3-array-3.2.4/LICENSE",
+      "bytes": 731,
+      "sha256": "3e6849627f74ff73c257a3ae1efb574015d94fc1035c05ec3c15805165efcbc4"
+    },
+    {
+      "path": "examples/sidebar-tools/import-max-probe/vendor/d3-array-3.2.4/max.js",
+      "bytes": 502,
+      "sha256": "691945a453633d9e204846af8ea4e299821b924f82b15eaf7906aba642979b1d"
+    },
+    {
+      "path": "examples/sidebar-tools/import-max-probe/vendor/provenance.json",
+      "bytes": 733,
+      "sha256": "4199ad3e0e6c2a50016231ee6ec55eec2bdc71726f32451053ead7c14aa66816"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/import-r77-20261014/tool-build/classic-build.json",
+      "bytes": 197,
+      "sha256": "bf3e3c874e07000906e663fc2b4137f3102065016e7e73151785bdcb37a87b60"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/import-r77-20261014/tool-build/classic-package-build.json",
+      "bytes": 312,
+      "sha256": "f7ff19b4f18275382fb6b4e72fefe4187849e11a4c5ef47d6de26cd6e799e3e5"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/import-r77-20261014/tool-build/classic-validation.json",
+      "bytes": 578,
+      "sha256": "4f8abede12bbef1b43d194d6950d33f4baac93ddb374b3ef02f46e64ea552aeb"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/import-r77-20261014/tool-build/compile-final.json",
+      "bytes": 289,
+      "sha256": "6f5e1151acc02269744480e7917b5d706286a2d2bb4aa8700a77e2e2433b82ff"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/import-r77-20261014/tool-build/compile.json",
+      "bytes": 289,
+      "sha256": "2dd4a1d629ccf07351fe44fb5a32468880c1e207e0e1a656a3425fd423cbe4ca"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/import-r77-20261014/tool-build/download-max.log",
+      "bytes": 396,
+      "sha256": "ff1e5970906fa4abaf8b562d2b294a13d951c819001c221d0f68938e34f2c2cb"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/import-r77-20261014/tool-build/driver-changes.patch",
+      "bytes": 18477,
+      "sha256": "1ef59b668ddb898ac7c04b77ddca1b73c17f7b944f399f6c680cdc855adc9f28"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/import-r77-20261014/tool-build/driver-default-node.tap",
+      "bytes": 558,
+      "sha256": "c34abd8718f8f74bcdbdc6f2fc83892d351ec77fb8689848fce59608e43b1cb4"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/import-r77-20261014/tool-build/driver-node-final.tap",
+      "bytes": 559,
+      "sha256": "b5cfea24acf80aa4db2561a65799de45c9fcc135b593bab5d1d741932177d927"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/import-r77-20261014/tool-build/driver-node.tap",
+      "bytes": 472,
+      "sha256": "c498491f5cdb7f5a9bbb743f18210456fec9c9e18b2f99469689d3515f164b3a"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/import-r77-20261014/tool-build/driver-original.mjs",
+      "bytes": 20487,
+      "sha256": "2a2e672bc1fbea274be5a64a6fe31ad9c0530cabb16690d553fbac0f0b56f9bb"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/import-r77-20261014/tool-build/driver-probes-node.tap",
+      "bytes": 629,
+      "sha256": "5adabfd7376d3d27d693c1751db4d74bdf2f4fa0277f927c42458e7ebfea96a3"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/import-r77-20261014/tool-build/driver-review-final.json",
+      "bytes": 348,
+      "sha256": "8681cbfe5a2fb1ae74deff7984e744634ed1ed08a71ea05751d0a6ed4eccea3e"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/import-r77-20261014/tool-build/driver-review.json",
+      "bytes": 372,
+      "sha256": "439fa4e2e2c7073754edc071b92ca6a046844ec595bbca8c4da6a6182fc01260"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/import-r77-20261014/tool-build/import-classic-probe.opendesk-tool.json",
+      "bytes": 4452,
+      "sha256": "1c8124021d84f65e193157ff885d880174791924bd72c9ca9b9ab3acfa995f9a"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/import-r77-20261014/tool-build/import-max-probe-final.opendesk-tool.json",
+      "bytes": 3126,
+      "sha256": "fecc6cfcf224250912e20bd3e59ae3c5ddf67f9ecf0365bf10baee426a9799f4"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/import-r77-20261014/tool-build/import-max-probe.opendesk-tool.json",
+      "bytes": 3070,
+      "sha256": "33cd9930517aae6e27336b21852ae6474ddd7a098c8417546e4254eb93529519"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/import-r77-20261014/tool-build/manifest-initial.json",
+      "bytes": 5296,
+      "sha256": "ea5e911ee442499ccd18ad6ac4fe63196df6810a8141c16c5de3320454e66fc0"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/import-r77-20261014/tool-build/multiscript-node.tap",
+      "bytes": 504,
+      "sha256": "5339eb00534a70639ad104790311412ac800f2b914ed8a89fa9004be25006ccf"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/import-r77-20261014/tool-build/package-build-final.json",
+      "bytes": 310,
+      "sha256": "a5ec7112554c4057a75f1b3d99172a4d6cbaf2b9e8ca0f0e44be17f1f5234129"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/import-r77-20261014/tool-build/package-build.json",
+      "bytes": 304,
+      "sha256": "d965ec8fcb66a851649b1da4e162432f6e9645587012370745cd321522b6b94e"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/import-r77-20261014/tool-build/syntax-checks.json",
+      "bytes": 1726,
+      "sha256": "97895c1fcd4720f0fe54d5dace871ab25c05a71ebbbcf826710be4a7f6a6a1ca"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/import-r77-20261014/tool-build/validation-final.json",
+      "bytes": 928,
+      "sha256": "d69663e2fb73e2d678e35829ebc92efc67e95a227212d1019bcb401c73605abc"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/import-r77-20261014/tool-build/validation.json",
+      "bytes": 922,
+      "sha256": "3ae868bb2a0e3c6a139c52968dbbf79027f4de813f4b0d3240f6fc3e28c10379"
+    },
+    {
+      "path": "docs/framework/workstreams/import-r77-tool-example-20261014.md",
+      "bytes": 12647,
+      "sha256": "2225d931d89b086a1fe23a05229fb2fbd2d4da6c69ae440704667f268dc8eefa"
+    },
+    {
+      "path": "tests/framework/page-import-fixed-tools-cft.mjs",
+      "bytes": 31616,
+      "sha256": "e1a91f3338a84b92b27b3fa75ac0268920d88af2b752438514a4ca1fd4c2bd0a"
+    }
+  ],
+  "readOnlyInputs": [
+    {
+      "path": "scripts/build-sidebar-tool.mjs",
+      "bytes": 5542,
+      "sha256": "e0305c422fef0188ed71d50f5169e7f013db2db89b243b1d5cc5309c544f02f7"
+    },
+    {
+      "path": "src/ui/sidebar-tools/package.js",
+      "bytes": 8716,
+      "sha256": "fee9163396f39c891484c30ed657c5654748e3eb270139645076e6912010a0e7"
+    },
+    {
+      "path": "src/sidebar-tools/bridge.js",
+      "bytes": 11366,
+      "sha256": "bc823baf295d434c89ca217991dc1441d0781d64ffad56bbb036a15411ba2f71"
+    },
+    {
+      "path": "tests/environment/sidebar-tool-multiscript-r72.test.mjs",
+      "bytes": 5537,
+      "sha256": "71418161d6b4b0c4e2ccaf00909d2341ab6dc268566bd2dadd15e8c81fc7dedf"
+    },
+    {
+      "path": "package.json",
+      "bytes": 2743,
+      "sha256": "1cd91786935988573e1330a980aab32cb0c973c76b2b833c92ac6e468db52407"
+    },
+    {
+      "path": "package-lock.json",
+      "bytes": 196943,
+      "sha256": "63bd16ac21bb1c3c6653849af8946bcbc7fc8c4bbe7b0bee39087bb393c6146c"
+    }
+  ],
+  "readOnlyInputsUnchangedFromInitial": true,
+  "modifiedExistingFile": {
+    "path": "tests/framework/page-import-fixed-tools-cft.mjs",
+    "bytes": 31616,
+    "sha256": "e1a91f3338a84b92b27b3fa75ac0268920d88af2b752438514a4ca1fd4c2bd0a"
+  },
+  "notes": [
+    "Original driver bytes are SHA-verified in driver-original.mjs; reviewable delta in driver-changes.patch.",
+    "Initial D3 JSON/compile/validation and input manifest retained; use final-named D3 package for Chrome.",
+    "All Node driver invocations explicitly disabled CFT. No shared dist, browser, ports, Git.",
+    "Workstream/evidence gitignored by existing repo policy; no index/ignore modifications."
+  ]
+}

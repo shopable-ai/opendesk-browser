@@ -1,0 +1,32 @@
+✖ Classic source permission inspection notifies the editor when Run becomes ready (5.459292ms)
+✔ R7.1 UI keeps download, byte approval and execution separate and preserves Chrome user gesture (3.565167ms)
+✔ R7.1 second program visibly chooses shared SHA, reviews independently, and never fetches again (3.029916ms)
+✔ R7.2 direct Run uses the real synchronous Chrome source-permission gesture, without manual SHA approval (0.901334ms)
+✔ R7.2 zero-dependency Page and frozen UI builds bypass only the library preflight (0.274708ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 4
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 65.811625
+
+✖ failing tests:
+
+test at tests/environment/page-dependency-r71-ui.test.mjs:77:1
+✖ Classic source permission inspection notifies the editor when Run becomes ready (5.459292ms)
+  AssertionError [ERR_ASSERTION]: the editor must be notified, rather than leave its Run button disabled
+  
+  false !== true
+  
+      at TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/environment/page-dependency-r71-ui.test.mjs:84:10)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

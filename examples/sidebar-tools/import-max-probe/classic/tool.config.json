@@ -1,0 +1,16 @@
+{
+  "format": "opendesk.sidebar-tool.v2",
+  "id": "import-classic-probe",
+  "version": "1.0.0",
+  "title": "Classic mitt order probe",
+  "description": "Two fixed local Classic assets: original mitt 3.0.1 UMD then an ordered consumer.",
+  "capabilities": [],
+  "requires": {"browserSdk": "1.0.0"},
+  "contributes": {"contextMenus": []},
+  "files": {
+    "html": "src/index.html",
+    "css": "src/style.css",
+    "js": "build/main.js",
+    "dependencies": ["vendor/mitt-3.0.1/mitt.umd.js", "src/second.js"]
+  }
+}

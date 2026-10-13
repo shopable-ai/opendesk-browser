@@ -18,7 +18,7 @@ class Node {
 }
 const elementIds=['page-dependency-panel','page-dependency-status','page-dependency-list','page-dependency-prepare',
   'page-dependency-review','page-dependency-review-list','page-dependency-approve','page-dependency-lock'];
-function fixture(){
+function fixture({onState=()=>{}}={}){
   const nodes=new Map(elementIds.map(id=>[id,new Node(id.includes('approve')||id.includes('prepare')?'button':'div')]));
   const doc={getElementById:id=>nodes.get(id),createElement:tag=>new Node(tag),
     createTextNode:text=>({textContent:text,nodeType:3})};
@@ -65,7 +65,7 @@ function fixture(){
   const resolver=createPageDependencyResolver({client,getSource:()=>source,getProgramId:()=>programId,
     onState:()=>installer?.update()});
   installer=createPageDependencyInstaller({client,api,document:doc,resolver,getSource:()=>source,
-    getProgramId:()=>programId});
+    getProgramId:()=>programId,onState});
   const click=id=>{inClick=true;nodes.get(id).emit('click');inClick=false;};
   return {nodes,resolver,installer,click,sha,locks,prepared,approvals,inspected,
     runClick:()=>{inClick=true;const p=installer.confirmRun({isTrusted:true});inClick=false;return p;},
@@ -73,6 +73,18 @@ function fixture(){
     setProgram:id=>{programId=id;resolver.refresh();installer.refresh();},
     dispose:()=>{installer.dispose();resolver.dispose();}};
 }
+
+test('Classic source permission inspection notifies the editor when Run becomes ready',async t=>{
+  let enabled=false,f;
+  f=fixture({onState:()=>{enabled=f.installer.readyForRun;}});
+  t.after(f.dispose);
+  assert.equal(enabled,false);
+  await settle();
+  assert.equal(f.installer.readyForRun,true,'a checked missing permission is ready for a genuine Run gesture');
+  assert.equal(enabled,true,'the editor must be notified, rather than leave its Run button disabled');
+  assert.equal(f.requests,0,'inspection does not request permission');
+  assert.equal(f.prepared.length,0,'inspection does not download or execute');
+});
 
 test('R7.1 UI keeps download, byte approval and execution separate and preserves Chrome user gesture',async t=>{
   const f=fixture();t.after(f.dispose);await settle();

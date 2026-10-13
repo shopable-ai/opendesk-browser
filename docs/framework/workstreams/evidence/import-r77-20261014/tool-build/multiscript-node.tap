@@ -1,0 +1,12 @@
+✔ v2 packer preserves ordered original Classic UTF-8 bytes and two independent SHA-256 identities (8.513208ms)
+✔ opaque sandbox verifies every SHA, observes onload order and only then loads main JS (6.716042ms)
+✔ tampered SHA prevents even the first library from being evaluated (4.130417ms)
+✔ second asset onerror blocks main script, no later dependencies are dispatched (3.538ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 74.935875

@@ -1,0 +1,11 @@
+file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/page-dependency-r72-cft-cycle.mjs:10
+const D3_ESM_SOURCE=fs.readFileSync(new URL('../../examples/programs/single-file/page-d3-max-esm.js',import.meta.url),'utf8');
+                                    ^
+
+TypeError: URL is not a constructor
+    at file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/page-dependency-r72-cft-cycle.mjs:10:37
+    at ModuleJob.run (node:internal/modules/esm/module_job:439:25)
+    at async node:internal/modules/esm/loader:633:26
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5)
+
+Node.js v24.16.0

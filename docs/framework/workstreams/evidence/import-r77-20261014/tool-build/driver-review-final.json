@@ -1,0 +1,7 @@
+{
+  "status": "EXACT_ORIGINAL_BOUND",
+  "originalSha256": "2a2e672bc1fbea274be5a64a6fe31ad9c0530cabb16690d553fbac0f0b56f9bb",
+  "currentSha256": "e1a91f3338a84b92b27b3fa75ac0268920d88af2b752438514a4ca1fd4c2bd0a",
+  "defaultFlow": "No probe env retains original React/Vue flow; optional mode uses only selected packages",
+  "native": "NOT_TESTED"
+}

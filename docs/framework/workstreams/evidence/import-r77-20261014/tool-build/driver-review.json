@@ -1,0 +1,7 @@
+{
+  "status": "EXACT_ORIGINAL_RECONSTRUCTED",
+  "originalSha256": "2a2e672bc1fbea274be5a64a6fe31ad9c0530cabb16690d553fbac0f0b56f9bb",
+  "currentSha256": "6a86bffaee0bb2849454f3c2743b86fde94679b32eddd631b0467dbd4ce86b2c",
+  "defaultFlow": "Original React/Vue branch retained; optional probe dispatch bypasses it only when probe env is provided",
+  "native": "NOT_TESTED"
+}

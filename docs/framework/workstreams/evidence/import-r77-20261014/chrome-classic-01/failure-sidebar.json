@@ -1,0 +1,407 @@
+{
+  "url": "chrome-extension://kbeocokdaadgcpinbamkhfmjlhillanh/ui/tool.html?hostInstanceId=b7c3758b-0a84-461f-b5f8-68e9805464d3",
+  "body": "我的\n发现\n工作流\n开发\n工具\n云控\n当前网页\n127.0.0.1:43111\n可运行\n直接编辑\n本地项目\n代码类型\n代码类型\nJavaScript\nReact\nVue\nJavaScript、React JSX 或 Vue SFC 源码编辑器\n\n保存草稿不会运行网页\n\n第三方 JS 依赖 · 自动固定与缓存（高级详情）\n网络 JS：下载准备与审核\n参数 JSON（可选）\n\n已读取持久结果\n\n运行结果\n运行目标与版本\n网页 JavaScript 试运行\n\n直接使用上方 JavaScript 源码操作当前网页 DOM；可写 async function main() 返回结果，也可直接编写顶层语句。运行前仍需网站授权。\n\n在当前网页试运行\n\n请先确认当前网页可用；试运行不会保存版本或安装任务。\n\n尚未运行\n保存网页脚本版本\n\n试运行后可保存固定 Page 版本；普通 JS 默认仅匹配本次预览的协议与主机，同主机其他端口可能匹配；显式 @match 保留原范围。保存的冻结版本仍须单独验证、审阅并安装。脚本 ID 和版本在下方「版本管理」中设置。\n\n尚未保存网页脚本候选。\n\n已保存网页脚本\n尚未保存网页脚本\n保存网页脚本版本后，在这里核对、安装与停用。\n加载源码\n验证冻结版本\n安装自动运行\n启用自动运行\n刷新状态\n\n正式安装支持顶层网页与 document-idle；停用不会撤销已有网页效果。效果未知时不自动重放。\n\n版本管理与任务制作\n已保存脚本\n没有已保存脚本\n刷新\n加载最新\n脚本名称 / ID\nrevision\n加载版本\n\n未保存草稿可直接运行；只有点击保存才创建正式版本\n\n从已保存版本创建任务候选\n高级脚本与目标设置\nAdvanced / Diagnostics\n运行草稿\n保存版本",
+  "inputs": [
+    {
+      "id": "schedule-title",
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": "schedule-target",
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": "schedule-params",
+      "value": "{}",
+      "disabled": false
+    },
+    {
+      "id": "schedule-timezone-search",
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": "schedule-once",
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": "schedule-clock",
+      "value": "09:00",
+      "disabled": false
+    },
+    {
+      "id": "",
+      "value": "1",
+      "disabled": false
+    },
+    {
+      "id": "",
+      "value": "2",
+      "disabled": false
+    },
+    {
+      "id": "",
+      "value": "3",
+      "disabled": false
+    },
+    {
+      "id": "",
+      "value": "4",
+      "disabled": false
+    },
+    {
+      "id": "",
+      "value": "5",
+      "disabled": false
+    },
+    {
+      "id": "",
+      "value": "6",
+      "disabled": false
+    },
+    {
+      "id": "",
+      "value": "0",
+      "disabled": false
+    },
+    {
+      "id": "schedule-minutes",
+      "value": "60",
+      "disabled": false
+    },
+    {
+      "id": "schedule-open-target",
+      "value": "on",
+      "disabled": false
+    },
+    {
+      "id": "schedule-deadline",
+      "value": "5",
+      "disabled": false
+    },
+    {
+      "id": "schedule-paused",
+      "value": "on",
+      "disabled": false
+    },
+    {
+      "id": "schedule-manager-search",
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": "sidebar-tool-file",
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": "trusted-cookie-name",
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": "trusted-cookie-value",
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": "trusted-cookie-path",
+      "value": "/",
+      "disabled": false
+    },
+    {
+      "id": "sidebar-tool-search",
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": "sidebar-tool-retired-draft-text",
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": "cloud-consent",
+      "value": "on",
+      "disabled": false
+    },
+    {
+      "id": "cloud-result-consent",
+      "value": "on",
+      "disabled": false
+    },
+    {
+      "id": "cloud-client-name",
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": "cloud-client-result",
+      "value": "on",
+      "disabled": true
+    },
+    {
+      "id": "cloud-client-token",
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": "cloud-url",
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": "cloud-provider-id",
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": "cloud-pairing-code",
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": "cloud-loopback",
+      "value": "on",
+      "disabled": false
+    },
+    {
+      "id": "local-discover-search",
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": "task-search",
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": "task-verify-run",
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": "task-package-file",
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": "workflow-confirm-run",
+      "value": "on",
+      "disabled": false
+    },
+    {
+      "id": "workflow-title",
+      "value": "新工作流",
+      "disabled": false
+    },
+    {
+      "id": "workflow-description",
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": "workflow-site",
+      "value": "http://127.0.0.1:43111",
+      "disabled": false
+    },
+    {
+      "id": "workflow-new-param-name",
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": "workflow-schema",
+      "value": "{\n  \"additionalProperties\": false,\n  \"properties\": {},\n  \"required\": [],\n  \"type\": \"object\"\n}",
+      "disabled": false
+    },
+    {
+      "id": "workflow-ai-request",
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": "workflow-ai-endpoint",
+      "value": "https://api.openai.com/v1/chat/completions",
+      "disabled": false
+    },
+    {
+      "id": "workflow-ai-model",
+      "value": "gpt-4o-mini",
+      "disabled": false
+    },
+    {
+      "id": "workflow-ai-key",
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": "local-project-mode",
+      "value": "on",
+      "disabled": false
+    },
+    {
+      "id": "local-install-title",
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": "local-install-version",
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": "local-project-params",
+      "value": "{}",
+      "disabled": false
+    },
+    {
+      "id": "page-component-javascript",
+      "value": "javascript",
+      "disabled": false
+    },
+    {
+      "id": "page-component-react",
+      "value": "react",
+      "disabled": false
+    },
+    {
+      "id": "page-component-vue",
+      "value": "vue",
+      "disabled": false
+    },
+    {
+      "id": "script-source",
+      "value": "// ==UserScript==\n// @name R7.2 fixed marked test\n// @require https://cdn.jsdelivr.net/npm/marked@15.0.12/lib/marked.umd.js\n// ==/UserScript==\nasync function main(){const html=globalThis.marked?.parse(\"**OpenDesk**\");\nif(!html?.includes(\"<strong>OpenDesk</strong>\"))throw Error(\"E_REAL_MARKED\");\nreturn {library:\"marked@15.0.12\",html};}",
+      "disabled": false
+    },
+    {
+      "id": "network-js-metadata",
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": "network-js-consent",
+      "value": "on",
+      "disabled": false
+    },
+    {
+      "id": "script-params",
+      "value": "{\"value\":0}",
+      "disabled": false
+    },
+    {
+      "id": "script-run-id",
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": "script-id",
+      "value": "r72-marked-a",
+      "disabled": false
+    },
+    {
+      "id": "script-revision",
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": "task-dev-id",
+      "value": "my-first-task",
+      "disabled": false
+    },
+    {
+      "id": "task-dev-version",
+      "value": "1.0.0",
+      "disabled": false
+    },
+    {
+      "id": "task-dev-title",
+      "value": "我的第一个任务",
+      "disabled": false
+    },
+    {
+      "id": "task-dev-description",
+      "value": "运行当前网页的自动化脚本",
+      "disabled": false
+    },
+    {
+      "id": "task-dev-author",
+      "value": "local-developer",
+      "disabled": false
+    },
+    {
+      "id": "task-dev-schema",
+      "value": "{\"type\":\"object\",\"properties\":{},\"required\":[],\"additionalProperties\":false}",
+      "disabled": false
+    },
+    {
+      "id": "script-owned-url",
+      "value": "",
+      "disabled": true
+    },
+    {
+      "id": "script-allow-cookies",
+      "value": "on",
+      "disabled": false
+    },
+    {
+      "id": "",
+      "value": "network",
+      "disabled": false
+    },
+    {
+      "id": "",
+      "value": "storage.persistent",
+      "disabled": false
+    },
+    {
+      "id": "",
+      "value": "storage.session",
+      "disabled": false
+    },
+    {
+      "id": "",
+      "value": "notifications",
+      "disabled": false
+    },
+    {
+      "id": "",
+      "value": "device.id",
+      "disabled": false
+    },
+    {
+      "id": "",
+      "value": "network.info",
+      "disabled": true
+    },
+    {
+      "id": "",
+      "value": "service.log",
+      "disabled": false
+    },
+    {
+      "id": "",
+      "value": "service.time",
+      "disabled": false
+    },
+    {
+      "id": "",
+      "value": "resources.packaged",
+      "disabled": false
+    },
+    {
+      "id": "sdk-target-origins",
+      "value": "https://httpbingo.org",
+      "disabled": false
+    },
+    {
+      "id": "target-url",
+      "value": "",
+      "disabled": false
+    }
+  ],
+  "active": "page-preview-mode-title"
+}

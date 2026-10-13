@@ -1,0 +1,12 @@
+{
+  "id": "import-max-probe",
+  "version": "1.0.0",
+  "title": "D3 max import probe",
+  "description": "Offline bundled d3-array 3.2.4 max in the existing opaque tool sandbox.",
+  "capabilities": [],
+  "files": {
+    "html": "src/index.html",
+    "css": "src/style.css",
+    "js": "build/tool.js"
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "builder": "esbuild",
+  "version": "0.28.2",
+  "output": "/Users/shopme/Documents/workspace/opendesk-browser/examples/sidebar-tools/import-max-probe/build/tool.js",
+  "bytes": 1940,
+  "sha256": "9ce4bc1690f4d9c137613f19b7c319cf4aa95d5d8b31460ffacf3a4a830c11d4",
+  "installed": false
+}

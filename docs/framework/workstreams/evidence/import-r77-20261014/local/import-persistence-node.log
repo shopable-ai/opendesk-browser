@@ -1,0 +1,31 @@
+✔ static Page import candidate survives reopen with author source, leaf lock and fixed compiler identity (397.602625ms)
+✔ offline restore rejects missing cache, bad bytes, revoked lock and source permission loss without fetching (509.00475ms)
+✔ candidate row detects author, compiled source and manifest hash drift (157.259125ms)
+✔ author metadata decides persisted Page rules for imported ESM candidates (29.115334ms)
+✔ cache or lock drift before the candidate save transaction prevents persistence (11.578041ms)
+✔ permission removal and regrant before the final save transaction rejects without storing candidate (10.29425ms)
+✔ permission removal and regrant during candidate put rolls back the save transaction (8.212542ms)
+✔ installed dispatch internal transaction rechecks author lock and cache before final use (74.480042ms)
+✔ static import review uses the existing DOM, requires cached source and explicit approval, then compiles offline (101.9145ms)
+✔ Page approval cannot authorize Controller; world change clears review and synchronizes manager inspect/prepare (42.57575ms)
+✔ export default zero-argument main without imports waits for inspect, then compiles with no lock or empty approval (129.948042ms)
+✔ corrupt displayed bytes never enable approval (124.634834ms)
+✔ changed import URL requires independent approval and HTTP imports are rejected before preparation (124.698042ms)
+✔ loader world mismatch is refused before compilation (9.219417ms)
+✔ loader sourceFormat mismatch is refused before compilation (13.480125ms)
+✔ loader lockId mismatch is refused before compilation (53.359833ms)
+✔ loader manifestDigest mismatch is refused before compilation (50.435125ms)
+✔ source change during compilation rejects even after restoration (17.187084ms)
+✔ world change during compilation rejects even after restoration (24.184167ms)
+✔ approval change during compilation rejects even after restoration (103.169083ms)
+✔ compiler output cannot substitute another author source or lock identity (44.279459ms)
+✔ one Page ESM Run pins a real fixed input and compiles without a manual library approval click; repeat is offline (46.66825ms)
+✔ a changed Page ESM draft fails before auto-approval of a stale Run snapshot (107.363ms)
+ℹ tests 23
+ℹ suites 0
+ℹ pass 23
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1872.433167

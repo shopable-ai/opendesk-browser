@@ -1,0 +1,105 @@
+{
+  "inputs": {
+    "node_modules/decode-uri-component/index.js": {
+      "bytes": 4139,
+      "imports": [],
+      "format": "esm"
+    },
+    "node_modules/filter-obj/index.js": {
+      "bytes": 944,
+      "imports": [],
+      "format": "esm"
+    },
+    "node_modules/split-on-first/index.js": {
+      "bytes": 464,
+      "imports": [],
+      "format": "esm"
+    },
+    "node_modules/query-string/base.js": {
+      "bytes": 15130,
+      "imports": [
+        {
+          "path": "node_modules/decode-uri-component/index.js",
+          "kind": "import-statement",
+          "original": "decode-uri-component"
+        },
+        {
+          "path": "node_modules/filter-obj/index.js",
+          "kind": "import-statement",
+          "original": "filter-obj"
+        },
+        {
+          "path": "node_modules/split-on-first/index.js",
+          "kind": "import-statement",
+          "original": "split-on-first"
+        }
+      ],
+      "format": "esm"
+    },
+    "node_modules/query-string/index.js": {
+      "bytes": 71,
+      "imports": [
+        {
+          "path": "node_modules/query-string/base.js",
+          "kind": "import-statement",
+          "original": "./base.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "node_modules/dayjs/dayjs.min.js": {
+      "bytes": 7161,
+      "imports": [],
+      "format": "cjs"
+    },
+    "examples/libs/trusted-imports/sidebar-host.mjs": {
+      "bytes": 534,
+      "imports": [
+        {
+          "path": "node_modules/query-string/index.js",
+          "kind": "import-statement",
+          "original": "query-string"
+        },
+        {
+          "path": "node_modules/dayjs/dayjs.min.js",
+          "kind": "import-statement",
+          "original": "dayjs"
+        }
+      ],
+      "format": "esm"
+    }
+  },
+  "outputs": {
+    "sidebar-host.js": {
+      "imports": [],
+      "exports": [
+        "formatTrustedSidebarStatus"
+      ],
+      "entryPoint": "examples/libs/trusted-imports/sidebar-host.mjs",
+      "inputs": {
+        "node_modules/dayjs/dayjs.min.js": {
+          "bytesInOutput": 12527
+        },
+        "node_modules/query-string/base.js": {
+          "bytesInOutput": 15106
+        },
+        "node_modules/decode-uri-component/index.js": {
+          "bytesInOutput": 3050
+        },
+        "node_modules/filter-obj/index.js": {
+          "bytesInOutput": 660
+        },
+        "node_modules/split-on-first/index.js": {
+          "bytesInOutput": 464
+        },
+        "node_modules/query-string/index.js": {
+          "bytesInOutput": 41
+        },
+        "examples/libs/trusted-imports/sidebar-host.mjs": {
+          "bytesInOutput": 439
+        }
+      },
+      "bytes": 34155
+    }
+  }
+}

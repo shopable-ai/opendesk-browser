@@ -1,0 +1,26 @@
+[
+  {
+    "flags": {
+      "OPENDESK_R77_IMPORT_SCENARIOS": "d3"
+    },
+    "exitCode": 1,
+    "stderr": "node:internal/modules/run_main:107\n    triggerUncaughtException(\n    ^\n\nAssertionError [ERR_ASSERTION]: R77 requires the real UI driver\n\nundefined !== '1'\n\n    at file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/page-browser-worker-r243-cft.mjs:22:10 {\n  generatedMessage: false,\n  code: 'ERR_ASSERTION',\n  actual: undefined,\n  expected: '1',\n  operator: 'strictEqual',\n  diff: 'simple'\n}\n\nNode.js v24.16.0\n"
+  },
+  {
+    "flags": {
+      "OPENDESK_R77_IMPORT_SCENARIOS": "invalid"
+    },
+    "exitCode": 1,
+    "stderr": "node:internal/modules/run_main:107\n    triggerUncaughtException(\n    ^\n\nAssertionError [ERR_ASSERTION]: R77 focus must be d3 or classic\n    at file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/page-browser-worker-r243-cft.mjs:21:3 {\n  generatedMessage: false,\n  code: 'ERR_ASSERTION',\n  actual: false,\n  expected: true,\n  operator: '==',\n  diff: 'simple'\n}\n\nNode.js v24.16.0\n"
+  },
+  {
+    "flags": {
+      "OPENDESK_R77_IMPORT_SCENARIOS": "d3",
+      "OPENDESK_R243_BROWSER_FULL_UI": "1",
+      "OPENDESK_R72_DEPENDENCY_NATIVE_SMOKE": "1",
+      "OPENDESK_R245_STANDARD_SMOKE": "1"
+    },
+    "exitCode": 1,
+    "stderr": "node:internal/modules/run_main:107\n    triggerUncaughtException(\n    ^\n\nAssertionError [ERR_ASSERTION]: R77 Developer focus cannot skip Standard validation\n    at file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/page-browser-worker-r243-cft.mjs:24:10 {\n  generatedMessage: false,\n  code: 'ERR_ASSERTION',\n  actual: '1',\n  expected: '1',\n  operator: 'notStrictEqual',\n  diff: 'simple'\n}\n\nNode.js v24.16.0\n"
+  }
+]

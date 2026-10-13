@@ -1,0 +1,154 @@
+{
+  "status": "PASS_R77_IMPORT_SCENARIOS",
+  "startedAt": "2026-10-13T17:34:19.656Z",
+  "chrome": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+  "sourceHead": "89c3b298dc3cf8927b227b041b101770780ce58a",
+  "nativeHostConfigured": false,
+  "tests": [
+    {
+      "name": "r243-browser-ui-userScripts-real-Chrome-optin",
+      "status": "PASS",
+      "nativeHostConfigured": false,
+      "control": "chrome://extensions real toggle"
+    },
+    {
+      "caseId": "R76-PAGE-URL-ESM-D3-DOM",
+      "world": "USER_SCRIPT",
+      "url": "https://raw.githubusercontent.com/d3/d3-array/v3.2.4/src/max.js",
+      "programId": "r76-page-esm-d3",
+      "authorSourceHash": "e92e693378c7cefeb0d520e655b958c19b6b96dc8e9d9f65df67b72497744c39",
+      "status": "CHROME_PASS_R76_PAGE_ESM_D3",
+      "first": {
+        "sourceHash": "9f5357b3eee7997f9be04b48f67d2bc9bf4e373b81ac14aaa2c4f6059d29a4ca",
+        "tabId": 1863898608,
+        "documentId": "347C113CAE40722AA728C9017BE55FE5",
+        "returnValue": "{\"success\":true,\"value\":5,\"world\":\"USER_SCRIPT\"}",
+        "dom": "Page D3 max = 5"
+      },
+      "repeat": {
+        "sourceHash": "9f5357b3eee7997f9be04b48f67d2bc9bf4e373b81ac14aaa2c4f6059d29a4ca",
+        "tabId": 1863898608,
+        "documentId": "347C113CAE40722AA728C9017BE55FE5",
+        "returnValue": "{\"success\":true,\"value\":5,\"world\":\"USER_SCRIPT\"}",
+        "dom": "Page D3 max = 5"
+      },
+      "network": {
+        "firstRequests": 1,
+        "repeatRequests": 0
+      },
+      "saved": "已保存 Page Candidate：r76-page-esm-d3 · r1 · 9eec104b22bd…。 源码保持原样；网页运行范围单独保存：http://127.0.0.1/*。网页匹配包含不同端口，但不授予跨站网络服务权限；自动执行仍需明确安装授权。 请在已保存网页脚本中验证冻结版本，再明确安装。"
+    },
+    {
+      "caseId": "S05-R77-CONTROLLER-D3",
+      "programId": "r77-controller-d3",
+      "world": "CONTROLLER",
+      "authorSourceHash": "bdd058752194cc828ca4c7e2d9e4b4478f0582a3ce35d8ee32438ce83bc1d9e8",
+      "status": "CHROME_PASS_R77_CONTROLLER_D3",
+      "first": {
+        "runId": "9c6c1dc3-e9f7-425a-91b2-b6ce07da721b",
+        "resultId": "00f06a68-bebb-42d5-a347-fb57634b2049",
+        "sourceHash": "a6c35513d9a276ad6b88fdc498009497945e9ba296ebf6b4366c93d895a6039b",
+        "resultText": "{\n  \"success\": true,\n  \"title\": \"OpenDesk Browser · Browser Test Lab\",\n  \"value\": 5,\n  \"world\": \"CONTROLLER\"\n}"
+      },
+      "repeat": {
+        "runId": "ffeb375b-5539-4fb4-b3a4-603c3ca0c0ac",
+        "resultId": "80fc34b6-afcf-4197-a696-dcfba0164df7",
+        "sourceHash": "a6c35513d9a276ad6b88fdc498009497945e9ba296ebf6b4366c93d895a6039b",
+        "resultText": "{\n  \"success\": true,\n  \"title\": \"OpenDesk Browser · Browser Test Lab\",\n  \"value\": 5,\n  \"world\": \"CONTROLLER\"\n}"
+      },
+      "save": {
+        "state": "saved",
+        "text": "r77-controller-d3 · r1 已持久保存固定 ESM 版本；保存不会运行脚本"
+      },
+      "savedRun": {
+        "runId": "8cfe6432-ad99-46bc-b9ee-7a13e0fdaba3",
+        "resultId": "53adadb1-9aaa-4939-88f9-8f99c0727e34",
+        "sourceHash": "a6c35513d9a276ad6b88fdc498009497945e9ba296ebf6b4366c93d895a6039b",
+        "resultText": "{\n  \"success\": true,\n  \"title\": \"OpenDesk Browser · Browser Test Lab\",\n  \"value\": 5,\n  \"world\": \"CONTROLLER\"\n}"
+      },
+      "network": {
+        "firstRequests": 1,
+        "repeatRequests": 0,
+        "savedRequests": 0,
+        "sharedPageBytes": true
+      }
+    }
+  ],
+  "extensionId": "kbeocokdaadgcpinbamkhfmjlhillanh",
+  "browserVersion": {
+    "protocolVersion": "1.3",
+    "product": "Chrome/155.0.8059.39",
+    "revision": "@3ff7ac5a9224be9156d7f8703a06e22890aafd34",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36",
+    "jsVersion": "15.5.35.20"
+  },
+  "launch": {
+    "kind": "macos-launcher",
+    "executable": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+    "argv": [
+      "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+      "--use-mock-keychain",
+      "--password-store=basic",
+      "--no-first-run",
+      "--no-default-browser-check",
+      "--disable-background-networking",
+      "--remote-debugging-address=127.0.0.1",
+      "--user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-znfhocn4",
+      "--no-first-run",
+      "--no-default-browser-check",
+      "--disable-gpu",
+      "--disable-background-networking",
+      "--disable-sync",
+      "--remote-debugging-port=0",
+      "--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/.runtime/tests/import-r77/candidate/dist/production-developer",
+      "--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/.runtime/tests/import-r77/candidate/dist/production-developer",
+      "about:blank"
+    ],
+    "pid": 1665,
+    "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-znfhocn4",
+    "launcher": "/Users/shopme/.codex/browser-testing/launch.py",
+    "launcherPid": 1664,
+    "launcherArgs": [
+      "/Users/shopme/.codex/browser-testing/launch.py",
+      "--executable",
+      "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+      "--report",
+      "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/evidence/import-r77-20261014/chrome-d3-05/chrome-launcher-report.json",
+      "--no-first-run",
+      "--no-default-browser-check",
+      "--disable-gpu",
+      "--disable-background-networking",
+      "--disable-sync",
+      "--remote-debugging-port=0",
+      "--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/.runtime/tests/import-r77/candidate/dist/production-developer",
+      "--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/.runtime/tests/import-r77/candidate/dist/production-developer",
+      "about:blank"
+    ],
+    "reportFile": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/evidence/import-r77-20261014/chrome-d3-05/chrome-launcher-report.json",
+    "actualMainProcess": " 1665  1664 /Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing --use-mock-keychain --password-store=basic --no-first-run --no-default-browser-check --disable-background-networking --remote-debugging-address=127.0.0.1 --user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-znfhocn4 --no-first-run --no-default-browser-check --disable-gpu --disable-background-networking --disable-sync --remote-debugging-port=0 --disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/.runtime/tests/import-r77/candidate/dist/production-developer --load-extension=/Users/shopme/Documents/workspace/opendesk-browser/.runtime/tests/import-r77/candidate/dist/production-developer about:blank\n",
+    "cleanup": {
+      "at": "2026-10-13T17:34:25.269Z",
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "chromePidAlive": false,
+      "launcherPidAlive": false,
+      "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-znfhocn4",
+      "profileRemoved": true
+    }
+  },
+  "fixtureService": "REUSED_EXACT_BYTES",
+  "cleanup": {
+    "at": "2026-10-13T17:34:25.269Z",
+    "exit": {
+      "code": 0,
+      "signal": null
+    },
+    "chromePidAlive": false,
+    "launcherPidAlive": false,
+    "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-znfhocn4",
+    "profileRemoved": true
+  },
+  "finishedAt": "2026-10-13T17:34:25.269Z"
+}

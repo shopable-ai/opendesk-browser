@@ -1,0 +1,21 @@
+{
+  "status": "NODE_PASS",
+  "bytes": 4452,
+  "sha256": "1c8124021d84f65e193157ff885d880174791924bd72c9ca9b9ab3acfa995f9a",
+  "scripts": [
+    {
+      "name": "vendor/mitt-3.0.1/mitt.umd.js",
+      "sha256": "1b48d419d5c66d6c39a8a2e2cb69e797989c8cd934f17122abc35d766650a82f"
+    },
+    {
+      "name": "src/second.js",
+      "sha256": "cae10f60e4c94293b920963e11fa685becc501ec983e0f03b2a82df3941378d4"
+    }
+  ],
+  "result": "Tool Classic mitt = 5",
+  "order": "mitt>second>main",
+  "emits": 1,
+  "native": "NOT_TESTED",
+  "negativeNative": "NOT_TESTED",
+  "installed": false
+}

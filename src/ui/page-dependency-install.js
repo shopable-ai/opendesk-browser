@@ -139,15 +139,15 @@ export function createPageDependencyInstaller({client,api,document:doc,resolver,
     readyForPermission=false;
     if(!report||disposed)return;
     const origins=networkOrigins();
-    if(!origins.length){readyForPermission=true;render(false);return;}
+    if(!origins.length){readyForPermission=true;render();return;}
     try{
       const observation=await permissions.prepare({origins});
       if(disposed||ticket!==permissionGeneration)return;
-      readyForPermission=!!observation;render(false);
+      readyForPermission=!!observation;render();
     }catch(cause){
       if(disposed||ticket!==permissionGeneration)return;
       message=(cause.code||'E_PERMISSION')+'：'+(cause.message||cause);
-      messageState='error';render(false);
+      messageState='error';render();
     }
   }
   // Called synchronously from the real Run click. A prepared missing-origin

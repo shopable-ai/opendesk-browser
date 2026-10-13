@@ -1,0 +1,205 @@
+{
+  "matched": 430,
+  "drift": [
+    {
+      "path": "examples/sidebar-tools/cookie-editor/src/index.html",
+      "candidate": "f2c0ab5f0b789a2979189c32c5d61c294f6f9d449416744202f3006e159e75d4",
+      "current": "c7df0b00fa59f60027d7c6cc5e1e3041b8b836bf7333491d39084e28beb949ed"
+    },
+    {
+      "path": "examples/sidebar-tools/cookie-editor/src/main.js",
+      "candidate": "5e14deac244e7a97ed8f66de9de41e58d18a7e5ee1fccad3805dd331678662a6",
+      "current": "354a86cc6e05227effea790979cf0fca1a02b4092d3a60cf74bfd7c1f1d737e4"
+    },
+    {
+      "path": "examples/sidebar-tools/cookie-editor/tool.config.json",
+      "candidate": "0f8da00d961ef6f9d314bf7dc067cdead7bd8ca43f037679268c2721ae6c6b10",
+      "current": "587e63ef0bdada19d0c470b97064295b9413d436745775544c61107e0062653e"
+    },
+    {
+      "path": "examples/sidebar-tools/stay-focus/src/index.html",
+      "candidate": "448020a6345b342dcc556f1f5a477cde82bd4c9f49ee32528f403aa06c4a60c9",
+      "current": "393bfc81c69dd7b5a950ab4ee8fccb50e39b84cabe8064b0234a7121be2b3267"
+    },
+    {
+      "path": "examples/sidebar-tools/stay-focus/src/main.js",
+      "candidate": "cf23234a6ebed499482f6204787746b06b52c33ab38d2d1cbad14b8d467a0160",
+      "current": "de36a6ba98132f32e5d9fe1b37d18bf53a689e04db5ce3ff2635ef05723dc5c8"
+    },
+    {
+      "path": "scripts/check-browser-framework-ledger.mjs",
+      "candidate": "c39f264e95dd7ec720f01e17a1154642e30103e0eedc1a4a8f3ccdda08c1a36e",
+      "current": "cc343e0eaf9b49d96dd78f4cbf6465ba0d1bc002e8e63170f6d6ad9ee268e885"
+    },
+    {
+      "path": "scripts/check-browser-sdk-coverage.mjs",
+      "candidate": "169c5eb487b19851a49cd04ae6583643c657061b33abab928e2289c912d3bb10",
+      "current": "a94e6960b4ebb9412a774b61173421cd88bed05da7a39e58b4cc29a5737b1816"
+    },
+    {
+      "path": "scripts/check-browser-sdk-interface-matrix.mjs",
+      "candidate": "5d64aa4f48f69809fa36b72c03eb3c069a68619e5c2f66cf07790b7298d2f8c6",
+      "current": "d2026ae97e975817f3ddc93ef6bfac70035132ab354d4c3ec6ad6daf31ca3f14"
+    },
+    {
+      "path": "scripts/tests/sidebar-r19-layout-visual.mjs",
+      "candidate": "806beeab854cb7dc564104d39d6b875d5d21a33d8c89b6f4e573ae3ef4b3525f",
+      "current": "a1c2dd10d6268b6f5bcc2a7ca0f41f3fc06b19606c0f791b9616d4d2850261a5"
+    },
+    {
+      "path": "src/entrypoints/context-menus.js",
+      "candidate": "6dc0ad8d43b90ec15b3c79acf99fb14b10a3890a497991ba82767f044a974449",
+      "current": "233aae698db880927a40d8f8d8537e91fa69e8b89377ca353d552051a5f72e7b"
+    },
+    {
+      "path": "src/framework/sdk/browser-contract.js",
+      "candidate": "83ea58d80db6f67c1199689ff02de1fb6ce582a3ffe7207b724c1731de53dc3c",
+      "current": "cbade2cbaf7143cda821635056877379f8fbee934bf0d990e33d3ef9873659f5"
+    },
+    {
+      "path": "src/framework/sdk/browser-schemas.js",
+      "candidate": "65d13801cb7c57732338401000d02e82a5e86651cfe509697b9c5cc2350ed452",
+      "current": "ba91257312dafadefd878805901fbabe3695bc31615b8cdcb9545e27b55cd3b3"
+    },
+    {
+      "path": "src/framework/sdk/browser.js",
+      "candidate": "410bf13dd817679f1a9c779d724c0e2f802d1054be212b49a00887bdd602ad73",
+      "current": "a3ed59e8bc71a3f0d47299635ad2e4443ed3b5ebaeafcdcbdbe63e9f6376d957"
+    },
+    {
+      "path": "src/platform/chrome/bookmarks.js",
+      "candidate": "b83f84d39226df2a33d45b6451b9bde242e59dc0fa2a7bf3a2e10040a1862de1",
+      "current": "ffd286d4f87fe6952a2f6b790b33d3db2792e78aee8dc156c949c6e2d516a36a"
+    },
+    {
+      "path": "src/platform/chrome/context-menus.js",
+      "candidate": "11ccc0fe40e9d0cb88738139f60752d6198e96a683f941f457ba137e4c6bb54f",
+      "current": "734a777792d4876a0423d207c0aee472f33349f3918c0bdfb0e6b79cf3bd1dd2"
+    },
+    {
+      "path": "src/platform/chrome/cookies.js",
+      "candidate": "0d9c88d731deaabba00c6eb68b00f62cf57ea196831776741fb1d451b3ed935c",
+      "current": "b3e0773d1413f46a2e8c8c04bcee40191a8333d511897c98d96c9d9c56ba16eb"
+    },
+    {
+      "path": "src/platform/chrome/permission-gate.js",
+      "candidate": "3a1abe5f510b809360b1fb44f835d44e8b1d01964db020e11af9efb45bf6ec57",
+      "current": "018bd1c9d3f339702ec71373c881cea8d987670836453e2c674f4c6d7d9c4c7b"
+    },
+    {
+      "path": "src/platform/host/controller-methods.js",
+      "candidate": "e681439947c45d2cd29414db8c5413462e6c8e42c9c95dbdf6ccadb6ad6f927c",
+      "current": "13e3dfc42b80c8f44b121075ffaa9b6fc7c599aa1f30f215ac3a709c3a2d99c5"
+    },
+    {
+      "path": "src/platform/tasks/schedule-contract.js",
+      "candidate": "41ec19096e985a5418c908f88acfb26c44974854a12824d33e9ade9cfbd1f85a",
+      "current": "3566416053152f4c90ac9f6f23b9e5888591d475cc34c8b64042213a57481c44"
+    },
+    {
+      "path": "src/platform/tasks/schedule-repository.js",
+      "candidate": "875cccdaf2703c3738625a96b67bf0bbb193aaf13dbdba839c0ef2bc7f09eac6",
+      "current": "42d343217aec93aa57307640ca7ef3f5cba39c83fe2bb34adee9328579cd369f"
+    },
+    {
+      "path": "src/platform/tasks/schedule-service.js",
+      "candidate": "3bd018e98a61b496690d8a93df1e62ae3a4f771f7cb3c9c0b65c96220c41f302",
+      "current": "f4cfbd8ba12827da2e452a00e387ad77e8d1b96d5bcc1d5984d5aeb7e645a3e5"
+    },
+    {
+      "path": "src/platform/tasks/schedule-time.js",
+      "candidate": "9b406a5c287d8fd84b877a3fab8d2f77db479656470abb62e4072eb7b58a71f4",
+      "current": "e34644f793107218a7290ec679e41bd67b4f997b3995c9d7d9827e375a7fd2e2"
+    },
+    {
+      "path": "src/run-host.js",
+      "candidate": "2ee45922b28fba8c4e064d964e388b39085009bbec4bd3947dfeb5a0c68bebb3",
+      "current": "303c28feb1e2fc023dbe497d9a160080e97028edd56a01ee23dc1fa4420c6bf7"
+    },
+    {
+      "path": "src/sw.js",
+      "candidate": "fa9b358f47310ab99a1c71a2143ffb4b58f13f2eb93c45c3f2bfd7ce827bd4bf",
+      "current": "a7ccb168218675119096ffe37c0ec67f6a639478fdbc7a8d5dc2d6782c9826bc"
+    },
+    {
+      "path": "src/ui/cloud-hosting.css",
+      "candidate": "1600c2e3ce4d18ff668c800e5023294e1dd847e801ed28a13062dc2bd0e89734",
+      "current": "9eeb6ff44477bade32fd49514f4f4778e6f1d2fe409835dc772fa95e2368debb"
+    },
+    {
+      "path": "src/ui/cloud-hosting.js",
+      "candidate": "77facfc5e148eef9608a790799a77ac1e165ab7e9ddb874d32c1e0cc8b54be39",
+      "current": "7f10cecf0a48b0d1ef9dbf29c8c1452e1480da046430c83bc558c0c6cec740b6"
+    },
+    {
+      "path": "src/ui/design-system.css",
+      "candidate": "c83f8afabae1e3e058c9a4df232ccc2115461692abe03e5023c2c70399362bea",
+      "current": "3ce3c51c8116181fc4d01490c7686d7c51275663a2302490e023846b96045e85"
+    },
+    {
+      "path": "src/ui/installed-page-tools.js",
+      "candidate": "ba303182853f5eee56b862c578972e404487f3c93be89dd7c4529f0d10e1e3ea",
+      "current": "5c10d40903cbf009cbf7a142da145e326e2e6916d2e21353f456e274683e47de"
+    },
+    {
+      "path": "src/ui/scheduled-task-host.js",
+      "candidate": "9f3b4e1cb4412eb357754627d77a277bd70b45500406590dd55e84f50990ffda",
+      "current": "e36a4edde416481b636f10bbca73d06ce201072af223cd7010b291fcb2b503cb"
+    },
+    {
+      "path": "src/ui/scheduled-task-workbench.js",
+      "candidate": "fc5d04fc9fb857ed7c1572400a29d22e6a9d16663d5e7744b20a73b175613297",
+      "current": "86f19a23440029c298e1e000ad18c23eadc1050d120806b3d1aaab37bbfe04d4"
+    },
+    {
+      "path": "src/ui/sidebar-tools.js",
+      "candidate": "c172fc1cba8079e822aecab21ac6406edaca855db243512334b8454d7e4aa43d",
+      "current": "cb24d2f864ba910f3a5c7f81fae1bd04f344e606fe32c6c88d6d3758c77f5bee"
+    },
+    {
+      "path": "src/ui/sidebar-tools/package.js",
+      "candidate": "fee9163396f39c891484c30ed657c5654748e3eb270139645076e6912010a0e7",
+      "current": "aa2c1fd87f23ca6bebd003e8318870672ada85fd816bfa51a4758ec90c3ff450"
+    },
+    {
+      "path": "src/ui/task-workbench.js",
+      "candidate": "c22f8baeead19330834b878e8e21e086b01e00314731724d5dc503b00f0bf121",
+      "current": "55fbedce2db95fae6aa014c89b724cdf670396c8f3321c5617050129813ee2f5"
+    },
+    {
+      "path": "src/ui/tool-shell.css",
+      "candidate": "12fea2869f11f899e3fb664e06e094915bd1f1483648558420decb79a0c81290",
+      "current": "2490a27f86074f093deb2584fe8014e4453f884e560c9488a266ef5ad2cb3a0b"
+    },
+    {
+      "path": "src/ui/tool-shell.js",
+      "candidate": "c27dee923f2bae20ab0a75086b41a24b9dcf5ad781f627e3224dd38a29630ea5",
+      "current": "a417a1afb948b1058c8389df24921861d814367dd83f8507b5c6bf215b2d0891"
+    },
+    {
+      "path": "src/ui/tool.html",
+      "candidate": "9194c3daa3744cb556f3cde1cbf5e899add1b268d615cab1bf8ef6aee8045cd4",
+      "current": "d6cea74965fda3f9e965630601d3b07c79952c417ab69df61c4b74eb666fbd5a"
+    },
+    {
+      "path": "src/ui/workflow/local-codex.js",
+      "candidate": "71aa3a400b834f0526b8fef8b5316cd06dc9f2049114605e891700d699824033",
+      "current": "2eef984c7e06072a5c396863d6490f284202fa38a501ec35f6cce8775fa08818"
+    },
+    {
+      "path": "src/ui/workflow/observation.js",
+      "candidate": "f8159d85ff3fb822e6cebbabb48dd5f9e411e8a586634c4e28f510cd0a5fb36f",
+      "current": "622a55ed0d9c547ec83ed8ebf0cf881acc5bf0aaad23d7cba25179ee53914d04"
+    },
+    {
+      "path": "src/ui/workflow/workflow-view.js",
+      "candidate": "36ac5228a9ae83bbb9a6ccb6d5082a2c5847dbecec1be1157a69250f5eed4910",
+      "current": "5856878a4594290fa9dec33d7fe6068d01dc0cc5e191f00cf343feb008bf3752"
+    },
+    {
+      "path": "wxt.config.mjs",
+      "candidate": "a92fbe70e9245530e2607d7f8c458363ab3f27084bf0cc8eba87250268864c0d",
+      "current": "fdfbe6b9f2d75bcb35452a0bea5c210b97a6c352652e9982b1c18e95aafaa8eb"
+    }
+  ]
+}

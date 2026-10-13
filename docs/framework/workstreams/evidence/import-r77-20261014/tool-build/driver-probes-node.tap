@@ -1,0 +1,12 @@
+﹣ fixed React/Vue sidebar tools controlled import/install driver (0.496333ms) # Set OPENDESK_FIXED_TOOLS_CFT=1 to launch CFT; OPENDESK_FIXED_TOOLS_CANDIDATE_DIST may override the coordinator candidate
+﹣ fixed tools driver schema and package binding (0.083ms) # Optional probe run does not require historical React/Vue package files
+✔ optional import probes bind current package bytes without launching Chrome (8.479916ms)
+✔ probe network observer enables observation before resuming each iframe (0.68525ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 2
+ℹ todo 0
+ℹ duration_ms 80.334583

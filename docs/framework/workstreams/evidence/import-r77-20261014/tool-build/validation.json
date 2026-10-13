@@ -1,0 +1,26 @@
+{
+  "status": "NODE_PASS",
+  "packagePath": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/evidence/import-r77-20261014/tool-build/import-max-probe.opendesk-tool.json",
+  "packageSha256": "33cd9930517aae6e27336b21852ae6474ddd7a098c8417546e4254eb93529519",
+  "bytes": 3070,
+  "assertions": [
+    "formal package byte identity",
+    "zero capabilities",
+    "Classic IIFE parse",
+    "original ISC notice embedded",
+    "real max default/accessor/null cases",
+    "actual bundled JS result",
+    "Node typeof diagnostics",
+    "same-context execution counter",
+    "fresh Node context restart",
+    "static flexible width/status/focus checks"
+  ],
+  "widths": {
+    "360": "STATIC_ONLY",
+    "400": "STATIC_ONLY",
+    "600": "STATIC_ONLY"
+  },
+  "browser": "NOT_TESTED",
+  "installed": false,
+  "limitation": "Node VM root model does not prove sandbox security, layout or Chrome lifecycle"
+}

@@ -1,0 +1,19 @@
+{
+  "phase": "open",
+  "targetId": "0AF84EBE2EBD9083E4A9BB1C6562E6B0",
+  "sessionId": "01FC37648ED4AF07A69E00216C25C9DE",
+  "hostFrame": {
+    "count": 1,
+    "src": "chrome-extension://kbeocokdaadgcpinbamkhfmjlhillanh/sidebar-tools/sandbox.html",
+    "sandbox": null
+  },
+  "seen": {
+    "result": "Tool D3 max = 5",
+    "environment": "typeof chrome = object; typeof chrome.tabs = undefined; typeof page = undefined",
+    "executions": "Executions in this iframe = 1",
+    "origin": "null",
+    "chromeTabs": "undefined",
+    "page": "undefined",
+    "url": "chrome-extension://kbeocokdaadgcpinbamkhfmjlhillanh/sidebar-tools/sandbox.html"
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "format": "opendesk.sidebar-tool.v2",
+  "id": "import-classic-probe",
+  "version": "1.0.0",
+  "title": "Classic mitt order probe",
+  "description": "Two fixed local Classic assets: original mitt 3.0.1 UMD then an ordered consumer.",
+  "capabilities": [],
+  "html": "<section aria-label=\"Classic import probe\">\n  <p id=\"import-result\" role=\"status\">Waiting for tool execution</p>\n  <p id=\"import-order\"></p>\n  <details><summary>Sandbox diagnostics</summary>\n    <p id=\"import-environment\"></p><p id=\"import-executions\"></p>\n    <p>mitt 3.0.1 · local UMD · MIT</p>\n  </details>\n</section>\n",
+  "css": "/* Isolated R27 palette and spacing mapping. */\n:root { color-scheme: light dark; }\nsection { min-width: 0; padding: 12px; font: 13px/1.5 system-ui, sans-serif; color: #1b2c49; }\np { margin: 0 0 8px; overflow-wrap: anywhere; }\ndetails { color: #53647e; }\nsummary { cursor: pointer; margin-bottom: 8px; }\nsummary:focus-visible { outline: 2px solid #365eda; outline-offset: 4px; }\n@media (prefers-color-scheme: dark) {\n  section { color: #e9eef7; }\n  details { color: #b3c1d3; }\n}\n",
+  "js": "/*! mitt 3.0.1 — MIT\nMIT License\n\nCopyright (c) 2021 Jason Miller\n\nPermission is hereby granted, free of charge, to any person obtaining a copy\nof this software and associated documentation files (the \"Software\"), to deal\nin the Software without restriction, including without limitation the rights\nto use, copy, modify, merge, publish, distribute, sublicense, and/or sell\ncopies of the Software, and to permit persons to whom the Software is\nfurnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all\ncopies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\nOUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\nSOFTWARE.\n*/\n(() => {\n  'use strict';\n  const {root} = OpenDeskTool;\n  const probe = globalThis.ImportClassicProbe;\n  if (probe.order.join('>') !== 'mitt>second') throw Error('Classic dependency order mismatch');\n  probe.order.push('main');\n  const emitter = probe.create();\n  let received, emits = 0;\n  emitter.on('result', value => { received = value; emits++; });\n  emitter.emit('result', 5);\n  emitter.off('result');\n  root.querySelector('#import-result').textContent = `Tool Classic mitt = ${received}`;\n  root.querySelector('#import-order').textContent = `order = ${probe.order.join('>')}; emits = ${emits}`;\n  const executions = Number(root.dataset.importExecutions || 0) + 1;\n  root.dataset.importExecutions = String(executions);\n  root.querySelector('#import-executions').textContent = `Executions in this iframe = ${executions}`;\n  root.querySelector('#import-environment').textContent = `typeof chrome = ${typeof chrome}; typeof chrome.tabs = ${typeof globalThis.chrome?.tabs}; typeof page = ${typeof page}`;\n})();\n",
+  "requires": {
+    "browserSdk": "1.0.0"
+  },
+  "contributes": {
+    "contextMenus": []
+  },
+  "scripts": [
+    {
+      "name": "vendor/mitt-3.0.1/mitt.umd.js",
+      "sha256": "1b48d419d5c66d6c39a8a2e2cb69e797989c8cd934f17122abc35d766650a82f",
+      "code": "!function(e,n){\"object\"==typeof exports&&\"undefined\"!=typeof module?module.exports=n():\"function\"==typeof define&&define.amd?define(n):(e=e||self).mitt=n()}(this,function(){return function(e){return{all:e=e||new Map,on:function(n,t){var f=e.get(n);f?f.push(t):e.set(n,[t])},off:function(n,t){var f=e.get(n);f&&(t?f.splice(f.indexOf(t)>>>0,1):e.set(n,[]))},emit:function(n,t){var f=e.get(n);f&&f.slice().map(function(e){e(t)}),(f=e.get(\"*\"))&&f.slice().map(function(e){e(n,t)})}}}});\n//# sourceMappingURL=mitt.umd.js.map\n"
+    },
+    {
+      "name": "src/second.js",
+      "sha256": "cae10f60e4c94293b920963e11fa685becc501ec983e0f03b2a82df3941378d4",
+      "code": "(() => {\n  'use strict';\n  if (typeof mitt !== 'function') throw Error('mitt must load before the second Classic asset');\n  globalThis.ImportClassicProbe = {order: ['mitt', 'second'], create: () => mitt()};\n})();\n"
+    }
+  ]
+}

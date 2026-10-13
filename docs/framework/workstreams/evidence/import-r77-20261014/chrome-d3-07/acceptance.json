@@ -1,0 +1,130 @@
+{
+  "status": "FAIL",
+  "startedAt": "2026-10-13T18:05:08.517Z",
+  "chrome": "tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+  "sourceHead": "c29f35fa",
+  "nativeHostConfigured": false,
+  "tests": [
+    {
+      "name": "r243-browser-ui-userScripts-real-Chrome-optin",
+      "status": "PASS",
+      "nativeHostConfigured": false,
+      "control": "chrome://extensions real toggle"
+    },
+    {
+      "caseId": "R76-PAGE-URL-ESM-D3-DOM",
+      "world": "USER_SCRIPT",
+      "url": "https://raw.githubusercontent.com/d3/d3-array/v3.2.4/src/max.js",
+      "programId": "r76-page-esm-d3",
+      "authorSourceHash": "e92e693378c7cefeb0d520e655b958c19b6b96dc8e9d9f65df67b72497744c39",
+      "status": "CHROME_FAIL",
+      "first": {
+        "receiptNonce": "2f1af5fc-0d89-4176-ba17-fea3e6be4556",
+        "sourceHash": "9f5357b3eee7997f9be04b48f67d2bc9bf4e373b81ac14aaa2c4f6059d29a4ca",
+        "tabId": 747273963,
+        "documentId": "64102B122EB074B4B7B305BE35517F8D",
+        "returnValue": "{\"success\":true,\"value\":5,\"world\":\"USER_SCRIPT\"}",
+        "dom": "Page D3 max = 5"
+      },
+      "repeat": {
+        "receiptNonce": "9f819923-ced4-4af7-b938-0a11d76ca31d",
+        "sourceHash": "9f5357b3eee7997f9be04b48f67d2bc9bf4e373b81ac14aaa2c4f6059d29a4ca",
+        "tabId": 747273963,
+        "documentId": "64102B122EB074B4B7B305BE35517F8D",
+        "returnValue": "{\"success\":true,\"value\":5,\"world\":\"USER_SCRIPT\"}",
+        "dom": "Page D3 max = 5"
+      },
+      "network": {
+        "firstRequests": 1,
+        "repeatRequests": 0
+      },
+      "saved": "已保存 Page Candidate：r76-page-esm-d3 · r1 · 83829ec3d38f…。 源码保持原样；网页运行范围单独保存：http://127.0.0.1/*。网页匹配包含不同端口，但不授予跨站网络服务权限；自动执行仍需明确安装授权。 请在已保存网页脚本中验证冻结版本，再明确安装。",
+      "error": {
+        "code": "ERR_ASSERTION",
+        "message": "visible, enabled input document.querySelector(\"#page-preview-run\")"
+      }
+    }
+  ],
+  "extensionId": "kbeocokdaadgcpinbamkhfmjlhillanh",
+  "browserVersion": {
+    "protocolVersion": "1.3",
+    "product": "Chrome/155.0.8059.39",
+    "revision": "@3ff7ac5a9224be9156d7f8703a06e22890aafd34",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36",
+    "jsVersion": "15.5.35.20"
+  },
+  "launch": {
+    "kind": "macos-launcher",
+    "executable": "tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+    "argv": [
+      "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+      "--use-mock-keychain",
+      "--password-store=basic",
+      "--no-first-run",
+      "--no-default-browser-check",
+      "--disable-background-networking",
+      "--remote-debugging-address=127.0.0.1",
+      "--user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-fxp5c3z7",
+      "--no-first-run",
+      "--no-default-browser-check",
+      "--disable-gpu",
+      "--disable-background-networking",
+      "--disable-sync",
+      "--remote-debugging-port=0",
+      "--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/.runtime/tests/import-r77/candidate/dist/production-developer",
+      "--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/.runtime/tests/import-r77/candidate/dist/production-developer",
+      "about:blank"
+    ],
+    "pid": 36458,
+    "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-fxp5c3z7",
+    "launcher": "/Users/shopme/.codex/browser-testing/launch.py",
+    "launcherPid": 36457,
+    "launcherArgs": [
+      "/Users/shopme/.codex/browser-testing/launch.py",
+      "--executable",
+      "tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+      "--report",
+      "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/evidence/import-r77-20261014/chrome-d3-07/chrome-launcher-report.json",
+      "--no-first-run",
+      "--no-default-browser-check",
+      "--disable-gpu",
+      "--disable-background-networking",
+      "--disable-sync",
+      "--remote-debugging-port=0",
+      "--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/.runtime/tests/import-r77/candidate/dist/production-developer",
+      "--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/.runtime/tests/import-r77/candidate/dist/production-developer",
+      "about:blank"
+    ],
+    "reportFile": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/evidence/import-r77-20261014/chrome-d3-07/chrome-launcher-report.json",
+    "actualMainProcess": "36458 36457 /Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing --use-mock-keychain --password-store=basic --no-first-run --no-default-browser-check --disable-background-networking --remote-debugging-address=127.0.0.1 --user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-fxp5c3z7 --no-first-run --no-default-browser-check --disable-gpu --disable-background-networking --disable-sync --remote-debugging-port=0 --disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/.runtime/tests/import-r77/candidate/dist/production-developer --load-extension=/Users/shopme/Documents/workspace/opendesk-browser/.runtime/tests/import-r77/candidate/dist/production-developer about:blank\n",
+    "cleanup": {
+      "at": "2026-10-13T18:05:12.330Z",
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "chromePidAlive": false,
+      "launcherPidAlive": false,
+      "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-fxp5c3z7",
+      "profileRemoved": true
+    }
+  },
+  "fixtureService": "REUSED_EXACT_BYTES",
+  "error": {
+    "code": "ERR_ASSERTION",
+    "message": "visible, enabled input document.querySelector(\"#page-preview-run\")",
+    "stack": "AssertionError [ERR_ASSERTION]: visible, enabled input document.querySelector(\"#page-preview-run\")\n    at clickReal (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/page-browser-worker-r243-cft.mjs:59:3)\n    at async run (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/page-dependency-r72-cft-cycle.mjs:130:5)\n    at async runR76PageESMCycle (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/page-dependency-r72-cft-cycle.mjs:176:20)\n    at async runR72PageClassicCycle (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/page-dependency-r72-cft-cycle.mjs:82:7)\n    at async verifyBrowserUI (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/page-browser-worker-r243-cft.mjs:153:7)\n    at async main (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/page-browser-worker-r243-cft.mjs:506:7)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/page-browser-worker-r243-cft.mjs:525:1"
+  },
+  "cleanup": {
+    "at": "2026-10-13T18:05:12.330Z",
+    "exit": {
+      "code": 0,
+      "signal": null
+    },
+    "chromePidAlive": false,
+    "launcherPidAlive": false,
+    "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-fxp5c3z7",
+    "profileRemoved": true
+  },
+  "finishedAt": "2026-10-13T18:05:12.330Z"
+}

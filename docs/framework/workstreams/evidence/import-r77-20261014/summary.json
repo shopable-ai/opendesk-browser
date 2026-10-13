@@ -1,0 +1,302 @@
+{
+  "status": "CORE_CHROME_PASS_FULL_CLOSURE_INCOMPLETE",
+  "candidate": {
+    "packageHash": "01a79da5b9f3cb3e3041e26f6acdf766bded7fb0645743939af24db220732c75",
+    "sourceInputs": "build-final-02/build-production-developer.json",
+    "chrome": "Chrome/155.0.8059.39",
+    "platform": "user local macOS",
+    "MAC_NATIVE": "NOT_TESTED",
+    "input": "Chrome CDP Input trusted pointer/keyboard; no Native Host",
+    "scope": "Frozen source snapshot plus Classic readiness fix; not the current parallel workspace combination"
+  },
+  "currentHead": "c29f35fa4ea1a465b144e0a1f7751d774bd1ab24",
+  "scenarios": [
+    {
+      "id": "S01",
+      "scenario": "本地多文件 npm ESM",
+      "dimensions": {
+        "SOURCE": "PASS",
+        "NODE": "REUSED_PASS",
+        "BUILD": "REUSED_PASS",
+        "CHROME_CFT": "REUSED_PASS",
+        "MAC_NATIVE": "REUSED_PASS",
+        "SECURITY": "REUSED_PASS"
+      },
+      "evidence": [
+        "reuse/s01-original-acceptance.json"
+      ],
+      "remaining": "不重复建设；当前组合完整原生验收未提升",
+      "note": "R2.2 page-npm-lodash: real local Mac CFT/Native; original development package a039329390f8aff21112818fbfc41f6b08454d804b96dc37425192fbce960a2c; localhost authorized copy only, original remote target untested"
+    },
+    {
+      "id": "S02",
+      "scenario": "本地多文件 HTTPS ESM",
+      "dimensions": {
+        "SOURCE": "PASS",
+        "NODE": "REUSED_PASS",
+        "BUILD": "REUSED_PASS",
+        "CHROME_CFT": "NOT_TESTED",
+        "MAC_NATIVE": "NOT_TESTED",
+        "SECURITY": "REUSED_PASS"
+      },
+      "evidence": [
+        "../../esm-r22-examples-01a1296d.zh-CN.md"
+      ],
+      "remaining": "真实多文件 HTTPS 第三方函数的独立 Chrome 闭环未确认",
+      "note": "旧 remote-esm-page 的 Chrome 记录使用受控 Mock 锁，不能记作真实上游正向 PASS；普通 Page URL 由 S04 单独证明"
+    },
+    {
+      "id": "S03",
+      "scenario": "React Page URL Import + ECharts",
+      "dimensions": {
+        "SOURCE": "PASS",
+        "NODE": "REUSED_PASS",
+        "BUILD": "REUSED_PASS",
+        "CHROME_CFT": "REUSED_PASS",
+        "MAC_NATIVE": "NOT_TESTED",
+        "SECURITY": "REUSED_PASS"
+      },
+      "evidence": [
+        "../../react-url-import-echarts-20261012.md",
+        "reuse/"
+      ],
+      "remaining": "保留历史冻结 PASS，不重测整个 React 项目",
+      "note": "Original commit 93878f441d87e0813546fc37a5298f905bace72c, CI38254646286, package292a348d80e0b9e446296a12a31941d7718b5088162eb63c755442320e14df3b,20/20; current editor changes do not inherit original full PASS"
+    },
+    {
+      "id": "S04",
+      "scenario": "Developer 普通 Page URL Import",
+      "dimensions": {
+        "SOURCE": "PASS",
+        "NODE": "PASS",
+        "BUILD": "PASS",
+        "CHROME_CFT": "PASS",
+        "MAC_NATIVE": "NOT_TESTED",
+        "SECURITY": "PASS"
+      },
+      "evidence": [
+        "chrome-d3-10/acceptance.json",
+        "chrome-d3-10/page-document.png"
+      ],
+      "remaining": "全浏览器离线重启、Chrome 撤站点权限和缓存篡改未测",
+      "note": "Actual D3=5; fresh receiptNonce/documentId/sourceHash; repeat and restored Candidate no download; frozen install and disable-next-document PASS; ordinary Page has no managed previewId"
+    },
+    {
+      "id": "S05",
+      "scenario": "Developer Controller URL Import",
+      "dimensions": {
+        "SOURCE": "PASS",
+        "NODE": "PASS",
+        "BUILD": "PASS",
+        "CHROME_CFT": "PASS",
+        "MAC_NATIVE": "NOT_TESTED",
+        "SECURITY": "PASS"
+      },
+      "evidence": [
+        "chrome-d3-10/acceptance.json",
+        "chrome-d3-10/controller-sidebar.png"
+      ],
+      "remaining": "已安装固定 Revision Run、全浏览器离线重启、定时/Cloud 未测",
+      "note": "Actual D3=5+page.title; durable result own revision hash and released Worker; Save/Load/Run is correctly labelled postSaveDraftRun, not an installed run"
+    },
+    {
+      "id": "S06",
+      "scenario": "Controller 精确 npm 与受信映射 mitt",
+      "dimensions": {
+        "SOURCE": "PASS",
+        "NODE": "PASS",
+        "BUILD": "PASS",
+        "CHROME_CFT": "PASS",
+        "MAC_NATIVE": "NOT_TESTED",
+        "SECURITY": "PASS"
+      },
+      "evidence": [
+        "chrome-classic-02/acceptance.json"
+      ],
+      "remaining": "同 S05 的安装/离线/触发生命周期未测",
+      "note": "mitt@3.0.1 and catalog mitt execute actual subscribed emit once; pinned/bare share exact fixed asset; unknown bare rejection covered in Node"
+    },
+    {
+      "id": "S07",
+      "scenario": "Page Classic @require",
+      "dimensions": {
+        "SOURCE": "PASS",
+        "NODE": "PASS",
+        "BUILD": "PASS",
+        "CHROME_CFT": "PASS",
+        "MAC_NATIVE": "NOT_TESTED",
+        "SECURITY": "PASS"
+      },
+      "evidence": [
+        "chrome-classic-02/acceptance.json",
+        "local/classic-readiness-before.log"
+      ],
+      "remaining": "Chrome 撤权/坏SHA/onerror 故障未测",
+      "note": "Actual fixed marked UMD; Program A fetch1/B fetch0, distinct program locks; asynchronous readiness regression fixed without consent bypass"
+    },
+    {
+      "id": "S08",
+      "scenario": "Controller Classic @require",
+      "dimensions": {
+        "SOURCE": "PASS",
+        "NODE": "PASS",
+        "BUILD": "PASS",
+        "CHROME_CFT": "PASS",
+        "MAC_NATIVE": "NOT_TESTED",
+        "SECURITY": "PASS"
+      },
+      "evidence": [
+        "chrome-classic-02/acceptance.json"
+      ],
+      "remaining": "同 S05 生命周期未测",
+      "note": "Actual mitt UMD in isolated Worker; A fetch1/repeat0/B0; independent program authorization/locks"
+    },
+    {
+      "id": "S09",
+      "scenario": "Sidebar Tool 本地 D3 ESM 预构建",
+      "dimensions": {
+        "SOURCE": "PASS",
+        "NODE": "PASS",
+        "BUILD": "PASS",
+        "CHROME_CFT": "PASS",
+        "MAC_NATIVE": "NOT_TESTED",
+        "SECURITY": "PASS"
+      },
+      "evidence": [
+        "tool-chrome-02/cft-2026-10-13T18-11-52-686Z/native-result.json",
+        "tool-build/import-max-probe-final.opendesk-tool.json"
+      ],
+      "remaining": "Chrome 坏SHA/onerror 负向与宽度/暗色视觉未测",
+      "note": "Real local vendor SHA691945a453633d9e204846af8ea4e299821b924f82b15eaf7906aba642979b1d; IIFE output Tool D3 max=5; no iframe on import/install, opaque origin null, no chrome.tabs/page; close/reopen/uninstall and cleanup PASS"
+    },
+    {
+      "id": "S10",
+      "scenario": "Sidebar Tool v2 多 Classic",
+      "dimensions": {
+        "SOURCE": "PASS",
+        "NODE": "PASS",
+        "BUILD": "PASS",
+        "CHROME_CFT": "PASS",
+        "MAC_NATIVE": "NOT_TESTED",
+        "SECURITY": "PASS"
+      },
+      "evidence": [
+        "tool-chrome-02/cft-2026-10-13T18-11-52-686Z/native-result.json",
+        "tool-build/import-classic-probe.opendesk-tool.json"
+      ],
+      "remaining": "Chrome 坏SHA/onerror 负向未测",
+      "note": "Real mitt emit once; order mitt>second>main; Node bad SHA/error blocks main; positive sandbox lifecycle PASS"
+    },
+    {
+      "id": "S11",
+      "scenario": "可信 Background 静态 npm",
+      "dimensions": {
+        "SOURCE": "PASS",
+        "NODE": "PASS",
+        "BUILD": "PASS",
+        "CHROME_CFT": "NOT_TESTED",
+        "MAC_NATIVE": "NOT_TESTED",
+        "SECURITY": "PASS"
+      },
+      "evidence": [
+        "local/targeted-node-delivery.log",
+        "trusted-build/background-inputs.json"
+      ],
+      "remaining": "示例未接入实际 SW，函数 Chrome smoke 未测",
+      "note": "Node executes actual dayjs/lodash-es; static browser build closed locally; no remote JS injected in SW"
+    },
+    {
+      "id": "S12",
+      "scenario": "可信扩展自定义页/Side Panel Host 静态 npm",
+      "dimensions": {
+        "SOURCE": "PASS",
+        "NODE": "PASS",
+        "BUILD": "PASS",
+        "CHROME_CFT": "NOT_TESTED",
+        "MAC_NATIVE": "NOT_TESTED",
+        "SECURITY": "PASS"
+      },
+      "evidence": [
+        "local/targeted-node-delivery.log",
+        "trusted-build/sidebar-host-inputs.json",
+        "trusted-build/extension-page-inputs.json",
+        "chrome-standard-01/acceptance.json"
+      ],
+      "remaining": "静态示例函数未在 Chrome 调用；原生输入未测",
+      "note": "Real npm functions verified in Node and static build; Standard Chrome compiler absence+plain JS UI PASS is a separate bounded check, not third-party function Chrome PASS"
+    }
+  ],
+  "checks": {
+    "targetedNodeBefore": 105,
+    "targetedNodeDelivery": 48,
+    "sourceCheck": 668,
+    "builds": {
+      "production": "942bc6290fa6c025e85b4d4507b847c3f7e657f148e56f43480c50573ebb6910",
+      "development": "7084f519ccf9c3701ecdd16e31396eaac58666010599c0d18005ae7a5ff82965",
+      "production-developer": "01a79da5b9f3cb3e3041e26f6acdf766bded7fb0645743939af24db220732c75",
+      "development-developer": "fec75a1f3b488dc321b7229449e242e102c4f2ae862c2c9f35d6bc0c87396cf8"
+    },
+    "verify": "all four frozen builds verified",
+    "currentWorkspaceBuild": {
+      "status": "FAIL",
+      "entry": "ui/tool-shell.js",
+      "bytes": 531339,
+      "hardLimit": 524288,
+      "evidence": "local/build-current-developer-02.log",
+      "scope": "parallel Workflow/UI changes, no budget relaxation"
+    },
+    "CWS": "NOT_TESTED / NOT_CLOSED",
+    "F3": "NOT_TESTED",
+    "ZIPInstallation": "NOT_TESTED",
+    "currentTargetedFinal": 71,
+    "currentTargetedFinalEvidence": "local/current-targeted-final.log"
+  },
+  "verificationInputs": [
+    {
+      "path": "src/ui/page-dependency-install.js",
+      "sha256": "9be707fac7fcdb9bbab7ef3229883b3fcd0dbb9dc8cee15df536d0b70b8e37a2"
+    },
+    {
+      "path": "tests/environment/page-dependency-r71-ui.test.mjs",
+      "sha256": "fbaee458880d5125678a629bda371fdb549c872e438132535fc879a44a323f3f"
+    },
+    {
+      "path": "tests/framework/page-browser-worker-r243-cft.mjs",
+      "sha256": "18140ac44cdea7936cb2be60e23fcc1b945c11e67e0273ff75890c9e22522b3f"
+    },
+    {
+      "path": "tests/framework/page-dependency-r72-cft-cycle.mjs",
+      "sha256": "f94dd1a40458dd35f25fbd023da7d6ba8e1df3b844acc6228a09b064a401635d"
+    },
+    {
+      "path": "tests/framework/page-import-fixed-tools-cft.mjs",
+      "sha256": "8ca8d04f4237b6b1ee223c5aba5bd5f50eca116f4e5dd767dcf6523c9b1cc1bb"
+    },
+    {
+      "path": "examples/programs/single-file/page-d3-max-esm.js",
+      "sha256": "e92e693378c7cefeb0d520e655b958c19b6b96dc8e9d9f65df67b72497744c39"
+    },
+    {
+      "path": "examples/programs/single-file/controller-d3-max-esm.js",
+      "sha256": "bdd058752194cc828ca4c7e2d9e4b4478f0582a3ce35d8ee32438ce83bc1d9e8"
+    }
+  ],
+  "lifecycle": {
+    "S04": "Candidate Restore/Verify/Install/new document/disable PASS",
+    "S05": "Save/Load/draft rerun PASS; fixed installed Task not verified",
+    "S07_S08": "A/B bytes reused with independent locks PASS",
+    "S09_S10": "install/open/close/reopen/uninstall PASS",
+    "fullBrowserOfflineRestart": "NOT_TESTED",
+    "revokedChromeSitePermission": "NOT_TESTED in this candidate",
+    "cacheTamperNative": "NOT_TESTED; Node negative checks only",
+    "networkFailureNative": "NOT_TESTED; Node negative checks only",
+    "editingSourceDuringPreparation": "NODE_PASS; native NOT_TESTED",
+    "scheduleCloud": "NOT_TESTED; existing owners only"
+  },
+  "notes": [
+    "S06 helper also executed an R78 owner case; its independent result is retained but not claimed by R7.7.",
+    "SECURITY PASS means the stated tested boundaries only; never all negative native cases.",
+    "report.sourceHead is the driver host checkout at launch; package identity is the exact build receipt sourceInputs/packageHash.",
+    "No new manager/host/CI/port/profile pairing, no CWS/F3/ZIP claim."
+  ]
+}

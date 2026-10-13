@@ -1,0 +1,11 @@
+{
+  "package": "mitt",
+  "version": "3.0.1",
+  "license": "MIT",
+  "retrievedOn": "2026-10-14",
+  "files": [
+    {"path": "mitt-3.0.1/mitt.umd.js", "url": "https://unpkg.com/mitt@3.0.1/dist/mitt.umd.js", "sha256": "1b48d419d5c66d6c39a8a2e2cb69e797989c8cd934f17122abc35d766650a82f"},
+    {"path": "mitt-3.0.1/LICENSE", "url": "https://unpkg.com/mitt@3.0.1/LICENSE", "sha256": "1cab22f196264195a4caec8ca5630170fdde76ee8f43346e47021d087332d3b0"}
+  ],
+  "policy": "Unmodified pinned UMD bytes; original MIT notice included in main JS package. Offline runtime. No new loader."
+}

@@ -1,0 +1,334 @@
+--- a/tests/framework/page-import-fixed-tools-cft.mjs
++++ b/tests/framework/page-import-fixed-tools-cft.mjs
+@@ -14,7 +14,9 @@
+ import {setTimeout as sleep} from 'node:timers/promises';
+ import {launchLocalDevChrome} from './local-dev-cft-launcher.mjs';
+ import {verifyPackage} from '../../scripts/verify-package.mjs';
++import {parse} from 'acorn';
+ import {
++  validateSidebarToolPackage,
+   serializeSidebarToolPackage,
+   sidebarToolStorageKey,
+   SIDEBAR_TOOL_STORE
+@@ -47,6 +49,36 @@
+ ];
+ 
+ const sha256 = bytes => crypto.createHash('sha256').update(bytes).digest('hex');
++
++// Optional probes bind the submitted bytes before launch, never a historical PASS.
++function requestedPackages() {
++  const options = [
++    {env: 'OPENDESK_IMPORT_MAX_TOOL_PACKAGE', label: 'import-max-probe',
++      expectedId: 'import-max-probe', expectedVersion: '1.0.0', expectedCapabilities: [],
++      expectedFormat: 'opendesk.sidebar-tool.v1', result: 'Tool D3 max = 5'},
++    {env: 'OPENDESK_IMPORT_CLASSIC_TOOL_PACKAGE', label: 'import-classic-probe',
++      expectedId: 'import-classic-probe', expectedVersion: '1.0.0', expectedCapabilities: [],
++      expectedFormat: 'opendesk.sidebar-tool.v2', result: 'Tool Classic mitt = 5',
++      order: 'order = mitt>second>main; emits = 1'}
++  ].filter(spec => process.env[spec.env]).map(spec => {
++    const file = fs.realpathSync(path.resolve(process.env[spec.env]));
++    return {...spec, probe: true, path: file, expectedSha256: sha256(fs.readFileSync(file))};
++  });
++  return options.length ? options : fixedPackages;
++}
++
++function inspectProbeCode(tool, spec) {
++  assert.equal(tool.format, spec.expectedFormat);
++  if (spec.order) assert.equal(tool.scripts?.length, 2, 'S10 has two fixed Classic assets');
++  for (const asset of tool.scripts || []) {
++    assert.equal(sha256(Buffer.from(asset.code, 'utf8')), asset.sha256, 'Actual fixed asset SHA ' + asset.name);
++  }
++  for (const code of [...(tool.scripts || []).map(asset => asset.code), tool.js]) {
++    parse(code, {ecmaVersion: 'latest', sourceType: 'script'});
++    assert(!/\b(?:import|fetch|importScripts|XMLHttpRequest|WebSocket)\s*\(/.test(code),
++      spec.label + ' has no runtime network/import call');
++  }
++}
+ const packageHash = tool => sha256(Buffer.from(serializeSidebarToolPackage(tool), 'utf8'));
+ const json = value => JSON.stringify(value);
+ const node = selector => 'document.querySelector(' + json(selector) + ')';
+@@ -60,11 +92,12 @@
+ function readPackage(spec) {
+   const real = fs.realpathSync(spec.path);
+   const bytes = fs.readFileSync(real);
+-  const parsed = JSON.parse(bytes);
++  const parsed = validateSidebarToolPackage(JSON.parse(bytes));
+   assert.equal(sha256(bytes), spec.expectedSha256, spec.label + ' package file hash');
+   assert.equal(parsed.id, spec.expectedId, spec.label + ' tool id');
+   assert.equal(parsed.version, spec.expectedVersion, spec.label + ' tool version');
+-  assert.deepEqual(parsed.capabilities, ['storage.local'], spec.label + ' capabilities');
++  assert.deepEqual(parsed.capabilities, spec.expectedCapabilities || ['storage.local'], spec.label + ' capabilities');
++  if (spec.probe) inspectProbeCode(parsed, spec);
+   assert.equal(packageHash(parsed), spec.expectedSha256, spec.label + ' serialized package hash');
+   return {spec, real, bytes: bytes.length, sha256: spec.expectedSha256, package: parsed};
+ }
+@@ -74,7 +107,8 @@
+   const requested = process.env.OPENDESK_FIXED_TOOLS_CANDIDATE_DIST || defaultCandidate;
+   const real = fs.realpathSync(path.resolve(requested));
+   assert(fs.existsSync(path.join(real, 'manifest.json')), 'candidate manifest must exist');
+-  assert.equal(path.basename(real), 'production', 'candidate must resolve to a dist/production directory');
++  assert(['production', 'production-developer'].includes(path.basename(real)),
++    'candidate must resolve to production or production-developer');
+   return {real, source, requested};
+ }
+ 
+@@ -100,7 +134,7 @@
+       if (row.error) job.reject(Object.assign(Error(row.error.message), {code: row.error.code, cdp: row.error}));
+       else job.resolve(row.result);
+     } else {
+-      for (const handler of handlers.get(row.method) || []) handler(row.params);
++      for (const handler of handlers.get(row.method) || []) handler(row.params, row);
+     }
+   });
+   const rejectAll = () => {
+@@ -222,31 +256,152 @@
+   return (await readStore(target, SIDEBAR_TOOL_STORE)) || [];
+ }
+ 
+-async function openTool(browser, side, id) {
++async function openTool(browser, side, id, ready = '!!document.querySelector("textarea#note")') {
+   await clickReal(side, action(id, 'open'));
+   const frameInfo = await until(async () => {
+     const rows = (await browser.send('Target.getTargets')).targetInfos;
+     return rows.find(row => row.type === 'iframe' && row.url?.includes('/sidebar-tools/sandbox.html'));
+   }, 'sandbox iframe for ' + id);
+   const frame = await attach(browser, frameInfo.targetId, 'tool-' + id);
+-  await until(() => evaluate(frame, 'document.readyState==="complete"&&!!document.querySelector("textarea#note")'),
+-    'tool textarea ready ' + id);
++  await until(() => evaluate(frame, 'document.readyState==="complete"&&(' + ready + ')'),
++    'tool content ready ' + id);
+   return frame;
+ }
+ 
+-async function importPackage(side, spec) {
++async function importPackage(side, spec, onPhase) {
++  await onPhase?.('before-import');
+   await setRealFileInput(side, spec.real);
+   await until(() => evaluate(side, '!document.querySelector("#sidebar-tool-preview").hidden'),
+     spec.spec.label + ' preview visible');
+   const review = await evaluate(side, 'document.querySelector("#sidebar-tool-preview").textContent');
+   assert(review.includes(spec.package.title), spec.spec.label + ' review includes title');
+   assert(review.includes('v' + spec.package.version), spec.spec.label + ' review includes version');
+-  assert(review.includes('保存此工具的数据'), spec.spec.label + ' review explains storage.local capability');
++  if (spec.package.capabilities.includes('storage.local')) {
++    assert(review.includes('保存此工具的数据'), spec.spec.label + ' review explains storage.local capability');
++  }
++  await onPhase?.('review-before-install');
+   await clickReal(side, '#sidebar-tool-install');
+   await until(async () => (await installedRows(side)).some(row =>
+     row.id === spec.package.id && row.version === spec.package.version),
+   spec.spec.label + ' installed through review button');
++  await onPhase?.('installed-before-open');
+   return review;
++}
++
++async function assertNoToolFrames(browser, side, label) {
++  await until(async () => {
++    const dom = await evaluate(side, 'document.querySelectorAll("#sidebar-tool-frame iframe").length');
++    const targets = (await browser.send('Target.getTargets')).targetInfos;
++    return dom === 0 && !targets.some(row => row.type === 'iframe' && row.url?.includes('/sidebar-tools/sandbox.html'));
++  }, label + ' no DOM or sandbox target residue');
++}
++
++// Observe newly attached iframe sessions before their scripts can run. Only the
++// tool Side Panel's child sessions are watched, excluding browser startup traffic.
++async function watchProbeNetwork(browser, side) {
++  const attachedTargets = new Set(), requests = [], errors = [], jobs = [], sessions = new Set();
++  const offAttached = browser.on('Target.attachedToTarget', (event, envelope) => {
++    if (envelope.sessionId !== side.sessionId) return;
++    const job = (async () => {
++      if (event.targetInfo.type === 'iframe') {
++        sessions.add(event.sessionId);
++        attachedTargets.add(event.targetInfo.targetId);
++        await browser.send('Network.enable', {}, 20000, event.sessionId);
++      }
++      await browser.send('Runtime.runIfWaitingForDebugger', {}, 20000, event.sessionId);
++    })().catch(error => errors.push(error.message));
++    jobs.push(job);
++  });
++  const offRequest = browser.on('Network.requestWillBeSent', (event, envelope) => {
++    if (sessions.has(envelope.sessionId)) requests.push({sessionId: envelope.sessionId,
++      url: event.request.url, type: event.type, initiator: event.initiator});
++  });
++  await side.send('Target.setAutoAttach', {autoAttach: true, waitForDebuggerOnStart: true, flatten: true});
++  return {
++    requests, attachedTargets,
++    async finish() {
++      await Promise.all(jobs);
++      assert.deepEqual(errors, [], 'pre-execution network observer attached successfully');
++      assert(attachedTargets.size > 0, 'observer saw sandbox sessions before execution');
++      assert(!requests.some(row => /^(?:https?|wss?):/i.test(row.url)), 'probe runtime made no network imports/requests');
++    },
++    async stop() {
++      await side.send('Target.setAutoAttach', {autoAttach: false, waitForDebuggerOnStart: false, flatten: true});
++      offAttached(); offRequest();
++    }
++  };
++}
++
++async function exerciseProbe(browser, side, spec, write) {
++  const observation = '({result:document.querySelector("#import-result")?.textContent,' +
++    'environment:document.querySelector("#import-environment")?.textContent,' +
++    'executions:document.querySelector("#import-executions")?.textContent,' +
++    'order:document.querySelector("#import-order")?.textContent,' +
++    'origin:globalThis.origin,chromeTabs:typeof globalThis.chrome?.tabs,page:typeof page,' +
++    'url:location.href})';
++  const screenshot = async phase => {
++    const shot = await side.send('Page.captureScreenshot', {format: 'png'});
++    write(spec.spec.label + '-' + phase + '.png', Buffer.from(shot.data, 'base64'));
++  };
++  const network = await watchProbeNetwork(browser, side);
++  try {
++    const review = await importPackage(side, spec, async phase => {
++      await assertNoToolFrames(browser, side, spec.spec.label + ' ' + phase);
++      assert.equal(network.attachedTargets.size, 0, 'import/review/install never attached a transient tool iframe');
++      write(spec.spec.label + '-' + phase + '.json', {iframeCount: 0, packageSha256: spec.sha256});
++      await screenshot(phase);
++    });
++    const row = (await installedRows(side)).find(item => item.id === spec.package.id);
++    assert.equal(packageHash(row), spec.sha256, 'installed probe matches the submitted bytes');
++    const frames = [], observations = [];
++    for (const phase of ['open', 'reopen']) {
++      const frame = await openTool(browser, side, spec.package.id,
++        'document.querySelector("#import-result")?.textContent===' + json(spec.spec.result));
++      assert(!frames.includes(frame.targetId), 'reopen creates a fresh sandbox target');
++      assert(network.attachedTargets.has(frame.targetId), 'network watch armed before this frame executed');
++      frames.push(frame.targetId);
++      const seen = await evaluate(frame, observation);
++      assert.equal(seen.result, spec.spec.result);
++      assert.equal(seen.origin, 'null', 'actual effective iframe origin is opaque');
++      assert.equal(seen.chromeTabs, 'undefined', 'no chrome.tabs in tool world');
++      assert.equal(seen.page, 'undefined', 'no Controller page in tool world');
++      assert(seen.environment.includes('typeof chrome.tabs = undefined'));
++      assert(seen.environment.includes('typeof page = undefined'));
++      assert.equal(seen.executions, 'Executions in this iframe = 1');
++      if (spec.spec.order) assert.equal(seen.order, spec.spec.order);
++      const hostFrame = await evaluate(side, '(()=>{const el=document.querySelector("#sidebar-tool-frame iframe");return {count:document.querySelectorAll("#sidebar-tool-frame iframe").length,src:el?.src,sandbox:el?.getAttribute("sandbox")};})()');
++      assert.equal(hostFrame.count, 1);
++      assert(hostFrame.src.endsWith('/sidebar-tools/sandbox.html'));
++      observations.push({phase, targetId: frame.targetId, sessionId: frame.sessionId, hostFrame, seen});
++      await clickReal(frame, 'summary');
++      write(spec.spec.label + '-' + phase + '.json', observations.at(-1));
++      await screenshot(phase);
++      if (phase === 'open') {
++        await clickReal(side, '#sidebar-tool-back');
++        await assertNoToolFrames(browser, side, spec.spec.label + ' close');
++        await screenshot('closed');
++      }
++    }
++    // Uninstall the live reopened frame using the existing trusted review UI.
++    await clickReal(side, '#sidebar-tool-remove');
++    await until(() => evaluate(side, '!document.querySelector("#sidebar-tool-inline-remove").hidden'), 'uninstall review');
++    await screenshot('uninstall-review');
++    await clickReal(side, '#sidebar-tool-inline-remove-confirm');
++    await until(async () => !(await installedRows(side)).some(item => item.id === spec.package.id), 'probe removed');
++    await assertNoToolFrames(browser, side, spec.spec.label + ' uninstall');
++    await screenshot('uninstalled');
++    await network.finish();
++    assert.equal(sha256(fs.readFileSync(spec.real)), spec.sha256, 'input package remained unchanged during CFT');
++    const result = {label: spec.spec.label, id: spec.package.id, packageSha256: spec.sha256,
++      installedDataPackageSha256: packageHash(row), capabilities: spec.package.capabilities,
++      review, observations, networkRequests: network.requests, removed: true,
++      negativeNative: 'NOT_TESTED', scope: 'positive real import/install/open/close/reopen/uninstall only'};
++    write(spec.spec.label + '-lifecycle.json', result);
++    return result;
++  } finally {
++    write(spec.spec.label + '-runtime-network.json', network.requests);
++    await network.stop();
++  }
+ }
+ 
+ async function saveAndReopen(browser, side, spec, note, write) {
+@@ -293,7 +448,7 @@
+   const append = (name, row) => fs.appendFileSync(path.join(output, name), JSON.stringify(row) + '\n');
+   const write = (name, value) => fs.writeFileSync(path.join(output, name),
+     Buffer.isBuffer(value) ? value : JSON.stringify(value, null, 2) + '\n');
+-  const packageSpecs = fixedPackages.map(readPackage);
++  const packageSpecs = requestedPackages().map(readPackage);
+   const binary = fs.realpathSync(path.resolve(process.env.OPENDESK_FIXED_TOOLS_CHROME_BIN || defaultChrome));
+   const manifest = JSON.parse(fs.readFileSync(path.join(candidate.real, 'manifest.json'), 'utf8'));
+   const report = {
+@@ -303,7 +458,7 @@
+     candidateDist: candidate.real,
+     candidateSource: candidate.source,
+     candidateRequestedPath: candidate.requested,
+-    candidatePackage: await verifyPackage(candidate.real),
++    candidatePackage: await verifyPackage(candidate.real, {mode: 'production'}),
+     manifest: {name: manifest.name, version: manifest.version, manifest_version: manifest.manifest_version},
+     browserBinary: binary,
+     nativeHostConfiguredByDriver: false,
+@@ -368,9 +523,15 @@
+     await until(() => evaluate(side, '!document.querySelector("#workbench-tools").hidden'),
+       'tools tab visible');
+ 
+-    report.phases.push('import-install-open-save-reopen');
++    report.phases.push(packageSpecs.some(item => item.spec.probe)
++      ? 'import-install-open-close-reopen-uninstall-probes'
++      : 'import-install-open-save-reopen');
+     report.installed = [];
+     for (const spec of packageSpecs) {
++      if (spec.spec.probe) {
++        report.installed.push(await exerciseProbe(browser, side, spec, write));
++        continue;
++      }
+       const review = await importPackage(side, spec);
+       write(spec.spec.label+'-review.json',{visibleReview:review,capabilities:spec.package.capabilities});
+       const registry = await installedRows(side);
+@@ -393,7 +554,7 @@
+     }
+ 
+     report.finalRegistry = await installedRows(side);
+-    report.candidateAfter=await verifyPackage(candidate.real);
++    report.candidateAfter=await verifyPackage(candidate.real, {mode: 'production'});
+     assert.equal(report.candidateAfter.packageHash,report.candidatePackage.packageHash,'Exact candidate remained unchanged');
+     report.status = 'PASS';
+     report.completedAt = new Date().toISOString();
+@@ -422,9 +583,47 @@
+     : 'Set OPENDESK_FIXED_TOOLS_CFT=1 to launch CFT; OPENDESK_FIXED_TOOLS_CANDIDATE_DIST may override the coordinator candidate'
+ }, runCft);
+ 
+-test('fixed tools driver schema and package binding', () => {
++test('fixed tools driver schema and package binding', {
++  skip: Boolean(process.env.OPENDESK_IMPORT_MAX_TOOL_PACKAGE || process.env.OPENDESK_IMPORT_CLASSIC_TOOL_PACKAGE)
++    && 'Optional probe run does not require historical React/Vue package files'
++}, () => {
+   const packages = fixedPackages.map(readPackage);
+   assert.deepEqual(packages.map(item => item.package.id), ['react-notes-starter', 'vue-notes-starter']);
+   assert.equal(path.resolve(defaultCandidate),
+     path.join(repo, '.runtime/tests/page-import-persistence-01a130cc-09d5/candidate/dist/production'));
+ });
++
++test('optional import probes bind current package bytes without launching Chrome', () => {
++  const requested = requestedPackages();
++  if (!requested.some(spec => spec.probe)) {
++    assert.deepEqual(requested, fixedPackages);
++    return;
++  }
++  for (const item of requested.map(readPackage)) {
++    assert.equal(item.sha256, sha256(fs.readFileSync(item.real)));
++    assert.deepEqual(item.package.capabilities, []);
++    assert(item.package.html.includes('id="import-result"'));
++  }
++});
++
++test('probe network observer enables observation before resuming each iframe', async () => {
++  const handlers = new Map(), commands = [];
++  const browser = {
++    on(method, handler) {handlers.set(method, handler); return () => handlers.delete(method);},
++    async send(method, params, timeout, sessionId) {commands.push({method, sessionId});}
++  };
++  const side = {sessionId: 'side', send: async () => {}};
++  const watch = await watchProbeNetwork(browser, side);
++  handlers.get('Target.attachedToTarget')({sessionId: 'child',
++    targetInfo: {type: 'iframe', targetId: 'frame'}}, {sessionId: 'side'});
++  await watch.finish();
++  assert.deepEqual(commands.map(row => row.method), ['Network.enable', 'Runtime.runIfWaitingForDebugger']);
++  assert(watch.attachedTargets.has('frame'));
++  // Events outside the observed child session do not contaminate tool evidence.
++  handlers.get('Network.requestWillBeSent')({request: {url: 'https://unrelated.invalid/'}}, {sessionId: 'other'});
++  await watch.finish();
++  handlers.get('Network.requestWillBeSent')({request: {url: 'https://runtime-import.invalid/'}}, {sessionId: 'child'});
++  await assert.rejects(watch.finish(), /no network imports/);
++  await watch.stop();
++  assert.equal(handlers.size, 0);
++});

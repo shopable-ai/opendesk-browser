@@ -1,0 +1,407 @@
+{
+  "url": "chrome-extension://kbeocokdaadgcpinbamkhfmjlhillanh/ui/tool.html?hostInstanceId=77873839-b894-45f5-a970-c97fce5b98fa",
+  "body": "我的\n发现\n工作流\n开发\n工具\n云控\n当前网页\n127.0.0.1:43111\n可运行\n直接编辑\n本地项目\n代码类型\n代码类型\nJavaScript\nReact\nVue\nJavaScript、React JSX 或 Vue SFC 源码编辑器\n\n保存草稿不会运行网页\n\n参数 JSON（可选）\n\n已读取持久结果\n\n运行结果\n运行目标与版本\n网页 JavaScript 试运行\n版本管理与任务制作\n已保存脚本\n没有已保存脚本\n刷新\n加载最新\n脚本名称 / ID\nrevision\n加载版本\n\n未保存草稿可直接运行；只有点击保存才创建正式版本\n\n从已保存版本创建任务候选\n高级脚本与目标设置\nAdvanced / Diagnostics\n运行草稿\n保存版本",
+  "inputs": [
+    {
+      "id": "schedule-title",
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": "schedule-target",
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": "schedule-params",
+      "value": "{}",
+      "disabled": false
+    },
+    {
+      "id": "schedule-timezone-search",
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": "schedule-once",
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": "schedule-clock",
+      "value": "09:00",
+      "disabled": false
+    },
+    {
+      "id": "",
+      "value": "1",
+      "disabled": false
+    },
+    {
+      "id": "",
+      "value": "2",
+      "disabled": false
+    },
+    {
+      "id": "",
+      "value": "3",
+      "disabled": false
+    },
+    {
+      "id": "",
+      "value": "4",
+      "disabled": false
+    },
+    {
+      "id": "",
+      "value": "5",
+      "disabled": false
+    },
+    {
+      "id": "",
+      "value": "6",
+      "disabled": false
+    },
+    {
+      "id": "",
+      "value": "0",
+      "disabled": false
+    },
+    {
+      "id": "schedule-minutes",
+      "value": "60",
+      "disabled": false
+    },
+    {
+      "id": "schedule-open-target",
+      "value": "on",
+      "disabled": false
+    },
+    {
+      "id": "schedule-deadline",
+      "value": "5",
+      "disabled": false
+    },
+    {
+      "id": "schedule-paused",
+      "value": "on",
+      "disabled": false
+    },
+    {
+      "id": "schedule-manager-search",
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": "sidebar-tool-file",
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": "trusted-cookie-name",
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": "trusted-cookie-value",
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": "trusted-cookie-path",
+      "value": "/",
+      "disabled": false
+    },
+    {
+      "id": "sidebar-tool-search",
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": "sidebar-tool-retired-draft-text",
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": "cloud-consent",
+      "value": "on",
+      "disabled": false
+    },
+    {
+      "id": "cloud-result-consent",
+      "value": "on",
+      "disabled": false
+    },
+    {
+      "id": "cloud-client-name",
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": "cloud-client-result",
+      "value": "on",
+      "disabled": true
+    },
+    {
+      "id": "cloud-client-token",
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": "cloud-url",
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": "cloud-provider-id",
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": "cloud-pairing-code",
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": "cloud-loopback",
+      "value": "on",
+      "disabled": false
+    },
+    {
+      "id": "local-discover-search",
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": "task-search",
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": "task-verify-run",
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": "task-package-file",
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": "workflow-confirm-run",
+      "value": "on",
+      "disabled": false
+    },
+    {
+      "id": "workflow-title",
+      "value": "新工作流",
+      "disabled": false
+    },
+    {
+      "id": "workflow-description",
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": "workflow-site",
+      "value": "http://127.0.0.1:43111",
+      "disabled": false
+    },
+    {
+      "id": "workflow-new-param-name",
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": "workflow-schema",
+      "value": "{\n  \"additionalProperties\": false,\n  \"properties\": {},\n  \"required\": [],\n  \"type\": \"object\"\n}",
+      "disabled": false
+    },
+    {
+      "id": "workflow-ai-request",
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": "workflow-ai-endpoint",
+      "value": "https://api.openai.com/v1/chat/completions",
+      "disabled": false
+    },
+    {
+      "id": "workflow-ai-model",
+      "value": "gpt-4o-mini",
+      "disabled": false
+    },
+    {
+      "id": "workflow-ai-key",
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": "local-project-mode",
+      "value": "on",
+      "disabled": false
+    },
+    {
+      "id": "local-install-title",
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": "local-install-version",
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": "local-project-params",
+      "value": "{}",
+      "disabled": false
+    },
+    {
+      "id": "page-component-javascript",
+      "value": "javascript",
+      "disabled": false
+    },
+    {
+      "id": "page-component-react",
+      "value": "react",
+      "disabled": false
+    },
+    {
+      "id": "page-component-vue",
+      "value": "vue",
+      "disabled": false
+    },
+    {
+      "id": "script-source",
+      "value": "async function main() {\n  return {title: await page.title(), url: await page.url(), value: params.value};\n}",
+      "disabled": false
+    },
+    {
+      "id": "network-js-metadata",
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": "network-js-consent",
+      "value": "on",
+      "disabled": false
+    },
+    {
+      "id": "script-params",
+      "value": "{\"value\":0}",
+      "disabled": false
+    },
+    {
+      "id": "script-run-id",
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": "script-id",
+      "value": "my-scriptr76-page-esm-d3",
+      "disabled": false
+    },
+    {
+      "id": "script-revision",
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": "task-dev-id",
+      "value": "my-first-task",
+      "disabled": false
+    },
+    {
+      "id": "task-dev-version",
+      "value": "1.0.0",
+      "disabled": false
+    },
+    {
+      "id": "task-dev-title",
+      "value": "我的第一个任务",
+      "disabled": false
+    },
+    {
+      "id": "task-dev-description",
+      "value": "运行当前网页的自动化脚本",
+      "disabled": false
+    },
+    {
+      "id": "task-dev-author",
+      "value": "local-developer",
+      "disabled": false
+    },
+    {
+      "id": "task-dev-schema",
+      "value": "{\"type\":\"object\",\"properties\":{},\"required\":[],\"additionalProperties\":false}",
+      "disabled": false
+    },
+    {
+      "id": "script-owned-url",
+      "value": "",
+      "disabled": true
+    },
+    {
+      "id": "script-allow-cookies",
+      "value": "on",
+      "disabled": false
+    },
+    {
+      "id": "",
+      "value": "network",
+      "disabled": false
+    },
+    {
+      "id": "",
+      "value": "storage.persistent",
+      "disabled": false
+    },
+    {
+      "id": "",
+      "value": "storage.session",
+      "disabled": false
+    },
+    {
+      "id": "",
+      "value": "notifications",
+      "disabled": false
+    },
+    {
+      "id": "",
+      "value": "device.id",
+      "disabled": false
+    },
+    {
+      "id": "",
+      "value": "network.info",
+      "disabled": true
+    },
+    {
+      "id": "",
+      "value": "service.log",
+      "disabled": false
+    },
+    {
+      "id": "",
+      "value": "service.time",
+      "disabled": false
+    },
+    {
+      "id": "",
+      "value": "resources.packaged",
+      "disabled": false
+    },
+    {
+      "id": "sdk-target-origins",
+      "value": "https://httpbingo.org",
+      "disabled": false
+    },
+    {
+      "id": "target-url",
+      "value": "",
+      "disabled": false
+    }
+  ],
+  "active": "script-id"
+}

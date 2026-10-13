@@ -16,6 +16,13 @@ const root=process.cwd(),output=path.resolve(process.env.OPENDESK_DEV_EVIDENCE||
   '.runtime/tests/page-browser-worker-r243'),packageRoot=path.resolve(process.env.OPENDESK_DEV_PACKAGE_DIR||'dist/production');
 fs.mkdirSync(output,{recursive:true});
 const binary=process.env.CHROME_FOR_TESTING_BIN;
+const r77Focus=process.env.OPENDESK_R77_IMPORT_SCENARIOS;
+if(r77Focus){
+  assert(['d3','classic'].includes(r77Focus),'R77 focus must be d3 or classic');
+  assert.equal(process.env.OPENDESK_R243_BROWSER_FULL_UI,'1','R77 requires the real UI driver');
+  assert.equal(process.env.OPENDESK_R72_DEPENDENCY_NATIVE_SMOKE,'1','R77 requires the dependency scenario driver');
+  assert.notEqual(process.env.OPENDESK_R245_STANDARD_SMOKE,'1','R77 Developer focus cannot skip Standard validation');
+}
 if(!binary||!fs.existsSync(binary))throw Error('Chrome for Testing binary is required');
 const profile=fs.mkdtempSync(path.join(os.tmpdir(),'opendesk-browser-worker-'));
 const pause=ms=>new Promise(r=>setTimeout(r,ms));
@@ -51,6 +58,8 @@ async function cdp(uri){
 }
 
 async function clickReal(session,expression){
+  const collapsed=await session.read('(()=>{const e=('+expression+');const d=e?.closest("details:not([open])");return !!d&&!!d.querySelector(":scope > summary")&&!d.querySelector(":scope > summary").contains(e)})()');
+  if(collapsed)await clickReal(session,'('+expression+').closest("details:not([open])").querySelector(":scope > summary")');
   const box=await session.read('(()=>{const node=('+expression+');if(!node||node.disabled)return null;'+
     'node.scrollIntoView({block:"center",inline:"center"});const r=node.getBoundingClientRect();'+
     'return {x:r.x+r.width/2,y:r.y+r.height/2,width:r.width,height:r.height}})()');
@@ -82,6 +91,15 @@ async function verifyBrowserUI({browser,page,catalogTabId,base,extensionId,outpu
     return {info,session};
   };
   try{
+    let existingSample;
+    try {
+      const response=await fetch('http://127.0.0.1:43111/demo-form.html');
+      if(response.ok)existingSample=Buffer.from(await response.arrayBuffer());
+    } catch(error) { if(error.cause?.code!=='ECONNREFUSED')throw error; }
+    if(existingSample){
+      assert(existingSample.equals(sample),'Existing 43111 service must serve the exact repository demo-form.html');
+      report.fixtureService='REUSED_EXACT_BYTES';
+    }else{
     site=http.createServer((req,res)=>{
       if(req.url?.split('?')[0]!=='/demo-form.html'){
         res.writeHead(404);res.end();return;
@@ -91,6 +109,8 @@ async function verifyBrowserUI({browser,page,catalogTabId,base,extensionId,outpu
     await new Promise((resolve,reject)=>{
       site.once('error',reject);site.listen(43111,'127.0.0.1',resolve);
     });
+    report.fixtureService='OWNED_43111';
+    }
     settings=await createTab('chrome://extensions/?id='+extensionId);
     const detail='document.querySelector("extensions-manager")?.shadowRoot?.querySelector("extensions-detail-view")';
     const toggle='('+detail+')?.shadowRoot?.querySelector("#allow-user-scripts")?.shadowRoot?.querySelector("cr-toggle#crToggle")';
@@ -115,8 +135,8 @@ async function verifyBrowserUI({browser,page,catalogTabId,base,extensionId,outpu
         t.id!==catalogTabId&&t.webSocketDebuggerUrl);
     },'actual Chrome Side Panel CDP target',20000);
     sidebar=await cdp(sidebarTarget.webSocketDebuggerUrl);
-    await until(()=>sidebar.read('document.querySelector("#tab-develop")!=null'),
-      'Side Panel workbench available');
+    await until(()=>sidebar.read('document.readyState==="complete"&&location.href.includes("hostInstanceId=")&&document.querySelector("#tab-develop")!=null'),
+      'Final Side Panel workbench document available');
     const observePanel=()=>sidebar.read('(async()=>{const e=document.querySelector("#tab-develop");'+
       'const r=e?.getBoundingClientRect();const nav=document.querySelector(".workbench-nav");'+
       'let contexts=[];try{contexts=await chrome.runtime.getContexts({contextTypes:["SIDE_PANEL"]})}catch(error){contexts=[{error:String(error)}]};'+
@@ -138,6 +158,7 @@ async function verifyBrowserUI({browser,page,catalogTabId,base,extensionId,outpu
     assert.equal(permission,true,'original Chrome website permission must be granted');
     if(process.env.OPENDESK_R72_DEPENDENCY_NATIVE_SMOKE==='1')
       await runR72PageClassicCycle({sidebar,website,browser,base,extensionId,cdp,until,clickReal,report});
+    if(process.env.OPENDESK_R77_IMPORT_SCENARIOS)return;
     if(process.env.OPENDESK_R245_STANDARD_SMOKE==='1'){
       const marker=await sidebar.read('(async()=>{const r=await fetch(chrome.runtime.getURL("framework/browser-edition.json"));'+
         'if(!r.ok)throw Error("E_EDITION_MARKER");return r.json()})()');
@@ -408,6 +429,16 @@ async function verifyBrowserUI({browser,page,catalogTabId,base,extensionId,outpu
     }
     if(process.env.OPENDESK_R243_BROWSER_STRESS==='1')
       await runBrowserComponentCycles({sidebar,website,output,report,until,clickReal,selectFramework});
+  }catch(error){
+    for(const [session,label] of [[sidebar,'sidebar'],[website?.session,'website']])if(session){
+      try{
+        const screenshot=await session.call('Page.captureScreenshot',{format:'png'});
+        fs.writeFileSync(path.join(output,'failure-'+label+'.png'),Buffer.from(screenshot.data,'base64'));
+        const state=await session.read('({url:location.href,body:document.body.innerText,inputs:[...document.querySelectorAll("input,textarea")].map(e=>({id:e.id,value:e.value,disabled:e.disabled})),active:document.activeElement?.id})');
+        fs.writeFileSync(path.join(output,'failure-'+label+'.json'),JSON.stringify(state,null,2)+'\n');
+      }catch(observationError){report.observationError=observationError.message;}
+    }
+    throw error;
   }finally{
     settings?.session.close();website?.session.close();sidebar?.close();
     if(site)await new Promise(resolve=>site.close(resolve));
@@ -432,6 +463,8 @@ async function main(){
       return worker?.url?.split('/')[2];
     },'real loaded extension');
     report.extensionId=extensionId;
+    report.browserVersion=await browser.call('Browser.getVersion');
+    report.launch=launched.launch;
     const request=await fetch(base+'/json/new?about%3Ablank',{method:'PUT'});
     assert.equal(request.status,200);
     const tab=await request.json();page=await cdp(tab.webSocketDebuggerUrl);
@@ -439,7 +472,7 @@ async function main(){
     await until(()=>page.read('location.protocol==="chrome-extension:"&&document.readyState==="complete"'),
       'actual packaged extension page');
     assert.equal(await page.read('typeof Worker'),'function');
-    if(process.env.OPENDESK_R245_STANDARD_SMOKE!=='1')for(const [framework,fixture] of [
+    if(process.env.OPENDESK_R245_STANDARD_SMOKE!=='1'&&!process.env.OPENDESK_R77_IMPORT_SCENARIOS)for(const [framework,fixture] of [
       ['react','examples/programs/page-ui-react/src/App.jsx'],
       ['vue','examples/programs/page-ui-vue/src/App.vue']
     ]){
@@ -478,7 +511,18 @@ async function main(){
       report.status='PASS_STANDARD_BROWSER_NO_COMPILER';
     }else if(process.env.OPENDESK_R243_BROWSER_FULL_UI==='1'){
       await verifyBrowserUI({browser,page,catalogTabId:tab.id,base,extensionId,output,report});
-      report.status=process.env.OPENDESK_R243_BROWSER_STRESS==='1'?
+      if(r77Focus){
+        const expected=r77Focus==='d3'?[
+          ['R76-PAGE-URL-ESM-D3-DOM','CHROME_PASS_R76_PAGE_ESM_D3'],
+          ['S05-R77-CONTROLLER-D3','CHROME_PASS_R77_CONTROLLER_D3']
+        ]:[
+          ['D02/D03-R72-ONE-CLICK-AB','CHROME_PASS_R72_ONE_CLICK_AB'],
+          ['D05-R73-CONTROLLER-CLASSIC-REAL-MITT','CHROME_PASS_D05_CONTROLLER_CLASSIC'],
+          ['D04-EXT-R74-NORMAL-NPM-IMPORT-MITT','CHROME_PASS_R76_PINNED_AND_BARE_NPM']
+        ];
+        for(const [caseId,status] of expected)assert(report.tests.some(row=>row.caseId===caseId&&row.status===status),'Missing completed R77 scenario '+caseId);
+      }
+      report.status=process.env.OPENDESK_R77_IMPORT_SCENARIOS?'PASS_R77_IMPORT_SCENARIOS':process.env.OPENDESK_R243_BROWSER_STRESS==='1'?
         'PASS_BROWSER_UI_NO_NATIVE_20X_EACH_RUN_STOP':'PASS_BROWSER_UI_NO_NATIVE_REACT_VUE_RUN_STOP';
     }else report.status='PASS_BROWSER_WORKER_NO_NATIVE';
   }catch(error){report.status='FAIL';report.error={code:error.code||'E_BROWSER_WORKER_TEST',message:error.message,

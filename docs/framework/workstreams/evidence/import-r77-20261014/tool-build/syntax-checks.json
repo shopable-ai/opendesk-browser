@@ -1,0 +1,68 @@
+{
+  "status": "PASS",
+  "checks": [
+    {
+      "file": "examples/sidebar-tools/import-max-probe/build/tool.js",
+      "exitCode": 0,
+      "output": ""
+    },
+    {
+      "file": "examples/sidebar-tools/import-max-probe/build.mjs",
+      "exitCode": 0,
+      "output": ""
+    },
+    {
+      "file": "examples/sidebar-tools/import-max-probe/classic/build/main.js",
+      "exitCode": 0,
+      "output": ""
+    },
+    {
+      "file": "examples/sidebar-tools/import-max-probe/classic/build.mjs",
+      "exitCode": 0,
+      "output": ""
+    },
+    {
+      "file": "examples/sidebar-tools/import-max-probe/classic/src/main.js",
+      "exitCode": 0,
+      "output": ""
+    },
+    {
+      "file": "examples/sidebar-tools/import-max-probe/classic/src/second.js",
+      "exitCode": 0,
+      "output": ""
+    },
+    {
+      "file": "examples/sidebar-tools/import-max-probe/classic/validate.mjs",
+      "exitCode": 0,
+      "output": ""
+    },
+    {
+      "file": "examples/sidebar-tools/import-max-probe/classic/vendor/mitt-3.0.1/mitt.umd.js",
+      "exitCode": 0,
+      "output": ""
+    },
+    {
+      "file": "examples/sidebar-tools/import-max-probe/src/main.js",
+      "exitCode": 0,
+      "output": ""
+    },
+    {
+      "file": "examples/sidebar-tools/import-max-probe/validate.mjs",
+      "exitCode": 0,
+      "output": ""
+    },
+    {
+      "file": "examples/sidebar-tools/import-max-probe/vendor/d3-array-3.2.4/max.js",
+      "exitCode": 0,
+      "output": ""
+    },
+    {
+      "file": "tests/framework/page-import-fixed-tools-cft.mjs",
+      "exitCode": 0,
+      "output": ""
+    }
+  ],
+  "whitespace": "PASS",
+  "driverSha256": "e1a91f3338a84b92b27b3fa75ac0268920d88af2b752438514a4ca1fd4c2bd0a",
+  "browser": "NOT_STARTED"
+}

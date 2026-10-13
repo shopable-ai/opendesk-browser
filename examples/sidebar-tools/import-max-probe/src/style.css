@@ -1,0 +1,11 @@
+/* Isolated mapping of R27 token values; no host stylesheet or reset injection. */
+:root { color-scheme: light dark; }
+section { min-width: 0; padding: 12px; font: 13px/1.5 system-ui, sans-serif; color: #1b2c49; }
+p { margin: 0 0 8px; overflow-wrap: anywhere; }
+details { color: #53647e; }
+summary { cursor: pointer; margin-bottom: 8px; }
+summary:focus-visible { outline: 2px solid #365eda; outline-offset: 4px; }
+@media (prefers-color-scheme: dark) {
+  section { color: #e9eef7; }
+  details { color: #b3c1d3; }
+}
