@@ -1598,6 +1598,81 @@
       "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/builds-ci-recovery-final/build-production.json",
       "bytes": 465954,
       "sha256": "8aa3ba15d1272bfc25e11275515fd4f1df05ae1e940023d0c83e6301927b2abe"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/bookmarks-get-platform-probe.mjs",
+      "bytes": 4711,
+      "sha256": "c370f6c873921394b2d2e594fbdcb85cceb368109cf6ecf2718e31f72235666a"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/bookmarks-get-platform-probe.log",
+      "bytes": 636,
+      "sha256": "2091833903d9da196c3ae53aa45fdae6bd572d52579592bbed1b5658baee5396"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/node-bookmarks-exact-error.log",
+      "bytes": 959,
+      "sha256": "137d0db34f87a88ad75206348c41ce71da30a520a63ca4c24c79b1c639d70118"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/bookmarks-get-platform-probe/chrome-readonly-bookmarks.log",
+      "bytes": 1498,
+      "sha256": "df00cc8ad4d7a770ef465bd5a1253f46ecdd6e978174f75ab6417e129a6ea0f9"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/bookmarks-get-platform-probe/launcher-readonly-bookmarks-exit.json",
+      "bytes": 3229,
+      "sha256": "793dbf0436001f94bd9970e1878f6e69ae2c30f1249d076166c8f1d7711eaa9f"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/bookmarks-get-platform-probe/launcher-readonly-bookmarks-raw-failure.json",
+      "bytes": 1469,
+      "sha256": "441ac3c4ee3cfa77b6a4c985dbaac0324a48bfd08d5b4d2f21fd3f3d61faf250"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/bookmarks-get-platform-probe/launcher-readonly-bookmarks-stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/bookmarks-get-platform-probe/launcher-readonly-bookmarks-stdout.txt",
+      "bytes": 1261,
+      "sha256": "f8464b2f24493768f0e1ccf08448373f3463ed974e31198531776f45221acd8f"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/bookmarks-get-platform-probe/launcher-readonly-bookmarks-summary.json",
+      "bytes": 168,
+      "sha256": "247efdd0f55b6d0ab92dbf14c3081405f1cb09b31aa376e638ed1befff404563"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/bookmarks-get-platform-probe/launcher-readonly-bookmarks-verified.json",
+      "bytes": 3643,
+      "sha256": "e38f3a0a2f4f3a8df8b2757403dae590aa194a3231a5967a602def8a6fb269db"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/bookmarks-get-platform-probe/launcher-readonly-bookmarks.json",
+      "bytes": 1329,
+      "sha256": "8a59cea6c49d0bb31210518f8dd0bee74bd27ed8215e7040d078b15fd1fa5e05"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/bookmarks-get-platform-probe/readonly-fixture/manifest.json",
+      "bytes": 200,
+      "sha256": "6427996ae6b0dab7b641b009c7045195d2f0992301184fe01ea488499382e660"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/bookmarks-get-platform-probe/readonly-fixture/probe.html",
+      "bytes": 77,
+      "sha256": "f082fe5d14a7c7600cae8b22749fb4c7433e74d6d26d1c5eddc4524e28e2219c"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/bookmarks-get-platform-probe/readonly-fixture/worker.js",
+      "bytes": 69,
+      "sha256": "9ef345021543d04f770119b7c8f7eb1f1fb93908d75012cbf7d3fccf5b17354d"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/bookmarks-get-platform-probe/receipt.json",
+      "bytes": 10065,
+      "sha256": "b36153db19d1e9e33b450e3cd023669ad6661ab31a297c64a4d5b8593a663f37"
     }
   ],
   "limitations": [
@@ -1613,5 +1688,10 @@
     "Live watcher log continues changing; not immutable acceptance proof"
   ],
   "ciRecoverySupplement": "ci-recovery-followup.json",
-  "latestSupplementAgainstHead": "d0da6299b9bb2c45055d34e6ded52fc7c679e8d0"
+  "latestSupplementAgainstHead": "d0da6299b9bb2c45055d34e6ded52fc7c679e8d0",
+  "platformBookmarkProbe": {
+    "scope": "READ_ONLY_CHROME_PLATFORM_BEHAVIOR_NOT_SDK_ACCEPTANCE",
+    "nativeSdkPass": 0,
+    "chromeVersion": "155.0.8059.39"
+  }
 }

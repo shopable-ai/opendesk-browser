@@ -1,0 +1,17 @@
+✔ Bookmarks: real native create, durable opaque ownership and remove after Worker restart (1.593625ms)
+✔ Bookmarks: owner, version, epoch, opaque ID and schema boundaries are enforced (1.46125ms)
+✔ Bookmarks: revoked permission and external edit refuse native deletion (0.325958ms)
+✔ Bookmarks: uninstall or missing mapping does not replay against native IDs (0.215458ms)
+✔ Bookmarks: unknown create, remove and get failures do not return success or auto-replay (0.541291ms)
+✔ Bookmarks: revoked-after-effect never returns success (0.140791ms)
+✔ Bookmarks: externally deleted bookmark clears owned mapping without global lookup (0.285542ms)
+✔ Bookmarks: rejected external delete is treated as missing and released once (0.226708ms)
+✔ Bookmarks: permission, service and malformed-ID get errors retain owned mapping (0.413083ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 9
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 80.737916

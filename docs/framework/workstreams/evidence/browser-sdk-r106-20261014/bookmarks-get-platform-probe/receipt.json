@@ -1,0 +1,187 @@
+{
+  "scope": "READ_ONLY_CHROME_PLATFORM_BEHAVIOR_NOT_SDK_ACCEPTANCE",
+  "status": "OBSERVED_PLATFORM_BEHAVIOR",
+  "formalNativePass": 0,
+  "commitSha": "e220dfab203990e0f2e8c713d5c2e76a533c0339",
+  "fixtureInputs": [
+    {
+      "path": "manifest.json",
+      "sha256": "6427996ae6b0dab7b641b009c7045195d2f0992301184fe01ea488499382e660"
+    },
+    {
+      "path": "probe.html",
+      "sha256": "f082fe5d14a7c7600cae8b22749fb4c7433e74d6d26d1c5eddc4524e28e2219c"
+    },
+    {
+      "path": "worker.js",
+      "sha256": "9ef345021543d04f770119b7c8f7eb1f1fb93908d75012cbf7d3fccf5b17354d"
+    }
+  ],
+  "fixturePackageHash": "cda52be13c7fb9bcdcc949a1cbd6fb7adc9500cf992d945e9a673dd297254cd2",
+  "toolPackageHash": null,
+  "installEpoch": null,
+  "note": "Isolated fixture grants required permission through its test manifest. This does not prove installed-tool optional permission consent or the SDK external-deletion flow.",
+  "launcher": {
+    "pid": 3073,
+    "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-qn418op7",
+    "executable": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+    "args": [
+      "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+      "--use-mock-keychain",
+      "--password-store=basic",
+      "--no-first-run",
+      "--no-default-browser-check",
+      "--disable-background-networking",
+      "--remote-debugging-address=127.0.0.1",
+      "--user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-qn418op7",
+      "--remote-debugging-port=0",
+      "--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/evidence/browser-sdk-r106-20261014/bookmarks-get-platform-probe/readonly-fixture",
+      "--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/evidence/browser-sdk-r106-20261014/bookmarks-get-platform-probe/readonly-fixture",
+      "--headless=new",
+      "about:blank"
+    ],
+    "log": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-qn418op7/chrome.log",
+    "launcherPid": 3072,
+    "python": "/usr/bin/python3",
+    "launcher": "/Users/shopme/.codex/browser-testing/launch.py",
+    "launcherSha256": "e9dfee561b6280eef106bd514f0835d0d5f9251919881c1d3cd15394430d8b74",
+    "launcherArgs": [
+      "/Users/shopme/.codex/browser-testing/launch.py",
+      "--executable",
+      "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+      "--report",
+      "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/evidence/browser-sdk-r106-20261014/bookmarks-get-platform-probe/launcher-readonly-bookmarks.json",
+      "--remote-debugging-port=0",
+      "--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/evidence/browser-sdk-r106-20261014/bookmarks-get-platform-probe/readonly-fixture",
+      "--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/evidence/browser-sdk-r106-20261014/bookmarks-get-platform-probe/readonly-fixture",
+      "--headless=new",
+      "about:blank"
+    ],
+    "actualMainProcess": "3073  3072 /Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing --use-mock-keychain --password-store=basic --no-first-run --no-default-browser-check --disable-background-networking --remote-debugging-address=127.0.0.1 --user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-qn418op7 --remote-debugging-port=0 --load-extension=/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/evidence/browser-sdk-r106-20261014/bookmarks-get-platform-probe/readonly-fixture --disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/evidence/browser-sdk-r106-20261014/bookmarks-get-platform-probe/readonly-fixture --headless=new about:blank",
+    "freshProfileObserved": {
+      "path": "/private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-qn418op7",
+      "birthtimeMs": 1791925697627.3762,
+      "previouslyPresent": false,
+      "mode": "0700"
+    },
+    "endpoint": "ws://127.0.0.1:53478/devtools/browser/1b9e9e42-589d-4d36-8e20-5722c4655c4f"
+  },
+  "chromeVersion": {
+    "protocolVersion": "1.3",
+    "product": "Chrome/155.0.8059.39",
+    "revision": "@3ff7ac5a9224be9156d7f8703a06e22890aafd34",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36",
+    "jsVersion": "15.5.35.20"
+  },
+  "actualExtensionId": "onbjbjmbhdfogdkfdljiockaakdbdade",
+  "context": {
+    "url": "chrome-extension://onbjbjmbhdfogdkfdljiockaakdbdade/probe.html",
+    "extensionId": "onbjbjmbhdfogdkfdljiockaakdbdade",
+    "contexts": [
+      {
+        "contextId": "42195ff5-c31d-4c8b-b6a2-77f895a53288",
+        "contextType": "BACKGROUND",
+        "frameId": -1,
+        "incognito": false,
+        "tabId": -1,
+        "windowId": -1
+      },
+      {
+        "contextId": "27d522a6-20b1-45e0-bd0a-88868009d067",
+        "contextType": "TAB",
+        "documentId": "B1392022432DA8E6097CE959215AF380",
+        "documentOrigin": "chrome-extension://onbjbjmbhdfogdkfdljiockaakdbdade",
+        "documentUrl": "chrome-extension://onbjbjmbhdfogdkfdljiockaakdbdade/probe.html",
+        "frameId": 0,
+        "incognito": false,
+        "tabId": 1502335902,
+        "windowId": 1502335900
+      }
+    ],
+    "permissions": {
+      "origins": [],
+      "permissions": [
+        "bookmarks"
+      ]
+    }
+  },
+  "requests": [
+    {
+      "method": "chrome.bookmarks.get",
+      "id": "2147483647",
+      "readOnly": true,
+      "startedAt": "2026-10-13T21:08:18.276Z",
+      "result": {
+        "resolved": false,
+        "error": {
+          "name": "Error",
+          "message": "Can't find bookmark for id."
+        }
+      },
+      "finishedAt": "2026-10-13T21:08:18.285Z"
+    },
+    {
+      "method": "chrome.bookmarks.get",
+      "id": "not-a-native-id",
+      "readOnly": true,
+      "startedAt": "2026-10-13T21:08:18.285Z",
+      "result": {
+        "resolved": false,
+        "error": {
+          "name": "Error",
+          "message": "Bookmark id is invalid."
+        }
+      },
+      "finishedAt": "2026-10-13T21:08:18.286Z"
+    }
+  ],
+  "cleanup": {
+    "exit": {
+      "code": 0,
+      "signal": null,
+      "observedEvent": "exit"
+    },
+    "pidAliveAfterExit": false,
+    "profileRemoved": true,
+    "profileState": "path-absent",
+    "cleanupOwner": "/Users/shopme/.codex/browser-testing/launch.py",
+    "cleanupStatus": "PASS",
+    "lifecycle": [],
+    "originalErrors": [],
+    "cleanupErrors": [],
+    "residual": [],
+    "attempts": [
+      {
+        "number": 1,
+        "errors": [],
+        "raw": {
+          "stdout": "{\"pid\": 3073, \"profile\": \"/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-qn418op7\", \"executable\": \"/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing\", \"args\": [\"/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing\", \"--use-mock-keychain\", \"--password-store=basic\", \"--no-first-run\", \"--no-default-browser-check\", \"--disable-background-networking\", \"--remote-debugging-address=127.0.0.1\", \"--user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-qn418op7\", \"--remote-debugging-port=0\", \"--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/evidence/browser-sdk-r106-20261014/bookmarks-get-platform-probe/readonly-fixture\", \"--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/evidence/browser-sdk-r106-20261014/bookmarks-get-platform-probe/readonly-fixture\", \"--headless=new\", \"about:blank\"], \"log\": \"/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-qn418op7/chrome.log\"}\n",
+          "stderr": ""
+        }
+      }
+    ],
+    "candidates": [
+      {
+        "pid": 3073,
+        "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-qn418op7",
+        "executable": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+        "args": [
+          "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+          "--use-mock-keychain",
+          "--password-store=basic",
+          "--no-first-run",
+          "--no-default-browser-check",
+          "--disable-background-networking",
+          "--remote-debugging-address=127.0.0.1",
+          "--user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-qn418op7",
+          "--remote-debugging-port=0",
+          "--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/evidence/browser-sdk-r106-20261014/bookmarks-get-platform-probe/readonly-fixture",
+          "--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/evidence/browser-sdk-r106-20261014/bookmarks-get-platform-probe/readonly-fixture",
+          "--headless=new",
+          "about:blank"
+        ],
+        "log": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-qn418op7/chrome.log"
+      }
+    ]
+  }
+}

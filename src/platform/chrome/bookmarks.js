@@ -23,9 +23,9 @@ function originFor(raw){
   return url.origin;
 }
 function isMissingBookmarkError(error){
-  const message=String(error?.message||error||'').toLowerCase();
-  return message.includes('find bookmark')||message.includes('bookmark not found')||
-    message.includes('no bookmark')||message.includes('invalid bookmark id');
+  // Observed in controlled Chrome 155. Broad substring matches also accept
+  // permission/service failures and could incorrectly release owned mappings.
+  return String(error?.message||error||'').trim()==="Can't find bookmark for id.";
 }
 export function createBrowserBookmarksHost({api=globalThis.chrome,authorize,
   createRef=()=>crypto.randomUUID(),clock=Date}={}){

@@ -166,3 +166,25 @@ test('Bookmarks: rejected external delete is treated as missing and released onc
   assert(f.calls.filter(([kind])=>kind==='get').every(([,value])=>value==='10'));
   assert.equal(f.calls.some(([kind])=>kind==='remove'),false);
 });
+
+test('Bookmarks: permission, service and malformed-ID get errors retain owned mapping',async()=>{
+  const f=fixture(),host=f.make(),result=await host.create(request,id);
+  const originalGet=f.api.bookmarks.get;
+  for(const message of [
+    'No bookmarks permission',
+    'Unable to find bookmark service',
+    'Bookmark not found because permissions were revoked',
+    'Invalid bookmark id received from corrupted storage',
+    'Bookmark id is invalid.',
+    "Can't find bookmark for id. Permission revoked"
+  ]){
+    f.api.bookmarks.get=async bookmarkId=>{
+      f.calls.push(['get',bookmarkId]);throw Error(message);
+    };
+    await assert.rejects(host.removeOwned({bookmarkRef:result.bookmarkRef},id),error('E_CHROME'));
+    assert.equal(f.calls.some(([kind])=>kind==='remove'),false);
+    assert.equal(f.nodes.size,1);
+  }
+  f.api.bookmarks.get=originalGet;
+  assert.deepEqual(await host.removeOwned({bookmarkRef:result.bookmarkRef},id),{removed:true});
+});
