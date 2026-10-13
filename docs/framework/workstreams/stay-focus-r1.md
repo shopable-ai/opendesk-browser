@@ -97,3 +97,20 @@ Node mock 组件测试只能标为 **COMPONENT**，不能证明真实 Chrome 导
 - **真实额度原生脚本**：原 macOS Chrome 用例除 `always` 导航外，加入从真实 Side Panel 操作将同网站改为 **1 分钟**、前台网页活动、只读采样 storage 中实际计费、`idle`/focused/active tab、DNR 读回、已打开标签页与新 HTTP 导航的额度页面及截图。绝不写入测试 `usage` 或伪造动态规则。
 - **CI 排队防取消**：Stay Focus 自有工作流不再因同一 main 的后续推送取消正在执行的 Mac 原生候选；新候选只使用自己 SHA 的构建/原生证据。
 - 本条仅记录**实现和待验证入口**，不是验收回执。此会话尚无法访问用户 Mac 路径；只有 Actions 实际跑完并成功且同候选证据齐备后，才允许更改为 `NATIVE_PASS`。若 Chrome 原生权限弹窗或 GUI 不可用，按实际原因标注 `BLOCKED`。
+
+
+## R1.1 再推进：焦点事件守恒与完整停用/重启原生用例（2026-10-13）
+
+**此节只保存本轮实际提交和候选验收状态，不把待运行测试升级为 PASS。**
+
+已直接进入 `main` 的修复：
+
+- [`9f9c182961cd`](https://github.com/shopable-ai/opendesk-browser/commit/9f9c182961cd1b7adfc4217d17e0b5ace799b70a)：`src/stay-focus/service.js` 引入 Service Worker 内部观察 epoch。任何 Chrome tab/window/idle/permissions 等事件使此前的计时检查点失效，即使事件队列排队后又回到相同标签，也不结算无法证明持续前台的旧时间。异常/规则对账失败不会把未验证 epoch 标记为已结算。
+- [`a95c3fc941b3`](https://github.com/shopable-ai/opendesk-browser/commit/a95c3fc941b3399866356e5055eee5868a26fe1b)：`tests/environment/stay-focus-service-r1.test.mjs` 新增快速切页/回焦、idle→active、重新开始计算的回归用例。源码存在，不等于 Node 已运行通过。
+- [`f11222cb83f6`](https://github.com/shopable-ai/opendesk-browser/commit/f11222cb83f6b097819a621002b062e31c980b0e)：原有 `tests/framework/stay-focus-r1-native.test.mjs` 继续扩展同一真实用户链路：达到 1 分钟额度后真实 DNR、已打开页与新导航拦截；然后从可信 UI 停用、读取 Chrome 动态规则为零并证明 HTTP 网站恢复；再次真实启用后确认已耗尽额度重新生效，最后卸载清理。保存扩展 ID 与分阶段证据，不直接伪造 usage/DNR。
+
+核查基准：上述最后一个代码候选触发 [GitHub Actions #38378831778](https://github.com/shopable-ai/opendesk-browser/actions/runs/38378831778)；查询时其 `source-and-build` 为 `QUEUED`，没有运行退出码、包 SHA-256、SW 大小及 Mac Chrome 验收结论。本轮 V8 裁去 ES imports 的只读语法解析可通过新增 JS 源码；**这既不是 `node --test`，也不是 `npm run check/build/verify`，不得冒充 CI**。
+
+当前独立验收门槛：`COMPONENT_NOT_TESTED`（新用例）、`BUILD_NOT_TESTED`（本候选）、`NATIVE_NOT_TESTED`、`UI_NATIVE_NOT_TESTED`。旧候选原有组件通过及包 SHA 只能作为历史。真实 Chrome for Testing 还需覆盖 Chrome/Worker 重启、DST/跨日、1 分钟及正式 15 分钟、后台/锁屏不扣减、白名单/父子域名/工作时段/专注到期、权限撤销、Time Review 隔离、320–600px 焦点缩放，以及工具包和 SW 的本候选 SHA。
+
+**Go/No-Go：所有产品八维的 95+ 均未签收。下一轮应优先提取此候选实际 Actions job logs、同 SHA 包与截图；失败则针对真实日志修源码，不继续以改写任务书或历史静态测试替代。**
