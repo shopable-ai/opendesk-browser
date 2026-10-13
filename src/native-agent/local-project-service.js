@@ -8,7 +8,8 @@ export function createLocalProjectService({api,hostPorts,connection}) {
   const pending=new Map();
   const live=host=>[...hostPorts.values()].includes(host)&&typeof host.registrationId==='string';
   const available=()=>{const c=connection();return c.enabled&&c.ready&&c.port&&providerEpoch;};
-  const state=()=>({connected:!!available(),providerEpoch:available()?providerEpoch:null});
+  const state=()=>{const c=connection();return {connected:!!available(),providerEpoch:available()?providerEpoch:null,
+    enabled:c.enabled===true,nativeConnected:!!(c.enabled&&c.ready&&c.port)};};
   const send=(host,message)=>{if(live(host))try{host.postMessage({...message,registrationId:host.registrationId});}catch{}};
   function publish(){for(const host of hostPorts.values())send(host,{type:'native-agent.dev.state',state:state()});}
   function settle(id,data){

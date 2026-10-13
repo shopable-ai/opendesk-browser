@@ -11,9 +11,11 @@ import {SDK_RESOURCE_PATHS,SDK_RESOURCE_MANIFEST} from '../../src/framework/sdk/
 import {BUILTIN_CATALOG} from '../../src/libs/catalog.js';
 import {BUILTIN_RESOURCE_PATHS} from '../../src/libs/runtime-contract.js';
 import {verifyManifest,verifyBuiltinResourceManifest} from '../../scripts/verify-package.mjs';
+import {resolveMarketChannel,marketExternalConnectable} from '../../scripts/market-channel.mjs';
 
 const tick=()=>new Promise(resolve=>setImmediate(resolve));
 const {configureDevelopmentRestarts,publishDevelopment}=development;
+const developmentExternal=marketExternalConnectable(resolveMarketChannel({mode:'development'}));
 
 async function officialDevelopmentFixture(t){
   const root=await mkdtemp(join(tmpdir(),'opendesk-official-dev-')),outDir=join(root,'dist'),publicDir=join(root,'public');
@@ -21,7 +23,8 @@ async function officialDevelopmentFixture(t){
   const paths=[...new Set([...SDK_RESOURCE_PATHS,...BUILTIN_RESOURCE_PATHS])];
   for(const path of await officialToolInputs())await write(path,await readFile(new URL('../../'+path,import.meta.url)));
   const canonical=await readFile(new URL('../../manifest.json',import.meta.url));
-  await write('manifest.json',canonical);await write('dist/manifest.json',canonical);
+  await write('manifest.json',canonical);
+  await write('dist/manifest.json',JSON.stringify({...JSON.parse(canonical),externally_connectable:developmentExternal}));
   for(const path of paths){
     const pinned=path===BUILTIN_CATALOG.bootstrap||path.startsWith('libs/vendor/');
     await write('dist/'+path,pinned?await readFile(new URL('../../src/'+path,import.meta.url)):'fixture '+path+' '.repeat(60));
@@ -197,18 +200,25 @@ test('live publication restores manifest policy, publishes builtin hashes, and r
       await writeFile(join(outDir,path),pinned?await readFile(new URL('../../src/'+path,import.meta.url)):'fixture '+path+' '.repeat(60));
     }
     const manifest=structuredClone(canonical);manifest.host_permissions.push('http://localhost/*');
+    manifest.externally_connectable=structuredClone(developmentExternal);
     manifest.content_security_policy.extension_pages+=' http://localhost:43119';
     await writeFile(join(outDir,'manifest.json'),JSON.stringify(manifest));
     await buildOfficialTools(outDir);
     const wxt={config:{root,outDir},logger:{info(){}}};
     const output={publicAssets:paths.filter(path=>!path.endsWith('.js')).map(fileName=>({fileName})),steps:[{chunks:paths.filter(path=>path.endsWith('.js')).map(fileName=>({fileName}))}]};
     await publishDevelopment(wxt,output);
-    verifyManifest(JSON.parse(await readFile(join(outDir,'manifest.json'))));
+    verifyManifest(JSON.parse(await readFile(join(outDir,'manifest.json'))),{mode:'development'});
     await verifyBuiltinResourceManifest(outDir);
     const markerPath=join(outDir,'development-update.json'),before=await readFile(markerPath,'utf8');
     const row=JSON.parse(before);
     assert.match(row.files[SDK_RESOURCE_MANIFEST],/^[a-f0-9]{64}$/);
     assert.match(row.files[BUILTIN_CATALOG.resourceManifest],/^[a-f0-9]{64}$/);
+    const published=await readFile(join(outDir,'manifest.json'),'utf8');
+    await writeFile(join(outDir,'manifest.json'),JSON.stringify({...JSON.parse(published),
+      externally_connectable:{matches:['https://unapproved.example/*']}}));
+    await assert.rejects(publishDevelopment(wxt,output),/Unapproved market external origin/);
+    assert.equal(await readFile(markerPath,'utf8'),before,'unknown origins cannot publish a new ready marker');
+    await writeFile(join(outDir,'manifest.json'),published);
     await rm(join(outDir,BUILTIN_CATALOG.pageCore));
     await assert.rejects(publishDevelopment(wxt,output),error=>error.code==='ENOENT');
     assert.equal(await readFile(markerPath,'utf8'),before);
@@ -224,7 +234,8 @@ test('required Workspace source failures survive unrelated successful static cop
   const server={watcher,currentOutput:{publicAssets:paths.map(fileName=>({fileName})),steps:[]}};
   try{
     const canonical=await readFile(new URL('../../manifest.json',import.meta.url),'utf8');
-    await writeFile(join(root,'manifest.json'),canonical);await mkdir(outDir);await writeFile(join(outDir,'manifest.json'),canonical);
+    await writeFile(join(root,'manifest.json'),canonical);await mkdir(outDir);
+    await writeFile(join(outDir,'manifest.json'),JSON.stringify({...JSON.parse(canonical),externally_connectable:developmentExternal}));
     for(const path of paths){
       await mkdir(dirname(join(outDir,path)),{recursive:true});
       const pinned=path===BUILTIN_CATALOG.bootstrap||path.startsWith('libs/vendor/');

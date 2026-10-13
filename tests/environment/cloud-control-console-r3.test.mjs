@@ -3,6 +3,8 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {requireCloudConsoleSender,requireCloudSidePanelSender} from '../../src/platform/host/cloud-observer.js';
 import {initCloudControlConsole} from '../../src/ui/cloud-control-console.js';
+import {PROTOCOL as FOUNDATION_PROTOCOL} from '../../src/platform/protocol.js';
+import {PROTOCOL as ENVIRONMENT_PROTOCOL} from '../../src/environment.js';
 
 const URL='chrome-extension://trusted/ui/cloud-control.html';
 const sender=()=>({id:'trusted',url:URL,frameId:0,documentId:'trusted-document',
@@ -84,6 +86,9 @@ test('console reads only cloudObserve and displays bounded redacted rows via tex
   const consoleView=initCloudControlConsole({api:a,doc,refreshIntervalMs:0});
   await new Promise(resolve=>setImmediate(resolve));
   assert.equal(calls.length,1);assert.equal(calls[0].type,'cloudObserve');
+  assert.equal(calls[0].protocol,FOUNDATION_PROTOCOL,
+    'Observer snapshots must reach the Foundation listener, not the health listener');
+  assert.notEqual(calls[0].protocol,ENVIRONMENT_PROTOCOL);
   assert.deepEqual(calls[0].payload,{offset:0,limit:20});
   assert.equal(nodes.get('cc-count').textContent,'1');
   assert.equal(nodes.get('cc-next').disabled,true);

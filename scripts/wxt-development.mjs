@@ -75,7 +75,7 @@ export async function publishDevelopment(wxt,output) {
   const manifest=JSON.parse(await readFile(manifestPath,'utf8'));
   manifest.host_permissions=source.host_permissions;
   manifest.content_security_policy=source.content_security_policy;
-  verifyManifest(manifest);
+  verifyManifest(manifest,{mode:'development'});
   await writeFile(manifestPath,JSON.stringify(manifest,null,2)+'\n');
   const official=validateOfficialReleaseCatalog(JSON.parse(await readFile(resolve(wxt.config.outDir,OFFICIAL_CATALOG_PATH),'utf8')));
   for(const row of official.apps){

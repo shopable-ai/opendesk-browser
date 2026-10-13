@@ -1,6 +1,6 @@
 // Trusted Cloud extension console: read-only observations without an execution host.
 // This UI can only send cloudObserve to the sender-validated readonly route.
-import {PROTOCOL} from '../environment.js';
+import {PROTOCOL} from '../platform/protocol.js';
 
 const STATES=Object.freeze({waiting:'等待领取',prepared:'等待许可',permitted:'已取得许可',
   finished:'已完成',cancelled:'已取消','cancellation-pending':'取消处理中',

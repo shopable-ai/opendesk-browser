@@ -1,6 +1,7 @@
 import crypto from 'node:crypto';
 import {requestAgent} from '../cli.mjs';
-import {requestShape} from '../wire.mjs';
+import {MAX_BYTES,requestShape} from '../wire.mjs';
+import {localSourceIdentity} from '../local-project-source-contract.mjs';
 import {validateTaskParams} from '../../src/platform/tasks/contract.js';
 import {decodeValue,encodeValue,VALUE_PROTOCOL} from '../../src/platform/page-port/codec.js';
 import {canonical} from '../../src/platform/protocol.js';
@@ -71,10 +72,18 @@ export class LocalDevSession{
       if((!page||resolved.siteOrigins.length)&&!resolved.siteOrigins.includes(selected.target.origin))throw devError('E_DEV_ORIGIN','Current target does not match the project siteOrigins');
       if(page&&(Object.keys(params).length||deadlineMs!==30000))throw devError('E_SCHEMA','Page preview has no Controller params or cancellation deadline');
       if(resolved.paramsSchema)validateTaskParams(resolved.paramsSchema,params);
-      const method=page?'page.preview':'run.start';
-      const payload={registrationId:selected.registrationId,sourceHash:resolved.sourceHash,sourceBytes:resolved.sourceBytes,target:selected.target,
-        ...(page?{sourceUtf8:resolved.sourceUtf8,entryFormat:resolved.entryFormat,bindingId,...(resolved.managedUI?{managedUI:true}:{}),...(resolved.pageRules?{pageRules:resolved.pageRules}:{})}:
-          {source:{kind:'draft',sourceUtf8:resolved.sourceUtf8},params,deadlineMs})};
+      const method=page?'page.preview':'run.start',common={registrationId:selected.registrationId,sourceHash:resolved.sourceHash,sourceBytes:resolved.sourceBytes,target:selected.target};
+      let payload;
+      if(page){
+        const providerEpoch=this.provider?.state?.().providerEpoch;
+        const inline={...common,sourceUtf8:resolved.sourceUtf8,entryFormat:resolved.entryFormat,bindingId,...(resolved.managedUI?{managedUI:true}:{}),...(resolved.pageRules?{pageRules:resolved.pageRules}:{})};
+        const reference=Buffer.byteLength(JSON.stringify({v:1,kind:'request',method,requestId,params:inline}),'utf8')>MAX_BYTES-4096;
+        if(reference&&(typeof providerEpoch!=='string'||!providerEpoch))throw devError('E_NATIVE_UPDATE_REQUIRED','Large Page source requires a registered project provider');
+        payload=reference?
+          {...common,entryFormat:resolved.entryFormat,bindingId,...(resolved.managedUI?{managedUI:true}:{}),...(resolved.pageRules?{pageRules:resolved.pageRules}:{}),
+            projectSource:{bindingId:resolved.bindingId,runtimeKind:resolved.runtimeKind,entryFormat:resolved.entryFormat,managedUI:resolved.managedUI===true,
+              ...localSourceIdentity(resolved),providerEpoch,...(resolved.pageRules?{pageRules:resolved.pageRules}:{})}}:inline;
+      }else payload={...common,source:{kind:'draft',sourceUtf8:resolved.sourceUtf8},params,deadlineMs};
       requestShape({v:1,kind:'request',method,requestId,params:payload});
       if(this.requests.size>=256)throw devError('E_LIMIT','This MCP session reached its admission history limit');
       const record={requestId,method,resolved,registrationId:selected.registrationId,target:selected.target,state:'OUTCOME_UNKNOWN',

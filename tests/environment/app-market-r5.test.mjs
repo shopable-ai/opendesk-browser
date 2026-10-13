@@ -236,13 +236,27 @@ test('R5 terminal settlement survives journal trimming and missing recovery resp
   await new Promise(resolve=>setImmediate(resolve));assert.equal(finished,false);assert.equal(k.values[MARKET_INTENTS_STORE].intents[0].settledAt,null);
   release();await holding;await closing;assert.equal(finished,true);
 });
+test('R5 newest fixed reading kit matches packaged releases while historical revisions stay pinned',async()=>{
+  const fixtures=await officialFixtures(),kits=OFFICIAL_COLLECTIONS.filter(row=>row.id==='reading-kit');
+  const current=kits[0];
+  assert.equal(current.revision,4);
+  for(const member of current.members){
+    const release=fixtures.catalog.apps.find(row=>row.id===member.id);
+    assert(release,member.id);assert.equal(member.version,release.version,member.id);
+  }
+  assert.deepEqual(kits.find(row=>row.revision===3).members,[
+    {id:'opendesk/reading-toc',version:'1.0.3'},
+    {id:'opendesk/web-markdown-clipper',version:'1.0.0'},
+    {id:'opendesk/quick-notes',version:'1.1.8'}]);
+});
+
 test('R5 immutable archive conflicts reject same-version bytes and same-revision replacement',async()=>{
   const fixtures=await officialFixtures(),snapshots=await loadMarketSnapshots();
   const merged=mergeMarketReleases(snapshots,fixtures.catalog,OFFICIAL_COLLECTIONS);
   for(const release of fixtures.catalog.apps)
     assert.equal(merged.releases.find(row=>row.id===release.id&&row.version===release.version)?.sha256,release.sha256);
   assert(merged.releases.some(row=>row.id==='opendesk/reading-toc'&&row.version==='1.0.2'));
-  assert.equal(merged.collections.length,3);
+  assert.equal(merged.collections.length,4);
   const changed=structuredClone(fixtures.catalog);
   const archived=changed.apps.find(row=>snapshots.some(snapshot=>snapshot.catalog.apps.some(saved=>saved.id===row.id&&saved.version===row.version)));
   assert(archived,'conflict fixture must already have an immutable archived release');

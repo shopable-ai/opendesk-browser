@@ -10,7 +10,7 @@ test('R23 semantic tokens are sole source of shared values and carry no page res
   ]);
   assert.match(tokens,/^\/\*[\s\S]*?\*\/\s*:root\{/);
   assert.doesNotMatch(tokens,/\b(?:html|body)\s*\{|\*\s*\{|overflow\s*:|@import\b|url\s*\(/);
-  for(const [name,value] of Object.entries({'od-brand':'#365eda','od-ink':'#1b2c49','od-sub':'#53647e','od-positive':'#138263','od-negative':'#ae3d4b','radius-control':'8px','radius-surface':'12px','space-2':'8px'})){
+  for(const [name,value] of Object.entries({'od-brand':'#365eda','od-ink':'#1b2c49','od-sub':'#53647e','od-positive':'#117a5d','od-negative':'#ae3d4b','radius-control':'8px','radius-surface':'12px','space-2':'8px'})){
     assert.ok(tokens.includes('--'+name+':'+value),'missing canonical token '+name);
     for(const [path,css] of [['Side Panel',side],['Workspace',workspace],['Settings',settings]]){
       assert.ok(!css.includes('--'+name+':'+value),path+' duplicates '+name);

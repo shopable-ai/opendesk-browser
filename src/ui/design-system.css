@@ -22,9 +22,9 @@ button{max-width:100%;border:0;border-radius:var(--radius-control);background:va
 button:disabled{opacity:.48;cursor:not-allowed}
 button:hover:not(:disabled){filter:brightness(.97)}
 details{margin:var(--space-2) 0}
-summary{cursor:pointer;color:#37516f;overflow-wrap:anywhere}
+summary{cursor:pointer;color:var(--od-sub);overflow-wrap:anywhere}
 details>section{margin-top:var(--space-3)}
-:focus-visible,#workspace-content :focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+:focus-visible,#workspace-content :focus-visible{outline:2px solid var(--od-focus);outline-offset:2px}
 .visually-hidden{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;clip-path:inset(50%)}
 
 /* Shared primitives: semantics here; state-specific geometry stays in tool-shell.css. */
@@ -33,7 +33,7 @@ details>section{margin-top:var(--space-3)}
 .od-stack{display:grid;gap:var(--space-2);min-width:0}
 .od-surface{min-width:0;background:var(--paper);border:1px solid var(--line);border-radius:var(--radius-surface)}
 .od-button{border-radius:var(--radius-control);font-weight:650}
-.od-button--secondary{color:#3157b1;background:#f0f4ff;border:1px solid #ccdafa}
+.od-button--secondary{color:var(--od-ink);background:var(--od-muted);border:1px solid var(--od-input-border)}
 .od-icon-button{position:relative;display:inline-grid;place-items:center;flex:none;width:var(--od-icon-size);height:var(--od-icon-size);min-width:var(--od-icon-size);min-height:var(--od-icon-size);padding:0;border:1px solid var(--od-line);border-radius:var(--radius-control);background:var(--od-paper);color:var(--od-sub)}
 .od-field{min-width:0;border-radius:var(--radius-control)}
 .od-segmented{display:flex;width:max-content;max-width:100%;gap:2px;padding:3px;background:var(--paper);border:1px solid var(--line);border-radius:var(--radius-surface)}

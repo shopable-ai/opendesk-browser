@@ -79,7 +79,7 @@ export function createLocalProjectProvider({session,installation=loadInstall,con
     runtimeKind:session.resolver.get(row.bindingId).runtimeKind,preparation:row.preparation}));
   const frozenSources=createFrozenProjectSources({resolver:session.resolver});
   let socket,epoch,closed=false,timer,authenticated=false,lastError=null,preparationUpdates=false,sourceTransfers=false,unsubscribePreparation;
-  const state=()=>({connected:!!epoch,providerId,lastError});
+  const state=()=>({connected:!!epoch,providerId,lastError,...(epoch?{providerEpoch:epoch}:{})});
   function write(value){writeLine(socket,value);}
   function changed(){if(epoch)try{write({v:1,kind:'provider.changed',providerEpoch:epoch,...(modern?{projects:catalog()}:{})});}catch{socket.destroy();}}
   function attempt(){

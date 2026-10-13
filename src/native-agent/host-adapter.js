@@ -1,7 +1,8 @@
-import {AgentBridgeError, agentObject, agentProjectBinding, agentTargetFromSnapshot, agentSameTarget} from './protocol.js';
+import {AgentBridgeError, agentObject, agentCanonical, agentProjectBinding, agentTargetFromSnapshot, agentSameTarget} from './protocol.js';
 import {permissionPattern} from '../environment.js';
 import {sha256Utf8} from '../scripting/user-scripts/page-program-package.js';
 import {validatePageProgramRules} from '../scripting/user-scripts/page-program-contract.js';
+import {sameLocalSourceIdentity, validLocalSourceIdentity} from '../../native-agent/local-project-source-contract.mjs';
 
 // A live Side Panel owns this adapter and the EXISTING RunHost instance.
 // The SW forwards only to its authenticated registered host port.
@@ -19,6 +20,7 @@ export function createNativeAgentHostAdapter({client, host, currentPageTarget, a
     await currentPageTarget.refresh();
     return agentTargetFromSnapshot(currentPageTarget.capture());
   }
+  const sameJson=(a,b)=>agentCanonical(a??null)===agentCanonical(b??null);
   async function handle(request) {
     await requireReady();
     const {method, params = {}} = request;
@@ -35,37 +37,50 @@ export function createNativeAgentHostAdapter({client, host, currentPageTarget, a
         expectedRevision:params.expectedRevision,sourceUtf8:params.sourceUtf8});
     }
     if(method==='page.preview') {
+      const p=JSON.parse(JSON.stringify(params));
       if(host.currentRun||[...previews.values()].some(row=>row.state==='preview-pending'))throw new AgentBridgeError('E_OWNER');
-      if(typeof params.sourceUtf8!=='string'||!['async-main','classic-userscript'].includes(params.entryFormat)||!agentObject(params.target))throw new AgentBridgeError('E_SCHEMA');
-      if(params.managedUI!==undefined&&(params.managedUI!==true||!agentProjectBinding(params.bindingId)))throw new AgentBridgeError('E_SCHEMA');
-      if(params.bindingId!==undefined&&!agentProjectBinding(params.bindingId))throw new AgentBridgeError('E_SCHEMA');
+      if(!['async-main','classic-userscript'].includes(p.entryFormat)||!agentObject(p.target))throw new AgentBridgeError('E_SCHEMA');
+      if(p.managedUI!==undefined&&(p.managedUI!==true||!agentProjectBinding(p.bindingId)))throw new AgentBridgeError('E_SCHEMA');
+      if(p.bindingId!==undefined&&!agentProjectBinding(p.bindingId))throw new AgentBridgeError('E_SCHEMA');
       if(previews.size>=64)throw new AgentBridgeError('E_LIMIT');
+      let sourceUtf8=p.sourceUtf8;
+      if(typeof sourceUtf8!=='string'){
+        const ref=p.projectSource;
+        if(!agentObject(ref)||!agentProjectBinding(ref.bindingId)||ref.bindingId!==p.bindingId||ref.runtimeKind!=='page-userscript'||ref.entryFormat!==p.entryFormat||
+          (ref.managedUI===true)!==(p.managedUI===true)||typeof ref.providerEpoch!=='string'||!ref.providerEpoch||!validLocalSourceIdentity(ref)||!client.requestLocalProject)throw new AgentBridgeError(client.requestLocalProject?'E_SCHEMA':'E_NATIVE_UPDATE_REQUIRED');
+        const source=await client.requestLocalProject('project.resolve',{bindingId:ref.bindingId});
+        if(source.bindingId!==ref.bindingId||source.runtimeKind!==ref.runtimeKind||source.entryFormat!==ref.entryFormat||
+          (source.managedUI===true)!==(ref.managedUI===true)||!sameLocalSourceIdentity(source,ref)||!sameJson(source.pageRules,ref.pageRules)||!sameJson(p.pageRules,ref.pageRules)||
+          source.providerEpoch!==ref.providerEpoch||
+          typeof source.sourceUtf8!=='string')throw new AgentBridgeError('E_DEV_HASH');
+        sourceUtf8=source.sourceUtf8;
+      }
       const current=await freshTarget();
-      if(!agentSameTarget(current,params.target))throw new AgentBridgeError('E_DOCUMENT_STALE');
+      if(!agentSameTarget(current,p.target))throw new AgentBridgeError('E_DOCUMENT_STALE');
       if(!await api.permissions.contains({origins:[permissionPattern(current.url)]}))throw new AgentBridgeError('E_PERMISSION_REQUIRED');
-      if(params.pageRules){
-        const rules=validatePageProgramRules(params.pageRules);
+      if(p.pageRules){
+        const rules=validatePageProgramRules(p.pageRules);
         const included=await api.tabs.query({url:rules.matches});
         const excluded=rules.excludeMatches.length?await api.tabs.query({url:rules.excludeMatches}):[];
         if(!included.some(t=>t.id===current.tabId)||excluded.some(t=>t.id===current.tabId))throw new AgentBridgeError('E_DEV_ORIGIN');
       }
-      if(params.sourceHash!==await sha256Utf8(params.sourceUtf8)||params.sourceBytes!==new TextEncoder().encode(params.sourceUtf8).length)
+      if(p.sourceHash!==await sha256Utf8(sourceUtf8)||p.sourceBytes!==new TextEncoder().encode(sourceUtf8).length)
         throw new AgentBridgeError('E_DEV_HASH');
       await currentPageTarget.revalidate({...current,status:'available'});
-      const previewId=crypto.randomUUID(),row={kind:'page-userscript',previewId,sourceHash:params.sourceHash,target:current,state:'preview-pending',durable:false,
-        ...(params.managedUI?{managedUI:true,bindingId:params.bindingId}:{})};
+      const previewId=crypto.randomUUID(),row={kind:'page-userscript',previewId,sourceHash:p.sourceHash,target:current,state:'preview-pending',durable:false,
+        ...(p.managedUI?{managedUI:true,bindingId:p.bindingId}:{})};
       previews.set(previewId,row);
       // One existing USER_SCRIPT preview promise; this adapter neither starts a
       // Controller nor evaluates code. Page identities never masquerade as runId.
-      Promise.resolve().then(()=>client.request('previewPageScript',{sourceUtf8:params.sourceUtf8,entryFormat:params.entryFormat,lockId:null,
-        ...(params.bindingId?{managedUI:{previewId,bindingId:params.bindingId,enabled:params.managedUI===true}}:{}),
+      Promise.resolve().then(()=>client.request('previewPageScript',{sourceUtf8,entryFormat:p.entryFormat,lockId:null,
+        ...(p.bindingId?{managedUI:{previewId,bindingId:p.bindingId,enabled:p.managedUI===true}}:{}),
         target:{tabId:current.tabId,frameId:0,documentId:current.documentId,expectedUrl:current.url,expectedWindowId:current.windowId}}))
         .then(result=>{
           if(!result||result.sourceHash!==row.sourceHash||result.world!=='USER_SCRIPT'||result.documentId!==current.documentId||result.tabId!==current.tabId)
             throw new AgentBridgeError('E_DEV_HASH',undefined,'OUTCOME_UNKNOWN');
-          if(params.managedUI&&(result.managedUI!==true||result.managedPreviewId!==previewId))throw new AgentBridgeError('E_DEV_HASH',undefined,'OUTCOME_UNKNOWN');
+          if(p.managedUI&&(result.managedUI!==true||result.managedPreviewId!==previewId))throw new AgentBridgeError('E_DEV_HASH',undefined,'OUTCOME_UNKNOWN');
           const previous=previews.get(result.previousCleanup?.previewId);
-          if(previous?.bindingId===params.bindingId&&result.previousCleanup?.ok===true)Object.assign(previous,{state:'preview-retired',cleanup:result.previousCleanup});
+          if(previous?.bindingId===p.bindingId&&result.previousCleanup?.ok===true)Object.assign(previous,{state:'preview-retired',cleanup:result.previousCleanup});
           Object.assign(row,{state:result.state,result});
         }).catch(e=>{const error=failure(e);Object.assign(row,{state:error.outcome==='OUTCOME_UNKNOWN'?'preview-unknown':'preview-failed',error});});
       return {...row};

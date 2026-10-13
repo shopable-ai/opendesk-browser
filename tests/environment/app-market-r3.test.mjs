@@ -52,9 +52,12 @@ test('market catalog uses pinned immutable member identity and every registered 
   const previous=getOfficialCollection('reading-kit',2);
   assert.deepEqual(previous.members,[{id:'opendesk/reading-toc',version:'1.0.3'},
     {id:'opendesk/web-markdown-clipper',version:'1.0.0'},{id:'opendesk/quick-notes',version:'1.1.6'}]);
-  const current=getOfficialCollection('reading-kit',3);
+  const archived=getOfficialCollection('reading-kit',3);
+  assert.deepEqual(archived.members,[{id:'opendesk/reading-toc',version:'1.0.3'},
+    {id:'opendesk/web-markdown-clipper',version:'1.0.0'},{id:'opendesk/quick-notes',version:'1.1.8'}]);
+  const current=getOfficialCollection('reading-kit',4);
   assert.equal(current,OFFICIAL_COLLECTIONS[0]);
-  assert.deepEqual(current.members,[{id:'opendesk/reading-toc',version:'1.0.3'},
+  assert.deepEqual(current.members,[{id:'opendesk/reading-toc',version:'1.0.4'},
     {id:'opendesk/web-markdown-clipper',version:'1.0.0'},{id:'opendesk/quick-notes',version:'1.1.8'}]);
 });
 test('every official release is the exact packaged tool ID, version and title',async()=>{

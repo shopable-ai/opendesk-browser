@@ -8,9 +8,12 @@
   --od-brand:#365eda;
   --od-paper:#fff;
   --od-bg:#f5f7fb;
-  --od-input-border:#cbd6e6;
+  --od-input-border:#7f8da1;
+  --od-accent-ink:var(--od-brand);
+  --od-focus:var(--od-brand);
+  --od-warning:#80510d;
   --od-muted:#f5f7fb;
-  --od-positive:#138263;
+  --od-positive:#117a5d;
   --od-negative:#ae3d4b;
   --space-1:4px;
   --space-2:8px;
@@ -29,7 +32,9 @@
   --od-dark-brand:#3566ba;
   --od-dark-paper:#151c28;
   --od-dark-bg:#101722;
-  --od-dark-input-border:#52627a;
+  --od-dark-input-border:#6d809b;
+  --od-dark-accent-ink:#9dc1ff;
+  --od-dark-warning:#ffd08a;
   --od-dark-muted:#222d3e;
   --od-dark-positive:#a1f3cc;
   --od-dark-negative:#ff9ea6;
@@ -51,6 +56,9 @@
     --od-paper:var(--od-dark-paper);
     --od-bg:var(--od-dark-bg);
     --od-input-border:var(--od-dark-input-border);
+    --od-accent-ink:var(--od-dark-accent-ink);
+    --od-focus:var(--od-dark-accent-ink);
+    --od-warning:var(--od-dark-warning);
     --od-muted:var(--od-dark-muted);
     --od-positive:var(--od-dark-positive);
     --od-negative:var(--od-dark-negative);

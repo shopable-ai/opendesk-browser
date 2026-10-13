@@ -160,6 +160,16 @@ export default defineConfig({
       config.plugins.push({
         name: `opendesk-fixed-${entry.name}`,
         transform(code,id) {
+          // Sidebar already passes null; do not bundle its unused legacy default.
+          // Other entries and the source compatibility API retain their default.
+          if(target==='ui/tool-shell.js'&&id===resolve('src/run-host.js')) {
+            const marker='templateModuleFactory = createScrapingModule';
+            const disabled='    const module = getModule();';
+            if(code.split(marker).length!==2||code.split(disabled).length!==2)
+              throw Error('RunHost template default changed; review Sidebar boundary');
+            return {code:code.replace(marker,'templateModuleFactory = null')
+              .replace(disabled,"    throw new FoundationError('E_MODULE_NOT_INSTALLED', 'Template module is disabled or unregistered');"),map:null};
+          }
           if(id===resolve('src/platform/schema.js'))
             return {code:schemaSpecializer.schemaModuleSource(code,{background:entry.type==='background'}),map:null};
           if(entry.type==='background') {const specialized=schemaSpecializer.transform(code,id);if(specialized)return specialized;}
