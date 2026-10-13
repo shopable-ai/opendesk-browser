@@ -132,3 +132,13 @@ Chrome 验收路径：使用相同源文件和 `programId=marked-a`，检查→�
 - SHA、来源、确切版本、依赖闭包、大小、私网/重定向限制、CWS/MV3、Authority、Stop/撤权/未知执行阻断全部继续自动严格执行；不允许用户下载 JS 进入特权 SW/Host，不得静默升级锁。
 - **新增产品验收**：正常脚本一次 Run；新 Classic 和 ESM 在无额外库审批点击时真正运行库函数；A/B 的人工库确认次数=0、B 网络下载=0、技术锁不同；完全重启/断网、坏 SHA、拒绝 Chrome 权限仍行为正确。旧 R7.1 审核 Node 测试 PASS 不等于新 UX PASS。
 - 以上最新规则以 `docs/framework/universal-dependency-runtime-usage-contract.zh-CN.md` 与 `docs/framework/prompts/goal-universal-dependency-runtime-r7.2-scenario-first-20261013.zh-CN.md` 为准；不修改上文任何历史提交 SHA、旧验收账本或运行结果。
+
+## R7.2 Native / File-First 方案冻结与执行交接（2026-10-13）
+
+**本段是文档合同更新，绝不代表底层代码或 Chrome 验收已完成。**
+
+- 权威长期方案：`docs/framework/universal-dependency-runtime-usage-contract.zh-CN.md` 第 3.1 节，文档提交 `f86b40cb04f851c6350c4e1f289080c722354d15`。选择 Native API + File-First + SHA 内容共享 + 静态 ESM 必要编译；远程网页 `script.src` 非默认通用方案；本地 Blob script.src 只在对应工具 sandbox 中按适用政策受控使用。所有旧 `@require`/Controller/Tool 的边界以及网站和程序权限继续有效。
+- 唯一执行 GOAL：`docs/framework/prompts/goal-universal-dependency-runtime-r7.2-scenario-first-20261013.zh-CN.md` 新 P0.2，文档提交 `824847a1df7c5103edcbd157bfc0650056303e53`。优先修改真实源码打通“Run 一次→自动处理新库→返回函数结果→A/B 复用 SHA→保存并离线复跑”，再推进 Controller、Tool、React/Vue、安装/定时/云控；不重新选择架构。
+- **旧真实测试不能误当通过**：GitHub R7.2 工作流 `38359159942`（候选 `5e339c289a61f2710fec5d08f602498d736ecccf`）两个 macOS job 的依赖 Node 测试各 **27/27 PASS**，但当时 `npm run check` 因 `Unexpected web accessible resources` 失败，Chrome 运行步骤均 **SKIPPED**。最新 main 的 `scripts/verify-package.mjs` 已改变 Web Accessible Resources 的校验方式，但这**不构成**本轮 R7.2 现候选同包构建/Chrome PASS；必须按下一轮真实 CI 确认。
+- `tests/framework/page-dependency-r72-cft-cycle.mjs` 当前仍以旧 R7.1 **人工多步审核**测 A/B，不证明新合同要求的“只点击 Run + 无逐库审批”。需改造其断言与真实 Chrome 驱动，且将手工流程的历史结果保留为限定证据。
+- **当前证据结论**：DECISION_FROZEN / DOC_UPDATED；R7.2 新目标 D02–D12 的完整产品闭环仍 **NOT_TESTED / INCOMPLETE**（以各 case 独立原始证据为准）；用户 Mac `MAC_NATIVE_NOT_TESTED`；CWS `COMPLIANCE_NOT_CLOSED`。不能因上述文档提交或理论方案评分宣布 95+。
