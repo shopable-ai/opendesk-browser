@@ -72,7 +72,10 @@
     },
     "externalStatusEndpoint": "POST https://trusted-provider/v1/job-status with own jobId",
     "externalResultReturn": "Only for own submitted job AND Browser task.resultAllowed at admission AND client.allowResult AND a full original Provider receipt",
-    "staleApprovalReplay": "Retired grantIds persist and /v1/capabilities rejects E_GRANT_STALE; old client tokens revoked on approval change"
+    "staleApprovalReplay": "Retired grantIds persist and /v1/capabilities rejects E_GRANT_STALE; old client tokens revoked on approval change",
+    "runRefProviderPin": "Provider requires UUID RunId/ResultId, requestId=cloud:assignmentId, pinned sourceHash/manifestHash, runRef.grantId equals targetGrantId",
+    "receiptIdentity": "receiptKey must equal admitted runRef.resultId; modified same-key payload is E_REQUEST_CONFLICT and changed key is E_RECEIPT_KEY",
+    "clientRemoteCLI": "client:grant --packages --token-out (0600), submit:remote, status:remote use real HTTPS"
   },
   "sourceCommits": [
     "85173716d554ef9679639da8c2b6186fd046c451",
@@ -96,7 +99,18 @@
     "eb8931adbbf8e4dab48146e600ff86f6a86671d6",
     "58a3939b5e57b866921f9c2d9b3878980b01105b",
     "cfd7daa7139b8b0309723516d848035e2e974c2a",
-    "24994880c48e70241174727d65c3165e4f0dc35d"
+    "24994880c48e70241174727d65c3165e4f0dc35d",
+    "59a7fc3d78fefea5345bb2fc726fc1c0f5130370",
+    "d95fd8330400943d85940e29b3ee55d949651e18",
+    "286fa75c08be60a6bc543062858090cc34116043",
+    "c72bcf44646a060e027a57106ac4c4cb310aac46",
+    "42090b1689b0c25172d9b07287ed22a392abd715",
+    "cd1d7b2d8149b968629d3b4d5bb5cb7942438acf",
+    "cadfafaf17beee04513775c93635b0aa5e0a8b53",
+    "47e7b27ab93a4c43cf463d8232c732aa615939b0",
+    "48fb4273f233913889d35f60c316a91193d01501",
+    "dfd4c3beb0f94cbe42474f71ed71e4c98dc9015c",
+    "9ad75dde80d2b79bcbd26b5276ebd2d606be2f47"
   ],
   "statuses": {
     "jobExecutorIsolation": "COMPONENT_TESTED",
@@ -111,7 +125,11 @@
     "build": "NOT_VERIFIED",
     "approvalGenerationFence": "COMPONENT_TESTED",
     "clientScopedTaskAndResultPermissions": "COMPONENT_TESTED",
-    "remoteJobStatus": "COMPONENT_TESTED"
+    "remoteJobStatus": "COMPONENT_TESTED",
+    "originalRunRefIdentity": "SOURCE_IMPLEMENTED",
+    "receiptImmutableResultId": "SOURCE_IMPLEMENTED",
+    "remoteCLITwoTaskProtocol": "SOURCE_IMPLEMENTED",
+    "sidebarR52ProductUXTests": "SOURCE_IMPLEMENTED"
   },
   "priorEvidence": {
     "r51": {
@@ -264,6 +282,7 @@
     "noRewriteKnownFailures": true
   },
   "remaining": [
+    "Immutable Provider RunRef/receipt guard and exact CLI + UI tests need matching new-SHA CI before COMPONENT_TESTED",
     "R5.2 scoped-client candidate Cloud component CI 157/157 passed, but final moving main requires fresh build evidence and native Chrome",
     "Fix shared tool-shell production fixed 524288 byte budget without raising budget",
     "Run real two installed different Tasks in Chrome and collect Worker Run/Result/retirement/receipt IDs",
@@ -297,5 +316,20 @@
     "sourceAndBuildVerified": false,
     "twoTaskRealChromeVerified": false,
     "deployedPublicInternetVerified": false
+  },
+  "latestAdditionalTests": [
+    "tests/cloud-control/remote-cli-r52.test.mjs",
+    "tests/cloud-control/r52-product-ui.test.mjs",
+    "tests/cloud-control/remote-https-r52.test.mjs",
+    "tests/cloud-control/executor-isolation-r52.test.mjs",
+    "tests/cloud-control/provider.test.mjs"
+  ],
+  "pendingExactCandidate": {
+    "sha": "9ad75dde80d2b79bcbd26b5276ebd2d606be2f47",
+    "componentRun": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38370589040",
+    "packageRun": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38370588579",
+    "observedStatus": "queued",
+    "conclusion": "NOT_VERIFIED",
+    "note": "Parallel-agent main commits after this candidate cannot inherit its CI results"
   }
 }
