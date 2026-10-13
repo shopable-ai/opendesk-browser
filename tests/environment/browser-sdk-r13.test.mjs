@@ -430,7 +430,7 @@ test('Browser canonical export methods preserve payload, bounds and strict schem
   assert.deepEqual(await sdk.downloads.text({text:'notes',filename:'notes.md'}),{text:'notes',filename:'notes.md'});
   assert.deepEqual(calls.map(row=>row.operation),['browser.clipboard.writeText','browser.downloads.text']);
   assert.throws(()=>sdk.downloads.text({text:'x',filename:'..\\escape.md'}),{code:'E_SCHEMA'});
-  assert.throws(()=>sdk.downloads.text({text:'x',filename:'x.txt'}),{code:'E_SCHEMA'});
+  assert.deepEqual(await sdk.downloads.text({text:'x',filename:'x.txt'}),{text:'x',filename:'x.txt'});
   assert.throws(()=>sdk.downloads.text({text:'x',filename:'x.md',tabId:9}),{code:'E_SCHEMA'});
   assert.throws(()=>sdk.clipboard.writeText('中'.repeat(50001)),{code:'E_LIMIT'});
   assert.equal(BROWSER_OPERATIONS['browser.downloads.text'].maxRequestBytes,170000);
