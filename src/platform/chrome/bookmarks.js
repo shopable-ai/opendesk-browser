@@ -24,11 +24,15 @@ function originFor(raw){
 }
 export function createBrowserBookmarksHost({api=globalThis.chrome,authorize,
   createRef=()=>crypto.randomUUID(),clock=Date}={}){
-  if(typeof authorize!=='function'||!api?.storage?.local?.get||!api?.storage?.local?.set)
-    throw fail('E_CONTEXT','Existing Browser Host and durable Chrome storage required');
+  if(typeof authorize!=='function')
+    throw fail('E_CONTEXT','Existing Browser Host authorization is required');
   let generation=0;
   const key=context=>BOOKMARK_OWNED_STORE_PREFIX+context.toolId;
   async function read(context,{allowReset=false}={}){
+    // Optional API availability must not break unrelated Browser Host routes.
+    // Fail closed only when an installed tool actually invokes Bookmarks.
+    if(!api?.storage?.local?.get||!api?.storage?.local?.set)
+      throw fail('E_CHROME_UNSUPPORTED','Chrome local storage is unavailable for owned bookmarks');
     const identity=owner(context);
     let raw;
     try{raw=(await api.storage.local.get(key(context)))[key(context)]}
