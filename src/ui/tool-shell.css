@@ -888,18 +888,36 @@
 .trusted-cookie-write>.hint{line-height:1.6}
 @media(max-width:350px){.trusted-cookie-item-actions{width:100%}}
 
-#workbench-cloud .cloud-task-approvals{border:1px solid var(--od-line);border-radius:var(--radius-surface);padding:var(--space-2);margin:var(--space-3) 0 0;min-width:0}
-#workbench-cloud .cloud-task-approvals legend{font-size:12px;font-weight:650;padding:0 var(--space-1)}
-#workbench-cloud #cloud-task-list{display:grid;gap:var(--space-2);min-width:0}
-#workbench-cloud .cloud-task-choice{display:grid;gap:var(--space-1);min-width:0;border-top:1px solid var(--od-line);padding-top:var(--space-2);font-size:11px}
-#workbench-cloud .cloud-task-choice label{display:flex;align-items:baseline;gap:var(--space-2);min-width:0;overflow-wrap:anywhere}
-#workbench-cloud .cloud-task-choice input{flex:0 0 auto}
-#workbench-cloud .cloud-task-scope{font-size:10px;line-height:1.5;color:var(--od-sub);margin:0;overflow-wrap:anywhere}
-#workbench-cloud #cloud-approval-summary{font-size:11px;line-height:1.4;overflow-wrap:anywhere}
-
-#workbench-cloud .cloud-task-choice details{min-width:0}
-#workbench-cloud .cloud-task-choice details summary{font-size:11px;font-weight:600;cursor:pointer}
-#workbench-cloud .cloud-task-choice details pre{white-space:pre-wrap;overflow-wrap:anywhere;font-size:10px;line-height:1.5;max-height:200px;overflow:auto}
+/* R5.2 Cloud: task-first authorization, advanced technical identity and one page gutter. */
+#workbench-cloud .cloud-overview-secondary{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--space-2);margin-top:var(--space-2)}
+#workbench-cloud .cloud-overview-secondary>div{min-width:0;font-size:12px;line-height:1.5;color:var(--od-sub)}
+#workbench-cloud .cloud-overview-secondary strong{display:block;color:var(--od-ink);overflow-wrap:anywhere}
+#workbench-cloud .cloud-diagnostics{margin-top:var(--space-3);min-width:0}
+#workbench-cloud .cloud-diagnostics>summary{cursor:pointer;font-size:12px;color:var(--od-sub);min-height:30px}
+#workbench-cloud .cloud-first-run{padding:var(--space-3);display:grid;gap:var(--space-2);min-width:0}
+#workbench-cloud .cloud-first-run[hidden],#workbench-cloud .cloud-approval-section[hidden]{display:none}
+#workbench-cloud .cloud-first-run p{margin:0;font-size:13px;line-height:1.5;overflow-wrap:anywhere}
+#workbench-cloud .cloud-approval-section{display:grid;gap:var(--space-2);padding:var(--space-3);min-width:0}
+#workbench-cloud .cloud-privacy-note{margin:0;font-size:12px;line-height:1.55;color:var(--od-sub)}
+#workbench-cloud .cloud-task-approvals{border:0;padding:0;margin:0;min-width:0}
+#workbench-cloud .cloud-task-approvals legend{font-size:12px;font-weight:650}
+#workbench-cloud #cloud-task-list{display:grid;gap:0;min-width:0}
+#workbench-cloud .cloud-task-choice{display:grid;gap:var(--space-2);min-width:0;border-top:1px solid var(--od-line);padding:var(--space-3) 0;font-size:12px;line-height:1.5}
+#workbench-cloud .cloud-task-choice>label:first-child{display:flex;align-items:flex-start;flex-wrap:wrap;gap:var(--space-2);min-width:0;font-size:13px;font-weight:650}
+#workbench-cloud .cloud-task-choice label{display:flex;align-items:flex-start;gap:var(--space-2);min-width:0;overflow-wrap:anywhere}
+#workbench-cloud .cloud-task-choice label>span{min-width:0;flex:1;overflow-wrap:anywhere}
+#workbench-cloud .cloud-task-choice input{flex:0 0 auto;margin-top:3px}
+#workbench-cloud .cloud-task-description{display:block;flex:0 0 100%;margin-left:24px;font-size:12px;line-height:1.5;color:var(--od-sub);font-weight:400;overflow-wrap:anywhere}
+#workbench-cloud .cloud-task-scope,#workbench-cloud .cloud-task-params{font-size:12px;line-height:1.5;color:var(--od-sub);margin:0;overflow-wrap:anywhere}
+#workbench-cloud #cloud-approval-summary{font-size:12px;line-height:1.5;overflow-wrap:anywhere;margin:var(--space-2) 0 0}
+#workbench-cloud .cloud-approval-confirm{display:flex;align-items:flex-start;gap:var(--space-2);min-width:0;font-size:12px;line-height:1.5}
+#workbench-cloud .cloud-approval-confirm input{flex:0 0 auto}
+#workbench-cloud .cloud-action-row{display:flex;gap:var(--space-2);flex-wrap:wrap;min-width:0}
+#workbench-cloud .cloud-action-row>button{flex:1 1 140px;min-width:0;min-height:36px}
+#workbench-cloud .cloud-task-choice details{min-width:0;max-width:100%}
+#workbench-cloud .cloud-task-choice details summary{font-size:12px;font-weight:600;cursor:pointer;min-height:28px}
+#workbench-cloud .cloud-task-choice details pre{white-space:pre-wrap;overflow-wrap:anywhere;font-size:11px;line-height:1.5;max-height:200px;max-width:100%;overflow:auto}
+@media(max-width:340px){#workbench-cloud .cloud-action-row>button{flex-basis:100%}#workbench-cloud .cloud-overview-secondary{grid-template-columns:1fr}}
 
 /* R2.3 local-only storage transparency; no destructive cleanup control. */
 .schedule-storage-details{max-width:100%;min-width:0;border:1px solid var(--od-line);border-radius:var(--radius-control);background:var(--od-paper)}
