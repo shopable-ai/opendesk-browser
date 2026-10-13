@@ -54,7 +54,7 @@
     "externalSubmitEndpoint": "https://trusted-provider/v1/submit",
     "externalWebSocket": "wss://trusted-provider/v1/events",
     "noPublicAdmin": true,
-    "externalClientScope": "server-side bound executorId + pairingId",
+    "externalClientScope": "Each issued client token pins executorId + pairingId + grantId + immutable approved task pins; readResult is independently default false",
     "statusOnlyFields": [
       "visibility",
       "state",
@@ -69,7 +69,10 @@
       "maxNewJobsPer60Seconds": 60,
       "maxOutstandingQueued": 100,
       "idempotentRetry": "Original jobId without extra quota"
-    }
+    },
+    "externalStatusEndpoint": "POST https://trusted-provider/v1/job-status with own jobId",
+    "externalResultReturn": "Only for own submitted job AND Browser task.resultAllowed at admission AND client.allowResult AND a full original Provider receipt",
+    "staleApprovalReplay": "Retired grantIds persist and /v1/capabilities rejects E_GRANT_STALE; old client tokens revoked on approval change"
   },
   "sourceCommits": [
     "85173716d554ef9679639da8c2b6186fd046c451",
@@ -88,20 +91,27 @@
     "b1a5b51127d92a1943d7824fb35ede9fa6cf41c0",
     "3d1284224b46c2c26ccb9c421b27d51ec4c7ee95",
     "df8be0483b37d58c894b0e2aad0535eeebd978a6",
-    "80a00eeb75f5c0d19df74a842067ff81dd52b194"
+    "80a00eeb75f5c0d19df74a842067ff81dd52b194",
+    "faf43e48954584a9df94a8fd58e059d01bd19138",
+    "eb8931adbbf8e4dab48146e600ff86f6a86671d6",
+    "58a3939b5e57b866921f9c2d9b3878980b01105b",
+    "cfd7daa7139b8b0309723516d848035e2e974c2a",
+    "24994880c48e70241174727d65c3165e4f0dc35d"
   ],
   "statuses": {
-    "jobExecutorIsolation": "SOURCE_IMPLEMENTED",
-    "statusOnlyReceipts": "SOURCE_IMPLEMENTED",
+    "jobExecutorIsolation": "COMPONENT_TESTED",
+    "statusOnlyReceipts": "COMPONENT_TESTED",
     "twoDistinctChromeTasks": "NATIVE_PENDING",
     "chromeUIResponsive": "NATIVE_PENDING",
-    "remoteTLSProtocol": "SOURCE_IMPLEMENTED",
+    "remoteTLSProtocol": "COMPONENT_TESTED",
     "deployedRemoteChrome": "REMOTE_NATIVE_PENDING",
     "macChromeValidation": "NATIVE_PENDING",
     "longRunningRunner": "NOT_IMPLEMENTED",
-    "componentCI": "NOT_VERIFIED",
+    "componentCI": "COMPONENT_TESTED",
     "build": "NOT_VERIFIED",
-    "approvalGenerationFence": "SOURCE_IMPLEMENTED"
+    "approvalGenerationFence": "COMPONENT_TESTED",
+    "clientScopedTaskAndResultPermissions": "COMPONENT_TESTED",
+    "remoteJobStatus": "COMPONENT_TESTED"
   },
   "priorEvidence": {
     "r51": {
@@ -254,12 +264,38 @@
     "noRewriteKnownFailures": true
   },
   "remaining": [
+    "R5.2 scoped-client candidate Cloud component CI 157/157 passed, but final moving main requires fresh build evidence and native Chrome",
     "Fix shared tool-shell production fixed 524288 byte budget without raising budget",
-    "Verify new Cloud CI; repair deterministic assertion/runtime failures",
     "Run real two installed different Tasks in Chrome and collect Worker Run/Result/retirement/receipt IDs",
     "Capture real Chrome side panel 300/320/360/420/520px 125%/200% keyboard and screenshot matrix",
     "Deploy only with approved trusted HTTPS/WSS server/account; run external Chrome end-to-end; otherwise REMOTE_NATIVE_PENDING",
     "Continue stop/upgrade/restart/network loss/unknown effect native negative gates",
-    "Verify approval generation rebind race and revoke-after-partial-result in original Chrome"
-  ]
+    "Verify approval generation rebind race and revoke-after-partial-result in original Chrome",
+    "External client credentials must be audited and rotated by Provider operator; dedicated user-visible per-client UI is not yet verified"
+  ],
+  "currentComponentEvidence": {
+    "candidateSha": "24994880c48e70241174727d65c3165e4f0dc35d",
+    "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38368001891",
+    "conclusion": "success",
+    "scope": "Cloud R5.2 HTTP/WSS/TLS contract + Controller Authority + Side Panel component only",
+    "cloudProviderTests": {
+      "passed": 34,
+      "failed": 0
+    },
+    "controllerAuthorityTests": {
+      "passed": 113,
+      "failed": 0
+    },
+    "cloudSidePanelTests": {
+      "passed": 10,
+      "failed": 0
+    },
+    "total": {
+      "passed": 157,
+      "failed": 0
+    },
+    "sourceAndBuildVerified": false,
+    "twoTaskRealChromeVerified": false,
+    "deployedPublicInternetVerified": false
+  }
 }
