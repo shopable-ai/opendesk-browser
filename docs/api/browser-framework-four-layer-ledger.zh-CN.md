@@ -1,6 +1,4 @@
-> **现行废止公告（2026-10-13）**：旧「35 项 API 名称/签名/数量必须长期兼容」政策已正式 **ABOLISHED**。本文件下方 35/26/7/2、Cookie 0/10 与旧 114 候选是 R6 历史审计快照，既非当前公开 Registry，也非验收事实。当前逐接口合同以 [唯一执行手册](browser-sdk-execution-manual.zh-CN.md)、[唯一接口矩阵](browser-sdk-interface-matrix.json) 和实际 `src/framework/sdk/browser-contract.js` 为准；历史兼容映射中 ACTIVE 标记不再生效。
-
-> **R9 当前四层合同（2026-10-13）**：本页及下方旧表保留 R6/R8 原始审计快照，原 35/26/7/2 不再是当前接口分母。R9 正式注册表保留 **29 项正式已接线操作**（原 9 项占位已删除，旧记录位于 JSON 的 `legacyR8RemovedFormal`）；Cookie 可信 Host 与安装工具公开 SDK 的能力继续分开。当前原生 Chrome 验收仍 NOT_TESTED；正式机读状态请以当前 `browser-contract.js` + `browser-sdk-acceptance.json` + 四层 JSON `formal` 为准。
+> **R9 当前四层合同（2026-10-13）**：正式 Browser SDK **40 项正式登记 / 40 项 SOURCE_WIRED / 11 项 Cookies**，旧 114 个原始候选中 **15 项已晋级、99 项仍是历史候选**。Cookie 的原始 10 候选中 9 项采用现名晋级；旧 `getStores` 没有作为别名保留，新增 `getCurrentStore` 与 `observe.read` 属当前正式 SDK。安装工具受独立网站/敏感值授权限制，官方工具身份不构成免授权。**Mac Chrome 原生验收 0 项同候选 PASS（NOT_TESTED）**。下文保留 R6 历史快照，不再当作现行统计。
 
 # 浏览器框架四层总账（R6，2026-10-13）
 
