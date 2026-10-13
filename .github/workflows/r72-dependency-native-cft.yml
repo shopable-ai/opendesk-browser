@@ -50,17 +50,17 @@ jobs:
           chrome-version: '155.0.8059.39'
       - name: True Chrome Side Panel new Marked UMD and B independent SHA approval
         env:
-          CHROME_FOR_TESTING_BIN: '${{ steps.chrome.outputs.chrome-path }'
+          CHROME_FOR_TESTING_BIN: '${{ steps.chrome.outputs.chrome-path }}'
           OPENDESK_R72_DEPENDENCY_NATIVE_SMOKE: '1'
           OPENDESK_R243_BROWSER_FULL_UI: '1'
-          OPENDESK_R245_STANDARD_SMOKE: "${{ matrix.edition == 'standard' && '1' || '0' }"
-          OPENDESK_DEV_PACKAGE_DIR: "${{ matrix.edition == 'standard' && 'dist/production' || 'dist/production-developer' }"
-          OPENDESK_DEV_EVIDENCE: '.runtime/tests/r72-${{ matrix.edition }-chrome'
+          OPENDESK_R245_STANDARD_SMOKE: "${{ matrix.edition == 'standard' && '1' || '0' }}"
+          OPENDESK_DEV_PACKAGE_DIR: "${{ matrix.edition == 'standard' && 'dist/production' || 'dist/production-developer' }}"
+          OPENDESK_DEV_EVIDENCE: '.runtime/tests/r72-${{ matrix.edition }}-chrome'
           OPENDESK_DEV_CFT_LAUNCHER: '${{ github.workspace }}/tests/framework/cft-isolated-launcher.py'
         run: node tests/framework/page-browser-worker-r243-cft.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: r72-classic-ab-${{ matrix.edition }-${{ github.sha }
-          path: .runtime/tests/r72-${{ matrix.edition }-chrome
+          name: r72-classic-ab-${{ matrix.edition }}-${{ github.sha }}
+          path: .runtime/tests/r72-${{ matrix.edition }}-chrome
           if-no-files-found: warn
