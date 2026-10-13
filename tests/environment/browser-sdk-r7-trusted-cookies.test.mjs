@@ -101,10 +101,16 @@ test('R7 denied Chrome permission, changed document, and untrusted identity cann
   const f=fixture(),approval=await f.approve('browser.cookies.getAll');
   f.state.site=false;
   await assert.rejects(f.execute(approval.approvalRef),reject('E_CHROME_PERMISSION_REQUIRED'));
-  f.state.site=true;f.state.document.documentId='changed-document';
-  await assert.rejects(f.run('browser.cookies.getAll'),reject('E_DOCUMENT_CHANGED'));
-  f.state.document.documentId='web-document-1';f.state.tab.url='https://shop.example.test/other';
-  await assert.rejects(f.run('browser.cookies.getAll'),reject('E_DOCUMENT_CHANGED'));
+  f.state.site=true;
+  // The approval must be bound to the OLD document; a fresh approval for the
+  // replacement would legitimately succeed and cannot prove the stale fence.
+  const staleDocument=await f.approve('browser.cookies.getAll');
+  f.state.document.documentId='changed-document';
+  await assert.rejects(f.execute(staleDocument.approvalRef),reject('E_DOCUMENT_CHANGED'));
+  f.state.document.documentId='web-document-1';
+  const staleUrl=await f.approve('browser.cookies.getAll');
+  f.state.tab.url='https://shop.example.test/other';
+  await assert.rejects(f.execute(staleUrl.approvalRef),reject('E_DOCUMENT_CHANGED'));
   assert.equal(f.state.native.filter(([name])=>name==='getAll').length,0);
 });
 test('R7 reuse R8 Cookie Driver write/readback, prefix denial, scoped remove and no automatic retry',async()=>{
