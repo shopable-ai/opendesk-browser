@@ -29,7 +29,9 @@ jobs:
           cache: npm
       - name: Locked build tools
         run: npm ci --ignore-scripts --no-audit --no-fund
-      # A 2026-10-13 WXT entry allowlist fix changed this native input.
+      # Strict verifier now accepts only the reviewed zero-argument tool-shell unary IIFE,
+      # while rejecting unrelated unary and extra-statement outputs; native retry
+      # is justified solely because scripts/verify-package.mjs source changed.
       - name: Create genuine production extension
         run: npm run build
         env:
