@@ -100,7 +100,7 @@ export async function openProvider({directory='.local/cloud-control',port=43112,
             out={providerId:state.providerId,credential:state.executors[b.executorId].credential};break;}
           case '/v1/unpair':{
             exact(b,[]);const row=state.executors[executorId];
-            row.revokedAt=clock()||1;row.credential=token();delete row.capabilities;
+            row.revokedAt=clock()||1;row.credential=token();delete row.capabilities;delete row.grantId;
             // Never erase historical Run, Result or receipt. Quarantine unclaimed old work.
             for(const j of Object.values(state.jobs))
               if(j.targetExecutorId===executorId&&j.targetPairingId===row.pairingId&&j.state==='queued')j.cancelled=true;
@@ -109,21 +109,46 @@ export async function openProvider({directory='.local/cloud-control',port=43112,
             out={revoked:true};break;}
           case '/v1/auth':{
             exact(b,[]);const t=token();tickets.set(t,{executorId,pairingId:state.executors[executorId].pairingId,until:clock()+30000});out={ticket:t,expiresAt:clock()+30000,providerId:state.providerId};break;}
-          case '/v1/capabilities':exact(b,['tasks']);if(!Array.isArray(b.tasks)||b.tasks.length>32)fail('E_SCHEMA');state.executors[executorId].capabilities=b.tasks;out={accepted:true};break;
+          case '/v1/capabilities':{
+            exact(b,['tasks','grantId']);
+            if(!Array.isArray(b.tasks)||b.tasks.length>32||
+              typeof b.grantId!=='string'||!/^[-a-f0-9]{36}$/.test(b.grantId))
+              fail('E_SCHEMA');
+            for(const task of b.tasks){
+              exact(task,['taskId','manifestHash','sourceHash']);
+              if(typeof task.taskId!=='string'||!/^[a-f0-9]{64}$/.test(task.manifestHash)||
+                !/^[a-f0-9]{64}$/.test(task.sourceHash))fail('E_SCHEMA');
+            }
+            const owner=state.executors[executorId];
+            if(owner.grantId&&owner.grantId!==b.grantId){
+              // A new local approval generation cannot inherit queued requests.
+              for(const job of Object.values(state.jobs))
+                if(job.state==='queued'&&job.targetExecutorId===executorId&&
+                  job.targetPairingId===owner.pairingId&&job.targetGrantId!==b.grantId)
+                  job.cancelled=true;
+            }
+            owner.grantId=b.grantId;owner.capabilities=b.tasks;
+            out={accepted:true};break;
+          }
           case '/v1/claim':{
-            exact(b,['claimId','tasks']);out=once(executorId+':claim',b.claimId,b,()=>{
+            exact(b,['claimId','tasks','grantId']);
+            if(b.grantId!==state.executors[executorId].grantId)fail('E_GRANT');
+            out=once(executorId+':claim',b.claimId,b,()=>{
               if(![...sockets.values()].includes(executorId))fail('E_CONNECTION');
               const j=Object.values(state.jobs).find(j=>j.state==='queued'&&!j.cancelled&&
-                j.targetExecutorId===executorId&&j.targetPairingId===state.executors[executorId].pairingId&&b.tasks.some(t=>t.taskId===j.task.taskId&&t.manifestHash===j.task.manifestHash&&t.sourceHash===j.task.sourceHash)&&canonical(taskPin(state.taskRegistry[taskRegistryKey(j.task)]??{}))===canonical(j.task));
+                j.targetExecutorId===executorId&&j.targetPairingId===state.executors[executorId].pairingId&&
+                j.targetGrantId===b.grantId&&b.tasks.some(t=>t.taskId===j.task.taskId&&t.manifestHash===j.task.manifestHash&&t.sourceHash===j.task.sourceHash)&&canonical(taskPin(state.taskRegistry[taskRegistryKey(j.task)]??{}))===canonical(j.task));
               if(!j)return {assignment:null};j.state='assigned';j.assignment={assignmentId:randomUUID(),executorId,
                 pairingId:state.executors[executorId].pairingId,claimId:b.claimId,leaseUntil:clock()+90000};return {assignment:{...j.assignment,jobId:j.jobId,task:j.task,params:j.params,target:j.target}};});break;}
           case '/v1/admission':{
             exact(b,['assignmentId','runRef','resultAllowed']);const j=owned(b,executorId);
-            if(typeof b.resultAllowed!=='boolean')fail('E_SCHEMA');exact(b.runRef,['runId','resultId','requestId','sourceHash','manifestHash','grantId']);
+            if(typeof b.resultAllowed!=='boolean')fail('E_SCHEMA');
+            if(j.targetGrantId!==state.executors[executorId].grantId)fail('E_GRANT');exact(b.runRef,['runId','resultId','requestId','sourceHash','manifestHash','grantId']);
             if(j.cancelled||j.assignment.leaseUntil<=clock())fail('E_LEASE');if(b.runRef.sourceHash!==j.task.sourceHash||b.runRef.manifestHash!==j.task.manifestHash)fail('E_TASK');
             out=once('admission',b.assignmentId,b,()=>{j.runRef=b.runRef;j.resultAllowed=b.resultAllowed;j.state='admitted';j.permit={permitId:randomUUID(),assignmentId:b.assignmentId,runRef:b.runRef,leaseUntil:j.assignment.leaseUntil,providerId:state.providerId};return j.permit;});break;}
           case '/v1/renew':{
-            exact(b,['assignmentId','permitId']);const j=owned(b,executorId);if(j.cancelled||j.assignment.leaseUntil<=clock()||j.permit?.permitId!==b.permitId)fail('E_LEASE');j.assignment.leaseUntil=clock()+90000;out={leaseUntil:j.assignment.leaseUntil};break;}
+            exact(b,['assignmentId','permitId']);const j=owned(b,executorId);if(j.cancelled||j.assignment.leaseUntil<=clock()||j.permit?.permitId!==b.permitId||
+              j.targetGrantId!==state.executors[executorId].grantId)fail('E_LEASE');j.assignment.leaseUntil=clock()+90000;out={leaseUntil:j.assignment.leaseUntil};break;}
           case '/v1/cancellation':{
             exact(b,['assignmentId']);const j=owned(b,executorId);out={cancelled:Boolean(j.cancelled),leaseUntil:j.assignment.leaseUntil};break;}
           case '/v1/receipt':{
@@ -158,7 +183,7 @@ export async function openProvider({directory='.local/cloud-control',port=43112,
           case '/admin/client-grant':{
             exact(b,['executorId']);
             const row=state.executors[b.executorId];
-            if(!row||row.revokedAt)fail('E_EXECUTOR_TARGET');
+            if(!row||row.revokedAt||!row.grantId)fail('E_EXECUTOR_TARGET');
             const clientId=randomUUID(),credential=token();
             state.clients[clientId]={executorId:b.executorId,pairingId:row.pairingId,
               credential,createdAt:clock(),revokedAt:null};
@@ -203,11 +228,14 @@ export async function openProvider({directory='.local/cloud-control',port=43112,
             const params=validateTaskParams(task.manifest.paramsSchema,b.params??{}),
               pin=taskPin(task);
             const owner=state.executors[b.targetExecutorId];
+            if(!owner.grantId||!owner.capabilities?.some(t=>
+              t.taskId===pin.taskId&&t.manifestHash===pin.manifestHash&&t.sourceHash===pin.sourceHash))
+              fail('E_GRANT','Target Executor has not approved this Task');
             out=once('seed:'+b.targetExecutorId+':'+owner.pairingId,b.requestKey,
               {task:pin,params,target,targetExecutorId:b.targetExecutorId},()=>{
               const jobId=randomUUID();
               state.jobs[jobId]={jobId,state:'queued',createdAt:clock(),task:pin,params,target,
-                targetExecutorId:b.targetExecutorId,targetPairingId:owner.pairingId};
+                targetExecutorId:b.targetExecutorId,targetPairingId:owner.pairingId,targetGrantId:owner.grantId};
               return {jobId};});break;}
           case '/v1/submit':{
             // HTTPS caller is bound to one active paired Executor, not arbitrary
@@ -220,12 +248,16 @@ export async function openProvider({directory='.local/cloud-control',port=43112,
             const target=validateCloudTarget(b.target,task.manifest.siteOrigins);
             const params=validateTaskParams(task.manifest.paramsSchema,b.params??{});
             const pin=taskPin(task);
+            const owner=state.executors[client.executorId];
+            if(!owner.grantId||!owner.capabilities?.some(t=>
+              t.taskId===pin.taskId&&t.manifestHash===pin.manifestHash&&t.sourceHash===pin.sourceHash))
+              fail('E_GRANT','Target Executor has not approved this Task');
             out=once('external:'+client.clientId+':'+client.pairingId,b.requestKey,
               {task:pin,params,target,executorId:client.executorId},()=>{
                 const jobId=randomUUID();
                 state.jobs[jobId]={jobId,state:'queued',createdAt:clock(),
                   task:pin,params,target,targetExecutorId:client.executorId,
-                  targetPairingId:client.pairingId,submittedBy:client.clientId};
+                  targetPairingId:client.pairingId,targetGrantId:owner.grantId,submittedBy:client.clientId};
                 return {jobId};
               });
             break;
