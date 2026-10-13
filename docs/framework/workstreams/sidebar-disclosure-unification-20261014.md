@@ -29,6 +29,10 @@ R32 原生验收续接写入范围：`src/ui/task-workbench.js`、`src/ui/sideba
 
 Cloud 补充真实键盘验证：Left→Tools、Right→Cloud、Enter/Space 折叠详情通过，创建凭据仍禁用、授权任务数仍为 0。实际文档只读 DevTools 测量 `innerWidth/clientWidth/scrollWidth=363/363/363`、高 839、DPR 2：flat 标题 36px / 12px / 650 / padding 8px 0，两个一级标题 40px / 13px / 650 / padding 8px 12px，展开正文分别 315/315 和 339/339，无横向溢出。HTML 与三份受影响 CSS 的源码及日常 `dist/development/ui/` 字节一致。记录于 `artifacts/sidebar-r32-accepted-preserved/cloud-navigation-acceptance-d2700659.json`，不覆盖先前 receipt。原生完整 300–520 宽度和 Side Panel 自身缩放仍 NOT_TESTED，95+ 为 NOT_SCORED / NOT_ACCEPTED。
 
+### 原生控制阻塞复核（第三连续 GOAL 回合）
+
+当前 main `b2c0e1fa885328f986c3738f3ed4a3a8e1421d27`，本轮相关源码无未提交 diff，日常 Chrome PID 73139 及 watcher PID 25149/25173 仍存活。上轮为实质进展（Cloud 导航修复、代码/证据提交、同候选 CI 与真实几何），本轮只核验剩余控制路径。辅助功能树暴露「侧边栏大小调整手柄（可拖动）」及 Increment/Decrement；原生 Increment 没有得到尺寸变更，点击后 Left 进入页签键盘导航，未调整视口。实际扩展文档只读复测为 `innerWidth=363,height=839,clientWidth=363,scrollWidth=363,dpr=2,tab=我的`。已返回测试主窗口「我的」，未触发 Run、授权或替换日常扩展。该结果与前两回合的拖拽无尺寸变化、输入工具失败属于同一原生控制阻塞；完整宽度与 Side Panel 自身缩放仍 NOT_TESTED，等待可用的原生控制路径或独立人工矩阵证据后续接，GOAL 不宣称完成。
+
 本轮修改真实 Side Panel，继续使用 `od-disclosure` / `--flat` / `--info`，没有新 UI、Tailwind、依赖、权限或 iframe 样式注入。独立审阅 Lovelace 检查了正文留白、hidden、标题布局及暂存边界；视觉驱动由 Hume 修改，最终修复和验证由本对话负责人执行。
 
 | 页面 | 已迁移的真实组件 | 原生观察与缺口 |
