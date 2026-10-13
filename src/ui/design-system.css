@@ -7,6 +7,8 @@ html,body{height:100%;overflow:hidden;min-width:0}
 body{display:flex;flex-direction:column;margin:0;background:var(--od-bg)}
 h1,h2,h3{margin:0;letter-spacing:-.015em}
 p{margin:var(--space-2) 0;overflow-wrap:anywhere}
+/* Emphasis inside a paragraph changes weight, never its size or semantic ink. */
+p :is(strong,b){font-size:inherit;color:inherit;font-weight:650}
 main{min-width:0}
 section{min-width:0}
 .hint,aside{font-size:var(--od-note-size);color:var(--od-sub)}
