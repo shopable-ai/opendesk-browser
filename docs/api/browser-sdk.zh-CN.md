@@ -7,7 +7,19 @@
 > **框架能力四层总账**：[Chrome 原生 ↔ Driver/Host ↔ Browser SDK ↔ 验收证据](browser-framework-four-layer-ledger.zh-CN.md)；所有 27 组 114 项候选和 Cookie 10 项 P0 缺口都有逐项索引。此页保留当前开发者 API/历史设计，四层总账不构成额外授权。
 
 
-> **更新：2026-10-12。** 对安装工具的开发者，优先使用易理解的高层写法；下方保留的 R1.3 `PLANNED` / `HOST_ONLY` 表是 **2026-10-11 历史快照，不能当作当前进度**。当前源码正式合同为 [35 项操作注册表](../../src/framework/sdk/browser-contract.js)，状态与原生证据见 [Browser SDK 工作流](../framework/workstreams/browser-sdk-status.md)。
+> **更新：2026-10-12。** 对安装工具的开发者，优先使用易理解的高层写法；下方保留的 R1.3 `PLANNED` / `HOST_ONLY` 表是 **2026-10-11 历史快照，不能当作当前进度**。当前源码正式合同为 [28 项操作注册表](../../src/framework/sdk/browser-contract.js)，状态与原生证据见 [Browser SDK 工作流](../framework/workstreams/browser-sdk-status.md)。
+
+## R9 当前推荐：重载本工具拥有的网页
+
+```js
+const {browser} = OpenDeskSDK;
+const {tabRef} = await browser.tabs.create({url:'https://example.org/page'});
+// 一次性点击审批，旧 TabRef 在调用原生 reload 前立即失效
+const receipt = await browser.tabs.reloadOwned({tabRef});
+// {reloadRequested:true, tabRefRevoked:true}：仅代表发起成功，不是页面完成加载
+```
+
+`reloadOwned` 仅作用于当前工具安装身份、精确网页文档和获批站点对应的 opaque TabRef；每次重载都必须经过可信 Side Panel 明确点击。旧引用不能重用，不能以原生数字 tabId 访问其他标签页。网络观察、截图等旧文档资源会继续遵循既有导航失效规则。页面导航完成不属于本操作的成功回执。
 
 ## R5：查询、列出并关闭本工具的标签页
 
