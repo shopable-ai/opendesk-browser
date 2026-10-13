@@ -86,3 +86,6 @@
 - 原始证据：[`evidence/time-review-r19-local-20261014/index.json`](evidence/time-review-r19-local-20261014/index.json)；193 份原始日志/报告/选定截图已保留，全部 46 次运行 TAP/退出码/原始报告保留，不覆盖历史。所有本地原生文件哈希索引 `local-native-inventory.json`，完整本机证据根 `artifacts/time-review-r19-local-01a1364f/`。真实通过报告 `native-run-42/native-report.json`、失败 `native-run-32.tap` 与 `native-run-46.tap` 可直接核查。
 - 八维专家限定审核：功能完整性、权限与身份安全、UI/UX、性能与构建预算、后台计时真实性、数据持久化与恢复、安装与生命周期、验收证据可信度均 **NOT_SCORED**。分项原生事实有效，但未取得完整同交付候选终验；不以静态检查或 34 项结果预设 95 分。
 - 资源状态：本任务 CFT/Profile/fixture 进程已收尾，隔离构建结束；其他聊天浏览器、watcher、dirty 文件原样保留。本轮源码修复已安全提交，驱动与证据正在仅 main 串行提交/推送。终验状态 PARTIAL，前台争用阻塞不提升为产品 FAIL 或完整 PASS。
+
+- R1.9 交付回执：驱动、原始证据与本记录已在 `main` 提交并正常推送 `956afafc9cf9d28123d5f7987352b3f506a65d6a`；`git ls-remote origin refs/heads/main` 当时确认相同 SHA。该提交父级 `097de119` 已在远端；本轮没有顺带推送他人未发布提交。任务文件与共享暂存索引检查均无残留；未改其他聊天 dirty 文件。
+- 该源码交付提交的 [Time Review CI](https://github.com/shopable-ai/opendesk-browser/actions/runs/38470639939) 已真实触发；最初查询整项排队，随后 Ubuntu Node/Build job 为 in_progress、macOS job 为 queued，不能记为 CI PASS。原始 GitHub API receipt 为证据目录 `delivery-ci-runs.json` / `delivery-ci-jobs.json`，与本机冻结候选证据分开。后续本段及 API 回执的文档提交不改变生产/观察器输入，无须重跑已通过构建或将其提升为较新全候选验收。
