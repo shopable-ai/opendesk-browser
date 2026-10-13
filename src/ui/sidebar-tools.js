@@ -918,7 +918,9 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
             throw Object.assign(new Error('剪贴板在当前环境不可用'),{code:'E_CHROME_UNSUPPORTED'});
           try{await globalThis.navigator.clipboard.writeText(payload.text);}
           catch{throw Object.assign(new Error('复制结果未知，请自行检查剪贴板，勿自动重试'),{code:'E_OUTCOME_UNKNOWN'});}
-          assertSession(source,token);return {copied:true};
+          try{assertSession(source,token);}
+          catch{throw Object.assign(new Error('复制可能已经生效，请检查剪贴板，不可自动重试'),{code:'E_OUTCOME_UNKNOWN'});}
+          return {copied:true};
         }
         if(!api.downloads?.download)
           throw Object.assign(new Error('下载服务不可用'),{code:'E_CHROME_UNSUPPORTED'});
@@ -930,10 +932,16 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
         catch{throw Object.assign(new Error('下载结果未知，请检查 Chrome 下载记录，勿自动重试'),{code:'E_OUTCOME_UNKNOWN'});}
         if(!Number.isInteger(downloadId))throw Object.assign(
           new Error('Chrome 未确认下载，请检查下载记录，勿自动重试'),{code:'E_OUTCOME_UNKNOWN'});
-        assertSession(source,token);return {downloadId};
+        try{assertSession(source,token);}
+        catch{throw Object.assign(new Error('下载可能已经开始，请检查下载记录，不可自动重试'),{code:'E_OUTCOME_UNKNOWN'});}
+        return {downloadId};
       }
       const frontendStatus=state=>{
-        if(state?.implementation!=='implemented'||state?.authorization?.tool!=='granted')return state;
+        // Never turn a missing Chrome permission, rejected Origin, or denied
+        // installation into callableNow merely because the trusted UI has a
+        // clipboard/download function. Host must first approve the context.
+        if(state?.implementation!=='implemented'||state?.authorization?.tool!=='granted'||
+           state.reasonCode!=='E_FRONTEND_CONTEXT_REQUIRED')return state;
         const available=state.operation==='browser.clipboard.writeText'
           ?Boolean(globalThis.navigator?.clipboard?.writeText)
           :state.operation==='browser.downloads.text'?Boolean(api.downloads?.download)
