@@ -9,7 +9,7 @@ import {writeVerifiedLocalValue,classifyStorageWriteError,unknownStorageOutcome,
 import {SIDEBAR_TOOL_ENABLE_STORE,requireToolEnableRecords,TOOL_REVOCATION_EPOCHS_STORE} from './lifecycle.js';
 import {TIME_REVIEW_KEY} from '../../time-review/model.js';
 import {FOCUS_ID,FOCUS_STORE} from '../../stay-focus/policy.js';
-import {clearFocusRules} from '../../stay-focus/rule-host.js';
+import {clearFocusRules} from '../../stay-focus/rule-ownership.js';
 
 export const MARKET_PROVENANCE_STORE='opendesk.market.provenance.v1';
 export const MARKET_OPERATIONS_STORE='opendesk.market.operations.v1';
