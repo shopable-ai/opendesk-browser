@@ -442,13 +442,17 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
       grantRecord.installEpoch===(sources.epochs[tool.id]??null)&&
       grantRecord.packageHash===await digestTool(tool);
     const desired=identity?.requestedUrl?parsedHttp(identity.requestedUrl)?.origin:null;
+    const downloading=operation==='browser.downloads.download';
+    // A site-scoped download cannot be reported callable without the requested
+    // exact Origin and currently effective Chrome website permission.
+    const downloadSiteAllowed=!downloading||(Boolean(desired)&&await chromeSitePermitted(api,desired));
     const cookieSites=validGrant?grantRecord.cookieSites||{}:{};
     const candidateOrigins=desired?[desired]:Object.keys(cookieSites);
     const cookieAuthorized=isCookie&&(await Promise.all(candidateOrigins.map(async origin=>
       cookieSites[origin]?.[cookieCapabilities[operation]]===true&&await chromeSitePermitted(api,origin)
     ))).some(Boolean);
     const runnable=op.implementation==='IMPLEMENTED'&&exposure==='allowed'&&platformSupported&&
-      requiredBrowser&&(!needsSite||menu)&&(!isCookie||cookieAuthorized)&&hasLaunch&&!frontendOnly;
+      requiredBrowser&&(!needsSite||menu)&&(!isCookie||cookieAuthorized)&&downloadSiteAllowed&&hasLaunch&&!frontendOnly;
     const reasonCode=runnable?null:
       op.implementation!=='IMPLEMENTED'?'E_NOT_IMPLEMENTED':
       !hasToolCap?'E_TOOL_CAPABILITY_REQUIRED':
@@ -456,12 +460,14 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
       !requiredBrowser?'E_CHROME_PERMISSION_REQUIRED':
       needsSite&&!menu?'E_SITE_GRANT_REQUIRED':
       isCookie&&!cookieAuthorized?'E_SITE_GRANT_REQUIRED':
+      !downloadSiteAllowed?'E_SITE_GRANT_REQUIRED':
       !hasLaunch?'E_LAUNCH_UNAVAILABLE':
       frontendOnly?'E_FRONTEND_CONTEXT_REQUIRED':'E_CONTEXT';
     return {operation,apiVersion:BROWSER_API_VERSION,implementation:op.implementation.toLowerCase().replaceAll('_','-'),
       exposure,platform:platformSupported?'supported':'unsupported',
       authorization:{tool:hasToolCap?'granted':'missing',browser:requiredBrowser?'granted':'missing',
-        site:isMenu?(menu?'granted':'missing'):isCookie?(cookieAuthorized?'granted':'missing'):'not-required'},
+        site:isMenu?(menu?'granted':'missing'):isCookie?(cookieAuthorized?'granted':'missing'):
+          downloading?(downloadSiteAllowed?'granted':'missing'):'not-required'},
       callableNow:runnable,requiresUserGesture:op.requiresUserGesture,reasonCode,
       nextAction:runnable?null:!hasToolCap?'update-tool-package':!platformSupported?null:
         !requiredBrowser?'enable-in-tool-details':isCookie&&!cookieAuthorized?'enable-in-tool-details':
