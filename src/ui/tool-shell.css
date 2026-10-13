@@ -1056,6 +1056,31 @@
 #workbench-cloud .cloud-task-choice details pre{white-space:pre-wrap;overflow-wrap:anywhere;font-size:11px;line-height:1.5;max-height:200px;max-width:100%;overflow:auto}
 @media(max-width:340px){#workbench-cloud .cloud-action-row>button{flex-basis:100%}#workbench-cloud .cloud-overview-secondary{grid-template-columns:1fr}}
 
+/* R5.2 external app grants: one trusted Side Panel subview, no nested cards. */
+#workbench-cloud .cloud-clients{min-width:0;padding:var(--space-3);display:grid;gap:var(--space-3)}
+#workbench-cloud .cloud-clients>summary{cursor:pointer;min-height:36px;font-size:13px;font-weight:650;line-height:1.5}
+#workbench-cloud .cloud-clients>summary:focus-visible{outline:2px solid var(--od-brand);outline-offset:2px}
+#workbench-cloud .cloud-clients .cloud-privacy-note{margin:0}
+#workbench-cloud .cloud-client-form{display:grid;grid-template-columns:minmax(0,1fr);gap:var(--space-2)}
+#workbench-cloud .cloud-client-form>label:not(.cloud-approval-confirm),
+#workbench-cloud .cloud-client-once>label{font-size:12px;font-weight:600;line-height:1.5}
+#workbench-cloud .cloud-client-form>.od-field,
+#workbench-cloud .cloud-client-secret-row>.od-field{min-width:0;width:100%;max-width:100%;min-height:36px}
+#workbench-cloud .cloud-client-form .cloud-approval-confirm{margin-block:var(--space-1)}
+#workbench-cloud .cloud-client-form>button{justify-self:start;min-height:36px}
+#workbench-cloud .cloud-client-once{display:grid;gap:var(--space-2);min-width:0}
+#workbench-cloud .cloud-client-once[hidden]{display:none}
+#workbench-cloud .cloud-client-secret-row{display:flex;flex-wrap:wrap;gap:var(--space-2);min-width:0}
+#workbench-cloud .cloud-client-secret-row>.od-field{flex:1 1 180px;min-width:0;font-family:ui-monospace,SFMono-Regular,Consolas,monospace}
+#workbench-cloud .cloud-client-secret-row>button{flex:0 0 auto;min-height:36px}
+#workbench-cloud #cloud-clients-status{margin:0;line-height:1.55;overflow-wrap:anywhere}
+#workbench-cloud .cloud-clients-list{display:grid;gap:0;list-style:none;margin:0;padding:0;min-width:0}
+#workbench-cloud .cloud-client-row{display:flex;align-items:center;gap:var(--space-2);flex-wrap:wrap;min-width:0;padding:var(--space-3) 0;border-top:1px solid var(--od-line)}
+#workbench-cloud .cloud-client-row>span{flex:1 1 180px;min-width:0;overflow-wrap:anywhere;font-size:12px;line-height:1.5}
+#workbench-cloud .cloud-client-row>button{flex:0 0 auto;min-height:36px}
+#workbench-cloud .cloud-client-row:first-child{border-top:0}
+@media(max-width:340px){#workbench-cloud .cloud-client-row>button{flex-basis:100%}#workbench-cloud .cloud-client-secret-row>button{flex:1 1 100%}#workbench-cloud .cloud-client-form>button{width:100%}}
+
 /* R2.3 local-only storage transparency; no destructive cleanup control. */
 .schedule-storage-details{max-width:100%;min-width:0;border:1px solid var(--od-line);border-radius:var(--radius-control);background:var(--od-paper)}
 .schedule-storage-details>summary{cursor:pointer;min-height:36px;padding:8px 12px;font-size:12px;font-weight:650;line-height:1.5}
