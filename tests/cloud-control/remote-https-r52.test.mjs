@@ -64,6 +64,8 @@ test('one Provider serves authenticated HTTPS/WSS and target-scoped client submi
     await assert.rejects(p('/admin/state',{},admin.adminToken),{code:'E_ROUTE'});
     await assert.rejects(local('/v1/submit',{},admin.adminToken),{code:'E_TLS_REQUIRED'});
     const executor=await p('/v1/pair',{executorId,pairingCode:admin.pairingCode});
+    const grantId=randomUUID();
+    await p('/v1/capabilities',{grantId,tasks:taskAdvertised},executor.credential);
     const grant=await local('/admin/client-grant',{executorId},admin.adminToken);
     assert.equal(grant.executorId,executorId);
     assert.match(grant.credential,/^[a-f0-9]{64}$/);
@@ -93,7 +95,7 @@ test('one Provider serves authenticated HTTPS/WSS and target-scoped client submi
       });
     });
     const assignment=(await p('/v1/claim',{claimId:'remote-claim',
-      tasks:taskAdvertised},executor.credential)).assignment;
+      grantId,tasks:taskAdvertised},executor.credential)).assignment;
     assert.equal(assignment.jobId,created.jobId);
     assert.equal(assignment.executorId,executorId);
     const runRef={runId:randomUUID(),resultId:randomUUID(),
