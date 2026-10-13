@@ -473,14 +473,12 @@
 .workflow-icon-button{flex:none}
 .workflow-target-warning{margin-top:var(--space-2);font-size:var(--od-note-size);line-height:1.55}
 .workflow-scroll{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;display:flex;flex-direction:column;gap:10px;padding:8px 1px 13px}
-.workflow-card{min-width:0;padding:var(--space-3)}
+.workflow-card{min-width:0}
 .workflow-card h3,.workflow-management h3{font-size:var(--od-body-size);color:var(--od-ink)}
-.workflow-card label,.workflow-management label{margin:var(--space-2) 0 var(--space-1)}
 .workflow-card textarea,.workflow-management textarea{line-height:1.5;font-family:inherit;margin:var(--space-1) 0 var(--space-2)}
 .workflow-card pre,.workflow-management pre{max-height:240px;margin:8px 0;font-size:11px}
 .workflow-section-header{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:9px}
 .workflow-section-header span{color:var(--od-sub);font-size:11px}
-.workflow-chat{padding:var(--space-3)}
 .workflow-chat-intro{padding:4px 6px 8px;text-align:left}
 .workflow-chat-mark{height:28px;width:28px;border-radius:var(--radius-control);background:#eaf0ff;color:#3c64bf;display:grid;place-items:center;font-size:16px;margin-bottom:12px}
 .workflow-chat-intro h3{font-size:14px;line-height:1.4;margin-bottom:6px}
@@ -528,7 +526,6 @@
 .workflow-consent{display:flex;align-items:flex-start;gap:var(--space-2);font-weight:400;line-height:1.55;font-size:var(--od-note-size)}
 .workflow-consent input{width:auto;flex:none;min-height:0;margin:3px 2px 0 0}
 .workflow-minor-note{font-size:var(--od-note-size);color:var(--od-sub);line-height:1.55;margin:var(--space-2) 0 0}
-.workflow-plan{padding:12px}
 .workflow-steps{display:grid;gap:6px;max-height:min(42vh,430px);min-height:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;padding-right:2px}
 .workflow-step{border:1px solid var(--od-line);border-radius:var(--radius-control);background:var(--od-paper);margin:0}
 .workflow-step>summary{padding:var(--space-2) var(--space-3);color:var(--od-ink);font-size:var(--od-body-size);font-weight:650;line-height:1.5;cursor:pointer}
@@ -567,7 +564,6 @@
   .workflow-head-actions .workflow-icon-button{width:34px;height:34px;min-height:34px}
   .workflow-pill{max-width:84px}
   .workflow-scroll{padding:6px 0 12px}
-  .workflow-card{padding:10px}
   .workflow-steps{max-height:38vh}
   .workflow-param-create{flex-wrap:wrap}
   .workflow-param-create button{flex:1 1 100%}
