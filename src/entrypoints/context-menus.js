@@ -6,7 +6,12 @@ import {createContextMenuHost} from '../platform/chrome/context-menus.js';
 import {BROWSER_HOST_PROTOCOL,BROWSER_MENU_SOURCE_PROTOCOL} from '../framework/sdk/browser-contract.js';
 import {reportBrowserCleanupError} from '../platform/chrome/lifecycle-errors.js';
 export default defineUnlistedScript(() => {
-  const api=chrome,host=createContextMenuHost({api});
+  const api=chrome,host=createContextMenuHost({api,
+    scheduleService:(...args)=>{
+      if(typeof globalThis.__opendeskBrowserSchedule!=='function')
+        throw Object.assign(new Error('Existing Scheduler unavailable'),{code:'E_SERVICE_UNSUPPORTED'});
+      return globalThis.__opendeskBrowserSchedule(...args);
+    }});
   const observe=(promise,label)=>void Promise.resolve(promise).catch(error=>
     console.error('Browser menu '+label,error));
   observe(host.synchronize(),'startup sync');

@@ -10,7 +10,6 @@ import {snapshotToolResources} from './resource-diagnostics.js';
 import {createCurrentPageTarget} from './current-page-target.js';
 import {createTaskWorkbench} from './task-workbench.js';
 import {createScheduledTaskWorkbench} from './scheduled-task-workbench.js';
-import {createScheduledTaskHost} from './scheduled-task-host.js';
 import {createSidebarTabMemory} from './sidebar-tab-memory.js';
 import {createWorkflowView} from './workflow/workflow-view.js';
 import {createSidebarTools} from './sidebar-tools-loader.js';
@@ -64,6 +63,12 @@ export function initToolShell(installDevelopment=null,{debugEnabled=false}={}) {
   }
   const foundationClient = createHostClient(chrome, {hostInstanceId});
 const currentPageTarget = createCurrentPageTarget({api:chrome});
+const historyUI=globalThis.__opendeskTrustedHistoryUI;
+if(!historyUI?.createScheduledTaskHost)throw new Error('E_TRUSTED_SCHEDULE_HOST_MISSING');
+const createScheduledTaskHost=historyUI.createScheduledTaskHost;
+historyUI?.mount(document);
+const trustedHistoryWorkbench=historyUI?.create({api:chrome,doc:document,hostInstanceId})??Object.freeze({dispose(){}});
+window.addEventListener('pagehide',()=>trustedHistoryWorkbench.dispose(),{once:true});
 const cookieUI=globalThis.__opendeskTrustedCookieUI;
  if(!cookieUI?.create)console.warn('E_TRUSTED_COOKIE_UI_UNAVAILABLE');
  const trustedCookieWorkbench=cookieUI?.create
@@ -90,7 +95,7 @@ const workflowView=createWorkflowView({api:chrome,client:foundationClient,host:s
   onRunOwner:id=>taskWorkbench.setWorkflowRunOwner(id),
   openDeveloper:sourceUtf8=>taskWorkbench.receiveDraft(sourceUtf8),
   openCatalog:()=>taskWorkbench.navigate('catalog')});
-const sidebarTools=createSidebarTools({api:chrome,currentPageTarget,taskWorkbench});
+const sidebarTools=createSidebarTools({api:chrome,currentPageTarget,taskWorkbench,foundationClient});
 const installedPageTools=createInstalledPageTools({client:foundationClient,api:chrome,doc:document});
 const scheduleStatus=message=>{
   for(const id of ['schedule-host-status','schedule-runner-host-status']){

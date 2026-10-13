@@ -24,6 +24,15 @@ try{importScripts('platform/context-menus.js');}catch(e){console.warn('E_BROWSER
 try{installStayFocusService({api:chrome});}catch(e){console.warn('E_STAY_FOCUS_HOST_LOAD',e);}
 try{importScripts('cloud-control/cloud-host.js');}catch(e){console.warn('E_CLOUD_LOAD',e);}
 const foundation = createFoundationBroker({api:chrome, ports:hostPorts,downloadEventsAttached:true});
+// Fixed Browser Host sidecar reuses the sole foundation Scheduler instance.
+// No user code executes in this worker or can replace this trusted closure.
+globalThis.__opendeskBrowserSchedule=async(operation,args,owner,intent)=>{
+  const schedules=(await foundation).authority.schedules;
+  const method={'browser.scheduler.create':'create','browser.scheduler.listOwn':'listOwn',
+    'browser.scheduler.cancelOwn':'cancelOwn'}[operation];
+  if(!method)throw Object.assign(new Error('Unsupported schedule operation'),{code:'E_SERVICE_UNSUPPORTED'});
+  return schedules[method](args,owner,intent);
+};
 registerDownloadEvents(chrome,foundation);
 let readyFoundation;
 foundation.then(broker=>{readyFoundation=broker;if(broker.authority.cloud)globalThis.__opendeskCloudConnection({service:broker.authority.cloud,api:chrome});}).catch(()=>{});

@@ -1,0 +1,25 @@
+{
+  "format": "opendesk.sidebar-tool.v2",
+  "id": "browser-sdk-acceptance",
+  "version": "10.6.0",
+  "title": "Browser SDK Acceptance",
+  "description": "R10.6 Browser SDK native acceptance probe for installed Sidebar Tools. It exercises bookmarks, isolated storage, downloads, and scheduler only through OpenDeskSDK.browser after trusted Host approval.",
+  "capabilities": [
+    "browser.bookmarks",
+    "browser.storage",
+    "user.export",
+    "browser.scheduler"
+  ],
+  "requires": {
+    "browserSdk": "1.0.0"
+  },
+  "contributes": {
+    "contextMenus": []
+  },
+  "files": {
+    "html": "src/index.html",
+    "css": "src/style.css",
+    "js": "src/main.js"
+  },
+  "assets": []
+}

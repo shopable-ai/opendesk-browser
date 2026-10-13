@@ -62,6 +62,47 @@ export function validateTrigger(kind,rule,zone){
   }
   return true;
 }
+export function scheduleSpecFromExpression(schedule,timezone){
+  invariant(schedule&&typeof schedule==='object'&&!Array.isArray(schedule)&&
+    Object.keys(schedule).every(k=>['kind','expression'].includes(k))&&
+    ['kind','expression'].every(k=>Object.hasOwn(schedule,k)),
+    'E_SCHEMA','Invalid schedule expression');
+  const kind=schedule.kind,expression=schedule.expression.trim();
+  invariant(expression===schedule.expression&&expression.length>=1&&expression.length<=256,
+    'E_SCHEMA','Invalid schedule expression');
+  if(kind==='interval'){
+    const match=expression.match(/^(\d+)(?:m|min|mins|minute|minutes)?$/);
+    invariant(Boolean(match),'E_SCHEMA','Unsupported interval expression');
+    const everyMinutes=Number(match[1]);
+    const triggerSpec={anchorAt:0,everyMinutes};
+    validateTrigger('interval',triggerSpec,timezone);
+    return {triggerKind:'interval',triggerSpec};
+  }
+  if(kind==='once'){
+    const at=Date.parse(expression);
+    invariant(Number.isSafeInteger(at)&&new Date(at).toISOString()===expression,
+      'E_SCHEMA','Once schedule requires an exact ISO timestamp');
+    const triggerSpec={at};
+    validateTrigger('once',triggerSpec,timezone);
+    return {triggerKind:'once',triggerSpec};
+  }
+  if(kind==='daily'){
+    const match=expression.match(/^([01]\d|2[0-3]):([0-5]\d)$/);
+    invariant(Boolean(match),'E_SCHEMA','Daily schedule requires HH:mm');
+    const triggerSpec={hour:Number(match[1]),minute:Number(match[2])};
+    validateTrigger('daily',triggerSpec,timezone);
+    return {triggerKind:'daily',triggerSpec};
+  }
+  if(kind==='weekly'){
+    const match=expression.match(/^([0-6](?:,[0-6])*) ([01]\d|2[0-3]):([0-5]\d)$/);
+    invariant(Boolean(match),'E_SCHEMA','Weekly schedule requires D[,D...] HH:mm with days 0-6');
+    const days=match[1].split(',').map(Number);
+    const triggerSpec={days,hour:Number(match[2]),minute:Number(match[3])};
+    validateTrigger('weekly',triggerSpec,timezone);
+    return {triggerKind:'weekly',triggerSpec};
+  }
+  invariant(false,'E_SCHEMA','Unsupported schedule kind');
+}
 export function nextScheduleAt(kind,rule,zone,after){
   validateTrigger(kind,rule,zone);
   invariant(finite(after),'E_SCHEMA','Invalid schedule clock');

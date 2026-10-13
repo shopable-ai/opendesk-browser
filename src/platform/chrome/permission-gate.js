@@ -1,5 +1,8 @@
 // Chrome permission declarations are explicit; there is no "all API permissions" wildcard.
 // Mirror this catalog in manifest.json. verifyManifest enforces their exact parity.
+import {SIDEBAR_TOOL_STORE,validateSidebarToolPackage,sidebarToolPackageHash} from '../../ui/sidebar-tools/package.js';
+import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE,requireToolEnableRecords,sidebarToolEnabled} from '../../ui/sidebar-tools/lifecycle.js';
+
 export const REQUIRED_BROWSER_API_PERMISSIONS = Object.freeze([
   "storage",
   "scripting",
@@ -145,4 +148,169 @@ export async function requireOptionalPluginPermissions({api, permissions}) {
   if (!await hasOptionalPluginPermissions({api, permissions}))
     throw fail('E_PERMISSION', '插件所需的 Chrome API 权限未获授权或已撤销');
   return true;
+}
+
+const TRUSTED_TOOL_ID=/^[a-z][a-z0-9-]{1,39}$/;
+const TRUSTED_PERMISSION_PREPARED_VERSION=1;
+const TRUSTED_CAPABILITY_TO_PERMISSION=Object.freeze({
+  'browser.bookmarks':{toolCapability:'browser.bookmarks',permission:'bookmarks'},
+  'browser.bookmarks.create':{toolCapability:'browser.bookmarks',permission:'bookmarks'},
+  'browser.contextMenu':{toolCapability:'browser.contextMenu',permission:'contextMenus'},
+  'browser.contextMenu.register':{toolCapability:'browser.contextMenu',permission:'contextMenus'},
+  'browser.network.observe':{toolCapability:'browser.network.observe',permission:'webRequest'},
+  'browser.clipboard.read':{toolCapability:'user.export',permission:'clipboardRead'},
+  'browser.clipboard.write':{toolCapability:'user.export',permission:'clipboardWrite'},
+  'browser.tabs.groups':{toolCapability:'browser.tabs',permission:'tabGroups'},
+  'browser.nativeMessaging':{toolCapability:'tasks.open',permission:'nativeMessaging'},
+  'browser.idle':{toolCapability:'focus.control',permission:'idle'}
+});
+
+function trustedHttpOrigin(value){
+  if(value===undefined||value===null)return null;
+  if(typeof value!=='string'||value.length>2048||value.trim()!==value)
+    throw fail('E_SCHEMA','HTTP(S) Origin 无效');
+  let url;
+  try{url=new URL(value)}catch{throw fail('E_SCHEMA','HTTP(S) Origin 无效')}
+  if(!['http:','https:'].includes(url.protocol)||url.username||url.password||url.origin!==value)
+    throw fail('E_SCHEMA','只能请求精确 HTTP(S) Origin');
+  return {origin:url.origin,pattern:`${url.protocol}//${url.hostname}/*`};
+}
+
+function trustedSidePanelSender(api,sender,hostInstanceId){
+  if(sender?.id!==api.runtime?.id||sender?.tab?.incognito||
+     (sender?.frameId!==undefined&&sender.frameId!==0)||
+     typeof sender?.documentId!=='string'||!sender.documentId)
+    throw fail('E_OWNER','只有可信 Side Panel 文档可请求工具权限');
+  let expected,actual;
+  try{
+    expected=new URL(api.runtime.getURL('ui/tool.html'));
+    actual=new URL(sender.url);
+  }catch{throw fail('E_OWNER','可信 Side Panel 地址无效')}
+  if(actual.protocol!==expected.protocol||actual.host!==expected.host||actual.pathname!==expected.pathname||
+     (hostInstanceId!==undefined&&actual.searchParams.get('hostInstanceId')!==hostInstanceId))
+    throw fail('E_OWNER','权限请求未绑定到当前可信 Host');
+  return sender;
+}
+
+function permissionForCapability(capability){
+  if(typeof capability!=='string'||capability.length<1||capability.length>128)
+    throw fail('E_SCHEMA','工具能力无效');
+  const mapped=TRUSTED_CAPABILITY_TO_PERMISSION[capability];
+  if(!mapped||!optionalSet.has(mapped.permission))
+    throw fail('E_SCHEMA','只能通过已安装工具能力请求 manifest 声明的 optional 权限');
+  return mapped;
+}
+
+export function trustedToolPermissionRequest({toolId,capability,origin}={}){
+  if(typeof toolId!=='string'||!TRUSTED_TOOL_ID.test(toolId))
+    throw fail('E_SCHEMA','工具 ID 无效');
+  const {permission}=permissionForCapability(capability);
+  const request={permissions:[permission]};
+  const site=trustedHttpOrigin(origin);
+  if(site)request.origins=[site.pattern];
+  return request;
+}
+
+function requirePreparedPermission(value){
+  if(!value||typeof value!=='object'||Array.isArray(value)||
+     value.version!==TRUSTED_PERMISSION_PREPARED_VERSION||
+     typeof value.toolId!=='string'||!TRUSTED_TOOL_ID.test(value.toolId)||
+     typeof value.toolVersion!=='string'||!value.toolVersion||
+     typeof value.packageHash!=='string'||!/^[a-f0-9]{64}$/.test(value.packageHash)||
+     !(value.installEpoch===null||typeof value.installEpoch==='string')||
+     typeof value.capability!=='string'||typeof value.toolCapability!=='string'||
+     !value.request||typeof value.request!=='object'||Array.isArray(value.request)||
+     typeof value.scope!=='string'||!value.scope)
+    throw fail('E_SCHEMA','权限确认快照无效');
+  const request=trustedToolPermissionRequest({
+    toolId:value.toolId,capability:value.capability,
+    ...(value.origin===null?{}:{origin:value.origin})
+  });
+  if(JSON.stringify(request)!==JSON.stringify(value.request))
+    throw fail('E_SCHEMA','权限确认快照与请求不一致');
+  const mapped=permissionForCapability(value.capability);
+  if(mapped.toolCapability!==value.toolCapability)
+    throw fail('E_SCHEMA','权限确认快照能力不一致');
+  return value;
+}
+
+async function installedToolSnapshot(api,input){
+  if(typeof input?.toolId!=='string'||!TRUSTED_TOOL_ID.test(input.toolId))
+    throw fail('E_SCHEMA','工具 ID 无效');
+  const {toolCapability,permission}=permissionForCapability(input.capability);
+  const request=trustedToolPermissionRequest(input);
+  const row=await api.storage.local.get([SIDEBAR_TOOL_STORE,TOOL_REVOCATION_EPOCHS_STORE,SIDEBAR_TOOL_ENABLE_STORE]);
+  const tools=Array.isArray(row[SIDEBAR_TOOL_STORE])?row[SIDEBAR_TOOL_STORE]:[];
+  const matches=tools.map(value=>validateSidebarToolPackage(value)).filter(tool=>tool.id===input.toolId);
+  if(matches.length!==1)throw fail('E_TOOL_CHANGED','工具未安装或安装记录不唯一');
+  const tool=matches[0],epochs=row[TOOL_REVOCATION_EPOCHS_STORE]||{};
+  if(!sidebarToolEnabled(requireToolEnableRecords(row[SIDEBAR_TOOL_ENABLE_STORE]),tool.id))
+    throw fail('E_TOOL_DISABLED','工具已停用');
+  if(!tool.capabilities.includes(toolCapability))
+    throw fail('E_TOOL_CAPABILITY_REQUIRED','工具未声明请求该权限所需的能力');
+  const packageHash=await sidebarToolPackageHash(tool);
+  const installEpoch=epochs[tool.id]??null;
+  if(input.toolVersion!==undefined&&input.toolVersion!==tool.version)
+    throw fail('E_TOOL_CHANGED','工具版本已变化');
+  if(input.packageHash!==undefined&&input.packageHash!==packageHash)
+    throw fail('E_TOOL_CHANGED','工具包 Hash 已变化');
+  if(input.installEpoch!==undefined&&input.installEpoch!==installEpoch)
+    throw fail('E_TOOL_CHANGED','工具安装世代已变化');
+  return Object.freeze({
+    version:TRUSTED_PERMISSION_PREPARED_VERSION,
+    toolId:tool.id,toolVersion:tool.version,packageHash,installEpoch,
+    capability:input.capability,toolCapability,permission,origin:input.origin??null,
+    request,scope:input.origin??`permission:${permission}`
+  });
+}
+
+function samePrepared(a,b){
+  return a.toolId===b.toolId&&a.toolVersion===b.toolVersion&&
+    a.packageHash===b.packageHash&&a.installEpoch===b.installEpoch&&
+    a.capability===b.capability&&a.toolCapability===b.toolCapability&&
+    JSON.stringify(a.request)===JSON.stringify(b.request)&&a.scope===b.scope;
+}
+
+export function createToolPermissionConsent({api}={}){
+  if(!api?.storage?.local?.get||!api?.permissions?.request||!api?.permissions?.contains||
+     typeof api.runtime?.getContexts!=='function')
+    throw fail('E_SERVICE_UNSUPPORTED','Chrome permission service unavailable');
+  async function prepare(input){
+    const snapshot=await installedToolSnapshot(api,input);
+    const granted=await api.permissions.contains(snapshot.request);
+    return Object.freeze({...snapshot,granted:granted===true});
+  }
+  function requestForTool(event,prepared,{sender,hostInstanceId}={}){
+    if(!event?.isTrusted)return Promise.reject(fail('E_USER_GESTURE_REQUIRED','请通过可信 Side Panel 点击请求权限'));
+    let snapshot,trusted,pending;
+    try{
+      trusted=trustedSidePanelSender(api,sender,hostInstanceId);
+      snapshot=requirePreparedPermission(prepared);
+      pending=api.permissions.request(structuredClone(snapshot.request));
+    }catch(error){return Promise.reject(error)}
+    return (async()=>{
+      if(await pending!==true)throw fail('E_PERMISSION','未授予工具请求的 Chrome 权限');
+      const latest=await installedToolSnapshot(api,snapshot);
+      if(!samePrepared(snapshot,latest))throw fail('E_TOOL_CHANGED','权限确认期间工具身份已变化');
+      trustedSidePanelSender(api,trusted,hostInstanceId);
+      if(typeof api.runtime?.getContexts==='function'){
+        const contexts=await api.runtime.getContexts({
+          contextTypes:['SIDE_PANEL'],documentUrls:[trusted.url],documentIds:[trusted.documentId]
+        });
+        if(!Array.isArray(contexts)||contexts.filter(context=>
+          context.contextType==='SIDE_PANEL'&&context.documentUrl===trusted.url&&
+          context.documentId===trusted.documentId&&context.frameId===0&&!context.incognito).length!==1)
+          throw fail('E_DOCUMENT_CHANGED','权限授予期间可信 Side Panel 文档已变化');
+      }
+      if(await api.permissions.contains(snapshot.request)!==true)
+        throw fail('E_OUTCOME_UNKNOWN','Chrome 未确认请求的权限状态');
+      return {granted:true,scope:snapshot.scope};
+    })();
+  }
+  return Object.freeze({prepare,requestForTool});
+}
+
+export function requestForTool({api,event,sender,prepared,hostInstanceId}){
+  if(!event?.isTrusted)return Promise.reject(fail('E_USER_GESTURE_REQUIRED','请通过可信 Side Panel 点击请求权限'));
+  return createToolPermissionConsent({api}).requestForTool(event,prepared,{sender,hostInstanceId});
 }

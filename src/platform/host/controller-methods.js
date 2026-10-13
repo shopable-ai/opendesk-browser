@@ -348,7 +348,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
   async function prepareControllerRun(request, sender, assertCandidate) {
     // A single admission API supports exact saved revisions and immutable draft
     // snapshots. The original top-level saved request remains compatible.
-    fields(request, ['requestId', 'scriptId', 'revision', 'contentHash', 'source', 'paramsWire', 'target', 'deadlineAt','networkOrigins','expectedTaskGeneration','expectedTaskInstallationId','cloudRequestId','scheduledFireId'],
+    fields(request, ['requestId', 'scriptId', 'revision', 'contentHash', 'source', 'paramsWire', 'target', 'deadlineAt','networkOrigins','expectedTaskGeneration','expectedTaskInstallationId','cloudRequestId','scheduledFireId','expectedScheduleOwner'],
       ['requestId', 'paramsWire', 'target', 'deadlineAt']);
     id(request.requestId); selection(request.target); const runParams=decodeValue(request.paramsWire);
     const environment=builtinIdentity(await loadBuiltin({runtime:api.runtime}));
@@ -367,6 +367,8 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
       'E_REVISION','安装任务必须绑定点击时的安装身份和授权代次');
     invariant(!request.scheduledFireId || isInstalledTask && !request.cloudRequestId && request.requestId===request.scheduledFireId,
       'E_PERMISSION','Schedule admission requires an immutable installed task and FireId');
+    invariant(request.scheduledFireId||request.expectedScheduleOwner===undefined,
+      'E_OWNER','A schedule owner may only accompany a persisted scheduled occurrence');
     const draftSourceUtf8 = isDraft ? variant.sourceUtf8 : undefined;
     if (isDraft) {
       invariant(typeof draftSourceUtf8 === 'string' &&
@@ -392,6 +394,8 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
     const nativeNetworkFences = networkOrigins.map(origin => ({origin,
       permissionEpoch:nativeFence(request.target.tabId,origin).permissionEpoch}));
     const capturedFence = nativeFence(request.target.tabId, selectedOrigin || observed.allowedOrigin, request.target.frameId ?? 0);
+    const expectedScheduleOwner=request.scheduledFireId?
+      await scheduled.prepareAdmission(request.scheduledFireId,request.expectedScheduleOwner):undefined;
     const admissionKey = request.scheduledFireId ? `scheduled-start:${request.scheduledFireId}` :
       request.cloudRequestId ? `cloud-start:${request.cloudRequestId}` : `controller-start:${canonical([host.registrationId, request.requestId])}`;
     invariant(!request.cloudRequestId || isInstalledTask && request.requestId===request.cloudRequestId && request.target.mode==='owned','E_TASK');
@@ -403,7 +407,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
         origin:selectedOrigin || observed.allowedOrigin,params:runParams,migrate:true,builtinIdentity:environment,
         expectedGeneration:request.expectedTaskGeneration,expectedInstallationId:request.expectedTaskInstallationId}):null;
       const scheduledFire=request.scheduledFireId?
-        await scheduled.admit(transaction,request.scheduledFireId,{...request,paramsDecoded:runParams},
+        await scheduled.admit(transaction,request.scheduledFireId,{...request,expectedScheduleOwner,paramsDecoded:runParams},
           selectedOrigin||observed.allowedOrigin,now()):null;
       const old = await transaction.get(COMMAND_JOURNAL, admissionKey);
       if (old) {

@@ -56,6 +56,7 @@ export function createScheduledTaskHost({client,host,api=globalThis.chrome,clock
         revision:resolved.revision,contentHash:resolved.contentHash},
         params:definition.params,target,deadlineAt:Math.min(fire.deadlineAt,clock()+600000),
         requestId:fire.fireId,scheduledFireId:fire.fireId,
+        ...(definition.owner?{expectedScheduleOwner:definition.owner}:{}),
         expectedTaskGeneration:definition.taskGeneration,
         expectedTaskInstallationId:definition.installationId});
       if(typeof started?.runId!=='string'||!started.runId)

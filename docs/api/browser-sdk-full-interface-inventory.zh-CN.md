@@ -1,3 +1,5 @@
+> **R10.6 当前源码事实（2026-10-14）**：55 项批准合同 = 53 项公开 Registry + 2 项可信 Host-only；SOURCE_WIRED 与 Node / Build / Native 分开登记。此前 R5–R10.5 数字保留为历史，不代表当前接口数量或真实 Chrome 验收。当前证据见 [R10.6 工作流](../framework/workstreams/browser-sdk-r106-20261014.md)。
+
 > **R9 当前执行事实（2026-10-13）**：正式注册表 **40 项源码已接线**（11 Cookies、含自有 Tabs），不是 40 项 Chrome 原生验收。原 **114** 项 R5 历史候选中已有 **15 项现名晋级**，**99 项尚未按原名登记**；Cookie 的旧 `getStores` 被正式 `getCurrentStore` 取代，`observe.read` 为新正式能力。本文其余 R5 的 35/114/111/0 Cookies 仅保留历史研究，不是现行 SDK 统计或权限依据。
 
 > **R9 当前命名**：`tabs.create({url})`、`tabs.activateOwned({tabRef})`、`tabs.removeOwned({tabRef})`。后两项是仅操作自己 TabRef 的受限 API；本页 R5 兼容叙述仅为历史，不再约束开发期新接口。

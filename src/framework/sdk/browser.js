@@ -67,6 +67,8 @@ export function createBrowserSdk({request,context='sidebar-tool'}={}){
       listOwned:method('browser.downloads.listOwned'),cancelOwned:method('browser.downloads.cancelOwned')}),
     bookmarks:Object.freeze({create:method('browser.bookmarks.create'),
       removeOwned:method('browser.bookmarks.removeOwned')}),
+    scheduler:Object.freeze({create:method('browser.scheduler.create'),
+      listOwn:method('browser.scheduler.listOwn'),cancelOwn:method('browser.scheduler.cancelOwn')}),
     storage:Object.freeze({local:Object.freeze({
       get:method('browser.storage.local.get'),set:method('browser.storage.local.set'),
       remove:method('browser.storage.local.remove'),clear:method('browser.storage.local.clear')})}),

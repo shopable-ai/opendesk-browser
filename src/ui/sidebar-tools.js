@@ -1,5 +1,8 @@
 import {BROWSER_HOST_PROTOCOL,BROWSER_MENU_GRANTS_STORE,normalizeBrowserOperation,browserOperation} from '../framework/sdk/browser-contract.js';
 import {createSidePanelOpenCoordinator} from '../platform/chrome/browser-side-panel.js';
+import {createToolPermissionConsent} from '../platform/chrome/permission-gate.js';
+import {scheduleSpecFromExpression} from '../platform/tasks/schedule-time.js';
+import {validateTaskParams} from '../platform/tasks/contract.js';
 import {SIDEBAR_TOOL_ENABLE_STORE,requireToolEnableRecords,sidebarToolEnabled,assertSidebarToolEnabled} from './sidebar-tools/lifecycle.js';
 import {SIDEBAR_TOOL_PROTOCOL,SIDEBAR_TOOL_STORE,MAX_INSTALLED_TOOLS,SIDEBAR_TOOL_DATA_LIMITS,
   sidebarToolStorageKey,sidebarToolPackageHash,validateSidebarToolPackage} from './sidebar-tools/package.js';
@@ -26,7 +29,7 @@ import {admitsTrustedTimeReview,TRUSTED_TIME_REVIEW_VERSION,trustedTimeReviewPro
 // Trusted Side Panel shell for untrusted, opaque-origin UI documents.
 // No user code, markup, or CSS is ever inserted into this extension document.
 export function createSidebarTools({api=globalThis.chrome,doc=globalThis.document,
-  currentPageTarget,taskWorkbench,lockManager=globalThis.navigator?.locks,fetcher=globalThis.fetch}) {
+  currentPageTarget,taskWorkbench,foundationClient,lockManager=globalThis.navigator?.locks,fetcher=globalThis.fetch}) {
   // Native focus controls load from an audited extension-only classic WXT entry.
   // A missing sidecar fails closed; user-owned opaque sandbox cannot supply it.
   const focus=globalThis.__opendeskStayFocusTrustedUI||null;
@@ -113,6 +116,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     'time.review':'明确开始后在后台记录聚焦、非空闲网站的域名与时长（仅本机）',
     'focus.control':'按单独批准的网站执行每日额度、时段与专注限制，Chrome DNR 拦截（仅本机）',
     'browser.contextMenu':'在明确授权的网站显示 Chrome 右键菜单（最多三项）',
+    'browser.scheduler':'经确认定时执行已安装的固定任务版本，只管理本工具的计划',
     'browser.tabs':'经用户单次批准打开或聚焦自己获准的标签页',
     'browser.sidePanel':'经真实点击打开 OpenDesk 自己的侧边栏',
     'network':'经用户单次批准向指定 Origin 发送受控 HTTP 请求',
@@ -893,6 +897,43 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       const envelope={protocol:BROWSER_HOST_PROTOCOL,kind:'tool',
         operation,args:payload||{},toolId:tool.id,toolVersion:tool.version,
         installEpoch:revocationEpoch,packageHash,toolInstance:token,hostInstanceId};
+      if(operation==='browser.scheduler.create'){
+        if(!foundationClient?.request||!currentPageTarget?.capture||!currentPageTarget?.revalidate)
+          throw Object.assign(new Error('现有任务与当前网页服务不可用'),{code:'E_SERVICE_UNSUPPORTED'});
+        const selected=currentPageTarget.capture();
+        const resolved=await foundationClient.request('resolveInstalledTask',{taskId:payload.taskId});
+        if(String(resolved.revision)!==payload.revision)
+          throw Object.assign(new Error('请指定已安装的固定任务 Revision'),{code:'E_TOOL_CHANGED'});
+        const params={};
+        validateTaskParams(resolved.manifest.paramsSchema,params);
+        const timezone=Intl.DateTimeFormat().resolvedOptions().timeZone;
+        const timing=scheduleSpecFromExpression(payload.schedule,timezone);
+        const schedulerIntent={kind:'trusted-scheduler-create-intent-v1',request:payload,
+          task:{taskId:resolved.taskId,version:resolved.version,manifestHash:resolved.manifestHash,
+            sourceHash:resolved.contentHash,installationId:resolved.installationId,generation:resolved.generation,
+            revision:resolved.revision,targetUrl:selected.url,params},
+          schedule:{title:(tool.title+' · '+resolved.manifest.title).slice(0,80),timezone,...timing,
+            misfirePolicy:'skip',startDeadlineMs:60000,openIfMissing:false,paused:false}};
+        await currentPageTarget.revalidate(selected);
+        assertSession(source,token);
+        envelope.approvalRef=await requestBrowserClick({toolId:tool.id,button:'创建此计划',
+          message:'「'+tool.title+'」请求定时执行 '+resolved.manifest.title+' · v'+resolved.version+
+            ' / Revision '+payload.revision+'，网站 '+selected.url+'，'+payload.schedule.kind+' '+
+            payload.schedule.expression+'（'+timezone+'），源码 '+resolved.contentHash.slice(0,12)+
+            '。使用此任务的空参数，网页与可见运行宿主就绪时执行；以后无需 AI。',
+          run:async()=>{
+            assertSession(source,token);
+            const response=await api.runtime.sendMessage({protocol:BROWSER_HOST_PROTOCOL,kind:'host',
+              operation:'browser.intent.confirm',toolId:tool.id,toolVersion:tool.version,installEpoch:revocationEpoch,
+              hostInstanceId,toolInstance:token,targetOperation:operation,targetArgs:payload,schedulerIntent,
+              document:{tabId:selected.tabId,windowId:selected.windowId,documentId:selected.documentId,
+                url:selected.url,origin:selected.origin}});
+            if(!response?.ok)throw Object.assign(new Error(response?.error?.message||'计划授权未确认'),
+              {code:response?.error?.code||'E_BROWSER'});
+            return response.data.approvalRef;
+          }});
+        assertSession(source,token);
+      }
       if(browserExport){
         // A sandbox-initiated request is NOT a trusted click, even when the
         // request originated from an iframe button. The visible Side Panel
@@ -955,6 +996,19 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
           operation==='browser.bookmarks.removeOwned'?'删除本工具创建的书签 '+payload.bookmarkRef.slice(0,8)+'…':
           operation==='browser.storage.local.clear'?'清空本工具保存的数据（不影响其他工具）':
             '向 '+new URL(payload.url).origin+' 发送 '+payload.method+' HTTP 请求';
+        let bookmarkConsent,bookmarkPrepared,bookmarkSender;
+        if(operation.startsWith('browser.bookmarks.')){
+          bookmarkConsent=createToolPermissionConsent({api});
+          bookmarkPrepared=await bookmarkConsent.prepare({toolId:tool.id,toolVersion:tool.version,
+            packageHash,installEpoch:revocationEpoch,capability:'browser.bookmarks',
+            ...(operation==='browser.bookmarks.create'?{origin:new URL(payload.url).origin}:{})});
+          const contexts=await api.runtime.getContexts({contextTypes:['SIDE_PANEL'],documentUrls:[globalThis.location.href]});
+          if(contexts.length!==1||!contexts[0].documentId)
+            throw Object.assign(new Error('请在真实 Side Panel 中授权书签权限'),{code:'E_DOCUMENT_CHANGED'});
+          bookmarkSender={id:api.runtime.id,url:globalThis.location.href,frameId:0,
+            documentId:contexts[0].documentId,documentLifecycle:'active'};
+          assertSession(source,token);
+        }
         const approvalRef=await requestBrowserClick({toolId:tool.id,
           message:'「'+tool.title+'」请求'+target+'；确认仅批准这一次操作。',
           button:'允许本次操作',run:async event=>{
@@ -968,9 +1022,9 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
             }
             if(['browser.bookmarks.create','browser.bookmarks.removeOwned'].includes(operation)){
               if(!event?.isTrusted)throw Object.assign(new Error('需要用户真实点击'),{code:'E_USER_GESTURE_REQUIRED'});
-              // Call Chrome optional permissions.request synchronously from real click.
-              const request=api.permissions.request({permissions:['bookmarks']});
-              if(await request!==true)throw Object.assign(new Error('未批准 Chrome 书签权限'),{code:'E_CHROME_PERMISSION_REQUIRED'});
+              // Prepared installed identity; request runs before the first await.
+              const request=bookmarkConsent.requestForTool(event,bookmarkPrepared,{sender:bookmarkSender,hostInstanceId});
+              await request;
             }
             const approval=await api.runtime.sendMessage({protocol:BROWSER_HOST_PROTOCOL,kind:'host',
               operation:'browser.intent.confirm',toolId:tool.id,toolVersion:tool.version,

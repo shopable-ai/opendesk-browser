@@ -10,12 +10,25 @@ on:
       - 'tests/environment/browser-sdk-interface-matrix.test.mjs'
       - 'src/platform/chrome/browser-tabs.js'
       - 'src/platform/chrome/browser-downloads.js'
+      - 'src/platform/chrome/bookmarks.js'
+      - 'src/platform/chrome/history.js'
+      - 'src/platform/chrome/permission-gate.js'
+      - 'src/platform/tasks/schedule-*.js'
+      - 'src/platform/storage/index.js'
       - 'src/platform/chrome/cookies.js'
       - 'src/platform/chrome/browser-screenshot*.js'
       - 'src/platform/chrome/browser-network-observe.js'
       - 'src/platform/chrome/context-menus.js'
       - 'src/platform/chrome/browser-cookie-host.js'
       - 'src/ui/trusted-cookie-workbench.js'
+      - 'src/ui/trusted-history-workbench.js'
+      - 'src/entrypoints/trusted-cookie-ui.js'
+      - 'src/entrypoints/context-menus.js'
+      - 'src/sw.js'
+      - 'src/ui/sidebar-tools/package.js'
+      - 'src/ui/scheduled-task-host.js'
+      - 'src/platform/host/controller-methods.js'
+      - 'src/run-host.js'
       - 'src/ui/tool-shell.js'
       - 'src/ui/tool.html'
       - 'src/ui/sidebar-tools.js'
@@ -64,7 +77,18 @@ jobs:
             tests/environment/browser-network-observe-host.test.mjs \
             tests/environment/browser-sdk-approval-timeout.test.mjs \
             tests/environment/browser-sdk-r2-demo.test.mjs \
-            tests/environment/browser-sdk-p3-implementation.test.mjs
+            tests/environment/browser-sdk-p3-implementation.test.mjs \
+            tests/environment/browser-sdk-p3-bookmarks.test.mjs \
+            tests/environment/browser-sdk-p4-implementation.test.mjs \
+            tests/environment/browser-sdk-r9-installed-cookies.test.mjs \
+            tests/environment/browser-sdk-r9-installed-host.test.mjs \
+            tests/environment/browser-sdk-p5-scheduler.test.mjs \
+            tests/environment/browser-sdk-r106-trusted.test.mjs \
+            tests/environment/browser-sdk-r106-history-ui.test.mjs \
+            tests/environment/browser-sdk-r106-host.test.mjs \
+            tests/environment/scheduled-tasks-r1.test.mjs \
+            tests/environment/scheduled-task-timezone-r25.test.mjs \
+            tests/environment/browser-sdk-freeze.test.mjs
       - name: R8 pinned Chromium schema offline drift check
         run: node scripts/sync-chrome-api-catalog.mjs --check
       - name: R9 frozen full Chromium matrix structural and approved-operation check
@@ -93,6 +117,7 @@ jobs:
       - run: npm ci --ignore-scripts --no-audit --no-fund
       - run: npm run build
       - run: npm run build:dev
+      - run: npm run build:size
       - run: npm run verify
       - name: Save exact production candidate for manual Chrome acceptance
         if: success()

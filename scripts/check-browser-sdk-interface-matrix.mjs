@@ -10,7 +10,7 @@ const ROOT=resolve(dirname(fileURLToPath(import.meta.url)),'..');
 const PINNED_CHROMIUM_COMMIT='b5485910372708cd11d9a814a3e382fe8da57df3';
 const KINDS=Object.freeze({NAMESPACE:163,METHOD:1255,EVENT:321,PROPERTY:91});
 const VALID_VISIBILITY=new Set(['APPROVED_TOOL_REGISTERED','HOST_ONLY_TRUSTED_COOKIE_UI',
-  'APPROVED_TOOL_PLANNED','BUILTIN_HOST_ONLY_DESIGN_APPROVED']);
+  'APPROVED_TOOL_PLANNED','BUILTIN_HOST_ONLY_DESIGN_APPROVED','BUILTIN_HOST_ONLY_IMPLEMENTED']);
 const sha40=/^[0-9a-f]{40}$/;
 const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
 const sorted=a=>[...a].sort();
@@ -93,6 +93,11 @@ export function inspectBrowserSdkInterfaceMatrix(matrix,registered=Object.keys(B
  for(const a of matrix.approvedOperations.filter(x=>x.visibility==='HOST_ONLY_TRUSTED_COOKIE_UI'))
    if(!a.id.startsWith('browser.cookies.')||registered.includes(a.id))
      errors.push('Trusted Cookie leaked into installed sandbox '+a.id);
+ for(const a of matrix.approvedOperations.filter(x=>x.visibility==='BUILTIN_HOST_ONLY_IMPLEMENTED'))
+   if(!['browser.history.searchTrusted','browser.permissions.requestForTool'].includes(a.id)||
+      registered.includes(a.id)||a.sourceRegistry!==(a.id==='browser.permissions.requestForTool'?
+        'TRUSTED_UI_DIRECT_GESTURE_ONLY':'TRUSTED_HOST_DISPATCH_ONLY'))
+     errors.push('Trusted Host-only leaked into installed sandbox '+a.id);
  const approved=matrix.approvedOperations;
  const count=label=>approved.filter(x=>x.visibility===label).length;
  const counts=matrix.counts??{};
@@ -100,12 +105,14 @@ export function inspectBrowserSdkInterfaceMatrix(matrix,registered=Object.keys(B
    approvedOperations:approved.length,
    approvedRegistered:count('APPROVED_TOOL_REGISTERED'),
    approvedCookieHostOnly:count('HOST_ONLY_TRUSTED_COOKIE_UI'),
+   approvedTrustedHostImplemented:count('BUILTIN_HOST_ONLY_IMPLEMENTED'),
    approvedPlannedNew:count('APPROVED_TOOL_PLANNED')+count('BUILTIN_HOST_ONLY_DESIGN_APPROVED'),
    nativeMappedApproved:matrix.nativeInterfaces.filter(x=>x.approvedOperationIds?.length>0).length,
    approvedWithInputAndOutputSchemas:approved.filter(x=>x.inputSchema&&x.outputSchema).length
  }))if(counts[name]!==value)errors.push('Approved coverage count drift '+name);
  if(matrix.coverageAudit?.registeredOperations!==counts.approvedRegistered||
     matrix.coverageAudit?.trustedCookieHostOperations!==counts.approvedCookieHostOnly||
+    matrix.coverageAudit?.trustedHostImplementedOperations!==counts.approvedTrustedHostImplemented||
     matrix.coverageAudit?.approvedNewDesignOperations!==counts.approvedPlannedNew||
     matrix.coverageAudit?.approvedTotal!==counts.approvedOperations)
    errors.push('Coverage audit still uses a historical SDK denominator');

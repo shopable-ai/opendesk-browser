@@ -13,7 +13,7 @@ export const BROWSER_MENU_LAUNCH_STORE='opendesk.browser.menu-launch.v1';
 export const BROWSER_MENU_ROOT='opendesk.browser.root';
 const shared={apiVersion:BROWSER_API_VERSION,platform:'chrome>=138',timeout:8000,maxRequestBytes:12000,maxResponseBytes:12000};
 const USER_GESTURE_OPERATIONS=new Set([
-  'browser.clipboard.writeText','browser.downloads.text','browser.downloads.download','browser.downloads.cancelOwned','browser.bookmarks.create','browser.bookmarks.removeOwned','browser.storage.local.clear','browser.tabs.create',
+  'browser.clipboard.writeText','browser.downloads.text','browser.downloads.download','browser.downloads.cancelOwned','browser.bookmarks.create','browser.bookmarks.removeOwned','browser.storage.local.clear','browser.scheduler.create','browser.tabs.create',
   'browser.tabs.activateOwned','browser.tabs.pinOwned','browser.tabs.reloadOwned','browser.tabs.navigateOwned','browser.tabs.removeOwned','browser.sidePanel.openSelf','browser.network.request','browser.network.observe.start',
   'browser.network.observe.export','browser.screenshot.captureVisible',
   'browser.cookies.set','browser.cookies.remove','browser.cookies.clearSite','browser.cookies.observe.start'
@@ -46,6 +46,9 @@ export const BROWSER_OPERATIONS=Object.freeze({
   'browser.downloads.cancelOwned':entry('browser.downloads.cancelOwned','user.export',tool,['downloads'],'write','high','download-ref'),
   'browser.bookmarks.create':entry('browser.bookmarks.create','browser.bookmarks',tool,['bookmarks'],'write','high','exact-url'),
   'browser.bookmarks.removeOwned':entry('browser.bookmarks.removeOwned','browser.bookmarks',tool,['bookmarks'],'write','high','owned-bookmark'),
+  'browser.scheduler.create':entry('browser.scheduler.create','browser.scheduler',tool,['alarms'],'write','high','installed-task-revision','IMPLEMENTED','tool-install'),
+  'browser.scheduler.listOwn':entry('browser.scheduler.listOwn','browser.scheduler',tool,['alarms'],'read','medium','owned-schedules','IMPLEMENTED','tool-install'),
+  'browser.scheduler.cancelOwn':entry('browser.scheduler.cancelOwn','browser.scheduler',tool,['alarms'],'write','medium','owned-schedules','IMPLEMENTED','tool-install'),
   'browser.storage.local.get':entry('browser.storage.local.get','browser.storage',tool,['storage'],'read','low','owned-storage'),
   'browser.storage.local.set':entry('browser.storage.local.set','browser.storage',tool,['storage'],'write','medium','owned-storage'),
   'browser.storage.local.remove':entry('browser.storage.local.remove','browser.storage',tool,['storage'],'write','medium','owned-storage'),
@@ -154,6 +157,23 @@ export function normalizeBrowserOperation(operation,args={}){
       if(typeof args.bookmarkRef!=='string'||!/^[A-Za-z0-9_-]{16,160}$/.test(args.bookmarkRef))
         throw fail('E_SCHEMA','Invalid owned BookmarkRef');
       return {bookmarkRef:args.bookmarkRef};
+    case 'browser.scheduler.create':{
+      fields(args,['taskId','revision','schedule'],['taskId','revision','schedule']);
+      if(typeof args.taskId!=='string'||!args.taskId||args.taskId.length>128||
+         typeof args.revision!=='string'||!/^[1-9][0-9]{0,15}$/.test(args.revision)||
+         !Number.isSafeInteger(Number(args.revision)))throw fail('E_SCHEMA','Fixed installed task Revision required');
+      fields(args.schedule,['kind','expression'],['kind','expression']);
+      if(!['interval','once','daily','weekly'].includes(args.schedule.kind)||
+         typeof args.schedule.expression!=='string'||!args.schedule.expression||
+         args.schedule.expression.length>256)throw fail('E_SCHEMA','Invalid bounded schedule expression');
+      return {taskId:args.taskId,revision:args.revision,schedule:{...args.schedule}};
+    }
+    case 'browser.scheduler.listOwn':fields(args,[]);return {};
+    case 'browser.scheduler.cancelOwn':
+      fields(args,['scheduleRef'],['scheduleRef']);
+      if(typeof args.scheduleRef!=='string'||!/^[A-Za-z0-9_-]{16,160}$/.test(args.scheduleRef))
+        throw fail('E_SCHEMA','Opaque owned scheduleRef required');
+      return {scheduleRef:args.scheduleRef};
     case 'browser.storage.local.get':
     case 'browser.storage.local.remove':{
       fields(args,['keys'],operation==='browser.storage.local.remove'?['keys']:[]);

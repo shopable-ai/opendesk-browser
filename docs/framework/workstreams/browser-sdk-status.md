@@ -1,4 +1,16 @@
-## R10.5 · Bookmarks 50-API 正式 Registry（2026-10-13）
+## R10.6 · 当前 Registry 与独立证据（2026-10-14）
+
+批准合同 55：当前唯一公开 Registry 53，可信 Host-only 2；Scheduler 已复用已有 Schedule Service / Repository / Alarms / RunHost 接线。创建计划需要精确任务 Revision、当前网站和真实可信确认；工具只能管理自有计划。History 与 Permissions 不进入公开 Registry。当前整体候选验证仍在进行，Native 未有本候选证据的接口保持 NOT_TESTED。
+
+| API | Registry | Exposure | Node 正向 | Node 拒绝 | Chrome 原生 |
+| --- | --- | --- | --- | --- | --- |
+| `browser.scheduler.create` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
+| `browser.scheduler.listOwn` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
+| `browser.scheduler.cancelOwn` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
+
+本轮记录：[R10.6 工作流](browser-sdk-r106-20261014.md)。下方 R10.5 及更早统计保留历史。
+
+## R10.5 · Bookmarks 50-API Registry（2026-10-13，历史）
 
 现行 55 项批准设计：公开 SDK Registry **50**，其中已新增 `browser.bookmarks.create/removeOwned`；仍有 **3 项 Scheduler** 及 **2 项仅可信 Host-only** 待完整实施。绝不把 History / Permissions 可信接口登记到普通工具 SDK。Bookmarks 通过真实 Side Panel 一次性确认、Chrome bookmarks 可选权限、私有持久 BookmarkRef 及原 Host Owner/Origin 校验。Worker 重启可读回自有映射，卸载删掉 ID 映射但不擅自删除用户书签。下面数值 44/40 为历史快照。
 

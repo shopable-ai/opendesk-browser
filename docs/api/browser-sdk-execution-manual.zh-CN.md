@@ -1,9 +1,11 @@
+> **R10.6 当前源码事实（2026-10-14）**：55 项批准合同 = 53 项公开 Registry + 2 项可信 Host-only；SOURCE_WIRED 与 Node / Build / Native 分开登记。此前 R5–R10.5 数字保留为历史，不代表当前接口数量或真实 Chrome 验收。当前证据见 [R10.6 工作流](../framework/workstreams/browser-sdk-r106-20261014.md)。
+
 # OpenDesk Browser SDK 唯一冻结执行手册（2026-10-13）
 
 > **范围：SDK 设计与后续实施合同。不是实现验收报告。**
 > 本手册是 Browser SDK 当前唯一正式实施入口；结构化逐接口事实见 [browser-sdk-interface-matrix.json](browser-sdk-interface-matrix.json)。其余 R7/R8、旧 35 项兼容映射、R5 114 候选和 R9 工作记录只是历史或输入，不得重新替代本手册。
 > **目标状态：DESIGN FROZEN；IMPLEMENTATION ONLY。** 冻结仅意味着执行选择已确定，不意味着源码、Node、Build、真实 Chrome 均已通过。
-> 当前固定发现基线：Chromium 提交 b5485910372708cd11d9a814a3e382fe8da57df3，Chrome 最低版本 138，Manifest V3。设计扫描发现 191 个源 Schema（JSON/WebIDL/IDL）、163 个 Namespace、1,255 个 Method、321 个 Event、91 个 Property，即 1,830 个有分类目录条目。获批准实施合同现有 55 项：源码正式 Registry 已登记 48 项（非 Cookies 37 项 + Cookies 11 项；包含四项自有 Downloads 与四项工具隔离 Storage），另有 7 项设计批准但尚未注册。11 项 Cookies 属于附加逐站点授权的 installed-tool 公共 SDK；另有受信内置 Cookie UI 的独立 Host-only 调用入口，但不得混作同一种调用身份。SOURCE_WIRED 仅表示源码接线，非 Node / Build / Native 通过。数字与每项来源由接口矩阵生成；**此处的“已发现”不等于目标平台全部可用，更不等于公开已实现。**
+> 当前固定发现基线：Chromium 提交 b5485910372708cd11d9a814a3e382fe8da57df3，Chrome 最低版本 138，Manifest V3。设计扫描发现 191 个源 Schema（JSON/WebIDL/IDL）、163 个 Namespace、1,255 个 Method、321 个 Event、91 个 Property，即 1,830 个有分类目录条目。获批准实施合同现有 55 项：源码正式 Registry 已登记 53 项（包含 Cookies 11 项、Downloads 4 项、Storage 4 项、Bookmarks 2 项、Scheduler 3 项），另有 2 项已接线的可信 Host-only（History / Permissions），不进入公开 Registry。11 项 Cookies 属于附加逐站点授权的 installed-tool 公共 SDK；另有受信内置 Cookie UI 的独立 Host-only 调用入口，但不得混作同一种调用身份。SOURCE_WIRED 仅表示源码接线，非 Node / Build / Native 通过。数字与每项来源由接口矩阵生成；**此处的“已发现”不等于目标平台全部可用，更不等于公开已实现。**
 
 ## 0. 决策优先级与一次封版的边界
 

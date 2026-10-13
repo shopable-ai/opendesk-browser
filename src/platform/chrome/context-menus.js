@@ -6,6 +6,8 @@ import {createBrowserScreenshotHost} from './browser-screenshot.js';
 import {createBrowserScreenshotResources} from './browser-screenshot-resources.js';
 import {createBrowserDownloadsHost} from './browser-downloads.js';
 import {createBrowserBookmarksHost} from './bookmarks.js';
+import {validateTrustedScheduleIntent} from '../tasks/schedule-contract.js';
+import {createBrowserHistoryHost} from './history.js';
 import {executeBrowserToolStorage} from '../../ui/sidebar-tools/storage-state.js';
 import {createTrustedCookieHost} from './browser-cookie-host.js';
 import {chromeCall} from './tabs.js';
@@ -134,7 +136,7 @@ function scopedMenuPatterns(origins,action){
     return url.protocol+'//'+url.hostname+'/*';
   }))];
 }
-export function createContextMenuHost({api=globalThis.chrome,logger=console,lockManager=globalThis.navigator?.locks,fetchImpl=globalThis.fetch}={}){
+export function createContextMenuHost({api=globalThis.chrome,logger=console,lockManager=globalThis.navigator?.locks,fetchImpl=globalThis.fetch,scheduleService=null}={}){
   let chain=Promise.resolve();
   const documentEpochs=new Map();
   const recentSourceContexts=new Map();
@@ -150,7 +152,7 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
     'browser.network.observe.start','browser.network.observe.export','browser.screenshot.captureVisible',
     'browser.cookies.set','browser.cookies.remove','browser.cookies.clearSite','browser.cookies.observe.start',
     'browser.clipboard.writeText','browser.downloads.text',
-    'browser.downloads.download','browser.downloads.cancelOwned','browser.bookmarks.create','browser.bookmarks.removeOwned','browser.storage.local.clear']);
+    'browser.downloads.download','browser.downloads.cancelOwned','browser.bookmarks.create','browser.bookmarks.removeOwned','browser.storage.local.clear','browser.scheduler.create']);
   const observationOperations=new Set(['browser.network.observe.getStatus','browser.network.observe.stop',
     'browser.events.read','browser.events.close']);
   const ownedOperationMethods=new Set(['browser.operations.getStatus','browser.operations.cancel']);
@@ -231,6 +233,7 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
     await verifyBrowserOwner(context,operation,origin);
   }});
   const trustedCookies=createTrustedCookieHost({api});
+  const trustedHistory=createBrowserHistoryHost({api});
   const screenshotHost=createBrowserScreenshotHost({api,
     resolveTarget:(ref,context)=>tabHost.resolve(ref,context),
     authorize:async({origin,context})=>{
@@ -411,6 +414,7 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
       operation==='browser.tabs.navigateOwned'?Boolean(api.tabs?.get&&api.tabs?.update&&api.webNavigation?.getFrame):
       operation==='browser.tabs.removeOwned'?Boolean(api.tabs?.get&&api.tabs?.remove&&api.webNavigation?.getFrame):
       operation==='browser.sidePanel.openSelf'?Boolean(api.sidePanel?.open):
+      operation.startsWith('browser.scheduler.')?typeof scheduleService==='function':
       operation.startsWith('browser.storage.local.')?Boolean(api.storage?.local?.get&&api.storage?.local?.set):
       operation==='browser.bookmarks.create'?Boolean(api.bookmarks?.create&&api.storage?.local?.set):
       operation==='browser.bookmarks.removeOwned'?Boolean(api.bookmarks?.get&&api.bookmarks?.remove&&api.storage?.local?.set):
@@ -550,7 +554,8 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
            intent.toolInstance!==toolInstance||intent.hostInstanceId!==hostInstanceId||
            intent.args!==canonicalJSON(checked))
           throw failure('E_USER_GESTURE_REQUIRED','New explicit approval required for this exact action');
-        const approvedOrigin=operation==='browser.network.observe.start'?checked.origins[0]:
+        const approvedOrigin=operation==='browser.scheduler.create'?new URL(intent.schedulerIntent.task.targetUrl).origin:
+          operation==='browser.network.observe.start'?checked.origins[0]:
           ['browser.tabs.create','browser.tabs.navigateOwned','browser.network.request','browser.downloads.download','browser.bookmarks.create'].includes(operation)
             ?new URL(checked.url).origin:null;
         const context={...owner,approvedOrigin};
@@ -569,6 +574,14 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
         if(operation==='browser.downloads.cancelOwned')return downloadHost.cancelOwned(checked,context);
         if(operation==='browser.bookmarks.create')return bookmarkHost.create(checked,context);
         if(operation==='browser.bookmarks.removeOwned')return bookmarkHost.removeOwned(checked,context);
+        if(operation==='browser.scheduler.create'){
+          if(typeof scheduleService!=='function')throw failure('E_SERVICE_UNSUPPORTED','Existing Scheduler unavailable');
+          const scheduleOwner={kind:'installed-tool-owned',toolId,toolVersion,packageHash:hash,
+            epoch:installEpoch??null,installEpoch:String(installEpoch??'initial-install')};
+          const result=await scheduleService(operation,checked,scheduleOwner,intent.schedulerIntent);
+          await verifyBrowserOwner(context,operation);
+          return result;
+        }
         if(operation==='browser.tabs.create')return tabHost.create(checked,context);
         if(operation==='browser.tabs.activateOwned')return tabHost.activateOwned(checked,context);
         if(operation==='browser.tabs.pinOwned')return tabHost.pinOwned(checked,context);
@@ -632,6 +645,16 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
           installEpoch:String(installEpoch??'initial-install'),approvedOrigin:null};
         return executeBrowserToolStorage({api,operation,toolId,input:checked,
           authorize:()=>verifyBrowserOwner(context,operation)});
+      }
+      if(operation==='browser.scheduler.listOwn'||operation==='browser.scheduler.cancelOwn'){
+        const checked=normalizeBrowserOperation(operation,args),hash=await digestTool(tool);
+        const owner={kind:'installed-tool-owned',toolId,toolVersion,packageHash:hash,
+          epoch:installEpoch??null,installEpoch:String(installEpoch??'initial-install')};
+        await verifyBrowserOwner(owner,operation);
+        if(typeof scheduleService!=='function')throw failure('E_SERVICE_UNSUPPORTED','Existing Scheduler unavailable');
+        const result=await scheduleService(operation,checked,owner);
+        await verifyBrowserOwner(owner,operation);
+        return result;
       }
       if(operation==='browser.downloads.getOwned'||operation==='browser.downloads.listOwned'){
         const checked=normalizeBrowserOperation(operation,args),hash=await digestTool(tool);
@@ -762,10 +785,12 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
       throw failure('E_SERVICE_UNSUPPORTED','Browser operation is not available to installed tools');
     }));
   }
-  async function handleHost({operation,toolId,enabled,origin,document,launchId,toolInstance,hostInstanceId,toolVersion,installEpoch,cookieCapability:siteCapability,targetOperation,targetArgs,approvalRef},sender){
+  async function handleHost({operation,toolId,enabled,origin,document,launchId,toolInstance,hostInstanceId,toolVersion,installEpoch,cookieCapability:siteCapability,targetOperation,targetArgs,approvalRef,schedulerIntent,args},sender){
     const actualHost=await checkedSender(api,sender);
     if(actualHost!==hostInstanceId)
       throw failure('E_OWNER','Wrong OpenDesk tool host');
+    if(operation==='browser.history.searchTrusted')
+      return trustedHistory.searchTrusted(args,{sender:await resolveToolSender(api,sender),hostInstanceId});
     // Cookie calls are HOST_ONLY: the existing Chrome sender check authenticates
     // this packaged extension document. Sandbox tool messages never enter here.
     if(operation==='browser.cookies.approve'||operation==='browser.cookies.execute'){
@@ -869,6 +894,20 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
         await verifyBrowserOwner(identity,targetOperation,origin);
         const cookieGrant=cookieCapabilities[targetOperation]
           ?await authorizedCookie(identity,targetOperation,args.url,args):null;
+        if(targetOperation==='browser.scheduler.create'){
+          const plan=validateTrustedScheduleIntent(schedulerIntent,args);
+          const site=new URL(plan.targetUrl).origin;
+          if(!document||document.url!==plan.targetUrl||document.origin!==site||
+             !Number.isSafeInteger(document.tabId)||!Number.isSafeInteger(document.windowId)||
+             typeof document.documentId!=='string')throw failure('E_DOCUMENT_CHANGED');
+          const [tabs,current]=await Promise.all([api.tabs.query({active:true,windowId:document.windowId}),
+            api.webNavigation.getFrame({tabId:document.tabId,frameId:0})]);
+          if(tabs.length!==1||tabs[0].id!==document.tabId||tabs[0].incognito||tabs[0].pendingUrl||
+             tabs[0].url!==plan.targetUrl||current?.documentId!==document.documentId||
+             current.url!==plan.targetUrl||current.documentLifecycle&&current.documentLifecycle!=='active')
+            throw failure('E_DOCUMENT_CHANGED','Scheduled target document changed during approval');
+          await verifyBrowserOwner(identity,targetOperation,site);
+        }
         // An approval is not authority by itself. Before minting one for an owned
         // TabRef, resolve its real Chrome document and check the CURRENT website
         // grant, not just the package capability. Revoked or foreign refs must
@@ -884,7 +923,8 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
         const approvalRef=crypto.randomUUID(),expiresAt=Date.now()+INTENT_TTL;
         browserIntents.set(approvalRef,{operation:targetOperation,args:canonicalJSON(args),toolId,toolVersion,
           packageHash,epoch:installEpoch??null,toolInstance,hostInstanceId:actualHost,expiresAt,
-          cookieGrantEpoch:cookieGrant?.grantEpoch??null});
+          cookieGrantEpoch:cookieGrant?.grantEpoch??null,
+          ...(targetOperation==='browser.scheduler.create'?{schedulerIntent:structuredClone(schedulerIntent)}:{})});
         return {approvalRef,expiresAt};
       }
       if(operation==='browser.contextMenu.userToggle'){

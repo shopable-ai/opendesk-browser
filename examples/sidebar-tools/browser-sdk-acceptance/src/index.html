@@ -1,0 +1,81 @@
+<main class="sdk-app" aria-label="Browser SDK R10.6 acceptance">
+  <header class="topbar">
+    <div class="title-block">
+      <strong>Browser SDK R10.6</strong>
+      <span id="sdk-state">Checking SDK...</span>
+    </div>
+    <button id="refresh-capabilities" class="icon-button" type="button" aria-label="Refresh capabilities" title="Refresh capabilities">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 0 0-14.5-4.7L3 9m0-5v5h5M4 13a8 8 0 0 0 14.5 4.7L21 15m0 5v-5h-5"/></svg>
+    </button>
+  </header>
+
+  <section class="panel" aria-labelledby="target-heading">
+    <div class="section-head">
+      <strong id="target-heading">Native target</strong>
+      <span id="target-status" class="pill">pending</span>
+    </div>
+    <label for="demo-url">Demo file URL</label>
+    <input id="demo-url" type="url" spellcheck="false" autocomplete="off" value="http://127.0.0.1:43111/demo-form.html">
+    <p class="hint">The download case uses this URL. The driver must prove the server and candidate identity outside the sandbox.</p>
+  </section>
+
+  <section class="panel" aria-labelledby="bookmarks-heading">
+    <div class="section-head">
+      <strong id="bookmarks-heading">Bookmarks</strong>
+      <span id="bookmark-ref" class="pill">no ref</span>
+    </div>
+    <div class="action-row">
+      <button id="bookmark-create" type="button">Create</button>
+      <button id="bookmark-remove" type="button" disabled>Remove</button>
+    </div>
+    <pre id="bookmarks-output" aria-live="polite"></pre>
+  </section>
+
+  <section class="panel" aria-labelledby="storage-heading">
+    <div class="section-head">
+      <strong id="storage-heading">Storage isolation</strong>
+      <span id="storage-status" class="pill">not saved</span>
+    </div>
+    <div class="field-grid">
+      <label>Key <input id="storage-key" type="text" autocomplete="off" value="R106Proof"></label>
+      <label>Value <input id="storage-value" type="text" autocomplete="off" value="first-run"></label>
+    </div>
+    <div class="action-row">
+      <button id="storage-write" type="button">Write</button>
+      <button id="storage-read" type="button">Read</button>
+      <button id="storage-remove" type="button">Remove</button>
+    </div>
+    <pre id="storage-output" aria-live="polite"></pre>
+  </section>
+
+  <section class="panel" aria-labelledby="download-heading">
+    <div class="section-head">
+      <strong id="download-heading">Download</strong>
+      <span id="download-ref" class="pill">no ref</span>
+    </div>
+    <div class="action-row">
+      <button id="download-start" type="button">Download demo</button>
+      <button id="download-status" type="button" disabled>Status</button>
+    </div>
+    <pre id="download-output" aria-live="polite"></pre>
+  </section>
+
+  <section class="panel" aria-labelledby="scheduler-heading">
+    <div class="section-head">
+      <strong id="scheduler-heading">Scheduler</strong>
+      <span id="schedule-ref" class="pill">no ref</span>
+    </div>
+    <div class="field-grid">
+      <label>Task ID <input id="task-id" type="text" autocomplete="off" value="browser-sdk-r106-demo-task"></label>
+      <label>Revision <input id="task-revision" type="text" autocomplete="off" value="1"></label>
+    </div>
+    <div class="action-row">
+      <button id="schedule-create" type="button">Create fixed task schedule</button>
+      <button id="schedule-list" type="button">List own</button>
+      <button id="schedule-cancel" type="button" disabled>Cancel</button>
+    </div>
+    <pre id="scheduler-output" aria-live="polite"></pre>
+  </section>
+
+  <p id="status" class="status" role="status" aria-live="polite"></p>
+</main>

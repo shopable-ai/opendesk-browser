@@ -22,6 +22,11 @@ function originFor(raw){
     throw fail('E_SCHEMA','Only canonical credential-free HTTP(S) bookmarks are allowed');
   return url.origin;
 }
+function isMissingBookmarkError(error){
+  const message=String(error?.message||error||'').toLowerCase();
+  return message.includes('find bookmark')||message.includes('bookmark not found')||
+    message.includes('no bookmark')||message.includes('invalid bookmark id');
+}
 export function createBrowserBookmarksHost({api=globalThis.chrome,authorize,
   createRef=()=>crypto.randomUUID(),clock=Date}={}){
   if(typeof authorize!=='function')
@@ -111,7 +116,10 @@ export function createBrowserBookmarksHost({api=globalThis.chrome,authorize,
       throw fail('E_CHROME_UNSUPPORTED','Chrome owned bookmark removal unavailable');
     let nodes;
     try{nodes=await api.bookmarks.get(row.nativeId)}
-    catch{throw fail('E_CHROME','Cannot confirm the bookmarked URL')}
+    catch(error){
+      if(isMissingBookmarkError(error))nodes=[];
+      else throw fail('E_CHROME','Cannot confirm the bookmarked URL')
+    }
     if(!Array.isArray(nodes))throw fail('E_CHROME','Invalid Chrome bookmarks.get result');
     if(nodes.length>1||nodes.length===1&&(nodes[0].id!==row.nativeId||
       nodes[0].url!==row.url))

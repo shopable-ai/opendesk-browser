@@ -84,6 +84,8 @@ export async function checkBrowserSdk({root=ROOT}={}){
   ()=>sdk.downloads.cancelOwned({downloadRef:'r'.repeat(32)}),
   ()=>sdk.storage.local.get(),()=>sdk.storage.local.set({items:{theme:'dark'}}),
   ()=>sdk.storage.local.remove({keys:['theme']}),()=>sdk.storage.local.clear({confirm:true}),
+  ()=>sdk.scheduler.create({taskId:'demo-task',revision:'1',schedule:{kind:'interval',expression:'1m'}}),
+  ()=>sdk.scheduler.listOwn(),()=>sdk.scheduler.cancelOwn({scheduleRef:'r'.repeat(32)}),
   ()=>sdk.tabs.create({url:'https://example.org'}),()=>sdk.tabs.activateOwned({tabRef:'r'.repeat(32)}),
   ()=>sdk.tabs.getOwned({tabRef:'r'.repeat(32)}),()=>sdk.tabs.listOwned(),
   ()=>sdk.tabs.pinOwned({tabRef:'r'.repeat(32),pinned:true}),

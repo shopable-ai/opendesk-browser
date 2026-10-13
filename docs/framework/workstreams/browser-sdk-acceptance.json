@@ -12,9 +12,9 @@
     "auditOnly": true
   },
   "summary": {
-    "operationCount": 50,
+    "operationCount": 53,
     "implementationCounts": {
-      "IMPLEMENTED": 50,
+      "IMPLEMENTED": 53,
       "PLANNED": 0,
       "HOST_ONLY": 0,
       "NOT_EXPOSED": 0
@@ -2268,6 +2268,135 @@
         "Same-candidate Node/Build/Chrome genuine bookmarks permission and Worker-restart evidence missing"
       ],
       "nextTask": "Run browser-sdk-p3-bookmarks.test.mjs and native Chrome installed-tool consent + owned bookmark denial",
+      "commits": [],
+      "evidence": []
+    },
+    {
+      "api": "browser.scheduler.create",
+      "module": "browser.scheduler",
+      "apiVersion": "1.0.0",
+      "implementation": "IMPLEMENTED",
+      "executionContexts": [
+        "sidebar-tool"
+      ],
+      "exposure": "APPROVED_TOOL",
+      "inputSchema": "src/framework/sdk/browser-schemas.js#browser.scheduler.create:input",
+      "outputSchema": "src/framework/sdk/browser-schemas.js#browser.scheduler.create:output",
+      "chromePermissions": [
+        "alarms"
+      ],
+      "toolCapabilities": [
+        "browser.scheduler"
+      ],
+      "effectClass": "write",
+      "riskLevel": "high",
+      "siteScope": "installed-task-revision",
+      "lifecycle": "request",
+      "hostImplementation": "src/platform/chrome/context-menus.js → src/platform/tasks/schedule-service.js",
+      "sdkEntry": "src/framework/sdk/browser.js",
+      "positiveTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "denialTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "nativeChrome": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "callableNowVerification": "NOT_TESTED",
+      "blockers": [
+        "Final candidate Scheduler Host/RunHost and real Chrome Alarm acceptance pending"
+      ],
+      "nextTask": "Verify installed fixed Task Revision scheduling and ownership/revocation through existing RunHost",
+      "commits": [],
+      "evidence": []
+    },
+    {
+      "api": "browser.scheduler.listOwn",
+      "module": "browser.scheduler",
+      "apiVersion": "1.0.0",
+      "implementation": "IMPLEMENTED",
+      "executionContexts": [
+        "sidebar-tool"
+      ],
+      "exposure": "APPROVED_TOOL",
+      "inputSchema": "src/framework/sdk/browser-schemas.js#browser.scheduler.listOwn:input",
+      "outputSchema": "src/framework/sdk/browser-schemas.js#browser.scheduler.listOwn:output",
+      "chromePermissions": [
+        "alarms"
+      ],
+      "toolCapabilities": [
+        "browser.scheduler"
+      ],
+      "effectClass": "write",
+      "riskLevel": "high",
+      "siteScope": "owned-schedules",
+      "lifecycle": "request",
+      "hostImplementation": "src/platform/chrome/context-menus.js → src/platform/tasks/schedule-service.js",
+      "sdkEntry": "src/framework/sdk/browser.js",
+      "positiveTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "denialTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "nativeChrome": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "callableNowVerification": "NOT_TESTED",
+      "blockers": [
+        "Final candidate Scheduler Host/RunHost and real Chrome Alarm acceptance pending"
+      ],
+      "nextTask": "Verify installed fixed Task Revision scheduling and ownership/revocation through existing RunHost",
+      "commits": [],
+      "evidence": []
+    },
+    {
+      "api": "browser.scheduler.cancelOwn",
+      "module": "browser.scheduler",
+      "apiVersion": "1.0.0",
+      "implementation": "IMPLEMENTED",
+      "executionContexts": [
+        "sidebar-tool"
+      ],
+      "exposure": "APPROVED_TOOL",
+      "inputSchema": "src/framework/sdk/browser-schemas.js#browser.scheduler.cancelOwn:input",
+      "outputSchema": "src/framework/sdk/browser-schemas.js#browser.scheduler.cancelOwn:output",
+      "chromePermissions": [
+        "alarms"
+      ],
+      "toolCapabilities": [
+        "browser.scheduler"
+      ],
+      "effectClass": "write",
+      "riskLevel": "high",
+      "siteScope": "owned-schedules",
+      "lifecycle": "request",
+      "hostImplementation": "src/platform/chrome/context-menus.js → src/platform/tasks/schedule-service.js",
+      "sdkEntry": "src/framework/sdk/browser.js",
+      "positiveTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "denialTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "nativeChrome": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "callableNowVerification": "NOT_TESTED",
+      "blockers": [
+        "Final candidate Scheduler Host/RunHost and real Chrome Alarm acceptance pending"
+      ],
+      "nextTask": "Verify installed fixed Task Revision scheduling and ownership/revocation through existing RunHost",
       "commits": [],
       "evidence": []
     }

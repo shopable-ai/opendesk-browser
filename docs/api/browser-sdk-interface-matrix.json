@@ -1918,11 +1918,12 @@
       "VERSION_GATED": 1
     },
     "approvedOperations": 55,
-    "approvedRegistered": 50,
+    "approvedRegistered": 53,
     "approvedCookieHostOnly": 0,
-    "approvedPlannedNew": 5,
+    "approvedPlannedNew": 0,
     "nativeMappedApproved": 36,
-    "approvedWithInputAndOutputSchemas": 55
+    "approvedWithInputAndOutputSchemas": 55,
+    "approvedTrustedHostImplemented": 2
   },
   "parseErrors": [],
   "approvedOperations": [
@@ -7721,10 +7722,10 @@
     },
     {
       "id": "browser.history.searchTrusted",
-      "visibility": "BUILTIN_HOST_ONLY_DESIGN_APPROVED",
+      "visibility": "BUILTIN_HOST_ONLY_IMPLEMENTED",
       "migrationDecision": "NEW",
       "sourceRegistry": "TRUSTED_HOST_DISPATCH_ONLY",
-      "callSignature": "TrustedHost.browser.history.searchTrusted({text:string,startTime?:ms,endTime?:ms,limit?:1..100})",
+      "callSignature": "TrustedHost.browser.history.searchTrusted({text:string,startTime:ms,endTime:ms,limit?:1..100})",
       "returnSignature": "Promise<{visits:[redacted scoped visits]}>",
       "inputSchema": {
         "type": "object",
@@ -7749,7 +7750,9 @@
           }
         },
         "required": [
-          "text"
+          "text",
+          "startTime",
+          "endTime"
         ]
       },
       "outputSchema": {
@@ -7874,13 +7877,23 @@
         "src/platform/chrome/context-menus.js#createContextMenuHost (REUSE)",
         "src/platform/chrome/history.js (NEW adapter in existing host)"
       ],
-      "schemaStrategy": "INLINE_FROZEN_DESIGN_SCHEMA; implementation MUST copy/adapt into strict runtime validator and test"
+      "schemaStrategy": "INLINE_FROZEN_DESIGN_SCHEMA; implementation MUST copy/adapt into strict runtime validator and test",
+      "implementationStatus": "SOURCE_WIRED_NATIVE_NOT_TESTED",
+      "hostImplementation": [
+        "src/platform/chrome/history.js",
+        "src/platform/chrome/context-menus.js",
+        "src/ui/trusted-history-workbench.js"
+      ],
+      "testPlan": [
+        "tests/environment/browser-sdk-r106-trusted.test.mjs"
+      ],
+      "maxDateRangeDays": 31
     },
     {
       "id": "browser.permissions.requestForTool",
-      "visibility": "BUILTIN_HOST_ONLY_DESIGN_APPROVED",
+      "visibility": "BUILTIN_HOST_ONLY_IMPLEMENTED",
       "migrationDecision": "NEW",
-      "sourceRegistry": "TRUSTED_HOST_DISPATCH_ONLY",
+      "sourceRegistry": "TRUSTED_UI_DIRECT_GESTURE_ONLY",
       "callSignature": "TrustedHost.browser.permissions.requestForTool({toolId,capability,origin?},realUserGesture)",
       "returnSignature": "Promise<{granted:boolean,scope}>",
       "inputSchema": {
@@ -8010,7 +8023,15 @@
         "src/platform/chrome/context-menus.js#createContextMenuHost (REUSE)",
         "src/platform/chrome/permission-gate.js"
       ],
-      "schemaStrategy": "INLINE_FROZEN_DESIGN_SCHEMA; implementation MUST copy/adapt into strict runtime validator and test"
+      "schemaStrategy": "INLINE_FROZEN_DESIGN_SCHEMA; implementation MUST copy/adapt into strict runtime validator and test",
+      "implementationStatus": "SOURCE_WIRED_NATIVE_NOT_TESTED",
+      "hostImplementation": [
+        "src/platform/chrome/permission-gate.js",
+        "src/ui/sidebar-tools.js"
+      ],
+      "testPlan": [
+        "tests/environment/browser-sdk-r106-trusted.test.mjs"
+      ]
     },
     {
       "id": "browser.storage.local.get",
@@ -8514,9 +8535,9 @@
     },
     {
       "id": "browser.scheduler.create",
-      "visibility": "APPROVED_TOOL_PLANNED",
+      "visibility": "APPROVED_TOOL_REGISTERED",
       "migrationDecision": "NEW",
-      "sourceRegistry": "src/framework/sdk/browser-contract.js (TARGET NOT YET PRESENT)",
+      "sourceRegistry": "src/framework/sdk/browser-contract.js#BROWSER_OPERATIONS",
       "callSignature": "OpenDeskSDK.browser.scheduler.create({taskId,revision,schedule:validatedCalendarSpec})",
       "returnSignature": "Promise<{scheduleRef:opaque,status}>",
       "inputSchema": {
@@ -8525,13 +8546,12 @@
         "properties": {
           "taskId": {
             "type": "string",
-            "minLength": 1,
             "maxLength": 128
           },
           "revision": {
             "type": "string",
-            "minLength": 1,
-            "maxLength": 128
+            "maxLength": 128,
+            "pattern": "^[1-9][0-9]{0,15}$"
           },
           "schedule": {
             "type": "object",
@@ -8539,12 +8559,10 @@
             "properties": {
               "kind": {
                 "type": "string",
-                "minLength": 1,
                 "maxLength": 128
               },
               "expression": {
                 "type": "string",
-                "minLength": 1,
                 "maxLength": 256
               }
             },
@@ -8566,6 +8584,7 @@
         "properties": {
           "scheduleRef": {
             "type": "string",
+            "maxLength": 160,
             "pattern": "^[A-Za-z0-9_-]{16,160}$"
           },
           "status": {
@@ -8594,7 +8613,7 @@
         "sidebar-tool"
       ],
       "trust": "INSTALLED_TOOL_EXPLICIT_CAPABILITY_AND_ORIGIN",
-      "userGesture": false,
+      "userGesture": true,
       "errors": [
         "E_SCHEMA",
         "E_CONTEXT",
@@ -8614,14 +8633,14 @@
       "driverFile": "src/platform/tasks/schedule-service.js",
       "lifecycle": "request / owned opaque Ref; fail closed after revoke/restart when applicable",
       "phase": "P5",
-      "status": "DESIGN_APPROVED_NOT_IMPLEMENTED",
+      "status": "SOURCE_WIRED_NATIVE_NOT_TESTED",
       "verification": {
         "node": "NOT_TESTED",
         "build": "NOT_TESTED",
         "native": "NOT_TESTED"
       },
       "testContract": {
-        "target": "tests/environment/browser-sdk-p5-implementation.test.mjs (NEW)",
+        "target": "tests/environment/browser-sdk-p5-scheduler.test.mjs",
         "positive": "approved identity and scope produce bounded typed receipt",
         "negative": "rejected permissions/foreign identity/unsafe input/revocation and unknown native effect",
         "native": "same-candidate real Chrome user gesture and permission receipt; SW restart"
@@ -8668,13 +8687,13 @@
         "src/platform/chrome/context-menus.js#createContextMenuHost (REUSE)",
         "src/platform/tasks/schedule-service.js"
       ],
-      "schemaStrategy": "INLINE_FROZEN_DESIGN_SCHEMA; implementation MUST copy/adapt into strict runtime validator and test"
+      "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA"
     },
     {
       "id": "browser.scheduler.listOwn",
-      "visibility": "APPROVED_TOOL_PLANNED",
+      "visibility": "APPROVED_TOOL_REGISTERED",
       "migrationDecision": "NEW",
-      "sourceRegistry": "src/framework/sdk/browser-contract.js (TARGET NOT YET PRESENT)",
+      "sourceRegistry": "src/framework/sdk/browser-contract.js#BROWSER_OPERATIONS",
       "callSignature": "OpenDeskSDK.browser.scheduler.listOwn()",
       "returnSignature": "Promise<{schedules:[OwnSchedule]}>",
       "inputSchema": {
@@ -8695,6 +8714,7 @@
               "properties": {
                 "scheduleRef": {
                   "type": "string",
+                  "maxLength": 160,
                   "pattern": "^[A-Za-z0-9_-]{16,160}$"
                 },
                 "taskId": {
@@ -8753,14 +8773,14 @@
       "driverFile": "src/platform/tasks/schedule-service.js",
       "lifecycle": "request / owned opaque Ref; fail closed after revoke/restart when applicable",
       "phase": "P5",
-      "status": "DESIGN_APPROVED_NOT_IMPLEMENTED",
+      "status": "SOURCE_WIRED_NATIVE_NOT_TESTED",
       "verification": {
         "node": "NOT_TESTED",
         "build": "NOT_TESTED",
         "native": "NOT_TESTED"
       },
       "testContract": {
-        "target": "tests/environment/browser-sdk-p5-implementation.test.mjs (NEW)",
+        "target": "tests/environment/browser-sdk-p5-scheduler.test.mjs",
         "positive": "approved identity and scope produce bounded typed receipt",
         "negative": "rejected permissions/foreign identity/unsafe input/revocation and unknown native effect",
         "native": "same-candidate real Chrome user gesture and permission receipt; SW restart"
@@ -8807,13 +8827,13 @@
         "src/platform/chrome/context-menus.js#createContextMenuHost (REUSE)",
         "src/platform/tasks/schedule-service.js"
       ],
-      "schemaStrategy": "INLINE_FROZEN_DESIGN_SCHEMA; implementation MUST copy/adapt into strict runtime validator and test"
+      "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA"
     },
     {
       "id": "browser.scheduler.cancelOwn",
-      "visibility": "APPROVED_TOOL_PLANNED",
+      "visibility": "APPROVED_TOOL_REGISTERED",
       "migrationDecision": "NEW",
-      "sourceRegistry": "src/framework/sdk/browser-contract.js (TARGET NOT YET PRESENT)",
+      "sourceRegistry": "src/framework/sdk/browser-contract.js#BROWSER_OPERATIONS",
       "callSignature": "OpenDeskSDK.browser.scheduler.cancelOwn({scheduleRef:opaque})",
       "returnSignature": "Promise<{cancelled:boolean}>",
       "inputSchema": {
@@ -8822,6 +8842,7 @@
         "properties": {
           "scheduleRef": {
             "type": "string",
+            "maxLength": 160,
             "pattern": "^[A-Za-z0-9_-]{16,160}$"
           }
         },
@@ -8875,14 +8896,14 @@
       "driverFile": "src/platform/tasks/schedule-service.js",
       "lifecycle": "request / owned opaque Ref; fail closed after revoke/restart when applicable",
       "phase": "P5",
-      "status": "DESIGN_APPROVED_NOT_IMPLEMENTED",
+      "status": "SOURCE_WIRED_NATIVE_NOT_TESTED",
       "verification": {
         "node": "NOT_TESTED",
         "build": "NOT_TESTED",
         "native": "NOT_TESTED"
       },
       "testContract": {
-        "target": "tests/environment/browser-sdk-p5-implementation.test.mjs (NEW)",
+        "target": "tests/environment/browser-sdk-p5-scheduler.test.mjs",
         "positive": "approved identity and scope produce bounded typed receipt",
         "negative": "rejected permissions/foreign identity/unsafe input/revocation and unknown native effect",
         "native": "same-candidate real Chrome user gesture and permission receipt; SW restart"
@@ -8929,7 +8950,7 @@
         "src/platform/chrome/context-menus.js#createContextMenuHost (REUSE)",
         "src/platform/tasks/schedule-service.js"
       ],
-      "schemaStrategy": "INLINE_FROZEN_DESIGN_SCHEMA; implementation MUST copy/adapt into strict runtime validator and test"
+      "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA"
     },
     {
       "id": "browser.tabs.reloadOwned",
@@ -56366,9 +56387,9 @@
   "coverageAudit": {
     "seedNativeCatalogEntries": 119,
     "seedNativeCatalogMissing": 0,
-    "registeredOperations": 50,
+    "registeredOperations": 53,
     "trustedCookieHostOperations": 0,
-    "approvedNewDesignOperations": 5,
+    "approvedNewDesignOperations": 0,
     "approvedTotal": 55,
     "orphanNativeMappings": [],
     "parseErrors": [],
@@ -56386,7 +56407,8 @@
       "extensions/common/api/web_accessible_resources.webidl"
     ],
     "schemaMissingApproved": [],
-    "existingTrustedNativeCookieDriverOperations": 11
+    "existingTrustedNativeCookieDriverOperations": 11,
+    "trustedHostImplementedOperations": 2
   },
   "implementationPhases": [
     "P0",

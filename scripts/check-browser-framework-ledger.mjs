@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Documentation validation only. Do not import this into extension runtime.
-import {readFile} from 'node:fs/promises';
+import {readFile,writeFile} from 'node:fs/promises';
 import {BROWSER_OPERATIONS} from '../src/framework/sdk/browser-contract.js';
 const read=path=>readFile(path,'utf8');
 const fail=msg=>{throw Error('Four-layer Browser ledger drift: '+msg)};
@@ -16,17 +16,61 @@ function parseCandidates(md){
  }
  return result;
 }
+function countsFor(ledger,acceptance,formal,proposals){
+ const promoted=proposals.filter(x=>formal.includes(x.id)),remaining=proposals.length-promoted.length;
+ return {formal:formal.length,implemented:formal.filter(x=>BROWSER_OPERATIONS[x].implementation==='IMPLEMENTED').length,
+  planned:formal.filter(x=>BROWSER_OPERATIONS[x].implementation==='PLANNED').length,
+  notExposed:formal.filter(x=>BROWSER_OPERATIONS[x].implementation==='NOT_EXPOSED').length,
+  candidateGroups:ledger.candidateGroups.length,originalCandidates:proposals.length,promoted:promoted.length,
+  pending:remaining,uniqueNamedMethods:formal.length+remaining,
+  cookieSdkFormal:formal.filter(x=>x.startsWith('browser.cookies.')).length,
+  cookieCandidates:proposals.filter(x=>x.id.startsWith('browser.cookies.')).length,
+  formalNativePass:acceptance.operations.filter(x=>x.nativeChrome.status==='PASS').length,
+  supplementalAuditDomains:ledger.supplementalAudits.length};
+}
+function currentSummary(c){
+ return `<!-- browser-framework-current:start -->\n当前四层账本：${c.formal} 项正式 / ${c.implemented} 项 SOURCE_WIRED；Cookies ${c.cookieSdkFormal} 项；原始 ${c.candidateGroups} 组 ${c.originalCandidates} 候选中 ${c.promoted} 项同名晋级、${c.pending} 项未登记。同候选原生 PASS ${c.formalNativePass} 项；各项原始证据见正式验收账本，源码接线不提升 Node、Build 或 Native 状态。\n<!-- browser-framework-current:end -->`;
+}
 async function main(){
- const [ledger,acceptance,inventory,manifest,human]=await Promise.all([
+ const [ledger,acceptance,inventory,manifest,humanInput,matrix]=await Promise.all([
   read('docs/framework/workstreams/browser-framework-four-layer-ledger.json').then(JSON.parse),
   read('docs/framework/workstreams/browser-sdk-acceptance.json').then(JSON.parse),
   read('docs/api/browser-sdk-full-interface-inventory.zh-CN.md'),
-  read('manifest.json').then(JSON.parse),read('docs/api/browser-framework-four-layer-ledger.zh-CN.md')
+  read('manifest.json').then(JSON.parse),read('docs/api/browser-framework-four-layer-ledger.zh-CN.md'),
+  read('docs/api/browser-sdk-interface-matrix.json').then(JSON.parse)
  ]);
  if(ledger.schemaVersion!=='opendesk.browser-framework.four-layer.v1'||ledger.readOnly!==true)fail('schema/authority');
  if(!equal(ledger.layers.map(x=>x.id),['layer1','layer2','layer3','layer4']))fail('four layers');
  if(Number(ledger.source.minChrome)!==Number(manifest.minimum_chrome_version))fail('Chrome version');
  const formal=Object.keys(BROWSER_OPERATIONS),proposals=parseCandidates(inventory);
+ let human=humanInput;
+ if(process.argv.includes('--write')){
+  if(!equal(formal.slice().sort(),acceptance.operations.map(x=>x.api).sort()))fail('acceptance registry mismatch; repair the acceptance contract first');
+  ledger.formal=formal.map(id=>{
+   const row=acceptance.operations.find(x=>x.api===id),approved=matrix.approvedOperations.find(x=>x.id===id);
+   const previous=ledger.formal.find(x=>x.id===id),candidate=proposals.find(x=>x.id===id);
+   if(!approved||approved.visibility!=='APPROVED_TOOL_REGISTERED'||!row.hostImplementation)fail('unwired approved operation '+id);
+   const files=[...new Set(row.hostImplementation.split(' → ').map(x=>x.split('#')[0].trim()))];
+   return {id,inventory:'FORMAL',layer1:previous?.layer1??{api:approved.nativeApis.join(' + '),status:'CHROME_REFERENCE_NOT_NATIVE_PASS'},
+    layer2:{status:'SOURCE_WIRED',files},layer3:{status:BROWSER_OPERATIONS[id].implementation,
+     exposure:row.exposure,capabilities:row.toolCapabilities,chromePermissions:row.chromePermissions,siteScope:row.siteScope},
+    layer4:{positive:row.positiveTest.status,denial:row.denialTest.status,macChrome:row.nativeChrome.status,
+     callableNow:row.callableNowVerification,evidenceLedger:'docs/framework/workstreams/browser-sdk-acceptance.json'},
+    candidateOrigin:candidate?.group??null};
+  });
+  for(const candidate of ledger.candidateCatalog){
+   const current=ledger.formal.find(x=>x.id===candidate.id);
+   candidate.layer3.status=current?'PROMOTED_TO_FORMAL':'PROPOSED_NOT_REGISTERED';
+   if(current){candidate.layer2=current.layer2;candidate.layer4=current.layer4;}
+  }
+  for(const group of ledger.candidateGroups){
+   group.promoted=proposals.filter(x=>x.group===group.name&&formal.includes(x.id)).length;
+   group.pending=group.original-group.promoted;
+  }
+  ledger.counts=countsFor(ledger,acceptance,formal,proposals);
+  const summary=currentSummary(ledger.counts),pattern=/<!-- browser-framework-current:start -->[\s\S]*?<!-- browser-framework-current:end -->/;
+  human=pattern.test(human)?human.replace(pattern,summary):summary+'\n\n'+human;
+ }
  if(!equal(formal.slice().sort(),ledger.formal.map(x=>x.id).sort())||
   formal.length!==acceptance.operations.length)fail('registered operations');
  for(const operation of ledger.formal){
@@ -64,21 +108,17 @@ async function main(){
   if(group.length!==g.original||group.filter(x=>formal.includes(x.id)).length!==g.promoted||
      group.length-g.promoted!==g.pending)fail('group '+g.name);
  }
- const c={formal:formal.length,implemented:formal.filter(x=>BROWSER_OPERATIONS[x].implementation==='IMPLEMENTED').length,
-  planned:formal.filter(x=>BROWSER_OPERATIONS[x].implementation==='PLANNED').length,
-  notExposed:formal.filter(x=>BROWSER_OPERATIONS[x].implementation==='NOT_EXPOSED').length,
-  candidateGroups:ledger.candidateGroups.length,originalCandidates:proposals.length,promoted:promoted.length,
-  pending:remaining,uniqueNamedMethods:formal.length+remaining,
-  cookieSdkFormal:formal.filter(x=>x.startsWith('browser.cookies.')).length,
-  cookieCandidates:proposals.filter(x=>x.id.startsWith('browser.cookies.')).length,
-  formalNativePass:acceptance.operations.filter(x=>x.nativeChrome.status==='PASS').length,
-  supplementalAuditDomains:ledger.supplementalAudits.length};
+ const c=countsFor(ledger,acceptance,formal,proposals);
  if(!equal(c,ledger.counts))fail('counts');
  if(ledger.firstPriority.name!=='Cookies'||ledger.firstPriority.items.length!==c.cookieCandidates)fail('Cookie priority');
  if(new Set(ledger.supplementalAudits.map(x=>x.id)).size!==ledger.supplementalAudits.length||
    ledger.supplementalAudits.some(x=>x.layer3.status!=='AUDIT_ONLY_NOT_REGISTERED'))fail('supplemental rights');
- if(!human.includes('Cookies 全部 10 项')||!human.includes(String(c.formal)+' 项正式')||
+ if(!human.includes(currentSummary(c))||!human.includes('Cookies 全部 10 项')||
   !human.includes('原始 27 组'))fail('human-readable sections');
+ if(process.argv.includes('--write')){
+  await writeFile('docs/framework/workstreams/browser-framework-four-layer-ledger.json',JSON.stringify(ledger,null,2)+'\n');
+  await writeFile('docs/api/browser-framework-four-layer-ledger.zh-CN.md',human);
+ }
  console.log(JSON.stringify({ok:true,...c}));
 }
 main().catch(error=>{console.error(error.message);process.exitCode=1});
