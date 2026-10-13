@@ -20,6 +20,20 @@
 
 **历史事实和待实现体验必须分开**：R7.1 Page / R4 Controller 仍包含多个手动依赖批准动作；这是待消除的 UX 缺口，不能把旧 Node PASS 当作免审核体验已经交付。
 
+### R7.5 产品方向：对话直接完成任务、依赖自动管理（目标，非已验收）
+
+**产品可见入口不能照搬 D01–D12 工程编号。** 用户不应该先选择 Classic/ESM、Controller/Page、Worker、SHA 或安装候选。默认复用现有 Side Panel「工作流」对话设计（`docs/product/sidebar-ai-workflow-ux-r15.2.zh-CN.md`），不建立第二个聊天框、AI Provider、Runner、权限注册或独立 Dependency Manager。聊天输入负责表达任务意图，原开发编辑器保留为可展开的高级入口。
+
+**唯一核心用户旅程**：① 用自然语言描述「在当前网页做什么」；② 由当前已连接 AI/Native Codex 生成受控任务方案或受支持的程序，明确需要的站点与执行能力，用户主动 Run 时在真实浏览器完成操作并返回真实结果；③ 满意后用户可选「保存为可重复使用工具 / 安装 / 定时」，绑定同一经过验证的 Program Revision；④ 后续无需 AI/重新安装扩展/再次 CDN 下载，使用固定版本重复执行。**当前工作流的 `ai-plan.js` / `local-codex.js` 仍是「返回建议、不得执行浏览器动作」的规划器；「对话后直接执行」是待实施缺口，不能当成已经交付。**
+
+**JavaScript 高级用户的目标语法**为 `import mitt from 'mitt'`：版本号不应污染作者源文件，必须在首次合法 Run 前从受信、确定性的精确版本记录/现有项目依赖配置中解析并固定为诸如 `mitt@3.0.1` + 实际完整响应 SHA；不允许在后续运行/升级时自动重选 `latest`。如尚无可信版本决策，必须给出明确版本提示或拒绝，不得偷偷运行变化中的源码。当前源码仅在 Developer Controller ESM 支持 `import mitt from 'mitt@3.0.1'` 的临时精确版本写法；**目标 `import mitt from 'mitt'` 尚未编码和验收**。Standard Controller 可走受支持 Worker-compatible Classic 的 `// @require`；Page USER_SCRIPT、React/Vue、Tool 的 import 规则仍要逐世界实现和验收，不能用 Controller PASS 宣称各世界支持。
+
+**UI 只展示对用户有意义的四种状态**：需求已理解 / 正在真实执行 / 已得到结果或明确失败 / 已保存可复用；需要时展示原生网站或敏感能力许可。库名与固定版本可以在结果附近以一行只读信息呈现；URL、MIME、SHA、lockId、模块依赖图、执行世界、下载次数放在可选「技术详情」。不得将 D01–D12 变成十二个用户模式、十二个配置表单或新的多次库审核流程。
+
+**D01–D12 保持内部质量验收**：覆盖 Page/Controller/Tool/React/Vue、A/B 内容共享与权限隔离、保存安装、重启离线、定时云控、SHA/撤权安全和 Standard/Developer/CWS。用户可见完成度用「能实际运行／能保存／能安装重复使用／离线及安全验收」四个成果展示，工程层仍保留每项源码、Node、Build、Chrome CFT、用户 Mac Native、CWS 分层回执。真实验收缺失则标 NOT_TESTED，不生成完成率或 95+ 评分。
+
+**执行顺序**：先关掉当前 R7.4 `import mitt from 'mitt@3.0.1'` 单场景真实 Chrome 结果和来源/Worker 问题，再做用户导入标准化和同一精确锁的保存离线；最后让现有「工作流」对话明确调用原 RunHost 真实浏览器，而非只生成计划。不要为了描述愿景新增第二套架构或与并行 SDK/Cloud Agent 抢相同文件。
+
 ## 1. 旧源码已保存在本仓库，不必再寻找原工程
 
 旧源快照基准：`docs/contracts/source-snapshots/todo-src-bex/src-bex/`，以及 `docs/contracts/source-snapshots/scrapyJsChrome/background-sw.js`。旧版网页加载和 ChromePage 方式是**历史使用证据**，不是迁移后安全实现的榜样。
