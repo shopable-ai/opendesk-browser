@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createPageComponentRemote,assertPinnedESMSource} from '../../src/ui/page-component-remote.js';
 const root='https://module.example.org/v1.2.3/index.js',child='https://other.example.org/v1.2.3/child.js';
+const pinnedNpm='https://cdn.jsdelivr.net/npm/mitt@3.0.1/+esm';
 const rows=[{url:root,code:`import value from '${child}';export default value;`,sha256:'a'.repeat(64),bytes:100},
   {url:child,code:'export default 42;',sha256:'b'.repeat(64),bytes:18}];
 const pin=({url,sha256,bytes})=>({url,sha256,bytes});
@@ -34,7 +35,7 @@ function fixture({missingOrigin=false,denyOrigin=false}={}){
   }};
   const preparer={inspect:async input=>{
     const modules=input.remoteModules||[],present=new Set(modules.map(row=>row.url));
-    const requestedRoot=/https:\/\/[^'"]+/.exec(input.componentSource)?.[0]||root;
+    const requestedRoot=/https:\/\/[^'"]+/.exec(input.componentSource)?.[0]||(input.componentSource.includes("'mitt@3.0.1'")?pinnedNpm:root);
     const missingUrls=!present.has(requestedRoot)?[requestedRoot]:!present.has(child)?[child]:[];
     return {remoteRoots:[requestedRoot],missingUrls,complete:missingUrls.length===0,modules:modules.map(row=>({url:row.url,children:row.url===requestedRoot?[child]:[]}))};
   },cancel(){}};
@@ -170,4 +171,21 @@ test('R7.2 ESM auto fetch rejects moving branches, latest and unpinned hosts bef
       'no HTTP transport or byte cache write before version admission');
     assert.equal(f.locked,false);
   }
+});
+
+test('R7.4 bare pinned npm import primes native origin grant without custom directives',async t=>{
+  const f=fixture({missingOrigin:true});t.after(()=>f.controller.dispose());
+  f.source={componentSource:"import mitt from 'mitt@3.0.1';\nexport default async function main(){return mitt()}",
+    framework:'controller',programId:'r74-mitt'};
+  f.controller.refresh();
+  assert.equal(f.controller.readyForRun,false,'bare imports must not skip Chrome source grant prewarm');
+  for(let i=0;i<60&&!f.controller.readyForRun;i++)
+    await new Promise(resolve=>setTimeout(resolve,20));
+  assert.equal(f.controller.readyForRun,true);
+  assert.equal(f.permissions.length,0,'prewarm is read-only');
+  await f.runClick();
+  assert.deepEqual(f.permissions,[{origins:['https://cdn.jsdelivr.net/*']}]);
+  assert.equal(f.calls.filter(row=>row.method==='preparePageComponentDependencies').length,0,
+    'a Chrome permission grant is neither a network fetch nor an approval');
+  assert.equal(assertPinnedESMSource(pinnedNpm),pinnedNpm);
 });
