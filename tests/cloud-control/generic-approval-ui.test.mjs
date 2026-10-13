@@ -66,8 +66,8 @@ test('Side Panel approves two distinct pinned Tasks with individual result scope
       if(i===0){result.checked=true;nodes.get('cloud-task-list').events.get('change')({target:result});}
     }
     assert.equal(sections[2].children[0].children[0].disabled,true);
-    nodes.get('cloud-consent').checked=true;
-    nodes.get('cloud-result-consent').checked=true;
+    doc.getElementById('cloud-consent').checked=true;
+    doc.getElementById('cloud-result-consent').checked=true;
     assert.equal(nodes.get('cloud-approve').disabled,false);
     nodes.get('cloud-approve').events.get('click')();
     for(let i=0;i<5;i++)await setImmediate();
