@@ -136,3 +136,25 @@ test('R7.2 direct Run uses the real synchronous Chrome source-permission gesture
   assert.equal(f.prepared.length,0,'permission alone cannot download');
   assert.equal(f.approvals.length,0,'permission cannot establish a script lock');
 });
+
+test('R7.2 zero-dependency Page and frozen UI builds bypass only the library preflight',async t=>{
+  const nodes=new Map(elementIds.map(id=>[id,new Node()]));
+  const doc={getElementById:id=>nodes.get(id),createElement:tag=>new Node(tag),
+    createTextNode:text=>({nodeType:3,textContent:text})};
+  let chromeRequests=0,brokerRequests=0;
+  const api={permissions:{request(){chromeRequests++;return Promise.resolve(true);},
+    contains:async()=>false,onAdded:{addListener(){},removeListener(){}},
+    onRemoved:{addListener(){},removeListener(){}}}};
+  const installer=createPageDependencyInstaller({
+    client:{request(){brokerRequests++;throw Error('No broker inspection needed');}},
+    api,document:doc,resolver:{inspection:null},getSource:()=>
+      '// @opendesk-lib react\nasync function main(){return "<div>fixed</div>";}',
+    getProgramId:()=> 'no-deps'});
+  t.after(()=>installer.dispose());
+  assert.equal(nodes.get('page-dependency-panel').hidden,true);
+  assert.equal(installer.readyForRun,true);
+  assert.equal(await installer.confirmRun({isTrusted:true}),true);
+  assert.equal(chromeRequests,0,'library gate cannot request an origin without a declared source');
+  assert.equal(brokerRequests,0,'no network or locked dependency operations for plain fixed code');
+  await assert.rejects(installer.confirmRun({isTrusted:false}),{code:'E_GESTURE'});
+});

@@ -157,6 +157,12 @@ export function createPageDependencyInstaller({client,api,document:doc,resolver,
   function confirmRun(event){
     if(!event?.isTrusted)return Promise.reject(Object.assign(new Error('请主动点击运行'),{code:'E_GESTURE'}));
     if(disposed)return Promise.reject(Object.assign(new Error('编辑器已关闭'),{code:'E_HOST_CLOSED'}));
+    // An ordinary Classic program (including a frozen React/Vue JSON build)
+    // needs no dependency lock or inspection. The Run gesture still passes
+    // through native website permission and Page Authority independently.
+    try{
+      if(!parseUserScriptDependencies(currentSource()).requires.length)return Promise.resolve(true);
+    }catch(cause){return Promise.reject(cause);}
     if(!report||currentReport()!==report)
       return Promise.reject(Object.assign(new Error('依赖正在检查，请在检查结束后运行'),{code:'E_DEPENDENCY_INSPECT_PENDING'}));
     const origins=networkOrigins();
