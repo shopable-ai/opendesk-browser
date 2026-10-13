@@ -1,0 +1,8 @@
+file:///Users/shopme/Documents/workspace/opendesk-browser/.runtime/tests/import-r78/main-candidate-load-fix/scripts/build.mjs:15
+if (!['production', 'development'].includes(mode)) throw new Error('Invalid build mode');
+                                                         ^
+
+Error: Invalid build mode
+    at file:///Users/shopme/Documents/workspace/opendesk-browser/.runtime/tests/import-r78/main-candidate-load-fix/scripts/build.mjs:15:58
+
+Node.js v26.3.1

@@ -1,0 +1,20 @@
+{
+  "phase": "open",
+  "targetId": "1EE9E1E6B8AA625A0AB574367D4717E7",
+  "sessionId": "0AF006B9C01B63663BEBD8F800389B3B",
+  "hostFrame": {
+    "count": 1,
+    "src": "chrome-extension://pcnfnhaneglinepinoieagcjmacoaief/sidebar-tools/sandbox.html",
+    "sandbox": null
+  },
+  "seen": {
+    "result": "Tool Classic mitt = 5",
+    "environment": "typeof chrome = object; typeof chrome.tabs = undefined; typeof page = undefined",
+    "executions": "Executions in this iframe = 1",
+    "order": "order = mitt>second>main; emits = 1",
+    "origin": "null",
+    "chromeTabs": "undefined",
+    "page": "undefined",
+    "url": "chrome-extension://pcnfnhaneglinepinoieagcjmacoaief/sidebar-tools/sandbox.html"
+  }
+}

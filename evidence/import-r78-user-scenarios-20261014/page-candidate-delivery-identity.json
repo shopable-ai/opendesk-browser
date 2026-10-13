@@ -1,0 +1,57 @@
+{
+  "tag": "page-candidate-v1",
+  "namespace": "tool:iohgfienehkcbkjjnjdcbigoecbeakdj",
+  "candidateId": "page-4600a79c4c8e401f13ba02d39b8c83fca131a539524df4f07bdfab1db5ae9219",
+  "builtinIdentity": {
+    "abi": "opendesk-builtins.v10",
+    "catalogSha256": "ffd8485114e96c08fcd1d3e3d3b72e6bd89afa9b7f64568f5719cf393e283c09",
+    "bundleSha256": "c918ee6777796cebd477ac7c734f95fdb09ede292361e33a023f7cda68f7fec4"
+  },
+  "manifestHash": "59500c9f92f885d78d23dbbe0fe3dbab97f16ad48026b4aa1ba48ac5b2138200",
+  "manifest": {
+    "format": "opendesk.page-program.v1",
+    "runtimeKind": "page-userscript",
+    "programId": "r76-page-esm-d3",
+    "revision": 1,
+    "sourceHash": "9f5357b3eee7997f9be04b48f67d2bc9bf4e373b81ac14aaa2c4f6059d29a4ca",
+    "entryFormat": "async-main",
+    "sourceProfile": {
+      "metadataProfile": "opendesk-d1",
+      "importSourceUrl": null
+    },
+    "dependencyLockId": null,
+    "dependencyManifestDigest": "bb65f573923dc63d264e9823c02867667f39b4651fcebacf04288bf95ee17319",
+    "pageRules": {
+      "matches": [
+        "http://127.0.0.1/*"
+      ],
+      "excludeMatches": [],
+      "runAt": "document_idle",
+      "allFrames": false,
+      "world": "USER_SCRIPT"
+    },
+    "compilation": {
+      "sourceFormat": "esm-page",
+      "authorSourceHash": "e92e693378c7cefeb0d520e655b958c19b6b96dc8e9d9f65df67b72497744c39",
+      "dependencyLockId": "dep-lock-38f5f5c994217c128df3f9ace914a21782e4d2911567e639dfce6daddd239235",
+      "dependencyManifestDigest": "b04017ec8d9e4e1f66bb623e2797e438c7203768a5c734e71badd5c6031ec5eb",
+      "compilerVersion": "7.29.9",
+      "compilerSha256": "5f8ffa174aa2465f074c85b92421662168cd356eedebaedc3d16fd9d61fadb7c",
+      "compilerProfile": [
+        {
+          "id": "static-esm-compiler-worker",
+          "sha256": "3a85cdb9ab33e6d5d0f594678f88b50cff897c9d8a3cb279bf9768a8c2c45050"
+        },
+        {
+          "id": "static-esm-linker",
+          "sha256": "425e7434828f8a2d35cfe16bc5c7e3dd9cc3b5e79182493d54726ca579ee2854"
+        }
+      ]
+    }
+  },
+  "sourceUtf8": "async function main(){\n  const __odModules=Object.create(null);\n  {const exports=Object.create(null);\n    (function(exports){\n\"use strict\";\n\nObject.defineProperty(exports, \"__esModule\", {\n  value: true\n});\nexports.default = max;\nfunction max(values, valueof) {\n  let max;\n  if (valueof === undefined) {\n    for (const value of values) {\n      if (value != null && (max < value || max === undefined && value >= value)) {\n        max = value;\n      }\n    }\n  } else {\n    let index = -1;\n    for (let value of values) {\n      if ((value = valueof(value, ++index, values)) != null && (max < value || max === undefined && value >= value)) {\n        max = value;\n      }\n    }\n  }\n  return max;\n}\n    })(exports);\n    const namespace=Object.create(null);\n    for(const key of Object.getOwnPropertyNames(exports))Object.defineProperty(namespace,key,{enumerable:key!==\"__esModule\",get:()=>exports[key]});\n    __odModules[\"https://raw.githubusercontent.com/d3/d3-array/v3.2.4/src/max.js\"]=Object.freeze(namespace);\n  }\n  const __odEntry=(function(){\n    const exports=Object.create(null);\n    const require=name=>{if(!Object.hasOwn(__odModules,name))throw Error(\"E_STATIC_ESM_INPUT\");return __odModules[name];};\n    (function(exports,require){\n\"use strict\";\n\nObject.defineProperty(exports, \"__esModule\", {\n  value: true\n});\nexports.default = main;\nvar _max = require(\"https://raw.githubusercontent.com/d3/d3-array/v3.2.4/src/max.js\");\nasync function main() {\n  const value = (0, _max.default)([2, 5, 3]);\n  if (value !== 5) throw new Error('D3_IMPORT_FAILED');\n  let node = document.getElementById('od-import-proof');\n  if (!node) {\n    node = document.createElement('output');\n    node.id = 'od-import-proof';\n    document.body.appendChild(node);\n  }\n  node.textContent = 'Page D3 max = ' + value;\n  console.log('[IMPORT TEST][PAGE]', value);\n  return {\n    world: 'USER_SCRIPT',\n    value,\n    success: true\n  };\n}\n    })(exports,require);\n    return exports;\n  })();\n  return await (0,__odEntry.default)();\n}",
+  "authorSourceUtf8": "import max from 'https://raw.githubusercontent.com/d3/d3-array/v3.2.4/src/max.js';\n\nexport default async function main() {\n  const value = max([2, 5, 3]);\n  if (value !== 5) throw new Error('D3_IMPORT_FAILED');\n  let node = document.getElementById('od-import-proof');\n  if (!node) {\n    node = document.createElement('output');\n    node.id = 'od-import-proof';\n    document.body.appendChild(node);\n  }\n  node.textContent = 'Page D3 max = ' + value;\n  console.log('[IMPORT TEST][PAGE]', value);\n  return {world: 'USER_SCRIPT', value, success: true};\n}\n",
+  "stage": "Candidate",
+  "verification": null,
+  "createdAt": 1791926522886
+}

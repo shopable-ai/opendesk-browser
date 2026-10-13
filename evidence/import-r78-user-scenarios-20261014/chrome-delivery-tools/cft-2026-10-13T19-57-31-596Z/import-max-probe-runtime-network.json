@@ -1,0 +1,62 @@
+[
+  {
+    "sessionId": "6E3D1D3F7DD47E9419740E0992FF81ED",
+    "url": "chrome-extension://pcnfnhaneglinepinoieagcjmacoaief/sidebar-tools/bridge.js",
+    "type": "Script",
+    "initiator": {
+      "type": "parser",
+      "url": "chrome-extension://pcnfnhaneglinepinoieagcjmacoaief/sidebar-tools/sandbox.html",
+      "lineNumber": 4,
+      "columnNumber": 110
+    }
+  },
+  {
+    "sessionId": "6E3D1D3F7DD47E9419740E0992FF81ED",
+    "url": "blob:null/616b9d10-d33e-4d31-a053-79007a6a0239",
+    "type": "Script",
+    "initiator": {
+      "type": "script",
+      "stack": {
+        "callFrames": [
+          {
+            "functionName": "",
+            "scriptId": "3",
+            "url": "chrome-extension://pcnfnhaneglinepinoieagcjmacoaief/sidebar-tools/bridge.js",
+            "lineNumber": 0,
+            "columnNumber": 51202
+          }
+        ]
+      }
+    }
+  },
+  {
+    "sessionId": "CC5949DFC35AF1426D6A2F33AEE9B57F",
+    "url": "chrome-extension://pcnfnhaneglinepinoieagcjmacoaief/sidebar-tools/bridge.js",
+    "type": "Script",
+    "initiator": {
+      "type": "parser",
+      "url": "chrome-extension://pcnfnhaneglinepinoieagcjmacoaief/sidebar-tools/sandbox.html",
+      "lineNumber": 4,
+      "columnNumber": 110
+    }
+  },
+  {
+    "sessionId": "CC5949DFC35AF1426D6A2F33AEE9B57F",
+    "url": "blob:null/1730750a-17e2-4ec0-94d1-59d6704b42f5",
+    "type": "Script",
+    "initiator": {
+      "type": "script",
+      "stack": {
+        "callFrames": [
+          {
+            "functionName": "",
+            "scriptId": "3",
+            "url": "chrome-extension://pcnfnhaneglinepinoieagcjmacoaief/sidebar-tools/bridge.js",
+            "lineNumber": 0,
+            "columnNumber": 51202
+          }
+        ]
+      }
+    }
+  }
+]

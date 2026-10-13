@@ -1,0 +1,1534 @@
+{
+  "status": "FAIL",
+  "startedAt": "2026-10-13T20:09:38.461Z",
+  "chrome": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+  "sourceHead": "3c19c71b36f656da941ff2b690bf67420d9c571a",
+  "nativeHostConfigured": false,
+  "tests": [
+    {
+      "name": "r243-browser-ui-userScripts-real-Chrome-optin",
+      "status": "PASS",
+      "nativeHostConfigured": false,
+      "control": "chrome://extensions real toggle"
+    },
+    {
+      "caseId": "D02/D03-R72-ONE-CLICK-AB",
+      "url": "https://cdn.jsdelivr.net/npm/marked@15.0.12/lib/marked.umd.js",
+      "world": "USER_SCRIPT",
+      "steps": [
+        {
+          "name": "program-a-run",
+          "value": {
+            "result": "{\"html\":\"<p><strong>OpenDesk</strong></p>\\n\",\"library\":\"marked@15.0.12\"}",
+            "sourceHash": "d6032fa75c665360020bb81aac3b11af10c58cba6208b943ce0696f4e7bc5399",
+            "tabId": 2053784532,
+            "documentId": "0C37AA1EDC2423B355D97CBD89D42377"
+          }
+        },
+        {
+          "name": "program-a-save",
+          "value": "已保存 Page Candidate：r72-marked-a · r1 · 0d4ed206034a…。 兼容导入保留原文件声明与源码；无 @match 的兼容脚本可能使用较广范围，安装前必须审阅；声明不代表已授权。 请在已保存网页脚本中验证冻结版本，再明确安装。"
+        },
+        {
+          "name": "program-a-auto-lock",
+          "value": {
+            "lockId": "dep-lock-509ca760bf44b93706e5e9b3b4cac5e2bcd0b032a0db1ec0eb4714adff8e7980",
+            "sha": "d7931d1cd7bf727dd756c871637edcc9e0f8538003b927368400ec1ee47a9dd9"
+          }
+        },
+        {
+          "name": "program-b-run",
+          "value": {
+            "result": "{\"html\":\"<p><strong>OpenDesk</strong></p>\\n\",\"library\":\"marked@15.0.12\"}",
+            "sourceHash": "d6032fa75c665360020bb81aac3b11af10c58cba6208b943ce0696f4e7bc5399",
+            "tabId": 2053784532,
+            "documentId": "0C37AA1EDC2423B355D97CBD89D42377"
+          }
+        },
+        {
+          "name": "program-b-save",
+          "value": "已保存 Page Candidate：r72-marked-a · r1 · 0d4ed206034a…。 兼容导入保留原文件声明与源码；无 @match 的兼容脚本可能使用较广范围，安装前必须审阅；声明不代表已授权。 请在已保存网页脚本中验证冻结版本，再明确安装。"
+        },
+        {
+          "name": "program-b-auto-lock",
+          "value": {
+            "lockId": "dep-lock-b7fa675f43210710ac1b7091bf63b3cda0388df8cd4da094200ba38a992c3ad2",
+            "sha": "d7931d1cd7bf727dd756c871637edcc9e0f8538003b927368400ec1ee47a9dd9"
+          }
+        }
+      ],
+      "status": "CHROME_PASS_R72_ONE_CLICK_AB",
+      "sha256": "d7931d1cd7bf727dd756c871637edcc9e0f8538003b927368400ec1ee47a9dd9",
+      "programLocks": {
+        "a": "dep-lock-509ca760bf44b93706e5e9b3b4cac5e2bcd0b032a0db1ec0eb4714adff8e7980",
+        "b": "dep-lock-b7fa675f43210710ac1b7091bf63b3cda0388df8cd4da094200ba38a992c3ad2"
+      },
+      "network": {
+        "firstProgramRequests": 1,
+        "secondProgramRequests": 0
+      },
+      "networkObservedRequests": 1
+    },
+    {
+      "caseId": "D05-R73-CONTROLLER-CLASSIC-REAL-MITT",
+      "world": "CONTROLLER",
+      "programIds": [
+        "r73-controller-mitt-a",
+        "r73-controller-mitt-b"
+      ],
+      "sourceUrl": "https://cdn.jsdelivr.net/npm/mitt@3.0.1/dist/mitt.umd.js",
+      "authorSourceHash": "863bea3ad5ee3524c6578fb1c8002b098f6d351b04248db9bcef483dcba56519",
+      "status": "CHROME_PASS_D05_CONTROLLER_CLASSIC",
+      "verifiedFunction": {
+        "events": [
+          "OpenDesk:21"
+        ],
+        "count": 1
+      },
+      "programA": {
+        "first": {
+          "runId": "ada9ae66-c4eb-43d2-8b3c-0b9fa8f80b41",
+          "resultId": "57abd7af-3ead-44a5-b86c-0a699c0a892f",
+          "sourceHash": "218b07d4e813374bd15060a7b484cacf601b7caadc09c3d693baffdbb60b7274",
+          "resultText": "{\n  \"count\": 1,\n  \"events\": [\n    \"OpenDesk:21\"\n  ],\n  \"title\": \"OpenDesk Browser · Browser Test Lab\"\n}"
+        },
+        "repeat": {
+          "runId": "a2f1c6b2-46e1-4a30-b51c-e1d4b0c70f52",
+          "resultId": "5574070d-cd07-4e37-8c40-76f2d88a2c71",
+          "sourceHash": "218b07d4e813374bd15060a7b484cacf601b7caadc09c3d693baffdbb60b7274",
+          "resultText": "{\n  \"count\": 1,\n  \"events\": [\n    \"OpenDesk:21\"\n  ],\n  \"title\": \"OpenDesk Browser · Browser Test Lab\"\n}"
+        },
+        "savedRevision": "r73-controller-mitt-a · r1 已持久保存固定 Classic 版本；保存不会运行脚本"
+      },
+      "programB": {
+        "runId": "bf3d3c52-a316-46bb-8b4f-91482ca56ad2",
+        "resultId": "0f7599d1-fe31-4444-afbe-06af63615a1d",
+        "sourceHash": "7ab4352d5d8264c2368cc7b695efdbfebd676601528e2b247642267ada02d03f",
+        "resultText": "{\n  \"count\": 1,\n  \"events\": [\n    \"OpenDesk:21\"\n  ],\n  \"title\": \"OpenDesk Browser · Browser Test Lab\"\n}"
+      },
+      "locks": [
+        {
+          "lockId": "controller-classic-ca9bf1885c8682d60b2e747871388f954447c42b59a47ed8ddd0a865ade33aac",
+          "programId": "r73-controller-mitt-a",
+          "world": "CONTROLLER",
+          "sourceHash": "863bea3ad5ee3524c6578fb1c8002b098f6d351b04248db9bcef483dcba56519",
+          "entries": [
+            {
+              "url": "https://cdn.jsdelivr.net/npm/mitt@3.0.1/dist/mitt.umd.js",
+              "sha256": "1b48d419d5c66d6c39a8a2e2cb69e797989c8cd934f17122abc35d766650a82f",
+              "byteLength": 520
+            }
+          ]
+        },
+        {
+          "lockId": "controller-classic-3aca9cfaeeb1e648856a132cb419f2e576b0de735092bf137259b462cd333743",
+          "programId": "r73-controller-mitt-b",
+          "world": "CONTROLLER",
+          "sourceHash": "863bea3ad5ee3524c6578fb1c8002b098f6d351b04248db9bcef483dcba56519",
+          "entries": [
+            {
+              "url": "https://cdn.jsdelivr.net/npm/mitt@3.0.1/dist/mitt.umd.js",
+              "sha256": "1b48d419d5c66d6c39a8a2e2cb69e797989c8cd934f17122abc35d766650a82f",
+              "byteLength": 520
+            }
+          ]
+        }
+      ],
+      "network": {
+        "firstProgramRequests": 1,
+        "repeatRequests": 0,
+        "otherProgramRequests": 0
+      }
+    },
+    {
+      "caseId": "R76-PAGE-URL-ESM-D3-DOM",
+      "world": "USER_SCRIPT",
+      "url": "https://raw.githubusercontent.com/d3/d3-array/v3.2.4/src/max.js",
+      "programId": "r76-page-esm-d3",
+      "authorSourceHash": "e92e693378c7cefeb0d520e655b958c19b6b96dc8e9d9f65df67b72497744c39",
+      "status": "CHROME_PASS_R76_PAGE_ESM_D3",
+      "first": {
+        "receiptNonce": "d18cfe75-2484-4298-a937-010421ca5463",
+        "sourceHash": "9f5357b3eee7997f9be04b48f67d2bc9bf4e373b81ac14aaa2c4f6059d29a4ca",
+        "tabId": 2053784532,
+        "documentId": "0C37AA1EDC2423B355D97CBD89D42377",
+        "returnValue": "{\"success\":true,\"value\":5,\"world\":\"USER_SCRIPT\"}",
+        "dom": "Page D3 max = 5"
+      },
+      "repeat": {
+        "receiptNonce": "60e07143-0f4f-4c07-8b5c-80fb7c2933e3",
+        "sourceHash": "9f5357b3eee7997f9be04b48f67d2bc9bf4e373b81ac14aaa2c4f6059d29a4ca",
+        "tabId": 2053784532,
+        "documentId": "0C37AA1EDC2423B355D97CBD89D42377",
+        "returnValue": "{\"success\":true,\"value\":5,\"world\":\"USER_SCRIPT\"}",
+        "dom": "Page D3 max = 5"
+      },
+      "network": {
+        "firstRequests": 1,
+        "repeatRequests": 0
+      },
+      "saved": "已保存 Page Candidate：r76-page-esm-d3 · r1 · a39fd8830c25…。 源码保持原样；网页运行范围单独保存：http://127.0.0.1/*。网页匹配包含不同端口，但不授予跨站网络服务权限；自动执行仍需明确安装授权。 请在已保存网页脚本中验证冻结版本，再明确安装。",
+      "restored": {
+        "receiptNonce": "69f9fcd5-21fc-4f47-a44b-9df646fabda4",
+        "sourceHash": "9f5357b3eee7997f9be04b48f67d2bc9bf4e373b81ac14aaa2c4f6059d29a4ca",
+        "tabId": 2053784532,
+        "documentId": "0C37AA1EDC2423B355D97CBD89D42377",
+        "returnValue": "{\"success\":true,\"value\":5,\"world\":\"USER_SCRIPT\"}",
+        "dom": "Page D3 max = 5"
+      },
+      "persisted": [
+        {
+          "database": "opendesk-browser",
+          "store": "frameworkKV",
+          "value": {
+            "tag": "page-candidate-v1",
+            "namespace": "tool:pcnfnhaneglinepinoieagcjmacoaief",
+            "candidateId": "page-61731916d9db901aa98fa7f0e0a6e52fc81e34d81ab6b3fef8e5c832b37097fe",
+            "builtinIdentity": {
+              "abi": "opendesk-builtins.v10",
+              "catalogSha256": "ffd8485114e96c08fcd1d3e3d3b72e6bd89afa9b7f64568f5719cf393e283c09",
+              "bundleSha256": "c918ee6777796cebd477ac7c734f95fdb09ede292361e33a023f7cda68f7fec4"
+            },
+            "manifestHash": "a39fd8830c2532d7bc707cad0a4772e8b0772c4a40886a5964c0908315be25b5",
+            "manifest": {
+              "format": "opendesk.page-program.v1",
+              "runtimeKind": "page-userscript",
+              "programId": "r76-page-esm-d3",
+              "revision": 1,
+              "sourceHash": "9f5357b3eee7997f9be04b48f67d2bc9bf4e373b81ac14aaa2c4f6059d29a4ca",
+              "entryFormat": "async-main",
+              "sourceProfile": {
+                "metadataProfile": "opendesk-d1",
+                "importSourceUrl": null
+              },
+              "dependencyLockId": null,
+              "dependencyManifestDigest": "bb65f573923dc63d264e9823c02867667f39b4651fcebacf04288bf95ee17319",
+              "pageRules": {
+                "matches": [
+                  "http://127.0.0.1/*"
+                ],
+                "excludeMatches": [],
+                "runAt": "document_idle",
+                "allFrames": false,
+                "world": "USER_SCRIPT"
+              },
+              "compilation": {
+                "sourceFormat": "esm-page",
+                "authorSourceHash": "e92e693378c7cefeb0d520e655b958c19b6b96dc8e9d9f65df67b72497744c39",
+                "dependencyLockId": "dep-lock-78c04b0c2f29596c0719c1462691f78276d48b9d275a5d50aeeed20c629a767c",
+                "dependencyManifestDigest": "b04017ec8d9e4e1f66bb623e2797e438c7203768a5c734e71badd5c6031ec5eb",
+                "compilerVersion": "7.29.9",
+                "compilerSha256": "5f8ffa174aa2465f074c85b92421662168cd356eedebaedc3d16fd9d61fadb7c",
+                "compilerProfile": [
+                  {
+                    "id": "static-esm-compiler-worker",
+                    "sha256": "3a85cdb9ab33e6d5d0f594678f88b50cff897c9d8a3cb279bf9768a8c2c45050"
+                  },
+                  {
+                    "id": "static-esm-linker",
+                    "sha256": "425e7434828f8a2d35cfe16bc5c7e3dd9cc3b5e79182493d54726ca579ee2854"
+                  }
+                ]
+              }
+            },
+            "sourceUtf8": "async function main(){\n  const __odModules=Object.create(null);\n  {const exports=Object.create(null);\n    (function(exports){\n\"use strict\";\n\nObject.defineProperty(exports, \"__esModule\", {\n  value: true\n});\nexports.default = max;\nfunction max(values, valueof) {\n  let max;\n  if (valueof === undefined) {\n    for (const value of values) {\n      if (value != null && (max < value || max === undefined && value >= value)) {\n        max = value;\n      }\n    }\n  } else {\n    let index = -1;\n    for (let value of values) {\n      if ((value = valueof(value, ++index, values)) != null && (max < value || max === undefined && value >= value)) {\n        max = value;\n      }\n    }\n  }\n  return max;\n}\n    })(exports);\n    const namespace=Object.create(null);\n    for(const key of Object.getOwnPropertyNames(exports))Object.defineProperty(namespace,key,{enumerable:key!==\"__esModule\",get:()=>exports[key]});\n    __odModules[\"https://raw.githubusercontent.com/d3/d3-array/v3.2.4/src/max.js\"]=Object.freeze(namespace);\n  }\n  const __odEntry=(function(){\n    const exports=Object.create(null);\n    const require=name=>{if(!Object.hasOwn(__odModules,name))throw Error(\"E_STATIC_ESM_INPUT\");return __odModules[name];};\n    (function(exports,require){\n\"use strict\";\n\nObject.defineProperty(exports, \"__esModule\", {\n  value: true\n});\nexports.default = main;\nvar _max = require(\"https://raw.githubusercontent.com/d3/d3-array/v3.2.4/src/max.js\");\nasync function main() {\n  const value = (0, _max.default)([2, 5, 3]);\n  if (value !== 5) throw new Error('D3_IMPORT_FAILED');\n  let node = document.getElementById('od-import-proof');\n  if (!node) {\n    node = document.createElement('output');\n    node.id = 'od-import-proof';\n    document.body.appendChild(node);\n  }\n  node.textContent = 'Page D3 max = ' + value;\n  console.log('[IMPORT TEST][PAGE]', value);\n  return {\n    world: 'USER_SCRIPT',\n    value,\n    success: true\n  };\n}\n    })(exports,require);\n    return exports;\n  })();\n  return await (0,__odEntry.default)();\n}",
+            "authorSourceUtf8": "import max from 'https://raw.githubusercontent.com/d3/d3-array/v3.2.4/src/max.js';\n\nexport default async function main() {\n  const value = max([2, 5, 3]);\n  if (value !== 5) throw new Error('D3_IMPORT_FAILED');\n  let node = document.getElementById('od-import-proof');\n  if (!node) {\n    node = document.createElement('output');\n    node.id = 'od-import-proof';\n    document.body.appendChild(node);\n  }\n  node.textContent = 'Page D3 max = ' + value;\n  console.log('[IMPORT TEST][PAGE]', value);\n  return {world: 'USER_SCRIPT', value, success: true};\n}\n",
+            "stage": "Candidate",
+            "verification": null,
+            "createdAt": 1791922183396
+          }
+        }
+      ],
+      "installedRecords": [
+        {
+          "database": "opendesk-browser",
+          "store": "frameworkKV",
+          "value": {
+            "tag": "page-candidate-v1",
+            "namespace": "tool:pcnfnhaneglinepinoieagcjmacoaief",
+            "candidateId": "page-61731916d9db901aa98fa7f0e0a6e52fc81e34d81ab6b3fef8e5c832b37097fe",
+            "builtinIdentity": {
+              "abi": "opendesk-builtins.v10",
+              "catalogSha256": "ffd8485114e96c08fcd1d3e3d3b72e6bd89afa9b7f64568f5719cf393e283c09",
+              "bundleSha256": "c918ee6777796cebd477ac7c734f95fdb09ede292361e33a023f7cda68f7fec4"
+            },
+            "manifestHash": "a39fd8830c2532d7bc707cad0a4772e8b0772c4a40886a5964c0908315be25b5",
+            "manifest": {
+              "format": "opendesk.page-program.v1",
+              "runtimeKind": "page-userscript",
+              "programId": "r76-page-esm-d3",
+              "revision": 1,
+              "sourceHash": "9f5357b3eee7997f9be04b48f67d2bc9bf4e373b81ac14aaa2c4f6059d29a4ca",
+              "entryFormat": "async-main",
+              "sourceProfile": {
+                "metadataProfile": "opendesk-d1",
+                "importSourceUrl": null
+              },
+              "dependencyLockId": null,
+              "dependencyManifestDigest": "bb65f573923dc63d264e9823c02867667f39b4651fcebacf04288bf95ee17319",
+              "pageRules": {
+                "matches": [
+                  "http://127.0.0.1/*"
+                ],
+                "excludeMatches": [],
+                "runAt": "document_idle",
+                "allFrames": false,
+                "world": "USER_SCRIPT"
+              },
+              "compilation": {
+                "sourceFormat": "esm-page",
+                "authorSourceHash": "e92e693378c7cefeb0d520e655b958c19b6b96dc8e9d9f65df67b72497744c39",
+                "dependencyLockId": "dep-lock-78c04b0c2f29596c0719c1462691f78276d48b9d275a5d50aeeed20c629a767c",
+                "dependencyManifestDigest": "b04017ec8d9e4e1f66bb623e2797e438c7203768a5c734e71badd5c6031ec5eb",
+                "compilerVersion": "7.29.9",
+                "compilerSha256": "5f8ffa174aa2465f074c85b92421662168cd356eedebaedc3d16fd9d61fadb7c",
+                "compilerProfile": [
+                  {
+                    "id": "static-esm-compiler-worker",
+                    "sha256": "3a85cdb9ab33e6d5d0f594678f88b50cff897c9d8a3cb279bf9768a8c2c45050"
+                  },
+                  {
+                    "id": "static-esm-linker",
+                    "sha256": "425e7434828f8a2d35cfe16bc5c7e3dd9cc3b5e79182493d54726ca579ee2854"
+                  }
+                ]
+              }
+            },
+            "sourceUtf8": "async function main(){\n  const __odModules=Object.create(null);\n  {const exports=Object.create(null);\n    (function(exports){\n\"use strict\";\n\nObject.defineProperty(exports, \"__esModule\", {\n  value: true\n});\nexports.default = max;\nfunction max(values, valueof) {\n  let max;\n  if (valueof === undefined) {\n    for (const value of values) {\n      if (value != null && (max < value || max === undefined && value >= value)) {\n        max = value;\n      }\n    }\n  } else {\n    let index = -1;\n    for (let value of values) {\n      if ((value = valueof(value, ++index, values)) != null && (max < value || max === undefined && value >= value)) {\n        max = value;\n      }\n    }\n  }\n  return max;\n}\n    })(exports);\n    const namespace=Object.create(null);\n    for(const key of Object.getOwnPropertyNames(exports))Object.defineProperty(namespace,key,{enumerable:key!==\"__esModule\",get:()=>exports[key]});\n    __odModules[\"https://raw.githubusercontent.com/d3/d3-array/v3.2.4/src/max.js\"]=Object.freeze(namespace);\n  }\n  const __odEntry=(function(){\n    const exports=Object.create(null);\n    const require=name=>{if(!Object.hasOwn(__odModules,name))throw Error(\"E_STATIC_ESM_INPUT\");return __odModules[name];};\n    (function(exports,require){\n\"use strict\";\n\nObject.defineProperty(exports, \"__esModule\", {\n  value: true\n});\nexports.default = main;\nvar _max = require(\"https://raw.githubusercontent.com/d3/d3-array/v3.2.4/src/max.js\");\nasync function main() {\n  const value = (0, _max.default)([2, 5, 3]);\n  if (value !== 5) throw new Error('D3_IMPORT_FAILED');\n  let node = document.getElementById('od-import-proof');\n  if (!node) {\n    node = document.createElement('output');\n    node.id = 'od-import-proof';\n    document.body.appendChild(node);\n  }\n  node.textContent = 'Page D3 max = ' + value;\n  console.log('[IMPORT TEST][PAGE]', value);\n  return {\n    world: 'USER_SCRIPT',\n    value,\n    success: true\n  };\n}\n    })(exports,require);\n    return exports;\n  })();\n  return await (0,__odEntry.default)();\n}",
+            "authorSourceUtf8": "import max from 'https://raw.githubusercontent.com/d3/d3-array/v3.2.4/src/max.js';\n\nexport default async function main() {\n  const value = max([2, 5, 3]);\n  if (value !== 5) throw new Error('D3_IMPORT_FAILED');\n  let node = document.getElementById('od-import-proof');\n  if (!node) {\n    node = document.createElement('output');\n    node.id = 'od-import-proof';\n    document.body.appendChild(node);\n  }\n  node.textContent = 'Page D3 max = ' + value;\n  console.log('[IMPORT TEST][PAGE]', value);\n  return {world: 'USER_SCRIPT', value, success: true};\n}\n",
+            "stage": "Candidate",
+            "verification": null,
+            "createdAt": 1791922183396
+          }
+        },
+        {
+          "database": "opendesk-browser",
+          "store": "frameworkKV",
+          "value": {
+            "tag": "page-installed-v1",
+            "namespace": "tool:pcnfnhaneglinepinoieagcjmacoaief",
+            "programId": "r76-page-esm-d3",
+            "revision": 1,
+            "title": "r76-page-esm-d3",
+            "manifestHash": "a39fd8830c2532d7bc707cad0a4772e8b0772c4a40886a5964c0908315be25b5",
+            "sourceHash": "9f5357b3eee7997f9be04b48f67d2bc9bf4e373b81ac14aaa2c4f6059d29a4ca",
+            "builtinIdentity": {
+              "abi": "opendesk-builtins.v10",
+              "catalogSha256": "ffd8485114e96c08fcd1d3e3d3b72e6bd89afa9b7f64568f5719cf393e283c09",
+              "bundleSha256": "c918ee6777796cebd477ac7c734f95fdb09ede292361e33a023f7cda68f7fec4"
+            },
+            "pageRules": {
+              "matches": [
+                "http://127.0.0.1/*"
+              ],
+              "excludeMatches": [],
+              "runAt": "document_idle",
+              "allFrames": false,
+              "world": "USER_SCRIPT"
+            },
+            "enabled": true,
+            "token": "afd704d79d574c34937058185c8bd21b",
+            "nativeId": "opendesk-page-boot-8d05261c1666f15ebc8c9a66ad102ae32fe0e00dd15c95ef",
+            "nativeState": "registered",
+            "error": null,
+            "installedAt": 1791922183933,
+            "authorization": {
+              "tag": "page-install-authorization-v1",
+              "installationId": "1a99fd35-9104-47c5-a6e9-eb907ba90399",
+              "generation": 1,
+              "status": "active",
+              "scope": {
+                "capabilities": [
+                  "page.dom"
+                ],
+                "pageRules": {
+                  "matches": [
+                    "http://127.0.0.1/*"
+                  ],
+                  "excludeMatches": [],
+                  "runAt": "document_idle",
+                  "allFrames": false,
+                  "world": "USER_SCRIPT"
+                },
+                "networkOrigins": []
+              },
+              "approvedAt": 1791922183933
+            }
+          }
+        },
+        {
+          "database": "opendesk-browser",
+          "store": "frameworkKV",
+          "value": {
+            "tag": "page-verification-v1",
+            "builtinIdentity": {
+              "abi": "opendesk-builtins.v10",
+              "catalogSha256": "ffd8485114e96c08fcd1d3e3d3b72e6bd89afa9b7f64568f5719cf393e283c09",
+              "bundleSha256": "c918ee6777796cebd477ac7c734f95fdb09ede292361e33a023f7cda68f7fec4"
+            },
+            "candidateId": "page-61731916d9db901aa98fa7f0e0a6e52fc81e34d81ab6b3fef8e5c832b37097fe",
+            "namespace": "tool:pcnfnhaneglinepinoieagcjmacoaief",
+            "manifestHash": "a39fd8830c2532d7bc707cad0a4772e8b0772c4a40886a5964c0908315be25b5",
+            "runtimeKind": "page-userscript",
+            "entryFormat": "async-main",
+            "programId": "r76-page-esm-d3",
+            "revision": 1,
+            "sourceHash": "9f5357b3eee7997f9be04b48f67d2bc9bf4e373b81ac14aaa2c4f6059d29a4ca",
+            "dependencyLockId": null,
+            "dependencyManifestDigest": "bb65f573923dc63d264e9823c02867667f39b4651fcebacf04288bf95ee17319",
+            "approvedPageRules": {
+              "matches": [
+                "http://127.0.0.1/*"
+              ],
+              "excludeMatches": [],
+              "runAt": "document_idle",
+              "allFrames": false,
+              "world": "USER_SCRIPT"
+            },
+            "status": "Available",
+            "receipt": {
+              "state": "preview-evaluated",
+              "durable": false,
+              "registered": false,
+              "tabId": 2053784532,
+              "documentId": "0C37AA1EDC2423B355D97CBD89D42377",
+              "sourceHash": "9f5357b3eee7997f9be04b48f67d2bc9bf4e373b81ac14aaa2c4f6059d29a4ca",
+              "world": "USER_SCRIPT",
+              "worldId": "opendesk-preview-d1-2cf68bfb8a9e42ac954fab838e805393",
+              "receiptNonce": "add64c45-583e-4595-ac05-8f929672db06",
+              "builtinAbi": "opendesk-builtins.v10",
+              "builtinCatalogSha256": "ffd8485114e96c08fcd1d3e3d3b72e6bd89afa9b7f64568f5719cf393e283c09",
+              "builtinBundleSha256": "c918ee6777796cebd477ac7c734f95fdb09ede292361e33a023f7cda68f7fec4",
+              "entryFormat": "async-main",
+              "lockId": null,
+              "manifestDigest": "bb65f573923dc63d264e9823c02867667f39b4651fcebacf04288bf95ee17319",
+              "dependencies": [],
+              "warnings": [],
+              "resultText": "{\"success\":true,\"value\":5,\"world\":\"USER_SCRIPT\"}"
+            },
+            "receiptHash": "fc3c831bb60e6040b445825c860c288559864bf623233b1cb33d6809f4d15209",
+            "verifiedAt": 1791922183866
+          }
+        }
+      ],
+      "installedDom": "Page D3 max = 5",
+      "lifecycle": {
+        "candidateRestore": "PASS",
+        "fixedInstallation": "PASS",
+        "matchingDocument": "PASS",
+        "disableNextDocument": "PASS",
+        "fullBrowserOfflineRestart": "NOT_TESTED"
+      }
+    },
+    {
+      "caseId": "D04-EXT-R74-NORMAL-NPM-IMPORT-MITT",
+      "world": "CONTROLLER",
+      "programId": "r74-controller-mitt-standard-import",
+      "sourceUrl": "https://cdn.jsdelivr.net/npm/mitt@3.0.1/+esm",
+      "authorSourceHash": "b1fc3472de116577b471fcd8b822a511ffba3603cc5cdd96228bb674585f3d7a",
+      "status": "CHROME_PASS_R76_PINNED_AND_BARE_NPM",
+      "first": {
+        "runId": "f6dbe713-95ec-4da8-92a8-a99f6458279a",
+        "resultId": "cb7c6834-d0b4-43d6-bb0b-77886edd73a1",
+        "sourceHash": "5ad3c330521cc8a946b18855fcb2c2a92f06c87fdd26957ab9af612b8b06d0b3",
+        "output": "{\n  \"count\": 1,\n  \"events\": [\n    \"OpenDesk:21\"\n  ],\n  \"title\": \"OpenDesk Browser · Browser Test Lab\"\n}"
+      },
+      "repeat": {
+        "runId": "b3236a98-d8be-4f5e-8f60-d4059dde26bb",
+        "resultId": "0c4aa320-0da4-4697-a96f-21018d1ac104",
+        "sourceHash": "5ad3c330521cc8a946b18855fcb2c2a92f06c87fdd26957ab9af612b8b06d0b3",
+        "output": "{\n  \"count\": 1,\n  \"events\": [\n    \"OpenDesk:21\"\n  ],\n  \"title\": \"OpenDesk Browser · Browser Test Lab\"\n}"
+      },
+      "save": "r74-controller-mitt-standard-import · r1 已持久保存固定 ESM 版本；保存不会运行脚本",
+      "bare": {
+        "programId": "r76-controller-mitt-bare",
+        "authorSourceHash": "790a8efff420750e5bdcba9dfc25c11509aaf8e6d4193304a1d71d20539db178",
+        "run": {
+          "runId": "f1d1dd4f-b7a9-40de-89f1-138591b1d187",
+          "resultId": "8286868a-6e9a-4eee-905d-124bb3118328",
+          "sourceHash": "4d52ec2b61edfb45286b4bdfea3dcd18caa768f7f815bef4848b3067938f3eb9",
+          "output": "{\n  \"count\": 1,\n  \"events\": [\n    \"OpenDesk:21\"\n  ],\n  \"title\": \"OpenDesk Browser · Browser Test Lab\"\n}"
+        },
+        "savedRevision": "r76-controller-mitt-bare · r1 已持久保存固定 ESM 版本；保存不会运行脚本",
+        "newNetworkRequests": 0
+      },
+      "network": {
+        "firstRequests": 1,
+        "repeatRequests": 0,
+        "bareRequests": 0
+      },
+      "result": {
+        "events": [
+          "OpenDesk:21"
+        ],
+        "count": 1
+      }
+    },
+    {
+      "caseId": "R78-A-CHROMEPAGE-D3",
+      "programId": "r78-controller-d3-chromepage",
+      "world": "CONTROLLER",
+      "authorSourceHash": "1188c60211f3d483231ccf0ee1fbbaf63f721bce94af19e2b8f3192f9de406d2",
+      "status": "CHROME_FAIL",
+      "packageBefore": {
+        "packageHash": "5ccdcc2b569ce377ccfd43d4a0e8bbb8d813b682e8e71954b4dd8e46c4a11eb1",
+        "hashRecipe": "SHA256 UTF-8 JSON.stringify(path-sorted [{path,bytes,sha256}]); exact file bytes",
+        "files": [
+          {
+            "path": "agents/bootstrap.js",
+            "bytes": 931,
+            "sha256": "fed852b03982bd12fc78b7f688dd376b8cb15a8380da8e5b61db8845da8e3ae9"
+          },
+          {
+            "path": "agents/health-host.js",
+            "bytes": 8505,
+            "sha256": "b31e197f3ed4d5b817a875a2c37b721e876ac857ddbe199c7d20094bbc1a2cd0"
+          },
+          {
+            "path": "agents/health.js",
+            "bytes": 828,
+            "sha256": "48b43e028694d4fcc376d32539ab2d55ebd58359fce01219cff250fd4b5a6f65"
+          },
+          {
+            "path": "agents/page-agent.js",
+            "bytes": 34423,
+            "sha256": "bcdf07c2bda52f40c36ddb2a2a1b5a72e9156b4e507e7c16a4a54cd4bf901b00"
+          },
+          {
+            "path": "agents/page-relay.js",
+            "bytes": 89598,
+            "sha256": "5031b4ab6a9908482c3d52e88d2e21f254b09795f18ba6080bb37bf281a29496"
+          },
+          {
+            "path": "agents/selection-entry.js",
+            "bytes": 383,
+            "sha256": "0265146d80cd448c28ecd1231574d0bd6ba9f20d6991b09250478decc3e89fbb"
+          },
+          {
+            "path": "cloud-control/cloud-host.js",
+            "bytes": 54386,
+            "sha256": "94b1232fa0a6ee5f646b1ea1c9b662d8027685e919e612e06710dc15711973e0"
+          },
+          {
+            "path": "framework/browser-edition.json",
+            "bytes": 108,
+            "sha256": "6ff9394570c02f50cd6976eca4c5c114f5eaee376126804844f2c8bf08602475"
+          },
+          {
+            "path": "framework/sdk-main.js",
+            "bytes": 68303,
+            "sha256": "404f3417304d51410b5eb0502e9853cbcb98f7ea592dddb4f00fabbb195c21f2"
+          },
+          {
+            "path": "framework/sdk-resources.json",
+            "bytes": 359,
+            "sha256": "bac9bcd8a98a9fa5af7b6c145f34fe8baa9a6a7533bef42692c8e39eee8a65b0"
+          },
+          {
+            "path": "icons/notification.png",
+            "bytes": 595,
+            "sha256": "efb5caddc95697204e98f9e7319119095ea195fa02448904bc985e90e96d4de6"
+          },
+          {
+            "path": "knowledge/knowledge-host.js",
+            "bytes": 47295,
+            "sha256": "7067ffaed0ed95cb8cc8d7e5923c44685aaad5f8942a233128ed8ef7525e67c1"
+          },
+          {
+            "path": "libs/manifest.json",
+            "bytes": 4553,
+            "sha256": "1284ed4cbd4cb98ebe725c2c32e6a68169d62e59b26ebf691e23d5e97bc16fbf"
+          },
+          {
+            "path": "libs/packages/axios.js",
+            "bytes": 56622,
+            "sha256": "0789da5611b9fba153cf268d1406852cf4e68f7b9ba6bbfef6d26000cf8dd7ff"
+          },
+          {
+            "path": "libs/packages/cheerio.js",
+            "bytes": 121600,
+            "sha256": "448707180f9463ccdf7552a70bca57c6211a95099758db7867c4460b4267a628"
+          },
+          {
+            "path": "libs/packages/crypto-js.js",
+            "bytes": 66438,
+            "sha256": "e5e6be74bd2d7e18983813a79facbe0b917d9dabb243e01bcbd3f3d839625320"
+          },
+          {
+            "path": "libs/packages/dayjs.js",
+            "bytes": 20304,
+            "sha256": "9b406af291725ac2b47409930c6d0ffba7545ece163e6579230c21fbccf40164"
+          },
+          {
+            "path": "libs/packages/file-saver.js",
+            "bytes": 4131,
+            "sha256": "629ad9f9c34e1d9db94c8eac7afdd5c373974f956e3be590491be4d7353ae57c"
+          },
+          {
+            "path": "libs/packages/fingerprintjs.js",
+            "bytes": 36317,
+            "sha256": "4fc094ce804c3101b778148b3c401daca79cd14b9a08c8a75bf963eef918430f"
+          },
+          {
+            "path": "libs/packages/js-cookie.js",
+            "bytes": 2236,
+            "sha256": "f6704cba3d28fc26e0db56c73bb0e46d8de9ca43c47ef7953c5bbf07a4f5ef53"
+          },
+          {
+            "path": "libs/packages/lodash.js",
+            "bytes": 12832,
+            "sha256": "40d8258a2333573064f7173010cf6aa4eb07fb7d95a7a9c753a65fc23b9bfc18"
+          },
+          {
+            "path": "libs/packages/query-string.js",
+            "bytes": 9274,
+            "sha256": "ca7c9ac5ad77c09acdf98d231524e8958a00df084c2e6a2a051d10301f6095a9"
+          },
+          {
+            "path": "libs/packages/store.js",
+            "bytes": 8689,
+            "sha256": "280cb61b9c5530f57538767a5927a64901b2be57137cf0632fefc2aac954ffc6"
+          },
+          {
+            "path": "libs/page-frameworks/babel-7.29.9.min.js",
+            "bytes": 3141115,
+            "sha256": "5f8ffa174aa2465f074c85b92421662168cd356eedebaedc3d16fd9d61fadb7c"
+          },
+          {
+            "path": "libs/page-frameworks/controller-esm-linker-r4.mjs",
+            "bytes": 17316,
+            "sha256": "408be17a6b358af2a727e6c8e4d103805a4155f0e6af8ff527541b9fbe3f0340"
+          },
+          {
+            "path": "libs/page-frameworks/page-component-linker-r243.mjs",
+            "bytes": 24929,
+            "sha256": "14a01acb35e9afeeab5f06d30471001aa2ec655e20ecc0836581bacb95a494b2"
+          },
+          {
+            "path": "libs/page-frameworks/page-ui-helper-r243.js",
+            "bytes": 17898,
+            "sha256": "4b93bc414b7f2b4d42dd2d7ac0c68d6d5a2174377358d3a819e04513df2e1a28"
+          },
+          {
+            "path": "libs/page-frameworks/react-19.2.0.js",
+            "bytes": 193163,
+            "sha256": "d1eec2e96ed42046ad543a10af7de992aee633ac06017f44f6b917e36451c758"
+          },
+          {
+            "path": "libs/page-frameworks/vue-3.5.22.js",
+            "bytes": 118131,
+            "sha256": "2af9ee5acf9bf1cb05c5a871b6d99fd2af11fe1e6f372cfd8acb8b543b95d174"
+          },
+          {
+            "path": "libs/page-frameworks/vue-sfc-compiler-3.5.22.mjs",
+            "bytes": 1071582,
+            "sha256": "19be293a11bd724a1252d745c406d69275f44c77ab922df27ca4a484a5a5b2b1"
+          },
+          {
+            "path": "libs/page-frameworks/vue-sfc-transform-r243.mjs",
+            "bytes": 3314,
+            "sha256": "cdfbef6b2f8aa69706caba576831fc10a82687b07c76b5de6e26ec416b158712"
+          },
+          {
+            "path": "libs/runtime/bootstrap.js",
+            "bytes": 876,
+            "sha256": "d8b6ff3a7a6a58a3ede0f630cd906f0af134307eeaa8a7db1f096ed24687868d"
+          },
+          {
+            "path": "libs/runtime/page-core.js",
+            "bytes": 8147,
+            "sha256": "98609597268a0d9e778354c11e4b5af3a8191d97c6ce61bd730fd94e79ad5a02"
+          },
+          {
+            "path": "libs/vendor/jquery/3.7.1/jquery.min.js",
+            "bytes": 87533,
+            "sha256": "fc9a93dd241f6b045cbff0481cf4e1901becd0e12fb45166a8f17f95823f0b1a"
+          },
+          {
+            "path": "libs/vendor/my-utils/1.0.0/index.js",
+            "bytes": 291,
+            "sha256": "948e074af991e89df08091e28f8c7f42981dc213ae089da013772e755e54c461"
+          },
+          {
+            "path": "licenses/axios-MIT.txt",
+            "bytes": 1084,
+            "sha256": "82761059eaedacb3356803aea8a170d8298609f91b14fc32ee1bfb40d690183c"
+          },
+          {
+            "path": "licenses/cheerio-MIT.txt",
+            "bytes": 1081,
+            "sha256": "61c1e21d3a8ff20f9b69abe15104a75584688080febc22f60a4cbf3854becf4e"
+          },
+          {
+            "path": "licenses/crypto-js-MIT.txt",
+            "bytes": 1169,
+            "sha256": "f729d14b7e1bf8adca0dcc38b93b929d14d53fcd5db56c3d1c9b2daa7aa69396"
+          },
+          {
+            "path": "licenses/dayjs-MIT.txt",
+            "bytes": 1072,
+            "sha256": "5faab7526d055651be3aab769d58897be6bd91f3d39d137f25f12dba1b31d5dc"
+          },
+          {
+            "path": "licenses/file-saver-MIT.txt",
+            "bytes": 1101,
+            "sha256": "2d1d7a93b46e4274355ac2904428707c4ee47ee8c6029fa394ebf405648d3f63"
+          },
+          {
+            "path": "licenses/fingerprintjs-MIT.txt",
+            "bytes": 1074,
+            "sha256": "b7eeaf845cbd307fbabdde266a01c632ab9ca30d08355dbfc7acc463b5ea8ee9"
+          },
+          {
+            "path": "licenses/jquery-MIT.txt",
+            "bytes": 1097,
+            "sha256": "d4db9ebe6f29f5168eac45ad713f055623ac5d0dcd5ba92da23d650ae012020d"
+          },
+          {
+            "path": "licenses/js-cookie-MIT.txt",
+            "bytes": 1118,
+            "sha256": "eff040f4184445a6d1f7f76d918101d631402436ff12256b924fb68e4df28a94"
+          },
+          {
+            "path": "licenses/lodash-es-MIT.txt",
+            "bytes": 1952,
+            "sha256": "f71e8ed126b46346494aad5486874cd8f0aafe95092ed67d2e3cb6110f939abc"
+          },
+          {
+            "path": "licenses/my-utils-MIT.txt",
+            "bytes": 1078,
+            "sha256": "8bda717ea4cf7fa207cb97d1a80a1d12aaedbb95eb4bafe56956ef7f9dc2579c"
+          },
+          {
+            "path": "licenses/page-browser-babel-MIT.txt",
+            "bytes": 1106,
+            "sha256": "117da2af0d4ce0fe1c8e19b5cff9dcd806adf973d328d27b11d4448c4ff24f76"
+          },
+          {
+            "path": "licenses/page-framework-react-MIT.txt",
+            "bytes": 1088,
+            "sha256": "27bc22031f14eda178853577406320a91bd2e6933a5b98bd6b2e39c7dafc0394"
+          },
+          {
+            "path": "licenses/page-framework-vue-MIT.txt",
+            "bytes": 1112,
+            "sha256": "e81b972159df4e7ebdf1f081849579f5cad5c51fa310b99e86070926eb768cf1"
+          },
+          {
+            "path": "licenses/query-string-MIT.txt",
+            "bytes": 1117,
+            "sha256": "5c932d88256b4ab958f64a856fa48e8bd1f55bc1d96b8149c65689e0c61789d3"
+          },
+          {
+            "path": "licenses/store-MIT.txt",
+            "bytes": 1085,
+            "sha256": "af4a0aa33e3a61cf96a6ffa912f9e13a6981e3161c6ea352eb84902af357c271"
+          },
+          {
+            "path": "licenses/todo-user-vue-MIT.txt",
+            "bytes": 1096,
+            "sha256": "e301f131f52747f87193c4a41d3d5c09e6c021cc664a6a3101a2213635f03f29"
+          },
+          {
+            "path": "manifest.json",
+            "bytes": 1783,
+            "sha256": "e6cd440915fe257b9e46af8d45915d1e284d4014060df46da95f8a50b9fd488f"
+          },
+          {
+            "path": "marketplace/channel.json",
+            "bytes": 217,
+            "sha256": "93191846920ecb9dac809162ad05542794a12628665eb8538784e35271dfc1b2"
+          },
+          {
+            "path": "marketplace/market-host.js",
+            "bytes": 37014,
+            "sha256": "89489b56083816552a74fe506193b88a2f9f78408a90927616303847d3931813"
+          },
+          {
+            "path": "native-agent/settings.css",
+            "bytes": 2166,
+            "sha256": "6498ee021d1ce8e50d3498714f2869a084c50a355b38a3ed5de3c8f58a03b6d1"
+          },
+          {
+            "path": "native-agent/settings.html",
+            "bytes": 2226,
+            "sha256": "6aec8bfa8ad9e542d2793efee34ebfc91546c6cc528639d0ef54d9e9b4b82571"
+          },
+          {
+            "path": "native-agent/settings.js",
+            "bytes": 100079,
+            "sha256": "9c82f6ac1c57003f8cd6caa86c3385d0740ec8133a60f4f471be766b36b78866"
+          },
+          {
+            "path": "native-agent/transport.js",
+            "bytes": 42744,
+            "sha256": "69edecc9fa5279062bd2e62b4be7e64e98bce6bdb307a67c4374d55d3d4d2529"
+          },
+          {
+            "path": "native-agent/workspace.css",
+            "bytes": 33484,
+            "sha256": "0825f158407cc1e1d19f2480e9dfd60f08e3097b31956777fc30cc8dcbef0cbe"
+          },
+          {
+            "path": "native-agent/workspace.html",
+            "bytes": 15793,
+            "sha256": "d6b3111a717a397c21785ae1aec260231e61d4a19f42ef9adb6926a510347eba"
+          },
+          {
+            "path": "official-tools/catalog.json",
+            "bytes": 5427,
+            "sha256": "87d00bee689164a1da224e1bbd87d15477f93931335772608a1f7a8315114123"
+          },
+          {
+            "path": "official-tools/cookie-editor/cookie-editor.opendesk-tool.json",
+            "bytes": 82173,
+            "sha256": "57a5beb7fe87486f01ea5cc6f0c4ca94148f49fd30be9ec2d316c90f08e56003"
+          },
+          {
+            "path": "official-tools/knowledge-inbox/knowledge-inbox.opendesk-tool.json",
+            "bytes": 62341,
+            "sha256": "baf3d7575d22d3e609229bc8d5ea2e7aa73207cd4d386ad50bd24543b187d7b2"
+          },
+          {
+            "path": "official-tools/markdown-workbench/markdown-workbench.opendesk-tool.json",
+            "bytes": 15125,
+            "sha256": "b5b88f90e8a86028dcaebfc65963260fe2cec31ee6f44e08514ef07b360678cf"
+          },
+          {
+            "path": "official-tools/quick-notes/quick-notes.opendesk-tool.json",
+            "bytes": 23135,
+            "sha256": "99c42ea8573446fc8842f48be6f0567d0242b4d127ee6e96e22b650e9b2f99a7"
+          },
+          {
+            "path": "official-tools/reading-toc/reading-toc.opendesk-tool.json",
+            "bytes": 9388,
+            "sha256": "85f3f48557d7b4970507066a5389fe830b23bec3ec2d6f145c1535b48ba4df52"
+          },
+          {
+            "path": "official-tools/stay-focus/stay-focus.opendesk-tool.json",
+            "bytes": 33024,
+            "sha256": "afb91cfb1fecf65544ed2864c08e7eb678e864b2b6b5d2cd0e65ce7fb31413af"
+          },
+          {
+            "path": "official-tools/time-review/time-review.opendesk-tool.json",
+            "bytes": 41548,
+            "sha256": "90f5029049ed4b2cadd69fa91c4efaefb45f031bd94c07e708c9f78d5f2776f6"
+          },
+          {
+            "path": "official-tools/web-markdown-clipper/web-markdown-clipper.opendesk-tool.json",
+            "bytes": 10230,
+            "sha256": "075d39d2aa573cd4437ad81aa80e1f7601509790e4bc26a3d66ff3e58da3e23e"
+          },
+          {
+            "path": "platform/context-menus.js",
+            "bytes": 174475,
+            "sha256": "8d7aca6d5c9453b40dac891b420a20d6713b05ad487d553b093e174ebac47009"
+          },
+          {
+            "path": "scripting/packaged/page-session.js",
+            "bytes": 39480,
+            "sha256": "2b38d8458f4cab592f451c1353ec618b709793a8b237f7215d8b966c538893c3"
+          },
+          {
+            "path": "scripting/sandbox/sandbox.html",
+            "bytes": 385,
+            "sha256": "aa7362ce87a270f45005dde0e9cf14bf1d86bd4bd15fce37f14515638ef3b536"
+          },
+          {
+            "path": "scripting/sandbox/sandbox.js",
+            "bytes": 4010,
+            "sha256": "4b735c3d8d6d6059a549b59122d4d1d56811c121c6ad1b7eeadca6cf3e15640e"
+          },
+          {
+            "path": "scripting/sandbox/worker-runtime.js",
+            "bytes": 40104,
+            "sha256": "6646f3f01facae0a5d52304fa5d3bf4d0a09e04b43a47ce3ecf104009b6949cf"
+          },
+          {
+            "path": "sidebar-tools/bridge.js",
+            "bytes": 51828,
+            "sha256": "7d7a991dd10b0b1398cd8eff8946d5fea2627aec6dd40ecfc4393c1017404b3f"
+          },
+          {
+            "path": "sidebar-tools/preinstall-intent.js",
+            "bytes": 49738,
+            "sha256": "efd94e27ed8df207bc43cdebcfd581adddd26c57f4a49ca7df66896a43a115f4"
+          },
+          {
+            "path": "sidebar-tools/sandbox.html",
+            "bytes": 560,
+            "sha256": "5b1b0a17190f423e6861048a6607019606faa4b9241e81c5ffe044324831fe1b"
+          },
+          {
+            "path": "stay-focus/blocked-always.html",
+            "bytes": 617,
+            "sha256": "e5d6b5c1d528cf9d8a929c67abc423b398f74417d0e0053f7140f320b366c524"
+          },
+          {
+            "path": "stay-focus/blocked-quota.html",
+            "bytes": 617,
+            "sha256": "e5d6b5c1d528cf9d8a929c67abc423b398f74417d0e0053f7140f320b366c524"
+          },
+          {
+            "path": "stay-focus/blocked-schedule.html",
+            "bytes": 617,
+            "sha256": "e5d6b5c1d528cf9d8a929c67abc423b398f74417d0e0053f7140f320b366c524"
+          },
+          {
+            "path": "stay-focus/blocked-session.html",
+            "bytes": 617,
+            "sha256": "e5d6b5c1d528cf9d8a929c67abc423b398f74417d0e0053f7140f320b366c524"
+          },
+          {
+            "path": "stay-focus/blocked.css",
+            "bytes": 969,
+            "sha256": "eb54ba4dcd77e50c07e34eaa8f78f629749623e4e167c1e18dcce759d468aff1"
+          },
+          {
+            "path": "stay-focus/blocked.js",
+            "bytes": 1726,
+            "sha256": "fad70d6fb1a7cd1b4337c191507fc2924d30d484971fa5a05f74710a256b2f93"
+          },
+          {
+            "path": "sw.js",
+            "bytes": 591798,
+            "sha256": "e324aa5cf9ad7157effc0967408f3e5aec330555112230c1c8e24534846b61ae"
+          },
+          {
+            "path": "time-review/time-review-host.js",
+            "bytes": 30859,
+            "sha256": "6de6cdbb118d87a0c081e3c3325e91413a5313eeee7f640a03f0b3b7b9682c98"
+          },
+          {
+            "path": "ui/cloud-console.js",
+            "bytes": 3942,
+            "sha256": "40bbf3a4d3fcd7047daa8d02152aba9635b0866da744a8c8f3908f4f5910e8df"
+          },
+          {
+            "path": "ui/cloud-control-console.css",
+            "bytes": 2846,
+            "sha256": "0e1e66a4bdf1ec5605f51b3065f04affff7223270fb565fca5540fe0e63c6adb"
+          },
+          {
+            "path": "ui/cloud-control.html",
+            "bytes": 3513,
+            "sha256": "ffd3650fe65dd08fd6bd8ca45a982372e2230af90375dfa0b509a41d30594e50"
+          },
+          {
+            "path": "ui/cloud-hosting.css",
+            "bytes": 655,
+            "sha256": "1600c2e3ce4d18ff668c800e5023294e1dd847e801ed28a13062dc2bd0e89734"
+          },
+          {
+            "path": "ui/design-system.css",
+            "bytes": 8986,
+            "sha256": "c83f8afabae1e3e058c9a4df232ccc2115461692abe03e5023c2c70399362bea"
+          },
+          {
+            "path": "ui/design-tokens.css",
+            "bytes": 2590,
+            "sha256": "a1a7c2059cb09a27986dca580443deb3fc28aae2a76d03ccc9d8f95fa34f1b5b"
+          },
+          {
+            "path": "ui/marketplace.css",
+            "bytes": 9046,
+            "sha256": "f3b085498111ad17fe9933507fc09272dfd5857913c6a9f8e1d0f2e8d8eeb642"
+          },
+          {
+            "path": "ui/marketplace.html",
+            "bytes": 931,
+            "sha256": "9f1ee3d70829f5e746617cecfe87e8ac24388cd67f29acca8f753b8a931bd24c"
+          },
+          {
+            "path": "ui/marketplace.js",
+            "bytes": 98851,
+            "sha256": "6e5f0caa5987f43712080f1769aaed726eddd7dc30d209f47fd3bb49553aae5f"
+          },
+          {
+            "path": "ui/page-component-compiler-worker.js",
+            "bytes": 3463,
+            "sha256": "1cbefedfb6d980afe26bbda29e629dd8f35a77edea4bfd84e16f3da94a87c732"
+          },
+          {
+            "path": "ui/sidebar-tool-host.js",
+            "bytes": 189975,
+            "sha256": "541ff3910c422e38c1bc1d6b3de731e1a78ba3b3336280d5e2f9ec139bb4ba49"
+          },
+          {
+            "path": "ui/static-esm-compiler-worker.js",
+            "bytes": 738,
+            "sha256": "3a85cdb9ab33e6d5d0f594678f88b50cff897c9d8a3cb279bf9768a8c2c45050"
+          },
+          {
+            "path": "ui/static-esm-linker.mjs",
+            "bytes": 8210,
+            "sha256": "425e7434828f8a2d35cfe16bc5c7e3dd9cc3b5e79182493d54726ca579ee2854"
+          },
+          {
+            "path": "ui/stay-focus-controls.js",
+            "bytes": 3655,
+            "sha256": "123e406170e0b7f948fb2ad46f360fbe658b4aae2859bdbfef13debeb4a6cf78"
+          },
+          {
+            "path": "ui/target-bootstrap.html",
+            "bytes": 200,
+            "sha256": "b52748e3bf14e6931924843c0b8bc626ad8929b3b1bb6b63524b39238dc5d13c"
+          },
+          {
+            "path": "ui/time-review.css",
+            "bytes": 11538,
+            "sha256": "ed1bc3424fa5dc934c7fd01b8a5bfa570c1b2cc1c2b919ccb08ffae4a9e86151"
+          },
+          {
+            "path": "ui/tool-shell.css",
+            "bytes": 106598,
+            "sha256": "12fea2869f11f899e3fb664e06e094915bd1f1483648558420decb79a0c81290"
+          },
+          {
+            "path": "ui/tool-shell.js",
+            "bytes": 522068,
+            "sha256": "fa5738644df73c4c72552c1f45848d6f8402f2889de19ce20b06aa22b2b7baa4"
+          },
+          {
+            "path": "ui/tool.html",
+            "bytes": 101746,
+            "sha256": "9194c3daa3744cb556f3cde1cbf5e899add1b268d615cab1bf8ef6aee8045cd4"
+          },
+          {
+            "path": "ui/trusted-cookie-ui.js",
+            "bytes": 43684,
+            "sha256": "7986d2233d87abe690d552f4c37add130ca4fe9ee195c25aace1fb0e1ae557ea"
+          }
+        ]
+      },
+      "lastExecutionObservation": {
+        "ui": {
+          "state": "results",
+          "message": "任务状态：",
+          "runId": "13d5b1e9-451d-475c-97e3-e9610bac46a3",
+          "resultText": "E_TIMEOUT：Controller fenced\n建议：网页操作是否生效尚未确认。请先检查目标网页和运行记录，不要直接重复执行。",
+          "version": "草稿快照 · SHA-256 a336c87d7bde1ea7d235008f4f16833bb587279af28e43bbf363b5816c1ba59a"
+        },
+        "page": {
+          "keyword": "OpenDesk",
+          "result": "",
+          "count": 0,
+          "globals": {
+            "max": "undefined",
+            "page": "undefined"
+          }
+        },
+        "records": [
+          {
+            "tag": "component-esm-lock-v1",
+            "namespace": "tool:pcnfnhaneglinepinoieagcjmacoaief",
+            "manifest": {
+              "format": "opendesk.component-esm.v1",
+              "world": "CONTROLLER",
+              "framework": "controller",
+              "roots": [
+                "https://raw.githubusercontent.com/d3/d3-array/v3.2.4/src/max.js"
+              ],
+              "programId": "r78-controller-d3-chromepage",
+              "sourceHash": "1188c60211f3d483231ccf0ee1fbbaf63f721bce94af19e2b8f3192f9de406d2"
+            },
+            "manifestDigest": "b19acaa78c9c166cf0da90a45ba94771b6d300da7c50f3a78f936dba4d28622c",
+            "reviewId": "component-review-94dce9d8-54da-4093-b4ee-0e7aa5b653ae",
+            "approvedAt": 1791922189320,
+            "remoteLock": {
+              "format": "opendesk.remote-lock.v1",
+              "modules": {
+                "https://raw.githubusercontent.com/d3/d3-array/v3.2.4/src/max.js": {
+                  "sha256": "691945a453633d9e204846af8ea4e299821b924f82b15eaf7906aba642979b1d",
+                  "bytes": 502
+                }
+              }
+            },
+            "entries": [
+              {
+                "url": "https://raw.githubusercontent.com/d3/d3-array/v3.2.4/src/max.js",
+                "sha256": "691945a453633d9e204846af8ea4e299821b924f82b15eaf7906aba642979b1d",
+                "bytes": 502,
+                "license": {
+                  "status": "unknown",
+                  "name": null,
+                  "source": null
+                },
+                "mime": "text/plain",
+                "risk": "第三方 JavaScript 可以读取或修改已授权网页的 DOM，也可能通过网页允许的网络渠道对外发送网页数据。USER_SCRIPT 隔离不是网络沙箱，也不提供 GM 或扩展宿主权限。"
+              }
+            ],
+            "graph": [
+              {
+                "url": "https://raw.githubusercontent.com/d3/d3-array/v3.2.4/src/max.js",
+                "children": []
+              }
+            ],
+            "lockId": "component-lock-fd09d4c80ac32ba644483f58fc9e474872150729166f16658618cfa3f3014000",
+            "status": "approved"
+          },
+          {
+            "tag": "component-esm-review-v1",
+            "reviewId": "component-review-94dce9d8-54da-4093-b4ee-0e7aa5b653ae",
+            "namespace": "tool:pcnfnhaneglinepinoieagcjmacoaief",
+            "manifest": {
+              "format": "opendesk.component-esm.v1",
+              "world": "CONTROLLER",
+              "framework": "controller",
+              "roots": [
+                "https://raw.githubusercontent.com/d3/d3-array/v3.2.4/src/max.js"
+              ],
+              "programId": "r78-controller-d3-chromepage",
+              "sourceHash": "1188c60211f3d483231ccf0ee1fbbaf63f721bce94af19e2b8f3192f9de406d2"
+            },
+            "manifestDigest": "b19acaa78c9c166cf0da90a45ba94771b6d300da7c50f3a78f936dba4d28622c",
+            "sourceHash": "1188c60211f3d483231ccf0ee1fbbaf63f721bce94af19e2b8f3192f9de406d2",
+            "entries": [
+              {
+                "url": "https://raw.githubusercontent.com/d3/d3-array/v3.2.4/src/max.js",
+                "sha256": "691945a453633d9e204846af8ea4e299821b924f82b15eaf7906aba642979b1d",
+                "bytes": 502,
+                "license": {
+                  "status": "unknown",
+                  "name": null,
+                  "source": null
+                },
+                "mime": "text/plain",
+                "risk": "第三方 JavaScript 可以读取或修改已授权网页的 DOM，也可能通过网页允许的网络渠道对外发送网页数据。USER_SCRIPT 隔离不是网络沙箱，也不提供 GM 或扩展宿主权限。"
+              }
+            ],
+            "status": "approved",
+            "createdAt": 1791922189200,
+            "reviewDigest": "1e68f06c89896794e41919c2bd6ff53e1863a4a1a065012923a318714512ec8e",
+            "lockId": "component-lock-fd09d4c80ac32ba644483f58fc9e474872150729166f16658618cfa3f3014000"
+          },
+          {
+            "tag": "controller-run",
+            "runId": "13d5b1e9-451d-475c-97e3-e9610bac46a3",
+            "namespace": "tool:pcnfnhaneglinepinoieagcjmacoaief",
+            "principal": "extension-tool:pcnfnhaneglinepinoieagcjmacoaief",
+            "registrationId": "85b3cd18-5a53-45d1-8169-385b2f51a443",
+            "hostDocumentId": "F7ACEAFD7814137679C5A0F9B5B51157",
+            "hostInstanceId": "bccec36a-e0bb-4d5a-a532-2ccb3f04aa91",
+            "browserSessionIncarnation": "0349d61c-d7e8-4663-a3ea-74e1896a02bd",
+            "scriptId": "draft:13d5b1e9-451d-475c-97e3-e9610bac46a3",
+            "contentHash": "a336c87d7bde1ea7d235008f4f16833bb587279af28e43bbf363b5816c1ba59a",
+            "builtinAbi": "opendesk-builtins.v10",
+            "sourceKind": "draft",
+            "builtinIdentity": {
+              "abi": "opendesk-builtins.v10",
+              "catalogSha256": "ffd8485114e96c08fcd1d3e3d3b72e6bd89afa9b7f64568f5719cf393e283c09",
+              "bundleSha256": "5e596287111b34cd3b720e5d25bbf69a15a0b555dccc6c028512035c7d4b1cb1"
+            },
+            "opId": "641ce076-a2c5-4c02-ab82-0dff310c5616",
+            "resultId": "0977a820-5d86-448d-8643-48eddf2dfaa5",
+            "requestId": "ae6f6b09-25c1-421d-851b-3f6f110fb0c9",
+            "requestDigest": "d808ec4971bee51a7606625c6295a5d6a12fe5a0ab883f88f22bdb427284ec03",
+            "deadlineAt": 1791922219549,
+            "paramsWire": {
+              "type": "object",
+              "value": [
+                [
+                  "value",
+                  {
+                    "type": "number",
+                    "value": 0
+                  }
+                ]
+              ]
+            },
+            "selection": {
+              "mode": "borrowed",
+              "tabId": 2053784532,
+              "frameId": 0,
+              "documentId": "FA67C4AC094B98C7AA7AF6556520984B",
+              "expectedUrl": "http://127.0.0.1:43111/demo-form.html",
+              "expectedWindowId": 2053784528
+            },
+            "startUrl": null,
+            "nativeFence": {
+              "tabEpoch": 0,
+              "frameEpoch": 4,
+              "rootFrameEpoch": 0,
+              "permissionEpoch": 0
+            },
+            "nativeNetworkFences": [],
+            "networkOrigins": [],
+            "nativeTabId": 2053784532,
+            "state": "stopped",
+            "ownerEpoch": 2,
+            "runRevision": 4,
+            "eventSeq": 2,
+            "cancelSeq": 1,
+            "workerRetired": true,
+            "retirementState": "released",
+            "target": {
+              "tabId": 2053784532,
+              "frameId": 0,
+              "documentId": "FA67C4AC094B98C7AA7AF6556520984B",
+              "url": "http://127.0.0.1:43111/demo-form.html",
+              "allowedOrigin": "http://127.0.0.1:43111",
+              "windowId": 2053784528,
+              "targetSessionId": "2097be8b-f8b8-4a48-9fdd-c20192d23725",
+              "targetVersion": 1,
+              "mode": "borrowed",
+              "browserSessionIncarnation": "0349d61c-d7e8-4663-a3ea-74e1896a02bd"
+            },
+            "identity": {
+              "tag": "controller-run",
+              "runId": "13d5b1e9-451d-475c-97e3-e9610bac46a3",
+              "hostInstanceId": "bccec36a-e0bb-4d5a-a532-2ccb3f04aa91",
+              "hostDocumentId": "F7ACEAFD7814137679C5A0F9B5B51157",
+              "ownerEpoch": 1,
+              "scriptId": "draft:13d5b1e9-451d-475c-97e3-e9610bac46a3",
+              "revision": 1,
+              "contentHash": "a336c87d7bde1ea7d235008f4f16833bb587279af28e43bbf363b5816c1ba59a",
+              "target": {
+                "tabId": 2053784532,
+                "frameId": 0,
+                "documentId": "FA67C4AC094B98C7AA7AF6556520984B",
+                "url": "http://127.0.0.1:43111/demo-form.html",
+                "allowedOrigin": "http://127.0.0.1:43111",
+                "windowId": 2053784528,
+                "targetSessionId": "2097be8b-f8b8-4a48-9fdd-c20192d23725",
+                "targetVersion": 1,
+                "mode": "borrowed",
+                "browserSessionIncarnation": "0349d61c-d7e8-4663-a3ea-74e1896a02bd"
+              }
+            },
+            "revision": {
+              "kind": "draft",
+              "scriptId": "draft:13d5b1e9-451d-475c-97e3-e9610bac46a3",
+              "revision": 1,
+              "sourceHash": "a336c87d7bde1ea7d235008f4f16833bb587279af28e43bbf363b5816c1ba59a",
+              "builtinIdentity": {
+                "abi": "opendesk-builtins.v10",
+                "catalogSha256": "ffd8485114e96c08fcd1d3e3d3b72e6bd89afa9b7f64568f5719cf393e283c09",
+                "bundleSha256": "5e596287111b34cd3b720e5d25bbf69a15a0b555dccc6c028512035c7d4b1cb1"
+              }
+            },
+            "createdAt": 1791922189560,
+            "retirementId": "fb9162ec-578f-4895-acbf-d84f5364836d",
+            "terminalReason": {
+              "code": "E_TIMEOUT",
+              "name": "FoundationError",
+              "message": "Controller fenced"
+            }
+          },
+          {
+            "tag": "controller-result",
+            "resultId": "0977a820-5d86-448d-8643-48eddf2dfaa5",
+            "runId": "13d5b1e9-451d-475c-97e3-e9610bac46a3",
+            "namespace": "tool:pcnfnhaneglinepinoieagcjmacoaief",
+            "principal": "extension-tool:pcnfnhaneglinepinoieagcjmacoaief",
+            "revision": {
+              "kind": "draft",
+              "scriptId": "draft:13d5b1e9-451d-475c-97e3-e9610bac46a3",
+              "revision": 1,
+              "sourceHash": "a336c87d7bde1ea7d235008f4f16833bb587279af28e43bbf363b5816c1ba59a",
+              "builtinIdentity": {
+                "abi": "opendesk-builtins.v10",
+                "catalogSha256": "ffd8485114e96c08fcd1d3e3d3b72e6bd89afa9b7f64568f5719cf393e283c09",
+                "bundleSha256": "5e596287111b34cd3b720e5d25bbf69a15a0b555dccc6c028512035c7d4b1cb1"
+              }
+            },
+            "builtinIdentity": {
+              "abi": "opendesk-builtins.v10",
+              "catalogSha256": "ffd8485114e96c08fcd1d3e3d3b72e6bd89afa9b7f64568f5719cf393e283c09",
+              "bundleSha256": "5e596287111b34cd3b720e5d25bbf69a15a0b555dccc6c028512035c7d4b1cb1"
+            },
+            "sourceKind": "draft",
+            "state": "stopped",
+            "outcome": {
+              "ok": false,
+              "error": {
+                "code": "E_TIMEOUT",
+                "name": "FoundationError",
+                "message": "Controller fenced"
+              }
+            },
+            "committedAt": 1791922219554
+          },
+          {
+            "tag": "controller-lease",
+            "runId": "13d5b1e9-451d-475c-97e3-e9610bac46a3",
+            "namespace": "tool:pcnfnhaneglinepinoieagcjmacoaief",
+            "principal": "extension-tool:pcnfnhaneglinepinoieagcjmacoaief",
+            "grantIncarnation": "85b3cd18-5a53-45d1-8169-385b2f51a443",
+            "opId": "641ce076-a2c5-4c02-ab82-0dff310c5616",
+            "requestId": "ae6f6b09-25c1-421d-851b-3f6f110fb0c9",
+            "resultId": "0977a820-5d86-448d-8643-48eddf2dfaa5",
+            "browserSessionIncarnation": "0349d61c-d7e8-4663-a3ea-74e1896a02bd",
+            "registrationId": "85b3cd18-5a53-45d1-8169-385b2f51a443",
+            "cancelSeq": 1,
+            "state": "stopped",
+            "deadlineAt": 1791922219549,
+            "workerRetired": true,
+            "retirementState": "released"
+          }
+        ]
+      },
+      "error": {
+        "code": "ERR_ASSERTION",
+        "message": "Controller did not return success JSON: E_TIMEOUT：Controller fenced\n建议：网页操作是否生效尚未确认。请先检查目标网页和运行记录，不要直接重复执行。"
+      }
+    }
+  ],
+  "extensionId": "pcnfnhaneglinepinoieagcjmacoaief",
+  "browserVersion": {
+    "protocolVersion": "1.3",
+    "product": "Chrome/155.0.8059.39",
+    "revision": "@3ff7ac5a9224be9156d7f8703a06e22890aafd34",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36",
+    "jsVersion": "15.5.35.20"
+  },
+  "launch": {
+    "kind": "macos-launcher",
+    "executable": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+    "argv": [
+      "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+      "--use-mock-keychain",
+      "--password-store=basic",
+      "--no-first-run",
+      "--no-default-browser-check",
+      "--disable-background-networking",
+      "--remote-debugging-address=127.0.0.1",
+      "--user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-gw9ev6n9",
+      "--no-first-run",
+      "--no-default-browser-check",
+      "--disable-gpu",
+      "--disable-background-networking",
+      "--disable-sync",
+      "--remote-debugging-port=0",
+      "--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/.runtime/tests/import-r78/main-candidate-load-fix/dist/production-developer",
+      "--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/.runtime/tests/import-r78/main-candidate-load-fix/dist/production-developer",
+      "about:blank"
+    ],
+    "pid": 72284,
+    "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-gw9ev6n9",
+    "launcher": "/Users/shopme/.codex/browser-testing/launch.py",
+    "launcherPid": 72283,
+    "launcherArgs": [
+      "/Users/shopme/Documents/workspace/opendesk-browser/.runtime/tests/import-r78/main-candidate-load-fix/tests/framework/k5-sdk-native-restart.py",
+      "/Users/shopme/.codex/browser-testing/launch.py",
+      "--executable",
+      "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+      "--report",
+      "/Users/shopme/Documents/workspace/opendesk-browser/evidence/import-r78-user-scenarios-20261014/chrome-delivery-controller-page-schedule-offline-04/chrome-launcher-report.json",
+      "--no-first-run",
+      "--no-default-browser-check",
+      "--disable-gpu",
+      "--disable-background-networking",
+      "--disable-sync",
+      "--remote-debugging-port=0",
+      "--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/.runtime/tests/import-r78/main-candidate-load-fix/dist/production-developer",
+      "--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/.runtime/tests/import-r78/main-candidate-load-fix/dist/production-developer",
+      "about:blank"
+    ],
+    "reportFile": "/Users/shopme/Documents/workspace/opendesk-browser/evidence/import-r78-user-scenarios-20261014/chrome-delivery-controller-page-schedule-offline-04/chrome-launcher-report.json",
+    "actualMainProcess": "72284 72283 /Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing --use-mock-keychain --password-store=basic --no-first-run --no-default-browser-check --disable-background-networking --remote-debugging-address=127.0.0.1 --user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-gw9ev6n9 --no-first-run --no-default-browser-check --disable-gpu --disable-background-networking --disable-sync --remote-debugging-port=0 --disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/.runtime/tests/import-r78/main-candidate-load-fix/dist/production-developer --load-extension=/Users/shopme/Documents/workspace/opendesk-browser/.runtime/tests/import-r78/main-candidate-load-fix/dist/production-developer about:blank\n",
+    "cleanup": {
+      "at": "2026-10-13T20:10:19.962Z",
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "chromePidAlive": false,
+      "launcherPidAlive": false,
+      "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-gw9ev6n9",
+      "profileRemoved": true,
+      "adapter": {
+        "event": "adapter-cleanup",
+        "launcherPid": 72283,
+        "status": "PASS",
+        "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-gw9ev6n9",
+        "profileIdentity": [
+          16777234,
+          28254832
+        ],
+        "profileStatus": "removed",
+        "children": [
+          {
+            "pid": 72284,
+            "state": "exited",
+            "returncode": 0
+          }
+        ],
+        "residual": [],
+        "errors": [],
+        "events": [
+          {
+            "event": "started",
+            "at": 1791922178.526813,
+            "generation": 1,
+            "pid": 72284,
+            "launcherPid": 72283,
+            "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-gw9ev6n9",
+            "profileDevice": 16777234,
+            "profileInode": 28254832,
+            "implementation": "/Users/shopme/.codex/skills/chrome-testing-keychain/scripts/launch.py",
+            "implementationSha256": "1b92b98e7442fdeae88dae0277604aedccfe487cfb8b80d9adf479c725398a36"
+          },
+          {
+            "event": "browser-exited",
+            "at": 1791922219.926774,
+            "generation": 1,
+            "pid": 72284,
+            "launcherPid": 72283,
+            "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-gw9ev6n9",
+            "profileDevice": 16777234,
+            "profileInode": 28254832,
+            "returncode": 0,
+            "reason": "launcher stop"
+          }
+        ],
+        "attempts": 3,
+        "inspectionExitObservations": [],
+        "profileRemovalAttempts": [
+          {
+            "at": 1791922219.927297,
+            "attempt": 1,
+            "profileDevice": 16777234,
+            "profileInode": 28254832,
+            "profileMode": 448,
+            "children": [
+              {
+                "pid": 72284,
+                "state": "exited",
+                "returncode": 0
+              }
+            ],
+            "state": "removed",
+            "finishedAt": 1791922219.956439
+          }
+        ]
+      }
+    }
+  },
+  "fixtureService": "REUSED_EXACT_BYTES",
+  "currentPageAdmissionObservation": {
+    "windowId": 2053784528,
+    "tabs": [
+      {
+        "active": true,
+        "audible": false,
+        "autoDiscardable": true,
+        "discarded": false,
+        "frozen": false,
+        "groupId": -1,
+        "height": 801,
+        "highlighted": true,
+        "id": 2053784532,
+        "incognito": false,
+        "index": 3,
+        "lastAccessed": 1791922179991.611,
+        "mutedInfo": {
+          "muted": false
+        },
+        "pinned": false,
+        "selected": true,
+        "splitViewId": -1,
+        "status": "complete",
+        "title": "OpenDesk Browser · Browser Test Lab",
+        "url": "http://127.0.0.1:43111/demo-form.html",
+        "width": 899,
+        "windowId": 2053784528
+      }
+    ],
+    "frames": [
+      {
+        "documentId": "0C37AA1EDC2423B355D97CBD89D42377",
+        "documentLifecycle": "active",
+        "errorOccurred": false,
+        "frameId": 0,
+        "frameType": "outermost_frame",
+        "parentFrameId": -1,
+        "processId": 14,
+        "url": "http://127.0.0.1:43111/demo-form.html"
+      }
+    ]
+  },
+  "error": {
+    "code": "ERR_ASSERTION",
+    "message": "Controller did not return success JSON: E_TIMEOUT：Controller fenced\n建议：网页操作是否生效尚未确认。请先检查目标网页和运行记录，不要直接重复执行。",
+    "stack": "AssertionError [ERR_ASSERTION]: Controller did not return success JSON: E_TIMEOUT：Controller fenced\n建议：网页操作是否生效尚未确认。请先检查目标网页和运行记录，不要直接重复执行。\n    at execute (file:///Users/shopme/Documents/workspace/opendesk-browser/.runtime/tests/import-r78/main-candidate-load-fix/tests/framework/controller-d3-chromepage-r78-cft-cycle.mjs:59:5)\n    at async runR78ControllerD3ChromePageCycle (file:///Users/shopme/Documents/workspace/opendesk-browser/.runtime/tests/import-r78/main-candidate-load-fix/tests/framework/controller-d3-chromepage-r78-cft-cycle.mjs:118:19)\n    at async runR74ControllerPinnedNpmCycle (file:///Users/shopme/Documents/workspace/opendesk-browser/.runtime/tests/import-r78/main-candidate-load-fix/tests/framework/controller-pinned-npm-r74-cft-cycle.mjs:97:3)\n    at async runR72PageClassicCycle (file:///Users/shopme/Documents/workspace/opendesk-browser/.runtime/tests/import-r78/main-candidate-load-fix/tests/framework/page-dependency-r72-cft-cycle.mjs:112:7)\n    at async verifyBrowserUI (file:///Users/shopme/Documents/workspace/opendesk-browser/.runtime/tests/import-r78/main-candidate-load-fix/tests/framework/page-browser-worker-r243-cft.mjs:173:7)\n    at async main (file:///Users/shopme/Documents/workspace/opendesk-browser/.runtime/tests/import-r78/main-candidate-load-fix/tests/framework/page-browser-worker-r243-cft.mjs:526:7)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/.runtime/tests/import-r78/main-candidate-load-fix/tests/framework/page-browser-worker-r243-cft.mjs:562:1"
+  },
+  "cleanup": {
+    "at": "2026-10-13T20:10:19.962Z",
+    "exit": {
+      "code": 0,
+      "signal": null
+    },
+    "chromePidAlive": false,
+    "launcherPidAlive": false,
+    "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-gw9ev6n9",
+    "profileRemoved": true,
+    "adapter": {
+      "event": "adapter-cleanup",
+      "launcherPid": 72283,
+      "status": "PASS",
+      "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-gw9ev6n9",
+      "profileIdentity": [
+        16777234,
+        28254832
+      ],
+      "profileStatus": "removed",
+      "children": [
+        {
+          "pid": 72284,
+          "state": "exited",
+          "returncode": 0
+        }
+      ],
+      "residual": [],
+      "errors": [],
+      "events": [
+        {
+          "event": "started",
+          "at": 1791922178.526813,
+          "generation": 1,
+          "pid": 72284,
+          "launcherPid": 72283,
+          "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-gw9ev6n9",
+          "profileDevice": 16777234,
+          "profileInode": 28254832,
+          "implementation": "/Users/shopme/.codex/skills/chrome-testing-keychain/scripts/launch.py",
+          "implementationSha256": "1b92b98e7442fdeae88dae0277604aedccfe487cfb8b80d9adf479c725398a36"
+        },
+        {
+          "event": "browser-exited",
+          "at": 1791922219.926774,
+          "generation": 1,
+          "pid": 72284,
+          "launcherPid": 72283,
+          "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-gw9ev6n9",
+          "profileDevice": 16777234,
+          "profileInode": 28254832,
+          "returncode": 0,
+          "reason": "launcher stop"
+        }
+      ],
+      "attempts": 3,
+      "inspectionExitObservations": [],
+      "profileRemovalAttempts": [
+        {
+          "at": 1791922219.927297,
+          "attempt": 1,
+          "profileDevice": 16777234,
+          "profileInode": 28254832,
+          "profileMode": 448,
+          "children": [
+            {
+              "pid": 72284,
+              "state": "exited",
+              "returncode": 0
+            }
+          ],
+          "state": "removed",
+          "finishedAt": 1791922219.956439
+        }
+      ]
+    }
+  },
+  "finishedAt": "2026-10-13T20:10:19.962Z"
+}

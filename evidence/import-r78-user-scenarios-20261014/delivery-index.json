@@ -1,0 +1,850 @@
+{
+  "title": "Import R7.8 四种用户用途交付证据",
+  "generatedAt": "2026-10-13T21:29:18.832916+00:00",
+  "status": "FOUR_PURPOSES_VERIFIED_WITH_EXPLICIT_NOT_TESTED",
+  "score": "NOT_SCORED",
+  "sourceBaseHead": "b2c0e1fa885328f986c3738f3ed4a3a8e1421d27",
+  "candidateInputs": "main-permission-final-inputs.json",
+  "identityNote": "Git archive of committed base plus task-owned source overlay. No branch/worktree; foreign dirty source excluded. Package byte identity, not later HEAD, binds native results.",
+  "builds": [
+    {
+      "edition": "developer",
+      "attemptId": "799ac1b7-5604-4887-8c0b-c6da9dd962e9",
+      "status": "passed",
+      "packageHash": "fb3bcd30992521907feda475ea8bf37a71d27a2e9ee555904dea93724e8fce9b",
+      "sourceDriftDuringBuild": [],
+      "privilegedDynamicExecutionFound": false,
+      "receipt": "main-permission-build/build-production-developer.json",
+      "toolShellBytes": 495305,
+      "toolShellBudgetBytes": 524288
+    },
+    {
+      "edition": "standard",
+      "attemptId": "c11217ea-b95b-4a84-b42d-115248cec40c",
+      "status": "passed",
+      "packageHash": "041a5ec679936208ceecbe982cd749ffd1310146b27a910b0267b0e89e42de48",
+      "sourceDriftDuringBuild": [],
+      "privilegedDynamicExecutionFound": false,
+      "receipt": "main-permission-build/build-production.json"
+    }
+  ],
+  "controller": {
+    "status": "CHROME_PASS_R78_CHROMEPAGE_D3",
+    "programId": "r78-controller-d3-chromepage",
+    "authorSourceHash": "1188c60211f3d483231ccf0ee1fbbaf63f721bce94af19e2b8f3192f9de406d2",
+    "savedRevision": {
+      "scriptId": "r78-controller-d3-chromepage",
+      "revision": 1,
+      "contentHash": "832cb46181999811140d6ac949862b8536bc238bc9611561d3d363e3d740b48c"
+    },
+    "first": {
+      "runId": "23d08d43-e234-46d2-b69a-79f8133cbc40",
+      "resultId": "54e45be2-b6c8-41c5-b5c9-9ef1106ad72b",
+      "sourceHash": "a336c87d7bde1ea7d235008f4f16833bb587279af28e43bbf363b5816c1ba59a",
+      "lockId": "component-lock-22a5ab38f4258efbaac236b59d7342af15ba3b5e37fd6bae4007e894c656f597",
+      "value": {
+        "library": "d3-array@3.2.4",
+        "maxValue": 5,
+        "result": "结果：OpenDesk",
+        "searchCountAfter": 1,
+        "searchCountBefore": 0,
+        "success": true,
+        "title": "OpenDesk Browser · Browser Test Lab"
+      },
+      "before": {
+        "keyword": "旧的预填内容",
+        "result": "",
+        "count": 0,
+        "globals": {
+          "max": "undefined",
+          "page": "undefined"
+        }
+      },
+      "after": {
+        "keyword": "OpenDesk",
+        "result": "结果：OpenDesk",
+        "count": 1,
+        "globals": {
+          "max": "undefined",
+          "page": "undefined"
+        }
+      },
+      "retirementState": "released",
+      "target": {
+        "tabId": 637608499,
+        "frameId": 0,
+        "documentId": "56A972DDED0139CA58E165AFCA48AD76",
+        "url": "http://127.0.0.1:43111/demo-form.html",
+        "allowedOrigin": "http://127.0.0.1:43111",
+        "windowId": 637608495,
+        "targetSessionId": "881d2e43-e77b-4105-be8b-45dbad73d956",
+        "targetVersion": 1,
+        "mode": "borrowed",
+        "browserSessionIncarnation": "1ccd9d90-bb78-43b9-a59c-92b8cca3fddb"
+      }
+    },
+    "repeat": {
+      "runId": "24b43762-af5f-48b5-8a75-cf61cba65685",
+      "resultId": "62e0488f-f3eb-4a18-833a-3ea64642f4dd",
+      "sourceHash": "a336c87d7bde1ea7d235008f4f16833bb587279af28e43bbf363b5816c1ba59a",
+      "lockId": "component-lock-22a5ab38f4258efbaac236b59d7342af15ba3b5e37fd6bae4007e894c656f597",
+      "value": {
+        "library": "d3-array@3.2.4",
+        "maxValue": 5,
+        "result": "结果：OpenDesk",
+        "searchCountAfter": 2,
+        "searchCountBefore": 1,
+        "success": true,
+        "title": "OpenDesk Browser · Browser Test Lab"
+      },
+      "before": {
+        "keyword": "OpenDesk",
+        "result": "结果：OpenDesk",
+        "count": 1,
+        "globals": {
+          "max": "undefined",
+          "page": "undefined"
+        }
+      },
+      "after": {
+        "keyword": "OpenDesk",
+        "result": "结果：OpenDesk",
+        "count": 2,
+        "globals": {
+          "max": "undefined",
+          "page": "undefined"
+        }
+      },
+      "retirementState": "released",
+      "target": {
+        "tabId": 637608499,
+        "frameId": 0,
+        "documentId": "56A972DDED0139CA58E165AFCA48AD76",
+        "url": "http://127.0.0.1:43111/demo-form.html",
+        "allowedOrigin": "http://127.0.0.1:43111",
+        "windowId": 637608495,
+        "targetSessionId": "90028816-8e10-4bd9-8657-c1cbc442668f",
+        "targetVersion": 1,
+        "mode": "borrowed",
+        "browserSessionIncarnation": "1ccd9d90-bb78-43b9-a59c-92b8cca3fddb"
+      }
+    },
+    "savedRun": {
+      "runId": "3eb4d2d8-a77d-4942-a4ed-2becc606c9a8",
+      "resultId": "91308bc0-e77d-4884-bf98-9e1e8ca12aaa",
+      "sourceHash": "832cb46181999811140d6ac949862b8536bc238bc9611561d3d363e3d740b48c",
+      "lockId": "component-lock-22a5ab38f4258efbaac236b59d7342af15ba3b5e37fd6bae4007e894c656f597",
+      "value": {
+        "library": "d3-array@3.2.4",
+        "maxValue": 5,
+        "result": "结果：OpenDesk",
+        "searchCountAfter": 3,
+        "searchCountBefore": 2,
+        "success": true,
+        "title": "OpenDesk Browser · Browser Test Lab"
+      },
+      "before": {
+        "keyword": "OpenDesk",
+        "result": "结果：OpenDesk",
+        "count": 2,
+        "globals": {
+          "max": "undefined",
+          "page": "undefined"
+        }
+      },
+      "after": {
+        "keyword": "OpenDesk",
+        "result": "结果：OpenDesk",
+        "count": 3,
+        "globals": {
+          "max": "undefined",
+          "page": "undefined"
+        }
+      },
+      "retirementState": "released",
+      "target": {
+        "tabId": 637608499,
+        "frameId": 0,
+        "documentId": "56A972DDED0139CA58E165AFCA48AD76",
+        "url": "http://127.0.0.1:43111/demo-form.html",
+        "allowedOrigin": "http://127.0.0.1:43111",
+        "windowId": 637608495,
+        "targetSessionId": "4d70597d-7e06-48c8-9e32-b0f167a7a675",
+        "targetVersion": 1,
+        "mode": "borrowed",
+        "browserSessionIncarnation": "1ccd9d90-bb78-43b9-a59c-92b8cca3fddb"
+      }
+    },
+    "fixedRun": {
+      "runId": "09afdca7-b45a-438e-85ab-ec5a484881f3",
+      "resultId": "37f037f3-9a34-481d-8fbf-098a2ab3d82d",
+      "sourceHash": "832cb46181999811140d6ac949862b8536bc238bc9611561d3d363e3d740b48c",
+      "lockId": "component-lock-22a5ab38f4258efbaac236b59d7342af15ba3b5e37fd6bae4007e894c656f597",
+      "value": {
+        "library": "d3-array@3.2.4",
+        "maxValue": 5,
+        "result": "结果：OpenDesk",
+        "searchCountAfter": 4,
+        "searchCountBefore": 3,
+        "success": true,
+        "title": "OpenDesk Browser · Browser Test Lab"
+      },
+      "before": {
+        "keyword": "OpenDesk",
+        "result": "结果：OpenDesk",
+        "count": 3,
+        "globals": {
+          "max": "undefined",
+          "page": "undefined"
+        }
+      },
+      "after": {
+        "keyword": "OpenDesk",
+        "result": "结果：OpenDesk",
+        "count": 4,
+        "globals": {
+          "max": "undefined",
+          "page": "undefined"
+        }
+      },
+      "retirementState": "released",
+      "target": {
+        "tabId": 637608499,
+        "frameId": 0,
+        "documentId": "56A972DDED0139CA58E165AFCA48AD76",
+        "url": "http://127.0.0.1:43111/demo-form.html",
+        "allowedOrigin": "http://127.0.0.1:43111",
+        "windowId": 637608495,
+        "targetSessionId": "b4b6fcc7-371d-4f28-bef3-efe0609691a2",
+        "targetVersion": 1,
+        "mode": "borrowed",
+        "browserSessionIncarnation": "1ccd9d90-bb78-43b9-a59c-92b8cca3fddb"
+      }
+    },
+    "stop": {
+      "runId": "a7a8609e-1e9c-408b-8f0f-31f15f10c18c",
+      "resultId": "208b7f20-f434-41ce-a3f8-37b97b8c7d85",
+      "authorSourceHash": "d8da288887b371dd508104b18975e7a0485c190aa5b7206f112f69c931c9757e",
+      "unchangedSearchCount": 5,
+      "run": {
+        "state": "stopped",
+        "retirementState": "released",
+        "workerRetired": true,
+        "terminalReason": {
+          "code": "E_CANCELLED",
+          "name": "FoundationError",
+          "message": "Controller fenced"
+        },
+        "revision": {
+          "kind": "draft",
+          "scriptId": "draft:a7a8609e-1e9c-408b-8f0f-31f15f10c18c",
+          "revision": 1,
+          "sourceHash": "9bf5780d38daca5c5a28c1cade948d67f8531e736e4b788cd52cb3a31fdfd6af",
+          "builtinIdentity": {
+            "abi": "opendesk-builtins.v10",
+            "catalogSha256": "ffd8485114e96c08fcd1d3e3d3b72e6bd89afa9b7f64568f5719cf393e283c09",
+            "bundleSha256": "5e596287111b34cd3b720e5d25bbf69a15a0b555dccc6c028512035c7d4b1cb1"
+          }
+        }
+      },
+      "result": {
+        "state": "stopped",
+        "outcome": {
+          "ok": false,
+          "error": {
+            "code": "E_CANCELLED",
+            "name": "FoundationError",
+            "message": "Controller fenced"
+          }
+        },
+        "revision": {
+          "kind": "draft",
+          "scriptId": "draft:a7a8609e-1e9c-408b-8f0f-31f15f10c18c",
+          "revision": 1,
+          "sourceHash": "9bf5780d38daca5c5a28c1cade948d67f8531e736e4b788cd52cb3a31fdfd6af",
+          "builtinIdentity": {
+            "abi": "opendesk-builtins.v10",
+            "catalogSha256": "ffd8485114e96c08fcd1d3e3d3b72e6bd89afa9b7f64568f5719cf393e283c09",
+            "bundleSha256": "5e596287111b34cd3b720e5d25bbf69a15a0b555dccc6c028512035c7d4b1cb1"
+          }
+        }
+      }
+    },
+    "raw": "chrome-main-permission-18/acceptance.json"
+  },
+  "page": {
+    "status": "CHROME_PASS_R76_PAGE_ESM_D3",
+    "world": "USER_SCRIPT",
+    "authorSourceHash": "e92e693378c7cefeb0d520e655b958c19b6b96dc8e9d9f65df67b72497744c39",
+    "first": {
+      "receiptNonce": "a04f54dd-b498-4256-a3d2-bf6f89a36f17",
+      "sourceHash": "9f5357b3eee7997f9be04b48f67d2bc9bf4e373b81ac14aaa2c4f6059d29a4ca",
+      "tabId": 637608499,
+      "documentId": "56A972DDED0139CA58E165AFCA48AD76",
+      "returnValue": "{\"success\":true,\"value\":5,\"world\":\"USER_SCRIPT\"}",
+      "dom": "Page D3 max = 5"
+    },
+    "repeat": {
+      "receiptNonce": "f0da42f6-16c0-48af-a5aa-a970326121a5",
+      "sourceHash": "9f5357b3eee7997f9be04b48f67d2bc9bf4e373b81ac14aaa2c4f6059d29a4ca",
+      "tabId": 637608499,
+      "documentId": "56A972DDED0139CA58E165AFCA48AD76",
+      "returnValue": "{\"success\":true,\"value\":5,\"world\":\"USER_SCRIPT\"}",
+      "dom": "Page D3 max = 5"
+    },
+    "network": {
+      "priorScenarioRequests": 1,
+      "firstRequests": 1,
+      "repeatRequests": 0
+    },
+    "savedMessage": "已保存 Page Candidate：r76-page-esm-d3 · r1 · 59500c9f92f8…。 源码保持原样；网页运行范围单独保存：http://127.0.0.1/*。网页匹配包含不同端口，但不授予跨站网络服务权限；自动执行仍需明确安装授权。 请在已保存网页脚本中验证冻结版本，再明确安装。",
+    "candidateIdentity": [
+      {
+        "candidateId": "page-4600a79c4c8e401f13ba02d39b8c83fca131a539524df4f07bdfab1db5ae9219",
+        "namespace": "tool:iohgfienehkcbkjjnjdcbigoecbeakdj",
+        "manifestHash": "59500c9f92f885d78d23dbbe0fe3dbab97f16ad48026b4aa1ba48ac5b2138200",
+        "manifest": {
+          "format": "opendesk.page-program.v1",
+          "runtimeKind": "page-userscript",
+          "programId": "r76-page-esm-d3",
+          "revision": 1,
+          "sourceHash": "9f5357b3eee7997f9be04b48f67d2bc9bf4e373b81ac14aaa2c4f6059d29a4ca",
+          "entryFormat": "async-main",
+          "sourceProfile": {
+            "metadataProfile": "opendesk-d1",
+            "importSourceUrl": null
+          },
+          "dependencyLockId": null,
+          "dependencyManifestDigest": "bb65f573923dc63d264e9823c02867667f39b4651fcebacf04288bf95ee17319",
+          "pageRules": {
+            "matches": [
+              "http://127.0.0.1/*"
+            ],
+            "excludeMatches": [],
+            "runAt": "document_idle",
+            "allFrames": false,
+            "world": "USER_SCRIPT"
+          },
+          "compilation": {
+            "sourceFormat": "esm-page",
+            "authorSourceHash": "e92e693378c7cefeb0d520e655b958c19b6b96dc8e9d9f65df67b72497744c39",
+            "dependencyLockId": "dep-lock-38f5f5c994217c128df3f9ace914a21782e4d2911567e639dfce6daddd239235",
+            "dependencyManifestDigest": "b04017ec8d9e4e1f66bb623e2797e438c7203768a5c734e71badd5c6031ec5eb",
+            "compilerVersion": "7.29.9",
+            "compilerSha256": "5f8ffa174aa2465f074c85b92421662168cd356eedebaedc3d16fd9d61fadb7c",
+            "compilerProfile": [
+              {
+                "id": "static-esm-compiler-worker",
+                "sha256": "3a85cdb9ab33e6d5d0f594678f88b50cff897c9d8a3cb279bf9768a8c2c45050"
+              },
+              {
+                "id": "static-esm-linker",
+                "sha256": "425e7434828f8a2d35cfe16bc5c7e3dd9cc3b5e79182493d54726ca579ee2854"
+              }
+            ]
+          }
+        },
+        "stage": "Candidate",
+        "verification": null,
+        "sourceHash": "9f5357b3eee7997f9be04b48f67d2bc9bf4e373b81ac14aaa2c4f6059d29a4ca",
+        "authorSourceHash": "e92e693378c7cefeb0d520e655b958c19b6b96dc8e9d9f65df67b72497744c39",
+        "raw": "page-candidate-delivery-identity.json"
+      }
+    ],
+    "installedDom": "Page D3 max = 5",
+    "lifecycle": {
+      "candidateRestore": "PASS",
+      "fixedInstallation": "PASS",
+      "matchingDocument": "PASS",
+      "disableNextDocument": "PASS",
+      "fullBrowserOfflineRestart": "NOT_TESTED"
+    },
+    "raw": "chrome-main-permission-18/acceptance.json",
+    "previewIdentity": {
+      "format": "ordinary Page USER_SCRIPT receipt",
+      "receiptNonce": "a04f54dd-b498-4256-a3d2-bf6f89a36f17",
+      "tabId": 637608499,
+      "documentId": "56A972DDED0139CA58E165AFCA48AD76",
+      "separatePreviewId": "NOT_APPLICABLE"
+    }
+  },
+  "schedule": {
+    "status": "CHROME_PASS_R78_D3_SCHEDULED_ONCE",
+    "taskId": "r78-controller-d3-scheduled",
+    "version": "7.8.0",
+    "result": {
+      "fireId": "sched:937b78b9-45df-4d68-9bc2-7de431882214:1:1791926520000",
+      "runId": "712e7c05-df9e-4801-a401-75af37c10b42",
+      "resultId": "e6572195-2f4a-4ac2-a5ac-d4ed1dbed4f1",
+      "sourceHash": "832cb46181999811140d6ac949862b8536bc238bc9611561d3d363e3d740b48c",
+      "d3Max": 5,
+      "searchCountBefore": 4,
+      "searchCountAfter": 5,
+      "released": true,
+      "workerRetired": true
+    },
+    "savedRevisionHashMatches": true,
+    "limitations": [
+      {
+        "caseId": "R78-D3-SCHEDULED-STOP",
+        "status": "NOT_TESTED",
+        "reason": "No same-candidate raw Host negative evidence supplied"
+      },
+      {
+        "caseId": "R78-D3-SCHEDULED-REVOKE",
+        "status": "NOT_TESTED",
+        "reason": "No same-candidate raw Host negative evidence supplied"
+      }
+    ],
+    "raw": "chrome-main-permission-18/acceptance.json"
+  },
+  "offlineRestart": {
+    "status": "CHROME_PASS_R78_D3_SAME_PROFILE_OFFLINE_RESTART",
+    "previousPid": 8044,
+    "newPid": 8590,
+    "sameProfile": true,
+    "sourceHash": "832cb46181999811140d6ac949862b8536bc238bc9611561d3d363e3d740b48c",
+    "runId": "76641970-02ed-4557-be11-32d956cadce1",
+    "resultId": "7835d99b-4b8a-4167-849f-f634f501bb1f",
+    "retirementState": "released",
+    "value": {
+      "library": "d3-array@3.2.4",
+      "maxValue": 5,
+      "result": "结果：OpenDesk",
+      "searchCountAfter": 1,
+      "searchCountBefore": 0,
+      "success": true,
+      "title": "OpenDesk Browser · Browser Test Lab"
+    },
+    "before": {
+      "count": 0,
+      "keyword": "旧的预填内容",
+      "result": ""
+    },
+    "after": {
+      "count": 1,
+      "keyword": "OpenDesk",
+      "result": "结果：OpenDesk"
+    },
+    "network": {
+      "offlineSW": true,
+      "offlineSidebar": true,
+      "dependencyRequests": []
+    },
+    "cleanupErrors": [],
+    "raw": "chrome-main-permission-18/r78-restart-cycle.json"
+  },
+  "security": {
+    "status": "CHROME_PASS_R78_D3_NATIVE_SECURITY",
+    "revocation": {
+      "status": "CHROME_PASS_R78_D3_CHROME_ORIGIN_REVOKED",
+      "beforeGranted": [
+        true,
+        true
+      ],
+      "withdrawnGranted": [
+        false,
+        false
+      ],
+      "restoredGranted": [
+        true,
+        true
+      ],
+      "blocked": {
+        "state": "disabled",
+        "ui": {
+          "scriptId": "r78-controller-d3-chromepage",
+          "revision": 1,
+          "source": "import max from 'https://raw.githubusercontent.com/d3/d3-array/v3.2.4/src/max.js';\n\nexport default async function main() {\n  const url = await page.url();\n\n  if (!url.startsWith('http://127.0.0.1:43111/demo-form.html')) {\n    throw new Error('请打开 OpenDesk 标准测试页面');\n  }\n\n  const counter = page.locator('#search-count');\n  const readCount = async () => {\n    const text = await counter.textContent();\n    return Number((text || '').replace(/\\D/g, ''));\n  };\n  const before = await readCount();\n\n  await page.getByLabel('搜索关键词', {exact: true}).fill('OpenDesk');\n  await page.getByRole('button', {name: '搜索', exact: true}).click();\n  await page.getByText('搜索完成', {exact: true}).waitFor({state: 'visible'});\n\n  const result = await page.locator('#results').textContent();\n  const after = await readCount();\n  const value = max([2, 5, 3]);\n\n  if (value !== 5 || after !== before + 1 || !result?.includes('OpenDesk')) {\n    throw new Error('IMPORT_OR_PAGE_ACTION_FAILED');\n  }\n\n  return {\n    title: await page.title(),\n    library: 'd3-array@3.2.4',\n    maxValue: value,\n    result,\n    searchCountBefore: before,\n    searchCountAfter: after,\n    success: true\n  };\n}\n",
+          "params": "{}",
+          "runId": "76641970-02ed-4557-be11-32d956cadce1",
+          "runDisabled": true,
+          "state": "results",
+          "message": "任务状态：",
+          "currentPageState": "available",
+          "currentPageDebug": "{\n  \"windowId\": 637608557,\n  \"tabId\": 637608565,\n  \"frameId\": 0,\n  \"documentId\": \"9A85E2DE628D8D6A0C1BF87ECEBA1E4F\",\n  \"url\": \"http://127.0.0.1:43111/demo-form.html\",\n  \"origin\": \"http://127.0.0.1:43111\"\n}"
+        }
+      },
+      "durableRule": "same exact run/result records and fixed Revision; existing controller-run resultDeliveryRevoked becomes true"
+    },
+    "badSHA": {
+      "status": "CHROME_PASS_R78_D3_CACHE_BAD_SHA",
+      "expectedCode": "E_DEPENDENCY_HASH",
+      "blockedMessage": "E_DEPENDENCY_HASH：已缓存依赖内容被修改\n建议：请检查当前网页和任务配置；需要进一步排查时，展开“运行记录 → 技术信息”。",
+      "beforeSha": "691945a453633d9e204846af8ea4e299821b924f82b15eaf7906aba642979b1d",
+      "faultedSha": "2451c169de314349ceffd4e4de8dbf55a42c82e1d6e6e1b2f3b37a56343820f4",
+      "nativeFault": "Exact existing D3 ArrayBuffer asset first byte XOR 1 in owned test Profile via visible DevTools Console; metadata SHA and saved Revision unchanged"
+    },
+    "network": {
+      "offlineSW": true,
+      "offlineSidebar": true,
+      "dependencyRequests": []
+    },
+    "cleanupErrors": [],
+    "raw": "chrome-main-permission-18/r78-d3-security-cycle.json"
+  },
+  "tools": {
+    "status": "PASS",
+    "packageHash": "fb3bcd30992521907feda475ea8bf37a71d27a2e9ee555904dea93724e8fce9b",
+    "extensionId": "iohgfienehkcbkjjnjdcbigoecbeakdj",
+    "raw": "chrome-main-permission-tools/cft-2026-10-13T21-24-05-739Z/native-result.json",
+    "probes": [
+      {
+        "label": "import-max-probe",
+        "id": "import-max-probe",
+        "packageSha256": "fecc6cfcf224250912e20bd3e59ae3c5ddf67f9ecf0365bf10baee426a9799f4",
+        "installedDataPackageSha256": "fecc6cfcf224250912e20bd3e59ae3c5ddf67f9ecf0365bf10baee426a9799f4",
+        "capabilities": [],
+        "removed": true,
+        "negativeNative": "NOT_TESTED",
+        "scope": "positive real import/install/open/close/reopen/uninstall only",
+        "observations": [
+          {
+            "phase": "open",
+            "targetId": "3D052BBC0A5D613872A208F9D3022202",
+            "sessionId": "3FA842E8FDCE0D364AFA79F4B5740609",
+            "hostFrame": {
+              "count": 1,
+              "src": "chrome-extension://iohgfienehkcbkjjnjdcbigoecbeakdj/sidebar-tools/sandbox.html",
+              "sandbox": null
+            },
+            "seen": {
+              "result": "Tool D3 max = 5",
+              "environment": "typeof chrome = object; typeof chrome.tabs = undefined; typeof page = undefined",
+              "executions": "Executions in this iframe = 1",
+              "origin": "null",
+              "chromeTabs": "undefined",
+              "page": "undefined",
+              "url": "chrome-extension://iohgfienehkcbkjjnjdcbigoecbeakdj/sidebar-tools/sandbox.html"
+            }
+          },
+          {
+            "phase": "reopen",
+            "targetId": "F8C4C70C57B892127114CF7163270B34",
+            "sessionId": "7F7EDB304E697E9C2E46F13834FB4C3E",
+            "hostFrame": {
+              "count": 1,
+              "src": "chrome-extension://iohgfienehkcbkjjnjdcbigoecbeakdj/sidebar-tools/sandbox.html",
+              "sandbox": null
+            },
+            "seen": {
+              "result": "Tool D3 max = 5",
+              "environment": "typeof chrome = object; typeof chrome.tabs = undefined; typeof page = undefined",
+              "executions": "Executions in this iframe = 1",
+              "origin": "null",
+              "chromeTabs": "undefined",
+              "page": "undefined",
+              "url": "chrome-extension://iohgfienehkcbkjjnjdcbigoecbeakdj/sidebar-tools/sandbox.html"
+            }
+          }
+        ],
+        "networkRequests": [
+          {
+            "sessionId": "3AA9C9917B7A85EE38235560626E0622",
+            "url": "chrome-extension://iohgfienehkcbkjjnjdcbigoecbeakdj/sidebar-tools/bridge.js",
+            "type": "Script",
+            "initiator": {
+              "type": "parser",
+              "url": "chrome-extension://iohgfienehkcbkjjnjdcbigoecbeakdj/sidebar-tools/sandbox.html",
+              "lineNumber": 4,
+              "columnNumber": 110
+            }
+          },
+          {
+            "sessionId": "3AA9C9917B7A85EE38235560626E0622",
+            "url": "blob:null/89bfa6f4-2be4-4383-9621-6ecde944a03e",
+            "type": "Script",
+            "initiator": {
+              "type": "script",
+              "stack": {
+                "callFrames": [
+                  {
+                    "functionName": "",
+                    "scriptId": "3",
+                    "url": "chrome-extension://iohgfienehkcbkjjnjdcbigoecbeakdj/sidebar-tools/bridge.js",
+                    "lineNumber": 0,
+                    "columnNumber": 51202
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "sessionId": "08913C448E9E289456BD5FD4E5F43068",
+            "url": "chrome-extension://iohgfienehkcbkjjnjdcbigoecbeakdj/sidebar-tools/bridge.js",
+            "type": "Script",
+            "initiator": {
+              "type": "parser",
+              "url": "chrome-extension://iohgfienehkcbkjjnjdcbigoecbeakdj/sidebar-tools/sandbox.html",
+              "lineNumber": 4,
+              "columnNumber": 110
+            }
+          },
+          {
+            "sessionId": "08913C448E9E289456BD5FD4E5F43068",
+            "url": "blob:null/b08e408d-eeca-48ce-870e-7d5598344b82",
+            "type": "Script",
+            "initiator": {
+              "type": "script",
+              "stack": {
+                "callFrames": [
+                  {
+                    "functionName": "",
+                    "scriptId": "3",
+                    "url": "chrome-extension://iohgfienehkcbkjjnjdcbigoecbeakdj/sidebar-tools/bridge.js",
+                    "lineNumber": 0,
+                    "columnNumber": 51202
+                  }
+                ]
+              }
+            }
+          }
+        ],
+        "raw": "chrome-main-permission-tools/cft-2026-10-13T21-24-05-739Z/import-max-probe-lifecycle.json"
+      },
+      {
+        "label": "import-classic-probe",
+        "id": "import-classic-probe",
+        "packageSha256": "1c8124021d84f65e193157ff885d880174791924bd72c9ca9b9ab3acfa995f9a",
+        "installedDataPackageSha256": "1c8124021d84f65e193157ff885d880174791924bd72c9ca9b9ab3acfa995f9a",
+        "capabilities": [],
+        "removed": true,
+        "negativeNative": "NOT_TESTED",
+        "scope": "positive real import/install/open/close/reopen/uninstall only",
+        "observations": [
+          {
+            "phase": "open",
+            "targetId": "777D16ADA4E2401C9D8520EECF9BDD81",
+            "sessionId": "9BF0B6405D2B4C16452C39D9FD5B4E80",
+            "hostFrame": {
+              "count": 1,
+              "src": "chrome-extension://iohgfienehkcbkjjnjdcbigoecbeakdj/sidebar-tools/sandbox.html",
+              "sandbox": null
+            },
+            "seen": {
+              "result": "Tool Classic mitt = 5",
+              "environment": "typeof chrome = object; typeof chrome.tabs = undefined; typeof page = undefined",
+              "executions": "Executions in this iframe = 1",
+              "order": "order = mitt>second>main; emits = 1",
+              "origin": "null",
+              "chromeTabs": "undefined",
+              "page": "undefined",
+              "url": "chrome-extension://iohgfienehkcbkjjnjdcbigoecbeakdj/sidebar-tools/sandbox.html"
+            }
+          },
+          {
+            "phase": "reopen",
+            "targetId": "F646E5C07A5157F95E663815014249F6",
+            "sessionId": "2DD723C645BB2970F340D589DE3F5E0B",
+            "hostFrame": {
+              "count": 1,
+              "src": "chrome-extension://iohgfienehkcbkjjnjdcbigoecbeakdj/sidebar-tools/sandbox.html",
+              "sandbox": null
+            },
+            "seen": {
+              "result": "Tool Classic mitt = 5",
+              "environment": "typeof chrome = object; typeof chrome.tabs = undefined; typeof page = undefined",
+              "executions": "Executions in this iframe = 1",
+              "order": "order = mitt>second>main; emits = 1",
+              "origin": "null",
+              "chromeTabs": "undefined",
+              "page": "undefined",
+              "url": "chrome-extension://iohgfienehkcbkjjnjdcbigoecbeakdj/sidebar-tools/sandbox.html"
+            }
+          }
+        ],
+        "networkRequests": [
+          {
+            "sessionId": "443A5710895EA13044110F92E0E6AB1C",
+            "url": "chrome-extension://iohgfienehkcbkjjnjdcbigoecbeakdj/sidebar-tools/bridge.js",
+            "type": "Script",
+            "initiator": {
+              "type": "parser",
+              "url": "chrome-extension://iohgfienehkcbkjjnjdcbigoecbeakdj/sidebar-tools/sandbox.html",
+              "lineNumber": 4,
+              "columnNumber": 110
+            }
+          },
+          {
+            "sessionId": "443A5710895EA13044110F92E0E6AB1C",
+            "url": "blob:null/76af8393-3538-4044-8b69-716812acbc9f",
+            "type": "Script",
+            "initiator": {
+              "type": "script",
+              "stack": {
+                "callFrames": [
+                  {
+                    "functionName": "",
+                    "scriptId": "3",
+                    "url": "chrome-extension://iohgfienehkcbkjjnjdcbigoecbeakdj/sidebar-tools/bridge.js",
+                    "lineNumber": 0,
+                    "columnNumber": 50473
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "sessionId": "443A5710895EA13044110F92E0E6AB1C",
+            "url": "blob:null/7b0ecfdc-7ae0-4fac-9ef2-f61349500d92",
+            "type": "Script",
+            "initiator": {
+              "type": "script",
+              "stack": {
+                "callFrames": [
+                  {
+                    "functionName": "",
+                    "scriptId": "3",
+                    "url": "chrome-extension://iohgfienehkcbkjjnjdcbigoecbeakdj/sidebar-tools/bridge.js",
+                    "lineNumber": 0,
+                    "columnNumber": 50473
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "sessionId": "443A5710895EA13044110F92E0E6AB1C",
+            "url": "blob:null/9210207c-e7b6-4256-a210-ed9067dcd4c4",
+            "type": "Script",
+            "initiator": {
+              "type": "script",
+              "stack": {
+                "callFrames": [
+                  {
+                    "functionName": "",
+                    "scriptId": "3",
+                    "url": "chrome-extension://iohgfienehkcbkjjnjdcbigoecbeakdj/sidebar-tools/bridge.js",
+                    "lineNumber": 0,
+                    "columnNumber": 51202
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "sessionId": "CBB3C3621D106D79609A60544179A926",
+            "url": "chrome-extension://iohgfienehkcbkjjnjdcbigoecbeakdj/sidebar-tools/bridge.js",
+            "type": "Script",
+            "initiator": {
+              "type": "parser",
+              "url": "chrome-extension://iohgfienehkcbkjjnjdcbigoecbeakdj/sidebar-tools/sandbox.html",
+              "lineNumber": 4,
+              "columnNumber": 110
+            }
+          },
+          {
+            "sessionId": "CBB3C3621D106D79609A60544179A926",
+            "url": "blob:null/a1e4603f-7751-4563-b214-1b1f4fe3e8a5",
+            "type": "Script",
+            "initiator": {
+              "type": "script",
+              "stack": {
+                "callFrames": [
+                  {
+                    "functionName": "",
+                    "scriptId": "3",
+                    "url": "chrome-extension://iohgfienehkcbkjjnjdcbigoecbeakdj/sidebar-tools/bridge.js",
+                    "lineNumber": 0,
+                    "columnNumber": 50473
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "sessionId": "CBB3C3621D106D79609A60544179A926",
+            "url": "blob:null/1c36157e-eb5e-4cac-90dd-6b244b35633c",
+            "type": "Script",
+            "initiator": {
+              "type": "script",
+              "stack": {
+                "callFrames": [
+                  {
+                    "functionName": "",
+                    "scriptId": "3",
+                    "url": "chrome-extension://iohgfienehkcbkjjnjdcbigoecbeakdj/sidebar-tools/bridge.js",
+                    "lineNumber": 0,
+                    "columnNumber": 50473
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "sessionId": "CBB3C3621D106D79609A60544179A926",
+            "url": "blob:null/eabe7185-caf1-4286-9fce-a40e0b06cda0",
+            "type": "Script",
+            "initiator": {
+              "type": "script",
+              "stack": {
+                "callFrames": [
+                  {
+                    "functionName": "",
+                    "scriptId": "3",
+                    "url": "chrome-extension://iohgfienehkcbkjjnjdcbigoecbeakdj/sidebar-tools/bridge.js",
+                    "lineNumber": 0,
+                    "columnNumber": 51202
+                  }
+                ]
+              }
+            }
+          }
+        ],
+        "raw": "chrome-main-permission-tools/cft-2026-10-13T21-24-05-739Z/import-classic-probe-lifecycle.json"
+      }
+    ]
+  },
+  "validation": {
+    "controllerEditorDependencyLocator": {
+      "tests": 175,
+      "fail": 0,
+      "receipt": "controller-permission-delivery-final.tap"
+    },
+    "installedTaskSchedulerToolBackground": {
+      "tests": 158,
+      "fail": 0,
+      "receipt": "main-integration-safety-final.tap",
+      "reuse": "These unchanged implementation inputs are checked separately from Controller permission fix."
+    },
+    "schedulerSafety": {
+      "tests": 26,
+      "fail": 0,
+      "receipt": "scheduled-safety-delivery-final.tap"
+    },
+    "sourceCheck": {
+      "files": 664,
+      "receipt": "source-check-main-permission-final.log"
+    },
+    "chromeAll": "chrome-main-permission-18/acceptance.json",
+    "chromeCleanup": "chrome-main-permission-18/chrome-launcher-cleanup.json",
+    "toolsNodeDriver": "chrome-main-permission-tools.tap"
+  },
+  "remaining": [
+    {
+      "caseId": "TOOL_OLD_INSTANCE_BRIDGE",
+      "CHROME_CFT": "NOT_TESTED",
+      "NODE": "PASS",
+      "reason": "Current probes request no Bridge capabilities; teardown proves iframe removal, not an attempted old-instance Bridge call."
+    },
+    {
+      "caseId": "SCHEDULE_STOP_REVOKE_MISSING_HOST",
+      "CHROME_CFT": "NOT_TESTED",
+      "NODE": "PASS",
+      "reason": "Current D3 scheduled proof covers installed once-fire success. Scheduler safety has 26 targeted Node passes, without same-program native negative receipts."
+    },
+    {
+      "caseId": "CLOUD_CONTROL",
+      "status": "NOT_TESTED",
+      "reason": "No current Cloud Control receipt; existing installed-task path unchanged."
+    },
+    {
+      "caseId": "MAC_NATIVE_FINAL_F3_ZIP_CWS",
+      "status": "NOT_TESTED",
+      "reason": "Mac CFT and native site-selector input are proven; formal Native Messaging/final F3/ZIP/store acceptance is separate."
+    }
+  ],
+  "ciBeforeOwnCommit": "ci-current-main-before-r78.json",
+  "ciNote": "Existing failure/queued CI states retained; no unauthenticated job logs or queued native workflows are claimed PASS.",
+  "historicalFailuresNote": "Earlier candidate failures and observer mistakes are retained. security-17 exposed actual stale ESM consent after Chrome restoration, fixed by the two-line existing consent callback. C09 Stop release timeout remains historical evidence, never rewritten."
+}

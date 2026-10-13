@@ -1,0 +1,1953 @@
+{
+  "status": "PASS_R77_IMPORT_SCENARIOS",
+  "startedAt": "2026-10-13T19:30:05.724Z",
+  "chrome": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+  "sourceHead": "3c19c71b36f656da941ff2b690bf67420d9c571a",
+  "nativeHostConfigured": false,
+  "tests": [
+    {
+      "name": "r243-browser-ui-userScripts-real-Chrome-optin",
+      "status": "PASS",
+      "nativeHostConfigured": false,
+      "control": "chrome://extensions real toggle"
+    },
+    {
+      "caseId": "R76-PAGE-URL-ESM-D3-DOM",
+      "world": "USER_SCRIPT",
+      "url": "https://raw.githubusercontent.com/d3/d3-array/v3.2.4/src/max.js",
+      "programId": "r76-page-esm-d3",
+      "authorSourceHash": "e92e693378c7cefeb0d520e655b958c19b6b96dc8e9d9f65df67b72497744c39",
+      "status": "CHROME_PASS_R76_PAGE_ESM_D3",
+      "first": {
+        "receiptNonce": "0d000b18-b4d5-4372-b816-fb8527c5f4f9",
+        "sourceHash": "9f5357b3eee7997f9be04b48f67d2bc9bf4e373b81ac14aaa2c4f6059d29a4ca",
+        "tabId": 341638181,
+        "documentId": "7E94C19477E3576E9D45A0B07E70C41C",
+        "returnValue": "{\"success\":true,\"value\":5,\"world\":\"USER_SCRIPT\"}",
+        "dom": "Page D3 max = 5"
+      },
+      "repeat": {
+        "receiptNonce": "6e9b5824-c1d4-4ced-9063-e0134f4a2378",
+        "sourceHash": "9f5357b3eee7997f9be04b48f67d2bc9bf4e373b81ac14aaa2c4f6059d29a4ca",
+        "tabId": 341638181,
+        "documentId": "7E94C19477E3576E9D45A0B07E70C41C",
+        "returnValue": "{\"success\":true,\"value\":5,\"world\":\"USER_SCRIPT\"}",
+        "dom": "Page D3 max = 5"
+      },
+      "network": {
+        "firstRequests": 1,
+        "repeatRequests": 0
+      },
+      "saved": "已保存 Page Candidate：r76-page-esm-d3 · r1 · f4c39975ac03…。 源码保持原样；网页运行范围单独保存：http://127.0.0.1/*。网页匹配包含不同端口，但不授予跨站网络服务权限；自动执行仍需明确安装授权。 请在已保存网页脚本中验证冻结版本，再明确安装。",
+      "restored": {
+        "receiptNonce": "cf905034-371d-4792-8af7-f726ef2736de",
+        "sourceHash": "9f5357b3eee7997f9be04b48f67d2bc9bf4e373b81ac14aaa2c4f6059d29a4ca",
+        "tabId": 341638181,
+        "documentId": "7E94C19477E3576E9D45A0B07E70C41C",
+        "returnValue": "{\"success\":true,\"value\":5,\"world\":\"USER_SCRIPT\"}",
+        "dom": "Page D3 max = 5"
+      },
+      "persisted": [
+        {
+          "database": "opendesk-browser",
+          "store": "frameworkKV",
+          "value": {
+            "tag": "page-candidate-v1",
+            "namespace": "tool:aniblblbecjmojblboienpehdnadghel",
+            "candidateId": "page-e65741669a015d98a89e3b6a07d02e818420462ea1708ffe3051fdc7beeebbcd",
+            "builtinIdentity": {
+              "abi": "opendesk-builtins.v10",
+              "catalogSha256": "ffd8485114e96c08fcd1d3e3d3b72e6bd89afa9b7f64568f5719cf393e283c09",
+              "bundleSha256": "c918ee6777796cebd477ac7c734f95fdb09ede292361e33a023f7cda68f7fec4"
+            },
+            "manifestHash": "f4c39975ac0303bfe91dbebd269fe500f55eaa34c7b1145789a2401219a06b7a",
+            "manifest": {
+              "format": "opendesk.page-program.v1",
+              "runtimeKind": "page-userscript",
+              "programId": "r76-page-esm-d3",
+              "revision": 1,
+              "sourceHash": "9f5357b3eee7997f9be04b48f67d2bc9bf4e373b81ac14aaa2c4f6059d29a4ca",
+              "entryFormat": "async-main",
+              "sourceProfile": {
+                "metadataProfile": "opendesk-d1",
+                "importSourceUrl": null
+              },
+              "dependencyLockId": null,
+              "dependencyManifestDigest": "bb65f573923dc63d264e9823c02867667f39b4651fcebacf04288bf95ee17319",
+              "pageRules": {
+                "matches": [
+                  "http://127.0.0.1/*"
+                ],
+                "excludeMatches": [],
+                "runAt": "document_idle",
+                "allFrames": false,
+                "world": "USER_SCRIPT"
+              },
+              "compilation": {
+                "sourceFormat": "esm-page",
+                "authorSourceHash": "e92e693378c7cefeb0d520e655b958c19b6b96dc8e9d9f65df67b72497744c39",
+                "dependencyLockId": "dep-lock-6defdbec1432659a556e5f3e9cb010703eeddf4c11d7be56e492719e99684c85",
+                "dependencyManifestDigest": "b04017ec8d9e4e1f66bb623e2797e438c7203768a5c734e71badd5c6031ec5eb",
+                "compilerVersion": "7.29.9",
+                "compilerSha256": "5f8ffa174aa2465f074c85b92421662168cd356eedebaedc3d16fd9d61fadb7c",
+                "compilerProfile": [
+                  {
+                    "id": "static-esm-compiler-worker",
+                    "sha256": "3a85cdb9ab33e6d5d0f594678f88b50cff897c9d8a3cb279bf9768a8c2c45050"
+                  },
+                  {
+                    "id": "static-esm-linker",
+                    "sha256": "425e7434828f8a2d35cfe16bc5c7e3dd9cc3b5e79182493d54726ca579ee2854"
+                  }
+                ]
+              }
+            },
+            "sourceUtf8": "async function main(){\n  const __odModules=Object.create(null);\n  {const exports=Object.create(null);\n    (function(exports){\n\"use strict\";\n\nObject.defineProperty(exports, \"__esModule\", {\n  value: true\n});\nexports.default = max;\nfunction max(values, valueof) {\n  let max;\n  if (valueof === undefined) {\n    for (const value of values) {\n      if (value != null && (max < value || max === undefined && value >= value)) {\n        max = value;\n      }\n    }\n  } else {\n    let index = -1;\n    for (let value of values) {\n      if ((value = valueof(value, ++index, values)) != null && (max < value || max === undefined && value >= value)) {\n        max = value;\n      }\n    }\n  }\n  return max;\n}\n    })(exports);\n    const namespace=Object.create(null);\n    for(const key of Object.getOwnPropertyNames(exports))Object.defineProperty(namespace,key,{enumerable:key!==\"__esModule\",get:()=>exports[key]});\n    __odModules[\"https://raw.githubusercontent.com/d3/d3-array/v3.2.4/src/max.js\"]=Object.freeze(namespace);\n  }\n  const __odEntry=(function(){\n    const exports=Object.create(null);\n    const require=name=>{if(!Object.hasOwn(__odModules,name))throw Error(\"E_STATIC_ESM_INPUT\");return __odModules[name];};\n    (function(exports,require){\n\"use strict\";\n\nObject.defineProperty(exports, \"__esModule\", {\n  value: true\n});\nexports.default = main;\nvar _max = require(\"https://raw.githubusercontent.com/d3/d3-array/v3.2.4/src/max.js\");\nasync function main() {\n  const value = (0, _max.default)([2, 5, 3]);\n  if (value !== 5) throw new Error('D3_IMPORT_FAILED');\n  let node = document.getElementById('od-import-proof');\n  if (!node) {\n    node = document.createElement('output');\n    node.id = 'od-import-proof';\n    document.body.appendChild(node);\n  }\n  node.textContent = 'Page D3 max = ' + value;\n  console.log('[IMPORT TEST][PAGE]', value);\n  return {\n    world: 'USER_SCRIPT',\n    value,\n    success: true\n  };\n}\n    })(exports,require);\n    return exports;\n  })();\n  return await (0,__odEntry.default)();\n}",
+            "authorSourceUtf8": "import max from 'https://raw.githubusercontent.com/d3/d3-array/v3.2.4/src/max.js';\n\nexport default async function main() {\n  const value = max([2, 5, 3]);\n  if (value !== 5) throw new Error('D3_IMPORT_FAILED');\n  let node = document.getElementById('od-import-proof');\n  if (!node) {\n    node = document.createElement('output');\n    node.id = 'od-import-proof';\n    document.body.appendChild(node);\n  }\n  node.textContent = 'Page D3 max = ' + value;\n  console.log('[IMPORT TEST][PAGE]', value);\n  return {world: 'USER_SCRIPT', value, success: true};\n}\n",
+            "stage": "Candidate",
+            "verification": null,
+            "createdAt": 1791919809360
+          }
+        }
+      ],
+      "installedRecords": [
+        {
+          "database": "opendesk-browser",
+          "store": "frameworkKV",
+          "value": {
+            "tag": "page-candidate-v1",
+            "namespace": "tool:aniblblbecjmojblboienpehdnadghel",
+            "candidateId": "page-e65741669a015d98a89e3b6a07d02e818420462ea1708ffe3051fdc7beeebbcd",
+            "builtinIdentity": {
+              "abi": "opendesk-builtins.v10",
+              "catalogSha256": "ffd8485114e96c08fcd1d3e3d3b72e6bd89afa9b7f64568f5719cf393e283c09",
+              "bundleSha256": "c918ee6777796cebd477ac7c734f95fdb09ede292361e33a023f7cda68f7fec4"
+            },
+            "manifestHash": "f4c39975ac0303bfe91dbebd269fe500f55eaa34c7b1145789a2401219a06b7a",
+            "manifest": {
+              "format": "opendesk.page-program.v1",
+              "runtimeKind": "page-userscript",
+              "programId": "r76-page-esm-d3",
+              "revision": 1,
+              "sourceHash": "9f5357b3eee7997f9be04b48f67d2bc9bf4e373b81ac14aaa2c4f6059d29a4ca",
+              "entryFormat": "async-main",
+              "sourceProfile": {
+                "metadataProfile": "opendesk-d1",
+                "importSourceUrl": null
+              },
+              "dependencyLockId": null,
+              "dependencyManifestDigest": "bb65f573923dc63d264e9823c02867667f39b4651fcebacf04288bf95ee17319",
+              "pageRules": {
+                "matches": [
+                  "http://127.0.0.1/*"
+                ],
+                "excludeMatches": [],
+                "runAt": "document_idle",
+                "allFrames": false,
+                "world": "USER_SCRIPT"
+              },
+              "compilation": {
+                "sourceFormat": "esm-page",
+                "authorSourceHash": "e92e693378c7cefeb0d520e655b958c19b6b96dc8e9d9f65df67b72497744c39",
+                "dependencyLockId": "dep-lock-6defdbec1432659a556e5f3e9cb010703eeddf4c11d7be56e492719e99684c85",
+                "dependencyManifestDigest": "b04017ec8d9e4e1f66bb623e2797e438c7203768a5c734e71badd5c6031ec5eb",
+                "compilerVersion": "7.29.9",
+                "compilerSha256": "5f8ffa174aa2465f074c85b92421662168cd356eedebaedc3d16fd9d61fadb7c",
+                "compilerProfile": [
+                  {
+                    "id": "static-esm-compiler-worker",
+                    "sha256": "3a85cdb9ab33e6d5d0f594678f88b50cff897c9d8a3cb279bf9768a8c2c45050"
+                  },
+                  {
+                    "id": "static-esm-linker",
+                    "sha256": "425e7434828f8a2d35cfe16bc5c7e3dd9cc3b5e79182493d54726ca579ee2854"
+                  }
+                ]
+              }
+            },
+            "sourceUtf8": "async function main(){\n  const __odModules=Object.create(null);\n  {const exports=Object.create(null);\n    (function(exports){\n\"use strict\";\n\nObject.defineProperty(exports, \"__esModule\", {\n  value: true\n});\nexports.default = max;\nfunction max(values, valueof) {\n  let max;\n  if (valueof === undefined) {\n    for (const value of values) {\n      if (value != null && (max < value || max === undefined && value >= value)) {\n        max = value;\n      }\n    }\n  } else {\n    let index = -1;\n    for (let value of values) {\n      if ((value = valueof(value, ++index, values)) != null && (max < value || max === undefined && value >= value)) {\n        max = value;\n      }\n    }\n  }\n  return max;\n}\n    })(exports);\n    const namespace=Object.create(null);\n    for(const key of Object.getOwnPropertyNames(exports))Object.defineProperty(namespace,key,{enumerable:key!==\"__esModule\",get:()=>exports[key]});\n    __odModules[\"https://raw.githubusercontent.com/d3/d3-array/v3.2.4/src/max.js\"]=Object.freeze(namespace);\n  }\n  const __odEntry=(function(){\n    const exports=Object.create(null);\n    const require=name=>{if(!Object.hasOwn(__odModules,name))throw Error(\"E_STATIC_ESM_INPUT\");return __odModules[name];};\n    (function(exports,require){\n\"use strict\";\n\nObject.defineProperty(exports, \"__esModule\", {\n  value: true\n});\nexports.default = main;\nvar _max = require(\"https://raw.githubusercontent.com/d3/d3-array/v3.2.4/src/max.js\");\nasync function main() {\n  const value = (0, _max.default)([2, 5, 3]);\n  if (value !== 5) throw new Error('D3_IMPORT_FAILED');\n  let node = document.getElementById('od-import-proof');\n  if (!node) {\n    node = document.createElement('output');\n    node.id = 'od-import-proof';\n    document.body.appendChild(node);\n  }\n  node.textContent = 'Page D3 max = ' + value;\n  console.log('[IMPORT TEST][PAGE]', value);\n  return {\n    world: 'USER_SCRIPT',\n    value,\n    success: true\n  };\n}\n    })(exports,require);\n    return exports;\n  })();\n  return await (0,__odEntry.default)();\n}",
+            "authorSourceUtf8": "import max from 'https://raw.githubusercontent.com/d3/d3-array/v3.2.4/src/max.js';\n\nexport default async function main() {\n  const value = max([2, 5, 3]);\n  if (value !== 5) throw new Error('D3_IMPORT_FAILED');\n  let node = document.getElementById('od-import-proof');\n  if (!node) {\n    node = document.createElement('output');\n    node.id = 'od-import-proof';\n    document.body.appendChild(node);\n  }\n  node.textContent = 'Page D3 max = ' + value;\n  console.log('[IMPORT TEST][PAGE]', value);\n  return {world: 'USER_SCRIPT', value, success: true};\n}\n",
+            "stage": "Candidate",
+            "verification": null,
+            "createdAt": 1791919809360
+          }
+        },
+        {
+          "database": "opendesk-browser",
+          "store": "frameworkKV",
+          "value": {
+            "tag": "page-installed-v1",
+            "namespace": "tool:aniblblbecjmojblboienpehdnadghel",
+            "programId": "r76-page-esm-d3",
+            "revision": 1,
+            "title": "r76-page-esm-d3",
+            "manifestHash": "f4c39975ac0303bfe91dbebd269fe500f55eaa34c7b1145789a2401219a06b7a",
+            "sourceHash": "9f5357b3eee7997f9be04b48f67d2bc9bf4e373b81ac14aaa2c4f6059d29a4ca",
+            "builtinIdentity": {
+              "abi": "opendesk-builtins.v10",
+              "catalogSha256": "ffd8485114e96c08fcd1d3e3d3b72e6bd89afa9b7f64568f5719cf393e283c09",
+              "bundleSha256": "c918ee6777796cebd477ac7c734f95fdb09ede292361e33a023f7cda68f7fec4"
+            },
+            "pageRules": {
+              "matches": [
+                "http://127.0.0.1/*"
+              ],
+              "excludeMatches": [],
+              "runAt": "document_idle",
+              "allFrames": false,
+              "world": "USER_SCRIPT"
+            },
+            "enabled": true,
+            "token": "4f335c33b4fa439b905e9bb36e4bfec3",
+            "nativeId": "opendesk-page-boot-559778e2b536ef6e6d8d7de9fcd0b75c0e0d12afbf5fdc88",
+            "nativeState": "registered",
+            "error": null,
+            "installedAt": 1791919810011,
+            "authorization": {
+              "tag": "page-install-authorization-v1",
+              "installationId": "75e33aa2-d8d5-45f5-b7ba-b659dac7bff6",
+              "generation": 1,
+              "status": "active",
+              "scope": {
+                "capabilities": [
+                  "page.dom"
+                ],
+                "pageRules": {
+                  "matches": [
+                    "http://127.0.0.1/*"
+                  ],
+                  "excludeMatches": [],
+                  "runAt": "document_idle",
+                  "allFrames": false,
+                  "world": "USER_SCRIPT"
+                },
+                "networkOrigins": []
+              },
+              "approvedAt": 1791919810011
+            }
+          }
+        },
+        {
+          "database": "opendesk-browser",
+          "store": "frameworkKV",
+          "value": {
+            "tag": "page-verification-v1",
+            "builtinIdentity": {
+              "abi": "opendesk-builtins.v10",
+              "catalogSha256": "ffd8485114e96c08fcd1d3e3d3b72e6bd89afa9b7f64568f5719cf393e283c09",
+              "bundleSha256": "c918ee6777796cebd477ac7c734f95fdb09ede292361e33a023f7cda68f7fec4"
+            },
+            "candidateId": "page-e65741669a015d98a89e3b6a07d02e818420462ea1708ffe3051fdc7beeebbcd",
+            "namespace": "tool:aniblblbecjmojblboienpehdnadghel",
+            "manifestHash": "f4c39975ac0303bfe91dbebd269fe500f55eaa34c7b1145789a2401219a06b7a",
+            "runtimeKind": "page-userscript",
+            "entryFormat": "async-main",
+            "programId": "r76-page-esm-d3",
+            "revision": 1,
+            "sourceHash": "9f5357b3eee7997f9be04b48f67d2bc9bf4e373b81ac14aaa2c4f6059d29a4ca",
+            "dependencyLockId": null,
+            "dependencyManifestDigest": "bb65f573923dc63d264e9823c02867667f39b4651fcebacf04288bf95ee17319",
+            "approvedPageRules": {
+              "matches": [
+                "http://127.0.0.1/*"
+              ],
+              "excludeMatches": [],
+              "runAt": "document_idle",
+              "allFrames": false,
+              "world": "USER_SCRIPT"
+            },
+            "status": "Available",
+            "receipt": {
+              "state": "preview-evaluated",
+              "durable": false,
+              "registered": false,
+              "tabId": 341638181,
+              "documentId": "7E94C19477E3576E9D45A0B07E70C41C",
+              "sourceHash": "9f5357b3eee7997f9be04b48f67d2bc9bf4e373b81ac14aaa2c4f6059d29a4ca",
+              "world": "USER_SCRIPT",
+              "worldId": "opendesk-preview-d1-3754245594b2485c832c8b9f6f4a1d25",
+              "receiptNonce": "e399b39c-f45f-4a02-a0d9-712d4d546281",
+              "builtinAbi": "opendesk-builtins.v10",
+              "builtinCatalogSha256": "ffd8485114e96c08fcd1d3e3d3b72e6bd89afa9b7f64568f5719cf393e283c09",
+              "builtinBundleSha256": "c918ee6777796cebd477ac7c734f95fdb09ede292361e33a023f7cda68f7fec4",
+              "entryFormat": "async-main",
+              "lockId": null,
+              "manifestDigest": "bb65f573923dc63d264e9823c02867667f39b4651fcebacf04288bf95ee17319",
+              "dependencies": [],
+              "warnings": [],
+              "resultText": "{\"success\":true,\"value\":5,\"world\":\"USER_SCRIPT\"}"
+            },
+            "receiptHash": "48061a9553ae419065e2028587abf793ff3a7f21df7ccdcc46685caab3fc466a",
+            "verifiedAt": 1791919809963
+          }
+        }
+      ],
+      "installedDom": "Page D3 max = 5",
+      "lifecycle": {
+        "candidateRestore": "PASS",
+        "fixedInstallation": "PASS",
+        "matchingDocument": "PASS",
+        "disableNextDocument": "PASS",
+        "fullBrowserOfflineRestart": "NOT_TESTED"
+      }
+    },
+    {
+      "caseId": "S05-R77-CONTROLLER-D3",
+      "programId": "r77-controller-d3",
+      "world": "CONTROLLER",
+      "authorSourceHash": "bdd058752194cc828ca4c7e2d9e4b4478f0582a3ce35d8ee32438ce83bc1d9e8",
+      "status": "CHROME_PASS_R77_CONTROLLER_D3",
+      "first": {
+        "runId": "0364b20d-e857-4371-a6ee-a6e22cb3ae06",
+        "resultId": "ca6d6cdc-a20a-49fe-8ace-2f6ab9b02fb9",
+        "sourceHash": "a6c35513d9a276ad6b88fdc498009497945e9ba296ebf6b4366c93d895a6039b",
+        "resultText": "{\n  \"success\": true,\n  \"title\": \"OpenDesk Browser · Browser Test Lab\",\n  \"value\": 5,\n  \"world\": \"CONTROLLER\"\n}",
+        "persisted": {
+          "records": [
+            {
+              "database": "opendesk-browser",
+              "store": "frameworkKV",
+              "value": {
+                "tag": "component-esm-lock-v1",
+                "namespace": "tool:aniblblbecjmojblboienpehdnadghel",
+                "manifest": {
+                  "format": "opendesk.component-esm.v1",
+                  "world": "CONTROLLER",
+                  "framework": "controller",
+                  "roots": [
+                    "https://raw.githubusercontent.com/d3/d3-array/v3.2.4/src/max.js"
+                  ],
+                  "programId": "r77-controller-d3",
+                  "sourceHash": "bdd058752194cc828ca4c7e2d9e4b4478f0582a3ce35d8ee32438ce83bc1d9e8"
+                },
+                "manifestDigest": "4d725d7d343781101e85812b2bd59e6507fbe1f362ef4bfb13a8767c2998d229",
+                "reviewId": "component-review-077c190c-2acf-48cd-a370-7e903607c5f0",
+                "approvedAt": 1791919812379,
+                "remoteLock": {
+                  "format": "opendesk.remote-lock.v1",
+                  "modules": {
+                    "https://raw.githubusercontent.com/d3/d3-array/v3.2.4/src/max.js": {
+                      "sha256": "691945a453633d9e204846af8ea4e299821b924f82b15eaf7906aba642979b1d",
+                      "bytes": 502
+                    }
+                  }
+                },
+                "entries": [
+                  {
+                    "url": "https://raw.githubusercontent.com/d3/d3-array/v3.2.4/src/max.js",
+                    "sha256": "691945a453633d9e204846af8ea4e299821b924f82b15eaf7906aba642979b1d",
+                    "bytes": 502,
+                    "license": {
+                      "status": "unknown",
+                      "name": null,
+                      "source": null
+                    },
+                    "mime": "text/plain",
+                    "risk": "第三方 JavaScript 可以读取或修改已授权网页的 DOM，也可能通过网页允许的网络渠道对外发送网页数据。USER_SCRIPT 隔离不是网络沙箱，也不提供 GM 或扩展宿主权限。"
+                  }
+                ],
+                "graph": [
+                  {
+                    "url": "https://raw.githubusercontent.com/d3/d3-array/v3.2.4/src/max.js",
+                    "children": []
+                  }
+                ],
+                "lockId": "component-lock-5d884ac16646f73593ca1d7ffc73f85832ac5665ec73aa8fa5d2e470896151a4",
+                "status": "approved"
+              }
+            },
+            {
+              "database": "opendesk-browser",
+              "store": "frameworkKV",
+              "value": {
+                "tag": "component-esm-review-v1",
+                "reviewId": "component-review-077c190c-2acf-48cd-a370-7e903607c5f0",
+                "namespace": "tool:aniblblbecjmojblboienpehdnadghel",
+                "manifest": {
+                  "format": "opendesk.component-esm.v1",
+                  "world": "CONTROLLER",
+                  "framework": "controller",
+                  "roots": [
+                    "https://raw.githubusercontent.com/d3/d3-array/v3.2.4/src/max.js"
+                  ],
+                  "programId": "r77-controller-d3",
+                  "sourceHash": "bdd058752194cc828ca4c7e2d9e4b4478f0582a3ce35d8ee32438ce83bc1d9e8"
+                },
+                "manifestDigest": "4d725d7d343781101e85812b2bd59e6507fbe1f362ef4bfb13a8767c2998d229",
+                "sourceHash": "bdd058752194cc828ca4c7e2d9e4b4478f0582a3ce35d8ee32438ce83bc1d9e8",
+                "entries": [
+                  {
+                    "url": "https://raw.githubusercontent.com/d3/d3-array/v3.2.4/src/max.js",
+                    "sha256": "691945a453633d9e204846af8ea4e299821b924f82b15eaf7906aba642979b1d",
+                    "bytes": 502,
+                    "license": {
+                      "status": "unknown",
+                      "name": null,
+                      "source": null
+                    },
+                    "mime": "text/plain",
+                    "risk": "第三方 JavaScript 可以读取或修改已授权网页的 DOM，也可能通过网页允许的网络渠道对外发送网页数据。USER_SCRIPT 隔离不是网络沙箱，也不提供 GM 或扩展宿主权限。"
+                  }
+                ],
+                "status": "approved",
+                "createdAt": 1791919812250,
+                "reviewDigest": "8c8db026389811a44596885c8c336ada0a48b9e6c47f24d859b893d306c0f7c0",
+                "lockId": "component-lock-5d884ac16646f73593ca1d7ffc73f85832ac5665ec73aa8fa5d2e470896151a4"
+              }
+            },
+            {
+              "database": "opendesk-browser",
+              "store": "runs",
+              "value": {
+                "tag": "controller-run",
+                "runId": "0364b20d-e857-4371-a6ee-a6e22cb3ae06",
+                "namespace": "tool:aniblblbecjmojblboienpehdnadghel",
+                "principal": "extension-tool:aniblblbecjmojblboienpehdnadghel",
+                "registrationId": "fa25f404-dda4-49e2-a8db-d9a01a518d44",
+                "hostDocumentId": "418528C8488A924B263C55D15A9756AA",
+                "hostInstanceId": "bd7b4955-a6a3-4d93-bc85-ee678df5fbb4",
+                "browserSessionIncarnation": "ff5cc12d-203f-4ada-bf51-730ddaae5a7d",
+                "scriptId": "draft:0364b20d-e857-4371-a6ee-a6e22cb3ae06",
+                "contentHash": "a6c35513d9a276ad6b88fdc498009497945e9ba296ebf6b4366c93d895a6039b",
+                "builtinAbi": "opendesk-builtins.v10",
+                "sourceKind": "draft",
+                "builtinIdentity": {
+                  "abi": "opendesk-builtins.v10",
+                  "catalogSha256": "ffd8485114e96c08fcd1d3e3d3b72e6bd89afa9b7f64568f5719cf393e283c09",
+                  "bundleSha256": "5e596287111b34cd3b720e5d25bbf69a15a0b555dccc6c028512035c7d4b1cb1"
+                },
+                "opId": "0a24b20d-c37e-4333-a89b-30822fbaee44",
+                "resultId": "ca6d6cdc-a20a-49fe-8ace-2f6ab9b02fb9",
+                "requestId": "9ceeb7a6-8999-4365-a5e7-7f6a40939f03",
+                "requestDigest": "4e3f45c74f229a3e2a3719ee24d0b84ca3d61ccc760eb5333eeb8fc84003c8a5",
+                "deadlineAt": 1791919842614,
+                "paramsWire": {
+                  "type": "object",
+                  "value": [
+                    [
+                      "value",
+                      {
+                        "type": "number",
+                        "value": 0
+                      }
+                    ]
+                  ]
+                },
+                "selection": {
+                  "mode": "borrowed",
+                  "tabId": 341638181,
+                  "frameId": 0,
+                  "documentId": "EA9549F056845B4EC0D6C731F7DBDCB0",
+                  "expectedUrl": "http://127.0.0.1:43111/demo-form.html",
+                  "expectedWindowId": 341638177
+                },
+                "startUrl": null,
+                "nativeFence": {
+                  "tabEpoch": 0,
+                  "frameEpoch": 4,
+                  "rootFrameEpoch": 0,
+                  "permissionEpoch": 0
+                },
+                "nativeNetworkFences": [],
+                "networkOrigins": [],
+                "nativeTabId": 341638181,
+                "state": "completed",
+                "ownerEpoch": 2,
+                "runRevision": 4,
+                "eventSeq": 2,
+                "cancelSeq": 1,
+                "workerRetired": true,
+                "retirementState": "released",
+                "target": {
+                  "tabId": 341638181,
+                  "frameId": 0,
+                  "documentId": "EA9549F056845B4EC0D6C731F7DBDCB0",
+                  "url": "http://127.0.0.1:43111/demo-form.html",
+                  "allowedOrigin": "http://127.0.0.1:43111",
+                  "windowId": 341638177,
+                  "targetSessionId": "1a2f71a3-8b50-4442-8f11-2bb99c687b78",
+                  "targetVersion": 1,
+                  "mode": "borrowed",
+                  "browserSessionIncarnation": "ff5cc12d-203f-4ada-bf51-730ddaae5a7d"
+                },
+                "identity": {
+                  "tag": "controller-run",
+                  "runId": "0364b20d-e857-4371-a6ee-a6e22cb3ae06",
+                  "hostInstanceId": "bd7b4955-a6a3-4d93-bc85-ee678df5fbb4",
+                  "hostDocumentId": "418528C8488A924B263C55D15A9756AA",
+                  "ownerEpoch": 1,
+                  "scriptId": "draft:0364b20d-e857-4371-a6ee-a6e22cb3ae06",
+                  "revision": 1,
+                  "contentHash": "a6c35513d9a276ad6b88fdc498009497945e9ba296ebf6b4366c93d895a6039b",
+                  "target": {
+                    "tabId": 341638181,
+                    "frameId": 0,
+                    "documentId": "EA9549F056845B4EC0D6C731F7DBDCB0",
+                    "url": "http://127.0.0.1:43111/demo-form.html",
+                    "allowedOrigin": "http://127.0.0.1:43111",
+                    "windowId": 341638177,
+                    "targetSessionId": "1a2f71a3-8b50-4442-8f11-2bb99c687b78",
+                    "targetVersion": 1,
+                    "mode": "borrowed",
+                    "browserSessionIncarnation": "ff5cc12d-203f-4ada-bf51-730ddaae5a7d"
+                  }
+                },
+                "revision": {
+                  "kind": "draft",
+                  "scriptId": "draft:0364b20d-e857-4371-a6ee-a6e22cb3ae06",
+                  "revision": 1,
+                  "sourceHash": "a6c35513d9a276ad6b88fdc498009497945e9ba296ebf6b4366c93d895a6039b",
+                  "builtinIdentity": {
+                    "abi": "opendesk-builtins.v10",
+                    "catalogSha256": "ffd8485114e96c08fcd1d3e3d3b72e6bd89afa9b7f64568f5719cf393e283c09",
+                    "bundleSha256": "5e596287111b34cd3b720e5d25bbf69a15a0b555dccc6c028512035c7d4b1cb1"
+                  }
+                },
+                "createdAt": 1791919812624,
+                "retirementId": "e6f569ec-66cc-4189-a711-8d8f74feef8a",
+                "terminalReason": null
+              }
+            },
+            {
+              "database": "opendesk-browser",
+              "store": "results",
+              "value": {
+                "tag": "controller-result",
+                "resultId": "ca6d6cdc-a20a-49fe-8ace-2f6ab9b02fb9",
+                "runId": "0364b20d-e857-4371-a6ee-a6e22cb3ae06",
+                "namespace": "tool:aniblblbecjmojblboienpehdnadghel",
+                "principal": "extension-tool:aniblblbecjmojblboienpehdnadghel",
+                "revision": {
+                  "kind": "draft",
+                  "scriptId": "draft:0364b20d-e857-4371-a6ee-a6e22cb3ae06",
+                  "revision": 1,
+                  "sourceHash": "a6c35513d9a276ad6b88fdc498009497945e9ba296ebf6b4366c93d895a6039b",
+                  "builtinIdentity": {
+                    "abi": "opendesk-builtins.v10",
+                    "catalogSha256": "ffd8485114e96c08fcd1d3e3d3b72e6bd89afa9b7f64568f5719cf393e283c09",
+                    "bundleSha256": "5e596287111b34cd3b720e5d25bbf69a15a0b555dccc6c028512035c7d4b1cb1"
+                  }
+                },
+                "builtinIdentity": {
+                  "abi": "opendesk-builtins.v10",
+                  "catalogSha256": "ffd8485114e96c08fcd1d3e3d3b72e6bd89afa9b7f64568f5719cf393e283c09",
+                  "bundleSha256": "5e596287111b34cd3b720e5d25bbf69a15a0b555dccc6c028512035c7d4b1cb1"
+                },
+                "sourceKind": "draft",
+                "state": "completed",
+                "outcome": {
+                  "ok": true,
+                  "valueWire": {
+                    "type": "object",
+                    "value": [
+                      [
+                        "success",
+                        {
+                          "type": "boolean",
+                          "value": true
+                        }
+                      ],
+                      [
+                        "title",
+                        {
+                          "type": "string",
+                          "value": "OpenDesk Browser · Browser Test Lab"
+                        }
+                      ],
+                      [
+                        "value",
+                        {
+                          "type": "number",
+                          "value": 5
+                        }
+                      ],
+                      [
+                        "world",
+                        {
+                          "type": "string",
+                          "value": "CONTROLLER"
+                        }
+                      ]
+                    ]
+                  }
+                },
+                "committedAt": 1791919812725
+              }
+            }
+          ],
+          "result": {
+            "tag": "controller-result",
+            "resultId": "ca6d6cdc-a20a-49fe-8ace-2f6ab9b02fb9",
+            "runId": "0364b20d-e857-4371-a6ee-a6e22cb3ae06",
+            "namespace": "tool:aniblblbecjmojblboienpehdnadghel",
+            "principal": "extension-tool:aniblblbecjmojblboienpehdnadghel",
+            "revision": {
+              "kind": "draft",
+              "scriptId": "draft:0364b20d-e857-4371-a6ee-a6e22cb3ae06",
+              "revision": 1,
+              "sourceHash": "a6c35513d9a276ad6b88fdc498009497945e9ba296ebf6b4366c93d895a6039b",
+              "builtinIdentity": {
+                "abi": "opendesk-builtins.v10",
+                "catalogSha256": "ffd8485114e96c08fcd1d3e3d3b72e6bd89afa9b7f64568f5719cf393e283c09",
+                "bundleSha256": "5e596287111b34cd3b720e5d25bbf69a15a0b555dccc6c028512035c7d4b1cb1"
+              }
+            },
+            "builtinIdentity": {
+              "abi": "opendesk-builtins.v10",
+              "catalogSha256": "ffd8485114e96c08fcd1d3e3d3b72e6bd89afa9b7f64568f5719cf393e283c09",
+              "bundleSha256": "5e596287111b34cd3b720e5d25bbf69a15a0b555dccc6c028512035c7d4b1cb1"
+            },
+            "sourceKind": "draft",
+            "state": "completed",
+            "outcome": {
+              "ok": true,
+              "valueWire": {
+                "type": "object",
+                "value": [
+                  [
+                    "success",
+                    {
+                      "type": "boolean",
+                      "value": true
+                    }
+                  ],
+                  [
+                    "title",
+                    {
+                      "type": "string",
+                      "value": "OpenDesk Browser · Browser Test Lab"
+                    }
+                  ],
+                  [
+                    "value",
+                    {
+                      "type": "number",
+                      "value": 5
+                    }
+                  ],
+                  [
+                    "world",
+                    {
+                      "type": "string",
+                      "value": "CONTROLLER"
+                    }
+                  ]
+                ]
+              }
+            },
+            "committedAt": 1791919812725
+          },
+          "run": {
+            "tag": "controller-run",
+            "runId": "0364b20d-e857-4371-a6ee-a6e22cb3ae06",
+            "namespace": "tool:aniblblbecjmojblboienpehdnadghel",
+            "principal": "extension-tool:aniblblbecjmojblboienpehdnadghel",
+            "registrationId": "fa25f404-dda4-49e2-a8db-d9a01a518d44",
+            "hostDocumentId": "418528C8488A924B263C55D15A9756AA",
+            "hostInstanceId": "bd7b4955-a6a3-4d93-bc85-ee678df5fbb4",
+            "browserSessionIncarnation": "ff5cc12d-203f-4ada-bf51-730ddaae5a7d",
+            "scriptId": "draft:0364b20d-e857-4371-a6ee-a6e22cb3ae06",
+            "contentHash": "a6c35513d9a276ad6b88fdc498009497945e9ba296ebf6b4366c93d895a6039b",
+            "builtinAbi": "opendesk-builtins.v10",
+            "sourceKind": "draft",
+            "builtinIdentity": {
+              "abi": "opendesk-builtins.v10",
+              "catalogSha256": "ffd8485114e96c08fcd1d3e3d3b72e6bd89afa9b7f64568f5719cf393e283c09",
+              "bundleSha256": "5e596287111b34cd3b720e5d25bbf69a15a0b555dccc6c028512035c7d4b1cb1"
+            },
+            "opId": "0a24b20d-c37e-4333-a89b-30822fbaee44",
+            "resultId": "ca6d6cdc-a20a-49fe-8ace-2f6ab9b02fb9",
+            "requestId": "9ceeb7a6-8999-4365-a5e7-7f6a40939f03",
+            "requestDigest": "4e3f45c74f229a3e2a3719ee24d0b84ca3d61ccc760eb5333eeb8fc84003c8a5",
+            "deadlineAt": 1791919842614,
+            "paramsWire": {
+              "type": "object",
+              "value": [
+                [
+                  "value",
+                  {
+                    "type": "number",
+                    "value": 0
+                  }
+                ]
+              ]
+            },
+            "selection": {
+              "mode": "borrowed",
+              "tabId": 341638181,
+              "frameId": 0,
+              "documentId": "EA9549F056845B4EC0D6C731F7DBDCB0",
+              "expectedUrl": "http://127.0.0.1:43111/demo-form.html",
+              "expectedWindowId": 341638177
+            },
+            "startUrl": null,
+            "nativeFence": {
+              "tabEpoch": 0,
+              "frameEpoch": 4,
+              "rootFrameEpoch": 0,
+              "permissionEpoch": 0
+            },
+            "nativeNetworkFences": [],
+            "networkOrigins": [],
+            "nativeTabId": 341638181,
+            "state": "completed",
+            "ownerEpoch": 2,
+            "runRevision": 4,
+            "eventSeq": 2,
+            "cancelSeq": 1,
+            "workerRetired": true,
+            "retirementState": "released",
+            "target": {
+              "tabId": 341638181,
+              "frameId": 0,
+              "documentId": "EA9549F056845B4EC0D6C731F7DBDCB0",
+              "url": "http://127.0.0.1:43111/demo-form.html",
+              "allowedOrigin": "http://127.0.0.1:43111",
+              "windowId": 341638177,
+              "targetSessionId": "1a2f71a3-8b50-4442-8f11-2bb99c687b78",
+              "targetVersion": 1,
+              "mode": "borrowed",
+              "browserSessionIncarnation": "ff5cc12d-203f-4ada-bf51-730ddaae5a7d"
+            },
+            "identity": {
+              "tag": "controller-run",
+              "runId": "0364b20d-e857-4371-a6ee-a6e22cb3ae06",
+              "hostInstanceId": "bd7b4955-a6a3-4d93-bc85-ee678df5fbb4",
+              "hostDocumentId": "418528C8488A924B263C55D15A9756AA",
+              "ownerEpoch": 1,
+              "scriptId": "draft:0364b20d-e857-4371-a6ee-a6e22cb3ae06",
+              "revision": 1,
+              "contentHash": "a6c35513d9a276ad6b88fdc498009497945e9ba296ebf6b4366c93d895a6039b",
+              "target": {
+                "tabId": 341638181,
+                "frameId": 0,
+                "documentId": "EA9549F056845B4EC0D6C731F7DBDCB0",
+                "url": "http://127.0.0.1:43111/demo-form.html",
+                "allowedOrigin": "http://127.0.0.1:43111",
+                "windowId": 341638177,
+                "targetSessionId": "1a2f71a3-8b50-4442-8f11-2bb99c687b78",
+                "targetVersion": 1,
+                "mode": "borrowed",
+                "browserSessionIncarnation": "ff5cc12d-203f-4ada-bf51-730ddaae5a7d"
+              }
+            },
+            "revision": {
+              "kind": "draft",
+              "scriptId": "draft:0364b20d-e857-4371-a6ee-a6e22cb3ae06",
+              "revision": 1,
+              "sourceHash": "a6c35513d9a276ad6b88fdc498009497945e9ba296ebf6b4366c93d895a6039b",
+              "builtinIdentity": {
+                "abi": "opendesk-builtins.v10",
+                "catalogSha256": "ffd8485114e96c08fcd1d3e3d3b72e6bd89afa9b7f64568f5719cf393e283c09",
+                "bundleSha256": "5e596287111b34cd3b720e5d25bbf69a15a0b555dccc6c028512035c7d4b1cb1"
+              }
+            },
+            "createdAt": 1791919812624,
+            "retirementId": "e6f569ec-66cc-4189-a711-8d8f74feef8a",
+            "terminalReason": null
+          }
+        }
+      },
+      "repeat": {
+        "runId": "0f3b1ec7-f4d5-4ca3-9317-32b7ac7aa0ae",
+        "resultId": "b564bd71-17b6-4953-bb15-e23b4264c455",
+        "sourceHash": "a6c35513d9a276ad6b88fdc498009497945e9ba296ebf6b4366c93d895a6039b",
+        "resultText": "{\n  \"success\": true,\n  \"title\": \"OpenDesk Browser · Browser Test Lab\",\n  \"value\": 5,\n  \"world\": \"CONTROLLER\"\n}",
+        "persisted": {
+          "records": [
+            {
+              "database": "opendesk-browser",
+              "store": "frameworkKV",
+              "value": {
+                "tag": "component-esm-lock-v1",
+                "namespace": "tool:aniblblbecjmojblboienpehdnadghel",
+                "manifest": {
+                  "format": "opendesk.component-esm.v1",
+                  "world": "CONTROLLER",
+                  "framework": "controller",
+                  "roots": [
+                    "https://raw.githubusercontent.com/d3/d3-array/v3.2.4/src/max.js"
+                  ],
+                  "programId": "r77-controller-d3",
+                  "sourceHash": "bdd058752194cc828ca4c7e2d9e4b4478f0582a3ce35d8ee32438ce83bc1d9e8"
+                },
+                "manifestDigest": "4d725d7d343781101e85812b2bd59e6507fbe1f362ef4bfb13a8767c2998d229",
+                "reviewId": "component-review-077c190c-2acf-48cd-a370-7e903607c5f0",
+                "approvedAt": 1791919812379,
+                "remoteLock": {
+                  "format": "opendesk.remote-lock.v1",
+                  "modules": {
+                    "https://raw.githubusercontent.com/d3/d3-array/v3.2.4/src/max.js": {
+                      "sha256": "691945a453633d9e204846af8ea4e299821b924f82b15eaf7906aba642979b1d",
+                      "bytes": 502
+                    }
+                  }
+                },
+                "entries": [
+                  {
+                    "url": "https://raw.githubusercontent.com/d3/d3-array/v3.2.4/src/max.js",
+                    "sha256": "691945a453633d9e204846af8ea4e299821b924f82b15eaf7906aba642979b1d",
+                    "bytes": 502,
+                    "license": {
+                      "status": "unknown",
+                      "name": null,
+                      "source": null
+                    },
+                    "mime": "text/plain",
+                    "risk": "第三方 JavaScript 可以读取或修改已授权网页的 DOM，也可能通过网页允许的网络渠道对外发送网页数据。USER_SCRIPT 隔离不是网络沙箱，也不提供 GM 或扩展宿主权限。"
+                  }
+                ],
+                "graph": [
+                  {
+                    "url": "https://raw.githubusercontent.com/d3/d3-array/v3.2.4/src/max.js",
+                    "children": []
+                  }
+                ],
+                "lockId": "component-lock-5d884ac16646f73593ca1d7ffc73f85832ac5665ec73aa8fa5d2e470896151a4",
+                "status": "approved"
+              }
+            },
+            {
+              "database": "opendesk-browser",
+              "store": "frameworkKV",
+              "value": {
+                "tag": "component-esm-review-v1",
+                "reviewId": "component-review-077c190c-2acf-48cd-a370-7e903607c5f0",
+                "namespace": "tool:aniblblbecjmojblboienpehdnadghel",
+                "manifest": {
+                  "format": "opendesk.component-esm.v1",
+                  "world": "CONTROLLER",
+                  "framework": "controller",
+                  "roots": [
+                    "https://raw.githubusercontent.com/d3/d3-array/v3.2.4/src/max.js"
+                  ],
+                  "programId": "r77-controller-d3",
+                  "sourceHash": "bdd058752194cc828ca4c7e2d9e4b4478f0582a3ce35d8ee32438ce83bc1d9e8"
+                },
+                "manifestDigest": "4d725d7d343781101e85812b2bd59e6507fbe1f362ef4bfb13a8767c2998d229",
+                "sourceHash": "bdd058752194cc828ca4c7e2d9e4b4478f0582a3ce35d8ee32438ce83bc1d9e8",
+                "entries": [
+                  {
+                    "url": "https://raw.githubusercontent.com/d3/d3-array/v3.2.4/src/max.js",
+                    "sha256": "691945a453633d9e204846af8ea4e299821b924f82b15eaf7906aba642979b1d",
+                    "bytes": 502,
+                    "license": {
+                      "status": "unknown",
+                      "name": null,
+                      "source": null
+                    },
+                    "mime": "text/plain",
+                    "risk": "第三方 JavaScript 可以读取或修改已授权网页的 DOM，也可能通过网页允许的网络渠道对外发送网页数据。USER_SCRIPT 隔离不是网络沙箱，也不提供 GM 或扩展宿主权限。"
+                  }
+                ],
+                "status": "approved",
+                "createdAt": 1791919812250,
+                "reviewDigest": "8c8db026389811a44596885c8c336ada0a48b9e6c47f24d859b893d306c0f7c0",
+                "lockId": "component-lock-5d884ac16646f73593ca1d7ffc73f85832ac5665ec73aa8fa5d2e470896151a4"
+              }
+            },
+            {
+              "database": "opendesk-browser",
+              "store": "runs",
+              "value": {
+                "tag": "controller-run",
+                "runId": "0f3b1ec7-f4d5-4ca3-9317-32b7ac7aa0ae",
+                "namespace": "tool:aniblblbecjmojblboienpehdnadghel",
+                "principal": "extension-tool:aniblblbecjmojblboienpehdnadghel",
+                "registrationId": "fa25f404-dda4-49e2-a8db-d9a01a518d44",
+                "hostDocumentId": "418528C8488A924B263C55D15A9756AA",
+                "hostInstanceId": "bd7b4955-a6a3-4d93-bc85-ee678df5fbb4",
+                "browserSessionIncarnation": "ff5cc12d-203f-4ada-bf51-730ddaae5a7d",
+                "scriptId": "draft:0f3b1ec7-f4d5-4ca3-9317-32b7ac7aa0ae",
+                "contentHash": "a6c35513d9a276ad6b88fdc498009497945e9ba296ebf6b4366c93d895a6039b",
+                "builtinAbi": "opendesk-builtins.v10",
+                "sourceKind": "draft",
+                "builtinIdentity": {
+                  "abi": "opendesk-builtins.v10",
+                  "catalogSha256": "ffd8485114e96c08fcd1d3e3d3b72e6bd89afa9b7f64568f5719cf393e283c09",
+                  "bundleSha256": "5e596287111b34cd3b720e5d25bbf69a15a0b555dccc6c028512035c7d4b1cb1"
+                },
+                "opId": "26b59fee-4b9a-4c2a-ada7-105037fcb37d",
+                "resultId": "b564bd71-17b6-4953-bb15-e23b4264c455",
+                "requestId": "28e2da6b-5867-4047-adce-e7f3648cc6bb",
+                "requestDigest": "e3af8f74a2ff84c1465422927c9475cf78b0f0ee528937d8b334c71a9dcc2491",
+                "deadlineAt": 1791919843145,
+                "paramsWire": {
+                  "type": "object",
+                  "value": [
+                    [
+                      "value",
+                      {
+                        "type": "number",
+                        "value": 0
+                      }
+                    ]
+                  ]
+                },
+                "selection": {
+                  "mode": "borrowed",
+                  "tabId": 341638181,
+                  "frameId": 0,
+                  "documentId": "EA9549F056845B4EC0D6C731F7DBDCB0",
+                  "expectedUrl": "http://127.0.0.1:43111/demo-form.html",
+                  "expectedWindowId": 341638177
+                },
+                "startUrl": null,
+                "nativeFence": {
+                  "tabEpoch": 0,
+                  "frameEpoch": 4,
+                  "rootFrameEpoch": 0,
+                  "permissionEpoch": 0
+                },
+                "nativeNetworkFences": [],
+                "networkOrigins": [],
+                "nativeTabId": 341638181,
+                "state": "completed",
+                "ownerEpoch": 2,
+                "runRevision": 4,
+                "eventSeq": 2,
+                "cancelSeq": 1,
+                "workerRetired": true,
+                "retirementState": "released",
+                "target": {
+                  "tabId": 341638181,
+                  "frameId": 0,
+                  "documentId": "EA9549F056845B4EC0D6C731F7DBDCB0",
+                  "url": "http://127.0.0.1:43111/demo-form.html",
+                  "allowedOrigin": "http://127.0.0.1:43111",
+                  "windowId": 341638177,
+                  "targetSessionId": "231bd28b-5705-4991-afdb-8c72dc93f310",
+                  "targetVersion": 1,
+                  "mode": "borrowed",
+                  "browserSessionIncarnation": "ff5cc12d-203f-4ada-bf51-730ddaae5a7d"
+                },
+                "identity": {
+                  "tag": "controller-run",
+                  "runId": "0f3b1ec7-f4d5-4ca3-9317-32b7ac7aa0ae",
+                  "hostInstanceId": "bd7b4955-a6a3-4d93-bc85-ee678df5fbb4",
+                  "hostDocumentId": "418528C8488A924B263C55D15A9756AA",
+                  "ownerEpoch": 1,
+                  "scriptId": "draft:0f3b1ec7-f4d5-4ca3-9317-32b7ac7aa0ae",
+                  "revision": 1,
+                  "contentHash": "a6c35513d9a276ad6b88fdc498009497945e9ba296ebf6b4366c93d895a6039b",
+                  "target": {
+                    "tabId": 341638181,
+                    "frameId": 0,
+                    "documentId": "EA9549F056845B4EC0D6C731F7DBDCB0",
+                    "url": "http://127.0.0.1:43111/demo-form.html",
+                    "allowedOrigin": "http://127.0.0.1:43111",
+                    "windowId": 341638177,
+                    "targetSessionId": "231bd28b-5705-4991-afdb-8c72dc93f310",
+                    "targetVersion": 1,
+                    "mode": "borrowed",
+                    "browserSessionIncarnation": "ff5cc12d-203f-4ada-bf51-730ddaae5a7d"
+                  }
+                },
+                "revision": {
+                  "kind": "draft",
+                  "scriptId": "draft:0f3b1ec7-f4d5-4ca3-9317-32b7ac7aa0ae",
+                  "revision": 1,
+                  "sourceHash": "a6c35513d9a276ad6b88fdc498009497945e9ba296ebf6b4366c93d895a6039b",
+                  "builtinIdentity": {
+                    "abi": "opendesk-builtins.v10",
+                    "catalogSha256": "ffd8485114e96c08fcd1d3e3d3b72e6bd89afa9b7f64568f5719cf393e283c09",
+                    "bundleSha256": "5e596287111b34cd3b720e5d25bbf69a15a0b555dccc6c028512035c7d4b1cb1"
+                  }
+                },
+                "createdAt": 1791919813167,
+                "retirementId": "ee9220a0-e012-44c4-9b03-1ebc213adcc5",
+                "terminalReason": null
+              }
+            },
+            {
+              "database": "opendesk-browser",
+              "store": "results",
+              "value": {
+                "tag": "controller-result",
+                "resultId": "b564bd71-17b6-4953-bb15-e23b4264c455",
+                "runId": "0f3b1ec7-f4d5-4ca3-9317-32b7ac7aa0ae",
+                "namespace": "tool:aniblblbecjmojblboienpehdnadghel",
+                "principal": "extension-tool:aniblblbecjmojblboienpehdnadghel",
+                "revision": {
+                  "kind": "draft",
+                  "scriptId": "draft:0f3b1ec7-f4d5-4ca3-9317-32b7ac7aa0ae",
+                  "revision": 1,
+                  "sourceHash": "a6c35513d9a276ad6b88fdc498009497945e9ba296ebf6b4366c93d895a6039b",
+                  "builtinIdentity": {
+                    "abi": "opendesk-builtins.v10",
+                    "catalogSha256": "ffd8485114e96c08fcd1d3e3d3b72e6bd89afa9b7f64568f5719cf393e283c09",
+                    "bundleSha256": "5e596287111b34cd3b720e5d25bbf69a15a0b555dccc6c028512035c7d4b1cb1"
+                  }
+                },
+                "builtinIdentity": {
+                  "abi": "opendesk-builtins.v10",
+                  "catalogSha256": "ffd8485114e96c08fcd1d3e3d3b72e6bd89afa9b7f64568f5719cf393e283c09",
+                  "bundleSha256": "5e596287111b34cd3b720e5d25bbf69a15a0b555dccc6c028512035c7d4b1cb1"
+                },
+                "sourceKind": "draft",
+                "state": "completed",
+                "outcome": {
+                  "ok": true,
+                  "valueWire": {
+                    "type": "object",
+                    "value": [
+                      [
+                        "success",
+                        {
+                          "type": "boolean",
+                          "value": true
+                        }
+                      ],
+                      [
+                        "title",
+                        {
+                          "type": "string",
+                          "value": "OpenDesk Browser · Browser Test Lab"
+                        }
+                      ],
+                      [
+                        "value",
+                        {
+                          "type": "number",
+                          "value": 5
+                        }
+                      ],
+                      [
+                        "world",
+                        {
+                          "type": "string",
+                          "value": "CONTROLLER"
+                        }
+                      ]
+                    ]
+                  }
+                },
+                "committedAt": 1791919813250
+              }
+            }
+          ],
+          "result": {
+            "tag": "controller-result",
+            "resultId": "b564bd71-17b6-4953-bb15-e23b4264c455",
+            "runId": "0f3b1ec7-f4d5-4ca3-9317-32b7ac7aa0ae",
+            "namespace": "tool:aniblblbecjmojblboienpehdnadghel",
+            "principal": "extension-tool:aniblblbecjmojblboienpehdnadghel",
+            "revision": {
+              "kind": "draft",
+              "scriptId": "draft:0f3b1ec7-f4d5-4ca3-9317-32b7ac7aa0ae",
+              "revision": 1,
+              "sourceHash": "a6c35513d9a276ad6b88fdc498009497945e9ba296ebf6b4366c93d895a6039b",
+              "builtinIdentity": {
+                "abi": "opendesk-builtins.v10",
+                "catalogSha256": "ffd8485114e96c08fcd1d3e3d3b72e6bd89afa9b7f64568f5719cf393e283c09",
+                "bundleSha256": "5e596287111b34cd3b720e5d25bbf69a15a0b555dccc6c028512035c7d4b1cb1"
+              }
+            },
+            "builtinIdentity": {
+              "abi": "opendesk-builtins.v10",
+              "catalogSha256": "ffd8485114e96c08fcd1d3e3d3b72e6bd89afa9b7f64568f5719cf393e283c09",
+              "bundleSha256": "5e596287111b34cd3b720e5d25bbf69a15a0b555dccc6c028512035c7d4b1cb1"
+            },
+            "sourceKind": "draft",
+            "state": "completed",
+            "outcome": {
+              "ok": true,
+              "valueWire": {
+                "type": "object",
+                "value": [
+                  [
+                    "success",
+                    {
+                      "type": "boolean",
+                      "value": true
+                    }
+                  ],
+                  [
+                    "title",
+                    {
+                      "type": "string",
+                      "value": "OpenDesk Browser · Browser Test Lab"
+                    }
+                  ],
+                  [
+                    "value",
+                    {
+                      "type": "number",
+                      "value": 5
+                    }
+                  ],
+                  [
+                    "world",
+                    {
+                      "type": "string",
+                      "value": "CONTROLLER"
+                    }
+                  ]
+                ]
+              }
+            },
+            "committedAt": 1791919813250
+          },
+          "run": {
+            "tag": "controller-run",
+            "runId": "0f3b1ec7-f4d5-4ca3-9317-32b7ac7aa0ae",
+            "namespace": "tool:aniblblbecjmojblboienpehdnadghel",
+            "principal": "extension-tool:aniblblbecjmojblboienpehdnadghel",
+            "registrationId": "fa25f404-dda4-49e2-a8db-d9a01a518d44",
+            "hostDocumentId": "418528C8488A924B263C55D15A9756AA",
+            "hostInstanceId": "bd7b4955-a6a3-4d93-bc85-ee678df5fbb4",
+            "browserSessionIncarnation": "ff5cc12d-203f-4ada-bf51-730ddaae5a7d",
+            "scriptId": "draft:0f3b1ec7-f4d5-4ca3-9317-32b7ac7aa0ae",
+            "contentHash": "a6c35513d9a276ad6b88fdc498009497945e9ba296ebf6b4366c93d895a6039b",
+            "builtinAbi": "opendesk-builtins.v10",
+            "sourceKind": "draft",
+            "builtinIdentity": {
+              "abi": "opendesk-builtins.v10",
+              "catalogSha256": "ffd8485114e96c08fcd1d3e3d3b72e6bd89afa9b7f64568f5719cf393e283c09",
+              "bundleSha256": "5e596287111b34cd3b720e5d25bbf69a15a0b555dccc6c028512035c7d4b1cb1"
+            },
+            "opId": "26b59fee-4b9a-4c2a-ada7-105037fcb37d",
+            "resultId": "b564bd71-17b6-4953-bb15-e23b4264c455",
+            "requestId": "28e2da6b-5867-4047-adce-e7f3648cc6bb",
+            "requestDigest": "e3af8f74a2ff84c1465422927c9475cf78b0f0ee528937d8b334c71a9dcc2491",
+            "deadlineAt": 1791919843145,
+            "paramsWire": {
+              "type": "object",
+              "value": [
+                [
+                  "value",
+                  {
+                    "type": "number",
+                    "value": 0
+                  }
+                ]
+              ]
+            },
+            "selection": {
+              "mode": "borrowed",
+              "tabId": 341638181,
+              "frameId": 0,
+              "documentId": "EA9549F056845B4EC0D6C731F7DBDCB0",
+              "expectedUrl": "http://127.0.0.1:43111/demo-form.html",
+              "expectedWindowId": 341638177
+            },
+            "startUrl": null,
+            "nativeFence": {
+              "tabEpoch": 0,
+              "frameEpoch": 4,
+              "rootFrameEpoch": 0,
+              "permissionEpoch": 0
+            },
+            "nativeNetworkFences": [],
+            "networkOrigins": [],
+            "nativeTabId": 341638181,
+            "state": "completed",
+            "ownerEpoch": 2,
+            "runRevision": 4,
+            "eventSeq": 2,
+            "cancelSeq": 1,
+            "workerRetired": true,
+            "retirementState": "released",
+            "target": {
+              "tabId": 341638181,
+              "frameId": 0,
+              "documentId": "EA9549F056845B4EC0D6C731F7DBDCB0",
+              "url": "http://127.0.0.1:43111/demo-form.html",
+              "allowedOrigin": "http://127.0.0.1:43111",
+              "windowId": 341638177,
+              "targetSessionId": "231bd28b-5705-4991-afdb-8c72dc93f310",
+              "targetVersion": 1,
+              "mode": "borrowed",
+              "browserSessionIncarnation": "ff5cc12d-203f-4ada-bf51-730ddaae5a7d"
+            },
+            "identity": {
+              "tag": "controller-run",
+              "runId": "0f3b1ec7-f4d5-4ca3-9317-32b7ac7aa0ae",
+              "hostInstanceId": "bd7b4955-a6a3-4d93-bc85-ee678df5fbb4",
+              "hostDocumentId": "418528C8488A924B263C55D15A9756AA",
+              "ownerEpoch": 1,
+              "scriptId": "draft:0f3b1ec7-f4d5-4ca3-9317-32b7ac7aa0ae",
+              "revision": 1,
+              "contentHash": "a6c35513d9a276ad6b88fdc498009497945e9ba296ebf6b4366c93d895a6039b",
+              "target": {
+                "tabId": 341638181,
+                "frameId": 0,
+                "documentId": "EA9549F056845B4EC0D6C731F7DBDCB0",
+                "url": "http://127.0.0.1:43111/demo-form.html",
+                "allowedOrigin": "http://127.0.0.1:43111",
+                "windowId": 341638177,
+                "targetSessionId": "231bd28b-5705-4991-afdb-8c72dc93f310",
+                "targetVersion": 1,
+                "mode": "borrowed",
+                "browserSessionIncarnation": "ff5cc12d-203f-4ada-bf51-730ddaae5a7d"
+              }
+            },
+            "revision": {
+              "kind": "draft",
+              "scriptId": "draft:0f3b1ec7-f4d5-4ca3-9317-32b7ac7aa0ae",
+              "revision": 1,
+              "sourceHash": "a6c35513d9a276ad6b88fdc498009497945e9ba296ebf6b4366c93d895a6039b",
+              "builtinIdentity": {
+                "abi": "opendesk-builtins.v10",
+                "catalogSha256": "ffd8485114e96c08fcd1d3e3d3b72e6bd89afa9b7f64568f5719cf393e283c09",
+                "bundleSha256": "5e596287111b34cd3b720e5d25bbf69a15a0b555dccc6c028512035c7d4b1cb1"
+              }
+            },
+            "createdAt": 1791919813167,
+            "retirementId": "ee9220a0-e012-44c4-9b03-1ebc213adcc5",
+            "terminalReason": null
+          }
+        }
+      },
+      "save": {
+        "state": "saved",
+        "text": "r77-controller-d3 · r1 已持久保存固定 ESM 版本；保存不会运行脚本"
+      },
+      "savedRecords": [
+        {
+          "database": "opendesk-browser",
+          "store": "frameworkKV",
+          "value": {
+            "tag": "component-esm-lock-v1",
+            "namespace": "tool:aniblblbecjmojblboienpehdnadghel",
+            "manifest": {
+              "format": "opendesk.component-esm.v1",
+              "world": "CONTROLLER",
+              "framework": "controller",
+              "roots": [
+                "https://raw.githubusercontent.com/d3/d3-array/v3.2.4/src/max.js"
+              ],
+              "programId": "r77-controller-d3",
+              "sourceHash": "bdd058752194cc828ca4c7e2d9e4b4478f0582a3ce35d8ee32438ce83bc1d9e8"
+            },
+            "manifestDigest": "4d725d7d343781101e85812b2bd59e6507fbe1f362ef4bfb13a8767c2998d229",
+            "reviewId": "component-review-077c190c-2acf-48cd-a370-7e903607c5f0",
+            "approvedAt": 1791919812379,
+            "remoteLock": {
+              "format": "opendesk.remote-lock.v1",
+              "modules": {
+                "https://raw.githubusercontent.com/d3/d3-array/v3.2.4/src/max.js": {
+                  "sha256": "691945a453633d9e204846af8ea4e299821b924f82b15eaf7906aba642979b1d",
+                  "bytes": 502
+                }
+              }
+            },
+            "entries": [
+              {
+                "url": "https://raw.githubusercontent.com/d3/d3-array/v3.2.4/src/max.js",
+                "sha256": "691945a453633d9e204846af8ea4e299821b924f82b15eaf7906aba642979b1d",
+                "bytes": 502,
+                "license": {
+                  "status": "unknown",
+                  "name": null,
+                  "source": null
+                },
+                "mime": "text/plain",
+                "risk": "第三方 JavaScript 可以读取或修改已授权网页的 DOM，也可能通过网页允许的网络渠道对外发送网页数据。USER_SCRIPT 隔离不是网络沙箱，也不提供 GM 或扩展宿主权限。"
+              }
+            ],
+            "graph": [
+              {
+                "url": "https://raw.githubusercontent.com/d3/d3-array/v3.2.4/src/max.js",
+                "children": []
+              }
+            ],
+            "lockId": "component-lock-5d884ac16646f73593ca1d7ffc73f85832ac5665ec73aa8fa5d2e470896151a4",
+            "status": "approved"
+          }
+        },
+        {
+          "database": "opendesk-browser",
+          "store": "frameworkKV",
+          "value": {
+            "tag": "component-esm-review-v1",
+            "reviewId": "component-review-077c190c-2acf-48cd-a370-7e903607c5f0",
+            "namespace": "tool:aniblblbecjmojblboienpehdnadghel",
+            "manifest": {
+              "format": "opendesk.component-esm.v1",
+              "world": "CONTROLLER",
+              "framework": "controller",
+              "roots": [
+                "https://raw.githubusercontent.com/d3/d3-array/v3.2.4/src/max.js"
+              ],
+              "programId": "r77-controller-d3",
+              "sourceHash": "bdd058752194cc828ca4c7e2d9e4b4478f0582a3ce35d8ee32438ce83bc1d9e8"
+            },
+            "manifestDigest": "4d725d7d343781101e85812b2bd59e6507fbe1f362ef4bfb13a8767c2998d229",
+            "sourceHash": "bdd058752194cc828ca4c7e2d9e4b4478f0582a3ce35d8ee32438ce83bc1d9e8",
+            "entries": [
+              {
+                "url": "https://raw.githubusercontent.com/d3/d3-array/v3.2.4/src/max.js",
+                "sha256": "691945a453633d9e204846af8ea4e299821b924f82b15eaf7906aba642979b1d",
+                "bytes": 502,
+                "license": {
+                  "status": "unknown",
+                  "name": null,
+                  "source": null
+                },
+                "mime": "text/plain",
+                "risk": "第三方 JavaScript 可以读取或修改已授权网页的 DOM，也可能通过网页允许的网络渠道对外发送网页数据。USER_SCRIPT 隔离不是网络沙箱，也不提供 GM 或扩展宿主权限。"
+              }
+            ],
+            "status": "approved",
+            "createdAt": 1791919812250,
+            "reviewDigest": "8c8db026389811a44596885c8c336ada0a48b9e6c47f24d859b893d306c0f7c0",
+            "lockId": "component-lock-5d884ac16646f73593ca1d7ffc73f85832ac5665ec73aa8fa5d2e470896151a4"
+          }
+        },
+        {
+          "database": "opendesk-browser",
+          "store": "scriptHeads",
+          "value": {
+            "tag": "script-head",
+            "namespace": "tool:aniblblbecjmojblboienpehdnadghel",
+            "scriptId": "r77-controller-d3",
+            "revision": 1,
+            "contentHash": "364cf465fdc2b72ba4c4927ab6e979c9e6ca12510b36841e325f909a641313c5",
+            "tombstoned": false
+          }
+        },
+        {
+          "database": "opendesk-browser",
+          "store": "scriptRevisions",
+          "value": {
+            "tag": "script-revision",
+            "namespace": "tool:aniblblbecjmojblboienpehdnadghel",
+            "scriptId": "r77-controller-d3",
+            "revision": 1,
+            "parentRevision": 0,
+            "contentHash": "364cf465fdc2b72ba4c4927ab6e979c9e6ca12510b36841e325f909a641313c5",
+            "sourceUtf8": "/* opendesk.controller-esm-authoring.v1 eyJmb3JtYXQiOiJvcGVuZGVzay5jb250cm9sbGVyLWVzbS1hdXRob3JpbmcudjEiLCJwcm9ncmFtSWQiOiJyNzctY29udHJvbGxlci1kMyIsImF1dGhvclNvdXJjZVV0ZjgiOiJpbXBvcnQgbWF4IGZyb20gJ2h0dHBzOi8vcmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbS9kMy9kMy1hcnJheS92My4yLjQvc3JjL21heC5qcyc7XG5cbmV4cG9ydCBkZWZhdWx0IGFzeW5jIGZ1bmN0aW9uIG1haW4oKSB7XG4gIGNvbnN0IHZhbHVlID0gbWF4KFsyLCA1LCAzXSk7XG4gIGlmICh2YWx1ZSAhPT0gNSkgdGhyb3cgbmV3IEVycm9yKCdEM19JTVBPUlRfRkFJTEVEJyk7XG4gIGNvbnNvbGUubG9nKCdbSU1QT1JUIFRFU1RdW0NPTlRST0xMRVJdJywgdmFsdWUpO1xuICByZXR1cm4ge3dvcmxkOiAnQ09OVFJPTExFUicsIHZhbHVlLCBzdWNjZXNzOiB0cnVlLCB0aXRsZTogYXdhaXQgcGFnZS50aXRsZSgpfTtcbn1cbiIsImF1dGhvcmluZ1NvdXJjZUhhc2giOiJiZGQwNTg3NTIxOTRjYzgyOGNhNGM3ZTJkOWU0YjQ0NzhmMDU4MmEzY2UzNWQ4ZWUzMjQzOGNlODNiYzFkOWU4IiwiY29tcGlsZWRTb3VyY2VIYXNoIjoiYTZjMzU1MTNkOWEyNzZhZDZiODhmZGM0OTgwMDk0OTc5NDVlOWJhMjk2ZWJmNmI0MzY2YzkzZDg5NWE2MDM5YiIsImRlcGVuZGVuY3lMb2NrSWQiOiJjb21wb25lbnQtbG9jay01ZDg4NGFjMTY2NDZmNzM1OTNjYTFkN2ZmYzczZjg1ODMyYWM1NjY1ZWM3M2FhOGZhNWQyZTQ3MDg5NjE1MWE0IiwiY29tcGlsZXJWZXJzaW9uIjoiNy4yOS45In0= */\n/* OpenDesk Controller ESM · frozen source graph; runtime network loading disabled */\nconst __odESMFactories=Object.create(null),__odESMCache=Object.create(null);\n__odESMFactories[\"https://raw.githubusercontent.com/d3/d3-array/v3.2.4/src/max.js\"]=[function(module,exports,require){\n\"use strict\";\n\nObject.defineProperty(exports, \"__esModule\", {\n  value: true\n});\nexports.default = max;\nfunction max(values, valueof) {\n  let max;\n  if (valueof === undefined) {\n    for (const value of values) {\n      if (value != null && (max < value || max === undefined && value >= value)) {\n        max = value;\n      }\n    }\n  } else {\n    let index = -1;\n    for (let value of values) {\n      if ((value = valueof(value, ++index, values)) != null && (max < value || max === undefined && value >= value)) {\n        max = value;\n      }\n    }\n  }\n  return max;\n}\n},{}];\nfunction __odESMLoad(id){\n  if(!Object.hasOwn(__odESMFactories,id))throw Error('E_REMOTE_UNLOCKED');\n  if(Object.hasOwn(__odESMCache,id))return __odESMCache[id].exports;\n  const module={exports:{}};__odESMCache[id]=module;const row=__odESMFactories[id];\n  const require=name=>{if(!Object.hasOwn(row[1],name))throw Error('E_REMOTE_UNLOCKED');return __odESMLoad(row[1][name]);};\n  row[0](module,module.exports,require);return module.exports;\n}\nconst __odESMEntry=(function(){\n  const module={exports:{}};const refs={\"https://raw.githubusercontent.com/d3/d3-array/v3.2.4/src/max.js\":\"https://raw.githubusercontent.com/d3/d3-array/v3.2.4/src/max.js\"};\n  const require=name=>{if(!Object.hasOwn(refs,name))throw Error('E_REMOTE_UNLOCKED');return __odESMLoad(refs[name]);};\n  (function(module,exports,require){\n\"use strict\";\n\nObject.defineProperty(exports, \"__esModule\", {\n  value: true\n});\nexports.default = main;\nvar _max = _interopRequireDefault(require(\"https://raw.githubusercontent.com/d3/d3-array/v3.2.4/src/max.js\"));\nfunction _interopRequireDefault(e) { return e && e.__esModule ? e : { default: e }; }\nasync function main() {\n  const value = (0, _max.default)([2, 5, 3]);\n  if (value !== 5) throw new Error('D3_IMPORT_FAILED');\n  console.log('[IMPORT TEST][CONTROLLER]', value);\n  return {\n    world: 'CONTROLLER',\n    value,\n    success: true,\n    title: await page.title()\n  };\n}\n})(module,module.exports,require);\n  return module.exports.default;\n})();\nasync function main(){if(typeof __odESMEntry!=='function')throw Error('E_CONTROLLER_ESM_ENTRY');return await __odESMEntry();}\n",
+            "builtinIdentity": {
+              "abi": "opendesk-builtins.v10",
+              "catalogSha256": "ffd8485114e96c08fcd1d3e3d3b72e6bd89afa9b7f64568f5719cf393e283c09",
+              "bundleSha256": "5e596287111b34cd3b720e5d25bbf69a15a0b555dccc6c028512035c7d4b1cb1"
+            }
+          }
+        }
+      ],
+      "postSaveDraftRun": {
+        "runId": "8e954220-3a89-4cff-a6db-243be02f44b4",
+        "resultId": "3f37eae2-b880-4f55-9918-b25c16984a34",
+        "sourceHash": "364cf465fdc2b72ba4c4927ab6e979c9e6ca12510b36841e325f909a641313c5",
+        "resultText": "{\n  \"success\": true,\n  \"title\": \"OpenDesk Browser · Browser Test Lab\",\n  \"value\": 5,\n  \"world\": \"CONTROLLER\"\n}",
+        "persisted": {
+          "records": [
+            {
+              "database": "opendesk-browser",
+              "store": "frameworkKV",
+              "value": {
+                "tag": "component-esm-lock-v1",
+                "namespace": "tool:aniblblbecjmojblboienpehdnadghel",
+                "manifest": {
+                  "format": "opendesk.component-esm.v1",
+                  "world": "CONTROLLER",
+                  "framework": "controller",
+                  "roots": [
+                    "https://raw.githubusercontent.com/d3/d3-array/v3.2.4/src/max.js"
+                  ],
+                  "programId": "r77-controller-d3",
+                  "sourceHash": "bdd058752194cc828ca4c7e2d9e4b4478f0582a3ce35d8ee32438ce83bc1d9e8"
+                },
+                "manifestDigest": "4d725d7d343781101e85812b2bd59e6507fbe1f362ef4bfb13a8767c2998d229",
+                "reviewId": "component-review-077c190c-2acf-48cd-a370-7e903607c5f0",
+                "approvedAt": 1791919812379,
+                "remoteLock": {
+                  "format": "opendesk.remote-lock.v1",
+                  "modules": {
+                    "https://raw.githubusercontent.com/d3/d3-array/v3.2.4/src/max.js": {
+                      "sha256": "691945a453633d9e204846af8ea4e299821b924f82b15eaf7906aba642979b1d",
+                      "bytes": 502
+                    }
+                  }
+                },
+                "entries": [
+                  {
+                    "url": "https://raw.githubusercontent.com/d3/d3-array/v3.2.4/src/max.js",
+                    "sha256": "691945a453633d9e204846af8ea4e299821b924f82b15eaf7906aba642979b1d",
+                    "bytes": 502,
+                    "license": {
+                      "status": "unknown",
+                      "name": null,
+                      "source": null
+                    },
+                    "mime": "text/plain",
+                    "risk": "第三方 JavaScript 可以读取或修改已授权网页的 DOM，也可能通过网页允许的网络渠道对外发送网页数据。USER_SCRIPT 隔离不是网络沙箱，也不提供 GM 或扩展宿主权限。"
+                  }
+                ],
+                "graph": [
+                  {
+                    "url": "https://raw.githubusercontent.com/d3/d3-array/v3.2.4/src/max.js",
+                    "children": []
+                  }
+                ],
+                "lockId": "component-lock-5d884ac16646f73593ca1d7ffc73f85832ac5665ec73aa8fa5d2e470896151a4",
+                "status": "approved"
+              }
+            },
+            {
+              "database": "opendesk-browser",
+              "store": "frameworkKV",
+              "value": {
+                "tag": "component-esm-review-v1",
+                "reviewId": "component-review-077c190c-2acf-48cd-a370-7e903607c5f0",
+                "namespace": "tool:aniblblbecjmojblboienpehdnadghel",
+                "manifest": {
+                  "format": "opendesk.component-esm.v1",
+                  "world": "CONTROLLER",
+                  "framework": "controller",
+                  "roots": [
+                    "https://raw.githubusercontent.com/d3/d3-array/v3.2.4/src/max.js"
+                  ],
+                  "programId": "r77-controller-d3",
+                  "sourceHash": "bdd058752194cc828ca4c7e2d9e4b4478f0582a3ce35d8ee32438ce83bc1d9e8"
+                },
+                "manifestDigest": "4d725d7d343781101e85812b2bd59e6507fbe1f362ef4bfb13a8767c2998d229",
+                "sourceHash": "bdd058752194cc828ca4c7e2d9e4b4478f0582a3ce35d8ee32438ce83bc1d9e8",
+                "entries": [
+                  {
+                    "url": "https://raw.githubusercontent.com/d3/d3-array/v3.2.4/src/max.js",
+                    "sha256": "691945a453633d9e204846af8ea4e299821b924f82b15eaf7906aba642979b1d",
+                    "bytes": 502,
+                    "license": {
+                      "status": "unknown",
+                      "name": null,
+                      "source": null
+                    },
+                    "mime": "text/plain",
+                    "risk": "第三方 JavaScript 可以读取或修改已授权网页的 DOM，也可能通过网页允许的网络渠道对外发送网页数据。USER_SCRIPT 隔离不是网络沙箱，也不提供 GM 或扩展宿主权限。"
+                  }
+                ],
+                "status": "approved",
+                "createdAt": 1791919812250,
+                "reviewDigest": "8c8db026389811a44596885c8c336ada0a48b9e6c47f24d859b893d306c0f7c0",
+                "lockId": "component-lock-5d884ac16646f73593ca1d7ffc73f85832ac5665ec73aa8fa5d2e470896151a4"
+              }
+            },
+            {
+              "database": "opendesk-browser",
+              "store": "scriptHeads",
+              "value": {
+                "tag": "script-head",
+                "namespace": "tool:aniblblbecjmojblboienpehdnadghel",
+                "scriptId": "r77-controller-d3",
+                "revision": 1,
+                "contentHash": "364cf465fdc2b72ba4c4927ab6e979c9e6ca12510b36841e325f909a641313c5",
+                "tombstoned": false
+              }
+            },
+            {
+              "database": "opendesk-browser",
+              "store": "scriptRevisions",
+              "value": {
+                "tag": "script-revision",
+                "namespace": "tool:aniblblbecjmojblboienpehdnadghel",
+                "scriptId": "r77-controller-d3",
+                "revision": 1,
+                "parentRevision": 0,
+                "contentHash": "364cf465fdc2b72ba4c4927ab6e979c9e6ca12510b36841e325f909a641313c5",
+                "sourceUtf8": "/* opendesk.controller-esm-authoring.v1 eyJmb3JtYXQiOiJvcGVuZGVzay5jb250cm9sbGVyLWVzbS1hdXRob3JpbmcudjEiLCJwcm9ncmFtSWQiOiJyNzctY29udHJvbGxlci1kMyIsImF1dGhvclNvdXJjZVV0ZjgiOiJpbXBvcnQgbWF4IGZyb20gJ2h0dHBzOi8vcmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbS9kMy9kMy1hcnJheS92My4yLjQvc3JjL21heC5qcyc7XG5cbmV4cG9ydCBkZWZhdWx0IGFzeW5jIGZ1bmN0aW9uIG1haW4oKSB7XG4gIGNvbnN0IHZhbHVlID0gbWF4KFsyLCA1LCAzXSk7XG4gIGlmICh2YWx1ZSAhPT0gNSkgdGhyb3cgbmV3IEVycm9yKCdEM19JTVBPUlRfRkFJTEVEJyk7XG4gIGNvbnNvbGUubG9nKCdbSU1QT1JUIFRFU1RdW0NPTlRST0xMRVJdJywgdmFsdWUpO1xuICByZXR1cm4ge3dvcmxkOiAnQ09OVFJPTExFUicsIHZhbHVlLCBzdWNjZXNzOiB0cnVlLCB0aXRsZTogYXdhaXQgcGFnZS50aXRsZSgpfTtcbn1cbiIsImF1dGhvcmluZ1NvdXJjZUhhc2giOiJiZGQwNTg3NTIxOTRjYzgyOGNhNGM3ZTJkOWU0YjQ0NzhmMDU4MmEzY2UzNWQ4ZWUzMjQzOGNlODNiYzFkOWU4IiwiY29tcGlsZWRTb3VyY2VIYXNoIjoiYTZjMzU1MTNkOWEyNzZhZDZiODhmZGM0OTgwMDk0OTc5NDVlOWJhMjk2ZWJmNmI0MzY2YzkzZDg5NWE2MDM5YiIsImRlcGVuZGVuY3lMb2NrSWQiOiJjb21wb25lbnQtbG9jay01ZDg4NGFjMTY2NDZmNzM1OTNjYTFkN2ZmYzczZjg1ODMyYWM1NjY1ZWM3M2FhOGZhNWQyZTQ3MDg5NjE1MWE0IiwiY29tcGlsZXJWZXJzaW9uIjoiNy4yOS45In0= */\n/* OpenDesk Controller ESM · frozen source graph; runtime network loading disabled */\nconst __odESMFactories=Object.create(null),__odESMCache=Object.create(null);\n__odESMFactories[\"https://raw.githubusercontent.com/d3/d3-array/v3.2.4/src/max.js\"]=[function(module,exports,require){\n\"use strict\";\n\nObject.defineProperty(exports, \"__esModule\", {\n  value: true\n});\nexports.default = max;\nfunction max(values, valueof) {\n  let max;\n  if (valueof === undefined) {\n    for (const value of values) {\n      if (value != null && (max < value || max === undefined && value >= value)) {\n        max = value;\n      }\n    }\n  } else {\n    let index = -1;\n    for (let value of values) {\n      if ((value = valueof(value, ++index, values)) != null && (max < value || max === undefined && value >= value)) {\n        max = value;\n      }\n    }\n  }\n  return max;\n}\n},{}];\nfunction __odESMLoad(id){\n  if(!Object.hasOwn(__odESMFactories,id))throw Error('E_REMOTE_UNLOCKED');\n  if(Object.hasOwn(__odESMCache,id))return __odESMCache[id].exports;\n  const module={exports:{}};__odESMCache[id]=module;const row=__odESMFactories[id];\n  const require=name=>{if(!Object.hasOwn(row[1],name))throw Error('E_REMOTE_UNLOCKED');return __odESMLoad(row[1][name]);};\n  row[0](module,module.exports,require);return module.exports;\n}\nconst __odESMEntry=(function(){\n  const module={exports:{}};const refs={\"https://raw.githubusercontent.com/d3/d3-array/v3.2.4/src/max.js\":\"https://raw.githubusercontent.com/d3/d3-array/v3.2.4/src/max.js\"};\n  const require=name=>{if(!Object.hasOwn(refs,name))throw Error('E_REMOTE_UNLOCKED');return __odESMLoad(refs[name]);};\n  (function(module,exports,require){\n\"use strict\";\n\nObject.defineProperty(exports, \"__esModule\", {\n  value: true\n});\nexports.default = main;\nvar _max = _interopRequireDefault(require(\"https://raw.githubusercontent.com/d3/d3-array/v3.2.4/src/max.js\"));\nfunction _interopRequireDefault(e) { return e && e.__esModule ? e : { default: e }; }\nasync function main() {\n  const value = (0, _max.default)([2, 5, 3]);\n  if (value !== 5) throw new Error('D3_IMPORT_FAILED');\n  console.log('[IMPORT TEST][CONTROLLER]', value);\n  return {\n    world: 'CONTROLLER',\n    value,\n    success: true,\n    title: await page.title()\n  };\n}\n})(module,module.exports,require);\n  return module.exports.default;\n})();\nasync function main(){if(typeof __odESMEntry!=='function')throw Error('E_CONTROLLER_ESM_ENTRY');return await __odESMEntry();}\n",
+                "builtinIdentity": {
+                  "abi": "opendesk-builtins.v10",
+                  "catalogSha256": "ffd8485114e96c08fcd1d3e3d3b72e6bd89afa9b7f64568f5719cf393e283c09",
+                  "bundleSha256": "5e596287111b34cd3b720e5d25bbf69a15a0b555dccc6c028512035c7d4b1cb1"
+                }
+              }
+            },
+            {
+              "database": "opendesk-browser",
+              "store": "runs",
+              "value": {
+                "tag": "controller-run",
+                "runId": "8e954220-3a89-4cff-a6db-243be02f44b4",
+                "namespace": "tool:aniblblbecjmojblboienpehdnadghel",
+                "principal": "extension-tool:aniblblbecjmojblboienpehdnadghel",
+                "registrationId": "fa25f404-dda4-49e2-a8db-d9a01a518d44",
+                "hostDocumentId": "418528C8488A924B263C55D15A9756AA",
+                "hostInstanceId": "bd7b4955-a6a3-4d93-bc85-ee678df5fbb4",
+                "browserSessionIncarnation": "ff5cc12d-203f-4ada-bf51-730ddaae5a7d",
+                "scriptId": "draft:8e954220-3a89-4cff-a6db-243be02f44b4",
+                "contentHash": "364cf465fdc2b72ba4c4927ab6e979c9e6ca12510b36841e325f909a641313c5",
+                "builtinAbi": "opendesk-builtins.v10",
+                "sourceKind": "draft",
+                "builtinIdentity": {
+                  "abi": "opendesk-builtins.v10",
+                  "catalogSha256": "ffd8485114e96c08fcd1d3e3d3b72e6bd89afa9b7f64568f5719cf393e283c09",
+                  "bundleSha256": "5e596287111b34cd3b720e5d25bbf69a15a0b555dccc6c028512035c7d4b1cb1"
+                },
+                "opId": "18e766ba-4b77-4159-a207-32e0f8c64d1b",
+                "resultId": "3f37eae2-b880-4f55-9918-b25c16984a34",
+                "requestId": "32b4baba-ac86-401f-a673-a844be633697",
+                "requestDigest": "9ce220747470635cf9773dff4b26c28d2a5ee148eca93df70893eb94117278d7",
+                "deadlineAt": 1791919844033,
+                "paramsWire": {
+                  "type": "object",
+                  "value": [
+                    [
+                      "value",
+                      {
+                        "type": "number",
+                        "value": 0
+                      }
+                    ]
+                  ]
+                },
+                "selection": {
+                  "mode": "borrowed",
+                  "tabId": 341638181,
+                  "frameId": 0,
+                  "documentId": "EA9549F056845B4EC0D6C731F7DBDCB0",
+                  "expectedUrl": "http://127.0.0.1:43111/demo-form.html",
+                  "expectedWindowId": 341638177
+                },
+                "startUrl": null,
+                "nativeFence": {
+                  "tabEpoch": 0,
+                  "frameEpoch": 4,
+                  "rootFrameEpoch": 0,
+                  "permissionEpoch": 0
+                },
+                "nativeNetworkFences": [],
+                "networkOrigins": [],
+                "nativeTabId": 341638181,
+                "state": "completed",
+                "ownerEpoch": 2,
+                "runRevision": 4,
+                "eventSeq": 2,
+                "cancelSeq": 1,
+                "workerRetired": true,
+                "retirementState": "released",
+                "target": {
+                  "tabId": 341638181,
+                  "frameId": 0,
+                  "documentId": "EA9549F056845B4EC0D6C731F7DBDCB0",
+                  "url": "http://127.0.0.1:43111/demo-form.html",
+                  "allowedOrigin": "http://127.0.0.1:43111",
+                  "windowId": 341638177,
+                  "targetSessionId": "65195ccc-9037-40a7-b5ff-d72bea8139d6",
+                  "targetVersion": 1,
+                  "mode": "borrowed",
+                  "browserSessionIncarnation": "ff5cc12d-203f-4ada-bf51-730ddaae5a7d"
+                },
+                "identity": {
+                  "tag": "controller-run",
+                  "runId": "8e954220-3a89-4cff-a6db-243be02f44b4",
+                  "hostInstanceId": "bd7b4955-a6a3-4d93-bc85-ee678df5fbb4",
+                  "hostDocumentId": "418528C8488A924B263C55D15A9756AA",
+                  "ownerEpoch": 1,
+                  "scriptId": "draft:8e954220-3a89-4cff-a6db-243be02f44b4",
+                  "revision": 1,
+                  "contentHash": "364cf465fdc2b72ba4c4927ab6e979c9e6ca12510b36841e325f909a641313c5",
+                  "target": {
+                    "tabId": 341638181,
+                    "frameId": 0,
+                    "documentId": "EA9549F056845B4EC0D6C731F7DBDCB0",
+                    "url": "http://127.0.0.1:43111/demo-form.html",
+                    "allowedOrigin": "http://127.0.0.1:43111",
+                    "windowId": 341638177,
+                    "targetSessionId": "65195ccc-9037-40a7-b5ff-d72bea8139d6",
+                    "targetVersion": 1,
+                    "mode": "borrowed",
+                    "browserSessionIncarnation": "ff5cc12d-203f-4ada-bf51-730ddaae5a7d"
+                  }
+                },
+                "revision": {
+                  "kind": "draft",
+                  "scriptId": "draft:8e954220-3a89-4cff-a6db-243be02f44b4",
+                  "revision": 1,
+                  "sourceHash": "364cf465fdc2b72ba4c4927ab6e979c9e6ca12510b36841e325f909a641313c5",
+                  "builtinIdentity": {
+                    "abi": "opendesk-builtins.v10",
+                    "catalogSha256": "ffd8485114e96c08fcd1d3e3d3b72e6bd89afa9b7f64568f5719cf393e283c09",
+                    "bundleSha256": "5e596287111b34cd3b720e5d25bbf69a15a0b555dccc6c028512035c7d4b1cb1"
+                  }
+                },
+                "createdAt": 1791919814043,
+                "retirementId": "56681648-ca62-4518-9038-1d4cbdb93e5e",
+                "terminalReason": null
+              }
+            },
+            {
+              "database": "opendesk-browser",
+              "store": "results",
+              "value": {
+                "tag": "controller-result",
+                "resultId": "3f37eae2-b880-4f55-9918-b25c16984a34",
+                "runId": "8e954220-3a89-4cff-a6db-243be02f44b4",
+                "namespace": "tool:aniblblbecjmojblboienpehdnadghel",
+                "principal": "extension-tool:aniblblbecjmojblboienpehdnadghel",
+                "revision": {
+                  "kind": "draft",
+                  "scriptId": "draft:8e954220-3a89-4cff-a6db-243be02f44b4",
+                  "revision": 1,
+                  "sourceHash": "364cf465fdc2b72ba4c4927ab6e979c9e6ca12510b36841e325f909a641313c5",
+                  "builtinIdentity": {
+                    "abi": "opendesk-builtins.v10",
+                    "catalogSha256": "ffd8485114e96c08fcd1d3e3d3b72e6bd89afa9b7f64568f5719cf393e283c09",
+                    "bundleSha256": "5e596287111b34cd3b720e5d25bbf69a15a0b555dccc6c028512035c7d4b1cb1"
+                  }
+                },
+                "builtinIdentity": {
+                  "abi": "opendesk-builtins.v10",
+                  "catalogSha256": "ffd8485114e96c08fcd1d3e3d3b72e6bd89afa9b7f64568f5719cf393e283c09",
+                  "bundleSha256": "5e596287111b34cd3b720e5d25bbf69a15a0b555dccc6c028512035c7d4b1cb1"
+                },
+                "sourceKind": "draft",
+                "state": "completed",
+                "outcome": {
+                  "ok": true,
+                  "valueWire": {
+                    "type": "object",
+                    "value": [
+                      [
+                        "success",
+                        {
+                          "type": "boolean",
+                          "value": true
+                        }
+                      ],
+                      [
+                        "title",
+                        {
+                          "type": "string",
+                          "value": "OpenDesk Browser · Browser Test Lab"
+                        }
+                      ],
+                      [
+                        "value",
+                        {
+                          "type": "number",
+                          "value": 5
+                        }
+                      ],
+                      [
+                        "world",
+                        {
+                          "type": "string",
+                          "value": "CONTROLLER"
+                        }
+                      ]
+                    ]
+                  }
+                },
+                "committedAt": 1791919814134
+              }
+            }
+          ],
+          "result": {
+            "tag": "controller-result",
+            "resultId": "3f37eae2-b880-4f55-9918-b25c16984a34",
+            "runId": "8e954220-3a89-4cff-a6db-243be02f44b4",
+            "namespace": "tool:aniblblbecjmojblboienpehdnadghel",
+            "principal": "extension-tool:aniblblbecjmojblboienpehdnadghel",
+            "revision": {
+              "kind": "draft",
+              "scriptId": "draft:8e954220-3a89-4cff-a6db-243be02f44b4",
+              "revision": 1,
+              "sourceHash": "364cf465fdc2b72ba4c4927ab6e979c9e6ca12510b36841e325f909a641313c5",
+              "builtinIdentity": {
+                "abi": "opendesk-builtins.v10",
+                "catalogSha256": "ffd8485114e96c08fcd1d3e3d3b72e6bd89afa9b7f64568f5719cf393e283c09",
+                "bundleSha256": "5e596287111b34cd3b720e5d25bbf69a15a0b555dccc6c028512035c7d4b1cb1"
+              }
+            },
+            "builtinIdentity": {
+              "abi": "opendesk-builtins.v10",
+              "catalogSha256": "ffd8485114e96c08fcd1d3e3d3b72e6bd89afa9b7f64568f5719cf393e283c09",
+              "bundleSha256": "5e596287111b34cd3b720e5d25bbf69a15a0b555dccc6c028512035c7d4b1cb1"
+            },
+            "sourceKind": "draft",
+            "state": "completed",
+            "outcome": {
+              "ok": true,
+              "valueWire": {
+                "type": "object",
+                "value": [
+                  [
+                    "success",
+                    {
+                      "type": "boolean",
+                      "value": true
+                    }
+                  ],
+                  [
+                    "title",
+                    {
+                      "type": "string",
+                      "value": "OpenDesk Browser · Browser Test Lab"
+                    }
+                  ],
+                  [
+                    "value",
+                    {
+                      "type": "number",
+                      "value": 5
+                    }
+                  ],
+                  [
+                    "world",
+                    {
+                      "type": "string",
+                      "value": "CONTROLLER"
+                    }
+                  ]
+                ]
+              }
+            },
+            "committedAt": 1791919814134
+          },
+          "run": {
+            "tag": "controller-run",
+            "runId": "8e954220-3a89-4cff-a6db-243be02f44b4",
+            "namespace": "tool:aniblblbecjmojblboienpehdnadghel",
+            "principal": "extension-tool:aniblblbecjmojblboienpehdnadghel",
+            "registrationId": "fa25f404-dda4-49e2-a8db-d9a01a518d44",
+            "hostDocumentId": "418528C8488A924B263C55D15A9756AA",
+            "hostInstanceId": "bd7b4955-a6a3-4d93-bc85-ee678df5fbb4",
+            "browserSessionIncarnation": "ff5cc12d-203f-4ada-bf51-730ddaae5a7d",
+            "scriptId": "draft:8e954220-3a89-4cff-a6db-243be02f44b4",
+            "contentHash": "364cf465fdc2b72ba4c4927ab6e979c9e6ca12510b36841e325f909a641313c5",
+            "builtinAbi": "opendesk-builtins.v10",
+            "sourceKind": "draft",
+            "builtinIdentity": {
+              "abi": "opendesk-builtins.v10",
+              "catalogSha256": "ffd8485114e96c08fcd1d3e3d3b72e6bd89afa9b7f64568f5719cf393e283c09",
+              "bundleSha256": "5e596287111b34cd3b720e5d25bbf69a15a0b555dccc6c028512035c7d4b1cb1"
+            },
+            "opId": "18e766ba-4b77-4159-a207-32e0f8c64d1b",
+            "resultId": "3f37eae2-b880-4f55-9918-b25c16984a34",
+            "requestId": "32b4baba-ac86-401f-a673-a844be633697",
+            "requestDigest": "9ce220747470635cf9773dff4b26c28d2a5ee148eca93df70893eb94117278d7",
+            "deadlineAt": 1791919844033,
+            "paramsWire": {
+              "type": "object",
+              "value": [
+                [
+                  "value",
+                  {
+                    "type": "number",
+                    "value": 0
+                  }
+                ]
+              ]
+            },
+            "selection": {
+              "mode": "borrowed",
+              "tabId": 341638181,
+              "frameId": 0,
+              "documentId": "EA9549F056845B4EC0D6C731F7DBDCB0",
+              "expectedUrl": "http://127.0.0.1:43111/demo-form.html",
+              "expectedWindowId": 341638177
+            },
+            "startUrl": null,
+            "nativeFence": {
+              "tabEpoch": 0,
+              "frameEpoch": 4,
+              "rootFrameEpoch": 0,
+              "permissionEpoch": 0
+            },
+            "nativeNetworkFences": [],
+            "networkOrigins": [],
+            "nativeTabId": 341638181,
+            "state": "completed",
+            "ownerEpoch": 2,
+            "runRevision": 4,
+            "eventSeq": 2,
+            "cancelSeq": 1,
+            "workerRetired": true,
+            "retirementState": "released",
+            "target": {
+              "tabId": 341638181,
+              "frameId": 0,
+              "documentId": "EA9549F056845B4EC0D6C731F7DBDCB0",
+              "url": "http://127.0.0.1:43111/demo-form.html",
+              "allowedOrigin": "http://127.0.0.1:43111",
+              "windowId": 341638177,
+              "targetSessionId": "65195ccc-9037-40a7-b5ff-d72bea8139d6",
+              "targetVersion": 1,
+              "mode": "borrowed",
+              "browserSessionIncarnation": "ff5cc12d-203f-4ada-bf51-730ddaae5a7d"
+            },
+            "identity": {
+              "tag": "controller-run",
+              "runId": "8e954220-3a89-4cff-a6db-243be02f44b4",
+              "hostInstanceId": "bd7b4955-a6a3-4d93-bc85-ee678df5fbb4",
+              "hostDocumentId": "418528C8488A924B263C55D15A9756AA",
+              "ownerEpoch": 1,
+              "scriptId": "draft:8e954220-3a89-4cff-a6db-243be02f44b4",
+              "revision": 1,
+              "contentHash": "364cf465fdc2b72ba4c4927ab6e979c9e6ca12510b36841e325f909a641313c5",
+              "target": {
+                "tabId": 341638181,
+                "frameId": 0,
+                "documentId": "EA9549F056845B4EC0D6C731F7DBDCB0",
+                "url": "http://127.0.0.1:43111/demo-form.html",
+                "allowedOrigin": "http://127.0.0.1:43111",
+                "windowId": 341638177,
+                "targetSessionId": "65195ccc-9037-40a7-b5ff-d72bea8139d6",
+                "targetVersion": 1,
+                "mode": "borrowed",
+                "browserSessionIncarnation": "ff5cc12d-203f-4ada-bf51-730ddaae5a7d"
+              }
+            },
+            "revision": {
+              "kind": "draft",
+              "scriptId": "draft:8e954220-3a89-4cff-a6db-243be02f44b4",
+              "revision": 1,
+              "sourceHash": "364cf465fdc2b72ba4c4927ab6e979c9e6ca12510b36841e325f909a641313c5",
+              "builtinIdentity": {
+                "abi": "opendesk-builtins.v10",
+                "catalogSha256": "ffd8485114e96c08fcd1d3e3d3b72e6bd89afa9b7f64568f5719cf393e283c09",
+                "bundleSha256": "5e596287111b34cd3b720e5d25bbf69a15a0b555dccc6c028512035c7d4b1cb1"
+              }
+            },
+            "createdAt": 1791919814043,
+            "retirementId": "56681648-ca62-4518-9038-1d4cbdb93e5e",
+            "terminalReason": null
+          }
+        }
+      },
+      "network": {
+        "firstRequests": 1,
+        "repeatRequests": 0,
+        "postSaveDraftRequests": 0,
+        "pageRequestsBefore": 1
+      },
+      "lifecycle": {
+        "savedRevision": "PASS",
+        "loadedAuthorDraftRerun": "PASS",
+        "installedRevisionRun": "NOT_TESTED",
+        "fullBrowserOfflineRestart": "NOT_TESTED"
+      }
+    }
+  ],
+  "extensionId": "aniblblbecjmojblboienpehdnadghel",
+  "browserVersion": {
+    "protocolVersion": "1.3",
+    "product": "Chrome/155.0.8059.39",
+    "revision": "@3ff7ac5a9224be9156d7f8703a06e22890aafd34",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36",
+    "jsVersion": "15.5.35.20"
+  },
+  "launch": {
+    "kind": "macos-launcher",
+    "executable": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+    "argv": [
+      "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+      "--use-mock-keychain",
+      "--password-store=basic",
+      "--remote-debugging-address=127.0.0.1",
+      "--user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-cft-cyj77s63",
+      "--no-first-run",
+      "--no-default-browser-check",
+      "--disable-gpu",
+      "--disable-background-networking",
+      "--disable-sync",
+      "--remote-debugging-port=0",
+      "--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/.runtime/tests/import-r78/main-candidate-final/dist/production-developer",
+      "--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/.runtime/tests/import-r78/main-candidate-final/dist/production-developer",
+      "about:blank"
+    ],
+    "pid": 38620,
+    "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-cft-cyj77s63",
+    "launcher": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/cft-isolated-launcher.py",
+    "launcherPid": 38619,
+    "launcherArgs": [
+      "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/cft-isolated-launcher.py",
+      "--executable",
+      "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+      "--report",
+      "/Users/shopme/Documents/workspace/opendesk-browser/evidence/import-r78-user-scenarios-20261014/chrome-final-page-02/chrome-launcher-report.json",
+      "--no-first-run",
+      "--no-default-browser-check",
+      "--disable-gpu",
+      "--disable-background-networking",
+      "--disable-sync",
+      "--remote-debugging-port=0",
+      "--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/.runtime/tests/import-r78/main-candidate-final/dist/production-developer",
+      "--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/.runtime/tests/import-r78/main-candidate-final/dist/production-developer",
+      "about:blank"
+    ],
+    "reportFile": "/Users/shopme/Documents/workspace/opendesk-browser/evidence/import-r78-user-scenarios-20261014/chrome-final-page-02/chrome-launcher-report.json",
+    "actualMainProcess": "38620 38619 /Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing --use-mock-keychain --password-store=basic --remote-debugging-address=127.0.0.1 --user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-cft-cyj77s63 --no-first-run --no-default-browser-check --disable-gpu --disable-background-networking --disable-sync --remote-debugging-port=0 --disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/.runtime/tests/import-r78/main-candidate-final/dist/production-developer --load-extension=/Users/shopme/Documents/workspace/opendesk-browser/.runtime/tests/import-r78/main-candidate-final/dist/production-developer about:blank\n",
+    "cleanup": {
+      "at": "2026-10-13T19:30:14.494Z",
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "chromePidAlive": false,
+      "launcherPidAlive": false,
+      "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-cft-cyj77s63",
+      "profileRemoved": true
+    }
+  },
+  "fixtureService": "REUSED_EXACT_BYTES",
+  "currentPageAdmissionObservation": {
+    "win": {
+      "alwaysOnTop": false,
+      "focused": true,
+      "height": 950,
+      "id": 341638177,
+      "incognito": false,
+      "left": 22,
+      "state": "normal",
+      "top": 55,
+      "type": "normal",
+      "width": 1200
+    },
+    "tabs": [
+      {
+        "active": true,
+        "audible": false,
+        "autoDiscardable": true,
+        "discarded": false,
+        "frozen": false,
+        "groupId": -1,
+        "height": 800,
+        "highlighted": true,
+        "id": 341638181,
+        "incognito": false,
+        "index": 3,
+        "lastAccessed": 1791919807720.515,
+        "mutedInfo": {
+          "muted": false
+        },
+        "pinned": false,
+        "selected": true,
+        "splitViewId": -1,
+        "status": "complete",
+        "title": "OpenDesk Browser · Browser Test Lab",
+        "url": "http://127.0.0.1:43111/demo-form.html",
+        "width": 843,
+        "windowId": 341638177
+      }
+    ],
+    "frames": [
+      [
+        {
+          "documentId": "7E94C19477E3576E9D45A0B07E70C41C",
+          "documentLifecycle": "active",
+          "errorOccurred": false,
+          "frameId": 0,
+          "frameType": "outermost_frame",
+          "parentFrameId": -1,
+          "processId": 14,
+          "url": "http://127.0.0.1:43111/demo-form.html"
+        }
+      ]
+    ]
+  },
+  "cleanup": {
+    "at": "2026-10-13T19:30:14.494Z",
+    "exit": {
+      "code": 0,
+      "signal": null
+    },
+    "chromePidAlive": false,
+    "launcherPidAlive": false,
+    "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-cft-cyj77s63",
+    "profileRemoved": true
+  },
+  "finishedAt": "2026-10-13T19:30:14.495Z"
+}

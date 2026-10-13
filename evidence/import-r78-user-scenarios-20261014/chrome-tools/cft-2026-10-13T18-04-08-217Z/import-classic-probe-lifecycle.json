@@ -1,0 +1,191 @@
+{
+  "label": "import-classic-probe",
+  "id": "import-classic-probe",
+  "packageSha256": "1c8124021d84f65e193157ff885d880174791924bd72c9ca9b9ab3acfa995f9a",
+  "installedDataPackageSha256": "1c8124021d84f65e193157ff885d880174791924bd72c9ca9b9ab3acfa995f9a",
+  "capabilities": [],
+  "review": "\n            \n              Classic mitt order probe\n              v1.0.0\n            \n            Two fixed local Classic assets: original mitt 3.0.1 UMD then an ordered consumer.\n            申请能力无需额外能力\n            文件：import-classic-probe.opendesk-tool.json\n            \n              更新前请核对\n              \n              \n              工具数据：同一工具 ID 的已保存数据将保留；卸载时才删除。\n              \n            \n            确认安装\n          ",
+  "observations": [
+    {
+      "phase": "open",
+      "targetId": "9BE7481979F21693A419477015E791CF",
+      "sessionId": "14A6808AC30A778BB2D944DB0A5881D7",
+      "hostFrame": {
+        "count": 1,
+        "src": "chrome-extension://kbeocokdaadgcpinbamkhfmjlhillanh/sidebar-tools/sandbox.html",
+        "sandbox": null
+      },
+      "seen": {
+        "result": "Tool Classic mitt = 5",
+        "environment": "typeof chrome = object; typeof chrome.tabs = undefined; typeof page = undefined",
+        "executions": "Executions in this iframe = 1",
+        "order": "order = mitt>second>main; emits = 1",
+        "origin": "null",
+        "chromeTabs": "undefined",
+        "page": "undefined",
+        "url": "chrome-extension://kbeocokdaadgcpinbamkhfmjlhillanh/sidebar-tools/sandbox.html"
+      }
+    },
+    {
+      "phase": "reopen",
+      "targetId": "DBC321EC56438AC1B63D9FFDCBF67783",
+      "sessionId": "77590DEBFE9B393BA33B2197A9A1B424",
+      "hostFrame": {
+        "count": 1,
+        "src": "chrome-extension://kbeocokdaadgcpinbamkhfmjlhillanh/sidebar-tools/sandbox.html",
+        "sandbox": null
+      },
+      "seen": {
+        "result": "Tool Classic mitt = 5",
+        "environment": "typeof chrome = object; typeof chrome.tabs = undefined; typeof page = undefined",
+        "executions": "Executions in this iframe = 1",
+        "order": "order = mitt>second>main; emits = 1",
+        "origin": "null",
+        "chromeTabs": "undefined",
+        "page": "undefined",
+        "url": "chrome-extension://kbeocokdaadgcpinbamkhfmjlhillanh/sidebar-tools/sandbox.html"
+      }
+    }
+  ],
+  "networkRequests": [
+    {
+      "sessionId": "3ABCE3007CCB6FE5FBF4EC65EB37B509",
+      "url": "chrome-extension://kbeocokdaadgcpinbamkhfmjlhillanh/sidebar-tools/bridge.js",
+      "type": "Script",
+      "initiator": {
+        "type": "parser",
+        "url": "chrome-extension://kbeocokdaadgcpinbamkhfmjlhillanh/sidebar-tools/sandbox.html",
+        "lineNumber": 4,
+        "columnNumber": 110
+      }
+    },
+    {
+      "sessionId": "3ABCE3007CCB6FE5FBF4EC65EB37B509",
+      "url": "blob:null/fec55a06-87f9-4f94-86ff-3464314d7383",
+      "type": "Script",
+      "initiator": {
+        "type": "script",
+        "stack": {
+          "callFrames": [
+            {
+              "functionName": "",
+              "scriptId": "3",
+              "url": "chrome-extension://kbeocokdaadgcpinbamkhfmjlhillanh/sidebar-tools/bridge.js",
+              "lineNumber": 0,
+              "columnNumber": 48316
+            }
+          ]
+        }
+      }
+    },
+    {
+      "sessionId": "3ABCE3007CCB6FE5FBF4EC65EB37B509",
+      "url": "blob:null/6c9321fe-158e-4d4e-9185-f09947b790ad",
+      "type": "Script",
+      "initiator": {
+        "type": "script",
+        "stack": {
+          "callFrames": [
+            {
+              "functionName": "",
+              "scriptId": "3",
+              "url": "chrome-extension://kbeocokdaadgcpinbamkhfmjlhillanh/sidebar-tools/bridge.js",
+              "lineNumber": 0,
+              "columnNumber": 48316
+            }
+          ]
+        }
+      }
+    },
+    {
+      "sessionId": "3ABCE3007CCB6FE5FBF4EC65EB37B509",
+      "url": "blob:null/da82c155-f069-4d0c-81ef-ddbffdb6ddb3",
+      "type": "Script",
+      "initiator": {
+        "type": "script",
+        "stack": {
+          "callFrames": [
+            {
+              "functionName": "",
+              "scriptId": "3",
+              "url": "chrome-extension://kbeocokdaadgcpinbamkhfmjlhillanh/sidebar-tools/bridge.js",
+              "lineNumber": 0,
+              "columnNumber": 49045
+            }
+          ]
+        }
+      }
+    },
+    {
+      "sessionId": "AB2077E42B1CBD180C55AE5AE0468CB0",
+      "url": "chrome-extension://kbeocokdaadgcpinbamkhfmjlhillanh/sidebar-tools/bridge.js",
+      "type": "Script",
+      "initiator": {
+        "type": "parser",
+        "url": "chrome-extension://kbeocokdaadgcpinbamkhfmjlhillanh/sidebar-tools/sandbox.html",
+        "lineNumber": 4,
+        "columnNumber": 110
+      }
+    },
+    {
+      "sessionId": "AB2077E42B1CBD180C55AE5AE0468CB0",
+      "url": "blob:null/afcc2a8a-4c49-49c4-950f-cded3b524ca7",
+      "type": "Script",
+      "initiator": {
+        "type": "script",
+        "stack": {
+          "callFrames": [
+            {
+              "functionName": "",
+              "scriptId": "3",
+              "url": "chrome-extension://kbeocokdaadgcpinbamkhfmjlhillanh/sidebar-tools/bridge.js",
+              "lineNumber": 0,
+              "columnNumber": 48316
+            }
+          ]
+        }
+      }
+    },
+    {
+      "sessionId": "AB2077E42B1CBD180C55AE5AE0468CB0",
+      "url": "blob:null/4cc4ac8d-407c-46f7-94a4-91e23f8dc1f5",
+      "type": "Script",
+      "initiator": {
+        "type": "script",
+        "stack": {
+          "callFrames": [
+            {
+              "functionName": "",
+              "scriptId": "3",
+              "url": "chrome-extension://kbeocokdaadgcpinbamkhfmjlhillanh/sidebar-tools/bridge.js",
+              "lineNumber": 0,
+              "columnNumber": 48316
+            }
+          ]
+        }
+      }
+    },
+    {
+      "sessionId": "AB2077E42B1CBD180C55AE5AE0468CB0",
+      "url": "blob:null/1c323317-0ee3-42df-b89f-29073581dbaf",
+      "type": "Script",
+      "initiator": {
+        "type": "script",
+        "stack": {
+          "callFrames": [
+            {
+              "functionName": "",
+              "scriptId": "3",
+              "url": "chrome-extension://kbeocokdaadgcpinbamkhfmjlhillanh/sidebar-tools/bridge.js",
+              "lineNumber": 0,
+              "columnNumber": 49045
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "removed": true,
+  "negativeNative": "NOT_TESTED",
+  "scope": "positive real import/install/open/close/reopen/uninstall only"
+}

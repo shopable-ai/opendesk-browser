@@ -1,0 +1,60 @@
+{
+  "baseHead": "3c19c71b36f656da941ff2b690bf67420d9c571a",
+  "packageHash": "5ccdcc2b569ce377ccfd43d4a0e8bbb8d813b682e8e71954b4dd8e46c4a11eb1",
+  "files": [
+    {
+      "path": "src/ui/script-editor.js",
+      "sha256": "3993e809a8dd5af038a901c1b3c502c969e46a9505de498f5579545bf35d04fb",
+      "bytes": 100206,
+      "snapshotMatch": true
+    },
+    {
+      "path": "tests/environment/script-editor.test.mjs",
+      "sha256": "40a263f9bc1bebccc9fbecc484052353f795a83700fd1d5654dfa804525c8556",
+      "bytes": 126749,
+      "snapshotMatch": false
+    },
+    {
+      "path": "examples/programs/single-file/controller-d3-chromepage-esm.js",
+      "sha256": "1188c60211f3d483231ccf0ee1fbbaf63f721bce94af19e2b8f3192f9de406d2",
+      "bytes": 1203,
+      "snapshotMatch": true
+    },
+    {
+      "path": "tests/framework/controller-d3-chromepage-r78-cft-cycle.mjs",
+      "sha256": "9147c96164a7617a4c58baff11e2833af09868668d9f4de14f21390846e34d82",
+      "bytes": 15076,
+      "snapshotMatch": true
+    },
+    {
+      "path": "tests/framework/controller-d3-scheduled-r78-cft-cycle.mjs",
+      "sha256": "2770fe9ad646e1074d68b5870a6fd435236a30ad3453e52f2181a7ae791bdd03",
+      "bytes": 26254,
+      "snapshotMatch": true
+    },
+    {
+      "path": "tests/framework/controller-d3-restart-r78-cft-cycle.mjs",
+      "sha256": "3529399a820afadfb36b7b23c0e0682ba2a3156c9429d122074288f101e80800",
+      "bytes": 15449,
+      "snapshotMatch": true
+    },
+    {
+      "path": "tests/framework/controller-pinned-npm-r74-cft-cycle.mjs",
+      "sha256": "371f4dc4d8d5f1a58f436ea69401c634797a4cfdaa6b9bded3ee2963cce98634",
+      "bytes": 6135,
+      "snapshotMatch": true
+    },
+    {
+      "path": "tests/framework/page-dependency-r72-cft-cycle.mjs",
+      "sha256": "bd44579e91a244ac8f23f5f1cac81ddd443981b72ea8d4bd4254bf0df18db8d3",
+      "bytes": 22159,
+      "snapshotMatch": true
+    },
+    {
+      "path": "tests/framework/page-browser-worker-r243-cft.mjs",
+      "sha256": "d5573861104dbed0ecca2c84cb25ce9bb28b69cb136ebe01e0c8a5f9cae78231",
+      "bytes": 38975,
+      "snapshotMatch": true
+    }
+  ]
+}

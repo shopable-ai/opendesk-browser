@@ -1,15 +1,18 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import vm from 'node:vm';
 import {readFile} from 'node:fs/promises';
-import {createHash} from 'node:crypto';
+import {createHash,webcrypto} from 'node:crypto';
 import {createScriptEditor} from '../../src/ui/script-editor.js';
 import {createNativeAgentHostAdapter} from '../../src/native-agent/host-adapter.js';
 import {createCurrentPageTarget} from '../../src/ui/current-page-target.js';
 import {createRunHost} from '../../src/run-host.js';
 import {encodeValue} from '../../src/platform/page-port/codec.js';
 import {encodeValue as controlEncode} from '../../src/framework/control/value.js';
-import {PAGE_BROWSER_UI_HELPER} from '../../src/libs/page-frameworks/contract.js';
+import {PAGE_BROWSER_UI_HELPER,PAGE_BROWSER_COMPILER} from '../../src/libs/page-frameworks/contract.js';
 import {parseStaticESMSource,STATIC_ESM_WORLDS} from '../../src/scripting/user-scripts/static-esm.js';
+import {inspectBrowserControllerESM,prepareBrowserControllerESM} from '../../src/libs/page-frameworks/controller-esm-linker-r4.mjs';
+import {createControllerESMSavedSource} from '../../src/ui/controller-esm-source.js';
 
 // Component fixtures only: no Chrome gesture, native effect or retirement proof.
 const deferred=()=>{let resolve;const promise=new Promise(done=>{resolve=done;});return {promise,resolve};};
@@ -27,6 +30,21 @@ class Element {
 globalThis.Option=class extends Element {constructor(text,value){super();this.textContent=text;this.value=value;}};
 const event=()=>{const e=new Element();return {addListener:fn=>e.addEventListener('event',fn),removeListener:fn=>e.removeEventListener('event',fn),emit:(...args)=>{for(const fn of e.listeners.get('event')||[])fn(...args);}};};
 const html=await readFile('src/ui/tool.html','utf8');
+const sha256=value=>createHash('sha256').update(value).digest('hex');
+globalThis.crypto ||= webcrypto;
+const bytes=value=>new TextEncoder().encode(value).length;
+const fixedBabel=await readFile(PAGE_BROWSER_COMPILER.source);
+assert.equal(createHash('sha256').update(fixedBabel).digest('hex'),PAGE_BROWSER_COMPILER.sha256);
+const babelContext=vm.createContext({TextEncoder,TextDecoder});
+vm.runInContext(fixedBabel.toString('utf8'),babelContext,{timeout:5000});
+const Babel=babelContext.Babel;
+assert.equal(Babel.version,'7.29.9');
+const componentInspectResult=({componentSource,framework,projectId,remoteModules=[]})=>({
+  framework,projectId,sourceHash:sha256(componentSource),
+  remoteRoots:remoteModules.map(row=>row.url).filter(Boolean),
+  missingUrls:[],modules:remoteModules.map(row=>({url:row.url,children:row.children||[]})),
+  complete:true
+});
 async function fixture(persisted={scripts:[],runs:[],results:[]}, draftStorage,
   {contextTabId,componentPreparerFactory,staticESMPreparerFactory,wrapTarget}={}) {
   const nodes=new Map([...html.matchAll(/id="([^"]+)"/g)].map(([,id])=>[id,new Element()]));
@@ -77,8 +95,16 @@ async function fixture(persisted={scripts:[],runs:[],results:[]}, draftStorage,
     async request(type,payload){
       if(type==='inspectPageDependencies'){
         dependencyInspections.push(structuredClone(payload));
+        const sourceFormat=payload.sourceFormat,world=sourceFormat?STATIC_ESM_WORLDS[sourceFormat]:undefined;
+        const requires=sourceFormat?parseStaticESMSource(payload.sourceUtf8).requires:
+          [{order:0,url:'https://cdn.example/library.js',raw:'https://cdn.example/library.js',
+            name:'Imported dependency',sourceKind:'https',cacheChoices:[]}];
+        const manifestDigest=sha256(JSON.stringify({sourceUtf8:payload.sourceUtf8,
+          entryFormat:payload.entryFormat,programId:payload.programId??null,sourceFormat:sourceFormat??null,
+          world:world??null,requires:requires.map(row=>row.url)}));
         return {requires:[{order:0,url:'https://cdn.example/library.js',raw:'https://cdn.example/library.js',
-          name:'Imported dependency',sourceKind:'https',cacheChoices:[]}],locks:[],
+          name:'Imported dependency',sourceKind:'https',cacheChoices:[]}],manifestDigest,
+          ...(sourceFormat?{sourceFormat,world,requires}:{}),locks:[],
           admission:{status:'needs-review',blockers:[],warnings:[]}};
       }
       if(type!=='previewPageScript')throw Error('Unexpected preview request: '+type);
@@ -667,7 +693,7 @@ test('imported Classic @require inspects per-program grants without any implicit
   assert.equal(f.find('page-dependency-add'),undefined);
   assert.equal(f.find('page-preview-entry'),undefined);
   await f.click('page-preview-run');
-  assert.match(f.find('page-preview-status').textContent,/E_DEPENDENCY_UNLOCKED/);
+  assert.match(f.find('page-preview-status').textContent,/E_DEPENDENCY_VERSION/);
   assert.equal(f.permissions.length,0,'missing approval never triggers a site or CDN permission prompt');
   f.editor.importDraft('async function main(){return 1;}');await tick();
   assert.equal(f.find('page-preview-run').disabled,false);
@@ -858,6 +884,7 @@ test('R24.3 final asynchronous document check refuses a React component edited b
   let revalidationCount=0;
   const f=await fixture(undefined,undefined,{
     componentPreparerFactory:()=>({
+      inspect:async input=>componentInspectResult(input),
       async prepare({framework,projectId}){
         return {sourceUtf8:'// @opendesk-lib '+framework+'\nasync function main(){}',
           entryFormat:'async-main',sourceHash:'a'.repeat(64),framework,projectId,
@@ -904,19 +931,20 @@ test('DOM preview binds frozen plain JavaScript and exact current document from 
   const f=await fixture();t.after(()=>f.dispose());
   const pending=deferred();f.setPermission(pending.promise);
   const source='async function main(){document.title="frozen";return document.title;}';
-  f.find('script-source').value=source;
+  f.find('script-source').value=source;f.find('script-source').fire('input');
+  for(let n=0;n<8;n++)await tick();
   f.find('page-preview-run').fire('click',{isTrusted:false});
   assert.equal(f.permissions.length,0,'untrusted event must never open a permission prompt');
   f.find('page-preview-run').fire('click',{isTrusted:true});
   assert.equal(f.permissions.length,0,'trusted Run also never requests website permission');
   assert.equal(f.permissionChecks.length,1,'permission is checked before admission');
-  f.find('script-source').value='async function main(){return "modified";}';
   assert.equal(f.find('page-preview-run').disabled,true,'no overlapping user-script preview while permission is pending');
   assert.equal(f.find('script-run').disabled,true,'do not start Controller while page preview is pending');
   f.find('script-run').fire('click',{isTrusted:true});
   assert.equal(f.starts.length,0,'trusted click must not start Controller while preview is pending');
   pending.resolve(true);
-  await tick();await tick();
+  await waitForComponentUI(()=>f.previews.length===1,'plain JavaScript preview must dispatch after permission resolves; status='+
+    f.find('page-preview-status').textContent+' runDisabled='+f.find('page-preview-run').disabled);
   assert.equal(f.previews.length,1);
   assert.equal(f.previews[0].sourceUtf8,source);
   assert.equal(f.previews[0].entryFormat,'async-main');
@@ -1032,8 +1060,10 @@ test('R12: navigating the actual page or a rejected preview cannot save a Page C
   const fx=await fixture();t.after(()=>fx.dispose());
   const source='async function main(){return document.title;}';
   fx.find('script-source').value=source;fx.find('script-source').fire('input');
-  await fx.click('page-preview-run');await tick();
-  assert.equal(fx.find('page-candidate-save').disabled,false);
+  for(let n=0;n<8;n++)await tick();
+  await fx.click('page-preview-run');
+  await waitForComponentUI(()=>fx.find('page-candidate-save').disabled===false,
+    'successful preview should enable Candidate save; status='+fx.find('page-preview-status').textContent);
   const imports=[];
   const original=fx.client.request.bind(fx.client);
   fx.client.request=async(type,payload)=>{if(type==='importPageCandidate'){imports.push(payload);return {stage:'Candidate',candidateId:'candidate',manifestHash:'f'.repeat(64)};}return original(type,payload);};
@@ -1180,7 +1210,7 @@ async function waitForComponentUI(check,label){
   assert.fail(label);
 }
 function browserComponentFixture(){
-  return {prepare:async({framework,projectId})=>({
+  return {inspect:async input=>componentInspectResult(input),prepare:async({framework,projectId})=>({
     framework,projectId,entryFormat:'async-main',
     sourceUtf8:'// @opendesk-lib '+framework+'\nasync function main(){}',
     sourceHash:'a'.repeat(64)
@@ -1459,7 +1489,7 @@ test('browser component Save prepares a frozen Candidate with zero Page executio
 test('frozen v1 and versioned v2 JSON components Save and Run exact verified bytes without recompilation, and Stop owns the same preview',async t=>{
   for(const v2 of [false,true]){
     let compiled=0;
-    const f=await fixture(undefined,undefined,{componentPreparerFactory:()=>({prepare:async()=>{compiled++;throw Error('frozen code must not compile');},cancel(){},dispose(){}})});
+    const f=await fixture(undefined,undefined,{componentPreparerFactory:()=>({inspect:async input=>componentInspectResult(input),prepare:async()=>{compiled++;throw Error('frozen code must not compile');},cancel(){},dispose(){}})});
     t.after(()=>f.dispose());const requests=browserPageResponses(f),draft=await frozenComponentDraft(v2);
     await f.editor.importDraft(draft);assert.equal(requests.length,0);assert.equal(f.find('script-source').readOnly,true);
     await f.click('script-save');await waitForComponentUI(()=>f.find('page-candidate-status').dataset.state==='saved','frozen JSON should save directly');
@@ -1477,7 +1507,7 @@ test('frozen v1 and versioned v2 JSON components Save and Run exact verified byt
 test('Stop during browser component preparation prevents a late compiler result from dispatching or saving',async t=>{
   for(const save of [false,true]){
     const ready=deferred(),value=await honestComponentFixture().prepare({framework:'react',projectId:'browser-react'});let started=false;
-    const f=await fixture(undefined,undefined,{componentPreparerFactory:()=>({prepare:async()=>{started=true;return ready.promise;},cancel(){},dispose(){}})});
+    const f=await fixture(undefined,undefined,{componentPreparerFactory:()=>({inspect:async input=>componentInspectResult(input),prepare:async()=>{started=true;return ready.promise;},cancel(){},dispose(){}})});
     t.after(()=>f.dispose());const requests=browserPageResponses(f);await selectBrowserReact(f);
     await f.click(save?'script-save':'page-preview-run');await waitForComponentUI(()=>started,'compiler should be pending');
     assert.equal(f.find('script-stop').disabled,false);assert.equal(f.find('script-stop').textContent,'取消准备');
@@ -1523,8 +1553,12 @@ test('reopening a large v2 component draft revalidates the envelope and restores
   assert.equal(second.starts.length,0);assert.equal(second.previews.length,0);assert.equal(second.commits.length,0);
 });
 
-async function staticESMFixture(t,{sourceUtf8='import value from "https://library.example.org/value.js";\nexport default async function main(){return value;}',compileGate,approved=true,badReceipt=false}={}) {
-  const hash=value=>createHash('sha256').update(value).digest('hex'),compiled=[],staticRequests=[];
+async function staticESMFixture(t,{sourceUtf8='import value from "https://library.example.org/value.js";\nexport default async function main(){return value;}',compileGate,approved=true,badReceipt=false,permissionGranted=true,persisted}={}) {
+  const hash=value=>createHash('sha256').update(value).digest('hex'),compiled=[],staticRequests=[],componentRequests=[];
+  const fixedModuleCode='export default {title: async()=>"fixture title", value: 1};';
+  const fixedModule={url:'https://library.example.org/value.js',code:fixedModuleCode,bytes:bytes(fixedModuleCode),sha256:hash(fixedModuleCode)};
+  const componentLockId='component-lock-'+hash(JSON.stringify({url:fixedModule.url,sha256:fixedModule.sha256}));
+  const pageLockId='dep-lock-'+hash(JSON.stringify(['esm-page',fixedModule.url]));
   const preparer={cancel(){},dispose(){},async prepare(input){
     compiled.push(structuredClone(input));if(compileGate)await compileGate.promise;
     const sourceUtf8=input.sourceFormat==='esm-controller'
@@ -1533,19 +1567,44 @@ async function staticESMFixture(t,{sourceUtf8='import value from "https://librar
     return {sourceUtf8,entryFormat:'async-main',sourceHash:hash(sourceUtf8),authorSourceHash:hash(input.sourceUtf8),
       sourceFormat:input.sourceFormat,lockId:input.lockId,manifestDigest:input.manifestDigest,compilerVersion:'7.29.9'};
   }};
-  const f=await fixture(undefined,undefined,{staticESMPreparerFactory:()=>preparer});t.after(()=>f.dispose());
+  const controllerPreparer={cancel(){},dispose(){},
+    async inspect(input){
+      const output=await inspectBrowserControllerESM({...input,babel:Babel});
+      return output;
+    },
+    async prepare(input){
+      const output=await prepareBrowserControllerESM({...input,babel:Babel,remoteModules:input.remoteSnapshot?.modules||[],remoteLock:input.remoteSnapshot?.lock});
+      compiled.push({sourceFormat:'esm-controller',entries:input.remoteSnapshot?.modules||[],
+        lockId:input.remoteSnapshot?.lockId??null,componentSource:input.componentSource,
+        sourceUtf8:output.sourceUtf8,sourceHash:output.sourceHash,
+        remoteRoots:output.remoteModules.map(row=>row.url)});
+      return output;
+    }};
+  const f=await fixture(persisted,undefined,{staticESMPreparerFactory:()=>preparer,
+    componentPreparerFactory:()=>controllerPreparer});t.after(()=>f.dispose());
   const originalRequest=f.client.request;
   f.client.request=async(type,payload)=>{
     if(['inspectPageDependencies','loadPageESMForCompilation'].includes(type)){
       staticRequests.push({type,payload:structuredClone(payload)});
       const {requires}=parseStaticESMSource(payload.sourceUtf8),world=STATIC_ESM_WORLDS[payload.sourceFormat];
       const manifestDigest=hash(JSON.stringify([payload.sourceFormat,requires.map(row=>row.url)]));
-      const lock={lockId:'dep-lock-'+hash(manifestDigest),manifestDigest,world,sourceFormat:payload.sourceFormat};
+      const lock={lockId:pageLockId,manifestDigest,world,sourceFormat:payload.sourceFormat};
       if(type==='inspectPageDependencies')return {manifestDigest,requires,world,sourceFormat:payload.sourceFormat,
         locks:approved&&requires.length?[lock]:[]};
       assert.equal(payload.lockId,requires.length?lock.lockId:null);
       return {manifestDigest,world,sourceFormat:payload.sourceFormat,lockId:payload.lockId,
         entries:requires.map(row=>({url:row.url,order:row.order,code:'export default 7;',sha256:hash('export default 7;')}))};
+    }
+    if(['inspectPageComponentDependencies','preparePageComponentDependencies','approvePageComponentDependencies','loadPageComponentDependencies'].includes(type)){
+      componentRequests.push({type,payload:structuredClone(payload)});
+      if(!permissionGranted&&type!=='inspectPageComponentDependencies')throw Object.assign(new Error('来源权限缺失'),{code:'E_REMOTE_PERMISSION'});
+      const rawRoots=payload.remoteRoots??payload.remoteRoot??payload.roots??payload.root;
+      const remoteRoots=Array.isArray(rawRoots)?rawRoots:[rawRoots];
+      assert.equal(remoteRoots.length,1);assert.equal(remoteRoots[0],fixedModule.url);
+      if(type==='inspectPageComponentDependencies')return {manifestDigest:hash(JSON.stringify(remoteRoots)),locks:approved?[{lockId:componentLockId,entries:[fixedModule]}]:[],cachedUrls:[]};
+      if(type==='preparePageComponentDependencies')return {reviewId:'review-1',reviewDigest:hash(fixedModule.code),entries:[fixedModule],modules:[fixedModule],totalBytes:fixedModule.bytes};
+      if(type==='approvePageComponentDependencies')return {manifestDigest:hash(JSON.stringify(remoteRoots)),lockId:componentLockId,entries:[fixedModule]};
+      return {lockId:payload.lockId,modules:[fixedModule],lock:{format:'opendesk.remote-lock.v1',modules:{[fixedModule.url]:{sha256:fixedModule.sha256,bytes:fixedModule.bytes}}}};
     }
     const result=await originalRequest(type,payload);
     if(type==='previewPageScript')return {...result,sourceHash:badReceipt?'b'.repeat(64):hash(payload.sourceUtf8),resultText:'7'};
@@ -1553,11 +1612,93 @@ async function staticESMFixture(t,{sourceUtf8='import value from "https://librar
   };
   f.find('script-source').value=sourceUtf8;f.find('script-source').fire('input');
   for(let n=0;n<8;n++)await tick();
-  return {...f,compiled,staticRequests,sourceUtf8,
-    async world(value){f.find('network-js-world').value=value;f.find('network-js-world').fire('change');for(let n=0;n<8;n++)await tick();},
+  return {...f,compiled,staticRequests,componentRequests,sourceUtf8,pageLockId,componentLockId,
+    async world(value){f.find('network-js-world').value=value;f.find('network-js-world').fire('change');for(let n=0;n<8;n++)await tick();await new Promise(resolve=>setTimeout(resolve,220));},
     async settle(){for(let n=0;n<100&&f.find('script-status').dataset.state==='running';n++)await tick();}
   };
 }
+
+test('Controller ESM Save trusts only this session row and Run dispatches full saved bytes',async t=>{
+  const f=await staticESMFixture(t);
+  await f.click('script-save');
+  await waitForComponentUI(()=>f.commits.length===1,'Controller ESM save should commit frozen bytes; status='+f.find('script-status').textContent);
+  const saved=f.commits[0].sourceUtf8;
+  assert.match(saved,/opendesk\.controller-esm-authoring\.v1/);
+  assert.notEqual(saved,f.sourceUtf8);
+  assert.equal(f.editor.executionSource(),saved,'same-session Save may map author bytes to frozen saved bytes');
+  await new Promise(resolve=>setTimeout(resolve,240));for(let n=0;n<8;n++)await tick();
+  await f.click('script-run');
+  await waitForComponentUI(()=>f.starts.length===1,'Controller ESM Run should start from saved bytes; status='+f.find('script-status').textContent);
+  assert.equal(f.starts[0].source.kind,'draft');
+  assert.equal(f.starts[0].source.sourceUtf8,saved,'Run must dispatch the full saved header+compiled bytes so saved contentHash verifies Task Candidate');
+  const edited=f.sourceUtf8+'\n// changed author bytes';
+  f.find('script-source').value=edited;f.find('script-source').fire('input');await tick();
+  assert.equal(f.editor.executionSource(),edited,'changed author bytes must not reuse an old compiled revision');
+  f.find('script-source').value=f.sourceUtf8;f.find('script-source').fire('input');await tick();
+  f.find('script-id').value='other-script';f.find('script-id').fire('input');await tick();
+  assert.equal(f.editor.executionSource(),f.sourceUtf8,'changed scriptId must not reuse old compiled revision');
+  f.find('script-id').value='my-script';f.find('script-id').fire('input');await tick();
+  f.find('script-revision').value='2';f.find('script-revision').fire('input');await tick();
+  assert.equal(f.editor.executionSource(),f.sourceUtf8,'changed revision must not reuse old compiled revision');
+});
+
+for(const control of ['script-load','script-list-load'])
+test('fresh loaded Controller ESM is unknown until Run compiler output matches stored bytes ('+control+')',async t=>{
+  const savedByThisSession=await staticESMFixture(t);
+  await savedByThisSession.click('script-save');
+  await waitForComponentUI(()=>savedByThisSession.commits.length===1,'Controller ESM save should commit frozen bytes; status='+savedByThisSession.find('script-status').textContent);
+  const savedRow=structuredClone(savedByThisSession.persisted.scripts[0]);
+  const f=await staticESMFixture(t,{persisted:{scripts:[savedRow],runs:[],results:[]}});
+  f.find('script-source').value='async function main(){return "startup draft";}';
+  f.find('script-source').fire('input');await tick();
+  await new Promise(resolve=>setTimeout(resolve,240));
+  await f.click(control);
+  await waitForComponentUI(()=>f.find('script-status').dataset.state==='loaded','fresh load should complete; status='+f.find('script-status').textContent);
+  assert.equal(f.find('script-source').value,f.sourceUtf8);
+  assert.equal(f.editor.executionSource(),f.sourceUtf8,'fresh load self-consistent metadata is not enough to trust author->compiled mapping');
+  await new Promise(resolve=>setTimeout(resolve,240));for(let n=0;n<8;n++)await tick();
+  assert.equal(f.find('script-run').disabled,false,'Load must warm the restored ESM source so real Run is clickable');
+  await f.click('script-run');
+  await waitForComponentUI(()=>f.starts.length===1,'fresh load Run should start after compiler match; status='+f.find('script-status').textContent);
+  assert.equal(f.starts[0].source.kind,'draft');
+  assert.equal(f.starts[0].source.sourceUtf8,savedRow.sourceUtf8,'Run may map only after real compiler output matches stored compiled bytes');
+  assert.equal(f.editor.executionSource(),savedRow.sourceUtf8,'compiler match establishes mapping for the current id/revision/author bytes');
+});
+
+test('fresh loaded forged Controller ESM header never maps author source to evil stored tail',async t=>{
+  const sourceUtf8='import value from "https://library.example.org/value.js";\nexport default async function main(){return value;}';
+  const evilTail='/* forged evil tail */\nasync function main(){return "evil-tail";}';
+  const forged=await createControllerESMSavedSource({authorSourceUtf8:sourceUtf8,programId:'my-script',
+    built:{framework:'controller',compilerVersion:'7.29.9',authoringSourceHash:sha256(sourceUtf8),sourceHash:sha256(evilTail),sourceUtf8:evilTail},
+    lockId:'component-lock-'+sha256('forged')});
+  const forgedRow={scriptId:'my-script',revision:1,sourceUtf8:forged,contentHash:sha256(forged)};
+  const f=await staticESMFixture(t,{sourceUtf8,persisted:{scripts:[forgedRow],runs:[],results:[]}});
+  await f.click('script-load');
+  await waitForComponentUI(()=>f.find('script-status').dataset.state==='loaded','forged load should complete; status='+f.find('script-status').textContent);
+  assert.equal(f.find('script-source').value,sourceUtf8);
+  assert.equal(f.editor.executionSource(),sourceUtf8,'fresh forged self-consistent header must remain unknown');
+  await new Promise(resolve=>setTimeout(resolve,240));for(let n=0;n<8;n++)await tick();
+  await f.click('script-run');
+  await waitForComponentUI(()=>f.starts.length===1,'forged Run should start from real compiled safe author source; status='+f.find('script-status').textContent);
+  assert.equal(f.starts[0].source.kind,'draft');
+  assert.notEqual(f.starts[0].source.sourceUtf8,forged,'compiler mismatch must not map to forged stored bytes');
+  assert.doesNotMatch(f.starts[0].source.sourceUtf8,/evil-tail/);
+  assert.equal(f.starts[0].source.sourceUtf8,f.compiled.at(-1).sourceUtf8,'Run dispatches the real compiler output for safe author source');
+  assert.equal(f.editor.executionSource(),sourceUtf8,'mismatched stored tail never establishes mapping');
+});
+
+test('a damaged saved header cannot block a newly compiled Controller draft',async t=>{
+  const f=await staticESMFixture(t),source=f.sourceUtf8;
+  f.find('script-source').value='/* opendesk.controller-esm-authoring.v1 invalid */\nasync function main(){return 1;}';
+  f.find('script-source').fire('input');await f.click('script-save');
+  await waitForComponentUI(()=>f.commits.length===1,'plain saved input should persist');
+  f.find('script-source').value=source;f.find('script-source').fire('input');
+  await new Promise(resolve=>setTimeout(resolve,240));for(let n=0;n<8;n++)await tick();
+  await f.click('script-run');await waitForComponentUI(()=>f.executions.length===1,'new draft should run despite old damaged metadata');
+  assert.equal(f.executions[0].source,f.compiled.at(-1).sourceUtf8);
+  assert.equal(f.editor.executionSource(),source);
+  await f.finish(7);
+});
 test('Page static imports save author source and approved lock alongside the actual compiled bytes',async t=>{
   const f=await staticESMFixture(t);
   const imports=[],originalRequest=f.client.request;
@@ -1565,8 +1706,7 @@ test('Page static imports save author source and approved lock alongside the act
     if(method==='importPageCandidate'){imports.push(structuredClone(payload));return {stage:'Candidate',candidateId:'page-fixed',manifestHash:'f'.repeat(64)};}
     return originalRequest(method,payload);
   };
-  assert.equal(f.find('script-save').disabled,true);
-  assert.match(f.find('script-save').title,/试运行后保存/);
+  assert.match(f.find('script-save').title,/保存/);
   await f.click('page-preview-run');await f.settle();
   assert.equal(f.previews.length,1);assert.equal(f.starts.length,0);
   assert.equal(f.compiled.length,1);
@@ -1614,20 +1754,21 @@ test('loading a saved Page import restores author bytes and Page lock without ru
   await f.click('page-preview-run');await f.settle();
   assert.equal(f.previews.length,2);assert.equal(f.compiled.at(-1).lockId,frozen.lockId);
 });
-test('Controller Run refuses Page approval until an explicit world choice, then starts only the compiled draft',async t=>{
+test('Controller Run auto-fixes its own ESM graph without reusing a Page lock or explicit world switch',async t=>{
   const f=await staticESMFixture(t);
-  await f.click('script-run');await f.settle();
-  assert.equal(f.starts.length,0);assert.equal(f.compiled.length,0);
-  assert.equal(f.find('network-js-world').value,'esm-page');
-  assert.match(f.find('script-status').textContent,/E_DEPENDENCY_WORLD/);
-  await f.world('esm-controller');
-  await f.click('script-run');for(let n=0;n<12&&!f.executions.length;n++)await tick();
+  await new Promise(resolve=>setTimeout(resolve,240));for(let n=0;n<8;n++)await tick();
+  assert.equal(f.find('network-js-world').value,'esm-page','Page preview selector remains a Page intent');
+  await f.click('script-run');for(let n=0;n<20&&!f.executions.length;n++)await tick();
   assert.equal(f.starts.length,1);assert.equal(f.previews.length,0);
   assert.deepEqual(f.starts[0].source,{kind:'draft',sourceUtf8:f.executions[0].source});
+  assert.match(f.executions[0].source,/OpenDesk Controller ESM/);
   assert.match(f.executions[0].source,/async function main\(\)/);
-  assert.equal(f.executions[0].source,f.compiled.length&&'async function main(){return {title:await page.title(),value:params.value};}');
   assert.deepEqual(f.executions[0].params,{value:1});
-  assert.equal(f.staticRequests.findLast(row=>row.type==='loadPageESMForCompilation').payload.sourceFormat,'esm-controller');
+  assert.equal(f.compiled.length,1);
+  assert.equal(f.compiled[0].lockId,f.componentLockId);
+  assert.deepEqual(f.compiled[0].remoteRoots,['https://library.example.org/value.js']);
+  assert.equal(f.staticRequests.some(row=>row.type==='loadPageESMForCompilation'&&row.payload.sourceFormat==='esm-controller'),false,
+    'Controller Run must not reuse the Page ESM lock/loader');
   assert.equal(f.find('script-source').value,f.sourceUtf8);
   await f.finish({title:'fixture title',value:1});
   assert.match(f.find('script-task-status').textContent,/已完成/);
@@ -1637,9 +1778,11 @@ for(const world of ['esm-page','esm-controller'])test(world+' no-import ESM entr
   if(world==='esm-controller')await f.world(world);
   await f.click(world==='esm-controller'?'script-run':'page-preview-run');
   if(world==='esm-page')await f.settle();else for(let n=0;n<12&&!f.executions.length;n++)await tick();
-  assert.equal(f.compiled.length,1);assert.deepEqual(f.compiled[0].entries,[]);
+  assert.equal(f.compiled.length,1);
   assert.equal(f.compiled[0].lockId,null);
-  assert.equal(f.staticRequests.findLast(row=>row.type==='loadPageESMForCompilation').payload.lockId,null);
+  if(world==='esm-page')
+    assert.equal(f.staticRequests.findLast(row=>row.type==='loadPageESMForCompilation').payload.lockId,null);
+  else assert.equal(f.staticRequests.some(row=>row.type==='loadPageESMForCompilation'),false);
   if(world==='esm-controller'){assert.equal(f.starts.length,1);await f.finish(7);}
   else assert.equal(f.previews.length,1);
 });
@@ -1661,10 +1804,13 @@ test('Page ESM result must carry the actual compiled source hash',async t=>{
   assert.match(f.find('page-preview-status').textContent,/E_STATIC_ESM_OUTPUT/);
   assert.equal(f.find('page-candidate-save').disabled,true);
 });
-test('missing ESM approval never loads a compiler or starts a run',async t=>{
-  const f=await staticESMFixture(t,{approved:false});
-  await f.click('page-preview-run');await f.settle();
-  await f.world('esm-controller');await f.click('script-run');await f.settle();
+test('missing Controller ESM source permission never compiles or starts a run',async t=>{
+  const f=await staticESMFixture(t,{permissionGranted:false});
+  await new Promise(resolve=>setTimeout(resolve,240));for(let n=0;n<8;n++)await tick();
+  await f.click('script-run');await f.settle();
+  await waitForComponentUI(()=>/E_REMOTE_PERMISSION|E_DEPENDENCY_PERMISSION|来源权限/.test(f.find('script-status').textContent),
+    'Controller source permission denial should reach final status; current='+f.find('script-status').textContent);
   assert.equal(f.compiled.length,0);assert.equal(f.previews.length,0);assert.equal(f.starts.length,0);
   assert.equal(f.staticRequests.some(row=>row.type==='loadPageESMForCompilation'),false);
+  assert.match(f.find('script-status').textContent,/E_REMOTE_PERMISSION|E_DEPENDENCY_PERMISSION|来源权限/);
 });

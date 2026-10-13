@@ -39,7 +39,9 @@ function fixture({missingOrigin=false,denyOrigin=false}={}){
     const missingUrls=!present.has(requestedRoot)?[requestedRoot]:!present.has(child)?[child]:[];
     return {remoteRoots:[requestedRoot],missingUrls,complete:missingUrls.length===0,modules:modules.map(row=>({url:row.url,children:row.url===requestedRoot?[child]:[]}))};
   },cancel(){}};
-  const api={permissions:{contains:async()=>grant,request:request=>{
+  const added=new Set(),removed=new Set();
+  const event=listeners=>({addListener:fn=>listeners.add(fn),removeListener:fn=>listeners.delete(fn)});
+  const api={permissions:{onAdded:event(added),onRemoved:event(removed),contains:async()=>grant,request:request=>{
     assert.equal(inClick,true,'Chrome permissions.request must happen synchronously in trusted Run');
     f.permissions.push(request);
     if(!denyOrigin)grant=true;
@@ -49,8 +51,28 @@ function fixture({missingOrigin=false,denyOrigin=false}={}){
   f.get=id=>nodes.get('page-component-remote'+id);f.click=trusted=>f.get('-prepare').click(trusted);
   f.runClick=()=>{inClick=true;try{return f.controller.confirmRun({isTrusted:true},f.source);}
     finally{inClick=false;}};
+  f.changeGrant=value=>{grant=value;for(const listener of value?added:removed)listener({origins:[root]});};
   return f;
 }
+
+for(const framework of ['controller','react'])test('R7.8 '+framework+' source consent recovers after native revoke and restore',async t=>{
+  const f=fixture({denyOrigin:true});t.after(()=>f.controller.dispose());
+  f.source.framework=framework;f.controller.refresh();
+  const ready=async()=>{
+    for(let i=0;i<60&&!f.controller.readyForRun;i++)await new Promise(resolve=>setTimeout(resolve,20));
+    assert.equal(f.controller.readyForRun,true);
+  };
+  await ready();await f.runClick();assert.equal(f.permissions.length,0);
+  f.changeGrant(false);
+  assert.equal(f.controller.readyForRun,false,'permission removal must invalidate stale ready state');
+  await ready();assert.equal(f.permissions.length,0,'re-prime must remain read-only');
+  await assert.rejects(f.runClick(),{code:'E_PERMISSION'});
+  f.changeGrant(true);
+  assert.equal(f.controller.readyForRun,false,'restoration must re-prime the cleared consent observation');
+  await ready();await f.runClick();
+  assert.equal(f.permissions.length,1,'restored grant does not issue another permission request');
+  assert.equal(f.calls.length,0,'permission changes do not download, approve or execute code');
+});
 
 test('component source preparation displays and confirms every new URL; inspection, Run and fixed reads never download',async t=>{
   const f=fixture();t.after(()=>f.controller.dispose());

@@ -1,0 +1,45 @@
+{
+  "createdAt": "2026-10-13T19:09:59.692473+00:00",
+  "baseHead": "3c19c71b36f656da941ff2b690bf67420d9c571a",
+  "baseTreeHash": "b68f79cfac2d77fade12be5cbe2635a4e72d3c22",
+  "overlays": [
+    {
+      "path": "src/ui/script-editor.js",
+      "sha256": "0123fa37b053f8182f2207947cf59eabed88c0af0713469ff34b0ef6e9300af0",
+      "bytes": 100144
+    },
+    {
+      "path": "tests/environment/script-editor.test.mjs",
+      "sha256": "d92b0ea57b7689125037ca02262e612703814919062a935194b983ee26554e26",
+      "bytes": 126374
+    },
+    {
+      "path": "examples/programs/single-file/controller-d3-chromepage-esm.js",
+      "sha256": "1188c60211f3d483231ccf0ee1fbbaf63f721bce94af19e2b8f3192f9de406d2",
+      "bytes": 1203
+    },
+    {
+      "path": "examples/programs/single-file/README-import-r78.zh-CN.md",
+      "sha256": "a896dd3fde131963175e2a8fcd619d26efa034d28be34f6d97c9ad288317a706",
+      "bytes": 2203
+    },
+    {
+      "path": "tests/framework/controller-d3-chromepage-r78-cft-cycle.mjs",
+      "sha256": "5c6aeaea32f4281e7163889fce4932f9af113f0d6a47f6f1055fcc576a7fe9b1",
+      "bytes": 12765
+    },
+    {
+      "path": "tests/framework/controller-d3-scheduled-r78-cft-cycle.mjs",
+      "sha256": "dd12ed56204409534b5b4e1122747857bc857828def8ad65cfcad26681d586a6",
+      "bytes": 23560
+    },
+    {
+      "path": "tests/framework/controller-pinned-npm-r74-cft-cycle.mjs",
+      "sha256": "371f4dc4d8d5f1a58f436ea69401c634797a4cfdaa6b9bded3ee2963cce98634",
+      "bytes": 6135
+    }
+  ],
+  "gitWorktree": false,
+  "otherUncommittedChangesIncluded": false,
+  "purpose": "Final current-main-plus-task snapshot; original fixed budget and compiler/security gates"
+}

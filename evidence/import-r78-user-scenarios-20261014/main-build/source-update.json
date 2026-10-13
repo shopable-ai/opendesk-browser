@@ -1,0 +1,8 @@
+{
+  "at": "2026-10-13T18:44:31.660026+00:00",
+  "path": "src/ui/script-editor.js",
+  "sha256": "9a7c8eb459830e913940336c3f282f626184e8a890a8fd9b174735556fd11832",
+  "reason": "R78 source/header relationship and exact saved executable review repairs",
+  "baseFullBuildStatus": "FAIL tool-shell 526505 > 524288",
+  "validation": "affected entry only; no BUILD PASS on incomplete package"
+}

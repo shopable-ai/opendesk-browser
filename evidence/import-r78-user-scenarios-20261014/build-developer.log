@@ -1,0 +1,18 @@
+FAILED_BUILD_DIAGNOSTIC=/Users/shopme/Documents/workspace/opendesk-browser/evidence/import-r78-user-scenarios-20261014/build/build-production-failed-1791913682636-d2c614da-4319-404b-b30b-d631a60059f3.json
+node:internal/fs/promises:1287
+  return new FileHandle(await PromisePrototypeThen(
+                        ^
+
+Error: ENOENT: no such file or directory, open 'docs/contracts/licenses/todo-user-vue-MIT.txt'
+    at async open (node:internal/fs/promises:1287:25)
+    at async readFile (node:internal/fs/promises:1938:14)
+    at async file:///Users/shopme/Documents/workspace/opendesk-browser/.runtime/tests/import-r78/candidate/scripts/build.mjs:19:62
+    at async Promise.all (index 0)
+    at async file:///Users/shopme/Documents/workspace/opendesk-browser/.runtime/tests/import-r78/candidate/scripts/build.mjs:28:16 {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'docs/contracts/licenses/todo-user-vue-MIT.txt'
+}
+
+Node.js v26.3.1

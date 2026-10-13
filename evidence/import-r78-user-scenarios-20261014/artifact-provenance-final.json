@@ -1,0 +1,30 @@
+{
+  "at": "2026-10-13T18:59:45.187922+00:00",
+  "artifactPackageHash": "01a79da5b9f3cb3e3041e26f6acdf766bded7fb0645743939af24db220732c75",
+  "status": "R77_FROZEN_BUILD_AND_VERIFY_PASS",
+  "receipt": {
+    "path": "docs/framework/workstreams/evidence/import-r77-20261014/build-final-02/build-production-developer-latest.json",
+    "sha256": "161f3355c7f298d378686f92347a12921f5a10dff91fadfa725333c411ba37c8",
+    "attemptId": "5609e0c2-994a-4494-93a1-d0240badd5a7"
+  },
+  "verify": {
+    "path": "docs/framework/workstreams/evidence/import-r77-20261014/build-final-02/verify-developer.json",
+    "sha256": "fd3cfc57a7f74d15b833a238cba38dd90663a7f28c6cbf14b57a16fa3c573706"
+  },
+  "scope": "Matching frozen R77 package for R78 user-code CFT. Does not include new R78 script-editor guard or current parallel main.",
+  "supersedes": "Earlier receipt hash 059fac... was a different build attempt; retain original logs. A later original build-final-02 receipt now binds the actual tested 01a79 package.",
+  "installablePackages": [
+    {
+      "path": "evidence/import-r78-user-scenarios-20261014/packages/import-max-probe.opendesk-tool.json",
+      "sha256": "fecc6cfcf224250912e20bd3e59ae3c5ddf67f9ecf0365bf10baee426a9799f4",
+      "bytes": 3126,
+      "original": "docs/framework/workstreams/evidence/import-r77-20261014/tool-build/import-max-probe-final.opendesk-tool.json"
+    },
+    {
+      "path": "evidence/import-r78-user-scenarios-20261014/packages/import-classic-probe.opendesk-tool.json",
+      "sha256": "1c8124021d84f65e193157ff885d880174791924bd72c9ca9b9ab3acfa995f9a",
+      "bytes": 4452,
+      "original": "docs/framework/workstreams/evidence/import-r77-20261014/tool-build/import-classic-probe.opendesk-tool.json"
+    }
+  ]
+}

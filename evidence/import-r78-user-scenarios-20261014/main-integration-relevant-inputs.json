@@ -1,0 +1,72 @@
+{
+  "baseHead": "b2c0e1fa885328f986c3738f3ed4a3a8e1421d27",
+  "observedHead": "d0da6299b9bb2c45055d34e6ded52fc7c679e8d0",
+  "files": [
+    {
+      "path": "src/ui/script-editor.js",
+      "sourceHash": "3993e809a8dd5af038a901c1b3c502c969e46a9505de498f5579545bf35d04fb",
+      "snapshotHash": "3993e809a8dd5af038a901c1b3c502c969e46a9505de498f5579545bf35d04fb",
+      "same": true
+    },
+    {
+      "path": "src/ui/page-component-remote.js",
+      "sourceHash": "651e2cafe62657a73ed0504eb020276f75253c049f84fbf0d950d5e50e7f4f1b",
+      "snapshotHash": "651e2cafe62657a73ed0504eb020276f75253c049f84fbf0d950d5e50e7f4f1b",
+      "same": true
+    },
+    {
+      "path": "src/libs/page-frameworks/controller-esm-linker-r4.mjs",
+      "sourceHash": "408be17a6b358af2a727e6c8e4d103805a4155f0e6af8ff527541b9fbe3f0340",
+      "snapshotHash": "408be17a6b358af2a727e6c8e4d103805a4155f0e6af8ff527541b9fbe3f0340",
+      "same": true
+    },
+    {
+      "path": "src/scripting/sandbox/worker-runtime.js",
+      "sourceHash": "7af73751eaa611f8a2cd6019f7c513bdb15150ccd6d600d3fb4a2de015f2938a",
+      "snapshotHash": "7af73751eaa611f8a2cd6019f7c513bdb15150ccd6d600d3fb4a2de015f2938a",
+      "same": true
+    },
+    {
+      "path": "src/framework/ChromePage.js",
+      "sourceHash": "dd6db6a2aac3cd1c7041201c1fced199528455c21fc6dd4f208693b99756e36f",
+      "snapshotHash": "dd6db6a2aac3cd1c7041201c1fced199528455c21fc6dd4f208693b99756e36f",
+      "same": true
+    },
+    {
+      "path": "src/framework/context.js",
+      "sourceHash": "bd954e1c81e1e7230fdb5f5de0c4f6c608e0a3ba282ad73013b82e0e65319646",
+      "snapshotHash": "bd954e1c81e1e7230fdb5f5de0c4f6c608e0a3ba282ad73013b82e0e65319646",
+      "same": true
+    },
+    {
+      "path": "src/framework/locator.js",
+      "sourceHash": "562bcc38f3311adb0bca969dd47770ad07fd34d00cbf8f22c4e261e87ca9662d",
+      "snapshotHash": "562bcc38f3311adb0bca969dd47770ad07fd34d00cbf8f22c4e261e87ca9662d",
+      "same": true
+    },
+    {
+      "path": "src/scripting/sandbox/page-proxy.js",
+      "sourceHash": "e500ec36377240bf626e0546f2029e1e327f155f30f9c41a815b4679d0ec6c15",
+      "snapshotHash": "e500ec36377240bf626e0546f2029e1e327f155f30f9c41a815b4679d0ec6c15",
+      "same": true
+    },
+    {
+      "path": "src/ui/page-dependencies.js",
+      "sourceHash": "2a06420d2e7f08cca144f7880c3cd1f06c5b547a669767163bec0d2dcfd065fa",
+      "snapshotHash": "2a06420d2e7f08cca144f7880c3cd1f06c5b547a669767163bec0d2dcfd065fa",
+      "same": true
+    },
+    {
+      "path": "scripts/build-sidebar-tool.mjs",
+      "sourceHash": "e0305c422fef0188ed71d50f5169e7f013db2db89b243b1d5cc5309c544f02f7",
+      "snapshotHash": "e0305c422fef0188ed71d50f5169e7f013db2db89b243b1d5cc5309c544f02f7",
+      "same": true
+    },
+    {
+      "path": "src/sidebar-tools/bridge.js",
+      "sourceHash": "bc823baf295d434c89ca217991dc1441d0781d64ffad56bbb036a15411ba2f71",
+      "snapshotHash": "bc823baf295d434c89ca217991dc1441d0781d64ffad56bbb036a15411ba2f71",
+      "same": true
+    }
+  ]
+}

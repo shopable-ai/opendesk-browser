@@ -1,0 +1,40 @@
+{
+  "baseHead": "3c19c71b36f656da941ff2b690bf67420d9c571a",
+  "gitWorktree": false,
+  "copiedSourceSnapshot": "main-candidate-final",
+  "overlays": [
+    {
+      "path": "src/ui/script-editor.js",
+      "sha256": "3993e809a8dd5af038a901c1b3c502c969e46a9505de498f5579545bf35d04fb"
+    },
+    {
+      "path": "tests/environment/script-editor.test.mjs",
+      "sha256": "7bc7fad654e84a895e3266f4286ba28c4865e6b8da42761f0cd5f4261b4a1fca"
+    },
+    {
+      "path": "tests/framework/controller-d3-chromepage-r78-cft-cycle.mjs",
+      "sha256": "5c6aeaea32f4281e7163889fce4932f9af113f0d6a47f6f1055fcc576a7fe9b1"
+    },
+    {
+      "path": "tests/framework/controller-d3-scheduled-r78-cft-cycle.mjs",
+      "sha256": "2770fe9ad646e1074d68b5870a6fd435236a30ad3453e52f2181a7ae791bdd03"
+    },
+    {
+      "path": "tests/framework/controller-d3-restart-r78-cft-cycle.mjs",
+      "sha256": "4332015045d977a49f60ad1aa1349dc982fd2531237f8ca062ceec3e062f7b04"
+    },
+    {
+      "path": "tests/framework/controller-pinned-npm-r74-cft-cycle.mjs",
+      "sha256": "371f4dc4d8d5f1a58f436ea69401c634797a4cfdaa6b9bded3ee2963cce98634"
+    },
+    {
+      "path": "tests/framework/page-dependency-r72-cft-cycle.mjs",
+      "sha256": "3d6cf77bd61b370b801a4e816d6d55256ff6fbb6fa6567622aee6b153c2d14f4"
+    },
+    {
+      "path": "tests/framework/page-browser-worker-r243-cft.mjs",
+      "sha256": "15659abd905349f41fdb56d0779656add6d5ca7cd1ad146f629527d83daace39"
+    }
+  ],
+  "reason": "Native offline fresh Load exposed missing ESM source-permission warm refresh"
+}

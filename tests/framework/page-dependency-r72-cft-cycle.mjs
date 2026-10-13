@@ -108,6 +108,8 @@ export async function runR72PageClassicCycle({sidebar,website,browser,base,exten
         await runR72ControllerCsvCycle({sidebar,website,browser,until,clickReal,type,read,report,observedRequests:observedCsv});
       }
       await runR74ControllerPinnedNpmCycle({sidebar,website,browser,until,clickReal,type,read,report,observedRequests:observedNpm});
+      if(process.env.OPENDESK_R78_ALL_SCENARIOS==='1'&&process.env.OPENDESK_R77_IMPORT_SCENARIOS==='classic')
+        await runR76PageESMCycle({sidebar,website,browser,until,clickReal,type,read,report,observedRequests:observD3});
     }
   }catch(error){
     if(proof.status!=='CHROME_PASS_R72_ONE_CLICK_AB'){
@@ -120,6 +122,7 @@ export async function runR72PageClassicCycle({sidebar,website,browser,base,exten
 }
 
 async function runR76PageESMCycle({sidebar,website,browser,until,clickReal,type,read,report,observedRequests}){
+  const initialRequests=observedRequests.length;
   const proof={caseId:'R76-PAGE-URL-ESM-D3-DOM',world:'USER_SCRIPT',
     url:D3_ESM_URL,programId:'r76-page-esm-d3',authorSourceHash:createHash('sha256').update(D3_ESM_SOURCE).digest('hex'),status:'IN_PROGRESS'};
   report.tests.push(proof);
@@ -152,9 +155,9 @@ async function runR76PageESMCycle({sidebar,website,browser,until,clickReal,type,
   try{
     await type('document.querySelector("#script-id")',proof.programId);
     await type('document.querySelector("#script-source")',D3_ESM_SOURCE);
-    assert.equal(observedRequests.length,0,'typing import cannot download D3');
+    assert.equal(observedRequests.length,initialRequests,'typing import cannot download D3');
     const first=await run('first'),requestCount=observedRequests.length;
-    assert(requestCount>0,'first genuine Page Run must fetch the pinned D3 source');
+    assert(requestCount>initialRequests,'first genuine Page Run must prepare D3 in its own execution world');
     assert(observedRequests.every(row=>row.method==='GET'&&row.url.startsWith(D3_ESM_URL)));
     const repeat=await run('repeat');
     assert.equal(repeat.sourceHash,first.sourceHash,'second Run must use the exact same compiled bytes');
@@ -168,11 +171,12 @@ async function runR76PageESMCycle({sidebar,website,browser,until,clickReal,type,
       const state=await read('(()=>{const el=document.querySelector("#page-candidate-status");'+
         'return {state:el?.dataset.state,text:el?.textContent}})()');
       if(state.state==='error')throw Error(state.text);
-      return /已保存 Page Candidate/.test(state.text||'')?state.text:null;
+      return /已保存 Page Candidate/.test(state.text||'')&&state.text.includes(proof.programId)?state.text:null;
     },'saved Page ESM author and compiled source candidate',40000);
     proof.first=first;proof.repeat=repeat;
-    proof.network={firstRequests:requestCount,repeatRequests:0};
+    proof.network={priorScenarioRequests:initialRequests,firstRequests:requestCount-initialRequests,repeatRequests:0};
     proof.saved=saved;
+    await until(()=>read('!document.querySelector("#script-load").disabled'),'Page Candidate save released editor');
     await clickReal(sidebar,'document.querySelector("#page-program-load")');
     await until(()=>read('document.querySelector("#page-program-status").textContent.includes("已载入固定 Page 源码")'), 'saved Page load completed');
     await until(async()=>(await read('document.querySelector("#script-source").value'))===D3_ESM_SOURCE,'saved Page author source restored');
@@ -261,9 +265,12 @@ async function runR77ControllerD3Cycle({sidebar,website,browser,until,clickReal,
     await clickReal(sidebar,'document.querySelector("#script-load")');
     await until(()=>read('document.querySelector("#script-status").dataset.state==="loaded"'),'saved Controller author source loaded');
     proof.savedRecords=await readR77Records(read,proof.programId);
-    assert(proof.savedRecords.some(row=>row.store==='scriptRevisions'&&row.value.sourceUtf8),'fixed Controller revision must be durable');
+    const revision=await read('Number(document.querySelector("#script-revision").value)');
+    const saved=proof.savedRecords.find(row=>row.store==='scriptRevisions'&&row.value.revision===revision)?.value;
+    assert(saved?.sourceUtf8,'fixed Controller revision must be durable');
+    assert.equal(saved.contentHash,createHash('sha256').update(saved.sourceUtf8).digest('hex'));
     proof.postSaveDraftRun=await run(proof.repeat.runId);
-    assert.equal(proof.postSaveDraftRun.sourceHash,proof.first.sourceHash);
+    assert.equal(proof.postSaveDraftRun.sourceHash,saved.contentHash,'verified saved author rerun uses exact persisted executable bytes');
     assert.equal(observedRequests.length,after);
     assert.equal(await website.session.read('typeof window.page'),'undefined');
     proof.network={firstRequests:after-before,repeatRequests:0,postSaveDraftRequests:0,pageRequestsBefore:before};

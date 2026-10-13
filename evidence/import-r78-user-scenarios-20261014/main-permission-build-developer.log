@@ -1,0 +1,12 @@
+file:///Users/shopme/Documents/workspace/opendesk-browser/.runtime/tests/import-r78/main-permission-final/scripts/development-lock.mjs:29
+    guard.once('error',error=>reject(Error(`Output guard 127.0.0.1:${port} unavailable (${error.code}). Another service/build may be running; stop its owner before retrying.`)));
+                                     ^
+
+Error: Output guard 127.0.0.1:43120 unavailable (EADDRINUSE). Another service/build may be running; stop its owner before retrying.
+    at Server.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/.runtime/tests/import-r78/main-permission-final/scripts/development-lock.mjs:29:38)
+    at Object.onceWrapper (node:events:631:12)
+    at Server.emit (node:events:509:20)
+    at emitErrorNT (node:net:2045:8)
+    at process.processTicksAndRejections (node:internal/process/task_queues:90:21)
+
+Node.js v26.3.1

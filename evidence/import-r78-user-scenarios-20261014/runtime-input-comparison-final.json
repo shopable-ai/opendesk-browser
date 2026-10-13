@@ -1,0 +1,62 @@
+[
+  {
+    "path": "src/ui/script-editor.js",
+    "workspace": "0123fa37b053f8182f2207947cf59eabed88c0af0713469ff34b0ef6e9300af0",
+    "candidate": "0123fa37b053f8182f2207947cf59eabed88c0af0713469ff34b0ef6e9300af0",
+    "same": true
+  },
+  {
+    "path": "src/ui/controller-esm-source.js",
+    "workspace": "b9a0584b2f6d04b8f7bad3d47701c90e89e81dc2ec8c3d24b17dc64f9bee920e",
+    "candidate": "b9a0584b2f6d04b8f7bad3d47701c90e89e81dc2ec8c3d24b17dc64f9bee920e",
+    "same": true
+  },
+  {
+    "path": "src/ui/page-component-remote.js",
+    "workspace": "651e2cafe62657a73ed0504eb020276f75253c049f84fbf0d950d5e50e7f4f1b",
+    "candidate": "651e2cafe62657a73ed0504eb020276f75253c049f84fbf0d950d5e50e7f4f1b",
+    "same": true
+  },
+  {
+    "path": "src/libs/page-frameworks/controller-esm-linker-r4.mjs",
+    "workspace": "408be17a6b358af2a727e6c8e4d103805a4155f0e6af8ff527541b9fbe3f0340",
+    "candidate": "408be17a6b358af2a727e6c8e4d103805a4155f0e6af8ff527541b9fbe3f0340",
+    "same": true
+  },
+  {
+    "path": "src/scripting/sandbox/worker-runtime.js",
+    "workspace": "7af73751eaa611f8a2cd6019f7c513bdb15150ccd6d600d3fb4a2de015f2938a",
+    "candidate": "7af73751eaa611f8a2cd6019f7c513bdb15150ccd6d600d3fb4a2de015f2938a",
+    "same": true
+  },
+  {
+    "path": "src/framework/ChromePage.js",
+    "workspace": "dd6db6a2aac3cd1c7041201c1fced199528455c21fc6dd4f208693b99756e36f",
+    "candidate": "dd6db6a2aac3cd1c7041201c1fced199528455c21fc6dd4f208693b99756e36f",
+    "same": true
+  },
+  {
+    "path": "src/framework/context.js",
+    "workspace": "bd954e1c81e1e7230fdb5f5de0c4f6c608e0a3ba282ad73013b82e0e65319646",
+    "candidate": "bd954e1c81e1e7230fdb5f5de0c4f6c608e0a3ba282ad73013b82e0e65319646",
+    "same": true
+  },
+  {
+    "path": "src/framework/locator.js",
+    "workspace": "562bcc38f3311adb0bca969dd47770ad07fd34d00cbf8f22c4e261e87ca9662d",
+    "candidate": "562bcc38f3311adb0bca969dd47770ad07fd34d00cbf8f22c4e261e87ca9662d",
+    "same": true
+  },
+  {
+    "path": "src/scripting/sandbox/page-proxy.js",
+    "workspace": "e500ec36377240bf626e0546f2029e1e327f155f30f9c41a815b4679d0ec6c15",
+    "candidate": "e500ec36377240bf626e0546f2029e1e327f155f30f9c41a815b4679d0ec6c15",
+    "same": true
+  },
+  {
+    "path": "examples/programs/single-file/controller-d3-chromepage-esm.js",
+    "workspace": "1188c60211f3d483231ccf0ee1fbbaf63f721bce94af19e2b8f3192f9de406d2",
+    "candidate": "1188c60211f3d483231ccf0ee1fbbaf63f721bce94af19e2b8f3192f9de406d2",
+    "same": true
+  }
+]

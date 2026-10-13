@@ -1,0 +1,81 @@
+{
+  "candidateSnapshot": "/Users/shopme/Documents/workspace/opendesk-browser/.runtime/tests/import-r78/main-permission-final",
+  "inputManifest": "main-permission-final-inputs.json",
+  "snapshotRecipe": "main-integration-final-recipe.json with final task-owned overlay; existing node_modules cloned, never installed or upgraded",
+  "builds": [
+    {
+      "argv": [
+        "node",
+        "scripts/build-page-edition-r245.mjs",
+        "production"
+      ],
+      "cwd": "/Users/shopme/Documents/workspace/opendesk-browser/.runtime/tests/import-r78/main-permission-final",
+      "env": {
+        "OPENDESK_OUTPUT_GUARD_PORT": "43121",
+        "OPENDESK_BUILD_EVIDENCE_DIR": "/Users/shopme/Documents/workspace/opendesk-browser/evidence/import-r78-user-scenarios-20261014/main-permission-build"
+      }
+    },
+    {
+      "argv": [
+        "node",
+        "scripts/build.mjs",
+        "production"
+      ],
+      "cwd": "/Users/shopme/Documents/workspace/opendesk-browser/.runtime/tests/import-r78/main-permission-final",
+      "env": {
+        "OPENDESK_OUTPUT_GUARD_PORT": "43121",
+        "OPENDESK_BUILD_EVIDENCE_DIR": "/Users/shopme/Documents/workspace/opendesk-browser/evidence/import-r78-user-scenarios-20261014/main-permission-build"
+      }
+    }
+  ],
+  "node": {
+    "argv": [
+      "node",
+      "--test",
+      "tests/environment/page-component-remote.test.mjs",
+      "tests/environment/script-editor.test.mjs",
+      "tests/environment/controller-esm-runtime-r4.test.mjs",
+      "tests/framework/r5-modern-page-api.test.mjs",
+      "tests/environment/dependency-manager.test.mjs"
+    ],
+    "cwd": "/Users/shopme/Documents/workspace/opendesk-browser"
+  },
+  "chrome": {
+    "argv": [
+      "node",
+      "tests/framework/page-browser-worker-r243-cft.mjs"
+    ],
+    "cwd": "/Users/shopme/Documents/workspace/opendesk-browser/.runtime/tests/import-r78/main-permission-final",
+    "env": {
+      "CHROME_FOR_TESTING_BIN": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+      "GITHUB_SHA": "b2c0e1fa885328f986c3738f3ed4a3a8e1421d27",
+      "OPENDESK_R243_BROWSER_FULL_UI": "1",
+      "OPENDESK_R72_DEPENDENCY_NATIVE_SMOKE": "1",
+      "OPENDESK_R77_IMPORT_SCENARIOS": "classic",
+      "OPENDESK_R78_ALL_SCENARIOS": "1",
+      "OPENDESK_R78_SCHEDULE": "1",
+      "OPENDESK_R78_OFFLINE_RESTART": "1",
+      "OPENDESK_DEV_CHROME_RESTART": "1",
+      "OPENDESK_R78_NATIVE_SECURITY": "1",
+      "OPENDESK_R78_SITE_ACCESS_NATIVE": "1",
+      "OPENDESK_DEV_PACKAGE_DIR": "/Users/shopme/Documents/workspace/opendesk-browser/.runtime/tests/import-r78/main-permission-final/dist/production-developer",
+      "OPENDESK_DEV_EVIDENCE": "/Users/shopme/Documents/workspace/opendesk-browser/evidence/import-r78-user-scenarios-20261014/chrome-main-permission-18"
+    },
+    "nativeInput": "Watch own CFT PID and site-access-ready.json; use real Mac Chrome site access selector ON_CLICK. After raw no-admission observation and site-access-restore-ready.json, restore ON_ALL_SITES. Do not set DOM values or permissions from CDP. DevTools fault is native Console input of the single exact owned test-cache asset command."
+  },
+  "tools": {
+    "argv": [
+      "node",
+      "--test",
+      "tests/framework/page-import-fixed-tools-cft.mjs"
+    ],
+    "cwd": "/Users/shopme/Documents/workspace/opendesk-browser",
+    "env": {
+      "OPENDESK_FIXED_TOOLS_CFT": "1",
+      "OPENDESK_FIXED_TOOLS_CANDIDATE_DIST": "/Users/shopme/Documents/workspace/opendesk-browser/.runtime/tests/import-r78/main-permission-final/dist/production-developer",
+      "OPENDESK_FIXED_TOOLS_EVIDENCE_DIR": "/Users/shopme/Documents/workspace/opendesk-browser/evidence/import-r78-user-scenarios-20261014/chrome-main-permission-tools",
+      "OPENDESK_IMPORT_MAX_TOOL_PACKAGE": "/Users/shopme/Documents/workspace/opendesk-browser/evidence/import-r78-user-scenarios-20261014/packages/import-max-probe.opendesk-tool.json",
+      "OPENDESK_IMPORT_CLASSIC_TOOL_PACKAGE": "/Users/shopme/Documents/workspace/opendesk-browser/evidence/import-r78-user-scenarios-20261014/packages/import-classic-probe.opendesk-tool.json"
+    }
+  }
+}

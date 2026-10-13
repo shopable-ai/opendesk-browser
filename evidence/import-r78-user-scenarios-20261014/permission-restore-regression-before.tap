@@ -1,0 +1,54 @@
+✖ R7.8 controller source consent recovers after native revoke and restore (213.378167ms)
+✖ R7.8 react source consent recovers after native revoke and restore (209.989375ms)
+✔ component source preparation displays and confirms every new URL; inspection, Run and fixed reads never download (1.940209ms)
+✔ Cancel and source changes discard late downloads before any transitive acquisition, version approval or Run (1.045959ms)
+✔ R7.2 Controller/React ESM Run automatically pins complete transitive module graph (1.048666ms)
+✔ R7.2 auto graph acquisition stops after a cancellation, with no transitive fetch or approval (0.518708ms)
+✔ R7.2 static ESM sources prime read-only permission; only trusted Run requests a missing origin (209.758042ms)
+✔ R7.2 changing source invalidates cached ESM grant observation; Chrome rejection is fail-closed (418.578208ms)
+✔ R7.2 ESM auto fetch rejects moving branches, latest and unpinned hosts before network (0.6925ms)
+✔ R7.4 bare pinned npm import primes native origin grant without custom directives (211.744ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 8
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1317.553916
+
+✖ failing tests:
+
+test at tests/environment/page-component-remote.test.mjs:58:47
+✖ R7.8 controller source consent recovers after native revoke and restore (213.378167ms)
+  AssertionError [ERR_ASSERTION]: permission removal must invalidate stale ready state
+  
+  true !== false
+  
+      at TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/environment/page-component-remote.test.mjs:67:10)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: true,
+    expected: false,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/environment/page-component-remote.test.mjs:58:47
+✖ R7.8 react source consent recovers after native revoke and restore (209.989375ms)
+  AssertionError [ERR_ASSERTION]: permission removal must invalidate stale ready state
+  
+  true !== false
+  
+      at TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/environment/page-component-remote.test.mjs:67:10)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: true,
+    expected: false,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

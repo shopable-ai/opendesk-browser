@@ -1,0 +1,12 @@
+✔ fixed React/Vue sidebar tools controlled import/install driver (10118.081708ms)
+﹣ fixed tools driver schema and package binding (0.277583ms) # Optional probe run does not require historical React/Vue package files
+✔ optional import probes bind current package bytes without launching Chrome (3.145459ms)
+✔ probe network observer enables observation before resuming each iframe (0.654958ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 1
+ℹ todo 0
+ℹ duration_ms 10202.60275

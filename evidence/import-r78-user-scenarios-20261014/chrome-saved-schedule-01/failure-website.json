@@ -1,0 +1,97 @@
+{
+  "url": "http://127.0.0.1:43111/demo-form.html",
+  "body": "O\nOpenDesk Browser\nBROWSER TEST LAB\nLOCAL FIXTURE · 43111\n↺ 重置场景\n\nAUTOMATION / INTERACTION / LOCATOR\n\nBrowser Test Lab\n\nOpenDesk Browser 的浏览器交互实验台：操作真实 DOM，检查选择器与响应状态，并为 Sidebar 草稿和 Page API 提供稳定验收目标。\n\n原生 DOM\n现代 Locator\n异步与取消\nFetch / axiosx\n07SCENES\n\n一个入口 · 可复现测试\n\n01\n文本与列表\n02\n点击与显隐\n03\n异步与取消\n04\n基础表单\n05\n动态搜索\n06\n真实 HTTP 请求\n07\nLocator 专项\n\n01 — 06 / CORE INTERACTIONS\n\n01\n文本读取\n周末阅读清单\n扩展按钮位置\n模拟区域重绘\n0\n\n本周共有 3 项阅读计划，当前状态：等待开始。\n\n产品设计\n浏览器技术\n交互体验\n当前网页标题\n更新网页标题\n\n供 Page UI 点击时读取标题验收使用。\n\n02\n按钮与 DOM 变化\n点击一次\n展开文字\n\n累计点击 0 次\n\n03\n网络请求与异步等待\n显示延迟\n300 毫秒\n1.2 秒\n3 秒\n请求成功\nHTTP 404\n模拟超时\n取消\n尚未发起请求\n04\n简单表单\n姓名\n咨询类型\n一般问题\n产品建议\n技术支持\n提交\n05\n动态搜索 · Locator 测试\n搜索关键词\n搜索\n\n搜索完成\n\n结果：OpenDesk\n\n提交次数：4\n\n06\n真实 HTTP · SDK axiosx / Fetch 对照\n请求 URL\n请求通道\nOpenDesk SDK axiosx（默认）\n网页 Fetch（对照）\nHTTP Method\nGET\nPOST\n超时 (ms)\n示例地址（只填入，不发送）\n第三方 GET JSON · axiosx 默认\n第三方 POST JSON · 回显\n第三方 HTTP 429 · 限流\n第三方 HTTP 500 · 服务器故障\n第三方真实延迟 · 2 秒\n第三方公网 IP · JSON\n本地同源 HTML · Fetch 对照\n本地 JSON · 200\n本地不存在 · 404\n本地 POST 回显 · 辅助服务\n本地 HTTP 429 · 辅助服务\n本地 HTTP 500 · 辅助服务\n本地真实延迟 · 辅助服务\n发送 GET\n取消请求\n\n默认以 OpenDesk SDK axiosx 请求第三方 HTTPS 测试服务；Fetch 仅供对照，不能作为 SDK 成功依据。只在点击发送后请求，网络驱动不携带 Cookie；第三方会看到请求及来源公网 IP。扩展自动提供 SDK axiosx；同源及本地实验页的固定第三方测试 Origin 无需逐页批准。只在点击发送后访问网络；其他跨站目标仍受控，绝不回退 Fetch。SDK 不支持此页面的取消接口。\n\n尚未发送请求\nHTTP\n—\n耗时\n—\n响应类型\n—\n响应 Headers\n\n07 / LOCATOR ACCEPTANCE PLAYGROUND\n\n07\nLocator 专项 · 唯一性与可操作性\n\n以下是可重复操作的真实 DOM Fixture。页面不会伪造 PASS；请通过扩展 Controller 的运行回执判定自动化成功。\n\nLOCATOR / 01\n同名元素与严格匹配\n\n两个按钮同名，getByRole('button',{name:'确认记录',exact:true}) 的计数应为 2，提交前必须唯一定位。\n\n确认记录\n确认记录\n\n等待操作 · 两个同名目标\n\nLOCATOR / 02\n禁用、ARIA 与只读\n\n检查 disabled、aria-disabled 和 readonly；不可操作项不得被无意写入或提交。\n\n只读样本\n原生禁用\nARIA 禁用\n\n预期：禁用元素不能提交；只读输入不能被 fill 覆盖。\n\nLOCATOR / 03\n遮挡与真实命中\n\n先保持覆盖层，验证目标不可点击；解除后验证可点击且不会重复触发。\n\n被遮挡的按钮\n遮挡层 · 阻止命中\n解除遮挡\n\n实际点击次数：0\n\nLOCATOR / 04\n延迟插入与等待\n\n点击后约 700ms 才生成目标。可验证 waitFor(visible)；重置取消尚未生效的回调。\n\n延迟生成目标\n\n尚未生成目标\n\n边界提示：这里的可视化 DOM 结果不是 Chrome 扩展验收证据。当前 Page API 不等于完整 Playwright；不承诺 Shadow DOM、跨 Frame、原生可信输入等能力。\n\n展开 Sidebar「开发」可运行的现代 Locator 示例\n\nPRODUCT TOOL / EXP-005 · LOCAL SELLER WORKFLOW\n\nEXP-005\nListing / SKU · 本地卖家数据检查\n\n这是可审计的本地商品测试数据，非真实商家后台。下方按钮只改变本区域字段；需在 OpenDesk「开发」手动运行 Listing 检查项目，再点击面板「检查当前商品」。不上传、不发布商品。\n\n正常商品\n字段缺失\nSKU 重复\n变体异常\n\n当前场景：正常商品（可继续手动编辑字段）\n\n商品标题\n主 SKU\n商品描述\n变体 SKU\t规格选项\t测试价格\t测试库存\n\t\t\t\n\t\t\t\n\n测试数据无币种、平台费率或售卖身份；价格仅作格式校验，不进行毛利或真实售价建议。手动编辑字段后，回到工具面板点击「检查当前商品」读取新数据。\n\n本地服务只托管测试 HTML。第 03 组以同源 fetch 验证 DOM 异步；第 06 组经授权的网页 SDK axiosx 测试真实公网 HTTP。仅用户点击才发请求，原生回执另查扩展后台。",
+  "inputs": [
+    {
+      "id": "page-title-input",
+      "value": "OpenDesk Browser · Browser Test Lab",
+      "disabled": false
+    },
+    {
+      "id": "name",
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": "keyword",
+      "value": "OpenDesk",
+      "disabled": false
+    },
+    {
+      "id": "api-url",
+      "value": "https://httpbingo.org/get?source=opendesk",
+      "disabled": false
+    },
+    {
+      "id": "api-timeout",
+      "value": "8000",
+      "disabled": false
+    },
+    {
+      "id": "api-body",
+      "value": "{\"hello\":\"OpenDesk\"}",
+      "disabled": false
+    },
+    {
+      "id": "locator-readonly-field",
+      "value": "不可覆盖",
+      "disabled": false
+    },
+    {
+      "id": "listing-title",
+      "value": "便携式阅读灯 · 暖白色",
+      "disabled": false
+    },
+    {
+      "id": "listing-parent-sku",
+      "value": "READ-LAMP-001",
+      "disabled": false
+    },
+    {
+      "id": "listing-description",
+      "value": "USB 供电，暖白色光，手动调节亮度",
+      "disabled": false
+    },
+    {
+      "id": "",
+      "value": "READ-WARM-01",
+      "disabled": false
+    },
+    {
+      "id": "",
+      "value": "暖白 / 小号",
+      "disabled": false
+    },
+    {
+      "id": "",
+      "value": "129.00",
+      "disabled": false
+    },
+    {
+      "id": "",
+      "value": "8",
+      "disabled": false
+    },
+    {
+      "id": "",
+      "value": "READ-COOL-02",
+      "disabled": false
+    },
+    {
+      "id": "",
+      "value": "冷白 / 小号",
+      "disabled": false
+    },
+    {
+      "id": "",
+      "value": "139.00",
+      "disabled": false
+    },
+    {
+      "id": "",
+      "value": "12",
+      "disabled": false
+    }
+  ],
+  "active": "keyword"
+}

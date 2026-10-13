@@ -1,0 +1,77 @@
+{
+  "at": "2026-10-13T20:27:31.838Z",
+  "exit": {
+    "code": 0,
+    "signal": null
+  },
+  "chromePidAlive": false,
+  "launcherPidAlive": false,
+  "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-cpm2xtjq",
+  "profileRemoved": true,
+  "adapter": {
+    "event": "adapter-cleanup",
+    "launcherPid": 83550,
+    "status": "PASS",
+    "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-cpm2xtjq",
+    "profileIdentity": [
+      16777234,
+      28315516
+    ],
+    "profileStatus": "removed",
+    "children": [
+      {
+        "pid": 83551,
+        "state": "exited",
+        "returncode": 0
+      }
+    ],
+    "residual": [],
+    "errors": [],
+    "events": [
+      {
+        "event": "started",
+        "at": 1791923165.5513752,
+        "generation": 1,
+        "pid": 83551,
+        "launcherPid": 83550,
+        "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-cpm2xtjq",
+        "profileDevice": 16777234,
+        "profileInode": 28315516,
+        "implementation": "/Users/shopme/.codex/skills/chrome-testing-keychain/scripts/launch.py",
+        "implementationSha256": "1b92b98e7442fdeae88dae0277604aedccfe487cfb8b80d9adf479c725398a36"
+      },
+      {
+        "event": "browser-exited",
+        "at": 1791923251.7960598,
+        "generation": 1,
+        "pid": 83551,
+        "launcherPid": 83550,
+        "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-cpm2xtjq",
+        "profileDevice": 16777234,
+        "profileInode": 28315516,
+        "returncode": 0,
+        "reason": "launcher stop"
+      }
+    ],
+    "attempts": 3,
+    "inspectionExitObservations": [],
+    "profileRemovalAttempts": [
+      {
+        "at": 1791923251.7965388,
+        "attempt": 1,
+        "profileDevice": 16777234,
+        "profileInode": 28315516,
+        "profileMode": 448,
+        "children": [
+          {
+            "pid": 83551,
+            "state": "exited",
+            "returncode": 0
+          }
+        ],
+        "state": "removed",
+        "finishedAt": 1791923251.833481
+      }
+    ]
+  }
+}

@@ -1,0 +1,113 @@
+{
+  "label": "import-max-probe",
+  "id": "import-max-probe",
+  "packageSha256": "fecc6cfcf224250912e20bd3e59ae3c5ddf67f9ecf0365bf10baee426a9799f4",
+  "installedDataPackageSha256": "fecc6cfcf224250912e20bd3e59ae3c5ddf67f9ecf0365bf10baee426a9799f4",
+  "capabilities": [],
+  "review": "\n            \n              D3 max import probe\n              v1.0.0\n            \n            Offline bundled d3-array 3.2.4 max in the existing opaque tool sandbox.\n            申请能力无需额外能力\n            文件：import-max-probe-final.opendesk-tool.json\n            \n              更新前请核对\n              \n              \n              工具数据：同一工具 ID 的已保存数据将保留；卸载时才删除。\n              \n            \n            确认安装\n          ",
+  "observations": [
+    {
+      "phase": "open",
+      "targetId": "55415D32322E2BE9AF319C58A22281EB",
+      "sessionId": "161B9362EEFD8ADB73F7863D65C6F686",
+      "hostFrame": {
+        "count": 1,
+        "src": "chrome-extension://kbeocokdaadgcpinbamkhfmjlhillanh/sidebar-tools/sandbox.html",
+        "sandbox": null
+      },
+      "seen": {
+        "result": "Tool D3 max = 5",
+        "environment": "typeof chrome = object; typeof chrome.tabs = undefined; typeof page = undefined",
+        "executions": "Executions in this iframe = 1",
+        "origin": "null",
+        "chromeTabs": "undefined",
+        "page": "undefined",
+        "url": "chrome-extension://kbeocokdaadgcpinbamkhfmjlhillanh/sidebar-tools/sandbox.html"
+      }
+    },
+    {
+      "phase": "reopen",
+      "targetId": "EF17541D9F857D747F7C07B5229227A8",
+      "sessionId": "43EEADD4E986028B6EDC33B6C44638F2",
+      "hostFrame": {
+        "count": 1,
+        "src": "chrome-extension://kbeocokdaadgcpinbamkhfmjlhillanh/sidebar-tools/sandbox.html",
+        "sandbox": null
+      },
+      "seen": {
+        "result": "Tool D3 max = 5",
+        "environment": "typeof chrome = object; typeof chrome.tabs = undefined; typeof page = undefined",
+        "executions": "Executions in this iframe = 1",
+        "origin": "null",
+        "chromeTabs": "undefined",
+        "page": "undefined",
+        "url": "chrome-extension://kbeocokdaadgcpinbamkhfmjlhillanh/sidebar-tools/sandbox.html"
+      }
+    }
+  ],
+  "networkRequests": [
+    {
+      "sessionId": "648EFAE39E1EB492BBE285CF580E7812",
+      "url": "chrome-extension://kbeocokdaadgcpinbamkhfmjlhillanh/sidebar-tools/bridge.js",
+      "type": "Script",
+      "initiator": {
+        "type": "parser",
+        "url": "chrome-extension://kbeocokdaadgcpinbamkhfmjlhillanh/sidebar-tools/sandbox.html",
+        "lineNumber": 4,
+        "columnNumber": 110
+      }
+    },
+    {
+      "sessionId": "648EFAE39E1EB492BBE285CF580E7812",
+      "url": "blob:null/816e3088-f0be-4451-8ea7-9834ac38f1ce",
+      "type": "Script",
+      "initiator": {
+        "type": "script",
+        "stack": {
+          "callFrames": [
+            {
+              "functionName": "",
+              "scriptId": "3",
+              "url": "chrome-extension://kbeocokdaadgcpinbamkhfmjlhillanh/sidebar-tools/bridge.js",
+              "lineNumber": 0,
+              "columnNumber": 49045
+            }
+          ]
+        }
+      }
+    },
+    {
+      "sessionId": "4381E32FD19923FD68FE965CA84EF6E1",
+      "url": "chrome-extension://kbeocokdaadgcpinbamkhfmjlhillanh/sidebar-tools/bridge.js",
+      "type": "Script",
+      "initiator": {
+        "type": "parser",
+        "url": "chrome-extension://kbeocokdaadgcpinbamkhfmjlhillanh/sidebar-tools/sandbox.html",
+        "lineNumber": 4,
+        "columnNumber": 110
+      }
+    },
+    {
+      "sessionId": "4381E32FD19923FD68FE965CA84EF6E1",
+      "url": "blob:null/5104be04-2de5-4aa3-9501-a912dfbd2ba7",
+      "type": "Script",
+      "initiator": {
+        "type": "script",
+        "stack": {
+          "callFrames": [
+            {
+              "functionName": "",
+              "scriptId": "3",
+              "url": "chrome-extension://kbeocokdaadgcpinbamkhfmjlhillanh/sidebar-tools/bridge.js",
+              "lineNumber": 0,
+              "columnNumber": 49045
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "removed": true,
+  "negativeNative": "NOT_TESTED",
+  "scope": "positive real import/install/open/close/reopen/uninstall only"
+}

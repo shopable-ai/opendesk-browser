@@ -1,0 +1,76 @@
+{
+  "baseHead": "b2c0e1fa885328f986c3738f3ed4a3a8e1421d27",
+  "snapshot": "/Users/shopme/Documents/workspace/opendesk-browser/.runtime/tests/import-r78/main-permission-final",
+  "gitWorktree": false,
+  "inputs": [
+    {
+      "path": "src/ui/script-editor.js",
+      "sha256": "3993e809a8dd5af038a901c1b3c502c969e46a9505de498f5579545bf35d04fb",
+      "snapshotMatches": true
+    },
+    {
+      "path": "src/ui/page-component-remote.js",
+      "sha256": "e7624567e0b6fb1e44f96411ec82968f4c1ef6ae61057c9257c4aec56655c1ca",
+      "snapshotMatches": true
+    },
+    {
+      "path": "tests/environment/script-editor.test.mjs",
+      "sha256": "40a263f9bc1bebccc9fbecc484052353f795a83700fd1d5654dfa804525c8556",
+      "snapshotMatches": true
+    },
+    {
+      "path": "tests/environment/page-component-remote.test.mjs",
+      "sha256": "77cc322478143c1fd0fb96918d8d68f889996e0fb04e932a2110190d8328da4b",
+      "snapshotMatches": true
+    },
+    {
+      "path": "examples/programs/single-file/controller-d3-chromepage-esm.js",
+      "sha256": "1188c60211f3d483231ccf0ee1fbbaf63f721bce94af19e2b8f3192f9de406d2",
+      "snapshotMatches": true
+    },
+    {
+      "path": "examples/programs/single-file/README-import-r78.zh-CN.md",
+      "sha256": "a896dd3fde131963175e2a8fcd619d26efa034d28be34f6d97c9ad288317a706",
+      "snapshotMatches": true
+    },
+    {
+      "path": "tests/framework/controller-d3-chromepage-r78-cft-cycle.mjs",
+      "sha256": "a704f8176ae093dcdbaa82a820906fd0fc6d1f4215e9290ea85011ca0a16f698",
+      "snapshotMatches": true
+    },
+    {
+      "path": "tests/framework/controller-d3-scheduled-r78-cft-cycle.mjs",
+      "sha256": "2770fe9ad646e1074d68b5870a6fd435236a30ad3453e52f2181a7ae791bdd03",
+      "snapshotMatches": true
+    },
+    {
+      "path": "tests/framework/controller-d3-restart-r78-cft-cycle.mjs",
+      "sha256": "0f33d27fcb1ca508fd737268d957e9ea4cec2e71bb4c3c47a25f96bcc3add044",
+      "snapshotMatches": true
+    },
+    {
+      "path": "tests/framework/controller-d3-security-r78-cft-cycle.mjs",
+      "sha256": "9e09e26c8f437822a8e56adeaa24d14e5df42a75a3e284606487e4cf2e261c8f",
+      "snapshotMatches": true
+    },
+    {
+      "path": "tests/framework/controller-pinned-npm-r74-cft-cycle.mjs",
+      "sha256": "371f4dc4d8d5f1a58f436ea69401c634797a4cfdaa6b9bded3ee2963cce98634",
+      "snapshotMatches": true
+    },
+    {
+      "path": "tests/framework/page-dependency-r72-cft-cycle.mjs",
+      "sha256": "c0835b8825aea5bdd1861c72cd5b78118095fb25d83f9bf246f547fb3e1d186b",
+      "snapshotMatches": true
+    },
+    {
+      "path": "tests/framework/page-browser-worker-r243-cft.mjs",
+      "sha256": "d5573861104dbed0ecca2c84cb25ce9bb28b69cb136ebe01e0c8a5f9cae78231",
+      "snapshotMatches": true
+    }
+  ],
+  "buildGuard": {
+    "port": 43121,
+    "reason": "Distinct output tree; existing guard43120 owned by PID25173 left untouched"
+  }
+}

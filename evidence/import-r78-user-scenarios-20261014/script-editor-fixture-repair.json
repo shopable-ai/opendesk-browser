@@ -1,0 +1,73 @@
+{
+  "schema": "opendesk.r78.script-editor-fixture-repair.v2",
+  "recordedAt": "2026-10-14T00:00:00+08:00",
+  "owner": {
+    "agent": "Codex Executor",
+    "scope": [
+      "tests/environment/script-editor.test.mjs",
+      "evidence/import-r78-user-scenarios-20261014/script-editor-fixture-repair.json"
+    ],
+    "branch": "main",
+    "gitStateMutations": false,
+    "buildsOrBrowserRuns": false,
+    "productionSourceEdited": false
+  },
+  "driftAndScope": {
+    "latestUserBoundary": "Only edit tests/environment/script-editor.test.mjs and this evidence JSON; do not edit src; do not run browser/build/Git state mutations.",
+    "ownedFileStatusBeforeEvidenceWrite": "tests/environment/script-editor.test.mjs modified by this task; evidence JSON modified by this task; no other paths in this task scope.",
+    "gitStateMutationCommands": "none"
+  },
+  "rawFailureInput": {
+    "path": "evidence/import-r78-user-scenarios-20261014/affected-ui-security.tap",
+    "summary": "175 tests, 159 pass, 16 fail before bounded fixture repair. This record covers the script-editor fixture follow-up only."
+  },
+  "changes": [
+    {
+      "path": "tests/environment/script-editor.test.mjs",
+      "summary": "Replaced outdated Controller/Page ESM mocks with real inspectBrowserControllerESM and prepareBrowserControllerESM using the fixed PAGE_BROWSER_COMPILER Babel artifact and real remoteRoots. Component dependency mock now performs inspect/prepare/approve/load as automatic technical transactions instead of treating external imports as an empty graph."
+    },
+    {
+      "path": "tests/environment/script-editor.test.mjs",
+      "summary": "Repaired the remaining three old fixture expectations around Page static imports, Controller Run, and missing Controller ESM source permission: Run is user intent with auto fixed-lock preparation; no explicit network-js-world switch is required for Controller; Controller cannot reuse a Page lock; missing permission blocks compile/start rather than simulating manual approval."
+    },
+    {
+      "path": "tests/environment/script-editor.test.mjs",
+      "summary": "Added regression that saved Controller ESM revisions make executionSource return the verified frozen saved bytes only for the current same scriptId/revision/author bytes; changed author bytes, scriptId, or revision returns current editor bytes so task-workbench createCandidate can reject stale saved.sourceUtf8 mismatches."
+    }
+  ],
+  "contractEvidence": {
+    "controllerRunIntent": "The Controller Run fixture does not require changing network-js-world and validates starts[0].draftSourceUtf8 equals editor.executionSource().",
+    "realControllerInspection": "Controller import fixtures call inspectBrowserControllerESM/prepareBrowserControllerESM with fixed Babel 7.29.9 and remoteSnapshot modules; external imports are not represented as an empty graph.",
+    "pageVsControllerLocks": "The Controller Run assertion rejects loadPageESMForCompilation for sourceFormat esm-controller and validates the Controller component lock id is used instead of the Page lock id.",
+    "permissions": "Permission denial is modeled as E_REMOTE_PERMISSION during component dependency prepare/approve/load; the test validates zero compiler output, zero previews, zero starts, and final permission error status.",
+    "pageResultIntegrity": "Page ESM tests still require compiled sourceHash/result identity and keep source/document/world/target changed fences."
+  },
+  "verification": [
+    {
+      "command": "node --check tests/environment/script-editor.test.mjs",
+      "result": "pass: syntax check completed with exit code 0"
+    },
+    {
+      "command": "node --test --test-name-pattern='Controller ESM saved revision' tests/environment/script-editor.test.mjs",
+      "result": "pass: 1/1; regression currently passes with the concurrent/current src executionSource behavior"
+    },
+    {
+      "command": "node --test --test-name-pattern='Page static imports|loading a saved Page import|Controller Run|missing Controller ESM source permission|no-import ESM|Page import compilation|Page ESM result|Controller ESM saved revision' tests/environment/script-editor.test.mjs",
+      "result": "pass: 12/12"
+    },
+    {
+      "command": "node --test --test-name-pattern='missing Controller ESM source permission|Controller ESM saved revision' tests/environment/script-editor.test.mjs",
+      "result": "pass: 2/2"
+    },
+    {
+      "command": "node --test tests/environment/script-editor.test.mjs",
+      "result": "pass: 93/93"
+    }
+  ],
+  "notes": [
+    "No production src files were edited for this task.",
+    "No browser, build, branch, stash, add, commit, checkout, reset, or clean command was run.",
+    "The previous manual approval/explicit world expectations were treated as outdated fixtures under the latest Run auto-preparation fixed-lock contract, not upgraded into production requirements.",
+    "The new executionSource regression passed in this workspace; if another lane changed src concurrently, this evidence records the post-change behavior observed by the test."
+  ]
+}

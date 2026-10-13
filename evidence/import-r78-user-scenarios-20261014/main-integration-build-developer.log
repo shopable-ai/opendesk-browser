@@ -1,0 +1,15 @@
+node:internal/fs/promises:1677
+  const result = await PromisePrototypeThen(
+                 ^
+
+Error: ENOENT: no such file or directory, lstat '/Users/shopme/Documents/workspace/opendesk-browser/.runtime/tests/import-r78/main-integration-final/official-tools/catalog.json'
+    at async lstat (node:internal/fs/promises:1677:18)
+    at async readOfficialSources (file:///Users/shopme/Documents/workspace/opendesk-browser/.runtime/tests/import-r78/main-integration-final/scripts/build-official-tools.mjs:27:14)
+    at async file:///Users/shopme/Documents/workspace/opendesk-browser/.runtime/tests/import-r78/main-integration-final/scripts/verify-package.mjs:64:22 {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'lstat',
+  path: '/Users/shopme/Documents/workspace/opendesk-browser/.runtime/tests/import-r78/main-integration-final/official-tools/catalog.json'
+}
+
+Node.js v26.3.1

@@ -1,0 +1,14 @@
+{
+  "status": "failed",
+  "mode": "production",
+  "attemptId": "e51a67c6-8550-440f-8156-241c0c3bd120",
+  "packageVerified": false,
+  "sourceInputs": [],
+  "error": {
+    "message": "ENOENT: no such file or directory, open 'docs/contracts/licenses/todo-user-vue-MIT.txt'",
+    "code": "ENOENT"
+  },
+  "bundleModules": [],
+  "diagnosticErrors": [],
+  "note": "Partial failed build diagnostics only; renderedLength is pre-minification, not final module bytes."
+}

@@ -1,0 +1,6 @@
+{
+  "url": "chrome-error://chromewebdata/",
+  "body": "无法访问此网站\n\nlocalhost 拒绝了我们的连接请求。\n\n请试试以下办法：\n\n检查网络连接\n检查代理服务器和防火墙\nERR_CONNECTION_REFUSED\n重新加载\n详情",
+  "inputs": [],
+  "active": ""
+}

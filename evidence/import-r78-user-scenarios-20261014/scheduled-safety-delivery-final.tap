@@ -1,0 +1,34 @@
+✔ DST gap moves to first real wall minute and fold chooses first copy (13.80575ms)
+✔ once, daily, weekday and interval calculation preserves strict future rule (0.415083ms)
+✔ bad time zones, duplicate weekdays, unsafe URLs and unreasonable deadlines are denied (6.599333ms)
+✔ schedule binds one durable FireId once, and preserves the original run/results IDs (2.997583ms)
+✔ pause, resume, deleted generations and stale writers cannot reuse prior FireId (1.250208ms)
+✔ bounded catch-up selects last eligible occurrence without accumulating missed repeats (5.171292ms)
+✔ revoked installation is visibly marked needs attention while keeping plan identity (0.992334ms)
+✔ no active Host records WAITING_HOST and eventually MISSED without replay (0.987334ms)
+✔ completed Controller Run is not displayed SUCCESS before resource release (1.0965ms)
+✔ only actual Side Panel and explicit visible scheduled-runner TAB are scheduler hosts (0.843959ms)
+✔ registered catalog alone cannot claim Host presence; live runner restores READY without replay (2.709208ms)
+✔ short outage latest-within-hour selects LAST occurrence, skip preserves first due (2.042542ms)
+✔ R2 schedule history pages 135 persisted fires without losing original identities (2.154959ms)
+✔ R2 UNKNOWN side effect retains same FireId and never requeues (1.068542ms)
+✔ R2 task disable/update/uninstall/authorization rotation never silently rebind a schedule (3.740292ms)
+✔ R2 website grant revocation is visible without re-requesting permission (1.27775ms)
+✔ R2 rebuilt service restores only schedule-prefixed Chrome Alarms without duplication (1.197375ms)
+✔ R2 native-prefix paging sorts generation 10 after 9 without mutating persisted FireId (1.022583ms)
+✔ R2 lost completion after admitted Run never becomes WAITING_TARGET or mints a second Run (0.582084ms)
+✔ R2 pending-fire index migrates R1 history once and avoids repeated full Fire scans (8.166041ms)
+✔ R2 pending-fire index migrates legacy WAITING_HOST and removes it on ADMITTED (1.17175ms)
+✔ R2 revoked Chrome site access is NEEDS_ATTENTION before target browsing or Controller admission (0.224209ms)
+✔ R2.3 terminal needs-attention and legacy bound Fire never regain admission (2.2955ms)
+✔ R2.3 ambiguous start reply is UNKNOWN, never a repeatable waiting target (1.130875ms)
+✔ R2.3 index migration seeks forward by original Fire primary key over 1300 rows (10.308ms)
+✔ R2.3 deep history offset skips old generations without allocating the full history (6.397ms)
+ℹ tests 26
+ℹ suites 0
+ℹ pass 26
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 130.311625

@@ -11,6 +11,7 @@ import {WebSocket} from 'ws';
 import {launchLocalDevChrome} from './local-dev-cft-launcher.mjs';
 import {runBrowserComponentCycles} from './page-browser-ui-r243-cycles.mjs';
 import {runR72PageClassicCycle} from './page-dependency-r72-cft-cycle.mjs';
+import {runR78D3RestartCycle} from './controller-d3-restart-r78-cft-cycle.mjs';
 
 const root=process.cwd(),output=path.resolve(process.env.OPENDESK_DEV_EVIDENCE||
   '.runtime/tests/page-browser-worker-r243'),packageRoot=path.resolve(process.env.OPENDESK_DEV_PACKAGE_DIR||'dist/production');
@@ -23,6 +24,12 @@ if(r77Focus){
   assert.equal(process.env.OPENDESK_R72_DEPENDENCY_NATIVE_SMOKE,'1','R77 requires the dependency scenario driver');
   assert.notEqual(process.env.OPENDESK_R245_STANDARD_SMOKE,'1','R77 Developer focus cannot skip Standard validation');
 }
+if(process.env.OPENDESK_R78_OFFLINE_RESTART==='1'){
+  assert.equal(r77Focus,'classic','R78 restart requires the completed ChromePage/D3 cycle');
+  assert.equal(process.env.OPENDESK_DEV_CHROME_RESTART,'1','R78 restart requires the existing same-profile adapter');
+}
+if(process.env.OPENDESK_R78_ALL_SCENARIOS==='1')
+  assert.equal(r77Focus,'classic','R78 combined acceptance extends the original classic focus');
 if(!binary||!fs.existsSync(binary))throw Error('Chrome for Testing binary is required');
 const profile=fs.mkdtempSync(path.join(os.tmpdir(),'opendesk-browser-worker-'));
 const pause=ms=>new Promise(r=>setTimeout(r,ms));
@@ -156,6 +163,12 @@ async function verifyBrowserUI({browser,page,catalogTabId,base,extensionId,outpu
       'trusted Sidebar developer navigation',10000);
     const permission=await sidebar.read('chrome.permissions.contains({origins:["http://127.0.0.1:43111/*"]})');
     assert.equal(permission,true,'original Chrome website permission must be granted');
+    report.currentPageAdmissionObservation=await until(()=>sidebar.read('(async()=>{const win=await chrome.windows.getCurrent();'+
+      'const tabs=await chrome.tabs.query({active:true,windowId:win.id});if(tabs.length!==1)return null;'+
+      'const frames=await chrome.webNavigation.getAllFrames({tabId:tabs[0].id});const root=frames?.find(r=>r.frameId===0);'+
+      'return tabs[0].status==="complete"&&!tabs[0].pendingUrl&&root?.documentId&&!root.errorOccurred&&'+
+      'root.documentLifecycle==="active"&&root.url===tabs[0].url?{windowId:win.id,tabs,frames}:null})()'),
+      'active Chrome main document available before user Run',20000);
     if(process.env.OPENDESK_R72_DEPENDENCY_NATIVE_SMOKE==='1')
       await runR72PageClassicCycle({sidebar,website,browser,base,extensionId,cdp,until,clickReal,report});
     if(process.env.OPENDESK_R77_IMPORT_SCENARIOS)return;
@@ -521,14 +534,20 @@ async function main(){
           ['D04-EXT-R74-NORMAL-NPM-IMPORT-MITT','CHROME_PASS_R76_PINNED_AND_BARE_NPM']
         ];
         for(const [caseId,status] of expected)assert(report.tests.some(row=>row.caseId===caseId&&row.status===status),'Missing completed R77 scenario '+caseId);
+        if(process.env.OPENDESK_R78_ALL_SCENARIOS==='1')
+          assert(report.tests.some(row=>row.caseId==='R76-PAGE-URL-ESM-D3-DOM'&&row.status==='CHROME_PASS_R76_PAGE_ESM_D3'),
+            'R78 combined acceptance requires real Page D3 receipt');
       }
       report.status=process.env.OPENDESK_R77_IMPORT_SCENARIOS?'PASS_R77_IMPORT_SCENARIOS':process.env.OPENDESK_R243_BROWSER_STRESS==='1'?
         'PASS_BROWSER_UI_NO_NATIVE_20X_EACH_RUN_STOP':'PASS_BROWSER_UI_NO_NATIVE_REACT_VUE_RUN_STOP';
+      if(process.env.OPENDESK_R78_OFFLINE_RESTART==='1')
+        await runR78D3RestartCycle({chrome,browser,cdp,until,clickReal,report,output});
     }else report.status='PASS_BROWSER_WORKER_NO_NATIVE';
   }catch(error){report.status='FAIL';report.error={code:error.code||'E_BROWSER_WORKER_TEST',message:error.message,
     stack:error.stack};process.exitCode=1;}
   finally{
-    try{await browser?.call('Browser.close');}catch{}
+    if(!report.tests.some(row=>row.caseId==='R78-D3-SAME-PROFILE-OFFLINE-RESTART'&&row.newPid))
+      try{await browser?.call('Browser.close');}catch{}
     page?.close();browser?.close();
     if(chrome?.cleanup){report.cleanup=await chrome.cleanup();if(report.cleanup?.error||report.cleanup?.chromePidAlive)report.status='FAIL_CLEANUP';}
     else if(chrome?.exitCode===null){try{chrome.kill('SIGTERM');}catch{}}

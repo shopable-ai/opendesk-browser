@@ -1,0 +1,437 @@
+{
+  "url": "chrome-extension://pcnfnhaneglinepinoieagcjmacoaief/ui/tool.html?hostInstanceId=173552ba-25ad-4982-90b5-e7889fc118e5",
+  "body": "我的\n发现\n工作流\n开发\n工具\n云控\n当前网页\n127.0.0.1:43111\n可运行\n直接编辑\n本地项目\n代码类型\n代码类型\nJavaScript\nReact\nVue\nJavaScript、React JSX 或 Vue SFC 源码编辑器\n\n保存草稿不会运行网页\n\nController ESM：点击运行会自动解析、获取并固定明确版本的静态依赖图。首次下载可能需要 Chrome 来源授权；Developer 上限 32 模块 / 256 KiB。\n\n选择已固定的组件依赖版本\n高级：检查依赖\n网络 JS：下载准备与审核\n参数 JSON（可选）\n参数 JSON\n\n任务状态：\n已停止 · 资源已释放\n\n运行结果\n执行错误\n复制结果\nE_CANCELLED：Controller fenced\n建议：已收到停止或取消信号。此前操作是否已经生效，应以网页和持久结果为准。\n运行记录与技术信息\n运行目标与版本\n网页 JavaScript 试运行\n\n直接使用上方 JavaScript 源码操作当前网页 DOM；可写 async function main() 返回结果，也可直接编写顶层语句。运行前仍需网站授权。\n\n在当前网页试运行\n\n当前精确文档试运行完成；不是正式 Task 结果。可保存待验证 Page 候选；不会自动安装。\n\n{\"html\":\"<p><strong>OpenDesk</strong></p>\\n\",\"library\":\"marked@15.0.12\"}\n技术信息\n保存网页脚本版本\n\n试运行后可保存固定 Page 版本；普通 JS 默认仅匹配本次预览的协议与主机，同主机其他端口可能匹配；显式 @match 保留原范围。保存的冻结版本仍须单独验证、审阅并安装。脚本 ID 和版本在下方「版本管理」中设置。\n\n已保存 Page Candidate：r72-marked-b · r1 · a5078ae53bd7…。 兼容导入保留原文件声明与源码；无 @match 的兼容脚本可能使用较广范围，安装前必须审阅；声明不代表已授权。 保存期间编辑器已变化，请重新核对当前版本。 请在已保存网页脚本中验证冻结版本，再明确安装。\n\n已保存网页脚本\nr72-marked-a · r1 · Candidate\nr72-marked-b · r1 · Candidate\nr72-marked-b · r1 · Candidate\n匹配：*://*/*\n当前版本的网站访问：已满足\n程序能力：隔离网页 DOM；不继承扩展、其他程序或独立网页 SDK 的权限。\n源码 SHA-256：d6032fa75c665360020bb81aac3b11af10c58cba6208b943ce0696f4e7bc5399\n尚未安装\n加载源码\n验证冻结版本\n安装自动运行\n启用自动运行\n刷新状态\n\n正式安装支持顶层网页与 document-idle；停用不会撤销已有网页效果。效果未知时不自动重放。\n\n版本管理与任务制作\n已保存脚本\n选择已保存脚本\nr73-controller-mitt-a · r1 · 18c0a51a7ddf6fefa4532974ffd08f480db2846fa2d4c4d23a46c8441b678954\nr74-controller-mitt-standard-import · r1 · fb80a9c8287127b3c50a4299785dba647470d0813ea9d4e3aeb75d330670337b\nr76-controller-mitt-bare · r1 · d220ab74b3c1d4f172630e3a476fa75f77317bf385496be66b7661cda84c9d7f\nr78-controller-d3-chromepage · r1 · bd14c220b113b74bbe483848670c7101abb504d49ac3fed0613ef4f1b49c9a96\n刷新\n加载最新\n脚本名称 / ID\nrevision\n加载版本\n\n当前脚本 ID 尚未加载持久版本；仍可直接运行草稿\n\n从已保存版本创建任务候选\n\n先保存程序版本，再定义任务信息。创建候选不会自动验证、发布或安装。\n\n稳定任务标识\n任务版本\n名称\n用途\n作者\n参数 Schema（JSON）\n保存为待验证任务候选\n\n已创建待验证候选 r78-controller-d3-scheduled@7.8.0；请先运行相同源码并提供真实 runId\n\n高级脚本与目标设置\nAdvanced / Diagnostics\n运行草稿\n保存版本",
+  "inputs": [
+    {
+      "id": "schedule-title",
+      "value": "R7.8 D3 once",
+      "disabled": false
+    },
+    {
+      "id": "schedule-target",
+      "value": "http://127.0.0.1:43111/demo-form.html",
+      "disabled": false
+    },
+    {
+      "id": "schedule-params",
+      "value": "{}",
+      "disabled": false
+    },
+    {
+      "id": "schedule-timezone-search",
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": "schedule-once",
+      "value": "2026-10-14T04:22",
+      "disabled": false
+    },
+    {
+      "id": "schedule-clock",
+      "value": "09:00",
+      "disabled": false
+    },
+    {
+      "id": "",
+      "value": "1",
+      "disabled": false
+    },
+    {
+      "id": "",
+      "value": "2",
+      "disabled": false
+    },
+    {
+      "id": "",
+      "value": "3",
+      "disabled": false
+    },
+    {
+      "id": "",
+      "value": "4",
+      "disabled": false
+    },
+    {
+      "id": "",
+      "value": "5",
+      "disabled": false
+    },
+    {
+      "id": "",
+      "value": "6",
+      "disabled": false
+    },
+    {
+      "id": "",
+      "value": "0",
+      "disabled": false
+    },
+    {
+      "id": "schedule-minutes",
+      "value": "60",
+      "disabled": false
+    },
+    {
+      "id": "schedule-open-target",
+      "value": "on",
+      "disabled": false
+    },
+    {
+      "id": "schedule-deadline",
+      "value": "5",
+      "disabled": false
+    },
+    {
+      "id": "schedule-paused",
+      "value": "on",
+      "disabled": false
+    },
+    {
+      "id": "schedule-manager-search",
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": "sidebar-tool-file",
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": "trusted-cookie-name",
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": "trusted-cookie-value",
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": "trusted-cookie-path",
+      "value": "/",
+      "disabled": false
+    },
+    {
+      "id": "sidebar-tool-search",
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": "sidebar-tool-retired-draft-text",
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": "trusted-history-text",
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": "trusted-history-start",
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": "trusted-history-end",
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": "trusted-history-limit",
+      "value": "25",
+      "disabled": false
+    },
+    {
+      "id": "",
+      "value": "on",
+      "disabled": true
+    },
+    {
+      "id": "",
+      "value": "on",
+      "disabled": true
+    },
+    {
+      "id": "cloud-consent",
+      "value": "on",
+      "disabled": false
+    },
+    {
+      "id": "cloud-result-consent",
+      "value": "on",
+      "disabled": false
+    },
+    {
+      "id": "cloud-client-name",
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": "cloud-client-result",
+      "value": "on",
+      "disabled": true
+    },
+    {
+      "id": "cloud-client-token",
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": "cloud-url",
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": "cloud-provider-id",
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": "cloud-pairing-code",
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": "cloud-loopback",
+      "value": "on",
+      "disabled": false
+    },
+    {
+      "id": "local-discover-search",
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": "task-search",
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": "task-verify-run",
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": "task-package-file",
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": "workflow-confirm-run",
+      "value": "on",
+      "disabled": false
+    },
+    {
+      "id": "workflow-title",
+      "value": "新工作流",
+      "disabled": false
+    },
+    {
+      "id": "workflow-description",
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": "workflow-site",
+      "value": "http://127.0.0.1:43111",
+      "disabled": false
+    },
+    {
+      "id": "workflow-new-param-name",
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": "workflow-schema",
+      "value": "{\n  \"additionalProperties\": false,\n  \"properties\": {},\n  \"required\": [],\n  \"type\": \"object\"\n}",
+      "disabled": false
+    },
+    {
+      "id": "workflow-ai-request",
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": "workflow-ai-endpoint",
+      "value": "https://api.openai.com/v1/chat/completions",
+      "disabled": false
+    },
+    {
+      "id": "workflow-ai-model",
+      "value": "gpt-4o-mini",
+      "disabled": false
+    },
+    {
+      "id": "workflow-ai-key",
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": "local-project-mode",
+      "value": "on",
+      "disabled": false
+    },
+    {
+      "id": "local-install-title",
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": "local-install-version",
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": "local-project-params",
+      "value": "{}",
+      "disabled": false
+    },
+    {
+      "id": "page-component-javascript",
+      "value": "javascript",
+      "disabled": false
+    },
+    {
+      "id": "page-component-react",
+      "value": "react",
+      "disabled": false
+    },
+    {
+      "id": "page-component-vue",
+      "value": "vue",
+      "disabled": false
+    },
+    {
+      "id": "script-source",
+      "value": "import max from 'https://raw.githubusercontent.com/d3/d3-array/v3.2.4/src/max.js';\n\nexport default async function main() {\n  const value = max([2, 5, 3]);\n  if (value !== 5) throw new Error('D3_IMPORT_FAILED');\n  let node = document.getElementById('od-import-proof');\n  if (!node) {\n    node = document.createElement('output');\n    node.id = 'od-import-proof';\n    document.body.appendChild(node);\n  }\n  node.textContent = 'Page D3 max = ' + value;\n  console.log('[IMPORT TEST][PAGE]', value);\n  return {world: 'USER_SCRIPT', value, success: true};\n}\n",
+      "disabled": false
+    },
+    {
+      "id": "network-js-metadata",
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": "network-js-consent",
+      "value": "on",
+      "disabled": false
+    },
+    {
+      "id": "script-params",
+      "value": "{}",
+      "disabled": false
+    },
+    {
+      "id": "script-run-id",
+      "value": "f5ea9dfb-53ae-44d9-9764-afecfb93e21a",
+      "disabled": false
+    },
+    {
+      "id": "script-id",
+      "value": "r76-page-esm-d3",
+      "disabled": false
+    },
+    {
+      "id": "script-revision",
+      "value": "1",
+      "disabled": false
+    },
+    {
+      "id": "task-dev-id",
+      "value": "r78-controller-d3-scheduled",
+      "disabled": false
+    },
+    {
+      "id": "task-dev-version",
+      "value": "7.8.0",
+      "disabled": false
+    },
+    {
+      "id": "task-dev-title",
+      "value": "R7.8 D3 scheduled once",
+      "disabled": false
+    },
+    {
+      "id": "task-dev-description",
+      "value": "Runs the verified R7.8 ChromePage and D3 controller on the demo search form.",
+      "disabled": false
+    },
+    {
+      "id": "task-dev-author",
+      "value": "local-developer",
+      "disabled": false
+    },
+    {
+      "id": "task-dev-schema",
+      "value": "{\"type\":\"object\",\"properties\":{},\"required\":[],\"additionalProperties\":false}",
+      "disabled": false
+    },
+    {
+      "id": "script-owned-url",
+      "value": "",
+      "disabled": true
+    },
+    {
+      "id": "script-allow-cookies",
+      "value": "on",
+      "disabled": false
+    },
+    {
+      "id": "",
+      "value": "network",
+      "disabled": false
+    },
+    {
+      "id": "",
+      "value": "storage.persistent",
+      "disabled": false
+    },
+    {
+      "id": "",
+      "value": "storage.session",
+      "disabled": false
+    },
+    {
+      "id": "",
+      "value": "notifications",
+      "disabled": false
+    },
+    {
+      "id": "",
+      "value": "device.id",
+      "disabled": false
+    },
+    {
+      "id": "",
+      "value": "network.info",
+      "disabled": true
+    },
+    {
+      "id": "",
+      "value": "service.log",
+      "disabled": false
+    },
+    {
+      "id": "",
+      "value": "service.time",
+      "disabled": false
+    },
+    {
+      "id": "",
+      "value": "resources.packaged",
+      "disabled": false
+    },
+    {
+      "id": "sdk-target-origins",
+      "value": "https://httpbingo.org",
+      "disabled": false
+    },
+    {
+      "id": "target-url",
+      "value": "",
+      "disabled": false
+    }
+  ],
+  "active": "script-source"
+}

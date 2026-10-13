@@ -126,7 +126,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
       .catch(error=>console.warn('Sidebar draft could not be retained',error));
   }
   let scriptListSequence = 0, ownedDraftRunId = null, ownedManagedPreview=null, lastPagePreview=null;
-  let currentRevision, currentPageState = currentPageTarget?.snapshot ?? {status:'unavailable',reason:'E_TARGET',message:'当前网页服务不可用'},
+  let currentRevision, currentRevisionAuthorSource, currentPageState = currentPageTarget?.snapshot ?? {status:'unavailable',reason:'E_TARGET',message:'当前网页服务不可用'},
     selectionVersion = 0, running = false, disposed = false;
   const listeners = [];
   let browserListenersAttached = false;
@@ -430,11 +430,26 @@ export function createScriptEditor({client, currentPageTarget, development=false
     renderRunningTarget(run?.target, run?.runId);
     runningTargetStatus.dataset.state = run?.state || 'idle';
   }
-  function remember(row, {head = true} = {}) {
+  function remember(row, {head = true, authorSourceUtf8 = row.sourceUtf8} = {}) {
     if (head) revisions.set(row.scriptId, row.revision);
-    currentRevision = row;
+    currentRevision = row; currentRevisionAuthorSource = authorSourceUtf8;
     find('script-revision').value = String(row.revision);
     update(); return row;
+  }
+  function savedControllerSource(authorSourceUtf8,compiledSourceUtf8) {
+    if(currentRevision?.scriptId!==scriptId()||
+      currentRevision.revision!==Number(find('script-revision').value))return compiledSourceUtf8;
+    let recorded;
+    try{recorded=readControllerESMAuthorSource(currentRevision.sourceUtf8)||
+      readControllerClassicAuthorSource(currentRevision.sourceUtf8);}
+    catch{return compiledSourceUtf8;} // An old damaged header cannot block a new draft.
+    // A stored header alone does not prove its author/compiled relationship.
+    // Only the current compiler or SHA-verified Classic preparation may do so.
+    if(recorded?.programId===scriptId()&&recorded.authorSourceUtf8===authorSourceUtf8&&
+      recorded.compiledSourceUtf8===compiledSourceUtf8){
+      currentRevisionAuthorSource=authorSourceUtf8;return currentRevision.sourceUtf8;
+    }
+    return compiledSourceUtf8;
   }
   function renderScriptList(rows) {
     const selected = scriptList.value || scriptId();
@@ -534,7 +549,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
       }
       const row=await host.controller.commitControllerScript({scriptId:id,expectedRevision:previous,sourceUtf8:executable});
       if(disposed)return;
-      if(scriptId()===id)remember(row);
+      if(scriptId()===id)remember(row,{authorSourceUtf8:row.sourceUtf8===executable?source:null});
       await refreshScripts({silent:true});
       display('saved',`${id} · r${row.revision} 已持久保存固定${esm?' ESM ':classic?' Classic ':''}版本；${host.currentRun?'当前任务继续使用启动时的版本':'保存不会运行脚本'}`);
     }finally{if(esm||classic){browserPreparing=false;editingBusy=false;update();}}
@@ -548,7 +563,10 @@ export function createScriptEditor({client, currentPageTarget, development=false
     if (disposed) return;
     if (scriptId() !== id || find('script-revision').value.trim() !== revisionText || programSource.source() !== source)
       throw {code:'E_REVISION',message:'加载期间编辑内容已变化，请重新加载'};
-    programSource.replaceSource(recorded?.authorSourceUtf8??row.sourceUtf8); scheduleControllerClassicWarm(); remember(row, {head: !revisionText || revisions.get(id) === row.revision});
+    programSource.replaceSource(recorded?.authorSourceUtf8??row.sourceUtf8); scheduleControllerClassicWarm(); remember(row, {
+      head: !revisionText || revisions.get(id) === row.revision,
+      authorSourceUtf8:recorded ? null : row.sourceUtf8});
+    componentRemote.refresh();
     dependencyResolver.refresh();
     display('loaded', `已加载持久版本 r${row.revision}`);
   }
@@ -564,7 +582,8 @@ export function createScriptEditor({client, currentPageTarget, development=false
       throw {code:'E_REVISION',message:'加载期间编辑内容已变化，请重新加载'};
     find('script-id').value = id; programSource.replaceSource(recorded?.authorSourceUtf8??row.sourceUtf8); scheduleControllerClassicWarm();
     dependencyResolver.refresh();
-    remember(row);
+    remember(row,{authorSourceUtf8:recorded ? null : row.sourceUtf8});
+    componentRemote.refresh();
     if (selectedHead !== row.revision) await refreshScripts({silent: true});
     display('loaded', `已加载 ${id} 最新 r${row.revision}`);
   }
@@ -763,7 +782,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
           localProject?.active()||mode.value!==runMode||version!==selectionVersion)
           throw {code:'E_CONTROLLER_ESM_STALE',message:'源码、程序、目标或运行模式已变化；不会启动过期代码'};};
         const prepared=await prepareControllerESM(authorSourceUtf8,id,check);check();
-        sourceUtf8=prepared.built.sourceUtf8;
+        sourceUtf8=savedControllerSource(authorSourceUtf8,prepared.built.sourceUtf8);
         browserPreparing=false;update();
       }else if(classic){
         const check=()=>{if(disposed||ticket!==browserPrepareGeneration||programSource.source()!==authorSourceUtf8||scriptId()!==id)
@@ -774,7 +793,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
           prepared.authorSourceHash!==await digestUtf8(authorSourceUtf8)||
           !/^controller-classic-[a-f0-9]{64}$/.test(prepared.lockId))
           throw {code:'E_CONTROLLER_CLASSIC_LOCK',message:'固定 Classic 版本或技术锁无效'};
-        sourceUtf8=prepared.sourceUtf8;
+        sourceUtf8=savedControllerSource(authorSourceUtf8,prepared.sourceUtf8);
         browserPreparing=false;update();
       }
       const claim = await host.start({source:{kind:'draft',sourceUtf8},
@@ -1414,7 +1433,13 @@ export function createScriptEditor({client, currentPageTarget, development=false
     localProject=createLocalProjectView({client,api,document:doc,onChange:update});update();
   },executionSource:()=>{
     if(localProject?.active())throw {code:'E_DEV_MODE',message:'本地开发项目请通过正式打包流程创建已安装任务'};
-    return programSource.source();
+    const source=programSource.source();
+    // Task candidates use the exact saved executable; author edits still fail
+    // the workbench's saved-source comparison instead of reusing stale code.
+    if(currentRevision?.scriptId===scriptId()&&
+      currentRevision.revision===Number(find('script-revision').value)&&
+      currentRevisionAuthorSource===source)return currentRevision.sourceUtf8;
+    return source;
   }, importDraft(sourceUtf8) {
     if(localProject?.active())throw {code:'E_DEV_MODE',message:'手工草稿已保留；请先切换到手工草稿模式再导入'};
     if (disposed || editingBusy || previewBusy || componentRemote?.busy || browserManagedPreview) throw {code:'E_BUSY',message:'请先停止当前受管组件，再导入或保存版本'};

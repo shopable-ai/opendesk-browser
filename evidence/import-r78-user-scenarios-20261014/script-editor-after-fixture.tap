@@ -1,0 +1,156 @@
+✔ Developer shows one terminal status line and hides it for unrelated feedback (13.729958ms)
+✔ react primary Run compiles a managed Page preview and shows its result (11.161458ms)
+✔ vue primary Run compiles a managed Page preview and shows its result (7.822375ms)
+✔ component primary Run preserves permission protection and visible feedback (4.144791ms)
+✔ component primary Run preserves document protection and visible feedback (5.986584ms)
+✔ component primary Run preserves compiler protection and visible feedback (6.759333ms)
+✔ component primary Run preserves unknown protection and visible feedback (7.958458ms)
+✔ component primary Run retains the shared execution slot gate (7.371958ms)
+✔ component primary Run refuses source changes during compilation (4.649417ms)
+✔ component primary Run refuses document changes during compilation (8.233458ms)
+✔ Dev Run has no per-Origin axiosx form or prompt; backend discovers HTTP targets at request time (5.857041ms)
+✔ twenty Controller runs and twenty Page previews reuse Chrome grants with zero request calls (127.441125ms)
+✔ developer source switch hides local controls until enabled and reports a missing local connection (3.97225ms)
+✔ local project can open the packaged native connection settings only by a trusted click (5.550125ms)
+✔ local project setup guide opens only after a trusted user click in local mode (7.988ms)
+✔ developer current-page summary follows the actual tab without exposing document internals (2.808875ms)
+✔ one authorized local project is selected automatically without starting execution (3.556833ms)
+✔ a remembered project is never silently replaced by a different sole authorized project (6.963416ms)
+✔ preparation-only same-epoch updates preserve pending resolve; catalog changes still invalidate it (496.065125ms)
+✔ local project mode preserves manual draft and params while running fresh bytes through the same Host (84.342083ms)
+✔ local source response after mode switch is rejected before Host admission (7.176417ms)
+✔ local managed Page Stop owns a confirmed failing main, survives provider disconnect and blocks overlapping Run (421.804875ms)
+✔ local Page result survives target refresh and shows the confirmed Stop receipt (218.408834ms)
+▶ local Page result still expires on confirmed disconnect or a different tab
+  ✔ disconnect (210.071584ms)
+  ✔ tab (207.116375ms)
+✔ local Page result still expires on confirmed disconnect or a different tab (417.522875ms)
+✔ local Page Stop retains receipt identity after failed main and provider disconnect (212.184792ms)
+▶ local Page Stop never displays success for a mismatched cleanup receipt
+  ✔ previewId (206.726458ms)
+  ✔ sourceHash (209.288125ms)
+  ✔ state (209.444792ms)
+  ✔ ok (210.675542ms)
+  ✔ scope (209.766542ms)
+✔ local Page Stop never displays success for a mismatched cleanup receipt (1046.663791ms)
+✔ local Page Stop receipt cannot become current after navigation while cleanup is pending (212.066834ms)
+✔ reopening the editor restores window-scoped source and params without starting or saving (3.515333ms)
+✔ another window draft and the catalog editor never replace the Sidebar draft (4.233958ms)
+✔ reopening a project draft preserves the source view and compiled execution bytes (6.138959ms)
+✔ a delayed draft restore never overwrites newly imported source (4.440917ms)
+✔ importing a JS draft leaves saved versions and running source independent (6.351ms)
+✔ draft import rejects empty/oversized sources and active saves without overwriting the editor (3.433041ms)
+✔ imported Classic @require inspects per-program grants without any implicit download, approval or run (8.099125ms)
+✔ Save persists revision/hash without requesting permission, creating a Run, or executing code (4.5245ms)
+✔ reopened editor lists saved scripts without running and loads the selected latest head explicitly (4.40025ms)
+✔ loading a historical revision does not turn it into the latest Save CAS head (5.71675ms)
+✔ Delete tombstones the latest head and refreshes the saved-script selector (4.478791ms)
+✔ saved A stays immutable; Run freezes unsaved B/params/page A; editing C and Save do not replace B (7.399291ms)
+✔ a brand-new unsaved draft runs with an empty script ID and never creates a saved revision (3.263583ms)
+✔ permission preparation rejects a switched page; closing the editor during permission never admits a run (13.475667ms)
+✔ shared RunHost completion or Stop restores the draft Run button after another consumer settles (8.822583ms)
+✔ Stop uses the formal RunHost abort/retirement path and persists stopped with the original pin (4.728875ms)
+✔ pagehide invokes RunHost host-close; reopened editor only reads the durable interrupted Result (6.25825ms)
+✔ late Save/Load replies do not overwrite another script selection or edits made during loading (5.403875ms)
+✔ late saved-script selector load cannot overwrite edits made during loading (5.436875ms)
+✔ an older snapshot reply cannot disable Run after a newer durable observation (6.529583ms)
+✔ an older snapshot error cannot overwrite a newer successful durable view (6.579666ms)
+✔ Run silently checks Chrome permission; denied permission and invalid params never request or execute (5.495ms)
+✔ R24.3 browser component help follows official syntax, never demands main() from JSX/SFC (4.828875ms)
+✔ R24.3 final asynchronous document check refuses a React component edited before admission (6.175792ms)
+✔ DOM preview binds frozen plain JavaScript and exact current document from trusted click (11.538875ms)
+✔ DOM preview refuses to inject when the active document changes while permission is pending (5.487792ms)
+✔ Developer Stop cannot cancel the formal Task or another view using the shared RunHost (4.615083ms)
+✔ project import displays source while Save and Run freeze compiled bytes and the original hash (7.989708ms)
+✔ invalid project envelope leaves the previous editor source and no execution or saved revision (2.387583ms)
+✔ R12: real Page preview gates explicit immutable Candidate import, never auto installs (10.394792ms)
+✔ R12: navigating the actual page or a rejected preview cannot save a Page Candidate (17.424916ms)
+✔ denied results never populate visible values, technical history or download choices (2.427625ms)
+✔ failed HTML content read displays actionable advice, not the internal controller envelope (3.161584ms)
+✔ a failed evaluate surfaces Chrome settings and read-only recovery without replaying a run (10.104875ms)
+✔ R17 accepts 32 scoped sources with same-name directories but rejects an unbounded catalog (3.56475ms)
+✔ R24.3 React and Vue modes keep independent official source drafts without Native (10.199ms)
+✔ R24.3 an outcome-unknown browser component blocks the SAME document, but a genuinely new document permits explicit Run (11.054042ms)
+✔ R24.3 malformed Page receipt is quarantined and cannot be retried in the same document (9.484125ms)
+✔ R24.3 switching tabs retains the original confirmed managed preview for a later authentic Stop (8.42875ms)
+✔ R24.3 confirmed closure of the owning tab retires the editor ownership without replay (7.148041ms)
+✔ R24.3 a confirmed failed component retains exact managed Stop rights (4.664959ms)
+✔ R24.3 missing or forged browser results never allow a second same-document dispatch (19.478375ms)
+✔ browser component Save prepares a frozen Candidate with zero Page execution, installation or Controller commit (7.715ms)
+✔ frozen v1 and versioned v2 JSON components Save and Run exact verified bytes without recompilation, and Stop owns the same preview (32.083333ms)
+✔ Stop during browser component preparation prevents a late compiler result from dispatching or saving (20.729709ms)
+✔ effect unknown reads one original completion, restores only Stop ownership and never reruns; forged queries stay quarantined (9.0985ms)
+✔ reopening a large v2 component draft revalidates the envelope and restores exact frozen bytes without execution (18.855042ms)
+✖ Page static imports save author source and approved lock alongside the actual compiled bytes (11.425416ms)
+✔ loading a saved Page import restores author bytes and Page lock without running (275.85075ms)
+✖ Controller Run refuses Page approval until an explicit world choice, then starts only the compiled draft (12.127459ms)
+✔ esm-page no-import ESM entry runs without a dependency lock (11.048583ms)
+✔ esm-controller no-import ESM entry runs without a dependency lock (245.271083ms)
+✔ Page import compilation discards source changes before dispatch (13.559542ms)
+✔ Page import compilation discards world changes before dispatch (244.556417ms)
+✔ Page import compilation discards document changes before dispatch (15.269667ms)
+✔ Page import compilation discards target-mode changes before dispatch (14.659541ms)
+✔ Page ESM result must carry the actual compiled source hash (12.278542ms)
+✖ missing ESM approval never loads a compiler or starts a run (360.180458ms)
+ℹ tests 92
+ℹ suites 0
+ℹ pass 89
+ℹ fail 3
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 5046.673209
+
+✖ failing tests:
+
+test at tests/environment/script-editor.test.mjs:1590:1
+✖ Page static imports save author source and approved lock alongside the actual compiled bytes (11.425416ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  false !== true
+  
+      at TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/environment/script-editor.test.mjs:1597:10)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/environment/script-editor.test.mjs:1646:1
+✖ Controller Run refuses Page approval until an explicit world choice, then starts only the compiled draft (12.127459ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /E_DEPENDENCY_WORLD/. Input:
+  
+  'E_REMOTE_PERMISSION_PENDING：正在只读检查静态模块的 Chrome 来源权限；准备完成后请点击 Run\n' +
+    '建议：请检查当前网页和任务配置；需要进一步排查时，展开“运行记录 → 技术信息”。'
+  
+      at TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/environment/script-editor.test.mjs:1651:10)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'E_REMOTE_PERMISSION_PENDING：正在只读检查静态模块的 Chrome 来源权限；准备完成后请点击 Run\n建议：请检查当前网页和任务配置；需要进一步排查时，展开“运行记录 → 技术信息”。',
+    expected: /E_DEPENDENCY_WORLD/,
+    operator: 'match',
+    diff: 'simple'
+  }
+
+test at tests/environment/script-editor.test.mjs:1695:1
+✖ missing ESM approval never loads a compiler or starts a run (360.180458ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  1 !== 0
+  
+      at TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/environment/script-editor.test.mjs:1699:10)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

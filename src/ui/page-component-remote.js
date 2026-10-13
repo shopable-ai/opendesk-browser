@@ -25,7 +25,9 @@ export function createPageComponentRemote({client,preparer,api,document:doc,getI
   let disposed=false,generation=0,busy=false,state=null;
   let warmEpoch=0,warmTimer=null,warmed=null,warmError=null;
   const selectedLocks=new Map();
-  const permissions=createChromePermissionConsent({api});
+  const permissions=createChromePermissionConsent({api,onChange:()=>{
+    scheduleRunPermissionWarm();render(false);
+  }});
   const compatible=input=>input&&['react','vue','controller'].includes(input.framework);
   // A normal, exact-version npm import is also a remote ESM root. Obtain
   // the same genuine Chrome origin gesture even without a literal HTTPS URL.

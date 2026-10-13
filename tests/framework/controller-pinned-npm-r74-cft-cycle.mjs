@@ -3,6 +3,7 @@
 // RunHost -> Authority -> opaque Worker and return the authentic mitt result.
 import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
+import {runR78ControllerD3ChromePageCycle} from './controller-d3-chromepage-r78-cft-cycle.mjs';
 
 export const MITT_ESM_URL='https://cdn.jsdelivr.net/npm/mitt@3.0.1/+esm';
 const PROGRAM='r74-controller-mitt-standard-import';
@@ -19,6 +20,7 @@ const SOURCE=[
 const authorSourceHash=createHash('sha256').update(SOURCE).digest('hex');
 
 export async function runR74ControllerPinnedNpmCycle({sidebar,website,browser,until,clickReal,type,read,report,observedRequests}){
+  const chromePageCycle={sidebar,website,browser,until,clickReal,type,read,report};
   const proof={caseId:'D04-EXT-R74-NORMAL-NPM-IMPORT-MITT',world:'CONTROLLER',
     programId:PROGRAM,sourceUrl:MITT_ESM_URL,authorSourceHash,status:'IN_PROGRESS'};
   report.tests.push(proof);
@@ -92,4 +94,5 @@ export async function runR74ControllerPinnedNpmCycle({sidebar,website,browser,un
     proof.status='CHROME_FAIL';proof.error={code:error.code||'E_R74_NPM_IMPORT',message:String(error.message||error)};
     throw error;
   }
+  await runR78ControllerD3ChromePageCycle(chromePageCycle);
 }

@@ -1,0 +1,9 @@
+file:///Users/shopme/Documents/workspace/opendesk-browser/scripts/verify-package.mjs:513
+    if(!actual.equals(expected))throw new Error('Official release differs from trusted source: '+path);
+                                      ^
+
+Error: Official release differs from trusted source: official-tools/cookie-editor/cookie-editor.opendesk-tool.json
+    at verifyPackage (file:///Users/shopme/Documents/workspace/opendesk-browser/scripts/verify-package.mjs:513:39)
+    at async file:///Users/shopme/Documents/workspace/opendesk-browser/scripts/verify-package.mjs:535:30
+
+Node.js v24.16.0

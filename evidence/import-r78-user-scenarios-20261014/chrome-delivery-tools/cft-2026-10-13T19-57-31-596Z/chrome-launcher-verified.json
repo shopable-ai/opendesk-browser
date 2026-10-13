@@ -1,0 +1,32 @@
+{
+  "kind": "macos-launcher",
+  "executable": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+  "argv": [
+    "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+    "--use-mock-keychain",
+    "--password-store=basic",
+    "--remote-debugging-address=127.0.0.1",
+    "--user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-cft-sjmrryis",
+    "--remote-debugging-port=0",
+    "--no-first-run",
+    "--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/.runtime/tests/import-r78/main-candidate-load-fix/dist/production-developer",
+    "--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/.runtime/tests/import-r78/main-candidate-load-fix/dist/production-developer"
+  ],
+  "pid": 62102,
+  "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-cft-sjmrryis",
+  "launcher": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/cft-isolated-launcher.py",
+  "launcherPid": 62101,
+  "launcherArgs": [
+    "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/cft-isolated-launcher.py",
+    "--executable",
+    "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+    "--report",
+    "/Users/shopme/Documents/workspace/opendesk-browser/evidence/import-r78-user-scenarios-20261014/chrome-delivery-tools/cft-2026-10-13T19-57-31-596Z/chrome-launcher-report.json",
+    "--remote-debugging-port=0",
+    "--no-first-run",
+    "--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/.runtime/tests/import-r78/main-candidate-load-fix/dist/production-developer",
+    "--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/.runtime/tests/import-r78/main-candidate-load-fix/dist/production-developer"
+  ],
+  "reportFile": "/Users/shopme/Documents/workspace/opendesk-browser/evidence/import-r78-user-scenarios-20261014/chrome-delivery-tools/cft-2026-10-13T19-57-31-596Z/chrome-launcher-report.json",
+  "actualMainProcess": "62102 62101 /Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing --use-mock-keychain --password-store=basic --remote-debugging-address=127.0.0.1 --user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-cft-sjmrryis --remote-debugging-port=0 --no-first-run --disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/.runtime/tests/import-r78/main-candidate-load-fix/dist/production-developer --load-extension=/Users/shopme/Documents/workspace/opendesk-browser/.runtime/tests/import-r78/main-candidate-load-fix/dist/production-developer\n"
+}

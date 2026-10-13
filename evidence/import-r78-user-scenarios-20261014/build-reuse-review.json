@@ -1,0 +1,28 @@
+{
+  "receipt": "docs/framework/workstreams/evidence/import-r77-20261014/build/build-production-developer.json",
+  "packageHash": "059facba5cf460965e6f9201fab9da108e95740f7b9aaa9866c991224651d6d4",
+  "totalInputs": 470,
+  "drift": [
+    "examples/sidebar-tools/cookie-editor/src/index.html",
+    "examples/sidebar-tools/cookie-editor/src/main.js",
+    "examples/sidebar-tools/cookie-editor/tool.config.json",
+    "scripts/check-browser-framework-ledger.mjs",
+    "src/platform/chrome/bookmarks.js",
+    "src/platform/chrome/permission-gate.js",
+    "src/platform/tasks/schedule-contract.js",
+    "src/platform/tasks/schedule-repository.js",
+    "src/platform/tasks/schedule-service.js",
+    "src/ui/cloud-hosting.css",
+    "src/ui/cloud-hosting.js",
+    "src/ui/design-system.css",
+    "src/ui/installed-page-tools.js",
+    "src/ui/page-dependency-install.js",
+    "src/ui/scheduled-task-workbench.js",
+    "src/ui/task-workbench.js",
+    "src/ui/tool-shell.css",
+    "src/ui/tool.html",
+    "src/ui/workflow/local-codex.js",
+    "src/ui/workflow/observation.js",
+    "src/ui/workflow/workflow-view.js"
+  ]
+}

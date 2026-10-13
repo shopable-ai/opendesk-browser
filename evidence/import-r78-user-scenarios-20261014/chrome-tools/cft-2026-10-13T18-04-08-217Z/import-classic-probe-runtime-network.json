@@ -1,0 +1,138 @@
+[
+  {
+    "sessionId": "3ABCE3007CCB6FE5FBF4EC65EB37B509",
+    "url": "chrome-extension://kbeocokdaadgcpinbamkhfmjlhillanh/sidebar-tools/bridge.js",
+    "type": "Script",
+    "initiator": {
+      "type": "parser",
+      "url": "chrome-extension://kbeocokdaadgcpinbamkhfmjlhillanh/sidebar-tools/sandbox.html",
+      "lineNumber": 4,
+      "columnNumber": 110
+    }
+  },
+  {
+    "sessionId": "3ABCE3007CCB6FE5FBF4EC65EB37B509",
+    "url": "blob:null/fec55a06-87f9-4f94-86ff-3464314d7383",
+    "type": "Script",
+    "initiator": {
+      "type": "script",
+      "stack": {
+        "callFrames": [
+          {
+            "functionName": "",
+            "scriptId": "3",
+            "url": "chrome-extension://kbeocokdaadgcpinbamkhfmjlhillanh/sidebar-tools/bridge.js",
+            "lineNumber": 0,
+            "columnNumber": 48316
+          }
+        ]
+      }
+    }
+  },
+  {
+    "sessionId": "3ABCE3007CCB6FE5FBF4EC65EB37B509",
+    "url": "blob:null/6c9321fe-158e-4d4e-9185-f09947b790ad",
+    "type": "Script",
+    "initiator": {
+      "type": "script",
+      "stack": {
+        "callFrames": [
+          {
+            "functionName": "",
+            "scriptId": "3",
+            "url": "chrome-extension://kbeocokdaadgcpinbamkhfmjlhillanh/sidebar-tools/bridge.js",
+            "lineNumber": 0,
+            "columnNumber": 48316
+          }
+        ]
+      }
+    }
+  },
+  {
+    "sessionId": "3ABCE3007CCB6FE5FBF4EC65EB37B509",
+    "url": "blob:null/da82c155-f069-4d0c-81ef-ddbffdb6ddb3",
+    "type": "Script",
+    "initiator": {
+      "type": "script",
+      "stack": {
+        "callFrames": [
+          {
+            "functionName": "",
+            "scriptId": "3",
+            "url": "chrome-extension://kbeocokdaadgcpinbamkhfmjlhillanh/sidebar-tools/bridge.js",
+            "lineNumber": 0,
+            "columnNumber": 49045
+          }
+        ]
+      }
+    }
+  },
+  {
+    "sessionId": "AB2077E42B1CBD180C55AE5AE0468CB0",
+    "url": "chrome-extension://kbeocokdaadgcpinbamkhfmjlhillanh/sidebar-tools/bridge.js",
+    "type": "Script",
+    "initiator": {
+      "type": "parser",
+      "url": "chrome-extension://kbeocokdaadgcpinbamkhfmjlhillanh/sidebar-tools/sandbox.html",
+      "lineNumber": 4,
+      "columnNumber": 110
+    }
+  },
+  {
+    "sessionId": "AB2077E42B1CBD180C55AE5AE0468CB0",
+    "url": "blob:null/afcc2a8a-4c49-49c4-950f-cded3b524ca7",
+    "type": "Script",
+    "initiator": {
+      "type": "script",
+      "stack": {
+        "callFrames": [
+          {
+            "functionName": "",
+            "scriptId": "3",
+            "url": "chrome-extension://kbeocokdaadgcpinbamkhfmjlhillanh/sidebar-tools/bridge.js",
+            "lineNumber": 0,
+            "columnNumber": 48316
+          }
+        ]
+      }
+    }
+  },
+  {
+    "sessionId": "AB2077E42B1CBD180C55AE5AE0468CB0",
+    "url": "blob:null/4cc4ac8d-407c-46f7-94a4-91e23f8dc1f5",
+    "type": "Script",
+    "initiator": {
+      "type": "script",
+      "stack": {
+        "callFrames": [
+          {
+            "functionName": "",
+            "scriptId": "3",
+            "url": "chrome-extension://kbeocokdaadgcpinbamkhfmjlhillanh/sidebar-tools/bridge.js",
+            "lineNumber": 0,
+            "columnNumber": 48316
+          }
+        ]
+      }
+    }
+  },
+  {
+    "sessionId": "AB2077E42B1CBD180C55AE5AE0468CB0",
+    "url": "blob:null/1c323317-0ee3-42df-b89f-29073581dbaf",
+    "type": "Script",
+    "initiator": {
+      "type": "script",
+      "stack": {
+        "callFrames": [
+          {
+            "functionName": "",
+            "scriptId": "3",
+            "url": "chrome-extension://kbeocokdaadgcpinbamkhfmjlhillanh/sidebar-tools/bridge.js",
+            "lineNumber": 0,
+            "columnNumber": 49045
+          }
+        ]
+      }
+    }
+  }
+]

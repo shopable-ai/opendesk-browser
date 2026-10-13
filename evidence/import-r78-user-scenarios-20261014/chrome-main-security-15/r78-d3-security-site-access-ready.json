@@ -1,0 +1,16 @@
+{
+  "phase": "withdraw",
+  "pid": 2941,
+  "extensionId": "bhgdmhfdiifahopjjbfochkggcfjjhjj",
+  "settingsTarget": {
+    "description": "",
+    "devtoolsFrontendUrl": "https://chrome-devtools-frontend.appspot.com/serve_rev/@3ff7ac5a9224be9156d7f8703a06e22890aafd34/inspector.html?ws=127.0.0.1:53062/devtools/page/B8B0E94DE7EA8B816621EABC38E35A37",
+    "id": "B8B0E94DE7EA8B816621EABC38E35A37",
+    "title": "chrome://extensions/?id=bhgdmhfdiifahopjjbfochkggcfjjhjj",
+    "type": "page",
+    "url": "chrome://extensions/?id=bhgdmhfdiifahopjjbfochkggcfjjhjj",
+    "webSocketDebuggerUrl": "ws://127.0.0.1:53062/devtools/page/B8B0E94DE7EA8B816621EABC38E35A37"
+  },
+  "expectedValue": "ON_CLICK",
+  "entry": "Mac native Chrome site access control"
+}

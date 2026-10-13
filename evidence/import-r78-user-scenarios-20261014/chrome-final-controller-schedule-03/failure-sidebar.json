@@ -1,0 +1,437 @@
+{
+  "url": "chrome-extension://aniblblbecjmojblboienpehdnadghel/ui/tool.html?hostInstanceId=212f8be9-a7ee-4797-9393-048f47f65176",
+  "body": "我的\n发现\n工作流\n开发\n工具\n云控\n创建定时计划\n\n安排已验证安装的自动化任务\n\n1名称与执行任务\n计划名称\n执行任务（已验证并安装）\n请选择已安装并验证的任务\nR7.8 D3 scheduled once · v7.8.0\n\n固定版本 v7.8.0 · 网站范围：http://127.0.0.1:43111 · 网站权限已授权\n\n2目标网页与可选参数\n目标网页 URL\n\n仅支持任务已批准的 HTTP(S) 网页，不包含账号密码或 # 片段。\n\n任务参数（JSON 对象）\n3执行时间\n重复规则\n执行一次\n每天\n每周\n每隔一段时间\n执行时区\n已选择 · 中国 · 北京 / 上海（Asia/Shanghai）\n更改\n执行日期和时间\n预计下次执行\n2026/10/14 03:36\n按 Asia/Shanghai 固定时区执行 · Chrome 关闭时不唤醒电脑\n4高级执行条件\n高级选项\n创建后先暂停\n5检查并保存\n检查并确认\n返回列表",
+  "inputs": [
+    {
+      "id": "schedule-title",
+      "value": "R7.8 D3 once",
+      "disabled": false
+    },
+    {
+      "id": "schedule-target",
+      "value": "http://127.0.0.1:43111/demo-form.html",
+      "disabled": false
+    },
+    {
+      "id": "schedule-params",
+      "value": "{}",
+      "disabled": false
+    },
+    {
+      "id": "schedule-timezone-search",
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": "schedule-once",
+      "value": "2026-10-14T03:36",
+      "disabled": false
+    },
+    {
+      "id": "schedule-clock",
+      "value": "09:00",
+      "disabled": false
+    },
+    {
+      "id": "",
+      "value": "1",
+      "disabled": false
+    },
+    {
+      "id": "",
+      "value": "2",
+      "disabled": false
+    },
+    {
+      "id": "",
+      "value": "3",
+      "disabled": false
+    },
+    {
+      "id": "",
+      "value": "4",
+      "disabled": false
+    },
+    {
+      "id": "",
+      "value": "5",
+      "disabled": false
+    },
+    {
+      "id": "",
+      "value": "6",
+      "disabled": false
+    },
+    {
+      "id": "",
+      "value": "0",
+      "disabled": false
+    },
+    {
+      "id": "schedule-minutes",
+      "value": "60",
+      "disabled": false
+    },
+    {
+      "id": "schedule-open-target",
+      "value": "on",
+      "disabled": false
+    },
+    {
+      "id": "schedule-deadline",
+      "value": "5",
+      "disabled": false
+    },
+    {
+      "id": "schedule-paused",
+      "value": "on",
+      "disabled": false
+    },
+    {
+      "id": "schedule-manager-search",
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": "sidebar-tool-file",
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": "trusted-cookie-name",
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": "trusted-cookie-value",
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": "trusted-cookie-path",
+      "value": "/",
+      "disabled": false
+    },
+    {
+      "id": "sidebar-tool-search",
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": "sidebar-tool-retired-draft-text",
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": "trusted-history-text",
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": "trusted-history-start",
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": "trusted-history-end",
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": "trusted-history-limit",
+      "value": "25",
+      "disabled": false
+    },
+    {
+      "id": "",
+      "value": "on",
+      "disabled": true
+    },
+    {
+      "id": "",
+      "value": "on",
+      "disabled": true
+    },
+    {
+      "id": "cloud-consent",
+      "value": "on",
+      "disabled": false
+    },
+    {
+      "id": "cloud-result-consent",
+      "value": "on",
+      "disabled": false
+    },
+    {
+      "id": "cloud-client-name",
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": "cloud-client-result",
+      "value": "on",
+      "disabled": true
+    },
+    {
+      "id": "cloud-client-token",
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": "cloud-url",
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": "cloud-provider-id",
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": "cloud-pairing-code",
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": "cloud-loopback",
+      "value": "on",
+      "disabled": false
+    },
+    {
+      "id": "local-discover-search",
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": "task-search",
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": "task-verify-run",
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": "task-package-file",
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": "workflow-confirm-run",
+      "value": "on",
+      "disabled": false
+    },
+    {
+      "id": "workflow-title",
+      "value": "新工作流",
+      "disabled": false
+    },
+    {
+      "id": "workflow-description",
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": "workflow-site",
+      "value": "http://127.0.0.1:43111",
+      "disabled": false
+    },
+    {
+      "id": "workflow-new-param-name",
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": "workflow-schema",
+      "value": "{\n  \"additionalProperties\": false,\n  \"properties\": {},\n  \"required\": [],\n  \"type\": \"object\"\n}",
+      "disabled": false
+    },
+    {
+      "id": "workflow-ai-request",
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": "workflow-ai-endpoint",
+      "value": "https://api.openai.com/v1/chat/completions",
+      "disabled": false
+    },
+    {
+      "id": "workflow-ai-model",
+      "value": "gpt-4o-mini",
+      "disabled": false
+    },
+    {
+      "id": "workflow-ai-key",
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": "local-project-mode",
+      "value": "on",
+      "disabled": false
+    },
+    {
+      "id": "local-install-title",
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": "local-install-version",
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": "local-project-params",
+      "value": "{}",
+      "disabled": false
+    },
+    {
+      "id": "page-component-javascript",
+      "value": "javascript",
+      "disabled": false
+    },
+    {
+      "id": "page-component-react",
+      "value": "react",
+      "disabled": false
+    },
+    {
+      "id": "page-component-vue",
+      "value": "vue",
+      "disabled": false
+    },
+    {
+      "id": "script-source",
+      "value": "/* opendesk.controller-esm-authoring.v1 eyJmb3JtYXQiOiJvcGVuZGVzay5jb250cm9sbGVyLWVzbS1hdXRob3JpbmcudjEiLCJwcm9ncmFtSWQiOiJyNzgtY29udHJvbGxlci1kMy1jaHJvbWVwYWdlIiwiYXV0aG9yU291cmNlVXRmOCI6ImltcG9ydCBtYXggZnJvbSAnaHR0cHM6Ly9yYXcuZ2l0aHVidXNlcmNvbnRlbnQuY29tL2QzL2QzLWFycmF5L3YzLjIuNC9zcmMvbWF4LmpzJztcblxuZXhwb3J0IGRlZmF1bHQgYXN5bmMgZnVuY3Rpb24gbWFpbigpIHtcbiAgY29uc3QgdXJsID0gYXdhaXQgcGFnZS51cmwoKTtcblxuICBpZiAoIXVybC5zdGFydHNXaXRoKCdodHRwOi8vMTI3LjAuMC4xOjQzMTExL2RlbW8tZm9ybS5odG1sJykpIHtcbiAgICB0aHJvdyBuZXcgRXJyb3IoJ+ivt+aJk+W8gCBPcGVuRGVzayDmoIflh4bmtYvor5XpobXpnaInKTtcbiAgfVxuXG4gIGNvbnN0IGNvdW50ZXIgPSBwYWdlLmxvY2F0b3IoJyNzZWFyY2gtY291bnQnKTtcbiAgY29uc3QgcmVhZENvdW50ID0gYXN5bmMgKCkgPT4ge1xuICAgIGNvbnN0IHRleHQgPSBhd2FpdCBjb3VudGVyLnRleHRDb250ZW50KCk7XG4gICAgcmV0dXJuIE51bWJlcigodGV4dCB8fCAnJykucmVwbGFjZSgvXFxEL2csICcnKSk7XG4gIH07XG4gIGNvbnN0IGJlZm9yZSA9IGF3YWl0IHJlYWRDb3VudCgpO1xuXG4gIGF3YWl0IHBhZ2UuZ2V0QnlMYWJlbCgn5pCc57Si5YWz6ZSu6K+NJywge2V4YWN0OiB0cnVlfSkuZmlsbCgnT3BlbkRlc2snKTtcbiAgYXdhaXQgcGFnZS5nZXRCeVJvbGUoJ2J1dHRvbicsIHtuYW1lOiAn5pCc57SiJywgZXhhY3Q6IHRydWV9KS5jbGljaygpO1xuICBhd2FpdCBwYWdlLmdldEJ5VGV4dCgn5pCc57Si5a6M5oiQJywge2V4YWN0OiB0cnVlfSkud2FpdEZvcih7c3RhdGU6ICd2aXNpYmxlJ30pO1xuXG4gIGNvbnN0IHJlc3VsdCA9IGF3YWl0IHBhZ2UubG9jYXRvcignI3Jlc3VsdHMnKS50ZXh0Q29udGVudCgpO1xuICBjb25zdCBhZnRlciA9IGF3YWl0IHJlYWRDb3VudCgpO1xuICBjb25zdCB2YWx1ZSA9IG1heChbMiwgNSwgM10pO1xuXG4gIGlmICh2YWx1ZSAhPT0gNSB8fCBhZnRlciAhPT0gYmVmb3JlICsgMSB8fCAhcmVzdWx0Py5pbmNsdWRlcygnT3BlbkRlc2snKSkge1xuICAgIHRocm93IG5ldyBFcnJvcignSU1QT1JUX09SX1BBR0VfQUNUSU9OX0ZBSUxFRCcpO1xuICB9XG5cbiAgcmV0dXJuIHtcbiAgICB0aXRsZTogYXdhaXQgcGFnZS50aXRsZSgpLFxuICAgIGxpYnJhcnk6ICdkMy1hcnJheUAzLjIuNCcsXG4gICAgbWF4VmFsdWU6IHZhbHVlLFxuICAgIHJlc3VsdCxcbiAgICBzZWFyY2hDb3VudEJlZm9yZTogYmVmb3JlLFxuICAgIHNlYXJjaENvdW50QWZ0ZXI6IGFmdGVyLFxuICAgIHN1Y2Nlc3M6IHRydWVcbiAgfTtcbn1cbiIsImF1dGhvcmluZ1NvdXJjZUhhc2giOiIxMTg4YzYwMjExZjNkNDgzMjMxY2NmMGVlMWZiYmFmNjNmNzIxYmNlOTRhZjE5ZTJiOGYzMTkyZjlkZTQwNmQyIiwiY29tcGlsZWRTb3VyY2VIYXNoIjoiYTMzNmM4N2Q3YmRlMWVhN2QyMzUwMDhmNGYxNjgzM2JiNTg3Mjc5YWYyOGU0M2JiZjM2M2I1ODE2YzFiYTU5YSIsImRlcGVuZGVuY3lMb2NrSWQiOiJjb21wb25lbnQtbG9jay1jMjAxYzlmMjY4YmM4MDMxYzdiNjdkY2Y2NTE2YWZmNmU4OWVlMTNhNjRjODllYWU1ODMyNGZjYjJkZjZmOWZjIiwiY29tcGlsZXJWZXJzaW9uIjoiNy4yOS45In0= */\n/* OpenDesk Controller ESM · frozen source graph; runtime network loading disabled */\nconst __odESMFactories=Object.create(null),__odESMCache=Object.create(null);\n__odESMFactories[\"https://raw.githubusercontent.com/d3/d3-array/v3.2.4/src/max.js\"]=[function(module,exports,require){\n\"use strict\";\n\nObject.defineProperty(exports, \"__esModule\", {\n  value: true\n});\nexports.default = max;\nfunction max(values, valueof) {\n  let max;\n  if (valueof === undefined) {\n    for (const value of values) {\n      if (value != null && (max < value || max === undefined && value >= value)) {\n        max = value;\n      }\n    }\n  } else {\n    let index = -1;\n    for (let value of values) {\n      if ((value = valueof(value, ++index, values)) != null && (max < value || max === undefined && value >= value)) {\n        max = value;\n      }\n    }\n  }\n  return max;\n}\n},{}];\nfunction __odESMLoad(id){\n  if(!Object.hasOwn(__odESMFactories,id))throw Error('E_REMOTE_UNLOCKED');\n  if(Object.hasOwn(__odESMCache,id))return __odESMCache[id].exports;\n  const module={exports:{}};__odESMCache[id]=module;const row=__odESMFactories[id];\n  const require=name=>{if(!Object.hasOwn(row[1],name))throw Error('E_REMOTE_UNLOCKED');return __odESMLoad(row[1][name]);};\n  row[0](module,module.exports,require);return module.exports;\n}\nconst __odESMEntry=(function(){\n  const module={exports:{}};const refs={\"https://raw.githubusercontent.com/d3/d3-array/v3.2.4/src/max.js\":\"https://raw.githubusercontent.com/d3/d3-array/v3.2.4/src/max.js\"};\n  const require=name=>{if(!Object.hasOwn(refs,name))throw Error('E_REMOTE_UNLOCKED');return __odESMLoad(refs[name]);};\n  (function(module,exports,require){\n\"use strict\";\n\nObject.defineProperty(exports, \"__esModule\", {\n  value: true\n});\nexports.default = main;\nvar _max = _interopRequireDefault(require(\"https://raw.githubusercontent.com/d3/d3-array/v3.2.4/src/max.js\"));\nfunction _interopRequireDefault(e) { return e && e.__esModule ? e : { default: e }; }\nasync function main() {\n  const url = await page.url();\n  if (!url.startsWith('http://127.0.0.1:43111/demo-form.html')) {\n    throw new Error('请打开 OpenDesk 标准测试页面');\n  }\n  const counter = page.locator('#search-count');\n  const readCount = async () => {\n    const text = await counter.textContent();\n    return Number((text || '').replace(/\\D/g, ''));\n  };\n  const before = await readCount();\n  await page.getByLabel('搜索关键词', {\n    exact: true\n  }).fill('OpenDesk');\n  await page.getByRole('button', {\n    name: '搜索',\n    exact: true\n  }).click();\n  await page.getByText('搜索完成', {\n    exact: true\n  }).waitFor({\n    state: 'visible'\n  });\n  const result = await page.locator('#results').textContent();\n  const after = await readCount();\n  const value = (0, _max.default)([2, 5, 3]);\n  if (value !== 5 || after !== before + 1 || !result?.includes('OpenDesk')) {\n    throw new Error('IMPORT_OR_PAGE_ACTION_FAILED');\n  }\n  return {\n    title: await page.title(),\n    library: 'd3-array@3.2.4',\n    maxValue: value,\n    result,\n    searchCountBefore: before,\n    searchCountAfter: after,\n    success: true\n  };\n}\n})(module,module.exports,require);\n  return module.exports.default;\n})();\nasync function main(){if(typeof __odESMEntry!=='function')throw Error('E_CONTROLLER_ESM_ENTRY');return await __odESMEntry();}\n",
+      "disabled": false
+    },
+    {
+      "id": "network-js-metadata",
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": "network-js-consent",
+      "value": "on",
+      "disabled": false
+    },
+    {
+      "id": "script-params",
+      "value": "{}",
+      "disabled": false
+    },
+    {
+      "id": "script-run-id",
+      "value": "bf359020-bc23-424a-ad74-9160c1f380f4",
+      "disabled": false
+    },
+    {
+      "id": "script-id",
+      "value": "r78-controller-d3-chromepage",
+      "disabled": false
+    },
+    {
+      "id": "script-revision",
+      "value": "1",
+      "disabled": false
+    },
+    {
+      "id": "task-dev-id",
+      "value": "r78-controller-d3-scheduled",
+      "disabled": false
+    },
+    {
+      "id": "task-dev-version",
+      "value": "7.8.0",
+      "disabled": false
+    },
+    {
+      "id": "task-dev-title",
+      "value": "R7.8 D3 scheduled once",
+      "disabled": false
+    },
+    {
+      "id": "task-dev-description",
+      "value": "Runs the verified R7.8 ChromePage and D3 controller on the demo search form.",
+      "disabled": false
+    },
+    {
+      "id": "task-dev-author",
+      "value": "local-developer",
+      "disabled": false
+    },
+    {
+      "id": "task-dev-schema",
+      "value": "{\"type\":\"object\",\"properties\":{},\"required\":[],\"additionalProperties\":false}",
+      "disabled": false
+    },
+    {
+      "id": "script-owned-url",
+      "value": "",
+      "disabled": true
+    },
+    {
+      "id": "script-allow-cookies",
+      "value": "on",
+      "disabled": false
+    },
+    {
+      "id": "",
+      "value": "network",
+      "disabled": false
+    },
+    {
+      "id": "",
+      "value": "storage.persistent",
+      "disabled": false
+    },
+    {
+      "id": "",
+      "value": "storage.session",
+      "disabled": false
+    },
+    {
+      "id": "",
+      "value": "notifications",
+      "disabled": false
+    },
+    {
+      "id": "",
+      "value": "device.id",
+      "disabled": false
+    },
+    {
+      "id": "",
+      "value": "network.info",
+      "disabled": true
+    },
+    {
+      "id": "",
+      "value": "service.log",
+      "disabled": false
+    },
+    {
+      "id": "",
+      "value": "service.time",
+      "disabled": false
+    },
+    {
+      "id": "",
+      "value": "resources.packaged",
+      "disabled": false
+    },
+    {
+      "id": "sdk-target-origins",
+      "value": "https://httpbingo.org",
+      "disabled": false
+    },
+    {
+      "id": "target-url",
+      "value": "",
+      "disabled": false
+    }
+  ],
+  "active": "schedule-once"
+}

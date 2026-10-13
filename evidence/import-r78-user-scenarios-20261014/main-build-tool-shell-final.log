@@ -1,0 +1,66 @@
+
+WXT 0.21.4
+ℹ Building chrome-mv3 for production with Vite 7.3.6
+
+ WARN  The following entrypoints have been skipped:
+- axios
+- sw
+- blocked
+- bootstrap
+- bridge
+- cheerio
+- cloud-console
+- cloud-host
+- context-menus
+- crypto-js
+- dayjs
+- file-saver
+- fingerprintjs
+- health-host
+- health
+- js-cookie
+- knowledge-host
+- lodash
+- market-host
+- marketplace
+- page-agent
+- page-core
+- page-relay
+- page-session
+- preinstall-intent
+- query-string
+- sandbox
+- sdk-main
+- selection-entry
+- settings
+- sidebar-tool-host
+- stay-focus-controls
+- store
+- time-review-host
+- transport
+- trusted-cookie-ui
+- worker-runtime
+
+[?25l⠋ Preparing...[K⠋ [1/1] tool-shell[K⠙ [1/1] tool-shell[K⠹ [1/1] tool-shell[K⠸ [1/1] tool-shell[K⠼ [1/1] tool-shell[K⠴ [1/1] tool-shell[K⠦ [1/1] tool-shell[K⠧ [1/1] tool-shell[K⠇ [1/1] tool-shell[K⠏ [1/1] tool-shell[K⠋ [1/1] tool-shell[K⠙ [1/1] tool-shell[K⠹ [1/1] tool-shell[K⠸ [1/1] tool-shell[K⠼ [1/1] tool-shell[K⠴ [1/1] tool-shell[K⠦ [1/1] tool-shell[K⠧ [1/1] tool-shell[K⠇ [1/1] tool-shell[K⠏ [1/1] tool-shell[K⠋ [1/1] tool-shell[K⠙ [1/1] tool-shell[K⠹ [1/1] tool-shell[K⠸ [1/1] tool-shell[K⠼ [1/1] tool-shell[K⠴ [1/1] tool-shell[K⠦ [1/1] tool-shell[K⠧ [1/1] tool-shell[K⠇ [1/1] tool-shell[K⠏ [1/1] tool-shell[K⠋ [1/1] tool-shell[K⠙ [1/1] tool-shell[K⠹ [1/1] tool-shell[K⠸ [1/1] tool-shell[K⠼ [1/1] tool-shell[K⠴ [1/1] tool-shell[K⠦ [1/1] tool-shell[K⠧ [1/1] tool-shell[K⠇ [1/1] tool-shell[K⠏ [1/1] tool-shell[K⠋ [1/1] tool-shell[K⠙ [1/1] tool-shell[K⠹ [1/1] tool-shell[K⠸ [1/1] tool-shell[K⠼ [1/1] tool-shell[K⠴ [1/1] tool-shell[K⠦ [1/1] tool-shell[KOVERSIZE_FIXED_ENTRY_MODULES={"target":"ui/tool-shell.js","bytes":526691,"budget":524288,"largest":[{"module":"src/ui/script-editor.js","renderedLength":107851},{"module":"src/ui/workflow/workflow-view.js","renderedLength":57025},{"module":"src/ui/task-workbench.js","renderedLength":53597},{"module":"src/ui/scheduled-task-workbench.js","renderedLength":51060},{"module":"src/ui/cloud-hosting.js","renderedLength":28937},{"module":"src/ui/tool-shell.js","renderedLength":25074},{"module":"src/ui/workflow/local-codex.js","renderedLength":25053},{"module":"src/scripting/user-scripts/dependency-metadata.js","renderedLength":22157},{"module":"src/ui/page-dependencies.js","renderedLength":20106},{"module":"src/ui/page-component-remote.js","renderedLength":18627},{"module":"src/framework/ChromePage.js","renderedLength":15585},{"module":"src/run-host.js","renderedLength":15216},{"module":"src/ui/page-dependency-install.js","renderedLength":14655},{"module":"src/ui/local-project-install.js","renderedLength":14606},{"module":"src/ui/local-project-install-ui.js","renderedLength":14263},{"module":"src/ui/local-project.js","renderedLength":13116},{"module":"src/native-agent/host-adapter.js","renderedLength":11929},{"module":"src/ui/sdk-approval.js","renderedLength":11680}]}
+✗ Build failed in 4.04s
+[K[?25h[K[?25h
+ ERROR  [opendesk-fixed-tool-shell] WXT entry exceeds configured byte budget: ui/tool-shell.js (526691 > 524288)
+
+    at Object.generateBundle (wxt.config.mjs:201:33)
+
+✖ Command failed after 4.294 s
+
+ ERROR  Failed to build tool-shell
+
+    at buildEntrypoints (node_modules/wxt/dist/core/utils/building/build-entrypoints.mjs:21:10)
+    at async rebuild (node_modules/wxt/dist/core/utils/building/rebuild.mjs:34:20)
+    at async internalBuild (node_modules/wxt/dist/core/utils/building/internal-build.mjs:47:31)
+    at async build (node_modules/wxt/dist/core/build.mjs:21:9)
+    at async node_modules/wxt/dist/cli/commands.mjs:31:2
+    at async CAC.<anonymous> (node_modules/wxt/dist/cli/cli-utils.mjs:22:10)
+    at async node_modules/wxt/dist/cli/index.mjs:11:1
+
+  [cause]: [opendesk-fixed-tool-shell] WXT entry exceeds configured byte budget: ui/tool-shell.js (526691 > 524288)
+
+      at Object.generateBundle (wxt.config.mjs:201:33)
+
