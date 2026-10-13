@@ -6,7 +6,8 @@ const CODE=['// ==UserScript==','// @name R7.2 fixed marked test','// @require '
 'if(!html?.includes("<strong>OpenDesk</strong>"))throw Error("E_REAL_MARKED");',
 'return {library:"marked@15.0.12",html};}'].join('\n');
 export async function runR72PageClassicCycle({sidebar,website,browser,base,extensionId,cdp,until,clickReal,report}){
-  const proof={caseId:'D02/D03',url:URL,world:'USER_SCRIPT',steps:[]}, observed=[];
+  const proof={caseId:'D02/D03',url:URL,world:'USER_SCRIPT',steps:[],status:'IN_PROGRESS'}, observed=[];
+  report.tests.push(proof);
   const read=x=>sidebar.read(x);
   const status=id=>read('(function(){const el=document.getElementById('+JSON.stringify(id)+');return {state:el?.dataset?.state,text:el?.textContent}})()');
   const step=(name,value)=>proof.steps.push({name,value});
@@ -104,6 +105,10 @@ export async function runR72PageClassicCycle({sidebar,website,browser,base,exten
     proof.sha256=a.sha;proof.programLocks={a:a.lockId,b:b.lockId};
     proof.network={firstProgramRequests:fetched,secondProgramRequests:0};
     proof.status='CHROME_PASS_D02_D03';
-    report.tests.push(proof);
+  }catch(error){
+    proof.status='CHROME_FAIL';
+    proof.error={code:error.code||'E_R72_NATIVE',message:String(error.message||error)};
+    proof.networkObservedRequests=observed.length;
+    throw error;
   }finally{observer?.close();}
 }
