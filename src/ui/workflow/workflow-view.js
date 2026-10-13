@@ -278,7 +278,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     get('workflow-step-count').textContent=workflow.steps.length + ' 步';
     if(!workflow.steps.length)parent.append(node(doc,'p','暂无步骤。添加“观察页面”或“填写内容”开始创建。','hint'));
     workflow.steps.forEach((step,index)=>{
-      const details=node(doc,'details',undefined,'workflow-step');
+      const details=node(doc,'details',undefined,'workflow-step od-disclosure');
       details.dataset.stepId=step.stepId;
       details.open=expanded.has(step.stepId);
       const summaryText=()=>{

@@ -56,7 +56,7 @@ if(!vm.SourceTextModule) {
       if(selector==='[data-workflow-param]')return Object.hasOwn(this.dataset,'workflowParam');
       if(selector==='summary')return this.tagName==='SUMMARY';
       if(selector==='details.workflow-step'||selector==='details.workflow-step[open]')
-        return this.tagName==='DETAILS'&&this.className==='workflow-step'&&(!selector.endsWith('[open]')||this.open);
+        return this.tagName==='DETAILS'&&this.className.split(' ').includes('workflow-step')&&(!selector.endsWith('[open]')||this.open);
       throw new Error('Unsupported fixture selector '+selector);
     }
     closest(selector){for(let item=this;item;item=item.parentElement)if(item.matches(selector))return item;return null;}
@@ -190,7 +190,8 @@ if(!vm.SourceTextModule) {
     assert.equal(f.get('workflow-run').listeners.has('click'),true);
     assert.equal(f.get('workflow-save').listeners.has('click'),true);
     assert.equal(f.get('workflow-ai-plan').disabled,false);
-    assert.equal(f.get('workflow-ai-disclosure').dataset.consent,'required');
+    assert.equal(f.get('workflow-ai-disclosure'),undefined);
+    assert.match(await readFile('src/ui/tool.html','utf8'),/id="workflow-ai-plan"[^>]*aria-label="发送并执行浏览器任务"/);
   });
 
   test('component: action and locator changes preserve semantic select in the same expanded step',async t=>{

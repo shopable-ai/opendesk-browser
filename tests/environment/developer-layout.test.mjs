@@ -3,10 +3,11 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 
 // Layout regression is a source-level contract; native Chrome remains a separate acceptance step.
-const [html, css, editor] = await Promise.all([
+const [html, css, editor, design] = await Promise.all([
   readFile('src/ui/tool.html', 'utf8'),
   readFile('src/ui/tool-shell.css', 'utf8'),
-  readFile('src/ui/script-editor.js', 'utf8')
+  readFile('src/ui/script-editor.js', 'utf8'),
+  readFile('src/ui/design-system.css', 'utf8')
 ]);
 const dev = html.slice(html.indexOf('id="workbench-develop"'), html.indexOf('id="tool-diagnostics"'));
 
@@ -20,16 +21,16 @@ test('Dev has one live run-status row and moves technical identity below results
   assert.match(editor, /taskStatus\.hidden = state !== 'results' \|\| !taskStatus\.textContent/);
 });
 
-test('Dev code editor is about one third shorter while staying user-resizable', () => {
+test('Dev code editor preserves R29 readable minimum while staying user-resizable', () => {
   assert.match(dev, /id="script-source" rows="6"/);
-  assert.match(css, /#script-source\{min-height:174px;height:min\(30vh,254px\);max-height:70vh/);
+  assert.match(css, /#script-source\{[^}]*min-height:216px;height:clamp\(216px,32vh,320px\);max-height:max\(216px,70vh\)/);
   assert.match(css, /#script-source\{[^}]*resize:vertical|textarea\{[^}]*resize:vertical/);
 });
 
-test('Dev spacing and font normalization are scoped to the developer panel', () => {
-  assert.match(css, /#workbench-develop \.developer-editor details>:not\(summary\)\{margin-block:8px 0\}/);
-  assert.match(css, /#workbench-develop \.developer-editor details>label\+:is\(input,select,textarea\)\{margin-block-start:4px\}/);
-  assert.match(css, /#workbench-develop \.developer-editor label\{font-size:12px;line-height:1\.5;font-weight:400/);
-  assert.match(css, /#workbench-develop \.developer-editor>details>summary\{font-weight:600\}/);
+test('Dev disclosure typography and content inset inherit the shared component', () => {
+  assert.match(dev, /id="developer-results-panel" class="developer-results od-disclosure"/);
+  assert.match(design, /\.od-disclosure>summary\{[^}]*font-weight:650/);
+  assert.match(design, /\.od-disclosure>:not\(summary\)\{[^}]*max-width:calc\(100% - var\(--space-3\) - var\(--space-3\)\);margin:var\(--space-2\) var\(--space-3\) 0/);
+  assert.doesNotMatch(css, /#workbench-develop \.developer-editor>details>summary\{/);
   assert.match(css, /\.developer-run-feedback\{display:flex;align-items:baseline;flex-wrap:wrap/);
 });

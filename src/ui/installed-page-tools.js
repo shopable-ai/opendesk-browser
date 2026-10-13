@@ -41,7 +41,7 @@ export function createInstalledPageTools({client,api,doc}){
         '\n'+(!installed.enabled?'已停用':installed.authorization?.status==='suspended'?'访问受限':
           installed.nativeState==='registered'?'已安装 · 自动运行':'注册待核对')+
         '';
-      const technical=doc.createElement('details');technical.className='installed-page-tool-technical';
+      const technical=doc.createElement('details');technical.className='installed-page-tool-technical od-disclosure od-disclosure--flat';
       const technicalTitle=doc.createElement('summary');technicalTitle.textContent='技术信息';
       technical.open=opened.has(row.programId);detailsById.set(row.programId,technical);
       technicalTitle.dataset.pageToolId=row.programId;technicalTitle.dataset.pageToolAction='technical';

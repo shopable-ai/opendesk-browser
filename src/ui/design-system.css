@@ -68,6 +68,8 @@ details>section{margin-top:var(--space-3)}
 .od-disclosure>summary::before{content:"";flex:none;width:7px;height:7px;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:rotate(-45deg)}
 .od-disclosure[open]>summary::before{transform:rotate(45deg)}
 .od-disclosure>summary>*{min-width:0}
+.od-disclosure>summary>span:only-child{flex:1 1 0}
+.od-disclosure>summary :is(strong,b){font-size:inherit;font-weight:inherit;color:inherit}
 .od-disclosure[open]>summary{border-bottom:1px solid var(--od-line)}
 /** Allow 100%-width form fields inside a disclosure without their 12px margins
  * pushing their right edge outside a narrow Side Panel. */

@@ -35,11 +35,11 @@
         </div>
         <pre id="task-result" aria-label="当前任务结果">尚未运行</pre>
       </div>
-      <details id="task-history-panel" class="task-history-panel" hidden><summary>运行记录</summary><div id="task-history" aria-live="polite"></div></details>
-      <details class="task-scope-panel"><summary>网站与权限</summary><div id="task-installed-detail" class="task-detail" aria-live="polite"></div></details>
-      <details class="task-tools"><summary>更多操作</summary>
+      <details id="task-history-panel" class="task-history-panel od-disclosure" hidden><summary>运行记录</summary><div id="task-history" aria-live="polite"></div></details>
+      <details class="task-scope-panel od-disclosure"><summary>网站与权限</summary><div id="task-installed-detail" class="task-detail" aria-live="polite"></div></details>
+      <details class="task-tools od-disclosure"><summary>更多操作</summary>
         <div class="row"><button type="button" id="task-refresh" class="od-button od-button--secondary">刷新任务</button><button type="button" id="task-fork-draft" disabled class="od-button od-button--secondary">复制草稿</button></div>
-        <details><summary>任务管理</summary>
+        <details class="od-disclosure od-disclosure--flat"><summary>任务管理</summary>
           <div class="row"><button type="button" id="task-toggle" disabled class="od-button od-button--secondary">停用 / 启用</button><button type="button" id="task-uninstall" disabled class="od-button od-button--danger">卸载当前版本</button><button type="button" id="open-catalog" class="catalog-open" aria-label="打开完整任务目录以导入或管理任务">导入/管理任务 ↗</button></div>
           <p class="hint">卸载不删除已有结果；停用将阻止后续启动。</p>
         </details>
@@ -80,7 +80,7 @@
           <div class="schedule-runner-metric od-surface"><span>运行宿主</span><strong id="schedule-runner-host-status" role="status">正在连接…</strong></div>
           <div class="schedule-runner-metric od-surface"><span>最近结果</span><strong id="schedule-runner-result">尚无记录</strong><small id="schedule-runner-result-detail"></small></div>
         </div>
-        <details class="schedule-runner-extra">
+        <details class="schedule-runner-extra od-disclosure od-disclosure--flat">
           <summary>其他调度状态和运行说明</summary>
           <div class="schedule-runner-extra-grid">
             <div class="schedule-runner-metric schedule-runner-metric--detail od-surface"><span>下次执行</span><strong id="schedule-runner-next">暂无计划</strong><small id="schedule-runner-next-detail"></small></div>
@@ -96,7 +96,7 @@
         <p id="schedule-host-status" class="hint" role="status">正在检查可用运行宿主…</p>
         <p id="schedule-list-summary" class="schedule-list-summary" role="status" aria-live="polite">正在读取定时计划…</p>
         <div id="schedule-plan-list" class="od-stack" aria-label="已保存的定时计划"></div>
-        <details class="schedule-storage-details">
+        <details class="schedule-storage-details od-disclosure">
           <summary>本地运行记录与存储</summary>
           <p id="schedule-storage-status" class="hint" role="status" aria-live="polite">历史记录按计划分页展示；未知副作用、未结算执行和审计记录不会自动清除。</p>
         </details>
@@ -183,7 +183,7 @@
         </fieldset>
         <section class="schedule-form-section schedule-form-advanced" aria-labelledby="schedule-advanced-section-title">
           <h3 id="schedule-advanced-section-title" class="schedule-section-title"><span aria-hidden="true">4</span>高级执行条件</h3>
-        <details class="schedule-advanced"><summary>高级选项</summary>
+        <details class="schedule-advanced od-disclosure od-disclosure--flat"><summary>高级选项</summary>
           <label class="schedule-check"><input type="checkbox" id="schedule-open-target">找不到已打开的目标网页时，允许为本次执行新开标签页</label>
           <label class="od-field" for="schedule-misfire">错过触发
             <select id="schedule-misfire" class="od-field"><option value="skip">跳过错过的执行</option><option value="latest-within-hour">只补最近 1 小时内的一次</option></select>
@@ -289,7 +289,7 @@
           <div id="installed-page-tools-list" class="od-stack"></div>
           <p id="installed-page-tools-status" class="hint" role="status" aria-live="polite"></p>
         </section>
-        <details id="trusted-cookie-panel" class="trusted-cookie-panel od-surface" aria-label="当前网页 Cookie 管理">
+        <details id="trusted-cookie-panel" class="trusted-cookie-panel od-disclosure" aria-label="当前网页 Cookie 管理">
           <summary><strong>Cookie 管理</strong><span class="hint">受信浏览器界面 · 按需读取</span></summary>
           <div class="trusted-cookie-content">
             <p id="trusted-cookie-target" class="identity">尚未选择 HTTP(S) 网页</p>
@@ -297,7 +297,7 @@
             <button id="trusted-cookie-read" type="button" class="od-button">读取当前网页 Cookie</button>
             <p id="trusted-cookie-status" role="status" aria-live="polite" class="hint">请主动点击读取；不会在打开界面时自动获取 Cookie。</p>
             <div id="trusted-cookie-rows" class="trusted-cookie-list" aria-label="已读取的 Cookie"></div>
-            <details id="trusted-cookie-observe-panel" class="trusted-cookie-observe">
+            <details id="trusted-cookie-observe-panel" class="trusted-cookie-observe od-disclosure od-disclosure--flat">
               <summary>近期 Cookie 变化（仅元数据）</summary>
               <p class="hint">手动开始后最多监听 15 秒，事件不包含 Cookie 值。不会在后台持续监控，也不会向已安装工具发送信息。</p>
               <div class="trusted-cookie-observe-actions" role="group" aria-label="Cookie 变更观察操作">
@@ -309,7 +309,7 @@
               <p id="trusted-cookie-watch-status" role="status" aria-live="polite" class="hint">未监听。</p>
               <div id="trusted-cookie-watch-events" class="trusted-cookie-watch-events" aria-label="不包含 Cookie 值的变更事件"></div>
             </details>
-            <details class="trusted-cookie-write">
+            <details class="trusted-cookie-write od-disclosure od-disclosure--flat">
               <summary>创建或修改 Cookie</summary>
               <label for="trusted-cookie-name">名称</label>
               <input id="trusted-cookie-name" type="text" maxlength="256" autocomplete="off" class="od-field">
@@ -371,7 +371,7 @@
             <div class="sidebar-toc-settings-row"><span>仅此页面</span><button type="button" id="sidebar-tool-settings-page-visibility" class="sidebar-toc-visibility-toggle">隐藏</button></div>
             <p class="sidebar-toc-settings-hint">网站可用且工具启用时显示；隐藏只影响网页悬浮目录，Side Panel 目录仍可使用。两级隐藏规则都恢复后才显示。</p>
           </div>
-          <details id="sidebar-tool-generic-site-advanced" class="sidebar-toc-advanced" open>
+          <details id="sidebar-tool-generic-site-advanced" class="sidebar-toc-advanced od-disclosure od-disclosure--flat" open>
             <summary>已有授权与页面例外</summary>
             <strong class="sidebar-toc-settings-title" id="sidebar-tool-settings-sites-title">已授权的网站</strong>
             <div id="sidebar-tool-settings-sites" class="sidebar-toc-settings-entries"></div>
@@ -443,7 +443,7 @@
           <div><span>连接</span><strong id="cloud-overview-connection">检测中</strong></div>
           <div><span>已授权任务</span><strong id="cloud-overview-tasks">—</strong></div>
         </div>
-        <details class="cloud-diagnostics"><summary>运行环境与历史统计</summary>
+        <details class="cloud-diagnostics od-disclosure od-disclosure--flat"><summary>运行环境与历史统计</summary>
           <div class="cloud-overview-secondary">
             <div>提供者 <strong id="cloud-overview-provider">检测中</strong></div>
             <div>执行宿主 <strong id="cloud-overview-host">检测中</strong></div>
@@ -490,14 +490,14 @@
           <p id="cloud-request-detail-state" class="cloud-request-detail-state"></p>
           <p id="cloud-request-detail-facts" class="hint"></p>
           <p id="cloud-request-detail-reason" class="hint"></p>
-          <details class="cloud-request-technical"><summary>查看原始运行身份</summary>
+          <details class="cloud-request-technical od-disclosure od-disclosure--flat"><summary>查看原始运行身份</summary>
             <pre id="cloud-request-detail-run-id"></pre>
           </details>
           <button id="cloud-request-open-result" type="button" class="od-button od-button--secondary" disabled>在「开发」查看原始 Run / Result</button>
           <p id="cloud-request-detail-note" role="status" class="hint"></p>
         </section>
       </section>
-      <details id="cloud-clients" class="cloud-clients od-surface">
+      <details id="cloud-clients" class="cloud-clients od-disclosure">
         <summary>外部应用授权 <span id="cloud-clients-count" class="hint">按需管理</span></summary>
         <p class="cloud-privacy-note">只有本浏览器已批准的固定任务可以向外部应用授权。密钥只展示一次，不保存到扩展配置；仅通过可信渠道交给应用。</p>
         <div class="cloud-client-form">
@@ -516,7 +516,7 @@
         <div class="cloud-action-row"><button id="cloud-client-refresh" type="button" class="od-button od-button--secondary">刷新应用列表</button><button id="cloud-client-more" type="button" class="od-button od-button--secondary" hidden>查看更多</button></div>
         <ul id="cloud-clients-list" class="cloud-clients-list" aria-label="已授权的外部应用"></ul>
       </details>
-      <details id="cloud-hosting" class="task-scope-panel"><summary>连接设置与解除配对 <span id="cloud-brief" class="cloud-status-brief">未配对</span></summary>
+      <details id="cloud-hosting" class="task-scope-panel od-disclosure"><summary>连接设置与解除配对 <span id="cloud-brief" class="cloud-status-brief">未配对</span></summary>
         <p class="hint">连接只用于经过批准的已安装任务，不能远程投递任意脚本。</p>
         <label>可信提供者 HTTPS 地址 <input id="cloud-url" type="url" placeholder="https://provider.example" class="od-field"></label>
         <label>提供者身份 <input id="cloud-provider-id" autocomplete="off" class="od-field"></label>
@@ -570,7 +570,7 @@
           <label for="task-catalog-list" class="visually-hidden">候选版本</label><select id="task-catalog-list" hidden class="od-field"><option value="">尚无任务候选</option></select>
           <div id="task-catalog-detail" class="task-detail" aria-live="polite">选中任务后查看作者、网站、权限、版本及验证状态</div>
       <div class="catalog-install"><button type="button" id="task-install" disabled class="od-button">安装选定版本</button></div><p id="task-install-feedback" class="install-feedback" role="status" aria-live="polite"></p>
-      <details id="catalog-verification"><summary>开发者：核对证据与设为本地可用</summary>
+      <details id="catalog-verification" class="od-disclosure od-disclosure--flat"><summary>开发者：核对证据与设为本地可用</summary>
         <label for="task-verify-run">已完成的真实运行 ID</label>
         <input id="task-verify-run" placeholder="与相同源码、网站和实际运行结果对应" autocomplete="off" class="od-field">
         <div class="row"><button type="button" id="task-verify" disabled class="od-button od-button--secondary">核对运行证据</button>
@@ -639,8 +639,8 @@
         <section id="workflow-result-panel" class="workflow-card od-surface--padded workflow-result od-surface" aria-label="工作流运行结果" hidden>
           <div class="workflow-section-header od-toolbar"><h3>运行结果</h3></div>
           <pre id="workflow-output" aria-label="本次持久运行结果">尚未运行</pre>
-          <details id="workflow-result-raw" hidden><summary>查看完整原值（可能包含敏感信息）</summary><pre id="workflow-raw"></pre></details>
-          <details class="workflow-advanced"><summary>Run / Result / Revision 技术身份</summary><pre id="workflow-technical"></pre></details>
+          <details id="workflow-result-raw" hidden class="od-disclosure od-disclosure--flat"><summary>查看完整原值（可能包含敏感信息）</summary><pre id="workflow-raw"></pre></details>
+          <details class="workflow-advanced od-disclosure od-disclosure--flat"><summary>Run / Result / Revision 技术身份</summary><pre id="workflow-technical"></pre></details>
         </section>
         <section id="workflow-manage-panel" class="workflow-management od-surface" aria-label="历史版本和高级设置" hidden>
           <div class="workflow-section-header od-toolbar"><h3>版本与设置</h3><button type="button" id="workflow-manage-close" class="workflow-icon-button od-icon-button" aria-label="收起版本与设置" title="收起"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M18 6 6 18M6 6l12 12"></path></svg></button></div>
@@ -649,24 +649,24 @@
             <select id="workflow-saved-list" class="od-field"><option value="">读取已保存版本…</option></select>
             <div class="workflow-actions"><button type="button" id="workflow-load" class="od-button od-button--secondary">打开版本</button><button type="button" id="workflow-refresh" class="workflow-icon-button od-icon-button" aria-label="刷新已保存版本" title="刷新列表"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M20 11a8 8 0 0 0-14.5-4.5L3 9"></path><path d="M3 4v5h5"></path><path d="M4 13a8 8 0 0 0 14.5 4.5L21 15"></path><path d="M21 20v-5h-5"></path></svg></button></div>
           </div>
-          <details class="workflow-card od-surface--padded workflow-manage-details od-surface">
+          <details class="workflow-manage-details od-disclosure">
             <summary>名称、用途和当前网站</summary>
             <label for="workflow-title" class="od-field-label">名称</label><input id="workflow-title" maxlength="100" autocomplete="off" placeholder="例如：填写表单并读取结果" class="od-field">
             <label for="workflow-description" class="od-field-label">用途（可选）</label><textarea id="workflow-description" rows="2" maxlength="800" placeholder="这个工作流要完成什么？" class="od-field"></textarea>
             <label for="workflow-site" class="od-field-label">执行网站（精确 origin）</label><input id="workflow-site" readonly aria-describedby="workflow-site-note" class="od-field">
             <p id="workflow-site-note" class="hint"></p>
           </details>
-          <details class="workflow-card od-surface--padded workflow-manage-details od-surface">
+          <details class="workflow-manage-details od-disclosure">
             <summary>参数定义和高级编辑</summary>
             <div class="workflow-param-create"><input id="workflow-new-param-name" type="text" maxlength="40" placeholder="参数名称，例如 keyword" aria-label="新参数英文名称" class="od-field"><button type="button" id="workflow-add-param" class="od-button od-button--secondary">＋ 添加文本参数</button></div>
-            <details><summary>参数 JSON Schema</summary>
+            <details class="od-disclosure od-disclosure--flat"><summary>参数 JSON Schema</summary>
               <label for="workflow-schema" class="od-field-label">参数 Schema（string / number / integer / boolean）</label>
               <textarea id="workflow-schema" rows="6" spellcheck="false" class="od-field"></textarea>
             </details>
           </details>
-          <details class="workflow-card od-surface--padded workflow-manage-details od-surface">
+          <details class="workflow-manage-details od-disclosure">
             <summary>生成源码、校验与发布</summary>
-            <details class="workflow-advanced"><summary>JavaScript 与源码哈希</summary>
+            <details class="workflow-advanced od-disclosure od-disclosure--flat"><summary>JavaScript 与源码哈希</summary>
               <p id="workflow-code-hash" class="hint"></p><pre id="workflow-code" aria-label="工作流生成的 JavaScript"></pre>
               <button type="button" id="workflow-open-code" class="od-button od-button--secondary">复制到「开发」独立编辑</button>
             </details>
@@ -683,7 +683,7 @@
           <button id="workflow-ai-plan" type="button" class="workflow-send-button od-icon-button od-icon-button--primary" aria-label="发送并执行浏览器任务" title="发送并执行"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 19V5m-7 7 7-7 7 7"></path></svg></button>
           <button id="workflow-ai-cancel" type="button" class="workflow-send-button workflow-ai-cancel od-icon-button od-icon-button--danger" aria-label="停止 AI 规划" title="停止 AI 规划" hidden><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><rect x="6" y="6" width="12" height="12" rx="2"></rect></svg></button>
         </div>
-        <details id="workflow-provider-settings" class="workflow-provider">
+        <details id="workflow-provider-settings" class="workflow-provider od-disclosure od-disclosure--flat">
           <summary>模型连接与数据发送授权</summary>
           <label for="workflow-ai-provider" class="od-field-label">AI 来源</label>
           <select id="workflow-ai-provider" class="od-field"><option value="local_codex">本机 Codex</option><option value="custom_https">自定义 HTTPS 模型接口</option><option value="opendesk_cloud" disabled>OpenDesk 官方 AI（尚未开放）</option></select>
@@ -927,7 +927,7 @@
     <label for="sdk-target-origins">额外批准的目标 origin（每行一个，最多 8 条）</label>
     <textarea id="sdk-target-origins" rows="3" maxlength="18000" spellcheck="false" placeholder="https://api.example.com&#10;http://127.0.0.1:43111" aria-describedby="sdk-target-help" class="od-field"></textarea>
     <p id="sdk-target-help">留空仅允许来源同源；这里是完整的新范围，不与旧授权自动合并。协议、主机和有效端口精确匹配；不能填写账户、路径、查询或通配符。回环与局域网也须明确列出。原生权限可能覆盖更多端口，但不会扩大应用授权；此检查不是 DNS 重绑定防护。</p>
-    <details open><summary>本次批准快照（来源、精确 document、服务与目标）</summary><pre id="sdk-approval-preview" aria-live="polite"></pre></details>
+    <details open class="od-disclosure od-disclosure--flat"><summary><span>本次批准快照（来源、精确 document、服务与目标）</span></summary><pre id="sdk-approval-preview" aria-live="polite"></pre></details>
     <div class="row"><button id="sdk-install" disabled class="od-button">明确批准此快照并安装 SDK</button></div>
     <div class="row"><button id="sdk-inspect" type="button" disabled class="od-button od-button--secondary">只读查询当前授权</button><button id="sdk-revoke" type="button" disabled class="od-button od-button--danger">撤销已确认授权</button></div>
     <p class="hint">这是<strong>网页文档级</strong>授权：同页第一方与第三方 JavaScript 都可能调用 SDK，<strong>并非只授权某个用户脚本</strong>。用户脚本的 @grant / GM_* 不会在这里自动授权。查询不会申请新权限；撤销阻止后续 SDK 服务，但不能回滚已发生操作，也无法强制卸载已执行 JS；结果未知时须重新查询。</p>
@@ -959,7 +959,7 @@
         <div><span>云请求</span><strong id="debug-request-count">—</strong></div>
       </div>
       <p id="debug-feedback" class="hint" role="status" aria-live="polite">本页仅支持读取状态，不触发连接、领取、配对或执行。</p>
-      <details class="debug-detail od-surface"><summary>脱敏诊断快照</summary>
+      <details class="debug-detail od-disclosure"><summary>脱敏诊断快照</summary>
         <pre id="debug-snapshot" aria-label="诊断快照">请点击刷新</pre>
       </details>
       <p class="hint">开发测试任务仍需在「我的」安装和明确授权；本页仅观察 claim、许可、Result、资源释放和回执的状态投影。生产构建默认无法进入。</p>

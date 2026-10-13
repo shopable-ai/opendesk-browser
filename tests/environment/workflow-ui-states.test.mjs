@@ -37,7 +37,7 @@ test('workflow default structure prioritizes AI conversation and hides advanced 
     'task request should appear before provider credentials');
   for(const id of ['workflow-plan-panel','workflow-params-panel','workflow-result-panel','workflow-manage-panel'])
     assert.match(workflow,new RegExp('id="'+id+'"[^>]*hidden'));
-  assert.match(workflow,/id="workflow-provider-settings" class="workflow-provider"/,
+  assert.match(workflow,/id="workflow-provider-settings" class="workflow-provider od-disclosure od-disclosure--flat"/,
     'credentials must be disclosed only on demand');
   assert.match(workflow,/id="workflow-ai-preview" class="workflow-ai-step-preview"/,
     'AI suggestion is a human-readable step list, not JSON in pre');
@@ -149,7 +149,7 @@ test('workflow model selector stays minimal without manual creation or custom ap
   assert.match(html,/id="workflow-ai-plan"[^>]*aria-label="发送并执行浏览器任务"/);
   assert.doesNotMatch(html,/id="workflow-ai-disclosure"|id="workflow-ai-review-|id="workflow-ai-revoke"/);
   assert.doesNotMatch(settings,/模型的数据发送许可|同意并生成|每次读取仍需确认/);
-  assert.match(html,/id="workflow-provider-settings" class="workflow-provider"/);
+  assert.match(html,/id="workflow-provider-settings" class="workflow-provider od-disclosure od-disclosure--flat"/);
   assert.doesNotMatch(settings,/localCodexReady\s*=\s*true|模拟连接成功/);
   assert.match(view,/listen\(get\('workflow-ai-plan'\),'click',plan\)/);
   assert.match(view,/get\('workflow-provider-settings'\)\.open=true/);

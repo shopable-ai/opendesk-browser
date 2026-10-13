@@ -404,7 +404,7 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
     const guidance=scheduleStatusGuidance[fire.status];
     if(guidance)row.append(element(doc,'small','schedule-status-guidance',guidance));
     if(fire.runId){
-      const advanced=element(doc,'details','schedule-run-details');
+      const advanced=element(doc,'details','schedule-run-details od-disclosure od-disclosure--flat');
       advanced.append(element(doc,'summary',null,'技术详情'));
       advanced.append(element(doc,'small',null,
         `RunId：${fire.runId} · ResultId：${fire.resultId??'未生成'} · 资源：${fire.retirementState==='released'?'已释放':'等待释放'}`));
@@ -480,7 +480,7 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
         hint.append(action(doc,'检查已安装任务',()=>{managerReturn='list';show('manager');},
           'od-button od-button--secondary'));
       }
-      const history=element(doc,'details','schedule-history');
+      const history=element(doc,'details','schedule-history od-disclosure od-disclosure--flat');
       history.open=view.open;
       history.append(element(doc,'summary',null,
         '运行记录'+(last?` · 最近：${scheduleStatus(last.status)} · ${describeTime(last.scheduledAt,plan.timezone)}`:' · 暂无')));
@@ -515,7 +515,7 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
       toolbar.append(action(doc,plan.paused?'恢复':'暂停',
         ()=>void change(plan,plan.paused?'resume':'pause'),'od-button'));
       toolbar.append(action(doc,'编辑',()=>edit(plan)));
-      const more=element(doc,'details','schedule-more');
+      const more=element(doc,'details','schedule-more od-disclosure od-disclosure--flat');
       more.open=view.moreOpen;
       more.append(element(doc,'summary',null,'更多操作与固定版本'));
       more.append(element(doc,'p','hint',

@@ -67,10 +67,10 @@ test('R21 secondary text selectors use the AA-contrast token, not faint local ov
   const selectors=[
     '#task-installed-count','.sidebar-tool-preview-file','.sidebar-tool-import-hint',
     '.sidebar-tool-capabilities span','.catalog-reader-fact span',
-    '.catalog-reader #task-catalog-detail summary','.catalog-intro .eyebrow',
+    '.catalog-intro .eyebrow',
     '.catalog-card small','.catalog-reader-note','.catalog-reader-desc',
     '.workflow-minor-note','.workflow-section-header span','.workflow-ai-step-preview li span',
-    '.workflow-chat-entry strong','.workflow-provider summary','.workflow-chat-intro p'
+    '.workflow-chat-entry strong','.workflow-chat-intro p'
   ];
   for(const selector of selectors){
     const start=css.indexOf(selector+'{');
@@ -78,4 +78,9 @@ test('R21 secondary text selectors use the AA-contrast token, not faint local ov
     const decl=css.slice(start+selector.length+1,css.indexOf('}',start));
     assert.match(decl,/color:var\(--od-sub\)/,'secondary text token '+selector);
   }
+  const components=await read('src/ui/design-system.css');
+  assert.match(components,/\.od-disclosure--flat>summary\{[^}]*color:var\(--od-sub\)/,
+    'Technical summaries inherit the shared AA secondary ink');
+  assert.doesNotMatch(css,/\.catalog-reader #task-catalog-detail summary\{|\.workflow-provider summary\{/,
+    'Tabs must not restyle the shared technical summary');
 });

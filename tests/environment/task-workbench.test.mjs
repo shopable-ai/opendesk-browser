@@ -649,7 +649,7 @@ test('R8 R2 task history masks sensitive values and exposes only durable technic
   const history=f.get('task-history').children[0].children[0];
   assert.match(f.get('task-result').textContent,/"ok": true/);
   assert.doesNotMatch(f.get('task-result').textContent,/must-not-display|another-secret/);
-  const technical=history.children.find(node=>node.className==='task-history-tech');
+  const technical=history.children.find(node=>String(node.className||'').split(' ').includes('task-history-tech'));
   assert.ok(technical,'technical details remain available after optional privacy reveal');
   assert.match(technical.children[1].textContent,/runId：run-task-1/);
   assert.match(technical.children[1].textContent,/resultId：result-task-1/);
@@ -885,7 +885,7 @@ test('R6 Task reader reveals read-only exact frozen source and typed parameters 
   f.get('task-catalog-list').value='demo.form@1.0.0';
   f.get('task-catalog-list').fire('change');
   const reader=f.get('task-catalog-detail');
-  const details=reader.children.find(node=>node.className==='catalog-source-review');
+  const details=reader.children.find(node=>String(node.className||'').split(' ').includes('catalog-source-review'));
   assert.ok(details);
   assert.match(reader.children.find(node=>node.className==='catalog-reader-note').textContent,
     /运行参数.*姓名.*必填/);
@@ -899,7 +899,7 @@ test('R6 Task reader reveals read-only exact frozen source and typed parameters 
     ? {manifestHash:'c'.repeat(64),package:{sourceUtf8:'async function main(){return "forged";}'}}
     : original(method,payload);
   f.get('task-catalog-list').fire('change');
-  const guarded=f.get('task-catalog-detail').children.find(node=>node.className==='catalog-source-review');
+  const guarded=f.get('task-catalog-detail').children.find(node=>String(node.className||'').split(' ').includes('catalog-source-review'));
   guarded.open=true;await guarded.fire('toggle');await tick();await tick();
   assert.match(guarded.children[1].textContent,/E_REVIEW_IDENTITY|固定源码身份已变化/);
   assert.doesNotMatch(guarded.children[1].textContent,/forged/);

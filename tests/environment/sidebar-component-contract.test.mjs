@@ -31,19 +31,18 @@ function declarations(selector) {
 const classes = tag => (tag.match(/\bclass="([^"]*)"/) || [,''])[1].split(/\s+/);
 const has = (tag, className) => classes(tag).includes(className);
 
-test('Workflow consent action remains icon-sized, accessible and explicitly authorized', () => {
+test('Workflow Send action remains icon-sized, accessible and explicitly authorized', () => {
   const plan = element(html, 'button', 'workflow-ai-plan');
   assert.ok(has(plan, 'od-icon-button') && has(plan, 'od-icon-button--primary'));
-  assert.match(plan, /\baria-label="[^"]*同意数据发送/);
-  assert.match(plan, /\btitle="同意并生成"/);
-  assert.match(element(html, 'span', 'workflow-ai-plan-label'), /\bhidden\b/);
+  assert.match(plan, /\baria-label="发送并执行浏览器任务"/);
+  assert.match(plan, /\btitle="发送并执行"/);
+  assert.match(html, /id="workflow-ai-plan"[^>]*>\s*<svg\b[^>]*aria-hidden="true"/);
   assert.match(tokens, /--od-icon-size:\s*34px/);
   assert.match(components, /\.od-icon-button\{[^}]*width:var\(--od-icon-size\)[^}]*height:var\(--od-icon-size\)/);
   assert.doesNotMatch(shell, /\.workflow-composer\s+\.workflow-send-button\[data-first-use/);
   assert.doesNotMatch(shell, /\.workflow-send-label\{/);
-  assert.match(workflow, /get\('workflow-ai-plan-label'\)\.hidden=true/);
-  assert.match(workflow, /modelConsent\.approve\(frozen\.scope\)/);
-  assert.match(workflow, /button\.dataset\.disclosureScope=scope\|\|''/);
+  assert.match(workflow, /async function plan\(event\)\s*\{\s*if\(!event\.isTrusted\|\|busy\)return/);
+  assert.match(workflow, /consent:\{model:true,workflow:true,observation:selected==='local_codex'\}/);
   assert.match(workflow, /permission=api\.permissions\.request/);
 });
 
@@ -93,6 +92,10 @@ test('Shared components own normal visual appearance; business CSS retains only 
   assert.match(components, /\.od-alert--warning\{background:var\(--od-warning-bg\)/);
   assert.doesNotMatch(shell, /\.schedule-form \.schedule-source-row\{gap:var\(--space-1\)\}/,
     'Narrow scheduled-task actions must preserve the 8px shared gap');
+  assert.match(shell, /\.schedule-source-row\{[^}]*grid-template-columns:minmax\(0,1fr\) max-content max-content/,
+    'Action columns must measure both 34px desktop and 44px touch buttons');
+  assert.doesNotMatch(shell, /\.schedule-panel \.schedule-source-row\{[^}]*grid-template-columns/,
+    'A later panel rule must not restore fixed desktop action columns');
 });
 
 test('Developer disclosure headers share the Run Result surface; nested diagnostics remain lightweight', () => {
@@ -152,4 +155,28 @@ test('Other formal tabs reuse shared actions without restyling their unique filt
   }
   assert.match(workflow, /'od-field'/);
   assert.match(workflow, /'od-button od-button--danger'/);
+});
+
+test('All trusted static and dynamically rendered disclosures use one shared header contract', () => {
+  for (const [tag] of html.matchAll(/<details\b[^>]*>/g))
+    assert.ok(has(tag, 'od-disclosure'), 'Unclassified trusted disclosure: ' + tag);
+  for (const [path, markers] of [
+    ['src/ui/task-workbench.js', ['task-history-entry', 'task-history-tech', 'catalog-source-review']],
+    ['src/ui/scheduled-task-workbench.js', ['schedule-run-details', 'schedule-history', 'schedule-more']],
+    ['src/ui/installed-page-tools.js', ['installed-page-tool-technical']],
+    ['src/ui/workflow/workflow-view.js', ['workflow-step']]
+  ]) {
+    const source = read(path);
+    for (const marker of markers)
+      assert.ok(source.includes(marker + ' od-disclosure'), 'Unclassified dynamic disclosure: ' + marker);
+  }
+  assert.match(read('src/ui/cloud-hosting.js'), /constraints\.className='od-disclosure od-disclosure--flat'/);
+  assert.match(read('src/ui/cloud-hosting.js'), /technical\.className='od-disclosure od-disclosure--flat'/);
+  // AI settings deliberately hide their summary in the existing settings subview.
+  const summaryRules = [...shell.matchAll(/(?:^|\n)([^{}\n]*(?:>summary|\s+summary)[^{}\n]*)\{([^{}]*)\}/g)];
+  assert.deepEqual(summaryRules.map(([,selector]) => selector.trim()), ['#workflow-provider-settings>summary']);
+  assert.equal(summaryRules[0][2], 'display:none');
+  assert.doesNotMatch(read('src/ui/cloud-hosting.css'), />summary\s*\{/);
+  assert.doesNotMatch(shell, /\.cloud-clients\{[^}]*display:grid/,
+    'The native details element must retain collapsed content semantics');
 });

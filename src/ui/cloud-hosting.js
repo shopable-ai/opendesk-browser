@@ -131,11 +131,13 @@ export function createCloudHosting({client,host,document:doc=globalThis.document
       label.append(result,copy);section.append(label);
       const constraints=doc.createElement('details'),open=doc.createElement('summary'),
         values=doc.createElement('pre');
+      constraints.className='od-disclosure od-disclosure--flat';
       open.textContent='查看参数约束';
       values.textContent=JSON.stringify(task.paramsSchema??{},null,2);
       constraints.append(open,values);section.append(constraints);
       const technical=doc.createElement('details'),technicalLabel=doc.createElement('summary'),
         technicalValue=doc.createElement('pre');
+      technical.className='od-disclosure od-disclosure--flat';
       technicalLabel.textContent='查看授权状态与固定版本详情';
       const explanation=doc.createElement('p');
       explanation.className='cloud-task-authorization';

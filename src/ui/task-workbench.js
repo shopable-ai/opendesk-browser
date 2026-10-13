@@ -523,7 +523,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       const val=doc.createElement('strong');val.textContent=value;
       fact.append(key,val);meta.append(fact);
     }
-    const advanced=doc.createElement('details');
+    const advanced=doc.createElement('details');advanced.className='od-disclosure od-disclosure--flat';
     const summary=doc.createElement('summary');summary.textContent='高级：版本和源码校验身份';
     const hashes=doc.createElement('pre');
     hashes.textContent=`源码 SHA-256：${row.manifest.program.sourceHash}\nManifest SHA-256：${row.manifestHash}`;
@@ -537,7 +537,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
           (schema.required.includes(name)?'，必填':'，可选')+
           (Object.hasOwn(rule,'default')?'，默认 '+String(rule.default):'')+'）').join('；')
       : '运行参数：无';
-    const codeReview=doc.createElement('details');codeReview.className='catalog-source-review';
+    const codeReview=doc.createElement('details');codeReview.className='catalog-source-review od-disclosure od-disclosure--flat';
     const codeTitle=doc.createElement('summary');codeTitle.textContent='查看完整冻结源码（只读）';
     const sourcePreview=doc.createElement('pre');
     sourcePreview.textContent='展开后从正式任务目录读取固定版本；只查看，不运行。';
@@ -624,13 +624,13 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     for(const [index,run] of runs.entries()){
       const result=matching.find(value=>value.runId===run.runId);
       const state=runStateNames[run.state]||run.state||'状态待确认';
-      const entry=doc.createElement('details');entry.className='task-history-entry';
+      const entry=doc.createElement('details');entry.className='task-history-entry od-disclosure od-disclosure--flat';
       const summary=doc.createElement('summary');
       summary.textContent=`${state} · 最近第 ${index+1} 次`;
       const output=doc.createElement('pre');
       const presented=taskResultView(run,result);
       output.textContent=presented.text;
-      const technical=doc.createElement('details');technical.className='task-history-tech';
+      const technical=doc.createElement('details');technical.className='task-history-tech od-disclosure od-disclosure--flat';
       const technicalHeading=doc.createElement('summary');technicalHeading.textContent='技术信息';
       const technicalContent=doc.createElement('pre');
       technicalContent.textContent=formatTaskRunTechnical(run,result);

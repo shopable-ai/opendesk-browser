@@ -1,5 +1,6 @@
 #!/usr/bin/env node
-// STATIC_MARKUP_CHROME ONLY. Real product HTML/CSS; no extension JS or trusted user events.
+// STATIC_MARKUP_CHROME ONLY. Real product HTML/CSS; CDP keyboard tests native HTML
+// details semantics only, never extension authorization or native control events.
 import {spawn} from 'node:child_process';
 import {createHash} from 'node:crypto';
 import {createServer} from 'node:http';
@@ -17,6 +18,8 @@ const scenes=[
   {name:'my-empty',tab:'tasks',state:'empty'},
   {name:'my-running',tab:'tasks',state:'running'},
   {name:'my-cloud-open',tab:'tasks',state:'cloud-open'},
+  {name:'cloud',tab:'cloud'},
+  {name:'cloud-hosting-open',tab:'cloud',state:'cloud-open'},
   {name:'schedule-empty',tab:'tasks',state:'schedule-empty'},
   {name:'schedule-form',tab:'tasks',state:'schedule-form'},
   {name:'schedule-manager',tab:'tasks',state:'schedule-manager'},
@@ -48,6 +51,16 @@ const scenes=[
   {name:'debug',tab:'debug'},
   {name:'debug-long',tab:'debug',state:'long'}
 ];
+// One combined expansion/long-text case per formal Tab, rather than a Cartesian
+// product of every disclosure and state. Catalog is the Discover detail subview.
+scenes.push(...['tasks','local-discover','catalog','workflow','develop','tools','cloud','debug'].map(tab=>({
+  name:tab+'-details-long',tab,allDetails:true,longContent:true,
+  ...(tab==='workflow'?{state:'steps'}:{})
+})),
+  {name:'tools-cookie-open',tab:'tools',cookie:true},
+  {name:'develop-collapsed',tab:'develop',closedDetails:true},
+  {name:'develop-single-open',tab:'develop',singleDetail:'developer-results-panel'}
+);
 const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 const profile=await mkdtemp(join(tmpdir(),'sidebar-r19-static-'));
 let chrome,server,socket,port,seq=0;
@@ -93,13 +106,24 @@ async function connect(){
 
 // Test-only fixture: visibility changes and representative rows, never a native MV3 claim.
 function setupScene(scene,officialReleases){
+  // Restore the real markup's text and open/hidden state between samples. Long
+  // titles change text nodes only: permission labels and controls keep their DOM.
+  const originals=globalThis.__sidebarStaticOriginals??=new Map();
+  for(const [node,value] of originals){
+    if(value.kind==='details'){node.open=value.open;node.hidden=value.hidden;}
+    else if(value.kind==='value')node.value=value.text;
+    else node.textContent=value.text;
+  }
+  for(const details of document.querySelectorAll('details')){
+    if(!originals.has(details))originals.set(details,{kind:'details',open:details.open,hidden:details.hidden});
+  }
   const active=scene.tab;
   for(const item of document.querySelectorAll('[data-workbench-page]'))
     item.hidden=item.dataset.workbenchPage!==active;
   for(const tab of document.querySelectorAll('[data-workbench-tab]'))
-    tab.setAttribute('aria-selected',String(tab.dataset.workbenchTab===(active==='local-discover'?'discover':active==='tasks'?'tasks':active)));
+    tab.setAttribute('aria-selected',String(tab.dataset.workbenchTab===(['local-discover','catalog'].includes(active)?'discover':active==='tasks'?'tasks':active)));
   const dock=document.querySelector('#workspace-dock');
-  dock.hidden=active==='local-discover'||active==='workflow'||active==='tools'||active==='debug';
+  dock.hidden=['local-discover','catalog','workflow','tools','cloud','debug'].includes(active);
   document.querySelector('#tab-debug').hidden=active!=='debug';
   document.querySelector('#cloud-hosting').open=scene.state==='cloud-open';
   const scheduled=scene.state?.startsWith('schedule-')||false;
@@ -182,7 +206,7 @@ function setupScene(scene,officialReleases){
   document.querySelector('#workflow-params-panel').hidden=!editing;
   document.querySelector('#workflow-steps').replaceChildren();
   if(editing){
-    const step=document.createElement('details');step.className='workflow-step';step.open=true;
+    const step=document.createElement('details');step.className='workflow-step od-disclosure';step.open=true;
     const summary=document.createElement('summary');summary.textContent='1. 填写内容 · 已采用 AI 计划的静态编辑示例';
     const body=document.createElement('div');body.className='workflow-step-body';
     const field=document.createElement('label');field.className='workflow-field';field.textContent='定位目标';
@@ -268,6 +292,35 @@ function setupScene(scene,officialReleases){
   toolStatus.hidden=scene.state!=='error';
   toolStatus.dataset.state=scene.state==='error'?'error':'';
   toolStatus.textContent=scene.state==='error'?'静态示例 · 工具状态无法读取':'';
+  const panel=document.querySelector('[data-workbench-page="'+active+'"]');
+  if(scene.allDetails){
+    if(active==='tasks')document.querySelector('#task-history-panel').hidden=false;
+    if(active==='workflow')document.querySelector('#workflow-manage-panel').hidden=false;
+    if(active==='cloud')document.querySelector('#cloud-request-detail').hidden=false;
+    for(const details of panel.querySelectorAll('details'))details.open=true;
+  }
+  if(scene.cookie)for(const details of panel.querySelectorAll('#trusted-cookie-panel,#trusted-cookie-panel details'))details.open=true;
+  if(scene.closedDetails||scene.singleDetail){
+    for(const details of panel.querySelectorAll('details'))details.open=details.id===scene.singleDetail;
+  }
+  if(scene.longContent){
+    const longTitle='长中文标题用于验证窄侧栏换行与权限信息仍然可读'.repeat(5);
+    const longUrl='https://example.invalid/'+('very-long-fixed-revision-path/').repeat(12)+'?revision='+('a'.repeat(96));
+    const json=JSON.stringify({title:longTitle,url:longUrl,result:{revision:'f'.repeat(64),description:longTitle}},null,2);
+    for(const summary of panel.querySelectorAll('details > summary')){
+      const node=[...summary.childNodes].find(node=>node.nodeType===Node.TEXT_NODE&&node.textContent.trim());
+      if(!node)continue;
+      if(!originals.has(node))originals.set(node,{kind:'text',text:node.textContent});
+      node.textContent=originals.get(node).text+' · '+longTitle;
+    }
+    for(const node of panel.querySelectorAll('pre,textarea,input[type="url"]')){
+      if(!node.getClientRects().length)continue;
+      const value=node.tagName!=='PRE';
+      if(!originals.has(node))originals.set(node,{kind:value?'value':'text',text:value?node.value:node.textContent});
+      if(value)node.value=node.type==='url'?longUrl:json;
+      else node.textContent=json;
+    }
+  }
   document.querySelector('#workspace-content').scrollTop=scene.details?230:0;
   return true;
 }
@@ -286,9 +339,60 @@ function measureScene(scene){
     activePanel:scene.tab,
     corners:{},
     developGaps:[],
+    disclosureHeaders:[],
+    disclosureBodies:[],
     iconButtons:[],
     dockOverlap:false
   };
+  // Measure every rendered direct summary, including content below the fold.
+  // A hidden provider summary is a separate settings subview, not a header.
+  const rendered=el=>el.getClientRects().length>0&&getComputedStyle(el).visibility==='visible';
+  const border=style=>['Top','Right','Bottom','Left'].map(side=>({
+    width:parseFloat(style['border'+side+'Width']),style:style['border'+side+'Style'],color:style['border'+side+'Color']
+  }));
+  const radii=style=>['TopLeft','TopRight','BottomRight','BottomLeft'].map(corner=>parseFloat(style['border'+corner+'Radius']));
+  metrics.disclosureHeaders=[...panel.querySelectorAll('details > summary')].filter(rendered).map((summary,index)=>{
+    const details=summary.parentElement,style=getComputedStyle(summary),outer=getComputedStyle(details);
+    const r=summary.getBoundingClientRect(),d=details.getBoundingClientRect();
+    const title=summary.textContent.replace(/\s+/g,' ').trim();
+    const textRange=document.createRange();textRange.selectNodeContents(summary);
+    const textRects=[...textRange.getClientRects()];
+    return {id:details.id||details.className+'#'+index,component:details.classList.contains('od-disclosure'),
+      title:title.slice(0,160),titleLength:title.length,titleTruncated:title.length>160,
+      clientWidth:summary.clientWidth,scrollWidth:summary.scrollWidth,width:r.width,
+      scrollOverflow:summary.scrollWidth-summary.clientWidth,
+      textRectCount:textRects.length,textRects:textRects.slice(0,8).map(rect=>({left:rect.left,right:rect.right,width:rect.width,top:rect.top,bottom:rect.bottom})),
+      fontFamily:style.fontFamily,letterSpacing:style.letterSpacing,
+      flat:details.classList.contains('od-disclosure--flat'),open:details.open,
+      wrapping:{whiteSpace:style.whiteSpace,wordBreak:style.wordBreak,overflowWrap:style.overflowWrap,lineBreak:style.lineBreak,
+        children:[...summary.children].map(child=>{const s=getComputedStyle(child);return {whiteSpace:s.whiteSpace,wordBreak:s.wordBreak,overflowWrap:s.overflowWrap,lineBreak:s.lineBreak,font:s.font,flex:s.flex};})},
+      height:r.height,minHeight:parseFloat(style.minHeight),fontSize:parseFloat(style.fontSize),fontWeight:parseInt(style.fontWeight,10),
+      paddingTop:parseFloat(style.paddingTop),paddingRight:parseFloat(style.paddingRight),
+      paddingBottom:parseFloat(style.paddingBottom),paddingLeft:parseFloat(style.paddingLeft),
+      padding:['Top','Right','Bottom','Left'].map(side=>parseFloat(style['padding'+side])),
+      border:border(style),radius:radii(style),containerBorder:border(outer),containerRadius:radii(outer),
+      left:r.left,right:r.right,containerLeft:d.left,containerRight:d.right,
+      overflow:summary.scrollWidth>summary.clientWidth+1};
+  });
+  // Bounded body regression: only these direct children, never every descendant.
+  // The nested task-management row also exercises the flat component's 0px inset.
+  metrics.disclosureBodies=[...panel.querySelectorAll('#task-installed-detail,.task-tools .row,#cloud-clients > .cloud-privacy-note')]
+    .filter(child=>child.tagName!=='SUMMARY'&&child.parentElement.matches('details.od-disclosure')&&rendered(child))
+    .map((child,index)=>{
+      const details=child.parentElement,style=getComputedStyle(child),outer=getComputedStyle(details);
+      const r=child.getBoundingClientRect(),d=details.getBoundingClientRect();
+      // Measure from the inside of the component border, so unexpected container
+      // padding cannot disguise an incorrect public body inset.
+      const innerLeft=d.left+parseFloat(outer.borderLeftWidth),innerRight=d.right-parseFloat(outer.borderRightWidth);
+      return {id:child.id||child.className+'#'+index,parent:details.id||details.className,
+        kind:child.id==='task-installed-detail'?'task-permissions':child.classList.contains('row')?'task-actions':'cloud-privacy',
+        flat:details.classList.contains('od-disclosure--flat'),marginLeft:parseFloat(style.marginLeft),marginRight:parseFloat(style.marginRight),
+        left:r.left,right:r.right,width:r.width,innerLeft,innerRight,leftInset:r.left-innerLeft,rightInset:innerRight-r.right,
+        containerPaddingLeft:parseFloat(outer.paddingLeft),containerPaddingRight:parseFloat(outer.paddingRight)};
+    });
+  if(scene.closedDetails||scene.singleDetail){
+    metrics.developerOpenDetails=[...panel.querySelectorAll('details[open]')].filter(rendered).map(el=>el.id);
+  }
   const dock=get('#workspace-dock');
   if(!dock.hidden)metrics.dockOverlap=content.getBoundingClientRect().bottom>dock.getBoundingClientRect().top+1;
   if(metrics.panelOverflow||metrics.contentOverflow){
@@ -348,19 +452,8 @@ function measureScene(scene){
     const children=[...get('.developer-editor').children].filter(e=>!e.hidden&&getComputedStyle(e).display!=='none'&&getComputedStyle(e).position!=='absolute');
     const layout=children.map(e=>e.getBoundingClientRect());
     metrics.developGaps.push(...layout.slice(1).map((r,i)=>Math.round(r.top-layout[i].bottom)));
-    metrics.developerDisclosureHeaders=[
-      'developer-target-detail', 'manual-project-params-tools', 'developer-results-panel',
-      'developer-run-technical', 'page-preview-tools', 'script-library-tools',
-      'script-advanced', 'tool-diagnostics'
-    ].map(id=>{
-      const details=get('#'+id);
-      const summary=details?.querySelector(':scope > summary');
-      if(!summary?.getClientRects().length)return null;
-      const style=getComputedStyle(summary);
-      return {id,open:details.open,height:summary.getBoundingClientRect().height,
-        fontSize:parseFloat(style.fontSize),fontWeight:parseInt(style.fontWeight,10),
-        paddingTop:parseFloat(style.paddingTop),paddingBottom:parseFloat(style.paddingBottom)};
-    }).filter(Boolean);
+    // Keep the historical developer metrics key while using the shared contract.
+    metrics.developerDisclosureHeaders=metrics.disclosureHeaders;
     if(!scene.local){
       const label=box('.page-component-label'),choices=box('.page-component-choices');
       metrics.codeType={
@@ -391,37 +484,122 @@ function validate(scene,width,m){
     throw Error('Code type label/choices must share a readable, accessible row '+scene.name+' '+width+'px');
   if(scene.tab==='tools'&&m.iconButtons.some(b=>b.width<33.5||b.height<33.5||b.radius!=='8px'||!b.label||!b.title))
     throw Error('Icon action is not 34px accessible control '+scene.name+' '+width+'px '+JSON.stringify(m.iconButtons));
-  const expected={tasks:{taskCard:'12px'},'local-discover':{import:'8px',filter:'8px',filterGroup:'12px',list:'12px'},workflow:{card:'12px',icon:'8px'},develop:{page:'12px',editor:'8px'},tools:{card:'12px',install:'8px'},debug:{card:'12px',detail:'12px'}};
+  const expected={tasks:{taskCard:'12px'},'local-discover':{import:'8px',filter:'8px',filterGroup:'12px',list:'12px'},catalog:{},cloud:{},workflow:{card:'12px',icon:'8px'},develop:{page:'12px',editor:'8px'},tools:{card:'12px',install:'8px'},debug:{card:'12px',detail:'12px'}};
   // An empty task list intentionally has no card whose radius could be measured.
   if(scene.tab==='tasks'&&scene.state==='empty')delete expected.tasks.taskCard;
   for(const [key,value] of Object.entries(expected[scene.tab])){
     if(m.corners[key]!==value)throw Error('Radius mismatch '+scene.name+' '+key+': '+m.corners[key]+' expected '+value);
   }
   if(scene.tab==='develop'&&m.developGaps.some((gap,index)=>Math.abs(gap-(index===0?8:12))>1))throw Error('Developer gap mismatch '+scene.name+' '+width+'px '+JSON.stringify(m.developGaps));
-  if(scene.tab==='develop'){
-    const height=m.coarsePointer?44:40;
-    for(const item of m.developerDisclosureHeaders){
-      if(item.height<height-.5||item.fontSize!==13||item.fontWeight!==650||
-        item.paddingTop!==8||item.paddingBottom!==8)
-        throw Error('Developer disclosure header mismatch '+scene.name+' '+width+'px '+JSON.stringify(item));
-      if(!item.open&&item.id!=='developer-target-detail'&&Math.abs(item.height-height)>1)
-        throw Error('Closed Developer header has extra vertical spacing '+scene.name+' '+width+'px '+JSON.stringify(item));
+  for(const item of m.disclosureHeaders){
+    const height=m.coarsePointer?44:item.flat?36:40;
+    const fail=reason=>{throw Error('Disclosure '+reason+' '+scene.name+' '+width+'px '+JSON.stringify(item));};
+    if(!item.component)fail('missing trusted component class');
+    if(item.height<height-.5||item.minHeight!==height||item.fontSize!==(item.flat?12:13)||item.fontWeight!==650||
+      item.padding.some((value,index)=>value!==(index%2===0?8:item.flat?0:12)))fail('typography/padding/height mismatch');
+    if(item.containerBorder.some(b=>b.width!==(item.flat?0:1)||(!item.flat&&b.style!=='solid'))||
+      item.containerRadius.some(value=>value!==(item.flat?0:12))||item.radius.some(value=>value!==0)||
+      item.border.some((b,index)=>b.width!==(item.open&&index===2?1:0)||
+        (b.width>0&&(b.style!=='solid'||b.color==='transparent'||b.color==='rgba(0, 0, 0, 0)'))))fail('border/radius mismatch');
+    if(item.overflow||item.left<item.containerLeft-1||item.right>item.containerRight+1)fail('header geometry overflow');
+    if(scene.tab==='develop'&&!scene.longContent&&!item.flat&&!item.open&&item.id!=='developer-target-detail'&&Math.abs(item.height-height)>1){
+      fail('closed developer header has extra vertical spacing');
     }
   }
+  for(const item of m.disclosureBodies){
+    const inset=item.flat?0:12;
+    if(item.marginLeft!==inset||item.marginRight!==inset||
+      Math.abs(item.leftInset-inset)>1||Math.abs(item.rightInset-inset)>1||Math.abs(item.leftInset-item.rightInset)>1){
+      throw Error('Disclosure body inset mismatch '+scene.name+' '+width+'px '+JSON.stringify(item));
+    }
+  }
+  // Expansion fixtures must actually expose each regression target; an empty
+  // measurement array cannot pass just because the affected body stayed hidden.
+  if(scene.name==='tasks-details-long'){
+    for(const [kind,flat] of [['task-permissions',false],['task-actions',false],['task-actions',true]]){
+      if(!m.disclosureBodies.some(item=>item.kind===kind&&item.flat===flat)){
+        throw Error('Missing disclosure body regression target '+scene.name+' '+kind+' flat='+flat);
+      }
+    }
+  }
+  if(scene.name==='cloud-details-long'&&!m.disclosureBodies.some(item=>item.kind==='cloud-privacy'&&!item.flat)){
+    throw Error('Missing expanded Cloud privacy body regression target');
+  }
+  if(scene.closedDetails&&m.developerOpenDetails.length)throw Error('Developer collapsed scene still has open details');
+  if(scene.singleDetail&&(m.developerOpenDetails.length!==1||m.developerOpenDetails[0]!==scene.singleDetail)){
+    throw Error('Developer single expansion mismatch '+JSON.stringify(m.developerOpenDetails));
+  }
+}
+async function keyboardDisclosure(scene,selector){
+  // CDP Input activates the browser's HTML summary behavior. Extension scripts
+  // are absent: this evidence cannot approve a provider, Run, install or Native.
+  const prepared=await evaluate(`(()=>{
+    const summary=document.querySelector(${JSON.stringify(selector)});
+    if(!summary?.getClientRects().length)throw Error('Missing static keyboard summary');
+    summary.__staticKeyboardEvents=[];
+    if(!summary.__staticKeyboardObserver){
+      summary.__staticKeyboardObserver=event=>summary.__staticKeyboardEvents.push({
+        type:event.type,key:event.key??null,code:event.code??null,charCode:event.charCode??null,isTrusted:event.isTrusted
+      });
+      for(const type of ['keydown','keypress','keyup','click'])summary.addEventListener(type,summary.__staticKeyboardObserver);
+    }
+    summary.scrollIntoView({block:'center'});summary.focus();
+    return {open:summary.parentElement.open};
+  })()`);
+  const key=async(key,code,virtualKey,modifiers=0)=>{
+    // Blink activates summary on Enter keypress (charCode 13), while Space
+    // activates on keyup. keyDown without text omits the required keypress;
+    // Space text also supplies its keypress default action that prevents scroll.
+    // Keep only the portable Windows virtual code, not a Windows value in the
+    // platform-specific nativeVirtualKeyCode field on Mac.
+    const text=code==='Enter'?'\r':code==='Space'?' ':'';
+    const params={key,code,windowsVirtualKeyCode:virtualKey,modifiers};
+    await cdp('Input.dispatchKeyEvent',{type:text?'keyDown':'rawKeyDown',...params,
+      ...(text?{text,unmodifiedText:text}:{})});
+    await cdp('Input.dispatchKeyEvent',{type:'keyUp',...params});
+  };
+  // Traverse with real CDP Tab/Shift+Tab before asserting :focus-visible;
+  // programmatic focus by itself is not keyboard-focus evidence.
+  await key('Tab','Tab',9,8);
+  await key('Tab','Tab',9);
+  const read=()=>evaluate(`(async()=>{
+    // Runtime.evaluate already uses awaitPromise. Wait one rendering boundary
+    // for the input default action/focus layout; never retry a missing toggle.
+    await new Promise(resolve=>requestAnimationFrame(resolve));
+    const summary=document.querySelector(${JSON.stringify(selector)}),style=getComputedStyle(summary),r=summary.getBoundingClientRect();
+    return {focused:document.activeElement===summary,focusVisible:summary.matches(':focus-visible'),
+      outlineWidth:parseFloat(style.outlineWidth),outlineStyle:style.outlineStyle,outlineColor:style.outlineColor,
+      outlineOffset:parseFloat(style.outlineOffset),top:r.top,bottom:r.bottom,left:r.left,right:r.right,
+      viewportWidth:innerWidth,open:summary.parentElement.open,events:summary.__staticKeyboardEvents.slice()};
+  })()`);
+  const before=await read();
+  if(before.open!==prepared.open)throw Error('Static Tab unexpectedly changed disclosure '+selector+' '+JSON.stringify({prepared,before}));
+  if(!before.focused||!before.focusVisible||before.outlineWidth<2||['none','hidden'].includes(before.outlineStyle)||
+    ['transparent','rgba(0, 0, 0, 0)'].includes(before.outlineColor)||before.outlineOffset<0||
+    before.top<0||before.bottom>700||before.left<0||before.right>before.viewportWidth)throw Error('Static keyboard focus not visible '+JSON.stringify(before));
+  await key('Enter','Enter',13);
+  const enter=await read();
+  if(!enter.focused||!enter.focusVisible||enter.open===before.open)throw Error('Static Enter did not toggle summary '+selector+' '+JSON.stringify({before,enter}));
+  await key(' ','Space',32);
+  const space=await read();
+  if(!space.focused||space.open!==before.open||!space.focusVisible)throw Error('Static Space did not restore summary '+selector+' '+JSON.stringify({before,enter,space}));
+  return {evidence:'STATIC_MARKUP_CHROME_KEYBOARD',scene:scene.name,selector,before,enter,space};
 }
 try{
   await mkdir(out,{recursive:true});
   const officialReleases=(await createOfficialToolResources()).catalog.apps;
-  const [source,tokens,design,style,hostingStyle]=await Promise.all([
+  const [source,tokens,design,style,hostingStyle,timeReviewStyle]=await Promise.all([
     readFile(join(root,'src/ui/tool.html'),'utf8'),
     readFile(join(root,'src/ui/design-tokens.css'),'utf8'),
     readFile(join(root,'src/ui/design-system.css'),'utf8'),
     readFile(join(root,'src/ui/tool-shell.css'),'utf8'),
-    readFile(join(root,'src/ui/cloud-hosting.css'),'utf8')
+    readFile(join(root,'src/ui/cloud-hosting.css'),'utf8'),
+    // scripts/prepare-public.mjs copies this first-party source to ui/time-review.css.
+    readFile(join(root,'examples/sidebar-tools/time-review/src/style.css'),'utf8')
   ]);
-  const sourceInputs=['src/ui/tool.html','src/ui/design-tokens.css','src/ui/design-system.css','src/ui/tool-shell.css','src/ui/cloud-hosting.css'];
+  const sourceInputs=['src/ui/tool.html','src/ui/design-tokens.css','src/ui/design-system.css','src/ui/tool-shell.css','src/ui/cloud-hosting.css','examples/sidebar-tools/time-review/src/style.css'];
   const sha=value=>createHash('sha256').update(value).digest('hex');
-  const sourceBinding=[source,tokens,design,style,hostingStyle].map((contents,index)=>({path:sourceInputs[index],sha256:sha(contents)}));
+  const sourceBinding=[source,tokens,design,style,hostingStyle,timeReviewStyle].map((contents,index)=>({path:sourceInputs[index],sha256:sha(contents)}));
   const html=source.replace(/<script src="tool-shell\.js"><\/script>/,'');
   if(html===source)throw Error('Expected script marker missing: refusing native JS execution in static fixture');
   server=createServer((req,res)=>{
@@ -431,6 +609,7 @@ try{
     else if(name==='/ui/design-system.css')res.writeHead(200,{'Content-Type':'text/css; charset=utf-8'}).end(design);
     else if(name==='/ui/tool-shell.css')res.writeHead(200,{'Content-Type':'text/css; charset=utf-8'}).end(style);
     else if(name==='/ui/cloud-hosting.css')res.writeHead(200,{'Content-Type':'text/css; charset=utf-8'}).end(hostingStyle);
+    else if(name==='/ui/time-review.css')res.writeHead(200,{'Content-Type':'text/css; charset=utf-8'}).end(timeReviewStyle);
     else res.writeHead(404).end();
   });
   await new Promise(ok=>server.listen(0,'127.0.0.1',ok));
@@ -467,9 +646,10 @@ try{
   // Coarse-pointer geometry only; this never claims a native touch event or zoom pass.
   await cdp('Emulation.setTouchEmulationEnabled',{enabled:true,maxTouchPoints:1});
   if(!await evaluate('matchMedia("(pointer:coarse)").matches'))throw Error('Coarse-pointer media emulation unavailable');
-  for(const width of [360,520]){
+  for(const width of widths){
     await cdp('Emulation.setDeviceMetricsOverride',{width,height:700,deviceScaleFactor:1,mobile:false});
-    for(const scene of scenes.filter(s=>['develop','workflow-settings','my-cloud-open','tools-installed','schedule-form'].includes(s.name))){
+    for(const scene of scenes.filter(s=>['develop','workflow-settings','cloud-hosting-open','tools-installed','schedule-form',
+      'tasks-details-long','workflow-details-long','tools-cookie-open','cloud-details-long','develop-single-open'].includes(s.name))){
       await evaluate('('+setupScene.toString()+')('+JSON.stringify(scene)+','+JSON.stringify(officialReleases)+')');
       if(scene.state==='cloud-open')await evaluate('document.querySelector("#cloud-hosting").scrollIntoView({block:"start"})');
       const m=await evaluate('('+measureScene.toString()+')('+JSON.stringify(scene)+')');validate(scene,width,m);
@@ -479,10 +659,39 @@ try{
       await writeFile(join(out,scene.name+'-coarse-'+width+'x700.png'),Buffer.from(image.data,'base64'));
     }
   }
+  await cdp('Emulation.setTouchEmulationEnabled',{enabled:false});
+  await cdp('Emulation.setDeviceMetricsOverride',{width:320,height:700,deviceScaleFactor:1,mobile:false});
+  const keyboardSamples=[];
+  for(const [name,selector] of [
+    ['develop-collapsed','#developer-target-detail > summary'],
+    ['tools-cookie-open','#trusted-cookie-panel > summary'],
+    ['tools-cookie-open','#trusted-cookie-observe-panel > summary']
+  ]){
+    const scene=scenes.find(s=>s.name===name);
+    await evaluate('('+setupScene.toString()+')('+JSON.stringify(scene)+','+JSON.stringify(officialReleases)+')');
+    keyboardSamples.push(await keyboardDisclosure(scene,selector));
+  }
+  // Limited media smoke samples reuse the same product HTML and geometry checks.
+  for(const [name,width,features] of [
+    ['tools-cookie-open',320,[{name:'prefers-color-scheme',value:'dark'}]],
+    ['develop-single-open',520,[{name:'prefers-reduced-motion',value:'reduce'}]]
+  ]){
+    await cdp('Emulation.setEmulatedMedia',{features});
+    await cdp('Emulation.setDeviceMetricsOverride',{width,height:700,deviceScaleFactor:1,mobile:false});
+    const scene=scenes.find(s=>s.name===name);
+    await evaluate('('+setupScene.toString()+')('+JSON.stringify(scene)+','+JSON.stringify(officialReleases)+')');
+    const media=await evaluate('('+JSON.stringify(features)+').map(f=>({name:f.name,value:f.value,matches:matchMedia("("+f.name+":"+f.value+")").matches}))');
+    if(media.some(feature=>!feature.matches))throw Error('Static media emulation unavailable '+JSON.stringify(media));
+    const m=await evaluate('('+measureScene.toString()+')('+JSON.stringify(scene)+')');validate(scene,width,m);
+    samples.push({scene:scene.name,width,media,...m});
+    const image=await cdp('Page.captureScreenshot',{format:'png',captureBeyondViewport:false,fromSurface:true});
+    await writeFile(join(out,scene.name+'-'+features[0].value+'-'+width+'x700.png'),Buffer.from(image.data,'base64'));
+  }
+  await cdp('Emulation.setEmulatedMedia',{features:[]});
   for(const item of sourceBinding)if(sha(await readFile(join(root,item.path)))!==item.sha256)throw Error('Relevant input drift '+item.path);
   await writeFile(join(out,'metrics.json'),JSON.stringify({
     evidence:'STATIC_MARKUP_CHROME',nativeExtension:false,nativeControlEvents:false,
-    source:'src/ui/tool.html + src/ui/design-tokens.css + src/ui/design-system.css + src/ui/tool-shell.css + src/ui/cloud-hosting.css',sourceBinding,inputsStable:true,samples
+    source:sourceInputs.join(' + '),sourceBinding,inputsStable:true,samples,keyboardSamples
   },null,2)+'\n');
   console.log('SIDEBAR_R21_STATIC_STATES_ALL_PASS '+samples.length);
 }finally{

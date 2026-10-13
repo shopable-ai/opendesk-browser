@@ -1,6 +1,69 @@
 # Side Panel 折叠区排版统一 · 2026-10-14
 
+## R32 续接执行范围（2026-10-14）
+
+追加定向测试所有权：`tests/environment/workflow-focus.test.mjs`（DOM fixture 需要按 class token 匹配，保留焦点行为）、`tests/environment/developer-layout.test.mjs`（旧 174px/600 字重断言与 R29 已实施的 216px/公共 650 字重不一致）。编辑前两文件 diff 均为空。`scheduled-task-ui-r1`、`sidebar-product-contract`、`sidebar-tools-host` 已有其他负责人未提交修改，本轮不覆盖或混入提交。
+
+- 负责人：当前 Codex R32 对话；只在 `main` 写入。起始及远端基线均为 `89c3b298dc3cf8927b227b041b101770780ce58a`。已有 Cookie / Import / Cloud 未提交改动保留，不加入本轮提交。
+- 本轮写入：`src/ui/design-system.css`、`src/ui/tool-shell.css`、`src/ui/tool.html`、`src/ui/cloud-hosting.css`；根据清单对可信动态模板仅追加公共类；`tests/environment/sidebar-component-contract.test.mjs`、`scripts/tests/sidebar-r19-layout-visual.mjs`、本工作流。跨模块行为/权限合同不变；R21 最小修复另按诊断登记具体路径。
+- 执行：先关闭粗指针定时表单真实溢出，保留既有回归约束；再按一级卡片/二级技术详情迁移逐Tab并删除重复外观；最后定向Node、静态Chrome、构建与原生验收。已有回归覆盖先运行，缺失场景先补测再修复。不是重新设计信息架构。
+- 资源：现有 PID 67778/67794 `npm run dev` 是 `dist/development` 写入者，不另起 watcher 或 build:dev 覆盖；静态Chrome使用本任务临时 profile、系统随机端口和 `artifacts/sidebar-r32-*` 独立证据目录。真实Chrome不占用其他Cloud/Cookie验收profile。
+- 当前CI日志已重新取得：R19 run 38436690386 / job 115432404797，360px coarse 的操作列34px而按钮44px，右边界359超出父349；R21 run 38436690356 / job 115432404399，156 PASS / 1 FAIL；R1 run 38436690362 / job 115432405349，319 PASS / 16 FAIL，只分析本轮影响。
+- 清单核查与R21诊断由两个原生子Agent只读并行，主负责人统一落盘CSS/模板和共享Git状态。所有结果按当前相关输入哈希登记，静态证据不提升为原生PASS；未独立审阅评分保持 `NOT_SCORED`。
+- 动态模板追加公共类的具体写入文件：`src/ui/task-workbench.js`、`src/ui/scheduled-task-workbench.js`、`src/ui/installed-page-tools.js`、`src/ui/cloud-hosting.js`、`src/ui/workflow/workflow-view.js`。编辑前这些文件diff为空；仅修改details的class，不改事件、授权或运行行为。静态视觉脚本由原生子Agent Hume 独占编辑，主负责人收集真实Chrome证据。
+- 迁移后的测试写入补充：`tests/environment/sidebar-r21-design-system.test.mjs`、`tests/environment/task-workbench.test.mjs`、`tests/environment/workflow-ui-states.test.mjs`。后两者编辑前diff为空，仅将旧的完整class字符串断言改为原业务类与公共折叠类并存，保留原隐私、冻结源码、授权和交互断言。
+
+## R32 实施结果与验收边界（2026-10-14）
+
+本轮修改真实 Side Panel，继续使用 `od-disclosure` / `--flat` / `--info`，没有新 UI、Tailwind、依赖、权限或 iframe 样式注入。独立审阅 Lovelace 检查了正文留白、hidden、标题布局及暂存边界；视觉驱动由 Hume 修改，最终修复和验证由本对话负责人执行。
+
+| 页面 | 已迁移的真实组件 | 原生观察与缺口 |
+|---|---|---|
+| 开发 | 一级沿用运行结果标准；SDK 批准快照改为 flat；strong/b 继承公共字号和 650 字重 | 实际扩展中检查收起、展开及 Params JSON 的 Enter/Space/Tab/Shift+Tab；本地项目和完整宽度/缩放矩阵 NOT_TESTED |
+| 我的 | 运行记录、网站权限、更多操作采用一级组件；动态历史、任务管理和定时高级详情采用 flat | 检查真实定时表单；当前没有已安装任务，安装任务详情的原生验收 NOT_TESTED |
+| 发现 | 候选证据、冻结源码及版本身份采用 flat；不新增折叠层 | 实际空任务列表已观察；非空候选原生验收 NOT_TESTED |
+| 工作流 | 管理折叠、参数/Schema、JavaScript、原值、技术身份、模型设置及动态步骤复用公共组件 | 原生展开高级参数和 Schema，正文与 Dock 不重叠；未发送模型请求 |
+| 云控 | 连接/配对、外部应用采用一级组件；约束、运行身份及诊断采用 flat | 当前 main 导航把 cloud 归入 tasks，tabOrder 不含 cloud，而模板仍显示云控标签；真实点击没有切换。保留独立入口 FAIL，不恢复或重写 R14 授权流程 |
+| 工具 | 可信 Cookie 主卡一级，变更记录、修改表单、网站授权 flat | 原生展开 Cookie 卡和技术详情；未读取 Cookie、批准网站或启动第三方工具 |
+| Debug | 脱敏诊断快照一级组件 | 原生展开长 JSON；只读状态，无任务领取或执行 |
+
+真实缺陷与删除的覆盖：
+
+- R19 coarse 360px：两列固定 34px 容纳 44px 图标导致溢出。统一使用 `minmax(0,1fr) max-content max-content` 和 8px gap，删除后续 34px grid 覆盖；桌面图标仍 34px、coarse 仍至少 44px。
+- 删除 tool-shell 中 33 处普通 summary 外观规则，保留 `#workflow-provider-settings>summary{display:none}` 这一独立设置子视图合同。删除 task、workflow、schedule、Cookie、Cloud 和 Debug 对公共卡片重复的 border/padding/radius；cloud-hosting 删除旧卡片 padding 及 summary 颜色覆盖。
+- `#task-installed-detail`、`.task-tools .row`、两处 `.cloud-privacy-note` 的零横向 margin 覆盖公共 12px inset，造成左贴边、右空白 24px；删除后由公共正文规则提供对称留白。视觉驱动测量实际 margin 和左右边界，要求目标确实可见。
+- SDK 批准快照中文标题在 360px 超出标题框约 5px。标题使用 span 包装，公共 `summary>span:only-child` 允许占据并收缩可用空间；没有针对 ID 加高优先级规则。独立复核后将规则限定为唯一标题 span，避免改变当前网页 label/hostname 的业务布局。
+- 动态 JS 只追加组件类，保留原 ID、事件、授权及运行行为。workflow-view 的其他未提交规划/采用逻辑属于并行负责人，仅暂存 workflow-step 的 class 单行。
+
+当前布局证据：
+
+- `npm run check`：668 文件 PASS，`/tmp/sidebar-r32-check-accepted.log`。
+- 七个定向 Node 文件：81 PASS / 0 FAIL，`/tmp/sidebar-r32-node-accepted.log`。
+- R21 十文件本地集成：162 PASS / 0 FAIL，`/tmp/sidebar-r32-r21-accepted.log`。R10 修复由 Time Review 负责人提交于 `284b0d94`：短字节探测退役别名，保留 canonical 20KB、真实 click 和一次性授权断言，未增加延时或伪造 ack。
+- 最终静态 Chrome：292 几何样本＋3 键盘样本 PASS，保留既有 my-cloud-open 场景；300/320/360/420/520、普通/粗指针、收起/单开/多开、长中文/URL/JSON、少量 dark/reduced-motion 场景。`artifacts/sidebar-r32-accepted-preserved/metrics.json` 的 `inputsStable=true`，六项 HTML/CSS 输入 SHA 绑定。metrics SHA-256：`81b1152ac49580708d49c44e735bb3bdd2d5ca0b655b924cdcda6ee484ea5cf5`。该证据严格为 `STATIC_MARKUP_CHROME`，不证明真实扩展导航、授权、安装或原生事件。
+- 失败迭代日志与产物保留在 `/tmp/sidebar-r32-*`、`artifacts/sidebar-r32-*`；没有删除或提升历史 FAIL。
+
+构建/全量验证的限制：生产和开发完整构建及 verify 曾 PASS，日志 `sidebar-r32-production-accepted.log`、`sidebar-r32-development-accepted.log`、`sidebar-r32-verify-accepted.log`；这些是最终唯一标题 span 收缩规则前的候选，不能冒充最终完整构建。最终重建被另一负责人重新启动的 npm run dev（PID 25149 / 输出 guard PID 25173、43120）拒绝，原始日志 `/tmp/sidebar-r32-build-final.log`。不停止他人 watcher、不改输出端口绕过资源锁。最终开发 watcher 已输出与源码相同的 HTML/CSS，但增量更新不代替完整候选 build/verify。
+
+完整 npm test 曾记录 2283 / 2246 PASS / 35 FAIL / 2 SKIP（`/tmp/sidebar-r32-all-node-after-build.log`）：独立审阅分为 15 development 资源缺失、19 独立运行时/合同失败、1 production 模块来源断言。最终工作区重跑（`/tmp/sidebar-r32-all-node-current.log`）记录 **2290 / 2265 PASS / 23 FAIL / 2 SKIP**，包含独立 Cloud 撤权、市场证据、compiler 元数据、bundle 来源和旧工作流采用合同；没有剩余普通 disclosure class/字号/间距断言失败。当前 watcher 下 verify 的 production PASS，development 因 `Unexpected packaged asset` FAIL（`/tmp/sidebar-r32-verify-current-watcher.log`），增量开发输出不能视为可发布的完整候选。当前工作区包含其他 owner 未提交输入，全量结果不是纯 R32 提交验收。提交后 R19/R21 CI 按确切 SHA 另行更新，不隐藏这些失败。
+
+原生身份与原始观察：通过 macOS CUA 操作 `/Users/shopme/Applications/Google Chrome.app` 的实际 Side Panel，扩展 UI 的加载路径为仓库 `dist/development`，ID `ccfcjegpkdlgbclopjmadlcjedelidmf`；Native manifest allowed_origins 与 `opendesk browser doctor` 的 local.extensionId 一致。实际 DevTools 只读测量工具页：363×857 CSS px、DPR 2、页面无横向溢出；一级 40px/13px/650/8px 12px，flat 36px/12px/650/8px 0。原生截图和 AX/Console 原始结果保留在本对话工具输出，不能与静态 PNG 混称。最终同候选完整原生验收仍为 NOT_TESTED：宽度拖动返回 `noWindowsAvailable`，滑块动作未证实尺寸变化；Chrome 125% 只改变测试网页缩放，没有证明 Side Panel 本身缩放，随后恢复 100%。200%、300–520 全矩阵、暗色原生与本地项目模式均未登记 PASS。
+
+评分为 **NOT_SCORED**。云控入口 FAIL、最终一致完整构建/CI及完整原生矩阵未关闭，不能宣布 95+ 或整体产品完成。
+
+复现本地布局验证：
+
+```sh
+node --test tests/environment/sidebar-component-contract.test.mjs tests/framework/sidebar-develop-layout-r29.test.mjs tests/environment/sidebar-r21-design-system.test.mjs tests/environment/sidebar-ui-preview.test.mjs
+CHROME_BIN='/Applications/Google Chrome.app/Contents/MacOS/Google Chrome for Testing' node scripts/tests/sidebar-r19-layout-visual.mjs artifacts/sidebar-r32-recheck
+opendesk browser doctor
+```
+
+完整构建必须等待输出 owner 明确交接 43120，然后在 main 依次执行 `npm run build`、`npm run build:dev`、`npm run verify`；原生继续使用上述已加载路径和 ID，在 `http://127.0.0.1:43111/demo-form.html` 打开真正 Side Panel，通过原生窗口调整宽度与焦点操作，读 DevTools 几何并保存各页 300–520 /125%/200% 证据。不能用 DOM 赋值、伪造事件或另装扩展替代此项。
+
 ## 范围与负责人
+
+以下是 R31 历史实施记录；本轮 R32 的扩展范围、当前证据和未关闭项见本文末节。
 
 本对话只处理可信 Side Panel 折叠组件与「开发」Tab 的视觉一致性。初始核查 main 基线：e64af0b8a42fd4ae02eeeedf50da5f23a52802ae；提交前已核对新 main 的新增提交只涉及独立的 Scheduled Tasks 测试。写入文件：`src/ui/design-system.css`、`src/ui/tool-shell.css`、`src/ui/tool.html`、`tests/environment/sidebar-component-contract.test.mjs`、`scripts/tests/sidebar-r19-layout-visual.mjs` 和本文件。页面授权、代码执行、SDK、RunHost、Native Agent 和第三方工具沙箱均不在修改范围。
 

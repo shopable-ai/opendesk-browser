@@ -71,17 +71,16 @@
 .result-toolbar .hint{margin:0;color:var(--od-sub);font-size:11px}
 .result-toolbar button:disabled{opacity:.5}
 #task-result{margin:0;max-height:160px;border:1px solid var(--od-line);background:var(--od-muted);color:var(--od-ink)}
-.task-history-panel,.task-scope-panel,.task-tools{border-top:1px solid var(--od-line);margin:8px 0 0;padding-top:7px}
-.task-history-panel>summary,.task-scope-panel>summary,.task-tools>summary{font-size:12px;font-weight:600;color:var(--od-sub)}
-#task-installed-detail{white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px;line-height:1.6;color:var(--od-sub);margin:8px 0 0}
+.task-selected-workspace>.od-disclosure{margin-top:var(--space-2)}
+
+#task-installed-detail{white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px;line-height:1.6;color:var(--od-sub)}
 .task-history-entries{display:grid;gap:6px;margin:8px 0}
-.task-history-entry{border:1px solid var(--od-line);background:var(--od-paper);border-radius:var(--radius-control);padding:0 8px;min-width:0}
-.task-history-entry>summary{padding:8px 0;font-size:11px;font-weight:650}
+.task-history-entry{min-width:0}
+
 .task-history-entry pre{margin:0 0 7px;max-height:140px}
 .task-history-tech{font-size:10px}
-.task-history-tech summary{font-size:10px}
+
 #task-history{overflow-wrap:anywhere;font-size:11px}
-.task-tools .row{margin:7px 0}
 .task-tools .row button{background:var(--od-muted);color:var(--od-ink);border:1px solid var(--od-input-border);font-size:12px;min-height:36px}
 .task-tools details{margin:6px 0}
 .task-tools .hint{font-size:11px;line-height:1.45}
@@ -247,8 +246,7 @@
 #task-catalog-detail{background:#fff;font-size:12px;line-height:1.75;margin-top:14px}
 .catalog-install{margin:10px 0;display:flex}
 .catalog-install button{background:#365ed6;color:#fff;font-weight:700;padding:11px 18px}
-#catalog-verification{border:1px solid #e3e9f3;padding:10px 12px;border-radius:var(--radius-surface);background:#fff}
-#catalog-verification summary{font-weight:650;font-size:12px}
+
 #task-package-file{font-size:11px;background:white}
 [data-opendesk-surface=catalog] .workbench-nav,[data-opendesk-surface=catalog] #open-catalog,[data-opendesk-surface=catalog] .workspace-dock{display:none}
 [data-opendesk-surface=catalog] #workspace-content{max-width:1160px;padding:25px 27px}
@@ -277,7 +275,7 @@
 .catalog-reader-fact span{color:var(--od-sub);flex:none}
 .catalog-reader-fact strong{font-weight:650;color:#2a3f5e;max-width:68%;overflow-wrap:anywhere;text-align:right}
 .catalog-reader #task-catalog-detail details{margin:10px 0}
-.catalog-reader #task-catalog-detail summary{font-size:11px;color:var(--od-sub)}
+
 .catalog-reader #task-catalog-detail pre{font-size:10px;max-height:80px;overflow:auto;white-space:pre-wrap;word-break:break-all}
 .catalog-reader #task-catalog-detail .catalog-source-review pre{max-height:min(50vh,420px);white-space:pre;word-break:normal;line-height:1.55}
 .catalog-reader-note{font-size:11px;color:var(--od-sub);background:#f3f6fd;padding:11px;border-radius:var(--radius-control);line-height:1.7}
@@ -427,8 +425,8 @@
 .sidebar-toc-settings-binary button[aria-pressed=true]{border-color:#5e80e5;color:#3157ba;background:#ecf2ff}
 .sidebar-toc-settings-binary button:last-child[aria-pressed=true]{border-color:#a7b5c8;color:#40536c;background:#f0f2f6}
 .sidebar-toc-settings-binary button:disabled{opacity:.45;cursor:not-allowed}
-.sidebar-toc-advanced{border-top:1px solid var(--line,#e9edf3);margin-top:15px;padding-top:13px}
-.sidebar-toc-advanced summary{cursor:pointer;font-size:12px;color:var(--text-secondary,#5b6e86);font-weight:650}
+.sidebar-toc-advanced{margin-top:var(--space-3)}
+
 .sidebar-toc-advanced .sidebar-toc-settings-title{margin:13px 0 7px}
 .sidebar-toc-settings-entries{max-height:140px;overflow-y:auto;overscroll-behavior:contain}
 .sidebar-toc-pro-note{display:flex;gap:8px;justify-content:space-between;align-items:center;flex-wrap:wrap;padding:11px;margin-top:17px;border:1px solid var(--line,#e7ebf2);background:var(--surface-subtle,#f7f9fc);border-radius:var(--radius-control)}
@@ -507,17 +505,15 @@
 .workflow-composer .workflow-send-button{flex:none}
 #workflow-provider-settings:not([open]){display:none}
 #workflow-provider-settings>summary{display:none}
-.workflow-provider{margin:var(--space-2) 0 0;padding-top:var(--space-2);border-top:1px solid var(--od-line)}
-.workflow-provider summary{font-size:var(--od-note-size);color:var(--od-sub);cursor:pointer}
+
 .workflow-provider label{margin:var(--space-2) 0 var(--space-1)}
 .workflow-provider input:not([type=checkbox]){min-height:36px}
 .workflow-consent{display:flex;align-items:flex-start;gap:var(--space-2);font-weight:400;line-height:1.55;font-size:var(--od-note-size)}
 .workflow-consent input{width:auto;flex:none;min-height:0;margin:3px 2px 0 0}
 .workflow-minor-note{font-size:var(--od-note-size);color:var(--od-sub);line-height:1.55;margin:var(--space-2) 0 0}
 .workflow-steps{display:grid;gap:var(--space-2);max-height:min(42vh,430px);min-height:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;padding-right:2px}
-.workflow-step{border:1px solid var(--od-line);border-radius:var(--radius-control);background:var(--od-paper);margin:0}
-.workflow-step>summary{padding:var(--space-2) var(--space-3);color:var(--od-ink);font-size:var(--od-body-size);font-weight:650;line-height:1.5;cursor:pointer}
-.workflow-step-body{border-top:1px solid var(--od-line);padding:var(--space-2) var(--space-3) var(--space-3)}
+
+.workflow-step-body{min-width:0}
 .workflow-field span{display:block;overflow-wrap:anywhere}
 .workflow-field{display:block;margin:var(--space-2) 0}
 .workflow-field input,.workflow-field select,.workflow-field textarea{margin-top:var(--space-1)}
@@ -534,8 +530,8 @@
 .workflow-library .workflow-actions button:not(.workflow-icon-button){flex:0 0 auto}
 .workflow-manage-details[open] .workflow-icon-button{flex:none}
 .workflow-manage-details{margin:0}
-.workflow-manage-details>summary{color:var(--od-ink);font-size:var(--od-note-size);font-weight:650}
-.workflow-manage-details[open]>summary{margin-bottom:10px}
+
+
 .workflow-param-create{display:flex;gap:var(--space-2);align-items:stretch;margin-top:var(--space-2);min-width:0}
 .workflow-param-create input{flex:1 1 0;width:auto;min-width:0}
 .workflow-param-create button{flex:0 1 auto;min-width:100px}
@@ -658,7 +654,7 @@
 #installed-page-tools-list p{margin:0;white-space:pre-wrap;overflow-wrap:anywhere}
 #installed-page-tools-status{margin:0;font-size:12px;line-height:1.5}
 .installed-page-tool-technical{margin:0;min-width:0}
-.installed-page-tool-technical summary{font-size:11px;color:var(--od-sub)}
+
 .installed-page-tool-technical p{padding-top:var(--space-1);overflow-wrap:anywhere}
 
 /* R4.9: no duplicate Tools sub-tabs; discovery expands below installed tools. */
@@ -703,9 +699,9 @@
 .debug-metrics>div{display:grid;gap:4px;min-width:0}
 .debug-metrics span{color:var(--sub);font-size:11px}
 .debug-metrics strong{font-size:12px;overflow-wrap:anywhere}
-.debug-detail{padding:var(--space-3);min-width:0}
-.debug-detail summary{cursor:pointer;font-size:12px;font-weight:650}
-#debug-snapshot{margin:8px 0 0;white-space:pre-wrap;word-break:break-word;overflow:auto;font-size:11px}
+.debug-detail{min-width:0}
+
+#debug-snapshot{white-space:pre-wrap;word-break:break-word;overflow:auto;font-size:11px}
 @media(max-width:340px){.debug-metrics{grid-template-columns:1fr}.debug-heading{align-items:flex-start}}
 
 /* Cloud Side Panel, using R27 tokens without any page-wide horizontal scroll. */
@@ -746,12 +742,11 @@
 .cloud-request-detail-head button{min-height:32px;font-size:11px}
 .cloud-request-detail p{margin:var(--space-2) 0;line-height:1.5;overflow-wrap:anywhere;font-size:11px}
 .cloud-request-technical{margin:var(--space-2) 0}
-.cloud-request-technical summary{font-size:11px}
+
 .cloud-request-technical pre{max-height:90px;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere;font-size:10px}
 #cloud-request-open-result{max-width:100%;white-space:normal;min-height:34px}
 @media(max-width:340px){.cloud-request-pagination{flex-wrap:wrap}.cloud-request-pagination .hint{order:-1;flex:1 1 100%}}
-#workbench-cloud #cloud-hosting{min-width:0;padding:var(--space-3);margin:0}
-#workbench-cloud #cloud-hosting>summary{cursor:pointer;font-size:12px;font-weight:650}
+
 #workbench-cloud #cloud-hosting>label{display:block;margin-top:var(--space-2);font-size:12px}
 #workbench-cloud #cloud-hosting label>input:not([type=checkbox]){display:block;min-width:0;width:100%;margin-top:var(--space-1)}
 #workbench-cloud #cloud-hosting>div{display:flex;flex-wrap:wrap;gap:var(--space-2);margin-top:var(--space-2)}
@@ -777,8 +772,7 @@
 .schedule-state{font-size:11px;color:var(--od-sub);background:var(--od-bg);border-radius:var(--radius-control);padding:3px 7px}
 .schedule-actions{justify-content:flex-end}
 .schedule-card .schedule-actions{justify-content:flex-end}
-.schedule-history{border-top:1px solid var(--od-line);padding-top:var(--space-2)}
-.schedule-history summary{cursor:pointer;font-size:12px;font-weight:600}
+
 .schedule-history-row{padding:var(--space-2) 0;border-bottom:1px solid var(--od-line);font-size:11px;overflow-wrap:anywhere}
 .schedule-history-row small{display:block;margin-top:4px;color:var(--od-sub);overflow-wrap:anywhere}
 .schedule-delete-confirm{display:grid;gap:8px;padding:12px;border:1px solid var(--od-line)}
@@ -790,7 +784,7 @@
 .schedule-form textarea{resize:vertical;margin:0}
 .schedule-source-field{display:grid;gap:var(--space-2);min-width:0}
 .schedule-source-field>label{font-weight:600;margin:0}
-.schedule-source-row{display:grid;grid-template-columns:minmax(0,1fr) var(--od-icon-size) var(--od-icon-size);gap:var(--space-2);align-items:center;min-width:0}
+.schedule-source-row{display:grid;grid-template-columns:minmax(0,1fr) max-content max-content;gap:var(--space-2);align-items:center;min-width:0}
 .schedule-source-row select{width:100%;min-width:0;overflow:hidden;text-overflow:ellipsis}
 .schedule-form #schedule-task-select:disabled{background:var(--od-muted);color:var(--od-sub);opacity:1;cursor:not-allowed}
 .schedule-rule,.schedule-weekdays{min-width:0;border:1px solid var(--od-line);border-radius:var(--radius-control);padding:var(--space-3);margin:0;display:grid;gap:var(--space-2)}
@@ -800,8 +794,7 @@
 .schedule-weekdays label{display:inline-flex;align-items:center;gap:4px;min-height:32px;font-size:12px}
 .schedule-check{display:flex;align-items:flex-start;gap:var(--space-2);font-size:12px;line-height:1.5}
 .schedule-check input,.schedule-weekdays input{min-width:16px;width:16px;height:16px;min-height:16px;flex:none;margin:2px 0}
-.schedule-advanced{border:1px solid var(--od-line);border-radius:var(--radius-control);padding:var(--space-3);margin:0}
-.schedule-advanced>summary{cursor:pointer;font-size:12px;font-weight:600}
+
 .schedule-advanced>.od-field,.schedule-advanced>.schedule-check{margin-top:var(--space-3)}
 #schedule-task-manager{display:grid;gap:var(--space-3);min-width:0}
 #schedule-uninstall-confirm{padding:var(--space-3);display:grid;gap:var(--space-2)}
@@ -917,7 +910,7 @@
 .schedule-save-confirm>p{margin:0;font-size:12px;line-height:1.6;overflow-wrap:anywhere;white-space:pre-line}
 .schedule-save-confirm>strong{font-size:13px}
 .schedule-run-details{margin-top:4px;max-width:100%}
-.schedule-run-details summary{cursor:pointer;color:var(--od-sub)}
+
 
 /* Scheduled R2: paged history stays within the original plan card. */
 .schedule-load-more{justify-self:start;min-height:36px}
@@ -939,9 +932,9 @@
 .schedule-panel .schedule-status-help{margin:0;padding:var(--space-2);border-radius:var(--radius-control);background:var(--od-muted);color:var(--od-sub);font-size:12px;line-height:1.55;overflow-wrap:anywhere}
 .schedule-plan-actions{justify-content:flex-start;border-top:1px solid var(--od-line);padding-top:var(--space-2)}
 .schedule-plan-actions .od-button{min-height:36px}
-.schedule-more{border-top:1px solid var(--od-line);padding-top:var(--space-2);min-width:0}
-.schedule-more>summary{cursor:pointer;min-height:34px;display:list-item;padding-block:6px;font-size:12px;font-weight:650;color:var(--od-sub)}
-.schedule-more>summary:focus-visible,.schedule-history>summary:focus-visible{outline:2px solid var(--od-brand);outline-offset:2px}
+.schedule-more{min-width:0}
+
+
 .schedule-more>.hint{margin:var(--space-2) 0;overflow-wrap:anywhere}
 .schedule-more>.od-button{margin-top:var(--space-2);max-width:100%;min-height:36px}
 .schedule-panel .schedule-danger-link{background:transparent;border:1px solid var(--od-negative);color:var(--od-negative)}
@@ -949,7 +942,7 @@
 .schedule-delete-confirm .od-button{min-height:36px}
 .schedule-delete-confirm{border-radius:var(--radius-control)}
 .schedule-history{min-width:0}
-.schedule-history>summary{min-height:34px;display:list-item;padding-block:6px;overflow-wrap:anywhere}
+
 .schedule-history>.od-stack{gap:var(--space-2)}
 .schedule-history-row .schedule-status-guidance{display:block;margin-top:var(--space-1);line-height:1.5}
 .schedule-form .schedule-form-section{row-gap:var(--space-3)}
@@ -962,7 +955,7 @@
 .schedule-form #schedule-next{margin:0;line-height:1.55;overflow-wrap:anywhere}
 .schedule-form .schedule-advanced{min-width:0}
 .schedule-form .schedule-advanced>.od-field{display:grid;gap:var(--space-2)}
-.schedule-form .schedule-advanced>summary{min-height:30px;line-height:1.5}
+
 .schedule-form #schedule-save-confirm{border-radius:var(--radius-surface)}
 .schedule-form #schedule-discard-confirm{display:grid;gap:var(--space-2);padding:var(--space-3);min-width:0;border-radius:var(--radius-surface)}
 .schedule-form #schedule-discard-confirm>p{margin:0;font-size:12px;line-height:1.55;color:var(--od-sub);overflow-wrap:anywhere}
@@ -987,7 +980,6 @@
 .schedule-task-empty>p{margin:0;font-size:12px;line-height:1.55;overflow-wrap:anywhere}
 .schedule-task-empty>strong{font-size:13px}
 .schedule-task-empty>.od-button{justify-self:start;white-space:normal}
-.schedule-panel .schedule-source-row{grid-template-columns:minmax(0,1fr) var(--od-icon-size) var(--od-icon-size)}
 .schedule-panel .schedule-source-row .od-icon-button{padding:0}
 .schedule-panel .schedule-source-field #schedule-task-version:not(:empty){
   padding:var(--space-2);background:var(--od-muted);border-radius:var(--radius-control);
@@ -1033,7 +1025,6 @@
   .schedule-timezone-selected{grid-template-columns:minmax(0,1fr)}
   .schedule-timezone-selected>.od-button{justify-self:start}
   /* Keep icon actions at the shared 8px gutter even at 300px. */
-  .schedule-form .schedule-source-row .od-icon-button{min-width:34px}
   .schedule-form>.schedule-actions>.od-button{flex:1 1 100%}
 }
 
@@ -1043,13 +1034,8 @@
 :root[data-opendesk-surface="scheduled-runner"] .schedule-runner-view .schedule-runner-focus{order:1}
 :root[data-opendesk-surface="scheduled-runner"] .schedule-runner-view .schedule-runner-metrics{order:2}
 :root[data-opendesk-surface="scheduled-runner"] .schedule-runner-view .schedule-runner-extra{order:3}
-:root[data-opendesk-surface="scheduled-runner"] .schedule-runner-extra{
-  margin:0;min-width:0;color:var(--od-sub);font-size:12px;
-  border-top:1px solid var(--od-line);padding-top:var(--space-2)
-}
-:root[data-opendesk-surface="scheduled-runner"] .schedule-runner-extra>summary{
-  min-height:36px;font-size:12px;font-weight:650;color:var(--od-sub)
-}
+:root[data-opendesk-surface="scheduled-runner"] .schedule-runner-extra{min-width:0}
+
 :root[data-opendesk-surface="scheduled-runner"] .schedule-runner-extra-grid{
   display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));
   gap:var(--space-2);min-width:0;margin-top:var(--space-2)
@@ -1067,11 +1053,11 @@
 }
 
 /* Trusted native Cookie inspector: within existing Tools surface, not the sandbox. */
-.trusted-cookie-panel{margin-top:var(--space-3);padding:var(--space-3);min-width:0}
-.trusted-cookie-panel>summary{display:flex;align-items:center;gap:var(--space-2);flex-wrap:wrap;cursor:pointer}
-.trusted-cookie-panel>summary::marker{color:var(--od-sub)}
-.trusted-cookie-panel>summary strong{color:var(--od-ink)}
-.trusted-cookie-content{display:grid;gap:var(--space-2);padding-top:var(--space-3);min-width:0}
+.trusted-cookie-panel{margin-top:var(--space-3);min-width:0}
+
+
+
+.trusted-cookie-content{display:grid;gap:var(--space-2);min-width:0}
 .trusted-cookie-content>.hint{line-height:1.6;margin:0}
 .trusted-cookie-content>.identity{margin:0}
 .trusted-cookie-content>button{justify-self:start}
@@ -1084,15 +1070,15 @@
 .trusted-cookie-item-actions{display:flex;flex-wrap:wrap;gap:var(--space-1)}
 .trusted-cookie-item-actions button{min-height:32px}
 /* Trusted Cookie observation is ephemeral, opt-in and contains metadata only. */
-.trusted-cookie-observe{border-top:1px solid var(--od-input-border);padding:var(--space-2) 0;min-width:0}
-.trusted-cookie-observe>summary{cursor:pointer;font-size:12px;font-weight:650;min-height:30px}
+.trusted-cookie-observe{min-width:0}
+
 .trusted-cookie-observe>.hint{font-size:12px;line-height:1.55;margin:var(--space-2) 0}
 .trusted-cookie-observe-actions{display:flex;flex-wrap:wrap;gap:var(--space-1)}
 .trusted-cookie-observe-actions>button{min-width:0;min-height:32px;flex:1 1 88px}
 .trusted-cookie-watch-events{display:grid;gap:var(--space-1);max-height:168px;overflow:auto;min-width:0}
 .trusted-cookie-watch-event{font:12px/1.5 ui-monospace,monospace;overflow-wrap:anywhere;padding:var(--space-1);border-bottom:1px solid var(--od-input-border)}
-.trusted-cookie-write{padding:var(--space-2);border-top:1px solid var(--od-input-border);min-width:0}
-.trusted-cookie-write>summary{margin-bottom:var(--space-2)}
+.trusted-cookie-write{min-width:0}
+
 .trusted-cookie-write label{margin-bottom:var(--space-1)}
 .trusted-cookie-write input{margin-top:0}
 .trusted-cookie-write>.hint{line-height:1.6}
@@ -1103,12 +1089,12 @@
 #workbench-cloud .cloud-overview-secondary>div{min-width:0;font-size:12px;line-height:1.5;color:var(--od-sub)}
 #workbench-cloud .cloud-overview-secondary strong{display:block;color:var(--od-ink);overflow-wrap:anywhere}
 #workbench-cloud .cloud-diagnostics{margin-top:var(--space-3);min-width:0}
-#workbench-cloud .cloud-diagnostics>summary{cursor:pointer;font-size:12px;color:var(--od-sub);min-height:30px}
+
 #workbench-cloud .cloud-first-run{padding:var(--space-3);display:grid;gap:var(--space-2);min-width:0}
 #workbench-cloud .cloud-first-run[hidden],#workbench-cloud .cloud-approval-section[hidden]{display:none}
 #workbench-cloud .cloud-first-run p{margin:0;font-size:13px;line-height:1.5;overflow-wrap:anywhere}
 #workbench-cloud .cloud-approval-section{display:grid;gap:var(--space-2);padding:var(--space-3);min-width:0}
-#workbench-cloud .cloud-privacy-note{margin:0;font-size:12px;line-height:1.55;color:var(--od-sub)}
+#workbench-cloud .cloud-privacy-note{font-size:12px;line-height:1.55;color:var(--od-sub)}
 #workbench-cloud .cloud-approval-review{display:grid;gap:var(--space-2);min-width:0;
   padding:var(--space-3);border:1px solid var(--od-line);border-radius:var(--radius-control)}
 #workbench-cloud .cloud-approval-review[hidden]{display:none}
@@ -1138,16 +1124,15 @@
 #workbench-cloud .cloud-action-row{display:flex;gap:var(--space-2);flex-wrap:wrap;min-width:0}
 #workbench-cloud .cloud-action-row>button{flex:1 1 140px;min-width:0;min-height:36px}
 #workbench-cloud .cloud-task-choice details{min-width:0;max-width:100%}
-#workbench-cloud .cloud-task-choice details summary{font-size:12px;font-weight:600;cursor:pointer;min-height:28px}
+
 #workbench-cloud .cloud-task-choice details pre{white-space:pre-wrap;overflow-wrap:anywhere;font-size:11px;line-height:1.5;max-height:200px;max-width:100%;overflow:auto}
 @media(max-width:340px){#workbench-cloud .cloud-action-row>button{flex-basis:100%}#workbench-cloud .cloud-overview-secondary{grid-template-columns:1fr}}
 
 /* R5.2 external app grants: one trusted Side Panel subview, no nested cards. */
-#workbench-cloud .cloud-clients{min-width:0;padding:var(--space-3);display:grid;gap:var(--space-3)}
-#workbench-cloud .cloud-clients>summary{cursor:pointer;min-height:36px;font-size:13px;font-weight:650;line-height:1.5}
-#workbench-cloud .cloud-clients>summary:focus-visible{outline:2px solid var(--od-brand);outline-offset:2px}
+#workbench-cloud .cloud-clients{min-width:0}
+
+
 #workbench-cloud .cloud-clients:not([open])>:not(summary){display:none!important}
-#workbench-cloud .cloud-clients .cloud-privacy-note{margin:0}
 #workbench-cloud .cloud-client-form{display:grid;grid-template-columns:minmax(0,1fr);gap:var(--space-2)}
 #workbench-cloud .cloud-client-form>label:not(.cloud-approval-confirm),
 #workbench-cloud .cloud-client-once>label{font-size:12px;font-weight:600;line-height:1.5}
@@ -1169,10 +1154,8 @@
 @media(max-width:340px){#workbench-cloud .cloud-client-row>button{flex-basis:100%}#workbench-cloud .cloud-client-secret-row>button{flex:1 1 100%}#workbench-cloud .cloud-client-form>button{width:100%}}
 
 /* R2.3 local-only storage transparency; no destructive cleanup control. */
-.schedule-storage-details{max-width:100%;min-width:0;border:1px solid var(--od-line);border-radius:var(--radius-control);background:var(--od-paper)}
-.schedule-storage-details>summary{cursor:pointer;min-height:36px;padding:8px 12px;font-size:12px;font-weight:650;line-height:1.5}
-.schedule-storage-details>summary:focus-visible{outline:2px solid currentColor;outline-offset:2px}
-.schedule-storage-details>p{margin:0;padding:0 12px 12px;overflow-wrap:anywhere}
+
+
 
 /* Tools with their own trusted site grants must not show generic TOC/Clip grant controls. */
 #sidebar-tool-generic-site-scope[hidden],#sidebar-tool-generic-site-binary[hidden],#sidebar-tool-generic-site-advanced[hidden]{display:none!important}
