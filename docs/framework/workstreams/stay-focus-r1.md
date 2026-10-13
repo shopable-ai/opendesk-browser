@@ -1,5 +1,16 @@
 # Stay Focus R1.4 — zero-config shared entertainment (2026-10-13)
 
+## R1.4 最终源码续接（2026-10-13）
+
+**当前已提交源码候选：** `4a379700c8171c259e5737c7a66c75c7ce5c1f20`（之后若有 main 更新必须重新核对）。本轮直接修改 Stay Focus 现有可信服务、唯一娱乐分类表、共享额度 UI、已有 ISOLATED Page Relay 提醒与 CFT 验收驱动；未新建第二套执行 Runtime、权限或 DNR 引擎。
+
+- **已写入原生验收驱动但尚未通过：** 首次真实授权后默认共享 30 分钟、可信 UI 改为 2 分钟；通过同一个本机额度池，分别在 `127.0.0.1` 和 `localhost` 两个真实 HTTP 主机中累计前台时间；确认 1 分钟网页提醒、已有双标签与新导航的 DNR，以及默认 YouTube 和 TikTok HTTPS 导航限制。旧的停用、重新开启、同 Chrome Profile 整浏览器重启、卸载流程仍保留。没有直接写入模拟 usage、规则或权限。
+- **已修复安全收尾：** 未安装/卸载时清除残余网页提示，发生策略损坏时清理，避免卸载后每次标签切换重复广播清理消息；相关组件断言源码已加入。
+- **本会话确实执行的有限检查：** 当前 12 个受影响 JS 文件经 V8 语法解析 **12/12 PASS**（仅编译检查；import 语法在隔离检查中作中性去除）；此前从实际仓库源码执行的共享 30m、11 默认站点 DNR、10/5/1 去重等 10 项 V8 逻辑 Smoke PASS。两者均**不得当作 Node 组件 PASS 或真实 Chrome PASS**。
+- **同源码 GitHub Actions：** [Stay Focus #38419875206](https://github.com/shopable-ai/opendesk-browser/actions/runs/38419875206)，最后检查为 `QUEUED`，无同候选 Node / npm 双构建 / ZIP / SW 体积哈希 / macOS CFT 原始完成日志。继续记作 `COMPONENT_NOT_TESTED / BUILD_NOT_TESTED / NATIVE_NOT_TESTED`，产品 95+ `NOT_ACCEPTED`。
+- **执行环境：** GitHub main 可写，但连接不能直接执行用户 Mac 目录的 Node 或 Chrome；不可把 GitHub 排队运行认定为成功。不重复 30 分钟真实使用，CFT 采用可信 UI 的 2 分钟测试额度。
+
+
 ## R1.4 code-integrated evidence note — 2026-10-13
 
 - **Latest candidate with affected source and native driver:** `cbf84e01839768d3ad842860b819884c693c09fa`. The doc-only tracking commit following this note is not an unrelated product candidate.
