@@ -934,6 +934,65 @@
 .schedule-load-more{justify-self:start;min-height:36px}
 
 
+/* Scheduled R2.6: one gutter, explicit reading hierarchy and non-destructive
+ * timezone search. Scoped to the existing scheduled surface only. */
+.schedule-header{justify-content:flex-start;align-items:center}
+.schedule-header-heading{min-width:0;flex:1 1 130px}
+.schedule-header-heading strong,.schedule-header-heading .hint{overflow-wrap:anywhere}
+.schedule-header #schedule-stop{margin-inline-start:auto}
+.schedule-panel #schedule-list-summary{margin:0;color:var(--od-ink);font-size:12px;font-weight:650;line-height:1.55;overflow-wrap:anywhere}
+.schedule-panel .schedule-card{gap:var(--space-2);padding:var(--space-3);overflow-wrap:anywhere}
+.schedule-card-head{align-items:flex-start;flex-wrap:nowrap}
+.schedule-card-head strong{font-size:14px;line-height:1.5;flex:1 1 auto;min-width:0;white-space:normal}
+.schedule-state{flex:0 0 auto;white-space:nowrap;font-weight:650}
+.schedule-card .schedule-next-time{font-size:16px;line-height:1.4;font-weight:780;color:var(--od-ink);letter-spacing:-.02em;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.schedule-panel .schedule-plan-meta{margin:0;font-size:12px;line-height:1.5}
+.schedule-panel .schedule-status-help{margin:0;padding:var(--space-2);border-radius:var(--radius-control);background:var(--od-muted);color:var(--od-sub);font-size:12px;line-height:1.55;overflow-wrap:anywhere}
+.schedule-plan-actions{justify-content:flex-start;border-top:1px solid var(--od-line);padding-top:var(--space-2)}
+.schedule-plan-actions .od-button{min-height:36px}
+.schedule-more{border-top:1px solid var(--od-line);padding-top:var(--space-2);min-width:0}
+.schedule-more>summary{cursor:pointer;min-height:34px;display:list-item;padding-block:6px;font-size:12px;font-weight:650;color:var(--od-sub)}
+.schedule-more>summary:focus-visible,.schedule-history>summary:focus-visible{outline:2px solid var(--od-brand);outline-offset:2px}
+.schedule-more>.hint{margin:var(--space-2) 0;overflow-wrap:anywhere}
+.schedule-more>.od-button{margin-top:var(--space-2);max-width:100%;min-height:36px}
+.schedule-panel .schedule-danger-link{background:transparent;border:1px solid var(--od-negative);color:var(--od-negative)}
+.schedule-panel .schedule-danger-button{background:var(--od-negative);color:var(--od-paper)}
+.schedule-delete-confirm .od-button{min-height:36px}
+.schedule-delete-confirm{border-radius:var(--radius-control)}
+.schedule-history{min-width:0}
+.schedule-history>summary{min-height:34px;display:list-item;padding-block:6px;overflow-wrap:anywhere}
+.schedule-history>.od-stack{gap:var(--space-2)}
+.schedule-history-row .schedule-status-guidance{display:block;margin-top:var(--space-1);line-height:1.5}
+.schedule-form .schedule-form-section{row-gap:var(--space-3)}
+.schedule-form-section .schedule-section-title{margin-bottom:var(--space-1)}
+.schedule-form-section .schedule-source-field,.schedule-form-section .schedule-rule-field{gap:var(--space-2);min-width:0}
+.schedule-form-section .schedule-rule-field input[type=search]{height:36px;min-height:36px}
+.schedule-panel .schedule-timezone-match:empty{display:none}
+.schedule-panel .schedule-timezone-match{margin:0;font-size:11px;line-height:1.5}
+.schedule-form-section .schedule-timezone-help{margin:0}
+.schedule-form #schedule-next{margin:0;line-height:1.55;overflow-wrap:anywhere}
+.schedule-form .schedule-advanced{min-width:0}
+.schedule-form .schedule-advanced>.od-field{display:grid;gap:var(--space-2)}
+.schedule-form .schedule-advanced>summary{min-height:30px;line-height:1.5}
+.schedule-form #schedule-save-confirm{border-radius:var(--radius-surface)}
+.schedule-form>.schedule-actions{justify-content:flex-start;gap:var(--space-2);padding-bottom:var(--space-2)}
+.schedule-form .schedule-actions>.od-button{min-height:36px}
+:root[data-opendesk-surface="scheduled-runner"] .schedule-header-heading{display:none}
+:root[data-opendesk-surface="scheduled-runner"] .schedule-header:has(#schedule-stop[hidden]){display:none}
+:root[data-opendesk-surface="scheduled-runner"] .schedule-header{justify-content:flex-end}
+:root[data-opendesk-surface="scheduled-runner"] .schedule-runner-view .schedule-runner-focus{order:1}
+:root[data-opendesk-surface="scheduled-runner"] .schedule-runner-view .schedule-runner-metrics{order:2}
+:root[data-opendesk-surface="scheduled-runner"] .schedule-runner-focus{padding:var(--space-4)}
+:root[data-opendesk-surface="scheduled-runner"] .schedule-runner-metric{padding:var(--space-3);background:transparent}
+:root[data-opendesk-surface="scheduled-runner"] .schedule-runner-metric strong{font-size:14px}
+:root[data-opendesk-surface="scheduled-runner"] .schedule-runner-intro{align-items:flex-start}
+@media(max-width:340px){
+ .schedule-card .schedule-next-time{font-size:15px}
+ .schedule-header{gap:var(--space-2)}
+ .schedule-form .schedule-actions>.od-button{flex:1 1 115px;min-width:0}
+ .schedule-plan-actions>.od-button{flex:1 1 85px;min-width:0}
+}
+
 /* Trusted native Cookie inspector: within existing Tools surface, not the sandbox. */
 .trusted-cookie-panel{margin-top:var(--space-3);padding:var(--space-3);min-width:0}
 .trusted-cookie-panel>summary{display:flex;align-items:center;gap:var(--space-2);flex-wrap:wrap;cursor:pointer}
