@@ -37,6 +37,13 @@ jobs:
           npm ci --no-audit --no-fund
           npm run build
           npm run verify:package
+      - name: R2.6 source, timezone, UI and both WXT package modes
+        if: matrix.platform == 'linux'
+        run: |
+          npm run check
+          node --test tests/environment/scheduled-task-timezone-r25.test.mjs tests/environment/scheduled-task-ui-r1.test.mjs tests/environment/ui-layout-conventions-r27.test.mjs
+          npm run build:dev
+          npm run verify
       - uses: browser-actions/setup-chrome@v2
         id: chrome
         with:
