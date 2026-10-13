@@ -126,3 +126,11 @@
 - 第一次 pending index 迁移将历史扫描改为单页最多 256 条，避免一次在 JS 内物化所有历史；所有改动继续在原 `frameworkKV` 事务与 KV 索引内，且仍没有自动删除审计历史。**未取得 1000/10000/100000 真实 IndexedDB P50/P95 或迁移事务时延证据**，性能与保留期限均未正式关闭。
 - 新增组件回归用例覆盖终态不可回退、遗留 Run 身份防重放、Host 发起后不确定应答。需核对对应固定提交的 GitHub CI 后才可升级到 `COMPONENT_TESTED`。
 - 本轮**未**取得隔离 Chrome 原生故障注入、200% 真实缩放与用户 Mac Profile、Cloud Control/Time Review 共享槽矩阵的新证据；这些仍 `NOT_TESTED`，十项专家验收 `NOT_SCORED`，R2 暂不可标记 Final。
+
+### R2.3 本地存储提示与可重复大规模性能专项
+
+- **可见 UI：** 定时计划列表新增折叠的「本地运行记录与存储」，通过原扩展文档的 `navigator.storage.estimate()` *只读*读取浏览器给出的**整个 OpenDesk 扩展来源**使用量和配额（非 Scheduled Tasks 专属计量）。占用率 ≥80% 显示提醒，不提供可能破坏 UNKNOWN/Run/Result 审计证据的自动清理。若 Chrome 不支持估算，明确告知而不虚构数字。
+- **压力原生专项：** `tests/framework/scheduled-tasks-r23-scale-browser.js`、`tests/framework/scheduled-tasks-r23-scale-native.test.mjs`、`.github/workflows/scheduled-tasks-r23-scale.yml`。在与生产扩展数据完全隔离的 HTTP origin + 临时 Chrome Profile 内，导入产品原 `createStorage` 和 `createScheduleRepository` 模块，写入 1k、10k、100k 条合成 `MISSED` 历史，并保留 5 个从未绑定 Run 的 `WAITING_HOST` Fire。测试重新构建派生索引、测迁移时间、深页历史和常规 list/history/reconcile/ready p50/p95，同时验证页面重新加载后原 pending FireId 没有变化。**这不是生产扩展原生的真实 Task 执行，不会合成 RunId/ResultId/网页副作用。**
+- **第一次压力工作流 FAIL（保留记录）：** `86311c39` 的 [CI 38356321392](https://github.com/shopable-ai/opendesk-browser/actions/runs/38356321392)，Linux/macOS 在测试加载前因缺少 native launcher 依赖 `acorn` 失败；不能用于评价 IDB 性能。随后 `6b7bbb1a` 补充锁定依赖 `npm ci --ignore-scripts --no-audit --no-fund`，候选 [CI 38356507738](https://github.com/shopable-ai/opendesk-browser/actions/runs/38356507738) 需以实际结果核查。
+- **回归：** `5a497985` 的 [Scheduled Tasks 组件/构建 CI 38355091731](https://github.com/shopable-ai/opendesk-browser/actions/runs/38355091731) PASS、[Linux Chrome 基础/生命周期 38355091653](https://github.com/shopable-ai/opendesk-browser/actions/runs/38355091653) PASS、[Cloud Control 组件与包 CI 38355091660](https://github.com/shopable-ai/opendesk-browser/actions/runs/38355091660) PASS；其他双平台及高倍率视觉以原生专项单独判定。
+- **R2 Final 闸门：** 未验证用户 Mac Profile、Chrome 真正 125/150/200% 缩放、真实 Worker/Host 副作用竞态故障注入全矩阵和十项质量维度独立 ≥95；不得标记 Final。

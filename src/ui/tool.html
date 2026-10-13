@@ -87,6 +87,10 @@
         </div>
         <p id="schedule-host-status" class="hint" role="status">正在检查可用运行宿主…</p>
         <div id="schedule-plan-list" class="od-stack" aria-label="已保存的定时计划"></div>
+        <details class="schedule-storage-details">
+          <summary>本地运行记录与存储</summary>
+          <p id="schedule-storage-status" class="hint" role="status" aria-live="polite">历史记录按计划分页展示；未知副作用、未结算执行和审计记录不会自动清除。</p>
+        </details>
       </div>
       <form id="schedule-form" class="schedule-form od-stack" autocomplete="off" novalidate hidden>
         <label class="od-field" for="schedule-title">计划名称

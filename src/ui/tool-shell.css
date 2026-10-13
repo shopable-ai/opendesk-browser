@@ -894,3 +894,9 @@
 #workbench-cloud .cloud-task-choice details{min-width:0}
 #workbench-cloud .cloud-task-choice details summary{font-size:11px;font-weight:600;cursor:pointer}
 #workbench-cloud .cloud-task-choice details pre{white-space:pre-wrap;overflow-wrap:anywhere;font-size:10px;line-height:1.5;max-height:200px;overflow:auto}
+
+/* R2.3 local-only storage transparency; no destructive cleanup control. */
+.schedule-storage-details{max-width:100%;min-width:0;border:1px solid var(--od-line);border-radius:var(--radius-control);background:var(--od-paper)}
+.schedule-storage-details>summary{cursor:pointer;min-height:36px;padding:8px 12px;font-size:12px;font-weight:650;line-height:1.5}
+.schedule-storage-details>summary:focus-visible{outline:2px solid currentColor;outline-offset:2px}
+.schedule-storage-details>p{margin:0;padding:0 12px 12px;overflow-wrap:anywhere}

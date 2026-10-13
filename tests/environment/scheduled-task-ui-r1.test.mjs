@@ -169,3 +169,18 @@ test('R2 current authorization controls plan badge without hiding historical nee
   assert.doesNotMatch(ui,/plan\.history\?\.\[0\]\?\.status==='NEEDS_ATTENTION'\?'需要处理'/);
   assert.match(ui,/scheduleStatus\(last.status\)/,'historical denial remains visible in history');
 });
+
+test('R2.3 explains audit retention and shows native Chrome origin-wide storage without deleting records',async()=>{
+  const [html,ui,css]=await Promise.all([
+    load('src/ui/tool.html'),load('src/ui/scheduled-task-workbench.js'),
+    load('src/ui/tool-shell.css')
+  ]);
+  assert.match(html,/id="schedule-storage-status"[^>]*role="status"/);
+  assert.match(html,/<details class="schedule-storage-details">/);
+  assert.match(ui,/navigator\?\.storage/);
+  assert.match(ui,/\.estimate\(\)/);
+  assert.match(ui,/并非仅定时任务占用/);
+  assert.match(ui,/历史不会自动清理/);
+  assert.doesNotMatch(ui,/\.deleteDatabase\(|\.clear\(\)/);
+  assert.match(css,/\.schedule-storage-details>summary:focus-visible/);
+});

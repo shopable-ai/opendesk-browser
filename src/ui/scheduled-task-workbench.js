@@ -51,7 +51,7 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
   let disposed=false,shown=false,busy=false,editing=null,managerReturn='list';
   let pendingCreate=false,pendingTask=null,confirmUninstall=null,allPlans=[],catalog=[],installed=[];
   let selectedFire=null,lastRefresh=0,activeView='list',runnerFocusId=null;
-  let permissionSeq=0,awaitingSave=null,editRevision=0;
+  let permissionSeq=0,awaitingSave=null,editRevision=0,storageProbeRevision=0;
   const touched=new Set();
   const formFields={title:'schedule-title',task:'schedule-task-select',
     target:'schedule-target',params:'schedule-params',time:'schedule-timezone'};
@@ -66,6 +66,33 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
   const message=(value,error=false)=>{
     const el=get('schedule-message');text(el,value);el.dataset.state=error?'error':'ready';
   };
+  // Only reads native Chrome origin-wide quota. It is NOT a schedule-only
+  // count, and never garbage-collects UNKNOWN, unsettled or audit records.
+  async function refreshStorageUsage(){
+    const serial=++storageProbeRevision,display=get('schedule-storage-status');
+    const area=doc.defaultView?.navigator?.storage;
+    const policy='历史不会自动清理；按计划分页查看。';
+    if(typeof area?.estimate!=='function'){
+      text(display,policy+' 当前 Chrome 未提供存储空间估算。');return;
+    }
+    try{
+      const estimate=await area.estimate();
+      if(disposed||serial!==storageProbeRevision)return;
+      const {usage,quota}=estimate||{};
+      if(!Number.isFinite(usage)||usage<0||!Number.isFinite(quota)||quota<=0){
+        text(display,policy+' 无法获取有效的 Chrome 存储配额。');return;
+      }
+      const units=value=>value>=1073741824?(value/1073741824).toFixed(2)+' GiB':
+        (value/1048576).toFixed(1)+' MiB';
+      const percentage=100*usage/quota;
+      const pressure=percentage>=80?'存储接近 Chrome 配额，请保留重要数据并检查整个扩展空间。 ':'';
+      text(display,pressure+'整个 OpenDesk 扩展来源约使用 '+units(usage)+' / '+units(quota)+
+        '（'+percentage.toFixed(1)+'%）。并非仅定时任务占用。'+policy);
+    }catch{
+      if(!disposed&&serial===storageProbeRevision)
+        text(display,policy+' Chrome 存储使用量暂时无法读取。');
+    }
+  }
   const isRunner=()=>doc.documentElement?.dataset?.opendeskSurface==='scheduled-runner';
   const views={runner:get('schedule-runner-view'),list:get('schedule-list-view'),
     form:get('schedule-form'),manager:get('schedule-task-manager')};
@@ -104,7 +131,10 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
     catalog=tasks.catalog||[];installed=tasks.installed||[];
     allPlans=plans.schedules||[];lastRefresh=Date.now();
     populateChoices();renderPlans();renderManager();renderRunner();
-    if(shown)message('');
+    if(shown){
+      message('');
+      void refreshStorageUsage();
+    }
   }
   function eligible(){
     return installed.filter(row=>row.enabled===true&&row.installationId&&
