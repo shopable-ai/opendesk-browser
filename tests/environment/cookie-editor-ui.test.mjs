@@ -49,7 +49,9 @@ const expectError=(fn,pattern)=>{
 test('Cookie Editor is an optional two-mode tool without private cookies API',async()=>{
   const s=await harness();
   assert.equal(s.config.id,'cookie-editor');
-  assert.deepEqual([...s.config.capabilities],['currentPage.read','user.export']);
+  assert.deepEqual([...s.config.capabilities],
+    ['currentPage.read','user.export','browser.cookies.read','browser.cookies.values',
+      'browser.cookies.write','browser.cookies.observe','browser.cookies.clear']);
   assert(!/request\(\s*['"]cookies\./.test(s.source));
   assert(!/browser\.cookies\.(?:approve|execute)/.test(s.source));
   assert(s.source.includes('sdk.cookies.getAll({url:target.url})'));
@@ -59,7 +61,7 @@ test('Cookie Editor is an optional two-mode tool without private cookies API',as
   assert(s.html.includes('id="browser-panel"')&&s.html.includes('id="cookie-content"'));
   assert(s.html.includes('id="live-search"')&&s.html.includes('id="live-filter"'));
   assert(s.source.includes("E('live-filters').hidden=!hasRead"));
-  assert.match(s.config.version,/^1\.1\./);
+  assert.match(s.config.version,/^2\.0\./);
   assert(!/\b(?:window|globalThis|chrome)\.cookies\./.test(s.source));
   assert(!/<script\b/i.test(s.html));
   assert(!/@import\b|url\(\s*https?:/i.test(s.css));
@@ -69,7 +71,7 @@ test('Cookie Editor is an optional two-mode tool without private cookies API',as
     assert(new RegExp('id="'+id+'"[^>]*data-sensitive="true"').test(s.html),'secret input: '+id);
   const pkg=await createSidebarToolPackage(project);
   assert.equal(pkg.id,'cookie-editor');
-  assert.equal(pkg.format,'opendesk.sidebar-tool.v1');
+  assert.equal(pkg.format,'opendesk.sidebar-tool.v2');
   assert(pkg.js.length<220000);
 });
 test('Cookie Header, JSON object, JSON array and Netscape import',async()=>{
@@ -183,8 +185,14 @@ test('Browser metadata adapter never retains or reveals native Cookie values',as
 test('Offline workspace remains isolated and browser writes or clears are not performed',async()=>{
   const s=await harness();
   assert(s.source.includes("mode='browser'"),'real mode opens first');
-  assert(!/sdk\.cookies\.(?:set|remove|clearSite)\s*\(/.test(s.source),
-    'write/clear must wait for final SDK and exact authorization contract');
+  assert(s.source.includes('browserSdk().cookies.set(options)'),
+    'real writes must go through the public SDK');
+  assert(s.source.includes('browserSdk().cookies.remove({url:target.url'),
+    'exact deletion must go through the public SDK');
+  assert(s.source.includes('browserSdk().cookies.clearSite({url:target.url,preview:true'),
+    'live clear requires a distinct preview');
+  assert(s.source.includes("if(mode==='browser')void saveBrowserCookie()"),
+    'browser write and offline update must never share an ambiguous action path');
   assert(s.source.includes("status('本地导入完成"));
   assert(s.source.includes("（仅本地预览）"));
   assert(s.html.includes('离线工作区'));

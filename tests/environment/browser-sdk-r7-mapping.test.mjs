@@ -8,7 +8,7 @@ import {createBrowserSdk} from '../../src/framework/sdk/browser.js';
 const json=path=>readFile(new URL('../../'+path,import.meta.url),'utf8').then(JSON.parse);
 const read=path=>readFile(new URL('../../'+path,import.meta.url),'utf8');
 
-test('R7 35-operation map remains historic and Cookie host exposes no sandbox methods',async()=>{
+test('R7 35-operation map remains historic and R9 Cookies use explicit scoped methods',async()=>{
   const [r7,r8]=await Promise.all([
     json('docs/api/browser-sdk-native-mapping.json'),
     json('docs/api/browser-sdk-compatibility-map.json')
@@ -38,7 +38,9 @@ test('R7 35-operation map remains historic and Cookie host exposes no sandbox me
     assert.match(row.existingService,/cookies\.js/);
   }
   assert.equal(createBrowserSdk({context:'page-sdk'}).cookies,undefined);
-  assert.equal(createBrowserSdk({request:async()=>true}).cookies,undefined);
+  const publicCookies=createBrowserSdk({request:async()=>true}).cookies;
+  assert.equal(typeof publicCookies.getAll,'function');
+  assert.equal(typeof publicCookies.observe.read,'function');
 });
 
 test('R7 trusted native workbench is outside installed sandbox bridge; no additional Chrome RPC',async()=>{

@@ -66,12 +66,14 @@ function fixture(){
   const run=async(op,args={})=>execute((await approve(op,args)).approvalRef);
   return {api,state,document,cookieHost,caller,approve,execute,run};
 }
-test('R9 prelaunch registry removes undeployed placeholders while Cookie stays Host-only and Page blocked',()=>{
+test('R9 installed-tool Cookies public SDK retains host trust and denies Page SDK',()=>{
   assert.equal(TRUSTED_COOKIE_OPERATIONS.length,11);
-  assert.equal(Object.keys(BROWSER_OPERATIONS).length,26);
+  assert.equal(Object.keys(BROWSER_OPERATIONS).length,40);
   assert.equal(createBrowserSdk({context:'page-sdk'}).cookies,undefined);
-  assert.equal(createBrowserSdk({request:()=>{}}).cookies,undefined);
-  assert.throws(()=>normalizeBrowserOperation('browser.cookies.getAll',{}),reject('E_SERVICE_UNSUPPORTED'));
+  assert.equal(typeof createBrowserSdk({request:async()=>true}).cookies.getAll,'function');
+  assert.throws(()=>normalizeBrowserOperation('browser.cookies.getAll',{}),reject('E_SCHEMA'));
+  assert.equal(normalizeBrowserOperation('browser.cookies.getAll',{url:'https://shop.example.test/'}).url,
+    'https://shop.example.test/');
 });
 test('R7 authenticated pre-existing Browser Host route, forged sender rejected, one-use approval',async()=>{
   const f=fixture(),host=createContextMenuHost({api:f.api,logger:{warn(){}}});
