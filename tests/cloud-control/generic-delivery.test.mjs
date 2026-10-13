@@ -45,6 +45,8 @@ test('generic Provider delivers two distinct fixed, locally registered Controlle
     await assert.rejects(post('/admin/register',{manifest:search.manifest,
       manifestHash:'0'.repeat(64)},admin.adminToken),{code:'E_HASH'});
     credential=(await post('/v1/pair',{executorId,pairingCode:admin.pairingCode})).credential;
+    const grantId=randomUUID();
+    await post('/v1/capabilities',{grantId,tasks:[pin(form),pin(search)]});
     const jobs=[
       {requestKey:'form-fixed-1',targetExecutorId:executorId,...pin(form),params:{name:'Registered Task'},target},
       {requestKey:'search-fixed-1',targetExecutorId:executorId,...pin(search),params:{keyword:'OpenDesk Cloud'},target}
@@ -80,7 +82,7 @@ test('generic Provider delivers two distinct fixed, locally registered Controlle
     });
     const assignments=[],receipts=[];
     for(let i=0;i<jobs.length;i++){
-      const selection={claimId:'claim-'+i,tasks:[pin(i===0?form:search)]},
+      const selection={claimId:'claim-'+i,grantId,tasks:[pin(i===0?form:search)]},
         result=await post('/v1/claim',selection);
       assert.equal(result.assignment?.task.taskId,jobs[i].taskId);
       assert.deepEqual(result.assignment.params,jobs[i].params);
