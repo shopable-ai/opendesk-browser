@@ -18,6 +18,10 @@ on:
       - '.github/workflows/stay-focus-r1.yml'
   workflow_dispatch:
 
+concurrency:
+  group: stay-focus-r1-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 jobs:
