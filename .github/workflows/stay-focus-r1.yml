@@ -25,9 +25,11 @@ on:
       - '.github/workflows/stay-focus-r1.yml'
   workflow_dispatch:
 
+# Complete the running candidate's evidence even when parallel work pushes main.
+# GitHub still coalesces pending runs, but must not cancel an active macOS test.
 concurrency:
   group: stay-focus-r1-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 permissions:
   contents: read

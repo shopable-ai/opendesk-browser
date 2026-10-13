@@ -88,3 +88,12 @@ Node mock 组件测试只能标为 **COMPONENT**，不能证明真实 Chrome 导
 - `src/stay-focus/rule-host.js` 对覆盖子域名的父规则添加 `excludedRequestDomains`，由更具体子网站的规则独立决定是否阻断。无效的“父域名覆盖子域名 + 子网站仅精确域名”组合拒绝持久保存，以避免 Chrome DNR 宽范围排除造成静默放行。
 - `tests/environment/stay-focus-r1.test.mjs` 与 `stay-focus-service-r1.test.mjs` 新增模型、真实受信任 Host 请求和 DNR readback 对账组件用例。还必须完成当前候选上的完整 CI 与真实 Chrome 页面导航，不能将这些新写入测试当成已通过。
 - [CI 当前排队候选 #38370141918](https://github.com/shopable-ai/opendesk-browser/actions/runs/38370141918) 源码修复提交 `3b4a157555bc`；本条记录撰写时状态 `QUEUED`，不代表失败或成功。上述新增文档不修改其源码候选。
+
+
+## R1.1 · 前台时间核对与真实额度原生用例（2026-10-13，待同候选 CI）
+
+- **源码变更（等待当前提交后的 CI 确认）**：计时检查点必须复核同一聚焦 tab/window/host/pool；idle/失焦/切页时丢弃不确定区间，杜绝旧检查点将后台时间算入额度。新增模型组件断言。
+- **DNR 规则稳定性**：按完整配置域名表分配保留 ID（而非仅按当前封锁的网站计数），不再因另一域名暂停/触发额度而重编号。增删配置域名仍可能令按字母排列的 ID 重排，未承诺持久固定不变。
+- **真实额度原生脚本**：原 macOS Chrome 用例除 `always` 导航外，加入从真实 Side Panel 操作将同网站改为 **1 分钟**、前台网页活动、只读采样 storage 中实际计费、`idle`/focused/active tab、DNR 读回、已打开标签页与新 HTTP 导航的额度页面及截图。绝不写入测试 `usage` 或伪造动态规则。
+- **CI 排队防取消**：Stay Focus 自有工作流不再因同一 main 的后续推送取消正在执行的 Mac 原生候选；新候选只使用自己 SHA 的构建/原生证据。
+- 本条仅记录**实现和待验证入口**，不是验收回执。此会话尚无法访问用户 Mac 路径；只有 Actions 实际跑完并成功且同候选证据齐备后，才允许更改为 `NATIVE_PASS`。若 Chrome 原生权限弹窗或 GUI 不可用，按实际原因标注 `BLOCKED`。

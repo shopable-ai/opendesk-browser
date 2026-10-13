@@ -93,7 +93,12 @@ export function settleFocus(state,{at,session,current=null,boot=false}){
   if(today>state.day){state.day=today;state.usage={};state.checkpoint=null;}
   if(today<state.day){state.checkpoint=null;return {state,clockRollback:true};}
   state.clockHighWater=at;
-  if(cp&&cp.session===session&&!boot&&cp.day===today&&cp.offset===offset&&
+  // Recheck the *same foreground tab and window* before charging a checkpoint.
+  // A hidden tab, unfocused Chrome, idle/locked state, or a tab switch must
+  // never be charged just because an old timestamp still exists.
+  if(cp&&current&&cp.host===current.host&&cp.tabId===current.tabId&&
+      cp.windowId===current.windowId&&cp.pool===focusPool(current.site)&&
+      cp.session===session&&!boot&&cp.day===today&&cp.offset===offset&&
       at>=cp.at&&at-cp.at<=FOCUS_MAX_GAP_MS&&state.enabled){
     const site=focusMatchingSite(state,cp.host);
     if(site&&focusPool(site)===cp.pool&&!focusReason(state,site,cp.at)){

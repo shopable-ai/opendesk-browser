@@ -55,11 +55,20 @@ async function fill(c,session,selector,value){
   await click(c,session,selector);
   await c.send('Input.insertText',{text:value},session);
 }
+// Real CDP keyboard input, not changing DOM values or local usage via evaluate.
+async function replaceField(c,session,selector,value){
+  await click(c,session,selector);
+  await c.send('Input.dispatchKeyEvent',{type:'rawKeyDown',key:'a',code:'KeyA',
+    modifiers:4,windowsVirtualKeyCode:65},session);
+  await c.send('Input.dispatchKeyEvent',{type:'keyUp',key:'a',code:'KeyA',
+    modifiers:4,windowsVirtualKeyCode:65},session);
+  await c.send('Input.insertText',{text:value},session);
+}
 async function press(c,session,key,code,virtualKey){
   await c.send('Input.dispatchKeyEvent',{type:'rawKeyDown',key,code,windowsVirtualKeyCode:virtualKey},session);
   await c.send('Input.dispatchKeyEvent',{type:'keyUp',key,code,windowsVirtualKeyCode:virtualKey},session);
 }
-test('Real Chrome DNR navigation, registry, sidebar approval and uninstall',{skip:!ENABLED,timeout:240000},async t=>{
+test('Real Chrome always-block and live one-minute quota, Side Panel approval and uninstall',{skip:!ENABLED,timeout:360000},async t=>{
   assert.equal(process.platform,'darwin','Native CI must be macOS');
   assert.ok(BIN&&spawnSync(BIN,['--version'],{stdio:'ignore'}).status===0);
   const packageFile=path.join(ROOT,'official-tools/stay-focus/stay-focus.opendesk-tool.json');
@@ -83,7 +92,7 @@ test('Real Chrome DNR navigation, registry, sidebar approval and uninstall',{ski
   const report={candidate:process.env.GITHUB_SHA||null,
     pkgSHA256:createHash('sha256').update(bytes).digest('hex'),
     nativeChrome:'NOT_TESTED',approval:'NOT_TESTED',actualNavigation:'NOT_TESTED',
-    screenshots:[],
+    quota:'NATIVE_NOT_TESTED',quotaTrace:[],screenshots:[],
     unregister:'NOT_TESTED',uninstall:'NOT_TESTED',steps:[]};
   const note=(name,details)=>{report.steps.push({name,...details});console.log('STAY_FOCUS_NATIVE '+name+' '+JSON.stringify(details));};
   chrome.stderr.on('data',x=>{errors=(errors+String(x)).slice(-2200);});
@@ -158,6 +167,8 @@ test('Real Chrome DNR navigation, registry, sidebar approval and uninstall',{ski
     'chrome.storage.local.get('+JSON.stringify(store)+').then(x=>x['+JSON.stringify(store)+']?.sites?.length===1)'),'authorized site rule');
   note('trusted-domain-approval',{hostname:'127.0.0.1',noQueryStored:true});
   await click(client,sid,'#sidebar-tool-settings-open');
+  report.nativePermissionBefore=await evalRead(client,sid,
+    'chrome.permissions.contains({permissions:["idle","declarativeNetRequestWithHostAccess"]})');
   await click(client,sid,'#stay-focus-enable-native');
   const allowed=await until(()=>evalRead(client,sid,
     'chrome.permissions.contains({permissions:["idle","declarativeNetRequestWithHostAccess"]})'), 'actual Chrome optional native grants',7500).catch(()=>false);
@@ -167,6 +178,7 @@ test('Real Chrome DNR navigation, registry, sidebar approval and uninstall',{ski
   const enabled=await until(()=>evalRead(client,sid,
     'chrome.storage.local.get('+JSON.stringify(store)+').then(x=>x['+JSON.stringify(store)+']?.enabled===true)'), 'real trusted activation',10000);
   assert.equal(enabled,true);report.approval='PASS';
+  report.nativePermissionAfter=allowed;
   const rules=await until(async()=>{
     const rows=await evalRead(client,sid,'chrome.declarativeNetRequest.getDynamicRules()');
     return rows.filter(row=>row.id>=730000&&row.id<=730199).length===1?rows:null;
@@ -189,6 +201,100 @@ test('Real Chrome DNR navigation, registry, sidebar approval and uninstall',{ski
   report.screenshots.push(await screenshot(client,blockedSession,'actual-dnr-blocked-page'));
   report.actualNavigation='PASS';note('real-http-navigation',{status:'PASS',
     urlPath:'/stay-focus/blocked-always.html',renderedReason:blockedText});
+
+  // Replace the actual site rule through sandbox UI and its trusted review.
+  // Never set the usage counter, never seed a DNR rule and never shorten time.
+  await click(client,frame,'#site-mode');
+  await press(client,frame,'ArrowUp','ArrowUp',38);
+  await press(client,frame,'Enter','Enter',13);
+  assert.equal(await evalRead(client,frame,'document.querySelector("#site-mode").value'),'limit');
+  await replaceField(client,frame,'#site-minutes','1');
+  assert.equal(await evalRead(client,frame,'document.querySelector("#site-minutes").value'),'1');
+  await click(client,frame,'#site-form button[type=submit]');
+  await until(()=>evalRead(client,sid,'!document.querySelector("#sidebar-tool-action-review").hidden'),
+    'trusted one-minute quota review');
+  await click(client,sid,'#sidebar-tool-action-continue');
+  await until(async()=>{
+    const result=await evalRead(client,sid,'(async()=>{const x=await chrome.storage.local.get("'+store+'");'+
+      'const rules=await chrome.declarativeNetRequest.getDynamicRules();return {site:x["'+store+'"]?.sites?.[0],'+
+      'owned:rules.filter(r=>r.id>=730000&&r.id<=730199).length}})()');
+    return result.site?.mode==='limit'&&result.site.minutes===1&&result.owned===0;
+  },'real UI changed from always block to an unused one-minute quota');
+  note('real-ui-one-minute-quota',{minutes:1,storageUsageWasNotModified:true});
+
+  // This creates a real HTTP tab and makes it the focused, active Chrome tab.
+  // Browser tabs/window activation and CDP mouse events are actual browser
+  // operations; they do not bypass the service or synthesize usage/storage.
+  const live=await client.send('Target.createTarget',{url:page});
+  await until(async()=>{
+    const targets=(await client.send('Target.getTargets')).targetInfos;
+    return targets.find(row=>row.targetId===live.targetId)?.url===page;
+  },'HTTP page allowed before quota',15000);
+  await client.send('Target.activateTarget',{targetId:live.targetId});
+  const liveSession=(await client.send('Target.attachToTarget',
+    {targetId:live.targetId,flatten:true})).sessionId;
+  await client.send('Runtime.enable',{},liveSession);
+  await client.send('Page.enable',{},liveSession);
+  const focusedTab=await evalRead(client,sid,'(async()=>{'+
+    'const tabs=await chrome.tabs.query({url:'+JSON.stringify(page)+'});'+
+    'const tab=tabs.at(-1);if(!tab)return null;'+
+    'await chrome.windows.update(tab.windowId,{focused:true});'+
+    'await chrome.tabs.update(tab.id,{active:true});'+
+    'return {tabId:tab.id,windowId:tab.windowId}})()');
+  assert.ok(Number.isInteger(focusedTab?.tabId),'actual HTTP tab must exist');
+  report.screenshots.push(await screenshot(client,liveSession,'quota-active-http-before-limit'));
+  const quotaObservation='(async()=>{'+
+    'const [saved,rules,win]=await Promise.all(['+
+    'chrome.storage.local.get("'+store+'"),chrome.declarativeNetRequest.getDynamicRules(),'+
+    'chrome.windows.getLastFocused()]);'+
+    'const tabs=await chrome.tabs.query({active:true,windowId:win.id});'+
+    'return {usedMs:saved["'+store+'"]?.usage?.["s:127.0.0.1"]||0,'+
+    'rules:rules.filter(r=>r.id>=730000&&r.id<=730199).map(r=>({id:r.id,path:r.action?.redirect?.extensionPath})),'+
+    'idle:await chrome.idle.queryState(60),focused:win.focused,'+
+    'activeUrl:tabs[0]?.url||null,tabId:tabs[0]?.id||null};})()';
+  const quotaStart=Date.now();
+  let reached=null;
+  while(Date.now()-quotaStart<145000){
+    // Keep performing real interaction with the opened Chrome page during
+    // the quota window; the idle API is still independently read and recorded.
+    await client.send('Input.dispatchMouseEvent',{type:'mouseMoved',
+      x:60+(report.quotaTrace.length%3)*24,y:85},liveSession);
+    const snapshot=await evalRead(client,sid,quotaObservation);
+    const elapsedMs=Date.now()-quotaStart;
+    report.quotaTrace.push({elapsedMs,...snapshot});
+    if(snapshot.usedMs>=60000&&snapshot.rules.some(r=>r.path==='/stay-focus/blocked-quota.html')){
+      reached={elapsedMs,...snapshot};break;
+    }
+    await sleep(3000);
+  }
+  if(!reached){
+    report.quota='FAIL';
+    throw Error('Real active one-minute quota never created Chrome quota DNR rule: '+
+      JSON.stringify(report.quotaTrace.slice(-6)));
+  }
+  assert.ok(report.quotaTrace.some(x=>x.usedMs<60000),
+    'quota trace needs actual pre-threshold foreground observations');
+  assert.ok(report.quotaTrace.some(x=>x.focused&&x.idle==='active'&&x.tabId===focusedTab.tabId),
+    'real browser must observe focused active non-idle target tab');
+  report.quota='PASS';
+  report.quotaEnforcedElapsedMs=reached.elapsedMs;
+  report.quotaOvershootMs=reached.elapsedMs-60000;
+  note('actual-elapsed-quota-exhaustion',{usedMs:reached.usedMs,
+    elapsedMs:reached.elapsedMs,overshootMs:report.quotaOvershootMs,
+    actualDnrRules:reached.rules,traceRecords:report.quotaTrace.length});
+  await until(async()=>{
+    const targets=(await client.send('Target.getTargets')).targetInfos;
+    return targets.find(row=>row.targetId===live.targetId)?.url?.includes('/stay-focus/blocked-quota.html');
+  },'previously open site navigated to actual quota block page',15000);
+  report.screenshots.push(await screenshot(client,liveSession,'existing-tab-quota-blocked'));
+  const quotaVisit=await client.send('Target.createTarget',{url:page});
+  const quotaRedirect=await until(async()=>{
+    const targets=(await client.send('Target.getTargets')).targetInfos;
+    return targets.find(row=>row.targetId===quotaVisit.targetId)?.url?.includes('/stay-focus/blocked-quota.html');
+  },'new real HTTP main-frame navigation denied by quota DNR',15000);
+  assert.ok(quotaRedirect.startsWith('chrome-extension://'+id+'/stay-focus/blocked-quota.html'));
+  report.actualQuotaNavigation='PASS';
+  note('quota-real-http-navigation',{status:'PASS',urlPath:'/stay-focus/blocked-quota.html'});
   await click(client,sid,'#sidebar-tool-remove');
   await click(client,sid,'#sidebar-tool-inline-remove-confirm');
   await until(async()=>{

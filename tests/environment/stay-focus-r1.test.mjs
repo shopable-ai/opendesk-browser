@@ -78,7 +78,8 @@ test('foreground checkpoint charges one active tab, never double-spends shared g
   const a=mkSite('example.com',{group:'social'}),b=mkSite('reddit.com',{group:'social'});
   const s=emptyFocus(at);s.enabled=true;s.groups.social=1;s.sites=[a,b];
   tick(s,at,a);
-  tick(s,at+30000,b);
+  tick(s,at+30000,a); // still observed foreground until this checkpoint
+  tick(s,at+30000,b); // navigation changes site, but cannot bill two tabs
   assert.equal(s.usage['g:social'],30000);
   assert.equal(s.usage['s:example.com'],undefined);
   tick(s,at+59000,b);
@@ -89,6 +90,35 @@ test('foreground checkpoint charges one active tab, never double-spends shared g
   assert.equal(focusReason(s,a,at+61000),'quota');
   assert.equal(focusReason(s,b,at+61000),'quota');
   assert.equal(focusBudget(s,b),60000);
+});
+test('hidden tab, idle Chrome and tab switching cannot charge a stale foreground checkpoint',()=>{
+  const a=mkSite('example.com'),b=mkSite('reddit.com'),s=emptyFocus(at);
+  s.enabled=true;s.sites=[a,b];
+  tick(s,at,a);
+  tick(s,at+12000,null); // Chrome idle, unfocused or current tab no longer billable
+  assert.equal(s.usage['s:example.com'],undefined);
+  assert.equal(s.checkpoint,null);
+  tick(s,at+20000,a);
+  tick(s,at+31000,b); // different foreground host, previous site no longer observed
+  assert.equal(s.usage['s:example.com'],undefined);
+  tick(s,at+43000,a);
+  assert.equal(s.usage['s:reddit.com'],undefined);
+  tick(s,at+58000,a);
+  assert.equal(s.usage['s:example.com'],15000);
+});
+test('DNR IDs remain stable when a different configured site activates or pauses',()=>{
+  const a=mkSite('alpha.example',{mode:'limit'}),b=mkSite('beta.example',{mode:'always'});
+  const s=emptyFocus(at);s.enabled=true;s.sites=[a,b];
+  const before=wantedFocusRules(s,at);
+  assert.equal(before.length,1);
+  const betaId=before[0].id;
+  a.mode='always';
+  const during=wantedFocusRules(s,at);
+  assert.equal(during.length,2);
+  assert.equal(during.find(rule=>rule.condition.regexFilter.includes('beta'))?.id,betaId);
+  a.enabled=false;
+  const after=wantedFocusRules(s,at);
+  assert.deepEqual(after.map(rule=>rule.id),[betaId]);
 });
 test('idle, worker boot, long sleep, backwards clock and time zone shifts never invent elapsed',()=>{
   const a=mkSite('example.com'),s=emptyFocus(at);s.enabled=true;s.sites=[a];

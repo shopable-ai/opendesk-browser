@@ -19,7 +19,9 @@ export function focusRuleForSite(site,id,reason,whitelist=[]){
 export function wantedFocusRules(state,at=Date.now()){
   const rules=[];
   if(!state.enabled)return rules;
-  for(const site of state.sites.slice().sort((a,b)=>a.host.localeCompare(b.host))){
+  // Allocate IDs from the complete sorted site list, not just today's blocked
+  // sites. Pausing/unpausing another site must not renumber existing DNR rules.
+  for(const [siteIndex,site] of state.sites.slice().sort((a,b)=>a.host.localeCompare(b.host)).entries()){
     const reason=focusReason(state,site,at);
     if(reason){
       const overrides=site.subdomains?state.sites.filter(child=>
@@ -27,7 +29,7 @@ export function wantedFocusRules(state,at=Date.now()){
       // Chrome excludedRequestDomains excludes descendants as well. The model
       // therefore requires an overriding child site to include subdomains.
       const excluded=[...new Set([...state.whitelist,...overrides])];
-      rules.push(focusRuleForSite(site,FOCUS_RULE_FIRST+rules.length,reason,excluded));
+      rules.push(focusRuleForSite(site,FOCUS_RULE_FIRST+siteIndex,reason,excluded));
     }
   }
   if(rules.length>FOCUS_MAX_SITES)throw focusError('限制网站数量超过安全上限','E_FOCUS_RULE');
