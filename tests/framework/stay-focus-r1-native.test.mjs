@@ -93,6 +93,7 @@ test('Real Chrome always-block and live one-minute quota, Side Panel approval an
     pkgSHA256:createHash('sha256').update(bytes).digest('hex'),
     nativeChrome:'NOT_TESTED',approval:'NOT_TESTED',actualNavigation:'NOT_TESTED',
     quota:'NATIVE_NOT_TESTED',quotaTrace:[],screenshots:[],
+    disabled:'NOT_TESTED',reenabled:'NOT_TESTED',
     unregister:'NOT_TESTED',uninstall:'NOT_TESTED',steps:[]};
   const note=(name,details)=>{report.steps.push({name,...details});console.log('STAY_FOCUS_NATIVE '+name+' '+JSON.stringify(details));};
   chrome.stderr.on('data',x=>{errors=(errors+String(x)).slice(-2200);});
@@ -121,6 +122,7 @@ test('Real Chrome always-block and live one-minute quota, Side Panel approval an
     const targets=(await client.send('Target.getTargets')).targetInfos;
     return targets.find(x=>x.type==='service_worker'&&x.url?.endsWith('/sw.js'))?.url?.split('/')[2];
   },'real unpacked SW',15000);
+  report.extensionId=id;
   const ui=await client.send('Target.createTarget',{url:'chrome-extension://'+id+'/ui/tool.html?hostInstanceId='+randomUUID()});
   const uid=(await client.send('Target.attachToTarget',{targetId:ui.targetId,flatten:true})).sessionId;
   await client.send('Runtime.enable',{},uid);await client.send('Page.enable',{},uid);
@@ -297,6 +299,44 @@ test('Real Chrome always-block and live one-minute quota, Side Panel approval an
   report.actualQuotaNavigation='PASS';
   report.quota='PASS';
   note('quota-real-http-navigation',{status:'PASS',urlPath:'/stay-focus/blocked-quota.html'});
+
+  // Native lifecycle: the user can stop enforcement without uninstalling and
+  // re-enable with the original daily quota still exhausted. Never write
+  // DNR rules or usage directly from the test harness.
+  const stopVisible=await evalRead(client,sid,
+    '(()=>{const node=document.querySelector("#stay-focus-disable");'+
+    'return !!node&&!node.disabled&&node.getClientRects().length>0})()');
+  if(!stopVisible)await click(client,sid,'#sidebar-tool-settings-open');
+  await click(client,sid,'#stay-focus-disable');
+  await until(async()=>{
+    const state=await evalRead(client,sid,'(async()=>{const x=await chrome.storage.local.get("'+store+'");'+
+      'const rules=await chrome.declarativeNetRequest.getDynamicRules();return {enabled:x["'+store+'"]?.enabled,'+
+      'owned:rules.filter(r=>r.id>=730000&&r.id<=730199).length}})()');
+    return state.enabled===false&&state.owned===0?state:null;
+  },'Chrome DNR rule retired after real trusted disable',15000);
+  const pausedPage=await client.send('Target.createTarget',{url:page});
+  await until(async()=>{
+    const targets=(await client.send('Target.getTargets')).targetInfos;
+    return targets.find(row=>row.targetId===pausedPage.targetId)?.url===page;
+  },'actual HTTP navigation restored by disabling Stay Focus',15000);
+  report.disabled='PASS';
+  note('trusted-disable-restores-access',{url:page,ownedRules:0});
+
+  await click(client,sid,'#stay-focus-enable-native');
+  await until(async()=>{
+    const state=await evalRead(client,sid,'(async()=>{const x=await chrome.storage.local.get("'+store+'");'+
+      'const rules=await chrome.declarativeNetRequest.getDynamicRules();return {enabled:x["'+store+'"]?.enabled,'+
+      'owned:rules.filter(r=>r.id>=730000&&r.id<=730199&&'+
+      'r.action?.redirect?.extensionPath==="/stay-focus/blocked-quota.html").length}})()');
+    return state.enabled===true&&state.owned===1?state:null;
+  },'real reenable restores exhausted quota rule',15000);
+  const reblocked=await client.send('Target.createTarget',{url:page});
+  await until(async()=>{
+    const targets=(await client.send('Target.getTargets')).targetInfos;
+    return targets.find(row=>row.targetId===reblocked.targetId)?.url?.includes('/stay-focus/blocked-quota.html');
+  },'real HTTP restriction resumes when Stay Focus is reenabled',15000);
+  report.reenabled='PASS';
+  note('reenable-restores-quota-restriction',{quotaPersisted:true,ruleOwned:true});
   await click(client,sid,'#sidebar-tool-remove');
   await click(client,sid,'#sidebar-tool-inline-remove-confirm');
   await until(async()=>{
