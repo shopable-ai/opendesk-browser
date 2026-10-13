@@ -18,10 +18,13 @@ test('R8 pinned offline catalog deterministically matches committed discovery da
   assert.ok(built.entries.every(x=>x.exposure!=='ALLOWED'));
   assert.ok(built.entries.every(x=>x.evidence==='SCHEMA_DISCOVERY_ONLY_NOT_CHROME_TESTED'));
 });
-test('R8 compatibility map retains every legacy public contract with no deprecations',async()=>{
+test('R8 legacy map remains a non-binding historic snapshot only',async()=>{
   const data=JSON.parse(await readFile(new URL('../../docs/api/browser-sdk-compatibility-map.json',import.meta.url)));
   assert.equal(data.operations.length,35);
-  assert.deepEqual(new Set(data.operations.map(x=>x.legacyOperation)),new Set(Object.keys(BROWSER_OPERATIONS)));
+  assert.equal(data.archiveOnly,true);
+  assert.equal(data.status,'HISTORICAL_PRELAUNCH_SNAPSHOT_NOT_BINDING');
+  assert(Object.keys(BROWSER_OPERATIONS).every(op=>data.operations.some(row=>row.legacyOperation===op)));
+  assert(data.operations.some(row=>!Object.hasOwn(BROWSER_OPERATIONS,row.legacyOperation)));
   for(const row of data.operations){
     assert.equal(row.currentPublicOperation,row.legacyOperation);
     assert.equal(row.deprecationState,'ACTIVE');
