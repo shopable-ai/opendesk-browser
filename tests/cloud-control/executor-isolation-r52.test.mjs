@@ -31,7 +31,9 @@ test('same installed Task in two Executors cannot cross-claim, admit, receipt or
       {executorId,pairingCode:admin.pairingCode})).credential);
     await assert.rejects(post('/v1/pair',{executorId:ids[0],pairingCode:admin.pairingCode}),
       {code:'E_PAIR_ACTIVE'});
+    const grants=[randomUUID(),randomUUID()];
     for(let i=0;i<2;i++){
+      await post('/v1/capabilities',{grantId:grants[i],tasks:advertised},credentials[i]);
       const auth=await post('/v1/auth',{},credentials[i]);
       const ws=new WebSocket('ws://127.0.0.1:'+p.port+'/v1/events');sockets.push(ws);
       await new Promise((resolve,reject)=>{
@@ -54,7 +56,7 @@ test('same installed Task in two Executors cannot cross-claim, admit, receipt or
     await assert.rejects(post('/admin/seed',{...jobBody(ids[0],'X'),
       requestKey:'bad-executor',targetExecutorId:randomUUID()},admin.adminToken),
       {code:'E_EXECUTOR_TARGET'});
-    const claim=i=>({claimId:'claim-for-'+i,tasks:advertised});
+    const claim=i=>({claimId:'claim-for-'+i,grantId:grants[i],tasks:advertised});
     const pickedB=(await post('/v1/claim',claim(1),credentials[1])).assignment;
     const pickedA=(await post('/v1/claim',claim(0),credentials[0])).assignment;
     assert.equal(pickedB.jobId,b.jobId);
@@ -96,6 +98,8 @@ test('same installed Task in two Executors cannot cross-claim, admit, receipt or
     assert.notEqual(replacement,credentials[0]);
     // Explicit new delivery may reuse the key after a new pairing generation;
     // neither the new pairing nor B inherits A's old assignments.
+    const replacementGrant=randomUUID();
+    await post('/v1/capabilities',{grantId:replacementGrant,tasks:advertised},replacement);
     const fresh=await post('/admin/seed',jobBody(ids[0],'Fresh pairing'),admin.adminToken);
     assert.notEqual(fresh.jobId,a.jobId);
     assert.equal((await post('/v1/reconcile',{},replacement)).assignments.length,0);
@@ -120,6 +124,8 @@ test('pre-R5 queued Job without target Executor is quarantined, never assigned b
       return data;
     };
     const credential=(await post('/v1/pair',{executorId,pairingCode:admin.pairingCode})).credential;
+    const grantId=randomUUID();
+    await post('/v1/capabilities',{grantId,tasks:advertised},credential);
     await p.close();
     const file=join(directory,'state.json'),state=JSON.parse(await readFile(file,'utf8'));
     const jobId=randomUUID();
@@ -134,7 +140,7 @@ test('pre-R5 queued Job without target Executor is quarantined, never assigned b
       ws.once('open',()=>ws.send(JSON.stringify({type:'authenticate',ticket:auth.ticket})));
       ws.once('message',()=>resolve());
     });
-    assert.deepEqual(await post('/v1/claim',{claimId:'no-steal',tasks:advertised},credential),
+    assert.deepEqual(await post('/v1/claim',{claimId:'no-steal',grantId,tasks:advertised},credential),
       {assignment:null});
     assert.equal((await post('/admin/state',{},admin.adminToken)).jobs[jobId].state,'queued');
   }finally{ws?.terminate();await p.close();await rm(directory,{recursive:true,force:true});}
