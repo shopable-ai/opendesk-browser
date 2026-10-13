@@ -42,10 +42,10 @@ test('R7 35-operation map remains historic and Cookie host exposes no sandbox me
 });
 
 test('R7 trusted native workbench is outside installed sandbox bridge; no additional Chrome RPC',async()=>{
-  const [ui,workbench,host,sidecar,shell]=await Promise.all([
+  const [ui,workbench,host,sidecar,shell,cookieEntry]=await Promise.all([
     read('src/ui/tool.html'),read('src/ui/trusted-cookie-workbench.js'),
     read('src/platform/chrome/context-menus.js'),read('src/entrypoints/context-menus.js'),
-    read('src/ui/tool-shell.js')
+    read('src/ui/tool-shell.js'),read('src/entrypoints/trusted-cookie-ui.js')
   ]);
   assert.match(ui,/<details id="trusted-cookie-panel"/);
   assert.match(ui,/id="trusted-cookie-value"[^>]*type="password"[^>]*data-sensitive="true"/);
@@ -57,7 +57,14 @@ test('R7 trusted native workbench is outside installed sandbox bridge; no additi
   assert.match(host,/createTrustedCookieHost/);
   assert.match(sidecar,/host\[method\]/);
   assert.match(sidecar,/message\.kind==='host'/);
-  assert.match(shell,/createTrustedCookieWorkbench/);
+  // The trusted Cookie workbench lives in a fixed extension-only sidecar
+  // so the monolithic tool-shell stays within the hard IIFE size budget.
+  // Validate the real installation path without granting the iframe a bridge.
+  assert.match(ui,/<script src="trusted-cookie-ui\.js"><\/script>/);
+  assert.match(cookieEntry,/createTrustedCookieWorkbench/);
+  assert.match(cookieEntry,/Object\.defineProperty\(globalThis,'__opendeskTrustedCookieUI'/);
+  assert.match(shell,/__opendeskTrustedCookieUI/);
+  assert.doesNotMatch(shell,/import\s*\{createTrustedCookieWorkbench\}/);
   assert(!workbench.includes('chrome.cookies.'));
   // R9 real trusted Cookie UI: explicit start/status/read/stop; event text omits secrets.
   for(const id of ['trusted-cookie-watch-start','trusted-cookie-watch-status-button',
