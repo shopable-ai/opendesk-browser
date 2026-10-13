@@ -83,8 +83,16 @@ test('Real Chrome default sharing, live page reminder, DNR and uninstall',{skip:
   // Two different loopback hostnames, two real Chrome HTTP tabs, ONE trusted
   // entertainment budget. Do not depend on live third-party network access.
   const http=createServer(serve),localHttp=createServer(serve);
-  await new Promise(resolve=>http.listen(0,'127.0.0.1',resolve));
-  await new Promise(resolve=>localHttp.listen(0,'::1',resolve));
+  await new Promise((resolve,reject)=>{
+    http.once('error',reject);
+    http.listen(0,'127.0.0.1',()=>{http.removeListener('error',reject);resolve();});
+  });
+  await new Promise((resolve,reject)=>{
+    // Fail explicitly if this macOS runner unexpectedly lacks IPv6 loopback.
+    // Do not leave a pending Promise or misreport a website DNR failure.
+    localHttp.once('error',reject);
+    localHttp.listen(0,'::1',()=>{localHttp.removeListener('error',reject);resolve();});
+  });
   const page='http://127.0.0.1:'+http.address().port+'/real-navigation';
   const secondPage='http://localhost:'+localHttp.address().port+'/real-navigation';
   const chromeArgs=['--use-mock-keychain','--password-store=basic','--no-sandbox',
