@@ -612,7 +612,19 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
         const origin=targetOperation==='browser.network.observe.start'?args.origins[0]:
           ['browser.tabs.create','browser.network.request'].includes(targetOperation)
             ?new URL(args.url).origin:null;
-        await verifyBrowserOwner({toolId,toolVersion,packageHash,epoch:installEpoch??null},targetOperation,origin);
+        const identity={toolId,toolVersion,packageHash,epoch:installEpoch??null,
+          installEpoch:String(installEpoch??'initial-install'),approvedOrigin:null};
+        await verifyBrowserOwner(identity,targetOperation,origin);
+        // An approval is not authority by itself. Before minting one for an owned
+        // TabRef, resolve its real Chrome document and check the CURRENT website
+        // grant, not just the package capability. Revoked or foreign refs must
+        // fail now, not only after the user approves a misleading dialog.
+        if(typeof args.tabRef==='string'){
+          const target=await tabHost.resolve(args.tabRef,identity);
+          if(origin!==null&&target.origin!==origin)
+            throw failure('E_SITE_GRANT_REQUIRED','Requested observation origin differs from owned tab');
+          await verifyBrowserOwner(identity,targetOperation,target.origin);
+        }
         for(const [ref,intent] of browserIntents)if(Date.now()>=intent.expiresAt)browserIntents.delete(ref);
         if(browserIntents.size>=16)throw failure('E_LIMIT','Too many pending approvals');
         const approvalRef=crypto.randomUUID(),expiresAt=Date.now()+INTENT_TTL;
