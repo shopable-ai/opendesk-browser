@@ -1010,6 +1010,10 @@
 #workbench-cloud .cloud-task-choice input{flex:0 0 auto;margin-top:3px}
 #workbench-cloud .cloud-task-description{display:block;flex:0 0 100%;margin-left:24px;font-size:12px;line-height:1.5;color:var(--od-sub);font-weight:400;overflow-wrap:anywhere}
 #workbench-cloud .cloud-task-scope,#workbench-cloud .cloud-task-params{font-size:12px;line-height:1.5;color:var(--od-sub);margin:0;overflow-wrap:anywhere}
+#workbench-cloud .cloud-task-needs-review{font-size:12px;line-height:1.55;margin:0;
+  overflow-wrap:anywhere;color:var(--od-ink);font-weight:600}
+#workbench-cloud .cloud-task-authorization{font-size:12px;line-height:1.55;
+  margin:var(--space-2) 0;color:var(--od-sub);overflow-wrap:anywhere}
 #workbench-cloud #cloud-approval-summary{font-size:12px;line-height:1.5;overflow-wrap:anywhere;margin:var(--space-2) 0 0}
 #workbench-cloud .cloud-approval-confirm{display:flex;align-items:flex-start;gap:var(--space-2);min-width:0;font-size:12px;line-height:1.5}
 #workbench-cloud .cloud-approval-confirm input{flex:0 0 auto}
