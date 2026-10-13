@@ -74,7 +74,8 @@ test('paused sites never create a DNR rule and nested child overrides parent exa
   child.subdomains=false;
   assert.equal(focusSiteScopesValid(state.sites),false,
     'Chrome domain exclusions cannot safely implement exact-only nested overrides');
-  assert.throws(()=>readFocus(state,at),/专注策略数据无效/);
+  assert.throws(()=>readFocus(state,at),{code:'E_FOCUS_DATA',
+    message:/本机策略数据无效；已停止修改以保护原始数据/});
 });
 
 test('foreground checkpoint charges one active tab, never double-spends shared group',()=>{

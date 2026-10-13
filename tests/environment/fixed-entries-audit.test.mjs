@@ -261,5 +261,5 @@ test('strict unary classic IIFE is accepted only for fixed tool-shell and remain
     ['var _=(function(){})();','ui/tool-shell.js']
   ])assert.throws(()=>assertClassicIIFE(code,file),/Non-classic IIFE|preclaims built-in/);
   assert.throws(()=>inspectScript('!function(){eval("alert(1)")}()','ui/tool-shell.js'),
-    /Dynamic execution reference/);
+    /Dynamic execution in ui\/tool-shell\.js: eval/);
 });
