@@ -6,16 +6,21 @@ import {createSidebarToolPackage} from '../../scripts/build-sidebar-tool.mjs';
 
 const project='examples/sidebar-tools/cookie-editor';
 const get=path=>readFile(path,'utf8');
-async function harness(browser=null){
+async function harness(browser=null,{currentPage=null}={}){
   const [source,html,css,config]=await Promise.all([
     get(project+'/src/main.js'),get(project+'/src/index.html'),
     get(project+'/src/style.css'),get(project+'/tool.config.json').then(JSON.parse)]);
   const ids=[...html.matchAll(/\bid="([^"]+)"/g)].map(m=>m[1]);
-  const elements=new Map(ids.map(id=>[id,{
-    id,value:'',hidden:true,disabled:false,checked:false,
-    addEventListener(){},focus(){},append(){},replaceChildren(){},setAttribute(){},
-    classList:{add(){},remove(){}}
-  }]));
+  const elements=new Map(ids.map(id=>{
+    const listeners=new Map();
+    return [id,{
+      id,value:'',hidden:true,disabled:false,checked:false,readOnly:false,
+      addEventListener(type,fn){listeners.set(type,[...(listeners.get(type)||[]),fn]);},
+      emitTest(type,event={}){for(const fn of listeners.get(type)||[])fn(event);},
+      focus(){},append(){},replaceChildren(){},setAttribute(){},
+      classList:{add(){},remove(){}}
+    }];
+  }));
   const root={querySelector(selector){return elements.get(selector.slice(1));},
     querySelectorAll(){return [];},addEventListener(){},
     ownerDocument:{activeElement:null,createElement:()=>({
@@ -26,11 +31,12 @@ async function harness(browser=null){
   // Test-only instrumentation: production bytes never publish internal helpers.
   const instrument=source.replace(marker,
     'globalThis.__cookieTest={normalizeCookie,parseImport,exportText,saveToList,mergeImport,'+
-    'sortCookies,parseTarget,redactMetadata,readBrowserMetadata,'+
+    'sortCookies,parseTarget,redactMetadata,readBrowserMetadata,openEditor,saveBrowserCookie,nativeInput,'+
     'setLiveTarget:url=>{liveTarget=parseTarget(url);targetPending=false;liveRows=[];liveState="idle"},'+
     'setTargetPending:value=>{targetPending=value},'+
     'liveSnapshot:()=>({rows:liveRows,state:liveState,message:liveMessage}),'+
     'render,getSiteHeading:()=>E("site-host").textContent,'+
+    'getStatusMessage:()=>E("status").textContent,getField:id=>E(id),'+
     'setSite:host=>{data={hostname:host,origin:"https://"+host,cookies:[]}},'+
     'setRows:rows=>{data={...data,cookies:rows}}};\n})();');
   const fixtureBrowser=browser?.cookies?.getAll&&!browser.cookies.getPartitionKey?
@@ -38,14 +44,17 @@ async function harness(browser=null){
       getPartitionKey:async({url})=>({partitionKey:{topLevelSite:new URL(url).origin,
         hasCrossSiteAncestor:false}})}}:browser;
   const context={
-    OpenDeskTool:{root,request:async()=>({status:'unavailable'}),setState(){}},
+    OpenDeskTool:{root,request:async operation=>operation==='currentPage.info'&&currentPage?
+      {status:'available',url:currentPage}:{status:'unavailable'},setState(){}},
     OpenDeskSDK:fixtureBrowser?{browser:fixtureBrowser}:undefined,
     Blob,Date,URL,TextEncoder,structuredClone,console
   };
   new Script(instrument,{filename:'cookie-editor-main.js'}).runInNewContext(context);
   // The initial asynchronous current-page lookup must settle before adapter assertions.
   await new Promise(resolve=>setImmediate(resolve));
-  return {...context.__cookieTest,source,html,css,config,ids};
+  return {...context.__cookieTest,source,html,css,config,ids,
+    fire:(id,type,event={})=>elements.get(id).emitTest(type,event),
+    settle:()=>new Promise(resolve=>setImmediate(resolve))};
 }
 const expectError=(fn,pattern)=>{
   assert.throws(fn,error=>{assert.match(String(error?.message||error),pattern);return true;});
@@ -67,7 +76,9 @@ test('Cookie Editor is an optional two-mode tool without private cookies API',as
   assert(s.html.includes('id="live-search"')&&s.html.includes('id="live-filter"')&&
     s.html.includes('id="live-sort"'));
   assert(s.source.includes("E('live-filters').hidden=!hasRead"));
-  assert.match(s.config.version,/^2\.0\./);
+  assert.equal(s.config.version,'2.0.1');
+  assert(s.html.includes('id="offline-tools"')&&s.html.includes('id="browser-panel"'),
+    'Live Chrome management is the default; offline tools are secondary');
   assert(!/\b(?:window|globalThis|chrome)\.cookies\./.test(s.source));
   assert(!/<script\b/i.test(s.html));
   assert(!/@import\b|url\(\s*https?:/i.test(s.css));
@@ -141,12 +152,18 @@ test('Reject bad fields, foreign domains, insecure prefixes, expired and oversiz
   expectError(()=>a.parseImport('['+Array.from({length:101},(_,i)=>
     '{"name":"n'+i+'","value":"x"}').join(',')+']','json'),/100/);
 });
-test('Editing cannot alter cookie identity, and Netscape must not drop partitioned cookies',async()=>{
+test('Offline rename changes Name without changing scope or overwriting another Cookie',async()=>{
   const a=await harness();a.setSite('example.com');
   const row=a.normalizeCookie({name:'sid',value:'one',partitionKey:{topLevelSite:'https://example.com'}});
-  const updated={...row,value:'two'};
-  assert.equal(a.saveToList([row],updated,row)[0].value,'two');
+  const updated={...row,value:'two',name:'renamed'};
+  const renamed=a.saveToList([row],updated,row);
+  assert.equal(renamed.length,1);
+  assert.equal(renamed[0].name,'renamed');
+  assert.equal(renamed[0].value,'two');
+  assert.equal(row.name,'sid','rename must not mutate source row');
   expectError(()=>a.saveToList([row],{...updated,path:'/changed'},row),/身份/);
+  const duplicate=a.normalizeCookie({name:'renamed',value:'already'});
+  expectError(()=>a.saveToList([row,duplicate],updated,row),/冲突/);
   a.setRows([row]);
   expectError(()=>a.exportText('netscape'),/分区/);
 });
@@ -214,8 +231,12 @@ test('Offline workspace remains isolated and browser writes or clears are not pe
     'native writes with unknown effects must not automatically refresh or replay');
   assert(s.source.includes("if(mode==='browser')void saveBrowserCookie()"),
     'browser write and offline update must never share an ambiguous action path');
-  assert(s.source.includes("editing?.valueRedacted===true&&!liveValueEdited"),
-    'editing an undisclosed native Cookie must not accidentally overwrite its value with an empty string');
+  assert(s.source.includes("old.valueRedacted===true&&!liveValueEdited"),
+    'editing an undisclosed native Cookie must not silently write an empty value');
+  assert(s.source.includes('source.cookie.valueRedacted!==false'),
+    'the public SDK must confirm separately authorized sensitive value reads');
+  assert(s.source.includes('if(renamed){')&&s.source.includes('newNameSaved=true'),
+    'renaming creates a verified new Cookie before deleting its original identity');
   assert(s.source.includes("status('本地导入完成"));
   assert(s.source.includes("（仅本地预览）"));
   assert(s.html.includes('离线工作区'));
@@ -299,12 +320,26 @@ test('An in-flight Cookie read cannot repopulate metadata after target URL was e
   assert.notEqual(s.liveSnapshot().state,'ready');
 });
 
-test('Explicit refresh retries only an authorized read and never reuses a stale target',async()=>{
-  const s=await harness();
-  assert(s.source.includes('const refreshedEpoch=epoch+1;'));
-  assert(s.source.includes("if(epoch===refreshedEpoch&&mode==='browser'&&!targetPending"));
-  assert(s.source.includes('return readBrowserMetadata()'));
-  assert(s.source.includes('valueRedacted:true'));
+test('Live Chrome opens with automatic approved read, while denied sites stay unread',async()=>{
+  let reads=0;
+  const cookie={name:'sid',value:'NEVER_DISPLAY',domain:'example.com',path:'/',
+    hostOnly:true,secure:false,httpOnly:false,session:true};
+  const browser={capabilities:{getStatus:async()=>({callableNow:true})},
+    cookies:{getAll:async ({partitionKey})=>{reads++;return partitionKey?[]:[cookie];}}};
+  const s=await harness(browser,{currentPage:'https://example.com/login'});
+  assert.equal(s.getSiteHeading(),'example.com');
+  assert.equal(s.liveSnapshot().state,'ready');
+  assert.equal(reads,2,'open should read each scope once, without an extra click');
+  assert.equal(s.liveSnapshot().rows[0].valueRedacted,true);
+  assert.equal(Object.hasOwn(s.liveSnapshot().rows[0],'value'),false);
+  s.fire('refresh','click');
+  await s.settle();
+  assert.equal(reads,4,'one explicit refresh should trigger one scoped read, not two');
+  assert.equal(s.liveSnapshot().state,'ready');
+  const denied=await harness({capabilities:{getStatus:async()=>({callableNow:false})},
+    cookies:{getAll:async()=>{throw new Error('unauthorized read')}}},
+    {currentPage:'https://example.com/login'});
+  assert.equal(denied.liveSnapshot().state,'blocked');
 });
 
 
@@ -340,4 +375,95 @@ test('Unknown approved partition fails closed without displaying partial native 
   await s.readBrowserMetadata();
   assert.equal(s.liveSnapshot().state,'error');
   assert.equal(s.liveSnapshot().rows.length,0);
+});
+
+test('Real rename writes the new name first, verifies it, then removes only the old identity',async()=>{
+  const rows=[{name:'old',value:'old-secret',domain:'example.com',path:'/account',
+    hostOnly:true,secure:true,httpOnly:true,session:true,storeId:'0'}];
+  const calls=[];
+  const s=await harness({capabilities:{getStatus:async()=>({callableNow:true})},
+    cookies:{
+      getPartitionKey:async()=>({partitionKey:{topLevelSite:'https://example.com'}}),
+      getAll:async ({url,partitionKey})=>partitionKey?[]:
+        rows.filter(row=>new URL(url).pathname.startsWith(row.path)),
+      get:async()=>{throw new Error('value grant is intentionally not needed with a supplied value');},
+      set:async options=>{
+        calls.push(['set',options.name,options.url,options.path]);
+        rows.push({...rows[0],name:options.name,value:options.value});
+        return {saved:true,verified:true};
+      },
+      remove:async options=>{
+        calls.push(['remove',options.name,options.domain,options.path,options.storeId]);
+        const i=rows.findIndex(row=>row.name===options.name&&row.domain===options.domain&&row.path===options.path);
+        if(i>=0)rows.splice(i,1);
+        return {removed:true,verified:true};
+      }
+    }});
+  s.setSite('example.com');s.setLiveTarget('https://example.com/account');
+  await s.readBrowserMetadata();
+  s.openEditor(s.liveSnapshot().rows[0]);
+  assert.equal(s.getField('cookie-name').readOnly,false);
+  assert.equal(s.getField('cookie-value').value,'','old secret must remain masked in the editor');
+  s.getField('cookie-name').value='renamed';
+  s.getField('cookie-value').value='new-value';
+  s.fire('cookie-value','input',{isTrusted:true});
+  await s.saveBrowserCookie();
+  assert.equal(calls.map(x=>x[0]).join(','),'set,remove');
+  assert.equal(calls[0][1],'renamed');
+  assert.equal(calls[0][2],'https://example.com/account',
+    'Chrome must verify writes at the Cookie Path, not at an unrelated root URL');
+  assert.equal(calls[1][1],'old');
+  assert.equal(calls[1][4],'0','removal is bound to the existing Cookie store');
+  assert.equal(rows.length,1);
+  assert.equal(rows[0].name,'renamed');
+  assert.equal(rows[0].value,'new-value');
+});
+
+test('Real rename blocks collisions and does not mutate Chrome without authorization to preserve a hidden value',async()=>{
+  const prior={name:'old',value:'SECRET',domain:'example.com',path:'/',
+    hostOnly:true,session:true,storeId:'0'};
+  let state=[prior,{...prior,name:'taken',value:'OTHER'}],writes=0,removals=0;
+  const browser={capabilities:{getStatus:async()=>({callableNow:true})},cookies:{
+    getPartitionKey:async()=>({partitionKey:{topLevelSite:'https://example.com'}}),
+    getAll:async({partitionKey})=>partitionKey?[]:state,
+    get:async()=>{throw Object.assign(new Error('not approved'),{code:'E_VALUES_REQUIRED'});},
+    set:async()=>{writes++;return {saved:true,verified:true};},
+    remove:async()=>{removals++;return {removed:true,verified:true};}
+  }};
+  const s=await harness(browser);s.setSite('example.com');
+  s.setLiveTarget('https://example.com/');await s.readBrowserMetadata();
+  const old=s.liveSnapshot().rows.find(x=>x.name==='old');
+  s.openEditor(old);s.getField('cookie-name').value='taken';
+  s.getField('cookie-value').value='replacement';
+  s.fire('cookie-value','input',{isTrusted:true});
+  await s.saveBrowserCookie();
+  assert.equal(writes,0);assert.equal(removals,0);
+  assert.match(s.getStatusMessage(),/新名称已存在/);
+  s.openEditor(old);s.getField('cookie-name').value='new-safe-name';
+  await s.saveBrowserCookie();
+  assert.equal(writes,0);assert.equal(removals,0);
+  assert.match(s.getStatusMessage(),/敏感值/);
+  assert.equal(s.getField('cookie-value').value,'',
+    'denied value reads must not copy the original secret into the editor');
+});
+
+test('Partial rename failure reports both Cookie names possibly remaining and never retries',async()=>{
+  const prior={name:'old',value:'SECRET',domain:'example.com',path:'/',
+    hostOnly:true,session:true,storeId:'0'};
+  let reads=[prior],writes=0,removals=0;
+  const s=await harness({capabilities:{getStatus:async()=>({callableNow:true})},cookies:{
+    getPartitionKey:async()=>({partitionKey:{topLevelSite:'https://example.com'}}),
+    getAll:async({partitionKey})=>partitionKey?[]:reads,
+    set:async o=>{writes++;reads.push({...prior,name:o.name,value:o.value});
+      return {saved:true,verified:true};},
+    remove:async()=>{removals++;throw Object.assign(new Error('unknown side effect'),{code:'E_OUTCOME_UNKNOWN'});}
+  }});
+  s.setSite('example.com');s.setLiveTarget('https://example.com/');
+  await s.readBrowserMetadata();s.openEditor(s.liveSnapshot().rows[0]);
+  s.getField('cookie-name').value='new';s.getField('cookie-value').value='NEW';
+  s.fire('cookie-value','input',{isTrusted:true});
+  await s.saveBrowserCookie();
+  assert.equal(writes,1);assert.equal(removals,1);
+  assert.match(s.getStatusMessage(),/两条 Cookie 可能并存/);
+  assert.equal(reads.length,2);
 });
