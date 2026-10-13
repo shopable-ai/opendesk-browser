@@ -38,7 +38,7 @@ function fixture(){
   const resolveTarget=async (_req,ctx)=>ctx.documentId===doc?
     {tabId:10,frameId:0,documentId:doc,origin:ctx.origin}:null;
   const service=createCookieService({api,authorize,resolveTarget});
-  return {service,records,calls,revoke:()=>{approved=false;},navigate:()=>{doc='doc-2';},
+  return {api,service,records,calls,revoke:()=>{approved=false;},navigate:()=>{doc='doc-2';},
     loseReceipt:()=>{lostReceipt=true;}};
 }
 test('R8 Host-only Cookie read/write handles partition and value redaction',async()=>{
@@ -92,4 +92,18 @@ test('R8 preserves Controller getCookies/setCookies/deleteCookiesByUrl contracts
   assert.equal((await f.service.getCookies(url,context))[0].value,'token');
   await f.service.deleteCookiesByUrl(url,context);
   assert.equal(f.records.length,0);
+});
+
+test('R8 cleanup checks native Store and Partition even if Chrome getAll returns wider data',async()=>{
+  const f=fixture(),partitionKey={topLevelSite:'https://example.org',hasCrossSiteAncestor:false};
+  f.records.push(
+    {name:'selected',value:'delete',domain:'example.org',path:'/',storeId:'0',hostOnly:true},
+    {name:'wrong-store',value:'keep',domain:'example.org',path:'/',storeId:'other',hostOnly:true},
+    {name:'wrong-partition',value:'keep',domain:'example.org',path:'/',storeId:'0',
+      hostOnly:true,partitionKey}
+  );
+  f.api.cookies.getAll=(_details,callback)=>callback(f.records.map(row=>({...row})));
+  const receipt=await f.service.clearSite({url,storeId:'0',maxCookies:5},context);
+  assert.equal(receipt.removed,1);
+  assert.deepEqual(f.records.map(row=>row.name).sort(),['wrong-partition','wrong-store']);
 });
