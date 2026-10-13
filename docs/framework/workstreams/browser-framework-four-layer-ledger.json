@@ -410,7 +410,8 @@
           "browser.tabs"
         ],
         "chromePermissions": [
-          "tabs"
+          "tabs",
+          "webNavigation"
         ],
         "siteScope": "tab-ref"
       },
@@ -664,6 +665,8 @@
           "browser.network.observe"
         ],
         "chromePermissions": [
+          "tabs",
+          "webNavigation",
           "webRequest"
         ],
         "siteScope": "approved-tab"
@@ -859,6 +862,8 @@
           "browser.screenshot"
         ],
         "chromePermissions": [
+          "tabs",
+          "webNavigation",
           "activeTab",
           "downloads"
         ],
