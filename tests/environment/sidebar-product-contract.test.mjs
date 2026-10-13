@@ -75,13 +75,15 @@ test('R4 Sidebar sections preserve consumer controls and keep engineering tools 
     /id="sidebar-tool-import"|id="sidebar-tools"/,'My must not contain Tool management');
   assert.match(css,/\.workbench-nav\{[^}]*display:flex;[^}]*overflow-x:auto;/);
   assert.match(html, /id="task-history-panel" class="task-history-panel" hidden/);
-  const advanced=html.slice(html.indexOf('<details id="tool-diagnostics">'));
+  const advanced=html.slice(html.indexOf('<details id="tool-diagnostics"'));
+  assert(advanced.startsWith('<details id="tool-diagnostics"'),
+    'advanced diagnostics disclosure must remain present even with shared classes');
   for(const id of ['sdk-install','check-source','check-target','scraping-panel'])assert(advanced.includes(`id="${id}"`));
   assert.match(css,/min-width:0/);assert.match(css,/overflow-wrap:anywhere/);
 });
 
 test('developer mode uses one accessible switch and keeps page details folded by default',async()=>{
-  const [html,css]=await Promise.all([read('src/ui/tool.html'),read('src/ui/tool-shell.css')]);
+  const [html,css,design]=await Promise.all([read('src/ui/tool.html'),read('src/ui/tool-shell.css'),read('src/ui/design-system.css')]);
   assert.match(html,/id="local-project-mode" type="checkbox" role="switch"/);
   assert.match(html,/<span>直接编辑<\/span>/);
   assert.doesNotMatch(html,/>手工草稿</);
@@ -90,23 +92,27 @@ test('developer mode uses one accessible switch and keeps page details folded by
   assert.match(html,/首次使用：连接方法/);
   assert.match(html,/id="local-project-guide-open" type="button"/);
   assert.match(html,/<button id="local-project-connect" class="local-project-connect(?: [^"]*)?" type="button"/);
-  assert.match(css,/\.local-project-connect\{[^}]*min-height:34px;/);
+  assert.match(css,/\.local-project-connect\{[^}]*width:100%;text-align:center/);
+  assert.match(design,/\.od-button\{[^}]*min-height:36px/,
+    'the same trusted native connect control inherits the shared 36px button target');
   assert.doesNotMatch(html,/<a\s[^>]*href=/i,'packaged HTML must not navigate remote resources');
   assert.match(css,/#workbench-develop select\{[^}]*appearance:none;[^}]*padding-right:34px;/);
   assert.match(css,/background-position:right 17px center,right 11px center;/);
   assert.doesNotMatch(css,/@import\b|url\s*\(|expression\s*\(/i,'CSS must remain fully self-contained');
   assert.match(html,/id="local-project-tools" class="local-project-tools"[^>]* hidden/);
-  assert.match(html,/<details id="developer-target-detail">\s*<summary class="developer-page-summary">/);
+  assert.match(html,/<details id="developer-target-detail" class="od-disclosure">\s*<summary class="developer-page-summary">/);
   assert.match(html,/id="script-current-page-host"/);
   assert.match(html,/id="script-current-page-status" role="status" aria-live="polite"/);
   assert.match(html,/id="developer-source-switch" class="developer-source-switch od-toolbar"/);
   assert.doesNotMatch(html,/id="local-project-mode"><option/);
   assert.doesNotMatch(html,/查看当前网页详细信息|源码来源|刷新连接/);
   assert.match(css,/input:focus-visible\+\.local-project-switch-track/);
-  assert.match(css,/\.developer-page-summary\{display:flex;/);
+  assert.match(design,/\.od-disclosure>summary\{display:flex;[^}]*min-height:40px/,
+    'shared native disclosure supplies a 40px semantic summary target');
   assert.match(css,/#script-current-page-host\{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis/);
   assert.match(css,/#script-current-page-status\{flex:none;/);
-  assert.match(css,/\.developer-source-switch label\{[^}]*min-height:40px/);
+  assert.match(css,/\.developer-source-switch label\{[^}]*min-height:36px/,
+    'the developer switch retains the approved 36px compact field target');
 });
 
 test('Sidebar starts at its five tabs without repeating Chrome extension identity',async()=>{
