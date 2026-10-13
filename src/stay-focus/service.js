@@ -14,7 +14,10 @@ const hasOnly=(payload,names)=>payload&&typeof payload==='object'&&!Array.isArra
   Object.keys(payload).sort().join(',')===names.slice().sort().join(',');
 const requirePayload=(value,names)=>{if(!hasOnly(value,names))throw focusError('专注设置参数不完整或无效');};
 export function createStayFocusService({api=globalThis.chrome,lockManager=globalThis.navigator?.locks,now=Date.now}={}){
-  let session=null,generation=0,revoked=false;
+  let session=null,generation=0,settledGeneration=-1,revoked=false;
+  // Browser events invalidate any previous foreground checkpoint even when
+  // two focus/tab transitions are processed after Chrome has returned to the
+  // original tab. The next observation starts a fresh conservative interval.
   const lock=work=>{
     if(!lockManager?.request)throw focusError('缺少可信存储互斥锁','E_TOOL_LOCK');
     return lockManager.request('opendesk.sidebar-tools:tool:'+FOCUS_ID,work);
@@ -201,7 +204,9 @@ export function createStayFocusService({api=globalThis.chrome,lockManager=global
     let current=null;
     try{current=await observe(state,permissions);}catch{current=null;}
     const session=await browserSession();
-    settleFocus(state,{at,session,current,boot});
+    // Event delivery and lock acquisition may lag behind a fast blur/re-focus
+    // or tab switch and return. Never bill an old checkpoint across an event.
+    settleFocus(state,{at,session,current,boot:boot||startGeneration!==settledGeneration});
     if(operation!=='focus.status'){
       if(!auth.enabled)throw focusError('工具已停用','E_TOOL_DISABLED');
       if(operation==='focus.enable'){
@@ -244,7 +249,11 @@ export function createStayFocusService({api=globalThis.chrome,lockManager=global
     // Avoid tab churn on every heartbeat: only act if the matching set changed.
     let tabs={moved:0,failed:0};
     if(ruleReceipt.changed&&desired.length)tabs=await updateBlockedTabs(state,at);
-    if(startGeneration===generation)revoked=false;
+    // Advance this epoch only after durable policy and native rule reconciliation
+    // succeed. A failure must not make a stale checkpoint billable on retry.
+    if(startGeneration===generation){
+      revoked=false;settledGeneration=startGeneration;
+    }
     return {...focusSummary(state,at),permissions:fresh,ruleReceipt,tabs};
   }
   const tick=options=>lock(()=>reconcileLocked(options));
