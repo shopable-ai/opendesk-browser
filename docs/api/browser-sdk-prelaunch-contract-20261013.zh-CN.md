@@ -24,7 +24,7 @@
 
 - **设计执行手册**：[`browser-sdk-execution-manual.zh-CN.md`](browser-sdk-execution-manual.zh-CN.md)。后续实现默认依照其中 Phase 0–7 和唯一架构、权限、测试门禁执行，除真实重大安全/平台不可实现/合同冲突外，不再另建第二份总体执行方案。
 - **逐接口机器矩阵**：[`browser-sdk-interface-matrix.json`](browser-sdk-interface-matrix.json)。包含固定 Chromium JSON/WebIDL/IDL 发现范围下的每个 Namespace/Method/Event/Property 分类、来源、实施签名与状态；发现目录不等于可公开能力。现行运行时实际可调用操作仍只能由 `src/framework/sdk/browser-contract.js#BROWSER_OPERATIONS` 判断。
-- **历史优先级**：R7/R8 原 35 项兼容、`browser-sdk-compatibility-map.json`（旧兼容登记）、`browser-sdk-native-mapping.json`（R7 Cookies 10 项）与 R8 局部原生发现目录只作历史或迁移输入，不再对现行 SDK 强制约束。Cookies 现行可信 Host 11 项仍 Host-only，不向安装工具沙箱公开明文。
+- **历史优先级**：R7/R8 原 35 项兼容、`browser-sdk-compatibility-map.json`（旧兼容登记）、`browser-sdk-native-mapping.json`（R7 Cookies 10 项）与 R8 局部原生发现目录只作历史或迁移输入，不再对现行 SDK 强制约束。Cookies 11 项在当前正式 Registry 已作为按安装身份/网站独立授权的 SDK 提供；可信内置 UI 的 Host-only approve/execute 仍为内部调用，不属于安装工具的普通 RPC。Cookie 明文必须同时具备工具 values 能力及受信 UI 针对精确网站的额外 values 授权。
 
 ## 冻结的产品方向
 
@@ -62,7 +62,7 @@
 
 当前 `BROWSER_OPERATIONS` 不再登记未实现的 `browser.media.recording.*`（4 项）、`browser.speech.*`（3 项）和 `browser.notifications.*`（2 项），剩余 26 项均为旧有源码已接线项目（不等于全部具有原生 Chrome 验收）。删除仅限运行时正式注册表与相关 Schema、CI 活跃基准、验收表；R5 35 项原始证据与历史映射依然只读保存。
 
-后续必须继续对保留的 26 项做用户调用方式/Host 权限语义收敛，尤其 Tabs Native 命名和 Cookies 可信调用；不得把这一步视为 R9 最终交付。
+后续必须继续对已登记的实际 SDK 做用户调用方式、统一 Host 权限语义和真实 Chrome 验收；尤其是 Cookies 11 项已作为受约束的正式 SDK 登记，而非仅 Host-only。不得把 Registry 接线误当作原生验收。
 
 ## R9 可信 Cookie 观察 UI（已提交实际 Side Panel 代码）
 
@@ -81,3 +81,9 @@
 ## Cookie Store 范围收敛
 
 可信 Host 当前只允许查询已选择网页所在的非无痕 Cookie Store，操作命名为 `browser.cookies.getCurrentStore`，不会伪装为 Chrome 原生全局 `getAllCookieStores` 或枚举其他站点/窗口 Store。R7 旧 `getStores` 属于归档快照，现行可信 Host 不保留别名。
+
+## R10.1 现行运行时事实（不覆盖前述 R8/R9 历史快照）
+
+- `BROWSER_OPERATIONS` 当前共有 **40 项**，其中 **Cookies 11 项**已由 `OpenDeskSDK.browser.cookies.*` 正式公开给**具备真实安装身份、精确站点/Store/PartitionKey/Chrome 权限和 Side Panel Cookie 用户授权**的安装工具。Page SDK 仍拒绝特权 Cookie 调用；明文单独要求 values 权限。内置受信 Cookie UI 使用已有 Host-only approve/execute；两种 Caller 身份不可混用，底层仍共用唯一 Host 和 Cookie Driver。
+- Clipboard / Downloads 不再从 Browser SDK Wrapper 转成 `clipboard.writeText` / `file.download` 旧 UI 消息。正式 `browser.clipboard.writeText` / `browser.downloads.text` 由受信 Side Panel 真点击、Host 一次性 Intent、原 Side Panel 系统复制/下载服务共同完成，具体原生效果仍待同候选验收。
+- 此处与唯一执行手册均为**按当前源码的局部修订**。接口矩阵中原 Cookie HOST_ONLY 可见性标记仍须与真实 Registry/Host 逐项同步；不能借由文档先验宣称矩阵或全部 Node/Build/Native 门禁已关闭。
