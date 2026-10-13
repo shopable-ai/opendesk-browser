@@ -41,3 +41,16 @@
 .sf-state[data-warning=true]{border:1px solid var(--od-input-border)}
 }
 @media(prefers-reduced-motion:reduce){.sf-progress i{transition:none}}
+/* A single shared daily pool: prominent facts and compact editing. */
+.sf-budget-total{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px;margin:7px 0 11px}
+.sf-budget-total strong{display:inline!important;font-size:23px!important;margin:0!important}
+.sf-budget-total span{color:var(--od-sub,#53647e);font-size:11px}
+.sf-stats{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.sf-stats>div{padding:10px;background:var(--od-bg,#f5f7fb);border-radius:9px}
+.sf-stats span{font-size:11px;color:var(--od-sub,#53647e);display:block}
+.sf-stats strong{display:block;font-size:21px!important;margin:4px 0 0!important;line-height:1.2!important}
+.sf-budget-form{display:grid;grid-template-columns:minmax(0,1fr) 80px auto;gap:8px;align-items:center;margin-top:12px}
+.sf-budget-form label{margin:0;font-size:11px!important}
+.sf-budget-form input{margin:0!important;text-align:center}
+.sf-budget-form button{min-width:72px}
+@media(max-width:335px){.sf-budget-form{grid-template-columns:1fr 76px}.sf-budget-form label{grid-column:1/-1}}

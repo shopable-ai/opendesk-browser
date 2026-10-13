@@ -21,32 +21,16 @@
   // Local, transparent recommendations. Exact registered domains (including
   // subdomains) take precedence over untrusted website titles. No URL history,
   // page body, third-party lookup or permission changes are used here.
-  const knownSites=[
-    {host:'youtube.com',name:'YouTube',category:'视频娱乐',minutes:15,preset:true},
-    {host:'bilibili.com',name:'哔哩哔哩',category:'视频娱乐',minutes:15,preset:true},
-    {host:'tiktok.com',name:'TikTok',category:'短视频',minutes:15,preset:true},
-    {host:'douyin.com',name:'抖音',category:'短视频',minutes:15},
-    {host:'instagram.com',name:'Instagram',category:'社交',minutes:20,preset:true},
-    {host:'reddit.com',name:'Reddit',category:'社交',minutes:20},
-    {host:'x.com',name:'X',category:'社交',minutes:20},
-    {host:'weibo.com',name:'微博',category:'社交',minutes:20},
-    {host:'netflix.com',name:'Netflix',category:'影视娱乐',minutes:30},
-    {host:'twitch.tv',name:'Twitch',category:'直播娱乐',minutes:30},
-    {host:'roblox.com',name:'Roblox',category:'游戏',minutes:30},
-    {host:'github.com',name:'GitHub',category:'工作/开发',minutes:0},
-    {host:'stackoverflow.com',name:'Stack Overflow',category:'工作/开发',minutes:0},
-    {host:'docs.google.com',name:'Google Docs',category:'工作',minutes:0},
-    {host:'wikipedia.org',name:'Wikipedia',category:'学习',minutes:0},
-    {host:'coursera.org',name:'Coursera',category:'学习',minutes:0}
-  ];
+  // Trusted Host supplies the one authoritative site catalog.
+  const knownSites=()=>Array.isArray(state?.catalog)?state.catalog:[];
   const sameOrChild=(host,parent)=>host===parent||host.endsWith('.'+parent);
   const siteRule=site=>({host:site.host,subdomains:true,enabled:true,
-    mode:'limit',minutes:site.minutes,group:''});
+    mode:'limit',minutes:state?.dailyBudget?.minutes??30,group:'entertainment'});
   function classifyCurrent(info){
     if(info?.status!=='available')return null;
     const host=escapeHost(info.url);
     if(!host)return null;
-    const known=knownSites.find(site=>sameOrChild(host,site.host));
+    const known=knownSites().find(site=>sameOrChild(host,site.host));
     if(known)return {...known,source:'domain'};
     const title=String(info.title||'').slice(0,256);
     // Title is only a weak hint: it never grants access or creates any rule.
@@ -67,18 +51,17 @@
       $('quick-site').textContent=site.name===site.host?site.host:site.name+' · '+site.host;
       $('quick-explanation').textContent=(site.source==='domain'?'已识别：':
         site.source==='title'?'按页面标题推测：':'暂未识别类型：')+site.category+
-        (site.minutes>0?' · 推荐每天 '+site.minutes+' 分钟':' · 默认不限制')+
+        (site.minutes>0?' · 纳入每日共享 '+(state?.dailyBudget?.minutes??30)+' 分钟':' · 默认不限制')+
         (exists?' · 已设置':'');
       apply.hidden=site.minutes===0||exists;
-      apply.textContent=site.source==='unknown'?'添加此网站 · 每天 15 分钟':
-        '使用推荐额度 · '+site.minutes+' 分钟/天';
+      apply.textContent=site.source==='unknown'?'将此网站加入娱乐总额度':'加入每日娱乐总额度';
     }
     const presets=$('quick-presets');
     presets.replaceChildren();
     // Show only unconfigured popular sites; adding one recommendation must
     // not hide the other one-click shortcuts.
-    for(const site of knownSites.filter(row=>row.preset&&!configured(row))){
-      const button=create('button','sf-secondary',site.name+' · '+site.minutes+' 分钟');
+    for(const site of knownSites().filter(row=>row.quick&&!configured(row))){
+      const button=create('button','sf-secondary',site.name+' · 加入总额度');
       button.type='button';
       button.addEventListener('click',()=>call('focus.site.put',{site:siteRule(site)}));
       presets.append(button);
@@ -157,19 +140,24 @@
     $('native-state').dataset.blocked=String(blocked);
     $('native-state').dataset.warning=String(!permissionReady||ruleUnverified);
     $('date-label').textContent=state.day;
-    const pools=new Map();
-    for(const site of state.sites.filter(s=>s.enabled&&s.mode==='limit'))
-      pools.set(site.group?'group:'+site.group:site.host,
-        {left:site.remainingMs,total:site.budgetMs});
-    const remaining=[...pools.values()].reduce((sum,v)=>sum+v.left,0);
-    const budget=[...pools.values()].reduce((sum,v)=>sum+v.total,0);
-    $('total-remaining').textContent=pools.size?minutes(remaining):'—';
-    $('total-caption').textContent=!permissionReady?'浏览器权限尚未批准，网站限制不会生效。请在工具详情中授权。':
-      !state.enabled?'限制已停止。请在工具详情中主动开启。':
-      ruleUnverified?'无法确认 Chrome 拦截规则，请在工具详情中检查权限并重试。':
-      !pools.size?'添加首个每日限额网站，开始保护专注时间。':
-      '今天共 '+pools.size+' 份独立娱乐额度 · '+minutes(Math.max(0,budget-remaining))+' 已使用';
-    $('total-progress').style.width=(budget?Math.max(0,Math.min(100,100*(budget-remaining)/budget)):0)+'%';
+    const pool=state.dailyBudget||{minutes:30,budgetMs:1800000,usedMs:0,remainingMs:1800000,managedCount:0};
+    $('budget-total').textContent=pool.minutes+' 分钟';
+    $('total-used').textContent=minutes(pool.usedMs);
+    $('total-remaining').textContent=minutes(pool.remainingMs);
+    const input=$('daily-budget-minutes');
+    if(document.activeElement!==input)input.value=String(pool.minutes);
+    input.disabled=!state.enabled;
+    $('focus-pause').hidden=!state.enabled;
+    const unmanaged=state.sites.filter(site=>site.mode==='limit'&&site.group!=='entertainment').length;
+    $('total-caption').textContent=!permissionReady?
+      '首次使用请在工具详情中主动授权并开启；安装不会自动限制网页。':
+      !state.enabled?'限制尚未开启；在工具详情中点击「授权并开启」。':
+      ruleUnverified?'Chrome 原生拦截规则尚未通过读回验证，请检查浏览器权限。':
+      !pool.managedCount?'尚无网站进入娱乐共享额度；已有自定义规则保持不变。':
+      '今日所有受管娱乐网站共享同一份额度 · '+pool.managedCount+' 个网站'+
+        (unmanaged?' · 另有 '+unmanaged+' 个旧独立规则':'');
+    $('total-progress').style.width=(pool.budgetMs?
+      Math.max(0,Math.min(100,100*pool.usedMs/pool.budgetMs)):0)+'%';
     const focused=state.enabled&&state.focusUntil&&state.focusUntil>Date.now();
     $('focus-start').disabled=!state.enabled;
     $('focus-start').hidden=Boolean(focused);
@@ -178,13 +166,19 @@
     $('site-count').textContent=state.sites.length+' 个网站';
     const list=$('sites');list.replaceChildren();
     for(const site of state.sites)list.append(badgeSite(site));
-    if(!state.sites.length)list.append(create('p','sf-empty','还没有限制的网站，可以从下方添加。'));
+    if(!state.sites.length)list.append(create('p','sf-empty',
+      !state.enabled?'首次开启后，自动管理 '+state.catalog.filter(row=>row.auto).map(row=>row.name).join('、')+'；也可主动排除。':
+        '尚未管理网站；可以从快速识别中添加到共享额度。'));
     const groupSelect=$('site-group'),selected=groupSelect.value;
-    groupSelect.replaceChildren(new Option('不共享',''));
-    for(const id of Object.keys(state.groups).sort())groupSelect.append(new Option(id+' · '+state.groups[id]+' 分钟',id));
-    groupSelect.value=Object.hasOwn(state.groups,selected)?selected:'';
+    groupSelect.replaceChildren(new Option('不共享',''),new Option('娱乐总额度（共享）','entertainment'));
+    for(const id of Object.keys(state.groups).sort())if(id!=='entertainment')
+      groupSelect.append(new Option(id+' · '+state.groups[id]+' 分钟',id));
+    groupSelect.value=selected===''||selected==='entertainment'||Object.hasOwn(state.groups,selected)?
+      selected:'entertainment';
+    if(!selected&&!state.sites.length)groupSelect.value='entertainment';
     const groups=$('groups');groups.replaceChildren();
     for(const [id,min] of Object.entries(state.groups).sort((a,b)=>a[0].localeCompare(b[0]))){
+      if(id==='entertainment')continue; // Edited by the main daily budget control
       const row=create('div','sf-group'),label=create('span','',id+' · '+min+' 分钟/天');
       const remove=create('button','','删除组');remove.type='button';
       remove.addEventListener('click',()=>call('focus.group.remove',{id}));
@@ -199,6 +193,16 @@
       $('whitelist').value=state.whitelist.join('\n');
     }
   }
+  $('daily-budget-form').addEventListener('submit',event=>{
+    event.preventDefault();
+    if(!state?.enabled){message('请先在工具详情中授权并开启，再修改每日额度。',true);return;}
+    const value=Number($('daily-budget-minutes').value);
+    if(!Number.isInteger(value)||value<1||value>1440){
+      message('每日娱乐总额度必须是 1–1440 分钟。',true);return;
+    }
+    void call('focus.group.put',{id:'entertainment',minutes:value});
+  });
+  $('focus-pause').addEventListener('click',()=>{void call('focus.disable',{});});
   $('quick-add').addEventListener('click',()=>{
     if(currentSuggestion?.minutes>0&&!configured(currentSuggestion))
       void call('focus.site.put',{site:siteRule(currentSuggestion)});
@@ -222,7 +226,8 @@
       if(!host)throw new Error('当前选中的标签页不支持添加，先切换到正常网站。');
       const suggestion=classifyCurrent(current);
       $('site-host').value=suggestion?.host||host;
-      if(suggestion?.minutes>0)$('site-minutes').value=suggestion.minutes;
+      if(suggestion?.minutes>0)$('site-minutes').value=state?.dailyBudget?.minutes??30;
+      $('site-group').value='entertainment';
       $('site-mode').value='limit';
       $('site-subdomains').checked=true;
       $('manual-site').open=true;
