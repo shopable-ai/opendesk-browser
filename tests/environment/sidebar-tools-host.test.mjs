@@ -1641,9 +1641,9 @@ test('R10 canonical exports need real Side Panel click plus one-use Host authori
   const text='x'.repeat(20000);
   assert.equal((await ask('browser.clipboard.writeText',{text},'browser-copy')).result.copied,true);
   effects++;assert.deepEqual(copied,[text]);
-  assert.deepEqual((await ask('browser.downloads.text',{text:'notes',filename:'notes.md'},'browser-download')).result,{downloadId:91});
+  assert.deepEqual((await ask('browser.downloads.text',{text:'notes',filename:'notes.md'},'browser-download')).result,{started:true});
   effects++;assert.equal(downloads.length,1);
-  assert.deepEqual((await ask('browser.downloads.text',{text:'{}',filename:'notes.json'},'json-download')).result,{downloadId:91});
+  assert.deepEqual((await ask('browser.downloads.text',{text:'{}',filename:'notes.json'},'json-download')).result,{started:true});
   effects++;assert.equal(downloads.length,2);
   assert.equal(downloads.at(-1).url.startsWith('data:application/json;'),true);
   const invalid=await ask('browser.downloads.text',{text:'notes',filename:'../escape.txt'},'invalid-download');
