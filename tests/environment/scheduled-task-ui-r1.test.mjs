@@ -256,3 +256,22 @@ test('R2.6 locked editing Task identity survives uninstall and script-install ro
   assert.match(preview,/editing\?'disabled title="编辑计划不允许更换任务/);
   assert.match(preview,/原固定任务 · v\$\{safe\(original\?\.version\|\|'\?'\)\}/);
 });
+
+test('R2.6 real runner never labels SETTLING or stale terminal Run as running',async()=>{
+  const [ui,preview]=await Promise.all([
+    load('src/ui/scheduled-task-workbench.js'),
+    load('examples/ui/scheduled-tasks-r2.5-preview.html')
+  ]);
+  assert.match(ui,/const owned=selectedFire\?observed\.find\(item=>item\.fire\.runId===selectedFire&&/);
+  assert.match(ui,/\['ADMITTED','RUNNING'\]\.includes\(item\.fire\.status\)/);
+  assert.match(ui,/const settling=observed\.filter\(item=>item\.fire\.status==='SETTLING'\)/);
+  assert.match(ui,/const alreadyTerminal=Boolean\(selectedFire&&observed\.some/);
+  assert.match(ui,/settling\?'正在核对上次结果'/);
+  assert.match(ui,/正在结算（尚未确认成功）/);
+  assert.match(ui,/waiting\.fire\.status==='WAITING_HOST'&&isRunner\(\)/);
+  assert.match(ui,/本页已经可见，正在检查原触发是否仍符合执行条件/);
+  assert.doesNotMatch(ui,/WAITING_HOST:'没有合法可见运行宿主；请打开运行页/);
+  assert.match(preview,/settlingFocus=!active&&settling\?\.p\.id===focus\?\.id/);
+  assert.match(preview,/正在结算 · 尚未确认成功/);
+  assert.match(preview,/next===null\?'暂无后续执行'/);
+});
