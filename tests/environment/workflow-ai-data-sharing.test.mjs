@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {modelDataScope,createModelConsent,workflowForModel,
+import {modelDataScope,createModelConsent,workflowForModel,restoreModelRedactions,
   CONSENT_STORAGE_KEY} from '../../src/ui/workflow/data-sharing.js';
 import {workflowCodexInput} from '../../src/ui/workflow/local-codex.js';
 import {requestWorkflowPlan} from '../../src/ui/workflow/ai-plan.js';
@@ -45,6 +45,21 @@ test('Codex planning copy omits old fill values, defaults and navigational query
   }
   assert.equal(workflow.steps[0].text,'HIDDEN_FILL');
   assert.equal(copy.steps[1].url,'https://demo.example/page');
+});
+test('unchanged secret fills and navigation URLs survive AI refinement locally',()=>{
+  const original={paramsSchema:{properties:{}},steps:[
+    {stepId:'fill',op:'fill',locatorKind:'css',selector:'#token',text:'LOCAL_SECRET'},
+    {stepId:'nav',op:'navigate',url:'https://demo.example/page?private=LOCAL_QUERY'}
+  ]};
+  const shared=workflowForModel(original);
+  const restored=restoreModelRedactions({steps:shared.steps},original);
+  assert.equal(restored.steps[0].text,'LOCAL_SECRET');
+  assert.equal(restored.steps[1].url,'https://demo.example/page?private=LOCAL_QUERY');
+  assert.equal(shared.steps[0].text,'[原填写值未发送，请使用运行参数]');
+  assert.throws(()=>restoreModelRedactions({steps:[{
+    ...shared.steps[0],selector:'#other'}]},original),{code:'E_AI_REDACTION'});
+  assert.throws(()=>restoreModelRedactions({steps:[{
+    ...shared.steps[0],stepId:'forged'}]},original),{code:'E_AI_REDACTION'});
 });
 test('custom HTTPS planning follows the same minimization',async()=>{
   const {emptyWorkflow}=await import('../../src/framework/workflow/contract.js');
