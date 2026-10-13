@@ -79,3 +79,48 @@ Native Agent 全页 Workspace 和 Settings 具有自己的大屏结构与本地�
 新增统一规范：[Side Panel 多功能区 Tab 布局契约 R28](sidebar-multi-section-tab-contract-r28.zh-CN.md)。以现有「工具」Tab 的已安装工具 / 已安装网页工具 / 折叠高级能力 / 导入与发现 / 详情返回为真实结构参照，形成 **Tab Root → Index/Section → Detail/Form/Management → Inline Review** 的组合规范。仅抽取信息架构、优先级、视图切换与可访问性，不复制工具 Tab 历史 CSS 或业务授权。R27 继续是尺寸与 Tokens 唯一来源，本文件继续是 Side Panel 视觉原语与 gutter 约定。
 
 新增「我的 → 定时计划」与未来在现有 Tab 内嵌多个功能区时，必须遵守 R28：标题只出现一次，二级返回在左，主次区域按真实任务优先，技术信息按需折叠，主要操作和危险操作分层；在原 Trusted Host 内复用 `od-*`、不得新开一级 Tab 或跨用户工具 sandbox 借权限。具体首批应用范围、测试及原生证据见 [Scheduled Tasks R2.4 UI GOAL](../framework/prompts/goal-scheduled-tasks-r2.4-ui-multi-section-final-20261013.zh-CN.md)。
+
+
+## R30：公共组件外观唯一所有权与迁移用法（2026-10-13）
+
+这是既有 R20 设计系统的**实施说明**，不是第二套设计系统。数值只在 `src/ui/design-tokens.css` 调整；`src/ui/design-system.css` 是公共外观唯一来源；`src/ui/tool-shell.css` 只负责业务特有布局、尺寸和交互状态。Side Panel 无需强制改为 Tailwind，也不向第三方工具 iframe / 网页注入宿主 CSS。
+
+| 角色 | 公共类 | 使用规则 |
+| --- | --- | --- |
+| 主／次／危险／纯文字操作 | `od-button` + `od-button--secondary / --danger / --quiet` | 默认外观完整；页面禁止重新定义普通按钮颜色、边框和圆角 |
+| 图标按钮 | `od-icon-button` + `--primary / --danger` | 固定 34px；必须有 `title`、`aria-label` 和可见焦点；首次授权也不能变宽 |
+| 表单字段 | `od-field`、`od-form-field`、`od-field-label`、`od-field-help / od-field-error` | 输入框默认 36px 高；readonly、disabled、aria-invalid 由公共 CSS 管；字段组内部 4px、组间由页面 gap 管 |
+| 文字 | `od-body`、`od-note`、`od-technical`、`od-title` | 正文 13px、说明 12px、技术文字 11px；粗体强调不改变同一段落的字号及正文颜色 |
+| 卡片与结果 | `od-surface`、`od-surface--padded`、`od-result` | 同类容器使用同一普通边框变量；内部结果和技术内容不重复叠卡片 |
+| 折叠 | `od-disclosure`、`--info`、`--flat` | 独立功能区有外框；首次说明仅标题允许信息型蓝色；内部技术信息无外框 |
+| 提醒 | `od-alert`、`od-alert--warning`、`od-alert--error` | 状态色由公共 token 提供；普通正文不染蓝或染红 |
+| 布局 | `od-toolbar`、`od-stack`、`od-segmented` | 页面负责组间距与 flex/grid，公共组件负责自身留白 |
+
+实际 HTML 直接引入原有三份 CSS，并选择角色，不复制一套演示皮肤：
+
+```html
+<div class="od-stack">
+  <details class="od-disclosure od-disclosure--info">
+    <summary>首次使用：连接方法</summary>
+    <p>连接成功后选择项目；此处正文使用默认文字颜色。</p>
+    <button type="button" class="od-button od-button--secondary">连接本机 OpenDesk</button>
+  </details>
+  <div class="od-form-field">
+    <label class="od-field-label" for="example-url">目标网站</label>
+    <input class="od-field" id="example-url" aria-describedby="example-hint">
+    <p class="od-field-help" id="example-hint">完整 HTTPS 网址。</p>
+  </div>
+  <details class="od-disclosure od-disclosure--flat">
+    <summary>技术信息</summary>
+    <pre class="od-result">按需查看</pre>
+  </details>
+  <div class="od-toolbar">
+    <button class="od-button">运行</button>
+    <button class="od-button od-button--secondary">保存</button>
+  </div>
+</div>
+```
+
+**保留的合理例外：**JavaScript 编辑器继续有等宽字体和可调整高度，但 `#script-source` 的普通表单边框、配色与圆角来自 `od-field`；工作流输入框、目标来源切换开关、原生文件控件、目录筛选保留其具体功能布局。`workflow-ai-plan` 是固定 34px 图标发送按钮，模型接收方/首次许可通过旁边说明、title 和 ARIA 告知，JS 仍严格判断用户手势与独立网页读取授权。由 JavaScript 创建的工作流步骤必须同样应用公共类。
+
+**防退化与验证级别：**`tests/environment/sidebar-component-contract.test.mjs` 是受影响的源码合同检查；已有 `scripts/tests/sidebar-r19-layout-visual.mjs` 用于真实 HTML/CSS 的静态 Chrome 渲染检查，不能代替用户 Mac 的已安装 Side Panel 原生验收。没有完成的检查保持 `NOT_TESTED`；95+ 只按实证评分。
