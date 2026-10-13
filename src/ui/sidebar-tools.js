@@ -151,7 +151,10 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   cookieOtherSites.className='sidebar-toc-settings-entries';
   cookiePermissions.append(cookieOtherSites);
   settingsView?.append(cookiePermissions);
-  const isCookieTool=tool=>tool?.id==='cookie-editor'&&tool.capabilities.includes('browser.cookies.read');
+  // The permission surface is generic to any installed tool that declares
+  // Cookie capabilities; an official Cookie Editor is NOT a privileged exception.
+  const isCookieTool=tool=>Array.isArray(tool?.capabilities)&&
+    tool.capabilities.some(cap=>cap.startsWith('browser.cookies.'));
   const cookieSiteRecord=(tool,origin)=>{
     const row=menuGrants?.[tool?.id];
     return row?.version===tool?.version&&row?.installEpoch===(revocationEpochs[tool?.id]??null)
@@ -1309,7 +1312,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     }
     if(Object.hasOwn(changes||{},BROWSER_MENU_GRANTS_STORE)){
       menuGrants=changes[BROWSER_MENU_GRANTS_STORE]?.newValue||{};render();
-      if(active?.id==='cookie-editor'&&frame&&instance)
+      if(isCookieTool(active)&&frame&&instance)
         frame.contentWindow?.postMessage({protocol:SIDEBAR_TOOL_PROTOCOL,
           kind:'cookie-grants-changed',instance,toolId:active.id},'*');
     }
