@@ -87,6 +87,7 @@ test('actual installed Chrome runner zooms at 125%, 150%, 200% with keyboard and
       'Keyboard focus/long text is a targeted check, not a full accessibility audit',
       'CSS widths below use CDP device metrics on the genuine runner TAB, never physical Side Panel width']};
   let proc,client,passed=false,stderr='';
+  const chromeEvents=[];
   await mkdir(OUT,{recursive:true});
   t.after(async()=>{
     report.completedAt=new Date().toISOString();
@@ -113,7 +114,18 @@ test('actual installed Chrome runner zooms at 125%, 150%, 200% with keyboard and
   },'genuine Chrome debugger profile',45000);
   const version=await(await fetch('http://127.0.0.1:'+port+'/json/version')).json();
   report.chromeVersion=version.Browser;
-  client=await connect(version.webSocketDebuggerUrl);
+  client=await connect(version.webSocketDebuggerUrl,{onEvent:event=>{
+    if(!['Runtime.exceptionThrown','Runtime.consoleAPICalled','Page.frameNavigated'].includes(event.method))return;
+    const item={method:event.method};
+    if(event.method==='Runtime.exceptionThrown')
+      item.error=String(event.params?.exceptionDetails?.exception?.description||
+        event.params?.exceptionDetails?.text||'').slice(0,1400);
+    else if(event.method==='Runtime.consoleAPICalled')
+      item.error=event.params?.type+': '+(event.params?.args||[])
+        .map(arg=>String(arg.value??arg.description??'')).join(' ').slice(0,400);
+    else item.url=event.params?.frame?.url;
+    chromeEvents.push(item);if(chromeEvents.length>60)chromeEvents.shift();
+  }});
   const extensionId=await until(async()=>{
     const targets=(await client.send('Target.getTargets')).targetInfos;
     return targets.find(x=>x.type==='service_worker'&&x.url?.endsWith('/sw.js'))?.url?.split('/')[2];
@@ -129,7 +141,21 @@ test('actual installed Chrome runner zooms at 125%, 150%, 200% with keyboard and
       'visible:!!document.querySelector("#scheduled-panel")&&!document.querySelector("#scheduled-panel").hidden,'+
       'runner:!!document.querySelector("#schedule-runner-view")&&!document.querySelector("#schedule-runner-view").hidden}))()',session);
     return data.surface==='scheduled-runner'&&data.visible&&data.runner?data:null;
-  },'actual dedicated scheduled runner displays its product dashboard',35000);
+  },'actual dedicated scheduled runner displays its product dashboard',35000).catch(async error=>{
+    report.startupDiagnostic={reason:error.message,chromeEvents};
+    try{
+      report.startupDiagnostic.document=await evaluate(client,
+        '(()=>({url:location.href,readyState:document.readyState,'+
+        'surface:document.documentElement.dataset.opendeskSurface,'+
+        'scheduledPanelPresent:!!document.querySelector("#scheduled-panel"),'+
+        'scheduledPanelHidden:document.querySelector("#scheduled-panel")?.hidden,'+
+        'runnerViewPresent:!!document.querySelector("#schedule-runner-view"),'+
+        'runnerViewHidden:document.querySelector("#schedule-runner-view")?.hidden,'+
+        'title:document.title,bodyLength:document.body?.textContent?.length}))()',session);
+      report.screenshots.push(await snapshot(client,session,'runner-startup-failure-real-chrome'));
+    }catch(diagnosticError){report.startupDiagnostic.captureError=String(diagnosticError);}
+    throw error;
+  });
   report.initial=runner;
   await client.send('Target.activateTarget',{targetId:page.targetId});
   await click(client,session,'#schedule-runner-manage');
