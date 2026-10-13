@@ -153,6 +153,33 @@ export function createBrowserTabHost({api=globalThis.chrome,authorize,clock=Date
   }
   return {tabs};
  }
+ async function pinOwned(args,context){
+  // A pinned operation is confined to the exact owned tab/document; it is not
+  // a generic Chrome tabs.update(tabId, ...) proxy.
+  if(!args||typeof args!=='object'||Array.isArray(args)||
+     ![Object.prototype,null].includes(Object.getPrototypeOf(args))||
+     Object.keys(args).length!==2||!Object.hasOwn(args,'tabRef')||
+     !Object.hasOwn(args,'pinned')||typeof args.pinned!=='boolean'||
+     typeof args.tabRef!=='string'||!tokenPattern.test(args.tabRef))
+    throw fail('E_SCHEMA','Only an owned TabRef and boolean pinned are accepted');
+  if(typeof api.tabs?.update!=='function')throw fail('E_CHROME_UNSUPPORTED');
+  const before=await resolve(args.tabRef,context);
+  await approved('browser.tabs.pinOwned',before.origin,context);
+  const current=await resolve(args.tabRef,context);
+  if(current.tabId!==before.tabId||current.documentId!==before.documentId)
+    throw fail('E_DOCUMENT_STALE','Tab changed before pinning');
+  let receipt;
+  try{receipt=await api.tabs.update(before.tabId,{pinned:args.pinned})}
+  catch{throw fail('E_OUTCOME_UNKNOWN','Chrome pin operation may have occurred; do not retry')}
+  if(receipt?.id!==before.tabId||receipt?.pinned!==args.pinned)
+    throw fail('E_OUTCOME_UNKNOWN','Chrome did not confirm the precise pinned state');
+  try{
+    const after=await resolve(args.tabRef,context);
+    if(after.documentId!==before.documentId)throw fail('E_DOCUMENT_STALE');
+    await approved('browser.tabs.pinOwned',before.origin,context);
+  }catch{throw fail('E_OUTCOME_UNKNOWN','Authority or document changed after native pinning')}
+  return {pinned:args.pinned};
+ }
  async function removeOwned(args,context){
   input(args,'tabRef');
   if(typeof api?.tabs?.remove!=='function')throw fail('E_CHROME_UNSUPPORTED');
@@ -170,7 +197,7 @@ export function createBrowserTabHost({api=globalThis.chrome,authorize,clock=Date
   return {closed:true};
  }
  const revokeTool=id=>{for(const [ref,row] of refs)if(row.owner.startsWith(id+':'))purge(ref)};
- return Object.freeze({create,activateOwned,resolve,getOwned,listOwned,removeOwned,invalidateTab,revokeTool,
+ return Object.freeze({create,activateOwned,resolve,getOwned,listOwned,pinOwned,removeOwned,invalidateTab,revokeTool,
   dispose:()=>{refs.clear();byTool.clear()},
   diagnostics:()=>({references:refs.size})});
 }
