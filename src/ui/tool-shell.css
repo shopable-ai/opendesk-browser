@@ -980,9 +980,9 @@
 .schedule-form #schedule-discard-confirm>.schedule-actions{justify-content:flex-start;flex-wrap:wrap}
 .schedule-form>.schedule-actions{justify-content:flex-start;gap:var(--space-2);padding-bottom:var(--space-2)}
 .schedule-form .schedule-actions>.od-button{min-height:36px}
-:root[data-opendesk-surface="scheduled-runner"] .schedule-header-heading{display:none}
-:root[data-opendesk-surface="scheduled-runner"] .schedule-header:has(#schedule-stop[hidden]){display:none}
-:root[data-opendesk-surface="scheduled-runner"] .schedule-header{justify-content:flex-end}
+:root[data-opendesk-surface="scheduled-runner"]:has(#schedule-runner-view:not([hidden])) .schedule-header-heading{display:none}
+:root[data-opendesk-surface="scheduled-runner"]:has(#schedule-runner-view:not([hidden])) .schedule-header:has(#schedule-stop[hidden]){display:none}
+:root[data-opendesk-surface="scheduled-runner"]:has(#schedule-runner-view:not([hidden])) .schedule-header{justify-content:flex-end}
 :root[data-opendesk-surface="scheduled-runner"] .schedule-runner-view .schedule-runner-focus{order:1}
 :root[data-opendesk-surface="scheduled-runner"] .schedule-runner-view .schedule-runner-metrics{order:2}
 :root[data-opendesk-surface="scheduled-runner"] .schedule-runner-focus{padding:var(--space-4)}
