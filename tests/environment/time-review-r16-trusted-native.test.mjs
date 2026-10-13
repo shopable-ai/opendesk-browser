@@ -64,7 +64,7 @@ test('R1.6 source uses one static first-party UI; other tools retain the opaque 
   assert.match(entry,/trustedTimeReviewUI/);
   assert.match(native,/index\.html\?raw/);
   assert.match(native,/src\/main\.js/);
-  assert.doesNotMatch(native,/tool\.(?:html|css|js)/);
+  assert.doesNotMatch(native.replace(/^\s*\/\/.*$/gm,''),/tool\.(?:html|css|js)/);
   assert.match(main,/__opendeskMountTrustedTimeReview/);
   assert.match(markup,/href="time-review\.css"/);
 });
@@ -112,7 +112,7 @@ function r17PermissionFixture(){
   const installed={id:'time-review',capabilities:['time.review']};
   const flush=async()=>{await new Promise(resolve=>setImmediate(resolve));};
   const click=(id,isTrusted=true)=>get(id).handlers.get('click')({isTrusted});
-  return {get,controls,installed,click,flush,
+  return {api,get,controls,installed,click,flush,
     setIdle:value=>{idlePermission=value;},
     setGrants:value=>{siteGrants=value;},
     deferNextRead(){
@@ -187,6 +187,18 @@ test('R1.7 late site-grant storage read never repaints revoked/obsolete consent'
 });
 
 
+test('R1.8 unavailable Chrome permission and storage APIs fail closed without async rejection',async()=>{
+  const f=r17PermissionFixture();
+  delete f.api.permissions.contains;
+  delete f.api.storage.local.get;
+  f.controls.render(f.installed);
+  await f.flush();await f.flush();
+  assert.equal(f.get('time-review-grant-idle').hidden,false,
+    'unknown idle permission must never be treated as authorized');
+  assert.equal(f.get('time-review-revoke-idle').hidden,true);
+  assert.match(f.get('time-review-site-grants-status').textContent,/授权状态不可读/);
+});
+
 test('R1.7 unrelated provenance changes preserve trusted UI but Time Review identity changes invalidate it',()=>{
   const trusted={marketId:'opendesk/time-review',version:TRUSTED_TIME_REVIEW_VERSION,
     sha256:'a'.repeat(64)};
@@ -208,7 +220,11 @@ test('R1.7 unrelated provenance changes preserve trusted UI but Time Review iden
     assert.equal(trustedTimeReviewProvenanceChanged({oldValue,newValue:next}),true,
       'changing or corrupting own official provenance must close privileged UI');
   }
-  for(const invalid of [null,[],{'time-review':trusted},'corrupted']){
+  assert.equal(trustedTimeReviewProvenanceChanged({
+    oldValue:{'time-review':trusted},newValue
+  }),false,'valid Time Review provenance remains trusted when only unrelated records are added');
+  for(const invalid of [null,[],'corrupted',
+    {'time-review':{...trusted,sha256:'not-a-hash'}}]){
     assert.equal(trustedTimeReviewProvenanceChanged({oldValue:invalid,newValue}),true,
       'old missing/corrupt source cannot be reused');
   }

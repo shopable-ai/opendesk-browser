@@ -65,8 +65,11 @@ export function createTimeReviewPermissionControls({api,doc,notice,runOperation}
   async function refresh(){
     const generation=++readGeneration;
     const [stored,idle]=await Promise.allSettled([
-      api.storage.local.get(TIME_REVIEW_KEY),
-      api.permissions.contains({permissions:['idle']})
+      // Evaluate each Chrome API call inside a Promise. A temporarily
+      // unavailable API must be rejected by allSettled, not leak an
+      // unhandled rejection from this fire-and-forget refresh.
+      Promise.resolve().then(()=>api.storage.local.get(TIME_REVIEW_KEY)),
+      Promise.resolve().then(()=>api.permissions.contains({permissions:['idle']}))
     ]);
     if(section.hidden||generation!==readGeneration)return;
     if(stored.status==='fulfilled'){

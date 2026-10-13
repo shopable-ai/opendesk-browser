@@ -26,3 +26,7 @@
 - 原生队列阻塞：Actions `38408021850`、`38416518447` 的 macOS job 当前仍为 `queued`，无 steps 结果与 artifacts；Node/Build 与 Native Chrome 均不可按排队状态登记 PASS。
 - P0：在既有唯一 Time Review 工作流中增加独立 Ubuntu Node/Build 检查，保留原 `macos-15` 原生验收不降级。等待真实 CI 命令、日志和退出码后再记录测试结论；发现实质缺陷才定向修复。
 - 本轮尚未触达本地 `git status`，无法核实其他 Agent 的未提交修改；本轮远端写入只使用原 blob SHA 条件更新。
+
+- R1.8 第一轮真实 Ubuntu CI：`91ba7eb4350f67b1cede6dc68473280c8204b8e5`，Actions <https://github.com/shopable-ai/opendesk-browser/actions/runs/38433206176>，Node 165 项中 158 PASS / 7 FAIL。实际日志显示 4 处 `host-controls.js:refresh` 的同步缺失 API 导致 unhandledRejection、R1.6 静态测试误匹配注释、R1.7 来源测试把有效映射错误标为撤销；另有非 Time Review 的共享 Tool Host R10 export 测试超时，保留独立 FAIL 不为本任务回退 SDK。
+- 同候选 Ubuntu 构建已实际 PASS：`build:sidebar-tool`、`check`、`build`、`build:dev`、`verify`。正式工具与 Production 同 SHA-256 `90f5029049ed4b2cadd69fa91c4efaefb45f031bd94c07e708c9f78d5f2776f6`；Production `ui/tool-shell.js` 523432 bytes、Development 523672 bytes（均低于 512 KiB）；Production `sw.js` SHA-256 `2b98b4bf2d10d4661951f1fbc434c77aebacecf6e539ba7d3344a9c49974c114`。
+- R1.8 根因修复候选：`host-controls.js` 异步包装 Storage/Chrome optional-permission 状态读取，让缺失 API 进入 `allSettled` fail-closed 分支；已有测试增强未授权/不可用路径。R1.6 注释不应被误判为执行路径；R1.7 有效 Time Review provenance 映射不应因其他工具增加而误撤销，缺失/损坏仍必须拒绝。**本修复候选在后续 CI 执行前保持 NOT_TESTED。**
