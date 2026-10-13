@@ -28,6 +28,13 @@
       <option value="httpOnly">HttpOnly</option><option value="session">会话</option>
       <option value="partitioned">分区</option>
     </select>
+    <label for="live-sort" class="visually-hidden">Cookie 排序</label>
+    <select id="live-sort" aria-label="Cookie 排序">
+      <option value="name">按名称</option>
+      <option value="domain">按域名</option>
+      <option value="path">按路径</option>
+      <option value="expiration">按过期时间</option>
+    </select>
   </div>
   <div class="toolbar live-toolbar">
     <span id="live-count" class="count">尚未读取</span><span class="fill"></span>

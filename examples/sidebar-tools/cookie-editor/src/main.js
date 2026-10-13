@@ -116,6 +116,13 @@ function renderBrowser(){
     [row.name,row.domain,row.path].some(value=>value.toLocaleLowerCase().includes(term))&&
     (filter==='all'||(filter==='secure'&&row.secure)||(filter==='httpOnly'&&row.httpOnly)||
      (filter==='session'&&row.session)||(filter==='partitioned'&&row.partitionKey)));
+  const order=E('live-sort').value||'name',byText=(a,b)=>String(a||'').localeCompare(String(b||''));
+  visible.sort((a,b)=>order==='expiration'?
+    (Number.isFinite(a.expirationDate)?a.expirationDate:Number.MAX_SAFE_INTEGER)-
+    (Number.isFinite(b.expirationDate)?b.expirationDate:Number.MAX_SAFE_INTEGER)||
+      byText(a.name,b.name):
+    byText(a[order]??a.name,b[order]??b.name)||byText(a.name,b.name)||
+      byText(a.domain,b.domain)||byText(a.path,b.path));
   E('live-count').textContent=hasRead?
     visible.length+' / '+liveRows.length+' 条 Cookie':'尚未读取';
   const list=E('live-cookie-list');list.replaceChildren();
@@ -761,6 +768,7 @@ E('live-import').addEventListener('click',()=>guarded(()=>{
 }));
 E('live-search').addEventListener('input',render);
 E('live-filter').addEventListener('change',render);
+E('live-sort').addEventListener('change',render);
 E('refresh').addEventListener('click',()=>guarded(()=>{
   scrubEditors();
   const refreshedEpoch=epoch+1;

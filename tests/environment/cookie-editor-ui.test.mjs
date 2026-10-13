@@ -64,7 +64,8 @@ test('Cookie Editor is an optional two-mode tool without private cookies API',as
   assert(s.html.includes('id="mode-browser"')&&s.html.includes('id="mode-offline"'));
   assert(s.html.includes('id="read-live"')&&s.html.includes('id="target-url" data-sensitive="true"'));
   assert(s.html.includes('id="browser-panel"')&&s.html.includes('id="cookie-content"'));
-  assert(s.html.includes('id="live-search"')&&s.html.includes('id="live-filter"'));
+  assert(s.html.includes('id="live-search"')&&s.html.includes('id="live-filter"')&&
+    s.html.includes('id="live-sort"'));
   assert(s.source.includes("E('live-filters').hidden=!hasRead"));
   assert.match(s.config.version,/^2\.0\./);
   assert(!/\b(?:window|globalThis|chrome)\.cookies\./.test(s.source));
@@ -196,6 +197,8 @@ test('Offline workspace remains isolated and browser writes or clears are not pe
     'exact deletion must go through the public SDK');
   assert(s.source.includes('browserSdk().cookies.clearSite({url:target.url,preview:true'),
     'live clear requires a distinct preview');
+  assert(s.source.includes("if(confirmed&&stillCurrent(id,target))void readBrowserMetadata()"),
+    'native writes with unknown effects must not automatically refresh or replay');
   assert(s.source.includes("if(mode==='browser')void saveBrowserCookie()"),
     'browser write and offline update must never share an ambiguous action path');
   assert(s.source.includes("editing?.valueRedacted===true&&!liveValueEdited"),
