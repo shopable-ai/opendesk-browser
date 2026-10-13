@@ -10,6 +10,33 @@ work/
 __pycache__/
 *.pyc
 
+# Reproducible tool caches and local coverage output
+.vite/
+.eslintcache
+.stylelintcache
+*.tsbuildinfo
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+/.nyc_output/
+/coverage/
+/htmlcov/
+.coverage
+.coverage.*
+
+# Editor swap/backup files, OS metadata and package-manager debug logs
+*.swp
+*.swo
+*~
+.#*
+._*
+Thumbs.db
+Desktop.ini
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
 # Browser downloads, caches and per-run profiles
 .cache/
 profiles/
@@ -27,18 +54,136 @@ raw-cdp*.jsonl
 # Contracts, ledgers and source snapshots outside this directory remain versioned.
 /docs/framework/evidence/
 
-# Local run logs, process dumps and disposable expected-file copies.
-# Keep receipts, source identities, screenshots and raw test results versioned.
-/docs/framework/workstreams/evidence/**/*.log
-/docs/framework/workstreams/evidence/**/initial-processes.txt
-/docs/framework/workstreams/evidence/**/chrome-launcher-*-ps.txt
+# Dated, conversation-specific ignore-maintenance logs stay local.
+# Keep product workstreams, acceptance ledgers and independent policy reviews.
+/docs/framework/workstreams/gitignore-*-20??????-01a*.md
+
+# Reviewed Git-operation journals and R14 driver preparation/fix notes are local.
+# Product closure records, resume handoffs and acceptance indexes remain visible.
+/docs/framework/workstreams/git-pull*-20261012-*.md
+/docs/framework/workstreams/git-pull-merge-20261013-*.md
+/docs/framework/workstreams/git-selective-code-commit-20261013-*.md
+/docs/framework/workstreams/git-hotspots-commit-20261013-*.md
+/docs/framework/workstreams/local-branch-cleanup-20261012-*.md
+/docs/framework/workstreams/cloud-control-r14-e2-*-driver*-20261013.md
+/docs/framework/workstreams/cloud-control-r14-e3-*-driver-20261013.md
+/docs/framework/workstreams/cloud-control-r14-e4-*-driver-20261013.md
+
+# Workstream evidence and session drivers stay local, including source-like files.
+# Keep formal indexes, identity/receipt records, Markdown reviews and test inputs.
+# Per-run acceptance/review/preview JSON stays local; formal ledgers live outside here.
+# Existing tracked evidence remains tracked; raw files are never deleted here.
+/docs/framework/workstreams/evidence/**
+!/docs/framework/workstreams/evidence/**/
+!/docs/framework/workstreams/evidence/**/*.md
+!/docs/framework/workstreams/evidence/**/*.patch
+!/docs/framework/workstreams/evidence/**/manifest.json
+!/docs/framework/workstreams/evidence/**/artifact-index.json
+!/docs/framework/workstreams/evidence/**/*binding*.json
+!/docs/framework/workstreams/evidence/**/*receipt*.json
+!/docs/framework/workstreams/evidence/**/*identity*.json
+!/docs/framework/workstreams/evidence/**/candidate-input*.json
+!/docs/framework/workstreams/evidence/**/*validation*.json
+!/docs/framework/workstreams/evidence/**/*verification*.json
+!/docs/framework/workstreams/evidence/**/*handoff*.json
+!/docs/framework/workstreams/evidence/**/source-drift-check*.json
+!/docs/framework/workstreams/evidence/**/summary.json
+!/docs/framework/workstreams/evidence/**/completion.json
+!/docs/framework/workstreams/evidence/**/integration.json
+!/docs/framework/workstreams/evidence/**/reuse-review.json
+!/docs/framework/workstreams/evidence/**/continue-buttons-*.txt
+!/docs/framework/workstreams/evidence/**/*review*.txt
+!/docs/framework/workstreams/evidence/**/*diagnosis*.txt
+!/docs/framework/workstreams/evidence/**/live-esm-project/**
+
+# Generated copies/caches remain local even when they contain source-like files.
+/docs/framework/workstreams/evidence/**/baseline/**
+/docs/framework/workstreams/evidence/**/before/**
+/docs/framework/workstreams/evidence/sidebar-layout-r29-20261013/before-*.patch
+/docs/framework/workstreams/evidence/**/driver-transform-*/**
+/docs/framework/workstreams/evidence/**/live-esm-built-*/**
+/docs/framework/workstreams/evidence/**/.opendesk/remote-cache/**
+/docs/framework/workstreams/evidence/**/build-*-latest.json
+# CFT drivers retain copies of page/input source and review measurements here.
+/docs/framework/workstreams/evidence/**/browser-*/*.js
+/docs/framework/workstreams/evidence/**/browser-*/*.html
+/docs/framework/workstreams/evidence/**/browser-*/*review-metadata.txt
+# Per-run binding copies are outputs; retain the original bindings outside runs.
+/docs/framework/workstreams/evidence/**/browser-*/*binding*.json
+/docs/framework/workstreams/evidence/**/native-[0-9]*/*binding*.json
+/docs/framework/workstreams/evidence/**/native-[0-9]*/script-editor-source-observed.js
+# Layout review attempts retain local baseline snapshots.
+/docs/framework/workstreams/evidence/sidebar-inline-layout-*/ai-only-*/*binding*.json
+/docs/framework/workstreams/evidence/sidebar-inline-layout-*/ai-only-*/tool-before.html
+# Confirmed per-run binding duplicates and superseded preparation snapshots.
+# Keep final bindings, drift records and precheck failures without an acceptance.
+/docs/framework/workstreams/evidence/sidebar-layout-r29-20261013/native-final-0[1-5]*/source-binding.json
+/docs/framework/workstreams/evidence/sidebar-layout-r29-20261013/native-recovery-0[2-6]/source-binding.json
+/docs/framework/workstreams/evidence/sidebar-layout-r29-20261013/README.md
+/docs/framework/workstreams/evidence/sidebar-editor-r30-20261013/before-binding.json
+/docs/framework/workstreams/evidence/static-import-drafts-20261012/candidate-input-binding-before-*.json
+# Persistence CFT source snapshots remain local in historical workflow outputs.
+/docs/framework/workstreams/evidence/page-import-persistence-*/**/driver-source.mjs
+/docs/framework/workstreams/evidence/page-import-persistence-*/**/author-source.js
+/docs/framework/workstreams/evidence/page-import-persistence-*/**/expected-offline-compiled-source.js
+/docs/framework/workstreams/evidence/page-import-persistence-*/**/cached-dependency-source.js
+/docs/framework/workstreams/evidence/page-import-persistence-*/**/real-offline-compiled-source.js
+/docs/framework/workstreams/evidence/page-import-persistence-*/**/loaded-author-source.js
+# Run directories are limited to the CFT driver's declared output scope.
+# Keep its top-level shared-contract handoff and other workflows' indexes.
+/docs/framework/workstreams/evidence/page-import-persistence-01a130cc-09d5/driver-preflight*/**
+/docs/framework/workstreams/evidence/page-import-persistence-01a130cc-09d5/preflight-*/**
+/docs/framework/workstreams/evidence/page-import-persistence-01a130cc-09d5/real/**
+/docs/framework/workstreams/evidence/page-import-persistence-01a130cc-09d5/real-*/**
+/docs/framework/workstreams/evidence/**/review-width-*.json
+/docs/framework/workstreams/evidence/**/cdn-body-*.js
 /docs/framework/workstreams/evidence/**/expected-conflict-draft.md
 /docs/framework/workstreams/evidence/**/expected-external-version.md
 /docs/framework/workstreams/evidence/**/expected-save-1.md
 /docs/framework/workstreams/evidence/**/final-external-version.md
-# Append-only controller/native telemetry stays local; keep JSON receipts/summaries.
-/docs/framework/workstreams/evidence/**/driver-commands*.jsonl
-/docs/framework/workstreams/evidence/**/native-wire*.jsonl
+# Git pull/merge Markdown is local process output; keep patches and formal indexes.
+# Canonical merge conclusions live in workstreams/git-pull-*.md outside evidence.
+/docs/framework/workstreams/evidence/git-pull-*/**/*.md
+# Retain the validation indexes for generated driver transformations.
+!/docs/framework/workstreams/evidence/**/driver-transform-*/manifest.json
+!/docs/framework/workstreams/evidence/**/driver-transform-*/validation.json
+# This captured source is an actual dependency-manager test fixture.
+!/docs/framework/workstreams/evidence/network-javascript-20261012/browser-05/mustache-cached-source.js
+
+# Cloud observers emit large state snapshots whose names also contain receipt/
+# handoff/validation. These are raw outputs, not the canonical handoff indexes.
+/docs/framework/workstreams/evidence/cloud-control-r14-final-*/continuation-c-receipt-hold-v[12]-*.json
+/docs/framework/workstreams/evidence/cloud-control-r14-final-*/continuation-c-handoff-after-driver-close.json
+/docs/framework/workstreams/evidence/cloud-control-r14-final-*/continuation-c-handoff-final-snapshot.json
+/docs/framework/workstreams/evidence/cloud-control-r14-final-*/continuation-c-local-validation-completed.json
+/docs/framework/workstreams/evidence/cloud-control-r14-final-*/continuation-c-pre-validation.json
+# Fault-injection acknowledgements and provider/network observations are outputs.
+/docs/framework/workstreams/evidence/cloud-control-r14-final-*/continuation-c-fault-receipt-*.json
+/docs/framework/workstreams/evidence/cloud-control-r14-final-*/continuation-c-seed-receipt-*.json
+/docs/framework/workstreams/evidence/cloud-control-r14-final-*/continuation-c-provider-receipt-hold-v[12].json
+/docs/framework/workstreams/evidence/cloud-control-r14-final-*/continuation-c-receipt-revoke-first.json
+/docs/framework/workstreams/evidence/cloud-control-r14-final-*/continuation-c-receipt-retransmit-revoke-network.json
+
+# R14 E2-E4 observer dumps are raw run output despite identity/handoff names.
+# Keep the compact final-state handoffs and candidate/source identity indexes.
+/docs/framework/workstreams/evidence/cloud-control-r14-final-*/resume-r14-e-e[234]-*.json
+/docs/framework/workstreams/evidence/cloud-control-r14-final-*/resume-r14-e3-handoff-*provider-inspect.json
+/docs/framework/workstreams/evidence/cloud-control-r14-final-*/resume-r14-e3-handoff-native-stop-failure-ax.json
+/docs/framework/workstreams/evidence/cloud-control-r14-final-*/resume-r14-e3-native-stop-for-handoff.json
+/docs/framework/workstreams/evidence/cloud-control-r14-final-*/resume-r14-e3-handoff-subagent-completions.json
+/docs/framework/workstreams/evidence/cloud-control-r14-final-*/resume-r14-e4-handoff-agents-status.json
+/docs/framework/workstreams/evidence/cloud-control-r14-final-*/resume-r14-e3-runtime-identity-refresh.json
+
+# Root-level test runner output; preserve the historical evidence archive.
+/evidence/*.tap
+
+# Fixed-tool verification copies/packages/logs; keep summary, binding and hashes.
+/evidence/page-import-fixed-tools-*/logs/**
+/evidence/page-import-fixed-tools-*/packages/**
+/evidence/page-import-fixed-tools-*/*.build-ready.json
+/evidence/page-import-fixed-tools-*/*.package.json
+/evidence/page-import-fixed-tools-*/*.package-lock.json
+/evidence/page-import-fixed-tools-*/copied-files.txt
 
 # Generated test output directories; keep test code and fixtures versioned.
 /tests/**/evidence/
@@ -61,12 +206,3 @@ raw-cdp*.jsonl
 
 # Mutable build-attempt pointers; archive incident receipts in workstream evidence.
 /docs/cloud-build-evidence/build-*-latest.json
-
-# Mutable workstream build pointers; canonical and failed receipts stay versioned.
-/docs/framework/workstreams/evidence/**/build-*-latest.json
-/docs/framework/workstreams/evidence/reading-toc-default-sites-20261012/standalone-build-root.txt
-
-# Empty packaging stdout placeholders; preserve indexed failure evidence separately.
-/docs/framework/workstreams/evidence/browser-dev-install-diagnostics-01a12b8e/pack-final.json
-/docs/framework/workstreams/evidence/browser-dev-install-diagnostics-01a12b8e/pack-main-v3.json
-/docs/framework/workstreams/evidence/browser-dev-install-diagnostics-01a12b8e/pack-main-v4.json
