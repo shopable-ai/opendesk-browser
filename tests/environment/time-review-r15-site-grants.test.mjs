@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
-import {createTimeReviewService} from '../../src/time-review/service.js';
+import {createTimeReviewService,installTimeReviewService} from '../../src/time-review/service.js';
 import {TIME_REVIEW_KEY,emptyReview,readReview} from '../../src/time-review/model.js';
 import {TIME_REVIEW_PROTOCOL,TIME_REVIEW_HOST_API,timeReviewPackageHash,timeReviewSiteOrigin,
   changeTimeReviewSiteGrants,requireTimeReviewSiteGrants} from '../../src/time-review/policy.js';
@@ -211,4 +211,37 @@ test('R1.5 missing trusted HTML fails closed only for Time Review, not unrelated
   assert.doesNotThrow(()=>controls.render({id:'quick-notes',capabilities:[]}));
   assert.throws(()=>controls.render({id:'time-review',capabilities:['time.review']}),
     /trusted controls are missing/);
+});
+
+test('R1.5 unrelated Chrome origin removal does not revoke Time Review site consent',async()=>{
+  const f=await fixture();
+  await f.call('time.siteGrant',{mode:'site',origin:'https://alpha.example',allow:true});
+  await f.call('time.start');
+  const emitter=()=>{
+    const listeners=new Set();
+    return {addListener:fn=>listeners.add(fn),removeListener:fn=>listeners.delete(fn),
+      emit:(...args)=>{for(const fn of listeners)fn(...args);}};
+  };
+  f.api.runtime.onMessage=emitter();f.api.runtime.onStartup=emitter();
+  f.api.tabs.onActivated=emitter();f.api.tabs.onUpdated=emitter();f.api.tabs.onRemoved=emitter();
+  f.api.windows.onFocusChanged=emitter();
+  f.api.idle.onStateChanged=emitter();f.api.alarms.onAlarm=emitter();
+  f.api.permissions.onRemoved=emitter();f.api.permissions.onAdded=emitter();
+  f.api.storage.onChanged=emitter();
+  const installed=installTimeReviewService({api:f.api,lockManager:lockManager(),
+    now:()=>new Date(2026,9,13,12).getTime()});
+  try{
+    await installed.service.tick();
+    f.api.permissions.onRemoved.emit({origins:['https://unrelated.example/*'],permissions:[]});
+    await installed.service.tick();
+    const unchanged=await f.call('time.status');
+    assert.equal(unchanged.paused,false,'unrelated tools must not stop an approved Time Review');
+    assert.deepEqual(unchanged.siteGrants,{allSites:false,origins:['https://alpha.example']});
+    assert.equal(unchanged.trackingHost,'alpha.example');
+    f.api.permissions.onRemoved.emit({permissions:['idle'],origins:[]});
+    await installed.service.tick();
+    const revoked=await f.call('time.status');
+    assert.equal(revoked.paused,true,'idle removal must still fail closed');
+    assert.equal(revoked.authorized,false);
+  }finally{installed.dispose();}
 });

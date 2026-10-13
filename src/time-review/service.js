@@ -218,7 +218,13 @@ export function installTimeReviewService({api=globalThis.chrome,...options}={}){
   listen(api.windows.onFocusChanged,activity);
   listen(api.idle?.onStateChanged,activity);
   listen(api.permissions.onRemoved,removed=>{
-    const at=options.now?.()??Date.now();service.invalidate({revoke:removed?.permissions?.includes('idle')||Boolean(removed?.origins?.length)});run({at});
+    // Origin permission removals may belong to other tools or one of several
+    // granted sites. Retire the current sample and reobserve Chrome authority,
+    // but preserve all unrelated Time Review website consents. Only losing
+    // idle permission invalidates the tool's overall tracking authorization.
+    const at=options.now?.()??Date.now();
+    service.invalidate({revoke:removed?.permissions?.includes('idle')===true});
+    run({at});
   });
   listen(api.permissions.onAdded,activity);
   listen(api.runtime.onStartup,()=>run({boot:true}));

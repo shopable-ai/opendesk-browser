@@ -87,3 +87,11 @@ npm run verify
 - 新增环境回归：一边正常计时，一边安装 `other-tool`，需继续保存真实网站时间；随后修改 `time-review` 固定包身份，则检查点立刻退休。此场景不允许仅凭其他工具的 R1/R2 生命周期结果替代。
 - 原生 macOS 测试新增单独网站撤权链路：Chrome `idle` 权限保留的情况下，可信点击撤销 Time Review 网站范围；检查运行暂停和历史保留、没有网站同意时尝试开始被拒绝、再次逐站授权后明确重启。所有动作都应由真实 Side Panel 点击，不准直接预置 business storage。
 - 最新实际提交/同 SHA 结果、工具包与 SW SHA 必须在 CI 后写入；本段只描述已改的测试合同，并非声称浏览器 PASS。
+
+
+## R1.5.1 · 跨工具 Chrome 权限撤销的局部修正（2026-10-13）
+
+- 源码缺口：`installTimeReviewService()` 先前把任意 `chrome.permissions.onRemoved.origins` 都当作 Time Review 整体撤权；例如另一个工具取消一个无关网站的 Chrome host 权限，也会清空 Time Review 已批准的运行身份。
+- 修正：单个或多个 Chrome Origin 移除只令活动采样失效，并立即重新查询 Chrome 实际权限和当前网站；保留其他仍经用户独立同意的网站。只有 `idle` 权限移除才清除整个计时运行授权。当前网页站点的实际 Chrome 权限消失时，`observe()` 会拒绝新检查点，不可凭原主扩展的权限扩大网站授权。
+- 新增 `time-review-r15-site-grants.test.mjs` 的回归用例，同时检查「撤销无关 Origin 仍允许已授权网站统计」和「撤销 idle 必须停用」。仓库事件处理做过合成回调与语法校验；**未在用户 Mac / 完整 Node 仓库环境执行**，本次环境证据级别为 `NOT_TESTED`，不可升级为原生 PASS。
+- R1.5.1 的完整 UI 收敛、生产/开发构建及 macOS Chrome 证据仍为待补项；历史失败与队列中的 CI 不能冒充新候选通过。
