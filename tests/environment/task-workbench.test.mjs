@@ -74,7 +74,11 @@ const make=({installedInitially=true,secondTask=false,sharedStore=null,draftStor
         installationId:state.installed.find(value=>value.taskId===row.taskId)?.installationId??null,
         generation:state.installed.find(value=>value.taskId===row.taskId)?.generation??null};
       if(method==='getTaskCandidate')return {taskId:row.taskId,version:row.version,manifestHash:row.manifestHash,
-        package:{manifestHash:row.manifestHash,manifest:row.manifest,sourceUtf8:'async function main(){return true;}'}};
+        // The verified Task Service returns a complete immutable manifest;
+        // the reader must reject any frozen package missing taskId or version.
+        package:{manifestHash:row.manifestHash,
+          manifest:{...row.manifest,taskId:row.taskId,version:row.version},
+          sourceUtf8:'async function main(){return true;}'}};
       throw new Error('unexpected '+method);
     }};
   let active=null,finish;
