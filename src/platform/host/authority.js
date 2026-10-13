@@ -300,7 +300,7 @@ export function createRunAuthority({storage, api, session, entitlement, validate
   return {...sdk, ...controller, ...tasks, ...Object.fromEntries(['saveSchedule','changeSchedule','listSchedules','listScheduleHistory','listDueSchedules','setScheduleFireState'].map(name=>[name,schedules[name]])), cloud, schedules,
     ...Object.fromEntries(['installTask','setInstalledTaskEnabled','uninstallTask'].map(name=>[name,async(request,sender)=>{cloud?.invalidate();const outcome=await tasks[name](request,sender);
       await notifyTaskChanged(request.taskId).catch(error=>console.warn('Installed task event',error));return outcome;} ])),
-    ...Object.fromEntries((cloud?['cloudStatus','cloudPair','cloudApprove','cloudStop','cloudUnpair','cloudNext','cloudResolve']:[]).map(name=>[name,cloud[name]])),
+    ...Object.fromEntries((cloud?['cloudStatus','cloudPair','cloudApprove','cloudStop','cloudUnpair','cloudClients','cloudClientGrant','cloudClientRevoke','cloudNext','cloudResolve']:[]).map(name=>[name,cloud[name]])),
     registerHost, assertHost,
     ...(INCLUDE_DORMANT_TEMPLATE_RUNTIME ? {admitIdentity, claimRun, prepareCommand, authorizeDispatch, markUnknown, stopRun} : {}),
     pagePreviewAdmission:createPreviewAdmission({storage,assertHost,currentHost,session}),
