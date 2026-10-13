@@ -74,6 +74,14 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   const listen=(element,event,fn)=>{
     element.addEventListener(event,fn);listeners.push([element,event,fn]);
   };
+  function focusOutside(id,target='workflow-ai-request') {
+    if(!disposed&&get(id).contains(doc.activeElement))
+      get(target).focus?.({preventScroll:true});
+  }
+  function hidePanel(id,target) {
+    focusOutside(id,target);
+    get(id).hidden=true;
+  }
   const status=(message,error=false)=>{
     if(disposed)return;
     hasError=Boolean(error);
@@ -85,7 +93,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   };
   function dismissNewReview(){
     newReviewSignature=null;
-    get('workflow-new-review').hidden=true;
+    hidePanel('workflow-new-review','workflow-new');
   }
   const currentOrigin=()=>currentPageTarget?.snapshot?.status==='available'
     ? currentPageTarget.snapshot.origin:null;
@@ -156,7 +164,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     get('workflow-stop').disabled=!runId || host.currentRun!==runId;
     get('workflow-open-code').disabled=!compiled;
     get('workflow-ai-apply').disabled=!proposal || busy;
-    get('workflow-ai-plan').disabled=busy||['manual','opendesk_cloud'].includes(provider());
+    get('workflow-ai-plan').disabled=busy||provider()==='opendesk_cloud';
     get('workflow-ai-plan').hidden=phase==='planning';
     get('workflow-ai-cancel').hidden=phase!=='planning';
     get('workflow-ai-new-session').hidden=!localPlanner.snapshot().sessionId;
@@ -259,6 +267,10 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   }
   function renderSteps(expandStepId=null) {
     const parent=get('workflow-steps');
+    const active=parent.contains(doc.activeElement)?doc.activeElement:null;
+    const focusedStep=active?.closest('details.workflow-step');
+    const focus=focusedStep?{stepId:focusedStep.dataset.stepId,
+      index:Array.from(parent.children).indexOf(focusedStep),field:active.dataset.workflowFocus}:null;
     const expanded=new Set(Array.from(parent.querySelectorAll('details.workflow-step[open]'))
       .map(item=>item.dataset.stepId));
     if(expandStepId)expanded.add(expandStepId);
@@ -284,38 +296,41 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
         workflow.steps[index].stepId=step.stepId;
         if(op==='navigate')workflow.steps[index].url=workflow.siteOrigin+'/';
         renderSteps(step.stepId);edited();
-      });
+      }).dataset.workflowFocus='op';
       if(['fill','click','wait','extract','assert'].includes(step.op)) {
         labelSelect(doc,body,'定位方法',step.locatorKind,WORKFLOW_LOCATORS.map(k=>[k,
           {css:'CSS 选择器',role:'ARIA 角色',label:'标签文字',text:'文本',testId:'Test ID'}[k]]),value=>{
           step.locatorKind=value;renderSteps(step.stepId);edited();
-        });
-        labelInput(doc,body,'目标元素',step.selector,value=>{step.selector=value;mark();},{maxLength:512});
+        }).dataset.workflowFocus='locatorKind';
+        labelInput(doc,body,'目标元素',step.selector,value=>{step.selector=value;mark();},{maxLength:512})
+          .dataset.workflowFocus='selector';
         if(step.locatorKind==='role')labelInput(doc,body,'无障碍名称（可选）',
-          step.roleName||'',value=>{step.roleName=value;mark();},{maxLength:200});
+          step.roleName||'',value=>{step.roleName=value;mark();},{maxLength:200}).dataset.workflowFocus='roleName';
       }
       if(step.op==='navigate')labelInput(doc,body,'同站目标 URL',step.url||'',value=>{
         step.url=value;mark();
-      },{maxLength:2000,placeholder:workflow.siteOrigin+'/'});
+      },{maxLength:2000,placeholder:workflow.siteOrigin+'/'}).dataset.workflowFocus='url';
       if(step.op==='fill'){
         labelInput(doc,body,'参数名（有值时使用参数）',step.param||'',value=>{
           if(value){step.param=value;delete step.text;}
           else{delete step.param;step.text='';}
           edited();
-        },{maxLength:40});
+        },{maxLength:40}).dataset.workflowFocus='param';
         labelInput(doc,body,'固定填写值（参数名留空时生效）',step.text??'',value=>{
           if(!step.param){step.text=value;edited();}
-        },{maxLength:512});
+        },{maxLength:512}).dataset.workflowFocus='text';
       }
       if(['assert','confirm'].includes(step.op))
         labelInput(doc,body,step.op==='assert'?'预期包含文字':'确认事项',step.text||'',value=>{
           step.text=value;mark();
-        },{maxLength:512});
+        },{maxLength:512}).dataset.workflowFocus='text';
       if(step.op==='wait')labelInput(doc,body,'最长等待毫秒（100–30000）',
-        step.timeout??10000,value=>{step.timeout=Number(value);mark();},{type:'number',maxLength:5});
+        step.timeout??10000,value=>{step.timeout=Number(value);mark();},{type:'number',maxLength:5})
+          .dataset.workflowFocus='timeout';
       const controls=node(doc,'div',undefined,'workflow-step-actions');
       for(const [caption,change] of [['↑',-1],['↓',1]]){
         const button=node(doc,'button',caption,'od-button od-button--secondary');button.type='button';
+        button.dataset.workflowFocus=change<0?'moveUp':'moveDown';
         button.setAttribute('aria-label',caption==='↑'?'上移第'+(index+1)+'步':'下移第'+(index+1)+'步');
         button.disabled=index+change<0||index+change>=workflow.steps.length;
         button.addEventListener('click',()=>{const target=index+change;
@@ -324,9 +339,19 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
         });controls.append(button);
       }
       const remove=node(doc,'button','删除','od-button od-button--danger');remove.type='button';
+      remove.dataset.workflowFocus='remove';
       remove.addEventListener('click',()=>{workflow.steps.splice(index,1);renderSteps();edited();});
       controls.append(remove);body.append(controls);details.append(body);parent.append(details);
     });
+    if(focus) {
+      const steps=Array.from(parent.querySelectorAll('details.workflow-step'));
+      const sameStep=steps.find(item=>item.dataset.stepId===focus.stepId);
+      const step=sameStep||steps[Math.min(focus.index,steps.length-1)];
+      const control=sameStep&&Array.from(sameStep.querySelectorAll('[data-workflow-focus]'))
+        .find(item=>item.dataset.workflowFocus===focus.field);
+      (control&&!control.disabled?control:step?.querySelector('summary')||get('workflow-ai-request'))
+        .focus?.({preventScroll:true});
+    }
   }
   function render() {
     renderGeneral();renderParams();renderSteps();
@@ -578,10 +603,9 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     get('workflow-local-settings').hidden=!local;
     get('workflow-custom-settings').hidden=!custom;
     get('workflow-provider-scope').textContent=local
-      ?'使用已连接的 Codex 生成步骤。'
-      :custom?'使用已配置的 HTTPS 模型生成步骤。'
-      :selected==='manual'?'手动编辑步骤，无需 AI。'
-      :'官方 AI 尚未开放。';
+      ?'本机 OpenDesk 管理 Codex Agent，模型推理可能联网，已同意的内容可能保存在 Codex 本机对话中。复用官方 CLI 登录，请勿填写 Codex 登录凭据。'
+      :custom?'需求和步骤只发送到你填写的 HTTPS 接口。此来源生成单次计划提议。'
+      :'OpenDesk 官方 AI 服务接口已预留，目前尚未开放。';
     updateLocalStatus();updateButtons();
   }
   function updateLocalStatus() {
@@ -647,7 +671,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
         settle(answer){
           if(row.settled)return;row.settled=true;
           context.signal.removeEventListener('abort',abort);
-          if(pendingApproval===row){pendingApproval=null;get('workflow-ai-approval').hidden=true;}
+          if(pendingApproval===row){pendingApproval=null;hidePanel('workflow-ai-approval');}
           resolve(answer);
         }};
       const abort=()=>row.settle({decision:'deny'});
@@ -676,6 +700,8 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       // Agent's consent cannot stand in for this Chrome permission.
       permission=api.permissions.request({origins:[permissionPattern(row.captured.url)]});
     }catch(error){row.settle({decision:'deny'});status(format(error),true);return;}
+    // Move focus before disabling the buttons; browsers can otherwise blur to body.
+    focusOutside('workflow-ai-approval');
     row.processing=true;get('workflow-ai-approve').disabled=true;get('workflow-ai-deny').disabled=true;
     get('workflow-ai-approval-title').textContent='正在读取已批准的网页…';
     (async()=>{
@@ -906,15 +932,6 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     })().catch(error=>{if(!disposed&&epoch===planningGeneration)status(localFailure(error),true);})
       .finally(()=>{if(epoch===planningGeneration){busy=false;phase='idle';planningAbort=null;if(!disposed)updateButtons();}});
   });
-  listen(get('workflow-manual-start'),'click',event=>{
-    if(!event.isTrusted)return;
-    if(busy||workflow.steps.length>=32)return;
-    get('workflow-ai-provider').value='manual';void stopPlanning({close:true}).catch(()=>{});renderProvider();
-    workflow.steps.push(defaultStep());
-    renderSteps();edited();
-    const last=get('workflow-steps').lastElementChild;
-    if(last){last.open=true;last.querySelector('summary')?.focus?.({preventScroll:true});}
-  });
   function commitNewWorkflow(){
     
     dismissNewReview();
@@ -946,7 +963,6 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   listen(get('workflow-new-cancel'),'click',event=>{
     if(!event.isTrusted)return;
     dismissNewReview();status('草稿已保留。');
-    get('workflow-new').focus?.({preventScroll:true});
   });
   listen(get('workflow-new-discard'),'click',event=>{
     if(!event.isTrusted||busy&&phase!=='planning'||newReviewSignature===null)return;
@@ -1006,7 +1022,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     if(proposalSerial!==stable()) {status('草稿已改变，请重新生成并检查建议后再采用。',true);return;}
     workflow=structuredClone(proposal);proposal=null;proposalBase=null;proposalSerial=null;
     appendChat('系统','建议步骤已被你采用；可以继续提出修改需求或直接编辑。');
-    get('workflow-ai-proposal').hidden=true;render();persistDraft();
+    hidePanel('workflow-ai-proposal');render();persistDraft();
     status('已采用 AI 语义步骤；定位仍待真实浏览器检查，保存与运行需要单独操作');
   });
   const unsubscribePage=currentPageTarget?.subscribe(next=>{

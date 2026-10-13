@@ -132,7 +132,7 @@ test('compact workflow keeps header actions accessible under 200 percent zoom',a
 });
 
 
-test('workflow model selector stays minimal and user send does not need custom approval',async()=>{
+test('workflow model selector stays minimal without manual creation or custom approval',async()=>{
   const [html,view]=await Promise.all([
     file('src/ui/tool.html'),file('src/ui/workflow/workflow-view.js')
   ]);
@@ -141,11 +141,16 @@ test('workflow model selector stays minimal and user send does not need custom a
   assert.match(settings,/value="local_codex"/);
   assert.match(settings,/value="custom_https"/);
   assert.match(settings,/value="opendesk_cloud" disabled/);
-  assert.match(settings,/value="manual"/);
+  assert.doesNotMatch(settings,/value="manual"/);
+  assert.doesNotMatch(html,/id="workflow-manual-start"/);
+  assert.match(settings,/模型推理可能联网/);
+  assert.match(settings,/可能保存在 Codex 本机对话中/);
   assert.match(settings,/请勿填写 Codex 登录凭据|API Key（不保存）/);
   assert.match(html,/id="workflow-ai-plan"[^>]*aria-label="生成工作流步骤"/);
   assert.doesNotMatch(html,/id="workflow-ai-disclosure"|id="workflow-ai-review-|id="workflow-ai-revoke"/);
   assert.doesNotMatch(settings,/模型的数据发送许可|同意并生成|每次读取仍需确认/);
+  assert.match(html,/id="workflow-provider-settings" class="workflow-provider"/);
+  assert.doesNotMatch(settings,/localCodexReady\s*=\s*true|模拟连接成功/);
   assert.match(view,/listen\(get\('workflow-ai-plan'\),'click',plan\)/);
   assert.match(view,/get\('workflow-provider-settings'\)\.open=true/);
   assert.doesNotMatch(view,/modelConsent|pendingModelReview|renderDataDisclosure/);

@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // STATIC_MARKUP_CHROME ONLY. Real product HTML/CSS; no extension JS or trusted user events.
 import {spawn} from 'node:child_process';
+import {createHash} from 'node:crypto';
 import {createServer} from 'node:http';
 import {readFile,writeFile,mkdtemp,mkdir,rm} from 'node:fs/promises';
 import {resolve,join} from 'node:path';
@@ -9,12 +10,16 @@ import {createOfficialToolResources} from '../build-official-tools.mjs';
 
 const root=resolve('.');
 const out=resolve(process.argv[2]||'artifacts/sidebar-r19-layout-visual');
-const widths=[300,360,420,520];
+const widths=[300,320,360,420,520];
 const scenes=[
   {name:'my',tab:'tasks'},
   {name:'my-long',tab:'tasks',state:'long'},
   {name:'my-empty',tab:'tasks',state:'empty'},
   {name:'my-running',tab:'tasks',state:'running'},
+  {name:'my-cloud-open',tab:'tasks',state:'cloud-open'},
+  {name:'schedule-empty',tab:'tasks',state:'schedule-empty'},
+  {name:'schedule-form',tab:'tasks',state:'schedule-form'},
+  {name:'schedule-manager',tab:'tasks',state:'schedule-manager'},
   {name:'discover',tab:'local-discover'},
   {name:'discover-long',tab:'local-discover',state:'long'},
   {name:'discover-empty',tab:'local-discover',state:'empty'},
@@ -23,18 +28,25 @@ const scenes=[
   {name:'workflow-settings',tab:'workflow',state:'settings'},
   {name:'workflow-approval',tab:'workflow',state:'approval'},
   {name:'workflow-result',tab:'workflow',state:'result'},
+  {name:'workflow-steps',tab:'workflow',state:'steps'},
+  {name:'workflow-running',tab:'workflow',state:'running'},
+  {name:'workflow-manage',tab:'workflow',state:'manage'},
   {name:'develop',tab:'develop'},
   {name:'develop-local',tab:'develop',local:true},
   {name:'develop-local-loading',tab:'develop',local:true,state:'loading'},
   {name:'develop-details',tab:'develop',details:true},
   {name:'develop-error',tab:'develop',state:'error'},
+  {name:'develop-install',tab:'develop',local:true,state:'install'},
+  {name:'develop-remote',tab:'develop',state:'remote'},
   {name:'tools',tab:'tools'},
   {name:'tools-empty',tab:'tools',state:'empty'},
   {name:'tools-import',tab:'tools',state:'import'},
   {name:'tools-update',tab:'tools',state:'update'},
   {name:'tools-installed',tab:'tools',state:'installed'},
   {name:'tools-open',tab:'tools',state:'open'},
-  {name:'tools-error',tab:'tools',state:'error'}
+  {name:'tools-error',tab:'tools',state:'error'},
+  {name:'debug',tab:'debug'},
+  {name:'debug-long',tab:'debug',state:'long'}
 ];
 const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 const profile=await mkdtemp(join(tmpdir(),'sidebar-r19-static-'));
@@ -87,7 +99,24 @@ function setupScene(scene,officialReleases){
   for(const tab of document.querySelectorAll('[data-workbench-tab]'))
     tab.setAttribute('aria-selected',String(tab.dataset.workbenchTab===(active==='local-discover'?'discover':active==='tasks'?'tasks':active)));
   const dock=document.querySelector('#workspace-dock');
-  dock.hidden=active==='local-discover'||active==='workflow'||active==='tools';
+  dock.hidden=active==='local-discover'||active==='workflow'||active==='tools'||active==='debug';
+  document.querySelector('#tab-debug').hidden=active!=='debug';
+  document.querySelector('#cloud-hosting').open=scene.state==='cloud-open';
+  const scheduled=scene.state?.startsWith('schedule-')||false;
+  document.querySelector('.tasks-surface').hidden=scheduled;
+  document.querySelector('#scheduled-panel').hidden=!scheduled;
+  document.querySelector('#schedule-list-view').hidden=scene.state!=='schedule-empty';
+  document.querySelector('#schedule-form').hidden=scene.state!=='schedule-form';
+  document.querySelector('#schedule-task-manager').hidden=scene.state!=='schedule-manager';
+  document.querySelector('#schedule-host-status').textContent='静态示例 · 已检查运行宿主';
+  document.querySelector('#schedule-plan-list').textContent='静态示例 · 尚无定时计划';
+  if(scheduled)dock.hidden=true;
+  document.querySelector('#local-install-review').hidden=scene.state!=='install';
+  document.querySelector('#local-install-summary').textContent=scene.state==='install'?'静态示例 · 当前候选固定版本，不执行安装':'';
+  document.querySelector('#local-install-warning').textContent=scene.state==='install'?'静态示例 · 请确认名称和固定版本':'';
+  document.querySelector('#page-component-remote').hidden=scene.state!=='remote';
+  document.querySelector('#page-component-remote-status').textContent=scene.state==='remote'?'静态示例 · 请确认固定的 HTTPS 组件依赖':'';
+
   for(const d of document.querySelectorAll('.dock-actions'))
     d.hidden=d.id!==(active==='tasks'?'task-dock':active==='develop'?'develop-dock':'workflow-dock');
   const manual=document.querySelector('#manual-source-editor');
@@ -142,12 +171,36 @@ function setupScene(scene,officialReleases){
   }
   const editor=document.querySelector('#workflow-editor');
   editor.dataset.viewState='empty';
-  document.querySelector('#workflow-manage-panel').hidden=scene.state!=='settings';
+  const editing=scene.tab==='workflow'&&['steps','running'].includes(scene.state);
+  document.querySelector('#workflow-dock').dataset.empty=String(!editing);
+  if(editing)dock.hidden=false;
+  dock.dataset.stopOnly=String(scene.state==='running');
+  document.querySelector('#task-stop').disabled=!(scene.tab==='tasks'&&scene.state==='running');
+  document.querySelector('#workflow-stop').disabled=!(scene.tab==='workflow'&&scene.state==='running');
+  if(editing)editor.dataset.viewState='editing';
+  document.querySelector('#workflow-plan-panel').hidden=!editing;
+  document.querySelector('#workflow-params-panel').hidden=!editing;
+  document.querySelector('#workflow-steps').replaceChildren();
+  if(editing){
+    const step=document.createElement('details');step.className='workflow-step';step.open=true;
+    const summary=document.createElement('summary');summary.textContent='1. 填写内容 · 已采用 AI 计划的静态编辑示例';
+    const body=document.createElement('div');body.className='workflow-step-body';
+    const field=document.createElement('label');field.className='workflow-field';field.textContent='定位目标';
+    const input=document.createElement('input');input.value='表单中的内容输入框';field.append(input);
+    const actions=document.createElement('div');actions.className='workflow-step-actions';
+    for(const text of ['上移','下移','删除']){const b=document.createElement('button');b.type='button';b.textContent=text;actions.append(b);}
+    body.append(field,actions);step.append(summary,body);document.querySelector('#workflow-steps').append(step);
+    document.querySelector('#workflow-step-count').textContent='1 步';
+  }
+
+  document.querySelector('#workflow-manage-panel').hidden=scene.state!=='manage';
+  for(const d of document.querySelectorAll('#workflow-manage-panel details'))d.open=scene.state==='manage';
   document.querySelector('#workflow-ai-approval').hidden=scene.state!=='approval';
   document.querySelector('#workflow-ai-approval-scope').textContent=scene.state==='approval'?'静态示例 · 此状态仅验证许可提示尺寸，不提交任何资料':'';
   document.querySelector('#workflow-result-panel').hidden=scene.state!=='result';
   document.querySelector('#workflow-output').textContent=scene.state==='result'?'静态示例 · 执行结果预览':'尚未运行';
   document.querySelector('#workflow-provider-settings').open=scene.state==='settings';
+  for(const id of ['debug-pairing','debug-connection','debug-reconcile','debug-slot'])document.getElementById(id).textContent=scene.tab==='debug'&&scene.state==='long'?'静态长状态：等待可信运行宿主连接并完成持久对账':'未检测';
   const devStatus=document.querySelector('#script-status');
   devStatus.textContent=scene.tab==='develop'&&scene.state==='error'?'静态示例 · 网页运行环境不可用':'';
   devStatus.dataset.state=scene.state==='error'?'error':'';
@@ -237,13 +290,25 @@ function measureScene(scene){
   };
   const dock=get('#workspace-dock');
   if(!dock.hidden)metrics.dockOverlap=content.getBoundingClientRect().bottom>dock.getBoundingClientRect().top+1;
-  if(scene.tab==='tools'){
-    metrics.iconButtons=[...panel.querySelectorAll('.od-icon-button')].filter(el=>el.getClientRects().length>0).map(el=>{
+  {
+    metrics.iconButtons=[...panel.querySelectorAll('.od-icon-button,.workflow-icon-button,.workflow-send-button')].filter(el=>el.getClientRects().length>0).map(el=>{
       const r=el.getBoundingClientRect();
       return {width:r.width,height:r.height,radius:getComputedStyle(el).borderTopLeftRadius,
         label:el.getAttribute('aria-label'),title:el.getAttribute('title')};
     });
   }
+
+  const groups=[...panel.querySelectorAll('.od-action-group,.workflow-actions,.workflow-step-actions,.workflow-new-review-actions,.schedule-actions,.debug-actions,.local-install-review>.row,.workflow-composer-actions,.schedule-source-row')];
+  if(!dock.hidden)groups.push(...dock.querySelectorAll('.dock-buttons'));
+  metrics.actionGroups=groups.filter(e=>e.getClientRects().length).map(e=>{
+    const r=e.getBoundingClientRect(),style=getComputedStyle(e);
+    const buttons=[...e.children].filter(b=>b.tagName==='BUTTON'&&b.getClientRects().length).map(b=>{
+      const q=b.getBoundingClientRect();return {id:b.id,text:b.textContent.trim(),top:q.top,center:q.top+q.height/2,right:q.right,width:q.width,height:q.height};
+    });
+    const rows=[];
+    for(const b of buttons){let row=rows.find(row=>Math.abs(row.center-b.center)<1);if(!row){row={center:b.center,right:b.right};rows.push(row);}row.right=Math.max(row.right,b.right);}
+    return {className:e.className,gap:parseFloat(style.columnGap),right:r.right-parseFloat(style.paddingRight)-parseFloat(style.borderRightWidth),rows,buttons};
+  });
   if(scene.tab==='tasks')metrics.corners.taskCard=radius('.task-card-group');
   if(scene.tab==='local-discover'){
     metrics.corners.import=radius('#local-discover-open-catalog');
@@ -259,6 +324,10 @@ function measureScene(scene){
     metrics.corners.card=radius('.sidebar-tool-official');
     metrics.corners.install=radius('[data-official-install="reading-toc"]');
   }
+  if(scene.tab==='debug'){
+    metrics.corners.card=radius('.debug-metrics');
+    metrics.corners.detail=radius('.debug-detail');
+  }
   if(scene.tab==='develop'){
     metrics.corners.page=radius('.developer-page-summary');
     metrics.corners.editor=radius('#script-source');
@@ -269,6 +338,15 @@ function measureScene(scene){
     const children=[...get('.developer-editor').children].filter(e=>!e.hidden&&getComputedStyle(e).display!=='none'&&getComputedStyle(e).position!=='absolute');
     const layout=children.map(e=>e.getBoundingClientRect());
     metrics.developGaps.push(...layout.slice(1).map((r,i)=>Math.round(r.top-layout[i].bottom)));
+    if(!scene.local){
+      const label=box('.page-component-label'),choices=box('.page-component-choices');
+      metrics.codeType={
+        inline:Math.abs((label.top+label.height/2)-(choices.top+choices.height/2))<=1,
+        segments:[...get('.page-component-choices').querySelectorAll('label')].map(el=>({
+          height:el.getBoundingClientRect().height,fontSize:parseFloat(getComputedStyle(el).fontSize)
+        }))
+      };
+    }
   }
   return metrics;
 }
@@ -276,9 +354,17 @@ function validate(scene,width,m){
   if(m.viewport.width!==width||m.viewport.height!==700)throw Error('Unexpected viewport '+JSON.stringify(m));
   if(m.documentOverflow||m.contentOverflow||m.panelOverflow)throw Error('Horizontal overflow '+scene.name+' '+width+'px '+JSON.stringify(m));
   if(m.dockOverlap)throw Error('Footer obscures content '+scene.name+' '+width+'px');
+  for(const group of m.actionGroups){
+    if(group.buttons.some(b=>b.height<33.5))throw Error('Undersized action '+scene.name+' '+width+'px '+JSON.stringify(group));
+    if(group.rows.some(row=>Math.abs(row.right-group.right)>1))throw Error('Action row is not trailing aligned '+scene.name+' '+width+'px '+JSON.stringify(group));
+    if(group.buttons.length>1&&group.gap!==8)throw Error('Action spacing is not 8px '+scene.name+' '+JSON.stringify(group));
+  }
+
+  if(m.codeType&&(!m.codeType.inline||m.codeType.segments.some(el=>el.height<36||el.fontSize<12)))
+    throw Error('Code type label/choices must share a readable, accessible row '+scene.name+' '+width+'px');
   if(scene.tab==='tools'&&m.iconButtons.some(b=>b.width<33.5||b.height<33.5||b.radius!=='8px'||!b.label||!b.title))
     throw Error('Icon action is not 34px accessible control '+scene.name+' '+width+'px '+JSON.stringify(m.iconButtons));
-  const expected={tasks:{taskCard:'12px'},'local-discover':{import:'8px',filter:'8px',filterGroup:'12px',list:'12px'},workflow:{card:'12px',icon:'8px'},develop:{page:'8px',editor:'12px'},tools:{card:'12px',install:'8px'}};
+  const expected={tasks:{taskCard:'12px'},'local-discover':{import:'8px',filter:'8px',filterGroup:'12px',list:'12px'},workflow:{card:'12px',icon:'8px'},develop:{page:'8px',editor:'12px'},tools:{card:'12px',install:'8px'},debug:{card:'12px',detail:'12px'}};
   // An empty task list intentionally has no card whose radius could be measured.
   if(scene.tab==='tasks'&&scene.state==='empty')delete expected.tasks.taskCard;
   for(const [key,value] of Object.entries(expected[scene.tab])){
@@ -296,6 +382,9 @@ try{
     readFile(join(root,'src/ui/tool-shell.css'),'utf8'),
     readFile(join(root,'src/ui/cloud-hosting.css'),'utf8')
   ]);
+  const sourceInputs=['src/ui/tool.html','src/ui/design-tokens.css','src/ui/design-system.css','src/ui/tool-shell.css','src/ui/cloud-hosting.css'];
+  const sha=value=>createHash('sha256').update(value).digest('hex');
+  const sourceBinding=[source,tokens,design,style,hostingStyle].map((contents,index)=>({path:sourceInputs[index],sha256:sha(contents)}));
   const html=source.replace(/<script src="tool-shell\.js"><\/script>/,'');
   if(html===source)throw Error('Expected script marker missing: refusing native JS execution in static fixture');
   server=createServer((req,res)=>{
@@ -319,7 +408,7 @@ try{
   if(nav.errorText)throw Error('Static navigation failed '+nav.errorText);
   let ready=false;
   for(let i=0;i<100;i++){
-    if(await evaluate('document.readyState==="complete" && document.styleSheets.length===3 && !!document.querySelector("#workbench-develop")')){ready=true;break}
+    if(await evaluate('document.readyState==="complete" && document.styleSheets.length===document.querySelectorAll("link[rel=stylesheet]").length && [...document.querySelectorAll("link[rel=stylesheet]")].every(link=>link.sheet) && !!document.querySelector("#workbench-develop")')){ready=true;break}
     await sleep(100);
   }
   if(!ready)throw Error('Real Sidebar HTML/CSS did not load in static Chrome');
@@ -328,17 +417,35 @@ try{
     await cdp('Emulation.setDeviceMetricsOverride',{width,height:700,deviceScaleFactor:1,mobile:false});
     for(const scene of scenes){
       await evaluate('('+setupScene.toString()+')('+JSON.stringify(scene)+','+JSON.stringify(officialReleases)+')');
+      if(scene.state==='cloud-open')await evaluate('document.querySelector("#cloud-hosting").scrollIntoView({block:"start"})');
       const m=await evaluate('('+measureScene.toString()+')('+JSON.stringify(scene)+')');
       validate(scene,width,m);
       samples.push({scene:scene.name,width,...m});
       const image=await cdp('Page.captureScreenshot',{format:'png',captureBeyondViewport:false,fromSurface:true});
       await writeFile(join(out,scene.name+'-'+width+'x700.png'),Buffer.from(image.data,'base64'));
-      console.log('SIDEBAR_R19_STATIC_LAYOUT_PASS',scene.name,width,JSON.stringify(m));
+      console.log('SIDEBAR_R19_STATIC_LAYOUT_PASS',scene.name,width);
     }
   }
+
+  // Coarse-pointer geometry only; this never claims a native touch event or zoom pass.
+  await cdp('Emulation.setTouchEmulationEnabled',{enabled:true,maxTouchPoints:1});
+  if(!await evaluate('matchMedia("(pointer:coarse)").matches'))throw Error('Coarse-pointer media emulation unavailable');
+  for(const width of [360,520]){
+    await cdp('Emulation.setDeviceMetricsOverride',{width,height:700,deviceScaleFactor:1,mobile:false});
+    for(const scene of scenes.filter(s=>['develop','workflow-settings','my-cloud-open','tools-installed','schedule-form'].includes(s.name))){
+      await evaluate('('+setupScene.toString()+')('+JSON.stringify(scene)+','+JSON.stringify(officialReleases)+')');
+      if(scene.state==='cloud-open')await evaluate('document.querySelector("#cloud-hosting").scrollIntoView({block:"start"})');
+      const m=await evaluate('('+measureScene.toString()+')('+JSON.stringify(scene)+')');validate(scene,width,m);
+      if(m.actionGroups.some(g=>g.buttons.some(b=>b.height<43.5))||m.iconButtons.some(b=>b.height<43.5||b.width<43.5)||m.codeType?.segments.some(s=>s.height<43.5))throw Error('Coarse pointer target below 44px '+scene.name);
+      samples.push({scene:scene.name,width,pointer:'coarse',...m});
+      const image=await cdp('Page.captureScreenshot',{format:'png',captureBeyondViewport:false,fromSurface:true});
+      await writeFile(join(out,scene.name+'-coarse-'+width+'x700.png'),Buffer.from(image.data,'base64'));
+    }
+  }
+  for(const item of sourceBinding)if(sha(await readFile(join(root,item.path)))!==item.sha256)throw Error('Relevant input drift '+item.path);
   await writeFile(join(out,'metrics.json'),JSON.stringify({
     evidence:'STATIC_MARKUP_CHROME',nativeExtension:false,nativeControlEvents:false,
-    source:'src/ui/tool.html + src/ui/design-tokens.css + src/ui/design-system.css + src/ui/tool-shell.css + src/ui/cloud-hosting.css',samples
+    source:'src/ui/tool.html + src/ui/design-tokens.css + src/ui/design-system.css + src/ui/tool-shell.css + src/ui/cloud-hosting.css',sourceBinding,inputsStable:true,samples
   },null,2)+'\n');
   console.log('SIDEBAR_R21_STATIC_STATES_ALL_PASS '+samples.length);
 }finally{

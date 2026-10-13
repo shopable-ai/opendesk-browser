@@ -19,8 +19,8 @@
   <div id="workbench-tasks" role="tabpanel" aria-labelledby="tab-my-tasks" class="od-page" data-workbench-page="tasks">
       <section class="tasks-surface" aria-label="已安装任务">
       <div class="task-section-head od-toolbar">
-        <strong>自动化任务</strong>
-        <div class="task-section-actions"><button id="schedule-open" type="button" class="od-icon-button" title="定时计划" aria-label="打开定时计划" aria-controls="scheduled-panel"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg></button><span id="task-installed-count" aria-live="polite"></span><button type="button" id="task-open-catalog" class="od-button" aria-label="打开任务目录添加任务">＋ 添加</button></div>
+        <div class="task-section-copy"><strong>自动化任务</strong><span id="task-installed-count" aria-live="polite"></span></div>
+        <div class="task-section-actions"><button id="schedule-open" type="button" class="od-icon-button" title="定时计划" aria-label="打开定时计划" aria-controls="scheduled-panel"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg></button><button type="button" id="task-open-catalog" class="od-button" aria-label="打开任务目录添加任务">＋ 添加</button></div>
       </div>
       <label for="task-installed-list" class="visually-hidden">已安装任务</label><select id="task-installed-list" hidden class="od-field"><option value="">读取已安装任务…</option></select>
       <div id="task-installed-cards" class="task-card-list od-stack" aria-label="已安装任务列表"></div>
@@ -609,7 +609,6 @@
             <div class="workflow-chat-mark" aria-hidden="true">✦</div>
             <h3 id="workflow-ai-title">想自动完成什么操作？</h3>
             <p>描述需求，整理成可复用的操作步骤。</p>
-            <button type="button" id="workflow-manual-start" class="workflow-text-action od-button od-button--quiet">手动创建步骤</button>
           </div>
           <div id="workflow-ai-transcript" class="workflow-chat-transcript" role="log" aria-label="AI 规划对话记录" aria-live="polite" hidden></div>
           <p id="workflow-planning-indicator" class="workflow-planning-indicator" role="status" hidden>✦ 正在整理可检查的语义步骤…</p>
@@ -687,8 +686,8 @@
         <details id="workflow-provider-settings" class="workflow-provider">
           <summary>模型连接与数据发送授权</summary>
           <label for="workflow-ai-provider" class="od-field-label">AI 来源</label>
-          <select id="workflow-ai-provider" class="od-field"><option value="local_codex">本机 Codex</option><option value="custom_https">自定义 HTTPS 模型接口</option><option value="opendesk_cloud" disabled>OpenDesk 官方 AI（尚未开放）</option><option value="manual">手动创建，不使用 AI</option></select>
-          <p id="workflow-provider-scope" class="workflow-minor-note">使用已连接的 Codex 生成步骤。</p>
+          <select id="workflow-ai-provider" class="od-field"><option value="local_codex">本机 Codex</option><option value="custom_https">自定义 HTTPS 模型接口</option><option value="opendesk_cloud" disabled>OpenDesk 官方 AI（尚未开放）</option></select>
+          <p id="workflow-provider-scope" class="workflow-minor-note">本机 OpenDesk 管理 Codex Agent，模型推理可能联网，已同意的内容可能保存在 Codex 本机对话中。复用官方 CLI 登录，请勿填写 Codex 登录凭据。</p>
           <div id="workflow-local-settings">
             <p id="workflow-local-status" class="workflow-local-status" role="status" aria-live="polite">打开设置后检查本机状态。</p>
             <div class="workflow-actions"><button type="button" id="workflow-local-connect" class="od-button od-button--secondary">连接 OpenDesk</button><button type="button" id="workflow-local-refresh" class="od-button od-button--secondary">重新检查</button><button type="button" id="workflow-local-help" class="od-button od-button--secondary">本机连接设置 ↗</button></div>
@@ -719,7 +718,7 @@
       </div>
     </details>
   </section>
-  <section class="developer-editor" aria-label="JavaScript 开发">
+  <section class="developer-editor" aria-label="代码开发">
     <div id="developer-source-switch" class="developer-source-switch od-toolbar" role="group" aria-label="代码来源" data-mode="manual">
       <span>直接编辑</span>
       <label for="local-project-mode">
@@ -765,20 +764,21 @@
       <select id="program-source-files" hidden class="od-field"></select>
       <button type="button" id="program-new-script" title="创建可编辑的 JavaScript 草稿（退出当前只读源码视图）" aria-label="新建 JavaScript 草稿" hidden class="od-button od-button--secondary">新建</button>
     </div>
-    <div id="page-component-editor-tools" class="row">
+    <div id="page-component-editor-tools" class="od-toolbar">
       <fieldset id="page-component-framework" aria-describedby="page-component-hint">
-        <legend>代码类型</legend>
+        <legend class="visually-hidden">代码类型</legend>
+        <span class="page-component-label" aria-hidden="true">代码类型</span>
         <div class="page-component-choices od-segmented">
-          <label for="page-component-javascript"><input id="page-component-javascript" type="radio" name="page-component-choice" value="javascript" checked><span>JavaScript</span></label>
-          <label for="page-component-react"><input id="page-component-react" type="radio" name="page-component-choice" value="react"><span>React · JSX</span></label>
-          <label for="page-component-vue"><input id="page-component-vue" type="radio" name="page-component-choice" value="vue"><span>Vue · SFC</span></label>
+          <label for="page-component-javascript" title="JavaScript"><input id="page-component-javascript" type="radio" name="page-component-choice" value="javascript" aria-label="JavaScript" checked><span>JavaScript</span></label>
+          <label for="page-component-react" title="React · JSX"><input id="page-component-react" type="radio" name="page-component-choice" value="react" aria-label="React JSX"><span>React</span></label>
+          <label for="page-component-vue" title="Vue · SFC"><input id="page-component-vue" type="radio" name="page-component-choice" value="vue" aria-label="Vue SFC"><span>Vue</span></label>
         </div>
       </fieldset>
-      <span id="page-component-hint" class="hint">保存草稿不会运行网页</span>
     </div>
-    <label for="script-source" class="visually-hidden">JavaScript、React JSX 或 Vue SFC 源码编辑器</label><textarea id="script-source" rows="6" spellcheck="false" class="od-field">async function main() {
+    <label for="script-source" class="visually-hidden">JavaScript、React JSX 或 Vue SFC 源码编辑器</label><textarea id="script-source" rows="6" wrap="off" spellcheck="false" autocapitalize="off" class="od-field">async function main() {
   return {title: await page.title(), url: await page.url(), value: params.value};
 }</textarea>
+    <p id="page-component-hint" class="hint">保存草稿不会运行网页</p>
     <details id="page-dependency-panel" class="od-stack od-disclosure od-disclosure--flat" aria-label="第三方 Classic JS 依赖固定详情" hidden>
       <summary>第三方 JS 依赖 · 自动固定与缓存（高级详情）</summary>
       <p id="page-dependency-status" role="status" aria-live="polite">点击运行会自动固定安全依赖；这里仅显示高级详情。</p>

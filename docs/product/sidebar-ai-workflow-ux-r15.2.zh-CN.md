@@ -1,5 +1,7 @@
 # OpenDesk Browser R15.2：AI 工作流 Side Panel 多状态与对话优先设计合同
 
+> 2026-10-13 用户更新：[对话执行与工作流保存合同](conversation-first-browser-task-contract.zh-CN.md) 规定先通过对话完成真实浏览器任务，之后按需整理与保存工作流。本文的“规划→采用→运行”保留为旧流程说明，不再是首次完成任务的强制产品路径；底层安全与真实结果合同继续有效。
+
 > 2026-10-10。取代 R15.1 中“把全部表单顺序排列”的可见 UI 布局；不替代其 WorkflowDefinition、Compiler、RunHost、Task v1 安全协议。原型是 UI_SIMULATION，不能作为真实 AI、Chrome、保存或安装证据。
 
 ## R15.3 精简首屏（2026-10-10）
