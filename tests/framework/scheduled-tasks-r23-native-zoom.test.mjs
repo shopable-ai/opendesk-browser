@@ -250,6 +250,21 @@ test('actual installed Chrome runner zooms at 125%, 150%, 200% with keyboard and
   assert(timezone.help.includes('选择下拉项'),'real form explains non-destructive search');
   report.timezoneSearch={...timezone,cssViewport:320,inputMethod:'real CDP Input.insertText'};
   report.screenshots.push(await snapshot(client,session,'runner-timezone-filter-320'));
+  // Genuine Chrome invalid-form interaction; fresh isolated Profile has no
+  // installed verified Task. The original two-step approval must stay closed.
+  await click(client,session,'#schedule-save');
+  const invalid=await evaluate(client,'(()=>({'+
+    'error:document.querySelector("#schedule-task-error").textContent,'+
+    'ariaInvalid:document.querySelector("#schedule-task-select").getAttribute("aria-invalid"),'+
+    'focus:document.activeElement?.id||null,'+
+    'confirmed:!document.querySelector("#schedule-save-confirm").hidden'+
+    '}))()',session);
+  assert.match(invalid.error,/请选择已验证、已安装且已启用的任务/);
+  assert.equal(invalid.ariaInvalid,'true');
+  assert.equal(invalid.focus,'schedule-task-select');
+  assert.equal(invalid.confirmed,false,'invalid draft cannot enter approval step');
+  report.invalidForm={...invalid,cssViewport:320,inputMethod:'real CDP wheel/pointer'};
+  report.screenshots.push(await snapshot(client,session,'runner-invalid-task-form-320'));
   await click(client,session,'#schedule-back');
   const leaveReview=await evaluate(client,'(()=>({'+
     'dialog:!document.querySelector("#schedule-discard-confirm").hidden,'+
