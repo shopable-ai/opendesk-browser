@@ -5,7 +5,7 @@ import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE,sidebarToolEnable
 import {writeVerifiedLocalValue} from '../ui/sidebar-tools/storage-state.js';
 import {isReadingTocToolSender} from '../reading-toc/page.js';
 import {FOCUS_ID,FOCUS_STORE,FOCUS_PROTOCOL,FOCUS_CAPABILITY,FOCUS_ALARM,FOCUS_SESSION,
-  FOCUS_OPERATIONS,FOCUS_MAX_SITES,focusPackageHash,focusHost,focusNextMidnight,focusError} from './policy.js';
+  FOCUS_OPERATIONS,FOCUS_MAX_SITES,focusPackageHash,focusHost,focusNextMidnight,focusRemovedOriginAffectsSite,focusError} from './policy.js';
 import {readFocus,emptyFocus,focusSite,focusSchedule,focusMatchingSite,focusReason,
   focusSummary,settleFocus} from './model.js';
 import {wantedFocusRules,reconcileFocusRules,clearFocusRules} from './rule-host.js';
@@ -151,7 +151,7 @@ export function createStayFocusService({api=globalThis.chrome,lockManager=global
     }
     return {moved,failed};
   }
-  async function reconcileLocked({boot=false,operation='focus.status',payload={},auth=null,validateHost=null}={}){
+  async function reconcileLocked({boot=false,operation='focus.status',payload={},auth=null,validateHost=null,removedOrigins=[]}={}){
     const at=now(),startGeneration=generation,wasRevoked=revoked;
     auth??=await authority();
     if(!auth.tool){
@@ -172,6 +172,18 @@ export function createStayFocusService({api=globalThis.chrome,lockManager=global
       if(await api.permissions.contains({permissions:['declarativeNetRequestWithHostAccess']}))
         await clearFocusRules(api);
       throw cause;
+    }
+    // A Chrome site-access revocation applies only to intersecting restrictions.
+    // Keep other sites and Time Review completely independent. Regranting Chrome
+    // host access must not silently re-enable previously revoked restrictions.
+    if(Array.isArray(removedOrigins)&&removedOrigins.length){
+      let affected=false;
+      for(const site of state.sites){
+        if(site.enabled&&removedOrigins.some(origin=>focusRemovedOriginAffectsSite(origin,site))){
+          site.enabled=false;affected=true;
+        }
+      }
+      if(affected)state.checkpoint=null;
     }
     let permissions;
     try{permissions=await permissionStatus();}
@@ -274,9 +286,11 @@ export function installStayFocusService({api=globalThis.chrome,...options}={}){
   listen(api.windows.onFocusChanged,activity);
   listen(api.idle?.onStateChanged,activity);
   listen(api.permissions.onRemoved,removed=>{
-    service.invalidate({revoke:Boolean(removed?.permissions?.some(name=>['idle','declarativeNetRequestWithHostAccess'].includes(name))||
-      removed?.origins?.length)});
-    run();
+    const nativeRevoked=Boolean(removed?.permissions?.some(name=>
+      ['idle','declarativeNetRequestWithHostAccess'].includes(name)));
+    const removedOrigins=Array.isArray(removed?.origins)?removed.origins.slice(0,128):[];
+    service.invalidate({revoke:nativeRevoked});
+    run({removedOrigins});
   });
   listen(api.permissions.onAdded,activity);
   listen(api.runtime.onStartup,()=>run({boot:true}));
