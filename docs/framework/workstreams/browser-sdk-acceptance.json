@@ -12,93 +12,39 @@
     "auditOnly": true
   },
   "summary": {
-    "operationCount": 35,
+    "operationCount": 26,
     "implementationCounts": {
       "IMPLEMENTED": 26,
-      "PLANNED": 7,
+      "PLANNED": 0,
       "HOST_ONLY": 0,
-      "NOT_EXPOSED": 2
+      "NOT_EXPOSED": 0
     },
     "callableVerified": 0
   },
   "candidateChecks": {
     "nodeTests": {
-      "status": "PASS",
-      "evidence": [
-        {
-          "path": "docs/framework/evidence/browser-sdk-r5/r5-ci-90239cd4.json",
-          "sha256": "191ba9eed5696ec6a44e61bdb0641dfeb5bf1182967527ce9252786188927b16",
-          "candidateSha": "90239cd4d2145f8055aa847854d252f3c93dae4a",
-          "caseId": "R5-nodeTests-ci",
-          "command": "node --test --test-reporter=spec (10 Browser SDK test files listed in .github/workflows/browser-sdk-r5.yml)",
-          "environment": "GitHub Actions ubuntu-latest, Node.js 22"
-        }
-      ]
+      "status": "NOT_TESTED",
+      "evidence": []
     },
     "check": {
-      "status": "PASS",
-      "evidence": [
-        {
-          "path": "docs/framework/evidence/browser-sdk-r5/r5-ci-90239cd4.json",
-          "sha256": "191ba9eed5696ec6a44e61bdb0641dfeb5bf1182967527ce9252786188927b16",
-          "candidateSha": "90239cd4d2145f8055aa847854d252f3c93dae4a",
-          "caseId": "R5-check-ci",
-          "command": "npm run check",
-          "environment": "GitHub Actions ubuntu-latest, Node.js 22"
-        }
-      ]
+      "status": "NOT_TESTED",
+      "evidence": []
     },
     "buildProduction": {
-      "status": "PASS",
-      "evidence": [
-        {
-          "path": "docs/framework/evidence/browser-sdk-r5/r5-ci-90239cd4.json",
-          "sha256": "191ba9eed5696ec6a44e61bdb0641dfeb5bf1182967527ce9252786188927b16",
-          "candidateSha": "90239cd4d2145f8055aa847854d252f3c93dae4a",
-          "caseId": "R5-buildProduction-ci",
-          "command": "npm run build",
-          "environment": "GitHub Actions ubuntu-latest, Node.js 22"
-        }
-      ]
+      "status": "NOT_TESTED",
+      "evidence": []
     },
     "buildDevelopment": {
-      "status": "PASS",
-      "evidence": [
-        {
-          "path": "docs/framework/evidence/browser-sdk-r5/r5-ci-90239cd4.json",
-          "sha256": "191ba9eed5696ec6a44e61bdb0641dfeb5bf1182967527ce9252786188927b16",
-          "candidateSha": "90239cd4d2145f8055aa847854d252f3c93dae4a",
-          "caseId": "R5-buildDevelopment-ci",
-          "command": "npm run build:dev",
-          "environment": "GitHub Actions ubuntu-latest, Node.js 22"
-        }
-      ]
+      "status": "NOT_TESTED",
+      "evidence": []
     },
     "buildSize": {
-      "status": "PASS",
-      "evidence": [
-        {
-          "path": "docs/framework/evidence/browser-sdk-r5/r5-ci-90239cd4.json",
-          "sha256": "191ba9eed5696ec6a44e61bdb0641dfeb5bf1182967527ce9252786188927b16",
-          "candidateSha": "90239cd4d2145f8055aa847854d252f3c93dae4a",
-          "caseId": "R5-buildSize-ci",
-          "command": "npm run build (strict WXT SW hard gate)",
-          "environment": "GitHub Actions ubuntu-latest, Node.js 22"
-        }
-      ]
+      "status": "NOT_TESTED",
+      "evidence": []
     },
     "verify": {
-      "status": "PASS",
-      "evidence": [
-        {
-          "path": "docs/framework/evidence/browser-sdk-r5/r5-ci-90239cd4.json",
-          "sha256": "191ba9eed5696ec6a44e61bdb0641dfeb5bf1182967527ce9252786188927b16",
-          "candidateSha": "90239cd4d2145f8055aa847854d252f3c93dae4a",
-          "caseId": "R5-verify-ci",
-          "command": "npm run verify",
-          "environment": "GitHub Actions ubuntu-latest, Node.js 22"
-        }
-      ]
+      "status": "NOT_TESTED",
+      "evidence": []
     },
     "nativeChromeGui": {
       "status": "NOT_TESTED",
@@ -137,7 +83,9 @@
   "currentLimitations": [
     "User Mac workspace not mounted in this execution environment",
     "Remote main is concurrently updated by other agents; conditional fast-forward only",
-    "Standalone 37 Node tests + 7 ledger tests from earlier isolated candidate are not native Chrome evidence"
+    "Standalone 37 Node tests + 7 ledger tests from earlier isolated candidate are not native Chrome evidence",
+    "R9 source changed; do not inherit R5 Node/build evidence as current proof",
+    "Current candidate Mac Chrome: NOT_TESTED"
   ],
   "operations": [
     {
@@ -1219,379 +1167,6 @@
       "evidence": []
     },
     {
-      "api": "browser.media.recording.prepare",
-      "module": "browser.media.recording",
-      "apiVersion": "1.0.0",
-      "implementation": "PLANNED",
-      "executionContexts": [
-        "sidebar-tool"
-      ],
-      "exposure": "DECLARED_NON_EXECUTABLE",
-      "inputSchema": "src/framework/sdk/browser-contract.js#browser.media.recording.prepare",
-      "outputSchema": "src/framework/sdk/browser-contract.js#browser.media.recording.prepare",
-      "chromePermissions": [],
-      "toolCapabilities": [
-        "browser.media.recording"
-      ],
-      "effectClass": "write",
-      "riskLevel": "high",
-      "siteScope": "visible-user-consent",
-      "lifecycle": "request",
-      "hostImplementation": null,
-      "sdkEntry": null,
-      "positiveTest": {
-        "status": "NOT_TESTED",
-        "evidence": []
-      },
-      "denialTest": {
-        "status": "NOT_TESTED",
-        "evidence": []
-      },
-      "nativeChrome": {
-        "status": "NOT_TESTED",
-        "evidence": []
-      },
-      "callableNowVerification": "NOT_TESTED",
-      "blockers": [
-        "Install capability, trusted Host RPC, permission revocation and native verification not completed"
-      ],
-      "nextTask": "Connect verified Host, install grants and user consent; test or remain PLANNED",
-      "commits": [],
-      "evidence": []
-    },
-    {
-      "api": "browser.media.recording.getStatus",
-      "module": "browser.media.recording",
-      "apiVersion": "1.0.0",
-      "implementation": "PLANNED",
-      "executionContexts": [
-        "sidebar-tool"
-      ],
-      "exposure": "DECLARED_NON_EXECUTABLE",
-      "inputSchema": "src/framework/sdk/browser-contract.js#browser.media.recording.getStatus",
-      "outputSchema": "src/framework/sdk/browser-contract.js#browser.media.recording.getStatus",
-      "chromePermissions": [],
-      "toolCapabilities": [
-        "browser.media.recording"
-      ],
-      "effectClass": "read",
-      "riskLevel": "medium",
-      "siteScope": "owned-session",
-      "lifecycle": "request",
-      "hostImplementation": null,
-      "sdkEntry": null,
-      "positiveTest": {
-        "status": "NOT_TESTED",
-        "evidence": []
-      },
-      "denialTest": {
-        "status": "NOT_TESTED",
-        "evidence": []
-      },
-      "nativeChrome": {
-        "status": "NOT_TESTED",
-        "evidence": []
-      },
-      "callableNowVerification": "NOT_TESTED",
-      "blockers": [
-        "Install capability, trusted Host RPC, permission revocation and native verification not completed"
-      ],
-      "nextTask": "Connect verified Host, install grants and user consent; test or remain PLANNED",
-      "commits": [],
-      "evidence": []
-    },
-    {
-      "api": "browser.media.recording.stop",
-      "module": "browser.media.recording",
-      "apiVersion": "1.0.0",
-      "implementation": "PLANNED",
-      "executionContexts": [
-        "sidebar-tool"
-      ],
-      "exposure": "DECLARED_NON_EXECUTABLE",
-      "inputSchema": "src/framework/sdk/browser-contract.js#browser.media.recording.stop",
-      "outputSchema": "src/framework/sdk/browser-contract.js#browser.media.recording.stop",
-      "chromePermissions": [],
-      "toolCapabilities": [
-        "browser.media.recording"
-      ],
-      "effectClass": "write",
-      "riskLevel": "medium",
-      "siteScope": "owned-session",
-      "lifecycle": "request",
-      "hostImplementation": null,
-      "sdkEntry": null,
-      "positiveTest": {
-        "status": "NOT_TESTED",
-        "evidence": []
-      },
-      "denialTest": {
-        "status": "NOT_TESTED",
-        "evidence": []
-      },
-      "nativeChrome": {
-        "status": "NOT_TESTED",
-        "evidence": []
-      },
-      "callableNowVerification": "NOT_TESTED",
-      "blockers": [
-        "Install capability, trusted Host RPC, permission revocation and native verification not completed"
-      ],
-      "nextTask": "Connect verified Host, install grants and user consent; test or remain PLANNED",
-      "commits": [],
-      "evidence": []
-    },
-    {
-      "api": "browser.media.recording.discard",
-      "module": "browser.media.recording",
-      "apiVersion": "1.0.0",
-      "implementation": "PLANNED",
-      "executionContexts": [
-        "sidebar-tool"
-      ],
-      "exposure": "DECLARED_NON_EXECUTABLE",
-      "inputSchema": "src/framework/sdk/browser-contract.js#browser.media.recording.discard",
-      "outputSchema": "src/framework/sdk/browser-contract.js#browser.media.recording.discard",
-      "chromePermissions": [],
-      "toolCapabilities": [
-        "browser.media.recording"
-      ],
-      "effectClass": "write",
-      "riskLevel": "medium",
-      "siteScope": "owned-session",
-      "lifecycle": "request",
-      "hostImplementation": null,
-      "sdkEntry": null,
-      "positiveTest": {
-        "status": "NOT_TESTED",
-        "evidence": []
-      },
-      "denialTest": {
-        "status": "NOT_TESTED",
-        "evidence": []
-      },
-      "nativeChrome": {
-        "status": "NOT_TESTED",
-        "evidence": []
-      },
-      "callableNowVerification": "NOT_TESTED",
-      "blockers": [
-        "Install capability, trusted Host RPC, permission revocation and native verification not completed"
-      ],
-      "nextTask": "Connect verified Host, install grants and user consent; test or remain PLANNED",
-      "commits": [],
-      "evidence": []
-    },
-    {
-      "api": "browser.speech.transcribe",
-      "module": "browser.speech",
-      "apiVersion": "1.0.0",
-      "implementation": "PLANNED",
-      "executionContexts": [
-        "sidebar-tool"
-      ],
-      "exposure": "DECLARED_NON_EXECUTABLE",
-      "inputSchema": "src/framework/sdk/browser-contract.js#browser.speech.transcribe",
-      "outputSchema": "src/framework/sdk/browser-contract.js#browser.speech.transcribe",
-      "chromePermissions": [],
-      "toolCapabilities": [
-        "browser.speech"
-      ],
-      "effectClass": "read",
-      "riskLevel": "high",
-      "siteScope": "explicit-audio",
-      "lifecycle": "request",
-      "hostImplementation": null,
-      "sdkEntry": null,
-      "positiveTest": {
-        "status": "NOT_TESTED",
-        "evidence": []
-      },
-      "denialTest": {
-        "status": "NOT_TESTED",
-        "evidence": []
-      },
-      "nativeChrome": {
-        "status": "NOT_TESTED",
-        "evidence": []
-      },
-      "callableNowVerification": "NOT_TESTED",
-      "blockers": [
-        "Out of current voice-control scope; explicit approval required"
-      ],
-      "nextTask": "Connect verified Host, install grants and user consent; test or remain PLANNED",
-      "commits": [],
-      "evidence": []
-    },
-    {
-      "api": "browser.speech.speak",
-      "module": "browser.speech",
-      "apiVersion": "1.0.0",
-      "implementation": "PLANNED",
-      "executionContexts": [
-        "sidebar-tool"
-      ],
-      "exposure": "DECLARED_NON_EXECUTABLE",
-      "inputSchema": "src/framework/sdk/browser-contract.js#browser.speech.speak",
-      "outputSchema": "src/framework/sdk/browser-contract.js#browser.speech.speak",
-      "chromePermissions": [],
-      "toolCapabilities": [
-        "browser.speech"
-      ],
-      "effectClass": "write",
-      "riskLevel": "medium",
-      "siteScope": "user-output",
-      "lifecycle": "request",
-      "hostImplementation": null,
-      "sdkEntry": null,
-      "positiveTest": {
-        "status": "NOT_TESTED",
-        "evidence": []
-      },
-      "denialTest": {
-        "status": "NOT_TESTED",
-        "evidence": []
-      },
-      "nativeChrome": {
-        "status": "NOT_TESTED",
-        "evidence": []
-      },
-      "callableNowVerification": "NOT_TESTED",
-      "blockers": [
-        "Out of current voice-control scope; explicit approval required"
-      ],
-      "nextTask": "Connect verified Host, install grants and user consent; test or remain PLANNED",
-      "commits": [],
-      "evidence": []
-    },
-    {
-      "api": "browser.speech.stop",
-      "module": "browser.speech",
-      "apiVersion": "1.0.0",
-      "implementation": "PLANNED",
-      "executionContexts": [
-        "sidebar-tool"
-      ],
-      "exposure": "DECLARED_NON_EXECUTABLE",
-      "inputSchema": "src/framework/sdk/browser-contract.js#browser.speech.stop",
-      "outputSchema": "src/framework/sdk/browser-contract.js#browser.speech.stop",
-      "chromePermissions": [],
-      "toolCapabilities": [
-        "browser.speech"
-      ],
-      "effectClass": "write",
-      "riskLevel": "low",
-      "siteScope": "owned-session",
-      "lifecycle": "request",
-      "hostImplementation": null,
-      "sdkEntry": null,
-      "positiveTest": {
-        "status": "NOT_TESTED",
-        "evidence": []
-      },
-      "denialTest": {
-        "status": "NOT_TESTED",
-        "evidence": []
-      },
-      "nativeChrome": {
-        "status": "NOT_TESTED",
-        "evidence": []
-      },
-      "callableNowVerification": "NOT_TESTED",
-      "blockers": [
-        "Out of current voice-control scope; explicit approval required"
-      ],
-      "nextTask": "Connect verified Host, install grants and user consent; test or remain PLANNED",
-      "commits": [],
-      "evidence": []
-    },
-    {
-      "api": "browser.notifications.create",
-      "module": "browser.notifications",
-      "apiVersion": "1.0.0",
-      "implementation": "NOT_EXPOSED",
-      "executionContexts": [
-        "sidebar-tool"
-      ],
-      "exposure": "NOT_EXPOSED",
-      "inputSchema": "src/framework/sdk/browser-contract.js#browser.notifications.create",
-      "outputSchema": "src/framework/sdk/browser-contract.js#browser.notifications.create",
-      "chromePermissions": [
-        "notifications"
-      ],
-      "toolCapabilities": [
-        "browser.notifications"
-      ],
-      "effectClass": "write",
-      "riskLevel": "medium",
-      "siteScope": "none",
-      "lifecycle": "request",
-      "hostImplementation": null,
-      "sdkEntry": null,
-      "positiveTest": {
-        "status": "NOT_TESTED",
-        "evidence": []
-      },
-      "denialTest": {
-        "status": "NOT_TESTED",
-        "evidence": []
-      },
-      "nativeChrome": {
-        "status": "NOT_TESTED",
-        "evidence": []
-      },
-      "callableNowVerification": "NOT_TESTED",
-      "blockers": [
-        "Product security boundary: no ordinary tool exposure"
-      ],
-      "nextTask": "Maintain restricted status with denial tests",
-      "commits": [],
-      "evidence": []
-    },
-    {
-      "api": "browser.notifications.clear",
-      "module": "browser.notifications",
-      "apiVersion": "1.0.0",
-      "implementation": "NOT_EXPOSED",
-      "executionContexts": [
-        "sidebar-tool"
-      ],
-      "exposure": "NOT_EXPOSED",
-      "inputSchema": "src/framework/sdk/browser-contract.js#browser.notifications.clear",
-      "outputSchema": "src/framework/sdk/browser-contract.js#browser.notifications.clear",
-      "chromePermissions": [
-        "notifications"
-      ],
-      "toolCapabilities": [
-        "browser.notifications"
-      ],
-      "effectClass": "write",
-      "riskLevel": "low",
-      "siteScope": "none",
-      "lifecycle": "request",
-      "hostImplementation": null,
-      "sdkEntry": null,
-      "positiveTest": {
-        "status": "NOT_TESTED",
-        "evidence": []
-      },
-      "denialTest": {
-        "status": "NOT_TESTED",
-        "evidence": []
-      },
-      "nativeChrome": {
-        "status": "NOT_TESTED",
-        "evidence": []
-      },
-      "callableNowVerification": "NOT_TESTED",
-      "blockers": [
-        "Product security boundary: no ordinary tool exposure"
-      ],
-      "nextTask": "Maintain restricted status with denial tests",
-      "commits": [],
-      "evidence": []
-    },
-    {
       "api": "browser.operations.getStatus",
       "module": "browser.operations",
       "apiVersion": "1.0.0",
@@ -1694,6 +1269,111 @@
       "nodeHost": "PASS",
       "build": "PASS",
       "nativeMacChrome": "NOT_TESTED"
+    }
+  },
+  "prelaunchR9": {
+    "policy": "BREAKING_CHANGE_ALLOWED_NO_EXTERNAL_SDK_USERS",
+    "removedDevelopmentOnlyApi": [
+      "browser.media.recording.prepare",
+      "browser.media.recording.getStatus",
+      "browser.media.recording.stop",
+      "browser.media.recording.discard",
+      "browser.speech.transcribe",
+      "browser.speech.speak",
+      "browser.speech.stop",
+      "browser.notifications.create",
+      "browser.notifications.clear"
+    ],
+    "history": "Old R5 counts remain historical only",
+    "implementationEvidence": "NOT_TESTED_AGAINST_CURRENT_CANDIDATE",
+    "nativeChrome": "NOT_TESTED"
+  },
+  "legacyCandidateChecks": {
+    "nodeTests": {
+      "status": "PASS",
+      "evidence": [
+        {
+          "path": "docs/framework/evidence/browser-sdk-r5/r5-ci-90239cd4.json",
+          "sha256": "191ba9eed5696ec6a44e61bdb0641dfeb5bf1182967527ce9252786188927b16",
+          "candidateSha": "90239cd4d2145f8055aa847854d252f3c93dae4a",
+          "caseId": "R5-nodeTests-ci",
+          "command": "node --test --test-reporter=spec (10 Browser SDK test files listed in .github/workflows/browser-sdk-r5.yml)",
+          "environment": "GitHub Actions ubuntu-latest, Node.js 22"
+        }
+      ]
+    },
+    "check": {
+      "status": "PASS",
+      "evidence": [
+        {
+          "path": "docs/framework/evidence/browser-sdk-r5/r5-ci-90239cd4.json",
+          "sha256": "191ba9eed5696ec6a44e61bdb0641dfeb5bf1182967527ce9252786188927b16",
+          "candidateSha": "90239cd4d2145f8055aa847854d252f3c93dae4a",
+          "caseId": "R5-check-ci",
+          "command": "npm run check",
+          "environment": "GitHub Actions ubuntu-latest, Node.js 22"
+        }
+      ]
+    },
+    "buildProduction": {
+      "status": "PASS",
+      "evidence": [
+        {
+          "path": "docs/framework/evidence/browser-sdk-r5/r5-ci-90239cd4.json",
+          "sha256": "191ba9eed5696ec6a44e61bdb0641dfeb5bf1182967527ce9252786188927b16",
+          "candidateSha": "90239cd4d2145f8055aa847854d252f3c93dae4a",
+          "caseId": "R5-buildProduction-ci",
+          "command": "npm run build",
+          "environment": "GitHub Actions ubuntu-latest, Node.js 22"
+        }
+      ]
+    },
+    "buildDevelopment": {
+      "status": "PASS",
+      "evidence": [
+        {
+          "path": "docs/framework/evidence/browser-sdk-r5/r5-ci-90239cd4.json",
+          "sha256": "191ba9eed5696ec6a44e61bdb0641dfeb5bf1182967527ce9252786188927b16",
+          "candidateSha": "90239cd4d2145f8055aa847854d252f3c93dae4a",
+          "caseId": "R5-buildDevelopment-ci",
+          "command": "npm run build:dev",
+          "environment": "GitHub Actions ubuntu-latest, Node.js 22"
+        }
+      ]
+    },
+    "buildSize": {
+      "status": "PASS",
+      "evidence": [
+        {
+          "path": "docs/framework/evidence/browser-sdk-r5/r5-ci-90239cd4.json",
+          "sha256": "191ba9eed5696ec6a44e61bdb0641dfeb5bf1182967527ce9252786188927b16",
+          "candidateSha": "90239cd4d2145f8055aa847854d252f3c93dae4a",
+          "caseId": "R5-buildSize-ci",
+          "command": "npm run build (strict WXT SW hard gate)",
+          "environment": "GitHub Actions ubuntu-latest, Node.js 22"
+        }
+      ]
+    },
+    "verify": {
+      "status": "PASS",
+      "evidence": [
+        {
+          "path": "docs/framework/evidence/browser-sdk-r5/r5-ci-90239cd4.json",
+          "sha256": "191ba9eed5696ec6a44e61bdb0641dfeb5bf1182967527ce9252786188927b16",
+          "candidateSha": "90239cd4d2145f8055aa847854d252f3c93dae4a",
+          "caseId": "R5-verify-ci",
+          "command": "npm run verify",
+          "environment": "GitHub Actions ubuntu-latest, Node.js 22"
+        }
+      ]
+    },
+    "nativeChromeGui": {
+      "status": "NOT_TESTED",
+      "evidence": []
+    },
+    "nativeChromeWorker": {
+      "status": "NOT_TESTED",
+      "evidence": []
     }
   }
 }
