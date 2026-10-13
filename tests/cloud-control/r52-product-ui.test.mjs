@@ -93,3 +93,30 @@ test('local Stop does not claim Provider confirmation while remote suspend is pe
     assert.equal(f.get('cloud-stop').disabled,true);
   }finally{view.dispose();}
 });
+
+test('trusted Cloud requests show readable Task names without exposing raw request IDs, URLs or result data',async()=>{
+  const f=surface();
+  const client={cloud:{cloudStatus:async()=>({provider:{providerId:'p'},
+    enabled:false,connection:'offline',online:false,reconciled:false,
+    tasks:[],hostReady:true,slotAvailable:true,requestTotal:2,
+    requests:[
+      {taskTitle:'表单填写',requestId:'SECRET-RUN-1',state:'finished',
+        runState:'completed',retirementState:'released',receipt:true,
+        params:{name:'PRIVATE_NAME'}},
+      {taskTitle:'关键词搜索',requestId:'SECRET-RUN-2',state:'OUTCOME_UNKNOWN',
+        runState:'paused_unknown',retirementState:null,receipt:null,
+        target:{url:'https://PRIVATE_SEARCH_URL'}}
+    ]}),cloudNext:async()=>{throw Error('Stopped hosting cannot claim');}},
+    request:async()=>({catalog:[],installed:[]})};
+  const view=createCloudHosting({client,host:{executionPending:false},document:f.document,api:{}});
+  try{
+    for(let i=0;i<8;i++)await flush();
+    const rows=f.get('cloud-request-samples').children;
+    assert.equal(rows.length,2);
+    assert.match(rows[0].children[0].textContent,/关键词搜索.*结果待核对/);
+    assert.match(rows[1].children[0].textContent,/表单填写.*已完成/);
+    const rendered=rows.map(row=>row.children.map(n=>n.textContent).join(' ')).join(' ');
+    for(const secret of ['SECRET-RUN','PRIVATE_NAME','PRIVATE_SEARCH_URL'])
+      assert.equal(rendered.includes(secret),false,secret);
+  }finally{view.dispose();}
+});
