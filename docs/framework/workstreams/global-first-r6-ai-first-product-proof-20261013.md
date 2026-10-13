@@ -56,3 +56,12 @@
 选 **OPP-059 / EXP-001** 做首个合法自有页面任务。优先观察实际第一次成功时间、人工点击/编辑次数、错误/误提交、两次自然复用是否发生、撤权后的行为、模型调用与维护费用；没有数据不填写“节省时间”数字。正式竞争对照先使用 Axiom.ai 的最佳自然流程，再评估 Google Chrome Skills、Claude in Chrome、ScriptCat、UiPath、Playwright + Tampermonkey。所有未实测竞品保持 `NOT_TESTED`，不能借竞争对象覆盖数宣称世界/区域/任务第一。
 
 **继续投资条件**：至少一个非开发团队真实许可的用户重复同任务并愿意继续使用，且有完整同包原生 Run 回执；否则收敛为内部工具，不凭空扩成面向公众平台。
+
+## 2026-10-13 竞品官方发布事实校正（不等于独立产品试用）
+
+- **UiPath Delegate**：官方 [2026-08-25 Public Preview](https://docs.uipath.com/delegate/standalone/latest/release-notes/august-2026)，但 [2026-09-22 GA](https://docs.uipath.com/delegate/standalone/latest/release-notes/september-2026) 已支持企业内分享 Routines/Skills 及集中治理；不能仍以仅预览版对比。GA 日期与“最新稳定版本发布日期”是不同语义，不能伪造后者。
+- **Claude in Chrome**：官方 [2026-08-26 宣布面向付费计划 GA](https://claude.com/resources/articles/claude-in-chrome-generally-available)，[帮助中心](https://support.claude.com/en/articles/12012173-get-started-with-claude-in-chrome) 记录 workflow/shortcut 与定时复用；快捷方式反复调模型与固定 JS 无模型运行是不同合同，尚未同机测算价格。
+- **ScriptCat**：官方 [1.5.0-beta.4（2026-09-18）](https://docs.scriptcat.org/en/docs/change/beta-changelog/) 已有源码全屏查看、安装/升级权限差异审阅，并从更早 Beta 有 Agent/MCP。**这不属于其 stable 1.4.0**，但足以反驳“安装前源码可看 + 权限变化提示”为全球首创。
+- **Axiom.ai**：[官方 Claude Skill 指南](https://axiom.ai/docs/claude-skill/) 已支持从自然语言生成可保存的无代码自动化，或使用 `@axiom_ai/api` 的 Node 脚本，依赖账户、运行方式和费用需按真实模式公平比较。
+
+这些是来源核查，不是我们亲测：全部竞品 `independentBenchmark=NOT_TESTED`；OpenDesk 的 `GF-007` 仍 `NOT_APPROVED`。只有“真实同一源码包、无模型重复执行、公开/可审核版本、可撤权、具体成本与故障恢复”在双方同任务、真实样本下获证据，才可讲限定竞争优势。

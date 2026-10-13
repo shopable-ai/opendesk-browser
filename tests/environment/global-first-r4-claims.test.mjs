@@ -55,6 +55,13 @@ test('R4 competitor timeline maintains unique names, separate release channels a
   assert.ok(violentmonkey?.r4FeatureTimeline?.some(row => row.firstPublicFeatureAt === '2026-10-10' && row.channel === 'BETA'));
   assert.equal(uipath?.latestPreviewAt, '2026-08-25');
   assert.equal(uipath?.latestStableAt, null);
+  assert.equal(uipath?.generallyAvailableSince,'2026-09-22',
+    'August preview cannot obscure official September GA');
+  assert.ok(uipath.verifiedSources.some(url=>url.endsWith('/september-2026')));
+  const claude=timeline.competitors.find(row=>row.id==='claude-in-chrome');
+  assert.equal(claude?.generallyAvailableSince,'2026-08-26');
+  assert.ok(scriptcat.r4FeatureTimeline.some(row=>row.channel==='BETA' &&
+    row.feature.includes('full-screen code viewer')));
   assert.equal(browseros?.latestStableAt, null); // BrowserClaw component != full browser release
   assert.ok(timeline.competitors.every(row => row.verifiedSources?.length > 0));
 });

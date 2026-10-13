@@ -24,7 +24,7 @@
 
 ## 公平的最强竞争反例
 
-Axiom Claude Skill 已可生成并导入 Chrome automation 并调度；UiPath Delegate 2026-08-25 Public Preview 有可复用 Routines 和审批；ScriptCat Beta 已有 Agent/MCP。
+Axiom 官方 Claude Skill 已提供可保存的 No-code Automation 与 Node 代码路径；UiPath Delegate 于 **2026-08-25 Public Preview、2026-09-22 正式 GA**，提供可复用 Routines 和企业治理；Claude in Chrome 于 **2026-08-26 宣布 GA**，可记录和重复模型工作流；ScriptCat **1.5.0-beta.4（2026-09-18）** 已支持安装前完整源码查看和权限差异。它们均构成真实反例，不能宣称“AI 工具可以保存复用、源码查看或安装权限提示”是全球首创。
 
 竞品可以使用自己合理的工具组合，不能因为第三方有外部开发流程就将其排除。本站未保存同机实际对比原始指标，竞争排名 **NOT_TESTED**。
 
