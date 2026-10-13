@@ -107,7 +107,7 @@ test('one Provider serves authenticated HTTPS/WSS and target-scoped client submi
       allowResult:false,label:'Unauthorized cross-browser grant'},
       otherExecutor.credential),{code:'E_CLOUD_STOPPED'});
     await assert.rejects(p('/v1/client-grant',{grantId,tasks:[searchPin],
-      allowResult:false,label:'Bad\\x00Label'},executor.credential),
+      allowResult:false,label:'Bad'+String.fromCharCode(0)+'Label'},executor.credential),
       {code:'E_CLIENT_SCOPE'},'Control characters cannot enter user-visible labels');
     await p('/v1/client-revoke',{clientId:self.clientId},executor.credential);
     await assert.rejects(p('/v1/submit',{requestKey:'revoked-self',...searchPin,
