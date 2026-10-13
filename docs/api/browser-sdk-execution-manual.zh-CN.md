@@ -113,6 +113,9 @@ rg -n "browser\.tabs\.(open|focus|closeOwned)|browser\.cookies\.getStores|browse
 
 任何命中都需要判断是**当前消费者**还是**有意保留的历史资料**，禁止盲目全局替换。旧设计若仍被当前测试、生成器或文档误当成 active contract，P1 必须修复。
 
+### R9 TabRef Same-URL Document 重新绑定防护（2026-10-13）
+自有标签的 `tabRef` 在首次经 `webNavigation.getFrame` 取得 active `documentId` 时固定该 Document。若同 URL 的新 Document 替换旧 Document，而 `tabs.onUpdated` 事件遗漏，也必须撤销旧 Ref；不可仅凭 `tabId` 与完整 URL 相等继续操作。特别是 `tabs.activateOwned` 需在 Native `tabs.update` **前后**复核同一 Document、同一已安装工具和 Origin；若 Chrome 已发生副作用而后置授权变化，报告 `E_OUTCOME_UNKNOWN`，不自动重试。旧 Ref 被撤销后仍不能重新认领，且不将真实 tabId 暴露给沙箱。本安全增强仅为 SOURCE_WIRED，尚未取得同候选原生 Chrome PASS。
+
 ## 6. Phase 0–7：固定源码与通过条件
 
 | 批次 | 精确目标与先决条件 | 必须满足的完成条件 |
