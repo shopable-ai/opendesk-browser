@@ -1,0 +1,66 @@
+name: R7.2 fresh Classic JS real Chrome A/B SHA reuse
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/r72-dependency-native-cft.yml'
+      - 'tests/framework/page-dependency-r72-cft-cycle.mjs'
+      - 'tests/framework/page-browser-worker-r243-cft.mjs'
+      - 'src/ui/page-dependency-install.js'
+      - 'src/ui/page-dependencies.js'
+      - 'src/scripting/user-scripts/dependency-manager.js'
+      - 'src/scripting/user-scripts/preview.js'
+      - 'src/ui/page-candidate-source.js'
+      - 'src/ui/script-editor.js'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  real-chrome-dependency:
+    strategy:
+      fail-fast: false
+      matrix:
+        edition: [standard, developer]
+    runs-on: macos-15
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Dependency review and isolation contract tests
+        run: |
+          node --test tests/environment/page-dependency-r71-ui.test.mjs tests/environment/dependency-manager.test.mjs tests/environment/page-dependencies-ui.test.mjs
+          npm run check
+      - name: Build and verify selected extension edition
+        shell: bash
+        run: |
+          if [[ "${{ matrix.edition }}" == "standard" ]]; then
+            npm run build
+            node scripts/verify-package.mjs dist/production production
+          else
+            npm run build:developer
+            node scripts/verify-package.mjs dist/production-developer production
+          fi
+      - uses: browser-actions/setup-chrome@v2
+        id: chrome
+        with:
+          chrome-version: '155.0.8059.39'
+      - name: True Chrome Side Panel new Marked UMD and B independent SHA approval
+        env:
+          CHROME_FOR_TESTING_BIN: '${{ steps.chrome.outputs.chrome-path }'
+          OPENDESK_R72_DEPENDENCY_NATIVE_SMOKE: '1'
+          OPENDESK_R243_BROWSER_FULL_UI: '1'
+          OPENDESK_R245_STANDARD_SMOKE: "${{ matrix.edition == 'standard' && '1' || '0' }"
+          OPENDESK_DEV_PACKAGE_DIR: "${{ matrix.edition == 'standard' && 'dist/production' || 'dist/production-developer' }"
+          OPENDESK_DEV_EVIDENCE: '.runtime/tests/r72-${{ matrix.edition }-chrome'
+          OPENDESK_DEV_CFT_LAUNCHER: '${{ github.workspace }}/tests/framework/cft-isolated-launcher.py'
+        run: node tests/framework/page-browser-worker-r243-cft.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: r72-classic-ab-${{ matrix.edition }-${{ github.sha }
+          path: .runtime/tests/r72-${{ matrix.edition }-chrome
+          if-no-files-found: warn
