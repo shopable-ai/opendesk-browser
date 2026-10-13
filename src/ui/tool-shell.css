@@ -1063,6 +1063,7 @@
 #workbench-cloud .cloud-clients{min-width:0;padding:var(--space-3);display:grid;gap:var(--space-3)}
 #workbench-cloud .cloud-clients>summary{cursor:pointer;min-height:36px;font-size:13px;font-weight:650;line-height:1.5}
 #workbench-cloud .cloud-clients>summary:focus-visible{outline:2px solid var(--od-brand);outline-offset:2px}
+#workbench-cloud .cloud-clients:not([open])>:not(summary){display:none!important}
 #workbench-cloud .cloud-clients .cloud-privacy-note{margin:0}
 #workbench-cloud .cloud-client-form{display:grid;grid-template-columns:minmax(0,1fr);gap:var(--space-2)}
 #workbench-cloud .cloud-client-form>label:not(.cloud-approval-confirm),
