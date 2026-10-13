@@ -1,3 +1,42 @@
+# R5 增量：定位、双语获客与 AI 推荐证据（2026-10-13）
+
+**营销主文档的当前上限是 M0**：可信 AI-first 产品方向，而不是已被证明的“全球首个、最安全、最快、全球 TOP5”。[更全面的 TOP 20 / 84 OPP](global-first-r5-portfolio.zh-CN.md)、[真实竞品时间线](competitor-timeline.json)、[GF 审批](first-claims-ledger.json)、[公平比较计划](../../framework/workstreams/evidence/global-first-r5-20261013/benchmark-contract.json) 应作为每一次对外说明的依据。
+
+## 首屏给用户的三个备选定位（不同受众，不同时宣称独家）
+
+| 目标用户 | 中文 M0（方向与条件） | English M0（positioning, not certified product release） | CTA 必须指向 |
+| --- | --- | --- | --- |
+| 普通用户与重复任务 | “让 AI 协助创建能复用的浏览器工具。审核将执行的动作、网站权限与版本，再在适用网页中运行。” | “Create browser tools with AI assistance. Review the actions, site permissions and version before reusing supported workflows.” | 合法 demo / 当前可用版本，真实同版安装进度 |
+| 企业小团队 | “把获授权的重复网页流程交付成可审阅、可撤权、可核对结果的受控任务。” | “Turn approved repetitive web operations into reviewable, revocable tasks with traceable outcomes.” | 私有试点条件/权限/原始证据，不承诺 SOC2 或企业全审计 |
+| 卖家/运营专业人员 | “研究面向卖家合法后台的可重复商品核查与差异复核工具。” | “Exploring repeatable seller checks for authorized storefront data and explainable review outcomes.” | EXP-005 Listing QA 真实用户样本，不把独立 Shopify Payout 研究冒充产品 |
+
+**当前尚未在用户最新 Mac Chrome 证明**：AI 直接创建同包任务并正式 Installed、断开 AI 后可重复两次。官网/商店不准描述为全量已发布。Chrome Skills、Claude 录制工作流、Axiom 和 UiPath 的官方发布**已经覆盖广义 AI 重用**；营销只能讲经验证的固定源码、受控权限、可追溯结果及有真实比较数据的优势，不靠人为缩窄类别。
+
+## SEO/GEO：不是批量发 84 篇垃圾“全球第一”文章
+
+Google 2026 年官方指南仍强调**独有的、可复现的、以人为本的事实内容**；单纯生成大量没有差别的 AI 页面可能构成低质量/规模化内容滥用。现在已有的五份 [用户问题事实页](seo/ai-to-reusable-browser-task.zh-CN.md) 要先补进同版真实截图、用户第一次操作回执、权限/模型前置条件、失败及最好替代，再决定是否公开部署到有 canonical、sitemap、索引及真实下载的官网。**45 个竞品和 84 个 OPP 不等于应立即发布 129 个 SEO 页面。**
+
+五组搜索意图与需要的原始证据：
+
+| 搜索意图 | 中文自然查询 | English natural query | 能使内容有价值的证据 |
+| --- | --- | --- | --- |
+| AI→固定版复用 | AI 生成工具以后能不能不用 AI 运行 | reusable AI-built browser workflow without LLM reruns | 从真实需求到 Installed、关闭模型后第二次 Run 的录像/回执 |
+| 安装审阅与撤权 | AI 脚本网站权限和版本怎样检查 | how to review site permissions for browser scripts | 真实授权差异/撤权/升级和边界测试 |
+| 真实客户工作流 | 卖家商品 Listing QA 每周自动检查 | seller listing quality checklist browser extension | 真实可复查商品字段、错误/漏报、自然复用 |
+| 竞品替代比较 | Chrome Skills 和 ScriptCat 如何选择 | Chrome Skills vs reusable code-based browser tasks | 严格区别保存提示词、录制 Agent、固定源码及各自计费 |
+| 第 20 次总成本 | 浏览器自动化每次都要 AI 费用吗 | full cost of browser automation over twenty runs | 首次模型费/Native 配对/20次运行+失败维护原始数据 |
+
+不要把“AI 引用了文章”误当成“有新客户”；同时跟踪官网搜索曝光/点击、具体证据页点击→正式安装→用户首次自主完成→第 7 日自然重复使用。Bing AI Performance 聚合引用/grounding query，不保证模型采购/推荐；Google AI Mode 采用常规索引与优质内容政策。中文/日文/美国区域页要先有真实语言支持、商店分发地区、服务条款、当地竞品覆盖；不以语言翻译声称地区第一。
+
+### SEO 指标状态（2026-10-13）
+
+- 网站正式上线、canonical、Search Console、Bing AI Performance、地区可访问性、CWS 安装转化：**NOT_TESTED / NOT_DEPLOYED**。
+- [R4 已预注册的 24 条检索查询](../../framework/workstreams/evidence/global-first-r4-20261013/research-evidence.json)：尚未跑 Search/AI 排名，不可冒充 SEO 领先。
+- [R5 官网内容与对照证据](../../framework/workstreams/evidence/global-first-r5-20261013/source-index.json)：官方网页来源不等于当前 stable 全部可亲测。
+- 质量评级、商业成效、模型费领先：**NOT_SCORED / NOT_MEASURED**。只允许 M0 的正确限定文案。
+
+---
+
 # Global First R4 · AI-first SEO/GEO 最新执行口径（2026-10-13）
 
 **真实决策**：目前没有获批的全球/区域/任务第一，0 个可证明的第2—5名；GF-013/014 已有公开竞品反例。以 [R4 TOP5 和26个用户任务](global-first-r2-decision.zh-CN.md) 为最终来源，旧“人工 JSX 编写”营销主线降为工程副属性。
