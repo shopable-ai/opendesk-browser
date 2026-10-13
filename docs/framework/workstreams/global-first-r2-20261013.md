@@ -1,5 +1,18 @@
 # Global First R4｜2026-10-13 真实研究与远端 main 交付
 
+## R5 同源输入复用核查与并行 UI 变化影响（2026-10-13）
+
+> 只读源树比较时 `main` 基线为 `cd8cefc5031491f3ad2a18f449b938a6302e28c8`。这是**精确文件 Blob SHA 比较**，没有访问用户 Mac，本轮未重新运行新的 CFT，也未抢别的任务的 Profile/Native/端口。
+
+- **Node 原已通过候选**：[Global First 综合组件 CI #38361795155](https://github.com/shopable-ai/opendesk-browser/actions/runs/38361795155)，固定 `438b423576d63ff021c77a55864cb04b79913e50`，原始 Job TAP 分别 `21/21 + 13/13 + 14/14 = 48/48 PASS`，分别覆盖研究/代码包约束、Task 服务组件、Workflow/本地安装组件。
+- **Node 到当前 main 输入核对**：选定 Task Service、Task Contract、Workflow Compiler/Contract、内置库身份/加载、Task 候选文件及 R5 相关测试共 13 路径，**9 路径 Blob 未变化、4 路径有变化/原来不存在**。变化的是 `src/ui/workflow/workflow-view.js`、`src/ui/task-workbench.js`、新 `src/ui/workflow/task-review-handoff.js` 和 R5 独占固定流程测试；因此仅保留原候选 Node PASS，**新 Side Panel 交接体验属于 AFFECTED_INPUTS，不能从旧 TAP 自动认定 UI 通过**。后续应复用已有 `tests/environment/workflow-task-review-handoff-r5.test.mjs` 和对应 UI/安装回归，不重建 Runner。
+- **真实 Chrome 到当前 main 输入核对**：对 [Linux CFT #38368328878](https://github.com/shopable-ai/opendesk-browser/actions/runs/38368328878) 的原 `5f2c2c229cf065d4fe70dd9ed852086bfcff6f1c` 与最新 main 的 16 项候选输入（Task Service/Contract/Scheduler/Host/编译器/原 Chrome 驱动/样本/受控构建器/锁），**15 项未变，`src/ui/scheduled-task-workbench.js` 已变**；其他扩展源码、构建输入也可能独立变化，因此不能把旧 physical packageHash 或该 GUI 原生 PASS 直接升级为“最新 main 最新包已验收”。原 1/1 真 Chrome 功能片段 PASS **永久保留在其原 SHA/真实包**。
+- **目前正确可复用结论**：既有 Task/Workflow 核心代码路径可复用，固定 Candidate、真实授权与 RunHost 并非需要新造的功能；但原生验证与 AI→真实模型→同一 sourceHash 安装→断开模型后两次用户 Run 的联合证据未被这两组独立测试覆盖。`MAC_USER_PROFILE=NOT_TESTED`，`REAL_AI_SAME_SOURCE_E2E=NOT_TESTED`，`CURRENT_MAIN_NATIVE_RELEASE=NEEDS_AFFECTED_INPUTS_REVIEW`。
+- **所有权与执行**：Native 专项继续由 [R5 Native Proof](global-first-r5-native-proof-20261013.md) 和现有 Scheduler/AI/安装工作流串行收敛；此工作流只保留竞争证据归属与不变输入复用说明，绝不把截图/Node 合成回执升级为原生执行或重置对方已验证候选。
+
+---
+
+
 ## R5 真实 Linux Chrome 固定版 Task 首次独立通过（2026-10-13）
 
 - **经过 GitHub 原始日志确认，而不是拼接不同来源的摘要**：[Linux CFT #38368328878](https://github.com/shopable-ai/opendesk-browser/actions/runs/38368328878) 在精确源码 `5f2c2c229cf065d4fe70dd9ed852086bfcff6f1c` 运行，**real Chrome 155.0.8059.39 / 生产包 SHA `f244dc3886ed8a182db2672747726e6aa1614d0713bb7ab13afe4c6246ae192f` / TAP 1 PASS、0 FAIL**。先前两次 #38367416844、#38367685071 是真实构建 FAIL（当时 Chrome 未启动），保留历史、不倒灌。
