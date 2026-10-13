@@ -71,7 +71,11 @@ test('Cookie Editor is an optional two-mode tool without private cookies API',as
     'live Cookie reads must be scoped through the formal public SDK');
   assert(s.source.includes("permission?.callableNow"));
   assert(s.html.includes('id="mode-browser"')&&s.html.includes('id="mode-offline"'));
-  assert(s.html.includes('id="read-live"')&&s.html.includes('id="target-url" data-sensitive="true"'));
+  assert(s.html.includes('id="refresh"')&&s.html.includes('id="target-url" data-sensitive="true"'));
+  assert(s.html.includes('id="target-selector"')&&!s.html.includes('id="sample"'),
+    'production UI must have a compact website picker and no synthetic demo loader');
+  assert(!s.source.includes('example.test'),
+    'no fictitious website may silently stand in for an unavailable browser page');
   assert(s.html.includes('id="browser-panel"')&&s.html.includes('id="cookie-content"'));
   assert(s.html.includes('id="live-search"')&&s.html.includes('id="live-filter"')&&
     s.html.includes('id="live-sort"'));
