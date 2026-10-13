@@ -32,7 +32,9 @@ test('Cloud keeps task consent primary and endpoint settings secondary',async()=
   assert.equal((panel.match(/id="cloud-hosting"/g)||[]).length,1);
   assert.match(css,/#workbench-cloud \.cloud-task-choice details/);
   assert.match(css,/@media\(max-width:340px\)\{#workbench-cloud \.cloud-action-row>button\{flex-basis:100%\}/);
-  assert.match(js,/technicalLabel\.textContent='高级：固定版本与安装身份'/);
+  assert.match(js,/technicalLabel\.textContent='查看授权状态与固定版本详情'/);
+  assert.match(js,/task\.requiresReapproval/);
+  assert.match(js,/先停止云控，再核对并重新批准/);
 });
 
 function surface(){
