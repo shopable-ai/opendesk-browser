@@ -365,8 +365,16 @@ async function runNative(){
     });
     await recordCase('download-start-and-complete',async()=>{
       await toolClick('#download-start');const summary=await approve();const start=await output('download-output');
-      assert(start.downloadRef&&!start.downloadId);await sleep(800);await toolClick('#download-status');
-      const result=await output('download-output');assert.equal(result.state,'complete');return {summary,start,result};
+      assert(start.downloadRef&&!start.downloadId);
+      const states=[];
+      const result=await deadline(async()=>{
+        await toolClick('#download-status');const state=await output('download-output');states.push(state);
+        assert.equal(state.downloadRef,start.downloadRef,'status must belong to the same started download');
+        assert(!state.downloadId&&!state.id,'native IDs must stay private');
+        if(state.state==='interrupted')throw Error('Native download interrupted: '+JSON.stringify(state));
+        return state.state==='complete'?state:null;
+      },'same owned native download complete',30000);
+      return {summary,start,states,result};
     });
     let installedTask;
     await recordCase('scheduler-fixed-task-install',async()=>{
