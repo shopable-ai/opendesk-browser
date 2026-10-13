@@ -103,3 +103,64 @@ R4 架构与验收清单：
 还可显式提供 --task、--version、--manifest-hash、--source-hash 取代 --package。传入目标必须是包 manifest 已批准网站 origin 内的规范化 HTTP(S) URL；参数必须通过该 Task 的闭合 Schema，同一 requestKey 同规范化内容返回原 Job，不同内容返回 E_REQUEST_CONFLICT。管理员 API 现在包含 /admin/register 和 /admin/tasks，原 /admin/seed 同时兼容固定表单和通用身份；Executor 不可通过 /v1 路由登记、上传或传递脚本。
 
 遗留原 Run/Result、retirement、Provider admission/receipt 和 OUTCOME_UNKNOWN 保护不变。Node HTTP/WebSocket 组件通过不等于真实 Chrome 已执行。对应 R5.1 工作流见 docs/framework/workstreams/cloud-control-r5-01-generic-task.md 和同名 JSON；必须获得两个不同 Controller Task 的真实 Worker 与 Run/Result 回执才可标记 NATIVE_PASS。
+
+## R5.2 · 指定浏览器的安全远端调用（本节覆盖 R5.1 的旧投递命令）
+
+**使用界面**：在「我的」安装、验证并启用 Task；在「云控」连接可信 Provider，选择一个或多个任务，核对固定网站 Origin、参数与版本，默认不勾选结果正文回传；点击「批准并启用」。Cloud 仍使用原 RunHost，Side Panel 关闭后不保证持续运行。
+
+**必须指定目标浏览器**：R5.1 上方没有 `--executor` 的 `seed` 示例现已过时。先在提供者管理终端执行 `executors` 查看已配对的 Executor ID，再由维护者向指定 ID 投递。浏览器只领取与当前 **Executor + Pairing + Grant** 同时匹配、且确实在本地安装批准的固定 Task；旧无归属队列不自动派发。
+
+```bash
+# Provider 管理员在其本机操作；以下是 127.0.0.1 演示，不是公网部署。
+node scripts/cloud-control/cli.mjs executors
+node scripts/cloud-control/cli.mjs register --package examples/tasks/form-fill.v1.opendesk-task.json
+node scripts/cloud-control/cli.mjs register --package examples/tasks/modern-search.v1.opendesk-task.json
+node scripts/cloud-control/cli.mjs seed --executor EXECUTOR_UUID \
+  --package examples/tasks/form-fill.v1.opendesk-task.json \
+  --target http://127.0.0.1:43111/demo-form.html \
+  --params '{"name":"Alice"}' --key r52-form-001
+node scripts/cloud-control/cli.mjs seed --executor EXECUTOR_UUID \
+  --package examples/tasks/modern-search.v1.opendesk-task.json \
+  --target http://127.0.0.1:43111/demo-form.html \
+  --params '{"keyword":"OpenDesk"}' --key r52-search-001
+```
+
+**实际外部 HTTPS/WSS**：Provider 可选在第二个 TLS listener 对外发布 `/v1/pair`、`/v1/auth`、`/v1/events`、`/v1/submit`、`/v1/job-status` 等受保护协议。管理接口始终限制于其本机 `127.0.0.1` 的 `/admin/*`；不能通过反向代理把 Admin 转发到公网。部署需要用户明确授权的可信 HTTPS 服务器、有效证书、网络 ACL、速率限制和凭据保管；仓库中的 Linux 本机 TLS 组件测试**不是公网原生 Chrome 验收**。
+
+```bash
+# 服务维护者：启动同一 Provider 的本机 Admin 和受保护 HTTPS/WSS。
+node scripts/cloud-control/cli.mjs provider --directory .local/cloud-control \
+  --port 43112 --public-port 443 --public-host 0.0.0.0 \
+  --tls-key /secure/provider.key --tls-cert /secure/provider.crt
+
+# 只在 Provider 本机管理终端创建受限外部客户端：
+# 明确指定目标 Executor、可投递的固定 Task Package、是否允许读取结果正文。
+# 凭据直接保存为模式 0600 的独立文件，不输出到普通终端日志。
+node scripts/cloud-control/cli.mjs client:grant --executor EXECUTOR_UUID \
+  --package examples/tasks/form-fill.v1.opendesk-task.json \
+  --allow-result false --token-out /secure/external-client.token
+
+# 如需为同一可信客户端授权两份 Task，可改用：
+# --packages examples/tasks/form-fill.v1.opendesk-task.json,examples/tasks/modern-search.v1.opendesk-task.json
+
+# 在获批准的外部系统中执行；目标必须是已安装 Task 所允许的网站。
+node scripts/cloud-control/cli.mjs submit:remote --url https://provider.example/ \
+  --token-file /secure/external-client.token \
+  --package examples/tasks/form-fill.v1.opendesk-task.json \
+  --params '{"name":"Alice"}' \
+  --target https://approved.example/form --key remote-user-action-001
+
+# 返回 {jobId} 后可用相同客户端凭据查询自己的任务状态。
+node scripts/cloud-control/cli.mjs status:remote --url https://provider.example/ \
+  --token-file /secure/external-client.token --job JOB_ID
+
+# 随时撤销外部客户端凭据。
+node scripts/cloud-control/cli.mjs client:list
+node scripts/cloud-control/cli.mjs client:revoke --client CLIENT_UUID
+```
+
+**双重结果授权**：Browser 用户对每个已安装 Task 选择 `resultAllowed`；Provider 管理员另在客户端 `--allow-result true` 中明确许可读取结果内容。两者都批准、任务按原授权完成并持有完整 Result receipt 时，`status:remote` 才可能返回 `result.valueWire` 或用户允许的错误正文。否则外部客户端只能读到它自己 Job 的最小状态和回执是否确认。另一个客户端的 Job 直接返回 `E_JOB`，不会暴露目标 URL、参数、网页、Cookie 或 Run ID。
+
+**不确定结果和撤权**：Provider 在收到合法终态 receipt 前，不能将已经 admitted 但租约过期或被取消的网页副作用重新投递；状态保守报告 `OUTCOME_UNKNOWN`。停止托管使本地授权失效；重新批准产生新授权代际，旧未领取队列隔离。解除配对需要确认 Provider 撤销，断线时不能假报远端凭据已失效。配对撤销或新的任务审批也会使相关旧客户端凭据失效。原始 Run/Result/receipt 历史不删。
+
+**验收等级**：R5.2 专属 `.github/workflows/cloud-control-r52-contract.yml` 对 Provider HTTP/HTTPS/WSS、双 Executor、隐私、Authority 和 Side Panel 组件做独立 CI；真实双 Task Chrome Worker、原始 Run/Result/retirement、Provider 回执、宽度/缩放截图和真实跨公网终端仍必须分别保存证据。状态见 `docs/framework/workstreams/cloud-control-r5-02-product-closure.{md,json}`。
