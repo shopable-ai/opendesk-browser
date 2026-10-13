@@ -31,11 +31,11 @@ AI 帮用户生成或选择一个 Controller Task → 用户验证、安装并�
 ### Job 归属、授权与结果合同
 
 - **唯一主体**：Provider UUID + 已配对 Executor UUID + 该 Executor 的 pairingId；不可仅按 TaskId、manifestHash/sourceHash 抢任务。
-- **Job 不可变主体**：`targetExecutorId` + `targetPairingId` + TaskId/version/manifestHash/sourceHash + 校验后参数/目标 Origin。配对撤销或重配不能继承旧 Job。
+- **Job 不可变主体**：`targetExecutorId` + `targetPairingId` + `targetGrantId` + TaskId/version/manifestHash/sourceHash + 校验后参数/目标 Origin。配对撤销或重配不能继承旧 Job。Browser 连接认证后通过 `/v1/capabilities` 同步现行 `grantId` 与已批准 Task；任务入队强制绑定这次托管代际。Stop 后重新批准生成新的 grantId，旧授权排队 Job 取消且保留证据，不可在新授权下复活；Provider admission/renew 也验证当前 grantId。
 - **请求幂等**：本机管理员请求按 Executor+pairingId+requestKey 分桶；HTTPS client 请求按 clientId+pairingId+requestKey 分桶。相同摘要复用原 JobId，变更参数或网站导致 `E_REQUEST_CONFLICT`；旧 `seed:requestKey` 保持历史不可重新指派。
 - **旧 Job 迁移**：已分配 Job 保留原归属（找不到有效配对则不能继续执行），已完成 Run/Result/receipt 不重写；未分配、无归属老 Job 保留数据库但不得 claim。
 - **Provider permit**：仍经原 /v1/claim → /v1/admission → 原 Task Resolver/Authority/RunHost/Worker。Admission 带明确 `resultAllowed`，Provider 禁止用无授权的 `full` receipt。
-- **结果与状态**：`status-only` 只允许 `visibility`, `state`, `retirementState` 三字段，且有原终态 durable Result 与已释放 Run；`full` 必须有该项 Task 明确 resultAllowed 且固定 RunRef 一致。外部调用客户端默认只收到 JobId，不直接获得网页内容或历史 Result。
+- **结果与状态**：`status-only` 只允许 `visibility`, `state`, `retirementState` 三字段，且有原终态 durable Result 与已释放 Run；`full` 必须有该项 Task 明确 resultAllowed 且固定 RunRef 一致。外部调用客户端默认只收到 JobId，不直接获得网页内容或历史 Result。公网可信 client 还受保守的持久化入队限制（同 client 最近 60 秒最多 60 项，最多 100 个待领取队列），同 requestKey 的幂等重试不消耗新队列配额；生产服务器另需边界层抗滥用限流。
 - **失效**：Stop 停本地许可及当前执行，Unpair 先 Stop 后远端撤销；撤销后旧 credential/WSS ticket 不能新接入，相关 client grant 失效。断网时本地停用成功，但解除配对远端确认未完成，不准伪称成功。
 - **未知副作用**：保留 `OUTCOME_UNKNOWN`，不在重连后猜测无副作用而再运行，不删除原 Run、Result、receipt。
 
@@ -50,6 +50,9 @@ AI 帮用户生成或选择一个 Controller Task → 用户验证、安装并�
 | `274ba710ece5d026aff4bd69eff539566746377e`, `373f8b698222b54489d704041d8dddb8db761d1b`, `5961cce5f7d1cd995af606da107856536109656b`, `73c7ee45f62e59e9ae01493f8dd2d5ad2bef803a` | 真实 Side Panel 任务优先布局、首次引导、结果许可文案、高级身份折叠、R27 token 响应式样式 | `SOURCE_IMPLEMENTED` |
 | `5dc467fbf401785d48cc0b904a1de8562465180a`, `dda54ec52d0f6e4f411b34328ec474b9bd66e45f`, `1318be2a85d6c26ab825c83d6634c5d99f83729c` | 同一 Provider 新增可选 HTTPS/WSS 监听、本地 Admin 与远端客户端硬隔离、按 Executor client grant/submit、CLI | `SOURCE_IMPLEMENTED` |
 | `50847960556e77d32513d7ccd68cf52f1d77e964` · `tests/cloud-control/remote-https-r52.test.mjs` | 本机受控 TLS HTTPS+WSS、错误鉴权/非法范围、重启与 client revoke 测试 | `SOURCE_IMPLEMENTED` |
+| `a31bc3ee454890c42c237e5a64991039425f4818`, `b1a5b51127d92a1943d7824fb35ede9fa6cf41c0`, `3d1284224b46c2c26ccb9c421b27d51ec4c7ee95` | Provider + Browser Cloud 授权 generation 精确绑定，旧队列按新的批准代际隔离 | `SOURCE_IMPLEMENTED` |
+| `df8be0483b37d58c894b0e2aad0535eeebd978a6` · 多 Executor 测试 | 旧授权排队 Job 在重审批后无法执行，新 grant claim 可运行 | `SOURCE_IMPLEMENTED` |
+| `80a00eeb75f5c0d19df74a842067ff81dd52b194` · Provider | 同 client 速率/待领取队列上限，不破坏同请求重试 | `SOURCE_IMPLEMENTED` |
 
 新增代码复用原 Provider/Task Package/Installer/Resolver/Authority/RunHost/Worker/Result/receipt 与 Cloud History Index。未碰共享 `controller-methods.js`、`broker.js`、`schedule-repository.js`，未建第二套调度/执行或权限数据库。
 
