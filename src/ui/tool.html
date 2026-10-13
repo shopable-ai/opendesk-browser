@@ -556,12 +556,12 @@
             <div class="workflow-chat-mark" aria-hidden="true">✦</div>
             <h3 id="workflow-ai-title">想自动完成什么操作？</h3>
             <p>描述需求，整理成可复用的操作步骤。</p>
-            <button type="button" id="workflow-manual-start" class="workflow-text-action">手动创建步骤</button>
+            <button type="button" id="workflow-manual-start" class="workflow-text-action od-button od-button--quiet">手动创建步骤</button>
           </div>
           <div id="workflow-ai-transcript" class="workflow-chat-transcript" role="log" aria-label="AI 规划对话记录" aria-live="polite" hidden></div>
           <p id="workflow-planning-indicator" class="workflow-planning-indicator" role="status" hidden>✦ 正在整理可检查的语义步骤…</p>
           <ol id="workflow-ai-progress" class="workflow-ai-progress" aria-label="Codex 实时规划进度" hidden></ol>
-          <section id="workflow-ai-approval" class="workflow-ai-approval" aria-labelledby="workflow-ai-approval-title" hidden>
+          <section id="workflow-ai-approval" class="workflow-ai-approval od-alert od-alert--warning" aria-labelledby="workflow-ai-approval-title" hidden>
             <h3 id="workflow-ai-approval-title">允许读取当前网页摘要？</h3>
             <p id="workflow-ai-approval-scope"></p>
             <div class="workflow-actions"><button type="button" id="workflow-ai-approve" class="od-button">允许读取并发送</button><button type="button" id="workflow-ai-deny" class="od-button od-button--secondary">拒绝</button></div>
@@ -576,7 +576,7 @@
           <div class="workflow-section-header od-toolbar"><h3>执行步骤</h3><span id="workflow-step-count">0 步</span></div>
           <div id="workflow-steps" class="workflow-steps" aria-label="工作流步骤列表"></div>
           <button type="button" id="workflow-add-step" class="workflow-add od-button od-button--secondary">＋ 添加步骤</button>
-          <p id="workflow-target-warning" class="workflow-target-warning" role="status" hidden></p>
+          <p id="workflow-target-warning" class="workflow-target-warning od-alert od-alert--warning" role="status" hidden></p>
         </section>
         <section id="workflow-params-panel" class="workflow-card workflow-run-settings od-surface" aria-label="工作流运行参数" hidden>
           <div class="workflow-section-header od-toolbar"><h3>运行前确认</h3><span>只影响本次运行</span></div>
