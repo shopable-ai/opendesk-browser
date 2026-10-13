@@ -10,7 +10,7 @@ test('Cloud keeps task consent primary and endpoint settings secondary',async()=
   const panel=html.slice(html.indexOf('id="workbench-cloud"'),
     html.indexOf('id="workbench-local-discover"'));
   const ids=['cloud-overview-state','cloud-first-run','cloud-approval-section',
-    'cloud-request-samples','cloud-hosting'].map(x=>panel.indexOf('id="'+x+'"'));
+    'cloud-request-samples','cloud-clients','cloud-hosting'].map(x=>panel.indexOf('id="'+x+'"'));
   assert(ids.every((x,i)=>x>=0&&(i===0||x>ids[i-1])));
   assert.match(panel,/网页数据和结果正文默认不回传/);
   for(const id of ['cloud-approval-summary','cloud-overview-state','cloud-status'])
@@ -18,6 +18,13 @@ test('Cloud keeps task consent primary and endpoint settings secondary',async()=
   assert.match(panel,/id="cloud-configure"/);
   assert.match(panel,/id="cloud-stop"/);
   assert.match(panel,/id="cloud-unpair"/);
+  assert.match(panel,/id="cloud-client-create"/);
+  assert.match(panel,/id="cloud-client-refresh"/);
+  assert.match(panel,/id="cloud-client-once"[^>]*hidden/);
+  assert.match(panel,/id="cloud-client-token"[^>]*readonly/);
+  assert.match(css,/#workbench-cloud \.cloud-client-row/);
+  assert.match(js,/cloud\.cloudClientGrant\(/);
+  assert.match(js,/cloud\.cloudClientRevoke\(/);
   assert.equal((panel.match(/id="cloud-hosting"/g)||[]).length,1);
   assert.match(css,/#workbench-cloud \.cloud-task-choice details/);
   assert.match(css,/@media\(max-width:340px\)\{#workbench-cloud \.cloud-action-row>button\{flex-basis:100%\}/);
@@ -162,5 +169,54 @@ test('approval validation is actionable while untrusted remote error details rem
     for(let i=0;i<5;i++)await flush();
     assert.match(f.get('cloud-status').textContent,/提供者连接异常/);
     assert.doesNotMatch(f.get('cloud-status').textContent,/PRIVATE_PAGE_URL_OR_TOKEN/);
+  }finally{view.dispose();}
+});
+
+
+test('Side Panel issues a one-time fixed Task credential and revokes it with inline confirmation',async()=>{
+  const f=surface(),taskId='sample.form-fill',clientId='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+  const pin={taskId,version:'1.0.0',manifestHash:'a'.repeat(64),sourceHash:'b'.repeat(64),
+    installationId:'install-1',generation:1,resultAllowed:false};
+  let revoked=false;const grants=[],revocations=[];
+  const client={cloud:{
+    cloudStatus:async()=>({provider:{providerId:'p'},enabled:true,
+      online:false,reconciled:false,connection:'offline',tasks:[pin],
+      hostReady:true,slotAvailable:true,requestTotal:0,requests:[]}),
+    cloudNext:async()=>{throw Error('Disconnected must not claim');},
+    cloudClientGrant:async data=>{grants.push(data);return {clientId,credential:'c'.repeat(64)};},
+    cloudClients:async()=>({total:revoked?0:1,nextOffset:null,
+      clients:revoked?[]:[{clientId,label:'Trusted Search',createdAt:1,
+        tasks:[{taskId,version:'1.0.0'}],allowResult:false}]}),
+    cloudClientRevoke:async data=>{revocations.push(data);revoked=true;return {revoked:true};}
+  },request:async()=>({catalog:[],installed:[]})};
+  const view=createCloudHosting({client,host:{executionPending:false},document:f.document,api:{}});
+  try{
+    for(let i=0;i<8;i++)await flush();
+    assert.equal(f.get('cloud-client-task').value,taskId);
+    assert.equal(f.get('cloud-client-result').disabled,true);
+    assert.equal(f.get('cloud-client-create').disabled,false);
+    f.get('cloud-client-name').value='Trusted Search';
+    f.get('cloud-client-result').checked=true;
+    f.get('cloud-client-create').events.get('click')();
+    for(let i=0;i<5;i++)await flush();
+    assert.equal(grants.length,0,'Cannot expand Browser result consent');
+    assert.match(f.get('cloud-status').textContent,/外部应用只能调用当前已批准/);
+    f.get('cloud-client-result').checked=false;
+    f.get('cloud-client-create').events.get('click')();
+    for(let i=0;i<8;i++)await flush();
+    assert.deepEqual(grants,[{label:'Trusted Search',taskId,allowResult:false}]);
+    assert.equal(f.get('cloud-client-token').value,'c'.repeat(64));
+    assert.equal(f.get('cloud-client-once').hidden,false);
+    const rows=f.get('cloud-clients-list').children;
+    assert.equal(rows.length,1);
+    assert.equal(rows[0].children[1].textContent,'撤销');
+    rows[0].children[1].events.get('click')();
+    assert.equal(rows[0].children[1].textContent,'确认撤销');
+    assert.equal(revocations.length,0);
+    rows[0].children[1].events.get('click')();
+    for(let i=0;i<8;i++)await flush();
+    assert.deepEqual(revocations,[{clientId}]);
+    assert.equal(f.get('cloud-client-token').value,'');
+    assert.equal(f.get('cloud-client-once').hidden,true);
   }finally{view.dispose();}
 });
