@@ -1,3 +1,7 @@
+## R9 受控同源导航（2026-10-13）
+
+`browser.tabs.navigateOwned({tabRef,url})` 复用原 Trusted Host 和 `chrome.tabs.update({url})`，只有用户已批准且仍拥有的 TabRef + 同一 Origin 目标 URL 才能发起；其他站点必须独立授权或采用显式创建新标签。批准前核对站点、文档和安装身份；执行前撤销旧 TabRef。返回 `navigationRequested` 只表示原生导航请求获得确认，绝不冒充页面已加载完成。不确定效果不重试；Node 和 Mac Chrome 验收仍需本候选证据。
+
 ## R9 受控网页重载（2026-10-13，新增源码接线）
 
 正式操作 `browser.tabs.reloadOwned({tabRef})` 只对本工具当前拥有的 Chrome TabRef 工作。真正的 Side Panel 用户批准及 Host 对当前网页/权限检查后调用 `chrome.tabs.reload`，**在发起原生请求前先撤销旧 TabRef**；未知效果不会重试。返回 `{reloadRequested:true,tabRefRevoked:true}` 仅表示 Chrome 已接受重载请求，不代表新文档完成加载。该接口的 Node、Build、Mac Chrome 验收仍按当次候选单独登记 `NOT_TESTED`，不能继承旧 R5 收据。
@@ -12,7 +16,7 @@
 
 ## R9 预发布接口清理（2026-10-13，现行合同）
 
-**当前正式注册表登记 28 项已有实际 SDK/Host 运行路径的接口；七项未实现 Media/Speech 和两项未开放 Notifications 占位已删除。** 旧 35 项只是历史快照，不再强制兼容。Cookie 可信 Host-only 实现与正式 SDK 接线继续独立统计；Cookie observe.read 目前不向普通安装工具开放。新代码候选的 Node / Build / Chrome 验收不得继承旧 R5 PASS。下方 R1–R8 记录属于**历史证据**，并非 R9 当前数量。
+**当前正式注册表登记 29 项已有实际 SDK/Host 运行路径的接口；七项未实现 Media/Speech 和两项未开放 Notifications 占位已删除。** 旧 35 项只是历史快照，不再强制兼容。Cookie 可信 Host-only 实现与正式 SDK 接线继续独立统计；Cookie observe.read 目前不向普通安装工具开放。新代码候选的 Node / Build / Chrome 验收不得继承旧 R5 PASS。下方 R1–R8 记录属于**历史证据**，并非 R9 当前数量。
 
 ## R5 已取得同候选 Node/Build 证据（2026-10-12）
 
@@ -166,6 +170,7 @@
 | `browser.tabs.listOwned` | IMPLEMENTED | APPROVED_TOOL | PASS | PASS | NOT_TESTED |
 | `browser.tabs.pinOwned` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
 | `browser.tabs.reloadOwned` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
+| `browser.tabs.navigateOwned` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
 | `browser.tabs.removeOwned` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
 | `browser.sidePanel.openSelf` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
 | `browser.network.request` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
