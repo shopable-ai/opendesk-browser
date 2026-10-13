@@ -25,6 +25,81 @@ permissions:
   contents: read
 
 jobs:
+  # Runs real Node and installable-package checks even while macos-15 queues.
+  # This is NOT a substitute for the separate installed Chrome acceptance job.
+  node-linux-time-review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install pinned dependencies
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Real Node R1.8 Time Review and Side Panel host regressions
+        id: regressions
+        run: |
+          mkdir -p artifacts/time-review-r18-node-build
+          node --version | tee artifacts/time-review-r18-node-build/node-version.txt
+          set -o pipefail
+          node --test \
+            tests/environment/time-review-r16-trusted-native.test.mjs \
+            tests/environment/time-review-r15-site-grants.test.mjs \
+            tests/environment/time-review-r13-service.test.mjs \
+            tests/environment/time-review-r13-consent.test.mjs \
+            tests/environment/sidebar-tools-host.test.mjs \
+            tests/environment/time-review-r12.test.mjs \
+            tests/environment/time-review-r13.test.mjs \
+            tests/environment/time-review-host-controls-r51.test.mjs \
+            tests/environment/time-review-r14-sync-outbox.test.mjs \
+            2>&1 | tee artifacts/time-review-r18-node-build/node.tap
+      - name: Real official tool, Source Check, Production and Development builds
+        id: builds
+        if: ${{ success() || steps.regressions.outcome == 'failure' }}
+        run: |
+          set -o pipefail
+          {
+            npm run build:sidebar-tool -- examples/sidebar-tools/time-review
+            npm run check
+            npm run build
+            npm run build:dev
+            npm run verify
+          } 2>&1 | tee artifacts/time-review-r18-node-build/build.log
+      - name: Candidate and artifact hashes, identity and byte sizes
+        if: always()
+        run: |
+          mkdir -p artifacts/time-review-r18-node-build
+          {
+            printf 'git_sha=%s\n' "$GITHUB_SHA"
+            node --version
+            tool_version="$(node -p 'require("./examples/sidebar-tools/time-review/tool.config.json").version')"
+            for file in \
+              "artifacts/sidebar-tools/time-review/$tool_version/time-review.opendesk-tool.json" \
+              dist/production/official-tools/time-review/time-review.opendesk-tool.json \
+              dist/production/ui/tool-shell.js \
+              dist/development/ui/tool-shell.js \
+              dist/production/sw.js \
+              dist/development/sw.js; do
+              if test -f "$file"; then
+                sha256sum "$file"
+                wc -c "$file"
+              else
+                printf 'NOT_BUILT %s\n' "$file"
+              fi
+            done
+          } > artifacts/time-review-r18-node-build/identities.txt
+          cat artifacts/time-review-r18-node-build/identities.txt
+      - name: Preserve raw Node and build receipts including failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: time-review-r18-node-build-${{ github.sha }}
+          retention-days: 14
+          if-no-files-found: warn
+          path: artifacts/time-review-r18-node-build/
+
   native-mac-time-review:
     runs-on: macos-15
     timeout-minutes: 15
