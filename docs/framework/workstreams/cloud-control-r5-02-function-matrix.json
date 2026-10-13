@@ -2,7 +2,7 @@
   "schema": "opendesk.cloud-control.r5.2.complete-function-matrix.v1",
   "date": "2026-10-13",
   "branch": "main",
-  "observedHead": "c6e082e1ba5fdb17259b36fad9dbaf9bfd5fd7a8",
+  "observedHead": "81596b4f39300f4cc8b692153ca471b1be0beb2a",
   "statusPolicy": "Implementation field records source presence only. Verification is NOT_VERIFIED until exact-SHA CI/native evidence. Counts are coverage inventory, never a product completion percentage.",
   "uiOverlay": {
     "uiContract": "docs/architecture/browser-framework/cloud-control-r5.2-ui-preview-contract.zh-CN.md",
@@ -32,8 +32,8 @@
       "OPS": 12
     },
     "source": {
-      "SOURCE_IMPLEMENTED": 107,
-      "NOT_IMPLEMENTED": 3
+      "SOURCE_IMPLEMENTED": 108,
+      "NOT_IMPLEMENTED": 2
     },
     "verification": {
       "NOT_VERIFIED": 101,
@@ -1285,12 +1285,13 @@
       "description": "已授权 Task 详情和变更指引",
       "acceptance": "技术身份只在高级展开",
       "owner": "src/ui/{tool.html,tool-shell.css,cloud-hosting.js,cloud-status-presentation.js}",
-      "tests": "tests/cloud-control/{r52-product-ui,r52-ui-preview-contract}.test.mjs",
+      "tests": "tests/cloud-control/{generic-approval-ui,r52-product-ui}.test.mjs",
       "gate": "G3",
       "priority": "P1",
-      "implementation": "NOT_IMPLEMENTED",
+      "implementation": "SOURCE_IMPLEMENTED",
       "verification": "NOT_VERIFIED",
-      "ui39Overlay": "UI A01–F06 mapping, not additive"
+      "ui39Overlay": "UI A01–F06 mapping, not additive",
+      "sourceNote": "2026-10-13: existing trusted Side Panel task cards show current authorization state, advanced immutable Task identity and precise reapproval guidance on changed InstallationId/Generation/Version; no native Chrome verification"
     },
     {
       "id": "UI-08",
@@ -1513,5 +1514,19 @@
     "implementation": "SOURCE_IMPLEMENTED",
     "verification": "NOT_VERIFIED",
     "notes": "Selected fixed versions, origins, params and body-return scope reviewed in the existing Cloud Tab; changing task selection or catalog resets approvals; active Cloud tab 5s refresh. No second authority or new execution route."
+  },
+  "r526TaskDetails": {
+    "ids": [
+      "UI-07"
+    ],
+    "implementation": "SOURCE_IMPLEMENTED",
+    "verification": "NOT_VERIFIED",
+    "source": "src/ui/cloud-hosting.js",
+    "styles": "src/ui/tool-shell.css",
+    "tests": [
+      "tests/cloud-control/generic-approval-ui.test.mjs",
+      "tests/cloud-control/r52-product-ui.test.mjs"
+    ],
+    "behavior": "Shows Task authorization state, immutable identity inside existing advanced details, and user-visible action after install generation/version changes; does not revive old grants."
   }
 }
