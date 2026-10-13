@@ -418,3 +418,14 @@ test('R2.8 native runner does not dereference a retired Cloud quick entry',async
     'optional absent element must not crash before runner can display');
 });
 
+test('R2.8 subview navigation clears old editor errors without hiding current form errors on Host refresh',async()=>{
+  const ui=await load('src/ui/scheduled-task-workbench.js');
+  assert.match(ui,/const show=view=>\{[\s\S]*?if\(view!==activeView\)message\(''\);\s*activeView=view;/,
+    'only a deliberate subview change may clear the previous form notice');
+  assert.match(ui,/if\(shown\)\{\s*\/\/ Do not clear a visible inline save\/permission error/,
+    '15-second Host polling must preserve actionable validation while editing');
+  assert.match(ui,/bind\('schedule-discard-yes','click',\(\)=>\{[\s\S]*?show\(discardDestination\)/,
+    'explicit discard transitions to another view where stale errors are dismissed');
+  assert.match(ui,/bind\('schedule-confirm-no','click',\(\)=>\{clearConfirmation\(\);get\('schedule-save'\)\.focus\(\);\}/,
+    'returning to edit from confirmation keeps the active form state');
+});
