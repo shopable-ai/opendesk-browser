@@ -37,3 +37,7 @@ R21 [38433689575](https://github.com/shopable-ai/opendesk-browser/actions/runs/3
 R21 [38434280150](https://github.com/shopable-ai/opendesk-browser/actions/runs/38434280150) 的历史 Development R29 测试现已 4/4 PASS；集成套件其余旧断言仍认为 320px 额外静态 Chrome 场景不允许、源码新建按钮一定要业务 CSS 明写 12px、工作流卡片/警告与代码编辑器必须各自定义圆角，以及 stylesheet 数量永远等于3。这些与 R27/R30 公共视觉合同和既有 5 个宿主可信 CSS 资源不符。调整这几项断言以核对 **同一权威公共 CSS、真实 class 及动态资源数量**；没有删除组件真实断言。
 
 另一个 `sidebar-tools-host.test.mjs` 的 `host state did not settle` 仍是与折叠外观无直接关联的业务运行时 FAIL，须单独复现和修复，不能通过提高评分或修改断言掩盖。新候选原生 Mac Chrome 仍 `NOT_TESTED`。
+
+## 真实溢出定位
+
+R19 [38434969667](https://github.com/shopable-ai/opendesk-browser/actions/runs/38434969667) 已通过 `develop` 和 `develop-local` 在 300px 下的统一标题尺寸/间距检查，但 `develop-details`（展开运行结果、网页 JS 试运行、版本管理）出现真实 `contentOverflow/panelOverflow=true`。不允许忽略溢出或调低断言；增强同一 Chrome 测试，报告超出面板右边界的可见 DOM 元素及 computed overflow 诊断，以便下一修复针对真实来源。

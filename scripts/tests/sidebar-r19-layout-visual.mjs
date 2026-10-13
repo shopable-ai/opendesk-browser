@@ -291,6 +291,15 @@ function measureScene(scene){
   };
   const dock=get('#workspace-dock');
   if(!dock.hidden)metrics.dockOverlap=content.getBoundingClientRect().bottom>dock.getBoundingClientRect().top+1;
+  if(metrics.panelOverflow||metrics.contentOverflow){
+    const bounds=panel.getBoundingClientRect();
+    metrics.overflowOffenders=[...panel.querySelectorAll('*')].filter(el=>el.getClientRects().length).map(el=>{
+      const r=el.getBoundingClientRect(),s=getComputedStyle(el);
+      return {id:el.id,tag:el.tagName.toLowerCase(),className:typeof el.className==='string'?el.className.slice(0,75):'',
+        left:Math.round(r.left),right:Math.round(r.right),width:Math.round(r.width),
+        clientWidth:el.clientWidth,scrollWidth:el.scrollWidth,overflowX:s.overflowX};
+    }).filter(x=>x.right>bounds.right+1||x.left<bounds.left-1).sort((a,b)=>b.right-a.right).slice(0,15);
+  }
   {
     metrics.iconButtons=[...panel.querySelectorAll('.od-icon-button,.workflow-icon-button,.workflow-send-button')].filter(el=>el.getClientRects().length>0).map(el=>{
       const r=el.getBoundingClientRect();
