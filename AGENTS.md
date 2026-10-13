@@ -34,13 +34,13 @@ YOU ARE AN AUTONOMOUS CODING AGENT. EXECUTE AUTHORIZED TASKS TO COMPLETION WITHO
 
 **仅适用于全球/区域/行业“第一”、小山头竞争定位、营销、SEO/GEO 与 AI 推荐研究任务；不改变其他 Browser SDK、Cloud、Native 工程任务的实施所有权。**
 
-- **先定竞争位置，再决定做什么功能**。从真实用户、问题和替代成本出发，寻找全球第一、真实国家/语言区域/行业/具体任务第一；不够第一时可争取有实测依据的第 2—5 名。双/三因素组合必须有实际用户价值，不能靠无意义限定词制造独家。
+- **R6 最新顺序：先完成真实用户产品闭环，再用实测价值确定竞争位置**。优先复用现有 Workflow/Task/Authority/RunHost，证明真实 AI 新生成的同一源码经审阅、原生验证、正式安装和关闭模型后的独立 Run×2；不能循环写战略 GOAL 替代产品验收。再根据真实用户、重复频率、替代成本及公平竞品测试争取限定区域/任务优势，不为“第一”制造无需求的功能组合。TOP20 是投资优先级，不是世界排名。
 - **AI 优先，不等于预设 GF-007 已获胜**。主要用户旅程是提出需求→AI 协助创建→审核权限/结果→受控安装→以后可重复使用；这条全链仍是待实证方向，不得写成已经正式交付。手动在 Side Panel 编写 React/Vue（旧 F01）是技术支撑，不能自动恢复为全球第一营销 P0。
 - **先验证竞品，再反推产品缺口**。要比较单产品和真实组合（如 AI 编码器 + Vite + 脚本管理器），分开 Stable、Beta、仓库推送、商店发布日期和关键能力首次公开可用时间。未找到反例不等于世界首创。
 - **分清候选顺序与市场排名**。TOP 1—5 的研究优先级不是第 1—5 名产品排名；只有真实日期、范围、地区、充分对手样本、当前发布/原生证据及独立审批才能宣传全球首个/区域第一/最快/Top 5。GF-013/GF-014 保留 DISPROVED，不换词复活；95 分未审则 NOT_SCORED。
 - **用户先看一屏可读结果**：每项“谁需要、解决什么、竞争哪种第一、最强对手、已有证据、最小缺口、下一步”，再附技术文档。不能把再写一份 GOAL 当作竞争验证已完成。
 
-权威阅读顺序：[R4 战略决策](docs/product/browser-extension-ecosystem/global-first-r2-decision.zh-CN.md) → [R4 执行 GOAL](docs/framework/prompts/goal-global-first-r4-ai-first-niche-leadership.zh-CN.md)。唯一事实/审批账本仍是 `docs/product/browser-extension-ecosystem/competitor-timeline.json` 与 `first-claims-ledger.json`。R1/R2 与 R3/F01 旧方向仅历史参考。
+Global First 权威阅读顺序：[R6 工程进度、TOP20 执行分类及真实验收缺口](docs/framework/workstreams/global-first-r6-ai-first-product-proof-20261013.md) → [R5 TOP20/84 OPP 产品组合](docs/product/browser-extension-ecosystem/global-first-r5-portfolio.zh-CN.md) → [R4/R5 战略历史](docs/product/browser-extension-ecosystem/global-first-r2-decision.zh-CN.md)。唯一正式账本仍是 `docs/product/browser-extension-ecosystem/opportunity-register.json`、`commercial-experiments.json`、`competitor-timeline.json` 和 `first-claims-ledger.json`。原 R5 固定 Task 真实 Chrome 一次 PASS 不等于真实 AI 新源码贯穿的安装及无模型重复 Run×2；无同一原始证据标记 NOT_TESTED。R4 GOAL、R1/R2 与 R3/F01 保留历史参考，不另建总 GOAL。
 
 ## 第三方 JS 依赖：开发脚本免人工审核的最高优先级产品决策（2026-10-13）
 
