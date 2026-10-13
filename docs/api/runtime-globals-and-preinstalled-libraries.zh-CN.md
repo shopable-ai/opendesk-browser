@@ -20,7 +20,7 @@ export default async function main() {
 }
 ```
 
-**Controller Sidebar 直接编辑／单文件 `async-main`**（Standard 始终支持以下零参数经典脚本；Developer Edition 已接入小型 ESM 转换（当前仍有冗余人工依赖审核 UI，目标 Run 自动准备），见下文。完整可复制源码：[`controller-globals-zero-arg.js`](../../examples/programs/single-file/controller-globals-zero-arg.js)）：
+**Controller Sidebar 直接编辑／单文件 `async-main`**（Standard 始终支持以下零参数经典脚本；Developer Edition 已接入小型 ESM 转换，当前仍有冗余人工依赖审核 UI（目标是 Run 自动准备），见下文。完整可复制源码：[`controller-globals-zero-arg.js`](../../examples/programs/single-file/controller-globals-zero-arg.js)）：
 
 ```js
 async function main() {
@@ -46,7 +46,7 @@ export default async function main() {
 }
 ```
 
-该映射声明仅用于**裸包名解析**，并不直接授予下载或运行权限。**目标用户流程是直接点击 Run，由系统自动准备、校验 SHA 和固定程序级锁；不要求逐个确认来源/SHA/许可证。当前 R4 UI 仍存在多步人工审核，这是待优化缺口，不是推荐使用流程。**若使用标准 HTTPS 静态 import，可省去映射；裸包名无固定版本映射会明确拒绝，不隐式取 `latest`。这不是旧 `@require` 协议，也不要求修改扩展源码。所有第三方代码均转换为自包含经典 JS，经原 Controller RunHost/Authority/Worker 执行；Compiler Worker 只变换源码数据。
+该映射声明仅用于**裸包名解析**，并不直接授予下载或运行权限。**目标用户流程是直接点击 Run，由系统自动准备、校验 SHA 和固定程序级锁；不要求逐个确认来源/SHA/许可证。当前 R4 UI 仍存在多步人工审核，这是待优化缺口，不是推荐使用流程。** 若使用标准 HTTPS 静态 import，可省去映射；裸包名无固定版本映射会明确拒绝，不隐式取 `latest`。这不是旧 `@require` 协议，也不要求修改扩展源码。所有第三方代码均转换为自包含经典 JS，经原 Controller RunHost/Authority/Worker 执行；Compiler Worker 只变换源码数据。
 
 - **仅 Developer Edition** 包含上述浏览器编译器；Standard 的小型 Controller ESM 必须先走现有本地项目构建。旧经典 `main()` 仍在 Standard/Developer 直接运行。
 - 浏览器内 ESM 上限：32 个远端模块、每模块 128 KiB、全图 256 KiB、链接输出 48 KB；持久保存的编译代码与作者源码快照总计最多 52 KB。大图、Node/CommonJS、相对项目文件应交给已有本地构建器。

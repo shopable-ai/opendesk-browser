@@ -17,7 +17,7 @@ export default async function main() {
 
 **正式产品目标（2026-10-13）**：用户在「开发」编写上述代码后**直接点击 Run**；自动解析/准备/校验三模块并运行，无需逐个审批 SHA/许可证。确有缺失 Chrome 权限时保留原生提示；第二程序使用同一库自动复用 SHA，免再次人工库审批，但不继承站点/敏感能力授权。**当前 R4 尚未实现这种零人工依赖审核的体验**。权威方案见 [通用依赖长期合同](../../../docs/framework/universal-dependency-runtime-usage-contract.zh-CN.md)。
 
-**边界：**不授予后台特权；获取第三方源的 Chrome origin permission 与获授权网页的 Controller 权限不同。普通 Run、Save、Load 不能主动下载新依赖。程序执行 world 为 `CONTROLLER`，不是网站 MAIN 或 Page USER_SCRIPT。大于浏览器准备/传输容量或不兼容模块，请使用原生本地项目编译。真实 Mac 浏览器首下载和重启复用的证据只能按相应 CI 回执标记；Node 验收不等于 Chrome PASS。
+**边界：**不授予后台特权；获取第三方源的 Chrome origin permission 与获授权网页的 Controller 权限不同。**当前 R4** 普通 Run、Save、Load 不下载新依赖；**目标**是用户主动点击 Run 时按必要 Chrome 权限自动准备，Save/Load、已固定 Revision 的重复运行和离线执行仍不应隐式联网。程序执行 world 为 `CONTROLLER`，不是网站 MAIN 或 Page USER_SCRIPT。大于浏览器准备/传输容量或不兼容模块，请使用原生本地项目编译。真实 Mac 浏览器首下载和重启复用的证据只能按相应 CI 回执标记；Node 验收不等于 Chrome PASS。
 
 测试固定原始字节保存于 `tests/fixtures/external-esm/vanillaes-csv-4.1.3/`，包含上游 MIT LICENSE，不进入扩展运行时 ZIP；这些文件仅是**离线回归测试资产**。
 

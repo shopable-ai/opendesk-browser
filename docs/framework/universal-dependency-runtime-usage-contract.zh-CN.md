@@ -56,7 +56,7 @@
 1. **File-First, NOT Compiler-First**。扩展安装包内的 Classic 文件可直接按执行世界用，预装库无 npm/无 CDN；下载后经系统自动技术校验的 Classic 资源保留独立 SHA 字节，能安全直接加载就不再为其单独 Babel；真正有 import/export 的静态 ESM 才用受信编译器生成对应世界允许的固定执行资产。
 2. **不是所有文件都有一个可见的扩展资源 URL**。扩展包中的 `chrome-extension://...` 固定路径与下载后保存在 IndexedDB 的 SHA 资产不同；`chrome.userScripts` 的 `file` 必须是扩展包根下实际文件，不能指向 SHA 虚拟索引；经允许的用户源码走 `code` 或已经受审的 sandbox/Worker 路径。拆分多个 ScriptSource 前必须实际验证错误 fail-stop、先后依赖、Stop 与页面身份，不可无据替换当前 Page 原子代码。
 3. **内容字节共享，能力权限独立，锁由系统自动生成**。资源键包含 SHA、URL/版本/MIME/许可证信息；系统按 Program/Revision/world 自动固定完整依赖图，不要求用户 A/B 逐库分别人工批准。同 URL 不同 SHA 不得静默替换固定版本，确有歧义才请用户选择版本；损坏/缺失拒绝，不能静默联网恢复。
-4. **复用已有实现**：`runtime-contract.js` / `loader.js` 是预装库真源；`dependency-manager.js` 及 Page Component 依赖方法是存储/审核真源；原 RunHost、Authority、Page USER_SCRIPT、Side Panel Tool sandbox 分别是各世界唯一消费者。禁止第二个 Manager/Browser SDK/Runner/工具宿主。
+4. **复用已有实现**：`runtime-contract.js` / `loader.js` 是预装库真源；`dependency-manager.js` 及 Page Component 依赖方法是存储/校验/版本锁真源；原 RunHost、Authority、Page USER_SCRIPT、Side Panel Tool sandbox 分别是各世界唯一消费者。禁止第二个 Manager/Browser SDK/Runner/工具宿主。
 5. **Standard/Developer**：Standard 不带约 4 MB 的浏览器编译器，Classic 与固定程序照常可用；Developer 使用已打包固定 Babel 处理小型 ESM；大型图走现有受信本地项目构建器，不将 Babel 偷塞进 Standard。
 6. **AI-first / Run-first**：AI 或用户写代码→点击 Run→系统自动解析、获取/复用、校验并固定库→返回真实结果→按需保存或授权安装。**不增加人工逐库审核向导**，技术图/SHA/许可证放在可选详情。程序能力/站点/安装/定时/云控才是授权对象，不是 JS 文件。
 7. **安全合规**：Chrome 来源/网站权限、程序可调用的敏感能力、安装身份互不替代；开发时免人工库审查不会扩大任何一个权限。对 Chrome MV3/Chrome Web Store 的适用远程代码政策做单独证据核查；Worker/沙箱本身不等于发布合规。Node/CJS/WASM/CSS/dynamic import/循环图/顶层 await 按真实支持程度拒绝或转受信构建；已支持的不要误拒绝。
@@ -67,9 +67,9 @@
 | --- | --- | --- | --- |
 | D01 预装 Classic | Controller 用 `_`、`dayjs` | 真实函数成功；依赖下载=0；无网站 MAIN 全局污染 | 主包 hash/ABI、runId/resultId、零网络计数 |
 | D02 新 Classic Page | 新的固定 Classic UMD（可用 `marked@15.0.12` 作为**待网络核对候选**，不假定 URL 有效） | 普通「开发」用户只点 Run→系统自动准备/固定 SHA→运行真实导出函数；仅缺失真实 Chrome 权限时可弹原生许可，无逐库审核 | URL/response/MIME/bytes/SHA/许可证/approval/真实 Result |
-| D03 Classic 程序 A/B | 两个 `programId` 指向相同已审核 URL+SHA | B 不用重复人工批准同一库；系统复用 A 的相同字节并自动为 B 生成不同固定锁，下载 0 次；B 的程序能力不继承 A | 原始 fetch 计数、两个锁/namespace/程序 ID |
+| D03 Classic 程序 A/B | 两个 `programId` 使用相同经系统自动验证的 URL+SHA | B 不用重复人工批准同一库；系统复用 A 的相同字节并自动为 B 生成不同固定锁，下载 0 次；B 的程序能力不继承 A | 原始 fetch 计数、两个锁/namespace/程序 ID、额外库人工审核次数=0 |
 | D04 新 Controller ESM | `@vanillaes/csv@4.1.3` 上游三个真实 ESM 文件 | 真正运行库函数，结果 `count=2,total=21`；缺锁/错 SHA/错导出一律失败 | 三模块原始 SHA、图/lockId、runId/resultId |
-| D05 Controller Classic 新库 | 自己代码选用的新 Classic 库自动准备到受控 Worker 世界 | 不再要求每次 ESM 编译；与 Page 共享 SHA 字节但不共享程序能力/执行世界；无需再次人工批准库；没有 chrome API | 真实 Worker 输出、独立审批与 Stop |
+| D05 Controller Classic 新库 | 自己代码选用的新 Classic 库自动准备到受控 Worker 世界 | 不再要求每次 ESM 编译；与 Page 共享 SHA 字节但不共享程序能力/执行世界；无需再次人工批准库；没有 chrome API | 真实 Worker 输出、系统自动独立固定锁与 Stop |
 | D06 Page React/Vue + 第三方 | 真实组件 import 新固定模块并触发交互 | 数据/DOM 更新、Stop 后外部 DOM/监听器全清理 | 实机截图/节点快照、Stop receipt、源和包身份 |
 | D07 Tool 多库 | AI 创建工具，含两份固定 JS，点击安装和打开 | 沙箱按序执行，只有本工具许可的 OpenDeskTool/SDK，不暴露 chrome.*；卸载干净 | 工具包 SHA、依赖锁/次序、UI 与权限回执 |
 | D08 版本生命周期 | 保存 A r1，再升级依赖为 r2 | 老 r1 保留旧资产、r2 新锁，卸载 r2 不误删 A/r1 或他人资源 | Revision/sourceHash/lock/asset references |

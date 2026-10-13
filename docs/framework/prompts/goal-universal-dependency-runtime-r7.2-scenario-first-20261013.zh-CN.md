@@ -63,7 +63,7 @@ R7.1 的 `Page @require` 首次检查、获取、手工审核、锁、跨程序�
 产品目标：AI 生成独立 HTML/CSS/JS 工具，工具项目可以引用额外 Classic/ESM 库；用户确认工具安装所需的程序能力/访问范围后通过「工具」独立运行，**不逐库审核 SHA**，**不需要用户 npm 或改扩展源码**。
 
 - 只扩展原 `tool.config.json`/安装包/`src/sidebar-tools/bridge.js` 沙箱，必要时采用兼容旧 V1/V2 包的固定依赖资源清单/排序；**绝不创建第二个 Tool Host**。
-- 已下载且已审核的 SHA 字节可复用，但工具自己的 ID/版本/沙箱/权限要独立固定。旧单 JS 工具继续运行。
+- 已下载且由系统自动校验的 SHA 字节可免重复人工审核复用，但工具自己的 ID/版本/沙箱/权限仍要独立固定。旧单 JS 工具继续运行。
 - 先测试至少两个固定 Classic JS 文件的加载顺序、缺失阻断、重开离线运行、Stop/关闭 iframe 清理；真正 ESM 工具先通过现有受信构建器生成工具自带固定资产，不隐式接受任意动态 import。
 - 任何库和工具都不得继承 Controller 词法 `page/params` 或宿主 `chrome.*`；仅可用原 `OpenDeskTool`、受限 `OpenDeskSDK.browser`。不能以允许下载新库为由扩大 Browser SDK 权限或开启 unsafe-eval。
 
@@ -72,8 +72,8 @@ R7.1 的 `Page @require` 首次检查、获取、手工审核、锁、跨程序�
 ## P4 第四门槛：Page React/Vue、安装、定时、云控，必须复用而非重造
 
 - Page Classic 使用 `USER_SCRIPT`，原子拼接的失败终止、执行身份和 Stop 不得因“File-First”随意拆解。`chrome.userScripts` 的 `file` 仅指随扩展打包的物理路径，下载后 SHA IndexedDB 资产不能伪装为它；先用真实 Chrome 检查多个 ScriptSource 的语义，再决定是否切换，不要以“独立资源优先”作为安全降级理由。
-- React/Vue 保留同一套固定运行时、ESM 图审核/缓存和受管生命周期。真实额外库参与 DOM/事件、Stop 后事件订阅/ShadowRoot/资源全部清除。
-- 安装 Task/Program、定时、云控只能选用户已验证、安装、授权的固定 Revision，必须经过原 Authority/RunHost；禁止调度时网络更新依赖、重新编译旧程序或未经审核静默切版本。
+- React/Vue 保留同一套固定运行时、ESM 图自动校验/缓存和受管生命周期。真实额外库参与 DOM/事件、Stop 后事件订阅/ShadowRoot/资源全部清除。
+- 安装 Task/Program、定时、云控只能选用户已验证、安装、授权的固定 Revision，必须经过原 Authority/RunHost；禁止调度时网络更新依赖、重新编译旧程序或未经用户主动升级已安装程序而静默切版本。
 - 旧 r1 仍能引用旧资产；新 r2 独立锁和安装批准；删除 B 不影响 A；缓存引用 GC 未安全实测前不删用户旧资产。
 - 撤权、重启、失去回执、未知 Native effect 必须 fail-closed，不得自动重复真实网页动作。
 
