@@ -214,6 +214,16 @@ test('one Provider serves authenticated HTTPS/WSS and target-scoped client submi
       .assignments[0].receipt.receiptId,accepted.receiptId);
     assert.equal((await retry('/v1/job-status',{jobId:contentJob.jobId},
       permittedResultClient.credential)).result.valueWire.text,'RESULT-BODY-CONSENT-ONLY');
+    // A blocked durable write path must not break an authenticated, scoped
+    // read-only Job status check or silently lose the previous receipt.
+    const blockedTmp=join(directory,'state.json.tmp');
+    await (await import('node:fs/promises')).mkdir(blockedTmp);
+    try{
+      assert.equal((await retry('/v1/job-status',{jobId:created.jobId},
+        grant.credential)).receiptConfirmed,true);
+    }finally{
+      await (await import('node:fs/promises')).rm(blockedTmp,{recursive:true});
+    }
     const stopped=await retry('/v1/suspend',{grantId},executor.credential);
     assert.deepEqual(stopped,{suspended:true,grantId});
     assert.deepEqual(await retry('/v1/submit',seed,grant.credential),created,
