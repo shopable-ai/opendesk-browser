@@ -507,6 +507,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
       for (const row of snapshot.runs) history.append(new Option(
         `${row.runId} · ${row.sourceKind === 'draft' ? '草稿' : 'r' + (row.revision?.revision ?? '?')} · ${stateLabels[row.state] || row.state}`,row.runId));
       if (snapshot.runs.some(row=>row.runId === selected)) history.value = selected;
+      find('script-history-open').disabled = !history.value;
       find('script-history').textContent = printable({runs:snapshot.runs,results:values,downloads:snapshot.downloads,resultDeliveryDenied:snapshot.resultDeliveryDenied});
     }
     update();
@@ -1009,6 +1010,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
   on('script-read','click',()=>read('')); on('script-delete','click',edit(remove)); on('script-list-refresh','click',()=>refreshScripts().catch(fail));
   on('script-read-run','click',()=>read());
   on('script-history-open','click',()=>read(find('script-history-run').value));
+  on('script-history-run','change',()=>{find('script-history-open').disabled=!find('script-history-run').value;});
   on('script-copy-result','click',async () => {
     if (disposed || copyResult.disabled) return;
     try {
