@@ -286,6 +286,7 @@
 .catalog-reader #task-catalog-detail details{margin:10px 0}
 .catalog-reader #task-catalog-detail summary{font-size:11px;color:var(--od-sub)}
 .catalog-reader #task-catalog-detail pre{font-size:10px;max-height:80px;overflow:auto;white-space:pre-wrap;word-break:break-all}
+.catalog-reader #task-catalog-detail .catalog-source-review pre{max-height:min(50vh,420px);white-space:pre;word-break:normal;line-height:1.55}
 .catalog-reader-note{font-size:11px;color:var(--od-sub);background:#f3f6fd;padding:11px;border-radius:var(--radius-control);line-height:1.7}
 @media(max-width:850px){.catalog-layout{grid-template-columns:1fr}.catalog-reader{position:static}.catalog-layout .catalog-card-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:500px){.catalog-layout .catalog-card-grid{grid-template-columns:1fr}}

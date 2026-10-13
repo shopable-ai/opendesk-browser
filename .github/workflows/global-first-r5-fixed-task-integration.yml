@@ -5,6 +5,11 @@ on:
     branches: [main]
     paths:
       - 'tests/environment/global-first-r5-fixed-workflow-to-task.test.mjs'
+      - 'tests/environment/task-workbench.test.mjs'
+      - 'tests/environment/workflow-task-review-handoff-r5.test.mjs'
+      - 'src/ui/task-workbench.js'
+      - 'src/ui/workflow/task-review-handoff.js'
+      - 'src/ui/tool-shell.css'
       - 'tests/environment/global-first-r5-native-baseline-audit.test.mjs'
       - 'scripts/global-first-r5-native-baseline-audit.mjs'
       - '.github/workflows/global-first-r5-fixed-task-integration.yml'
@@ -52,6 +57,11 @@ jobs:
             tests/environment/task-package-flow.test.mjs \
             tests/environment/global-first-r5-native-baseline-audit.test.mjs \
             | tee artifacts/global-first-r5-compiled-task/component-results.tap
+      - name: R6 Task Catalog review and Workflow handoff component guards
+        run: |
+          set -o pipefail
+          node --test tests/environment/task-workbench.test.mjs tests/environment/workflow-task-review-handoff-r5.test.mjs \
+            | tee artifacts/global-first-r5-compiled-task/r6-review-ui.tap
       - name: Preserve component evidence without claiming native Chrome
         if: always()
         uses: actions/upload-artifact@v4

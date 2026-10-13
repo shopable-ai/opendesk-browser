@@ -25,7 +25,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
   let disposed=false, working=false, running=false, activeRunId=null, catalog=[], installed=[], renderKey=null;
   let toolActive=false, toolsViewListener=null, workflowRunId=null, workflowClaimPending=false;
   let scheduledSurfaceActive=false, scheduledRunId=null;
-  let catalogSequence=0, historySequence=0, currentPage=currentPageTarget?.snapshot;
+  let catalogSequence=0, catalogSelectionEpoch=0, historySequence=0, currentPage=currentPageTarget?.snapshot;
   let permissionSequence=0,candidatePermission=null;
   const permissionRequest=row=>({origins:row.manifest.siteOrigins.map(origin=>permissionPattern(origin))});
   const permissionConsent=createChromePermissionConsent({api,onChange(){candidatePermission=null;void prepareCandidatePermission(candidate());}});
@@ -163,6 +163,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     get('workspace-dock').hidden=get('task-dock').hidden && get('develop-dock').hidden && get('workflow-dock').hidden;
   }
   function showCatalogPage() {
+    const selectionAtOpen=catalogSelectionEpoch;
     catalogSurface=true;
     if(doc.documentElement?.dataset) doc.documentElement.dataset.opendeskSurface='catalog';
     navigate('catalog');
@@ -181,11 +182,13 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       await api.storage.session.remove?.(key); // Consume once, even when stale/forged.
       if(disposed||!catalogSurface)return;
       const selected=matchTaskReviewHandoff(handoff,windowId,catalog);
-      if(!selected || get('task-catalog-list').value)return; // An actual user's selection wins.
+      // Old persisted/default choices must not hide a fresh Workflow candidate.
+      // Only an actual choice made while this review was loading takes priority.
+      if(!selected || catalogSelectionEpoch!==selectionAtOpen)return;
       get('task-catalog-list').value=selected.candidateKey;
       renderCatalogCards();renderCandidate();
-      if(selected.runId && !get('task-verify-run').value)
-        get('task-verify-run').value=selected.runId;
+      // Never carry a prior candidate's verification receipt into this version.
+      get('task-verify-run').value=selected.runId || '';
       get('task-catalog-status').textContent=selected.runId
         ? '已根据同窗口固定版本预选候选并预填真实运行 ID；仍需亲自核对运行证据、设为可用并确认安装。'
         : '已定位候选固定版本；请先用相同源码真实运行，然后核对证据。未自动验证或安装。';
@@ -491,7 +494,9 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       state.textContent=`${states[row.stage]||row.stage} · v${row.version}${row.installed?' · 已安装':''}`;
       button.append(title,summary,state);
       button.addEventListener('click',()=>{
+        catalogSelectionEpoch++;
         get('task-catalog-list').value=identity(row);
+        get('task-verify-run').value=''; // A different candidate requires its own RunId.
         renderCatalogCards();renderCandidate();
       });
       parent.append(button);
@@ -523,11 +528,48 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     const hashes=doc.createElement('pre');
     hashes.textContent=`源码 SHA-256：${row.manifest.program.sourceHash}\nManifest SHA-256：${row.manifestHash}`;
     advanced.append(summary,hashes);
+    const schema=row.manifest.paramsSchema;
+    const paramNote=doc.createElement('p');paramNote.className='catalog-reader-note';
+    const paramFields=Object.entries(schema.properties);
+    paramNote.textContent=paramFields.length
+      ? '运行参数：'+paramFields.map(([name,rule])=>
+          (rule.title||name)+'（'+rule.type+
+          (schema.required.includes(name)?'，必填':'，可选')+
+          (Object.hasOwn(rule,'default')?'，默认 '+String(rule.default):'')+'）').join('；')
+      : '运行参数：无';
+    const codeReview=doc.createElement('details');codeReview.className='catalog-source-review';
+    const codeTitle=doc.createElement('summary');codeTitle.textContent='查看完整冻结源码（只读）';
+    const sourcePreview=doc.createElement('pre');
+    sourcePreview.textContent='展开后从正式任务目录读取固定版本；只查看，不运行。';
+    codeReview.append(codeTitle,sourcePreview);
+    let requested=false;
+    codeReview.addEventListener('toggle',()=>{
+      if(!codeReview.open||requested||disposed)return;
+      requested=true;
+      sourcePreview.textContent='正在读取固定版本源码…';
+      void (async()=>{
+        const frozen=await client.request('getTaskCandidate',{taskId:row.taskId,version:row.version});
+        if(frozen?.manifestHash!==row.manifestHash ||
+          frozen.package?.manifestHash!==row.manifestHash ||
+          frozen.package?.manifest?.taskId!==row.taskId ||
+          frozen.package?.manifest?.version!==row.version ||
+          frozen.package?.manifest?.program?.sourceHash!==row.manifest.program.sourceHash ||
+          typeof frozen.package?.sourceUtf8!=='string')
+          throw {code:'E_REVIEW_IDENTITY',message:'固定源码身份已变化，请刷新目录后重新审阅'};
+        if(!disposed&&reader.contains(codeReview) &&
+          candidate()?.manifestHash===row.manifestHash&&identity(candidate())===identity(row))
+          sourcePreview.textContent=frozen.package.sourceUtf8;
+      })().catch(error=>{
+        if(!disposed&&reader.contains(codeReview) && identity(candidate())===identity(row))
+          sourcePreview.textContent=formatTaskError(error);
+        requested=false; // Closing and reopening may retry this read, not Verify.
+      });
+    });
     const note=doc.createElement('p');note.className='catalog-reader-note';
     note.textContent=row.stage==='available'
       ? '只有当前确定版本通过本地可信验证后，才可明确安装。浏览器网站权限仍需单独批准。'
       : '此任务尚未达到本地可安装状态；导入与作者自述不构成可信审核结果。';
-    reader.append(heading,subtitle,meta,advanced,note);
+    reader.append(heading,subtitle,meta,paramNote,advanced,codeReview,note);
     const added=addedTaskSites(row);
     if(added.length){const change=doc.createElement('p');change.textContent='新增权限需要确认：'+added.join('、');reader.append(change);}
     void prepareCandidatePermission(row);
@@ -864,7 +906,11 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     button.dataset.revealed=String(!showing);
     button.textContent=showing?'查看完整原值':'隐藏完整原值';
   });
-  listen(get('task-catalog-list'),'change',renderCandidate);
+  listen(get('task-catalog-list'),'change',()=>{
+    catalogSelectionEpoch++;
+    get('task-verify-run').value='';
+    renderCandidate();
+  });
   listen(get('task-run'),'click',run);
   listen(get('task-stop'),'click',asyncAction(()=>activeRunId && host.currentRun===activeRunId?
     host.stop({runId:activeRunId,controller:true}):Promise.resolve()));
