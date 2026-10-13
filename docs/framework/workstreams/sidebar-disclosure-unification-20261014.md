@@ -23,3 +23,9 @@
 ## CI 真实失败核对（后续修复）
 
 2026-10-14 `075a1ab` 的 Sidebar R19 静态 Chrome 工作流 [38433080226](https://github.com/shopable-ai/opendesk-browser/actions/runs/38433080226) FAIL：`schedule-form` 场景宽度 300px，`.schedule-source-row` 实测间距 4px，违反原有 8px 动作组合同。根因是 `tool-shell.css` 的 `@media(max-width:340px)` 覆写共享 gap。这是「我的 → 定时计划」原有问题，不是开发页折叠交互的回归。删除窄屏覆写、保留既有按钮大小与排布，并在源码合同中增加防回归断言。修复后的静态 Chrome / 用户 Mac 证据按新候选单独记录，未执行前保持 `NOT_TESTED`。
+
+## 第二轮 CI 的历史测试修正
+
+`da6cb667` 的 R19 [38433689576](https://github.com/shopable-ai/opendesk-browser/actions/runs/38433689576) 已通过原先失败的 `schedule-form 300px`，随后在 `develop 300px` 遇到 **旧验收规则**：编辑器圆角要求 12px，而 R30 `od-field` 的控制圆角为 8px。同步修订 R19 脚本为 8px 控件圆角，并根据 R27 `--space-3` 校正开发大区块 12px 布局间距（原脚本仍要求 8px）。保留溢出、折叠标题高度/字号/字重、操作组和状态覆盖。
+
+R21 [38433689575](https://github.com/shopable-ai/opendesk-browser/actions/runs/38433689575) 则因原测试 `sidebar-develop-layout-r29.test.mjs` 用严格 `class="单一类"` 判断历史子折叠、并要求 R30 已删除的独立外观 CSS 而 FAIL。更新测试，改为核对包含共享类的组件语义、`design-system.css` 唯一外观、现有历史 RunHost 和触控 / 可访问性约束；不恢复旧版重复 CSS。下一候选的全部定向、静态 Chrome、用户 Mac 原生结果须继续单独核对，未运行不得写 PASS。
