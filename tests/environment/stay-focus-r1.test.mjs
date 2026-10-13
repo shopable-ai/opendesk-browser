@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {focusHost,hostnameMatches,focusRemovedOriginAffectsSite,focusLocalDay,FOCUS_MAX_GAP_MS} from '../../src/stay-focus/policy.js';
-import {emptyFocus,readFocus,focusSite,focusSchedule,focusMatchingSite,focusPool,
+import {emptyFocus,readFocus,focusSite,focusSiteScopesValid,focusSchedule,focusMatchingSite,focusPool,
   focusBudget,focusReason,focusScheduleActive,settleFocus} from '../../src/stay-focus/model.js';
 import {installStayFocusBlockedPage} from '../../src/stay-focus/blocked.js';
 import {focusRuleForSite,wantedFocusRules,reconcileFocusRules,clearFocusRules,isFocusRuleId}
@@ -50,6 +50,30 @@ test('strict model schema, per-site enable and white-list exception',()=>{
   assert.throws(()=>focusSite(mkSite('example.com',{host:'example.com.evil',mode:'random'})));
   assert.throws(()=>readFocus({...s,extra:true},at));
 });
+test('paused sites never create a DNR rule and nested child overrides parent exactly',()=>{
+  const parent=mkSite('example.com',{mode:'always',subdomains:true});
+  const child=mkSite('docs.example.com',{mode:'always',enabled:false,subdomains:true});
+  const state=emptyFocus(at);state.enabled=true;state.sites=[parent,child];
+  assert.equal(focusSiteScopesValid(state.sites),true);
+  assert.equal(focusMatchingSite(state,'docs.example.com'),null,'paused child protects from parent fallback');
+  assert.equal(focusReason(state,child,at),null,'paused always-block site cannot produce a block');
+  let rules=wantedFocusRules(state,at);
+  assert.equal(rules.length,1,'only enabled parent has a DNR rule');
+  assert.deepEqual(rules[0].condition.excludedRequestDomains,['docs.example.com']);
+  child.enabled=true;child.mode='limit';
+  rules=wantedFocusRules(state,at);
+  assert.equal(rules.length,1,'child with remaining time should not be overblocked by parent');
+  assert.deepEqual(rules[0].condition.excludedRequestDomains,['docs.example.com']);
+  child.mode='always';
+  rules=wantedFocusRules(state,at);
+  assert.equal(rules.length,2,'child becomes blocked independently once its own rule activates');
+  assert.ok(rules.some(r=>r.action.redirect.extensionPath==='/stay-focus/blocked-always.html'));
+  child.subdomains=false;
+  assert.equal(focusSiteScopesValid(state.sites),false,
+    'Chrome domain exclusions cannot safely implement exact-only nested overrides');
+  assert.throws(()=>readFocus(state,at),/专注策略数据无效/);
+});
+
 test('foreground checkpoint charges one active tab, never double-spends shared group',()=>{
   const a=mkSite('example.com',{group:'social'}),b=mkSite('reddit.com',{group:'social'});
   const s=emptyFocus(at);s.enabled=true;s.groups.social=1;s.sites=[a,b];
