@@ -1,5 +1,40 @@
 {
   "schemaVersion": "opendesk.browser-sdk.compatibility.v1",
+  "legacyCompatibilityPolicy": {
+    "status": "ABOLISHED",
+    "effectiveDate": "2026-10-13",
+    "reason": "OpenDesk Browser is prelaunch. The historical 35-operation preservation obligation is not a supported public compatibility contract.",
+    "preserveLegacyNameSignatureAliasOrCount": false,
+    "historicalRowFieldsAreNotCurrentStatus": [
+      "deprecationState",
+      "removalEligibility",
+      "currentPublicOperation",
+      "inputCompatibility",
+      "outputCompatibility",
+      "errorCompatibility"
+    ],
+    "authoritativeRuntimeRegistry": "src/framework/sdk/browser-contract.js",
+    "authoritativeDesignMatrix": "docs/api/browser-sdk-interface-matrix.json",
+    "supersedingPolicy": "docs/api/browser-sdk-prelaunch-contract-20261013.zh-CN.md",
+    "migrationRule": "KEEP / RENAME / MERGE / DELETE / NEW by actual value, native support and trust boundaries; migrate in-repo callers and tests together, do not add permanent aliases or restore placeholders.",
+    "verifiedLegacyRemovals": [
+      "browser.media.recording.prepare",
+      "browser.media.recording.getStatus",
+      "browser.media.recording.stop",
+      "browser.media.recording.discard",
+      "browser.speech.transcribe",
+      "browser.speech.speak",
+      "browser.speech.stop",
+      "browser.notifications.create",
+      "browser.notifications.clear"
+    ],
+    "verifiedLegacyRenames": {
+      "browser.tabs.open": "browser.tabs.create",
+      "browser.tabs.focus": "browser.tabs.activateOwned",
+      "browser.tabs.closeOwned": "browser.tabs.removeOwned"
+    },
+    "note": "Original operations[35] is a historical snapshot only. Even a row marked ACTIVE does not assert the operation is currently registered or callable."
+  },
   "sourceOfTruth": "src/framework/sdk/browser-contract.js",
   "baselineOperationCount": 35,
   "operations": [
