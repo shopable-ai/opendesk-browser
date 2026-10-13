@@ -46,3 +46,10 @@
 - 事件显示仅使用名称、域名、路径、原因及删除/更新状态，不渲染 Cookie 值；阅读完成、导航、关闭面板均清空 UI 中的观察会话/事件。读取超过缓冲上限后显示丢弃与游标缺口。
 - 对同名且 Path/分区不同的 `cookies.get`，不再按数组顺序返回不确定值；以 `E_COOKIE_AMBIGUOUS` 拒绝并要求可信用户先用 `getAll` 识别精确条目。
 - 仍需 Node/真实 Chrome 分层验收。普通工具沙箱不可访问本受信界面的 Cookie 明文或会话。
+
+## R9 直接迁移：标准创建与明确受限的 Tabs（2026-10-13）
+
+- Browser SDK 当前公开 `browser.tabs.create({url})`，创建返回 opaque `tabRef`；工具拥有范围内 `browser.tabs.activateOwned({tabRef})`、`browser.tabs.getOwned({tabRef})`、`browser.tabs.listOwned()`、`browser.tabs.removeOwned({tabRef})`。
+- 原开发期 `browser.tabs.open/focus/closeOwned` 已从 SDK、Host、Driver、已安装工具示例和测试调用入口删除；不保留别名。仅自己拥有的标签页可聚焦/删除，原生数字 tabId 不出可信 Host。
+- Native Catalog 与四层账本已同步新名称，历史 R8 兼容映射仍为归档证据，不再强制运行时签名。
+- 接线状态是 SOURCE_WIRED，属于源码层事实；CI/Build 与同候选真实 Mac Chrome 验收须分别读取实际结果，无法进行原生验证时为 `NOT_TESTED`。
