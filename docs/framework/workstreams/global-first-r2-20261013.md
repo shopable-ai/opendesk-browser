@@ -5,9 +5,9 @@
 当前执行 [R4 AI 优先 Top 5 GOAL](../prompts/goal-global-first-r4-ai-first-niche-leadership.zh-CN.md)；[读者一页决策](../../product/browser-extension-ecosystem/global-first-r2-decision.zh-CN.md)。旧 R3 手动 JSX/Vue 编辑任务已在原 GOAL 标 SUPERSEDED_FOR_MARKETING，不删除历史证据。战略排序 GF-007→GF-004→GF-003→GF-002/GF-011→GF-009；均为未证明的争夺目标。R4 Chrome/排名/销售实证 NOT_TESTED，所有绝对排名获批 0。下文 R2 进度是原始历史状态。
 > 任务归属：竞争研究 / 独立 F01-F02 验证；仅写独占文档及原始实验文件。唯一可写分支 main，不创建 PR / worktree，不覆盖并行 R24/R25、Native、SDK、依赖、Cloud 工作流。
 
-## 下一次执行入口（2026-10-13 · R3 F01）
+## 历史 R3/F01 工程专项入口（已被 R4 竞争策略取代）
 
-**唯一优先工程 GOAL：** [F01 Developer 版本首次成功体验与真实 Chrome 证据](../prompts/goal-global-first-r3-f01-product-proof.zh-CN.md)。读者只需先看 [一页产品决策](../../product/browser-extension-ecosystem/global-first-r2-decision.zh-CN.md)，随后进入执行 GOAL。本工作流余下部分保存 R2 历史证据及未测试项，不代表 R3 已执行成功。
+**历史工程 GOAL、非当前营销主线：** [F01 Developer 版本首次成功体验与真实 Chrome 证据](../prompts/goal-global-first-r3-f01-product-proof.zh-CN.md)。读者只需先看 [一页产品决策](../../product/browser-extension-ecosystem/global-first-r2-decision.zh-CN.md)，随后进入执行 GOAL。本工作流余下部分保存 R2 历史证据及未测试项，不代表 R3 已执行成功。
 
 **当前记录状态：** R3 GOAL 已制定，R3 原生测试、Developer 新包公开发行、全球排他性研究与独立质量评分尚未因文档变化而自动完成。最新 SHA 必须由执行者在实际 Mac 工作目录中核查。任何 95+ 是目标不是当前事实。
 
@@ -27,7 +27,7 @@
 | F02 React/Vue 各 20 次独立本地项目 Run/Stop | [38155034890](https://github.com/shopable-ai/opendesk-browser/actions/runs/38155034890), `1e532a8ba85131d10f666631e6b80a83b1146d75` | 历史 Native Chrome 循环 | 与 Vite 工具链效率排名 |
 | 四项目独立 npm tarball 编译与修改后输入变更 | [38231722128](https://github.com/shopable-ai/opendesk-browser/actions/runs/38231722128), `8fe99dc853961b434c238bc68c1d25c3a8062b08` | 安装的 Node CLI 真实自动编译 | 浏览器同包 Native 结果 |
 
-## 接下来如何真正执行 F01/F02（现成入口、不要新造驱动）
+## 历史 F01/F02 工程验收方法（仅专项复用）
 
 1. 在用户 Mac 的独占窗口核查 `git status`、`HEAD`、远端、其他 Agent CFT/profile/43111/dist 归属；若冲突先只读并交接，不通过另开分支规避。
 2. 统一网页 `http://127.0.0.1:43111/demo-form.html`；服务由现有 `examples/tasks` 启动，确保没有占用别人的端口。固定受控 CFT 版本、实际 extension ID、packageHash、ZIP SHA、站点授权和 Allow User Scripts。

@@ -12,6 +12,18 @@ YOU ARE AN AUTONOMOUS CODING AGENT. EXECUTE AUTHORIZED TASKS TO COMPLETION WITHO
 
 已有非 `main` 分支允许只读核查。仅在用户明确要求合并/清理时，将应保留的变更安全合入 `main`，确认不丢失独有提交后再删除多余分支。绝不为“只保留主分支”而直接删除未合并工作；禁止强推、破坏性 reset/clean、覆盖并行工作。提交与推送仍遵守当前任务的授权边界。
 
+## Global First 第一小山头：长期市场策略约束（2026-10-13）
+
+**仅适用于全球/区域/行业“第一”、小山头竞争定位、营销、SEO/GEO 与 AI 推荐研究任务；不改变其他 Browser SDK、Cloud、Native 工程任务的实施所有权。**
+
+- **先定竞争位置，再决定做什么功能**。从真实用户、问题和替代成本出发，寻找全球第一、真实国家/语言区域/行业/具体任务第一；不够第一时可争取有实测依据的第 2—5 名。双/三因素组合必须有实际用户价值，不能靠无意义限定词制造独家。
+- **AI 优先，不等于预设 GF-007 已获胜**。主要用户旅程是提出需求→AI 协助创建→审核权限/结果→受控安装→以后可重复使用；这条全链仍是待实证方向，不得写成已经正式交付。手动在 Side Panel 编写 React/Vue（旧 F01）是技术支撑，不能自动恢复为全球第一营销 P0。
+- **先验证竞品，再反推产品缺口**。要比较单产品和真实组合（如 AI 编码器 + Vite + 脚本管理器），分开 Stable、Beta、仓库推送、商店发布日期和关键能力首次公开可用时间。未找到反例不等于世界首创。
+- **分清候选顺序与市场排名**。TOP 1—5 的研究优先级不是第 1—5 名产品排名；只有真实日期、范围、地区、充分对手样本、当前发布/原生证据及独立审批才能宣传全球首个/区域第一/最快/Top 5。GF-013/GF-014 保留 DISPROVED，不换词复活；95 分未审则 NOT_SCORED。
+- **用户先看一屏可读结果**：每项“谁需要、解决什么、竞争哪种第一、最强对手、已有证据、最小缺口、下一步”，再附技术文档。不能把再写一份 GOAL 当作竞争验证已完成。
+
+权威阅读顺序：[R4 战略决策](docs/product/browser-extension-ecosystem/global-first-r2-decision.zh-CN.md) → [R4 执行 GOAL](docs/framework/prompts/goal-global-first-r4-ai-first-niche-leadership.zh-CN.md)。唯一事实/审批账本仍是 `docs/product/browser-extension-ecosystem/competitor-timeline.json` 与 `first-claims-ledger.json`。R1/R2 与 R3/F01 旧方向仅历史参考。
+
 ## Controller/Page 零参数用户入口及 src/libs 环境合同（2026-10-12）
 
 用户当前明确要求：**推荐示例、AI 生成代码与多文件 ESM Controller 入口使用 `export default async function main()`，Side Panel「开发」直接编辑 Controller 草稿使用 `async function main()`，直接引用受控 Worker 词法 `page`、`params` 及默认 `_`、`dayjs`、`OpenDeskLibs`，不让用户给 `main` 传能力对象、重复 npm 安装或写 CDN。** 历史 `main({page})` ESM 入口只保留兼容，不得再宣传为唯一/推荐格式。

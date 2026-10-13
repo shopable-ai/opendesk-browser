@@ -1,10 +1,12 @@
-# OpenDesk Browser Product Ecosystem R1–R3（决策、任务树与长期导航）
+# OpenDesk Browser · 产品生态导航（含历史 R1—R3）
 
-> **当前战略 R4（AI 优先，2026-10-13）**：[读者决策：5 座真实第一小山头](global-first-r2-decision.zh-CN.md) → [直接执行 R4 GOAL](../../framework/prompts/goal-global-first-r4-ai-first-niche-leadership.zh-CN.md)。旧 F01 “人工编写 React/Vue”已降级为工程专项；战略顺序 GF-007 → GF-004 → GF-003 → GF-002/GF-011 → GF-009，**不等于真实市场排名，当前已获批第一=0**。
+## 当前 Global First 战略：R4 AI 优先第一小山头
 
-> 下方旧 R2 F01 优先内容仅作历史参考，以本 R4 指针为准。
+**先寻找用户真正需要、能取得全球/区域/行业/任务第一的竞争位置，再决定开发什么。** AI 协助生成浏览器工具、用户审阅/安装/重复使用是研究视角；人工 Side Panel 编写 React/Vue 不再是营销主位。
 
-> **R2 决策入口（2026-10-13）**：时间有限时**只读 [Global First R2 产品决策](global-first-r2-decision.zh-CN.md)**。结论：F01（双框架侧栏开发）→ F02（多文件改动后 Run）→ F04（可验证运行链）；全球第一已批准 **0**。R1 下文保留研究背景，版本时效与 GF 审批以两份 JSON 为准。
+只读 [当前战略与防偏移原则](global-first-r2-decision.zh-CN.md)，执行请用 [R4 GOAL](../../framework/prompts/goal-global-first-r4-ai-first-niche-leadership.zh-CN.md)。竞品时间与 GF 审批只读原有 [时间账本](competitor-timeline.json)、[声明账本](first-claims-ledger.json)，目前获批绝对第一为 **0**。
+
+> 下面历史 R1/R2 的 F01→F02→F04 技术优先级及 R3/F01 手工编辑器 GOAL，均不是当前 Global First 竞争战略；Product Ecosystem R3 是另一条独立工程/商业工作流。
 
 > 2026-10-12。本目录是**产品机会研究与产品架构提案**，并非已发布软件、正式验收或市场规模证明。仅基于远端 GitHub `main` 的抽样源码、既有 R8 账本/工作记录及公开产品和政策资料；**未能访问用户 Mac 本地工作区，不能证明其 git status、真实 Chrome、最终构建或本地并行写入情况**。新研究不得覆盖现有 R8 188 条稳定 ID 与 E01–E40。
 >
