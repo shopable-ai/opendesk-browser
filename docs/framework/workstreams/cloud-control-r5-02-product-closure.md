@@ -27,7 +27,7 @@
 **文档已保存**：完整功能树、机器矩阵、接口身份合同、UI 39 项/唯一 HTML 预览、7 Gate/30 任务手册、用户 README、专家评分与本实际证据账本。它们是不同职责的单一资料，不要再新建重复架构。没有生成的原生收据、截图、包指纹只能保持空值，不创建模拟 PASS。
 
 
-> R5.2.6 增量：UI-07 已授权 Task 详情和版本变化重批提示已接入现有任务卡（`src/ui/cloud-hosting.js`、`src/ui/tool-shell.css`）。对应源码提交 `574bffa459c2c0c88525cede733352b154a87246`，仍需当前 CI 与真实 Chrome 验收；静态专家初评 86/100 未因源码数量增加而自动提高。
+> R5.2.6 增量：UI-07 已授权 Task 详情和版本变化重批提示已接入现有任务卡（`src/ui/cloud-hosting.js`、`src/ui/tool-shell.css`）。对应源码提交 `574bffa459c2c0c88525cede733352b154a87246`，UI-07 后续组件 [CI #38406786768](https://github.com/shopable-ai/opendesk-browser/actions/runs/38406786768) / 包 [CI #38406786831](https://github.com/shopable-ai/opendesk-browser/actions/runs/38406786831) 查询时排队中，仍需当前 CI 与真实 Chrome 验收；静态专家初评 86/100 未因源码数量增加而自动提高。
 
 ## 用户要完成的事
 
