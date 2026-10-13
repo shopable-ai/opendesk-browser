@@ -749,17 +749,43 @@
     <div class="result-toolbar"><span id="script-result-kind" class="hint">尚无结果</span>
       <button type="button" id="script-copy-result" disabled>复制结果</button></div>
     <pre id="script-result" aria-label="脚本返回值">尚无结果</pre>
-    <details id="script-history-panel" class="result-history"><summary>运行记录与技术信息</summary>
-      <div class="row"><button id="script-read">刷新历史</button></div>
-      <label for="script-history-run">历史运行</label><select id="script-history-run"><option value="">选择历史任务</option></select>
-      <div class="row"><button id="script-history-open">查看选中任务</button></div>
-      <details><summary>完整历史与版本身份</summary><pre id="script-history" aria-label="持久结果历史">正在读取…</pre></details>
-      <details><summary>结果下载与任务查询</summary>
-        <label for="script-run-id">查询 runId（留空读取全部历史）</label><input id="script-run-id" placeholder="runId">
-        <div class="row"><button id="script-read-run">查询任务</button></div>
-        <div class="row"><label for="script-download-result">已完成的持久结果</label><select id="script-download-result"><option value="">请选择要下载的结果</option></select><button id="script-download" disabled>下载结果 JSON</button></div>
-        <p id="script-download-status" role="status">结果下载保留类型信息，包括 undefined。</p>
-      </details>
+    <details id="script-history-panel" class="result-history">
+      <summary>运行记录与技术信息</summary>
+      <div class="developer-history-content">
+        <div class="developer-history-head">
+          <p id="script-history-hint" class="hint">仅刷新已有记录，不会重新运行脚本。</p>
+          <button id="script-read" type="button" class="od-button od-button--secondary">刷新历史</button>
+        </div>
+        <div class="developer-history-field">
+          <label for="script-history-run">历史运行</label>
+          <div class="developer-history-actions">
+            <select id="script-history-run" aria-describedby="script-history-hint"><option value="">选择历史任务</option></select>
+            <button id="script-history-open" type="button" disabled>查看选中任务</button>
+          </div>
+        </div>
+        <details class="developer-history-disclosure">
+          <summary>完整历史与版本身份</summary>
+          <pre id="script-history" aria-label="持久结果历史">正在读取…</pre>
+        </details>
+        <details class="developer-history-disclosure">
+          <summary>结果下载与任务查询</summary>
+          <div class="developer-history-field">
+            <label for="script-run-id">查询 runId（留空读取全部历史）</label>
+            <input id="script-run-id" placeholder="runId">
+          </div>
+          <div class="developer-history-control-row">
+            <button id="script-read-run" type="button" class="od-button od-button--secondary">查询任务</button>
+          </div>
+          <div class="developer-history-field">
+            <label for="script-download-result">已完成的持久结果</label>
+            <div class="developer-history-actions">
+              <select id="script-download-result"><option value="">请选择要下载的结果</option></select>
+              <button id="script-download" type="button" disabled>下载结果 JSON</button>
+            </div>
+          </div>
+          <p id="script-download-status" class="hint" role="status">结果下载保留类型信息，包括 undefined。</p>
+        </details>
+      </div>
     </details>
   </div></details>
   <details id="developer-run-technical" class="developer-run-technical"><summary>运行目标与版本</summary>
