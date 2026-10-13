@@ -923,7 +923,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
         if(!api.downloads?.download)
           throw Object.assign(new Error('下载服务不可用'),{code:'E_CHROME_UNSUPPORTED'});
         const filename=payload.filename;
-        const mime=/\\.json$/i.test(filename)?'application/json':/\\.txt$/i.test(filename)?'text/plain':'text/markdown';
+        const mime=/\.json$/i.test(filename)?'application/json':/\.txt$/i.test(filename)?'text/plain':'text/markdown';
         const url='data:'+mime+';charset=utf-8,'+encodeURIComponent(payload.text);
         let downloadId;
         try{downloadId=await api.downloads.download({url,filename,saveAs:true,conflictAction:'uniquify'});}
