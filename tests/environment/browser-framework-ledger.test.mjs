@@ -10,10 +10,12 @@ test('four-layer browser ledger reconciles current Registry, candidate list, Coo
  assert.equal(run.status,0,run.stderr||run.stdout);
  const result=JSON.parse(run.stdout.trim());
  assert.equal(result.ok,true);assert.equal(result.formal,Object.keys(BROWSER_OPERATIONS).length);
- assert.equal(result.promoted,4);
+ const ledger=JSON.parse(readFileSync('docs/framework/workstreams/browser-framework-four-layer-ledger.json','utf8'));
+ assert.equal(result.promoted,ledger.candidateCatalog.filter(row=>Object.hasOwn(BROWSER_OPERATIONS,row.id)).length);
  assert.equal(result.originalCandidates,114);assert.equal(result.pending,result.originalCandidates-result.promoted);
- assert.equal(result.cookieSdkFormal,0);assert.equal(result.cookieCandidates,10);
- assert.equal(result.formalNativePass,0);
+ assert.equal(result.cookieSdkFormal,Object.keys(BROWSER_OPERATIONS).filter(id=>id.startsWith('browser.cookies.')).length);
+ assert.equal(result.cookieSdkFormal,11,'Cookies must be reflected in current formal ledger');assert.equal(result.cookieCandidates,10);
+ assert.equal(result.formalNativePass,0,'Native Chrome remains unverified for this source candidate');
 });
 test('supplemental reference domains stay audit-only and Cookie is first priority',()=>{
  const data=JSON.parse(readFileSync('docs/framework/workstreams/browser-framework-four-layer-ledger.json','utf8'));
