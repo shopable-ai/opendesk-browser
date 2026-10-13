@@ -1,3 +1,17 @@
+# Global First R5 · 当前优先阅读（2026-10-13）
+
+> **最重要结论**：可证明的全球/区域/具体任务第一和指定世界 Top 5 仍是 **0**；研究中的“TOP 20”是产品实验优先次序，不是市场排名。已登记公开研究对照从 30 扩为 **45**，原 **84 OPP、8 EXP、14 GF** 没有重新编号或造第二账本。相关工作源代码未因为 R5 文档自动完成 Chrome 原生全链验收。
+
+**先看这份真正的执行性决策**：[Global First R5 TOP20 × 12 行业 × 84 原有机会详细方案](global-first-r5-portfolio.zh-CN.md)。
+
+战略判断已经进一步收窄：Google 2026-04-14 [Chrome Skills](https://blog.google/products-and-platforms/products/chrome/skills-in-chrome/) 提供保存和复用 AI 提示词；Claude 2026-07-24 [Chrome 录制工作流](https://support.claude.com/en/articles/12138966-release-notes) 已能重复调用；UiPath 2026-08-25 [Delegate Routines 公开预览](https://docs.uipath.com/delegate/standalone/latest/release-notes/august-2026) 可以保存、调度和治理复用工作。这些直接否定“只有 OpenDesk 能 AI 创建后重复使用”的宽泛口号。**可争取但尚未证明的价值**是：固定源码/依赖审阅 + 明确网站授权 + 真 Chrome Task Verified/Installed + 关闭模型后同一版本独立 Run + 可追溯回执和撤权，且在实际任务上总成本/成功率有优势。
+
+**先执行而不是继续无限分析**：在当前原 AI/Task/Authority/RunHost 上，只跑一个真实同包闭环 `examples/tasks/demo-form.html` → 真实 AI 与用户审阅 → 固定 Task → Verified → Available → Installed → 断开模型 → 两次独立运行；同一 runId/resultId、sourceHash、manifestHash、installationId/generation 必须经可信证据绑定。随后公平比较 Chrome Skills、Claude 录制、Axiom、UiPath、ScriptCat、Power Automate、Apify 与 AI coding + 用户脚本管理器。不能访问用户本机 Mac/CFT 的会话标记 **NOT_TESTED**，不能以本轮 Node/CI 代替。
+
+**已经直接写入本仓库的增量**：45 个竞品渠道证据；原 OPP 账本内 20 个关联 GF/EXP/反例/退出条件的研究优先级；TOP20 完整人可读行动卡；真实 Task v1/WorkflowCompiler 合约测试和可信 GitHub Actions 结果；[新来源与公平对照空白契约](../../framework/workstreams/evidence/global-first-r5-20261013/benchmark-contract.json)。原 R4 以下全部保留历史来源，不再自动恢复旧 F01 手动 JSX 营销 P0。
+
+---
+
 # OpenDesk Browser Global First R4：AI 优先竞争决策与真实证据
 
 > 2026-10-13。当前获批全球/区域/特定任务第一：**0 项**；可证明全球第二至第五名：0。战略 TOP 5 不是实测世界排名，独立专家质量评分 NOT_SCORED。仅基于 GitHub 远端代码及外部公开来源，当前用户 Mac git status、Chrome Profile、Native、正式发行包尚未现场验收。
