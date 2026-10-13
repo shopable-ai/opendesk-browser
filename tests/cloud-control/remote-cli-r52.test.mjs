@@ -6,7 +6,8 @@ import {mkdtemp,readFile,stat,rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {execFileSync,spawnSync} from 'node:child_process';
+import {execFileSync,execFile} from 'node:child_process';
+import {promisify} from 'node:util';
 import {randomUUID} from 'node:crypto';
 import {openProvider} from '../../scripts/cloud-control/provider.mjs';
 
@@ -39,8 +40,14 @@ test('actual CLI registers two Task packages, writes restricted token, submits a
     publicTls:{host:'127.0.0.1',port:0,keyFile,certFile}});
   const env={...process.env,NODE_EXTRA_CA_CERTS:certFile};
   const args=(command,extra=[])=>[cli,command,...extra];
-  const run=(command,extra=[])=>JSON.parse(String(execFileSync(
-    process.execPath,args(command,extra),{env,encoding:'utf8',maxBuffer:1024*1024})));
+  // The Provider runs in this test process. A synchronous child blocks the
+  // HTTP(S) event loop and deadlocks both CLI and server until a timeout.
+  const execute=promisify(execFile);
+  const run=async(command,extra=[])=>{
+    const {stdout}=await execute(process.execPath,args(command,extra),
+      {env,encoding:'utf8',maxBuffer:1024*1024,timeout:10000});
+    return JSON.parse(stdout);
+  };
   try{
     const admin=JSON.parse(await readFile(provider.credentialFile,'utf8'));
     const paired=await local(provider.port,'/v1/pair',
@@ -49,9 +56,9 @@ test('actual CLI registers two Task packages, writes restricted token, submits a
     await local(provider.port,'/v1/capabilities',{grantId,
       tasks:[advertised(form),advertised(search)]},paired.credential);
     const hostArgs=['--directory',directory,'--port',String(provider.port)];
-    const registered=run('register',[...hostArgs,'--package',searchPath]);
+    const registered=await run('register',[...hostArgs,'--package',searchPath]);
     assert.equal(registered.task.taskId,search.manifest.taskId);
-    const granted=run('client:grant',[...hostArgs,'--executor',executorId,
+    const granted=await run('client:grant',[...hostArgs,'--executor',executorId,
       '--packages',formPath+','+searchPath,
       '--allow-result','false','--token-out',tokenFile]);
     assert.equal(granted.executorId,executorId);
@@ -66,22 +73,22 @@ test('actual CLI registers two Task packages, writes restricted token, submits a
       '--token-file',tokenFile];
     const target=['--target','http://127.0.0.1:43111/demo-form.html'];
     const delivered=[
-      run('submit:remote',[...remote,'--package',formPath,'--params',
+      await run('submit:remote',[...remote,'--package',formPath,'--params',
         JSON.stringify({name:'Real CLI Form'}),...target,'--key','cli-form']),
-      run('submit:remote',[...remote,'--package',searchPath,'--params',
+      await run('submit:remote',[...remote,'--package',searchPath,'--params',
         JSON.stringify({keyword:'Real CLI Search'}),...target,'--key','cli-search'])
     ];
     assert.match(delivered[0].jobId,/^[a-f0-9-]{36}$/);
     assert.notEqual(delivered[0].jobId,delivered[1].jobId);
-    const statuses=delivered.map(v=>run('status:remote',[...remote,'--job',v.jobId]));
+    const statuses=await Promise.all(delivered.map(v=>run('status:remote',
+      [...remote,'--job',v.jobId])));
     for(let i=0;i<statuses.length;i++)
       assert.deepEqual(statuses[i],{jobId:delivered[i].jobId,state:'queued',
         receiptConfirmed:false},'No simulated Browser Result is counted');
-    run('client:revoke',[...hostArgs,'--client',granted.clientId]);
-    const denied=spawnSync(process.execPath,args('status:remote',
-      [...remote,'--job',delivered[0].jobId]),{env,encoding:'utf8'});
-    assert.equal(denied.status,1);
-    assert.equal(JSON.parse(denied.stdout).error.code,'E_AUTH');
+    await run('client:revoke',[...hostArgs,'--client',granted.clientId]);
+    await assert.rejects(run('status:remote',
+      [...remote,'--job',delivered[0].jobId]),error=>
+        error.code===1&&JSON.parse(error.stdout).error?.code==='E_AUTH');
     const durable=JSON.parse(await readFile(join(directory,'state.json'),'utf8'));
     assert.equal(Object.keys(durable.jobs).length,2);
     assert.equal(Object.values(durable.jobs).every(j=>
