@@ -290,9 +290,11 @@ export async function openProvider({directory='.local/cloud-control',port=43112,
             if(!owner.grantId||!owner.capabilities?.some(t=>
               t.taskId===pin.taskId&&t.manifestHash===pin.manifestHash&&t.sourceHash===pin.sourceHash))
               fail('E_GRANT','Target Executor has not approved this Task');
-            if(owner.suspendedAt)fail('E_CLOUD_STOPPED');
             out=once('seed:'+b.targetExecutorId+':'+owner.pairingId,b.requestKey,
               {task:pin,params,target,targetExecutorId:b.targetExecutorId},()=>{
+              // Preserve the answer for a previously admitted identical key
+              // after Stop, but refuse NEW jobs under suspended approval.
+              if(owner.suspendedAt)fail('E_CLOUD_STOPPED');
               const jobId=randomUUID();
               state.jobs[jobId]={jobId,state:'queued',createdAt:clock(),task:pin,params,target,
                 targetExecutorId:b.targetExecutorId,targetPairingId:owner.pairingId,targetGrantId:owner.grantId};
@@ -313,9 +315,9 @@ export async function openProvider({directory='.local/cloud-control',port=43112,
             if(!owner.grantId||!owner.capabilities?.some(t=>
               t.taskId===pin.taskId&&t.manifestHash===pin.manifestHash&&t.sourceHash===pin.sourceHash))
               fail('E_GRANT','Target Executor has not approved this Task');
-            if(owner.suspendedAt)fail('E_CLOUD_STOPPED');
             out=once('external:'+client.clientId+':'+client.pairingId,b.requestKey,
               {task:pin,params,target,executorId:client.executorId},()=>{
+                if(owner.suspendedAt)fail('E_CLOUD_STOPPED');
                 // Persisted limits survive restart. Check only inside the
                 // first-admission callback: idempotent retries of the same
                 // requestKey must still return their original JobId.
