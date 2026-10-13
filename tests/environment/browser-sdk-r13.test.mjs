@@ -428,7 +428,7 @@ test('Browser canonical export methods preserve payload, bounds and strict schem
   const calls=[],sdk=createBrowserSdk({request:async(operation,args)=>{calls.push({operation,args});return args;}});
   assert.deepEqual(await sdk.clipboard.writeText('中文'),{text:'中文'});
   assert.deepEqual(await sdk.downloads.text({text:'notes',filename:'notes.md'}),{text:'notes',filename:'notes.md'});
-  assert.deepEqual(calls.map(row=>row.operation),['clipboard.writeText','file.download']);
+  assert.deepEqual(calls.map(row=>row.operation),['browser.clipboard.writeText','browser.downloads.text']);
   assert.throws(()=>sdk.downloads.text({text:'x',filename:'..\\escape.md'}),{code:'E_SCHEMA'});
   assert.throws(()=>sdk.downloads.text({text:'x',filename:'x.txt'}),{code:'E_SCHEMA'});
   assert.throws(()=>sdk.downloads.text({text:'x',filename:'x.md',tabId:9}),{code:'E_SCHEMA'});
