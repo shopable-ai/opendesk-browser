@@ -213,3 +213,21 @@ test('R2.6 runner separates running Fire from waiting history and preserves orig
   assert.match(css,/:root\[data-opendesk-surface="scheduled-runner"\] \.schedule-runner-view \.schedule-runner-focus\{order:1\}/);
   assert.match(html,/id="schedule-runner-focus-title"/);
 });
+
+test('R2.6 unsaved editor Back/cancel must review changes while task manager preserves the draft',async()=>{
+  const [html,ui,css]=await Promise.all([
+    load('src/ui/tool.html'),load('src/ui/scheduled-task-workbench.js'),
+    load('src/ui/tool-shell.css')
+  ]);
+  for(const id of ['schedule-discard-confirm','schedule-discard-yes','schedule-discard-no'])
+    assert.match(html,new RegExp('id="'+id+'"'));
+  assert.match(html,/id="schedule-discard-confirm"[^>]*hidden/);
+  assert.match(ui,/function requestLeaveForm\(destination\)/);
+  assert.match(ui,/if\(formDirty\)\{/);
+  assert.match(ui,/function navigateBack\(\)/);
+  assert.match(ui,/bind\('schedule-back','click',navigateBack\)/);
+  assert.match(ui,/bind\('schedule-cancel','click',\(\)=>requestLeaveForm/);
+  assert.match(ui,/bind\('schedule-manager-back','click',\(\)=>show\(managerReturn\)\)/);
+  assert.match(css,/#schedule-discard-confirm\{display:grid/);
+  assert.doesNotMatch(ui,/(?:window\.)?confirm\s*\(/);
+});
