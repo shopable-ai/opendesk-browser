@@ -75,8 +75,8 @@
     }
     const presets=$('quick-presets');
     presets.replaceChildren();
-    // Keep first use simple; existing sites can always be managed below.
-    if(state?.sites?.length)return;
+    // Show only unconfigured popular sites; adding one recommendation must
+    // not hide the other one-click shortcuts.
     for(const site of knownSites.filter(row=>row.preset&&!configured(row))){
       const button=create('button','sf-secondary',site.name+' · '+site.minutes+' 分钟');
       button.type='button';
