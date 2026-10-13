@@ -1,4 +1,4 @@
-name: Workflow R16 model privacy and consent
+name: Workflow AI direct send and data minimization
 on:
   push:
     branches: [main]
@@ -26,6 +26,6 @@ jobs:
           node --check src/ui/workflow/workflow-view.js
           node --check src/ui/workflow/local-codex.js
           node --check src/ui/workflow/ai-plan.js
-      - name: User-owned model data disclosure, provider, workflow and UI regressions
+      - name: Direct-send provider, payload minimization and workflow regressions
         run: |
           node --test tests/environment/workflow-ai-data-sharing.test.mjs tests/environment/workflow-ui-states.test.mjs tests/environment/workflow-r15.test.mjs tests/environment/workflow-local-codex.test.mjs
