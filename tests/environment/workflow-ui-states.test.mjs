@@ -146,8 +146,11 @@ test('R16 AI settings distinguish local Codex, custom HTTPS, future cloud and in
   assert.match(settings,/每次读取仍需确认/);
   assert.doesNotMatch(settings,/id="workflow-ai-consent"|id="workflow-ai-observe-consent"/);
   assert.match(settings,/id="workflow-ai-revoke"/);
-  assert.match(html,/id="workflow-ai-disclosure"/);
-  assert.match(html,/id="workflow-ai-plan-label"/);
+  assert.match(html,/id="workflow-ai-disclosure" class="workflow-ai-data-review"[^>]*hidden/);
+  assert.match(html,/id="workflow-ai-review-approve"/);
+  assert.match(html,/id="workflow-ai-review-cancel"/);
+  assert.match(html,/id="workflow-ai-plan"[^>]*aria-expanded="false"/);
+  assert.doesNotMatch(html,/id="workflow-ai-plan-label"|class="workflow-ai-data-notice"/);
   assert.match(html,/id="workflow-provider-settings" class="workflow-provider"/);
   assert.doesNotMatch(settings,/localCodexReady\s*=\s*true|模拟连接成功/);
 });
