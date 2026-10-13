@@ -150,6 +150,19 @@ test('Editing cannot alter cookie identity, and Netscape must not drop partition
   a.setRows([row]);
   expectError(()=>a.exportText('netscape'),/分区/);
 });
+test('Cookie identity ignores partition key object order and missing/false ancestor',async()=>{
+  const a=await harness();a.setSite('example.com');
+  const row=a.normalizeCookie({name:'sid',value:'one',partitionKey:{
+    topLevelSite:'https://example.com',hasCrossSiteAncestor:false}});
+  const updated={...row,value:'two',partitionKey:{
+    hasCrossSiteAncestor:false,topLevelSite:'https://example.com'}};
+  assert.equal(a.saveToList([row],updated,row)[0].value,'two');
+  const withoutAncestor={...updated,partitionKey:{topLevelSite:'https://example.com'}};
+  assert.equal(a.saveToList([row],withoutAncestor,row)[0].value,'two');
+  assert(a.source.includes('lookup.pathname!==row.path'),
+    'Native mutation must refuse Cookie paths that cannot be represented without loss');
+});
+
 test('Only reviewed user.export files support non-executable .md/.txt/.json types',async()=>{
   const [host,bridge]=await Promise.all([
     get('src/ui/sidebar-tools.js'),get('src/sidebar-tools/bridge.js')
