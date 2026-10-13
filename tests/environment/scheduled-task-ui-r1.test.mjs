@@ -236,3 +236,23 @@ test('R2.6 unsaved editor Back/cancel must review changes while task manager pre
     'standalone editor must never hide its Back header merely because no Run is active');
   assert.doesNotMatch(ui,/(?:window\.)?confirm\s*\(/);
 });
+
+test('R2.6 locked editing Task identity survives uninstall and script-install roundtrip',async()=>{
+  const [ui,css,preview]=await Promise.all([
+    load('src/ui/scheduled-task-workbench.js'),load('src/ui/tool-shell.css'),
+    load('examples/ui/scheduled-tasks-r2.5-preview.html')
+  ]);
+  assert.match(ui,/if\(editing&&!eligible\(\)\.some\(row=>row\.taskId===editing\.taskId\)\)/);
+  assert.match(ui,/unavailable\.value=editing\.taskId;unavailable\.disabled=true/);
+  assert.match(ui,/if\(editing\)select\.value=editing\.taskId/);
+  assert.match(ui,/select\.disabled=Boolean\(editing\)/);
+  assert.match(ui,/get\('schedule-task-select'\)\.disabled=false/);
+  assert.match(ui,/原计划固定任务不可用；请恢复相同安装身份与网站授权/);
+  assert.match(ui,/pendingCreateFromForm=activeView==='form'/);
+  assert.match(ui,/if\(!pendingCreateFromForm\)reset\(\)/);
+  assert.match(ui,/if\(!editing\)\{\s*get\('schedule-task-select'\)\.value=taskId/);
+  assert.match(ui,/原计划仍固定原任务身份/);
+  assert.match(css,/#schedule-task-select:disabled/);
+  assert.match(preview,/editing\?'disabled title="编辑计划不允许更换任务/);
+  assert.match(preview,/原固定任务 · v\$\{safe\(original\?\.version\|\|'\?'\)\}/);
+});
