@@ -1,8 +1,8 @@
 # Cookie Editor R3.3 · 正式 Cookies SDK 安装工具
 
-**入口：** Side Panel → 工具 → 发现工具 → Cookie Editor。官方目录仍为 `installationPolicy: optional`；工具包 **2.0.2 / opendesk.sidebar-tool.v2**，不是另建 Chrome 扩展。正式 SDK、Host 和真实 UI 的源码已有接线，但**当前候选尚无 Node/Build/Chrome Native 通过证据，不能宣称 95+ 正式交付**。
+**入口：** Side Panel → 工具 → 发现工具 → Cookie Editor。默认中文，官方目录仍为 `installationPolicy: optional`；工具包 **2.0.4 / opendesk.sidebar-tool.v2**。2026-10-14 已在同一隔离 CFT 候选通过真实发现、安装、网站授权、自动读取、新建、Value 编辑、Name 编辑、保存回读与精确删除。所有 Cookie 修改均从已安装工具 UI 发起。完整宽度/面板自身 Zoom、跨 Store/Partition 原生矩阵及最终发布验收仍未关闭；不能宣称最终 95+。
 
-## 用户能完成什么（SOURCE_WIRED，未原生验收）
+## 用户能完成什么
 
 1. 在实际 Chrome 打开要授权的网站 → 已安装工具「设置」→ 按网站分别授权 `browser.cookies.read / values / write / observe / clear`。安装或选择网址不自动授权；第一次授权需该站点处于活动标签页。授权后普通读取可以在其他网站仍活跃时重复使用。
 2. `OpenDeskSDK.browser.cookies.getAll({url})` 读取真实 Chrome Cookie 元数据，显示 Cookie 名称、Domain/Path、Secure/HttpOnly/SameSite、Session/Expiration、Store/Partition。真实值默认隐藏；独立 `values` 网站授权后才可按需显示或导出。
@@ -34,8 +34,12 @@
 | 11 项公开 SDK、Schema、Host 与 Tool Capability | SOURCE_WIRED |
 | 真实读/值/写/删/清理/观察的 UI 调用 | SOURCE_WIRED |
 | V8 JavaScript 语法检查 | PASS（仅语法，不是功能或 Chrome） |
-| Node 专项测试、官方工具打包、Check、Test、Build、Build:dev、Verify | NOT_TESTED（R3.2 首次 CI run 38412243566 被取消；R3.3 新候选待验证） |
-| Mac Chrome 安装、真实授权、原生操作/撤权/升级及截图 | NOT_TESTED |
+| Cookie/SDK Node 专项测试 | 旧 111 项证据保留；受影响 UI 45/45、Cookie Driver 31/31、启停 17/17 通过 |
+| 官方工具打包、Check | PASS（本地 2.0.4 候选） |
+| Build、Build:dev、Verify | PASS（隔离源码快照，未替换日常扩展） |
+| 完整 npm test | FAIL：本轮集中集成 2267/2292 通过、23 失败、2 跳过；旧失败证据保留 |
+| Mac Chrome 安装、真实授权、核心操作/导入导出/清理/观察/撤权/启停/卸载/升级 | PASS_SCOPED：核心/Path/部分重命名使用当前隔离候选，其余未受影响项保留前一候选身份限定复用；受控 HTTP 网站、虚构 Cookie；原始截图和回执见原账本 |
+| 宽度与 Zoom | 360 px 无横向溢出，值隐藏；网页 Zoom 100/125/150/200 下 Side Panel 保持自身 100%。其他面板宽度及自身 Zoom NOT_TESTED |
 | 八项产品级专家评分 | NOT_SCORED |
 
 可在真实 Mac 工作区运行：
@@ -47,6 +51,8 @@ node scripts/build-official-tools.mjs --out artifacts/official-tools-release
 npm run check && npm test && npm run build && npm run build:dev && npm run verify
 ```
 
-测试只使用虚构 Cookie。运行命令及真实 Chrome GUI/CFT 证据必须绑定同一 Git SHA、工具包 SHA-256 和扩展构建 Hash；不能用 DevTools 直接调用 `chrome.cookies` 冒充用户安装路径验收。R2/R2.1 历史阻塞与组件冒烟保留在原工作流中；不升级为 R3 Native PASS。
+测试只使用虚构 Cookie。运行命令及真实 Chrome GUI/CFT 证据必须绑定对应源码输入、工具包 SHA-256 和扩展构建 Hash；不能用 DevTools 直接调用 `chrome.cookies` 冒充用户安装路径验收。R2/R2.1 历史阻塞与组件冒烟保留在原工作流中，不替代 2.0.4 的同候选原生报告。
 
 R3.3 新候选：授权变化后经已有 Bridge 自动检查当前网站；拒绝与读取失败显示独立状态；未完成 Host 操作期间锁定网站与模式控件；普通确认不再采用危险操作红色样式。正式产品默认不进入离线工作区。历史 1.0.0 官方发行仍是离线包，已安装用户必须在「发现工具」明确升级；不能静默同版本替换。
+
+2026-10-14：上述核心旅程、导入导出、清理、观察、升级和生命周期已取得隔离 CFT 的限定原生证据；宽度、Side Panel 自身 Zoom、真实跨 Store/Partition、F3/ZIP 等缺口与全仓 FAIL 继续保留。当前核心、Path 隔离及部分重命名绑定身份保护修复后的候选；未受影响项保留前一候选身份限定复用。本轮原始证据和 Git/CI 状态见原工作流 `r33Local` 与 [续接提示词](../../../docs/framework/prompts/cookie-editor-r33l-core-first-handoff-20261014.zh-CN.txt)。

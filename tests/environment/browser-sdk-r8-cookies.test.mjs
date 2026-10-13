@@ -23,15 +23,22 @@ function fixture(){
       domain:d.domain??new URL(d.url).hostname,path:d.path??'/',hostOnly:!d.domain,
       storeId:d.storeId??'0',secure:d.secure??false,
       ...(d.partitionKey?{partitionKey:d.partitionKey}:{})};
-      records.push(value);cb(value);},
+      const same=row=>row.name===value.name&&row.domain===value.domain&&row.path===value.path&&
+        row.storeId===value.storeId&&JSON.stringify(row.partitionKey??null)===JSON.stringify(value.partitionKey??null);
+      for(let i=records.length-1;i>=0;i--)if(same(records[i]))records.splice(i,1);
+      if(d.expirationDate===0){
+        if(lostReceipt)api.runtime.lastError={message:'Native callback lost after expiration'};
+        cb(null);api.runtime.lastError=null;
+      }else{records.push(value);cb(value);}},
     remove(d,cb){calls.push('remove');
-      const row=records.filter(value=>value.name===d.name&&
+      const rows=records.filter(value=>value.name===d.name&&
         value.domain===new URL(d.url).hostname&&
         new URL(d.url).pathname.startsWith(value.path)&&
+        (!d.storeId||value.storeId===d.storeId)&&
         JSON.stringify(value.partitionKey??null)===JSON.stringify(d.partitionKey??null))
-        .sort((a,b)=>b.path.length-a.path.length)[0];
-      const i=row?records.indexOf(row):-1;
-      if(i>=0)records.splice(i,1);cb(lostReceipt?null:i<0?null:{name:d.name,url:d.url});},
+        .sort((a,b)=>b.path.length-a.path.length);
+      for(const row of rows)records.splice(records.indexOf(row),1);
+      cb(lostReceipt?null:rows.length?{name:d.name,url:d.url}:null);},
     getAllCookieStores(cb){cb([{id:'0',tabIds:[10]},{id:'other',tabIds:[999]}]);},
     getPartitionKey(_d,cb){cb({partitionKey:{topLevelSite:'https://example.org',hasCrossSiteAncestor:false}});}
   }};
@@ -81,7 +88,8 @@ test('R8 ambiguous native effect is never automatically retried',async()=>{
   await f.service.set({url,name:'x',value:'y'},context);
   f.loseReceipt();
   await assert.rejects(f.service.remove({url,name:'x'},context),reject('E_OUTCOME_UNKNOWN'));
-  assert.equal(f.calls.filter(x=>x==='remove').length,1);
+  assert.equal(f.calls.filter(x=>x==='set').length,2,'One create and one exact expiration; no retry');
+  assert.equal(f.calls.filter(x=>x==='remove').length,0);
 });
 test('R8 Store/partition need real document and do not expose other tabId',async()=>{
   const f=fixture();
@@ -120,7 +128,8 @@ test('R8 remove verifies exact Cookie identity when a shorter same-name Path sur
   const receipt=await f.service.remove({url:account,name:'sid'},context);
   assert.deepEqual(receipt,{removed:true,verified:true});
   assert.deepEqual(f.records.map(row=>[row.name,row.path,row.value]),[['sid','/','root']]);
-  assert.equal(f.calls.filter(x=>x==='remove').length,1,'native remove must never be retried');
+  assert.equal(f.calls.filter(x=>x==='set').length,3,'One exact expiration; no retry');
+  assert.equal(f.calls.filter(x=>x==='remove').length,0,'URL/name native removal can delete multiple Paths');
 });
 test('R8 clearSite does not misreport surviving same-name paths as failed deletions',async()=>{
   const f=fixture();

@@ -138,9 +138,41 @@ test('R9 Chrome Cookie native effect requires one-use reviewed intent and respec
   await assert.rejects(f.call('browser.cookies.set',args,approval),reject('E_USER_GESTURE_REQUIRED'));
   const pending=(await f.confirm('browser.cookies.set',{...args,value:'new'})).approvalRef;
   await f.grant('write',false);
+  const nativeAfterRevoke=[...f.native];
+  const recordsAfterRevoke=structuredClone(f.state.records);
+  // Missing capability is denied before comparing the intent's grant epoch.
   await assert.rejects(f.call('browser.cookies.set',{...args,value:'new'},pending),
     reject('E_SITE_GRANT_REQUIRED'));
+  await assert.rejects(f.confirm('browser.cookies.set',{...args,value:'new'}),
+    reject('E_SITE_GRANT_REQUIRED'));
+  assert.deepEqual(f.native,nativeAfterRevoke,'Revoked requests never reach native Cookies');
+  assert.deepEqual(f.state.records,recordsAfterRevoke,'Revocation leaves existing Cookie values unchanged');
   assert.equal(f.native.filter(x=>x==='set').length,1);
+  await f.grant('write');
+  const nativeAfterRegrant=[...f.native];
+  await assert.rejects(f.call('browser.cookies.set',{...args,value:'new'},pending),
+    reject('E_USER_GESTURE_REQUIRED'));
+  assert.deepEqual(f.native,nativeAfterRegrant,'A denied attempt consumes the old intent');
+  assert.deepEqual(f.state.records,recordsAfterRevoke);
+});
+
+test('R9 an unused Cookie intent stays revoked after website permission is restored',async()=>{
+  const f=fixture(),args={url,name:'theme',value:'restored',path:'/'};
+  await f.grant('write');
+  const pending=(await f.confirm('browser.cookies.set',args)).approvalRef;
+  await f.grant('all',false);
+  assert.equal(f.native.filter(x=>x==='set'||x==='remove').length,0);
+  await f.grant('write');
+  const nativeAfterRegrant=[...f.native];
+  const recordsAfterRegrant=structuredClone(f.state.records);
+  await assert.rejects(f.call('browser.cookies.set',args,pending),reject('E_GRANT_REVOKED'));
+  await assert.rejects(f.call('browser.cookies.set',args,pending),reject('E_USER_GESTURE_REQUIRED'));
+  assert.deepEqual(f.native,nativeAfterRegrant,'Restoring a capability cannot revive an old intent');
+  assert.deepEqual(f.state.records,recordsAfterRegrant,'An unused stale intent cannot change Cookie values');
+  assert.equal(f.native.filter(x=>x==='set'||x==='remove').length,0);
+  const fresh=(await f.confirm('browser.cookies.set',args)).approvalRef;
+  assert.equal((await f.call('browser.cookies.set',args,fresh)).saved,true);
+  assert.equal(f.native.filter(x=>x==='set').length,1,'Only a fresh reviewed intent can write');
 });
 
 test('R9 uninstalled and disabled Cookie tools cannot reuse previously granted site capability',async()=>{

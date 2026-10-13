@@ -17,7 +17,7 @@ function fixture(){
     cookies:[{name:'sid',value:'SECRET_PRIVATE',domain:'shop.example.test',path:'/',storeId:'0',
       secure:true,httpOnly:true,hostOnly:true,sameSite:'lax'}],
     native:[],changes:[],loseRemoveReceipt:false};
-  const mock=(method,fn)=>(details,cb)=>{state.native.push([method,structuredClone(details)]);cb(fn(details));};
+  const mock=(method,fn)=>(details,cb)=>{state.native.push([method,structuredClone(details)]);cb(fn(details));api.runtime.lastError=null;};
   const api={
     runtime:{id:'cookie-test-ext',getURL:part=>'chrome-extension://cookie-test-ext/'+part,
       lastError:null},
@@ -43,7 +43,14 @@ function fixture(){
           path:details.path??'/',storeId:details.storeId??'0',
           hostOnly:!details.domain,secure:details.secure??false,httpOnly:details.httpOnly??false,
           sameSite:details.sameSite??'unspecified',...(details.partitionKey?{partitionKey:details.partitionKey}:{})};
-        state.cookies=state.cookies.filter(x=>x.name!==row.name);state.cookies.push(row);return row;
+        state.cookies=state.cookies.filter(x=>!(x.name===row.name&&x.domain===row.domain&&
+          x.path===row.path&&x.storeId===row.storeId&&
+          JSON.stringify(x.partitionKey??null)===JSON.stringify(row.partitionKey??null)));
+        if(details.expirationDate===0){
+          if(state.loseRemoveReceipt)api.runtime.lastError={message:'Native callback lost after expiration'};
+          return null;
+        }
+        state.cookies.push(row);return row;
       }),
       remove:mock('remove',details=>{
         const index=state.cookies.findIndex(row=>row.name===details.name&&row.storeId===details.storeId);
@@ -201,12 +208,13 @@ test('R7 reuse R8 Cookie Driver write/readback, prefix denial, scoped remove and
     name:'new',domain:'shop.example.test',path:'/',storeId:'0'
   });
   assert.equal(removed.removed,true);
-  assert.equal(f.state.native.filter(([method])=>method==='remove').length,1);
+  assert.equal(f.state.native.filter(([method])=>method==='set').length,2);
+  assert.equal(f.state.native.filter(([method])=>method==='remove').length,0);
   f.state.loseRemoveReceipt=true;
   await assert.rejects(f.run('browser.cookies.remove',{
     name:'sid',domain:'shop.example.test',path:'/',storeId:'0'
   }),reject('E_OUTCOME_UNKNOWN'));
-  assert.equal(f.state.native.filter(([method])=>method==='remove').length,2);
+  assert.equal(f.state.native.filter(([method])=>method==='set').length,3,'No automatic retry after an uncertain expiration');
 });
 test('R9 trusted Cookie events exclude sibling paths, hostOnly parent domains and foreign partitions',async()=>{
   const f=fixture();

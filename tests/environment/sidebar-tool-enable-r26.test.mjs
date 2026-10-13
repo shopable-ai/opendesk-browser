@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {SIDEBAR_TOOL_STORE,SIDEBAR_TOOL_FORMAT,sidebarToolStorageKey} from '../../src/ui/sidebar-tools/package.js';
+import {SIDEBAR_TOOL_STORE,SIDEBAR_TOOL_FORMAT,sidebarToolStorageKey,sidebarToolPackageHash} from '../../src/ui/sidebar-tools/package.js';
+import {BROWSER_MENU_GRANTS_STORE} from '../../src/framework/sdk/browser-contract.js';
 import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE,requireToolEnableRecords,sidebarToolEnabled,sidebarToolLifecycleChanged} from '../../src/ui/sidebar-tools/lifecycle.js';
 import {setInstalledSidebarToolEnabled,installReviewedSidebarTool,recordToolUninstall,cleanupUninstalledToolLocked,TOOL_CLEANUP_STORE} from '../../src/ui/sidebar-tools/installation.js';
 import {tocGrantAllowed,READING_TOC_SITE_STORE,READING_TOC_VISIBILITY_STORE} from '../../src/reading-toc/policy.js';
@@ -60,6 +61,48 @@ test('R26 stop/resume preserve package/data/grants/preferences and fence every t
   for(const key of Object.keys(baseline))assert.deepEqual(f.values[key],baseline[key]);
   const writes=f.writes.length;await setInstalledSidebarToolEnabled({...f,tool,enabled:true});
   assert.equal(f.writes.length,writes,'same state is idempotent');
+});
+test('R26 stop/resume preserve valid Cookie grants while fencing old requests',async()=>{
+  const f=fixture(),grant={version:tool.version,packageHash:await sidebarToolPackageHash(tool),installEpoch:null,
+    origins:['https://example.com'],cookieSites:{'https://example.com':{read:true,write:false,values:false}}};
+  const peer={version:'other',installEpoch:'peer'};
+  f.values[BROWSER_MENU_GRANTS_STORE]={[tool.id]:grant,peer};
+  await setInstalledSidebarToolEnabled({...f,tool,enabled:false});
+  const stopped=f.values[TOOL_REVOCATION_EPOCHS_STORE][tool.id];
+  assert.equal(f.values[BROWSER_MENU_GRANTS_STORE][tool.id].installEpoch,stopped);
+  assert.notEqual(stopped,grant.installEpoch);
+  await setInstalledSidebarToolEnabled({...f,tool,enabled:true});
+  const resumed=f.values[TOOL_REVOCATION_EPOCHS_STORE][tool.id];
+  assert.notEqual(resumed,stopped);
+  assert.deepEqual(f.values[BROWSER_MENU_GRANTS_STORE][tool.id],{...grant,installEpoch:resumed});
+  assert.deepEqual(f.values[BROWSER_MENU_GRANTS_STORE].peer,peer);
+});
+test('R26 enable never restores a stale package or revoked epoch grant',async()=>{
+  for(const invalid of [{installEpoch:'revoked'},{packageHash:'0'.repeat(64)},{version:'old'}]){
+    const f=fixture(),grant={version:tool.version,packageHash:await sidebarToolPackageHash(tool),installEpoch:null,...invalid};
+    f.values[BROWSER_MENU_GRANTS_STORE]={[tool.id]:grant};
+    await setInstalledSidebarToolEnabled({...f,tool,enabled:false});
+    await setInstalledSidebarToolEnabled({...f,tool,enabled:true});
+    assert.deepEqual(f.values[BROWSER_MENU_GRANTS_STORE][tool.id],grant);
+  }
+});
+test('R26 grant migration failure leaves the tool stopped',async()=>{
+  const f=fixture();
+  f.values[BROWSER_MENU_GRANTS_STORE]={[tool.id]:{version:tool.version,packageHash:await sidebarToolPackageHash(tool),installEpoch:null}};
+  const set=f.api.storage.local.set;
+  f.api.storage.local.set=async rows=>{if(Object.hasOwn(rows,BROWSER_MENU_GRANTS_STORE))throw new Error('grant write denied');return set(rows);};
+  await assert.rejects(setInstalledSidebarToolEnabled({...f,tool,enabled:false}));
+  assert.equal(f.values[SIDEBAR_TOOL_ENABLE_STORE][tool.id],false);
+});
+test('R26 failed grant migration on resume cannot enable an old instance',async()=>{
+  const f=fixture();
+  f.values[BROWSER_MENU_GRANTS_STORE]={[tool.id]:{version:tool.version,packageHash:await sidebarToolPackageHash(tool),installEpoch:null}};
+  await setInstalledSidebarToolEnabled({...f,tool,enabled:false});
+  const set=f.api.storage.local.set;
+  f.api.storage.local.set=async rows=>{if(Object.hasOwn(rows,BROWSER_MENU_GRANTS_STORE))throw new Error('grant write denied');return set(rows);};
+  await assert.rejects(setInstalledSidebarToolEnabled({...f,tool,enabled:true}));
+  assert.equal(f.values[SIDEBAR_TOOL_ENABLE_STORE][tool.id],false);
+  assert.notEqual(f.values[BROWSER_MENU_GRANTS_STORE][tool.id].installEpoch,f.values[TOOL_REVOCATION_EPOCHS_STORE][tool.id]);
 });
 test('R26 corrupt records and stale package identity cannot be rewritten by a settings toggle',async()=>{
   const f=fixture(),bad={[tool.id]:0};f.values[SIDEBAR_TOOL_ENABLE_STORE]=bad;

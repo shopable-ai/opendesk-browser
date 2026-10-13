@@ -1,6 +1,6 @@
 // One installation transaction path for Side Panel and Marketplace.
 // This is the EXISTING v1 tool registry and authority, not a second runner.
-import {SIDEBAR_TOOL_STORE, MAX_INSTALLED_TOOLS, validateSidebarToolPackage, sidebarToolStorageKey,serializeSidebarToolPackage} from './package.js';
+import {SIDEBAR_TOOL_STORE, MAX_INSTALLED_TOOLS, validateSidebarToolPackage, sidebarToolStorageKey,serializeSidebarToolPackage,sidebarToolPackageHash} from './package.js';
 import {BROWSER_MENU_GRANTS_STORE,BOOKMARK_OWNED_STORE_PREFIX} from '../../framework/sdk/browser-contract.js';
 import {READING_TOC_SITE_STORE, READING_TOC_VISIBILITY_STORE, READING_TOC_PAGE_RULES_STORE, READING_TOC_PLACEMENT_PREFIX, READING_TOC_TOOL_ID} from '../../reading-toc/policy.js';
 import {CLIP_SITE_STORE} from '../../page-clip/policy.js';
@@ -76,6 +76,13 @@ export async function setInstalledSidebarToolEnabled({api,lockManager,tool,enabl
       if(!epochs||typeof epochs!=='object'||Array.isArray(epochs)||
         Object.entries(epochs).some(([id,value])=>!toolIdPattern.test(id)||typeof value!=='string'))
         throw error('工具撤销记录损坏；已停止修改','E_STORAGE_CORRUPT');
+      const rawGrants=(await api.storage.local.get(BROWSER_MENU_GRANTS_STORE))[BROWSER_MENU_GRANTS_STORE];
+      if(rawGrants!==undefined&&(!rawGrants||typeof rawGrants!=='object'||Array.isArray(rawGrants)))
+        throw error('工具网站授权记录损坏；已停止修改','E_STORAGE_CORRUPT');
+      const grant=rawGrants?.[tool.id],nextEpoch=crypto.randomUUID();
+      const preserveGrant=grant?.version===current.version&&
+        grant.installEpoch===(epochs[tool.id]??null)&&
+        grant.packageHash===await sidebarToolPackageHash(current);
       // Stop first. Resume fences every old frame/request before it becomes available.
       // A crash between these writes leaves the tool stopped, never silently resumed.
       if(!enabled){
@@ -85,7 +92,11 @@ export async function setInstalledSidebarToolEnabled({api,lockManager,tool,enabl
           await clearFocusRules(api);
       }
       await writeVerifiedLocalValue(api,TOOL_REVOCATION_EPOCHS_STORE,
-        {...epochs,[tool.id]:crypto.randomUUID()},rawEpochs,'工具实例撤销');
+        {...epochs,[tool.id]:nextEpoch},rawEpochs,'工具实例撤销');
+      // Only an already valid, unchanged package grant crosses this transition.
+      // Old frames and pending requests retain the old epoch and remain revoked.
+      if(preserveGrant)await writeVerifiedLocalValue(api,BROWSER_MENU_GRANTS_STORE,
+        {...rawGrants,[tool.id]:{...grant,installEpoch:nextEpoch}},rawGrants,'工具网站授权保留');
       if(enabled)await writeVerifiedLocalValue(api,SIDEBAR_TOOL_ENABLE_STORE,
         {...previous,[tool.id]:true},raw,'工具启停');
       return {enabled};

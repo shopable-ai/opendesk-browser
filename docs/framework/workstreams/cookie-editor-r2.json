@@ -1,6 +1,6 @@
 {
   "schema": "opendesk.cookie-editor.r2.workstream.v1",
-  "date": "2026-10-13",
+  "date": "2026-10-14",
   "branch": "main",
   "scope": "Cookie Editor standalone tool",
   "ownership": [
@@ -20,17 +20,17 @@
     "browserValues": "SOURCE_WIRED",
     "browserClear": "SOURCE_WIRED",
     "observe": "SOURCE_WIRED",
-    "node": "NOT_TESTED",
-    "build": "NOT_TESTED",
-    "verify": "NOT_TESTED",
-    "nativeChrome": "NOT_TESTED",
+    "node": "PASS_TARGETED",
+    "build": "PASS_ISOLATED",
+    "verify": "PASS_ISOLATED",
+    "nativeChrome": "PASS_SCOPED_INSTALLED_UI",
     "expertRating": "NOT_SCORED"
   },
   "r9Blockers": [
-    "Current candidate Node tests / full Check, Build and Verify not actually run",
-    "Mac Chrome installed Cookie Editor real permission/native read/write/delete/clear/observe/lifecycle NOT_TESTED",
-    "Old trusted Cookie UI migration and duplicate product entry deletion blocked until native proof",
-    "Responsive Chrome zoom and keyboard acceptance NOT_TESTED"
+    "Complete actual panel widths 300/320/420/520 and panel-self Zoom; Chrome page zoom leaves Side Panel unchanged",
+    "Native cross-Store/Partition and public methods not exercised by the installed UI remain NOT_TESTED",
+    "Shared-main full npm test still FAIL (21); preserve unrelated work",
+    "Independent final F3, identical ZIP install and CWS/publication not performed"
   ],
   "testsRun": [
     "GitHub source inspection",
@@ -42,28 +42,27 @@
     "R3.1 V8 real Cookie driver source with controlled Chrome native callbacks: exact same-name Path removal + Store/Partition clear isolation 2/2; not Node or Chrome Native"
   ],
   "testsNotRun": [
-    "node --test",
-    "npm run check",
-    "npm test",
-    "npm run build",
-    "npm run build:dev",
-    "npm run verify",
-    "Chrome for Testing"
+    "Complete native cross-Store/Partition matrix",
+    "All panel widths and panel-self Zoom",
+    "Independent final F3",
+    "Identical ZIP installation",
+    "CWS/publication"
   ],
   "macWorktreeAccess": false,
   "chromeVersion": null,
-  "extensionPackageHash": null,
-  "cookieEditorPackageHash": null,
-  "note": "Remote source edits only if optimistic content SHA guards hold. No native evidence and no fake 95+.",
+  "extensionPackageHash": "6650cb095517c0f0f3d77421a3efe513ebd3f5b19c9127eba2a9eacf06ec6f68",
+  "cookieEditorPackageHash": "00034592e094d5a6f513a58bc04233a9793573f1d165a0e990489aead508fa9c",
+  "note": "Core installed Cookie Editor journey passed on the recorded isolated candidate; full integration remains FAIL and remaining native scope is explicit.",
   "notes": [
     "2026-10-13 R2.0.1 target input pending fence and stale authorization; Node/Chrome not executed",
     "R2.1: fixed browser/offline header identity and stale read on edited site; manual refresh re-checks public SDK read grant; partition ancestor preserved",
     "Current trusted Chrome Cookie manager is separate from ordinary installed Cookie Editor; no permission inheritance",
     "V8 synthetic component smoke PASS; Node, Build, Verify, Mac Chrome NOT_TESTED",
     "R3: 11 public Cookie operations and installed Cookie Editor v2 SOURCE_WIRED; Node, Build, Verify and Chrome native remain NOT_TESTED. Keep original R2 findings as history.",
-    "2026-10-13 R3.1: verified-only refresh, dual partition scope reads, true path-scoped import preview, atomic revoke, exact post-remove and native cleanup Store/Partition defense. Native/Build/Node unchanged NOT_TESTED."
+    "2026-10-13 R3.1: verified-only refresh, dual partition scope reads, true path-scoped import preview, atomic revoke, exact post-remove and native cleanup Store/Partition defense. Native/Build/Node unchanged NOT_TESTED.",
+    "2026-10-14 independent review found exact identity lookup race; internal expectedCookieIdentity guard fixed; 31 targeted pass; fresh current-candidate core/path/partial Native pass; prior unaffected UI evidence retained with original candidate identity; final integration 2267/2292, 23 FAIL, 2 skipped."
   ],
-  "cookieEditorVersion": "2.0.2",
+  "cookieEditorVersion": "2.0.4",
   "trustedHostCookieOperations": 11,
   "trustedHostExposure": "11 approved public scoped installed-tool methods in the existing Host; legacy trusted-only approve/execute internal until safe consumer migration",
   "productDuplicateUiPresent": true,
@@ -171,5 +170,1547 @@
     "upgrade": "NOT_TESTED",
     "oldTrustedUi": "BLOCKED_NATIVE_REPLACEMENT",
     "localMacAccess": false
+  },
+  "r33Local": {
+    "date": "2026-10-14",
+    "owner": "Codex App Cookie core journey 01a13647",
+    "status": "CORE_NATIVE_SCOPED_PASS_WITH_REMAINING_GAPS",
+    "startHead": "349a64be5a36419a78770a1154a30db16a871fb0",
+    "writeScope": [
+      "examples/sidebar-tools/cookie-editor/src/main.js",
+      "examples/sidebar-tools/cookie-editor/tool.config.json",
+      "examples/sidebar-tools/cookie-editor/README.zh-CN.md",
+      "tests/environment/cookie-editor-ui.test.mjs",
+      "tests/environment/browser-sdk-r9-installed-host.test.mjs",
+      "src/platform/chrome/browser-cookie-host.js",
+      ".github/workflows/cookie-editor-r32.yml",
+      "docs/framework/workstreams/cookie-editor-r2.md",
+      "docs/framework/workstreams/cookie-editor-r2.json",
+      "tests/framework/cookie-editor-r33-native.mjs",
+      "tests/environment/sidebar-tools-host.test.mjs",
+      "src/platform/chrome/cookies.js",
+      "src/ui/sidebar-tools/installation.js",
+      "tests/environment/sidebar-tool-enable-r26.test.mjs"
+    ],
+    "resources": {
+      "evidence": "artifacts/cookie-editor-local-acceptance/20261014",
+      "browser": "owned CFT exited and profile removed; native-interactive/cleanup.json cleanupStatus PASS; other browser profiles untouched",
+      "dist": "isolated snapshot dist only; daily watcher PID 67794 retained",
+      "buildSnapshot": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/cookie-editor-local-acceptance/20261014/build-workspace",
+      "buildGuardPort": 43220,
+      "nativeApplication": "dev.opendesk.cookie-editor.01a13647",
+      "fixture": "http://127.0.0.1:43111/demo-form.html",
+      "outputGuardPort": 43963,
+      "dailyDevelopmentReplaced": false,
+      "currentProductionCandidate": "artifacts/cookie-editor-local-acceptance/20261014/build-workspace-exact-identity/dist/production"
+    },
+    "acceptance": [
+      "nine CI test files zero fail, no deleted cases",
+      "check/test/build/build:dev/verify raw receipts",
+      "installed UI native workflow on identical package",
+      "separate Node/Build/Native outcomes"
+    ],
+    "pending": [
+      "Complete actual panel widths 300/320/420/520 and panel-self Zoom; Chrome page zoom leaves Side Panel unchanged",
+      "Native cross-Store/Partition and public methods not exercised by the installed UI remain NOT_TESTED",
+      "Shared-main full npm test still FAIL (21); preserve unrelated work",
+      "Independent final F3, identical ZIP install and CWS/publication not performed"
+    ],
+    "progress": {
+      "check": "PASS",
+      "build": "PASS_ISOLATED",
+      "buildDev": "PASS_ISOLATED",
+      "verify": "PASS_ISOLATED",
+      "native": "PASS_SCOPED_INSTALLED_COOKIE_UI",
+      "nodeAffected": {
+        "ui": {
+          "passed": 45,
+          "failed": 0,
+          "evidence": "artifacts/cookie-editor-local-acceptance/20261014/ui-save-button-final-2.tap"
+        },
+        "cookies": {
+          "passed": 31,
+          "failed": 0,
+          "evidence": "artifacts/cookie-editor-local-acceptance/20261014/exact-identity-targeted-final-2.tap",
+          "regressionBefore": "artifacts/cookie-editor-local-acceptance/20261014/exact-identity-race-before.tap"
+        },
+        "lifecycle": {
+          "passed": 17,
+          "failed": 0,
+          "evidence": "artifacts/cookie-editor-local-acceptance/20261014/lifecycle-grant-targeted-final.tap"
+        }
+      },
+      "npmTest": {
+        "status": "FAIL",
+        "tests": 2292,
+        "passed": 2267,
+        "failed": 23,
+        "skipped": 2,
+        "evidence": "artifacts/cookie-editor-local-acceptance/20261014/npm-test-exact-identity-integration.log",
+        "scope": "After identity race fix; live shared main, parallel changes retained; Cookie affected cases did not fail"
+      },
+      "historicalBaseline": {
+        "nodeCookie": {
+          "pass": 111,
+          "fail": 0,
+          "skipped": 0
+        },
+        "uiP2": {
+          "pass": 42,
+          "fail": 0,
+          "skipped": 0
+        },
+        "npmTestWorkspace": {
+          "tests": 2219,
+          "pass": 2137,
+          "fail": 80,
+          "skipped": 2
+        },
+        "npmTestBuiltSnapshot": {
+          "tests": 2236,
+          "pass": 2169,
+          "fail": 65,
+          "skipped": 2
+        }
+      },
+      "previousIntegration": {
+        "status": "FAIL",
+        "tests": 2289,
+        "passed": 2266,
+        "failed": 21,
+        "skipped": 2,
+        "evidence": "artifacts/cookie-editor-local-acceptance/20261014/npm-test-final-integration.log",
+        "scope": "Single final live shared-main integration run; unrelated concurrent changes retained"
+      }
+    },
+    "sdk": [
+      {
+        "operation": "browser.cookies.get",
+        "source": "SOURCE_WIRED",
+        "node": "NODE_PASS",
+        "build": "BUILD_PASS",
+        "native": "NATIVE_PASS_SCOPED_INSTALLED_UI",
+        "nodeEvidence": "artifacts/cookie-editor-local-acceptance/20261014/nine-final-1.tap",
+        "nativeEvidence": "artifacts/cookie-editor-local-acceptance/20261014/native-core-2026-10-13T19-37-40-065Z-a727f377/native-report.json"
+      },
+      {
+        "operation": "browser.cookies.getAll",
+        "source": "SOURCE_WIRED",
+        "node": "NODE_PASS",
+        "build": "BUILD_PASS",
+        "native": "NATIVE_PASS_SCOPED_INSTALLED_UI",
+        "nodeEvidence": "artifacts/cookie-editor-local-acceptance/20261014/nine-final-1.tap",
+        "nativeEvidence": "artifacts/cookie-editor-local-acceptance/20261014/native-core-2026-10-13T19-37-40-065Z-a727f377/native-report.json"
+      },
+      {
+        "operation": "browser.cookies.set",
+        "source": "SOURCE_WIRED",
+        "node": "NODE_PASS",
+        "build": "BUILD_PASS",
+        "native": "NATIVE_PASS_SCOPED_INSTALLED_UI",
+        "nodeEvidence": "artifacts/cookie-editor-local-acceptance/20261014/nine-final-1.tap",
+        "nativeEvidence": "artifacts/cookie-editor-local-acceptance/20261014/native-core-2026-10-13T19-37-40-065Z-a727f377/native-report.json"
+      },
+      {
+        "operation": "browser.cookies.remove",
+        "source": "SOURCE_WIRED",
+        "node": "NODE_PASS",
+        "build": "BUILD_PASS",
+        "native": "NATIVE_PASS_SCOPED_INSTALLED_UI",
+        "nodeEvidence": "artifacts/cookie-editor-local-acceptance/20261014/nine-final-1.tap",
+        "nativeEvidence": "artifacts/cookie-editor-local-acceptance/20261014/native-core-2026-10-13T19-37-40-065Z-a727f377/native-report.json"
+      },
+      {
+        "operation": "browser.cookies.clearSite",
+        "source": "SOURCE_WIRED",
+        "node": "NODE_PASS",
+        "build": "BUILD_PASS",
+        "native": "NATIVE_PASS_SCOPED_INSTALLED_UI",
+        "nodeEvidence": "artifacts/cookie-editor-local-acceptance/20261014/nine-final-1.tap",
+        "nativeEvidence": "artifacts/cookie-editor-local-acceptance/20261014/native-core-2026-10-13T19-07-14-115Z-89b21cda/native-report.json",
+        "nativeEvidenceScope": "Prior candidate; unchanged affected feature inputs; no formal final-candidate promotion"
+      },
+      {
+        "operation": "browser.cookies.getCurrentStore",
+        "source": "SOURCE_WIRED",
+        "node": "NODE_PASS",
+        "build": "BUILD_PASS",
+        "native": "NATIVE_PASS_SCOPED_INSTALLED_UI",
+        "nodeEvidence": "artifacts/cookie-editor-local-acceptance/20261014/nine-final-1.tap",
+        "nativeEvidence": "artifacts/cookie-editor-local-acceptance/20261014/native-core-2026-10-13T19-37-40-065Z-a727f377/native-report.json"
+      },
+      {
+        "operation": "browser.cookies.getPartitionKey",
+        "source": "SOURCE_WIRED",
+        "node": "NODE_PASS",
+        "build": "BUILD_PASS",
+        "native": "NOT_TESTED_PARTITIONED_SUCCESS",
+        "nodeEvidence": "artifacts/cookie-editor-local-acceptance/20261014/nine-final-1.tap",
+        "nativeEvidence": "artifacts/cookie-editor-local-acceptance/20261014/native-core-2026-10-13T19-07-14-115Z-89b21cda/native-report.json",
+        "nativeObserved": "UNPARTITIONED_UI_FALLBACK"
+      },
+      {
+        "operation": "browser.cookies.observe.start",
+        "source": "SOURCE_WIRED",
+        "node": "NODE_PASS",
+        "build": "BUILD_PASS",
+        "native": "NATIVE_PASS_SCOPED_INSTALLED_UI",
+        "nodeEvidence": "artifacts/cookie-editor-local-acceptance/20261014/nine-final-1.tap",
+        "nativeEvidence": "artifacts/cookie-editor-local-acceptance/20261014/native-core-2026-10-13T19-07-14-115Z-89b21cda/native-report.json",
+        "nativeEvidenceScope": "Prior candidate; unchanged affected feature inputs; no formal final-candidate promotion"
+      },
+      {
+        "operation": "browser.cookies.observe.getStatus",
+        "source": "SOURCE_WIRED",
+        "node": "NODE_PASS",
+        "build": "BUILD_PASS",
+        "native": "NOT_TESTED",
+        "nodeEvidence": "artifacts/cookie-editor-local-acceptance/20261014/nine-final-1.tap",
+        "nativeEvidenceScope": "Prior candidate; unchanged affected feature inputs; no formal final-candidate promotion"
+      },
+      {
+        "operation": "browser.cookies.observe.read",
+        "source": "SOURCE_WIRED",
+        "node": "NODE_PASS",
+        "build": "BUILD_PASS",
+        "native": "NATIVE_PASS_SCOPED_INSTALLED_UI",
+        "nodeEvidence": "artifacts/cookie-editor-local-acceptance/20261014/nine-final-1.tap",
+        "nativeEvidence": "artifacts/cookie-editor-local-acceptance/20261014/native-core-2026-10-13T19-07-14-115Z-89b21cda/native-report.json",
+        "nativeEvidenceScope": "Prior candidate; unchanged affected feature inputs; no formal final-candidate promotion"
+      },
+      {
+        "operation": "browser.cookies.observe.stop",
+        "source": "SOURCE_WIRED",
+        "node": "NODE_PASS",
+        "build": "BUILD_PASS",
+        "native": "NATIVE_PASS_SCOPED_INSTALLED_UI",
+        "nodeEvidence": "artifacts/cookie-editor-local-acceptance/20261014/nine-final-1.tap",
+        "nativeEvidence": "artifacts/cookie-editor-local-acceptance/20261014/native-core-2026-10-13T19-07-14-115Z-89b21cda/native-report.json",
+        "nativeEvidenceScope": "Prior candidate; unchanged affected feature inputs; no formal final-candidate promotion"
+      }
+    ],
+    "candidateVersion": "2.0.4",
+    "packageIdentity": {
+      "toolVersion": "2.0.4",
+      "toolFileSha256": "00034592e094d5a6f513a58bc04233a9793573f1d165a0e990489aead508fa9c",
+      "productionVerifyHash": "6650cb095517c0f0f3d77421a3efe513ebd3f5b19c9127eba2a9eacf06ec6f68",
+      "developmentVerifyHash": "468e117719f2fec775f7596b9aea664b7afd778700c55c80f9309be854befe73",
+      "nativeExtensionFingerprint": "edb1e04566f0e3022233c99a6408bd92500fcaada783104345a3b8920ebc73e0",
+      "nativeExtensionId": "igpeopfnlionaohinofebijkhfliljfp",
+      "productionPath": "artifacts/cookie-editor-local-acceptance/20261014/build-workspace-exact-identity/dist/production",
+      "developmentPath": "artifacts/cookie-editor-local-acceptance/20261014/build-workspace-exact-identity/dist/development",
+      "scope": "Isolated historical source snapshot plus task-owned fixes, not a build of all current shared-main changes; no final F3/ZIP/CWS claim",
+      "inputEvidence": "artifacts/cookie-editor-local-acceptance/20261014/exact-identity-candidate-inputs.json",
+      "relatedSourceInputs": [
+        {
+          "path": "examples/sidebar-tools/cookie-editor/src/main.js",
+          "sha256": "354a86cc6e05227effea790979cf0fca1a02b4092d3a60cf74bfd7c1f1d737e4"
+        },
+        {
+          "path": "examples/sidebar-tools/cookie-editor/src/index.html",
+          "sha256": "c7df0b00fa59f60027d7c6cc5e1e3041b8b836bf7333491d39084e28beb949ed"
+        },
+        {
+          "path": "examples/sidebar-tools/cookie-editor/tool.config.json",
+          "sha256": "587e63ef0bdada19d0c470b97064295b9413d436745775544c61107e0062653e"
+        },
+        {
+          "path": "src/platform/chrome/cookies.js",
+          "sha256": "bc6f179072db8f03dd56940d965c422e752f3537da5cf6b497f20cebedd9c633"
+        },
+        {
+          "path": "src/platform/chrome/browser-cookie-host.js",
+          "sha256": "d6cb56db92eb6726490a2b6e84fc00a6d02fbe0d5dd39d8816264e7fa429133b"
+        },
+        {
+          "path": "src/ui/sidebar-tools/installation.js",
+          "sha256": "88730768f81112a4fae508e2d42f6b5e11b8d267b32a29f0a994f503e0be1069"
+        }
+      ]
+    },
+    "handoff": {
+      "ownerReleased": false,
+      "currentStatus": "Exact identity guard tested; current core/path/partial Native PASS_SCOPED; all owned CFT closed; Git/CI pending",
+      "preserve": {
+        "prompt": "docs/framework/prompts/cookie-editor-r33l-core-first-handoff-20261014.zh-CN.txt",
+        "head": "349a64be5a36419a78770a1154a30db16a871fb0",
+        "changes": "uncommitted; not pushed",
+        "nativeDriver": {
+          "path": "tests/framework/cookie-editor-r33-native.mjs",
+          "syntax": "PASS",
+          "execution": "NOT_TESTED"
+        },
+        "priority": "installed Side Panel core cookie workflow before broad unrelated tests",
+        "broadTests": "existing failures retained; defer unrelated investigation until core product workflow is stable",
+        "browserCleanup": "artifacts/cookie-editor-local-acceptance/20261014/native-interactive/cleanup.json",
+        "ownerReleased": true
+      }
+    },
+    "latestMainHead": "8ac000384699f7c77106a6b896bc462e37072b6c",
+    "nativeUi": {
+      "browser": {
+        "protocolVersion": "1.3",
+        "product": "Chrome/155.0.8059.39",
+        "revision": "@3ff7ac5a9224be9156d7f8703a06e22890aafd34",
+        "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36",
+        "jsVersion": "15.5.35.20"
+      },
+      "sameCandidate": true,
+      "scenarios": {
+        "core": {
+          "status": "PASS_SCOPED",
+          "report": "artifacts/cookie-editor-local-acceptance/20261014/native-core-2026-10-13T19-37-40-065Z-a727f377/native-report.json",
+          "cases": {
+            "launch": {
+              "status": "PASS",
+              "receipt": "artifacts/cookie-editor-local-acceptance/20261014/native-core-2026-10-13T19-37-40-065Z-a727f377/launch-receipt.json"
+            },
+            "product-side-panel": {
+              "status": "PASS",
+              "receipt": "artifacts/cookie-editor-local-acceptance/20261014/native-core-2026-10-13T19-37-40-065Z-a727f377/product-side-panel-receipt.json"
+            },
+            "official-install": {
+              "status": "PASS",
+              "receipt": "artifacts/cookie-editor-local-acceptance/20261014/native-core-2026-10-13T19-37-40-065Z-a727f377/official-install-receipt.json"
+            },
+            "active-fixture": {
+              "status": "PASS",
+              "receipt": "artifacts/cookie-editor-local-acceptance/20261014/native-core-2026-10-13T19-37-40-065Z-a727f377/active-fixture-receipt.json"
+            },
+            "read-grant": {
+              "status": "PASS",
+              "receipt": "artifacts/cookie-editor-local-acceptance/20261014/native-core-2026-10-13T19-37-40-065Z-a727f377/read-grant-receipt.json"
+            },
+            "write-grant": {
+              "status": "PASS",
+              "receipt": "artifacts/cookie-editor-local-acceptance/20261014/native-core-2026-10-13T19-37-40-065Z-a727f377/write-grant-receipt.json"
+            },
+            "new-cookie": {
+              "status": "PASS",
+              "receipt": "artifacts/cookie-editor-local-acceptance/20261014/native-core-2026-10-13T19-37-40-065Z-a727f377/new-cookie-receipt.json"
+            },
+            "edit-value": {
+              "status": "PASS",
+              "receipt": "artifacts/cookie-editor-local-acceptance/20261014/native-core-2026-10-13T19-37-40-065Z-a727f377/edit-value-receipt.json"
+            },
+            "rename-with-new-value": {
+              "status": "PASS",
+              "receipt": "artifacts/cookie-editor-local-acceptance/20261014/native-core-2026-10-13T19-37-40-065Z-a727f377/rename-with-new-value-receipt.json"
+            },
+            "values-grant": {
+              "status": "PASS",
+              "receipt": "artifacts/cookie-editor-local-acceptance/20261014/native-core-2026-10-13T19-37-40-065Z-a727f377/values-grant-receipt.json"
+            },
+            "rename-preserve-hidden-value": {
+              "status": "PASS",
+              "receipt": "artifacts/cookie-editor-local-acceptance/20261014/native-core-2026-10-13T19-37-40-065Z-a727f377/rename-preserve-hidden-value-receipt.json"
+            },
+            "exact-delete": {
+              "status": "PASS",
+              "receipt": "artifacts/cookie-editor-local-acceptance/20261014/native-core-2026-10-13T19-37-40-065Z-a727f377/exact-delete-receipt.json"
+            }
+          },
+          "screenshots": [
+            {
+              "case": "product-side-panel",
+              "file": "product-side-panel.png",
+              "sha256": "ba9127225766028767fa43f926b14f2432352d040e68e9de275850a93c5df35f"
+            },
+            {
+              "case": "official-install",
+              "file": "official-install.png",
+              "sha256": "f32593c0c8c120240a3327b230b500afe2998ab03368b5c41292690dfdcea5ca"
+            },
+            {
+              "case": "active-fixture",
+              "file": "active-fixture.png",
+              "sha256": "ad26f2a9e44bbfd217c9850e37a71384f9a0aaf6ab6603bae2fb517791ce20a9"
+            },
+            {
+              "case": "read-grant",
+              "file": "read-grant-settings.png",
+              "sha256": "a05485f1d42971e63fbe45119c062786fc9c15ad8307896c28e40989223f4625"
+            },
+            {
+              "case": "read-grant",
+              "file": "read-grant.png",
+              "sha256": "5e9b624c9d9a4234c98f395e284e0a9c0c643523790b9b517ea0d2df2d060123"
+            },
+            {
+              "case": "write-grant",
+              "file": "write-grant.png",
+              "sha256": "d0ad8e1be3ab0d4cd361671412bb730b52d2f78b35508237e1ac248b4f1887ca"
+            },
+            {
+              "case": "new-cookie",
+              "file": "new-cookie.png",
+              "sha256": "23d03317810ead365a7dd9e94badd4db31ee5a5aaa029179c5fec8b46eb2c964"
+            },
+            {
+              "case": "edit-value",
+              "file": "edit-value.png",
+              "sha256": "23d03317810ead365a7dd9e94badd4db31ee5a5aaa029179c5fec8b46eb2c964"
+            },
+            {
+              "case": "rename-with-new-value",
+              "file": "rename-with-new-value.png",
+              "sha256": "d2f8c44fc8d37ff71ca1fe3f30d2689b5ea027930112c05c1294f868fa87bbb3"
+            },
+            {
+              "case": "values-grant",
+              "file": "values-grant.png",
+              "sha256": "f9c5bdae9373f7c749c1df74f23c4e541389d1f67e030a646fbb9df7749ae63d"
+            },
+            {
+              "case": "rename-preserve-hidden-value",
+              "file": "rename-preserve-hidden-value.png",
+              "sha256": "aa8b1b07fbeeb8e1c6822b21ebdbd0498b7e70f6015916d1bed3614e4b12bc67"
+            },
+            {
+              "case": "exact-delete",
+              "file": "exact-delete.png",
+              "sha256": "c29f2e9ae64c41e7d5caadbe7890487e4185d6a283246415a1f7617c7344334d"
+            }
+          ]
+        },
+        "conflictAndPath": {
+          "status": "PASS_SCOPED",
+          "report": "artifacts/cookie-editor-local-acceptance/20261014/native-core-2026-10-13T19-42-07-606Z-f7b583ca/native-report.json",
+          "cases": {
+            "launch": {
+              "status": "PASS",
+              "receipt": "artifacts/cookie-editor-local-acceptance/20261014/native-core-2026-10-13T19-42-07-606Z-f7b583ca/launch-receipt.json"
+            },
+            "product-side-panel": {
+              "status": "PASS",
+              "receipt": "artifacts/cookie-editor-local-acceptance/20261014/native-core-2026-10-13T19-42-07-606Z-f7b583ca/product-side-panel-receipt.json"
+            },
+            "official-install": {
+              "status": "PASS",
+              "receipt": "artifacts/cookie-editor-local-acceptance/20261014/native-core-2026-10-13T19-42-07-606Z-f7b583ca/official-install-receipt.json"
+            },
+            "active-fixture": {
+              "status": "PASS",
+              "receipt": "artifacts/cookie-editor-local-acceptance/20261014/native-core-2026-10-13T19-42-07-606Z-f7b583ca/active-fixture-receipt.json"
+            },
+            "read-grant": {
+              "status": "PASS",
+              "receipt": "artifacts/cookie-editor-local-acceptance/20261014/native-core-2026-10-13T19-42-07-606Z-f7b583ca/read-grant-receipt.json"
+            },
+            "write-grant": {
+              "status": "PASS",
+              "receipt": "artifacts/cookie-editor-local-acceptance/20261014/native-core-2026-10-13T19-42-07-606Z-f7b583ca/write-grant-receipt.json"
+            },
+            "conflict-preserves-original": {
+              "status": "PASS",
+              "receipt": "artifacts/cookie-editor-local-acceptance/20261014/native-core-2026-10-13T19-42-07-606Z-f7b583ca/conflict-preserves-original-receipt.json"
+            },
+            "hidden-value-needs-grant": {
+              "status": "PASS",
+              "receipt": "artifacts/cookie-editor-local-acceptance/20261014/native-core-2026-10-13T19-42-07-606Z-f7b583ca/hidden-value-needs-grant-receipt.json"
+            },
+            "same-name-path-isolation": {
+              "status": "PASS",
+              "receipt": "artifacts/cookie-editor-local-acceptance/20261014/native-core-2026-10-13T19-42-07-606Z-f7b583ca/same-name-path-isolation-receipt.json"
+            }
+          },
+          "screenshots": [
+            {
+              "case": "product-side-panel",
+              "file": "product-side-panel.png",
+              "sha256": "ba9127225766028767fa43f926b14f2432352d040e68e9de275850a93c5df35f"
+            },
+            {
+              "case": "official-install",
+              "file": "official-install.png",
+              "sha256": "f32593c0c8c120240a3327b230b500afe2998ab03368b5c41292690dfdcea5ca"
+            },
+            {
+              "case": "active-fixture",
+              "file": "active-fixture.png",
+              "sha256": "ad26f2a9e44bbfd217c9850e37a71384f9a0aaf6ab6603bae2fb517791ce20a9"
+            },
+            {
+              "case": "read-grant",
+              "file": "read-grant-settings.png",
+              "sha256": "a05485f1d42971e63fbe45119c062786fc9c15ad8307896c28e40989223f4625"
+            },
+            {
+              "case": "read-grant",
+              "file": "read-grant.png",
+              "sha256": "5e9b624c9d9a4234c98f395e284e0a9c0c643523790b9b517ea0d2df2d060123"
+            },
+            {
+              "case": "write-grant",
+              "file": "write-grant.png",
+              "sha256": "d0ad8e1be3ab0d4cd361671412bb730b52d2f78b35508237e1ac248b4f1887ca"
+            },
+            {
+              "case": "conflict-preserves-original",
+              "file": "conflict-preserves-original.png",
+              "sha256": "26a83bbdbaf5596b3be83fba7787752c94d858d34f7e5402676b571e309b87b5"
+            },
+            {
+              "case": "hidden-value-needs-grant",
+              "file": "hidden-value-needs-grant.png",
+              "sha256": "b85f2621b97a21b20b205219dda4423a28513c6860ffeb71d1fef5740847473b"
+            },
+            {
+              "case": "same-name-path-isolation",
+              "file": "same-name-path-isolation.png",
+              "sha256": "6d3afaca3dd62a51a907442b3f03df0131082924a087c4f84d4b8c208a2c3dbb"
+            }
+          ]
+        },
+        "partialRename": {
+          "status": "PASS_SCOPED",
+          "report": "artifacts/cookie-editor-local-acceptance/20261014/native-core-2026-10-13T19-43-28-830Z-28b4c94b/native-report.json",
+          "cases": {
+            "launch": {
+              "status": "PASS",
+              "receipt": "artifacts/cookie-editor-local-acceptance/20261014/native-core-2026-10-13T19-43-28-830Z-28b4c94b/launch-receipt.json"
+            },
+            "product-side-panel": {
+              "status": "PASS",
+              "receipt": "artifacts/cookie-editor-local-acceptance/20261014/native-core-2026-10-13T19-43-28-830Z-28b4c94b/product-side-panel-receipt.json"
+            },
+            "official-install": {
+              "status": "PASS",
+              "receipt": "artifacts/cookie-editor-local-acceptance/20261014/native-core-2026-10-13T19-43-28-830Z-28b4c94b/official-install-receipt.json"
+            },
+            "active-fixture": {
+              "status": "PASS",
+              "receipt": "artifacts/cookie-editor-local-acceptance/20261014/native-core-2026-10-13T19-43-28-830Z-28b4c94b/active-fixture-receipt.json"
+            },
+            "read-grant": {
+              "status": "PASS",
+              "receipt": "artifacts/cookie-editor-local-acceptance/20261014/native-core-2026-10-13T19-43-28-830Z-28b4c94b/read-grant-receipt.json"
+            },
+            "write-grant": {
+              "status": "PASS",
+              "receipt": "artifacts/cookie-editor-local-acceptance/20261014/native-core-2026-10-13T19-43-28-830Z-28b4c94b/write-grant-receipt.json"
+            },
+            "rename-partial-cancelled-old-delete": {
+              "status": "PASS",
+              "receipt": "artifacts/cookie-editor-local-acceptance/20261014/native-core-2026-10-13T19-43-28-830Z-28b4c94b/rename-partial-cancelled-old-delete-receipt.json"
+            }
+          },
+          "screenshots": [
+            {
+              "case": "product-side-panel",
+              "file": "product-side-panel.png",
+              "sha256": "ba9127225766028767fa43f926b14f2432352d040e68e9de275850a93c5df35f"
+            },
+            {
+              "case": "official-install",
+              "file": "official-install.png",
+              "sha256": "f32593c0c8c120240a3327b230b500afe2998ab03368b5c41292690dfdcea5ca"
+            },
+            {
+              "case": "active-fixture",
+              "file": "active-fixture.png",
+              "sha256": "ad26f2a9e44bbfd217c9850e37a71384f9a0aaf6ab6603bae2fb517791ce20a9"
+            },
+            {
+              "case": "read-grant",
+              "file": "read-grant-settings.png",
+              "sha256": "a05485f1d42971e63fbe45119c062786fc9c15ad8307896c28e40989223f4625"
+            },
+            {
+              "case": "read-grant",
+              "file": "read-grant.png",
+              "sha256": "16760ac73907023b80a412db03601646c9242d48681fb821bf8652b08f4b6444"
+            },
+            {
+              "case": "write-grant",
+              "file": "write-grant.png",
+              "sha256": "d0ad8e1be3ab0d4cd361671412bb730b52d2f78b35508237e1ac248b4f1887ca"
+            },
+            {
+              "case": "rename-partial-cancelled-old-delete",
+              "file": "rename-partial-cancelled-old-delete.png",
+              "sha256": "58f88c3cae6959fc42c3b25a165bb7ad518641d11f5f0305ca2dcab6665c979a"
+            }
+          ]
+        }
+      },
+      "reusedPriorCandidateEvidence": {
+        "advanced": {
+          "status": "PASS_SCOPED_PRIOR_CANDIDATE",
+          "report": "artifacts/cookie-editor-local-acceptance/20261014/native-core-2026-10-13T19-07-14-115Z-89b21cda/native-report.json",
+          "reuse": "UI, installation, observation and clearSite inputs unchanged; prior extension identity retained, not relabelled as current Native PASS"
+        },
+        "lifecycle": {
+          "status": "PASS_SCOPED_PRIOR_CANDIDATE",
+          "report": "artifacts/cookie-editor-local-acceptance/20261014/native-core-2026-10-13T18-52-42-424Z-004f7a9c/native-report.json",
+          "reuse": "UI, installation, observation and clearSite inputs unchanged; prior extension identity retained, not relabelled as current Native PASS"
+        },
+        "upgrade": {
+          "status": "PASS_SCOPED_PRIOR_CANDIDATE",
+          "report": "artifacts/cookie-editor-local-acceptance/20261014/native-core-2026-10-13T19-08-11-899Z-4c4d20fd/native-report.json",
+          "reuse": "UI, installation, observation and clearSite inputs unchanged; prior extension identity retained, not relabelled as current Native PASS"
+        },
+        "visual": {
+          "status": "PASS_SCOPED_PRIOR_CANDIDATE",
+          "report": "artifacts/cookie-editor-local-acceptance/20261014/native-core-2026-10-13T19-03-11-822Z-adbb56bd/native-report.json",
+          "reuse": "UI, installation, observation and clearSite inputs unchanged; prior extension identity retained, not relabelled as current Native PASS"
+        }
+      },
+      "allMutations": "Installed Cookie Editor UI only; native API evaluations read only",
+      "renameAtomic": false,
+      "visual": {
+        "panelWidth360": "PASS",
+        "panelWidths300320420520": "NOT_TESTED",
+        "browserWebsiteZoom100125150200": "PASS_SCOPED_PANEL_UNCHANGED",
+        "panelSelfZoom125150200": "NOT_TESTED",
+        "extraNativeAttempt": {
+          "report": "artifacts/cookie-editor-local-acceptance/20261014/native-core-2026-10-13T19-22-43-288Z-a6456023/native-report.json",
+          "controller": "artifacts/cookie-editor-local-acceptance/20261014/native-core-2026-10-13T19-22-43-288Z-a6456023/visual-complete.json",
+          "status": "NO_WIDTH_CHANGE_NOT_TESTED",
+          "observedPanelWidth": 360,
+          "candidateUnchanged": true,
+          "cleanup": {
+            "cleanupStatus": "PASS",
+            "pidAliveAfterExit": false,
+            "profileRemoved": true
+          }
+        }
+      },
+      "crossStorePartitionNative": "NOT_TESTED",
+      "raceInterleavingNative": "NOT_TESTED_NODE_REGRESSION_PASS",
+      "independentF3": "NOT_TESTED",
+      "zipInstall": "NOT_TESTED",
+      "expertRating": "NOT_SCORED"
+    },
+    "priorNativeCandidate": {
+      "packageIdentity": {
+        "toolVersion": "2.0.4",
+        "toolFileSha256": "00034592e094d5a6f513a58bc04233a9793573f1d165a0e990489aead508fa9c",
+        "productionVerifyHash": "0771fc04cfb5a9e92d4b75d6571709f139a0a95b4ea8e3a4cb3957766bae860a",
+        "developmentVerifyHash": "26f94d7fb27e327a09f452c44db5929a55d2d6066d91b40cf784262723d6d5f4",
+        "nativeExtensionFingerprint": "651ad3bdfd61e3a559cb4570e9d1e038b654422acbd4d17b2f42e0931b11e3af",
+        "nativeExtensionId": "fhgkajobnphcelohkjadhnfdmdocnmcf",
+        "productionPath": "artifacts/cookie-editor-local-acceptance/20261014/build-workspace-exact-delete/dist/production",
+        "developmentPath": "artifacts/cookie-editor-local-acceptance/20261014/build-workspace-exact-delete/dist/development",
+        "scope": "Isolated historical source snapshot plus task-owned fixes, not a build of all current shared-main changes; no final F3/ZIP/CWS claim"
+      },
+      "nativeUi": {
+        "browser": {
+          "protocolVersion": "1.3",
+          "product": "Chrome/155.0.8059.39",
+          "revision": "@3ff7ac5a9224be9156d7f8703a06e22890aafd34",
+          "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36",
+          "jsVersion": "15.5.35.20"
+        },
+        "sameCandidate": true,
+        "scenarios": {
+          "core": {
+            "status": "PASS_SCOPED",
+            "report": "artifacts/cookie-editor-local-acceptance/20261014/native-core-2026-10-13T19-05-02-453Z-e8376fa9/native-report.json",
+            "cases": {
+              "launch": {
+                "status": "PASS",
+                "receipt": "artifacts/cookie-editor-local-acceptance/20261014/native-core-2026-10-13T19-05-02-453Z-e8376fa9/launch-receipt.json"
+              },
+              "product-side-panel": {
+                "status": "PASS",
+                "receipt": "artifacts/cookie-editor-local-acceptance/20261014/native-core-2026-10-13T19-05-02-453Z-e8376fa9/product-side-panel-receipt.json"
+              },
+              "official-install": {
+                "status": "PASS",
+                "receipt": "artifacts/cookie-editor-local-acceptance/20261014/native-core-2026-10-13T19-05-02-453Z-e8376fa9/official-install-receipt.json"
+              },
+              "active-fixture": {
+                "status": "PASS",
+                "receipt": "artifacts/cookie-editor-local-acceptance/20261014/native-core-2026-10-13T19-05-02-453Z-e8376fa9/active-fixture-receipt.json"
+              },
+              "read-grant": {
+                "status": "PASS",
+                "receipt": "artifacts/cookie-editor-local-acceptance/20261014/native-core-2026-10-13T19-05-02-453Z-e8376fa9/read-grant-receipt.json"
+              },
+              "write-grant": {
+                "status": "PASS",
+                "receipt": "artifacts/cookie-editor-local-acceptance/20261014/native-core-2026-10-13T19-05-02-453Z-e8376fa9/write-grant-receipt.json"
+              },
+              "new-cookie": {
+                "status": "PASS",
+                "receipt": "artifacts/cookie-editor-local-acceptance/20261014/native-core-2026-10-13T19-05-02-453Z-e8376fa9/new-cookie-receipt.json"
+              },
+              "edit-value": {
+                "status": "PASS",
+                "receipt": "artifacts/cookie-editor-local-acceptance/20261014/native-core-2026-10-13T19-05-02-453Z-e8376fa9/edit-value-receipt.json"
+              },
+              "rename-with-new-value": {
+                "status": "PASS",
+                "receipt": "artifacts/cookie-editor-local-acceptance/20261014/native-core-2026-10-13T19-05-02-453Z-e8376fa9/rename-with-new-value-receipt.json"
+              },
+              "values-grant": {
+                "status": "PASS",
+                "receipt": "artifacts/cookie-editor-local-acceptance/20261014/native-core-2026-10-13T19-05-02-453Z-e8376fa9/values-grant-receipt.json"
+              },
+              "rename-preserve-hidden-value": {
+                "status": "PASS",
+                "receipt": "artifacts/cookie-editor-local-acceptance/20261014/native-core-2026-10-13T19-05-02-453Z-e8376fa9/rename-preserve-hidden-value-receipt.json"
+              },
+              "exact-delete": {
+                "status": "PASS",
+                "receipt": "artifacts/cookie-editor-local-acceptance/20261014/native-core-2026-10-13T19-05-02-453Z-e8376fa9/exact-delete-receipt.json"
+              }
+            },
+            "screenshots": [
+              {
+                "case": "product-side-panel",
+                "file": "product-side-panel.png",
+                "sha256": "ba9127225766028767fa43f926b14f2432352d040e68e9de275850a93c5df35f"
+              },
+              {
+                "case": "official-install",
+                "file": "official-install.png",
+                "sha256": "f32593c0c8c120240a3327b230b500afe2998ab03368b5c41292690dfdcea5ca"
+              },
+              {
+                "case": "active-fixture",
+                "file": "active-fixture.png",
+                "sha256": "ad26f2a9e44bbfd217c9850e37a71384f9a0aaf6ab6603bae2fb517791ce20a9"
+              },
+              {
+                "case": "read-grant",
+                "file": "read-grant-settings.png",
+                "sha256": "a05485f1d42971e63fbe45119c062786fc9c15ad8307896c28e40989223f4625"
+              },
+              {
+                "case": "read-grant",
+                "file": "read-grant.png",
+                "sha256": "16760ac73907023b80a412db03601646c9242d48681fb821bf8652b08f4b6444"
+              },
+              {
+                "case": "write-grant",
+                "file": "write-grant.png",
+                "sha256": "d0ad8e1be3ab0d4cd361671412bb730b52d2f78b35508237e1ac248b4f1887ca"
+              },
+              {
+                "case": "new-cookie",
+                "file": "new-cookie.png",
+                "sha256": "23d03317810ead365a7dd9e94badd4db31ee5a5aaa029179c5fec8b46eb2c964"
+              },
+              {
+                "case": "edit-value",
+                "file": "edit-value.png",
+                "sha256": "23d03317810ead365a7dd9e94badd4db31ee5a5aaa029179c5fec8b46eb2c964"
+              },
+              {
+                "case": "rename-with-new-value",
+                "file": "rename-with-new-value.png",
+                "sha256": "d2f8c44fc8d37ff71ca1fe3f30d2689b5ea027930112c05c1294f868fa87bbb3"
+              },
+              {
+                "case": "values-grant",
+                "file": "values-grant.png",
+                "sha256": "f9c5bdae9373f7c749c1df74f23c4e541389d1f67e030a646fbb9df7749ae63d"
+              },
+              {
+                "case": "rename-preserve-hidden-value",
+                "file": "rename-preserve-hidden-value.png",
+                "sha256": "aa8b1b07fbeeb8e1c6822b21ebdbd0498b7e70f6015916d1bed3614e4b12bc67"
+              },
+              {
+                "case": "exact-delete",
+                "file": "exact-delete.png",
+                "sha256": "c29f2e9ae64c41e7d5caadbe7890487e4185d6a283246415a1f7617c7344334d"
+              }
+            ]
+          },
+          "conflictAndPath": {
+            "status": "PASS_SCOPED",
+            "report": "artifacts/cookie-editor-local-acceptance/20261014/native-core-2026-10-13T19-06-43-262Z-6e21a3b0/native-report.json",
+            "cases": {
+              "launch": {
+                "status": "PASS",
+                "receipt": "artifacts/cookie-editor-local-acceptance/20261014/native-core-2026-10-13T19-06-43-262Z-6e21a3b0/launch-receipt.json"
+              },
+              "product-side-panel": {
+                "status": "PASS",
+                "receipt": "artifacts/cookie-editor-local-acceptance/20261014/native-core-2026-10-13T19-06-43-262Z-6e21a3b0/product-side-panel-receipt.json"
+              },
+              "official-install": {
+                "status": "PASS",
+                "receipt": "artifacts/cookie-editor-local-acceptance/20261014/native-core-2026-10-13T19-06-43-262Z-6e21a3b0/official-install-receipt.json"
+              },
+              "active-fixture": {
+                "status": "PASS",
+                "receipt": "artifacts/cookie-editor-local-acceptance/20261014/native-core-2026-10-13T19-06-43-262Z-6e21a3b0/active-fixture-receipt.json"
+              },
+              "read-grant": {
+                "status": "PASS",
+                "receipt": "artifacts/cookie-editor-local-acceptance/20261014/native-core-2026-10-13T19-06-43-262Z-6e21a3b0/read-grant-receipt.json"
+              },
+              "write-grant": {
+                "status": "PASS",
+                "receipt": "artifacts/cookie-editor-local-acceptance/20261014/native-core-2026-10-13T19-06-43-262Z-6e21a3b0/write-grant-receipt.json"
+              },
+              "conflict-preserves-original": {
+                "status": "PASS",
+                "receipt": "artifacts/cookie-editor-local-acceptance/20261014/native-core-2026-10-13T19-06-43-262Z-6e21a3b0/conflict-preserves-original-receipt.json"
+              },
+              "hidden-value-needs-grant": {
+                "status": "PASS",
+                "receipt": "artifacts/cookie-editor-local-acceptance/20261014/native-core-2026-10-13T19-06-43-262Z-6e21a3b0/hidden-value-needs-grant-receipt.json"
+              },
+              "same-name-path-isolation": {
+                "status": "PASS",
+                "receipt": "artifacts/cookie-editor-local-acceptance/20261014/native-core-2026-10-13T19-06-43-262Z-6e21a3b0/same-name-path-isolation-receipt.json"
+              }
+            },
+            "screenshots": [
+              {
+                "case": "product-side-panel",
+                "file": "product-side-panel.png",
+                "sha256": "ba9127225766028767fa43f926b14f2432352d040e68e9de275850a93c5df35f"
+              },
+              {
+                "case": "official-install",
+                "file": "official-install.png",
+                "sha256": "f32593c0c8c120240a3327b230b500afe2998ab03368b5c41292690dfdcea5ca"
+              },
+              {
+                "case": "active-fixture",
+                "file": "active-fixture.png",
+                "sha256": "ad26f2a9e44bbfd217c9850e37a71384f9a0aaf6ab6603bae2fb517791ce20a9"
+              },
+              {
+                "case": "read-grant",
+                "file": "read-grant-settings.png",
+                "sha256": "a05485f1d42971e63fbe45119c062786fc9c15ad8307896c28e40989223f4625"
+              },
+              {
+                "case": "read-grant",
+                "file": "read-grant.png",
+                "sha256": "16760ac73907023b80a412db03601646c9242d48681fb821bf8652b08f4b6444"
+              },
+              {
+                "case": "write-grant",
+                "file": "write-grant.png",
+                "sha256": "d0ad8e1be3ab0d4cd361671412bb730b52d2f78b35508237e1ac248b4f1887ca"
+              },
+              {
+                "case": "conflict-preserves-original",
+                "file": "conflict-preserves-original.png",
+                "sha256": "a4f3248d4ddc6899f7c11f9d2033ceac13a248fc56fdcff81bd56be7ee9f42cd"
+              },
+              {
+                "case": "hidden-value-needs-grant",
+                "file": "hidden-value-needs-grant.png",
+                "sha256": "0c236305dfc3c496e0865433596a6477bd0f1d809710a4467a652ca29d88a883"
+              },
+              {
+                "case": "same-name-path-isolation",
+                "file": "same-name-path-isolation.png",
+                "sha256": "6d3afaca3dd62a51a907442b3f03df0131082924a087c4f84d4b8c208a2c3dbb"
+              }
+            ]
+          },
+          "advanced": {
+            "status": "PASS_SCOPED",
+            "report": "artifacts/cookie-editor-local-acceptance/20261014/native-core-2026-10-13T19-07-14-115Z-89b21cda/native-report.json",
+            "cases": {
+              "launch": {
+                "status": "PASS",
+                "receipt": "artifacts/cookie-editor-local-acceptance/20261014/native-core-2026-10-13T19-07-14-115Z-89b21cda/launch-receipt.json"
+              },
+              "product-side-panel": {
+                "status": "PASS",
+                "receipt": "artifacts/cookie-editor-local-acceptance/20261014/native-core-2026-10-13T19-07-14-115Z-89b21cda/product-side-panel-receipt.json"
+              },
+              "official-install": {
+                "status": "PASS",
+                "receipt": "artifacts/cookie-editor-local-acceptance/20261014/native-core-2026-10-13T19-07-14-115Z-89b21cda/official-install-receipt.json"
+              },
+              "active-fixture": {
+                "status": "PASS",
+                "receipt": "artifacts/cookie-editor-local-acceptance/20261014/native-core-2026-10-13T19-07-14-115Z-89b21cda/active-fixture-receipt.json"
+              },
+              "read-grant": {
+                "status": "PASS",
+                "receipt": "artifacts/cookie-editor-local-acceptance/20261014/native-core-2026-10-13T19-07-14-115Z-89b21cda/read-grant-receipt.json"
+              },
+              "write-grant": {
+                "status": "PASS",
+                "receipt": "artifacts/cookie-editor-local-acceptance/20261014/native-core-2026-10-13T19-07-14-115Z-89b21cda/write-grant-receipt.json"
+              },
+              "import-ui": {
+                "status": "PASS",
+                "receipt": "artifacts/cookie-editor-local-acceptance/20261014/native-core-2026-10-13T19-07-14-115Z-89b21cda/import-ui-receipt.json"
+              },
+              "values-grant": {
+                "status": "PASS",
+                "receipt": "artifacts/cookie-editor-local-acceptance/20261014/native-core-2026-10-13T19-07-14-115Z-89b21cda/values-grant-receipt.json"
+              },
+              "export-ui": {
+                "status": "PASS",
+                "receipt": "artifacts/cookie-editor-local-acceptance/20261014/native-core-2026-10-13T19-07-14-115Z-89b21cda/export-ui-receipt.json"
+              },
+              "observe-ui": {
+                "status": "PASS",
+                "receipt": "artifacts/cookie-editor-local-acceptance/20261014/native-core-2026-10-13T19-07-14-115Z-89b21cda/observe-ui-receipt.json"
+              },
+              "clear-ui": {
+                "status": "PASS",
+                "receipt": "artifacts/cookie-editor-local-acceptance/20261014/native-core-2026-10-13T19-07-14-115Z-89b21cda/clear-ui-receipt.json"
+              }
+            },
+            "screenshots": [
+              {
+                "case": "product-side-panel",
+                "file": "product-side-panel.png",
+                "sha256": "ba9127225766028767fa43f926b14f2432352d040e68e9de275850a93c5df35f"
+              },
+              {
+                "case": "official-install",
+                "file": "official-install.png",
+                "sha256": "f32593c0c8c120240a3327b230b500afe2998ab03368b5c41292690dfdcea5ca"
+              },
+              {
+                "case": "active-fixture",
+                "file": "active-fixture.png",
+                "sha256": "ad26f2a9e44bbfd217c9850e37a71384f9a0aaf6ab6603bae2fb517791ce20a9"
+              },
+              {
+                "case": "read-grant",
+                "file": "read-grant-settings.png",
+                "sha256": "a05485f1d42971e63fbe45119c062786fc9c15ad8307896c28e40989223f4625"
+              },
+              {
+                "case": "read-grant",
+                "file": "read-grant.png",
+                "sha256": "16760ac73907023b80a412db03601646c9242d48681fb821bf8652b08f4b6444"
+              },
+              {
+                "case": "write-grant",
+                "file": "write-grant.png",
+                "sha256": "d0ad8e1be3ab0d4cd361671412bb730b52d2f78b35508237e1ac248b4f1887ca"
+              },
+              {
+                "case": "import-ui",
+                "file": "import-ui.png",
+                "sha256": "ff051e5e1696f84b0d9af64e600f5343a7028d0ae79de08627b5701d8fb86c97"
+              },
+              {
+                "case": "values-grant",
+                "file": "values-grant.png",
+                "sha256": "48590a0207442920240d5fa1bb6f5002dd492ae22556a7ddabdecada8bbf97c7"
+              },
+              {
+                "case": "export-ui",
+                "file": "export-ui.png",
+                "sha256": "d61bc289d16d93c2e5c51b368f78ed00b8a79dae4186c871b5a2c12457afa452"
+              },
+              {
+                "case": "observe-ui",
+                "file": "observe-ui.png",
+                "sha256": "53a26f5ec8f929218c08d363fc7299865ea46a805c13fbed7123e9e33c530275"
+              },
+              {
+                "case": "clear-ui",
+                "file": "clear-ui.png",
+                "sha256": "609cd4e7e7f87038a67b4799de5cb77c12f4cb8f8ee73c3ced2b210216751132"
+              }
+            ]
+          },
+          "lifecycle": {
+            "status": "PASS_SCOPED",
+            "report": "artifacts/cookie-editor-local-acceptance/20261014/native-core-2026-10-13T18-52-42-424Z-004f7a9c/native-report.json",
+            "cases": {
+              "launch": {
+                "status": "PASS",
+                "receipt": "artifacts/cookie-editor-local-acceptance/20261014/native-core-2026-10-13T18-52-42-424Z-004f7a9c/launch-receipt.json"
+              },
+              "product-side-panel": {
+                "status": "PASS",
+                "receipt": "artifacts/cookie-editor-local-acceptance/20261014/native-core-2026-10-13T18-52-42-424Z-004f7a9c/product-side-panel-receipt.json"
+              },
+              "official-install": {
+                "status": "PASS",
+                "receipt": "artifacts/cookie-editor-local-acceptance/20261014/native-core-2026-10-13T18-52-42-424Z-004f7a9c/official-install-receipt.json"
+              },
+              "active-fixture": {
+                "status": "PASS",
+                "receipt": "artifacts/cookie-editor-local-acceptance/20261014/native-core-2026-10-13T18-52-42-424Z-004f7a9c/active-fixture-receipt.json"
+              },
+              "read-grant": {
+                "status": "PASS",
+                "receipt": "artifacts/cookie-editor-local-acceptance/20261014/native-core-2026-10-13T18-52-42-424Z-004f7a9c/read-grant-receipt.json"
+              },
+              "write-grant": {
+                "status": "PASS",
+                "receipt": "artifacts/cookie-editor-local-acceptance/20261014/native-core-2026-10-13T18-52-42-424Z-004f7a9c/write-grant-receipt.json"
+              },
+              "close-and-reopen": {
+                "status": "PASS",
+                "receipt": "artifacts/cookie-editor-local-acceptance/20261014/native-core-2026-10-13T18-52-42-424Z-004f7a9c/close-and-reopen-receipt.json"
+              },
+              "revoked-pending-write": {
+                "status": "PASS",
+                "receipt": "artifacts/cookie-editor-local-acceptance/20261014/native-core-2026-10-13T18-52-42-424Z-004f7a9c/revoked-pending-write-receipt.json"
+              },
+              "disable-with-pending-write": {
+                "status": "PASS",
+                "receipt": "artifacts/cookie-editor-local-acceptance/20261014/native-core-2026-10-13T18-52-42-424Z-004f7a9c/disable-with-pending-write-receipt.json"
+              },
+              "uninstall-and-clean-grants": {
+                "status": "PASS",
+                "receipt": "artifacts/cookie-editor-local-acceptance/20261014/native-core-2026-10-13T18-52-42-424Z-004f7a9c/uninstall-and-clean-grants-receipt.json"
+              },
+              "reinstall-requires-fresh-grants": {
+                "status": "PASS",
+                "receipt": "artifacts/cookie-editor-local-acceptance/20261014/native-core-2026-10-13T18-52-42-424Z-004f7a9c/reinstall-requires-fresh-grants-receipt.json"
+              }
+            },
+            "screenshots": [
+              {
+                "case": "product-side-panel",
+                "file": "product-side-panel.png",
+                "sha256": "ba9127225766028767fa43f926b14f2432352d040e68e9de275850a93c5df35f"
+              },
+              {
+                "case": "official-install",
+                "file": "official-install.png",
+                "sha256": "f32593c0c8c120240a3327b230b500afe2998ab03368b5c41292690dfdcea5ca"
+              },
+              {
+                "case": "active-fixture",
+                "file": "active-fixture.png",
+                "sha256": "ad26f2a9e44bbfd217c9850e37a71384f9a0aaf6ab6603bae2fb517791ce20a9"
+              },
+              {
+                "case": "read-grant",
+                "file": "read-grant-settings.png",
+                "sha256": "a05485f1d42971e63fbe45119c062786fc9c15ad8307896c28e40989223f4625"
+              },
+              {
+                "case": "read-grant",
+                "file": "read-grant.png",
+                "sha256": "5e9b624c9d9a4234c98f395e284e0a9c0c643523790b9b517ea0d2df2d060123"
+              },
+              {
+                "case": "write-grant",
+                "file": "write-grant.png",
+                "sha256": "d0ad8e1be3ab0d4cd361671412bb730b52d2f78b35508237e1ac248b4f1887ca"
+              },
+              {
+                "case": "close-and-reopen",
+                "file": "close-and-reopen.png",
+                "sha256": "49766a627cbb711747d646d6543fedac38bfcc3eaf93773fb3d267f3c0c8ae2d"
+              },
+              {
+                "case": "revoked-pending-write",
+                "file": "revoked-pending-write.png",
+                "sha256": "a051867438e0141dfe2e86630ba3d74c2044587f3984a42b0282cb28fe14cde6"
+              },
+              {
+                "case": "disable-with-pending-write",
+                "file": "disable-with-pending-write.png",
+                "sha256": "7ed8a40eddb31d4d381ab47e659a058ba31afd1f9610a99eb341df02822327c7"
+              },
+              {
+                "case": "uninstall-and-clean-grants",
+                "file": "uninstall-and-clean-grants.png",
+                "sha256": "92a9e6367f591c4ec9fce9a3175d1d207a1bd70445263a804aef9010d26c925d"
+              },
+              {
+                "case": "reinstall-requires-fresh-grants",
+                "file": "reinstall-requires-fresh-grants.png",
+                "sha256": "ad986a18a83d82f37daa080666a59db153f9197b98d19f26c43af23c9bfd7137"
+              }
+            ]
+          },
+          "partialRename": {
+            "status": "PASS_SCOPED",
+            "report": "artifacts/cookie-editor-local-acceptance/20261014/native-core-2026-10-13T18-53-33-593Z-6ca43df2/native-report.json",
+            "cases": {
+              "launch": {
+                "status": "PASS",
+                "receipt": "artifacts/cookie-editor-local-acceptance/20261014/native-core-2026-10-13T18-53-33-593Z-6ca43df2/launch-receipt.json"
+              },
+              "product-side-panel": {
+                "status": "PASS",
+                "receipt": "artifacts/cookie-editor-local-acceptance/20261014/native-core-2026-10-13T18-53-33-593Z-6ca43df2/product-side-panel-receipt.json"
+              },
+              "official-install": {
+                "status": "PASS",
+                "receipt": "artifacts/cookie-editor-local-acceptance/20261014/native-core-2026-10-13T18-53-33-593Z-6ca43df2/official-install-receipt.json"
+              },
+              "active-fixture": {
+                "status": "PASS",
+                "receipt": "artifacts/cookie-editor-local-acceptance/20261014/native-core-2026-10-13T18-53-33-593Z-6ca43df2/active-fixture-receipt.json"
+              },
+              "read-grant": {
+                "status": "PASS",
+                "receipt": "artifacts/cookie-editor-local-acceptance/20261014/native-core-2026-10-13T18-53-33-593Z-6ca43df2/read-grant-receipt.json"
+              },
+              "write-grant": {
+                "status": "PASS",
+                "receipt": "artifacts/cookie-editor-local-acceptance/20261014/native-core-2026-10-13T18-53-33-593Z-6ca43df2/write-grant-receipt.json"
+              },
+              "rename-partial-cancelled-old-delete": {
+                "status": "PASS",
+                "receipt": "artifacts/cookie-editor-local-acceptance/20261014/native-core-2026-10-13T18-53-33-593Z-6ca43df2/rename-partial-cancelled-old-delete-receipt.json"
+              }
+            },
+            "screenshots": [
+              {
+                "case": "product-side-panel",
+                "file": "product-side-panel.png",
+                "sha256": "ba9127225766028767fa43f926b14f2432352d040e68e9de275850a93c5df35f"
+              },
+              {
+                "case": "official-install",
+                "file": "official-install.png",
+                "sha256": "f32593c0c8c120240a3327b230b500afe2998ab03368b5c41292690dfdcea5ca"
+              },
+              {
+                "case": "active-fixture",
+                "file": "active-fixture.png",
+                "sha256": "ad26f2a9e44bbfd217c9850e37a71384f9a0aaf6ab6603bae2fb517791ce20a9"
+              },
+              {
+                "case": "read-grant",
+                "file": "read-grant-settings.png",
+                "sha256": "a05485f1d42971e63fbe45119c062786fc9c15ad8307896c28e40989223f4625"
+              },
+              {
+                "case": "read-grant",
+                "file": "read-grant.png",
+                "sha256": "16760ac73907023b80a412db03601646c9242d48681fb821bf8652b08f4b6444"
+              },
+              {
+                "case": "write-grant",
+                "file": "write-grant.png",
+                "sha256": "d0ad8e1be3ab0d4cd361671412bb730b52d2f78b35508237e1ac248b4f1887ca"
+              },
+              {
+                "case": "rename-partial-cancelled-old-delete",
+                "file": "rename-partial-cancelled-old-delete.png",
+                "sha256": "58f88c3cae6959fc42c3b25a165bb7ad518641d11f5f0305ca2dcab6665c979a"
+              }
+            ]
+          },
+          "upgrade": {
+            "status": "PASS_SCOPED",
+            "report": "artifacts/cookie-editor-local-acceptance/20261014/native-core-2026-10-13T19-08-11-899Z-4c4d20fd/native-report.json",
+            "cases": {
+              "launch": {
+                "status": "PASS",
+                "receipt": "artifacts/cookie-editor-local-acceptance/20261014/native-core-2026-10-13T19-08-11-899Z-4c4d20fd/launch-receipt.json"
+              },
+              "product-side-panel": {
+                "status": "PASS",
+                "receipt": "artifacts/cookie-editor-local-acceptance/20261014/native-core-2026-10-13T19-08-11-899Z-4c4d20fd/product-side-panel-receipt.json"
+              },
+              "official-install": {
+                "status": "PASS",
+                "receipt": "artifacts/cookie-editor-local-acceptance/20261014/native-core-2026-10-13T19-08-11-899Z-4c4d20fd/official-install-receipt.json"
+              },
+              "active-fixture": {
+                "status": "PASS",
+                "receipt": "artifacts/cookie-editor-local-acceptance/20261014/native-core-2026-10-13T19-08-11-899Z-4c4d20fd/active-fixture-receipt.json"
+              },
+              "read-grant": {
+                "status": "PASS",
+                "receipt": "artifacts/cookie-editor-local-acceptance/20261014/native-core-2026-10-13T19-08-11-899Z-4c4d20fd/read-grant-receipt.json"
+              },
+              "write-grant": {
+                "status": "PASS",
+                "receipt": "artifacts/cookie-editor-local-acceptance/20261014/native-core-2026-10-13T19-08-11-899Z-4c4d20fd/write-grant-receipt.json"
+              },
+              "explicit-upgrade": {
+                "status": "PASS",
+                "receipt": "artifacts/cookie-editor-local-acceptance/20261014/native-core-2026-10-13T19-08-11-899Z-4c4d20fd/explicit-upgrade-receipt.json"
+              },
+              "upgraded-tool-save-and-delete": {
+                "status": "PASS",
+                "receipt": "artifacts/cookie-editor-local-acceptance/20261014/native-core-2026-10-13T19-08-11-899Z-4c4d20fd/upgraded-tool-save-and-delete-receipt.json"
+              }
+            },
+            "screenshots": [
+              {
+                "case": "product-side-panel",
+                "file": "product-side-panel.png",
+                "sha256": "ba9127225766028767fa43f926b14f2432352d040e68e9de275850a93c5df35f"
+              },
+              {
+                "case": "official-install",
+                "file": "official-install.png",
+                "sha256": "f32593c0c8c120240a3327b230b500afe2998ab03368b5c41292690dfdcea5ca"
+              },
+              {
+                "case": "active-fixture",
+                "file": "active-fixture.png",
+                "sha256": "ad26f2a9e44bbfd217c9850e37a71384f9a0aaf6ab6603bae2fb517791ce20a9"
+              },
+              {
+                "case": "read-grant",
+                "file": "read-grant-settings.png",
+                "sha256": "a05485f1d42971e63fbe45119c062786fc9c15ad8307896c28e40989223f4625"
+              },
+              {
+                "case": "read-grant",
+                "file": "read-grant.png",
+                "sha256": "16760ac73907023b80a412db03601646c9242d48681fb821bf8652b08f4b6444"
+              },
+              {
+                "case": "write-grant",
+                "file": "write-grant.png",
+                "sha256": "d0ad8e1be3ab0d4cd361671412bb730b52d2f78b35508237e1ac248b4f1887ca"
+              },
+              {
+                "case": "explicit-upgrade",
+                "file": "explicit-upgrade.png",
+                "sha256": "d0ad8e1be3ab0d4cd361671412bb730b52d2f78b35508237e1ac248b4f1887ca"
+              },
+              {
+                "case": "upgraded-tool-save-and-delete",
+                "file": "upgraded-tool-save-and-delete.png",
+                "sha256": "019e886551dcf6afed0992228b8ca55cb23bfa51305c53e66cdcfc9342b70839"
+              }
+            ]
+          },
+          "visual": {
+            "status": "PASS_SCOPED",
+            "report": "artifacts/cookie-editor-local-acceptance/20261014/native-core-2026-10-13T19-03-11-822Z-adbb56bd/native-report.json",
+            "cases": {
+              "launch": {
+                "status": "PASS",
+                "receipt": "artifacts/cookie-editor-local-acceptance/20261014/native-core-2026-10-13T19-03-11-822Z-adbb56bd/launch-receipt.json"
+              },
+              "product-side-panel": {
+                "status": "PASS",
+                "receipt": "artifacts/cookie-editor-local-acceptance/20261014/native-core-2026-10-13T19-03-11-822Z-adbb56bd/product-side-panel-receipt.json"
+              },
+              "official-install": {
+                "status": "PASS",
+                "receipt": "artifacts/cookie-editor-local-acceptance/20261014/native-core-2026-10-13T19-03-11-822Z-adbb56bd/official-install-receipt.json"
+              },
+              "active-fixture": {
+                "status": "PASS",
+                "receipt": "artifacts/cookie-editor-local-acceptance/20261014/native-core-2026-10-13T19-03-11-822Z-adbb56bd/active-fixture-receipt.json"
+              },
+              "read-grant": {
+                "status": "PASS",
+                "receipt": "artifacts/cookie-editor-local-acceptance/20261014/native-core-2026-10-13T19-03-11-822Z-adbb56bd/read-grant-receipt.json"
+              },
+              "write-grant": {
+                "status": "PASS",
+                "receipt": "artifacts/cookie-editor-local-acceptance/20261014/native-core-2026-10-13T19-03-11-822Z-adbb56bd/write-grant-receipt.json"
+              },
+              "native-width-zoom-captures": {
+                "status": "PASS",
+                "receipt": "artifacts/cookie-editor-local-acceptance/20261014/native-core-2026-10-13T19-03-11-822Z-adbb56bd/native-width-zoom-captures-receipt.json"
+              }
+            },
+            "screenshots": [
+              {
+                "case": "product-side-panel",
+                "file": "product-side-panel.png",
+                "sha256": "ba9127225766028767fa43f926b14f2432352d040e68e9de275850a93c5df35f"
+              },
+              {
+                "case": "official-install",
+                "file": "official-install.png",
+                "sha256": "f32593c0c8c120240a3327b230b500afe2998ab03368b5c41292690dfdcea5ca"
+              },
+              {
+                "case": "active-fixture",
+                "file": "active-fixture.png",
+                "sha256": "ad26f2a9e44bbfd217c9850e37a71384f9a0aaf6ab6603bae2fb517791ce20a9"
+              },
+              {
+                "case": "read-grant",
+                "file": "read-grant-settings.png",
+                "sha256": "a05485f1d42971e63fbe45119c062786fc9c15ad8307896c28e40989223f4625"
+              },
+              {
+                "case": "read-grant",
+                "file": "read-grant.png",
+                "sha256": "16760ac73907023b80a412db03601646c9242d48681fb821bf8652b08f4b6444"
+              },
+              {
+                "case": "write-grant",
+                "file": "write-grant.png",
+                "sha256": "54dcd104948a2c126f91240f99a9d46278989a7deeaf199ff0dfce65d275d1fb"
+              },
+              {
+                "case": "native-width-zoom-captures",
+                "file": "visual-1-360-panel100-page100.png",
+                "sha256": "0172bfcb4aab9778b7a59cf71915072eef35afe8633db94f18977a2e68b3c851"
+              },
+              {
+                "case": "native-width-zoom-captures",
+                "file": "visual-2-360-panel100-page125.png",
+                "sha256": "0172bfcb4aab9778b7a59cf71915072eef35afe8633db94f18977a2e68b3c851"
+              },
+              {
+                "case": "native-width-zoom-captures",
+                "file": "visual-3-360-panel100-page150.png",
+                "sha256": "0172bfcb4aab9778b7a59cf71915072eef35afe8633db94f18977a2e68b3c851"
+              },
+              {
+                "case": "native-width-zoom-captures",
+                "file": "visual-4-360-panel100-page200.png",
+                "sha256": "0172bfcb4aab9778b7a59cf71915072eef35afe8633db94f18977a2e68b3c851"
+              },
+              {
+                "case": "native-width-zoom-captures",
+                "file": "native-width-zoom-captures.png",
+                "sha256": "0172bfcb4aab9778b7a59cf71915072eef35afe8633db94f18977a2e68b3c851"
+              }
+            ]
+          }
+        },
+        "allMutations": "Installed Cookie Editor UI only; native API evaluations read only",
+        "renameAtomic": false,
+        "visual": {
+          "panelWidth360": "PASS",
+          "panelWidths300320420520": "NOT_TESTED",
+          "browserWebsiteZoom100125150200": "PASS_SCOPED_PANEL_UNCHANGED",
+          "panelSelfZoom125150200": "NOT_TESTED",
+          "extraNativeAttempt": {
+            "report": "artifacts/cookie-editor-local-acceptance/20261014/native-core-2026-10-13T19-22-43-288Z-a6456023/native-report.json",
+            "controller": "artifacts/cookie-editor-local-acceptance/20261014/native-core-2026-10-13T19-22-43-288Z-a6456023/visual-complete.json",
+            "status": "NO_WIDTH_CHANGE_NOT_TESTED",
+            "observedPanelWidth": 360,
+            "candidateUnchanged": true,
+            "cleanup": {
+              "cleanupStatus": "PASS",
+              "pidAliveAfterExit": false,
+              "profileRemoved": true
+            }
+          }
+        },
+        "crossStorePartitionNative": "NOT_TESTED",
+        "independentF3": "NOT_TESTED",
+        "zipInstall": "NOT_TESTED",
+        "expertRating": "NOT_SCORED"
+      }
+    },
+    "raceFix": {
+      "status": "SOURCE_WIRED_NODE_PASS_NATIVE_STABLE_PATH_PASS",
+      "contract": "Both Host paths carry validated redacted expectedCookieIdentity internally; Driver mismatch before effect is E_COOKIE_AMBIGUOUS; public fields remain strict",
+      "review": "Independent subagent reproduced sibling deletion then confirmed no native expiration and sibling retained with fix",
+      "failureReceipts": [
+        "artifacts/cookie-editor-local-acceptance/20261014/exact-identity-targeted-final.tap",
+        "artifacts/cookie-editor-local-acceptance/20261014/native-core-2026-10-13T19-39-24-960Z-42bd2e19/native-report.json"
+      ],
+      "observerFix": "Wait for two stable native hit-test samples; one business click, no effect retry"
+    },
+    "git": {
+      "branch": "main",
+      "preCommitHead": "22abce369312e385f35dc240bd93b8635d125464",
+      "originMain": "bdceadc05e6aecbc2be725ebbe1ae90f90d992f0",
+      "status": "COMMIT_PUSH_PENDING",
+      "scope": "Only task-owned explicit paths; shared index empty before serial operation"
+    }
+  },
+  "historicalLocalRuns": [
+    {
+      "date": "2026-10-14",
+      "owner": "01a13626-48eb-77a3-baf2-25ec8129a670",
+      "status": "HANDOFF_READY",
+      "startHead": "349a64be5a36419a78770a1154a30db16a871fb0",
+      "writeScope": [
+        "examples/sidebar-tools/cookie-editor/src/main.js",
+        "examples/sidebar-tools/cookie-editor/tool.config.json",
+        "examples/sidebar-tools/cookie-editor/README.zh-CN.md",
+        "tests/environment/cookie-editor-ui.test.mjs",
+        "tests/environment/browser-sdk-r9-installed-host.test.mjs",
+        "src/platform/chrome/browser-cookie-host.js",
+        ".github/workflows/cookie-editor-r32.yml",
+        "docs/framework/workstreams/cookie-editor-r2.md",
+        "docs/framework/workstreams/cookie-editor-r2.json",
+        "tests/framework/cookie-editor-r33-native.mjs",
+        "tests/environment/sidebar-tools-host.test.mjs"
+      ],
+      "resources": {
+        "evidence": "artifacts/cookie-editor-local-acceptance/20261014",
+        "browser": "owned CFT exited and profile removed; native-interactive/cleanup.json cleanupStatus PASS; other browser profiles untouched",
+        "dist": "isolated snapshot dist only; daily watcher PID 67794 retained",
+        "buildSnapshot": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/cookie-editor-local-acceptance/20261014/build-workspace",
+        "buildGuardPort": 43220
+      },
+      "acceptance": [
+        "nine CI test files zero fail, no deleted cases",
+        "check/test/build/build:dev/verify raw receipts",
+        "installed UI native workflow on identical package",
+        "separate Node/Build/Native outcomes"
+      ],
+      "pending": "按用户 2026-10-14 最新要求，先完成已安装 Cookie Editor Side Panel 的安装、授权、自动读取、新建、编辑、重命名、删除真实闭环；全仓相关性排查延后。",
+      "progress": {
+        "nodeCookie": {
+          "pass": 111,
+          "fail": 0,
+          "skipped": 0
+        },
+        "uiP2": {
+          "pass": 42,
+          "fail": 0,
+          "skipped": 0
+        },
+        "check": "PASS",
+        "build": "PASS_ISOLATED_SNAPSHOT",
+        "buildDev": "PASS_ISOLATED_SNAPSHOT",
+        "verify": "PASS_ISOLATED_SNAPSHOT",
+        "npmTestWorkspace": {
+          "tests": 2219,
+          "pass": 2137,
+          "fail": 80,
+          "skipped": 2
+        },
+        "npmTestBuiltSnapshot": {
+          "tests": 2236,
+          "pass": 2169,
+          "fail": 65,
+          "skipped": 2
+        },
+        "native": "NOT_TESTED"
+      },
+      "sdk": [
+        {
+          "operation": "browser.cookies.get",
+          "source": "SOURCE_WIRED",
+          "node": "NODE_PASS",
+          "build": "BUILD_PASS",
+          "native": "NOT_TESTED",
+          "nodeEvidence": "artifacts/cookie-editor-local-acceptance/20261014/nine-final-1.tap"
+        },
+        {
+          "operation": "browser.cookies.getAll",
+          "source": "SOURCE_WIRED",
+          "node": "NODE_PASS",
+          "build": "BUILD_PASS",
+          "native": "NOT_TESTED",
+          "nodeEvidence": "artifacts/cookie-editor-local-acceptance/20261014/nine-final-1.tap"
+        },
+        {
+          "operation": "browser.cookies.set",
+          "source": "SOURCE_WIRED",
+          "node": "NODE_PASS",
+          "build": "BUILD_PASS",
+          "native": "NOT_TESTED",
+          "nodeEvidence": "artifacts/cookie-editor-local-acceptance/20261014/nine-final-1.tap"
+        },
+        {
+          "operation": "browser.cookies.remove",
+          "source": "SOURCE_WIRED",
+          "node": "NODE_PASS",
+          "build": "BUILD_PASS",
+          "native": "NOT_TESTED",
+          "nodeEvidence": "artifacts/cookie-editor-local-acceptance/20261014/nine-final-1.tap"
+        },
+        {
+          "operation": "browser.cookies.clearSite",
+          "source": "SOURCE_WIRED",
+          "node": "NODE_PASS",
+          "build": "BUILD_PASS",
+          "native": "NOT_TESTED",
+          "nodeEvidence": "artifacts/cookie-editor-local-acceptance/20261014/nine-final-1.tap"
+        },
+        {
+          "operation": "browser.cookies.getCurrentStore",
+          "source": "SOURCE_WIRED",
+          "node": "NODE_PASS",
+          "build": "BUILD_PASS",
+          "native": "NOT_TESTED",
+          "nodeEvidence": "artifacts/cookie-editor-local-acceptance/20261014/nine-final-1.tap"
+        },
+        {
+          "operation": "browser.cookies.getPartitionKey",
+          "source": "SOURCE_WIRED",
+          "node": "NODE_PASS",
+          "build": "BUILD_PASS",
+          "native": "NOT_TESTED",
+          "nodeEvidence": "artifacts/cookie-editor-local-acceptance/20261014/nine-final-1.tap"
+        },
+        {
+          "operation": "browser.cookies.observe.start",
+          "source": "SOURCE_WIRED",
+          "node": "NODE_PASS",
+          "build": "BUILD_PASS",
+          "native": "NOT_TESTED",
+          "nodeEvidence": "artifacts/cookie-editor-local-acceptance/20261014/nine-final-1.tap"
+        },
+        {
+          "operation": "browser.cookies.observe.getStatus",
+          "source": "SOURCE_WIRED",
+          "node": "NODE_PASS",
+          "build": "BUILD_PASS",
+          "native": "NOT_TESTED",
+          "nodeEvidence": "artifacts/cookie-editor-local-acceptance/20261014/nine-final-1.tap"
+        },
+        {
+          "operation": "browser.cookies.observe.read",
+          "source": "SOURCE_WIRED",
+          "node": "NODE_PASS",
+          "build": "BUILD_PASS",
+          "native": "NOT_TESTED",
+          "nodeEvidence": "artifacts/cookie-editor-local-acceptance/20261014/nine-final-1.tap"
+        },
+        {
+          "operation": "browser.cookies.observe.stop",
+          "source": "SOURCE_WIRED",
+          "node": "NODE_PASS",
+          "build": "BUILD_PASS",
+          "native": "NOT_TESTED",
+          "nodeEvidence": "artifacts/cookie-editor-local-acceptance/20261014/nine-final-1.tap"
+        }
+      ],
+      "candidateVersion": "2.0.3",
+      "packageIdentity": "artifacts/cookie-editor-local-acceptance/20261014/package-identity.json",
+      "handoff": {
+        "prompt": "docs/framework/prompts/cookie-editor-r33l-core-first-handoff-20261014.zh-CN.txt",
+        "head": "349a64be5a36419a78770a1154a30db16a871fb0",
+        "changes": "uncommitted; not pushed",
+        "nativeDriver": {
+          "path": "tests/framework/cookie-editor-r33-native.mjs",
+          "syntax": "PASS",
+          "execution": "NOT_TESTED"
+        },
+        "priority": "installed Side Panel core cookie workflow before broad unrelated tests",
+        "broadTests": "existing failures retained; defer unrelated investigation until core product workflow is stable",
+        "browserCleanup": "artifacts/cookie-editor-local-acceptance/20261014/native-interactive/cleanup.json",
+        "ownerReleased": true
+      }
+    }
+  ],
+  "historicalPreNativeCoreMetadata": {
+    "states": {
+      "source": "SOURCE_WIRED",
+      "sdkCookies": "SOURCE_WIRED",
+      "browserWrite": "SOURCE_WIRED",
+      "browserValues": "SOURCE_WIRED",
+      "browserClear": "SOURCE_WIRED",
+      "observe": "SOURCE_WIRED",
+      "node": "NOT_TESTED",
+      "build": "NOT_TESTED",
+      "verify": "NOT_TESTED",
+      "nativeChrome": "NOT_TESTED",
+      "expertRating": "NOT_SCORED"
+    },
+    "r9Blockers": [
+      "Current candidate Node tests / full Check, Build and Verify not actually run",
+      "Mac Chrome installed Cookie Editor real permission/native read/write/delete/clear/observe/lifecycle NOT_TESTED",
+      "Old trusted Cookie UI migration and duplicate product entry deletion blocked until native proof",
+      "Responsive Chrome zoom and keyboard acceptance NOT_TESTED"
+    ],
+    "testsNotRun": [
+      "node --test",
+      "npm run check",
+      "npm test",
+      "npm run build",
+      "npm run build:dev",
+      "npm run verify",
+      "Chrome for Testing"
+    ],
+    "cookieEditorVersion": "2.0.2",
+    "cookieEditorPackageHash": null,
+    "extensionPackageHash": null
   }
 }

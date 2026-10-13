@@ -53,15 +53,15 @@ function fixture(){
       state.records=state.records.filter(old=>!(old.name===row.name&&
         old.domain===row.domain&&old.path===row.path&&
         old.storeId===row.storeId&&samePartition(old.partitionKey,row.partitionKey)));
-      state.records.push(row);
+      if(d.expirationDate!==0)state.records.push(row);
       if(state.revokeOnSet)state.allowed=false;
-      return row;
+      return d.expirationDate===0?null:row;
     }),
     remove:callback('remove',d=>{
-      const row=choose(d)[0];
-      if(!row)return null;
-      state.records.splice(state.records.indexOf(row),1);
-      return {name:row.name,url:d.url,storeId:row.storeId};
+      const rows=choose(d);
+      if(!rows.length)return null;
+      for(const row of rows)state.records.splice(state.records.indexOf(row),1);
+      return {name:d.name,url:d.url,storeId:d.storeId};
     })
   }};
   const host=createTrustedCookieHost({api});
@@ -140,6 +140,59 @@ test('R9 host-only site cleanup is previewed, count-fenced and preserves domain/
   assert(f.state.records.some(row=>row.name==='chips'&&row.partitionKey));
   await assert.rejects(f.run('clearSite',{expectedCount:2,previewRef:refreshed.previewRef,maxCookies:50}),
     reject('E_COOKIE_STALE'),'A consumed preview must not permit a second deletion');
+});
+test('R9 exact expiration preserves same-name Store, Partition and domain peers without reading Value',async()=>{
+  const f=fixture();
+  f.state.records.push(
+    {name:'sid',value:'OTHER_STORE_SID',domain:'shop.example.test',path:'/account',storeId:'1',hostOnly:true,secure:true},
+    {name:'sid',value:'PARTITION_SID',domain:'shop.example.test',path:'/account',storeId:'0',hostOnly:true,secure:true,partitionKey},
+    {name:'sid',value:'DOMAIN_SID',domain:'.shop.example.test',path:'/account',storeId:'0',hostOnly:false,secure:true}
+  );
+  const nativeSet=f.api.cookies.set,writes=[];
+  f.api.cookies.set=(details,callback)=>{writes.push(details);return nativeSet(details,callback);};
+  await f.run('remove',{name:'sid',domain:'shop.example.test',path:'/account'});
+  assert.deepEqual(writes,[{url:target,name:'sid',value:'',path:'/account',expirationDate:0,
+    storeId:'0',secure:true,httpOnly:true,sameSite:'lax'}]);
+  assert.equal(f.state.records.filter(row=>row.name==='sid').length,4);
+  assert(!f.state.native.includes('remove'));
+  assert.equal(f.state.values,false,'Deleting a selected Cookie does not require values permission');
+});
+test('R9 exact identity race preserves the same-name root sibling before expiration',async()=>{
+  const f=fixture(),get=f.api.cookies.get,selections=[];
+  const sibling=f.state.records.find(row=>row.name==='sid'&&row.path==='/');
+  let gets=0,result,failure;
+  f.api.cookies.get=(details,callback)=>{
+    // Host scans with getAll and validates /account with get; the second get
+    // is Driver's pre-expiration selection, after Host validation.
+    // Rename cleanup uses this same exact removal boundary after saving a copy.
+    if(++gets===2){
+      assert.deepEqual(selections,['/account']);
+      f.state.records=f.state.records.filter(row=>!(row.name==='sid'&&row.path==='/account'));
+    }
+    return get(details,row=>{selections.push(row?.path??null);callback(row);});
+  };
+  try{
+    result=await f.run('remove',{name:'sid',domain:'shop.example.test',path:'/account'});
+  }catch(error){failure=error;}
+  assert.equal(selections[1],'/','The raced native lookup must select the surviving sibling');
+  assert(f.state.records.includes(sibling),'The root sibling must survive the exact identity race');
+  assert.equal(sibling.path,'/');
+  assert.equal(sibling.value,'PRIVATE_ROOT');
+  assert(!f.state.native.includes('set'),'A changed native selection must not dispatch expiration');
+  assert(!f.state.native.includes('remove'),'A changed native selection must not dispatch native remove');
+  if(failure)assert.equal(failure.code,'E_COOKIE_AMBIGUOUS');
+  else assert.equal(result.removed,false,'An absent exact target may only return no deletion');
+});
+test('R9 revocation during the pre-delete native lookup dispatches no expiration',async()=>{
+  const f=fixture(),get=f.api.cookies.get;
+  f.api.cookies.get=(details,callback)=>get(details,row=>{
+    f.state.allowed=false;
+    callback(row);
+  });
+  await assert.rejects(f.run('remove',{name:'sid',domain:'shop.example.test',path:'/account'}),reject('E_GRANT_REVOKED'));
+  assert(!f.state.native.includes('set'));
+  assert(!f.state.native.includes('remove'));
+  assert(f.state.records.some(row=>row.name==='sid'&&row.path==='/account'&&row.value==='PRIVATE_ACCOUNT'));
 });
 test('R9 clear preview refuses replacement cookies even when the count is unchanged',async()=>{
   const f=fixture(),preview=await f.run('clearSite',{preview:true,maxCookies:50});

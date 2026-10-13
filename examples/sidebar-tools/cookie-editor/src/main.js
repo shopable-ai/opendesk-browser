@@ -202,7 +202,7 @@ function render(){
   const list=E('cookie-list');list.replaceChildren();
   E('cookie-count').textContent=(data?.cookies?.length||0)+' 条 Cookie';
   // Header always identifies the VISIBLE mode. In browser mode, never
-  // mislabel the local example.test fallback as a Chrome website.
+  // mislabel an offline workspace as a Chrome website.
   const siteTitle=mode==='browser'?
     (liveTarget?.hostname||'尚未选择网站'):
     (data?.hostname?'离线 · '+data.hostname:'离线工作区');
@@ -909,11 +909,17 @@ E('cookie-value').addEventListener('input',event=>{
   if(event?.isTrusted!==false&&mode==='browser'&&editing?.valueRedacted===true)
     liveValueEdited=true;
 });
-E('editor-form').addEventListener('submit',event=>{
-  event.preventDefault();if(!data||busy)return;
+// Installed opaque sandboxes forbid native form submission, including submit
+// events. Save through the actual button without relaxing allow-forms or CSP.
+function saveEditor(){
+  if(!data||busy||!E('editor-form').reportValidity())return;
   if(mode==='browser')void saveBrowserCookie();
   else void mutate('cookies.save',{cookie:formCookie(),
     ...(editing?{previous:editing}:{})},'Cookie 已保存。');
+}
+E('editor-save').addEventListener('click',saveEditor);
+E('editor-form').addEventListener('submit',event=>{
+  event.preventDefault();saveEditor();
 });
 E('clear').addEventListener('click',()=>guarded(()=>ask(
   '仅清空离线工作区的 '+data.cookies.length+' 条临时 Cookie，不会影响浏览器或网站登录。','清空离线数据',
@@ -957,7 +963,7 @@ E('import-file').addEventListener('change',async()=>{
 E('import-apply').addEventListener('click',prepareImport);
 root.addEventListener('keydown',event=>{
   if((event.metaKey||event.ctrlKey)&&event.key.toLowerCase()==='s'&&!editor.hidden){
-    event.preventDefault();E('editor-form').requestSubmit();return;
+    event.preventDefault();saveEditor();return;
   }
   if(confirm.hidden)return;
   if(event.key==='Escape'){event.preventDefault();cancelConfirmation();}

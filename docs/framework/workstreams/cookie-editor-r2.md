@@ -1,3 +1,39 @@
+## 2.0.4 当前验收结果（2026-10-14）
+
+**已安装 Cookie Editor 的核心用户旅程已在同一隔离 CFT 候选通过**：发现安装 → 打开 Side Panel → 网站授权 → 自动读取 → 新建 → 修改 Value → 修改 Name → 保存回读 → 精确删除。默认中文、Value 默认隐藏。全仓集成仍 **FAIL**，不宣称正式交付或 95+。
+
+本轮修复保存、精确删除和启停授权：opaque iframe 内原生表单提交被 CSP 阻止，保存改由受控按钮/快捷键入口调用；Chrome `cookies.remove(url,name)` 实际删除不同 Path 的同名 Cookie，Driver 改为精确作用域的过期写入并核验；停用/启用的安装 epoch 变化使有效网站授权失效，生命周期在既有锁内仅迁移同版本、同包、同旧 epoch 的有效授权，旧实例和旧请求继续失效。提交前复核另外复现了 Path 消失后的查询竞态，Host 现传递已审核的脱敏精确身份，Driver 不匹配即在写入前拒绝，保留相邻 Path。重命名是分步操作，**不是原子事务**。
+
+| 用户步骤 | 原生证据 | 结论与边界 |
+| --- | --- | --- |
+| 发现、安装、Side Panel、授权、自动读取、新建、编辑、重命名、回读、删除 | core | PASS_SCOPED；新值无需旧值读取授权，隐藏旧值在明确获准读取后可保留 |
+| 同作用域重命名冲突、隐藏旧值缺授权、同名不同 Path 删除 | conflictAndPath | PASS_SCOPED；冲突不覆盖，缺授权不写入，删除仅影响选中 Path |
+| 重命名新名称成功，旧名称删除授权被取消 | partialRename | PASS_SCOPED；准确报告部分完成，两项 Cookie 均保留，无自动重放 |
+| 导入、导出、清理、观察 | advanced（前一候选） | PASS_SCOPED；操作均经已安装 UI 及相应 Host 授权；观察不泄露 Value |
+| 撤权、停止、启用、卸载、重新安装 | lifecycle（前一候选） | PASS_SCOPED；旧操作失效、授权按有效身份保留，卸载清理授权，重装重新授权 |
+| 已安装 2.0.3 明确升级到 2.0.4 | upgrade（前一候选） | PASS_SCOPED；升级审核、旧授权不继承、重新授权后保存及删除通过 |
+| 长名称、Value 隐藏、360px Side Panel | visual（前一候选） | PASS_SCOPED；网站 Zoom 100/125/150/200 已捕获，但 Side Panel 仍为 100% |
+
+其他宽度 300/320/420/520px、Side Panel 自身 Zoom 125/150/200%、跨真实 Store/Partition、真实 Chrome 删除竞态的精确交错和未实际调用的 SDK 操作保留 **NOT_TESTED**。删除竞态有 Node 回归和独立复核，不能提升为 Native 竞态 PASS。辅助功能赋值与键盘调整未改变 360px 读回；不能将网站 Zoom 当成 Side Panel Zoom。独立 F3、ZIP 安装一致性、CWS 与正式评分均未完成。
+
+定向测试：UI 45/45、Cookie Driver 31/31、启停生命周期 17/17。Check、隔离 Build、Build:dev、两种 Verify 通过。身份竞态修复后最终全仓集成：2292 项、2267 通过、23 失败、2 跳过，本轮 Cookie 用例无失败；[原始日志](../../../artifacts/cookie-editor-local-acceptance/20261014/npm-test-exact-identity-integration.log)。此前 2289 项 / 21 失败、早期 111 项及全部失败快照保留为历史证据。
+
+工具版本 `2.0.4`，工具文件 SHA-256 `00034592e094d5a6f513a58bc04233a9793573f1d165a0e990489aead508fa9c`；当前 production Verify Hash `6650cb095517c0f0f3d77421a3efe513ebd3f5b19c9127eba2a9eacf06ec6f68`；development Verify Hash `468e117719f2fec775f7596b9aea664b7afd778700c55c80f9309be854befe73`。当前 Native 扩展 ID `igpeopfnlionaohinofebijkhfliljfp`，原生扩展目录指纹 `edb1e04566f0e3022233c99a6408bd92500fcaada783104345a3b8920ebc73e0`，CFT `155.0.8059.39`。这些 Hash 使用各自的算法，不互相替代。
+
+候选来自既有隔离源码快照加本任务修复，**不是全部当前并行 main 改动的构建**。当前 core / conflictAndPath / partialRename 三组报告记录 `candidateUnchanged` 及 cleanup PASS；未受影响的导入导出、观察、生命周期和布局输入未变，其前一候选证据保留原身份限定复用，不能合写为全部同候选 PASS。详情、截图 SHA、原始报告及前一候选身份写在原 JSON `r33Local.nativeUi` / `priorNativeCandidate`。日常 `dist/development`、真实用户 Chrome 和其他 Agent 工作均未被替换。当前正串行复核本任务提交范围；Git/CI 结果在本账本追加。
+
+## 核心功能优先交接基线（2026-10-14，历史）
+
+用户最新要求：先完成真实 Cookie Editor 核心功能，停止扩大到无关全仓相关性排查。续接提示词：[Cookie Editor 核心功能优先](../prompts/cookie-editor-r33l-core-first-handoff-20261014.zh-CN.txt)。本轮状态在 JSON `r33Local`，未提交、未推送；起始及交接 HEAD 为 `349a64be5a36419a78770a1154a30db16a871fb0`。
+
+- 原重点测试复现 31 项 / 19 通过 / 12 失败；九份专项当前 111 通过 / 0 失败 / 0 跳过，保留原 93 项并增加 18 项。UI 专项 42/42。修复以 fixture、异步判定和合同验证为主，未放宽安全检查；产品源码仅清理过期注释。
+- 候选工具版本 2.0.3；工具与官方目录打包、Check 通过；隔离源码快照 Build、Build:dev、Verify 通过。工具 SHA-256：`abef8fbc408eab4cb09b74f6205253e44dd18e51f6f476a4111d5daba07dcf59`，详细身份见 `artifacts/cookie-editor-local-acceptance/20261014/package-identity.json`。
+- 全仓 npm test **FAIL**：工作区 2219 项 / 2137 通过 / 80 失败 / 2 跳过；构建快照 2236 项 / 2169 通过 / 65 失败 / 2 跳过。补充 Sidebar Tools 两份测试 80 项 / 79 通过 / 1 失败 / 0 跳过。原始结果保留，不能报全仓通过；无关排查延至核心闭环稳定后。
+- 隔离 Chrome 仅启动，未安装工具或完成 Cookie 操作；11 项 SDK Native 均 **NOT_TESTED**。`tests/framework/cookie-editor-r33-native.mjs` 已准备且语法通过，**从未执行**，接手先审查可信输入与实际安装路径。
+- 本轮独占 CFT 已退出、Profile 已清理，`native-interactive/cleanup.json` 为 cleanup PASS。日常 watcher、日常扩展和其他工作流浏览器未被替换。原始证据目录：`artifacts/cookie-editor-local-acceptance/20261014/`。
+
+下一步直接核对最新 main、相关 diff 与候选身份，进入已安装 Side Panel 的“安装 → 网站授权 → 自动读取 → 新建 → 修改 Value → 重命名并精确删旧 → 删除”真实旅程；有实际失败即修复。核心完成后补导入导出、清理、观察、生命周期与布局验收，再集中进行最终集成验证、安全提交推送及 CI 核查。无 Native 证据不能自评最终 95+。
+
 ## Cookie Editor R3.3 · 授权自动读取与安装升级候选（2026-10-13）
 
 - **新候选版本 2.0.2**：正式安装器拒绝同版本自动替换，因此真实源码修复必须从旧 2.0.1 升级版本；已安装旧包不会被 GitHub 源码自动覆盖。官方 Catalog 仍是 optional，依正式打包生成当前候选资源。
@@ -121,3 +157,13 @@
 - 可信 `clearSite` 当前是 CURRENT_URL_MATCHES，并非 Exact Host Host-only 预览+确认+≤50 条，不可原样暴露为公开批量清理。
 - 本次 Cookie Editor 修正：v1.1.1；按浏览器/离线模式正确展示网站身份；用户主动刷新时经正式 SDK 授权门控再读；输入目标网址未确认时禁止显示过期异步结果；保留分区的 `hasCrossSiteAncestor` 元数据；精简用户可见阻塞文案。
 - V8 隔离组件模拟检查已通过（授权拒绝、预留公开读取、脱敏、分区元数据、手动刷新、站点切换）。这属于 **synthetic component**；Node、Build、Verify 与真实 Mac Chrome 均 **NOT_TESTED**。没有可绑定最终候选的 Native 证据，不给 95+ 正式评分。
+# 2026-10-14 核心用户旅程续接
+
+- 负责人：当前 Codex App Cookie Editor 核心旅程；接手前 ownerReleased=true。
+- main 核对：本地与 origin/main 均为 89c3b298；保留全部其他 Agent 未提交改动。
+- 本轮写入：原 Cookie Editor MD/JSON/README、Cookie Editor 自有源码与对应定向测试、`tests/framework/cookie-editor-r33-native.mjs`。Host/SDK 若真实失败才声明具体文件并复核 diff 后修复。
+- 资源：复用 127.0.0.1:43111 标准受控网页服务；独占新 CFT/Profile；复用 `artifacts/cookie-editor-local-acceptance/20261014/build-workspace/dist/production`，不覆盖日常 dist/development；新原始证据只追加到既有证据根。
+- 顺序：真实发现/安装/授权/自动读取/新建/Value/Name/回读/精确删除；现有 111 项与隔离构建证据按身份复用，全仓 FAIL 保留。
+- 原生不同 Path 删除暴露真实 Host 缺陷，扩展写入范围为 `src/platform/chrome/cookies.js` 与 R8/R9 Cookie 定向测试；读取当前 diff 确认这些文件无其他未提交修改。继续沿用现有 Driver/Authority，仅替换不精确的原生删除动作，保留原始失败快照和未知结果保守规则。
+- 停用再启用暴露持久授权 epoch 未迁移的问题，新增精确写入范围 `src/ui/sidebar-tools/installation.js`、`tests/environment/sidebar-tool-enable-r26.test.mjs`；当前 diff 为空。保留同包、同旧 epoch 的有效授权，继续更新撤销标识以拒绝旧实例/请求，失败保持停用。
+- 提交前独立复核复现删除竞态：Host 审核的 Path 消失后，Driver 再次 URL 查询可能选择同名父 Path。新增写入范围 `src/platform/chrome/browser-cookie-host.js`（读回 diff 无本地修改）；由 Host 传递已审核的脱敏精确身份，Driver 不匹配则执行前拒绝。定向回归由 Codex 原生子 Agent 独占 `tests/environment/browser-sdk-r9-installed-cookies.test.mjs`，其余文件由当前负责人落盘；冻结候选与原生结果保留，修复后另建独立候选输出并仅补受影响验证。

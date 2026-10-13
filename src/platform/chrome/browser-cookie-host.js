@@ -160,7 +160,9 @@ export function createTrustedCookieHost({api=globalThis.chrome,now=Date.now}={})
     url.pathname=cookie.path||'/';url.search='';url.hash='';
     await guard(target);
     const receipt=await existing.remove({url:url.href,name:cookie.name,
-      storeId:cookie.storeId,...(cookie.partitionKey?{partitionKey:cookie.partitionKey}:{})},{target});
+      storeId:cookie.storeId,...(cookie.partitionKey?{partitionKey:cookie.partitionKey}:{})},
+      {target,expectedCookieIdentity:{name:cookie.name,domain:cookie.domain,path:cookie.path,storeId:cookie.storeId,
+        ...(cookie.partitionKey?{partitionKey:cookie.partitionKey}:{})}});
     return {removed:receipt.removed};
   }
   async function operate(op,args,target){
@@ -297,7 +299,8 @@ export function createTrustedCookieHost({api=globalThis.chrome,now=Date.now}={})
       const chosen=await chromeCall(api,api.cookies,'get',{url:target.href,...key,name:args.name});
       if(!chosen||chosen.path!==args.path||chosen.domain!==args.domain||!permitted(chosen))
         throw error('E_COOKIE_AMBIGUOUS','Native selection differs from exact identity');
-      result=await existing.remove({url:target.href,name:args.name,...key},context);
+      result=await existing.remove({url:target.href,name:args.name,...key},
+        {...context,expectedCookieIdentity:redact(chosen)});
       if((await scan({url:target.href,...key,name:args.name}))
         .some(row=>row.name===args.name&&row.domain===args.domain&&row.path===args.path))
         throw error('E_OUTCOME_UNKNOWN','Cookie still exists after native remove');
