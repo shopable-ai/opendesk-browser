@@ -32,8 +32,7 @@ export const SDK_MAIN_WAR = Object.freeze([{resources: ['framework/sdk-main.js']
 // not as arbitrary extension scripts. Require the exact reviewed paths.
 export const FOCUS_BLOCK_RESOURCES=Object.freeze([
   'stay-focus/blocked-quota.html','stay-focus/blocked-schedule.html',
-  'stay-focus/blocked-session.html','stay-focus/blocked-always.html',
-  'stay-focus/blocked.css','stay-focus/blocked.js'
+  'stay-focus/blocked-session.html','stay-focus/blocked-always.html'
 ]);
 export const APPROVED_WEB_ACCESSIBLE_RESOURCES=Object.freeze([...SDK_MAIN_WAR,
   {resources:[...FOCUS_BLOCK_RESOURCES],matches:['http://*/*','https://*/*']}]);
