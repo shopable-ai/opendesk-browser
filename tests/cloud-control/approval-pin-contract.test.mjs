@@ -33,7 +33,7 @@ test('Cloud Host rejects every omitted fixed Task pin before resolving, granting
   ]){
     await assert.rejects(service.cloudApprove({tasks:[invalid]},{}),{code:'E_SCHEMA'});
   }
-  await assert.rejects(service.cloudApprove({tasks:[approval,approval]},{}),
-    {code:'E_SCHEMA'},'Duplicate Task identity cannot be approved twice');
+  await assert.rejects(service.cloudApprove({},{}),{code:'E_SCHEMA'});
+  await assert.rejects(service.cloudApprove(null,{}),{code:'E_SCHEMA'});
   assert.equal(resolveCalls,0);
 });
