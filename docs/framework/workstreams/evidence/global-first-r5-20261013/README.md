@@ -6,8 +6,8 @@
 
 - [R5 17 份重要官方来源的时间、版本与渠道索引](source-index.json)，Google Chrome Skills 2026-04-14、Claude Chrome 2026-07-24 Beta 录制重复、UiPath Delegate 2026-08-25 公开预览是最具实质性的 GF-007 反例。
 - [真实同任务竞争基准预注册合同](benchmark-contract.json)：10 组强对手或组合、6 类公平实验、真实 Mac 扩展来源/任务安装身份/模型调用与成本字段。所有原始试验数组为空、所有名次 NOT_TESTED。
-- [实际使用旧生产模块的代码合同回归](../../../tests/environment/global-first-r5-product-evidence.test.mjs)：verifyTaskPackage/createTaskPackage 与 compileWorkflow 并非复制新包解析器；对 Candidate 来源、哈希、权限、参数和版本变化做离线拒绝测试。
-- [公平证据结算器](../../../scripts/global-first-r5-benchmark.mjs) 与 [合成单元测试](../../../tests/environment/global-first-r5-benchmark.test.mjs)。只有预先选择的比较组都完成真实证据后才能统计**限定参与方案**的中位成功耗时，不会形成“全球第一、世界首个、最安全或全球 TOP5”的声明。所有测试用模拟数值属于纯粹单元测试，不是用户/竞品测量，不存入原始试验数组。
+- [实际使用旧生产模块的代码合同回归](../../../../../tests/environment/global-first-r5-product-evidence.test.mjs)：verifyTaskPackage/createTaskPackage 与 compileWorkflow 并非复制新包解析器；对 Candidate 来源、哈希、权限、参数和版本变化做离线拒绝测试。
+- [公平证据结算器](../../../../../scripts/global-first-r5-benchmark.mjs) 与 [合成单元测试](../../../../../tests/environment/global-first-r5-benchmark.test.mjs)。只有预先选择的比较组都完成真实证据后才能统计**限定参与方案**的中位成功耗时，不会形成“全球第一、世界首个、最安全或全球 TOP5”的声明。所有测试用模拟数值属于纯粹单元测试，不是用户/竞品测量，不存入原始试验数组。
 - 45 个真实竞品来源、全部 84 OPP 和 20 个小山头研究优先级的权威最新信息分别在原 [competitor-timeline.json](../../../../product/browser-extension-ecosystem/competitor-timeline.json)、[opportunity-register.json](../../../../product/browser-extension-ecosystem/opportunity-register.json)、[GF Ledger](../../../../product/browser-extension-ecosystem/first-claims-ledger.json)。
 
 ## 如何实施唯一有意义的原生 Chrome 验收
