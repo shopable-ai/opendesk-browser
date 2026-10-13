@@ -1,8 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {mkdtemp,writeFile,readFile,rm} from 'node:fs/promises';
+import {mkdtemp,writeFile,readFile,rm,mkdir} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
-import {join} from 'node:path';
+import {join,resolve} from 'node:path';
 import {describeBundle,collectBundleEvidence,assertLibraryModuleBoundary,recordBuildFailure} from '../../scripts/bundle-provenance.mjs';
 import {BUILTIN_CATALOG} from '../../src/libs/catalog.js';
 const root='/repo';
@@ -84,4 +84,40 @@ test('receipt collection requires every fixed output and binds final verified ha
   const rows=await collectBundleEvidence(directory,['sw.js'],[{path:'sw.js',bytes:42,sha256:'a'.repeat(64)}]);
   assert.equal(rows[0].bytes,42);assert.equal(rows[0].sha256,'a'.repeat(64));
   await assert.rejects(collectBundleEvidence(directory,['sw.js'],[]),/does not match/);
+});
+
+test('reviewed Time Review markup and logic can enter only the pinned existing sidebar host',()=>{
+  const inputs=[
+    'examples/sidebar-tools/time-review/src/index.html',
+    'examples/sidebar-tools/time-review/src/main.js'
+  ];
+  const approved={fileName:'ui/sidebar-tool-host.js',modules:Object.fromEntries(
+    inputs.map(path=>[resolve(path),{renderedLength:12,originalLength:40}]))};
+  const row=describeBundle({chunk:approved,lock:{packages:{}}});
+  assert.equal(row.modules.length,2);
+  for(const source of row.modules)
+    assert.match(source.reviewedFirstPartyBlob,/^[0-9a-f]{40}$/);
+  for(const target of ['sw.js','ui/tool-shell.js','scripting/sandbox/sandbox.js'])
+    assert.throws(()=>describeBundle({chunk:{...approved,fileName:target},lock:{packages:{}}}),
+      /cannot enter a privileged fixed bundle/);
+  for(const path of ['examples/sidebar-tools/other/src/main.js',
+    'examples/sidebar-tools/time-review/src/unsafe.js',
+    'src/vendor/legacy.js','docs/contracts/source-snapshots/tool.js'])
+    assert.throws(()=>describeBundle({chunk:{
+      fileName:'ui/sidebar-tool-host.js',modules:{[resolve(path)]:{}}},lock:{packages:{}}}),
+      /cannot enter a privileged fixed bundle/,
+      'no path-prefix escape is permitted for '+path);
+});
+
+test('a modified Time Review source must not enter privileged fixed output under the old pin',async t=>{
+  const project=await mkdtemp(join(tmpdir(),'opendesk-compiled-review-'));
+  t.after(()=>rm(project,{recursive:true,force:true}));
+  const path='examples/sidebar-tools/time-review/src/index.html';
+  const file=join(project,path);
+  await mkdir(join(project,'examples/sidebar-tools/time-review/src'),{recursive:true});
+  await writeFile(file,'<main>unreviewed markup</main>');
+  assert.throws(()=>describeBundle({chunk:{
+    fileName:'ui/sidebar-tool-host.js',modules:{[file]:{}}},root:project,lock:{packages:{}}}),
+    /Trusted Time Review source changed/,
+    'a native HTML/JS revision requires explicit source-blob re-review before build');
 });
