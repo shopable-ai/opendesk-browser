@@ -118,7 +118,8 @@ export function createCloudHosting({client,host,document:doc=globalThis.document
     if(serial===lastSamples)return;lastSamples=serial;sampleList.replaceChildren();
     if(!samples.length){const li=doc.createElement('li');li.textContent='暂无云请求记录';sampleList.append(li);return;}
     for(const s of samples){const li=doc.createElement('li'),state=doc.createElement('span'),detail=doc.createElement('span');
-      state.textContent=s.state+' · '+s.run;detail.textContent=s.settlement+' · '+s.receipt;li.append(state,detail);sampleList.append(li);}
+      state.textContent=s.title+' · '+s.state+' · '+s.run;
+      detail.textContent=s.settlement+' · '+s.receipt;li.append(state,detail);sampleList.append(li);}
   }
   const put=(id,text)=>{const el=get(id);if(el)el.textContent=text;};
   const fail=e=>{const code=/^E_[A-Z0-9_]{1,60}$/.test(String(e?.code))?e.code:'E_CLOUD';
