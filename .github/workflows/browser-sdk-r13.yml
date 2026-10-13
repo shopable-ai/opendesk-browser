@@ -65,6 +65,7 @@ jobs:
           node scripts/check-browser-sdk-coverage.mjs --check
           node --test tests/environment/browser-sdk-freeze.test.mjs
           node scripts/check-browser-sdk-freeze.mjs
+          node --test tests/environment/browser-sdk-r9-installed-cookies.test.mjs tests/environment/cookie-editor-ui.test.mjs
       - name: Source and fixed entry guard
         run: npm run check
   browser-bundles:
