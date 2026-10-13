@@ -78,13 +78,15 @@ test('revoke purges buffered data and navigation stops an active session',async(
  host.revokeAll();await host.flush();
  assert.equal((await host.read({sessionRef:observationId},identity())).events.length,0);
 });
-test('explicit JSON export uses a bounded real Chrome download, never returns raw data',async()=>{
+test('export confirms a native download request without inventing a resource',async()=>{
  const f=fixture(),host=f.host();
  const {observationId}=await host.start(args,identity(),target);
  f.emit('completed',{statusCode:204});await host.stop({observationId},identity());
  const result=await host.exportJson({observationId},identity());
- assert.equal(Object.hasOwn(result,'downloadId'),false,'Native download ID must stay in the Driver');
- assert.match(result.resourceRef,/^[A-Za-z0-9_-]{16,160}$/);
+ assert.equal(result.status,'started');
+ assert.equal(Object.hasOwn(result,'downloadId'),false);
+ assert.equal(Object.hasOwn(result,'resourceRef'),false);
+ assert.deepEqual(Object.keys(result).sort(),['bytes','status','truncated']);
  assert(result.bytes>0&&result.bytes<=524288);
  assert.equal(result.truncated,false);
  assert.equal(f.calls.downloads.length,1);
@@ -107,4 +109,28 @@ test('owned cancellation changes observable session state and remains idempotent
    {state:'cancelled',cancelRequested:false});
  assert.equal((await host.getStatus({observationId},id)).state,'cancelled');
  await assert.rejects(host.cancel({observationId},identity('foreign')),code('E_OWNER'));
+});
+
+test('uncertain download outcome fails closed without native retry',async()=>{
+ const f=fixture(),host=f.host(),who=identity();
+ const {observationId}=await host.start(args,who,target);
+ await host.stop({observationId},who);
+ let calls=0;
+ f.api.downloads.download=async()=>{calls++;throw Error('outcome unknown')};
+ await assert.rejects(host.exportJson({observationId},who),code('E_OUTCOME_UNKNOWN'));
+ assert.equal(calls,1);
+});
+test('revoked authority during export cannot produce a stale success receipt',async()=>{
+ const f=fixture(),host=f.host(),who=identity();
+ const {observationId}=await host.start(args,who,target);
+ await host.stop({observationId},who);
+ let enter,finish,count=0;
+ const entered=new Promise(resolve=>enter=resolve);
+ const pendingChrome=new Promise(resolve=>finish=resolve);
+ f.api.downloads.download=()=>{count++;enter();return pendingChrome};
+ const exportPromise=host.exportJson({observationId},who);
+ await entered;host.revokeAll();finish(92);
+ await assert.rejects(exportPromise,code('E_OUTCOME_UNKNOWN'));
+ assert.equal(count,1);
+ await assert.rejects(host.exportJson({observationId},who),code('E_GRANT_REVOKED'));
 });

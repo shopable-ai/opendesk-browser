@@ -113,8 +113,7 @@ test('R2 Host requires exact one-use approved action, binds TabRef to package an
   assert.deepEqual(await f.call('browser.tabs.activateOwned',{tabRef:ref},
     (await f.confirm('browser.tabs.activateOwned',{tabRef:ref})).approvalRef),{focused:true});
   f.navigate(100,'https://different.test/elsewhere');
-  await assert.rejects(f.call('browser.tabs.activateOwned',{tabRef:ref},
-    (await f.confirm('browser.tabs.activateOwned',{tabRef:ref})).approvalRef),err('E_TAB_REF_INVALID'));
+  await assert.rejects(f.confirm('browser.tabs.activateOwned',{tabRef:ref}),err('E_TAB_REF_INVALID'));
 });
 
 test('R2 Host enforces installed tool capability, site revocation and Chrome permission checks',async()=>{
@@ -122,7 +121,8 @@ test('R2 Host enforces installed tool capability, site revocation and Chrome per
   f.setSite(false);
   await assert.rejects(f.confirm('browser.tabs.create',args),err('E_SITE_PERMISSION_REVOKED'));
   f.setSite(true);f.setChrome(false);
-  await assert.rejects(f.confirm('browser.tabs.create',args),err('E_CHROME_PERMISSION_REQUIRED'));
+  assert.equal(typeof (await f.confirm('browser.tabs.create',args)).approvalRef,'string',
+    'chrome.tabs.create does not require native tabs permission');
   f.setChrome(true);
   const {approvalRef}=await f.confirm('browser.tabs.create',args);
   await f.api.storage.local.set({'opendesk.sidebar-tools.installed.v1':[]});
@@ -240,7 +240,8 @@ test('P1 screenshot: exact owned visible tab, one-use user approval and private 
  assert.equal(Object.hasOwn(result,'downloadId'),false,'No global download ID in installed-tool reply');
  assert.equal(result.width,1);
  assert.equal(result.height,1);
- assert(result.resourceRef.length>=16);
+ assert.equal(result.status,'started');
+  assert.equal(Object.hasOwn(result,'resourceRef'),false,'Save As is not a readable ResourceRef');
  assert(!JSON.stringify(result).includes('base64'));
  assert(!Object.hasOwn(result,'tabId'));
  assert.equal(f.downloads.length,1);
@@ -253,9 +254,8 @@ test('P1 screenshot revocation and wrong visible tab prevent a Chrome capture si
  const tabRef=(await f.call('browser.tabs.create',args,
    (await f.confirm('browser.tabs.create',args)).approvalRef)).tabRef;
  f.setSite(false);
- const deniedRef=(await f.confirm('browser.screenshot.captureVisible',{tabRef})).approvalRef;
- await assert.rejects(f.call('browser.screenshot.captureVisible',{tabRef},deniedRef),
-   err('E_SITE_PERMISSION_REVOKED'));
+  await assert.rejects(f.confirm('browser.screenshot.captureVisible',{tabRef}),
+    err('E_SITE_PERMISSION_REVOKED'));
  assert.equal(f.downloads.length,0);
  f.setSite(true);
  const second={url:'https://example.org/another'};

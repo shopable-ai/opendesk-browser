@@ -15,21 +15,21 @@ function fixture(){
  const args={data:png,mimeType:'image/png',bytes:68,target,context:owner('tool-a')};
  return {store,args,calls,step:ms=>now+=ms};
 }
-test('private screenshot storage only returns an opaque receipt and starts a Save As PNG download',async()=>{
+test('private screenshot handoff returns only a download-start acknowledgement',async()=>{
  const f=fixture(),created=await f.store.createResource(f.args);
  assert.deepEqual(Object.keys(created),['resourceRef']);
  const got=await f.store.deliver(created.resourceRef,owner('tool-a'),async()=>true);
- assert.deepEqual(got,{resourceRef:created.resourceRef,downloadId:10,bytes:68});
+ assert.deepEqual(got,{status:'started',bytes:68});
+ assert.equal(Object.hasOwn(got,'downloadId'),false);
+ assert.equal(Object.hasOwn(got,'resourceRef'),false);
  assert.equal(f.calls.length,1);
  assert.equal(f.calls[0].saveAs,true);
  assert.equal(f.calls[0].conflictAction,'uniquify');
  assert.match(f.calls[0].filename,/^OpenDesk-screenshot-.*\.png$/);
  assert.equal(f.calls[0].url,png);
  assert(!JSON.stringify(got).includes('base64'));
- assert.deepEqual(f.store.inspect(got.resourceRef,owner('tool-a')),
-   {downloadId:10,bytes:68,expiresAt:601000});
- assert.deepEqual(f.store.diagnostics(),{pending:0,receipts:1});
- await assert.rejects(f.store.deliver(got.resourceRef,owner('tool-a'),async()=>true),codeIs('E_RESOURCE_REF_INVALID'));
+ assert.deepEqual(f.store.diagnostics(),{pending:0});
+ await assert.rejects(f.store.deliver(created.resourceRef,owner('tool-a'),async()=>true),codeIs('E_RESOURCE_REF_INVALID'));
 });
 test('wrong owner, expired resource, revoked tool and foreign target cannot read image',async()=>{
  const f=fixture(),created=await f.store.createResource(f.args);
@@ -67,5 +67,5 @@ test('revocation while download is pending never reports success from obsolete a
  store.revokeAll();
  release(11);
  await assert.rejects(pending,codeIs('E_OUTCOME_UNKNOWN'));
- assert.deepEqual(store.diagnostics(),{pending:0,receipts:0});
+ assert.deepEqual(store.diagnostics(),{pending:0});
 });

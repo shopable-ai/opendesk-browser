@@ -22,3 +22,9 @@
 - 原有 Node Driver/R2 Host/watch 测试迁移为禁止公开 `downloadId` 的负向断言，并保留原生调用次数、文件数据和其他原有保护检查。
 - 修正当前执行手册计数为 Registry 48、批准 55、未注册 7，R10.1 旧 44 标为历史时点。
 - 验证级别：源码与预期消费者静态交叉检查；Node/Build/Native 需按本批相同候选 SHA 取得真实 CI/Chrome 结果，本记录不将静态核查写成运行测试 PASS。
+
+## R10.5 · 真实回执与 CI 证据（2026-10-13）
+
+- `44f715a64f832ea2b6d3498e280a369bab8d222e`：修正 Network 虚假的 ResourceRef 与 Screenshot 原生 downloadId 公开泄露；使用单一既有 Host、临时内存资源、一次性下载请求和真正 `status:'started'` 回执。受信 Host 在 Network 原生执行后重新验证 Origin 与工具身份；撤权和未知 Chrome 副作用不重试。
+- 更新 Network/Screenshot/R2 Host/Schema 回归断言：Chrome `tabs.create` 无需原生 `tabs` permission，失效 TabRef 或被撤销 Origin 可以在真实用户确认环节提前拒绝；不降低安全约束。
+- 真实既有 CI：`97df746b` 的 Browser SDK R5 implementation contracts 为 101 PASS / 4 FAIL，构建因 Time Review 入口 provenance 禁止进入特权 bundle 而失败；两批 R10.4 提交的其他 CI 存在 FAILURE。新候选的 NODE/BUILD/NATIVE 状态必须依据新运行单独确认，不能将该源修复自动提升为 PASS。

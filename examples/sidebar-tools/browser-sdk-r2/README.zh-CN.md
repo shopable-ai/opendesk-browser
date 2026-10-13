@@ -31,7 +31,7 @@ await watch.close();
 2. Chrome 打开 `http://127.0.0.1:43111/demo-form.html`，确保 OpenDesk Browser 已安装，并完成所需 Chrome 网站访问授权。
 3. Side Panel →「工具」→ 导入 `browser-operations.opendesk-tool.json`。仔细审阅该工具声明的 7 项能力，明确选择安装与启用。
 4. 先点「打开标签页」，在 **OpenDesk 可信确认栏**点击允许；获得 `tabRef` 后，依次验证聚焦、HTTP GET、截图、网络观察、状态读取、停止/取消、分页、JSON 导出等操作。
-5. 截图只允许截取工具拥有的**当前可见网页**。Chrome 会显示保存 PNG 对话框；`downloadId` 表示下载请求已启动，**不等于文件已落盘**。
+5. 截图只允许截取工具拥有的**当前可见网页**。Chrome 会显示保存 PNG 对话框；工具仅得到 `{status:'started',bytes,width,height}`，并不等于文件已落盘。原生 `downloadId` 与临时内部 `resourceRef` 均不向工具公开；网络观察 JSON 导出只返回启动回执，不伪造资源。
 6. 网络观察只收集相同 Tab/Origin 的 HTTP 元数据。可在该标签页 DevTools Console 运行 `fetch(location.href)` 制造一次同源请求，返回工具后点「读取观察事件」。观察最长 30 秒，过期/导航/撤权需重新开始。
 7. 执行「停止观察」后可以「导出 JSON」；导出操作需要再次明确点击确认。关闭事件会话之后，旧观察引用不可再读。
 
