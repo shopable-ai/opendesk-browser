@@ -975,6 +975,9 @@
 .schedule-form .schedule-advanced>.od-field{display:grid;gap:var(--space-2)}
 .schedule-form .schedule-advanced>summary{min-height:30px;line-height:1.5}
 .schedule-form #schedule-save-confirm{border-radius:var(--radius-surface)}
+.schedule-form #schedule-discard-confirm{display:grid;gap:var(--space-2);padding:var(--space-3);min-width:0;border-radius:var(--radius-surface)}
+.schedule-form #schedule-discard-confirm>p{margin:0;font-size:12px;line-height:1.55;color:var(--od-sub);overflow-wrap:anywhere}
+.schedule-form #schedule-discard-confirm>.schedule-actions{justify-content:flex-start;flex-wrap:wrap}
 .schedule-form>.schedule-actions{justify-content:flex-start;gap:var(--space-2);padding-bottom:var(--space-2)}
 .schedule-form .schedule-actions>.od-button{min-height:36px}
 :root[data-opendesk-surface="scheduled-runner"] .schedule-header-heading{display:none}
