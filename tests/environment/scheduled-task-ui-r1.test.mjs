@@ -184,3 +184,32 @@ test('R2.3 explains audit retention and shows native Chrome origin-wide storage 
   assert.doesNotMatch(ui,/indexedDB\.deleteDatabase\(|chrome\.storage\.(?:local|sync)\.clear\(/);
   assert.match(css,/\.schedule-storage-details>summary:focus-visible/);
 });
+
+test('R2.6 plan list keeps next run prominent and destructive actions behind explicit review',async()=>{
+  const [html,css,ui]=await Promise.all([
+    load('src/ui/tool.html'),load('src/ui/tool-shell.css'),
+    load('src/ui/scheduled-task-workbench.js')
+  ]);
+  assert.match(html,/id="schedule-list-summary"[^>]*aria-live="polite"/);
+  assert.match(ui,/const next=element\(doc,'p','schedule-next-time'/);
+  assert.match(ui,/const more=element\(doc,'details','schedule-more'\)/);
+  assert.match(ui,/more\.append\(remove\)/);
+  assert.match(ui,/\`确定删除「\$\{plan\.title\}」/);
+  assert.match(ui,/client\.request\('changeSchedule'/);
+  assert.match(css,/\.schedule-card \.schedule-next-time\{font-size:16px/);
+  assert.match(css,/\.schedule-plan-actions\{justify-content:flex-start/);
+  assert.match(css,/\.schedule-more>summary:focus-visible/);
+});
+test('R2.6 runner separates running Fire from waiting history and preserves original Stop contract',async()=>{
+  const [html,css,ui]=await Promise.all([
+    load('src/ui/tool.html'),load('src/ui/tool-shell.css'),
+    load('src/ui/scheduled-task-workbench.js')
+  ]);
+  assert.match(ui,/\['ADMITTED','RUNNING'\]\.includes\(item\.fire\.status\)/);
+  assert.match(ui,/\['READY','WAITING_HOST','WAITING_TARGET','WAITING_SLOT','SETTLING'\]/);
+  assert.match(ui,/waiting\?'未运行 · '/);
+  assert.match(ui,/scheduleStatusGuidance\.UNKNOWN/);
+  assert.match(ui,/host\.stop\(\{runId:selectedFire,controller:true\}\)/);
+  assert.match(css,/:root\[data-opendesk-surface="scheduled-runner"\] \.schedule-runner-view \.schedule-runner-focus\{order:1\}/);
+  assert.match(html,/id="schedule-runner-focus-title"/);
+});
