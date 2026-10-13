@@ -1,6 +1,6 @@
 {
   "id": "web-markdown-clipper",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "title": "网页剪藏",
   "description": "在授权的网站上主动剪藏文章、选区、引用和链接为 Markdown。",
   "capabilities": [

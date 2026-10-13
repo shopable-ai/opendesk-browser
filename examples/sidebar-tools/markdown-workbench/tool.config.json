@@ -1,6 +1,6 @@
 {
   "id": "markdown-workbench",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "title": "Markdown 工作台",
   "description": "离线编辑、预览、导入和导出 Markdown；无需网页权限。",
   "capabilities": [

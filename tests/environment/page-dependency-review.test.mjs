@@ -7,6 +7,10 @@ import {createPageDependencyReview} from '../../src/ui/page-dependency-review.js
 // Component doubles only. Real Chrome click/download/USER_SCRIPT evidence is separate.
 const tick=()=>new Promise(resolve=>setImmediate(resolve));
 const settle=async()=>{for(let i=0;i<8;i++)await tick();};
+const waitFor=async check=>{const end=Date.now()+3000;
+  while(Date.now()<end){if(check())return;await new Promise(resolve=>setTimeout(resolve,5));}
+  assert.fail('cache verification did not finish within the bounded wait');
+};
 const code='globalThis.reviewLibrary={sum:(a,b)=>a+b};';
 const sha256=createHash('sha256').update(code).digest('hex');
 const url='https://library.example.org/library.min.js';
@@ -21,7 +25,7 @@ class Element {
   remove(){}
   fire(key,event={isTrusted:true}){this.listeners.get(key)?.(event);}
 }
-function fixture({permission=true,prepareGate,readCode=code,esm=false}={}) {
+function fixture({permission=true,prepareGate,readGate,readCode=code,esm=false}={}) {
   let text=esm?"import value from 'https://library.example.org/v1.0.0/value.js';\nexport default async function main(){return value;}":source,
     available=true,granted=permission,reviewUI;
   const parent=new Element(),requests=[],permissions=[];
@@ -34,7 +38,7 @@ function fixture({permission=true,prepareGate,readCode=code,esm=false}={}) {
     requests.push({method,input:structuredClone(input)});
     if(method==='inspectPageDependencies')return report;
     if(method==='preparePageDependencies'){if(prepareGate)await prepareGate;return {reviewId:'review-1',manifestDigest:'manifest-1',entries:[entry]};}
-    if(method==='readPageDependencyReview')return {reviewId:'review-1',order:0,sha256,code:readCode};
+    if(method==='readPageDependencyReview'){if(readGate)await readGate;return {reviewId:'review-1',order:0,sha256,code:readCode};}
     if(method==='approvePageDependencies')return {lockId:'dep-lock-'+sha256,manifestDigest:'manifest-1'};
     throw Error('unexpected execution '+method);
   }};
@@ -45,7 +49,9 @@ function fixture({permission=true,prepareGate,readCode=code,esm=false}={}) {
   return {requests,permissions,resolver,ui:reviewUI,find,
     edit(value){text=value;resolver.refresh();reviewUI.update();},unavailable(){available=false;reviewUI.update();},available(){available=true;reviewUI.update();},
     async click(id,event){find(id).fire('click',event);await settle();},
-    async read(){find('network-js-sources').children[0].fire('click');await settle();},
+    async read(){find('network-js-sources').children[0].fire('click');
+      await waitFor(()=>!find('network-js-prepare').disabled&&
+        (find('network-js-sources').children[1]?.hidden===false||/E_[A-Z_]+/.test(find('network-js-status').textContent)));},
     check(){find('network-js-consent').checked=true;find('network-js-consent').fire('change');},
     dispose(){reviewUI.dispose();resolver.dispose();}};
 }
@@ -66,8 +72,11 @@ test('trusted preparation, exact cached source inspection and hash approval are 
   assert.deepEqual(f.requests.at(-1).input,{reviewId:'review-1',explicitUserAction:true,acceptedHashes:[sha256]});
 });
 test('cached source hash mismatch stays visible and cannot enable approval',async t=>{
-  const f=fixture({readCode:code+'tampered'});t.after(()=>f.dispose());await settle();
-  await f.click('network-js-prepare');f.check();await f.read();
+  let release;const readGate=new Promise(resolve=>{release=resolve;});
+  const f=fixture({readCode:code+'tampered',readGate});t.after(()=>f.dispose());await settle();
+  await f.click('network-js-prepare');f.check();const read=f.read();await settle();
+  assert.equal(f.find('network-js-approve').disabled,true,'pending cache verification cannot enable approval');
+  release();await read;
   assert.match(f.find('network-js-status').textContent,/E_DEPENDENCY_HASH/);
   assert.equal(f.find('network-js-approve').disabled,true);
 });

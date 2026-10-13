@@ -1,0 +1,49 @@
+✔ trusted preparation, exact cached source inspection and hash approval are separate; none execute the page (8.507583ms)
+✖ cached source hash mismatch stays visible and cannot enable approval (2.074542ms)
+✔ editing while downloading preserves an unapproved historical review without attaching it to new source (1.975167ms)
+✔ body edits invalidate a displayed review and a changed mode cannot approve hidden review controls (1.786959ms)
+✔ a delayed download cannot revive review after source-return (1.608292ms)
+✔ a delayed download cannot revive review after mode-return (1.235708ms)
+✔ Page ESM Run requests the pre-observed original HTTPS origin synchronously and never runs during permission grant (0.73925ms)
+✔ static import review uses the existing DOM, requires cached source and explicit approval, then compiles offline (11.205125ms)
+✔ Page approval cannot authorize Controller; world change clears review and synchronizes manager inspect/prepare (4.464917ms)
+✔ export default zero-argument main without imports waits for inspect, then compiles with no lock or empty approval (2.143709ms)
+✔ corrupt displayed bytes never enable approval (1.446291ms)
+✔ changed import URL requires independent approval and HTTP imports are rejected before preparation (2.63525ms)
+✔ loader world mismatch is refused before compilation (1.5535ms)
+✔ loader sourceFormat mismatch is refused before compilation (1.743459ms)
+✔ loader lockId mismatch is refused before compilation (1.698291ms)
+✔ loader manifestDigest mismatch is refused before compilation (1.427ms)
+✔ source change during compilation rejects even after restoration (2.627333ms)
+✔ world change during compilation rejects even after restoration (2.275042ms)
+✔ approval change during compilation rejects even after restoration (1.773625ms)
+✔ compiler output cannot substitute another author source or lock identity (1.25925ms)
+✔ one Page ESM Run pins a real fixed input and compiles without a manual library approval click; repeat is offline (1.390042ms)
+✔ a changed Page ESM draft fails before auto-approval of a stale Run snapshot (0.846833ms)
+ℹ tests 22
+ℹ suites 0
+ℹ pass 21
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 88.522042
+
+✖ failing tests:
+
+test at tests/environment/page-dependency-review.test.mjs:68:1
+✖ cached source hash mismatch stays visible and cannot enable approval (2.074542ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /E_DEPENDENCY_HASH/. Input:
+  
+  '下载准备完成。请逐项查看缓存源码，审核来源、哈希与许可证后批准；网页尚未运行。'
+  
+      at TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/environment/page-dependency-review.test.mjs:74:10)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: '下载准备完成。请逐项查看缓存源码，审核来源、哈希与许可证后批准；网页尚未运行。',
+    expected: /E_DEPENDENCY_HASH/,
+    operator: 'match',
+    diff: 'simple'
+  }

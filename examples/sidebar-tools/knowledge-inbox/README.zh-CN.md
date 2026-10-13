@@ -33,7 +33,7 @@
 
 ## 实现与授权
 
-工具 ID：`knowledge-inbox`，版本：`1.2.5`。声明能力：`page.capture`、`knowledge.store`、`user.export`。
+工具 ID：`knowledge-inbox`，版本：`1.2.7`。声明能力：`page.capture`、`knowledge.store`、`user.export`。
 
 页面捕获由扩展固定 content script 按真实点击执行；收件箱沙箱不能任意读取页面，也不能直接使用 Chrome 或 Native API。捕获站点授权独立于阅读目录与网页剪藏；撤销授权移除页面按钮，已收藏内容保留。扩展可信宿主在每次操作时复核工具包哈希、真实 sender/document、站点权限和当前文档。
 

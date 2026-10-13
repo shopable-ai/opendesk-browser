@@ -1,0 +1,122 @@
+✔ R5 production trust is disabled until all reviewed inputs exist; development cannot leak into it (1.935625ms)
+✔ R5 finite messages reject code, URLs, approval flags, protocol drift and unbounded fields (0.622875ms)
+✔ R5 validates browser sender, live top document and exact port before any handoff mutation (1.808542ms)
+✔ R5 probe exposes no installed information; same intent resumes exact review after worker replacement (2.1935ms)
+✔ R5 prepared/opened persistence and committed-tab acknowledgement faults reconcile without duplicate pages (1.135958ms)
+✔ R5 queue, global/origin rate and capacity are bounded across tabs and worker restarts (16.436833ms)
+✔ R5 expiry protects only the original unresolved operation/batch, without deleting installer journals (0.761875ms)
+✔ R5 consumed handoff cannot replay when terminal installer or batch history is gone (0.924375ms)
+✔ R5 shared consumption and external requests do not overwrite each other; expired approval is refused (0.940917ms)
+✔ R5 existing installer checks baseline and hash before consuming a handoff; consumption failure cannot install (114.808875ms)
+✔ R5 consumed-without-journal survives TTL, and explicit locked recovery ends only the handoff (1.590916ms)
+✔ R5 a lost consumption acknowledgement stops before installer writes, and two consumers never both succeed (1.188083ms)
+✔ R5 terminal settlement survives journal trimming and missing recovery respects existing locks (1.070458ms)
+✖ R5 newest fixed reading kit matches packaged releases while historical revisions stay pinned (0.641667ms)
+✔ R5 immutable archive conflicts reject same-version bytes and same-revision replacement (4.929083ms)
+✔ R5 independent website build is reproducible, self-contained and replaces only generated output (257.468166ms)
+✔ R5 CI watches package-coupled Workspace inputs without expanding market trust (0.727458ms)
+✔ knowledge tool is a distinct, bounded, reproducible v1 package with explicit new capabilities (11.473459ms)
+✔ capture requires separate origin consent and both declared capabilities (2.224167ms)
+✔ capture source strips secrets; repeated captures preserve personally edited metadata and draft (2.093292ms)
+✔ selection identity differs; search includes edited draft, labels and notes (0.939625ms)
+✔ UTF-8 content, record count, total quota and malformed durable data fail without mutation (107.227375ms)
+✔ two page captures are serialized, duplicates stay singular, stale editors cannot overwrite (16.562291ms)
+✔ page cannot read the inbox; invalid iframe, host document, tool hash and source are rejected (1.236792ms)
+✔ knowledge host requests require the current durable epoch even when the installed package is unchanged (11.604125ms)
+✔ independent extension TAB verifies its live context when webNavigation has no frame (1.963ms)
+✔ same-URL reload, navigation and browser permission removal fence page writes (4.936542ms)
+✔ capture and uninstall use one lock; queued stale captures never recreate removed data (3.787333ms)
+✔ full Markdown export exceeds old clip budget without truncating; direct download survives broken inbox (16.907583ms)
+✔ image download rejects arbitrary origins and data/blob resources; acknowledges only Chrome request (3.178791ms)
+✔ Workspace handoff is tab-bound, expires, preserves exact text and never dispatches Native writes (15.836208ms)
+✔ v1 capture migration fills only an absent draft and does not mutate the stored input (32.029667ms)
+✔ Workspace import rereads durable session under the uninstall lock, and retains failed handoffs (36.414666ms)
+✔ knowledge quota rejection retains local records and returns host quota classification (5.677459ms)
+✔ knowledge worker rejects stale host generation across identical package reinstallation (2.144708ms)
+✔ manual records are origin-free, editable and preserve the validated v1 store contract (1.346292ms)
+✔ trusted host creates manually without ChatGPT site grant and can find, edit, backup, delete (17.625667ms)
+✔ manual entry rejects forged senders, unsafe sizes and bad metadata without damaging saved notes (10.109666ms)
+✔ R24 ships the same readable package as the official built-in tool (0.948625ms)
+✔ R24 defaults to reading and separates editing, status, confirmation, export (0.33625ms)
+✔ R24 Markdown presentation is DOM-only, URL restricted, without auto image requests (0.229541ms)
+✔ R24 avoids a permanent status banner and provides selection/focus safeguards (0.146459ms)
+✔ R24 CSS is sandbox-scoped, responsive and usable in light and dark themes (0.128042ms)
+✔ manual knowledge entry is a first-class list and empty-state action, not a buried settings item (0.212041ms)
+✔ R24.5 detail editing starts with title and body, collapses secondary metadata, and exposes save/cancel (0.300375ms)
+✔ R24.6 inline validation prevents invalid writes and keeps the reading toolbar compact (0.281083ms)
+✔ R24.7 keeps first screen save controls reachable with compact resizable writing fields (0.17525ms)
+✔ R24.8 effective 180–200px widths suppress redundant badges without splitting actions (0.14025ms)
+✔ reviewed actual screenshots bind exact release bytes, dimensions and honest display text (8.436416ms)
+✔ unreviewed image bytes, release mismatches and incomplete provenance fail closed (3.572542ms)
+✔ actual PNG headers provide bounded intrinsic dimensions rather than a guessed aspect ratio (0.966792ms)
+✔ R4.8 authored catalog keeps two default tools and includes optional Cookie Editor UI (7.71675ms)
+✔ R4.8 only trusted source and exact release policy can authorize preinstalled descriptor (116.658584ms)
+✔ R4.8 first-install intent uses fixed classic WXT resource without bundling the installer into SW (2.9415ms)
+✔ R4.5 exact bytes, versions and capabilities are reproducible from the existing packer (82.816375ms)
+✔ R4.5 adding a source catalog entry supplies release and marketplace without new UI mappings (11.376ms)
+✔ R4.5 source change updates only its release bytes and catalog, with declared input identity (18.0255ms)
+✔ R4.5 catalog rejects automatic install, duplicate identity, arbitrary paths and foreign sources (0.731375ms)
+✔ R4.5 package config identity mismatch, missing source and invalid JavaScript fail before publication (33.113917ms)
+✔ R4.5 official source and output symlinks cannot escape or write outside the selected root (30.954375ms)
+✔ R4.5 source project and catalog symlinks, oversized catalog and unresolved assets are rejected (22.644333ms)
+✔ R4.5 removing an optional candidate removes only previously generated resource files (20.698083ms)
+✔ R4.5 runtime fetches only extension-owned bytes; catalog alone has no install or execution effects (26.471042ms)
+✔ R4.5 corrupt, missing, redirected and over-limit resources cannot be reviewed as official (2.052875ms)
+✔ R4.5 generated catalog rejects forged paths, duplicate releases, persisted user state and policies (0.186084ms)
+✔ R4.5 all official tools derive availability, update and installed states from the same versions (0.634042ms)
+✔ R4.5 knowledge lifecycle correction is an upgrade from the shipped 1.1.0 (0.139375ms)
+✔ old installed v1 tool and private data remain readable with unlimitedStorage active (1.800042ms)
+✔ readBytesInUse counts all local keys and includes knowledge 4 MiB namespace, not an invented capacity (41.453875ms)
+✔ quota refusal leaves existing data intact and unknown response never lies about persistence (0.597833ms)
+✔ My Apps opens local installed package while official catalog is missing or offline (4.767791ms)
+✔ a corrupt local install registry reports a storage failure, not an empty My Apps view (1.175084ms)
+✔ capacity usage includes unfinished uninstall namespaces without loading their private note content (0.249166ms)
+✔ stalled official package lookup never blocks local My Apps or Open after catalog loads (102.817958ms)
+✔ late local registry reads cannot replace a newer installed-app snapshot (3.964583ms)
+✔ My Apps shows unavailable rather than zero when actual Chrome byte counters fail (0.774958ms)
+✖ R5 trusted app page exposes missing-journal recovery immediately after consume ACK loss (7.2695ms)
+✖ R5 trusted collection page exposes missing-journal recovery immediately after consume ACK loss (7.392916ms)
+✔ R5 a fixed collection review never displays or recovers another intent batch of the same revision (4.522709ms)
+ℹ tests 79
+ℹ suites 0
+ℹ pass 76
+ℹ fail 3
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 486.347375
+
+✖ failing tests:
+
+test at tests/environment/app-market-r5.test.mjs:239:1
+✖ R5 newest fixed reading kit matches packaged releases while historical revisions stay pinned (0.641667ms)
+  AssertionError [ERR_ASSERTION]: opendesk/web-markdown-clipper
+  
+  '1.0.0' !== '1.0.1'
+  
+      at TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/environment/app-market-r5.test.mjs:245:38)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: '1.0.0',
+    expected: '1.0.1',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/environment/sidebar-storage-unlimited.test.mjs:276:3
+✖ R5 trusted app page exposes missing-journal recovery immediately after consume ACK loss (7.2695ms)
+  Error: marketplace did not settle
+      at settle (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/environment/sidebar-storage-unlimited.test.mjs:100:9)
+      at async TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/environment/sidebar-storage-unlimited.test.mjs:279:5)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7)
+
+test at tests/environment/sidebar-storage-unlimited.test.mjs:276:3
+✖ R5 trusted collection page exposes missing-journal recovery immediately after consume ACK loss (7.392916ms)
+  Error: marketplace did not settle
+      at settle (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/environment/sidebar-storage-unlimited.test.mjs:100:9)
+      at async TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/environment/sidebar-storage-unlimited.test.mjs:279:5)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7)

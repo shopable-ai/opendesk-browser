@@ -9,6 +9,10 @@ import {parseStaticESMSource,STATIC_ESM_WORLDS} from '../../src/scripting/user-s
 const hash=value=>createHash('sha256').update(value).digest('hex');
 const tick=()=>new Promise(resolve=>setImmediate(resolve));
 const settle=async()=>{for(let n=0;n<12;n++)await tick();};
+const waitFor=async check=>{const end=Date.now()+3000;
+  while(Date.now()<end){if(check())return;await new Promise(resolve=>setTimeout(resolve,5));}
+  assert.fail('cache verification did not finish within the bounded wait');
+};
 const deferred=()=>{let resolve;const promise=new Promise(done=>{resolve=done;});return {promise,resolve};};
 const url='https://library.example.org/v1.0.0/value.js',code='export default 7;';
 const source='import value from "'+url+'";\nexport default async function main(){return value;}';
@@ -78,7 +82,10 @@ function fixture({text=source,inspectGate,compileGate,readCode=code,loadOverride
     async click(id,event){find(id).fire('click',event);await settle();},
     async approve(){
       await this.click('network-js-prepare');
-      find('network-js-sources').children[0].fire('click');await settle();
+      find('network-js-sources').children[0].fire('click');
+      await waitFor(()=>!find('network-js-prepare').disabled&&
+        (find('network-js-sources').children[1]?.hidden===false||/E_[A-Z_]+/.test(find('network-js-status').textContent)));
+      assert.equal(find('network-js-sources').children[1]?.hidden,false,'approval requires displayed SHA-verified source');
       find('network-js-consent').checked=true;find('network-js-consent').fire('change');
       await this.click('network-js-approve');
     },

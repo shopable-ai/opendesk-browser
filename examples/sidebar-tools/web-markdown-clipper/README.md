@@ -1,4 +1,4 @@
-# 网页剪藏 v1.0.0
+# 网页剪藏 v1.0.1
 
 网页内容读取由 OpenDesk 可信 Content Script 完成；当前工具只是无 Chrome 权限的隔离 UI。
 

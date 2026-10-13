@@ -271,8 +271,11 @@ async function handoffPage(t,subject,{consumeAckLost=false,otherBatch=null}={}){
   t.after(()=>{market.dispose();Object.assign(globalThis,previous);});
   return {...f,root,row,official,labels:()=>walk(root).map(node=>node.textContent).join(' ')};
 }
-for(const subject of [{kind:'app',marketId:'opendesk/markdown-workbench',version:'1.0.1'},
-  {kind:'collection',collectionId:'reading-kit',revision:2}]){
+const currentOfficial=await officialFixtures();
+const currentWorkbench=currentOfficial.catalog.apps.find(row=>row.toolId==='markdown-workbench');
+const currentKit=OFFICIAL_COLLECTIONS[0];
+for(const subject of [{kind:'app',marketId:currentWorkbench.id,version:currentWorkbench.version},
+  {kind:'collection',collectionId:currentKit.id,revision:currentKit.revision}]){
   test('R5 trusted '+subject.kind+' page exposes missing-journal recovery immediately after consume ACK loss',async t=>{
     const f=await handoffPage(t,subject,{consumeAckLost:true});
     const action=subject.kind==='app'?'confirm-install':'confirm-batch';

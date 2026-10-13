@@ -1,6 +1,6 @@
 {
   "id": "knowledge-inbox",
-  "version": "1.2.6",
+  "version": "1.2.7",
   "title": "知识收件箱",
   "description": "保存 ChatGPT 回答，也可手动新建知识，整理标签、草稿并导出 Markdown。",
   "capabilities": [

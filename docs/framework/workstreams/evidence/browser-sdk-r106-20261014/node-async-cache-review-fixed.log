@@ -1,0 +1,30 @@
+✔ trusted preparation, exact cached source inspection and hash approval are separate; none execute the page (13.08075ms)
+✔ cached source hash mismatch stays visible and cannot enable approval (7.993083ms)
+✔ editing while downloading preserves an unapproved historical review without attaching it to new source (1.441542ms)
+✔ body edits invalidate a displayed review and a changed mode cannot approve hidden review controls (7.489791ms)
+✔ a delayed download cannot revive review after source-return (1.475708ms)
+✔ a delayed download cannot revive review after mode-return (1.465458ms)
+✔ Page ESM Run requests the pre-observed original HTTPS origin synchronously and never runs during permission grant (0.843167ms)
+✔ static import review uses the existing DOM, requires cached source and explicit approval, then compiles offline (11.230042ms)
+✔ Page approval cannot authorize Controller; world change clears review and synchronizes manager inspect/prepare (15.427834ms)
+✔ export default zero-argument main without imports waits for inspect, then compiles with no lock or empty approval (2.232792ms)
+✔ corrupt displayed bytes never enable approval (1.471916ms)
+✔ changed import URL requires independent approval and HTTP imports are rejected before preparation (8.297542ms)
+✔ loader world mismatch is refused before compilation (7.13625ms)
+✔ loader sourceFormat mismatch is refused before compilation (7.158791ms)
+✔ loader lockId mismatch is refused before compilation (6.24625ms)
+✔ loader manifestDigest mismatch is refused before compilation (6.097958ms)
+✔ source change during compilation rejects even after restoration (8.852833ms)
+✔ world change during compilation rejects even after restoration (7.013917ms)
+✔ approval change during compilation rejects even after restoration (7.777375ms)
+✔ compiler output cannot substitute another author source or lock identity (5.982458ms)
+✔ one Page ESM Run pins a real fixed input and compiles without a manual library approval click; repeat is offline (1.502833ms)
+✔ a changed Page ESM draft fails before auto-approval of a stale Run snapshot (0.885125ms)
+ℹ tests 22
+ℹ suites 0
+ℹ pass 22
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 151.192042
