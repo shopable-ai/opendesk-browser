@@ -881,6 +881,14 @@
 .trusted-cookie-value{font:12px/1.5 ui-monospace,monospace}
 .trusted-cookie-item-actions{display:flex;flex-wrap:wrap;gap:var(--space-1)}
 .trusted-cookie-item-actions button{min-height:32px}
+/* Trusted Cookie observation is ephemeral, opt-in and contains metadata only. */
+.trusted-cookie-observe{border-top:1px solid var(--od-input-border);padding:var(--space-2) 0;min-width:0}
+.trusted-cookie-observe>summary{cursor:pointer;font-size:12px;font-weight:650;min-height:30px}
+.trusted-cookie-observe>.hint{font-size:12px;line-height:1.55;margin:var(--space-2) 0}
+.trusted-cookie-observe-actions{display:flex;flex-wrap:wrap;gap:var(--space-1)}
+.trusted-cookie-observe-actions>button{min-width:0;min-height:32px;flex:1 1 88px}
+.trusted-cookie-watch-events{display:grid;gap:var(--space-1);max-height:168px;overflow:auto;min-width:0}
+.trusted-cookie-watch-event{font:12px/1.5 ui-monospace,monospace;overflow-wrap:anywhere;padding:var(--space-1);border-bottom:1px solid var(--od-input-border)}
 .trusted-cookie-write{padding:var(--space-2);border-top:1px solid var(--od-input-border);min-width:0}
 .trusted-cookie-write>summary{margin-bottom:var(--space-2)}
 .trusted-cookie-write label{margin-bottom:var(--space-1)}
