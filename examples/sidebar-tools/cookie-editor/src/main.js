@@ -103,10 +103,10 @@ function renderBrowser(){
   if(targetPending){
     heading.textContent='请先确认目标网页';detail.textContent='输入框地址尚未应用。点击「选择」后再读取，避免误操作原先的网站。';
   }else if(!liveTarget){
-    heading.textContent='请选择网页';detail.textContent='打开普通网页并点击「当前页」，或输入指定 HTTP(S) 地址。';
+    heading.textContent='请选择网站';detail.textContent='打开普通网页，或展开「切换或选择网站」填写 HTTP(S) 地址。';
   }else if(!available){
-    heading.textContent='真实浏览器 Cookie 管理尚未就绪';
-    detail.textContent='当前版本不能读取或修改 Chrome Cookie。你仍可使用「离线工作区」编辑和导入文件，但不会影响网页。';
+    heading.textContent='无法连接 Chrome Cookie 服务';
+    detail.textContent='请确认安装了最新 Cookie Editor 并已启用正式 Browser SDK；不会显示模拟 Cookie 数据。';
   }else if(liveState==='ready'){
     heading.textContent='已读取 Cookie';
     detail.textContent='已授权浏览器数据，敏感值默认隐藏。';
@@ -119,7 +119,6 @@ function renderBrowser(){
   E('target-help').textContent=targetOverride?
     '已选择指定网址；读取仍需该网站授权，不要求与当前活动标签页相同。':
     '正在使用当前网页地址。选择网站不等于授权读取 Cookie。';
-  E('read-live').disabled=busy||!available||targetPending;
   E('live-new').disabled=busy||!hasRead||targetPending;
   for(const id of ['live-import','live-export','live-clear'])
     E(id).disabled=busy||!hasRead||targetPending;
@@ -225,8 +224,6 @@ function render(){
   }
   for(const id of ['add','import-toggle','copy','download'])E(id).disabled=busy||!data;
   E('clear').disabled=busy||!data?.cookies.length;
-  E('sample').hidden=!data||data.cookies.length>0;
-  E('sample').disabled=busy;
 }
 function openEditor(row=null){
   if(!data||mode==='browser'&&(liveState!=='ready'||!liveTarget||targetPending))return;
@@ -338,15 +335,16 @@ async function refresh(){
     }
     if(id!==epoch)return;
     liveTarget=target;
-    const host=target?.hostname||'example.test';
-    data={hostname:host,origin:target?.origin||'',url:target?.url||'',
-      cookies:prior?.hostname===host?prior.cookies:[]};
+    const host=target?.hostname||'';
+    data=target?{hostname:host,origin:target.origin,url:target.url,
+      cookies:prior?.hostname===host?prior.cookies:[]}:null;
     E('site-host').textContent=target?.hostname||'尚未选择网站';
     E('site-url').textContent=target?.url||'';E('site-url').hidden=!target;
     E('target-url').value=target?.url||'';targetPending=false;
-    E('preview-banner').textContent='离线工作区 · '+(target?
-      '仅用 '+host+' 作为临时数据校验范围，不读取或修改浏览器 Cookie。':
-      '没有可用网页，只能在离线文件工具中准备数据。')+' 关闭工具后数据不保留。';
+    E('preview-banner').textContent='离线文件工具 · '+(target?
+      '本地数据以 '+host+' 为校验范围，不读取或修改 Chrome Cookie。':
+      '请先展开「切换或选择网站」并选择 HTTP(S) 地址，才能准备离线数据。')+
+      ' 关闭工具后临时数据不保留。';
     status(mode==='offline'?'正在使用离线工作区；所有修改仅保存在临时内存。':'');
   }catch(error){if(id===epoch){liveState='error';liveMessage=String(error.message||error);status(liveMessage,'error');}}
   finally{if(id===epoch){
@@ -843,13 +841,13 @@ E('target-url').addEventListener('input',()=>{
 E('apply-target').addEventListener('click',()=>guarded(()=>{
   try{
     const target=parseTarget(E('target-url').value);
-    scrubEditors();targetOverride=target.url;targetPending=false;E('target-url').value=target.url;data=null;void refresh();
+    scrubEditors();targetOverride=target.url;targetPending=false;E('target-url').value=target.url;
+    E('target-selector').open=false;data=null;void refresh();
   }catch(error){status('选择网站失败：'+String(error.message||error),'error');}
 }));
 E('use-current').addEventListener('click',()=>guarded(()=>{
-  scrubEditors();targetOverride='';targetPending=false;data=null;void refresh();
+  scrubEditors();targetOverride='';targetPending=false;E('target-selector').open=false;data=null;void refresh();
 }));
-E('read-live').addEventListener('click',()=>{void readBrowserMetadata();});
 E('live-new').addEventListener('click',()=>guarded(()=>openEditor()));
 E('live-clear').addEventListener('click',()=>{void clearBrowserSite();});
 E('live-export').addEventListener('click',()=>{void exportBrowserCookies();});
@@ -933,17 +931,6 @@ E('import-file').addEventListener('change',async()=>{
   catch(error){status('读取文件失败：'+String(error.message||error),'error');}
 });
 E('import-apply').addEventListener('click',prepareImport);
-E('sample').addEventListener('click',()=>{
-  if(!data||busy||data.cookies.length)return;
-  try{
-    const rows=[
-      normalizeCookie({name:'opendesk_demo',value:'local-preview-only',domain:data.hostname,path:'/',session:true}),
-      normalizeCookie({name:'theme',value:'light',domain:data.hostname,path:'/',secure:false,sameSite:'lax',session:true})
-    ];
-    data={...data,cookies:sortCookies(rows)};render();
-    status('已添加两条虚构示例 Cookie；未读取、未修改真实网页。','success');
-  }catch(error){status('无法生成示例：'+String(error.message||error),'error');}
-});
 root.addEventListener('keydown',event=>{
   if((event.metaKey||event.ctrlKey)&&event.key.toLowerCase()==='s'&&!editor.hidden){
     event.preventDefault();E('editor-form').requestSubmit();return;
