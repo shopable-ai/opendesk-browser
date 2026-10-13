@@ -12,7 +12,9 @@ if(command==='provider'){
     throw Error('HTTPS gateway needs --public-port, --tls-key and --tls-cert together');
   const publicTls=tlsPort?{port:Number(tlsPort),keyFile:tlsKey,certFile:tlsCert,
     host:option('public-host','127.0.0.1')}:null;
-  const provider=await openProvider({directory,port,publicTls});
+  const packageFile=option('task-package');
+  const taskPackages=packageFile?[JSON.parse(await readFile(resolve(packageFile),'utf8'))]:[];
+  const provider=await openProvider({directory,port,publicTls,taskPackages});
   console.log(JSON.stringify({providerId:provider.providerId,
     localAdminUrl:`http://127.0.0.1:${provider.port}`,
     httpsPort:provider.publicPort,httpsHost:publicTls?.host??null,
@@ -43,6 +45,10 @@ if(command==='provider'){
 }else{
   const credentials=JSON.parse(await readFile(resolve(directory,'admin.json'),'utf8'));let path,body;
   if(command==='seed:form'){path='seed';body={requestKey:option('key',randomUUID()),targetExecutorId:option('executor',''),params:{name:option('name','Alice')},target:{mode:'owned',url:'http://127.0.0.1:43111/demo-form.html'}};}
+  else if(command==='seed:task'){
+    const paramsFile=option('params-file');if(!paramsFile||!option('task-id')||!option('version'))throw Error('seed:task requires --task-id, --version and --params-file');
+    path='seed';body={requestKey:option('key',randomUUID()),task:{taskId:option('task-id'),version:option('version')},params:JSON.parse(await readFile(resolve(paramsFile),'utf8')),target:{mode:'owned',url:'http://127.0.0.1:43111/demo-form.html'},...(option('executor','')?{targetExecutorId:option('executor')}: {})};
+  }
   else if(command==='register'){
     const file=option('package',null);if(!file)throw Error('register requires --package path/to/verified.opendesk-task.json');
     const pkg=await verifyTaskPackage(JSON.parse(await readFile(resolve(file),'utf8')));

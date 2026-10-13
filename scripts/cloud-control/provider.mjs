@@ -16,7 +16,10 @@ const nonempty=v=>typeof v==='string'&&v.trim().length>0;
 const secureEqual=(a,b)=>typeof a==='string'&&typeof b==='string'&&Buffer.byteLength(a)===Buffer.byteLength(b)&&timingSafeEqual(Buffer.from(a),Buffer.from(b));
 const runRefKeys=['runId','resultId','requestId','sourceHash','manifestHash','grantId'];
 const bindingKeys=['providerId','executorId','pairingId','pairingGeneration','attemptEpoch','claimId','jobId','assignmentId'];
-export async function openProvider({directory='.local/cloud-control',port=43112,clock=()=>Date.now(),publicTls=null}={}) {
+export async function openProvider({directory='.local/cloud-control',port=43112,clock=()=>Date.now(),publicTls=null,taskPackages=[]}={}) {
+  if(!Array.isArray(taskPackages))fail('E_SCHEMA');
+  const additionalTasks=[];const packageKeys=new Set([taskRegistryKey(builtinTask)]);
+  for(const value of taskPackages){const task=await registeredPackage(value),key=taskRegistryKey(task);if(packageKeys.has(key))fail('E_TASK');packageKeys.add(key);additionalTasks.push(task);}
   if(publicTls!==null){
     exact(publicTls,['keyFile','certFile','host','port']);
     if(typeof publicTls.keyFile!=='string'||!publicTls.keyFile||
@@ -54,6 +57,7 @@ export async function openProvider({directory='.local/cloud-control',port=43112,
   if(state.taskRegistry[builtinKey]&&canonical(state.taskRegistry[builtinKey])!==canonical(builtinTask))
     fail('E_TASK_CONFLICT','Built-in task identity changed');
   state.taskRegistry[builtinKey]=builtinTask;
+  for(const task of additionalTasks){const key=taskRegistryKey(task);if(state.taskRegistry[key]&&canonical(state.taskRegistry[key])!==canonical(task))fail('E_TASK_CONFLICT');state.taskRegistry[key]=task;}
   try{credentials=JSON.parse(await readFile(credentialFile,'utf8'));}catch(e){if(e.code!=='ENOENT')throw e;credentials={adminToken:token(),pairingCode:token()};await writeFile(credentialFile,JSON.stringify(credentials),{mode:0o600});}
   let tail=Promise.resolve();
   async function save(){const h=await open(file+'.tmp','w',0o600);try{await h.writeFile(JSON.stringify(state,null,2));await h.sync();}finally{await h.close();}await rename(file+'.tmp',file);}
@@ -318,6 +322,8 @@ function currentPermit(j){if(!j.permit||!nonempty(j.permit.permitId))fail('E_LEA
             exact(b,[]);out={tasks:Object.values(state.taskRegistry).map(task=>({...taskPin(task),
               title:task.manifest.title,siteOrigins:task.manifest.siteOrigins}))};break;}
           case '/admin/seed':{
+            if(Object.hasOwn(b,'task')){exact(b,['requestKey','params','target','task'],['targetExecutorId']);exact(b.task,['taskId','version']);const task=state.taskRegistry[b.task.taskId+'@'+b.task.version];if(!task)fail('E_TASK');Object.assign(b,taskPin(task));delete b.task;if(!b.targetExecutorId){const eligible=Object.entries(state.executors).filter(([,row])=>!row.revokedAt&&!row.revocation);if(eligible.length!==1)fail('E_EXECUTOR_TARGET');b.targetExecutorId=eligible[0][0];}}
+
             // Old seed/form requests retain their original requestKey/digest so pre-R5 provider restarts remain strictly idempotent.
             const legacy=!Object.hasOwn(b,'taskId');
             exact(b,legacy?['requestKey','params','target']:['requestKey','taskId','version','manifestHash','sourceHash','params','target','targetExecutorId'],legacy?['targetExecutorId']:[]);
