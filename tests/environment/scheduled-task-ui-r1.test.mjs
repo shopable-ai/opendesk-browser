@@ -4,6 +4,7 @@ import {readFile} from 'node:fs/promises';
 import {canonicalToolHostUrl} from '../../src/ui/sidebar-tools/navigation.js';
 import {toolDocumentIdentity} from '../../src/tool-document-url.js';
 import {isToolSender} from '../../src/environment.js';
+import {mergeScheduleHistoryView} from '../../src/ui/scheduled-task-workbench.js';
 
 const load=path=>readFile(path,'utf8');
 const extension='chrome-extension://abcdefghijklmnopabcdefghijklmnop/';
@@ -112,7 +113,9 @@ test('R2 standalone running tab shows a focused operational dashboard and retain
   assert.match(shell,/scheduleUI\.open\('runner'\)/);
   assert.match(shell,/onStatus:scheduleStatus/);
   assert.match(ui,/const views=\{runner:get\('schedule-runner-view'\)/);
-  assert.match(ui,/renderPlans\(\);renderManager\(\);renderRunner\(\)/);
+  assert.match(ui,/if\(plansChanged\)\{renderPlans\(\);planListSignature=plansSignature;\}/);
+  assert.match(ui,/if\(tasksChanged\|\|plansChanged\)renderManager\(\)/);
+  assert.match(ui,/renderRunner\(\)/);
   assert.match(ui,/runnerFocusId/);
   assert.match(css,/schedule-runner-metrics\{display:grid/);
   assert.match(css,/:root\[data-opendesk-surface="scheduled-runner"\] #workspace-dock\{display:none!important\}/);
@@ -340,4 +343,41 @@ test('R2.7 runner presents focus before compact summary and defers details',asyn
   assert.match(native,/await click\(client,session,'#schedule-timezone-edit'\)/);
   assert.match(native,/await click\(client,session,'#schedule-timezone-done'\)/);
   assert.match(native,/chrome\.tabs\.setZoom/,'real zoom is not viewport emulation');
+});
+
+test('R2.8 host polling preserves paginated FireId history while a newer result arrives',()=>{
+  const stored=Array.from({length:40},(_,index)=>({
+    fireId:'fire-'+(40-index),scheduledAt:400000-index*1000,
+    status:'WAITING_HOST',runId:null,resultId:null
+  }));
+  const latest=[
+    {fireId:'fire-41',scheduledAt:401000,status:'RUNNING',runId:'run-41'},
+    {...stored[0],status:'SUCCESS',runId:'run-40',resultId:'result-40'},
+    ...stored.slice(1,19)
+  ];
+  const merged=mergeScheduleHistoryView(latest,stored);
+  assert.equal(merged.length,41,'new poll cannot truncate previously loaded history pages');
+  assert.equal(merged[0].fireId,'fire-41','newest Fire remains first');
+  assert.equal(merged.find(row=>row.fireId==='fire-40').status,'SUCCESS',
+    'newly confirmed status wins over cached stale history');
+  assert.equal(merged.find(row=>row.fireId==='fire-40').resultId,'result-40',
+    'original Run/Result identity survives a refresh');
+  assert.equal(merged.at(-1).fireId,'fire-1');
+  assert.equal(new Set(merged.map(row=>row.fireId)).size,merged.length);
+  assert.deepEqual(mergeScheduleHistoryView([],[]),[]);
+});
+
+test('R2.8 true host refresh retains keyboard focus, open details and inline confirmation',async()=>{
+  const source=await load('src/ui/scheduled-task-workbench.js');
+  assert.match(source,/const tasksChanged=tasksSignature!==taskListSignature/);
+  assert.match(source,/const plansChanged=plansSignature!==planListSignature/);
+  assert.match(source,/if\(tasksChanged\)\{taskListSignature=tasksSignature;populateChoices\(\);\}/);
+  assert.match(source,/if\(plansChanged\)\{renderPlans\(\);planListSignature=plansSignature;\}/);
+  assert.match(source,/if\(tasksChanged\|\|plansChanged\)renderManager\(\)/);
+  assert.match(source,/view\.open=Boolean\(card\.querySelector\('\.schedule-history'\)\?\.open\)/);
+  assert.match(source,/view\.moreOpen=Boolean\(card\.querySelector\('\.schedule-more'\)\?\.open\)/);
+  assert.match(source,/view\.deleteReview=Boolean\(card\.querySelector\('\.schedule-delete-confirm'\)\)/);
+  assert.match(source,/restored\?\.querySelector\(focusedSelector\)\?\.focus\(\)/);
+  assert.match(source,/scheduleId:plan\.scheduleId,offset:view\.records\.length,limit:20/);
+  assert.doesNotMatch(source,/chrome\.alarms\.create|new Worker\(/);
 });
