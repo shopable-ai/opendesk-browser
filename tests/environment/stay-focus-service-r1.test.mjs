@@ -118,6 +118,19 @@ test('DNR write failures reject mutations instead of reporting a false active bl
   await assert.rejects(f.focus.dispatch(await f.msg('focus.enable'),f.sender),/native write failed/);
   assert.equal(f.rules.length,0);
 });
+test('corrupt policy fails safe without erasing records or foreign DNR restrictions',async()=>{
+  const f=fixture();
+  await f.focus.dispatch(await f.msg('focus.site.put',{site:mkSite('example.com','always')}),f.sender);
+  await f.focus.dispatch(await f.msg('focus.enable'),f.sender);
+  assert.equal(f.rules.length,1);
+  const damaged={version:1,invalid:'do-not-overwrite'};
+  f.stored.set(FOCUS_STORE,damaged);
+  const foreign={id:25,priority:1,action:{type:'block'},condition:{urlFilter:'foreign'}};
+  f.rules.push(foreign);
+  await assert.rejects(f.focus.tick(),e=>e.code==='E_FOCUS_DATA');
+  assert.deepEqual(f.stored.get(FOCUS_STORE),damaged,'corrupt local data must not be overwritten');
+  assert.deepEqual(f.rules,[foreign],'corrupt focus policy cannot leave any owned DNR rule installed');
+});
 test('Time Review presence or independent storage does not change Stay Focus authorization',async()=>{
   const f=fixture();
   f.stored.set('opendesk.time-review.v1',{days:{'2026-10-13':{'example.com':300000}}});
