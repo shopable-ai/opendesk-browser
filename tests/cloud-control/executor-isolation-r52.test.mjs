@@ -93,6 +93,9 @@ test('same installed Task in two Executors cannot cross-claim, admit, receipt or
       requestKey:'stale-before-rotation'},admin.adminToken);
     const nextGrant=randomUUID();
     await post('/v1/capabilities',{grantId:nextGrant,tasks:advertised},credentials[0]);
+    await assert.rejects(post('/v1/capabilities',{grantId:grants[0],
+      tasks:advertised},credentials[0]),{code:'E_GRANT_STALE'},
+      'An old delayed connection must never resurrect a superseded authorization');
     assert.equal((await post('/admin/state',{},admin.adminToken))
       .jobs[stale.jobId].cancelled,true,'Old queued Job must be quarantined on new approval');
     await assert.rejects(post('/v1/claim',{claimId:'wrong-approval',
