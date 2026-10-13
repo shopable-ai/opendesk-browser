@@ -298,6 +298,7 @@ test('quick website recommendations use existing trusted save and never auto-ins
       return dom.get(selector);
     },querySelectorAll:()=>[]};
     const empty={enabled:false,day:'2026-10-13',permissions:{ready:false},sites:[],
+      catalog:FOCUS_CATALOG,dailyBudget:{minutes:30,budgetMs:1800000,usedMs:0,remainingMs:1800000,managedCount:0},
       groups:{},schedule:{enabled:false,days:[],startMinute:540,endMinute:1020},
       focusUntil:null,ruleReceipt:{verified:false}};
     let state=empty;
@@ -322,13 +323,13 @@ test('quick website recommendations use existing trusted save and never auto-ins
     title:'Python tutorials on YouTube'});
   await new Promise(resolve=>setImmediate(resolve));
   assert.match(youtube.get('quick-site').textContent,/youtube.com/);
-  assert.match(youtube.get('quick-explanation').textContent,/15 分钟/);
+  assert.match(youtube.get('quick-explanation').textContent,/共享 30 分钟/);
   assert.equal(youtube.writes.length,0,'recognition must not silently apply DNR limits');
   youtube.get('quick-add').handlers.click();
   await new Promise(resolve=>setImmediate(resolve));
   assert.deepEqual(JSON.parse(JSON.stringify(youtube.writes)),[{
-    host:'youtube.com',subdomains:true,enabled:true,mode:'limit',minutes:15,group:''
-  }],'one click must request only the existing focus.site.put Host operation');
+    host:'youtube.com',subdomains:true,enabled:true,mode:'limit',minutes:30,group:'entertainment'
+  }],'one click must request the existing Host operation for the ONE shared pool');
   const forged=mount({status:'available',url:'https://youtube.com.attacker.test/',
     title:'Video portal featuring YouTube'});
   await new Promise(resolve=>setImmediate(resolve));
@@ -436,4 +437,15 @@ test('R1.4 isolated page notice accepts fixed messages only, never duplicates or
   stop();
   assert.equal(root.children.length,0);
   assert.equal(removed,true,'listener retired on content-script cleanup');
+});
+
+test('R1.4 official budget UI has no required single-site setup wizard',()=>{
+  const html=readFileSync(new URL('../../examples/sidebar-tools/stay-focus/src/index.html',import.meta.url),'utf8');
+  for(const id of ['budget-total','total-used','total-remaining','native-state',
+    'daily-budget-form','focus-pause','sites','manual-site','advanced'])
+    assert.match(html,new RegExp('id="'+id+'"'),'missing the first screen contract: '+id);
+  const manual=html.indexOf('<details class="sf-settings sf-manual"');
+  const current=html.indexOf('id="total-used"');
+  assert.ok(manual>current,'advanced manual setup cannot precede the daily total');
+  assert.match(html,/<option value="entertainment">娱乐总额度/);
 });
