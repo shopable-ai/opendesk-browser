@@ -65,7 +65,7 @@ test('same installed Task in two Executors cannot cross-claim, admit, receipt or
     assert.equal(pickedB.executorId,ids[1]);
     const ref={runId:randomUUID(),resultId:randomUUID(),
       requestId:'cloud:'+pickedA.assignmentId,sourceHash:pin.sourceHash,
-      manifestHash:pin.manifestHash,grantId:randomUUID()};
+      manifestHash:pin.manifestHash,grantId:grants[0]};
     const admission={assignmentId:pickedA.assignmentId,runRef:ref,resultAllowed:false};
     await assert.rejects(post('/v1/admission',admission,credentials[1]),{code:'E_ASSIGNMENT'});
     await post('/v1/admission',admission,credentials[0]);
