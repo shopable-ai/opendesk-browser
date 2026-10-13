@@ -1,4 +1,111 @@
-# OpenDesk Browser · AI 优先的“第一小山头”决策（当前主入口）
+# OpenDesk Browser Global First R4：AI 优先竞争决策与真实证据
+
+> 2026-10-13。当前获批全球/区域/特定任务第一：**0 项**；可证明全球第二至第五名：0。战略 TOP 5 不是实测世界排名，独立专家质量评分 NOT_SCORED。仅基于 GitHub 远端代码及外部公开来源，当前用户 Mac git status、Chrome Profile、Native、正式发行包尚未现场验收。
+
+## A：可以证明什么第一？
+
+GF-013“首个 AI/MCP 用户脚本管理器”被 ScriptCat 2026-08-06 Beta、Violentmonkey 2026-10-10 Beta 反驳；GF-014“首个多文件 React/Vue 脚本工具”被 vite-plugin-monkey + 现有脚本管理器组合反驳。两项正式账本仍维持 DISPROVED，不能换词恢复。Axiom Claude Skill 可生成可导入 Chrome 的机器人；UiPath Delegate 于 2026-08-25 公开预览可复用、调度的 Routines，带批准治理。因而“AI + 审批 + 可重复”本身也不能称世界首创。
+
+## B：TOP 5 战略优先级，而非市场排名
+
+| 优先级 | 真实用户需求 | 最强替代方案 | 最小差距 |
+| --- | --- | --- | --- |
+| **1 GF-007** | AI 创造、审批、固定版安装、断开 AI 后多次运行 | Axiom Claude Skill；UiPath Delegate Public Preview；ScriptCat Agent | 真实 Mac Chrome 同源同包 AI→Verified→Available→Installed→断开模型 Run 两次；完整成本 |
+| **2 GF-004** | 版本/依赖/网站授权可审阅，运行有原始回执 | ScriptCat 1.5 Beta 的权限审查；企业 RPA | 同哈希真机撤权、升级/回退、Stop/未知效果；独立比较 |
+| **3 GF-003** | AI 制作 JS、Page UI、Controller 三类可重用工具 | AI 编程 + WXT/Tampermonkey；Automa | 三类独立原生安装及统一工具列表、停止/升级验证 |
+| **4 GF-002/GF-011** | AI 多文件更新到可用工具与20次复用综合成本 | vite-plugin-monkey + ScriptCat/Tampermonkey；WXT/Plasmo | 同机 5次冷/10次热/3次恢复，计初始 Node/Native/模型费用 |
+| **5 GF-009** | 卖家商品检查、合法结算核对的重复工作流 | 卖家 ERP；Shopify 原生报表；A2X/Excel | 真实客户、当地发行、许可、误报漏报及复用；EXP-005 仅 Listing QA |
+
+**结论**：GF-007 对用户最有购买理由；GF-004 是其信任与安装验收基础。现有源码最接近可验收的是哈希、权限、Run/Result 技术切片；任何完整 AI→Installed→独立重复链尚未以同一当前 Chrome 包证明。GF-003 产品形态、GF-002/GF-011 真实成本、GF-009 行业成交应服从前两项闭环。技术开发快不等于已经第一。
+
+TOP 10 战略候选顺序：GF-007 → GF-004 → GF-003 → GF-002 → GF-011 → GF-009 → GF-005 → GF-006 → GF-010 → GF-001。GF-001 手写 React/Vue 只保留工程专项；GF-012“全球最安全最可靠”淘汰为未证实的绝对宣传；单独 Cron/AI MCP/多文件世界首创方向淘汰。证伪的是宣传主张，不是删除有用的现有源码。
+
+## C：至少20个真正能解释的双/三因素机会
+
+这些是以合法实际用户任务为中心的 **26 个候选**，不等于已完成产品或真实客户订单。每个方向需要重复使用频率、人工时间、模型成本及合法站点样本去验证；最佳现有竞品可以组合使用。
+
+| 机会 | 谁会使用 | 为哪件重复事情省返工 | 有价值的双/三因素 | 最大反例 |
+| --- | --- | --- | --- | --- |
+| O01 | 卖家 | 上架前字段核查 | AI 规则+Page QA+版本复用 | ERP/平台自检 |
+| O02 | 卖家财务 | 官方 CSV 结算差异检查 | 本地规则+可追溯报告+跨期重复 | Shopify/A2X/Excel |
+| O03 | SKU 运营 | 成本、运费和 SKU 可视核对 | AI UI+参数+固定计算 | ERP/表格 |
+| O04 | 客服 | 重复合法工单填写 | AI 方案+动作审批+安装 Task | Zendesk/Axiom |
+| O05 | 财务 | 发票必填项核对 | 字段规则+Chrome 页面+人工复核 | 财务 SaaS |
+| O06 | 业务运营 | 每周后台指标审核 | 有权站点+定时+历史结果 | 平台报表/Bardeen |
+| O07 | CRM | 跟进表单校验 | 参数模板+审批+无重复提交 | CRM 自动化 |
+| O08 | 招聘 | 本人 ATS 页面字段校验 | 页面组件+隐私授权+长期复用 | ATS 内建规则 |
+| O09 | 测试人员 | 网页表单回归 | AI 写计划+冻结 JS+回执 | Playwright/Midscene |
+| O10 | 无障碍测试 | 自有站点标签缺项 | 规则脚本+可视标记+Stop | axe/Lighthouse |
+| O11 | 内容编辑 | CMS 标题质量检查 | AI UI+本地规则+固定安装 | CMS 插件 |
+| O12 | 采购 | 单位和币种字段校验 | 参数化 JS+用户审核+结果明细 | ERP/Excel |
+| O13 | 区域卖家 | 中文解释有权限的后台字段 | 本地化+脚本+业务规则 | HARPA 多语/本地 ERP |
+| O14 | 后台用户 | 让 AI 创造一次以后自己运行 | 模型提议+批准+固定 Task | Axiom/UiPath Delegate |
+| O15 | 隐私用户 | 后续不再向模型发送网页上下文 | 一次 AI+本地执行+最小权限 | Automa/本地 RPA |
+| O16 | 脚本安装者 | 安装前了解变更和风险 | 依赖哈希+权限差异+人工批准 | ScriptCat Beta |
+| O17 | 长期工具用户 | 升级及撤销旧工具 | 不可变版本+升级门控+历史回执 | 传统管理器 |
+| O18 | 计划任务用户 | 重复的授权网站检查 | Installed Task+FireId+异常恢复 | UiPath Routine/ScriptCat |
+| O19 | 团队管理员 | 只允许特定已装任务云控 | 版本绑定+明确回传许可+运行证据 | Axiom Cloud |
+| O20 | 网页使用者 | 为自己网站添加 UI 卡片 | AI 组件+USER_SCRIPT+受管 Stop | AI Coding+WXT |
+| O21 | 多类工具用户 | 统一安装 JS/组件/Controller | AI 创作+多执行世界+统一目录 | ScriptCat+Automa |
+| O22 | AI 编程者 | 修改多文件后无需重建扩展 | AI 改动+受控准备+显式 Run | Vite+脚本管理器 |
+| O23 | 脚本开发者 | 多程序复用合法第三方库 | HTTPS 审核+SHA 缓存+单程序许可 | npm/@require |
+| O24 | 维护人员 | 真实失败能追踪代码与网页 | ResultId+sourceHash+Stop 状态 | Playwright Trace |
+| O25 | 旧脚本用户 | 将 GM 脚本受控迁移 | 兼容矩阵+授权+统一 SDK | Tampermonkey |
+| O26 | 首次用户 | AI 结果到安装减少人工步骤 | 审核+Verified/Available/Install+复用 | Axiom Extension/ScriptCat |
+
+## D：世界第一、区域第一、具体任务第一及真实第2-5怎样才成立
+
+- 世界首个：查同等任务最早公开可用版本，包括 Stable、Beta、区域商店、脚本管理器 + AI Coding/构建工具组合。GitHub push 不当成 release；缺历史特征日期为 UNKNOWN，不能因为“未发现”就称首创。
+- 国家/语言第1：必须确实在区域发行、有人在用，并检查当地平台和至少合理代表性竞争产品及组合。HARPA 已公开包含简体中文、繁体中文、日文等语言；不能靠语言标签做虚假小市场。
+- 任务第1：预登记同一 Chrome/样本/合法账号/输入/验收标准，对手用它最自然的工作流；未实测的竞品记录 NOT_TESTED 而不是 FAIL。
+- 效率第1：首次 AI 模型费、初次安装配置、权限审阅、第2至20次运行、失败修复、维护成本全部入账。真实成功率、冷/热时延及人工操作数分开列。
+- 第2至第5：只有已经对 N 个真实方案用同一数据测完，才可写“在某日指定的 N 个参赛方案中第 X”；不得把局部样本外推全球 Top 5。今天所有名次 NOT_TESTED，产品价值/竞争证据/技术/营销合规/可读性各项 NOT_SCORED。
+
+## E：源码复用与最近的可执行验证
+
+已经核查到 src/ui/workflow/workflow-view.js 存在真实 AI 提议、人工审阅、编译固定 JS、保存 Revision、原 RunHost 与持久结果、导入 Task Candidate 的路径；src/ui/local-project-install.js 和现有 Task 目录有 verifyTaskCandidate、makeTaskAvailable、installTask。来源哈希/权限/依赖复用原 installed-programs、dependency-manager、Authority；不允许建立第二 Task DB、Host、SDK 或 Runner。
+
+**唯一优先 Demo**：复用 examples/tasks/demo-form.html 和 agent-modern-search.v1.opendesk-task.json 的 CANDIDATE（文件声明 sourceHash=1618934805a4104191be8e2005a608d0537a51ca65c1e291c8a8fb042ed34b2d，manifestHash=a40fe6471506743a785ab32fd85a48f3991a641fb3c28741735c20e799d13812）。其身份不是当前 Chrome 运行回执。
+
+1. 由真实模型在合法演示网页提出任务 → 审阅网站、参数、具体页面动作、源码、权限。
+2. 保存同一源字节并明确 Run；实际 Chrome 用户操作记录 documentId、真实 runId/resultId、Result revision.sourceHash、网页效果、retirement released。
+3. 同一源码版本经原 Candidate→Verified→Available→Installed，记录 installationId/generation/manifestHash。关闭模型/开发 Provider 后从“我的任务”**至少两次独立运行**并核实不发生模型调用；加 Stop、撤权、升级/浏览器重启。
+4. 与 Axiom + Claude、UiPath Delegate、ScriptCat Beta、Automa、Vite+Tampermonkey 同任务对照，保存 5 冷/10 热/3 恢复和 20 次总费用及失败样本。发生未知副作用不得自动重试；Stop 不回滚已产生的网页业务动作。
+
+当前代码/协议并不等于 Chrome 原生通过。**本轮未访问用户 Mac、Chrome/Native/受控端口，因此 AI→Installed→重复真机与竞争实测均 NOT_TESTED；LOCAL_NOT_INSPECTED。** 已有旧候选 Mac Chrome PASS 只对原候选有效；Node Mock 不等于真 Worker RunId/ResultId。共享 SDK、Native、Cloud、依赖、Task 等应交由原专职 Agent，避免并行冲突。
+
+## F：为什么用户装，为什么 SEO/AI 才有理由推荐？
+
+**中文 M0 产品方向**：让 AI 协助创造浏览器工具，用户审核源码、网站权限和固定版本，再于适用场景独立重复使用。  
+**English M0 positioning**: Create browser tools with AI assistance; review source, site permissions and version before reusing supported workflows.
+
+五条可理解的购买理由：一次 AI 制作、以后独立重复；安装前看清权限/来源；统一交付页面工具与任务；首次和第20次真实总成本；合法的卖家检查。绝不将“能手写 JSX/功能 API 多”当首页卖点。
+
+有用的事实页必须包含：用户实际问题、真实安装/审批步骤、适用站点与模型/Native 条件、可下载固定版本、可复现视频、最强竞品、原始计时与失败、发布日期/范围、明确不适用情况。Google 官方指出 AI Overviews/AI Mode 使用常规 SEO、无需专属 AI 文件或 Schema；Bing Webmaster Tools 的 AI Performance 可观察部分引用。**本轮网站 canonical/sitemap/Search Console/Bing AI 引用/下载转化均 NOT_TESTED，GitHub MD 不等于官网已上线。**
+
+建议首批 24 条预注册查询包含：AI 生成可安装浏览器工具、AI browser automation reusable without AI、ScriptCat alternatives、browser task without LLM on rerun、安全用户脚本安装、AI browser tool version permissions、seller Listing QA、Shopify payout exception audit、AI 编辑多文件脚本、local browser automation、scheduled installed browser task；分别中英文/区域/日期/真实模型及搜索引擎原始回答保存。对外 M0 可用方向表述；M1 需同版功能验证；M2 需公平名次样本；M3 需唯一 GF 账本 CLAIM_APPROVED。禁止“世界第一”“全球最快”“最安全”“Top 5”和保证 AI 推荐。
+
+## G：核实的部分渠道与最强历史反例
+
+| 对手 | 公开记录日期 | 证据级别 | 来源 |
+| --- | --- | --- | --- |
+| ScriptCat Beta.1 | 2026-08-06 | MCP 外部访问与分级人工确认 | [官方发布或商店](https://github.com/scriptscat/scriptcat/releases/tag/v1.5.0-beta.1) |
+| ScriptCat Beta.4 | 2026-09-18 | 安装页面的 GM/权限差异提示 | [官方发布或商店](https://github.com/scriptscat/scriptcat/releases/tag/v1.5.0-beta.4) |
+| Violentmonkey Beta 2.49.5 | 2026-10-10 | MCP AI Agent | [官方发布或商店](https://github.com/violentmonkey/violentmonkey/releases/tag/v2.49.5) |
+| UiPath Delegate Public Preview | 2026-08-25 | 可复用/调度 Routines，权限审批 | [官方发布或商店](https://docs.uipath.com/delegate/standalone/latest/release-notes/august-2026) |
+| Axiom Claude Skill | UNKNOWN | AI 建机器人、Chrome 扩展导入、重复运行 | [官方发布或商店](https://axiom.ai/build-with-no-code/claude/) |
+| Nanobrowser 0.2.0 | 2026-10-02 | GitHub release | [官方发布或商店](https://github.com/nanobrowser/nanobrowser/releases/tag/v0.2.0) |
+| Midscene 1.15.2 | 2026-10-12 | GitHub release | [官方发布或商店](https://github.com/web-infra-dev/midscene/releases/tag/v1.15.2) |
+| Skyvern 1.0.55 | 2026-10-01 | GitHub release | [官方发布或商店](https://github.com/Skyvern-AI/skyvern/releases/tag/v1.0.55) |
+| Bardeen Store 5.0.0 | 2026-06-19 | 商店更新，非功能首发 | [官方发布或商店](https://chromewebstore.google.com/detail/bardeen-automate-browser/ihhkmalpkhkoedlmcnilbbhhbhnicjga) |
+| HARPA Store 14.4.0 | 2026-06-29 | 商店更新，含中文/日语 | [官方发布或商店](https://chromewebstore.google.com/detail/harpa-ai-web-automation-w/eanggfilgoajaocelnaflolkadkeghjp) |
+
+以上仍不足以倒查全世界历史首次出现。保留既有唯一 [竞品时间线](competitor-timeline.json)、[GF 声明账本](first-claims-ledger.json)、[营销手册](marketing-playbook.zh-CN.md) 和 [工作流](../../framework/workstreams/global-first-r2-20261013.md)。实际可上架发行、首个功能的最早公开时间、独立质量 95 评审尚缺证据。
+
+---
+
+## 原 R4 研究草案（历史留档，旧营销优先级已被上文修正）
+
 
 > 2026-10-13 · Global First R4。本文替代此前“F01 人工编写 React/Vue 最优先”的**营销方向**，保留原技术与历史原生测试。**现在通过证据批准的全球/区域/行业绝对第一称号：0。**
 
