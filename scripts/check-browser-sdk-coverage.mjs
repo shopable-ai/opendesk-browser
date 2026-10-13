@@ -89,7 +89,18 @@ export async function checkBrowserSdk({root=ROOT}={}){
   ()=>sdk.events.close({sessionRef:'r'.repeat(32)}),
   ()=>sdk.operations.getStatus({operationId:'r'.repeat(32)}),
   ()=>sdk.operations.cancel({operationId:'r'.repeat(32)}),
-  ()=>sdk.screenshot.captureVisible({tabRef:'r'.repeat(32)})
+  ()=>sdk.screenshot.captureVisible({tabRef:'r'.repeat(32)}),
+  ()=>sdk.cookies.get({url:'https://example.org/',name:'sid'}),
+  ()=>sdk.cookies.getAll({url:'https://example.org/'}),
+  ()=>sdk.cookies.set({url:'https://example.org/',name:'sid',value:'fixture',path:'/'}),
+  ()=>sdk.cookies.remove({url:'https://example.org/',name:'sid',domain:'example.org',path:'/'}),
+  ()=>sdk.cookies.clearSite({url:'https://example.org/',preview:true}),
+  ()=>sdk.cookies.getCurrentStore({url:'https://example.org/'}),
+  ()=>sdk.cookies.getPartitionKey({url:'https://example.org/'}),
+  ()=>sdk.cookies.observe.start({url:'https://example.org/'}),
+  ()=>sdk.cookies.observe.getStatus({url:'https://example.org/',sessionRef:'01234567-89ab-4def-8123-456789abcdef'}),
+  ()=>sdk.cookies.observe.read({url:'https://example.org/',sessionRef:'01234567-89ab-4def-8123-456789abcdef'}),
+  ()=>sdk.cookies.observe.stop({url:'https://example.org/',sessionRef:'01234567-89ab-4def-8123-456789abcdef'})
  ];
  for(const probe of probes)try{await probe()}catch(e){errors.push('wrapper probe: '+(e.code||e.message))}
  const evidence=[];

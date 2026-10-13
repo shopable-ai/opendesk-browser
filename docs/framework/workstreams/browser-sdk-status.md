@@ -1,3 +1,13 @@
+## R9 Cookies SDK × Cookie Editor R3 · 当前状态（2026-10-13）
+
+- 用户授权将 11 项 Cookie 功能从仅受信 Host 开放为 `OpenDeskSDK.browser.cookies.*`，正式 Registry **40 项**。两层安全边界仍保留：已安装工具的 `Browser SDK` 与可信 Host 内部一次性批准。
+- 逐工具独立站点授权绑定安装版本/包摘要/Install Epoch、Origin、唯一非无痕 Store 及 Partition。敏感值独立授权；写入、精确删除、清理和观察需要受信点击。
+- 正向执行路径复用既有 Browser Dispatcher、Cookie Host、`src/platform/chrome/cookies.js`。Controller 既有方法暂不改动。
+- **当前源码状态 SOURCE_WIRED；Node、Build、Verify、Mac Chrome 原生均 NOT_TESTED。** 此结论与下方历史 R5 通过记录不混同。
+- 旧受信 Cookie 管理 UI 继续保留，必须在新产品原生正反向及生命周期验收后迁移和移除重复入口；旧 `approve/execute` 目前只限受信 Host 内部。
+
+下方旧 R1–R8 接口数字是历史快照，不是当前公共 SDK 分母。
+
 ## R9 受控同源导航（2026-10-13）
 
 `browser.tabs.navigateOwned({tabRef,url})` 复用原 Trusted Host 和 `chrome.tabs.update({url})`，只有用户已批准且仍拥有的 TabRef + 同一 Origin 目标 URL 才能发起；其他站点必须独立授权或采用显式创建新标签。批准前核对站点、文档和安装身份；执行前撤销旧 TabRef。返回 `navigationRequested` 只表示原生导航请求获得确认，绝不冒充页面已加载完成。不确定效果不重试；Node 和 Mac Chrome 验收仍需本候选证据。
@@ -16,7 +26,7 @@
 
 ## R9 预发布接口清理（2026-10-13，现行合同）
 
-**当前正式注册表登记 29 项已有实际 SDK/Host 运行路径的接口；七项未实现 Media/Speech 和两项未开放 Notifications 占位已删除。** 旧 35 项只是历史快照，不再强制兼容。Cookie 可信 Host-only 实现与正式 SDK 接线继续独立统计；Cookie observe.read 目前不向普通安装工具开放。新代码候选的 Node / Build / Chrome 验收不得继承旧 R5 PASS。下方 R1–R8 记录属于**历史证据**，并非 R9 当前数量。
+**当前正式注册表登记 40 项（包含 11 项已安装工具 Cookies API）；七项未实现 Media/Speech 和两项未开放 Notifications 占位已删除。** 旧 35 项只是历史快照，不再强制兼容。Cookie 可信 Host-only 实现与正式 SDK 接线继续独立统计；Cookie observe.read 目前不向普通安装工具开放。新代码候选的 Node / Build / Chrome 验收不得继承旧 R5 PASS。下方 R1–R8 记录属于**历史证据**，并非 R9 当前数量。
 
 ## R5 已取得同候选 Node/Build 证据（2026-10-12）
 
@@ -183,6 +193,17 @@
 | `browser.screenshot.captureVisible` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
 | `browser.operations.getStatus` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
 | `browser.operations.cancel` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
+| `browser.cookies.get` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
+| `browser.cookies.getAll` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
+| `browser.cookies.set` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
+| `browser.cookies.remove` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
+| `browser.cookies.clearSite` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
+| `browser.cookies.getCurrentStore` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
+| `browser.cookies.getPartitionKey` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
+| `browser.cookies.observe.start` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
+| `browser.cookies.observe.getStatus` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
+| `browser.cookies.observe.read` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
+| `browser.cookies.observe.stop` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
 
 ## 阶段验收
 
