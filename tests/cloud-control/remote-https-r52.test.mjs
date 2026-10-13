@@ -125,7 +125,7 @@ test('one Provider serves authenticated HTTPS/WSS and target-scoped client submi
       grant.credential)).state,'assigned');
     const runRef={runId:randomUUID(),resultId:randomUUID(),
       requestId:'cloud:'+assignment.assignmentId,
-      sourceHash:pin.sourceHash,manifestHash:pin.manifestHash,grantId:randomUUID()};
+      sourceHash:pin.sourceHash,manifestHash:pin.manifestHash,grantId};
     await p('/v1/admission',{assignmentId:assignment.assignmentId,runRef,
       resultAllowed:false},executor.credential);
     assert.equal((await p('/v1/job-status',{jobId:created.jobId},
@@ -147,7 +147,7 @@ test('one Provider serves authenticated HTTPS/WSS and target-scoped client submi
     assert.equal(contentAssignment.jobId,contentJob.jobId);
     const contentRef={runId:randomUUID(),resultId:randomUUID(),
       requestId:'cloud:'+contentAssignment.assignmentId,
-      sourceHash:pin.sourceHash,manifestHash:pin.manifestHash,grantId:randomUUID()};
+      sourceHash:pin.sourceHash,manifestHash:pin.manifestHash,grantId};
     await p('/v1/admission',{assignmentId:contentAssignment.assignmentId,
       runRef:contentRef,resultAllowed:true},executor.credential);
     await p('/v1/receipt',{assignmentId:contentAssignment.assignmentId,
@@ -173,7 +173,7 @@ test('one Provider serves authenticated HTTPS/WSS and target-scoped client submi
     assert.equal(deniedAssignment.jobId,deniedResultJob.jobId);
     const deniedRef={runId:randomUUID(),resultId:randomUUID(),
       requestId:'cloud:'+deniedAssignment.assignmentId,
-      sourceHash:pin.sourceHash,manifestHash:pin.manifestHash,grantId:randomUUID()};
+      sourceHash:pin.sourceHash,manifestHash:pin.manifestHash,grantId};
     await p('/v1/admission',{assignmentId:deniedAssignment.assignmentId,
       runRef:deniedRef,resultAllowed:true},executor.credential);
     await p('/v1/receipt',{assignmentId:deniedAssignment.assignmentId,
@@ -195,7 +195,7 @@ test('one Provider serves authenticated HTTPS/WSS and target-scoped client submi
       grantId,tasks:taskAdvertised},executor.credential)).assignment;
     const unknownRef={runId:randomUUID(),resultId:randomUUID(),
       requestId:'cloud:'+unknownAssignment.assignmentId,
-      sourceHash:pin.sourceHash,manifestHash:pin.manifestHash,grantId:randomUUID()};
+      sourceHash:pin.sourceHash,manifestHash:pin.manifestHash,grantId};
     await p('/v1/admission',{assignmentId:unknownAssignment.assignmentId,
       runRef:unknownRef,resultAllowed:false},executor.credential);
     await local('/admin/cancel',{jobId:unknownJob.jobId},admin.adminToken);
