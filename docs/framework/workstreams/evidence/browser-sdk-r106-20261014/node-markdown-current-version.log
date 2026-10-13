@@ -1,0 +1,18 @@
+✔ R22 both tools are distinct, bounded v1 installable packages with no remote script (60.589875ms)
+✔ R22 packer is reproducible and matches the official build output (3.515ms)
+✔ R22 body authority is distinct from TOC and revoked without fallback (0.583292ms)
+✔ R22 reinstated clipper checks the exact install epoch; missing, stale, disabled and revoked fail closed (1.758542ms)
+✔ R22 URLs normalize relative assets but refuse dangerous or credentialed links (0.243375ms)
+✔ R22 trustworthy offline conversion preserves Chinese, repeated headings, GFM structures (1.32425ms)
+✔ R22 selected DocumentFragment is supported and oversized content fails closed (0.169042ms)
+✔ R22 fixed release inclusion and trusted-site wiring are explicit (1.368541ms)
+✔ R5.2 Markdown Workbench built package has no confirm/alert/prompt or exit modal (0.529666ms)
+✔ R5.2 Markdown Workbench import and clear are explicit in-page operations (2.941542ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 10
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 129.695416

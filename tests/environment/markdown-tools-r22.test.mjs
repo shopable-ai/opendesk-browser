@@ -180,14 +180,14 @@ test('R5.2 Markdown Workbench built package has no confirm/alert/prompt or exit 
   readFile('examples/sidebar-tools/markdown-workbench/src/index.html','utf8'),
   readFile('examples/sidebar-tools/markdown-workbench/src/style.css','utf8'),
   readFile('examples/sidebar-tools/markdown-workbench/tool.config.json','utf8').then(JSON.parse)]);
- assert.equal(config.version,'1.0.1');
+ assert.equal(config.version,'1.0.2');
  assert.doesNotMatch(source,/\b(?:confirm|alert|prompt)\s*\(|beforeunload/);
  assert.match(source,/serial!==importSerial/,'late file loads must not overwrite later edits');
  for(const id of ['mdw-inline-review','mdw-review-text','mdw-review-confirm','mdw-review-cancel'])
   assert.match(html,new RegExp('id="'+id+'"'));
  assert.match(style,/\.mdw-inline-review\[hidden\]/);
  const packaged=await officialToolFixture('markdown-workbench');
- assert.equal(packaged.version,'1.0.1');
+ assert.equal(packaged.version,config.version,'current package must match its fixed source version');
  assert.doesNotMatch(packaged.js,/\bconfirm\s*\(|beforeunload/);
 });
 
