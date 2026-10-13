@@ -98,7 +98,10 @@ test('provider persistence failure rolls back memory before a retry can publish 
       body:JSON.stringify({grantId,tasks:advertised})});
     const seed={requestKey:'disk-failure',targetExecutorId:executorId,params:{},target:{mode:'owned',url:'http://127.0.0.1:43111/demo-form.html'}};
     const post=async(path,body)=>{const r=await fetch(`http://127.0.0.1:${p.port}${path}`,{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+admin.adminToken},body:JSON.stringify(body)});return {ok:r.ok,value:await r.json()};};
-    await mkdir(join(directory,'state.json.tmp'));assert.equal((await post('/admin/seed',seed)).ok,false);
+    await mkdir(join(directory,'state.json.tmp'));
+    assert.equal((await post('/admin/state',{})).ok,true,
+      'Admin read-only status must not fsync the state while the write path is blocked');
+    assert.equal((await post('/admin/seed',seed)).ok,false);
     await rm(join(directory,'state.json.tmp'),{recursive:true});assert.equal((await post('/admin/seed',seed)).ok,true);
     const state=(await post('/admin/state',{})).value;assert.equal(Object.keys(state.jobs).length,1);
     const persisted=JSON.parse(await readFile(join(directory,'state.json'),'utf8'));assert.equal(Object.keys(persisted.jobs).length,1);
