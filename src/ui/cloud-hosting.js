@@ -18,12 +18,14 @@ export function projectCloudInstalledTasks(data,approved=[]){
       grant.version===row.version&&grant.manifestHash===row.manifestHash&&
       grant.sourceHash===sourceHash&&grant.installationId===row.installationId&&
       grant.generation===row.generation);
+    const requiresReapproval=!authorized&&grants.some(grant=>grant.taskId===row.taskId);
     return {taskId:row.taskId,version:row.version,manifestHash:row.manifestHash,
       sourceHash,installationId:row.installationId??null,generation:row.generation??null,
       title:manifest?.title||row.taskId,description:manifest?.description||'',
       siteOrigins,paramsSchema:manifest?.paramsSchema??null,
       enabled:row.enabled===true,
-      eligible,approved:!!authorized,resultAllowed:authorized?.resultAllowed===true};
+      eligible,approved:!!authorized,requiresReapproval,
+      resultAllowed:authorized?.resultAllowed===true};
   });
 }
 const cloudChoiceKey=task=>[task.taskId,task.version,task.manifestHash,task.sourceHash,
@@ -97,7 +99,7 @@ export function createCloudHosting({client,host,document:doc=globalThis.document
       check.disabled=!task.eligible||cloudState.enabled;
       title.textContent=task.title+' · v'+task.version+
         (task.eligible?'':task.enabled?' · 需要重新验证':' · 已停用')+
-        (task.approved?' · 已授权':'');
+        (task.approved?' · 当前已批准':task.requiresReapproval?' · 需重新批准':'');
       header.append(check,title);section.append(header);
       if(task.description){const description=doc.createElement('small');
         description.className='cloud-task-description';description.textContent=task.description;
@@ -105,6 +107,11 @@ export function createCloudHosting({client,host,document:doc=globalThis.document
       const scope=doc.createElement('p');scope.className='cloud-task-scope';
       scope.textContent='允许访问：'+(task.siteOrigins.join('、')||'网站范围尚未验证');
       section.append(scope);
+      if(task.requiresReapproval){
+        const warning=doc.createElement('p');warning.className='cloud-task-needs-review';
+        warning.textContent='此任务版本或安装授权已经变化；先停止云控，再核对并重新批准。';
+        section.append(warning);
+      }
       const params=doc.createElement('p');params.className='cloud-task-params';
       const schema=task.paramsSchema;
       params.textContent='参数许可（固定 Schema）：'+(schema?.properties
@@ -126,12 +133,20 @@ export function createCloudHosting({client,host,document:doc=globalThis.document
       constraints.append(open,values);section.append(constraints);
       const technical=doc.createElement('details'),technicalLabel=doc.createElement('summary'),
         technicalValue=doc.createElement('pre');
-      technicalLabel.textContent='高级：固定版本与安装身份';
+      technicalLabel.textContent='查看授权状态与固定版本详情';
+      const explanation=doc.createElement('p');
+      explanation.className='cloud-task-authorization';
+      explanation.textContent=task.approved
+        ?'当前安装身份已与批准的任务版本一致。结果正文：'+(task.resultAllowed?'已允许回传':'不回传')
+        :task.requiresReapproval
+          ?'旧云控批准不再匹配当前安装身份。请停止当前托管，重新检查任务的网站和参数后批准。'
+          :task.eligible?'该任务可供选择，但尚未批准远程执行。'
+            :'该任务尚不可批准，请先在「我的」启用并完成版本验证。';
       technicalValue.textContent=JSON.stringify({
         taskId:task.taskId,version:task.version,manifestHash:task.manifestHash,
         sourceHash:task.sourceHash,installationId:task.installationId,generation:task.generation
       },null,2);
-      technical.append(technicalLabel,technicalValue);section.append(technical);parent.append(section);
+      technical.append(technicalLabel,explanation,technicalValue);section.append(technical);parent.append(section);
     }
     renderApprovalSummary();
   }
