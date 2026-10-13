@@ -349,3 +349,13 @@
 - `scheduled-task-workbench.js` 的 URL TypeError 文案补丁仍未落盘，原 R32 对同一文件的所有权未获明确交接。main 当前已推进至 ac7d7aa1，production 输入较 main27 在 bookmarks、script-editor、page-component-remote 有变化；现有 Mac 证据仍精确标记 main27 packageHash，不冒充当前整包。日常扩展整体/SW 身份链和十维95+正式评价仍未关闭，继续 `IN_PROGRESS / NOT_SCORED`。
 
 - 当前 main 的追加只读构建快照提取遇到 `ENOSPC`：Data 卷剩125MiB；只清理本轮刚生成、尚未成功/未含独有工作的 `artifacts/scheduled-tasks-r29-mac-20261014/main-ac7d7aa1-build-input`，恢复至917MiB，保留所有旧候选及原始证据。该尝试没有构建结果，标记 `BLOCKED_STORAGE`，不覆盖 main27 双包 PASS。原生前台时段已向用户提出协调请求；没有将沉默当作释放。
+
+
+### R2.9 受限交付提交与当前 CI
+
+- 已按 Lore 协议仅暂存原生驱动和本工作记录，提交并非强推 main：`e7f4fce6d479ae62027544d5667a635f13dcaa27`。完整 staged patch/hash 保留 `artifacts/scheduled-tasks-r29-mac-20261014/native-form-staged-proof.json`，其他改动没有加入。
+- 原占用 PID45540 退出且进程检查未发现替代 CFT 后，R9 重试；真实每天规则保存已通过，但随后 Time Review R19 新 PID48245 再次抢占前台。本轮预期 PID47621 的 Down 被原生身份保护拒绝。证据 `native-main27-form-matrix-r9-tombstone/native-report.json`；不继续抢前台，不将最后删除墓碑断言登记 PASS。需要协调稳定的前台时段，而不是盲等进程退出再反复重试。
+- e7f4fce6 当前 CI：Linux baseline/lifecycle（38477903614）、整 Chrome 重启（38477903687）、固定 Task 身份（38477903632）、网站权限撤销（38477903767）对应 Linux Jobs 均 SUCCESS，macOS Jobs 仍 QUEUED。Linux baseline 的正式生产 WXT Build/Verify SUCCESS，`tool-shell.js` **495305/524288 bytes，余量28983 bytes**，production packageHash=`1e44683212832fa740704c0b36869085e8f572c0292903136632539d51ed786b`。这是当前 clean CI 候选，不代替 main27 本地双包、真实 Mac Profile 或日常 Chrome 加载身份；依据见 `ci-e7-native-and-build-proof.json`。
+- Node 计数范围说明：本轮指定四文件为66条；先前 main27 的71条还包含5条 multiscript 异步SHA回归，不是定时表单删除了5项测试。R7 原生缩放与360px实体观察可单独引用，但 R7/R8/R9 整轮都不能登记表单最终PASS。全部十维仍 NOT_SCORED；最终产品 closure 和95+资格未达成。
+
+- 最后只读核对：Native doctor仍连接同一日常ID `ccfcjegpkdlgbclopjmadlcjedelidmf`，enabled/nativeConnected=true、allowed_origins一致；但当前注册Host为 `5dda2a58-6017-4e0c-b785-428af581f53f`，不是此前资源导出的Host。当前磁盘 tool-shell为500155 bytes、SHA256 `1b57481f227c0188a1ebe85072ee9572fc330073d429a03e65948b4421462d53`，已保存旧执行资源500130 bytes导出仍保留。此前匹配只能证明当时的观察，不能据此判定当前Host正在用旧资源或当前main整包一致；新Host需重新实际取证。原始doctor与派生核对见 `doctor-final-readonly.json`、`final-resource-parity-audit.json`。共享前台仍等待协调，未发送日常Chrome操作。
