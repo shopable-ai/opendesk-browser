@@ -18,7 +18,7 @@ const counter=obj({state:str(40),observedCount:num(),droppedCount:num(),gapCount
   ['state','observedCount','droppedCount','gapCount','expiresAt']);
 const ops=Object.freeze({
  'browser.capabilities.list':[empty,arr(obj({operation:str(120),implementation:str(40)},['operation','implementation']),64)],
- 'browser.capabilities.getStatus':[obj({operation:str(120,'^browser\\.[A-Za-z.]+$')},['operation']),
+ 'browser.capabilities.getStatus':[obj({operation:str(120,'^browser\\.[A-Za-z.]+$'),url:http},['operation']),
    obj({operation:str(120),callableNow:bool,reasonCode:nullableString},['operation','callableNow'])],
  'browser.contextMenu.getStatus':[empty,obj({enabled:bool,approvedOrigins:arr(http,30),
    activeActions:arr(str(40),3),browserPermission:bool},['enabled','approvedOrigins','activeActions','browserPermission'])],
@@ -66,7 +66,7 @@ const ops=Object.freeze({
    obj({resourceRef:ref,downloadId:num(0,2147483647),bytes:num(1,8388608),width:num(1,4096),height:num(1,4096)},['resourceRef','downloadId','bytes','width','height'])],
  'browser.operations.getStatus':[oid,obj({state:{enum:['running','completed','failed','cancelled','unknown']}},['state'])],
 
- 'browser.cookies.get':[obj({url:http,name:str(256),storeId:str(128),partitionKey:obj(),includeValues:bool},['url','name']),
+ 'browser.cookies.get':[obj({url:http,name:str(256),domain:str(253),path:str(512),storeId:str(128),partitionKey:obj(),includeValues:bool},['url','name']),
    obj({cookie:{},scope:str(64)},['cookie','scope'])],
  'browser.cookies.getAll':[obj({url:http,name:str(256),storeId:str(128),partitionKey:obj(),includeValues:bool},['url']),
    arr(obj({name:str(256),domain:str(256),path:str(1024),valueRedacted:bool},['name','domain','path','valueRedacted']),50)],

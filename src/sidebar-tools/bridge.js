@@ -6,7 +6,9 @@ import {createBrowserSdk} from '../framework/sdk/browser.js';
 const TOOL_CONSENT_OPS=new Set(['browser.tabs.create','browser.tabs.activateOwned','browser.tabs.pinOwned','browser.tabs.reloadOwned','browser.tabs.navigateOwned','browser.tabs.removeOwned',
  'browser.network.request','browser.sidePanel.openSelf',
  'browser.network.observe.start','browser.network.observe.export',
- 'browser.screenshot.captureVisible']);
+ 'browser.screenshot.captureVisible',
+ 'browser.cookies.set','browser.cookies.remove','browser.cookies.clearSite',
+ 'browser.cookies.observe.start']);
 export function sidebarToolRequestTimeout(operation,toolId){
  return (toolId==='stay-focus'&&operation.startsWith('focus.')&&operation!=='focus.status')||
    (toolId==='time-review'&&['time.start','time.clear'].includes(operation))||
@@ -103,6 +105,11 @@ export function initSidebarToolSandbox() {
       waiting.delete(message.requestId);clearTimeout(pending.timeout);
       if(message.ok)pending.resolve(message.result);
       else {const error=new Error(message.error?.message||'工具请求被拒绝');error.code=message.error?.code||'E_TOOL';pending.reject(error);}
+      return;
+    }
+    if (message.kind==='cookie-grants-changed') {
+      if(message.instance===instance&&message.toolId===toolId)
+        root.dispatchEvent(new Event('opendesk-cookie-grants-changed'));
       return;
     }
     if (message.kind==='page-changed') {

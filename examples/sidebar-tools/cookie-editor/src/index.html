@@ -31,14 +31,32 @@
   </div>
   <div class="toolbar live-toolbar">
     <span id="live-count" class="count">尚未读取</span><span class="fill"></span>
+    <button id="live-new" class="text-button" type="button" disabled>+ 新建</button>
     <button id="read-live" class="text-button primary" type="button" disabled>读取 Cookie</button>
   </div>
   <div id="live-cookie-list" class="cookie-list" role="list" aria-label="真实浏览器 Cookie 元数据"></div>
   <p id="live-empty" class="empty-message">等待公开 SDK 和授权，不会显示虚构 Cookie。</p>
   <details id="browser-permissions" class="permission-details">
-    <summary>权限与高级操作</summary>
-    <p>读取元数据、查看敏感值、修改、观察和批量清理必须分别经过正式能力与网站授权。当前工具不会绕过授权页面或自动批准权限。</p>
-    <p>创建、编辑、删除、导入到浏览器及网站批量清理在 R9 正式安全合同接通之前保持不可用。离线工作区不影响 Chrome。</p>
+    <summary>导入导出 · 网站清理 · 观察与权限</summary>
+    <p>网站的元数据、敏感值、修改、清理和监听分别授权。授权在工具「设置」中管理；普通读取无需反复批准。</p>
+    <div class="browser-advanced-actions">
+      <button id="live-import" class="text-button" type="button" disabled>导入真实浏览器</button>
+      <label for="live-export-format" class="visually-hidden">真实导出格式</label>
+      <select id="live-export-format" aria-label="真实导出格式"><option value="json">JSON</option><option value="header">Cookie Header</option><option value="netscape">Netscape</option></select>
+      <button id="live-export" class="text-button" type="button" disabled>导出含值 Cookie</button>
+      <button id="live-clear" class="text-button danger-text" type="button" disabled>安全清理本站</button>
+    </div>
+    <p class="hint">导出时需额外的敏感值权限。生成的文件可能包含登录凭据，请安全保存。</p>
+    <details class="browser-observe">
+      <summary>Cookie 变化观察（15 秒）</summary>
+      <div class="browser-advanced-actions">
+        <button id="live-observe-start" class="text-button" type="button">开始观察</button>
+        <button id="live-observe-read" class="text-button" type="button" disabled>读取变化</button>
+        <button id="live-observe-stop" class="text-button" type="button" disabled>停止观察</button>
+      </div>
+      <p id="live-observe-status" class="hint" role="status">未观察；事件不包含 Cookie 值。</p>
+      <div id="live-observe-events" class="cookie-list" role="list" aria-label="Cookie 变化事件"></div>
+    </details>
   </details>
 </section>
 <p id="preview-banner" class="preview-banner" role="note" hidden>离线工作区：操作只作用于临时内存，不读取或修改浏览器 Cookie。</p>
@@ -65,14 +83,14 @@
 <div class="field"><label for="cookie-same-site">SameSite</label><select id="cookie-same-site"><option value="unspecified">未指定</option><option value="lax">Lax</option><option value="strict">Strict</option><option value="no_restriction">None</option></select></div>
 <div class="flag-grid"><label class="check-label"><input id="cookie-host-only" type="checkbox" checked>仅当前主机</label><label class="check-label"><input id="cookie-secure" type="checkbox">Secure</label><label class="check-label"><input id="cookie-http-only" type="checkbox">HttpOnly</label><label class="check-label"><input id="cookie-session" type="checkbox" checked>会话 Cookie</label></div>
 <div id="expiry-field" class="field" hidden><label for="cookie-expiry">过期时间</label><input id="cookie-expiry" type="datetime-local"></div>
-<p class="hint">仅编辑离线工作区，不会修改网站登录状态。名称、域名、路径、分区身份不可修改。</p>
+<p id="editor-help" class="hint">仅编辑离线工作区，不会修改网站登录状态。名称、域名、路径、分区身份不可修改。</p>
 <div class="form-actions"><button id="editor-cancel" class="text-button" type="button">取消</button><button id="editor-save" class="text-button primary" type="submit">保存 Cookie</button></div></form></section>
 <section id="import-panel" class="editor-panel" aria-labelledby="import-heading" hidden>
 <div class="section-head"><strong id="import-heading">导入离线工作区</strong><button id="import-close" class="icon-button" type="button" title="关闭导入" aria-label="关闭导入"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
 <div class="field"><label for="import-format">导入格式</label><select id="import-format"><option value="auto">自动识别</option><option value="json">JSON（数组或 cookies 对象）</option><option value="header">Cookie Header</option><option value="netscape">Netscape</option></select></div>
 <div class="field"><label for="import-file">选择本地文件（可选）</label><input id="import-file" data-sensitive="true" type="file" accept=".json,.txt,text/plain,application/json"></div>
 <div class="field"><label for="import-text">导入内容</label><textarea id="import-text" data-sensitive="true" rows="5" maxlength="150000" spellcheck="false" placeholder="粘贴或选择本地文件…"></textarea></div>
-<p class="hint">仅操作本地临时工作区，每次最多导入 100 条。会先显示新增/覆盖数量供确认；不会写入真实浏览器。</p>
+<p id="import-help" class="hint">仅操作本地临时工作区，每次最多导入 100 条。会先显示新增/覆盖数量供确认；不会写入真实浏览器。</p>
 <div class="form-actions"><button id="import-cancel" class="text-button" type="button">取消</button><button id="import-apply" class="text-button primary" type="button">确认导入</button></div></section>
 <section id="confirm-panel" class="confirmation" role="alertdialog" aria-modal="true" aria-labelledby="confirm-message" hidden>
 <p id="confirm-message"></p><div class="form-actions"><button id="confirm-cancel" class="text-button" type="button">取消</button><button id="confirm-accept" class="text-button danger-button" type="button">确认操作</button></div></section>

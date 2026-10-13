@@ -37,7 +37,7 @@ function node(doc,tag,text,className) {
 function labelInput(doc,parent,label,value,onInput,options={}) {
   const wrapper=node(doc,'label',undefined,'workflow-field');
   wrapper.append(node(doc,'span',label));
-  const input=node(doc,options.textarea?'textarea':'input');
+  const input=node(doc,options.textarea?'textarea':'input',undefined,'od-field');
   if(!options.textarea)input.type=options.type || 'text';
   input.value=String(value ?? '');
   if(options.placeholder)input.placeholder=options.placeholder;
@@ -49,7 +49,7 @@ function labelInput(doc,parent,label,value,onInput,options={}) {
 function labelSelect(doc,parent,label,value,options,onInput) {
   const wrapper=node(doc,'label',undefined,'workflow-field');
   wrapper.append(node(doc,'span',label));
-  const select=node(doc,'select');
+  const select=node(doc,'select',undefined,'od-field');
   for(const [key,title] of options)select.append(new Option(title,key));
   select.value=value || options[0][0];
   select.addEventListener('change',()=>onInput(select.value));
@@ -105,14 +105,15 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     if(active) {
       note.textContent=accepted
         ?'发送到 '+receiver+'：任务描述、网站 '+site+'、步骤及参数结构。网页摘要需单独批准；可在 AI 设置中撤回许可。'
-        :'首次发送到 '+receiver+'：任务描述、网站 '+site+'、步骤及参数结构。点击「同意并生成」后可复用；网页摘要需单独批准。';
+        :'首次发送到 '+receiver+'：任务描述、网站 '+site+'、步骤及参数结构。点击右侧发送图标即同意本次向该模型发送上述内容；网页摘要仍需单独批准。';
       note.dataset.consent=accepted?'granted':'required';
     }
     button.dataset.firstUse=String(active&&!accepted);
     button.dataset.disclosureScope=scope||'';
     button.title=active&&!accepted?'同意并生成':'生成步骤';
     button.setAttribute('aria-label',active&&!accepted?'同意数据发送并生成工作流步骤':'生成工作流步骤');
-    get('workflow-ai-plan-label').hidden=!active||accepted;
+    // Consent remains explicit in the adjacent disclosure, title and aria-label; never widen the icon button.
+    get('workflow-ai-plan-label').hidden=true;
     const revoke=get('workflow-ai-revoke');
     revoke.hidden=!active||!accepted;revoke.disabled=busy;
     const resume=get('workflow-ai-resume');
@@ -247,6 +248,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       const wrapper=node(doc,'label',undefined,'workflow-field');
       wrapper.append(node(doc,'span',rule.title + (workflow.paramsSchema.required.includes(name)?' *':'')));
       const input=node(doc,rule.enum?'select':'input');
+      if(rule.type!=='boolean')input.classList.add('od-field');
       input.dataset.workflowParam=name;
       if(rule.enum) {
         for(const choice of rule.enum)input.append(new Option(String(choice),String(choice)));
@@ -258,7 +260,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       else input.value=prior[name] ?? (rule.default===undefined?'':String(rule.default));
       wrapper.append(input);
       const row=node(doc,'div',undefined,'workflow-param-row');
-      const remove=node(doc,'button','移除');remove.type='button';
+      const remove=node(doc,'button','移除','od-button od-button--danger');remove.type='button';
       remove.setAttribute('aria-label','移除参数 '+name);
       remove.addEventListener('click',()=>{
         const next=structuredClone(workflow.paramsSchema);
@@ -346,7 +348,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
         step.timeout??10000,value=>{step.timeout=Number(value);mark();},{type:'number',maxLength:5});
       const controls=node(doc,'div',undefined,'workflow-step-actions');
       for(const [caption,change] of [['↑',-1],['↓',1]]){
-        const button=node(doc,'button',caption);button.type='button';
+        const button=node(doc,'button',caption,'od-button od-button--secondary');button.type='button';
         button.setAttribute('aria-label',caption==='↑'?'上移第'+(index+1)+'步':'下移第'+(index+1)+'步');
         button.disabled=index+change<0||index+change>=workflow.steps.length;
         button.addEventListener('click',()=>{const target=index+change;
@@ -354,7 +356,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
           renderSteps(step.stepId);edited();
         });controls.append(button);
       }
-      const remove=node(doc,'button','删除');remove.type='button';
+      const remove=node(doc,'button','删除','od-button od-button--danger');remove.type='button';
       remove.addEventListener('click',()=>{workflow.steps.splice(index,1);renderSteps();edited();});
       controls.append(remove);body.append(controls);details.append(body);parent.append(details);
     });
@@ -849,7 +851,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     if(!event.isTrusted||busy)return;
     const scope=modelScope();if(!scope)return;
     modelConsent.revoke(scope);updateButtons();
-    status('已撤回当前模型发送许可；下次需要重新点击「同意并生成」。');
+    status('已撤回当前模型发送许可；下次须再次点击发送图标确认。');
   });
   listen(get('workflow-local-refresh'),'click',event=>{if(event.isTrusted)void refreshLocal();});
   listen(get('workflow-local-help'),'click',event=>{

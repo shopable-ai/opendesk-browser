@@ -143,7 +143,8 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
   // A permission or installed-package change must fence requests that are already in fetch().
   const activeNetworkRequests=new Set();
   const intentOperations=new Set(['browser.tabs.create','browser.tabs.activateOwned','browser.tabs.pinOwned','browser.tabs.reloadOwned','browser.tabs.navigateOwned','browser.tabs.removeOwned','browser.network.request',
-    'browser.network.observe.start','browser.network.observe.export','browser.screenshot.captureVisible']);
+    'browser.network.observe.start','browser.network.observe.export','browser.screenshot.captureVisible',
+    'browser.cookies.set','browser.cookies.remove','browser.cookies.clearSite','browser.cookies.observe.start']);
   const observationOperations=new Set(['browser.network.observe.getStatus','browser.network.observe.stop',
     'browser.events.read','browser.events.close']);
   const ownedOperationMethods=new Set(['browser.operations.getStatus','browser.operations.cancel']);
@@ -167,6 +168,37 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
         throw failure('E_SITE_PERMISSION_REVOKED');
     }
     return tool;
+  }
+
+  const cookieCapabilities=Object.freeze({
+    'browser.cookies.get':'read','browser.cookies.getAll':'read',
+    'browser.cookies.set':'write','browser.cookies.remove':'write',
+    'browser.cookies.clearSite':'clear','browser.cookies.getCurrentStore':'read',
+    'browser.cookies.getPartitionKey':'read','browser.cookies.observe.start':'observe',
+    'browser.cookies.observe.getStatus':'observe','browser.cookies.observe.read':'observe',
+    'browser.cookies.observe.stop':'observe'
+  });
+  async function authorizedCookie(identity,operation,url,options={}){
+    const parsed=parsedHttp(url);
+    if(!parsed)throw failure('E_SCHEMA','A specific HTTP(S) Cookie URL is required');
+    const origin=parsed.origin,tool=await verifyBrowserOwner(identity,operation,origin);
+    const source=await readSources(api),record=source.grants[tool.id];
+    if(record?.version!==tool.version||record.packageHash!==identity.packageHash||
+       record.installEpoch!==(source.epochs[tool.id]??null))
+      throw failure('E_SITE_GRANT_REQUIRED','Cookie site grant invalidated by a package change');
+    const grant=record.cookieSites?.[origin],cap=cookieCapabilities[operation];
+    if(!cap||grant?.[cap]!==true||!grant.storeId||!grant.grantEpoch)
+      throw failure('E_SITE_GRANT_REQUIRED','Approve this Cookie capability in the installed tool settings');
+    if(options.includeValues===true&&
+       (!tool.capabilities.includes('browser.cookies.values')||grant.values!==true))
+      throw failure('E_COOKIE_VALUES_REQUIRED','Cookie values require independent website authorization');
+    if(options.storeId!==undefined&&options.storeId!==grant.storeId)
+      throw failure('E_COOKIE_STORE');
+    if(options.partitionKey&&(!grant.partitionKey||
+       options.partitionKey.topLevelSite!==grant.partitionKey.topLevelSite||
+       Boolean(options.partitionKey.hasCrossSiteAncestor)!==
+         Boolean(grant.partitionKey.hasCrossSiteAncestor)))throw failure('E_COOKIE_PARTITION');
+    return {origin,storeId:grant.storeId,partitionKey:grant.partitionKey??null,grantEpoch:grant.grantEpoch};
   }
   const tabHost=createBrowserTabHost({api,authorize:async({operation,origin,context})=>{
     if(context.approvedOrigin!==null&&context.approvedOrigin!==origin)throw failure('E_SITE_GRANT_REQUIRED','Tab origin changed');
@@ -360,6 +392,7 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
       operation==='browser.tabs.navigateOwned'?Boolean(api.tabs?.get&&api.tabs?.update&&api.webNavigation?.getFrame):
       operation==='browser.tabs.removeOwned'?Boolean(api.tabs?.get&&api.tabs?.remove&&api.webNavigation?.getFrame):
       operation==='browser.sidePanel.openSelf'?Boolean(api.sidePanel?.open):
+      operation.startsWith('browser.cookies.')?Boolean(api.cookies?.getAll&&api.cookies?.getAllCookieStores&&api.permissions?.contains):
       operation==='browser.network.request'?typeof fetchImpl==='function':
       operation==='browser.network.observe.start'?Boolean(api.webRequest?.onBeforeRequest?.addListener&&api.tabs?.get&&api.webNavigation?.getFrame):
       operation.startsWith('browser.network.observe.')?Boolean(api.webRequest?.onBeforeRequest?.addListener):
@@ -390,23 +423,35 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
     // the background must never claim it is callable solely from a permission.
     const frontendOnly=['browser.clipboard.writeText','browser.downloads.text','browser.page.getContext'].includes(operation);
     const needsSite=isMenu&&!['browser.contextMenu.getStatus','browser.contextMenu.unregister'].includes(operation);
+    const isCookie=Boolean(cookieCapabilities[operation]);
+    const grantRecord=sources.grants?.[tool.id],validGrant=grantRecord?.version===tool.version&&
+      grantRecord.installEpoch===(sources.epochs[tool.id]??null)&&
+      grantRecord.packageHash===await digestTool(tool);
+    const desired=identity?.requestedUrl?parsedHttp(identity.requestedUrl)?.origin:null;
+    const cookieSites=validGrant?grantRecord.cookieSites||{}:{};
+    const candidateOrigins=desired?[desired]:Object.keys(cookieSites);
+    const cookieAuthorized=isCookie&&(await Promise.all(candidateOrigins.map(async origin=>
+      cookieSites[origin]?.[cookieCapabilities[operation]]===true&&await chromeSitePermitted(api,origin)
+    ))).some(Boolean);
     const runnable=op.implementation==='IMPLEMENTED'&&exposure==='allowed'&&platformSupported&&
-      requiredBrowser&&(!needsSite||menu)&&hasLaunch&&!frontendOnly;
+      requiredBrowser&&(!needsSite||menu)&&(!isCookie||cookieAuthorized)&&hasLaunch&&!frontendOnly;
     const reasonCode=runnable?null:
       op.implementation!=='IMPLEMENTED'?'E_NOT_IMPLEMENTED':
       !hasToolCap?'E_TOOL_CAPABILITY_REQUIRED':
       !platformSupported?'E_CHROME_UNSUPPORTED':
       !requiredBrowser?'E_CHROME_PERMISSION_REQUIRED':
       needsSite&&!menu?'E_SITE_GRANT_REQUIRED':
+      isCookie&&!cookieAuthorized?'E_SITE_GRANT_REQUIRED':
       !hasLaunch?'E_LAUNCH_UNAVAILABLE':
       frontendOnly?'E_FRONTEND_CONTEXT_REQUIRED':'E_CONTEXT';
     return {operation,apiVersion:BROWSER_API_VERSION,implementation:op.implementation.toLowerCase().replaceAll('_','-'),
       exposure,platform:platformSupported?'supported':'unsupported',
       authorization:{tool:hasToolCap?'granted':'missing',browser:requiredBrowser?'granted':'missing',
-        site:isMenu?(menu?'granted':'missing'):'not-required'},
+        site:isMenu?(menu?'granted':'missing'):isCookie?(cookieAuthorized?'granted':'missing'):'not-required'},
       callableNow:runnable,requiresUserGesture:op.requiresUserGesture,reasonCode,
       nextAction:runnable?null:!hasToolCap?'update-tool-package':!platformSupported?null:
-        !requiredBrowser?'enable-in-tool-details':isMenu&&!menu?'enable-in-tool-details':null};
+        !requiredBrowser?'enable-in-tool-details':isCookie&&!cookieAuthorized?'enable-in-tool-details':
+          isMenu&&!menu?'enable-in-tool-details':null};
   }
   function ensureToolActions(tool,args){
     const actions=menuActions(tool);
@@ -427,6 +472,37 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
       if(tool.version!==toolVersion||(owned.epochs[toolId]??null)!==(installEpoch??null)||
          packageHash!==await digestTool(tool))
         throw failure('E_TOOL_CHANGED','Old tool version or revoked instance');
+
+      if(cookieCapabilities[operation]){
+        const checked=normalizeBrowserOperation(operation,args),hash=await digestTool(tool);
+        const owner={toolId,toolVersion,packageHash:hash,epoch:installEpoch??null,
+          installEpoch:String(installEpoch??'initial-install'),approvedOrigin:null};
+        const needsClick=intentOperations.has(operation)&&
+          !(operation==='browser.cookies.clearSite'&&checked.preview===true);
+        let intent=null;
+        if(needsClick){
+          intent=browserIntents.get(approvalRef);
+          browserIntents.delete(approvalRef);
+          if(!intent||Date.now()>=intent.expiresAt||intent.operation!==operation||
+             intent.toolId!==toolId||intent.toolVersion!==toolVersion||
+             intent.packageHash!==hash||intent.epoch!==(installEpoch??null)||
+             intent.toolInstance!==toolInstance||intent.hostInstanceId!==hostInstanceId||
+             intent.args!==canonicalJSON(checked))
+            throw failure('E_USER_GESTURE_REQUIRED','Exact Cookie change requires a new trusted click');
+        }
+        const allowed=await authorizedCookie(owner,operation,checked.url,checked);
+        if(intent&&intent.cookieGrantEpoch!==allowed.grantEpoch)
+          throw failure('E_GRANT_REVOKED','Cookie site consent changed since approval');
+        const ownerKey=canonicalJSON([toolId,toolVersion,hash,owner.epoch,allowed.grantEpoch]);
+        return trustedCookies.executeInstalled(operation,checked,{origin:allowed.origin,
+          storeId:allowed.storeId,partitionKey:allowed.partitionKey,ownerKey,
+          authorize:async({url,includeValues})=>{
+            const now=await authorizedCookie(owner,operation,url,{...checked,includeValues});
+            if(now.grantEpoch!==allowed.grantEpoch||now.storeId!==allowed.storeId||
+               canonicalJSON(now.partitionKey)!==canonicalJSON(allowed.partitionKey))
+              throw failure('E_GRANT_REVOKED','Cookie site/store/partition grant changed during operation');
+          }});
+      }
       if(intentOperations.has(operation)||operation==='browser.sidePanel.openSelf'){
         const checked=normalizeBrowserOperation(operation,args),hash=await digestTool(tool);
         const owner={toolId,toolVersion,packageHash:hash,epoch:installEpoch??null,
@@ -552,7 +628,7 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
         return values;
       }
       if(operation==='browser.capabilities.getStatus'){
-        normalizeBrowserOperation(operation,args);return status(args.operation,tool,owned,{hostInstanceId,toolInstance});
+        normalizeBrowserOperation(operation,args);return status(args.operation,tool,owned,{hostInstanceId,toolInstance,requestedUrl:args.url});
       }
       if(operation==='browser.contextMenu.getStatus'){
         normalizeBrowserOperation(operation,args);
@@ -618,7 +694,7 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
       throw failure('E_SERVICE_UNSUPPORTED','Browser operation is not available to installed tools');
     }));
   }
-  async function handleHost({operation,toolId,enabled,origin,document,launchId,toolInstance,hostInstanceId,toolVersion,installEpoch,targetOperation,targetArgs,approvalRef},sender){
+  async function handleHost({operation,toolId,enabled,origin,document,launchId,toolInstance,hostInstanceId,toolVersion,installEpoch,cookieCapability:siteCapability,targetOperation,targetArgs,approvalRef},sender){
     const actualHost=await checkedSender(api,sender);
     if(actualHost!==hostInstanceId)
       throw failure('E_OWNER','Wrong OpenDesk tool host');
@@ -633,6 +709,68 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
     }
     if(!validId(toolId))throw failure('E_OWNER','Wrong OpenDesk tool host');
     return serial(()=>runLocked(toolId,async()=>{
+
+      if(operation==='browser.cookies.userGrant'){
+        if(!['read','values','write','observe','clear'].includes(siteCapability)||
+           typeof enabled!=='boolean')throw failure('E_SCHEMA','Unsupported Cookie capability decision');
+        const source=await readSources(api),tool=admittedTool(source.tools,toolId);
+        if(!sidebarToolEnabled(source.enabled,toolId)||tool.version!==toolVersion||
+           (source.epochs[toolId]??null)!==(installEpoch??null))
+          throw failure('E_TOOL_CHANGED');
+        if(!tool.capabilities.includes('browser.cookies.'+siteCapability))
+          throw failure('E_TOOL_CAPABILITY_REQUIRED');
+        const site=enabled?parsedHttp(document?.url)?.origin:parsedHttp(origin)?.origin;
+        if(!site||!enabled&&site!==origin)throw failure('E_SCHEMA','Exact Cookie site Origin required');
+        let storeId,partitionKey;
+        if(enabled){
+          if(!document||document.origin!==site||!Number.isSafeInteger(document.tabId)||
+             !Number.isSafeInteger(document.windowId)||typeof document.documentId!=='string')
+            throw failure('E_DOCUMENT_CHANGED');
+          const [tabs,frame,perm,sitePerm]=await Promise.all([
+            api.tabs.query({active:true,windowId:document.windowId}),
+            api.webNavigation.getFrame({tabId:document.tabId,frameId:0}),
+            api.permissions.contains({permissions:['cookies']}),chromeSitePermitted(api,site)]);
+          if(!perm||!sitePerm)throw failure('E_CHROME_PERMISSION_REQUIRED');
+          if(!Array.isArray(tabs)||tabs.length!==1||tabs[0].id!==document.tabId||
+             tabs[0].url!==document.url||tabs[0].incognito||tabs[0].pendingUrl||
+             frame?.documentId!==document.documentId||frame.url!==document.url||
+             frame.documentLifecycle&&frame.documentLifecycle!=='active')
+            throw failure('E_DOCUMENT_CHANGED');
+          const stores=await api.cookies.getAllCookieStores();
+          const candidates=Array.isArray(stores)?stores.filter(row=>
+            !row.incognito&&row.tabIds?.includes(document.tabId)):[];
+          if(candidates.length!==1||typeof candidates[0].id!=='string')throw failure('E_COOKIE_STORE');
+          storeId=candidates[0].id;
+          const receipt=await api.cookies.getPartitionKey?.({tabId:document.tabId,frameId:0});
+          if(!receipt?.partitionKey?.topLevelSite)throw failure('E_COOKIE_PARTITION');
+          partitionKey=receipt.partitionKey;
+          const after=await api.webNavigation.getFrame({tabId:document.tabId,frameId:0});
+          if(after?.documentId!==frame.documentId||after.url!==document.url)
+            throw failure('E_DOCUMENT_CHANGED','Cookie site changed while approving');
+        }
+        const previous=source.grants[toolId],hash=await digestTool(tool);
+        const same=previous?.version===tool.version&&previous.packageHash===hash&&
+          previous.installEpoch===(source.epochs[toolId]??null);
+        const row=same?previous:{version:tool.version,packageHash:hash,
+          installEpoch:source.epochs[toolId]??null,origins:[],activeActions:[]};
+        const sites={...(row.cookieSites||{})},prior=sites[site]||{};
+        if(enabled&&Object.keys(sites).length>=20&&!Object.hasOwn(sites,site))
+          throw failure('E_LIMIT','Maximum 20 Cookie websites per tool');
+        if(enabled&&siteCapability==='values'&&prior.read!==true)
+          throw failure('E_SITE_GRANT_REQUIRED','Read permission is required before granting sensitive values');
+        // A fresh generation prevents old observation sessions and approvals
+        // from reviving after revoke -> regrant, even with identical package bytes.
+        const next=enabled?{...prior,storeId,partitionKey,[siteCapability]:true,
+          grantEpoch:crypto.randomUUID()}:
+          {...prior,[siteCapability]:false,grantEpoch:crypto.randomUUID()};
+        if(!enabled&&siteCapability==='read')next.values=false;
+        sites[site]=next;
+        await confirmedWrite(api.storage.local,BROWSER_MENU_GRANTS_STORE,{
+          ...source.grants,[toolId]:{...row,version:tool.version,packageHash:hash,
+            installEpoch:source.epochs[toolId]??null,cookieSites:sites}});
+        trustedCookies.revoke();
+        return {origin:site,capability:siteCapability,enabled,storeId:next.storeId??null};
+      }
       if(operation==='browser.intent.confirm'){
         if(!intentOperations.has(targetOperation)||typeof toolInstance!=='string'||
            !/^[0-9a-f-]{36}$/i.test(toolInstance))throw failure('E_SCHEMA','Invalid trusted action');
@@ -642,12 +780,15 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
         if(tool.version!==toolVersion||(source.epochs[toolId]??null)!==(installEpoch??null))
           throw failure('E_TOOL_CHANGED','Tool updated during approval');
         const packageHash=await digestTool(tool);
-        const origin=targetOperation==='browser.network.observe.start'?args.origins[0]:
+        const origin=cookieCapabilities[targetOperation]?new URL(args.url).origin:
+          targetOperation==='browser.network.observe.start'?args.origins[0]:
           ['browser.tabs.create','browser.tabs.navigateOwned','browser.network.request'].includes(targetOperation)
             ?new URL(args.url).origin:null;
         const identity={toolId,toolVersion,packageHash,epoch:installEpoch??null,
           installEpoch:String(installEpoch??'initial-install'),approvedOrigin:null};
         await verifyBrowserOwner(identity,targetOperation,origin);
+        const cookieGrant=cookieCapabilities[targetOperation]
+          ?await authorizedCookie(identity,targetOperation,args.url,args):null;
         // An approval is not authority by itself. Before minting one for an owned
         // TabRef, resolve its real Chrome document and check the CURRENT website
         // grant, not just the package capability. Revoked or foreign refs must
@@ -662,7 +803,8 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
         if(browserIntents.size>=16)throw failure('E_LIMIT','Too many pending approvals');
         const approvalRef=crypto.randomUUID(),expiresAt=Date.now()+INTENT_TTL;
         browserIntents.set(approvalRef,{operation:targetOperation,args:canonicalJSON(args),toolId,toolVersion,
-          packageHash,epoch:installEpoch??null,toolInstance,hostInstanceId:actualHost,expiresAt});
+          packageHash,epoch:installEpoch??null,toolInstance,hostInstanceId:actualHost,expiresAt,
+          cookieGrantEpoch:cookieGrant?.grantEpoch??null});
         return {approvalRef,expiresAt};
       }
       if(operation==='browser.contextMenu.userToggle'){
@@ -796,7 +938,7 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
   }
   ensureListener();
   api.storage?.onChanged?.addListener((changes,area)=>{
-    if(area==='local'&&[SIDEBAR_TOOL_ENABLE_STORE,SIDEBAR_TOOL_STORE,TOOL_REVOCATION_EPOCHS_STORE].some(key=>Object.hasOwn(changes,key)))
+    if(area==='local'&&[SIDEBAR_TOOL_ENABLE_STORE,SIDEBAR_TOOL_STORE,TOOL_REVOCATION_EPOCHS_STORE,BROWSER_MENU_GRANTS_STORE].some(key=>Object.hasOwn(changes,key)))
       revokeBrowserOperations();
     if(area==='local'&&Object.hasOwn(changes,SIDEBAR_TOOL_ENABLE_STORE))
       void revokeLaunches().catch(error=>logger.warn('OpenDesk disabled-tool launch cleanup',error));

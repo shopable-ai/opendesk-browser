@@ -102,7 +102,8 @@ export function normalizeBrowserOperation(operation,args={}){
     case 'browser.page.getContext': case 'browser.page.getSelection':
       fields(args,[]);break;
     case 'browser.capabilities.getStatus':
-      fields(args,['operation'],['operation']);
+      fields(args,['operation','url'],['operation']);
+      if(args.url!==undefined)approvedHttpUrl(args.url);
       if(typeof args.operation!=='string'||!/^browser\.[A-Za-z.]+$/.test(args.operation))throw fail('E_SCHEMA','Invalid capability name');
       break;
     case 'browser.tabs.create':
@@ -212,7 +213,8 @@ export function normalizeBrowserOperation(operation,args={}){
         tail==='set'?['url','name','value','domain','path','secure','httpOnly','sameSite','expirationDate','storeId','partitionKey']:
         tail==='remove'?['url','name','domain','path','storeId','partitionKey']:
         tail==='clearSite'?['url','storeId','partitionKey','preview','expectedCount','maxCookies']:
-        tail==='get'||tail==='getAll'?['url','name','storeId','partitionKey','includeValues']:
+        tail==='get'?['url','name','domain','path','storeId','partitionKey','includeValues']:
+        tail==='getAll'?['url','name','storeId','partitionKey','includeValues']:
           ['url','storeId','partitionKey'];
       fields(args,allowed,['url',...(sessionOp?['sessionRef']:[]),
         ...(tail==='set'?['name','value']:tail==='remove'?['name','domain','path']:tail==='get'?['name']:[])]);
@@ -248,6 +250,11 @@ export function normalizeBrowserOperation(operation,args={}){
           args.name.startsWith('__Secure-')&&(!https||args.secure!==true)||
           args.name.startsWith('__Host-')&&(!https||args.secure!==true||args.domain!==undefined||args.path!=='/'))
           throw fail('E_COOKIE_SCOPE','Invalid secure Cookie attributes');
+      }
+      if(tail==='get'&&(args.domain!==undefined||args.path!==undefined)){
+        if(typeof args.domain!=='string'||args.domain.length>253||
+          typeof args.path!=='string'||!args.path.startsWith('/')||args.path.length>512)
+          throw fail('E_SCHEMA','Exact Cookie identity requires both domain and path');
       }
       if(tail==='remove'){
         if(typeof args.domain!=='string'||args.domain.replace(/^\./,'').toLowerCase()!==new URL(url).hostname||
