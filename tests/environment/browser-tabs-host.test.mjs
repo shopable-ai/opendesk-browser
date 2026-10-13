@@ -132,6 +132,37 @@ test('R5 owned read/list never enumerates foreign or navigated TabRefs',async()=
  assert.deepEqual((await host.listOwned({},owner())).tabs,[]);
  await assert.rejects(host.getOwned({tabRef},owner()),code('E_TAB_REF_INVALID'));
 });
+test('R9 pinOwned controls only the exact tool tab and confirms native pinned state',async()=>{
+  const f=fixture();
+  f.api.webNavigation={getFrame:async({tabId})=>{
+    const tab=f.items.get(tabId);
+    return tab?{url:tab.url,documentId:'doc-'+tabId,documentLifecycle:'active'}:null;
+  }};
+  const host=createBrowserTabHost({api:f.api,createRef:()=>ref,authorize:async()=>true});
+  const {tabRef}=await host.create({url:'https://example.org/pin'},owner());
+  assert.deepEqual(await host.pinOwned({tabRef,pinned:true},owner()),{pinned:true});
+  assert.equal(f.items.get(200).pinned,true);
+  assert.deepEqual(await host.pinOwned({tabRef,pinned:false},owner()),{pinned:false});
+  assert.equal(f.items.get(200).pinned,false);
+  await assert.rejects(host.pinOwned({tabRef,pinned:true},owner('tool-b')),code('E_TAB_REF_INVALID'));
+  await assert.rejects(host.pinOwned({tabId:200,pinned:true},owner()),code('E_SCHEMA'));
+  await assert.rejects(host.pinOwned({tabRef,pinned:'true'},owner()),code('E_SCHEMA'));
+  await assert.rejects(host.pinOwned({tabRef,pinned:true,active:true},owner()),code('E_SCHEMA'));
+  f.items.set(200,{...f.items.get(200),url:'https://example.org/new-document'});
+  await assert.rejects(host.pinOwned({tabRef,pinned:true},owner()),code('E_TAB_REF_INVALID'));
+});
+test('R9 pinOwned unknown native outcome is never reported successful or automatically retried',async()=>{
+  const f=fixture();f.api.webNavigation={getFrame:async({tabId})=>({
+    url:f.items.get(tabId).url,documentId:'doc-'+tabId,documentLifecycle:'active'
+  })};
+  const host=createBrowserTabHost({api:f.api,createRef:()=>ref,authorize:async()=>true});
+  const {tabRef}=await host.create({url:'https://example.org/pin'},owner());
+  let writes=0;f.api.tabs.update=async()=>{writes++;throw Error('native acknowledgement lost')};
+  await assert.rejects(host.pinOwned({tabRef,pinned:true},owner()),code('E_OUTCOME_UNKNOWN'));
+  assert.equal(writes,1,'no blind retry after unknown native pin effect');
+  host.revokeTool('tool-a');
+  await assert.rejects(host.pinOwned({tabRef,pinned:true},owner()),code('E_TAB_REF_INVALID'));
+});
 test('R5 owned close consumes TabRef, with unknown native outcome never retried',async()=>{
  const f=fixture();
  f.api.webNavigation={getFrame:async({tabId})=>{
