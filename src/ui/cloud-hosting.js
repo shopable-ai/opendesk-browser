@@ -64,7 +64,7 @@ export function createCloudHosting({client,host,document:doc=globalThis.document
       const empty=doc.createElement('p');empty.textContent='暂无已安装任务。请先在「我的」验证并安装 Controller Task。';
       empty.className='hint';parent.append(empty);
       const manage=doc.createElement('button');manage.type='button';manage.className='od-button od-button--secondary';
-      manage.textContent='前往「我的」安装任务';manage.addEventListener('click',()=>get('tab-tasks')?.click?.());
+      manage.textContent='前往「我的」安装任务';manage.addEventListener('click',()=>get('tab-my-tasks')?.click?.());
       parent.append(manage);
     }
     for(const task of taskChoices){
