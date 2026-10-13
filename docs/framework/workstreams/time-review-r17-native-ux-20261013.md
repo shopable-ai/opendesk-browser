@@ -11,3 +11,6 @@
 
 - 本轮源码候选提交 `8cfda5ee8d863cdebed635812be159c68cfb0c66` 对应的 macOS workflow：<https://github.com/shopable-ai/opendesk-browser/actions/runs/38412562187>，复查仍 `queued`，没有 job steps/artifacts；历史指定运行 <https://github.com/shopable-ai/opendesk-browser/actions/runs/38408021850> 也仍 `queued`。这不是 Chrome PASS。
 - R1.7 后续源码修补：网站授权成功后增加异步 read generation fence，防止授权前旧的 `storage.local.get` 结果覆盖已确认的新授权 UI；新增延迟读回归用例。当前仅做隔离 JavaScript DOM Mock 验证，待 Node/Chrome 真实运行。
+
+- R1.7 macOS Chrome 驱动补强：在原有真实 Side Panel 的已安装/授权流程核对 `chrome.permissions.contains(idle)` 与实际按钮状态，要求原生界面没有第二个开始按钮；已获授权时不再重复请求 Chrome permission；确切获权后校验状态切换。未新增浏览器驱动/伪造宿主点击。
+- 此驱动修改仍等待真实 macOS Runner 执行，不能宣称 Chrome PASS 或构建通过。

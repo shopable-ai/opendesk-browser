@@ -316,6 +316,20 @@ test('Time Review R1.3 actual Mac Chrome install and trusted consent smoke',{ski
     'Boolean(document.querySelector("#minute-consent")?.closest(".setting-row")?.hidden)'),true);
   await setTimeReviewSettingsVisible(browser,side,true);
   state=await readTime();assert.equal(state.minuteConsent,false);
+  // Check actual optional Chrome permission against the visible first-party
+  // controls: the native UI owns the only start/resume button.
+  const initiallyIdleGranted=await evaluate(browser,side,
+    'chrome.permissions.contains({permissions:["idle"]})');
+  await until(()=>evaluate(browser,side,`(()=>{
+    const grant=document.querySelector("#time-review-grant-idle");
+    const revoke=document.querySelector("#time-review-revoke-idle");
+    const duplicate=document.querySelector("#time-review-trusted-start");
+    return grant?.hidden===${String(initiallyIdleGranted)}&&
+      revoke?.hidden===${String(!initiallyIdleGranted)}&&
+      duplicate?.hidden===true;
+  })()`),'native permission controls match Chrome and suppress duplicate start');
+  evidence.nativePermissionControls='PASS';
+  note('native-permission-actions',{initiallyIdleGranted,duplicateStartHidden:true});
   note('trusted-native-consent-unmodified',{minuteConsent:state.minuteConsent});
   await nativeClick(browser,side,'#time-review-minute-enable');
   state=await until(async()=>{const value=await readTime();return value?.minuteConsent?value:null;},'trusted minute consent');
@@ -423,9 +437,19 @@ test('Time Review R1.3 actual Mac Chrome install and trusted consent smoke',{ski
   // Native activity is driven by real Chrome permission UI and active tabs.
   // Never pre-seed business storage or replace the idle API in this test.
   await setTimeReviewSettingsVisible(browser,side,true);
-  await nativeClick(browser,side,'#time-review-grant-idle');
+  // A previously approved permission needs no second Chrome prompt.
+  if(!await evaluate(browser,side,'chrome.permissions.contains({permissions:["idle"]})'))
+    await nativeClick(browser,side,'#time-review-grant-idle');
   const granted=await until(()=>evaluate(browser,side,
     'chrome.permissions.contains({permissions:["idle"]})'),'genuine idle permission',5000).catch(()=>false);
+  if(granted){
+    await until(()=>evaluate(browser,side,`(()=>{
+      const grant=document.querySelector("#time-review-grant-idle");
+      const revoke=document.querySelector("#time-review-revoke-idle");
+      return grant?.hidden===true&&revoke?.hidden===false;
+    })()`),'Chrome idle approval hides redundant consent prompt',5000);
+    note('native-idle-ui-reflects-grant',{granted:true,duplicateGrantHidden:true});
+  }
   if(!granted){
     evidence.beginAndActiveCollection='BLOCKED';
     note('activity-native-blocked',{reason:'Native browser optional idle grant was not approved'});
