@@ -9,7 +9,7 @@ test('Cloud keeps task consent primary and endpoint settings secondary',async()=
     'src/ui/cloud-hosting.js'].map(x=>readFile(x,'utf8')));
   const panel=html.slice(html.indexOf('id="workbench-cloud"'),
     html.indexOf('id="workbench-local-discover"'));
-  const ids=['cloud-overview','cloud-first-run','cloud-approval-section',
+  const ids=['cloud-overview-state','cloud-first-run','cloud-approval-section',
     'cloud-request-samples','cloud-hosting'].map(x=>panel.indexOf('id="'+x+'"'));
   assert(ids.every((x,i)=>x>=0&&(i===0||x>ids[i-1])));
   assert.match(panel,/网页数据和结果正文默认不回传/);
