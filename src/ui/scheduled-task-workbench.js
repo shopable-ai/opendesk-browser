@@ -38,6 +38,16 @@ const scheduleStatusGuidance=Object.freeze({
   CANCELLED:'本次触发已取消；不表示执行成功。',
   NEEDS_ATTENTION:'任务安装身份或网站授权需处理；不会自动更换版本。'
 });
+// The host polls every 15 seconds. Keep the original FireId and loaded history
+// pages in the visible list when a fresher snapshot arrives; never synthesize
+// a Run/Result or reuse a stale page offset after new history appears.
+export function mergeScheduleHistoryView(latest=[],loaded=[]){
+  const ids=new Set();
+  return [...latest,...loaded].filter(fire=>{
+    if(typeof fire?.fireId!=='string'||!fire.fireId||ids.has(fire.fireId))return false;
+    ids.add(fire.fireId);return true;
+  }).sort((a,b)=>b.scheduledAt-a.scheduledAt);
+}
 const pad2=value=>String(value).padStart(2,'0');
 const frequencyLabel=plan=>{
   const kind=plan.triggerKind,rule=plan.triggerSpec||{};
@@ -146,6 +156,8 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
   let cloudPanelVisibility;
   let permissionSeq=0,awaitingSave=null,editRevision=0,storageProbeRevision=0;
   let formDirty=false,discardDestination='list';
+  let taskListSignature='',planListSignature='';
+  const historyViews=new Map();
   const touched=new Set();
   const formFields={title:'schedule-title',task:'schedule-task-select',
     target:'schedule-target',params:'schedule-params',time:'schedule-timezone'};
@@ -242,7 +254,18 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
     if(disposed)return;
     catalog=tasks.catalog||[];installed=tasks.installed||[];
     allPlans=plans.schedules||[];lastRefresh=Date.now();
-    populateChoices();renderPlans();renderManager();renderRunner();
+    // Polling must not destroy an open native <select>, focused buttons or
+    // paginated <details> merely because the server returned identical data.
+    const tasksSignature=JSON.stringify([catalog,installed]);
+    const plansSignature=JSON.stringify([allPlans,catalog.map(row=>[
+      row.taskId,row.version,row.manifest?.title])]);
+    const tasksChanged=tasksSignature!==taskListSignature;
+    const plansChanged=plansSignature!==planListSignature;
+    if(tasksChanged){taskListSignature=tasksSignature;populateChoices();}
+    else if(shown&&activeView==='form')void showTaskVersion();
+    if(plansChanged){renderPlans();planListSignature=plansSignature;}
+    if(tasksChanged||plansChanged)renderManager();
+    renderRunner();
     if(shown){
       message('');
       void refreshStorageUsage();
@@ -381,7 +404,27 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
     return row;
   }
   function renderPlans(){
-    const parent=get('schedule-plan-list');parent.replaceChildren();
+    const parent=get('schedule-plan-list');
+    const focused=doc.activeElement?.closest?.('.schedule-card');
+    const focusedId=focused&&parent.contains(focused)?focused.dataset.scheduleId:null;
+    const focusSelectors=[
+      '.schedule-plan-actions button:first-child','.schedule-plan-actions button:nth-child(2)',
+      '.schedule-history > summary','.schedule-load-more','.schedule-more > summary',
+      '.schedule-danger-link','.schedule-delete-confirm button:first-child',
+      '.schedule-delete-confirm button:nth-child(2)'
+    ];
+    const focusedSelector=focusedId?focusSelectors.find(selector=>
+      doc.activeElement?.matches?.(selector)):null;
+    for(const card of parent.querySelectorAll('.schedule-card')){
+      const view=historyViews.get(card.dataset.scheduleId);
+      if(!view)continue;
+      view.open=Boolean(card.querySelector('.schedule-history')?.open);
+      view.moreOpen=Boolean(card.querySelector('.schedule-more')?.open);
+      view.deleteReview=Boolean(card.querySelector('.schedule-delete-confirm'));
+    }
+    const ids=new Set(allPlans.map(plan=>plan.scheduleId));
+    for(const id of historyViews.keys())if(!ids.has(id))historyViews.delete(id);
+    parent.replaceChildren();
     const sorted=allPlans.slice().sort((a,b)=>(a.nextDueAt??Infinity)-(b.nextDueAt??Infinity));
     const enabled=allPlans.filter(p=>!p.paused&&!p.needsAttention&&Number.isFinite(p.nextDueAt)).length;
     const upcoming=sorted.find(p=>!p.paused&&!p.needsAttention&&Number.isFinite(p.nextDueAt));
@@ -407,7 +450,12 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
             '下次：'+describeTime(plan.nextDueAt,plan.timezone):'暂无后续执行');
       const info=element(doc,'p','schedule-plan-meta hint',
         frequencyLabel(plan)+' · '+(catalogEntry?.manifest?.title||plan.taskId));
-      const last=plan.history?.[0];
+      const previous=historyViews.get(plan.scheduleId);
+      const view=previous||{records:[],hasMore:false,open:false,moreOpen:false,deleteReview:false};
+      view.records=mergeScheduleHistoryView(plan.history||[],view.records);
+      if(!previous)view.hasMore=(plan.history||[]).length===20;
+      historyViews.set(plan.scheduleId,view);
+      const last=view.records[0];
       const warning=plan.needsAttention?
         '当前任务安装身份或网站权限不足；请检查已安装任务，不会自动换绑新版。':
         last&&!['SUCCESS','STOPPED'].includes(last.status)?scheduleStatusGuidance[last.status]:'';
@@ -418,21 +466,27 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
           'od-button od-button--secondary'));
       }
       const history=element(doc,'details','schedule-history');
+      history.open=view.open;
       history.append(element(doc,'summary',null,
         '运行记录'+(last?` · 最近：${scheduleStatus(last.status)} · ${describeTime(last.scheduledAt,plan.timezone)}`:' · 暂无')));
       const historyList=element(doc,'div','od-stack');
-      for(const fire of plan.history||[])historyList.append(makeHistoryRow(fire,plan.timezone));
-      if((plan.history||[]).length===20){
-        let offset=20;
+      for(const fire of view.records)historyList.append(makeHistoryRow(fire,plan.timezone));
+      if(view.hasMore){
         const more=action(doc,'加载更早记录',async()=>{
           if(more.disabled)return;
           more.disabled=true;text(more,'正在读取…');
           try{
             const page=await client.request('listScheduleHistory',{
-              scheduleId:plan.scheduleId,offset,limit:20});
-            for(const fire of page.history)historyList.insertBefore(makeHistoryRow(fire,plan.timezone),more);
-            offset+=page.history.length;
-            if(!page.hasMore||!page.history.length)more.remove();
+              scheduleId:plan.scheduleId,offset:view.records.length,limit:20});
+            const seen=new Set(view.records.map(fire=>fire.fireId));
+            for(const fire of page.history){
+              if(seen.has(fire.fireId))continue;
+              seen.add(fire.fireId);view.records.push(fire);
+              if(historyList.isConnected)historyList.insertBefore(makeHistoryRow(fire,plan.timezone),more);
+            }
+            view.hasMore=Boolean(page.hasMore&&page.history.length);
+            if(!historyList.isConnected){renderPlans();return;}
+            if(!view.hasMore)more.remove();
             else {more.disabled=false;text(more,'加载更早记录');}
           }catch(error){
             more.disabled=false;text(more,'重试加载记录');
@@ -447,6 +501,7 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
         ()=>void change(plan,plan.paused?'resume':'pause'),'od-button'));
       toolbar.append(action(doc,'编辑',()=>edit(plan)));
       const more=element(doc,'details','schedule-more');
+      more.open=view.moreOpen;
       more.append(element(doc,'summary',null,'更多操作与固定版本'));
       more.append(element(doc,'p','hint',
         `固定版本 v${plan.version} · IANA 时区 ${plan.timezone} · 任务 ${plan.taskId}`));
@@ -466,6 +521,13 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
       if(hint)card.append(hint);
       card.append(toolbar,history,more);
       parent.append(card);
+      // This only reopens the original inline review; no delete RPC occurs.
+      if(view.deleteReview)remove.click();
+    }
+    if(focusedId&&focusedSelector){
+      const restored=[...parent.querySelectorAll('.schedule-card')].find(card=>
+        card.dataset.scheduleId===focusedId);
+      restored?.querySelector(focusedSelector)?.focus();
     }
   }
   async function change(plan,operation){
