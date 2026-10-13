@@ -40,6 +40,7 @@ details>section{margin-top:var(--space-3)}
 .od-button--quiet{background:transparent;border-color:transparent;color:var(--od-ink)}
 .od-icon-button{position:relative;display:inline-grid;place-items:center;flex:none;width:var(--od-icon-size);height:var(--od-icon-size);min-width:var(--od-icon-size);min-height:var(--od-icon-size);padding:0;border:1px solid var(--od-line);border-radius:var(--radius-control);background:var(--od-paper);color:var(--od-sub)}
 .od-icon-button--primary{border-color:var(--od-brand);background:var(--od-brand);color:var(--od-on-brand)}
+.od-icon-button--danger{border-color:var(--od-negative);background:var(--od-negative-bg);color:var(--od-negative)}
 .od-icon-button svg{width:18px;height:18px;display:block;pointer-events:none}
 :is(input,select,textarea).od-field{min-width:0;border:1px solid var(--od-input-border);border-radius:var(--radius-control);background:var(--od-paper);color:var(--od-ink);font-size:var(--od-body-size)}
 :is(input,select,textarea).od-field:disabled,
