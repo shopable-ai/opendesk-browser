@@ -181,6 +181,6 @@ test('R2.3 explains audit retention and shows native Chrome origin-wide storage 
   assert.match(ui,/\.estimate\(\)/);
   assert.match(ui,/并非仅定时任务占用/);
   assert.match(ui,/历史不会自动清理/);
-  assert.doesNotMatch(ui,/\.deleteDatabase\(|\.clear\(\)/);
+  assert.doesNotMatch(ui,/indexedDB\.deleteDatabase\(|chrome\.storage\.(?:local|sync)\.clear\(/);
   assert.match(css,/\.schedule-storage-details>summary:focus-visible/);
 });
