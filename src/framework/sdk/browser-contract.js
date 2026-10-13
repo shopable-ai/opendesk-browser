@@ -260,7 +260,9 @@ export function normalizeBrowserOperation(operation,args={}){
       if(args.partitionKey!==undefined){
         fields(args.partitionKey,['topLevelSite','hasCrossSiteAncestor'],['topLevelSite']);
         const site=approvedHttpUrl(args.partitionKey.topLevelSite);
-        if(!site.startsWith('https://')||new URL(site).origin!==args.partitionKey.topLevelSite||
+        // Chrome partitions are schemeful sites, not HTTPS-only identifiers.
+        // Store and partition authority is still checked by the trusted Host.
+        if(new URL(site).origin!==args.partitionKey.topLevelSite||
           args.partitionKey.hasCrossSiteAncestor!==undefined&&typeof args.partitionKey.hasCrossSiteAncestor!=='boolean')
           throw fail('E_SCHEMA','Invalid Cookie partition');
       }
