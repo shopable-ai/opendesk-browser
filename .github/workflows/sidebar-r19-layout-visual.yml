@@ -7,6 +7,8 @@ on:
       - 'src/ui/tool-shell.css'
       - 'src/ui/design-tokens.css'
       - 'src/ui/design-system.css'
+      - 'tests/environment/sidebar-product-contract.test.mjs'
+      - 'tests/environment/scheduled-task-ui-r1.test.mjs'
       - 'scripts/tests/sidebar-r19-layout-visual.mjs'
       - 'scripts/tests/sidebar-quick-notes-layout-visual.mjs'
       - 'official-tools/catalog.json'

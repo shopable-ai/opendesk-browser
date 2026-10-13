@@ -60,7 +60,11 @@
 - [Sidebar Tools R1 · 38455367079](https://github.com/shopable-ai/opendesk-browser/actions/runs/38455367079)：201 条中 198 PASS / 3 FAIL。一项是 R32 迁移后 `sidebar-product-contract.test.mjs` 仍匹配旧的完整 class 字符串；保留 `hidden` 和业务控件要求，只对齐公共 class。另两项来自 `sidebar-tool-multiscript-r72.test.mjs` 的沙箱终态等待，相关沙箱源码不在 R32 改动范围，保留 FAIL；工作区已有其他 owner 的终态等待修复，未混入本提交。
 - [Sidebar R1 P0 · 38455367467](https://github.com/shopable-ai/opendesk-browser/actions/runs/38455367467)：R15 语义/多状态阶段 SUCCESS，后续运输/编辑器阶段 FAIL。17 项失败中同一项旧 class 断言由本轮修正；其余 16 项涉及依赖检查、Page/Controller 准备器及执行生命周期。实际错误包含 `E_DEPENDENCY_INSPECT`、`E_PAGE_COMPILER_WORKER`、`E_REMOTE_PERMISSION_PENDING`；CSS/class 迁移未修改准备器或其授权状态机，不扩大为运行时重写。
 
-后续限定补丁范围增加 `tests/environment/sidebar-product-contract.test.mjs` 与 `tests/environment/scheduled-task-ui-r1.test.mjs`：读取并接受工作区已有、与 R32 公共 class/焦点/grid 一致的测试修改；独立只读 reviewer 确认未移除授权、删除确认、Stop、运行身份、保留历史、禁止清库及 hidden 断言。两份文件定向结果 **33 PASS / 0 FAIL**（`/tmp/sidebar-r32-related-test-fix.log`）。只更新本任务这两份测试及本工作流，等待 follow-up SHA 的 CI 重新确认；未将静态断言提升为原生 PASS。
+后续限定补丁范围增加 `tests/environment/sidebar-product-contract.test.mjs` 与 `tests/environment/scheduled-task-ui-r1.test.mjs`：读取并接受工作区已有、与 R32 公共 class/焦点/grid 一致的测试修改；独立只读 reviewer 确认未移除授权、删除确认、Stop、运行身份、保留历史、禁止清库及 hidden 断言。两份文件定向结果 **33 PASS / 0 FAIL**（`/tmp/sidebar-r32-related-test-fix.log`），以 [8ac00038](https://github.com/shopable-ai/opendesk-browser/commit/8ac000384699f7c77106a6b896bc462e37072b6c) 安全推送。该 SHA 的 [Scheduled R1 干净构建](https://github.com/shopable-ai/opendesk-browser/actions/runs/38456742060) SUCCESS，`check/build/build:dev/verify` 全通过，包 SHA 与前述 R21 相同。R32 三份最终 HTML/CSS 与 HEAD、工作区及日常 `dist/development/ui/` 字节再次核对一致。
+
+该 SHA 的 [Sidebar R1 P0](https://github.com/shopable-ai/opendesk-browser/actions/runs/38456742100) 剩余 **16 FAIL**，旧 class 项已消失；[Tools R1](https://github.com/shopable-ai/opendesk-browser/actions/runs/38456742169) 为 **200 PASS / 1 FAIL**，剩余项变为同一沙箱 fixture 的 `second asset onerror blocks main script`，其固定 20 次 `setImmediate` 等待未绑定真实异步摘要终态，保留原日志，不以盲目重跑宣称关闭。
+
+追加 CI 写入范围：`.github/workflows/sidebar-r19-layout-visual.yml`、`.github/workflows/sidebar-r21-ui-quality.yml`。现有 path filter 漏掉上述两份折叠区/定时表单回归契约，测试修正不会触发 R19/R21；各补两条 path，并把两份现有测试加入 R21 的受影响组件检查，不更改权限或环境，不删除原测试。这使最终 SHA 具有直接 R19/R21 证据，并让以后相同契约修改自动触发布局验收。日常 Chrome 未登录 GitHub，未登录或改变账号来调用手动 workflow；使用正常 main push 触发，不绕过权限。
 
 复现本地布局验证：
 
