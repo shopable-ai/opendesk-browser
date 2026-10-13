@@ -580,8 +580,11 @@ export function createCloudService({storage,api,clock={now:()=>Date.now()},asser
       if(!projection||r.receipt||projection.run.retirementState!=='released')continue;
       for(const origin of r.task.manifest.siteOrigins)await requireGrant(api,origin);
       const allowed=await transaction('readwrite',async tx=>{
-        const row=await tx.get(KV,rowKey(r)),config=await tx.get(KV,CONFIG),stored=await tx.get('runs',r.runId),approved=config?.tasks?.find(t=>t.taskId===row?.task?.taskId&&t.version===row.task.version&&t.manifestHash===row.task.manifestHash&&t.contentHash===row.task.contentHash);await assertRunTaskAuthorization(tx,stored);
-        if(!current()||stored.resultDeliveryRevoked||!config?.enabled||config.grantId!==r.grantId||!row?.task.resultAllowed||approved?.resultAllowed!==true||canonical(row.runRef)!==canonical(r.runRef))return false;
+        const row=await tx.get(KV,rowKey(r)),config=await tx.get(KV,CONFIG),stored=await tx.get('runs',r.runId);
+        await assertRunTaskAuthorization(tx,stored);
+        // A status-only receipt is required even if body delivery was never
+        // approved. The durable intent cannot grant access to page content.
+        if(!current()||stored.resultDeliveryRevoked||!config?.enabled||config.grantId!==r.grantId||!row?.task||canonical(row.runRef)!==canonical(r.runRef))return false;
         row.delivery={state:'pending',receiptKey:r.runRef.resultId,grantId:r.grantId,runRef:r.runRef};await history.put(tx,row);return true;
       });if(!allowed||!current())continue;
       // The durable delivery intent is not permission to send after an asynchronous
@@ -589,15 +592,18 @@ export function createCloudService({storage,api,clock={now:()=>Date.now()},asser
       for(const origin of r.task.manifest.siteOrigins)await requireGrant(api,origin);
       const stillAllowed=await transaction('readonly',async tx=>{
         const config=await tx.get(KV,CONFIG),stored=await tx.get('runs',r.runId),row=await tx.get(KV,rowKey(r)),approved=config?.tasks?.find(t=>t.taskId===row?.task?.taskId&&t.version===row.task.version&&t.manifestHash===row.task.manifestHash&&t.contentHash===row.task.contentHash);
-        if(!current()||!config?.enabled||config.revokedAt||config.grantId!==r.grantId||stored?.resultDeliveryRevoked||!row?.task.resultAllowed||approved?.resultAllowed!==true||canonical(row.runRef)!==canonical(r.runRef))return false;
-        await assertRunTaskAuthorization(tx,stored);return true;
+        if(!current()||!config?.enabled||config.revokedAt||config.grantId!==r.grantId||stored?.resultDeliveryRevoked||!row?.task||canonical(row.runRef)!==canonical(r.runRef))return null;
+        await assertRunTaskAuthorization(tx,stored);
+        // Return only the CURRENT intersection of request and Task body scopes.
+        return {resultAllowed:row.task.resultAllowed===true&&approved?.resultAllowed===true};
       });if(!stillAllowed||!current())continue;
-      const result=projection.result,limited=r.task.resultAllowed===true?{visibility:'full',runId:result.runId,resultId:result.resultId,revision:result.revision,state:result.state,sourceHash:r.runRef.sourceHash,retirementState:projection.run.retirementState,...(result.outcome?.valueWire!==undefined?{valueWire:result.outcome.valueWire}:{}),...(result.outcome?.error?{error:result.outcome.error}:{})}:{visibility:'status-only',state:['completed','failed','stopped','interrupted'].includes(result.state)?result.state:'interrupted',retirementState:'released'};
+      const result=projection.result,limited=stillAllowed.resultAllowed===true?{visibility:'full',runId:result.runId,resultId:result.resultId,revision:result.revision,state:result.state,sourceHash:r.runRef.sourceHash,retirementState:projection.run.retirementState,...(result.outcome?.valueWire!==undefined?{valueWire:result.outcome.valueWire}:{}),...(result.outcome?.error?{error:result.outcome.error}:{})}:{visibility:'status-only',state:['completed','failed','stopped','interrupted'].includes(result.state)?result.state:'interrupted',retirementState:'released'};
       const receipt=await post(c,'receipt',{assignmentId:r.assignment.assignmentId,receiptKey:r.runRef.resultId,runRef:r.runRef,result:limited,...requestBinding(r)},{isCurrent:current});
       invariant(nonempty(receipt?.receiptId)&&nonempty(receipt.digest),'E_RECEIPT');
       await transaction('readwrite',async tx=>{
         const row=await tx.get(KV,rowKey(r)),config=await tx.get(KV,CONFIG),stored=await tx.get('runs',r.runId),approved=config?.tasks?.find(t=>t.taskId===row?.task?.taskId&&t.version===row.task.version&&t.manifestHash===row.task.manifestHash&&t.contentHash===row.task.contentHash);
-        if(!current()||!config?.enabled||config.grantId!==r.grantId||stored.resultDeliveryRevoked||!row?.task.resultAllowed||approved?.resultAllowed!==true||canonical(row.runRef)!==canonical(r.runRef))return;
+        if(!current()||!config?.enabled||config.grantId!==r.grantId||stored?.resultDeliveryRevoked||!row?.task||canonical(row.runRef)!==canonical(r.runRef)||
+          (limited.visibility==='full'&&(row.task.resultAllowed!==true||approved?.resultAllowed!==true)))return;
         await assertRunTaskAuthorization(tx,stored);row.receipt=receipt;row.delivery.state='confirmed';row.state='finished';await history.put(tx,row);
       });
     }

@@ -80,7 +80,7 @@ test('same installed Task in two Executors cannot cross-claim, admit, receipt or
       {visibility:'full',state:'completed',runId:ref.runId,resultId:ref.resultId,
         sourceHash:pin.sourceHash,retirementState:'released',valueWire:{secret:'HTML-SHOULD-NOT-LEAK'}}
     ])await assert.rejects(post('/v1/receipt',{...receipt,result},credentials[0]),
-      {code:result.visibility==='full'?'E_RESULT_SCOPE':'E_SCHEMA'});
+      {code:'E_RESULT_SCOPE'},'Reject every raw body, URL and error attached to a status-only receipt');
     const ack=await post('/v1/receipt',receipt,credentials[0]);
     assert.deepEqual(await post('/v1/receipt',receipt,credentials[0]),ack);
     assert.equal((await post('/v1/reconcile',{},credentials[1])).assignments

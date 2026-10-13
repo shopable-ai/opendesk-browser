@@ -30,9 +30,9 @@ test('hosting control rules match the dedicated Cloud container and wrap action 
   const [html,css]=await Promise.all([read('src/ui/tool.html'),read('src/ui/cloud-hosting.css')]);
   const cloud=html.slice(html.indexOf('id="workbench-cloud"'),html.indexOf('id="workbench-local-discover"'));
   assert.match(cloud,/id="cloud-hosting"/);
-  assert.match(html,/<link href="cloud-hosting\.css">/);
-  assert.match(css,/#cloud-hosting>div\{[^}]*display:flex;flex-wrap:wrap;gap:var\(--space-2\)/);
-  assert.match(css,/#cloud-hosting>div button\{flex:1 1 130px;min-height:36px\}/);
+  assert.match(html,/<link\b[^>]*\bhref="cloud-hosting\.css"/);
+  assert.match(css,/#workbench-tasks #cloud-hosting>div\{[^}]*display:flex;flex-wrap:wrap;gap:var\(--space-2\)/);
+  assert.match(css,/#workbench-tasks #cloud-hosting>div button\{flex:1 1 130px;min-height:36px\}/);
 });
 
 test('Cloud controls exist once within Cloud and refresh stays read-only',async()=>{
@@ -42,7 +42,8 @@ test('Cloud controls exist once within Cloud and refresh stays read-only',async(
   for(const id of ['cloud-hosting','cloud-pair','cloud-approve','cloud-stop','cloud-refresh','cloud-overview-refresh','cloud-request-samples'])
     assert.ok(panel.includes('id="'+id+'"'),id);
   assert.match(cloud,/async function dispatchNext\(/);
-  assert.match(cloud,/click\('cloud-overview-refresh',async\(\)=>\{await refreshStatus\(\{includeRequests:false\}\);\}\)/);
+  assert.match(cloud,/const readOnly=id==='cloud-refresh'\|\|id==='cloud-overview-refresh'/);
+  assert.match(cloud,/click\('cloud-overview-refresh',async\(\)=>\{\}\)/);
   assert.match(shell,/let cloudHosting=null/);
 });
 
@@ -291,7 +292,7 @@ test('operation rejection and local approval validation preserve trusted status 
   try{
     await flush();const initialReads=reads;
     map.get('cloud-approve').listeners.get('click')();await flush();
-    assert.match(map.get('cloud-status').textContent,/请先批准所选固定任务和网站范围/);
+    assert.match(map.get('cloud-status').textContent,/请先核对所选任务的固定版本、网站范围与安装代际/);
     assert.equal(approvals,0);assert.equal(reads,initialReads);
     map.get('cloud-consent').checked=true;
     map.get('cloud-approve').listeners.get('click')();await flush();
@@ -333,13 +334,15 @@ test('periodic polling stays cheap between bounded refreshes and failed cheap re
   },cloudNext:()=>assert.fail('pending local execution must not claim')};
   const hosting=createCloudHosting({document,client:{cloud},host:{executionPending:true}});
   try{
-    await flush();assert.deepEqual(calls,[{includeRequests:false},{limit:5}]);
+    await flush();assert.deepEqual(calls,[{includeRequests:false}],
+      'Inactive Cloud tab must not fetch full request history on startup');
     timestamp=8000;await scheduled();
-    assert.deepEqual(calls,[{includeRequests:false},{limit:5},{includeRequests:false}]);
+    assert.deepEqual(calls,[{includeRequests:false},{includeRequests:false}],
+      'Inactive tab polls connection/slot without scanning request history');
     failed=true;timestamp=10000;await scheduled();
     for(const metric of ['provider','connection','host','slot','tasks','requests'])
       assert.equal(map.get('cloud-overview-'+metric).textContent,'待核对');
-    failed=false;timestamp=12000;await scheduled();
+    failed=false;timestamp=22000;await scheduled();
     assert.deepEqual(calls.slice(-2),[{includeRequests:false},{limit:5}]);
     assert.equal(map.get('cloud-overview-requests').textContent,'90');
   }finally{hosting.dispose();}
@@ -352,7 +355,7 @@ test('dispatch rejection is operation feedback and does not erase successful sta
   try{
     await flush();assert.equal(claims,1);
     assert.equal(map.get('cloud-overview-connection').textContent,'已连接');
-    assert.match(map.get('cloud-status').textContent,/操作未完成，请检查连接与授权（E_PRIVATE）/);
+    assert.match(map.get('cloud-status').textContent,/操作未完成，请检查连接与授权（E_CLOUD）/);
     assert.doesNotMatch(map.get('cloud-status').textContent,/状态暂不可读取|SECRET/);
   }finally{hosting.dispose();}
 });

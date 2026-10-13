@@ -33,7 +33,7 @@ function securePost(port,ca,path,body,credential){
       response.on('end',()=>{
         try{const data=JSON.parse(Buffer.concat(chunks).toString('utf8'));
           if(response.statusCode!==200)reject(Object.assign(
-            Error(data.error?.message),{code:data.error?.code}));
+            Error('HTTPS '+path+': '+(data.error?.code||'E_REMOTE')),{code:data.error?.code}));
           else resolve(data);
         }catch(error){reject(error);}
       });});
