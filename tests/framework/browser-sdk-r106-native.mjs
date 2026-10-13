@@ -295,19 +295,13 @@ async function runNative(){
       report.launch=launched.metadata;
       report.extensionId=new URL(worker.url).hostname;
       const helper=await readFile(path.join(root,'tests/framework/time-review-native-input.swift'),'utf8');
-      assert(helper.includes('case "home":key(115)'));
+      assert(helper.includes('case "go-to-folder":key(5,[.maskCommand,.maskShift])'));
+      assert(helper.includes('requireForeground()'));
       const source=path.join(runDir,'owned-native-input.swift');
-      const activate='owned.activate(options:[]);RunLoop.current.run(until:Date().addingTimeInterval(0.25));';
-      assert(helper.includes(activate));
-      await writeFile(source,helper.replace(activate,
-        'if let windows=value(app,kAXWindowsAttribute) as? [AXUIElement],let window=windows.first {AXUIElementPerformAction(window,kAXRaiseAction as CFString)};owned.activate(options:[.activateAllWindows,.activateIgnoringOtherApps]);let activationDeadline=Date().addingTimeInterval(3);while NSWorkspace.shared.frontmostApplication?.processIdentifier != pid && Date()<activationDeadline {RunLoop.current.run(until:Date().addingTimeInterval(0.1))};')
-        .replace('case "home":key(115)',
-        'case "go-to-folder":key(5,[.maskCommand,.maskShift])\n    case "home":key(115)')
-        .replace('for down in [true,false]{let event=CGEvent(keyboardEventSource:nil,virtualKey:0,keyDown:down);event?.keyboardSetUnicodeString(stringLength:characters.count,unicodeString:characters);event?.post(tap:.cghidEventTap)}',
-        'for start in stride(from:0,to:characters.count,by:8){let chunk=Array(characters[start..<min(start+8,characters.count)]);for down in [true,false]{let event=CGEvent(keyboardEventSource:nil,virtualKey:0,keyDown:down);event?.flags=[];event?.keyboardSetUnicodeString(stringLength:chunk.count,unicodeString:chunk);event?.post(tap:.cghidEventTap)};RunLoop.current.run(until:Date().addingTimeInterval(0.05))}'));
+      await writeFile(source,helper);
+      report.nativeHelper={sourceSha256:sha256(await readFile(source)),baseSha256:sha256(Buffer.from(helper))};
       nativeKeyboard=path.join(runDir,'owned-native-input');
       execFileSync('swiftc',[source,'-o',nativeKeyboard],{timeout:60000});
-      report.nativeHelper={sourceSha256:sha256(await readFile(source)),baseSha256:sha256(Buffer.from(helper))};
       return {version,extensionId:report.extensionId,pid:launched.metadata.pid,profile:launched.metadata.profile};
     });
     await recordCase('side-panel-contexts',async()=>{
@@ -532,12 +526,14 @@ async function runNative(){
       report.cleanup=await launched.stop();
     }
     report.driverUnchanged=(await fileHash(driverFile)).sha256===report.driver.sha256;
+    if(report.nativeHelper)report.nativeHelper.baseUnchanged=sha256(await readFile(path.join(root,
+      'tests/framework/time-review-native-input.swift')))===report.nativeHelper.baseSha256;
     if(report.candidate){
       report.candidateUnchanged=JSON.stringify(await packageFingerprint(extension))===JSON.stringify(report.candidate.extensionPackage)&&
         JSON.stringify(await treeHashes(extension))===JSON.stringify(report.candidate.extensionFiles)&&
         JSON.stringify(await treeHashes(toolRoot))===JSON.stringify(report.candidate.toolSourceFiles);
     }
-    const drift=report.driverUnchanged===false||report.candidateUnchanged===false;
+    const drift=report.driverUnchanged===false||report.candidateUnchanged===false||report.nativeHelper?.baseUnchanged===false;
     if(drift)report.status='FAIL_CANDIDATE_OR_DRIVER_DRIFT';
     report.finishedAt=now();
     await save();
