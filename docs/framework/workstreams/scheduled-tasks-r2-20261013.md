@@ -240,3 +240,17 @@
 - [Scheduled Tasks 组件/包 CI 38431272718](https://github.com/shopable-ai/opendesk-browser/actions/runs/38431272718) 的 `scheduled-package` **完整 PASS（check/build/build:dev/verify）**，`scheduled-components` 中定时专项 PASS 但跨域 `sidebar-product-contract` 的 Developer 面板旧 DOM class 断言 FAIL；不得归因于 Scheduled Tasks 的运行逻辑，也不得把整体 CI 填成 PASS。
 - 因本轮还未得到 **最新修复同 SHA 的完整 Chrome CI**，目前生产真实 Mac Profile、Chrome 实体 Side Panel 320/360/420、跨倍数真实视觉、最后完整整进程重启和十项 `95+` 均保持 `NOT_TESTED` / `NOT_SCORED`。不要改动受信任 RunHost、Authority、FireId/RunId/ResultId 合同或降低测试标准来凑 PASS。
 
+### R2.8 真实 Chrome 专项 PASS 的原始证据
+
+下列 PASS **仅绑定各自 SHA 与唯一生产 WXT packageHash**；不把单个平台或旧候选结果转移为新 HEAD、用户 Mac 或全项目发布验收：
+
+| 隔离 Chrome 专项 | Git SHA / packageHash | 验证事实 | 限制 |
+| --- | --- | --- | --- |
+| [真实缩放/焦点 Linux PASS](https://github.com/shopable-ai/opendesk-browser/actions/runs/38432611404) | `6f4839ab55691c5f2a2a198bfdad0b51f63ce069` / `438c690cd986d25283ba838718764c0dea6520a81128af74e5f7e8d3593be577` | Chrome 155 `tabs.setZoom/getZoom` 100/125/150/200% 对应 CSS Width 840/672/560/420px，`scrollWidth` 同值；同一真实扩展 Tab 的 CSS viewport 模拟 220/300/320/360/420/520/594/760/980px 全部无整体溢出、10px label/input 测量间距、任务来源双 Icon 不重叠；原生输入 Tab、时区搜索/折叠、无安装任务的错误焦点和禁止确认、未保存草稿保护、浅/深色截图。原报告 `status=PASS`，[Artifact 11831827086](https://github.com/shopable-ai/opendesk-browser/actions/runs/38432611404/artifacts/11831827086)，17 张截图。 | Chrome **Tab** 真实缩放，Side Panel 宽度是 **CDP viewport 模拟**，不可冒充实体 Side Panel。旧 Linux 截图缺 CJK 字形。 |
+| [整 Chrome 进程重启 Linux PASS](https://github.com/shopable-ai/opendesk-browser/actions/runs/38432801913) | `bb57e3b2bb56d0a997aa08e123c4c51ad130b5af` / **同上 packageHash** | 独立临时 Chrome Profile 内真实创建安装 Task、核对 Run/Result、注册 Alarms、Side Panel 关闭后 Runner 驱动网页、暂停/恢复；原始整个 Chrome 进程退出并在相同临时 Profile 重启，恢复原计划和 Alarm，又获得新的正式 Run/Result 与网页真实效果；报告逐项 `wholeChromeProcessExited`、`sameControlledProfileRestarted`、`scheduleStateAndAlarmRecovered`、`newActualNativeEffectAfterRestart` 均 `PASS`。[Artifact 11831028944](https://github.com/shopable-ai/opendesk-browser/actions/runs/38432801913/artifacts/11831028944) 记录 6 张原生截图。 | 独立 Linux CFT 证据，不等于用户 Mac Profile、macOS Job 或所有权限矩阵。 |
+| [中文字体可读的缩放 Linux PASS](https://github.com/shopable-ai/opendesk-browser/actions/runs/38433079659) | `075a1ab277c71033c6a3ec1dbfeca01ae6159fc8` / `a9446b093ed923ddf7522c4356b5170aff5d5567f8afd4e72baca3d14c6621b9` | [Artifact 11831213547](https://github.com/shopable-ai/opendesk-browser/actions/runs/38433079659/artifacts/11831213547) 的 17 张同场景截图中文正常显示，360px 深色/浅色、320px 表单、原生 200% 都可审阅；独立报告 `status=PASS`。 | 仍为 Linux CFT，截图之外的人工专家 95 分和用户实际 Side Panel 均需单独验收。 |
+
+**后续实际页面发现（不是模拟 UX）：** 字体可读的独立运行页深色截图 `runner-color-scheme-dark-360.png` 显示从无效表单取消返回 Runner 后，顶部仍残留「请先修正上方标记的字段」。这是消息跨二级视图污染，而不是执行/授权异常。[修复 `8a335ca`](https://github.com/shopable-ai/opendesk-browser/commit/8a335cab4ce7e4d1a02577c7b994a483506810f0) 仅在 **真正改变二级视图** 时清空旧通知，保留正在编辑表单期间 15s Host 轮询不得自动隐藏错误的旧修复；[回归断言 `f6de1d7`](https://github.com/shopable-ai/opendesk-browser/commit/f6de1d733294c602c788aa4f909f997be7028536) 已写入主分支。**该最新 UI 修改尚需同 SHA Chrome/Node CI 复验，不能借此前截图直接称已验收。**
+
+**结论分层：** Linux Zoom/Resize/Keyboard 的受控测试 `NATIVE_PASS`；Linux 整 Chrome 重启/第二次真实网页效果 `NATIVE_PASS`；用户 Mac 日常 `dist/development` 的扩展 ID、Profile、Side Panel 实体物理尺寸 `NATIVE_PENDING`；双平台和完整质量 95+ `NOT_SCORED`。
+
