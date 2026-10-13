@@ -6,6 +6,17 @@ const error=(code,message)=>Object.assign(new Error(message),{code});
 const inputKey=input=>JSON.stringify({source:input.componentSource,framework:input.framework,programId:input.programId});
 const identity=(input,roots)=>({componentSource:input.componentSource,framework:input.framework,roots,...(input.framework==='controller'?{programId:input.programId}:{})});
 const pin=row=>({url:row.url,sha256:row.sha256,bytes:row.bytes});
+// This is a *source naming* gate for fresh auto-downloads, not proof that the
+// publisher will never replace a file. The Broker's original SHA lock is the
+// executable byte identity. Existing immutable locks remain offline-readable.
+export function assertPinnedESMSource(url){
+  let path;try{path=new URL(url).pathname;}catch{throw error('E_REMOTE_URL','ESM 模块必须为合法 HTTPS 地址');}
+  const semver=/(?:^|[\/@._-])v?\d+\.\d+\.\d+(?:-[0-9a-z.-]+)?(?=\/|[._-]|$)/i;
+  const commit=/(?:^|\/)[a-f0-9]{40}(?=\/|$)/i;
+  if(!semver.test(path)&&!commit.test(path))
+    throw error('E_REMOTE_VERSION_UNPINNED','新 ESM 来源必须使用明确的版本号或完整 Commit SHA，不能自动下载 latest/main 等可变地址：'+url);
+  return url;
+}
 export function createPageComponentRemote({client,preparer,api,document:doc,getInput,isBlocked=()=>false,onState=()=>{}}){
   const get=id=>doc.getElementById(id),panel=get('page-component-remote'),status=get('page-component-remote-status'),
     button=get('page-component-remote-prepare'),cancelButton=get('page-component-remote-cancel'),
@@ -198,6 +209,7 @@ export function createPageComponentRemote({client,preparer,api,document:doc,getI
         for(let i=0;i<32&&!analysis.complete;i++){
           const next=analysis.missingUrls.find(url=>!review?.entries?.some(entry=>entry.url===url));
           if(!next)throw error('E_REMOTE_GRAPH','静态依赖图不完整，无法确定下一模块');
+          assertPinnedESMSource(next);
           const prior=review?.entries?.length||0;
           // A review is just a temporary byte transaction, not user approval.
           review=await client.request('preparePageComponentDependencies',{

@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {createPageComponentRemote} from '../../src/ui/page-component-remote.js';
-const root='https://module.example.org/v1/index.js',child='https://other.example.org/v1/child.js';
+import {createPageComponentRemote,assertPinnedESMSource} from '../../src/ui/page-component-remote.js';
+const root='https://module.example.org/v1.2.3/index.js',child='https://other.example.org/v1.2.3/child.js';
 const rows=[{url:root,code:`import value from '${child}';export default value;`,sha256:'a'.repeat(64),bytes:100},
   {url:child,code:'export default 42;',sha256:'b'.repeat(64),bytes:18}];
 const pin=({url,sha256,bytes})=>({url,sha256,bytes});
@@ -34,8 +34,9 @@ function fixture({missingOrigin=false,denyOrigin=false}={}){
   }};
   const preparer={inspect:async input=>{
     const modules=input.remoteModules||[],present=new Set(modules.map(row=>row.url));
-    const missingUrls=!present.has(root)?[root]:!present.has(child)?[child]:[];
-    return {remoteRoots:[root],missingUrls,complete:missingUrls.length===0,modules:modules.map(row=>({url:row.url,children:row.url===root?[child]:[]}))};
+    const requestedRoot=/https:\/\/[^'"]+/.exec(input.componentSource)?.[0]||root;
+    const missingUrls=!present.has(requestedRoot)?[requestedRoot]:!present.has(child)?[child]:[];
+    return {remoteRoots:[requestedRoot],missingUrls,complete:missingUrls.length===0,modules:modules.map(row=>({url:row.url,children:row.url===requestedRoot?[child]:[]}))};
   },cancel(){}};
   const api={permissions:{contains:async()=>grant,request:request=>{
     assert.equal(inClick,true,'Chrome permissions.request must happen synchronously in trusted Run');
@@ -151,4 +152,22 @@ test('R7.2 changing source invalidates cached ESM grant observation; Chrome reje
   await assert.rejects(f.runClick(),{code:'E_PERMISSION'});
   assert.equal(f.calls.filter(row=>row.method==='preparePageComponentDependencies').length,0);
   assert.equal(f.locked,false);
+});
+
+test('R7.2 ESM auto fetch rejects moving branches, latest and unpinned hosts before network',async t=>{
+  assert.equal(assertPinnedESMSource(root),root);
+  assert.equal(assertPinnedESMSource('https://raw.githubusercontent.com/vanillaes/csv/v4.1.3/src/index.js'),
+    'https://raw.githubusercontent.com/vanillaes/csv/v4.1.3/src/index.js');
+  assert.equal(assertPinnedESMSource('https://raw.githubusercontent.com/group/repo/0123456789abcdef0123456789abcdef01234567/mod.js'),
+    'https://raw.githubusercontent.com/group/repo/0123456789abcdef0123456789abcdef01234567/mod.js');
+  for(const url of ['https://cdn.example.org/latest/mod.js','https://raw.githubusercontent.com/group/repo/main/mod.js']){
+    assert.throws(()=>assertPinnedESMSource(url),{code:'E_REMOTE_VERSION_UNPINNED'});
+    const f=fixture();t.after(()=>f.controller.dispose());
+    f.source={...f.source,componentSource:f.source.componentSource.replace(root,url)};
+    f.controller.refresh();
+    await assert.rejects(f.controller.autoLoadForRun(f.source),{code:'E_REMOTE_VERSION_UNPINNED'});
+    assert.equal(f.calls.filter(x=>x.method==='preparePageComponentDependencies').length,0,
+      'no HTTP transport or byte cache write before version admission');
+    assert.equal(f.locked,false);
+  }
 });
