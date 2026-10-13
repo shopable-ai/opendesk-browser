@@ -5,6 +5,8 @@ on:
     branches: [main]
     paths:
       - 'tests/environment/global-first-r5-fixed-workflow-to-task.test.mjs'
+      - 'tests/environment/global-first-r5-native-baseline-audit.test.mjs'
+      - 'scripts/global-first-r5-native-baseline-audit.mjs'
       - '.github/workflows/global-first-r5-fixed-task-integration.yml'
   workflow_dispatch:
 
@@ -26,6 +28,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Install locked test dependencies (native auditor imports package fingerprint)
+        run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Record exact source and test identity
         run: |
           mkdir -p artifacts/global-first-r5-compiled-task
@@ -37,6 +41,8 @@ jobs:
             src/platform/tasks/contract.js \
             tests/environment/global-first-r5-fixed-workflow-to-task.test.mjs \
             tests/environment/task-package-flow.test.mjs \
+            scripts/global-first-r5-native-baseline-audit.mjs \
+            tests/environment/global-first-r5-native-baseline-audit.test.mjs \
             > artifacts/global-first-r5-compiled-task/inputs.sha256
       - name: Real production contracts in isolated Node component fixture
         run: |
@@ -44,6 +50,7 @@ jobs:
           node --test \
             tests/environment/global-first-r5-fixed-workflow-to-task.test.mjs \
             tests/environment/task-package-flow.test.mjs \
+            tests/environment/global-first-r5-native-baseline-audit.test.mjs \
             | tee artifacts/global-first-r5-compiled-task/component-results.tap
       - name: Preserve component evidence without claiming native Chrome
         if: always()
