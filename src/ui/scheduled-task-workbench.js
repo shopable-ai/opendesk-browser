@@ -254,9 +254,18 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
       const option=element(doc,'option',null,(candidate(row)?.manifest?.title||row.taskId)+' · v'+row.version);
       option.value=row.taskId;select.append(option);
     }
-    if(eligible().some(row=>row.taskId===previous))select.value=previous;
-    else if(editing&&eligible().some(row=>row.taskId===editing.taskId))select.value=editing.taskId;
+    // Existing schedules are bound to exact Task + version + installation identity.
+    // Preserve an unavailable historical choice as a readable, disabled option,
+    // never silently substitute another installed version during editing.
+    if(editing&&!eligible().some(row=>row.taskId===editing.taskId)){
+      const unavailable=element(doc,'option',null,
+        '原固定任务 · v'+editing.version+'（已不可用，需检查安装与授权）');
+      unavailable.value=editing.taskId;unavailable.disabled=true;select.append(unavailable);
+    }
+    if(editing)select.value=editing.taskId;
+    else if(eligible().some(row=>row.taskId===previous))select.value=previous;
     else select.value='';
+    select.disabled=Boolean(editing);
     showTaskVersion();
   }
   async function showTaskVersion(){
@@ -264,7 +273,9 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
     const row=eligible().find(r=>r.taskId===get('schedule-task-select').value);
     const origins=candidate(row)?.manifest?.siteOrigins||[];
     if(!row){
-      text(get('schedule-task-version'),'请选择已安装、已验证且已启用的 Controller 任务');
+      text(get('schedule-task-version'),editing?
+        '原计划固定任务不可用；请恢复相同安装身份与网站授权。需使用其他任务时请新建计划。':
+        '请选择已安装、已验证且已启用的 Controller 任务');
       return;
     }
     const prefix=`固定版本 v${row.version} · 网站范围：${origins.join('，')||'不可用'}`;
@@ -539,6 +550,7 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
     populateTimeZoneSelect(selectedZone);
     get('schedule-timezone-search').value='';
     get('schedule-params').value='{}';get('schedule-kind').value='once';
+    get('schedule-task-select').disabled=false;
     get('schedule-clock').value='09:00';get('schedule-minutes').value='60';
     get('schedule-deadline').value='5';get('schedule-misfire').value='skip';
     populateChoices();switchKind();
@@ -549,7 +561,7 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
     for(const name of Object.keys(formFields))fieldError(name,'');
     editing=plan;show('form');
     get('schedule-title').value=plan.title;
-    get('schedule-task-select').value=plan.taskId;
+    populateChoices();
     get('schedule-target').value=plan.targetUrl;
     get('schedule-params').value=JSON.stringify(plan.params,null,2);
     get('schedule-kind').value=plan.triggerKind;
