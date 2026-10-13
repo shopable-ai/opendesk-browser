@@ -98,6 +98,7 @@ function renderBrowser(){
     if(active)E(id).classList.add('active');else E(id).classList.remove('active');
   }
   E('cookie-content').hidden=mode!=='offline';E('preview-banner').hidden=mode!=='offline';
+  E('browser-state').hidden=hasRead;
   const heading=E('browser-state-heading'),detail=E('browser-state-detail');
   if(targetPending){
     heading.textContent='请先确认目标网页';detail.textContent='输入框地址尚未应用。点击「选择」后再读取，避免误操作原先的网站。';
@@ -107,13 +108,13 @@ function renderBrowser(){
     heading.textContent='真实浏览器 Cookie 管理尚未就绪';
     detail.textContent='当前版本不能读取或修改 Chrome Cookie。你仍可使用「离线工作区」编辑和导入文件，但不会影响网页。';
   }else if(liveState==='ready'){
-    heading.textContent='已读取当前地址匹配的 Cookie 元数据';
-    detail.textContent='来自 Chrome 的真实 Cookie；值默认隐藏，写入及删除需要按操作确认。';
+    heading.textContent='已读取 Cookie';
+    detail.textContent='已授权浏览器数据，敏感值默认隐藏。';
   }else if(liveState==='error'||liveState==='blocked'){
     heading.textContent=liveState==='blocked'?'需要浏览器 Cookie 授权':'浏览器读取失败';
     detail.textContent=liveMessage||'请在工具详情中检查能力与指定网站授权，然后重试。';
   }else{
-    heading.textContent='需要单独授权';detail.textContent='请先在工具详情中批准 Cookie 读取与目标网站，再点击「读取 Cookie」。仅选择网站不会自动授权。';
+    heading.textContent='正在检查此网站…';detail.textContent='检查 Cookie 读取授权。';
   }
   E('target-help').textContent=targetOverride?
     '已选择指定网址；读取仍需该网站授权，不要求与当前活动标签页相同。':
@@ -143,7 +144,7 @@ function renderBrowser(){
   E('live-empty').hidden=visible.length>0;
   E('live-empty').textContent=hasRead?
     (liveRows.length?'没有匹配的 Cookie':'当前 URL 没有匹配的 Cookie。'):available?
-    '尚未读取真实 Cookie。':'当前未能读取真实 Cookie；可切换离线工作区。';
+    '正在检查网站 Cookie…':'无法读取 Cookie，请先在工具设置中授权该网站。';
   const doc=root.ownerDocument;
   for(const row of visible){
     const item=doc.createElement('div');item.className='cookie-row';item.setAttribute('role','listitem');
@@ -345,10 +346,16 @@ async function refresh(){
     E('target-url').value=target?.url||'';targetPending=false;
     E('preview-banner').textContent='离线工作区 · '+(target?
       '仅用 '+host+' 作为临时数据校验范围，不读取或修改浏览器 Cookie。':
-      '没有可用网页，使用 example.test 本地演示域名。')+' 关闭工具后数据不保留。';
+      '没有可用网页，只能在离线文件工具中准备数据。')+' 关闭工具后数据不保留。';
     status(mode==='offline'?'正在使用离线工作区；所有修改仅保存在临时内存。':'');
   }catch(error){if(id===epoch){liveState='error';liveMessage=String(error.message||error);status(liveMessage,'error');}}
-  finally{if(id===epoch){setBusy(false);render();}}
+  finally{if(id===epoch){
+    setBusy(false);render();
+    // Tool open / site change: read only if the existing grant still allows it.
+    // The public SDK/Host performs the actual per-site authority checks.
+    if(mode==='browser'&&liveTarget&&!targetPending&&typeof browserSdk()?.cookies?.getAll==='function')
+      void readBrowserMetadata();
+  }}
 }
 
 // Cookie Editor must not claim partitioned data is empty merely because the
@@ -818,7 +825,9 @@ function changeMode(next){
   if(busy||pending||mode===next)return;
   guarded(()=>{
     scrubEditors();mode=next;liveSecrets.clear();observing=null;
+    E('offline-tools').open=next==='offline';
     if(next==='browser')status('');
+    if(next==='browser'&&liveTarget&&liveState!=='ready'&&!targetPending)void readBrowserMetadata();
     else status('离线工作区：新增、编辑、导入和清空均不影响真实 Chrome Cookie。');
     render();
   });
@@ -856,13 +865,7 @@ E('live-filter').addEventListener('change',render);
 E('live-sort').addEventListener('change',render);
 E('refresh').addEventListener('click',()=>guarded(()=>{
   scrubEditors();
-  const refreshedEpoch=epoch+1;
-  // A deliberate Refresh is a user action, unlike automatic page-change updates.
-  // A future public SDK may read after rechecking the site's read grant.
-  void refresh().then(()=>{
-    if(epoch===refreshedEpoch&&mode==='browser'&&!targetPending&&
-       typeof browserSdk()?.cookies?.getAll==='function')return readBrowserMetadata();
-  }).catch(error=>status('刷新失败：'+String(error.message||error),'error'));
+  void refresh().catch(error=>status('刷新失败：'+String(error.message||error),'error'));
 }));
 E('search').addEventListener('input',render);
 E('add').addEventListener('click',()=>guarded(()=>openEditor()));
