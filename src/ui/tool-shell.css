@@ -991,6 +991,15 @@
 #workbench-cloud .cloud-first-run p{margin:0;font-size:13px;line-height:1.5;overflow-wrap:anywhere}
 #workbench-cloud .cloud-approval-section{display:grid;gap:var(--space-2);padding:var(--space-3);min-width:0}
 #workbench-cloud .cloud-privacy-note{margin:0;font-size:12px;line-height:1.55;color:var(--od-sub)}
+#workbench-cloud .cloud-approval-review{display:grid;gap:var(--space-2);min-width:0;
+  padding:var(--space-3);border:1px solid var(--od-line);border-radius:var(--radius-control)}
+#workbench-cloud .cloud-approval-review[hidden]{display:none}
+#workbench-cloud .cloud-approval-review>strong{font-size:12px}
+#workbench-cloud .cloud-review-items{display:grid;gap:var(--space-2);margin:0;
+  padding:0;list-style:none;min-width:0}
+#workbench-cloud .cloud-review-items li{font-size:12px;line-height:1.55;
+  overflow-wrap:anywhere;min-width:0}
+#workbench-cloud .cloud-approval-review .hint{margin:0;font-size:11px;line-height:1.5}
 #workbench-cloud .cloud-task-approvals{border:0;padding:0;margin:0;min-width:0}
 #workbench-cloud .cloud-task-approvals legend{font-size:12px;font-weight:650}
 #workbench-cloud #cloud-task-list{display:grid;gap:0;min-width:0}
