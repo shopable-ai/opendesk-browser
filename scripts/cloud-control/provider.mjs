@@ -224,7 +224,7 @@ export async function openProvider({directory='.local/cloud-control',port=43112,
           case '/admin/client-grant':{
             exact(b,['executorId','tasks','allowResult']);
             const row=state.executors[b.executorId];
-            if(!row||row.revokedAt||!row.grantId)fail('E_EXECUTOR_TARGET');
+            if(!row||row.revokedAt||!row.grantId||row.suspendedAt)fail('E_EXECUTOR_TARGET');
             if(!Array.isArray(b.tasks)||b.tasks.length<1||b.tasks.length>32||
               typeof b.allowResult!=='boolean')fail('E_CLIENT_SCOPE');
             const pinned=[],seen=new Set();
