@@ -279,6 +279,26 @@ test('R9 installed tool pinOwned requires exact one-use Host approval and return
   f.setSite(false);
   await assert.rejects(f.confirm('browser.tabs.pinOwned',{tabRef,pinned:false}),err('E_SITE_PERMISSION_REVOKED'));
 });
+test('R9 Host cannot mint a one-use intent for revoked or foreign owned TabRefs',async()=>{
+  const f=fixture(),url={url:'https://example.org/preflight'};
+  const {tabRef}=await f.call('browser.tabs.create',url,
+    (await f.confirm('browser.tabs.create',url)).approvalRef);
+  const operations=[
+    ['browser.tabs.activateOwned',{tabRef}],
+    ['browser.tabs.pinOwned',{tabRef,pinned:false}],
+    ['browser.tabs.removeOwned',{tabRef}],
+    ['browser.screenshot.captureVisible',{tabRef}],
+    ['browser.network.observe.start',{tabRef,origins:['https://example.org']}]
+  ];
+  for(const [operation,args] of operations){
+    f.setSite(false);
+    await assert.rejects(f.confirm(operation,args),err('E_SITE_PERMISSION_REVOKED'),
+      operation+' must check current site grant before issuing an approval');
+    f.setSite(true);
+    await assert.rejects(f.confirm(operation,{...args,tabRef:'r'.repeat(32)}),
+      err('E_TAB_REF_INVALID'),operation+' must reject a foreign resource before approval');
+  }
+});
 test('compact network.watch() returns an owned session handle and uses only existing trusted Host operations',async()=>{
  const f=fixture(),routed=[];
  const needsApproval=new Set(['browser.tabs.create','browser.network.observe.start','browser.network.observe.export']);
