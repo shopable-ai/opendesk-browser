@@ -105,7 +105,7 @@ test('Time Review R1.3 actual Mac Chrome install and trusted consent smoke',{ski
     chromePid:proc.pid,profileOwned:true,install:'NOT_TESTED',realSidePanel:'NOT_TESTED',
     minuteConsent:'NOT_TESTED',browserRestart:'NOT_TESTED',download:'NOT_TESTED',
     beginAndActiveCollection:'NOT_TESTED',pauseResume:'NOT_TESTED',
-    idlePermissionRevocation:'NOT_TESTED',
+    websiteGrantRevocation:'NOT_TESTED',idlePermissionRevocation:'NOT_TESTED',
     swRestart:'NOT_TESTED',hostedCI:true,screenshots:[],steps:[]};
   const note=(name,data)=>{evidence.steps.push({name,...data});console.log('TIME_NATIVE '+name+' '+JSON.stringify(data));};
   proc.stderr.on('data',data=>{stderr=(stderr+String(data)).slice(-3500);});
@@ -630,6 +630,45 @@ test('Time Review R1.3 actual Mac Chrome install and trusted consent smoke',{ski
     const resumed=await until(async()=>{const s=await readTime();return s&&!s.paused?s:null;},'trusted resume',10000);
     evidence.pauseResume='PASS';note('real-resume',{paused:resumed.paused});
 
+    // R1.5: remove the *tool's own* site grant while Chrome idle permission
+    // remains intact. The trusted button is clicked by actual Chrome input.
+    // This must retire the live interval without deleting already earned time.
+    const beforeSiteRevocation=await readTime();
+    await nativeClick(browser,side,'#time-review-site-all-revoke');
+    const siteWithdrawn=await until(async()=>{
+      const item=await readTime();
+      return item?.siteGrants?.allSites===false&&item.siteGrants.origins.length===0&&
+        item.paused===true&&item.authorizedHash===null&&item.checkpoint===null?item:null;
+    },'independent website consent revocation',12000);
+    assert.equal(await evaluate(browser,side,
+      'chrome.permissions.contains({permissions:["idle"]})'),true,
+      'website-level Time Review consent must not silently remove Chrome idle permission');
+    assert.ok(total(siteWithdrawn)>=total(beforeSiteRevocation),
+      'revoking a site must retain all legally settled historical time');
+    await nativeClick(browser,side,'#time-review-trusted-start');
+    await until(()=>evaluate(browser,side,
+      'document.querySelector("#sidebar-tool-status")?.textContent?.includes("E_TIME_SITE_GRANT")'),
+      'trusted start refuses collection without Time Review site grant',10000);
+    const denied=await readTime();
+    assert.equal(denied.paused,true);assert.equal(denied.checkpoint,null);
+    assert.deepEqual(denied.days,siteWithdrawn.days,
+      'failed start without website consent must not write new time');
+    await nativeClick(browser,side,'#time-review-site-current-open');
+    await until(()=>evaluate(browser,side,
+      '!document.querySelector("#time-review-site-confirm").hidden'),
+      'new reviewed website consent',10000);
+    await nativeClick(browser,side,'#time-review-site-current-approve');
+    await until(async()=>{
+      const item=await readTime();
+      return item?.siteGrants?.origins?.includes(approvedOrigin)?item:null;
+    },'new independent site grant committed',10000);
+    await nativeClick(browser,side,'#time-review-trusted-start');
+    await until(async()=>{const item=await readTime();return item&&!item.paused?item:null;},
+      'explicit restart after site permission recovery',10000);
+    evidence.websiteGrantRevocation='PASS';
+    note('real-site-authorization-revocation',{chromeIdleRetained:true,checkpointRetired:true,
+      unauthorizedRestartDenied:true,historyPreserved:true,regrantExplicit:true});
+
     // Revoke the actual optional Chrome idle permission during an authorized
     // running session through the trusted Side Panel UI, never through a
     // synthetic permissions event or direct storage mutation.
@@ -883,6 +922,7 @@ test('Time Review R1.3 actual Mac Chrome install and trusted consent smoke',{ski
     populatedExport:evidence.populatedExport,classification:evidence.classification,
     realBrowserZoom:evidence.realBrowserZoom,multiSite:evidence.multiSite,
     idleTransition:evidence.idleTransition,
+    websiteGrantRevocation:evidence.websiteGrantRevocation,
     idlePermissionRevocation:evidence.idlePermissionRevocation,
     disableEnable:evidence.disableEnable,uninstall:evidence.uninstall,
     currentSourceHash:process.env.GITHUB_SHA||null,actualSidePanelDocumentId:sideDocument.documentId

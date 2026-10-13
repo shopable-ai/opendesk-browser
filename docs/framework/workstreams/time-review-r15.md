@@ -80,3 +80,10 @@ npm run verify
 - d888903 的 [Sidebar user tools CI 38360670244](https://github.com/shopable-ai/opendesk-browser/actions/runs/38360670244) **FAIL：117 PASS、70 FAIL**，失败均出现在共享假宿主初始化，提示 `Time Review trusted controls are missing`，未进入实际业务行为测试。已归因：`tests/environment/sidebar-tools-host.test.mjs` 仍假设工具设置动态生成，没有实例化 `tool.html` 的静态授权 ID。
 - 修复必须同时保留生产安全：`host-controls.js` 允许与 Time Review 无关的轻量宿主夹具没有该控件，但当实际选择已授权的 Time Review 时，缺静态控件仍抛出并**拒绝受信任权限动作**；共享测试夹具显式加入静态 ID，新增负向测试确保不能以“安全降级”隐藏缺失。
 - 修复后按新 SHA 做隔离回归；Mac 原生和包大小不能因以上原因提前标记 PASS。
+
+## 生命周期收窄及原生证据补验（候选待实际 CI）
+
+- 发现安装列表变化时 `service.js` 先前对**全部** `SIDEBAR_TOOL_STORE` 改动一律触发 `invalidate({revoke:true})`，即使仅新增其他工具，也可能不合理地停止 Time Review；本轮收敛为当前 `time-review` 安装记录变化、该工具启停/代际变化或注册表损坏时才强制撤权，其他工具安装正常进行。
+- 新增环境回归：一边正常计时，一边安装 `other-tool`，需继续保存真实网站时间；随后修改 `time-review` 固定包身份，则检查点立刻退休。此场景不允许仅凭其他工具的 R1/R2 生命周期结果替代。
+- 原生 macOS 测试新增单独网站撤权链路：Chrome `idle` 权限保留的情况下，可信点击撤销 Time Review 网站范围；检查运行暂停和历史保留、没有网站同意时尝试开始被拒绝、再次逐站授权后明确重启。所有动作都应由真实 Side Panel 点击，不准直接预置 business storage。
+- 最新实际提交/同 SHA 结果、工具包与 SW SHA 必须在 CI 后写入；本段只描述已改的测试合同，并非声称浏览器 PASS。

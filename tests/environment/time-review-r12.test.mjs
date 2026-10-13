@@ -169,6 +169,34 @@ test('failed storage write protects existing records and does not fabricate succ
 test('listener lifecycle attaches synchronously and disposes without duplicate handlers',async()=>{
   const f=await fixture(),service=installTimeReviewService({api:f.api,lockManager:f.locks,now:()=>f.at});assert.equal(f.api.runtime.onMessage.listeners.size,1);assert.equal(f.api.alarms.onAlarm.listeners.size,1);service.dispose();assert.equal(f.api.runtime.onMessage.listeners.size,0);assert.equal(f.api.tabs.onActivated.listeners.size,0);
 });
+test('unrelated tool installation never revokes an active Time Review checkpoint',async()=>{
+  const f=await fixture();
+  await f.call('time.start');
+  const hosted=installTimeReviewService({api:f.api,lockManager:f.locks,now:()=>f.at});
+  await hosted.service.tick();
+  const before=structuredClone(f.local[SIDEBAR_TOOL_STORE]);
+  const other={...f.tool,id:'other-tool',title:'Another tool'};
+  f.local[SIDEBAR_TOOL_STORE]=[...before,other];
+  f.api.storage.onChanged.emit({[SIDEBAR_TOOL_STORE]:{
+    oldValue:before,newValue:f.local[SIDEBAR_TOOL_STORE]
+  }},'local');
+  f.advance(2000);
+  await hosted.service.tick();
+  const state=await f.call('time.status');
+  assert.equal(state.paused,false,'unrelated install may not revoke this tool');
+  assert.equal(state.todayMs,2000);
+  assert.equal(state.trackingHost,'example.com');
+  const current=structuredClone(f.local[SIDEBAR_TOOL_STORE]);
+  f.local[SIDEBAR_TOOL_STORE][0].js+='\\n// updated Time Review';
+  f.api.storage.onChanged.emit({[SIDEBAR_TOOL_STORE]:{
+    oldValue:current,newValue:f.local[SIDEBAR_TOOL_STORE]
+  }},'local');
+  await hosted.service.tick();
+  assert.equal(f.local[TIME_REVIEW_KEY].paused,true,
+    'changing this exact installed package must retire tracking');
+  assert.equal(f.local[TIME_REVIEW_KEY].checkpoint,null);
+  hosted.dispose();
+});
 test('official tool uses reviewed capability and optional catalog; MV3 permissions and fixed host',async()=>{
   const tool=validateSidebarToolPackage(await createSidebarToolPackage('examples/sidebar-tools/time-review'));assert.deepEqual(tool.capabilities,['time.review','user.export']);
   const catalog=JSON.parse(await readFile('official-tools/catalog.json','utf8'));assert.equal(catalog.tools.find(row=>row.id==='time-review').installationPolicy,'optional');

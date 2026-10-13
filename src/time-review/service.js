@@ -1,5 +1,5 @@
 import {SIDEBAR_TOOL_STORE,validateSidebarToolPackage} from '../ui/sidebar-tools/package.js';
-import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE,sidebarToolEnabled} from '../ui/sidebar-tools/lifecycle.js';
+import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE,sidebarToolEnabled,sidebarToolLifecycleChanged} from '../ui/sidebar-tools/lifecycle.js';
 import {writeVerifiedLocalValue} from '../ui/sidebar-tools/storage-state.js';
 import {isReadingTocToolSender} from '../reading-toc/page.js';
 import {TIME_REVIEW_KEY,readReview,reviewHost,reviewSettings,reviewClassify,reviewDay,localDay,settleReview,reviewSummary,reviewExport,MAX_OBSERVATION_GAP} from './model.js';
@@ -223,12 +223,20 @@ export function installTimeReviewService({api=globalThis.chrome,...options}={}){
   listen(api.permissions.onAdded,activity);
   listen(api.runtime.onStartup,()=>run({boot:true}));
   listen(api.storage.onChanged,(changes,area)=>{
-    if(area==='local'&&[SIDEBAR_TOOL_STORE,SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE].some(key=>Object.hasOwn(changes,key))){
-      // Installation, disable, update, revoke and uninstall retire any pending
-      // interval BEFORE the asynchronous durable authority recheck begins.
+    if(area!=='local')return;
+    const registry=changes[SIDEBAR_TOOL_STORE];
+    const lifecycle=sidebarToolLifecycleChanged(changes,TIME_REVIEW_ID);
+    if(!registry&&!lifecycle)return;
+    // Installing/updating *another* tool must not revoke Time Review's
+    // already approved tracking. Only changes to this exact installed identity
+    // (or corrupt registry records) retire the current checkpoint.
+    const ownRows=value=>value===undefined?[]:
+      Array.isArray(value)?value.filter(row=>row?.id===TIME_REVIEW_ID):null;
+    const before=registry?ownRows(registry.oldValue):[];
+    const after=registry?ownRows(registry.newValue):[];
+    if(lifecycle||before===null||after===null||JSON.stringify(before)!==JSON.stringify(after))
       service.invalidate({revoke:true});
-      run();
-    }
+    run();
   });
   run({boot:true});
   return {service,dispose(){for(const remove of removers)remove();}};
