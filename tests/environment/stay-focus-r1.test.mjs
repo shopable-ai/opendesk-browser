@@ -106,6 +106,14 @@ test('DNR rule uses exact regex main_frame and extension-owned block page',()=>{
   assert.equal(isFocusRuleId(730000),true);
   assert.equal(isFocusRuleId(730200),false);
 });
+test('overlapping parent and child domains favor the more specific restriction',()=>{
+  const parent=focusRuleForSite(mkSite('example.com',{subdomains:true}),730000,'quota');
+  const child=focusRuleForSite(mkSite('docs.example.com',{subdomains:false}),730001,'always');
+  assert.ok(new RegExp(parent.condition.regexFilter).test('https://docs.example.com/'));
+  assert.ok(new RegExp(child.condition.regexFilter).test('https://docs.example.com/'));
+  assert.ok(child.priority>parent.priority,'DNR must not choose an arbitrary parent reason');
+  assert.ok(!new RegExp(child.condition.regexFilter).test('https://sub.docs.example.com/'));
+});
 test('DNR reconcile never modifies foreign rules and verifies actual committed bytes',async()=>{
   const foreign={id:55,priority:1,action:{type:'block'},condition:{urlFilter:'ads'}};
   const current=[foreign],writes=[];
