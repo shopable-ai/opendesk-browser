@@ -3,6 +3,29 @@
 日期：2026-10-13。仓库 `shopable-ai/opendesk-browser`，唯一写入分支 `main`。
 **此文件是事实工作流/安全合同，不是宣布产品已经原生 95+ 验收。**
 
+## 最新一屏状态（2026-10-13，按固定源码候选审阅）
+
+**当前不宣布 R5.2 完成**。用户目标是「AI 创建/获取 Task → 验证安装一次 → 本地批准网站与版本 → 外部指定浏览器安全重复调用 → 真实 Worker 执行 → 原 Result/receipt 可追溯」。
+
+| 一眼看懂 | 当前可信事实 |
+| --- | --- |
+| **总目录** | **10 个领域、110 个可追溯功能/质量检查点**，其中 98 项产品/系统功能 + 12 项部署/质量；UI 39 项是交叉验收，不重复相加 |
+| **源码覆盖** | **107 项 SOURCE_IMPLEMENTED / 3 项 NOT_IMPLEMENTED**。剩余：UI-07 已授权 Task 详情与变更指引、UI-08 请求详情与原始 Result 入口、OPS-05 获批准公网跨网原生端到端；**107/110 不是实际完成百分比** |
+| **任务书** | [唯一手册](../cloud-control-r5.2-execution-manual.zh-CN.md)：**7 Gate / 30 包**，先 G0 同候选 CI/构建，再 G1 安全、G2 双 Task 真 Chrome、G3 UI、G4 可信远程、G5 故障、G6 评分 |
+| **专家初评** | [专家评分账本](cloud-control-r5-02-expert-scorecard.json) 的方案静态初评 **86/100**；15 维正式 DESIGN / IMPLEMENTATION / VERIFICATION 仍 **NOT_VERIFIED**；任一 P0 缺证据不能宣称整体 ≥95 |
+| **当前验证阻断** | 旧固定候选 [#38379208965](https://github.com/shopable-ai/opendesk-browser/actions/runs/38379208965) Cloud 45/45 PASS，但 Authority 105 后 OOM，整体 FAIL；Mock 修复已提交，**新候选须独立核对** |
+| **最新 UI 源码** | UI-06 生产云控“批准前核对”已真实增加，选项/安装身份变化清除旧确认，云控 active Tab 恢复正确刷新周期；绑定源码 `c6e082e1ba5fdb17259b36fad9dbaf9bfd5fd7a8`，组件 [#38405840554](https://github.com/shopable-ai/opendesk-browser/actions/runs/38405840554) / 包 [#38405840990](https://github.com/shopable-ai/opendesk-browser/actions/runs/38405840990) 查询时仍 queued，**SOURCE_IMPLEMENTED / NOT_VERIFIED** |
+| **真机与公网** | 两独立已安装 Task 原 Chrome Worker/Run/Result/retirement/receipt、300–520px 及 125%/200% 真 Side Panel 截图、获批准的公网 Provider 均缺，分别 **NATIVE_PENDING / REMOTE_NATIVE_PENDING** |
+
+### 下一批优先级（不是另一个设计方案）
+
+1. **G0**：固定候选核对云控 + Controller Authority OOM 修复的实际 CI、受影响文件输入 SHA；完成不提高 524288-byte 预算的 check / production+development build / verify，保存 PackageHash。
+2. **G2**：在获独占的原生 Chrome 中真正安装两份不同 Task，分别提交表单与搜索；收集两套 Job/Assignment/Run/Result/sourceHash/released/Provider receipt，双 Executor 拒绝串单。
+3. **G3**：在**唯一生产 Cloud Tab** 补 UI-07 已授权详情和 UI-08 单请求详情/原结果入口；交互仍复用原 Host/History、无第二个 UI 产品；完成五档宽度、Zoom、键盘原生验收。
+4. **G4/G5/G6**：若有明确部署许可，再做可信公网跨网络；否则保留 Pending；完成撤权/重启/未知副作用原生矩阵，按 15 维独立重新评分。
+
+**文档已保存**：完整功能树、机器矩阵、接口身份合同、UI 39 项/唯一 HTML 预览、7 Gate/30 任务手册、用户 README、专家评分与本实际证据账本。它们是不同职责的单一资料，不要再新建重复架构。没有生成的原生收据、截图、包指纹只能保持空值，不创建模拟 PASS。
+
 ## 用户要完成的事
 
 AI 帮用户生成或选择一个 Controller Task → 用户验证、安装并批准其网站与参数权限 → 在现有 Side Panel「云控」选择一个或多个已安装固定版本 → 自己选择每个 Task 是否额外允许回传网页数据 → 可信外部系统针对**指定、已配对的浏览器**投递一个有闭合参数的 Task → Chrome 原 Worker 执行 → 本地原始 Run/Result 保留 → Provider 至少获得最小状态回执 → 用户可 Stop、停用安装或撤销配对。
