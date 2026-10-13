@@ -6,7 +6,7 @@
 <meta name="color-scheme" content="light dark">
 <title>OpenDesk · 定时计划 R2.5｜交互预览</title>
 <!--
-OpenDesk Browser Scheduled Tasks R2.5 — HTML PREVIEW ONLY
+OpenDesk Browser Scheduled Tasks R2.5 (R2.6 UX sync) — HTML PREVIEW ONLY
 Canonical repo path: examples/ui/scheduled-tasks-r2.5-preview.html
 Source reviewed 2026-10-13: src/ui/tool.html, scheduled-task-workbench.js,
 scheduled-task-host.js, schedule-contract.js, schedule-time.js, design-tokens.css,
@@ -188,6 +188,11 @@ h1,h2,h3,p{margin-top:0}
 .product-window .source-info strong{font-weight:720;color:var(--od-ink)}
 .product-window .source-info.error{background:var(--warn-bg);color:var(--warn-ink)}
 .product-window .field-help{font-size:12px;color:var(--od-sub);line-height:1.5;margin:0;overflow-wrap:anywhere}
+.product-window #zone-search-result:empty{display:none}
+.product-window #zone-query{min-height:36px}
+.product-window .plan-title{white-space:normal;overflow:visible;text-overflow:clip}
+.product-window .form-title{margin-bottom:var(--space-1)}
+.product-window .runner-secondary{grid-template-columns:repeat(auto-fit,minmax(min(100%,170px),1fr))}
 .product-window .rule-pair{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:var(--space-3)}
 .product-window .weekdays{display:flex;gap:5px;flex-wrap:wrap;padding:3px 0 0;border:0;margin:0;min-width:0}
 .product-window .weekdays legend{font-size:12px;font-weight:720;margin-bottom:6px;color:var(--od-ink)}
@@ -315,22 +320,26 @@ h1,h2,h3,p{margin-top:0}
   function deviceTimeZone(){
     try{const zone=Intl.DateTimeFormat().resolvedOptions().timeZone;return isTimeZone(zone)?zone:'UTC'}catch{return 'UTC'}
   }
-  function timeZoneChoices(selected){
+  function timeZoneChoices(selected,query=''){
     const device=deviceTimeZone(),available=typeof Intl.supportedValuesOf==='function'
       ?Intl.supportedValuesOf('timeZone'):COMMON_ZONES.map(([zone])=>zone);
     const supported=new Set([device,selected,...COMMON_ZONES.map(([zone])=>zone),...available].filter(isTimeZone));
-    const option=(zone,label)=>`<option value="${safe(zone)}" ${zone===selected?'selected':''}>${safe(label)}</option>`;
+    const needle=query.trim().toLocaleLowerCase('zh-CN');
+    const option=(zone,label)=>needle&&zone!==selected&&
+      !(zone+' '+label).toLocaleLowerCase('zh-CN').includes(needle)?'':
+      `<option value="${safe(zone)}" ${zone===selected?'selected':''}>${safe(label)}</option>`;
     const seen=new Set([device]);
     let html=`<optgroup label="当前设备 · 默认"><option value="${safe(device)}" ${device===selected?'selected':''}>自动识别 · ${safe(COMMON_LABELS.get(device)||device)} (${safe(device)})</option></optgroup>`;
     let common='';
     for(const [zone,name] of COMMON_ZONES){if(zone!==device&&supported.has(zone)){seen.add(zone);common+=option(zone,`${name} (${zone})`)}}
-    html+=`<optgroup label="常用地区">${common}</optgroup>`;
+    if(common)html+=`<optgroup label="常用地区">${common}</optgroup>`;
     const labels={Africa:'非洲',America:'美洲',Antarctica:'南极地区',Asia:'亚洲',Atlantic:'大西洋地区',Australia:'澳大利亚',Europe:'欧洲',Indian:'印度洋地区',Pacific:'太平洋地区',Etc:'其他'};
     const groups=new Map();
     for(const zone of [...supported].sort()){if(seen.has(zone))continue;const region=zone.split('/')[0];if(!groups.has(region))groups.set(region,[]);groups.get(region).push(zone);seen.add(zone)}
     for(const [region,name] of Object.entries(labels)){
       const list=groups.get(region)||[];
-      if(list.length)html+=`<optgroup label="${name}">${list.map(z=>option(z,COMMON_LABELS.get(z)||z.replaceAll('_',' '))).join('')}</optgroup>`;
+      const matches=list.map(z=>option(z,COMMON_LABELS.get(z)||z.replaceAll('_',' '))).join('');
+      if(matches)html+=`<optgroup label="${name}">${matches}</optgroup>`;
     }
     return html;
   }
@@ -437,7 +446,7 @@ h1,h2,h3,p{margin-top:0}
       </section>
       <section class="form-section"><p class="form-title"><b>3</b>执行时间</p>
         <div class="rule-pair"><div class="od-field"><label for="field-kind">重复规则</label><select id="field-kind" data-field="kind">${[['once','执行一次'],['daily','每天'],['weekly','每周'],['interval','每隔一段时间']].map(([v,t])=>`<option value="${v}" ${d.kind===v?'selected':''}>${t}</option>`).join('')}</select></div>
-          <div class="od-field"><label for="field-zone">执行时区</label><select id="field-zone" data-field="zone" aria-describedby="zone-help error-time">${timeZoneChoices(d.zone)}</select><p class="field-help" id="zone-help">新建时默认识别本机时区；编辑时保留原计划时区。可选择其他地区，保存后固定不随设备变化。</p></div></div>
+          <div class="od-field"><label for="field-zone">执行时区</label><input type="search" id="zone-query" autocomplete="off" spellcheck="false" aria-label="筛选城市或 IANA 时区（不直接修改时区）" aria-controls="field-zone" placeholder="搜索城市或 IANA 时区"><select id="field-zone" data-field="zone" aria-describedby="zone-help error-time">${timeZoneChoices(d.zone)}</select><p class="field-help" id="zone-help">新建自动识别，编辑保留原时区。只有选中下拉项才更改，保存后固定。</p><p id="zone-search-result" class="field-help" role="status" aria-live="polite"></p></div></div>
         ${d.kind==='once'?`<div class="od-field"><label for="field-once">执行日期和时间（当地）</label><input id="field-once" type="datetime-local" data-field="once" value="${safe(d.once)}" aria-describedby="error-time"></div>`:''}
         ${['daily','weekly'].includes(d.kind)?`<div class="od-field"><label for="field-clock">当地时间</label><input type="time" id="field-clock" data-field="clock" value="${safe(d.clock)}" aria-describedby="error-time"></div>`:''}
         ${d.kind==='weekly'?`<fieldset class="weekdays"><legend>选择每周执行的日期</legend>${weekdays.map(v=>`<label><input type="checkbox" data-weekday="${v}" ${d.days.includes(v)?'checked':''}>周${W[v]}</label>`).join('')}</fieldset>`:''}
@@ -573,11 +582,26 @@ h1,h2,h3,p{margin-top:0}
   $('preview-mount').addEventListener('submit',e=>{if(e.target.id!=='plan-form')return;e.preventDefault();s.confirm=false;s.cancelConfirm=false;if(!validateDraft()){notify('请先修正标记的字段，不能进入保存确认。',true);const field=Object.keys(s.errors)[0];focusLater(`#field-${field==='task'?'taskId':field==='time'?'zone':field}`);return;}s.confirm=true;s.toast='这是保存前确认；固定任务身份在真实产品中还会重新解析并验证。';s.toastError=false;render();focusLater('[data-action="save-yes"]');});
   $('preview-mount').addEventListener('input',e=>{const el=e.target;
     if(el.id==='manager-query'){s.managerSearch=el.value;const list=$('manager-cards');if(list)list.innerHTML=managerRows().map(managerCard).join('')||'<p class="muted">没有匹配的已安装任务。</p>';return;}
+    if(el.id==='zone-query'){
+      const select=$('field-zone');if(!select)return;
+      const selected=s.draft.zone;
+      select.innerHTML=timeZoneChoices(selected,el.value);
+      select.value=selected;
+      const count=[...select.options].filter(o=>o.value!==selected).length;
+      $('zone-search-result').textContent=el.value.trim()?
+        (count?`另有 ${count} 个匹配地区；选中下拉项才会更改时区。`:'未找到其他地区；原时区保持不变。'):'';
+      return;
+    }
     const field=el.dataset.field;if(field){s.dirty=true;s.confirm=false;$('product-window')?.querySelector('.confirm-panel')?.remove();if(el.type==='checkbox')s.draft[field]=el.checked;else s.draft[field]=el.value; if(['once','clock','minutes','zone'].includes(field)){const preview=$('next-preview');if(preview)preview.textContent=formNext().label;} if(s.errors[field]){s.errors[field]='';const err=$('error-'+field);if(err)err.textContent='';el.setAttribute('aria-invalid','false')} }
   });
   $('preview-mount').addEventListener('change',e=>{const el=e.target;if(el.id==='manager-filter'){s.managerFilter=el.value;const list=$('manager-cards');if(list)list.innerHTML=managerRows().map(managerCard).join('')||'<p class="muted">没有匹配的已安装任务。</p>';return;}
     if(el.dataset.weekday!==undefined){const n=Number(el.dataset.weekday);s.draft.days=el.checked?[...new Set([...s.draft.days,n])]:s.draft.days.filter(v=>v!==n);s.dirty=true;const pv=$('next-preview');if(pv)pv.textContent=formNext().label;return;}
-    const field=el.dataset.field;if(field){s.draft[field]=el.type==='checkbox'?el.checked:el.value;s.dirty=true;s.confirm=false;$('product-window')?.querySelector('.confirm-panel')?.remove();if(['kind','taskId'].includes(field)){if(field==='kind'&&s.draft.kind==='interval')s.draft.intervalAnchor=null;s.advanced=$('advanced-panel')?.open||false;render();focusLater(`#field-${field}`);}else if(['paused','misfire','openTarget','deadline'].includes(field)){s.advanced=true;}}
+    const field=el.dataset.field;if(field){
+      if(field==='zone'){
+        const query=$('zone-query');if(query)query.value='';
+        el.innerHTML=timeZoneChoices(el.value);
+      }
+      s.draft[field]=el.type==='checkbox'?el.checked:el.value;s.dirty=true;s.confirm=false;$('product-window')?.querySelector('.confirm-panel')?.remove();if(['kind','taskId'].includes(field)){if(field==='kind'&&s.draft.kind==='interval')s.draft.intervalAnchor=null;s.advanced=$('advanced-panel')?.open||false;render();focusLater(`#field-${field}`);}else if(['paused','misfire','openTarget','deadline'].includes(field)){s.advanced=true;}}
   });
   $('preview-mount').addEventListener('toggle',e=>{if(e.target.id==='advanced-panel')s.advanced=e.target.open;},true);
   document.addEventListener('keydown',e=>{if(e.key!=='Escape')return;if(s.deleteId||s.uninstallId||s.menu||s.confirm||s.cancelConfirm){s.deleteId=null;s.uninstallId=null;s.menu=null;s.confirm=false;s.cancelConfirm=false;render();e.preventDefault();}else if(s.view!=='list'&&s.view!=='runner'){goBack();e.preventDefault();}});
