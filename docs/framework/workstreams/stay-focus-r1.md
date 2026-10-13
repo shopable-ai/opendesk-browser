@@ -1,5 +1,29 @@
 # Stay Focus R1.4 — zero-config shared entertainment (2026-10-13)
 
+
+## R1.5 真实 CI 验证记录（2026-10-14）
+
+**候选源码提交**：[`b39be6ab03714e1da33b646674af44bac984975f`](https://github.com/shopable-ai/opendesk-browser/commit/b39be6ab03714e1da33b646674af44bac984975f)。本轮只修正两条与现有拒绝行为不一致的断言：`tests/environment/fixed-entries-audit.test.mjs` 要求安全审计明确拒绝 `eval`；`tests/environment/stay-focus-r1.test.mjs` 同时断言 `E_FOCUS_DATA` 和原始本机数据保护提示。未修改安全执行器、策略业务逻辑或降低限额。原失败 [#38424281955](https://github.com/shopable-ai/opendesk-browser/actions/runs/38424281955) 为 59/61 PASS、2 FAIL；本候选已修复并实际复测。
+
+**真正执行环境**：GitHub Actions Node 22 Ubuntu；[Stay Focus #38428256016](https://github.com/shopable-ai/opendesk-browser/actions/runs/38428256016)（`source-and-build` Job `115403285041`），原始日志为 61/61 PASS、0 FAIL；`npm ci --ignore-scripts`、独立工具包、`npm run check`、`npm run build`、`npm run build:dev`、`npm run verify` 均在该 CI 中实际执行且退出成功。并非在用户 Mac 本地运行。构建包 [artifact 11829901963](https://github.com/shopable-ai/opendesk-browser/actions/runs/38428256016/artifacts/11829901963) 已保存。
+
+| 证据项 | 当前严格状态（仅本候选） |
+| --- | --- |
+| 11 个默认娱乐域名、单一 `g:entertainment`、每日默认 30 分钟、排除工作学习网站 | `SOURCE_DONE`; `COMPONENT_PASS`；`NATIVE_NOT_TESTED` |
+| 10 / 5 / 1 分钟剩余提醒、计费阈值去重、ISOLATED 页内呈现 | `SOURCE_DONE`; `COMPONENT_PASS`；网页真实截图 `NATIVE_NOT_TESTED` |
+| 真实双站共享时长、前台/非 idle、Chrome DNR、HTTPS YouTube/TikTok、现有标签补救 | `SOURCE_DONE`; `COMPONENT_PASS`；`NATIVE_NOT_TESTED` |
+| Side Panel 关闭 / Worker、Chrome 重启 / 撤权 / 停用 / 卸载 | `SOURCE_DONE`; `COMPONENT_PASS`（模拟 API 层）；`NATIVE_NOT_TESTED`，原生驱动也未单独覆盖全部场景 |
+| Node 组件测试 | `COMPONENT_PASS`，61/61，0 FAIL；CLI 原始 GitHub Job 115403285041 |
+| 固定产物审计、双构建、工具包生成与包验证 | `BUILD_PASS`，GitHub Job 115403285041 |
+| 真正 macOS Chrome for Testing | `NATIVE_NOT_TESTED`（native Job 115404593802 在本记录时仍 `QUEUED`） |
+| 正式产品验收 | `PRODUCT_NOT_ACCEPTED`，缺少同候选原生运行结果 |
+
+构建回执：`artifacts/sidebar-tools/stay-focus/1.0.0/stay-focus.opendesk-tool.json` 与 `dist/production/official-tools/stay-focus/stay-focus.opendesk-tool.json` 的 SHA-256 均为 `e551c906ad7dfb0af635e1602bd6c71f5fd7dcc1d03d45be1a9d3b02895ba2b8`；`dist/production/sw.js` 为 **559479 B**，SHA-256 `3d296325faeb82719212085345949ee02ccf62b494ca14323c11972c6defb3c8`。SW 已超过 **524288 B 软性 review**，但低于 **1048576 B 硬性 gate**；未放宽固定限制。ZIP artifact 的上传压缩包哈希与其中工具包 SHA 必须区分，不可混用。
+
+macOS job 完成后应读取真实退出码、`native-report.json`、截图和 SHA，再按每一场景更新 `NATIVE_PASS/FAIL/BLOCKED`，不得将排队状态认作 PASS。原始 Mac 本地目录在本次连接中不可访问，未声称实际控制用户日常 Chrome Profile。
+
+---
+
 ## R1.4 最终源码续接（2026-10-13）
 
 **当前已提交源码候选：** `4a379700c8171c259e5737c7a66c75c7ce5c1f20`（之后若有 main 更新必须重新核对）。本轮直接修改 Stay Focus 现有可信服务、唯一娱乐分类表、共享额度 UI、已有 ISOLATED Page Relay 提醒与 CFT 验收驱动；未新建第二套执行 Runtime、权限或 DNR 引擎。
