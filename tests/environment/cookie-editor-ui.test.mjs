@@ -6,7 +6,7 @@ import {createSidebarToolPackage} from '../../scripts/build-sidebar-tool.mjs';
 
 const project='examples/sidebar-tools/cookie-editor';
 const get=path=>readFile(path,'utf8');
-async function harness(){
+async function harness(browser=null){
   const [source,html,css,config]=await Promise.all([
     get(project+'/src/main.js'),get(project+'/src/index.html'),
     get(project+'/src/style.css'),get(project+'/tool.config.json').then(JSON.parse)]);
@@ -26,13 +26,20 @@ async function harness(){
   // Test-only instrumentation: production bytes never publish internal helpers.
   const instrument=source.replace(marker,
     'globalThis.__cookieTest={normalizeCookie,parseImport,exportText,saveToList,mergeImport,'+
-    'sortCookies,parseTarget,redactMetadata,setSite:host=>{data={hostname:host,origin:"https://"+host,cookies:[]}},'+
+    'sortCookies,parseTarget,redactMetadata,readBrowserMetadata,'+
+    'setLiveTarget:url=>{liveTarget=parseTarget(url);targetPending=false;liveRows=[];liveState="idle"},'+
+    'setTargetPending:value=>{targetPending=value},'+
+    'liveSnapshot:()=>({rows:liveRows,state:liveState,message:liveMessage}),'+
+    'setSite:host=>{data={hostname:host,origin:"https://"+host,cookies:[]}},'+
     'setRows:rows=>{data={...data,cookies:rows}}};\n})();');
   const context={
     OpenDeskTool:{root,request:async()=>({status:'unavailable'}),setState(){}},
+    OpenDeskSDK:browser?{browser}:undefined,
     Blob,Date,URL,TextEncoder,structuredClone,console
   };
   new Script(instrument,{filename:'cookie-editor-main.js'}).runInNewContext(context);
+  // The initial asynchronous current-page lookup must settle before adapter assertions.
+  await new Promise(resolve=>setImmediate(resolve));
   return {...context.__cookieTest,source,html,css,config,ids};
 }
 const expectError=(fn,pattern)=>{
@@ -180,4 +187,48 @@ test('Offline workspace remains isolated and browser writes or clears are not pe
   assert(s.source.includes("status('本地导入完成"));
   assert(s.source.includes("（仅本地预览）"));
   assert(s.html.includes('离线工作区'));
+});
+
+test('Public browser reader refuses missing site grant and always drops native values',async()=>{
+  let status={callableNow:false,reasonCode:'E_ORIGIN_NOT_APPROVED'},reads=0;
+  const s=await harness({capabilities:{getStatus:async()=>status},cookies:{
+    getAll:async()=>{reads++;return [{name:'sid',value:'should-be-redacted',
+      domain:'example.com',path:'/login',secure:true,httpOnly:true,session:true}];}
+  }});
+  s.setLiveTarget('https://example.com/login');
+  await s.readBrowserMetadata();
+  assert.equal(reads,0);
+  assert.equal(s.liveSnapshot().state,'blocked');
+  status={callableNow:true};
+  await s.readBrowserMetadata();
+  assert.equal(reads,1);
+  assert.equal(s.liveSnapshot().state,'ready');
+  assert.equal(s.liveSnapshot().rows[0].valueRedacted,true);
+  assert.equal(Object.hasOwn(s.liveSnapshot().rows[0],'value'),false);
+});
+
+test('Site changes during asynchronous authorization stop an obsolete Cookie read',async()=>{
+  let release,reads=0;
+  const pending=new Promise(resolve=>{release=resolve;});
+  const s=await harness({capabilities:{getStatus:()=>pending},cookies:{
+    getAll:async()=>{reads++;return [];}
+  }});
+  s.setLiveTarget('https://example.com/login');
+  const first=s.readBrowserMetadata();
+  s.setLiveTarget('https://other.example.com/');
+  release({callableNow:true});
+  await first;
+  assert.equal(reads,0,'obsolete site may not call the public SDK');
+  assert.equal(s.liveSnapshot().rows.length,0);
+});
+
+test('An edited target must be confirmed before a live Cookie read',async()=>{
+  let reads=0;
+  const s=await harness({capabilities:{getStatus:async()=>({callableNow:true})},cookies:{
+    getAll:async()=>{reads++;return [];}
+  }});
+  s.setLiveTarget('https://example.com/');
+  s.setTargetPending(true);
+  await s.readBrowserMetadata();
+  assert.equal(reads,0);
 });

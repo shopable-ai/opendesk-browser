@@ -35,7 +35,9 @@
   ],
   "testsRun": [
     "GitHub source inspection",
-    "V8 JavaScript syntax check"
+    "V8 JavaScript syntax check",
+    "V8 controlled component smoke (6 assertions: SDK grant, metadata redaction, pending URL, parsing); not native Chrome",
+    "Sidebar tool package validator in V8 (valid 1.1.0; rejects unsupported Cookie capability)"
   ],
   "testsNotRun": [
     "node --test",
@@ -50,5 +52,8 @@
   "chromeVersion": null,
   "extensionPackageHash": null,
   "cookieEditorPackageHash": null,
-  "note": "Remote source edits only if optimistic content SHA guards hold. No native evidence and no fake 95+."
+  "note": "Remote source edits only if optimistic content SHA guards hold. No native evidence and no fake 95+.",
+  "notes": [
+    "2026-10-13 R2.0.1 target input pending fence and stale authorization; Node/Chrome not executed"
+  ]
 }

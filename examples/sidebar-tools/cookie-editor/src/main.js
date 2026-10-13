@@ -5,7 +5,7 @@ const E=id=>root.querySelector('#'+id),editor=E('editor-panel'),importer=E('impo
 // The browser panel and local workspace intentionally have separate data owners.
 // Never substitute local cookies for Chrome reads or let a sandbox request grant access.
 let data=null,epoch=0,dirty=false,busy=false,editing=null,pending=null,returnFocus=null;
-let mode='browser',targetOverride='',liveTarget=null,liveRows=[],liveState='idle',liveMessage='';
+let mode='browser',targetOverride='',targetPending=false,liveTarget=null,liveRows=[],liveState='idle',liveMessage='';
 const browserSdk=()=>globalThis.OpenDeskSDK?.browser||null;
 function parseTarget(input){
   if(typeof input!=='string'||input.length>2048||input.trim()!==input)throw new Error('请输入不超过 2048 字符的 HTTP(S) 网页地址');
@@ -81,7 +81,9 @@ function renderBrowser(){
   }
   E('cookie-content').hidden=mode!=='offline';E('preview-banner').hidden=mode!=='offline';
   const heading=E('browser-state-heading'),detail=E('browser-state-detail');
-  if(!liveTarget){
+  if(targetPending){
+    heading.textContent='请先确认目标网页';detail.textContent='输入框地址尚未应用。点击「选择」后再读取，避免误操作原先的网站。';
+  }else if(!liveTarget){
     heading.textContent='请选择网页';detail.textContent='打开普通网页并点击「当前页」，或输入指定 HTTP(S) 地址。';
   }else if(!available){
     heading.textContent='浏览器 Cookie SDK 尚未开放';
@@ -98,7 +100,7 @@ function renderBrowser(){
   E('target-help').textContent=targetOverride?
     '已选择指定网址；读取权限由正式 SDK 按网站和 Cookie Store 判断，不要求与当前活动标签页相同。':
     '使用当前网页地址；切换网页后重新核对授权。选择网站不会自动批准权限。';
-  E('read-live').disabled=busy||!available;
+  E('read-live').disabled=busy||!available||targetPending;
   E('live-count').textContent=hasRead?liveRows.length+' 条 URL 匹配的 Cookie':'尚未读取';
   E('live-filters').hidden=!hasRead;
   const term=E('live-search').value.trim().toLocaleLowerCase(),filter=E('live-filter').value||'all';
@@ -119,6 +121,8 @@ function renderBrowser(){
     meta.textContent=row.domain+row.path+(row.hostOnly?' · Host-only':' · Domain')+
       (row.session?' · 会话':' · 持久')+(row.secure?' · Secure':'')+
       (row.httpOnly?' · HttpOnly':'')+(row.sameSite?' · SameSite '+row.sameSite:'')+
+      (!row.session&&Number.isFinite(row.expirationDate)?
+        ' · 过期 '+new Date(row.expirationDate*1000).toLocaleString():'')+
       (row.storeId?' · Store '+row.storeId:'')+
       (row.partitionKey?' · 分区 '+row.partitionKey.topLevelSite:'');
     const value=doc.createElement('div');value.className='cookie-row-value';
@@ -271,7 +275,7 @@ async function refresh(){
       cookies:prior?.hostname===host?prior.cookies:[]};
     E('site-host').textContent=target?.hostname||'尚未选择网站';
     E('site-url').textContent=target?.url||'';E('site-url').hidden=!target;
-    if(!targetOverride)E('target-url').value=target?.url||'';
+    E('target-url').value=target?.url||'';targetPending=false;
     E('preview-banner').textContent='离线工作区 · '+(target?
       '仅用 '+host+' 作为临时数据校验范围，不读取或修改浏览器 Cookie。':
       '没有可用网页，使用 example.test 本地演示域名。')+' 关闭工具后数据不保留。';
@@ -280,7 +284,7 @@ async function refresh(){
   finally{if(id===epoch){setBusy(false);render();}}
 }
 async function readBrowserMetadata(){
-  if(busy||pending||!liveTarget)return;
+  if(busy||pending||!liveTarget||targetPending)return;
   const sdk=browserSdk(),target=liveTarget,id=epoch;
   if(typeof sdk?.cookies?.getAll!=='function'){
     liveState='blocked';liveMessage='公开 Cookie SDK 尚未实现';render();return;
@@ -293,6 +297,7 @@ async function readBrowserMetadata(){
         String(permission?.reasonCode||'E_PERMISSION_REQUIRED').slice(0,80)+'）。请在工具详情中审阅网站授权。';}
       return;
     }
+    if(id!==epoch||liveTarget?.url!==target.url||targetPending||mode!=='browser')return;
     // Only public tool SDK: never invoke chrome.cookies or private approve/execute.
     const result=await sdk.cookies.getAll({url:target.url});
     const rows=redactMetadata(result);
@@ -431,14 +436,18 @@ function changeMode(next){
 }
 E('mode-browser').addEventListener('click',()=>changeMode('browser'));
 E('mode-offline').addEventListener('click',()=>changeMode('offline'));
+E('target-url').addEventListener('input',()=>{
+  targetPending=E('target-url').value!==(liveTarget?.url||'');
+  if(targetPending){liveRows=[];liveState='idle';}render();
+});
 E('apply-target').addEventListener('click',()=>guarded(()=>{
   try{
     const target=parseTarget(E('target-url').value);
-    scrubEditors();targetOverride=target.url;E('target-url').value=target.url;data=null;void refresh();
+    scrubEditors();targetOverride=target.url;targetPending=false;E('target-url').value=target.url;data=null;void refresh();
   }catch(error){status('选择网站失败：'+String(error.message||error),'error');}
 }));
 E('use-current').addEventListener('click',()=>guarded(()=>{
-  scrubEditors();targetOverride='';data=null;void refresh();
+  scrubEditors();targetOverride='';targetPending=false;data=null;void refresh();
 }));
 E('read-live').addEventListener('click',()=>{void readBrowserMetadata();});
 E('live-search').addEventListener('input',render);

@@ -27,6 +27,7 @@
 | 元数据默认脱敏 | SOURCE_WIRED | 客户端 `redactMetadata` 丢弃值；仍依赖 R9 Host 强制权限 |
 | 真实写/删、Cookie 值、clearSite/observe | BLOCKED | 只能由 R9 正式接口与授权生效后接通 |
 | Node 测试 | NOT_TESTED | 无用户 Mac 工作目录及依赖环境访问 |
+| V8 受控组件/SDK 拒绝冒烟 | COMPONENT_SMOKE_PASS | 虚拟 DOM + SDK stub：无授权不读取、授权后只读元数据、丢弃 value、未确认网址拒绝读取；不是 Node/原生 Chrome |
 | 官方工具打包、Build、Verify | NOT_TESTED | 未运行仓库构建命令；不伪造包 SHA |
 | Native Mac Chrome/CFT | NOT_TESTED | 无真实扩展安装、授权与截图回执 |
 | 完整产品 95+ | NOT_SCORED | 关键 SDK 阻塞与原生验收缺失 |
@@ -40,3 +41,10 @@
 5. 接入后在真实 Mac Chrome 测试多个 Path、Store、Partition、HttpOnly、前缀、撤权和副作用未知场景。
 
 **并行约束：** 本轮仅写 Cookie Editor 自有文件、专项测试和 R2 工作流。没有访问用户 Mac `git status`，不能判断本机是否有其他 Agent 未提交修改；禁止覆盖本地工作。GitHub 远端仅在目标 Blob 未变时条件提交，不修改 SDK R9 工作流及核心代码。
+
+## R2.0.1 小修正（2026-10-13）
+
+- 当用户编辑目标 URL 而未点击「选择」时，禁用真实读取，避免读取原网站的 Cookie。
+- 在读取权限的异步等待期间切换站点，禁止旧请求继续落到旧网址；不在失败或未知效果时自动重试。
+- 持久 Cookie 元数据附带过期时间（有原始值时）；补充 Node 合同测试源码用例。
+- 本次通过 V8 受控组件冒烟及语法检查，`node --test`、Build/Verify、真实 Mac Chrome 仍 **NOT_TESTED**。
