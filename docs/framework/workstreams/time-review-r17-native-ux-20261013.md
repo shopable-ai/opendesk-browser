@@ -16,3 +16,13 @@
 - 此驱动修改仍等待真实 macOS Runner 执行，不能宣称 Chrome PASS 或构建通过。
 
 - R1.7 生命周期缺陷与修复：`MARKET_PROVENANCE_STORE` 是所有应用共享映射。以前安装 Cookie Editor 等其他官方工具时，即使 `time-review` 的来源身份完全未变，Side Panel 也会销毁可信原生 UI；现在仅在 Time Review 自身来源 SHA/版本/发行 ID 改变、撤销或结构异常时关闭，其余应用安装保留 Time Review 实例。复用 R1.6 唯一可信准入与原 Host，未另建运行时。新增 R1.7 来源映射变更负向/正向 Node 用例。
+
+## R1.8 · 真实 CI 拆分与安全回归（2026-10-14）
+
+- 执行者：Time Review R1.8 本次 GitHub connector 会话；唯一写入 `main`。
+- 实际可访问资源：GitHub 源码、Actions 运行记录；当前执行容器 Node 22.16.0。**不能访问用户 Mac 本地仓库、日常 `dist/development` watcher 或 Chrome Profile**，不占用这些独占资源。
+- 计划写入范围：现有 `.github/workflows/time-review-r13-native.yml`、`src/time-review/host-controls.js`、`tests/environment/time-review-r16-trusted-native.test.mjs` 与本工作流记录；不触碰 Browser SDK、共享 Sidebar 宿主、安装器、SW 或其他 Agent 工具。
+- 只读核对基线：2026-10-13T16:31:52Z 最新已观察到的 `main=e64af0b8a42fd4ae02eeeedf50da5f23a52802ae`，写入时仍需逐文件读取当前 blob；后续其他 Agent 主分支提交不可直接覆盖。
+- 原生队列阻塞：Actions `38408021850`、`38416518447` 的 macOS job 当前仍为 `queued`，无 steps 结果与 artifacts；Node/Build 与 Native Chrome 均不可按排队状态登记 PASS。
+- P0：在既有唯一 Time Review 工作流中增加独立 Ubuntu Node/Build 检查，保留原 `macos-15` 原生验收不降级。等待真实 CI 命令、日志和退出码后再记录测试结论；发现实质缺陷才定向修复。
+- 本轮尚未触达本地 `git status`，无法核实其他 Agent 的未提交修改；本轮远端写入只使用原 blob SHA 条件更新。
