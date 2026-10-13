@@ -19,6 +19,14 @@ export function focusSchedule(raw){
      raw.startMinute===raw.endMinute)fail();
   return structuredClone(raw);
 }
+// An explicit nested exception must cover its descendants. Otherwise DNR's
+// excludedRequestDomains would exempt children from a parent restriction
+// while the time model still expects that parent to own those URLs.
+export function focusSiteScopesValid(sites){
+  return Array.isArray(sites)&&!sites.some(child=>sites.some(parent=>
+    parent!==child&&parent.subdomains&&child.host!==parent.host&&
+    hostnameMatches(child.host,parent.host,true)&&!child.subdomains));
+}
 export function emptyFocus(at=Date.now()){
   return {version:1,authorizedHash:null,authorizedEpoch:null,enabled:false,
     day:focusLocalDay(at),clockHighWater:0,sites:[],groups:{},whitelist:[],
@@ -36,7 +44,7 @@ export function readFocus(raw,at=Date.now()){
      !Array.isArray(raw.whitelist)||raw.whitelist.length>50||!obj(raw.usage)||Object.keys(raw.usage).length>80||
      !(raw.focusUntil===null||Number.isSafeInteger(raw.focusUntil)&&raw.focusUntil>0))fail();
   for(const site of raw.sites)focusSite(site);
-  if(new Set(raw.sites.map(s=>s.host)).size!==raw.sites.length)fail();
+  if(new Set(raw.sites.map(s=>s.host)).size!==raw.sites.length||!focusSiteScopesValid(raw.sites))fail();
   for(const [name,minutes] of Object.entries(raw.groups))
     if(!groupId(name)||!Number.isInteger(minutes)||minutes<1||minutes>1440)fail();
   for(const host of raw.whitelist)if(typeof host!=='string'||focusHost(host)!==host)fail();
@@ -54,8 +62,10 @@ export function readFocus(raw,at=Date.now()){
 }
 export function focusMatchingSite(state,hostname){
   if(!hostname||state.whitelist.some(host=>hostnameMatches(hostname,host,true)))return null;
-  return [...state.sites].filter(s=>s.enabled&&hostnameMatches(hostname,s.host,s.subdomains))
+  const specific=[...state.sites].filter(s=>hostnameMatches(hostname,s.host,s.subdomains))
     .sort((a,b)=>b.host.length-a.host.length)[0]||null;
+  // A paused child is an explicit exception to a broader parent policy.
+  return specific?.enabled?specific:null;
 }
 export function focusPool(site){return site.group?'g:'+site.group:'s:'+site.host;}
 export function focusBudget(state,site){
@@ -71,7 +81,7 @@ export function focusScheduleActive(schedule,at){
     schedule.days.includes(previous)&&minute<schedule.endMinute;
 }
 export function focusReason(state,site,at){
-  if(!site||!state.enabled)return null;
+  if(!site||!site.enabled||!state.enabled)return null;
   if(state.focusUntil!==null&&at<state.focusUntil)return 'session';
   if(focusScheduleActive(state.schedule,at))return 'schedule';
   if(site.mode==='always')return 'always';
