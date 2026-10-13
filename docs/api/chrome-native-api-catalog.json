@@ -1773,6 +1773,7 @@
         "browser.tabs.activateOwned",
         "browser.tabs.getOwned",
         "browser.tabs.listOwned",
+        "browser.tabs.navigateOwned",
         "browser.tabs.pinOwned",
         "browser.tabs.reloadOwned",
         "browser.tabs.removeOwned"
@@ -2881,6 +2882,7 @@
       "mappingKind": null,
       "opendeskOperation": [
         "browser.tabs.activateOwned",
+        "browser.tabs.navigateOwned",
         "browser.tabs.pinOwned"
       ],
       "hostService": null,
@@ -2945,6 +2947,7 @@
         "browser.launch.consume",
         "browser.tabs.getOwned",
         "browser.tabs.listOwned",
+        "browser.tabs.navigateOwned",
         "browser.tabs.pinOwned",
         "browser.tabs.reloadOwned",
         "browser.tabs.removeOwned"
