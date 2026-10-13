@@ -11,7 +11,7 @@
     <form id="daily-budget-form" class="sf-budget-form">
       <label for="daily-budget-minutes">修改每日共享额度（分钟）</label>
       <input id="daily-budget-minutes" type="number" value="30" min="1" max="1440" step="1" required>
-      <button type="submit" class="sf-secondary">保存额度</button>
+      <button id="daily-budget-save" type="button" class="sf-secondary">保存额度</button>
     </form>
     <div class="sf-actions"><button type="button" id="focus-pause" class="sf-secondary" hidden>暂时停用限制</button></div>
   </section>
@@ -46,7 +46,7 @@
         <label>限制方式<select id="site-mode"><option value="limit">每日限额</option><option value="always">始终封锁</option></select></label></div>
       <div class="sf-two"><label>共享额度组<select id="site-group"><option value="">不共享</option><option value="entertainment">娱乐总额度（共享）</option></select></label>
         <label class="sf-check"><input type="checkbox" id="site-subdomains" checked>包含子域名</label></div>
-      <div class="sf-actions"><button class="sf-primary" type="submit">保存网站规则</button>
+      <div class="sf-actions"><button class="sf-primary" id="site-save" type="button">保存网站规则</button>
         <button class="sf-secondary" type="button" id="add-current">使用当前网站</button></div>
     </form>
   </section>
@@ -56,7 +56,7 @@
       <p class="sf-hint">普通娱乐总额度请在顶部修改。这里仅为高级独立规则建立其他共享组。</p>
       <form id="group-form" class="sf-inline"><input aria-label="额度组名称" id="group-name" placeholder="例如 social" maxlength="24" required>
         <input aria-label="每天分钟数" id="group-minutes" type="number" min="1" max="1440" value="30" required>
-        <button type="submit" class="sf-secondary">保存组</button></form>
+        <button id="group-save" type="button" class="sf-secondary">保存组</button></form>
       <div id="groups" class="sf-groups"></div>
     </section>
     <section class="sf-panel"><h3>工作时段限制</h3>
@@ -64,13 +64,13 @@
         <div class="sf-weekdays" id="weekdays"><label><input type="checkbox" value="1">一</label><label><input type="checkbox" value="2">二</label><label><input type="checkbox" value="3">三</label><label><input type="checkbox" value="4">四</label><label><input type="checkbox" value="5">五</label><label><input type="checkbox" value="6">六</label><label><input type="checkbox" value="0">日</label></div>
         <div class="sf-two"><label>开始时间<input id="schedule-from" type="time" value="09:00" required></label>
           <label>结束时间<input id="schedule-to" type="time" value="17:00" required></label></div>
-        <button class="sf-secondary" type="submit">保存时段</button></form>
+        <button class="sf-secondary" id="schedule-save" type="button">保存时段</button></form>
     </section>
     <section class="sf-panel"><h3>允许访问的域名</h3>
       <p class="sf-hint">白名单优先于所有阻止规则。每行一个域名，不收集完整 URL。</p>
       <form id="whitelist-form"><label class="sf-visually-hidden" for="whitelist">白名单域名，每行一个</label>
         <textarea id="whitelist" rows="3" placeholder="docs.example.com"></textarea>
-        <button type="submit" class="sf-secondary">保存白名单</button></form></section>
+        <button id="whitelist-save" type="button" class="sf-secondary">保存白名单</button></form></section>
     <p class="sf-disclaimer">拦截权限与停用、清空操作请从工具外层「详情设置」管理。关闭此界面不会停止已经授权的后台限制。</p>
   </details>
 </main>

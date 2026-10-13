@@ -199,7 +199,7 @@
       $('whitelist').value=state.whitelist.join('\n');
     }
   }
-  $('daily-budget-form').addEventListener('submit',event=>{
+  $('daily-budget-save').addEventListener('click',event=>{
     event.preventDefault();
     if(!state?.enabled){message('请先在工具详情中授权并开启，再修改每日额度。',true);return;}
     const value=Number($('daily-budget-minutes').value);
@@ -214,7 +214,7 @@
       void call('focus.site.put',{site:siteRule(currentSuggestion)});
   });
   $('quick-refresh').addEventListener('click',()=>{void recognizeCurrent();});
-  $('site-form').addEventListener('submit',event=>{
+  $('site-save').addEventListener('click',event=>{
     event.preventDefault();
     const host=escapeHost($('site-host').value),minutesValue=Number($('site-minutes').value);
     if(!host||!Number.isInteger(minutesValue)||minutesValue<1||minutesValue>1440){
@@ -243,7 +243,7 @@
   });
   $('focus-start').addEventListener('click',()=>call('focus.session.start',{minutes:25}));
   $('focus-stop').addEventListener('click',()=>call('focus.session.stop',{}));
-  $('group-form').addEventListener('submit',event=>{
+  $('group-save').addEventListener('click',event=>{
     event.preventDefault();
     const id=$('group-name').value.trim().toLowerCase(),mins=Number($('group-minutes').value);
     if(!/^[a-z][a-z0-9-]{0,23}$/.test(id)||!Number.isInteger(mins)||mins<1||mins>1440){
@@ -251,7 +251,7 @@
     }
     call('focus.group.put',{id,minutes:mins});
   });
-  $('schedule-form').addEventListener('submit',event=>{
+  $('schedule-save').addEventListener('click',event=>{
     event.preventDefault();
     const startMinute=checkTime($('schedule-from').value),endMinute=checkTime($('schedule-to').value);
     if(!Number.isInteger(startMinute)||!Number.isInteger(endMinute)||startMinute===endMinute){
@@ -260,7 +260,7 @@
     const days=[...$('weekdays').querySelectorAll('input:checked')].map(input=>Number(input.value));
     call('focus.schedule.set',{schedule:{enabled:$('schedule-enabled').checked,days,startMinute,endMinute}});
   });
-  $('whitelist-form').addEventListener('submit',event=>{
+  $('whitelist-save').addEventListener('click',event=>{
     event.preventDefault();
     const hosts=$('whitelist').value.split(/\r?\n/).map(line=>line.trim()).filter(Boolean).map(escapeHost);
     if(hosts.some(host=>!host)||new Set(hosts).size!==hosts.length||hosts.length>50){

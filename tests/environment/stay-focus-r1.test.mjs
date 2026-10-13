@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
+import {runInNewContext} from 'node:vm';
 import {focusHost,hostnameMatches,focusRemovedOriginAffectsSite,focusLocalDay,FOCUS_MAX_GAP_MS,FOCUS_PAGE_NOTICE_PROTOCOL} from '../../src/stay-focus/policy.js';
 import {installFocusPageNotice} from '../../src/stay-focus/page-notice.js';
 import {emptyFocus,readFocus,focusSite,focusSiteScopesValid,focusSchedule,focusMatchingSite,focusPool,
@@ -449,4 +450,41 @@ test('R1.4 official budget UI has no required single-site setup wizard',()=>{
   const current=html.indexOf('id="total-used"');
   assert.ok(manual>current,'advanced manual setup cannot precede the daily total');
   assert.match(html,/<option value="entertainment">娱乐总额度/);
+});
+
+test('R1.6 settings save through button clicks when sandbox denies form submission',()=>{
+  const html=readFileSync(new URL('../../examples/sidebar-tools/stay-focus/src/index.html',import.meta.url),'utf8');
+  const script=readFileSync(new URL('../../examples/sidebar-tools/stay-focus/src/main.js',import.meta.url),'utf8');
+  const cases=[
+    ['daily-budget','focus.group.put',{'daily-budget-minutes':'2'}, {id:'entertainment',minutes:2}],
+    ['site','focus.site.put',{'site-host':'localhost','site-minutes':'2','site-mode':'limit',
+      'site-group':'entertainment'}, {site:{host:'localhost',minutes:2,subdomains:true,
+        enabled:true,mode:'limit',group:'entertainment'}}],
+    ['group','focus.group.put',{'group-name':'study','group-minutes':'5'}, {id:'study',minutes:5}],
+    ['schedule','focus.schedule.set',{'schedule-from':'09:00','schedule-to':'17:00'},
+      {schedule:{enabled:true,days:[1],startMinute:540,endMinute:1020}}],
+    ['whitelist','focus.whitelist.set',{'whitelist':'github.com'}, {hosts:['github.com']}]
+  ];
+  for(const [prefix,operation,values,payload] of cases){
+    const nodes=new Map(),requests=[];
+    const $=id=>{if(!nodes.has(id))nodes.set(id,{value:values[id]??'',checked:true,
+      listeners:{},addEventListener(type,fn){this.listeners[type]=fn;},
+      querySelectorAll(){return [{value:'1'}];}});return nodes.get(id);};
+    // Run the actual registration + validation handler. The sandbox supplies
+    // native button clicks, while it intentionally never dispatches submit.
+    const start=script.indexOf("$('"+prefix+'-save' +"').addEventListener");
+    assert.ok(start>=0,prefix+' must not depend on sandbox-blocked submit');
+    const end=script.indexOf('\n  });',start)+7;
+    runInNewContext(script.slice(start,end),{$,state:{enabled:true},
+      call:(op,data)=>requests.push({op,data}),message:()=>{},escapeHost:focusHost,
+      checkTime:value=>Number(value.slice(0,2))*60+Number(value.slice(3))});
+    assert.match(html,new RegExp('id="'+prefix+'-save"[^>]*type="button"'));
+    $(prefix+'-save').listeners.click({preventDefault(){}});
+    assert.deepEqual(JSON.parse(JSON.stringify(requests)),[{op:operation,data:payload}]);
+    if(prefix==='daily-budget'){
+      $('daily-budget-minutes').value='0';$(prefix+'-save').listeners.click({preventDefault(){}});
+      assert.equal(requests.length,1,'invalid budget must never reach the Host');
+    }
+  }
+  assert.doesNotMatch(script,/addEventListener\('submit'/);
 });
