@@ -1,68 +1,87 @@
-# OpenDesk Browser · Global First R2 产品决策（先读这份）
-> 2026-10-13。定位与工程决策，不是“全球第一”审批、正式版本发布或当前主线完整原生验收。本页聚焦有价值的用户任务，而非制造过窄赛道。完整原始来源见同目录两份 JSON，工程身份见 [R2 工作流](../../framework/workstreams/global-first-r2-20261013.md)。
+# OpenDesk Browser · 下一步产品决策
+> Global First R2 → R3 · 2026-10-13。**先读本页**：它是产品执行入口，不是竞品百科、世界纪录审批或 Chrome 原生 PASS 证明。权威机器账本仍是 [竞品时间线](competitor-timeline.json) 与 [14 条 GF 声明](first-claims-ledger.json)。
 
-## 结论：先做成一个看得见的领先体验，再申请“第一”
+## 一屏结论
 
-**现在可以证明的全球首个 / 全球第一：0。** 从 14 项原有 GF 声明中，优先 **F01 → F02 → F04**；GF-013（AI/MCP 用户脚本管理器首创）与 GF-014（多文件 React/Vue 用户脚本工具首创）已有反例，继续禁用。最适合现阶段的公开定位是：
+**只先做成一件事：F01 · 在 Chrome 侧栏编写 React/Vue 网页工具，直接在已授权网页运行、修改、停止。**
 
-> **Build Browser Apps, Not Just Userscripts.**  
-> **不只是运行用户脚本，更是在浏览器中开发工具。**
+- **已经有的**：开发版 JSX / Vue SFC 源码编译、网页交互、受管 Stop 的历史真实 macOS Chrome PASS；本地多文件项目也有历史 Native/CLI 测试。
+- **还没有证明的**：最新 `main` 的可公开取得 Developer 正式产品体验；真实新用户首次成功率；同等体验的全球排他性；对竞争工作流的效率领先。
+- **立即执行**：按 [F01 实施 GOAL](../../framework/prompts/goal-global-first-r3-f01-product-proof.zh-CN.md) 验证现有 Side Panel 产品链，修复最短路径上的实际问题，形成**固定版本 + 原生证据 + 可重复演示**。
+- **营销状态**：获准使用的世界首个/全球第一 **0 项**。今天仅使用 **Build Browser Apps, Not Just Userscripts.／不只是运行用户脚本，更是在浏览器中开发工具。**
 
-这是一句**产品定位**，不是世界排名。不要说“零配置”“所有网页”“最安全”或把内测 Developer 直接写成已上架版。
+## 用户到底会得到什么？
 
-| 排名 | 要帮用户完成的任务 | 现有证据 | 真正缺少什么 | 退出条件 |
-| --- | --- | --- | --- | --- |
-| 1 · F01 / GF-001 | 在 Chrome 侧栏写 React JSX 或 Vue SFC → 当前网页交互 → 修改 → Stop 清理 | 历史 macOS Chrome 的双框架交互、错误恢复和受管 Stop | 固定、**公众可获取**的 Developer 发行包；本版本原生演示；全球更早等价产品排他性核查 | 发现更早已公开的同等全链体验，则撤回首创候选，改做具体便利/可靠性优势 |
-| 2 · F02 / GF-002 | 修改本地 3–5 文件项目 → 无需重打包主扩展 → 明确 Run 网页 | 旧版 40 次 Chrome Run/Stop、独立 CLI 四目录自动编译 | OpenDesk 与 Vite+Tampermonkey、Vite+ScriptCat、WXT 的**冷启动/热修改**同条件原始计时 | 若冷启动明显落后且热修改无法弥补，不宣传“最低配置/最快”，只保留功能价值 |
-| 3 · F04 / GF-004 | 知道运行的源码、依赖、授权、版本、结果身份，以及 Stop 范围 | 已有独立锁、SHA、回执组件 | 同一最新包的批准→运行→撤权→Stop→更新端到端原生数据 | 仅能证明局部组件，不得宣传“全球最安全” |
+目标人群是正在写网站增强工具的 JavaScript / React / Vue 开发者。他们不想为一个小网站组件每次重新构建、加载完整浏览器扩展。
 
-## 1. F01 的产品定义：让开发者第一次成功，不要再造编译器
+**用户眼中的完整演示（不是伪 UI）：**
 
-**面向用户：** 希望把 React/Vue 交互工具直接装在当前网页中的脚本作者、前端开发者、AI 生成代码用户。用户最关心的是“输入源码后网站出现了什么”，不是 Worker 的存在。
+1. 安装明确注明限制的 **Developer Edition**；打开自己获准访问的普通 HTTP(S) 网页。
+2. 在真正的 Side Panel「开发 → 直接编辑」，选 **React JSX**，粘贴一个可交互组件，点击 Run；网页出现组件。
+3. 点网页组件，看到真实状态变化；修改源码再次 Run，看到新的内容而非旧回执。
+4. 切换 **Vue SFC**，展示 `ref` 交互与 `<style scoped>` 的效果（不要把两个框架说成同时共享同一脚本上下文）。
+5. 点击 **Stop**，组件及其受管 DOM/样式/监听器被清理。明确告知：Stop **不撤回**已发出的网络请求或已完成的网站业务动作。
 
-**真实最短路径：** 安装明确标记的 Developer Edition → 开启 Chrome 允许用户脚本和网站访问 → Side Panel「开发 → 直接编辑 → React JSX / Vue SFC」→ 输入或选择源码 → 明确 Run → 网页真实按钮从 0 变 1 → 修改一行再次 Run → Stop 后 DOM/样式/监听器按受管范围清理。**Standard 不提供浏览器端原始 JSX/SFC 编译**；它仍可运行 JS 与准备好的组件，不应伪装同等入口。
+**重要版本事实**：默认 Standard 仍支持 JavaScript 与固定的 React/Vue Direct 运行时，但**不内置浏览器端 JSX/SFC 编译器**。本地多文件开发需另外安装/配对 Native/Node。对新用户不隐藏这些成本。
 
-**最小产品改进按顺序：**
-1. **可用版本**：固定 Developer 包及独立扩展身份、README 下载/侧载说明、packageHash、ZIP SHA、公开可获得时间；正式商店状态未证实时明确标「开发者测试版」。
-2. **第一次成功**：沿现有 Side Panel 显示站点许可、Allow User Scripts 状态与失败恢复提示。优先修掉实测阻断；不另建页面、不改 Chrome 最小权限边界。
-3. **可看见运行链**：复用当前结果面板显示真实 sourceHash、previewId、documentId、组件交互结果及 Stop 回执；“Stop”仅撤销受管 UI，不回滚已发生的网站业务操作。
-4. **重复运行可靠性**：真实 React Hooks / Vue ref / scoped CSS、语法错误修复、重复 Run/Stop、导航、撤权、强 CSP 等按当前包输入身份验收；旧候选 PASS 不自动晋级。
-5. **可复现的 60–90 秒视频**：真实 Side Panel + 网页同屏录制，显示首次授权、React、Vue、再次运行和 Stop，不使用静态伪界面。
+用于工程验收的计数按钮是可靠的最小观察器；**用于推广还应有一个能解决实际问题的独立 Demo**，如在自有 `demo-form.html` 上显示表单填写检查卡（React）或字段完成进度组件（Vue）。先复用示例和现有受管 UI，不为录视频造假界面；如演示需要新功能，必须真实开发并原生验证。
 
-**不能忽略的对手**：ScriptCat、Tampermonkey 编辑器与 Editors、本地 Vite + 用户脚本管理器、Violentmonkey，以及 [Web Dev Kit](https://chromewebstore.google.com/detail/web-dev-kit/bmgkdkjlpgijlgiklgkeohlnmbamocge)（侧栏实时编辑/React JSX、Vue SFC **导出**）和 [Codelifter](https://chromewebstore.google.com/detail/codelifter-%E2%80%94-dom-to-react/mdagokiboipnoneleiihfdbmhaojcbgl)（网站元素导出到框架）。**导出组件不等于将原始 JSX/SFC 直接编译运行并受管 Stop；但也不能凭这个区别直接宣布世界首创。** 必须按同一用户任务检查可替代流程与更早公开日期。
+## 为什么先 F01，F02/F04 暂居第二线？
 
-**证据身份**：[浏览器端 JSX/SFC 原生案例（历史）](https://github.com/shopable-ai/opendesk-browser/actions/runs/38225425847)，提交 `9cdb3bf98fe410b88c456801855e2635f6b1a7b0`；[R24.5 双版 Mac Chrome（历史）](https://github.com/shopable-ai/opendesk-browser/actions/runs/38247467657)，提交 `176bb1916006ad98bb3d1b10c1b2f2d93a06d122`。这两者均不是最新 main 的完整发行认可。
-
-## 2. F02 的产品定义：比“零配置”更真实的重复开发优势
-
-**面向用户：** 已经在 Node/编辑器中维护 JS/JSX/Vue 多文件工具、反复改代码并需要在已授权网页上使用的人。首次 Native 配对、Node 安装、网站授权必须如实计入成本，不能用“无需编译主扩展”冒充“无需任何编译”。
-
-**用户任务：** 从 `examples/programs/local-page-ui/` 的 `src/model.js` 修改一次可见文案；保存→自动准备→在真实 Side Panel 主动 Run → UI 内容更新→Stop。再用 `page-ui-react/`、`page-ui-vue/` 进行同流程的 JSX/SFC 自动准备，另以 `local-controller/` 验证新的 sourceHash 与持久结果隔离。Controller 的 JSON 返回不是 Page UI 挂载证据。
-
-**应该争夺的可测指标**：冷启动首次完成总分钟数；第一次 Run 所需人工动作；热修改到网页可见的毫秒数；错误恢复成本；能否固定源码版本并再次安装。基准对象为 OpenDesk、vite-plugin-monkey + Tampermonkey、vite-plugin-monkey + ScriptCat Stable、WXT；对每个对象允许其使用最自然、能达成同一任务的工作流。
-
-**当前计时：NOT_TESTED；“最快”宣传：禁止。** 已有 [40 次旧版 Chrome Run/Stop](https://github.com/shopable-ai/opendesk-browser/actions/runs/38155034890) 与 [独立安装 CLI 编译](https://github.com/shopable-ai/opendesk-browser/actions/runs/38231722128)，它们证明功能切片，不证明竞争效率。测试样本及空白原始数据在 [R2 工作流](../../framework/workstreams/global-first-r2-20261013.md) 中。
-
-## 3. F04 是信任卖点，不是先抢安全排名
-
-把依赖 SHA、用户批准的站点范围、实际 revision/sourceHash、Chrome 真实回执、受管 Stop 及撤权视为**可向开发者解释的运行链**。这些细节可以做技术博客与开发者信任页；在所有相关版本和反例验证前，不使用“世界最安全”或“100% 可撤销”。无需另造 Browser SDK、依赖管理、调度器或 RunHost。
-
-## 4. 下一轮只做四件事（最短闭环）
-
-| 顺序 | 工作所有者边界 | 必须输出 | 完成/停止判断 |
+| 方向 | 真实用户收益 | 当下最短缺口 | 决策 |
 | --- | --- | --- | --- |
-| P0 | R24.5 / 发布责任工作流；本轮只核对证据 | 一个公众能取得的 Developer 包、实际身份及官方发布日期 | 没有可获取的版本，不申请 F01 首创 |
-| P0 | F01 独立 Demo/验收；不碰编译器实现 | 原 Side Panel 的 React、Vue、改动、Stop 原始录屏 + hash/previewId/包身份 | 真实网页交互与清理不全，则修最小缺陷 |
-| P1 | F02 独立基准记录；Native/Node Owner 保持独占 | 4 个工作流 × 冷、热、恢复原始数据和环境记录 | 计时缺失绝不产生“效率第一” |
-| P1 | 竞争/营销 Owner | 已核实竞品发布日期、世界首创反证、GF 状态与中英文合规说明 | GF 账本未为 CLAIM_APPROVED，则对外不写任何全球第一 |
+| **F01** 浏览器侧栏 × React/Vue × Stop | 当前网页即时试做小工具，不必先配 Native | 开发版产品交付与可复现体验、全球同类历史对照 | **唯一 P0 主线** |
+| **F02** 多文件 × 自动准备 × 网页 Run | 改一行文件再 Run，不重打包主扩展 | Native/Node 配对成本透明、冷/热效率对照 | **F01 闭环后 P1** |
+| **F04** 源码/依赖锁 × 授权 × 浏览器回执 | 解释“是谁、用哪个版本、在什么页面运行”的可信链 | 同包撤权/更新/Stop/结果全链证据 | **贯穿 F01/F02 的保障，不独立造系统** |
 
-必须显式区分 **PRODUCT_VERIFIED / COMPETITOR_REVIEWED / CLAIM_APPROVED**。评审前用户价值需要通过真实开发者试用来确认；目前**无真实留存、付费和新手成功率数据**。
+F01 比 F02 更适合先推出一个开发者能够立即理解的短演示，因为它的浏览器侧编译正向历史证据已存在，而且在开发版中不要求 Native。**但开发版不等于已上市**。如果无法公开获得和安装，F01 只能称工程候选，不能当成公开市场“第一”。
 
-## 5. 你应该阅读什么
+## 后续执行：四道关卡，不是无限增加任务
 
-- **产品负责人：只阅读本文件**。它回答选择哪条赛道、缺什么、做什么、何时退出。
-- **工程验收负责人：再读 [Global First R2 工作流](../../framework/workstreams/global-first-r2-20261013.md)**，里面是测试输入、已有原生案例和下一次的原始记录方式。
-- **对外传播负责人：最后读 [营销执行手册](marketing-playbook.zh-CN.md)**，其中区分今天可使用的定位和未审批排名。
-- **JSON 无需逐字阅读**：[竞品时间账本](competitor-timeline.json)与[14 条 GF 审批账本](first-claims-ledger.json)只是事实来源与机器审批记录。旧 R1 总研究文件作为历史参考保留。
+### 关卡 1 · 锁定真实产品版本
 
-**不要阅读旧 R2 ZIP 内的临时评分生成器、40 KB 重复解释、模拟 Bench 空成绩当成解决方案；本轮没有把它们原样提交。**
+核对 `main` 最新提交、Standard/Developer 构建区别、现有 CFT 成功记录及其实际候选 SHA、源码/包/ZIP 哈希。先确定旧原生证据能否复用；相关输入变化才做受影响重测。
+
+**交付：** 一个身份可追溯的 Developer 候选、安装/授权限制清单和明确的剩余 blocker。不能把历史 CI PASS 自动记为最新候选 PASS。
+
+### 关卡 2 · 证明用户完整操作而不仅是编译器可用
+
+沿用真实 Side Panel，依次完成 React Run/点击/修改/Stop、Vue Run/点击/scoped CSS/修改/Stop、错误修复与许可拒绝。检查可见性、权限引导、Run/Stop 状态、错误能否恢复。如果失败，优先修最短路径，不增加新 SDK、Runner、Scheduler、编译器。只有不存在并行文件冲突才改共享 UI。
+
+**交付：** 原生 Chrome 录屏或截图 + 逐动作结果 + `sourceHash/previewId/documentId` + Stop 清理证明。按 R24.4 既有驱动决定是否运行各 20 次独立循环和导航/撤权场景。
+
+### 关卡 3 · 同任务对照，建立差异化证据
+
+对 **ScriptCat、Tampermonkey、Violentmonkey、Web Dev Kit** 及 **vite-plugin-monkey + 用户脚本管理器** 逐项检查：能否编写原始 JSX/SFC、能否在当前授权网页交互、修改/再 Run、Stop/残留、必需外部工具、公开首发渠道/日期。**导出 JSX/SFC** 与 **直接在当前网页 Run + Stop** 是不同能力，但需验证竞争者的等价替代路径。
+
+F02 的定量对照再测 OpenDesk / vite-plugin-monkey + Tampermonkey / + ScriptCat / WXT，冷启动、热修改与错误恢复分开计时。**对手未测试记 NOT_TESTED，不记失败；不能从 3 个样本第一推成全球最快。**
+
+**交付：** 有版本、来源、视频、限制的同任务矩阵；原始计时依原 [空白基准](../../framework/workstreams/evidence/global-first-r2-20261013/benchmark-template.json) 保存，不制造成绩。
+
+### 关卡 4 · 转化为可使用的宣传，而非先写绝对称号
+
+先制作**一条真实短视频**（画面同时看到原 Side Panel 和网页）：授权→React 交互→改动再 Run→Vue 交互→Stop。发布页面列出 Standard/Developer 差别、受控网站授权、可下载安装前提。
+
+有**公众可获取版本 + 全球历史排他性核查 + 同版完整证据 + 合规审查**才可能将 GF-001 从候选逐级升为 `CLAIM_APPROVED`；否则使用限定范围的产品事实或测试结果，不使用全球首个、最快或最安全。
+
+**顺序**：锁定产品 → 真实用户动作 → 竞品反例 → 宣传。F02 的效率研究可独立只读准备，但不得占用 F01 的 CFT、发行包和 Side Panel 文件。
+
+## 95+ 的质量要求怎么落实？
+
+以下是**未来独立验收目标，不是本轮已测得的专家分数**。任何一项没有真实数据都记 `NOT_SCORED`，不能通过别的维度平均抵消：
+
+| 维度 | 可复核的验收方式 | 当前 |
+| --- | --- | --- |
+| **文档可读性 ≥95/100** | 不看其他文件即可回答：做什么、为什么、先做哪项、怎样复现、何时停止。找独立审阅者核查误解点、重复和阅读负担 | `NOT_SCORED` |
+| **产品可用性 ≥95/100** | 真正从安装和授权开始的独立用户任务；跟踪首次成功率、错误恢复与可读反馈，不能只统计作者机器 | `NOT_SCORED` |
+| **功能/可靠性 ≥95/100** | 固定同包 Chrome React/Vue、重新 Run、Stop、撤权、SPA/BFCache 与失败恢复，保留全部 PASS/FAIL/NOT_TESTED | `NOT_SCORED` |
+| **竞品证据质量 ≥95/100** | 版本/Stable/Beta/来源日期/等价任务/原始数据齐备，主动反例搜索；不可获取不等于功能不存在 | `NOT_SCORED` |
+| **宣传准确性 ≥95/100** | 每条可用宣传对应实际可得版本和证据；所有绝对称号必须独立审核。无依据排名属于硬失败 | `NOT_SCORED` |
+
+额外**不可打分抵扣的硬门槛**：0 个绕过网站许可，0 个伪造真实点击/回执，0 个覆盖其他 Agent 未提交工作，0 个未经批准世界第一声明。
+
+## 谁读什么、下一步真正做什么？
+
+**只想决策：就读本文件。** 执行者打开 [F01 下一轮可复制 GOAL](../../framework/prompts/goal-global-first-r3-f01-product-proof.zh-CN.md) 交给有 Mac/CFT 的 Codex，完成后只回报源码身份、演示是否成功、阻断与证据链接。相关产品文件不用重新造目录。
+
+原始跟踪在 [R2 工作流](../../framework/workstreams/global-first-r2-20261013.md)；过去的 [R1 战略](global-first-positioning.zh-CN.md) 和 [营销手册](marketing-playbook.zh-CN.md) 只需专项查阅。**GF-013、GF-014 保持 DISPROVED，14 条唯一正式 GF ID 不重编。**

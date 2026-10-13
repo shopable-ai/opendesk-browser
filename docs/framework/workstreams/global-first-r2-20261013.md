@@ -1,6 +1,12 @@
 # Global First R2 · 真实研究与原生验证工作流（2026-10-13）
 > 任务归属：竞争研究 / 独立 F01-F02 验证；仅写独占文档及原始实验文件。唯一可写分支 main，不创建 PR / worktree，不覆盖并行 R24/R25、Native、SDK、依赖、Cloud 工作流。
 
+## 下一次执行入口（2026-10-13 · R3 F01）
+
+**唯一优先工程 GOAL：** [F01 Developer 版本首次成功体验与真实 Chrome 证据](../prompts/goal-global-first-r3-f01-product-proof.zh-CN.md)。读者只需先看 [一页产品决策](../../product/browser-extension-ecosystem/global-first-r2-decision.zh-CN.md)，随后进入执行 GOAL。本工作流余下部分保存 R2 历史证据及未测试项，不代表 R3 已执行成功。
+
+**当前记录状态：** R3 GOAL 已制定，R3 原生测试、Developer 新包公开发行、全球排他性研究与独立质量评分尚未因文档变化而自动完成。最新 SHA 必须由执行者在实际 Mac 工作目录中核查。任何 95+ 是目标不是当前事实。
+
 ## 本轮交付与证据等级
 
 - GitHub 远端只读基线在研究中依次经过 `de52893a69d5107b4d60f837c9e570d7298ac588`、`5514f58715ab4ea77f17d64cd3c4056e3595ff73`，最终应用提交以实际 parent SHA 为准；**不能访问用户 Mac 的 git status、Chrome Profile、Native/Node 安装状态**。
