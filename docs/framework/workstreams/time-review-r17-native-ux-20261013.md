@@ -1,5 +1,21 @@
 # Time Review R1.7 · Native permission-control UX closure
 
+## R1.9 · 用户 Mac 本地执行范围（2026-10-14）
+
+- 状态：IN_PROGRESS；负责人：Codex 会话 `01a1364f-486c-70e3-bea5-04c5578e0581`；仅 `main`。安全 fetch/fast-forward 后基线 `c29f35fa4ea1a465b144e0a1f7751d774bd1ab24`，已有其他任务修改保留。
+- 预期写入：`tests/environment/sidebar-tools-host.test.mjs`、确需修复时的 `src/ui/sidebar-tools.js`、`tests/framework/time-review-r13-native.test.mjs`、本记录。Time Review 生产模块仅在真实失败定位后追加具体范围；不修改公共 SDK 合同/预算/CSP。
+- 成功条件：R10 真实拒绝和一次性 Host 授权保留；九文件 Node 回归零 FAIL；正式工具及隔离双构建/verify 通过；现有驱动在真实 Mac CFT 的安装/授权/原生 UI/计时/生命周期取得原始证据。每项独立记录 FAIL/BLOCKED/NOT_TESTED，不提升证据等级。
+- 资源：原始输出 `artifacts/time-review-r19-local-01a1364f/`；独立 CFT 临时 Profile；现有 `npm run dev` PID 67778 占用 `dist/development`，本任务不覆盖该目录。构建隔离输出合同正在只读核查；共享 Git 事务串行。只读原生覆盖审计子 Agent 不启动浏览器、不落盘。
+- 环境：macOS 26.5.1（25F80），Node v24.16.0。历史 Ubuntu PASS 用于影响分析，当前 Mac 与最新 main 的验证按本轮原始日志登记。
+- 范围追加：`src/ui/workflow/local-codex.js` 当前无已有工作区 diff；当前 main 双构建均因 tool-shell 超过 524288 bytes 失败。限定清理计划：先运行已有工作流/观察回归锁定授权、取消、实际 locator 与 schema 行为，再仅压缩内嵌规划提示词的重复英文表述，保留全部约束；不改执行路径、不删除安全 fallback、不改预算/构建器。独立只读 reviewer 审核语义保留，落盘与最终构建由本负责人执行。
+- 预算清理追加计划：同一文件精简重复的状态/错误表述，保留 code 与行动含义；复用规划和停止回执完全相同的 batch/事件身份谓词，保留原取消检查。现有 50 项取消、事件流、身份和观察回归先行通过。所有 fail-closed 条件保留；不增加第三方依赖、运行时或特权加载路径。
+- 真实 Chrome 范围追加：首轮实际原生安装/无 iframe/四宽度/200% PASS 后出现 `E_TIME_DATA` 并阻断导出。当前 `src/ui/sidebar-tools.js` 无他人 diff；定位可信转发错误丢弃 day/classify/settings/export payload，以及读取回执不应通知状态变更。由本负责人修改该共享文件与已有 Host 回归；正式包字节/版本不变，仍由唯一服务验证 payload、sender、epoch 和导出能力。失败原始记录 `native-run-1.tap` / `native-run-1/native-report.json` 保留。
+
+- 原生输入范围追加：`tests/framework/time-review-native-input.swift` 编辑前无 diff。CDP 点击未给予 Canvas 真实 macOS 键盘焦点，现有受控 helper 增加限定所属 CFT 窗口内的真实 CGEvent 点击与文件选择路径快捷键；不注入 DOM 值、事件或业务存储。
+- 并行整合更新：远端 Workflow 在 `ddbadf6d` 完成同预算减重，本任务撤回重复 `local-codex.js` 改动，保留所有失败与旧隔离候选证据。其他负责人以 `fea2b5d8` 将本地 Import 提交与远端 main 安全整合，本任务未覆盖折叠组件负责人两处 class 改动；当前 main 已到 `f831f5d3`。
+- R10 根因：历史非规范 API 探针错误复用 20000 字符载荷，被既有 12000 字符输入预算在 dispatch 前拒绝；改为有界 retired 探针，仍要求两条旧 API 拒绝。伪点击返回 E_CANCELLED、待审核 UI 清除、后续真实点击恢复及 one-use Host 授权计数均保留。
+- 本地证据：原九文件 166/166；增加可信参数转发回归后，连同当前 Workflow 相关回归共 217/217、0 FAIL/0 SKIP。正式 1.6.0 包保持原 SHA，隔离双构建/Check/Verify 均 EXIT 0。真实 CFT 已证明无 iframe、四宽度、200% 真缩放、精确网站授权、单击开始、下载磁盘内容、真实计时和其他三工具安装/启停隔离；后续原生流程仍 IN_PROGRESS，不登记全合同 PASS。
+
 - 日期：2026-10-13；唯一写入分支：`main`；本对话仅通过已授权 GitHub connector 操作。
 - 负责人：Time Review R1.7 本次执行；不占用用户 Mac 的 Chrome Profile、`dist/development` 或其他 Agent 的本地工作区。
 - 写入范围：`src/time-review/host-controls.js`、`tests/environment/time-review-r16-trusted-native.test.mjs`、本文件。未修改 Tool Host、Installer、SDK、Service Worker、正式 Time Review 包或共享前端源码。

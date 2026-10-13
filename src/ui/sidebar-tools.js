@@ -337,7 +337,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       throw Object.assign(new Error('时间回顾详情已变化'),{code:'E_TOOL_CHANGED'});
     const response=await api.runtime.sendMessage({
       protocol:TIME_REVIEW_PROTOCOL,toolId:tool.id,operation,
-      payload:operation==='time.clear'?{confirm:true}:operation==='time.minuteConsent'?{enabled:payload.enabled}:operation==='time.siteGrant'?payload:{},
+      payload:operation==='time.clear'?{confirm:true}:operation==='time.minuteConsent'?{enabled:payload.enabled}:payload??{},
       packageHash,installEpoch:epoch
     });
     if(!response?.ok)throw Object.assign(
@@ -350,9 +350,10 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     // Only the enrollment card closes; the active UI (native or sandbox)
     // stays mounted and re-reads verified Host state, never a forwarded token.
     if(operation==='time.start'&&tocSettingsOpen){tocSettingsOpen=false;render();}
-    if(nativeUI&&active?.id===TIME_REVIEW_ID)
+    const changed=!['time.status','time.day','time.export'].includes(operation);
+    if(changed&&nativeUI&&active?.id===TIME_REVIEW_ID)
       frameRoot.querySelector('main.review')?.dispatchEvent(new Event('opendesk-tool-state-changed'));
-    if(frame?.contentWindow&&active?.id===TIME_REVIEW_ID)
+    if(changed&&frame?.contentWindow&&active?.id===TIME_REVIEW_ID)
       frame.contentWindow.postMessage({
         protocol:SIDEBAR_TOOL_PROTOCOL,kind:'state-changed',instance,toolId:tool.id
       },'*');

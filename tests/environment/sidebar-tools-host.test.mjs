@@ -405,7 +405,9 @@ async function hostFixture(t,{store=new Map([[SIDEBAR_TOOL_STORE,[sample]]]),loc
     addListener:fn=>changed.addEventListener('change',fn),removeListener:fn=>changed.removeEventListener('change',fn)
   },local:{
     async get(key){const snapshot=snapshotBeforeGet?structuredClone(store.get(key)):undefined;
-      await getHook?.(key);return {[key]:snapshotBeforeGet?snapshot:structuredClone(store.get(key))};},
+      await getHook?.(key);
+      if(Array.isArray(key))return Object.fromEntries(key.map(name=>[name,structuredClone(store.get(name))]));
+      return {[key]:snapshotBeforeGet?snapshot:structuredClone(store.get(key))};},
     async set(value){await setHook?.(value);for(const [key,row] of Object.entries(value))store.set(key,structuredClone(row));},
     async remove(key){store.delete(key);}
   }}};
@@ -1608,6 +1610,29 @@ test('R56 dirty tool enable/disable uses a cancellable inline review and cannot 
   assert.deepEqual(store.get(key),privateData);
 });
 
+test('native Time Review forwards day, classification, settings and CSV payloads without read feedback',async t=>{
+  const tool=await officialToolFixture('time-review');
+  const release=(await officialFixtures()).catalog.apps.find(row=>row.toolId==='time-review');
+  const old=globalThis.__opendeskTrustedTimeReviewUI;let request,signals=0;
+  globalThis.__opendeskTrustedTimeReviewUI={version:tool.version,mount(options){request=options.request;return ()=>{};}};
+  t.after(()=>{if(old===undefined)delete globalThis.__opendeskTrustedTimeReviewUI;else globalThis.__opendeskTrustedTimeReviewUI=old;});
+  const f=await hostFixture(t,{tool,startTool:false,store:new Map([[SIDEBAR_TOOL_STORE,[tool]],
+    [MARKET_PROVENANCE_STORE,{'time-review':{marketId:release.id,version:tool.version,sha256:release.sha256}}]])});
+  f.elements['sidebar-tool-frame'].querySelector=()=>({dispatchEvent(){signals++;}});
+  const calls=[];f.api.runtime.sendMessage=async message=>{calls.push(message);return {ok:true,data:{accepted:true}};};
+  f.host.openTool(tool.id);await settle(()=>typeof request==='function');
+  for(const [operation,payload] of [
+    ['time.day',{date:'2026-10-14'}],['time.export',{format:'csv'}],
+    ['time.settings',{idleSeconds:60,retentionDays:90,excludedHosts:[]}],
+    ['time.classify',{host:'example.com',category:2}]
+  ]){await request(operation,payload);assert.deepEqual(calls.at(-1).payload,payload,operation);}
+  assert.equal(signals,2,'only mutations notify the native UI; reads/export cannot trigger a refresh loop');
+  await request('time.status');assert.equal(signals,2);
+  await assert.rejects(request('time.start',{}, {isTrusted:false}),{code:'E_TIME_TRUSTED_CLICK'});
+  const before=calls.length;
+  await assert.rejects(request('time.siteGrant',{mode:'all',allow:true},{isTrusted:true}),{code:'E_TIME_TRUSTED_CLICK'});
+  assert.equal(calls.length,before,'native markup cannot replace the separate consent controls');
+});
 test('R10 canonical exports need real Side Panel click plus one-use Host authorization',async t=>{
   const tool={...sample,capabilities:[...sample.capabilities,'user.export']};
   const f=await hostFixture(t,{tool,store:new Map([[SIDEBAR_TOOL_STORE,[tool]]])});
@@ -1648,17 +1673,25 @@ test('R10 canonical exports need real Side Panel click plus one-use Host authori
   assert.equal(downloads.at(-1).url.startsWith('data:application/json;'),true);
   const invalid=await ask('browser.downloads.text',{text:'notes',filename:'../escape.txt'},'invalid-download');
   assert.equal(invalid.ok,false);assert.equal(downloads.length,2);
+  const approvalsBefore=hostCalls.filter(row=>row.operation==='browser.intent.confirm').length;
   const untrusted=await ask('browser.clipboard.writeText',{text:'blocked'},'untrusted-click',false);
-  assert.equal(untrusted.ok,false);assert.equal(copied.length,1);
-  const oldCopy=await ask('clipboard.writeText',{text},'retired-copy');
-  const oldDownload=await ask('file.download',{text,filename:'notes.md'},'retired-download');
+  assert.equal(untrusted.ok,false);assert.equal(untrusted.error.code,'E_CANCELLED');
+  assert.equal(copied.length,1);assert.equal(f.elements['sidebar-tool-action-review'].hidden,true);
+  assert.equal(hostCalls.filter(row=>row.operation==='browser.intent.confirm').length,approvalsBefore,
+    'an untrusted click cannot mint a Host approval');
+  assert.equal((await ask('browser.clipboard.writeText',{text:'recovered'},'after-untrusted')).result.copied,true);
+  effects++;assert.deepEqual(copied,[text,'recovered'],'rejection settles the action and permits a new trusted request');
+  // Retired operations use the ordinary 12,000-character message bound. Keep
+  // these probes bounded so they reach dispatch and test the explicit rejection.
+  const oldCopy=await ask('clipboard.writeText',{text:'retired'},'retired-copy');
+  const oldDownload=await ask('file.download',{text:'retired',filename:'notes.md'},'retired-download');
   assert.equal(oldCopy.ok,false);assert.equal(oldDownload.ok,false);
-  assert.equal(copied.length,1);assert.equal(downloads.length,2);
-  assert(hostCalls.filter(row=>row.operation==='browser.intent.confirm').length>=3);
+  assert.equal(copied.length,2);assert.equal(downloads.length,2);
+  assert.equal(hostCalls.filter(row=>row.operation==='browser.intent.confirm').length,4);
   const missing={...tool,capabilities:sample.capabilities};
   f.store.set(SIDEBAR_TOOL_STORE,[missing]);
   const stale=await ask('browser.clipboard.writeText',{text:'stale'},'stale-copy');
-  assert.equal(stale.ok,false);assert.equal(copied.length,1);
+  assert.equal(stale.ok,false);assert.equal(copied.length,2);
 });
 test('R1.3 frontend status and list reflect callable export services and include mounted package identity',async t=>{
   const tool={...sample,capabilities:[...sample.capabilities,'user.export']};
