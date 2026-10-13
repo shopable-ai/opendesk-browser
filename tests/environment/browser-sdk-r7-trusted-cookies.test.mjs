@@ -4,6 +4,7 @@ import {createTrustedCookieHost,TRUSTED_COOKIE_OPERATIONS} from '../../src/platf
 import {createContextMenuHost} from '../../src/platform/chrome/context-menus.js';
 import {BROWSER_OPERATIONS,normalizeBrowserOperation,BROWSER_HOST_PROTOCOL} from '../../src/framework/sdk/browser-contract.js';
 import {createBrowserSdk} from '../../src/framework/sdk/browser.js';
+import {operationSchemas} from '../../src/framework/sdk/browser-schemas.js';
 const uuid='01234567-89ab-4def-8123-456789abcdef';
 const sender={id:'cookie-test-ext',frameId:0,documentId:'trusted-host-document-1',documentLifecycle:'active',
   url:'chrome-extension://cookie-test-ext/ui/tool.html?hostInstanceId='+uuid};
@@ -66,6 +67,22 @@ function fixture(){
   const run=async(op,args={})=>execute((await approve(op,args)).approvalRef);
   return {api,state,document,cookieHost,caller,approve,execute,run};
 }
+test('R10 public Cookie schemas describe real scoped data without generic object placeholders',()=>{
+  const get=operationSchemas('browser.cookies.get');
+  const list=operationSchemas('browser.cookies.getAll');
+  const clear=operationSchemas('browser.cookies.clearSite');
+  const events=operationSchemas('browser.cookies.observe.read');
+  const status=operationSchemas('browser.capabilities.getStatus');
+  assert.equal(get.output.properties.cookie.anyOf[0].properties.valueRedacted.type,'boolean');
+  assert.equal(list.output.items.properties.httpOnly.type,'boolean');
+  assert.equal(list.output.items.properties.value.type,'string');
+  assert.equal(list.input.properties.partitionKey.properties.topLevelSite.type,'string');
+  assert.equal(list.input.properties.partitionKey.additionalProperties,false);
+  assert.equal(clear.input.properties.previewRef.type,'string');
+  assert.equal(clear.output.properties.previewRef.type,'string');
+  assert.equal(events.output.properties.events.items.properties.removed.type,'boolean');
+  assert.equal(status.input.properties.url.type,'string');
+});
 test('R9 installed-tool Cookies public SDK retains host trust and denies Page SDK',()=>{
   assert.equal(TRUSTED_COOKIE_OPERATIONS.length,11);
   assert.equal(Object.keys(BROWSER_OPERATIONS).length,40);
