@@ -20,7 +20,7 @@ test('R9 Browser SDK exposes only real implemented operations and typed metadata
   }
   assert.equal(browserCapabilityList('page-sdk').find(x=>x.operation==='browser.notifications.create'),undefined);
 });
-test('all ten implemented wrappers preserve original authenticated request path',async()=>{
+test('all ten implemented wrappers use canonical authenticated browser operations',async()=>{
   const calls=[],sdk=createBrowserSdk({request:async(op,args)=>{calls.push([op,args]);return {ok:true};}});
   await sdk.capabilities.list();
   await sdk.capabilities.getStatus({operation:'browser.contextMenu.register'});
@@ -35,7 +35,7 @@ test('all ten implemented wrappers preserve original authenticated request path'
   assert.deepEqual(calls.map(x=>x[0]),[
     'browser.capabilities.list','browser.capabilities.getStatus','browser.contextMenu.getStatus',
     'browser.contextMenu.register','browser.contextMenu.unregister','browser.launch.consume',
-    'browser.page.getContext','browser.page.getSelection','clipboard.writeText','file.download']);
+    'browser.page.getContext','browser.page.getSelection','browser.clipboard.writeText','browser.downloads.text']);
 });
 test('Page discovery validates inputs and does not expose privileged browser methods',async()=>{
   const page=createBrowserSdk({context:'page-sdk'});
@@ -45,7 +45,7 @@ test('Page discovery validates inputs and does not expose privileged browser met
   assert.throws(()=>page.capabilities.getStatus({operation:'browser.tabs.create',additional:true}),isCode('E_SCHEMA'));
   await assert.rejects(page.contextMenu.register({actionIds:['capture-selection']}),isCode('E_CONTEXT'));
 });
-test('Legacy exports reject unsafe values before dispatch',async()=>{
+test('Browser exports reject unsafe values before canonical dispatch',async()=>{
   const calls=[],sdk=createBrowserSdk({request:async(...args)=>{calls.push(args);return {ok:true};}});
   assert.throws(()=>sdk.clipboard.writeText(''),isCode('E_LIMIT'));
   assert.throws(()=>sdk.clipboard.writeText('界'.repeat(50001)),isCode('E_LIMIT'));
