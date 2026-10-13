@@ -63,7 +63,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     ? SESSION_PREFIX + currentPageTarget.windowId:null;
   let disposed=false,busy=false,runId=null,revision=null,compileToken=0,compiled=null;
   let lastTrustedRun=null; // UI hint only, original Task Verify must validate the real receipt.
-  let proposal=null,proposalBase=null,proposalSerial=null,touched=false,saveList=[],draftWrites=Promise.resolve();
+  let proposal=null,touched=false,saveList=[],draftWrites=Promise.resolve();
   let directVerifiedSerial=null; // Verified fill source is the same byte sequence saved later.
   let phase='idle',lastRun='none',hasError=false,newReviewSignature=null;
   let planningGeneration=0,planningAbort=null,pendingApproval=null,localChecking=false;
@@ -198,7 +198,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   function edited() {
     
     dismissNewReview();
-    touched=true;proposal=null;proposalBase=null;proposalSerial=null;get('workflow-ai-proposal').hidden=true;
+    touched=true;proposal=null;get('workflow-ai-proposal').hidden=true;
     hasError=false;lastRun='none';
     get('workflow-status').hidden=true;get('workflow-status').textContent='';
     persistDraft();void updateCode();
@@ -386,7 +386,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     void stopPlanning({close:true}).catch(()=>{});
     workflow=clean;lastTrustedRun=null;
     directVerifiedSerial=record.verificationMode==='fill-readback'?stable():null;
-    revision=record;touched=true;proposal=null;proposalBase=null;proposalSerial=null;lastRun='none';hasError=false;
+    revision=record;touched=true;proposal=null;lastRun='none';hasError=false;
     get('workflow-ai-proposal').hidden=true;
     render();persistDraft();
     status('已打开冻结版本 r'+record.revision+'；运行不会调用 AI');
@@ -567,36 +567,6 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     status('候选已提交。任务目录会按固定身份定位版本；有同版真实成功记录时预填运行 ID，仍须手动核对、设为可用并确认安装。');
     openCatalog();
   }
-  function renderProposal(result) {
-    const preview=get('workflow-ai-preview');preview.replaceChildren();
-    for(const step of result.steps) {
-      const item=node(doc,'li');
-      item.append(node(doc,'strong',OP_LABELS[step.op]||step.op));
-      const parts=[];
-      if(step.op==='navigate') {
-        const url=new URL(step.url);
-        parts.push('同站路径 '+url.pathname+url.search+url.hash);
-      }
-      if(step.selector) {
-        const names={css:'CSS',role:'角色',label:'标签',text:'文字',testId:'测试标识'};
-        parts.push((names[step.locatorKind]||'定位')+' '+JSON.stringify(step.selector)+
-          (step.roleName?' / 名称 '+JSON.stringify(step.roleName):''));
-      }
-      if(step.param)parts.push('使用参数 '+step.param);
-      else if(step.op==='fill')parts.push('填写 '+JSON.stringify(step.text));
-      if(step.op==='assert')parts.push('应包含 '+JSON.stringify(step.text));
-      if(step.op==='wait')parts.push('等待上限 '+(step.timeout??10000)+' 毫秒');
-      if(step.op==='observe')parts.push('读取已授权页面的结构与文字摘要');
-      const hint=parts.join(' · ');
-      item.append(node(doc,'span',hint.length>220?hint.slice(0,220)+'…':hint));
-      if(hint.length>220) {
-        const details=node(doc,'details');
-        details.append(node(doc,'summary','查看完整定位和值'),node(doc,'span',hint));
-        item.append(details);
-      }
-      preview.append(item);
-    }
-  }
   function openAISettings(focus='workflow-ai-provider') {
     get('workflow-provider-settings').open=true;
     get('workflow-provider-toggle').setAttribute('aria-expanded','true');
@@ -756,8 +726,9 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     }
     
     const epoch=++planningGeneration,abort=new AbortController();planningAbort=abort;
-    busy=true;phase='planning';hasError=false;proposal=null;proposalBase=null;proposalSerial=null;
-    get('workflow-ai-proposal').hidden=true;get('workflow-ai-progress').hidden=true;
+    busy=true;phase='planning';hasError=false;proposal=null;
+    get('workflow-ai-proposal').hidden=true;const preview=get('workflow-ai-preview');preview.replaceChildren();
+    get('workflow-ai-progress').hidden=true;
     get('workflow-ai-progress').replaceChildren();
     get('workflow-planning-indicator').textContent=frozen.selected==='local_codex'
       ?'正在连接本机 Codex…':'正在请求所选 HTTPS 模型…';
@@ -823,7 +794,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       planningCurrent(epoch,frozen.serial,frozen.selected);
       workflow=structuredClone(result);touched=true;revision=null;lastTrustedRun=null;
       directVerifiedSerial=stable();
-      proposal=null;proposalBase=null;proposalSerial=null;
+      proposal=null;
       get('workflow-ai-proposal').hidden=true;render();persistDraft();
       const execution=await run(null,{freeze,captured,params:prepared.params,hasReadback:prepared.hasReadback,permission:Promise.resolve(true)});
       if(execution?.ok) {
@@ -876,7 +847,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   listen(get('workflow-ai-provider'),'change',()=>{
     
     void stopPlanning({close:true}).catch(()=>{});
-    proposal=null;proposalBase=null;proposalSerial=null;get('workflow-ai-proposal').hidden=true;
+    proposal=null;get('workflow-ai-proposal').hidden=true;
     renderProvider();if(get('workflow-provider-settings').open)void refreshLocal();
   });
   for(const id of ['workflow-ai-key','workflow-ai-model','workflow-ai-endpoint'])
@@ -917,7 +888,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   listen(get('workflow-ai-new-session'),'click',event=>{
     if(!event.isTrusted||busy)return;
     get('workflow-ai-transcript').replaceChildren();
-    proposal=null;proposalBase=null;proposalSerial=null;get('workflow-ai-proposal').hidden=true;
+    proposal=null;get('workflow-ai-proposal').hidden=true;
     const stopped=stopPlanning({close:true,remember:true}),epoch=planningGeneration;
     void stopped.then(()=>{
       if(disposed||epoch!==planningGeneration)return;updateButtons();status(localPlanner.snapshot().resumable
@@ -945,7 +916,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     dismissNewReview();
     void stopPlanning({close:true}).catch(()=>{});
     workflow=emptyWorkflow(currentOrigin()||'',crypto.randomUUID());directVerifiedSerial=null;
-    revision=null;touched=true;proposal=null;proposalBase=null;proposalSerial=null;lastRun='none';hasError=false;phase='idle';
+    revision=null;touched=true;proposal=null;lastRun='none';hasError=false;phase='idle';
     get('workflow-ai-transcript').replaceChildren();
     get('workflow-ai-proposal').hidden=true;
     get('workflow-manage-panel').hidden=true;
@@ -1025,14 +996,6 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   listen(get('workflow-refresh'),'click',()=>{void refreshSaved().catch(error=>status(format(error),true));});
   listen(get('workflow-load'),'click',()=>{void loadSaved().catch(error=>status(format(error),true));});
   listen(get('workflow-ai-plan'),'click',plan);
-  listen(get('workflow-ai-apply'),'click',event=>{
-    if(!event.isTrusted||!proposal||proposalBase!==workflow.workflowId||busy)return;
-    if(proposalSerial!==stable()) {status('草稿已改变，请重新生成并检查建议后再采用。',true);return;}
-    workflow=structuredClone(proposal);proposal=null;proposalBase=null;proposalSerial=null;
-    appendChat('系统','建议步骤已被你采用；可以继续提出修改需求或直接编辑。');
-    hidePanel('workflow-ai-proposal');render();persistDraft();
-    status('已采用 AI 语义步骤；定位仍待真实浏览器检查，保存与运行需要单独操作');
-  });
   const unsubscribePage=currentPageTarget?.subscribe(next=>{
     if(disposed)return;
     if(!touched&&!workflow.siteOrigin&&next.status==='available') {
