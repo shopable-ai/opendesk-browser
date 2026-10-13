@@ -120,3 +120,24 @@ test('trusted Cloud requests show readable Task names without exposing raw reque
       assert.equal(rendered.includes(secret),false,secret);
   }finally{view.dispose();}
 });
+
+test('no installed Task CTA opens the real My tab rather than a nonexistent tab ID',async()=>{
+  const f=surface();let navigations=0;
+  f.get('tab-my-tasks').click=()=>{navigations++;};
+  const client={cloud:{cloudStatus:async()=>({provider:{providerId:'test-provider'},
+    enabled:false,connection:'offline',online:false,reconciled:false,
+    tasks:[],hostReady:true,slotAvailable:true,requestTotal:0,requests:[]}),
+    cloudNext:async()=>{throw Error('No approved Task should be claimed');}},
+    request:async()=>({catalog:[],installed:[]})};
+  const view=createCloudHosting({client,host:{executionPending:false},
+    document:f.document,api:{}});
+  try{
+    for(let i=0;i<8;i++)await flush();
+    const items=f.get('cloud-task-list').children;
+    assert.equal(items.length,2,'One explanatory empty state and one real action');
+    assert.match(items[0].textContent,/暂无已安装任务/);
+    assert.match(items[1].textContent,/前往「我的」安装任务/);
+    items[1].events.get('click')();
+    assert.equal(navigations,1);
+  }finally{view.dispose();}
+});
