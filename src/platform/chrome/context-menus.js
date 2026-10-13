@@ -144,7 +144,8 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
   const activeNetworkRequests=new Set();
   const intentOperations=new Set(['browser.tabs.create','browser.tabs.activateOwned','browser.tabs.pinOwned','browser.tabs.reloadOwned','browser.tabs.navigateOwned','browser.tabs.removeOwned','browser.network.request',
     'browser.network.observe.start','browser.network.observe.export','browser.screenshot.captureVisible',
-    'browser.cookies.set','browser.cookies.remove','browser.cookies.clearSite','browser.cookies.observe.start']);
+    'browser.cookies.set','browser.cookies.remove','browser.cookies.clearSite','browser.cookies.observe.start',
+    'browser.clipboard.writeText','browser.downloads.text']);
   const observationOperations=new Set(['browser.network.observe.getStatus','browser.network.observe.stop',
     'browser.events.read','browser.events.close']);
   const ownedOperationMethods=new Set(['browser.operations.getStatus','browser.operations.cancel']);
@@ -524,6 +525,13 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
             ?new URL(checked.url).origin:null;
         const context={...owner,approvedOrigin};
         await verifyBrowserOwner(context,operation,approvedOrigin);
+        // Clipboard requires a visible trusted extension document; downloads
+        // reuse its existing Chrome download service. The Host grants only one
+        // exact, user-click-approved call after checking the installed tool,
+        // package hash, permission and install epoch. No export effect occurs
+        // in the untrusted iframe or in this approval-only Host branch.
+        if(operation==='browser.clipboard.writeText'||operation==='browser.downloads.text')
+          return {authorized:true};
         if(operation==='browser.tabs.create')return tabHost.create(checked,context);
         if(operation==='browser.tabs.activateOwned')return tabHost.activateOwned(checked,context);
         if(operation==='browser.tabs.pinOwned')return tabHost.pinOwned(checked,context);
