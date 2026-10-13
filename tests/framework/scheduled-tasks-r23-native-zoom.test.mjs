@@ -220,7 +220,7 @@ test('actual installed Chrome runner zooms at 125%, 150%, 200% with keyboard and
     await sleep(120);
     const layout=await evaluate(client,'(()=>{'+
       'const q=s=>document.querySelector(s);const box=s=>{const n=q(s);if(!n)return null;'+
-      'const r=n.getBoundingClientRect();return {left:r.left,right:r.right,top:r.top,bottom:r.bottom,width:r.width,height:r.height}};};'+
+      'const r=n.getBoundingClientRect();return {left:r.left,right:r.right,top:r.top,bottom:r.bottom,width:r.width,height:r.height};};'+
       'const label=q("label[for=schedule-title]");const range=document.createRange();'+
       'range.selectNodeContents(label.firstChild);'+
       'const fieldLabelGap=box("#schedule-title").top-range.getBoundingClientRect().bottom;'+
