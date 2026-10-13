@@ -43,3 +43,29 @@ export function workflowForModel(workflow){
   }
   return data;
 }
+
+const MASKED_FILL_TEXT='[原填写值未发送，请使用运行参数]';
+const redactionError=()=>Object.assign(
+  new Error('AI 提议包含无法对应原工作流的隐藏填写值，请检查步骤并重新生成'),
+  {code:'E_AI_REDACTION'});
+
+// Preserve unchanged local values without ever sending those values to the model.
+// A forged/new step cannot use the placeholder to obtain an unrelated local value.
+export function restoreModelRedactions(proposal,original){
+  const next=structuredClone(proposal),priorById=new Map(
+    (original.steps||[]).map(step=>[step.stepId,step]));
+  const sharedById=new Map(workflowForModel(original).steps.map(step=>[step.stepId,step]));
+  for(const step of next.steps||[]){
+    const prior=priorById.get(step.stepId),sent=sharedById.get(step.stepId);
+    if(step.op==='fill'&&step.text===MASKED_FILL_TEXT){
+      if(!prior||prior.op!=='fill'||!Object.hasOwn(prior,'text')||!sent||
+        step.locatorKind!==prior.locatorKind||step.selector!==prior.selector||
+        (step.roleName||'')!==(prior.roleName||'')||Object.hasOwn(step,'param'))
+        throw redactionError();
+      step.text=prior.text;
+    }
+    if(step.op==='navigate'&&prior?.op==='navigate'&&sent?.op==='navigate'&&
+      step.url===sent.url && sent.url!==prior.url)step.url=prior.url;
+  }
+  return next;
+}
