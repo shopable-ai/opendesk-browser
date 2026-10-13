@@ -248,6 +248,18 @@
             <button id="trusted-cookie-read" type="button" class="od-button">读取当前网页 Cookie</button>
             <p id="trusted-cookie-status" role="status" aria-live="polite" class="hint">请主动点击读取；不会在打开界面时自动获取 Cookie。</p>
             <div id="trusted-cookie-rows" class="trusted-cookie-list" aria-label="已读取的 Cookie"></div>
+            <details id="trusted-cookie-observe-panel" class="trusted-cookie-observe">
+              <summary>近期 Cookie 变化（仅元数据）</summary>
+              <p class="hint">手动开始后最多监听 15 秒，事件不包含 Cookie 值。不会在后台持续监控，也不会向已安装工具发送信息。</p>
+              <div class="trusted-cookie-observe-actions" role="group" aria-label="Cookie 变更观察操作">
+                <button id="trusted-cookie-watch-start" type="button" class="od-button od-button--secondary">开始监听</button>
+                <button id="trusted-cookie-watch-status-button" type="button" class="od-button od-button--secondary" disabled>检查状态</button>
+                <button id="trusted-cookie-watch-read" type="button" class="od-button od-button--secondary" disabled>读取变化</button>
+                <button id="trusted-cookie-watch-stop" type="button" class="od-button od-button--secondary" disabled>停止</button>
+              </div>
+              <p id="trusted-cookie-watch-status" role="status" aria-live="polite" class="hint">未监听。</p>
+              <div id="trusted-cookie-watch-events" class="trusted-cookie-watch-events" aria-label="不包含 Cookie 值的变更事件"></div>
+            </details>
             <details class="trusted-cookie-write">
               <summary>创建或修改 Cookie</summary>
               <label for="trusted-cookie-name">名称</label>
