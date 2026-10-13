@@ -30,7 +30,7 @@ test('real HTTP/native WebSocket provider: durable claim, empty retry, permit re
     await assert.rejects(post('/admin/seed',{...seed,params:{name:'different'}},admin.adminToken),{code:'E_REQUEST_CONFLICT'});
     const claim={claimId:'real',grantId,tasks},a=(await post('/v1/claim',claim)).assignment;assert.equal(a.params.name,'Alice');assert.deepEqual((await post('/v1/claim',claim)).assignment,a);
     await assert.rejects(post('/v1/claim',{...claim,tasks:[]}),{code:'E_REQUEST_CONFLICT'});
-    const runRef={runId:randomUUID(),resultId:randomUUID(),requestId:'cloud:'+a.assignmentId,sourceHash:pkg.manifest.program.sourceHash,manifestHash:pkg.manifestHash,grantId:randomUUID()},admission={assignmentId:a.assignmentId,runRef,resultAllowed:false};
+    const runRef={runId:randomUUID(),resultId:randomUUID(),requestId:'cloud:'+a.assignmentId,sourceHash:pkg.manifest.program.sourceHash,manifestHash:pkg.manifestHash,grantId},admission={assignmentId:a.assignmentId,runRef,resultAllowed:false};
     await post('/admin/fault',{path:'/v1/admission',count:1},admin.adminToken);await assert.rejects(post('/v1/admission',admission));
     const permit=await post('/v1/admission',admission);assert.deepEqual(await post('/v1/admission',admission),permit);
     await assert.rejects(post('/v1/admission',{...admission,runRef:{...runRef,runId:randomUUID()}}),{code:'E_REQUEST_CONFLICT'});
