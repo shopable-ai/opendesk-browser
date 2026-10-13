@@ -1,5 +1,5 @@
 import {normalizeAiProposal} from '../../framework/workflow/contract.js';
-import {workflowForModel} from './data-sharing.js';
+import {workflowForModel,restoreModelRedactions} from './data-sharing.js';
 
 // Explicit, session-only provider configuration. No webpage observation is uploaded here.
 export async function requestWorkflowPlan({endpoint,apiKey,model,request,workflow,signal,fetchImpl = globalThis.fetch}) {
@@ -31,5 +31,5 @@ export async function requestWorkflowPlan({endpoint,apiKey,model,request,workflo
   let parsed;
   try { parsed = JSON.parse(JSON.parse(text).choices?.[0]?.message?.content); }
   catch { throw Object.assign(new Error('AI 未返回有效的工作流 JSON'),{code:'E_AI_RESPONSE'}); }
-  return normalizeAiProposal(parsed,workflow);
+  return normalizeAiProposal(restoreModelRedactions(parsed,workflow),workflow);
 }
