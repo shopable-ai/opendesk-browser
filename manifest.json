@@ -59,6 +59,14 @@
         "http://*/*",
         "https://*/*"
       ]
+    },
+    {
+      "resources": [
+        "stay-focus/blocked-quota.html", "stay-focus/blocked-schedule.html",
+        "stay-focus/blocked-session.html", "stay-focus/blocked-always.html",
+        "stay-focus/blocked.css", "stay-focus/blocked.js"
+      ],
+      "matches": ["http://*/*", "https://*/*"]
     }
   ],
   "side_panel": {
