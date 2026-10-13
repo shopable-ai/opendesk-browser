@@ -1,5 +1,14 @@
 # Stay Focus R1.0 · 独立工具交付账本
 
+## R1.3 易用性改进：默认推荐和当前网站自动识别（2026-10-13）
+
+**用户流程压缩为：打开 Stay Focus → 选择当前网站的推荐额度（或常用网站按钮）→ 在现有可信宿主确认；首次启用另由 Chrome 原生权限确认。** 不再要求普通用户手动输入域名、子域名或组名；原有手动编辑、共享组、工作时段和白名单保留在折叠的高级设置中。
+
+- 已修改 `examples/sidebar-tools/stay-focus/src/index.html`、`src/main.js`、`src/style.css`：首屏自动读取已有 `currentPage.info` 的当前网站域名/标题，在本机识别视频/社交/娱乐/游戏及工作/学习，使用 15/20/30 分钟建议值；内置 YouTube、哔哩哔哩、TikTok、Instagram 快捷入口。
+- 安全边界：精确域名优先；标题只做弱提示；不读取 `meta`、Schema.org、网页正文或历史，不请求新的浏览器权限、不上传、不增加第二套 Host。默认推荐不等于已设置规则，写入仍必须经过 `focus.site.put` 与既有可信确认；启用 DNR 仍需原生授权。
+- 已同步 `tests/framework/stay-focus-r1-native.test.mjs` 打开默认收起的手动设置；新增 `tests/environment/stay-focus-r1.test.mjs` 定向模拟交互，检查“未点击不写入”、YouTube 域名精确映射、伪装域名不冒充与学习/工作默认不限制。
+- **当前证据：** 已完成源码语法与轻量本地行为模拟检查，不等于同候选 Node、打包构建或 Chrome 原生 PASS；功能评定继续按下方账本的原生验收门槛，不能据此宣布正式交付。
+
 ## R1.3 核心产品状态（2026-10-13 · 最新源码候选：`95f23ce3014fdd36c6e9c48580e320688e465be7`）
 
 **产品结论：尚不能签收为正式可用（NO-GO）。** 核心代码已存在并完成 R1.3 定向修复，但本候选 GitHub Actions 尚未执行完，真实 Chrome 计时、拦截、整浏览器重启与卸载需要取得同候选原生证据。不要把下表 `DONE` 解释为 `NATIVE_PASS`。
