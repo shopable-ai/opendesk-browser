@@ -22,6 +22,11 @@ on:
       - 'src/ui/tool.html'
       - 'tests/environment/scheduled-tasks-r1.test.mjs'
       - 'tests/environment/scheduled-task-ui-r1.test.mjs'
+      - 'tests/environment/task-package-flow.test.mjs'
+      - 'tests/environment/task-workbench.test.mjs'
+      - 'tests/environment/tool-ui-tab.test.mjs'
+      - 'tests/environment/sidebar-product-contract.test.mjs'
+      - 'tests/framework/k3-controller-authority.test.mjs'
   workflow_dispatch:
 
 permissions:
