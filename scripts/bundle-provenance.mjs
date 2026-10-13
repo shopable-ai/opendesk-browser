@@ -20,7 +20,7 @@ function reviewedCompiledTimeReview(target,path,root){
   if(realpathSync(file)!==file)
     throw Error('Trusted Time Review source must not be a symlink: '+path);
   const bytes=readFileSync(file);
-  const hash=createHash('sha1').update('blob '+bytes.length+'\\0').update(bytes).digest('hex');
+  const hash=createHash('sha1').update('blob '+bytes.length+'\0').update(bytes).digest('hex');
   if(hash!==compiledTimeReviewInputs[path])
     throw Error('Trusted Time Review source changed; review and re-pin before fixed build: '+path);
   return hash;
