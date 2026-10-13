@@ -24,7 +24,7 @@ const scheduleStatusLabels=Object.freeze({
 const scheduleStatus=status=>scheduleStatusLabels[status]||status||'未知';
 const scheduleStatusGuidance=Object.freeze({
   READY:'已排队，等待到期后检查授权及运行条件。',
-  WAITING_HOST:'没有合法可见运行宿主；请打开运行页。Chrome 退出时无法执行。',
+  WAITING_HOST:'这次触发曾等待合法可见运行宿主；保持运行页打开供后续检查。Chrome 退出时无法执行。',
   WAITING_TARGET:'等待获准访问的目标网页；按计划设置检查是否需要打开目标页。',
   WAITING_SLOT:'等待现有 Controller 执行槽；不会创建第二次执行。',
   ADMITTED:'已获准进入原执行链，等待真实结果。',
@@ -299,24 +299,31 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
     const observed=allPlans.flatMap(plan=>(plan.history||[]).map(fire=>({plan,fire})));
     const running=observed.filter(item=>['ADMITTED','RUNNING'].includes(item.fire.status))
       .sort((a,b)=>b.fire.scheduledAt-a.fire.scheduledAt)[0];
-    const owned=selectedFire?observed.find(item=>item.fire.runId===selectedFire):null;
+    const owned=selectedFire?observed.find(item=>item.fire.runId===selectedFire&&
+      ['ADMITTED','RUNNING'].includes(item.fire.status)):null;
     const current=owned||running;
+    const settling=observed.filter(item=>item.fire.status==='SETTLING')
+      .sort((a,b)=>b.fire.scheduledAt-a.fire.scheduledAt)[0];
+    const alreadyTerminal=Boolean(selectedFire&&observed.some(item=>
+      item.fire.runId===selectedFire&&terminal.has(item.fire.status)));
+    const unconfirmedRun=Boolean(selectedFire&&!alreadyTerminal);
     const waiting=observed.filter(item=>
       ['READY','WAITING_HOST','WAITING_TARGET','WAITING_SLOT','SETTLING'].includes(item.fire.status))
       .sort((a,b)=>b.fire.scheduledAt-a.fire.scheduledAt)[0];
     const latest=observed.filter(item=>terminal.has(item.fire.status))
       .sort((a,b)=>b.fire.scheduledAt-a.fire.scheduledAt)[0];
-    const focus=current?.plan||upcoming||plans.find(p=>p.needsAttention)||
+    const focus=current?.plan||settling?.plan||upcoming||plans.find(p=>p.needsAttention)||
       plans.find(p=>!p.paused)||plans[0];
     runnerFocusId=focus?.scheduleId??null;
     text(get('schedule-runner-next'),upcoming?upcoming.title:'暂无待执行计划');
     text(get('schedule-runner-next-detail'),upcoming?
       frequencyLabel(upcoming)+' · '+describeTime(upcoming.nextDueAt,upcoming.timezone):'可从计划管理创建或恢复计划');
     text(get('schedule-runner-current'),current?current.plan.title:
-      selectedFire?'正在执行任务':'暂无任务运行');
+      settling?'正在核对上次结果':unconfirmedRun?'执行状态待确认':'暂无任务运行');
     text(get('schedule-runner-current-detail'),current?
       scheduleStatus(current.fire.status)+' · '+describeTime(current.fire.scheduledAt,current.plan.timezone):
-      selectedFire?'已进入原始 Controller 执行槽':
+      settling?settling.plan.title+' · 正在结算（尚未确认成功）':
+      unconfirmedRun?'已关联原执行槽，正在核对真实状态':
       waiting?'未运行 · '+scheduleStatus(waiting.fire.status):'到期后才检查执行条件');
     text(get('schedule-runner-result'),latest?scheduleStatus(latest.fire.status):'尚无执行结果');
     text(get('schedule-runner-result-detail'),latest?
@@ -324,14 +331,19 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
     text(get('schedule-runner-focus-title'),focus?focus.title:'还没有定时计划');
     text(get('schedule-runner-focus-detail'),focus?
       (current&&focus.scheduleId===current.plan.scheduleId?'当前任务 · '+scheduleStatus(current.fire.status):
+        settling&&focus.scheduleId===settling.plan.scheduleId?'最近执行 · 正在结算（不是成功）':
         frequencyLabel(focus)+' · '+(focus.paused?'已暂停':describeTime(focus.nextDueAt,focus.timezone))):
       '创建一个已验证并安装的任务计划');
     text(get('schedule-runner-explain'),current&&focus?.scheduleId===current.plan.scheduleId?
       scheduleStatusGuidance[current.fire.status]:
+      settling&&focus?.scheduleId===settling.plan.scheduleId?
+        scheduleStatusGuidance.SETTLING:
       focus?.needsAttention?'任务安装身份或网站权限发生变化，需要处理；不会自动重新绑定版本。':
       focus?.paused?'此计划已暂停，不会在到期时触发。':
       waiting&&waiting.plan.scheduleId===focus?.scheduleId?
-        scheduleStatusGuidance[waiting.fire.status]:
+        (waiting.fire.status==='WAITING_HOST'&&isRunner()?
+          '历史记录曾等待运行宿主；本页已经可见，正在检查原触发是否仍符合执行条件。':
+          scheduleStatusGuidance[waiting.fire.status]):
       latest?.fire.status==='UNKNOWN'&&latest.plan.scheduleId===focus?.scheduleId?
         scheduleStatusGuidance.UNKNOWN:
       '计划到期后校验目标网页、固定任务身份和执行槽；浏览器关闭期间不执行。');
