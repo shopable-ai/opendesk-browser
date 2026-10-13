@@ -2,6 +2,24 @@
 
 > **用户最新决定，覆盖旧 R7/R8 中“正式 35 项 API 必须保留兼容”的限制。** OpenDesk Browser 仍在开发，尚未正式上线及提供外部 API 使用承诺。旧 35 项是历史开发快照，不是冻结的未来对外合同。
 
+## 旧 35 项兼容政策的最终处置（正式废止）
+
+**政策状态：ABOLISHED / 已废止（2026-10-13）。** 这里废止的是「无论质量如何，必须长期保留旧 35 项名称、签名、别名、计数及兼容层」的**义务**，**不是把 35 项实际功能一律删除**。项目预发布阶段的错误 API 应直接修正，正确能力照常保留。
+
+按原 R8 35 项历史快照与已核对的现行注册表名称对照：
+
+| 处置 | 数量 | 具体结果 |
+| --- | ---: | --- |
+| KEEP（原名仍在注册表） | 26 | 仅证明名称仍登记，不代表所有调用路径、授权或 Chrome Native 均已验收 |
+| RENAME（旧名称已从注册表剔除） | 3 | `browser.tabs.open → browser.tabs.create`；`browser.tabs.focus → browser.tabs.activateOwned`；`browser.tabs.closeOwned → browser.tabs.removeOwned` |
+| DELETE（旧占位操作从注册表剔除） | 9 | `browser.media.recording.*` 4 项、`browser.speech.*` 3 项、`browser.notifications.create/clear` 2 项 |
+
+**执行规则：** 不恢复上述旧名称、不增加 deprecated shim、不保留固定「35 项」测试门槛。任何重新开发录制、语音或通知能力都须按照真实产品需求和当前矩阵重新批准，不能把已删除占位接口恢复为旧合同。其他 API 通过 KEEP / RENAME / MERGE / DELETE / NEW 逐项落地，并在同一变更中迁移仓内消费者、示例、类型及测试。
+
+`browser-sdk-compatibility-map.json` 仅作冻结历史证据，**其中 `operations[].deprecationState: "ACTIVE"` 和 `removalEligibility: false` 是当时 R8 的旧字段，不能解读为今天仍强制兼容**。当前可调用名称以 `BROWSER_OPERATIONS` + SDK Wrapper + 实际 Host 接线为准，批准和安全边界仍以唯一接口矩阵及最新用户需求核验。
+
+**重要的动态状态提醒：** 本仓同时在实施 Cookies 等能力，文档中「29 项」「Cookie 11 项 Host-only」属于当时设计快照。若当前 `browser-contract.js` 或 `browser.js` 已改变注册与暴露级别，必须先核对最新源码、授权与威胁边界，更新同一执行手册和矩阵，再进行真实调用和测试；不得机械沿用过期数字，也不得仅因新方法在 Wrapper 出现就认为权限验证完成。
+
 ## Browser SDK 唯一正式执行合同（2026-10-13）
 
 - **设计执行手册**：[`browser-sdk-execution-manual.zh-CN.md`](browser-sdk-execution-manual.zh-CN.md)。后续实现默认依照其中 Phase 0–7 和唯一架构、权限、测试门禁执行，除真实重大安全/平台不可实现/合同冲突外，不再另建第二份总体执行方案。
