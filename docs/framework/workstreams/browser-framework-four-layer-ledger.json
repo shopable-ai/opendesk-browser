@@ -358,7 +358,7 @@
       "candidateOrigin": null
     },
     {
-      "id": "browser.tabs.open",
+      "id": "browser.tabs.create",
       "inventory": "FORMAL",
       "layer1": {
         "api": "chrome.tabs + chrome.webNavigation",
@@ -391,7 +391,7 @@
       "candidateOrigin": null
     },
     {
-      "id": "browser.tabs.focus",
+      "id": "browser.tabs.activateOwned",
       "inventory": "FORMAL",
       "layer1": {
         "api": "chrome.tabs + chrome.webNavigation",
@@ -502,7 +502,7 @@
       }
     },
     {
-      "id": "browser.tabs.closeOwned",
+      "id": "browser.tabs.removeOwned",
       "inventory": "FORMAL",
       "layer1": {
         "api": "chrome.tabs + chrome.webNavigation",
@@ -527,8 +527,8 @@
         "siteScope": "tab-ref"
       },
       "layer4": {
-        "positive": "PASS",
-        "denial": "PASS",
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
         "macChrome": "NOT_TESTED",
         "callableNow": "NOT_TESTED",
         "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
@@ -1223,7 +1223,7 @@
       }
     },
     {
-      "id": "browser.tabs.closeOwned",
+      "id": "browser.tabs.removeOwned",
       "group": "标签页扩展操作",
       "priority": "P0",
       "trust": "APPROVED_TOOL",
@@ -4905,6 +4905,12 @@
     "oldFormalCount": 35,
     "newFormalCount": 26,
     "legacyR8RemovedFormalStored": true,
-    "nativeChrome": "NOT_TESTED"
+    "nativeChrome": "NOT_TESTED",
+    "tabsRenamed": {
+      "browser.tabs.open": "browser.tabs.create",
+      "browser.tabs.focus": "browser.tabs.activateOwned",
+      "browser.tabs.closeOwned": "browser.tabs.removeOwned"
+    },
+    "tabsNativeChrome": "NOT_TESTED"
   }
 }
