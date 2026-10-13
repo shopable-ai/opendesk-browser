@@ -33,6 +33,22 @@ Cloud 补充真实键盘验证：Left→Tools、Right→Cloud、Enter/Space 折�
 
 当前 main `b2c0e1fa885328f986c3738f3ed4a3a8e1421d27`，本轮相关源码无未提交 diff，日常 Chrome PID 73139 及 watcher PID 25149/25173 仍存活。上轮为实质进展（Cloud 导航修复、代码/证据提交、同候选 CI 与真实几何），本轮只核验剩余控制路径。辅助功能树暴露「侧边栏大小调整手柄（可拖动）」及 Increment/Decrement；原生 Increment 没有得到尺寸变更，点击后 Left 进入页签键盘导航，未调整视口。实际扩展文档只读复测为 `innerWidth=363,height=839,clientWidth=363,scrollWidth=363,dpr=2,tab=我的`。已返回测试主窗口「我的」，未触发 Run、授权或替换日常扩展。该结果与前两回合的拖拽无尺寸变化、输入工具失败属于同一原生控制阻塞；完整宽度与 Side Panel 自身缩放仍 NOT_TESTED，等待可用的原生控制路径或独立人工矩阵证据后续接，GOAL 不宣称完成。
 
+随后补查发现新的有效路径，取代上述“无可用控制路径”的判断：从 Side Panel 页签 Shift+Tab 经关闭、固定按钮到达原生 resize 手柄，让真实焦点落在手柄后 Left 实测 363→413，Right 收窄到 360 并钳制。GOAL 继续 active，不登记 blocked。原生测量需排除收起父 details 内的未显示内容，修正只用 boundingClientRect 宽度的观察方法；360px 开发页实际可见八个一级标题均为 40px/13px/650/padding 8px 12px，client/scrollWidth=360/360，无外层控件越界。
+
+本 R32 Agent 原生续接资源：日常 Chrome PID 73139，现有 Side Panel/DevTools 与临时同源 `manifest.json` 只读普通 Tab。研究候选为通过 Chrome 原生 Zoom 菜单调节同源缩放并回测真正 Side Panel，不加载另一份 tool.html、不新建 Host，不改权限或运行脚本。先读取原始缩放百分比，测试后恢复；没有面板自身变化就仍标 NOT_TESTED。保留 watcher PID 25149/25173、dist 路径及扩展 ID，其他 CFT/profile 不占用。
+
+### R32 原生宽度与缩放续验（2026-10-14，取代上述控制不可用的完整判断）
+
+同一日常 Chrome `155.0.8059.40`、同一扩展 ID 与 `hostInstanceId` 已取得有效的原生调节路径。真实焦点在 resize 手柄时 Left 每次扩大 50 DIP，最小内容宽度实测 360；开发页在 360/410/460/510 CSS px 均无正文控件越界，页面 `clientWidth=scrollWidth`。七个 Tab 在 360 和 510px 的当前真实状态均无页面溢出。原生拖动未得到尺寸变化，不把 410/510 当作精确 420/520；300/320/420/520 的完整原生矩阵仍 NOT_TESTED，静态 300–520 证据单列。
+
+通过 Chrome 原生快捷键调整同扩展来源的静态 `manifest.json` Tab 后，真正已有 Side Panel 自身同步缩放：125% 为 288×671 CSS px / DPR 2.5，200% 为 180×419 / DPR 4，七个 Tab 均 `clientWidth=scrollWidth`、正文控件越界数 0。100% 已恢复，实测 360×839 / DPR 2；临时 JSON Tab/其临时 Inspector 已关闭，没有加载第二份 tool.html 或新建 Host。一级标题统一 13px/650/8px 12px，二级为 12px/650/8px 0；200% 长标题自然换行增高，不固定裁切到 40px。开发页 125% 的一级标题均 40px。
+
+观察器将导航条自身的局部滚动与正文溢出分开。200% 时存在四个非选中 Tab 在导航可视范围之外，但页面仍 180/180，Home/End 能把选中项滚入视野：Debug 实际边界 122–172 在 0–180 内；Home 回到「我的」的真实截图有清晰蓝色焦点轮廓。此前只用 boundingClientRect 的隐藏后代读数及截断 Console JSON 不作为通过依据，保留原始失败；唯一标签、可见性过滤与紧凑输出之后的读数才登记。长中文/URL/JSON 原生参数编辑已核对无溢出，参数精确恢复 `{"value":0}`。本续验未点击 Run、安装、授权或改变模型数据发送。
+
+最后 Dock 到底检查遇到原生工具 `native_hook_stdin_oversized`；重新绑定完整 Chrome 路径、重建 CUA 会话仍失败，不能把尝试当作通过。最后可验证状态为 100% / 面板 510px，原始 363px 未精确恢复。底部 Dock、完整动态安装/工作流/Cookie 状态、本地项目/空及错误结果、原生深色与 reduced-motion 仍 NOT_TESTED。评分继续 NOT_SCORED，整体 95+ NOT_ACCEPTED。局部原生几何结果与缺口追加保存于 `artifacts/sidebar-r32-accepted-preserved/native-matrix-20261014.json`；这是 CUA 实际输出的转录及身份记录，截图已在本对话展示，未冒称持久化 PNG 原始包，不覆盖旧 receipt。
+
+验收期间其他负责人已将 Import Runtime 保存逻辑合入 main `28f4730c05d71271c173f5f4f63fddc5aea5e71b`。九个本轮相关源码文件仍逐字匹配 d270，四项已加载 HTML/CSS 与源码相同；另有 `workflow-view.js` 并行未提交改动，本轮不纳入、不提升其动态状态。最新 [R1 P0 38472328661](https://github.com/shopable-ai/opendesk-browser/actions/runs/38472328661) 对应 **28f4730c：16+341+23+37=417 PASS / 0 FAIL**，原 d270 的 16 FAIL 保留历史，不能继续宣称当前阻断。R19/R21 的 d270 成功仍按未变的相关输入复用；没有该新 SHA 的对应 R19/R21 run 就明确标记未触发，不冒充新 HEAD 的完整构建、全量 npm test 或整体产品验收。提交窗口前已 fetch 核对 main 与 origin/main 同为 `238e279c2f3f07174d640a91e464ad1fbfa12291`，该后续提交未改 Side Panel 源码；共享索引为空，本次仅暂存本工作流，不纳入其他文件。
+
 本轮修改真实 Side Panel，继续使用 `od-disclosure` / `--flat` / `--info`，没有新 UI、Tailwind、依赖、权限或 iframe 样式注入。独立审阅 Lovelace 检查了正文留白、hidden、标题布局及暂存边界；视觉驱动由 Hume 修改，最终修复和验证由本对话负责人执行。
 
 | 页面 | 已迁移的真实组件 | 原生观察与缺口 |
