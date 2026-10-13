@@ -5,6 +5,7 @@ import {tmpdir} from 'node:os';
 import {join,dirname} from 'node:path';
 import {createHash} from 'node:crypto';
 import {BUILD_POLICY} from '../../scripts/build-contract.mjs';
+import {assertClassicIIFE,inspectScript} from '../../scripts/verify-package.mjs';
 import {FIXED_ENTRY_PATHS,summarizeFixedEntries,summarizePackageResources,measureFixedEntries,measurePackageResources} from '../../scripts/audit-fixed-entries.mjs';
 import {BUILTIN_CATALOG} from '../../src/libs/catalog.js';
 import {PAGE_FRAMEWORK_RUNTIMES,PAGE_FRAMEWORK_RESOURCE_LIMIT,PAGE_BROWSER_PRIVATE_FILES,PAGE_BROWSER_COMPILER_RESOURCE_LIMIT} from '../../src/libs/page-frameworks/contract.js';
@@ -247,4 +248,18 @@ test('physical measurements reject incomplete or mismatched attempts and retain 
   }
   await writeFile(markerPath,JSON.stringify({...good,receipt:'/previous-machine/evidence/build-production.json'}));
   assert.equal((await measureFixedEntries({outputRoot,receiptPath})).fixedEntryCount,FIXED_ENTRY_PATHS.length);
+});
+
+test('strict unary classic IIFE is accepted only for fixed tool-shell and remains isolated',()=>{
+  assert.doesNotThrow(()=>assertClassicIIFE('!function(){"use strict";void 0;}();','ui/tool-shell.js'));
+  assert.doesNotThrow(()=>assertClassicIIFE('var tool_shell=(function(){"use strict";})();','ui/tool-shell.js'));
+  for(const [code,file] of [
+    ['!function(){"use strict";}();','ui/sidebar-tool-host.js'],
+    ['!function(){"use strict";}();void 0;','ui/tool-shell.js'],
+    ['!function(x){"use strict";}();','ui/tool-shell.js'],
+    ['!async function(){"use strict";}();','ui/tool-shell.js'],
+    ['var _=(function(){})();','ui/tool-shell.js']
+  ])assert.throws(()=>assertClassicIIFE(code,file),/Non-classic IIFE|preclaims built-in/);
+  assert.throws(()=>inspectScript('!function(){eval("alert(1)")}()','ui/tool-shell.js'),
+    /Dynamic execution reference/);
 });
