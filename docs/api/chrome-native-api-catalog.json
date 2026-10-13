@@ -1773,6 +1773,8 @@
         "browser.tabs.activateOwned",
         "browser.tabs.getOwned",
         "browser.tabs.listOwned",
+        "browser.tabs.pinOwned",
+        "browser.tabs.reloadOwned",
         "browser.tabs.removeOwned"
       ],
       "hostService": null,
@@ -2573,11 +2575,13 @@
       "chromePermissions": null,
       "hostPermissions": null,
       "availability": "MIN_VERSION_UNVERIFIED",
-      "mappingKind": null,
-      "opendeskOperation": [],
-      "hostService": null,
-      "exposure": "NOT_EXPOSED",
-      "implementation": "NOT_IMPLEMENTED",
+      "mappingKind": "SCOPED",
+      "opendeskOperation": [
+        "browser.tabs.reloadOwned"
+      ],
+      "hostService": "src/platform/chrome/context-menus.js",
+      "exposure": "SEE_APPROVED_SDK_CONTRACT",
+      "implementation": "MAPPED_TO_EXISTING_CONTRACT",
       "source": {
         "path": "chrome/common/extensions/api/tabs.json",
         "gitBlobSha": "dbd3c252a3039cb10014518b05037151be7a1ce2"
@@ -2874,11 +2878,12 @@
       "chromePermissions": null,
       "hostPermissions": null,
       "availability": "MIN_VERSION_UNVERIFIED",
-      "mappingKind": "SCOPED",
+      "mappingKind": null,
       "opendeskOperation": [
-        "browser.tabs.activateOwned"
+        "browser.tabs.activateOwned",
+        "browser.tabs.pinOwned"
       ],
-      "hostService": "src/platform/chrome/context-menus.js",
+      "hostService": null,
       "exposure": "SEE_APPROVED_SDK_CONTRACT",
       "implementation": "MAPPED_TO_EXISTING_CONTRACT",
       "source": {
@@ -2940,6 +2945,8 @@
         "browser.launch.consume",
         "browser.tabs.getOwned",
         "browser.tabs.listOwned",
+        "browser.tabs.pinOwned",
+        "browser.tabs.reloadOwned",
         "browser.tabs.removeOwned"
       ],
       "hostService": null,
