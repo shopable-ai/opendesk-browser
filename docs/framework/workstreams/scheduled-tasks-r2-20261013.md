@@ -254,3 +254,11 @@
 
 **结论分层：** Linux Zoom/Resize/Keyboard 的受控测试 `NATIVE_PASS`；Linux 整 Chrome 重启/第二次真实网页效果 `NATIVE_PASS`；用户 Mac 日常 `dist/development` 的扩展 ID、Profile、Side Panel 实体物理尺寸 `NATIVE_PENDING`；双平台和完整质量 95+ `NOT_SCORED`。
 
+### R2.8 跨视图残留提示修复后的真实 CFT 截图回执
+
+- [`f6de1d7` 真实缩放 CI 38433892190](https://github.com/shopable-ai/opendesk-browser/actions/runs/38433892190) 的 Linux Chrome Job **SUCCESS**，原始 [Artifact 11831538884](https://github.com/shopable-ai/opendesk-browser/actions/runs/38433892190/artifacts/11831538884) 内 `native-zoom-report.json` 标明 `status=PASS`、Git `f6de1d733294c602c788aa4f909f997be7028536`、`packageHash=cd44f5219e4d04dacb74bee44466e0a9d4ce0d563508cfadff419fd5df0b7f6e`、Chrome/155.0.8059.39 与隔离扩展 ID `jhajepcnohiplmafaiokjlcagcfjgaap`。
+- 同证据包中最新 `runner-color-scheme-dark-360.png` 截图确认，在“无安装任务表单验证失败 → 显式取消/丢弃 → 独立 Runner”之后，**顶部已经不再显示之前的表单错误**。保留 100/125/150/200% 真正 Chrome Zoom、9 种 CDP viewport 模拟、17 张截图与原生 Tab/焦点、时区、错误保护的测试证据。
+- CI 的 `macos-15` Matrix 截至本记录仍在 GitHub 队列或等待独立状态确认；用户 Mac 本机 `dist/development`、实体 Side Panel 与原生 Native 配对仍 `NATIVE_PENDING`。
+- [`80c94f1`](https://github.com/shopable-ai/opendesk-browser/commit/80c94f12ef02818f9607ba66d42504c16ef211cc)、[`23462e1`](https://github.com/shopable-ai/opendesk-browser/commit/23462e112f78f45bac202c5f3fd7575f07cdac4e)、[`94b6e9c`](https://github.com/shopable-ai/opendesk-browser/commit/94b6e9c4f47d9c132b4455679bbe5b5de1586ac1)、[`d8abc7b`](https://github.com/shopable-ai/opendesk-browser/commit/d8abc7bbc7c36f44ea463ba4ca01043b57d2570d) 同步修正 **Scheduled Tasks 工作流真正执行的共享 Sidebar 测试**，改为验证当前实际 `od-disclosure`/共享按钮 36px 与折叠标题 40px，而不是要求旧 CSS 无附加 Class 或已退役的局部几何值；保留原测试的操作可见性、权限诊断和焦点合同，不删除测试。[工作流路径校准 `0c0b2d0`](https://github.com/shopable-ai/opendesk-browser/commit/0c0b2d0972c1143d12866b42d2190e243110adf9) 保证被执行的共享组件测试更新时能触发 Scheduled Tasks 回归。
+- 这些共享测试修正的 **新主分支组件全 PASS 尚需实际 CI 完成**；不得用旧 commit 的绿色 Build Job 替代新 SHA 的总体验收。
+
