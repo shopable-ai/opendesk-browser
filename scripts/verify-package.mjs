@@ -28,6 +28,15 @@ export const EXTENSION_CSP = "script-src 'self'; object-src 'self'";
 export const SANDBOX_META_CSP = "default-src 'none'; script-src 'self' 'unsafe-eval'; worker-src blob:; connect-src 'none'; child-src 'none'; img-src 'none'; style-src 'none'; base-uri 'none'; form-action 'none'";
 export const SANDBOX_CSP = "sandbox allow-scripts; default-src 'none'; script-src 'self' 'unsafe-eval' blob:; worker-src blob:; connect-src 'none'; child-src 'none'; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; base-uri 'none'; form-action 'none'";
 export const SDK_MAIN_WAR = Object.freeze([{resources: ['framework/sdk-main.js'], matches: ['http://*/*', 'https://*/*']}]);
+// Static internal restriction pages can be loaded as DNR redirect targets,
+// not as arbitrary extension scripts. Require the exact reviewed paths.
+export const FOCUS_BLOCK_RESOURCES=Object.freeze([
+  'stay-focus/blocked-quota.html','stay-focus/blocked-schedule.html',
+  'stay-focus/blocked-session.html','stay-focus/blocked-always.html',
+  'stay-focus/blocked.css','stay-focus/blocked.js'
+]);
+export const APPROVED_WEB_ACCESSIBLE_RESOURCES=Object.freeze([...SDK_MAIN_WAR,
+  {resources:[...FOCUS_BLOCK_RESOURCES],matches:['http://*/*','https://*/*']}]);
 export const SDK_AUTOMATIC_CONTENT_SCRIPTS = Object.freeze([
   {matches:['http://*/*','https://*/*'],js:['agents/page-relay.js'],run_at:'document_start',all_frames:true,world:'ISOLATED'},
   {matches:['http://*/*','https://*/*'],js:['framework/sdk-main.js'],run_at:'document_start',all_frames:true,world:'MAIN'}
@@ -45,7 +54,9 @@ const HTML_REFERENCES = Object.freeze({
   'native-agent/workspace.html': ['workspace.css','settings.js'],
   'ui/target-bootstrap.html': ['../agents/bootstrap.js'],
   [SANDBOX_HTML]: ['sandbox.js'],
-  [TOOL_SANDBOX_HTML]: ['bridge.js']
+  [TOOL_SANDBOX_HTML]: ['bridge.js'],
+  ...Object.fromEntries(['quota','schedule','session','always'].map(reason=>[
+    'stay-focus/blocked-'+reason+'.html',['./blocked.css','./blocked.js']]))
 });
 const generatedJS = ['sw.js', ...Object.values(FIXED_OUTPUTS)].sort();
 const vendorJS = [BUILTIN_CATALOG.bootstrap,...Object.values(PINNED_USER_SCRIPT_LIBRARIES).map(row => row.output)];
@@ -63,7 +74,7 @@ function editionFiles(edition){
   const required=['manifest.json',BROWSER_EDITION_RECORD,MARKET_CHANNEL_PATH,SDK_RESOURCE_MANIFEST,BUILTIN_RESOURCE_MANIFEST,
     ...BUILTIN_RESOURCE_PATHS,...frameworkLicenses,...browserCompilerESM,
     ...(edition==='developer'?[PAGE_BROWSER_COMPILER.licensePath]:[]),
-    ...Object.keys(HTML_REFERENCES),'ui/design-tokens.css','ui/design-system.css','ui/tool-shell.css','ui/cloud-control-console.css','native-agent/settings.css','native-agent/workspace.css','ui/marketplace.css',...officialPaths,...expectedJS,...Object.keys(FIXED_ASSETS)].sort();
+    ...Object.keys(HTML_REFERENCES),'stay-focus/blocked.css','ui/design-tokens.css','ui/design-system.css','ui/tool-shell.css','ui/cloud-control-console.css','native-agent/settings.css','native-agent/workspace.css','ui/marketplace.css',...officialPaths,...expectedJS,...Object.keys(FIXED_ASSETS)].sort();
   return {compilerFiles,expectedJS,required};
 }
 const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
@@ -173,7 +184,7 @@ export function verifyManifest(manifest,{mode='production',source=false,edition=
   if (!same(manifest.side_panel, {default_path: 'ui/tool.html'})) throw new Error('Unexpected or missing Side Panel entry');
   if (!same(manifest.options_ui, {page:'native-agent/settings.html',open_in_tab:true})) throw new Error('Unexpected Native Agent settings exposure');
   if (manifest.incognito !== 'not_allowed') throw new Error('Unexpected incognito policy');
-  if (!same(manifest.web_accessible_resources, SDK_MAIN_WAR)) throw new Error('Unexpected web accessible resources');
+  if (!same(manifest.web_accessible_resources, APPROVED_WEB_ACCESSIBLE_RESOURCES)) throw new Error('Unexpected web accessible resources');
   if (!same(manifest.content_scripts, SDK_AUTOMATIC_CONTENT_SCRIPTS))
     throw new Error('SDK auto-install must use the two approved fixed scripts and distinct worlds');
   if (manifest.optional_host_permissions)
@@ -476,7 +487,7 @@ export async function verifyPackage(directory, {mode: requestedMode} = {}) {
   const explorerJS=await readFile(join(root,'native-agent/settings.js'),'utf8');
   if(!['data-variant','folder-open','tree-caret','file-icon'].every(value=>explorerJS.includes(value)))
     throw Error('Workspace explorer runtime is stale: packaged settings.js lacks SVG file-tree icons');
-  for(const cssPath of ['ui/design-tokens.css','ui/design-system.css','ui/tool-shell.css','ui/cloud-control-console.css','native-agent/settings.css','native-agent/workspace.css']) {
+  for(const cssPath of ['ui/design-tokens.css','ui/design-system.css','ui/tool-shell.css','ui/cloud-control-console.css','native-agent/settings.css','native-agent/workspace.css','stay-focus/blocked.css']) {
     const css = await readFile(join(root,cssPath),'utf8');
     if(/@(?:import|source|apply|tailwind|config|plugin)\b|url\s*\(|expression\s*\(/i.test(css)) throw new Error('Unsafe CSS resources in '+cssPath);
     if(cssPath==='native-agent/workspace.css')inspectWorkspaceStyle(css);
