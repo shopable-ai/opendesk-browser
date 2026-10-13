@@ -1260,9 +1260,10 @@ test('Time Review R1.9 actual Mac Chrome native product acceptance',{skip:!NATIV
     assert.equal(freshActive.authorizedEpoch,liveBeforeStop.authorizedEpoch);
     await sleep(900);await nativeClick(browser,frame,'#refresh');
     await until(async()=>hostMs(await readTime(),activeHost)>hostMs(freshActive,activeHost),'only new legal post-recovery activity persists');
-    const ordered=confirmedStop&&stoppedAfterBlur&&confirmedRecovery&&confirmedRecovery.at>stoppedAfterBlur.at;
+    const earlyRecovery=confirmedStop&&stoppedAfterBlur&&workerStates.find(row=>sameActiveWorker(row)&&row.status==='running'&&row.at>confirmedStop.at&&row.at<stoppedAfterBlur.at);
+    const ordered=confirmedStop&&stoppedAfterBlur&&!earlyRecovery&&confirmedRecovery&&confirmedRecovery.at>stoppedAfterBlur.at;
     evidence.activeSwRecovery=ordered?'PASS':'BLOCKED';
-    note('real-active-worker-recovery',{method:'Target.closeTarget',natural:false,activeVersion,confirmedStop,confirmedBlurAt,confirmedBlurWallAt,stoppedAfterBlur,confirmedRecovery,managerClosedDuringStop:Boolean(websiteVersion),
+    note('real-active-worker-recovery',{method:'Target.closeTarget',natural:false,activeVersion,confirmedStop,confirmedBlurAt,confirmedBlurWallAt,stoppedAfterBlur,earlyRecovery:earlyRecovery||null,confirmedRecovery,managerClosedDuringStop:Boolean(websiteVersion),
       authorizationPreserved:true,allHistoryBucketsPreserved:true,unfocusedHistoryFrozen:true,observedDelta:activeRecoveryDelta,permittedDelta:activeRecoveryLimit,freshObservation:true,
       verdict:evidence.activeSwRecovery,reason:ordered?'Real stopped/unfocused/running order observed':'Recovery ordering scenario not proven; target ID change alone is insufficient'});
 

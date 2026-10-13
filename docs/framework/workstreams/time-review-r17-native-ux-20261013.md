@@ -112,3 +112,5 @@
 负责人：当前本地 R1.9 会话；仅 main，沿用本记录。写入范围增加 `src/ui/sidebar-tools.js` 的同名列表身份提示、`src/ui/tool-shell.css` 的原生 Time Review 极窄布局、对应 Host 回归及原生观察驱动。官方 1.6.0 安装包字节、provenance 和信任判断保持原合同。原生 49 的实际 200% 图显示分类逐字折行，同名本地包无可见 ID：宿主仅为同名项显示真实安装 ID/ARIA，低于 240 CSS px 的已有 `main.review` 分类改成单列，不影响 opaque iframe。根目录受影响 14 文件 Node 206 PASS / 0 FAIL / 0 SKIP，最终冻结构建及新图仍待执行。
 
 保存原生 50/51 失败，不把 Node 或部分原生证据提升为完整 PASS：50 是 E_HOST_STORAGE_WRITE，同时 shell 留有磁盘不足证据，未捕获 Chrome 内部 I/O 原因，只能标记关联推断；51 为驱动读取已关闭的 Side Panel session，23 项已过，剩余未测。修复只读 storage 观察使用有效 manager session。自然生命周期仅接受 HTTP observer、全部扩展 UI 确认关闭后的真实版本状态链；失焦恢复须先确认真实失焦后仍停止的版本快照，不能用 Node 事件到达时间代替 OS 顺序。补分钟历史、稳定字段和安装 epoch 断言；缺证继续 BLOCKED，不降低原 38 项验收。下一候选使用独立物理源码副本、43272 构建锁和独立 CFT profile，日常 watcher/dist 不变。
+
+R1.9 补充观察安全边界：同一 worker 在 confirmedStop 与真实失焦后 stopped 快照之间出现任何 running，则 activeSwRecovery 必须 BLOCKED，禁止拼接第二次停机。仅驱动变更，不重建相同生产输入；构建候选 ccee890c 与后续原生候选按生产文件/产物逐项比对。独立副本六项 Node/工具包/check/Production/Development/Verify 均退出 0，Node 206 PASS，无预算或 CSP 放宽。
