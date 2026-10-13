@@ -320,3 +320,79 @@ test('R7.1 frozen Page candidate preserves program-scoped lock through storage a
     pageRules:{matches:['https://example.org/*'],excludeMatches:[],runAt:'document_idle',
       allFrames:false,world:'USER_SCRIPT'}},{}),failCode('E_DEPENDENCY_LOCK'));
 });
+
+
+test('R7.3 Controller Classic: program-scoped SHA locks reuse Page assets offline with no second fetch',async()=>{
+  const f=fixture(),url='https://libraries.example.org/vendor@1.2.3/classic.js';
+  const library='globalThis.fixtureClassic={mix:(a,b)=>a*10+b};';
+  f.routes.set(url,{bytes:library});
+  const source='// @opendesk-classic '+url+'\nasync function main(){return fixtureClassic.mix(2,1)}';
+  const prepare=(programId,allowDownload=true)=>f.manager.prepareControllerClassic({
+    programId,sourceUtf8:source,explicitUserAction:true,allowDownload},{});
+  assert.equal(globalThis.fixtureClassic,undefined,'existing manager never evaluates user assets');
+  await assert.rejects(prepare('a',false),failCode('E_CONTROLLER_CLASSIC_RUN_REQUIRED'));
+  const first=await prepare('a');
+  assert.match(first.lockId,/^controller-classic-[a-f0-9]{64}$/);
+  assert.equal(first.world,'CONTROLLER');
+  assert.equal(first.downloadCount,1);
+  assert.equal(first.entries[0].sha256,sha(library));
+  assert.ok(first.sourceUtf8.indexOf(library)<first.sourceUtf8.indexOf('async function main'));
+  assert.equal(f.calls.length,1);
+  f.offline=true;f.granted=false;
+  const second=await prepare('b');
+  assert.notEqual(second.lockId,first.lockId,'other Controller program never receives first program lock');
+  assert.equal(second.entries[0].sha256,first.entries[0].sha256);
+  assert.equal(second.downloadCount,0,'identical source SHA bytes survive offline on other programs');
+  assert.equal(f.calls.length,1);
+  const repeat=await prepare('a',false);
+  assert.equal(repeat.lockId,first.lockId);
+  assert.equal(repeat.downloadCount,0);
+  const isolated=await prepare('a');
+  assert.equal(isolated.sourceUtf8,first.sourceUtf8,'same frozen Worker bytes');
+  assert.equal(f.rows().filter(row=>row.tag==='userscript-asset-v1').length,1);
+  // Synthetic ONLY: test the returned classic bytes with Worker-equivalent
+  // lexical parameters; real CFT independently proves actual opaque Worker.
+  const AsyncBody=Object.getPrototypeOf(async function(){}).constructor;
+  const run=new AsyncBody('page','params','axiosx','AppStorage','AppLocal','storage',
+    second.sourceUtf8+'\n; return await main();');
+  assert.equal(await run(null,{},null,null,null,null),21);
+  assert.equal(globalThis.fixtureClassic,undefined);
+});
+test('R7.3 Controller Classic: bad SHA, revoked origin and tampered cached bytes fail closed',async()=>{
+  const url='https://libraries.example.org/vendor@1.2.3/lib.js';
+  const content='globalThis.fixture={twice:x=>2*x};';
+  const script=extra=>'// @opendesk-classic '+url+extra+'\nasync function main(){return fixture.twice(2)}';
+  const f=fixture();f.routes.set(url,{bytes:content});
+  await assert.rejects(f.manager.prepareControllerClassic({
+    programId:'classic',sourceUtf8:script(' sha256:'+'f'.repeat(64)),
+    explicitUserAction:true,allowDownload:true},{}),failCode('E_DEPENDENCY_INTEGRITY'));
+  assert.equal(f.rows().length,0);
+  f.granted=false;
+  await assert.rejects(f.manager.prepareControllerClassic({
+    programId:'classic',sourceUtf8:script(''),
+    explicitUserAction:true,allowDownload:true},{}),failCode('E_DEPENDENCY_PERMISSION'));
+  assert.equal(f.calls.length,1,'missing permission must stop before fetch');
+  f.granted=true;
+  const locked=await f.manager.prepareControllerClassic({
+    programId:'classic',sourceUtf8:script(''),explicitUserAction:true,allowDownload:true},{});
+  f.change('frameworkKV',keys.asset(sha(content)),asset=>{
+    new Uint8Array(asset.bytes)[0]^=1;return asset;
+  });
+  await assert.rejects(f.manager.prepareControllerClassic({
+    programId:'classic',sourceUtf8:script(''),explicitUserAction:true,allowDownload:false},{}),
+    failCode('E_DEPENDENCY_HASH'));
+  assert.equal(locked.entries[0].sha256,sha(content));
+});
+test('R7.3 Controller Classic rejects moving versions, private hosts, ESM and arbitrary source changes',async()=>{
+  const f=fixture(),call=(sourceUtf8)=>f.manager.prepareControllerClassic({
+    programId:'classic',sourceUtf8,explicitUserAction:true,allowDownload:true},{});
+  for(const url of ['https://cdn.example.org/pkg@latest/lib.js',
+    'https://127.0.0.1/npm/lib@1.2.3/foo.js',
+    'http://cdnjs.example.org/pkg@1.2.3/x.js']){
+    await assert.rejects(call('// @opendesk-classic '+url+'\nasync function main(){}'),
+      error=>['E_DEPENDENCY_VERSION','E_DEPENDENCY_URL','E_CONTROLLER_CLASSIC_DIRECTIVE'].includes(error.code));
+  }
+  await assert.rejects(call('// @opendesk-classic https://cdn.example.org/pkg@1.2.3/a.js\n'+
+    "import a from 'something';"),failCode('E_CONTROLLER_CLASSIC_FORMAT'));
+  assert.equal(f.calls.length,0);
+});
