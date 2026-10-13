@@ -48,6 +48,8 @@ export function inspectR5TaskNativeReport(report,{
     assert(typeof scheduled[key]==='string'&&scheduled[key].length>3,'Missing scheduled native '+key);
   assert.notEqual(original.verifiedRunId,scheduled.runId,
     'A scheduled execution must have a distinct trusted run identity');
+  assert.notEqual(original.documentId,scheduled.documentId,
+    'An independent installed-task rerun must act on a distinct actual document');
   assert.equal(scheduled.retirement,'released','Worker has not retired');
   assert.deepEqual(scheduled.webEffect,{name:'Scheduled Native',done:true},
     'Scheduled Task did not visibly modify the owned real page');
