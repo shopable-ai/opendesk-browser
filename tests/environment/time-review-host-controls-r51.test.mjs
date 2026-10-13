@@ -89,3 +89,21 @@ test('R1.5.1 sandbox start stays inline until genuine trusted Host confirmation'
   assert.equal((index.match(/id="pause"/g)||[]).length,1);
   assert.doesNotMatch(index,/<span class="eyebrow">时间回顾<\/span>/);
 });
+
+test('R1.5.1 incomplete time consent reveals existing trusted inline card, not a new page',async()=>{
+  const shell=await readFile('src/ui/sidebar-tools.js','utf8');
+  assert.match(shell,/const timeReviewInline=show&&id===TIME_REVIEW_ID/);
+  assert.match(shell,/frameRoot\.hidden=\(show&&!timeReviewInline\)\|\|!frame/);
+  assert.match(shell,/display\.setAttribute\('data-time-review-inline'/);
+  assert.match(shell,/api\.permissions\.contains\(\{permissions:\['idle'\]\}\)/);
+  assert.match(shell,/api\.storage\.local\.get\(TIME_REVIEW_KEY\)/);
+  assert.match(shell,/E_TIME_PERMISSION_SETUP/);
+  assert.match(shell,/runTrustedTimeReviewOperation\('time\.start',\{\},event\)/);
+  const css=await readFile('src/ui/tool-shell.css','utf8');
+  assert.match(css,/#sidebar-tool-display\[data-time-review-inline="true"\]/);
+  assert.match(css,/#sidebar-tool-settings-view\{order:1/);
+  const html=await readFile('src/ui/tool.html','utf8');
+  assert.match(html,/id="time-review-site-current-approve"/);
+  assert.match(html,/id="time-review-site-all-approve"/);
+  assert.match(html,/id="time-review-grant-idle"/);
+});

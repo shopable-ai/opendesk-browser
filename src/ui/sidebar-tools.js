@@ -19,6 +19,7 @@ import {CLIP_SITE_STORE,CLIP_CAPABILITY,CLIP_PROTOCOL,CLIP_OPERATIONS,changeClip
 import {CAPTURE_SITE_STORE,CAPTURE_CAPABILITY,KNOWLEDGE_TOOL_ID,KNOWLEDGE_CAPABILITY,KNOWLEDGE_PROTOCOL,
   KNOWLEDGE_OPERATIONS,KNOWLEDGE_WORKSPACE_PREFIX,changeCaptureGrant,chatCaptureOrigin,knowledgePackageHash} from '../knowledge/policy.js';
 import {TIME_REVIEW_ID,TIME_REVIEW_CAPABILITY,TIME_REVIEW_PROTOCOL,TIME_REVIEW_OPERATIONS,timeReviewPackageHash} from '../time-review/policy.js';
+import {TIME_REVIEW_KEY} from '../time-review/model.js';
 import {createTimeReviewPermissionControls} from '../time-review/host-controls.js';
 
 // Trusted Side Panel shell for untrusted, opaque-origin UI documents.
@@ -233,6 +234,9 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     // when the host navigates away during the response.
     if(disposed||!active||!samePackage(active,tool))
       throw Object.assign(new Error('宿主已切换，请核对时间记录，不要重复提交'),{code:'E_OUTCOME_UNKNOWN'});
+    // Keep the original iframe visible. A real trusted Start commits and
+    // closes the inline enrollment card, not the tool itself.
+    if(operation==='time.start'&&tocSettingsOpen){tocSettingsOpen=false;render();}
     return response.data;
   }
   // Trusted consent/revocation of browser-wide native permissions is not a
@@ -406,7 +410,11 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     const show=managed&&tocSettingsOpen;
     settingsButton.hidden=!managed;settingsButton.disabled=busy||sitePending;
     settingsButton.setAttribute('aria-expanded',String(show));
-    settingsView.hidden=!show;frameRoot.hidden=show||!frame;
+    // Time Review uses the same trusted static settings DOM as an inline
+    // enrollment card. Do not replace/hide its live stats iframe.
+    const timeReviewInline=show&&id===TIME_REVIEW_ID;
+    display.setAttribute('data-time-review-inline',String(timeReviewInline));
+    settingsView.hidden=!show;frameRoot.hidden=(show&&!timeReviewInline)||!frame;
     removeButton.hidden=readOnlyPreview;if(openTabButton)openTabButton.hidden=readOnlyPreview;
     const enabled=!enableReadError&&sidebarToolEnabled(enableRecords,id);
     if(enableButton){enableButton.textContent=enabled?'停用工具':'启用工具';enableButton.disabled=busy||enableReadError;
@@ -750,8 +758,23 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       // confirmation click. The reviewed action pins the original iframe.
       if(operation==='time.start'){
         assertSession(source,token);
+        // Read-only preparation is allowed; the sandbox never grants a site,
+        // requests Chrome idle, or simulates a trusted click. Missing consent
+        // reveals the EXISTING static trusted controls above the live iframe.
+        const stored=(await api.storage.local.get(TIME_REVIEW_KEY))[TIME_REVIEW_KEY];
+        const scope=stored?.siteGrants;
+        const hasScope=scope?.allSites===true||Array.isArray(scope?.origins)&&scope.origins.length>0;
+        const idleGranted=await api.permissions.contains({permissions:['idle']});
+        assertSession(source,token);
+        if(!hasScope||!idleGranted){
+          tocSettingsOpen=true;render();settingsView.scrollIntoView?.({block:'nearest'});
+          throw Object.assign(new Error(!hasScope?
+            '请在上方原位授权卡中选择可记录的网站，再点击「开始／恢复记录」。':
+            '请在上方原位授权卡中批准 Chrome 空闲检测，再点击「开始／恢复记录」。'),
+          {code:'E_TIME_PERMISSION_SETUP'});
+        }
         return requestBrowserClick({
-          message:'开始／恢复已授权网站的本机时间记录？仅统计 Chrome 前台非空闲的使用时间。首次使用请先在顶部「工具设置」单独授权网站和空闲检测。',
+          message:'开始／恢复已授权网站的本机时间记录？仅统计 Chrome 前台非空闲的使用时间。权限范围沿用之前经你单独批准的选择。',
           button:'确认开始记录',toolId:tool.id,
           run:event=>{
             assertSession(source,token);

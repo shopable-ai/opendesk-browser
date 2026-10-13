@@ -936,3 +936,12 @@
 
 /* Tools with their own trusted site grants must not show generic TOC/Clip grant controls. */
 #sidebar-tool-generic-site-scope[hidden],#sidebar-tool-generic-site-binary[hidden],#sidebar-tool-generic-site-advanced[hidden]{display:none!important}
+
+/* Time Review uses existing trusted settings as an in-place enrollment card.
+   Only this tool keeps the sandbox statistics visible during permission setup. */
+#sidebar-tool-display[data-time-review-inline="true"]{display:flex;flex-direction:column}
+#sidebar-tool-display[data-time-review-inline="true"]>.sidebar-tool-view-head{order:0}
+#sidebar-tool-display[data-time-review-inline="true"]>#sidebar-tool-settings-view{order:1;margin-bottom:10px}
+#sidebar-tool-display[data-time-review-inline="true"]>#sidebar-tool-frame{order:2}
+#sidebar-tool-display[data-time-review-inline="true"]>#sidebar-tool-launch,
+#sidebar-tool-display[data-time-review-inline="true"]>#sidebar-tool-retired-draft{order:3}
