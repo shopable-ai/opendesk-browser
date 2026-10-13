@@ -16,7 +16,7 @@ const menuIds={type:'array',minItems:1,maxItems:3,uniqueItems:true,items:str(40,
 const resultIds=obj({registered:bool,actionIds:arr(str(40),3)},['registered','actionIds']);
 const counter=obj({state:str(40),observedCount:num(),droppedCount:num(),gapCount:num(),expiresAt:num()},
   ['state','observedCount','droppedCount','gapCount','expiresAt']);
-const cookiePartition=obj({topLevelSite:str(256,'^https://'),hasCrossSiteAncestor:bool},['topLevelSite']);
+const cookiePartition=obj({topLevelSite:str(256,'^https?://'),hasCrossSiteAncestor:bool},['topLevelSite']);
 const cookieRecord=obj({name:str(256),domain:str(253),path:str(512),hostOnly:bool,
   secure:bool,httpOnly:bool,sameSite:{enum:['unspecified','lax','strict','no_restriction']},
   session:bool,expirationDate:{type:'number'},storeId:str(128),partitionKey:cookiePartition,
