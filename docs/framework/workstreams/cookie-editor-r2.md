@@ -1,3 +1,14 @@
+## Cookie Editor R3.3 · 授权自动读取与安装升级候选（2026-10-13）
+
+- **新候选版本 2.0.2**：正式安装器拒绝同版本自动替换，因此真实源码修复必须从旧 2.0.1 升级版本；已安装旧包不会被 GitHub 源码自动覆盖。官方 Catalog 仍是 optional，依正式打包生成当前候选资源。
+- **授权变化自动检查**：现有 Bridge 发送的 `opendesk-cookie-grants-changed` 清空敏感值、旧列表和旧编辑意图；已授权时通过唯一公开 SDK 重新读取，撤权则返回授权拒绝，不显示成“空 Cookie”。
+- **并发与简化 UI**：Host 操作未完成时禁用网址切换及模式切换；手动网址编辑清除旧范围缓存，恢复确认的网址会刷新；异步网页切换重置控件。仅删除、清理等危险确认使用红色按钮。
+- **历史发行残留定位**：`official-tools/releases/r5-20261012-cookie-editor-1.0.0.json` 的描述明确是“本地临时工作区、真实浏览器 Cookie API 待接入”。最新源文件不是该离线历史版；Chrome 已安装旧版需审阅升级，不能仅以源码删除文字替代升级。
+- **CI 事实**：R3.2 首次 run `38412243566` 为 `completed/cancelled`，不是 Node / Build PASS。R3.3 变更 SHA 独立组、取消自动终止，补 `npm test`；运行结果以 GitHub Actions 最终回执为准。
+- **验收级别**：此处新增源码与 Node 回归用例属于 `SOURCE_WIRED`。本环境无用户 Mac 工作目录及 Chrome GUI，现阶段新候选 `NODE_PASS`、`BUILD_PASS`、`NATIVE_PASS` 均不可冒领。旧可信 Cookie UI 等新工具真实 Chrome 完整替代验收后才考虑移除。
+
+---
+
 ## Cookie Editor R3.1 · 实际核心修复续接（2026-10-13）
 
 本节覆盖下方 R3 / R2 旧快照，**不表示 Native PASS**。

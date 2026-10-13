@@ -21,8 +21,11 @@ async function harness(browser=null,{currentPage=null}={}){
       classList:{add(){},remove(){}}
     }];
   }));
+  const rootListeners=new Map();
   const root={querySelector(selector){return elements.get(selector.slice(1));},
-    querySelectorAll(){return [];},addEventListener(){},
+    querySelectorAll(){return [];},
+    addEventListener(type,fn){rootListeners.set(type,[...(rootListeners.get(type)||[]),fn]);},
+    emitTest(type){for(const fn of rootListeners.get(type)||[])fn();},
     ownerDocument:{activeElement:null,createElement:()=>({
       append(){},setAttribute(){},addEventListener(){},focus(){}
     })}};
@@ -54,6 +57,7 @@ async function harness(browser=null,{currentPage=null}={}){
   await new Promise(resolve=>setImmediate(resolve));
   return {...context.__cookieTest,source,html,css,config,ids,
     fire:(id,type,event={})=>elements.get(id).emitTest(type,event),
+    fireRoot:type=>root.emitTest(type),
     settle:()=>new Promise(resolve=>setImmediate(resolve))};
 }
 const expectError=(fn,pattern)=>{
@@ -80,7 +84,7 @@ test('Cookie Editor is an optional two-mode tool without private cookies API',as
   assert(s.html.includes('id="live-search"')&&s.html.includes('id="live-filter"')&&
     s.html.includes('id="live-sort"'));
   assert(s.source.includes("E('live-filters').hidden=!hasRead"));
-  assert.equal(s.config.version,'2.0.1');
+  assert.equal(s.config.version,'2.0.2');
   assert(s.html.includes('id="offline-tools"')&&s.html.includes('id="browser-panel"'),
     'Live Chrome management is the default; offline tools are secondary');
   assert(!/\b(?:window|globalThis|chrome)\.cookies\./.test(s.source));
@@ -470,4 +474,49 @@ test('Partial rename failure reports both Cookie names possibly remaining and ne
   assert.equal(writes,1);assert.equal(removals,1);
   assert.match(s.getStatusMessage(),/两条 Cookie 可能并存/);
   assert.equal(reads.length,2);
+});
+
+test('Grant event auto-reads new site authority and revocation never looks empty',async()=>{
+  let approved=false,reads=0;
+  const s=await harness({
+    capabilities:{getStatus:async()=>({callableNow:approved,reasonCode:'E_SITE_GRANT_REQUIRED'})},
+    cookies:{
+      getPartitionKey:async()=>({partitionKey:{topLevelSite:'https://example.com'}}),
+      getAll:async({partitionKey})=>{reads++;return partitionKey?[]:[{
+        name:'session',value:'SECRET',domain:'example.com',path:'/',
+        hostOnly:true,session:true}];}
+    }
+  },{currentPage:'https://example.com/dashboard'});
+  assert.equal(s.liveSnapshot().state,'blocked');
+  assert.equal(s.getField('live-empty').hidden,true);
+  approved=true;s.fireRoot('opendesk-cookie-grants-changed');await s.settle();
+  assert.equal(s.liveSnapshot().state,'ready');
+  assert.equal(reads,2,'one approved read per Cookie scope');
+  assert.equal(s.liveSnapshot().rows.length,1);
+  assert.equal(Object.hasOwn(s.liveSnapshot().rows[0],'value'),false);
+  approved=false;s.fireRoot('opendesk-cookie-grants-changed');await s.settle();
+  assert.equal(s.liveSnapshot().state,'blocked');
+  assert.equal(s.liveSnapshot().rows.length,0);
+  assert.equal(s.getField('live-empty').hidden,true);
+  assert.equal(reads,2,'revoked grant must never call native Cookies');
+});
+
+test('Target selection is locked until outstanding Cookie read completes',async()=>{
+  let resolveRead;
+  const s=await harness({
+    capabilities:{getStatus:async()=>({callableNow:true})},
+    cookies:{
+      getPartitionKey:async()=>({partitionKey:{topLevelSite:'https://example.com'}}),
+      getAll:({partitionKey})=>partitionKey?Promise.resolve([]):
+        new Promise(resolve=>{resolveRead=resolve;})
+    }
+  },{currentPage:'https://example.com/private'});
+  assert.equal(typeof resolveRead,'function');
+  assert.equal(s.getField('target-url').disabled,true);
+  assert.equal(s.getField('apply-target').disabled,true);
+  resolveRead([{name:'sid',domain:'example.com',path:'/',session:true}]);
+  await s.settle();
+  assert.equal(s.liveSnapshot().state,'ready');
+  assert.equal(s.getField('target-url').disabled,false);
+  assert.equal(s.getField('apply-target').disabled,false);
 });
