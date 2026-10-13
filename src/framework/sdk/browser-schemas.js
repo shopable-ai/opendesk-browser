@@ -38,6 +38,7 @@ const ops=Object.freeze({
  'browser.tabs.getOwned':[obj({tabRef:ref},['tabRef']),
    obj({tabRef:ref,url:http,origin:http,expiresAt:num()},['tabRef','url','origin','expiresAt'])],
  'browser.tabs.listOwned':[empty,obj({tabs:arr(obj({tabRef:ref,origin:http},['tabRef','origin']),8)},['tabs'])],
+ 'browser.tabs.pinOwned':[obj({tabRef:ref,pinned:bool},['tabRef','pinned']),obj({pinned:bool},['pinned'])],
  'browser.tabs.removeOwned':[obj({tabRef:ref},['tabRef']),obj({closed:bool},['closed'])],
  'browser.sidePanel.openSelf':[empty,obj({opened:bool},['opened'])],
  'browser.network.request':[obj({method:{enum:['GET','POST','PUT','DELETE']},url:http,
