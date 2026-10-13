@@ -91,3 +91,7 @@ R1.4 的部分历史说明将“Chrome Host 有权限”简称为“网站已授
 R1.5 为 `opendesk.time-review.v1` 添加可选且默认拒绝的 `siteGrants`，以已安装 `time-review` 的受信任宿主真实点击授权精确 HTTP(S) Origin 或二次确认全体普通网站。Time Review 的后台独立验证工具 ID/能力/包哈希/安装代际、启停状态、单工具站点范围、Chrome 网站权限、idle、焦点/隐身，再建立域名检查点；历史检查点若未绑定新站点来源不补算。
 
 旧版 `detect_focus.js`、`my-content-script.ts` 的全站鼠标、键盘、URL、标题采集与黑名单/重定向没有恢复。旧合法汇总数据不丢失；旧站点“授权”不会隐式迁移。云同步仍属可选本地准备模块，`api.todo6.com` 的原始 POST 不能代替生产幂等 upsert/ACK；实际连接状态维持 BLOCKED，默认无网络上传。
+
+## R1.5.1 工具升级（2026-10-13）
+
+工具包正式版本推进为 `1.5.1`（`examples/sidebar-tools/time-review/tool.config.json`）；`time.review/1.5.0` 是另一层独立、保持不变的可信 Host API 协议版本。旧安装包 `1.5.0` 的正式市场更新需要版本单调前进，不能用同版本不同 packageHash 悄悄替换。新版前端 CSS/HTML/JS、授权 UX 更新会改变 packageHash；可信后台依照已有绑定撤销旧包运行授权，用户须主动在新包再次点击可信开始；有效的原有独立站点授权范围和历史日统计不会因此自动扩大或删除。没有增加旧脚本全站注入，云同步依然禁止。

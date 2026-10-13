@@ -1,4 +1,4 @@
-# Time Review · 时间回顾 R1.5（Canvas V3 / 站点独立授权）
+# Time Review · 时间回顾 R1.5.1（Canvas V3 / 站点独立授权）
 
 正式界面基准：prototypes/time-review-r12/time-review-r12-canvas-v3-single-track.html。正式 Side Panel 工具只采用单条 24h Canvas、紧凑四象限/生活/未分类和卡片视觉，不采用原型的浏览器外壳、样例时间、模拟同步或账号设置。
 

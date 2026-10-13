@@ -10,7 +10,7 @@
 ```
 Time Review · 已安装工具 (tool ID: time-review)
 ├── 官方目录 / 安装 / 升级 / 启停 / 卸载 [复用原有安装器]
-│   ├── examples/sidebar-tools/time-review/tool.config.json (1.5.0)
+│   ├── examples/sidebar-tools/time-review/tool.config.json (1.5.1)
 │   ├── src/ui/sidebar-tools/installation.js 负责正式安装、撤权代际与卸载清理
 │   └── src/ui/sidebar-tools.js 负责安装包身份和受信任工具详情
 ├── 单独网站采集同意 [R1.5 实施；新候选待验收]
@@ -118,3 +118,9 @@ npm run verify
 - 既有 `tests/framework/time-review-r13-native.test.mjs` 使用真实 CDP 鼠标点击内容页「开始记录」，验证首次没有网站范围时只展开原位可信授权卡：原 iframe 可见、授权卡实际 DOM 顺序与键盘焦点一致、存储仍未授权且计时未启动；截图名 `first-run-inline-time-review-consent.png`。
 - 已启用后原位授权卡会自动收起。为保证此前真实暂停、恢复、网站撤权、idle 撤权、重启用例不误判交互，替换盲目切换设置按钮为幂等 `setTimeReviewSettingsVisible`，只在必要时发送真正 CDP 点击。没有替换 CDP 驱动、没有伪造浏览器或存储写入。
 - 当前验证：源文件语法检查 `PASS`；真实 macOS Chrome 执行和同候选截图仍 `NOT_TESTED`，必须等待绑定提交 SHA 的工作流证据。
+
+## R1.5.1 · 工具正式升级版本
+
+- 源码工具版本从 `1.5.0` 升为 `1.5.1`，否则官方市场现有安装器的 `compareToolVersions` 会拒绝同版本内容更新；继续复用单一安装器、目录和清理事务。
+- `TIME_REVIEW_HOST_API` 仍为 `time.review/1.5.0`，这与独立工具包发行版本不同。包 SHA 改变必须要求用户再点击可信开始；站点同意保持原有效范围，历史计时保留，禁止暗中扩大。
+- 已增加 Node 合同断言版本与 Host API。实际升级旧 1.5.0→1.5.1 的真实 Chrome 流程仍需 macOS CI 另行证据，不得宣称 PASS。

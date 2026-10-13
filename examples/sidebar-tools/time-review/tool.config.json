@@ -1,6 +1,6 @@
 {
   "id": "time-review",
-  "version": "1.5.0",
+  "version": "1.5.1",
   "title": "Time Review · 时间回顾",
   "description": "单独授权网站并主动开始后，在本机回顾前台非空闲网页时间；六分类、Canvas 分钟时间线、暂停与 JSON/CSV 导出。默认不上传。",
   "capabilities": [
