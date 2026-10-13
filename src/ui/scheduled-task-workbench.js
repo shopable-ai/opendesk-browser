@@ -210,6 +210,10 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
   const views={runner:get('schedule-runner-view'),list:get('schedule-list-view'),
     form:get('schedule-form'),manager:get('schedule-task-manager')};
   const show=view=>{
+    // Inline validation belongs to the editor, not the list or dedicated
+    // runner. A deliberate subview change clears stale notices; periodic Host
+    // polling must still preserve the message in the currently active form.
+    if(view!==activeView)message('');
     activeView=view;
     for(const [key,node] of Object.entries(views))node.hidden=key!==view;
     get('schedule-create').hidden=view!=='list';
