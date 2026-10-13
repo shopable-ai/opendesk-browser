@@ -18,6 +18,10 @@ test('Cloud keeps task consent primary and endpoint settings secondary',async()=
   assert.match(panel,/id="cloud-configure"/);
   assert.match(panel,/id="cloud-stop"/);
   assert.match(panel,/id="cloud-unpair"/);
+  assert.match(panel,/id="cloud-approval-review"[^>]*hidden/);
+  assert.match(panel,/id="cloud-review-items"/);
+  assert.match(js,/const cloudVisible=doc\.documentElement\?\.dataset\?\.opendeskTab==='cloud'/);
+  assert.match(js,/get\('cloud-consent'\)\.checked=false/);
   assert.match(panel,/id="cloud-client-create"/);
   assert.match(panel,/id="cloud-client-refresh"/);
   assert.match(panel,/id="cloud-client-once"[^>]*hidden/);
