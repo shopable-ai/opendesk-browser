@@ -189,7 +189,9 @@ export function createBrowserNetworkObserver({api=globalThis.chrome,clock=Date,
  function revokeAll(){
   revokeEpoch++;
   for(const row of sessions.values()){
-   if(row.state==='running'){row.state='revoked';row.stoppedAt=now();}
+   // A stopped observation may still contain exportable metadata. Revocation
+   // must invalidate *every* session, not only active webRequest listeners.
+   row.state='revoked';row.stoppedAt??=now();
    row.events=[];row.droppedCount=row.observedCount;
   }
   changed();
