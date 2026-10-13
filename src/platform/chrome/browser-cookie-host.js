@@ -7,7 +7,7 @@ import {fields,fail,httpUrl} from '../../framework/sdk/registry.js';
 
 export const TRUSTED_COOKIE_OPERATIONS=Object.freeze([
   'browser.cookies.get','browser.cookies.getAll','browser.cookies.set','browser.cookies.remove',
-  'browser.cookies.clearSite','browser.cookies.getStores','browser.cookies.getPartitionKey',
+  'browser.cookies.clearSite','browser.cookies.getCurrentStore','browser.cookies.getPartitionKey',
   'browser.cookies.observe.start','browser.cookies.observe.getStatus',
   'browser.cookies.observe.read','browser.cookies.observe.stop'
 ]);
@@ -168,7 +168,7 @@ export function createTrustedCookieHost({api=globalThis.chrome,now=Date.now}={})
       if(matches.length>1)throw error('E_COOKIE_AMBIGUOUS','Select the exact path and partition from getAll');
       return {cookie:matches[0]??null};
     }
-    if(op==='browser.cookies.getStores')return {stores:[await existing.getStores({url:target.url},{target})]};
+    if(op==='browser.cookies.getCurrentStore')return {stores:[await existing.getStores({url:target.url},{target})]};
     if(op==='browser.cookies.getPartitionKey')
       return existing.getPartitionKey({url:target.url},{target});
     if(op==='browser.cookies.set'){
