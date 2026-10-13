@@ -76,6 +76,7 @@ export async function checkBrowserSdk({root=ROOT}={}){
   ()=>sdk.downloads.text({text:'note',filename:'note.md'}),
   ()=>sdk.tabs.create({url:'https://example.org'}),()=>sdk.tabs.activateOwned({tabRef:'r'.repeat(32)}),
   ()=>sdk.tabs.getOwned({tabRef:'r'.repeat(32)}),()=>sdk.tabs.listOwned(),
+  ()=>sdk.tabs.pinOwned({tabRef:'r'.repeat(32),pinned:true}),
   ()=>sdk.tabs.removeOwned({tabRef:'r'.repeat(32)}),
   ()=>sdk.sidePanel.openSelf(),()=>sdk.network.request({method:'GET',url:'https://example.org'}),
   ()=>sdk.network.observe.start({tabRef:'r'.repeat(32),origins:['https://example.org']}),
