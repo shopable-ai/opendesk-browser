@@ -67,7 +67,7 @@ function fixture(){
   return {api,state,document,cookieHost,caller,approve,execute,run};
 }
 test('R7 parallel R8 contract: unchanged 35 public SDK operations, Cookie Host-only, Page blocked',()=>{
-  assert.equal(TRUSTED_COOKIE_OPERATIONS.length,10);
+  assert.equal(TRUSTED_COOKIE_OPERATIONS.length,11);
   assert.equal(Object.keys(BROWSER_OPERATIONS).length,35);
   assert.equal(createBrowserSdk({context:'page-sdk'}).cookies,undefined);
   assert.equal(createBrowserSdk({request:()=>{}}).cookies,undefined);
@@ -146,9 +146,32 @@ test('R7 dedicated Cookie events omit values; sessions are volatile under naviga
   const first=await f.run('browser.cookies.observe.start',{durationMs:10000,maxEvents:2});
   for(const fn of f.state.changes)fn({cookie:{...f.state.cookies[0]},removed:false,cause:'explicit'});
   const status=await f.run('browser.cookies.observe.getStatus',{sessionRef:first.sessionRef});
-  assert.equal(status.events.length,1);
-  assert(!JSON.stringify(status).includes('SECRET_PRIVATE'));
+  assert.equal(status.status,'running');
+  assert.equal(status.bufferedCount,1);
+  assert.equal(Object.hasOwn(status,'events'),false,'Status must not consume events');
+  const firstRead=await f.run('browser.cookies.observe.read',{sessionRef:first.sessionRef,cursor:'0',limit:1});
+  assert.equal(firstRead.events.length,1);
+  assert.equal(firstRead.events[0].seq,1);
+  assert.equal(firstRead.nextCursor,'1');
+  assert(!JSON.stringify(firstRead).includes('SECRET_PRIVATE'));
+  assert.deepEqual((await f.run('browser.cookies.observe.read',{
+    sessionRef:first.sessionRef,cursor:firstRead.nextCursor
+  })).events,[],'Cursor reads must be idempotent');
+  for(const fn of f.state.changes)fn({cookie:{...f.state.cookies[0]},removed:true,cause:'explicit'});
+  for(const fn of f.state.changes)fn({cookie:{...f.state.cookies[0]},removed:false,cause:'explicit'});
+  const overflow=await f.run('browser.cookies.observe.read',{sessionRef:first.sessionRef,cursor:'0'});
+  assert.equal(overflow.events.length,2);
+  assert.equal(overflow.gapCount,1);
+  assert.equal(overflow.droppedCount,1);
+  assert(!JSON.stringify(overflow).includes('SECRET_PRIVATE'));
+  assert.equal((await f.run('browser.cookies.observe.getStatus',{sessionRef:first.sessionRef})).bufferedCount,2);
+  await assert.rejects(f.run('browser.cookies.observe.read',{sessionRef:first.sessionRef,cursor:'-1'}),
+    reject('E_SCHEMA'));
+  await assert.rejects(f.run('browser.cookies.observe.read',{sessionRef:first.sessionRef,limit:51}),
+    reject('E_SCHEMA'));
   f.cookieHost.noteNavigation(27);
+  await assert.rejects(f.run('browser.cookies.observe.read',{sessionRef:first.sessionRef}),
+    reject('E_SESSION_EXPIRED'));
   await assert.rejects(f.run('browser.cookies.observe.getStatus',{sessionRef:first.sessionRef}),
     reject('E_SESSION_EXPIRED'));
   const second=await f.run('browser.cookies.observe.start');
