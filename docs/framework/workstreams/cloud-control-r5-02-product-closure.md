@@ -165,3 +165,10 @@ node scripts/cloud-control/cli.mjs client:revoke --client CLIENT_UUID --director
 - [R5.2 新候选组件 CI #38373122306](https://github.com/shopable-ai/opendesk-browser/actions/runs/38373122306) 绑定 `9337d5a44af3acdd866c0e8578f737f8e34c5349`，查询时 **queued**，不得按旧 `24994880...` 的 157/157 PASS 自动填新候选结果。
 - 最新的 `main` 仍与其他 Agent 并行发展，项目整体 `check/build/build:dev/verify` 需等固定候选的独立结果；不覆盖其他 Agent 共享构建相关修改，也不为了过预算放宽 512 KiB 限制。
 - 真实 Mac Chrome 安装两个不同 Task、实际 Worker/Run/Result/retirement/Provider receipt、300–520 CSS px 及 125%/200% 截图、外部批准公网服务均未在本会话取得原生证据。**NATIVE_PENDING / REMOTE_NATIVE_PENDING；独立 95+ 整体未关闭**。这些结果不能以 Provider mock、真实 TLS Node CI 或静态 UI 代替。
+
+## R5.2.3 · 真实 Side Panel 空状态与错误可理解性（2026-10-13）
+
+- `src/ui/cloud-hosting.js` 原“前往「我的」安装任务”错误地指向不存在的 `#tab-tasks`；已修为真实主 Tab `#tab-my-tasks`，并在 `tests/cloud-control/r52-product-ui.test.mjs` 覆盖可点击的空状态 CTA 和单次导航。组件源码已提交 `fadff7695ebd7ca1adaa5406cbb906dcf17052a1`，测试提交 `8f944aebd0301f37d1b40cc325f4cf7953a80f01`。
+- 云控本地“未核对任务身份 / 未选择任务 / 未再次同意回传结果正文”的明确授权错误，现在只按固定白名单显示可执行的中文提示；**不把来自远端 Provider 的任意 `error.message` 显示到受信 UI**，远端消息仍按已知 `E_* ` 代码脱敏。源码 `e2e3821b3397a5ac19293cc7d4387b08595c43b7`、对应拒绝性测试 `91cd8c39352b7fd705e3b987c8428ff98e3a7106`。
+- [该 UI + Cloud 协议固定候选专项 CI #38373957070](https://github.com/shopable-ai/opendesk-browser/actions/runs/38373957070) 对应 SHA `91cd8c39352b7fd705e3b987c8428ff98e3a7106`，本次检查状态仍 **queued**；状态为 `SOURCE_IMPLEMENTED`，**不能提前记为 `COMPONENT_TESTED` 或 `BUILD_VERIFIED`**。
+- 旧 [#38368001891](https://github.com/shopable-ai/opendesk-browser/actions/runs/38368001891) 的 157/157 成功仍是准确历史证据，但不等于此次 CLI 测试、只读优化和 UI 修复通过。真实 Mac Chrome 与可信公网部署也均未产生原生证据。
