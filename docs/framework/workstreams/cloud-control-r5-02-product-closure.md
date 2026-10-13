@@ -230,3 +230,24 @@ node scripts/cloud-control/cli.mjs client:revoke --client CLIENT_UUID --director
 - 下一独立 Gate：设计评审确认单一信息架构 → 安全增量迁移生产 Side Panel → 源码专项测试及双构建 → 原生 Mac Chrome 300–520px、真正 125%/200% Zoom、键盘/焦点和真实双 Task Run/Result/receipt。**目前原生 UI 和双任务执行继续 \`NATIVE_PENDING\`，公网端到端仍 \`REMOTE_NATIVE_PENDING\`，不填虚假 95 分。**
 
 该页面设计符合 R27/R28 的 token/信息层级与唯一 gutter 规则，但静态原型不会自动证明实际扩展布局、可访问性、原生 Worker 或平台授权。验收、分数与 PackageHash 必须绑到迁移后的真正源码候选。
+
+## R5.2 产品功能树与唯一执行手册入库（2026-10-13 20:50+08）
+
+本轮**不重新选架构、不把新文档当新源码 PASS**；已将之前分散的完整 Cloud Control 设计、产品任务和质量评审收敛为以下权威入口：
+
+| 对象 | 文件 | 内容、状态 |
+|---|---|---|
+| **完整产品功能树** | [Cloud Control R5.2 完整功能树](../../architecture/browser-framework/cloud-control-r5.2-complete-function-tree.zh-CN.md) | **10 领域、110 项检查点 = 98 产品/运行能力 + 12 部署/质量事项**；按业务编号追溯，现有 39 UI 验收是叠加矩阵、不相加 |
+| **机器可读功能矩阵** | [110 项 JSON](cloud-control-r5-02-function-matrix.json) | 每项所有者、实现状态、独立验证等级、通过条件及对应 Gate |
+| **唯一接口安全合同** | [27 Provider HTTP / 10 Host RPC](../../architecture/browser-framework/cloud-control-r5.2-interface-security-contract.zh-CN.md) | 角色、身份、TaskPin/Executor/Pairing/Grant、状态机、Client Scope 与结果隐私 |
+| **唯一实施手册** | [7 Gate / 30 工程任务包](../cloud-control-r5.2-execution-manual.zh-CN.md) | 先 CI、再安全、原生双 Task、正式 UI、远端、故障、最后独立质量签收；禁止每次重选架构 |
+| **15 项独立专家评分** | [专家静态初评分账本](cloud-control-r5-02-expert-scorecard.json) | 静态解决方案约 **86/100**，是单次技术静态估计、不是正式第三方质量验收；各 `DESIGN_SCORE/IMPLEMENTATION_SCORE/VERIFICATION_SCORE` 依然 `NOT_VERIFIED` |
+| **UI 已有设计** | [39 项 UI 预览合同](../../architecture/browser-framework/cloud-control-r5.2-ui-preview-contract.zh-CN.md) / [唯一 HTML](../../../examples/ui/cloud-control-r5.2-preview.html) | 39 项只是 UI 检查，预览并未完全迁至生产 Side Panel，不是两个 Chrome Task/公网验收 |
+
+### 最新事实：R5.2.4 CI OOM 已定位，但新候选尚待验收
+
+- 固定 SHA `7aff8bd27e258022cdf186019409dcc07fdee719` 的 [CI #38379208965](https://github.com/shopable-ai/opendesk-browser/actions/runs/38379208965) **completed/failure**。Cloud `npm run test:cloud` = **45 PASS / 0 FAIL**，随后 Controller Authority 已通过 **105 个子测试**，在约 4GB V8 堆内存处发生 OOM/SIGABRT；不是“45 项 Cloud 功能全通过就完成产品”。同 SHA [包 CI #38379209138](https://github.com/shopable-ai/opendesk-browser/actions/runs/38379209138) **cancelled**，没有 PackageHash。
+- 原测试 `tests/framework/k3-controller-authority.test.mjs` 的 `fetch` 替身在模拟 admission 时对任意 URL 都重复调用 `cloudStop`；新版 Stop 向 Provider 发送 `/v1/suspend`，造成递归调用与内存膨胀。小范围修复提交 [`90e1651eeb2ad364e4ced4fc44e9d155ddcfc708`](https://github.com/shopable-ai/opendesk-browser/commit/90e1651eeb2ad364e4ced4fc44e9d155ddcfc708) 仅拆分模拟 admission 与 suspend，不篡改生产 Stop 行为或提高 heap/构建预算。云控 R5.2 workflow 已增加 Authority 文件触发；[新 CI #38401041303](https://github.com/shopable-ai/opendesk-browser/actions/runs/38401041303) 本次检查仍 queued，**不能提前记成功**。
+- 真实 Chrome 中两份独立安装/授权的 Task A 和 B 的 `RunId/ResultId/retirement/receiptId` 原生证据仍为空。真实 UI 300–520 CSS px 和 125/200% Zoom 没有与当前候选绑定的已安装扩展截图。公网 Provider 没有获授权部署环境。维持 `NATIVE_PENDING` / `REMOTE_NATIVE_PENDING`，总体 95+ 不能宣布。
+
+**下一实际工作优先级**：照 [唯一执行手册](../cloud-control-r5.2-execution-manual.zh-CN.md) Gate G0（新 SHA CI + 双构建）→ G1（安全拒绝测试）→ G2（A/B 真实双 Task）→ G3（生产 UI）→ G4（可信远程）→ G5（副作用与断线）→ G6（十五维各自 ≥95 的真实证据）。必须保留所有历史失败和旧收据。
