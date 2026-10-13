@@ -6,7 +6,7 @@ import {writeVerifiedLocalValue} from '../ui/sidebar-tools/storage-state.js';
 import {isReadingTocToolSender} from '../reading-toc/page.js';
 import {FOCUS_ID,FOCUS_STORE,FOCUS_PROTOCOL,FOCUS_CAPABILITY,FOCUS_ALARM,FOCUS_SESSION,
   FOCUS_OPERATIONS,FOCUS_MAX_SITES,focusPackageHash,focusHost,focusNextMidnight,focusRemovedOriginAffectsSite,focusError} from './policy.js';
-import {readFocus,emptyFocus,focusSite,focusSchedule,focusMatchingSite,focusReason,
+import {readFocus,emptyFocus,focusSite,focusSiteScopesValid,focusSchedule,focusMatchingSite,focusReason,
   focusSummary,settleFocus} from './model.js';
 import {wantedFocusRules,reconcileFocusRules,clearFocusRules} from './rule-host.js';
 
@@ -87,6 +87,8 @@ export function createStayFocusService({api=globalThis.chrome,lockManager=global
       const index=state.sites.findIndex(row=>row.host===site.host);
       if(index<0){if(state.sites.length>=FOCUS_MAX_SITES)throw focusError('最多可添加 60 个网站');state.sites.push(site);}
       else state.sites[index]=site;
+      if(!focusSiteScopesValid(state.sites))
+        throw focusError('包含子域名的父网站覆盖了精确子网站：请将子网站设为“包含子域名”，再保存','E_FOCUS_SCOPE_OVERLAP');
     }else if(operation==='focus.site.remove'){
       requirePayload(payload,['host']);
       const host=focusHost(payload.host);
