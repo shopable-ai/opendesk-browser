@@ -9,7 +9,7 @@ const owner={toolId:'download-test',toolVersion:'1.0.0',packageHash:SHA,installE
   approvedOrigin:null};
 const error=code=>e=>e?.code===code;
 function fixture(){
-  let allowed=true,now=1000,nextId=40,nextRef=0,throwDownload=false,throwCancel=false,revokeOnEffect=false;
+  let allowed=true,now=1000,nextId=40,nextRef=0,throwDownload=false,throwCancel=false,revokeOnEffect=false,revokeOnSearch=false;
   const downloads=new Map(),called=[],auth=[];
   const api={downloads:{
     async download(options){
@@ -20,7 +20,7 @@ function fixture(){
       return id;
     },
     async search(query){called.push(['search',structuredClone(query)]);
-      const value=downloads.get(query.id);return value?[{...value}]:[];},
+      const value=downloads.get(query.id);if(revokeOnSearch)allowed=false;return value?[{...value}]:[];},
     async cancel(id){called.push(['cancel',id]);if(throwCancel)throw Error('Chrome cancel reply uncertain');
       if(!downloads.has(id))throw Error('missing');
       downloads.get(id).state='interrupted'}
@@ -38,7 +38,7 @@ function fixture(){
   return {host,api,downloads,called,auth,
     revoke(){allowed=false},grant(){allowed=true},
     tick(ms){now+=ms},breakDownload(){throwDownload=true},breakCancel(){throwCancel=true},
-    revokeOnEffect(){revokeOnEffect=true}};
+    revokeOnEffect(){revokeOnEffect=true},revokeOnSearch(){revokeOnSearch=true}};
 }
 const request={url:'https://files.example/releases/archive.txt',filename:'exports/archive.txt'};
 test('P3 downloads registry, SDK methods and strict schema are canonical',async()=>{
@@ -138,4 +138,14 @@ test('P3 own-only cursor pagination never fetches global Chrome download history
   await assert.rejects(f.host.listOwned({cursor:'other-opaque-token-xxxxxxxx',limit:2},owner),
     error('E_DOWNLOAD_REF_INVALID'));
   assert(f.called.filter(([op])=>op==='search').every(([,args])=>Object.keys(args).join(',')==='id'));
+});
+
+test('P3 own-download state enumeration revalidates exact Origin after each Chrome search',async()=>{
+  const f=fixture(),started=await f.host.download(request,owner);
+  f.revokeOnSearch();
+  await assert.rejects(f.host.listOwned({},owner),error('E_SITE_PERMISSION_REVOKED'));
+  assert(f.auth.filter(row=>row.operation==='browser.downloads.listOwned')
+    .some(row=>row.origin==='https://files.example'));
+  await assert.rejects(f.host.getOwned({downloadRef:started.downloadRef},owner),
+    error('E_SITE_PERMISSION_REVOKED'));
 });
