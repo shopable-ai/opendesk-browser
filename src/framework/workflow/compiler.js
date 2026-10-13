@@ -13,7 +13,8 @@ function locator(step) {
   const method = {label:'getByLabel',text:'getByText',testId:'getByTestId'}[step.locatorKind];
   return 'page.' + method + '(' + arg + ')';
 }
-export async function compileWorkflow(value) {
+export async function compileWorkflow(value,{verifyFill=false}={}) {
+  if(typeof verifyFill!=='boolean')throw Object.assign(new Error('Invalid verification mode'),{code:'E_WORKFLOW_SCHEMA'});
   const workflow = validateWorkflow(value);
   const lines = ['async function main() {','  const __results = Object.create(null);'];
   for (const step of workflow.steps) {
@@ -28,6 +29,11 @@ export async function compileWorkflow(value) {
     if (step.op === 'fill') {
       const input = step.param ? 'params[' + JSON.stringify(step.param) + ']' : JSON.stringify(step.text);
       lines.push('  await ' + locator(step) + '.fill(' + input + ');');
+      if(verifyFill) {
+        lines.push('  if (String(await ' + locator(step) + '.inputValue()) !== String(' + input +
+          ')) throw new Error(' + JSON.stringify('Workflow input verification failed: ' + step.stepId) + ');');
+        lines.push('  __results[' + id + '] = {kind:"input-readback",matched:true};');
+      }
     }
     if (step.op === 'click') lines.push('  await ' + locator(step) + '.click();');
     if (step.op === 'wait') lines.push('  await ' + locator(step) +

@@ -10,6 +10,7 @@ import {requestWorkflowPlan} from './ai-plan.js';
 import {deriveWorkflowViewState} from './view-state.js';
 import {createLocalCodexPlanner,describeLocalCodex} from './local-codex.js';
 import {createWorkflowObservation} from './observation.js';
+import {prepareDirectExecution,verifyDirectExecutionReceipt} from './direct-execution.js';
 import {createTaskReviewHandoff,taskReviewHandoffKey} from './task-review-handoff.js';
 
 const STORAGE_PREFIX = 'opendesk.sidebar.workflow.v1:';
@@ -63,6 +64,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   let disposed=false,busy=false,runId=null,revision=null,compileToken=0,compiled=null;
   let lastTrustedRun=null; // UI hint only, original Task Verify must validate the real receipt.
   let proposal=null,proposalBase=null,proposalSerial=null,touched=false,saveList=[],draftWrites=Promise.resolve();
+  let directVerifiedSerial=null; // Verified fill source is the same byte sequence saved later.
   let phase='idle',lastRun='none',hasError=false,newReviewSignature=null;
   let planningGeneration=0,planningAbort=null,pendingApproval=null,localChecking=false;
   let localCapability={state:'UNKNOWN',readyForTurn:false},aiCleanup=Promise.resolve();
@@ -174,7 +176,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     const token=++compileToken;
     compiled=null;updateButtons();
     try {
-      const result=await compileWorkflow(snapshot());
+      const result=await compileWorkflow(snapshot(),{verifyFill:directVerifiedSerial===stable()});
       if(disposed||token!==compileToken)return;
       compiled=result;get('workflow-code').textContent=result.sourceUtf8;
       get('workflow-code-hash').textContent='SHA-256：' + result.sourceHash;
@@ -349,13 +351,16 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     if(!record)throw err('E_WORKFLOW_REVISION','请选择已保存版本');
     if(busy)throw err('E_WORKFLOW_BUSY','请在当前操作结束后再打开历史版本');
     const clean=validateWorkflow(record.workflow);
-    const compile=await compileWorkflow(clean);
+    if(record.verificationMode&&record.verificationMode!=='fill-readback')
+      throw err('E_WORKFLOW_SCHEMA','保存版本使用了未知验证模式');
+    const compile=await compileWorkflow(clean,{verifyFill:record.verificationMode==='fill-readback'});
     const saved=await host.controller.getControllerScript({scriptId:clean.workflowId,revision:record.revision});
     if(saved?.contentHash!==compile.sourceHash || saved.sourceUtf8!==compile.sourceUtf8 ||
       record.sourceHash!==compile.sourceHash)
       throw err('E_WORKFLOW_HASH','语义定义与持久 JavaScript 版本不一致，拒绝运行');
     void stopPlanning({close:true}).catch(()=>{});
     workflow=clean;lastTrustedRun=null;
+    directVerifiedSerial=record.verificationMode==='fill-readback'?stable():null;
     revision=record;touched=true;proposal=null;proposalBase=null;proposalSerial=null;lastRun='none';hasError=false;
     get('workflow-ai-proposal').hidden=true;
     render();persistDraft();
@@ -366,7 +371,8 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     const serial=stable(),frozen=snapshot();
     busy=true;updateButtons();
     try {
-      const freeze=await compileWorkflow(frozen);
+      const verifyFill=directVerifiedSerial===serial;
+      const freeze=await compileWorkflow(frozen,{verifyFill});
       const previous=revision?.workflow?.workflowId===freeze.workflow.workflowId?revision.revision:0;
       // Only the existing Controller revision journal can claim the executable bytes.
       if(serial!==stable())throw err('E_WORKFLOW_STALE','保存期间草稿已变化');
@@ -374,7 +380,8 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
         expectedRevision:previous,sourceUtf8:freeze.sourceUtf8});
       if(saved.contentHash!==freeze.sourceHash)throw err('E_WORKFLOW_HASH','Controller 源码哈希不匹配');
       const record={format:'opendesk.workflow-revision.v1',workflow:freeze.workflow,
-        revision:saved.revision,sourceHash:freeze.sourceHash,savedAt:Date.now()};
+        revision:saved.revision,sourceHash:freeze.sourceHash,savedAt:Date.now(),
+        ...(verifyFill?{verificationMode:'fill-readback'}:{})};
       const key=STORAGE_PREFIX+freeze.workflow.workflowId+':'+saved.revision;
       await api.storage.local.set({[key]:record});
       if(serial===stable())revision={...record,key};
@@ -405,18 +412,19 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       return true;
     }catch(error){get('workflow-output').textContent='持久结果解码失败：'+format(error);return false;}
   }
-  function run(event) {
-    if(!event.isTrusted||busy||host.executionPending||host.currentRun||!compiled)return;
+  function run(event,prepared=null) {
+    if((!prepared&&!event?.isTrusted)||(busy&&!prepared)||host.executionPending||host.currentRun||(!compiled&&!prepared))
+      return Promise.resolve({ok:false,skipped:true});
     let captured,params,freeze,permission;
     try {
-      freeze=compiled;captured=currentPageTarget.capture();
+      freeze=prepared?.freeze||compiled;captured=prepared?.captured||currentPageTarget.capture();
       if(captured.origin!==freeze.workflow.siteOrigin)
         throw err('E_WORKFLOW_ORIGIN','当前网页不属于工作流保存的网站');
-      params=readParams();
-      if(freeze.workflow.steps.some(step=>['click','fill'].includes(step.op)) &&
+      params=prepared?prepared.params:readParams();
+      if(!prepared&&freeze.workflow.steps.some(step=>['click','fill'].includes(step.op)) &&
         !get('workflow-confirm-run').checked)
         throw err('E_WORKFLOW_CONSENT','请先检查步骤并勾选本次网页操作确认');
-      permission=api.permissions.request({origins:[permissionPattern(captured.url)]});
+      permission=prepared?.permission||api.permissions.request({origins:[permissionPattern(captured.url)]});
     }catch(error){
       if(error?.code==='E_WORKFLOW_CONSENT') {
         get('workflow-params-panel').hidden=false;
@@ -429,12 +437,14 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     onRunOwner('pending');
     busy=true;phase='running';lastRun='running';hasError=false;
     get('workflow-output').textContent='尚无本次持久结果';
-    status('已冻结源码、参数、页面和用户授权请求；准备通过现有 RunHost 执行');
+    status(prepared?'正在执行本次对话任务（现有 RunHost）…':'已冻结源码、参数、页面和用户授权请求；准备通过现有 RunHost 执行');
     updateButtons();
-    (async()=>{
+    return (async()=>{
       if(!await permission)throw err('E_PERMISSION','网站授权被拒绝；未运行');
       if(disposed)throw err('E_HOST_CLOSED','Sidebar 已关闭');
       await currentPageTarget.revalidate(captured);
+      if(prepared&&!await api.permissions.contains({origins:[permissionPattern(captured.url)]}))
+        throw err('E_PERMISSION','运行前网站权限已撤销；未执行');
       const saved=revision && revision.workflow.workflowId===freeze.workflow.workflowId &&
         revision.sourceHash===freeze.sourceHash &&
         JSON.stringify(revision.workflow)===JSON.stringify(freeze.workflow);
@@ -453,7 +463,18 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       const view=await host.controller.snapshotControllerRun({runId:claim.runId});
       if(!disposed) {
         const decoded=resultDisplay(claim.runId,view);
-        const result=view?.results?.find(row=>row.runId===claim.runId);
+        if(prepared) {
+          if(prepared.hasReadback)await currentPageTarget.revalidate(captured);
+          let proof=null;
+          try{proof=verifyDirectExecutionReceipt({claim,completed,view,sourceHash:freeze.sourceHash,target:captured});}
+          catch(error){status(format(error),true);}
+          lastRun=proof&&decoded?'success':'failed';
+          if(lastRun==='success')
+            lastTrustedRun={runId:claim.runId,sourceHash:freeze.sourceHash,siteOrigin:captured.origin};
+          if(lastRun==='failed' && !hasError)
+            status('运行未成功或结果无法确认，请检查真实结果及页面效果；不会自动重试。',true);
+          return {ok:lastRun==='success',runId:claim.runId,resultId:proof?.resultId||null};
+        }
         lastRun=completed?.state==='paused_unknown'||completed?.pendingSettlement||!result?.outcome?.ok||!decoded
           ?'failed':'success';
         if(lastRun==='success' && view?.run?.state==='completed' && view.run.workerRetired===true &&
@@ -461,16 +482,17 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
           view.run.target?.documentId===captured.documentId &&
           view.run.target?.allowedOrigin===captured.origin &&
           view.run.revision?.sourceHash===freeze.sourceHash &&
-          result.revision?.sourceHash===freeze.sourceHash && result.runId===claim.runId) {
+          result.revision?.sourceHash===freeze.sourceHash && result.runId===claim.runId)
           lastTrustedRun={runId:claim.runId,sourceHash:freeze.sourceHash,siteOrigin:captured.origin};
-        }
-        if(lastRun==='failed' && !hasError)
+        if(lastRun==='failed'&&!hasError)
           status('运行未成功或结果无法确认，请检查真实结果及页面效果；不会自动重试。',true);
+        return {ok:lastRun==='success',runId:claim.runId,resultId:result?.resultId||null};
       }
     })().catch(error=>{
       lastRun='failed';
       get('workflow-output').textContent=format(error)+'；失败不会自动重放';
       status(format(error)+'；失败不会自动重放',true);
+      return {ok:false,error};
     }).finally(()=>{
       busy=false;phase='idle';
       // The owning Stop remains visible if the durable slot is still held
@@ -679,21 +701,23 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       const selected=provider(),request=get('workflow-ai-request').value.trim();
       if(!request)throw err('E_AI_REQUEST','先描述希望自动完成的任务');
       if(!['local_codex','custom_https'].includes(selected))throw err('E_AI_CONFIG','请选择本机 Codex 或自定义 HTTPS 接口');
+      captured=currentPageTarget.capture();
+      if(captured.frameId!==0||captured.origin!==workflow.siteOrigin)
+        throw err('E_WORKFLOW_ORIGIN','请先打开目标网站，再发送要执行的浏览器任务');
       frozen={selected,request,workflow:snapshot(),serial:stable(),
-        consent:{model:true,workflow:true,observation:selected==='local_codex' &&
-          currentOrigin()===workflow.siteOrigin}};
+        consent:{model:true,workflow:true,observation:selected==='local_codex'}};
       if(selected==='custom_https') {
         frozen.endpoint=get('workflow-ai-endpoint').value.trim();
         frozen.apiKey=get('workflow-ai-key').value;frozen.model=get('workflow-ai-model').value.trim();
         let url;try{url=new URL(frozen.endpoint);}catch{}
         if(!url||url.protocol!=='https:'||url.username||url.password||url.hash||!frozen.apiKey||!frozen.model)
           throw err('E_AI_CONFIG','请在 AI 设置中填写 HTTPS 接口、模型和本次会话 API Key');
-        // Chrome origin permission remains tied to the actual user send gesture.
-        permission=api.permissions.request({origins:[permissionPattern(frozen.endpoint)]});
-      } else if(frozen.consent.observation) {
-        captured=currentPageTarget.capture();
-        if(captured.origin!==frozen.workflow.siteOrigin)throw err('E_WORKFLOW_ORIGIN','请打开工作流对应网站后启用网页观察');
       }
+      // The Send gesture is the one authority to request the website grant.
+      // Later model output cannot generate a new Chrome permission gesture.
+      const origins=[permissionPattern(captured.url)];
+      if(selected==='custom_https')origins.push(permissionPattern(frozen.endpoint));
+      permission=api.permissions.request({origins:[...new Set(origins)]});
     }catch(error){
       if(error?.code==='E_AI_CONFIG')openAISettings(
         provider()==='custom_https'?'workflow-ai-key':'workflow-ai-provider');
@@ -733,7 +757,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
         list.hidden=!list.children.length;
       }
       if(event.type==='tool.request')indicator.textContent=frozen.consent.observation&&event.canApprove===true&&event.tool==='browser.observe'
-        ?'Codex 请求查看网页，等待你的本次确认。':'本次工具请求不符合已授权范围，已拒绝。';
+        ?'正在使用本次发送所授权的网页摘要…':'本次工具请求不符合已授权范围，已拒绝。';
       if(event.type==='approval.required')appendChat('本机权限','本次工作流不允许命令行或文件操作，已拒绝该请求。');
       if(event.type==='client.session.restart')appendChat('对话状态',event.text);
     };
@@ -759,10 +783,28 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
           request:frozen.request,workflow:frozen.workflow,signal:abort.signal});
       }
       planningCurrent(epoch,frozen.serial,frozen.selected);
-      appendChat(frozen.selected==='local_codex'?'Codex 建议':'AI 建议',
-        result.title+' · '+result.steps.length+' 个语义步骤（仍需检查并运行验证）');
-      proposal=result;proposalBase=frozen.workflow.workflowId;proposalSerial=frozen.serial;
-      renderProposal(result);get('workflow-ai-proposal').hidden=false;status('');
+      const prepared=prepareDirectExecution({request:frozen.request,workflow:result,target:captured});
+      const freeze=await compileWorkflow(result,{verifyFill:true});
+      planningCurrent(epoch,frozen.serial,frozen.selected);
+      if(!await permission)throw err('E_PERMISSION','网站权限未授权，未执行浏览器操作');
+      await currentPageTarget.revalidate(captured);
+      if(!await api.permissions.contains({origins:[permissionPattern(captured.url)]}))
+        throw err('E_PERMISSION','网站权限已撤销，本次没有执行');
+      planningCurrent(epoch,frozen.serial,frozen.selected);
+      workflow=structuredClone(result);touched=true;revision=null;lastTrustedRun=null;
+      directVerifiedSerial=stable();
+      proposal=null;proposalBase=null;proposalSerial=null;
+      get('workflow-ai-proposal').hidden=true;render();persistDraft();
+      appendChat('系统','已解析 '+result.steps.length+' 个动作，正在当前网页直接执行…');
+      const execution=await run(null,{freeze,captured,params:prepared.params,hasReadback:prepared.hasReadback,permission:Promise.resolve(true)});
+      if(execution?.ok) {
+        appendChat('执行结果','已通过 RunHost 执行并核对回执：'+execution.runId+' / '+execution.resultId+
+          (prepared.hasUnprovenClick?'。点击后的业务效果仍需单独验证。':
+            prepared.hasReadback?'。填写内容已在同次运行中读回匹配。':'。'));
+        status('任务已执行并核对原生结果；现在可以选择保存为工作流。');
+      } else {
+        appendChat('执行结果','本次未能确认成功；不会自动重试。请检查真实网页与运行详情。');
+      }
     }catch(error){if(!disposed&&epoch===planningGeneration)status(
       frozen.selected==='local_codex'?localFailure(error):format(error),true);}
     finally{
@@ -877,7 +919,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     
     dismissNewReview();
     void stopPlanning({close:true}).catch(()=>{});
-    workflow=emptyWorkflow(currentOrigin()||'',crypto.randomUUID());
+    workflow=emptyWorkflow(currentOrigin()||'',crypto.randomUUID());directVerifiedSerial=null;
     revision=null;touched=true;proposal=null;proposalBase=null;proposalSerial=null;lastRun='none';hasError=false;phase='idle';
     get('workflow-ai-transcript').replaceChildren();
     get('workflow-ai-proposal').hidden=true;
