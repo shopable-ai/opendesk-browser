@@ -197,6 +197,45 @@ test('R9 reloadOwned cannot replay unknown Chrome effects or use a revoked site 
  await assert.rejects(host.reloadOwned({tabRef},owner()),code('E_TAB_REF_INVALID'));
  assert.equal(native,1,'an unknown native effect cannot be retried with old credentials');
 });
+test('R9 navigateOwned updates only the exact same-Origin tool tab and retires its old ref',async()=>{
+ const f=fixture();
+ f.api.webNavigation={getFrame:async({tabId})=>{
+   const tab=f.items.get(tabId);
+   return tab?{url:tab.url,documentId:'doc-'+tabId,documentLifecycle:'active'}:null;
+ }};
+ const visited=[];f.api.tabs.update=async(id,changes)=>{
+   visited.push({id,changes});
+   const tab={...f.items.get(id),...changes};f.items.set(id,tab);return tab;
+ };
+ const host=createBrowserTabHost({api:f.api,createRef:()=>ref,authorize:async()=>true});
+ const {tabRef}=await host.create({url:'https://example.org/start'},owner());
+ await assert.rejects(host.navigateOwned({tabRef,url:'https://another.example/next'},owner()),
+   code('E_SITE_GRANT_REQUIRED'));
+ assert.equal(visited.length,0);
+ await assert.rejects(host.navigateOwned({tabId:200,url:'https://example.org/next'},owner()),
+   code('E_SCHEMA'));
+ await assert.rejects(host.navigateOwned({tabRef,url:'https://example.org/next'},owner('tool-b')),
+   code('E_TAB_REF_INVALID'));
+ assert.deepEqual(await host.navigateOwned({tabRef,url:'https://example.org/next'},owner()),
+   {navigationRequested:true,tabRefRevoked:true});
+ assert.deepEqual(visited,[{id:200,changes:{url:'https://example.org/next'}}]);
+ await assert.rejects(host.navigateOwned({tabRef,url:'https://example.org/next'},owner()),
+   code('E_TAB_REF_INVALID'));
+});
+test('R9 navigateOwned unknown native effect consumes ref before Chrome and is not replayed',async()=>{
+ const f=fixture();let attempts=0;
+ f.api.webNavigation={getFrame:async({tabId})=>({
+   url:f.items.get(tabId).url,documentId:'doc-'+tabId,documentLifecycle:'active'
+ })};
+ f.api.tabs.update=async()=>{attempts++;throw Error('native acknowledgement lost')};
+ const host=createBrowserTabHost({api:f.api,createRef:()=>ref,authorize:async()=>true});
+ const {tabRef}=await host.create({url:'https://example.org/start'},owner());
+ await assert.rejects(host.navigateOwned({tabRef,url:'https://example.org/next'},owner()),
+   code('E_OUTCOME_UNKNOWN'));
+ await assert.rejects(host.navigateOwned({tabRef,url:'https://example.org/next'},owner()),
+   code('E_TAB_REF_INVALID'));
+ assert.equal(attempts,1);
+});
 test('R5 owned close consumes TabRef, with unknown native outcome never retried',async()=>{
  const f=fixture();
  f.api.webNavigation={getFrame:async({tabId})=>{
