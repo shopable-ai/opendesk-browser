@@ -39,6 +39,16 @@ test('R1.6 native admission needs exact built-in version, release hash, provenan
     {epochs:{'time-review':'other'}},{expectedEpoch:null}
   ])assert.equal(await admitsTrustedTimeReview({...good,...change}),false,JSON.stringify(change));
 });
+test('R1.6 first install with null epoch is admitted only for the exact reviewed release',async()=>{
+  const good=fixture();
+  good.expectedEpoch=null;
+  good.epochs={};
+  assert.equal(await admitsTrustedTimeReview(good),true);
+  assert.equal(await admitsTrustedTimeReview({...good,tool:{...good.tool,js:'tampered()'}}),false);
+  assert.equal(await admitsTrustedTimeReview({...good,provenance:{}}),false);
+  assert.equal(await admitsTrustedTimeReview({...good,enableRecords:{'time-review':false}}),false);
+  assert.equal(await admitsTrustedTimeReview({...good,expectedEpoch:'stale-epoch'}),false);
+});
 test('R1.6 source uses one static first-party UI; other tools retain the opaque sandbox',async()=>{
   const host=await readFile('src/ui/sidebar-tools.js','utf8');
   const entry=await readFile('src/entrypoints/sidebar-tool-host.js','utf8');
