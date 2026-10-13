@@ -866,6 +866,491 @@
         "https://github.com/ChromeDevTools/chrome-devtools-mcp/releases/tag/chrome-devtools-mcp-v1.10.1"
       ],
       "note": "Agent browser diagnosis; not an installed recurring Task by itself."
+    },
+    {
+      "id": "gemini-in-chrome",
+      "name": "Gemini in Chrome / Skills",
+      "category": "browser-native-ai-assistant",
+      "repository": null,
+      "firstReleasedAt": null,
+      "latestStableAt": null,
+      "latestStableVersion": null,
+      "latestPreviewAt": null,
+      "latestPreviewVersion": null,
+      "lastSourceActivityAt": null,
+      "lastStoreUpdatedAt": null,
+      "lastVerifiedAt": "2026-10-13",
+      "sourceActivityBasis": "NOT_RETRIEVED_R5",
+      "maintenanceAssessment": "VENDOR_DOCUMENTED_VERSION_UNKNOWN",
+      "productCapabilityStage": "FEATURE_DOCUMENTED_CHANNEL_UNVERIFIED",
+      "maintenanceState": "UNKNOWN",
+      "verifiedSources": [
+        "https://blog.google/products-and-platforms/products/chrome/skills-in-chrome/"
+      ],
+      "note": "Chrome Skills AI prompt save/reuse published 2026-04-14; repeats model prompt, cannot assume model-free installed task.",
+      "r5CompetitionClass": "PROMPT_SKILL_REPLAY",
+      "r5FeatureProof": {
+        "feature": "Save/reuse AI prompt Skills",
+        "date": "2026-04-14",
+        "channel": "google-official-release-post"
+      },
+      "r5AgainstGF007": {
+        "repeatsWork": true,
+        "modelFreeRerun": "UNKNOWN_NOT_MEASURED",
+        "fixedCodeOwnedByUser": "UNKNOWN_NOT_MEASURED",
+        "sameLoggedInChrome": "UNKNOWN_OR_MODE_DEPENDENT",
+        "independentBenchmark": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "claude-in-chrome",
+      "name": "Claude in Chrome",
+      "category": "ai-chrome-extension",
+      "repository": null,
+      "firstReleasedAt": null,
+      "latestStableAt": null,
+      "latestStableVersion": null,
+      "latestPreviewAt": "2026-07-24",
+      "latestPreviewVersion": "Beta side panel",
+      "lastSourceActivityAt": null,
+      "lastStoreUpdatedAt": null,
+      "lastVerifiedAt": "2026-10-13",
+      "sourceActivityBasis": "NOT_RETRIEVED_R5",
+      "maintenanceAssessment": "PREVIEW_DOCUMENTED",
+      "productCapabilityStage": "PREVIEW_OR_BETA",
+      "maintenanceState": "PREVIEW_REPORTED",
+      "verifiedSources": [
+        "https://support.claude.com/en/articles/12138966-release-notes"
+      ],
+      "note": "Jul 24 2026 release notes explicitly list workflow recording and repetition; no proof fixed source and zero-model rerun.",
+      "r5CompetitionClass": "RECORDED_AI_WORKFLOW",
+      "r5FeatureProof": {
+        "feature": "Record a workflow and repeat",
+        "date": "2026-07-24",
+        "channel": "anthropic-official-release-notes-beta"
+      },
+      "r5AgainstGF007": {
+        "repeatsWork": true,
+        "modelFreeRerun": "UNKNOWN_NOT_MEASURED",
+        "fixedCodeOwnedByUser": "UNKNOWN_NOT_MEASURED",
+        "sameLoggedInChrome": "UNKNOWN_OR_MODE_DEPENDENT",
+        "independentBenchmark": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "perplexity-comet",
+      "name": "Perplexity Comet",
+      "category": "standalone-ai-browser",
+      "repository": null,
+      "firstReleasedAt": null,
+      "latestStableAt": null,
+      "latestStableVersion": null,
+      "latestPreviewAt": null,
+      "latestPreviewVersion": null,
+      "lastSourceActivityAt": null,
+      "lastStoreUpdatedAt": null,
+      "lastVerifiedAt": "2026-10-13",
+      "sourceActivityBasis": "NOT_RETRIEVED_R5",
+      "maintenanceAssessment": "VENDOR_DOCUMENTED_VERSION_UNKNOWN",
+      "productCapabilityStage": "FEATURE_DOCUMENTED_CHANNEL_UNVERIFIED",
+      "maintenanceState": "UNKNOWN",
+      "verifiedSources": [
+        "https://www.perplexity.ai/comet/resources/articles/comet-quick-start-guide"
+      ],
+      "note": "Dedicated browser with assistant, automation and recurring tasks; public first-feature date not established; not currently opened Chrome.",
+      "r5CompetitionClass": "ALTERNATIVE_TASK_WORKFLOW",
+      "r5FeatureProof": null,
+      "r5AgainstGF007": {
+        "repeatsWork": true,
+        "modelFreeRerun": "UNKNOWN_NOT_MEASURED",
+        "fixedCodeOwnedByUser": "UNKNOWN_NOT_MEASURED",
+        "sameLoggedInChrome": "UNKNOWN_OR_MODE_DEPENDENT",
+        "independentBenchmark": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "microsoft-power-automate-desktop",
+      "name": "Microsoft Power Automate Desktop",
+      "category": "desktop-browser-rpa",
+      "repository": null,
+      "firstReleasedAt": null,
+      "latestStableAt": null,
+      "latestStableVersion": null,
+      "latestPreviewAt": null,
+      "latestPreviewVersion": null,
+      "lastSourceActivityAt": null,
+      "lastStoreUpdatedAt": null,
+      "lastVerifiedAt": "2026-10-13",
+      "sourceActivityBasis": "NOT_RETRIEVED_R5",
+      "maintenanceAssessment": "VENDOR_DOCUMENTED_VERSION_UNKNOWN",
+      "productCapabilityStage": "FEATURE_DOCUMENTED_CHANNEL_UNVERIFIED",
+      "maintenanceState": "UNKNOWN",
+      "verifiedSources": [
+        "https://learn.microsoft.com/en-us/power-automate/desktop-flows/automation-web"
+      ],
+      "note": "Official browser automation docs support Chrome/Edge/Firefox; browser extension/WebDriver; not a fixed Chrome plugin-only UX.",
+      "r5CompetitionClass": "ALTERNATIVE_TASK_WORKFLOW",
+      "r5FeatureProof": null,
+      "r5AgainstGF007": {
+        "repeatsWork": true,
+        "modelFreeRerun": "UNKNOWN_NOT_MEASURED",
+        "fixedCodeOwnedByUser": "UNKNOWN_NOT_MEASURED",
+        "sameLoggedInChrome": "UNKNOWN_OR_MODE_DEPENDENT",
+        "independentBenchmark": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "browse-ai",
+      "name": "Browse AI",
+      "category": "no-code-scheduled-website-monitoring",
+      "repository": null,
+      "firstReleasedAt": null,
+      "latestStableAt": null,
+      "latestStableVersion": null,
+      "latestPreviewAt": null,
+      "latestPreviewVersion": null,
+      "lastSourceActivityAt": null,
+      "lastStoreUpdatedAt": null,
+      "lastVerifiedAt": "2026-10-13",
+      "sourceActivityBasis": "NOT_RETRIEVED_R5",
+      "maintenanceAssessment": "VENDOR_DOCUMENTED_VERSION_UNKNOWN",
+      "productCapabilityStage": "FEATURE_DOCUMENTED_CHANNEL_UNVERIFIED",
+      "maintenanceState": "UNKNOWN",
+      "verifiedSources": [
+        "https://help.browse.ai/en/articles/10535487-how-to-set-up-monitoring-for-website-changes"
+      ],
+      "note": "Robot repeat execution + scheduled monitoring already documented 2025-12-05; scraping business UI explicitly outside OpenDesk goal.",
+      "r5CompetitionClass": "ALTERNATIVE_TASK_WORKFLOW",
+      "r5FeatureProof": {
+        "feature": "Schedule approved monitoring robots",
+        "date": "2025-12-05",
+        "channel": "vendor-dated-help-article-not-first-public-release"
+      },
+      "r5AgainstGF007": {
+        "repeatsWork": true,
+        "modelFreeRerun": "UNKNOWN_NOT_MEASURED",
+        "fixedCodeOwnedByUser": "UNKNOWN_NOT_MEASURED",
+        "sameLoggedInChrome": "UNKNOWN_OR_MODE_DEPENDENT",
+        "independentBenchmark": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "apify-actors",
+      "name": "Apify Actors",
+      "category": "cloud-versioned-browser-task-runtime",
+      "repository": null,
+      "firstReleasedAt": null,
+      "latestStableAt": null,
+      "latestStableVersion": null,
+      "latestPreviewAt": null,
+      "latestPreviewVersion": null,
+      "lastSourceActivityAt": null,
+      "lastStoreUpdatedAt": null,
+      "lastVerifiedAt": "2026-10-13",
+      "sourceActivityBasis": "NOT_RETRIEVED_R5",
+      "maintenanceAssessment": "VENDOR_DOCUMENTED_VERSION_UNKNOWN",
+      "productCapabilityStage": "FEATURE_DOCUMENTED_CHANNEL_UNVERIFIED",
+      "maintenanceState": "UNKNOWN",
+      "verifiedSources": [
+        "https://docs.apify.com/actors"
+      ],
+      "note": "Structured inputs, versioning, scheduling, publishing and pay-per-use; strong counterexample to fixed task as global invention; no asserted platform latest version.",
+      "r5CompetitionClass": "WORKFLOW_COMPOSITION",
+      "r5FeatureProof": null,
+      "r5AgainstGF007": {
+        "repeatsWork": true,
+        "modelFreeRerun": "UNKNOWN_NOT_MEASURED",
+        "fixedCodeOwnedByUser": "UNKNOWN_NOT_MEASURED",
+        "sameLoggedInChrome": "UNKNOWN_OR_MODE_DEPENDENT",
+        "independentBenchmark": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "relay-app",
+      "name": "Relay.app",
+      "category": "human-in-loop-workflow-saas",
+      "repository": null,
+      "firstReleasedAt": null,
+      "latestStableAt": null,
+      "latestStableVersion": null,
+      "latestPreviewAt": null,
+      "latestPreviewVersion": null,
+      "lastSourceActivityAt": null,
+      "lastStoreUpdatedAt": null,
+      "lastVerifiedAt": "2026-10-13",
+      "sourceActivityBasis": "NOT_RETRIEVED_R5",
+      "maintenanceAssessment": "VENDOR_DOCUMENTED_VERSION_UNKNOWN",
+      "productCapabilityStage": "FEATURE_DOCUMENTED_CHANNEL_UNVERIFIED",
+      "maintenanceState": "UNKNOWN",
+      "verifiedSources": [
+        "https://docs.relay.app/human-in-the-loop/human-in-the-loop-steps"
+      ],
+      "note": "HITL approvals, data inputs, tasks and path decisions; feature current doc, earliest public date unknown.",
+      "r5CompetitionClass": "ALTERNATIVE_TASK_WORKFLOW",
+      "r5FeatureProof": null,
+      "r5AgainstGF007": {
+        "repeatsWork": true,
+        "modelFreeRerun": "UNKNOWN_NOT_MEASURED",
+        "fixedCodeOwnedByUser": "UNKNOWN_NOT_MEASURED",
+        "sameLoggedInChrome": "UNKNOWN_OR_MODE_DEPENDENT",
+        "independentBenchmark": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "n8n",
+      "name": "n8n",
+      "category": "open-source-workflow-automation",
+      "repository": "https://github.com/n8n-io/n8n",
+      "firstReleasedAt": null,
+      "latestStableAt": "2026-10-12",
+      "latestStableVersion": "n8n@2.42.7",
+      "latestPreviewAt": null,
+      "latestPreviewVersion": null,
+      "lastSourceActivityAt": null,
+      "lastStoreUpdatedAt": null,
+      "lastVerifiedAt": "2026-10-13",
+      "sourceActivityBasis": "NOT_RETRIEVED_R5",
+      "maintenanceAssessment": "RELEASE_RECORD_CONFIRMED",
+      "productCapabilityStage": "RELEASE_VERIFIED",
+      "maintenanceState": "RELEASE_REPORTED",
+      "verifiedSources": [
+        "https://github.com/n8n-io/n8n/releases/tag/n8n%402.42.7"
+      ],
+      "note": "Published n8n package release; model/tool + deterministic flow combinations are alternatives but not necessarily direct current-Chrome plugin.",
+      "r5CompetitionClass": "WORKFLOW_COMPOSITION",
+      "r5FeatureProof": null,
+      "r5AgainstGF007": {
+        "repeatsWork": true,
+        "modelFreeRerun": "UNKNOWN_NOT_MEASURED",
+        "fixedCodeOwnedByUser": "UNKNOWN_NOT_MEASURED",
+        "sameLoggedInChrome": "UNKNOWN_OR_MODE_DEPENDENT",
+        "independentBenchmark": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "activepieces",
+      "name": "Activepieces",
+      "category": "open-source-automation",
+      "repository": "https://github.com/activepieces/activepieces",
+      "firstReleasedAt": null,
+      "latestStableAt": "2026-10-12",
+      "latestStableVersion": "0.92.3",
+      "latestPreviewAt": null,
+      "latestPreviewVersion": null,
+      "lastSourceActivityAt": null,
+      "lastStoreUpdatedAt": null,
+      "lastVerifiedAt": "2026-10-13",
+      "sourceActivityBasis": "NOT_RETRIEVED_R5",
+      "maintenanceAssessment": "RELEASE_RECORD_CONFIRMED",
+      "productCapabilityStage": "RELEASE_VERIFIED",
+      "maintenanceState": "RELEASE_REPORTED",
+      "verifiedSources": [
+        "https://github.com/activepieces/activepieces/releases/tag/0.92.3"
+      ],
+      "note": "Published stable automation alternative; browser site-session equivalence untested.",
+      "r5CompetitionClass": "WORKFLOW_COMPOSITION",
+      "r5FeatureProof": null,
+      "r5AgainstGF007": {
+        "repeatsWork": true,
+        "modelFreeRerun": "UNKNOWN_NOT_MEASURED",
+        "fixedCodeOwnedByUser": "UNKNOWN_NOT_MEASURED",
+        "sameLoggedInChrome": "UNKNOWN_OR_MODE_DEPENDENT",
+        "independentBenchmark": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "text-blaze",
+      "name": "Text Blaze",
+      "category": "chrome-text-workflow",
+      "repository": null,
+      "firstReleasedAt": null,
+      "latestStableAt": null,
+      "latestStableVersion": null,
+      "latestPreviewAt": null,
+      "latestPreviewVersion": null,
+      "lastSourceActivityAt": null,
+      "lastStoreUpdatedAt": null,
+      "lastVerifiedAt": "2026-10-13",
+      "sourceActivityBasis": "NOT_RETRIEVED_R5",
+      "maintenanceAssessment": "VENDOR_DOCUMENTED_VERSION_UNKNOWN",
+      "productCapabilityStage": "FEATURE_DOCUMENTED_CHANNEL_UNVERIFIED",
+      "maintenanceState": "UNKNOWN",
+      "verifiedSources": [
+        "https://blaze.today/guides/forms/"
+      ],
+      "note": "Chrome extension dynamic templates/forms/formulas with collaboration; strong task-specific competitor to fixed form automation.",
+      "r5CompetitionClass": "TEMPLATE_REUSE",
+      "r5FeatureProof": null,
+      "r5AgainstGF007": {
+        "repeatsWork": true,
+        "modelFreeRerun": "UNKNOWN_NOT_MEASURED",
+        "fixedCodeOwnedByUser": "UNKNOWN_NOT_MEASURED",
+        "sameLoggedInChrome": "UNKNOWN_OR_MODE_DEPENDENT",
+        "independentBenchmark": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "selenium-ide",
+      "name": "Selenium IDE",
+      "category": "record-and-replay-desktop",
+      "repository": "https://github.com/SeleniumHQ/selenium-ide",
+      "firstReleasedAt": null,
+      "latestStableAt": null,
+      "latestStableVersion": null,
+      "latestPreviewAt": "2024-07-20",
+      "latestPreviewVersion": "v4.0.1-beta.14 (tag beta; GitHub release is not prerelease flag)",
+      "lastSourceActivityAt": null,
+      "lastStoreUpdatedAt": null,
+      "lastVerifiedAt": "2026-10-13",
+      "sourceActivityBasis": "NOT_RETRIEVED_R5",
+      "maintenanceAssessment": "PREVIEW_DOCUMENTED",
+      "productCapabilityStage": "PREVIEW_OR_BETA",
+      "maintenanceState": "PREVIEW_REPORTED",
+      "verifiedSources": [
+        "https://www.selenium.dev/downloads/"
+      ],
+      "note": "2026 official Selenium Downloads says standalone desktop IDE; previous v3 Chrome extension not maintained; historical tutorials describing Chrome extension may be stale. v4.0.1-beta.14 public GitHub tag from 2024; not proof latest stable. SaaS/channel unknown.",
+      "r5CompetitionClass": "ALTERNATIVE_TASK_WORKFLOW",
+      "r5FeatureProof": null,
+      "r5AgainstGF007": {
+        "repeatsWork": true,
+        "modelFreeRerun": "UNKNOWN_NOT_MEASURED",
+        "fixedCodeOwnedByUser": "UNKNOWN_NOT_MEASURED",
+        "sameLoggedInChrome": "UNKNOWN_OR_MODE_DEPENDENT",
+        "independentBenchmark": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "playwright",
+      "name": "Microsoft Playwright",
+      "category": "developer-browser-automation",
+      "repository": "https://github.com/microsoft/playwright",
+      "firstReleasedAt": null,
+      "latestStableAt": "2026-10-07",
+      "latestStableVersion": "v1.64.0",
+      "latestPreviewAt": null,
+      "latestPreviewVersion": null,
+      "lastSourceActivityAt": null,
+      "lastStoreUpdatedAt": null,
+      "lastVerifiedAt": "2026-10-13",
+      "sourceActivityBasis": "NOT_RETRIEVED_R5",
+      "maintenanceAssessment": "RELEASE_RECORD_CONFIRMED",
+      "productCapabilityStage": "RELEASE_VERIFIED",
+      "maintenanceState": "RELEASE_REPORTED",
+      "verifiedSources": [
+        "https://github.com/microsoft/playwright/releases/tag/v1.64.0"
+      ],
+      "note": "Browser automation/recording and WebMCP; latest GitHub release at check; not a user's installed OpenDesk Task by itself.",
+      "r5CompetitionClass": "ALTERNATIVE_TASK_WORKFLOW",
+      "r5FeatureProof": null,
+      "r5AgainstGF007": {
+        "repeatsWork": true,
+        "modelFreeRerun": "UNKNOWN_NOT_MEASURED",
+        "fixedCodeOwnedByUser": "UNKNOWN_NOT_MEASURED",
+        "sameLoggedInChrome": "UNKNOWN_OR_MODE_DEPENDENT",
+        "independentBenchmark": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "requestly",
+      "name": "Requestly",
+      "category": "http-workflow-debugger",
+      "repository": "https://github.com/requestly/requestly",
+      "firstReleasedAt": null,
+      "latestStableAt": null,
+      "latestStableVersion": null,
+      "latestPreviewAt": null,
+      "latestPreviewVersion": null,
+      "lastSourceActivityAt": null,
+      "lastStoreUpdatedAt": null,
+      "lastVerifiedAt": "2026-10-13",
+      "sourceActivityBasis": "NOT_RETRIEVED_R5",
+      "maintenanceAssessment": "VENDOR_DOCUMENTED_VERSION_UNKNOWN",
+      "productCapabilityStage": "FEATURE_DOCUMENTED_CHANNEL_UNVERIFIED",
+      "maintenanceState": "UNKNOWN",
+      "verifiedSources": [
+        "https://github.com/requestly/requestly/releases/tag/changelog-2026.03.23"
+      ],
+      "note": "2026-03-23 GitHub changelog tag; do not equate to current CWS Stable or browser task release.",
+      "r5CompetitionClass": "ALTERNATIVE_TASK_WORKFLOW",
+      "r5FeatureProof": null,
+      "r5AgainstGF007": {
+        "repeatsWork": true,
+        "modelFreeRerun": "UNKNOWN_NOT_MEASURED",
+        "fixedCodeOwnedByUser": "UNKNOWN_NOT_MEASURED",
+        "sameLoggedInChrome": "UNKNOWN_OR_MODE_DEPENDENT",
+        "independentBenchmark": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "zapier-agents",
+      "name": "Zapier Agents / AI by Zapier",
+      "category": "ai-cloud-agent-workflow",
+      "repository": null,
+      "firstReleasedAt": null,
+      "latestStableAt": null,
+      "latestStableVersion": null,
+      "latestPreviewAt": null,
+      "latestPreviewVersion": null,
+      "lastSourceActivityAt": null,
+      "lastStoreUpdatedAt": null,
+      "lastVerifiedAt": "2026-10-13",
+      "sourceActivityBasis": "NOT_RETRIEVED_R5",
+      "maintenanceAssessment": "VENDOR_DOCUMENTED_VERSION_UNKNOWN",
+      "productCapabilityStage": "FEATURE_DOCUMENTED_CHANNEL_UNVERIFIED",
+      "maintenanceState": "UNKNOWN",
+      "verifiedSources": [
+        "https://help.zapier.com/hc/en-us/articles/45394909914381-Set-up-your-agent-s-trigger"
+      ],
+      "note": "Official article updated 2026-10-01 describes on-demand, scheduled, Zap/MCP and app-event agent triggering; migration to AI by Zapier noted.",
+      "r5CompetitionClass": "ALTERNATIVE_TASK_WORKFLOW",
+      "r5FeatureProof": {
+        "feature": "Agent triggers and scheduled runs",
+        "date": "2026-10-01",
+        "channel": "docs-update-not-first-feature-date"
+      },
+      "r5AgainstGF007": {
+        "repeatsWork": true,
+        "modelFreeRerun": "UNKNOWN_NOT_MEASURED",
+        "fixedCodeOwnedByUser": "UNKNOWN_NOT_MEASURED",
+        "sameLoggedInChrome": "UNKNOWN_OR_MODE_DEPENDENT",
+        "independentBenchmark": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "onepassword-for-claude",
+      "name": "1Password for Claude",
+      "category": "credential-broker-complement",
+      "repository": null,
+      "firstReleasedAt": null,
+      "latestStableAt": null,
+      "latestStableVersion": null,
+      "latestPreviewAt": "2026-07-16",
+      "latestPreviewVersion": "Beta",
+      "lastSourceActivityAt": null,
+      "lastStoreUpdatedAt": null,
+      "lastVerifiedAt": "2026-10-13",
+      "sourceActivityBasis": "NOT_RETRIEVED_R5",
+      "maintenanceAssessment": "RELEASE_RECORD_CONFIRMED",
+      "productCapabilityStage": "PREVIEW_OR_BETA",
+      "maintenanceState": "RELEASE_REPORTED",
+      "verifiedSources": [
+        "https://support.claude.com/en/articles/15936181-get-started-with-1password-for-claude"
+      ],
+      "note": "2026-07-16 beta allows biometric consent credential fill without model seeing password; best combined substitute for browser credential access; not reusable code runtime.",
+      "r5CompetitionClass": "CREDENTIAL_COMPLEMENT",
+      "r5FeatureProof": {
+        "feature": "Claude browser agent assisted credential filling",
+        "date": "2026-07-16",
+        "channel": "anthropic-official-beta"
+      },
+      "r5AgainstGF007": {
+        "repeatsWork": true,
+        "modelFreeRerun": "UNKNOWN_NOT_MEASURED",
+        "fixedCodeOwnedByUser": "UNKNOWN_NOT_MEASURED",
+        "sameLoggedInChrome": "UNKNOWN_OR_MODE_DEPENDENT",
+        "independentBenchmark": "NOT_TESTED"
+      }
     }
   ],
   "r4AiFirstResearch": {
@@ -893,5 +1378,39 @@
       "Extension subcomponent version is not dedicated browser stable",
       "Feature first requires a dated primary feature source"
     ]
+  },
+  "r5ExpandedResearch": {
+    "asOf": "2026-10-13",
+    "productCount": 45,
+    "addedIds": [
+      "gemini-in-chrome",
+      "claude-in-chrome",
+      "perplexity-comet",
+      "microsoft-power-automate-desktop",
+      "browse-ai",
+      "apify-actors",
+      "relay-app",
+      "n8n",
+      "activepieces",
+      "text-blaze",
+      "selenium-ide",
+      "playwright",
+      "requestly",
+      "zapier-agents",
+      "onepassword-for-claude"
+    ],
+    "firstApproved": 0,
+    "sourceEvidenceKind": "OFFICIAL_FEATURE_DOC_OR_PUBLIC_RELEASE",
+    "sameMachineComparison": "NOT_TESTED",
+    "firstReleaseHistory": "RESEARCH_INCOMPLETE",
+    "marketBoundary": "AI prompt replay, recorded agent flow, deterministic JS, enterprise RPA, cloud actor, installed extension are competing alternatives but not identical technology",
+    "newStrongCounterexamples": [
+      "gemini-in-chrome",
+      "claude-in-chrome",
+      "microsoft-power-automate-desktop",
+      "apify-actors",
+      "zapier-agents"
+    ],
+    "caution": "No global-first or Top5 claim approved; unknown stable/channel dates stay null."
   }
 }
