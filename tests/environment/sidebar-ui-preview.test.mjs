@@ -107,8 +107,9 @@ test('R19 Sidebar spacing and corner system is consistent across all five tabs',
   assert.match(body(':root',tokens),/--radius-control:8px;\s*--radius-surface:12px;\s*--radius-pill:999px/);
   assert.match(body('button',design),/border-radius:var\(--radius-control\)/);
   assert.match(body('.dock-buttons button'),/border-radius:var\(--radius-control\)/);
-  assert.match(body('#workspace-content #workbench-develop'),/display:grid;gap:var\(--space-2\)/);
-  assert.match(body('#workbench-develop .developer-editor'),/display:grid;gap:var\(--space-2\)/);
+  // R29: independent Dev sections now use the 12px grouping rhythm, while nested editor rows stay 8px.
+  assert.match(body('#workspace-content #workbench-develop'),/display:grid;gap:var\(--space-3\)/);
+  assert.match(body('#workbench-develop .developer-editor'),/display:grid;gap:var\(--space-3\)/);
   assert.match(body('#workbench-develop #manual-source-editor'),/display:grid;gap:var\(--space-2\)/);
   assert.match(body('#workbench-develop .local-project-tools>:not([hidden])'),/margin-block:0/);
   for(const selector of ['#developer-target-detail','.developer-source-switch','#script-source','.program-source-toolbar','.developer-params','.developer-results','#script-library-tools,#page-preview-tools,#script-advanced','#tool-diagnostics'])
