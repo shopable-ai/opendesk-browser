@@ -28,6 +28,8 @@
 - `eff2af9e`、`11c3ec1c` — WXT Chrome 原生尺寸、时区过滤、焦点与草稿回归测试驱动。
 - `5bc0d76f`、`c5999c44` — 原有 zoom 工作流上增加定向单测、双构建和源码变动触发。
 - `9327a450` — 定时计划列表与 RunHost 状态静态回归。
+- `f38801dd`、`c4a46a80`、`1b55b10b` — 表单离开前原位提示，SubView Back 修正，避免不经确认丢弃草稿。
+- `8456dded`、`ead3b324` — 实际 Chrome 指针操作与相应静态测试覆盖草稿退出和任务管理往返。
 
 上述 SHA 是独立连续提交，GitHub 通过 `main` contents API 提交成功；并行更新可能使最新 `main` HEAD 晚于这些提交，不得拿旧 SHA 冒充新 HEAD。
 
@@ -35,7 +37,7 @@
 
 - **SOURCE IMPLEMENTED**：GitHub `main` 实际文件已按上面路径修改，未创建 PR/分支。
 - **STATIC CHECKED（有限）**：在 GitHub 读取最新版对应文件，独立执行 26 项源码字符串/正则合同核对，全数匹配；生产 JS 与原型内联脚本通过 V8 语法解析，生产 HTML ID 无重复。这不是 Node 测试通过，不是 DOM 计算结果或真实视觉验收。
-- **CI QUEUED / NOT_TESTED**：R2.6 最新可追踪候选 `1cf1d890abe7a2f60d4bb8bb929926eab879b886` 的 [原生定时 UI 工作流 38377624368](https://github.com/shopable-ai/opendesk-browser/actions/runs/38377624368)，启动时仍处于 queued。其 Linux job 的 `npm run check`、`npm run build`、`npm run build:dev`、`npm run verify` 及 R25/R1/R27 定向测试结果都必须以日志为准。
+- **CI QUEUED / NOT_TESTED**：包含草稿安全修改的最新代码候选 `ead3b32484de89997092f6067bd4e41c8a3b9b08` 的 [原生定时 UI 工作流 38378375235](https://github.com/shopable-ai/opendesk-browser/actions/runs/38378375235) 在本轮核对时仍处于 queued；较早候选 `1cf1d890` 的 [运行 38377624368](https://github.com/shopable-ai/opendesk-browser/actions/runs/38377624368) 同样仍在队列。Linux 的 `npm run check`、`npm run build`、`npm run build:dev`、`npm run verify` 及 R25/R1/R27 定向测试结果都必须以最终候选日志为准。
 - 现有 native zoom 测试使用实际 Chrome 已安装 WXT 包，`tabs.setZoom` 测 125/150/200%；**新增宽度 220/300/320/360/420/520px 仅是 Chrome TAB 内 CDP CSS viewport 模拟**，会在日志中记录 `getBoundingClientRect`、scrollWidth、点击区与草稿；它不能证明物理 Side Panel 宽度。
 - 该工作流理应上传 `artifacts/r23-native-zoom-{linux|macos}/` 及 `native-zoom-report.json`、`runner-real-zoom-{125|150|200}.png`、`runner-css-viewport-{220|300|320|360|420|520}.png`、`runner-timezone-filter-320.png`。**这些是预期产物路径，并非已下载或已核实存在**；等待成功日志和包哈希核对才能引用为 PASS。
 - **NOT_TESTED**：用户本机 `/Users/shopme/Documents/workspace/opendesk-browser` 工作区、macOS Chrome Profile、真实 Side Panel 的物理 220/300/320/360/420/520px、Chrome 100/125/150/200% 全状态组合、全量权限撤销场景、真实用户点击完成保存的端到端闭环。
