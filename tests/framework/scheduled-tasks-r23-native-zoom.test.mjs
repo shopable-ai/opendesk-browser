@@ -212,6 +212,21 @@ test('actual installed Chrome runner zooms at 125%, 150%, 200% with keyboard and
     'installed Task manager roundtrip must preserve the unsaved title');
   report.managerReturn={cssViewport:320,source:'actual Chrome pointer',
     preservedDraft:true};
+  const initialZone=await evaluate(client,expr('#schedule-timezone')+'.value',session);
+  await click(client,session,'#schedule-timezone-search');
+  await client.send('Input.insertText',{text:'东京'},session);
+  const timezone=await evaluate(client,'(()=>{'+
+    'const select=document.querySelector("#schedule-timezone");'+
+    'const help=document.querySelector("#schedule-timezone-match");'+
+    'return {selected:select.value,search:document.querySelector("#schedule-timezone-search").value,'+
+    'options:[...select.options].map(option=>option.value),help:help.textContent};})()',session);
+  assert.equal(timezone.search,'东京');
+  assert.equal(timezone.selected,initialZone,
+    'native typing searches IANA names but never mutates a fixed selected zone');
+  assert(timezone.options.includes('Asia/Tokyo'),'actual dropdown offers Tokyo');
+  assert(timezone.help.includes('选择下拉项'),'real form explains non-destructive search');
+  report.timezoneSearch={...timezone,cssViewport:320,inputMethod:'real CDP Input.insertText'};
+  report.screenshots.push(await snapshot(client,session,'runner-timezone-filter-320'));
   await client.send('Emulation.clearDeviceMetricsOverride',{},session);
   passed=true;
 });
