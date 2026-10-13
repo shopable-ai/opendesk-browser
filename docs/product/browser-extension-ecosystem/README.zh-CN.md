@@ -1,3 +1,5 @@
+> **Global First R4 最新 AI-first 竞争结论（2026-10-13）**：[TOP5、26 项真实任务机会、竞品反例及最小原生缺口](global-first-r2-decision.zh-CN.md)；[30 个竞品时间线](competitor-timeline.json)；[唯一 GF 声明账本](first-claims-ledger.json)；[五份双语 SEO/GEO 事实页与营销合规](marketing-playbook.zh-CN.md)。已证实世界/区域/任务第一为 0，最新同包 AI→Installed→断开模型重复真机验收 NOT_TESTED。手动 JSX/Vue 编辑不再是首页 P0。
+
 # OpenDesk Browser · 产品生态导航（含历史 R1—R3）
 
 ## 当前 Global First 战略：R4 AI 优先第一小山头
