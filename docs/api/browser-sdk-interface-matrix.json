@@ -1918,9 +1918,9 @@
       "VERSION_GATED": 1
     },
     "approvedOperations": 55,
-    "approvedRegistered": 40,
+    "approvedRegistered": 44,
     "approvedCookieHostOnly": 0,
-    "approvedPlannedNew": 15,
+    "approvedPlannedNew": 11,
     "nativeMappedApproved": 36,
     "approvedWithInputAndOutputSchemas": 55
   },
@@ -6888,9 +6888,9 @@
     },
     {
       "id": "browser.downloads.download",
-      "visibility": "APPROVED_TOOL_PLANNED",
+      "visibility": "APPROVED_TOOL_REGISTERED",
       "migrationDecision": "NEW",
-      "sourceRegistry": "src/framework/sdk/browser-contract.js (TARGET NOT YET PRESENT)",
+      "sourceRegistry": "src/framework/sdk/browser-contract.js#BROWSER_OPERATIONS",
       "callSignature": "OpenDeskSDK.browser.downloads.download({url:HTTP_URL,filename?:safeRelativePath,saveAs?:boolean})",
       "returnSignature": "Promise<{downloadRef:OpaqueDownloadRef,status:'started'}>",
       "inputSchema": {
@@ -6944,7 +6944,7 @@
       "allowedWorlds": [
         "sidebar-tool"
       ],
-      "trust": "INSTALLED_TOOL_EXPLICIT_CAPABILITY_AND_ORIGIN",
+      "trust": "INSTALLED_TOOL_VERIFIED_SENDER_PACKAGE_HASH_EPOCH_PERMISSION_AND_ONE_USE_INTENT",
       "userGesture": true,
       "errors": [
         "E_SCHEMA",
@@ -6960,12 +6960,12 @@
       "sdkFile": "src/framework/sdk/browser.js",
       "registryFile": "src/framework/sdk/browser-contract.js",
       "schemaFile": "src/framework/sdk/browser-schemas.js",
-      "hostDispatcher": "src/platform/chrome/context-menus.js#createContextMenuHost (REUSE)",
-      "authority": "src/ui/sidebar-tools.js + src/platform/chrome/context-menus.js (REUSE)",
-      "driverFile": "src/platform/downloads/index.js",
+      "hostDispatcher": "src/platform/chrome/context-menus.js#createContextMenuHost",
+      "authority": "existing Browser Host verified Sender + packageHash + tool Epoch + one-use intent for mutations + Chrome download/site permission",
+      "driverFile": "src/platform/chrome/browser-downloads.js",
       "lifecycle": "request / owned opaque Ref; fail closed after revoke/restart when applicable",
       "phase": "P3",
-      "status": "DESIGN_APPROVED_NOT_IMPLEMENTED",
+      "status": "SOURCE_WIRED_NATIVE_NOT_TESTED",
       "verification": {
         "node": "NOT_TESTED",
         "build": "NOT_TESTED",
@@ -6974,8 +6974,11 @@
       "testContract": {
         "target": "tests/environment/browser-sdk-p3-implementation.test.mjs (NEW)",
         "positive": "approved identity and scope produce bounded typed receipt",
-        "negative": "rejected permissions/foreign identity/unsafe input/revocation and unknown native effect",
-        "native": "same-candidate real Chrome user gesture and permission receipt; SW restart"
+        "negative": "No raw Chrome download ID or global enumeration, site and tool ownership, stale ref/revocation, unknown effect and one-use confirmation",
+        "native": "Same candidate Chrome 138+ installed tool, actual web download, get/list, cancel, revoked Chrome site and Worker restart; NOT_TESTED",
+        "existing": [
+          "tests/environment/browser-sdk-p3-implementation.test.mjs"
+        ]
       },
       "maxRequestBytes": 12000,
       "maxResponseBytes": 12000,
@@ -7017,15 +7020,19 @@
         "src/framework/sdk/browser.js",
         "src/framework/sdk/browser-schemas.js",
         "src/platform/chrome/context-menus.js#createContextMenuHost (REUSE)",
-        "src/platform/downloads/index.js"
+        "src/platform/downloads/index.js",
+        "src/platform/chrome/browser-downloads.js",
+        "src/ui/sidebar-tools.js",
+        "src/sidebar-tools/bridge.js"
       ],
-      "schemaStrategy": "INLINE_FROZEN_DESIGN_SCHEMA; implementation MUST copy/adapt into strict runtime validator and test"
+      "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA",
+      "currentSchemaAuthority": "src/framework/sdk/browser-schemas.js#operationSchemas ('browser.downloads.download')"
     },
     {
       "id": "browser.downloads.getOwned",
-      "visibility": "APPROVED_TOOL_PLANNED",
+      "visibility": "APPROVED_TOOL_REGISTERED",
       "migrationDecision": "NEW",
-      "sourceRegistry": "src/framework/sdk/browser-contract.js (TARGET NOT YET PRESENT)",
+      "sourceRegistry": "src/framework/sdk/browser-contract.js#BROWSER_OPERATIONS",
       "callSignature": "OpenDeskSDK.browser.downloads.getOwned({downloadRef:OpaqueDownloadRef})",
       "returnSignature": "Promise<{downloadRef,state,bytesReceived,totalBytes?}>",
       "inputSchema": {
@@ -7084,7 +7091,7 @@
       "allowedWorlds": [
         "sidebar-tool"
       ],
-      "trust": "INSTALLED_TOOL_EXPLICIT_CAPABILITY_AND_ORIGIN",
+      "trust": "INSTALLED_TOOL_VERIFIED_SENDER_PACKAGE_HASH_EPOCH_PERMISSION_AND_ONE_USE_INTENT",
       "userGesture": false,
       "errors": [
         "E_SCHEMA",
@@ -7100,12 +7107,12 @@
       "sdkFile": "src/framework/sdk/browser.js",
       "registryFile": "src/framework/sdk/browser-contract.js",
       "schemaFile": "src/framework/sdk/browser-schemas.js",
-      "hostDispatcher": "src/platform/chrome/context-menus.js#createContextMenuHost (REUSE)",
-      "authority": "src/ui/sidebar-tools.js + src/platform/chrome/context-menus.js (REUSE)",
-      "driverFile": "src/platform/downloads/index.js",
+      "hostDispatcher": "src/platform/chrome/context-menus.js#createContextMenuHost",
+      "authority": "existing Browser Host verified Sender + packageHash + tool Epoch + one-use intent for mutations + Chrome download/site permission",
+      "driverFile": "src/platform/chrome/browser-downloads.js",
       "lifecycle": "request / owned opaque Ref; fail closed after revoke/restart when applicable",
       "phase": "P3",
-      "status": "DESIGN_APPROVED_NOT_IMPLEMENTED",
+      "status": "SOURCE_WIRED_NATIVE_NOT_TESTED",
       "verification": {
         "node": "NOT_TESTED",
         "build": "NOT_TESTED",
@@ -7114,8 +7121,11 @@
       "testContract": {
         "target": "tests/environment/browser-sdk-p3-implementation.test.mjs (NEW)",
         "positive": "approved identity and scope produce bounded typed receipt",
-        "negative": "rejected permissions/foreign identity/unsafe input/revocation and unknown native effect",
-        "native": "same-candidate real Chrome user gesture and permission receipt; SW restart"
+        "negative": "No raw Chrome download ID or global enumeration, site and tool ownership, stale ref/revocation, unknown effect and one-use confirmation",
+        "native": "Same candidate Chrome 138+ installed tool, actual web download, get/list, cancel, revoked Chrome site and Worker restart; NOT_TESTED",
+        "existing": [
+          "tests/environment/browser-sdk-p3-implementation.test.mjs"
+        ]
       },
       "maxRequestBytes": 12000,
       "maxResponseBytes": 12000,
@@ -7157,15 +7167,19 @@
         "src/framework/sdk/browser.js",
         "src/framework/sdk/browser-schemas.js",
         "src/platform/chrome/context-menus.js#createContextMenuHost (REUSE)",
-        "src/platform/downloads/index.js"
+        "src/platform/downloads/index.js",
+        "src/platform/chrome/browser-downloads.js",
+        "src/ui/sidebar-tools.js",
+        "src/sidebar-tools/bridge.js"
       ],
-      "schemaStrategy": "INLINE_FROZEN_DESIGN_SCHEMA; implementation MUST copy/adapt into strict runtime validator and test"
+      "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA",
+      "currentSchemaAuthority": "src/framework/sdk/browser-schemas.js#operationSchemas ('browser.downloads.getOwned')"
     },
     {
       "id": "browser.downloads.listOwned",
-      "visibility": "APPROVED_TOOL_PLANNED",
+      "visibility": "APPROVED_TOOL_REGISTERED",
       "migrationDecision": "NEW",
-      "sourceRegistry": "src/framework/sdk/browser-contract.js (TARGET NOT YET PRESENT)",
+      "sourceRegistry": "src/framework/sdk/browser-contract.js#BROWSER_OPERATIONS",
       "callSignature": "OpenDeskSDK.browser.downloads.listOwned({cursor?:string,limit?:1..50})",
       "returnSignature": "Promise<{items:[OwnedDownload],nextCursor?}>",
       "inputSchema": {
@@ -7232,7 +7246,7 @@
       "allowedWorlds": [
         "sidebar-tool"
       ],
-      "trust": "INSTALLED_TOOL_EXPLICIT_CAPABILITY_AND_ORIGIN",
+      "trust": "INSTALLED_TOOL_VERIFIED_SENDER_PACKAGE_HASH_EPOCH_PERMISSION_AND_ONE_USE_INTENT",
       "userGesture": false,
       "errors": [
         "E_SCHEMA",
@@ -7248,12 +7262,12 @@
       "sdkFile": "src/framework/sdk/browser.js",
       "registryFile": "src/framework/sdk/browser-contract.js",
       "schemaFile": "src/framework/sdk/browser-schemas.js",
-      "hostDispatcher": "src/platform/chrome/context-menus.js#createContextMenuHost (REUSE)",
-      "authority": "src/ui/sidebar-tools.js + src/platform/chrome/context-menus.js (REUSE)",
-      "driverFile": "src/platform/downloads/index.js",
+      "hostDispatcher": "src/platform/chrome/context-menus.js#createContextMenuHost",
+      "authority": "existing Browser Host verified Sender + packageHash + tool Epoch + one-use intent for mutations + Chrome download/site permission",
+      "driverFile": "src/platform/chrome/browser-downloads.js",
       "lifecycle": "request / owned opaque Ref; fail closed after revoke/restart when applicable",
       "phase": "P3",
-      "status": "DESIGN_APPROVED_NOT_IMPLEMENTED",
+      "status": "SOURCE_WIRED_NATIVE_NOT_TESTED",
       "verification": {
         "node": "NOT_TESTED",
         "build": "NOT_TESTED",
@@ -7262,8 +7276,11 @@
       "testContract": {
         "target": "tests/environment/browser-sdk-p3-implementation.test.mjs (NEW)",
         "positive": "approved identity and scope produce bounded typed receipt",
-        "negative": "rejected permissions/foreign identity/unsafe input/revocation and unknown native effect",
-        "native": "same-candidate real Chrome user gesture and permission receipt; SW restart"
+        "negative": "No raw Chrome download ID or global enumeration, site and tool ownership, stale ref/revocation, unknown effect and one-use confirmation",
+        "native": "Same candidate Chrome 138+ installed tool, actual web download, get/list, cancel, revoked Chrome site and Worker restart; NOT_TESTED",
+        "existing": [
+          "tests/environment/browser-sdk-p3-implementation.test.mjs"
+        ]
       },
       "maxRequestBytes": 12000,
       "maxResponseBytes": 12000,
@@ -7305,15 +7322,19 @@
         "src/framework/sdk/browser.js",
         "src/framework/sdk/browser-schemas.js",
         "src/platform/chrome/context-menus.js#createContextMenuHost (REUSE)",
-        "src/platform/downloads/index.js"
+        "src/platform/downloads/index.js",
+        "src/platform/chrome/browser-downloads.js",
+        "src/ui/sidebar-tools.js",
+        "src/sidebar-tools/bridge.js"
       ],
-      "schemaStrategy": "INLINE_FROZEN_DESIGN_SCHEMA; implementation MUST copy/adapt into strict runtime validator and test"
+      "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA",
+      "currentSchemaAuthority": "src/framework/sdk/browser-schemas.js#operationSchemas ('browser.downloads.listOwned')"
     },
     {
       "id": "browser.downloads.cancelOwned",
-      "visibility": "APPROVED_TOOL_PLANNED",
+      "visibility": "APPROVED_TOOL_REGISTERED",
       "migrationDecision": "NEW",
-      "sourceRegistry": "src/framework/sdk/browser-contract.js (TARGET NOT YET PRESENT)",
+      "sourceRegistry": "src/framework/sdk/browser-contract.js#BROWSER_OPERATIONS",
       "callSignature": "OpenDeskSDK.browser.downloads.cancelOwned({downloadRef:OpaqueDownloadRef})",
       "returnSignature": "Promise<{cancelled:boolean}>",
       "inputSchema": {
@@ -7354,7 +7375,7 @@
       "allowedWorlds": [
         "sidebar-tool"
       ],
-      "trust": "INSTALLED_TOOL_EXPLICIT_CAPABILITY_AND_ORIGIN",
+      "trust": "INSTALLED_TOOL_VERIFIED_SENDER_PACKAGE_HASH_EPOCH_PERMISSION_AND_ONE_USE_INTENT",
       "userGesture": true,
       "errors": [
         "E_SCHEMA",
@@ -7370,12 +7391,12 @@
       "sdkFile": "src/framework/sdk/browser.js",
       "registryFile": "src/framework/sdk/browser-contract.js",
       "schemaFile": "src/framework/sdk/browser-schemas.js",
-      "hostDispatcher": "src/platform/chrome/context-menus.js#createContextMenuHost (REUSE)",
-      "authority": "src/ui/sidebar-tools.js + src/platform/chrome/context-menus.js (REUSE)",
-      "driverFile": "src/platform/downloads/index.js",
+      "hostDispatcher": "src/platform/chrome/context-menus.js#createContextMenuHost",
+      "authority": "existing Browser Host verified Sender + packageHash + tool Epoch + one-use intent for mutations + Chrome download/site permission",
+      "driverFile": "src/platform/chrome/browser-downloads.js",
       "lifecycle": "request / owned opaque Ref; fail closed after revoke/restart when applicable",
       "phase": "P3",
-      "status": "DESIGN_APPROVED_NOT_IMPLEMENTED",
+      "status": "SOURCE_WIRED_NATIVE_NOT_TESTED",
       "verification": {
         "node": "NOT_TESTED",
         "build": "NOT_TESTED",
@@ -7384,8 +7405,11 @@
       "testContract": {
         "target": "tests/environment/browser-sdk-p3-implementation.test.mjs (NEW)",
         "positive": "approved identity and scope produce bounded typed receipt",
-        "negative": "rejected permissions/foreign identity/unsafe input/revocation and unknown native effect",
-        "native": "same-candidate real Chrome user gesture and permission receipt; SW restart"
+        "negative": "No raw Chrome download ID or global enumeration, site and tool ownership, stale ref/revocation, unknown effect and one-use confirmation",
+        "native": "Same candidate Chrome 138+ installed tool, actual web download, get/list, cancel, revoked Chrome site and Worker restart; NOT_TESTED",
+        "existing": [
+          "tests/environment/browser-sdk-p3-implementation.test.mjs"
+        ]
       },
       "maxRequestBytes": 12000,
       "maxResponseBytes": 12000,
@@ -7427,9 +7451,13 @@
         "src/framework/sdk/browser.js",
         "src/framework/sdk/browser-schemas.js",
         "src/platform/chrome/context-menus.js#createContextMenuHost (REUSE)",
-        "src/platform/downloads/index.js"
+        "src/platform/downloads/index.js",
+        "src/platform/chrome/browser-downloads.js",
+        "src/ui/sidebar-tools.js",
+        "src/sidebar-tools/bridge.js"
       ],
-      "schemaStrategy": "INLINE_FROZEN_DESIGN_SCHEMA; implementation MUST copy/adapt into strict runtime validator and test"
+      "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA",
+      "currentSchemaAuthority": "src/framework/sdk/browser-schemas.js#operationSchemas ('browser.downloads.cancelOwned')"
     },
     {
       "id": "browser.bookmarks.create",
@@ -56333,9 +56361,9 @@
   "coverageAudit": {
     "seedNativeCatalogEntries": 119,
     "seedNativeCatalogMissing": 0,
-    "registeredOperations": 40,
+    "registeredOperations": 44,
     "trustedCookieHostOperations": 0,
-    "approvedNewDesignOperations": 15,
+    "approvedNewDesignOperations": 11,
     "approvedTotal": 55,
     "orphanNativeMappings": [],
     "parseErrors": [],
@@ -56447,8 +56475,8 @@
     ],
     "completeness": "Known source consumers identified; exhaustive consumer path enumeration cannot be verified without full repository grep. Phase P1 must enumerate and migrate all current consumers before deleting active alias."
   },
-  "currentRegistrySourceSha": "d09f52061812352064ae3d2b85697ac7269bff20",
-  "currentSchemaSourceSha": "428bed4376b5ed8d275e2961c5438ea7b885cf22",
+  "currentRegistrySourceSha": "ffe2169d5951fc169d5449714f1491856dfb68ec",
+  "currentSchemaSourceSha": "6934e2c76e36d160bbf0334b5701a89ac35f6c64",
   "contractRevisions": [
     {
       "date": "2026-10-13",
@@ -56481,6 +56509,15 @@
       "reason": "Count-only preview can delete replacement cookies when the cookie set changes but count remains equal",
       "change": "Bind exact sorted Cookie identity fingerprint to opaque one-use in-memory previewRef, tool instance/epoch/site/store/partition, expiry 60s; no extra Registry/Service",
       "node": "NOT_TESTED",
+      "nativeChrome": "NOT_TESTED"
+    },
+    {
+      "date": "2026-10-13",
+      "id": "R10.1-P3-downloads-owned",
+      "reason": "Implement four already approved P3 download operations using the existing authenticated Browser Host and one scoped native download driver; no global history or raw download IDs",
+      "change": "Approved registered 40->44; planned 15->11; total 55; pinned Chromium 191/1830 unchanged",
+      "node": "NOT_TESTED",
+      "build": "NOT_TESTED",
       "nativeChrome": "NOT_TESTED"
     }
   ]
