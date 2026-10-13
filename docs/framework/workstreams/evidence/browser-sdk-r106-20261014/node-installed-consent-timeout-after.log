@@ -1,0 +1,48 @@
+✔ R2–R3 browser operations awaiting visible user approval retain a 120s sandbox lifetime (0.439667ms)
+✔ installed Bookmarks and Scheduler approval survives reading the trusted Chrome prompt (0.090917ms)
+✔ read-only Browser operations and unrelated tool requests keep the short timeout (0.094708ms)
+✔ Bookmarks: real native create, durable opaque ownership and remove after Worker restart (1.58025ms)
+✔ Bookmarks: owner, version, epoch, opaque ID and schema boundaries are enforced (0.551291ms)
+✔ Bookmarks: revoked permission and external edit refuse native deletion (0.289916ms)
+✔ Bookmarks: uninstall or missing mapping does not replay against native IDs (0.201167ms)
+✔ Bookmarks: unknown create, remove and get failures do not return success or auto-replay (0.49975ms)
+✔ Bookmarks: revoked-after-effect never returns success (0.107625ms)
+✔ Bookmarks: externally deleted bookmark clears owned mapping without global lookup (0.248833ms)
+✔ Bookmarks: rejected external delete is treated as missing and released once (0.2335ms)
+✔ Bookmarks: permission, service and malformed-ID get errors retain owned mapping (0.409625ms)
+✔ Bookmarks: user changes to title invalidate removal without deleting the native bookmark (0.195875ms)
+✔ Bookmarks: user changes to parentId invalidate removal without deleting the native bookmark (0.118416ms)
+✔ Bookmarks: legacy development records cannot delete a possibly edited bookmark (0.30725ms)
+✔ P5 scheduler create/list/cancel owns schedules by installed tool identity (22.867541ms)
+✔ P5 scheduler still executes through existing scheduled RunHost admission twice (4.495375ms)
+✔ P5 scheduler converter supports fixed weekly weekday expression and rejects ambiguous forms (0.398625ms)
+✔ P5 scheduler rejects expression mismatches in trusted create intent (1.264ms)
+✔ P5 scheduler revalidates installed task and website grants before persistence or trigger replay (1.9905ms)
+✔ P5 scheduler default owner verifier admits two fires and blocks revocation without injected owner hook (5.374458ms)
+✔ P5 scheduler default owner verifier marks schedule attention when target origin grant is revoked (2.352625ms)
+✔ P5 scheduler prepareAdmission preserves existing manual schedules and rejects forged owner (1.299333ms)
+✔ P5 scheduler fails closed when current installed tool authority changes (1.804125ms)
+✔ R10.6 Scheduler Host refuses create without one-use trusted intent (6.499458ms)
+✔ R10.6 Scheduler Host creates only after current document, capability, owner and origin checks (16.856584ms)
+✔ R10.6 Scheduler Host blocks stale document approval before callback (0.969167ms)
+✔ R10.6 Scheduler Host list and cancel use current installed owner without UI intent (1.137417ms)
+✔ R10.6 trusted History Host route is host-only and not exposed to tools (0.904083ms)
+✔ trusted history search validates Side Panel sender, permission and redacts fields (1.440041ms)
+✔ trusted history search rejects forged sender, missing permission and unsafe query (1.059125ms)
+✔ permission request for tool starts synchronously from trusted click and verifies final state (5.893542ms)
+✔ permission request for tool rejects untrusted callers and unknown capability (0.489292ms)
+✔ permission request for tool fails closed when package identity changes after Chrome prompt (0.505833ms)
+✔ permission preparation requires installed tool capability and exact identity (0.346166ms)
+✔ tool contract is independent of Task v1 and is closed by default (1.427333ms)
+✔ tool packer rejects traversal, symlink escape, oversized assets and duplicate assets (15.24475ms)
+✔ native tool directory packs JS/CSS/HTML and a local image into a portable JSON (3.27225ms)
+✔ new sandbox uses isolated Chrome MV3 resource and a narrow host message protocol (1.020167ms)
+✔ R14 Sidebar tool intake requires separate review, install and explicit launch (0.993583ms)
+ℹ tests 40
+ℹ suites 0
+ℹ pass 40
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 97.463959

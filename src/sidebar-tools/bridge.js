@@ -1,20 +1,13 @@
 // Runs only as an opaque-origin Chrome MV3 sandbox document, never in the privileged Side Panel.
 import {SIDEBAR_TOOL_PROTOCOL} from '../ui/sidebar-tools/package.js';
 import {createBrowserSdk} from '../framework/sdk/browser.js';
+import {browserOperation} from '../framework/sdk/browser-contract.js';
 // The sandbox waits for a separate real Side Panel click; ordinary tool RPCs
 // remain 8 seconds. This duration is UX only, never an authorization or grant.
-const TOOL_CONSENT_OPS=new Set(['browser.tabs.create','browser.tabs.activateOwned','browser.tabs.pinOwned','browser.tabs.reloadOwned','browser.tabs.navigateOwned','browser.tabs.removeOwned',
- 'browser.network.request','browser.sidePanel.openSelf',
- 'browser.network.observe.start','browser.network.observe.export',
- 'browser.screenshot.captureVisible',
- 'browser.clipboard.writeText','browser.downloads.text',
- 'browser.downloads.download','browser.downloads.cancelOwned','browser.storage.local.clear',
- 'browser.cookies.set','browser.cookies.remove','browser.cookies.clearSite',
- 'browser.cookies.observe.start']);
 export function sidebarToolRequestTimeout(operation,toolId){
  return (toolId==='stay-focus'&&operation.startsWith('focus.')&&operation!=='focus.status')||
    (toolId==='time-review'&&['time.start','time.clear'].includes(operation))||
-   TOOL_CONSENT_OPS.has(operation)?120000:8000;
+   browserOperation(operation)?.requiresUserGesture===true?120000:8000;
 }
 export function initSidebarToolSandbox() {
   const root=document.getElementById('tool-root');

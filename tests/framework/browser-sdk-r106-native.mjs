@@ -243,12 +243,14 @@ async function runNative(){
       await click(client,session,selector+' > summary',report.trace);
     assert.equal(await read(client,session,`document.querySelector(${quote(selector)}).open`),true);
   }
-  async function output(id){return deadline(async()=>{
+  async function output(id){const result=await deadline(async()=>{
     const state=await read(client,tool,'document.querySelector("#status").dataset.state');
     if(!['success','error'].includes(state))return null;
     const text=await read(client,tool,`document.querySelector(${quote('#'+id)}).textContent`);
     try{return JSON.parse(text)}catch{return null;}
-  },'SDK receipt '+id);}
+  },'SDK receipt '+id);
+    report.trace.push({at:now(),kind:'sdk-output',outputId:id,result});await save();return result;
+  }
   async function approve(){
     await deadline(()=>read(client,side,'!document.querySelector("#sidebar-tool-action-review").hidden'),'trusted review');
     const summary=await read(client,side,'document.querySelector("#sidebar-tool-action-summary").textContent');
@@ -258,11 +260,12 @@ async function runNative(){
     await native('activate');
     const rows=await deadline(async()=>{
       const data=JSON.parse(await native('dump'));
-      return data.some(r=>r.role==='AXButton'&&['Allow','Cancel','允许','取消','Add','添加'].includes(r.title||r.description))?data:null;
+      return data.some(r=>r.role==='AXButton'&&r.enabled===true&&['Allow','允许','Add','添加'].includes(r.title||r.description))&&
+        data.some(r=>r.role==='AXButton'&&r.enabled===true&&['Deny','拒绝','Cancel','取消'].includes(r.title||r.description))?data:null;
     },'native Chrome permission dialog',8000);
     report.trace.push({at:now(),kind:'native-permission-dialog',rows});
-    const options=allow?['Allow','允许','Add','添加']:['Cancel','取消'];
-    const label=options.find(label=>rows.filter(r=>r.role==='AXButton'&&(r.title===label||r.description===label)).length===1);
+    const options=allow?['Allow','允许','Add','添加']:['Deny','拒绝','Cancel','取消'];
+    const label=options.find(label=>rows.filter(r=>r.role==='AXButton'&&r.enabled===true&&(r.title===label||r.description===label)).length===1);
     assert(label,'Unique native permission control is required');await native('press',label);
   }
   async function recordCase(id,fn){
