@@ -18,7 +18,7 @@ test('real HTTP/native WebSocket provider: durable claim, empty retry, permit re
     await new Promise((ok,no)=>{ws.once('open',()=>ws.send(JSON.stringify({type:'authenticate',ticket:auth.ticket})));ws.once('message',d=>{assert.equal(JSON.parse(String(d)).type,'authenticated');ok();});ws.once('error',no);});
     const tasks=[{taskId:pkg.manifest.taskId,manifestHash:pkg.manifestHash,sourceHash:pkg.manifest.program.sourceHash}];
     const empty={claimId:'empty',tasks};assert.deepEqual(await post('/v1/claim',empty),{assignment:null});
-    const seed={requestKey:'seed',params:{},target:{mode:'owned',url:'http://127.0.0.1:43111/demo-form.html'}};
+    const seed={requestKey:'seed',targetExecutorId:executorId,params:{},target:{mode:'owned',url:'http://127.0.0.1:43111/demo-form.html'}};
     const cancelled=await post('/admin/seed',{...seed,requestKey:'cancelled-before-claim'},admin.adminToken);
     await post('/admin/cancel',{jobId:cancelled.jobId},admin.adminToken);
     assert.deepEqual(await post('/v1/claim',{claimId:'cancelled-only',tasks}),{assignment:null});
@@ -27,11 +27,11 @@ test('real HTTP/native WebSocket provider: durable claim, empty retry, permit re
     await assert.rejects(post('/admin/seed',{...seed,params:{name:'different'}},admin.adminToken),{code:'E_REQUEST_CONFLICT'});
     const claim={claimId:'real',tasks},a=(await post('/v1/claim',claim)).assignment;assert.equal(a.params.name,'Alice');assert.deepEqual((await post('/v1/claim',claim)).assignment,a);
     await assert.rejects(post('/v1/claim',{...claim,tasks:[]}),{code:'E_REQUEST_CONFLICT'});
-    const runRef={runId:randomUUID(),resultId:randomUUID(),requestId:'cloud:'+a.assignmentId,sourceHash:pkg.manifest.program.sourceHash,manifestHash:pkg.manifestHash,grantId:randomUUID()},admission={assignmentId:a.assignmentId,runRef};
+    const runRef={runId:randomUUID(),resultId:randomUUID(),requestId:'cloud:'+a.assignmentId,sourceHash:pkg.manifest.program.sourceHash,manifestHash:pkg.manifestHash,grantId:randomUUID()},admission={assignmentId:a.assignmentId,runRef,resultAllowed:false};
     await post('/admin/fault',{path:'/v1/admission',count:1},admin.adminToken);await assert.rejects(post('/v1/admission',admission));
     const permit=await post('/v1/admission',admission);assert.deepEqual(await post('/v1/admission',admission),permit);
     await assert.rejects(post('/v1/admission',{...admission,runRef:{...runRef,runId:randomUUID()}}),{code:'E_REQUEST_CONFLICT'});
-    const receipt={assignmentId:a.assignmentId,receiptKey:runRef.resultId,runRef,result:{state:'completed',retirementState:'released'}};
+    const receipt={assignmentId:a.assignmentId,receiptKey:runRef.resultId,runRef,result:{visibility:'status-only',state:'completed',retirementState:'released'}};
     await post('/admin/fault',{path:'/v1/receipt',count:1},admin.adminToken);await assert.rejects(post('/v1/receipt',receipt));const ack=await post('/v1/receipt',receipt);
     ws.terminate();await p.close();p=await openProvider({directory,port:0});
     assert.deepEqual(await post('/v1/claim',claim),{assignment:a});assert.deepEqual(await post('/v1/receipt',receipt),ack);
@@ -46,13 +46,16 @@ test('real HTTP/native WebSocket provider: durable claim, empty retry, permit re
 test('provider persistence failure rolls back memory before a retry can publish facts',async()=>{
   const directory=await mkdtemp(join(tmpdir(),'od-cloud-durable-'));const p=await openProvider({directory,port:0});
   try{
-    const admin=JSON.parse(await readFile(p.credentialFile,'utf8'));
-    const seed={requestKey:'disk-failure',params:{},target:{mode:'owned',url:'http://127.0.0.1:43111/demo-form.html'}};
+    const admin=JSON.parse(await readFile(p.credentialFile,'utf8')),executorId=randomUUID();
+    await fetch(`http://127.0.0.1:${p.port}/v1/pair`,{method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({executorId,pairingCode:admin.pairingCode})});
+    const seed={requestKey:'disk-failure',targetExecutorId:executorId,params:{},target:{mode:'owned',url:'http://127.0.0.1:43111/demo-form.html'}};
     const post=async(path,body)=>{const r=await fetch(`http://127.0.0.1:${p.port}${path}`,{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+admin.adminToken},body:JSON.stringify(body)});return {ok:r.ok,value:await r.json()};};
     await mkdir(join(directory,'state.json.tmp'));assert.equal((await post('/admin/seed',seed)).ok,false);
     await rm(join(directory,'state.json.tmp'),{recursive:true});assert.equal((await post('/admin/seed',seed)).ok,true);
     const state=(await post('/admin/state',{})).value;assert.equal(Object.keys(state.jobs).length,1);
     const persisted=JSON.parse(await readFile(join(directory,'state.json'),'utf8'));assert.equal(Object.keys(persisted.jobs).length,1);
-    assert.equal(Object.keys(persisted.requests).filter(k=>k==='seed:disk-failure').length,1);
+    assert.equal(Object.keys(persisted.requests).filter(k=>k.endsWith(':disk-failure')).length,1);
   }finally{await p.close();await rm(directory,{recursive:true,force:true});}
 });

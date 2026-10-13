@@ -44,9 +44,10 @@ test('generic Provider delivers two distinct fixed, locally registered Controlle
       manifestHash:search.manifestHash,sourceUtf8:search.sourceUtf8},admin.adminToken),{code:'E_SCHEMA'});
     await assert.rejects(post('/admin/register',{manifest:search.manifest,
       manifestHash:'0'.repeat(64)},admin.adminToken),{code:'E_HASH'});
+    credential=(await post('/v1/pair',{executorId,pairingCode:admin.pairingCode})).credential;
     const jobs=[
-      {requestKey:'form-fixed-1',...pin(form),params:{name:'Registered Task'},target},
-      {requestKey:'search-fixed-1',...pin(search),params:{keyword:'OpenDesk Cloud'},target}
+      {requestKey:'form-fixed-1',targetExecutorId:executorId,...pin(form),params:{name:'Registered Task'},target},
+      {requestKey:'search-fixed-1',targetExecutorId:executorId,...pin(search),params:{keyword:'OpenDesk Cloud'},target}
     ];
     const created=await Promise.all(jobs.map(body=>post('/admin/seed',body,admin.adminToken)));
     assert.notEqual(created[0].jobId,created[1].jobId);
@@ -68,7 +69,6 @@ test('generic Provider delivers two distinct fixed, locally registered Controlle
       sourceUtf8:'alert(1)'},admin.adminToken),{code:'E_SCHEMA'});
     await assert.rejects(post('/admin/seed',{...jobs[0],requestKey:'bad-browser-origin'},
       admin.adminToken,{Origin:'https://evil.invalid'}),{code:'E_ORIGIN'});
-    credential=(await post('/v1/pair',{executorId,pairingCode:admin.pairingCode})).credential;
     const auth=await post('/v1/auth',{});
     ws=new WebSocket('ws://127.0.0.1:'+provider.port+'/v1/events');
     await new Promise((ok,no)=>{
@@ -89,12 +89,12 @@ test('generic Provider delivers two distinct fixed, locally registered Controlle
       const runRef={runId:randomUUID(),resultId:randomUUID(),
         requestId:'cloud:'+result.assignment.assignmentId,
         sourceHash:jobs[i].sourceHash,manifestHash:jobs[i].manifestHash,grantId:randomUUID()};
-      const admission={assignmentId:result.assignment.assignmentId,runRef};
+      const admission={assignmentId:result.assignment.assignmentId,runRef,resultAllowed:false};
       const permit=await post('/v1/admission',admission);
       assert.equal(permit.runRef.sourceHash,jobs[i].sourceHash);
       const payload={assignmentId:result.assignment.assignmentId,
         receiptKey:runRef.resultId,runRef,
-        result:{state:'completed',retirementState:'released',sourceHash:jobs[i].sourceHash}};
+        result:{visibility:'status-only',state:'completed',retirementState:'released'}};
       if(i===1){
         await post('/admin/fault',{path:'/v1/receipt',count:1},admin.adminToken);
         await assert.rejects(post('/v1/receipt',payload));

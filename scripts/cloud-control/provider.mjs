@@ -21,6 +21,13 @@ export async function openProvider({directory='.local/cloud-control',port=43112,
   let state,credentials;
   try{state=JSON.parse(await readFile(file,'utf8'));}catch(e){if(e.code!=='ENOENT')throw e;state={version:1,providerId:randomUUID(),executors:{},pairs:{},jobs:{},requests:{},faults:{}};}
   // Migrate legacy R1-R4 state without changing old jobs, requests or receipts.
+  // Legacy assigned work remains pinned to its original Executor. Unowned queued
+  // R1-R5 jobs stay quarantined: an identical Task never grants ownership.
+  state.executors??={};state.jobs??={};state.requests??={};
+  for(const row of Object.values(state.executors))row.pairingId??=randomUUID();
+  for(const job of Object.values(state.jobs))if(job.assignment&&!job.assignment.pairingId){
+    job.assignment.pairingId=state.executors[job.assignment.executorId]?.pairingId??null;
+  }
   state.taskRegistry??={};
   if(!state.taskRegistry||typeof state.taskRegistry!=='object'||Array.isArray(state.taskRegistry))fail('E_REGISTRY');
   for(const [key,row] of Object.entries(state.taskRegistry)){
@@ -39,7 +46,10 @@ export async function openProvider({directory='.local/cloud-control',port=43112,
   function once(scope,key,body,fn){if(typeof key!=='string'||key.length>150)fail('E_SCHEMA');const k=scope+':'+key,d=hash(body),old=state.requests[k];if(old){if(old.digest!==d)fail('E_REQUEST_CONFLICT');return structuredClone(old.answer);}const answer=fn();state.requests[k]={digest:d,answer:structuredClone(answer)};return answer;}
   const sockets=new Map(),tickets=new Map();
   const notify=executorId=>{for(const [ws,id]of sockets)if(!executorId||id===executorId)ws.send(JSON.stringify({type:'notify'}));};
-  const owned=(b,id)=>{const j=Object.values(state.jobs).find(j=>j.assignment?.assignmentId===b.assignmentId&&j.assignment.executorId===id);if(!j)fail('E_ASSIGNMENT');return j;};
+  const owned=(b,id)=>{const j=Object.values(state.jobs).find(j=>
+    j.assignment?.assignmentId===b.assignmentId&&j.assignment.executorId===id&&
+    j.assignment.pairingId===state.executors[id]?.pairingId);
+    if(!j)fail('E_ASSIGNMENT');return j;};
   const server=http.createServer(async(req,res)=>{
     try{
       if(req.method!=='POST')fail('E_METHOD');
@@ -49,33 +59,61 @@ export async function openProvider({directory='.local/cloud-control',port=43112,
       const admin=path.startsWith('/admin/');
       let executorId;
       if(admin){if(!secureEqual(req.headers.authorization,'Bearer '+credentials.adminToken))fail('E_AUTH');}
-      else if(path!=='/v1/pair'){executorId=Object.keys(state.executors).find(id=>secureEqual(req.headers.authorization,'Bearer '+state.executors[id].credential));if(!executorId)fail('E_AUTH');}
+      else if(path!=='/v1/pair'){executorId=Object.keys(state.executors).find(id=>
+        !state.executors[id].revokedAt&&secureEqual(req.headers.authorization,'Bearer '+state.executors[id].credential));
+        if(!executorId)fail('E_AUTH');}
       const answer=await serial(async()=>{
         let out;
         switch(path){
           case '/v1/pair':{
             exact(b,['executorId','pairingCode']);if(!secureEqual(b.pairingCode,credentials.pairingCode)||!/^[-a-f0-9]{36}$/.test(b.executorId))fail('E_AUTH');
-            state.executors[b.executorId]??={credential:token(),pairedAt:clock()};out={providerId:state.providerId,credential:state.executors[b.executorId].credential};break;}
+            if(state.executors[b.executorId]&&!state.executors[b.executorId].revokedAt)fail('E_PAIR_ACTIVE');
+            state.executors[b.executorId]={credential:token(),pairedAt:clock(),pairingId:randomUUID(),revokedAt:null};
+            out={providerId:state.providerId,credential:state.executors[b.executorId].credential};break;}
+          case '/v1/unpair':{
+            exact(b,[]);const row=state.executors[executorId];
+            row.revokedAt=clock()||1;row.credential=token();delete row.capabilities;
+            // Never erase historical Run, Result or receipt. Quarantine unclaimed old work.
+            for(const j of Object.values(state.jobs))
+              if(j.targetExecutorId===executorId&&j.targetPairingId===row.pairingId&&j.state==='queued')j.cancelled=true;
+            out={revoked:true};break;}
           case '/v1/auth':{
-            exact(b,[]);const t=token();tickets.set(t,{executorId,until:clock()+30000});out={ticket:t,expiresAt:clock()+30000,providerId:state.providerId};break;}
+            exact(b,[]);const t=token();tickets.set(t,{executorId,pairingId:state.executors[executorId].pairingId,until:clock()+30000});out={ticket:t,expiresAt:clock()+30000,providerId:state.providerId};break;}
           case '/v1/capabilities':exact(b,['tasks']);if(!Array.isArray(b.tasks)||b.tasks.length>32)fail('E_SCHEMA');state.executors[executorId].capabilities=b.tasks;out={accepted:true};break;
           case '/v1/claim':{
             exact(b,['claimId','tasks']);out=once(executorId+':claim',b.claimId,b,()=>{
               if(![...sockets.values()].includes(executorId))fail('E_CONNECTION');
-              const j=Object.values(state.jobs).find(j=>j.state==='queued'&&!j.cancelled&&b.tasks.some(t=>t.taskId===j.task.taskId&&t.manifestHash===j.task.manifestHash&&t.sourceHash===j.task.sourceHash)&&canonical(taskPin(state.taskRegistry[taskRegistryKey(j.task)]??{}))===canonical(j.task));
-              if(!j)return {assignment:null};j.state='assigned';j.assignment={assignmentId:randomUUID(),executorId,claimId:b.claimId,leaseUntil:clock()+90000};return {assignment:{...j.assignment,jobId:j.jobId,task:j.task,params:j.params,target:j.target}};});break;}
+              const j=Object.values(state.jobs).find(j=>j.state==='queued'&&!j.cancelled&&
+                j.targetExecutorId===executorId&&j.targetPairingId===state.executors[executorId].pairingId&&b.tasks.some(t=>t.taskId===j.task.taskId&&t.manifestHash===j.task.manifestHash&&t.sourceHash===j.task.sourceHash)&&canonical(taskPin(state.taskRegistry[taskRegistryKey(j.task)]??{}))===canonical(j.task));
+              if(!j)return {assignment:null};j.state='assigned';j.assignment={assignmentId:randomUUID(),executorId,
+                pairingId:state.executors[executorId].pairingId,claimId:b.claimId,leaseUntil:clock()+90000};return {assignment:{...j.assignment,jobId:j.jobId,task:j.task,params:j.params,target:j.target}};});break;}
           case '/v1/admission':{
-            exact(b,['assignmentId','runRef']);const j=owned(b,executorId);exact(b.runRef,['runId','resultId','requestId','sourceHash','manifestHash','grantId']);
+            exact(b,['assignmentId','runRef','resultAllowed']);const j=owned(b,executorId);
+            if(typeof b.resultAllowed!=='boolean')fail('E_SCHEMA');exact(b.runRef,['runId','resultId','requestId','sourceHash','manifestHash','grantId']);
             if(j.cancelled||j.assignment.leaseUntil<=clock())fail('E_LEASE');if(b.runRef.sourceHash!==j.task.sourceHash||b.runRef.manifestHash!==j.task.manifestHash)fail('E_TASK');
-            out=once('admission',b.assignmentId,b,()=>{j.runRef=b.runRef;j.state='admitted';j.permit={permitId:randomUUID(),assignmentId:b.assignmentId,runRef:b.runRef,leaseUntil:j.assignment.leaseUntil,providerId:state.providerId};return j.permit;});break;}
+            out=once('admission',b.assignmentId,b,()=>{j.runRef=b.runRef;j.resultAllowed=b.resultAllowed;j.state='admitted';j.permit={permitId:randomUUID(),assignmentId:b.assignmentId,runRef:b.runRef,leaseUntil:j.assignment.leaseUntil,providerId:state.providerId};return j.permit;});break;}
           case '/v1/renew':{
             exact(b,['assignmentId','permitId']);const j=owned(b,executorId);if(j.cancelled||j.assignment.leaseUntil<=clock()||j.permit?.permitId!==b.permitId)fail('E_LEASE');j.assignment.leaseUntil=clock()+90000;out={leaseUntil:j.assignment.leaseUntil};break;}
           case '/v1/cancellation':{
             exact(b,['assignmentId']);const j=owned(b,executorId);out={cancelled:Boolean(j.cancelled),leaseUntil:j.assignment.leaseUntil};break;}
           case '/v1/receipt':{
             exact(b,['assignmentId','receiptKey','runRef','result']);const j=owned(b,executorId);if(canonical(j.runRef)!==canonical(b.runRef))fail('E_RUN_REF');
-            out=once('receipt',b.receiptKey,b,()=>{j.receipt={receiptId:randomUUID(),receivedAt:clock(),digest:hash(b),result:b.result};j.state='received';return {receiptId:j.receipt.receiptId,digest:j.receipt.digest};});break;}
-          case '/v1/reconcile':exact(b,[]);out={providerId:state.providerId,assignments:Object.values(state.jobs).filter(j=>j.assignment?.executorId===executorId).map(j=>({assignmentId:j.assignment.assignmentId,runRef:j.runRef??null,permit:j.permit??null,cancelled:!!j.cancelled,leaseUntil:j.assignment.leaseUntil,receipt:j.receipt?{receiptId:j.receipt.receiptId,digest:j.receipt.digest}:null}))};break;
+            out=once('receipt',b.receiptKey,b,()=>{
+              // Status acknowledgements never carry page values, errors, URLs or
+              // arbitrary metadata. Even a credentialed Executor cannot expand
+              // the result scope declared at admission.
+              if(b.result?.visibility==='status-only'){
+                exact(b.result,['visibility','state','retirementState']);
+                if(Object.keys(b.result).length!==3||!['completed','failed','stopped','interrupted'].includes(b.result.state)||
+                  b.result.retirementState!=='released')fail('E_RESULT_SCOPE');
+              }else if(b.result?.visibility==='full'&&j.resultAllowed===true){
+                exact(b.result,['visibility','runId','resultId','revision','state','sourceHash','retirementState','valueWire','error']);
+                if(b.result.runId!==j.runRef.runId||b.result.resultId!==j.runRef.resultId||
+                  b.result.sourceHash!==j.runRef.sourceHash||b.result.retirementState!=='released')fail('E_RESULT_SCOPE');
+              }else fail('E_RESULT_SCOPE');
+              j.receipt={receiptId:randomUUID(),receivedAt:clock(),digest:hash(b),result:b.result};j.state='received';return {receiptId:j.receipt.receiptId,digest:j.receipt.digest};});break;}
+          case '/v1/reconcile':exact(b,[]);out={providerId:state.providerId,assignments:Object.values(state.jobs).filter(j=>j.assignment?.executorId===executorId&&
+              j.assignment.pairingId===state.executors[executorId].pairingId).map(j=>({assignmentId:j.assignment.assignmentId,runRef:j.runRef??null,permit:j.permit??null,cancelled:!!j.cancelled,leaseUntil:j.assignment.leaseUntil,receipt:j.receipt?{receiptId:j.receipt.receiptId,digest:j.receipt.digest}:null}))};break;
           case '/admin/register':{
             // Only a local administrator can register a verified fixed manifest.
             // The route deliberately rejects sourceUtf8, JS, shell and CDP input.
@@ -83,6 +121,10 @@ export async function openProvider({directory='.local/cloud-control',port=43112,
               key=taskRegistryKey(task),existing=state.taskRegistry[key];
             if(existing&&canonical(existing)!==canonical(task))fail('E_TASK_CONFLICT','Version already bound to another digest');
             state.taskRegistry[key]=task;out={task:taskPin(task),siteOrigins:task.manifest.siteOrigins};break;}
+          case '/admin/executors':{
+            exact(b,[]);out={executors:Object.entries(state.executors).map(([id,row])=>({
+              executorId:id,pairedAt:row.pairedAt,revoked:!!row.revokedAt,
+              connected:[...sockets.values()].includes(id)}))};break;}
           case '/admin/tasks':{
             exact(b,[]);out={tasks:Object.values(state.taskRegistry).map(task=>({...taskPin(task),
               title:task.manifest.title,siteOrigins:task.manifest.siteOrigins}))};break;}
@@ -90,8 +132,13 @@ export async function openProvider({directory='.local/cloud-control',port=43112,
             // Old seed:form requests retain their original requestKey/digest
             // so pre-R5 provider restarts remain strictly idempotent.
             const legacy=!Object.hasOwn(b,'taskId');
-            exact(b,legacy?['requestKey','params','target']:
-              ['requestKey','taskId','version','manifestHash','sourceHash','params','target']);
+            exact(b,legacy?['requestKey','params','target','targetExecutorId']:
+              ['requestKey','taskId','version','manifestHash','sourceHash','params','target','targetExecutorId']);
+            if(typeof b.targetExecutorId!=='string'||!state.executors[b.targetExecutorId]||
+              state.executors[b.targetExecutorId].revokedAt)fail('E_EXECUTOR_TARGET');
+            // Pre-R5 key-only requests are never silently remapped to a new
+            // recipient, even when a modern request reuses their key.
+            if(state.requests['seed:'+b.requestKey])fail('E_REQUEST_CONFLICT');
             if(!legacy&&(!Object.hasOwn(b,'version')||!Object.hasOwn(b,'manifestHash')||
               !Object.hasOwn(b,'sourceHash')))fail('E_SCHEMA','Provide the entire immutable task identity');
             const task=legacy?builtinTask:state.taskRegistry[String(b.taskId)+'@'+String(b.version)];
@@ -103,9 +150,12 @@ export async function openProvider({directory='.local/cloud-control',port=43112,
               new URL(target.url).pathname!=='/demo-form.html'))fail('E_TARGET');
             const params=validateTaskParams(task.manifest.paramsSchema,b.params??{}),
               pin=taskPin(task);
-            out=once('seed',b.requestKey,legacy?b:{task:pin,params,target},()=>{
+            const owner=state.executors[b.targetExecutorId];
+            out=once('seed:'+b.targetExecutorId+':'+owner.pairingId,b.requestKey,
+              {task:pin,params,target,targetExecutorId:b.targetExecutorId},()=>{
               const jobId=randomUUID();
-              state.jobs[jobId]={jobId,state:'queued',createdAt:clock(),task:pin,params,target};
+              state.jobs[jobId]={jobId,state:'queued',createdAt:clock(),task:pin,params,target,
+                targetExecutorId:b.targetExecutorId,targetPairingId:owner.pairingId};
               return {jobId};});break;}
           case '/admin/cancel':exact(b,['jobId']);if(!state.jobs[b.jobId])fail('E_JOB');state.jobs[b.jobId].cancelled=true;out={cancelled:true};break;
           case '/admin/fault':exact(b,['path','count']);if(!['/v1/admission','/v1/claim','/v1/receipt'].includes(b.path)||!Number.isSafeInteger(b.count)||b.count<0||b.count>10)fail('E_SCHEMA');state.faults[b.path]=b.count;out={set:true};break;
@@ -114,14 +164,18 @@ export async function openProvider({directory='.local/cloud-control',port=43112,
         }
         const drop=!!state.faults[path];if(drop)state.faults[path]--;await save();return {out,drop};
       });
-      if(path==='/admin/seed'||path==='/admin/cancel')notify();if(answer.drop){req.socket.destroy();return;}res.writeHead(200,{'Content-Type':'application/json','Cache-Control':'no-store'});res.end(JSON.stringify(answer.out));
+      if(path==='/admin/seed')notify(b.targetExecutorId);
+      if(path==='/admin/cancel')notify(state.jobs[b.jobId]?.targetExecutorId);
+      if(path==='/v1/unpair')for(const [ws,id] of sockets)if(id===executorId)ws.terminate();if(answer.drop){req.socket.destroy();return;}res.writeHead(200,{'Content-Type':'application/json','Cache-Control':'no-store'});res.end(JSON.stringify(answer.out));
     }catch(e){res.writeHead(e.code==='E_AUTH'?401:e.code==='E_REQUEST_CONFLICT'?409:400,{'Content-Type':'application/json'});res.end(JSON.stringify({error:{code:e.code||'E_SCHEMA',message:e.message}}));}
   });
   const wss=new WebSocketServer({noServer:true,maxPayload:8192});
   server.on('upgrade',(req,socket,head)=>{if(req.url!=='/v1/events'||req.headers.origin&&!req.headers.origin.startsWith('chrome-extension://')){socket.destroy();return;}wss.handleUpgrade(req,socket,head,ws=>wss.emit('connection',ws));});
   wss.on('connection',ws=>{
     const timeout=setTimeout(()=>ws.close(),5000);let authenticated=false;
-    ws.on('message',data=>{try{const m=JSON.parse(String(data));if(!authenticated){exact(m,['type','ticket']);const t=tickets.get(m.ticket);tickets.delete(m.ticket);if(m.type!=='authenticate'||!t||t.until<=clock())fail('E_AUTH');authenticated=true;clearTimeout(timeout);sockets.set(ws,t.executorId);ws.send(JSON.stringify({type:'authenticated',providerId:state.providerId}));}else if(m.type==='ping')ws.send(JSON.stringify({type:'pong'}));else fail('E_SCHEMA');}catch{ws.close();}});
+    ws.on('message',data=>{try{const m=JSON.parse(String(data));if(!authenticated){exact(m,['type','ticket']);const t=tickets.get(m.ticket);tickets.delete(m.ticket);if(m.type!=='authenticate'||!t||t.until<=clock()||
+          state.executors[t.executorId]?.revokedAt||
+          state.executors[t.executorId]?.pairingId!==t.pairingId)fail('E_AUTH');authenticated=true;clearTimeout(timeout);sockets.set(ws,t.executorId);ws.send(JSON.stringify({type:'authenticated',providerId:state.providerId}));}else if(m.type==='ping')ws.send(JSON.stringify({type:'pong'}));else fail('E_SCHEMA');}catch{ws.close();}});
     ws.on('close',()=>{clearTimeout(timeout);sockets.delete(ws);});
   });
   try{await new Promise((ok,no)=>{server.once('error',no);server.listen(port,'127.0.0.1',ok);});}catch(e){await handle.close();await unlink(lock);throw e;}

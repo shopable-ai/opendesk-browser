@@ -247,7 +247,14 @@ export function createCloudService({storage,api,clock={now:()=>Date.now()},asser
     }
     return cloudStatus({},sender);
   }
-  async function cloudUnpair(_,sender){await cloudStop({},sender);await scoped(sender,tx=>tx.delete(KV,CONFIG),'readwrite');return cloudStatus({},sender);}
+  async function cloudUnpair(_,sender){
+    await cloudStop({},sender);const config=await read();
+    // Local Stop is always safe while offline; an unpair must additionally
+    // revoke the remote credential before the Browser forgets it.
+    if(config)await post(config,'unpair',{});
+    await scoped(sender,tx=>tx.delete(KV,CONFIG),'readwrite');
+    return cloudStatus({},sender);
+  }
   let nextPromise;
   async function cloudNext(_,sender){if(nextPromise)return null;nextPromise=next(sender);try{return await nextPromise;}finally{nextPromise=null;}}
   async function pendingRequest(sender,host,configSnapshot){
@@ -318,7 +325,8 @@ export function createCloudService({storage,api,clock={now:()=>Date.now()},asser
   }
   async function permit(run){
     const r=await transaction('readonly',tx=>tx.get(KV,PREFIX+run.cloudRequestId),[KV]),c=await read();invariant(c?.enabled&&c.grantId===r?.grantId,'E_CLOUD_REVOKED');let p;
-    for(let attempt=0;attempt<2;attempt++){try{p=await post(c,'admission',{assignmentId:r.assignment.assignmentId,runRef:r.runRef});break;}catch(e){if(attempt||e.code)throw e;}}
+    for(let attempt=0;attempt<2;attempt++){try{p=await post(c,'admission',{assignmentId:r.assignment.assignmentId,runRef:r.runRef,
+        resultAllowed:r.task.resultAllowed===true});break;}catch(e){if(attempt||e.code)throw e;}}
     await transaction('readwrite',async tx=>{const current=await tx.get(KV,PREFIX+r.requestId),config=await tx.get(KV,CONFIG),stored=await tx.get('runs',run.runId);invariant(config?.enabled&&config.grantId===r.grantId&&stored?.state==='preparing'&&!stored.cancelSeq&&current?.runId===run.runId&&p.providerId===config.providerId&&p.assignmentId===r.assignment.assignmentId&&canonical(p.runRef)===canonical(r.runRef)&&p.leaseUntil>clock.now(),'E_PERMIT');await assertRunTaskAuthorization(tx,stored);current.permit=p;current.state='permitted';await history.put(tx,current);});
   }
   async function assertActive(tx,run){if(!run.cloudRequestId)return;const r=await tx.get(KV,PREFIX+run.cloudRequestId),c=await tx.get(KV,CONFIG);invariant(c?.enabled&&r?.grantId===c.grantId&&r.runId===run.runId&&r.permit?.runRef.runId===run.runId&&r.permit?.leaseUntil>clock.now()&&!['cancelled','cancellation-pending','OUTCOME_UNKNOWN'].includes(r.state),'E_CLOUD_FENCED');}
@@ -359,7 +367,7 @@ export function createCloudService({storage,api,clock={now:()=>Date.now()},asser
       if(!r.runId||!current())continue;
       const projection=await transaction('readonly',async tx=>{
         const stored=await tx.get('runs',r.runId),config=await tx.get(KV,CONFIG);
-        if(!stored||stored.state==='paused_unknown'||!r.task.resultAllowed||!config?.enabled||config.revokedAt||config.grantId!==r.grantId)return null;
+        if(!stored||stored.state==='paused_unknown'||!config?.enabled||config.revokedAt||config.grantId!==r.grantId)return null;
         await assertRunTaskAuthorization(tx,stored);const result=await tx.get('results',stored.resultId);if(!result)return null;
         invariant(result.tag==='controller-result'&&result.runId===r.runRef.runId&&result.resultId===r.runRef.resultId&&result.revision?.sourceHash===r.runRef.sourceHash,'E_RESULT');return {result:structuredClone(result),run:stored};
       });
@@ -370,7 +378,17 @@ export function createCloudService({storage,api,clock={now:()=>Date.now()},asser
         if(!current()||stored.resultDeliveryRevoked||!config?.enabled||config.grantId!==r.grantId||canonical(row.runRef)!==canonical(r.runRef))return false;
         row.delivery={state:'pending',receiptKey:r.runRef.resultId,grantId:r.grantId,runRef:r.runRef};await history.put(tx,row);return true;
       });if(!allowed||!current())continue;
-      const result=projection.result,limited={runId:result.runId,resultId:result.resultId,revision:result.revision,state:result.state,sourceHash:r.runRef.sourceHash,retirementState:projection.run.retirementState,...(result.outcome?.valueWire!==undefined?{valueWire:result.outcome.valueWire}:{}),...(result.outcome?.error?{error:result.outcome.error}:{})};
+      const result=projection.result;
+       const limited=r.task.resultAllowed===true?
+         {visibility:'full',runId:result.runId,resultId:result.resultId,revision:result.revision,
+           state:result.state,sourceHash:r.runRef.sourceHash,retirementState:projection.run.retirementState,
+           ...(result.outcome?.valueWire!==undefined?{valueWire:result.outcome.valueWire}:{}),
+           ...(result.outcome?.error?{error:result.outcome.error}:{})}:
+         // Closed three-field projection: no valueWire, URL, error body,
+         // page text, Cookie or other result payload may cross this boundary.
+         {visibility:'status-only',
+           state:['completed','failed','stopped','interrupted'].includes(result.state)?result.state:'interrupted',
+           retirementState:'released'};
       const receipt=await post(c,'receipt',{assignmentId:r.assignment.assignmentId,receiptKey:r.runRef.resultId,runRef:r.runRef,result:limited},{isCurrent:current});
       await transaction('readwrite',async tx=>{
         const row=await tx.get(KV,PREFIX+r.requestId),config=await tx.get(KV,CONFIG),stored=await tx.get('runs',r.runId);

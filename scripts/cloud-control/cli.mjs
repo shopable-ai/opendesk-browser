@@ -11,13 +11,14 @@ if(command==='provider'){
   for(const signal of ['SIGINT','SIGTERM'])process.once(signal,()=>provider.close().then(()=>process.exit(0)));
 }else{
   const credentials=JSON.parse(await readFile(resolve(directory,'admin.json'),'utf8'));let path,body;
-  if(command==='seed:form'){path='seed';body={requestKey:option('key',randomUUID()),params:{name:option('name','Alice')},target:{mode:'owned',url:'http://127.0.0.1:43111/demo-form.html'}};}
+  if(command==='seed:form'){path='seed';body={requestKey:option('key',randomUUID()),targetExecutorId:option('executor',''),params:{name:option('name','Alice')},target:{mode:'owned',url:'http://127.0.0.1:43111/demo-form.html'}};}
   else if(command==='register'){
     const file=option('package',null);if(!file)throw Error('register requires --package path/to/verified.opendesk-task.json');
     const pkg=await verifyTaskPackage(JSON.parse(await readFile(resolve(file),'utf8')));
     path='register';body={manifest:pkg.manifest,manifestHash:pkg.manifestHash};
   }
   else if(command==='tasks'){path='tasks';body={};}
+  else if(command==='executors'){path='executors';body={};}
   else if(command==='seed'){
     const file=option('package',null);let pin;
     if(file){
@@ -26,7 +27,7 @@ if(command==='provider'){
         manifestHash:pkg.manifestHash,sourceHash:pkg.manifest.program.sourceHash};
     }else pin={taskId:option('task',''),version:option('version',''),
       manifestHash:option('manifest-hash',''),sourceHash:option('source-hash','')};
-    path='seed';body={requestKey:option('key',randomUUID()),...pin,
+    path='seed';body={requestKey:option('key',randomUUID()),targetExecutorId:option('executor',''),...pin,
       params:JSON.parse(option('params','{}')),target:{mode:'owned',url:option('target','')}};
   }
   else if(command==='inspect'){path='state';body={};}
