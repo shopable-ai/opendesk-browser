@@ -117,3 +117,22 @@ node scripts/cloud-control/cli.mjs client:revoke --client CLIENT_UUID --director
 | 真实 Chrome 验收可信度 | 95 | 所有原生身份数组为空：`NOT_VERIFIED` |
 
 下一阶段必须针对最终候选运行 `npm run test:cloud`、Authority/Side Panel、`npm run check`、`npm run build`、`npm run build:dev`、`npm run verify`，修正固定工具包预算后才允许标 `BUILD_VERIFIED`。借隔离的 Mac Chrome 测试完成两个真实不同 Worker 任务的 Run/Result/retirement/receipt 证据后才能 `NATIVE_VERIFIED`；获得批准可信服务器后跨公网验收才能 `REMOTE_NATIVE_VERIFIED`。所有低于 95 的独立项必须补缺陷-源码-测试-重新评分，不准平均抵消。
+
+## R5.2.1 · 限定客户端 Task 与结果权限 + 可查询执行状态（2026-10-13）
+
+**本次新增真实代码**（复用同一 Provider/Task/Run/Result，没有第二套权限 DB）：
+
+- `scripts/cloud-control/provider.mjs` 的 `/admin/client-grant` 必须提交非空不可变 Task pin 清单和独立 `allowResult`，绑定当前 `executorId + pairingId + grantId`。旧未限定 Task 的 Client 记录按缺少授权字段保守拒绝，不静默继承全部 Task。
+- `/v1/submit` 除固定 Task Registry 和 Browser 当前 capabilities 外，额外验证本客户端自己的 Task pin；两个客户端分别以各自身份提交，重名 requestKey 不互相复用。新的 `/v1/job-status` 仅接收经过 HTTPS 认证、由本 Client 自己投递的 `jobId`，拒绝跨 Client、跨 Executor、跨配对身份查询。
+- **双结果隐私许可**：Provider 端仅在 Browser admission `resultAllowed=true`、本客户端 grant `allowResult=true`，且有真正 `visibility=full` 回执时返回结果内容。其余请求仅提供最小化 `state` 与 `receiptConfirmed`；没有 RunId、网页 URL、参数、Credential、Cookie 或 Result body。原 Server Admin 状态权限不向 HTTPS 客户端开放。
+- **保守恢复**：已经 admitted 且取消/租约过期但还没有 terminal receipt 的任务向外部返回 `OUTCOME_UNKNOWN`，不推断“没有网页副作用”，也不从 Status 查询启动第二次执行。新本地批准产生新的 grantId 后，旧 grant 写入 retired set，旧 WSS 延迟同步不能回滚 Provider 身份或复活旧 Job，旧客户端授权失效。
+- `scripts/cloud-control/cli.mjs` 新增 `status:remote`，`client:grant` 要求 `--package` 或 `--packages`（固定 manifest pin）与 `--token-out`，凭据仅写入模式 0600 且不在标准输出打印。普通浏览器用户仍通过 Side Panel 安装/授权/Stop；CLI 只给可信服务维护者。
+
+**实际 CI 成功证据**：
+- [R5.2 专属合同 CI #38367293395](https://github.com/shopable-ai/opendesk-browser/actions/runs/38367293395) 绑定 `faf43e48954584a9df94a8fd58e059d01bd19138`：34 Cloud、113 Authority、10 Cloud UI，合计 **157 PASS / 0 FAIL**（不包括后续客户端新协议）。
+- [含客户端固定 Task 授权、外部状态/结果读取、双客户端互相拒绝以及旧 Grant 重放拒绝的 CI #38368001891](https://github.com/shopable-ai/opendesk-browser/actions/runs/38368001891) 绑定 `24994880c48e70241174727d65c3165e4f0dc35d`：**34 Cloud + 113 Authority + 10 Cloud UI = 157 PASS / 0 FAIL**，是 R5.2 组件证据 `COMPONENT_TESTED`，不是最终 Package PASS。
+- 中间候选 `58a3939b5e57b866921f9c2d9b3878980b01105b` 的旧 TLS 测试尚未提供新必需 Task 清单而失败；后续 `cfd7daa7139b8b0309723516d848035e2e974c2a` 已更新并独立 CI 成功。保留失败而不删除证据。
+
+**明确的未达标部分**：当前无原生 Mac Chrome 两个已安装 Task 的独立 Worker/Run/Result/retirement/Provider receipt；没有真实 Side Panel 300–520px、125%/200% 截图及键盘验收；公网 Provider 未获部署许可；当前移动中的 `main` 没有同一候选完成 `check/build/build:dev/verify` 的新 PackageHash。以上分别保持 `NATIVE_PENDING` / `REMOTE_NATIVE_PENDING` / `NOT_VERIFIED`，不能借组件 157/157 宣称整体 95+。
+
+**演示命令修订**：上文旧示例的 `client:grant --executor EXECUTOR_UUID` 已不合法，必须使用 `client:grant --executor EXECUTOR_UUID --package /secure/approved-task.opendesk-task.json --allow-result false --token-out /secure/client.token`。远端调用及 `status:remote` 的完整可运行步骤以 `examples/cloud-control/README.zh-CN.md` 最新 R5.2 小节为准，HTTPS 目标必须真的属于该 Package 的 `siteOrigins`。
