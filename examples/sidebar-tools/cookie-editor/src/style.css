@@ -33,6 +33,12 @@ input[type=file]{min-width:0;width:100%;max-width:100%;font-size:12px}.export-ac
 .preview-banner{margin:0;padding:var(--space-3);border:1px solid #bfd3f2;border-radius:var(--radius-control);background:#eff5ff;color:#2f517c;font-size:12px;line-height:1.5;overflow-wrap:anywhere}
 .sample-button{justify-self:center;white-space:normal}
 
+/* Real Chrome is the default task. Offline file editing stays accessible
+   but no longer occupies a full primary navigation row. */
+.workspace-options{min-width:0;border-top:1px solid var(--od-line);padding-top:var(--space-2)}
+.workspace-options summary{cursor:pointer;max-width:100%;font-size:12px;color:var(--od-sub);font-weight:500;overflow-wrap:anywhere}
+.workspace-options[open] summary{margin-bottom:var(--space-2)}
+.workspace-options summary:focus-visible{outline:2px solid var(--od-brand);outline-offset:2px}
 /* Browser/Offline are distinct modes: no offline row is styled as a Chrome result. */
 .mode-tabs{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:var(--space-1);padding:4px;border-radius:var(--radius-control);background:var(--od-bg)}
 .mode-button{min-width:0;min-height:36px;padding:var(--space-2);border:1px solid transparent;border-radius:6px;color:var(--od-sub);background:transparent;font-weight:600;white-space:normal}
