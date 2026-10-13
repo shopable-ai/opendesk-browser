@@ -1,3 +1,5 @@
+> **R9 正式入口**：`OpenDeskSDK.browser`。Chrome 原生命名优先，创建使用 `tabs.create`；仅自有 TabRef 的聚焦和关闭明确叫 `tabs.activateOwned` / `tabs.removeOwned`，禁止原生数字 Tab ID。下方 R5/R8 的固定 35 项与长期兼容要求只留作历史。
+
 # OpenDeskSDK.browser API · 推荐短接口与原有高级操作
 
 > **R8 统一规范（已建立分阶段实施工作流）**：[单一 `OpenDeskSDK.browser` / Host / Authority 架构](browser-sdk-architecture-r8.zh-CN.md)、[35 项旧接口兼容映射](browser-sdk-compatibility-map.json)、[上游复用决策](browser-sdk-open-source-reuse.zh-CN.md)、[官方 Native Catalog（目前只覆盖 8 组固定 JSON，不能称 Chrome 全量）](chrome-native-api-catalog.json)。R8 的 Catalog 发现层不授予执行权限。本页 R1.3 历史表格明确不是今日状态；`cookies.*` 尚未成为正式可信调用链。
@@ -13,17 +15,17 @@
 
 ```js
 const {browser} = OpenDeskSDK;
-const {tabRef} = await browser.tabs.open({url:'https://example.org/page'});
+const {tabRef} = await browser.tabs.create({url:'https://example.org/page'});
 const owned = await browser.tabs.getOwned({tabRef});
 const {tabs} = await browser.tabs.listOwned();
-await browser.tabs.closeOwned({tabRef});
+await browser.tabs.removeOwned({tabRef});
 ```
 
 - `getOwned({tabRef})` 返回本工具已打开、目前仍合法的 URL、Origin、引用到期时间及 TabRef。
 - `listOwned()` 只列本工具最多 8 个当前合法引用与 Origin，不查询所有 Chrome 标签页。
 - `closeOwned({tabRef})` 必须经受信侧边栏的明确单次点击，通过真实 Host 后才能关闭；原生结果未知时不重复执行。
 - 工具包仍需声明 `browser.tabs` capability，且必须安装、启用并保持相同包 Hash / Install Epoch、Chrome 权限与网站授权。不能把原生 tabId 传入任何一个方法。
-- 已导航、关闭、停用、卸载、更新及 Worker 重启后的旧引用不再有效；旧 `tabs.open/focus` 保持原来的方法签名。
+- 已导航、关闭、停用、卸载、更新及 Worker 重启后的旧引用不再有效；开发期旧 open/focus/closeOwned 已清理，工具必须使用上面的单一正式方法。
 
 实现包括 `src/framework/sdk/browser-contract.js`、`browser.js`、`browser-schemas.js`、`src/platform/chrome/browser-tabs.js`、`context-menus.js`、`src/ui/sidebar-tools.js` 与 `src/sidebar-tools/bridge.js`。验收见 [状态与测试账本](../framework/workstreams/browser-sdk-status.md)。
 
@@ -33,7 +35,7 @@ await browser.tabs.closeOwned({tabRef});
 // 仅在已安装、已启用且具备 capability 的 Side Panel 工具沙箱中。
 // OpenDeskSDK 是运行时提供的环境对象，不向 main() 传参数。
 const {browser} = OpenDeskSDK;
-const {tabRef} = await browser.tabs.open({url:'https://example.org/page'});
+const {tabRef} = await browser.tabs.create({url:'https://example.org/page'});
 
 // 通过可信 UI 明确批准指定 TabRef + Origin，开启不超过 30 秒的元数据观察。
 const watch = await browser.network.watch({
@@ -141,8 +143,8 @@ await OpenDeskTool.request('storage.get',{key:'notes'});
 
 | 拟议名称 | 参数/输入形态 | 当前阶段 | 原因 |
 | --- | --- | --- | --- |
-| `browser.tabs.open` | {url} | **PLANNED** | 禁止任意 tabId, 计划受控 tabRef |
-| `browser.tabs.focus` | {tabRef} | **PLANNED** | 需要不可伪造引用 |
+| `browser.tabs.create` | {url} | **PLANNED** | 禁止任意 tabId, 计划受控 tabRef |
+| `browser.tabs.activateOwned` | {tabRef} | **PLANNED** | 需要不可伪造引用 |
 | `browser.sidePanel.openSelf` | {} | **PLANNED** | 真实用户手势可信前台 |
 | `browser.network.request` | HTTP 请求合同 | **HOST_ONLY** | 已有 axiosx/Controller 主动请求，未对工具重映射 |
 | `browser.network.observe.start` | {tabRef,origins,durationMs,...} | **PLANNED** | R2 被动 HTTP(S) 元数据 |
