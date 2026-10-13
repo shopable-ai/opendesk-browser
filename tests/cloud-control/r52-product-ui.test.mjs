@@ -141,3 +141,26 @@ test('no installed Task CTA opens the real My tab rather than a nonexistent tab 
     assert.equal(navigations,1);
   }finally{view.dispose();}
 });
+
+test('approval validation is actionable while untrusted remote error details remain redacted',async()=>{
+  const f=surface();
+  const client={cloud:{cloudStatus:async()=>({provider:{providerId:'paired'},
+    enabled:false,online:false,reconciled:false,connection:'offline',
+    hostReady:true,slotAvailable:true,tasks:[],requestTotal:0,requests:[]}),
+    cloudNext:async()=>null,
+    cloudPair:async()=>{throw Object.assign(Error('PRIVATE_PAGE_URL_OR_TOKEN'),
+      {code:'E_PROVIDER'});}},
+    request:async()=>({catalog:[],installed:[]})};
+  const view=createCloudHosting({client,host:{executionPending:false},
+    document:f.document,api:{}});
+  try{
+    for(let i=0;i<8;i++)await flush();
+    f.get('cloud-approve').events.get('click')();
+    for(let i=0;i<5;i++)await flush();
+    assert.match(f.get('cloud-status').textContent,/请先核对所选任务的固定版本/);
+    f.get('cloud-pair').events.get('click')();
+    for(let i=0;i<5;i++)await flush();
+    assert.match(f.get('cloud-status').textContent,/提供者连接异常/);
+    assert.doesNotMatch(f.get('cloud-status').textContent,/PRIVATE_PAGE_URL_OR_TOKEN/);
+  }finally{view.dispose();}
+});
