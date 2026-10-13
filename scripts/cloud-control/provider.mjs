@@ -58,7 +58,14 @@ export async function openProvider({directory='.local/cloud-control',port=43112,
   let tail=Promise.resolve();
   async function save(){const h=await open(file+'.tmp','w',0o600);try{await h.writeFile(JSON.stringify(state,null,2));await h.sync();}finally{await h.close();}await rename(file+'.tmp',file);}
   await save();
-  const serial=fn=>{const next=tail.then(async()=>{const before=structuredClone(state);try{return await fn();}catch(error){state=before;throw error;}});tail=next.catch(()=>{});return next;};
+  // State snapshots and fsync are only required for real mutations. Pure
+  // observations remain serialized with writes but never touch the .tmp file.
+  const readonlyRoutes=new Set(['/v1/job-status','/v1/reconcile','/v1/cancellation',
+    '/admin/state','/admin/tasks','/admin/executors','/admin/clients']);
+  const serial=(fn,readOnly=false)=>{const next=tail.then(async()=>{
+    const before=readOnly?null:structuredClone(state);
+    try{return await fn();}catch(error){if(!readOnly)state=before;throw error;}
+  });tail=next.catch(()=>{});return next;};
   function once(scope,key,body,fn){if(typeof key!=='string'||key.length>150)fail('E_SCHEMA');const k=scope+':'+key,d=hash(body),old=state.requests[k];if(old){if(old.digest!==d)fail('E_REQUEST_CONFLICT');return structuredClone(old.answer);}const answer=fn();state.requests[k]={digest:d,answer:structuredClone(answer)};return answer;}
   const sockets=new Map(),tickets=new Map();
   const notify=executorId=>{for(const [ws,id]of sockets)if(!executorId||id===executorId)ws.send(JSON.stringify({type:'notify'}));};
@@ -91,6 +98,7 @@ export async function openProvider({directory='.local/cloud-control',port=43112,
       }else if(path!=='/v1/pair'){executorId=Object.keys(state.executors).find(id=>
         !state.executors[id].revokedAt&&secureEqual(req.headers.authorization,'Bearer '+state.executors[id].credential));
         if(!executorId)fail('E_AUTH');}
+      const readOnly=readonlyRoutes.has(path);
       const answer=await serial(async()=>{
         let out;
         switch(path){
@@ -361,8 +369,13 @@ export async function openProvider({directory='.local/cloud-control',port=43112,
           case '/admin/state':exact(b,[]);out={providerId:state.providerId,jobs:state.jobs,executors:Object.fromEntries(Object.entries(state.executors).map(([id,e])=>[id,{pairedAt:e.pairedAt,connected:[...sockets.values()].includes(id),capabilities:e.capabilities}]))};break;
           default:fail('E_ROUTE');
         }
-        const drop=!!state.faults[path];if(drop)state.faults[path]--;await save();return {out,drop};
-      });
+        const drop=!!state.faults[path];
+        // Fault injection is only available for write routes; no read-only
+        // observation is allowed to mutate durable state or consume a fault.
+        if(drop&&readOnly)fail('E_SCHEMA');
+        if(!readOnly){if(drop)state.faults[path]--;await save();}
+        return {out,drop};
+      },readOnly);
       if(path==='/admin/seed')notify(b.targetExecutorId);
       if(path==='/v1/submit')notify(client.executorId);
       if(path==='/admin/cancel')notify(state.jobs[b.jobId]?.targetExecutorId);
