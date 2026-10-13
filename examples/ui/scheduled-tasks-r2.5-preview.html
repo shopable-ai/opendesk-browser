@@ -187,6 +187,7 @@ h1,h2,h3,p{margin-top:0}
 .product-window .source-info{background:var(--od-muted);padding:var(--space-3);border-radius:8px;color:var(--od-sub);font-size:12px;line-height:1.5;overflow-wrap:anywhere}
 .product-window .source-info strong{font-weight:720;color:var(--od-ink)}
 .product-window .source-info.error{background:var(--warn-bg);color:var(--warn-ink)}
+.product-window #field-taskId:disabled{background:var(--od-muted);color:var(--od-sub);opacity:1;cursor:not-allowed}
 .product-window .field-help{font-size:12px;color:var(--od-sub);line-height:1.5;margin:0;overflow-wrap:anywhere}
 .product-window #zone-search-result:empty{display:none}
 .product-window #zone-query{min-height:36px}
@@ -427,10 +428,19 @@ h1,h2,h3,p{margin-top:0}
       ${sectionHeader('我的计划',`<button class="text-link" type="button" data-action="recent-history" ${latest?'':'disabled'}>最近运行记录 →</button>`)}
       ${body}
       <details class="summary-panel"><summary>本地运行记录与存储</summary><p class="muted">历史按计划每次加载 20 条；未提供自动清理。生产版仅可读取整个 OpenDesk 扩展来源的 Chrome 存储估算，非定时任务独立占用。</p></details>`;}
-  function taskChoices(){return `<option value="">请选择已安装并验证的任务</option>${eligibleTasks().map(t=>`<option value="${safe(t.id)}" ${s.draft.taskId===t.id?'selected':''}>${safe(t.title)} · v${safe(t.version)}</option>`).join('')}`;}
+  function taskChoices(){
+    const eligible=eligibleTasks();
+    const original=s.plans.find(p=>p.id===s.editing);
+    const missing=s.editing&&s.draft.taskId&&!eligible.some(t=>t.id===s.draft.taskId);
+    return `<option value="">请选择已安装并验证的任务</option>`+
+      eligible.map(t=>`<option value="${safe(t.id)}" ${s.draft.taskId===t.id?'selected':''}>${safe(t.title)} · v${safe(t.version)}</option>`).join('')+
+      (missing?`<option value="${safe(s.draft.taskId)}" selected disabled>原固定任务 · v${safe(original?.version||'?')}（已不可用）</option>`:'');
+  }
   function formTimeSpec(d=s.draft){if(d.kind==='once')return {kind:'once',spec:{at:parseOnce(d.zone,d.once)}};if(d.kind==='interval'){const m=Number(d.minutes);const anchor=d.intervalAnchor||REF+m*60000;return {kind:'interval',spec:{anchorAt:anchor,everyMinutes:m}}}const match=/^(\d\d):(\d\d)$/.exec(d.clock||'');if(!match)throw Error('请输入有效的当地时间');const spec={hour:Number(match[1]),minute:Number(match[2])};if(d.kind==='weekly')spec.days=d.days;return {kind:d.kind,spec};}
   function formNext(){try{const d=s.draft,t=formTimeSpec();const next=nextAt(t.kind,t.spec,d.zone);if(next===null)throw Error('没有未来触发时间');return {next,label:dateFull(next,d.zone)}}catch(e){return {next:null,label:e.message||'请检查时间规则'}}}
   function renderForm(){const d=s.draft,task=taskOf(d.taskId),eligible=eligibleTasks().some(t=>t.id===d.taskId),rule=formNext(),editing=Boolean(s.editing);let sourceMessage=task?`固定版本 v${task.version} · 网站：${task.origin} · ${task.permitted?'网站权限已具备（模拟）':'网站权限不足，需在 Chrome 设置中处理'}`:'选择任务后显示固定版本和批准的网站范围';if(!s.tasks.length)sourceMessage='尚无已验证并安装的 Controller Task，需先到开发页完成验证安装';
+    if(editing&&!eligible)sourceMessage='原计划固定任务不可用。请恢复原安装身份与网站授权；使用其他任务请新建计划。';
+    else if(editing)sourceMessage+=' · 编辑时不能替换原固定任务身份。';
     const error=k=>`<p class="inline-error" id="error-${k}" role="alert">${safe(s.errors[k]||'')}</p>`;
     const attr=k=>s.errors[k]?'aria-invalid="true"':'aria-invalid="false"';
     return `${viewHeader(editing?'编辑计划':'新建计划')}${toast()}
@@ -438,7 +448,7 @@ h1,h2,h3,p{margin-top:0}
     <form id="plan-form" novalidate autocomplete="off">
       <section class="form-section"><p class="form-title"><b>1</b>名称与执行任务</p>
         <div class="od-field"><label for="field-title">计划名称</label><input id="field-title" type="text" maxlength="100" required data-field="title" value="${safe(d.title)}" placeholder="例如：每日客户数据检查" ${attr('title')} aria-describedby="error-title">${error('title')}</div>
-        <div class="od-field"><label for="field-taskId">执行任务（已验证并安装）</label><div class="source-grid"><select id="field-taskId" data-field="taskId" aria-label="已安装任务" aria-describedby="error-task source-summary" ${attr('task')}>${taskChoices()}</select>
+        <div class="od-field"><label for="field-taskId">执行任务（已验证并安装）</label><div class="source-grid"><select id="field-taskId" data-field="taskId" aria-label="已安装任务" aria-describedby="error-task source-summary" ${attr('task')} ${editing?'disabled title="编辑计划不允许更换任务；要更换请新建计划"':''}>${taskChoices()}</select>
           ${iconButton('script','新建脚本 · 前往开发','new-script')}${iconButton('manage','管理任务 · 搜索与启停','manager')}</div>${error('task')}</div>
         <div id="source-summary" class="source-info ${task&&!task.permitted?'error':''}">${safe(sourceMessage)}${editing?'<p class="small">编辑不会自动替换原绑定的版本、安装身份或授权代次。</p>':''}</div>
       </section>
