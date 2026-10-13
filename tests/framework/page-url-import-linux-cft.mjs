@@ -309,7 +309,13 @@ async function runBrowserSourceScenario({sidebar,website,browser,frameworkSha256
   assert.deepEqual(connections(),[],'No D3 CONNECT occurred during frozen JSON execution');
   assert.deepEqual(sourceRequests,[],'No hidden D3 HTTPS request preceded source preparation');
   await browser.call('Target.activateTarget',{targetId:website.id});
-  await until(()=>sidebar.read('!document.querySelector("#program-new-script").hidden'),'Original new-source control');
+  // Following a real install the workbench is on "我的", so the editor's
+  // button may be individually unhidden while its entire tab panel has no
+  // layout object. Navigate with the actual visible Develop tab first.
+  if(!await sidebar.read('document.querySelector("#tab-develop").getAttribute("aria-selected")==="true"'))
+    await clickReal(sidebar,'document.querySelector("#tab-develop")');
+  await until(()=>sidebar.read('(()=>{const p=document.querySelector("#workbench-develop"),b=document.querySelector("#program-new-script");return !p.hidden&&!b.hidden&&b.getClientRects().length>0})()'),
+    'Visible Develop panel and native new-source control');
   await clickReal(sidebar,'document.querySelector("#program-new-script")');
   await until(()=>sidebar.read('document.querySelector("#script-source").readOnly===false'),'Single-file editor becomes editable');
   if(!await sidebar.read('document.querySelector("#page-component-react").checked'))
