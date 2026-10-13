@@ -427,6 +427,13 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       eyeButton.setAttribute('aria-label',eyeButton.title);eyeButton.setAttribute('aria-pressed',String(appearance.show));
     }
     if(!show)return;
+    // Only tools with the generic TOC/Clip/Capture site capability use
+    // these controls. Time Review and Stay Focus have independent trust scopes.
+    const capabilityOnly=Boolean(siteCapability(active));
+    get('sidebar-tool-generic-site-scope').hidden=!capabilityOnly;
+    get('sidebar-tool-generic-site-binary').hidden=!capabilityOnly;
+    get('sidebar-tool-generic-site-advanced').hidden=!capabilityOnly;
+    settingsHint.hidden=!capabilityOnly;
     settingsScopeLabel.textContent='当前网站授权';settingsTarget.textContent=capability?(origin||'请选择适用网页'):'此工具不需要网站授权';
     settingsScopeButton.hidden=true;
     for(const [button,chosen] of [[settingsAllow,grant],[settingsDeny,!grant]]){

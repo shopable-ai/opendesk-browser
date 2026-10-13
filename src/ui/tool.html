@@ -307,11 +307,11 @@
         <section id="sidebar-tool-settings-view" class="sidebar-tool-settings-view od-surface" aria-label="工具设置" hidden>
           <div class="sidebar-toc-settings-row"><strong>工具启停</strong><button type="button" id="sidebar-tool-enable" class="od-button od-button--secondary" aria-pressed="true">停用工具</button></div>
           <p id="sidebar-tool-enable-hint" class="sidebar-toc-settings-hint" role="status"></p>
-          <div class="sidebar-toc-settings-scope">
+          <div id="sidebar-tool-generic-site-scope" class="sidebar-toc-settings-scope">
             <div><span class="sidebar-toc-settings-caption" id="sidebar-tool-settings-scope-label">当前网站授权</span><strong id="sidebar-tool-settings-target">请选择适用网页</strong></div>
             <button type="button" id="sidebar-tool-settings-scope" hidden>只设置本页</button>
           </div>
-          <div class="sidebar-toc-settings-binary" role="group" aria-label="当前网站授权">
+          <div id="sidebar-tool-generic-site-binary" class="sidebar-toc-settings-binary" role="group" aria-label="当前网站授权">
             <button type="button" id="sidebar-tool-settings-allow" aria-pressed="false">授权当前网站</button>
             <button type="button" id="sidebar-tool-settings-deny" aria-pressed="false">撤销当前网站授权</button>
           </div>
@@ -322,7 +322,7 @@
             <div class="sidebar-toc-settings-row"><span>仅此页面</span><button type="button" id="sidebar-tool-settings-page-visibility" class="sidebar-toc-visibility-toggle">隐藏</button></div>
             <p class="sidebar-toc-settings-hint">显示需要网站授权；隐藏只影响网页悬浮目录，Side Panel 目录仍可使用。两级隐藏规则都恢复后才显示。</p>
           </div>
-          <details class="sidebar-toc-advanced" open>
+          <details id="sidebar-tool-generic-site-advanced" class="sidebar-toc-advanced" open>
             <summary>已有授权与页面例外</summary>
             <strong class="sidebar-toc-settings-title">已授权的网站</strong>
             <div id="sidebar-tool-settings-sites" class="sidebar-toc-settings-entries"></div>
@@ -331,6 +331,43 @@
               <div id="sidebar-tool-settings-pages" class="sidebar-toc-settings-entries"></div>
             </div>
           </details>
+          <!-- Trusted static Time Review controls: never sourced from sandbox UI. -->
+          <section id="time-review-permission-settings" class="time-review-trusted-actions" aria-label="时间回顾采集权限" hidden>
+            <p>安装不等于授权采集。先单独同意记录的网站，再主动开始；仅记录前台非空闲网页的域名和时长，默认只保存在本机。</p>
+            <button id="time-review-grant-idle" type="button" class="od-button od-button--secondary">授权空闲检测</button>
+            <button id="time-review-revoke-idle" type="button" class="od-button od-button--secondary">撤销空闲检测</button>
+            <p>网站采集授权与 Chrome 权限相互独立；撤权停止未来的记录，已有合法统计保留。</p>
+            <button id="time-review-site-current-open" type="button" class="od-button od-button--secondary">授权当前网站…</button>
+            <section id="time-review-site-confirm" class="time-review-inline-clear-review" aria-label="确认当前网站统计权限" hidden>
+              <p id="time-review-site-confirm-text"></p>
+              <button id="time-review-site-current-approve" type="button" class="od-button od-button--secondary">确认授权该网站</button>
+              <button id="time-review-site-current-cancel" type="button" class="od-button od-button--secondary">取消</button>
+            </section>
+            <button id="time-review-site-all-open" type="button" class="od-button od-button--secondary">授权全部普通网站…</button>
+            <section id="time-review-site-all-confirm" class="time-review-inline-clear-review" aria-label="确认全部网站统计权限" hidden>
+              <p>确认允许 Time Review 统计全部普通 HTTP(S) 网站（不含浏览器内部与隐身页面）？该授权独立于主扩展权限。</p>
+              <button id="time-review-site-all-approve" type="button" class="od-button od-button--secondary">我同意记录全部普通网站</button>
+              <button id="time-review-site-all-cancel" type="button" class="od-button od-button--secondary">取消</button>
+            </section>
+            <button id="time-review-site-all-revoke" type="button" class="od-button od-button--secondary">撤销全部网站授权</button>
+            <p id="time-review-site-grants-status" role="status">正在读取网站授权…</p>
+            <div id="time-review-site-grants-list" aria-label="已经授权的网站"></div>
+            <button id="time-review-trusted-start" type="button" class="od-button od-button--secondary">开始／恢复记录</button>
+            <button id="time-review-clear-open" type="button" class="od-button od-button--secondary">清空时间统计…</button>
+            <section id="time-review-inline-clear-review" class="time-review-inline-clear-review" aria-label="确认清空时间统计" hidden>
+              <p>确定清空所有本机时间统计？请先导出备份，清空后无法恢复。</p>
+              <button id="time-review-clear-approve" type="button" class="od-button od-button--secondary">确认清空全部记录</button>
+              <button id="time-review-clear-cancel" type="button" class="od-button od-button--secondary">取消</button>
+            </section>
+            <p>可选分钟明细：仅保存未来真实结算的分钟数据，不记录标题、路径或正文；不会根据旧记录补造分钟。</p>
+            <button id="time-review-minute-enable" type="button" class="od-button od-button--secondary">开启分钟明细</button>
+            <button id="time-review-minute-disable" type="button" class="od-button od-button--secondary">关闭并删除分钟明细…</button>
+            <section id="time-review-minute-delete-review" class="time-review-inline-clear-review" aria-label="确认删除分钟明细" hidden>
+              <p>确定关闭未来分钟采集并永久删除已有分钟明细？日汇总和分类保持不变。</p>
+              <button id="time-review-minute-delete-approve" type="button" class="od-button od-button--secondary">确认关闭并删除</button>
+              <button id="time-review-minute-delete-cancel" type="button" class="od-button od-button--secondary">取消</button>
+            </section>
+          </section>
         </section>
       </section>
       <p id="sidebar-tool-status" class="sidebar-tool-status" role="status" aria-live="polite" hidden></p>

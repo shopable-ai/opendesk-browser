@@ -2,15 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {createTimeReviewPermissionControls} from '../../src/time-review/host-controls.js';
+import {makeTimeReviewDOM} from './time-review-host-controls-fixture.mjs';
 
-class FakeNode{
-  constructor(tag='div'){this.tag=tag;this.children=[];this.listeners=new Map();this.hidden=false;this.disabled=false;}
-  append(...children){this.children.push(...children);}
-  addEventListener(name,listener){this.listeners.set(name,[...(this.listeners.get(name)||[]),listener]);}
-  emit(name,isTrusted=true){for(const listener of this.listeners.get(name)||[])listener({isTrusted});}
-  focus(){}
-  scrollIntoView(){}
-}
 function find(root,id){
   if(root.id===id)return root;
   for(const node of root.children){const match=find(node,id);if(match)return match;}
@@ -19,10 +12,10 @@ function find(root,id){
 const flush=()=>new Promise(resolve=>setImmediate(resolve));
 
 test('R1.3 minute collection requires genuine host click and is never enabled by sandbox load',async()=>{
-  const target=new FakeNode(),operations=[],notifications=[];
+  const {root:target,doc}=makeTimeReviewDOM(),operations=[],notifications=[];
   const controls=createTimeReviewPermissionControls({
     api:{permissions:{request:async()=>true,remove:async()=>true}},
-    doc:{createElement:tag=>new FakeNode(tag)},container:target,
+    doc,container:target,
     notice:(value,error)=>notifications.push({value,error}),
     runOperation:async(operation,payload)=>{operations.push({operation,payload});return {ok:true};}
   });

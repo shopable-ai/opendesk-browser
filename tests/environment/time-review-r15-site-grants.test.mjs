@@ -9,6 +9,7 @@ import {SIDEBAR_TOOL_STORE} from '../../src/ui/sidebar-tools/package.js';
 import {SIDEBAR_TOOL_ENABLE_STORE} from '../../src/ui/sidebar-tools/lifecycle.js';
 import {createSidebarToolPackage} from '../../scripts/build-sidebar-tool.mjs';
 import {createTimeReviewPermissionControls} from '../../src/time-review/host-controls.js';
+import {makeTimeReviewDOM,TIME_CONTROL_IDS} from './time-review-host-controls-fixture.mjs';
 
 function lockManager(){
   const queue=new Map();
@@ -134,16 +135,6 @@ test('R1.5 changing installed tool enabled flag fences business RPC',async()=>{
   f.local[SIDEBAR_TOOL_ENABLE_STORE]={'time-review':false};
   await assert.rejects(f.call('time.status'),{code:'E_TOOL_CHANGED'});
 });
-class Node{
-  constructor(tag='div'){this.tag=tag;this.children=[];this.listeners=new Map();this.hidden=false;this.disabled=false;}
-  append(...nodes){this.children.push(...nodes);}
-  replaceChildren(...nodes){this.children=nodes;}
-  setAttribute(key,value){this[key]=value;}
-  addEventListener(name,cb){this.listeners.set(name,[...(this.listeners.get(name)||[]),cb]);}
-  emit(name,trusted=true){for(const cb of this.listeners.get(name)||[])void cb({isTrusted:trusted});}
-  focus(){}
-  scrollIntoView(){}
-}
 function find(root,id){
   if(root.id===id)return root;
   for(const child of root.children){const found=find(child,id);if(found)return found;}
@@ -151,7 +142,7 @@ function find(root,id){
 }
 const flush=()=>new Promise(resolve=>setImmediate(resolve));
 test('R1.5 trusted host requires reviewed site / all-site clicks and never stores URL paths',async()=>{
-  const root=new Node(),actions=[],messages=[];
+  const {root,doc}=makeTimeReviewDOM(),actions=[],messages=[];
   let tab='https://alpha.example/search?q=do-not-store';
   let grants={allSites:false,origins:[]};
   const api={
@@ -160,7 +151,7 @@ test('R1.5 trusted host requires reviewed site / all-site clicks and never store
     storage:{local:{get:async()=>({[TIME_REVIEW_KEY]:{siteGrants:grants}})}},
     permissions:{request:async()=>true,remove:async()=>true}
   };
-  const c=createTimeReviewPermissionControls({api,doc:{createElement:tag=>new Node(tag)},container:root,
+  const c=createTimeReviewPermissionControls({api,doc,container:root,
     notice:(message,problem)=>messages.push({message,problem}),
     runOperation:async(op,payload)=>{
       actions.push([op,payload]);
@@ -198,4 +189,16 @@ test('R1.5 sandbox cannot grant website or all-sites permissions',async()=>{
   assert.match(block,/operation==='time\.siteGrant'/);
   assert.match(block,/E_TIME_TRUSTED_CLICK/);
   assert.match(source,/!\['time\.start','time\.clear','time\.minuteConsent','time\.siteGrant'\]\.includes\(operation\)/);
+});
+
+test('R1.5 static trusted permission elements are part of the real tool host HTML',async()=>{
+  const html=await readFile('src/ui/tool.html','utf8');
+  for(const id of ['time-review-permission-settings','time-review-site-grants-list',
+    'time-review-site-grants-status','time-review-site-confirm','time-review-site-all-confirm',
+    'time-review-inline-clear-review','time-review-minute-delete-review',
+    ...TIME_CONTROL_IDS]){
+    assert.match(html,new RegExp('id="'+id+'"'),'missing trusted control '+id);
+  }
+  const css=await readFile('src/ui/tool-shell.css','utf8');
+  assert.match(css,/\.time-review-trusted-actions\[hidden\]\{display:none!important\}/);
 });

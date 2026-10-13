@@ -67,3 +67,10 @@ npm run verify
 ## 云同步阻塞与解除条件
 
 旧 `https://api.todo6.com` 仅历史接口文档存在；未见可证明生产原子 upsert、稳定幂等 record revision、有效账号连接/作用域及实际数据对账的凭据和 ACK。故本版本仍 **LOCAL_ONLY / NO_UPLOAD / BLOCKED**。不能从 `sync-outbox` 和 `sync-transport` 源文件存在推断云同步上线。完成用户登录、额外上传授权、账号切换隔离、撤销/删除与服务端对账后再单独启用。
+
+## R1.5 后续修复：原生 CI 卡在工具宿主体积硬上限
+
+- 候选 `95d4d29f6af2a2abc50bbe85e06ab1fdcc259fed` 的 [macOS CI 38357310430](https://github.com/shopable-ai/opendesk-browser/actions/runs/38357310430) 结论 **FAIL**（保留失败记录）；Node 74/74 PASS，正式工具包构建 PASS，但生产 WXT `ui/tool-shell.js` 为 **527585 B > 524288 B**，所以 Chrome 原生阶段 **NOT_TESTED**，不能当成 Chrome 行为回归失败或通过。
+- 修复设计：不调整 512 KiB 硬门槛、不允许动态 import 绕过自包含 WXT IIFE。把 Time Review 可信操作按钮和确认面板的**静态标记**直接移入现有 `src/ui/tool.html` 的工具设置区；`src/time-review/host-controls.js` 仅负责真实点击、Chrome 空闲权限、Origin 审阅、受限 Host 调用和安全渲染。原工具 UI 沙箱仍不可调用网站授权。
+- UI 权责：通用“TOC/Clip/Capture 网站授权”只对真的声明这类能力的工具可见；Time Review 与 Stay Focus 使用各自的独立授权控制，禁止显示“此工具不需要网站授权”的误导性状态。
+- 回归：更新 R5.1 / R1.3 / R1.5 组件夹具，直接校验所有静态受信任控件 ID；带真实事件 `isTrusted` 的接口测试保持拒绝伪造权限、跨 Origin 审阅状态失效、取消确认不会改变范围。之后按新 SHA 重跑 Node、工具包构建和 WXT 检查；即使构建通过也不升级旧浏览器 PASS。
