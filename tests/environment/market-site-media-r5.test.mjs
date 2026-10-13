@@ -5,16 +5,21 @@ import {createHash} from 'node:crypto';
 import {marketScreenshots,pngSize} from '../../src/market-site/media.mjs';
 import {appDetail} from '../../src/market-site/templates.mjs';
 import {officialMarketApps} from '../../src/marketplace/catalog.js';
-import {officialFixtures} from '../helpers/official-tools.mjs';
+import {loadMarketSnapshots,mergeMarketReleases} from '../../scripts/market-release-snapshots.mjs';
 const index=JSON.parse(await readFile('src/market-site/media-index.json','utf8'));
-const fixtures=await officialFixtures(),releases=fixtures.catalog.apps;
+// Screenshots retain the release actually captured, even after current source
+// advances. Verify the immutable controlled snapshots, not the latest package.
+const snapshots=await loadMarketSnapshots();
+const releases=mergeMarketReleases(snapshots,snapshots[0].catalog,[]).releases;
 const readScreenshot=filename=>readFile('src/market-site/media/'+filename);
 
 test('reviewed actual screenshots bind exact release bytes, dimensions and honest display text',async()=>{
   const rows=await marketScreenshots({index,releases,readScreenshot});
   assert(rows.length>0);
   for(const media of rows){
-    const app=officialMarketApps({apps:[releases.find(row=>row.toolId===media.toolId)]})[0];
+    const app=officialMarketApps({apps:[releases.find(row=>row.toolId===media.toolId&&row.version===media.version)]})[0];
+    assert.equal(app.version,media.version);
+    assert.equal(app.sha256,media.evidence.releaseSha256);
     assert.deepEqual({width:media.width,height:media.height},pngSize(media.bytes));
     const html=appDetail(app,{current:app,media});
     assert(html.includes('width="'+media.width+'" height="'+media.height+'"'));

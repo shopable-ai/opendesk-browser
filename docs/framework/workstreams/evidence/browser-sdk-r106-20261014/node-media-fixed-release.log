@@ -1,0 +1,11 @@
+✔ reviewed actual screenshots bind exact release bytes, dimensions and honest display text (3.622917ms)
+✔ unreviewed image bytes, release mismatches and incomplete provenance fail closed (1.851541ms)
+✔ actual PNG headers provide bounded intrinsic dimensions rather than a guessed aspect ratio (0.68475ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 57.682542
