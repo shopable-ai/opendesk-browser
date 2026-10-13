@@ -1,0 +1,220 @@
+{
+  "candidateSha": "d8ae71c285a8c1aaf9eac1c122ec2ac1630bad68",
+  "gitTree": "96d5c00e63dec9e14822df525212a5ab3ce70ccd",
+  "method": "immutable Git archive, no checkout or worktree",
+  "cwd": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/evidence/browser-sdk-r106-20261014/committed-candidate-ci-recovery-final",
+  "nodeVersion": "v24.16.0",
+  "dailyDistUntouched": true,
+  "privateGuardPort": 43127,
+  "steps": [
+    {
+      "key": "nodeTests",
+      "argv": [
+        "node",
+        "--test",
+        "--test-reporter=spec",
+        "tests/environment/browser-sdk-r8-catalog.test.mjs",
+        "tests/environment/browser-sdk-r8-cookies.test.mjs",
+        "tests/environment/browser-sdk-r7-trusted-cookies.test.mjs",
+        "tests/environment/browser-sdk-r7-mapping.test.mjs",
+        "tests/environment/browser-sdk-contract-compat.test.mjs",
+        "tests/environment/browser-sdk-coverage.test.mjs",
+        "tests/environment/browser-tabs-host.test.mjs",
+        "tests/environment/browser-sidepanel-host.test.mjs",
+        "tests/environment/browser-sdk-r2-host.test.mjs",
+        "tests/environment/browser-screenshot-host.test.mjs",
+        "tests/environment/browser-screenshot-resources.test.mjs",
+        "tests/environment/browser-network-observe-host.test.mjs",
+        "tests/environment/browser-sdk-approval-timeout.test.mjs",
+        "tests/environment/browser-sdk-r2-demo.test.mjs",
+        "tests/environment/browser-sdk-p3-implementation.test.mjs",
+        "tests/environment/browser-sdk-p3-bookmarks.test.mjs",
+        "tests/environment/browser-sdk-p4-implementation.test.mjs",
+        "tests/environment/browser-sdk-r9-installed-cookies.test.mjs",
+        "tests/environment/browser-sdk-r9-installed-host.test.mjs",
+        "tests/environment/browser-sdk-p5-scheduler.test.mjs",
+        "tests/environment/browser-sdk-r106-trusted.test.mjs",
+        "tests/environment/browser-sdk-r106-history-ui.test.mjs",
+        "tests/environment/browser-sdk-r106-host.test.mjs",
+        "tests/environment/scheduled-tasks-r1.test.mjs",
+        "tests/environment/scheduled-task-timezone-r25.test.mjs",
+        "tests/environment/browser-sdk-freeze.test.mjs",
+        "tests/environment/browser-sdk-interface-matrix.test.mjs",
+        "tests/environment/browser-framework-ledger.test.mjs",
+        "tests/environment/cookie-editor-ui.test.mjs",
+        "tests/environment/sidebar-tool-enable-r26.test.mjs",
+        "tests/environment/official-tools-catalog-r45.test.mjs"
+      ],
+      "command": "node --test --test-reporter=spec tests/environment/browser-sdk-r8-catalog.test.mjs tests/environment/browser-sdk-r8-cookies.test.mjs tests/environment/browser-sdk-r7-trusted-cookies.test.mjs tests/environment/browser-sdk-r7-mapping.test.mjs tests/environment/browser-sdk-contract-compat.test.mjs tests/environment/browser-sdk-coverage.test.mjs tests/environment/browser-tabs-host.test.mjs tests/environment/browser-sidepanel-host.test.mjs tests/environment/browser-sdk-r2-host.test.mjs tests/environment/browser-screenshot-host.test.mjs tests/environment/browser-screenshot-resources.test.mjs tests/environment/browser-network-observe-host.test.mjs tests/environment/browser-sdk-approval-timeout.test.mjs tests/environment/browser-sdk-r2-demo.test.mjs tests/environment/browser-sdk-p3-implementation.test.mjs tests/environment/browser-sdk-p3-bookmarks.test.mjs tests/environment/browser-sdk-p4-implementation.test.mjs tests/environment/browser-sdk-r9-installed-cookies.test.mjs tests/environment/browser-sdk-r9-installed-host.test.mjs tests/environment/browser-sdk-p5-scheduler.test.mjs tests/environment/browser-sdk-r106-trusted.test.mjs tests/environment/browser-sdk-r106-history-ui.test.mjs tests/environment/browser-sdk-r106-host.test.mjs tests/environment/scheduled-tasks-r1.test.mjs tests/environment/scheduled-task-timezone-r25.test.mjs tests/environment/browser-sdk-freeze.test.mjs tests/environment/browser-sdk-interface-matrix.test.mjs tests/environment/browser-framework-ledger.test.mjs tests/environment/cookie-editor-ui.test.mjs tests/environment/sidebar-tool-enable-r26.test.mjs tests/environment/official-tools-catalog-r45.test.mjs",
+      "exitCode": 0,
+      "status": "PASS",
+      "elapsedSeconds": 0.67,
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/nodeTests-ci-recovery-final.log",
+      "sha256": "85f049c07cb06e453300d33422a80275c6fffcbaedac285ae290704dd7b3ba4f"
+    },
+    {
+      "key": "matrix",
+      "argv": [
+        "node",
+        "scripts/check-browser-sdk-interface-matrix.mjs",
+        "--check"
+      ],
+      "command": "node scripts/check-browser-sdk-interface-matrix.mjs --check",
+      "exitCode": 0,
+      "status": "PASS",
+      "elapsedSeconds": 0.045,
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/matrix-ci-recovery-final.log",
+      "sha256": "3c7068b5bfa647f2f45dabe6491007c3f53703328d2f11df0086b07f8147bca8"
+    },
+    {
+      "key": "catalog",
+      "argv": [
+        "node",
+        "scripts/sync-chrome-api-catalog.mjs",
+        "--check"
+      ],
+      "command": "node scripts/sync-chrome-api-catalog.mjs --check",
+      "exitCode": 0,
+      "status": "PASS",
+      "elapsedSeconds": 0.049,
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/catalog-ci-recovery-final.log",
+      "sha256": "8e5d6ca0c24ba6f14e36e93930c11ddd994e1623026e831a8a4d6ca2a8fdd123"
+    },
+    {
+      "key": "coverage",
+      "argv": [
+        "node",
+        "scripts/check-browser-sdk-coverage.mjs",
+        "--check"
+      ],
+      "command": "node scripts/check-browser-sdk-coverage.mjs --check",
+      "exitCode": 0,
+      "status": "PASS",
+      "elapsedSeconds": 0.055,
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/coverage-ci-recovery-final.log",
+      "sha256": "432f3cdd896265ed971d69d44ef3aa444b0a62cac92106dd48c96393b58d1efe"
+    },
+    {
+      "key": "ledger",
+      "argv": [
+        "node",
+        "scripts/check-browser-framework-ledger.mjs",
+        "--check"
+      ],
+      "command": "node scripts/check-browser-framework-ledger.mjs --check",
+      "exitCode": 0,
+      "status": "PASS",
+      "elapsedSeconds": 0.052,
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/ledger-ci-recovery-final.log",
+      "sha256": "1395bab75824af803b4966f1790afd50d315e6ed82f102b7a87a73c598d4330b"
+    },
+    {
+      "key": "freeze",
+      "argv": [
+        "node",
+        "scripts/check-browser-sdk-freeze.mjs"
+      ],
+      "command": "node scripts/check-browser-sdk-freeze.mjs",
+      "exitCode": 0,
+      "status": "PASS",
+      "elapsedSeconds": 0.06,
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/freeze-ci-recovery-final.log",
+      "sha256": "0b2cccef956fff1f093c7363137bb83f1bcc45b084410c8458789dc23ad1f218"
+    },
+    {
+      "key": "check",
+      "argv": [
+        "npm",
+        "run",
+        "check"
+      ],
+      "command": "npm run check",
+      "exitCode": 0,
+      "status": "PASS",
+      "elapsedSeconds": 19.082,
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/check-ci-recovery-final.log",
+      "sha256": "5a3df4fe18df36d0ec280ae65b3a25bc003379937991759117f164f10d6b865b"
+    },
+    {
+      "key": "buildProduction",
+      "argv": [
+        "npm",
+        "run",
+        "build"
+      ],
+      "command": "npm run build",
+      "exitCode": 0,
+      "status": "PASS",
+      "elapsedSeconds": 25.613,
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/buildProduction-ci-recovery-final.log",
+      "sha256": "4bbb7c4605758190efd6ba28ad2f93b1a3d682e030105951b2662eeaa52d6483"
+    },
+    {
+      "key": "buildDevelopment",
+      "argv": [
+        "npm",
+        "run",
+        "build:dev"
+      ],
+      "command": "npm run build:dev",
+      "exitCode": 0,
+      "status": "PASS",
+      "elapsedSeconds": 23.597,
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/buildDevelopment-ci-recovery-final.log",
+      "sha256": "d048727d3b753e8d89b6d596e0acbb9b0b500b9992594388b6386661e76eea12"
+    },
+    {
+      "key": "buildSize",
+      "argv": [
+        "npm",
+        "run",
+        "build:size"
+      ],
+      "command": "npm run build:size",
+      "exitCode": 0,
+      "status": "PASS",
+      "elapsedSeconds": 1.202,
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/buildSize-ci-recovery-final.log",
+      "sha256": "a9dada7051032efbb81cc4cb3492fe238ea4f8deff8abde8bfd4b080bc089cf4"
+    },
+    {
+      "key": "verify",
+      "argv": [
+        "npm",
+        "run",
+        "verify"
+      ],
+      "command": "npm run verify",
+      "exitCode": 0,
+      "status": "PASS",
+      "elapsedSeconds": 2.194,
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/verify-ci-recovery-final.log",
+      "sha256": "b8f936e34a60d44f18ce824a7757841a026be7de258a2414f422d8c6b6b6d566"
+    },
+    {
+      "key": "targetedMainRegressions",
+      "argv": [
+        "node",
+        "--test",
+        "--test-reporter=spec",
+        "tests/environment/browser-sdk-r13.test.mjs",
+        "tests/environment/sidebar-tools.test.mjs",
+        "tests/environment/sidebar-tools-host.test.mjs",
+        "tests/environment/official-tools-catalog-r45.test.mjs",
+        "tests/environment/fixed-entries-audit.test.mjs",
+        "tests/framework/k4-sdk-reinjection.test.mjs",
+        "tests/framework/k4-sdk.test.mjs",
+        "tests/framework/k2-sdk-relay-races.test.mjs",
+        "tests/environment/boundaries.test.mjs",
+        "tests/framework/k4-sdk-hello-races.test.mjs",
+        "tests/framework/k4-sdk-bundle-reinjection.test.mjs"
+      ],
+      "command": "node --test --test-reporter=spec tests/environment/browser-sdk-r13.test.mjs tests/environment/sidebar-tools.test.mjs tests/environment/sidebar-tools-host.test.mjs tests/environment/official-tools-catalog-r45.test.mjs tests/environment/fixed-entries-audit.test.mjs tests/framework/k4-sdk-reinjection.test.mjs tests/framework/k4-sdk.test.mjs tests/framework/k2-sdk-relay-races.test.mjs tests/environment/boundaries.test.mjs tests/framework/k4-sdk-hello-races.test.mjs tests/framework/k4-sdk-bundle-reinjection.test.mjs",
+      "exitCode": 0,
+      "status": "PASS",
+      "elapsedSeconds": 1.372,
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/targetedMainRegressions-ci-recovery-final.log",
+      "sha256": "d46df9374875c53b9a5135e3af36af15825ceb81415a5a338a544edcd48dfeea"
+    }
+  ]
+}

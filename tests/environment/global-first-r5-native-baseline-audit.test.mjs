@@ -38,7 +38,7 @@ test('altered candidate SHA, physical package and native PASS fail closed',()=>{
     [x=>{x.taskSourceHash='d'.repeat(64)},/source bytes/],
     [x=>{x.gitSha='f'.repeat(64)},/exact CI SHA/],
     [x=>{x.native=false},/actual Chrome driver/],
-    [x=>{x.platform='linux'},/macOS baseline/]
+    [x=>{x.platform='linux'},/Native report platform mismatch; Linux Chrome must never become a macOS receipt/]
   ]){
     const candidate=structuredClone(report);edit(candidate);
     assert.throws(()=>inspectR5TaskNativeReport(candidate,expected),message);

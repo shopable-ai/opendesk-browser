@@ -1,0 +1,53 @@
+{
+  "runtimeSourceCandidate": "d8ae71c285a8c1aaf9eac1c122ec2ac1630bad68",
+  "testInputs": [
+    {
+      "path": "tests/environment/browser-editions-r245.test.mjs",
+      "bytes": 2260,
+      "sha256": "173a8f2392de4ba951dd755323dd3d5e25cdfbae4263dca7d231fe6d5cc04e58"
+    },
+    {
+      "path": "tests/environment/global-first-r5-benchmark.test.mjs",
+      "bytes": 7296,
+      "sha256": "57c09c5830c47a65dda27919abdf4599c0b91873a17927521c5270a01038398a"
+    },
+    {
+      "path": "tests/environment/global-first-r5-native-baseline-audit.test.mjs",
+      "bytes": 4762,
+      "sha256": "28f6f37e1a40b16e5322d2b5cffb2ad2e37a181b309147ce859b98ade96cde9c"
+    }
+  ],
+  "sourceInputs": [
+    {
+      "path": "scripts/browser-editions-r245.mjs",
+      "bytes": 1883,
+      "sha256": "7177f8929057c837613ce7b91a3a3a4cf700d62ecf68f135d193e43ff2ea203b"
+    },
+    {
+      "path": "src/libs/page-frameworks/contract.js",
+      "bytes": 8802,
+      "sha256": "82961bad722dfb8bb8e5b535539a1c1129cec3cf8f793d3f9098cc746fab605f"
+    },
+    {
+      "path": "scripts/global-first-r5-benchmark.mjs",
+      "bytes": 8600,
+      "sha256": "9a1251690994f7ce568da7ab777c908ae44a827affecc7bdc55ecd6bba089a4c"
+    },
+    {
+      "path": "scripts/global-first-r5-native-baseline-audit.mjs",
+      "bytes": 6101,
+      "sha256": "df5d6837f0dc2eba78cf773c14f2920c0dec33749764e21316ae49c2489a9c44"
+    }
+  ],
+  "status": "PASS",
+  "tests": 16,
+  "pass": 16,
+  "fail": 0,
+  "command": "node --test tests/environment/browser-editions-r245.test.mjs tests/environment/global-first-r5-benchmark.test.mjs tests/environment/global-first-r5-native-baseline-audit.test.mjs",
+  "log": {
+    "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/node-ci-fixed-fixtures.log",
+    "bytes": 1681,
+    "sha256": "fa0dad4f5bb3d52a503f45774a77f356067634368165ee7edc89291d700948f9"
+  },
+  "note": "Independent follow-up fixture input; no retroactive full-suite or native PASS"
+}

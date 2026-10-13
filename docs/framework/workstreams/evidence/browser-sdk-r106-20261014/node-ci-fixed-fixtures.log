@@ -1,0 +1,24 @@
+✔ R24.5 Standard is the default and ships zero browser compiler assets (0.777959ms)
+✔ R24.5 Developer bundles exactly the pinned browser compiler closure (0.345625ms)
+✔ R24.5 malformed or cross-edition resource markers fail closed (0.816875ms)
+✔ empty or incomplete R5 evidence never creates a market ranking or invented zeros (2.01775ms)
+✔ only a fully observed pre-registered cohort yields a scoped comparative timing (0.745792ms)
+✔ duplicates, missing evidence, unverified zero model calls and absent comparable versions fail closed (0.322084ms)
+✔ fake Node receipt cannot satisfy OpenDesk real-Chrome repeated-run objective (0.143667ms)
+✔ benchmark plan and GF record never equate tests or market exploration with published first (0.074417ms)
+✔ a fast failing bot cannot win a median-success-only speed comparison (0.14ms)
+✔ synthetic fixed-installation evidence rejects a changed version or duplicate RunId within 20 repetitions (0.228167ms)
+✔ synthetic Chrome-declared repeats reject reused identities and mixed source versions (0.258416ms)
+✔ auditor checks only report/source consistency; never certifies native origin or AI model disconnect (0.961708ms)
+✔ altered candidate SHA, physical package and native PASS fail closed (0.9575ms)
+✔ missing native result or incomplete Task installation cannot qualify a baseline (0.307166ms)
+✔ separate real Result, document, retired Worker and visible page effect all required (0.569083ms)
+✔ explicit Linux native audit is platform-scoped and cannot promote to macOS proof (0.217958ms)
+ℹ tests 16
+ℹ suites 0
+ℹ pass 16
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 115.88425

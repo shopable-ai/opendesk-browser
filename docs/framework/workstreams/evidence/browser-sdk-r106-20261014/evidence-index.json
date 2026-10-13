@@ -1,6 +1,6 @@
 {
   "schemaVersion": "opendesk.browser-sdk.r106-evidence-index.v1",
-  "auditedCandidate": "3763a70eed4855be91d597336938611ba9c86352",
+  "auditedCandidate": "d8ae71c285a8c1aaf9eac1c122ec2ac1630bad68",
   "createdAgainstHead": "22abce369312e385f35dc240bd93b8635d125464",
   "formalNativePass": 0,
   "files": [
@@ -26,8 +26,8 @@
     },
     {
       "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/candidate-delivery.json",
-      "bytes": 92219,
-      "sha256": "c15528b388b78950d567e5424e200801e6552678581ff3924f98813bf7979d8f"
+      "bytes": 91935,
+      "sha256": "87fc72639fae3b1db40a3b1aa4d96e42bacb52234e671b0652f6b9d7ef592e02"
     },
     {
       "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/candidate-delivery-586f979b.json",
@@ -1463,6 +1463,141 @@
       "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/main-push-ci-recovery.json",
       "bytes": 362,
       "sha256": "e9e0edd2f8b51f6d8bee19aca4bb07475884fa9ebf5f4e9b6bc8a064880376ac"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/committed-candidate-ci-recovery-final.json",
+      "bytes": 435,
+      "sha256": "5d814819091705282b64348516aceac59b1c7be97cf9be4f2cce9ef6df586461"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/checks-ci-recovery-final.json",
+      "bytes": 10558,
+      "sha256": "a08e2f1f1c2467f48176241a5024092e478a0e0dbbb2c6881545239abc5c7490"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/whole-node-ci-recovery-final.json",
+      "bytes": 728,
+      "sha256": "bccebffe8b625b2a76116942d21f6382bc57bdb3f111fd1ee339c959c97d4568"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/node-whole-ci-recovery-final.log",
+      "bytes": 265553,
+      "sha256": "d4136c7a8f4040ef1a08c79ddc9bf89f1a6d118845a52c4860226ee8144477de"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/candidate-delivery-3763a70e.json",
+      "bytes": 92219,
+      "sha256": "c15528b388b78950d567e5424e200801e6552678581ff3924f98813bf7979d8f"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/ci-cookie-recovery-final-job.log",
+      "bytes": 1200390,
+      "sha256": "ca2913e0efa596bf8cfe2fe8f9f995409fc79e95dbb5ebd72684f7dfc65b6b9a"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/actions-ci-recovery-final.json",
+      "bytes": 138920,
+      "sha256": "1cdfbfd454d5aaad800f14c2726bf5ccc24f1265cf9a2ee26650bf5de29b739c"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/actions-ci-recovery-final-initial.json",
+      "bytes": 138902,
+      "sha256": "6177aa583b8048f2586e8e4af08ac24907c19682e0ee55a4e75a3f57533a3755"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/actions-ci-recovery-final-38464868316-jobs.json",
+      "bytes": 4439,
+      "sha256": "c1a770a7f74470260f4325d96101bdaa04c3cd32c6c76a6d611a4dd8bbca8c62"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/node-ci-fixed-fixtures.log",
+      "bytes": 1681,
+      "sha256": "fa0dad4f5bb3d52a503f45774a77f356067634368165ee7edc89291d700948f9"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/ci-fixed-fixtures.json",
+      "bytes": 1953,
+      "sha256": "bcc3364a86a09c778733d7fa309a0d165f0c039fde9392c66d7d11c64bb40139"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/nodeTests-ci-recovery-final.log",
+      "bytes": 27654,
+      "sha256": "85f049c07cb06e453300d33422a80275c6fffcbaedac285ae290704dd7b3ba4f"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/matrix-ci-recovery-final.log",
+      "bytes": 187,
+      "sha256": "3c7068b5bfa647f2f45dabe6491007c3f53703328d2f11df0086b07f8147bca8"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/catalog-ci-recovery-final.log",
+      "bytes": 98,
+      "sha256": "8e5d6ca0c24ba6f14e36e93930c11ddd994e1623026e831a8a4d6ca2a8fdd123"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/coverage-ci-recovery-final.log",
+      "bytes": 98,
+      "sha256": "432f3cdd896265ed971d69d44ef3aa444b0a62cac92106dd48c96393b58d1efe"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/ledger-ci-recovery-final.log",
+      "bytes": 260,
+      "sha256": "1395bab75824af803b4966f1790afd50d315e6ed82f102b7a87a73c598d4330b"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/freeze-ci-recovery-final.log",
+      "bytes": 453,
+      "sha256": "0b2cccef956fff1f093c7363137bb83f1bcc45b084410c8458789dc23ad1f218"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/check-ci-recovery-final.log",
+      "bytes": 208,
+      "sha256": "5a3df4fe18df36d0ec280ae65b3a25bc003379937991759117f164f10d6b865b"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/buildProduction-ci-recovery-final.log",
+      "bytes": 18418,
+      "sha256": "4bbb7c4605758190efd6ba28ad2f93b1a3d682e030105951b2662eeaa52d6483"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/buildDevelopment-ci-recovery-final.log",
+      "bytes": 22594,
+      "sha256": "d048727d3b753e8d89b6d596e0acbb9b0b500b9992594388b6386661e76eea12"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/buildSize-ci-recovery-final.log",
+      "bytes": 12245,
+      "sha256": "a9dada7051032efbb81cc4cb3492fe238ea4f8deff8abde8bfd4b080bc089cf4"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/verify-ci-recovery-final.log",
+      "bytes": 42815,
+      "sha256": "b8f936e34a60d44f18ce824a7757841a026be7de258a2414f422d8c6b6b6d566"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/targetedMainRegressions-ci-recovery-final.log",
+      "bytes": 20357,
+      "sha256": "d46df9374875c53b9a5135e3af36af15825ceb81415a5a338a544edcd48dfeea"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/builds-ci-recovery-final/build-development-latest.json",
+      "bytes": 208,
+      "sha256": "c5d4a09817a5c31d0756dfe5edd429602f7e23a5484c15aba8caf6facc703bc2"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/builds-ci-recovery-final/build-development.json",
+      "bytes": 487915,
+      "sha256": "06e564a4d6a1769023f48872b8773d20a7bb080505237c7499758ff9f1106d9b"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/builds-ci-recovery-final/build-production-latest.json",
+      "bytes": 206,
+      "sha256": "75979372fd768d9244cb1985657955e9d73e5d952a5aa387b8b9a68174dbbb67"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/builds-ci-recovery-final/build-production.json",
+      "bytes": 465954,
+      "sha256": "8aa3ba15d1272bfc25e11275515fd4f1df05ae1e940023d0c83e6301927b2abe"
     }
   ],
   "limitations": [
@@ -1477,5 +1612,6 @@
     "Compiled native input executables; recorded source and hash retained",
     "Live watcher log continues changing; not immutable acceptance proof"
   ],
-  "ciRecoverySupplement": "ci-recovery-followup.json"
+  "ciRecoverySupplement": "ci-recovery-followup.json",
+  "latestSupplementAgainstHead": "d0da6299b9bb2c45055d34e6ded52fc7c679e8d0"
 }

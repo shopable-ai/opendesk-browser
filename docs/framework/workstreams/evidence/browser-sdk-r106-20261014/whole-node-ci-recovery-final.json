@@ -1,0 +1,12 @@
+{
+  "candidateSha": "d8ae71c285a8c1aaf9eac1c122ec2ac1630bad68",
+  "command": "npm test",
+  "cwd": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/evidence/browser-sdk-r106-20261014/committed-candidate-ci-recovery-final",
+  "buildReceipts": "builds-ci-recovery-final",
+  "exitCode": 1,
+  "status": "FAIL",
+  "elapsedSeconds": 32.7,
+  "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/evidence/browser-sdk-r106-20261014/node-whole-ci-recovery-final.log",
+  "sha256": "d4136c7a8f4040ef1a08c79ddc9bf89f1a6d118845a52c4860226ee8144477de",
+  "note": "Complete immutable candidate repository regression after verified production/development builds; no gate removed"
+}

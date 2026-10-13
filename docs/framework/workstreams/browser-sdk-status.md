@@ -1,7 +1,6 @@
 ## R10.6 · 当前 Registry 与独立证据（2026-10-14）
 
-SOURCE_WIRED 55、NODE_PASS 55、BUILD_PASS 55、正式 NATIVE_PASS 0。公开 Registry 53 和可信 Host-only 2 分开登记；Node/Build 不代表原生验收。干净源码候选 `3763a70eed4855be91d597336938611ba9c86352` 的 SDK/关联 Node 272/272 与定向 CI 回归 211/211、Check/双构建/Size/Verify PASS；源码输入与包 Hash 见 `docs/framework/workstreams/evidence/browser-sdk-r106-20261014/candidate-delivery.json`。同提交 R5 SDK CI、targeted-main CI 与包预算 CI PASS；Cookie 独立工作流的全仓 Node gate 仍 FAIL（2271 中 31 FAIL）。额外并行工作区 Node 21 FAIL 和 Cookie 原生组件失败单独保留，不提升正式 Native 状态。
-
+SOURCE_WIRED 55、NODE_PASS 55、BUILD_PASS 55、正式 NATIVE_PASS 0。公开 Registry 53 与可信 Host-only 2 分开登记。固定候选 `d8ae71c285a8c1aaf9eac1c122ec2ac1630bad68` 的关联 Node 288/288、定向回归 211/211、Check/双构建/Size/Verify 均 PASS，470 项构建输入一致；完整身份与原始日志见 `docs/framework/workstreams/evidence/browser-sdk-r106-20261014/candidate-delivery.json`。同提交 R5 与 targeted-main Actions PASS。Cookie 独立 SDK 134/134 PASS，完整 CI gate 2275 中 33 FAIL；Mac 同候选全仓回归 28 FAIL。三项独立旧夹具已另行定向修复，16/16 PASS，不改写旧全仓结果。正式 Native 全部 NOT_TESTED，95 分目标 NOT_SCORED。
 
 批准合同 55：当前唯一公开 Registry 53，可信 Host-only 2；Scheduler 已复用已有 Schedule Service / Repository / Alarms / RunHost 接线。创建计划需要精确任务 Revision、当前网站和真实可信确认；工具只能管理自有计划。History 与 Permissions 不进入公开 Registry。当前整体候选验证仍在进行，Native 未有本候选证据的接口保持 NOT_TESTED。
 
