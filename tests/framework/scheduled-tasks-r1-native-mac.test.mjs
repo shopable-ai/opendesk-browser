@@ -606,7 +606,7 @@ test('real installed Chrome: verified Task via Alarms -> original RunHost -> pag
   // The first action is Pause/Resume; the second action edits the plan.
   // Verify the label before trusting a pointer click in this native test.
   await deadline(()=>evaluate(client,
-    'document.querySelector("'+"#schedule-plan-list .schedule-card .schedule-plan-actions button:first-child"+'")?.textContent?.includes("暂停")',
+    'document.querySelector("#schedule-plan-list .schedule-card .schedule-plan-actions button:first-child")?.textContent?.includes("暂停")',
     runnerSid),'real first plan action is Pause, not Edit');
   await click(client,runnerSid,'#schedule-plan-list .schedule-card .schedule-plan-actions button:first-child');
   await deadline(async()=>{
