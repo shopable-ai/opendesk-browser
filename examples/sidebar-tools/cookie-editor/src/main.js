@@ -413,21 +413,21 @@ async function saveBrowserCookie(){
     if(old&&key(row)!==key(old))throw new Error('不能修改已存在 Cookie 的身份');
     options=nativeInput(row);
   }catch(e){status('Cookie 属性不合法：'+e.message,'error');return;}
-  setBusy(true);
+  setBusy(true);let confirmed=false;
   try{
     const receipt=await browserSdk().cookies.set(options);
     if(!stillCurrent(id,target))return;
     if(receipt?.saved!==true||receipt.verified!==true)
       throw Object.assign(new Error('Chrome 未确认写入，禁止直接重试'),{code:'E_OUTCOME_UNKNOWN'});
-    scrubEditors();status('Chrome 已确认写入，正在重新读取。','success');
+    confirmed=true;scrubEditors();status('Chrome 已确认写入，正在重新读取。','success');
   }catch(e){if(stillCurrent(id,target))status('写入可能未完成（'+(e.code||'E_COOKIE_SET')+
     '）：'+e.message+'。请刷新核对，勿盲目重试。','error');}
   finally{if(id===epoch){setBusy(false);render();}}
-  if(stillCurrent(id,target))void readBrowserMetadata();
+  if(confirmed&&stillCurrent(id,target))void readBrowserMetadata();
 }
 async function deleteBrowserCookie(row){
   if(busy||!liveTarget||mode!=='browser')return;
-  const id=epoch,target=liveTarget;setBusy(true);
+  const id=epoch,target=liveTarget;setBusy(true);let confirmed=false;
   try{
     const result=await browserSdk().cookies.remove({url:target.url,name:row.name,
       domain:row.domain,path:row.path,...(row.storeId?{storeId:row.storeId}:{}),
@@ -435,11 +435,11 @@ async function deleteBrowserCookie(row){
     if(!stillCurrent(id,target))return;
     if(result?.removed!==true||result.verified!==true)
       throw Object.assign(new Error('删除回执未核实'),{code:'E_OUTCOME_UNKNOWN'});
-    liveSecrets.delete(key(row));status('Chrome 已确认删除「'+row.name+'」。','success');
+    confirmed=true;liveSecrets.delete(key(row));status('Chrome 已确认删除「'+row.name+'」。','success');
   }catch(e){if(stillCurrent(id,target))status('删除未确认（'+(e.code||'E_COOKIE_REMOVE')+
     '）：'+e.message+'。请核对实际 Cookie，勿重复删除。','error');}
   finally{if(id===epoch){setBusy(false);render();}}
-  if(stillCurrent(id,target))void readBrowserMetadata();
+  if(confirmed&&stillCurrent(id,target))void readBrowserMetadata();
 }
 async function clearBrowserSite(){
   if(busy||pending||!liveTarget||targetPending)return;
@@ -458,15 +458,21 @@ async function clearBrowserSite(){
   ask('将真实清理 '+target.hostname+' 的 '+count+
     ' 条 Host-only Cookie，仅限当前已授权 Store/Partition。不清理其他站点。确认？','确认安全清理',async()=>{
     if(!stillCurrent(id,target))return;
-    setBusy(true);
+    setBusy(true);let confirmed=false;
     try{
       const result=await browserSdk().cookies.clearSite({url:target.url,previewRef,expectedCount:count,maxCookies:50});
+      if(!result||result.preview!==false||result.scope!=='EXACT_HOST_HOST_ONLY'||
+        result.matched!==count||!Number.isSafeInteger(result.removed)||
+        !Number.isSafeInteger(result.remaining)||result.removed<0||result.removed>count||
+        result.remaining<0||result.remaining>50)
+        throw Object.assign(new Error('Chrome 批量清理回执不完整，请手动刷新核对'),{code:'E_OUTCOME_UNKNOWN'});
+      confirmed=true;
       if(stillCurrent(id,target))status('Chrome 清理完成：删除 '+result.removed+
         ' 条，剩余 '+result.remaining+' 条。','success');
     }catch(e){if(stillCurrent(id,target))status('清理部分生效或失败（'+(e.code||'E_COOKIE_CLEAR')+
       '）：'+e.message+'。请重新预览，不要直接重试。','error');}
     finally{if(id===epoch){setBusy(false);render();}}
-    if(stillCurrent(id,target))void readBrowserMetadata();
+    if(confirmed&&stillCurrent(id,target))void readBrowserMetadata();
   });
 }
 
@@ -573,7 +579,7 @@ async function prepareLiveImport(){
   ask('导入真实 Chrome · '+target.hostname+'；新增 '+created+' 条，可能覆盖 '+replaced+
     ' 条。每条写入单独请求确认；失败/未知结果不会重试。继续？','确认导入真实浏览器',async()=>{
     if(!stillCurrent(id,target))return;
-    let succeeded=0,failed=null;setBusy(true);
+    let succeeded=0,failed=null,complete=false;setBusy(true);
     try{
       for(const row of rows){
         if(!stillCurrent(id,target))break;
@@ -590,13 +596,13 @@ async function prepareLiveImport(){
       }
       if(stillCurrent(id,target)){
         if(!failed&&succeeded===rows.length){
-          scrubEditors();status('已由 Chrome 确认导入 '+succeeded+' 条。正在刷新实际列表。','success');
+          complete=true;scrubEditors();status('已由 Chrome 确认导入 '+succeeded+' 条。正在刷新实际列表。','success');
         }else status('真实导入已确认 '+succeeded+'/'+rows.length+' 条，接下来的操作已停止（'+
           (failed?.code||'E_COOKIE_IMPORT')+'）：'+String(failed?.message||'网站已切换')+
           '。请先检查 Chrome 实际状态，不能盲目重试。','error');
       }
     }finally{if(id===epoch){setBusy(false);render();}}
-    if(stillCurrent(id,target))void readBrowserMetadata();
+    if(complete&&stillCurrent(id,target))void readBrowserMetadata();
   });
 }
 async function mutate(operation,payload,okText){
