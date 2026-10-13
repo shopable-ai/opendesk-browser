@@ -523,5 +523,65 @@
     "nativePanelScreenshot": "NATIVE_PENDING",
     "chromeZoom125And200": "NATIVE_PENDING",
     "note": "Preview does not grant Task/Provider authority or execute Worker. Production migration must reuse existing Host, Installer, SDK and R27/R28 tokens."
+  },
+  "masterPlan": {
+    "date": "2026-10-13",
+    "status": "IMPLEMENTATION_ACTIVE_QUALITY_NOT_VERIFIED",
+    "completeFunctionTree": "docs/architecture/browser-framework/cloud-control-r5.2-complete-function-tree.zh-CN.md",
+    "machineFunctionMatrix": "docs/framework/workstreams/cloud-control-r5-02-function-matrix.json",
+    "interfaceSecurityContract": "docs/architecture/browser-framework/cloud-control-r5.2-interface-security-contract.zh-CN.md",
+    "singleExecutionManual": "docs/framework/cloud-control-r5.2-execution-manual.zh-CN.md",
+    "independentScorecard": "docs/framework/workstreams/cloud-control-r5-02-expert-scorecard.json",
+    "uiOverlay39": "docs/architecture/browser-framework/cloud-control-r5.2-ui-preview-contract.zh-CN.md",
+    "uiPreview": "examples/ui/cloud-control-r5.2-preview.html",
+    "functionInventory": {
+      "capabilities": 98,
+      "qualityAndDeploymentChecks": 12,
+      "totalTraceable": 110,
+      "uiOverlayChecks": 39,
+      "uiChecksAdditive": false
+    },
+    "workPackages": {
+      "gates": 7,
+      "packages": 30,
+      "implementationCompletionPercent": "NOT_A_VALID_METRIC"
+    },
+    "staticDesignAssessment": {
+      "estimated": 86,
+      "outOf": 100,
+      "status": "ASSISTANT_PRELIMINARY_STATIC_REVIEW",
+      "productQuality": "NOT_VERIFIED"
+    },
+    "actualCI": {
+      "sourceSha": "7aff8bd27e258022cdf186019409dcc07fdee719",
+      "runId": 38379208965,
+      "conclusion": "failure",
+      "cloudComponent": {
+        "passed": 45,
+        "failed": 0
+      },
+      "authority": {
+        "passedBeforeCrash": 105,
+        "failure": "V8_HEAP_OOM_IN_K3_TEST",
+        "elapsedAboutSeconds": 416
+      },
+      "packageRunId": 38379209138,
+      "packageConclusion": "cancelled",
+      "packageHash": null,
+      "evidenceUrl": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38379208965"
+    },
+    "followup": {
+      "rootCause": "K3 mock recursively invoked cloudStop for /v1/suspend while simulating /v1/admission",
+      "sourceFixCommit": "90e1651eeb2ad364e4ced4fc44e9d155ddcfc708",
+      "workflowTriggerCommit": "6b510c5185833c16fae459345834f78e4f26e415",
+      "newCiRunId": 38401041303,
+      "newCiStatus": "queued_as_checked",
+      "mustVerifyNewSha": true
+    },
+    "native": {
+      "twoDistinctTaskRuns": "NATIVE_PENDING",
+      "realUi": "NATIVE_PENDING",
+      "publicProvider": "REMOTE_NATIVE_PENDING"
+    }
   }
 }
