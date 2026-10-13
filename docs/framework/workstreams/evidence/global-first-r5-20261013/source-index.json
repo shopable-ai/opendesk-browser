@@ -23,12 +23,14 @@
     },
     {
       "id": "claude-in-chrome",
-      "eventDate": "2026-07-24",
-      "channel": "BETA_RELEASE_NOTES_FEATURE",
+      "eventDate": "2025-12-18",
+      "channel": "ANTHROPIC_OFFICIAL_DECEMBER_2025_BETA_RELEASE_NOTES",
       "url": "https://support.claude.com/en/articles/12138966-release-notes",
-      "summary": "Record and repeat workflow, model-free source ownership not proven",
-      "firstPublicFeatureClaim": true,
-      "nativeComparativeTest": "NOT_TESTED"
+      "summary": "Dec 18 2025 official notes already list record/repeat workflow; Nov 24 2025 notes scheduled browser tasks/approved plans. Historical first availability earlier than those notes remains unknown; no fixed-source model-free execution proved.",
+      "firstPublicFeatureClaim": false,
+      "nativeComparativeTest": "NOT_TESTED",
+      "earliestDatedPublicDocumentationVerified": "2025-12-18",
+      "firstFeatureHistoricalCompleteness": "UNKNOWN"
     },
     {
       "id": "uipath-delegate",
@@ -181,5 +183,12 @@
     "Claude recorded workflow does not by itself prove frozen JS ownership",
     "benchmark test scripts without native Chrome cannot earn MAC_CFT_PASS",
     "do not reuse archived EXP-002 as product proof"
-  ]
+  ],
+  "dateCorrection": {
+    "invalidPriorClaudeDate": "2026-07-24",
+    "correctDatedOfficialRecord": "2025-12-18",
+    "earlierScheduledTaskRecord": "2025-11-24",
+    "resolvedAt": "2026-10-13",
+    "source": "https://support.claude.com/en/articles/12138966-release-notes"
+  }
 }
