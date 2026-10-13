@@ -216,6 +216,9 @@ test('one Provider serves authenticated HTTPS/WSS and target-scoped client submi
       permittedResultClient.credential)).result.valueWire.text,'RESULT-BODY-CONSENT-ONLY');
     const stopped=await retry('/v1/suspend',{grantId},executor.credential);
     assert.deepEqual(stopped,{suspended:true,grantId});
+    await assert.rejects(localPost(provider.port,'/admin/client-grant',
+      {executorId,tasks:[pin],allowResult:false},admin.adminToken),
+      {code:'E_EXECUTOR_TARGET'},'Paused hosting cannot authorize another external client');
     await assert.rejects(retry('/v1/submit',{...seed,requestKey:'after-user-stop'},
       permittedResultClient.credential),{code:'E_CLOUD_STOPPED'});
     assert.equal((await retry('/v1/job-status',{jobId:contentJob.jobId},
