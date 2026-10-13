@@ -214,3 +214,5 @@ node scripts/cloud-control/cli.mjs client:revoke --client CLIENT_UUID --director
 - 十五项 **DESIGN_SCORE、IMPLEMENTATION_SCORE、VERIFICATION_SCORE** 仍独立 **`NOT_VERIFIED`**；不宣称总体 95+。构建预算保持生产固定条目 512 KiB；不得通过提高阈值伪造通过。
 
 **当前唯一事实性后续阻断**：GitHub Actions 队列与无 Mac Chrome 原生资源。先确认最终同一 SHA `npm run test:cloud`、Authority/Side Panel、`npm run check`、`npm run build`、`npm run build:dev`、`npm run verify`；构建成功时记录当次真实 PackageHash。再在相互隔离的原生 Chrome A/B 上完成两个不同 Task Worker/Run/Result/receipt 及隐私/授权撤销/未知副作用；没有公网授权不标公网通过。
+
+**CI 状态追加核查（同日，保留上方首次观察时间）：** 固定预算 CI [#38379209138](https://github.com/shopable-ai/opendesk-browser/actions/runs/38379209138) 已由 `pending` 转为 `completed/cancelled`（并行 `main` 提交期间被取消），因此 **不是 PASS 也不是实际构建失败**；当前候选无可用的生产/开发 PackageHash。R5.2 专项 [#38379208965](https://github.com/shopable-ai/opendesk-browser/actions/runs/38379208965) 仍在排队；两者均不能标记 `BUILD_VERIFIED` 或新 `COMPONENT_TESTED`。同名 JSON 已追加此状态，保留旧状态的历史快照。
