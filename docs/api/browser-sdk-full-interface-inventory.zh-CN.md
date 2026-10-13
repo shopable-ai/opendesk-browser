@@ -1,3 +1,5 @@
+> **R9 当前命名**：`tabs.create({url})`、`tabs.activateOwned({tabRef})`、`tabs.removeOwned({tabRef})`。后两项是仅操作自己 TabRef 的受限 API；本页 R5 兼容叙述仅为历史，不再约束开发期新接口。
+
 # Browser SDK 全接口扩展候选目录（R5+ / 2026-10-12）
 
 > **R8 阅读提示**：下面 **27 组、114 项**是旧版产品候选，不是 Chrome 官方全量 API；当下已存在 [固定 Chromium JSON 的首批 8 个 Namespace](chrome-native-api-catalog.json)，IDL 和其余 Namespace 仍未同步，不能把未知标成 UNSUPPORTED。正式操作由 [注册表](../../src/framework/sdk/browser-contract.js) 定义，新架构和映射看 [R8 决策](browser-sdk-architecture-r8.zh-CN.md)。原始 Cookie 10 项不变；观察结果读取缺口建议另列 `browser.cookies.observe.read` 第 11 个候选（未登记、未实现，不加入原 114 项）。
@@ -85,7 +87,7 @@
 - `OpenDeskSDK.browser.tabs.getActive()`
 - `OpenDeskSDK.browser.tabs.getOwned()` — **R5 APPROVED / SOURCE_WIRED；原生 Chrome NOT_TESTED**
 - `OpenDeskSDK.browser.tabs.listOwned()` — **R5 APPROVED / SOURCE_WIRED；原生 Chrome NOT_TESTED**
-- `OpenDeskSDK.browser.tabs.closeOwned()` — **R5 APPROVED / SOURCE_WIRED；原生 Chrome NOT_TESTED**
+- `OpenDeskSDK.browser.tabs.removeOwned()` — **R5 APPROVED / SOURCE_WIRED；原生 Chrome NOT_TESTED**
 - `OpenDeskSDK.browser.tabs.reloadOwned()`
 - `OpenDeskSDK.browser.tabs.navigateOwned()`
 - `OpenDeskSDK.browser.tabs.duplicateOwned()`
