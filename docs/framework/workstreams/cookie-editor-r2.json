@@ -10,16 +10,16 @@
     "docs/framework/workstreams/cookie-editor-r2.json"
   ],
   "modes": {
-    "browser": "public-sdk-getAll-adapter-only, fail-closed without R9",
+    "browser": "installed Cookie SDK R9 with real Host execution and per-site capability; Native NOT_TESTED",
     "offline": "local-memory-only"
   },
   "states": {
     "source": "SOURCE_WIRED",
-    "sdkCookies": "BLOCKED",
-    "browserWrite": "BLOCKED",
-    "browserValues": "BLOCKED",
-    "browserClear": "BLOCKED",
-    "observe": "BLOCKED",
+    "sdkCookies": "SOURCE_WIRED",
+    "browserWrite": "SOURCE_WIRED",
+    "browserValues": "SOURCE_WIRED",
+    "browserClear": "SOURCE_WIRED",
+    "observe": "SOURCE_WIRED",
     "node": "NOT_TESTED",
     "build": "NOT_TESTED",
     "verify": "NOT_TESTED",
@@ -27,11 +27,10 @@
     "expertRating": "NOT_SCORED"
   },
   "r9Blockers": [
-    "Public getAll/get/set/remove API contract",
-    "Cookie capability package allowlist",
-    "Host site/Store/Partition grants and lifecycle",
-    "separate values permission",
-    "clearSite preview receipts and observe"
+    "Current candidate Node tests / full Check, Build and Verify not actually run",
+    "Mac Chrome installed Cookie Editor real permission/native read/write/delete/clear/observe/lifecycle NOT_TESTED",
+    "Old trusted Cookie UI migration and duplicate product entry deletion blocked until native proof",
+    "Responsive Chrome zoom and keyboard acceptance NOT_TESTED"
   ],
   "testsRun": [
     "GitHub source inspection",
@@ -58,10 +57,55 @@
     "2026-10-13 R2.0.1 target input pending fence and stale authorization; Node/Chrome not executed",
     "R2.1: fixed browser/offline header identity and stale read on edited site; manual refresh re-checks public SDK read grant; partition ancestor preserved",
     "Current trusted Chrome Cookie manager is separate from ordinary installed Cookie Editor; no permission inheritance",
-    "V8 synthetic component smoke PASS; Node, Build, Verify, Mac Chrome NOT_TESTED"
+    "V8 synthetic component smoke PASS; Node, Build, Verify, Mac Chrome NOT_TESTED",
+    "R3: 11 public Cookie operations and installed Cookie Editor v2 SOURCE_WIRED; Node, Build, Verify and Chrome native remain NOT_TESTED. Keep original R2 findings as history."
   ],
-  "cookieEditorVersion": "1.1.1",
+  "cookieEditorVersion": "2.0.0",
   "trustedHostCookieOperations": 11,
-  "trustedHostExposure": "HOST_ONLY; internal approve/execute, not OpenDeskSDK.browser.cookies",
-  "productDuplicateUiPresent": true
+  "trustedHostExposure": "11 approved public scoped installed-tool methods in the existing Host; legacy trusted-only approve/execute internal until safe consumer migration",
+  "productDuplicateUiPresent": true,
+  "historicalR2States": {
+    "source": "SOURCE_WIRED",
+    "sdkCookies": "BLOCKED",
+    "browserWrite": "BLOCKED",
+    "browserValues": "BLOCKED",
+    "browserClear": "BLOCKED",
+    "observe": "BLOCKED",
+    "node": "NOT_TESTED",
+    "build": "NOT_TESTED",
+    "verify": "NOT_TESTED",
+    "nativeChrome": "NOT_TESTED",
+    "expertRating": "NOT_SCORED"
+  },
+  "historicalR2Blockers": [
+    "Public getAll/get/set/remove API contract",
+    "Cookie capability package allowlist",
+    "Host site/Store/Partition grants and lifecycle",
+    "separate values permission",
+    "clearSite preview receipts and observe"
+  ],
+  "r3": {
+    "date": "2026-10-13",
+    "branch": "main",
+    "sdkRegistryOperations": 40,
+    "publicCookieOperations": 11,
+    "packageVersion": "2.0.0",
+    "packageFormat": "opendesk.sidebar-tool.v2",
+    "installationPolicy": "optional",
+    "source": "SOURCE_WIRED",
+    "node": "NOT_TESTED",
+    "build": "NOT_TESTED",
+    "verify": "NOT_TESTED",
+    "nativeChrome": "NOT_TESTED",
+    "expertRating": "NOT_SCORED",
+    "authorization": "per installed tool hash/version/epoch + explicit Origin/Store/Partition + capability",
+    "values": "independent values site capability",
+    "safeClear": "one-use <=60s exact Cookie set previewRef; count-only invalid",
+    "testSource": "tests/environment/browser-sdk-r9-installed-cookies.test.mjs",
+    "knownIncomplete": [
+      "Native Chrome tests",
+      "Old trusted UI migration",
+      "Visual Zoom/keyboard tests"
+    ]
+  }
 }

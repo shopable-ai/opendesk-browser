@@ -1,3 +1,34 @@
+# Cookie Editor R3 · 当前真实源码状态（2026-10-13）
+
+> 以下 R2 / R2.1 历史段落原文保留，但其中的「尚未有公开 SDK」「仅离线操作」「v1.1.1」均已经过时，不再代表最新 main。**此处 R3 为当前状态**；源码接线不是同候选真实 Chrome Native PASS。
+
+## 用户价值与功能树
+
+| 用户核心场景 | 源码 | 当前验证与保留阻塞 |
+| --- | --- | --- |
+| 官方发现并安装独立 Cookie Editor v2.0.0（optional） | SOURCE_WIRED | 真实 Chrome 安装、升级回执 NOT_TESTED |
+| `OpenDeskSDK.browser.cookies` 11 项，统一 Registry 40 项 | SOURCE_WIRED | Node/Build/Native 最新候选 NOT_TESTED |
+| 已安装普通工具按 Origin、Capability、Store/Partition 授权 | SOURCE_WIRED | 原生 Sender、跨工具、撤权、升级、停用回归 NOT_TESTED |
+| 普通重复读取 Cookie 元数据，值默认脱敏 | SOURCE_WIRED | Native read/Path/Store/Partition NOT_TESTED |
+| 另行授权敏感值；按需显示/下载，不写入草稿 | SOURCE_WIRED | 实际授权后原生读取和泄漏检查 NOT_TESTED |
+| 创建、编辑、精确删除，真实回读及未知效果不自动重试 | SOURCE_WIRED | Native 写入/删除及同名不同 Path 拒绝 NOT_TESTED |
+| JSON / Header / Netscape 离线与真实导入导出 | SOURCE_WIRED | 逐条 Chrome 写入和保存文件原生验收 NOT_TESTED |
+| EXACT_HOST_HOST_ONLY 预览→确认→实际清理 | SOURCE_WIRED | ≤50；一次性 60 秒 `previewRef` 绑定完整 Cookie 身份集合；Node 和 Chrome 执行 NOT_TESTED |
+| 有界 Cookie observe.start/status/read/stop 与 Cursor/Gap | SOURCE_WIRED | 跨工具/重启/撤权和事件作用域 Native NOT_TESTED |
+| Side Panel R27/R20 布局、移动宽度和缩放 | SOURCE_WIRED | 300/320/360/420/520px 与 125–200% 真实 Chrome 视觉 NOT_TESTED |
+| 旧可信 UI `approve/execute` 消费者及重复产品入口迁移 | BLOCKED | **暂不删除**现有唯一已知可用受信 UI，须新 Consumer 正反向 Native 通过 |
+| 95+ 专家正式验收 | NOT_SCORED | 同候选完整 Node/Build/Verify/Native/生命周期证据欠缺 |
+
+**唯一通路：** Cookie Editor v2 普通已安装工具 → `OpenDeskSDK.browser.cookies.*` → 既有 Sidebar Tool Bridge → Side Panel 安装与授权 Authority → 原 Browser Dispatcher/Host → 原 `createTrustedCookieHost` + `createCookieService` → Chrome Native。没有第二套 Cookies Host、Cookie Service、安装器或权限数据库。
+
+**当前 GitHub main 源码记录（不等于验收 PASS）：** SDK `994e7b2`；安装工具受限 Host `69859eb`；Dispatcher `58dcda2`；受信逐站 UI `54f6abc`；Cookie Editor 包 v2 `d0964a8`；真实操作 UI `7883280` / `213b393`；正式矩阵 `0dbc459`；总账 `1ed1641`；专项 Node 测试已编写 `dee77be`；预览身份快照 `6d6c4ac`；正式预览合同 `ee4d906`；通用 Cookie 工具权限设置 `725f31a`；原受信 UI 仍保留。
+
+**实际验证边界：** GitHub 源码已写入，部分 JavaScript 在隔离 V8 引擎进行过语法解析（不是 Node 测试）；当前工作环境不提供用户 Mac 的 `/Users/shopme/Documents/workspace/opendesk-browser`、Chrome GUI/Profile、Node 构建工作目录。正式 `node --test`、`npm run check`、`npm test`、`npm run build`、`npm run build:dev`、`npm run verify` 与 Mac Chrome 实际安装均未在本候选执行。历史 R2 V8 冒烟只是旧候选组件证据，不可继承 R3 Node/Native PASS。Chrome 真实版本、扩展包 SHA、Cookie Editor 包 SHA 和截图均不得虚构。
+
+**下一关键任务：** 实际 Node /官方工具打包/Verify → 修复真实失败 → Mac Chrome 真实安装、逐站授权与撤权、真实 CRUD、敏感值、Clear、Observe、重启、升级/停用/卸载 → 基于通过证据迁移旧可信 UI 并移除重复入口 → 才能评分或标记 Native PASS。
+
+---
+
 # Cookie Editor R2 · 真实产品边界与源码进度
 
 日期：2026-10-13；目标：`shopable-ai/opendesk-browser` / `main`。
