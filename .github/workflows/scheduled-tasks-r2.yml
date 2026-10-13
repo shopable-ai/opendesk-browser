@@ -51,7 +51,7 @@ jobs:
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y -qq fonts-noto-cjk
-          fc-match -f '%{family}\\n' 'sans:lang=zh-cn' | grep -F 'Noto Sans CJK'
+          fc-match 'sans:lang=zh-cn' | grep -F 'Noto Sans CJK'
       - uses: browser-actions/setup-chrome@v2
         id: chrome
         with:
