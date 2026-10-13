@@ -286,6 +286,61 @@ export function createCloudService({storage,api,clock={now:()=>Date.now()},asser
     return cloudStatus({},sender);
   }
   let nextPromise;
+  // External-client management is exclusively a real Side Panel Host RPC.
+  // Admin credentials remain on the Provider machine; issued client tokens
+  // exist only in the one-time response and are never written to Browser KV.
+  async function cloudClients(request={},sender){
+    invariant(request&&typeof request==='object'&&!Array.isArray(request)&&
+      Object.keys(request).every(k=>['offset','limit'].includes(k))&&
+      (request.offset===undefined||Number.isSafeInteger(request.offset)&&request.offset>=0)&&
+      (request.limit===undefined||Number.isSafeInteger(request.limit)&&
+        request.limit>=1&&request.limit<=50),'E_SCHEMA');
+    const config=await scoped(sender,tx=>tx.get(KV,CONFIG));
+    invariant(config?.credential,'E_PAIRING');
+    return post(config,'client-list',request);
+  }
+  async function cloudClientGrant(request,sender){
+    invariant(request&&typeof request==='object'&&!Array.isArray(request)&&
+      Object.keys(request).length===3&&
+      typeof request.taskId==='string'&&request.taskId.length>0&&
+      typeof request.label==='string'&&request.label.trim().length>0&&
+      request.label.trim().length<=60&&
+      !/[\\x00-\\x1f\\x7f]/.test(request.label)&&
+      typeof request.allowResult==='boolean','E_SCHEMA');
+    const task=await resolveTask({taskId:request.taskId},sender);
+    const chosen=await scoped(sender,async tx=>{
+      const c=await tx.get(KV,CONFIG);
+      invariant(c?.enabled&&!c.revokedAt&&c.grantId&&c.credential,'E_CLOUD_REVOKED');
+      const approved=c.tasks?.find(t=>t.taskId===request.taskId&&
+        t.version===task.version&&t.manifestHash===task.manifestHash&&
+        t.contentHash===task.contentHash&&t.installationId===task.installationId&&
+        t.generation===task.generation);
+      invariant(approved&&(!request.allowResult||approved.resultAllowed===true),'E_CLIENT_SCOPE');
+      return {config:structuredClone(c),pin:{
+        taskId:approved.taskId,version:approved.version,
+        manifestHash:approved.manifestHash,sourceHash:approved.contentHash
+      }};
+    });
+    const epoch=revocationEpoch;
+    const result=await post(chosen.config,'client-grant',{
+      grantId:chosen.config.grantId,tasks:[chosen.pin],
+      allowResult:request.allowResult,label:request.label.trim()
+    },{isCurrent:()=>epoch===revocationEpoch});
+    const active=await scoped(sender,async tx=>{
+      const c=await tx.get(KV,CONFIG);
+      return c?.enabled&&c.grantId===chosen.config.grantId&&epoch===revocationEpoch;
+    });
+    invariant(active,'E_CLOUD_REVOKED');
+    return result;
+  }
+  async function cloudClientRevoke(request,sender){
+    invariant(request&&typeof request==='object'&&!Array.isArray(request)&&
+      Object.keys(request).length===1&&
+      /^[a-f0-9-]{36}$/i.test(request.clientId),'E_SCHEMA');
+    const config=await scoped(sender,tx=>tx.get(KV,CONFIG));
+    invariant(config?.credential,'E_PAIRING');
+    return post(config,'client-revoke',{clientId:request.clientId});
+  }
   async function cloudNext(_,sender){if(nextPromise)return null;nextPromise=next(sender);try{return await nextPromise;}finally{nextPromise=null;}}
   async function pendingRequest(sender,host,configSnapshot){
     let id=configSnapshot.pendingRequestId;
@@ -427,6 +482,6 @@ export function createCloudService({storage,api,clock={now:()=>Date.now()},asser
       });
     }
   }
-  return {cloudStatus,cloudObserve,cloudPair,cloudApprove,cloudStop,cloudUnpair,cloudNext,cloudResolve,bind,permit,assertActive,read,post,reconcile,invalidate,
+  return {cloudStatus,cloudObserve,cloudPair,cloudApprove,cloudStop,cloudUnpair,cloudClients,cloudClientGrant,cloudClientRevoke,cloudNext,cloudResolve,bind,permit,assertActive,read,post,reconcile,invalidate,
     attachConnection({start,stop}){wake=start;close=stop;},connection(state){connectionState=state;online=state==='authenticated';if(!online)reconciled=false;},setReconciled(value){reconciled=value;}};
 }
