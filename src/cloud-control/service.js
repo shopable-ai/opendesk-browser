@@ -79,7 +79,11 @@ export function createCloudService({storage,api,clock={now:()=>Date.now()},asser
         nextOffset=offset+page.length<total?offset+page.length:null;
         for(const r of page){
           const run=r.runId?await tx.get('runs',r.runId):null;
-          projected.push({state:r.state,runState:run?.state??null,retirementState:run?.retirementState??null,
+          // Side Panel Host may show a readable installed Task title but never
+          // exports TaskId, parameters, target URL or original Run references.
+          const title=typeof r.task?.manifest?.title==='string'&&r.task.manifest.title.trim()
+            ?r.task.manifest.title.trim().slice(0,80):'历史任务';
+          projected.push({taskTitle:title,state:r.state,runState:run?.state??null,retirementState:run?.retirementState??null,
             receipt:r.receipt?true:null,targetReady:!!run?.target&&run.retirementState!=='released'});
         }
         projected.reverse(); // Existing Side Panel shows the newest sample first.
