@@ -89,7 +89,13 @@ export default defineConfig({
         const options = config.build.terserOptions;
         config.build.terserOptions = {...options, format:{...options.format,semicolons:false}, compress:{...options.compress, passes:6, toplevel:true, top_retain:['sw','background'], unsafe:true}};
       }
-      if (!target || !config.build?.lib) throw new Error('Expected approved WXT library entry');
+      if (target === 'ui/tool-shell.js') {
+         // Preserve the 512 KiB fixed IIFE ceiling; optimize, never relax.
+         const options=config.build.terserOptions;
+         config.build.terserOptions={...options,
+           compress:{...options.compress,passes:6,toplevel:true}};
+       }
+       if (!target || !config.build?.lib) throw new Error('Expected approved WXT library entry');
       // WXT names classic IIFEs after their entry basename by default.
       // A bundle named "dayjs" creates/hoists globalThis.dayjs BEFORE our
       // audited installer runs in the same USER_SCRIPT compilation unit.
