@@ -437,7 +437,7 @@ h1,h2,h3,p{margin-top:0}
       </section>
       <section class="form-section"><p class="form-title"><b>3</b>执行时间</p>
         <div class="rule-pair"><div class="od-field"><label for="field-kind">重复规则</label><select id="field-kind" data-field="kind">${[['once','执行一次'],['daily','每天'],['weekly','每周'],['interval','每隔一段时间']].map(([v,t])=>`<option value="${v}" ${d.kind===v?'selected':''}>${t}</option>`).join('')}</select></div>
-          <div class="od-field"><label for="field-zone">执行时区</label><select id="field-zone" data-field="zone" aria-describedby="zone-help error-time">${timeZoneChoices(d.zone)}</select><p class="field-help" id="zone-help">已自动识别当前浏览器时区，可从地区列表切换；保存后固定选定时区，不随设备设置自动变化。</p></div></div>
+          <div class="od-field"><label for="field-zone">执行时区</label><select id="field-zone" data-field="zone" aria-describedby="zone-help error-time">${timeZoneChoices(d.zone)}</select><p class="field-help" id="zone-help">新建时默认识别本机时区；编辑时保留原计划时区。可选择其他地区，保存后固定不随设备变化。</p></div></div>
         ${d.kind==='once'?`<div class="od-field"><label for="field-once">执行日期和时间（当地）</label><input id="field-once" type="datetime-local" data-field="once" value="${safe(d.once)}" aria-describedby="error-time"></div>`:''}
         ${['daily','weekly'].includes(d.kind)?`<div class="od-field"><label for="field-clock">当地时间</label><input type="time" id="field-clock" data-field="clock" value="${safe(d.clock)}" aria-describedby="error-time"></div>`:''}
         ${d.kind==='weekly'?`<fieldset class="weekdays"><legend>选择每周执行的日期</legend>${weekdays.map(v=>`<label><input type="checkbox" data-weekday="${v}" ${d.days.includes(v)?'checked':''}>周${W[v]}</label>`).join('')}</fieldset>`:''}
