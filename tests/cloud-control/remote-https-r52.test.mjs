@@ -261,6 +261,13 @@ test('one Provider serves authenticated HTTPS/WSS and target-scoped client submi
     }
     const stopped=await retry('/v1/suspend',{grantId},executor.credential);
     assert.deepEqual(stopped,{suspended:true,grantId});
+    await assert.rejects(retry('/v1/client-grant',{grantId,tasks:[pin],
+      allowResult:false,label:'Should not reactivate'},executor.credential),
+      {code:'E_CLOUD_STOPPED'},
+      'Stopped Browser cannot silently mint new remote client permissions');
+    const stoppedListing=await retry('/v1/client-list',{},executor.credential);
+    assert.equal(stoppedListing.total,2,'Stopped Browser may still audit active credentials');
+
     assert.deepEqual(await retry('/v1/submit',seed,grant.credential),created,
       'A stopped browser must not lose the durable result of a prior accepted requestKey');
     await assert.rejects(localPost(provider.port,'/admin/client-grant',
