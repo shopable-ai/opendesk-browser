@@ -19,6 +19,14 @@
 - 共享构建源码由其它并行工作流在 [4ee890c](https://github.com/shopable-ai/opendesk-browser/commit/4ee890c8833cae96bf5ae403317d27aaf0e3b509) 正式登记 `sidebar-tool-host` 到受控 `FIXED_OUTPUTS`，**未放松入口安全检查**；本 R5 只读核查后复用修复，不擅自改 WXT 配置。
 - 仅因上述明确受影响输入变化，启动新的 Linux CFT [#38367685071](https://github.com/shopable-ai/opendesk-browser/actions/runs/38367685071)，源提交 `50c99883f89d84ba60c22974d1a99f87c9573d62`。最终 PASS/FAIL 和加载包哈希只以其实际原始 CI/工件为准，不事先将新工作流存在标为 Native PASS。
 
+## 2026-10-13 · 第二次真正 Linux Chrome 前置构建失败（源码已变，未重放失败）
+
+- 修正 `sidebar-tool-host` 的严格入口白名单后，新的 CI [#38367685071](https://github.com/shopable-ai/opendesk-browser/actions/runs/38367685071)，候选 `50c99883f89d84ba60c22974d1a99f87c9573d62`，**FAIL_BUILD，Chrome 仍未启动**。
+- WXT 代码打包日志明确 `[success] Built extension in 46.4 s`，随后 `scripts/verify-package.mjs:257` 严格校验失败：`Non-classic IIFE output in ui/tool-shell.js: top=1, ExpressionStatement, ... expr=UnaryExpression, unaryArg=CallExpression, unaryCallee=FunctionExpression`。原始失败及构建诊断工件保留于该 run，artifact ID `11797586965`。
+- 实际源码审查：`scripts/verify-package.mjs` 的 `assertClassicIIFE` 只允许顶层单个 `var <entry> = (function(){...})()`，防止未知产物/保留 WXT 私有库名称边界；`wxt.config.mjs` 的 `ui/tool-shell.js` 特殊压缩含 `compress:{passes:6,toplevel:true}`。输出出现顶层一元 FunctionExpression，与压缩保留根变量的冲突相符；**具体构建器导致何种命名变化需由 Side Panel/构建负责人核查实际产物**。
+- 禁止为了凑 R5 native PASS 降低 `assertClassicIIFE`、放宽 CSP/权限、跳过 `npm run build` 或用 `dist` 旧包冒充新 Candidate；正确修复路径应在源构建侧恢复仍符合原严格固定 IIFE 合约且通过 512KiB 预算的 WXT 产物。该路径属于并行 Side Panel/构建工作流，不由 Global First Agent 抢写共享 `wxt.config.mjs` 或 `verify-package.mjs`。
+- **重新触发前提**：负责人确实修改和测试相关构建输入后，获取新的源码 SHA，重新执行定向 build/verify，然后再验本轮真实 Chrome Task；无变化时本轮不循环重试。旧 macOS 任务绑定修正之前的候选，不能被借用为最新主线成功。
+
 ## 这两种测试还缺哪一道连接？
 
 `WorkflowCompiler` 组件验收生成的 `wf-*` 固定源码，与 scheduled Task Native 测试加载的 `sample.form-fill` **不是同一个源码候选**，即使两个单独 PASS 也只能说两个独立切片存在。真正关闭 GF-007 的完整证明必须让**同一个真实模型生成的同一源码 hash**经过用户当前 Mac 的真实审阅 → Run/Result → Candidate/Verify/Available/Installed → 明确关闭模型/Native Provider → 在当前账号合法目标文档重复用户 Run 两次；其中模型调用计数不可臆写 0，必须具备真实可观察回执。
