@@ -78,7 +78,7 @@ export async function openProvider({directory='.local/cloud-control',port=43112,
         // Local administration is never served by the external HTTPS listener.
         if(publicRequest)fail('E_ROUTE');
         if(!secureEqual(req.headers.authorization,'Bearer '+credentials.adminToken))fail('E_AUTH');
-      }else if(path==='/v1/submit'){
+      }else if(path==='/v1/submit'||path==='/v1/job-status'){
         if(!publicRequest)fail('E_TLS_REQUIRED');
         const clientId=Object.keys(state.clients).find(id=>
           !state.clients[id].revokedAt&&
@@ -86,7 +86,8 @@ export async function openProvider({directory='.local/cloud-control',port=43112,
         if(!clientId)fail('E_AUTH');
         client={...state.clients[clientId],clientId};
         const target=state.executors[client.executorId];
-        if(!target||target.revokedAt||target.pairingId!==client.pairingId)fail('E_AUTH');
+        if(!target||target.revokedAt||target.pairingId!==client.pairingId||
+          !client.grantId||client.grantId!==target.grantId)fail('E_AUTH');
       }else if(path!=='/v1/pair'){executorId=Object.keys(state.executors).find(id=>
         !state.executors[id].revokedAt&&secureEqual(req.headers.authorization,'Bearer '+state.executors[id].credential));
         if(!executorId)fail('E_AUTH');}
@@ -120,7 +121,15 @@ export async function openProvider({directory='.local/cloud-control',port=43112,
                 !/^[a-f0-9]{64}$/.test(task.sourceHash))fail('E_SCHEMA');
             }
             const owner=state.executors[executorId];
+            if(owner.retiredGrants?.[b.grantId])fail('E_GRANT_STALE');
             if(owner.grantId&&owner.grantId!==b.grantId){
+              // A delayed old connection cannot roll back a newer approval.
+              owner.retiredGrants??={};
+              owner.retiredGrants[owner.grantId]=clock()||1;
+              // Old client credentials never expand into a new user approval.
+              for(const grant of Object.values(state.clients))
+                if(grant.executorId===executorId&&grant.pairingId===owner.pairingId&&
+                  grant.grantId!==b.grantId)grant.revokedAt=clock()||1;
               // A new local approval generation cannot inherit queued requests.
               for(const job of Object.values(state.jobs))
                 if(job.state==='queued'&&job.targetExecutorId===executorId&&
@@ -181,13 +190,29 @@ export async function openProvider({directory='.local/cloud-control',port=43112,
               executorId:id,pairedAt:row.pairedAt,revoked:!!row.revokedAt,
               connected:[...sockets.values()].includes(id)}))};break;}
           case '/admin/client-grant':{
-            exact(b,['executorId']);
+            exact(b,['executorId','tasks','allowResult']);
             const row=state.executors[b.executorId];
             if(!row||row.revokedAt||!row.grantId)fail('E_EXECUTOR_TARGET');
+            if(!Array.isArray(b.tasks)||b.tasks.length<1||b.tasks.length>32||
+              typeof b.allowResult!=='boolean')fail('E_CLIENT_SCOPE');
+            const pinned=[],seen=new Set();
+            for(const pin of b.tasks){
+              exact(pin,['taskId','version','manifestHash','sourceHash']);
+              if(Object.keys(pin).length!==4||Object.values(pin).some(v=>typeof v!=='string'))
+                fail('E_CLIENT_SCOPE');
+              const registered=state.taskRegistry[taskRegistryKey(pin)];
+              if(!registered||canonical(taskPin(registered))!==canonical(pin)||
+                !row.capabilities?.some(t=>t.taskId===pin.taskId&&
+                  t.manifestHash===pin.manifestHash&&t.sourceHash===pin.sourceHash)||
+                seen.has(pin.taskId))fail('E_CLIENT_SCOPE');
+              seen.add(pin.taskId);pinned.push(structuredClone(pin));
+            }
             const clientId=randomUUID(),credential=token();
             state.clients[clientId]={executorId:b.executorId,pairingId:row.pairingId,
+              grantId:row.grantId,tasks:pinned,allowResult:b.allowResult,
               credential,createdAt:clock(),revokedAt:null};
-            out={clientId,executorId:b.executorId,credential};
+            out={clientId,executorId:b.executorId,tasks:pinned,
+              allowResult:b.allowResult,credential};
             break;
           }
           case '/admin/client-revoke':{
@@ -199,7 +224,9 @@ export async function openProvider({directory='.local/cloud-control',port=43112,
           case '/admin/clients':{
             exact(b,[]);
             out={clients:Object.entries(state.clients).map(([clientId,c])=>({
-              clientId,executorId:c.executorId,createdAt:c.createdAt,revoked:!!c.revokedAt
+              clientId,executorId:c.executorId,createdAt:c.createdAt,
+              taskCount:c.tasks?.length??0,allowResult:c.allowResult===true,
+              revoked:!!c.revokedAt
             }))};break;
           }
           case '/admin/tasks':{
@@ -249,6 +276,7 @@ export async function openProvider({directory='.local/cloud-control',port=43112,
             const params=validateTaskParams(task.manifest.paramsSchema,b.params??{});
             const pin=taskPin(task);
             const owner=state.executors[client.executorId];
+            if(!client.tasks?.some(t=>canonical(t)===canonical(pin)))fail('E_CLIENT_SCOPE');
             if(!owner.grantId||!owner.capabilities?.some(t=>
               t.taskId===pin.taskId&&t.manifestHash===pin.manifestHash&&t.sourceHash===pin.sourceHash))
               fail('E_GRANT','Target Executor has not approved this Task');
@@ -268,6 +296,28 @@ export async function openProvider({directory='.local/cloud-control',port=43112,
                   targetPairingId:client.pairingId,targetGrantId:owner.grantId,submittedBy:client.clientId};
                 return {jobId};
               });
+            break;
+          }
+          case '/v1/job-status':{
+            exact(b,['jobId']);
+            const j=state.jobs[b.jobId];
+            if(typeof b.jobId!=='string'||!j||j.submittedBy!==client.clientId||
+              j.targetExecutorId!==client.executorId||
+              j.targetPairingId!==client.pairingId||
+              j.targetGrantId!==client.grantId)fail('E_JOB');
+            const status=j.receipt?.result?.state||
+              (j.cancelled?(j.runRef?'OUTCOME_UNKNOWN':'cancelled'):
+                j.state==='admitted'&&j.assignment?.leaseUntil<=clock()?'OUTCOME_UNKNOWN':
+                j.state==='assigned'&&j.assignment?.leaseUntil<=clock()?'expired_before_admission':
+                j.state);
+            const full=j.receipt?.result;
+            out={jobId:j.jobId,state:status,receiptConfirmed:!!j.receipt,
+              ...(client.allowResult===true&&j.resultAllowed===true&&
+                full?.visibility==='full'?{result:{
+                  state:full.state,
+                  ...(Object.hasOwn(full,'valueWire')?{valueWire:full.valueWire}:{}),
+                  ...(Object.hasOwn(full,'error')?{error:full.error}:{})
+                }}:{})};
             break;
           }
           case '/admin/cancel':exact(b,['jobId']);if(!state.jobs[b.jobId])fail('E_JOB');state.jobs[b.jobId].cancelled=true;out={cancelled:true};break;
