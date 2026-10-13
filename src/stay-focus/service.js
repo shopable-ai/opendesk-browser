@@ -289,8 +289,8 @@ export function createStayFocusService({api=globalThis.chrome,lockManager=global
         }
       }catch{/* Content script may be unavailable; never weaken DNR. */}
     }
-    if(['focus.disable','focus.clear'].includes(operation)||removedOrigins.length)
-      await clearPageNotices(api);
+    if(['focus.disable','focus.clear'].includes(operation)||removedOrigins.length||
+       (raw?.enabled===true&&!state.enabled))await clearPageNotices(api);
     // Advance this epoch only after durable policy and native rule reconciliation
     // succeed. A failure must not make a stale checkpoint billable on retry.
     if(startGeneration===generation){
@@ -348,6 +348,15 @@ export function installStayFocusService({api=globalThis.chrome,...options}={}){
   listen(api.permissions.onAdded,activity);
   listen(api.runtime.onStartup,()=>run({boot:true}));
   listen(api.storage.onChanged,(changes,area)=>{
+    // A tool uninstall may remove its entire business record before reconcile
+    // observes it. Clear the short-lived page notice from that event directly.
+    if(area==='local'&&changes[SIDEBAR_TOOL_STORE]){
+      const oldRows=changes[SIDEBAR_TOOL_STORE].oldValue;
+      const newRows=changes[SIDEBAR_TOOL_STORE].newValue;
+      if(Array.isArray(oldRows)&&oldRows.some(row=>row?.id===FOCUS_ID)&&
+         !(Array.isArray(newRows)&&newRows.some(row=>row?.id===FOCUS_ID)))
+        void clearPageNotices(api);
+    }
     if(area==='local'&&[SIDEBAR_TOOL_STORE,SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE]
       .some(key=>Object.hasOwn(changes,key))){service.invalidate({revoke:true});run({boot:true});}
   });

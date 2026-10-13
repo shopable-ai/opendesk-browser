@@ -164,6 +164,12 @@
     $('focus-stop').hidden=!focused;
     if(focused&&!ruleUnverified)$('total-caption').textContent='专注模式进行中，预计 '+new Date(state.focusUntil).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})+' 结束。';
     $('site-count').textContent=state.sites.length+' 个网站';
+    const managed=state.sites.filter(site=>site.group==='entertainment');
+    const examples=(managed.length?managed.map(site=>site.host):
+      state.catalog.filter(row=>row.auto).map(row=>row.name)).slice(0,4);
+    $('managed-preview').textContent=examples.join(' · ')+
+      (Math.max(0,(managed.length||state.catalog.filter(row=>row.auto).length)-4)?' 等':'')+
+      ' · 可逐站暂停或排除';
     const list=$('sites');list.replaceChildren();
     for(const site of state.sites)list.append(badgeSite(site));
     if(!state.sites.length)list.append(create('p','sf-empty',

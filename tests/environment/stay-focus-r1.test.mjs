@@ -1,7 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {focusHost,hostnameMatches,focusRemovedOriginAffectsSite,focusLocalDay,FOCUS_MAX_GAP_MS} from '../../src/stay-focus/policy.js';
+import {focusHost,hostnameMatches,focusRemovedOriginAffectsSite,focusLocalDay,FOCUS_MAX_GAP_MS,FOCUS_PAGE_NOTICE_PROTOCOL} from '../../src/stay-focus/policy.js';
+import {installFocusPageNotice} from '../../src/stay-focus/page-notice.js';
 import {emptyFocus,readFocus,focusSite,focusSiteScopesValid,focusSchedule,focusMatchingSite,focusPool,
   focusBudget,focusReason,focusScheduleActive,settleFocus,focusDueReminder,focusSummary} from '../../src/stay-focus/model.js';
 import {FOCUS_CATALOG,focusCatalogMatch,focusDefaultSites} from '../../src/stay-focus/catalog.js';
@@ -399,4 +400,40 @@ test('R1.4 reminder thresholds are charged-only, persisted and at most once',()=
     'a one-minute native acceptance budget must not fire 10/5/1 immediately');
   const work=FOCUS_CATALOG.find(row=>row.host==='github.com');
   assert.equal(focusCatalogMatch(work.host)?.auto,false);
+});
+
+test('R1.4 isolated page notice accepts fixed messages only, never duplicates or trusts HTML',()=>{
+  class Element {
+    constructor(tag){this.tag=tag;this.children=[];this.parent=null;this.textContent='';}
+    setAttribute(k,v){this[k]=v;}
+    addEventListener(name,fn){this[name]=fn;}
+    append(...items){for(const node of items){node.parent=this;this.children.push(node);}}
+    attachShadow(){this.shadow=new Element('shadow');return this.shadow;}
+    remove(){if(this.parent)this.parent.children=this.parent.children.filter(row=>row!==this);}
+  }
+  const root=new Element('html');
+  const doc={documentElement:root,visibilityState:'visible',createElement:tag=>new Element(tag)};
+  const win={};win.top=win;
+  let listener=null,removed=false,timers=0;
+  const api={runtime:{onMessage:{
+    addListener:fn=>{listener=fn;},removeListener:fn=>{removed=listener===fn;}
+  }}};
+  const stop=installFocusPageNotice({api,doc,win,
+    setTimer:()=>++timers,clearTimer:()=>{}});
+  const send=message=>{let result=null;listener(message,{},reply=>{result=reply;});return result;};
+  const safe={protocol:FOCUS_PAGE_NOTICE_PROTOCOL,kind:'threshold',day:'2026-10-13',revision:2,minutes:1};
+  assert.deepEqual(send({...safe,minutes:2}),{displayed:false});
+  assert.deepEqual(send({...safe,html:'<img src=x onerror=alert(1)>'}),{displayed:true});
+  assert.equal(root.children.length,1);
+  const shadow=root.children[0].shadow;
+  assert.equal(shadow.children[1].children[2].textContent.includes('1 分钟'),true);
+  assert.equal(shadow.children[1].children[2].textContent.includes('<img'),false);
+  assert.deepEqual(send(safe),{displayed:false});
+  assert.equal(root.children.length,1,'duplicate delivery must not create a second card');
+  assert.deepEqual(send({protocol:FOCUS_PAGE_NOTICE_PROTOCOL,kind:'clear'}),{displayed:false});
+  assert.equal(root.children.length,0,'disable/uninstall closes the notice');
+  assert.deepEqual(send(safe),{displayed:true},'new active policy may alert after clear');
+  stop();
+  assert.equal(root.children.length,0);
+  assert.equal(removed,true,'listener retired on content-script cleanup');
 });

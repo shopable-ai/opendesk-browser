@@ -54,3 +54,7 @@
 .sf-budget-form input{margin:0!important;text-align:center}
 .sf-budget-form button{min-width:72px}
 @media(max-width:335px){.sf-budget-form{grid-template-columns:1fr 76px}.sf-budget-form label{grid-column:1/-1}}
+
+.sf-managed-details{margin-top:9px}
+.sf-managed-details>summary{cursor:pointer;color:var(--od-brand,#365eda);font-size:12px;font-weight:650;padding:7px 0}
+.sf-managed-details>.sf-list{margin-top:7px}
