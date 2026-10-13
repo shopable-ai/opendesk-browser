@@ -1,5 +1,5 @@
 import {normalizeAiProposal} from '../../framework/workflow/contract.js';
-import {workflowForModel} from './data-sharing.js';
+import {workflowForModel,restoreModelRedactions} from './data-sharing.js';
 
 const bytes=value=>new TextEncoder().encode(value).byteLength;
 const fail=(code,message)=>Object.assign(new Error(message),{code});
@@ -339,7 +339,7 @@ export function createLocalCodexPlanner({client,pollIntervalMs=350,timeoutMs=180
           if(!finalMessageSeen)throw fail('E_AI_RESPONSE','Codex 未返回完整的工作流提议');
           let proposed;
           try{proposed=JSON.parse(completedText);}catch{throw fail('E_AI_RESPONSE','Codex 未返回有效的工作流 JSON，请调整需求后重新发送');}
-          return normalizeAiProposal(proposed,original);
+          return normalizeAiProposal(restoreModelRedactions(proposed,original),original);
         }
         if(terminalStates.has(batch.state)&&!batch.hasMore)throw fail('E_AI_DISCONNECTED','AI 会话中断，最终提议尚无法确认');
         if(!batch.hasMore)await delay(pollIntervalMs,row.controller.signal);
