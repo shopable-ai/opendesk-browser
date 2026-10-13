@@ -1,7 +1,12 @@
 <main class="review">
   <header class="review-top">
-    <div class="review-heading"><span class="eyebrow">时间回顾</span><p id="status" class="status" role="status" aria-live="polite">正在读取本机统计…</p></div>
-    <div class="top-actions"><button id="refresh" type="button" title="刷新统计" aria-label="刷新统计">↻</button><button id="settings-shortcut" type="button">设置</button></div>
+    <div class="review-heading"><p id="status" class="status" role="status" aria-live="polite">正在读取本机统计…</p></div>
+    <div class="top-actions" role="group" aria-label="时间记录与偏好">
+      <button id="start" class="record-switch primary" type="button" title="开始记录" aria-label="开始记录">▶</button>
+      <button id="pause" class="record-switch" type="button" title="暂停记录" aria-label="暂停记录" hidden>⏸</button>
+      <button id="settings-shortcut" class="icon-action" type="button" title="统计偏好与导出" aria-label="统计偏好与导出">⚙</button>
+      <button id="refresh" class="icon-action" type="button" title="刷新统计" aria-label="刷新统计">↻</button>
+    </div>
   </header>
   <div class="datebar" aria-label="查看日期">
     <button id="prev-date" type="button" title="前一天" aria-label="前一天">‹</button>
@@ -50,7 +55,6 @@
   </section>
 
   <p id="site-grant-summary" class="subtle" role="status">网站采集授权需要在工具详情中单独确认。</p>
-  <div class="actions" aria-label="计时操作"><button id="start" class="primary" type="button">开始记录</button><button id="pause" type="button">暂停</button></div>
   <p id="gap" class="subtle" hidden></p>
 
   <section class="records-section" aria-label="详细记录">
@@ -63,7 +67,7 @@
   <details id="settings" class="settings">
     <summary>设置、分钟明细与数据管理</summary>
     <div class="settings-body">
-      <p class="subtle">记录仅在明确开始后进行；浏览器空闲检测权限请在本工具详情的「设置」中授权。</p>
+      <p class="subtle">首次启用需明确同意网站范围与空闲检测权限；暂停与恢复不删除历史记录。权限和授权范围由顶部「工具设置」管理。</p>
       <div class="setting-row"><div><b>保存分钟明细</b><small>仅在工具详情受信任的设置区明确同意后，才保存未来分钟明细；关闭时清除已存明细，不补造旧记录。</small></div><button id="minute-consent" type="button">开启</button></div>
       <label for="idle">空闲阈值（秒）</label><input id="idle" type="number" min="15" max="3600" value="60">
       <label for="retention">汇总保留天数（7–365；分钟明细最多 90 天）</label><input id="retention" type="number" min="7" max="365" value="90">

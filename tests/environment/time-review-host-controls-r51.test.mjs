@@ -70,3 +70,22 @@ test('R5.1 sandbox cannot directly start background tracking or delete history',
   assert.match(block,/tocSettingsOpen=true/);
   assert.match(source,/runTrustedTimeReviewOperation/);
 });
+
+test('R1.5.1 sandbox start stays inline until genuine trusted Host confirmation',async()=>{
+  const source=await readFile('src/ui/sidebar-tools.js','utf8');
+  const start=source.indexOf('if(TIME_REVIEW_OPERATIONS.includes(operation)){');
+  const end=source.indexOf("if(operation==='knowledge.editorState')",start);
+  const block=source.slice(start,end);
+  assert.match(block,/if\(operation==='time\.start'\)\{/);
+  assert.match(block,/requestBrowserClick\(\{/);
+  assert.match(block,/runTrustedTimeReviewOperation\('time\.start',\{\},event\)/);
+  assert.match(block,/assertSession\(source,token\)/);
+  const index=await readFile('examples/sidebar-tools/time-review/src/index.html','utf8');
+  const header=index.slice(index.indexOf('<header class="review-top">'),index.indexOf('</header>'));
+  assert.match(header,/id="start"/);
+  assert.match(header,/id="pause"/);
+  assert.match(header,/aria-label="暂停记录"/);
+  assert.equal((index.match(/id="start"/g)||[]).length,1);
+  assert.equal((index.match(/id="pause"/g)||[]).length,1);
+  assert.doesNotMatch(index,/<span class="eyebrow">时间回顾<\/span>/);
+});

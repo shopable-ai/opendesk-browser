@@ -26,6 +26,20 @@
     return element;
   };
   const showMessage=(message,error=false)=>{$('status').textContent=message;$('status').dataset.error=String(error);};
+  function activityStatus(view){
+    if(view.paused)return '已暂停';
+    if(!view.idlePermission)return '空闲检测未授权';
+    if(view.trackingHost)return '正在记录';
+    return ({
+      idle:'系统空闲 · 暂不计时',
+      'window-inactive':'Chrome 未在前台',
+      excluded:'当前网站已排除',
+      'site-not-authorized':'当前网站未授权',
+      'chrome-site-permission':'Chrome 网站权限不足',
+      'unsupported-page':'当前页面不计时',
+      'observation-error':'无法确认活动状态'
+    })[view.waitingReason]||'已启用 · 等待可记录网站';
+  }
   const safeDate=date=>new Date(date+'T12:00:00');
   const shiftDate=(date,offset)=>{
     const d=safeDate(date);d.setDate(d.getDate()+offset);
@@ -217,12 +231,21 @@
     const data=dayData();
     const compatible=state.hostApiVersion==='time.review/1.5.0';
     $('start').disabled=busy||!state.paused||!compatible;
+    $('start').hidden=!state.paused;
+    $('pause').hidden=state.paused;
+    const startLabel=state.authorized?'恢复记录':'开始记录';
+    $('start').title=startLabel;
+    $('start').setAttribute('aria-label',startLabel);
+    $('pause').title='暂停记录';
+    $('pause').setAttribute('aria-label','暂停记录');
     const grants=state.siteGrants||{allSites:false,origins:[]};
     $('site-grant-summary').textContent=!compatible?'后台版本不支持独立网站授权，请先升级 OpenDesk 主扩展。':
       grants.allSites?'已同意记录全部普通网站（可在工具详情撤销）':
       grants.origins?.length?'已单独授权 '+grants.origins.length+' 个网站（在工具详情管理）':
       '尚未授权网站；请在「工具详情 → 设置」先授权当前网站或全部普通网站。';
-    $('start').textContent=state.authorized?'恢复记录':'开始记录';
+    $('site-grant-summary').hidden=compatible&&state.idlePermission&&
+      (grants.allSites||Boolean(grants.origins?.length))&&
+      !['site-not-authorized','chrome-site-permission'].includes(state.waitingReason);
     $('pause').disabled=busy||state.paused;
     $('next-date').disabled=busy||selectedDate>=state.today;
     $('prev-date').disabled=busy||selectedDate<=earliest();
@@ -266,8 +289,7 @@
         state=result;
         if(!selectedDate||selectedDate>state.today||selectedDate<earliest())selectedDate=state.today;
         if(operation==='time.clear'){day=null;filter=null;editing=false;}
-        showMessage(!state.idlePermission?'未授权空闲检测；请在工具详情设置中授权。':
-          state.paused?'已暂停 · 历史数据保留':state.trackingHost?'正在记录 '+state.trackingHost:'记录已开启 · 等待可访问网页');
+        showMessage(activityStatus(state));
         await readDay();
       }
     }catch(err){

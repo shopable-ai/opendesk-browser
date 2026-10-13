@@ -111,3 +111,23 @@
 .review #clear-area{margin-top:10px}
 @media(max-width:349px){.review{padding:9px}.review .hero{padding:10px}.review .surface,.review .timeline-card,.review .current-card{padding:9px}.review .qcard{padding:7px}.review .qcard .q-bottom b{font-size:13px}.review .hero-metric.main b{font-size:21px}}
 @media(prefers-reduced-motion:reduce){.review .eff-track i{transition:none}}
+
+/* Time Review R1.5.1: one compact record action in the tool header.
+   The shared trusted Side Panel header continues to own tool uninstall. */
+.review .review-heading{flex:1;min-width:0}
+.review .status{font-size:12px;font-weight:650;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.review .status[data-error=true]{white-space:normal;overflow-wrap:anywhere;font-weight:500}
+.review .top-actions{align-items:center;flex:none;gap:5px}
+.review .top-actions .record-switch,.review .top-actions .icon-action{
+  width:32px;min-width:32px;height:32px;min-height:32px;padding:0;
+  display:grid;place-items:center;font-size:17px;line-height:1;
+}
+.review .top-actions .record-switch[hidden]{display:none!important}
+.review .top-actions #settings-shortcut{font-size:17px}
+.review .top-actions #refresh{width:32px;height:32px;min-width:32px;font-size:18px}
+.review .top-actions .record-switch.primary{font-size:15px}
+@media(max-width:349px){
+  .review .review-top{gap:6px}
+  .review .top-actions{gap:3px}
+  .review .top-actions .record-switch,.review .top-actions .icon-action{width:30px;min-width:30px;height:30px;min-height:30px}
+}

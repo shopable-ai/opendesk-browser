@@ -745,13 +745,27 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       throw new Error('此工具没有被批准使用该能力');
     if(TIME_REVIEW_OPERATIONS.includes(operation)){
       if(tool.id!==TIME_REVIEW_ID)throw new Error('时间回顾工具身份无效');
-      // Neither the sandbox's script nor a synthetic DOM event is a trusted
-      // browser gesture. Use the explicit non-modal controls in host settings.
-      if(operation==='time.start'||operation==='time.clear'||operation==='time.minuteConsent'||operation==='time.siteGrant'){
+      // The sandbox may REQUEST a start, never authorize it. Preserve the
+      // current Time Review page and wait for one genuine extension-owned
+      // confirmation click. The reviewed action pins the original iframe.
+      if(operation==='time.start'){
+        assertSession(source,token);
+        return requestBrowserClick({
+          message:'开始／恢复已授权网站的本机时间记录？仅统计 Chrome 前台非空闲的使用时间。首次使用请先在顶部「工具设置」单独授权网站和空闲检测。',
+          button:'确认开始记录',toolId:tool.id,
+          run:event=>{
+            assertSession(source,token);
+            return runTrustedTimeReviewOperation('time.start',{},event);
+          }
+        });
+      }
+      // Site grants, minute retention changes and irreversible deletion still
+      // live exclusively in precompiled trusted Host settings controls.
+      if(operation==='time.clear'||operation==='time.minuteConsent'||operation==='time.siteGrant'){
         tocSettingsOpen=true;render();
-        throw Object.assign(new Error(operation==='time.start'
-          ?'请在工具设置中点击「开始／恢复记录」'
-          :operation==='time.siteGrant'?'请在工具详情设置中明确选择网站采集范围':operation==='time.minuteConsent'?'请在工具详情设置中明确选择开启或关闭分钟明细'
+        throw Object.assign(new Error(operation==='time.siteGrant'
+          ?'请在工具详情设置中明确选择网站采集范围'
+          :operation==='time.minuteConsent'?'请在工具详情设置中明确选择开启或关闭分钟明细'
           :'请在工具设置中审阅并明确选择「清空全部记录」'),
         {code:'E_TIME_TRUSTED_CLICK'});
       }
