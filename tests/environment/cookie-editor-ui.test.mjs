@@ -33,9 +33,13 @@ async function harness(browser=null){
     'render,getSiteHeading:()=>E("site-host").textContent,'+
     'setSite:host=>{data={hostname:host,origin:"https://"+host,cookies:[]}},'+
     'setRows:rows=>{data={...data,cookies:rows}}};\n})();');
+  const fixtureBrowser=browser?.cookies?.getAll&&!browser.cookies.getPartitionKey?
+    {...browser,cookies:{...browser.cookies,
+      getPartitionKey:async({url})=>({partitionKey:{topLevelSite:new URL(url).origin,
+        hasCrossSiteAncestor:false}})}}:browser;
   const context={
     OpenDeskTool:{root,request:async()=>({status:'unavailable'}),setState(){}},
-    OpenDeskSDK:browser?{browser}:undefined,
+    OpenDeskSDK:fixtureBrowser?{browser:fixtureBrowser}:undefined,
     Blob,Date,URL,TextEncoder,structuredClone,console
   };
   new Script(instrument,{filename:'cookie-editor-main.js'}).runInNewContext(context);
@@ -54,7 +58,8 @@ test('Cookie Editor is an optional two-mode tool without private cookies API',as
       'browser.cookies.write','browser.cookies.observe','browser.cookies.clear']);
   assert(!/request\(\s*['"]cookies\./.test(s.source));
   assert(!/browser\.cookies\.(?:approve|execute)/.test(s.source));
-  assert(s.source.includes('sdk.cookies.getAll({url:target.url})'));
+  assert(s.source.includes('sdk.cookies.getAll({url:target.url,'),
+    'live Cookie reads must be scoped through the formal public SDK');
   assert(s.source.includes("permission?.callableNow"));
   assert(s.html.includes('id="mode-browser"')&&s.html.includes('id="mode-offline"'));
   assert(s.html.includes('id="read-live"')&&s.html.includes('id="target-url" data-sensitive="true"'));
@@ -212,7 +217,7 @@ test('Public browser reader refuses missing site grant and always drops native v
   assert.equal(s.liveSnapshot().state,'blocked');
   status={callableNow:true};
   await s.readBrowserMetadata();
-  assert.equal(reads,1);
+  assert.equal(reads,2,'unpartitioned and explicitly approved partition are queried separately');
   assert.equal(s.liveSnapshot().state,'ready');
   assert.equal(s.liveSnapshot().rows[0].valueRedacted,true);
   assert.equal(Object.hasOwn(s.liveSnapshot().rows[0],'value'),false);
@@ -284,4 +289,39 @@ test('Explicit refresh retries only an authorized read and never reuses a stale 
   assert(s.source.includes("if(epoch===refreshedEpoch&&mode==='browser'&&!targetPending"));
   assert(s.source.includes('return readBrowserMetadata()'));
   assert(s.source.includes('valueRedacted:true'));
+});
+
+
+test('Browser metadata includes only the approved unpartitioned and partitioned Cookie scopes',async()=>{
+  const origin='https://example.com',calls=[];
+  const s=await harness({capabilities:{getStatus:async()=>({callableNow:true})},
+    cookies:{
+      getPartitionKey:async()=>({partitionKey:{topLevelSite:origin,hasCrossSiteAncestor:false}}),
+      getAll:async options=>{
+        calls.push(options);
+        return options.partitionKey?
+          [{name:'chips',value:'PARTITION_SECRET',domain:'example.com',path:'/',
+            partitionKey:options.partitionKey,storeId:'0'}]:
+          [{name:'base',value:'BASE_SECRET',domain:'example.com',path:'/',storeId:'0'}];
+      }
+    }});
+  s.setLiveTarget(origin+'/');
+  await s.readBrowserMetadata();
+  assert.equal(s.liveSnapshot().state,'ready');
+  assert.deepEqual(s.liveSnapshot().rows.map(x=>x.name),['base','chips']);
+  assert(s.liveSnapshot().rows.every(x=>x.valueRedacted===true&&!Object.hasOwn(x,'value')));
+  assert.equal(calls.length,2);
+  assert.equal(calls[0].partitionKey,undefined);
+  assert.equal(calls[1].partitionKey.topLevelSite,origin);
+});
+test('Unknown approved partition fails closed without displaying partial native data',async()=>{
+  const s=await harness({capabilities:{getStatus:async()=>({callableNow:true})},
+    cookies:{
+      getPartitionKey:async()=>{throw Object.assign(new Error('partition revoked'),{code:'E_GRANT_REVOKED'});},
+      getAll:async()=>[{name:'base',value:'SECRET',domain:'example.com',path:'/'}]
+    }});
+  s.setLiveTarget('https://example.com/');
+  await s.readBrowserMetadata();
+  assert.equal(s.liveSnapshot().state,'error');
+  assert.equal(s.liveSnapshot().rows.length,0);
 });

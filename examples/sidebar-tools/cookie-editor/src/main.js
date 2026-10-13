@@ -314,6 +314,35 @@ async function refresh(){
   }catch(error){if(id===epoch){liveState='error';liveMessage=String(error.message||error);status(liveMessage,'error');}}
   finally{if(id===epoch){setBusy(false);render();}}
 }
+
+// Cookie Editor must not claim partitioned data is empty merely because the
+// Chrome-style default getAll() returns unpartitioned cookies only.
+// The public Host supplies ONLY the partition approved for this site/store;
+// query both explicit scopes without permitting a tool-selected foreign key.
+async function scopedLiveCookies(sdk,target,{includeValues=false,isCurrent=()=>true}={}){
+  if(typeof sdk?.cookies?.getAll!=='function'||typeof sdk.cookies.getPartitionKey!=='function')
+    throw new Error('正式 Browser SDK 缺少真实 Cookie 分区查询接口');
+  const normal=await sdk.cookies.getAll({url:target.url,...(includeValues?{includeValues:true}:{})});
+  if(!isCurrent())return null;
+  if(!Array.isArray(normal))throw new Error('Host 的普通 Cookie 返回不是数组');
+  const partition=await sdk.cookies.getPartitionKey({url:target.url});
+  if(!isCurrent())return null;
+  if(!partition?.partitionKey?.topLevelSite)throw new Error('无法确定已授权 Partition');
+  const partitioned=await sdk.cookies.getAll({url:target.url,
+    partitionKey:partition.partitionKey,...(includeValues?{includeValues:true}:{})});
+  if(!isCurrent())return null;
+  if(!Array.isArray(partitioned))throw new Error('Host 的分区 Cookie 返回不是数组');
+  const combined=new Map();
+  for(const row of [...normal,...partitioned]){
+    if(!row||typeof row.name!=='string'||typeof row.domain!=='string'||typeof row.path!=='string')
+      throw new Error('Host 返回了无效 Cookie 身份');
+    const identity=key(row);
+    if(combined.has(identity))throw new Error('Host 返回同一 Cookie 身份的重复记录，请刷新');
+    combined.set(identity,row);
+  }
+  if(combined.size>100)throw new Error('所选网址 Cookie 总数超过 100 条，请缩小 Path 范围');
+  return [...combined.values()];
+}
 async function readBrowserMetadata(){
   if(busy||pending||!liveTarget||targetPending)return;
   const sdk=browserSdk(),target=liveTarget,id=epoch;
@@ -330,7 +359,9 @@ async function readBrowserMetadata(){
     }
     if(id!==epoch||liveTarget?.url!==target.url||targetPending||mode!=='browser')return;
     // Only public tool SDK: never invoke chrome.cookies or private approve/execute.
-    const result=await sdk.cookies.getAll({url:target.url});
+    const result=await scopedLiveCookies(sdk,target,{
+      isCurrent:()=>id===epoch&&liveTarget?.url===target.url&&!targetPending&&mode==='browser'});
+    if(result===null)return;
     const rows=redactMetadata(result);
     if(id!==epoch||liveTarget?.url!==target.url||targetPending||mode!=='browser')return;
     liveRows=rows;liveState='ready';liveMessage='';
@@ -482,8 +513,9 @@ async function exportBrowserCookies(){
   try{
     // No sensitive value enters Chrome Storage, draft state, logging or telemetry.
     // Browser Host returns values only with a separate site permission.
-    const rows=await browserSdk().cookies.getAll({url:target.url,includeValues:true});
-    if(!stillCurrent(id,target))return;
+    const rows=await scopedLiveCookies(browserSdk(),target,{
+      includeValues:true,isCurrent:()=>stillCurrent(id,target)});
+    if(!stillCurrent(id,target)||rows===null)return;
     if(!Array.isArray(rows)||!rows.length)throw new Error('当前网站没有可导出 Cookie');
     if(rows.some(row=>row.valueRedacted!==false||typeof row.value!=='string'))
       throw new Error('Host 未确认全部 Cookie 敏感值权限');
@@ -505,10 +537,35 @@ async function prepareLiveImport(){
     if(rows.length>10)throw new Error('真实浏览器每批最多 10 条（需逐条确认）；可分批导入，或使用离线模式处理更多记录');
     const scope=await browserSdk().cookies.getCurrentStore({url:target.url});
     if(!stillCurrent(id,target))return;
-    rows=rows.map(row=>({...row,storeId:row.storeId??scope.storeId}));
-    const known=new Set(liveRows.map(key));
-    created=rows.filter(row=>!known.has(key(row))).length;
-    replaced=rows.length-created;
+    const partition=await browserSdk().cookies.getPartitionKey({url:target.url});
+    if(!stillCurrent(id,target))return;
+    if(typeof scope?.storeId!=='string'||!partition?.partitionKey?.topLevelSite)
+      throw new Error('无法确定此次导入的 Store/Partition，不能猜测');
+    rows=rows.map(row=>{
+      if(row.storeId!==undefined&&row.storeId!==scope.storeId)
+        throw new Error('导入文件指定的 Store 不属于该网站已批准的 Store');
+      if(row.partitionKey&&(row.partitionKey.topLevelSite!==partition.partitionKey.topLevelSite||
+         Boolean(row.partitionKey.hasCrossSiteAncestor)!==
+           Boolean(partition.partitionKey.hasCrossSiteAncestor)))
+        throw new Error('导入文件的 Partition 不是此工具已批准的分区');
+      const selected={...row,storeId:scope.storeId};
+      // Validate all native write parameters BEFORE showing the mutation review.
+      nativeInput(selected);
+      return selected;
+    });
+    // The visible list may be stale or may not contain the imported Cookie's
+    // Path. Query each exact Path in its own approved store and partition.
+    // If scope cannot be enumerated, fail closed rather than lying about overwrites.
+    created=0;replaced=0;
+    for(const row of rows){
+      if(!stillCurrent(id,target))return;
+      const url=target.origin+row.path;
+      const found=await browserSdk().cookies.getAll({url,storeId:scope.storeId,
+        ...(row.partitionKey?{partitionKey:row.partitionKey}:{})});
+      if(!stillCurrent(id,target))return;
+      if(!Array.isArray(found))throw new Error('Host 未确认导入冲突预览');
+      if(found.some(cookie=>key(cookie)===key(row)))replaced++;else created++;
+    }
   }catch(error){if(stillCurrent(id,target))status('真实导入预检失败：'+(error.code||'E_COOKIE_IMPORT')+
     ' '+error.message,'error');return;}
   finally{if(id===epoch){setBusy(false);render();}}
