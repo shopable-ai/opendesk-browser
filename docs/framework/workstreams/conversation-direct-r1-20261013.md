@@ -72,3 +72,15 @@
 - G4 原生权限撤销、Document/Stop、Native 断连：NOT_TESTED（原生）。
 - G5 定向 Node、`npm run check`、`npm run build:dev`、同候选 CI：待新提交 GitHub Actions 执行后逐项更新，禁止预写 PASS。
 - 日常 Chrome 扩展路径／ID、真实观察和执行的 Run ID／Result ID／Source Hash、实际页面值、Worker 退出、保存后独立复跑：均为 NOT_TESTED；无伪造日志。
+
+### R1.1-P0 远端实际实施与同候选定向验收结论
+
+- 本次远端 main 原子提交（无分支/PR/worktree、无强推）：
+  1. `c29f35fa4ea1a465b144e0a1f7751d774bd1ab24`：有限语义分区观察、DocumentId 绑定、Codex 必须先得到真实观察回执、操作 Locator 与获批观察结果匹配、Node 用例。
+  2. `8d6e7a9885f8fb21111485fc284ff03b66bed296`：去除直接执行后已过时的二次采用入口及提议预览代码，回收固定入口体积。
+  3. `cc49dc222dc46177d2f528ed3909ce994d4a1625`：在不改权限/执行安全栅栏、不提高构建上限的前提下精简固定观察源码及模型规划提示；复核关闭/未知状态的注释。
+- 严格绑定 `cc49dc222dc46177d2f528ed3909ce994d4a1625` 的 GitHub Workflow **[38440556286](https://github.com/shopable-ai/opendesk-browser/actions/runs/38440556286)** / job `115445708572`：**102/102 Node PASS，0 FAIL**；`npm run check` PASS（检查 658 个文件）；`npm run build:dev` PASS（133 资源，`packageHash=43f445005a2d6052b6d1874ce0b243f1b8e4d845297d273b93acfb4fdc42b055`）。开发构建的固定 `ui/tool-shell.js` 为 **524180/524288 B**，仅剩 108 B，后续须在独立工作范围拆包或压缩，不提高硬限制。
+- 历史候选 `c29f35fa...` 与 `8d6e7a98...` 的定向 Node/Check 步骤成功，但开发构建分别超预算，保留 FAIL 事实。当前源码候选修复并验证后才有上述 PASS。
+- 共享 `site-access` / `sidebar-r1-p0` 等其他 GitHub 工作流有失败，部分与旧 `89c3b298...` 候选相同；**不得把定向 Workflow CI 的 PASS 记为全仓库 CI PASS**。需按各工作流的实际失败记录由所属负责人分开修复。
+- 用户 Mac 工作目录 `/Users/shopme/Documents/workspace/opendesk-browser` 在本执行环境不可访问；未读取 Mac git status，未控制 Mac 已加载 `dist/development` 扩展、profile、Native Host 和 Codex Session/Turn。因此 Scenario A/B/C 真正 Send 后的观察/推理/RunHost/网页副作用、原生授权与撤销、Stop/Unknown、保存工作流再运行、原生扩展 ID、Run ID/Result ID/Source Hash、Worker retirement 与原生结果验证 **全部 NOT_TESTED**。未产生此类原生回执，也未宣称真实浏览器 PASS。
+- 写入文件占用、GitHub 远端原子写入事务已经完成并释放；未占用任何用户 Mac 的进程或共享资源。源代码改动已经提交在远端 `main`，不是本地 Mac Git 同步或真实 Chrome 交付的替代物。
