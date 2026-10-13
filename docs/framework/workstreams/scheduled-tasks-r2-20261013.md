@@ -212,3 +212,10 @@
 3. 在用户 Mac 本地通过项目受控流程核验 `dist/development` 的新旧哈希、`chrome://extensions` 扩展 ID 和路径、`runtime.id` 与 Side Panel 身份，不覆盖用户 Profile、旧配对或其他 Agent watcher。
 4. 创建/编辑/取消/安全权限、空状态、长输入、暗色与 320/360/420 × 真正缩放 100/125/150/200% 均需实际 Chrome 截图，才能对视觉与 Chrome Native 交付判定 95+。
 
+### R2.8 生产构建实际转绿及 Chrome CI 脚本修复
+
+- [Chrome 缩放候选 38428794161](https://github.com/shopable-ai/opendesk-browser/actions/runs/38428794161) 在 SHA `721e9f4d04719a5d358f1ea4e39559108350a874` 的 Linux 日志中，**实际 `npm run build` 输出 `"status":"passed"`**，`packageHash` = `b248ec7409318c61010da94494197a2ecdcf0d01ad4521385bdb4d0ef4caf677`，产物 95 个文件，生产总计约 3.58 MB。
+- 该候选的 `ui/tool-shell.js` = **519,463 B**，硬限额 **524,288 B**，余量 **4,825 B**。这是需要持续监测的包大小风险，不应通过放宽硬限制掩盖；SW = 559,479 B，超过软性复核线但低于 1 MiB 硬限。
+- 该 Linux Job 随后在 Chrome 阶段之前失败，**不是构建失败**，而是工作流调用不存在的 `npm run verify:package`。本轮 [`e259747`](https://github.com/shopable-ai/opendesk-browser/commit/e2597478c4d94bf8bfddf9b5d1b7a914d55440f5) 已将 `.github/workflows/scheduled-tasks-r23-native-zoom.yml` 的单生产包校验改为项目现有真实命令 `node scripts/verify-package.mjs dist/production`；Linux 之后的 `build:dev` 和双包 `verify` 保持原样。
+- 修复后同 SHA 的**真实 Chrome** 与 macOS Matrix 尚需看完成结论及截图证据；上面成功的生产 `packageHash` 仅证明该 GitHub Linux 工作目录的生产包，**不是用户 Mac `dist/development` 的 hash，也不是实际 `chrome://extensions` 加载 ID**。
+
