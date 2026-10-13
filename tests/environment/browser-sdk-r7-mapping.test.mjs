@@ -17,7 +17,8 @@ test('R7 mapping references existing R8 35 rows and exactly ten unexposed Host-o
   assert.equal(r7.legacyOperations.canonicalMapping,'docs/api/browser-sdk-compatibility-map.json');
   assert.deepEqual(new Set(r8.operations.map(row=>row.legacyOperation)),new Set(Object.keys(BROWSER_OPERATIONS)));
   assert.equal(r7.entries.length,10);
-  assert.deepEqual(new Set(r7.entries.map(row=>row.openDeskOperationId)),new Set(TRUSTED_COOKIE_OPERATIONS));
+  assert(r7.entries.every(row=>TRUSTED_COOKIE_OPERATIONS.includes(row.openDeskOperationId)));
+  assert(TRUSTED_COOKIE_OPERATIONS.includes('browser.cookies.observe.read')); // R9 additional lifecycle, frozen R7 map is historical
   assert.equal(BROWSER_HOST_PROTOCOL,'opendesk.browser.v1');
   for(const row of r7.entries){
     assert.equal(row.mappingKind,'HOST_ONLY');
