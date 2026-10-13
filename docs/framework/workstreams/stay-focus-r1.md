@@ -60,3 +60,23 @@ Node mock 组件测试只能标为 **COMPONENT**，不能证明真实 Chrome 导
 4. **撤权与卸载**：本工具 DNR ID 730000–730199、独立业务存储/撤权 epoch 全部核对清零，不影响 Time Review 或其他工具。
 5. **视觉及专家评分**：320/360/400/600px 和 Chrome 实际缩放、键盘焦点、简洁设置动线；每项独立达到 95 之前保持 **NOT_ACCEPTED**。
 
+
+## R1.0 后续实证与修复记录（本轮）
+
+### 完整失败证据与已实施的对应修复
+
+- [GitHub Actions #38365380181](https://github.com/shopable-ai/opendesk-browser/actions/runs/38365380181)（候选 `cc30892fc4fe`）：定向组件 **33/33 PASS**；独立 Stay Focus 工具包 **生成 PASS**，当前该候选工具包 SHA-256：`5b854467841b6e47a627a40d4d19818adfa0a607a04b9ec9793fb4c5d28e3fbb`。整个扩展 `npm run build` **FAIL**：`ui/tool-shell.js` 536921 B 超过固定 524288 B。未提升这一候选到原生 PASS。
+- [GitHub Actions #38367575526](https://github.com/shopable-ai/opendesk-browser/actions/runs/38367575526)（候选 `e736623d737d`）：旧流程中存在已拆出的 `sidebar-tool-host` WXT 入口但尚未登记固定输出白名单，构建拒绝该未知入口。随后已经复用同一 Sidebar Tools Host，补齐构建注册、信任页面加载顺序和静态资源闭包。
+- [GitHub Actions #38368166959](https://github.com/shopable-ai/opendesk-browser/actions/runs/38368166959)（候选 `a7c7f209684b`）：Tool Shell 输出转为压缩后的独立 `!function(){...}()`，而安全审计仅接受命名 `var` IIFE。对应检查器**仅为 ui/tool-shell.js** 增加严格等价结构识别，继续拒绝额外顶层语句、动态代码和非批准入口；新增 `tests/environment/fixed-entries-audit.test.mjs` 专项断言。该候选以及后续当前来源的实际 PASS 必须以完整 CI 结果为准。
+- 实施更安全的 Worker 持久数据恢复：策略损坏时保留原始本机数据，撤掉 Stay Focus 专属规则并报警，而不是留下无法解除的旧 DNR 限制。
+- 与 Time Review 的独立性进一步修复：Chrome 撤销**无关站点权限**不再全局停用 Stay Focus；撤销特定网站权限时只暂停相应网站并同步规则，后续 Chrome 主机权限恢复不自动重新启用。
+- 暂停与父/子域名覆盖一致性修复：`enabled:false` 无论是始终封锁、工作时间还是额度均不能生成规则；被精确管理的子域名覆盖父域名时，父域名 DNR `excludedRequestDomains` 主动排除子树。无法由 DNR 安全表达的“父网站含子域名 + 子网站精确主域名但不含子域名”的叠加设置在保存前拒绝，而不产生错误封锁。
+- 内部限制页基于 Chrome 官方 `sidePanel.open({windowId})` 使用事先读取的**实际窗口 ID**，保证用户点击时同步发起权限相关操作；首次无历史页时返回安全空白页，保留手动进入 Stay Focus 设置的指引。
+
+### 仍未关闭的交付门槛
+
+- **完整当前候选 `npm run check/build/build:dev/verify`**：必须读取后续 CI 原始日志与候选 SHA；当前修复已提交但尚无本候选完整绿色结论。
+- **Mac Chrome 原生网页拦截**：必须使用真实 CFT 安装、Chrome 原生 DNR 规则回读、HTTP 页面导航、最终被限制页截图；不能用 Node DNR 模拟报告代替。
+- **1 分钟真实前台额度消耗**：保留真实活动/idle/浏览器窗口的连续证据；缩短额度的真实验收不能伪造 `usage`。
+- **Worker/Chrome 重启、隔离和卸载**：比较同一 Chrome profile 内的规则 ID、恢复时间、其他工具不受影响等，原生证据未齐前保持 `NOT_ACCEPTED`。
+- **UI 质量评分**：没有真实 Side Panel 尺寸和键盘/缩放截图，任何单维 95+ 都不能自认。
