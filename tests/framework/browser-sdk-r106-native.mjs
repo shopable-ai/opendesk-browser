@@ -194,6 +194,8 @@ async function runNative(){
         rows.some(r=>r.role==='AXButton'&&['Cancel','取消'].includes(r.title||r.description))?rows:null;
     },'actual owned macOS file chooser');
     report.trace.push({at:now(),kind:'native-file-chooser',rows:chooser});
+    const open=['Open','打开'].find(label=>chooser.filter(r=>r.role==='AXButton'&&(r.title===label||r.description===label)).length===1);
+    assert(open,'Unique owned native Open button is required');
     await native('key','go-to-folder');
     await deadline(async()=>{
       const rows=JSON.parse(await native('dump'));
@@ -206,9 +208,9 @@ async function runNative(){
       return rows.some(r=>['AXTextField','AXComboBox'].includes(r.role)&&r.focused&&r.value===file);
     },'exact path entered by native keyboard');
     await native('key','return');await sleep(500);
-    const rows=JSON.parse(await native('dump'));
-    const open=['Open','打开'].find(label=>rows.filter(r=>r.role==='AXButton'&&(r.title===label||r.description===label)).length===1);
-    assert(open,'Unique owned native Open button is required');await native('press',open);
+    // AXPress revalidates the unique live control and owned foreground PID.
+    // A second full dump can traverse the selected JSON's native preview.
+    await native('press',open);
     report.trace.push({at:now(),kind:'native-file-choice',file,sha256:sha256(await readFile(file))});
   }
   async function bindTool(){
