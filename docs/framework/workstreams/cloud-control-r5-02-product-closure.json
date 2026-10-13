@@ -178,7 +178,9 @@
     "uiPreviewNative": "NATIVE_PENDING",
     "cloudProductionConsentReview": "SOURCE_IMPLEMENTED",
     "cloudConsentInvalidation": "SOURCE_IMPLEMENTED",
-    "cloudActiveRefreshCadence": "SOURCE_IMPLEMENTED"
+    "cloudActiveRefreshCadence": "SOURCE_IMPLEMENTED",
+    "cloudProductionTaskDetail": "SOURCE_IMPLEMENTED",
+    "cloudTaskReapprovalGuidance": "SOURCE_IMPLEMENTED"
   },
   "priorEvidence": {
     "r51": {
@@ -584,15 +586,14 @@
     },
     "sourceInventoryAsOf": {
       "totalTraceable": 110,
-      "sourceImplemented": 107,
-      "notImplemented": 3,
+      "sourceImplemented": 108,
+      "notImplemented": 2,
       "notImplementedIds": [
-        "UI-07",
         "UI-08",
         "OPS-05"
       ],
-      "verificationNotice": "Source status only; cannot use 107/110 as delivered or verified completion percentage",
-      "matrix": "docs/framework/workstreams/cloud-control-r5-02-function-matrix.json"
+      "note": "Only implemented-source inventory; not a quality/verification percentage.",
+      "canonicalMatrix": "docs/framework/workstreams/cloud-control-r5-02-function-matrix.json"
     },
     "productionConsentReview": {
       "ids": [
@@ -631,6 +632,24 @@
         "Approved public HTTPS/WSS multi-device run",
         "Same-source current build PackageHash and complete CI"
       ]
+    },
+    "productionTaskDetail": {
+      "ids": [
+        "UI-07"
+      ],
+      "status": "SOURCE_IMPLEMENTED",
+      "verification": "NOT_VERIFIED",
+      "src": [
+        "src/ui/cloud-hosting.js",
+        "src/ui/tool-shell.css"
+      ],
+      "tests": [
+        "tests/cloud-control/generic-approval-ui.test.mjs",
+        "tests/cloud-control/r52-product-ui.test.mjs"
+      ],
+      "sourceSha": "81596b4f39300f4cc8b692153ca471b1be0beb2a",
+      "native": "NATIVE_PENDING",
+      "behavior": "Current authorization state; visible needs-reapproval when version/installation generation differs; immutable identity and action message in existing advanced details"
     }
   }
 }
