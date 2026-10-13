@@ -41,7 +41,11 @@ const MAX_COOKIES=200,MAX_IMPORT=100,MAX_TEXT_BYTES=150000;
 const shown=new Set();
 const safeHost=value=>typeof value==='string'&&/^[a-z0-9.-]{1,253}$/i.test(value)&&!value.startsWith('.')&&!value.endsWith('.');
 const stale=()=>new Error('此 Cookie 已改变，请刷新离线列表后重新操作。');
-const key=row=>JSON.stringify([row.name,row.domain,row.path,row.hostOnly,row.storeId,row.partitionKey||null]);
+// CookiePartitionKey property order is not stable across native receipts,
+ // JSON, or manually imported values. Compare semantic identity only.
+const key=row=>JSON.stringify([row.name,row.domain,row.path,row.hostOnly===true,
+  row.storeId??null,row.partitionKey?.topLevelSite??null,
+  Boolean(row.partitionKey?.hasCrossSiteAncestor)]);
 const status=(msg,type='info')=>{E('status').textContent=msg;E('status').dataset.state=type;E('status').hidden=!msg;};
 const notify=()=>setState?.({dirty,busy});
 const setBusy=value=>{
@@ -382,6 +386,11 @@ async function readBrowserMetadata(){
 function nativeInput(row){
   if(!liveTarget||row.domain.replace(/^\./,'').toLowerCase()!==liveTarget.hostname)
     throw new Error('当前 SDK 限定精确主机 Domain，请切换到该 Cookie 的所属主机');
+  // A Cookie Path containing raw URL delimiters or unsupported characters
+  // cannot be represented by the exact Chrome URL needed for readback/remove.
+  const lookup=new URL(liveTarget.origin);lookup.pathname=row.path;
+  if(lookup.pathname!==row.path)
+    throw new Error('Cookie Path 无法无损映射为 Chrome URL，请使用标准 URL 编码的路径');
   return {url:liveTarget.url,name:row.name,value:row.value,path:row.path,
     ...(row.hostOnly?{}:{domain:row.domain}),secure:row.secure,httpOnly:row.httpOnly,
     sameSite:row.sameSite,...(row.session?{}:{expirationDate:row.expirationDate}),
@@ -572,8 +581,8 @@ async function prepareLiveImport(){
     created=0;replaced=0;
     for(const row of rows){
       if(!stillCurrent(id,target))return;
-      const url=target.origin+row.path;
-      const found=await browserSdk().cookies.getAll({url,storeId:scope.storeId,
+      const route=new URL(target.origin);route.pathname=row.path;
+      const found=await browserSdk().cookies.getAll({url:route.href,storeId:scope.storeId,
         ...(row.partitionKey?{partitionKey:row.partitionKey}:{})});
       if(!stillCurrent(id,target))return;
       if(!Array.isArray(found))throw new Error('Host 未确认导入冲突预览');
