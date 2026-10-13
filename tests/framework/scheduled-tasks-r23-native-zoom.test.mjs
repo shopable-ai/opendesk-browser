@@ -227,6 +227,23 @@ test('actual installed Chrome runner zooms at 125%, 150%, 200% with keyboard and
   assert(timezone.help.includes('选择下拉项'),'real form explains non-destructive search');
   report.timezoneSearch={...timezone,cssViewport:320,inputMethod:'real CDP Input.insertText'};
   report.screenshots.push(await snapshot(client,session,'runner-timezone-filter-320'));
+  await click(client,session,'#schedule-back');
+  const leaveReview=await evaluate(client,'(()=>({'+
+    'dialog:!document.querySelector("#schedule-discard-confirm").hidden,'+
+    'form:!document.querySelector("#schedule-form").hidden,'+
+    'title:document.querySelector("#schedule-title").value}))()',session);
+  assert.equal(leaveReview.dialog,true,
+    'native Back must review unsaved edits instead of exiting the entire Side Panel');
+  assert.equal(leaveReview.form,true,'form must stay visible until explicit discard');
+  assert.equal(leaveReview.title,longTitle,'discard review must not mutate the draft');
+  await click(client,session,'#schedule-discard-no');
+  assert.equal(await evaluate(client,'document.querySelector("#schedule-discard-confirm").hidden',session),true);
+  await click(client,session,'#schedule-cancel');
+  await click(client,session,'#schedule-discard-yes');
+  assert.equal(await evaluate(client,'document.querySelector("#schedule-form").hidden',session),true,
+    'explicit discard may now leave the editor');
+  report.unsavedDraftNavigation={cssViewport:320,reviewVisible:true,continuedEditing:true,
+    explicitDiscardRequired:true};
   await client.send('Emulation.clearDeviceMetricsOverride',{},session);
   passed=true;
 });
