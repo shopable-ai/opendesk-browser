@@ -32,7 +32,7 @@
 
 - 历史 R1 CI [`38415718234`](https://github.com/shopable-ai/opendesk-browser/actions/runs/38415718234)：原 57 项 54 PASS／3 FAIL（填写值词汇被误判为点击授权、网站／Provider 同一 Send 权限请求与旧断言不符、36px 测试与现行 44px 样式不符），保留历史失败，不覆盖。
 - R1.1 第一源码候选 `8875e748...`：GitHub Actions [`38428906036`](https://github.com/shopable-ai/opendesk-browser/actions/runs/38428906036) 的真实 7 文件 Node 测试 **97 total、96 PASS、1 FAIL**。唯一失败是返回 `E_AI_REVIEW_REQUIRED` 与要求先报告 `E_AI_UNREQUESTED_ACTION` 的断言不符（`#submit` 的敏感目标检查早于用户意图检查）；对应源与测试在第二提交已修复。本次失败使首轮 `npm run check`／`build:dev` 被 CI 跳过，**不得称它们 PASS**。
-- 后续候选 `3fb26006...`：GitHub Actions [`38429394001`](https://github.com/shopable-ai/opendesk-browser/actions/runs/38429394001) 触发并排队。仅在读取其 job 原始状态与日志后，才可将 Node／Build 从 NOT_TESTED 改为 PASS 或 FAIL。
+- 最终源码候选 `3fb26006...`：GitHub Actions [`38429394001`](https://github.com/shopable-ai/opendesk-browser/actions/runs/38429394001) / job `115407270333` **completed/success**。原始日志：定向 Node 测试 **98/98 PASS、0 FAIL**；`npm run check` **PASS**（实际检查 658 个源／测试／构建文件、CSP 和固定运行入口）；`npm run build:dev` **PASS**（真实 WXT/Vite development 构建，133 assets，`packageHash=f6d29d187338dd83c27759e1385afda2d729e2312bdfaa08bfee81ba2e0e1c72`）。该 runner 为 Ubuntu / Node 22，不是用户 Mac Chrome。构建同时报告 `ui/tool-shell.js` 大小 521455/524288，距预算仅余 2833 bytes，属后续构建预算风险而非此次失败。
 - 目标命令：`node --test tests/environment/workflow-direct-execution.test.mjs tests/environment/workflow-local-codex.test.mjs tests/environment/workflow-r15.test.mjs tests/environment/workflow-ai-observation.test.mjs tests/environment/workflow-ai-data-sharing.test.mjs tests/environment/workflow-ai-transport.test.mjs tests/environment/workflow-ui-states.test.mjs`；`npm run check`；`npm run build:dev`。CI 日志和源码身份必须对应同一 `head_sha`。
 - Mac 本地 `dist/development` 真正安装版本和页面状态不可从 GitHub HEAD 推定；其产品验收 **NOT_TESTED**。历史 R13.1 Chrome／Locator 验收可作架构参考，但 R1.1 changed compiler／direct-execution／UI 新候选不可继承历史 NATIVE_PASS。
 
@@ -45,7 +45,7 @@
 | G2 Chrome 填写／点击／读回 | NOT_TESTED | 需同一构建真实 Side Panel、用户可信 Send、真实页面 `inputValue`／持久 Result |
 | G3 授权／文档／Stop／未知结果 | NOT_TESTED（原生） | 现有 RunHost 安全栅栏复用，负路径已有组件覆盖；真实撤权／刷新／Stop／Native 中断仍待测 |
 | G4 Side Panel 和可选保存 | NOT_TESTED（原生） | 代码已改，缺真实窄视口／焦点／保存后无模型重复 Run 的证据 |
-| G5 Node／Build／CI／集成 | FAIL（首轮 CI）；新候选待验 | 已安全提交到 main；按 `3fb26006...` CI 的真实结果另行更新 |
+| G5 Node／Build／CI／集成 | PASS | `3fb26006...` GitHub workflow `38429394001`：98/98 Node、npm check、build:dev 均 PASS；工作流记录及两个源码提交均已写入 `main` |
 
 **R1.2 尚不能宣布可进入产品验收：** 至少先补齐 R1.1 十场景同一候选真实 Chrome 正例、权限和 Stop／unknown、持久身份与独立保存后重复执行证据。后续多轮观察／跨文档只扩展既有 Controller／RunHost，不另造 Agent Runtime。没有完成的 Gate、原始日志或独立评审，均不得自评专家 95+。
 
