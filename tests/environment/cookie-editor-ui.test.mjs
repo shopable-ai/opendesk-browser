@@ -193,6 +193,8 @@ test('Offline workspace remains isolated and browser writes or clears are not pe
     'live clear requires a distinct preview');
   assert(s.source.includes("if(mode==='browser')void saveBrowserCookie()"),
     'browser write and offline update must never share an ambiguous action path');
+  assert(s.source.includes("editing?.valueRedacted===true&&!liveValueEdited"),
+    'editing an undisclosed native Cookie must not accidentally overwrite its value with an empty string');
   assert(s.source.includes("status('本地导入完成"));
   assert(s.source.includes("（仅本地预览）"));
   assert(s.html.includes('离线工作区'));

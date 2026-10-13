@@ -5,6 +5,7 @@ import {createBrowserNetworkObserver} from './browser-network-observe.js';
 import {createBrowserScreenshotHost} from './browser-screenshot.js';
 import {createBrowserScreenshotResources} from './browser-screenshot-resources.js';
 import {createTrustedCookieHost} from './browser-cookie-host.js';
+import {chromeCall} from './tabs.js';
 import {SIDEBAR_TOOL_ENABLE_STORE,requireToolEnableRecords,sidebarToolEnabled} from '../../ui/sidebar-tools/lifecycle.js';
 // Trusted Chrome MV3 context-menu driver. No third-party code executes here.
 // Listener registration is synchronous; storage and install checks are async.
@@ -494,7 +495,7 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
         const allowed=await authorizedCookie(owner,operation,checked.url,checked);
         if(intent&&intent.cookieGrantEpoch!==allowed.grantEpoch)
           throw failure('E_GRANT_REVOKED','Cookie site consent changed since approval');
-        const ownerKey=canonicalJSON([toolId,toolVersion,hash,owner.epoch,allowed.grantEpoch]);
+        const ownerKey=canonicalJSON([toolId,toolVersion,hash,owner.epoch,toolInstance,hostInstanceId,allowed.grantEpoch]);
         return trustedCookies.executeInstalled(operation,checked,{origin:allowed.origin,
           storeId:allowed.storeId,partitionKey:allowed.partitionKey,ownerKey,
           authorize:async({url,includeValues})=>{
@@ -744,12 +745,12 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
              frame?.documentId!==document.documentId||frame.url!==document.url||
              frame.documentLifecycle&&frame.documentLifecycle!=='active')
             throw failure('E_DOCUMENT_CHANGED');
-          const stores=await api.cookies.getAllCookieStores();
+          const stores=await chromeCall(api,api.cookies,'getAllCookieStores');
           const candidates=Array.isArray(stores)?stores.filter(row=>
             !row.incognito&&row.tabIds?.includes(document.tabId)):[];
           if(candidates.length!==1||typeof candidates[0].id!=='string')throw failure('E_COOKIE_STORE');
           storeId=candidates[0].id;
-          const receipt=await api.cookies.getPartitionKey?.({tabId:document.tabId,frameId:0});
+          const receipt=await chromeCall(api,api.cookies,'getPartitionKey',{tabId:document.tabId,frameId:0});
           if(!receipt?.partitionKey?.topLevelSite)throw failure('E_COOKIE_PARTITION');
           partitionKey=receipt.partitionKey;
           const after=await api.webNavigation.getFrame({tabId:document.tabId,frameId:0});
@@ -946,8 +947,12 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
   }
   ensureListener();
   api.storage?.onChanged?.addListener((changes,area)=>{
-    if(area==='local'&&[SIDEBAR_TOOL_ENABLE_STORE,SIDEBAR_TOOL_STORE,TOOL_REVOCATION_EPOCHS_STORE,BROWSER_MENU_GRANTS_STORE].some(key=>Object.hasOwn(changes,key)))
+    if(area==='local'&&[SIDEBAR_TOOL_ENABLE_STORE,SIDEBAR_TOOL_STORE,TOOL_REVOCATION_EPOCHS_STORE].some(key=>Object.hasOwn(changes,key)))
       revokeBrowserOperations();
+    // Cookie site changes revoke only Cookie sessions and ephemeral approvals.
+    // Never dispose unrelated owned Tabs/Network/Screenshot on a Cookie grant.
+    if(area==='local'&&Object.hasOwn(changes,BROWSER_MENU_GRANTS_STORE))
+      trustedCookies.revoke();
     if(area==='local'&&Object.hasOwn(changes,SIDEBAR_TOOL_ENABLE_STORE))
       void revokeLaunches().catch(error=>logger.warn('OpenDesk disabled-tool launch cleanup',error));
     if(area==='local'&&(Object.hasOwn(changes,SIDEBAR_TOOL_ENABLE_STORE)||

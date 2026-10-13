@@ -6,7 +6,7 @@ const E=id=>root.querySelector('#'+id),editor=E('editor-panel'),importer=E('impo
 // Never substitute local cookies for Chrome reads or let a sandbox request grant access.
 let data=null,epoch=0,dirty=false,busy=false,editing=null,pending=null,returnFocus=null;
 let mode='browser',targetOverride='',targetPending=false,liveTarget=null,liveRows=[],liveState='idle',liveMessage='';
-const liveSecrets=new Map();let observing=null,observeCursor='0';
+const liveSecrets=new Map();let observing=null,observeCursor='0',liveValueEdited=false;
 const browserSdk=()=>globalThis.OpenDeskSDK?.browser||null;
 function parseTarget(input){
   if(typeof input!=='string'||input.length>2048||input.trim()!==input)throw new Error('请输入不超过 2048 字符的 HTTP(S) 网页地址');
@@ -199,6 +199,7 @@ function render(){
 function openEditor(row=null){
   if(!data||mode==='browser'&&(liveState!=='ready'||!liveTarget||targetPending))return;
   importer.hidden=true;editor.hidden=false;editing=row?structuredClone(row):null;
+  liveValueEdited=false;
   E('editor-heading').textContent=(mode==='browser'?'真实 Chrome · ':'')+(row?'编辑 Cookie':'新建 Cookie');
   E('editor-help').textContent=mode==='browser'?
     '保存将真实修改浏览器，需用户确认。编辑时填写新值；名称、域名、路径和分区身份不可修改。':
@@ -370,6 +371,10 @@ async function revealBrowserValue(row){
 }
 async function saveBrowserCookie(){
   if(busy||pending||!liveTarget||liveState!=='ready')return;
+  if(editing?.valueRedacted===true&&!liveValueEdited){
+    status('此 Cookie 的旧值未读取。请明确输入新的 Cookie 值（可以主动输入后清空）；系统不会把隐藏的旧值误写为空。','error');
+    return;
+  }
   const id=epoch,target=liveTarget,old=editing;
   let options;
   try{
@@ -650,7 +655,7 @@ function prepareImport(){
 }
 function scrubEditors(){
   E('cookie-value').value='';E('import-text').value='';E('import-file').value='';
-  editing=null;dirty=false;editor.hidden=true;importer.hidden=true;shown.clear();notify();
+  editing=null;liveValueEdited=false;dirty=false;editor.hidden=true;importer.hidden=true;shown.clear();notify();
 }
 function changeMode(next){
   if(busy||pending||mode===next)return;
@@ -715,6 +720,10 @@ E('cookie-session').addEventListener('change',()=>{E('expiry-field').hidden=E('c
 for(const id of ['input','change']){
   E('editor-form').addEventListener(id,mark);importer.addEventListener(id,mark);
 }
+E('cookie-value').addEventListener('input',event=>{
+  if(event?.isTrusted!==false&&mode==='browser'&&editing?.valueRedacted===true)
+    liveValueEdited=true;
+});
 E('editor-form').addEventListener('submit',event=>{
   event.preventDefault();if(!data||busy)return;
   if(mode==='browser')void saveBrowserCookie();
