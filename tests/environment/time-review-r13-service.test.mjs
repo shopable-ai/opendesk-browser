@@ -99,3 +99,29 @@ test('R1.3 restart never generates unobserved minute history',async()=>{
   await f.service.tick({boot:true});
   assert.equal((await f.call('time.day',{date:'2026-10-11'})).minuteCoveredMs,10000);
 });
+
+for(const inactive of ['window-inactive','idle'])test('R1.9 '+inactive+' observation never backfills an unknown inactive interval',async()=>{
+  const f=await makeFixture();await f.call('time.minuteConsent',{enabled:true});await f.call('time.start');
+  f.advance(1000);await f.service.tick();
+  const before=structuredClone(f.local[TIME_REVIEW_KEY]);
+  let active=false;
+  if(inactive==='window-inactive')f.api.windows.getLastFocused=async()=>({id:2,type:'normal',focused:active,incognito:false});
+  else f.api.idle.queryState=async()=>active?'active':'idle';
+  // A missed OS event is first observed by the normal background heartbeat.
+  // There is no evidence proving how much of this interval was active.
+  f.advance(20000);await f.service.tick();
+  const stopped=f.local[TIME_REVIEW_KEY];
+  assert.deepEqual(stopped.days,before.days);
+  assert.deepEqual(stopped.minuteDays,before.minuteDays);
+  assert.equal(stopped.discardedMs-before.discardedMs,20000);
+  assert.equal(stopped.checkpoint,null);
+  assert.equal(stopped.authorizedHash,before.authorizedHash);
+  assert.equal(stopped.authorizedEpoch,before.authorizedEpoch);
+  assert.equal(stopped.paused,false);
+  active=true;f.advance(1000);await f.service.tick();
+  assert.deepEqual(f.local[TIME_REVIEW_KEY].days,before.days,'recovery starts a fresh observation');
+  assert.equal(f.local[TIME_REVIEW_KEY].checkpoint.at,before.checkpoint.at+21000);
+  f.advance(1000);await f.service.tick();
+  assert.equal(f.local[TIME_REVIEW_KEY].days['2026-10-11']['example.com'],2000);
+  assert.equal((await f.call('time.day',{date:'2026-10-11'})).minuteCoveredMs,2000);
+});

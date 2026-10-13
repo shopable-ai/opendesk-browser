@@ -83,7 +83,10 @@ export function createTimeReviewService({api=globalThis.chrome,lockManager=globa
     const authorized=auth.enabled&&state.authorizedHash===hash&&state.authorizedEpoch===auth.epoch&&
       observation.permitted&&hasSiteConsent&&previouslyGranted&&!pendingRevocation;
     const recover=boot&&cp&&(!current||current.host!==cp.host||current.tabId!==cp.tabId||current.windowId!==cp.windowId);
-    state=settleReview(state,at,{session:sessionId,recover:!authorized||Boolean(recover)});
+    // A heartbeat may first observe focus loss/idle after a missed OS event.
+    // Without a current legal sample, the old interval has no proven end;
+    // discard it rather than charging inactive time to the previous website.
+    state=settleReview(state,at,{session:sessionId,recover:!authorized||Boolean(recover)||!current});
     if(!auth.enabled||!observation.permitted||!hasSiteConsent||
       state.authorizedHash&&(state.authorizedHash!==hash||state.authorizedEpoch!==auth.epoch)){
       state.paused=true;state.authorizedHash=null;state.authorizedEpoch=null;

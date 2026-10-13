@@ -55,3 +55,15 @@
 - 同候选包 SHA-256 `90f5029049ed4b2cadd69fa91c4efaefb45f031bd94c07e708c9f78d5f2776f6`（工具包与 Production 内置 release 相同）。Production `ui/tool-shell.js` 523445 bytes / SHA `bca74679c8a42905a739e0d2efef24e785b72934e3f008e551a7bb55e3417b63`；Development 523685 bytes / SHA `3abca06f13c47c2cea40cfb582065cf9564df0194037e4d2e99b0203479f24c1`。Production `sw.js` 559499 bytes / SHA `2b98b4bf2d10d4661951f1fbc434c77aebacecf6e539ba7d3344a9c49974c114`；Development `sw.js` 559665 bytes / SHA `b328a2e7e38466b8c7b40057c9160a11b142b04fb40273a35583f7918fc2467f`。固定 tool-shell 512 KiB 上限当前 PASS，但 Production 仅剩 843 bytes、Development 仅剩 603 bytes，后续不得简单提高预算。
 - 真实 Mac Chrome：指定旧 run `38408021850`、`38416518447` 及本轮 `38435451142` 的 `native-mac-time-review` job 仍 `queued`；没有同候选原生 Side Panel、放大缩小、真实 Chrome UI、Idle 真实授权、SW/浏览器重启或截图成果；全部 `BLOCKED / NOT_TESTED`。当前环境无用户个人 Mac 工作目录访问，`git status`、真实已加载 Profile、Mac Chrome 版本均无法验收。
 - 云同步保持 `LOCAL_ONLY / NO_UPLOAD / BLOCKED`，未编造后端/云功能。**R1.8 仍不能标记最终 95+，八维原生终验均 `NOT_SCORED`**。下一实际任务：协调 Browser SDK Owner 复核共享 R10 ToolHost 假点击回执及相关架构，保留真实拒绝安全语义并使测试收敛；随后复测最新同候选 Node/Build；等待/取得 macOS runner 或用户 Mac 原生执行资源，使用原有 `tests/framework/time-review-r13-native.test.mjs` 记录真实 Chrome、身份和截图。
+
+
+### R1.9 · 本地真实执行进展（2026-10-14，继续验收）
+
+- 最后 R10 Node FAIL 已修复并提交 `284b0d94b1518a0d0af0ddd7aff5309b79833d79`：旧 API 探针沿用 20,000 字节规范接口负载，超过旧消息 12,000 字节拒收上限，造成驱动等待；改用有界旧 API 探针并增强 `isTrusted=false` 拒绝、批准次数不变、后续真实授权恢复断言。未删除测试或放宽用户手势/一次性 Host 授权。
+- 原生运行实际发现 Host 丢弃 Time Review day/classify/settings/export payload；修复现有 `src/ui/sidebar-tools.js` 参数转发，并避免只读 status/day/export 发送虚假 mutation 通知。真实下载和分类已通过；新增回归先 FAIL 后 PASS。没有第二后台/Host/SDK。
+- 当前已提交 main 候选 `3c19c71b36f656da941ff2b690bf67420d9c571a` 的独立源码副本 `artifacts/time-review-r19-local-01a1364f/source-accepted/`：九文件 Node **167/167，0 FAIL / 0 SKIP**；正式工具、check、production、development、verify 全部 EXIT 0。原始日志和命令/退出码：`accepted-node-build/`；双构建身份：`accepted-artifact-identities.json`。不使用未提交的共享模块，不覆盖日常 dist。
+- `native-run-17/` 已实际证明安装、原生 main.review 无 iframe、四个 CSS 宽度、真实 200% Chrome 缩放、真实网站/分钟记录、原生 Canvas 键盘 ARIA、其他三个工具生命周期隔离、失焦、关面板后台、双 Origin、系统 idle、暂停恢复、SW 替换、两类撤权、分类、实际磁盘 JSON/CSV、真实 Chrome 进程重启、停用启用、选择性卸载。该运行最终 FAIL：重装后一次读取抢在新 UI 的异步初始写入前；已改为等待真实持久状态，不伪写存储。该运行加载较旧候选，不能提升为最新 main 的全量 PASS。
+- `native-run-18/` 使用当前 main 双构建，保留真实 foreground owner 变化 FAIL，未向其他进程发送输入。现有 Swift helper 仅对所持有 PID 激活并确认前台，CGEvent 创建失败返回非零；所有结果仍需 Chrome 状态/ARIA/文件/持久记录独立证明。当前继续 `native-run-19/`，并补真实文件审阅安装的同名动态包隔离和自己被替换时的身份退休，不另建驱动。
+- CFT 启用真实完整 AX 树以获得原生 WebArea 坐标，依据 Chromium 官方 accessibility switch；这是读取真实 UI，未模拟 Chrome API、权限、计时或 ACK。原始失败、截图、TAP 均保留。官方 catalog 仅有 1.6.0，较新正式 release 升级暂为 NOT_TESTED；本地审阅替换不会冒充官方升级。
+- R1.9 写入范围追加：`src/time-review/service.js`、`tests/environment/time-review-r13-service.test.mjs` 写入前均无工作区 diff。真实 `native-run-32` 观察 Chrome 已失焦，但下一次后台 tick 结算旧检查点，补记 20,813 ms（合法上限 1,166 ms）。由本负责人在唯一服务修复无合法当前观察时的保守结算，先增加失焦/idle 回归复现，不增加计时器。原始 FAIL 不覆盖。
+- 全九文件回归暴露 R1.2 两项夹具把首次观察 inactive/权限已失效之前的未知区间当作已证明 active。`tests/environment/time-review-r12.test.mjs` 编辑前无 diff；保留旧的历史不丢失/停止/恢复断言，显式增加合法 active tick 锁定已证明历史，再对未知失效区间增加 discardedMs 断言，不能降低安全分母。

@@ -97,7 +97,9 @@ test('tab switches and same-tab navigation settle previous domains exactly once'
 });
 test('idle/locked and unfocused windows stop checkpoints and resume from new input',async()=>{
   for(const change of [{idle:'idle'},{idle:'locked'},{focused:false},{incognito:true},{tab:{url:'chrome://settings'}}]){
-    const f=await fixture();await f.call('time.start');f.advance(10000);f.set(change);await f.tick();f.advance(20000);assert.equal((await f.call('time.status')).todayMs,10000);
+    const f=await fixture();await f.call('time.start');f.advance(10000);await f.tick();
+    f.advance(10000);f.set(change);await f.tick();f.advance(20000);assert.equal((await f.call('time.status')).todayMs,10000);
+    assert.equal(f.local[TIME_REVIEW_KEY].discardedMs,10000,'unknown inactive interval is not website time');
     f.set({idle:'active',focused:true,incognito:false,tab:{url:'https://example.com/'}});await f.tick();f.advance(5000);assert.equal((await f.call('time.status')).todayMs,15000);
   }
 });
@@ -119,7 +121,9 @@ test('browser idle permission revocation stops and does not auto-resume on regra
   await assert.rejects(f.call('time.start'),{code:'E_TIME_PERMISSION'});f.set({permission:true});assert.equal((await f.call('time.status')).paused,true);
 });
 test('site permission loss excludes inaccessible pages and future time',async()=>{
-  const f=await fixture();await f.call('time.start');f.advance(5000);f.set({origin:false});await f.tick();f.advance(10000);assert.equal((await f.call('time.status')).todayMs,5000);assert.equal(f.local[TIME_REVIEW_KEY].checkpoint,null);
+  const f=await fixture();await f.call('time.start');f.advance(5000);await f.tick();
+  f.advance(5000);f.set({origin:false});await f.tick();f.advance(10000);assert.equal((await f.call('time.status')).todayMs,5000);assert.equal(f.local[TIME_REVIEW_KEY].checkpoint,null);
+  assert.equal(f.local[TIME_REVIEW_KEY].discardedMs,5000,'unobserved revoked interval is excluded');
 });
 test('disabled tool and package update revoke old tracking authority',async()=>{
   const f=await fixture();await f.call('time.start');f.local[SIDEBAR_TOOL_ENABLE_STORE]={'time-review':false};await f.tick();assert.equal(f.local[TIME_REVIEW_KEY].authorizedHash,null);
