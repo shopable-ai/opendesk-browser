@@ -941,7 +941,8 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
           new Error('Chrome 未确认下载，请检查下载记录，勿自动重试'),{code:'E_OUTCOME_UNKNOWN'});
         try{assertSession(source,token);}
         catch{throw Object.assign(new Error('下载可能已经开始，请检查下载记录，不可自动重试'),{code:'E_OUTCOME_UNKNOWN'});}
-        return {downloadId};
+        // Native download ID remains private to the trusted Side Panel.
+        return {started:true};
       }
       const frontendStatus=state=>{
         // Never turn a missing Chrome permission, rejected Origin, or denied
