@@ -112,7 +112,7 @@ Chrome 验收路径：使用相同源文件和 `programId=marked-a`，检查→�
 | 生产/开发包与固定资源 | 上述 38352293156 **PASS**：生产 83 个文件、packageHash `6f3b1e71ed996638fe3631bd956baf04cc040ccb6614cc866b7908c188a3ab89`；开发 117 个文件、packageHash `ac64773912f7235e0af37915c28b387d3aa07e696f292f7388de6f93e9510d46`；`npm run verify` 与 ZIP=dist 字节一致性 **PASS**。ZIP SHA256 分别为 `54be995b4e5a05c5b365828b3e6ce3c592d047793dafcd208aea0f46d38a8390`、`93855cf1cb813d95b54a86ccc2b2d67894601b5a538f8a2a7f4bc38bf7f5810c` |
 | 全新第三方库真实 CDN 字节及 SHA / MIME / 许可证 | NOT_TESTED；未从真实 Chrome 下载，不填臆造值 |
 | 程序 A/B 真正运行、授权、缓存次数、离线及回调结果 | NOT_TESTED；Node mock/VM 仅能证明局部逻辑 |
-| Chrome/macOS 原生，包括 Stop、导航、撤权、破坏测试 | NOT_TESTED；没有 Mac 同包原生回执 |
+| Mac Chrome 155 Standard/Developer 基础回归（非 R7.1 新依赖验收） | [R24.5 · 38352072345](https://github.com/shopable-ai/opendesk-browser/actions/runs/38352072345) 在 `macos-15` 使用 `Google Chrome for Testing 155.0.8059.39`，Standard Side Panel JS 真实执行及 Developer React/Vue Run/Stop 的 **macOS Chrome job PASS**；证据 artifact `r245-standard-and-developer-native-bc6dc46...` 内含 `r245-standard-chrome/acceptance.json`、`r245-developer-chrome/acceptance.json` 与原生截图。其 sourceHead 是实现提交 `bc6dc46a`（后续 `d61eea48` 仅改测试与 CI），**没有执行 R7.1 新 CDN @require 审核/跨程序共享场景** |
 | Browser SDK R8 / Cookies | OUT_OF_SCOPE；未修改 |
 
 **验收边界**：源码提交和模拟测试不是用户体验全链路关闭；只有受信 Chrome 回执、同包身份与实际网络/执行结果闭环后才能标记产品 PASS。
