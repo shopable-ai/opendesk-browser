@@ -31,3 +31,15 @@ test('Chromium source hash and reciprocal native mappings are mandatory',()=>{
  update.approvedOperationIds.push('browser.tabs.queryAll');
  assert(inspectBrowserSdkInterfaceMatrix(extra).some(row=>row.includes('Native mapping admits')));
 });
+
+test('native and tool grants cannot drift from active Browser Host metadata',()=>{
+ const changed=structuredClone(source);
+ changed.approvedOperations.find(x=>x.id==='browser.tabs.create').chromePermissions=['tabs'];
+ assert(inspectBrowserSdkInterfaceMatrix(changed).some(x=>x.includes('Chrome permission drift browser.tabs.create')));
+ const tool=structuredClone(source);
+ tool.approvedOperations.find(x=>x.id==='browser.tabs.create').toolCapabilities=[];
+ assert(inspectBrowserSdkInterfaceMatrix(tool).some(x=>x.includes('Tool capability drift browser.tabs.create')));
+ assert.deepEqual(BROWSER_OPERATIONS['browser.tabs.create'].requiredChromePermissions,[]);
+ assert.deepEqual(BROWSER_OPERATIONS['browser.tabs.create'].requiredCapabilities,['browser.tabs']);
+ assert.equal(BROWSER_OPERATIONS['browser.tabs.create'].requiresUserGesture,true);
+});

@@ -2992,9 +2992,7 @@
       "nativeApis": [
         "chrome.tabs.create"
       ],
-      "chromePermissions": [
-        "tabs"
-      ],
+      "chromePermissions": [],
       "toolCapabilities": [
         "browser.tabs"
       ],
@@ -3102,7 +3100,8 @@
         "chrome.windows.update"
       ],
       "chromePermissions": [
-        "tabs"
+        "tabs",
+        "webNavigation"
       ],
       "toolCapabilities": [
         "browser.tabs"
@@ -3859,6 +3858,8 @@
         "chrome.webRequest.onErrorOccurred"
       ],
       "chromePermissions": [
+        "tabs",
+        "webNavigation",
         "webRequest"
       ],
       "toolCapabilities": [
@@ -4495,6 +4496,8 @@
         "chrome.downloads.download"
       ],
       "chromePermissions": [
+        "tabs",
+        "webNavigation",
         "activeTab",
         "downloads"
       ],
@@ -56475,7 +56478,7 @@
     ],
     "completeness": "Known source consumers identified; exhaustive consumer path enumeration cannot be verified without full repository grep. Phase P1 must enumerate and migrate all current consumers before deleting active alias."
   },
-  "currentRegistrySourceSha": "7768af9cbbf09169214b50bdb68c5340c9566086",
+  "currentRegistrySourceSha": "3eccbf8c7c16e05eaeff6d7b81aec5754880f614",
   "currentSchemaSourceSha": "7482231d35be77fe4a3818fa7de897b1370be797",
   "contractRevisions": [
     {

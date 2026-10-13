@@ -105,7 +105,9 @@ R7 的 getStores、10 项 native-mapping 文件属于历史，不再作为当前
 
 - KEEP：当前 Registry 的正常操作与业务安全效果，保留权限与生命周期语义，但逐一复查正确 Host 和 SDK 入口。
 - RENAME：browser.tabs.open → browser.tabs.create；browser.tabs.focus → browser.tabs.activateOwned；browser.tabs.closeOwned → browser.tabs.removeOwned；Cookie 可信 getStores → getCurrentStore，仓内消费者一次性改用新名字，不保留别名。getOwned/listOwned/pinOwned/reloadOwned 均是 own TabRef 作用域；reloadOwned 在发出 chrome.tabs.reload 前不可逆地撤销旧 TabRef，Chrome 回执只证明收到重新加载请求，不证明新文档加载完成。
-- MERGE：browser.clipboard.writeText 当前走旧 clipboard.writeText、browser.downloads.text 当前走 file.download；P1 将其收敛到同一个受信 Browser Host 调度和回执，不改变用户可用能力。
+- MERGE（SDK 入口已完成）：`browser.clipboard.writeText` 和 `browser.downloads.text` 均经正式 `browser.*` 操作调用并复用已有 Side Panel 受信导出服务；公开 Wrapper 不再转换成旧 `clipboard.writeText` / `file.download` UI alias。Node、Build 与真实 Chrome 手势/回执仍需独立验收。
+- R10.4 官方语义：Chrome `tabs.create` 本身无需 `tabs` 原生权限，现行 SDK 去掉不必要的 Chrome 权限要求，但仍要求 `browser.tabs` 工具能力、精确 Origin、真实点击与 opaque Ref；Owned 操作使用 `tabs` 敏感 URL 与 `webNavigation` Document 核验时保留实际 Host 权限。
+- 受限差异：`browser.cookies.get` 有同名多 Path 候选时采用 `E_COOKIE_AMBIGUOUS` 拒绝，回执为 `{cookie,scope}`，不同于 Chrome 原生选择最长 Path 并返回 Cookie；独立 values/Store/Partition 授权不放宽。下一轮 Cookie 消费者迁移应判断是否更名以明确此差异。
 - DELETE：已从现行 Registry 清理的 9 个 R8 开发期 Media/Speech/Notifications 占位不以旧 35 项义务复活。后续从所有当前测试分母/现行文档删除其“必须可调用”的假定，但历史测试和旧快照保留 Git 历史。
 - NEW：Cookie observe.read；下载 own Ref 的 4 项、书签 own/可信历史、权限受信请求、隔离 storage 4 项、现有 Scheduler 3 项；以矩阵列出的精确合同实施。禁止为了名字像 Chrome 原生而隐瞒较小的可访问作用域。
 

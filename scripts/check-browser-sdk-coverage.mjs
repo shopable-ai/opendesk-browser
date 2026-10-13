@@ -25,6 +25,10 @@ export function inspectBrowserSdkLedger(data){
     ['siteScope',op.siteScope],['chromePermissions',op.requiredChromePermissions],
     ['toolCapabilities',op.requiredCapabilities]])
    if(!same(row[field],val))errors.push(id+': metadata drift '+field);
+  // A renamed operation must not retain the old Schema anchor.
+  for(const [field,suffix] of [['inputSchema','input'],['outputSchema','output']])
+   if(row[field]!=='src/framework/sdk/browser-schemas.js#'+id+':'+suffix)
+    errors.push(id+': stale '+field+' source');
   if(op.inputSchema?.type!=='object'||!['object','array'].includes(op.outputSchema?.type))
    errors.push(id+': typed contract missing');
   if(op.implementation==='IMPLEMENTED'&&(!row.hostImplementation||!row.sdkEntry))

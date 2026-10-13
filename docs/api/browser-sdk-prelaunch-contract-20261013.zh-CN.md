@@ -10,9 +10,11 @@
 
 | 处置 | 数量 | 具体结果 |
 | --- | ---: | --- |
-| KEEP（原名仍在注册表） | 26 | 仅证明名称仍登记，不代表所有调用路径、授权或 Chrome Native 均已验收 |
+| KEEP（原名仍在注册表） | 23 | 仅证明名称仍登记，不代表所有调用路径、授权或 Chrome Native 均已验收 |
 | RENAME（旧名称已从注册表剔除） | 3 | `browser.tabs.open → browser.tabs.create`；`browser.tabs.focus → browser.tabs.activateOwned`；`browser.tabs.closeOwned → browser.tabs.removeOwned` |
 | DELETE（旧占位操作从注册表剔除） | 9 | `browser.media.recording.*` 4 项、`browser.speech.*` 3 项、`browser.notifications.create/clear` 2 项 |
+
+原始 35 项按名称追溯为 23 项保留、3 项更名、9 项占位删除；更名后仍有 26 项历史功能，不代表保留 26 个原名称。
 
 **执行规则：** 不恢复上述旧名称、不增加 deprecated shim、不保留固定「35 项」测试门槛。任何重新开发录制、语音或通知能力都须按照真实产品需求和当前矩阵重新批准，不能把已删除占位接口恢复为旧合同。其他 API 通过 KEEP / RENAME / MERGE / DELETE / NEW 逐项落地，并在同一变更中迁移仓内消费者、示例、类型及测试。
 

@@ -79,7 +79,17 @@ export function inspectBrowserSdkInterfaceMatrix(matrix,registered=Object.keys(B
  const live=sorted(registered),allowed=sorted(matrix.approvedOperations.filter(x=>
     x.visibility==='APPROVED_TOOL_REGISTERED').map(x=>x.id));
  if(!same(live,allowed))errors.push('Runtime Browser SDK disagrees with approved registered operation list');
- for(const op of registered)if(!approvals.has(op))errors.push('Unapproved runtime operation '+op);
+ // Check metadata used by the Host; descriptions of siteScope may remain richer.
+ for(const op of registered){
+   const row=approvals.get(op);
+   if(!row){errors.push('Unapproved runtime operation '+op);continue}
+   const actual=BROWSER_OPERATIONS[op];
+   if(!actual)continue; // synthetic registry probes are rejected above
+   if(!same(row.chromePermissions,actual.requiredChromePermissions))
+     errors.push('Chrome permission drift '+op);
+   if(!same(row.toolCapabilities,actual.requiredCapabilities))
+     errors.push('Tool capability drift '+op);
+ }
  for(const a of matrix.approvedOperations.filter(x=>x.visibility==='HOST_ONLY_TRUSTED_COOKIE_UI'))
    if(!a.id.startsWith('browser.cookies.')||registered.includes(a.id))
      errors.push('Trusted Cookie leaked into installed sandbox '+a.id);
