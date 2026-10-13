@@ -12,9 +12,10 @@ import {MARKET_OPERATIONS_STORE,MARKET_PROVENANCE_STORE} from '../../src/ui/side
 import {MARKET_BATCH_STORE,marketBatchUnresolved} from '../../src/marketplace/batch.js';
 import {OFFICIAL_COLLECTIONS} from '../../src/marketplace/catalog.js';
 import {sidebarToolStorageKey,SIDEBAR_TOOL_STORE} from '../../src/ui/sidebar-tools/package.js';
-import {READING_TOC_SITE_STORE} from '../../src/reading-toc/policy.js';
+import {READING_TOC_SITE_STORE,tocSiteAllowed} from '../../src/reading-toc/policy.js';
 import {observeMarketSender,armMarketCut,assertObservedMarketConnection,assertMarketRecoveryObserverStable} from './app-market-r5-observers.mjs';
 import {marketUIAudit} from './app-market-r5-ui.mjs';
+import {runMarketNaturalLifecycle,runMarketRealExpiry} from './app-market-r5-natural.mjs';
 const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
 const mime={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.json':'application/json','.png':'image/png','.xml':'application/xml','.txt':'text/plain'};
 async function serverAt(port,handler){
@@ -27,6 +28,15 @@ export async function runMarketR5Acceptance(d){
     screenshot,phase,packages,openTool,back,importPackage,uninstall}=d;
   const side=()=>d.getSide(),host=()=>d.getHost(),id=d.getExtensionId();
   const currentKit=OFFICIAL_COLLECTIONS.find(row=>row.id==='reading-kit');
+  const naturalOnly=process.env.OPENDESK_NATIVE_MARKET_R5_NATURAL_ONLY==='1';
+  const expiryOnly=process.env.OPENDESK_NATIVE_MARKET_R5_EXPIRY_ONLY==='1';
+  const idleOnly=process.env.OPENDESK_NATIVE_MARKET_R5_IDLE_ONLY==='1';
+  const reuseHTTP=process.env.OPENDESK_NATIVE_MARKET_REUSE_HTTP==='1';
+  assert(!idleOnly||naturalOnly,'idle-only is a separately scoped natural acceptance run');
+  assert(!expiryOnly||!naturalOnly,'expiry-only and natural-only are separate acceptance scopes');
+  assert(!expiryOnly||process.env.OPENDESK_NATIVE_MARKET_R5_LONG==='1','a real TTL run requires its long timeout');
+  assert(!naturalOnly||idleOnly||process.env.OPENDESK_NATIVE_MARKET_R5_LONG==='1','a real TTL run requires its long timeout');
+  assert(!reuseHTTP||naturalOnly||expiryOnly,'only scoped lifecycle acceptance may reuse its owner website');
   assert.equal(d.buildMode,'development','R5 HTTP acceptance requires the dev-only trust channel');
   const root=resolve('dist/app-market-public'),siteBytes=await readFile(join(root,'site-build.json'));
   const site=JSON.parse(siteBytes),channel=JSON.parse(await readFile(join(d.extension,'marketplace/channel.json')));
@@ -37,7 +47,7 @@ export async function runMarketR5Acceptance(d){
   evidence.r5={siteBuildId:site.buildId,siteManifestSha256:hash(siteBytes),origin:channel.origin,
     websiteFiles:output.length,channel,actualBrowser:'Chrome for Testing; real extension and HTTP',
     externalSender:'browser-provided; never supplied by driver',checks:[],negative:[],responsive:[],
-    result:'IN_PROGRESS',formalHttps:'BLOCKED_NO_REVIEWED_PRODUCTION_CHANNEL',macChrome:process.platform==='darwin'?'IN_PROGRESS':'NOT_TESTED',
+    result:'IN_PROGRESS',scope:expiryOnly?'REAL_TTL_ONLY':naturalOnly?(idleOnly?'NATURAL_IDLE_ONLY':'NATURAL_IDLE_AND_REAL_TTL'):'FULL_MARKET_R5',formalHttps:'BLOCKED_NO_REVIEWED_PRODUCTION_CHANNEL',macChrome:process.platform==='darwin'?'IN_PROGRESS':'NOT_TESTED',
     notTested:['formal-https-and-web-store-channel','configured-production-manifest-real-chrome','user-local-mac-profile',
       'native-five-second-connection-timeout',
       'native-tabs-create-acknowledgement-loss','native-storage-set-acknowledgement-loss',
@@ -66,10 +76,22 @@ export async function runMarketR5Acceptance(d){
     try{const info=await stat(path);if(!info.isFile())throw Error('missing');res.writeHead(200,{...MARKET_HEADERS,'content-type':mime[extname(path)]||'application/octet-stream'});res.end(await readFile(path));}
     catch{res.writeHead(404,{...MARKET_HEADERS,'content-type':mime['.html']});res.end(await readFile(join(root,'404.html')));}
   };
-  const http=await serverAt(Number(new URL(channel.origin).port),publicHandler);d.t.after(http.close);
+  if(reuseHTTP){
+    const received=Buffer.from(await(await fetch(channel.origin+'/site-build.json')).arrayBuffer());
+    assert.equal(hash(received),hash(siteBytes),'reused owner website must serve the exact candidate manifest');
+    for(const file of site.files){
+      const response=await fetch(channel.origin+'/'+file.path);assert.equal(response.status,200,file.path);
+      assert.equal(hash(Buffer.from(await response.arrayBuffer())),file.sha256,file.path);
+    }
+    evidence.r5.reusedWebsite={origin:channel.origin,siteBuildId:site.buildId,manifestSha256:hash(received),filesVerified:site.files.length};
+  }
+  const http=reuseHTTP?{origin:channel.origin}:await serverAt(Number(new URL(channel.origin).port),publicHandler);
+  if(!reuseHTTP)d.t.after(http.close);
   const wrongPort=await serverAt(0,publicHandler);d.t.after(wrongPort.close);
   const demoBytes=await readFile('examples/tasks/demo-form.html');
-  const demo=await serverAt(43111,async(req,res)=>{if(new URL(req.url,'http://127.0.0.1:43111').pathname!=='/demo-form.html'){res.writeHead(404);return res.end();}res.writeHead(200,{'content-type':mime['.html']});res.end(demoBytes);});d.t.after(demo.close);
+  const demoPort=process.env.OPENDESK_NATIVE_MARKET_DEMO_PORT??'43111';
+  assert(/^\d{1,5}$/.test(demoPort)&&Number(demoPort)<=65535,'isolated demo port must be 0..65535');
+  const demo=await serverAt(Number(demoPort),async(req,res)=>{if(new URL(req.url,'http://127.0.0.1').pathname!=='/demo-form.html'){res.writeHead(404);return res.end();}res.writeHead(200,{'content-type':mime['.html']});res.end(demoBytes);});d.t.after(demo.close);
   evidence.r5.demo={url:demo.origin+'/demo-form.html',source:'examples/tasks/demo-form.html',sha256:hash(demoBytes)};
   const intentRows=async()=>((await readStore(MARKET_INTENTS_STORE,host()))?.intents||[]);
   const storedCutState=async()=>({intents:await intentRows(),operations:(await readStore(MARKET_OPERATIONS_STORE,host()))||{},
@@ -194,6 +216,21 @@ export async function runMarketR5Acceptance(d){
     return {page,review,row,reviewURL};
   }
   const websiteReview=(toolId,version,options)=>websiteSubjectReview({kind:'app',marketId:'opendesk/'+toolId,version},options);
+  if(expiryOnly){
+    await runMarketRealExpiry({d,websiteReview,check,mark});
+    assert.deepEqual(evidence.dialogErrors,[]);assert.equal(evidence.dialogs.length,0);
+    assert.equal(evidence.protectedStorageWritesFromDriver,0);
+    evidence.publicMarket='LOCAL_HTTP_ONLY';await d.save();return;
+  }
+  if(naturalOnly){
+    await mark('natural-scope-normal-browser-restart-before-quiescence');
+    await d.restartChrome();
+    evidence.r5.naturalEnvironment='steady state after a normal browser restart; first-install idle remains separately unobserved';
+    await runMarketNaturalLifecycle({d,websiteReview,check,mark,idleOnly});
+    assert.deepEqual(evidence.dialogErrors,[]);assert.equal(evidence.dialogs.length,0);
+    assert.equal(evidence.protectedStorageWritesFromDriver,0);
+    evidence.publicMarket='LOCAL_HTTP_ONLY';await d.save();return;
+  }
   await mark('public-pages-and-responsive-layout');
   const senderObserver=await observeMarketSender(d);
   let website=await openTab(channel.origin+'/');await visible(website,'#app-search');
@@ -572,13 +609,22 @@ export async function runMarketR5Acceptance(d){
     noteDataSha256:hash(Buffer.from(JSON.stringify(noteData))),operationId:upgrade.row.operationId,operationState:'succeeded',settledAt:settledUpgrade.settledAt};
   check('baseline-change-requires-new-review-and-official-update-preserves-user-data');
 
-  await mark('standard-demo-separate-site-authorization-and-real-page-use');
+  await mark('standard-demo-default-toc-site-stop-restore-and-real-page-use');
   const demoPage=await openTab(demo.origin+'/demo-form.html');await activate(demoPage);
   await until(()=>evaluate(side(),'document.querySelector("#script-current-page-url").textContent.includes('+JSON.stringify(demo.origin+'/demo-form.html')+')'),'current standard demo page');
+  await until(()=>evaluate(demoPage,'!!document.querySelector("[data-opendesk-toc-root]")'),'default HTTP demo TOC without a positive grant');
+  assert(tocSiteAllowed(await readStore(READING_TOC_SITE_STORE),'reading-toc',demo.origin));
   frame=await openTool('reading-toc');await click(side(),'#sidebar-tool-settings-open');await visible(side(),'#sidebar-tool-settings-allow');
-  const dialogsBefore=evidence.dialogs.length;await click(side(),'#sidebar-tool-settings-allow');
-  await until(async()=>(await readStore(READING_TOC_SITE_STORE))?.['reading-toc']?.includes(demo.origin),'real persisted demo website grant');
+  const dialogsBefore=evidence.dialogs.length;
   await until(()=>evaluate(side(),'document.querySelector("#sidebar-tool-settings-allow").getAttribute("aria-pressed")==="true"'),'site approval visible');
+  await click(side(),'#sidebar-tool-settings-deny');
+  await until(async()=>!tocSiteAllowed(await readStore(READING_TOC_SITE_STORE),'reading-toc',demo.origin),'real persisted demo website stop');
+  await until(()=>evaluate(demoPage,'!document.querySelector("[data-opendesk-toc-root]")'),'stopped website removes its TOC');
+  await screenshot(side(),'r5-toc-demo-site-stopped.png');
+  await click(side(),'#sidebar-tool-settings-allow');
+  await until(async()=>tocSiteAllowed(await readStore(READING_TOC_SITE_STORE),'reading-toc',demo.origin),'real persisted demo website restore');
+  await until(()=>evaluate(demoPage,'!!document.querySelector("[data-opendesk-toc-root]")'),'restored website TOC');
+  await until(()=>evaluate(side(),'document.querySelector("#sidebar-tool-settings-allow").getAttribute("aria-pressed")==="true"'),'restored website visible');
   await click(side(),'#sidebar-tool-settings-open');frame=await d.iframeWith('reading-toc');
   await click(frame,'button[data-toc-mode="full"]');
   await until(()=>evaluate(frame,'document.querySelector("#toc-list").textContent.includes("简单表单")'),'real demo headings in sandbox');
@@ -588,7 +634,7 @@ export async function runMarketR5Acceptance(d){
   assert.notEqual(pageUse.scrollY,beforeNavigation.scrollY);assert(pageUse.overlay);assert.equal(evidence.dialogs.length,dialogsBefore);
   evidence.r5.demo.beforeNavigation=beforeNavigation;
   evidence.r5.demo.use=pageUse;await screenshot(side(),'r5-toc-demo-use.png');await screenshot(demoPage,'r5-demo-heading-navigation.png');await back();
-  check('separate-site-authorization-and-standard-demo-heading-navigation');
+  check('default-toc-site-stop-restore-and-standard-demo-heading-navigation');
 
   await mark('uninstall-and-normal-chrome-restart');
   await openTool('markdown-workbench');await click(side(),'#sidebar-tool-remove');await visible(side(),'#sidebar-tool-inline-remove-cancel');
@@ -598,8 +644,11 @@ export async function runMarketR5Acceptance(d){
   assert.deepEqual(await installed(),registryBeforeRestart);assert.deepEqual(await readStore(sidebarToolStorageKey('quick-notes')),noteData);
   assert(!((await installed()).some(row=>row.id==='markdown-workbench')));
   frame=await openTool('quick-notes');await until(()=>evaluate(frame,'document.querySelector("#note-text").value==='+JSON.stringify(note)),'persisted note after actual Chrome exit/relaunch');await back();
-  assert((await readStore(READING_TOC_SITE_STORE))?.['reading-toc']?.includes(demo.origin));
+  assert(tocSiteAllowed(await readStore(READING_TOC_SITE_STORE),'reading-toc',demo.origin));
   check('inline-uninstall-cancel-confirm-and-normal-chrome-restart-with-persisted-updated-data');
+
+  if(process.env.OPENDESK_NATIVE_MARKET_R5_LONG==='1')
+    await runMarketNaturalLifecycle({d,websiteReview,check,mark});
   assert.deepEqual(evidence.dialogErrors,[]);assert.equal(evidence.dialogs.length,0,'normal R5 flow has no application dialog');
   assert.equal(evidence.protectedStorageWritesFromDriver,0);
   // The driver grants final PASS only after unchanged package identity and a

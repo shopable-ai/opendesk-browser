@@ -98,7 +98,7 @@ async function fixtureServer(label){
   return {server,origin:'http://127.0.0.1:'+server.address().port};
 }
 
-test(process.env.OPENDESK_NATIVE_MARKET_R5==='1'?'R5 real HTTP Chrome: finite external handoff, installation, use and recovery':process.env.OPENDESK_NATIVE_R261==='1'?'R26.1 real Chrome: tool detail management and lifecycle':'R4.8 production Chrome: preinstalled and optional tools, permissions, updates, restart and uninstall',{timeout:720000},async t=>{
+test(process.env.OPENDESK_NATIVE_MARKET_R5_EXPIRY_ONLY==='1'?'R5 real HTTP Chrome: scoped real 30-minute expiry':process.env.OPENDESK_NATIVE_MARKET_R5_NATURAL_ONLY==='1'?'R5 real HTTP Chrome: scoped natural Worker lifecycle':process.env.OPENDESK_NATIVE_MARKET_R5==='1'?'R5 real HTTP Chrome: finite external handoff, installation, use and recovery':process.env.OPENDESK_NATIVE_R261==='1'?'R26.1 real Chrome: tool detail management and lifecycle':'R4.8 production Chrome: preinstalled and optional tools, permissions, updates, restart and uninstall',{timeout:process.env.OPENDESK_NATIVE_MARKET_R5==='1'&&process.env.OPENDESK_NATIVE_MARKET_R5_LONG==='1'?2700000:720000},async t=>{
   assert.ok(chromeBinary,'A real Chrome for Testing binary is required');
   const extension=await realpath(resolve(process.env.OPENDESK_NATIVE_EXTENSION_PATH||'dist/production'));
   const artifactDir=resolve(process.env.OPENDESK_NATIVE_ARTIFACT_DIR||'artifacts/app-market-r3');await mkdir(artifactDir,{recursive:true});
@@ -449,7 +449,7 @@ test(process.env.OPENDESK_NATIVE_MARKET_R5==='1'?'R5 real HTTP Chrome: finite ex
     assert.equal(hash(Buffer.from(raw)),release.sha256);
   }
   pageA=await openTab(servers[0].origin+'/article');pageB=await openTab(servers[1].origin+'/article');
-  for(const page of [pageA,pageB])assert.equal(await evaluate(page,'document.querySelectorAll("[data-opendesk-toc-root]").length'),0);
+  for(const page of [pageA,pageB])await until(()=>evaluate(page,'document.querySelectorAll("[data-opendesk-toc-root]").length===1'),'default HTTP TOC is available without a positive grant');
   await screenshot(side,'r48-fresh-preinstalled.png');
 
   if(process.env.OPENDESK_NATIVE_MARKET_R5==='1'){
@@ -461,8 +461,8 @@ test(process.env.OPENDESK_NATIVE_MARKET_R5==='1'?'R5 real HTTP Chrome: finite ex
       restartChrome:async()=>{await closeChrome();host=null;side=null;await launch();side=await openPanel();return {side,host};}});
     assert.equal((await packageFingerprint(extension)).packageHash,fingerprint.packageHash);
     assertRuntimeClean();evidence.buildMode=buildMode;evidence.finalRegistry=await installed();await closeChrome();assertRuntimeClean();
-    evidence.result='REAL_CHROME_MARKET_R5_PASS';evidence.r5.result='PASS';
-    evidence.publicWebsite='REAL_HTTP_CHROME_PASS';
+    evidence.result=process.env.OPENDESK_NATIVE_MARKET_R5_EXPIRY_ONLY==='1'?'REAL_CHROME_MARKET_R5_EXPIRY_PASS':process.env.OPENDESK_NATIVE_MARKET_R5_NATURAL_ONLY==='1'?'REAL_CHROME_MARKET_R5_NATURAL_PASS':'REAL_CHROME_MARKET_R5_PASS';evidence.r5.result='PASS';
+    evidence.publicWebsite=process.env.OPENDESK_NATIVE_MARKET_R5_EXPIRY_ONLY==='1'?'REAL_HTTP_CHROME_EXPIRY_PASS':process.env.OPENDESK_NATIVE_MARKET_R5_NATURAL_ONLY==='1'?'REAL_HTTP_CHROME_NATURAL_LIFECYCLE_PASS':'REAL_HTTP_CHROME_PASS';
     evidence.r5.macChrome=process.platform==='darwin'?'PASS':'NOT_TESTED';
     evidence.actualMacChrome=process.platform==='darwin'?'PASS':'NOT_TESTED';
     await save();return;
