@@ -5,14 +5,23 @@ import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE,sidebarToolEnable
 import {writeVerifiedLocalValue} from '../ui/sidebar-tools/storage-state.js';
 import {isReadingTocToolSender} from '../reading-toc/page.js';
 import {FOCUS_ID,FOCUS_STORE,FOCUS_PROTOCOL,FOCUS_CAPABILITY,FOCUS_ALARM,FOCUS_SESSION,
-  FOCUS_OPERATIONS,FOCUS_MAX_SITES,focusPackageHash,focusHost,focusNextMidnight,focusRemovedOriginAffectsSite,focusError} from './policy.js';
+  FOCUS_OPERATIONS,FOCUS_MAX_SITES,FOCUS_PAGE_NOTICE_PROTOCOL,focusPackageHash,focusHost,focusNextMidnight,focusRemovedOriginAffectsSite,focusError} from './policy.js';
 import {readFocus,emptyFocus,focusSite,focusSiteScopesValid,focusSchedule,focusMatchingSite,focusReason,
-  focusSummary,settleFocus} from './model.js';
+  focusSummary,settleFocus,focusPool,focusDueReminder} from './model.js';
+import {FOCUS_DEFAULT_GROUP,FOCUS_DEFAULT_MINUTES,focusDefaultSites} from './catalog.js';
 import {wantedFocusRules,reconcileFocusRules,clearFocusRules} from './rule-host.js';
 
 const hasOnly=(payload,names)=>payload&&typeof payload==='object'&&!Array.isArray(payload)&&
   Object.keys(payload).sort().join(',')===names.slice().sort().join(',');
 const requirePayload=(value,names)=>{if(!hasOnly(value,names))throw focusError('专注设置参数不完整或无效');};
+async function clearPageNotices(api){
+  if(!api.tabs?.sendMessage)return;
+  let tabs;
+  try{tabs=await api.tabs.query({});}catch{return;}
+  await Promise.all(tabs.filter(tab=>Number.isInteger(tab?.id)&&!tab.incognito).slice(0,200)
+    .map(tab=>Promise.resolve().then(()=>api.tabs.sendMessage(tab.id,
+      {protocol:FOCUS_PAGE_NOTICE_PROTOCOL,kind:'clear'},{frameId:0})).catch(()=>{})));
+}
 export function createStayFocusService({api=globalThis.chrome,lockManager=globalThis.navigator?.locks,now=Date.now}={}){
   let session=null,generation=0,settledGeneration=-1,revoked=false;
   // Browser events invalidate any previous foreground checkpoint even when
@@ -86,6 +95,8 @@ export function createStayFocusService({api=globalThis.chrome,lockManager=global
       requirePayload(payload,['site']);
       const raw=payload.site;if(!raw||typeof raw.host!=='string')throw focusError('请提供域名和额度');
       const site=focusSite({...raw,host:focusHost(raw.host)});
+      if(site.group===FOCUS_DEFAULT_GROUP&&!Object.hasOwn(state.groups,FOCUS_DEFAULT_GROUP))
+        state.groups[FOCUS_DEFAULT_GROUP]=FOCUS_DEFAULT_MINUTES;
       if(site.group&&!Object.hasOwn(state.groups,site.group))throw focusError('请先创建共享额度组');
       const index=state.sites.findIndex(row=>row.host===site.host);
       if(index<0){if(state.sites.length>=FOCUS_MAX_SITES)throw focusError('最多可添加 60 个网站');state.sites.push(site);}
@@ -137,6 +148,10 @@ export function createStayFocusService({api=globalThis.chrome,lockManager=global
       if(payload.confirm!==true)throw focusError('清空本机专注数据需要确认','E_FOCUS_CONFIRM');
       return emptyFocus(at);
     }else if(operation!=='focus.status')throw focusError('不支持的专注操作');
+    if(!['focus.status','focus.enable','focus.disable'].includes(operation)){
+      state.notices.revision++;
+      state.notices.budgetMs=null;state.notices.thresholds=[];
+    }
     return state;
   }
   async function updateBlockedTabs(state,at){
@@ -178,6 +193,12 @@ export function createStayFocusService({api=globalThis.chrome,lockManager=global
         await clearFocusRules(api);
       throw cause;
     }
+    // Only genuinely new, never-configured installations receive automatic
+    // enrollment. A pre-existing custom/empty policy is never silently widened.
+    if(operation==='focus.enable'&&raw===undefined){
+      state.groups[FOCUS_DEFAULT_GROUP]=FOCUS_DEFAULT_MINUTES;
+      state.sites=focusDefaultSites();
+    }
     // A Chrome site-access revocation applies only to intersecting restrictions.
     // Keep other sites and Time Review completely independent. Regranting Chrome
     // host access must not silently re-enable previously revoked restrictions.
@@ -206,6 +227,8 @@ export function createStayFocusService({api=globalThis.chrome,lockManager=global
     const session=await browserSession();
     // Event delivery and lock acquisition may lag behind a fast blur/re-focus
     // or tab switch and return. Never bill an old checkpoint across an event.
+    const chargedPool=current?.site?focusPool(current.site):null;
+    const usedBefore=chargedPool?(state.usage[chargedPool]||0):0,dayBefore=state.day;
     settleFocus(state,{at,session,current,boot:boot||startGeneration!==settledGeneration});
     if(operation!=='focus.status'){
       if(!auth.enabled)throw focusError('工具已停用','E_TOOL_DISABLED');
@@ -233,6 +256,10 @@ export function createStayFocusService({api=globalThis.chrome,lockManager=global
       if(operation==='focus.enable'&&!fresh.ready)
         throw focusError('Chrome 权限在操作期间被撤销','E_FOCUS_PERMISSION');
     }
+    const usedAfter=chargedPool?(state.usage[chargedPool]||0):0;
+    const reminder=operation==='focus.status'&&state.enabled&&fresh.ready&&
+      current&&dayBefore===state.day&&usedAfter>usedBefore?
+      focusDueReminder(state,current.site,usedBefore,usedAfter):null;
     if(raw!==undefined||operation!=='focus.status'){
       await writeVerifiedLocalValue(api,FOCUS_STORE,state,raw,'本机专注策略');
     }
@@ -249,6 +276,21 @@ export function createStayFocusService({api=globalThis.chrome,lockManager=global
     // Avoid tab churn on every heartbeat: only act if the matching set changed.
     let tabs={moved:0,failed:0};
     if(ruleReceipt.changed&&desired.length)tabs=await updateBlockedTabs(state,at);
+    // A page is only a display target. At-most-once is committed with the
+    // authoritative ledger BEFORE attempting delivery; an unreachable page
+    // cannot create a duplicate alert after the worker or browser restarts.
+    if(reminder&&api.tabs?.get&&api.tabs?.sendMessage){
+      try{
+        const tab=await api.tabs.get(current.tabId);
+        if(tab?.active&&!tab.incognito&&tab.windowId===current.windowId&&
+           focusHost(tab.url)===current.host){
+          await api.tabs.sendMessage(current.tabId,
+            {protocol:FOCUS_PAGE_NOTICE_PROTOCOL,kind:'threshold',...reminder},{frameId:0});
+        }
+      }catch{/* Content script may be unavailable; never weaken DNR. */}
+    }
+    if(['focus.disable','focus.clear'].includes(operation)||removedOrigins.length)
+      await clearPageNotices(api);
     // Advance this epoch only after durable policy and native rule reconciliation
     // succeed. A failure must not make a stale checkpoint billable on retry.
     if(startGeneration===generation){

@@ -1,4 +1,4 @@
-> **R9 当前执行事实（2026-10-13）**：正式注册表 29 项源码已接线（不等于原生验收）；原 114 个候选中，已晋级 6 项、仍为候选 108 项。含 `tabs.pinOwned`、`tabs.reloadOwned`。本页下方 R5 的固定 35/114/111 是保留的**历史快照**，不强制 SDK 兼容。
+> **R9 当前执行事实（2026-10-13）**：正式注册表 **40 项源码已接线**（11 Cookies、含自有 Tabs），不是 40 项 Chrome 原生验收。原 **114** 项 R5 历史候选中已有 **15 项现名晋级**，**99 项尚未按原名登记**；Cookie 的旧 `getStores` 被正式 `getCurrentStore` 取代，`observe.read` 为新正式能力。本文其余 R5 的 35/114/111/0 Cookies 仅保留历史研究，不是现行 SDK 统计或权限依据。
 
 > **R9 当前命名**：`tabs.create({url})`、`tabs.activateOwned({tabRef})`、`tabs.removeOwned({tabRef})`。后两项是仅操作自己 TabRef 的受限 API；本页 R5 兼容叙述仅为历史，不再约束开发期新接口。
 

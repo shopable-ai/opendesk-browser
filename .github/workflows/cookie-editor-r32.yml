@@ -1,0 +1,95 @@
+name: Cookie Editor R3.2 real SDK and package verification
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/cookie-editor-r32.yml'
+      - 'examples/sidebar-tools/cookie-editor/**'
+      - 'tests/environment/cookie-editor-ui.test.mjs'
+      - 'src/framework/sdk/browser*.js'
+      - 'src/platform/chrome/browser-cookie-host.js'
+      - 'src/platform/chrome/cookies.js'
+      - 'src/ui/sidebar-tools.js'
+      - 'src/ui/sidebar-tools/**'
+      - 'src/sidebar-tools/bridge.js'
+      - 'official-tools/**'
+      - 'scripts/build-sidebar-tool.mjs'
+      - 'scripts/build-official-tools.mjs'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cookie-editor-r32-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  node-and-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '22'
+      - name: Candidate identity
+        run: |
+          git rev-parse HEAD
+          git status --short --branch
+          node --version
+      - name: Install locked dependencies
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Execute Cookie Editor and installed SDK positive/negative Node tests
+        run: |
+          node --test \
+            tests/environment/browser-sdk-r9-installed-cookies.test.mjs \
+            tests/environment/browser-sdk-r9-installed-host.test.mjs \
+            tests/environment/browser-sdk-r7-trusted-cookies.test.mjs \
+            tests/environment/browser-sdk-r8-cookies.test.mjs \
+            tests/environment/cookie-editor-ui.test.mjs \
+            tests/environment/official-tools-catalog-r45.test.mjs \
+            tests/environment/browser-sdk-interface-matrix.test.mjs \
+            tests/environment/browser-sdk-coverage.test.mjs \
+            tests/environment/browser-sdk-contract-compat.test.mjs
+      - name: Pack Cookie Editor 2.0.1 and official reviewed tools independently
+        run: |
+          node scripts/build-sidebar-tool.mjs examples/sidebar-tools/cookie-editor \
+            --out artifacts/cookie-editor-r32/cookie-editor.opendesk-tool.json
+          node scripts/build-official-tools.mjs --out artifacts/cookie-editor-r32/official
+          node --input-type=module -e "
+            import {readFileSync} from 'node:fs';
+            import {createHash} from 'node:crypto';
+            import {validateSidebarToolPackage} from './src/ui/sidebar-tools/package.js';
+            const bytes=readFileSync('artifacts/cookie-editor-r32/cookie-editor.opendesk-tool.json');
+            const tool=validateSidebarToolPackage(JSON.parse(bytes.toString()));
+            if(tool.id!=='cookie-editor'||tool.version!=='2.0.1')throw Error('Wrong Cookie Editor release');
+            const catalog=JSON.parse(readFileSync('artifacts/cookie-editor-r32/official/official-tools/catalog.json'));
+            const item=catalog.apps.find(x=>x.toolId==='cookie-editor');
+            if(!item||item.installationPolicy!=='optional'||item.version!==tool.version)
+              throw Error('Official release identity or optional installation policy mismatch');
+            console.log('COOKIE_EDITOR_NODE_PACKAGE_PASS',tool.version,
+              'sha256='+createHash('sha256').update(bytes).digest('hex'));
+          "
+      - name: Source guard and two production/development builds
+        run: |
+          npm run check
+          npm run build
+          npm run build:dev
+          npm run verify
+      - name: Retain exact installable Node/Build candidate (NOT native Chrome acceptance)
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cookie-editor-r32-${{ github.sha }}
+          retention-days: 14
+          if-no-files-found: error
+          path: |
+            artifacts/cookie-editor-r32/cookie-editor.opendesk-tool.json
+            artifacts/cookie-editor-r32/official/official-tools/
+            dist/production/official-tools/
+            docs/framework/evidence/wxt/builds/build-production.json
+            docs/framework/evidence/wxt/builds/build-development.json

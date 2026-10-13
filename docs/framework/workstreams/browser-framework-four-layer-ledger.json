@@ -30,16 +30,16 @@
     }
   ],
   "counts": {
-    "formal": 29,
-    "implemented": 29,
+    "formal": 44,
+    "implemented": 44,
     "planned": 0,
     "notExposed": 0,
     "candidateGroups": 27,
     "originalCandidates": 114,
-    "promoted": 6,
-    "pending": 108,
-    "uniqueNamedMethods": 137,
-    "cookieSdkFormal": 0,
+    "promoted": 15,
+    "pending": 99,
+    "uniqueNamedMethods": 143,
+    "cookieSdkFormal": 11,
     "cookieCandidates": 10,
     "formalNativePass": 0,
     "supplementalAuditDomains": 32
@@ -347,6 +347,146 @@
           "downloads"
         ],
         "siteScope": "none"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED",
+        "callableNow": "NOT_TESTED",
+        "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      },
+      "candidateOrigin": null
+    },
+    {
+      "id": "browser.downloads.download",
+      "inventory": "FORMAL",
+      "layer1": {
+        "api": "chrome.downloads",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "SOURCE_WIRED",
+        "files": [
+          "src/platform/chrome/context-menus.js",
+          "src/platform/chrome/browser-downloads.js",
+          "src/ui/sidebar-tools.js"
+        ]
+      },
+      "layer3": {
+        "status": "IMPLEMENTED",
+        "exposure": "APPROVED_TOOL",
+        "capabilities": [
+          "user.export"
+        ],
+        "chromePermissions": [
+          "downloads"
+        ],
+        "siteScope": "explicit-url"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED",
+        "callableNow": "NOT_TESTED",
+        "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      },
+      "candidateOrigin": null
+    },
+    {
+      "id": "browser.downloads.getOwned",
+      "inventory": "FORMAL",
+      "layer1": {
+        "api": "chrome.downloads",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "SOURCE_WIRED",
+        "files": [
+          "src/platform/chrome/context-menus.js",
+          "src/platform/chrome/browser-downloads.js",
+          "src/ui/sidebar-tools.js"
+        ]
+      },
+      "layer3": {
+        "status": "IMPLEMENTED",
+        "exposure": "APPROVED_TOOL",
+        "capabilities": [
+          "user.export"
+        ],
+        "chromePermissions": [
+          "downloads"
+        ],
+        "siteScope": "download-ref"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED",
+        "callableNow": "NOT_TESTED",
+        "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      },
+      "candidateOrigin": null
+    },
+    {
+      "id": "browser.downloads.listOwned",
+      "inventory": "FORMAL",
+      "layer1": {
+        "api": "chrome.downloads",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "SOURCE_WIRED",
+        "files": [
+          "src/platform/chrome/context-menus.js",
+          "src/platform/chrome/browser-downloads.js",
+          "src/ui/sidebar-tools.js"
+        ]
+      },
+      "layer3": {
+        "status": "IMPLEMENTED",
+        "exposure": "APPROVED_TOOL",
+        "capabilities": [
+          "user.export"
+        ],
+        "chromePermissions": [
+          "downloads"
+        ],
+        "siteScope": "owned-downloads"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED",
+        "callableNow": "NOT_TESTED",
+        "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      },
+      "candidateOrigin": null
+    },
+    {
+      "id": "browser.downloads.cancelOwned",
+      "inventory": "FORMAL",
+      "layer1": {
+        "api": "chrome.downloads",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "SOURCE_WIRED",
+        "files": [
+          "src/platform/chrome/context-menus.js",
+          "src/platform/chrome/browser-downloads.js",
+          "src/ui/sidebar-tools.js"
+        ]
+      },
+      "layer3": {
+        "status": "IMPLEMENTED",
+        "exposure": "APPROVED_TOOL",
+        "capabilities": [
+          "user.export"
+        ],
+        "chromePermissions": [
+          "downloads"
+        ],
+        "siteScope": "download-ref"
       },
       "layer4": {
         "positive": "NOT_TESTED",
@@ -1019,6 +1159,391 @@
         "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
       },
       "candidateOrigin": null
+    },
+    {
+      "id": "browser.cookies.get",
+      "inventory": "FORMAL",
+      "layer1": {
+        "api": "chrome.cookies.getAll",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "SOURCE_WIRED",
+        "files": [
+          "src/platform/chrome/context-menus.js",
+          "src/platform/chrome/browser-cookie-host.js",
+          "src/platform/chrome/cookies.js"
+        ]
+      },
+      "layer3": {
+        "status": "IMPLEMENTED",
+        "exposure": "APPROVED_TOOL",
+        "capabilities": [
+          "browser.cookies.read"
+        ],
+        "chromePermissions": [
+          "cookies"
+        ],
+        "siteScope": "approved-cookie-site"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED",
+        "callableNow": "NOT_TESTED",
+        "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      },
+      "candidateOrigin": "Cookie 核心读写与事件"
+    },
+    {
+      "id": "browser.cookies.getAll",
+      "inventory": "FORMAL",
+      "layer1": {
+        "api": "chrome.cookies.getAll",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "SOURCE_WIRED",
+        "files": [
+          "src/platform/chrome/context-menus.js",
+          "src/platform/chrome/browser-cookie-host.js",
+          "src/platform/chrome/cookies.js"
+        ]
+      },
+      "layer3": {
+        "status": "IMPLEMENTED",
+        "exposure": "APPROVED_TOOL",
+        "capabilities": [
+          "browser.cookies.read"
+        ],
+        "chromePermissions": [
+          "cookies"
+        ],
+        "siteScope": "approved-cookie-site"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED",
+        "callableNow": "NOT_TESTED",
+        "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      },
+      "candidateOrigin": "Cookie 核心读写与事件"
+    },
+    {
+      "id": "browser.cookies.set",
+      "inventory": "FORMAL",
+      "layer1": {
+        "api": "chrome.cookies.set",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "SOURCE_WIRED",
+        "files": [
+          "src/platform/chrome/context-menus.js",
+          "src/platform/chrome/browser-cookie-host.js",
+          "src/platform/chrome/cookies.js"
+        ]
+      },
+      "layer3": {
+        "status": "IMPLEMENTED",
+        "exposure": "APPROVED_TOOL",
+        "capabilities": [
+          "browser.cookies.write"
+        ],
+        "chromePermissions": [
+          "cookies"
+        ],
+        "siteScope": "approved-cookie-site"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED",
+        "callableNow": "NOT_TESTED",
+        "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      },
+      "candidateOrigin": "Cookie 核心读写与事件"
+    },
+    {
+      "id": "browser.cookies.remove",
+      "inventory": "FORMAL",
+      "layer1": {
+        "api": "chrome.cookies.remove",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "SOURCE_WIRED",
+        "files": [
+          "src/platform/chrome/context-menus.js",
+          "src/platform/chrome/browser-cookie-host.js",
+          "src/platform/chrome/cookies.js"
+        ]
+      },
+      "layer3": {
+        "status": "IMPLEMENTED",
+        "exposure": "APPROVED_TOOL",
+        "capabilities": [
+          "browser.cookies.write"
+        ],
+        "chromePermissions": [
+          "cookies"
+        ],
+        "siteScope": "approved-cookie-site"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED",
+        "callableNow": "NOT_TESTED",
+        "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      },
+      "candidateOrigin": "Cookie 核心读写与事件"
+    },
+    {
+      "id": "browser.cookies.clearSite",
+      "inventory": "FORMAL",
+      "layer1": {
+        "api": "chrome.cookies.getAll + chrome.cookies.remove",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "SOURCE_WIRED",
+        "files": [
+          "src/platform/chrome/context-menus.js",
+          "src/platform/chrome/browser-cookie-host.js",
+          "src/platform/chrome/cookies.js"
+        ]
+      },
+      "layer3": {
+        "status": "IMPLEMENTED",
+        "exposure": "APPROVED_TOOL",
+        "capabilities": [
+          "browser.cookies.clear"
+        ],
+        "chromePermissions": [
+          "cookies"
+        ],
+        "siteScope": "approved-cookie-host-only"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED",
+        "callableNow": "NOT_TESTED",
+        "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      },
+      "candidateOrigin": "Cookie 核心读写与事件"
+    },
+    {
+      "id": "browser.cookies.getCurrentStore",
+      "inventory": "FORMAL",
+      "layer1": {
+        "api": "chrome.cookies.getAllCookieStores",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "SOURCE_WIRED",
+        "files": [
+          "src/platform/chrome/context-menus.js",
+          "src/platform/chrome/browser-cookie-host.js",
+          "src/platform/chrome/cookies.js"
+        ]
+      },
+      "layer3": {
+        "status": "IMPLEMENTED",
+        "exposure": "APPROVED_TOOL",
+        "capabilities": [
+          "browser.cookies.read"
+        ],
+        "chromePermissions": [
+          "cookies"
+        ],
+        "siteScope": "approved-cookie-site"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED",
+        "callableNow": "NOT_TESTED",
+        "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      },
+      "candidateOrigin": null
+    },
+    {
+      "id": "browser.cookies.getPartitionKey",
+      "inventory": "FORMAL",
+      "layer1": {
+        "api": "chrome.cookies.getPartitionKey",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "SOURCE_WIRED",
+        "files": [
+          "src/platform/chrome/context-menus.js",
+          "src/platform/chrome/browser-cookie-host.js",
+          "src/platform/chrome/cookies.js"
+        ]
+      },
+      "layer3": {
+        "status": "IMPLEMENTED",
+        "exposure": "APPROVED_TOOL",
+        "capabilities": [
+          "browser.cookies.read"
+        ],
+        "chromePermissions": [
+          "cookies"
+        ],
+        "siteScope": "approved-cookie-site"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED",
+        "callableNow": "NOT_TESTED",
+        "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      },
+      "candidateOrigin": "Cookie 核心读写与事件"
+    },
+    {
+      "id": "browser.cookies.observe.start",
+      "inventory": "FORMAL",
+      "layer1": {
+        "api": "chrome.cookies.onChanged",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "SOURCE_WIRED",
+        "files": [
+          "src/platform/chrome/context-menus.js",
+          "src/platform/chrome/browser-cookie-host.js",
+          "src/platform/chrome/cookies.js"
+        ]
+      },
+      "layer3": {
+        "status": "IMPLEMENTED",
+        "exposure": "APPROVED_TOOL",
+        "capabilities": [
+          "browser.cookies.observe"
+        ],
+        "chromePermissions": [
+          "cookies"
+        ],
+        "siteScope": "approved-cookie-site"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED",
+        "callableNow": "NOT_TESTED",
+        "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      },
+      "candidateOrigin": "Cookie 核心读写与事件"
+    },
+    {
+      "id": "browser.cookies.observe.getStatus",
+      "inventory": "FORMAL",
+      "layer1": {
+        "api": "Host-owned onChanged session",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "SOURCE_WIRED",
+        "files": [
+          "src/platform/chrome/context-menus.js",
+          "src/platform/chrome/browser-cookie-host.js",
+          "src/platform/chrome/cookies.js"
+        ]
+      },
+      "layer3": {
+        "status": "IMPLEMENTED",
+        "exposure": "APPROVED_TOOL",
+        "capabilities": [
+          "browser.cookies.observe"
+        ],
+        "chromePermissions": [
+          "cookies"
+        ],
+        "siteScope": "approved-cookie-site"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED",
+        "callableNow": "NOT_TESTED",
+        "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      },
+      "candidateOrigin": "Cookie 核心读写与事件"
+    },
+    {
+      "id": "browser.cookies.observe.read",
+      "inventory": "FORMAL",
+      "layer1": {
+        "api": "Host-owned bounded event cursor",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "SOURCE_WIRED",
+        "files": [
+          "src/platform/chrome/context-menus.js",
+          "src/platform/chrome/browser-cookie-host.js",
+          "src/platform/chrome/cookies.js"
+        ]
+      },
+      "layer3": {
+        "status": "IMPLEMENTED",
+        "exposure": "APPROVED_TOOL",
+        "capabilities": [
+          "browser.cookies.observe"
+        ],
+        "chromePermissions": [
+          "cookies"
+        ],
+        "siteScope": "approved-cookie-site"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED",
+        "callableNow": "NOT_TESTED",
+        "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      },
+      "candidateOrigin": null
+    },
+    {
+      "id": "browser.cookies.observe.stop",
+      "inventory": "FORMAL",
+      "layer1": {
+        "api": "Host-owned onChanged session",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "SOURCE_WIRED",
+        "files": [
+          "src/platform/chrome/context-menus.js",
+          "src/platform/chrome/browser-cookie-host.js",
+          "src/platform/chrome/cookies.js"
+        ]
+      },
+      "layer3": {
+        "status": "IMPLEMENTED",
+        "exposure": "APPROVED_TOOL",
+        "capabilities": [
+          "browser.cookies.observe"
+        ],
+        "chromePermissions": [
+          "cookies"
+        ],
+        "siteScope": "approved-cookie-site"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED",
+        "callableNow": "NOT_TESTED",
+        "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      },
+      "candidateOrigin": "Cookie 核心读写与事件"
     }
   ],
   "candidateCatalog": [
@@ -1032,13 +1557,15 @@
         "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
       },
       "layer2": {
-        "status": "PARTIAL_DRIVER_ONLY",
+        "status": "SOURCE_WIRED",
         "files": [
-          "src/platform/chrome/cookies.js"
+          "src/platform/chrome/cookies.js",
+          "src/platform/chrome/browser-cookie-host.js",
+          "src/platform/chrome/context-menus.js"
         ]
       },
       "layer3": {
-        "status": "PROPOSED_NOT_REGISTERED",
+        "status": "PROMOTED_TO_FORMAL",
         "trust": "BUILTIN_TRUSTED"
       },
       "layer4": {
@@ -1057,13 +1584,15 @@
         "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
       },
       "layer2": {
-        "status": "PARTIAL_DRIVER_ONLY",
+        "status": "SOURCE_WIRED",
         "files": [
-          "src/platform/chrome/cookies.js"
+          "src/platform/chrome/cookies.js",
+          "src/platform/chrome/browser-cookie-host.js",
+          "src/platform/chrome/context-menus.js"
         ]
       },
       "layer3": {
-        "status": "PROPOSED_NOT_REGISTERED",
+        "status": "PROMOTED_TO_FORMAL",
         "trust": "BUILTIN_TRUSTED"
       },
       "layer4": {
@@ -1082,13 +1611,15 @@
         "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
       },
       "layer2": {
-        "status": "PARTIAL_DRIVER_ONLY",
+        "status": "SOURCE_WIRED",
         "files": [
-          "src/platform/chrome/cookies.js"
+          "src/platform/chrome/cookies.js",
+          "src/platform/chrome/browser-cookie-host.js",
+          "src/platform/chrome/context-menus.js"
         ]
       },
       "layer3": {
-        "status": "PROPOSED_NOT_REGISTERED",
+        "status": "PROMOTED_TO_FORMAL",
         "trust": "BUILTIN_TRUSTED"
       },
       "layer4": {
@@ -1107,13 +1638,15 @@
         "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
       },
       "layer2": {
-        "status": "PARTIAL_DRIVER_ONLY",
+        "status": "SOURCE_WIRED",
         "files": [
-          "src/platform/chrome/cookies.js"
+          "src/platform/chrome/cookies.js",
+          "src/platform/chrome/browser-cookie-host.js",
+          "src/platform/chrome/context-menus.js"
         ]
       },
       "layer3": {
-        "status": "PROPOSED_NOT_REGISTERED",
+        "status": "PROMOTED_TO_FORMAL",
         "trust": "BUILTIN_TRUSTED"
       },
       "layer4": {
@@ -1132,13 +1665,15 @@
         "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
       },
       "layer2": {
-        "status": "PARTIAL_DRIVER_ONLY",
+        "status": "SOURCE_WIRED",
         "files": [
-          "src/platform/chrome/cookies.js"
+          "src/platform/chrome/cookies.js",
+          "src/platform/chrome/browser-cookie-host.js",
+          "src/platform/chrome/context-menus.js"
         ]
       },
       "layer3": {
-        "status": "PROPOSED_NOT_REGISTERED",
+        "status": "PROMOTED_TO_FORMAL",
         "trust": "BUILTIN_TRUSTED"
       },
       "layer4": {
@@ -1182,13 +1717,15 @@
         "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
       },
       "layer2": {
-        "status": "PARTIAL_DRIVER_ONLY",
+        "status": "SOURCE_WIRED",
         "files": [
-          "src/platform/chrome/cookies.js"
+          "src/platform/chrome/cookies.js",
+          "src/platform/chrome/browser-cookie-host.js",
+          "src/platform/chrome/context-menus.js"
         ]
       },
       "layer3": {
-        "status": "PROPOSED_NOT_REGISTERED",
+        "status": "PROMOTED_TO_FORMAL",
         "trust": "BUILTIN_TRUSTED"
       },
       "layer4": {
@@ -1207,13 +1744,15 @@
         "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
       },
       "layer2": {
-        "status": "PARTIAL_DRIVER_ONLY",
+        "status": "SOURCE_WIRED",
         "files": [
-          "src/platform/chrome/cookies.js"
+          "src/platform/chrome/cookies.js",
+          "src/platform/chrome/browser-cookie-host.js",
+          "src/platform/chrome/context-menus.js"
         ]
       },
       "layer3": {
-        "status": "PROPOSED_NOT_REGISTERED",
+        "status": "PROMOTED_TO_FORMAL",
         "trust": "BUILTIN_TRUSTED"
       },
       "layer4": {
@@ -1232,13 +1771,15 @@
         "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
       },
       "layer2": {
-        "status": "PARTIAL_DRIVER_ONLY",
+        "status": "SOURCE_WIRED",
         "files": [
-          "src/platform/chrome/cookies.js"
+          "src/platform/chrome/cookies.js",
+          "src/platform/chrome/browser-cookie-host.js",
+          "src/platform/chrome/context-menus.js"
         ]
       },
       "layer3": {
-        "status": "PROPOSED_NOT_REGISTERED",
+        "status": "PROMOTED_TO_FORMAL",
         "trust": "BUILTIN_TRUSTED"
       },
       "layer4": {
@@ -1257,13 +1798,15 @@
         "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
       },
       "layer2": {
-        "status": "PARTIAL_DRIVER_ONLY",
+        "status": "SOURCE_WIRED",
         "files": [
-          "src/platform/chrome/cookies.js"
+          "src/platform/chrome/cookies.js",
+          "src/platform/chrome/browser-cookie-host.js",
+          "src/platform/chrome/context-menus.js"
         ]
       },
       "layer3": {
-        "status": "PROPOSED_NOT_REGISTERED",
+        "status": "PROMOTED_TO_FORMAL",
         "trust": "BUILTIN_TRUSTED"
       },
       "layer4": {
@@ -3830,8 +4373,8 @@
       "priority": "P0",
       "trust": "BUILTIN_TRUSTED",
       "original": 10,
-      "promoted": 0,
-      "pending": 10,
+      "promoted": 9,
+      "pending": 1,
       "frameworkPaths": [
         "src/platform/chrome/cookies.js"
       ]
@@ -4718,7 +5261,7 @@
   ],
   "firstPriority": {
     "name": "Cookies",
-    "status": "SDK_NOT_REGISTERED",
+    "status": "SDK_SOURCE_WIRED_NATIVE_CHROME_NOT_TESTED",
     "trust": "BUILTIN_TRUSTED",
     "items": [
       "browser.cookies.get",
@@ -4750,7 +5293,10 @@
       "hasCrossSiteAncestor": 130,
       "getPartitionKey": 132,
       "publicSuffixOptional": 153
-    }
+    },
+    "currentSdkOperationCount": 11,
+    "currentRuntimeTrust": "APPROVED_TOOL_SITE_SCOPED_WITH_SEPARATE_VALUE_GRANT",
+    "historicalCandidateScopeNote": "The original ten candidate method names are preserved; getStores was replaced by getCurrentStore and observe.read was added. Their original BUILTIN_TRUSTED proposal does not override the live scoped SDK implementation."
   },
   "convenienceAlias": [
     "browser.network.watch (not a second registered operation)"
@@ -5043,6 +5589,12 @@
     "pinOwned": "SOURCE_WIRED_NODE_AND_CHROME_NOT_TESTED",
     "latestApprovedTabOperation": "browser.tabs.navigateOwned",
     "reloadNativeChrome": "NOT_TESTED",
-    "navigationChrome": "NOT_TESTED"
+    "navigationChrome": "NOT_TESTED",
+    "currentFormalCount": 40,
+    "cookieSdkFormal": 11,
+    "currentCandidatePromoted": 15,
+    "currentCandidatePending": 99,
+    "ledgerReconciledAt": "2026-10-13",
+    "sourceLevel": "SDK_HOST_SOURCE_WIRED_NOT_NATIVE_PASS"
   }
 }

@@ -172,6 +172,7 @@ export async function createFoundationBroker({api = chrome, ports = new Map(), c
     inspectPageDependencies:(p,s)=>pageDependencies.inspect(p,s),
     preparePageDependencies:(p,s)=>pageDependencies.prepare(p,s),
     approvePageDependencies:(p,s)=>pageDependencies.approve(p,s),
+    prepareControllerClassicDependencies:(p,s)=>pageDependencies.prepareControllerClassic(p,s),
     inspectPageComponentDependencies:(p,s)=>pageDependencies.inspectComponentDependencies(p,s),
     preparePageComponentDependencies:(p,s)=>pageDependencies.prepareComponentDependencies(p,s),
     approvePageComponentDependencies:(p,s)=>pageDependencies.approveComponentDependencies(p,s),

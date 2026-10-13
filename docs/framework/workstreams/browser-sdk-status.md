@@ -1,3 +1,30 @@
+## R10.3 P4 · Browser SDK 已安装工具隔离 Storage（2026-10-13）
+
+已将四项 `browser.storage.local.get/set/remove/clear` 接入唯一 Registry/Host，复用 Side Panel 工具存储命名空间、Chrome local、原有工具 Web Lock 和写入回读确认；每工具 32 键 / 32 KB，每值 8 KB，读取 IPC 12 KB。只有已安装且获 `browser.storage` 能力和 Chrome `storage` 权限的工具可用；clear 必须通过受信 UI 一次性真实点击 Intent，只清本工具键值。此处只记 SOURCE_WIRED、Node/Build/Chrome 原生均 NOT_TESTED。
+
+| API | Registry | Exposure | Node 正向 | Node 拒绝 | Chrome 原生 |
+| --- | --- | --- | --- | --- | --- |
+| `browser.storage.local.get` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
+| `browser.storage.local.set` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
+| `browser.storage.local.remove` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
+| `browser.storage.local.clear` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
+
+## R10.1 P3 · 自有下载接口（2026-10-13，当前源码）
+
+现行正式 Registry **44 项**：Cookies 11 项仍按逐网站授权；新增四项 browser.downloads.download/getOwned/listOwned/cancelOwned。自有下载通过唯一 Browser Host 维护短时不可猜的 downloadRef，不公开 Chrome 原生 ID、所有下载历史或任意本机文件路径，只允许已授权 HTTP(S) 来源。下载和取消需受信 Side Panel 真点击后，Host 校验 packageHash、Install Epoch、Capability、Chrome 下载与站点权限及一次性 Intent。读取仅限拥有该下载的工具；Worker 重启令内存 Ref 失效，未知原生结果不自动重试。
+
+新增源码测试 tests/environment/browser-sdk-p3-implementation.test.mjs，**当前只记 SOURCE_WIRED**，Node/Build/Native Chrome 仍 **NOT_TESTED**；设计批准总量 55，余下 11 项尚待实施；191 Schema / 1830 条原生发现目录不变。
+
+## R9 Cookies SDK × Cookie Editor R3 · 当前状态（2026-10-13）
+
+- 用户授权将 11 项 Cookie 功能从仅受信 Host 开放为 `OpenDeskSDK.browser.cookies.*`，正式 Registry **40 项**。两层安全边界仍保留：已安装工具的 `Browser SDK` 与可信 Host 内部一次性批准。
+- 逐工具独立站点授权绑定安装版本/包摘要/Install Epoch、Origin、唯一非无痕 Store 及 Partition。敏感值独立授权；写入、精确删除、清理和观察需要受信点击。
+- 正向执行路径复用既有 Browser Dispatcher、Cookie Host、`src/platform/chrome/cookies.js`。Controller 既有方法暂不改动。
+- **当前源码状态 SOURCE_WIRED；Node、Build、Verify、Mac Chrome 原生均 NOT_TESTED。** 此结论与下方历史 R5 通过记录不混同。
+- 旧受信 Cookie 管理 UI 继续保留，必须在新产品原生正反向及生命周期验收后迁移和移除重复入口；旧 `approve/execute` 目前只限受信 Host 内部。
+
+下方旧 R1–R8 接口数字是历史快照，不是当前公共 SDK 分母。
+
 ## R9 受控同源导航（2026-10-13）
 
 `browser.tabs.navigateOwned({tabRef,url})` 复用原 Trusted Host 和 `chrome.tabs.update({url})`，只有用户已批准且仍拥有的 TabRef + 同一 Origin 目标 URL 才能发起；其他站点必须独立授权或采用显式创建新标签。批准前核对站点、文档和安装身份；执行前撤销旧 TabRef。返回 `navigationRequested` 只表示原生导航请求获得确认，绝不冒充页面已加载完成。不确定效果不重试；Node 和 Mac Chrome 验收仍需本候选证据。
@@ -16,7 +43,7 @@
 
 ## R9 预发布接口清理（2026-10-13，现行合同）
 
-**当前正式注册表登记 29 项已有实际 SDK/Host 运行路径的接口；七项未实现 Media/Speech 和两项未开放 Notifications 占位已删除。** 旧 35 项只是历史快照，不再强制兼容。Cookie 可信 Host-only 实现与正式 SDK 接线继续独立统计；Cookie observe.read 目前不向普通安装工具开放。新代码候选的 Node / Build / Chrome 验收不得继承旧 R5 PASS。下方 R1–R8 记录属于**历史证据**，并非 R9 当前数量。
+**当前正式注册表登记 40 项（包含 11 项已安装工具 Cookies API）；七项未实现 Media/Speech 和两项未开放 Notifications 占位已删除。** 旧 35 项只是历史快照，不再强制兼容。Cookie 可信 Host-only 实现与正式 SDK 接线继续独立统计；Cookie observe.read 目前不向普通安装工具开放。新代码候选的 Node / Build / Chrome 验收不得继承旧 R5 PASS。下方 R1–R8 记录属于**历史证据**，并非 R9 当前数量。
 
 ## R5 已取得同候选 Node/Build 证据（2026-10-12）
 
@@ -164,6 +191,10 @@
 | `browser.page.getSelection` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
 | `browser.clipboard.writeText` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
 | `browser.downloads.text` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
+| `browser.downloads.download` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
+| `browser.downloads.getOwned` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
+| `browser.downloads.listOwned` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
+| `browser.downloads.cancelOwned` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
 | `browser.tabs.create` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
 | `browser.tabs.activateOwned` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
 | `browser.tabs.getOwned` | IMPLEMENTED | APPROVED_TOOL | PASS | PASS | NOT_TESTED |
@@ -183,6 +214,17 @@
 | `browser.screenshot.captureVisible` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
 | `browser.operations.getStatus` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
 | `browser.operations.cancel` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
+| `browser.cookies.get` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
+| `browser.cookies.getAll` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
+| `browser.cookies.set` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
+| `browser.cookies.remove` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
+| `browser.cookies.clearSite` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
+| `browser.cookies.getCurrentStore` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
+| `browser.cookies.getPartitionKey` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
+| `browser.cookies.observe.start` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
+| `browser.cookies.observe.getStatus` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
+| `browser.cookies.observe.read` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
+| `browser.cookies.observe.stop` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
 
 ## 阶段验收
 

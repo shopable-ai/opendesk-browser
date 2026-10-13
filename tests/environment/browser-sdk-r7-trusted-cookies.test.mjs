@@ -4,6 +4,7 @@ import {createTrustedCookieHost,TRUSTED_COOKIE_OPERATIONS} from '../../src/platf
 import {createContextMenuHost} from '../../src/platform/chrome/context-menus.js';
 import {BROWSER_OPERATIONS,normalizeBrowserOperation,BROWSER_HOST_PROTOCOL} from '../../src/framework/sdk/browser-contract.js';
 import {createBrowserSdk} from '../../src/framework/sdk/browser.js';
+import {operationSchemas} from '../../src/framework/sdk/browser-schemas.js';
 const uuid='01234567-89ab-4def-8123-456789abcdef';
 const sender={id:'cookie-test-ext',frameId:0,documentId:'trusted-host-document-1',documentLifecycle:'active',
   url:'chrome-extension://cookie-test-ext/ui/tool.html?hostInstanceId='+uuid};
@@ -66,12 +67,67 @@ function fixture(){
   const run=async(op,args={})=>execute((await approve(op,args)).approvalRef);
   return {api,state,document,cookieHost,caller,approve,execute,run};
 }
-test('R9 prelaunch registry removes undeployed placeholders while Cookie stays Host-only and Page blocked',()=>{
+test('R10 public Cookie schemas describe real scoped data without generic object placeholders',()=>{
+  const get=operationSchemas('browser.cookies.get');
+  const list=operationSchemas('browser.cookies.getAll');
+  const clear=operationSchemas('browser.cookies.clearSite');
+  const events=operationSchemas('browser.cookies.observe.read');
+  const status=operationSchemas('browser.capabilities.getStatus');
+  assert.equal(get.output.properties.cookie.anyOf[0].properties.valueRedacted.type,'boolean');
+  assert.equal(list.output.items.properties.httpOnly.type,'boolean');
+  assert.equal(list.output.items.properties.value.type,'string');
+  assert.equal(list.input.properties.partitionKey.properties.topLevelSite.type,'string');
+  assert.equal(list.input.properties.partitionKey.additionalProperties,false);
+  assert.equal(clear.input.properties.previewRef.type,'string');
+  assert.equal(clear.output.properties.previewRef.type,'string');
+  assert.equal(events.output.properties.events.items.properties.removed.type,'boolean');
+  assert.equal(status.input.properties.url.type,'string');
+});
+test('R9 installed-tool Cookies public SDK retains host trust and denies Page SDK',()=>{
   assert.equal(TRUSTED_COOKIE_OPERATIONS.length,11);
-  assert.equal(Object.keys(BROWSER_OPERATIONS).length,26);
+  assert.equal(Object.keys(BROWSER_OPERATIONS).filter(id=>id.startsWith('browser.cookies.')).length,11);
   assert.equal(createBrowserSdk({context:'page-sdk'}).cookies,undefined);
-  assert.equal(createBrowserSdk({request:()=>{}}).cookies,undefined);
-  assert.throws(()=>normalizeBrowserOperation('browser.cookies.getAll',{}),reject('E_SERVICE_UNSUPPORTED'));
+  assert.equal(typeof createBrowserSdk({request:async()=>true}).cookies.getAll,'function');
+  assert.throws(()=>normalizeBrowserOperation('browser.cookies.getAll',{}),reject('E_SCHEMA'));
+  assert.equal(normalizeBrowserOperation('browser.cookies.getAll',{url:'https://shop.example.test/'}).url,
+    'https://shop.example.test/');
+});
+test('R10 installed Cookie driver restricts store, partition, values, grant epoch and observation owner',async()=>{
+  const f=fixture(),url='https://shop.example.test/account';
+  let grant=true,allowValues=false;
+  const owner={origin:'https://shop.example.test',storeId:'0',partitionKey:null,
+    ownerKey:'installed-tool-A@package-epoch-sitegrant',
+    authorize:async({url:requested,includeValues})=>{
+      if(!grant)throw Object.assign(new Error('Grant revoked'),{code:'E_GRANT_REVOKED'});
+      if(new URL(requested).origin!=='https://shop.example.test')
+        throw Object.assign(new Error('Wrong Origin'),{code:'E_SITE_GRANT_REQUIRED'});
+      if(includeValues&&!allowValues)
+        throw Object.assign(new Error('Separate values consent required'),{code:'E_COOKIE_VALUES_REQUIRED'});
+    }};
+  const run=(operation,args,context=owner)=>f.cookieHost.executeInstalled(operation,args,context);
+  const metadata=await run('browser.cookies.getAll',{url});
+  assert.equal(metadata.length,1);
+  assert.equal(metadata[0].name,'sid');
+  assert.equal(metadata[0].valueRedacted,true);
+  assert.equal(Object.hasOwn(metadata[0],'value'),false);
+  await assert.rejects(run('browser.cookies.getAll',{url,includeValues:true}),
+    reject('E_COOKIE_VALUES_REQUIRED'));
+  allowValues=true;
+  const values=await run('browser.cookies.getAll',{url,includeValues:true});
+  assert.equal(values[0].value,'SECRET_PRIVATE');
+  await assert.rejects(run('browser.cookies.getAll',{url,storeId:'other'}),
+    reject('E_COOKIE_STORE'));
+  await assert.rejects(run('browser.cookies.getAll',{url,partitionKey:{
+    topLevelSite:'https://another.example.test',hasCrossSiteAncestor:false
+  }}),reject('E_COOKIE_PARTITION'));
+  await assert.rejects(run('browser.cookies.getAll',{url:'https://other.example.test/'}),
+    reject('E_COOKIE_SCOPE'));
+  const session=await run('browser.cookies.observe.start',{url,durationMs:3000,maxEvents:2});
+  await assert.rejects(run('browser.cookies.observe.read',{url,sessionRef:session.sessionRef},
+    {...owner,ownerKey:'another-installed-tool'}),reject('E_SESSION_EXPIRED'));
+  grant=false;
+  await assert.rejects(run('browser.cookies.observe.read',{url,sessionRef:session.sessionRef}),
+    reject('E_GRANT_REVOKED'));
 });
 test('R7 authenticated pre-existing Browser Host route, forged sender rejected, one-use approval',async()=>{
   const f=fixture(),host=createContextMenuHost({api:f.api,logger:{warn(){}}});

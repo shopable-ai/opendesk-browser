@@ -159,3 +159,36 @@ Chrome 验收路径：使用相同源文件和 `programId=marked-a`，检查→�
 | Controller 新增 Worker-compatible Classic、D09 真正 Chrome 重启断网、D10 定时/云控 | 旧预装库与 Runner 仍保留，但全新 Classic 下载→Worker，以及完整重启断网/撤权/定时/云控同一固定 Revision，本轮无足够原始回执 | INCOMPLETE；不能用 Controller ESM 的 Node/Chrome 驱动代替 Classic PASS |
 
 **验证分级与未完成事项：** 历史 R7.2 CI 27/27 Node PASS 只属于旧候选；新增 Node/Standard/Developer/Package/ZIP 仍以当前 SHA 实际 jobs 为准。`MAC_NATIVE_NOT_TESTED`（本会话不能访问用户 Mac），`OFFLINE_NOT_CLOSED`，`CWS_COMPLIANCE_NOT_CLOSED`。未知 Native effect、无权限、坏 SHA 等必须继续安全阻断。八维 95+ 为 `NOT_SCORED`，而非宣称达到。
+
+## R7.3 源码/CI 交接（2026-10-13）
+
+本次采用原唯一 `dependency-manager.js` / SHA `frameworkKV`、Host/Auth、Controller opaque Worker。R7.3 未新建任何并行 Runner、运行沙箱或 CDN ScriptTag 默认装载器。以下为已提交源码，并非 Chrome PASS：
+
+| 模块 | 提交 / 真实文件 | 当前状态 |
+| --- | --- | --- |
+| P0 SDK Schema 重复损坏、语法断裂 | `56be91a2b5ea2eafe3cd4169c0bc2a02408f2f9e` 和再次修复 `2e7af9287cc45e27405c87a9081b0748aaabe1b3` · `src/framework/sdk/browser-schemas.js` | 修复后 JS 语法解析 PASS；并行 Agent 一度再次写坏，npm/check/CI 新候选尚待完成 |
+| D04 CSV 编号 | `2ad5c273d942962973990d314031e2003a45b55a` · `tests/framework/controller-dependency-r72-cft-cycle.mjs` | D04 标识纠正，实际 Chrome 待验收 |
+| D05 Classic Parser / SHA 技术锁 | `7e2a2862de08d9072ae26d903929f29ee16d8331` + `bef9b703bcbba5347addf0374df48c52219b100f` · `controller-classic.js` / `dependency-manager.js` | SOURCE_IMPLEMENTED；Worker-only raw bytes，锁依 Program/sourceHash/world；共享字节不共享锁、浏览器授权 |
+| D05 现有 Broker / Side Panel / 冻结 Save | `c746a41a25f1d663da28bd4f437c574786ffacd2` + `205ba282678d3054ca6563416ae02c81dfee45a8` + `393f29cdc5b9e74dbfcbda61b65b2b88327e24fa` | SOURCE_IMPLEMENTED；不在 SW eval；Saved 仍须运行期缓存安全回归 |
+| 原生 CFT 和模拟负例 | `8bd2deea720941af1d69f2d432b576c4eeecd622` + `38cbaefe31d6e2daece5adac4489ae33bb65e0a2` + `4d7471936be473aaf6222f861a65a8fb23a798ef` + `01d09a9ad60f1589ca54c7b452d8baf9f54f0530` + `8394ec940cf2a11115108db0d292ae9332c11a43` + `f0939348f01c1338613ce199294906ce469fa708` | 已提交真实 D05 浏览器驱动（mitt@3.0.1）和定向 Node 回归代码，尚未看到本候选 CI 成功 |
+
+GitHub 相关执行：`38393233527` 为 macos-15 R7.3 CFT（查询时 queued）；`38393233718` 为 Page dependencies/package（queued）。这是排队状态，不是 PASS；避免重复派发 CI。语法解析通过不等于 `npm run check`、构建、Package Verify 或 Chrome。
+
+剩余必须关闭：D02/D03 marked Page A/B 的真函数及 SHA 下载证明，D04 CSV 三上游函数结果，D05 真 Worker 输出/Stop；D08/D09 固定安装 Chrome 完整退出、离线和坏 SHA，D10 定时云控，D11 撤权和缓存缺失，D12 Standard/Developer 与 CWS 远程逻辑审查。Linux 当前环境不能读取用户的 Mac 本地工作目录，因此 `MAC_NATIVE_NOT_TESTED`，完整离线 `NOT_TESTED`，CWS `COMPLIANCE_NOT_CLOSED`。95+ 评分须基于后续实际证据。
+
+## R7.4 用户语法收敛：普通 npm import、无框架专用声明（2026-10-13）
+
+本次回应用户对 R7.3 暴露 `// @opendesk-classic` / `globalThis.mitt()` 的直接反馈：此组合是实现期不合理接口，**已从新作者推荐语法及 Controller Classic 解析入口取消**。默认 Developer 用户源码现在使用 `import mitt from 'mitt@3.0.1'` + `mitt()`；由现有可信 ESM linker 自动把精确 npm specifier 对应到固定 `https://cdn.jsdelivr.net/npm/mitt@3.0.1/+esm`，以原 ESM SHA 图、原 RunHost/Authority 和现有 Worker 运行。未经绑定的 `import mitt from 'mitt'` 仍安全拒绝，不猜测最新版本或静默升级。
+
+Standard 无编译器的 Classic 方案仅保留行业通用 `// @require URL`，按真实 UMD 导出直接 `mitt()`；不增加 Babel，不把自下载 JS 放到扩展特权 SW/MAIN。旧 `// @opendesk-classic` 被显式拒绝，避免误判为无依赖普通脚本。历史 R7.3 SHA/提交不改写；这是一次预发布源码接口收敛。
+
+| 内容 | 已写入 main 的提交/文件 | 验收边界 |
+| --- | --- | --- |
+| Developer 标准版本化 npm import | `6183b893c02207583a7a8b1d80508253a9946c71` · `controller-esm-linker-r4.mjs`；`cd16d418495739b193a358ec6abd4513cf6bc4ca` · `src/libs/page-frameworks/contract.js`（同步固定 linker SHA/bytes） | SOURCE_WIRED；待真正 Babel、Standard/Developer 构建和 Chrome Run 回执 |
+| Chrome 手势 / 缺来源许可 | `8a347defd94c05ef5ce4a59f8173aca44b848931` · `page-component-remote.js`；`b6691c1235314762651253782d7ae91a2b1aa07a` · Component Node 许可用例 | TEST_WRITTEN；用户真实 Chrome 许可手势未验收 |
+| Classic 旧专有语法收敛 | `4cb7371d867c416dc5e373e0db27c6ed20635955` · `controller-classic.js`；`920d131fdbfd4c9b1855fd65a4195e12b0282e8e`、`f2dd84f3407b24d10d96c0acf8cdaa6e8adb5acc`、`7c02a8a2ed9408116f84de578369faced585515b`、`4aaf1174c3c18927839b39cb457042a60a45799e` | SOURCE_WIRED / NODE_PENDING / NATIVE_PENDING |
+| 用户源码与验收驱动 | `152c2aca3fca5ee2caafa286a934e3b87f3e138c` 示例；`f634e9e86e93862aef39d6d535c5f80549d30618` ESM 定向 Node；`e224ed1ea36eead3ea8208e35beced5f175f58c2` 真实 CFT，`c49b404e3e6546460f330a2abc9bcc49612a01ec` 引用，`0c9bcfc0eaf4313ca6b1a3d32cbb592991782536` 工作流 | 已提交真实驱动，无 Chrome PASS |
+
+GitHub 新代码候选真实 CFT：`38402504493` (`4aaf1174c3c18927839b39cb457042a60a45799e`，查询时 `queued`)；Page/package：`38402504495`（查询时 `queued`）。未取到 npm run check、生产/开发包、Chrome 的结果，不能申报原生运行或 95+。不能访问用户 Mac，本轮 `MAC_NATIVE_NOT_TESTED`；重启离线 `NOT_TESTED`；CWS 合规 `COMPLIANCE_NOT_CLOSED`。
+
+后续缺口：验证 jsDelivr 精确版本 ESM 响应 MIME/实际原始字节与 SHA、mitt 真实默认导出、保存 Revision/读取锁、USER_SCRIPT / Worker 隔离、A/B 缓存与授权、Standard Classic `mitt()` 原生输出；再做完整 Chrome 退出重启/断网/撤权。在真正 Chrome 结果出来前不得把源码样例或 Node fixture 当生产闭环。

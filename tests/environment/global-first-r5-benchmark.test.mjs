@@ -108,3 +108,27 @@ test('synthetic fixed-installation evidence rejects a changed version or duplica
   assert.equal(incomplete.status,'INCOMPLETE');
   assert.equal(incomplete.nativeEvidenceCertified,'NOT_CERTIFIED_BY_JSON_CALCULATOR');
 });
+
+
+test('real Chrome repeated runs cannot reuse a RunId/ResultId or stitch two source versions',()=>{
+  const mk=(n,overrides={})=>({
+    ...sample('opendesk',n,120+n),scenarioId:'R5-T02',
+    sourceHash:'a'.repeat(64),manifestHash:'b'.repeat(64),
+    runId:'real-unique-run-'+n,resultId:'real-unique-result-'+n,
+    retirementState:'released',nativeEvidenceLevel:'REAL_CHROME_RECEIPT',
+    ...overrides
+  });
+  const options={scenarioId:'R5-T02',comparatorIds:cohort};
+  assert.throws(()=>evaluateR5Benchmark(plan,[
+    mk(1),mk(2,{runId:'real-unique-run-1'})
+  ],options),/reused RunId/);
+  assert.throws(()=>evaluateR5Benchmark(plan,[
+    mk(1),mk(2,{resultId:'real-unique-result-1'})
+  ],options),/reused ResultId/);
+  assert.throws(()=>evaluateR5Benchmark(plan,[
+    mk(1),mk(2,{manifestHash:'c'.repeat(64)})
+  ],options),/mixed fixed-version/);
+  const validIncomplete=evaluateR5Benchmark(plan,[mk(1),mk(2)],options);
+  assert.equal(validIncomplete.scopedTimeRanking,'NOT_RANKED');
+  assert.equal(validIncomplete.status,'INCOMPLETE');
+});

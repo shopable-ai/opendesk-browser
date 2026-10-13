@@ -1,5 +1,16 @@
 # Global First R4｜2026-10-13 真实研究与远端 main 交付
 
+## R5 补充：重复运行结果不可拼接（2026-10-13）
+
+- 真实工程现状：[Linux CFT 固定 Task 基线 #38368328878](https://github.com/shopable-ai/opendesk-browser/actions/runs/38368328878) 证明指定历史 SHA 的真实 Chrome Installed Task 经计划调度完成一次独立网页执行；该候选并非实时 AI 新生成，用户 macOS、同源 AI→Installed 和关闭模型后的两次真实用户 Run 仍 **NOT_TESTED**。
+- 竞争基准工具 `scripts/global-first-r5-benchmark.mjs` 已增加 **R5-T02 同一安装版本身份一致性守卫**：在 OpenDesk 已经观察到的重复运行 PASS 样本中禁止复用 RunId、ResultId，禁止把不同 sourceHash/manifestHash 拼成“同一固定版”的成功率；已有 `REAL_CHROME_RECEIPT` 与 `retirementState=released` 校验保持不变。这是对基准研究/计算器的修复，**不是修复真实 Chrome 产品运行**。
+- 新增 `tests/environment/global-first-r5-benchmark.test.mjs` 拒绝性测试：重复 RunId、重复 ResultId、跨版本混合均必须抛错；两次合规合成输入仍只是 `INCOMPLETE / NOT_RANKED`。CI 如无精确完成记录保持 **PENDING**，后续只用 SHA 绑定的 Actions 日志升为 NODE_PASS。
+- 其它 Agent 在 `main` 继续编辑 SDK、Cloud、Side Panel；本轮只修改 Global First 独占的计算器/测试及研究记录，不涉及真实 Mac CFT/profile、Native 进程、端口、dist 或共享运行器。
+- 研究账本当前仍是 [TOP20/84 OPP](../../product/browser-extension-ecosystem/global-first-r5-portfolio.zh-CN.md)、[45 竞品时间线](../../product/browser-extension-ecosystem/competitor-timeline.json)、[唯一 GF 审批账本](../../product/browser-extension-ecosystem/first-claims-ledger.json)，正式第一 **0**，不自动修改声明级别。
+
+---
+
+
 ## R5 同源输入复用核查与并行 UI 变化影响（2026-10-13）
 
 > 只读源树比较时 `main` 基线为 `cd8cefc5031491f3ad2a18f449b938a6302e28c8`。这是**精确文件 Blob SHA 比较**，没有访问用户 Mac，本轮未重新运行新的 CFT，也未抢别的任务的 Profile/Native/端口。

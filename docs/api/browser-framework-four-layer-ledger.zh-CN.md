@@ -1,4 +1,6 @@
-> **R9 当前四层合同（2026-10-13）**：本页及下方旧表保留 R6/R8 原始审计快照，原 35/26/7/2 不再是当前接口分母。R9 正式注册表保留 **29 项正式已接线操作**（原 9 项占位已删除，旧记录位于 JSON 的 `legacyR8RemovedFormal`）；Cookie 可信 Host 与安装工具公开 SDK 的能力继续分开。当前原生 Chrome 验收仍 NOT_TESTED；正式机读状态请以当前 `browser-contract.js` + `browser-sdk-acceptance.json` + 四层 JSON `formal` 为准。
+**R10.1 当前四层账本（2026-10-13）**：正式 Browser SDK **44 项正式登记 / 44 项 SOURCE_WIRED**，包含 Cookies 11 项及本轮新增 Downloads 自有下载 4 项。真实 Chrome downloads 通过唯一 Browser Host + 受限 Driver，下载及取消均需受信 Side Panel 真点击、Host 一次性批准、安装身份/Chrome 权限验证；任何工具不可获知原生下载 ID 或枚举全局历史。原 114 候选旧命名不因新功能自动复活。**本候选 Node、Build、Mac Chrome 均未取得完整 PASS 证据**；历史 R6/R9 快照数字仅存档。
+
+> **R9 当前四层合同（2026-10-13）**：正式 Browser SDK **40 项正式登记 / 40 项 SOURCE_WIRED / 11 项 Cookies**，旧 114 个原始候选中 **15 项已晋级、99 项仍是历史候选**。Cookie 的原始 10 候选中 9 项采用现名晋级；旧 `getStores` 没有作为别名保留，新增 `getCurrentStore` 与 `observe.read` 属当前正式 SDK。安装工具受独立网站/敏感值授权限制，官方工具身份不构成免授权。**Mac Chrome 原生验收 0 项同候选 PASS（NOT_TESTED）**。下文保留 R6 历史快照，不再当作现行统计。
 
 # 浏览器框架四层总账（R6，2026-10-13）
 
@@ -15,7 +17,7 @@
 | ③ Browser SDK 开放 | 可调用方法、执行环境、权限、拒绝路径 | **`src/framework/sdk/browser-contract.js`** | 候选 Schema ≠ 注册接口 |
 | ④ 验收证据 | Node 正反测试、Worker、Chrome 原生能否验证 | **`browser-sdk-acceptance.json`**、原始日志 | CI PASS ≠ Mac 原生 PASS |
 
-## 当前数字
+## R6 历史数字（兼容政策已废止；非当前接口总数）
 
 - **35** 个正式接口，26 已源码接线、7 规划、2 不开放；冻结的 R1.3–R4 32 项 + R5 Tabs 3 项。
 - **27 组 114 个原始候选**，其中 3 晋级、111 未登记；与正式合同去重后共 146 个已命名方法。
@@ -23,7 +25,7 @@
 - **0/35** 同候选 Mac Chrome 正式 Native PASS；不把任意组件验证升级为原生。
 - 另有 **32 个增补 Chrome Namespace/事件域**需要审计，**不是**新 SDK 已实现或新授予的权限。
 
-## P0 优先 Cookies 全部 10 项
+## R6 历史 Cookie 10 项计划（已被后续设计迭代替代）
 
 `src/platform/chrome/cookies.js` 已有 `getCookies`、`setCookies`、`deleteCookiesByUrl`，但 `browser.cookies.*` 正式合同 0 项、真实调用链尚未形成。它不是 Cookie Editor UI 任务。
 
@@ -44,7 +46,7 @@
 PartitionKey Chrome 119+、`hasCrossSiteAncestor` 130+、`getPartitionKey` 132+，`publicSuffix` 153+（必须兼容本项目 Chrome 138）。同名不同 Path、HostOnly/Domain/StoreId/Partition、权限撤销、Worker 中断、部分失败和未知原生回执都必须单独测试。
 Cookie 详细实施与验收任务：[browser-cookies-r6.md](../framework/workstreams/browser-cookies-r6.md)。
 
-## 已登记 35 项正式 Browser SDK
+## R6 历史 35 项接口快照（已废止为兼容基准）
 
 | # | 操作 | SDK 状态 | 框架层 | Node 正向 / 拒绝 | Mac Chrome |
 | ---: | --- | --- | --- | --- | --- |

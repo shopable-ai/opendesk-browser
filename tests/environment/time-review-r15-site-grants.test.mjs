@@ -188,7 +188,7 @@ test('R1.5 sandbox cannot grant website or all-sites permissions',async()=>{
   const block=source.slice(i,source.indexOf("if(operation==='knowledge.editorState')",i));
   assert.match(block,/operation==='time\.siteGrant'/);
   assert.match(block,/E_TIME_TRUSTED_CLICK/);
-  assert.match(source,/!\['time\.start','time\.clear','time\.minuteConsent','time\.siteGrant'\]\.includes\(operation\)/);
+  assert.match(source,/if\(\['time\.start','time\.clear','time\.minuteConsent','time\.siteGrant'\]\.includes\(operation\)&&event\?\.isTrusted!==true\)/);
 });
 
 test('R1.5 static trusted permission elements are part of the real tool host HTML',async()=>{
@@ -248,6 +248,6 @@ test('R1.5 unrelated Chrome origin removal does not revoke Time Review site cons
 
 test('R1.5.1 official tool package version advances without changing the trusted Host API',async()=>{
   const pkg=await createSidebarToolPackage('examples/sidebar-tools/time-review');
-  assert.equal(pkg.version,'1.5.2');
+  assert.equal(pkg.version,'1.6.0');
   assert.equal(TIME_REVIEW_HOST_API,'time.review/1.5.0');
 });

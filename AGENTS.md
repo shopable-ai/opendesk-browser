@@ -34,13 +34,13 @@ YOU ARE AN AUTONOMOUS CODING AGENT. EXECUTE AUTHORIZED TASKS TO COMPLETION WITHO
 
 **仅适用于全球/区域/行业“第一”、小山头竞争定位、营销、SEO/GEO 与 AI 推荐研究任务；不改变其他 Browser SDK、Cloud、Native 工程任务的实施所有权。**
 
-- **先定竞争位置，再决定做什么功能**。从真实用户、问题和替代成本出发，寻找全球第一、真实国家/语言区域/行业/具体任务第一；不够第一时可争取有实测依据的第 2—5 名。双/三因素组合必须有实际用户价值，不能靠无意义限定词制造独家。
+- **R6 最新顺序：先完成真实用户产品闭环，再用实测价值确定竞争位置**。优先复用现有 Workflow/Task/Authority/RunHost，证明真实 AI 新生成的同一源码经审阅、原生验证、正式安装和关闭模型后的独立 Run×2；不能循环写战略 GOAL 替代产品验收。再根据真实用户、重复频率、替代成本及公平竞品测试争取限定区域/任务优势，不为“第一”制造无需求的功能组合。TOP20 是投资优先级，不是世界排名。
 - **AI 优先，不等于预设 GF-007 已获胜**。主要用户旅程是提出需求→AI 协助创建→审核权限/结果→受控安装→以后可重复使用；这条全链仍是待实证方向，不得写成已经正式交付。手动在 Side Panel 编写 React/Vue（旧 F01）是技术支撑，不能自动恢复为全球第一营销 P0。
 - **先验证竞品，再反推产品缺口**。要比较单产品和真实组合（如 AI 编码器 + Vite + 脚本管理器），分开 Stable、Beta、仓库推送、商店发布日期和关键能力首次公开可用时间。未找到反例不等于世界首创。
 - **分清候选顺序与市场排名**。TOP 1—5 的研究优先级不是第 1—5 名产品排名；只有真实日期、范围、地区、充分对手样本、当前发布/原生证据及独立审批才能宣传全球首个/区域第一/最快/Top 5。GF-013/GF-014 保留 DISPROVED，不换词复活；95 分未审则 NOT_SCORED。
 - **用户先看一屏可读结果**：每项“谁需要、解决什么、竞争哪种第一、最强对手、已有证据、最小缺口、下一步”，再附技术文档。不能把再写一份 GOAL 当作竞争验证已完成。
 
-权威阅读顺序：[R4 战略决策](docs/product/browser-extension-ecosystem/global-first-r2-decision.zh-CN.md) → [R4 执行 GOAL](docs/framework/prompts/goal-global-first-r4-ai-first-niche-leadership.zh-CN.md)。唯一事实/审批账本仍是 `docs/product/browser-extension-ecosystem/competitor-timeline.json` 与 `first-claims-ledger.json`。R1/R2 与 R3/F01 旧方向仅历史参考。
+Global First 权威阅读顺序：[R6 工程进度、TOP20 执行分类及真实验收缺口](docs/framework/workstreams/global-first-r6-ai-first-product-proof-20261013.md) → [R5 TOP20/84 OPP 产品组合](docs/product/browser-extension-ecosystem/global-first-r5-portfolio.zh-CN.md) → [R4/R5 战略历史](docs/product/browser-extension-ecosystem/global-first-r2-decision.zh-CN.md)。唯一正式账本仍是 `docs/product/browser-extension-ecosystem/opportunity-register.json`、`commercial-experiments.json`、`competitor-timeline.json` 和 `first-claims-ledger.json`。原 R5 固定 Task 真实 Chrome 一次 PASS 不等于真实 AI 新源码贯穿的安装及无模型重复 Run×2；无同一原始证据标记 NOT_TESTED。R4 GOAL、R1/R2 与 R3/F01 保留历史参考，不另建总 GOAL。
 
 ## 第三方 JS 依赖：开发脚本免人工审核的最高优先级产品决策（2026-10-13）
 
@@ -50,6 +50,11 @@ YOU ARE AN AUTONOMOUS CODING AGENT. EXECUTE AUTHORIZED TASKS TO COMPLETION WITHO
 
 **R7.1/R4 现有「检查→下载→人工审阅→批准→运行」是历史实现，不能作为最终正确 UX；需要继续修复源码与测试。** 长期规则：[依赖使用场景合同](docs/framework/universal-dependency-runtime-usage-contract.zh-CN.md)；执行入口：[R7.2 GOAL](docs/framework/prompts/goal-universal-dependency-runtime-r7.2-scenario-first-20261013.zh-CN.md)。本条优先于历史 R4–R7 的逐库人工审核要求，不影响 Browser SDK 与安装安全合同。
 
+## 第三方库用户语法优先普通 JavaScript（2026-10-13）
+
+用户最新明确：AI/用户写 Controller 代码不应出现私有 `// @opendesk-classic` 或无谓的 `globalThis.mitt()`。**首选** Developer 标准版本化 ESM：`import mitt from 'mitt@3.0.1'`，后续直接 `mitt()`，用户点击 Run 后由现有 Compiler/Dependency Manager/SHA/RunHost/Authority 完成精确源码锁定。绝不静默使用 `latest` 或将 `import mitt from 'mitt'` 当成已固定版本，当前未解析的裸包名要明确拒绝。Standard 无 Babel：确实需要 Classic 时仅保留通用 `// @require https://.../versioned.umd.js`，按库在受控 Worker 中真实导出的符号直接调用，不默认注入网站 MAIN。
+
+不要新建 npm Runner、Manager、Host 或第二编译器；用户无需逐库勾选 SHA 或为第二个程序再次人工审核。普通 `import` 在 Developer 是必要时的 ESM 编译，不表示 Classic 全量改 Babel。已冻结/安装 Revision 的字节与 SHA/版本/授权不可静默更新。用户接口权威示例见 `docs/framework/universal-dependency-runtime-usage-contract.zh-CN.md` 及 `examples/programs/single-file/controller-mitt-pinned-esm.js`。新语法当前仅有 SOURCE_WIRED 与测试驱动，独立真实 Chrome/CWS PASS 不可凭空宣称。
 ## Controller/Page 零参数用户入口及 src/libs 环境合同（2026-10-12）
 
 用户当前明确要求：**推荐示例、AI 生成代码与多文件 ESM Controller 入口使用 `export default async function main()`，Side Panel「开发」直接编辑 Controller 草稿使用 `async function main()`，直接引用受控 Worker 词法 `page`、`params` 及默认 `_`、`dayjs`、`OpenDeskLibs`，不让用户给 `main` 传能力对象、重复 npm 安装或写 CDN。** 历史 `main({page})` ESM 入口只保留兼容，不得再宣传为唯一/推荐格式。
@@ -114,3 +119,8 @@ Native Workspace 已采用 Tailwind v4 的离线固定构建，必须保持 `rem
 ## 进度表达
 
 首条说明目标、具体缺口、拟修改文件、通过条件。约60秒报告实际成果。任务树使用实际功能名及缩进，每个节点显示实施/证据/剩余任务；编号只作为追溯附注。不得以测试数量或任意等权功能组推导产品完成百分比。
+
+
+## 侧栏工具可信 UI 与动态沙箱边界（2026-10-13）
+
+**新增目标，尚未代表已实施：** Time Review R1.6 优先试点「**编译期审计的第一方 UI 直接挂载已有 Side Panel**，用户/AI/第三方动态包继续使用现有 opaque-origin iframe」。统一生命周期、Host、Browser SDK、授权存储和后台；不创建新安装器/权限系统。不能以工具 ID、官方市场标签、签名字符串或 `capabilities` 将安装包里的动态 HTML/JS 提权；宿主可用的 `chrome.*` 是**扩展级权限**，只经 SDK 检查不足以阻止进入特权页的任意脚本直接调用。闭包、ESM、Shadow DOM 是工程隔离，不是恶意脚本安全沙箱。当前动态工具路径仍有效，未做真实迁移不得称已移除 iframe。权威规则：[官方预编译 UI 与动态工具隔离决策](docs/architecture/browser-framework/custom-tool-ui-and-local-development.zh-CN.md)；执行入口：[Time Review R1.6 GOAL](docs/framework/prompts/goal-time-review-r16-trusted-native-ui-pilot.zh-CN.md)。

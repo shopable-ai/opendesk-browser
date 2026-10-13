@@ -6,7 +6,7 @@ const E=id=>root.querySelector('#'+id),editor=E('editor-panel'),importer=E('impo
 // Never substitute local cookies for Chrome reads or let a sandbox request grant access.
 let data=null,epoch=0,dirty=false,busy=false,editing=null,pending=null,returnFocus=null;
 let mode='browser',targetOverride='',targetPending=false,liveTarget=null,liveRows=[],liveState='idle',liveMessage='';
-const liveSecrets=new Map();let observing=null,observeCursor='0';
+const liveSecrets=new Map();let observing=null,observeCursor='0',liveValueEdited=false;
 const browserSdk=()=>globalThis.OpenDeskSDK?.browser||null;
 function parseTarget(input){
   if(typeof input!=='string'||input.length>2048||input.trim()!==input)throw new Error('请输入不超过 2048 字符的 HTTP(S) 网页地址');
@@ -41,7 +41,25 @@ const MAX_COOKIES=200,MAX_IMPORT=100,MAX_TEXT_BYTES=150000;
 const shown=new Set();
 const safeHost=value=>typeof value==='string'&&/^[a-z0-9.-]{1,253}$/i.test(value)&&!value.startsWith('.')&&!value.endsWith('.');
 const stale=()=>new Error('此 Cookie 已改变，请刷新离线列表后重新操作。');
-const key=row=>JSON.stringify([row.name,row.domain,row.path,row.hostOnly,row.storeId,row.partitionKey||null]);
+// CookiePartitionKey property order is not stable across native receipts,
+ // JSON, or manually imported values. Compare semantic identity only.
+const key=row=>JSON.stringify([row.name,row.domain,row.path,row.hostOnly===true,
+  row.storeId??null,row.partitionKey?.topLevelSite??null,
+  Boolean(row.partitionKey?.hasCrossSiteAncestor)]);
+// A name change keeps the original scope. Chrome has no atomic rename.
+const sameCookieScope=(a,b)=>a.domain===b.domain&&a.path===b.path&&
+  a.hostOnly===b.hostOnly&&(a.storeId??null)===(b.storeId??null)&&
+  (a.partitionKey?.topLevelSite??null)===(b.partitionKey?.topLevelSite??null)&&
+  Boolean(a.partitionKey?.hasCrossSiteAncestor)===Boolean(b.partitionKey?.hasCrossSiteAncestor);
+const sameCookieMetadata=(a,b)=>sameCookieScope(a,b)&&
+  a.secure===b.secure&&a.httpOnly===b.httpOnly&&a.session===b.session&&
+  a.sameSite===b.sameSite&&
+  (a.expirationDate??null)===(b.expirationDate??null);
+const sameNativeSlot=(a,b)=>a.name===b.name&&a.path===b.path&&
+  a.domain.replace(/^\./,'').toLowerCase()===b.domain.replace(/^\./,'').toLowerCase()&&
+  (a.storeId??null)===(b.storeId??null)&&
+  (a.partitionKey?.topLevelSite??null)===(b.partitionKey?.topLevelSite??null)&&
+  Boolean(a.partitionKey?.hasCrossSiteAncestor)===Boolean(b.partitionKey?.hasCrossSiteAncestor);
 const status=(msg,type='info')=>{E('status').textContent=msg;E('status').dataset.state=type;E('status').hidden=!msg;};
 const notify=()=>setState?.({dirty,busy});
 const setBusy=value=>{
@@ -84,27 +102,27 @@ function renderBrowser(){
     if(active)E(id).classList.add('active');else E(id).classList.remove('active');
   }
   E('cookie-content').hidden=mode!=='offline';E('preview-banner').hidden=mode!=='offline';
+  E('browser-state').hidden=hasRead;
   const heading=E('browser-state-heading'),detail=E('browser-state-detail');
   if(targetPending){
     heading.textContent='请先确认目标网页';detail.textContent='输入框地址尚未应用。点击「选择」后再读取，避免误操作原先的网站。';
   }else if(!liveTarget){
-    heading.textContent='请选择网页';detail.textContent='打开普通网页并点击「当前页」，或输入指定 HTTP(S) 地址。';
+    heading.textContent='请选择网站';detail.textContent='打开普通网页，或展开「切换或选择网站」填写 HTTP(S) 地址。';
   }else if(!available){
-    heading.textContent='真实浏览器 Cookie 管理尚未就绪';
-    detail.textContent='当前版本不能读取或修改 Chrome Cookie。你仍可使用「离线工作区」编辑和导入文件，但不会影响网页。';
+    heading.textContent='无法连接 Chrome Cookie 服务';
+    detail.textContent='请确认安装了最新 Cookie Editor 并已启用正式 Browser SDK；不会显示模拟 Cookie 数据。';
   }else if(liveState==='ready'){
-    heading.textContent='已读取当前地址匹配的 Cookie 元数据';
-    detail.textContent='来自 Chrome 的真实 Cookie；值默认隐藏，写入及删除需要按操作确认。';
+    heading.textContent='已读取 Cookie';
+    detail.textContent='已授权浏览器数据，敏感值默认隐藏。';
   }else if(liveState==='error'||liveState==='blocked'){
     heading.textContent=liveState==='blocked'?'需要浏览器 Cookie 授权':'浏览器读取失败';
     detail.textContent=liveMessage||'请在工具详情中检查能力与指定网站授权，然后重试。';
   }else{
-    heading.textContent='需要单独授权';detail.textContent='请先在工具详情中批准 Cookie 读取与目标网站，再点击「读取 Cookie」。仅选择网站不会自动授权。';
+    heading.textContent='正在检查此网站…';detail.textContent='检查 Cookie 读取授权。';
   }
   E('target-help').textContent=targetOverride?
     '已选择指定网址；读取仍需该网站授权，不要求与当前活动标签页相同。':
     '正在使用当前网页地址。选择网站不等于授权读取 Cookie。';
-  E('read-live').disabled=busy||!available||targetPending;
   E('live-new').disabled=busy||!hasRead||targetPending;
   for(const id of ['live-import','live-export','live-clear'])
     E(id).disabled=busy||!hasRead||targetPending;
@@ -116,13 +134,20 @@ function renderBrowser(){
     [row.name,row.domain,row.path].some(value=>value.toLocaleLowerCase().includes(term))&&
     (filter==='all'||(filter==='secure'&&row.secure)||(filter==='httpOnly'&&row.httpOnly)||
      (filter==='session'&&row.session)||(filter==='partitioned'&&row.partitionKey)));
+  const order=E('live-sort').value||'name',byText=(a,b)=>String(a||'').localeCompare(String(b||''));
+  visible.sort((a,b)=>order==='expiration'?
+    (Number.isFinite(a.expirationDate)?a.expirationDate:Number.MAX_SAFE_INTEGER)-
+    (Number.isFinite(b.expirationDate)?b.expirationDate:Number.MAX_SAFE_INTEGER)||
+      byText(a.name,b.name):
+    byText(a[order]??a.name,b[order]??b.name)||byText(a.name,b.name)||
+      byText(a.domain,b.domain)||byText(a.path,b.path));
   E('live-count').textContent=hasRead?
     visible.length+' / '+liveRows.length+' 条 Cookie':'尚未读取';
   const list=E('live-cookie-list');list.replaceChildren();
   E('live-empty').hidden=visible.length>0;
   E('live-empty').textContent=hasRead?
     (liveRows.length?'没有匹配的 Cookie':'当前 URL 没有匹配的 Cookie。'):available?
-    '尚未读取真实 Cookie。':'当前未能读取真实 Cookie；可切换离线工作区。';
+    '正在检查网站 Cookie…':'无法读取 Cookie，请先在工具设置中授权该网站。';
   const doc=root.ownerDocument;
   for(const row of visible){
     const item=doc.createElement('div');item.className='cookie-row';item.setAttribute('role','listitem');
@@ -142,12 +167,22 @@ function renderBrowser(){
     const addAction=(label,fn,danger=false)=>{
       const b=doc.createElement('button');b.type='button';b.className='row-action'+(danger?' delete':'');
       b.textContent=label;b.disabled=busy;b.setAttribute('aria-label',label+' '+row.name);
-      b.addEventListener('click',fn);actions.append(b);
+      b.addEventListener('click',fn);actions.append(b);return b;
     };
     addAction(liveSecrets.has(key(row))?'隐藏值':'显示值',()=>{void revealBrowserValue(row);});
-    addAction('编辑',()=>guarded(()=>openEditor(row)));
-    addAction('删除',()=>guarded(()=>ask('真实删除「'+row.name+'」 · '+row.domain+row.path+
+    // Parent-domain cookies may legitimately match this URL, but modifying
+    // them affects sibling subdomains and requires the parent's own grant.
+    const writableHere=row.domain.replace(/^\./,'').toLowerCase()===liveTarget.hostname;
+    const editAction=addAction('编辑',()=>guarded(()=>openEditor(row)));
+    const deleteAction=addAction('删除',()=>guarded(()=>ask('真实删除「'+row.name+'」 · '+row.domain+row.path+
       '？仅处理其精确身份。','确认删除',()=>deleteBrowserCookie(row))),true);
+    if(!writableHere){
+      for(const action of [editAction,deleteAction]){
+        action.disabled=true;
+        action.title='此 Cookie 属于 '+row.domain+
+          '；若需修改或删除，请选择该域名并先取得独立网站写入授权';
+      }
+    }
     item.append(name,meta,value,actions);list.append(item);
   }
 }
@@ -193,16 +228,15 @@ function render(){
   }
   for(const id of ['add','import-toggle','copy','download'])E(id).disabled=busy||!data;
   E('clear').disabled=busy||!data?.cookies.length;
-  E('sample').hidden=!data||data.cookies.length>0;
-  E('sample').disabled=busy;
 }
 function openEditor(row=null){
   if(!data||mode==='browser'&&(liveState!=='ready'||!liveTarget||targetPending))return;
   importer.hidden=true;editor.hidden=false;editing=row?structuredClone(row):null;
+  liveValueEdited=false;
   E('editor-heading').textContent=(mode==='browser'?'真实 Chrome · ':'')+(row?'编辑 Cookie':'新建 Cookie');
   E('editor-help').textContent=mode==='browser'?
-    '保存将真实修改浏览器，需用户确认。编辑时填写新值；名称、域名、路径和分区身份不可修改。':
-    '仅编辑离线工作区，不会修改网站登录状态。名称、域名、路径、分区身份不可修改。';
+    '名称可以直接修改。重命名会先创建新 Cookie，再删除旧名称；保留旧值需敏感值授权，或填写新值。其他身份字段保持不变。':
+    '仅修改离线数据；名称可以直接修改，Domain、Path 和分区身份保持不变。';
   E('cookie-name').value=row?.name||'';E('cookie-value').value=row?.value||'';
   E('cookie-domain').value=row?.domain||data.hostname;E('cookie-path').value=row?.path||'/';
   E('cookie-same-site').value=row?.sameSite||'unspecified';
@@ -213,9 +247,12 @@ function openEditor(row=null){
     const instant=new Date(row.expirationDate*1000);
     E('cookie-expiry').value=new Date(instant.getTime()-instant.getTimezoneOffset()*60000).toISOString().slice(0,16);
   }else E('cookie-expiry').value='';
-  for(const id of ['cookie-name','cookie-domain','cookie-path'])E(id).readOnly=Boolean(row);
+  E('cookie-name').readOnly=false;
+  for(const id of ['cookie-domain','cookie-path'])E(id).readOnly=Boolean(row);
   E('cookie-host-only').disabled=Boolean(row);
-  clean();(row?E('cookie-value'):E('cookie-name')).focus();
+  E('cookie-value').placeholder=mode==='browser'&&row?.valueRedacted===true?
+    '留空将尝试保留旧值（需已有敏感值权限）':'输入 Cookie 值';
+  clean();E('cookie-name').focus();
 }
 function formCookie(){
   const expiry=E('cookie-expiry').value;
@@ -279,7 +316,9 @@ function saveToList(list,row,previous=null){
   const index=list.findIndex(item=>key(item)===(previous?key(previous):id));
   if(previous){
     if(index===-1||JSON.stringify(list[index])!==JSON.stringify(previous))throw stale();
-    if(id!==key(previous))throw new Error('不能修改名称、域名、路径或 Cookie 分区身份');
+    if(!sameCookieScope(next,previous))throw new Error('不能修改域名、路径、Store 或 Cookie 分区身份');
+    if(list.some((item,i)=>i!==index&&key(item)===id))
+      throw new Error('新名称与已有 Cookie 冲突，请使用其他名称');
   }else if(index!==-1)throw new Error('同身份 Cookie 已存在。请选择编辑，或通过导入进行覆盖。');
   const out=[...list];
   if(index<0)out.push(next);else out[index]=next;
@@ -300,18 +339,54 @@ async function refresh(){
     }
     if(id!==epoch)return;
     liveTarget=target;
-    const host=target?.hostname||'example.test';
-    data={hostname:host,origin:target?.origin||'',url:target?.url||'',
-      cookies:prior?.hostname===host?prior.cookies:[]};
+    const host=target?.hostname||'';
+    data=target?{hostname:host,origin:target.origin,url:target.url,
+      cookies:prior?.hostname===host?prior.cookies:[]}:null;
     E('site-host').textContent=target?.hostname||'尚未选择网站';
     E('site-url').textContent=target?.url||'';E('site-url').hidden=!target;
     E('target-url').value=target?.url||'';targetPending=false;
-    E('preview-banner').textContent='离线工作区 · '+(target?
-      '仅用 '+host+' 作为临时数据校验范围，不读取或修改浏览器 Cookie。':
-      '没有可用网页，使用 example.test 本地演示域名。')+' 关闭工具后数据不保留。';
+    E('preview-banner').textContent='离线文件工具 · '+(target?
+      '本地数据以 '+host+' 为校验范围，不读取或修改 Chrome Cookie。':
+      '请返回浏览器模式，先选择 HTTP(S) 网站地址，再进入离线文件工具。')+
+      ' 关闭工具后临时数据不保留。';
     status(mode==='offline'?'正在使用离线工作区；所有修改仅保存在临时内存。':'');
   }catch(error){if(id===epoch){liveState='error';liveMessage=String(error.message||error);status(liveMessage,'error');}}
-  finally{if(id===epoch){setBusy(false);render();}}
+  finally{if(id===epoch){
+    setBusy(false);render();
+    // Tool open / site change: read only if the existing grant still allows it.
+    // The public SDK/Host performs the actual per-site authority checks.
+    if(mode==='browser'&&liveTarget&&!targetPending&&typeof browserSdk()?.cookies?.getAll==='function')
+      void readBrowserMetadata();
+  }}
+}
+
+// Cookie Editor must not claim partitioned data is empty merely because the
+// Chrome-style default getAll() returns unpartitioned cookies only.
+// The public Host supplies ONLY the partition approved for this site/store;
+// query both explicit scopes without permitting a tool-selected foreign key.
+async function scopedLiveCookies(sdk,target,{includeValues=false,isCurrent=()=>true}={}){
+  if(typeof sdk?.cookies?.getAll!=='function'||typeof sdk.cookies.getPartitionKey!=='function')
+    throw new Error('正式 Browser SDK 缺少真实 Cookie 分区查询接口');
+  const normal=await sdk.cookies.getAll({url:target.url,...(includeValues?{includeValues:true}:{})});
+  if(!isCurrent())return null;
+  if(!Array.isArray(normal))throw new Error('Host 的普通 Cookie 返回不是数组');
+  const partition=await sdk.cookies.getPartitionKey({url:target.url});
+  if(!isCurrent())return null;
+  if(!partition?.partitionKey?.topLevelSite)throw new Error('无法确定已授权 Partition');
+  const partitioned=await sdk.cookies.getAll({url:target.url,
+    partitionKey:partition.partitionKey,...(includeValues?{includeValues:true}:{})});
+  if(!isCurrent())return null;
+  if(!Array.isArray(partitioned))throw new Error('Host 的分区 Cookie 返回不是数组');
+  const combined=new Map();
+  for(const row of [...normal,...partitioned]){
+    if(!row||typeof row.name!=='string'||typeof row.domain!=='string'||typeof row.path!=='string')
+      throw new Error('Host 返回了无效 Cookie 身份');
+    const identity=key(row);
+    if(combined.has(identity))throw new Error('Host 返回同一 Cookie 身份的重复记录，请刷新');
+    combined.set(identity,row);
+  }
+  if(combined.size>100)throw new Error('所选网址 Cookie 总数超过 100 条，请缩小 Path 范围');
+  return [...combined.values()];
 }
 async function readBrowserMetadata(){
   if(busy||pending||!liveTarget||targetPending)return;
@@ -329,7 +404,9 @@ async function readBrowserMetadata(){
     }
     if(id!==epoch||liveTarget?.url!==target.url||targetPending||mode!=='browser')return;
     // Only public tool SDK: never invoke chrome.cookies or private approve/execute.
-    const result=await sdk.cookies.getAll({url:target.url});
+    const result=await scopedLiveCookies(sdk,target,{
+      isCurrent:()=>id===epoch&&liveTarget?.url===target.url&&!targetPending&&mode==='browser'});
+    if(result===null)return;
     const rows=redactMetadata(result);
     if(id!==epoch||liveTarget?.url!==target.url||targetPending||mode!=='browser')return;
     liveRows=rows;liveState='ready';liveMessage='';
@@ -343,7 +420,12 @@ async function readBrowserMetadata(){
 function nativeInput(row){
   if(!liveTarget||row.domain.replace(/^\./,'').toLowerCase()!==liveTarget.hostname)
     throw new Error('当前 SDK 限定精确主机 Domain，请切换到该 Cookie 的所属主机');
-  return {url:liveTarget.url,name:row.name,value:row.value,path:row.path,
+  // A Cookie Path containing raw URL delimiters or unsupported characters
+  // cannot be represented by the exact Chrome URL needed for readback/remove.
+  const lookup=new URL(liveTarget.origin);lookup.pathname=row.path;
+  if(lookup.pathname!==row.path)
+    throw new Error('Cookie Path 无法无损映射为 Chrome URL，请使用标准 URL 编码的路径');
+  return {url:lookup.href,name:row.name,value:row.value,path:row.path,
     ...(row.hostOnly?{}:{domain:row.domain}),secure:row.secure,httpOnly:row.httpOnly,
     sameSite:row.sameSite,...(row.session?{}:{expirationDate:row.expirationDate}),
     ...(row.storeId?{storeId:row.storeId}:{}),
@@ -358,7 +440,9 @@ async function revealBrowserValue(row){
   if(liveSecrets.has(identity)){liveSecrets.delete(identity);render();return;}
   setBusy(true);
   try{
-    const receipt=await browserSdk().cookies.get({url:target.url,name:row.name,
+    const lookup=new URL(target.origin);lookup.pathname=row.path;
+    if(lookup.pathname!==row.path)throw new Error('Cookie Path 无法精确查询');
+    const receipt=await browserSdk().cookies.get({url:lookup.href,name:row.name,
       domain:row.domain,path:row.path,...(row.storeId?{storeId:row.storeId}:{}),
       ...(row.partitionKey?{partitionKey:row.partitionKey}:{}),includeValues:true});
     if(!stillCurrent(id,target))return;
@@ -371,27 +455,84 @@ async function revealBrowserValue(row){
 async function saveBrowserCookie(){
   if(busy||pending||!liveTarget||liveState!=='ready')return;
   const id=epoch,target=liveTarget,old=editing;
-  let options;
+  let row,options,renamed=false;
   try{
-    const row=normalizeCookie(formCookie());
-    if(old&&key(row)!==key(old))throw new Error('不能修改已存在 Cookie 的身份');
+    row=normalizeCookie(formCookie());
+    if(old&&!sameCookieScope(row,old))
+      throw new Error('编辑不能改变 Domain、Path、Store 或 Partition；请另行新建');
+    renamed=Boolean(old&&row.name!==old.name);
     options=nativeInput(row);
   }catch(e){status('Cookie 属性不合法：'+e.message,'error');return;}
-  setBusy(true);
+  setBusy(true);let confirmed=false,newNameSaved=false;
   try{
+    if(old){
+      // Preflight the exact scope; never overwrite an existing new name.
+      const route=new URL(target.origin);route.pathname=old.path;
+      if(route.pathname!==old.path)throw new Error('原 Cookie Path 无法精确查询');
+      const scope={url:route.href,...(old.storeId?{storeId:old.storeId}:{}),
+        ...(old.partitionKey?{partitionKey:old.partitionKey}:{})};
+      const current=await browserSdk().cookies.getAll(scope);
+      if(!stillCurrent(id,target))return;
+      if(!Array.isArray(current))throw new Error('Host 未返回可验证的 Cookie 列表');
+      const original=redactMetadata(current).find(item=>key(item)===key(old));
+      if(!original||!sameCookieMetadata(original,old))
+        throw new Error('原 Cookie 属性已改变或消失，请刷新后再编辑');
+      if(renamed&&current.some(item=>sameNativeSlot(item,row)))
+        throw new Error('新名称已存在于相同 Domain/Path/Store/Partition；不会覆盖');
+      if(old.valueRedacted===true&&!liveValueEdited){
+        // A separate values grant is required to preserve a hidden value.
+        // Never put it into the editor form or persisted draft state.
+        let source;
+        try{
+          source=await browserSdk().cookies.get({url:route.href,name:old.name,
+            domain:old.domain,path:old.path,...(old.storeId?{storeId:old.storeId}:{}),
+            ...(old.partitionKey?{partitionKey:old.partitionKey}:{}),includeValues:true});
+        }catch(error){
+          if(!stillCurrent(id,target))return;
+          throw Object.assign(new Error('保留旧值需在工具设置授权“读取敏感值”，或主动填写新值。'+
+            String(error?.message||'')),{code:error?.code||'E_COOKIE_VALUES'});
+        }
+        if(!stillCurrent(id,target))return;
+        if(!source?.cookie||key(source.cookie)!==key(old)||
+           source.cookie.valueRedacted!==false||typeof source.cookie.value!=='string')
+          throw new Error('旧 Cookie 值不可用；请授权敏感值或主动填写新值');
+        row.value=source.cookie.value;options=nativeInput(row);
+      }
+    }
+    if(!stillCurrent(id,target))return;
     const receipt=await browserSdk().cookies.set(options);
     if(!stillCurrent(id,target))return;
     if(receipt?.saved!==true||receipt.verified!==true)
       throw Object.assign(new Error('Chrome 未确认写入，禁止直接重试'),{code:'E_OUTCOME_UNKNOWN'});
-    scrubEditors();status('Chrome 已确认写入，正在重新读取。','success');
-  }catch(e){if(stillCurrent(id,target))status('写入可能未完成（'+(e.code||'E_COOKIE_SET')+
-    '）：'+e.message+'。请刷新核对，勿盲目重试。','error');}
+    if(renamed){
+      newNameSaved=true;
+      // Delete ONLY the old exact identity after the new one is verified.
+      // If deletion fails, both names may exist; never blindly retry.
+      const removed=await browserSdk().cookies.remove({url:target.url,name:old.name,
+        domain:old.domain,path:old.path,...(old.storeId?{storeId:old.storeId}:{}),
+        ...(old.partitionKey?{partitionKey:old.partitionKey}:{})});
+      if(!stillCurrent(id,target))return;
+      if(removed?.removed!==true||removed.verified!==true)
+        throw Object.assign(new Error('旧 Cookie 删除未确认'),{code:'E_OUTCOME_UNKNOWN'});
+    }
+    confirmed=true;liveSecrets.clear();scrubEditors();
+    status(renamed?'Chrome 已确认新名称写入且旧名称删除。正在刷新列表。':
+      'Chrome 已确认保存。正在刷新列表。','success');
+  }catch(e){if(stillCurrent(id,target)){
+    if(newNameSaved){
+      liveSecrets.clear();scrubEditors();
+      status('新名称已由 Chrome 确认写入，但旧名称删除未确认（'+
+        (e.code||'E_COOKIE_REMOVE')+'）：'+e.message+
+        '。两条 Cookie 可能并存；请手动刷新核对，切勿盲目重试。','error');
+    }else status('操作未完成或结果未知（'+(e.code||'E_COOKIE_SET')+
+      '）：'+e.message+'。请手动刷新核对，切勿盲目重试。','error');
+  }}
   finally{if(id===epoch){setBusy(false);render();}}
-  if(stillCurrent(id,target))void readBrowserMetadata();
+  if(confirmed&&stillCurrent(id,target))void readBrowserMetadata();
 }
 async function deleteBrowserCookie(row){
   if(busy||!liveTarget||mode!=='browser')return;
-  const id=epoch,target=liveTarget;setBusy(true);
+  const id=epoch,target=liveTarget;setBusy(true);let confirmed=false;
   try{
     const result=await browserSdk().cookies.remove({url:target.url,name:row.name,
       domain:row.domain,path:row.path,...(row.storeId?{storeId:row.storeId}:{}),
@@ -399,20 +540,22 @@ async function deleteBrowserCookie(row){
     if(!stillCurrent(id,target))return;
     if(result?.removed!==true||result.verified!==true)
       throw Object.assign(new Error('删除回执未核实'),{code:'E_OUTCOME_UNKNOWN'});
-    liveSecrets.delete(key(row));status('Chrome 已确认删除「'+row.name+'」。','success');
+    confirmed=true;liveSecrets.delete(key(row));status('Chrome 已确认删除「'+row.name+'」。','success');
   }catch(e){if(stillCurrent(id,target))status('删除未确认（'+(e.code||'E_COOKIE_REMOVE')+
     '）：'+e.message+'。请核对实际 Cookie，勿重复删除。','error');}
   finally{if(id===epoch){setBusy(false);render();}}
-  if(stillCurrent(id,target))void readBrowserMetadata();
+  if(confirmed&&stillCurrent(id,target))void readBrowserMetadata();
 }
 async function clearBrowserSite(){
   if(busy||pending||!liveTarget||targetPending)return;
-  const id=epoch,target=liveTarget;setBusy(true);let count;
+  const id=epoch,target=liveTarget;setBusy(true);let count,previewRef;
   try{
     const preview=await browserSdk().cookies.clearSite({url:target.url,preview:true,maxCookies:50});
     if(!stillCurrent(id,target))return;
-    count=preview?.matched;
-    if(!Number.isSafeInteger(count)||count<0||count>50)throw new Error('无效的 Host-only 清理范围');
+    count=preview?.matched;previewRef=preview?.previewRef;
+    if(!Number.isSafeInteger(count)||count<0||count>50||
+       typeof previewRef!=='string'||!/^[0-9a-f-]{36}$/i.test(previewRef))
+      throw new Error('Host 未返回可绑定的真实 Cookie 清理预览回执');
     if(!count){status('所选 Store/Partition 下没有本主机 Host-only Cookie。');return;}
   }catch(e){if(stillCurrent(id,target))status('清理预览被拒绝：'+(e.code||'E_COOKIE_CLEAR')+' '+e.message,'error');return;}
   finally{if(id===epoch){setBusy(false);render();}}
@@ -420,15 +563,21 @@ async function clearBrowserSite(){
   ask('将真实清理 '+target.hostname+' 的 '+count+
     ' 条 Host-only Cookie，仅限当前已授权 Store/Partition。不清理其他站点。确认？','确认安全清理',async()=>{
     if(!stillCurrent(id,target))return;
-    setBusy(true);
+    setBusy(true);let confirmed=false;
     try{
-      const result=await browserSdk().cookies.clearSite({url:target.url,expectedCount:count,maxCookies:50});
+      const result=await browserSdk().cookies.clearSite({url:target.url,previewRef,expectedCount:count,maxCookies:50});
+      if(!result||result.preview!==false||result.scope!=='EXACT_HOST_HOST_ONLY'||
+        result.matched!==count||!Number.isSafeInteger(result.removed)||
+        !Number.isSafeInteger(result.remaining)||result.removed<0||result.removed>count||
+        result.remaining<0||result.remaining>50)
+        throw Object.assign(new Error('Chrome 批量清理回执不完整，请手动刷新核对'),{code:'E_OUTCOME_UNKNOWN'});
+      confirmed=true;
       if(stillCurrent(id,target))status('Chrome 清理完成：删除 '+result.removed+
         ' 条，剩余 '+result.remaining+' 条。','success');
     }catch(e){if(stillCurrent(id,target))status('清理部分生效或失败（'+(e.code||'E_COOKIE_CLEAR')+
       '）：'+e.message+'。请重新预览，不要直接重试。','error');}
     finally{if(id===epoch){setBusy(false);render();}}
-    if(stillCurrent(id,target))void readBrowserMetadata();
+    if(confirmed&&stillCurrent(id,target))void readBrowserMetadata();
   });
 }
 
@@ -475,14 +624,15 @@ async function exportBrowserCookies(){
   try{
     // No sensitive value enters Chrome Storage, draft state, logging or telemetry.
     // Browser Host returns values only with a separate site permission.
-    const rows=await browserSdk().cookies.getAll({url:target.url,includeValues:true});
-    if(!stillCurrent(id,target))return;
+    const rows=await scopedLiveCookies(browserSdk(),target,{
+      includeValues:true,isCurrent:()=>stillCurrent(id,target)});
+    if(!stillCurrent(id,target)||rows===null)return;
     if(!Array.isArray(rows)||!rows.length)throw new Error('当前网站没有可导出 Cookie');
     if(rows.some(row=>row.valueRedacted!==false||typeof row.value!=='string'))
       throw new Error('Host 未确认全部 Cookie 敏感值权限');
     const format=E('live-export-format').value,text=exportText(format,rows);
     if(new Blob([text]).size>MAX_TEXT_BYTES)throw new Error('导出超过 150 KB 安全预算');
-    await request('file.download',{text,filename:target.hostname.slice(0,60)+
+    await browserSdk().downloads.text({text,filename:target.hostname.slice(0,60)+
       '-chrome-cookies.'+(format==='json'?'json':'txt')});
     if(stillCurrent(id,target))status('已主动导出真实 Chrome Cookie（可能包含登录凭据），请妥善保管。','success');
   }catch(error){if(stillCurrent(id,target))status('真实导出被拒绝：'+(error.code||'E_COOKIE_EXPORT')+
@@ -498,10 +648,35 @@ async function prepareLiveImport(){
     if(rows.length>10)throw new Error('真实浏览器每批最多 10 条（需逐条确认）；可分批导入，或使用离线模式处理更多记录');
     const scope=await browserSdk().cookies.getCurrentStore({url:target.url});
     if(!stillCurrent(id,target))return;
-    rows=rows.map(row=>({...row,storeId:row.storeId??scope.storeId}));
-    const known=new Set(liveRows.map(key));
-    created=rows.filter(row=>!known.has(key(row))).length;
-    replaced=rows.length-created;
+    const partition=await browserSdk().cookies.getPartitionKey({url:target.url});
+    if(!stillCurrent(id,target))return;
+    if(typeof scope?.storeId!=='string'||!partition?.partitionKey?.topLevelSite)
+      throw new Error('无法确定此次导入的 Store/Partition，不能猜测');
+    rows=rows.map(row=>{
+      if(row.storeId!==undefined&&row.storeId!==scope.storeId)
+        throw new Error('导入文件指定的 Store 不属于该网站已批准的 Store');
+      if(row.partitionKey&&(row.partitionKey.topLevelSite!==partition.partitionKey.topLevelSite||
+         Boolean(row.partitionKey.hasCrossSiteAncestor)!==
+           Boolean(partition.partitionKey.hasCrossSiteAncestor)))
+        throw new Error('导入文件的 Partition 不是此工具已批准的分区');
+      const selected={...row,storeId:scope.storeId};
+      // Validate all native write parameters BEFORE showing the mutation review.
+      nativeInput(selected);
+      return selected;
+    });
+    // The visible list may be stale or may not contain the imported Cookie's
+    // Path. Query each exact Path in its own approved store and partition.
+    // If scope cannot be enumerated, fail closed rather than lying about overwrites.
+    created=0;replaced=0;
+    for(const row of rows){
+      if(!stillCurrent(id,target))return;
+      const route=new URL(target.origin);route.pathname=row.path;
+      const found=await browserSdk().cookies.getAll({url:route.href,storeId:scope.storeId,
+        ...(row.partitionKey?{partitionKey:row.partitionKey}:{})});
+      if(!stillCurrent(id,target))return;
+      if(!Array.isArray(found))throw new Error('Host 未确认导入冲突预览');
+      if(found.some(cookie=>key(cookie)===key(row)))replaced++;else created++;
+    }
   }catch(error){if(stillCurrent(id,target))status('真实导入预检失败：'+(error.code||'E_COOKIE_IMPORT')+
     ' '+error.message,'error');return;}
   finally{if(id===epoch){setBusy(false);render();}}
@@ -509,7 +684,7 @@ async function prepareLiveImport(){
   ask('导入真实 Chrome · '+target.hostname+'；新增 '+created+' 条，可能覆盖 '+replaced+
     ' 条。每条写入单独请求确认；失败/未知结果不会重试。继续？','确认导入真实浏览器',async()=>{
     if(!stillCurrent(id,target))return;
-    let succeeded=0,failed=null;setBusy(true);
+    let succeeded=0,failed=null,complete=false;setBusy(true);
     try{
       for(const row of rows){
         if(!stillCurrent(id,target))break;
@@ -526,13 +701,13 @@ async function prepareLiveImport(){
       }
       if(stillCurrent(id,target)){
         if(!failed&&succeeded===rows.length){
-          scrubEditors();status('已由 Chrome 确认导入 '+succeeded+' 条。正在刷新实际列表。','success');
+          complete=true;scrubEditors();status('已由 Chrome 确认导入 '+succeeded+' 条。正在刷新实际列表。','success');
         }else status('真实导入已确认 '+succeeded+'/'+rows.length+' 条，接下来的操作已停止（'+
           (failed?.code||'E_COOKIE_IMPORT')+'）：'+String(failed?.message||'网站已切换')+
           '。请先检查 Chrome 实际状态，不能盲目重试。','error');
       }
     }finally{if(id===epoch){setBusy(false);render();}}
-    if(stillCurrent(id,target))void readBrowserMetadata();
+    if(complete&&stillCurrent(id,target))void readBrowserMetadata();
   });
 }
 async function mutate(operation,payload,okText){
@@ -650,13 +825,15 @@ function prepareImport(){
 }
 function scrubEditors(){
   E('cookie-value').value='';E('import-text').value='';E('import-file').value='';
-  editing=null;dirty=false;editor.hidden=true;importer.hidden=true;shown.clear();notify();
+  editing=null;liveValueEdited=false;dirty=false;editor.hidden=true;importer.hidden=true;shown.clear();notify();
 }
 function changeMode(next){
   if(busy||pending||mode===next)return;
   guarded(()=>{
     scrubEditors();mode=next;liveSecrets.clear();observing=null;
+    E('offline-tools').open=next==='offline';
     if(next==='browser')status('');
+    if(next==='browser'&&liveTarget&&liveState!=='ready'&&!targetPending)void readBrowserMetadata();
     else status('离线工作区：新增、编辑、导入和清空均不影响真实 Chrome Cookie。');
     render();
   });
@@ -670,13 +847,13 @@ E('target-url').addEventListener('input',()=>{
 E('apply-target').addEventListener('click',()=>guarded(()=>{
   try{
     const target=parseTarget(E('target-url').value);
-    scrubEditors();targetOverride=target.url;targetPending=false;E('target-url').value=target.url;data=null;void refresh();
+    scrubEditors();targetOverride=target.url;targetPending=false;E('target-url').value=target.url;
+    E('target-selector').open=false;data=null;void refresh();
   }catch(error){status('选择网站失败：'+String(error.message||error),'error');}
 }));
 E('use-current').addEventListener('click',()=>guarded(()=>{
-  scrubEditors();targetOverride='';targetPending=false;data=null;void refresh();
+  scrubEditors();targetOverride='';targetPending=false;E('target-selector').open=false;data=null;void refresh();
 }));
-E('read-live').addEventListener('click',()=>{void readBrowserMetadata();});
 E('live-new').addEventListener('click',()=>guarded(()=>openEditor()));
 E('live-clear').addEventListener('click',()=>{void clearBrowserSite();});
 E('live-export').addEventListener('click',()=>{void exportBrowserCookies();});
@@ -691,15 +868,10 @@ E('live-import').addEventListener('click',()=>guarded(()=>{
 }));
 E('live-search').addEventListener('input',render);
 E('live-filter').addEventListener('change',render);
+E('live-sort').addEventListener('change',render);
 E('refresh').addEventListener('click',()=>guarded(()=>{
   scrubEditors();
-  const refreshedEpoch=epoch+1;
-  // A deliberate Refresh is a user action, unlike automatic page-change updates.
-  // A future public SDK may read after rechecking the site's read grant.
-  void refresh().then(()=>{
-    if(epoch===refreshedEpoch&&mode==='browser'&&!targetPending&&
-       typeof browserSdk()?.cookies?.getAll==='function')return readBrowserMetadata();
-  }).catch(error=>status('刷新失败：'+String(error.message||error),'error'));
+  void refresh().catch(error=>status('刷新失败：'+String(error.message||error),'error'));
 }));
 E('search').addEventListener('input',render);
 E('add').addEventListener('click',()=>guarded(()=>openEditor()));
@@ -715,6 +887,10 @@ E('cookie-session').addEventListener('change',()=>{E('expiry-field').hidden=E('c
 for(const id of ['input','change']){
   E('editor-form').addEventListener(id,mark);importer.addEventListener(id,mark);
 }
+E('cookie-value').addEventListener('input',event=>{
+  if(event?.isTrusted!==false&&mode==='browser'&&editing?.valueRedacted===true)
+    liveValueEdited=true;
+});
 E('editor-form').addEventListener('submit',event=>{
   event.preventDefault();if(!data||busy)return;
   if(mode==='browser')void saveBrowserCookie();
@@ -731,7 +907,7 @@ E('copy').addEventListener('click',async()=>{
   try{
     text=exportText(E('export-format').value);
     if(!text.trim()||new Blob([text]).size>150000)throw new Error('导出为空或超过 150 KB');
-    setBusy(true);await request('clipboard.writeText',{text});
+    setBusy(true);await browserSdk().clipboard.writeText(text);
     if(actionEpoch===epoch)status('已复制；Cookie 可能包含登录凭据，请勿在不可信网站粘贴。','success');
   }catch(error){if(actionEpoch===epoch)status('复制失败：'+String(error.message||error),'error');}
   finally{if(actionEpoch===epoch)setBusy(false);text='';}
@@ -743,7 +919,7 @@ E('download').addEventListener('click',async()=>{
     if(new Blob([text]).size>MAX_TEXT_BYTES)throw new Error('导出文件超过 150 KB');
     const host=data.hostname.replace(/[^a-z0-9.-]/gi,'_').slice(0,60);
     const filename=host+'-cookies.'+(format==='json'?'json':'txt');
-    await request('file.download',{text,filename});
+    await browserSdk().downloads.text({text,filename});
     if(actionEpoch===epoch)status('已导出本地临时数据，请妥善保管。真实浏览器 Cookie 未被读取。','success');
   }catch(error){if(actionEpoch===epoch)status('导出失败：'+String(error.message||error),'error');}
   finally{if(actionEpoch===epoch)setBusy(false);}
@@ -761,17 +937,6 @@ E('import-file').addEventListener('change',async()=>{
   catch(error){status('读取文件失败：'+String(error.message||error),'error');}
 });
 E('import-apply').addEventListener('click',prepareImport);
-E('sample').addEventListener('click',()=>{
-  if(!data||busy||data.cookies.length)return;
-  try{
-    const rows=[
-      normalizeCookie({name:'opendesk_demo',value:'local-preview-only',domain:data.hostname,path:'/',session:true}),
-      normalizeCookie({name:'theme',value:'light',domain:data.hostname,path:'/',secure:false,sameSite:'lax',session:true})
-    ];
-    data={...data,cookies:sortCookies(rows)};render();
-    status('已添加两条虚构示例 Cookie；未读取、未修改真实网页。','success');
-  }catch(error){status('无法生成示例：'+String(error.message||error),'error');}
-});
 root.addEventListener('keydown',event=>{
   if((event.metaKey||event.ctrlKey)&&event.key.toLowerCase()==='s'&&!editor.hidden){
     event.preventDefault();E('editor-form').requestSubmit();return;

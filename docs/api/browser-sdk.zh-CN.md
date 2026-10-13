@@ -1,13 +1,23 @@
-> **R9 正式入口**：`OpenDeskSDK.browser`。Chrome 原生命名优先，创建使用 `tabs.create`；仅自有 TabRef 的聚焦和关闭明确叫 `tabs.activateOwned` / `tabs.removeOwned`，禁止原生数字 Tab ID。下方 R5/R8 的固定 35 项与长期兼容要求只留作历史。
-
 # OpenDeskSDK.browser API · 推荐短接口与原有高级操作
 
-> **R8 统一规范（已建立分阶段实施工作流）**：[单一 `OpenDeskSDK.browser` / Host / Authority 架构](browser-sdk-architecture-r8.zh-CN.md)、[35 项旧接口兼容映射](browser-sdk-compatibility-map.json)、[上游复用决策](browser-sdk-open-source-reuse.zh-CN.md)、[官方 Native Catalog（目前只覆盖 8 组固定 JSON，不能称 Chrome 全量）](chrome-native-api-catalog.json)。R8 的 Catalog 发现层不授予执行权限。本页 R1.3 历史表格明确不是今日状态；`cookies.*` 尚未成为正式可信调用链。
+## 当前政策：旧 35 项接口兼容义务已废止（2026-10-13）
+
+**ABOLISHED（正式废止）的是开发期旧 35 项 API 的永久兼容政策，而不是它们全部对应的浏览器功能。** 不得为保留 35 这个数字而恢复过时名称、旧签名、废弃占位或额外 Alias/Adapter。已核查的旧版处置是 **26 项名称仍登记、3 项 Tabs 更名、9 项 Media/Speech/Notifications 占位移除**；这不是当前注册表接口总数。
+
+- 旧 Tabs 名称 `tabs.open/focus/closeOwned` 已废除；统一使用 `tabs.create/activateOwned/removeOwned`，并遵循 TabRef 的所有权作用域。
+- 历史录制 4 项、语音 3 项、Notifications 2 项占位接口已从现行注册表移除；后续真实产品功能需重新按矩阵批准，不复活原占位。
+- **当前唯一事实源**：实际公开与能否调用核查 `src/framework/sdk/browser-contract.js`、`browser.js`、Host/Driver；设计与权限查 [唯一实施手册](browser-sdk-execution-manual.zh-CN.md) 和 [接口矩阵](browser-sdk-interface-matrix.json)。[35 项兼容映射](browser-sdk-compatibility-map.json) 是归档，不是今天的开发/CI 约束。
+- 本页下方 R1.3/R5/R8 的「必须兼容」「当前 28/35」「Cookie 0/10」等表述均是**有日期的历史快照**；不得用于最新完成度、功能可用性或真实 Chrome 通过判断。尤其要核对并行 Cookies SDK 开发对当前 Registry/安全身份的最新影响。
+
+> **R9 正式入口**：`OpenDeskSDK.browser`。Chrome 原生命名优先，创建使用 `tabs.create`；仅自有 TabRef 的聚焦和关闭明确叫 `tabs.activateOwned` / `tabs.removeOwned`，禁止原生数字 Tab ID。下方 R5/R8 的固定 35 项与长期兼容要求只留作历史。
+
+
+> **R8 统一规范（已建立分阶段实施工作流）**：[单一 `OpenDeskSDK.browser` / Host / Authority 架构](browser-sdk-architecture-r8.zh-CN.md)、[已废止的 35 项兼容映射历史档案](browser-sdk-compatibility-map.json)、[上游复用决策](browser-sdk-open-source-reuse.zh-CN.md)、[官方 Native Catalog（目前只覆盖 8 组固定 JSON，不能称 Chrome 全量）](chrome-native-api-catalog.json)。R8 的 Catalog 发现层不授予执行权限。本页 R1.3 历史表格明确不是今日状态；`cookies.*` 尚未成为正式可信调用链。
 
 > **框架能力四层总账**：[Chrome 原生 ↔ Driver/Host ↔ Browser SDK ↔ 验收证据](browser-framework-four-layer-ledger.zh-CN.md)；所有 27 组 114 项候选和 Cookie 10 项 P0 缺口都有逐项索引。此页保留当前开发者 API/历史设计，四层总账不构成额外授权。
 
 
-> **更新：2026-10-12。** 对安装工具的开发者，优先使用易理解的高层写法；下方保留的 R1.3 `PLANNED` / `HOST_ONLY` 表是 **2026-10-11 历史快照，不能当作当前进度**。当前源码正式合同为 [28 项操作注册表](../../src/framework/sdk/browser-contract.js)，状态与原生证据见 [Browser SDK 工作流](../framework/workstreams/browser-sdk-status.md)。
+> **更新：2026-10-12。** 对安装工具的开发者，优先使用易理解的高层写法；下方保留的 R1.3 `PLANNED` / `HOST_ONLY` 表是 **2026-10-11 历史快照，不能当作当前进度**。当时记载的 28 项仅属旧时间点快照；当前接口数与可调用状态应直接查询 [唯一运行时注册表](../../src/framework/sdk/browser-contract.js)，状态与原生证据见 [Browser SDK 工作流](../framework/workstreams/browser-sdk-status.md)。
 
 ## R9 当前推荐：重载本工具拥有的网页
 
@@ -23,7 +33,7 @@ const receipt = await browser.tabs.reloadOwned({tabRef});
 
 ## R5：查询、列出并关闭本工具的标签页
 
-此处 R5 正式新增 **3 项源码接线接口**。原 32 项历史接口合同仍保留，按 R5 增量记账为 35 项，其中 26 项已接线。源码接线不等于 Mac Chrome 原生验收；当前新增功能原生仍 NOT_TESTED。
+此处 R5 正式新增 **3 项源码接线接口**。当时按原 32 项加 R5 增量计为 35 项（其中 26 项曾有源码接线）；该固定数量与永久兼容义务现已废止。源码接线不等于 Mac Chrome 原生验收；当前新增功能原生仍 NOT_TESTED。
 
 ```js
 const {browser} = OpenDeskSDK;

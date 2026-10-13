@@ -74,6 +74,12 @@ export async function checkBrowserSdk({root=ROOT}={}){
   ()=>sdk.contextMenu.unregister(),()=>sdk.launch.consume(),()=>sdk.page.getContext(),
   ()=>sdk.page.getSelection(),()=>sdk.clipboard.writeText('note'),
   ()=>sdk.downloads.text({text:'note',filename:'note.md'}),
+  ()=>sdk.downloads.download({url:'https://example.org/file.txt',filename:'file.txt'}),
+  ()=>sdk.downloads.getOwned({downloadRef:'r'.repeat(32)}),
+  ()=>sdk.downloads.listOwned({limit:10}),
+  ()=>sdk.downloads.cancelOwned({downloadRef:'r'.repeat(32)}),
+  ()=>sdk.storage.local.get(),()=>sdk.storage.local.set({items:{theme:'dark'}}),
+  ()=>sdk.storage.local.remove({keys:['theme']}),()=>sdk.storage.local.clear({confirm:true}),
   ()=>sdk.tabs.create({url:'https://example.org'}),()=>sdk.tabs.activateOwned({tabRef:'r'.repeat(32)}),
   ()=>sdk.tabs.getOwned({tabRef:'r'.repeat(32)}),()=>sdk.tabs.listOwned(),
   ()=>sdk.tabs.pinOwned({tabRef:'r'.repeat(32),pinned:true}),
@@ -89,7 +95,18 @@ export async function checkBrowserSdk({root=ROOT}={}){
   ()=>sdk.events.close({sessionRef:'r'.repeat(32)}),
   ()=>sdk.operations.getStatus({operationId:'r'.repeat(32)}),
   ()=>sdk.operations.cancel({operationId:'r'.repeat(32)}),
-  ()=>sdk.screenshot.captureVisible({tabRef:'r'.repeat(32)})
+  ()=>sdk.screenshot.captureVisible({tabRef:'r'.repeat(32)}),
+  ()=>sdk.cookies.get({url:'https://example.org/',name:'sid'}),
+  ()=>sdk.cookies.getAll({url:'https://example.org/'}),
+  ()=>sdk.cookies.set({url:'https://example.org/',name:'sid',value:'fixture',path:'/'}),
+  ()=>sdk.cookies.remove({url:'https://example.org/',name:'sid',domain:'example.org',path:'/'}),
+  ()=>sdk.cookies.clearSite({url:'https://example.org/',preview:true}),
+  ()=>sdk.cookies.getCurrentStore({url:'https://example.org/'}),
+  ()=>sdk.cookies.getPartitionKey({url:'https://example.org/'}),
+  ()=>sdk.cookies.observe.start({url:'https://example.org/'}),
+  ()=>sdk.cookies.observe.getStatus({url:'https://example.org/',sessionRef:'01234567-89ab-4def-8123-456789abcdef'}),
+  ()=>sdk.cookies.observe.read({url:'https://example.org/',sessionRef:'01234567-89ab-4def-8123-456789abcdef'}),
+  ()=>sdk.cookies.observe.stop({url:'https://example.org/',sessionRef:'01234567-89ab-4def-8123-456789abcdef'})
  ];
  for(const probe of probes)try{await probe()}catch(e){errors.push('wrapper probe: '+(e.code||e.message))}
  const evidence=[];

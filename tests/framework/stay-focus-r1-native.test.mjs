@@ -82,21 +82,25 @@ test('Real Chrome always-block and live one-minute quota, Side Panel approval an
   });
   await new Promise(resolve=>http.listen(0,'127.0.0.1',resolve));
   const page='http://127.0.0.1:'+http.address().port+'/real-navigation';
-  const chrome=spawn(BIN,['--use-mock-keychain','--password-store=basic','--no-sandbox',
+  const chromeArgs=['--use-mock-keychain','--password-store=basic','--no-sandbox',
     '--disable-gpu','--disable-dev-shm-usage','--no-first-run','--no-default-browser-check',
     '--disable-background-networking','--remote-allow-origins=*',
     '--remote-debugging-address=127.0.0.1','--remote-debugging-port=0','--user-data-dir='+profile,
-    '--disable-extensions-except='+ROOT,'--load-extension='+ROOT,'about:blank'],
-    {stdio:['ignore','ignore','pipe']});
+    '--disable-extensions-except='+ROOT,'--load-extension='+ROOT,'about:blank'];
+  const launchChrome=()=>spawn(BIN,chromeArgs,{stdio:['ignore','ignore','pipe']});
+  let chrome=launchChrome();
   let errors='',client=null,passed=false;
   const report={candidate:process.env.GITHUB_SHA||null,
     pkgSHA256:createHash('sha256').update(bytes).digest('hex'),
     nativeChrome:'NOT_TESTED',approval:'NOT_TESTED',actualNavigation:'NOT_TESTED',
     quota:'NATIVE_NOT_TESTED',quotaTrace:[],screenshots:[],
-    disabled:'NOT_TESTED',reenabled:'NOT_TESTED',
+    disabled:'NOT_TESTED',reenabled:'NOT_TESTED',restart:'NOT_TESTED',
     unregister:'NOT_TESTED',uninstall:'NOT_TESTED',steps:[]};
   const note=(name,details)=>{report.steps.push({name,...details});console.log('STAY_FOCUS_NATIVE '+name+' '+JSON.stringify(details));};
-  chrome.stderr.on('data',x=>{errors=(errors+String(x)).slice(-2200);});
+  const captureChromeErrors=process=>process.stderr.on('data',x=>{
+    errors=(errors+String(x)).slice(-2200);
+  });
+  captureChromeErrors(chrome);
   t.after(async()=>{
     if(client)try{await client.send('Browser.close');}catch{}
     client?.close();
@@ -134,7 +138,7 @@ test('Real Chrome always-block and live one-minute quota, Side Panel approval an
     'chrome.runtime.getContexts({contextTypes:["SIDE_PANEL"]})');
     return found.find(x=>x.documentUrl?.includes('/ui/tool.html')&&x.documentId);
   },'real SIDE_PANEL');
-  const sid=await until(async()=>{const x=(await client.send('Target.getTargets')).targetInfos;
+  let sid=await until(async()=>{const x=(await client.send('Target.getTargets')).targetInfos;
     const target=x.find(row=>row.url===context.documentUrl);if(!target)return null;
     return (await client.send('Target.attachToTarget',{targetId:target.targetId,flatten:true})).sessionId;
   },'Side Panel CDP');
@@ -159,6 +163,9 @@ test('Real Chrome always-block and live one-minute quota, Side Panel approval an
   assert.ok(dimensions.scrollWidth<=dimensions.width+2,'native tool must not overflow its iframe horizontally');
   report.toolGeometry=dimensions;
   report.screenshots.push(await screenshot(client,sid,'installed-stay-focus-native-panel'));
+  // Advanced controls are intentionally collapsed by default; the quick
+  // recommendations remain visible to ordinary users.
+  await click(client,frame,'#manual-site > summary');
   await fill(client,frame,'#site-host','127.0.0.1');
   await click(client,frame,'#site-mode');await press(client,frame,'ArrowDown','ArrowDown',40);
   await press(client,frame,'Enter','Enter',13);
@@ -337,6 +344,74 @@ test('Real Chrome always-block and live one-minute quota, Side Panel approval an
   },'real HTTP restriction resumes when Stay Focus is reenabled',15000);
   report.reenabled='PASS';
   note('reenable-restores-quota-restriction',{quotaPersisted:true,ruleOwned:true});
+
+  // Actual full Chrome restart with the SAME profile, not only an MV3 worker
+  // restart or a storage/permission fixture. Do not seed rules or usage.
+  const beforeRestart=await evalRead(client,sid,'(async()=>{const x=await chrome.storage.local.get("'+
+    store+'");return x["'+store+'"]?.usage?.["s:127.0.0.1"]||0})()');
+  assert.ok(beforeRestart>=60000,'the real exhausted quota must exist before restarting Chrome');
+  const priorChrome=chrome;
+  // Browser.close may terminate CDP before its response frame arrives.
+  await client.send('Browser.close').catch(()=>{});
+  await until(()=>priorChrome.exitCode!==null||priorChrome.signalCode!==null,
+    'original Chrome process really exited',25000);
+  client.close();client=null;
+  chrome=launchChrome();captureChromeErrors(chrome);
+  const reopenedVersion=await until(async()=>{
+    const source=await readFile(path.join(profile,'DevToolsActivePort'),'utf8').catch(()=>null);
+    const port=Number(source?.split('\n')[0]);if(!(port>0))return null;
+    try{const response=await fetch('http://127.0.0.1:'+port+'/json/version');
+      return response.ok?await response.json():null;}catch{return null;}
+  },'restarted Chrome CDP with the same profile',30000);
+  client=connect(reopenedVersion.webSocketDebuggerUrl);await client.ready;
+  const restoredId=await until(async()=>{
+    const targets=(await client.send('Target.getTargets')).targetInfos;
+    return targets.find(x=>x.type==='service_worker'&&x.url?.endsWith('/sw.js'))?.url?.split('/')[2];
+  },'restarted installed extension SW',20000);
+  assert.equal(restoredId,id,'Chrome restart must retain the exact installed extension identity');
+  const reopenedUI=await client.send('Target.createTarget',{
+    url:'chrome-extension://'+restoredId+'/ui/tool.html?hostInstanceId='+randomUUID()});
+  const reopenedSession=(await client.send('Target.attachToTarget',
+    {targetId:reopenedUI.targetId,flatten:true})).sessionId;
+  await client.send('Runtime.enable',{},reopenedSession);
+  await client.send('Page.enable',{},reopenedSession);
+  const restoredQuota=await until(async()=>{
+    const value=await evalRead(client,reopenedSession,'(async()=>{const x=await chrome.storage.local.get("'+
+      store+'");const rules=await chrome.declarativeNetRequest.getDynamicRules();return {'+
+      'enabled:x["'+store+'"]?.enabled,usage:x["'+store+'"]?.usage?.["s:127.0.0.1"]||0,'+
+      'quotaRules:rules.filter(r=>r.id>=730000&&r.id<=730199&&'+
+      'r.action?.redirect?.extensionPath==="/stay-focus/blocked-quota.html").length}})()');
+    return value.enabled===true&&value.usage===beforeRestart&&value.quotaRules===1?value:null;
+  },'persisted quota and owned DNR rule after full Chrome restart',22000);
+  const postRestartVisit=await client.send('Target.createTarget',{url:page});
+  const redirectedAfterRestart=await until(async()=>{
+    const targets=(await client.send('Target.getTargets')).targetInfos;
+    return targets.find(row=>row.targetId===postRestartVisit.targetId)?.url?.includes(
+      '/stay-focus/blocked-quota.html');
+  },'actual HTTP navigation still blocked after Chrome restart',15000);
+  assert.ok(redirectedAfterRestart.startsWith('chrome-extension://'+id+'/'));
+  report.restart='PASS';
+  note('chrome-restart-restores-quota-and-navigation',{sameProfile:true,
+    extensionId:restoredId,usageMs:restoredQuota.usage,quotaRules:restoredQuota.quotaRules});
+
+  // Reopen the REAL Side Panel for removal; don't mutate extension storage
+  // using CDP or silently remove the package behind the user's UI.
+  await click(client,reopenedSession,'#catalog-open-dev-sidebar');
+  const restoredContext=await until(async()=>{
+    const contexts=await evalRead(client,reopenedSession,
+      'chrome.runtime.getContexts({contextTypes:["SIDE_PANEL"]})');
+    return contexts.find(row=>row.documentUrl?.includes('/ui/tool.html')&&row.documentId);
+  },'Side Panel reopened after Chrome restart');
+  sid=await until(async()=>{
+    const targets=(await client.send('Target.getTargets')).targetInfos;
+    const target=targets.find(row=>row.url===restoredContext.documentUrl);
+    return target?(await client.send('Target.attachToTarget',
+      {targetId:target.targetId,flatten:true})).sessionId:null;
+  },'restarted Side Panel CDP');
+  await client.send('Runtime.enable',{},sid);
+  await client.send('Page.enable',{},sid);
+  await click(client,sid,'#tab-tools');
+  await click(client,sid,installed);
   await click(client,sid,'#sidebar-tool-remove');
   await click(client,sid,'#sidebar-tool-inline-remove-confirm');
   await until(async()=>{

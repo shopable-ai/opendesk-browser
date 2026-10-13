@@ -35,25 +35,30 @@ async function main() {
 }
 ```
 
-**Developer 版 Controller 单文件静态 ESM（R4：源码接线，验收等级见工作流）**：
+**Developer 版优先：标准 npm import（R7.4 源码已接线，Chrome 实测待确认）**：
 
-```js
-// @opendesk-import d3-array https://raw.githubusercontent.com/d3/d3-array/v3.2.4/src/max.js
-import max from 'd3-array';
+```javascript
+import mitt from 'mitt@3.0.1';
 
 export default async function main() {
-  return {url: await page.url(),maximum: max([2,9,4])};
+  const bus = mitt();
+  const events = [];
+  bus.on('message', value => events.push(value));
+  bus.emit('message', 'OpenDesk');
+  return events;
 }
 ```
 
-该映射声明仅用于**裸包名解析**，并不直接授予下载或运行权限。**目标用户流程是直接点击 Run，由系统自动准备、校验 SHA 和固定程序级锁；不要求逐个确认来源/SHA/许可证。当前 R4 UI 仍存在多步人工审核，这是待优化缺口，不是推荐使用流程。** 若使用标准 HTTPS 静态 import，可省去映射；裸包名无固定版本映射会明确拒绝，不隐式取 `latest`。这不是旧 `@require` 协议，也不要求修改扩展源码。所有第三方代码均转换为自包含经典 JS，经原 Controller RunHost/Authority/Worker 执行；Compiler Worker 只变换源码数据。
+用户不用写 `@opendesk-classic`、`globalThis.mitt()`、CDN 地址或手工 SHA；现有 Developer linker 把精确版本 `mitt@3.0.1` 转为可验证的 npm ESM 下载地址，原有 Host/Authority/SHA 缓存将其固定为当前 Program/world 技术锁。只能使用精确版本；`import mitt from 'mitt'` / `mitt@latest` 在当前版本仍安全拒绝（未来可在独立管理界面确定版本，但不能自动静默升级）。源码示例见 [controller-mitt-pinned-esm.js](../../examples/programs/single-file/controller-mitt-pinned-esm.js)。
 
-- **仅 Developer Edition** 包含上述浏览器编译器；Standard 的小型 Controller ESM 必须先走现有本地项目构建。旧经典 `main()` 仍在 Standard/Developer 直接运行。
-- 浏览器内 ESM 上限：32 个远端模块、每模块 128 KiB、全图 256 KiB、链接输出 48 KB；持久保存的编译代码与作者源码快照总计最多 52 KB。大图、Node/CommonJS、相对项目文件应交给已有本地构建器。
-- 共享原始字节缓存不共享授权：Controller 锁包含具体 `programId`、作者源 SHA、`CONTROLLER` 世界和完整依赖锁；第二个脚本命中缓存时，目标由系统自动生成自己的固定锁，不再要求用户人工批准同一库（当前 R4 仍有多步批准流程待改造）。
-- `保存版本` 存储不再依赖 CDN 的执行字节及可校验的作者源码快照，`加载版本` 恢复可编辑源码；已固定版本重复 Run 不得重新获取远端模块。老草稿、无 ESM 的版本保持旧格式。重启、定时和 Chrome 真实验收要以同一候选证据独立确认，不因本段文档升级为 PASS。
-- Papa Parse 官方 npm 用法通常是 `import Papa from 'papaparse'`。其 npm 原始分发不等于原生浏览器 ESM；需要验证可用的固定 ESM 转换分发及真实导出，不能把 UMD/CommonJS 原文件谎称 ESM。当前 R4 的无网 CSV 小图测试不能替代真实 Papa Parse CDN 和 Chrome 验收。
+**Standard Edition 的 Worker-compatible Classic** 继续保持零参数 `async function main()`，对未预装的新库使用标准 `// @require https://.../lib@exact-version.umd.js` 而不是私有 `@opendesk-classic`，然后按第三方库导出名直接调用如 `mitt()`；无需 Babel。并非所有网页专用 UMD 均支持 Worker，实际函数要通过原生 Chrome 单独验证。此机制不会让远程代码进入特权 SW，不继承网页/敏感权限。**Standard 不因本次改动引入 Developer 编译器。**
 
+现有历史 D04 CSV 三模块源码仍使用 `// @opendesk-import ...` 进行特殊固定 GitHub 路径映射，这是高级兼容输入，不再是 AI 生成脚本默认模板；普通 npm 包应优先使用标准 `import`。两条路线都遵守固定版本、SHA、权限与真实用户 Run 手势，锁和本地字节持久化由原有体系处理，不要求人工逐库审核。
+
+- 仅 Developer Edition 包含浏览器 ESM 编译器；Standard 新增普通 npm ESM 导入时给出清楚的 `E_ESM_BUILD_REQUIRED`，应使用其 Classic 路线或本地可信项目构建。
+- Controller 浏览器内 ESM 当前上限为 32 模块、单模块 128 KiB、总图 256 KiB、编译输出 48 KB；保存执行代码加作者快照最大约 52 KB。
+- 保存固定执行产物并保留可编辑作者源码，读取同一 SHA 资产不得联网，Program A/B 可以共用内容字节但不能共用锁或敏感网站权限。
+- 真实 Chrome/CFT、完整退出离线、撤权后的已安装运行以及 CWS 审查仍须分别通过，不能以 Node VM / 已提交源码声明产品 95+。
 **真实未预装 CSV 第三方库样例：**[Controller @vanillaes/csv@4.1.3](../../examples/programs/single-file/controller-vanillaes-csv-esm.README.md) 完整提供作者代码、确切 MIT 来源、原始模块字节与 SHA-256、预期返回 `count:2`/`total:21`。其 `index.js` 静态再导出 `parse.js` 与 `stringify.js`，验证真正的传递依赖和缓存图，而不是使用手写 CSV 伪装第三方库。Node/Chrome 证据须按特定候选分别记录。
 
 **Page USER_SCRIPT 网页运行**（有 `document`，没有 Controller `page`）：

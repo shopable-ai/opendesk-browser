@@ -11,7 +11,7 @@ export const BROWSER_MENU_LAUNCH_STORE='opendesk.browser.menu-launch.v1';
 export const BROWSER_MENU_ROOT='opendesk.browser.root';
 const shared={apiVersion:BROWSER_API_VERSION,platform:'chrome>=138',timeout:8000,maxRequestBytes:12000,maxResponseBytes:12000};
 const USER_GESTURE_OPERATIONS=new Set([
-  'browser.clipboard.writeText','browser.downloads.text','browser.tabs.create',
+  'browser.clipboard.writeText','browser.downloads.text','browser.downloads.download','browser.downloads.cancelOwned','browser.storage.local.clear','browser.tabs.create',
   'browser.tabs.activateOwned','browser.tabs.pinOwned','browser.tabs.reloadOwned','browser.tabs.navigateOwned','browser.tabs.removeOwned','browser.sidePanel.openSelf','browser.network.request','browser.network.observe.start',
   'browser.network.observe.export','browser.screenshot.captureVisible',
   'browser.cookies.set','browser.cookies.remove','browser.cookies.clearSite','browser.cookies.observe.start'
@@ -37,6 +37,14 @@ export const BROWSER_OPERATIONS=Object.freeze({
   'browser.page.getSelection':entry('browser.page.getSelection','browser.contextMenu',tool,[],'read','high','clicked-document'),
   'browser.clipboard.writeText':entry('browser.clipboard.writeText','user.export',tool,[],'write','medium'),
   'browser.downloads.text':entry('browser.downloads.text','user.export',tool,['downloads'],'write','medium'),
+  'browser.downloads.download':entry('browser.downloads.download','user.export',tool,['downloads'],'write','high','explicit-url'),
+  'browser.downloads.getOwned':entry('browser.downloads.getOwned','user.export',tool,['downloads'],'read','medium','download-ref'),
+  'browser.downloads.listOwned':entry('browser.downloads.listOwned','user.export',tool,['downloads'],'read','medium','owned-downloads'),
+  'browser.downloads.cancelOwned':entry('browser.downloads.cancelOwned','user.export',tool,['downloads'],'write','high','download-ref'),
+  'browser.storage.local.get':entry('browser.storage.local.get','browser.storage',tool,['storage'],'read','low','owned-storage'),
+  'browser.storage.local.set':entry('browser.storage.local.set','browser.storage',tool,['storage'],'write','medium','owned-storage'),
+  'browser.storage.local.remove':entry('browser.storage.local.remove','browser.storage',tool,['storage'],'write','medium','owned-storage'),
+  'browser.storage.local.clear':entry('browser.storage.local.clear','browser.storage',tool,['storage'],'write','high','owned-storage'),
   'browser.tabs.create':entry('browser.tabs.create','browser.tabs',tool,['tabs'],'write','medium','explicit-url','IMPLEMENTED'),
   'browser.tabs.activateOwned':entry('browser.tabs.activateOwned','browser.tabs',tool,['tabs','webNavigation'],'write','medium','tab-ref','IMPLEMENTED'),
   'browser.tabs.getOwned':entry('browser.tabs.getOwned','browser.tabs',tool,['tabs','webNavigation'],'read','medium','tab-ref','IMPLEMENTED'),
@@ -97,6 +105,64 @@ export function normalizeBrowserOperation(operation,args={}){
   switch(operation){
     case 'browser.clipboard.writeText':
     case 'browser.downloads.text': return validateExportArguments(operation,args);
+    case 'browser.downloads.download':{
+      fields(args,['url','filename','saveAs'],['url']);
+      const url=approvedHttpUrl(args.url);
+      if(args.filename!==undefined){
+        if(typeof args.filename!=='string'||args.filename.length<1||args.filename.length>150||
+           args.filename.startsWith('.')||args.filename.startsWith('/')||args.filename.includes('\\')||
+           args.filename.split('/').some(part=>!part||part==='.'||part==='..'||part.startsWith('.'))||
+           /[\u0000-\u001f\u007f:*?"<>|]/.test(args.filename))
+          throw fail('E_SCHEMA','Unsafe relative download filename');
+      }
+      if(args.saveAs!==undefined&&typeof args.saveAs!=='boolean')throw fail('E_SCHEMA');
+      return {url,...(args.filename!==undefined?{filename:args.filename}:{}),
+        ...(args.saveAs!==undefined?{saveAs:args.saveAs}:{})};
+    }
+    case 'browser.downloads.getOwned':
+    case 'browser.downloads.cancelOwned':
+      fields(args,['downloadRef'],['downloadRef']);
+      if(typeof args.downloadRef!=='string'||!/^[A-Za-z0-9_-]{16,160}$/.test(args.downloadRef))
+        throw fail('E_SCHEMA','Owned downloadRef required');
+      return {downloadRef:args.downloadRef};
+    case 'browser.downloads.listOwned':
+      fields(args,['cursor','limit']);
+      if(args.cursor!==undefined&&(typeof args.cursor!=='string'||
+          !/^[A-Za-z0-9_-]{16,160}$/.test(args.cursor))||
+         args.limit!==undefined&&(!Number.isSafeInteger(args.limit)||args.limit<1||args.limit>50))
+        throw fail('E_SCHEMA','Invalid owned download cursor or limit');
+      return {cursor:args.cursor,limit:args.limit??20};
+    case 'browser.storage.local.get':
+    case 'browser.storage.local.remove':{
+      fields(args,['keys'],operation==='browser.storage.local.remove'?['keys']:[]);
+      if(args.keys!==undefined&&(!Array.isArray(args.keys)||args.keys.length>100||
+         args.keys.some(key=>typeof key!=='string'||!/^[A-Za-z][A-Za-z0-9._-]{0,127}$/.test(key)||
+           ['__proto__','constructor','prototype'].includes(key))||
+         new Set(args.keys).size!==args.keys.length))
+        throw fail('E_SCHEMA','Invalid or duplicate tool storage keys');
+      return args.keys===undefined?{}:{keys:[...args.keys]};
+    }
+    case 'browser.storage.local.set':{
+      fields(args,['items'],['items']);
+      const items=args.items;
+      if(!items||typeof items!=='object'||Array.isArray(items)||
+         ![Object.prototype,null].includes(Object.getPrototypeOf(items))||
+         Object.keys(items).length>100)
+        throw fail('E_SCHEMA','Expected a bounded tool-storage item object');
+      const normalized={};
+      for(const [key,value] of Object.entries(items)){
+        if(!/^[A-Za-z][A-Za-z0-9._-]{0,127}$/.test(key)||
+           ['__proto__','constructor','prototype'].includes(key)||value===undefined)
+          throw fail('E_SCHEMA','Invalid tool storage key or value');
+        jsonValue(value);
+        normalized[key]=value;
+      }
+      return {items:normalized};
+    }
+    case 'browser.storage.local.clear':
+      fields(args,['confirm'],['confirm']);
+      if(args.confirm!==true)throw fail('E_SCHEMA','Explicit tool-only clear confirmation required');
+      return {confirm:true};
     case 'browser.capabilities.list': case 'browser.contextMenu.getStatus':
     case 'browser.contextMenu.unregister': case 'browser.launch.consume':
     case 'browser.page.getContext': case 'browser.page.getSelection':
@@ -212,7 +278,7 @@ export function normalizeBrowserOperation(operation,args={}){
         tail==='observe.start'?['url','durationMs','maxEvents']:
         tail==='set'?['url','name','value','domain','path','secure','httpOnly','sameSite','expirationDate','storeId','partitionKey']:
         tail==='remove'?['url','name','domain','path','storeId','partitionKey']:
-        tail==='clearSite'?['url','storeId','partitionKey','preview','expectedCount','maxCookies']:
+        tail==='clearSite'?['url','storeId','partitionKey','preview','previewRef','expectedCount','maxCookies']:
         tail==='get'?['url','name','domain','path','storeId','partitionKey','includeValues']:
         tail==='getAll'?['url','name','storeId','partitionKey','includeValues']:
           ['url','storeId','partitionKey'];
@@ -229,7 +295,9 @@ export function normalizeBrowserOperation(operation,args={}){
       if(args.partitionKey!==undefined){
         fields(args.partitionKey,['topLevelSite','hasCrossSiteAncestor'],['topLevelSite']);
         const site=approvedHttpUrl(args.partitionKey.topLevelSite);
-        if(!site.startsWith('https://')||new URL(site).origin!==args.partitionKey.topLevelSite||
+        // Chrome partitions are schemeful sites, not HTTPS-only identifiers.
+        // Store and partition authority is still checked by the trusted Host.
+        if(new URL(site).origin!==args.partitionKey.topLevelSite||
           args.partitionKey.hasCrossSiteAncestor!==undefined&&typeof args.partitionKey.hasCrossSiteAncestor!=='boolean')
           throw fail('E_SCHEMA','Invalid Cookie partition');
       }
@@ -263,12 +331,17 @@ export function normalizeBrowserOperation(operation,args={}){
       }
       if(tail==='clearSite'){
         if(args.preview!==undefined&&typeof args.preview!=='boolean')throw fail('E_SCHEMA');
+        if(args.previewRef!==undefined&&
+          (typeof args.previewRef!=='string'||!/^[0-9a-f-]{36}$/i.test(args.previewRef)))
+          throw fail('E_SCHEMA','Clear previewRef must be an opaque Host receipt');
         if(args.expectedCount!==undefined&&(!Number.isSafeInteger(args.expectedCount)||args.expectedCount<0||args.expectedCount>50))
           throw fail('E_SCHEMA');
         if(args.maxCookies!==undefined&&(!Number.isSafeInteger(args.maxCookies)||args.maxCookies<1||args.maxCookies>50))
           throw fail('E_SCHEMA');
-        if(args.preview!==true&&args.expectedCount===undefined)
-          throw fail('E_SCHEMA','Clear requires a fresh reviewed expectedCount');
+        if(args.preview!==true&&(args.expectedCount===undefined||args.previewRef===undefined))
+          throw fail('E_SCHEMA','Clear requires the exact unexpired previewRef and expectedCount');
+        if(args.preview===true&&(args.expectedCount!==undefined||args.previewRef!==undefined))
+          throw fail('E_SCHEMA','Preview cannot import a previous approval');
       }
       if(tail==='observe.start'){
         if(args.durationMs!==undefined&&(!Number.isSafeInteger(args.durationMs)||args.durationMs<1000||args.durationMs>30000)||
@@ -289,15 +362,6 @@ export function normalizeBrowserOperation(operation,args={}){
          new Set(args.actionIds).size!==args.actionIds.length||
          !args.actionIds.every(id=>typeof id==='string'&&/^[a-z][a-z0-9-]{0,39}$/.test(id)))
          throw fail('E_SCHEMA','Invalid context menu action IDs');
-      break;
-    case 'browser.clipboard.writeText': case 'browser.downloads.text':
-      fields(args,operation==='browser.downloads.text'?['text','filename']:['text'],
-        operation==='browser.downloads.text'?['text','filename']:['text']);
-      if(typeof args.text!=='string'||!args.text||new TextEncoder().encode(args.text).length>150000)
-        throw fail('E_LIMIT','Export text must contain 1–150000 UTF-8 bytes');
-      if(operation==='browser.downloads.text'&&(typeof args.filename!=='string'||args.filename.length>90||
-         !/^[^/\\\x00-\x1f:?*"<>|]+\.md$/i.test(args.filename)||args.filename.startsWith('.')))
-        throw fail('E_SCHEMA','A safe Markdown .md filename of at most 90 characters is required');
       break;
     default: throw fail('E_SERVICE_UNSUPPORTED','This Browser SDK operation is not executable');
   }

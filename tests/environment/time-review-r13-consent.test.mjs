@@ -55,6 +55,6 @@ test('R1.3 shared host intercepts sandbox minute consent without browser JavaScr
   assert.match(block,/E_TIME_TRUSTED_CLICK/);
   assert.match(block,/tocSettingsOpen=true/);
   assert.doesNotMatch(block,/\.confirm\s*\(/);
-  assert.match(source,/!\['time\.start','time\.clear','time\.minuteConsent','time\.siteGrant'\]\.includes\(operation\)/);
+  assert.match(source,/if\(\['time\.start','time\.clear','time\.minuteConsent','time\.siteGrant'\]\.includes\(operation\)&&event\?\.isTrusted!==true\)/);
   assert.match(source,/payload:operation==='time\.clear'\?\{confirm:true\}:operation==='time\.minuteConsent'/);
 });

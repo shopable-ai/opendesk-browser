@@ -20,6 +20,20 @@
 
 **历史事实和待实现体验必须分开**：R7.1 Page / R4 Controller 仍包含多个手动依赖批准动作；这是待消除的 UX 缺口，不能把旧 Node PASS 当作免审核体验已经交付。
 
+### R7.5 产品方向：对话直接完成任务、依赖自动管理（目标，非已验收）
+
+**产品可见入口不能照搬 D01–D12 工程编号。** 用户不应该先选择 Classic/ESM、Controller/Page、Worker、SHA 或安装候选。默认复用现有 Side Panel「工作流」对话设计（`docs/product/sidebar-ai-workflow-ux-r15.2.zh-CN.md`），不建立第二个聊天框、AI Provider、Runner、权限注册或独立 Dependency Manager。聊天输入负责表达任务意图，原开发编辑器保留为可展开的高级入口。
+
+**唯一核心用户旅程**：① 用自然语言描述「在当前网页做什么」；② 由当前已连接 AI/Native Codex 生成受控任务方案或受支持的程序，明确需要的站点与执行能力，用户主动 Run 时在真实浏览器完成操作并返回真实结果；③ 满意后用户可选「保存为可重复使用工具 / 安装 / 定时」，绑定同一经过验证的 Program Revision；④ 后续无需 AI/重新安装扩展/再次 CDN 下载，使用固定版本重复执行。**当前工作流的 `ai-plan.js` / `local-codex.js` 仍是「返回建议、不得执行浏览器动作」的规划器；「对话后直接执行」是待实施缺口，不能当成已经交付。**
+
+**JavaScript 高级用户的目标语法**为 `import mitt from 'mitt'`：版本号不应污染作者源文件，必须在首次合法 Run 前从受信、确定性的精确版本记录/现有项目依赖配置中解析并固定为诸如 `mitt@3.0.1` + 实际完整响应 SHA；不允许在后续运行/升级时自动重选 `latest`。如尚无可信版本决策，必须给出明确版本提示或拒绝，不得偷偷运行变化中的源码。当前源码仅在 Developer Controller ESM 支持 `import mitt from 'mitt@3.0.1'` 的临时精确版本写法；**目标 `import mitt from 'mitt'` 尚未编码和验收**。Standard Controller 可走受支持 Worker-compatible Classic 的 `// @require`；Page USER_SCRIPT、React/Vue、Tool 的 import 规则仍要逐世界实现和验收，不能用 Controller PASS 宣称各世界支持。
+
+**UI 只展示对用户有意义的四种状态**：需求已理解 / 正在真实执行 / 已得到结果或明确失败 / 已保存可复用；需要时展示原生网站或敏感能力许可。库名与固定版本可以在结果附近以一行只读信息呈现；URL、MIME、SHA、lockId、模块依赖图、执行世界、下载次数放在可选「技术详情」。不得将 D01–D12 变成十二个用户模式、十二个配置表单或新的多次库审核流程。
+
+**D01–D12 保持内部质量验收**：覆盖 Page/Controller/Tool/React/Vue、A/B 内容共享与权限隔离、保存安装、重启离线、定时云控、SHA/撤权安全和 Standard/Developer/CWS。用户可见完成度用「能实际运行／能保存／能安装重复使用／离线及安全验收」四个成果展示，工程层仍保留每项源码、Node、Build、Chrome CFT、用户 Mac Native、CWS 分层回执。真实验收缺失则标 NOT_TESTED，不生成完成率或 95+ 评分。
+
+**执行顺序**：先关掉当前 R7.4 `import mitt from 'mitt@3.0.1'` 单场景真实 Chrome 结果和来源/Worker 问题，再做用户导入标准化和同一精确锁的保存离线；最后让现有「工作流」对话明确调用原 RunHost 真实浏览器，而非只生成计划。不要为了描述愿景新增第二套架构或与并行 SDK/Cloud Agent 抢相同文件。
+
 ## 1. 旧源码已保存在本仓库，不必再寻找原工程
 
 旧源快照基准：`docs/contracts/source-snapshots/todo-src-bex/src-bex/`，以及 `docs/contracts/source-snapshots/scrapyJsChrome/background-sw.js`。旧版网页加载和 ChromePage 方式是**历史使用证据**，不是迁移后安全实现的榜样。
@@ -84,6 +98,39 @@
 | Side Panel 独立工具 | 原 opaque sandbox iframe；工具的多份固定 Classic 资源可从已验证本地字节创建 Blob URL，按声明顺序加载并等待 `onload/onerror`；ESM 先可信构建为固定资产 | `bridge.js` 已存在的本地 Blob `script.src` **不是**允许远程 CDN `script.src`；不开放宿主 chrome.* |
 | 后台 SW、Content | 只保留可信静态打包入口 | 不动态运行用户下载的远程库 |
 | 已安装、定时、云控 | 原已安装固定 Program Revision、依赖闭包和 Authority；从经过核验的本地 SHA 资产离线运行 | 不在调度时从 CDN 重新获取、重新编译或静默升级 |
+
+### R7.4 标准 JS 导入（推荐入口）与 Standard Classic 限定用法
+
+**默认用户 / AI 生成代码用标准 JavaScript 模块语法，而不是 OpenDesk 私有注释和 `globalThis`。** 版本用原生包标识固定，不要求手写 CDN 源或提交 SHA。现有可信 Developer Controller ESM Linker 将 `mitt@3.0.1` 解析为明确的 `https://cdn.jsdelivr.net/npm/mitt@3.0.1/+esm`，经旧 Component Dependencies Manager 获取原始响应字节、SHA 锁图、固定 Babel 编译并交原 RunHost → Authority → opaque Worker。无额外人工逐库批准。下面是**源码支持、待 Chrome 回执的标准示例**：
+
+```javascript
+import mitt from 'mitt@3.0.1';
+
+export default async function main() {
+  const bus = mitt();
+  const events = [];
+  bus.on('message', value => events.push(value));
+  bus.emit('message', 'OpenDesk');
+  return events;
+}
+```
+
+这个语法只在**Developer（含受信固定 ESM 编译器）**开放；Standard 包不因新增 `import` 而偷偷附带 Babel。`mitt`、`mitt@latest` 等未固定版本的裸导入在当前自动解析路径必须安全拒绝；精确版本才可以自动解析。如果使用自有静态 HTTPS ESM 源，仍可使用标准 `import x from 'https://.../file@1.2.3.mjs'`，但最终响应与所有上游传递依赖都必须固定真实 SHA。
+
+**Standard 的非 ESM Classic 小脚本**采用通用 UserScript 声明 `// @require URL`，不再增加 `@opendesk-classic`，也无需 `globalThis.mitt()`；但真实导出符号取决于上游 UMD 对 Worker 全局的适配，不保证所有网页专用库都可用：
+
+```javascript
+// @require https://cdn.jsdelivr.net/npm/mitt@3.0.1/dist/mitt.umd.js
+async function main() {
+  const bus = mitt();
+  bus.on('message', value => console.log(value));
+  bus.emit('message', 'OpenDesk');
+}
+```
+
+Standard Classic 的原始字节经既有 Dependency Manager 内容寻址、按 Program/sourceHash/world 自动固定；缺来源权限只在真实 Run 点击中请求，不授予程序以外网站和敏感能力；不经无谓 Babel、不在特权 SW 执行。保存时先要有该程序技术锁，Save 从缓存冻结原作者源码、执行字节、准确依赖 URL/SHA。当前最多四份 Classic、总计 45 KiB、Worker 执行体 48 KiB，保存版本 52 KiB。
+
+**当前证据界限**：以上是源码接线和新增 CI 驱动，而不是 Developer/Standard 原生成功回执；CI 输出对应真实外部库函数、Network 计数、lockId、sourceHash、runId/resultId 之前均标为 `CHROME_PENDING`。旧已保存源码的无网重跑、坏缓存/撤权即时阻断及定时/云控同版本仍需 D08–D11 原生验收。Worker 隔离不代表 Chrome Web Store 远程代码自动合规，正式合规审查仍为 `COMPLIANCE_NOT_CLOSED`。
 
 **边界**：普通网页的 `script.src` 是可用的浏览器原生下载方式，但其目标 MAIN 世界、CSP、网站脚本及 CWS 条件与受控 USER_SCRIPT/Worker/Tool 不同；“标签加载成功”不等于 OpenDesk 指定世界返回了真实执行回执。只有明确需求与独立风险评审后才可考虑显式 MAIN 兼容模式，绝不作为默认绕行。
 

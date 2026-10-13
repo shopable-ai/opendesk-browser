@@ -1,13 +1,15 @@
 // D02/D03 — real Chrome: Run once per program, auto SHA lock, no manual approval or simulated RPC.
 import assert from 'node:assert/strict';
 import {CSV_BASE,runR72ControllerCsvCycle} from './controller-dependency-r72-cft-cycle.mjs';
+import {CLASSIC_URL,runR73ControllerClassicCycle} from './controller-classic-r73-cft-cycle.mjs';
+import {MITT_ESM_URL,runR74ControllerPinnedNpmCycle} from './controller-pinned-npm-r74-cft-cycle.mjs';
 const URL='https://cdn.jsdelivr.net/npm/marked@15.0.12/lib/marked.umd.js';
 const CODE=['// ==UserScript==','// @name R7.2 fixed marked test','// @require '+URL,
 '// ==/UserScript==','async function main(){const html=globalThis.marked?.parse("**OpenDesk**");',
 'if(!html?.includes("<strong>OpenDesk</strong>"))throw Error("E_REAL_MARKED");',
 'return {library:"marked@15.0.12",html};}'].join('\n');
 export async function runR72PageClassicCycle({sidebar,website,browser,base,extensionId,cdp,until,clickReal,report}){
-  const proof={caseId:'D02/D03-R72-ONE-CLICK-AB',url:URL,world:'USER_SCRIPT',steps:[],status:'IN_PROGRESS'}, observed=[],observedCsv=[];
+  const proof={caseId:'D02/D03-R72-ONE-CLICK-AB',url:URL,world:'USER_SCRIPT',steps:[],status:'IN_PROGRESS'}, observed=[],observedCsv=[],observedClassic=[],observedNpm=[];
   report.tests.push(proof);
   const read=x=>sidebar.read(x);
   const status=id=>read('(function(){const el=document.getElementById('+JSON.stringify(id)+');return {state:el?.dataset?.state,text:el?.textContent}})()');
@@ -63,6 +65,8 @@ export async function runR72PageClassicCycle({sidebar,website,browser,base,exten
       const url=e?.request?.url;
       if(url?.startsWith(URL))observed.push(url);
       if(url?.startsWith(CSV_BASE))observedCsv.push({url,method:e.request.method});
+      if(url?.startsWith(CLASSIC_URL))observedClassic.push({url,method:e.request.method});
+      if(url?.startsWith(MITT_ESM_URL))observedNpm.push({url,method:e.request.method});
     });
     await observer.call('Network.enable');
     if(!await read('document.querySelector("#script-library-tools").open'))
@@ -83,8 +87,11 @@ export async function runR72PageClassicCycle({sidebar,website,browser,base,exten
     proof.sha256=a.sha;proof.programLocks={a:a.lockId,b:b.lockId};
     proof.network={firstProgramRequests:fetched,secondProgramRequests:0};
     proof.status='CHROME_PASS_R72_ONE_CLICK_AB';
-    if(process.env.OPENDESK_R245_STANDARD_SMOKE!=='1')
+    await runR73ControllerClassicCycle({sidebar,website,browser,until,clickReal,type,read,report,observedRequests:observedClassic});
+    if(process.env.OPENDESK_R245_STANDARD_SMOKE!=='1'){
       await runR72ControllerCsvCycle({sidebar,website,browser,until,clickReal,type,read,report,observedRequests:observedCsv});
+      await runR74ControllerPinnedNpmCycle({sidebar,website,browser,until,clickReal,type,read,report,observedRequests:observedNpm});
+    }
   }catch(error){
     if(proof.status!=='CHROME_PASS_R72_ONE_CLICK_AB'){
       proof.status='CHROME_FAIL';

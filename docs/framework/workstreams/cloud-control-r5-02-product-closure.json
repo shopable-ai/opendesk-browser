@@ -175,7 +175,12 @@
     "uiPreviewSource": "SOURCE_IMPLEMENTED",
     "uiPreviewContractTest": "SOURCE_IMPLEMENTED",
     "uiPreviewToProduction": "NOT_IMPLEMENTED",
-    "uiPreviewNative": "NATIVE_PENDING"
+    "uiPreviewNative": "NATIVE_PENDING",
+    "cloudProductionConsentReview": "SOURCE_IMPLEMENTED",
+    "cloudConsentInvalidation": "SOURCE_IMPLEMENTED",
+    "cloudActiveRefreshCadence": "SOURCE_IMPLEMENTED",
+    "cloudProductionTaskDetail": "SOURCE_IMPLEMENTED",
+    "cloudTaskReapprovalGuidance": "SOURCE_IMPLEMENTED"
   },
   "priorEvidence": {
     "r51": {
@@ -380,20 +385,16 @@
     "tests/cloud-control/provider.test.mjs"
   ],
   "pendingExactCandidate": {
-    "sha": "7aff8bd27e258022cdf186019409dcc07fdee719",
-    "ciUrl": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38379208965",
+    "sha": "81596b4f39300f4cc8b692153ca471b1be0beb2a",
+    "ciUrl": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38406786768",
     "ciStatus": "queued",
-    "packageCiUrl": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38379209138",
-    "packageCiStatus": "cancelled",
-    "observedAt": "2026-10-13",
+    "packageCiUrl": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38406786831",
+    "packageCiStatus": "queued",
     "componentTests": "NOT_VERIFIED",
-    "check": "NOT_VERIFIED",
-    "productionBuild": "NOT_VERIFIED",
-    "developmentBuild": "NOT_VERIFIED",
-    "verify": "NOT_VERIFIED",
+    "build": "NOT_VERIFIED",
     "packageHash": null,
-    "realMacChrome": "NATIVE_PENDING",
-    "internetRemote": "REMOTE_NATIVE_PENDING"
+    "nativeTwoTask": "NATIVE_PENDING",
+    "publicDeployment": "REMOTE_NATIVE_PENDING"
   },
   "priorPendingExactCandidates": [
     {
@@ -523,5 +524,135 @@
     "nativePanelScreenshot": "NATIVE_PENDING",
     "chromeZoom125And200": "NATIVE_PENDING",
     "note": "Preview does not grant Task/Provider authority or execute Worker. Production migration must reuse existing Host, Installer, SDK and R27/R28 tokens."
+  },
+  "masterPlan": {
+    "date": "2026-10-13",
+    "status": "IMPLEMENTATION_ACTIVE_QUALITY_NOT_VERIFIED",
+    "completeFunctionTree": "docs/architecture/browser-framework/cloud-control-r5.2-complete-function-tree.zh-CN.md",
+    "machineFunctionMatrix": "docs/framework/workstreams/cloud-control-r5-02-function-matrix.json",
+    "interfaceSecurityContract": "docs/architecture/browser-framework/cloud-control-r5.2-interface-security-contract.zh-CN.md",
+    "singleExecutionManual": "docs/framework/cloud-control-r5.2-execution-manual.zh-CN.md",
+    "independentScorecard": "docs/framework/workstreams/cloud-control-r5-02-expert-scorecard.json",
+    "uiOverlay39": "docs/architecture/browser-framework/cloud-control-r5.2-ui-preview-contract.zh-CN.md",
+    "uiPreview": "examples/ui/cloud-control-r5.2-preview.html",
+    "functionInventory": {
+      "capabilities": 98,
+      "qualityAndDeploymentChecks": 12,
+      "totalTraceable": 110,
+      "uiOverlayChecks": 39,
+      "uiChecksAdditive": false
+    },
+    "workPackages": {
+      "gates": 7,
+      "packages": 30,
+      "implementationCompletionPercent": "NOT_A_VALID_METRIC"
+    },
+    "staticDesignAssessment": {
+      "estimated": 86,
+      "outOf": 100,
+      "status": "ASSISTANT_PRELIMINARY_STATIC_REVIEW",
+      "productQuality": "NOT_VERIFIED"
+    },
+    "actualCI": {
+      "sourceSha": "7aff8bd27e258022cdf186019409dcc07fdee719",
+      "runId": 38379208965,
+      "conclusion": "failure",
+      "cloudComponent": {
+        "passed": 45,
+        "failed": 0
+      },
+      "authority": {
+        "passedBeforeCrash": 105,
+        "failure": "V8_HEAP_OOM_IN_K3_TEST",
+        "elapsedAboutSeconds": 416
+      },
+      "packageRunId": 38379209138,
+      "packageConclusion": "cancelled",
+      "packageHash": null,
+      "evidenceUrl": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38379208965"
+    },
+    "followup": {
+      "rootCause": "K3 mock recursively invoked cloudStop for /v1/suspend while simulating /v1/admission",
+      "sourceFixCommit": "90e1651eeb2ad364e4ced4fc44e9d155ddcfc708",
+      "workflowTriggerCommit": "6b510c5185833c16fae459345834f78e4f26e415",
+      "newCiRunId": 38401041303,
+      "newCiStatus": "queued_as_checked",
+      "mustVerifyNewSha": true
+    },
+    "native": {
+      "twoDistinctTaskRuns": "NATIVE_PENDING",
+      "realUi": "NATIVE_PENDING",
+      "publicProvider": "REMOTE_NATIVE_PENDING"
+    },
+    "sourceInventoryAsOf": {
+      "totalTraceable": 110,
+      "sourceImplemented": 108,
+      "notImplemented": 2,
+      "notImplementedIds": [
+        "UI-08",
+        "OPS-05"
+      ],
+      "note": "Only implemented-source inventory; not a quality/verification percentage.",
+      "canonicalMatrix": "docs/framework/workstreams/cloud-control-r5-02-function-matrix.json"
+    },
+    "productionConsentReview": {
+      "ids": [
+        "UI-06"
+      ],
+      "status": "SOURCE_IMPLEMENTED",
+      "verification": "NOT_VERIFIED",
+      "source": "src/ui/cloud-hosting.js",
+      "markup": "src/ui/tool.html#cloud-approval-review",
+      "style": "src/ui/tool-shell.css",
+      "tests": [
+        "tests/cloud-control/generic-approval-ui.test.mjs",
+        "tests/cloud-control/r52-product-ui.test.mjs"
+      ],
+      "behavior": "Human review shows selected name/version/origin/param names/result sharing; any selected Task or catalog version/authorization change invalidates checkboxes; active cloud Tab refresh cadence uses cloud not tasks",
+      "sourceSha": "c6e082e1ba5fdb17259b36fad9dbaf9bfd5fd7a8",
+      "ciUrl": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38405840554",
+      "ciStatus": "queued_as_checked"
+    },
+    "documentSaveAudit": {
+      "status": "SAVED_BUT_PRODUCT_NOT_VERIFIED",
+      "canonicalDocuments": {
+        "featureTree": "docs/architecture/browser-framework/cloud-control-r5.2-complete-function-tree.zh-CN.md",
+        "functionMatrix": "docs/framework/workstreams/cloud-control-r5-02-function-matrix.json",
+        "executionManual": "docs/framework/cloud-control-r5.2-execution-manual.zh-CN.md",
+        "interfaceSecurity": "docs/architecture/browser-framework/cloud-control-r5.2-interface-security-contract.zh-CN.md",
+        "ui39": "docs/architecture/browser-framework/cloud-control-r5.2-ui-preview-contract.zh-CN.md",
+        "uiPrototype": "examples/ui/cloud-control-r5.2-preview.html",
+        "expertScores": "docs/framework/workstreams/cloud-control-r5-02-expert-scorecard.json",
+        "liveEvidence": "docs/framework/workstreams/cloud-control-r5-02-product-closure.md",
+        "userInstructions": "examples/cloud-control/README.zh-CN.md"
+      },
+      "notSavedAsCompletedEvidence": [
+        "Native dual Task Run/Result/Worker/released/receipt",
+        "Real installed Chrome UI screenshots and zoom/keyboard",
+        "Approved public HTTPS/WSS multi-device run",
+        "Same-source current build PackageHash and complete CI"
+      ]
+    },
+    "productionTaskDetail": {
+      "ids": [
+        "UI-07"
+      ],
+      "status": "SOURCE_IMPLEMENTED",
+      "verification": "NOT_VERIFIED",
+      "src": [
+        "src/ui/cloud-hosting.js",
+        "src/ui/tool-shell.css"
+      ],
+      "tests": [
+        "tests/cloud-control/generic-approval-ui.test.mjs",
+        "tests/cloud-control/r52-product-ui.test.mjs"
+      ],
+      "sourceSha": "81596b4f39300f4cc8b692153ca471b1be0beb2a",
+      "native": "NATIVE_PENDING",
+      "behavior": "Current authorization state; visible needs-reapproval when version/installation generation differs; immutable identity and action message in existing advanced details",
+      "ciUrl": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38406786768",
+      "buildCiUrl": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38406786831",
+      "ciStatus": "queued_at_last_check"
+    }
   }
 }

@@ -9,7 +9,7 @@ import {loadOfficialCatalog,loadOfficialTool,verifyReviewedOfficialTool,official
 import {resumeDefaultPreinstall,DEFAULT_PREINSTALL_STORE} from '../sidebar-tools/default-preinstall.js';
 import {installReviewedSidebarTool,admittedSidebarToolPackages,sameSidebarToolPackage,compareToolVersions,
   recordToolUninstall,cleanupUninstalledToolLocked,TOOL_REVOCATION_EPOCHS_STORE,
-  requireCompleteInstalledSidebarTools,setInstalledSidebarToolEnabled} from './sidebar-tools/installation.js';
+  requireCompleteInstalledSidebarTools,setInstalledSidebarToolEnabled,MARKET_PROVENANCE_STORE} from './sidebar-tools/installation.js';
 import {READING_TOC_SITE_STORE,READING_TOC_TOOL_ID,READING_TOC_PROTOCOL,TOC_CAPABILITY,
   websiteOrigin,grantedOrigins,tocSiteAllowed,blockedTocOrigins,changeTocSiteAllowed,READING_TOC_PLACEMENT_PREFIX,
   READING_TOC_VISIBILITY_STORE,readingTocPageScope,readingTocDisplayState,
@@ -21,6 +21,7 @@ import {CAPTURE_SITE_STORE,CAPTURE_CAPABILITY,KNOWLEDGE_TOOL_ID,KNOWLEDGE_CAPABI
 import {TIME_REVIEW_ID,TIME_REVIEW_CAPABILITY,TIME_REVIEW_PROTOCOL,TIME_REVIEW_OPERATIONS,timeReviewPackageHash} from '../time-review/policy.js';
 import {TIME_REVIEW_KEY} from '../time-review/model.js';
 import {createTimeReviewPermissionControls} from '../time-review/host-controls.js';
+import {admitsTrustedTimeReview,TRUSTED_TIME_REVIEW_VERSION} from '../time-review/trusted-admission.js';
 
 // Trusted Side Panel shell for untrusted, opaque-origin UI documents.
 // No user code, markup, or CSS is ever inserted into this extension document.
@@ -29,6 +30,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   // Native focus controls load from an audited extension-only classic WXT entry.
   // A missing sidecar fails closed; user-owned opaque sandbox cannot supply it.
   const focus=globalThis.__opendeskStayFocusTrustedUI||null;
+  const nativeTimeReview=globalThis.__opendeskTrustedTimeReviewUI||null;
   const get=id=>doc.getElementById(id);
   const list=get('sidebar-tool-list'), listView=get('sidebar-tool-list-view');
   const empty=get('sidebar-tool-empty'), backButton=get('sidebar-tool-back');
@@ -84,7 +86,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   let knowledgeDirty=false;
   const knowledgeOperation=operation=>KNOWLEDGE_OPERATIONS.includes(operation)||operation==='knowledge.editorState';
   let clipGrants={},clipSiteEpoch=0;
-  let installed=[], pending=null, pendingBaseline=null, pendingRelease=null,pendingOperationId=null, active=null, frame=null, instance=null, disposed=false, readOnlyPreview=false, previewDirty=false,lastInstalledView='';
+  let installed=[], pending=null, pendingBaseline=null, pendingRelease=null,pendingOperationId=null, active=null, frame=null, nativeUI=null, nativePending=false, instance=null, disposed=false, readOnlyPreview=false, previewDirty=false,lastInstalledView='';
   let revocationEpochs={},frameRevocationEpoch=null,revocationReadEpoch=0;
   let requestCount=0,requestWindow=Date.now(), busy=false, fileSelection=0, catalogEpoch=0;
   let visible=false,toolDirty=false,toolSaving=false,installedReadError=false,preinstallBusy=false,preinstallQueued=false;
@@ -118,6 +120,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     'browser.events':'读取和关闭此工具持有的有界网络观察会话',
     'browser.operations':'查询和取消本工具持有的网络观察操作',
     'browser.screenshot':'用户主动截取本工具获准的可见网页并下载 PNG',
+    'browser.storage':'独立保存本工具设置与数据（最多 32 项、32 KB）',
   });
 
   // Cookies reuse the existing trusted tool-settings surface; sandbox JavaScript
@@ -151,7 +154,10 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   cookieOtherSites.className='sidebar-toc-settings-entries';
   cookiePermissions.append(cookieOtherSites);
   settingsView?.append(cookiePermissions);
-  const isCookieTool=tool=>tool?.id==='cookie-editor'&&tool.capabilities.includes('browser.cookies.read');
+  // The permission surface is generic to any installed tool that declares
+  // Cookie capabilities; an official Cookie Editor is NOT a privileged exception.
+  const isCookieTool=tool=>Array.isArray(tool?.capabilities)&&
+    tool.capabilities.some(cap=>cap.startsWith('browser.cookies.'));
   const cookieSiteRecord=(tool,origin)=>{
     const row=menuGrants?.[tool?.id];
     return row?.version===tool?.version&&row?.installEpoch===(revocationEpochs[tool?.id]??null)
@@ -193,7 +199,9 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     const current=site||websiteOrigin(currentPageTarget?.snapshot?.url);
     if(!current)throw Object.assign(new Error('请选择 HTTP(S) 网站'),{code:'E_SITE_GRANT_REQUIRED'});
     const granted=cookieSiteRecord(tool,current)||{};
-    const capabilities=all?cookieCaps.map(([cap])=>cap).filter(cap=>granted[cap]===true):[capability];
+    // One trusted Host transaction revokes every Cookie capability for a site.
+    // Multiple sequential calls could leave lingering grants on partial failure.
+    const capabilities=all?['all']:[capability];
     for(const cap of capabilities){
       const enabled=all?false:granted[cap]!==true;
       const snapshot=enabled?currentPageTarget?.capture?.():null;
@@ -301,7 +309,9 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   // Only a genuine click on the trusted extension host can start background
   // tracking or authorize destructive clearing. Sandbox requests cannot forge it.
   async function runTrustedTimeReviewOperation(operation,payload,event){
-    if(event?.isTrusted!==true||!['time.start','time.clear','time.minuteConsent','time.siteGrant'].includes(operation))
+    if(!TIME_REVIEW_OPERATIONS.includes(operation))
+      throw Object.assign(new Error('未知时间回顾操作'),{code:'E_TIME_OPERATION'});
+    if(['time.start','time.clear','time.minuteConsent','time.siteGrant'].includes(operation)&&event?.isTrusted!==true)
       throw Object.assign(new Error('请在工具详情中主动点击操作'),{code:'E_TIME_TRUSTED_CLICK'});
     if(operation==='time.clear'&&payload?.confirm!==true)
       throw Object.assign(new Error('请明确选择清空本机时间记录'),{code:'E_TIME_CONFIRM'});
@@ -319,6 +329,8 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     if(!requireCompleteInstalledSidebarTools(owned[SIDEBAR_TOOL_STORE]).some(row=>samePackage(row,tool)))
       throw Object.assign(new Error('工具安装内容已变化，请重新打开'),{code:'E_TOOL_CHANGED'});
     const epoch=epochs[TOOL_REVOCATION_EPOCHS_STORE]?.[tool.id]??null;
+    if(epoch!==frameRevocationEpoch)
+      throw Object.assign(new Error('时间回顾安装代际已变化'),{code:'E_TOOL_CHANGED'});
     const packageHash=await timeReviewPackageHash(tool);
     if(disposed||!active||!samePackage(active,tool)||readOnlyPreview)
       throw Object.assign(new Error('时间回顾详情已变化'),{code:'E_TOOL_CHANGED'});
@@ -334,12 +346,12 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     // when the host navigates away during the response.
     if(disposed||!active||!samePackage(active,tool))
       throw Object.assign(new Error('宿主已切换，请核对时间记录，不要重复提交'),{code:'E_OUTCOME_UNKNOWN'});
-    // Keep the original iframe visible. A real trusted Start commits and
-    // closes the inline enrollment card, not the tool itself.
+    // Only the enrollment card closes; the active UI (native or sandbox)
+    // stays mounted and re-reads verified Host state, never a forwarded token.
     if(operation==='time.start'&&tocSettingsOpen){tocSettingsOpen=false;render();}
-    // A UI-only invalidation signal; the sandbox still must fetch time.status
-    // through its installed-tool identity and trusted Host authority.
-    if(frame?.contentWindow&&active?.id===TIME_REVIEW_ID&&tool.id===TIME_REVIEW_ID)
+    if(nativeUI&&active?.id===TIME_REVIEW_ID)
+      frameRoot.querySelector('main.review')?.dispatchEvent(new Event('opendesk-tool-state-changed'));
+    if(frame?.contentWindow&&active?.id===TIME_REVIEW_ID)
       frame.contentWindow.postMessage({
         protocol:SIDEBAR_TOOL_PROTOCOL,kind:'state-changed',instance,toolId:tool.id
       },'*');
@@ -372,11 +384,60 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     return result.data;
   }
   function destroyFrame() {
-    toolDirty=false;toolSaving=false;
-    frameDraft='';
+    toolDirty=false;toolSaving=false;frameDraft='';
+    nativePending=false;
+    if(nativeUI){const old=nativeUI;nativeUI=null;try{old.dispose();}catch{}}
     if(frame){frame.onload=null;frame.remove();frame=null;}
     instance=null;requestCount=0;requestWindow=Date.now();lastTocRead=0;
     frameRoot.replaceChildren();
+    if(frameRoot.dataset)delete frameRoot.dataset.timeReviewNative;
+  }
+  // The only admission for privileged Time Review rendering. Built-in code
+  // never consumes the installed package's html/css/js as executable input.
+  async function admittedNativeTimeReview(tool,expectedEpoch){
+    if(nativeTimeReview?.version!==TRUSTED_TIME_REVIEW_VERSION||
+       typeof nativeTimeReview.mount!=='function')return false;
+    // An official first-open must wait for the built-in catalog to load;
+    // catalog failure still fails closed, never enables native by title.
+    if(!officialLoaded&&!officialError)await officialReady;
+    if(!officialLoaded||officialError)return false;
+    const release=officialReleases.find(row=>row.toolId===TIME_REVIEW_ID&&
+      row.version===TRUSTED_TIME_REVIEW_VERSION);
+    if(!release)return false;
+    const saved=await api.storage.local.get([
+      SIDEBAR_TOOL_STORE,SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE,MARKET_PROVENANCE_STORE
+    ]);
+    return admitsTrustedTimeReview({tool,release,expectedEpoch,
+      installed:requireCompleteInstalledSidebarTools(saved[SIDEBAR_TOOL_STORE]),
+      enableRecords:saved[SIDEBAR_TOOL_ENABLE_STORE],
+      epochs:saved[TOOL_REVOCATION_EPOCHS_STORE],
+      provenance:saved[MARKET_PROVENANCE_STORE]});
+  }
+  async function requestNativeTimeReview(tool,token,epoch,operation,payload={},event=null){
+    const current=()=>!disposed&&instance===token&&active===tool&&!readOnlyPreview&&
+      (nativePending||Boolean(nativeUI));
+    if(!current())throw Object.assign(new Error('时间回顾界面已经关闭'),{code:'E_TOOL_CHANGED'});
+    if(!TIME_REVIEW_OPERATIONS.includes(operation))
+      throw Object.assign(new Error('未知时间回顾操作'),{code:'E_TIME_OPERATION'});
+    // Reuse the existing trusted setting controls for destructive operations,
+    // never accept an IIFE request as a replacement for a confirmation.
+    if(['time.siteGrant','time.clear','time.minuteConsent'].includes(operation)){
+      tocSettingsOpen=true;render();
+      throw Object.assign(new Error('请在上方可信设置区完成授权或清空确认'),{code:'E_TIME_TRUSTED_CLICK'});
+    }
+    if(!await admittedNativeTimeReview(tool,epoch)||!current()){
+      if(current()){destroyFrame();tocSettingsOpen=true;render();notice('官方 UI 身份或安装代际已变化，请重新打开工具。',true);}
+      throw Object.assign(new Error('可信 UI 准入已失效'),{code:'E_TOOL_CHANGED'});
+    }
+    try{return await runTrustedTimeReviewOperation(operation,payload,event);}
+    catch(error){
+      if(['E_TIME_SITE_GRANT','E_TIME_PERMISSION'].includes(error?.code)&&current()){
+        tocSettingsOpen=true;render();
+        throw Object.assign(new Error('请在上方先单独批准网站范围及 Chrome 空闲检测权限，再开始记录。'),
+          {code:'E_TIME_PERMISSION_SETUP'});
+      }
+      throw error;
+    }
   }
   // An optional installed-list companion, never another top-level tab.
   function setDiscoveryOpen(open){
@@ -524,7 +585,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     if(timeReviewInline&&settingsView.nextElementSibling!==frameRoot)frameRoot.before?.(settingsView);
     else if(!timeReviewInline&&settingsView.previousElementSibling!==retiredDraft)retiredDraft.after?.(settingsView);
     display.setAttribute('data-time-review-inline',String(timeReviewInline));
-    settingsView.hidden=!show;frameRoot.hidden=(show&&!timeReviewInline)||!frame;
+    settingsView.hidden=!show;frameRoot.hidden=(show&&!timeReviewInline)||!(frame||nativeUI);
     renderCookieSettings(show);
     removeButton.hidden=readOnlyPreview;if(openTabButton)openTabButton.hidden=readOnlyPreview;
     const enabled=!enableReadError&&sidebarToolEnabled(enableRecords,id);
@@ -532,7 +593,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       enableButton.setAttribute('aria-pressed',String(enabled));}
     if(enableHint)enableHint.textContent=enableReadError?'启停状态读取异常；已保护性停止运行。':
       enabled?'工具已启用。启用不会自动运行代码。':'工具已停用。数据、网站授权和显示偏好保留。';
-    if(launchButton){launchButton.hidden=!managed||!!frame;launchButton.disabled=busy||!enabled;
+    if(launchButton){launchButton.hidden=!managed||Boolean(frame||nativeUI||nativePending);launchButton.disabled=busy||!enabled;
       launchButton.textContent=enabled?'打开工具':'已停用，请在设置中启用';}
     const url=currentPageTarget?.snapshot?.url,capability=siteCapability(active);
     const origin=capability===CAPTURE_CAPABILITY?chatCaptureOrigin(url):websiteOrigin(url);
@@ -666,11 +727,43 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     }
     return true;
   }
-  function mountTool(tool,{readOnly=false,launchGate=null}={}) {
+  function mountTool(tool,{readOnly=false,launchGate=null,forceSandbox=false}={}) {
     tocSettingsOpen=false;tocScope='site';destroyFrame();active=tool;readOnlyPreview=readOnly;previewDirty=false;knowledgeDirty=false;
     frameRevocationEpoch=readOnly?null:(revocationEpochs[tool.id]??null);
     instance=crypto.randomUUID();
     const token=instance;
+    if(!forceSandbox&&!readOnly&&!launchGate&&tool.id===TIME_REVIEW_ID&&
+       nativeTimeReview?.version===TRUSTED_TIME_REVIEW_VERSION&&typeof nativeTimeReview.mount==='function'){
+      // Async fail-closed admission finishes BEFORE any privileged UI code
+      // mounts. A modified/offline/legacy same-ID package keeps its sandbox.
+      nativePending=true;render();backButton.focus?.({preventScroll:true});
+      notice('正在校验当前扩展内置的 Time Review 官方发行身份…');
+      void admittedNativeTimeReview(tool,frameRevocationEpoch).then(admitted=>{
+        if(disposed||active!==tool||instance!==token)return;
+        if(!admitted){
+          mountTool(tool,{forceSandbox:true});
+          notice('当前包不是已审批的内置 Time Review 发行，已在受限沙箱中打开。');
+          return;
+        }
+        try{
+          const dispose=nativeTimeReview.mount({doc,container:frameRoot,
+            request:(operation,payload,event)=>requestNativeTimeReview(tool,token,frameRevocationEpoch,
+              operation,payload,event)});
+          if(disposed||active!==tool||instance!==token){dispose();return;}
+          nativeUI={dispose};nativePending=false;
+          if(frameRoot.dataset)frameRoot.dataset.timeReviewNative='true';
+          render();notice('');
+        }catch(error){
+          destroyFrame();tocSettingsOpen=true;render();
+          notice('已拒绝启动不完整的可信 UI：'+String(error?.message||error).slice(0,180),true);
+        }
+      }).catch(error=>{
+        if(disposed||active!==tool||instance!==token)return;
+        destroyFrame();tocSettingsOpen=true;render();
+        notice('官方包身份校验失败，未执行特权 UI：'+String(error?.message||error).slice(0,180),true);
+      });
+      return;
+    }
     let initialized=false;
     frame=doc.createElement('iframe');
     frame.title=tool.title+'（独立受限界面）';
@@ -779,11 +872,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     // that would deadlock the host's existing per-tool Web Lock.
     if(operation.startsWith('browser.')){
       normalizeBrowserOperation(operation,payload);
-      // Canonical Browser exports reuse the existing installation-locked host
-      // services and user.export authority, including their confirmed results.
-      if(operation==='browser.clipboard.writeText'||operation==='browser.downloads.text')
-        return dispatch(operation==='browser.clipboard.writeText'?'clipboard.writeText':'file.download',
-          payload,tool,source,token,revocationEpoch);
+      const browserExport=operation==='browser.clipboard.writeText'||operation==='browser.downloads.text';
       const isDiscovery=['browser.capabilities.list','browser.capabilities.getStatus'].includes(operation);
       if(!isDiscovery&&(!browserOperation(operation)||!browserOperation(operation).requiredCapabilities.every(cap=>tool.capabilities.includes(cap))))
         throw Object.assign(new Error('此工具没有获准浏览器能力'),{code:'E_TOOL_CAPABILITY_REQUIRED'});
@@ -802,6 +891,26 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       const envelope={protocol:BROWSER_HOST_PROTOCOL,kind:'tool',
         operation,args:payload||{},toolId:tool.id,toolVersion:tool.version,
         installEpoch:revocationEpoch,packageHash,toolInstance:token,hostInstanceId};
+      if(browserExport){
+        // A sandbox-initiated request is NOT a trusted click, even when the
+        // request originated from an iframe button. The visible Side Panel
+        // confirms one exact call; the Host then consumes that approval once.
+        const label=operation==='browser.clipboard.writeText'?'复制文本到剪贴板':'导出文本文件';
+        envelope.approvalRef=await requestBrowserClick({toolId:tool.id,
+          message:'「'+tool.title+'」请求'+label+'。仅允许本次操作。',
+          button:'允许本次导出',run:async event=>{
+            if(!event?.isTrusted)throw Object.assign(new Error('需要真实用户点击'),{code:'E_USER_GESTURE_REQUIRED'});
+            assertSession(source,token);
+            const approval=await api.runtime.sendMessage({protocol:BROWSER_HOST_PROTOCOL,kind:'host',
+              operation:'browser.intent.confirm',toolId:tool.id,toolVersion:tool.version,
+              installEpoch:revocationEpoch,packageHash,toolInstance:token,hostInstanceId,
+              targetOperation:operation,targetArgs:payload||{}});
+            if(!approval?.ok)throw Object.assign(new Error(approval?.error?.message||'Browser Host denied export'),{
+              code:approval?.error?.code||'E_BROWSER'});
+            return approval.data.approvalRef;
+          }});
+        assertSession(source,token);
+      }
       if(operation==='browser.sidePanel.openSelf'){
         const preflight=await api.runtime.sendMessage(envelope);
         if(!preflight?.ok||preflight.data?.requiresVisibleUserClick!==true)
@@ -828,7 +937,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       }
       if(['browser.tabs.create','browser.tabs.activateOwned','browser.tabs.pinOwned','browser.tabs.reloadOwned','browser.tabs.navigateOwned','browser.tabs.removeOwned','browser.network.request',
         'browser.network.observe.start','browser.network.observe.export',
-        'browser.screenshot.captureVisible'].includes(operation)){
+        'browser.screenshot.captureVisible','browser.downloads.download','browser.downloads.cancelOwned','browser.storage.local.clear'].includes(operation)){
         const target=operation==='browser.tabs.navigateOwned'?'将本工具标签页导航到同源站点 '+new URL(payload.url).origin+'（原 TabRef 将失效）':
           operation==='browser.tabs.reloadOwned'?'重新加载本工具拥有的标签页（原 TabRef 将失效）':
           operation==='browser.tabs.pinOwned'?(payload.pinned?'固定此工具此前打开的标签页':'取消固定此工具此前打开的标签页'):
@@ -838,6 +947,9 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
           operation==='browser.network.observe.start'?'观察已打开标签页内 '+payload.origins[0]+' 的 HTTP 元数据':
           operation==='browser.network.observe.export'?'导出本工具已停止的网络观察为 JSON 文件':
           operation==='browser.screenshot.captureVisible'?'截取当前可见且已授权的网页，并打开 PNG 保存对话框':
+          operation==='browser.downloads.download'?'下载网站 '+new URL(payload.url).origin+' 的指定文件（仅此一次）':
+          operation==='browser.downloads.cancelOwned'?'取消本工具已发起、编号为 '+payload.downloadRef.slice(0,8)+'… 的下载':
+          operation==='browser.storage.local.clear'?'清空本工具保存的数据（不影响其他工具）':
             '向 '+new URL(payload.url).origin+' 发送 '+payload.method+' HTTP 请求';
         const approvalRef=await requestBrowserClick({toolId:tool.id,
           message:'「'+tool.title+'」请求'+target+'；确认仅批准这一次操作。',
@@ -889,8 +1001,44 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       assertSession(source,token);
       if(!reply?.ok)throw Object.assign(new Error(reply?.error?.message||'浏览器操作失败'),{
         code:reply?.error?.code||'E_BROWSER'});
+      if(browserExport){
+        if(reply.data?.authorized!==true)
+          throw Object.assign(new Error('Browser Host did not authorize this exact export'),{code:'E_OWNER'});
+        // The privileged Side Panel document is the existing Clipboard /
+        // Download driver. SW cannot use navigator.clipboard; no sandbox
+        // receives native browser access or may bypass the one-use Host intent.
+        await assertSidebarToolEnabled(api,tool.id);
+        assertSession(source,token);
+        if(operation==='browser.clipboard.writeText'){
+          if(!globalThis.navigator?.clipboard?.writeText)
+            throw Object.assign(new Error('剪贴板在当前环境不可用'),{code:'E_CHROME_UNSUPPORTED'});
+          try{await globalThis.navigator.clipboard.writeText(payload.text);}
+          catch{throw Object.assign(new Error('复制结果未知，请自行检查剪贴板，勿自动重试'),{code:'E_OUTCOME_UNKNOWN'});}
+          try{assertSession(source,token);}
+          catch{throw Object.assign(new Error('复制可能已经生效，请检查剪贴板，不可自动重试'),{code:'E_OUTCOME_UNKNOWN'});}
+          return {copied:true};
+        }
+        if(!api.downloads?.download)
+          throw Object.assign(new Error('下载服务不可用'),{code:'E_CHROME_UNSUPPORTED'});
+        const filename=payload.filename;
+        const mime=/\.json$/i.test(filename)?'application/json':/\.txt$/i.test(filename)?'text/plain':'text/markdown';
+        const url='data:'+mime+';charset=utf-8,'+encodeURIComponent(payload.text);
+        let downloadId;
+        try{downloadId=await api.downloads.download({url,filename,saveAs:true,conflictAction:'uniquify'});}
+        catch{throw Object.assign(new Error('下载结果未知，请检查 Chrome 下载记录，勿自动重试'),{code:'E_OUTCOME_UNKNOWN'});}
+        if(!Number.isInteger(downloadId))throw Object.assign(
+          new Error('Chrome 未确认下载，请检查下载记录，勿自动重试'),{code:'E_OUTCOME_UNKNOWN'});
+        try{assertSession(source,token);}
+        catch{throw Object.assign(new Error('下载可能已经开始，请检查下载记录，不可自动重试'),{code:'E_OUTCOME_UNKNOWN'});}
+        // Native download ID remains private to the trusted Side Panel.
+        return {started:true};
+      }
       const frontendStatus=state=>{
-        if(state?.implementation!=='implemented'||state?.authorization?.tool!=='granted')return state;
+        // Never turn a missing Chrome permission, rejected Origin, or denied
+        // installation into callableNow merely because the trusted UI has a
+        // clipboard/download function. Host must first approve the context.
+        if(state?.implementation!=='implemented'||state?.authorization?.tool!=='granted'||
+           state.reasonCode!=='E_FRONTEND_CONTEXT_REQUIRED')return state;
         const available=state.operation==='browser.clipboard.writeText'
           ?Boolean(globalThis.navigator?.clipboard?.writeText)
           :state.operation==='browser.downloads.text'?Boolean(api.downloads?.download)
@@ -915,7 +1063,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       knowledgeOperation(operation)?KNOWLEDGE_CAPABILITY:
       TIME_REVIEW_OPERATIONS.includes(operation)?TIME_REVIEW_CAPABILITY:
       focus?.operations?.includes(operation)?focus.capability:
-        ['clipboard.writeText','file.download'].includes(operation)?'user.export':'__unapproved__'))
+        '__unapproved__'))
       throw new Error('此工具没有被批准使用该能力');
     if(TIME_REVIEW_OPERATIONS.includes(operation)){
       if(tool.id!==TIME_REVIEW_ID)throw new Error('时间回顾工具身份无效');
@@ -1097,28 +1245,6 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
           throw new Error('网站剪藏授权已撤销');
         assertSession(source,token);return data;
       }
-      if(operation==='clipboard.writeText'||operation==='file.download'){
-        const value=payload?.text;
-        if(typeof value!=='string'||!value||new TextEncoder().encode(value).length>150000)
-          throw new Error('导出内容为空或超过 150 KB');
-        if(operation==='clipboard.writeText'){
-          if(!globalThis.navigator?.clipboard?.writeText)
-            throw new Error('此环境不允许自动复制；请选中文本手动复制');
-          await globalThis.navigator.clipboard.writeText(value);
-          assertSession(source,token);return {copied:true};
-        }
-        if(!api.downloads?.download)throw new Error('下载服务不可用');
-        const filename=payload?.filename;
-        if(typeof filename!=='string'||filename.length>90||
-          !/^[^\/\x00-\x1f:?*"<>|]+\.(?:md|txt|json)$/i.test(filename)||filename.startsWith('.'))
-          throw new Error('仅允许安全的 Markdown / TXT / JSON 文件名');
-        const mime=/\.json$/i.test(filename)?'application/json':/\.txt$/i.test(filename)?'text/plain':'text/markdown';
-        const url='data:'+mime+';charset=utf-8,'+encodeURIComponent(value);
-        const downloadId=await api.downloads.download({url,filename,saveAs:true,conflictAction:'uniquify'});
-        assertSession(source,token);
-        if(!Number.isInteger(downloadId))throw new Error('Chrome 未确认下载');
-        return {downloadId};
-      }
       if(operation==='tasks.open'){
         if(typeof payload?.taskId!=='string'||!/^[a-zA-Z0-9][a-zA-Z0-9._-]{0,59}$/.test(payload.taskId))
           throw new Error('任务标识无效');
@@ -1228,7 +1354,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     const token=instance,source=event.source,tool=active,revocationEpoch=frameRevocationEpoch;
     let bytes;
     try{bytes=JSON.stringify(message).length;}catch{return;}
-    if(bytes>(['clipboard.writeText','file.download','browser.clipboard.writeText','browser.downloads.text','knowledge.update','knowledge.create'].includes(message.operation)?170000:12000))return;
+    if(bytes>(['browser.clipboard.writeText','browser.downloads.text','knowledge.update','knowledge.create'].includes(message.operation)?170000:12000))return;
     const reply=(ok,result,error)=>{
       if(sameInstance(source,token))source.postMessage({
         protocol:SIDEBAR_TOOL_PROTOCOL,kind:'response',instance:token,toolId:tool.id,
@@ -1280,7 +1406,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     }
     if(Object.hasOwn(changes||{},BROWSER_MENU_GRANTS_STORE)){
       menuGrants=changes[BROWSER_MENU_GRANTS_STORE]?.newValue||{};render();
-      if(active?.id==='cookie-editor'&&frame&&instance)
+      if(isCookieTool(active)&&frame&&instance)
         frame.contentWindow?.postMessage({protocol:SIDEBAR_TOOL_PROTOCOL,
           kind:'cookie-grants-changed',instance,toolId:active.id},'*');
     }
@@ -1314,11 +1440,19 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     if(Object.hasOwn(changes||{},TOOL_REVOCATION_EPOCHS_STORE)){
       revocationReadEpoch++;
       revocationEpochs=changes[TOOL_REVOCATION_EPOCHS_STORE]?.newValue||{};
-      // Keep unsaved UI text visible for manual copying; writes from the old
-      // instance are fenced by the durable revocation marker.
-      if(active&&!readOnlyPreview&&frameRevocationEpoch!==(revocationEpochs[active.id]??null))
-        notice('当前工具实例已撤销；草稿仍在当前页面，请复制后重新打开。',true);
+      if(active&&!readOnlyPreview&&frameRevocationEpoch!==(revocationEpochs[active.id]??null)){
+        if(nativeUI||nativePending){
+          destroyFrame();tocSettingsOpen=true;render();
+          notice('时间回顾安装代际已撤销；请重新打开已核验工具。',true);
+        }else notice('当前工具实例已撤销；草稿仍在当前页面，请复制后重新打开。',true);
+      }
     }
+    if(Object.hasOwn(changes||{},MARKET_PROVENANCE_STORE)&&(nativeUI||nativePending)){
+      destroyFrame();tocSettingsOpen=true;render();
+      notice('官方工具来源记录发生变化；可信 UI 已关闭。',true);
+    }
+    // Do not refresh the native view for every TIME_REVIEW_KEY write: the
+    // Host persists status reads, and echoing them would form a poll loop.
     if(!Object.hasOwn(changes||{},SIDEBAR_TOOL_STORE))return;
     catalogEpoch++;
     let fresh;

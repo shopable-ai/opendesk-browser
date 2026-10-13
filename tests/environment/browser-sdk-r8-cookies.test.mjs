@@ -8,10 +8,11 @@ function fixture(){
   const records=[],calls=[];
   let approved=true,doc='doc-1',lostReceipt=false;
   const api={runtime:{lastError:null},cookies:{
-    get(d,cb){calls.push('get');cb(records.find(row=>row.name===d.name&&
+    get(d,cb){calls.push('get');cb(records.filter(row=>row.name===d.name&&
       (!d.storeId||row.storeId===d.storeId)&&
       JSON.stringify(row.partitionKey??null)===JSON.stringify(d.partitionKey??null)&&
-      new URL(d.url).hostname===row.domain&&new URL(d.url).pathname.startsWith(row.path))??null);},
+      new URL(d.url).hostname===row.domain&&new URL(d.url).pathname.startsWith(row.path))
+      .sort((a,b)=>b.path.length-a.path.length)[0]??null);},
     getAll(d,cb){calls.push('getAll');cb(records.filter(row=>
       (!d.name||d.name===row.name)&&
       (!d.storeId||d.storeId===row.storeId)&&
@@ -23,9 +24,13 @@ function fixture(){
       storeId:d.storeId??'0',secure:d.secure??false,
       ...(d.partitionKey?{partitionKey:d.partitionKey}:{})};
       records.push(value);cb(value);},
-    remove(d,cb){calls.push('remove');const i=records.findIndex(row=>row.name===d.name&&
-      row.domain===new URL(d.url).hostname&&new URL(d.url).pathname.startsWith(row.path)&&
-      JSON.stringify(row.partitionKey??null)===JSON.stringify(d.partitionKey??null));
+    remove(d,cb){calls.push('remove');
+      const row=records.filter(value=>value.name===d.name&&
+        value.domain===new URL(d.url).hostname&&
+        new URL(d.url).pathname.startsWith(value.path)&&
+        JSON.stringify(value.partitionKey??null)===JSON.stringify(d.partitionKey??null))
+        .sort((a,b)=>b.path.length-a.path.length)[0];
+      const i=row?records.indexOf(row):-1;
       if(i>=0)records.splice(i,1);cb(lostReceipt?null:i<0?null:{name:d.name,url:d.url});},
     getAllCookieStores(cb){cb([{id:'0',tabIds:[10]},{id:'other',tabIds:[999]}]);},
     getPartitionKey(_d,cb){cb({partitionKey:{topLevelSite:'https://example.org',hasCrossSiteAncestor:false}});}
@@ -38,7 +43,7 @@ function fixture(){
   const resolveTarget=async (_req,ctx)=>ctx.documentId===doc?
     {tabId:10,frameId:0,documentId:doc,origin:ctx.origin}:null;
   const service=createCookieService({api,authorize,resolveTarget});
-  return {service,records,calls,revoke:()=>{approved=false;},navigate:()=>{doc='doc-2';},
+  return {api,service,records,calls,revoke:()=>{approved=false;},navigate:()=>{doc='doc-2';},
     loseReceipt:()=>{lostReceipt=true;}};
 }
 test('R8 Host-only Cookie read/write handles partition and value redaction',async()=>{
@@ -91,5 +96,38 @@ test('R8 preserves Controller getCookies/setCookies/deleteCookiesByUrl contracts
   await f.service.setCookies([{url,name:'old',value:'token'}],context);
   assert.equal((await f.service.getCookies(url,context))[0].value,'token');
   await f.service.deleteCookiesByUrl(url,context);
+  assert.equal(f.records.length,0);
+});
+
+test('R8 cleanup checks native Store and Partition even if Chrome getAll returns wider data',async()=>{
+  const f=fixture(),partitionKey={topLevelSite:'https://example.org',hasCrossSiteAncestor:false};
+  f.records.push(
+    {name:'selected',value:'delete',domain:'example.org',path:'/',storeId:'0',hostOnly:true},
+    {name:'wrong-store',value:'keep',domain:'example.org',path:'/',storeId:'other',hostOnly:true},
+    {name:'wrong-partition',value:'keep',domain:'example.org',path:'/',storeId:'0',
+      hostOnly:true,partitionKey}
+  );
+  f.api.cookies.getAll=(_details,callback)=>callback(f.records.map(row=>({...row})));
+  const receipt=await f.service.clearSite({url,storeId:'0',maxCookies:5},context);
+  assert.equal(receipt.removed,1);
+  assert.deepEqual(f.records.map(row=>row.name).sort(),['wrong-partition','wrong-store']);
+});
+
+test('R8 remove verifies exact Cookie identity when a shorter same-name Path survives',async()=>{
+  const f=fixture(),account='https://example.org/account';
+  await f.service.set({url:'https://example.org/',name:'sid',value:'root',path:'/'},context);
+  await f.service.set({url:account,name:'sid',value:'account',path:'/account'},context);
+  const receipt=await f.service.remove({url:account,name:'sid'},context);
+  assert.deepEqual(receipt,{removed:true,verified:true});
+  assert.deepEqual(f.records.map(row=>[row.name,row.path,row.value]),[['sid','/','root']]);
+  assert.equal(f.calls.filter(x=>x==='remove').length,1,'native remove must never be retried');
+});
+test('R8 clearSite does not misreport surviving same-name paths as failed deletions',async()=>{
+  const f=fixture();
+  await f.service.set({url:'https://example.org/',name:'sid',value:'root',path:'/'},context);
+  await f.service.set({url:'https://example.org/account',name:'sid',value:'account',path:'/account'},context);
+  const result=await f.service.clearSite({url,maxCookies:5},context);
+  assert.equal(result.removed,2);
+  assert.equal(result.remaining,0);
   assert.equal(f.records.length,0);
 });

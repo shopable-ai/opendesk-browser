@@ -3,8 +3,8 @@
   "sourceOfTruth": "src/framework/sdk/browser-contract.js",
   "repository": "shopable-ai/opendesk-browser",
   "branch": "main",
-  "auditedMainSha": "90239cd4d2145f8055aa847854d252f3c93dae4a",
-  "auditedDate": "2026-10-12",
+  "auditedMainSha": "fd92b7c74bbaa0eaab4643c23e5d35fea7058cb8",
+  "auditedDate": "2026-10-13",
   "apiVersion": "1.0.0",
   "capacityUniverse": {
     "domains": 18,
@@ -12,9 +12,9 @@
     "auditOnly": true
   },
   "summary": {
-    "operationCount": 29,
+    "operationCount": 48,
     "implementationCounts": {
-      "IMPLEMENTED": 29,
+      "IMPLEMENTED": 48,
       "PLANNED": 0,
       "HOST_ONLY": 0,
       "NOT_EXPOSED": 0
@@ -499,6 +499,178 @@
         "Same-candidate native GUI and denial evidence missing"
       ],
       "nextTask": "Capture current-candidate positive, rejection and native Chrome evidence",
+      "commits": [],
+      "evidence": []
+    },
+    {
+      "api": "browser.downloads.download",
+      "module": "browser.downloads",
+      "apiVersion": "1.0.0",
+      "implementation": "IMPLEMENTED",
+      "executionContexts": [
+        "sidebar-tool"
+      ],
+      "exposure": "APPROVED_TOOL",
+      "inputSchema": "src/framework/sdk/browser-contract.js#browser.downloads.download",
+      "outputSchema": "src/framework/sdk/browser-contract.js#browser.downloads.download",
+      "chromePermissions": [
+        "downloads"
+      ],
+      "toolCapabilities": [
+        "user.export"
+      ],
+      "effectClass": "write",
+      "riskLevel": "high",
+      "siteScope": "explicit-url",
+      "lifecycle": "request",
+      "hostImplementation": "src/platform/chrome/context-menus.js#handleTool → src/platform/chrome/browser-downloads.js",
+      "sdkEntry": "src/framework/sdk/browser.js",
+      "positiveTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "denialTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "nativeChrome": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "callableNowVerification": "NOT_TESTED",
+      "blockers": [
+        "Node, Build and actual Chrome acceptance pending for current candidate"
+      ],
+      "nextTask": "Execute tests/environment/browser-sdk-p3-implementation.test.mjs and real Chrome owned-download positive/denial acceptance",
+      "commits": [],
+      "evidence": []
+    },
+    {
+      "api": "browser.downloads.getOwned",
+      "module": "browser.downloads",
+      "apiVersion": "1.0.0",
+      "implementation": "IMPLEMENTED",
+      "executionContexts": [
+        "sidebar-tool"
+      ],
+      "exposure": "APPROVED_TOOL",
+      "inputSchema": "src/framework/sdk/browser-contract.js#browser.downloads.getOwned",
+      "outputSchema": "src/framework/sdk/browser-contract.js#browser.downloads.getOwned",
+      "chromePermissions": [
+        "downloads"
+      ],
+      "toolCapabilities": [
+        "user.export"
+      ],
+      "effectClass": "read",
+      "riskLevel": "medium",
+      "siteScope": "download-ref",
+      "lifecycle": "request",
+      "hostImplementation": "src/platform/chrome/context-menus.js#handleTool → src/platform/chrome/browser-downloads.js",
+      "sdkEntry": "src/framework/sdk/browser.js",
+      "positiveTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "denialTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "nativeChrome": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "callableNowVerification": "NOT_TESTED",
+      "blockers": [
+        "Node, Build and actual Chrome acceptance pending for current candidate"
+      ],
+      "nextTask": "Execute tests/environment/browser-sdk-p3-implementation.test.mjs and real Chrome owned-download positive/denial acceptance",
+      "commits": [],
+      "evidence": []
+    },
+    {
+      "api": "browser.downloads.listOwned",
+      "module": "browser.downloads",
+      "apiVersion": "1.0.0",
+      "implementation": "IMPLEMENTED",
+      "executionContexts": [
+        "sidebar-tool"
+      ],
+      "exposure": "APPROVED_TOOL",
+      "inputSchema": "src/framework/sdk/browser-contract.js#browser.downloads.listOwned",
+      "outputSchema": "src/framework/sdk/browser-contract.js#browser.downloads.listOwned",
+      "chromePermissions": [
+        "downloads"
+      ],
+      "toolCapabilities": [
+        "user.export"
+      ],
+      "effectClass": "read",
+      "riskLevel": "medium",
+      "siteScope": "owned-downloads",
+      "lifecycle": "request",
+      "hostImplementation": "src/platform/chrome/context-menus.js#handleTool → src/platform/chrome/browser-downloads.js",
+      "sdkEntry": "src/framework/sdk/browser.js",
+      "positiveTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "denialTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "nativeChrome": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "callableNowVerification": "NOT_TESTED",
+      "blockers": [
+        "Node, Build and actual Chrome acceptance pending for current candidate"
+      ],
+      "nextTask": "Execute tests/environment/browser-sdk-p3-implementation.test.mjs and real Chrome owned-download positive/denial acceptance",
+      "commits": [],
+      "evidence": []
+    },
+    {
+      "api": "browser.downloads.cancelOwned",
+      "module": "browser.downloads",
+      "apiVersion": "1.0.0",
+      "implementation": "IMPLEMENTED",
+      "executionContexts": [
+        "sidebar-tool"
+      ],
+      "exposure": "APPROVED_TOOL",
+      "inputSchema": "src/framework/sdk/browser-contract.js#browser.downloads.cancelOwned",
+      "outputSchema": "src/framework/sdk/browser-contract.js#browser.downloads.cancelOwned",
+      "chromePermissions": [
+        "downloads"
+      ],
+      "toolCapabilities": [
+        "user.export"
+      ],
+      "effectClass": "write",
+      "riskLevel": "high",
+      "siteScope": "download-ref",
+      "lifecycle": "request",
+      "hostImplementation": "src/platform/chrome/context-menus.js#handleTool → src/platform/chrome/browser-downloads.js",
+      "sdkEntry": "src/framework/sdk/browser.js",
+      "positiveTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "denialTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "nativeChrome": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "callableNowVerification": "NOT_TESTED",
+      "blockers": [
+        "Node, Build and actual Chrome acceptance pending for current candidate"
+      ],
+      "nextTask": "Execute tests/environment/browser-sdk-p3-implementation.test.mjs and real Chrome owned-download positive/denial acceptance",
       "commits": [],
       "evidence": []
     },
@@ -1369,6 +1541,651 @@
       "nextTask": "Verify actual Host owner/epoch/site permission and state or cancellation across Worker restart",
       "commits": [],
       "evidence": []
+    },
+    {
+      "api": "browser.cookies.get",
+      "module": "browser.cookies",
+      "apiVersion": "1.0.0",
+      "implementation": "IMPLEMENTED",
+      "executionContexts": [
+        "sidebar-tool"
+      ],
+      "exposure": "APPROVED_TOOL",
+      "inputSchema": "src/framework/sdk/browser-contract.js#browser.cookies.get",
+      "outputSchema": "src/framework/sdk/browser-contract.js#browser.cookies.get",
+      "chromePermissions": [
+        "cookies"
+      ],
+      "toolCapabilities": [
+        "browser.cookies.read"
+      ],
+      "effectClass": "read",
+      "riskLevel": "high",
+      "siteScope": "approved-cookie-site",
+      "lifecycle": "request",
+      "hostImplementation": "src/platform/chrome/context-menus.js#handleTool → existing createTrustedCookieHost",
+      "sdkEntry": "src/framework/sdk/browser.js",
+      "positiveTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "denialTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "nativeChrome": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "callableNowVerification": "NOT_TESTED",
+      "blockers": [
+        "Current candidate still needs Node and real installed Cookie Editor native positive/denial/permission lifecycle tests"
+      ],
+      "nextTask": "Verify installed tool exact site/store/partition grant, write readback, revoke and Chrome native receipt",
+      "commits": [],
+      "evidence": []
+    },
+    {
+      "api": "browser.cookies.getAll",
+      "module": "browser.cookies",
+      "apiVersion": "1.0.0",
+      "implementation": "IMPLEMENTED",
+      "executionContexts": [
+        "sidebar-tool"
+      ],
+      "exposure": "APPROVED_TOOL",
+      "inputSchema": "src/framework/sdk/browser-contract.js#browser.cookies.getAll",
+      "outputSchema": "src/framework/sdk/browser-contract.js#browser.cookies.getAll",
+      "chromePermissions": [
+        "cookies"
+      ],
+      "toolCapabilities": [
+        "browser.cookies.read"
+      ],
+      "effectClass": "read",
+      "riskLevel": "high",
+      "siteScope": "approved-cookie-site",
+      "lifecycle": "request",
+      "hostImplementation": "src/platform/chrome/context-menus.js#handleTool → existing createTrustedCookieHost",
+      "sdkEntry": "src/framework/sdk/browser.js",
+      "positiveTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "denialTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "nativeChrome": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "callableNowVerification": "NOT_TESTED",
+      "blockers": [
+        "Current candidate still needs Node and real installed Cookie Editor native positive/denial/permission lifecycle tests"
+      ],
+      "nextTask": "Verify installed tool exact site/store/partition grant, write readback, revoke and Chrome native receipt",
+      "commits": [],
+      "evidence": []
+    },
+    {
+      "api": "browser.cookies.set",
+      "module": "browser.cookies",
+      "apiVersion": "1.0.0",
+      "implementation": "IMPLEMENTED",
+      "executionContexts": [
+        "sidebar-tool"
+      ],
+      "exposure": "APPROVED_TOOL",
+      "inputSchema": "src/framework/sdk/browser-contract.js#browser.cookies.set",
+      "outputSchema": "src/framework/sdk/browser-contract.js#browser.cookies.set",
+      "chromePermissions": [
+        "cookies"
+      ],
+      "toolCapabilities": [
+        "browser.cookies.write"
+      ],
+      "effectClass": "write",
+      "riskLevel": "high",
+      "siteScope": "approved-cookie-site",
+      "lifecycle": "request",
+      "hostImplementation": "src/platform/chrome/context-menus.js#handleTool → existing createTrustedCookieHost",
+      "sdkEntry": "src/framework/sdk/browser.js",
+      "positiveTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "denialTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "nativeChrome": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "callableNowVerification": "NOT_TESTED",
+      "blockers": [
+        "Current candidate still needs Node and real installed Cookie Editor native positive/denial/permission lifecycle tests"
+      ],
+      "nextTask": "Verify installed tool exact site/store/partition grant, write readback, revoke and Chrome native receipt",
+      "commits": [],
+      "evidence": []
+    },
+    {
+      "api": "browser.cookies.remove",
+      "module": "browser.cookies",
+      "apiVersion": "1.0.0",
+      "implementation": "IMPLEMENTED",
+      "executionContexts": [
+        "sidebar-tool"
+      ],
+      "exposure": "APPROVED_TOOL",
+      "inputSchema": "src/framework/sdk/browser-contract.js#browser.cookies.remove",
+      "outputSchema": "src/framework/sdk/browser-contract.js#browser.cookies.remove",
+      "chromePermissions": [
+        "cookies"
+      ],
+      "toolCapabilities": [
+        "browser.cookies.write"
+      ],
+      "effectClass": "write",
+      "riskLevel": "high",
+      "siteScope": "approved-cookie-site",
+      "lifecycle": "request",
+      "hostImplementation": "src/platform/chrome/context-menus.js#handleTool → existing createTrustedCookieHost",
+      "sdkEntry": "src/framework/sdk/browser.js",
+      "positiveTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "denialTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "nativeChrome": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "callableNowVerification": "NOT_TESTED",
+      "blockers": [
+        "Current candidate still needs Node and real installed Cookie Editor native positive/denial/permission lifecycle tests"
+      ],
+      "nextTask": "Verify installed tool exact site/store/partition grant, write readback, revoke and Chrome native receipt",
+      "commits": [],
+      "evidence": []
+    },
+    {
+      "api": "browser.cookies.clearSite",
+      "module": "browser.cookies",
+      "apiVersion": "1.0.0",
+      "implementation": "IMPLEMENTED",
+      "executionContexts": [
+        "sidebar-tool"
+      ],
+      "exposure": "APPROVED_TOOL",
+      "inputSchema": "src/framework/sdk/browser-contract.js#browser.cookies.clearSite",
+      "outputSchema": "src/framework/sdk/browser-contract.js#browser.cookies.clearSite",
+      "chromePermissions": [
+        "cookies"
+      ],
+      "toolCapabilities": [
+        "browser.cookies.clear"
+      ],
+      "effectClass": "write",
+      "riskLevel": "high",
+      "siteScope": "approved-cookie-host-only",
+      "lifecycle": "request",
+      "hostImplementation": "src/platform/chrome/context-menus.js#handleTool → existing createTrustedCookieHost",
+      "sdkEntry": "src/framework/sdk/browser.js",
+      "positiveTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "denialTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "nativeChrome": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "callableNowVerification": "NOT_TESTED",
+      "blockers": [
+        "Current candidate still needs Node and real installed Cookie Editor native positive/denial/permission lifecycle tests"
+      ],
+      "nextTask": "Verify installed tool exact site/store/partition grant, write readback, revoke and Chrome native receipt",
+      "commits": [],
+      "evidence": []
+    },
+    {
+      "api": "browser.cookies.getCurrentStore",
+      "module": "browser.cookies",
+      "apiVersion": "1.0.0",
+      "implementation": "IMPLEMENTED",
+      "executionContexts": [
+        "sidebar-tool"
+      ],
+      "exposure": "APPROVED_TOOL",
+      "inputSchema": "src/framework/sdk/browser-contract.js#browser.cookies.getCurrentStore",
+      "outputSchema": "src/framework/sdk/browser-contract.js#browser.cookies.getCurrentStore",
+      "chromePermissions": [
+        "cookies"
+      ],
+      "toolCapabilities": [
+        "browser.cookies.read"
+      ],
+      "effectClass": "read",
+      "riskLevel": "high",
+      "siteScope": "approved-cookie-site",
+      "lifecycle": "request",
+      "hostImplementation": "src/platform/chrome/context-menus.js#handleTool → existing createTrustedCookieHost",
+      "sdkEntry": "src/framework/sdk/browser.js",
+      "positiveTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "denialTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "nativeChrome": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "callableNowVerification": "NOT_TESTED",
+      "blockers": [
+        "Current candidate still needs Node and real installed Cookie Editor native positive/denial/permission lifecycle tests"
+      ],
+      "nextTask": "Verify installed tool exact site/store/partition grant, write readback, revoke and Chrome native receipt",
+      "commits": [],
+      "evidence": []
+    },
+    {
+      "api": "browser.cookies.getPartitionKey",
+      "module": "browser.cookies",
+      "apiVersion": "1.0.0",
+      "implementation": "IMPLEMENTED",
+      "executionContexts": [
+        "sidebar-tool"
+      ],
+      "exposure": "APPROVED_TOOL",
+      "inputSchema": "src/framework/sdk/browser-contract.js#browser.cookies.getPartitionKey",
+      "outputSchema": "src/framework/sdk/browser-contract.js#browser.cookies.getPartitionKey",
+      "chromePermissions": [
+        "cookies"
+      ],
+      "toolCapabilities": [
+        "browser.cookies.read"
+      ],
+      "effectClass": "read",
+      "riskLevel": "high",
+      "siteScope": "approved-cookie-site",
+      "lifecycle": "request",
+      "hostImplementation": "src/platform/chrome/context-menus.js#handleTool → existing createTrustedCookieHost",
+      "sdkEntry": "src/framework/sdk/browser.js",
+      "positiveTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "denialTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "nativeChrome": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "callableNowVerification": "NOT_TESTED",
+      "blockers": [
+        "Current candidate still needs Node and real installed Cookie Editor native positive/denial/permission lifecycle tests"
+      ],
+      "nextTask": "Verify installed tool exact site/store/partition grant, write readback, revoke and Chrome native receipt",
+      "commits": [],
+      "evidence": []
+    },
+    {
+      "api": "browser.cookies.observe.start",
+      "module": "browser.cookies.observe",
+      "apiVersion": "1.0.0",
+      "implementation": "IMPLEMENTED",
+      "executionContexts": [
+        "sidebar-tool"
+      ],
+      "exposure": "APPROVED_TOOL",
+      "inputSchema": "src/framework/sdk/browser-contract.js#browser.cookies.observe.start",
+      "outputSchema": "src/framework/sdk/browser-contract.js#browser.cookies.observe.start",
+      "chromePermissions": [
+        "cookies"
+      ],
+      "toolCapabilities": [
+        "browser.cookies.observe"
+      ],
+      "effectClass": "read",
+      "riskLevel": "high",
+      "siteScope": "approved-cookie-site",
+      "lifecycle": "bounded-session",
+      "hostImplementation": "src/platform/chrome/context-menus.js#handleTool → existing createTrustedCookieHost",
+      "sdkEntry": "src/framework/sdk/browser.js",
+      "positiveTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "denialTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "nativeChrome": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "callableNowVerification": "NOT_TESTED",
+      "blockers": [
+        "Current candidate still needs Node and real installed Cookie Editor native positive/denial/permission lifecycle tests"
+      ],
+      "nextTask": "Verify installed tool exact site/store/partition grant, write readback, revoke and Chrome native receipt",
+      "commits": [],
+      "evidence": []
+    },
+    {
+      "api": "browser.cookies.observe.getStatus",
+      "module": "browser.cookies.observe",
+      "apiVersion": "1.0.0",
+      "implementation": "IMPLEMENTED",
+      "executionContexts": [
+        "sidebar-tool"
+      ],
+      "exposure": "APPROVED_TOOL",
+      "inputSchema": "src/framework/sdk/browser-contract.js#browser.cookies.observe.getStatus",
+      "outputSchema": "src/framework/sdk/browser-contract.js#browser.cookies.observe.getStatus",
+      "chromePermissions": [
+        "cookies"
+      ],
+      "toolCapabilities": [
+        "browser.cookies.observe"
+      ],
+      "effectClass": "read",
+      "riskLevel": "high",
+      "siteScope": "approved-cookie-site",
+      "lifecycle": "bounded-session",
+      "hostImplementation": "src/platform/chrome/context-menus.js#handleTool → existing createTrustedCookieHost",
+      "sdkEntry": "src/framework/sdk/browser.js",
+      "positiveTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "denialTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "nativeChrome": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "callableNowVerification": "NOT_TESTED",
+      "blockers": [
+        "Current candidate still needs Node and real installed Cookie Editor native positive/denial/permission lifecycle tests"
+      ],
+      "nextTask": "Verify installed tool exact site/store/partition grant, write readback, revoke and Chrome native receipt",
+      "commits": [],
+      "evidence": []
+    },
+    {
+      "api": "browser.cookies.observe.read",
+      "module": "browser.cookies.observe",
+      "apiVersion": "1.0.0",
+      "implementation": "IMPLEMENTED",
+      "executionContexts": [
+        "sidebar-tool"
+      ],
+      "exposure": "APPROVED_TOOL",
+      "inputSchema": "src/framework/sdk/browser-contract.js#browser.cookies.observe.read",
+      "outputSchema": "src/framework/sdk/browser-contract.js#browser.cookies.observe.read",
+      "chromePermissions": [
+        "cookies"
+      ],
+      "toolCapabilities": [
+        "browser.cookies.observe"
+      ],
+      "effectClass": "read",
+      "riskLevel": "high",
+      "siteScope": "approved-cookie-site",
+      "lifecycle": "bounded-session",
+      "hostImplementation": "src/platform/chrome/context-menus.js#handleTool → existing createTrustedCookieHost",
+      "sdkEntry": "src/framework/sdk/browser.js",
+      "positiveTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "denialTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "nativeChrome": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "callableNowVerification": "NOT_TESTED",
+      "blockers": [
+        "Current candidate still needs Node and real installed Cookie Editor native positive/denial/permission lifecycle tests"
+      ],
+      "nextTask": "Verify installed tool exact site/store/partition grant, write readback, revoke and Chrome native receipt",
+      "commits": [],
+      "evidence": []
+    },
+    {
+      "api": "browser.cookies.observe.stop",
+      "module": "browser.cookies.observe",
+      "apiVersion": "1.0.0",
+      "implementation": "IMPLEMENTED",
+      "executionContexts": [
+        "sidebar-tool"
+      ],
+      "exposure": "APPROVED_TOOL",
+      "inputSchema": "src/framework/sdk/browser-contract.js#browser.cookies.observe.stop",
+      "outputSchema": "src/framework/sdk/browser-contract.js#browser.cookies.observe.stop",
+      "chromePermissions": [
+        "cookies"
+      ],
+      "toolCapabilities": [
+        "browser.cookies.observe"
+      ],
+      "effectClass": "write",
+      "riskLevel": "high",
+      "siteScope": "approved-cookie-site",
+      "lifecycle": "bounded-session",
+      "hostImplementation": "src/platform/chrome/context-menus.js#handleTool → existing createTrustedCookieHost",
+      "sdkEntry": "src/framework/sdk/browser.js",
+      "positiveTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "denialTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "nativeChrome": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "callableNowVerification": "NOT_TESTED",
+      "blockers": [
+        "Current candidate still needs Node and real installed Cookie Editor native positive/denial/permission lifecycle tests"
+      ],
+      "nextTask": "Verify installed tool exact site/store/partition grant, write readback, revoke and Chrome native receipt",
+      "commits": [],
+      "evidence": []
+    },
+    {
+      "api": "browser.storage.local.get",
+      "module": "browser.storage.local",
+      "apiVersion": "1.0.0",
+      "implementation": "IMPLEMENTED",
+      "executionContexts": [
+        "sidebar-tool"
+      ],
+      "exposure": "APPROVED_TOOL",
+      "inputSchema": "src/framework/sdk/browser-contract.js#browser.storage.local.get",
+      "outputSchema": "src/framework/sdk/browser-contract.js#browser.storage.local.get",
+      "chromePermissions": [
+        "storage"
+      ],
+      "toolCapabilities": [
+        "browser.storage"
+      ],
+      "effectClass": "read",
+      "riskLevel": "low",
+      "siteScope": "owned-storage",
+      "lifecycle": "request",
+      "hostImplementation": "src/platform/chrome/context-menus.js#handleTool → src/ui/sidebar-tools/storage-state.js",
+      "sdkEntry": "src/framework/sdk/browser.js",
+      "positiveTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "denialTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "nativeChrome": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "callableNowVerification": "NOT_TESTED",
+      "blockers": [
+        "Same-candidate Node, Build and real Chrome acceptance pending"
+      ],
+      "nextTask": "Run browser-sdk-p4-implementation.test.mjs and native storage/clear/permission revocation",
+      "commits": [],
+      "evidence": []
+    },
+    {
+      "api": "browser.storage.local.set",
+      "module": "browser.storage.local",
+      "apiVersion": "1.0.0",
+      "implementation": "IMPLEMENTED",
+      "executionContexts": [
+        "sidebar-tool"
+      ],
+      "exposure": "APPROVED_TOOL",
+      "inputSchema": "src/framework/sdk/browser-contract.js#browser.storage.local.set",
+      "outputSchema": "src/framework/sdk/browser-contract.js#browser.storage.local.set",
+      "chromePermissions": [
+        "storage"
+      ],
+      "toolCapabilities": [
+        "browser.storage"
+      ],
+      "effectClass": "write",
+      "riskLevel": "medium",
+      "siteScope": "owned-storage",
+      "lifecycle": "request",
+      "hostImplementation": "src/platform/chrome/context-menus.js#handleTool → src/ui/sidebar-tools/storage-state.js",
+      "sdkEntry": "src/framework/sdk/browser.js",
+      "positiveTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "denialTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "nativeChrome": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "callableNowVerification": "NOT_TESTED",
+      "blockers": [
+        "Same-candidate Node, Build and real Chrome acceptance pending"
+      ],
+      "nextTask": "Run browser-sdk-p4-implementation.test.mjs and native storage/clear/permission revocation",
+      "commits": [],
+      "evidence": []
+    },
+    {
+      "api": "browser.storage.local.remove",
+      "module": "browser.storage.local",
+      "apiVersion": "1.0.0",
+      "implementation": "IMPLEMENTED",
+      "executionContexts": [
+        "sidebar-tool"
+      ],
+      "exposure": "APPROVED_TOOL",
+      "inputSchema": "src/framework/sdk/browser-contract.js#browser.storage.local.remove",
+      "outputSchema": "src/framework/sdk/browser-contract.js#browser.storage.local.remove",
+      "chromePermissions": [
+        "storage"
+      ],
+      "toolCapabilities": [
+        "browser.storage"
+      ],
+      "effectClass": "write",
+      "riskLevel": "medium",
+      "siteScope": "owned-storage",
+      "lifecycle": "request",
+      "hostImplementation": "src/platform/chrome/context-menus.js#handleTool → src/ui/sidebar-tools/storage-state.js",
+      "sdkEntry": "src/framework/sdk/browser.js",
+      "positiveTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "denialTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "nativeChrome": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "callableNowVerification": "NOT_TESTED",
+      "blockers": [
+        "Same-candidate Node, Build and real Chrome acceptance pending"
+      ],
+      "nextTask": "Run browser-sdk-p4-implementation.test.mjs and native storage/clear/permission revocation",
+      "commits": [],
+      "evidence": []
+    },
+    {
+      "api": "browser.storage.local.clear",
+      "module": "browser.storage.local",
+      "apiVersion": "1.0.0",
+      "implementation": "IMPLEMENTED",
+      "executionContexts": [
+        "sidebar-tool"
+      ],
+      "exposure": "APPROVED_TOOL",
+      "inputSchema": "src/framework/sdk/browser-contract.js#browser.storage.local.clear",
+      "outputSchema": "src/framework/sdk/browser-contract.js#browser.storage.local.clear",
+      "chromePermissions": [
+        "storage"
+      ],
+      "toolCapabilities": [
+        "browser.storage"
+      ],
+      "effectClass": "write",
+      "riskLevel": "high",
+      "siteScope": "owned-storage",
+      "lifecycle": "request",
+      "hostImplementation": "src/platform/chrome/context-menus.js#handleTool → src/ui/sidebar-tools/storage-state.js",
+      "sdkEntry": "src/framework/sdk/browser.js",
+      "positiveTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "denialTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "nativeChrome": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "callableNowVerification": "NOT_TESTED",
+      "blockers": [
+        "Same-candidate Node, Build and real Chrome acceptance pending"
+      ],
+      "nextTask": "Run browser-sdk-p4-implementation.test.mjs and native storage/clear/permission revocation",
+      "commits": [],
+      "evidence": []
     }
   ],
   "r5": {
@@ -1504,6 +2321,27 @@
       "receipt": "navigationRequested_not_documentLoaded",
       "oldTabRef": "REVOKED_BEFORE_NATIVE_EFFECT",
       "nativeChrome": "NOT_TESTED"
+    },
+    "cookiesPublic": {
+      "methods": [
+        "browser.cookies.get",
+        "browser.cookies.getAll",
+        "browser.cookies.set",
+        "browser.cookies.remove",
+        "browser.cookies.clearSite",
+        "browser.cookies.getCurrentStore",
+        "browser.cookies.getPartitionKey",
+        "browser.cookies.observe.start",
+        "browser.cookies.observe.getStatus",
+        "browser.cookies.observe.read",
+        "browser.cookies.observe.stop"
+      ],
+      "status": "SOURCE_WIRED_NATIVE_NOT_TESTED",
+      "chromeNativeService": "reused",
+      "siteGrant": "tool version/package hash/install epoch, per-Origin store and partition",
+      "valuesCapability": "independent",
+      "nativeChrome": "NOT_TESTED",
+      "trustedLegacyConsumer": "protected internal approve/execute remains until migration and native acceptance"
     }
   },
   "legacyCandidateChecks": {

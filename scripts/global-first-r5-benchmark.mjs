@@ -80,6 +80,20 @@ export function evaluateR5Benchmark(plan, rawTrials, {scenarioId, comparatorIds}
     yes(identities.size<=1,
       'repeated runs mix source, package, manifest or installation generation');
   }
+  // A repeated installed run is a sequence, not a bag of independently plausible
+  // receipts. Never combine older RunId/ResultId or multiple task revisions into
+  // a single apparent 20-run fixed-version benchmark.
+  if(scenarioId==='R5-T02'){
+    const own=selected.filter(t=>t.comparatorId==='opendesk'&&t.outcome==='PASS');
+    const runIds=new Set(),resultIds=new Set(),identities=new Set();
+    for(const t of own){
+      yes(!runIds.has(t.runId),'reused RunId in purported independent runs');
+      yes(!resultIds.has(t.resultId),'reused ResultId in purported independent runs');
+      runIds.add(t.runId);resultIds.add(t.resultId);
+      identities.add(t.sourceHash+':'+t.manifestHash);
+    }
+    yes(identities.size<=1,'mixed fixed-version source/manifest identity');
+  }
   const rows=comparatorIds.map(id=>{
     const mine=selected.filter(x=>x.comparatorId===id).sort((a,b)=>a.runNumber-b.runNumber);
     const complete=mine.length===scenario.repetitions &&

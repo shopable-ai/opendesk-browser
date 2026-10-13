@@ -1,7 +1,23 @@
 // Included only by WXT serve, never by a standalone development/production build.
 export function installDevelopmentPage({api,prepareReload,document:doc=globalThis.document,location:loc=globalThis.location}) {
   const status=doc.createElement('output');status.id='opendesk-development-status';
-  doc.body.prepend(status);
+  // Build/reload diagnostics belong to the developer-only Debug tab, not above
+  // every normal Side Panel page. Keep the fallback non-visual for isolated hosts.
+  const debugPanel=doc.getElementById?.('workbench-debug');
+  let statusHost=status;
+  if(debugPanel){
+    const details=doc.createElement('details');
+    details.className='debug-detail od-surface';
+    const summary=doc.createElement('summary');
+    summary.textContent='本地开发服务';
+    status.className='hint';
+    details.append(summary,status);
+    (debugPanel.querySelector?.('.debug-workbench')||debugPanel).append(details);
+    statusHost=details;
+  }else{
+    status.hidden=true;
+    doc.body.prepend(status);
+  }
   let disposed=false,port,reconnectTimer,activeToken,preparations=Promise.resolve(),attempt=0;
   const showRevision=revision=>{
     const valid=typeof revision==='string'&&/^[a-f0-9]{64}$/.test(revision);
@@ -23,7 +39,8 @@ export function installDevelopmentPage({api,prepareReload,document:doc=globalThi
         const link=doc.querySelector('link[href*="tool-shell.css"]');
         if(link){const url=new URL(link.href);url.searchParams.set('opendesk-dev',message.hash);link.href=url.href;}
         doc.documentElement.dataset.developmentCss=message.hash;
-        status.textContent='样式已自动更新。';
+        // CSS hot swaps must not interrupt the normal Side Panel with
+        // transient success notices. The worker reports the new revision.
       } else if(message.type==='prepare') {
         activeToken=message.token;doc.body.inert=true;
         const token=message.token;
@@ -52,5 +69,5 @@ export function installDevelopmentPage({api,prepareReload,document:doc=globalThi
     });
   }
   connect();
-  return ()=>{disposed=true;clearTimeout(reconnectTimer);invalidate();port?.disconnect();status.remove();};
+  return ()=>{disposed=true;clearTimeout(reconnectTimer);invalidate();port?.disconnect();statusHost.remove();};
 }

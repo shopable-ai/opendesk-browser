@@ -17,9 +17,9 @@ test('unapproved runtime operation is never accepted as a harmless catalog diffe
  const forged=[...Object.keys(BROWSER_OPERATIONS),'browser.tabs.queryAll'];
  assert(inspectBrowserSdkInterfaceMatrix(source,forged).some(row=>row.includes('Runtime Browser SDK')));
 });
-test('trusted Cookie host operations cannot be promoted into a sandbox API by metadata',()=>{
+test('public Cookies cannot be demoted to Host-only by a catalog metadata edit',()=>{
  const modified=structuredClone(source),operation=modified.approvedOperations.find(x=>x.id==='browser.cookies.getAll');
- operation.visibility='APPROVED_TOOL_REGISTERED';
+ operation.visibility='HOST_ONLY_TRUSTED_COOKIE_UI';
  assert(inspectBrowserSdkInterfaceMatrix(modified).length>0);
 });
 test('Chromium source hash and reciprocal native mappings are mandatory',()=>{

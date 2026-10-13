@@ -32,6 +32,8 @@ async function main(){
  for(const operation of ledger.formal){
   const row=acceptance.operations.find(x=>x.api===operation.id),op=BROWSER_OPERATIONS[operation.id];
   if(!row||!op)fail('formal row missing '+operation.id);
+  if(operation.layer2.status!=='SOURCE_WIRED'||!Array.isArray(operation.layer2.files)||!operation.layer2.files.length)
+    fail('registered operation lacks an actual Host implementation '+operation.id);
   if(operation.layer3.status!==op.implementation||
    operation.layer3.exposure!==row.exposure||
    !equal(operation.layer3.capabilities,row.toolCapabilities)||
@@ -50,8 +52,11 @@ async function main(){
    row.layer3.status!==(promoted?'PROMOTED_TO_FORMAL':'PROPOSED_NOT_REGISTERED'))fail('candidate '+candidate.id);
   if(!promoted&&(row.layer4.macChrome!=='NOT_TESTED'||row.layer4.positive!=='NOT_TESTED'||row.layer4.denial!=='NOT_TESTED'))
    fail('candidate acceptance '+candidate.id);
-  if(candidate.id.startsWith('browser.cookies.')&&!promoted&&
-    (row.layer2.status!=='PARTIAL_DRIVER_ONLY'||row.trust!=='BUILTIN_TRUSTED'))fail('Cookie boundary '+candidate.id);
+  if(candidate.id.startsWith('browser.cookies.')){
+   if(row.trust!=='BUILTIN_TRUSTED')fail('historical Cookie candidate trust '+candidate.id);
+   if(promoted&&row.layer2.status!=='SOURCE_WIRED')fail('promoted Cookie must have a real Host '+candidate.id);
+   if(!promoted&&row.layer2.status!=='PARTIAL_DRIVER_ONLY')fail('unimplemented Cookie candidate '+candidate.id);
+  }
  }
  const promoted=proposals.filter(x=>formal.includes(x.id)),remaining=proposals.length-promoted.length;
  for(const g of ledger.candidateGroups){

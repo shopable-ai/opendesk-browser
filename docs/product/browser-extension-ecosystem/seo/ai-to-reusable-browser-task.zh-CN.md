@@ -16,7 +16,7 @@
 
 在真实网页选择工作流 → 明确启动本机 Codex 或自行配置的 HTTPS 模型 → 检查 AI 提出的步骤与参数 → 保存为源码哈希固定的 Controller 修订 → 用户许可后真实 Run → 在原 Task 目录通过 Candidate、Verified、Available、Installed → 关闭 AI 后从「我的任务」运行已批准固定版。
 
-**当前已能从源码核查的基础**：src/ui/workflow/workflow-view.js, src/ui/workflow/local-codex.js, src/framework/workflow/compiler.js, src/ui/local-project-install.js, 原 Task/Authority/RunHost。
+**当前已能从源码核查的基础**：`src/ui/workflow/workflow-view.js`、`src/ui/workflow/local-codex.js`、`src/framework/workflow/compiler.js`、现有 Task/Authority/RunHost，以及正式任务目录 `src/ui/task-workbench.js`。R6 已在 [具体代码提交](https://github.com/shopable-ai/opendesk-browser/commit/ec42e068c749285e39e0f5690e970295bdd3927b) 中补充**安装前的完整冻结源码只读查看、参数/网站审阅以及准确的 Workflow→Candidate 选择与 RunId 清理**。这属于 `SOURCE_IMPLEMENTED`，不是整条流程的真实 Chrome PASS。
 
 **当前无法作为正式产品承诺的缺口**：同一最新 Mac Chrome/发行包的 AI→Verified→Installed→断开模型 Run×2，真实 RunId/ResultId、许可撤销和失败恢复；首次模型费、20 次综合成本及用户第一次成功率尚无测量。
 
@@ -24,7 +24,7 @@
 
 ## 公平的最强竞争反例
 
-Axiom Claude Skill 已可生成并导入 Chrome automation 并调度；UiPath Delegate 2026-08-25 Public Preview 有可复用 Routines 和审批；ScriptCat Beta 已有 Agent/MCP。
+Axiom 官方 Claude Skill 已提供可保存的 No-code Automation 与 Node 代码路径；UiPath Delegate 于 **2026-08-25 Public Preview、2026-09-22 正式 GA**，提供可复用 Routines 和企业治理；Claude in Chrome 于 **2026-08-26 宣布 GA**，可记录和重复模型工作流；ScriptCat **1.5.0-beta.4（2026-09-18）** 已支持安装前完整源码查看和权限差异。它们均构成真实反例，不能宣称“AI 工具可以保存复用、源码查看或安装权限提示”是全球首创。
 
 竞品可以使用自己合理的工具组合，不能因为第三方有外部开发流程就将其排除。本站未保存同机实际对比原始指标，竞争排名 **NOT_TESTED**。
 
@@ -39,7 +39,9 @@ Axiom Claude Skill 已可生成并导入 Chrome automation 并调度；UiPath De
 - [现有源码/使用研究入口](https://github.com/shopable-ai/opendesk-browser/blob/main/examples/tasks/agent-modern-search.v1.opendesk-task.json)
 - [TOP 5、26 任务机会与最强反例](../global-first-r2-decision.zh-CN.md)
 - [原唯一 GF 声明账本](../first-claims-ledger.json) · [竞品时间线](../competitor-timeline.json)
-- 最新可独立下载并覆盖上述全部场景的 Chrome 发行包/真实模型关闭后运行录像：**本轮 NOT_TESTED**。
+- [R6 首次成功实现与真实验收边界](https://github.com/shopable-ai/opendesk-browser/blob/main/docs/framework/workstreams/global-first-r6-ai-first-product-proof-20261013.md)，同时公开 Task 目录当前只读源码审阅的实现来源。首选合法表单 [demo-form.html](https://github.com/shopable-ai/opendesk-browser/blob/main/examples/tasks/demo-form.html)。
+- **可用下载入口核查（2026-10-13）**：该仓库 [GitHub Releases](https://github.com/shopable-ai/opendesk-browser/releases) 对应公开 API 返回 **0 个 Release**，仓库未设置主页 URL，也未启用 GitHub Pages；不能提供或宣称已上线的正式安装入口。不排除尚未核查的其它分发渠道。
+- 最新可独立下载并覆盖上述全部场景的 Chrome 发行包/真实模型关闭后运行录像：**本轮 NOT_TESTED**。GitHub 源码可见不等于已在商店发行或可从官网直接安装。
 
 ## 可以使用的非排名定位 / Bilingual M0 wording
 

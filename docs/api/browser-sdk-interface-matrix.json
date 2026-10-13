@@ -1918,9 +1918,9 @@
       "VERSION_GATED": 1
     },
     "approvedOperations": 55,
-    "approvedRegistered": 29,
-    "approvedCookieHostOnly": 11,
-    "approvedPlannedNew": 15,
+    "approvedRegistered": 48,
+    "approvedCookieHostOnly": 0,
+    "approvedPlannedNew": 7,
     "nativeMappedApproved": 36,
     "approvedWithInputAndOutputSchemas": 55
   },
@@ -2875,7 +2875,7 @@
       "migrationDecision": "MERGE",
       "sourceRegistry": "src/framework/sdk/browser-contract.js#BROWSER_OPERATIONS",
       "callSignature": "OpenDeskSDK.browser.downloads.text({text:string,filename:string})",
-      "returnSignature": "Promise<{downloadId:number}>",
+      "returnSignature": "Promise<{started:true}>",
       "inputSchema": {
         "sourceRef": "src/framework/sdk/browser-schemas.js#browser.downloads.text:input"
       },
@@ -2965,7 +2965,7 @@
         "nodeAndBuildDoNotPromote": true
       },
       "mappingKind": "SCOPED",
-      "statusVerificationPolicy": "Current source path and all current evidence statuses are separate; NEVER treat source-wired as native Chrome PASS",
+      "statusVerificationPolicy": "Native downloadId remains private to the trusted Side Panel; public text export returns {started:true}. SOURCE_WIRED is not native Chrome acceptance.",
       "targetFiles": [
         "src/framework/sdk/browser-contract.js",
         "src/framework/sdk/browser.js",
@@ -4794,24 +4794,23 @@
     },
     {
       "id": "browser.cookies.get",
-      "visibility": "HOST_ONLY_TRUSTED_COOKIE_UI",
-      "migrationDecision": "KEEP",
-      "sourceRegistry": "src/platform/chrome/browser-cookie-host.js#TRUSTED_COOKIE_OPERATIONS",
-      "callSignature": "TRUSTED_HOST_ONLY: execute('browser.cookies.get', {name:string,storeId?,partitionKey?}) via verified internal one-shot intent",
-      "returnSignature": "Promise<{cookie:Cookie|null}>",
+      "visibility": "APPROVED_TOOL_REGISTERED",
+      "migrationDecision": "NEW_PUBLIC_SCOPED_FROM_EXISTING_HOST",
+      "sourceRegistry": "src/framework/sdk/browser-contract.js#BROWSER_OPERATIONS",
+      "callSignature": "OpenDeskSDK.browser.cookies.get(options)",
+      "returnSignature": "Promise<SDK-defined scoped Cookie receipt>",
       "inputSchema": {
         "type": "object",
         "additionalProperties": false,
         "properties": {
-          "name": {
+          "url": {
             "type": "string",
-            "minLength": 1,
-            "maxLength": 128
+            "maxLength": 2048,
+            "pattern": "^https?://"
           },
           "storeId": {
             "type": "string",
-            "minLength": 1,
-            "maxLength": 256
+            "maxLength": 128
           },
           "partitionKey": {
             "type": "object",
@@ -4819,8 +4818,8 @@
             "properties": {
               "topLevelSite": {
                 "type": "string",
-                "maxLength": 2048,
-                "pattern": "^https?://"
+                "maxLength": 256,
+                "pattern": "^https://"
               },
               "hasCrossSiteAncestor": {
                 "type": "boolean"
@@ -4829,9 +4828,25 @@
             "required": [
               "topLevelSite"
             ]
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 256
+          },
+          "domain": {
+            "type": "string",
+            "maxLength": 253
+          },
+          "path": {
+            "type": "string",
+            "maxLength": 512
+          },
+          "includeValues": {
+            "type": "boolean"
           }
         },
         "required": [
+          "url",
           "name"
         ]
       },
@@ -4849,21 +4864,36 @@
                     "type": "string",
                     "maxLength": 256
                   },
-                  "value": {
-                    "type": "string",
-                    "maxLength": 4096
-                  },
                   "domain": {
                     "type": "string",
-                    "maxLength": 256
+                    "maxLength": 253
                   },
                   "path": {
                     "type": "string",
-                    "maxLength": 256
+                    "maxLength": 1024
+                  },
+                  "hostOnly": {
+                    "type": "boolean"
+                  },
+                  "secure": {
+                    "type": "boolean"
+                  },
+                  "httpOnly": {
+                    "type": "boolean"
+                  },
+                  "sameSite": {
+                    "type": "string",
+                    "maxLength": 24
+                  },
+                  "session": {
+                    "type": "boolean"
+                  },
+                  "expirationDate": {
+                    "type": "number"
                   },
                   "storeId": {
                     "type": "string",
-                    "maxLength": 256
+                    "maxLength": 128
                   },
                   "partitionKey": {
                     "type": "object",
@@ -4871,8 +4901,8 @@
                     "properties": {
                       "topLevelSite": {
                         "type": "string",
-                        "pattern": "^https?://",
-                        "maxLength": 2048
+                        "maxLength": 256,
+                        "pattern": "^https://"
                       },
                       "hasCrossSiteAncestor": {
                         "type": "boolean"
@@ -4882,63 +4912,51 @@
                       "topLevelSite"
                     ]
                   },
-                  "secure": {
+                  "valueRedacted": {
                     "type": "boolean"
                   },
-                  "httpOnly": {
-                    "type": "boolean"
-                  },
-                  "sameSite": {
-                    "enum": [
-                      "unspecified",
-                      "no_restriction",
-                      "lax",
-                      "strict"
-                    ]
-                  },
-                  "session": {
-                    "type": "boolean"
-                  },
-                  "expirationDate": {
-                    "type": "number",
-                    "minimum": 0
+                  "value": {
+                    "type": "string",
+                    "maxLength": 4096
                   }
                 },
                 "required": [
                   "name",
-                  "value",
                   "domain",
                   "path",
-                  "storeId"
+                  "valueRedacted"
                 ]
               },
               {
                 "type": "null"
               }
             ]
+          },
+          "scope": {
+            "type": "string",
+            "maxLength": 64
           }
         },
         "required": [
-          "cookie"
-        ],
-        "sourceRef": "src/platform/chrome/browser-cookie-host.js#operate"
+          "cookie",
+          "scope"
+        ]
       },
       "nativeApis": [
         "chrome.cookies.getAll"
       ],
       "chromePermissions": [
-        "cookies",
-        "tabs",
-        "webNavigation"
+        "cookies"
       ],
-      "toolCapabilities": [],
-      "siteScope": "exact active non-incognito tab/window/documentId/URL/origin/store/partition",
+      "toolCapabilities": [
+        "browser.cookies.read"
+      ],
+      "siteScope": "explicit approved HTTP(S) Origin + one non-incognito Chrome store + approved partition, no active tab required for repeat reads",
       "allowedWorlds": [
-        "TRUSTED_SIDE_PANEL_HOST",
-        "TRUSTED_SERVICE_WORKER"
+        "sidebar-tool"
       ],
-      "trust": "CHROME_VERIFIED_SENDER_PLUS_FRESH_REAL_USER_CLICK",
-      "userGesture": true,
+      "trust": "INSTALLED_TOOL_VERIFIED_SENDER_PACKAGE_HASH_EPOCH_SITE_STORE_AND_CAPABILITY",
+      "userGesture": false,
       "errors": [
         "E_SCHEMA",
         "E_CONTEXT",
@@ -4956,15 +4974,15 @@
         "E_COOKIE_NOT_FOUND",
         "E_SESSION_EXPIRED"
       ],
-      "sdkFile": null,
-      "registryFile": null,
-      "schemaFile": "src/platform/chrome/browser-cookie-host.js#normalized",
+      "sdkFile": "src/framework/sdk/browser.js",
+      "registryFile": "src/framework/sdk/browser-contract.js",
+      "schemaFile": "src/framework/sdk/browser-schemas.js",
       "hostDispatcher": "src/platform/chrome/context-menus.js#createContextMenuHost",
-      "authority": "src/ui/trusted-cookie-workbench.js + src/platform/chrome/context-menus.js",
+      "authority": "existing Side Panel installed-tool user grant + Chrome Host revalidation",
       "driverFile": "src/platform/chrome/browser-cookie-host.js -> src/platform/chrome/cookies.js",
-      "lifecycle": "one-shot <=15s approval",
+      "lifecycle": "request",
       "phase": "P2",
-      "status": "SOURCE_WIRED_HOST_ONLY",
+      "status": "SOURCE_WIRED_NATIVE_NOT_TESTED",
       "verification": {
         "node": "NOT_TESTED",
         "build": "NOT_TESTED",
@@ -4975,9 +4993,9 @@
           "tests/environment/browser-sdk-r7-trusted-cookies.test.mjs",
           "tests/environment/browser-sdk-r8-cookies.test.mjs"
         ],
-        "positive": "trusted selected exact document, own store/partition, bounded result",
-        "negative": "sandbox/Page denied; wrong Origin, path, partition, stale document/permission, no secret in events",
-        "native": "real Mac Chrome approved/revoked flow; get/getAll/set/remove/observe with worker restart"
+        "positive": "installed & enabled exact tool + per-Origin/capability grant, current approved Store/Partition, typed redacted receipt",
+        "negative": "Page and Preview remain denied; foreign tools/Origin/Store/Partition, missing values, stale package/epoch, forged sender rejected",
+        "native": "Same SHA Chrome installed Cookie Editor actual get/list/set/remove/clear/observe and revocation"
       },
       "maxRequestBytes": 12000,
       "maxResponseBytes": 12000,
@@ -4985,8 +5003,7 @@
         "desktopChromeMinimum": 138,
         "chromeFeatureGate": "feature presence + actual source permission check; never fake Chrome>=138 availability for unknown introduced versions",
         "executionWorlds": [
-          "TRUSTED_SIDE_PANEL_HOST",
-          "TRUSTED_SERVICE_WORKER"
+          "sidebar-tool"
         ],
         "incognito": "DENIED_BY_DEFAULT"
       },
@@ -5013,30 +5030,39 @@
         ],
         "nodeAndBuildDoNotPromote": true
       },
-      "mappingKind": "HOST_ONLY",
+      "mappingKind": "SCOPED",
       "statusVerificationPolicy": "Current source path and all current evidence statuses are separate; NEVER treat source-wired as native Chrome PASS",
       "targetFiles": [
-        "src/platform/chrome/browser-cookie-host.js#normalized",
-        "src/platform/chrome/context-menus.js#createContextMenuHost",
-        "src/platform/chrome/browser-cookie-host.js -> src/platform/chrome/cookies.js"
+        "src/framework/sdk/browser-contract.js",
+        "src/framework/sdk/browser-schemas.js",
+        "src/framework/sdk/browser.js",
+        "src/ui/sidebar-tools.js",
+        "src/platform/chrome/context-menus.js",
+        "src/platform/chrome/browser-cookie-host.js",
+        "src/platform/chrome/cookies.js"
       ],
-      "schemaStrategy": "INLINE_FROZEN_DESIGN_SCHEMA; implementation MUST copy/adapt into strict runtime validator and test"
+      "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA",
+      "currentSchemaAuthority": "src/framework/sdk/browser-schemas.js#operationSchemas ('browser.cookies.get')"
     },
     {
       "id": "browser.cookies.getAll",
-      "visibility": "HOST_ONLY_TRUSTED_COOKIE_UI",
-      "migrationDecision": "KEEP",
-      "sourceRegistry": "src/platform/chrome/browser-cookie-host.js#TRUSTED_COOKIE_OPERATIONS",
-      "callSignature": "TRUSTED_HOST_ONLY: execute('browser.cookies.getAll', {storeId?,partitionKey?}) via verified internal one-shot intent",
-      "returnSignature": "Promise<{cookies:Cookie[],scope:'CURRENT_URL_MATCHES'}>",
+      "visibility": "APPROVED_TOOL_REGISTERED",
+      "migrationDecision": "NEW_PUBLIC_SCOPED_FROM_EXISTING_HOST",
+      "sourceRegistry": "src/framework/sdk/browser-contract.js#BROWSER_OPERATIONS",
+      "callSignature": "OpenDeskSDK.browser.cookies.getAll(options)",
+      "returnSignature": "Promise<CookieMetadata[]>",
       "inputSchema": {
         "type": "object",
         "additionalProperties": false,
         "properties": {
+          "url": {
+            "type": "string",
+            "maxLength": 2048,
+            "pattern": "^https?://"
+          },
           "storeId": {
             "type": "string",
-            "minLength": 1,
-            "maxLength": 256
+            "maxLength": 128
           },
           "partitionKey": {
             "type": "object",
@@ -5044,8 +5070,8 @@
             "properties": {
               "topLevelSite": {
                 "type": "string",
-                "maxLength": 2048,
-                "pattern": "^https?://"
+                "maxLength": 256,
+                "pattern": "^https://"
               },
               "hasCrossSiteAncestor": {
                 "type": "boolean"
@@ -5054,117 +5080,109 @@
             "required": [
               "topLevelSite"
             ]
-          }
-        },
-        "required": []
-      },
-      "outputSchema": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "cookies": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "additionalProperties": false,
-              "properties": {
-                "name": {
-                  "type": "string",
-                  "maxLength": 256
-                },
-                "value": {
-                  "type": "string",
-                  "maxLength": 4096
-                },
-                "domain": {
-                  "type": "string",
-                  "maxLength": 256
-                },
-                "path": {
-                  "type": "string",
-                  "maxLength": 256
-                },
-                "storeId": {
-                  "type": "string",
-                  "maxLength": 256
-                },
-                "partitionKey": {
-                  "type": "object",
-                  "additionalProperties": false,
-                  "properties": {
-                    "topLevelSite": {
-                      "type": "string",
-                      "pattern": "^https?://",
-                      "maxLength": 2048
-                    },
-                    "hasCrossSiteAncestor": {
-                      "type": "boolean"
-                    }
-                  },
-                  "required": [
-                    "topLevelSite"
-                  ]
-                },
-                "secure": {
-                  "type": "boolean"
-                },
-                "httpOnly": {
-                  "type": "boolean"
-                },
-                "sameSite": {
-                  "enum": [
-                    "unspecified",
-                    "no_restriction",
-                    "lax",
-                    "strict"
-                  ]
-                },
-                "session": {
-                  "type": "boolean"
-                },
-                "expirationDate": {
-                  "type": "number",
-                  "minimum": 0
-                }
-              },
-              "required": [
-                "name",
-                "value",
-                "domain",
-                "path",
-                "storeId"
-              ]
-            },
-            "maxItems": 100
           },
-          "scope": {
-            "enum": [
-              "CURRENT_URL_MATCHES"
-            ]
+          "name": {
+            "type": "string",
+            "maxLength": 256
+          },
+          "includeValues": {
+            "type": "boolean"
           }
         },
         "required": [
-          "cookies",
-          "scope"
-        ],
-        "sourceRef": "src/platform/chrome/browser-cookie-host.js#operate"
+          "url"
+        ]
+      },
+      "outputSchema": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "maxLength": 256
+            },
+            "domain": {
+              "type": "string",
+              "maxLength": 253
+            },
+            "path": {
+              "type": "string",
+              "maxLength": 1024
+            },
+            "hostOnly": {
+              "type": "boolean"
+            },
+            "secure": {
+              "type": "boolean"
+            },
+            "httpOnly": {
+              "type": "boolean"
+            },
+            "sameSite": {
+              "type": "string",
+              "maxLength": 24
+            },
+            "session": {
+              "type": "boolean"
+            },
+            "expirationDate": {
+              "type": "number"
+            },
+            "storeId": {
+              "type": "string",
+              "maxLength": 128
+            },
+            "partitionKey": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "topLevelSite": {
+                  "type": "string",
+                  "maxLength": 256,
+                  "pattern": "^https://"
+                },
+                "hasCrossSiteAncestor": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "topLevelSite"
+              ]
+            },
+            "valueRedacted": {
+              "type": "boolean"
+            },
+            "value": {
+              "type": "string",
+              "maxLength": 4096
+            }
+          },
+          "required": [
+            "name",
+            "domain",
+            "path",
+            "valueRedacted"
+          ]
+        },
+        "maxItems": 50
       },
       "nativeApis": [
         "chrome.cookies.getAll"
       ],
       "chromePermissions": [
-        "cookies",
-        "tabs",
-        "webNavigation"
+        "cookies"
       ],
-      "toolCapabilities": [],
-      "siteScope": "exact active non-incognito tab/window/documentId/URL/origin/store/partition",
+      "toolCapabilities": [
+        "browser.cookies.read"
+      ],
+      "siteScope": "explicit approved HTTP(S) Origin + one non-incognito Chrome store + approved partition, no active tab required for repeat reads",
       "allowedWorlds": [
-        "TRUSTED_SIDE_PANEL_HOST",
-        "TRUSTED_SERVICE_WORKER"
+        "sidebar-tool"
       ],
-      "trust": "CHROME_VERIFIED_SENDER_PLUS_FRESH_REAL_USER_CLICK",
-      "userGesture": true,
+      "trust": "INSTALLED_TOOL_VERIFIED_SENDER_PACKAGE_HASH_EPOCH_SITE_STORE_AND_CAPABILITY",
+      "userGesture": false,
       "errors": [
         "E_SCHEMA",
         "E_CONTEXT",
@@ -5182,15 +5200,15 @@
         "E_COOKIE_NOT_FOUND",
         "E_SESSION_EXPIRED"
       ],
-      "sdkFile": null,
-      "registryFile": null,
-      "schemaFile": "src/platform/chrome/browser-cookie-host.js#normalized",
+      "sdkFile": "src/framework/sdk/browser.js",
+      "registryFile": "src/framework/sdk/browser-contract.js",
+      "schemaFile": "src/framework/sdk/browser-schemas.js",
       "hostDispatcher": "src/platform/chrome/context-menus.js#createContextMenuHost",
-      "authority": "src/ui/trusted-cookie-workbench.js + src/platform/chrome/context-menus.js",
+      "authority": "existing Side Panel installed-tool user grant + Chrome Host revalidation",
       "driverFile": "src/platform/chrome/browser-cookie-host.js -> src/platform/chrome/cookies.js",
-      "lifecycle": "one-shot <=15s approval",
+      "lifecycle": "request",
       "phase": "P2",
-      "status": "SOURCE_WIRED_HOST_ONLY",
+      "status": "SOURCE_WIRED_NATIVE_NOT_TESTED",
       "verification": {
         "node": "NOT_TESTED",
         "build": "NOT_TESTED",
@@ -5201,18 +5219,17 @@
           "tests/environment/browser-sdk-r7-trusted-cookies.test.mjs",
           "tests/environment/browser-sdk-r8-cookies.test.mjs"
         ],
-        "positive": "trusted selected exact document, own store/partition, bounded result",
-        "negative": "sandbox/Page denied; wrong Origin, path, partition, stale document/permission, no secret in events",
-        "native": "real Mac Chrome approved/revoked flow; get/getAll/set/remove/observe with worker restart"
+        "positive": "installed & enabled exact tool + per-Origin/capability grant, current approved Store/Partition, typed redacted receipt",
+        "negative": "Page and Preview remain denied; foreign tools/Origin/Store/Partition, missing values, stale package/epoch, forged sender rejected",
+        "native": "Same SHA Chrome installed Cookie Editor actual get/list/set/remove/clear/observe and revocation"
       },
       "maxRequestBytes": 12000,
-      "maxResponseBytes": 60000,
+      "maxResponseBytes": 12000,
       "support": {
         "desktopChromeMinimum": 138,
         "chromeFeatureGate": "feature presence + actual source permission check; never fake Chrome>=138 availability for unknown introduced versions",
         "executionWorlds": [
-          "TRUSTED_SIDE_PANEL_HOST",
-          "TRUSTED_SERVICE_WORKER"
+          "sidebar-tool"
         ],
         "incognito": "DENIED_BY_DEFAULT"
       },
@@ -5239,48 +5256,121 @@
         ],
         "nodeAndBuildDoNotPromote": true
       },
-      "mappingKind": "HOST_ONLY",
+      "mappingKind": "SCOPED",
       "statusVerificationPolicy": "Current source path and all current evidence statuses are separate; NEVER treat source-wired as native Chrome PASS",
       "targetFiles": [
-        "src/platform/chrome/browser-cookie-host.js#normalized",
-        "src/platform/chrome/context-menus.js#createContextMenuHost",
-        "src/platform/chrome/browser-cookie-host.js -> src/platform/chrome/cookies.js"
+        "src/framework/sdk/browser-contract.js",
+        "src/framework/sdk/browser-schemas.js",
+        "src/framework/sdk/browser.js",
+        "src/ui/sidebar-tools.js",
+        "src/platform/chrome/context-menus.js",
+        "src/platform/chrome/browser-cookie-host.js",
+        "src/platform/chrome/cookies.js"
       ],
-      "schemaStrategy": "INLINE_FROZEN_DESIGN_SCHEMA; implementation MUST copy/adapt into strict runtime validator and test"
+      "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA",
+      "currentSchemaAuthority": "src/framework/sdk/browser-schemas.js#operationSchemas ('browser.cookies.getAll')"
     },
     {
       "id": "browser.cookies.set",
-      "visibility": "HOST_ONLY_TRUSTED_COOKIE_UI",
-      "migrationDecision": "KEEP",
-      "sourceRegistry": "src/platform/chrome/browser-cookie-host.js#TRUSTED_COOKIE_OPERATIONS",
-      "callSignature": "TRUSTED_HOST_ONLY: execute('browser.cookies.set', {cookie:{name:string,value:string,domain?,path?,secure?,httpOnly?,sameSite?,session?,expirationDate?,storeId?,partitionKey?}}) via verified internal one-shot intent",
-      "returnSignature": "Promise<{written:true}>",
+      "visibility": "APPROVED_TOOL_REGISTERED",
+      "migrationDecision": "NEW_PUBLIC_SCOPED_FROM_EXISTING_HOST",
+      "sourceRegistry": "src/framework/sdk/browser-contract.js#BROWSER_OPERATIONS",
+      "callSignature": "OpenDeskSDK.browser.cookies.set(options)",
+      "returnSignature": "Promise<SDK-defined scoped Cookie receipt>",
       "inputSchema": {
         "type": "object",
         "additionalProperties": false,
         "properties": {
+          "url": {
+            "type": "string",
+            "maxLength": 2048,
+            "pattern": "^https?://"
+          },
+          "storeId": {
+            "type": "string",
+            "maxLength": 128
+          },
+          "partitionKey": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "topLevelSite": {
+                "type": "string",
+                "maxLength": 256,
+                "pattern": "^https://"
+              },
+              "hasCrossSiteAncestor": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "topLevelSite"
+            ]
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 256
+          },
+          "value": {
+            "type": "string",
+            "maxLength": 4096
+          },
+          "domain": {
+            "type": "string",
+            "maxLength": 253
+          },
+          "path": {
+            "type": "string",
+            "maxLength": 512
+          },
+          "secure": {
+            "type": "boolean"
+          },
+          "httpOnly": {
+            "type": "boolean"
+          },
+          "sameSite": {
+            "type": "string",
+            "maxLength": 24
+          },
+          "expirationDate": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "url",
+          "name",
+          "value"
+        ]
+      },
+      "outputSchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "saved": {
+            "type": "boolean"
+          },
+          "verified": {
+            "type": "boolean"
+          },
           "cookie": {
             "type": "object",
             "additionalProperties": false,
             "properties": {
               "name": {
                 "type": "string",
-                "minLength": 1,
-                "maxLength": 128
-              },
-              "value": {
-                "type": "string",
-                "maxLength": 4096
+                "maxLength": 256
               },
               "domain": {
                 "type": "string",
-                "minLength": 1,
-                "maxLength": 256
+                "maxLength": 253
               },
               "path": {
                 "type": "string",
-                "minLength": 1,
-                "maxLength": 256
+                "maxLength": 1024
+              },
+              "hostOnly": {
+                "type": "boolean"
               },
               "secure": {
                 "type": "boolean"
@@ -5289,24 +5379,18 @@
                 "type": "boolean"
               },
               "sameSite": {
-                "enum": [
-                  "unspecified",
-                  "no_restriction",
-                  "lax",
-                  "strict"
-                ]
+                "type": "string",
+                "maxLength": 24
               },
               "session": {
                 "type": "boolean"
               },
               "expirationDate": {
-                "type": "number",
-                "minimum": 0
+                "type": "number"
               },
               "storeId": {
                 "type": "string",
-                "minLength": 1,
-                "maxLength": 256
+                "maxLength": 128
               },
               "partitionKey": {
                 "type": "object",
@@ -5314,8 +5398,8 @@
                 "properties": {
                   "topLevelSite": {
                     "type": "string",
-                    "maxLength": 2048,
-                    "pattern": "^https?://"
+                    "maxLength": 256,
+                    "pattern": "^https://"
                   },
                   "hasCrossSiteAncestor": {
                     "type": "boolean"
@@ -5324,46 +5408,42 @@
                 "required": [
                   "topLevelSite"
                 ]
+              },
+              "valueRedacted": {
+                "type": "boolean"
+              },
+              "value": {
+                "type": "string",
+                "maxLength": 4096
               }
             },
             "required": [
               "name",
-              "value"
+              "domain",
+              "path",
+              "valueRedacted"
             ]
           }
         },
         "required": [
-          "cookie"
+          "saved",
+          "verified"
         ]
-      },
-      "outputSchema": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "written": {
-            "type": "boolean"
-          }
-        },
-        "required": [
-          "written"
-        ],
-        "sourceRef": "src/platform/chrome/browser-cookie-host.js#operate"
       },
       "nativeApis": [
         "chrome.cookies.set"
       ],
       "chromePermissions": [
-        "cookies",
-        "tabs",
-        "webNavigation"
+        "cookies"
       ],
-      "toolCapabilities": [],
-      "siteScope": "exact active non-incognito tab/window/documentId/URL/origin/store/partition",
+      "toolCapabilities": [
+        "browser.cookies.write"
+      ],
+      "siteScope": "explicit approved HTTP(S) Origin + one non-incognito Chrome store + approved partition, no active tab required for repeat reads",
       "allowedWorlds": [
-        "TRUSTED_SIDE_PANEL_HOST",
-        "TRUSTED_SERVICE_WORKER"
+        "sidebar-tool"
       ],
-      "trust": "CHROME_VERIFIED_SENDER_PLUS_FRESH_REAL_USER_CLICK",
+      "trust": "INSTALLED_TOOL_VERIFIED_SENDER_PACKAGE_HASH_EPOCH_SITE_STORE_AND_CAPABILITY",
       "userGesture": true,
       "errors": [
         "E_SCHEMA",
@@ -5382,15 +5462,15 @@
         "E_COOKIE_NOT_FOUND",
         "E_SESSION_EXPIRED"
       ],
-      "sdkFile": null,
-      "registryFile": null,
-      "schemaFile": "src/platform/chrome/browser-cookie-host.js#normalized",
+      "sdkFile": "src/framework/sdk/browser.js",
+      "registryFile": "src/framework/sdk/browser-contract.js",
+      "schemaFile": "src/framework/sdk/browser-schemas.js",
       "hostDispatcher": "src/platform/chrome/context-menus.js#createContextMenuHost",
-      "authority": "src/ui/trusted-cookie-workbench.js + src/platform/chrome/context-menus.js",
+      "authority": "existing Side Panel installed-tool user grant + Chrome Host revalidation",
       "driverFile": "src/platform/chrome/browser-cookie-host.js -> src/platform/chrome/cookies.js",
-      "lifecycle": "one-shot <=15s approval",
+      "lifecycle": "request",
       "phase": "P2",
-      "status": "SOURCE_WIRED_HOST_ONLY",
+      "status": "SOURCE_WIRED_NATIVE_NOT_TESTED",
       "verification": {
         "node": "NOT_TESTED",
         "build": "NOT_TESTED",
@@ -5401,9 +5481,9 @@
           "tests/environment/browser-sdk-r7-trusted-cookies.test.mjs",
           "tests/environment/browser-sdk-r8-cookies.test.mjs"
         ],
-        "positive": "trusted selected exact document, own store/partition, bounded result",
-        "negative": "sandbox/Page denied; wrong Origin, path, partition, stale document/permission, no secret in events",
-        "native": "real Mac Chrome approved/revoked flow; get/getAll/set/remove/observe with worker restart"
+        "positive": "installed & enabled exact tool + per-Origin/capability grant, current approved Store/Partition, typed redacted receipt",
+        "negative": "Page and Preview remain denied; foreign tools/Origin/Store/Partition, missing values, stale package/epoch, forged sender rejected",
+        "native": "Same SHA Chrome installed Cookie Editor actual get/list/set/remove/clear/observe and revocation"
       },
       "maxRequestBytes": 12000,
       "maxResponseBytes": 12000,
@@ -5411,8 +5491,7 @@
         "desktopChromeMinimum": 138,
         "chromeFeatureGate": "feature presence + actual source permission check; never fake Chrome>=138 availability for unknown introduced versions",
         "executionWorlds": [
-          "TRUSTED_SIDE_PANEL_HOST",
-          "TRUSTED_SERVICE_WORKER"
+          "sidebar-tool"
         ],
         "incognito": "DENIED_BY_DEFAULT"
       },
@@ -5439,45 +5518,39 @@
         ],
         "nodeAndBuildDoNotPromote": true
       },
-      "mappingKind": "HOST_ONLY",
+      "mappingKind": "SCOPED",
       "statusVerificationPolicy": "Current source path and all current evidence statuses are separate; NEVER treat source-wired as native Chrome PASS",
       "targetFiles": [
-        "src/platform/chrome/browser-cookie-host.js#normalized",
-        "src/platform/chrome/context-menus.js#createContextMenuHost",
-        "src/platform/chrome/browser-cookie-host.js -> src/platform/chrome/cookies.js"
+        "src/framework/sdk/browser-contract.js",
+        "src/framework/sdk/browser-schemas.js",
+        "src/framework/sdk/browser.js",
+        "src/ui/sidebar-tools.js",
+        "src/platform/chrome/context-menus.js",
+        "src/platform/chrome/browser-cookie-host.js",
+        "src/platform/chrome/cookies.js"
       ],
-      "schemaStrategy": "INLINE_FROZEN_DESIGN_SCHEMA; implementation MUST copy/adapt into strict runtime validator and test"
+      "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA",
+      "currentSchemaAuthority": "src/framework/sdk/browser-schemas.js#operationSchemas ('browser.cookies.set')"
     },
     {
       "id": "browser.cookies.remove",
-      "visibility": "HOST_ONLY_TRUSTED_COOKIE_UI",
-      "migrationDecision": "KEEP",
-      "sourceRegistry": "src/platform/chrome/browser-cookie-host.js#TRUSTED_COOKIE_OPERATIONS",
-      "callSignature": "TRUSTED_HOST_ONLY: execute('browser.cookies.remove', {name:string,domain:string,path:string,storeId?,partitionKey?}) via verified internal one-shot intent",
-      "returnSignature": "Promise<{removed:boolean}>",
+      "visibility": "APPROVED_TOOL_REGISTERED",
+      "migrationDecision": "NEW_PUBLIC_SCOPED_FROM_EXISTING_HOST",
+      "sourceRegistry": "src/framework/sdk/browser-contract.js#BROWSER_OPERATIONS",
+      "callSignature": "OpenDeskSDK.browser.cookies.remove(options)",
+      "returnSignature": "Promise<SDK-defined scoped Cookie receipt>",
       "inputSchema": {
         "type": "object",
         "additionalProperties": false,
         "properties": {
-          "name": {
+          "url": {
             "type": "string",
-            "minLength": 1,
-            "maxLength": 128
-          },
-          "domain": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 256
-          },
-          "path": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 256
+            "maxLength": 2048,
+            "pattern": "^https?://"
           },
           "storeId": {
             "type": "string",
-            "minLength": 1,
-            "maxLength": 256
+            "maxLength": 128
           },
           "partitionKey": {
             "type": "object",
@@ -5485,8 +5558,8 @@
             "properties": {
               "topLevelSite": {
                 "type": "string",
-                "maxLength": 2048,
-                "pattern": "^https?://"
+                "maxLength": 256,
+                "pattern": "^https://"
               },
               "hasCrossSiteAncestor": {
                 "type": "boolean"
@@ -5495,9 +5568,22 @@
             "required": [
               "topLevelSite"
             ]
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 256
+          },
+          "domain": {
+            "type": "string",
+            "maxLength": 253
+          },
+          "path": {
+            "type": "string",
+            "maxLength": 512
           }
         },
         "required": [
+          "url",
           "name",
           "domain",
           "path"
@@ -5509,161 +5595,31 @@
         "properties": {
           "removed": {
             "type": "boolean"
-          }
-        },
-        "required": [
-          "removed"
-        ],
-        "sourceRef": "src/platform/chrome/browser-cookie-host.js#operate"
-      },
-      "nativeApis": [
-        "chrome.cookies.getAll",
-        "chrome.cookies.remove"
-      ],
-      "chromePermissions": [
-        "cookies",
-        "tabs",
-        "webNavigation"
-      ],
-      "toolCapabilities": [],
-      "siteScope": "exact active non-incognito tab/window/documentId/URL/origin/store/partition",
-      "allowedWorlds": [
-        "TRUSTED_SIDE_PANEL_HOST",
-        "TRUSTED_SERVICE_WORKER"
-      ],
-      "trust": "CHROME_VERIFIED_SENDER_PLUS_FRESH_REAL_USER_CLICK",
-      "userGesture": true,
-      "errors": [
-        "E_SCHEMA",
-        "E_CONTEXT",
-        "E_SERVICE_UNSUPPORTED",
-        "E_CHROME_PERMISSION_REQUIRED",
-        "E_USER_GESTURE_REQUIRED",
-        "E_OWNER",
-        "E_DOCUMENT_CHANGED",
-        "E_OUTCOME_UNKNOWN",
-        "E_LIMIT",
-        "E_COOKIE_AMBIGUOUS",
-        "E_COOKIE_STORE",
-        "E_COOKIE_SCOPE",
-        "E_COOKIE_PARTITION",
-        "E_COOKIE_NOT_FOUND",
-        "E_SESSION_EXPIRED"
-      ],
-      "sdkFile": null,
-      "registryFile": null,
-      "schemaFile": "src/platform/chrome/browser-cookie-host.js#normalized",
-      "hostDispatcher": "src/platform/chrome/context-menus.js#createContextMenuHost",
-      "authority": "src/ui/trusted-cookie-workbench.js + src/platform/chrome/context-menus.js",
-      "driverFile": "src/platform/chrome/browser-cookie-host.js -> src/platform/chrome/cookies.js",
-      "lifecycle": "one-shot <=15s approval",
-      "phase": "P2",
-      "status": "SOURCE_WIRED_HOST_ONLY",
-      "verification": {
-        "node": "NOT_TESTED",
-        "build": "NOT_TESTED",
-        "native": "NOT_TESTED"
-      },
-      "testContract": {
-        "existing": [
-          "tests/environment/browser-sdk-r7-trusted-cookies.test.mjs",
-          "tests/environment/browser-sdk-r8-cookies.test.mjs"
-        ],
-        "positive": "trusted selected exact document, own store/partition, bounded result",
-        "negative": "sandbox/Page denied; wrong Origin, path, partition, stale document/permission, no secret in events",
-        "native": "real Mac Chrome approved/revoked flow; get/getAll/set/remove/observe with worker restart"
-      },
-      "maxRequestBytes": 12000,
-      "maxResponseBytes": 12000,
-      "support": {
-        "desktopChromeMinimum": 138,
-        "chromeFeatureGate": "feature presence + actual source permission check; never fake Chrome>=138 availability for unknown introduced versions",
-        "executionWorlds": [
-          "TRUSTED_SIDE_PANEL_HOST",
-          "TRUSTED_SERVICE_WORKER"
-        ],
-        "incognito": "DENIED_BY_DEFAULT"
-      },
-      "nativeTestConditions": {
-        "kind": "NATIVE_PASS_REQUIRES_REAL_CHROME",
-        "sameCandidate": [
-          "commitSha",
-          "extensionPackageSha256",
-          "chromeVersion",
-          "extensionId",
-          "realSenderDocumentId",
-          "toolPackageHashAndInstallEpoch",
-          "permissionAndOriginSnapshot",
-          "nativeAckOrEffectId",
-          "workerLifecycleEvidence",
-          "redactedLogs"
-        ],
-        "denials": [
-          "permissionRevoked",
-          "foreignTool",
-          "staleDocument",
-          "badOrigin",
-          "staleEpoch"
-        ],
-        "nodeAndBuildDoNotPromote": true
-      },
-      "mappingKind": "HOST_ONLY",
-      "statusVerificationPolicy": "Current source path and all current evidence statuses are separate; NEVER treat source-wired as native Chrome PASS",
-      "targetFiles": [
-        "src/platform/chrome/browser-cookie-host.js#normalized",
-        "src/platform/chrome/context-menus.js#createContextMenuHost",
-        "src/platform/chrome/browser-cookie-host.js -> src/platform/chrome/cookies.js"
-      ],
-      "schemaStrategy": "INLINE_FROZEN_DESIGN_SCHEMA; implementation MUST copy/adapt into strict runtime validator and test"
-    },
-    {
-      "id": "browser.cookies.clearSite",
-      "visibility": "HOST_ONLY_TRUSTED_COOKIE_UI",
-      "migrationDecision": "KEEP",
-      "sourceRegistry": "src/platform/chrome/browser-cookie-host.js#TRUSTED_COOKIE_OPERATIONS",
-      "callSignature": "TRUSTED_HOST_ONLY: execute('browser.cookies.clearSite', {}) via verified internal one-shot intent",
-      "returnSignature": "Promise<{removed:number,scope:'CURRENT_URL_MATCHES'}>",
-      "inputSchema": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {},
-        "required": []
-      },
-      "outputSchema": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "removed": {
-            "type": "boolean"
           },
-          "scope": {
-            "enum": [
-              "CURRENT_URL_MATCHES"
-            ]
+          "verified": {
+            "type": "boolean"
           }
         },
         "required": [
           "removed",
-          "scope"
-        ],
-        "sourceRef": "src/platform/chrome/browser-cookie-host.js#operate"
+          "verified"
+        ]
       },
       "nativeApis": [
         "chrome.cookies.getAll",
         "chrome.cookies.remove"
       ],
       "chromePermissions": [
-        "cookies",
-        "tabs",
-        "webNavigation"
+        "cookies"
       ],
-      "toolCapabilities": [],
-      "siteScope": "exact active non-incognito tab/window/documentId/URL/origin/store/partition",
+      "toolCapabilities": [
+        "browser.cookies.write"
+      ],
+      "siteScope": "explicit approved HTTP(S) Origin + one non-incognito Chrome store + approved partition, no active tab required for repeat reads",
       "allowedWorlds": [
-        "TRUSTED_SIDE_PANEL_HOST",
-        "TRUSTED_SERVICE_WORKER"
+        "sidebar-tool"
       ],
-      "trust": "CHROME_VERIFIED_SENDER_PLUS_FRESH_REAL_USER_CLICK",
+      "trust": "INSTALLED_TOOL_VERIFIED_SENDER_PACKAGE_HASH_EPOCH_SITE_STORE_AND_CAPABILITY",
       "userGesture": true,
       "errors": [
         "E_SCHEMA",
@@ -5682,15 +5638,15 @@
         "E_COOKIE_NOT_FOUND",
         "E_SESSION_EXPIRED"
       ],
-      "sdkFile": null,
-      "registryFile": null,
-      "schemaFile": "src/platform/chrome/browser-cookie-host.js#normalized",
+      "sdkFile": "src/framework/sdk/browser.js",
+      "registryFile": "src/framework/sdk/browser-contract.js",
+      "schemaFile": "src/framework/sdk/browser-schemas.js",
       "hostDispatcher": "src/platform/chrome/context-menus.js#createContextMenuHost",
-      "authority": "src/ui/trusted-cookie-workbench.js + src/platform/chrome/context-menus.js",
+      "authority": "existing Side Panel installed-tool user grant + Chrome Host revalidation",
       "driverFile": "src/platform/chrome/browser-cookie-host.js -> src/platform/chrome/cookies.js",
-      "lifecycle": "one-shot <=15s approval",
+      "lifecycle": "request",
       "phase": "P2",
-      "status": "SOURCE_WIRED_HOST_ONLY",
+      "status": "SOURCE_WIRED_NATIVE_NOT_TESTED",
       "verification": {
         "node": "NOT_TESTED",
         "build": "NOT_TESTED",
@@ -5701,9 +5657,9 @@
           "tests/environment/browser-sdk-r7-trusted-cookies.test.mjs",
           "tests/environment/browser-sdk-r8-cookies.test.mjs"
         ],
-        "positive": "trusted selected exact document, own store/partition, bounded result",
-        "negative": "sandbox/Page denied; wrong Origin, path, partition, stale document/permission, no secret in events",
-        "native": "real Mac Chrome approved/revoked flow; get/getAll/set/remove/observe with worker restart"
+        "positive": "installed & enabled exact tool + per-Origin/capability grant, current approved Store/Partition, typed redacted receipt",
+        "negative": "Page and Preview remain denied; foreign tools/Origin/Store/Partition, missing values, stale package/epoch, forged sender rejected",
+        "native": "Same SHA Chrome installed Cookie Editor actual get/list/set/remove/clear/observe and revocation"
       },
       "maxRequestBytes": 12000,
       "maxResponseBytes": 12000,
@@ -5711,8 +5667,7 @@
         "desktopChromeMinimum": 138,
         "chromeFeatureGate": "feature presence + actual source permission check; never fake Chrome>=138 availability for unknown introduced versions",
         "executionWorlds": [
-          "TRUSTED_SIDE_PANEL_HOST",
-          "TRUSTED_SERVICE_WORKER"
+          "sidebar-tool"
         ],
         "incognito": "DENIED_BY_DEFAULT"
       },
@@ -5739,71 +5694,293 @@
         ],
         "nodeAndBuildDoNotPromote": true
       },
-      "mappingKind": "HOST_ONLY",
+      "mappingKind": "SCOPED",
       "statusVerificationPolicy": "Current source path and all current evidence statuses are separate; NEVER treat source-wired as native Chrome PASS",
       "targetFiles": [
-        "src/platform/chrome/browser-cookie-host.js#normalized",
-        "src/platform/chrome/context-menus.js#createContextMenuHost",
-        "src/platform/chrome/browser-cookie-host.js -> src/platform/chrome/cookies.js"
+        "src/framework/sdk/browser-contract.js",
+        "src/framework/sdk/browser-schemas.js",
+        "src/framework/sdk/browser.js",
+        "src/ui/sidebar-tools.js",
+        "src/platform/chrome/context-menus.js",
+        "src/platform/chrome/browser-cookie-host.js",
+        "src/platform/chrome/cookies.js"
       ],
-      "schemaStrategy": "INLINE_FROZEN_DESIGN_SCHEMA; implementation MUST copy/adapt into strict runtime validator and test"
+      "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA",
+      "currentSchemaAuthority": "src/framework/sdk/browser-schemas.js#operationSchemas ('browser.cookies.remove')"
     },
     {
-      "id": "browser.cookies.getCurrentStore",
-      "visibility": "HOST_ONLY_TRUSTED_COOKIE_UI",
-      "migrationDecision": "RENAME",
-      "sourceRegistry": "src/platform/chrome/browser-cookie-host.js#TRUSTED_COOKIE_OPERATIONS",
-      "callSignature": "TRUSTED_HOST_ONLY: execute('browser.cookies.getCurrentStore', {}) via verified internal one-shot intent",
-      "returnSignature": "Promise<{stores:[currentStore]}>",
+      "id": "browser.cookies.clearSite",
+      "visibility": "APPROVED_TOOL_REGISTERED",
+      "migrationDecision": "NEW_PUBLIC_SCOPED_FROM_EXISTING_HOST",
+      "sourceRegistry": "src/framework/sdk/browser-contract.js#BROWSER_OPERATIONS",
+      "callSignature": "OpenDeskSDK.browser.cookies.clearSite({url,preview:true,maxCookies?}) -> {matched,previewRef,scope}; after actual user confirmation clearSite({url,previewRef,expectedCount,maxCookies?})",
+      "returnSignature": "Promise<SDK-defined scoped Cookie receipt>",
       "inputSchema": {
         "type": "object",
         "additionalProperties": false,
-        "properties": {},
-        "required": []
+        "properties": {
+          "url": {
+            "type": "string",
+            "maxLength": 2048,
+            "pattern": "^https?://"
+          },
+          "storeId": {
+            "type": "string",
+            "maxLength": 128
+          },
+          "partitionKey": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "topLevelSite": {
+                "type": "string",
+                "maxLength": 256,
+                "pattern": "^https://"
+              },
+              "hasCrossSiteAncestor": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "topLevelSite"
+            ]
+          },
+          "preview": {
+            "type": "boolean"
+          },
+          "expectedCount": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 50
+          },
+          "maxCookies": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 50
+          },
+          "previewRef": {
+            "type": "string",
+            "maxLength": 36,
+            "pattern": "^[0-9a-f-]{36}$"
+          }
+        },
+        "required": [
+          "url"
+        ]
       },
       "outputSchema": {
         "type": "object",
         "additionalProperties": false,
         "properties": {
-          "stores": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "additionalProperties": false,
-              "properties": {
-                "id": {
-                  "type": "string",
-                  "maxLength": 256
-                }
-              },
-              "required": [
-                "id"
-              ]
-            },
-            "maxItems": 1
+          "matched": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 50
+          },
+          "removed": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 50
+          },
+          "remaining": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 50
+          },
+          "preview": {
+            "type": "boolean"
+          },
+          "scope": {
+            "type": "string",
+            "maxLength": 80
+          },
+          "previewRef": {
+            "type": "string",
+            "maxLength": 36,
+            "pattern": "^[0-9a-f-]{36}$"
           }
         },
         "required": [
-          "stores"
+          "matched",
+          "removed",
+          "remaining",
+          "preview",
+          "scope"
+        ]
+      },
+      "nativeApis": [
+        "chrome.cookies.getAll",
+        "chrome.cookies.remove"
+      ],
+      "chromePermissions": [
+        "cookies"
+      ],
+      "toolCapabilities": [
+        "browser.cookies.clear"
+      ],
+      "siteScope": "explicit approved HTTP(S) Origin + one non-incognito Chrome store + approved partition, no active tab required for repeat reads",
+      "allowedWorlds": [
+        "sidebar-tool"
+      ],
+      "trust": "INSTALLED_TOOL_VERIFIED_SENDER_PACKAGE_HASH_EPOCH_SITE_STORE_AND_CAPABILITY",
+      "userGesture": true,
+      "errors": [
+        "E_SCHEMA",
+        "E_CONTEXT",
+        "E_SERVICE_UNSUPPORTED",
+        "E_CHROME_PERMISSION_REQUIRED",
+        "E_USER_GESTURE_REQUIRED",
+        "E_OWNER",
+        "E_DOCUMENT_CHANGED",
+        "E_OUTCOME_UNKNOWN",
+        "E_LIMIT",
+        "E_COOKIE_AMBIGUOUS",
+        "E_COOKIE_STORE",
+        "E_COOKIE_SCOPE",
+        "E_COOKIE_PARTITION",
+        "E_COOKIE_NOT_FOUND",
+        "E_SESSION_EXPIRED"
+      ],
+      "sdkFile": "src/framework/sdk/browser.js",
+      "registryFile": "src/framework/sdk/browser-contract.js",
+      "schemaFile": "src/framework/sdk/browser-schemas.js",
+      "hostDispatcher": "src/platform/chrome/context-menus.js#createContextMenuHost",
+      "authority": "existing Side Panel installed-tool user grant + Chrome Host revalidation",
+      "driverFile": "src/platform/chrome/browser-cookie-host.js -> src/platform/chrome/cookies.js",
+      "lifecycle": "one-use bounded previewRef (60s) plus fresh trusted confirmation for mutation",
+      "phase": "P2",
+      "status": "SOURCE_WIRED_NATIVE_NOT_TESTED",
+      "verification": {
+        "node": "NOT_TESTED",
+        "build": "NOT_TESTED",
+        "native": "NOT_TESTED"
+      },
+      "testContract": {
+        "existing": [
+          "tests/environment/browser-sdk-r7-trusted-cookies.test.mjs",
+          "tests/environment/browser-sdk-r8-cookies.test.mjs"
         ],
-        "sourceRef": "src/platform/chrome/browser-cookie-host.js#operate"
+        "positive": "installed & enabled exact tool + per-Origin/capability grant, current approved Store/Partition, typed redacted receipt",
+        "negative": "Page and Preview remain denied; foreign tools/Origin/Store/Partition, missing values, stale package/epoch, forged sender rejected; expired, reused, revoked or changed-identity clear preview rejected even if count matches",
+        "native": "Same SHA Chrome installed Cookie Editor actual get/list/set/remove/clear/observe and revocation"
+      },
+      "maxRequestBytes": 12000,
+      "maxResponseBytes": 12000,
+      "support": {
+        "desktopChromeMinimum": 138,
+        "chromeFeatureGate": "feature presence + actual source permission check; never fake Chrome>=138 availability for unknown introduced versions",
+        "executionWorlds": [
+          "sidebar-tool"
+        ],
+        "incognito": "DENIED_BY_DEFAULT"
+      },
+      "nativeTestConditions": {
+        "kind": "NATIVE_PASS_REQUIRES_REAL_CHROME",
+        "sameCandidate": [
+          "commitSha",
+          "extensionPackageSha256",
+          "chromeVersion",
+          "extensionId",
+          "realSenderDocumentId",
+          "toolPackageHashAndInstallEpoch",
+          "permissionAndOriginSnapshot",
+          "nativeAckOrEffectId",
+          "workerLifecycleEvidence",
+          "redactedLogs"
+        ],
+        "denials": [
+          "permissionRevoked",
+          "foreignTool",
+          "staleDocument",
+          "badOrigin",
+          "staleEpoch"
+        ],
+        "nodeAndBuildDoNotPromote": true
+      },
+      "mappingKind": "SCOPED",
+      "statusVerificationPolicy": "Current source path and all current evidence statuses are separate; NEVER treat source-wired as native Chrome PASS",
+      "targetFiles": [
+        "src/framework/sdk/browser-contract.js",
+        "src/framework/sdk/browser-schemas.js",
+        "src/framework/sdk/browser.js",
+        "src/ui/sidebar-tools.js",
+        "src/platform/chrome/context-menus.js",
+        "src/platform/chrome/browser-cookie-host.js",
+        "src/platform/chrome/cookies.js"
+      ],
+      "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA",
+      "currentSchemaAuthority": "src/framework/sdk/browser-schemas.js#operationSchemas ('browser.cookies.clearSite')"
+    },
+    {
+      "id": "browser.cookies.getCurrentStore",
+      "visibility": "APPROVED_TOOL_REGISTERED",
+      "migrationDecision": "NEW_PUBLIC_SCOPED_FROM_EXISTING_HOST",
+      "sourceRegistry": "src/framework/sdk/browser-contract.js#BROWSER_OPERATIONS",
+      "callSignature": "OpenDeskSDK.browser.cookies.getCurrentStore(options)",
+      "returnSignature": "Promise<SDK-defined scoped Cookie receipt>",
+      "inputSchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "url": {
+            "type": "string",
+            "maxLength": 2048,
+            "pattern": "^https?://"
+          },
+          "storeId": {
+            "type": "string",
+            "maxLength": 128
+          },
+          "partitionKey": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "topLevelSite": {
+                "type": "string",
+                "maxLength": 256,
+                "pattern": "^https://"
+              },
+              "hasCrossSiteAncestor": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "topLevelSite"
+            ]
+          }
+        },
+        "required": [
+          "url"
+        ]
+      },
+      "outputSchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "storeId": {
+            "type": "string",
+            "maxLength": 128
+          }
+        },
+        "required": [
+          "storeId"
+        ]
       },
       "nativeApis": [
         "chrome.cookies.getAllCookieStores"
       ],
       "chromePermissions": [
-        "cookies",
-        "tabs",
-        "webNavigation"
+        "cookies"
       ],
-      "toolCapabilities": [],
-      "siteScope": "exact active non-incognito tab/window/documentId/URL/origin/store/partition",
+      "toolCapabilities": [
+        "browser.cookies.read"
+      ],
+      "siteScope": "explicit approved HTTP(S) Origin + one non-incognito Chrome store + approved partition, no active tab required for repeat reads",
       "allowedWorlds": [
-        "TRUSTED_SIDE_PANEL_HOST",
-        "TRUSTED_SERVICE_WORKER"
+        "sidebar-tool"
       ],
-      "trust": "CHROME_VERIFIED_SENDER_PLUS_FRESH_REAL_USER_CLICK",
-      "userGesture": true,
+      "trust": "INSTALLED_TOOL_VERIFIED_SENDER_PACKAGE_HASH_EPOCH_SITE_STORE_AND_CAPABILITY",
+      "userGesture": false,
       "errors": [
         "E_SCHEMA",
         "E_CONTEXT",
@@ -5821,15 +5998,15 @@
         "E_COOKIE_NOT_FOUND",
         "E_SESSION_EXPIRED"
       ],
-      "sdkFile": null,
-      "registryFile": null,
-      "schemaFile": "src/platform/chrome/browser-cookie-host.js#normalized",
+      "sdkFile": "src/framework/sdk/browser.js",
+      "registryFile": "src/framework/sdk/browser-contract.js",
+      "schemaFile": "src/framework/sdk/browser-schemas.js",
       "hostDispatcher": "src/platform/chrome/context-menus.js#createContextMenuHost",
-      "authority": "src/ui/trusted-cookie-workbench.js + src/platform/chrome/context-menus.js",
+      "authority": "existing Side Panel installed-tool user grant + Chrome Host revalidation",
       "driverFile": "src/platform/chrome/browser-cookie-host.js -> src/platform/chrome/cookies.js",
-      "lifecycle": "one-shot <=15s approval",
+      "lifecycle": "request",
       "phase": "P2",
-      "status": "SOURCE_WIRED_HOST_ONLY",
+      "status": "SOURCE_WIRED_NATIVE_NOT_TESTED",
       "verification": {
         "node": "NOT_TESTED",
         "build": "NOT_TESTED",
@@ -5840,9 +6017,9 @@
           "tests/environment/browser-sdk-r7-trusted-cookies.test.mjs",
           "tests/environment/browser-sdk-r8-cookies.test.mjs"
         ],
-        "positive": "trusted selected exact document, own store/partition, bounded result",
-        "negative": "sandbox/Page denied; wrong Origin, path, partition, stale document/permission, no secret in events",
-        "native": "real Mac Chrome approved/revoked flow; get/getAll/set/remove/observe with worker restart"
+        "positive": "installed & enabled exact tool + per-Origin/capability grant, current approved Store/Partition, typed redacted receipt",
+        "negative": "Page and Preview remain denied; foreign tools/Origin/Store/Partition, missing values, stale package/epoch, forged sender rejected",
+        "native": "Same SHA Chrome installed Cookie Editor actual get/list/set/remove/clear/observe and revocation"
       },
       "maxRequestBytes": 12000,
       "maxResponseBytes": 12000,
@@ -5850,8 +6027,7 @@
         "desktopChromeMinimum": 138,
         "chromeFeatureGate": "feature presence + actual source permission check; never fake Chrome>=138 availability for unknown introduced versions",
         "executionWorlds": [
-          "TRUSTED_SIDE_PANEL_HOST",
-          "TRUSTED_SERVICE_WORKER"
+          "sidebar-tool"
         ],
         "incognito": "DENIED_BY_DEFAULT"
       },
@@ -5878,27 +6054,61 @@
         ],
         "nodeAndBuildDoNotPromote": true
       },
-      "mappingKind": "HOST_ONLY",
+      "mappingKind": "SCOPED",
       "statusVerificationPolicy": "Current source path and all current evidence statuses are separate; NEVER treat source-wired as native Chrome PASS",
       "targetFiles": [
-        "src/platform/chrome/browser-cookie-host.js#normalized",
-        "src/platform/chrome/context-menus.js#createContextMenuHost",
-        "src/platform/chrome/browser-cookie-host.js -> src/platform/chrome/cookies.js"
+        "src/framework/sdk/browser-contract.js",
+        "src/framework/sdk/browser-schemas.js",
+        "src/framework/sdk/browser.js",
+        "src/ui/sidebar-tools.js",
+        "src/platform/chrome/context-menus.js",
+        "src/platform/chrome/browser-cookie-host.js",
+        "src/platform/chrome/cookies.js"
       ],
-      "schemaStrategy": "INLINE_FROZEN_DESIGN_SCHEMA; implementation MUST copy/adapt into strict runtime validator and test"
+      "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA",
+      "currentSchemaAuthority": "src/framework/sdk/browser-schemas.js#operationSchemas ('browser.cookies.getCurrentStore')"
     },
     {
       "id": "browser.cookies.getPartitionKey",
-      "visibility": "HOST_ONLY_TRUSTED_COOKIE_UI",
-      "migrationDecision": "KEEP",
-      "sourceRegistry": "src/platform/chrome/browser-cookie-host.js#TRUSTED_COOKIE_OPERATIONS",
-      "callSignature": "TRUSTED_HOST_ONLY: execute('browser.cookies.getPartitionKey', {}) via verified internal one-shot intent",
-      "returnSignature": "Promise<{partitionKey}>",
+      "visibility": "APPROVED_TOOL_REGISTERED",
+      "migrationDecision": "NEW_PUBLIC_SCOPED_FROM_EXISTING_HOST",
+      "sourceRegistry": "src/framework/sdk/browser-contract.js#BROWSER_OPERATIONS",
+      "callSignature": "OpenDeskSDK.browser.cookies.getPartitionKey(options)",
+      "returnSignature": "Promise<SDK-defined scoped Cookie receipt>",
       "inputSchema": {
         "type": "object",
         "additionalProperties": false,
-        "properties": {},
-        "required": []
+        "properties": {
+          "url": {
+            "type": "string",
+            "maxLength": 2048,
+            "pattern": "^https?://"
+          },
+          "storeId": {
+            "type": "string",
+            "maxLength": 128
+          },
+          "partitionKey": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "topLevelSite": {
+                "type": "string",
+                "maxLength": 256,
+                "pattern": "^https://"
+              },
+              "hasCrossSiteAncestor": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "topLevelSite"
+            ]
+          }
+        },
+        "required": [
+          "url"
+        ]
       },
       "outputSchema": {
         "type": "object",
@@ -5910,8 +6120,8 @@
             "properties": {
               "topLevelSite": {
                 "type": "string",
-                "pattern": "^https?://",
-                "maxLength": 2048
+                "maxLength": 256,
+                "pattern": "^https://"
               },
               "hasCrossSiteAncestor": {
                 "type": "boolean"
@@ -5924,25 +6134,23 @@
         },
         "required": [
           "partitionKey"
-        ],
-        "sourceRef": "src/platform/chrome/browser-cookie-host.js#operate"
+        ]
       },
       "nativeApis": [
         "chrome.cookies.getPartitionKey"
       ],
       "chromePermissions": [
-        "cookies",
-        "tabs",
-        "webNavigation"
+        "cookies"
       ],
-      "toolCapabilities": [],
-      "siteScope": "exact active non-incognito tab/window/documentId/URL/origin/store/partition",
+      "toolCapabilities": [
+        "browser.cookies.read"
+      ],
+      "siteScope": "explicit approved HTTP(S) Origin + one non-incognito Chrome store + approved partition, no active tab required for repeat reads",
       "allowedWorlds": [
-        "TRUSTED_SIDE_PANEL_HOST",
-        "TRUSTED_SERVICE_WORKER"
+        "sidebar-tool"
       ],
-      "trust": "CHROME_VERIFIED_SENDER_PLUS_FRESH_REAL_USER_CLICK",
-      "userGesture": true,
+      "trust": "INSTALLED_TOOL_VERIFIED_SENDER_PACKAGE_HASH_EPOCH_SITE_STORE_AND_CAPABILITY",
+      "userGesture": false,
       "errors": [
         "E_SCHEMA",
         "E_CONTEXT",
@@ -5960,15 +6168,15 @@
         "E_COOKIE_NOT_FOUND",
         "E_SESSION_EXPIRED"
       ],
-      "sdkFile": null,
-      "registryFile": null,
-      "schemaFile": "src/platform/chrome/browser-cookie-host.js#normalized",
+      "sdkFile": "src/framework/sdk/browser.js",
+      "registryFile": "src/framework/sdk/browser-contract.js",
+      "schemaFile": "src/framework/sdk/browser-schemas.js",
       "hostDispatcher": "src/platform/chrome/context-menus.js#createContextMenuHost",
-      "authority": "src/ui/trusted-cookie-workbench.js + src/platform/chrome/context-menus.js",
+      "authority": "existing Side Panel installed-tool user grant + Chrome Host revalidation",
       "driverFile": "src/platform/chrome/browser-cookie-host.js -> src/platform/chrome/cookies.js",
-      "lifecycle": "one-shot <=15s approval",
+      "lifecycle": "request",
       "phase": "P2",
-      "status": "SOURCE_WIRED_HOST_ONLY",
+      "status": "SOURCE_WIRED_NATIVE_NOT_TESTED",
       "verification": {
         "node": "NOT_TESTED",
         "build": "NOT_TESTED",
@@ -5979,9 +6187,9 @@
           "tests/environment/browser-sdk-r7-trusted-cookies.test.mjs",
           "tests/environment/browser-sdk-r8-cookies.test.mjs"
         ],
-        "positive": "trusted selected exact document, own store/partition, bounded result",
-        "negative": "sandbox/Page denied; wrong Origin, path, partition, stale document/permission, no secret in events",
-        "native": "real Mac Chrome approved/revoked flow; get/getAll/set/remove/observe with worker restart"
+        "positive": "installed & enabled exact tool + per-Origin/capability grant, current approved Store/Partition, typed redacted receipt",
+        "negative": "Page and Preview remain denied; foreign tools/Origin/Store/Partition, missing values, stale package/epoch, forged sender rejected",
+        "native": "Same SHA Chrome installed Cookie Editor actual get/list/set/remove/clear/observe and revocation"
       },
       "maxRequestBytes": 12000,
       "maxResponseBytes": 12000,
@@ -5989,8 +6197,7 @@
         "desktopChromeMinimum": 138,
         "chromeFeatureGate": "feature presence + actual source permission check; never fake Chrome>=138 availability for unknown introduced versions",
         "executionWorlds": [
-          "TRUSTED_SIDE_PANEL_HOST",
-          "TRUSTED_SERVICE_WORKER"
+          "sidebar-tool"
         ],
         "incognito": "DENIED_BY_DEFAULT"
       },
@@ -6017,26 +6224,36 @@
         ],
         "nodeAndBuildDoNotPromote": true
       },
-      "mappingKind": "HOST_ONLY",
+      "mappingKind": "SCOPED",
       "statusVerificationPolicy": "Current source path and all current evidence statuses are separate; NEVER treat source-wired as native Chrome PASS",
       "targetFiles": [
-        "src/platform/chrome/browser-cookie-host.js#normalized",
-        "src/platform/chrome/context-menus.js#createContextMenuHost",
-        "src/platform/chrome/browser-cookie-host.js -> src/platform/chrome/cookies.js"
+        "src/framework/sdk/browser-contract.js",
+        "src/framework/sdk/browser-schemas.js",
+        "src/framework/sdk/browser.js",
+        "src/ui/sidebar-tools.js",
+        "src/platform/chrome/context-menus.js",
+        "src/platform/chrome/browser-cookie-host.js",
+        "src/platform/chrome/cookies.js"
       ],
-      "schemaStrategy": "INLINE_FROZEN_DESIGN_SCHEMA; implementation MUST copy/adapt into strict runtime validator and test"
+      "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA",
+      "currentSchemaAuthority": "src/framework/sdk/browser-schemas.js#operationSchemas ('browser.cookies.getPartitionKey')"
     },
     {
       "id": "browser.cookies.observe.start",
-      "visibility": "HOST_ONLY_TRUSTED_COOKIE_UI",
-      "migrationDecision": "KEEP",
-      "sourceRegistry": "src/platform/chrome/browser-cookie-host.js#TRUSTED_COOKIE_OPERATIONS",
-      "callSignature": "TRUSTED_HOST_ONLY: execute('browser.cookies.observe.start', {durationMs?:1000..30000,maxEvents?:1..50}) via verified internal one-shot intent",
-      "returnSignature": "Promise<{sessionRef:UUID,expiresAt:number,status:'running'}>",
+      "visibility": "APPROVED_TOOL_REGISTERED",
+      "migrationDecision": "NEW_PUBLIC_SCOPED_FROM_EXISTING_HOST",
+      "sourceRegistry": "src/framework/sdk/browser-contract.js#BROWSER_OPERATIONS",
+      "callSignature": "OpenDeskSDK.browser.cookies.observe.start(options)",
+      "returnSignature": "Promise<SDK-defined scoped Cookie receipt>",
       "inputSchema": {
         "type": "object",
         "additionalProperties": false,
         "properties": {
+          "url": {
+            "type": "string",
+            "maxLength": 2048,
+            "pattern": "^https?://"
+          },
           "durationMs": {
             "type": "integer",
             "minimum": 1000,
@@ -6048,7 +6265,9 @@
             "maximum": 50
           }
         },
-        "required": []
+        "required": [
+          "url"
+        ]
       },
       "outputSchema": {
         "type": "object",
@@ -6056,41 +6275,39 @@
         "properties": {
           "sessionRef": {
             "type": "string",
-            "pattern": "^[0-9a-fA-F-]{36}$"
+            "maxLength": 36
           },
           "expiresAt": {
             "type": "integer",
-            "minimum": 0
+            "minimum": 0,
+            "maximum": 9007199254740991
           },
           "status": {
-            "enum": [
-              "running"
-            ]
+            "type": "string",
+            "maxLength": 30
           }
         },
         "required": [
           "sessionRef",
           "expiresAt",
           "status"
-        ],
-        "sourceRef": "src/platform/chrome/browser-cookie-host.js#operate"
+        ]
       },
       "nativeApis": [
         "chrome.cookies.onChanged",
         "chrome.cookies.getPartitionKey"
       ],
       "chromePermissions": [
-        "cookies",
-        "tabs",
-        "webNavigation"
+        "cookies"
       ],
-      "toolCapabilities": [],
-      "siteScope": "exact active non-incognito tab/window/documentId/URL/origin/store/partition",
+      "toolCapabilities": [
+        "browser.cookies.observe"
+      ],
+      "siteScope": "explicit approved HTTP(S) Origin + one non-incognito Chrome store + approved partition, no active tab required for repeat reads",
       "allowedWorlds": [
-        "TRUSTED_SIDE_PANEL_HOST",
-        "TRUSTED_SERVICE_WORKER"
+        "sidebar-tool"
       ],
-      "trust": "CHROME_VERIFIED_SENDER_PLUS_FRESH_REAL_USER_CLICK",
+      "trust": "INSTALLED_TOOL_VERIFIED_SENDER_PACKAGE_HASH_EPOCH_SITE_STORE_AND_CAPABILITY",
       "userGesture": true,
       "errors": [
         "E_SCHEMA",
@@ -6109,15 +6326,15 @@
         "E_COOKIE_NOT_FOUND",
         "E_SESSION_EXPIRED"
       ],
-      "sdkFile": null,
-      "registryFile": null,
-      "schemaFile": "src/platform/chrome/browser-cookie-host.js#normalized",
+      "sdkFile": "src/framework/sdk/browser.js",
+      "registryFile": "src/framework/sdk/browser-contract.js",
+      "schemaFile": "src/framework/sdk/browser-schemas.js",
       "hostDispatcher": "src/platform/chrome/context-menus.js#createContextMenuHost",
-      "authority": "src/ui/trusted-cookie-workbench.js + src/platform/chrome/context-menus.js",
+      "authority": "existing Side Panel installed-tool user grant + Chrome Host revalidation",
       "driverFile": "src/platform/chrome/browser-cookie-host.js -> src/platform/chrome/cookies.js",
-      "lifecycle": "worker-volatile <=30s with bounded cursor",
+      "lifecycle": "bounded-session",
       "phase": "P2",
-      "status": "SOURCE_WIRED_HOST_ONLY",
+      "status": "SOURCE_WIRED_NATIVE_NOT_TESTED",
       "verification": {
         "node": "NOT_TESTED",
         "build": "NOT_TESTED",
@@ -6128,9 +6345,9 @@
           "tests/environment/browser-sdk-r7-trusted-cookies.test.mjs",
           "tests/environment/browser-sdk-r8-cookies.test.mjs"
         ],
-        "positive": "trusted selected exact document, own store/partition, bounded result",
-        "negative": "sandbox/Page denied; wrong Origin, path, partition, stale document/permission, no secret in events",
-        "native": "real Mac Chrome approved/revoked flow; get/getAll/set/remove/observe with worker restart"
+        "positive": "installed & enabled exact tool + per-Origin/capability grant, current approved Store/Partition, typed redacted receipt",
+        "negative": "Page and Preview remain denied; foreign tools/Origin/Store/Partition, missing values, stale package/epoch, forged sender rejected",
+        "native": "Same SHA Chrome installed Cookie Editor actual get/list/set/remove/clear/observe and revocation"
       },
       "maxRequestBytes": 12000,
       "maxResponseBytes": 12000,
@@ -6138,8 +6355,7 @@
         "desktopChromeMinimum": 138,
         "chromeFeatureGate": "feature presence + actual source permission check; never fake Chrome>=138 availability for unknown introduced versions",
         "executionWorlds": [
-          "TRUSTED_SIDE_PANEL_HOST",
-          "TRUSTED_SERVICE_WORKER"
+          "sidebar-tool"
         ],
         "incognito": "DENIED_BY_DEFAULT"
       },
@@ -6166,32 +6382,44 @@
         ],
         "nodeAndBuildDoNotPromote": true
       },
-      "mappingKind": "HOST_ONLY",
+      "mappingKind": "SCOPED",
       "statusVerificationPolicy": "Current source path and all current evidence statuses are separate; NEVER treat source-wired as native Chrome PASS",
       "targetFiles": [
-        "src/platform/chrome/browser-cookie-host.js#normalized",
-        "src/platform/chrome/context-menus.js#createContextMenuHost",
-        "src/platform/chrome/browser-cookie-host.js -> src/platform/chrome/cookies.js"
+        "src/framework/sdk/browser-contract.js",
+        "src/framework/sdk/browser-schemas.js",
+        "src/framework/sdk/browser.js",
+        "src/ui/sidebar-tools.js",
+        "src/platform/chrome/context-menus.js",
+        "src/platform/chrome/browser-cookie-host.js",
+        "src/platform/chrome/cookies.js"
       ],
-      "schemaStrategy": "INLINE_FROZEN_DESIGN_SCHEMA; implementation MUST copy/adapt into strict runtime validator and test"
+      "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA",
+      "currentSchemaAuthority": "src/framework/sdk/browser-schemas.js#operationSchemas ('browser.cookies.observe.start')"
     },
     {
       "id": "browser.cookies.observe.getStatus",
-      "visibility": "HOST_ONLY_TRUSTED_COOKIE_UI",
-      "migrationDecision": "KEEP",
-      "sourceRegistry": "src/platform/chrome/browser-cookie-host.js#TRUSTED_COOKIE_OPERATIONS",
-      "callSignature": "TRUSTED_HOST_ONLY: execute('browser.cookies.observe.getStatus', {sessionRef:UUID}) via verified internal one-shot intent",
-      "returnSignature": "Promise<{sessionRef,status,bufferedCount,droppedCount,expiresAt}>",
+      "visibility": "APPROVED_TOOL_REGISTERED",
+      "migrationDecision": "NEW_PUBLIC_SCOPED_FROM_EXISTING_HOST",
+      "sourceRegistry": "src/framework/sdk/browser-contract.js#BROWSER_OPERATIONS",
+      "callSignature": "OpenDeskSDK.browser.cookies.observe.getStatus(options)",
+      "returnSignature": "Promise<SDK-defined scoped Cookie receipt>",
       "inputSchema": {
         "type": "object",
         "additionalProperties": false,
         "properties": {
+          "url": {
+            "type": "string",
+            "maxLength": 2048,
+            "pattern": "^https?://"
+          },
           "sessionRef": {
             "type": "string",
-            "pattern": "^[0-9a-fA-F-]{36}$"
+            "maxLength": 36,
+            "pattern": "^[0-9a-f-]{36}$"
           }
         },
         "required": [
+          "url",
           "sessionRef"
         ]
       },
@@ -6201,24 +6429,26 @@
         "properties": {
           "sessionRef": {
             "type": "string",
-            "pattern": "^[0-9a-fA-F-]{36}$"
+            "maxLength": 36
           },
           "status": {
-            "enum": [
-              "running"
-            ]
+            "type": "string",
+            "maxLength": 30
           },
           "bufferedCount": {
             "type": "integer",
-            "minimum": 0
+            "minimum": 0,
+            "maximum": 50
           },
           "droppedCount": {
             "type": "integer",
-            "minimum": 0
+            "minimum": 0,
+            "maximum": 9007199254740991
           },
           "expiresAt": {
             "type": "integer",
-            "minimum": 0
+            "minimum": 0,
+            "maximum": 9007199254740991
           }
         },
         "required": [
@@ -6227,25 +6457,23 @@
           "bufferedCount",
           "droppedCount",
           "expiresAt"
-        ],
-        "sourceRef": "src/platform/chrome/browser-cookie-host.js#operate"
+        ]
       },
       "nativeApis": [
         "chrome.cookies.onChanged"
       ],
       "chromePermissions": [
-        "cookies",
-        "tabs",
-        "webNavigation"
+        "cookies"
       ],
-      "toolCapabilities": [],
-      "siteScope": "exact active non-incognito tab/window/documentId/URL/origin/store/partition",
+      "toolCapabilities": [
+        "browser.cookies.observe"
+      ],
+      "siteScope": "explicit approved HTTP(S) Origin + one non-incognito Chrome store + approved partition, no active tab required for repeat reads",
       "allowedWorlds": [
-        "TRUSTED_SIDE_PANEL_HOST",
-        "TRUSTED_SERVICE_WORKER"
+        "sidebar-tool"
       ],
-      "trust": "CHROME_VERIFIED_SENDER_PLUS_FRESH_REAL_USER_CLICK",
-      "userGesture": true,
+      "trust": "INSTALLED_TOOL_VERIFIED_SENDER_PACKAGE_HASH_EPOCH_SITE_STORE_AND_CAPABILITY",
+      "userGesture": false,
       "errors": [
         "E_SCHEMA",
         "E_CONTEXT",
@@ -6263,15 +6491,15 @@
         "E_COOKIE_NOT_FOUND",
         "E_SESSION_EXPIRED"
       ],
-      "sdkFile": null,
-      "registryFile": null,
-      "schemaFile": "src/platform/chrome/browser-cookie-host.js#normalized",
+      "sdkFile": "src/framework/sdk/browser.js",
+      "registryFile": "src/framework/sdk/browser-contract.js",
+      "schemaFile": "src/framework/sdk/browser-schemas.js",
       "hostDispatcher": "src/platform/chrome/context-menus.js#createContextMenuHost",
-      "authority": "src/ui/trusted-cookie-workbench.js + src/platform/chrome/context-menus.js",
+      "authority": "existing Side Panel installed-tool user grant + Chrome Host revalidation",
       "driverFile": "src/platform/chrome/browser-cookie-host.js -> src/platform/chrome/cookies.js",
-      "lifecycle": "worker-volatile <=30s with bounded cursor",
+      "lifecycle": "bounded-session",
       "phase": "P2",
-      "status": "SOURCE_WIRED_HOST_ONLY",
+      "status": "SOURCE_WIRED_NATIVE_NOT_TESTED",
       "verification": {
         "node": "NOT_TESTED",
         "build": "NOT_TESTED",
@@ -6282,9 +6510,9 @@
           "tests/environment/browser-sdk-r7-trusted-cookies.test.mjs",
           "tests/environment/browser-sdk-r8-cookies.test.mjs"
         ],
-        "positive": "trusted selected exact document, own store/partition, bounded result",
-        "negative": "sandbox/Page denied; wrong Origin, path, partition, stale document/permission, no secret in events",
-        "native": "real Mac Chrome approved/revoked flow; get/getAll/set/remove/observe with worker restart"
+        "positive": "installed & enabled exact tool + per-Origin/capability grant, current approved Store/Partition, typed redacted receipt",
+        "negative": "Page and Preview remain denied; foreign tools/Origin/Store/Partition, missing values, stale package/epoch, forged sender rejected",
+        "native": "Same SHA Chrome installed Cookie Editor actual get/list/set/remove/clear/observe and revocation"
       },
       "maxRequestBytes": 12000,
       "maxResponseBytes": 12000,
@@ -6292,8 +6520,7 @@
         "desktopChromeMinimum": 138,
         "chromeFeatureGate": "feature presence + actual source permission check; never fake Chrome>=138 availability for unknown introduced versions",
         "executionWorlds": [
-          "TRUSTED_SIDE_PANEL_HOST",
-          "TRUSTED_SERVICE_WORKER"
+          "sidebar-tool"
         ],
         "incognito": "DENIED_BY_DEFAULT"
       },
@@ -6320,33 +6547,44 @@
         ],
         "nodeAndBuildDoNotPromote": true
       },
-      "mappingKind": "HOST_ONLY",
+      "mappingKind": "SCOPED",
       "statusVerificationPolicy": "Current source path and all current evidence statuses are separate; NEVER treat source-wired as native Chrome PASS",
       "targetFiles": [
-        "src/platform/chrome/browser-cookie-host.js#normalized",
-        "src/platform/chrome/context-menus.js#createContextMenuHost",
-        "src/platform/chrome/browser-cookie-host.js -> src/platform/chrome/cookies.js"
+        "src/framework/sdk/browser-contract.js",
+        "src/framework/sdk/browser-schemas.js",
+        "src/framework/sdk/browser.js",
+        "src/ui/sidebar-tools.js",
+        "src/platform/chrome/context-menus.js",
+        "src/platform/chrome/browser-cookie-host.js",
+        "src/platform/chrome/cookies.js"
       ],
-      "schemaStrategy": "INLINE_FROZEN_DESIGN_SCHEMA; implementation MUST copy/adapt into strict runtime validator and test"
+      "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA",
+      "currentSchemaAuthority": "src/framework/sdk/browser-schemas.js#operationSchemas ('browser.cookies.observe.getStatus')"
     },
     {
       "id": "browser.cookies.observe.read",
-      "visibility": "HOST_ONLY_TRUSTED_COOKIE_UI",
-      "migrationDecision": "NEW",
-      "sourceRegistry": "src/platform/chrome/browser-cookie-host.js#TRUSTED_COOKIE_OPERATIONS",
-      "callSignature": "TRUSTED_HOST_ONLY: execute('browser.cookies.observe.read', {sessionRef:UUID,cursor?:decimal-string,limit?:1..50}) via verified internal one-shot intent",
-      "returnSignature": "Promise<{sessionRef,events:[{seq,name,domain,path,removed,cause,at}],nextCursor,gapCount,droppedCount,expiresAt}>",
+      "visibility": "APPROVED_TOOL_REGISTERED",
+      "migrationDecision": "NEW_PUBLIC_SCOPED_FROM_EXISTING_HOST",
+      "sourceRegistry": "src/framework/sdk/browser-contract.js#BROWSER_OPERATIONS",
+      "callSignature": "OpenDeskSDK.browser.cookies.observe.read(options)",
+      "returnSignature": "Promise<SDK-defined scoped Cookie receipt>",
       "inputSchema": {
         "type": "object",
         "additionalProperties": false,
         "properties": {
+          "url": {
+            "type": "string",
+            "maxLength": 2048,
+            "pattern": "^https?://"
+          },
           "sessionRef": {
             "type": "string",
-            "pattern": "^[0-9a-fA-F-]{36}$"
+            "maxLength": 36,
+            "pattern": "^[0-9a-f-]{36}$"
           },
           "cursor": {
             "type": "string",
-            "pattern": "^(0|[1-9][0-9]{0,9})$"
+            "maxLength": 12
           },
           "limit": {
             "type": "integer",
@@ -6355,6 +6593,7 @@
           }
         },
         "required": [
+          "url",
           "sessionRef"
         ]
       },
@@ -6364,69 +6603,35 @@
         "properties": {
           "sessionRef": {
             "type": "string",
-            "pattern": "^[0-9a-fA-F-]{36}$"
+            "maxLength": 36
           },
           "events": {
             "type": "array",
             "items": {
               "type": "object",
               "additionalProperties": false,
-              "properties": {
-                "seq": {
-                  "type": "integer",
-                  "minimum": 1
-                },
-                "name": {
-                  "type": "string",
-                  "maxLength": 256
-                },
-                "domain": {
-                  "type": "string",
-                  "maxLength": 256
-                },
-                "path": {
-                  "type": "string",
-                  "maxLength": 256
-                },
-                "removed": {
-                  "type": "boolean"
-                },
-                "cause": {
-                  "type": "string",
-                  "maxLength": 40
-                },
-                "at": {
-                  "type": "integer",
-                  "minimum": 0
-                }
-              },
-              "required": [
-                "seq",
-                "name",
-                "domain",
-                "path",
-                "removed",
-                "cause",
-                "at"
-              ]
+              "required": []
             },
             "maxItems": 50
           },
           "nextCursor": {
             "type": "string",
-            "pattern": "^(0|[1-9][0-9]{0,9})$"
+            "maxLength": 12
           },
           "gapCount": {
             "type": "integer",
-            "minimum": 0
+            "minimum": 0,
+            "maximum": 9007199254740991
           },
           "droppedCount": {
             "type": "integer",
-            "minimum": 0
+            "minimum": 0,
+            "maximum": 9007199254740991
           },
           "expiresAt": {
             "type": "integer",
-            "minimum": 0
+            "minimum": 0,
+            "maximum": 9007199254740991
           }
         },
         "required": [
@@ -6436,25 +6641,23 @@
           "gapCount",
           "droppedCount",
           "expiresAt"
-        ],
-        "sourceRef": "src/platform/chrome/browser-cookie-host.js#operate"
+        ]
       },
       "nativeApis": [
         "chrome.cookies.onChanged"
       ],
       "chromePermissions": [
-        "cookies",
-        "tabs",
-        "webNavigation"
+        "cookies"
       ],
-      "toolCapabilities": [],
-      "siteScope": "exact active non-incognito tab/window/documentId/URL/origin/store/partition",
+      "toolCapabilities": [
+        "browser.cookies.observe"
+      ],
+      "siteScope": "explicit approved HTTP(S) Origin + one non-incognito Chrome store + approved partition, no active tab required for repeat reads",
       "allowedWorlds": [
-        "TRUSTED_SIDE_PANEL_HOST",
-        "TRUSTED_SERVICE_WORKER"
+        "sidebar-tool"
       ],
-      "trust": "CHROME_VERIFIED_SENDER_PLUS_FRESH_REAL_USER_CLICK",
-      "userGesture": true,
+      "trust": "INSTALLED_TOOL_VERIFIED_SENDER_PACKAGE_HASH_EPOCH_SITE_STORE_AND_CAPABILITY",
+      "userGesture": false,
       "errors": [
         "E_SCHEMA",
         "E_CONTEXT",
@@ -6472,15 +6675,15 @@
         "E_COOKIE_NOT_FOUND",
         "E_SESSION_EXPIRED"
       ],
-      "sdkFile": null,
-      "registryFile": null,
-      "schemaFile": "src/platform/chrome/browser-cookie-host.js#normalized",
+      "sdkFile": "src/framework/sdk/browser.js",
+      "registryFile": "src/framework/sdk/browser-contract.js",
+      "schemaFile": "src/framework/sdk/browser-schemas.js",
       "hostDispatcher": "src/platform/chrome/context-menus.js#createContextMenuHost",
-      "authority": "src/ui/trusted-cookie-workbench.js + src/platform/chrome/context-menus.js",
+      "authority": "existing Side Panel installed-tool user grant + Chrome Host revalidation",
       "driverFile": "src/platform/chrome/browser-cookie-host.js -> src/platform/chrome/cookies.js",
-      "lifecycle": "worker-volatile <=30s with bounded cursor",
+      "lifecycle": "bounded-session",
       "phase": "P2",
-      "status": "SOURCE_WIRED_HOST_ONLY",
+      "status": "SOURCE_WIRED_NATIVE_NOT_TESTED",
       "verification": {
         "node": "NOT_TESTED",
         "build": "NOT_TESTED",
@@ -6491,9 +6694,9 @@
           "tests/environment/browser-sdk-r7-trusted-cookies.test.mjs",
           "tests/environment/browser-sdk-r8-cookies.test.mjs"
         ],
-        "positive": "trusted selected exact document, own store/partition, bounded result",
-        "negative": "sandbox/Page denied; wrong Origin, path, partition, stale document/permission, no secret in events",
-        "native": "real Mac Chrome approved/revoked flow; get/getAll/set/remove/observe with worker restart"
+        "positive": "installed & enabled exact tool + per-Origin/capability grant, current approved Store/Partition, typed redacted receipt",
+        "negative": "Page and Preview remain denied; foreign tools/Origin/Store/Partition, missing values, stale package/epoch, forged sender rejected",
+        "native": "Same SHA Chrome installed Cookie Editor actual get/list/set/remove/clear/observe and revocation"
       },
       "maxRequestBytes": 12000,
       "maxResponseBytes": 12000,
@@ -6501,8 +6704,7 @@
         "desktopChromeMinimum": 138,
         "chromeFeatureGate": "feature presence + actual source permission check; never fake Chrome>=138 availability for unknown introduced versions",
         "executionWorlds": [
-          "TRUSTED_SIDE_PANEL_HOST",
-          "TRUSTED_SERVICE_WORKER"
+          "sidebar-tool"
         ],
         "incognito": "DENIED_BY_DEFAULT"
       },
@@ -6529,32 +6731,44 @@
         ],
         "nodeAndBuildDoNotPromote": true
       },
-      "mappingKind": "HOST_ONLY",
+      "mappingKind": "SCOPED",
       "statusVerificationPolicy": "Current source path and all current evidence statuses are separate; NEVER treat source-wired as native Chrome PASS",
       "targetFiles": [
-        "src/platform/chrome/browser-cookie-host.js#normalized",
-        "src/platform/chrome/context-menus.js#createContextMenuHost",
-        "src/platform/chrome/browser-cookie-host.js -> src/platform/chrome/cookies.js"
+        "src/framework/sdk/browser-contract.js",
+        "src/framework/sdk/browser-schemas.js",
+        "src/framework/sdk/browser.js",
+        "src/ui/sidebar-tools.js",
+        "src/platform/chrome/context-menus.js",
+        "src/platform/chrome/browser-cookie-host.js",
+        "src/platform/chrome/cookies.js"
       ],
-      "schemaStrategy": "INLINE_FROZEN_DESIGN_SCHEMA; implementation MUST copy/adapt into strict runtime validator and test"
+      "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA",
+      "currentSchemaAuthority": "src/framework/sdk/browser-schemas.js#operationSchemas ('browser.cookies.observe.read')"
     },
     {
       "id": "browser.cookies.observe.stop",
-      "visibility": "HOST_ONLY_TRUSTED_COOKIE_UI",
-      "migrationDecision": "KEEP",
-      "sourceRegistry": "src/platform/chrome/browser-cookie-host.js#TRUSTED_COOKIE_OPERATIONS",
-      "callSignature": "TRUSTED_HOST_ONLY: execute('browser.cookies.observe.stop', {sessionRef:UUID}) via verified internal one-shot intent",
-      "returnSignature": "Promise<{stopped:boolean}>",
+      "visibility": "APPROVED_TOOL_REGISTERED",
+      "migrationDecision": "NEW_PUBLIC_SCOPED_FROM_EXISTING_HOST",
+      "sourceRegistry": "src/framework/sdk/browser-contract.js#BROWSER_OPERATIONS",
+      "callSignature": "OpenDeskSDK.browser.cookies.observe.stop(options)",
+      "returnSignature": "Promise<SDK-defined scoped Cookie receipt>",
       "inputSchema": {
         "type": "object",
         "additionalProperties": false,
         "properties": {
+          "url": {
+            "type": "string",
+            "maxLength": 2048,
+            "pattern": "^https?://"
+          },
           "sessionRef": {
             "type": "string",
-            "pattern": "^[0-9a-fA-F-]{36}$"
+            "maxLength": 36,
+            "pattern": "^[0-9a-f-]{36}$"
           }
         },
         "required": [
+          "url",
           "sessionRef"
         ]
       },
@@ -6568,25 +6782,23 @@
         },
         "required": [
           "stopped"
-        ],
-        "sourceRef": "src/platform/chrome/browser-cookie-host.js#operate"
+        ]
       },
       "nativeApis": [
         "chrome.cookies.onChanged"
       ],
       "chromePermissions": [
-        "cookies",
-        "tabs",
-        "webNavigation"
+        "cookies"
       ],
-      "toolCapabilities": [],
-      "siteScope": "exact active non-incognito tab/window/documentId/URL/origin/store/partition",
+      "toolCapabilities": [
+        "browser.cookies.observe"
+      ],
+      "siteScope": "explicit approved HTTP(S) Origin + one non-incognito Chrome store + approved partition, no active tab required for repeat reads",
       "allowedWorlds": [
-        "TRUSTED_SIDE_PANEL_HOST",
-        "TRUSTED_SERVICE_WORKER"
+        "sidebar-tool"
       ],
-      "trust": "CHROME_VERIFIED_SENDER_PLUS_FRESH_REAL_USER_CLICK",
-      "userGesture": true,
+      "trust": "INSTALLED_TOOL_VERIFIED_SENDER_PACKAGE_HASH_EPOCH_SITE_STORE_AND_CAPABILITY",
+      "userGesture": false,
       "errors": [
         "E_SCHEMA",
         "E_CONTEXT",
@@ -6604,15 +6816,15 @@
         "E_COOKIE_NOT_FOUND",
         "E_SESSION_EXPIRED"
       ],
-      "sdkFile": null,
-      "registryFile": null,
-      "schemaFile": "src/platform/chrome/browser-cookie-host.js#normalized",
+      "sdkFile": "src/framework/sdk/browser.js",
+      "registryFile": "src/framework/sdk/browser-contract.js",
+      "schemaFile": "src/framework/sdk/browser-schemas.js",
       "hostDispatcher": "src/platform/chrome/context-menus.js#createContextMenuHost",
-      "authority": "src/ui/trusted-cookie-workbench.js + src/platform/chrome/context-menus.js",
+      "authority": "existing Side Panel installed-tool user grant + Chrome Host revalidation",
       "driverFile": "src/platform/chrome/browser-cookie-host.js -> src/platform/chrome/cookies.js",
-      "lifecycle": "worker-volatile <=30s with bounded cursor",
+      "lifecycle": "bounded-session",
       "phase": "P2",
-      "status": "SOURCE_WIRED_HOST_ONLY",
+      "status": "SOURCE_WIRED_NATIVE_NOT_TESTED",
       "verification": {
         "node": "NOT_TESTED",
         "build": "NOT_TESTED",
@@ -6623,9 +6835,9 @@
           "tests/environment/browser-sdk-r7-trusted-cookies.test.mjs",
           "tests/environment/browser-sdk-r8-cookies.test.mjs"
         ],
-        "positive": "trusted selected exact document, own store/partition, bounded result",
-        "negative": "sandbox/Page denied; wrong Origin, path, partition, stale document/permission, no secret in events",
-        "native": "real Mac Chrome approved/revoked flow; get/getAll/set/remove/observe with worker restart"
+        "positive": "installed & enabled exact tool + per-Origin/capability grant, current approved Store/Partition, typed redacted receipt",
+        "negative": "Page and Preview remain denied; foreign tools/Origin/Store/Partition, missing values, stale package/epoch, forged sender rejected",
+        "native": "Same SHA Chrome installed Cookie Editor actual get/list/set/remove/clear/observe and revocation"
       },
       "maxRequestBytes": 12000,
       "maxResponseBytes": 12000,
@@ -6633,8 +6845,7 @@
         "desktopChromeMinimum": 138,
         "chromeFeatureGate": "feature presence + actual source permission check; never fake Chrome>=138 availability for unknown introduced versions",
         "executionWorlds": [
-          "TRUSTED_SIDE_PANEL_HOST",
-          "TRUSTED_SERVICE_WORKER"
+          "sidebar-tool"
         ],
         "incognito": "DENIED_BY_DEFAULT"
       },
@@ -6661,20 +6872,25 @@
         ],
         "nodeAndBuildDoNotPromote": true
       },
-      "mappingKind": "HOST_ONLY",
+      "mappingKind": "SCOPED",
       "statusVerificationPolicy": "Current source path and all current evidence statuses are separate; NEVER treat source-wired as native Chrome PASS",
       "targetFiles": [
-        "src/platform/chrome/browser-cookie-host.js#normalized",
-        "src/platform/chrome/context-menus.js#createContextMenuHost",
-        "src/platform/chrome/browser-cookie-host.js -> src/platform/chrome/cookies.js"
+        "src/framework/sdk/browser-contract.js",
+        "src/framework/sdk/browser-schemas.js",
+        "src/framework/sdk/browser.js",
+        "src/ui/sidebar-tools.js",
+        "src/platform/chrome/context-menus.js",
+        "src/platform/chrome/browser-cookie-host.js",
+        "src/platform/chrome/cookies.js"
       ],
-      "schemaStrategy": "INLINE_FROZEN_DESIGN_SCHEMA; implementation MUST copy/adapt into strict runtime validator and test"
+      "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA",
+      "currentSchemaAuthority": "src/framework/sdk/browser-schemas.js#operationSchemas ('browser.cookies.observe.stop')"
     },
     {
       "id": "browser.downloads.download",
-      "visibility": "APPROVED_TOOL_PLANNED",
+      "visibility": "APPROVED_TOOL_REGISTERED",
       "migrationDecision": "NEW",
-      "sourceRegistry": "src/framework/sdk/browser-contract.js (TARGET NOT YET PRESENT)",
+      "sourceRegistry": "src/framework/sdk/browser-contract.js#BROWSER_OPERATIONS",
       "callSignature": "OpenDeskSDK.browser.downloads.download({url:HTTP_URL,filename?:safeRelativePath,saveAs?:boolean})",
       "returnSignature": "Promise<{downloadRef:OpaqueDownloadRef,status:'started'}>",
       "inputSchema": {
@@ -6728,7 +6944,7 @@
       "allowedWorlds": [
         "sidebar-tool"
       ],
-      "trust": "INSTALLED_TOOL_EXPLICIT_CAPABILITY_AND_ORIGIN",
+      "trust": "INSTALLED_TOOL_VERIFIED_SENDER_PACKAGE_HASH_EPOCH_PERMISSION_AND_ONE_USE_INTENT",
       "userGesture": true,
       "errors": [
         "E_SCHEMA",
@@ -6744,12 +6960,12 @@
       "sdkFile": "src/framework/sdk/browser.js",
       "registryFile": "src/framework/sdk/browser-contract.js",
       "schemaFile": "src/framework/sdk/browser-schemas.js",
-      "hostDispatcher": "src/platform/chrome/context-menus.js#createContextMenuHost (REUSE)",
-      "authority": "src/ui/sidebar-tools.js + src/platform/chrome/context-menus.js (REUSE)",
-      "driverFile": "src/platform/downloads/index.js",
+      "hostDispatcher": "src/platform/chrome/context-menus.js#createContextMenuHost",
+      "authority": "existing Browser Host verified Sender + packageHash + tool Epoch + one-use intent for mutations + Chrome download/site permission",
+      "driverFile": "src/platform/chrome/browser-downloads.js",
       "lifecycle": "request / owned opaque Ref; fail closed after revoke/restart when applicable",
       "phase": "P3",
-      "status": "DESIGN_APPROVED_NOT_IMPLEMENTED",
+      "status": "SOURCE_WIRED_NATIVE_NOT_TESTED",
       "verification": {
         "node": "NOT_TESTED",
         "build": "NOT_TESTED",
@@ -6758,8 +6974,11 @@
       "testContract": {
         "target": "tests/environment/browser-sdk-p3-implementation.test.mjs (NEW)",
         "positive": "approved identity and scope produce bounded typed receipt",
-        "negative": "rejected permissions/foreign identity/unsafe input/revocation and unknown native effect",
-        "native": "same-candidate real Chrome user gesture and permission receipt; SW restart"
+        "negative": "No raw Chrome download ID or global enumeration, site and tool ownership, stale ref/revocation, unknown effect and one-use confirmation",
+        "native": "Same candidate Chrome 138+ installed tool, actual web download, get/list, cancel, revoked Chrome site and Worker restart; NOT_TESTED",
+        "existing": [
+          "tests/environment/browser-sdk-p3-implementation.test.mjs"
+        ]
       },
       "maxRequestBytes": 12000,
       "maxResponseBytes": 12000,
@@ -6801,15 +7020,19 @@
         "src/framework/sdk/browser.js",
         "src/framework/sdk/browser-schemas.js",
         "src/platform/chrome/context-menus.js#createContextMenuHost (REUSE)",
-        "src/platform/downloads/index.js"
+        "src/platform/downloads/index.js",
+        "src/platform/chrome/browser-downloads.js",
+        "src/ui/sidebar-tools.js",
+        "src/sidebar-tools/bridge.js"
       ],
-      "schemaStrategy": "INLINE_FROZEN_DESIGN_SCHEMA; implementation MUST copy/adapt into strict runtime validator and test"
+      "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA",
+      "currentSchemaAuthority": "src/framework/sdk/browser-schemas.js#operationSchemas ('browser.downloads.download')"
     },
     {
       "id": "browser.downloads.getOwned",
-      "visibility": "APPROVED_TOOL_PLANNED",
+      "visibility": "APPROVED_TOOL_REGISTERED",
       "migrationDecision": "NEW",
-      "sourceRegistry": "src/framework/sdk/browser-contract.js (TARGET NOT YET PRESENT)",
+      "sourceRegistry": "src/framework/sdk/browser-contract.js#BROWSER_OPERATIONS",
       "callSignature": "OpenDeskSDK.browser.downloads.getOwned({downloadRef:OpaqueDownloadRef})",
       "returnSignature": "Promise<{downloadRef,state,bytesReceived,totalBytes?}>",
       "inputSchema": {
@@ -6868,7 +7091,7 @@
       "allowedWorlds": [
         "sidebar-tool"
       ],
-      "trust": "INSTALLED_TOOL_EXPLICIT_CAPABILITY_AND_ORIGIN",
+      "trust": "INSTALLED_TOOL_VERIFIED_SENDER_PACKAGE_HASH_EPOCH_PERMISSION_AND_ONE_USE_INTENT",
       "userGesture": false,
       "errors": [
         "E_SCHEMA",
@@ -6884,12 +7107,12 @@
       "sdkFile": "src/framework/sdk/browser.js",
       "registryFile": "src/framework/sdk/browser-contract.js",
       "schemaFile": "src/framework/sdk/browser-schemas.js",
-      "hostDispatcher": "src/platform/chrome/context-menus.js#createContextMenuHost (REUSE)",
-      "authority": "src/ui/sidebar-tools.js + src/platform/chrome/context-menus.js (REUSE)",
-      "driverFile": "src/platform/downloads/index.js",
+      "hostDispatcher": "src/platform/chrome/context-menus.js#createContextMenuHost",
+      "authority": "existing Browser Host verified Sender + packageHash + tool Epoch + one-use intent for mutations + Chrome download/site permission",
+      "driverFile": "src/platform/chrome/browser-downloads.js",
       "lifecycle": "request / owned opaque Ref; fail closed after revoke/restart when applicable",
       "phase": "P3",
-      "status": "DESIGN_APPROVED_NOT_IMPLEMENTED",
+      "status": "SOURCE_WIRED_NATIVE_NOT_TESTED",
       "verification": {
         "node": "NOT_TESTED",
         "build": "NOT_TESTED",
@@ -6898,8 +7121,11 @@
       "testContract": {
         "target": "tests/environment/browser-sdk-p3-implementation.test.mjs (NEW)",
         "positive": "approved identity and scope produce bounded typed receipt",
-        "negative": "rejected permissions/foreign identity/unsafe input/revocation and unknown native effect",
-        "native": "same-candidate real Chrome user gesture and permission receipt; SW restart"
+        "negative": "No raw Chrome download ID or global enumeration, site and tool ownership, stale ref/revocation, unknown effect and one-use confirmation",
+        "native": "Same candidate Chrome 138+ installed tool, actual web download, get/list, cancel, revoked Chrome site and Worker restart; NOT_TESTED",
+        "existing": [
+          "tests/environment/browser-sdk-p3-implementation.test.mjs"
+        ]
       },
       "maxRequestBytes": 12000,
       "maxResponseBytes": 12000,
@@ -6941,15 +7167,19 @@
         "src/framework/sdk/browser.js",
         "src/framework/sdk/browser-schemas.js",
         "src/platform/chrome/context-menus.js#createContextMenuHost (REUSE)",
-        "src/platform/downloads/index.js"
+        "src/platform/downloads/index.js",
+        "src/platform/chrome/browser-downloads.js",
+        "src/ui/sidebar-tools.js",
+        "src/sidebar-tools/bridge.js"
       ],
-      "schemaStrategy": "INLINE_FROZEN_DESIGN_SCHEMA; implementation MUST copy/adapt into strict runtime validator and test"
+      "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA",
+      "currentSchemaAuthority": "src/framework/sdk/browser-schemas.js#operationSchemas ('browser.downloads.getOwned')"
     },
     {
       "id": "browser.downloads.listOwned",
-      "visibility": "APPROVED_TOOL_PLANNED",
+      "visibility": "APPROVED_TOOL_REGISTERED",
       "migrationDecision": "NEW",
-      "sourceRegistry": "src/framework/sdk/browser-contract.js (TARGET NOT YET PRESENT)",
+      "sourceRegistry": "src/framework/sdk/browser-contract.js#BROWSER_OPERATIONS",
       "callSignature": "OpenDeskSDK.browser.downloads.listOwned({cursor?:string,limit?:1..50})",
       "returnSignature": "Promise<{items:[OwnedDownload],nextCursor?}>",
       "inputSchema": {
@@ -7016,7 +7246,7 @@
       "allowedWorlds": [
         "sidebar-tool"
       ],
-      "trust": "INSTALLED_TOOL_EXPLICIT_CAPABILITY_AND_ORIGIN",
+      "trust": "INSTALLED_TOOL_VERIFIED_SENDER_PACKAGE_HASH_EPOCH_PERMISSION_AND_ONE_USE_INTENT",
       "userGesture": false,
       "errors": [
         "E_SCHEMA",
@@ -7032,12 +7262,12 @@
       "sdkFile": "src/framework/sdk/browser.js",
       "registryFile": "src/framework/sdk/browser-contract.js",
       "schemaFile": "src/framework/sdk/browser-schemas.js",
-      "hostDispatcher": "src/platform/chrome/context-menus.js#createContextMenuHost (REUSE)",
-      "authority": "src/ui/sidebar-tools.js + src/platform/chrome/context-menus.js (REUSE)",
-      "driverFile": "src/platform/downloads/index.js",
+      "hostDispatcher": "src/platform/chrome/context-menus.js#createContextMenuHost",
+      "authority": "existing Browser Host verified Sender + packageHash + tool Epoch + one-use intent for mutations + Chrome download/site permission",
+      "driverFile": "src/platform/chrome/browser-downloads.js",
       "lifecycle": "request / owned opaque Ref; fail closed after revoke/restart when applicable",
       "phase": "P3",
-      "status": "DESIGN_APPROVED_NOT_IMPLEMENTED",
+      "status": "SOURCE_WIRED_NATIVE_NOT_TESTED",
       "verification": {
         "node": "NOT_TESTED",
         "build": "NOT_TESTED",
@@ -7046,8 +7276,11 @@
       "testContract": {
         "target": "tests/environment/browser-sdk-p3-implementation.test.mjs (NEW)",
         "positive": "approved identity and scope produce bounded typed receipt",
-        "negative": "rejected permissions/foreign identity/unsafe input/revocation and unknown native effect",
-        "native": "same-candidate real Chrome user gesture and permission receipt; SW restart"
+        "negative": "No raw Chrome download ID or global enumeration, site and tool ownership, stale ref/revocation, unknown effect and one-use confirmation",
+        "native": "Same candidate Chrome 138+ installed tool, actual web download, get/list, cancel, revoked Chrome site and Worker restart; NOT_TESTED",
+        "existing": [
+          "tests/environment/browser-sdk-p3-implementation.test.mjs"
+        ]
       },
       "maxRequestBytes": 12000,
       "maxResponseBytes": 12000,
@@ -7089,15 +7322,19 @@
         "src/framework/sdk/browser.js",
         "src/framework/sdk/browser-schemas.js",
         "src/platform/chrome/context-menus.js#createContextMenuHost (REUSE)",
-        "src/platform/downloads/index.js"
+        "src/platform/downloads/index.js",
+        "src/platform/chrome/browser-downloads.js",
+        "src/ui/sidebar-tools.js",
+        "src/sidebar-tools/bridge.js"
       ],
-      "schemaStrategy": "INLINE_FROZEN_DESIGN_SCHEMA; implementation MUST copy/adapt into strict runtime validator and test"
+      "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA",
+      "currentSchemaAuthority": "src/framework/sdk/browser-schemas.js#operationSchemas ('browser.downloads.listOwned')"
     },
     {
       "id": "browser.downloads.cancelOwned",
-      "visibility": "APPROVED_TOOL_PLANNED",
+      "visibility": "APPROVED_TOOL_REGISTERED",
       "migrationDecision": "NEW",
-      "sourceRegistry": "src/framework/sdk/browser-contract.js (TARGET NOT YET PRESENT)",
+      "sourceRegistry": "src/framework/sdk/browser-contract.js#BROWSER_OPERATIONS",
       "callSignature": "OpenDeskSDK.browser.downloads.cancelOwned({downloadRef:OpaqueDownloadRef})",
       "returnSignature": "Promise<{cancelled:boolean}>",
       "inputSchema": {
@@ -7138,7 +7375,7 @@
       "allowedWorlds": [
         "sidebar-tool"
       ],
-      "trust": "INSTALLED_TOOL_EXPLICIT_CAPABILITY_AND_ORIGIN",
+      "trust": "INSTALLED_TOOL_VERIFIED_SENDER_PACKAGE_HASH_EPOCH_PERMISSION_AND_ONE_USE_INTENT",
       "userGesture": true,
       "errors": [
         "E_SCHEMA",
@@ -7154,12 +7391,12 @@
       "sdkFile": "src/framework/sdk/browser.js",
       "registryFile": "src/framework/sdk/browser-contract.js",
       "schemaFile": "src/framework/sdk/browser-schemas.js",
-      "hostDispatcher": "src/platform/chrome/context-menus.js#createContextMenuHost (REUSE)",
-      "authority": "src/ui/sidebar-tools.js + src/platform/chrome/context-menus.js (REUSE)",
-      "driverFile": "src/platform/downloads/index.js",
+      "hostDispatcher": "src/platform/chrome/context-menus.js#createContextMenuHost",
+      "authority": "existing Browser Host verified Sender + packageHash + tool Epoch + one-use intent for mutations + Chrome download/site permission",
+      "driverFile": "src/platform/chrome/browser-downloads.js",
       "lifecycle": "request / owned opaque Ref; fail closed after revoke/restart when applicable",
       "phase": "P3",
-      "status": "DESIGN_APPROVED_NOT_IMPLEMENTED",
+      "status": "SOURCE_WIRED_NATIVE_NOT_TESTED",
       "verification": {
         "node": "NOT_TESTED",
         "build": "NOT_TESTED",
@@ -7168,8 +7405,11 @@
       "testContract": {
         "target": "tests/environment/browser-sdk-p3-implementation.test.mjs (NEW)",
         "positive": "approved identity and scope produce bounded typed receipt",
-        "negative": "rejected permissions/foreign identity/unsafe input/revocation and unknown native effect",
-        "native": "same-candidate real Chrome user gesture and permission receipt; SW restart"
+        "negative": "No raw Chrome download ID or global enumeration, site and tool ownership, stale ref/revocation, unknown effect and one-use confirmation",
+        "native": "Same candidate Chrome 138+ installed tool, actual web download, get/list, cancel, revoked Chrome site and Worker restart; NOT_TESTED",
+        "existing": [
+          "tests/environment/browser-sdk-p3-implementation.test.mjs"
+        ]
       },
       "maxRequestBytes": 12000,
       "maxResponseBytes": 12000,
@@ -7211,9 +7451,13 @@
         "src/framework/sdk/browser.js",
         "src/framework/sdk/browser-schemas.js",
         "src/platform/chrome/context-menus.js#createContextMenuHost (REUSE)",
-        "src/platform/downloads/index.js"
+        "src/platform/downloads/index.js",
+        "src/platform/chrome/browser-downloads.js",
+        "src/ui/sidebar-tools.js",
+        "src/sidebar-tools/bridge.js"
       ],
-      "schemaStrategy": "INLINE_FROZEN_DESIGN_SCHEMA; implementation MUST copy/adapt into strict runtime validator and test"
+      "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA",
+      "currentSchemaAuthority": "src/framework/sdk/browser-schemas.js#operationSchemas ('browser.downloads.cancelOwned')"
     },
     {
       "id": "browser.bookmarks.create",
@@ -7765,9 +8009,9 @@
     },
     {
       "id": "browser.storage.local.get",
-      "visibility": "APPROVED_TOOL_PLANNED",
+      "visibility": "APPROVED_TOOL_REGISTERED",
       "migrationDecision": "NEW",
-      "sourceRegistry": "src/framework/sdk/browser-contract.js (TARGET NOT YET PRESENT)",
+      "sourceRegistry": "src/framework/sdk/browser-contract.js",
       "callSignature": "OpenDeskSDK.browser.storage.local.get({keys?:string[]})",
       "returnSignature": "Promise<{items:Record<string,JSONValue>}>",
       "inputSchema": {
@@ -7833,7 +8077,7 @@
       "driverFile": "src/platform/storage/index.js",
       "lifecycle": "request / owned opaque Ref; fail closed after revoke/restart when applicable",
       "phase": "P4",
-      "status": "DESIGN_APPROVED_NOT_IMPLEMENTED",
+      "status": "SOURCE_WIRED_NATIVE_NOT_TESTED",
       "verification": {
         "node": "NOT_TESTED",
         "build": "NOT_TESTED",
@@ -7891,9 +8135,9 @@
     },
     {
       "id": "browser.storage.local.set",
-      "visibility": "APPROVED_TOOL_PLANNED",
+      "visibility": "APPROVED_TOOL_REGISTERED",
       "migrationDecision": "NEW",
-      "sourceRegistry": "src/framework/sdk/browser-contract.js (TARGET NOT YET PRESENT)",
+      "sourceRegistry": "src/framework/sdk/browser-contract.js",
       "callSignature": "OpenDeskSDK.browser.storage.local.set({items:Record<string,JSONValue>})",
       "returnSignature": "Promise<{written:number}>",
       "inputSchema": {
@@ -7957,7 +8201,7 @@
       "driverFile": "src/platform/storage/index.js",
       "lifecycle": "request / owned opaque Ref; fail closed after revoke/restart when applicable",
       "phase": "P4",
-      "status": "DESIGN_APPROVED_NOT_IMPLEMENTED",
+      "status": "SOURCE_WIRED_NATIVE_NOT_TESTED",
       "verification": {
         "node": "NOT_TESTED",
         "build": "NOT_TESTED",
@@ -8015,9 +8259,9 @@
     },
     {
       "id": "browser.storage.local.remove",
-      "visibility": "APPROVED_TOOL_PLANNED",
+      "visibility": "APPROVED_TOOL_REGISTERED",
       "migrationDecision": "NEW",
-      "sourceRegistry": "src/framework/sdk/browser-contract.js (TARGET NOT YET PRESENT)",
+      "sourceRegistry": "src/framework/sdk/browser-contract.js",
       "callSignature": "OpenDeskSDK.browser.storage.local.remove({keys:string[]})",
       "returnSignature": "Promise<{removed:number}>",
       "inputSchema": {
@@ -8085,7 +8329,7 @@
       "driverFile": "src/platform/storage/index.js",
       "lifecycle": "request / owned opaque Ref; fail closed after revoke/restart when applicable",
       "phase": "P4",
-      "status": "DESIGN_APPROVED_NOT_IMPLEMENTED",
+      "status": "SOURCE_WIRED_NATIVE_NOT_TESTED",
       "verification": {
         "node": "NOT_TESTED",
         "build": "NOT_TESTED",
@@ -8143,9 +8387,9 @@
     },
     {
       "id": "browser.storage.local.clear",
-      "visibility": "APPROVED_TOOL_PLANNED",
+      "visibility": "APPROVED_TOOL_REGISTERED",
       "migrationDecision": "NEW",
-      "sourceRegistry": "src/framework/sdk/browser-contract.js (TARGET NOT YET PRESENT)",
+      "sourceRegistry": "src/framework/sdk/browser-contract.js",
       "callSignature": "OpenDeskSDK.browser.storage.local.clear({confirm:boolean})",
       "returnSignature": "Promise<{removed:number}>",
       "inputSchema": {
@@ -8207,7 +8451,7 @@
       "driverFile": "src/platform/storage/index.js",
       "lifecycle": "request / owned opaque Ref; fail closed after revoke/restart when applicable",
       "phase": "P4",
-      "status": "DESIGN_APPROVED_NOT_IMPLEMENTED",
+      "status": "SOURCE_WIRED_NATIVE_NOT_TESTED",
       "verification": {
         "node": "NOT_TESTED",
         "build": "NOT_TESTED",
@@ -56117,9 +56361,9 @@
   "coverageAudit": {
     "seedNativeCatalogEntries": 119,
     "seedNativeCatalogMissing": 0,
-    "registeredOperations": 29,
-    "trustedCookieHostOperations": 11,
-    "approvedNewDesignOperations": 15,
+    "registeredOperations": 48,
+    "trustedCookieHostOperations": 0,
+    "approvedNewDesignOperations": 7,
     "approvedTotal": 55,
     "orphanNativeMappings": [],
     "parseErrors": [],
@@ -56136,7 +56380,8 @@
       "extensions/common/api/web_accessible_resources_mv2.webidl",
       "extensions/common/api/web_accessible_resources.webidl"
     ],
-    "schemaMissingApproved": []
+    "schemaMissingApproved": [],
+    "existingTrustedNativeCookieDriverOperations": 11
   },
   "implementationPhases": [
     "P0",
@@ -56230,8 +56475,8 @@
     ],
     "completeness": "Known source consumers identified; exhaustive consumer path enumeration cannot be verified without full repository grep. Phase P1 must enumerate and migrate all current consumers before deleting active alias."
   },
-  "currentRegistrySourceSha": "d7182f9fa84dc8a271c8b14bac7787dde53a391b",
-  "currentSchemaSourceSha": "dabab71794cfda6db9710a8714ed4618e71799d8",
+  "currentRegistrySourceSha": "7768af9cbbf09169214b50bdb68c5340c9566086",
+  "currentSchemaSourceSha": "7482231d35be77fe4a3818fa7de897b1370be797",
   "contractRevisions": [
     {
       "date": "2026-10-13",
@@ -56248,6 +56493,41 @@
       "reason": "Reconcile actual pinned interface rows: chrome.sidePanel.close is VERSION_GATED (>=145), not an automatically available Chrome 138 scoped API",
       "change": "1 row restored to VERSION_GATED; 1830 total unchanged",
       "evidenceLevel": "SOURCE_METADATA_ONLY_NOT_NATIVE_PASS"
+    },
+    {
+      "date": "2026-10-13",
+      "id": "R9-installed-Cookie-SDK",
+      "reason": "User-approved promotion of 11 existing trusted Cookie operations to explicit per-site/capability installed-tool SDK; retain original native Host/Service and internal trusted protection",
+      "change": "Registered 29->40, Host-only-design 11->0, approved 55 unchanged, source discovery 191/1830 unchanged",
+      "node": "NOT_TESTED",
+      "build": "NOT_TESTED",
+      "nativeChrome": "NOT_TESTED"
+    },
+    {
+      "date": "2026-10-13",
+      "id": "R9-exact-Cookie-clear-preview",
+      "reason": "Count-only preview can delete replacement cookies when the cookie set changes but count remains equal",
+      "change": "Bind exact sorted Cookie identity fingerprint to opaque one-use in-memory previewRef, tool instance/epoch/site/store/partition, expiry 60s; no extra Registry/Service",
+      "node": "NOT_TESTED",
+      "nativeChrome": "NOT_TESTED"
+    },
+    {
+      "date": "2026-10-13",
+      "id": "R10.1-P3-downloads-owned",
+      "reason": "Implement four already approved P3 download operations using the existing authenticated Browser Host and one scoped native download driver; no global history or raw download IDs",
+      "change": "Approved registered 40->44; planned 15->11; total 55; pinned Chromium 191/1830 unchanged",
+      "node": "NOT_TESTED",
+      "build": "NOT_TESTED",
+      "nativeChrome": "NOT_TESTED"
+    },
+    {
+      "date": "2026-10-13",
+      "id": "R10.1-hide-native-text-download-id",
+      "reason": "Prelaunch safety contract prohibits exposing Chrome native download IDs in untrusted tool IPC",
+      "change": "browser.downloads.text now returns bounded {started:true}; Chrome download ID remains trusted-only; total registered 44 and planned 11 unchanged",
+      "node": "NOT_TESTED",
+      "build": "NOT_TESTED",
+      "nativeChrome": "NOT_TESTED"
     }
   ]
 }

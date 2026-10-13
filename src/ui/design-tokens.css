@@ -27,6 +27,7 @@
   --od-note-size:12px;
   --od-meta-size:11px;
   --od-on-brand:#fff;
+  --od-nav-active:var(--od-brand);
   --od-action-bg:var(--od-muted);
   --od-action-border:var(--od-input-border);
   --od-action-ink:var(--od-ink);
@@ -77,5 +78,6 @@
     --od-warning-border:#8b6841;
     --od-warning-ink:#f6dca8;
     --od-negative-bg:#442632;
+    --od-nav-active:#9dc1ff;
   }
 }

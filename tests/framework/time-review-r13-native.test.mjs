@@ -224,13 +224,16 @@ test('Time Review R1.3 actual Mac Chrome install and trusted consent smoke',{ski
   evidence.install='PASS';note('install',{version:saved});
   await nativeClick(browser,side,installed);
   await until(()=>evaluate(browser,side,'!document.querySelector("#sidebar-tool-display").hidden'),'tool opened');
-  const frameTarget=await until(async()=>{
-    const rows=(await browser.send('Target.getTargets')).targetInfos;
-    return rows.find(x=>x.type==='iframe'&&x.url?.includes('/sidebar-tools/sandbox.html'));
-  },'sandbox tool iframe');
-  const frame=(await browser.send('Target.attachToTarget',{targetId:frameTarget.targetId,flatten:true})).sessionId;
-  frameSid=frame;
-  await browser.send('Runtime.enable',{},frame);await browser.send('Page.enable',{},frame);
+  await until(()=>evaluate(browser,side,`(()=>{
+    const host=document.querySelector("#sidebar-tool-frame");
+    return host?.dataset.timeReviewNative==="true"&&
+      !!host.querySelector("main.review")&&
+      host.querySelectorAll("iframe").length===0;
+  })()`),'first-party trusted Side Panel native render without iframe');
+  // The one trusted Side Panel document owns the Canvas, settings, exports
+  // and controls; there is intentionally no Time Review iframe target.
+  const frame=side;frameSid=null;
+  evidence.nativeTrustedUI='PASS';evidence.timeReviewIframeRemoved='PASS';
   await until(()=>evaluate(browser,frame,
     'document.querySelectorAll(".qcard").length===4 && document.querySelectorAll(".extra-card").length===2 && !document.querySelector("#status")?.textContent?.includes("正在读取")'),
     'actual R1.3 data-bound Canvas and category cards');
@@ -242,12 +245,12 @@ test('Time Review R1.3 actual Mac Chrome install and trusted consent smoke',{ski
     ['重要且紧急','重要不紧急','紧急不重要','不重要不紧急'],
     'native Canvas classifications must use canonical data model labels');
   assert.equal(visual.timeline,'尚无分钟明细','No fabricated historical minutes');
-  assert.equal(visual.horizontal,true,'No horizontal overflow in actual tool iframe');
+  assert.equal(visual.horizontal,true,'No horizontal overflow in actual Side Panel');
   evidence.screenshots.push(await screenshot(browser,side,'installed-native-side-panel'));
   const frameGeometry=await evaluate(browser,frame,
     '(()=>({viewportHeight:innerHeight,documentHeight:document.documentElement.scrollHeight,rootHeight:document.querySelector(".review")?.getBoundingClientRect().height}))()');
   const outerGeometry=await evaluate(browser,side,
-    '(()=>{const frame=document.querySelector(".sidebar-tool-iframe"),rect=frame?.getBoundingClientRect();return {viewportHeight:innerHeight,iframeHeight:rect?.height,iframeMaxHeight:frame?getComputedStyle(frame).maxHeight:null,hostScrollHeight:document.documentElement.scrollHeight}})()');
+    '(()=>{const native=document.querySelector("#sidebar-tool-frame main.review");return {viewportHeight:innerHeight,nativeHeight:native?.getBoundingClientRect().height,iframeCount:document.querySelectorAll("#sidebar-tool-frame iframe").length,hostScrollHeight:document.documentElement.scrollHeight}})()');
   note('native-canvas',{...visual,frameGeometry,outerGeometry});
   // Actual Chrome page zoom: macOS native Command+Plus/Command+0 input on the
   // owned, headed SIDE_PANEL. DPR emulation cannot satisfy this contract.
@@ -281,9 +284,10 @@ test('Time Review R1.3 actual Mac Chrome install and trusted consent smoke',{ski
     if(browserZoom==='PASS'){
       const measurable=await until(async()=>{
         const m=await zoomMetrics();
-        return m.cssScrollWidth<=m.cssWidth+1&&
-          m.contentHeight<=m.cssHeight+3?m:null;
-      },'actual 200 percent zoom has no nested iframe scrolling or horizontal overflow',6000);
+        // The first-party Side Panel has one intentional outer vertical
+        // scrollbar. Only nested/horizontal overflow is forbidden.
+        return m.cssScrollWidth<=m.cssWidth+1&&m.canvasWidth>0?m:null;
+      },'actual 200 percent zoom has no nested scrolling or horizontal overflow',6000);
       zoomObserved=measurable;
       assert.ok(zoomObserved.canvasWidth>0&&zoomObserved.canvasWidth<=zoomObserved.cssWidth,
         'actual zoom must keep the one-track Canvas inside the Side Panel width');
@@ -306,13 +310,13 @@ test('Time Review R1.3 actual Mac Chrome install and trusted consent smoke',{ski
   const readTime=()=>evaluate(browser,side,'chrome.storage.local.get('+JSON.stringify(KEY)+').then(v=>v['+JSON.stringify(KEY)+'])');
   let state=await readTime();assert.ok(state&&state.paused,'install/open must not begin recording');
   assert.equal(state.minuteConsent,false,'minute data opt-in must default false');
-  await nativeClick(browser,frame,'#settings summary');
-  await nativeClick(browser,frame,'#minute-consent');
-  // Sandbox request is not an authority to collect more precise activity:
-  // only opens the trusted extension Settings and refuses the operation.
-  await until(()=>evaluate(browser,side,'!document.querySelector("#sidebar-tool-settings-view").hidden'),'trusted settings from sandbox');
+  // Native UI hides its duplicate minute-consent control: only the existing
+  // trusted Host enrollment/retention buttons may change that permission.
+  assert.equal(await evaluate(browser,side,
+    'Boolean(document.querySelector("#minute-consent")?.closest(".setting-row")?.hidden)'),true);
+  await setTimeReviewSettingsVisible(browser,side,true);
   state=await readTime();assert.equal(state.minuteConsent,false);
-  note('untrusted-consent-denied',{minuteConsent:state.minuteConsent});
+  note('trusted-native-consent-unmodified',{minuteConsent:state.minuteConsent});
   await nativeClick(browser,side,'#time-review-minute-enable');
   state=await until(async()=>{const value=await readTime();return value?.minuteConsent?value:null;},'trusted minute consent');
   assert.deepEqual(state.minuteDays,{});
@@ -331,7 +335,8 @@ test('Time Review R1.3 actual Mac Chrome install and trusted consent smoke',{ski
   await setTimeReviewSettingsVisible(browser,side,false);
   await until(()=>evaluate(browser,side,'document.querySelector("#sidebar-tool-settings-view").hidden'),'return tool from host settings');
   const exportDetails=await evaluate(browser,side,'Boolean(document.querySelector("#sidebar-tool-frame iframe"))');
-  assert.equal(exportDetails,true);
+  assert.equal(await evaluate(browser,side,'Boolean(document.querySelector("#sidebar-tool-frame main.review"))'),true);
+  assert.equal(exportDetails,false,'approved first-party Time Review must not have a sandbox iframe');
   // The browser API may accept a download that subsequently gets interrupted.
   // Observe REAL Chrome download state before declaring disk success; never
   // read or copy a file outside this run's independently owned profile.
@@ -400,8 +405,8 @@ test('Time Review R1.3 actual Mac Chrome install and trusted consent smoke',{ski
   evidence.download=issues.length?'FAIL':'PASS';
   if(issues.length)assert.deepEqual(issues,[],'Actual JSON/CSV export failures');
   state=await readTime();assert.equal(state.paused,true,'no idle prompt or start should be bypassed');
-  // First-run sandbox Start may REVEAL the existing trusted consent only.
-  // No site consent, idle grant or active tracker may be forged by iframe code.
+  // The native Start may REVEAL required permissions, not grant anything.
+  // Missing site scope/idle must never start an unauthorized tracker.
   await nativeClick(browser,frame,'#start');
   await until(()=>evaluate(browser,side,`(()=>{
     const d=document.querySelector("#sidebar-tool-display");
@@ -411,10 +416,10 @@ test('Time Review R1.3 actual Mac Chrome install and trusted consent smoke',{ski
   })()`),'real first-run inline consent with visible statistics and DOM tab order',12000);
   state=await readTime();
   assert.ok(state.paused&&state.siteGrants?.origins?.length===0&&state.siteGrants?.allSites===false,
-    'sandbox Start must not grant site access or begin recording');
+    'native Start without permission must not grant site access or begin recording');
   evidence.inlineEnrollment='PASS';
   evidence.screenshots.push(await screenshot(browser,side,'first-run-inline-time-review-consent'));
-  note('native-inline-enrollment',{trustedExistingControls:true,frameVisible:true,domFocusOrder:true,siteGrantUntouched:true});
+  note('native-inline-enrollment',{trustedExistingControls:true,nativeUIVisible:true,iframeRemoved:true,domFocusOrder:true,siteGrantUntouched:true});
   // Native activity is driven by real Chrome permission UI and active tabs.
   // Never pre-seed business storage or replace the idle API in this test.
   await setTimeReviewSettingsVisible(browser,side,true);
@@ -450,12 +455,15 @@ test('Time Review R1.3 actual Mac Chrome install and trusted consent smoke',{ski
       return s?.siteGrants?.origins?.includes(approvedOrigin)?s:null;
     },'independent Time Review site grant',10000);
     note('site-grant',{origin:approvedOrigin,source:'native trusted click'});
-    await nativeClick(browser,side,'#time-review-trusted-start');
-    await until(async()=>{const s=await readTime();return s&&!s.paused&&s.authorizedHash?s:null;},'trusted start',10000);
+    // One authentic click in the actual native UI must start without a
+    // second review button after permissions are already effective.
+    await setTimeReviewSettingsVisible(browser,side,false);
+    await nativeClick(browser,frame,'#start');
+    await until(async()=>{const s=await readTime();return s&&!s.paused&&s.authorizedHash?s:null;},'one-click native start',10000);
     await until(()=>evaluate(browser,frame,
       'document.querySelector("#start")?.hidden===true&&document.querySelector("#pause")?.hidden===false'),
       'trusted start updates live Time Review controls without waiting 15 seconds',8000);
-    note('trusted-start-immediate-ui',{pauseVisible:true,bridgeStateHintOnly:true});
+    note('trusted-start-immediate-ui',{pauseVisible:true,noIframe:true,noSecondConfirmation:true});
     const readActivityGates=()=>evaluate(browser,side,
       '(async()=>{const w=await chrome.windows.getLastFocused();const t=(await chrome.tabs.query({active:true,windowId:w.id}))[0];return {focused:w.focused,windowType:w.type,idle:await chrome.idle.queryState(60),isLoopbackTab:t?.url?.startsWith("http://127.0.0.1:"),hasHostPermission:await chrome.permissions.contains({origins:["http://127.0.0.1/*"]})};})()');
     let observationGates=await readActivityGates();
@@ -737,7 +745,7 @@ test('Time Review R1.3 actual Mac Chrome install and trusted consent smoke',{ski
     }
     await browser.send('Target.closeTarget',{targetId:site.targetId});
   }
-  // Change the category via the actual visible sandbox UI: native pointer
+  // Change the category via the actual trusted Side Panel UI: native pointer
   // focus, native arrow-key selection and the normal Save button. Neither the
   // test nor CDP may write Time Review business records directly.
   if(evidence.beginAndActiveCollection==='PASS'){

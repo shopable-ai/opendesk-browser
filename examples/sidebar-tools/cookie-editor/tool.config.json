@@ -1,9 +1,9 @@
 {
   "format": "opendesk.sidebar-tool.v2",
   "id": "cookie-editor",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "title": "Cookie Editor · Cookie 管理",
-  "description": "通过正式 OpenDesk Browser Cookies SDK，按网站独立授权管理真实 Chrome Cookie；敏感值和更改须独立审阅。保留隔离的离线工作区。",
+  "description": "已安装 Cookie Editor：默认管理已授权网站的真实 Chrome Cookie，支持安全重命名、创建、编辑、精确删除、导入导出与观察；敏感值仍独立授权。离线文件工具在次级区域。",
   "capabilities": [
     "currentPage.read",
     "user.export",

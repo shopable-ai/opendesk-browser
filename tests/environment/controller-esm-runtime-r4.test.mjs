@@ -46,6 +46,27 @@ test('R4 browser Controller inspector reports every static URL without evaluatin
   assert.deepEqual(c.modules.map(({url})=>url),[child,root].sort());
 });
 
+test('R7.4 normal pinned npm import resolves without proprietary directives and runs through existing Worker linker',async()=>{
+  const url='https://cdn.jsdelivr.net/npm/mitt@3.0.1/+esm';
+  const source="import mitt from 'mitt@3.0.1';\nexport default async function main(){const bus=mitt();const events=[];bus.on('message',v=>events.push(v));bus.emit('message','OpenDesk');return events}";
+  const inspected=await inspectBrowserControllerESM(setup({componentSource:source}));
+  assert.deepEqual(inspected.remoteRoots,[url]);
+  assert.deepEqual(inspected.missingUrls,[url]);
+  assert.equal(inspected.complete,false);
+  const fakeModule=row(url,"export default function mitt(){const handlers=new Map();return {on:(e,f)=>handlers.set(e,f),emit:(e,v)=>handlers.get(e)?.(v)}}");
+  const built=await prepareBrowserControllerESM(setup({componentSource:source,
+    remoteModules:[fakeModule],remoteLock:frozenLock([fakeModule])}));
+  assert.equal(built.authoringSourceHash,sha(source));
+  assert.deepEqual(JSON.parse(JSON.stringify(await executeBuilt(built.sourceUtf8))),['OpenDesk']);
+  assert.doesNotMatch(built.sourceUtf8,/@opendesk-classic|globalThis\.mitt|https:\/\/cdn\.jsdelivr\.net\/npm\/mitt@3\.0\.1\/\+esm.*import\s*\(/);
+  await assert.rejects(inspectBrowserControllerESM(setup({componentSource:
+    "import mitt from 'mitt';export default async function main(){return mitt()}"})),
+    {code:'E_REMOTE_IMPORT'},'unversioned bare imports must not silently fetch latest');
+  const scoped=await inspectBrowserControllerESM(setup({componentSource:
+    "import add from '@sample/math@2.0.1'; export default async function main(){return add(1,2)}"}));
+  assert.deepEqual(scoped.remoteRoots,['https://cdn.jsdelivr.net/npm/@sample/math@2.0.1/+esm']);
+});
+
 test('R4 controller fixed graph executes real imported functions in the lexical Worker entry',async()=>{
   const modules=[first,second],built=await prepareBrowserControllerESM(setup({
     remoteModules:modules,remoteLock:frozenLock(modules)}));

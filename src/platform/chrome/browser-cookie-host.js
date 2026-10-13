@@ -85,7 +85,7 @@ function normalized(op,input={}){
   return structuredClone(input);
 }
 export function createTrustedCookieHost({api=globalThis.chrome,now=Date.now}={}){
-  const approvals=new Map(),sessions=new Map();
+  const approvals=new Map(),sessions=new Map(),clearPreviews=new Map();
   async function guard(target){
     if(!api.permissions?.contains||
        !await api.permissions.contains({permissions:['cookies']})||
@@ -307,12 +307,42 @@ export function createTrustedCookieHost({api=globalThis.chrome,now=Date.now}={})
       const current=rows.filter(row=>row.hostOnly===true&&row.domain.replace(/^\./,'').toLowerCase()===host&&
         (!row.secure||args.url.startsWith('https:')));
       if(current.length>(args.maxCookies??50))throw error('E_LIMIT');
-      if(new Set(current.map(row=>JSON.stringify([row.name,row.path,row.domain,row.partitionKey??null]))).size!==current.length)
-        throw error('E_COOKIE_AMBIGUOUS');
-      if(args.preview===true)result={matched:current.length,removed:0,remaining:current.length,
-        preview:true,scope:'EXACT_HOST_HOST_ONLY'};
-      else{
-        if(current.length!==args.expectedCount)throw error('E_COOKIE_STALE','Clear count changed; preview again');
+      const cookieIdentity=row=>JSON.stringify([row.name,row.path,row.domain,row.storeId,
+        row.partitionKey?.topLevelSite??null,Boolean(row.partitionKey?.hasCrossSiteAncestor)]);
+      const identities=current.map(cookieIdentity);
+      if(new Set(identities).size!==current.length)throw error('E_COOKIE_AMBIGUOUS');
+      for(const [ref,preview] of clearPreviews)if(now()>=preview.expiresAt)clearPreviews.delete(ref);
+      const prior=args.preview===true?null:clearPreviews.get(args.previewRef);
+      // Store no Cookie plaintext in approval receipts. Bind a preview to the
+      // exact values and attributes, not just name/path/count: another login
+      // can replace a Cookie without changing its native identity.
+      const salt=args.preview===true?crypto.randomUUID():prior?.salt;
+      const fingerprints=salt?(await Promise.all(current.map(async row=>{
+        const bytes=new TextEncoder().encode(JSON.stringify([salt,row.name,row.path,row.domain,
+          row.storeId,row.partitionKey?.topLevelSite??null,
+          Boolean(row.partitionKey?.hasCrossSiteAncestor),row.value??null,
+          row.secure===true,row.httpOnly===true,row.sameSite??null,row.session===true,
+          row.expirationDate??null]));
+        const digest=new Uint8Array(await crypto.subtle.digest('SHA-256',bytes));
+        return Array.from(digest,b=>b.toString(16).padStart(2,'0')).join('');
+      }))).sort():[];
+      if(args.preview===true){
+        if(clearPreviews.size>=16)throw error('E_LIMIT','Too many pending Cookie clear previews');
+        const previewRef=crypto.randomUUID();
+        clearPreviews.set(previewRef,{url:args.url,ownerKey,storeId,salt,
+          partition:JSON.stringify(key.partitionKey??null),fingerprints,
+          count:current.length,expiresAt:now()+60000});
+        result={matched:current.length,removed:0,remaining:current.length,
+          preview:true,previewRef,scope:'EXACT_HOST_HOST_ONLY'};
+      }else{
+        const preview=prior;
+        clearPreviews.delete(args.previewRef); // one-use even on a stale/corrupt request
+        if(!preview||now()>=preview.expiresAt||preview.url!==args.url||
+           preview.ownerKey!==ownerKey||preview.storeId!==storeId||
+           preview.partition!==JSON.stringify(key.partitionKey??null)||
+           preview.count!==args.expectedCount||
+           JSON.stringify(preview.fingerprints)!==JSON.stringify(fingerprints))
+          throw error('E_COOKIE_STALE','Cookie values or identities changed; refresh the preview');
         result={...await existing.clearSite({url:args.url,...key,maxCookies:args.maxCookies??50},context),
           preview:false,scope:'EXACT_HOST_HOST_ONLY'};
       }
@@ -321,8 +351,12 @@ export function createTrustedCookieHost({api=globalThis.chrome,now=Date.now}={})
       for(const [ref,row] of sessions)if(now()>=row.expiresAt)sessions.delete(ref);
       if(sessions.size>=8)throw error('E_LIMIT');
       const sessionRef=crypto.randomUUID(),expiresAt=now()+(args.durationMs??15000);
+      // Installed observe.start has no partitionKey parameter. Keep its default
+      // event scope identical to getAll({url}) without a partitionKey: only
+      // unpartitioned Cookies. A site grant's partition receipt is NOT a
+      // request to expose that partition's onChanged metadata.
       sessions.set(sessionRef,{kind:'installed',ownerKey,target:{url:args.url,origin},storeId,
-        partitionKey,expiresAt,events:[],maxEvents:args.maxEvents??40,dropped:0,nextSeq:1});
+        partitionKey:null,expiresAt,events:[],maxEvents:args.maxEvents??40,dropped:0,nextSeq:1});
       result={sessionRef,expiresAt,status:'running'};
     }else if(op.startsWith('browser.cookies.observe.')){
       const session=sessions.get(args.sessionRef);
@@ -347,7 +381,8 @@ export function createTrustedCookieHost({api=globalThis.chrome,now=Date.now}={})
     if(result===undefined)throw error('E_SERVICE_UNSUPPORTED');
     try{await check('post');}
     catch(cause){
-      if(MUTATIONS.has(op))throw error('E_OUTCOME_UNKNOWN','Site authority changed after a Cookie effect');
+      if(MUTATIONS.has(op)&&args.preview!==true)
+        throw error('E_OUTCOME_UNKNOWN','Site authority changed after a Cookie effect');
       throw cause;
     }
     return result;
@@ -414,7 +449,7 @@ export function createTrustedCookieHost({api=globalThis.chrome,now=Date.now}={})
         throw cause;
       }
     },
-    revoke(){approvals.clear();sessions.clear();},
+    revoke(){approvals.clear();sessions.clear();clearPreviews.clear();},
     noteNavigation(tabId){
       for(const [id,row] of approvals)if(row.target.tabId===tabId)approvals.delete(id);
       for(const [id,row] of sessions)if(row.target.tabId===tabId)sessions.delete(id);

@@ -76,9 +76,10 @@
         "https://github.com/scriptscat/scriptcat/releases/tag/v1.5.0-beta.4",
         "https://github.com/scriptscat/scriptcat/releases",
         "https://github.com/scriptscat/scriptcat",
-        "https://github.com/scriptscat/scriptcat/releases/tag/v1.4.0"
+        "https://github.com/scriptscat/scriptcat/releases/tag/v1.4.0",
+        "https://docs.scriptcat.org/en/docs/change/beta-changelog/"
       ],
-      "note": "Beta install-permission diff and Agent/MCP claims cannot be represented as stable-v1.4 features; stable date is reported by 2026-10-09 R8 research and should be reconfirmed before external use.",
+      "note": "Beta install-permission diff and Agent/MCP claims cannot be represented as stable-v1.4 features; stable date is reported by 2026-10-09 R8 research and should be reconfirmed before external use. Official 1.5.0-beta.4 release documentation already describes install-time full-screen code review and changed-permission diff. This disproves novelty claims based merely on code viewing or permission review; still not a stable v1.4 claim.",
       "maintenanceState": "RELEASE_ACTIVE",
       "r2Evidence": [
         {
@@ -110,6 +111,12 @@
           "firstPublicFeatureAt": "2026-09-18",
           "channel": "BETA",
           "url": "https://github.com/scriptscat/scriptcat/releases/tag/v1.5.0-beta.4"
+        },
+        {
+          "feature": "Install-time full-screen code viewer and changed-permission diffs",
+          "firstPublicFeatureAt": "2026-09-18",
+          "channel": "BETA",
+          "url": "https://docs.scriptcat.org/en/docs/change/beta-changelog/"
         }
       ]
     },
@@ -725,9 +732,10 @@
       "latestStableVersion": null,
       "verifiedSources": [
         "https://axiom.ai/build-in-claude/",
-        "https://axiom.ai/build-with-no-code/claude/"
+        "https://axiom.ai/build-with-no-code/claude/",
+        "https://axiom.ai/docs/claude-skill/"
       ],
-      "note": "Claude Skill can create importable Chrome bots and schedule cloud/desktop; no official dated earliest availability established.",
+      "note": "Claude Skill can create importable Chrome bots and schedule cloud/desktop; no official dated earliest availability established. Current official Claude Skill docs describe both savable no-code account automations and code artifacts using @axiom_ai/api; the mode chosen changes runtime and account requirements. Real total-cost benchmarks remain NOT_TESTED.",
       "r5AgainstGF007": {
         "repeatsWork": true,
         "modelFreeRerun": "UNKNOWN_NOT_MEASURED",
@@ -810,9 +818,9 @@
       "lastStoreUpdatedAt": null,
       "lastVerifiedAt": "2026-10-13",
       "sourceActivityBasis": "DIRECT_RELEASE_OR_VENDOR_SOURCE_NO_REPO_PUSH_INFERRED",
-      "maintenanceAssessment": "PREVIEW_PUBLIC",
-      "productCapabilityStage": "PUBLIC_PREVIEW",
-      "maintenanceState": "PREVIEW_PUBLIC",
+      "maintenanceAssessment": "GENERAL_AVAILABILITY_OFFICIALLY_DOCUMENTED",
+      "productCapabilityStage": "GENERAL_AVAILABILITY",
+      "maintenanceState": "GENERAL_AVAILABILITY_VERIFIED",
       "id": "uipath-delegate",
       "name": "UiPath Delegate",
       "category": "enterprise-desktop-ai-agent-routines",
@@ -821,9 +829,10 @@
       "latestStableVersion": null,
       "verifiedSources": [
         "https://docs.uipath.com/delegate/standalone/latest/release-notes/august-2026",
-        "https://docs.uipath.com/delegate/standalone/latest/user-guide/routines"
+        "https://docs.uipath.com/delegate/standalone/latest/user-guide/routines",
+        "https://docs.uipath.com/delegate/standalone/latest/release-notes/september-2026"
       ],
-      "note": "2026-08-25 official Public Preview offers user-built reusable schedulable Routines and governance. Routine may run with model; no claim no AI on rerun.",
+      "note": "2026-08-25 Public Preview first documented reusable schedulable Routines; 2026-09-22 official General Availability added cross-team sharing and centralized governance. Routine execution may still call a model; exact model-free same-code repetition has not been independently measured.",
       "r4FeatureFirst": {
         "feature": "Reusable schedulable routine with approval/governance",
         "date": "2026-08-25",
@@ -835,7 +844,8 @@
         "fixedCodeOwnedByUser": "UNKNOWN_NOT_MEASURED",
         "sameLoggedInChrome": "UNKNOWN_OR_MODE_DEPENDENT",
         "independentBenchmark": "NOT_TESTED"
-      }
+      },
+      "generallyAvailableSince": "2026-09-22"
     },
     {
       "firstReleasedAt": null,
@@ -932,13 +942,15 @@
       "lastStoreUpdatedAt": null,
       "lastVerifiedAt": "2026-10-13",
       "sourceActivityBasis": "NOT_RETRIEVED_R5",
-      "maintenanceAssessment": "OFFICIAL_BETA_FEATURE_DOCUMENTED_LATEST_VERSION_UNVERIFIED",
-      "productCapabilityStage": "BETA_RELEASE_NOTES_FEATURES_VERIFIED",
-      "maintenanceState": "BETA_DOCUMENTED_CURRENT_CHANNEL_VERSION_UNKNOWN",
+      "maintenanceAssessment": "OFFICIAL_GENERAL_AVAILABILITY_PAID_PLANS_VERSION_UNVERIFIED",
+      "productCapabilityStage": "GENERAL_AVAILABILITY",
+      "maintenanceState": "GENERAL_AVAILABILITY_VERIFIED",
       "verifiedSources": [
-        "https://support.claude.com/en/articles/12138966-release-notes"
+        "https://support.claude.com/en/articles/12138966-release-notes",
+        "https://claude.com/resources/articles/claude-in-chrome-generally-available",
+        "https://support.claude.com/en/articles/12012173-get-started-with-claude-in-chrome"
       ],
-      "note": "Anthropic official 2025-11-24 notes scheduled browser tasks/approved plans, and 2025-12-18 notes record a workflow and repeat. Earlier research mistakenly attributed recording to 2026-07-24 (that date belongs to unrelated Claude Opus 5 launch). Neither date proves product's absolute first release or model-free JS execution.",
+      "note": "Anthropic official 2025-11-24 notes scheduled browser tasks/approved plans, and 2025-12-18 notes record a workflow and repeat. Earlier research mistakenly attributed recording to 2026-07-24 (that date belongs to unrelated Claude Opus 5 launch). Neither date proves product's absolute first release or model-free JS execution. Official general availability was announced 2026-08-26 for paid Claude plans; the recorded shortcut is model-prompt replay and does not demonstrate an inspectable fixed JS package or model-free cost per run.",
       "r5CompetitionClass": "RECORDED_AI_WORKFLOW",
       "r5FeatureProof": {
         "feature": "Record a workflow and repeat",
@@ -969,7 +981,8 @@
           "firstFeatureHistoricalCompleteness": "NOT_ESTABLISHED",
           "url": "https://support.claude.com/en/articles/12138966-release-notes"
         }
-      ]
+      ],
+      "generallyAvailableSince": "2026-08-26"
     },
     {
       "id": "perplexity-comet",

@@ -144,3 +144,27 @@ npm run verify
 - 设计评估（**预计、未实测**）：`全部去掉 iframe 并直接执行动态工具` 高风险，不可进入正式候选；`全部保留 iframe` 安全且重用度高，但 Time Review UX/可维护性并非最简；`官方受控预编译组件原生渲染 + 动态工具既有 sandbox` 是最有潜力获得 ≥95/100 的方案，实际评分在 build、身份失败关闭、真实原位授权、卸载和 macOS Chrome 证据完成前保持 `NOT_SCORED`。
 - 决策执行顺序：先确认官方可信 UI 可以在既定 WXT IIFE/512 KiB 约束下静态编译且不产生第二实现；随后仅迁 Time Review 一个工具，检查正确的 Chrome 权限请求用户手势、现有网站授权和收起/返回/焦点、停用撤权、跨工具隔离及安装更新；全部通过后才评估 Cookie Editor/Stay Focus 等其他第一方工具。若要突破硬预算、复制安装/Host 或破坏安全边界，直接停止迁移，继续保留当前透明 iframe 运行方式。
 - 不采用 `package.json` 替代 `manifest.json` 的 Chrome 授权，更不能把扩展级 `<all_urls>` 推断为 Time Review 的采集同意。首次网站授权、可选 `idle` 和明确开始记录属于不同用户意图；官方可信 DOM 中可减少冗余跳页与重复确认，但不能绕过扩大权限的清晰授权。
+
+
+## R1.6 迁移交接 · 第一方可信 UI 试点（2026-10-13）
+
+**结论状态：DESIGN_ACCEPTED_FOR_PILOT / IMPLEMENTATION_NOT_STARTED / NATIVE_NOT_TESTED。** 已在 [可选工具 UI 架构文件](../../architecture/browser-framework/custom-tool-ui-and-local-development.zh-CN.md) 定义全局信任分类；不把此目标误记为 Time Review 已经去掉 iframe。R1.5.2 仍使用原 `src/sidebar-tools/bridge.js`、`src/ui/sidebar-tools.js:mountTool`、`src/time-review/service.js`。
+
+- 优先级第一：**只试点 Time Review 的受信任 UI 直接挂载**；只有当前扩展**静态编译且确切准入**的官方 UI 代码可进入特权页。动态/同名/AI 生成工具不因此获得特权。核查必须发生在 UI 挂载和敏感 Host 操作之前，更新、停用或撤权立即失去资格。
+- 优先级第二：维持 `time-review`、`time.review`、`opendesk.time-review.v1`、`time.review/1.5.0` 的单一合同；保持后台独立采样及保存、六分类、Canvas V3、JSON/CSV 和原有版本升级/数据清理。不得因“直渲”而依赖 Side Panel 保活，也不能清空历史数据。
+- 优先级第三：移除只有 Time Review 沙箱 UI 才需要的无用跳页与“开始→再次确认开始”，但只在权限有效时一键开始；网站范围与 Chrome `idle` 仍是明确、各自独立的授权。官方 UI 使用 R20/R27 现有 token/组件，不创建另一个设计系统。
+- 优先级第四：**只有一个可维护的 Time Review 正式前端来源**。若构建时静态组件与现有 `examples/sidebar-tools/time-review/src/*` 不能在单一受控编译图内收敛，不要长期复制两套 UI。官方包版本/哈希、构建、市场发现及预装/升级合同需同步完成。用户自导入工具与官方编译组件必须在代码和准入上严格区分。
+- 验收：先影响分析及旧 PASS 可复用性，随后定向 Node、工具包、`npm run check/build/build:dev/verify`、现有 macOS CFT 真实 Side Panel；证据绑定最新候选 SHA、包 SHA-256、SW 哈希、实际 Chrome 版本、原始日志/截图。历史 CI 不等于新候选。实际未能运行用户 Mac 时标记 `NOT_TESTED`，云同步依旧 `LOCAL_ONLY/NO_UPLOAD/BLOCKED`。八维 95/100 是目标，不是本段的验收结果。
+
+**下一对话直接执行**：[GOAL · Time Review R1.6 可信原生 UI 试点](../prompts/goal-time-review-r16-trusted-native-ui-pilot.zh-CN.md)。若预检查无法安全直渲，保留原沙箱版本，记录 BLOCKED 和最小缺口，不以反复写文档代替实施。
+
+## R1.6 源码试点 · 原生受信任 UI 与动态工具分流（2026-10-13）
+
+**责任范围：** GitHub `main`，受影响文件限制为 Time Review 专项 UI 源码、`src/ui/sidebar-tools.js`、原固定 `sidebar-tool-host` 入口、公开静态 CSS 映射、构建核验、定向 Node/现有原生驱动和本工作流。未争用真实 Mac 用户 Profile、Native 配对及全局 AGENTS/安装器/SDK/SW。GitHub 文件读取不等于用户 Mac 工作区 `git status` 检查。
+
+- **一次实现来源：** 官方扩展静态入口引用 `examples/sidebar-tools/time-review/src/index.html?raw` 和 `src/main.js`，原正式打包器仍使用同一份 HTML/CSS/JS。CSS 是该源码文件的固定构建拷贝，不复制第二套运行逻辑。源 `main.js` 改为可挂载/可清理函数，opaque iframe 在正常独立包执行时仍调用同一函数。
+- **可信准入：** `src/time-review/trusted-admission.js` 同时检查编译批准版本 `1.6.0`、当前扩展固定官方发行描述和标准化包 digest、既有官方安装 provenance、完整已安装包相等、启用标志、确切撤销 epoch。首次安装的空 epoch 依现有安装器语义有效，但仍绑定到 provenance/包 digest；未知同名包及只读预览不能进入可信 DOM。准入失败回退原 opaque-origin iframe。原 `service.js`、`time.review/1.5.0` 与 `opendesk.time-review.v1` 保持不变。
+- **可信操作：** 在真实安装与准入再次核查后，原有 Host RPC 执行状态、暂停、分类、历史日期、导出等操作；只有真实点击可以 start；网站范围/分钟明细/清空继续使用原静态可信操作区，Chrome idle request 仍直接来自可信点击。旧授权默认不扩权，包升级需要重新开始。R1.6 的首次开始直接点击主 UI；缺权限只展开可信设置，不重复弹出“确认开始”。
+- **UI 和生命周期：** 只有 Time Review 官方确切编译组件在原 `#sidebar-tool-frame` 中直接渲染并复用公共标题/卸载；非官方 Time Review 和所有其他动态工具继续当前 iframe。撤 epoch、停用、卸载、来源记录变化销毁可信 UI 实例；后台 Service Worker 独立持续运行，合法历史数据在升级/暂停时保留。
+- **验证入口：** `tests/environment/time-review-r16-trusted-native.test.mjs` 加拒绝改包/无来源/代际不符等负向；原 `tests/framework/time-review-r13-native.test.mjs` 修改同一实测驱动，要求新官方包真实零 iframe、Side Panel 原生 Canvas/分类/下载，真实初次授权后一次点击启动，原 320/360/400/600 CSS px、200% Chrome Zoom 继续独立验收。既有 `.github/workflows/time-review-r13-native.yml` 加入新增 Node 测试，不创建第二 Chrome Driver。
+- **证据状态：** 本段描述源码目标及待核实变更，不代表全部验证通过。未执行的 `npm run build:sidebar-tool -- examples/sidebar-tools/time-review`、`npm run check`、`npm run build`、`npm run build:dev`、`npm run verify` 与全部新候选 macOS Chrome 行为在取得同 SHA CI 日志之前均为 **NOT_TESTED**。用户个人 Mac 工作区和 Chrome 仍是 **NOT_TESTED**；八项专家评分 **NOT_SCORED**。云同步继续 **LOCAL_ONLY / NO_UPLOAD / BLOCKED**。此前 R1.5/R1.5.2 历史 PASS 不可当成 R1.6 新包身份的 PASS。

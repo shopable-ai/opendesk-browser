@@ -47,12 +47,14 @@ test('background waits for idle, freezes admissions, acknowledges draft and relo
   const f=workerFixture();await f.connect();f.setIdle(false);f.start();await until(()=>f.reads>1);f.change('sw.js','new');await until(()=>f.messages.some(m=>m.type==='waiting'));assert.equal(f.reloads,0);assert.equal(f.worker.held,false);
   f.setIdle(true);await until(()=>f.reloads===1);assert.equal(f.worker.held,true);const reads=f.reads;await new Promise(resolve=>setTimeout(resolve,50));assert.equal(f.reloads,1);assert.equal(f.reads,reads);f.worker.dispose();
 });
-function pageFixture(prepareReload){
-  const ports=[],body={inert:false,prepend(){}},link={href:'chrome-extension://extension/ui/tool-shell.css'},status={remove(){}};
-  const doc={body,documentElement:{dataset:{}},createElement:()=>status,querySelector:()=>link};
+function pageFixture(prepareReload,{debugPanel=null}={}){
+  const ports=[],prepended=[],body={inert:false,prepend:node=>prepended.push(node)},link={href:'chrome-extension://extension/ui/tool-shell.css'},status={remove(){}};
+  const doc={body,documentElement:{dataset:{}},
+    createElement:tag=>tag==='output'?status:{tagName:tag,children:[],append(...nodes){this.children.push(...nodes);},remove(){}},
+    getElementById:id=>id==='workbench-debug'?debugPanel:null,querySelector:()=>link};
   const api={runtime:{connect(){const port={onMessage:event(),onDisconnect:event(),sent:[],postMessage(m){this.sent.push(m);},disconnect(){this.onDisconnect.emit();}};ports.push(port);return port;}}};
   let navigations=0;const dispose=installDevelopmentPage({api,prepareReload,document:doc,location:{href:'chrome-extension://extension/ui/tool.html?hostInstanceId=old',replace:()=>navigations++}});
-  return {ports,body,status,link,dispose,get navigations(){return navigations;}};
+  return {ports,body,status,link,prepended,dispose,get navigations(){return navigations;}};
 }
 test('obsolete draft preparation cannot acknowledge or unfreeze a newer token',async()=>{
   const resolutions=[];const f=pageFixture(()=>new Promise(resolve=>resolutions.push(resolve))),p=f.ports[0];
@@ -66,6 +68,30 @@ test('development panel labels its build fingerprint without claiming page re-in
   assert.match(f.status.textContent,/构建指纹/);
   assert.match(f.status.title,/构建 revision/);
   assert.match(f.status.title,/不证明已打开的网页重新注入/);
+  f.dispose();
+});
+test('CSS hot updates stay out of normal Side Panel and use a collapsed Debug section',async()=>{
+  const children=[],debugPanel={append:node=>children.push(node)};
+  const f=pageFixture(async()=>true,{debugPanel}),p=f.ports[0];
+  assert.equal(f.prepended.length,0);
+  assert.equal(children.length,1);
+  assert.equal(children[0].tagName,'details');
+  assert.equal(children[0].children[0].tagName,'summary');
+  assert.equal(children[0].children[1],f.status);
+  await p.onMessage.emit({type:'connected',revision:revision(3)});
+  const connected=f.status.textContent;
+  await p.onMessage.emit({type:'css',hash:'style-rev-2'});
+  assert.equal(f.status.textContent,connected);
+  assert.equal(new URL(f.link.href).searchParams.get('opendesk-dev'),'style-rev-2');
+  assert.equal(f.body.inert,false);
+  f.dispose();
+});
+test('developer status is non-visual when the Debug tab does not exist',async()=>{
+  const f=pageFixture(async()=>true);
+  assert.equal(f.status.hidden,true);
+  assert.deepEqual(f.prepended,[f.status]);
+  await f.ports[0].onMessage.emit({type:'css',hash:'style-rev-2'});
+  assert.notMatch(f.status.textContent||'',/样式已自动更新/);
   f.dispose();
 });
 test('disconnect clears preparation and reconnects only development channel',async()=>{

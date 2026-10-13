@@ -1676,8 +1676,24 @@ test('cloud transaction quota failure rolls back run, slot, binding and revision
   assert.equal(f.calls.filter(c=>c.method==='create').length,0);assert.equal(permitCalls,0);
 });
 test('cloud stop before permit commit and changed installation generation prevent target creation',async t=>{
-  const f=await cloudTaskFixture();t.mock.method(globalThis,'fetch',async(url,options)=>{const b=JSON.parse(options.body);await f.cloud.cloudStop({},f.sender);return new Response(JSON.stringify({permitId:'old',providerId:'provider',assignmentId:'assignment',runRef:b.runRef,leaseUntil:Date.now()+90000}));});
-  await assert.rejects(f.authority.startControllerRun(f.request,f.sender),code('E_CLOUD_FENCED'));assert.equal(f.calls.filter(c=>c.method==='create').length,0);
+  const f=await cloudTaskFixture();let admissionCalls=0,suspendCalls=0;
+  t.mock.method(globalThis,'fetch',async(url,options)=>{
+    const body=JSON.parse(options.body);
+    // cloudStop() now sends /v1/suspend. The old catch-all mock recursively
+    // called cloudStop again for that suspension request until Node OOM.
+    // Model the two distinct Provider endpoints without changing real Host behavior.
+    if(String(url).endsWith('/v1/suspend')){
+      suspendCalls++;return new Response(JSON.stringify({suspended:true,grantId:body.grantId}));
+    }
+    assert.match(String(url),/\/v1\/admission$/);
+    admissionCalls++;await f.cloud.cloudStop({},f.sender);
+    return new Response(JSON.stringify({permitId:'old',providerId:'provider',
+      assignmentId:'assignment',runRef:body.runRef,leaseUntil:Date.now()+90000}));
+  });
+  await assert.rejects(f.authority.startControllerRun(f.request,f.sender),code('E_CLOUD_FENCED'));
+  assert.equal(admissionCalls,1);
+  assert.equal(suspendCalls,1,'Stop sends one bounded Provider suspension acknowledgement');
+  assert.equal(f.calls.filter(c=>c.method==='create').length,0);
   const changed=await cloudTaskFixture();await changed.authority.setInstalledTaskEnabled({...changed.installClaim(changed.resolved),enabled:false},changed.sender);
   await assert.rejects(changed.authority.startControllerRun(changed.request,changed.sender));assert.equal(changed.calls.filter(c=>c.method==='create').length,0);
 });

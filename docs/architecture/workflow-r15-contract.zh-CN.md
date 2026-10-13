@@ -42,9 +42,13 @@ Sidebar Workflow（语义定义与参数）
 
 跨 origin、多 tab 尚无可信 `WorkflowCoordinator` 合同与独立 CFT 证据；`navigate.url` 的 origin 不等于 `siteOrigin` 时 Schema 直接拒绝，不能申请一个宽泛权限后当作已实现。不改写单 origin Task v1。未来必须独立设计逐 origin 审批、tab/document handoff、取消、effect unknown 和新版本 Package 合同。
 
-## 5. AI 安全
+## 5. AI 规划与安全（2026-10-13 当前开发期规则）
 
-Provider 可选，未配置就手工创建步骤。**R16（2026-10-13）替代旧版逐次勾选：**首次发送前在输入框处显示接收方、网站及数据范围，用户真实点击「同意并生成」后才可发送。相同模型/接收路径在 180 天许可有效期内复用，可随时撤回；切换接收方/模型则重新同意。自定义 HTTPS 仍使用当次 API Key，并在真实用户手势中申请 Chrome 服务端 Origin 权限；网页摘要另经单独确认。具体见 [R16 工作流 AI 数据及责任合同](../product/workflow-ai-data-privacy-r16.zh-CN.md)。只发**用户填写的任务描述、精确 origin、现有步骤和参数结构**，不上传自动提取的网页正文。API key 只驻留当前输入控件，不放进工作流、日志或持久化版本。返回只认严格 JSON 的 `title/description/paramsSchema/steps`；再次经 `normalizeAiProposal/validateWorkflow` 限权。AI 输出永不直接进入 `eval`、Controller source 或授权列表。即使 Schema 通过也必须由用户审阅并明确采用，且不表示 Locator 已实测。
+用户自行连接 Codex 或填写自定义 HTTPS 模型，**主动点击「生成步骤」发送箭头即开始规划**；不添加首次同意弹窗、同意复选框、模型授权有效期、撤权按钮或额外的模型数据许可存储。更换模型后仍可直接发送。AI 未配置时才进入连接设置；手工编辑不依赖 AI。原 R16/R16.1 的二次确认规则已取消，当前决策见 [模型直接使用原则](../product/workflow-ai-data-privacy-r16.zh-CN.md)。
+
+仅发送用户填写的需求、精确工作流 Origin、最小化的已有步骤和参数结构；原固定填写文字、参数默认值和导航 URL 查询参数不主动上传。自定义 HTTPS 需要本次 API Key 和 Chrome 准确服务 Origin 的实际授权；Codex 需已有 Native Messaging 连接。**模型文本请求不代表网页读取授权**：如果 Codex 额外请求当前网页结构/文字摘要，仍通过独立批准、确切 Document/Origin 校验与原有 RunHost 读取，不静默发送网页内容。运行网站步骤、安装 Task 继续沿用各自的执行安全合同。
+
+Provider 回复只接受受限 JSON `title/description/paramsSchema/steps`，仍经 `normalizeAiProposal/validateWorkflow` 校验并由用户明确采用。AI 提议不直接执行 JavaScript，不自行扩大授权或声明 Locator 已实测。
 
 ## 6. 证据与审计
 

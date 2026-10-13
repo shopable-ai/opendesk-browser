@@ -4,7 +4,10 @@ import {createNetworkService} from './network.js';
 import {createBrowserNetworkObserver} from './browser-network-observe.js';
 import {createBrowserScreenshotHost} from './browser-screenshot.js';
 import {createBrowserScreenshotResources} from './browser-screenshot-resources.js';
+import {createBrowserDownloadsHost} from './browser-downloads.js';
+import {executeBrowserToolStorage} from '../../ui/sidebar-tools/storage-state.js';
 import {createTrustedCookieHost} from './browser-cookie-host.js';
+import {chromeCall} from './tabs.js';
 import {SIDEBAR_TOOL_ENABLE_STORE,requireToolEnableRecords,sidebarToolEnabled} from '../../ui/sidebar-tools/lifecycle.js';
 // Trusted Chrome MV3 context-menu driver. No third-party code executes here.
 // Listener registration is synchronous; storage and install checks are async.
@@ -144,7 +147,9 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
   const activeNetworkRequests=new Set();
   const intentOperations=new Set(['browser.tabs.create','browser.tabs.activateOwned','browser.tabs.pinOwned','browser.tabs.reloadOwned','browser.tabs.navigateOwned','browser.tabs.removeOwned','browser.network.request',
     'browser.network.observe.start','browser.network.observe.export','browser.screenshot.captureVisible',
-    'browser.cookies.set','browser.cookies.remove','browser.cookies.clearSite','browser.cookies.observe.start']);
+    'browser.cookies.set','browser.cookies.remove','browser.cookies.clearSite','browser.cookies.observe.start',
+    'browser.clipboard.writeText','browser.downloads.text',
+    'browser.downloads.download','browser.downloads.cancelOwned','browser.storage.local.clear']);
   const observationOperations=new Set(['browser.network.observe.getStatus','browser.network.observe.stop',
     'browser.events.read','browser.events.close']);
   const ownedOperationMethods=new Set(['browser.operations.getStatus','browser.operations.cancel']);
@@ -213,6 +218,12 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
     }});
   const networkObserver=createBrowserNetworkObserver({api});
   const screenshotResources=createBrowserScreenshotResources({api});
+  const downloadHost=createBrowserDownloadsHost({api,authorize:async({operation,context,origin})=>{
+    if(context.approvedOrigin!==null&&context.approvedOrigin!==origin)
+      throw failure('E_SITE_GRANT_REQUIRED','Downloaded URL changed Origin');
+    await verifyBrowserOwner(context,operation,origin);
+    return true;
+  }});
   const trustedCookies=createTrustedCookieHost({api});
   const screenshotHost=createBrowserScreenshotHost({api,
     resolveTarget:(ref,context)=>tabHost.resolve(ref,context),
@@ -227,6 +238,7 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
     trustedCookies.revoke();
     networkObserver.revokeAll();
     screenshotResources.revokeAll();
+    downloadHost.revokeAll();
     browserIntents.clear();
     for(const controller of activeNetworkRequests)
       controller.abort(failure('E_GRANT_REVOKED','Installed tool authority changed during HTTP request'));
@@ -392,6 +404,10 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
       operation==='browser.tabs.navigateOwned'?Boolean(api.tabs?.get&&api.tabs?.update&&api.webNavigation?.getFrame):
       operation==='browser.tabs.removeOwned'?Boolean(api.tabs?.get&&api.tabs?.remove&&api.webNavigation?.getFrame):
       operation==='browser.sidePanel.openSelf'?Boolean(api.sidePanel?.open):
+      operation.startsWith('browser.storage.local.')?Boolean(api.storage?.local?.get&&api.storage?.local?.set):
+      operation==='browser.downloads.download'?Boolean(api.downloads?.download):
+      operation==='browser.downloads.getOwned'||operation==='browser.downloads.listOwned'?Boolean(api.downloads?.search):
+      operation==='browser.downloads.cancelOwned'?Boolean(api.downloads?.search&&api.downloads?.cancel):
       operation.startsWith('browser.cookies.')?Boolean(api.cookies?.getAll&&api.cookies?.getAllCookieStores&&api.permissions?.contains):
       operation==='browser.network.request'?typeof fetchImpl==='function':
       operation==='browser.network.observe.start'?Boolean(api.webRequest?.onBeforeRequest?.addListener&&api.tabs?.get&&api.webNavigation?.getFrame):
@@ -428,13 +444,17 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
       grantRecord.installEpoch===(sources.epochs[tool.id]??null)&&
       grantRecord.packageHash===await digestTool(tool);
     const desired=identity?.requestedUrl?parsedHttp(identity.requestedUrl)?.origin:null;
+    const downloading=operation==='browser.downloads.download';
+    // A site-scoped download cannot be reported callable without the requested
+    // exact Origin and currently effective Chrome website permission.
+    const downloadSiteAllowed=!downloading||(Boolean(desired)&&await chromeSitePermitted(api,desired));
     const cookieSites=validGrant?grantRecord.cookieSites||{}:{};
     const candidateOrigins=desired?[desired]:Object.keys(cookieSites);
     const cookieAuthorized=isCookie&&(await Promise.all(candidateOrigins.map(async origin=>
       cookieSites[origin]?.[cookieCapabilities[operation]]===true&&await chromeSitePermitted(api,origin)
     ))).some(Boolean);
     const runnable=op.implementation==='IMPLEMENTED'&&exposure==='allowed'&&platformSupported&&
-      requiredBrowser&&(!needsSite||menu)&&(!isCookie||cookieAuthorized)&&hasLaunch&&!frontendOnly;
+      requiredBrowser&&(!needsSite||menu)&&(!isCookie||cookieAuthorized)&&downloadSiteAllowed&&hasLaunch&&!frontendOnly;
     const reasonCode=runnable?null:
       op.implementation!=='IMPLEMENTED'?'E_NOT_IMPLEMENTED':
       !hasToolCap?'E_TOOL_CAPABILITY_REQUIRED':
@@ -442,12 +462,14 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
       !requiredBrowser?'E_CHROME_PERMISSION_REQUIRED':
       needsSite&&!menu?'E_SITE_GRANT_REQUIRED':
       isCookie&&!cookieAuthorized?'E_SITE_GRANT_REQUIRED':
+      !downloadSiteAllowed?'E_SITE_GRANT_REQUIRED':
       !hasLaunch?'E_LAUNCH_UNAVAILABLE':
       frontendOnly?'E_FRONTEND_CONTEXT_REQUIRED':'E_CONTEXT';
     return {operation,apiVersion:BROWSER_API_VERSION,implementation:op.implementation.toLowerCase().replaceAll('_','-'),
       exposure,platform:platformSupported?'supported':'unsupported',
       authorization:{tool:hasToolCap?'granted':'missing',browser:requiredBrowser?'granted':'missing',
-        site:isMenu?(menu?'granted':'missing'):isCookie?(cookieAuthorized?'granted':'missing'):'not-required'},
+        site:isMenu?(menu?'granted':'missing'):isCookie?(cookieAuthorized?'granted':'missing'):
+          downloading?(downloadSiteAllowed?'granted':'missing'):'not-required'},
       callableNow:runnable,requiresUserGesture:op.requiresUserGesture,reasonCode,
       nextAction:runnable?null:!hasToolCap?'update-tool-package':!platformSupported?null:
         !requiredBrowser?'enable-in-tool-details':isCookie&&!cookieAuthorized?'enable-in-tool-details':
@@ -493,7 +515,7 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
         const allowed=await authorizedCookie(owner,operation,checked.url,checked);
         if(intent&&intent.cookieGrantEpoch!==allowed.grantEpoch)
           throw failure('E_GRANT_REVOKED','Cookie site consent changed since approval');
-        const ownerKey=canonicalJSON([toolId,toolVersion,hash,owner.epoch,allowed.grantEpoch]);
+        const ownerKey=canonicalJSON([toolId,toolVersion,hash,owner.epoch,toolInstance,hostInstanceId,allowed.grantEpoch]);
         return trustedCookies.executeInstalled(operation,checked,{origin:allowed.origin,
           storeId:allowed.storeId,partitionKey:allowed.partitionKey,ownerKey,
           authorize:async({url,includeValues})=>{
@@ -520,10 +542,22 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
            intent.args!==canonicalJSON(checked))
           throw failure('E_USER_GESTURE_REQUIRED','New explicit approval required for this exact action');
         const approvedOrigin=operation==='browser.network.observe.start'?checked.origins[0]:
-          ['browser.tabs.create','browser.tabs.navigateOwned','browser.network.request'].includes(operation)
+          ['browser.tabs.create','browser.tabs.navigateOwned','browser.network.request','browser.downloads.download'].includes(operation)
             ?new URL(checked.url).origin:null;
         const context={...owner,approvedOrigin};
         await verifyBrowserOwner(context,operation,approvedOrigin);
+        // Clipboard requires a visible trusted extension document; downloads
+        // reuse its existing Chrome download service. The Host grants only one
+        // exact, user-click-approved call after checking the installed tool,
+        // package hash, permission and install epoch. No export effect occurs
+        // in the untrusted iframe or in this approval-only Host branch.
+        if(operation==='browser.clipboard.writeText'||operation==='browser.downloads.text')
+          return {authorized:true};
+        if(operation==='browser.storage.local.clear')
+          return executeBrowserToolStorage({api,operation,toolId,input:checked,
+            authorize:()=>verifyBrowserOwner(context,operation)});
+        if(operation==='browser.downloads.download')return downloadHost.download(checked,context);
+        if(operation==='browser.downloads.cancelOwned')return downloadHost.cancelOwned(checked,context);
         if(operation==='browser.tabs.create')return tabHost.create(checked,context);
         if(operation==='browser.tabs.activateOwned')return tabHost.activateOwned(checked,context);
         if(operation==='browser.tabs.pinOwned')return tabHost.pinOwned(checked,context);
@@ -575,6 +609,21 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
           if(jsonBytes(result)>12000)throw failure('E_LIMIT','HTTP response exceeds IPC budget');
           return result;
         }finally{activeNetworkRequests.delete(controller)}
+      }
+      if(['browser.storage.local.get','browser.storage.local.set','browser.storage.local.remove'].includes(operation)){
+        const checked=normalizeBrowserOperation(operation,args),hash=await digestTool(tool);
+        const context={toolId,toolVersion,packageHash:hash,epoch:installEpoch??null,
+          installEpoch:String(installEpoch??'initial-install'),approvedOrigin:null};
+        return executeBrowserToolStorage({api,operation,toolId,input:checked,
+          authorize:()=>verifyBrowserOwner(context,operation)});
+      }
+      if(operation==='browser.downloads.getOwned'||operation==='browser.downloads.listOwned'){
+        const checked=normalizeBrowserOperation(operation,args),hash=await digestTool(tool);
+        const context={toolId,toolVersion,packageHash:hash,epoch:installEpoch??null,
+          installEpoch:String(installEpoch??'initial-install'),approvedOrigin:null};
+        await verifyBrowserOwner(context,operation);
+        return operation==='browser.downloads.getOwned'
+          ?downloadHost.getOwned(checked,context):downloadHost.listOwned(checked,context);
       }
       if(operation==='browser.tabs.getOwned'||operation==='browser.tabs.listOwned'){
         const checked=normalizeBrowserOperation(operation,args),packageHash=await digestTool(tool);
@@ -711,13 +760,16 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
     return serial(()=>runLocked(toolId,async()=>{
 
       if(operation==='browser.cookies.userGrant'){
-        if(!['read','values','write','observe','clear'].includes(siteCapability)||
-           typeof enabled!=='boolean')throw failure('E_SCHEMA','Unsupported Cookie capability decision');
+        if(!['read','values','write','observe','clear','all'].includes(siteCapability)||
+           typeof enabled!=='boolean'||(siteCapability==='all'&&enabled))
+          throw failure('E_SCHEMA','Unsupported Cookie capability decision');
         const source=await readSources(api),tool=admittedTool(source.tools,toolId);
         if(!sidebarToolEnabled(source.enabled,toolId)||tool.version!==toolVersion||
            (source.epochs[toolId]??null)!==(installEpoch??null))
           throw failure('E_TOOL_CHANGED');
-        if(!tool.capabilities.includes('browser.cookies.'+siteCapability))
+        if(siteCapability==='all'
+          ?!tool.capabilities.some(name=>name.startsWith('browser.cookies.'))
+          :!tool.capabilities.includes('browser.cookies.'+siteCapability))
           throw failure('E_TOOL_CAPABILITY_REQUIRED');
         const site=enabled?parsedHttp(document?.url)?.origin:parsedHttp(origin)?.origin;
         if(!site||!enabled&&site!==origin)throw failure('E_SCHEMA','Exact Cookie site Origin required');
@@ -736,12 +788,12 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
              frame?.documentId!==document.documentId||frame.url!==document.url||
              frame.documentLifecycle&&frame.documentLifecycle!=='active')
             throw failure('E_DOCUMENT_CHANGED');
-          const stores=await api.cookies.getAllCookieStores();
+          const stores=await chromeCall(api,api.cookies,'getAllCookieStores');
           const candidates=Array.isArray(stores)?stores.filter(row=>
             !row.incognito&&row.tabIds?.includes(document.tabId)):[];
           if(candidates.length!==1||typeof candidates[0].id!=='string')throw failure('E_COOKIE_STORE');
           storeId=candidates[0].id;
-          const receipt=await api.cookies.getPartitionKey?.({tabId:document.tabId,frameId:0});
+          const receipt=await chromeCall(api,api.cookies,'getPartitionKey',{tabId:document.tabId,frameId:0});
           if(!receipt?.partitionKey?.topLevelSite)throw failure('E_COOKIE_PARTITION');
           partitionKey=receipt.partitionKey;
           const after=await api.webNavigation.getFrame({tabId:document.tabId,frameId:0});
@@ -758,11 +810,20 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
           throw failure('E_LIMIT','Maximum 20 Cookie websites per tool');
         if(enabled&&siteCapability==='values'&&prior.read!==true)
           throw failure('E_SITE_GRANT_REQUIRED','Read permission is required before granting sensitive values');
-        // A fresh generation prevents old observation sessions and approvals
-        // from reviving after revoke -> regrant, even with identical package bytes.
-        const next=enabled?{...prior,storeId,partitionKey,[siteCapability]:true,
-          grantEpoch:crypto.randomUUID()}:
-          {...prior,[siteCapability]:false,grantEpoch:crypto.randomUUID()};
+        // Enabling a second permission must not silently rebind the earlier
+        // permission from one Cookie Store or partition to another.
+        const earlier=['read','values','write','observe','clear'].some(cap=>prior[cap]===true);
+        if(enabled&&earlier&&(prior.storeId!==storeId||
+          canonicalJSON(prior.partitionKey??null)!==canonicalJSON(partitionKey??null)))
+          throw failure('E_COOKIE_SCOPE','Site rights are bound to another Cookie Store/Partition; revoke all first');
+        // Atomic all-site revocation: never leave values/write/observe active
+        // after a partially failed sequence of five independent revocations.
+        const next=siteCapability==='all'
+          ?{...prior,read:false,values:false,write:false,observe:false,clear:false,
+            grantEpoch:crypto.randomUUID()}
+          :enabled?{...prior,storeId,partitionKey,[siteCapability]:true,
+            grantEpoch:crypto.randomUUID()}
+            :{...prior,[siteCapability]:false,grantEpoch:crypto.randomUUID()};
         if(!enabled&&siteCapability==='read')next.values=false;
         sites[site]=next;
         await confirmedWrite(api.storage.local,BROWSER_MENU_GRANTS_STORE,{
@@ -782,7 +843,7 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
         const packageHash=await digestTool(tool);
         const origin=cookieCapabilities[targetOperation]?new URL(args.url).origin:
           targetOperation==='browser.network.observe.start'?args.origins[0]:
-          ['browser.tabs.create','browser.tabs.navigateOwned','browser.network.request'].includes(targetOperation)
+          ['browser.tabs.create','browser.tabs.navigateOwned','browser.network.request','browser.downloads.download'].includes(targetOperation)
             ?new URL(args.url).origin:null;
         const identity={toolId,toolVersion,packageHash,epoch:installEpoch??null,
           installEpoch:String(installEpoch??'initial-install'),approvedOrigin:null};
@@ -938,8 +999,12 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
   }
   ensureListener();
   api.storage?.onChanged?.addListener((changes,area)=>{
-    if(area==='local'&&[SIDEBAR_TOOL_ENABLE_STORE,SIDEBAR_TOOL_STORE,TOOL_REVOCATION_EPOCHS_STORE,BROWSER_MENU_GRANTS_STORE].some(key=>Object.hasOwn(changes,key)))
+    if(area==='local'&&[SIDEBAR_TOOL_ENABLE_STORE,SIDEBAR_TOOL_STORE,TOOL_REVOCATION_EPOCHS_STORE].some(key=>Object.hasOwn(changes,key)))
       revokeBrowserOperations();
+    // Cookie site changes revoke only Cookie sessions and ephemeral approvals.
+    // Never dispose unrelated owned Tabs/Network/Screenshot on a Cookie grant.
+    if(area==='local'&&Object.hasOwn(changes,BROWSER_MENU_GRANTS_STORE))
+      trustedCookies.revoke();
     if(area==='local'&&Object.hasOwn(changes,SIDEBAR_TOOL_ENABLE_STORE))
       void revokeLaunches().catch(error=>logger.warn('OpenDesk disabled-tool launch cleanup',error));
     if(area==='local'&&(Object.hasOwn(changes,SIDEBAR_TOOL_ENABLE_STORE)||

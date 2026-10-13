@@ -1,4 +1,5 @@
 import {FOCUS_MAX_GAP_MS,FOCUS_MAX_SITES,focusHost,hostnameMatches,focusLocalDay,focusNextMidnight,focusError} from './policy.js';
+import {FOCUS_CATALOG,FOCUS_DEFAULT_GROUP,FOCUS_DEFAULT_MINUTES} from './catalog.js';
 const obj=value=>value!==null&&typeof value==='object'&&!Array.isArray(value);
 const keys=(value,expected)=>obj(value)&&Object.keys(value).sort().join(',')===expected.slice().sort().join(',');
 const fail=()=>{throw focusError('Stay Focus 本机策略数据无效；已停止修改以保护原始数据');};
@@ -31,11 +32,15 @@ export function emptyFocus(at=Date.now()){
   return {version:1,authorizedHash:null,authorizedEpoch:null,enabled:false,
     day:focusLocalDay(at),clockHighWater:0,sites:[],groups:{},whitelist:[],
     schedule:{enabled:false,days:[1,2,3,4,5],startMinute:540,endMinute:1020},
-    focusUntil:null,usage:{},checkpoint:null};
+    focusUntil:null,usage:{},checkpoint:null,
+    notices:{day:focusLocalDay(at),revision:0,budgetMs:null,thresholds:[]}};
 }
 export function readFocus(raw,at=Date.now()){
   if(raw===undefined)return emptyFocus(at);
-  if(!keys(raw,['version','authorizedHash','authorizedEpoch','enabled','day','clockHighWater','sites','groups','whitelist','schedule','focusUntil','usage','checkpoint'])||
+  const base=['version','authorizedHash','authorizedEpoch','enabled','day','clockHighWater','sites','groups','whitelist','schedule','focusUntil','usage','checkpoint'];
+  // Historical v1 policies had no reminder ledger. Normalize in-memory while
+  // preserving all existing rules and usage; never reset old user data.
+  if(!(keys(raw,base)||keys(raw,[...base,'notices']))||
      raw.version!==1||typeof raw.enabled!=='boolean'||
      !(raw.authorizedHash===null||typeof raw.authorizedHash==='string'&&/^[a-f0-9]{64}$/.test(raw.authorizedHash))||
      !(raw.authorizedEpoch===null||typeof raw.authorizedEpoch==='string')||
@@ -58,7 +63,16 @@ export function readFocus(raw,at=Date.now()){
      !Number.isInteger(cp.offset)||Math.abs(cp.offset)>1440||typeof cp.session!=='string'||
      focusHost(cp.host)!==cp.host||!Number.isInteger(cp.tabId)||!Number.isInteger(cp.windowId)||
      typeof cp.pool!=='string'||!/^(g:|s:)/.test(cp.pool)))fail();
-  return structuredClone(raw);
+  const record=raw.notices;
+  if(record!==undefined&&(!keys(record,['day','revision','budgetMs','thresholds'])||
+    !/^\d{4}-\d{2}-\d{2}$/.test(record.day)||!Number.isSafeInteger(record.revision)||
+    record.revision<0||record.revision>1000000000||
+    !(record.budgetMs===null||Number.isSafeInteger(record.budgetMs)&&record.budgetMs>=60000&&record.budgetMs<=86400000)||
+    !Array.isArray(record.thresholds)||record.thresholds.length>3||
+    new Set(record.thresholds).size!==record.thresholds.length||
+    record.thresholds.some(min=>![1,5,10].includes(min))))fail();
+  return {...structuredClone(raw),notices:record===undefined?
+    {day:raw.day,revision:0,budgetMs:null,thresholds:[]}:structuredClone(record)};
 }
 export function focusMatchingSite(state,hostname){
   if(!hostname||state.whitelist.some(host=>hostnameMatches(hostname,host,true)))return null;
@@ -113,10 +127,39 @@ export function settleFocus(state,{at,session,current=null,boot=false}){
   return {state,clockRollback:false};
 }
 export function focusSummary(state,at=Date.now()){
+  const minutes=state.groups[FOCUS_DEFAULT_GROUP]??FOCUS_DEFAULT_MINUTES;
+  const budgetMs=minutes*60000,usedMs=state.usage['g:'+FOCUS_DEFAULT_GROUP]||0;
   return {enabled:state.enabled,authorized:Boolean(state.authorizedHash),day:state.day,
     schedule:state.schedule,focusUntil:state.focusUntil,groups:state.groups,whitelist:state.whitelist,
+    // This is one shared pool, not a sum of per-site copies of the same budget.
+    dailyBudget:{id:FOCUS_DEFAULT_GROUP,minutes,budgetMs,usedMs,
+      remainingMs:Math.max(0,budgetMs-usedMs),
+      managedCount:state.sites.filter(site=>site.group===FOCUS_DEFAULT_GROUP&&site.enabled).length},
+    catalog:FOCUS_CATALOG.map(row=>({...row})),
     sites:state.sites.map(site=>{const budget=focusBudget(state,site),used=state.usage[focusPool(site)]||0;
       return {...site,usedMs:used,budgetMs:budget,remainingMs:Math.max(0,budget-used),
         reason:focusReason(state,site,at)};}),
     nextReset:focusNextMidnight(at),maximumObservationGapMs:FOCUS_MAX_GAP_MS};
+}
+// Called only after a trusted, chargeable foreground checkpoint has advanced
+// the actual shared usage. Mutates the durable at-most-once notice ledger.
+// Never bill time, navigate, modify DNR, or infer usage from a page timer here.
+export function focusDueReminder(state,site,beforeUsed,afterUsed){
+  if(!state.enabled||!site?.enabled||site.mode!=='limit'||
+     focusPool(site)!=='g:'+FOCUS_DEFAULT_GROUP||
+     !Number.isSafeInteger(beforeUsed)||!Number.isSafeInteger(afterUsed)||
+     afterUsed<=beforeUsed)return null;
+  const budgetMs=focusBudget(state,site),record=state.notices;
+  if(!record)return null;
+  if(record.day!==state.day||record.budgetMs!==budgetMs){
+    record.day=state.day;record.budgetMs=budgetMs;record.thresholds=[];
+  }
+  const crossed=[10,5,1].filter(min=>budgetMs>min*60000&&
+    budgetMs-beforeUsed>min*60000&&budgetMs-afterUsed<=min*60000&&
+    budgetMs-afterUsed>0&&!record.thresholds.includes(min));
+  if(!crossed.length)return null;
+  // A delayed observation may cross multiple thresholds: only the most urgent
+  // is displayed; persist every crossed threshold to suppress stale catch-up.
+  record.thresholds.push(...crossed);
+  return {minutes:crossed[crossed.length-1],day:state.day,revision:record.revision};
 }

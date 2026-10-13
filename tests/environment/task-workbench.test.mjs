@@ -73,7 +73,8 @@ const make=({installedInitially=true,secondTask=false,sharedStore=null,draftStor
         revision:1,contentHash:hash,manifestHash,manifest,
         installationId:state.installed.find(value=>value.taskId===row.taskId)?.installationId??null,
         generation:state.installed.find(value=>value.taskId===row.taskId)?.generation??null};
-      if(method==='getTaskCandidate')return {package:{sourceUtf8:'async function main(){return true;}'}};
+      if(method==='getTaskCandidate')return {taskId:row.taskId,version:row.version,manifestHash:row.manifestHash,
+        package:{manifestHash:row.manifestHash,manifest:row.manifest,sourceUtf8:'async function main(){return true;}'}};
       throw new Error('unexpected '+method);
     }};
   let active=null,finish;
@@ -829,4 +830,74 @@ test('Workflow Task review handoff rejects stale/wrong-hash hints without alteri
   assert.equal(f.catalogState.catalog[0].stage,'candidate');
   assert.equal(f.catalogState.installed.length,0);
   assert.equal(store.has(key),false);
+});
+
+
+// R6 exercises the existing DOM/Authority doubles, never a Chrome native assertion.
+test('R6 Workflow handoff overrides an old directory default and clears a mismatched verification RunId',async t=>{
+  const {taskReviewHandoffKey}=await import('../../src/ui/workflow/task-review-handoff.js');
+  const key=taskReviewHandoffKey(7),hint=createTaskReviewHandoff({windowId:7,taskId:'demo.form',
+    version:'1.0.0',sourceHash:'a'.repeat(64),manifestHash:'b'.repeat(64),
+    siteOrigin:'https://a.example',runId:null});
+  const storage={async get(k){return {[k]:k===key?hint:undefined};},async remove(){},async set(){}};
+  const f=make({installedInitially:false,secondTask:true,draftStorage:storage});
+  t.after(()=>f.ui.dispose());await tick();await tick();
+  f.api.windows={getCurrent:async()=>({id:7})};
+  f.catalogState.catalog[0].stage='candidate';
+  f.get('task-catalog-list').value='demo.second@1.0.0'; // Prior selection, no new user choice.
+  f.get('task-verify-run').value='run-from-another-version';
+  f.ui.showCatalogPage();for(let n=0;n<5;n++)await tick();
+  assert.equal(f.get('task-catalog-list').value,'demo.form@1.0.0');
+  assert.equal(f.get('task-verify-run').value,'');
+  assert.equal(f.get('task-verify').disabled,false);
+  assert.equal(f.get('task-install').disabled,true);
+  assert.equal(f.starts.length,0);
+});
+
+test('R6 user selection during asynchronous handoff read is never overridden',async t=>{
+  const {taskReviewHandoffKey}=await import('../../src/ui/workflow/task-review-handoff.js');
+  const key=taskReviewHandoffKey(7),hint=createTaskReviewHandoff({windowId:7,
+    taskId:'demo.form',version:'1.0.0',sourceHash:'a'.repeat(64),manifestHash:'b'.repeat(64),
+    siteOrigin:'https://a.example',runId:'run-native-previous'});
+  let release;
+  const storage={async get(k){if(k!==key)return {};return new Promise(resolve=>release=resolve);},
+    async remove(){},async set(){}};
+  const f=make({installedInitially:false,secondTask:true,draftStorage:storage});
+  t.after(()=>f.ui.dispose());await tick();await tick();
+  f.api.windows={getCurrent:async()=>({id:7})};
+  f.ui.showCatalogPage();for(let n=0;n<3;n++)await tick();
+  assert.equal(typeof release,'function');
+  f.get('task-catalog-list').value='demo.second@1.0.0';
+  f.get('task-catalog-list').fire('change');
+  release({[key]:hint});for(let n=0;n<4;n++)await tick();
+  assert.equal(f.get('task-catalog-list').value,'demo.second@1.0.0');
+  assert.equal(f.get('task-verify-run').value,'');
+  assert.equal(f.starts.length,0);
+});
+
+test('R6 Task reader reveals read-only exact frozen source and typed parameters without execution',async t=>{
+  const f=make({installedInitially:false});t.after(()=>f.ui.dispose());await tick();await tick();
+  f.ui.showCatalogPage();await tick();
+  f.get('task-catalog-list').value='demo.form@1.0.0';
+  f.get('task-catalog-list').fire('change');
+  const reader=f.get('task-catalog-detail');
+  const details=reader.children.find(node=>node.className==='catalog-source-review');
+  assert.ok(details);
+  assert.match(reader.children.find(node=>node.className==='catalog-reader-note').textContent,
+    /运行参数.*姓名.*必填/);
+  details.open=true;await details.fire('toggle');await tick();await tick();
+  assert.equal(details.children[1].textContent,'async function main(){return true;}');
+  assert.equal(f.starts.length,0);assert.equal(f.permissions.length,0);
+  assert.equal(f.catalogState.installed.length,0);
+  // Reject an inconsistent Task Service identity even when its payload includes code.
+  const original=f.client.request.bind(f.client);
+  f.client.request=async(method,payload)=>method==='getTaskCandidate'
+    ? {manifestHash:'c'.repeat(64),package:{sourceUtf8:'async function main(){return "forged";}'}}
+    : original(method,payload);
+  f.get('task-catalog-list').fire('change');
+  const guarded=f.get('task-catalog-detail').children.find(node=>node.className==='catalog-source-review');
+  guarded.open=true;await guarded.fire('toggle');await tick();await tick();
+  assert.match(guarded.children[1].textContent,/E_REVIEW_IDENTITY|固定源码身份已变化/);
+  assert.doesNotMatch(guarded.children[1].textContent,/forged/);
+  assert.equal(f.starts.length,0);
 });

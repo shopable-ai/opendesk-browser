@@ -1,6 +1,10 @@
 (() => {
   'use strict';
-  const {root,request}=globalThis.OpenDeskTool;
+  // Single classic-source UI factory: packaged sandbox runs it normally; the
+  // audited WXT host statically imports this exact file for native rendering.
+  const mount=({root,request})=>{
+  if(!root||typeof request!=='function')throw Error('Time Review host is unavailable');
+  let disposed=false;
   const $=id=>root.querySelector('#'+id);
   const C=[
     {name:'未分类',short:'未分类',color:'#788494'},
@@ -226,6 +230,7 @@
     }
   }
   function render(){
+    if(disposed)return;
     for(const button of root.querySelectorAll('button'))button.disabled=busy||!state;
     if(!state)return;
     const data=dayData();
@@ -270,19 +275,20 @@
     renderCategories(data);renderTimeline(data);renderCurrent(data);renderRecords();
   }
   async function readDay(){
-    if(!state)return;
+    if(disposed||!state)return;
     const serial=++daySerial,requested=selectedDate;
     try{
       const result=await request('time.day',{date:requested});
-      if(serial!==daySerial||selectedDate!==requested)return;
+      if(disposed||serial!==daySerial||selectedDate!==requested)return;
       day=result;render();
-    }catch(err){if(serial!==daySerial)return;day=null;showMessage((err.code||'E_TIME_DAY')+'：'+err.message,true);render();}
+    }catch(err){if(disposed||serial!==daySerial)return;day=null;showMessage((err.code||'E_TIME_DAY')+'：'+err.message,true);render();}
   }
-  async function act(operation,payload={}){
-    if(busy)return;
+  async function act(operation,payload={},event=null){
+    if(disposed||busy)return;
     busy=true;render();
     try{
-      const result=await request(operation,payload);
+      const result=await request(operation,payload,event);
+      if(disposed)return;
       if(operation==='time.export'){
         showMessage('已请求下载 '+result.name+'；请在 Chrome 下载记录中核对文件。');
       }else{
@@ -324,7 +330,7 @@
   $('next-date').addEventListener('click',()=>{if(selectedDate<state.today){selectedDate=shiftDate(selectedDate,1);day=null;selectedMinute=null;editing=false;filter=null;render();void readDay();}});
   $('today').addEventListener('click',()=>{scope='today';filter=null;renderRecords();});
   $('week').addEventListener('click',()=>{scope='week';filter=null;renderRecords();});
-  $('start').addEventListener('click',()=>void act('time.start'));
+  $('start').addEventListener('click',event=>void act('time.start',{},event));
   $('pause').addEventListener('click',()=>void act('time.pause'));
   $('refresh').addEventListener('click',()=>void act('time.status'));
   $('settings-shortcut').addEventListener('click',()=>{$('settings').open=true;$('settings').scrollIntoView({block:'nearest'});});
@@ -360,10 +366,21 @@
     // editor (record rows are re-rendered from the current summary).
     if(!busy&&!document.hidden&&!$('settings').open&&!editing&&!root.querySelector('.row-edit'))void act('time.status');
   },15000);
-  window.addEventListener('pagehide',()=>{
+  const dispose=()=>{
+    if(disposed)return;
+    disposed=true;daySerial++;
     window.clearInterval(timer);resize?.disconnect();
     root.removeEventListener('opendesk-tool-state-changed',onTrustedStateChanged);
     if(!resize)window.removeEventListener('resize',onResize);
-  },{once:true});
+    window.removeEventListener('pagehide',dispose);
+  };
+  window.addEventListener('pagehide',dispose,{once:true});
   void act('time.status');
+  return dispose;
+  };
+  Object.defineProperty(globalThis,'__opendeskMountTrustedTimeReview',{
+    value:mount,configurable:false,writable:false,enumerable:false
+  });
+  // Ordinary installed packages still run only inside opaque-origin sandbox.
+  if(globalThis.OpenDeskTool)mount(globalThis.OpenDeskTool);
 })();

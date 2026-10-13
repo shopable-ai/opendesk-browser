@@ -2,11 +2,29 @@
 
 > **用户最新决定，覆盖旧 R7/R8 中“正式 35 项 API 必须保留兼容”的限制。** OpenDesk Browser 仍在开发，尚未正式上线及提供外部 API 使用承诺。旧 35 项是历史开发快照，不是冻结的未来对外合同。
 
+## 旧 35 项兼容政策的最终处置（正式废止）
+
+**政策状态：ABOLISHED / 已废止（2026-10-13）。** 这里废止的是「无论质量如何，必须长期保留旧 35 项名称、签名、别名、计数及兼容层」的**义务**，**不是把 35 项实际功能一律删除**。项目预发布阶段的错误 API 应直接修正，正确能力照常保留。
+
+按原 R8 35 项历史快照与已核对的现行注册表名称对照：
+
+| 处置 | 数量 | 具体结果 |
+| --- | ---: | --- |
+| KEEP（原名仍在注册表） | 26 | 仅证明名称仍登记，不代表所有调用路径、授权或 Chrome Native 均已验收 |
+| RENAME（旧名称已从注册表剔除） | 3 | `browser.tabs.open → browser.tabs.create`；`browser.tabs.focus → browser.tabs.activateOwned`；`browser.tabs.closeOwned → browser.tabs.removeOwned` |
+| DELETE（旧占位操作从注册表剔除） | 9 | `browser.media.recording.*` 4 项、`browser.speech.*` 3 项、`browser.notifications.create/clear` 2 项 |
+
+**执行规则：** 不恢复上述旧名称、不增加 deprecated shim、不保留固定「35 项」测试门槛。任何重新开发录制、语音或通知能力都须按照真实产品需求和当前矩阵重新批准，不能把已删除占位接口恢复为旧合同。其他 API 通过 KEEP / RENAME / MERGE / DELETE / NEW 逐项落地，并在同一变更中迁移仓内消费者、示例、类型及测试。
+
+`browser-sdk-compatibility-map.json` 仅作冻结历史证据，**其中 `operations[].deprecationState: "ACTIVE"` 和 `removalEligibility: false` 是当时 R8 的旧字段，不能解读为今天仍强制兼容**。当前可调用名称以 `BROWSER_OPERATIONS` + SDK Wrapper + 实际 Host 接线为准，批准和安全边界仍以唯一接口矩阵及最新用户需求核验。
+
+**重要的动态状态提醒：** 本仓同时在实施 Cookies 等能力，文档中「29 项」「Cookie 11 项 Host-only」属于当时设计快照。若当前 `browser-contract.js` 或 `browser.js` 已改变注册与暴露级别，必须先核对最新源码、授权与威胁边界，更新同一执行手册和矩阵，再进行真实调用和测试；不得机械沿用过期数字，也不得仅因新方法在 Wrapper 出现就认为权限验证完成。
+
 ## Browser SDK 唯一正式执行合同（2026-10-13）
 
 - **设计执行手册**：[`browser-sdk-execution-manual.zh-CN.md`](browser-sdk-execution-manual.zh-CN.md)。后续实现默认依照其中 Phase 0–7 和唯一架构、权限、测试门禁执行，除真实重大安全/平台不可实现/合同冲突外，不再另建第二份总体执行方案。
 - **逐接口机器矩阵**：[`browser-sdk-interface-matrix.json`](browser-sdk-interface-matrix.json)。包含固定 Chromium JSON/WebIDL/IDL 发现范围下的每个 Namespace/Method/Event/Property 分类、来源、实施签名与状态；发现目录不等于可公开能力。现行运行时实际可调用操作仍只能由 `src/framework/sdk/browser-contract.js#BROWSER_OPERATIONS` 判断。
-- **历史优先级**：R7/R8 原 35 项兼容、`browser-sdk-compatibility-map.json`（旧兼容登记）、`browser-sdk-native-mapping.json`（R7 Cookies 10 项）与 R8 局部原生发现目录只作历史或迁移输入，不再对现行 SDK 强制约束。Cookies 现行可信 Host 11 项仍 Host-only，不向安装工具沙箱公开明文。
+- **历史优先级**：R7/R8 原 35 项兼容、`browser-sdk-compatibility-map.json`（旧兼容登记）、`browser-sdk-native-mapping.json`（R7 Cookies 10 项）与 R8 局部原生发现目录只作历史或迁移输入，不再对现行 SDK 强制约束。Cookies 11 项在当前正式 Registry 已作为按安装身份/网站独立授权的 SDK 提供；可信内置 UI 的 Host-only approve/execute 仍为内部调用，不属于安装工具的普通 RPC。Cookie 明文必须同时具备工具 values 能力及受信 UI 针对精确网站的额外 values 授权。
 
 ## 冻结的产品方向
 
@@ -44,7 +62,7 @@
 
 当前 `BROWSER_OPERATIONS` 不再登记未实现的 `browser.media.recording.*`（4 项）、`browser.speech.*`（3 项）和 `browser.notifications.*`（2 项），剩余 26 项均为旧有源码已接线项目（不等于全部具有原生 Chrome 验收）。删除仅限运行时正式注册表与相关 Schema、CI 活跃基准、验收表；R5 35 项原始证据与历史映射依然只读保存。
 
-后续必须继续对保留的 26 项做用户调用方式/Host 权限语义收敛，尤其 Tabs Native 命名和 Cookies 可信调用；不得把这一步视为 R9 最终交付。
+后续必须继续对已登记的实际 SDK 做用户调用方式、统一 Host 权限语义和真实 Chrome 验收；尤其是 Cookies 11 项已作为受约束的正式 SDK 登记，而非仅 Host-only。不得把 Registry 接线误当作原生验收。
 
 ## R9 可信 Cookie 观察 UI（已提交实际 Side Panel 代码）
 
@@ -63,3 +81,13 @@
 ## Cookie Store 范围收敛
 
 可信 Host 当前只允许查询已选择网页所在的非无痕 Cookie Store，操作命名为 `browser.cookies.getCurrentStore`，不会伪装为 Chrome 原生全局 `getAllCookieStores` 或枚举其他站点/窗口 Store。R7 旧 `getStores` 属于归档快照，现行可信 Host 不保留别名。
+
+## R10.1 现行运行时事实（不覆盖前述 R8/R9 历史快照）
+
+- `BROWSER_OPERATIONS` 当前共有 **44 项**，其中 **Cookies 11 项**已由 `OpenDeskSDK.browser.cookies.*` 正式公开给**具备真实安装身份、精确站点/Store/PartitionKey/Chrome 权限和 Side Panel Cookie 用户授权**的安装工具。Page SDK 仍拒绝特权 Cookie 调用；明文单独要求 values 权限。内置受信 Cookie UI 使用已有 Host-only approve/execute；两种 Caller 身份不可混用，底层仍共用唯一 Host 和 Cookie Driver。
+- Clipboard / Downloads 不再从 Browser SDK Wrapper 转成 `clipboard.writeText` / `file.download` 旧 UI 消息。正式 `browser.clipboard.writeText` / `browser.downloads.text` 由受信 Side Panel 真点击、Host 一次性 Intent、原 Side Panel 系统复制/下载服务共同完成，具体原生效果仍待同候选验收。
+- 此处与唯一执行手册均为**按当前源码的局部修订**。最新接口矩阵已经记录 44 项已注册接口、11 项 Cookies 的 `APPROVED_TOOL_REGISTERED` 可见性、0 项旧 Cookies Host-only 设计；仍不得把矩阵同步等同于全部 Node/Build/Native 门禁完成。
+
+## R10.1 P3 下载所有权实施（2026-10-13）
+
+四项获批准的 Downloads 功能已由待实施变为正式 `OpenDeskSDK.browser.downloads.download/getOwned/listOwned/cancelOwned`，当前 55 项总合同为 **44 项 SOURCE_WIRED + 11 项设计待实施**。唯一 Browser Host 复核已安装 Tool packageHash、Epoch、Chrome downloads、站点 Origin 与受信 Side Panel 单次点击批准，受限 Driver 仅持有本工具的 opaque `downloadRef` 和对应原生 ID，不向 sandbox 暴露原生 ID 或全浏览器下载列表。Ref 为短时内存记录，Worker 重启和撤权后失效；未知原生副作用不自动重试。新增负向 Node 测试文件已提交，但本候选 Node、Build 和 Native Chrome 仍为 **NOT_TESTED**，不能因源码接线直接评分 95+。

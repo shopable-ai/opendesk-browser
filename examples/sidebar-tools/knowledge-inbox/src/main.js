@@ -583,7 +583,7 @@
   q('copy').addEventListener('click',action(async()=>{
     requireSaved();
     if(!exportReady)throw Error('内容尚未读取完成，请重新打开记录');
-    try{await request('clipboard.writeText',{text:exportText});say('完整 Markdown 已复制。');}
+    try{await globalThis.OpenDeskSDK.browser.clipboard.writeText(exportText);say('完整 Markdown 已复制。');}
     catch{
       q('copy-fallback').hidden=false;q('copy-fallback').value=exportText;
       q('copy-fallback').disabled=false;q('copy-fallback').focus();q('copy-fallback').select();

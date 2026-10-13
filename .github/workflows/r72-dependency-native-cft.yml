@@ -1,10 +1,20 @@
-name: R7.2 fresh Classic JS real Chrome A/B SHA reuse
+name: R7.4 Page Classic, Controller D04 ESM, D05 Classic and pinned npm import CFT
 on:
   push:
     branches: [main]
     paths:
       - '.github/workflows/r72-dependency-native-cft.yml'
       - 'tests/framework/page-dependency-r72-cft-cycle.mjs'
+      - 'tests/framework/controller-dependency-r72-cft-cycle.mjs'
+      - 'tests/framework/controller-classic-r73-cft-cycle.mjs'
+      - 'tests/framework/controller-pinned-npm-r74-cft-cycle.mjs'
+      - 'src/libs/page-frameworks/contract.js'
+      - 'src/libs/page-frameworks/controller-esm-linker-r4.mjs'
+      - 'src/ui/page-component-remote.js'
+      - 'tests/environment/dependency-manager.test.mjs'
+      - 'src/scripting/user-scripts/controller-classic.js'
+      - 'src/ui/controller-esm-source.js'
+      - 'src/platform/host/broker.js'
       - 'tests/framework/page-browser-worker-r243-cft.mjs'
       - 'src/ui/page-dependency-install.js'
       - 'src/ui/page-dependencies.js'
@@ -48,7 +58,7 @@ jobs:
         id: chrome
         with:
           chrome-version: '155.0.8059.39'
-      - name: True Chrome Side Panel Marked UMD one-click Run and program B SHA reuse
+      - name: True Chrome Page A/B, D05 Classic, D04 CSV and normal pinned npm import
         env:
           CHROME_FOR_TESTING_BIN: '${{ steps.chrome.outputs.chrome-path }}'
           OPENDESK_R72_DEPENDENCY_NATIVE_SMOKE: '1'
