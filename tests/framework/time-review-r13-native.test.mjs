@@ -409,13 +409,24 @@ test('Time Review R1.3 actual Mac Chrome install and trusted consent smoke',{ski
     });
     t.after(()=>new Promise(resolve=>siteServer.close(resolve)));
     const siteUrl='http://127.0.0.1:'+siteServer.address().port+'/activity';
-    await nativeClick(browser,side,'#time-review-trusted-start');
-    await until(async()=>{const s=await readTime();return s&&!s.paused&&s.authorizedHash?s:null;},'trusted start',10000);
     const site=await browser.send('Target.createTarget',{url:siteUrl});
     await until(async()=>{
       const active=await evaluate(browser,side,'chrome.tabs.query({active:true,lastFocusedWindow:true})');
       return active.some(tab=>tab.url===siteUrl);
     },'real HTTP(S) Chrome active tab',10000);
+    // R1.5: native, trusted, per-tool website consent. Manifest all_urls is NOT consent.
+    await nativeClick(browser,side,'#time-review-site-current-open');
+    await until(()=>evaluate(browser,side,
+      '!document.querySelector("#time-review-site-confirm").hidden'),'site consent review',10000);
+    await nativeClick(browser,side,'#time-review-site-current-approve');
+    const approvedOrigin=new URL(siteUrl).origin;
+    await until(async()=>{
+      const s=await readTime();
+      return s?.siteGrants?.origins?.includes(approvedOrigin)?s:null;
+    },'independent Time Review site grant',10000);
+    note('site-grant',{origin:approvedOrigin,source:'native trusted click'});
+    await nativeClick(browser,side,'#time-review-trusted-start');
+    await until(async()=>{const s=await readTime();return s&&!s.paused&&s.authorizedHash?s:null;},'trusted start',10000);
     const readActivityGates=()=>evaluate(browser,side,
       '(async()=>{const w=await chrome.windows.getLastFocused();const t=(await chrome.tabs.query({active:true,windowId:w.id}))[0];return {focused:w.focused,windowType:w.type,idle:await chrome.idle.queryState(60),isLoopbackTab:t?.url?.startsWith("http://127.0.0.1:"),hasHostPermission:await chrome.permissions.contains({origins:["http://127.0.0.1/*"]})};})()');
     let observationGates=await readActivityGates();

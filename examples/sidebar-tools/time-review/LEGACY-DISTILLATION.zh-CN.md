@@ -83,3 +83,11 @@
 - 并行写入：本轮阅读期间 `main` 从 `7a4da3e6` 到 `de52893a`（3 个 SDK 相关提交），经用户明确授权按单次原子提交写入 main，校验分支 HEAD，避免覆盖并行 Agent 变更；原生验收另列。
 
 **通用抽象原则**：用“沙箱 UI + 单一可信 Host + 可验证的本地状态机 + 按能力授权的持久队列 + 经过确认的外部服务契约”复用业务能力。旧系统的需求与数据准确性思路可传承；旧宽权限/不可信网页消息/伪造历史事件/无幂等发包模式必须永久禁止。
+
+## 四、R1.5 安全纠偏：扩展网站权限不等于工具采集同意
+
+R1.4 的部分历史说明将“Chrome Host 有权限”简称为“网站已授权”，现修订为两层**独立**授权。旧 `service.js:observe` 的 `chrome.permissions.contains({origins:[pattern]})` 只能证明 OpenDesk 扩展拥有浏览器层 Origin；即使返回 true（例如主 Manifest 的 `<all_urls>`），依然**不能**推定用户允许 `time-review` 采集站点。
+
+R1.5 为 `opendesk.time-review.v1` 添加可选且默认拒绝的 `siteGrants`，以已安装 `time-review` 的受信任宿主真实点击授权精确 HTTP(S) Origin 或二次确认全体普通网站。Time Review 的后台独立验证工具 ID/能力/包哈希/安装代际、启停状态、单工具站点范围、Chrome 网站权限、idle、焦点/隐身，再建立域名检查点；历史检查点若未绑定新站点来源不补算。
+
+旧版 `detect_focus.js`、`my-content-script.ts` 的全站鼠标、键盘、URL、标题采集与黑名单/重定向没有恢复。旧合法汇总数据不丢失；旧站点“授权”不会隐式迁移。云同步仍属可选本地准备模块，`api.todo6.com` 的原始 POST 不能代替生产幂等 upsert/ACK；实际连接状态维持 BLOCKED，默认无网络上传。

@@ -151,13 +151,19 @@
   function renderCurrent(data){
     const host=state?.paused?null:state?.trackingHost||null;
     $('site-host').textContent=host||'当前没有正在记录的网站';
-    $('site-hint').textContent=host?'仅记录域名，不读取网页正文':'暂停、失焦、空闲或未授权时不记录';
+    const reasons={paused:'记录已暂停', 'site-not-authorized':'当前网站未单独授权记录',
+      'chrome-site-permission':'OpenDesk 缺少该站点的 Chrome 权限',
+      'idle-permission':'请授权空闲检测后开始记录',idle:'Chrome 检测到用户空闲',
+      'window-inactive':'Chrome 当前不在前台',excluded:'该网站已排除',
+      'unsupported-page':'仅支持普通非隐身网页', 'observation-error':'暂时无法核实网页活动'};
+    $('site-hint').textContent=host?'仅记录域名，不读取网页正文':
+      reasons[state?.waitingReason]||'等待已授权网站成为前台活动页面';
     // The live-site card always reflects today, even while reviewing an earlier date.
     const site=(state?.todaySites||[]).find(row=>row.host===host);
     $('site-time').textContent=site?formatMs(site.ms):'—';
     const cat=host?(state?.siteCategories?.[host]??0):undefined;
     $('site-category').textContent=host&&cat!==undefined?C[cat].name:'—';
-    $('tracking-state').textContent=host?'正在记录':'未记录';
+    $('tracking-state').textContent=host?'正在记录':state?.paused?'已暂停':'未记录';
     $('edit-category').disabled=busy||!host||!site;
     $('inline-edit').hidden=!editing||!host||!site;
     if(site&&!editing)$('type-select').value=String(site.category??0);
@@ -209,7 +215,13 @@
     for(const button of root.querySelectorAll('button'))button.disabled=busy||!state;
     if(!state)return;
     const data=dayData();
-    $('start').disabled=busy||!state.paused;
+    const compatible=state.hostApiVersion==='time.review/1.5.0';
+    $('start').disabled=busy||!state.paused||!compatible;
+    const grants=state.siteGrants||{allSites:false,origins:[]};
+    $('site-grant-summary').textContent=!compatible?'后台版本不支持独立网站授权，请先升级 OpenDesk 主扩展。':
+      grants.allSites?'已同意记录全部普通网站（可在工具详情撤销）':
+      grants.origins?.length?'已单独授权 '+grants.origins.length+' 个网站（在工具详情管理）':
+      '尚未授权网站；请在「工具详情 → 设置」先授权当前网站或全部普通网站。';
     $('start').textContent=state.authorized?'恢复记录':'开始记录';
     $('pause').disabled=busy||state.paused;
     $('next-date').disabled=busy||selectedDate>=state.today;

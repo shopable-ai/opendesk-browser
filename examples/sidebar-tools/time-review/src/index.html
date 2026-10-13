@@ -49,6 +49,7 @@
     </div>
   </section>
 
+  <p id="site-grant-summary" class="subtle" role="status">网站采集授权需要在工具详情中单独确认。</p>
   <div class="actions" aria-label="计时操作"><button id="start" class="primary" type="button">开始记录</button><button id="pause" type="button">暂停</button></div>
   <p id="gap" class="subtle" hidden></p>
 
@@ -66,7 +67,7 @@
       <div class="setting-row"><div><b>保存分钟明细</b><small>仅在工具详情受信任的设置区明确同意后，才保存未来分钟明细；关闭时清除已存明细，不补造旧记录。</small></div><button id="minute-consent" type="button">开启</button></div>
       <label for="idle">空闲阈值（秒）</label><input id="idle" type="number" min="15" max="3600" value="60">
       <label for="retention">汇总保留天数（7–365；分钟明细最多 90 天）</label><input id="retention" type="number" min="7" max="365" value="90">
-      <label for="excluded">排除域名（每行一个，包含子域名）</label><textarea id="excluded" rows="3" placeholder="example.com"></textarea>
+      <label for="excluded">额外排除域名（非授权列表；每行一个，包含子域名）</label><textarea id="excluded" rows="3" placeholder="example.com"></textarea>
       <button id="save-settings" type="button" class="primary">保存设置</button>
       <div class="actions"><button id="export-json" type="button">导出 JSON</button><button id="export-csv" type="button">导出 CSV</button></div>
       <button id="revoke" type="button">停止并撤销时间授权</button>

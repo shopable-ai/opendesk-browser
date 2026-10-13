@@ -3,7 +3,7 @@ import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE,sidebarToolEnable
 import {writeVerifiedLocalValue} from '../ui/sidebar-tools/storage-state.js';
 import {isReadingTocToolSender} from '../reading-toc/page.js';
 import {TIME_REVIEW_KEY,readReview,reviewHost,reviewSettings,reviewClassify,reviewDay,localDay,settleReview,reviewSummary,reviewExport,MAX_OBSERVATION_GAP} from './model.js';
-import {TIME_REVIEW_ID,TIME_REVIEW_PROTOCOL,TIME_REVIEW_CAPABILITY,TIME_REVIEW_ALARM,TIME_REVIEW_SESSION,TIME_REVIEW_OPERATIONS,timeReviewPackageHash} from './policy.js';
+import {TIME_REVIEW_ID,TIME_REVIEW_PROTOCOL,TIME_REVIEW_CAPABILITY,TIME_REVIEW_ALARM,TIME_REVIEW_SESSION,TIME_REVIEW_OPERATIONS,timeReviewPackageHash,TIME_REVIEW_HOST_API,timeReviewSiteOrigin,timeReviewSiteGranted,changeTimeReviewSiteGrants} from './policy.js';
 import {stageReviewSync,reviewSyncStatus} from './sync-outbox.js';
 const error=(message,code='E_TIME_AUTHORITY')=>Object.assign(new Error(message),{code});
 
@@ -47,21 +47,26 @@ export function createTimeReviewService({api=globalThis.chrome,lockManager=globa
     return matches[0].documentId;
   }
   async function observe(state){
-    if(!await api.permissions.contains({permissions:['idle']}))return {permitted:false,current:null};
+    if(!await api.permissions.contains({permissions:['idle']}))return {permitted:false,current:null,reason:'idle-permission'};
     api.idle.setDetectionInterval(state.settings.idleSeconds);
-    if(await api.idle.queryState(state.settings.idleSeconds)!=='active')return {permitted:true,current:null};
+    if(await api.idle.queryState(state.settings.idleSeconds)!=='active')return {permitted:true,current:null,reason:'idle'};
     const window=await api.windows.getLastFocused();
-    if(!window?.focused||window.incognito||window.type!=='normal')return {permitted:true,current:null};
+    if(!window?.focused||window.incognito||window.type!=='normal')return {permitted:true,current:null,reason:'window-inactive'};
     const tabs=await api.tabs.query({active:true,windowId:window.id});
     const tab=tabs.length===1?tabs[0]:null,host=reviewHost(tab?.url);
-    if(!host||tab.incognito||tab.pendingUrl||state.settings.excludedHosts.some(row=>host===row||host.endsWith('.'+row)))return {permitted:true,current:null};
+    if(!host||tab.incognito||tab.pendingUrl)return {permitted:true,current:null,reason:'unsupported-page'};
+    if(state.settings.excludedHosts.some(row=>host===row||host.endsWith('.'+row)))
+      return {permitted:true,current:null,reason:'excluded'};
+    const origin=timeReviewSiteOrigin(tab.url);
+    if(!timeReviewSiteGranted(state.siteGrants,origin))
+      return {permitted:true,current:null,reason:'site-not-authorized'};
     // Chrome host-permission patterns identify scheme + host, not a TCP port.
     // URL.origin includes ':43111' for a localhost development site; sending
     // that to permissions.contains can reject the pattern and silently stop
     // real tracking. Keep same scheme/hostname and never widen to '*' hosts.
     const address=new URL(tab.url),pattern=address.protocol+'//'+address.hostname+'/*';
-    if(!await api.permissions.contains({origins:[pattern]}))return {permitted:true,current:null};
-    return {permitted:true,current:{host,tabId:tab.id,windowId:window.id}};
+    if(!await api.permissions.contains({origins:[pattern]}))return {permitted:true,current:null,reason:'chrome-site-permission'};
+    return {permitted:true,current:{host,origin,tabId:tab.id,windowId:window.id},reason:null};
   }
   async function reconcileLocked({boot=false,operation=null,payload=null,auth=null,at=now(),validateHost=null}={}){
     const observedGeneration=activityGeneration,observedRevocation=revocationGeneration;
@@ -71,15 +76,28 @@ export function createTimeReviewService({api=globalThis.chrome,lockManager=globa
     let state=readReview(raw);
     const sessionId=await browserSession();
     let observation;
-    try{observation=await observe(state);}catch{observation={permitted:false,current:null};}
-    const authorized=auth.enabled&&state.authorizedHash===hash&&state.authorizedEpoch===auth.epoch&&observation.permitted;
+    try{observation=await observe(state);}catch{observation={permitted:false,current:null,reason:'observation-error'};}
     const cp=state.checkpoint,current=observation.current;
+    const previouslyGranted=!cp||timeReviewSiteGranted(state.siteGrants,cp.origin);
+    const hasSiteConsent=state.siteGrants.allSites||state.siteGrants.origins.length>0;
+    const authorized=auth.enabled&&state.authorizedHash===hash&&state.authorizedEpoch===auth.epoch&&
+      observation.permitted&&hasSiteConsent&&previouslyGranted&&!pendingRevocation;
     const recover=boot&&cp&&(!current||current.host!==cp.host||current.tabId!==cp.tabId||current.windowId!==cp.windowId);
     state=settleReview(state,at,{session:sessionId,recover:!authorized||Boolean(recover)});
-    if(!auth.enabled||!observation.permitted||state.authorizedHash&&(state.authorizedHash!==hash||state.authorizedEpoch!==auth.epoch)){state.paused=true;state.authorizedHash=null;state.authorizedEpoch=null;}
+    if(!auth.enabled||!observation.permitted||!hasSiteConsent||
+      state.authorizedHash&&(state.authorizedHash!==hash||state.authorizedEpoch!==auth.epoch)){
+      state.paused=true;state.authorizedHash=null;state.authorizedEpoch=null;
+    }
     if(operation==='time.start'){
       if(!observation.permitted)throw error('请在工具详情设置中授权浏览器空闲检测','E_TIME_PERMISSION');
+      if(!hasSiteConsent)throw error('请先在工具详情中明确授权指定网站或全部普通网站','E_TIME_SITE_GRANT');
       state.authorizedHash=hash;state.authorizedEpoch=auth.epoch;state.paused=false;
+     }else if(operation==='time.siteGrant'){
+      state.siteGrants=changeTimeReviewSiteGrants(state.siteGrants,payload);
+      if(!state.siteGrants.allSites&&!state.siteGrants.origins.length){
+        state.paused=true;state.authorizedHash=null;state.authorizedEpoch=null;
+      }
+      observation=await observe(state);
     }else if(operation==='time.pause')state.paused=true;
     else if(operation==='time.revoke'){state.paused=true;state.authorizedHash=null;state.authorizedEpoch=null;}
     else if(operation==='time.settings'){
@@ -137,7 +155,9 @@ export function createTimeReviewService({api=globalThis.chrome,lockManager=globa
     }else await api.alarms.clear(TIME_REVIEW_ALARM);
     let syncStatus;
     try{syncStatus=reviewSyncStatus(state);}catch{syncStatus={mode:'blocked-invalid',pending:null,overflow:true,networkEnabled:false};}
-    return {state,summary:{...reviewSummary(state,at),syncStatus,idlePermission:observation.permitted,maximumObservationGapMs:MAX_OBSERVATION_GAP}};
+    return {state,summary:{...reviewSummary(state,at),syncStatus,idlePermission:observation.permitted,
+      hostApiVersion:TIME_REVIEW_HOST_API,waitingReason:state.paused?'paused':observation.reason||
+        (state.checkpoint?'tracking':'waiting'),maximumObservationGapMs:MAX_OBSERVATION_GAP}};
   }
   const tick=options=>locked(()=>reconcileLocked(options));
   async function dispatch(message,sender){
@@ -203,7 +223,12 @@ export function installTimeReviewService({api=globalThis.chrome,...options}={}){
   listen(api.permissions.onAdded,activity);
   listen(api.runtime.onStartup,()=>run({boot:true}));
   listen(api.storage.onChanged,(changes,area)=>{
-    if(area==='local'&&[SIDEBAR_TOOL_STORE,SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE].some(key=>Object.hasOwn(changes,key)))run();
+    if(area==='local'&&[SIDEBAR_TOOL_STORE,SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE].some(key=>Object.hasOwn(changes,key))){
+      // Installation, disable, update, revoke and uninstall retire any pending
+      // interval BEFORE the asynchronous durable authority recheck begins.
+      service.invalidate({revoke:true});
+      run();
+    }
   });
   run({boot:true});
   return {service,dispose(){for(const remove of removers)remove();}};
