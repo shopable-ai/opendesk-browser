@@ -1,0 +1,25 @@
+{
+  "sourceCommit": "197746aa04a00b5f49a6d70b51e5829e2490c9e3",
+  "builds": {
+    "production": {
+      "packageHash": "409201938725cee68453544f312cd46504fdbcf44cac98db152125ce14b8de91",
+      "swBytes": 592119,
+      "swSHA256": "9d85e1370c1dc5c1e896764e6c3bb367d2a94a4d32efc93760d78c313cb56e9f",
+      "toolBytes": 33024,
+      "toolSHA256": "afb91cfb1fecf65544ed2864c08e7eb678e864b2b6b5d2cd0e65ce7fb31413af",
+      "toolShellBytes": 494692,
+      "sourceInputs": 470,
+      "sourceDriftDuringBuild": []
+    },
+    "development": {
+      "packageHash": "95ebfeb2ae476427e70520b1827f9d620eda82af5df147d181685eaa9dea083c",
+      "swBytes": 592285,
+      "swSHA256": "e49d69652a5713f4c61a75c50d301ef9269290b0df86aa188b62ecdd1321256b",
+      "toolBytes": 33024,
+      "toolSHA256": "afb91cfb1fecf65544ed2864c08e7eb678e864b2b6b5d2cd0e65ce7fb31413af",
+      "toolShellBytes": 494932,
+      "sourceInputs": 470,
+      "sourceDriftDuringBuild": []
+    }
+  }
+}

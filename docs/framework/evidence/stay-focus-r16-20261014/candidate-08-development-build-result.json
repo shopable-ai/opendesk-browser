@@ -1,0 +1,12 @@
+{
+  "sourceCommit": "197746aa04a00b5f49a6d70b51e5829e2490c9e3",
+  "command": [
+    "npm",
+    "run",
+    "build:dev"
+  ],
+  "cwd": "/Users/shopme/Documents/workspace/opendesk-browser/.runtime/tests/stay-focus-r16-20261014/candidate-03",
+  "startedAt": "2026-10-13T20:22:13.177163+00:00",
+  "exitCode": 0,
+  "outputGuardPort": 44163
+}

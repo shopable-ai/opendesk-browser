@@ -1,0 +1,16 @@
+
+> opendesk-browser@0.1.0 build
+> node scripts/build.mjs production
+
+file:///Users/shopme/Documents/workspace/opendesk-browser/.runtime/tests/stay-focus-r16-20261014/candidate-03/scripts/development-lock.mjs:29
+    guard.once('error',error=>reject(Error(`Output guard 127.0.0.1:${port} unavailable (${error.code}). Another service/build may be running; stop its owner before retrying.`)));
+                                     ^
+
+Error: Output guard 127.0.0.1:43120 unavailable (EADDRINUSE). Another service/build may be running; stop its owner before retrying.
+    at Server.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/.runtime/tests/stay-focus-r16-20261014/candidate-03/scripts/development-lock.mjs:29:38)
+    at Object.onceWrapper (node:events:631:26)
+    at Server.emit (node:events:509:28)
+    at emitErrorNT (node:net:2044:8)
+    at process.processTicksAndRejections (node:internal/process/task_queues:90:21)
+
+Node.js v24.16.0

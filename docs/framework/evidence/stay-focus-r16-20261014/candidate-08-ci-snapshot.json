@@ -1,0 +1,22 @@
+{
+  "queriedAt": "2026-10-13T20:21:02.637146+00:00",
+  "adaFocusJobs": [
+    {
+      "id": 115516817333,
+      "name": "source-and-build",
+      "status": "completed",
+      "conclusion": "success",
+      "head_sha": "ada5b7ed76ef3f0993769c753ccfc481d5723bca",
+      "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38461289169/job/115516817333"
+    },
+    {
+      "id": 115517964457,
+      "name": "native-mac-chrome",
+      "status": "queued",
+      "conclusion": null,
+      "head_sha": "ada5b7ed76ef3f0993769c753ccfc481d5723bca",
+      "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38461289169/job/115517964457"
+    }
+  ],
+  "deliveryRuns": []
+}

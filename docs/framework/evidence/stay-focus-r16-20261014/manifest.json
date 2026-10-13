@@ -3,8 +3,8 @@
   "files": [
     {
       "path": "acceptance-summary.json",
-      "bytes": 963,
-      "sha256": "06873e3517ebea1ea39f0e32ef2df155f3a55dbc1472239825d65b78244f4b06"
+      "bytes": 1190,
+      "sha256": "6db2b267ff04cdd5e4b255633a46fa40e25adfe087065bf869bc23b801956a57"
     },
     {
       "path": "attempt-20-assisted-native/exit.json",
@@ -495,6 +495,106 @@
       "path": "candidate-07-verify.log",
       "bytes": 42815,
       "sha256": "eea1f66542fdda70fc58bbd2d6f2041f9634c587f4ee99220af05b2ba5ba89ca"
+    },
+    {
+      "path": "candidate-08-build-receipts/build-development-latest.json",
+      "bytes": 208,
+      "sha256": "9db4fef192c45827865c023c3fa0ad05604181e258ba69f82e8e8cae113f32fd"
+    },
+    {
+      "path": "candidate-08-build-receipts/build-development.json",
+      "bytes": 487866,
+      "sha256": "3fbf88b923f43abb96fed0b24b1645259c7e24c5236089f422dcaadc25647d6c"
+    },
+    {
+      "path": "candidate-08-build-receipts/build-production-latest.json",
+      "bytes": 206,
+      "sha256": "7c7b9aae1987d394832f7e0dda36e133e02ff2ac72b61a51afd04a7b0b10df88"
+    },
+    {
+      "path": "candidate-08-build-receipts/build-production.json",
+      "bytes": 465906,
+      "sha256": "02d4f4bdd7680950b43ad3a0e3f1e9bfc82891337da92da6a95a51327406ad2c"
+    },
+    {
+      "path": "candidate-08-check-result.json",
+      "bytes": 302,
+      "sha256": "f3a39d8c72720680ba124d844da115357d7a8922dcaf5fecbcad12d998563ecf"
+    },
+    {
+      "path": "candidate-08-check.log",
+      "bytes": 208,
+      "sha256": "5a3df4fe18df36d0ec280ae65b3a25bc003379937991759117f164f10d6b865b"
+    },
+    {
+      "path": "candidate-08-ci-snapshot.json",
+      "bytes": 703,
+      "sha256": "b276d8a477ef53ca00e6f283f12dd69a8cdf6e6ebb1a5ec70485de5b63476061"
+    },
+    {
+      "path": "candidate-08-development-build-result.json",
+      "bytes": 334,
+      "sha256": "34d908f98b73f9eec482ddae7383db1ce388bc92c53119e8b9fe75fff7f0f02e"
+    },
+    {
+      "path": "candidate-08-development-build.log",
+      "bytes": 22779,
+      "sha256": "5cf4210cffb92725f3ceab4c4180d734b2e0e7f090f4f4ce98aea23f56ddfdaa"
+    },
+    {
+      "path": "candidate-08-identity.json",
+      "bytes": 954,
+      "sha256": "9af62ca07095dce0f3a59530fbe3655bf087ee526ca976a82c03a8ebc2f24941"
+    },
+    {
+      "path": "candidate-08-node-components-result.json",
+      "bytes": 346,
+      "sha256": "ba27aecefec2ddb1068d5afd21a788bd390f451137b91d4cae912342a195be17"
+    },
+    {
+      "path": "candidate-08-node-components.log",
+      "bytes": 6256,
+      "sha256": "785e71d4a9f818db8222eb983593411ba6e2eafc3b7ca4ccf074def3c5f338a1"
+    },
+    {
+      "path": "candidate-08-production-build-port-failed-result.json",
+      "bytes": 302,
+      "sha256": "eeef68fd29a3b2535dbe3d95e58aa7140dfd5aae25b9151485ceb5e45447ef76"
+    },
+    {
+      "path": "candidate-08-production-build-port-failed.log",
+      "bytes": 960,
+      "sha256": "6333c516b2322f348e80c7005668dbc99d497d9c1df4a0737f31468e4e8c1c72"
+    },
+    {
+      "path": "candidate-08-production-build-result.json",
+      "bytes": 330,
+      "sha256": "eb3fd438f98a8552ae88773f7d93768f89a01e33c6274379213700cbc4d27b0e"
+    },
+    {
+      "path": "candidate-08-production-build.log",
+      "bytes": 18155,
+      "sha256": "d364182eb3e9e7ad9208d22dac02fda2021a70975d9f4c960a9a4db5cc43a637"
+    },
+    {
+      "path": "candidate-08-source-receipt-binding.json",
+      "bytes": 335,
+      "sha256": "f68a1be54c1fb543762d4261eb3a361978511f6a54a9656753b174c9472db357"
+    },
+    {
+      "path": "candidate-08-source.json",
+      "bytes": 216,
+      "sha256": "9c27e8c44fcbb020de7f6e0a020a823d4ee6f90441471f1c5d466ec35215b542"
+    },
+    {
+      "path": "candidate-08-verify-result.json",
+      "bytes": 331,
+      "sha256": "f845b6be7fe6235c228a82a459005a235bbf3d9891fbf20cff5bb151edb0dafe"
+    },
+    {
+      "path": "candidate-08-verify.log",
+      "bytes": 42815,
+      "sha256": "1a0745e5a5a159e035d51c47a95bbce2955683051228b84ca4f924b77a8605c5"
     },
     {
       "path": "final-main-product-binding.json",

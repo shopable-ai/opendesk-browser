@@ -1,0 +1,11 @@
+{
+  "sourceCommit": "197746aa04a00b5f49a6d70b51e5829e2490c9e3",
+  "command": [
+    "npm",
+    "run",
+    "check"
+  ],
+  "cwd": "/Users/shopme/Documents/workspace/opendesk-browser/.runtime/tests/stay-focus-r16-20261014/candidate-03",
+  "startedAt": "2026-10-13T20:20:41.974994+00:00",
+  "exitCode": 0
+}

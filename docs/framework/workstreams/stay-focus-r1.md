@@ -6,7 +6,7 @@
 
 - 负责人：Codex 会话 `01a1364d-3c43-76a0-83d6-25d8c20b38ee`。起始 main/origin：`89c3b298dc3cf8927b227b041b101770780ce58a`；全部正式修改及提交都在 main，没有创建分支、worktree 或 PR。
 - 本任务源码修复提交：`f831f5d3f906fca9171e2c9cd662484a07c95ef3`。写入文件：`examples/sidebar-tools/stay-focus/src/index.html`、`examples/sidebar-tools/stay-focus/src/main.js`、`tests/environment/stay-focus-r1.test.mjs`、现有 `tests/framework/stay-focus-r1-native.test.mjs`。追加写入本记录和 `docs/framework/evidence/stay-focus-r16-20261014/`；子 Agent 仅只读审阅。
-- 最后实际原生候选源码：`85de6add728a45167583b0308a8e31da7503d044`（candidate-06）；最新实际组件/双构建/verify 源码：`3763a70eed4855be91d597336938611ba9c86352`（candidate-07）。并行负责人之后修改了 WXT 输出格式及 Cookie 安装安全路径，已补跑受影响构建，不能把 candidate-06 的原生结果提升到新字节。最后逐项比较的 main `8321bc8e0a98d4066f8464f1b23b81b113593f8b` 与 candidate-07 的 470 项产品输入一致。候选身份以 receipt 的逐文件 SHA 为准，不能用变化中的 HEAD 标签替代。candidate-04/05、旧 CI 及 MIXED_DIAGNOSTIC 结果均不升级为 candidate-06 PASS。
+- 最后实际原生候选源码：`85de6add728a45167583b0308a8e31da7503d044`（candidate-06）；最后实际组件/双构建/verify 源码：`197746aa04a00b5f49a6d70b51e5829e2490c9e3`（candidate-08）。并行 main 的 WXT、Cookie 安装安全与 Time Review 服务输入变化均按候选分别补验；candidate-08 的 production/development 各 470 个产品输入与该提交逐项一致、构建期间差异 0。candidate-06 的原生结果不能升级为最后构建的原生 PASS。候选身份以 receipt 的逐文件 SHA 为准，不能用变化中的 HEAD 标签替代。candidate-04/05、旧 CI 及 MIXED_DIAGNOSTIC 结果均不升级为 candidate-06 PASS。
 - 日常开发 watcher 初始 PID 67794 由原负责人持有，后由其他工作流替换为 PID 25149；本任务没有启停 watcher，也没有写入日常 `dist/development`、切换日常 Chrome 扩展 ID 或修改 Native 配对。所有构建仅在 `.runtime/tests/stay-focus-r16-20261014/candidate-01/` 与 `candidate-02/` 的独立快照输出；快照不是 Git worktree。CFT Profile、调试端口与 IPv4/IPv6 HTTP 端口均由原生驱动独立申请并清理。
 
 **真实缺陷及修复。** 工具沙箱只允许脚本，禁止表单提交。原有五个保存入口监听 `submit`，浏览器在监听器执行之前拦截提交，额度修改无法进入可信宿主审阅。五个入口改为明确的 `type="button"` 与 `click`，继续使用原字段校验及 Host 确认，不添加 `allow-forms`、权限、运行器、计时器或 DNR 引擎。新增回归先失败后通过，覆盖额度、网站、共享组、时段和白名单，以及非法额度不得发送操作。真实 Chrome 已经确认保存 2 分钟及两个本机网站。
@@ -15,9 +15,9 @@
 
 构建诊断曾临时试验 `wxt.config.mjs`，没有解决固定入口超限，已完全恢复；最终复用其他负责人已经合入 main 的预算修复。本任务不提交该配置或其他工具源码，不放宽 524288 B 固定入口上限。
 
-**实际命令与退出码。** Node `v24.16.0` 满足仓库 `>=22.12.0`。四个指定组件文件原始 61 PASS；增加保存回归后最终 **62 PASS / 0 FAIL**。`node --check tests/framework/stay-focus-r1-native.test.mjs`、独立工具包构建、`npm run check`、`npm run build`、`npm run build:dev`、`npm run verify` 均实际执行并退出 0。最后组件/check/双构建/verify 日志为证据目录的 `candidate-07-*.log` 与相应 `*-result.json`；独立工具包构建为 `candidate-05-tool-build.log`，Focus 输入和生成包 SHA 完全相同，按测试复用规则保留其证据。初次入口超限及不完整包 verify 失败日志仍在原始 artifacts 中，没有删除或登记为成功。
+**实际命令与退出码。** Node `v24.16.0` 满足仓库 `>=22.12.0`。四个指定组件文件原始 61 PASS；增加保存回归后最终 **62 PASS / 0 FAIL**。`node --check tests/framework/stay-focus-r1-native.test.mjs`、独立工具包构建、`npm run check`、`npm run build`、`npm run build:dev`、`npm run verify` 均实际执行并退出 0。最后组件/check/双构建/verify 日志为证据目录的 `candidate-08-*.log` 与相应 `*-result.json`；独立工具包构建为 `candidate-05-tool-build.log`，Focus 输入和生成包 SHA 完全相同，按测试复用规则保留其证据。初次入口超限及不完整包 verify 失败日志仍在原始 artifacts 中，没有删除或登记为成功。
 
-| 最新 candidate-07 产物 | 字节数 | SHA-256 |
+| 最后 candidate-08 产物 | 字节数 | SHA-256 |
 | --- | ---: | --- |
 | Stay Focus 工具包 | 33024 | `afb91cfb1fecf65544ed2864c08e7eb678e864b2b6b5d2cd0e65ce7fb31413af` |
 | production SW | 592119 | `9d85e1370c1dc5c1e896764e6c3bb367d2a94a4d32efc93760d78c313cb56e9f` |
@@ -55,6 +55,10 @@ production packageHash：`8de5cf8ca372796d35079ec4cd5f1dc4542571b1716b02ec45ef65
 旧 CI Run [38428256016](https://github.com/shopable-ai/opendesk-browser/actions/runs/38428256016)：source-and-build 115403285041 成功、native-mac-chrome 115404593802 在本轮查询时仍 queued；只属于 b39be6ab，不替代本机候选。本任务修复提交 f831f5d3 的按 SHA workflow_runs 查询为空。验收与驱动提交 `ada5b7ed76ef3f0993769c753ccfc481d5723bca` 已常规推送 main（exit 0，无强推）；本轮 Stay Focus CI [#38461289169](https://github.com/shopable-ai/opendesk-browser/actions/runs/38461289169) 在 2026-10-13T20:15:21.546677+00:00 的真实状态为 `in_progress`、conclusion=null，未登记 CI PASS。推送及 API 查询回执见 `main-push.log` / `main-push-and-ci.json`；这条 CI 不替代本机原生证据。
 
 交付前复核 main `400b3ec1dec2aefc64cbdd37404845320f1a6176`：candidate-07 的 production/development 各 470 个 product inputs 与该提交逐项 SHA 一致、差异 0；详见 `final-main-product-binding.json`。该比对只证明构建输入一致，不提升原生验收等级。
+
+最后补验 candidate-08 使用 main `197746aa` 的只读源码快照 `.runtime/tests/stay-focus-r16-20261014/candidate-03`，独立 Output Guard 44163。第一次构建误用默认 43120，被另一输出负责人占用而安全退出，原日志保留为 `candidate-08-production-build-port-failed.log`；设置正确的 `OPENDESK_OUTPUT_GUARD_PORT=44163` 后生产/开发构建与 Verify 全部退出 0，未停止日常 watcher 或覆盖 dist/development。组件重新实际运行 62 PASS / 0 FAIL，check 退出 0；工具包与 SW SHA 与 candidate-07 相同，但整体包/源码输入不同，保留独立 receipt，candidate-08 原生为 NOT_TESTED。修复和 UI 文件已在 f831f5d3；本次仅补驱动、记录与证据。
+
+本轮 CI 更新：Stay Focus [#38461289169](https://github.com/shopable-ai/opendesk-browser/actions/runs/38461289169) 的源码仍是 `ada5b7ed`。API 实查 source-and-build Job `115516817333` 为 completed/success，native-mac-chrome Job `115517964457` 为 queued；最新查询与 candidate-08 的身份共同存档在 `candidate-08-ci-snapshot.json`。main `197746aa` 的按 SHA 查询未返回新的 Stay Focus Run，不能把上述 CI 转记为其原生 PASS。
 
 ## R1.5 真实 CI 验证记录（2026-10-14）
 
