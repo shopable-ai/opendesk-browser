@@ -3,17 +3,17 @@ import assert from 'node:assert/strict';
 import {BROWSER_OPERATIONS,browserCapabilityList,normalizeBrowserOperation} from '../../src/framework/sdk/browser-contract.js';
 import {createBrowserSdk} from '../../src/framework/sdk/browser.js';
 const isCode=expected=>e=>e?.code===expected;
-test('Browser SDK 32 original and three R5 owned Tabs methods have typed metadata',()=>{
+test('R9 Browser SDK exposes only real implemented operations and typed metadata',()=>{
   const rows=Object.values(BROWSER_OPERATIONS);
-  assert.equal(rows.length,35);
+  assert.equal(rows.length,26);
   assert.deepEqual(Object.assign({HOST_ONLY:0},Object.fromEntries(Object.entries(Object.groupBy(rows,x=>x.implementation))
-    .map(([key,values])=>[key,values.length]))),{IMPLEMENTED:26,PLANNED:7,HOST_ONLY:0,NOT_EXPOSED:2});
+    .map(([key,values])=>[key,values.length]))),{IMPLEMENTED:26,HOST_ONLY:0});
   for(const op of rows){
     assert.equal(op.inputSchema?.type,'object',op.operation);
     assert.equal(op.inputSchema.additionalProperties,false,op.operation);
     assert(['object','array'].includes(op.outputSchema?.type),op.operation);
   }
-  assert.equal(browserCapabilityList('page-sdk').find(x=>x.operation==='browser.notifications.create').exposure,'not-exposed');
+  assert.equal(browserCapabilityList('page-sdk').find(x=>x.operation==='browser.notifications.create'),undefined);
 });
 test('all ten implemented wrappers preserve original authenticated request path',async()=>{
   const calls=[],sdk=createBrowserSdk({request:async(op,args)=>{calls.push([op,args]);return {ok:true};}});
@@ -51,9 +51,16 @@ test('Legacy exports reject unsafe values before dispatch',async()=>{
   await sdk.clipboard.writeText('界'.repeat(50000));
   assert.equal(calls.length,1);
 });
-test('PLANNED, HOST_ONLY and NOT_EXPOSED operations fail closed',()=>{
-  for(const op of Object.values(BROWSER_OPERATIONS).filter(x=>x.implementation!=='IMPLEMENTED'))
-    assert.throws(()=>normalizeBrowserOperation(op.operation,{}),isCode('E_SERVICE_UNSUPPORTED'),op.operation);
+test('Removed prelaunch placeholder operations cannot be invoked or discovered',()=>{
+ const removed=['browser.media.recording.prepare','browser.media.recording.getStatus',
+  'browser.media.recording.stop','browser.media.recording.discard','browser.speech.transcribe',
+  'browser.speech.speak','browser.speech.stop','browser.notifications.create',
+  'browser.notifications.clear'];
+ for(const name of removed){
+  assert.equal(Object.hasOwn(BROWSER_OPERATIONS,name),false,name);
+  assert.equal(browserCapabilityList('sidebar-tool').some(x=>x.operation===name),false,name);
+  assert.throws(()=>normalizeBrowserOperation(name,{}),isCode('E_SERVICE_UNSUPPORTED'),name);
+ }
 });
 
 test('R5 public Tabs wrappers route through original Host with no raw native tabId',async()=>{
