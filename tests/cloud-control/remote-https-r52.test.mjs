@@ -163,6 +163,46 @@ test('one Provider serves authenticated HTTPS/WSS and target-scoped client submi
         jobId:contentJob.jobId,state:'completed',receiptConfirmed:true,
         result:{state:'completed',valueWire:{text:'RESULT-BODY-CONSENT-ONLY'}}
       },'Full result needs both Browser consent and client read authorization');
+
+    // Browser authorized full receipt but this *client* never approved
+    // reading result bodies: it sees only status, including after restart.
+    const deniedResultJob=await p('/v1/submit',{...seed,requestKey:'client-no-body',
+      params:{name:'Web secret may never leave status'}},grant.credential);
+    const deniedAssignment=(await p('/v1/claim',{claimId:'claim-client-no-body',
+      grantId,tasks:taskAdvertised},executor.credential)).assignment;
+    assert.equal(deniedAssignment.jobId,deniedResultJob.jobId);
+    const deniedRef={runId:randomUUID(),resultId:randomUUID(),
+      requestId:'cloud:'+deniedAssignment.assignmentId,
+      sourceHash:pin.sourceHash,manifestHash:pin.manifestHash,grantId:randomUUID()};
+    await p('/v1/admission',{assignmentId:deniedAssignment.assignmentId,
+      runRef:deniedRef,resultAllowed:true},executor.credential);
+    await p('/v1/receipt',{assignmentId:deniedAssignment.assignmentId,
+      receiptKey:deniedRef.resultId,runRef:deniedRef,
+      result:{visibility:'full',runId:deniedRef.runId,resultId:deniedRef.resultId,
+        sourceHash:pin.sourceHash,revision:{sourceHash:pin.sourceHash},
+        retirementState:'released',state:'completed',
+        valueWire:{text:'CLIENT-RESULT-NOT-AUTHORIZED'}}},executor.credential);
+    assert.deepEqual(await p('/v1/job-status',{jobId:deniedResultJob.jobId},
+      grant.credential),{jobId:deniedResultJob.jobId,state:'completed',receiptConfirmed:true});
+    await assert.rejects(p('/v1/job-status',{jobId:deniedResultJob.jobId},
+      permittedResultClient.credential),{code:'E_JOB'});
+
+    // A native side effect could have occurred after admission. No receipt
+    // plus cancellation is UNKNOWN, not a new automatic execution.
+    const unknownJob=await p('/v1/submit',{...seed,requestKey:'cancel-after-admission',
+      params:{name:'Effect could exist'}},permittedResultClient.credential);
+    const unknownAssignment=(await p('/v1/claim',{claimId:'claim-unknown',
+      grantId,tasks:taskAdvertised},executor.credential)).assignment;
+    const unknownRef={runId:randomUUID(),resultId:randomUUID(),
+      requestId:'cloud:'+unknownAssignment.assignmentId,
+      sourceHash:pin.sourceHash,manifestHash:pin.manifestHash,grantId:randomUUID()};
+    await p('/v1/admission',{assignmentId:unknownAssignment.assignmentId,
+      runRef:unknownRef,resultAllowed:false},executor.credential);
+    await local('/admin/cancel',{jobId:unknownJob.jobId},admin.adminToken);
+    assert.deepEqual(await p('/v1/job-status',{jobId:unknownJob.jobId},
+      permittedResultClient.credential),{
+        jobId:unknownJob.jobId,state:'OUTCOME_UNKNOWN',receiptConfirmed:false
+      });
     ws.terminate();ws=null;
     await provider.close();
     provider=await openProvider({directory,port:0,publicTls});
@@ -179,7 +219,7 @@ test('one Provider serves authenticated HTTPS/WSS and target-scoped client submi
     await assert.rejects(retry('/v1/submit',{...seed,requestKey:'after-revoke'},
       grant.credential),{code:'E_AUTH'});
     const state=JSON.parse(await readFile(join(directory,'state.json'),'utf8'));
-    assert.equal(Object.keys(state.jobs).length,2);
+    assert.equal(Object.keys(state.jobs).length,4);
     assert.equal(state.jobs[created.jobId].targetExecutorId,executorId);
     assert.equal(JSON.stringify(state).includes(pkg.sourceUtf8),false);
   }finally{ws?.terminate();await provider.close();await rm(directory,{force:true,recursive:true});}
