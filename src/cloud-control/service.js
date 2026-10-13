@@ -305,7 +305,7 @@ export function createCloudService({storage,api,clock={now:()=>Date.now()},asser
       typeof request.taskId==='string'&&request.taskId.length>0&&
       typeof request.label==='string'&&request.label.trim().length>0&&
       request.label.trim().length<=60&&
-      !/[\\x00-\\x1f\\x7f]/.test(request.label)&&
+      !/[\x00-\x1f\x7f]/.test(request.label)&&
       typeof request.allowResult==='boolean','E_SCHEMA');
     const task=await resolveTask({taskId:request.taskId},sender);
     const chosen=await scoped(sender,async tx=>{
