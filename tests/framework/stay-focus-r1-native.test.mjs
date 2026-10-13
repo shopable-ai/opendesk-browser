@@ -348,14 +348,15 @@ test('Real Chrome always-block and live one-minute quota, Side Panel approval an
     store+'");return x["'+store+'"]?.usage?.["s:127.0.0.1"]||0})()');
   assert.ok(beforeRestart>=60000,'the real exhausted quota must exist before restarting Chrome');
   const priorChrome=chrome;
-  await client.send('Browser.close');
+  // Browser.close may terminate CDP before its response frame arrives.
+  await client.send('Browser.close').catch(()=>{});
   await until(()=>priorChrome.exitCode!==null||priorChrome.signalCode!==null,
     'original Chrome process really exited',25000);
   client.close();client=null;
   chrome=launchChrome();captureChromeErrors(chrome);
   const reopenedVersion=await until(async()=>{
     const source=await readFile(path.join(profile,'DevToolsActivePort'),'utf8').catch(()=>null);
-    const port=Number(source?.split('\\n')[0]);if(!(port>0))return null;
+    const port=Number(source?.split('\n')[0]);if(!(port>0))return null;
     try{const response=await fetch('http://127.0.0.1:'+port+'/json/version');
       return response.ok?await response.json():null;}catch{return null;}
   },'restarted Chrome CDP with the same profile',30000);
@@ -371,7 +372,7 @@ test('Real Chrome always-block and live one-minute quota, Side Panel approval an
     {targetId:reopenedUI.targetId,flatten:true})).sessionId;
   await client.send('Runtime.enable',{},reopenedSession);
   await client.send('Page.enable',{},reopenedSession);
-  const restored=await until(async()=>{
+  const restoredQuota=await until(async()=>{
     const value=await evalRead(client,reopenedSession,'(async()=>{const x=await chrome.storage.local.get("'+
       store+'");const rules=await chrome.declarativeNetRequest.getDynamicRules();return {'+
       'enabled:x["'+store+'"]?.enabled,usage:x["'+store+'"]?.usage?.["s:127.0.0.1"]||0,'+
@@ -388,7 +389,7 @@ test('Real Chrome always-block and live one-minute quota, Side Panel approval an
   assert.ok(redirectedAfterRestart.startsWith('chrome-extension://'+id+'/'));
   report.restart='PASS';
   note('chrome-restart-restores-quota-and-navigation',{sameProfile:true,
-    extensionId:restoredId,usageMs:restored.usage,quotaRules:restored.quotaRules});
+    extensionId:restoredId,usageMs:restoredQuota.usage,quotaRules:restoredQuota.quotaRules});
 
   // Reopen the REAL Side Panel for removal; don't mutate extension storage
   // using CDP or silently remove the package behind the user's UI.
