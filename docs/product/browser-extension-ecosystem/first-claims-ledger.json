@@ -230,7 +230,11 @@
       "counterexamples": [
         "vite-plugin-monkey pinned builds",
         "traditional userscript update verification",
-        "enterprise internal deployment tools"
+        "enterprise internal deployment tools",
+        "ScriptCat 1.5 beta permissions/GM disclosure and MCP audit",
+        "UiPath enterprise permission/approval governance",
+        "Microsoft Power Automate Desktop browser action controls",
+        "Relay.app explicit human-in-loop approvals"
       ],
       "requiredEvidence": [
         "one same-hash end-to-end proof",
@@ -270,6 +274,11 @@
         "competitorCounterexample": "ScriptCat Beta 2026-08-06 MCP grant and 2026-09-18 install diff",
         "minimalProofGap": "SAME_PACKAGE_NATIVE_REVOKE_UPDATE_RECEIPT_NOT_TESTED",
         "notes": "R4 priority is not CLAIM_APPROVED or latest package native proof"
+      },
+      "r5CriticalCounterexample": {
+        "reviewedAt": "2026-10-13",
+        "status": "TRUST_HARDENING_NOT_A_GLOBAL_SAFETY_FIRST",
+        "rule": "No most-secure or guaranteed rollback claim without independent security evidence and browser side-effect threat model."
       }
     },
     {
@@ -293,7 +302,11 @@
       "counterexamples": [
         "ScriptCat @crontab",
         "Automa schedules",
-        "UI.Vision automations"
+        "UI.Vision automations",
+        "UiPath Delegate Routines with scheduling (2026-08-25 preview)",
+        "Apify scheduled versioned Actors",
+        "Browse AI scheduled approved Robots",
+        "Zapier Agents scheduling"
       ],
       "requiredEvidence": [
         "restart/revoke/suspended-host recovery Chrome matrix",
@@ -418,13 +431,21 @@
         "ScriptCat Agent/MCP beta",
         "Violentmonkey MCP beta",
         "Playwright MCP",
-        "Browser Use"
+        "Browser Use",
+        "Google Gemini in Chrome Skills: saved one-click AI prompts, official 2026-04-14 https://blog.google/products-and-platforms/products/chrome/skills-in-chrome/",
+        "Claude in Chrome recorded reusable workflows: 2026-07-24 beta release notes https://support.claude.com/en/articles/12138966-release-notes",
+        "UiPath Delegate 2026-08-25 Public Preview reusable/scheduled Routines https://docs.uipath.com/delegate/standalone/latest/release-notes/august-2026",
+        "Axiom Claude Skill Chrome bot import/repeated execution https://axiom.ai/automate/chrome/",
+        "AI Coding + Playwright + Tampermonkey/ScriptCat/WXT or Apify Actor"
       ],
       "requiredEvidence": [
         "actual external model tool connection",
         "consented code review/save/install/run/result roundtrip",
         "reproducibility and security tests",
-        "comparable global releases timeline"
+        "comparable global releases timeline",
+        "Prove fixed-source execution with NO model requests on second and third actual runs in SAME installed version, not just saved AI prompts or recorded replay.",
+        "Directly compare Chrome Skills, Claude in Chrome, Axiom, UiPath Routine, Apify Actor and AI Coding + script manager by user outcomes.",
+        "Include initial model spend and 20-run total cost plus maintenance; do not infer competitor model usage without measurement."
       ],
       "scope": "Chrome MV3; clarify Standard / Developer / Native local workspace and comparable public product channels",
       "lastCheckedAt": "2026-10-13",
@@ -458,6 +479,26 @@
         "competitorCounterexample": "Axiom Claude Skill, UiPath Delegate Preview, ScriptCat Beta",
         "minimalProofGap": "MAC_CHROME_FULL_INSTALL_NO_AI_RERUN_NOT_TESTED",
         "notes": "R4 priority is not CLAIM_APPROVED or latest package native proof"
+      },
+      "r5CriticalCounterexample": {
+        "reviewedAt": "2026-10-13",
+        "status": "BROAD_AI_PLUS_REUSE_WORLD_FIRST_UNDEFENDABLE_WITH_KNOWN_ALTERNATIVES",
+        "differencesNotProven": [
+          "model-free deterministic repeat",
+          "source and dependency version review",
+          "immutable install identity",
+          "current-user Chrome permission",
+          "original durable run/result receipts"
+        ],
+        "publishedSources": [
+          "https://blog.google/products-and-platforms/products/chrome/skills-in-chrome/",
+          "https://support.claude.com/en/articles/12138966-release-notes",
+          "https://docs.uipath.com/delegate/standalone/latest/release-notes/august-2026",
+          "https://axiom.ai/automate/chrome/"
+        ],
+        "shortTermMarketing": "M0 only: AI-assisted, reviewable installed browser workflows (full native acceptance pending).",
+        "requiresGlobalFirstClaim": false,
+        "measurementRequiresDirectProductBenchmark": true
       }
     },
     {
@@ -668,7 +709,11 @@
         "vite-plugin-monkey",
         "WXT",
         "Plasmo",
-        "ScriptCat"
+        "ScriptCat",
+        "Gemini Chrome Skills task save/reuse",
+        "Claude in Chrome recorded workflows",
+        "Axiom Chrome prompt builder",
+        "Playwright AI Codegen + Chromium"
       ],
       "requiredEvidence": [
         "public representative workloads and pre-registered metric",
@@ -1049,6 +1094,81 @@
     "disprovedIds": [
       "GF-013",
       "GF-014"
+    ]
+  },
+  "r5CompetitiveReview": {
+    "asOf": "2026-10-13",
+    "role": "EVIDENCE_POLICY_AND_PRODUCT_PORTFOLIO_NOT_NEW_GF_CLAIMS",
+    "companionOpportunityView": "docs/product/browser-extension-ecosystem/opportunity-register.json#globalFirstR5Portfolio",
+    "competitorTimeline": "docs/product/browser-extension-ecosystem/competitor-timeline.json",
+    "comparedProductsRegistered": 45,
+    "gfClaimsCount": 14,
+    "approvedClaimIds": [],
+    "strongestReusabilityCounterexamples": [
+      "gemini-in-chrome",
+      "claude-in-chrome",
+      "axiom-ai",
+      "uipath-delegate",
+      "apify-actors",
+      "microsoft-power-automate-desktop",
+      "scriptcat",
+      "zapier-agents"
+    ],
+    "coreThesis": "AI helps author a source-reviewable, site-scoped, version-pinned tool that can be repeated without additional model requests, but global novelty and superiority must be proven vs all natural substitutes.",
+    "featureFirstHistoricalRanking": "NOT_APPROVED",
+    "regionalRank": "NOT_TESTED",
+    "topFiveRank": "NOT_TESTED",
+    "technicalNativeE2E": "NOT_TESTED",
+    "comparisonBenchmarks": "NOT_TESTED",
+    "independentExpertScores": "NOT_SCORED",
+    "releaseAndSeo": "NOT_DEPLOYED_OR_NOT_VERIFIED",
+    "excludeClaims": [
+      "GF-013",
+      "GF-014"
+    ],
+    "gates": [
+      {
+        "id": "R5-G1",
+        "name": "AI assistance + source/site/params review",
+        "passRule": "actual consent and exact bytes, user visible; model reply alone insufficient",
+        "status": "PARTIAL_SOURCE_IMPLEMENTED_NATIVE_NOT_TESTED"
+      },
+      {
+        "id": "R5-G2",
+        "name": "formal Candidate/Verified/Available/Installed",
+        "passRule": "same sourceHash/manifestHash with real receipt and installation identity",
+        "status": "NOT_TESTED_CURRENT_PACKAGE"
+      },
+      {
+        "id": "R5-G3",
+        "name": "after AI disconnected two runs",
+        "passRule": "no model request, two separate RunId/ResultId, same fixed installation, original Chrome effects",
+        "status": "NOT_TESTED_CURRENT_PACKAGE"
+      },
+      {
+        "id": "R5-G4",
+        "name": "stop, permission revoke and unknown-effects protection",
+        "passRule": "real browser permissions and recovery, no hidden retries; Stop cannot roll back external effects",
+        "status": "NOT_TESTED_CURRENT_PACKAGE"
+      },
+      {
+        "id": "R5-G5",
+        "name": "first-use/20-repeat costs",
+        "passRule": "actual timestamps, model usage, setup, recurring run cost, maintenance and mistakes",
+        "status": "NOT_TESTED"
+      },
+      {
+        "id": "R5-G6",
+        "name": "fair worldwide/region competitors",
+        "passRule": "date/edition/channel and natural alternative workflows measured, beta counts as prior public preview",
+        "status": "RESEARCH_INCOMPLETE"
+      },
+      {
+        "id": "R5-G7",
+        "name": "actual distribution and users",
+        "passRule": "real downloadable package/store + legal website access, first self-service activation and natural repeat",
+        "status": "NOT_TESTED"
+      }
     ]
   }
 }
