@@ -5,9 +5,13 @@ import {createBrowserSdk} from '../../src/framework/sdk/browser.js';
 const isCode=expected=>e=>e?.code===expected;
 test('R9 Browser SDK exposes only real implemented operations and typed metadata',()=>{
   const rows=Object.values(BROWSER_OPERATIONS);
-  assert.equal(rows.length,26);
-  assert.deepEqual(Object.assign({HOST_ONLY:0},Object.fromEntries(Object.entries(Object.groupBy(rows,x=>x.implementation))
-    .map(([key,values])=>[key,values.length]))),{IMPLEMENTED:26,HOST_ONLY:0});
+  // Prelaunch SDK grows as real Host-backed operations land: never freeze an
+  // arbitrary historical count and then fail when a correctly wired API ships.
+  assert.equal(rows.length,new Set(rows.map(row=>row.operation)).size,'Duplicate public operation');
+  assert(rows.every(row=>row.implementation==='IMPLEMENTED'),'No planned/hidden APIs in public registry');
+  for(const operation of ['browser.tabs.create','browser.tabs.activateOwned',
+    'browser.tabs.getOwned','browser.tabs.listOwned','browser.tabs.pinOwned','browser.tabs.removeOwned'])
+    assert.equal(BROWSER_OPERATIONS[operation]?.implementation,'IMPLEMENTED',operation);
   for(const op of rows){
     assert.equal(op.inputSchema?.type,'object',op.operation);
     assert.equal(op.inputSchema.additionalProperties,false,op.operation);
