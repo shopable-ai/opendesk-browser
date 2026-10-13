@@ -87,6 +87,23 @@ test('same installed Task in two Executors cannot cross-claim, admit, receipt or
       .some(x=>x.assignmentId===pickedA.assignmentId),false,'Other Executor cannot view A receipt');
     const snapshot=await readFile(join(directory,'state.json'),'utf8');
     assert.equal(snapshot.includes('HTML-SHOULD-NOT-LEAK'),false);
+    // Re-approval uses a new local Cloud grant: queued work from the old
+    // grant must stay historical but can never be claimed under the new grant.
+    const stale=await post('/admin/seed',{...jobBody(ids[0],'Stale queue'),
+      requestKey:'stale-before-rotation'},admin.adminToken);
+    const nextGrant=randomUUID();
+    await post('/v1/capabilities',{grantId:nextGrant,tasks:advertised},credentials[0]);
+    assert.equal((await post('/admin/state',{},admin.adminToken))
+      .jobs[stale.jobId].cancelled,true,'Old queued Job must be quarantined on new approval');
+    await assert.rejects(post('/v1/claim',{claimId:'wrong-approval',
+      grantId:grants[0],tasks:advertised},credentials[0]),{code:'E_GRANT'});
+    const freshAfterApproval=await post('/admin/seed',{
+      ...jobBody(ids[0],'New authorized queue'),
+      requestKey:'new-approval-job'},admin.adminToken);
+    const newPicked=(await post('/v1/claim',{claimId:'new-approval-claim',
+      grantId:nextGrant,tasks:advertised},credentials[0])).assignment;
+    assert.equal(newPicked.jobId,freshAfterApproval.jobId);
+    assert.notEqual(newPicked.jobId,stale.jobId);
     await post('/v1/unpair',{},credentials[0]);
     await assert.rejects(post('/v1/claim',{claimId:'after-revoke',tasks:advertised},credentials[0]),
       {code:'E_AUTH'});
