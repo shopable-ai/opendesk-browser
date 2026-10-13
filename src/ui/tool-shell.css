@@ -767,30 +767,52 @@
 .schedule-history-row small{display:block;margin-top:4px;color:var(--od-sub);overflow-wrap:anywhere}
 .schedule-delete-confirm{display:grid;gap:8px;padding:12px;border:1px solid var(--od-line)}
 .schedule-delete-confirm p{margin:0}
-.schedule-form{min-width:0;display:grid;gap:var(--space-3)}
-.schedule-form .od-field,.schedule-rule .od-field,#schedule-task-manager .od-field{display:grid;gap:var(--space-1);font-size:12px;font-weight:600;min-width:0}
+.schedule-form{min-width:0;display:grid;gap:var(--space-4)}
+.schedule-form .od-field,.schedule-rule .od-field,#schedule-task-manager .od-field{display:grid;gap:var(--space-2);font-size:12px;font-weight:600;min-width:0}
 .schedule-form input,.schedule-form select,.schedule-form textarea,
 #schedule-task-manager input,#schedule-task-manager select{max-width:100%;width:100%;min-width:0;min-height:36px;font-size:13px;line-height:1.45;border:1px solid var(--od-line);border-radius:var(--radius-control);padding:7px 8px;background:var(--od-paper);color:var(--od-ink)}
-.schedule-form textarea{resize:vertical}
-.schedule-source-field{display:grid;gap:var(--space-1);min-width:0}
-.schedule-source-field>label{font-weight:600}
+.schedule-form textarea{resize:vertical;margin:0}
+.schedule-source-field{display:grid;gap:var(--space-2);min-width:0}
+.schedule-source-field>label{font-weight:600;margin:0}
 .schedule-source-row{display:grid;grid-template-columns:minmax(0,1fr) var(--od-icon-size) var(--od-icon-size);gap:var(--space-2);align-items:center;min-width:0}
 .schedule-source-row select{width:100%;min-width:0;overflow:hidden;text-overflow:ellipsis}
 .schedule-rule,.schedule-weekdays{min-width:0;border:1px solid var(--od-line);border-radius:var(--radius-control);padding:var(--space-3);margin:0;display:grid;gap:var(--space-2)}
 .schedule-rule legend,.schedule-weekdays legend{font-size:12px;font-weight:650;padding-inline:5px}
-.schedule-rule-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:var(--space-2)}
+.schedule-rule-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:var(--space-3)}
 .schedule-weekdays{display:flex;flex-wrap:wrap;gap:var(--space-2)}
 .schedule-weekdays label{display:inline-flex;align-items:center;gap:4px;min-height:32px;font-size:12px}
 .schedule-check{display:flex;align-items:flex-start;gap:var(--space-2);font-size:12px;line-height:1.5}
 .schedule-check input,.schedule-weekdays input{min-width:16px;width:16px;height:16px;min-height:16px;flex:none;margin:2px 0}
-.schedule-advanced{border:1px solid var(--od-line);border-radius:var(--radius-control);padding:var(--space-2)}
+.schedule-advanced{border:1px solid var(--od-line);border-radius:var(--radius-control);padding:var(--space-3);margin:0}
 .schedule-advanced>summary{cursor:pointer;font-size:12px;font-weight:600}
-.schedule-advanced>.od-field,.schedule-advanced>.schedule-check{margin-top:var(--space-2)}
+.schedule-advanced>.od-field,.schedule-advanced>.schedule-check{margin-top:var(--space-3)}
 #schedule-task-manager{display:grid;gap:var(--space-3);min-width:0}
 #schedule-uninstall-confirm{padding:var(--space-3);display:grid;gap:var(--space-2)}
 #schedule-uninstall-confirm p{margin:0;overflow-wrap:anywhere}
 @media(max-width:340px){
   .schedule-panel .od-button{padding-inline:8px}
+  .schedule-rule-row{grid-template-columns:minmax(0,1fr)}
+}
+
+
+/* R2.5: Source-aligned four-part form; R27 space-2/3/4 and one-page gutter.
+   Plain section dividers only, not nested shadow cards or secondary design tokens. */
+.schedule-form-section{display:grid;gap:var(--space-3);min-width:0;padding:0 0 var(--space-4);margin:0;border:0;border-bottom:1px solid var(--od-line)}
+.schedule-form-advanced{border-bottom:0}
+.schedule-section-title{font-size:12px;line-height:1.5;font-weight:750;color:var(--od-sub);margin:0 0 var(--space-1);padding:0}
+.schedule-section-title span{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:6px;margin-right:var(--space-2);background:var(--od-muted);color:var(--od-brand);font-size:11px;font-weight:800}
+.schedule-form-section .od-field,.schedule-form-section .od-field>label,.schedule-form-section .schedule-source-field>label{margin:0}
+.schedule-form-section .od-field{gap:var(--space-2)}
+.schedule-form-section .od-field:not(.schedule-check){line-height:1.5}
+.schedule-form-section .od-field input,.schedule-form-section .od-field select,.schedule-form-section .od-field textarea{margin:0}
+.schedule-form .schedule-rule{padding:0 0 var(--space-4);border:0;border-bottom:1px solid var(--od-line);border-radius:0}
+.schedule-form .schedule-rule legend{margin-bottom:var(--space-3)}
+.schedule-rule-field{display:grid;gap:var(--space-2);min-width:0;align-content:start}
+.schedule-rule-field>label{font-size:12px;line-height:1.5;font-weight:600;margin:0}
+.schedule-panel .schedule-timezone-help{font-size:12px;line-height:1.5;margin:0;overflow-wrap:anywhere}
+.schedule-source-field>p:empty{display:none}
+.schedule-advanced .od-field{margin-top:var(--space-3)}
+@media(max-width:420px){
   .schedule-rule-row{grid-template-columns:minmax(0,1fr)}
 }
 

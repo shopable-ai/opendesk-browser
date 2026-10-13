@@ -93,6 +93,8 @@
         </details>
       </div>
       <form id="schedule-form" class="schedule-form od-stack" autocomplete="off" novalidate hidden>
+        <section class="schedule-form-section" aria-labelledby="schedule-source-section-title">
+          <h3 id="schedule-source-section-title" class="schedule-section-title"><span aria-hidden="true">1</span>名称与执行任务</h3>
         <label class="od-field" for="schedule-title">计划名称
           <input id="schedule-title" type="text" maxlength="100" required aria-describedby="schedule-title-error" placeholder="例如：每天整理网页报告">
         </label>
@@ -107,6 +109,9 @@
           <p id="schedule-task-version" class="hint" aria-live="polite"></p>
           <p id="schedule-task-error" class="schedule-field-error" role="alert"></p>
         </div>
+        </section>
+        <section class="schedule-form-section" aria-labelledby="schedule-target-section-title">
+          <h3 id="schedule-target-section-title" class="schedule-section-title"><span aria-hidden="true">2</span>目标网页与参数</h3>
         <label class="od-field" for="schedule-target">目标网页 URL
           <input id="schedule-target" type="url" inputmode="url" maxlength="2048" required aria-describedby="schedule-target-error" placeholder="https://example.com/path">
         </label>
@@ -115,13 +120,19 @@
           <textarea id="schedule-params" rows="2" spellcheck="false" aria-describedby="schedule-params-error">{}</textarea>
         </label>
         <p id="schedule-params-error" class="schedule-field-error" role="alert"></p>
-        <fieldset class="schedule-rule">
-          <legend>执行时间</legend>
+        </section>
+        <fieldset class="schedule-rule schedule-form-section">
+          <legend class="schedule-section-title"><span aria-hidden="true">3</span>执行时间</legend>
           <div class="schedule-rule-row">
-            <label for="schedule-kind" class="visually-hidden">频率</label>
-            <select id="schedule-kind"><option value="once">执行一次</option><option value="daily">每天</option><option value="weekly">每周</option><option value="interval">每隔一段时间</option></select>
-            <label for="schedule-timezone" class="visually-hidden">时区</label>
-            <input id="schedule-timezone" type="text" aria-describedby="schedule-time-error" maxlength="80" required placeholder="Asia/Shanghai" aria-label="IANA 时区">
+            <div class="schedule-rule-field">
+              <label for="schedule-kind">重复规则</label>
+              <select id="schedule-kind"><option value="once">执行一次</option><option value="daily">每天</option><option value="weekly">每周</option><option value="interval">每隔一段时间</option></select>
+            </div>
+            <div class="schedule-rule-field">
+              <label for="schedule-timezone">执行时区</label>
+              <select id="schedule-timezone" required aria-describedby="schedule-timezone-help schedule-time-error"><option value="">正在识别当前时区…</option></select>
+              <p class="hint schedule-timezone-help" id="schedule-timezone-help">默认识别当前设备，可选其他地区；保存后固定所选时区，不会随系统变化自动改写。</p>
+            </div>
           </div>
           <label id="schedule-once-field" class="od-field" for="schedule-once">执行日期和时间
             <input id="schedule-once" type="datetime-local" aria-describedby="schedule-time-error">
@@ -140,6 +151,8 @@
           <p id="schedule-next" class="hint" aria-live="polite">选择规则后显示下一次触发时间。</p>
           <p id="schedule-time-error" class="schedule-field-error" role="alert"></p>
         </fieldset>
+        <section class="schedule-form-section schedule-form-advanced" aria-labelledby="schedule-advanced-section-title">
+          <h3 id="schedule-advanced-section-title" class="schedule-section-title"><span aria-hidden="true">4</span>执行条件</h3>
         <details class="schedule-advanced"><summary>高级选项</summary>
           <label class="schedule-check"><input type="checkbox" id="schedule-open-target">找不到已打开的目标网页时，允许为本次执行新开标签页</label>
           <label class="od-field" for="schedule-misfire">错过触发
@@ -150,6 +163,7 @@
           </label>
         </details>
         <label class="schedule-check"><input type="checkbox" id="schedule-paused">创建后先暂停</label>
+        </section>
         <div id="schedule-save-confirm" class="schedule-save-confirm od-surface" role="group" aria-label="确认定时计划" hidden>
           <strong>确认计划及固定任务授权</strong>
           <p id="schedule-save-summary"></p>

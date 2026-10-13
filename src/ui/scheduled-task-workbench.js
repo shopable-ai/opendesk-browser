@@ -41,6 +41,68 @@ const describeTime=(at,zone)=>{
     day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false}).format(new Date(at));}
   catch{return new Date(at).toISOString();}
 };
+
+/* Only UI choices; the storage/Alarm contract still accepts a concrete IANA
+ * timeZone string. A detected device zone is a one-time default, not an auto
+ * binding that silently shifts an existing scheduled plan. */
+const commonScheduleTimeZones=Object.freeze([
+  ['Asia/Shanghai','中国 · 北京 / 上海'],['Asia/Hong_Kong','中国 · 香港'],
+  ['Asia/Taipei','中国 · 台北'],['Asia/Tokyo','日本 · 东京'],
+  ['Asia/Seoul','韩国 · 首尔'],['Asia/Singapore','新加坡'],
+  ['Asia/Kolkata','印度 · 加尔各答'],['Asia/Dubai','阿联酋 · 迪拜'],
+  ['Europe/London','英国 · 伦敦'],['Europe/Paris','法国 · 巴黎'],
+  ['Europe/Berlin','德国 · 柏林'],['America/New_York','美国 · 纽约'],
+  ['America/Chicago','美国 · 芝加哥'],['America/Los_Angeles','美国 · 洛杉矶'],
+  ['America/Toronto','加拿大 · 多伦多'],['Australia/Sydney','澳大利亚 · 悉尼'],
+  ['Pacific/Auckland','新西兰 · 奥克兰'],['UTC','协调世界时 UTC']
+]);
+const isScheduleTimeZone=(zone,intl)=>{
+  if(typeof zone!=='string'||zone.length>80||!(zone==='UTC'||zone.includes('/')))return false;
+  try{new intl.DateTimeFormat('en-US',{timeZone:zone});return true;}catch{return false;}
+};
+export function getScheduleDeviceTimeZone(intl=globalThis.Intl){
+  try{
+    const zone=new intl.DateTimeFormat().resolvedOptions().timeZone;
+    return isScheduleTimeZone(zone,intl)?zone:'UTC';
+  }catch{return 'UTC';}
+}
+export function listScheduleTimeZoneGroups(intl=globalThis.Intl,selected=''){
+  const device=getScheduleDeviceTimeZone(intl);
+  const labels=new Map(commonScheduleTimeZones);
+  let supported=[];
+  try{supported=typeof intl.supportedValuesOf==='function'?intl.supportedValuesOf('timeZone'):[];}catch{/* Older Intl versions use common regions. */}
+  const all=new Set([device,selected,...commonScheduleTimeZones.map(([zone])=>zone),...supported]
+    .filter(zone=>isScheduleTimeZone(zone,intl)));
+  const seen=new Set([device]);
+  const groups=[{label:'当前设备 · 默认',options:[{value:device,label:
+    '自动识别 · '+(labels.get(device)||device)+' ('+device+')'}]}];
+  if(selected&&!isScheduleTimeZone(selected,intl)){
+    groups.push({label:'原计划时区 · 请检查',options:[{value:selected,label:'原值不可用 · '+selected}]});
+    seen.add(selected);
+  }
+  const common=commonScheduleTimeZones.filter(([zone])=>all.has(zone)&&!seen.has(zone))
+    .map(([value,title])=>{seen.add(value);return {value,label:title+' ('+value+')'};});
+  if(common.length)groups.push({label:'常用地区',options:common});
+  const regions={
+    Africa:'非洲',America:'美洲',Antarctica:'南极地区',Asia:'亚洲',
+    Atlantic:'大西洋地区',Australia:'澳大利亚',Europe:'欧洲',
+    Indian:'印度洋地区',Pacific:'太平洋地区',Etc:'其他'
+  };
+  const regionGroups=new Map();
+  for(const value of [...all].sort()){
+    if(seen.has(value))continue;
+    const group=value.split('/')[0];
+    if(!regionGroups.has(group))regionGroups.set(group,[]);
+    regionGroups.get(group).push({value,label:labels.get(value)||value.replaceAll('_',' ')});
+    seen.add(value);
+  }
+  for(const [key,label] of Object.entries(regions)){
+    const options=regionGroups.get(key);
+    if(options?.length)groups.push({label,options});
+  }
+  return groups;
+}
+
 export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=globalThis.chrome,
   document:doc=globalThis.document,onClose=()=>{},onOpen=()=>{}}){
   const get=id=>doc.getElementById(id),listeners=[];
@@ -357,6 +419,21 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
       if(showAll||touched.has(name))fieldError(name,errors[name]||'');
     return Object.keys(errors).length?null:{title,row,url,params,rule};
   }
+  function populateTimeZoneSelect(selected=getScheduleDeviceTimeZone()){
+    const select=get('schedule-timezone');
+    const groups=listScheduleTimeZoneGroups(globalThis.Intl,selected);
+    select.replaceChildren(...groups.map(row=>{
+      const group=doc.createElement('optgroup');
+      group.label=row.label;
+      for(const {value,label} of row.options){
+        const option=doc.createElement('option');
+        option.value=value;text(option,label);group.append(option);
+      }
+      return group;
+    }));
+    // Existing fixed plans never drift to a new system zone when edited.
+    select.value=selected;
+  }
   function reset(){
     editing=null;pendingTask=null;clearConfirmation();touched.clear();
     for(const name of Object.keys(formFields))fieldError(name,'');
@@ -364,7 +441,7 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
     get('schedule-title').value='';
     const local=new Date(Date.now()+10*60000);
     get('schedule-once').value=`${local.getFullYear()}-${String(local.getMonth()+1).padStart(2,'0')}-${String(local.getDate()).padStart(2,'0')}T${String(local.getHours()).padStart(2,'0')}:${String(local.getMinutes()).padStart(2,'0')}`;
-    get('schedule-timezone').value=Intl.DateTimeFormat().resolvedOptions().timeZone||'UTC';
+    populateTimeZoneSelect(getScheduleDeviceTimeZone());
     get('schedule-params').value='{}';get('schedule-kind').value='once';
     get('schedule-clock').value='09:00';get('schedule-minutes').value='60';
     get('schedule-deadline').value='5';get('schedule-misfire').value='skip';
@@ -379,7 +456,7 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
     get('schedule-target').value=plan.targetUrl;
     get('schedule-params').value=JSON.stringify(plan.params,null,2);
     get('schedule-kind').value=plan.triggerKind;
-    get('schedule-timezone').value=plan.timezone;
+    populateTimeZoneSelect(plan.timezone);
     if(plan.triggerKind==='once')
       get('schedule-once').value=formatWallScheduleTime(plan.timezone,plan.triggerSpec.at);
     else if(['daily','weekly'].includes(plan.triggerKind)){
