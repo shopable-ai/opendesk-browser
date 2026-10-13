@@ -66,10 +66,28 @@ export async function runR74ControllerPinnedNpmCycle({sidebar,website,browser,un
       if(s.state==='error')throw Error(s.text);
       return s.state==='saved'&&/r\d+/.test(s.text||'')?s.text:null;
     },'persist pinned ordinary npm import revision',40000);
+    // New R7.6 author input: the same exact module, without a version in JS.
+    // Resolve from the fixed browser catalog and reuse the original SHA bytes.
+    const bareProgram='r76-controller-mitt-bare';
+    const bareSource=SOURCE.replace("from 'mitt@3.0.1'","from 'mitt'");
+    await type('document.querySelector("#script-id")',bareProgram);
+    await type('document.querySelector("#script-source")',bareSource);
+    const bare=await execute('bare-package-name',second.runId);
+    assert.equal(observedRequests.length,count,'bare package alias must share exact cached URL/SHA, with zero new downloads');
+    assert.notEqual(bare.sourceHash,first.sourceHash,'source revision identity includes the bare author import');
+    await until(()=>read('!document.querySelector("#script-save").disabled'),'bare Controller Save enabled',15000);
+    await clickReal(sidebar,'document.querySelector("#script-save")');
+    const bareSaved=await until(async()=>{
+      const s=await read('(()=>{const el=document.querySelector("#script-status");return {state:el?.dataset.state,text:el?.textContent}})()');
+      if(s.state==='error')throw Error(s.text);
+      return s.state==='saved'&&/r\d+/.test(s.text||'')?s.text:null;
+    },'persist bare npm import revision',40000);
     proof.first=first;proof.repeat=second;proof.save=saved;
-    proof.network={firstRequests:count,repeatRequests:0};
+    proof.bare={programId:bareProgram,authorSourceHash:createHash('sha256').update(bareSource).digest('hex'),
+      run:bare,savedRevision:bareSaved,newNetworkRequests:0};
+    proof.network={firstRequests:count,repeatRequests:0,bareRequests:0};
     proof.result={events:['OpenDesk:21'],count:1};
-    proof.status='CHROME_PASS_R74_PINNED_NPM_IMPORT';
+    proof.status='CHROME_PASS_R76_PINNED_AND_BARE_NPM';
   }catch(error){
     proof.status='CHROME_FAIL';proof.error={code:error.code||'E_R74_NPM_IMPORT',message:String(error.message||error)};
     throw error;

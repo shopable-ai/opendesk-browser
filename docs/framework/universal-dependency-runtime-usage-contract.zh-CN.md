@@ -186,3 +186,12 @@ Standard Classic 的原始字节经既有 Dependency Manager 内容寻址、按 
 2. 以 D01–D12 用户代码、执行世界、授权身份及**原始测试**决定缺口；已有且证据相同直接复用，不重做。
 3. 新增能力先扩展既有模块和 UI；不能只更新 MD 或重复设计架构。
 4. 下一轮实施合同：`docs/framework/prompts/goal-universal-dependency-runtime-r7.2-scenario-first-20261013.zh-CN.md`。
+## R7.6 单文件 Import 闭环补充（2026-10-13，候选验证状态）
+
+- 保持唯一原 Broker SHA 字节库、原 RunHost / Authority / Controller Worker / Page USER_SCRIPT；不重新构建 npm 多文件或 235 模块 ECharts 图。
+- Developer Controller 手工草稿标准 import 只走现有 `page-component-remote.js` 的固定 ESM 图、`controller-esm-linker-r4.mjs` 和原 Controller Worker；禁止错误地借用默认 `esm-page` 的单层叶模块准备器。Controller 保存固定 Revision 与 Page 的「保存网页候选」各自独立。
+- Controller 单文件作者可写 `import mitt from 'mitt'`：唯一精确版本决定来自 Linker 中受信静态 Catalog（当前仅 `mitt: 3.0.1`），编译仍解析到与 `mitt@3.0.1` 相同的 HTTPS 模块 URL 和 SHA 图。未知包名与 `latest` 继续拒绝；**这不是宣布所有 npm 裸包名已支持**，也不更改本地项目已有 package-lock。
+- Page 普通 JS 的固定 HTTPS ESM 继续使用现有 `static-esm` Parser/Compiler 与 Broker 锁；首次 Run 所需 Chrome 模块来源授权改为在同一真实用户手势内调用既有 `page-dependency-review.js` consent。Page 继续要求零参数 async main()，本期仅独立 leaf ESM，上游带二级 import 时使用既有 React/Vue 或本地多文件项目构建。Standard 不新增 Babel。
+- 验收驱动复用 `r72-dependency-native-cft.yml`，增加真实 Page D3 DOM/返回值/二次零网络/保存和 Controller mitt 裸名/Worker/保存测试；Node mock 与 CFT 驱动源码不是 Chrome 成功证据。当前候选的 NODE、BUILD、CHROME、安装重启离线、用户 Mac 均要分别记录，尤其 `MAC_NATIVE_NOT_TESTED`、`CWS_COMPLIANCE_NOT_CLOSED` 不变。
+
+R7.6 单文件 Page ESM Run 具体落地：`captureForRun/resolveForRun` 在一次真实 Run 手势之后复用既有 Dependency Manager 自动生成 SHA 审核锁；不要求作者在 Run 前额外点击逐库批准；固定资源仍经原 Worker 离线编译。旧锁重复 Run 不下载，同步阻断不同世界、撤权和过期源码；Program 级 ESM 独立锁、完整浏览器重启离线与 CWS 合规尚未关闭。

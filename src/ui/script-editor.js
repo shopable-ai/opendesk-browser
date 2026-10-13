@@ -312,9 +312,12 @@ export function createScriptEditor({client, currentPageTarget, development=false
       (browserCompilerEnabled?'保存草稿不会运行网页':
         '标准版支持直接运行 JavaScript。JSX/Vue SFC 请使用本地 opendesk browser dev . 或 Developer Edition。'):
       '组件草稿保留在当前窗口会话；只有明确点击运行才操作网页，安装须另外授权。';
-    const pageESMSave=!isComponentDraft()&&hasUnbuiltESM(programSource.source())&&dependencyResolver?.sourceFormat==='esm-page';
-    find('script-save').disabled = editingBusy||(isComponentDraft()&&!canPrepareComponentCandidate())||(pageESMSave&&!canSavePagePreview()); find('script-load').disabled = editingBusy;
-    find('script-save').title=pageESMSave?'试运行后保存作者源码、批准依赖锁与固定编译产物':'';
+    // Controller Save commits a Controller revision. Page ESM uses the
+    // separate, preview-verified Page Candidate Save button.
+    find('script-save').disabled=editingBusy||(isComponentDraft()&&!canPrepareComponentCandidate());
+    find('script-load').disabled=editingBusy;
+    find('script-save').title=isComponentDraft()?'保存组件候选':
+      lastPagePreview?.sourceFormat==='esm-page'&&previewMatchesEditor(lastPagePreview)?'保存已试运行的 Page import 候选':'保存 Controller 固定版本';
     find('script-list-refresh').disabled = editingBusy; find('script-list-load').disabled = editingBusy || !scriptList.value;
     find('script-delete').disabled = editingBusy || !revisions.has(scriptId());
     find('script-run').disabled = stopping || editingBusy || previewBusy || running || !projection?.slotAvailable || !!host.currentRun ||
@@ -327,7 +330,9 @@ export function createScriptEditor({client, currentPageTarget, development=false
     if(componentSelector)componentSelector.disabled=!!localProject?.active()||editingBusy||previewBusy||running||stopping||componentRemote?.busy||!!programSource.snapshot();
     if(componentStatus)componentStatus.hidden=componentMode==='javascript'&&!componentStatus.textContent;
     find('page-preview-run').disabled = stopping||browserEffectUnknown||browserManagedPreview?.recoveredOnly||otherTabOwnsBrowserUI()||previewBusy||componentRemote?.busy||dependencyInstaller?.busy ||
-      (componentMode==='javascript'&&(dependencyResolver?.busy||(!dependencyResolver?.sourceFormat&&!dependencyInstaller?.readyForRun)))||editingBusy||running||!!host.currentRun||
+      (componentMode==='javascript'&&(dependencyResolver?.busy||
+         (dependencyResolver?.sourceFormat?!dependencyReview?.readyForRun:!dependencyInstaller?.readyForRun)))||
+       editingBusy||running||!!host.currentRun||
       !programSource.source().trim()||programSource.kind()==='controller'||
       (componentMode!=='javascript'&&!componentRemote?.readyForRun)||
       currentPageState?.status!=='available';
@@ -507,8 +512,6 @@ export function createScriptEditor({client, currentPageTarget, development=false
   async function save() {
     const id=scriptId(),source=programSource.source(),esm=hasUnbuiltESM(source),
       classic=parseControllerClassicDependencies(source).length>0;
-    if(!isComponentDraft()&&esm&&dependencyResolver.sourceFormat==='esm-page')
-      throw {code:'E_STATIC_ESM_SAVE',message:'静态 import 的 Page 源码与编译产物保存合同尚未建立，请先试运行并保存 Page 候选'};
     if(esm&&classic)throw {code:'E_CONTROLLER_CLASSIC_FORMAT',message:'Controller 不能同时使用 ESM import 与 Classic 声明'};
     const previous=revisions.get(id)||0,ticket=++browserPrepareGeneration;
     if(esm||classic){editingBusy=true;browserPreparing=true;update();}
@@ -712,7 +715,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
       if(!projection?.slotAvailable)return;
       previewPage(event);return;
     }
-    let chosen, params, permission, sourceUtf8,esmSource,esm,classic;
+    let chosen, params, permission, sourceUtf8,esm,classic;
     const runMode=mode.value,runKind=programSource.kind();
     try {
       // Freeze exact editor bytes, params and target inside the trusted click
@@ -723,14 +726,15 @@ export function createScriptEditor({client, currentPageTarget, development=false
       if (!sourceUtf8.trim()) throw {code:'E_SCHEMA',message:'请先输入草稿源码'};
       if (parseUserScriptDependencies(sourceUtf8).hasHeader) throw {code:'E_PROGRAM_KIND',
         message:'当前源码含兼容性脚本声明，请使用“网页 JavaScript 试运行”；自动化任务运行不解析旧格式声明。'};
-      if(hasUnbuiltESM(sourceUtf8))esmSource=dependencyResolver.capture({sourceFormat:'esm-controller'});
+      // Browser Controller always uses the pinned Controller ESM graph/linker.
+      // The Page leaf-ESM resolver has a different world and is not a fallback.
       esm=hasUnbuiltESM(sourceUtf8);
       classic=parseControllerClassicDependencies(sourceUtf8).length>0;
       if(esm&&classic)throw {code:'E_CONTROLLER_CLASSIC_FORMAT',message:'Controller 不能同时使用 ESM import 与 Classic 声明'};
       permission=Promise.all([
         requireChromePermissions({api,request:{origins:[permissionPattern(chosen.url)],
           ...(find('script-allow-cookies').checked?{permissions:['cookies']}:{} )}}),
-        esm&&!esmSource&&browserCompilerEnabled?
+        esm&&browserCompilerEnabled?
           componentRemote.confirmRun(event,controllerESMInput(sourceUtf8,scriptId())):Promise.resolve(true),
         classic?confirmControllerClassicRun(event,sourceUtf8):Promise.resolve(true)
       ]);
@@ -752,16 +756,12 @@ export function createScriptEditor({client, currentPageTarget, development=false
       // Authority still receives the exact `sourceUtf8` that will execute, via
       // the same draft admission, immutable revision hash and original RunHost.
       const authorSourceUtf8=sourceUtf8;
-      if(esmSource) {
-        const built=await dependencyResolver.compile(esmSource);
-        if(disposed||programSource.source()!==esmSource.sourceUtf8||programSource.kind()!==runKind||
-          componentMode!=='javascript'||localProject?.active()||mode.value!==runMode||version!==selectionVersion)
-          throw {code:'E_STATIC_ESM_STALE',message:'编译期间源码、执行模式或目标已变化；未运行旧代码'};
-        sourceUtf8=built.sourceUtf8;
-      }
-      if(esm&&!esmSource){
-        const check=()=>{if(disposed||ticket!==browserPrepareGeneration||programSource.source()!==authorSourceUtf8||scriptId()!==id)
-          throw {code:'E_CONTROLLER_ESM_STALE',message:'源码已变化或准备已取消；不会启动过期代码'};};
+      if(esm){
+        const check=()=>{if(disposed||ticket!==browserPrepareGeneration||
+          programSource.source()!==authorSourceUtf8||scriptId()!==id||
+          programSource.kind()!==runKind||componentMode!=='javascript'||
+          localProject?.active()||mode.value!==runMode||version!==selectionVersion)
+          throw {code:'E_CONTROLLER_ESM_STALE',message:'源码、程序、目标或运行模式已变化；不会启动过期代码'};};
         const prepared=await prepareControllerESM(authorSourceUtf8,id,check);check();
         sourceUtf8=prepared.built.sourceUtf8;
         browserPreparing=false;update();
@@ -777,10 +777,6 @@ export function createScriptEditor({client, currentPageTarget, development=false
         sourceUtf8=prepared.sourceUtf8;
         browserPreparing=false;update();
       }
-      if(esmSource&&(disposed||programSource.source()!==esmSource.sourceUtf8||programSource.kind()!==runKind||
-        componentMode!=='javascript'||localProject?.active()||mode.value!==runMode||version!==selectionVersion||
-        dependencyResolver.capture({sourceFormat:'esm-controller'}).version!==esmSource.version))
-        throw {code:'E_STATIC_ESM_STALE',message:'最终核对时源码、运行世界、批准链或目标已变化'};
       const claim = await host.start({source:{kind:'draft',sourceUtf8},
         params, target:chosen.target, deadlineAt:Date.now() + 30000});
       admittedRunId = claim.runId;
@@ -947,7 +943,8 @@ export function createScriptEditor({client, currentPageTarget, development=false
       // Website permission remains independently read-only/Authority gated.
       permission=Promise.all([
         requireChromePermissions({api,request:{origins:[permissionPattern(captured.url)]}}),
-        componentMode==='javascript'&&!dependencyResolver.sourceFormat?dependencyInstaller.confirmRun(event):
+        componentMode==='javascript'?
+          (dependencyResolver.sourceFormat?dependencyReview.confirmRun(event):dependencyInstaller.confirmRun(event)):
           componentSnapshot?componentRemote.confirmRun(event,{
             componentSource:componentSnapshot.source,framework:componentSnapshot.framework}):Promise.resolve(true)
       ]);
@@ -1203,8 +1200,9 @@ export function createScriptEditor({client, currentPageTarget, development=false
   };
   listen(find('script-save'),'click',event=>{
     if(!event.isTrusted)return;
-    Promise.resolve().then(()=>localProject?.active()?localInstaller.prepare():isComponentDraft()?savePreparedComponent():
-      hasUnbuiltESM(programSource.source())&&dependencyResolver.sourceFormat==='esm-page'?savePageCandidate():edit(save)()).catch(fail);
+    Promise.resolve().then(()=>localProject?.active()?localInstaller.prepare():
+      isComponentDraft()?savePreparedComponent():
+      lastPagePreview?.sourceFormat==='esm-page'&&previewMatchesEditor(lastPagePreview)?savePageCandidate():edit(save)()).catch(fail);
   }); on('script-load','click',edit(load)); on('script-list-load','click',edit(loadLatestFromList));
   on('script-read','click',()=>read('')); on('script-delete','click',edit(remove)); on('script-list-refresh','click',()=>refreshScripts().catch(fail));
   on('script-read-run','click',()=>read());

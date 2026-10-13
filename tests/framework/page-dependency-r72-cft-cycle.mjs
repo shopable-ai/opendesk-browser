@@ -4,12 +4,22 @@ import {CSV_BASE,runR72ControllerCsvCycle} from './controller-dependency-r72-cft
 import {CLASSIC_URL,runR73ControllerClassicCycle} from './controller-classic-r73-cft-cycle.mjs';
 import {MITT_ESM_URL,runR74ControllerPinnedNpmCycle} from './controller-pinned-npm-r74-cft-cycle.mjs';
 const URL='https://cdn.jsdelivr.net/npm/marked@15.0.12/lib/marked.umd.js';
+export const D3_ESM_URL='https://raw.githubusercontent.com/d3/d3-array/v3.2.4/src/max.js';
+const D3_ESM_SOURCE=[
+  "import max from '"+D3_ESM_URL+"';",
+  'export default async function main() {',
+  '  const result = max([2, 5, 3]);',
+  '  document.body.dataset.opendeskImportResult = String(result);',
+  '  return result;',
+  '}'
+].join('\n');
 const CODE=['// ==UserScript==','// @name R7.2 fixed marked test','// @require '+URL,
 '// ==/UserScript==','async function main(){const html=globalThis.marked?.parse("**OpenDesk**");',
 'if(!html?.includes("<strong>OpenDesk</strong>"))throw Error("E_REAL_MARKED");',
 'return {library:"marked@15.0.12",html};}'].join('\n');
 export async function runR72PageClassicCycle({sidebar,website,browser,base,extensionId,cdp,until,clickReal,report}){
-  const proof={caseId:'D02/D03-R72-ONE-CLICK-AB',url:URL,world:'USER_SCRIPT',steps:[],status:'IN_PROGRESS'}, observed=[],observedCsv=[],observedClassic=[],observedNpm=[];
+  const proof={caseId:'D02/D03-R72-ONE-CLICK-AB',url:URL,world:'USER_SCRIPT',steps:[],status:'IN_PROGRESS'},
+    observed=[],observedCsv=[],observedClassic=[],observedNpm=[],observD3=[];
   report.tests.push(proof);
   const read=x=>sidebar.read(x);
   const status=id=>read('(function(){const el=document.getElementById('+JSON.stringify(id)+');return {state:el?.dataset?.state,text:el?.textContent}})()');
@@ -67,6 +77,7 @@ export async function runR72PageClassicCycle({sidebar,website,browser,base,exten
       if(url?.startsWith(CSV_BASE))observedCsv.push({url,method:e.request.method});
       if(url?.startsWith(CLASSIC_URL))observedClassic.push({url,method:e.request.method});
       if(url?.startsWith(MITT_ESM_URL))observedNpm.push({url,method:e.request.method});
+      if(url?.startsWith(D3_ESM_URL))observD3.push({url,method:e.request.method});
     });
     await observer.call('Network.enable');
     if(!await read('document.querySelector("#script-library-tools").open'))
@@ -89,6 +100,7 @@ export async function runR72PageClassicCycle({sidebar,website,browser,base,exten
     proof.status='CHROME_PASS_R72_ONE_CLICK_AB';
     await runR73ControllerClassicCycle({sidebar,website,browser,until,clickReal,type,read,report,observedRequests:observedClassic});
     if(process.env.OPENDESK_R245_STANDARD_SMOKE!=='1'){
+      await runR76PageESMCycle({sidebar,website,browser,until,clickReal,type,read,report,observedRequests:observD3});
       await runR72ControllerCsvCycle({sidebar,website,browser,until,clickReal,type,read,report,observedRequests:observedCsv});
       await runR74ControllerPinnedNpmCycle({sidebar,website,browser,until,clickReal,type,read,report,observedRequests:observedNpm});
     }
@@ -100,4 +112,58 @@ export async function runR72PageClassicCycle({sidebar,website,browser,base,exten
     proof.networkObservedRequests=observed.length;
     throw error;
   }finally{observer?.close();}
+}
+
+async function runR76PageESMCycle({sidebar,website,browser,until,clickReal,type,read,report,observedRequests}){
+  const proof={caseId:'R76-PAGE-URL-ESM-D3-DOM',world:'USER_SCRIPT',
+    url:D3_ESM_URL,programId:'r76-page-esm-d3',status:'IN_PROGRESS'};
+  report.tests.push(proof);
+  async function run(label){
+    await browser.call('Target.activateTarget',{targetId:website.info.id});
+    await until(()=>read('!document.querySelector("#page-preview-run").disabled'),
+      'Page ESM ready after native source-permission check',45000);
+    await clickReal(sidebar,'document.querySelector("#page-preview-run")');
+    const result=await until(async()=>{
+      const state=await read('(()=>{const s=document.querySelector("#page-preview-status");'+
+        'return {state:s?.dataset.state,text:s?.textContent,value:document.querySelector("#page-preview-result")?.textContent}})()');
+      if(state.state==='error')throw Error(state.text);
+      return state.state==='completed'?state:null;
+    },'real Page USER_SCRIPT ESM function result '+label,90000);
+    assert.equal(Number(result.value),5,'must return the real upstream d3-array max result');
+    const dom=await until(()=>website.session.read('document.body.dataset.opendeskImportResult'),
+      'real Page document body dataset updated',20000);
+    assert.equal(dom,'5');
+    const receipt=JSON.parse(await read('document.querySelector("#page-preview-technical").textContent'));
+    assert.equal(receipt.state,'preview-evaluated');
+    assert.equal(receipt.world,'USER_SCRIPT');
+    assert.match(receipt.sourceHash,/^[a-f0-9]{64}$/);
+    return {sourceHash:receipt.sourceHash,tabId:receipt.tabId,documentId:receipt.documentId,
+      returnValue:result.value,dom};
+  }
+  try{
+    await type('document.querySelector("#script-id")',proof.programId);
+    await type('document.querySelector("#script-source")',D3_ESM_SOURCE);
+    assert.equal(observedRequests.length,0,'typing import cannot download D3');
+    const first=await run('first'),requestCount=observedRequests.length;
+    assert(requestCount>0,'first genuine Page Run must fetch the pinned D3 source');
+    assert(observedRequests.every(row=>row.method==='GET'&&row.url.startsWith(D3_ESM_URL)));
+    const repeat=await run('repeat');
+    assert.equal(repeat.sourceHash,first.sourceHash,'second Run must use the exact same compiled bytes');
+    assert.equal(observedRequests.length,requestCount,'second Page Run must download zero new bytes');
+    await until(()=>read('!document.querySelector("#page-candidate-save").disabled'),
+      'fixed Page ESM Candidate Save enabled',15000);
+    await clickReal(sidebar,'document.querySelector("#page-candidate-save")');
+    const saved=await until(async()=>{
+      const state=await read('(()=>{const el=document.querySelector("#page-candidate-status");'+
+        'return {state:el?.dataset.state,text:el?.textContent}})()');
+      if(state.state==='error')throw Error(state.text);
+      return /已保存 Page Candidate/.test(state.text||'')?state.text:null;
+    },'saved Page ESM author and compiled source candidate',40000);
+    proof.first=first;proof.repeat=repeat;
+    proof.network={firstRequests:requestCount,repeatRequests:0};
+    proof.saved=saved;proof.status='CHROME_PASS_R76_PAGE_ESM_D3';
+  }catch(error){
+    proof.status='CHROME_FAIL';proof.error={code:error.code||'E_R76_PAGE_ESM',message:String(error.message||error)};
+    throw error;
+  }
 }

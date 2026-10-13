@@ -70,7 +70,7 @@ export const PAGE_BROWSER_PRIVATE_FILES=/* @__PURE__ */Object.freeze([
   /* @__PURE__ */Object.freeze({id:'controller-esm-linker-r4',
     source:'src/libs/page-frameworks/controller-esm-linker-r4.mjs',
     output:'libs/page-frameworks/controller-esm-linker-r4.mjs',
-    bytes:16897,sha256:'890982a5e5e286a1eb7307edf878bcf52e917471998f671921b8506af01ef542'}),
+    bytes:17316,sha256:'408be17a6b358af2a727e6c8e4d103805a4155f0e6af8ff527541b9fbe3f0340'}),
   /* @__PURE__ */Object.freeze({id:'page-component-linker',
     source:'src/libs/page-frameworks/page-component-linker-r243.mjs',
     output:'libs/page-frameworks/page-component-linker-r243.mjs',

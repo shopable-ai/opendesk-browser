@@ -21,12 +21,15 @@ class Element {
   remove(){}
   fire(key,event={isTrusted:true}){this.listeners.get(key)?.(event);}
 }
-function fixture({permission=true,prepareGate,readCode=code}={}) {
-  let text=source,available=true,granted=permission,reviewUI;
+function fixture({permission=true,prepareGate,readCode=code,esm=false}={}) {
+  let text=esm?"import value from 'https://library.example.org/v1.0.0/value.js';\nexport default async function main(){return value;}":source,
+    available=true,granted=permission,reviewUI;
   const parent=new Element(),requests=[],permissions=[];
   const doc={getElementById:()=>parent,createElement:()=>new Element()};
-  const entry={order:0,url,resolvedUrl:url,sourceKind:'https',sha256,byteLength:code.length,license:{status:'unknown'},risk:'第三方代码可访问授权 DOM'};
-  const report={manifestDigest:'manifest-1',requires:[entry],locks:[]};
+  const dependencyURL=esm?'https://library.example.org/v1.0.0/value.js':url;
+  const entry={order:0,url:dependencyURL,resolvedUrl:dependencyURL,sourceKind:'https',sha256,byteLength:code.length,license:{status:'unknown'},risk:'第三方代码可访问授权 DOM'};
+  const report={manifestDigest:'manifest-1',requires:[entry],locks:[],
+    ...(esm?{sourceFormat:'esm-page',world:'USER_SCRIPT'}:{})};
   const client={ready:Promise.resolve(),async request(method,input){
     requests.push({method,input:structuredClone(input)});
     if(method==='inspectPageDependencies')return report;
@@ -93,4 +96,15 @@ for(const transition of ['source-return','mode-return'])test('a delayed download
   assert.match(f.find('network-js-status').textContent,/E_DEPENDENCY_LOCK_STALE/);
   assert.equal(f.find('network-js-metadata').hidden,true);
   assert.equal(f.requests.some(row=>row.method==='approvePageDependencies'),false);
+});
+
+test('Page ESM Run requests the pre-observed original HTTPS origin synchronously and never runs during permission grant',async t=>{
+  const f=fixture({permission:false,esm:true});t.after(()=>f.dispose());await settle();
+  assert.equal(f.ui.readyForRun,true,'the ESM source origin was inspected before the click');
+  assert.equal(f.permissions.length,0,'typing/inspection cannot request permission');
+  await assert.rejects(f.ui.confirmRun({isTrusted:false}),{code:'E_GESTURE'});
+  await f.ui.confirmRun({isTrusted:true});
+  assert.deepEqual(f.permissions,[{origins:['https://library.example.org/*']}]);
+  assert.equal(f.requests.filter(r=>/preparePageDependencies|approvePageDependencies/.test(r.method)).length,0,
+    'a trusted Page Run gesture authorizes Chrome origin but does not approve or execute dependencies');
 });

@@ -10,7 +10,7 @@ const hash=value=>createHash('sha256').update(value).digest('hex');
 const tick=()=>new Promise(resolve=>setImmediate(resolve));
 const settle=async()=>{for(let n=0;n<12;n++)await tick();};
 const deferred=()=>{let resolve;const promise=new Promise(done=>{resolve=done;});return {promise,resolve};};
-const url='https://library.example.org/value.js',code='export default 7;';
+const url='https://library.example.org/v1.0.0/value.js',code='export default 7;';
 const source='import value from "'+url+'";\nexport default async function main(){return value;}';
 class Element {
   children=[];listeners=new Map();value='';checked=false;disabled=false;hidden=false;
@@ -42,14 +42,14 @@ function fixture({text=source,inspectGate,compileGate,readCode=code,loadOverride
     if(method==='preparePageDependencies'){
       const report=identity(input);prepared={...report,reviewId:'review-'+report.manifestDigest,
         entries:report.requires.map(row=>({...row,resolvedUrl:row.url}))};
-      return prepared;
+      return {...prepared,status:'pending-review'};
     }
     if(method==='readPageDependencyReview')return {reviewId:input.reviewId,order:input.order,sha256:hash(code),code:readCode};
     if(method==='approvePageDependencies'){
       assert.deepEqual(input.acceptedHashes,[hash(code)]);
       const lock={lockId:'dep-lock-'+hash(prepared.manifestDigest),manifestDigest:prepared.manifestDigest,
         world:prepared.world,sourceFormat:prepared.sourceFormat};
-      approved.set(lock.manifestDigest,lock);return lock;
+      approved.set(lock.manifestDigest,lock);return {...lock,approvalStatus:'approved'};
     }
     if(method==='loadPageESMForCompilation'){
       const report=identity(input);
@@ -181,4 +181,29 @@ test('compiler output cannot substitute another author source or lock identity',
   const f=fixture({builtOverride:value=>({...value,authorSourceHash:hash('different author')})});
   t.after(()=>f.dispose());await settle();await f.approve();
   await assert.rejects(f.resolver.compile(f.resolver.capture({sourceFormat:'esm-page'})),e=>e.code==='E_STATIC_ESM_OUTPUT');
+});
+
+test('one Page ESM Run pins a real fixed input and compiles without a manual library approval click; repeat is offline',async t=>{
+  const f=fixture();t.after(()=>f.dispose());await settle();
+  const first=f.resolver.captureForRun();
+  assert.equal(first.lockId,null);assert.equal(first.sourceFormat,'esm-page');
+  const fixed=await f.resolver.resolveForRun(first);
+  assert.match(fixed.lockId,/^dep-lock-[a-f0-9]{64}$/);
+  assert.equal(fixed.world,'USER_SCRIPT');
+  const built=await f.resolver.compile(fixed);
+  assert.equal(built.authorSourceHash,hash(source));
+  assert.equal(f.requests.filter(r=>r.method==='preparePageDependencies').length,1);
+  assert.equal(f.requests.filter(r=>r.method==='approvePageDependencies').length,1);
+  const repeat=await f.resolver.resolveForRun(f.resolver.captureForRun());
+  assert.equal(repeat.lockId,fixed.lockId);
+  await f.resolver.compile(repeat);
+  assert.equal(f.requests.filter(r=>r.method==='preparePageDependencies').length,1,
+    'repeat Page ESM Run cannot download the same pinned SHA');
+});
+test('a changed Page ESM draft fails before auto-approval of a stale Run snapshot',async t=>{
+  const f=fixture();t.after(()=>f.dispose());await settle();
+  const first=f.resolver.captureForRun();
+  await f.edit(source+'\n// new editor revision');
+  await assert.rejects(f.resolver.resolveForRun(first),{code:'E_DEPENDENCY_STALE'});
+  assert.equal(f.requests.filter(r=>r.method==='approvePageDependencies').length,0);
 });

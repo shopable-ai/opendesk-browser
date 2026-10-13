@@ -192,3 +192,18 @@ Standard 无编译器的 Classic 方案仅保留行业通用 `// @require URL`�
 GitHub 新代码候选真实 CFT：`38402504493` (`4aaf1174c3c18927839b39cb457042a60a45799e`，查询时 `queued`)；Page/package：`38402504495`（查询时 `queued`）。未取到 npm run check、生产/开发包、Chrome 的结果，不能申报原生运行或 95+。不能访问用户 Mac，本轮 `MAC_NATIVE_NOT_TESTED`；重启离线 `NOT_TESTED`；CWS 合规 `COMPLIANCE_NOT_CLOSED`。
 
 后续缺口：验证 jsDelivr 精确版本 ESM 响应 MIME/实际原始字节与 SHA、mitt 真实默认导出、保存 Revision/读取锁、USER_SCRIPT / Worker 隔离、A/B 缓存与授权、Standard Classic `mitt()` 原生输出；再做完整 Chrome 退出重启/断网/撤权。在真正 Chrome 结果出来前不得把源码样例或 Node fixture 当生产闭环。
+
+## R7.6 · 原 Import 复用与跨世界源码闭环候选（2026-10-13）
+
+本节是在 R7.4 之后的**新源码候选记录**，不是覆盖上方历史结论或伪造最终 PASS。
+
+| 产品入口 | 本轮最小源码/测试变更 | 候选证据状态 |
+| --- | --- | --- |
+| 本地 npm / HTTPS 多文件；ECharts 235 模块 | 沿用已有构建器、锁和 20/20 历史 Chrome 原始证据，不重做 | 旧 Chrome 候选 PASS；最新 main 未自动视为 PASS |
+| Controller HTTPS 与固定 npm import | 手工入口收敛到 `componentRemote → pinned Controller ESM Linker → 原 Worker`，修复默认 `esm-page` 误接线与保存拦截 | SOURCE_PATCHED / NATIVE_PENDING |
+| Controller npm 裸名 `mitt` | 在原 Linker 的受信精确版本 Catalog 固定 `mitt@3.0.1`，同步资源字节与 SHA 合同，扩展 Node / CFT | SOURCE_PATCHED / NATIVE_PENDING；其他未知裸包名仍不支持 |
+| Page 普通 JavaScript HTTPS ESM | 原 `static-esm`、依赖锁、Page Candidate 不重写，仅复用真正 Run 点击来源许可，补真实 D3 网页 DOM/保存驱动 | SOURCE_PATCHED / NATIVE_PENDING；不支持任意二级 ESM |
+| Page Classic / Tool Classic | 旧 @require 与最多八份 SHA 固定 Tool 多文件机制不改 | 原有 SOURCE 及历史 Node/Chrome 证据独立核对 |
+| 保存/重启/断网/撤权/CWS | 保留原 Program/Revision/World、权限及 SHA 校验，新增必要的 Page/Controller 保存驱动 | 完整重启离线与 CWS 仍 NOT_CLOSED |
+
+必须用本次 commit 身份执行 `npm run check`、Node 定向回归、Standard/Developer Build、Verify 与原 CFT 工作流；新驱动 `CHROME_PASS_...` 标签只能由真实成功运行的原始 acceptance.json 产生。排队、失败、驱动入库均非通过。用户 Mac：`MAC_NATIVE_NOT_TESTED`。不声明 95+。

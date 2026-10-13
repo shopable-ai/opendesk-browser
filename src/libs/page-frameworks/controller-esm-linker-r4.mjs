@@ -55,6 +55,12 @@ function resolveImport(spec,base,mappings,entry=false){
   if((spec.startsWith('./')||spec.startsWith('../')||spec.startsWith('/'))&&!entry)return urlOf(new URL(spec,base).href);
   if(entry&&spec.startsWith('.'))throw error('E_CONTROLLER_LOCAL_PROJECT','Relative imports require the existing local multi-file project builder');
   if(Object.hasOwn(mappings,spec))return mappings[spec];
+  // The browser-only fixed catalog is a version *decision*, not an alternate
+  // module store. Both spellings are SHA-locked by the original Broker graph.
+  // Never resolve unknown names or floating semver ranges to "latest".
+  const browserPinnedNpm=Object.freeze({mitt:'3.0.1'});
+  if(Object.hasOwn(browserPinnedNpm,spec))
+    return urlOf('https://cdn.jsdelivr.net/npm/'+spec+'@'+browserPinnedNpm[spec]+'/+esm');
   // A normal JavaScript static import may carry an exact npm version. Reuse
   // the existing ESM module graph, SHA byte store and opaque Worker; no new
   // loader, CDN script tag, special comment directive or unpinned "latest".

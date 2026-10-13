@@ -7,7 +7,7 @@ import {hasUnbuiltESM} from './esm-source-detector.js';
 export function createPageDependencyReview({client,resolver,getSource,isAvailable=()=>true,
   api=globalThis.chrome,document:doc=globalThis.document,onState=()=>{}}) {
   const parent=doc.getElementById('manual-source-editor');
-  if(!parent)return {update(){},dispose(){}};
+  if(!parent)return {update(){},get readyForRun(){return true;},confirmRun(){return Promise.resolve(true);},dispose(){}};
   const node=(tag,id,text)=>{const el=doc.createElement(tag);if(id)el.id=id;if(text)el.textContent=text;return el;};
   const root=node('details','network-js-review');root.className='od-stack';root.hidden=true;
   const summary=node('summary',null,'网络 JS：下载准备与审核');
@@ -55,8 +55,8 @@ export function createPageDependencyReview({client,resolver,getSource,isAvailabl
     if(identity!==permissionIdentity){
       permissionIdentity=identity;permissionReady=!origins.length;
       if(origins.length)void consent.prepare({origins}).then(result=>{
-        if(!disposed&&permissionIdentity===identity){permissionReady=!!result;update();}
-      }).catch(error=>{if(!disposed&&permissionIdentity===identity){notice=message(error);state.textContent=notice;}});
+        if(!disposed&&permissionIdentity===identity){permissionReady=!!result;update();onState();}
+      }).catch(error=>{if(!disposed&&permissionIdentity===identity){notice=message(error);state.textContent=notice;onState();}});
     }
     const unsupported=report?.requires?.find(row=>row.downloadError);
     const noDependencies=esm&&Array.isArray(report?.requires)&&report.requires.length===0;
@@ -66,6 +66,34 @@ export function createPageDependencyReview({client,resolver,getSource,isAvailabl
       ? '已有批准版本可离线试运行。重新下载只生成待审核字节，批准前保留原锁。'
       : esm?'按静态 HTTPS import 准备；当前用于 '+(world.value==='esm-controller'?'Controller':'网页 Page')+'。下载、批准与运行独立；其他运行世界需要单独准备批准。':
         '按源码中的 @require 声明准备。下载与批准均不运行网页；批准后另行点击网页试运行。');
+  }
+  // The Page Run button owns the one native HTTPS-origin gesture. The
+  // existing manual review uses the very same consent object; no second
+  // permission/downloader implementation is introduced.
+  function pageRunPermission(){
+    if(disposed)throw {code:'E_HOST_CLOSED',message:'依赖面板已关闭'};
+    if(!hasUnbuiltESM(getSource())||resolver.sourceFormat!=='esm-page')return null;
+    const snapshot=resolver.snapshot();
+    if(snapshot.sourceFormat!=='esm-page'||snapshot.world!=='USER_SCRIPT')
+      throw {code:'E_DEPENDENCY_WORLD',message:'当前 Page import 的执行世界已变化'};
+    const origins=originsFor(snapshot.report);
+    return {identity:JSON.stringify([snapshot.key,origins]),origins};
+  }
+  function readyForRun(){
+    try{
+      const row=pageRunPermission();
+      return !row||permissionIdentity===row.identity&&permissionReady;
+    }catch{return false;}
+  }
+  function confirmRun(event){
+    if(!event?.isTrusted)return Promise.reject({code:'E_GESTURE',message:'请主动点击 Page Run'});
+    try{
+      const row=pageRunPermission();
+      if(!row)return Promise.resolve(true);
+      if(permissionIdentity!==row.identity||!permissionReady)
+        throw {code:'E_PERMISSION_PENDING',message:'正在核对 ESM 模块来源权限，请在检查完成后点击 Run'};
+      return row.origins.length?consent.confirm(event,{origins:row.origins}):Promise.resolve(true);
+    }catch(error){return Promise.reject(error);}
   }
   function action(event,operation) {
     if(!event?.isTrusted||disposed||working||!isAvailable())return;
@@ -128,5 +156,6 @@ export function createPageDependencyReview({client,resolver,getSource,isAvailabl
     resolver.refresh({sourceFormat:world.value});update();onState();
   });
   update();
-  return {update,get busy(){return working;},dispose(){disposed=true;consent.dispose();listeners.forEach(remove=>remove());sourceListeners.forEach(remove=>remove());root.remove?.();}};
+  return {update,confirmRun,get readyForRun(){return readyForRun();},
+    get busy(){return working;},dispose(){disposed=true;consent.dispose();listeners.forEach(remove=>remove());sourceListeners.forEach(remove=>remove());root.remove?.();}};
 }

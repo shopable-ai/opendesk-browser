@@ -59,9 +59,17 @@ test('R7.4 normal pinned npm import resolves without proprietary directives and 
   assert.equal(built.authoringSourceHash,sha(source));
   assert.deepEqual(JSON.parse(JSON.stringify(await executeBuilt(built.sourceUtf8))),['OpenDesk']);
   assert.doesNotMatch(built.sourceUtf8,/@opendesk-classic|globalThis\.mitt|https:\/\/cdn\.jsdelivr\.net\/npm\/mitt@3\.0\.1\/\+esm.*import\s*\(/);
-  await assert.rejects(inspectBrowserControllerESM(setup({componentSource:
-    "import mitt from 'mitt';export default async function main(){return mitt()}"})),
-    {code:'E_REMOTE_IMPORT'},'unversioned bare imports must not silently fetch latest');
+  const bareSource="import mitt from 'mitt';export default async function main(){const bus=mitt();const events=[];bus.on('message',v=>events.push(v));bus.emit('message','OpenDesk');return events;}";
+  const bare=await inspectBrowserControllerESM(setup({componentSource:bareSource}));
+  assert.deepEqual(bare.remoteRoots,[url],'catalog-resolved bare import uses the exact pinned asset');
+  const bareBuilt=await prepareBrowserControllerESM(setup({componentSource:bareSource,
+    remoteModules:[fakeModule],remoteLock:frozenLock([fakeModule])}));
+  assert.deepEqual(JSON.parse(JSON.stringify(await executeBuilt(bareBuilt.sourceUtf8))),['OpenDesk']);
+  for(const spec of ['mitt@latest','unknown-package','unknown-package@latest']){
+    await assert.rejects(inspectBrowserControllerESM(setup({componentSource:
+      "import lib from '"+spec+"';export default async function main(){return lib()}"})),
+      {code:'E_REMOTE_IMPORT'},'unknown or floating imports must never select latest');
+  }
   const scoped=await inspectBrowserControllerESM(setup({componentSource:
     "import add from '@sample/math@2.0.1'; export default async function main(){return add(1,2)}"}));
   assert.deepEqual(scoped.remoteRoots,['https://cdn.jsdelivr.net/npm/@sample/math@2.0.1/+esm']);

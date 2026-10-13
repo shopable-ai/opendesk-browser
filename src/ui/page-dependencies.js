@@ -194,7 +194,18 @@ export function createPageDependencyResolver({client,getSource,getProgramId=()=>
   // does not require a previous manual SHA approval ceremony.
   function captureForRun(){
     const candidate=current();
-    if(candidate.sourceFormat)return capture({sourceFormat:'esm-page'});
+    if(candidate.sourceFormat){
+      if(candidate.sourceFormat!=='esm-page')
+        throw {code:'E_DEPENDENCY_WORLD',message:'网页 Run 仅能执行 Page 世界的固定 ESM'};
+      if(candidate.key!==sourceKey)refresh();
+      if(pending||lookupError||!Array.isArray(report?.requires))
+        throw {code:'E_DEPENDENCY_PENDING',message:'正在核对 Page ESM 固定来源和依赖锁'};
+      if(restoredLock||locks.length)return capture({sourceFormat:'esm-page'});
+      // One deliberate Run gesture may prepare deterministic SHA assets.
+      return {sourceUtf8:candidate.sourceUtf8,entryFormat:candidate.entryFormat,lockId:null,
+        sourceFormat:candidate.sourceFormat,world:candidate.world,
+        manifestDigest:report.manifestDigest,key:candidate.key,version:sequence};
+    }
     assertPageSourceReadyToRun(candidate.sourceUtf8);
     assertUserScriptExecutable(candidate.parsed,
       {entryFormat:candidate.entryFormat,phase:'preview',dependenciesLocked:true});
@@ -207,33 +218,47 @@ export function createPageDependencyResolver({client,getSource,getProgramId=()=>
       assertRunCurrent();
       const live=current();
       if(disposed||live.sourceUtf8!==snapshot.sourceUtf8||
-        live.entryFormat!==snapshot.entryFormat||live.programId!==snapshot.programId)
-        throw rejected('E_DEPENDENCY_STALE','源码或程序身份已更改；不会执行之前准备的依赖');
+        live.entryFormat!==snapshot.entryFormat||live.programId!==snapshot.programId||
+        live.sourceFormat!==snapshot.sourceFormat||
+        (snapshot.sourceFormat&&(live.key!==snapshot.key||sequence!==snapshot.version)))
+        throw rejected('E_DEPENDENCY_STALE','源码、程序、世界或固定依赖版本已更改；不会执行之前准备的资源');
     };
     stillCurrent();
-    if(snapshot.sourceFormat)return snapshot;
+    if(snapshot.sourceFormat&&snapshot.sourceFormat!=='esm-page')
+      throw rejected('E_DEPENDENCY_WORLD','此入口只能自动准备 Page USER_SCRIPT 模块');
+    if(snapshot.sourceFormat&&snapshot.lockId)return snapshot;
     const parsed=parseUserScriptDependencies(snapshot.sourceUtf8);
-    if(!parsed.requires.length)return snapshot;
+    const required=snapshot.sourceFormat?inspection?.requires:parsed.requires;
+    if(!Array.isArray(required))
+      throw rejected('E_DEPENDENCY_INSPECT','页面 import 声明尚未完成检查');
+    if(!required.length)return snapshot;
     const input={sourceUtf8:snapshot.sourceUtf8,entryFormat:snapshot.entryFormat,
+      ...(snapshot.sourceFormat?{sourceFormat:snapshot.sourceFormat}:{}),
       ...(snapshot.programId!==undefined?{programId:snapshot.programId}:{})};
     // All byte verification and persistent locks remain in the existing
     // authenticated Broker Dependency Manager. Never execute here.
-    const report=await client.request('inspectPageDependencies',input);stillCurrent();
-    if(!/^[a-f0-9]{64}$/.test(report?.manifestDigest)||
-      !Array.isArray(report.requires)||report.requires.length!==parsed.requires.length||
-      !Array.isArray(report.locks))
-      throw rejected('E_DEPENDENCY_INSPECT','依赖检查未返回完整可验证的清单');
-    const available=report.locks.filter(row=>/^dep-lock-[a-f0-9]{64}$/.test(row.lockId));
-    if(available.length!==report.locks.length)
+    const observed=await client.request('inspectPageDependencies',input);stillCurrent();
+    if(!/^[a-f0-9]{64}$/.test(observed?.manifestDigest)||
+      !Array.isArray(observed.requires)||observed.requires.length!==required.length||
+      !Array.isArray(observed.locks)||
+      (snapshot.sourceFormat&&(observed.sourceFormat!==snapshot.sourceFormat||
+        observed.world!==snapshot.world||observed.manifestDigest!==snapshot.manifestDigest)))
+      throw rejected('E_DEPENDENCY_INSPECT','依赖检查未返回完整且属于当前世界的固定清单');
+    const available=observed.locks.filter(row=>/^dep-lock-[a-f0-9]{64}$/.test(row.lockId));
+    if(available.length!==observed.locks.length)
       throw rejected('E_DEPENDENCY_LOCK','依赖锁格式不合法');
     const pinned=available.find(row=>row.lockId===selectedLockId)||
       (available.length===1?available[0]:null);
-    if(pinned){selectedLockId=pinned.lockId;return {...snapshot,lockId:pinned.lockId};}
+    if(pinned){
+      if(snapshot.sourceFormat&&(pinned.sourceFormat!==snapshot.sourceFormat||pinned.world!==snapshot.world))
+        throw rejected('E_DEPENDENCY_WORLD','缓存锁不属于 Page 执行世界');
+      selectedLockId=pinned.lockId;return {...snapshot,lockId:pinned.lockId};
+    }
     if(available.length>1)
       throw rejected('E_DEPENDENCY_LOCK_AMBIGUOUS','当前程序存在不同的固定依赖版本；请先在高级详情选择要运行的版本');
     const selections=[];
-    for(const [order,row] of report.requires.entries()){
-      if(row.order!==order||row.url!==parsed.requires[order].url)
+    for(const [order,row] of observed.requires.entries()){
+      if(row.order!==order||row.url!==required[order].url)
         throw rejected('E_DEPENDENCY_INSPECT','远程依赖清单与本次固定源码不一致');
       if(row.downloadError)throw rejected(row.downloadError.code||'E_DEPENDENCY_URL',row.downloadError.message||'依赖来源无效');
       if(row.sourceKind==='packaged')continue;
@@ -265,18 +290,28 @@ export function createPageDependencyResolver({client,getSource,getProgramId=()=>
     // the verified, just-obtained byte identities, not an extra approval UI.
     const review=await client.request('preparePageDependencies',
       {...input,explicitUserAction:true,selections});stillCurrent();
-    if(review?.status!=='pending-review'||review.manifestDigest!==report.manifestDigest||
-      !Array.isArray(review.entries)||review.entries.length!==parsed.requires.length||
-      !review.entries.every((row,i)=>row.order===i&&row.url===parsed.requires[i].url&&/^[a-f0-9]{64}$/.test(row.sha256)))
+    if(review?.status!=='pending-review'||review.manifestDigest!==observed.manifestDigest||
+      !Array.isArray(review.entries)||review.entries.length!==required.length||
+      !review.entries.every((row,i)=>row.order===i&&row.url===required[i].url&&/^[a-f0-9]{64}$/.test(row.sha256))||
+      (snapshot.sourceFormat&&(review.sourceFormat!==snapshot.sourceFormat||review.world!==snapshot.world)))
       throw rejected('E_DEPENDENCY_REVIEW','未获得完整且匹配当前源码的固定依赖资产');
     const lock=await client.request('approvePageDependencies',{
       reviewId:review.reviewId,...(snapshot.programId!==undefined?{programId:snapshot.programId}:{}),
       explicitUserAction:true,acceptedHashes:review.entries.map(row=>row.sha256)});
     stillCurrent();
-    if(lock?.approvalStatus!=='approved'||lock.manifestDigest!==report.manifestDigest||
-      !/^dep-lock-[a-f0-9]{64}$/.test(lock.lockId))
-      throw rejected('E_DEPENDENCY_LOCK','自动固定后的技术锁无效，不执行脚本');
-    selectedLockId=lock.lockId;refresh(true);
+    if(lock?.approvalStatus!=='approved'||lock.manifestDigest!==observed.manifestDigest||
+      !/^dep-lock-[a-f0-9]{64}$/.test(lock.lockId)||
+      (snapshot.sourceFormat&&(lock.sourceFormat!==snapshot.sourceFormat||lock.world!==snapshot.world)))
+      throw rejected('E_DEPENDENCY_LOCK','自动固定后的技术锁或执行世界无效，不执行脚本');
+    selectedLockId=lock.lockId;
+    if(snapshot.sourceFormat){
+      // Bind the newly-approved bytes without racing another network lookup.
+      sequence++;pending=false;locks=[lock];lookupError=null;
+      report={...observed,locks:[lock],selectedLockId:lock.lockId};
+      inspection=report;onState();
+      return capture({sourceFormat:'esm-page'});
+    }
+    refresh(true);
     return {...snapshot,lockId:lock.lockId};
   }
   refresh();
