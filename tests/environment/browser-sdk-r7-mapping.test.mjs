@@ -17,7 +17,9 @@ test('R7 35-operation map remains historic and Cookie host exposes no sandbox me
   assert.equal(r7.legacyOperations.canonicalMapping,'docs/api/browser-sdk-compatibility-map.json');
   assert.equal(r7.legacyOperations.archiveOnly,true);
   assert.equal(r8.archiveOnly,true);
-  assert(Object.keys(BROWSER_OPERATIONS).every(op=>r8.operations.some(row=>row.legacyOperation===op)));
+  assert.equal(r8.operations.length,35);
+  assert(Object.keys(BROWSER_OPERATIONS).some(op=>!r8.operations.some(row=>row.legacyOperation===op)),
+    'R9 active methods must not be bound to the R8 names');
   assert(r8.operations.some(row=>!Object.hasOwn(BROWSER_OPERATIONS,row.legacyOperation)),'Historical map must not dictate current runtime');
   assert.equal(r7.entries.length,10);
   assert(r7.entries.every(row=>TRUSTED_COOKIE_OPERATIONS.includes(row.openDeskOperationId)));
