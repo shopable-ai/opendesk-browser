@@ -4,6 +4,7 @@ import {readFile,writeFile} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
 import {resolve,dirname} from 'node:path';
 import {fileURLToPath} from 'node:url';
+import {BROWSER_OPERATIONS} from '../src/framework/sdk/browser-contract.js';
 const ROOT=resolve(dirname(fileURLToPath(import.meta.url)),'..');
 const pretty=value=>JSON.stringify(value,null,2)+'\n';
 export function parseChromiumJson(raw){
@@ -48,7 +49,8 @@ export function buildNativeCatalog({sources,compatibility,sourceManifest}){
         for(const entry of rows){
           if(!entry?.name)continue;
           const nativeApi='chrome.'+schema.namespace+'.'+entry.name;
-          const mapped=legacy.filter(row=>row.nativeApis.includes(nativeApi));
+          const mapped=legacy.filter(row=>Object.hasOwn(BROWSER_OPERATIONS,row.currentPublicOperation)&&
+            row.nativeApis.includes(nativeApi));
           const minChrome=parsedVersion(entry.min_version??schema.min_version);
           entries.push({
             nativeApi,namespace:schema.namespace,kind,
