@@ -1,0 +1,8 @@
+{
+  "nativeCandidate": "74b197eb4f122e61dd7dfeb720d24f3fa3b8c4ca",
+  "buildCandidate": "ccee890cb84f55ca3d70c0a08e9d121ddddde3a6",
+  "productionChanges": [],
+  "driverSha256": "8907be1618c5e04860444ab2688b57f3c4a64a7b3ab0a546e5f93c6bfcf41bca",
+  "priorDriverPreserved": "native-run-53-executed-driver.mjs",
+  "methodChange": "Record actual foreground interruption and reacquire only owned CFT before one genuine activity retry."
+}

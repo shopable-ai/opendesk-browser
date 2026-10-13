@@ -118,3 +118,52 @@ R1.9 补充观察安全边界：同一 worker 在 confirmedStop 与真实失焦�
 R1.9 原生 52：验收源码 3f95e4b8，生产构建输入同 ccee890c；真实 Mac/CFT 完整结束，36/38 PASS，2 BLOCKED，整体 PARTIAL/退出 1，Chrome/Profile 自动清理成功，0 Worker error/crash。原 35 项全部 PASS，加其他三工具实际升级隔离 PASS；新实际 200% 单列标签与同名安装 ID/ARIA 均 PASS，13 张原始图保留。自然试验的 remainingExtensionPages 仍包含刚请求关闭的 manager，不能声明全 UI 已关闭；补等待 Target.getTargets 真实消失后才取 quiet 起点。主动恢复实际 stopped/running 已观察，真实失焦后没有仍停止的快照，保持 BLOCKED。Cloud Recovery 闹钟存在只是关联线索，未删闹钟、关闭服务或篡改任何数据以制造休眠。后续同生产候选仅更新观察边界，复用已验证的 Node/构建字节，继续实际 CFT。
 
 R1.9 原生 53：同生产输入 9df1aaed，157.5 秒测试/160.1 秒进程退出 1；17 PASS / 21 NOT_TESTED，complete=false/FAIL，Profile 与 Chrome 自动清理成功。真实 OS activity 助手退出 4，按 helper 合同表示前台 owner 已变化，原驱动只保留状态码、未记录具体 owner 输出；不能推断是哪个应用，不能伪造后续 PASS。仅修复 passive 观察维护输入：保存真实 helper stdout、确认本次未发送活动事件，通过既有 owned PID 原生 activate + 已有网站 target + document.hasFocus 恢复真实焦点，再重试一次受控原生 activity；仍失败即保留错误，不改任何 Chrome API/数据/时间。前台间隙不宣称为连续活跃时间。生产源码及 Node/构建输入未变，不重复构建；下一回合验证实际 UI 销毁边界及其余完整链。
+
+### R1.9 本地最终交付记录：PARTIAL（2026-10-14）
+
+验收源码候选：`74b197eb4f122e61dd7dfeb720d24f3fa3b8c4ca`。构建候选：`ccee890cb84f55ca3d70c0a08e9d121ddddde3a6`，558 项生产输入、两个原生驱动/助手共 560 项实文件逐项一致；测试驱动变化与历史原文独立保留。正式证据以 `evidence/time-review-r19-local-20261014/native54-acceptance-receipt.json`、`native54-product-inputs.json`、原始 TAP、报告和专家复核为准；不重写原有 index 或历史回执。
+
+```text
+Time Review：PARTIAL
+  正式工具包 1.6.0、身份与可信原生 UI：DONE（实际 Chrome，无 iframe）
+  同名动态工具隔离、替换退役与安装 epoch：DONE
+  精确 Origin 与 idle 权限、首次授权/已授权 UI：DONE
+  单击开始、暂停、恢复：DONE
+  前台合法网站计时、失焦/idle冻结、未授权/撤权拦截：DONE（限定实测窗口）
+  关闭 Side Panel 后后台记录：DONE（实际合法累计 61.837 秒）
+  自然 Worker 休眠/恢复：BLOCKED（全部扩展 UI 已关闭，未观察到真实 stopped/running 链）
+  活跃 Worker 停止后跨真实失焦恢复：BLOCKED（失焦后的 stopped 快照缺失）
+  六分类、24h Canvas、键盘/ARIA、历史/排行、JSON/CSV：DONE（限定实测数据）
+  320/360/400/600 CSS px、实际 200% 缩放、同名 ID：DONE
+  安装、禁用/启用、卸载/重装、正式 catalog 升级：DONE
+  其他三工具安装/升级/启禁时 Time Review 隔离：DONE
+  同 Profile 整浏览器重启保留暂停状态与历史：DONE
+  CPU/内存/长期响应基准：NOT_TESTED
+  真实历史发行包迁移、全框架 F3/ZIP：NOT_TESTED（不以本地旧版 fixture 代替）
+  云同步：BLOCKED / LOCAL_ONLY / NO_UPLOAD
+```
+
+最后一项 R10 Node 失败已修复：旧 alias 探针误用 canonical 大 payload，导致初始拒绝后等待不存在的确认 UI；保持退役 alias 的边界并修正夹具，保留非可信点击拒绝、一次性授权和后续正常操作断言。另修复 Time Host 丢失请求 payload 导致实际导出/分钟授权失败，以及 Chrome 漏失焦事件后未知间隔被计入的真实缺陷；未知间隔现在保守丢弃，可能少计，不能把失焦后又恢复且全程漏报的间隔宣称已覆盖。新 UI 修复只涉及宿主同名 ID/ARIA 与极窄原生分类单列，不改变正式 1.6.0 包。
+
+本轮生产写入：`src/ui/sidebar-tools.js`、`src/time-review/service.js`、`src/ui/tool-shell.css`。测试/驱动写入：`tests/environment/sidebar-tools-host.test.mjs`、`time-review-r13-service.test.mjs`、`time-review-r12.test.mjs`、`tests/framework/time-review-r13-native.test.mjs`、`time-review-native-input.swift`。本记录与独立 raw evidence 是唯一连续验收入口。
+
+真实 Node v24.16.0：用户要求的九组测试及受影响安全/生命周期测试共 14 文件，206 PASS / 0 FAIL / 0 SKIP。正式包、check、production、development、verify 均 EXIT 0，原始命令与日志在 `ui-build/`。最初 Node v26.3.1、失败及修复前后日志继续保留。日常 `dist/development` watcher 与用户 Chrome 未替换，使用物理源码副本和 43272 构建锁。
+
+Mac 26.5.1 / 25F80，CFT 155.0.8059.39。最终原生 54 完整执行，36 PASS / 2 BLOCKED，整体 PARTIAL、退出 1；无 Worker error/crash，13 张图、真实下载字节、Chrome/Profile 身份和命令保留。实际加载的扩展 ID 为 `fnhkgjnffbcdelmemjeocolngkagnoap`；独立 Profile 清除、两次 CFT 主进程退出，未结束其他对话的 CFT。
+
+Source/package/产物 SHA-256：
+- `artifacts/sidebar-tools/time-review/1.6.0/time-review.opendesk-tool.json`: 41548 B，`90f5029049ed4b2cadd69fa91c4efaefb45f031bd94c07e708c9f78d5f2776f6`
+- `dist/production/sw.js`: 592119 B，`9d85e1370c1dc5c1e896764e6c3bb367d2a94a4d32efc93760d78c313cb56e9f`
+- `dist/development/sw.js`: 592285 B，`e49d69652a5713f4c61a75c50d301ef9269290b0df86aa188b62ecdd1321256b`
+- `dist/production/ui/tool-shell.js`: 495305 B，`5b6b25c522b780544753359e96432cdc145718a639aba7e5492d71db3d4d630e`
+- `dist/development/ui/tool-shell.js`: 495545 B，`955fda13835c636bef378c44b22ee625652f65a359e04d95aab110f1d9225f8f`
+
+Tool shell 硬上限 524,288 B 未改变，production余量 28,983 B、development余量 28,743 B；verify 警示接近审查余量，SW 超软审查线。固定 WXT IIFE/CSP 验证通过，未增加动态特权代码入口或第二个后台计时服务。运行性能未测，不因构建通过给运行性能分数。
+
+八维专家限域评分（完整 Markdown 和身份核验在 `native54-expert-review.md`）：常规功能90、已测权限身份边界92、已见UI90、构建预算84、Worker存活期间计时90、暂停状态恢复90、已测工具生命周期92、已核对证据90。缺少决定性证据的完整功能/自然与活跃恢复/全面安全/运行性能/真实历史发行及ZIP等范围均 NOT_SCORED；不合总分，不登记95。
+
+两个剩余 BLOCKED：全部扩展 UI 实际销毁后仍没有自然停止/恢复链；活跃恢复已观察真实 stopped/running、授权/分钟/全桶历史保持及失焦冻结，但无法证明要求的失焦后仍停止的边界。Cloud Recovery 30秒闹钟只是可能影响，未取得因果证据；它还承担离线撤权重试，不能为了验收删闹钟或关闭安全职责。同输入同方法不再盲目重跑。
+
+最终 Source74 的 Linux Node CI成功、macOS CI仍QUEUED： https://github.com/shopable-ai/opendesk-browser/actions/runs/38484927491 。本地真实 Chrome 的 PARTIAL 不提升为 CI Native PASS。
+
+并行差异：当前 main 后续两项既有 SDK 验收夹具/驱动提交已只读核查，不改变 Time Review/共享生产 runtime；其 Native 未测仍保留未测，不提升为本轮 PASS。根工作区另外三项未提交 Workflow 修改仍由其他对话负责，不纳入本轮提交或原生候选。只有冻结产物获上述限域结果，不将其扩大为当前整个工作目录或全框架最终验收。最终证据提交仅指定本任务路径，推送沿用本轮正常 main 授权串行核对，无 release/publish。

@@ -1,0 +1,2725 @@
+{
+  "candidate": "74b197eb4f122e61dd7dfeb720d24f3fa3b8c4ca",
+  "mode": "actual-headed-macos-CFT",
+  "scope": "full",
+  "nodeVersion": "v24.16.0",
+  "macVersion": "ProductName:\t\tmacOS\nProductVersion:\t\t26.5.1\nBuildVersion:\t\t25F80",
+  "package": {
+    "id": "time-review",
+    "version": "1.6.0",
+    "sha256": "90f5029049ed4b2cadd69fa91c4efaefb45f031bd94c07e708c9f78d5f2776f6"
+  },
+  "chromePid": 70414,
+  "profileOwned": true,
+  "install": "PASS",
+  "realSidePanel": "PASS",
+  "minuteConsent": "PASS",
+  "browserRestart": "PASS",
+  "download": "PASS",
+  "beginAndActiveCollection": "PASS",
+  "pauseResume": "PASS",
+  "websiteGrantRevocation": "PASS",
+  "idlePermissionRevocation": "PASS",
+  "swRestart": "PASS",
+  "hostedCI": false,
+  "extensionPath": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/time-review-r19-local-01a1364f/source-r19-ui-final/dist/production",
+  "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-time-r13-nGVSt0",
+  "driverSha256": "8907be1618c5e04860444ab2688b57f3c4a64a7b3ab0a546e5f93c6bfcf41bca",
+  "chromeBinaryVersion": "Google Chrome for Testing 155.0.8059.39",
+  "screenshots": [
+    {
+      "filename": "installed-native-side-panel.png",
+      "bytes": 105981,
+      "sha256": "dce703a6942144d17d0382226bf43828b60440adc063dd1b3184065a69207071"
+    },
+    {
+      "filename": "installed-native-320.png",
+      "bytes": 59432,
+      "sha256": "e01df45fb293cf4ee9c89779200978b8a4189e7c36ad938d0c1d43281fcfb026"
+    },
+    {
+      "filename": "installed-native-360.png",
+      "bytes": 58713,
+      "sha256": "f2070628ac95756152960e5244588b31c05497ec962011aae9e14a7f138ec14c"
+    },
+    {
+      "filename": "installed-native-400.png",
+      "bytes": 59055,
+      "sha256": "dafbe41f502cfc564290619f5f6b6beee22344074a0a80b27ebb1b6c509333e1"
+    },
+    {
+      "filename": "installed-native-600.png",
+      "bytes": 60718,
+      "sha256": "8e9cd5ccbffb9f2bbc670ef0f0b8023cefd9aec3e47a87fdd5d9ca86f8f3cd86"
+    },
+    {
+      "filename": "real-chrome-200-percent-zoom.png",
+      "bytes": 58443,
+      "sha256": "ef87b2da98e1cdc2fb119fc7f531f047015f7da01437ec27483391cd5f1ff12c"
+    },
+    {
+      "filename": "trusted-permission-settings.png",
+      "bytes": 146334,
+      "sha256": "a2675b9c8d6b21ad999cfc53fc8bf3e3de761359967672b58d193a79297e2c8f"
+    },
+    {
+      "filename": "first-run-inline-time-review-consent.png",
+      "bytes": 185550,
+      "sha256": "2e2c20665cdd953dd8bfbd3dc6c7b4cad8c155d2b5fbe865c6826a66d8cee973"
+    },
+    {
+      "filename": "real-recorded-minute-canvas.png",
+      "bytes": 118173,
+      "sha256": "a91d435eb7f1137af3df3966292848191a84520713aaad2be1cb156901af3fce"
+    },
+    {
+      "filename": "real-long-domain-native.png",
+      "bytes": 114286,
+      "sha256": "a915fd5d88c747d742113929be3fded0fe73eb883e49780c4d63e94c21539a0e"
+    },
+    {
+      "filename": "same-title-installed-identities.png",
+      "bytes": 184083,
+      "sha256": "35fc3e5e8c431bb9ac2f836ce3ddcb6d5de930127383e2c8729e184cb23a57ed"
+    },
+    {
+      "filename": "official-native-retired-after-local-replacement.png",
+      "bytes": 179156,
+      "sha256": "b09ad0886998c58bb837f53f71ac0fa6230729828de6d1a5aa31cd1c3263b5a4"
+    },
+    {
+      "filename": "official-upgrade-native-1.6.0.png",
+      "bytes": 109599,
+      "sha256": "6a39503988ff82445644362faf4a8aa847ce4b1b72a406a41b1776814bfd0534"
+    }
+  ],
+  "steps": [
+    {
+      "name": "trusted-open",
+      "selector": "#catalog-open-dev-sidebar",
+      "x": 89.25,
+      "y": 135.1484375
+    },
+    {
+      "name": "install",
+      "version": "1.6.0"
+    },
+    {
+      "name": "native-canvas",
+      "quadrants": 4,
+      "extras": 2,
+      "day": "0秒",
+      "timeline": "尚无分钟明细",
+      "horizontal": true,
+      "frameGeometry": {
+        "viewportHeight": 815,
+        "documentHeight": 815,
+        "rootHeight": 1109.828125
+      },
+      "outerGeometry": {
+        "viewportHeight": 815,
+        "nativeHeight": 1109.828125,
+        "iframeCount": 0,
+        "hostScrollHeight": 815
+      }
+    },
+    {
+      "name": "installed-native-widths",
+      "verdict": "PASS",
+      "method": "installed SIDE_PANEL CSS viewport override",
+      "widths": [
+        320,
+        360,
+        400,
+        600
+      ]
+    },
+    {
+      "name": "actual-narrow-zoom-category-readability",
+      "quadrants": "142px",
+      "extras": "142px",
+      "names": [
+        {
+          "text": "重要且紧急",
+          "height": 15.94921875,
+          "lineHeight": 15.95
+        },
+        {
+          "text": "重要不紧急",
+          "height": 15.94921875,
+          "lineHeight": 15.95
+        },
+        {
+          "text": "紧急不重要",
+          "height": 15.94921875,
+          "lineHeight": 15.95
+        },
+        {
+          "text": "不重要不紧急",
+          "height": 15.94921875,
+          "lineHeight": 15.95
+        }
+      ]
+    },
+    {
+      "name": "real-chrome-zoom",
+      "verdict": "PASS",
+      "source": "macOS CGEvent Command+Plus",
+      "steps": 5,
+      "baseline": {
+        "cssWidth": 360,
+        "cssScrollWidth": 360,
+        "cssHeight": 815,
+        "contentHeight": 815,
+        "dpr": 2,
+        "canvasWidth": 312
+      },
+      "observed": {
+        "cssWidth": 180,
+        "cssScrollWidth": 180,
+        "cssHeight": 407,
+        "contentHeight": 407,
+        "dpr": 4,
+        "canvasWidth": 142
+      },
+      "reason": null,
+      "browser200PercentVerified": true
+    },
+    {
+      "name": "native-permission-actions",
+      "initiallyIdleGranted": false,
+      "duplicateStartHidden": true
+    },
+    {
+      "name": "trusted-native-consent-unmodified",
+      "minuteConsent": false
+    },
+    {
+      "name": "trusted-minute-optin",
+      "minuteConsent": true
+    },
+    {
+      "name": "trusted-minute-withdrawal",
+      "minuteConsent": false
+    },
+    {
+      "name": "download-json",
+      "format": "json",
+      "created": "PASS",
+      "complete": "PASS",
+      "ownedDirectory": "PASS",
+      "disk": "PASS",
+      "content": "PASS",
+      "filename": "PASS",
+      "id": 1,
+      "basename": "time-review.json",
+      "received": 241,
+      "ownedByExtension": true,
+      "bytes": 241,
+      "sha256": "3cc02c23b9d8f1b0b52ee5bf6b4d49ba8119e76b22f03c92bab2d5c6008c7385"
+    },
+    {
+      "name": "download-csv",
+      "format": "csv",
+      "created": "PASS",
+      "complete": "PASS",
+      "ownedDirectory": "PASS",
+      "disk": "PASS",
+      "content": "PASS",
+      "filename": "PASS",
+      "id": 2,
+      "basename": "time-review.csv",
+      "received": 44,
+      "ownedByExtension": true,
+      "bytes": 44,
+      "sha256": "55c24b7f5c3e5ccbc3b7fe3915cb7e73720188c2fd93dff8f84c393035dd63d6"
+    },
+    {
+      "name": "native-inline-enrollment",
+      "trustedExistingControls": true,
+      "nativeUIVisible": true,
+      "iframeRemoved": true,
+      "domFocusOrder": true,
+      "siteGrantUntouched": true
+    },
+    {
+      "name": "native-idle-ui-reflects-grant",
+      "granted": true,
+      "duplicateGrantHidden": true
+    },
+    {
+      "name": "site-grant",
+      "origin": "http://127.0.0.1:57838",
+      "source": "native trusted click"
+    },
+    {
+      "name": "trusted-start-immediate-ui",
+      "pauseVisible": true,
+      "noIframe": true,
+      "noSecondConfirmation": true
+    },
+    {
+      "name": "native-observation-gates-before-input",
+      "focused": true,
+      "windowType": "normal",
+      "idle": "active",
+      "isLoopbackTab": true,
+      "hasHostPermission": true
+    },
+    {
+      "name": "native-observation-gates-final",
+      "focused": true,
+      "windowType": "normal",
+      "idle": "active",
+      "isLoopbackTab": true,
+      "hasHostPermission": true
+    },
+    {
+      "name": "real-web-checkpoint",
+      "host": "127.0.0.1",
+      "paused": false,
+      "startedAt": 1791934390249,
+      "hasPermission": true
+    },
+    {
+      "name": "real-http-activity",
+      "host": "127.0.0.1",
+      "ms": 954,
+      "from": "real active browser tab"
+    },
+    {
+      "name": "actual-canvas-keyboard-focus",
+      "focused": [
+        {
+          "description": "",
+          "enabled": true,
+          "focused": true,
+          "position": {
+            "x": 22,
+            "y": 101
+          },
+          "role": "AXGroup",
+          "size": {
+            "height": 34,
+            "width": 112
+          },
+          "subrole": "",
+          "title": "",
+          "value": ""
+        },
+        {
+          "description": "",
+          "enabled": true,
+          "focused": true,
+          "position": {
+            "x": 30,
+            "y": 198
+          },
+          "role": "AXWebArea",
+          "size": {
+            "height": 799,
+            "width": 814
+          },
+          "subrole": "",
+          "title": "Time Review native",
+          "value": ""
+        },
+        {
+          "description": "分钟时间线",
+          "enabled": true,
+          "focused": true,
+          "position": {
+            "x": 877,
+            "y": 574
+          },
+          "role": "AXSlider",
+          "size": {
+            "height": 54,
+            "width": 312
+          },
+          "subrole": "",
+          "title": "分钟时间线",
+          "value": ""
+        }
+      ]
+    },
+    {
+      "name": "real-minute-canvas",
+      "realEntries": true,
+      "keyboard": true,
+      "ariaMinute": 60
+    },
+    {
+      "name": "unrelated-official-install",
+      "toolId": "reading-toc",
+      "previouslyInstalled": true,
+      "disableEnable": true,
+      "nativeStillMounted": true,
+      "authorizationUnchanged": true,
+      "paused": false
+    },
+    {
+      "name": "native-file-review-install",
+      "id": "reading-toc",
+      "version": "0.0.0",
+      "file": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/time-review-r19-local-01a1364f/native-run-54/older-reading-toc.opendesk-tool.json",
+      "sha256": "b69bf45e13705a6debcdbd30766548ebaaf9e95f60faf446b45951e614fc0126"
+    },
+    {
+      "name": "unrelated-official-upgrade",
+      "toolId": "reading-toc",
+      "fromVersion": "0.0.0",
+      "fromSource": "reviewed-local-older-version-fixture",
+      "toVersion": "1.0.4",
+      "toSource": "actual-official-catalog",
+      "nativeRootUnchanged": true,
+      "authorizationUnchanged": true,
+      "paused": false
+    },
+    {
+      "name": "unrelated-official-install",
+      "toolId": "cookie-editor",
+      "previouslyInstalled": false,
+      "disableEnable": true,
+      "nativeStillMounted": true,
+      "authorizationUnchanged": true,
+      "paused": false
+    },
+    {
+      "name": "native-file-review-install",
+      "id": "cookie-editor",
+      "version": "0.0.0",
+      "file": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/time-review-r19-local-01a1364f/native-run-54/older-cookie-editor.opendesk-tool.json",
+      "sha256": "bf72886c105b5aa886060565bff8e2f7e9794a84478f7ce3c373398c2e14e56e"
+    },
+    {
+      "name": "unrelated-official-upgrade",
+      "toolId": "cookie-editor",
+      "fromVersion": "0.0.0",
+      "fromSource": "reviewed-local-older-version-fixture",
+      "toVersion": "2.0.4",
+      "toSource": "actual-official-catalog",
+      "nativeRootUnchanged": true,
+      "authorizationUnchanged": true,
+      "paused": false
+    },
+    {
+      "name": "unrelated-official-install",
+      "toolId": "stay-focus",
+      "previouslyInstalled": false,
+      "disableEnable": true,
+      "nativeStillMounted": true,
+      "authorizationUnchanged": true,
+      "paused": false
+    },
+    {
+      "name": "native-file-review-install",
+      "id": "stay-focus",
+      "version": "0.0.0",
+      "file": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/time-review-r19-local-01a1364f/native-run-54/older-stay-focus.opendesk-tool.json",
+      "sha256": "e4b94ef63bd867f4489f71fe2590c02aef7fdba75ef81bed3b2ada4fcd666338"
+    },
+    {
+      "name": "unrelated-official-upgrade",
+      "toolId": "stay-focus",
+      "fromVersion": "0.0.0",
+      "fromSource": "reviewed-local-older-version-fixture",
+      "toVersion": "1.0.0",
+      "toSource": "actual-official-catalog",
+      "nativeRootUnchanged": true,
+      "authorizationUnchanged": true,
+      "paused": false
+    },
+    {
+      "name": "focus-retirement-measurement",
+      "observedDelta": 179,
+      "permittedDelta": 1166,
+      "blurAt": 1791934505845,
+      "checkpointAt": 1791934505679
+    },
+    {
+      "name": "real-window-focus",
+      "foreground": false,
+      "totalsFrozen": true
+    },
+    {
+      "name": "passive-natural-worker-observation",
+      "observerReady": true,
+      "initialWorkerState": {
+        "at": 133924.841709,
+        "wallAt": 1791934508432,
+        "sessionId": "0E2D30315D376EF701AB2D08923B3165",
+        "versionId": "2",
+        "registrationId": "2",
+        "scriptURL": "chrome-extension://fnhkgjnffbcdelmemjeocolngkagnoap/sw.js",
+        "runningStatus": "running",
+        "status": "running",
+        "scriptLastModified": 1791933108,
+        "scriptResponseTime": 0,
+        "controlledClients": [],
+        "targetId": "2A09497E164828DE7EE5BE503525902D"
+      },
+      "quietMs": 75213,
+      "trace": [],
+      "workerSnapshots": [
+        {
+          "elapsedMs": 1,
+          "targets": [
+            {
+              "targetId": "2A09497E164828DE7EE5BE503525902D",
+              "attached": false
+            }
+          ]
+        }
+      ],
+      "newWorkerErrors": [],
+      "crashes": [],
+      "registrationDeleted": false,
+      "versionChanged": false,
+      "noTimeRpcFromDriver": true,
+      "noWorkerDebugger": true,
+      "noForcedStop": true,
+      "heartbeatPeriodMinutes": 0.5,
+      "recoveryTrigger": "not independently attributed",
+      "verdict": "BLOCKED",
+      "reason": "No proven error-free natural stopped/recovered trace; waiting or target snapshots alone are insufficient"
+    },
+    {
+      "name": "panel-closed-observation",
+      "window": {
+        "alwaysOnTop": false,
+        "focused": true,
+        "height": 950,
+        "id": 707447782,
+        "incognito": false,
+        "left": 22,
+        "state": "normal",
+        "top": 55,
+        "type": "normal",
+        "width": 1200
+      },
+      "idle": "active",
+      "alarm": {
+        "name": "opendesk.time-review.heartbeat.v1",
+        "periodInMinutes": 0.5,
+        "persistAcrossSessions": true,
+        "scheduledTime": 1791934599919.852
+      },
+      "state": {
+        "authorizedEpoch": null,
+        "authorizedHash": "9ca3c190a5ff96da5b146ce5ed66d74586b28f9359588f37bb505208de6a08f1",
+        "categories": {},
+        "checkpoint": {
+          "at": 1791934569927,
+          "host": "127.0.0.1",
+          "offset": -480,
+          "origin": "http://127.0.0.1:57838",
+          "session": "9d10db8d-a0d8-4a01-b53e-4903a4a64ca3",
+          "tabId": 707447785,
+          "windowId": 707447782
+        },
+        "days": {
+          "2026-10-14": {
+            "127.0.0.1": 65117
+          }
+        },
+        "discardedMs": 2304,
+        "highWater": 1791934569921,
+        "minuteConsent": true,
+        "minuteDays": {
+          "2026-10-14": {
+            "ambiguous": false,
+            "entries": [
+              [
+                453,
+                "127.0.0.1",
+                2341
+              ],
+              [
+                455,
+                "127.0.0.1",
+                52543
+              ],
+              [
+                456,
+                "127.0.0.1",
+                9921
+              ]
+            ],
+            "offset": -480,
+            "truncated": false
+          }
+        },
+        "paused": false,
+        "settings": {
+          "excludedHosts": [],
+          "idleSeconds": 60,
+          "retentionDays": 90
+        },
+        "siteGrants": {
+          "allSites": false,
+          "origins": [
+            "http://127.0.0.1:57838"
+          ]
+        },
+        "version": 1
+      }
+    },
+    {
+      "name": "real-panel-closed-collection",
+      "noSidePanel": true,
+      "noTimeRpc": true,
+      "ms": 61837
+    },
+    {
+      "name": "real-site-switch",
+      "firstHost": "127.0.0.1",
+      "firstMs": 65132,
+      "secondHost": "localhost",
+      "secondMs": 1856,
+      "separateTotals": true
+    },
+    {
+      "name": "real-long-domain-layout",
+      "width": 320,
+      "scroll": 320,
+      "host": "very-long-actual-time-review-domain-abcdefghijklmnopqrstuvwxyz.localhost",
+      "canvas": 282,
+      "method": "installed native CSS viewport"
+    },
+    {
+      "name": "real-long-domain-layout",
+      "width": 360,
+      "scroll": 360,
+      "host": "very-long-actual-time-review-domain-abcdefghijklmnopqrstuvwxyz.localhost",
+      "canvas": 312,
+      "method": "installed native CSS viewport"
+    },
+    {
+      "name": "real-long-domain-layout",
+      "width": 400,
+      "scroll": 400,
+      "host": "very-long-actual-time-review-domain-abcdefghijklmnopqrstuvwxyz.localhost",
+      "canvas": 352,
+      "method": "installed native CSS viewport"
+    },
+    {
+      "name": "real-long-domain-layout",
+      "width": 600,
+      "scroll": 600,
+      "host": "very-long-actual-time-review-domain-abcdefghijklmnopqrstuvwxyz.localhost",
+      "canvas": 552,
+      "method": "installed native CSS viewport"
+    },
+    {
+      "name": "real-idle-transition",
+      "enteredIdle": true,
+      "idleTotalsFrozen": true,
+      "resumedHost": "localhost",
+      "postIdleMs": 1691
+    },
+    {
+      "name": "real-pause",
+      "ms": 65222
+    },
+    {
+      "name": "paused-runtime-before-ui-close",
+      "alarms": [
+        {
+          "name": "opendesk.cloud.recover.v1",
+          "periodInMinutes": 0.5,
+          "persistAcrossSessions": true,
+          "scheduledTime": 1791934675371.56
+        }
+      ],
+      "contexts": [
+        {
+          "contextId": "27572878-e6cb-4d79-a394-eede9b1f0540",
+          "contextType": "BACKGROUND",
+          "frameId": -1,
+          "incognito": false,
+          "tabId": -1,
+          "windowId": -1
+        },
+        {
+          "contextId": "37ca9da5-31d4-4dea-83b4-4250f9ada4e9",
+          "contextType": "TAB",
+          "documentId": "036D36C0A4ED3AFD63E887E08ECB97FE",
+          "documentOrigin": "chrome-extension://fnhkgjnffbcdelmemjeocolngkagnoap",
+          "documentUrl": "chrome-extension://fnhkgjnffbcdelmemjeocolngkagnoap/ui/tool.html?hostInstanceId=36fabe89-67c3-4b94-b284-79e698f6a44e",
+          "frameId": 0,
+          "incognito": false,
+          "tabId": 707447784,
+          "windowId": 707447782
+        },
+        {
+          "contextId": "4b450fc5-3d86-451b-93d4-eae5354714e6",
+          "contextType": "SIDE_PANEL",
+          "documentId": "E12659C807A12B4896A11DFC4152371C",
+          "documentOrigin": "chrome-extension://fnhkgjnffbcdelmemjeocolngkagnoap",
+          "documentUrl": "chrome-extension://fnhkgjnffbcdelmemjeocolngkagnoap/ui/tool.html?hostInstanceId=7ad2cd1f-5ff5-4288-aa32-b3c284d4835c",
+          "frameId": 0,
+          "incognito": false,
+          "tabId": -1,
+          "windowId": -1
+        }
+      ]
+    },
+    {
+      "name": "paused-natural-worker-observation",
+      "initialVersion": {
+        "at": 291630.978834,
+        "wallAt": 1791934666139,
+        "sessionId": "9FDCBEC78D44C67D3611E810357ECB2B",
+        "versionId": "2",
+        "registrationId": "2",
+        "scriptURL": "chrome-extension://fnhkgjnffbcdelmemjeocolngkagnoap/sw.js",
+        "runningStatus": "running",
+        "status": "running",
+        "scriptLastModified": 1791933108,
+        "scriptResponseTime": 0,
+        "controlledClients": [
+          "CA152839CD8CB75A2C9EB3CA37C1A792"
+        ],
+        "targetId": "2A09497E164828DE7EE5BE503525902D"
+      },
+      "pausedRunning": null,
+      "pausedSnapshots": [
+        {
+          "at": 293646.103875,
+          "targets": [
+            {
+              "targetId": "2A09497E164828DE7EE5BE503525902D",
+              "attached": false
+            }
+          ]
+        }
+      ],
+      "pausedErrors": [],
+      "pausedCrashes": [],
+      "pausedVersionChanged": false,
+      "pausedRegistrationDeleted": false,
+      "genuinePause": true,
+      "panelClosed": true,
+      "allExtensionUiClosed": true,
+      "remainingExtensionPages": [],
+      "managerClosedInWait": true,
+      "noTimeRpcInWait": true,
+      "noForcedStop": true,
+      "noWorkerDebugger": true,
+      "recoveryTrigger": "not independently attributed",
+      "historyAndAuthorityPreserved": true,
+      "pausedAndCheckpointNull": true,
+      "verdict": "BLOCKED",
+      "reason": "No independently proven error-free stopped/running chain while genuinely paused"
+    },
+    {
+      "name": "real-service-worker-restart",
+      "ms": 65222,
+      "method": "Target.closeTarget",
+      "targetChanged": true
+    },
+    {
+      "name": "real-resume",
+      "paused": false
+    },
+    {
+      "name": "real-active-worker-recovery",
+      "method": "Target.closeTarget",
+      "natural": false,
+      "activeVersion": {
+        "at": 344785.523625,
+        "wallAt": 1791934719294,
+        "sessionId": "9FDCBEC78D44C67D3611E810357ECB2B",
+        "versionId": "2",
+        "registrationId": "2",
+        "scriptURL": "chrome-extension://fnhkgjnffbcdelmemjeocolngkagnoap/sw.js",
+        "runningStatus": "running",
+        "status": "running",
+        "scriptLastModified": 1791933108,
+        "scriptResponseTime": 0,
+        "controlledClients": [],
+        "targetId": "FA1B9D4F9FFF5B25CC800D35CB4B34FC"
+      },
+      "confirmedStop": {
+        "at": 346308.00525,
+        "wallAt": 1791934720817,
+        "sessionId": "9FDCBEC78D44C67D3611E810357ECB2B",
+        "versionId": "2",
+        "registrationId": "2",
+        "scriptURL": "chrome-extension://fnhkgjnffbcdelmemjeocolngkagnoap/sw.js",
+        "runningStatus": "stopped",
+        "status": "stopped",
+        "scriptLastModified": 1791933108,
+        "scriptResponseTime": 0,
+        "controlledClients": []
+      },
+      "confirmedBlurAt": 346577.521959,
+      "confirmedBlurWallAt": 1791934721086,
+      "stoppedAfterBlur": null,
+      "earlyRecovery": null,
+      "confirmedRecovery": {
+        "at": 346585.601292,
+        "wallAt": 1791934721094,
+        "sessionId": "9FDCBEC78D44C67D3611E810357ECB2B",
+        "versionId": "2",
+        "registrationId": "2",
+        "scriptURL": "chrome-extension://fnhkgjnffbcdelmemjeocolngkagnoap/sw.js",
+        "runningStatus": "running",
+        "status": "running",
+        "scriptLastModified": 1791933108,
+        "scriptResponseTime": 0,
+        "controlledClients": [],
+        "targetId": "363422FF351551759AD52E6C500E1804"
+      },
+      "managerClosedDuringStop": true,
+      "authorizationPreserved": true,
+      "allHistoryBucketsPreserved": true,
+      "unfocusedHistoryFrozen": true,
+      "observedDelta": 1931,
+      "permittedDelta": 4556,
+      "freshObservation": true,
+      "verdict": "BLOCKED",
+      "reason": "Recovery ordering scenario not proven; target ID change alone is insufficient"
+    },
+    {
+      "name": "real-site-authorization-revocation",
+      "chromeIdleRetained": true,
+      "checkpointRetired": true,
+      "unauthorizedRestartDenied": true,
+      "historyPreserved": true,
+      "regrantExplicit": true
+    },
+    {
+      "name": "real-idle-permission-revocation",
+      "chromePermissionRemoved": true,
+      "revokedHash": true,
+      "checkpointRetired": true,
+      "heartbeatRetired": true,
+      "unauthorizedRestartDenied": true,
+      "daysPreserved": true
+    },
+    {
+      "name": "real-classification",
+      "host": "127.0.0.1",
+      "category": 2,
+      "unchangedTime": true,
+      "visible": true
+    },
+    {
+      "name": "real-history-navigation",
+      "previousEmptyDay": true,
+      "currentDayRestored": true,
+      "weekRecords": true,
+      "ranking": true
+    },
+    {
+      "name": "populated-export",
+      "format": "json",
+      "filename": "time-review (1).json",
+      "bytes": 1219,
+      "sha256": "5391703f7a52ff3fe2c56fc73e193bfcca9125cc52e13edea34f9fd3f502270b",
+      "actualWebsiteTime": true
+    },
+    {
+      "name": "populated-export",
+      "format": "csv",
+      "filename": "time-review (1).csv",
+      "bytes": 222,
+      "sha256": "aeffe03674a5b56ca5ad0dee02790d9ae1fc142a9b7b3defb02c46904dbe39fe",
+      "actualWebsiteTime": true
+    },
+    {
+      "name": "real-chrome-restart",
+      "previousPid": 70414,
+      "newPid": 74621,
+      "sameProfile": true,
+      "sessionChanged": true,
+      "toolVersion": "1.6.0",
+      "days": 1,
+      "paused": true
+    },
+    {
+      "name": "real-sidepanel-reopened-after-chrome-restart",
+      "ownSidePanel": true,
+      "documentId": "74A351BDA894892FD1A1299C60062069",
+      "targetId": "52087D3127FDE9C5C9755865FAF936D8"
+    },
+    {
+      "name": "real-tool-disable-reenable",
+      "rotatedEpoch": true,
+      "daysPreserved": true,
+      "noAutoStart": true
+    },
+    {
+      "name": "real-tool-uninstall",
+      "selective": true,
+      "recordDeleted": true,
+      "othersIntact": true,
+      "noResurrection": true
+    },
+    {
+      "name": "real-tool-reinstall",
+      "version": "1.6.0",
+      "newConsentRequired": true,
+      "oldDataNotResurrected": true,
+      "noIframe": true
+    },
+    {
+      "name": "native-file-review-install",
+      "id": "time-review-lookalike",
+      "version": "1.6.0",
+      "file": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/time-review-r19-local-01a1364f/native-run-54/time-review-lookalike.opendesk-tool.json",
+      "sha256": "09809030242e8993be461e0167dc67749c05b3ba38f780c22839e9a1a9a215e6"
+    },
+    {
+      "name": "same-name-visible-identities",
+      "identities": [
+        {
+          "text": "安装 ID：time-review",
+          "inViewport": true,
+          "uncropped": true,
+          "aria": "打开工具「Time Review · 时间回顾」的详情，安装 ID：time-review"
+        },
+        {
+          "text": "安装 ID：time-review-lookalike",
+          "inViewport": true,
+          "uncropped": true,
+          "aria": "打开工具「Time Review · 时间回顾」的详情，安装 ID：time-review-lookalike"
+        }
+      ]
+    },
+    {
+      "name": "same-name-real-sandbox",
+      "sameTitle": true,
+      "sameCapability": true,
+      "differentId": true,
+      "iframe": true
+    },
+    {
+      "name": "native-file-review-install",
+      "id": "time-review",
+      "version": "1.6.1",
+      "file": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/time-review-r19-local-01a1364f/native-run-54/time-review-local-replacement.opendesk-tool.json",
+      "sha256": "1aa222fd0a222f727e192dd25b532466366a27890f9e2404bfab310ecd81a8b5"
+    },
+    {
+      "name": "own-reviewed-replacement-retirement",
+      "version": "1.6.1",
+      "bytesChanged": true,
+      "officialProvenanceRemoved": true,
+      "epochPreserved": true,
+      "packageHashChanged": true,
+      "oldNativeRootRetired": true,
+      "noAutoStart": true
+    },
+    {
+      "name": "native-file-review-install",
+      "id": "time-review",
+      "version": "1.5.0",
+      "file": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/time-review-r19-local-01a1364f/native-run-54/time-review-reviewed-older-version.opendesk-tool.json",
+      "sha256": "3396798d9ad9717cef454476b7267ac03e01ace800f725edfd9e03ae8ba6bc63"
+    },
+    {
+      "name": "actual-official-upgrade",
+      "fromVersion": "1.5.0",
+      "fromSource": "reviewed-local-older-version-fixture",
+      "toVersion": "1.6.0",
+      "toSource": "actual-official-catalog",
+      "exactPackage": true,
+      "officialProvenance": true,
+      "historyPreserved": true,
+      "oldSandboxRetired": true,
+      "noAutoStart": true
+    }
+  ],
+  "chrome": "Chrome/155.0.8059.39",
+  "extensionId": "fnhkgjnffbcdelmemjeocolngkagnoap",
+  "workerObserver": {
+    "events": [
+      {
+        "at": 795.197334,
+        "sessionId": "0E2D30315D376EF701AB2D08923B3165",
+        "method": "workerRegistrationUpdated",
+        "params": {
+          "registrations": [
+            {
+              "registrationId": "2",
+              "scopeURL": "chrome-extension://fnhkgjnffbcdelmemjeocolngkagnoap/",
+              "isDeleted": false
+            },
+            {
+              "registrationId": "0",
+              "scopeURL": "chrome-extension://nkeimhogjdpnpccoofpliimaahmaaome/",
+              "isDeleted": false
+            },
+            {
+              "registrationId": "1",
+              "scopeURL": "chrome-extension://glbjnfimcajjenihimblfaponejbkoph/",
+              "isDeleted": false
+            }
+          ]
+        }
+      },
+      {
+        "at": 795.368125,
+        "sessionId": "0E2D30315D376EF701AB2D08923B3165",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://fnhkgjnffbcdelmemjeocolngkagnoap/sw.js",
+              "runningStatus": "starting",
+              "status": "new",
+              "scriptLastModified": 1791933108,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "2A09497E164828DE7EE5BE503525902D"
+            },
+            {
+              "versionId": "0",
+              "registrationId": "0",
+              "scriptURL": "chrome-extension://nkeimhogjdpnpccoofpliimaahmaaome/thunk.js",
+              "runningStatus": "running",
+              "status": "activated",
+              "scriptLastModified": 0,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "473036B611BEA611B023AEB3B8C2AF08"
+            },
+            {
+              "versionId": "1",
+              "registrationId": "1",
+              "scriptURL": "chrome-extension://glbjnfimcajjenihimblfaponejbkoph/background.js",
+              "runningStatus": "running",
+              "status": "activated",
+              "scriptLastModified": 0,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "D16B73D3D8C173FE71FF3B6F19F933DC"
+            }
+          ]
+        }
+      },
+      {
+        "at": 836.963542,
+        "sessionId": "0E2D30315D376EF701AB2D08923B3165",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://fnhkgjnffbcdelmemjeocolngkagnoap/sw.js",
+              "runningStatus": "starting",
+              "status": "installing",
+              "scriptLastModified": 1791933108,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "2A09497E164828DE7EE5BE503525902D"
+            }
+          ]
+        }
+      },
+      {
+        "at": 837.115209,
+        "sessionId": "0E2D30315D376EF701AB2D08923B3165",
+        "method": "workerRegistrationUpdated",
+        "params": {
+          "registrations": [
+            {
+              "registrationId": "2",
+              "scopeURL": "chrome-extension://fnhkgjnffbcdelmemjeocolngkagnoap/",
+              "isDeleted": false
+            }
+          ]
+        }
+      },
+      {
+        "at": 837.621292,
+        "sessionId": "0E2D30315D376EF701AB2D08923B3165",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://fnhkgjnffbcdelmemjeocolngkagnoap/sw.js",
+              "runningStatus": "running",
+              "status": "installing",
+              "scriptLastModified": 1791933108,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "2A09497E164828DE7EE5BE503525902D"
+            }
+          ]
+        }
+      },
+      {
+        "at": 849.715042,
+        "sessionId": "0E2D30315D376EF701AB2D08923B3165",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://fnhkgjnffbcdelmemjeocolngkagnoap/sw.js",
+              "runningStatus": "running",
+              "status": "installed",
+              "scriptLastModified": 1791933108,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "2A09497E164828DE7EE5BE503525902D"
+            }
+          ]
+        }
+      },
+      {
+        "at": 850.21225,
+        "sessionId": "0E2D30315D376EF701AB2D08923B3165",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://fnhkgjnffbcdelmemjeocolngkagnoap/sw.js",
+              "runningStatus": "running",
+              "status": "activating",
+              "scriptLastModified": 1791933108,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "2A09497E164828DE7EE5BE503525902D"
+            }
+          ]
+        }
+      },
+      {
+        "at": 850.301375,
+        "sessionId": "0E2D30315D376EF701AB2D08923B3165",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://fnhkgjnffbcdelmemjeocolngkagnoap/sw.js",
+              "runningStatus": "running",
+              "status": "activated",
+              "scriptLastModified": 1791933108,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "2A09497E164828DE7EE5BE503525902D"
+            }
+          ]
+        }
+      },
+      {
+        "at": 1062.190917,
+        "sessionId": "0E2D30315D376EF701AB2D08923B3165",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://fnhkgjnffbcdelmemjeocolngkagnoap/sw.js",
+              "runningStatus": "running",
+              "status": "activated",
+              "scriptLastModified": 1791933108,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "2A09497E164828DE7EE5BE503525902D"
+            }
+          ]
+        }
+      },
+      {
+        "at": 1104.061917,
+        "sessionId": "0E2D30315D376EF701AB2D08923B3165",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://fnhkgjnffbcdelmemjeocolngkagnoap/sw.js",
+              "runningStatus": "running",
+              "status": "activated",
+              "scriptLastModified": 1791933108,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "2A09497E164828DE7EE5BE503525902D"
+            }
+          ]
+        }
+      },
+      {
+        "at": 1111.318,
+        "sessionId": "0E2D30315D376EF701AB2D08923B3165",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://fnhkgjnffbcdelmemjeocolngkagnoap/sw.js",
+              "runningStatus": "running",
+              "status": "activated",
+              "scriptLastModified": 1791933108,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "2A09497E164828DE7EE5BE503525902D"
+            }
+          ]
+        }
+      },
+      {
+        "at": 20269.938042,
+        "sessionId": "0E2D30315D376EF701AB2D08923B3165",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://fnhkgjnffbcdelmemjeocolngkagnoap/sw.js",
+              "runningStatus": "running",
+              "status": "activated",
+              "scriptLastModified": 1791933108,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "2A09497E164828DE7EE5BE503525902D"
+            }
+          ]
+        }
+      },
+      {
+        "at": 20309.87675,
+        "sessionId": "0E2D30315D376EF701AB2D08923B3165",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://fnhkgjnffbcdelmemjeocolngkagnoap/sw.js",
+              "runningStatus": "running",
+              "status": "activated",
+              "scriptLastModified": 1791933108,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "2A09497E164828DE7EE5BE503525902D"
+            }
+          ]
+        }
+      },
+      {
+        "at": 20312.845292,
+        "sessionId": "0E2D30315D376EF701AB2D08923B3165",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://fnhkgjnffbcdelmemjeocolngkagnoap/sw.js",
+              "runningStatus": "running",
+              "status": "activated",
+              "scriptLastModified": 1791933108,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "2A09497E164828DE7EE5BE503525902D"
+            }
+          ]
+        }
+      },
+      {
+        "at": 20804.33425,
+        "sessionId": "0E2D30315D376EF701AB2D08923B3165",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://fnhkgjnffbcdelmemjeocolngkagnoap/sw.js",
+              "runningStatus": "running",
+              "status": "activated",
+              "scriptLastModified": 1791933108,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "2A09497E164828DE7EE5BE503525902D"
+            }
+          ]
+        }
+      },
+      {
+        "at": 20807.739084,
+        "sessionId": "0E2D30315D376EF701AB2D08923B3165",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://fnhkgjnffbcdelmemjeocolngkagnoap/sw.js",
+              "runningStatus": "running",
+              "status": "activated",
+              "scriptLastModified": 1791933108,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "2A09497E164828DE7EE5BE503525902D"
+            }
+          ]
+        }
+      },
+      {
+        "at": 40222.88875,
+        "sessionId": "0E2D30315D376EF701AB2D08923B3165",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "0",
+              "registrationId": "0",
+              "scriptURL": "chrome-extension://nkeimhogjdpnpccoofpliimaahmaaome/thunk.js",
+              "runningStatus": "stopping",
+              "status": "activated",
+              "scriptLastModified": 0,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "473036B611BEA611B023AEB3B8C2AF08"
+            }
+          ]
+        }
+      },
+      {
+        "at": 40223.039792,
+        "sessionId": "0E2D30315D376EF701AB2D08923B3165",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "0",
+              "registrationId": "0",
+              "scriptURL": "chrome-extension://nkeimhogjdpnpccoofpliimaahmaaome/thunk.js",
+              "runningStatus": "stopped",
+              "status": "activated",
+              "scriptLastModified": 0,
+              "scriptResponseTime": 0,
+              "controlledClients": []
+            }
+          ]
+        }
+      },
+      {
+        "at": 40223.100834,
+        "sessionId": "0E2D30315D376EF701AB2D08923B3165",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "1",
+              "registrationId": "1",
+              "scriptURL": "chrome-extension://glbjnfimcajjenihimblfaponejbkoph/background.js",
+              "runningStatus": "stopping",
+              "status": "activated",
+              "scriptLastModified": 0,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "D16B73D3D8C173FE71FF3B6F19F933DC"
+            }
+          ]
+        }
+      },
+      {
+        "at": 40223.190292,
+        "sessionId": "0E2D30315D376EF701AB2D08923B3165",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "1",
+              "registrationId": "1",
+              "scriptURL": "chrome-extension://glbjnfimcajjenihimblfaponejbkoph/background.js",
+              "runningStatus": "stopped",
+              "status": "activated",
+              "scriptLastModified": 0,
+              "scriptResponseTime": 0,
+              "controlledClients": []
+            }
+          ]
+        }
+      },
+      {
+        "at": 41817.027875,
+        "sessionId": "0E2D30315D376EF701AB2D08923B3165",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://fnhkgjnffbcdelmemjeocolngkagnoap/sw.js",
+              "runningStatus": "running",
+              "status": "activated",
+              "scriptLastModified": 1791933108,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "2A09497E164828DE7EE5BE503525902D"
+            }
+          ]
+        }
+      },
+      {
+        "at": 41821.941834,
+        "sessionId": "0E2D30315D376EF701AB2D08923B3165",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://fnhkgjnffbcdelmemjeocolngkagnoap/sw.js",
+              "runningStatus": "running",
+              "status": "activated",
+              "scriptLastModified": 1791933108,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "2A09497E164828DE7EE5BE503525902D"
+            }
+          ]
+        }
+      },
+      {
+        "at": 86917.78225,
+        "sessionId": "0E2D30315D376EF701AB2D08923B3165",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://fnhkgjnffbcdelmemjeocolngkagnoap/sw.js",
+              "runningStatus": "running",
+              "status": "activated",
+              "scriptLastModified": 1791933108,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "2A09497E164828DE7EE5BE503525902D"
+            }
+          ]
+        }
+      },
+      {
+        "at": 86920.601334,
+        "sessionId": "0E2D30315D376EF701AB2D08923B3165",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://fnhkgjnffbcdelmemjeocolngkagnoap/sw.js",
+              "runningStatus": "running",
+              "status": "activated",
+              "scriptLastModified": 1791933108,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "2A09497E164828DE7EE5BE503525902D"
+            }
+          ]
+        }
+      },
+      {
+        "at": 131236.315209,
+        "sessionId": "0E2D30315D376EF701AB2D08923B3165",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://fnhkgjnffbcdelmemjeocolngkagnoap/sw.js",
+              "runningStatus": "running",
+              "status": "activated",
+              "scriptLastModified": 1791933108,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "2A09497E164828DE7EE5BE503525902D"
+            }
+          ]
+        }
+      },
+      {
+        "at": 133924.838417,
+        "sessionId": "0E2D30315D376EF701AB2D08923B3165",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://fnhkgjnffbcdelmemjeocolngkagnoap/sw.js",
+              "runningStatus": "running",
+              "status": "activated",
+              "scriptLastModified": 1791933108,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "2A09497E164828DE7EE5BE503525902D"
+            }
+          ]
+        }
+      },
+      {
+        "at": 210806.590292,
+        "sessionId": "0E2D30315D376EF701AB2D08923B3165",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://fnhkgjnffbcdelmemjeocolngkagnoap/sw.js",
+              "runningStatus": "running",
+              "status": "activated",
+              "scriptLastModified": 1791933108,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "2A09497E164828DE7EE5BE503525902D"
+            }
+          ]
+        }
+      },
+      {
+        "at": 210828.379875,
+        "sessionId": "0E2D30315D376EF701AB2D08923B3165",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://fnhkgjnffbcdelmemjeocolngkagnoap/sw.js",
+              "runningStatus": "running",
+              "status": "activated",
+              "scriptLastModified": 1791933108,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "2A09497E164828DE7EE5BE503525902D"
+            }
+          ]
+        }
+      },
+      {
+        "at": 210830.631375,
+        "sessionId": "0E2D30315D376EF701AB2D08923B3165",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://fnhkgjnffbcdelmemjeocolngkagnoap/sw.js",
+              "runningStatus": "running",
+              "status": "activated",
+              "scriptLastModified": 1791933108,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "2A09497E164828DE7EE5BE503525902D"
+            }
+          ]
+        }
+      },
+      {
+        "at": 291630.902167,
+        "sessionId": "9FDCBEC78D44C67D3611E810357ECB2B",
+        "method": "workerRegistrationUpdated",
+        "params": {
+          "registrations": [
+            {
+              "registrationId": "0",
+              "scopeURL": "chrome-extension://nkeimhogjdpnpccoofpliimaahmaaome/",
+              "isDeleted": false
+            },
+            {
+              "registrationId": "1",
+              "scopeURL": "chrome-extension://glbjnfimcajjenihimblfaponejbkoph/",
+              "isDeleted": false
+            },
+            {
+              "registrationId": "2",
+              "scopeURL": "chrome-extension://fnhkgjnffbcdelmemjeocolngkagnoap/",
+              "isDeleted": false
+            }
+          ]
+        }
+      },
+      {
+        "at": 291630.975375,
+        "sessionId": "9FDCBEC78D44C67D3611E810357ECB2B",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "0",
+              "registrationId": "0",
+              "scriptURL": "chrome-extension://nkeimhogjdpnpccoofpliimaahmaaome/thunk.js",
+              "runningStatus": "stopped",
+              "status": "activated",
+              "scriptLastModified": 0,
+              "scriptResponseTime": 0,
+              "controlledClients": []
+            },
+            {
+              "versionId": "1",
+              "registrationId": "1",
+              "scriptURL": "chrome-extension://glbjnfimcajjenihimblfaponejbkoph/background.js",
+              "runningStatus": "stopped",
+              "status": "activated",
+              "scriptLastModified": 0,
+              "scriptResponseTime": 0,
+              "controlledClients": []
+            },
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://fnhkgjnffbcdelmemjeocolngkagnoap/sw.js",
+              "runningStatus": "running",
+              "status": "activated",
+              "scriptLastModified": 1791933108,
+              "scriptResponseTime": 0,
+              "controlledClients": [
+                "CA152839CD8CB75A2C9EB3CA37C1A792"
+              ],
+              "targetId": "2A09497E164828DE7EE5BE503525902D"
+            }
+          ]
+        }
+      },
+      {
+        "at": 292118.392625,
+        "sessionId": "0E2D30315D376EF701AB2D08923B3165",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://fnhkgjnffbcdelmemjeocolngkagnoap/sw.js",
+              "runningStatus": "running",
+              "status": "activated",
+              "scriptLastModified": 1791933108,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "2A09497E164828DE7EE5BE503525902D"
+            }
+          ]
+        }
+      },
+      {
+        "at": 292118.436042,
+        "sessionId": "9FDCBEC78D44C67D3611E810357ECB2B",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://fnhkgjnffbcdelmemjeocolngkagnoap/sw.js",
+              "runningStatus": "running",
+              "status": "activated",
+              "scriptLastModified": 1791933108,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "2A09497E164828DE7EE5BE503525902D"
+            }
+          ]
+        }
+      },
+      {
+        "at": 338853.655625,
+        "sessionId": "9FDCBEC78D44C67D3611E810357ECB2B",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://fnhkgjnffbcdelmemjeocolngkagnoap/sw.js",
+              "runningStatus": "running",
+              "status": "activated",
+              "scriptLastModified": 1791933108,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "2A09497E164828DE7EE5BE503525902D"
+            }
+          ]
+        }
+      },
+      {
+        "at": 338862.517417,
+        "sessionId": "C24DC4E3D187336703D9E35DE8942EEC",
+        "method": "workerRegistrationUpdated",
+        "params": {
+          "registrations": [
+            {
+              "registrationId": "0",
+              "scopeURL": "chrome-extension://nkeimhogjdpnpccoofpliimaahmaaome/",
+              "isDeleted": false
+            },
+            {
+              "registrationId": "1",
+              "scopeURL": "chrome-extension://glbjnfimcajjenihimblfaponejbkoph/",
+              "isDeleted": false
+            },
+            {
+              "registrationId": "2",
+              "scopeURL": "chrome-extension://fnhkgjnffbcdelmemjeocolngkagnoap/",
+              "isDeleted": false
+            }
+          ]
+        }
+      },
+      {
+        "at": 338862.784959,
+        "sessionId": "C24DC4E3D187336703D9E35DE8942EEC",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "0",
+              "registrationId": "0",
+              "scriptURL": "chrome-extension://nkeimhogjdpnpccoofpliimaahmaaome/thunk.js",
+              "runningStatus": "stopped",
+              "status": "activated",
+              "scriptLastModified": 0,
+              "scriptResponseTime": 0,
+              "controlledClients": []
+            },
+            {
+              "versionId": "1",
+              "registrationId": "1",
+              "scriptURL": "chrome-extension://glbjnfimcajjenihimblfaponejbkoph/background.js",
+              "runningStatus": "stopped",
+              "status": "activated",
+              "scriptLastModified": 0,
+              "scriptResponseTime": 0,
+              "controlledClients": []
+            },
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://fnhkgjnffbcdelmemjeocolngkagnoap/sw.js",
+              "runningStatus": "running",
+              "status": "activated",
+              "scriptLastModified": 1791933108,
+              "scriptResponseTime": 0,
+              "controlledClients": [
+                "39DD86986F3CABD1CA2E30A986C1CC04"
+              ],
+              "targetId": "2A09497E164828DE7EE5BE503525902D"
+            }
+          ]
+        }
+      },
+      {
+        "at": 339127.635375,
+        "sessionId": "C24DC4E3D187336703D9E35DE8942EEC",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://fnhkgjnffbcdelmemjeocolngkagnoap/sw.js",
+              "runningStatus": "running",
+              "status": "activated",
+              "scriptLastModified": 1791933108,
+              "scriptResponseTime": 0,
+              "controlledClients": [
+                "39DD86986F3CABD1CA2E30A986C1CC04"
+              ],
+              "targetId": "2A09497E164828DE7EE5BE503525902D"
+            }
+          ]
+        }
+      },
+      {
+        "at": 339127.748125,
+        "sessionId": "9FDCBEC78D44C67D3611E810357ECB2B",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://fnhkgjnffbcdelmemjeocolngkagnoap/sw.js",
+              "runningStatus": "running",
+              "status": "activated",
+              "scriptLastModified": 1791933108,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "2A09497E164828DE7EE5BE503525902D"
+            }
+          ]
+        }
+      },
+      {
+        "at": 339158.701834,
+        "sessionId": "C24DC4E3D187336703D9E35DE8942EEC",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://fnhkgjnffbcdelmemjeocolngkagnoap/sw.js",
+              "runningStatus": "running",
+              "status": "activated",
+              "scriptLastModified": 1791933108,
+              "scriptResponseTime": 0,
+              "controlledClients": [
+                "39DD86986F3CABD1CA2E30A986C1CC04"
+              ],
+              "targetId": "2A09497E164828DE7EE5BE503525902D"
+            }
+          ]
+        }
+      },
+      {
+        "at": 339158.798667,
+        "sessionId": "9FDCBEC78D44C67D3611E810357ECB2B",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://fnhkgjnffbcdelmemjeocolngkagnoap/sw.js",
+              "runningStatus": "running",
+              "status": "activated",
+              "scriptLastModified": 1791933108,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "2A09497E164828DE7EE5BE503525902D"
+            }
+          ]
+        }
+      },
+      {
+        "at": 339167.542542,
+        "sessionId": "C24DC4E3D187336703D9E35DE8942EEC",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://fnhkgjnffbcdelmemjeocolngkagnoap/sw.js",
+              "runningStatus": "running",
+              "status": "activated",
+              "scriptLastModified": 1791933108,
+              "scriptResponseTime": 0,
+              "controlledClients": [
+                "39DD86986F3CABD1CA2E30A986C1CC04"
+              ],
+              "targetId": "2A09497E164828DE7EE5BE503525902D"
+            }
+          ]
+        }
+      },
+      {
+        "at": 339167.813417,
+        "sessionId": "9FDCBEC78D44C67D3611E810357ECB2B",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://fnhkgjnffbcdelmemjeocolngkagnoap/sw.js",
+              "runningStatus": "running",
+              "status": "activated",
+              "scriptLastModified": 1791933108,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "2A09497E164828DE7EE5BE503525902D"
+            }
+          ]
+        }
+      },
+      {
+        "at": 342395.301625,
+        "sessionId": "C24DC4E3D187336703D9E35DE8942EEC",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://fnhkgjnffbcdelmemjeocolngkagnoap/sw.js",
+              "runningStatus": "stopping",
+              "status": "activated",
+              "scriptLastModified": 1791933108,
+              "scriptResponseTime": 0,
+              "controlledClients": [
+                "39DD86986F3CABD1CA2E30A986C1CC04"
+              ],
+              "targetId": "2A09497E164828DE7EE5BE503525902D"
+            }
+          ]
+        }
+      },
+      {
+        "at": 342395.569625,
+        "sessionId": "9FDCBEC78D44C67D3611E810357ECB2B",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://fnhkgjnffbcdelmemjeocolngkagnoap/sw.js",
+              "runningStatus": "stopping",
+              "status": "activated",
+              "scriptLastModified": 1791933108,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "2A09497E164828DE7EE5BE503525902D"
+            }
+          ]
+        }
+      },
+      {
+        "at": 342398.359209,
+        "sessionId": "C24DC4E3D187336703D9E35DE8942EEC",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://fnhkgjnffbcdelmemjeocolngkagnoap/sw.js",
+              "runningStatus": "stopped",
+              "status": "activated",
+              "scriptLastModified": 1791933108,
+              "scriptResponseTime": 0,
+              "controlledClients": [
+                "39DD86986F3CABD1CA2E30A986C1CC04"
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "at": 342398.462834,
+        "sessionId": "9FDCBEC78D44C67D3611E810357ECB2B",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://fnhkgjnffbcdelmemjeocolngkagnoap/sw.js",
+              "runningStatus": "stopped",
+              "status": "activated",
+              "scriptLastModified": 1791933108,
+              "scriptResponseTime": 0,
+              "controlledClients": []
+            }
+          ]
+        }
+      },
+      {
+        "at": 342517.93225,
+        "sessionId": "C24DC4E3D187336703D9E35DE8942EEC",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://fnhkgjnffbcdelmemjeocolngkagnoap/sw.js",
+              "runningStatus": "starting",
+              "status": "activated",
+              "scriptLastModified": 1791933108,
+              "scriptResponseTime": 0,
+              "controlledClients": [
+                "39DD86986F3CABD1CA2E30A986C1CC04"
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "at": 342517.979834,
+        "sessionId": "9FDCBEC78D44C67D3611E810357ECB2B",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://fnhkgjnffbcdelmemjeocolngkagnoap/sw.js",
+              "runningStatus": "starting",
+              "status": "activated",
+              "scriptLastModified": 1791933108,
+              "scriptResponseTime": 0,
+              "controlledClients": []
+            }
+          ]
+        }
+      },
+      {
+        "at": 342518.023875,
+        "sessionId": "C24DC4E3D187336703D9E35DE8942EEC",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://fnhkgjnffbcdelmemjeocolngkagnoap/sw.js",
+              "runningStatus": "starting",
+              "status": "activated",
+              "scriptLastModified": 1791933108,
+              "scriptResponseTime": 0,
+              "controlledClients": [
+                "39DD86986F3CABD1CA2E30A986C1CC04"
+              ],
+              "targetId": "FA1B9D4F9FFF5B25CC800D35CB4B34FC"
+            }
+          ]
+        }
+      },
+      {
+        "at": 342518.082959,
+        "sessionId": "9FDCBEC78D44C67D3611E810357ECB2B",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://fnhkgjnffbcdelmemjeocolngkagnoap/sw.js",
+              "runningStatus": "starting",
+              "status": "activated",
+              "scriptLastModified": 1791933108,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "FA1B9D4F9FFF5B25CC800D35CB4B34FC"
+            }
+          ]
+        }
+      },
+      {
+        "at": 342518.732,
+        "sessionId": "C24DC4E3D187336703D9E35DE8942EEC",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://fnhkgjnffbcdelmemjeocolngkagnoap/sw.js",
+              "runningStatus": "starting",
+              "status": "activated",
+              "scriptLastModified": 1791933108,
+              "scriptResponseTime": 0,
+              "controlledClients": [
+                "39DD86986F3CABD1CA2E30A986C1CC04"
+              ],
+              "targetId": "FA1B9D4F9FFF5B25CC800D35CB4B34FC"
+            }
+          ]
+        }
+      },
+      {
+        "at": 342518.872625,
+        "sessionId": "9FDCBEC78D44C67D3611E810357ECB2B",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://fnhkgjnffbcdelmemjeocolngkagnoap/sw.js",
+              "runningStatus": "starting",
+              "status": "activated",
+              "scriptLastModified": 1791933108,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "FA1B9D4F9FFF5B25CC800D35CB4B34FC"
+            }
+          ]
+        }
+      },
+      {
+        "at": 342531.78425,
+        "sessionId": "C24DC4E3D187336703D9E35DE8942EEC",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://fnhkgjnffbcdelmemjeocolngkagnoap/sw.js",
+              "runningStatus": "running",
+              "status": "activated",
+              "scriptLastModified": 1791933108,
+              "scriptResponseTime": 0,
+              "controlledClients": [
+                "39DD86986F3CABD1CA2E30A986C1CC04"
+              ],
+              "targetId": "FA1B9D4F9FFF5B25CC800D35CB4B34FC"
+            }
+          ]
+        }
+      },
+      {
+        "at": 342531.911417,
+        "sessionId": "9FDCBEC78D44C67D3611E810357ECB2B",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://fnhkgjnffbcdelmemjeocolngkagnoap/sw.js",
+              "runningStatus": "running",
+              "status": "activated",
+              "scriptLastModified": 1791933108,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "FA1B9D4F9FFF5B25CC800D35CB4B34FC"
+            }
+          ]
+        }
+      },
+      {
+        "at": 344785.468125,
+        "sessionId": "C24DC4E3D187336703D9E35DE8942EEC",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://fnhkgjnffbcdelmemjeocolngkagnoap/sw.js",
+              "runningStatus": "running",
+              "status": "activated",
+              "scriptLastModified": 1791933108,
+              "scriptResponseTime": 0,
+              "controlledClients": [
+                "39DD86986F3CABD1CA2E30A986C1CC04"
+              ],
+              "targetId": "FA1B9D4F9FFF5B25CC800D35CB4B34FC"
+            }
+          ]
+        }
+      },
+      {
+        "at": 344785.522667,
+        "sessionId": "9FDCBEC78D44C67D3611E810357ECB2B",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://fnhkgjnffbcdelmemjeocolngkagnoap/sw.js",
+              "runningStatus": "running",
+              "status": "activated",
+              "scriptLastModified": 1791933108,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "FA1B9D4F9FFF5B25CC800D35CB4B34FC"
+            }
+          ]
+        }
+      },
+      {
+        "at": 344810.011209,
+        "sessionId": "9FDCBEC78D44C67D3611E810357ECB2B",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://fnhkgjnffbcdelmemjeocolngkagnoap/sw.js",
+              "runningStatus": "running",
+              "status": "activated",
+              "scriptLastModified": 1791933108,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "FA1B9D4F9FFF5B25CC800D35CB4B34FC"
+            }
+          ]
+        }
+      },
+      {
+        "at": 346303.941584,
+        "sessionId": "9FDCBEC78D44C67D3611E810357ECB2B",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://fnhkgjnffbcdelmemjeocolngkagnoap/sw.js",
+              "runningStatus": "stopping",
+              "status": "activated",
+              "scriptLastModified": 1791933108,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "FA1B9D4F9FFF5B25CC800D35CB4B34FC"
+            }
+          ]
+        }
+      },
+      {
+        "at": 346308.00125,
+        "sessionId": "9FDCBEC78D44C67D3611E810357ECB2B",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://fnhkgjnffbcdelmemjeocolngkagnoap/sw.js",
+              "runningStatus": "stopped",
+              "status": "activated",
+              "scriptLastModified": 1791933108,
+              "scriptResponseTime": 0,
+              "controlledClients": []
+            }
+          ]
+        }
+      },
+      {
+        "at": 346575.1935,
+        "sessionId": "9FDCBEC78D44C67D3611E810357ECB2B",
+        "method": "workerRegistrationUpdated",
+        "params": {
+          "registrations": [
+            {
+              "registrationId": "2",
+              "scopeURL": "chrome-extension://fnhkgjnffbcdelmemjeocolngkagnoap/",
+              "isDeleted": false
+            }
+          ]
+        }
+      },
+      {
+        "at": 346575.287709,
+        "sessionId": "9FDCBEC78D44C67D3611E810357ECB2B",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://fnhkgjnffbcdelmemjeocolngkagnoap/sw.js",
+              "runningStatus": "starting",
+              "status": "activated",
+              "scriptLastModified": 1791933108,
+              "scriptResponseTime": 0,
+              "controlledClients": []
+            }
+          ]
+        }
+      },
+      {
+        "at": 346575.346167,
+        "sessionId": "9FDCBEC78D44C67D3611E810357ECB2B",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://fnhkgjnffbcdelmemjeocolngkagnoap/sw.js",
+              "runningStatus": "starting",
+              "status": "activated",
+              "scriptLastModified": 1791933108,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "363422FF351551759AD52E6C500E1804"
+            }
+          ]
+        }
+      },
+      {
+        "at": 346575.580334,
+        "sessionId": "9FDCBEC78D44C67D3611E810357ECB2B",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://fnhkgjnffbcdelmemjeocolngkagnoap/sw.js",
+              "runningStatus": "starting",
+              "status": "activated",
+              "scriptLastModified": 1791933108,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "363422FF351551759AD52E6C500E1804"
+            }
+          ]
+        }
+      },
+      {
+        "at": 346578.108334,
+        "sessionId": "9FDCBEC78D44C67D3611E810357ECB2B",
+        "method": "workerRegistrationUpdated",
+        "params": {
+          "registrations": [
+            {
+              "registrationId": "0",
+              "scopeURL": "chrome-extension://nkeimhogjdpnpccoofpliimaahmaaome/",
+              "isDeleted": false
+            },
+            {
+              "registrationId": "1",
+              "scopeURL": "chrome-extension://glbjnfimcajjenihimblfaponejbkoph/",
+              "isDeleted": false
+            },
+            {
+              "registrationId": "2",
+              "scopeURL": "chrome-extension://fnhkgjnffbcdelmemjeocolngkagnoap/",
+              "isDeleted": false
+            }
+          ]
+        }
+      },
+      {
+        "at": 346578.185375,
+        "sessionId": "9FDCBEC78D44C67D3611E810357ECB2B",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "0",
+              "registrationId": "0",
+              "scriptURL": "chrome-extension://nkeimhogjdpnpccoofpliimaahmaaome/thunk.js",
+              "runningStatus": "stopped",
+              "status": "activated",
+              "scriptLastModified": 0,
+              "scriptResponseTime": 0,
+              "controlledClients": []
+            },
+            {
+              "versionId": "1",
+              "registrationId": "1",
+              "scriptURL": "chrome-extension://glbjnfimcajjenihimblfaponejbkoph/background.js",
+              "runningStatus": "stopped",
+              "status": "activated",
+              "scriptLastModified": 0,
+              "scriptResponseTime": 0,
+              "controlledClients": []
+            },
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://fnhkgjnffbcdelmemjeocolngkagnoap/sw.js",
+              "runningStatus": "starting",
+              "status": "activated",
+              "scriptLastModified": 1791933108,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "363422FF351551759AD52E6C500E1804"
+            }
+          ]
+        }
+      },
+      {
+        "at": 346585.596875,
+        "sessionId": "9FDCBEC78D44C67D3611E810357ECB2B",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://fnhkgjnffbcdelmemjeocolngkagnoap/sw.js",
+              "runningStatus": "running",
+              "status": "activated",
+              "scriptLastModified": 1791933108,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "363422FF351551759AD52E6C500E1804"
+            }
+          ]
+        }
+      },
+      {
+        "at": 346708.937084,
+        "sessionId": "9FDCBEC78D44C67D3611E810357ECB2B",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://fnhkgjnffbcdelmemjeocolngkagnoap/sw.js",
+              "runningStatus": "running",
+              "status": "activated",
+              "scriptLastModified": 1791933108,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "363422FF351551759AD52E6C500E1804"
+            }
+          ]
+        }
+      },
+      {
+        "at": 346716.435292,
+        "sessionId": "E5CDC750EE29F122397913BA8E8954BC",
+        "method": "workerRegistrationUpdated",
+        "params": {
+          "registrations": [
+            {
+              "registrationId": "0",
+              "scopeURL": "chrome-extension://nkeimhogjdpnpccoofpliimaahmaaome/",
+              "isDeleted": false
+            },
+            {
+              "registrationId": "1",
+              "scopeURL": "chrome-extension://glbjnfimcajjenihimblfaponejbkoph/",
+              "isDeleted": false
+            },
+            {
+              "registrationId": "2",
+              "scopeURL": "chrome-extension://fnhkgjnffbcdelmemjeocolngkagnoap/",
+              "isDeleted": false
+            }
+          ]
+        }
+      },
+      {
+        "at": 346716.518417,
+        "sessionId": "E5CDC750EE29F122397913BA8E8954BC",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "0",
+              "registrationId": "0",
+              "scriptURL": "chrome-extension://nkeimhogjdpnpccoofpliimaahmaaome/thunk.js",
+              "runningStatus": "stopped",
+              "status": "activated",
+              "scriptLastModified": 0,
+              "scriptResponseTime": 0,
+              "controlledClients": []
+            },
+            {
+              "versionId": "1",
+              "registrationId": "1",
+              "scriptURL": "chrome-extension://glbjnfimcajjenihimblfaponejbkoph/background.js",
+              "runningStatus": "stopped",
+              "status": "activated",
+              "scriptLastModified": 0,
+              "scriptResponseTime": 0,
+              "controlledClients": []
+            },
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://fnhkgjnffbcdelmemjeocolngkagnoap/sw.js",
+              "runningStatus": "running",
+              "status": "activated",
+              "scriptLastModified": 1791933108,
+              "scriptResponseTime": 0,
+              "controlledClients": [
+                "D95664278666D4B247ECED624A2B0750"
+              ],
+              "targetId": "363422FF351551759AD52E6C500E1804"
+            }
+          ]
+        }
+      },
+      {
+        "at": 348934.684375,
+        "sessionId": "E5CDC750EE29F122397913BA8E8954BC",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://fnhkgjnffbcdelmemjeocolngkagnoap/sw.js",
+              "runningStatus": "running",
+              "status": "activated",
+              "scriptLastModified": 1791933108,
+              "scriptResponseTime": 0,
+              "controlledClients": [
+                "D95664278666D4B247ECED624A2B0750"
+              ],
+              "targetId": "363422FF351551759AD52E6C500E1804"
+            }
+          ]
+        }
+      },
+      {
+        "at": 348934.780417,
+        "sessionId": "9FDCBEC78D44C67D3611E810357ECB2B",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://fnhkgjnffbcdelmemjeocolngkagnoap/sw.js",
+              "runningStatus": "running",
+              "status": "activated",
+              "scriptLastModified": 1791933108,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "363422FF351551759AD52E6C500E1804"
+            }
+          ]
+        }
+      },
+      {
+        "at": 348953.166167,
+        "sessionId": "E5CDC750EE29F122397913BA8E8954BC",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://fnhkgjnffbcdelmemjeocolngkagnoap/sw.js",
+              "runningStatus": "running",
+              "status": "activated",
+              "scriptLastModified": 1791933108,
+              "scriptResponseTime": 0,
+              "controlledClients": [
+                "D95664278666D4B247ECED624A2B0750"
+              ],
+              "targetId": "363422FF351551759AD52E6C500E1804"
+            }
+          ]
+        }
+      },
+      {
+        "at": 348953.260417,
+        "sessionId": "9FDCBEC78D44C67D3611E810357ECB2B",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://fnhkgjnffbcdelmemjeocolngkagnoap/sw.js",
+              "runningStatus": "running",
+              "status": "activated",
+              "scriptLastModified": 1791933108,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "363422FF351551759AD52E6C500E1804"
+            }
+          ]
+        }
+      },
+      {
+        "at": 348955.951959,
+        "sessionId": "E5CDC750EE29F122397913BA8E8954BC",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://fnhkgjnffbcdelmemjeocolngkagnoap/sw.js",
+              "runningStatus": "running",
+              "status": "activated",
+              "scriptLastModified": 1791933108,
+              "scriptResponseTime": 0,
+              "controlledClients": [
+                "D95664278666D4B247ECED624A2B0750"
+              ],
+              "targetId": "363422FF351551759AD52E6C500E1804"
+            }
+          ]
+        }
+      },
+      {
+        "at": 348956.287459,
+        "sessionId": "9FDCBEC78D44C67D3611E810357ECB2B",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://fnhkgjnffbcdelmemjeocolngkagnoap/sw.js",
+              "runningStatus": "running",
+              "status": "activated",
+              "scriptLastModified": 1791933108,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "363422FF351551759AD52E6C500E1804"
+            }
+          ]
+        }
+      }
+    ],
+    "errors": [],
+    "crashes": []
+  },
+  "nativeTrustedUI": "PASS",
+  "timeReviewIframeRemoved": "PASS",
+  "installedViewportWidths": [
+    {
+      "width": 320,
+      "scroll": 320,
+      "canvas": 282,
+      "reviews": 1,
+      "iframes": 0,
+      "label": "分钟时间线",
+      "method": "CDP viewport on installed native UI"
+    },
+    {
+      "width": 360,
+      "scroll": 360,
+      "canvas": 312,
+      "reviews": 1,
+      "iframes": 0,
+      "label": "分钟时间线",
+      "method": "CDP viewport on installed native UI"
+    },
+    {
+      "width": 400,
+      "scroll": 400,
+      "canvas": 352,
+      "reviews": 1,
+      "iframes": 0,
+      "label": "分钟时间线",
+      "method": "CDP viewport on installed native UI"
+    },
+    {
+      "width": 600,
+      "scroll": 600,
+      "canvas": 552,
+      "reviews": 1,
+      "iframes": 0,
+      "label": "分钟时间线",
+      "method": "CDP viewport on installed native UI"
+    }
+  ],
+  "layoutWidths": "PASS",
+  "realBrowserZoom": "PASS",
+  "nativePermissionControls": "PASS",
+  "downloadChecks": [
+    {
+      "format": "json",
+      "created": "PASS",
+      "complete": "PASS",
+      "ownedDirectory": "PASS",
+      "disk": "PASS",
+      "content": "PASS",
+      "filename": "PASS",
+      "id": 1,
+      "basename": "time-review.json",
+      "received": 241,
+      "ownedByExtension": true,
+      "bytes": 241,
+      "sha256": "3cc02c23b9d8f1b0b52ee5bf6b4d49ba8119e76b22f03c92bab2d5c6008c7385"
+    },
+    {
+      "format": "csv",
+      "created": "PASS",
+      "complete": "PASS",
+      "ownedDirectory": "PASS",
+      "disk": "PASS",
+      "content": "PASS",
+      "filename": "PASS",
+      "id": 2,
+      "basename": "time-review.csv",
+      "received": 44,
+      "ownedByExtension": true,
+      "bytes": 44,
+      "sha256": "55c24b7f5c3e5ccbc3b7fe3915cb7e73720188c2fd93dff8f84c393035dd63d6"
+    }
+  ],
+  "inlineEnrollment": "PASS",
+  "minuteCanvas": "PASS",
+  "canvasKeyboard": "PASS",
+  "unrelatedToolInstall": "PASS",
+  "unrelatedToolLifecycle": "PASS",
+  "unrelatedToolUpgrade": "PASS",
+  "windowFocus": "PASS",
+  "naturalSwSleep": "BLOCKED",
+  "panelClosedCollection": "PASS",
+  "multiSite": "PASS",
+  "longDomainLayout": "PASS",
+  "idleTransition": "PASS",
+  "activeSwRecovery": "BLOCKED",
+  "classification": "PASS",
+  "historyNavigation": "PASS",
+  "populatedExport": "PASS",
+  "browserRestartScope": "paused genuine website totals, same owned Profile",
+  "realSidePanelReopened": "PASS",
+  "disableEnable": "PASS",
+  "uninstall": "PASS",
+  "reinstall": "PASS",
+  "sameNameSandbox": "PASS",
+  "replacementRetirement": "PASS",
+  "officialUpgrade": "PASS",
+  "cleanup": {
+    "terminated": true,
+    "profileRemoved": true,
+    "owned": true
+  },
+  "complete": true,
+  "acceptance": "PARTIAL",
+  "requiredResults": {
+    "install": "PASS",
+    "realSidePanel": "PASS",
+    "nativeTrustedUI": "PASS",
+    "minuteConsent": "PASS",
+    "download": "PASS",
+    "multiSite": "PASS",
+    "idleTransition": "PASS",
+    "beginAndActiveCollection": "PASS",
+    "pauseResume": "PASS",
+    "websiteGrantRevocation": "PASS",
+    "idlePermissionRevocation": "PASS",
+    "swRestart": "PASS",
+    "browserRestart": "PASS",
+    "disableEnable": "PASS",
+    "uninstall": "PASS",
+    "realBrowserZoom": "PASS",
+    "windowFocus": "PASS",
+    "panelClosedCollection": "PASS",
+    "unrelatedToolInstall": "PASS",
+    "unrelatedToolLifecycle": "PASS",
+    "minuteCanvas": "PASS",
+    "canvasKeyboard": "PASS",
+    "classification": "PASS",
+    "populatedExport": "PASS",
+    "reinstall": "PASS",
+    "realSidePanelReopened": "PASS",
+    "nativePermissionControls": "PASS",
+    "inlineEnrollment": "PASS",
+    "timeReviewIframeRemoved": "PASS",
+    "layoutWidths": "PASS",
+    "historyNavigation": "PASS",
+    "longDomainLayout": "PASS",
+    "sameNameSandbox": "PASS",
+    "replacementRetirement": "PASS",
+    "officialUpgrade": "PASS",
+    "unrelatedToolUpgrade": "PASS",
+    "activeSwRecovery": "BLOCKED",
+    "naturalSwSleep": "BLOCKED"
+  },
+  "chromeStderr": "rror message: DEPRECATED_ENDPOINT\n[70414:74334428:1014/073543.890631:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT\n[70414:74334428:1014/073644.959939:ERROR:google_apis/gcm/engine/connection_factory_impl.cc:474] ConnectionHandler failed with net error: -2\n\nDevTools listening on ws://127.0.0.1:60103/devtools/browser/b9365380-916e-4c7e-a9ff-67ce6324be6c\n[74621:74346735:1014/073909.710093:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT\n[74621:74346735:1014/073936.343002:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT\n[74621:74346735:1014/074029.656503:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT\n[74791:74350822:1014/074117.858365:ERROR:base/apple/mach_port_rendezvous_mac.cc:256] bootstrap_look_up com.google.chrome.for.testing.MachPortRendezvousServer.1: Unknown service name (1102)\n[74791:74350822:1014/074117.858762:ERROR:base/memory/shared_memory_switch.cc:261] No rendezvous client, terminating process (parent died?)\n"
+}

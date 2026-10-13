@@ -1,0 +1,46 @@
+{
+  "candidate": "74b197eb4f122e61dd7dfeb720d24f3fa3b8c4ca",
+  "buildCandidate": "ccee890cb84f55ca3d70c0a08e9d121ddddde3a6",
+  "nodeVersion": "v24.16.0",
+  "macVersion": "ProductName:\t\tmacOS\nProductVersion:\t\t26.5.1\nBuildVersion:\t\t25F80",
+  "chromeVersion": "Google Chrome for Testing 155.0.8059.39",
+  "extensionId": "fnhkgjnffbcdelmemjeocolngkagnoap",
+  "extensionPath": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/time-review-r19-local-01a1364f/source-r19-ui-final/dist/production",
+  "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-time-r13-nGVSt0",
+  "cleanup": {
+    "terminated": true,
+    "profileRemoved": true,
+    "owned": true
+  },
+  "complete": true,
+  "acceptance": "PARTIAL",
+  "requiredCounts": {
+    "PASS": 36,
+    "BLOCKED": 2
+  },
+  "exitCode": 1,
+  "minimumFreeDiskBytes": 4421910528,
+  "nodeCounts": {
+    "pass": 206,
+    "fail": 0,
+    "skip": 0
+  },
+  "nodeAndBuildExitCodes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "blocked": [
+    "naturalSwSleep: no actual stopped/running trace despite all extension UI closed",
+    "activeSwRecovery: no independently observed stopped state after real native focus loss"
+  ],
+  "limitations": [
+    "Cloud recovery alarm is a possible influence, not proven cause; preserved for offline revocation",
+    "Runtime CPU/memory/latency NOT_TESTED",
+    "Historical old-version upgrade source was explicit reviewed local fixture, not official release"
+  ],
+  "source52PreservedSha256": "7072eb1773e8ab4ce94509301231be016745546fb219a741f4cb52ef3b95943e"
+}

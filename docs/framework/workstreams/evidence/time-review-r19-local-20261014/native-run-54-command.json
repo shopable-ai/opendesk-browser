@@ -1,0 +1,18 @@
+{
+  "cwd": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/time-review-r19-local-01a1364f/source-r19-ui-final",
+  "command": [
+    "node",
+    "--test",
+    "--test-reporter=tap",
+    "tests/framework/time-review-r13-native.test.mjs"
+  ],
+  "env": {
+    "GITHUB_SHA": "74b197eb4f122e61dd7dfeb720d24f3fa3b8c4ca",
+    "OPENDESK_TIME_REVIEW_NATIVE": "1",
+    "CHROME_BIN": "/Users/shopme/Documents/workspace/opendesk-browser/.runtime/time-review-r19-local-01a1364f/OpenDesk Time Review R19 CFT.app/Contents/MacOS/Google Chrome for Testing",
+    "OPENDESK_TIME_NATIVE_EVIDENCE": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/time-review-r19-local-01a1364f/native-run-54",
+    "OPENDESK_TIME_NATIVE_SCOPE": "full"
+  },
+  "node": "v24.16.0",
+  "reason": "Actual target-destruction barrier and recorded native foreground interruption recovery; production inputs/build bytes unchanged."
+}
