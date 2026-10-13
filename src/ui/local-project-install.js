@@ -9,13 +9,19 @@ const SHA=/^[a-f0-9]{64}$/;
 const fail=(code,message)=>Object.assign(new Error(message),{code});
 const emptyParams=()=>({type:'object',properties:{},required:[],additionalProperties:false});
 const identity=row=>row?.programId||row?.taskId;
+export function assertLocalInstallTitle(title){
+  if(typeof title!=='string'||!title.trim()||title.trim().length>100)
+    throw fail('E_SCHEMA','工具或任务名称必须为 1–100 个字符');
+  return title.trim();
+}
 // Freeze the execution-relevant metadata as well as compiled bytes. A provider
 // must not change site scope, parameter schema, runtime or project identity
 // while reusing an old inputHash and a successful Run receipt.
 export const sourceContract=source=>JSON.stringify([
   source?.projectId??null,source?.runtimeKind??null,source?.entryFormat??null,
   source?.siteOrigins??null,source?.pageRules??null,source?.paramsSchema??null,
-  source?.managedUI??null,source?.artifactId??null
+  source?.managedUI??null,source?.artifactId??null,
+  source?.importSourceUrl??null,source?.lockId??null
 ]);
 const targetContract=target=>JSON.stringify([
   target?.windowId??null,target?.tabId??null,target?.frameId??0,
@@ -74,13 +80,21 @@ export async function prepareLocalProjectInstallation({client,source,binding,pro
     JSON.stringify(installedCandidate?.manifest?.siteOrigins)===JSON.stringify(sites)&&
     JSON.stringify(installedCandidate?.manifest?.paramsSchema)===
       JSON.stringify(source.paramsSchema||emptyParams());
-  const alreadyInstalled=!!previous&&sourceMatches&&scopeMatches;
+  const pageInputsMatch=!page||(installedCandidate?.entryFormat===source.entryFormat&&
+    (installedCandidate?.sourceProfile?.importSourceUrl??null)===(source.importSourceUrl??null)&&
+    (installedCandidate?.dependencyLockId??null)===(source.lockId??null));
+  const alreadyInstalled=!!previous&&sourceMatches&&scopeMatches&&pageInputsMatch;
+  const installedSites=page?[...(previous?.pageRules?.matches||[])]:
+    [...(installedCandidate?.manifest?.siteOrigins||[])];
   return Object.freeze({id,version,kind:source.runtimeKind,
     sourceHash:source.sourceHash,inputHash:source.inputHash,sourceBytes:source.sourceBytes,
     bindingId:binding.bindingId,providerEpoch:binding.providerEpoch,projectSourceId:project?.sourceId||'',
     sourceContract:sourceContract(source),targetContract:targetContract(target),
     siteOrigins:Object.freeze(sites),pageRules:rules,runId:runId||null,
-    defaultTitle:(project?.name||source.projectId||'我的本地工具').slice(0,100),
+    installedSiteOrigins:Object.freeze(installedSites),
+    scopeChanged:!!previous&&(page?JSON.stringify(previous.pageRules)!==JSON.stringify(rules):
+      JSON.stringify(installedSites)!==JSON.stringify(sites)),
+    defaultTitle:(previous?.title||installedCandidate?.manifest?.title||project?.name||source.projectId||'我的本地工具').slice(0,100),
     installedVersion:previous?.revision??previous?.version??null,
     installedHash:previous?.manifestHash??null,
     alreadyInstalled,needsReexecution:page});
@@ -100,7 +114,8 @@ export async function getInstalledLocalProject({client,review}){
   const result=taskRows(await client.request('listTaskCatalog',{}));
   return result.installed.find(row=>row.taskId===review.id)||null;
 }
-export async function commitLocalProjectInstallation({client,review,source,target,title,version}){
+export async function commitLocalProjectInstallation({client,review,source,target,title,version,onCandidate=()=>{}}){
+  title=assertLocalInstallTitle(title);
   if(!review||!source||!target||!SHA.test(review.sourceHash)||
     review.sourceHash!==source.sourceHash||review.inputHash!==source.inputHash||
     review.sourceBytes!==source.sourceBytes||review.bindingId!==source.bindingId||
@@ -119,6 +134,9 @@ export async function commitLocalProjectInstallation({client,review,source,targe
     if(JSON.stringify(prepared.request.pageRules)!==JSON.stringify(review.pageRules))
       throw fail('E_DEV_CONFLICT','Page 网站范围已变，请重新审阅');
     let row=await client.request('importPageCandidate',prepared.request);
+    if(!SHA.test(row?.manifestHash))throw fail('E_PAGE_VERIFICATION','Page 候选缺少确定的 manifest 身份');
+    const attemptedHash=row.manifestHash;
+    onCandidate(attemptedHash);
     if(row.stage==='Candidate'){
       // Formal Page Verify executes the frozen code once more. The review UI must
       // explicitly warn and require an actual trusted confirmation beforehand.
@@ -128,12 +146,13 @@ export async function commitLocalProjectInstallation({client,review,source,targe
       row=(await client.request('listPagePrograms',{})).catalog.find(item=>
         item.programId===review.id&&item.revision===revision);
     }
-    if(!row||!['Verified','Available'].includes(row.stage))
+    if(!row||row.manifestHash!==attemptedHash||!['Verified','Available'].includes(row.stage))
       throw fail('E_PAGE_VERIFICATION','Page 固定版本未通过正式验证');
     if(row.stage==='Verified')await client.request('makePageAvailable',{
       programId:review.id,revision,manifestHash:row.manifestHash});
     const installed=await client.request('installPageProgram',{
       programId:review.id,revision,manifestHash:row.manifestHash,
+      title,
       expectedInstalledManifestHash:current?.manifestHash??null,
       expectedGeneration:current?.authorization?.generation??null});
     if(installed.manifestHash!==row.manifestHash||
@@ -150,10 +169,11 @@ export async function commitLocalProjectInstallation({client,review,source,targe
     entryFormat:'async-main',program:{revision:1,sourceHash:review.sourceHash},
     paramsSchema:source.paramsSchema||emptyParams()};
   const pkg=await createTaskPackage(manifest,source.sourceUtf8);
+  onCandidate(pkg.manifestHash);
   let candidate=await client.request('importTaskPackage',{package:pkg});
   if(candidate.stage==='candidate')candidate=await client.request('verifyTaskCandidate',{
     taskId:review.id,version,runId:review.runId});
-  if(!['verified','available'].includes(candidate.stage))throw fail('E_VERIFICATION','缺少同源码的持久 Controller 结果和原生页面操作回执');
+  if(candidate.manifestHash!==pkg.manifestHash||!['verified','available'].includes(candidate.stage))throw fail('E_VERIFICATION','缺少同源码的持久 Controller 结果和原生页面操作回执');
   if(candidate.stage==='verified')await client.request('makeTaskAvailable',{
     taskId:review.id,version,manifestHash:candidate.manifestHash});
   const installed=await client.request('installTask',{taskId:review.id,version,manifestHash:candidate.manifestHash,
@@ -182,8 +202,10 @@ export async function readLocalInstallOutcome({client,review,version}){
     const registered=installed.enabled===false
       ?installed.nativeState==='disabled'&&installed.authorization?.status==='disabled'
       :installed.nativeState==='registered'&&installed.authorization?.status==='active';
-    if(!candidate||candidate.stage!=='Available'||installed.revision!==Number(version)||
+    if(!SHA.test(review.attemptedManifestHash)||installed.manifestHash!==review.attemptedManifestHash||
+      !candidate||candidate.stage!=='Available'||installed.revision!==Number(version)||
       !registered||installed.sourceHash!==review.sourceHash||
+      (review.attemptedTitle!==undefined&&installed.title!==review.attemptedTitle)||
       candidate.sourceHash!==review.sourceHash||
       JSON.stringify(installed.pageRules)!==JSON.stringify(review.pageRules))
       return {state:'unconfirmed'};
@@ -196,7 +218,8 @@ export async function readLocalInstallOutcome({client,review,version}){
   if(installed.manifestHash===review.installedHash)return {state:'baseline-unchanged'};
   const candidate=(state.catalog||[]).find(row=>row.taskId===review.id&&
     row.version===version&&row.manifestHash===installed.manifestHash);
-  if(!candidate||candidate.stage!=='available'||installed.version!==version||
+  if(!SHA.test(review.attemptedManifestHash)||installed.manifestHash!==review.attemptedManifestHash||
+    !candidate||candidate.stage!=='available'||installed.version!==version||
     candidate.manifest?.program?.sourceHash!==review.sourceHash||
     JSON.stringify(candidate.manifest?.siteOrigins)!==JSON.stringify(review.siteOrigins))
     return {state:'unconfirmed'};

@@ -171,12 +171,14 @@ export async function createFoundationBroker({api = chrome, ports = new Map(), c
     queryPagePreview:(p,s)=>pageScriptPreview.query(p,s),
     inspectPageDependencies:(p,s)=>pageDependencies.inspect(p,s),
     preparePageDependencies:(p,s)=>pageDependencies.prepare(p,s),
+    readPageDependencyReview:(p,s)=>pageDependencies.readReview(p,s),
     approvePageDependencies:(p,s)=>pageDependencies.approve(p,s),
     prepareControllerClassicDependencies:(p,s)=>pageDependencies.prepareControllerClassic(p,s),
     inspectPageComponentDependencies:(p,s)=>pageDependencies.inspectComponentDependencies(p,s),
     preparePageComponentDependencies:(p,s)=>pageDependencies.prepareComponentDependencies(p,s),
     approvePageComponentDependencies:(p,s)=>pageDependencies.approveComponentDependencies(p,s),
     loadPageComponentDependencies:(p,s)=>pageDependencies.loadComponentDependencies(p,s),
+    loadPageESMForCompilation:(p,s)=>pageDependencies.loadForCompilation(p,s),
     installSdk:createSdkInstaller({authority,api}),
     registerHost:async(p,s)=>{
       await recoverPersistedHosts({api,storage,session,authority,consumer});

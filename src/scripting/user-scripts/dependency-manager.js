@@ -8,16 +8,22 @@ import {createPageComponentDependencyMethods} from './page-component-dependencie
 import {parseControllerClassicDependencies} from './controller-classic.js';
 
 import {inspectPageSource,validatePageSource,PAGE_BUNDLE_PREFIX} from './page-bundle.js';
+import {hasUnbuiltESM} from '../../ui/esm-source-detector.js';
+import {parseStaticESMSource,assertStaticESMLeaf,staticESMUrl,STATIC_ESM_WORLDS,STATIC_ESM_LIMITS} from './static-esm.js';
+import {classicDependencyProfile} from './dependency-manifest.js';
+import {validatePageProgramManifest} from './page-program-contract.js';
+import {PAGE_BROWSER_COMPILER,STATIC_ESM_COMPILER_PROFILE} from '../../libs/page-frameworks/contract.js';
+import {FoundationError} from '../../platform/protocol.js';
 
 // Assets contain bytes only. Source identity and approval belong to namespace
 // scoped reviews/locks; sharing a hash never shares an authorization.
-export const DEPENDENCY_LIMITS = Object.freeze({assetBytes:1024*1024, totalBytes:4*1024*1024, timeoutMs:20000});
+export const DEPENDENCY_LIMITS = Object.freeze({assetBytes:1024*1024, totalBytes:4*1024*1024, timeoutMs:20000,prepareTimeoutMs:25000});
 export const DEPENDENCY_LOCK_VERSION = 1;
 export const DEPENDENCY_STORAGE_KEYS = Object.freeze({
   asset:hash=>`userscript-asset:v1:sha256:${hash}`,
   review:(ns,id)=>`userscript-review:v1:${JSON.stringify([ns,id])}`,
   lock:(ns,id)=>`userscript-lock:v1:${JSON.stringify([ns,id])}`,
-  source:(ns,url)=>`userscript-source:v1:${JSON.stringify([ns,url])}`,
+  source:(ns,url,sourceFormat)=>sourceFormat===undefined ? `userscript-source:v1:${JSON.stringify([ns,url])}` : `userscript-esm-source:v1:${JSON.stringify([ns,sourceFormat,url])}`,
   // A provenance pointer only; assets remain in the existing SHA store. This
   // does NOT confer namespace approval or permission to execute/download.
   sharedSource:url=>`userscript-shared-source:v1:${JSON.stringify(url)}`,
@@ -29,11 +35,15 @@ const strong = new Map([['sha256','SHA-256'],['sha384','SHA-384'],['sha512','SHA
 const mimeTypes = new Set(['application/javascript','text/javascript','application/x-javascript','application/ecmascript','text/ecmascript','text/plain']);
 const risk = '第三方 JavaScript 可以读取或修改已授权网页的 DOM，也可能通过网页允许的网络渠道对外发送网页数据。USER_SCRIPT 隔离不是网络沙箱，也不提供 GM 或扩展宿主权限。';
 const unknownLicense = () => ({status:'unknown',name:null,source:null});
-const fail = (code,message) => { throw Object.assign(new Error(message || code),{code}); };
+const fail = (code,message) => { throw new FoundationError(code,message || code); };
 const ensure = (yes,code,message) => { if (!yes) fail(code,message); };
 const clone = value => structuredClone(value);
 const canonical = value => JSON.stringify(value,(_k,v)=>v && typeof v==='object' && !Array.isArray(v) ? Object.fromEntries(Object.keys(v).sort().map(k=>[k,v[k]])) : v);
 const same = (a,b) => canonical(a)===canonical(b);
+const admissionFor = (parsed,manifest,locked) => {
+  const admission=assessUserScriptExecution(parsed,{entryFormat:manifest.entryFormat,phase:'preview',dependenciesLocked:locked});
+  return manifest.sourceFormat===undefined ? admission : {...admission,nativeOptions:{...admission.nativeOptions,world:manifest.world}};
+};
 const fields = (value,allowed) => ensure(value && typeof value==='object' && !Array.isArray(value) && Object.keys(value).every(k=>allowed.includes(k)), 'E_SCHEMA','依赖请求含未知字段');
 async function hashBytes(bytes,algorithm='SHA-256') {
   ensure(globalThis.crypto?.subtle,'E_HASH_UNAVAILABLE');
@@ -73,6 +83,17 @@ function manifestFor(request) {
       encoder.encode(request.sourceUtf8).byteLength<=128*1024),'E_SOURCE','普通页面脚本最大 128 KiB；大型资源须有固定版本与哈希');
   const entryFormat=request.entryFormat===undefined ? 'async-main' : request.entryFormat;
   ensure(['classic-userscript','async-main'].includes(entryFormat),'E_ENTRY_FORMAT','页面入口必须明确为 classic-userscript 或 async-main');
+  ensure(request.sourceFormat===undefined || Object.hasOwn(STATIC_ESM_WORLDS,request.sourceFormat),'E_SOURCE_FORMAT','源码格式不受支持');
+  if(request.sourceFormat!==undefined) {
+    ensure(encoder.encode(request.sourceUtf8).byteLength<=128*1024,'E_SOURCE','静态 ESM 草稿最大 128 KiB');
+    ensure(entryFormat==='async-main','E_ENTRY_FORMAT','静态 ESM 仅支持 async-main 入口');
+    const esm=parseStaticESMSource(request.sourceUtf8),metadata=parseUserScriptDependencies(request.sourceUtf8,{importSourceUrl:request.importSourceUrl});
+    const parsed={...metadata,requires:esm.requires};
+    const manifest={lockVersion:1,entryFormat,sourceFormat:request.sourceFormat,importSourceUrl:metadata.importSourceUrl || null,
+      world:STATIC_ESM_WORLDS[request.sourceFormat],requires:esm.requires};
+    return {parsed,manifest,entryFormat};
+  }
+  if(!request.sourceUtf8.startsWith(PAGE_BUNDLE_PREFIX))return classicDependencyProfile(request);
   const parsed=parseUserScriptDependencies(request.sourceUtf8,{importSourceUrl:request.importSourceUrl});
   const manifest={lockVersion:1,entryFormat,importSourceUrl:parsed.importSourceUrl || null,world:'USER_SCRIPT',
     requires:parsed.requires.map(row=>({order:row.order,raw:row.raw || row.originalUrl || row.url,
@@ -116,9 +137,10 @@ function reviewCore(row) {
     entries:row.entries,totalBytes:row.totalBytes,createdAt:row.createdAt};
 }
 async function verifiedLock(row,namespace,id) {
+  const world=row?.manifest?.sourceFormat===undefined ? 'USER_SCRIPT' : STATIC_ESM_WORLDS[row.manifest.sourceFormat];
   ensure(row?.tag==='userscript-lock-v1' && row.status==='locked' && row.approvalStatus==='approved' &&
-    row.namespace===namespace && row.lockId===id && row.lockVersion===1 && row.world==='USER_SCRIPT' &&
-    Array.isArray(row.entries) && row.entries.every((e,i)=>e.order===i && e.world==='USER_SCRIPT' && HEX64.test(e.sha256)),
+    world && row.namespace===namespace && row.lockId===id && row.lockVersion===1 && row.world===world && row.manifest?.world===world &&
+    Array.isArray(row.entries) && row.entries.every((e,i)=>e.order===i && e.world===world && HEX64.test(e.sha256)),
   'E_DEPENDENCY_LOCK','依赖锁不存在、未批准或不属于当前身份');
   ensure(row.manifestDigest===await hashObject(row.manifest) && id===`dep-lock-${await hashObject(lockCore(row))}`,
     'E_DEPENDENCY_LOCK','不可变依赖锁校验失败');
@@ -134,9 +156,13 @@ const programNamespace=(namespace,programId)=>{
   return namespace+'|page-program:'+JSON.stringify(programId);
 };
 const publicLock = row => clone({lockId:row.lockId,lockVersion:row.lockVersion,manifestDigest:row.manifestDigest,
-  status:row.status,approvalStatus:row.approvalStatus,world:row.world,approvedAt:row.approvedAt,entries:row.entries});
+  status:row.status,approvalStatus:row.approvalStatus,world:row.world,approvedAt:row.approvedAt,entries:row.entries,
+  ...(row.manifest.sourceFormat===undefined?{}:{sourceFormat:row.manifest.sourceFormat})});
 
 export function createDependencyManager({api,storage,assertHost,fetchImpl=globalThis.fetch,clock={now:()=>Date.now()},loadBuiltin=loadBuiltinPageSource}) {
+  let permissionRemovalEpoch=0;
+  api.permissions?.onRemoved?.addListener(()=>{permissionRemovalEpoch++;});
+  const monotonic=()=>clock.monotonic?.()??performance.now();
   ensure(api && typeof storage?.transaction==='function' && typeof assertHost==='function','E_SCHEMA','可信依赖管理器缺少宿主服务');
   const timestamp=()=>{const n=clock.now();ensure(Number.isSafeInteger(n)&&n>=0,'E_SCHEMA');return n;};
   async function hostFor(sender,previous) {
@@ -154,11 +180,12 @@ export function createDependencyManager({api,storage,assertHost,fetchImpl=global
       return work(tx);
     });
   }
-  async function cachedChoices(tx,namespace,row) {
+  async function cachedChoices(tx,namespace,row,sourceFormat) {
     if (!row.url) return [];
-    const index=await tx.get(DEPENDENCY_STORE,key.source(namespace,row.url)), choices=[];
+    const index=await tx.get(DEPENDENCY_STORE,key.source(namespace,row.url,sourceFormat)), choices=[];
     for (const ref of index?.choices || []) {
       const lock=await verifiedLock(await tx.get(DEPENDENCY_STORE,key.lock(namespace,ref.lockId)),namespace,ref.lockId);
+      if(lock.manifest.sourceFormat!==sourceFormat) continue;
       const entry=lock.entries[ref.order];
       ensure(entry?.url===row.url,'E_DEPENDENCY_LOCK');
       if (!choices.some(c=>c.sha256===entry.sha256)) choices.push({...clone(entry),lockId:lock.lockId,status:'approved-cache'});
@@ -191,7 +218,8 @@ export function createDependencyManager({api,storage,assertHost,fetchImpl=global
     return choices;
   }
   async function inspect(request,sender) {
-    fields(request,['sourceUtf8','entryFormat','importSourceUrl','programId']);
+    fields(request,['sourceUtf8','entryFormat','importSourceUrl','sourceFormat','programId']);
+    request=clone(request);
     await validateFixedResource(request.sourceUtf8);
     const host=await hostFor(sender),namespace=programNamespace(host.namespace,request.programId),
       {parsed,manifest,entryFormat}=manifestFor(request),manifestDigest=await hashObject(manifest);
@@ -199,9 +227,9 @@ export function createDependencyManager({api,storage,assertHost,fetchImpl=global
       const requires=[];
       for (const row of parsed.requires) {
         let descriptor=null,downloadError=null;
-        try { if(row.url) descriptor=packagedDescriptor(row.url); } catch(error) { downloadError={code:error.code,message:error.message}; }
-        const cacheChoices=await cachedChoices(tx,namespace,row);
-        const sharedCacheChoices=!downloadError&&row.url&&!descriptor?await sharedChoices(tx,row.url):[];
+        try { if(row.url && manifest.sourceFormat===undefined) descriptor=packagedDescriptor(row.url); } catch(error) { downloadError={code:error.code,message:error.message}; }
+        const cacheChoices=await cachedChoices(tx,namespace,row,manifest.sourceFormat);
+        const sharedCacheChoices=manifest.sourceFormat===undefined&&!downloadError&&row.url&&!descriptor?await sharedChoices(tx,row.url):[];
         requires.push({...clone(row),...(row.url ? sourceSummary(row.url) : {}),sourceKind:descriptor?'packaged':'https',
           status:downloadError?'unsupported':cacheChoices.length?'approved-cache':'needs-review',
           cacheChoices,sharedCacheChoices,downloadError,risk,
@@ -209,7 +237,9 @@ export function createDependencyManager({api,storage,assertHost,fetchImpl=global
       }
       const index=await tx.get(DEPENDENCY_STORE,key.manifest(namespace,manifestDigest)),locks=[];
       for (const id of (index?.lockIds || []).slice(0,20)) locks.push(publicLock(await verifiedLock(await tx.get(DEPENDENCY_STORE,key.lock(namespace,id)),namespace,id)));
-      return {manifestDigest,requires,locks,admission:assessUserScriptExecution(parsed,{entryFormat,phase:'preview',dependenciesLocked:locks.length>0})};
+      return {manifestDigest,requires,locks,...(manifest.sourceFormat===undefined?{}:{sourceFormat:manifest.sourceFormat,world:manifest.world}),
+        selectedLockId:locks.some(row=>row.lockId===index?.selectedLockId)?index.selectedLockId:null,
+        admission:admissionFor(parsed,manifest,locks.length>0)};
     });
     result.permissionOrigins=[];
     for (const row of result.requires.filter(r=>r.url && r.sourceKind==='https' && !r.downloadError)) {
@@ -219,11 +249,13 @@ export function createDependencyManager({api,storage,assertHost,fetchImpl=global
     await hostFor(sender,host);
     return result;
   }
-  async function httpsAsset(row,remaining) {
+  async function httpsAsset(row,remaining,deadline=monotonic()+DEPENDENCY_LIMITS.timeoutMs) {
     const url=dependencyUrl(row.url),origin=permissionFor(url);
     ensure(await api.permissions?.contains?.({origins:[origin]}),'E_DEPENDENCY_PERMISSION','请先明确授权下载来源：'+url.origin);
     ensure(typeof fetchImpl==='function','E_RESOURCE_UNAVAILABLE');
-    const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),DEPENDENCY_LIMITS.timeoutMs);
+    const timeout=Math.min(DEPENDENCY_LIMITS.timeoutMs,deadline-monotonic());
+    ensure(timeout>0,'E_DEPENDENCY_TIMEOUT','整组准备超过 25 秒，未批准或执行');
+    const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),timeout);
     let reader;
     try {
       const response=await fetchImpl(url.href,{method:'GET',credentials:'omit',referrerPolicy:'no-referrer',cache:'no-store',redirect:'error',signal:controller.signal});
@@ -255,7 +287,7 @@ export function createDependencyManager({api,storage,assertHost,fetchImpl=global
         license:unknownLicense(),integrityRepresentation:'fetch-response-bytes'};
     } catch (error) {
       if (error.code) throw error;
-      fail(controller.signal.aborted?'E_DEPENDENCY_TIMEOUT':'E_DEPENDENCY_FETCH',controller.signal.aborted?'依赖下载超过 20 秒':'依赖下载失败；重定向、网络错误或浏览器阻止均不会被绕过');
+      fail(controller.signal.aborted?'E_DEPENDENCY_TIMEOUT':'E_DEPENDENCY_FETCH',controller.signal.aborted?'单项下载或整组准备超过时限；未批准或执行':'依赖下载失败；重定向、网络错误或浏览器阻止均不会被绕过');
     } finally { clearTimeout(timer); controller.abort(); if(reader) { try { await reader.cancel(); } catch { /* Already consumed/aborted. */ } } }
   }
   async function localAsset(file) {
@@ -270,13 +302,16 @@ export function createDependencyManager({api,storage,assertHost,fetchImpl=global
       license:file.license?{status:'declared',name:file.license,source:'user-provided-file'}:unknownLicense(),integrityRepresentation:'original-file-bytes'};
   }
   async function prepare(request,sender) {
-    fields(request,['sourceUtf8','entryFormat','importSourceUrl','programId','explicitUserAction','selections']);
+    // Bound network acquisition below the host client's 35-second deadline.
+    const deadline=monotonic()+DEPENDENCY_LIMITS.prepareTimeoutMs;
+    fields(request,['sourceUtf8','entryFormat','importSourceUrl','sourceFormat','programId','explicitUserAction','selections']);
+    request=clone(request);
     await validateFixedResource(request.sourceUtf8);
     ensure(request.explicitUserAction===true,'E_DEPENDENCY_REVIEW','下载依赖需要用户明确操作');
     const host=await hostFor(sender),namespace=programNamespace(host.namespace,request.programId),
       {parsed,manifest,entryFormat}=manifestFor(request);
     assertUserScriptExecutable(parsed,{entryFormat,phase:'preview',dependenciesLocked:true});
-    ensure(parsed.requires.length>0,'E_DEPENDENCY_EMPTY','源码没有 @require');
+    ensure(parsed.requires.length>0,'E_DEPENDENCY_EMPTY',manifest.sourceFormat===undefined?'源码没有 @require':'源码没有静态 import，无需下载或批准');
     const selections=request.selections || [];ensure(Array.isArray(selections)&&selections.length<=parsed.requires.length,'E_SCHEMA');
     const selected=new Map();
     for(const choice of selections){
@@ -289,11 +324,12 @@ export function createDependencyManager({api,storage,assertHost,fetchImpl=global
     }
     const assets=new Map(),entries=[],retrieved=new Map();let totalBytes=0;
     for(const row of parsed.requires){
+      ensure(monotonic()<deadline,'E_DEPENDENCY_TIMEOUT','整组准备超过 25 秒，未批准或执行');
       dependencyUrl(row.url);
       const choice=selected.get(row.order);let obtained;
       if(choice?.assetSha256){
         obtained=await inTransaction(host,'readonly',async tx=>{
-          const match=(await cachedChoices(tx,namespace,row)).find(e=>e.sha256===choice.assetSha256);
+          const match=(await cachedChoices(tx,namespace,row,manifest.sourceFormat)).find(e=>e.sha256===choice.assetSha256);
           ensure(match,'E_DEPENDENCY_REVIEW','当前身份尚未批准该声明来源的所选缓存');
           const {asset}=await verifiedAsset(await tx.get(DEPENDENCY_STORE,key.asset(match.sha256)),match.sha256,match.byteLength);
           return {...match,bytes:asset.bytes,acquisition:'approved-cache',reusedFrom:{lockId:match.lockId}};
@@ -312,23 +348,30 @@ export function createDependencyManager({api,storage,assertHost,fetchImpl=global
       } else if(choice?.localFile) obtained=await localAsset(choice.localFile);
       else if(retrieved.has(row.url)) obtained=retrieved.get(row.url);
       else {
-        const descriptor=packagedDescriptor(row.url);
+        const descriptor=manifest.sourceFormat===undefined?packagedDescriptor(row.url):null;
         if(descriptor){
           const loaded=await loadPackagedJquery({runtime:api.runtime,fetchImpl});
           obtained={bytes:encoder.encode(loaded.code).buffer,sourceKind:'packaged',resolvedUrl:api.runtime.getURL(descriptor.path),
             acquisition:'extension-package',mime:'text/javascript',license:{status:'known',name:descriptor.license,source:'extension-package'},
             integrityRepresentation:'packaged-utf8-bytes',name:descriptor.id,version:descriptor.version};
-        } else obtained=await httpsAsset(row,DEPENDENCY_LIMITS.totalBytes-totalBytes);
+        } else obtained=await httpsAsset(row,Math.min(DEPENDENCY_LIMITS.totalBytes-totalBytes,
+          manifest.sourceFormat===undefined?DEPENDENCY_LIMITS.assetBytes:STATIC_ESM_LIMITS.moduleBytes),deadline);
         retrieved.set(row.url,obtained);
       }
       ensure(obtained.bytes.byteLength>0&&obtained.bytes.byteLength<=DEPENDENCY_LIMITS.assetBytes,'E_DEPENDENCY_LIMIT');
+      if(manifest.sourceFormat!==undefined) ensure(obtained.bytes.byteLength<=STATIC_ESM_LIMITS.moduleBytes,'E_DEPENDENCY_LIMIT','ESM 模块最多 128 KiB');
       totalBytes+=obtained.bytes.byteLength;ensure(totalBytes<=DEPENDENCY_LIMITS.totalBytes,'E_DEPENDENCY_LIMIT','整组依赖最多 4 MiB，重复声明也计入执行预算');
-      const integrityResult=await verifyIntegrity(obtained.bytes,row),sha256=await hashBytes(obtained.bytes);decodeCode(obtained.bytes);
+      const integrityResult=await verifyIntegrity(obtained.bytes,row),sha256=await hashBytes(obtained.bytes);
+      if(manifest.sourceFormat!==undefined) ensure(!entries.some(entry=>entry.url===row.url && entry.sha256!==sha256),
+        'E_DEPENDENCY_LOCK','同一 ESM URL 不能选择不同模块字节');
+      if(manifest.sourceFormat!==undefined) assertStaticESMLeaf(decodeCode(obtained.bytes));
+      else ensure(!hasUnbuiltESM(decodeCode(obtained.bytes)), 'E_DEPENDENCY_MODULE',
+        '@require 只接收经典全局/UMD JavaScript；此资源含 import/export 或动态 import。请在本地项目声明静态 HTTPS import，单独审核锁定后构建');
       assets.set(sha256,{tag:'userscript-asset-v1',sha256,bytes:obtained.bytes,byteLength:obtained.bytes.byteLength,integrityStatus:'verified',createdAt:timestamp()});
       entries.push({order:row.order,raw:row.raw || row.originalUrl || row.url,originalUrl:row.originalUrl || row.url,url:row.url,
         ...sourceSummary(row.url),...(obtained.name?{name:obtained.name,version:obtained.version}:{}),sourceKind:obtained.sourceKind,
         resolvedUrl:obtained.resolvedUrl,acquisition:obtained.acquisition,reusedFrom:obtained.reusedFrom || null,
-        sha256,byteLength:obtained.bytes.byteLength,world:'USER_SCRIPT',integrity:clone(row.integrity || []),integrityResult,
+        sha256,byteLength:obtained.bytes.byteLength,world:manifest.world,integrity:clone(row.integrity || []),integrityResult,
         integrityRepresentation:obtained.integrityRepresentation,license:obtained.license,mime:obtained.mime,risk});
     }
     const reviewId=`dep-review-${crypto.randomUUID()}`,manifestDigest=await hashObject(manifest);
@@ -336,6 +379,7 @@ export function createDependencyManager({api,storage,assertHost,fetchImpl=global
       manifest,manifestDigest,entries,totalBytes,createdAt:timestamp()};
     review.reviewDigest=await hashObject(reviewCore(review));
     await hostFor(sender,host);
+    ensure(monotonic()<deadline,'E_DEPENDENCY_TIMEOUT','整组准备超过 25 秒，未保存审核或批准');
     await inTransaction(host,'readwrite',async tx=>{
       for(const [sha256,asset] of assets){
         const existing=await tx.get(DEPENDENCY_STORE,key.asset(sha256));
@@ -346,7 +390,30 @@ export function createDependencyManager({api,storage,assertHost,fetchImpl=global
       await tx.put(DEPENDENCY_STORE,{tag:'userscript-reference-v1',namespace:namespace,ownerType:'review',ownerId:reviewId,
         assetHashes:[...assets.keys()]},key.reference(namespace,'review',reviewId));
     });
-    return clone({reviewId,manifestDigest,status:review.status,approvalStatus:review.approvalStatus,entries,totalBytes});
+      return clone({reviewId,manifestDigest,status:review.status,approvalStatus:review.approvalStatus,entries,totalBytes,
+        ...(manifest.sourceFormat===undefined?{}:{sourceFormat:manifest.sourceFormat,world:manifest.world})});
+  }
+  // Authenticated, namespace-scoped inspection of the exact cached bytes.
+  // Reading a pending review never downloads, approves or executes its code.
+  async function readReview(request,sender) {
+    fields(request,['reviewId','programId','order']);
+    ensure(/^dep-review-[a-f0-9-]{36}$/.test(request.reviewId) &&
+      Number.isSafeInteger(request.order) && request.order>=0,'E_DEPENDENCY_REVIEW');
+    const host=await hostFor(sender),namespace=programNamespace(host.namespace,request.programId);
+    const result=await inTransaction(host,'readonly',async tx=>{
+      const review=await tx.get(DEPENDENCY_STORE,key.review(namespace,request.reviewId));
+      ensure(review?.tag==='userscript-review-v1' && review.namespace===namespace &&
+        review.reviewId===request.reviewId && Array.isArray(review.entries) &&
+        review.manifestDigest===await hashObject(review.manifest) &&
+        review.reviewDigest===await hashObject(reviewCore(review)), 'E_DEPENDENCY_REVIEW');
+      const entry=review.entries[request.order];
+      ensure(entry?.order===request.order,'E_DEPENDENCY_REVIEW');
+      const {asset,code}=await verifiedAsset(await tx.get(DEPENDENCY_STORE,key.asset(entry.sha256)),entry.sha256,entry.byteLength);
+      await verifyIntegrity(asset.bytes,entry);
+      return {reviewId:review.reviewId,order:entry.order,sha256:entry.sha256,code};
+    });
+    await hostFor(sender,host);
+    return result;
   }
   async function approve(request,sender) {
     fields(request,['reviewId','programId','explicitUserAction','acceptedHashes']);
@@ -366,7 +433,7 @@ export function createDependencyManager({api,storage,assertHost,fetchImpl=global
       return review;
     });
     const core={lockVersion:1,namespace:namespace,manifestDigest:reviewed.manifestDigest,manifest:reviewed.manifest,
-      world:'USER_SCRIPT',reviewId:reviewed.reviewId,approvedAt:timestamp(),entries:reviewed.entries};
+      world:reviewed.manifest.world,reviewId:reviewed.reviewId,approvedAt:timestamp(),entries:reviewed.entries};
     const lock={tag:'userscript-lock-v1',...core,lockId:`dep-lock-${await hashObject(core)}`,status:'locked',approvalStatus:'approved'};
     await hostFor(sender,host);
     return inTransaction(host,'readwrite',async tx=>{
@@ -377,6 +444,10 @@ export function createDependencyManager({api,storage,assertHost,fetchImpl=global
           existing.manifestDigest===reviewed.manifestDigest && same(existing.manifest,reviewed.manifest) &&
           same(existing.entries,reviewed.entries) && same(existing.entries.map(e=>e.sha256),request.acceptedHashes),
         'E_DEPENDENCY_REVIEW','已有批准锁不属于当前审核或明确接受的资源');
+        const indexKey=key.manifest(namespace,existing.manifestDigest),index=await tx.get(DEPENDENCY_STORE,indexKey);
+        ensure(index?.lockIds?.includes(existing.lockId),'E_DEPENDENCY_LOCK');
+        await tx.put(DEPENDENCY_STORE,{...index,selectedLockId:existing.lockId,
+          lockIds:[existing.lockId,...index.lockIds.filter(id=>id!==existing.lockId)]},indexKey);
         return publicLock(existing);
       }
       ensure(same(current,reviewed),'E_DEPENDENCY_REVIEW','审核内容在批准前发生变化');
@@ -387,9 +458,9 @@ export function createDependencyManager({api,storage,assertHost,fetchImpl=global
       await tx.put(DEPENDENCY_STORE,{...current,status:'reviewed',approvalStatus:'approved',lockId:lock.lockId},key.review(namespace,request.reviewId));
       const manifestKey=key.manifest(namespace,lock.manifestDigest),index=await tx.get(DEPENDENCY_STORE,manifestKey);
       await tx.put(DEPENDENCY_STORE,{tag:'userscript-manifest-index-v1',namespace:namespace,manifestDigest:lock.manifestDigest,
-        lockIds:[lock.lockId,...(index?.lockIds || [])]},manifestKey);
+        lockIds:[lock.lockId,...(index?.lockIds || [])],selectedLockId:lock.lockId},manifestKey);
       for(const url of new Set(lock.entries.map(e=>e.url))){
-        const sourceKey=key.source(namespace,url),source=await tx.get(DEPENDENCY_STORE,sourceKey),choices=[];
+        const sourceKey=key.source(namespace,url,lock.manifest.sourceFormat),source=await tx.get(DEPENDENCY_STORE,sourceKey),choices=[];
         for(const entry of lock.entries.filter(e=>e.url===url)) if(!choices.some(c=>c.sha256===entry.sha256))
           choices.push({lockId:lock.lockId,order:entry.order,sha256:entry.sha256});
         // A source's picker needs one proof per immutable hash, while old full
@@ -417,23 +488,53 @@ export function createDependencyManager({api,storage,assertHost,fetchImpl=global
     });
   }
   async function loadForExecution(request,sender) {
-    fields(request,['sourceUtf8','entryFormat','importSourceUrl','programId','lockId']);
+    fields(request,['sourceUtf8','entryFormat','importSourceUrl','sourceFormat','programId','lockId']);
+    request=clone(request);
+    ensure(request.sourceFormat===undefined,'E_SOURCE_FORMAT','ESM 依赖只能离线读取用于编译');
     const host=await hostFor(sender),namespace=programNamespace(host.namespace,request.programId);
     const result=await loadInNamespace(request,namespace,work=>inTransaction(host,'readonly',work));
     await hostFor(sender,host);
     return result;
   }
-  async function loadInNamespace(request,namespace,read) {
+  async function loadForCompilation(request,sender) {
+    fields(request,['sourceUtf8','entryFormat','importSourceUrl','sourceFormat','lockId']);
+    request=clone(request);
+    ensure(Object.hasOwn(STATIC_ESM_WORLDS,request.sourceFormat),'E_SOURCE_FORMAT','编译读取需要明确 ESM sourceFormat');
+    const host=await hostFor(sender);
+    const {parsed}=manifestFor(request);
+    const origins=[...new Set(parsed.requires.map(row=>permissionFor(new URL(row.url))))];
+    const checkPermissions=async()=>{
+      for(const origin of origins) ensure(await api.permissions?.contains?.({origins:[origin]}),
+        'E_DEPENDENCY_PERMISSION','ESM 来源权限已撤销，请明确重新授权后再读取');
+    };
+    await checkPermissions();
+    const result=await loadInNamespace(request,host.namespace,work=>inTransaction(host,'readonly',work),true);
+    await checkPermissions();
+    await hostFor(sender,host);
+    // Locks retain every original declaration. A module executes once in ESM;
+    // the offline linker receives one verified entry per canonical URL.
+    const entries=[];
+    for(const entry of result.entries) {
+      const previous=entries.find(row=>row.url===entry.url);
+      if(previous) ensure(previous.sha256===entry.sha256,'E_DEPENDENCY_LOCK','同一 ESM URL 不能选择不同模块字节');
+      else entries.push({...entry,order:entries.length});
+    }
+    return {...result,entries};
+  }
+  async function loadInNamespace(request,namespace,read,compilation=false) {
     await validateFixedResource(request.sourceUtf8);
     const {parsed,manifest,entryFormat}=manifestFor(request),manifestDigest=await hashObject(manifest);
+    ensure(compilation || manifest.sourceFormat===undefined,'E_SOURCE_FORMAT','ESM 不能走 classic 执行入口');
     assertUserScriptExecutable(parsed,{entryFormat,phase:'preview',dependenciesLocked:true});
     if(!parsed.requires.length){
-      ensure(!request.lockId,'E_DEPENDENCY_LOCK','无依赖源码不能冒用其他依赖锁');
-      return {lockId:null,manifestDigest,entries:[],world:'USER_SCRIPT'};
+      ensure(compilation ? request.lockId===undefined || request.lockId===null : !request.lockId,
+        'E_DEPENDENCY_LOCK','无依赖源码不能冒用其他依赖锁');
+      return {lockId:null,manifestDigest,entries:[],world:manifest.world,...(compilation?{sourceFormat:manifest.sourceFormat}:{})};
     }
     ensure(typeof request.lockId==='string' && /^dep-lock-[a-f0-9]{64}$/.test(request.lockId),'E_DEPENDENCY_UNLOCKED','请先下载、审核并锁定依赖');
     const result=await read(async tx=>{
       const lock=await verifiedLock(await tx.get(DEPENDENCY_STORE,key.lock(namespace,request.lockId)),namespace,request.lockId);
+      ensure(compilation || lock.manifest.sourceFormat===undefined,'E_SOURCE_FORMAT','ESM 锁不能作为 classic 依赖执行');
       ensure(lock.manifestDigest===manifestDigest && same(lock.manifest,manifest) && lock.entries.length===parsed.requires.length,
         'E_DEPENDENCY_LOCK_STALE','依赖声明、来源身份或入口模式已改变，请建立新的依赖锁');
       const entries=[];let total=0;
@@ -442,8 +543,12 @@ export function createDependencyManager({api,storage,assertHost,fetchImpl=global
         const {asset,code}=await verifiedAsset(await tx.get(DEPENDENCY_STORE,key.asset(entry.sha256)),entry.sha256,entry.byteLength);
         total+=asset.byteLength;ensure(total<=DEPENDENCY_LIMITS.totalBytes,'E_DEPENDENCY_LIMIT');
         await verifyIntegrity(asset.bytes,parsed.requires[order]);entries.push({...clone(entry),code});
+        if(compilation) {
+          ensure(asset.byteLength<=STATIC_ESM_LIMITS.moduleBytes,'E_DEPENDENCY_LIMIT','ESM 模块最多 128 KiB');
+          staticESMUrl(entry.url); assertStaticESMLeaf(code);
+        }
       }
-      return {lockId:lock.lockId,manifestDigest,entries,world:'USER_SCRIPT'};
+      return {lockId:lock.lockId,manifestDigest,entries,world:manifest.world,...(compilation?{sourceFormat:manifest.sourceFormat}:{})};
     });
     return result; // Deliberately no network, evaluation or Chrome injection here.
   }
@@ -457,13 +562,20 @@ export function createDependencyManager({api,storage,assertHost,fetchImpl=global
     ensure(row.manifestHash===await hashObject(row.manifest) &&
       row.manifest.sourceHash===await hashBytes(encoder.encode(row.sourceUtf8)),'E_HASH');
     await validateFixedResource(row.sourceUtf8);
+    validatePageProgramManifest(row.manifest);
+    if(row.manifest.compilation){
+      ensure(typeof row.authorSourceUtf8==='string'&&row.manifest.compilation.authorSourceHash===
+        await hashBytes(encoder.encode(row.authorSourceUtf8)),'E_SOURCE_HASH','作者 import 源码偏离冻结版本');
+    }else ensure(!Object.hasOwn(row,'authorSourceUtf8'),'E_STATIC_ESM_IDENTITY');
     return row;
   }
   async function importPageCandidate(request,sender) {
-    fields(request,['programId','revision','sourceUtf8','entryFormat','importSourceUrl','lockId','dependencyScope','pageRules']);
+    fields(request,['programId','revision','sourceUtf8','entryFormat','importSourceUrl','lockId','pageRules',
+      'authorSourceUtf8','authorLockId','compilerVersion','dependencyScope']);
     // Freeze both bytes and settings before the first asynchronous operation.
     // Neither mutating a request later nor a native pageRules field grants a service.
     request=clone(request);
+    const dependencyEpoch=permissionRemovalEpoch;
     ensure(typeof request.programId==='string' && /^[A-Za-z0-9][A-Za-z0-9_.-]{0,127}$/.test(request.programId) &&
       Number.isSafeInteger(request.revision) && request.revision>0,'E_REVISION');
     ensure(request.dependencyScope===undefined||request.dependencyScope==='program',
@@ -471,48 +583,96 @@ export function createDependencyManager({api,storage,assertHost,fetchImpl=global
     ensure(typeof request.sourceUtf8==='string' && request.sourceUtf8.trim().length>0,'E_SOURCE','页面程序源码不能为空');
     const {parsed,entryFormat}=manifestFor(request);
     const admission=assertUserScriptExecutable(parsed,{entryFormat,phase:'preview',dependenciesLocked:true});
-    const pageRules=resolvePageProgramRules(parsed,admission,request.pageRules);
+    let pageRules=resolvePageProgramRules(parsed,admission,request.pageRules),authorRequest;
     const lock=await loadForExecution({sourceUtf8:request.sourceUtf8,entryFormat,
       importSourceUrl:request.importSourceUrl,lockId:request.lockId,
       ...(request.dependencyScope==='program'?{programId:request.programId}:{})},sender);
+    let compilation;
+    const checkPermissionEpoch=()=>ensure(!compilation||permissionRemovalEpoch===dependencyEpoch,
+      'E_DEPENDENCY_PERMISSION','依赖来源权限在保存期间已变化');
+    if(Object.hasOwn(request,'authorSourceUtf8')){
+      ensure(entryFormat==='async-main'&&lock.lockId===null&&request.compilerVersion===PAGE_BROWSER_COMPILER.version,
+        'E_STATIC_ESM_IDENTITY','需要固定离线编译器和已闭合的 Page 执行产物');
+      authorRequest={sourceUtf8:request.authorSourceUtf8,entryFormat:'async-main',
+        sourceFormat:'esm-page',importSourceUrl:request.importSourceUrl,lockId:request.authorLockId};
+      const authorLock=await loadForCompilation(authorRequest,sender);
+      const {parsed:authorParsed}=manifestFor(authorRequest);
+      pageRules=resolvePageProgramRules(authorParsed,
+        assertUserScriptExecutable(authorParsed,{entryFormat:'async-main',phase:'preview',dependenciesLocked:true}),request.pageRules);
+      compilation={sourceFormat:'esm-page',authorSourceHash:await hashBytes(encoder.encode(request.authorSourceUtf8)),
+        dependencyLockId:authorLock.lockId,dependencyManifestDigest:authorLock.manifestDigest,
+        compilerVersion:PAGE_BROWSER_COMPILER.version,compilerSha256:PAGE_BROWSER_COMPILER.sha256,
+        compilerProfile:clone(STATIC_ESM_COMPILER_PROFILE)};
+    }else ensure(!Object.hasOwn(request,'authorLockId')&&!Object.hasOwn(request,'compilerVersion'),'E_STATIC_ESM_IDENTITY');
     const manifest={format:'opendesk.page-program.v1',runtimeKind:'page-userscript',
       programId:request.programId,revision:request.revision,
       ...(request.dependencyScope==='program'?{dependencyScope:'program'}:{}),
       sourceHash:await hashBytes(encoder.encode(request.sourceUtf8)),entryFormat,
       sourceProfile:{metadataProfile:parsed.profile,importSourceUrl:parsed.importSourceUrl},
-      dependencyLockId:lock.lockId,dependencyManifestDigest:lock.manifestDigest,pageRules};
+      dependencyLockId:lock.lockId,dependencyManifestDigest:lock.manifestDigest,pageRules,
+      ...(compilation?{compilation}:{})};
+    validatePageProgramManifest(manifest);
     const environment=builtinIdentity(await loadBuiltin({runtime:api.runtime,fetchImpl}));
     const manifestHash=await hashObject(manifest),host=await hostFor(sender);
-    return inTransaction(host,'readwrite',async tx=>{
+    const saved=await inTransaction(host,'readwrite',async tx=>{
+      // Save against the same transaction snapshot that owns the immutable
+      // candidate; a cache/approval change after preparation cannot be saved.
+      if(authorRequest){
+        const fixed=await loadInNamespace(authorRequest,host.namespace,work=>work(tx),true);
+        ensure(fixed.lockId===compilation.dependencyLockId&&fixed.manifestDigest===compilation.dependencyManifestDigest,
+          'E_DEPENDENCY_LOCK_STALE');
+        const {parsed:authorParsed}=manifestFor(authorRequest);
+        for(const origin of new Set(authorParsed.requires.map(r=>permissionFor(new URL(r.url)))))
+          ensure(await api.permissions?.contains?.({origins:[origin]}),'E_DEPENDENCY_PERMISSION','依赖来源权限在保存期间已撤销');
+      }
       const key=pageKey(host.namespace,manifest.programId,manifest.revision),old=await tx.get(DEPENDENCY_STORE,key);
       if(old) {
         await pageRow(old,host.namespace);
         ensure(old.manifestHash===manifestHash && old.sourceUtf8===request.sourceUtf8,'E_REQUEST_CONFLICT');
         assertBuiltinIdentity(old.builtinIdentity,environment);
+        checkPermissionEpoch();
         return pageView(old);
       }
       const row={tag:'page-candidate-v1',namespace:host.namespace,
         candidateId:'page-'+await hashObject([host.namespace,manifestHash,environment]),builtinIdentity:environment,
-        manifestHash,manifest,sourceUtf8:request.sourceUtf8,stage:'Candidate',verification:null,createdAt:timestamp()};
+        manifestHash,manifest,sourceUtf8:request.sourceUtf8,
+        ...(compilation?{authorSourceUtf8:request.authorSourceUtf8}:{}),
+        stage:'Candidate',verification:null,createdAt:timestamp()};
+      checkPermissionEpoch();
       await tx.put(DEPENDENCY_STORE,row,key);
+      checkPermissionEpoch();
       return pageView(row);
     });
+    checkPermissionEpoch();
+    return saved;
   }
   async function getPageCandidate(request,sender) {
     fields(request,['programId','revision']);
     const host=await hostFor(sender);
-    return inTransaction(host,'readonly',async tx=>{
-      const row=await pageRow(await tx.get(DEPENDENCY_STORE,pageKey(host.namespace,request.programId,request.revision)),host.namespace);
-      return {...pageView(row),manifest:clone(row.manifest),sourceUtf8:row.sourceUtf8,builtinIdentity:row.builtinIdentity};
-    });
+    const {candidate:row}=await readStoredPageCandidate(host.namespace,request.programId,request.revision);
+    await hostFor(sender,host);
+    return {...pageView(row),manifest:clone(row.manifest),sourceUtf8:row.sourceUtf8,builtinIdentity:row.builtinIdentity,
+      ...(row.manifest.compilation?{authorSourceUtf8:row.authorSourceUtf8}:{})};
   }
   // Internal broker-only reader for a persisted installation. It provides
   // immutable bytes, never a grant; the installation authority is separate.
   // No foundation/UI route exposes arbitrary namespace access.
-  async function readStoredPageCandidate(namespace,programId,revision) {
+  async function readStoredPageCandidate(namespace,programId,revision,transaction) {
     ensure(typeof namespace==='string'&&namespace.length>0,'E_OWNER');
-    const read=work=>storage.transaction([DEPENDENCY_STORE],'readonly',work);
+    const read=transaction?work=>work(transaction):work=>storage.transaction([DEPENDENCY_STORE],'readonly',work);
     const row=await read(async tx=>clone(await pageRow(await tx.get(DEPENDENCY_STORE,pageKey(namespace,programId,revision)),namespace)));
+    if(row.manifest.compilation){
+      const c=row.manifest.compilation,request={sourceUtf8:row.authorSourceUtf8,entryFormat:'async-main',
+        sourceFormat:c.sourceFormat,importSourceUrl:row.manifest.sourceProfile.importSourceUrl,lockId:c.dependencyLockId};
+      const {parsed}=manifestFor(request);
+      const check=async()=>{for(const origin of new Set(parsed.requires.map(r=>permissionFor(new URL(r.url)))))
+        ensure(await api.permissions?.contains?.({origins:[origin]}),'E_DEPENDENCY_PERMISSION','ESM 来源权限已撤销，请明确重新授权后再读取');};
+      await check();
+      const authorResolution=await loadInNamespace(request,namespace,read,true);
+      ensure(authorResolution.manifestDigest===c.dependencyManifestDigest&&authorResolution.lockId===c.dependencyLockId,
+        'E_DEPENDENCY_LOCK_STALE','作者源码与批准的固定依赖身份不一致');
+      await check();
+    }
     const resolution=await loadInNamespace({sourceUtf8:row.sourceUtf8,entryFormat:row.manifest.entryFormat,
       importSourceUrl:row.manifest.sourceProfile.importSourceUrl,lockId:row.manifest.dependencyLockId},
       row.manifest.dependencyScope==='program'?programNamespace(namespace,programId):namespace,read);
@@ -643,5 +803,5 @@ export function createDependencyManager({api,storage,assertHost,fetchImpl=global
   // review/lock references; deleting an editor draft cannot delete asset bytes.
   const components=createPageComponentDependencyMethods({hostFor,inTransaction,httpsAsset,verifiedAsset,
     timestamp,hashObject,hashBytes,ensure,fields,clone,assetKey:key.asset,referenceKey:key.reference,risk});
-  return Object.freeze({inspect,prepare,approve,loadForExecution,prepareControllerClassic,importPageCandidate,getPageCandidate,readStoredPageCandidate,...components});
+return Object.freeze({inspect,prepare,readReview,approve,loadForExecution,loadForCompilation,prepareControllerClassic,importPageCandidate,getPageCandidate,readStoredPageCandidate,...components});
 }

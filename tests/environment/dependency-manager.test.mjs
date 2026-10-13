@@ -3,7 +3,10 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createHash,webcrypto} from 'node:crypto';
 import {readFile} from 'node:fs/promises';
-import {createDependencyManager,DEPENDENCY_STORAGE_KEYS as keys,DEPENDENCY_LIMITS} from '../../src/scripting/user-scripts/dependency-manager.js';
+import vm from 'node:vm';
+import {createDependencyManager,describeDependencyManifest,DEPENDENCY_STORAGE_KEYS as keys,DEPENDENCY_LIMITS} from '../../src/scripting/user-scripts/dependency-manager.js';
+import {compileStaticESM} from '../../src/ui/static-esm-linker.mjs';
+import {PAGE_BROWSER_COMPILER} from '../../src/libs/page-frameworks/contract.js';
 import {createControllerClassicSavedSource,verifiedControllerClassicAuthorSource} from '../../src/ui/controller-esm-source.js';
 
 globalThis.crypto ||= webcrypto;
@@ -14,6 +17,8 @@ const first='globalThis.firstLibrary={sum:(a,b)=>a+b};',second='globalThis.secon
 const sha=(bytes,algorithm='sha256')=>createHash(algorithm).update(bytes).digest('hex');
 const source=(urls=[firstUrl],body='async function main(){return firstLibrary.sum(1,2);}')=>
   '// ==UserScript==\n// @name Dependency fixture\n'+urls.map(url=>'// @require '+url).join('\n')+'\n// ==/UserScript==\n'+body;
+const packagedSource=lines=>['// ==UserScript==',...lines.map(line=>'// '+line),
+  '// ==/UserScript==','async function main(){return true;}'].join('\n');
 const failCode=code=>error=>error.code===code;
 
 // Transactional storage and Fetch component doubles, not native Chrome receipts.
@@ -22,7 +27,7 @@ function fixture() {
     browserSessionIncarnation:'session-1',hostUrl:'chrome-extension://fixture/ui/tool.html'};
   let database=new Map([['frameworkKV',new Map()],['commandJournal',new Map([['host:host-1',structuredClone(host)]])]]),queue=Promise.resolve();
   const f={calls:[],routes:new Map([[firstUrl,{bytes:first}],[secondUrl,{bytes:second}]]),granted:true,authCount:0,
-    beforeTransaction:null,afterAuth:null,afterFetch:null,throwOnPut:null,offline:false};
+    beforeTransaction:null,afterAuth:null,afterFetch:null,throwOnPut:null,offline:false,elapsed:0};
   f.read=(store,key)=>structuredClone(database.get(store).get(key));
   f.rows=()=>[...database.get('frameworkKV').values()].map(v=>structuredClone(v));
   f.change=(store,key,fn)=>database.get(store).set(key,fn(f.read(store,key)));
@@ -48,7 +53,7 @@ function fixture() {
     Object.defineProperty(response,'url',{value:row.url || url});Object.defineProperty(response,'redirected',{value:!!row.redirected});
     await f.afterFetch?.();return response;
   };
-  const makeManager=namespace=>createDependencyManager({loadBuiltin:loadFakeBuiltin,api,storage,fetchImpl,clock:{now:()=>1720000000000},
+  const makeManager=namespace=>createDependencyManager({loadBuiltin:loadFakeBuiltin,api,storage,fetchImpl,clock:{now:()=>1720000000000,monotonic:()=>f.elapsed},
     assertHost:async()=>{f.authCount++;const result={...f.read('commandJournal','host:host-1'),namespace};
       if(!result.active)throw Object.assign(new Error('expired'),{code:'E_OWNER'});await f.afterAuth?.(f.authCount);return result;}});
   f.manager=makeManager(ns);f.managerForNamespace=makeManager;f.storage=storage;
@@ -72,6 +77,52 @@ test('inspection only parses and lists download permissions; explicit actions an
   assert.equal(f.rows().filter(r=>r.tag==='userscript-lock-v1').length,0);
   const lock=await f.approve(review);assert.equal(lock.approvalStatus,'approved');assert.equal((await f.load(lock)).entries[0].code,first);
   assert.deepEqual(await f.approve(review),lock,'repeat approval of the same exact review is idempotent');
+});
+
+test('pending review exposes exact validated cached code only to its active namespace without fetching or approving',async()=>{
+  const f=fixture(),review=await f.prepare(),calls=f.calls.length;
+  const input={reviewId:review.reviewId,order:0};
+  assert.deepEqual(await f.manager.readReview(input,{}),{...input,sha256:sha(first),code:first});
+  assert.equal(f.calls.length,calls);
+  assert.equal(f.rows().some(row=>row.tag==='userscript-lock-v1'),false);
+  await assert.rejects(f.managerForNamespace('tool:other').readReview(input,{}),failCode('E_DEPENDENCY_REVIEW'));
+  await assert.rejects(f.manager.readReview({...input,order:1},{}),failCode('E_DEPENDENCY_REVIEW'));
+  f.change('frameworkKV',keys.asset(sha(first)),row=>({...row,bytes:new TextEncoder().encode('x'.repeat(first.length)).buffer}));
+  await assert.rejects(f.manager.readReview(input,{}),failCode('E_DEPENDENCY_HASH'));
+  f.revoke();await assert.rejects(f.manager.readReview(input,{}),failCode('E_OWNER'));
+});
+
+test('HTTPS modules and dynamic module imports cannot be prepared as classic @require libraries',async()=>{
+  for(const bytes of ['export const value=1;', 'import x from "./x.js";', 'const x=import("https://example.org/x.js");']){
+    const f=fixture();f.routes.set(firstUrl,{bytes});
+    await assert.rejects(f.prepare(),failCode('E_DEPENDENCY_MODULE'));
+    assert.equal(f.rows().length,0,'reject before storing review, asset or lock');
+  }
+});
+
+test('legal classic class import methods are accepted while dynamic imports in class fields/bodies remain rejected',async()=>{
+  const f=fixture();f.routes.set(firstUrl,{bytes:'class Library { import(value) { return value; } static import(value){return value;} }'});
+  assert.equal((await f.prepare()).status,'pending-review');
+  for(const bytes of ['class Library { value=import("./x.js"); }', 'class Library { import(value){return import(value);} }']){
+    const next=fixture();next.routes.set(firstUrl,{bytes});await assert.rejects(next.prepare(),failCode('E_DEPENDENCY_MODULE'));
+  }
+});
+
+test('a group acquisition deadline refuses late bytes before persisting an inaccessible review',async()=>{
+  const f=fixture();f.afterFetch=()=>{f.elapsed=DEPENDENCY_LIMITS.prepareTimeoutMs+1;};
+  await assert.rejects(f.prepare(),failCode('E_DEPENDENCY_TIMEOUT'));assert.equal(f.rows().length,0);
+});
+
+test('only explicit approval persists the chosen lock across new manager instances and offline inspection',async()=>{
+  const f=fixture(),firstReview=await f.prepare(),firstLock=await f.approve(firstReview);
+  f.routes.set(firstUrl,{bytes:first+'\n// approved newer bytes'});
+  const pending=await f.prepare();
+  assert.equal((await f.manager.inspect({sourceUtf8:source()},{})).selectedLockId,firstLock.lockId,'pending downloads do not change selection');
+  const secondLock=await f.approve(pending);f.offline=true;
+  const report=await f.managerForNamespace(ns).inspect({sourceUtf8:source()},{});
+  assert.equal(report.locks.length,2);assert.equal(report.selectedLockId,secondLock.lockId);
+  await f.approve(firstReview);
+  assert.equal((await f.manager.inspect({sourceUtf8:source()},{})).selectedLockId,firstLock.lockId,'reapproval is still an explicit selection');
 });
 
 test('packaged jQuery and a second ordinary library use ordered generic assets; source provenance is explicit',async()=>{
@@ -202,6 +253,217 @@ test('asset, review provenance and lock tampering fail closed; quota failure ato
     'an idempotent retry must not follow a corrupted pointer to a different valid lock');
   const q=fixture();q.throwOnPut=row=>row.tag==='userscript-review-v1';
   await assert.rejects(q.prepare(),failCode('E_QUOTA'));assert.equal(q.rows().length,0);
+});
+
+test('complete metadata optional library declarations reach preview admission and stored Page Candidates without remote fetch',async()=>{
+  for(const name of ['js-cookie','crypto-js','file-saver','query-string','axios','store','cheerio','fingerprintjs']){
+    const f=fixture(),src=packagedSource(['@opendesk-lib '+name]);
+    const resolution=await f.load(null,src);
+    assert.equal(resolution.world,'USER_SCRIPT');
+    assert.deepEqual(resolution.entries,[]);
+    const view=await f.manager.importPageCandidate({sourceUtf8:src,programId:'optional-'+name,revision:1},{});
+    assert.equal(view.stage,'Candidate');
+    const stored=await f.manager.readStoredPageCandidate(ns,'optional-'+name,1);
+    assert.equal(stored.candidate.sourceUtf8,src);
+    assert.equal(stored.candidate.manifest.dependencyLockId,null);
+    assert.deepEqual(stored.resolution.entries,[]);
+    assert.deepEqual(f.calls,[]);
+  }
+});
+
+test('Page Candidate admission rejects unsupported or conflicting packaged declarations before writes or fetches',async()=>{
+  for(const [lines,code] of [
+    [['@opendesk-lib unreviewed'],'E_BUILTIN_DECLARATION'],
+    [['@opendesk-lib react','@opendesk-lib vue'],'E_BUILTIN_DECLARATION'],
+    [['@opendesk-lib cheerio','@require '+firstUrl],'E_BUILTIN_CONFLICT']
+  ]){
+    const f=fixture(),src=packagedSource(lines);
+    await assert.rejects(f.load(null,src),failCode(code));
+    await assert.rejects(f.manager.importPageCandidate({sourceUtf8:src,programId:'rejected-optional',revision:1},{}),failCode(code));
+    assert.deepEqual(f.rows(),[]);
+    assert.deepEqual(f.calls,[]);
+  }
+});
+
+const leaf='export const value=42;';
+const esmSource=(urls=[firstUrl],body='async function main(){return leaf0.value;}')=>
+  urls.map((url,index)=>`import * as leaf${index} from ${JSON.stringify(url)};`).join('\n')+'\n'+body;
+const esmRequest=(src=esmSource(),sourceFormat='esm-page')=>({sourceUtf8:src,sourceFormat,entryFormat:'async-main'});
+const esmLoad=(f,lock,request=esmRequest())=>f.manager.loadForCompilation({...request,lockId:lock?.lockId},{});
+const esmFixture=()=>{const f=fixture();f.routes.set(firstUrl,{bytes:leaf});return f;};
+const approveESM=async(f,request=esmRequest())=>f.approve(await f.prepare(request.sourceUtf8,{sourceFormat:request.sourceFormat,entryFormat:request.entryFormat}));
+
+test('no-import ESM entries load for local compilation without downloads or approval and cannot borrow another lock',async()=>{
+  const f=esmFixture();f.granted=false;f.offline=true;
+  for(const [sourceFormat,world] of [['esm-page','USER_SCRIPT'],['esm-controller','CONTROLLER']]) {
+    for(const sourceUtf8 of ['export default async function main(){}','async function main(){return 1;}']) {
+      const request={sourceFormat,sourceUtf8,lockId:null};
+      const loaded=await f.manager.loadForCompilation(request,{});
+      assert.deepEqual(loaded.entries,[]);assert.equal(loaded.lockId,null);assert.equal(loaded.world,world);
+      assert.equal(loaded.sourceFormat,sourceFormat);assert.match(loaded.manifestDigest,/^[a-f0-9]{64}$/);
+      assert.equal(loaded.manifestDigest,(await describeDependencyManifest(request)).manifestDigest);
+      const inspected=await f.manager.inspect({sourceFormat,sourceUtf8},{});
+      assert.deepEqual(inspected.requires,[]);assert.deepEqual(inspected.permissionOrigins,[]);
+      assert.deepEqual(inspected.locks,[]);assert.equal(inspected.selectedLockId,null);assert.equal(inspected.admission.status,'executable');
+      await assert.rejects(f.prepare(sourceUtf8,{sourceFormat}),failCode('E_DEPENDENCY_EMPTY'));
+      for(const lockId of ['dep-lock-'+'a'.repeat(64),'',false,0])
+        await assert.rejects(f.manager.loadForCompilation({...request,lockId},{}),failCode('E_DEPENDENCY_LOCK'));
+    }
+  }
+  assert.equal(f.calls.length,0);assert.equal(f.rows().length,0);
+  f.granted=true;
+  await assert.rejects(esmLoad(f,null),failCode('E_DEPENDENCY_UNLOCKED'),'a static import is never treated as zero dependencies');
+  await assert.rejects(f.manager.loadForCompilation({sourceFormat:'esm-page',sourceUtf8:'export default async function main(){return import("./x.js");}',lockId:null},{}),failCode('E_ESM_DYNAMIC'));
+  f.revoke();await assert.rejects(f.manager.loadForCompilation({sourceFormat:'esm-page',sourceUtf8:'async function main(){}',lockId:null},{}),failCode('E_OWNER'));
+});
+
+test('ESM inspect, review, approve and offline reread preserve exact bytes and selected lock across managers',async()=>{
+  const f=esmFixture(),request=esmRequest();f.granted=false;
+  const report=await f.manager.inspect(request,{});
+  assert.deepEqual(report.permissionOrigins,['https://libraries.example.org/*']);assert.equal(report.requires[0].status,'needs-review');
+  assert.equal(report.world,'USER_SCRIPT');assert.equal(report.sourceFormat,'esm-page');assert.equal(f.calls.length,0);
+  await assert.rejects(approveESM(f),failCode('E_DEPENDENCY_PERMISSION'));f.granted=true;
+  const review=await f.prepare(request.sourceUtf8,{sourceFormat:request.sourceFormat});
+  assert.equal(review.sourceFormat,'esm-page');assert.equal(review.world,'USER_SCRIPT');
+  assert.equal(review.entries[0].sha256,sha(leaf));assert.equal(review.entries[0].sourceKind,'https');
+  assert.deepEqual(await f.manager.readReview({reviewId:review.reviewId,order:0},{}),
+    {reviewId:review.reviewId,order:0,sha256:sha(leaf),code:leaf});
+  await assert.rejects(esmLoad(f),failCode('E_DEPENDENCY_UNLOCKED'));
+  const lock=await f.approve(review),calls=f.calls.length;
+  f.offline=true;f.manager=f.managerForNamespace(ns);
+  const current=await f.manager.inspect(request,{});
+  assert.equal(current.selectedLockId,lock.lockId);assert.equal(current.locks[0].sourceFormat,'esm-page');
+  assert.equal(current.requires[0].cacheChoices[0].sha256,sha(leaf));
+  const loaded=await esmLoad(f,lock);
+  assert.deepEqual(Object.keys(loaded).sort(),['entries','lockId','manifestDigest','sourceFormat','world']);
+  assert.equal(loaded.world,'USER_SCRIPT');assert.equal(loaded.sourceFormat,'esm-page');assert.equal(loaded.entries[0].code,leaf);
+  assert.equal(loaded.manifestDigest,review.manifestDigest);assert.equal(f.calls.length,calls);
+  assert.deepEqual(await f.approve(review),lock);
+});
+
+test('ESM worlds, formats and namespaces have independent locks and cached source choices',async()=>{
+  const f=esmFixture(),page=await approveESM(f),controllerRequest=esmRequest(esmSource(),'esm-controller');
+  let report=await f.manager.inspect(controllerRequest,{});
+  assert.equal(report.world,'CONTROLLER');assert.equal(report.admission.nativeOptions.world,'CONTROLLER');
+  assert.equal(report.locks.length,0);assert.equal(report.requires[0].cacheChoices.length,0);
+  await assert.rejects(f.prepare(controllerRequest.sourceUtf8,{sourceFormat:'esm-controller',selections:[{order:0,assetSha256:sha(leaf)}]}),failCode('E_DEPENDENCY_REVIEW'));
+  const controller=await approveESM(f,controllerRequest);
+  assert.notEqual(page.lockId,controller.lockId);assert.equal(controller.world,'CONTROLLER');
+  assert.equal((await esmLoad(f,controller,controllerRequest)).world,'CONTROLLER');
+  await assert.rejects(esmLoad(f,page,controllerRequest),failCode('E_DEPENDENCY_LOCK_STALE'));
+  await assert.rejects(esmLoad(f,controller),failCode('E_DEPENDENCY_LOCK_STALE'));
+  await assert.rejects(f.managerForNamespace('tool:other').loadForCompilation({...esmRequest(),lockId:page.lockId},{}),failCode('E_DEPENDENCY_LOCK'));
+  report=await f.manager.inspect(esmRequest(),{});
+  assert.equal(report.selectedLockId,page.lockId);assert.deepEqual(report.requires[0].cacheChoices.map(row=>row.lockId),[page.lockId]);
+  await assert.rejects(f.load(page,source()),failCode('E_SOURCE_FORMAT'));
+  await assert.rejects(f.load(controller,source()),failCode('E_SOURCE_FORMAT'));
+  await assert.rejects(f.load(page,source(),{sourceFormat:'esm-page'}),failCode('E_SOURCE_FORMAT'));
+  await assert.rejects(f.manager.loadForCompilation({sourceUtf8:source(),lockId:page.lockId},{}),failCode('E_SOURCE_FORMAT'));
+});
+
+test('classic source/manifest identity is unchanged and ESM approval never overwrites classic source proof',async()=>{
+  const f=fixture(),classic=await f.approve(await f.prepare()),profile=await describeDependencyManifest({sourceUtf8:source()});
+  const canonical=value=>JSON.stringify(value,(_key,row)=>row && typeof row==='object' && !Array.isArray(row)
+    ? Object.fromEntries(Object.keys(row).sort().map(key=>[key,row[key]])) : row);
+  const oldManifest={lockVersion:1,entryFormat:'async-main',importSourceUrl:null,world:'USER_SCRIPT',
+    requires:[{order:0,raw:firstUrl,originalUrl:firstUrl,url:firstUrl,integrity:[]}]};
+  assert.deepEqual(profile.manifest,oldManifest);assert.equal(profile.manifestDigest,sha(canonical(oldManifest)));
+  const classicIndex=f.read('frameworkKV',keys.source(ns,firstUrl));f.routes.set(firstUrl,{bytes:leaf});
+  const esm=await approveESM(f);
+  assert.deepEqual(f.read('frameworkKV',keys.source(ns,firstUrl)),classicIndex);
+  assert.equal(f.read('frameworkKV',keys.source(ns,firstUrl,'esm-page')).choices[0].lockId,esm.lockId);
+  // Even a legacy shared index containing an ESM pointer cannot contaminate the classic picker.
+  f.change('frameworkKV',keys.source(ns,firstUrl),row=>({...row,choices:[{lockId:esm.lockId,order:0,sha256:sha(leaf)},...row.choices]}));
+  const report=await f.manager.inspect({sourceUtf8:source()},{});
+  assert.deepEqual(report.requires[0].cacheChoices.map(row=>row.lockId),[classic.lockId]);
+  assert.equal((await f.load(classic)).entries[0].code,first);
+  await assert.rejects(esmLoad(f,classic),failCode('E_DEPENDENCY_LOCK_STALE'));
+});
+
+test('current raw ESM source is reparsed on load; declaration and format changes fail but valid body edits reuse imports',async()=>{
+  const f=esmFixture(),lock=await approveESM(f),calls=f.calls.length;f.offline=true;
+  const edited=esmRequest(esmSource([firstUrl],'export default async function main(){return leaf0.value+1;}'));
+  assert.equal((await esmLoad(f,lock,edited)).entries[0].code,leaf);
+  await assert.rejects(esmLoad(f,lock,esmRequest(esmSource([secondUrl]))),failCode('E_DEPENDENCY_LOCK_STALE'));
+  await assert.rejects(esmLoad(f,lock,{...esmRequest(),entryFormat:'classic-userscript'}),failCode('E_ENTRY_FORMAT'));
+  await assert.rejects(esmLoad(f,lock,esmRequest(esmSource([firstUrl],'async function main(){return import("./x.js");}'))),failCode('E_ESM_DYNAMIC'));
+  await assert.rejects(esmLoad(f,lock,esmRequest(esmSource([firstUrl],'async function main(value){}'))),failCode('E_ESM_ENTRY'));
+  const request={...esmRequest(),lockId:lock.lockId};
+  f.afterAuth=()=>{request.sourceUtf8=esmSource([secondUrl]);request.sourceFormat='esm-controller';};
+  assert.equal((await f.manager.loadForCompilation(request,{})).world,'USER_SCRIPT','freeze the request before asynchronous host validation');
+  assert.equal(f.calls.length,calls);
+});
+
+test('offline ESM load rechecks source permission, asset/hash/lock, namespace and current owner without any fetch',async()=>{
+  for(const [mutate,code] of [
+    [f=>{f.granted=false;},'E_DEPENDENCY_PERMISSION'],
+    [f=>f.change('frameworkKV',keys.asset(sha(leaf)),()=>undefined),'E_DEPENDENCY_ASSET'],
+    [f=>f.change('frameworkKV',keys.asset(sha(leaf)),row=>{new Uint8Array(row.bytes)[0]^=1;return row;}),'E_DEPENDENCY_HASH'],
+    [(f,lock)=>f.change('frameworkKV',keys.lock(ns,lock.lockId),()=>undefined),'E_DEPENDENCY_LOCK'],
+    [(f,lock)=>f.change('frameworkKV',keys.lock(ns,lock.lockId),row=>({...row,world:'MAIN'})),'E_DEPENDENCY_LOCK'],
+    [f=>f.revoke(),'E_OWNER'],
+    [f=>{f.beforeTransaction=()=>{f.granted=false;};},'E_DEPENDENCY_PERMISSION'],
+    [f=>{f.beforeTransaction=()=>f.revoke();},'E_OWNER']
+  ]) {
+    const f=esmFixture(),lock=await approveESM(f),calls=f.calls.length;f.offline=true;mutate(f,lock);
+    await assert.rejects(esmLoad(f,lock),failCode(code));assert.equal(f.calls.length,calls);
+  }
+});
+
+test('ESM acquisition rejects UMD, graphs, TLA, import.meta, dynamic imports and code generation before storage',async()=>{
+  const mustache=await readFile('docs/framework/workstreams/evidence/network-javascript-20261012/browser-05/mustache-cached-source.js','utf8');
+  for(const [bytes,code] of [[mustache,'E_ESM_EXPORT'],['import "./x.js";export const value=1;','E_ESM_GRAPH'],
+    ['export * from "./x.js";','E_ESM_GRAPH'],['export const value=await 1;','E_ESM_TLA'],
+    ['export const value=import("./x.js");','E_ESM_DYNAMIC'],['export const value=import.meta.url;','E_ESM_META'],
+    ['export const value=Function("return 1")();','E_ESM_EVAL']]) {
+    const f=esmFixture();f.routes.set(firstUrl,{bytes});
+    await assert.rejects(approveESM(f),failCode(code));assert.equal(f.rows().length,0);
+  }
+  const f=esmFixture();f.afterFetch=()=>{f.elapsed=DEPENDENCY_LIMITS.prepareTimeoutMs+1;};
+  await assert.rejects(approveESM(f),failCode('E_DEPENDENCY_TIMEOUT'));assert.equal(f.rows().length,0);
+  const permission=esmFixture();permission.afterFetch=()=>{permission.granted=false;};
+  await assert.rejects(approveESM(permission),failCode('E_DEPENDENCY_PERMISSION'));assert.equal(permission.rows().length,0);
+  const owner=esmFixture();owner.afterFetch=()=>owner.revoke();
+  await assert.rejects(approveESM(owner),failCode('E_OWNER'));assert.equal(owner.rows().length,0);
+  const quota=esmFixture();quota.throwOnPut=row=>row.tag==='userscript-review-v1';
+  await assert.rejects(approveESM(quota),failCode('E_QUOTA'));assert.equal(quota.rows().length,0);
+});
+
+test('ESM lock keeps duplicate declaration identity while compilation returns unique URLs in first declaration order',async()=>{
+  const f=esmFixture();f.routes.set(secondUrl,{bytes:'export const second=7;'});
+  const request=esmRequest(esmSource([firstUrl,secondUrl,firstUrl]));
+  const lock=await approveESM(f,request);
+  assert.deepEqual(lock.entries.map(row=>row.url),[firstUrl,secondUrl,firstUrl]);
+  assert.equal(f.calls.length,2);
+  const loaded=await esmLoad(f,lock,request);
+  assert.deepEqual(loaded.entries.map(row=>[row.order,row.url]),[[0,firstUrl],[1,secondUrl]]);
+  await assert.rejects(esmLoad(f,lock),failCode('E_DEPENDENCY_LOCK_STALE'));
+  f.routes.set(firstUrl,{bytes:leaf+'\n// v2'});const newer=await approveESM(f);
+  await assert.rejects(f.prepare(esmSource([firstUrl,firstUrl]),{sourceFormat:'esm-page',
+    selections:[{order:0,assetSha256:sha(leaf)},{order:1,assetSha256:newer.entries[0].sha256}]}),failCode('E_DEPENDENCY_LOCK'));
+});
+
+test('ESM limits match the offline compiler and real D3 leaf bytes survive the complete review/load path',async()=>{
+  const f=esmFixture();f.routes.set(firstUrl,{bytes:leaf+'\n/*'+' '.repeat(128*1024)+'*/'});
+  await assert.rejects(approveESM(f),failCode('E_DEPENDENCY_LIMIT'));assert.equal(f.rows().length,0);
+  const huge=esmFixture();
+  await assert.rejects(approveESM(huge,esmRequest(esmSource()+' '.repeat(128*1024))),failCode('E_SOURCE'));
+  assert.equal(huge.calls.length,0);
+  const imports=Array.from({length:17},(_,i)=>`https://example.org/${i}.mjs`);
+  await assert.rejects(approveESM(huge,esmRequest(esmSource(imports))),failCode('E_DEPENDENCY_LIMIT'));
+  assert.equal(huge.calls.length,0);
+  const d3=fixture(),url='https://raw.githubusercontent.com/d3/d3-array/v3.2.4/src/max.js';
+  const cache='examples/programs/page-ui-toc-react-direct/.opendesk/remote-cache/691945a453633d9e204846af8ea4e299821b924f82b15eaf7906aba642979b1d.mjs';
+  const bytes=await readFile(cache,'utf8');d3.routes.set(url,{bytes});
+  const request=esmRequest(`import max from '${url}';import * as d3 from '${url}';export default async function main(){return max([1,3,2])+d3.default([4,2]);}`);
+  const lock=await approveESM(d3,request);d3.offline=true;
+  const loaded=await esmLoad(d3,lock,request);
+  assert.equal(loaded.entries[0].code,bytes);assert.equal(loaded.entries[0].sha256,'691945a453633d9e204846af8ea4e299821b924f82b15eaf7906aba642979b1d');
+  assert.equal(loaded.entries.length,1);assert.equal(lock.entries.length,2);
+  const compilerBytes=await readFile(PAGE_BROWSER_COMPILER.source);assert.equal(sha(compilerBytes),PAGE_BROWSER_COMPILER.sha256);
+  const context=vm.createContext({TextEncoder,TextDecoder});vm.runInContext(compilerBytes.toString('utf8'),context,{timeout:5000});
+  const built=compileStaticESM({...loaded,sourceUtf8:request.sourceUtf8,babel:context.Babel});
+  assert.equal(await new vm.Script('(async()=>{'+built.sourceUtf8+';return main();})()').runInNewContext({}),7);
 });
 
 

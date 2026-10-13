@@ -56,6 +56,20 @@ function fixture(overrides = {}) {
 const request=(extra={})=>({sourceUtf8:source,withJquery:false,target:{...target},...extra});
 const fails=async (promise,code)=>assert.rejects(promise,e=>e.code===code);
 
+test('internal verification guard blocks final dispatch and confirmed effects are never replayed',async()=>{
+  const blocked=fixture();
+  let checks=0;
+  await assert.rejects(blocked.preview.preview(request(),{},async()=>{
+    if(++checks===2)throw Object.assign(new Error('revoked'),{code:'E_DEPENDENCY_PERMISSION'});
+  }),{code:'E_DEPENDENCY_PERMISSION'});
+  assert.equal(blocked.calls.length,0);assert.equal(blocked.page.title,'Before');
+  const completed=fixture();checks=0;
+  await assert.rejects(completed.preview.preview(request(),{},async()=>{
+    if(++checks===3)throw Object.assign(new Error('cache missing after effect'),{code:'E_DEPENDENCY_ASSET'});
+  }),error=>error.code==='E_DEPENDENCY_ASSET'&&error.effectConfirmed===true);
+  assert.equal(completed.calls.length,1);assert.equal(completed.page.title,'Preview OK');
+});
+
 test('named async main() evaluates in exact USER_SCRIPT main document without durable Task or registration',async()=>{
   const f=fixture(),result=await f.preview.preview(request(),{documentId:'trusted-tool'});
   assert.equal(f.calls.length,1);

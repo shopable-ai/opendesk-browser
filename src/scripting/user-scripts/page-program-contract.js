@@ -1,7 +1,8 @@
 import {canonical,digest,digestUtf8,invariant} from '../../platform/protocol.js';
 import {parseUserScriptDependencies,assertUserScriptExecutable} from './dependency-metadata.js';
-import {describeDependencyManifest} from './dependency-manager.js';
+import {describeDependencyManifest} from './dependency-manifest.js';
 import {validatePageProgramRules,resolvePageProgramRules} from './page-program-rules.js';
+import {PAGE_BROWSER_COMPILER,STATIC_ESM_COMPILER_PROFILE} from '../../libs/page-frameworks/contract.js';
 export {validatePageProgramRules} from './page-program-rules.js';
 
 // A Page asset is distinct from opendesk.task.v1 (Controller). This is a source
@@ -26,7 +27,8 @@ function frozen(value) {
 }
 export function validatePageProgramManifest(value) {
   object(value,['format','runtimeKind','programId','revision','sourceHash','entryFormat','sourceProfile',
-    'dependencyLockId','dependencyManifestDigest','pageRules'],['dependencyScope']);
+    'dependencyLockId','dependencyManifestDigest','pageRules',
+    ...(Object.hasOwn(value??{},'compilation')?['compilation']:[])],['dependencyScope']);
   invariant(value.dependencyScope===undefined||value.dependencyScope==='program',
     'E_DEPENDENCY_PROGRAM','不支持的依赖审核范围');
   invariant(value.format === PAGE_PROGRAM_FORMAT && value.runtimeKind === PAGE_PROGRAM_RUNTIME,
@@ -45,6 +47,17 @@ export function validatePageProgramManifest(value) {
   invariant((value.dependencyLockId === null || LOCK_ID.test(value.dependencyLockId)) && SHA256.test(value.dependencyManifestDigest),
     'E_DEPENDENCY_LOCK','页面程序必须绑定依赖声明摘要和不可变锁');
   validatePageProgramRules(value.pageRules);
+  if(value.compilation){
+    object(value.compilation,['sourceFormat','authorSourceHash','dependencyLockId','dependencyManifestDigest',
+      'compilerVersion','compilerSha256','compilerProfile']);
+    const c=value.compilation;
+    invariant(c.sourceFormat==='esm-page'&&SHA256.test(c.authorSourceHash)&&
+      (c.dependencyLockId===null||LOCK_ID.test(c.dependencyLockId))&&SHA256.test(c.dependencyManifestDigest)&&
+      c.compilerVersion===PAGE_BROWSER_COMPILER.version&&c.compilerSha256===PAGE_BROWSER_COMPILER.sha256&&
+      canonical(c.compilerProfile)===canonical(STATIC_ESM_COMPILER_PROFILE)&&
+      value.entryFormat==='async-main'&&value.dependencyLockId===null,
+      'E_STATIC_ESM_IDENTITY','Page import 作者源码、依赖锁或固定编译器身份不完整');
+  }else invariant(!Object.hasOwn(value,'compilation'),'E_STATIC_ESM_IDENTITY','编译身份不能为空');
   canonical(value);
   return frozen(structuredClone(value));
 }

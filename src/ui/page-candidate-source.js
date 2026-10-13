@@ -8,7 +8,7 @@ const ID = /^[A-Za-z0-9][A-Za-z0-9_.-]{0,127}$/;
 const fail = (code,message) => {throw Object.assign(new Error(message),{code});};
 
 export function preparePageCandidateDraft({sourceUtf8,entryFormat,lockId,importSourceUrl = null,dependencyScope,
-  programId,revision,previewUrl,pageRules} = {}) {
+  programId,revision,previewUrl,pageRules,sourceFormat,compiledSourceUtf8,compilerVersion} = {}) {
   if(typeof sourceUtf8!=='string'||!sourceUtf8.trim())fail('E_SOURCE','请先在当前网页成功试运行非空 JavaScript');
   if(!['classic-userscript','async-main'].includes(entryFormat))fail('E_ENTRY_FORMAT','不支持的页面程序入口');
   if(typeof programId!=='string'||!ID.test(programId)||
@@ -26,10 +26,16 @@ export function preparePageCandidateDraft({sourceUtf8,entryFormat,lockId,importS
     ? validatePageProgramRules({matches:[match],excludeMatches:[],runAt:'document_idle',allFrames:false,world:'USER_SCRIPT'})
     : undefined;
   inspectPageSource(sourceUtf8);
+  if(sourceFormat!==undefined){
+    if(sourceFormat!=='esm-page'||entryFormat!=='async-main'||compilerVersion!=='7.29.9')
+      fail('E_STATIC_ESM_IDENTITY','需要当前 Page 离线编译产物');
+    inspectPageSource(compiledSourceUtf8);
+  }
   return Object.freeze({
-    request:Object.freeze({programId,revision,sourceUtf8,entryFormat,
-      importSourceUrl,lockId:lockId??null,
-       ...(dependencyScope==='program'?{dependencyScope:'program'}:{}),...(rules ? {pageRules:rules} : {})}),
+    request:Object.freeze({programId,revision,sourceUtf8:sourceFormat?compiledSourceUtf8:sourceUtf8,entryFormat,
+      ...(sourceFormat?{authorSourceUtf8:sourceUtf8,authorLockId:lockId??null,compilerVersion}:{}),
+      importSourceUrl,lockId:sourceFormat?null:lockId??null,
+      ...(dependencyScope==='program'?{dependencyScope:'program'}:{}),...(rules ? {pageRules:rules} : {})}),
     generatedMatch,match:generatedMatch?match:null,sourceChanged:false,
     summary:parsed.hasHeader
       ? (parsed.matches.length

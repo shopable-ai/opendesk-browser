@@ -105,6 +105,28 @@ function fixture(){
 }
 const fails=(work,code)=>assert.rejects(work,error=>error.code===code);
 
+test('installed Page name uses the original registry and survives disabled upgrade and restart',async()=>{
+  const f=fixture(),candidate=await f.prepare();
+  const installed=await f.service.installPageProgram({programId:'script',revision:1,
+    manifestHash:candidate.manifestHash,expectedInstalledManifestHash:null,title:' 表单助手 '},{});
+  assert.equal(installed.title,'表单助手');
+  const disabled=await f.service.setInstalledPageEnabled({programId:'script',manifestHash:installed.manifestHash,
+    enabled:false,expectedGeneration:installed.authorization.generation},{});
+  const next=await f.prepare('document-idle',{revision:2});
+  await f.service.installPageProgram({programId:'script',revision:2,manifestHash:next.manifestHash,
+    expectedInstalledManifestHash:installed.manifestHash,expectedGeneration:disabled.authorization.generation},{});
+  f.restart();await f.service.reconcile();
+  const state=await f.service.listPagePrograms({},{});
+  assert.equal(state.installed[0].title,'表单助手');
+  assert.equal(state.installed[0].enabled,false);
+  assert.equal(state.installed[0].nativeState,'disabled');
+  assert.equal(state.catalog.find(row=>row.revision===2).entryFormat,'async-main');
+  const registrations=f.registerCalls;
+  await assert.rejects(()=>f.service.installPageProgram({programId:'script',revision:2,
+    manifestHash:next.manifestHash,expectedInstalledManifestHash:next.manifestHash,title:' '.repeat(101)},{}),{code:'E_SCHEMA'});
+  assert.equal(f.registerCalls,registrations,'invalid presentation input cannot change native registration');
+});
+
 test('R24.1 installed boot refuses an excluded SPA URL even with the old document bootstrap marker',async()=>{
   const f=fixture();
   const sourceUtf8=['// ==UserScript==','// @match https://example.com/*',

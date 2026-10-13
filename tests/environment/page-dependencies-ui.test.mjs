@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {createPageDependencyResolver,inferPageEntryFormat,assertPageSourceReadyToRun} from '../../src/ui/page-dependencies.js';
 import {hasUnbuiltESM} from '../../src/ui/esm-source-detector.js';
+import {digestUtf8} from '../../src/platform/protocol.js';
 
 const tick=()=>new Promise(resolve=>setImmediate(resolve));
 const settle=async()=>{await tick();await tick();};
@@ -12,14 +13,14 @@ const secondUrl='https://second.example.net/helper.js';
 const withRequire=(url,body='async function main(){return document.title;}')=>
   '// ==UserScript==\n// @require '+url+'\n// ==/UserScript==\n'+body;
 const locked=[{lockId:'dep-lock-'+('a'.repeat(64)),approvedAt:1720000000000}];
-function fixture(sourceUtf8,{getLocks=()=>[],waitForInspect}={}) {
+function fixture(sourceUtf8,{getLocks=()=>[],waitForInspect,selectedLockId=null}={}) {
   let source=sourceUtf8,updates=0;
   const requests=[];
   const client={ready:Promise.resolve(),async request(method,input){
     requests.push({method,input:structuredClone(input)});
     assert.equal(method,'inspectPageDependencies');
     if(waitForInspect)await waitForInspect(input);
-    return {locks:structuredClone(getLocks(input))};
+    return {locks:structuredClone(getLocks(input)),selectedLockId};
   }};
   const resolver=createPageDependencyResolver({client,getSource:()=>source,onState:()=>updates++});
   return {resolver,requests,get updates(){return updates;},edit(value){source=value;resolver.refresh();}};
@@ -63,7 +64,7 @@ test('legacy @require without a prior lock stays blocked; no download, approval 
   assert.deepEqual(f.requests.map(row=>row.method),['inspectPageDependencies']);
   assert.deepEqual(f.requests[0].input,{sourceUtf8:source,entryFormat:'async-main'});
   assert.throws(()=>f.resolver.capture(),error=>error.code==='E_DEPENDENCY_UNLOCKED'&&
-    /第三方 JS 依赖|手动获取/.test(error.message));
+    /网络 JS|第三方 JS 依赖|手动获取|下载准备/.test(error.message));
 });
 
 test('one approved lock is reused across body edits but never across changed dependency declarations',async t=>{
@@ -158,6 +159,50 @@ test('classic source ignores comments, regex, strings and template text',()=>{
     assert.equal(hasUnbuiltESM(source),false,source);
     assert.doesNotThrow(()=>assertPageSourceReadyToRun(source),source);
   }
+});
+
+test('a reopened resolver uses the explicit persisted selection among approved versions',async t=>{
+  const second={lockId:'dep-lock-'+('b'.repeat(64))};
+  const f=fixture(withRequire(firstUrl),{getLocks:()=>[...locked,second],selectedLockId:second.lockId});
+  t.after(()=>f.resolver.dispose());await settle();
+  assert.equal(f.resolver.capture().lockId,second.lockId);
+});
+
+test('reopened Page import pins its saved lock instead of a newer global approval',async t=>{
+  let source='import value from "https://example.org/value.mjs"; export default async function main(){return value;}';
+  const manifestDigest='d'.repeat(64),oldId='dep-lock-'+('a'.repeat(64)),newId='dep-lock-'+('b'.repeat(64));
+  let rows=[oldId,newId],cacheAvailable=true;
+  const resolver=createPageDependencyResolver({getSource:()=>source,client:{ready:Promise.resolve(),async request(method,input){
+    if(method==='loadPageESMForCompilation'){
+      if(!cacheAvailable)throw Object.assign(new Error('saved lock cache missing'),{code:'E_DEPENDENCY_LOCK_STALE'});
+      return {sourceFormat:'esm-page',world:'USER_SCRIPT',manifestDigest,lockId:input.lockId,entries:[]};
+    }
+    return {sourceFormat:'esm-page',world:'USER_SCRIPT',manifestDigest,requires:[{url:'https://example.org/value.mjs'}],
+      selectedLockId:newId,locks:rows.map(lockId=>({lockId,sourceFormat:'esm-page',world:'USER_SCRIPT'}))};
+  }}});
+  t.after(()=>resolver.dispose());await settle();
+  assert.equal(resolver.capture({sourceFormat:'esm-page'}).lockId,newId);
+  const authorSourceHash=await digestUtf8(source);
+  await resolver.restore({sourceFormat:'esm-page',authorSourceHash,dependencyLockId:oldId,dependencyManifestDigest:manifestDigest});
+  assert.equal(resolver.capture({sourceFormat:'esm-page'}).lockId,oldId);
+  rows=[newId];await resolver.refresh({force:true});
+  assert.equal(resolver.capture({sourceFormat:'esm-page'}).lockId,oldId,'lock older than the bounded list is checked directly');
+  cacheAvailable=false;await resolver.refresh({force:true});
+  assert.throws(()=>resolver.capture({sourceFormat:'esm-page'}),{code:'E_DEPENDENCY_INSPECT'});
+  source+='\n// explicit edit';await resolver.refresh();
+  assert.equal(resolver.capture({sourceFormat:'esm-page'}).lockId,newId);
+});
+
+test('reopened Page import refuses a changed manifest even with its lock still listed',async t=>{
+  const source='export default async function main(){return 1;}';
+  const resolver=createPageDependencyResolver({getSource:()=>source,client:{ready:Promise.resolve(),async request(){
+    return {sourceFormat:'esm-page',world:'USER_SCRIPT',manifestDigest:'a'.repeat(64),requires:[],locks:[]};
+  }}});
+  t.after(()=>resolver.dispose());await settle();
+  await assert.rejects(resolver.restore({sourceFormat:'esm-page',authorSourceHash:'c'.repeat(64),dependencyLockId:null,
+    dependencyManifestDigest:'a'.repeat(64)}),{code:'E_SOURCE_HASH'});
+  await resolver.restore({sourceFormat:'esm-page',authorSourceHash:await digestUtf8(source),dependencyLockId:null,dependencyManifestDigest:'b'.repeat(64)});
+  assert.throws(()=>resolver.capture({sourceFormat:'esm-page'}),error=>error.code==='E_DEPENDENCY_INSPECT'&&/不符/.test(error.message));
 });
 
 test('program IDs partition inspected locks, preventing cross-program capture',async t=>{

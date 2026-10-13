@@ -4,6 +4,7 @@ import {base64ToBytes, decodeValue} from '../platform/page-port/codec.js';
 import {hashArtifactBytes} from '../platform/downloads/blob-lifecycle.js';
 import {BUDGETS, invariant, digestUtf8} from '../platform/protocol.js';
 import {createPageDependencyResolver, dependencyMessage} from './page-dependencies.js';
+import {createPageDependencyReview} from './page-dependency-review.js';
 import {createPageDependencyInstaller} from './page-dependency-install.js';
 import {preparePageCandidateDraft} from './page-candidate-source.js';
 import {parseUserScriptDependencies} from '../scripting/user-scripts/dependency-metadata.js';
@@ -17,6 +18,7 @@ import {createControllerESMSavedSource,readControllerESMAuthorSource,
 import {inspectPageSource,validatePageSource,PAGE_BUNDLE_PREFIX} from '../scripting/user-scripts/page-bundle.js';
 import {PAGE_PREVIEW_RECEIPT_FORMAT} from '../scripting/user-scripts/execution-source.js';
 import {createBrowserPageComponentPreparer} from './page-component-preparer.js';
+import {createStaticESMPreparer} from './static-esm-preparer.js';
 import {createLocalProjectView} from './local-project.js';
 import {createLocalInstallUI} from './local-project-install-ui.js';
 import {validateTaskParams} from '../platform/tasks/contract.js';
@@ -40,6 +42,7 @@ function printable(value, depth = 0) {
 
 export function createScriptEditor({client, currentPageTarget, development=false, api = globalThis.chrome, document: doc = globalThis.document,
   hostFactory = createRunHost,componentPreparerFactory=createBrowserPageComponentPreparer,
+  staticESMPreparerFactory=createStaticESMPreparer,
   browserCompilerEnabled=typeof __OPENDESK_BROWSER_COMPILER_ENABLED__==='undefined'||
     __OPENDESK_BROWSER_COMPILER_ENABLED__!==false}) {
   const host = hostFactory({api, client, document: doc, templateModuleFactory: null});
@@ -95,6 +98,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
   };
   const componentDrafts={javascript:'',react:componentPresets.react,vue:componentPresets.vue};
   const browserPreparer=componentPreparerFactory({api});
+  const staticESMPreparer=staticESMPreparerFactory({api});
   const browserBinding='browser-v1-'+crypto.randomUUID().replaceAll('-','').slice(0,24);
   function componentMessage(state,message){
     if(!componentStatus)return;
@@ -126,9 +130,9 @@ export function createScriptEditor({client, currentPageTarget, development=false
     selectionVersion = 0, running = false, disposed = false;
   const listeners = [];
   let browserListenersAttached = false;
-  let dependencyResolver,dependencyInstaller;
+  let dependencyResolver,dependencyReview,dependencyInstaller;
   let localProject,localAdapter,localPollTimer,finishLocalPoll,localPageResult=null;
-  const localInstaller=createLocalInstallUI({client,api,doc,currentPageTarget,getProject:()=>localProject,onState:()=>update()});
+  const localInstaller=createLocalInstallUI({client,api,doc,currentPageTarget,getProject:()=>localProject,retireManagedPreview:retireLocalPreviewForInstall,onState:()=>update()});
   const listen = (element, event, listener) => {
     element.addEventListener(event, listener); listeners.push({element, event, listener});
   };
@@ -243,6 +247,21 @@ export function createScriptEditor({client, currentPageTarget, development=false
       (browserManagedPreview.target.tabId!==currentPageState.tabId||
        browserManagedPreview.target.documentId!==currentPageState.documentId);
   }
+  async function retireLocalPreviewForInstall({source,binding,target,previewId}) {
+    const owned=ownedManagedPreview;
+    if(!owned||owned.previewId!==previewId||owned.sourceHash!==source.sourceHash||
+      owned.bindingId!==binding.bindingId||['tabId','windowId','documentId','url'].some(key=>owned.target[key]!==target[key]))
+      throw {code:'E_DEV_CONFLICT',message:'本次验证的原受管预览所有权已变化'};
+    stopping=true;update();
+    try {
+      const result=await localAdapter.handle({method:'page.dispose',requestId:crypto.randomUUID(),params:{previewId:owned.previewId}});
+      if(result?.previewId!==owned.previewId||result.sourceHash!==owned.sourceHash||result.state!=='preview-retired'||
+        result.receipt?.ok!==true||result.receipt.scope!=='managed-ui-only')
+        throw {code:'E_EFFECT_UNKNOWN',message:'原受管预览清理回执未确认'};
+      if(ownedManagedPreview!==owned)throw {code:'E_DEV_CONFLICT',message:'清理期间预览所有权变化'};
+      ownedManagedPreview=null;return result;
+    } finally {stopping=false;update();}
+  }
   function canStopManaged(){
     if(browserManagedPreview&&!browserEffectUnknown&&!localProject?.active()&&!running&&!stopping&&!previewBusy&&!host.currentRun&&
       currentPageState?.status==='available'&&currentPageState.documentId===browserManagedPreview.target.documentId&&
@@ -250,25 +269,31 @@ export function createScriptEditor({client, currentPageTarget, development=false
     if(!ownedManagedPreview||!localProject?.active()||running||previewBusy||host.currentRun||!projection?.slotAvailable)return false;
     return localProject.selectedBindingId()===ownedManagedPreview.bindingId&&currentPageState?.status==='available'&&currentPageState.documentId===ownedManagedPreview.target.documentId&&currentPageState.tabId===ownedManagedPreview.target.tabId;
   }
-  function localPageResultIsCurrent() {
-    return !!localPageResult&&!!localProject?.active()&&!!localProject.connected()&&
+  function localPageResultIsCurrent({allowResolving=false}={}) {
+    return !!localPageResult&&!!localProject?.active()&&
       localPageResult.bindingId===localProject.selectedBindingId()&&
-      localPageResult.providerEpoch===localProject.providerEpoch()&&
-      currentPageState?.status==='available'&&
-      localPageResult.tabId===currentPageState.tabId&&
-      localPageResult.documentId===currentPageState.documentId&&
-      localPageResult.url===currentPageState.url;
+      (localPageResult.kind==='stop'||
+       localPageResult.providerEpoch===localProject.providerEpoch()&&localProject.connected())&&
+      (allowResolving&&currentPageState?.status==='resolving'||
+       currentPageState?.status==='available'&&
+       localPageResult.tabId===currentPageState.tabId&&
+       localPageResult.documentId===currentPageState.documentId&&
+       localPageResult.url===currentPageState.url);
   }
   function update() {
     if (disposed) return;
     componentRemote?.update();
+    dependencyReview?.update();
     localInstaller.update();
-    if(localPageResult&&!localPageResultIsCurrent()){
+    // A target refresh is pending evidence, not a confirmed document change.
+    // Keep the original result, but do not expose it as current until resolved.
+    if(localPageResult&&!localPageResultIsCurrent({allowResolving:true})){
       localPageResult=null;
       output.textContent='上次本地 Page 结果对应的项目、连接或网页已变化；请重新运行。';
       resultKind.textContent='上次结果已失效';copyResult.disabled=true;
       display('unknown','上次本地 Page 结果已失效，不能用于验证或安装当前源码');
     }
+    if(localPageResult)copyResult.disabled=!localPageResultIsCurrent();
     persistDraft();
     renderRevisionState();
     // Describe the selected official source format instead of telling React /
@@ -287,7 +312,9 @@ export function createScriptEditor({client, currentPageTarget, development=false
       (browserCompilerEnabled?'保存草稿不会运行网页':
         '标准版支持直接运行 JavaScript。JSX/Vue SFC 请使用本地 opendesk browser dev . 或 Developer Edition。'):
       '组件草稿保留在当前窗口会话；只有明确点击运行才操作网页，安装须另外授权。';
-    find('script-save').disabled = editingBusy||isComponentDraft()&&!canPrepareComponentCandidate(); find('script-load').disabled = editingBusy;
+    const pageESMSave=!isComponentDraft()&&hasUnbuiltESM(programSource.source())&&dependencyResolver?.sourceFormat==='esm-page';
+    find('script-save').disabled = editingBusy||(isComponentDraft()&&!canPrepareComponentCandidate())||(pageESMSave&&!canSavePagePreview()); find('script-load').disabled = editingBusy;
+    find('script-save').title=pageESMSave?'试运行后保存作者源码、批准依赖锁与固定编译产物':'';
     find('script-list-refresh').disabled = editingBusy; find('script-list-load').disabled = editingBusy || !scriptList.value;
     find('script-delete').disabled = editingBusy || !revisions.has(scriptId());
     find('script-run').disabled = stopping || editingBusy || previewBusy || running || !projection?.slotAvailable || !!host.currentRun ||
@@ -300,7 +327,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
     if(componentSelector)componentSelector.disabled=!!localProject?.active()||editingBusy||previewBusy||running||stopping||componentRemote?.busy||!!programSource.snapshot();
     if(componentStatus)componentStatus.hidden=componentMode==='javascript'&&!componentStatus.textContent;
     find('page-preview-run').disabled = stopping||browserEffectUnknown||browserManagedPreview?.recoveredOnly||otherTabOwnsBrowserUI()||previewBusy||componentRemote?.busy||dependencyInstaller?.busy ||
-      (componentMode==='javascript'&&(dependencyResolver?.busy||!dependencyInstaller?.readyForRun))||editingBusy||running||!!host.currentRun||
+      (componentMode==='javascript'&&(dependencyResolver?.busy||(!dependencyResolver?.sourceFormat&&!dependencyInstaller?.readyForRun)))||editingBusy||running||!!host.currentRun||
       !programSource.source().trim()||programSource.kind()==='controller'||
       (componentMode!=='javascript'&&!componentRemote?.readyForRun)||
       currentPageState?.status!=='available';
@@ -308,6 +335,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
     if(isComponentDraft())find('script-run').disabled=find('page-preview-run').disabled||!projection?.slotAvailable;
     const pageCandidateButton=find('page-candidate-save');
     if(pageCandidateButton)pageCandidateButton.disabled=!canSavePagePreview()&&!canPrepareComponentCandidate();
+    if(pageCandidateButton)pageCandidateButton.title='';
     find('script-owned-url').disabled = mode.value !== 'owned';
     tab.disabled = mode.value !== 'borrowed'; frame.disabled = mode.value !== 'borrowed' || !documents.size;
     find('script-download').disabled = downloading || !downloadable.has(resultSelect.value);
@@ -479,6 +507,8 @@ export function createScriptEditor({client, currentPageTarget, development=false
   async function save() {
     const id=scriptId(),source=programSource.source(),esm=hasUnbuiltESM(source),
       classic=parseControllerClassicDependencies(source).length>0;
+    if(!isComponentDraft()&&esm&&dependencyResolver.sourceFormat==='esm-page')
+      throw {code:'E_STATIC_ESM_SAVE',message:'静态 import 的 Page 源码与编译产物保存合同尚未建立，请先试运行并保存 Page 候选'};
     if(esm&&classic)throw {code:'E_CONTROLLER_CLASSIC_FORMAT',message:'Controller 不能同时使用 ESM import 与 Classic 声明'};
     const previous=revisions.get(id)||0,ticket=++browserPrepareGeneration;
     if(esm||classic){editingBusy=true;browserPreparing=true;update();}
@@ -503,7 +533,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
       if(disposed)return;
       if(scriptId()===id)remember(row);
       await refreshScripts({silent:true});
-      display('saved',`${id} · r${row.revision} 已持久保存固定${esm?' ESM ':classic?' Classic ':''}版本；保存不会执行，下一次运行依然使用当前草稿。`);
+      display('saved',`${id} · r${row.revision} 已持久保存固定${esm?' ESM ':classic?' Classic ':''}版本；${host.currentRun?'当前任务继续使用启动时的版本':'保存不会运行脚本'}`);
     }finally{if(esm||classic){browserPreparing=false;editingBusy=false;update();}}
   }
   async function load() {
@@ -548,7 +578,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
     if (disposed) return;
     projection = snapshot;
     // Controller history must not overwrite the current local Page result.
-    if(localPageResultIsCurrent()){update();return;}
+    if(localPageResultIsCurrent({allowResolving:true})){update();return;}
     const previous = resultSelect.value;
     downloadable.clear(); resultSelect.replaceChildren(new Option('请选择要下载的结果', ''));
     // Defense in depth: even a malformed/stale host projection cannot put a
@@ -682,7 +712,8 @@ export function createScriptEditor({client, currentPageTarget, development=false
       if(!projection?.slotAvailable)return;
       previewPage(event);return;
     }
-    let chosen, params, permission, sourceUtf8, esm, classic;
+    let chosen, params, permission, sourceUtf8,esmSource,esm,classic;
+    const runMode=mode.value,runKind=programSource.kind();
     try {
       // Freeze exact editor bytes, params and target inside the trusted click
       // before any asynchronous permission check or other work.
@@ -692,13 +723,14 @@ export function createScriptEditor({client, currentPageTarget, development=false
       if (!sourceUtf8.trim()) throw {code:'E_SCHEMA',message:'请先输入草稿源码'};
       if (parseUserScriptDependencies(sourceUtf8).hasHeader) throw {code:'E_PROGRAM_KIND',
         message:'当前源码含兼容性脚本声明，请使用“网页 JavaScript 试运行”；自动化任务运行不解析旧格式声明。'};
+      if(hasUnbuiltESM(sourceUtf8))esmSource=dependencyResolver.capture({sourceFormat:'esm-controller'});
       esm=hasUnbuiltESM(sourceUtf8);
       classic=parseControllerClassicDependencies(sourceUtf8).length>0;
       if(esm&&classic)throw {code:'E_CONTROLLER_CLASSIC_FORMAT',message:'Controller 不能同时使用 ESM import 与 Classic 声明'};
       permission=Promise.all([
         requireChromePermissions({api,request:{origins:[permissionPattern(chosen.url)],
           ...(find('script-allow-cookies').checked?{permissions:['cookies']}:{} )}}),
-        esm&&browserCompilerEnabled?
+        esm&&!esmSource&&browserCompilerEnabled?
           componentRemote.confirmRun(event,controllerESMInput(sourceUtf8,scriptId())):Promise.resolve(true),
         classic?confirmControllerClassicRun(event,sourceUtf8):Promise.resolve(true)
       ]);
@@ -720,7 +752,14 @@ export function createScriptEditor({client, currentPageTarget, development=false
       // Authority still receives the exact `sourceUtf8` that will execute, via
       // the same draft admission, immutable revision hash and original RunHost.
       const authorSourceUtf8=sourceUtf8;
-      if(esm){
+      if(esmSource) {
+        const built=await dependencyResolver.compile(esmSource);
+        if(disposed||programSource.source()!==esmSource.sourceUtf8||programSource.kind()!==runKind||
+          componentMode!=='javascript'||localProject?.active()||mode.value!==runMode||version!==selectionVersion)
+          throw {code:'E_STATIC_ESM_STALE',message:'编译期间源码、执行模式或目标已变化；未运行旧代码'};
+        sourceUtf8=built.sourceUtf8;
+      }
+      if(esm&&!esmSource){
         const check=()=>{if(disposed||ticket!==browserPrepareGeneration||programSource.source()!==authorSourceUtf8||scriptId()!==id)
           throw {code:'E_CONTROLLER_ESM_STALE',message:'源码已变化或准备已取消；不会启动过期代码'};};
         const prepared=await prepareControllerESM(authorSourceUtf8,id,check);check();
@@ -738,6 +777,10 @@ export function createScriptEditor({client, currentPageTarget, development=false
         sourceUtf8=prepared.sourceUtf8;
         browserPreparing=false;update();
       }
+      if(esmSource&&(disposed||programSource.source()!==esmSource.sourceUtf8||programSource.kind()!==runKind||
+        componentMode!=='javascript'||localProject?.active()||mode.value!==runMode||version!==selectionVersion||
+        dependencyResolver.capture({sourceFormat:'esm-controller'}).version!==esmSource.version))
+        throw {code:'E_STATIC_ESM_STALE',message:'最终核对时源码、运行世界、批准链或目标已变化'};
       const claim = await host.start({source:{kind:'draft',sourceUtf8},
         params, target:chosen.target, deadlineAt:Date.now() + 30000});
       admittedRunId = claim.runId;
@@ -806,7 +849,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
         await currentPageTarget.revalidate(captured);localProject.assertCaptured(binding);
         localPageResult={bindingId:binding.bindingId,providerEpoch:binding.providerEpoch,
           tabId:captured.tabId,documentId:captured.documentId,url:captured.url,sourceHash:source.sourceHash};
-        localInstaller.succeeded({source,binding,target:captured});
+        localInstaller.succeeded({source,binding,target:captured,previewId:claim.previewId});
         display('completed',source.managedUI?'本地 Page 预览已完成；再次运行会先清理旧受管 UI。':'本地 Page 预览已完成；网页 UI 由项目管理。');
         const valueText=result.result?.resultText ?? 'undefined';
         find('page-preview-result').textContent=valueText;
@@ -864,10 +907,11 @@ export function createScriptEditor({client, currentPageTarget, development=false
   function previewPage(event) {
     if (!event.isTrusted || disposed || stopping || previewBusy ||
       componentRemote?.busy || (componentMode==='javascript'&&dependencyResolver?.busy) ||
-      (componentMode==='javascript'&&!dependencyInstaller?.readyForRun) ||
+      (componentMode==='javascript'&&(!dependencyResolver?.sourceFormat&&!dependencyInstaller?.readyForRun)) ||
       editingBusy || running || host.currentRun) return;
     if(localProject?.active())return;
     let captured, permission, pageSource,componentSnapshot,frozenComponent,prepareTicket;
+    const runMode=mode.value,runKind=programSource.kind(),version=selectionVersion;
     const displayPreview=(state,message,result)=>{
       if(disposed)return;
       const node=find('page-preview-status');node.dataset.state=state;node.textContent=message;
@@ -903,7 +947,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
       // Website permission remains independently read-only/Authority gated.
       permission=Promise.all([
         requireChromePermissions({api,request:{origins:[permissionPattern(captured.url)]}}),
-        componentMode==='javascript'?dependencyInstaller.confirmRun(event):
+        componentMode==='javascript'&&!dependencyResolver.sourceFormat?dependencyInstaller.confirmRun(event):
           componentSnapshot?componentRemote.confirmRun(event,{
             componentSource:componentSnapshot.source,framework:componentSnapshot.framework}):Promise.resolve(true)
       ]);
@@ -988,14 +1032,45 @@ export function createScriptEditor({client, currentPageTarget, development=false
         throw {code:'E_DEPENDENCY_STALE',message:'网页草稿已变化或准备取消；不会执行旧代码'};};
       pageSource=await dependencyResolver.resolveForRun(pageSource,checkPage);
       await currentPageTarget.revalidate(captured);checkPage();
-      const result=await client.request('previewPageScript',{...pageSource,
-        target:{tabId:captured.tabId,frameId:0,documentId:captured.documentId,expectedUrl:captured.url,expectedWindowId:captured.windowId}});
-      lastPagePreview={sourceUtf8:pageSource.sourceUtf8,entryFormat:pageSource.entryFormat,lockId:pageSource.lockId,
+      let executable=pageSource;
+      if(pageSource.sourceFormat) {
+        const built=await dependencyResolver.compile(pageSource);
+        if(disposed||programSource.source()!==pageSource.sourceUtf8||programSource.kind()!==runKind||
+          mode.value!==runMode||selectionVersion!==version||
+          componentMode!=='javascript'||localProject?.active())
+          throw {code:'E_STATIC_ESM_STALE',message:'离线编译期间作者源码或运行模式已变化'};
+        await currentPageTarget.revalidate(captured);
+        if(disposed||programSource.source()!==pageSource.sourceUtf8||programSource.kind()!==runKind||
+          mode.value!==runMode||selectionVersion!==version||
+          componentMode!=='javascript'||localProject?.active()||
+          dependencyResolver.capture({sourceFormat:'esm-page'}).version!==pageSource.version)
+          throw {code:'E_STATIC_ESM_STALE',message:'最终核对时作者源码、运行世界或批准锁已变化'};
+        executable={sourceUtf8:built.sourceUtf8,entryFormat:'async-main',lockId:null,sourceHash:built.sourceHash};
+        pageSource={...pageSource,compiledSourceUtf8:built.sourceUtf8,compilerVersion:built.compilerVersion};
+      }
+      const {sourceHash:compiledHash,...previewSource}=executable;
+      const result=await client.request('previewPageScript',{
+        ...previewSource,
+        ...(pageSource.programId!==undefined?{programId:pageSource.programId}:{}),
+        ...(pageSource.sourceFormat?{authorSourceUtf8:pageSource.sourceUtf8,authorLockId:pageSource.lockId,
+          authorManifestDigest:pageSource.manifestDigest,compilerVersion:pageSource.compilerVersion}:{}),
+        target:{tabId:captured.tabId,frameId:0,documentId:captured.documentId,
+          expectedUrl:captured.url,expectedWindowId:captured.windowId}});
+      if(pageSource.sourceFormat&&(result.state!=='preview-evaluated'||result.sourceHash!==compiledHash))
+        throw {code:'E_STATIC_ESM_OUTPUT',message:'网页回执不属于本次固定编译产物'};
+      lastPagePreview={sourceUtf8:pageSource.sourceUtf8,entryFormat:pageSource.entryFormat,
+        lockId:pageSource.lockId,
         ...(pageSource.programId!==undefined?{programId:pageSource.programId,dependencyScope:'program'}:{}),
         importSourceUrl:pageSource.importSourceUrl??null,previewUrl:captured.url,documentId:captured.documentId,
-        tabId:captured.tabId,target:captured,sourceHash:result.sourceHash};
-      displayPreview('completed','当前精确文档试运行完成；不是正式 Task 结果。可保存待验证 Page 候选；不会自动安装。',result.resultText ?? 'undefined');
-      pageTechnicalPanel.hidden=false;pageTechnicalPanel.open=false;pageTechnical.textContent=JSON.stringify(result,null,2);
+        tabId:captured.tabId,target:captured,sourceHash:result.sourceHash,
+        ...(pageSource.sourceFormat?{sourceFormat:pageSource.sourceFormat,
+          compiledSourceUtf8:pageSource.compiledSourceUtf8,compilerVersion:pageSource.compilerVersion}:{})};
+      displayPreview('completed',pageSource.sourceFormat?
+        '当前精确文档试运行完成；可保存作者 import 源码、批准依赖锁与固定编译产物。保存不会自动安装。':
+        '当前精确文档试运行完成；不是正式 Task 结果。可保存待验证 Page 候选；不会自动安装。',
+        result.resultText ?? 'undefined');
+      pageTechnicalPanel.hidden=false;pageTechnicalPanel.open=false;
+        pageTechnical.textContent=JSON.stringify(result,null,2);
     })().catch(error=>{
       const recovered=error.previewRecovered?'；已读取原完成回执，可以停止原组件。未重放运行。':'';
       displayPreview('error',(error.code||'E_PAGE_SCRIPT_EXECUTION')+'：'+(error.message||error)+recovered,'');
@@ -1045,6 +1120,8 @@ export function createScriptEditor({client, currentPageTarget, development=false
   async function savePageCandidate() {
     if(editingBusy||disposed||previewBusy||!lastPagePreview||localProject?.active())return;
     const previous=lastPagePreview,revisionText=find('script-revision').value.trim();
+    if(!isComponentDraft()&&hasUnbuiltESM(programSource.source())&&previous.sourceFormat!=='esm-page')
+      throw {code:'E_STATIC_ESM_IDENTITY',message:'请先准备并试运行当前作者 import 源码'};
     const programId=scriptId(),revision=revisionText?Number(revisionText):1;
     if(!previewMatchesEditor(previous))
       throw {code:'E_REVISION',message:'源码已经修改，请重新试运行后保存'};
@@ -1067,7 +1144,13 @@ export function createScriptEditor({client, currentPageTarget, development=false
     }finally{editingBusy=false;update();}
   }
   dependencyResolver=createPageDependencyResolver({client,getSource:()=>programSource.source(),
-    getProgramId:()=>scriptId(),onState:update});
+    preparer:staticESMPreparer,getProgramId:()=>scriptId(),onState:update});
+
+  dependencyReview=createPageDependencyReview({client,resolver:dependencyResolver,api,document:doc,
+    getSource:()=>programSource.source(),onState:update,
+    isAvailable:()=>componentMode==='javascript'&&!localProject?.active()&&!programSource.snapshot()&&
+      !editingBusy&&!running&&!previewBusy&&!stopping&&!host.currentRun});
+
   dependencyInstaller=createPageDependencyInstaller({client,api,document:doc,resolver:dependencyResolver,
     getSource:()=>programSource.source(),getProgramId:()=>scriptId(),
     isVisible:()=>componentMode==='javascript'&&!localProject?.active()&&programSource.kind()!=='controller',
@@ -1088,8 +1171,11 @@ export function createScriptEditor({client, currentPageTarget, development=false
     const saved=await client.request('getPageCandidate',{programId:row.programId,revision:row.revision});
     if(disposed||source!==programSource.source()||activeId!==scriptId()||revisionText!==find('script-revision').value)
       throw {code:'E_REVISION',message:'加载期间编辑器已变化，请重新核对'};
-    programSource.replaceSource(saved.sourceUtf8);find('script-id').value=row.programId;
-    find('script-revision').value=String(row.revision);dependencyResolver.refresh();lastPagePreview=null;update();
+    programSource.replaceSource(saved.authorSourceUtf8??saved.sourceUtf8);find('script-id').value=row.programId;
+    find('script-revision').value=String(row.revision);lastPagePreview=null;
+    if(saved.manifest?.compilation)await dependencyResolver.restore(saved.manifest.compilation);
+    else dependencyResolver.refresh();
+    update();
   }});
   const onNavigation = details => {
     if (String(details.tabId) === tab.value) clearDocuments();
@@ -1117,7 +1203,8 @@ export function createScriptEditor({client, currentPageTarget, development=false
   };
   listen(find('script-save'),'click',event=>{
     if(!event.isTrusted)return;
-    Promise.resolve().then(()=>localProject?.active()?localInstaller.prepare():isComponentDraft()?savePreparedComponent():edit(save)()).catch(fail);
+    Promise.resolve().then(()=>localProject?.active()?localInstaller.prepare():isComponentDraft()?savePreparedComponent():
+      hasUnbuiltESM(programSource.source())&&dependencyResolver.sourceFormat==='esm-page'?savePageCandidate():edit(save)()).catch(fail);
   }); on('script-load','click',edit(load)); on('script-list-load','click',edit(loadLatestFromList));
   on('script-read','click',()=>read('')); on('script-delete','click',edit(remove)); on('script-list-refresh','click',()=>refreshScripts().catch(fail));
   on('script-read-run','click',()=>read());
@@ -1227,8 +1314,21 @@ export function createScriptEditor({client, currentPageTarget, development=false
       const owned=ownedManagedPreview;stopping=true;update();display('stopping','正在清理原网页中的受管资源…');
       try{
         const result=await localAdapter.handle({method:'page.dispose',requestId:crypto.randomUUID(),params:{previewId:owned.previewId}});
-        if(result.sourceHash!==owned.sourceHash)throw {code:'E_EFFECT_UNKNOWN',message:'受管清理身份不一致'};
-        if(ownedManagedPreview===owned)ownedManagedPreview=null;display('completed','受管 UI 已清理；网页业务效果不会回滚。',result);
+        if(result?.previewId!==owned.previewId||result.sourceHash!==owned.sourceHash||
+          result.state!=='preview-retired'||result.receipt?.ok!==true||result.receipt.scope!=='managed-ui-only')
+          throw {code:'E_EFFECT_UNKNOWN',message:'受管清理回执未确认'};
+        if(ownedManagedPreview===owned)ownedManagedPreview=null;
+        localInstaller.reset();
+        // Cleanup is a receipt for the original preview, including a failed
+        // main. It remains meaningful if its source Provider has gone offline.
+        localPageResult={kind:'stop',bindingId:owned.bindingId,previewId:owned.previewId,
+          sourceHash:owned.sourceHash,tabId:owned.target.tabId,
+          documentId:owned.target.documentId,url:owned.target.url};
+        output.textContent=JSON.stringify(result,null,2);resultKind.textContent='本地 Page · 停止回执';
+        copyResult.disabled=false;find('developer-results-panel').open=true;
+        pageTechnicalPanel.hidden=false;pageTechnicalPanel.open=false;
+        pageTechnical.textContent=JSON.stringify({stop:result},null,2);
+        display('completed','受管 UI 已清理；网页业务效果不会回滚。');
       }finally{stopping=false;update();}
       return;
     }
@@ -1339,7 +1439,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
   }, resourceSnapshot: () => ({...host.resourceSnapshot(), editor:{
     timers:[...downloads.values(),...preparations.values()].filter(entry=>entry.timer != null).length+Number(localPollTimer!=null),
     pending:Number(downloading)+preparations.size, subscriptions:listeners.length+2*Number(browserListenersAttached)+Number(Boolean(unsubscribeCurrentPage))+(localProject?.resourceSnapshot().subscriptions||0)}}), dispose() {
-    if (disposed) return; disposed = true; controllerClassicConsent.dispose(); componentRemote.dispose(); browserPrepareGeneration++; browserPreparer.dispose(); scriptsCheckSequence++; localInstaller.dispose();localProject?.dispose();pageLibrary.dispose();clearTimeout(localPollTimer);finishLocalPoll?.();dependencyResolver.dispose();dependencyInstaller.dispose(); unsubscribeConnection?.(); unsubscribeCurrentPage?.(); unsubscribeRun();
+    if (disposed) return; disposed = true; controllerClassicConsent.dispose(); componentRemote.dispose(); browserPrepareGeneration++; browserPreparer.dispose();staticESMPreparer.dispose(); scriptsCheckSequence++; localInstaller.dispose();localProject?.dispose();pageLibrary.dispose();clearTimeout(localPollTimer);finishLocalPoll?.();dependencyReview.dispose();dependencyResolver.dispose();dependencyInstaller.dispose(); unsubscribeConnection?.(); unsubscribeCurrentPage?.(); unsubscribeRun();
     api.webNavigation.onCommitted.removeListener(onNavigation); api.tabs.onRemoved.removeListener(onRemoved); host.dispose();
     browserListenersAttached = false;
     for (const {element, event, listener} of listeners) element.removeEventListener(event, listener);

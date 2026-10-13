@@ -9,6 +9,7 @@ import {createRunHost} from '../../src/run-host.js';
 import {encodeValue} from '../../src/platform/page-port/codec.js';
 import {encodeValue as controlEncode} from '../../src/framework/control/value.js';
 import {PAGE_BROWSER_UI_HELPER} from '../../src/libs/page-frameworks/contract.js';
+import {parseStaticESMSource,STATIC_ESM_WORLDS} from '../../src/scripting/user-scripts/static-esm.js';
 
 // Component fixtures only: no Chrome gesture, native effect or retirement proof.
 const deferred=()=>{let resolve;const promise=new Promise(done=>{resolve=done;});return {promise,resolve};};
@@ -27,9 +28,11 @@ globalThis.Option=class extends Element {constructor(text,value){super();this.te
 const event=()=>{const e=new Element();return {addListener:fn=>e.addEventListener('event',fn),removeListener:fn=>e.removeEventListener('event',fn),emit:(...args)=>{for(const fn of e.listeners.get('event')||[])fn(...args);}};};
 const html=await readFile('src/ui/tool.html','utf8');
 async function fixture(persisted={scripts:[],runs:[],results:[]}, draftStorage,
-  {contextTabId,componentPreparerFactory,wrapTarget}={}) {
+  {contextTabId,componentPreparerFactory,staticESMPreparerFactory,wrapTarget}={}) {
   const nodes=new Map([...html.matchAll(/id="([^"]+)"/g)].map(([,id])=>[id,new Element()]));
-  const find=id=>nodes.get(id), view=new Element(), doc={getElementById:find,defaultView:view,createElement:()=>new Element()};
+  const walk=(node,id)=>node.id===id?node:node.children.map(child=>walk(child,id)).find(Boolean);
+  const find=id=>nodes.get(id)||[...nodes.values()].map(node=>walk(node,id)).find(Boolean);
+  const view=new Element(), doc={getElementById:find,defaultView:view,createElement:()=>new Element()};
   find('script-id').value='my-script';find('script-source').value='return params.value;';find('script-params').value='{"value":1}';find('script-target-mode').value='current';
   const traces=[], permissions=[], permissionChecks=[], starts=[], executions=[], snapshots=[], commits=[], previews=[], dependencyInspections=[], terminal=deferred();
   let activeTab=11, permission=Promise.resolve(true), saveGate, loadGate, documentVersion=0;
@@ -85,6 +88,7 @@ async function fixture(persisted={scripts:[],runs:[],results:[]}, draftStorage,
   const target=createCurrentPageTarget({api});await target.ready;
   const testedTarget=wrapTarget?wrapTarget(target):target;
   const editor=createScriptEditor({client,currentPageTarget:testedTarget,api,document:doc,
+    ...(staticESMPreparerFactory?{staticESMPreparerFactory}:{}),
     ...(componentPreparerFactory?{componentPreparerFactory}:{}),hostFactory:options=>createRunHost({...options,controllerFactory:({context})=>({
     execute:async(source,params)=>{executions.push({source,params});context.signal.addEventListener('abort',()=>terminal.resolve({status:context.signal.reason.code==='E_HOST_CLOSED'?'host-closed':'stopped'}),{once:true});return terminal.promise;},
     retired:Promise.resolve({acknowledged:true}),stop(){traces.push('local-stop');},close(){traces.push('local-close');}
@@ -461,6 +465,110 @@ test('local managed Page Stop owns a confirmed failing main, survives provider d
  await f.click('script-stop');assert.equal(stops[0].previewId,admitted[1].managedUI.previewId);assert.notEqual(stops[0].previewId,admitted[0].managedUI.previewId);
  assert.equal(f.find('script-run').disabled,true);await f.click('script-run');assert.equal(admitted.length,2);
  gate.resolve();await waitState('completed');assert.equal(f.find('script-stop').disabled,true);assert.equal(f.starts.length,0);
+});
+
+async function localPageResultFixture(t,{failMain=false}={}) {
+  const f=await fixture();t.after(()=>f.dispose());
+  const bindingId='local-'+'a'.repeat(20),sourceUtf8='async function main(){return 1}',
+    sourceHash=createHash('sha256').update(sourceUtf8).digest('hex');
+  let localChanged,previewId,stopReceipt;
+  f.api.permissions.contains=async()=>true;f.client.registration={registrationId:'local-host'};
+  f.client.subscribeNativeAgent=()=>()=>{};f.client.replyNativeAgent=()=>{};
+  f.client.subscribeLocalProjects=callback=>{localChanged=callback;return()=>{};};
+  f.client.requestLocalProject=async(method,params)=>method==='status'?{connected:true,providerEpoch:'epoch-a'}:
+    method==='projects.list'?{providerEpoch:'epoch-a',projects:[{name:'A',bindingId}]}:
+    {providerEpoch:'epoch-a',bindingId:params.bindingId,sourceUtf8,sourceHash,sourceBytes:Buffer.byteLength(sourceUtf8),runtimeKind:'page-userscript',entryFormat:'async-main',managedUI:true,siteOrigins:['https://a.example']};
+  const original=f.client.request.bind(f.client);
+  f.client.request=async(type,payload)=>{
+    if(type==='previewPageScript'){
+      previewId=payload.managedUI.previewId;
+      if(failMain)throw Object.assign(new Error('main failed after managed UI mount'),{code:'E_PAGE_SCRIPT_EXECUTION'});
+      return {state:'preview-evaluated',sourceHash,world:'USER_SCRIPT',tabId:11,documentId:'doc-11',managedUI:true,managedPreviewId:previewId,resultText:'1'};
+    }
+    if(type==='retirePagePreview')return stopReceipt??{previewId:payload.previewId,sourceHash,state:'preview-retired',receipt:{ok:true,scope:'managed-ui-only'}};
+    return original(type,payload);
+  };
+  const adapter=createNativeAgentHostAdapter({client:f.client,host:f.editor.host,currentPageTarget:f.target,api:f.api});t.after(()=>adapter.dispose());
+  f.editor.connectLocalProjects(adapter);await tick();
+  f.find('local-project-mode').checked=true;f.find('local-project-mode').fire('change');await tick();
+  await f.click('script-run');
+  const expectedState=failMain?'error':'completed';
+  for(let i=0;i<100&&f.find('script-status').dataset.state!==expectedState;i++)await new Promise(resolve=>setTimeout(resolve,5));
+  assert.equal(f.find('script-status').dataset.state,expectedState,f.find('script-status').textContent);
+  return {...f,previewId,sourceHash,localChanged,setStopReceipt:value=>{stopReceipt=value;}};
+}
+
+test('local Page result survives target refresh and shows the confirmed Stop receipt',async t=>{
+  const f=await localPageResultFixture(t),gate=deferred(),query=f.api.tabs.query;
+  f.api.tabs.query=async params=>{await gate.promise;return query(params);};
+  const refresh=f.target.refresh();
+  assert.equal(f.target.snapshot.status,'resolving');
+  assert.equal(f.find('script-result').textContent,'1','resolving is not a changed document');
+  assert.equal(f.find('script-copy-result').disabled,true,'pending identity is not a current result');
+  await f.click('script-read');assert.equal(f.find('script-result').textContent,'1','Controller history cannot overwrite the pending Page result');
+  gate.resolve();await refresh;f.api.tabs.query=query;
+  assert.equal(f.find('script-copy-result').disabled,false);
+  await f.click('script-stop');
+  assert.equal(f.find('script-status').dataset.state,'completed');
+  assert.equal(f.find('script-result-kind').textContent,'本地 Page · 停止回执');
+  const receipt=JSON.parse(f.find('script-result').textContent);
+  assert.deepEqual(receipt,{previewId:f.previewId,sourceHash:f.sourceHash,state:'preview-retired',receipt:{ok:true,scope:'managed-ui-only'}});
+  assert.equal(f.find('script-stop').disabled,true);assert.equal(f.find('script-run').disabled,false);
+  assert.equal(f.find('script-copy-result').disabled,false);
+  assert.deepEqual(JSON.parse(f.find('page-preview-technical').textContent),{stop:receipt});
+  await f.click('script-read');assert.deepEqual(JSON.parse(f.find('script-result').textContent),receipt);
+  await f.navigateTab();assert.equal(f.find('script-result-kind').textContent,'上次结果已失效');
+  assert.equal(f.find('script-copy-result').disabled,true);
+});
+
+test('local Page result still expires on confirmed disconnect or a different tab',async t=>{
+  for(const reason of ['disconnect','tab'])await t.test(reason,async t=>{
+    const f=await localPageResultFixture(t);
+    if(reason==='disconnect')f.localChanged({connected:false});else await f.switchTab();
+    assert.equal(f.find('script-result-kind').textContent,'上次结果已失效');
+    assert.equal(f.find('script-copy-result').disabled,true);
+  });
+});
+
+test('local Page Stop retains receipt identity after failed main and provider disconnect',async t=>{
+  const f=await localPageResultFixture(t,{failMain:true});
+  f.localChanged({connected:false});
+  assert.equal(f.find('script-stop').disabled,false);
+  await f.click('script-stop');
+  assert.equal(f.find('script-status').dataset.state,'completed');
+  assert.equal(f.find('script-result-kind').textContent,'本地 Page · 停止回执');
+  const text=f.find('script-result').textContent,receipt=JSON.parse(text);
+  assert.equal(receipt.previewId,f.previewId);assert.equal(receipt.sourceHash,f.sourceHash);
+  assert.equal(f.find('script-copy-result').disabled,false);
+  await f.click('script-read');assert.equal(f.find('script-result').textContent,text);
+  await f.navigateTab();assert.equal(f.find('script-result-kind').textContent,'上次结果已失效');
+  assert.equal(f.find('script-copy-result').disabled,true);
+});
+
+test('local Page Stop never displays success for a mismatched cleanup receipt',async t=>{
+  const mutations={previewId:r=>({...r,previewId:'other'}),sourceHash:r=>({...r,sourceHash:'b'.repeat(64)}),
+    state:r=>({...r,state:'preview-evaluated'}),ok:r=>({...r,receipt:{...r.receipt,ok:false}}),
+    scope:r=>({...r,receipt:{...r.receipt,scope:'all-effects'}})};
+  for(const [field,mutate] of Object.entries(mutations))await t.test(field,async t=>{
+    const f=await localPageResultFixture(t);
+    f.setStopReceipt(mutate({previewId:f.previewId,sourceHash:f.sourceHash,state:'preview-retired',receipt:{ok:true,scope:'managed-ui-only'}}));
+    await f.click('script-stop');
+    assert.equal(f.find('script-status').dataset.state,'error');
+    assert.match(f.find('script-status').textContent,/E_EFFECT_UNKNOWN/);
+    assert.notEqual(f.find('script-result-kind').textContent,'本地 Page · 停止回执');
+  });
+});
+
+test('local Page Stop receipt cannot become current after navigation while cleanup is pending',async t=>{
+  const f=await localPageResultFixture(t),gate=deferred();
+  f.setStopReceipt(gate.promise);
+  await f.click('script-stop');assert.equal(f.find('script-status').dataset.state,'stopping');
+  await f.navigateTab();
+  gate.resolve({previewId:f.previewId,sourceHash:f.sourceHash,state:'preview-retired',receipt:{ok:true,scope:'managed-ui-only'}});
+  await tick();await tick();
+  assert.equal(f.find('script-result-kind').textContent,'上次结果已失效');
+  assert.equal(f.find('script-copy-result').disabled,true);
+  await f.click('script-read');assert.equal(f.find('script-copy-result').disabled,true);
 });
 
 test('reopening the editor restores window-scoped source and params without starting or saving',async t=>{
@@ -1413,4 +1521,150 @@ test('reopening a large v2 component draft revalidates the envelope and restores
   assert.equal(second.editor.executionSource(),draft.sourceUtf8);
   assert.match(second.find('program-source-info').textContent,new RegExp(draft.build.sourceHash));
   assert.equal(second.starts.length,0);assert.equal(second.previews.length,0);assert.equal(second.commits.length,0);
+});
+
+async function staticESMFixture(t,{sourceUtf8='import value from "https://library.example.org/value.js";\nexport default async function main(){return value;}',compileGate,approved=true,badReceipt=false}={}) {
+  const hash=value=>createHash('sha256').update(value).digest('hex'),compiled=[],staticRequests=[];
+  const preparer={cancel(){},dispose(){},async prepare(input){
+    compiled.push(structuredClone(input));if(compileGate)await compileGate.promise;
+    const sourceUtf8=input.sourceFormat==='esm-controller'
+      ?'async function main(){return {title:await page.title(),value:params.value};}'
+      :'async function main(){return 7;}';
+    return {sourceUtf8,entryFormat:'async-main',sourceHash:hash(sourceUtf8),authorSourceHash:hash(input.sourceUtf8),
+      sourceFormat:input.sourceFormat,lockId:input.lockId,manifestDigest:input.manifestDigest,compilerVersion:'7.29.9'};
+  }};
+  const f=await fixture(undefined,undefined,{staticESMPreparerFactory:()=>preparer});t.after(()=>f.dispose());
+  const originalRequest=f.client.request;
+  f.client.request=async(type,payload)=>{
+    if(['inspectPageDependencies','loadPageESMForCompilation'].includes(type)){
+      staticRequests.push({type,payload:structuredClone(payload)});
+      const {requires}=parseStaticESMSource(payload.sourceUtf8),world=STATIC_ESM_WORLDS[payload.sourceFormat];
+      const manifestDigest=hash(JSON.stringify([payload.sourceFormat,requires.map(row=>row.url)]));
+      const lock={lockId:'dep-lock-'+hash(manifestDigest),manifestDigest,world,sourceFormat:payload.sourceFormat};
+      if(type==='inspectPageDependencies')return {manifestDigest,requires,world,sourceFormat:payload.sourceFormat,
+        locks:approved&&requires.length?[lock]:[]};
+      assert.equal(payload.lockId,requires.length?lock.lockId:null);
+      return {manifestDigest,world,sourceFormat:payload.sourceFormat,lockId:payload.lockId,
+        entries:requires.map(row=>({url:row.url,order:row.order,code:'export default 7;',sha256:hash('export default 7;')}))};
+    }
+    const result=await originalRequest(type,payload);
+    if(type==='previewPageScript')return {...result,sourceHash:badReceipt?'b'.repeat(64):hash(payload.sourceUtf8),resultText:'7'};
+    return result;
+  };
+  f.find('script-source').value=sourceUtf8;f.find('script-source').fire('input');
+  for(let n=0;n<8;n++)await tick();
+  return {...f,compiled,staticRequests,sourceUtf8,
+    async world(value){f.find('network-js-world').value=value;f.find('network-js-world').fire('change');for(let n=0;n<8;n++)await tick();},
+    async settle(){for(let n=0;n<100&&f.find('script-status').dataset.state==='running';n++)await tick();}
+  };
+}
+test('Page static imports save author source and approved lock alongside the actual compiled bytes',async t=>{
+  const f=await staticESMFixture(t);
+  const imports=[],originalRequest=f.client.request;
+  f.client.request=async(method,payload)=>{
+    if(method==='importPageCandidate'){imports.push(structuredClone(payload));return {stage:'Candidate',candidateId:'page-fixed',manifestHash:'f'.repeat(64)};}
+    return originalRequest(method,payload);
+  };
+  assert.equal(f.find('script-save').disabled,true);
+  assert.match(f.find('script-save').title,/试运行后保存/);
+  await f.click('page-preview-run');await f.settle();
+  assert.equal(f.previews.length,1);assert.equal(f.starts.length,0);
+  assert.equal(f.compiled.length,1);
+  assert.deepEqual(f.previews[0],{sourceUtf8:'async function main(){return 7;}',entryFormat:'async-main',lockId:null,
+    authorSourceUtf8:f.sourceUtf8,authorLockId:f.compiled[0].lockId,
+    authorManifestDigest:f.compiled[0].manifestDigest,compilerVersion:'7.29.9',
+    target:{tabId:11,frameId:0,documentId:'doc-11',expectedUrl:'https://a.example/',expectedWindowId:7}});
+  assert.equal(f.find('script-source').value,f.sourceUtf8);
+  assert.equal(f.find('page-preview-result').textContent,'7');
+  assert.equal(f.find('page-candidate-save').disabled,false);
+  await f.click('page-candidate-save');await tick();
+  assert.equal(f.commits.length,0);assert.equal(imports.length,1);
+  assert.equal(imports[0].sourceUtf8,'async function main(){return 7;}');
+  assert.equal(imports[0].authorSourceUtf8,f.sourceUtf8);
+  assert.equal(imports[0].lockId,null);
+  assert.equal(imports[0].authorLockId,f.compiled[0].lockId);
+  assert.equal(imports[0].compilerVersion,'7.29.9');
+  f.find('script-source').value=f.sourceUtf8+'\n// changed';f.find('script-source').fire('input');
+  await tick();
+  assert.equal(f.find('page-candidate-save').disabled,true);
+  await f.click('page-candidate-save');assert.equal(imports.length,1);
+});
+test('loading a saved Page import restores author bytes and Page lock without running',async t=>{
+  const f=await staticESMFixture(t);
+  await f.click('page-preview-run');await f.settle();
+  const frozen=f.compiled[0],original=f.client.request;
+  const row={programId:'saved-esm',revision:1,stage:'Candidate',manifestHash:'f'.repeat(64),
+    sourceHash:createHash('sha256').update('async function main(){return 7;}').digest('hex'),
+    pageRules:{matches:['https://a.example/*'],excludeMatches:[],runAt:'document_idle',allFrames:false,world:'USER_SCRIPT'}};
+  f.client.request=async(method,input)=>{
+    if(method==='listPagePrograms')return {catalog:[row]};
+    if(method==='getPageCandidate')return {sourceUtf8:'async function main(){return 7;}',authorSourceUtf8:f.sourceUtf8,
+      manifest:{compilation:{sourceFormat:'esm-page',authorSourceHash:createHash('sha256').update(f.sourceUtf8).digest('hex'),
+        dependencyLockId:frozen.lockId,dependencyManifestDigest:frozen.manifestDigest}}};
+    return original(method,input);
+  };
+  await f.world('esm-controller');
+  await f.click('page-program-refresh');for(let n=0;n<10;n++)await tick();
+  f.find('page-program-list').value='saved-esm:1';f.find('page-program-list').fire('change');
+  await f.click('page-program-load');for(let n=0;n<16;n++)await tick();
+  assert.equal(f.find('script-source').value,f.sourceUtf8);
+  assert.equal(f.find('network-js-world').value,'esm-page');
+  assert.equal(f.previews.length,1);assert.equal(f.starts.length,0);assert.equal(f.commits.length,0);
+  assert.equal(f.find('page-candidate-save').disabled,true);
+  await f.click('page-preview-run');await f.settle();
+  assert.equal(f.previews.length,2);assert.equal(f.compiled.at(-1).lockId,frozen.lockId);
+});
+test('Controller Run refuses Page approval until an explicit world choice, then starts only the compiled draft',async t=>{
+  const f=await staticESMFixture(t);
+  await f.click('script-run');await f.settle();
+  assert.equal(f.starts.length,0);assert.equal(f.compiled.length,0);
+  assert.equal(f.find('network-js-world').value,'esm-page');
+  assert.match(f.find('script-status').textContent,/E_DEPENDENCY_WORLD/);
+  await f.world('esm-controller');
+  await f.click('script-run');for(let n=0;n<12&&!f.executions.length;n++)await tick();
+  assert.equal(f.starts.length,1);assert.equal(f.previews.length,0);
+  assert.deepEqual(f.starts[0].source,{kind:'draft',sourceUtf8:f.executions[0].source});
+  assert.match(f.executions[0].source,/async function main\(\)/);
+  assert.equal(f.executions[0].source,f.compiled.length&&'async function main(){return {title:await page.title(),value:params.value};}');
+  assert.deepEqual(f.executions[0].params,{value:1});
+  assert.equal(f.staticRequests.findLast(row=>row.type==='loadPageESMForCompilation').payload.sourceFormat,'esm-controller');
+  assert.equal(f.find('script-source').value,f.sourceUtf8);
+  await f.finish({title:'fixture title',value:1});
+  assert.match(f.find('script-task-status').textContent,/已完成/);
+});
+for(const world of ['esm-page','esm-controller'])test(world+' no-import ESM entry runs without a dependency lock',async t=>{
+  const f=await staticESMFixture(t,{sourceUtf8:'export default async function main(){return 7;}',approved:false});
+  if(world==='esm-controller')await f.world(world);
+  await f.click(world==='esm-controller'?'script-run':'page-preview-run');
+  if(world==='esm-page')await f.settle();else for(let n=0;n<12&&!f.executions.length;n++)await tick();
+  assert.equal(f.compiled.length,1);assert.deepEqual(f.compiled[0].entries,[]);
+  assert.equal(f.compiled[0].lockId,null);
+  assert.equal(f.staticRequests.findLast(row=>row.type==='loadPageESMForCompilation').payload.lockId,null);
+  if(world==='esm-controller'){assert.equal(f.starts.length,1);await f.finish(7);}
+  else assert.equal(f.previews.length,1);
+});
+for(const change of ['source','world','document','target-mode'])test('Page import compilation discards '+change+' changes before dispatch',async t=>{
+  const gate=deferred(),f=await staticESMFixture(t,{compileGate:gate});
+  await f.click('page-preview-run');for(let n=0;n<12&&!f.compiled.length;n++)await tick();
+  assert.equal(f.compiled.length,1);
+  if(change==='source'){f.find('script-source').value=f.sourceUtf8+'\n// changed';f.find('script-source').fire('input');}
+  else if(change==='world')await f.world('esm-controller');
+  else if(change==='document')await f.navigateTab();
+  else {f.find('script-target-mode').value='borrowed';f.find('script-target-mode').fire('change');await tick();}
+  gate.resolve();await f.settle();
+  assert.equal(f.previews.length,0);assert.equal(f.starts.length,0);
+  assert.equal(f.find('page-preview-status').dataset.state,'error');
+});
+test('Page ESM result must carry the actual compiled source hash',async t=>{
+  const f=await staticESMFixture(t,{badReceipt:true});
+  await f.click('page-preview-run');await f.settle();
+  assert.match(f.find('page-preview-status').textContent,/E_STATIC_ESM_OUTPUT/);
+  assert.equal(f.find('page-candidate-save').disabled,true);
+});
+test('missing ESM approval never loads a compiler or starts a run',async t=>{
+  const f=await staticESMFixture(t,{approved:false});
+  await f.click('page-preview-run');await f.settle();
+  await f.world('esm-controller');await f.click('script-run');await f.settle();
+  assert.equal(f.compiled.length,0);assert.equal(f.previews.length,0);assert.equal(f.starts.length,0);
+  assert.equal(f.staticRequests.some(row=>row.type==='loadPageESMForCompilation'),false);
 });

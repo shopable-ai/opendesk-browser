@@ -65,6 +65,7 @@ async function verifiedEnvironment(candidate,receipt){
     receipt.packagedFrameworkSha256===PAGE_FRAMEWORK_RUNTIMES[frameworkId].sha256,'E_PAGE_ENVIRONMENT');
 }
 const publicInstall=row=>row?{programId:row.programId,revision:row.revision,manifestHash:row.manifestHash,
+  title:row.title??row.programId,
   sourceHash:row.sourceHash,pageRules:row.pageRules,enabled:row.enabled,nativeId:row.nativeId,nativeState:row.nativeState,
   authorization:row.authorization?structuredClone(row.authorization):null,
   error:row.error,lastExecution:row.lastExecution?publicExecution(row.lastExecution):null}:null;
@@ -104,6 +105,11 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
     const material=await dependencies.readStoredPageCandidate(namespace,programId,revision);
     assertBuiltinIdentity(material.candidate.builtinIdentity,builtinIdentity(await loadBuiltin({runtime:api.runtime})));
     return material;
+  }
+  async function revalidateCompilation(candidate){
+    if(!candidate.manifest.compilation)return;
+    const current=await material(candidate.manifest.programId,candidate.manifest.revision);
+    invariant(current.candidate.manifestHash===candidate.manifestHash,'E_REVISION','固定 import 候选身份已改变');
   }
   async function proofFor(candidate,{available=false}={}){
     const proof=await read(tx=>tx.get(PAGE_STORE,key('verification',namespace,candidate.manifest.programId,candidate.manifest.revision)));
@@ -158,11 +164,19 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
     if(existing){const proof=await proofFor(candidate);return {stage:proof.status,manifestHash:candidate.manifestHash,receipt:proof.receipt};}
     // The exact frozen source is executed again by an explicit user action.
     // A preview before generated @match metadata cannot verify this new hash.
+    const dependencyEpoch=removals.length;
+    const authorize=async()=>{
+      await revalidateCompilation(candidate);
+      invariant(!m.compilation||removals.length===dependencyEpoch,'E_DEPENDENCY_PERMISSION','依赖权限在验证期间已变化');
+    };
+    await authorize();
     const receipt=await preview.preview({sourceUtf8:candidate.sourceUtf8,entryFormat:m.entryFormat,
-      importSourceUrl:m.sourceProfile.importSourceUrl,lockId:m.dependencyLockId,target:request.target},sender);
+      importSourceUrl:m.sourceProfile.importSourceUrl,lockId:m.dependencyLockId,target:request.target},sender,authorize);
     invariant(receipt.state==='preview-evaluated'&&receipt.sourceHash===m.sourceHash&&receipt.world==='USER_SCRIPT',
       'E_PAGE_VERIFICATION','Page 类型验证身份不一致');
     await verifiedEnvironment(candidate,receipt);
+    await revalidateCompilation(candidate);
+    invariant(!m.compilation||removals.length===dependencyEpoch,'E_DEPENDENCY_PERMISSION','依赖权限在验证期间已变化');
     const proof={tag:'page-verification-v1',...identity(candidate),status:'Verified',
       receipt,receiptHash:await digest(receipt),verifiedAt:clock.now()};
     return scoped(sender,PAGE_WRITE,async tx=>{
@@ -185,8 +199,10 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
   }
   async function installPageProgram(request,sender){
     request=structuredClone(request);
-    fields(request,['programId','revision','manifestHash','expectedInstalledManifestHash','expectedGeneration'],
+    fields(request,['programId','revision','manifestHash','expectedInstalledManifestHash','expectedGeneration','title'],
       ['programId','revision','manifestHash','expectedInstalledManifestHash']);
+    invariant(request.title===undefined||(typeof request.title==='string'&&request.title.trim().length>0&&request.title.length<=100),
+      'E_SCHEMA','工具名称需要 1–100 个字符');
     return ordered(async()=>{
       const {candidate}=await material(request.programId,request.revision);await proofFor(candidate,{available:true});
       invariant(candidate.manifestHash===request.manifestHash,PAGE_REVISION_ERROR,'安装必须引用固定版本');
@@ -197,6 +213,7 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
       if(previous?.authorization)assertPageInstallAuthorization(previous);
       const scope=pageInstallScope(candidate.manifest.pageRules),delta=pageInstallScopeDelta(previous?.authorization?.scope,scope);
       const row={tag:PAGE_INSTALL_TAG,namespace,programId:request.programId,revision:request.revision,
+        title:request.title?.trim()??previous?.title??request.programId,
         manifestHash:candidate.manifestHash,sourceHash:candidate.manifest.sourceHash,builtinIdentity:candidate.builtinIdentity,pageRules:candidate.manifest.pageRules,enabled:previous?.enabled??true,
         token:crypto.randomUUID().replaceAll('-',''),nativeId:PREFIX+(await digest([namespace,request.programId])).slice(0,48),
         nativeState:'pending',error:null,installedAt:previous?.installedAt??clock.now(),
@@ -367,6 +384,8 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
         const proof=rows.find(p=>p?.tag==='page-verification-v1'&&p.namespace===namespace&&p.candidateId===row.candidateId&&p.manifestHash===row.manifestHash);
         return {candidateId:row.candidateId,programId:row.manifest.programId,revision:row.manifest.revision,
           manifestHash:row.manifestHash,sourceHash:row.manifest.sourceHash,pageRules:row.manifest.pageRules,
+          entryFormat:row.manifest.entryFormat,sourceProfile:row.manifest.sourceProfile,
+          dependencyLockId:row.manifest.dependencyLockId,
           stage:proof?.status??'Candidate',installed:publicInstall(installed.find(i=>i.programId===row.manifest.programId)),
           authorizationChange:pageInstallScopeDelta(installed.find(i=>i.programId===row.manifest.programId)?.authorization?.scope,
             pageInstallScope(row.manifest.pageRules))};
@@ -382,9 +401,10 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
       r.namespace===namespace&&r.nativeId===message.nativeId&&r.token===message.token&&r.enabled));
     invariant(row,PAGE_PERMISSION_ERROR,'页面脚本未安装、已停用或引导身份已过期');
     invariant(active(row),PAGE_PERMISSION_ERROR,ACCESS_CHANGED);
-    const epoch=permissionEpoch(row);
+    const epoch=permissionEpoch(row),dependencyEpoch=removals.length;
     await requireSiteGrant(row);
     const desired=await descriptor(row),native=await nativeAPI();
+    const compilationCurrent=()=>!desired.candidate.manifest.compilation||removals.length===dependencyEpoch;
     const tab=await api.tabs.get(sender.tab.id),frames=await api.webNavigation.getAllFrames({tabId:sender.tab.id});
     const frame=frames?.find(f=>f.frameId===0&&f.documentId===sender.documentId);
     invariant(frame&&!frame.errorOccurred&&(!frame.documentLifecycle||frame.documentLifecycle==='active')&&
@@ -405,7 +425,7 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
     const executionKey=key('execution',namespace,row.manifestHash,frame.documentId),receiptId=crypto.randomUUID();
     const admitted=await storage.transaction([PAGE_STORE],PAGE_WRITE,async tx=>{
       const current=await tx.get(PAGE_STORE,key(INSTALL_KEY_KIND,namespace,row.programId));
-      invariant(current&&active(current)&&current.token===row.token&&permissionEpoch(row)===epoch,PAGE_PERMISSION_ERROR,ACCESS_CHANGED);
+      invariant(current&&active(current)&&current.token===row.token&&permissionEpoch(row)===epoch&&compilationCurrent(),PAGE_PERMISSION_ERROR,ACCESS_CHANGED);
       const previous=await tx.get(PAGE_STORE,executionKey);
       if(previous)return false;
       const count=(await tx.all(PAGE_STORE)).filter(r=>r?.tag==='page-execution-v1').length;
@@ -420,18 +440,23 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
     const authorize=async()=>{
       const current=await read(tx=>tx.get(PAGE_STORE,key(INSTALL_KEY_KIND,namespace,row.programId)));
       invariant(current&&active(current)&&current.token===row.token&&current.manifestHash===row.manifestHash&&
-        permissionEpoch(row)===epoch,PAGE_PERMISSION_ERROR,ACCESS_CHANGED);
+        permissionEpoch(row)===epoch&&compilationCurrent(),PAGE_PERMISSION_ERROR,ACCESS_CHANGED);
       await requireSiteGrant(row);
       await proofFor(desired.candidate,{available:true});
+      await revalidateCompilation(desired.candidate);
       const latest=await read(tx=>tx.get(PAGE_STORE,key(INSTALL_KEY_KIND,namespace,row.programId)));
-      invariant(latest&&active(latest)&&latest.token===row.token&&permissionEpoch(row)===epoch,
+      invariant(latest&&active(latest)&&latest.token===row.token&&permissionEpoch(row)===epoch&&compilationCurrent(),
         PAGE_PERMISSION_ERROR,ACCESS_CHANGED);
     };
     const dispatch=(receiptNonce,invoke)=>ordered(async()=>{
       await authorize();
       await storage.transaction([PAGE_STORE,'runs'],PAGE_WRITE,async tx=>{
+        if(desired.candidate.manifest.compilation){
+          const fixed=await dependencies.readStoredPageCandidate(namespace,row.programId,row.revision,tx);
+          invariant(fixed.candidate.manifestHash===row.manifestHash,PAGE_REVISION_ERROR,'派发时固定 import 候选身份已改变');
+        }
         const grant=await tx.get(PAGE_STORE,key(INSTALL_KEY_KIND,namespace,row.programId)),execution=await tx.get(PAGE_STORE,executionKey);
-        invariant(grant&&active(grant)&&grant.token===row.token&&grant.manifestHash===row.manifestHash&&permissionEpoch(row)===epoch&&
+        invariant(grant&&active(grant)&&grant.token===row.token&&grant.manifestHash===row.manifestHash&&permissionEpoch(row)===epoch&&compilationCurrent()&&
           execution?.state==='prepared'&&execution.receiptNonce===receiptNonce&&execution.browserSessionIncarnation===session,
           PAGE_PERMISSION_ERROR,ACCESS_CHANGED);
         const slot=await tx.get('runs','@slot');
@@ -442,7 +467,7 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
       // No asynchronous observation between committing dispatch and invoking
       // Chrome. Disable/replacement use this same queue. Do not hold it until
       // an async main or classic program finishes.
-      invariant(permissionEpoch(row)===epoch,PAGE_PERMISSION_ERROR,ACCESS_CHANGED);
+      invariant(permissionEpoch(row)===epoch&&compilationCurrent(),PAGE_PERMISSION_ERROR,ACCESS_CHANGED);
       const completion=Promise.resolve(invoke());completion.catch(()=>{});
       return {completion};
     });
@@ -453,7 +478,7 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
       ...(e.pageAccessLost?{pageAccessLost:true}:{})};}
     await storage.transaction([PAGE_STORE],PAGE_WRITE,async tx=>{
       const installKey=key(INSTALL_KEY_KIND,namespace,row.programId),current=await tx.get(PAGE_STORE,installKey);
-      if(!error&&(!current||!active(current)||current.token!==row.token||permissionEpoch(row)!==epoch))
+      if(!error&&(!current||!active(current)||current.token!==row.token||permissionEpoch(row)!==epoch||!compilationCurrent()))
         error={code:PAGE_PERMISSION_ERROR,message:'原网页执行已完成，但安装授权已改变；不交付旧授权的成功结果',effectConfirmed:true};
       const execution=await tx.get(PAGE_STORE,executionKey),completed={...execution,
         state:error?(error.code===PAGE_UNKNOWN_ERROR?'outcome-unknown':'failed'):'completed',

@@ -81,7 +81,7 @@ export function hasUnbuiltESM(sourceUtf8) {
   }
   function scanCode(from,interpolation=false){
     let i=from,depth=0,previous='';
-    const parens=[],braces=[];
+    const parens=[],braces=[],classHeads=[];
     while(i<n&&!found){
       i=skipTrivia(i);if(i>=n)break;
       const ch=s[i];
@@ -93,7 +93,10 @@ export function hasUnbuiltESM(sourceUtf8) {
       if(idStart(ch)){
         const start=i++;while(i<n&&idRest(s[i]))i++;
         const token=s.slice(start,i);
-        const objectMethod=braces.at(-1)==='object'&&['{',',','async','get','set'].includes(previous);
+        const objectMethod=(braces.at(-1)==='object'&&['{',',','async','get','set'].includes(previous))||
+          (braces.at(-1)==='class'&&['{','}',';','static','async','get','set','*'].includes(previous));
+        if(token==='class'&&!['.','?.'].includes(previous)&&s[skipTrivia(i)]!==':'&&
+          !(objectMethod&&s[skipTrivia(i)]==='('&&methodBody(skipTrivia(i))))classHeads.push(parens.length);
         if((token==='import'||token==='export')&&moduleKeyword(token,i,previous,objectMethod)){
           found=true;break;
         }
@@ -105,7 +108,8 @@ export function hasUnbuiltESM(sourceUtf8) {
       }
       if(ch===')'){previous=parens.pop()?'control-close':')';i++;continue;}
       if(ch==='{'){
-        braces.push(['control-close','else','do','try','finally'].includes(previous)?'control':
+        const classBody=classHeads.at(-1)===parens.length;if(classBody)classHeads.pop();
+        braces.push(classBody?'class':['control-close','else','do','try','finally'].includes(previous)?'control':
           ['=','(', '[',',','return','yield','??','||','&&'].includes(previous)?'object':'block');
         depth++;previous='{';i++;continue;
       }

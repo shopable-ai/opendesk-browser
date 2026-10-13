@@ -5,6 +5,7 @@ import {loadPackagedJquery} from './packaged-dependencies.js';
 import {loadPackagedPageFramework} from '../../libs/page-frameworks/loader.js';
 import {loadBuiltinPageSource,loadPackagedOptionalPageLibraries} from '../../libs/loader.js';
 import {BUILTIN_ABI} from '../../libs/runtime-contract.js';
+import {PAGE_BROWSER_COMPILER} from '../../libs/page-frameworks/contract.js';
 import {builtinIdentity,assertBuiltinIdentity} from '../../libs/identity.js';
 import {createDependencyManager} from './dependency-manager.js';
 import {compileLockedPageSource, builtinReadinessSource, pageWantsJquery, pageSelectedPackagedLibraries, pageOptionalLibraryId, pageConsumerSource, PAGE_PREVIEW_RECEIPT_FORMAT, PAGE_ENTRY_FORMATS} from './execution-source.js';
@@ -33,7 +34,8 @@ function freezeTarget(raw) {
 }
 function frozenSource(request) {
   if (request && !Object.hasOwn(request, 'withJquery')) {
-    const allowed = ['sourceUtf8','entryFormat','lockId','target','importSourceUrl','managedUI','programId'];
+    const allowed = ['sourceUtf8','entryFormat','lockId','target','importSourceUrl','managedUI','programId',
+      'authorSourceUtf8','authorLockId','authorManifestDigest','compilerVersion'];
     invariant(typeof request === 'object' && !Array.isArray(request) &&
       Object.keys(request).every(key => allowed.includes(key)) &&
       ['sourceUtf8','entryFormat','target'].every(key => Object.hasOwn(request,key)), 'E_SCHEMA', 'Unexpected page preview fields');
@@ -41,7 +43,15 @@ function frozenSource(request) {
       (inspectPageSource(request.sourceUtf8), true) &&
       PAGE_ENTRY_FORMATS.includes(request.entryFormat) &&
       (request.lockId == null || typeof request.lockId === 'string'), 'E_SOURCE', 'Invalid page script entry or source');
+    const authorFields=['authorSourceUtf8','authorLockId','authorManifestDigest','compilerVersion'];
+    const authoring=authorFields.some(key=>Object.hasOwn(request,key));
+    invariant(!authoring||authorFields.every(key=>Object.hasOwn(request,key))&&
+      typeof request.authorSourceUtf8==='string'&&request.entryFormat==='async-main'&&request.lockId==null&&
+      (request.authorLockId===null||/^dep-lock-[a-f0-9]{64}$/.test(request.authorLockId))&&
+      /^[a-f0-9]{64}$/.test(request.authorManifestDigest)&&request.compilerVersion===PAGE_BROWSER_COMPILER.version,
+      'E_STATIC_ESM_IDENTITY','Page import 预览需要作者源码和完整的固定依赖身份');
     return Object.freeze({sourceUtf8:request.sourceUtf8,entryFormat:request.entryFormat,
+      ...(authoring?Object.fromEntries(authorFields.map(key=>[key,request[key]])):{}),
       lockId:request.lockId ?? null, ...(request.importSourceUrl ? {importSourceUrl:request.importSourceUrl} : {}),
        ...(request.programId!==undefined?{programId:request.programId}:{}),
       ...(request.managedUI?{managedUI:Object.freeze({...request.managedUI})}:{}),
@@ -96,6 +106,8 @@ export function createPageScriptPreview({api, storage, assertHost, dependencies,
   const worlds = createPreviewWorlds({api});
   const managed=managedFactory?.({worlds,assertHost,verifyTarget});
   let active = false;
+  let permissionRemovalEpoch=0;
+  api.permissions.onRemoved?.addListener(()=>{permissionRemovalEpoch++;});
   async function nativeAPI(){
     try{
       const native=api.userScripts;
@@ -124,14 +136,30 @@ export function createPageScriptPreview({api, storage, assertHost, dependencies,
     const slot = await storage.transaction(['runs'], 'readonly', tx => tx.get('runs','@slot'));
     invariant(!slot?.currentRunId&&(!slot?.preview||slot.preview.nonce===nonce), 'E_OWNER', 'Controller/Page preview owns slot');
   }
-  async function preview(request, sender) {
+  async function preview(request, sender, authorize) {
     invariant(!active, 'E_OWNER', '已有页面脚本试运行正在等待浏览器回执');
     active = true;
-    try {return await evaluate(request,sender);} finally {active = false;}
+    try {return await evaluate(request,sender,authorize);} finally {active = false;}
   }
-  async function evaluate(request, sender) {
+  // Only the installed-program broker supplies this internal guard. It is
+  // never accepted as a field in a UI/Native preview request.
+  async function evaluate(request, sender, authorize) {
     const owner=await assertHost(sender); // Existing authenticated packaged tool document.
     const frozen = frozenSource(request);
+    const authorEpoch=permissionRemovalEpoch;
+    const guard=async()=>{
+      if(Object.hasOwn(frozen,'authorSourceUtf8')){
+        const fixed=await dependencyManager.loadForCompilation({sourceUtf8:frozen.authorSourceUtf8,
+          entryFormat:'async-main',sourceFormat:'esm-page',lockId:frozen.authorLockId,
+          ...(frozen.importSourceUrl?{importSourceUrl:frozen.importSourceUrl}:{})},sender);
+        invariant(fixed.lockId===frozen.authorLockId&&fixed.manifestDigest===frozen.authorManifestDigest&&
+          permissionRemovalEpoch===authorEpoch,'E_DEPENDENCY_LOCK_STALE','作者依赖或来源授权在预览期间已变化');
+      }
+      if(authorize)await authorize();
+      invariant(!Object.hasOwn(frozen,'authorSourceUtf8')||permissionRemovalEpoch===authorEpoch,
+        'E_DEPENDENCY_PERMISSION','依赖来源权限在派发前已撤销');
+    };
+    await guard();
     await verifyTarget(frozen.target);
     let jqueryCode, locked, script,frameworkSource,optionalSources=[];
     const receiptNonce=crypto.randomUUID();
@@ -171,6 +199,7 @@ export function createPageScriptPreview({api, storage, assertHost, dependencies,
       previousCleanup=await managed.retire(native,context.previous,receiptNonce,{sender,dispatch:()=>{dispatched=true;confirmed=false;},confirm:()=>{confirmed=true;}});
     }
     const managedRecord=context?await managed.prepare(native,context,worldId,script.sourceHash,receiptNonce,sender):null;
+    await guard();
     dispatched=true;confirmed=false;
     const results = await native.execute({target:{tabId,documentIds:[documentId]},
       world:script.world,worldId,js:script.js});
@@ -204,6 +233,7 @@ export function createPageScriptPreview({api, storage, assertHost, dependencies,
     // A real receipt proves the effect in the original document. Navigation
     // while awaiting it must not be reported as current-document success or replayed.
     await verifyTarget(frozen.target,receiptNonce);
+    await guard();
     const value=completion.value;
     let resultText;
     try {resultText = value === undefined ? 'undefined' : JSON.stringify(value);}
@@ -220,6 +250,7 @@ export function createPageScriptPreview({api, storage, assertHost, dependencies,
       resultText:resultText.slice(0,2048)};
     }catch(error){
       if(dispatched&&!confirmed)throw new FoundationError('E_EFFECT_UNKNOWN',error.message+'；原页面执行效果未知，不能自动重试');
+      if(dispatched&&confirmed)error.effectConfirmed=true;
       throw error;
     }finally{if(!dispatched||confirmed)await admission.release({nonce:receiptNonce});}
   }

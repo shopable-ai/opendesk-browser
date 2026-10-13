@@ -434,6 +434,10 @@ export async function verifyPackage(directory, {mode: requestedMode} = {}) {
             !code.includes("import('../libs/page-frameworks/controller-esm-linker-r4.mjs')")||
            !code.includes("import('../libs/page-frameworks/vue-sfc-transform-r243.mjs')"))
           throw Error('Browser compiler Worker only accepts fixed packaged imports');
+      }else if(file==='ui/static-esm-compiler-worker.js'){
+        if(!code.includes("importScripts('../libs/page-frameworks/babel-7.29.9.min.js')")||
+           !code.includes("import('./static-esm-linker.mjs')"))
+          throw Error('Static ESM compiler Worker only accepts fixed packaged imports');
       }else if(/\b(?:eval|new\s+Function|AsyncFunction|importScripts)\s*\(/.test(code)
         &&file!==PAGE_BROWSER_COMPILER.output)
         throw Error('Dynamic execution forbidden in fixed compiler source: '+file);

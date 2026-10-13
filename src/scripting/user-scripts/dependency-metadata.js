@@ -3,6 +3,10 @@
 import {DEFAULT_PAGE_MATCH_PATTERN} from './page-program-rules.js';
 import {PAGE_OPTIONAL_LIBRARY_IDS} from '../../libs/runtime-contract.js';
 export const USER_SCRIPT_METADATA_LIMITS = Object.freeze({headerBytes:64 * 1024, requireCount:64, matchCount:128});
+// Declaration aliases only; versions, worlds and resources remain in runtime-contract.js.
+export const OPTIONAL_PAGE_LIBRARY_IDS = PAGE_OPTIONAL_LIBRARY_IDS;
+export const PAGE_PACKAGED_LIBRARY_NAMES = Object.freeze(['jquery','react','vue',
+  ...Object.keys(OPTIONAL_PAGE_LIBRARY_IDS)]);
 const HASH_BYTES = Object.freeze({md5:16,sha1:20,sha256:32,sha384:48,sha512:64});
 const STRONG_HASHES = new Set(['sha256','sha384','sha512']);
 const RUN_AT = Object.freeze({'document-start':'document_start','document-end':'document_end','document-idle':'document_idle'});
@@ -269,6 +273,13 @@ export function assessUserScriptExecution(parsed, {entryFormat='async-main',phas
   const warnings = parsed.diagnostics.filter(item => item.severity === 'warning').map(item => ({...item}));
   const block = (code,message,row) => blockers.push(diagnostic('error',code,message,row));
   const warn = (code,message,row) => warnings.push(diagnostic('warning',code,message,row));
+  const packaged = parsed.directives.filter(row => row.name === 'opendesk-lib');
+  if(new Set(packaged.filter(row=>['react','vue'].includes(row.value)).map(row=>row.value)).size>1)
+    block('E_BUILTIN_DECLARATION','React and Vue cannot share one Page framework runtime',packaged[0]);
+  if (packaged.length > 6)
+    block('E_BUILTIN_DECLARATION','At most six reviewed packaged libraries can be selected',packaged[6]);
+  if (packaged.length && parsed.requires.length)
+    block('E_BUILTIN_CONFLICT','Packaged libraries cannot be mixed with @require',packaged[0]);
   if (!['async-main','classic-userscript'].includes(entryFormat)) block('E_ENTRY_FORMAT','Choose classic-userscript or async-main explicitly; ESM is not a UserScript entry mode');
   if (!['preview','registration'].includes(phase)) block('E_METADATA_PHASE','Expected preview or registration admission');
   for (const row of parsed.directives) {
@@ -282,9 +293,8 @@ export function assessUserScriptExecution(parsed, {entryFormat='async-main',phas
       block('E_METADATA_UNSUPPORTED',`@${row.name} execution semantics are not implemented`,row);
     if (row.name === 'inject-into' && row.value !== 'content') block('E_WORLD_NOT_APPROVED','Only content-style USER_SCRIPT isolation is supported; page/auto injection needs separate review',row);
     if (row.name === 'world') block('E_WORLD_NOT_APPROVED','@world cannot authorize an execution world; D1 uses USER_SCRIPT only',row);
-    if (row.name === 'opendesk-lib' &&
-        !['jquery','react','vue',...Object.keys(PAGE_OPTIONAL_LIBRARY_IDS)].includes(row.value))
-      block('E_BUILTIN_DECLARATION','Only reviewed, locally preinstalled Page libraries can be selected',row);
+    if (row.name === 'opendesk-lib' && !PAGE_PACKAGED_LIBRARY_NAMES.includes(row.value))
+      block('E_BUILTIN_DECLARATION','Only reviewed packaged libraries can be selected',row);
     if (row.name === 'updateurl' || row.name === 'downloadurl')
       warn('W_UPDATE_NOT_IMPLEMENTED',`@${row.name} is informational; it neither establishes import identity nor enables automatic updates`,row);
   }

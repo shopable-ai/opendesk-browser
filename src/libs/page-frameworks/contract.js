@@ -59,6 +59,10 @@ export const PAGE_BROWSER_COMPILER_RESOURCE_LIMIT=4*1024*1024;
 // web-accessible resources, Page user libraries, or Service Worker imports.
 export const PAGE_BROWSER_PRIVATE_FILES=/* @__PURE__ */Object.freeze([
   PAGE_BROWSER_COMPILER,PAGE_BROWSER_UI_HELPER,
+  /* @__PURE__ */Object.freeze({id:'static-esm-compiler-worker',source:'src/ui/static-esm-compiler-worker.js',
+    output:'ui/static-esm-compiler-worker.js',bytes:738,sha256:'3a85cdb9ab33e6d5d0f594678f88b50cff897c9d8a3cb279bf9768a8c2c45050'}),
+  /* @__PURE__ */Object.freeze({id:'static-esm-linker',source:'src/ui/static-esm-linker.mjs',
+    output:'ui/static-esm-linker.mjs',bytes:8210,sha256:'425e7434828f8a2d35cfe16bc5c7e3dd9cc3b5e79182493d54726ca579ee2854'}),
   /* @__PURE__ */Object.freeze({id:'page-compiler-worker',
     source:'src/ui/page-component-compiler-worker.js',
     output:'ui/page-component-compiler-worker.js',
@@ -80,3 +84,8 @@ export const PAGE_BROWSER_PRIVATE_FILES=/* @__PURE__ */Object.freeze([
     output:'libs/page-frameworks/vue-sfc-compiler-3.5.22.mjs',
     bytes:1071582,sha256:'19be293a11bd724a1252d745c406d69275f44c77ab922df27ca4a484a5a5b2b1'})
 ]);
+
+// Fixed wrapper and linker identity accompanies the Babel identity.
+export const STATIC_ESM_COMPILER_PROFILE=/* @__PURE__ */Object.freeze(
+  PAGE_BROWSER_PRIVATE_FILES.filter(row=>['static-esm-compiler-worker','static-esm-linker'].includes(row.id))
+    .map(({id,sha256})=>/* @__PURE__ */Object.freeze({id,sha256})));

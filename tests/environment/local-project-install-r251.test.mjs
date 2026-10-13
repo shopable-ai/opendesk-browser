@@ -8,6 +8,25 @@ const binding={bindingId:'local-'+'a'.repeat(20),providerEpoch:'epoch-a'};
 const project={name:'开发项目',sourceId:'source-b'};
 const target={tabId:5,frameId:0,windowId:2,documentId:'doc-a',
   url:'https://sample.example/form',origin:'https://sample.example'};
+test('R25.1 upgrades retain the original user title for Page and Task review',async()=>{
+  for(const kind of ['controller','page-userscript']){
+    const source=await makeSource(kind);let catalog=[],installed=[];
+    const client={request:async()=>kind==='page-userscript'?{catalog}:{catalog,installed}};
+    const first=await prepareLocalProjectInstallation({client,source,binding,project,target,runId:'run-title'});
+    if(kind==='page-userscript')catalog=[{programId:first.id,revision:1,manifestHash:'d'.repeat(64),
+      installed:{title:'自定义表单助手',revision:1,manifestHash:'d'.repeat(64),sourceHash:'0'.repeat(64),pageRules:first.pageRules}}];
+    else {catalog=[{taskId:first.id,version:'1.0.0',manifestHash:'d'.repeat(64),
+      manifest:{title:'自定义表单助手',siteOrigins:first.siteOrigins,program:{sourceHash:'0'.repeat(64)}}}];
+      installed=[{taskId:first.id,version:'1.0.0',manifestHash:'d'.repeat(64)}];}
+    const next=await prepareLocalProjectInstallation({client,source,binding,project,target,runId:'run-title'});
+    assert.equal(next.defaultTitle,'自定义表单助手');
+  }
+});
+test('R25.1 invalid name is rejected before any installation RPC',async()=>{
+  const client={request:()=>{throw Error('must not dispatch');}};
+  for(const title of ['', ' ', 'x'.repeat(101)])
+    await assert.rejects(commitLocalProjectInstallation({client,title}),{code:'E_SCHEMA'});
+});
 const makeSource=async(kind='controller')=>{
   const sourceUtf8=kind==='controller'
     ?'async function main(){return await page.title();}'
@@ -121,6 +140,20 @@ test('Task identities retain monotonic version under existing installed baseline
   assert.equal(updated.installedVersion,'1.0.1');
 });
 
+test('Page import URL and dependency lock changes invalidate the frozen Run before any dispatch',async()=>{
+  const source=await makeSource('page-userscript'),calls=[];
+  const client={request:async method=>{calls.push(method);return {catalog:[]};}};
+  const review=await prepareLocalProjectInstallation({client,source,binding,project,target});
+  calls.length=0;
+  for(const change of [{importSourceUrl:'https://sample.example/source.js'},{lockId:'replacement-lock'}]){
+    const changed={...source,...change};
+    assert.throws(()=>assertLocalInstallVersion(review,changed,binding),{code:'E_DEV_CONFLICT'});
+    await assert.rejects(()=>commitLocalProjectInstallation({client,review,source:changed,target,
+      title:'Page',version:review.version}),{code:'E_DEV_CONFLICT'});
+  }
+  assert.deepEqual(calls,[]);
+});
+
 test('read-only Save recognizes an exact installed Page and Task without allocating another version',async()=>{
   const page=await makeSource('page-userscript');
   const firstPage=await prepareLocalProjectInstallation({client:{request:async()=>({catalog:[]})},
@@ -130,11 +163,17 @@ test('read-only Save recognizes an exact installed Page and Task without allocat
   const installedPage={revision:1,manifestHash:'a'.repeat(64),sourceHash:page.sourceHash,
     pageRules,enabled:false,nativeState:'disabled'};
   const pageClient={request:async()=>({catalog:[{programId:firstPage.id,revision:1,
+    entryFormat:page.entryFormat,sourceProfile:{importSourceUrl:null},dependencyLockId:null,
     manifestHash:installedPage.manifestHash,pageRules,installed:installedPage}]})};
   const samePage=await prepareLocalProjectInstallation({client:pageClient,source:page,binding,project,target});
   assert.equal(samePage.alreadyInstalled,true);
   assert.equal(samePage.installedVersion,1);
   assert.equal(samePage.version,'2');
+  for(const change of [{importSourceUrl:'https://sample.example/source.js'},{lockId:'new-lock'}]){
+    const changed=await prepareLocalProjectInstallation({client:pageClient,
+      source:{...page,...change},binding,project,target});
+    assert.equal(changed.alreadyInstalled,false,'same bytes do not imply the same installation inputs');
+  }
   const changedScope=await prepareLocalProjectInstallation({client:pageClient,
     source:{...page,pageRules:{...pageRules,matches:['https://other.example/*']}},binding,
     project,target});
@@ -159,7 +198,7 @@ test('read-only Save recognizes an exact installed Page and Task without allocat
 
 test('read-only unknown receipt reconciliation confirms Page only with exact Available native state',async()=>{
   const review={id:'page-A',kind:'page-userscript',sourceHash:'a'.repeat(64),
-    installedHash:null,pageRules:{matches:['https://example.com/*'],excludeMatches:[],
+    installedHash:null,attemptedManifestHash:'b'.repeat(64),pageRules:{matches:['https://example.com/*'],excludeMatches:[],
       allFrames:false,runAt:'document_idle',world:'USER_SCRIPT'}};
   const row={programId:review.id,revision:2,manifestHash:'b'.repeat(64),sourceHash:review.sourceHash,
     pageRules:review.pageRules,stage:'Available'};
@@ -174,17 +213,20 @@ test('read-only unknown receipt reconciliation confirms Page only with exact Ava
   const confirmed=await readLocalInstallOutcome({client,review,version:'2'});
   assert.equal(confirmed.state,'confirmed');
   assert.equal(confirmed.manifestHash,row.manifestHash);
+  review.attemptedManifestHash='c'.repeat(64);
+  assert.equal((await readLocalInstallOutcome({client,review,version:'2'})).state,'unconfirmed');
+  review.attemptedManifestHash=row.manifestHash;
   install.nativeState='pending';
   assert.equal((await readLocalInstallOutcome({client,review,version:'2'})).state,'unconfirmed');
   install.nativeState='disabled';install.enabled=false;install.authorization.status='disabled';
   assert.equal((await readLocalInstallOutcome({client,review,version:'2'})).state,'confirmed');
   review.installedHash=row.manifestHash;
   assert.equal((await readLocalInstallOutcome({client,review,version:'2'})).state,'baseline-unchanged');
-  assert.equal(calls,4);
+  assert.equal(calls,5);
 });
 test('read-only unknown receipt reconciliation refuses wrong Task version, source and baseline',async()=>{
   const review={kind:'controller',id:'task-A',sourceHash:'a'.repeat(64),
-    installedHash:null,siteOrigins:['https://example.com']};
+    installedHash:null,attemptedManifestHash:'b'.repeat(64),siteOrigins:['https://example.com']};
   const installed={taskId:review.id,version:'1.0.2',manifestHash:'b'.repeat(64)};
   const candidate={taskId:review.id,version:'1.0.2',manifestHash:installed.manifestHash,
     stage:'available',manifest:{siteOrigins:review.siteOrigins,
