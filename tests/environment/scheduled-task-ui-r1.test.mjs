@@ -229,8 +229,8 @@ test('R2.6 unsaved editor Back/cancel must review changes while task manager pre
   assert.match(ui,/bind\('schedule-cancel','click',\(\)=>requestLeaveForm/);
   assert.match(ui,/bind\('schedule-manager-back','click',\(\)=>show\(managerReturn\)\)/);
   assert.match(css,/#schedule-discard-confirm\{display:grid/);
-  assert.match(css,/:root\\[data-opendesk-surface="scheduled-runner"\\]:has\\(#schedule-runner-view:not\\(\\[hidden\\]\\)\\) \\.schedule-header-heading\\{display:none\\}/);
-  assert.doesNotMatch(css,/:root\\[data-opendesk-surface="scheduled-runner"\\] \\.schedule-header:has\\(#schedule-stop\\[hidden\\]\\)\\{display:none\\}/,
+  assert.ok(css.includes(':root[data-opendesk-surface="scheduled-runner"]:has(#schedule-runner-view:not([hidden])) .schedule-header-heading{display:none}'));
+  assert.equal(css.includes(':root[data-opendesk-surface="scheduled-runner"] .schedule-header:has(#schedule-stop[hidden]){display:none}'),false,
     'standalone editor must never hide its Back header merely because no Run is active');
   assert.doesNotMatch(ui,/(?:window\.)?confirm\s*\(/);
 });
