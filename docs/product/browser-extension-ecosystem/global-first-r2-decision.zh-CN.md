@@ -4,7 +4,7 @@
 
 **先看这份真正的执行性决策**：[Global First R5 TOP20 × 12 行业 × 84 原有机会详细方案](global-first-r5-portfolio.zh-CN.md)。
 
-战略判断已经进一步收窄：Google 2026-04-14 [Chrome Skills](https://blog.google/products-and-platforms/products/chrome/skills-in-chrome/) 提供保存和复用 AI 提示词；Claude 2026-07-24 [Chrome 录制工作流](https://support.claude.com/en/articles/12138966-release-notes) 已能重复调用；UiPath 2026-08-25 [Delegate Routines 公开预览](https://docs.uipath.com/delegate/standalone/latest/release-notes/august-2026) 可以保存、调度和治理复用工作。这些直接否定“只有 OpenDesk 能 AI 创建后重复使用”的宽泛口号。**可争取但尚未证明的价值**是：固定源码/依赖审阅 + 明确网站授权 + 真 Chrome Task Verified/Installed + 关闭模型后同一版本独立 Run + 可追溯回执和撤权，且在实际任务上总成本/成功率有优势。
+战略判断已经进一步收窄：Google 2026-04-14 [Chrome Skills](https://blog.google/products-and-platforms/products/chrome/skills-in-chrome/) 提供保存和复用 AI 提示词；Claude 2025-12-18 [Chrome 录制工作流](https://support.claude.com/en/articles/12138966-release-notes) 已能重复调用；UiPath 2026-08-25 [Delegate Routines 公开预览](https://docs.uipath.com/delegate/standalone/latest/release-notes/august-2026) 可以保存、调度和治理复用工作。这些直接否定“只有 OpenDesk 能 AI 创建后重复使用”的宽泛口号。**可争取但尚未证明的价值**是：固定源码/依赖审阅 + 明确网站授权 + 真 Chrome Task Verified/Installed + 关闭模型后同一版本独立 Run + 可追溯回执和撤权，且在实际任务上总成本/成功率有优势。
 
 **先执行而不是继续无限分析**：在当前原 AI/Task/Authority/RunHost 上，只跑一个真实同包闭环 `examples/tasks/demo-form.html` → 真实 AI 与用户审阅 → 固定 Task → Verified → Available → Installed → 断开模型 → 两次独立运行；同一 runId/resultId、sourceHash、manifestHash、installationId/generation 必须经可信证据绑定。随后公平比较 Chrome Skills、Claude 录制、Axiom、UiPath、ScriptCat、Power Automate、Apify 与 AI coding + 用户脚本管理器。不能访问用户本机 Mac/CFT 的会话标记 **NOT_TESTED**，不能以本轮 Node/CI 代替。
 
