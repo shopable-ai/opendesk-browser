@@ -247,20 +247,29 @@ function assertPinnedFrameworkIIFE(text,file){
     fn.body.body[0].expression.value!=='use strict')
     throw Error('Non-isolated pinned Page framework IIFE: '+file);
 }
-function assertClassicIIFE(text, file) {
-  const ast = parseScript(text, file, 'script'), declaration = ast.body[0];
-  const call = declaration?.declarations?.[0]?.init;
-  if (ast.body.length !== 1 || declaration?.type !== 'VariableDeclaration' || declaration.kind !== 'var' ||
-      declaration.declarations.length !== 1 || declaration.declarations[0].id.type !== 'Identifier' ||
-      call?.type !== 'CallExpression' || call.arguments.length || call.callee.type !== 'FunctionExpression' ||
-      call.callee.params.length || call.callee.async || call.callee.generator)
+export function assertClassicIIFE(text, file) {
+  const ast = parseScript(text,file,'script'), declaration=ast.body[0];
+  // WXT/Terser can emit a side-effect-only tool-shell as !function(){...}().
+  // Accept ONLY that one fixed resource and ONLY this exact no-argument
+  // synchronous IIFE. It is not a bypass for extra statements or dynamic JS.
+  const unary=declaration?.type==='ExpressionStatement'?declaration.expression:null;
+  const expressionIIFE=file==='ui/tool-shell.js'&&
+    unary?.type==='UnaryExpression'&&unary.operator==='!'&&unary.prefix===true&&
+    unary.argument?.type==='CallExpression'?unary.argument:null;
+  if(expressionIIFE&&ast.body.length===1&&expressionIIFE.arguments.length===0&&
+     expressionIIFE.callee?.type==='FunctionExpression'&&
+     expressionIIFE.callee.params.length===0&&!expressionIIFE.callee.async&&
+     !expressionIIFE.callee.generator)return;
+  const call=declaration?.declarations?.[0]?.init;
+  if(ast.body.length!==1||declaration?.type!=='VariableDeclaration'||declaration.kind!=='var'||
+      declaration.declarations.length!==1||declaration.declarations[0].id.type!=='Identifier'||
+      call?.type!=='CallExpression'||call.arguments.length||
+      call.callee.type!=='FunctionExpression'||call.callee.params.length||
+      call.callee.async||call.callee.generator)
     throw new Error(`Non-classic IIFE output in ${file}: top=${ast.body.length}, ${ast.body.map(node=>node.type).join(',')}, decl=${declaration?.kind}, init=${call?.type}, callee=${call?.callee?.type}, expr=${declaration?.expression?.type}, exprCallee=${declaration?.expression?.callee?.type}, unaryArg=${declaration?.expression?.argument?.type}, unaryCallee=${declaration?.expression?.argument?.callee?.type}`);
-  // A WXT unlisted IIFE is a top-level 'var <entryName> = (function(){...})()'.
-  // In a single USER_SCRIPT ScriptSource, that declaration is hoisted BEFORE
-  // any library installation. Reserved public API names must be installed only
-  // by the audited src/libs/core.js installer, never claimed by WXT wrappers.
-  const bundleGlobal = declaration.declarations[0].id.name;
-  if (['_', 'dayjs', 'OpenDeskLibs'].includes(bundleGlobal))
+  // Named fixed IIFE globals must never pre-claim runtime-provided APIs.
+  const bundleGlobal=declaration.declarations[0].id.name;
+  if(['_', 'dayjs', 'OpenDeskLibs'].includes(bundleGlobal))
     throw new Error(`WXT bundle preclaims built-in API global: ${file} (${bundleGlobal})`);
 }
 // Narrow exception: only these seven reviewed, packaged classic resources may
