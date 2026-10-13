@@ -205,6 +205,33 @@ test('DNR reconcile never modifies foreign rules and verifies actual committed b
   await clearFocusRules(api);
   assert.deepEqual(current.map(row=>row.id),[55]);
 });
+test('DNR semantic readback repairs unexpected origin filters and redirect fields',async()=>{
+  const wanted=focusRuleForSite(mkSite('youtube.com'),730000,'quota');
+  const stored=[structuredClone(wanted)];let writes=0;
+  stored[0].condition.requestDomains=['unrelated.example'];
+  const api={declarativeNetRequest:{
+    getDynamicRules:async()=>structuredClone(stored),
+    updateDynamicRules:async({removeRuleIds,addRules})=>{
+      assert.deepEqual(removeRuleIds,[730000]);
+      writes++;
+      stored.splice(0,stored.length,...structuredClone(addRules));
+    }
+  }};
+  const repaired=await reconcileFocusRules(api,[wanted]);
+  assert.equal(repaired.changed,true,
+    'extra requestDomains narrows the rule and must not be treated as verified');
+  assert.equal(writes,1);
+  stored[0].action.redirect.url='https://unexpected.example/';
+  assert.equal((await reconcileFocusRules(api,[wanted])).changed,true,
+    'unexpected redirect settings must be removed');
+  stored[0].condition.isUrlFilterCaseSensitive=true;
+  assert.equal((await reconcileFocusRules(api,[wanted])).changed,true,
+    'a case-sensitive rule can allow differently-cased URL hosts');
+  stored[0].condition.isUrlFilterCaseSensitive=false;
+  assert.equal((await reconcileFocusRules(api,[wanted])).changed,false,
+    'an explicit Chrome default false is semantically equivalent');
+  assert.equal(writes,3);
+});
 test('DNR write failure and readback corruption are not called successful',async()=>{
   const wanted=[focusRuleForSite(mkSite('example.com'),730000,'quota')];
   const rejecting={declarativeNetRequest:{getDynamicRules:async()=>[],
