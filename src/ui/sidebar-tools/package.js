@@ -12,7 +12,7 @@ const CAPABILITIES = Object.freeze(['storage.local','currentPage.read','tasks.op
 const V2_CAPABILITIES = Object.freeze([...CAPABILITIES,'browser.contextMenu','browser.tabs','browser.sidePanel','network',
   'browser.network.observe','browser.events','browser.operations','browser.screenshot']);
 const PACKAGE_FIELDS=Object.freeze(['format','id','version','title','description','capabilities','html','css','js']);
-const V2_FIELDS=Object.freeze([...PACKAGE_FIELDS,'requires','contributes']);
+const V2_FIELDS=Object.freeze([...PACKAGE_FIELDS,'requires','contributes','scripts']);
 const MENU_CONTEXTS=Object.freeze(['page','selection','link']);
 const fail = (message,code='E_TOOL_SCHEMA') => { const error=new Error(message);error.code=code;throw error; };
 const plain = value => value!==null && typeof value==='object' && !Array.isArray(value) &&
@@ -61,6 +61,25 @@ export function validateSidebarToolPackage(value) {
       used.add(action.actionId);
     }
   }
+  // V2 standalone tools may pin several Classic assets for ordered execution
+  // in the existing opaque sandbox. The SHA is revalidated from UTF-8 bytes
+  // by the sandbox before any dependency code runs; no remote URL is trusted.
+  if(value.scripts!==undefined){
+    if(!v2||!Array.isArray(value.scripts)||value.scripts.length<1||value.scripts.length>8)
+      fail('只有 v2 工具支持 1–8 个独立固定 JavaScript 资产','E_TOOL_SCRIPTS');
+    const names=new Set(),enc=new TextEncoder();
+    for(const asset of value.scripts){
+      if(!plain(asset)||Object.keys(asset).sort().join(',')!=='code,name,sha256'||
+        typeof asset.name!=='string'||!/^([A-Za-z0-9][A-Za-z0-9._/-]{0,119})$/.test(asset.name)||
+        asset.name.split('/').some(part=>!part||part==='.'||part==='..')||
+        names.has(asset.name)||typeof asset.sha256!=='string'||!/^[a-f0-9]{64}$/.test(asset.sha256)||
+        typeof asset.code!=='string'||!asset.code.trim()||enc.encode(asset.code).byteLength>96000)
+        fail('固定 JS 资产名称、SHA 或字节预算不合法','E_TOOL_SCRIPTS');
+      if(/(?:^|\n)\s*(?:import|export)\s+(?:[\w*{]|["'])/.test(asset.code))
+        fail('固定独立文件必须是 Classic JavaScript；ESM 请先使用可信构建器','E_TOOL_SCRIPTS');
+      names.add(asset.name);
+    }
+  }
   // HTML is placed ONLY inside an opaque sandbox page. Refuse alternate code paths.
   if (/<\s*\/?\s*(?:script|iframe|object|embed|base|link|meta|style)\b/i.test(value.html) ||
       /\son[a-z]+\s*=/i.test(value.html) || /\b(?:srcdoc|formaction)\s*=/i.test(value.html) ||
@@ -85,6 +104,9 @@ export function serializeSidebarToolPackage(value){
   // A version-matched v2 contribution must have ONE canonical digest regardless
   // of object-key order; never let storage reordering revoke or inherit grants.
   if(isV2){
+    if(tool.scripts!==undefined)stable.scripts=tool.scripts.map(asset=>({
+      name:asset.name,sha256:asset.sha256,code:asset.code
+    }));
     stable.requires={browserSdk:tool.requires.browserSdk};
     stable.contributes={contextMenus:tool.contributes.contextMenus.map(action=>({
       actionId:action.actionId,title:action.title,contexts:action.contexts,
