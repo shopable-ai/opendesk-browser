@@ -1,5 +1,15 @@
 # Stay Focus R1.4 — zero-config shared entertainment (2026-10-13)
 
+## R1.4 code-integrated evidence note — 2026-10-13
+
+- **Latest candidate with affected source and native driver:** `cbf84e01839768d3ad842860b819884c693c09fa`. The doc-only tracking commit following this note is not an unrelated product candidate.
+- **Confirmed main source writes:** `2780b317` Host classification/persistent reminder, `a2ba84da` one-screen shared budget, `5ac462b6` real Chrome driver, `f1bd9ed2` legacy quick-preset test correction, `ddc35d7f` orphan notice cleanup and service regression, `cbf84e01` YouTube/TikTok native DNR assertions.
+- **Verification actually executed in this conversation:** 12 edited JavaScript files passed standalone V8 parsing after neutral import stripping (syntax-only); 10 focused checks of the GitHub-pulled policy/catalog/model/rule-host passed in an isolated V8 harness with minimal URL/structuredClone replacements. This is explicitly `V8_SMOKE`, **not Node COMPONENT, not npm build, not Chrome Native**.
+- **Current strict candidate CI:** [Stay Focus Actions #38418376821](https://github.com/shopable-ai/opendesk-browser/actions/runs/38418376821) was **QUEUED** at last query, with `source-and-build` also `QUEUED`. No source/build/ZIP/Chrome result, artifact hash or 95+ acceptance is claimed until original job logs are available.
+- **Native scope:** actual install/permission, default 30m, trusted edit to 2m, real HTTP foreground billing, 1m in-page reminder screenshot, quota DNR, YouTube and TikTok cross-domain Chrome navigations, pause/re-enable/Chrome restart/uninstall have test **source**. Two different entertainment sites each consuming time in the same native session, independent Side Panel-closed checks, and actual completed macOS job logs remain specifically **NOT_TESTED**; Node model tests include cross-site shared pooling but cannot replace those native receipts.
+- **Known environment boundary:** this remote-only connection cannot read `/Users/shopme/Documents/workspace/opendesk-browser`, cannot run the user's Chrome, and the container has no external GitHub/npm network. Avoid reporting `npm run check/build/build:dev/verify` as executed locally; use exact GitHub Actions receipts when they exist.
+
+
 **Implementation candidate:** backend `2780b3178e74`, UI `a2ba84da346e`, native driver `5ac462b64440`. Subsequent R1.4 maintenance commits and unrelated main changes must be checked against final source identity. These are SOURCE changes, not native PASS receipts.
 
 | Product scenario | Source | Current component evidence | Current macOS Chrome evidence |
