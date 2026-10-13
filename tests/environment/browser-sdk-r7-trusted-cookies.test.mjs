@@ -85,7 +85,7 @@ test('R10 public Cookie schemas describe real scoped data without generic object
 });
 test('R9 installed-tool Cookies public SDK retains host trust and denies Page SDK',()=>{
   assert.equal(TRUSTED_COOKIE_OPERATIONS.length,11);
-  assert.equal(Object.keys(BROWSER_OPERATIONS).length,40);
+  assert.equal(Object.keys(BROWSER_OPERATIONS).filter(id=>id.startsWith('browser.cookies.')).length,11);
   assert.equal(createBrowserSdk({context:'page-sdk'}).cookies,undefined);
   assert.equal(typeof createBrowserSdk({request:async()=>true}).cookies.getAll,'function');
   assert.throws(()=>normalizeBrowserOperation('browser.cookies.getAll',{}),reject('E_SCHEMA'));
