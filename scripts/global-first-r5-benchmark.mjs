@@ -37,6 +37,11 @@ function validTrial(t,scenario,knownComparators) {
          'OpenDesk requires real RunId/ResultId strings');
       yes(t.retirementState==='released','OpenDesk must end with released Worker');
       yes(t.nativeEvidenceLevel==='REAL_CHROME_RECEIPT','Node/mocks cannot count as Chrome native');
+      yes(sha.test(t.packageHash),'Chrome repeat requires matching physical extension package hash');
+      yes(typeof t.installationId==='string'&&t.installationId.length>=8,
+        'Chrome repeat requires fixed installed identity');
+      yes(Number.isSafeInteger(t.generation)&&t.generation>0,
+        'Chrome repeat requires fixed installation generation');
     }
   }
   if(t.modelCalls===0 && t.modelCallMeasurement!=='DIRECT_TRACE')
@@ -60,6 +65,21 @@ export function evaluateR5Benchmark(plan, rawTrials, {scenarioId, comparatorIds}
     yes(!seen.has(key),'duplicate comparator + trial number, cannot cherry-pick');seen.add(key);
     yes(!selected.some(x=>x.trialId===t.trialId),'duplicate stable trial ID');selected.push(t);
   }
+  if(scenarioId==='R5-T02') {
+    // Distinct runs of the SAME installed revision. Mixed installations cannot
+    // be called twenty repetitions, even when each individually has a receipt.
+    const accepted=selected.filter(t=>t.comparatorId==='opendesk'&&t.outcome==='PASS');
+    const runs=new Set(),results=new Set(),identities=new Set();
+    for(const t of accepted) {
+      yes(!runs.has(t.runId)&&!results.has(t.resultId),
+        'a repeat must produce different trusted RunId and ResultId');
+      runs.add(t.runId);results.add(t.resultId);
+      identities.add(JSON.stringify([t.packageHash,t.sourceHash,t.manifestHash,
+        t.installationId,t.generation]));
+    }
+    yes(identities.size<=1,
+      'repeated runs mix source, package, manifest or installation generation');
+  }
   const rows=comparatorIds.map(id=>{
     const mine=selected.filter(x=>x.comparatorId===id).sort((a,b)=>a.runNumber-b.runNumber);
     const complete=mine.length===scenario.repetitions &&
@@ -72,20 +92,26 @@ export function evaluateR5Benchmark(plan, rawTrials, {scenarioId, comparatorIds}
       status:mine.length===0?STATUS.EMPTY:complete?STATUS.COMPLETE:STATUS.PARTIAL,
       passed:pass.length,failed:mine.filter(x=>x.outcome==='FAIL').length,
       unknown:mine.filter(x=>!['PASS','FAIL'].includes(x.outcome)).length,
+      successRate:complete?pass.length/scenario.repetitions:null,
       medianSuccessDurationMs:timed.length?median(timed):null,
       modelCallCount:traced?mine.reduce((sum,x)=>sum+x.modelCalls,0):null,
       totalCostUsd:costed?mine.reduce((sum,x)=>sum+x.costMicrosUsd,0)/1e6:null};
   });
-  const fullyTested=rows.every(x=>x.status===STATUS.COMPLETE && x.passed>0);
-  const costsComplete=fullyTested&&rows.every(x=>x.totalCostUsd!==null);
-  const timesComplete=fullyTested&&rows.every(x=>x.medianSuccessDurationMs!==null);
+  const fullyObserved=rows.every(x=>x.status===STATUS.COMPLETE);
+  // Ranking the median of successes alone would reward a fast but often failing bot.
+  // Only allow descriptive time ordering if ALL pre-registered trials succeeded.
+  const completeSuccess=fullyObserved&&rows.every(x=>x.passed===scenario.repetitions);
+  const costsComplete=fullyObserved&&rows.every(x=>x.totalCostUsd!==null);
+  const timesComplete=completeSuccess&&rows.every(x=>x.medianSuccessDurationMs!==null);
   const rankedTimes=timesComplete?
     rows.map(x=>({comparatorId:x.id,medianMs:x.medianSuccessDurationMs}))
       .sort((a,b)=>a.medianMs-b.medianMs):[];
   return Object.freeze({scenarioId,comparedCohort:[...comparatorIds],
-    status:rows.every(x=>x.status===STATUS.EMPTY)?STATUS.EMPTY:fullyTested?STATUS.COMPLETE:STATUS.PARTIAL,
+    status:rows.every(x=>x.status===STATUS.EMPTY)?STATUS.EMPTY:fullyObserved?STATUS.COMPLETE:STATUS.PARTIAL,
     rows,scopedTimeRanking:timesComplete?rankedTimes:RANK_WITHHELD,
     costComparison:costsComplete?'MEASURED_ALL':RANK_WITHHELD,
+    failureGate:timesComplete?'ALL_SCENARIO_RUNS_SUCCEEDED':'RANKING_WITHHELD_FOR_FAILURE_OR_MISSING_EVIDENCE',
+    nativeEvidenceCertified:'NOT_CERTIFIED_BY_JSON_CALCULATOR',
     globalOrRegionalFirstClaim:'NOT_APPROVED',
-    caution:'A complete measured cohort supports only dated/region/version-scoped findings; never WORLD_FIRST or GLOBAL_TOP5.'});
+    caution:'A complete measured cohort supports only independently audited dated/region/version-scoped findings; never WORLD_FIRST or GLOBAL_TOP5.'});
 }
