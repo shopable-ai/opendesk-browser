@@ -55,7 +55,17 @@ function resolveImport(spec,base,mappings,entry=false){
   if((spec.startsWith('./')||spec.startsWith('../')||spec.startsWith('/'))&&!entry)return urlOf(new URL(spec,base).href);
   if(entry&&spec.startsWith('.'))throw error('E_CONTROLLER_LOCAL_PROJECT','Relative imports require the existing local multi-file project builder');
   if(Object.hasOwn(mappings,spec))return mappings[spec];
-  throw error('E_REMOTE_IMPORT','Unmapped import '+JSON.stringify(spec)+'; add a pinned @opendesk-import mapping or use a fixed HTTPS ESM URL');
+  // A normal JavaScript static import may carry an exact npm version. Reuse
+  // the existing ESM module graph, SHA byte store and opaque Worker; no new
+  // loader, CDN script tag, special comment directive or unpinned "latest".
+  const pinned=/^((?:@[a-z0-9][a-z0-9._-]*\/)?[a-z0-9][a-z0-9._-]*)@((?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)(?:-[0-9A-Za-z.-]+)?)$/.exec(spec);
+  if(pinned){
+    if(['react','react-dom','vue'].includes(pinned[1]))
+      throw error('E_REMOTE_IMPORT','Use the fixed component runtime instead of importing a second framework');
+    return urlOf('https://cdn.jsdelivr.net/npm/'+spec+'/+esm');
+  }
+  throw error('E_REMOTE_IMPORT','Unmapped import '+JSON.stringify(spec)+
+    '; use an exact pinned package such as mitt@3.0.1, a fixed HTTPS ESM URL or a trusted local project');
 }
 function astFor(babel,source,file){
   try{return babel.transform(source,{filename:file,code:false,ast:true,babelrc:false,
