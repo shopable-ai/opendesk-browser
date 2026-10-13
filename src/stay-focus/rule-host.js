@@ -24,8 +24,13 @@ export function wantedFocusRules(state,at=Date.now()){
   if(rules.length>FOCUS_MAX_SITES)throw focusError('限制网站数量超过安全上限','E_FOCUS_RULE');
   return rules;
 }
-const shape=rule=>JSON.stringify({id:rule.id,priority:rule.priority,action:rule.action,
-  condition:rule.condition});
+// Chrome can return fields in a different object order. Compare semantic
+// condition/action values rather than serialization order or extra defaults.
+const shape=rule=>JSON.stringify([
+  rule.id,rule.priority,rule.action?.type,rule.action?.redirect?.extensionPath,
+  rule.condition?.regexFilter,[...(rule.condition?.resourceTypes||[])].sort(),
+  [...(rule.condition?.excludedRequestDomains||[])].sort()
+]);
 export async function reconcileFocusRules(api,wanted=[]){
   const dnr=api?.declarativeNetRequest;
   if(!dnr?.getDynamicRules||!dnr?.updateDynamicRules)
